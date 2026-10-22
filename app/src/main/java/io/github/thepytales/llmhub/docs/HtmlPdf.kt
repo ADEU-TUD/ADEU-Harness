@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.docs
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
@@ -57,12 +56,13 @@ object HtmlPdf {
         return pages
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(context: Context) = WebView(context.applicationContext).apply {
         // Documents are static; scripts stay off.
         settings.javaScriptEnabled = false
         settings.allowFileAccess = false
         settings.loadsImagesAutomatically = true
+        // An off-screen WebView needs a size before it renders anything (A4 at 96 dpi).
+        layout(0, 0, 794, 1123)
     }
 
     private suspend fun load(web: WebView, html: String) = suspendCancellableCoroutine<Unit> { cont ->

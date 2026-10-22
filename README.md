@@ -5,26 +5,45 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 
 ## Funktionen
 
+- **Oberfläche wie ChatGPT/Claude**: Seitenleiste mit Suche, Ordnern, angehefteten und letzten Chats; Modellauswahl
+  oben in der Mitte, Eingabefeld mit „+“-Menü (Kamera, Fotos, Dateien, Vorlagen, Persona, Repository, Umgebung).
+  Gewähltes Repository, Umgebung und Persona bleiben als Chips über dem Eingabefeld sichtbar.
 - **Chat** mit allen Chat-Modellen (Qwen, GLM, DeepSeek, MiniMax, gpt-oss, Gemma, Llama …), Streaming,
-  Markdown/Code-Darstellung, Anzeige des Gedankengangs von Reasoning-Modellen, Bilder anhängen (Vision-Modelle),
-  eigener System-Prompt pro Chat, Verlauf wird lokal gespeichert.
-- **Modellübersicht** mit kurzer Beschreibung, Stärken, Leistungs-/Tempo-Einschätzung, Kontextlänge und
-  Fähigkeiten (Denken, Bilder, Werkzeuge). Die Liste wird live über `/v1/models` geladen.
-  **Suche und Filter** nach Typ, Fähigkeiten, Mindest-Leistung und -Tempo, Sortierung nach Leistung, Tempo,
-  Kontext oder Name – auch in der Modellauswahl im Chat.
-- **GitHub-Agent**: Mit einem GitHub-Token kann das Modell (wie ein Coding-Agent) in deinen Repositories arbeiten –
-  Dateien auflisten, lesen, durchsuchen, bearbeiten und committen, Branches und Pull Requests erstellen,
-  Issues lesen/kommentieren. Schreibaktionen müssen standardmäßig bestätigt werden. Die Werkzeuge sind in neuen
-  Chats automatisch aktiv; ein GitHub-Link in einer Nachricht (z.B. `https://github.com/owner/repo`) wählt das
-  Repository direkt aus.
-- **Dokumente erstellen**: Das Modell kann PDF-, Word- (.docx), HTML-, Markdown- und Textdateien erzeugen
-  („Erstelle mir ein PDF mit …“). Die Datei erscheint im Chat zum Öffnen, Teilen und Speichern. Jede Antwort und
-  der ganze Chat lassen sich außerdem selbst als Dokument exportieren.
-- **Webseiten lesen**: Links aus dem Chat kann das Modell abrufen und auswerten.
-- **Darstellung**: Stile *Standard* (Material You), *Claude*, *ChatGPT* und *Gemini*, frei wählbarer Farbton,
-  Hell/Dunkel/System, reines Schwarz (AMOLED) und Schriftgröße.
+  Markdown/Code-Darstellung, Gedankengang von Reasoning-Modellen, Bilder anhängen (Vision-Modelle), Verlauf lokal.
+- **Chats verwalten**: Volltextsuche über Titel und Nachrichten, Anheften, Ordner, Umbenennen (lange auf einen Chat
+  in der Seitenleiste drücken).
+- **Bearbeiten & Neu generieren mit Versionen**: Eigene Nachrichten bearbeiten oder Antworten neu erzeugen (auch mit
+  einem anderen Modell) – frühere Versionen bleiben über „‹ 1/2 ›“ erreichbar, wie bei ChatGPT.
+- **Dateien als Anhang**: PDF (Text; Scans werden als Bilder angehängt), Word, PowerPoint, Excel, OpenDocument,
+  Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen.
+- **Vorlagen**: Personas (System-Prompts wie „Übersetzer“, „Code-Reviewer“, „Lektor“) und Prompt-Vorlagen – eigene
+  anlegen, im Chat über „+“ › Vorlagen nutzen.
+- **Modelle vergleichen**: Zwei Modelle beantworten dieselbe Frage nebeneinander, mit Antwortzeit, Tokens und
+  Tokens/s; eine Seite lässt sich als Chat fortsetzen.
+- **Verbrauch**: Anfragen und Tokens pro Tag (Diagramm), nach Modell und Art; nur lokal gezählt.
+- **Geplante Aufgaben**: Der Agent führt Aufträge zeitgesteuert aus (täglich/Wochentage um eine Uhrzeit oder alle
+  N Stunden), z.B. jeden Morgen News zu einem Thema. Ergebnis als Chat im Ordner der Aufgabe, mit Benachrichtigung.
+- **Umgebungen für Agenten**: Name, Netzwerkzugriff (vollständig, nur erlaubte Domains, keiner),
+  Umgebungsvariablen (auch als `.env` einfügbar) und Hinweise für das Modell. Geheime Variablen sieht das Modell nie;
+  es nutzt sie als `${NAME}` in Web-Anfragen (`fetch_url` mit Methode, Headern und Body). Verschlüsselt gespeichert.
+- **Modellübersicht** mit Beschreibung, Stärken, Leistungs-/Tempo-Einschätzung, Kontextlänge und Fähigkeiten,
+  Suche, Filter und Sortierung.
+- **GitHub-Agent**: Mit einem GitHub-Token arbeitet das Modell in deinen Repositories – Dateien lesen, durchsuchen,
+  bearbeiten und committen, Branches und Pull Requests erstellen, Issues lesen/kommentieren. Schreibaktionen müssen
+  standardmäßig bestätigt werden. Ein GitHub-Link in einer Nachricht wählt das Repository direkt aus.
+- **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News) und Webseiten lesen.
+- **Dokumente erstellen**: PDF, Word (.docx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
+  Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
+  (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`). Für besondere Gestaltung (Flyer, Rechnung, Lebenslauf …) schreibt das
+  Modell eigenes HTML mit Farben, Formen und Schriften.
+- **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
+  meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
+- **Darstellung**: Stile *Standard* (Material You), *Claude*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
+  reines Schwarz (AMOLED) und Schriftgröße.
 - **Bildgenerierung** mit FLUX.2 (Speichern in der Galerie).
-- **Spracheingabe** (Whisper) und **Vorlesen** von Antworten (TTS).
+- **Spracheingabe** (Whisper) und **Vorlesen**: wahlweise mit der KI-Stimme des Uni-Servers (der die Antwort ohnehin
+  geschrieben hat – keine Daten an Dritte) oder komplett offline mit einer Stimme des Geräts; lange Antworten werden in
+  Abschnitten gelesen, Code und Links übersprungen.
 
 ## Installation
 
@@ -44,7 +63,7 @@ Unter <https://github.com/settings/personal-access-tokens/new> ein *Fine-grained
 - Repository access: die gewünschten Repositories (oder alle)
 - Permissions: **Contents**, **Pull requests**, **Issues** → *Read and write*; **Metadata** → *Read*
 
-Im Chat über das `</>`-Symbol ein Repository wählen. Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
+Im Chat über „+“ › GitHub-Repository ein Repository wählen (oder einfach einen GitHub-Link schreiben). Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
 z.B. `Qwen/Qwen3.8-27B`, `zai-org/GLM-5.3`, `zai-org/GLM-5.3-Flash` oder `MiniMaxAI/MiniMax-M3`.
 
 ## Selbst bauen
@@ -62,13 +81,18 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 
 | Pfad | Inhalt |
 | --- | --- |
-| `net/LlmClient.kt` | Chat-Streaming (SSE), Modelle, Bilder, TTS, STT |
+| `net/LlmClient.kt` | Chat-Streaming (SSE) mit Token-Zählung, Modelle, Bilder, TTS, STT |
 | `net/GitHubClient.kt` | GitHub-REST-API |
+| `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben |
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
-| `agent/GitHubTools.kt` | GitHub-Werkzeuge und deren Ausführung |
-| `agent/DocumentTools.kt`, `agent/WebTools.kt` | Dokumente erstellen, Webseiten lesen |
-| `docs/` | Markdown → PDF, Word (.docx), HTML, Text |
-| `ui/ChatViewModel.kt` | Agent-Schleife: Modell → Werkzeuge → Modell … |
-| `data/ModelCatalog.kt` | Beschreibungen und Fähigkeiten der Modelle |
-| `data/ModelFilter.kt` | Suche/Filter/Sortierung der Modelle |
+| `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |
+| `data/ChatTree.kt` | Chats als Baum (Versionen beim Bearbeiten/Neu generieren) |
+| `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen, Umgebungen, Logos und deren Speicherung |
+| `data/ScheduledTask.kt`, `tasks/TaskScheduler.kt` | Geplante Aufgaben (WorkManager) und Benachrichtigungen |
+| `data/UsageStore.kt` | Verbrauch pro Tag und Modell |
+| `files/AttachmentReader.kt` | Text aus PDF, Office- und Textdateien |
+| `docs/` | Dokumente: HTML/CSS → PDF (WebView), Word (.docx), HTML, Text; Stile und Logos |
+| `audio/` | Aufnahme, Wiedergabe und Vorlesen (Server oder offline) |
+| `ui/AppRoot.kt`, `ui/AppDrawer.kt` | Navigation und Seitenleiste |
+| `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `ui/ChatComposer.kt` | Chat-Oberfläche |
 | `ui/Theme.kt` | Stile, Farbtöne, Hell/Dunkel |

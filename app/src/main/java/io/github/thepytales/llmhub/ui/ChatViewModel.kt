@@ -9,6 +9,7 @@ import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelType
+import io.github.thepytales.llmhub.data.NO_CHILD
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.addVersion
@@ -259,6 +260,11 @@ class ChatViewModel(
                     } else conv
                 }
             } finally {
+                // Stopped before a new version started: show the previous answer again.
+                update { conv ->
+                    val last = conv.thread().lastOrNull()
+                    if (last != null && conv.selected[last.id] == NO_CHILD) conv.copy(selected = conv.selected - last.id) else conv
+                }
                 _running.value = false
                 persist()
             }
