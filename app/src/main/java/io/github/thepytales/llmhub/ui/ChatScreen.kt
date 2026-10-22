@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -70,8 +71,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -108,6 +111,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.audio.Recorder
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.ModelCatalog
@@ -194,6 +198,7 @@ fun ChatScreen(c: AppContainer, id: String, onBack: () -> Unit) {
     var showRepoPicker by remember { mutableStateOf(false) }
     var showSystemPrompt by remember { mutableStateOf(false) }
     var showDelete by remember { mutableStateOf(false) }
+    var export by remember { mutableStateOf<Pair<String, String>?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
     val recorder = remember { Recorder(context.applicationContext) }
     var recording by remember { mutableStateOf(false) }
@@ -274,6 +279,12 @@ fun ChatScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                                 onClick = { menuOpen = false; vm.retry() },
                             )
                             DropdownMenuItem(
+                                text = { Text("Chat exportieren (PDF, Word …)") },
+                                leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null) },
+                                enabled = current.messages.isNotEmpty(),
+                                onClick = { menuOpen = false; export = current.title to chatToMarkdown(current) },
+                            )
+                            DropdownMenuItem(
                                 text = { Text("Chat löschen") },
                                 leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
                                 onClick = { menuOpen = false; showDelete = true },
@@ -339,7 +350,7 @@ fun ChatScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                             onValueChange = { input = it },
                             placeholder = { Text(if (recording) "Aufnahme läuft…" else "Nachricht") },
                             maxLines = 6,
-                            shape = RoundedCornerShape(20.dp),
+                            shape = LocalChatLook.current.inputShape,
                             colors = TextFieldDefaults.colors(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
@@ -405,13 +416,14 @@ fun ChatScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                         streaming = running && m.id == last?.id,
                         playing = playingId == m.id,
                         onSpeak = { vm.speak(m) },
+                        onExport = { text -> export = current.title to text },
                     )
                     // Tool results are shown inside the assistant message that requested them.
                     else -> {}
                 }
             }
             if (current.messages.isEmpty()) {
-                item(key = "intro") { ChatIntro(current.githubEnabled, current.repo, modelInfo.summary) }
+                item(key = "intro") { ChatIntro(current.githubEnabled, settings.hasGitHub, current.repo, modelInfo.summary) }
             }
         }
     }
@@ -456,6 +468,10 @@ fun ChatScreen(c: AppContainer, id: String, onBack: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { showSystemPrompt = false }) { Text("Abbrechen") } },
         )
+    }
+
+    export?.let { (title, text) ->
+        ExportDialog(title = title, markdown = text, onDismiss = { export = null })
     }
 
     if (showDelete) {
@@ -512,14 +528,19 @@ private fun shortArgs(args: String): String = runCatching {
 }.getOrDefault(args.take(60))
 
 @Composable
-private fun ChatIntro(github: Boolean, repo: String?, summary: String) {
+private fun ChatIntro(github: Boolean, hasToken: Boolean, repo: String?, summary: String) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Neuer Chat", style = MaterialTheme.typography.titleMedium)
             Text(summary, style = MaterialTheme.typography.bodySmall)
             Text(
-                if (github) "GitHub-Werkzeuge aktiv${repo?.let { " – Repository: $it" } ?: ""}. Beispiel: „Lies die README und schlage Verbesserungen vor.“"
-                else "Tipp: Über das </>-Symbol oben kannst du ein GitHub-Repository verbinden, damit das Modell darin arbeiten kann.",
+                when {
+                    github -> "GitHub-Werkzeuge aktiv${repo?.let { " – Repository: $it" } ?: ""}. Beispiel: „Lies die README von " +
+                        "github.com/owner/repo und schlage Verbesserungen vor.“"
+                    hasToken -> "Tipp: Über das </>-Symbol oben kannst du die GitHub-Werkzeuge einschalten – oder einfach einen " +
+                        "GitHub-Link in die Nachricht schreiben."
+                    else -> "Tipp: Mit einem GitHub-Token (Einstellungen) kann das Modell in deinen Repositories arbeiten."
+                } + " Das Modell kann außerdem PDFs und Word-Dokumente erstellen und Webseiten lesen.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -529,10 +550,11 @@ private fun ChatIntro(github: Boolean, repo: String?, summary: String) {
 
 @Composable
 private fun UserBubble(m: ChatMessage) {
+    val look = LocalChatLook.current
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp),
+            color = look.userBubble,
+            shape = look.userShape,
             modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -541,7 +563,7 @@ private fun UserBubble(m: ChatMessage) {
                 }
                 if (m.content.isNotBlank()) {
                     SelectionContainer {
-                        Text(m.content, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(m.content, color = look.onUserBubble)
                     }
                 }
             }
@@ -556,6 +578,7 @@ private fun AssistantMessage(
     streaming: Boolean,
     playing: Boolean,
     onSpeak: () -> Unit,
+    onExport: (String) -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
     if (m.error) {
@@ -577,13 +600,22 @@ private fun AssistantMessage(
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (thinking != null) ThinkingBox(thinking, streaming && answer.isBlank())
         if (answer.isNotBlank()) {
-            SelectionContainer { MarkdownText(answer) }
+            ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = LocalChatLook.current.answerFont)) {
+                SelectionContainer { MarkdownText(answer) }
+            }
         }
-        m.toolCalls.forEach { call -> ToolCallCard(call.name, shortArgs(call.arguments), results[call.id]?.content, streaming) }
+        m.toolCalls.forEach { call ->
+            val result = results[call.id]
+            ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming)
+            result?.file?.let { DocumentCard(it) }
+        }
         if (!streaming && answer.isNotBlank()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { clipboard.setText(AnnotatedString(answer)) }, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Outlined.ContentCopy, contentDescription = "Kopieren", modifier = Modifier.size(16.dp))
+                }
+                IconButton(onClick = { onExport(answer) }, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Outlined.Description, contentDescription = "Als Dokument exportieren", modifier = Modifier.size(16.dp))
                 }
                 IconButton(onClick = onSpeak, modifier = Modifier.size(32.dp)) {
                     Icon(
@@ -728,7 +760,7 @@ private fun RepoPickerDialog(
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Suchen") },
+                    placeholder = { Text("Suchen oder owner/repo bzw. URL eingeben") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -744,7 +776,16 @@ private fun RepoPickerDialog(
                                 supportingContent = { Text("Das Modell wählt bei Bedarf selbst.") },
                             )
                         }
-                        repos!!.filter { it.fullName.contains(query.trim(), ignoreCase = true) }.forEach { r ->
+                        val typed = GitHubTools.parseRepo(query)
+                        if (typed != null && repos!!.none { it.fullName.equals(typed, ignoreCase = true) }) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                modifier = Modifier.clickable { onApply(true, typed, null); onDismiss() },
+                                headlineContent = { Text("„$typed“ verwenden") },
+                                supportingContent = { Text("Auch fremde öffentliche Repositories") },
+                            )
+                        }
+                        repos!!.filter { it.fullName.contains(query.trim(), ignoreCase = true) || typed != null && it.fullName.equals(typed, ignoreCase = true) }.forEach { r ->
                             ListItem(
                                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                 modifier = Modifier.clickable {

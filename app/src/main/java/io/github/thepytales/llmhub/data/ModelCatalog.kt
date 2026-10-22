@@ -198,6 +198,19 @@ object ModelCatalog {
 
     fun info(id: String): ModelInfo = byId[id.lowercase()] ?: guess(id)
 
+    /** For aliases: fills unknown capabilities and ratings from the model the alias points to. */
+    fun effective(m: ModelInfo): ModelInfo {
+        val target = m.aliasOf?.let { byId[it.lowercase()] } ?: return m
+        return m.copy(
+            contextTokens = m.contextTokens ?: target.contextTokens,
+            thinking = m.thinking ?: target.thinking,
+            vision = m.vision ?: target.vision,
+            tools = m.tools ?: target.tools,
+            power = m.power ?: target.power,
+            speed = m.speed ?: target.speed,
+        )
+    }
+
     private fun guess(id: String): ModelInfo {
         val l = id.lowercase()
         val type = when {

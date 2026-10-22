@@ -48,7 +48,12 @@ class ChatRepository(context: Context) {
     }
 
     fun delete(id: String) {
+        // Documents created by tools in this chat are deleted with it.
+        val files = get(id)?.messages?.mapNotNull { it.file }.orEmpty()
         _conversations.update { list -> list.filterNot { it.id == id } }
-        scope.launch { writeLock.withLock { File(dir, "$id.json").delete() } }
+        scope.launch {
+            writeLock.withLock { File(dir, "$id.json").delete() }
+            files.forEach { File(it).delete() }
+        }
     }
 }

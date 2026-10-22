@@ -3,11 +3,19 @@ package io.github.thepytales.llmhub.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.agent.DocumentTools
 import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.agent.RepoContext
+import io.github.thepytales.llmhub.agent.ToolOutput
+import io.github.thepytales.llmhub.agent.ToolProvider
+import io.github.thepytales.llmhub.agent.WebTools
+import io.github.thepytales.llmhub.agent.execute
+import io.github.thepytales.llmhub.agent.toSchema
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
+import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ToolCall
+import io.github.thepytales.llmhub.net.ApiException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
@@ -92,7 +100,21 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
                 updatedAt = System.currentTimeMillis(),
             )
         }
+        connectMentionedRepo(text)
         startAgent()
+    }
+
+    /** A GitHub link in the message turns the GitHub tools on and selects that repository. */
+    private fun connectMentionedRepo(text: String) {
+        val repo = GitHubTools.findRepoUrl(text) ?: return
+        val conv = _conversation.value ?: return
+        if (!c.settings.current.hasGitHub) {
+            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein GitHub-Token in den Einstellungen eintragen.")
+            return
+        }
+        if (conv.githubEnabled && conv.repo != null) return
+        if (!conv.githubEnabled) _toasts.tryEmit("GitHub-Werkzeuge aktiviert: $repo")
+        edit(persist = true) { it.copy(githubEnabled = true, repo = it.repo ?: repo, branch = if (it.repo == null) null else it.branch) }
     }
 
     /** Re-runs the model on the current history (e.g. after an error). */
@@ -102,6 +124,7 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
             val trimmed = conv.messages.dropLastWhile { it.role == "assistant" && (it.error || it.toolCalls.isEmpty()) }
             conv.copy(messages = trimmed)
         }
+        _conversation.value?.messages?.lastOrNull { it.role == "user" }?.let { connectMentionedRepo(it.content) }
         startAgent()
     }
 
@@ -129,25 +152,41 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
         }
     }
 
+    /** Tool groups offered to the model in this conversation. */
+    private fun toolProviders(conv: Conversation): List<ToolProvider> {
+        val settings = c.settings.current
+        // Models known not to support function calling only get a plain chat.
+        if (ModelCatalog.info(conv.model).tools == false) return emptyList()
+        return listOfNotNull(
+            c.githubTools.takeIf { conv.githubEnabled && settings.hasGitHub },
+            c.documentTools.takeIf { settings.documentTools },
+            c.webTools.takeIf { settings.webTools },
+        )
+    }
+
     private suspend fun runAgent() {
         val settings = c.settings.current
         val start = _conversation.value ?: return
         val ctx = RepoContext(start.repo, start.branch)
-        val useTools = start.githubEnabled && settings.hasGitHub
         if (start.githubEnabled && !settings.hasGitHub) {
-            _toasts.tryEmit("GitHub-Token fehlt – Werkzeuge deaktiviert.")
+            _toasts.tryEmit("GitHub-Token fehlt – GitHub-Werkzeuge deaktiviert.")
         }
+        if (ctx.repo != null && ctx.branch == null && settings.hasGitHub) {
+            ctx.branch = runCatching { c.github.defaultBranch(ctx.repo!!) }.getOrNull()
+            if (ctx.branch != null) edit(persist = true) { it.copy(branch = ctx.branch) }
+        }
+        var providers = toolProviders(start)
         var steps = 0
         while (true) {
             val conv = _conversation.value ?: return
-            val apiMessages = buildApiMessages(conv, ctx, useTools)
+            val apiMessages = buildApiMessages(conv, ctx, providers)
             val placeholder = ChatMessage(role = "assistant", model = conv.model)
             append(placeholder)
             val result = try {
                 c.llm.streamChat(
                     model = conv.model,
                     messages = apiMessages,
-                    tools = if (useTools) c.githubTools.schema() else null,
+                    tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
                 ) { upd ->
                     editMessage(placeholder.id) {
                         it.copy(content = upd.content, reasoning = upd.reasoning.ifEmpty { null }, toolCalls = upd.toolCalls)
@@ -156,6 +195,16 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                val partial = _conversation.value?.messages?.firstOrNull { it.id == placeholder.id }
+                if (e is ApiException && e.code in 400..422 && e.message.orEmpty().contains("tool", ignoreCase = true) &&
+                    providers.isNotEmpty() && partial?.content.isNullOrBlank()
+                ) {
+                    // The model (or its server configuration) rejects function calling: answer without tools.
+                    edit { cv -> cv.copy(messages = cv.messages.filterNot { it.id == placeholder.id }) }
+                    _toasts.tryEmit("${ModelCatalog.info(conv.model).displayName} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.")
+                    providers = emptyList()
+                    continue
+                }
                 edit { cv ->
                     val msgs = cv.messages.filterNot { it.id == placeholder.id && it.content.isBlank() }
                     cv.copy(messages = msgs + ChatMessage(role = "assistant", content = e.message ?: e.toString(), error = true))
@@ -163,16 +212,23 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
                 return
             }
             persist()
-            if (result.toolCalls.isEmpty() || !useTools) return
+            if (result.toolCalls.isEmpty() || providers.isEmpty()) return
 
             for (call in result.toolCalls) {
-                val allowed = !(settings.confirmWrites && c.githubTools.isWriteTool(call.name)) || confirm(call)
-                val output = if (allowed) {
-                    c.githubTools.execute(call.name, call.arguments, ctx)
-                } else {
-                    "Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst."
+                val provider = providers.firstOrNull { it.handles(call.name) }
+                val needsConfirm = provider === c.githubTools && settings.confirmWrites && c.githubTools.isWriteTool(call.name)
+                val output = when {
+                    provider == null -> ToolOutput("FEHLER: Unbekanntes Werkzeug '${call.name}'.")
+                    !needsConfirm || confirm(call) -> provider.execute(call.name, call.arguments, ctx)
+                    else -> ToolOutput(
+                        "Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst."
+                    )
                 }
-                append(ChatMessage(role = "tool", content = output, toolCallId = call.id, toolName = call.name))
+                append(
+                    ChatMessage(
+                        role = "tool", content = output.text, toolCallId = call.id, toolName = call.name, file = output.file,
+                    )
+                )
                 edit { it.copy(repo = ctx.repo, branch = ctx.branch) }
             }
             persist()
@@ -203,12 +259,15 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
         _pending.value?.result?.complete(allow)
     }
 
-    private fun buildApiMessages(conv: Conversation, ctx: RepoContext, useTools: Boolean): List<ChatMessage> {
+    private fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
         val settings = c.settings.current
+        val useTools = providers.isNotEmpty()
         val system = listOfNotNull(
             settings.systemPrompt.ifBlank { null },
             conv.systemPrompt?.ifBlank { null },
-            if (useTools) GitHubTools.systemPrompt(ctx) else null,
+            if (c.githubTools in providers) GitHubTools.systemPrompt(ctx) else null,
+            if (c.documentTools in providers) DocumentTools.PROMPT else null,
+            if (c.webTools in providers) WebTools.PROMPT else null,
         ).joinToString("\n\n")
         val out = mutableListOf<ChatMessage>()
         if (system.isNotBlank()) out += ChatMessage(role = "system", content = system)

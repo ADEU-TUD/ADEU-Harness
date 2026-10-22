@@ -1,6 +1,12 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,21 +14,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -36,6 +47,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -75,6 +89,101 @@ private fun Section(title: String, content: @Composable () -> Unit) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()
+        }
+    }
+}
+
+@Composable
+private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun AccentSwatch(accent: Accent, selected: Boolean, onClick: () -> Unit) {
+    val fill = accent.color?.let { Brush.linearGradient(listOf(it, it)) }
+        ?: Brush.sweepGradient(listOf(Color(0xFF2563EB), Color(0xFF16A34A), Color(0xFFEA580C), Color(0xFFDB2777), Color(0xFF2563EB)))
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(fill)
+                .border(
+                    width = if (selected) 3.dp else 1.dp,
+                    color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
+                    shape = CircleShape,
+                ),
+        ) {
+            if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+        Text(accent.label, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 2.dp))
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun AppearanceSection(c: AppContainer) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val style = enumOr(s.appStyle, AppStyle.STANDARD)
+    val accent = enumOr(s.accent, Accent.AUTO)
+    val mode = enumOr(s.themeMode, ThemeMode.SYSTEM)
+    Section("Darstellung") {
+        Text("Stil", style = MaterialTheme.typography.labelLarge)
+        AppStyle.entries.forEach { st ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { c.settings.update { it.copy(appStyle = st.name) } },
+            ) {
+                RadioButton(selected = style == st, onClick = { c.settings.update { it.copy(appStyle = st.name) } })
+                Column(Modifier.weight(1f)) {
+                    Text(st.label)
+                    Text(st.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        Text("Farbton", style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Accent.entries.forEach { a ->
+                AccentSwatch(a, a == accent) { c.settings.update { it.copy(accent = a.name) } }
+            }
+        }
+        Text(
+            if (style == AppStyle.STANDARD) "„Automatisch“ übernimmt ab Android 12 die Farben deines Hintergrundbilds."
+            else "„Automatisch“ verwendet die typischen Farben des gewählten Stils.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text("Modus", style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ThemeMode.entries.forEach { m ->
+                FilterChip(
+                    selected = mode == m,
+                    onClick = { c.settings.update { it.copy(themeMode = m.name) } },
+                    label = { Text(m.label) },
+                )
+            }
+        }
+        SwitchRow("Reines Schwarz (AMOLED)", "Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays.", s.amoled) { v ->
+            c.settings.update { it.copy(amoled = v) }
+        }
+        Text("Schriftgröße", style = MaterialTheme.typography.labelLarge)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
+                FilterChip(
+                    selected = s.textScale == scale,
+                    onClick = { c.settings.update { it.copy(textScale = scale) } },
+                    label = { Text(label) },
+                )
+            }
         }
     }
 }
@@ -167,23 +276,41 @@ fun SettingsScreen(c: AppContainer) {
                 TextButton(onClick = { uri.openUri("https://github.com/settings/personal-access-tokens/new") }) {
                     Text("Token auf GitHub erstellen")
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Schreibaktionen bestätigen")
-                        Text(
-                            "Vor jedem Commit, Branch, PR oder Kommentar nachfragen.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(checked = s.confirmWrites, onCheckedChange = { v -> c.settings.update { it.copy(confirmWrites = v) } })
-                }
+                SwitchRow(
+                    "In neuen Chats automatisch aktiv",
+                    "Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer.",
+                    s.githubAutoTools,
+                ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
+                SwitchRow(
+                    "Schreibaktionen bestätigen",
+                    "Vor jedem Commit, Branch, PR oder Kommentar nachfragen.",
+                    s.confirmWrites,
+                ) { v -> c.settings.update { it.copy(confirmWrites = v) } }
                 DropdownField(
                     label = "Max. Werkzeugschritte pro Anfrage",
                     value = s.maxAgentSteps.toString(),
                     options = listOf("10", "20", "30", "50", "100"),
                     onSelect = { v -> c.settings.update { it.copy(maxAgentSteps = v.toInt()) } },
                 )
+            }
+
+            AppearanceSection(c)
+
+            Section("Werkzeuge") {
+                Text(
+                    "Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                SwitchRow(
+                    "Dokumente erstellen",
+                    "Das Modell kann PDF-, Word-, HTML-, Markdown- und Textdateien erzeugen, die du öffnen, teilen oder speichern kannst.",
+                    s.documentTools,
+                ) { v -> c.settings.update { it.copy(documentTools = v) } }
+                SwitchRow(
+                    "Webseiten lesen",
+                    "Das Modell kann Links abrufen und den Text der Seite lesen.",
+                    s.webTools,
+                ) { v -> c.settings.update { it.copy(webTools = v) } }
             }
 
             Section("Chat") {

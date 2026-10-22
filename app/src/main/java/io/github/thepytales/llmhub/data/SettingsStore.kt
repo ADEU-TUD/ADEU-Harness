@@ -20,6 +20,19 @@ data class AppSettings(
     val sttModel: String = "alias-stt",
     val confirmWrites: Boolean = true,
     val maxAgentSteps: Int = 30,
+    /** New chats get the GitHub tools automatically when a token is configured. */
+    val githubAutoTools: Boolean = true,
+    /** Offer the create_document tool (PDF, Word, Markdown …). */
+    val documentTools: Boolean = true,
+    /** Offer the fetch_url tool to read web pages. */
+    val webTools: Boolean = true,
+    /** Appearance: enum names from ui/Theme.kt (ThemeMode, AppStyle, Accent). */
+    val themeMode: String = "SYSTEM",
+    val appStyle: String = "STANDARD",
+    val accent: String = "AUTO",
+    /** Pure black background in dark mode. */
+    val amoled: Boolean = false,
+    val textScale: Float = 1f,
 ) {
     val hasApiKey get() = apiKey.isNotBlank()
     val hasGitHub get() = githubToken.isNotBlank()
@@ -51,6 +64,14 @@ class SettingsStore(context: Context) {
             .putString("sttModel", next.sttModel)
             .putBoolean("confirmWrites", next.confirmWrites)
             .putInt("maxAgentSteps", next.maxAgentSteps)
+            .putBoolean("githubAutoTools", next.githubAutoTools)
+            .putBoolean("documentTools", next.documentTools)
+            .putBoolean("webTools", next.webTools)
+            .putString("themeMode", next.themeMode)
+            .putString("appStyle", next.appStyle)
+            .putString("accent", next.accent)
+            .putBoolean("amoled", next.amoled)
+            .putFloat("textScale", next.textScale)
             .apply()
     }
 
@@ -68,6 +89,14 @@ class SettingsStore(context: Context) {
             sttModel = prefs.getString("sttModel", d.sttModel) ?: d.sttModel,
             confirmWrites = prefs.getBoolean("confirmWrites", d.confirmWrites),
             maxAgentSteps = prefs.getInt("maxAgentSteps", d.maxAgentSteps),
+            githubAutoTools = prefs.getBoolean("githubAutoTools", d.githubAutoTools),
+            documentTools = prefs.getBoolean("documentTools", d.documentTools),
+            webTools = prefs.getBoolean("webTools", d.webTools),
+            themeMode = prefs.getString("themeMode", d.themeMode) ?: d.themeMode,
+            appStyle = prefs.getString("appStyle", d.appStyle) ?: d.appStyle,
+            accent = prefs.getString("accent", d.accent) ?: d.accent,
+            amoled = prefs.getBoolean("amoled", d.amoled),
+            textScale = prefs.getFloat("textScale", d.textScale),
         )
     }
 

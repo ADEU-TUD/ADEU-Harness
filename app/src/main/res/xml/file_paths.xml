@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Documents created by the model (create_document) -->
+    <files-path name="documents" path="documents/" />
+    <!-- Manual exports of answers and chats -->
+    <cache-path name="exports" path="exports/" />
+</paths>

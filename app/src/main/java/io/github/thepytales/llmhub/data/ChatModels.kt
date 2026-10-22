@@ -23,6 +23,8 @@ data class ChatMessage(
     val toolName: String? = null,
     val model: String? = null,
     val error: Boolean = false,
+    /** Absolute path of a document created by a tool call (tool messages only). */
+    val file: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
 )
 

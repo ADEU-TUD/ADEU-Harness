@@ -43,7 +43,8 @@ fun newChat(c: AppContainer, model: String? = null): Conversation {
     val available = c.models.state.value.liveIds
     val chosen = if (available == null || wanted in available) wanted
     else c.models.state.value.ofType(ModelType.CHAT).firstOrNull()?.id ?: wanted
-    return Conversation(model = chosen).also { c.chats.save(it) }
+    val s = c.settings.current
+    return Conversation(model = chosen, githubEnabled = s.hasGitHub && s.githubAutoTools).also { c.chats.save(it) }
 }
 
 private fun NavHostController.switchTab(route: String) = navigate(route) {
