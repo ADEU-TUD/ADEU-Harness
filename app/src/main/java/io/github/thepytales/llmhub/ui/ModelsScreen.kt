@@ -27,6 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -34,7 +37,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.ModelFilter
 import io.github.thepytales.llmhub.data.ModelInfo
+import io.github.thepytales.llmhub.data.ModelSort
 import io.github.thepytales.llmhub.data.ModelType
 
 private val typeHelp = mapOf(
@@ -52,6 +58,7 @@ private val typeHelp = mapOf(
 fun ModelsScreen(c: AppContainer, onStartChat: (String) -> Unit) {
     val state by c.models.state.collectAsStateWithLifecycle()
     val uri = LocalUriHandler.current
+    var filter by remember { mutableStateOf(ModelFilter()) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,7 +78,8 @@ fun ModelsScreen(c: AppContainer, onStartChat: (String) -> Unit) {
             )
         },
     ) { pad ->
-        val grouped = state.models.groupBy { it.type }
+        val shown = remember(state, filter) { filter.apply(state.models) }
+        val grouped = shown.groupBy { it.type }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
@@ -80,15 +88,26 @@ fun ModelsScreen(c: AppContainer, onStartChat: (String) -> Unit) {
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
+            item(key = "filter") {
+                ModelFilterBar(
+                    filter = filter,
+                    onChange = { filter = it },
+                    types = state.models.map { it.type }.distinct(),
+                )
+            }
+            item(key = "info") {
                 val text = when {
+                    filter.isActive -> "${shown.size} von ${state.models.size} Modellen passen zum Filter."
                     state.error != null -> "Liste konnte nicht geladen werden (${state.error}). Angezeigt wird der eingebaute Katalog."
                     state.liveIds != null -> "${state.liveIds!!.size} Modelle live vom Server geladen."
                     else -> "Eingebauter Katalog – mit API-Key wird die aktuelle Liste vom Server geladen."
                 }
                 Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            ModelType.entries.forEach { type ->
+            if (filter.sort != ModelSort.DEFAULT) {
+                // A ranking only makes sense as one list.
+                items(shown, key = { it.id }) { m -> ModelCard(m, onStartChat) }
+            } else ModelType.entries.forEach { type ->
                 val list = grouped[type].orEmpty()
                 if (list.isEmpty()) return@forEach
                 item(key = "h_$type") {
@@ -123,8 +142,9 @@ private fun ModelCard(m: ModelInfo, onStartChat: (String) -> Unit) {
             CapabilityChips(m)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    m.power?.let { RatingRow("Leistung", it) }
-                    m.speed?.let { RatingRow("Tempo   ", it) }
+                    val e = ModelCatalog.effective(m)
+                    e.power?.let { RatingRow("Leistung", it) }
+                    e.speed?.let { RatingRow("Tempo   ", it) }
                 }
                 if (m.type == ModelType.CHAT) {
                     FilledTonalButton(onClick = { onStartChat(m.id) }) {

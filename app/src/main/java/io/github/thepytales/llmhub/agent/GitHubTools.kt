@@ -1,37 +1,24 @@
 package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.net.GitHubClient
-import io.github.thepytales.llmhub.net.JSON
 import io.github.thepytales.llmhub.net.s
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 
 /** Mutable state the tools operate on (selected repo and working branch of a conversation). */
 data class RepoContext(var repo: String?, var branch: String?)
 
-private data class Param(val name: String, val description: String, val required: Boolean = true, val type: String = "string")
+class GitHubTools(private val gh: GitHubClient) : ToolProvider {
 
-private data class ToolDef(
-    val name: String,
-    val description: String,
-    val params: List<Param>,
-    val writes: Boolean = false,
-)
-
-class GitHubTools(private val gh: GitHubClient) {
-
-    private val defs = listOf(
+    override val defs = listOf(
         ToolDef("list_repos", "Listet die GitHub-Repositories des Nutzers auf.", emptyList()),
         ToolDef(
-            "select_repo", "Wählt das Repository aus, in dem gearbeitet wird. Setzt den Arbeitsbranch auf den Standardbranch.",
-            listOf(Param("full_name", "Repository im Format owner/name")),
+            "select_repo", "Wählt das Repository aus, in dem gearbeitet wird. Setzt den Arbeitsbranch auf den Standardbranch. " +
+                "Funktioniert auch für fremde öffentliche Repositories.",
+            listOf(Param("full_name", "Repository im Format owner/name oder als GitHub-URL")),
         ),
         ToolDef(
             "list_files", "Listet alle Dateipfade im Arbeitsbranch (rekursiv). Optional nur unterhalb eines Pfads.",
@@ -122,44 +109,7 @@ class GitHubTools(private val gh: GitHubClient) {
 
     fun isWriteTool(name: String) = defs.firstOrNull { it.name == name }?.writes == true
 
-    /** Tool definitions in OpenAI function-calling format. */
-    fun schema(): JsonArray = buildJsonArray {
-        defs.forEach { d ->
-            add(buildJsonObject {
-                put("type", "function")
-                putJsonObject("function") {
-                    put("name", d.name)
-                    put("description", d.description)
-                    putJsonObject("parameters") {
-                        put("type", "object")
-                        putJsonObject("properties") {
-                            d.params.forEach { p ->
-                                putJsonObject(p.name) {
-                                    put("type", p.type)
-                                    put("description", p.description)
-                                }
-                            }
-                        }
-                        putJsonArray("required") { d.params.filter { it.required }.forEach { add(kotlinx.serialization.json.JsonPrimitive(it.name)) } }
-                    }
-                }
-            })
-        }
-    }
-
-    /** Executes a tool call and returns the text result for the model. Never throws. */
-    suspend fun execute(name: String, arguments: String, ctx: RepoContext): String = try {
-        val args = if (arguments.isBlank()) JsonObject(emptyMap())
-        else JSON.parseToJsonElement(arguments).jsonObject
-        dispatch(name, args, ctx).let { if (it.length > MAX_RESULT) it.take(MAX_RESULT) + "\n…[gekürzt]" else it }
-    } catch (e: Exception) {
-        "FEHLER: ${e.message ?: e.javaClass.simpleName}"
-    }
-
-    private fun JsonObject.req(key: String): String =
-        s(key) ?: throw IllegalArgumentException("Parameter '$key' fehlt")
-
-    private fun JsonObject.int(key: String): Int? = s(key)?.toDoubleOrNull()?.toInt()
+    override suspend fun run(name: String, args: JsonObject, ctx: RepoContext) = ToolOutput(dispatch(name, args, ctx))
 
     private fun need(ctx: RepoContext): Pair<String, String> {
         val repo = ctx.repo ?: throw IllegalStateException("Kein Repository ausgewählt. Nutze zuerst list_repos und select_repo.")
@@ -173,7 +123,8 @@ class GitHubTools(private val gh: GitHubClient) {
             }.ifEmpty { "Keine Repositories gefunden." }
 
             "select_repo" -> {
-                val repo = a.req("full_name").trim()
+                val repo = parseRepo(a.req("full_name"))
+                    ?: return "FEHLER: '${a.s("full_name")}' ist kein Repository im Format owner/name."
                 val branch = gh.defaultBranch(repo)
                 ctx.repo = repo
                 ctx.branch = branch
@@ -332,7 +283,25 @@ class GitHubTools(private val gh: GitHubClient) {
     }
 
     companion object {
-        const val MAX_RESULT = 60_000
+        private val REPO_URL = Regex("github\\.com[/:]([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)")
+        private val REPO_NAME = Regex("^([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)$")
+        /** First path segments on github.com that are not user or organization names. */
+        private val RESERVED = setOf(
+            "settings", "orgs", "apps", "marketplace", "features", "topics", "collections", "sponsors",
+            "notifications", "login", "join", "search", "explore", "trending", "pricing", "about", "site", "codespaces",
+        )
+
+        /** Extracts owner/name from "owner/name" or a GitHub URL (https://github.com/owner/name/...). */
+        fun parseRepo(text: String): String? {
+            val t = text.trim()
+            val m = REPO_URL.find(t) ?: REPO_NAME.find(t) ?: return null
+            if (m.groupValues[1].lowercase() in RESERVED) return null
+            val name = m.groupValues[2].removeSuffix(".git").trimEnd('.')
+            return if (name.isEmpty()) null else "${m.groupValues[1]}/$name"
+        }
+
+        /** Finds the first GitHub repository URL in a chat message. */
+        fun findRepoUrl(text: String): String? = REPO_URL.findAll(text).firstNotNullOfOrNull { parseRepo(it.value) }
 
         fun systemPrompt(ctx: RepoContext) = buildString {
             append("Du hast über Werkzeuge Zugriff auf GitHub und kannst selbstständig in Repositories arbeiten ")
@@ -340,7 +309,8 @@ class GitHubTools(private val gh: GitHubClient) {
             if (ctx.repo != null) {
                 append("Aktuelles Repository: ${ctx.repo}, Arbeitsbranch: ${ctx.branch}.\n")
             } else {
-                append("Es ist noch kein Repository ausgewählt – nutze list_repos und select_repo, wenn der Nutzer ein Repository nennt.\n")
+                append("Es ist noch kein Repository ausgewählt – nutze list_repos und select_repo, wenn der Nutzer ein Repository nennt ")
+                append("(auch als GitHub-URL).\n")
             }
             append("Arbeitsweise: Verschaffe dir zuerst mit list_files/read_file einen Überblick, bevor du Dateien änderst. ")
             append("Committe nicht direkt auf den Standardbranch, sondern erstelle für Änderungen einen neuen Branch (create_branch), ")

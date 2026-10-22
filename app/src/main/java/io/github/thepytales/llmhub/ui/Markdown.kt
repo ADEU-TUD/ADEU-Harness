@@ -44,7 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private sealed interface Block {
+internal sealed interface Block {
     data class Code(val lang: String, val code: String) : Block
     data class Heading(val level: Int, val text: String) : Block
     data class Item(val indent: Int, val marker: String, val text: String) : Block
@@ -57,11 +57,11 @@ private sealed interface Block {
 private val HEADING = Regex("^(#{1,6})\\s+(.*)$")
 private val LIST_ITEM = Regex("^(\\s*)([-*+]|\\d+[.)])\\s+(.*)$")
 private val RULE = Regex("^([-*_])\\1{2,}$")
-private val INLINE = Regex(
+internal val INLINE = Regex(
     "(\\*\\*|__)(.+?)\\1|`([^`]+)`|\\[([^\\]]+)]\\(([^)\\s]+)\\)|(?<![*\\w])\\*(?!\\s)(.+?)(?<!\\s)\\*(?!\\*)|~~(.+?)~~"
 )
 
-private fun parseBlocks(src: String): List<Block> {
+internal fun parseBlocks(src: String): List<Block> {
     val out = mutableListOf<Block>()
     val lines = src.lines()
     val para = StringBuilder()
@@ -131,6 +131,38 @@ private fun parseBlocks(src: String): List<Block> {
         i++
     }
     flush()
+    return out
+}
+
+/** A run of inline text with its formatting, used by the document writers. */
+internal data class Segment(
+    val text: String,
+    val bold: Boolean = false,
+    val italic: Boolean = false,
+    val code: Boolean = false,
+    val strike: Boolean = false,
+    val link: String? = null,
+)
+
+internal fun inlineSegments(text: String, base: Segment = Segment("")): List<Segment> {
+    val out = mutableListOf<Segment>()
+    fun plain(t: String) {
+        if (t.isNotEmpty()) out += base.copy(text = t)
+    }
+    var last = 0
+    for (m in INLINE.findAll(text)) {
+        plain(text.substring(last, m.range.first))
+        val g = m.groups
+        when {
+            g[2] != null -> out += inlineSegments(g[2]!!.value, base.copy(bold = true))
+            g[3] != null -> out += base.copy(text = g[3]!!.value, code = true)
+            g[4] != null -> out += base.copy(text = g[4]!!.value, link = g[5]!!.value)
+            g[6] != null -> out += inlineSegments(g[6]!!.value, base.copy(italic = true))
+            g[7] != null -> out += inlineSegments(g[7]!!.value, base.copy(strike = true))
+        }
+        last = m.range.last + 1
+    }
+    plain(text.substring(last))
     return out
 }
 
