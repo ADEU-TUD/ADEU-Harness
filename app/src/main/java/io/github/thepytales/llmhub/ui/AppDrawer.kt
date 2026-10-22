@@ -22,8 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Close
@@ -381,7 +381,7 @@ private fun ChatRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showIcon) {
-                Icon(Icons.AutoMirrored.Outlined.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.size(14.dp))
             }
             Text(

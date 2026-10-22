@@ -380,9 +380,9 @@ fun AssistantMessage(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (text.isNotBlank()) {
                     ActionIcon(Icons.Outlined.ContentCopy, "Kopieren") { clipboard.setText(AnnotatedString(text)) }
-                    ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onSpeak)
+                    ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
                 }
-                if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", onRegenerate, enabled = !running)
+                if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
                 Box {
                     ActionIcon(Icons.Outlined.MoreHoriz, "Mehr") { more = true }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
@@ -420,7 +420,7 @@ fun AssistantMessage(
 }
 
 @Composable
-private fun ActionIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, enabled: Boolean = true) {
+private fun ActionIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, enabled: Boolean = true, onClick: () -> Unit) {
     IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp)) {
         Icon(icon, contentDescription = label, modifier = Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
