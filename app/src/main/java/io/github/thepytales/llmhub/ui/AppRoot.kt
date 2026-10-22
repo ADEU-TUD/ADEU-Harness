@@ -1,105 +1,135 @@
 package io.github.thepytales.llmhub.ui
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.data.Conversation
-import io.github.thepytales.llmhub.data.ModelType
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
-private data class Tab(val route: String, val label: String, val icon: ImageVector)
+private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
 
-private val tabs = listOf(
-    Tab("chats", "Chats", Icons.AutoMirrored.Outlined.Chat),
-    Tab("models", "Modelle", Icons.Outlined.AutoAwesome),
-    Tab("images", "Bilder", Icons.Outlined.Image),
-    Tab("settings", "Einstellungen", Icons.Outlined.Settings),
-)
-
-/** Creates a new conversation, preferring [model] or the configured default. */
-fun newChat(c: AppContainer, model: String? = null): Conversation {
-    val wanted = model ?: c.settings.current.defaultModel
-    val available = c.models.state.value.liveIds
-    val chosen = if (available == null || wanted in available) wanted
-    else c.models.state.value.ofType(ModelType.CHAT).firstOrNull()?.id ?: wanted
-    val s = c.settings.current
-    return Conversation(model = chosen, githubEnabled = s.hasGitHub && s.githubAutoTools).also { c.chats.save(it) }
+/** Route of a chat: an existing one, or a new one (optionally with model or persona template). */
+fun chatRoute(id: String? = null, model: String? = null, persona: String? = null): String {
+    val args = listOfNotNull(id?.let { "id=${enc(it)}" }, model?.let { "model=${enc(it)}" }, persona?.let { "persona=${enc(it)}" })
+    return if (args.isEmpty()) "chat" else "chat?" + args.joinToString("&")
 }
 
-private fun NavHostController.switchTab(route: String) = navigate(route) {
-    popUpTo(graph.findStartDestination().id) { saveState = true }
-    launchSingleTop = true
-    restoreState = true
+/** Opens a chat as the new root of the back stack (like switching chats in ChatGPT). */
+private fun NavHostController.openChat(route: String) = navigate(route) {
+    popUpTo(graph.id) { inclusive = true }
 }
 
 @Composable
-fun AppRoot(c: AppContainer) {
+fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>) {
     val nav = rememberNavController()
+    val drawer = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     val entry by nav.currentBackStackEntryAsState()
-    val route = entry?.destination?.route
+    val onChat = entry?.destination?.route?.startsWith("chat") != false
+    var currentChatId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         if (c.settings.current.hasApiKey) c.models.refresh()
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0),
-        bottomBar = {
-            if (tabs.any { it.route == route }) {
-                NavigationBar {
-                    tabs.forEach { t ->
-                        NavigationBarItem(
-                            selected = route == t.route,
-                            onClick = { nav.switchTab(t.route) },
-                            icon = { Icon(t.icon, contentDescription = null) },
-                            label = { Text(t.label) },
-                        )
-                    }
-                }
-            }
+    val requested by openChat.collectAsStateWithLifecycle()
+    LaunchedEffect(requested) {
+        requested?.let { id ->
+            nav.openChat(chatRoute(id))
+            openChat.value = null
+        }
+    }
+
+    fun closeDrawer() = scope.launch { drawer.close() }
+
+    BackHandler(enabled = drawer.isOpen) { closeDrawer() }
+
+    ModalNavigationDrawer(
+        drawerState = drawer,
+        gesturesEnabled = onChat,
+        drawerContent = {
+            AppDrawer(
+                c = c,
+                currentChatId = currentChatId,
+                onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
+                onNewChat = { nav.openChat(chatRoute()); closeDrawer() },
+                onNavigate = { route -> nav.navigate(route); closeDrawer() },
+            )
         },
-    ) { pad ->
-        NavHost(
-            navController = nav,
-            startDestination = "chats",
-            modifier = Modifier.padding(pad).consumeWindowInsets(pad),
-        ) {
-            composable("chats") {
-                ConversationsScreen(
+    ) {
+        NavHost(navController = nav, startDestination = "chat?id={id}&model={model}&persona={persona}") {
+            composable(
+                "chat?id={id}&model={model}&persona={persona}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("model") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("persona") { type = NavType.StringType; nullable = true; defaultValue = null },
+                ),
+            ) { back ->
+                val args = back.arguments
+                val vm: ChatViewModel = viewModel {
+                    ChatViewModel(c, args?.getString("id"), args?.getString("model"), args?.getString("persona"))
+                }
+                val conv by vm.state.collectAsStateWithLifecycle()
+                LaunchedEffect(conv?.id) { currentChatId = conv?.id }
+                ChatScreen(
                     c = c,
-                    onOpen = { nav.navigate("chat/$it") },
-                    onSettings = { nav.switchTab("settings") },
+                    vm = vm,
+                    onOpenDrawer = { scope.launch { drawer.open() } },
+                    onNewChat = { nav.openChat(chatRoute()) },
+                    onNavigate = { nav.navigate(it) },
                 )
             }
             composable("models") {
-                ModelsScreen(c = c, onStartChat = { model -> nav.navigate("chat/${newChat(c, model).id}") })
+                ModelsScreen(c = c, onBack = { nav.popBackStack() }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
             }
-            composable("images") { ImagesScreen(c) }
-            composable("settings") { SettingsScreen(c) }
-            composable("chat/{id}") { back ->
-                val id = back.arguments?.getString("id") ?: return@composable
-                ChatScreen(c = c, id = id, onBack = { nav.popBackStack() })
+            composable("images") { ImagesScreen(c, onBack = { nav.popBackStack() }) }
+            composable("compare") {
+                CompareScreen(c, onBack = { nav.popBackStack() }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+            }
+            composable("templates") {
+                TemplatesScreen(
+                    c, onBack = { nav.popBackStack() },
+                    onUse = { t -> nav.openChat(chatRoute(persona = t.id)) },
+                )
+            }
+            composable("tasks") {
+                TasksScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+            }
+            composable("task/{id}") { back ->
+                TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
+            }
+            composable("usage") { UsageScreen(c, onBack = { nav.popBackStack() }) }
+            composable("environments") {
+                EnvironmentsScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("environment/$id") })
+            }
+            composable("environment/{id}") { back ->
+                EnvironmentEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
+            }
+            composable("settings") {
+                SettingsScreen(c, section = null, onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
+            }
+            composable("settings/{section}") { back ->
+                SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
             }
         }
     }

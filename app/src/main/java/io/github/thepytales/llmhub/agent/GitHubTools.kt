@@ -8,9 +8,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 
-/** Mutable state the tools operate on (selected repo and working branch of a conversation). */
-data class RepoContext(var repo: String?, var branch: String?)
-
 class GitHubTools(private val gh: GitHubClient) : ToolProvider {
 
     override val defs = listOf(
@@ -108,6 +105,8 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
     )
 
     fun isWriteTool(name: String) = defs.firstOrNull { it.name == name }?.writes == true
+
+    override fun needsConfirmation(name: String, args: JsonObject) = isWriteTool(name)
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext) = ToolOutput(dispatch(name, args, ctx))
 

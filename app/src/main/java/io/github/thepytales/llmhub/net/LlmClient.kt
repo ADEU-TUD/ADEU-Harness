@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.net
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.ToolCall
+import io.github.thepytales.llmhub.data.UsageStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -38,18 +39,26 @@ class ApiException(val code: Int, message: String) : IOException(message)
 /** Live update while a chat completion streams in. */
 data class StreamUpdate(val content: String, val reasoning: String, val toolCalls: List<ToolCall>)
 
+/** Token counts reported by the server. */
+data class TokenUsage(val prompt: Long, val completion: Long)
+
 data class ChatResult(
     val content: String,
     val reasoning: String,
     val toolCalls: List<ToolCall>,
     val finishReason: String?,
+    val usage: TokenUsage? = null,
 )
 
 val JSON = Json { ignoreUnknownKeys = true; isLenient = true; explicitNulls = false }
 private val JSON_TYPE = "application/json".toMediaType()
 
 /** Client for the OpenAI-compatible endpoint (https://llm.scads.ai/v1). */
-class LlmClient(private val settings: SettingsStore) {
+class LlmClient(private val settings: SettingsStore, private val usage: UsageStore) {
+    /** Cleared when the server rejects stream_options (then usage is estimated). */
+    @Volatile
+    private var askForUsage = true
+
     val http: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.MINUTES)
@@ -98,10 +107,26 @@ class LlmClient(private val settings: SettingsStore) {
         messages: List<ChatMessage>,
         tools: JsonArray?,
         onUpdate: (StreamUpdate) -> Unit,
+    ): ChatResult = try {
+        streamChatOnce(model, messages, tools, askForUsage, onUpdate)
+    } catch (e: ApiException) {
+        if (askForUsage && e.code in 400..422 && e.message.orEmpty().contains("stream_options", ignoreCase = true)) {
+            askForUsage = false
+            streamChatOnce(model, messages, tools, false, onUpdate)
+        } else throw e
+    }
+
+    private suspend fun streamChatOnce(
+        model: String,
+        messages: List<ChatMessage>,
+        tools: JsonArray?,
+        withUsage: Boolean,
+        onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
             put("model", model)
             put("stream", true)
+            if (withUsage) putJsonObject("stream_options") { put("include_usage", true) }
             put("messages", JsonArray(messages.map { it.toApiJson() }))
             if (tools != null && tools.isNotEmpty()) {
                 put("tools", tools)
@@ -124,42 +149,52 @@ class LlmClient(private val settings: SettingsStore) {
                 val reasoning = StringBuilder()
                 val calls = sortedMapOf<Int, PartialToolCall>()
                 var finish: String? = null
+                var tokens: TokenUsage? = null
                 val source = resp.body!!.source()
                 var lastEmit = 0L
-                while (true) {
-                    coroutineContext.ensureActive()
-                    val line = source.readUtf8Line() ?: break
-                    if (!line.startsWith("data:")) continue
-                    val data = line.removePrefix("data:").trim()
-                    if (data == "[DONE]") break
-                    if (data.isEmpty()) continue
-                    val chunk = runCatching { JSON.parseToJsonElement(data).jsonObject }.getOrNull() ?: continue
-                    chunk["error"]?.let { err ->
-                        val msg = (err as? JsonObject)?.get("message")?.jsonPrimitive?.contentOrNull ?: err.toString()
-                        throw ApiException(500, msg)
-                    }
-                    val choice = (chunk["choices"] as? JsonArray)?.firstOrNull()?.jsonObject ?: continue
-                    choice["finish_reason"]?.let { if (it !is JsonNull) finish = it.jsonPrimitive.contentOrNull }
-                    val delta = (choice["delta"] ?: choice["message"]) as? JsonObject ?: continue
-                    delta.str("content")?.let { content.append(it) }
-                    (delta.str("reasoning_content") ?: delta.str("reasoning"))?.let { reasoning.append(it) }
-                    (delta["tool_calls"] as? JsonArray)?.forEachIndexed { i, el ->
-                        val tc = el.jsonObject
-                        val index = tc["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: i
-                        val partial = calls.getOrPut(index) { PartialToolCall() }
-                        tc.str("id")?.let { if (it.isNotEmpty()) partial.id = it }
-                        (tc["function"] as? JsonObject)?.let { fn ->
-                            fn.str("name")?.let { partial.name.append(it) }
-                            fn.str("arguments")?.let { partial.arguments.append(it) }
+                try {
+                    while (true) {
+                        coroutineContext.ensureActive()
+                        val line = source.readUtf8Line() ?: break
+                        if (!line.startsWith("data:")) continue
+                        val data = line.removePrefix("data:").trim()
+                        if (data == "[DONE]") break
+                        if (data.isEmpty()) continue
+                        val chunk = runCatching { JSON.parseToJsonElement(data).jsonObject }.getOrNull() ?: continue
+                        chunk["error"]?.let { err ->
+                            val msg = (err as? JsonObject)?.get("message")?.jsonPrimitive?.contentOrNull ?: err.toString()
+                            throw ApiException(500, msg)
+                        }
+                        (chunk["usage"] as? JsonObject)?.let { u ->
+                            val p = u.str("prompt_tokens")?.toLongOrNull()
+                            val c = u.str("completion_tokens")?.toLongOrNull()
+                            if (p != null || c != null) tokens = TokenUsage(p ?: 0, c ?: 0)
+                        }
+                        val choice = (chunk["choices"] as? JsonArray)?.firstOrNull()?.jsonObject ?: continue
+                        choice["finish_reason"]?.let { if (it !is JsonNull) finish = it.jsonPrimitive.contentOrNull }
+                        val delta = (choice["delta"] ?: choice["message"]) as? JsonObject ?: continue
+                        delta.str("content")?.let { content.append(it) }
+                        (delta.str("reasoning_content") ?: delta.str("reasoning"))?.let { reasoning.append(it) }
+                        (delta["tool_calls"] as? JsonArray)?.forEachIndexed { i, el ->
+                            val tc = el.jsonObject
+                            val index = tc["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: i
+                            val partial = calls.getOrPut(index) { PartialToolCall() }
+                            tc.str("id")?.let { if (it.isNotEmpty()) partial.id = it }
+                            (tc["function"] as? JsonObject)?.let { fn ->
+                                fn.str("name")?.let { partial.name.append(it) }
+                                fn.str("arguments")?.let { partial.arguments.append(it) }
+                            }
+                        }
+                        val now = System.currentTimeMillis()
+                        if (now - lastEmit > 50) {
+                            lastEmit = now
+                            onUpdate(StreamUpdate(content.toString(), reasoning.toString(), calls.toToolCalls()))
                         }
                     }
-                    val now = System.currentTimeMillis()
-                    if (now - lastEmit > 50) {
-                        lastEmit = now
-                        onUpdate(StreamUpdate(content.toString(), reasoning.toString(), calls.toToolCalls()))
-                    }
+                } finally {
+                    recordChat(model, messages, content.length + reasoning.length + calls.values.sumOf { it.arguments.length }, tokens)
                 }
-                val result = ChatResult(content.toString(), reasoning.toString(), calls.toToolCalls(), finish)
+                val result = ChatResult(content.toString(), reasoning.toString(), calls.toToolCalls(), finish, tokens)
                 onUpdate(StreamUpdate(result.content, result.reasoning, result.toolCalls))
                 result
             }
@@ -188,6 +223,7 @@ class LlmClient(private val settings: SettingsStore) {
                 code = retry.first; body = retry.second
             }
             if (code !in 200..299) throw ApiException(code, errorMessage(code, body))
+            usage.record(model, "image", 0, 0, estimated = false)
             val data = JSON.parseToJsonElement(body ?: "{}").jsonObject["data"]?.jsonArray.orEmpty()
             data.mapNotNull { el ->
                 val obj = el.jsonObject
@@ -212,6 +248,7 @@ class LlmClient(private val settings: SettingsStore) {
         http.newCall(request("/audio/speech").post(body.toString().toRequestBody(JSON_TYPE)).build())
             .execute().use { resp ->
                 if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, resp.body?.string()))
+                usage.record(model, "tts", text.length / 4L, 0, estimated = true)
                 resp.body!!.bytes()
             }
     }
@@ -225,7 +262,22 @@ class LlmClient(private val settings: SettingsStore) {
         http.newCall(request("/audio/transcriptions").post(body).build()).execute().use { resp ->
             val text = resp.body?.string()
             if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, text))
-            JSON.parseToJsonElement(text ?: "{}").jsonObject.str("text")?.trim().orEmpty()
+            val result = JSON.parseToJsonElement(text ?: "{}").jsonObject.str("text")?.trim().orEmpty()
+            usage.record(model, "stt", 0, result.length / 4L, estimated = true)
+            result
+        }
+    }
+
+    /** Counts a chat request; without usage data from the server the tokens are estimated (≈ 4 characters per token). */
+    private fun recordChat(model: String, messages: List<ChatMessage>, outputChars: Int, tokens: TokenUsage?) {
+        if (tokens != null) {
+            usage.record(model, "chat", tokens.prompt, tokens.completion, estimated = false)
+        } else {
+            val inputChars = messages.sumOf { m ->
+                m.content.length + m.files.sumOf { it.text.length } + m.toolCalls.sumOf { it.arguments.length }
+            }
+            val imageTokens = messages.sumOf { it.images.size } * 800L
+            usage.record(model, "chat", inputChars / 4L + imageTokens, outputChars / 4L, estimated = true)
         }
     }
 
@@ -242,15 +294,28 @@ class LlmClient(private val settings: SettingsStore) {
 
 private fun JsonObject.str(key: String): String? = (this[key] as? JsonPrimitive)?.contentOrNull
 
+/** User text with the content of attached files in front of it. */
+fun ChatMessage.textWithFiles(): String = if (files.isEmpty()) content else buildString {
+    files.forEach { f ->
+        append("<datei name=\"").append(f.name).append("\"")
+        f.pages?.let { append(" seiten=\"").append(it).append("\"") }
+        append(">\n").append(f.text.trim())
+        if (f.truncated) append("\n[… gekürzt]")
+        append("\n</datei>\n\n")
+    }
+    append(content)
+}
+
 /** Converts a stored message into the OpenAI chat message format. */
 fun ChatMessage.toApiJson(): JsonElement = buildJsonObject {
     put("role", role)
     when (role) {
         "user" -> if (images.isEmpty()) {
-            put("content", content)
+            put("content", textWithFiles())
         } else {
             putJsonArray("content") {
-                if (content.isNotBlank()) add(buildJsonObject { put("type", "text"); put("text", content) })
+                val text = textWithFiles()
+                if (text.isNotBlank()) add(buildJsonObject { put("type", "text"); put("text", text) })
                 images.forEach { url ->
                     add(buildJsonObject {
                         put("type", "image_url")

@@ -9,6 +9,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -43,11 +46,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.docs.DocFormat
+import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocumentWriter
+import io.github.thepytales.llmhub.data.thread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -152,12 +158,13 @@ fun DocumentCard(path: String) {
 
 /** Converts the visible chat (without reasoning and tool output) into Markdown. */
 fun chatToMarkdown(conv: Conversation): String = buildString {
-    for (m in conv.messages) {
+    for (m in conv.thread()) {
         when (m.role) {
             "user" -> {
                 append("## Du\n\n")
                 if (m.content.isNotBlank()) append(m.content.trim()).append("\n\n")
                 if (m.images.isNotEmpty()) append("_(${m.images.size} Bild(er) angehängt)_\n\n")
+                if (m.files.isNotEmpty()) append("_(Dateien: ${m.files.joinToString(", ") { it.name }})_\n\n")
             }
             "assistant" -> {
                 val answer = splitThinking(m.content).second.trim()
@@ -169,25 +176,30 @@ fun chatToMarkdown(conv: Conversation): String = buildString {
 }
 
 /** Lets the user export [markdown] as PDF, Word, HTML, Markdown or text. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExportDialog(title: String, markdown: String, onDismiss: () -> Unit) {
+fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var format by remember { mutableStateOf(DocFormat.PDF) }
+    var style by remember { mutableStateOf(DocStyle.parse(c.settings.current.docStyle) ?: DocStyle.MODERN) }
     var busy by remember { mutableStateOf(false) }
-    val created = remember { mutableStateMapOf<DocFormat, File>() }
+    val created = remember { mutableStateMapOf<Pair<DocFormat, DocStyle>, File>() }
 
     fun withFile(action: (File) -> Unit) {
-        val f = format
-        created[f]?.let { return action(it) }
+        val key = format to style
+        created[key]?.let { return action(it) }
         busy = true
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { DocumentWriter.create(File(context.cacheDir, "exports"), title, markdown, f).file }
+            val result = runCatching {
+                DocumentWriter.create(
+                    context, File(context.cacheDir, "exports"), title, markdown, key.first,
+                    theme = c.documentTools.settingsTheme(key.second),
+                ).file
             }
             busy = false
             result.onSuccess {
-                created[f] = it
+                created[key] = it
                 action(it)
             }.onFailure {
                 Toast.makeText(context, "Export fehlgeschlagen: ${it.message}", Toast.LENGTH_LONG).show()
@@ -214,6 +226,14 @@ fun ExportDialog(title: String, markdown: String, onDismiss: () -> Unit) {
                     ) {
                         RadioButton(selected = format == f, onClick = { format = f })
                         Text(f.label)
+                    }
+                }
+                if (format == DocFormat.PDF || format == DocFormat.DOCX || format == DocFormat.HTML) {
+                    Text("Gestaltung", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        DocStyle.entries.forEach { st ->
+                            FilterChip(selected = style == st, onClick = { style = st }, label = { Text(st.label) })
+                        }
                     }
                 }
                 if (busy) CircularProgressIndicator(Modifier.padding(top = 8.dp).size(24.dp), strokeWidth = 2.dp)

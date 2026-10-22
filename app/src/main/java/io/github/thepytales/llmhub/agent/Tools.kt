@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.net.JSON
 import io.github.thepytales.llmhub.net.s
 import kotlinx.serialization.json.JsonArray
@@ -24,6 +25,17 @@ data class ToolDef(
 /** Result of a tool call: text for the model and optionally a file created for the user. */
 data class ToolOutput(val text: String, val file: String? = null)
 
+/** Mutable state the tools of one agent run operate on. */
+data class RepoContext(
+    /** Selected repository (owner/name) and working branch. */
+    var repo: String?,
+    var branch: String?,
+    /** Environment with variables and network rules. */
+    val env: AgentEnvironment? = null,
+    /** Images of the latest user message (data URLs), e.g. to save one as logo. */
+    val images: List<String> = emptyList(),
+)
+
 /** A group of tools the model can call. */
 interface ToolProvider {
     val defs: List<ToolDef>
@@ -31,7 +43,13 @@ interface ToolProvider {
     suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput
 
     fun handles(name: String) = defs.any { it.name == name }
+
+    /** Whether the user has to allow this call first (when confirmations are switched on). */
+    fun needsConfirmation(name: String, args: JsonObject): Boolean = false
 }
+
+fun parseArgs(arguments: String): JsonObject =
+    runCatching { JSON.parseToJsonElement(arguments.ifBlank { "{}" }).jsonObject }.getOrDefault(JsonObject(emptyMap()))
 
 const val MAX_TOOL_RESULT = 60_000
 

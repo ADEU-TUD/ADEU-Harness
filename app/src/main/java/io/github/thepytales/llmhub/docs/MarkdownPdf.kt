@@ -1,7 +1,10 @@
 package io.github.thepytales.llmhub.docs
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.text.Layout
@@ -21,7 +24,7 @@ import io.github.thepytales.llmhub.ui.inlineSegments
 import io.github.thepytales.llmhub.ui.parseBlocks
 import java.io.File
 
-/** Renders Markdown into an A4 PDF with Android's [PdfDocument]. */
+/** Renders Markdown into an A4 PDF with Android's [PdfDocument] (fallback when WebView printing fails). */
 object MarkdownPdf {
     private const val PAGE_W = 595 // A4 in PostScript points
     private const val PAGE_H = 842
@@ -33,10 +36,10 @@ object MarkdownPdf {
     private const val LINE = 0xFFCCCCCC.toInt()
 
     /** Writes the PDF and returns the number of pages. */
-    fun write(file: File, title: String, markdown: String): Int {
+    fun write(file: File, title: String, markdown: String, theme: DocTheme = DocTheme()): Int {
         val doc = PdfDocument()
         try {
-            val w = Writer(doc)
+            val w = Writer(doc, theme)
             for (b in parseBlocks(DocumentWriter.withTitle(title, markdown))) w.block(b)
             w.finish()
             file.outputStream().use { doc.writeTo(it) }
@@ -83,7 +86,9 @@ object MarkdownPdf {
         return sb
     }
 
-    private class Writer(private val doc: PdfDocument) {
+    private class Writer(private val doc: PdfDocument, private val theme: DocTheme) {
+        private val accent = if (theme.style == DocStyle.CLASSIC || theme.style == DocStyle.MINIMAL) TEXT else theme.accentArgb
+        private val logo: Bitmap? = theme.logo?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
         var pageNo = 0
         private var page: PdfDocument.Page? = null
         private var y = 0f
@@ -102,12 +107,20 @@ object MarkdownPdf {
             pageNo++
             page = doc.startPage(PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, pageNo).create())
             y = MARGIN
+            if (pageNo == 1 && logo != null) {
+                val h = 40f
+                val w = (h * logo.width / logo.height).coerceAtMost(160f)
+                val hh = w * logo.height / logo.width
+                canvas.drawBitmap(logo, null, RectF(left + width - w, MARGIN - 16f, left + width, MARGIN - 16f + hh), Paint(Paint.FILTER_BITMAP_FLAG))
+                y = MARGIN - 16f + hh + 12f
+            }
         }
 
         private fun finishPage() {
             val p = page ?: return
             val label = "$pageNo"
-            p.canvas.drawText(label, (PAGE_W - small.measureText(label)) / 2, PAGE_H - MARGIN / 2, small)
+            p.canvas.drawText(label, PAGE_W - MARGIN - small.measureText(label), PAGE_H - MARGIN / 2, small)
+            if (theme.footer.isNotBlank()) p.canvas.drawText(theme.footer.take(110), MARGIN, PAGE_H - MARGIN / 2, small)
             doc.finishPage(p)
             page = null
         }
@@ -168,7 +181,7 @@ object MarkdownPdf {
                     y += if (b.level <= 2) 10f else 6f
                     // Keep headings together with the start of the following block.
                     ensure(size * 1.4f + 40f)
-                    text(spans(b.text), paint(size, bold = true))
+                    text(spans(b.text), paint(size, bold = true, color = if (b.level <= 2) accent else TEXT))
                     if (b.level == 1) {
                         y += 3f
                         canvas.drawLine(left, y, left + width, y, stroke)

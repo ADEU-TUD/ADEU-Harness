@@ -33,6 +33,21 @@ data class AppSettings(
     /** Pure black background in dark mode. */
     val amoled: Boolean = false,
     val textScale: Float = 1f,
+    /** Environment used for new chats (empty = none). */
+    val defaultEnvId: String = "",
+    /** SERVER: speech model of the API; DEVICE: Android's offline text-to-speech. */
+    val ttsEngine: String = "SERVER",
+    /** Voice name of the Android TTS engine (empty = automatic). */
+    val deviceVoice: String = "",
+    val speechRate: Float = 1f,
+    /** Look of generated documents: enum name of docs/DocStyle. */
+    val docStyle: String = "MODERN",
+    /** Accent color of documents as #RRGGBB. */
+    val docAccent: String = "#1E40AF",
+    /** Footer line for documents, e.g. name and address. */
+    val docFooter: String = "",
+    /** Put the default logo into every document. */
+    val autoLogo: Boolean = false,
 ) {
     val hasApiKey get() = apiKey.isNotBlank()
     val hasGitHub get() = githubToken.isNotBlank()
@@ -44,7 +59,8 @@ data class AppSettings(
 
 /** Stores settings (incl. API keys) in encrypted shared preferences. */
 class SettingsStore(context: Context) {
-    private val prefs: SharedPreferences = createPrefs(context)
+    /** Encrypted preferences; also used for environments because they can contain secrets. */
+    val prefs: SharedPreferences = createPrefs(context)
     private val _settings = MutableStateFlow(load())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
     val current: AppSettings get() = _settings.value
@@ -72,6 +88,14 @@ class SettingsStore(context: Context) {
             .putString("accent", next.accent)
             .putBoolean("amoled", next.amoled)
             .putFloat("textScale", next.textScale)
+            .putString("defaultEnvId", next.defaultEnvId)
+            .putString("ttsEngine", next.ttsEngine)
+            .putString("deviceVoice", next.deviceVoice)
+            .putFloat("speechRate", next.speechRate)
+            .putString("docStyle", next.docStyle)
+            .putString("docAccent", next.docAccent)
+            .putString("docFooter", next.docFooter)
+            .putBoolean("autoLogo", next.autoLogo)
             .apply()
     }
 
@@ -97,6 +121,14 @@ class SettingsStore(context: Context) {
             accent = prefs.getString("accent", d.accent) ?: d.accent,
             amoled = prefs.getBoolean("amoled", d.amoled),
             textScale = prefs.getFloat("textScale", d.textScale),
+            defaultEnvId = prefs.getString("defaultEnvId", d.defaultEnvId) ?: d.defaultEnvId,
+            ttsEngine = prefs.getString("ttsEngine", d.ttsEngine) ?: d.ttsEngine,
+            deviceVoice = prefs.getString("deviceVoice", d.deviceVoice) ?: d.deviceVoice,
+            speechRate = prefs.getFloat("speechRate", d.speechRate),
+            docStyle = prefs.getString("docStyle", d.docStyle) ?: d.docStyle,
+            docAccent = prefs.getString("docAccent", d.docAccent) ?: d.docAccent,
+            docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
+            autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
         )
     }
 

@@ -10,6 +10,17 @@ data class ToolCall(
     val arguments: String,
 )
 
+/** Text extracted from a file the user attached (PDF, Word, text …). */
+@Serializable
+data class FileAttachment(
+    val name: String,
+    val mime: String,
+    val text: String,
+    val pages: Int? = null,
+    /** The text was cut to the maximum length. */
+    val truncated: Boolean = false,
+)
+
 @Serializable
 data class ChatMessage(
     val id: String = UUID.randomUUID().toString(),
@@ -18,6 +29,8 @@ data class ChatMessage(
     val reasoning: String? = null,
     /** Attached images as data URLs (data:image/jpeg;base64,...). */
     val images: List<String> = emptyList(),
+    /** Attached documents whose text is sent along with the message. */
+    val files: List<FileAttachment> = emptyList(),
     val toolCalls: List<ToolCall> = emptyList(),
     val toolCallId: String? = null,
     val toolName: String? = null,
@@ -25,6 +38,8 @@ data class ChatMessage(
     val error: Boolean = false,
     /** Absolute path of a document created by a tool call (tool messages only). */
     val file: String? = null,
+    /** Previous message in the thread; messages with the same parent are alternative versions. */
+    val parentId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
 )
 
@@ -33,13 +48,24 @@ data class Conversation(
     val id: String = UUID.randomUUID().toString(),
     val title: String = "Neuer Chat",
     val model: String,
+    /** All messages of all versions; see ChatTree.kt for the active thread. */
     val messages: List<ChatMessage> = emptyList(),
+    /** Chosen version per parent message (key "" = first message). */
+    val selected: Map<String, String> = emptyMap(),
     val systemPrompt: String? = null,
+    /** Name of the template the system prompt came from. */
+    val persona: String? = null,
     /** Whether the GitHub tools are offered to the model. */
     val githubEnabled: Boolean = false,
     /** Selected repository as owner/name. */
     val repo: String? = null,
     /** Working branch inside [repo]. */
     val branch: String? = null,
+    /** Agent environment (variables, network access). */
+    val envId: String? = null,
+    val pinned: Boolean = false,
+    val folderId: String? = null,
+    /** Scheduled task that created this chat. */
+    val taskId: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
 )

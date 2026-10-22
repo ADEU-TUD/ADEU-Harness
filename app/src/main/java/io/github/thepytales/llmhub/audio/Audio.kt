@@ -4,10 +4,9 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
+import kotlin.coroutines.resume
 
 /** Records microphone audio to an m4a file for transcription. */
 class Recorder(private val context: Context) {
@@ -44,22 +43,32 @@ class Recorder(private val context: Context) {
     }
 }
 
-/** Plays synthesized speech; only one message plays at a time. */
+/** Plays audio files (synthesized speech); one at a time. */
 class AudioPlayer(private val context: Context) {
     private var player: MediaPlayer? = null
-    private val _playingId = MutableStateFlow<String?>(null)
-    val playingId: StateFlow<String?> = _playingId.asStateFlow()
 
-    fun play(id: String, bytes: ByteArray) {
+    /** Plays [bytes] and returns when playback has finished or was stopped. */
+    suspend fun play(bytes: ByteArray) {
         stop()
-        val f = File(context.cacheDir, "speech_$id.mp3").apply { writeBytes(bytes) }
-        val p = MediaPlayer()
-        p.setDataSource(f.absolutePath)
-        p.setOnCompletionListener { stop() }
-        p.prepare()
-        p.start()
-        player = p
-        _playingId.value = id
+        val f = File(context.cacheDir, "speech_${System.nanoTime()}.mp3").apply { writeBytes(bytes) }
+        try {
+            suspendCancellableCoroutine<Unit> { cont ->
+                val p = MediaPlayer()
+                player = p
+                p.setDataSource(f.absolutePath)
+                p.setOnCompletionListener { if (cont.isActive) cont.resume(Unit) }
+                p.setOnErrorListener { _, _, _ ->
+                    if (cont.isActive) cont.resume(Unit)
+                    true
+                }
+                p.prepare()
+                p.start()
+                cont.invokeOnCancellation { stop() }
+            }
+        } finally {
+            stop()
+            f.delete()
+        }
     }
 
     fun stop() {
@@ -68,6 +77,5 @@ class AudioPlayer(private val context: Context) {
             it.release()
         }
         player = null
-        _playingId.value = null
     }
 }
