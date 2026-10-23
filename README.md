@@ -60,6 +60,11 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Modell eigenes HTML mit Farben, Formen und Schriften. Klappt das gestaltete Rendern einmal nicht, entsteht trotzdem
   ein PDF mit demselben Text (schlichtes Layout); der automatische Test im Emulator prüft das Rendern vor jedem Release,
   auch bei App im Hintergrund.
+- **TU-Dresden-Formulare**: Unter „+“ › Vorlagen stehen ganz oben fertige Vorlagen im Corporate Design der TU Dresden –
+  Brief (mit Absender, Anschriftfeld und Betreff), Protokoll, Aktennotiz, Formular zum Ausfüllen (Felder, Ankreuzkästchen,
+  Unterschriftszeile), Merkblatt, Bericht und Einladung mit Tagesordnung. Vorlage wählen, Lücken ausfüllen, senden. Das
+  Modell schreibt nur kurzes Markdown; TUD-Blau, Logo und Layout setzt die App (Stil *TU Dresden*, auch unter
+  *Einstellungen › Dokumente & Logos* wählbar). Das Logo ist eingebaut (blau und weiß für blaue Flächen).
 - **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
   meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
 - **Darstellung**: Stile *Claude* (Standard), *Material You*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
@@ -135,7 +140,21 @@ z.B. DeepSeek V4.1 Flash, Qwen3.8 27B, GLM-5.3, GLM-5.3 Flash oder MiniMax M3.
 Keys aus dem Self-Service-Portal haben laut [Doku](https://llm.scads.ai/docs/usage/api/) ein niedriges Limit an
 Anfragen pro Minute (die genaue Zahl ist nicht veröffentlicht). Ein Agent mit vielen Werkzeugschritten erreicht es
 schnell, weil jeder Schritt eine eigene Anfrage ist. Der Server antwortet dann mit HTTP 429 und `retry-after`; die App
-wartet die angegebene Zeit ab und versucht es bis zu dreimal erneut (Hinweis im Chat). Ein Budget oder Kostenlimit
+wartet die angegebene Zeit ab und versucht es bis zu dreimal erneut (Hinweis im Chat).
+
+**HTTP 503 „upstream connect error or disconnect/reset before headers“** kommt nicht von der App, sondern vom Gateway
+des Uni-Servers: Es erreicht das Modell dahinter gerade nicht (Modell überlastet, startet neu oder wird gewartet). Die
+App versucht es nach 5, 15 und 30 Sekunden automatisch erneut (ebenso bei 502/504 und abgebrochenen Verbindungen).
+Hält der Fehler an, hilft nur warten oder ein anderes Modell wählen; der Status steht unter <https://llm.scads.ai/status>.
+
+## Agent-Schritte und Denkstufe
+
+- Jeder Werkzeugaufruf ist ein Schritt. Nach *Max. Werkzeugschritte* (Standard 30) macht der Agent automatisch weiter
+  (*Einstellungen › Chat › Danach automatisch weitermachen*), bis höchstens 500 Schritte. Führt er viermal hintereinander
+  dieselbe Aktion aus, hält er an, damit er sich nicht im Kreis dreht.
+- *Einstellungen › Chat › Denkstufe*: Modellstandard, Aus, Niedrig, Mittel, Hoch. Die App schickt dafür
+  `reasoning_effort` (OpenAI-Parameter, z.B. gpt-oss) und `chat_template_kwargs` mit `enable_thinking`/`thinking`
+  (Qwen, GLM, DeepSeek bei vLLM). Lehnt der Server die Parameter für ein Modell ab, antwortet es ohne sie mit seinem Standard. Ein Budget oder Kostenlimit
 beschreibt die Doku nicht; ein höheres Limit vergibt das Team auf Anfrage an llm.scads.ai@tu-dresden.de.
 
 ## Selbst bauen

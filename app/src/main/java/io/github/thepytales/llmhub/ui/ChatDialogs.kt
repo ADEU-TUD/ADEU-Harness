@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Person
@@ -53,6 +54,7 @@ import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
+import io.github.thepytales.llmhub.docs.TudBrand
 import io.github.thepytales.llmhub.net.RepoSummary
 
 @Composable
@@ -239,6 +241,23 @@ fun TemplatePickerSheet(c: AppContainer, onPick: (Template) -> Unit, onManage: (
             TextButton(onClick = { onDismiss(); onManage() }) { Text("Verwalten") }
         }
         LazyColumn {
+            item(key = "h_tud") {
+                Text(
+                    "TU Dresden – Formulare im Corporate Design (PDF)",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp),
+                )
+            }
+            items(TudBrand.templates, key = { it.id }) { t ->
+                ListItem(
+                    colors = transparentItem(),
+                    modifier = Modifier.clickable { onPick(t); onDismiss() },
+                    leadingContent = { Icon(Icons.Outlined.Description, contentDescription = null) },
+                    headlineContent = { Text(t.name) },
+                    supportingContent = { Text(t.description, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+                )
+            }
             TemplateKind.entries.forEach { kind ->
                 val list = templates.filter { it.kind == kind }
                 if (list.isEmpty()) return@forEach

@@ -50,7 +50,16 @@ class AgentRunner(private val c: AppContainer) {
         )
     }
 
-    suspend fun run(host: AgentHost, maxSteps: Int = c.settings.current.maxAgentSteps, tools: ToolSelection? = null) {
+    /**
+     * [maxSteps] tool rounds make one block; with [autoContinue] the agent starts the next block on its own
+     * (up to [HARD_STEP_LIMIT]) instead of waiting for "weiter". It stops when it repeats the same tool calls.
+     */
+    suspend fun run(
+        host: AgentHost,
+        maxSteps: Int = c.settings.current.maxAgentSteps,
+        tools: ToolSelection? = null,
+        autoContinue: Boolean = c.settings.current.autoContinue,
+    ) {
         val settings = c.settings.current
         val start = host.conversation ?: return
         val env = environment(start)
@@ -68,6 +77,8 @@ class AgentRunner(private val c: AppContainer) {
         }
         var providers = providers(start, tools)
         var steps = 0
+        var totalSteps = 0
+        val recentRounds = ArrayDeque<String>()
         while (true) {
             val conv = host.conversation ?: return
             val apiMessages = buildApiMessages(conv, ctx, providers)
@@ -78,7 +89,7 @@ class AgentRunner(private val c: AppContainer) {
                     model = conv.model,
                     messages = apiMessages,
                     tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
-                    onRateLimit = { wait -> host.notice("Rate-Limit des API-Keys erreicht – neuer Versuch in $wait s.") },
+                    onRetry = { reason, wait -> host.notice("$reason – neuer Versuch in $wait s.") },
                 ) { upd ->
                     host.update { cv ->
                         cv.updateMessage(placeholder.id) {
@@ -130,18 +141,29 @@ class AgentRunner(private val c: AppContainer) {
             }
             host.persist()
             steps++
+            totalSteps++
+            // The same tool calls several rounds in a row mean the model is stuck; continuing only burns requests.
+            recentRounds.addLast(result.toolCalls.joinToString("\n") { it.name + " " + it.arguments.trim() })
+            if (recentRounds.size > REPEAT_LIMIT) recentRounds.removeFirst()
+            if (recentRounds.size == REPEAT_LIMIT && recentRounds.distinct().size == 1) {
+                stopWith(host, "Der Agent hat ${REPEAT_LIMIT}-mal hintereinander dieselbe Aktion ausgeführt und wurde angehalten. Schreibe \"weiter\" oder beschreibe, wie es weitergehen soll.")
+                return
+            }
             if (steps >= maxSteps) {
-                host.update {
-                    it.appendToThread(
-                        ChatMessage(
-                            role = "assistant", error = true,
-                            content = "Maximale Anzahl an Werkzeugschritten ($steps) erreicht. Schreibe \"weiter\", um fortzufahren.",
-                        )
-                    )
+                if (autoContinue && totalSteps < HARD_STEP_LIMIT) {
+                    host.notice("$totalSteps Werkzeugschritte – der Agent macht automatisch weiter.")
+                    steps = 0
+                    continue
                 }
+                stopWith(host, "Maximale Anzahl an Werkzeugschritten ($totalSteps) erreicht. Schreibe \"weiter\", um fortzufahren.")
                 return
             }
         }
+    }
+
+    private fun stopWith(host: AgentHost, message: String) {
+        host.update { it.appendToThread(ChatMessage(role = "assistant", error = true, content = message)) }
+        host.persist()
     }
 
     private fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
@@ -180,5 +202,12 @@ class AgentRunner(private val c: AppContainer) {
             }
         }
         return out
+    }
+
+    companion object {
+        /** Upper bound for one request even with automatic continuation. */
+        const val HARD_STEP_LIMIT = 500
+        /** Identical tool rounds in a row after which the agent stops. */
+        const val REPEAT_LIMIT = 4
     }
 }

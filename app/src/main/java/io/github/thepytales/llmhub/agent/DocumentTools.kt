@@ -8,6 +8,8 @@ import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
+import io.github.thepytales.llmhub.docs.Letter
+import io.github.thepytales.llmhub.docs.TudBrand
 import io.github.thepytales.llmhub.net.s
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,10 +36,12 @@ class DocumentTools(
                 Param("title", "Titel des Dokuments (wird auch als Dateiname verwendet)"),
                 Param("content", "Vollständiger Inhalt in Markdown oder als HTML-Seite (<!DOCTYPE html>…)"),
                 Param("format", "pdf (Standard), docx, html, md oder txt", required = false),
-                Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch oder schlicht", required = false),
+                Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch, schlicht oder tud (Corporate Design der TU Dresden)", required = false),
                 Param("accent_color", "Akzentfarbe als #RRGGBB oder Name (z.B. blau, grün, bordeaux)", required = false),
                 Param("logo", "Name eines gespeicherten Logos, „standard“ für das Standardlogo oder „kein“", required = false),
                 Param("file_name", "Optionaler Dateiname ohne Endung", required = false),
+                Param("letter_sender", "Nur für Briefe: Absenderblock, Zeilen mit \\n getrennt (Einrichtung, Name, Telefon, E-Mail). title ist dann der Betreff.", required = false),
+                Param("letter_recipient", "Nur für Briefe: Anschrift des Empfängers, Zeilen mit \\n getrennt", required = false),
             ),
         ),
         ToolDef(
@@ -64,15 +68,17 @@ class DocumentTools(
         val wanted = args.s("logo")?.trim()
         val noLogo = wanted != null && wanted.lowercase() in setOf("kein", "keins", "none", "nein", "false", "ohne")
         var warning: String? = null
-        val logo = when {
+        val logo: ByteArray? = when {
             noLogo -> null
-            !wanted.isNullOrEmpty() -> logos.find(wanted).also {
+            !wanted.isNullOrEmpty() -> (TudBrand.logo(wanted) ?: logos.find(wanted)?.let { logos.pngBytes(it) }).also {
                 if (it == null) warning = "Logo „$wanted“ nicht gefunden – Dokument ohne Logo erstellt."
             }
-            s.autoLogo -> logos.default
+            // The TU Dresden design always carries its own logo.
+            style == DocStyle.TUD -> TudBrand.logoBlue
+            s.autoLogo -> logos.default?.let { logos.pngBytes(it) }
             else -> null
         }
-        return DocTheme(style, accent, logo?.let { logos.pngBytes(it) }, s.docFooter) to warning
+        return DocTheme(style, accent, logo, s.docFooter) to warning
     }
 
     /** Theme from the app settings (used for manual exports). */
@@ -85,7 +91,10 @@ class DocumentTools(
         val format = DocFormat.parse(args.s("format"))
         val (theme, warning) = theme(args)
         if (DocumentWriter.isHtml(content)) content = insertLogos(content, theme)
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme)
+        val sender = args.s("letter_sender")?.replace("\\n", "\n")?.trim().orEmpty()
+        val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
+        val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
         val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
         val notes = listOfNotNull(
@@ -106,8 +115,10 @@ class DocumentTools(
 
     /** Replaces src="logo" / src="logo:Name" in HTML with the image data. */
     private fun insertLogos(html: String, theme: DocTheme): String = LOGO_SRC.replace(html) { m ->
-        val logo = logos.find(m.groupValues[2].ifEmpty { null })
-        val url = logo?.let { logos.dataUrl(it) } ?: theme.logoDataUrl
+        val name = m.groupValues[2].ifEmpty { null }
+        val builtIn = TudBrand.logo(name)?.let { "data:image/png;base64," + Base64.encodeToString(it, Base64.NO_WRAP) }
+        val logo = if (builtIn == null) logos.find(name) else null
+        val url = builtIn ?: logo?.let { logos.dataUrl(it) } ?: theme.logoDataUrl
         if (url != null) "src=${m.groupValues[1]}$url${m.groupValues[1]}" else m.value
     }
 
@@ -133,6 +144,12 @@ class DocumentTools(
         append("(die App gestaltet es mit style und accent_color). Wünscht der Nutzer eine besondere Gestaltung (Farben, Formen, ")
         append("Flyer, Rechnung, Lebenslauf, Urkunde …), schreibe für format=pdf eine vollständige HTML-Seite mit eigenem CSS ")
         append("(A4: @page { size: A4; margin: 15mm }, keine externen Skripte). ")
+        append("Für Dokumente der TU Dresden (Briefe, Protokolle, Formulare, Merkblätter …) nimm Markdown mit style=tud: ")
+        append("die App setzt TUD-Blau (${TudBrand.BLUE}) und das Logo automatisch – das ist schnell und einheitlich, ")
+        append("schreibe dafür kein eigenes HTML. Für Briefe letter_sender und letter_recipient angeben, title ist der Betreff. ")
+        append("Formularelemente in Markdown: „- [ ] Option“ für Ankreuzkästchen, Tabellen mit leeren Zellen als Eingabefelder, ")
+        append("„________“ als Linie zum Ausfüllen. Eingebaute Logos für eigenes HTML: <img src=\"logo:${TudBrand.LOGO_NAME}\"> ")
+        append("(blau) und <img src=\"logo:${TudBrand.LOGO_WHITE_NAME}\"> (weiß, für blaue Flächen). ")
         val all = logos.current
         if (all.isEmpty()) {
             append("Es sind keine Logos gespeichert; schickt der Nutzer ein Logo als Bild, kannst du es mit save_logo speichern.")

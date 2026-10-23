@@ -94,6 +94,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
+import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.audio.VoiceOption
 import io.github.thepytales.llmhub.data.Logo
 import io.github.thepytales.llmhub.data.ModelCatalog
@@ -102,6 +103,7 @@ import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
+import io.github.thepytales.llmhub.net.ThinkingLevel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -458,6 +460,25 @@ private fun ChatSection(c: AppContainer) {
             value = s.maxAgentSteps.toString(),
             options = listOf("10", "20", "30", "50", "100"),
             onSelect = { v -> c.settings.update { it.copy(maxAgentSteps = v.toInt()) } },
+        )
+        SwitchRow(
+            "Danach automatisch weitermachen",
+            "Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens ${AgentRunner.HARD_STEP_LIMIT} Schritte). " +
+                "Wiederholt er immer dieselbe Aktion, hält er an.",
+            s.autoContinue,
+        ) { v -> c.settings.update { it.copy(autoContinue = v) } }
+        val thinking = ThinkingLevel.parse(s.thinkingLevel)
+        DropdownField(
+            label = "Denkstufe (Reasoning)",
+            value = thinking.label,
+            options = ThinkingLevel.entries.map { it.label },
+            onSelect = { v -> c.settings.update { it.copy(thinkingLevel = ThinkingLevel.entries.first { e -> e.label == v }.name) } },
+        )
+        Text(
+            thinking.description + " Gilt für Modelle mit Denkmodus (DeepSeek, GLM, Qwen, gpt-oss …). Unterstützt der Server " +
+                "die Einstellung für ein Modell nicht, antwortet es mit seinem Standard.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         DropdownField("Bild-Modell", s.imageModel, models.ofType(ModelType.IMAGE).map { it.id }, { v -> c.settings.update { it.copy(imageModel = v) } })
     }

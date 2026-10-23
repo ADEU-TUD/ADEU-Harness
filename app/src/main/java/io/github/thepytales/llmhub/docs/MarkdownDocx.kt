@@ -76,7 +76,11 @@ object MarkdownDocx {
             cx = 1_800_000L
             cy = cx * h / w
         }
-        val align = if (theme.style == DocStyle.CLASSIC) "center" else "right"
+        val align = when (theme.style) {
+            DocStyle.CLASSIC -> "center"
+            DocStyle.TUD -> "left"
+            else -> "right"
+        }
         return "<w:p><w:pPr><w:spacing w:after=\"120\"/><w:jc w:val=\"$align\"/></w:pPr><w:r><w:drawing>" +
             "<wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"$cx\" cy=\"$cy\"/>" +
             "<wp:docPr id=\"1\" name=\"Logo\"/>" +
