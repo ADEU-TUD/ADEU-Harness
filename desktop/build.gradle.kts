@@ -1,0 +1,109 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
+plugins {
+    kotlin("jvm") version "2.0.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("org.jetbrains.compose") version "1.7.3"
+}
+
+/** Same version scheme as the APK: 1.0.<build number>. */
+val appVersion = System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
+
+dependencies {
+    implementation(compose.desktop.currentOs)
+    implementation(compose.material3)
+    implementation(compose.materialIconsExtended)
+    implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+    implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Reading attached PDFs (text and scanned pages), page count of generated PDFs.
+    implementation("org.apache.pdfbox:pdfbox:3.0.3")
+    // HTML/CSS → PDF when neither Edge nor Chrome is available.
+    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.24")
+    implementation("org.jsoup:jsoup:1.18.1")
+    // Windows: DPAPI for the API key, registry for autostart.
+    implementation("net.java.dev.jna:jna-platform:5.15.0")
+    // Plays the MP3 speech of the server.
+    implementation("javazoom:jlayer:1.0.1")
+
+    testImplementation(kotlin("test"))
+}
+
+/*
+ * The Windows app shares the platform-independent code with the Android app: every file of
+ * app/src/main/java is compiled here, unless src/main/kotlin has a file with the same path
+ * (the Windows version of it) or the file only makes sense on Android.
+ */
+val androidSources = file("../app/src/main/java")
+val desktopSources = file("src/main/kotlin")
+val androidOnly = setOf(
+    "android/print/PdfPrintBridge.kt",
+    "io/github/thepytales/llmhub/MainActivity.kt",
+)
+
+val sharedSources by tasks.registering(Sync::class) {
+    from(androidSources) {
+        exclude { e -> !e.isDirectory && (e.path in androidOnly || desktopSources.resolve(e.path).exists()) }
+    }
+    into(layout.buildDirectory.dir("shared-src"))
+}
+
+/** Version for the About section and crash reports (Android: BuildConfig). */
+val buildConfig by tasks.registering {
+    val out = layout.buildDirectory.dir("generated/buildconfig")
+    val version = appVersion
+    inputs.property("version", version)
+    outputs.dir(out)
+    doLast {
+        val file = out.get().file("io/github/thepytales/llmhub/BuildConfig.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            "package io.github.thepytales.llmhub\n\nobject BuildConfig {\n" +
+                "    const val VERSION_NAME = \"$version\"\n    const val DEBUG = false\n}\n"
+        )
+    }
+}
+
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir(sharedSources)
+        kotlin.srcDir(buildConfig)
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+compose.desktop {
+    application {
+        mainClass = "io.github.thepytales.llmhub.MainKt"
+        jvmArgs += listOf("-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Xss4m")
+
+        nativeDistributions {
+            // Portable app folder (ADEU LLM.exe + runtime); see .github/scripts/windows-portable.ps1.
+            targetFormats(TargetFormat.AppImage)
+            packageName = "ADEU LLM"
+            packageVersion = appVersion
+            description = "ADEU LLM – Chat, Agenten und Dokumente mit der Uni-LLM-API"
+            vendor = "thepytales"
+            copyright = "Inoffiziell, nicht mit der Universität verbunden."
+            // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files;
+            // jdk.crypto.mscapi: certificates of Windows (company proxies); jdk.localedata: German dates.
+            modules("java.instrument", "java.management", "java.naming", "java.net.http", "java.sql", "jdk.unsupported",
+                "jdk.crypto.ec", "jdk.charsets", "jdk.accessibility", "jdk.localedata")
+            if (System.getProperty("os.name").startsWith("Windows")) modules("jdk.crypto.mscapi")
+            windows {
+                iconFile.set(project.file("icons/app.ico"))
+                // Without console window; errors go to log.txt in the data folder.
+                console = false
+            }
+            linux {
+                iconFile.set(project.file("icons/app.png"))
+            }
+        }
+    }
+}

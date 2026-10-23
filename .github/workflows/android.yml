@@ -1,4 +1,4 @@
-name: Build & Release APK
+name: Build & Release (Android + Windows)
 
 on:
   push:
@@ -85,14 +85,52 @@ jobs:
           name: smoke-test-${{ env.VERSION_NAME }}
           path: smoke/
 
+  # Portable Windows version (same features, shares the code of the app): one EXE that needs no
+  # installation and no admin rights, plus the same as ZIP. Started once on Windows before release.
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Windows app
+        run: .\gradlew.bat -p desktop --no-daemon createDistributable
+
+      - name: Pack portable EXE and ZIP
+        run: .github/scripts/windows-portable.ps1 -Version $env:VERSION_NAME
+
+      - name: Start test (every screen, PDF/Word)
+        run: .github/scripts/windows-selftest.ps1 -Exe "dist/ADEU-LLM-$env:VERSION_NAME-Windows.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ADEU-LLM-${{ env.VERSION_NAME }}-Windows
+          path: dist/
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-selftest-${{ env.VERSION_NAME }}
+          path: selftest/
+
   # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
   release:
-    needs: smoke-test
+    needs: [smoke-test, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ADEU-LLM-${{ env.VERSION_NAME }}-Windows
 
       - name: Publish GitHub release
         env:
@@ -101,14 +139,15 @@ jobs:
           PRERELEASE: ${{ github.ref_name != github.event.repository.default_branch && !startsWith(github.ref, 'refs/tags/') }}
         run: |
           TITLE="ADEU LLM ${VERSION_NAME}"
-          NOTES="Automatischer Build von ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). APK herunterladen und auf dem Android-Gerät installieren."
+          NOTES="Automatischer Build von ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). Android: APK herunterladen und installieren. Windows: ADEU-LLM-${VERSION_NAME}-Windows.exe herunterladen und starten – keine Installation, keine Admin-Rechte (alternativ die ZIP entpacken und „ADEU LLM.exe“ starten)."
           FLAGS=""
           if [ "$PRERELEASE" = "true" ]; then
             TITLE="${TITLE} (Vorabversion)"
-            NOTES="Vorabversion vom Branch ${GITHUB_REF_NAME} (${GITHUB_SHA::7}), noch nicht in ${{ github.event.repository.default_branch }} übernommen. APK herunterladen und auf dem Android-Gerät installieren."
+            NOTES="Vorabversion vom Branch ${GITHUB_REF_NAME} (${GITHUB_SHA::7}), noch nicht in ${{ github.event.repository.default_branch }} übernommen. Android: APK installieren. Windows: die EXE starten (keine Installation, keine Admin-Rechte) oder die ZIP entpacken."
             FLAGS="--prerelease"
           fi
           gh release create "v${VERSION_NAME}" "ADEU-LLM-${VERSION_NAME}.apk" \
+            "ADEU-LLM-${VERSION_NAME}-Windows.exe" "ADEU-LLM-${VERSION_NAME}-Windows.zip" \
             --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes "$NOTES" \
