@@ -9,6 +9,7 @@ enum class DocStyle(val label: String, val description: String) {
     ELEGANT("Elegant", "Serifen-Überschriften in Akzentfarbe, feine Linien, viel Weißraum."),
     CLASSIC("Klassisch", "Serifenschrift in Schwarz, zentrierter Titel – wie ein Brief."),
     MINIMAL("Schlicht", "Schwarz auf Weiß ohne Schmuck."),
+    TUD("TU Dresden", "Corporate Design der TU Dresden: TUD-Blau, Logo im Kopf, Briefe mit Anschriftfeld."),
     ;
 
     companion object {
@@ -21,6 +22,7 @@ enum class DocStyle(val label: String, val description: String) {
                 "classic", "klassik", "brief", "letter", "serif" -> CLASSIC
                 "minimal", "schlicht", "plain", "simple" -> MINIMAL
                 "elegant", "edel" -> ELEGANT
+                "tud", "tu dresden", "tu-dresden", "tu_dresden", "technische universität dresden", "uni", "universität" -> TUD
                 else -> null
             }
         }
@@ -35,6 +37,8 @@ data class DocTheme(
     /** Logo as PNG bytes. */
     val logo: ByteArray? = null,
     val footer: String = "",
+    /** Organizational unit shown next to the logo in the TU Dresden style, one level per line. */
+    val unit: String = "",
 ) {
     val logoDataUrl: String? get() = logo?.let { "data:image/png;base64," + Base64.encodeToString(it, Base64.NO_WRAP) }
 

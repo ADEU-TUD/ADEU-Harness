@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.net
 
 import io.github.thepytales.llmhub.data.ChatMessage
+import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.UsageStore
@@ -38,6 +39,20 @@ import kotlin.coroutines.coroutineContext
 /** [retryAfter] is the wait in seconds the server asked for (header retry-after, sent with 429). */
 class ApiException(val code: Int, message: String, val retryAfter: Long? = null) : IOException(message)
 
+/** How much a reasoning model thinks before answering; AUTO sends nothing and keeps the model's default. */
+enum class ThinkingLevel(val label: String, val description: String, val effort: String?) {
+    AUTO("Modellstandard", "Das Modell entscheidet selbst (wie bisher).", null),
+    OFF("Aus", "Kein Gedankengang – am schnellsten.", null),
+    LOW("Niedrig", "Kurz nachdenken – schnelle Antworten.", "low"),
+    MEDIUM("Mittel", "Ausgewogen.", "medium"),
+    HIGH("Hoch", "Gründlich nachdenken – langsamer, für schwierige Aufgaben.", "high"),
+    ;
+
+    companion object {
+        fun parse(name: String?) = entries.firstOrNull { it.name.equals(name?.trim(), ignoreCase = true) } ?: AUTO
+    }
+}
+
 /** Live update while a chat completion streams in. */
 data class StreamUpdate(val content: String, val reasoning: String, val toolCalls: List<ToolCall>)
 
@@ -60,6 +75,9 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     /** Cleared when the server rejects stream_options (then usage is estimated). */
     @Volatile
     private var askForUsage = true
+
+    /** Models whose server rejected the reasoning parameters; they get requests without them. */
+    private val noThinkingParams = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     val http: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -88,6 +106,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         val hint = when (code) {
             401 -> " (API-Key ungültig?)"
             429 -> " (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)"
+            502, 503, 504 -> " (Der Uni-Server erreicht das Modell gerade nicht – es ist überlastet, startet neu oder wird gewartet. " +
+                "Später erneut versuchen oder ein anderes Modell wählen)"
             else -> ""
         }
         return "HTTP $code$hint: ${parsed ?: body?.take(500) ?: "unbekannter Fehler"}"
@@ -103,42 +123,73 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         }
     }
 
-    /** Streams a chat completion and calls [onUpdate] with the accumulated state. */
+    /**
+     * Streams a chat completion and calls [onUpdate] with the accumulated state. Temporary server errors
+     * (rate limit, 502/503/504, dropped connections) are retried; [onRetry] gets the reason and the wait in seconds.
+     */
     suspend fun streamChat(
         model: String,
         messages: List<ChatMessage>,
         tools: JsonArray?,
-        onRateLimit: (waitSeconds: Long) -> Unit = {},
+        onRetry: (reason: String, waitSeconds: Long) -> Unit = { _, _ -> },
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
         // Keys of the self-service portal have a low requests-per-minute limit, which agent runs with many
         // tool steps reach quickly. The server answers 429 with retry-after; waiting and retrying is enough.
+        // 502/503/504 come from the gateway in front of the models ("upstream connect error … connection
+        // termination") while a model restarts or is overloaded – usually gone after a few seconds.
         var attempt = 0
         while (true) {
             try {
-                return streamChatWithUsageFallback(model, messages, tools, onUpdate)
-            } catch (e: ApiException) {
-                if (e.code != 429 || attempt >= RATE_LIMIT_RETRIES) throw e
-                val wait = (e.retryAfter ?: (15L * (attempt + 1))).coerceIn(1, MAX_RATE_LIMIT_WAIT)
-                onRateLimit(wait)
+                return streamChatWithFallbacks(model, messages, tools, onUpdate)
+            } catch (e: IOException) {
+                coroutineContext.ensureActive()
+                // Offline or a broken certificate does not fix itself within seconds.
+                if (e is java.net.UnknownHostException || e is javax.net.ssl.SSLException) throw e
+                val code = (e as? ApiException)?.code ?: 0
+                val reason = when (code) {
+                    0 -> "Verbindung zum Server unterbrochen"
+                    429 -> "Rate-Limit des API-Keys erreicht"
+                    in RETRY_CODES -> "Server des Modells vorübergehend nicht erreichbar (HTTP $code)"
+                    else -> throw e
+                }
+                if (attempt >= RETRIES) throw e
+                val fallback = if (code == 429) 15L * (attempt + 1) else SERVER_RETRY_WAITS[attempt]
+                val wait = ((e as? ApiException)?.retryAfter ?: fallback).coerceIn(1, MAX_RETRY_WAIT)
+                onRetry(reason, wait)
                 delay(wait * 1000)
                 attempt++
             }
         }
     }
 
-    private suspend fun streamChatWithUsageFallback(
+    private suspend fun streamChatWithFallbacks(
         model: String,
         messages: List<ChatMessage>,
         tools: JsonArray?,
         onUpdate: (StreamUpdate) -> Unit,
-    ): ChatResult = try {
-        streamChatOnce(model, messages, tools, askForUsage, onUpdate)
-    } catch (e: ApiException) {
-        if (askForUsage && e.code in 400..422 && e.message.orEmpty().contains("stream_options", ignoreCase = true)) {
-            askForUsage = false
-            streamChatOnce(model, messages, tools, false, onUpdate)
-        } else throw e
+    ): ChatResult {
+        val thinking = ThinkingLevel.parse(settings.current.thinkingLevel)
+            .takeIf { ModelCatalog.info(model).thinking != false && model !in noThinkingParams }
+            ?: ThinkingLevel.AUTO
+        return try {
+            streamChatOnce(model, messages, tools, askForUsage, thinking, onUpdate)
+        } catch (e: ApiException) {
+            val msg = e.message.orEmpty()
+            when {
+                e.code !in 400..422 -> throw e
+                askForUsage && msg.contains("stream_options", ignoreCase = true) -> {
+                    askForUsage = false
+                    streamChatWithFallbacks(model, messages, tools, onUpdate)
+                }
+                thinking != ThinkingLevel.AUTO && THINKING_PARAM_ERROR.containsMatchIn(msg) -> {
+                    // The model's server does not know these parameters: answer with its default thinking.
+                    noThinkingParams += model
+                    streamChatOnce(model, messages, tools, askForUsage, ThinkingLevel.AUTO, onUpdate)
+                }
+                else -> throw e
+            }
+        }
     }
 
     private suspend fun streamChatOnce(
@@ -146,12 +197,23 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         messages: List<ChatMessage>,
         tools: JsonArray?,
         withUsage: Boolean,
+        thinking: ThinkingLevel,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
             put("model", model)
             put("stream", true)
             if (withUsage) putJsonObject("stream_options") { put("include_usage", true) }
+            if (thinking != ThinkingLevel.AUTO) {
+                // vLLM passes chat_template_kwargs to the model's chat template: Qwen and GLM read enable_thinking,
+                // DeepSeek reads thinking. reasoning_effort is the OpenAI parameter (gpt-oss and others).
+                putJsonObject("chat_template_kwargs") {
+                    put("enable_thinking", thinking != ThinkingLevel.OFF)
+                    put("thinking", thinking != ThinkingLevel.OFF)
+                }
+                val effort = thinking.effort ?: "low".takeIf { "gpt-oss" in model.lowercase() }
+                effort?.let { put("reasoning_effort", it) }
+            }
             put("messages", JsonArray(messages.map { it.toApiJson() }))
             if (tools != null && tools.isNotEmpty()) {
                 put("tools", tools)
@@ -318,8 +380,11 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     }
 
     private companion object {
-        const val RATE_LIMIT_RETRIES = 3
-        const val MAX_RATE_LIMIT_WAIT = 90L
+        const val RETRIES = 3
+        const val MAX_RETRY_WAIT = 90L
+        val RETRY_CODES = setOf(502, 503, 504, 520, 521, 522, 523, 524, 529)
+        val SERVER_RETRY_WAITS = listOf(5L, 15L, 30L)
+        val THINKING_PARAM_ERROR = Regex("reasoning|chat_template_kwargs|thinking|extra_forbidden|extra (inputs|fields)", RegexOption.IGNORE_CASE)
     }
 }
 

@@ -22,6 +22,10 @@ data class AppSettings(
     val sttModel: String = "alias-stt",
     val confirmWrites: Boolean = true,
     val maxAgentSteps: Int = 30,
+    /** After maxAgentSteps tool rounds the agent continues on its own instead of asking for "weiter". */
+    val autoContinue: Boolean = true,
+    /** How much reasoning models think: enum name of net/ThinkingLevel. */
+    val thinkingLevel: String = "AUTO",
     /** New chats get the GitHub tools automatically when a token is configured. */
     val githubAutoTools: Boolean = true,
     /** Offer the create_document tool (PDF, Word, Markdown …). */
@@ -48,6 +52,8 @@ data class AppSettings(
     val docAccent: String = "#1E40AF",
     /** Footer line for documents, e.g. name and address. */
     val docFooter: String = "",
+    /** Unit below the TU Dresden logo (style TU Dresden), one level per line. */
+    val tudUnit: String = DEFAULT_TUD_UNIT,
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
     /** First name for the greeting and the avatar in the side menu (optional). */
@@ -59,6 +65,8 @@ data class AppSettings(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
+        const val DEFAULT_TUD_UNIT = "Fakultät Erziehungswissenschaften\nInstitut für Erziehungswissenschaft\n" +
+            "Professur für Allgemeine Didaktik und Empirische Unterrichtsforschung"
     }
 }
 
@@ -106,6 +114,8 @@ class SettingsStore(context: Context) {
             .putString("sttModel", next.sttModel)
             .putBoolean("confirmWrites", next.confirmWrites)
             .putInt("maxAgentSteps", next.maxAgentSteps)
+            .putBoolean("autoContinue", next.autoContinue)
+            .putString("thinkingLevel", next.thinkingLevel)
             .putBoolean("githubAutoTools", next.githubAutoTools)
             .putBoolean("documentTools", next.documentTools)
             .putBoolean("webTools", next.webTools)
@@ -121,6 +131,7 @@ class SettingsStore(context: Context) {
             .putString("docStyle", next.docStyle)
             .putString("docAccent", next.docAccent)
             .putString("docFooter", next.docFooter)
+            .putString("tudUnit", next.tudUnit)
             .putBoolean("autoLogo", next.autoLogo)
             .putString("userName", next.userName)
             .apply()
@@ -141,6 +152,8 @@ class SettingsStore(context: Context) {
             sttModel = prefs.getString("sttModel", d.sttModel) ?: d.sttModel,
             confirmWrites = prefs.getBoolean("confirmWrites", d.confirmWrites),
             maxAgentSteps = prefs.getInt("maxAgentSteps", d.maxAgentSteps),
+            autoContinue = prefs.getBoolean("autoContinue", d.autoContinue),
+            thinkingLevel = prefs.getString("thinkingLevel", d.thinkingLevel) ?: d.thinkingLevel,
             githubAutoTools = prefs.getBoolean("githubAutoTools", d.githubAutoTools),
             documentTools = prefs.getBoolean("documentTools", d.documentTools),
             webTools = prefs.getBoolean("webTools", d.webTools),
@@ -156,6 +169,7 @@ class SettingsStore(context: Context) {
             docStyle = prefs.getString("docStyle", d.docStyle) ?: d.docStyle,
             docAccent = prefs.getString("docAccent", d.docAccent) ?: d.docAccent,
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
+            tudUnit = prefs.getString("tudUnit", d.tudUnit) ?: d.tudUnit,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
             userName = prefs.getString("userName", d.userName) ?: d.userName,
         )

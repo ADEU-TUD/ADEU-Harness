@@ -39,6 +39,9 @@ enum class DocFormat(val ext: String, val mime: String, val label: String) {
     }
 }
 
+/** Letter layout: sender block next to the logo, address field and subject (the title). Lines are separated by \n. */
+data class Letter(val sender: String, val recipient: String)
+
 /** [designed] is false when the PDF had to fall back to the simple renderer. */
 data class CreatedDocument(val file: File, val format: DocFormat, val pages: Int?, val designed: Boolean = true)
 
@@ -66,7 +69,9 @@ object DocumentWriter {
         format: DocFormat,
         fileName: String? = null,
         theme: DocTheme = DocTheme(),
+        letter: Letter? = null,
     ): CreatedDocument {
+        @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         val base = safeName(fileName?.substringBeforeLast('.')?.ifBlank { null } ?: title)
         val file = withContext(Dispatchers.IO) {
             folder.mkdirs()
@@ -77,12 +82,16 @@ object DocumentWriter {
         }
         val html = isHtml(content)
         // Word, Markdown and text cannot keep an HTML design; they get its text structure.
-        val markdown = if (html) WebTools.htmlToText(content) else content
+        val markdown = when {
+            html -> WebTools.htmlToText(content)
+            letter != null -> letterAsMarkdown(letter, content, theme)
+            else -> content
+        }
         var pages: Int? = null
         var designed = true
         when (format) {
             DocFormat.PDF -> {
-                val page = if (html) content else toHtml(title, content, theme, print = true)
+                val page = if (html) content else toHtml(title, content, theme, print = true, letter = letter)
                 pages = try {
                     HtmlPdf.write(context, file, page)
                 } catch (e: CancellationException) {
@@ -94,11 +103,21 @@ object DocumentWriter {
                 }
             }
             DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
-            DocFormat.HTML -> withContext(Dispatchers.IO) { file.writeText(if (html) content else toHtml(title, content, theme, print = false)) }
+            DocFormat.HTML -> withContext(Dispatchers.IO) { file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter)) }
             DocFormat.MD -> withContext(Dispatchers.IO) { file.writeText(withTitle(title, markdown)) }
             DocFormat.TXT -> withContext(Dispatchers.IO) { file.writeText(toText(title, markdown)) }
         }
         return CreatedDocument(file, format, pages, designed)
+    }
+
+    /** Sender, address and date in front of the text, for formats without the letter layout (Word, text). */
+    private fun letterAsMarkdown(letter: Letter, body: String, theme: DocTheme): String = buildString {
+        fun lines(t: String) = t.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("  \n")
+        if (letter.sender.isNotBlank()) append(lines(letter.sender)).append("\n\n")
+        if (theme.style == DocStyle.TUD) append("*").append(TudBrand.POSTAL).append("*\n\n")
+        if (letter.recipient.isNotBlank()) append(lines(letter.recipient)).append("\n\n")
+        append("Dresden, ").append(DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())).append("\n\n")
+        append(body)
     }
 
     /** Adds the title as top-level heading unless the Markdown already starts with one. */
@@ -107,7 +126,16 @@ object DocumentWriter {
 
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
-    private fun htmlInline(text: String) = inlineSegments(text).joinToString("") { seg -> htmlSeg(seg) }
+    /** Runs of 4+ underscores are fill-in lines of forms; protected from the Markdown parser by private-use marks. */
+    private val FILL_LINE = Regex("_{4,}")
+    private val FILL_MARK = Regex("\uE000(\\d+)\uE001")
+
+    private fun htmlInline(text: String) =
+        inlineSegments(text.replace(FILL_LINE) { "\uE000${it.value.length}\uE001" })
+            .joinToString("") { seg -> htmlSeg(seg) }
+            .replace(FILL_MARK) { "<span class=\"fill\" style=\"width:${(it.groupValues[1].toInt() * 0.5).coerceIn(3.0, 30.0)}em\"></span>" }
+
+    private val CHECKBOX = Regex("^\\[([ xX])]\\s+")
 
     private fun htmlSeg(seg: Segment): String {
         var out = esc(seg.text)
@@ -147,14 +175,33 @@ object DocumentWriter {
         val serif = "'Noto Serif', Georgia, 'Times New Roman', serif"
         val sans = "Roboto, 'Helvetica Neue', Arial, sans-serif"
         val s = theme.style
-        val bodyFont = if (s == DocStyle.CLASSIC) serif else sans
-        val headFont = if (s == DocStyle.CLASSIC || s == DocStyle.ELEGANT) serif else sans
+        // Noto Sans is the typeface of the TUD corporate design.
+        val tudFont = "'Noto Sans', 'Open Sans', 'Segoe UI', Roboto, Arial, sans-serif"
+        val bodyFont = when (s) {
+            DocStyle.CLASSIC -> serif
+            DocStyle.TUD -> tudFont
+            else -> sans
+        }
+        val headFont = when (s) {
+            DocStyle.CLASSIC, DocStyle.ELEGANT -> serif
+            DocStyle.TUD -> tudFont
+            else -> sans
+        }
         val headColor = when (s) {
             DocStyle.CLASSIC, DocStyle.MINIMAL -> "#111"
             else -> a
         }
         return buildString {
-            if (print) {
+            if (print && s == DocStyle.TUD) {
+                // Margins as in DIN 5008 letters; footer with the unit and "Seite x von y".
+                val footer = theme.footer.ifBlank {
+                    listOfNotNull("Technische Universität Dresden", theme.unit.lines().lastOrNull { it.isNotBlank() }?.trim()).joinToString(" · ")
+                }
+                append("@page{size:A4;margin:18mm 20mm 22mm 25mm;")
+                append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
+                append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
+                append("}")
+            } else if (print) {
                 append("@page{size:A4;margin:18mm 17mm 20mm 17mm;")
                 append("@bottom-right{content:counter(page) \" / \" counter(pages);font:8pt $sans;color:#8a8f98}")
                 if (theme.footer.isNotBlank()) append("@bottom-left{content:${cssString(theme.footer)};font:8pt $sans;color:#8a8f98}")
@@ -184,6 +231,19 @@ object DocumentWriter {
             append(".header img{max-height:52pt;max-width:170pt;object-fit:contain}")
             append(".meta{color:#6b7280;font-size:9pt;margin-top:3pt}")
             append(".title{font-family:$headFont;font-size:24pt;font-weight:700;line-height:1.2;margin:0}")
+            // Forms: checkboxes, fill-in lines and empty table cells to write in.
+            append("li.task{list-style:none;margin-left:-14pt}")
+            append(".cb{display:inline-block;width:8.5pt;height:8.5pt;border:1pt solid #333;border-radius:1.5pt;margin-right:6pt;vertical-align:-1pt;text-align:center;line-height:8.5pt;font-size:8pt}")
+            append(".fill{display:inline-block;border-bottom:0.8pt solid #555;height:1.1em;vertical-align:bottom;max-width:100%}")
+            append("td:empty{height:20pt}td:only-child:empty{height:70pt}")
+            // Letters
+            append(".letter-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16pt;margin-bottom:10pt}")
+            append(".letter-head img{max-height:44pt;max-width:170pt;object-fit:contain}")
+            append(".sender{text-align:right;font-size:8.5pt;line-height:1.45;color:#333}")
+            append(".address{width:85mm;min-height:40mm;margin:16pt 0 18pt;font-size:10.5pt;line-height:1.4}")
+            append(".postal{font-size:7pt;color:#666;border-bottom:0.5pt solid #999;padding-bottom:2pt;margin-bottom:6pt}")
+            append(".letter-date{text-align:right;margin-bottom:16pt}")
+            append(".subject{font-weight:700;font-size:11pt;margin-bottom:16pt}")
             when (s) {
                 DocStyle.MODERN -> {
                     append(".bar{height:5pt;background:$a;border-radius:3pt;margin-bottom:14pt}")
@@ -213,8 +273,77 @@ object DocumentWriter {
                 DocStyle.MINIMAL -> {
                     append("th{border-bottom:1px solid #333;font-weight:600}td{border-bottom:1px solid #e5e7eb}")
                 }
+                DocStyle.TUD -> {
+                    // Sober official look: blue only for logo, unit, title and headings; thin grey lines; no colour fills.
+                    val line = "#9da1b4"
+                    val muted = "#5a5f73"
+                    append("body{font-size:10pt;line-height:1.5;color:#1a1a1a}")
+                    append(".tud-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24pt;margin-bottom:24pt}")
+                    append(".tud-head img{height:36pt;max-width:170pt;object-fit:contain}")
+                    append(".unit{text-align:right;font-size:7.5pt;line-height:1.45;color:$a;max-width:60%}.unit b{font-weight:700}")
+                    append(".title{color:$a;font-size:16pt;font-weight:700;line-height:1.25;margin:0 0 3pt}")
+                    append(".meta{color:$muted;font-size:8pt;margin:0 0 16pt;padding-bottom:8pt;border-bottom:0.6pt solid $line}")
+                    append("h1{font-size:14pt}h2{font-size:11pt;font-weight:700;color:$a;margin:14pt 0 5pt}")
+                    append("h3{font-size:10pt;font-weight:700;color:#1a1a1a;margin:12pt 0 4pt}")
+                    append("table{font-size:9pt;margin:4pt 0 12pt}")
+                    append("th{background:#eceef4;color:#1a1a1a;font-weight:700;border:0.6pt solid $line;font-size:8.5pt}")
+                    append("td{border:0.6pt solid $line}")
+                    // Two-column rows are form fields: label on the left (small, grey background), space to write on the right.
+                    append("td:first-child:nth-last-child(2):not(:empty){width:36%;background:#f6f7fa;font-size:8.5pt;color:#33384a}")
+                    append("td:empty{height:17pt}td:only-child:empty{height:60pt}")
+                    append(".cb{border:0.8pt solid #1a1a1a;border-radius:0;width:9pt;height:9pt;line-height:9pt}")
+                    append(".fill{border-bottom-color:#1a1a1a}")
+                    append("blockquote{border-left:2pt solid $a;background:#f4f5f9;color:#1a1a1a}")
+                    append(".callout.tud{border:none;border-left:2pt solid $a;background:#f4f5f9;border-radius:0;padding:6pt 10pt}")
+                    append(".callout.tud .label{color:$a;font-size:7.5pt;letter-spacing:.06em}")
+                    // DIN 5008 letter: address field 85 mm wide, information block on the right.
+                    append(".letter-row{display:flex;justify-content:space-between;gap:12mm;margin:4mm 0 12mm}")
+                    append(".letter-row .address{width:85mm;min-height:45mm;margin:0;font-size:10pt}")
+                    append(".postal{font-size:6.5pt;color:$muted;border-bottom:0.5pt solid $line;padding-bottom:1.5pt;margin-bottom:5pt}")
+                    append(".info{width:58mm;font-size:8pt;line-height:1.5}.info .k{color:$muted}")
+                    append(".subject{color:#1a1a1a;font-size:10.5pt;margin-bottom:14pt}")
+                }
             }
         }
+    }
+
+    private fun linesHtml(text: String) =
+        text.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("<br>") { htmlInline(it) }
+
+    /** Logo on the left, the organizational unit (last level bold) on the right. */
+    private fun tudHead(theme: DocTheme): String {
+        val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"TU Dresden\">" }.orEmpty()
+        val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val unit = lines.mapIndexed { i, l -> if (i == lines.lastIndex) "<b>${esc(l)}</b>" else esc(l) }.joinToString("<br>")
+        return "<div class=\"tud-head\">$logo<div class=\"unit\">$unit</div></div>"
+    }
+
+    private fun tudLetterBlock(title: String, theme: DocTheme, letter: Letter): String {
+        val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())
+        val sender = letter.sender.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val info = sender.mapIndexed { i, l ->
+            val k = l.substringBefore(':', "")
+            when {
+                i == 0 -> "<b>${htmlInline(l)}</b>"
+                k.isNotEmpty() && k.length <= 14 -> "<span class=\"k\">${esc(k)}:</span>${htmlInline(l.substringAfter(':'))}"
+                else -> htmlInline(l)
+            }
+        }.joinToString("<br>")
+        return tudHead(theme) +
+            "<div class=\"letter-row\"><div class=\"address\"><div class=\"postal\">${esc(TudBrand.POSTAL)}</div>" +
+            "${linesHtml(letter.recipient)}</div><div class=\"info\">$info" +
+            "${if (info.isEmpty()) "" else "<br><br>"}<span class=\"k\">Datum:</span> $date</div></div>" +
+            (if (title.isBlank()) "" else "<div class=\"subject\"><b>${htmlInline(title)}</b></div>")
+    }
+
+    private fun letterBlock(title: String, theme: DocTheme, letter: Letter): String {
+        if (theme.style == DocStyle.TUD) return tudLetterBlock(title, theme, letter)
+        val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"Logo\">" }.orEmpty()
+        val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())
+        return "<div class=\"letter-head\">$logo<div class=\"sender\">${linesHtml(letter.sender)}</div></div>" +
+            "<div class=\"address\">${linesHtml(letter.recipient)}</div>" +
+            "<div class=\"letter-date\">Dresden, $date</div>" +
+            (if (title.isBlank()) "" else "<div class=\"subject\">${htmlInline(title)}</div>")
     }
 
     private fun titleBlock(title: String, theme: DocTheme): String {
@@ -229,15 +358,23 @@ object DocumentWriter {
             DocStyle.ELEGANT -> "<div class=\"header\"><div>$t$meta</div>$logo</div><div class=\"rule\"></div>"
             DocStyle.MODERN -> "<div class=\"bar\"></div><div class=\"header\"><div>$t$meta</div>$logo</div>"
             DocStyle.MINIMAL -> "<div class=\"header\"><div>$t$meta</div>$logo</div>"
+            DocStyle.TUD -> tudHead(theme) + t + "<div class=\"meta\">Stand: $date</div>"
         }
     }
 
     /** Converts Markdown into a styled HTML page (also the source for PDFs). */
-    fun toHtml(title: String, markdown: String, theme: DocTheme = DocTheme(), print: Boolean = false): String = buildString {
+    fun toHtml(
+        title: String,
+        markdown: String,
+        theme: DocTheme = DocTheme(),
+        print: Boolean = false,
+        letter: Letter? = null,
+    ): String = buildString {
+        @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         // A leading "# Heading" becomes the title of the document.
         var body = markdown.trimStart()
         var docTitle = title
-        Regex("^#\\s+(.+)").find(body.lineSequence().firstOrNull().orEmpty())?.let {
+        if (letter == null) Regex("^#\\s+(.+)").find(body.lineSequence().firstOrNull().orEmpty())?.let {
             docTitle = it.groupValues[1].trim()
             body = body.substringAfter('\n', "")
         }
@@ -246,7 +383,7 @@ object DocumentWriter {
         append("<title>${esc(docTitle.ifBlank { "Dokument" })}</title>\n<style>\n")
         append(css(theme, print))
         append("\n</style>\n</head>\n<body>\n")
-        append(titleBlock(docTitle, theme))
+        append(if (letter != null) letterBlock(docTitle, theme, letter) else titleBlock(docTitle, theme))
         val blocks = parseBlocks(body)
         var openList: String? = null
         fun closeList() {
@@ -266,13 +403,20 @@ object DocumentWriter {
                         openList = tag
                     }
                     val style = if (b.indent > 0) " style=\"margin-left:${b.indent * 1.5}em\"" else ""
-                    append("<li$style>${htmlInline(b.text)}</li>\n")
+                    val box = CHECKBOX.find(b.text)
+                    if (box == null) append("<li$style>${htmlInline(b.text)}</li>\n")
+                    else {
+                        val mark = if (box.groupValues[1].isBlank()) "" else "✓"
+                        append("<li class=\"task\"$style><span class=\"cb\">$mark</span>${htmlInline(b.text.substring(box.range.last + 1))}</li>\n")
+                    }
                 }
                 is Block.Quote -> {
                     val c = callout(b.text)
                     val lines = (c?.second ?: b.text).lines().joinToString("<br>\n") { htmlInline(it) }
                     if (c == null || theme.style == DocStyle.MINIMAL) append("<blockquote>$lines</blockquote>\n")
-                    else {
+                    else if (theme.style == DocStyle.TUD) {
+                        append("<div class=\"callout tud\"><div class=\"label\">${c.first.label}</div>$lines</div>\n")
+                    } else {
                         val color = c.first.color
                         append("<div class=\"callout\" style=\"border-color:${color}55;background:${color}12\">")
                         append("<div class=\"label\" style=\"color:$color\">${c.first.label}</div>$lines</div>\n")
