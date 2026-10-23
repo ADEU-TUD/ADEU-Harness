@@ -40,6 +40,7 @@ import androidx.compose.ui.window.rememberWindowState
 import io.github.thepytales.llmhub.desktop.Autostart
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import io.github.thepytales.llmhub.desktop.DroppedFiles
+import io.github.thepytales.llmhub.desktop.Network
 import io.github.thepytales.llmhub.desktop.SingleInstance
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
@@ -59,6 +60,7 @@ fun main(args: Array<String>) {
         selfTest.mkdirs()
         System.setProperty("adeu.data", File(selfTest, "data").absolutePath)
     }
+    Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
     LlmHubApp.start()

@@ -91,9 +91,11 @@ compose.desktop {
             description = "ADEU LLM – Chat, Agenten und Dokumente mit der Uni-LLM-API"
             vendor = "thepytales"
             copyright = "Inoffiziell, nicht mit der Universität verbunden."
-            // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files.
+            // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files;
+            // jdk.crypto.mscapi: certificates of Windows (company proxies); jdk.localedata: German dates.
             modules("java.instrument", "java.management", "java.naming", "java.net.http", "java.sql", "jdk.unsupported",
                 "jdk.crypto.ec", "jdk.charsets", "jdk.accessibility", "jdk.localedata")
+            if (System.getProperty("os.name").startsWith("Windows")) modules("jdk.crypto.mscapi")
             windows {
                 iconFile.set(project.file("icons/app.ico"))
                 // Without console window; errors go to log.txt in the data folder.

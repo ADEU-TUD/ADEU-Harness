@@ -101,6 +101,12 @@ object SelfTest {
                 File(LlmHubApp.context.filesDir, "secure_settings.dat").let { it.exists() && !it.readText(Charsets.ISO_8859_1).contains("Test") }
             }.getOrDefault(false))
             // Information only: depends on the PC, not on the app.
+            val https = withContext(Dispatchers.IO) {
+                runCatching {
+                    c().llm.http.newCall(okhttp3.Request.Builder().url("https://llm.scads.ai/v1/models").build()).execute().use { "HTTP ${it.code}" }
+                }.getOrElse { it.toString() }
+            }
+            line("Info: Verbindung zu llm.scads.ai: $https")
             line("Info: ${c().speaker.deviceVoices().size} Windows-Stimme(n), Autostart ${if (io.github.thepytales.llmhub.desktop.Autostart.supported) "möglich" else "nicht möglich"}, " +
                 "Infobereich ${if (androidx.compose.ui.window.isTraySupported) "ja" else "nein"}")
             check("Keine Abstürze", errors.isEmpty(), errors.joinToString { it.toString() })
