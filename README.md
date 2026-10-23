@@ -53,7 +53,8 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 4. Optional: GitHub-Token eintragen (siehe unten).
 
 Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und veröffentlicht sie als Release
-(`.github/workflows/android.yml`). Updates lassen sich direkt über die alte Version installieren – API-Key,
+(`.github/workflows/android.yml`). Builds anderer Branches erscheinen ebenfalls unter Releases, gekennzeichnet als
+*Vorabversion*. Updates lassen sich direkt über die alte Version installieren – API-Key,
 GitHub-Token, Einstellungen und Chats bleiben dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
 
 ## GitHub-Token
