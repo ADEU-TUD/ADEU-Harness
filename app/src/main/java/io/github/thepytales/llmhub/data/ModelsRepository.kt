@@ -18,10 +18,19 @@ data class ModelsState(
     /** All models to show: live list if available, otherwise the built-in catalog. */
     val models: List<ModelInfo>
         get() = (liveIds?.map { ModelCatalog.info(it) } ?: ModelCatalog.known)
-            .sortedWith(compareBy<ModelInfo>({ it.type.ordinal }, { it.isAlias }, { it.id.lowercase() }))
+            .sortedWith(compareBy<ModelInfo>({ it.type.ordinal }, { it.tier.ordinal }, { ModelCatalog.rank(it.id) }, { it.id.lowercase() }))
 
     fun ofType(type: ModelType) = models.filter { it.type == type }
+
+    /** Chat models that are offered in the picker, best first (see [ModelTier]). */
+    val pickable: List<ModelInfo>
+        get() = pickerModels(ofType(ModelType.CHAT))
 }
+
+/** Leaves out hidden models and sorts by the order of the built-in catalog. */
+fun pickerModels(models: List<ModelInfo>): List<ModelInfo> =
+    models.filter { it.type == ModelType.CHAT && it.tier != ModelTier.HIDDEN }
+        .sortedWith(compareBy<ModelInfo>({ ModelCatalog.rank(it.id) }, { it.id.lowercase() }))
 
 class ModelsRepository(private val llm: LlmClient) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

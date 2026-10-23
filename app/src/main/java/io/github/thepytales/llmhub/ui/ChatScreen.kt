@@ -1,6 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +32,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.filled.AddComment
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Delete
@@ -53,12 +59,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -70,6 +78,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -79,17 +89,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
+import io.github.thepytales.llmhub.MainActivity
+import io.github.thepytales.llmhub.R
 import io.github.thepytales.llmhub.audio.Recorder
 import io.github.thepytales.llmhub.data.ChatMessage
+import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.files.AttachmentReader
+import io.github.thepytales.llmhub.tasks.Notifier
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -196,6 +215,15 @@ fun ChatScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
+    // No notification for the chat on screen; opening it marks its result as read.
+    DisposableEffect(current.id) {
+        c.runs.visibleChatId = current.id
+        onDispose { if (c.runs.visibleChatId == current.id) c.runs.visibleChatId = null }
+    }
+    LifecycleResumeEffect(current.id) {
+        vm.markRead()
+        onPauseOrDispose { }
+    }
     val modelInfo = ModelCatalog.info(current.model)
     val env = current.envId?.let { id -> environments.firstOrNull { it.id == id } }
     val items = remember(current.messages, current.selected) { chatItems(current) }
@@ -206,7 +234,9 @@ fun ChatScreen(
         else -> current.repo + (current.branch?.let { " · $it" } ?: "")
     }
 
+    val hasMessages = current.messages.isNotEmpty()
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -214,70 +244,51 @@ fun ChatScreen(
                     IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
                 },
                 title = {
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier.clickable { showModelPicker = true },
-                    ) {
-                        Row(Modifier.padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (hasMessages) {
+                        Row(
+                            Modifier
+                                .clip(RoundedCornerShape(50))
+                                .clickable { menuOpen = true }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
-                                modelInfo.displayName,
-                                style = MaterialTheme.typography.titleSmall,
+                                current.title,
+                                style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 180.dp),
+                                modifier = Modifier.widthIn(max = 200.dp),
                             )
                             Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(18.dp))
                         }
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNewChat) { Icon(Icons.Outlined.AddComment, contentDescription = "Neuer Chat") }
+                    IconButton(onClick = onNewChat) {
+                        Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
+                    }
                     Box {
                         IconButton(onClick = { menuOpen = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
-                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                            val hasMessages = current.messages.isNotEmpty()
-                            DropdownMenuItem(
-                                text = { Text("Umbenennen") },
-                                leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                                enabled = hasMessages,
-                                onClick = { menuOpen = false; showRename = true },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(if (current.pinned) "Lösen" else "Anheften") },
-                                leadingIcon = { Icon(Icons.Outlined.PushPin, contentDescription = null) },
-                                enabled = hasMessages,
-                                onClick = { menuOpen = false; vm.setPinned(!current.pinned) },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("In Ordner verschieben") },
-                                leadingIcon = { Icon(Icons.Outlined.DriveFileMove, contentDescription = null) },
-                                enabled = hasMessages,
-                                onClick = { menuOpen = false; showFolder = true },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Persona / System-Prompt") },
-                                leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
-                                onClick = { menuOpen = false; showSystemPrompt = true },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Umgebung") },
-                                leadingIcon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
-                                onClick = { menuOpen = false; showEnvPicker = true },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Chat exportieren (PDF, Word …)") },
-                                leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null) },
-                                enabled = hasMessages,
-                                onClick = { menuOpen = false; export = current.title to chatToMarkdown(current) },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Chat löschen") },
-                                leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                                enabled = hasMessages,
-                                onClick = { menuOpen = false; showDelete = true },
-                            )
-                        }
+                        ChatMenu(
+                            open = menuOpen,
+                            title = if (hasMessages) current.title else "Neuer Chat",
+                            hasMessages = hasMessages,
+                            pinned = current.pinned,
+                            onDismiss = { menuOpen = false },
+                            onShare = { shareText(context, chatToMarkdown(current), current.title) },
+                            onRename = { showRename = true },
+                            onPin = { vm.setPinned(!current.pinned) },
+                            onFolder = { showFolder = true },
+                            onHomeScreen = {
+                                if (!pinChatShortcut(context, current)) {
+                                    Toast.makeText(context, "Dein Startbildschirm unterstützt keine Verknüpfungen.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onExport = { export = current.title to chatToMarkdown(current) },
+                            onPersona = { showSystemPrompt = true },
+                            onEnvironment = { showEnvPicker = true },
+                            onDelete = { showDelete = true },
+                        )
                     }
                 },
             )
@@ -286,7 +297,9 @@ fun ChatScreen(
             Composer(
                 input = input,
                 onInput = { input = it },
-                placeholder = "Frag ${modelInfo.displayName}",
+                placeholder = if (hasMessages) "Antworten …" else "Wie kann ich helfen?",
+                modelLabel = modelInfo.displayName,
+                onModel = { showModelPicker = true },
                 images = images,
                 files = files,
                 loadingFiles = loadingFiles,
@@ -331,7 +344,9 @@ fun ChatScreen(
         if (items.isEmpty() && !running) {
             EmptyChat(
                 hasApiKey = settings.hasApiKey,
-                modelSummary = modelInfo.summary,
+                userName = settings.userName,
+                model = modelInfo,
+                onModel = { showModelPicker = true },
                 padding = pad,
                 suggestions = templates.take(6),
                 onTemplate = { t ->
@@ -357,13 +372,7 @@ fun ChatScreen(
                 if (running && (last == null || last.role != "assistant" ||
                         (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))
                 ) {
-                    item(key = "typing") {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.size(8.dp))
-                            Text("denkt nach…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+                    item(key = "typing") { ThinkingIndicator() }
                 }
                 items(reversed, key = { it.key }) { item ->
                     when (item) {
@@ -434,6 +443,8 @@ fun ChatScreen(
             selected = current.model,
             onSelect = { vm.setModel(it) },
             onDismiss = { showModelPicker = false },
+            defaultModel = settings.defaultModel,
+            note = "Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest.",
         )
     }
 
@@ -443,6 +454,8 @@ fun ChatScreen(
             selected = current.model,
             onSelect = { vm.regenerate(question, it) },
             onDismiss = { regenerateFor = null },
+            defaultModel = settings.defaultModel,
+            title = "Neu generieren mit …",
         )
     }
 
@@ -512,33 +525,58 @@ fun ChatScreen(
     }
 }
 
+private fun greeting(name: String): String {
+    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    val hello = when (hour) {
+        in 5..10 -> "Guten Morgen"
+        in 11..17 -> "Guten Tag"
+        in 18..22 -> "Guten Abend"
+        else -> "Hallo"
+    }
+    return if (name.isBlank()) hello else "$hello, ${name.trim()}"
+}
+
+/** Start of a new chat like in the Claude app: greeting, the chosen model and suggestions. */
 @Composable
 private fun EmptyChat(
     hasApiKey: Boolean,
-    modelSummary: String,
+    userName: String,
+    model: ModelInfo,
+    onModel: () -> Unit,
     padding: PaddingValues,
     suggestions: List<io.github.thepytales.llmhub.data.Template>,
     onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
     onApiKey: () -> Unit,
 ) {
+    val look = LocalChatLook.current
     Column(
         Modifier
             .fillMaxSize()
             .padding(padding)
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.weight(1f))
-        Text("Wie kann ich helfen?", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-        Spacer(Modifier.size(6.dp))
+        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = look.brand, modifier = Modifier.size(40.dp))
+        Spacer(Modifier.size(14.dp))
         Text(
-            modelSummary,
-            style = MaterialTheme.typography.bodySmall,
+            greeting(userName),
+            style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(
+            model.displayName + (model.useCase.takeIf { it.isNotBlank() }?.let { " – $it" } ?: ""),
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            maxLines = 2,
+            maxLines = 3,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onModel)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
         )
         if (!hasApiKey) {
             Spacer(Modifier.size(20.dp))
@@ -559,9 +597,11 @@ private fun EmptyChat(
             suggestions.forEach { t ->
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    color = look.card,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
                     modifier = Modifier
                         .widthIn(min = 150.dp, max = 200.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .clickable { onTemplate(t) },
                 ) {
                     Column(Modifier.padding(12.dp)) {
@@ -578,4 +618,84 @@ private fun EmptyChat(
             }
         }
     }
+}
+
+@Composable
+private fun MenuEntry(icon: ImageVector, label: String, enabled: Boolean = true, danger: Boolean = false, onClick: () -> Unit) {
+    val color = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    DropdownMenuItem(
+        text = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp)) },
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        enabled = enabled,
+        onClick = onClick,
+        colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        modifier = Modifier.heightIn(min = 52.dp),
+    )
+}
+
+/** Chat menu like the Claude app: title on top, big entries, "Löschen" in red. */
+@Composable
+private fun ChatMenu(
+    open: Boolean,
+    title: String,
+    hasMessages: Boolean,
+    pinned: Boolean,
+    onDismiss: () -> Unit,
+    onShare: () -> Unit,
+    onRename: () -> Unit,
+    onPin: () -> Unit,
+    onFolder: () -> Unit,
+    onHomeScreen: () -> Unit,
+    onExport: () -> Unit,
+    onPersona: () -> Unit,
+    onEnvironment: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    fun pick(action: () -> Unit): () -> Unit = {
+        onDismiss()
+        action()
+    }
+    DropdownMenu(
+        expanded = open,
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(22.dp),
+        containerColor = LocalChatLook.current.card,
+        shadowElevation = 8.dp,
+        modifier = Modifier.widthIn(min = 260.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 280.dp).padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
+        )
+        MenuEntry(Icons.Outlined.IosShare, "Teilen", hasMessages, onClick = pick(onShare))
+        MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
+        MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
+        MenuEntry(Icons.Outlined.DriveFileMove, "Zu Ordner hinzufügen", hasMessages, onClick = pick(onFolder))
+        MenuEntry(Icons.Outlined.Home, "Zum Startbildschirm hinzufügen", hasMessages, onClick = pick(onHomeScreen))
+        MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
+        MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))
+        MenuEntry(Icons.Outlined.Tune, "Umgebung", onClick = pick(onEnvironment))
+        MenuEntry(Icons.Outlined.Delete, "Löschen", hasMessages, danger = true, onClick = pick(onDelete))
+    }
+}
+
+/** Puts a shortcut to [conv] on the home screen; false if the launcher cannot do that. */
+private fun pinChatShortcut(context: Context, conv: Conversation): Boolean {
+    if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
+    val intent = Intent(context, MainActivity::class.java)
+        .setAction(Intent.ACTION_VIEW)
+        .putExtra(Notifier.EXTRA_CHAT, conv.id)
+    val label = conv.title.ifBlank { "Chat" }
+    val info = ShortcutInfoCompat.Builder(context, "chat_${conv.id}")
+        .setShortLabel(label.take(24))
+        .setLongLabel(label.take(60))
+        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
+        .setIntent(intent)
+        .build()
+    return runCatching { ShortcutManagerCompat.requestPinShortcut(context, info, null) }.getOrDefault(false)
 }

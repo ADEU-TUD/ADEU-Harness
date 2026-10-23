@@ -7,10 +7,12 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.util.Base64
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -21,18 +23,21 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Stop
@@ -56,6 +61,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -113,12 +119,32 @@ fun ContextChip(icon: ImageVector, label: String, onClick: () -> Unit, highlight
     }
 }
 
-/** ChatGPT-like input: rounded field with "+" for attachments, microphone and send button. */
+/** Round button of the input card (attachments, microphone). */
+@Composable
+private fun RoundButton(onClick: () -> Unit, enabled: Boolean = true, content: @Composable () -> Unit) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled, onClick = onClick),
+    ) {
+        Box(contentAlignment = Alignment.Center) { content() }
+    }
+}
+
+/**
+ * Input card like the Claude app: text on top, below "+" for attachments, the model, microphone and
+ * a round send button.
+ */
 @Composable
 fun Composer(
     input: String,
     onInput: (String) -> Unit,
     placeholder: String,
+    modelLabel: String,
+    onModel: () -> Unit,
     images: List<String>,
     files: List<FileAttachment>,
     loadingFiles: Int,
@@ -133,12 +159,13 @@ fun Composer(
     onStop: () -> Unit,
     chips: @Composable RowScope.() -> Unit,
 ) {
+    val look = LocalChatLook.current
     Column(
         Modifier
             .background(MaterialTheme.colorScheme.background)
             .navigationBarsPadding()
             .imePadding()
-            .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 8.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
     ) {
         Row(
             Modifier
@@ -148,16 +175,18 @@ fun Composer(
             content = chips,
         )
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(28.dp),
+            color = look.card,
+            shape = look.inputShape,
+            shadowElevation = 3.dp,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column {
+            Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 8.dp)) {
                 if (images.isNotEmpty() || files.isNotEmpty() || loadingFiles > 0) {
                     Row(
                         Modifier
                             .horizontalScroll(rememberScrollState())
-                            .padding(start = 12.dp, end = 12.dp, top = 12.dp),
+                            .padding(start = 6.dp, end = 6.dp, top = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -166,40 +195,73 @@ fun Composer(
                         if (loadingFiles > 0) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                     }
                 }
-                Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(4.dp)) {
-                    IconButton(onClick = onPlus) { Icon(Icons.Outlined.Add, contentDescription = "Hinzufügen") }
-                    TextField(
-                        value = input,
-                        onValueChange = onInput,
-                        placeholder = { Text(if (recording) "Aufnahme läuft…" else placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        maxLines = 6,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                        ),
-                        modifier = Modifier.weight(1f),
-                    )
-                    IconButton(enabled = !transcribing, onClick = onMic) {
+                TextField(
+                    value = input,
+                    onValueChange = onInput,
+                    placeholder = {
+                        Text(
+                            if (recording) "Aufnahme läuft … zum Beenden auf das Mikrofon tippen" else placeholder,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    maxLines = 8,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 4.dp)) {
+                    RoundButton(onClick = onPlus) { Icon(Icons.Outlined.Add, contentDescription = "Hinzufügen") }
+                    Spacer(Modifier.width(8.dp))
+                    Box(Modifier.weight(1f)) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .clickable(onClick = onModel),
+                        ) {
+                            Row(Modifier.padding(start = 14.dp, end = 8.dp, top = 9.dp, bottom = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    modelLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                                Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Modell wählen", modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    RoundButton(onClick = onMic, enabled = !transcribing) {
                         when {
-                            transcribing -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            transcribing -> CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                             recording -> Icon(Icons.Outlined.StopCircle, contentDescription = "Aufnahme beenden", tint = MaterialTheme.colorScheme.error)
                             else -> Icon(Icons.Outlined.Mic, contentDescription = "Spracheingabe")
                         }
                     }
-                    if (running) {
-                        FilledIconButton(
-                            onClick = onStop,
-                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.onSurface),
-                        ) { Icon(Icons.Outlined.Stop, contentDescription = "Stopp", tint = MaterialTheme.colorScheme.surface) }
-                    } else {
-                        FilledIconButton(
-                            enabled = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty(),
-                            onClick = onSend,
-                        ) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Senden") }
+                    Spacer(Modifier.width(8.dp))
+                    val canSend = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
+                    val active = running || canSend
+                    Surface(
+                        shape = CircleShape,
+                        color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = if (active) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .clickable(enabled = active, onClick = if (running) onStop else onSend),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (running) Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                            else Icon(Icons.Filled.ArrowUpward, contentDescription = "Senden")
+                        }
                     }
                 }
             }

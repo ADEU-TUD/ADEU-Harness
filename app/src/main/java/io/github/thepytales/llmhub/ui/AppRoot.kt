@@ -1,8 +1,17 @@
 package io.github.thepytales.llmhub.ui
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -10,8 +19,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -40,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.CrashLog
+import io.github.thepytales.llmhub.tasks.Notifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -101,74 +117,119 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 
-    ModalNavigationDrawer(
-        drawerState = drawer,
-        gesturesEnabled = onChat,
-        drawerContent = {
-            AppDrawer(
-                c = c,
-                currentChatId = currentChatId,
-                onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
-                onNewChat = { nav.openChat(chatRoute()); closeDrawer() },
-                onNavigate = { route -> nav.navigate(route); closeDrawer() },
+    // Ask once for notifications (Android 13+): finished answers and task results arrive as notifications.
+    val notifyPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33 && !Notifier.canNotify(context)) {
+            val prefs = context.getSharedPreferences("ui_state", Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("askedNotifications", false)) {
+                prefs.edit().putBoolean("askedNotifications", true).apply()
+                notifyPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    // Results that arrive while the app is open appear as a banner at the top.
+    val snackbar = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        c.events.collect { e ->
+            snackbar.currentSnackbarData?.dismiss()
+            val result = snackbar.showSnackbar(
+                message = "${e.title}: ${e.message}",
+                actionLabel = "Ansehen",
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
             )
-        },
-    ) {
-        NavHost(navController = nav, startDestination = "chat?id={id}&model={model}&persona={persona}") {
-            composable(
-                "chat?id={id}&model={model}&persona={persona}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
-                    navArgument("model") { type = NavType.StringType; nullable = true; defaultValue = null },
-                    navArgument("persona") { type = NavType.StringType; nullable = true; defaultValue = null },
-                ),
-            ) { back ->
-                val args = back.arguments
-                val vm: ChatViewModel = viewModel {
-                    ChatViewModel(c, args?.getString("id"), args?.getString("model"), args?.getString("persona"))
-                }
-                val conv by vm.state.collectAsStateWithLifecycle()
-                LaunchedEffect(conv?.id) { currentChatId = conv?.id }
-                ChatScreen(
+            if (result == SnackbarResult.ActionPerformed) nav.openChat(chatRoute(e.chatId))
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        ModalNavigationDrawer(
+            drawerState = drawer,
+            gesturesEnabled = onChat,
+            drawerContent = {
+                AppDrawer(
                     c = c,
-                    vm = vm,
-                    onOpenDrawer = { scope.launch { drawer.open() } },
-                    onNewChat = { nav.openChat(chatRoute()) },
-                    onNavigate = { nav.navigate(it) },
+                    currentChatId = currentChatId,
+                    onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
+                    onNewChat = { nav.openChat(chatRoute()); closeDrawer() },
+                    onNavigate = { route -> nav.navigate(route); closeDrawer() },
                 )
+            },
+        ) {
+            NavHost(navController = nav, startDestination = "chat?id={id}&model={model}&persona={persona}") {
+                composable(
+                    "chat?id={id}&model={model}&persona={persona}",
+                    arguments = listOf(
+                        navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
+                        navArgument("model") { type = NavType.StringType; nullable = true; defaultValue = null },
+                        navArgument("persona") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    ),
+                ) { back ->
+                    val args = back.arguments
+                    val vm: ChatViewModel = viewModel {
+                        ChatViewModel(c, args?.getString("id"), args?.getString("model"), args?.getString("persona"))
+                    }
+                    val conv by vm.state.collectAsStateWithLifecycle()
+                    LaunchedEffect(conv?.id) { currentChatId = conv?.id }
+                    ChatScreen(
+                        c = c,
+                        vm = vm,
+                        onOpenDrawer = { scope.launch { drawer.open() } },
+                        onNewChat = { nav.openChat(chatRoute()) },
+                        onNavigate = { nav.navigate(it) },
+                    )
+                }
+                composable("models") {
+                    ModelsScreen(c = c, onBack = { nav.popBackStack() }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
+                }
+                composable("images") { ImagesScreen(c, onBack = { nav.popBackStack() }) }
+                composable("compare") {
+                    CompareScreen(c, onBack = { nav.popBackStack() }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+                }
+                composable("templates") {
+                    TemplatesScreen(
+                        c, onBack = { nav.popBackStack() },
+                        onUse = { t -> nav.openChat(chatRoute(persona = t.id)) },
+                    )
+                }
+                composable("tasks") {
+                    TasksScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+                }
+                composable("task/{id}") { back ->
+                    TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
+                }
+                composable("usage") { UsageScreen(c, onBack = { nav.popBackStack() }) }
+                composable("environments") {
+                    EnvironmentsScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("environment/$id") })
+                }
+                composable("environment/{id}") { back ->
+                    EnvironmentEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
+                }
+                composable("settings") {
+                    SettingsScreen(c, section = null, onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
+                }
+                composable("settings/{section}") { back ->
+                    SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
+                }
             }
-            composable("models") {
-                ModelsScreen(c = c, onBack = { nav.popBackStack() }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
-            }
-            composable("images") { ImagesScreen(c, onBack = { nav.popBackStack() }) }
-            composable("compare") {
-                CompareScreen(c, onBack = { nav.popBackStack() }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
-            }
-            composable("templates") {
-                TemplatesScreen(
-                    c, onBack = { nav.popBackStack() },
-                    onUse = { t -> nav.openChat(chatRoute(persona = t.id)) },
-                )
-            }
-            composable("tasks") {
-                TasksScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
-            }
-            composable("task/{id}") { back ->
-                TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
-            }
-            composable("usage") { UsageScreen(c, onBack = { nav.popBackStack() }) }
-            composable("environments") {
-                EnvironmentsScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("environment/$id") })
-            }
-            composable("environment/{id}") { back ->
-                EnvironmentEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
-            }
-            composable("settings") {
-                SettingsScreen(c, section = null, onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
-            }
-            composable("settings/{section}") { back ->
-                SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
-            }
+        }
+        SnackbarHost(
+            snackbar,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 56.dp),
+        ) { data ->
+            Snackbar(
+                data,
+                shape = RoundedCornerShape(16.dp),
+                containerColor = LocalChatLook.current.card,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                actionColor = MaterialTheme.colorScheme.primary,
+                dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

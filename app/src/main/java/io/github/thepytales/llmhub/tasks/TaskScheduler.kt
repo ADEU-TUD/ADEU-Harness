@@ -1,17 +1,6 @@
 package io.github.thepytales.llmhub.tasks
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -20,9 +9,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import io.github.thepytales.llmhub.AppState
 import io.github.thepytales.llmhub.LlmHubApp
-import io.github.thepytales.llmhub.MainActivity
-import io.github.thepytales.llmhub.R
+import io.github.thepytales.llmhub.ResultEvent
 import io.github.thepytales.llmhub.agent.AgentHost
 import io.github.thepytales.llmhub.agent.ToolSelection
 import io.github.thepytales.llmhub.data.ChatMessage
@@ -154,6 +143,8 @@ object TaskRunner {
             status = "Fehler: ${e.message}"
             conv = conv.appendToThread(ChatMessage(role = "assistant", content = e.message ?: e.toString(), error = true))
         } finally {
+            // Marked as new until the user opens it (dot in the side menu).
+            conv = conv.copy(unread = true)
             host.persist()
         }
         c.tasks.update(task.id) { it.copy(lastRunAt = System.currentTimeMillis(), lastStatus = status, lastChatId = conv.id) }
@@ -161,46 +152,6 @@ object TaskRunner {
             val answer = conv.thread().lastOrNull { it.role == "assistant" && !it.error }?.let { splitThinking(it.content).second }
             Notifier.taskFinished(context, task, conv.id, answer, status.takeIf { it != "Erfolgreich" })
         }
-    }
-}
-
-object Notifier {
-    private const val CHANNEL = "tasks"
-    const val EXTRA_CHAT = "chatId"
-
-    fun ensureChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = context.getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Geplante Aufgaben", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                    description = "Ergebnisse von geplanten Aufgaben"
-                }
-            )
-        }
-    }
-
-    fun canNotify(context: Context) = Build.VERSION.SDK_INT < 33 ||
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-
-    @SuppressLint("MissingPermission")
-    fun taskFinished(context: Context, task: ScheduledTask, chatId: String, answer: String?, error: String?) {
-        if (!canNotify(context)) return
-        ensureChannel(context)
-        val intent = Intent(context, MainActivity::class.java)
-            .putExtra(EXTRA_CHAT, chatId)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val pending = PendingIntent.getActivity(
-            context, task.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
-        val text = error ?: answer?.replace(Regex("[#*_`>|]"), "")?.replace(Regex("\\s+"), " ")?.trim()?.take(400) ?: "Fertig."
-        val notification = NotificationCompat.Builder(context, CHANNEL)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(task.name)
-            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setContentIntent(pending)
-            .setAutoCancel(true)
-            .build()
-        runCatching { NotificationManagerCompat.from(context).notify(task.id.hashCode(), notification) }
+        if (AppState.foreground) c.events.tryEmit(ResultEvent(task.name, conv.id, if (status == "Erfolgreich") "Ergebnis ist da" else status))
     }
 }

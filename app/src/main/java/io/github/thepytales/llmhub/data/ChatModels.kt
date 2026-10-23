@@ -67,5 +67,7 @@ data class Conversation(
     val folderId: String? = null,
     /** Scheduled task that created this chat. */
     val taskId: String? = null,
+    /** Has a result the user has not looked at yet (scheduled task, answer finished in the background). */
+    val unread: Boolean = false,
     val updatedAt: Long = System.currentTimeMillis(),
 )

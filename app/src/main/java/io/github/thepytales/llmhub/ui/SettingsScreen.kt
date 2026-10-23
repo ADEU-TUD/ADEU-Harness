@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -129,7 +130,7 @@ private fun SecretField(label: String, value: String, onChange: (String) -> Unit
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()
@@ -175,7 +176,7 @@ private fun AccentSwatch(accent: Accent, selected: Boolean, onClick: () -> Unit)
 @Composable
 private fun AppearanceSection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
-    val style = enumOr(s.appStyle, AppStyle.STANDARD)
+    val style = enumOr(s.appStyle, AppStyle.CLAUDE)
     val accent = enumOr(s.accent, Accent.AUTO)
     val mode = enumOr(s.themeMode, ThemeMode.SYSTEM)
     Section("Darstellung") {
@@ -274,12 +275,20 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                         SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, System-Prompt, Werkzeuge"),
                         SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
                         SettingsEntry("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline auf dem Gerät" else "KI-Stimme des Uni-Servers"),
-                        SettingsEntry("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.STANDARD).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
+                        SettingsEntry("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.CLAUDE).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
                         SettingsEntry("templates", Icons.Outlined.Bookmarks, "Vorlagen", "Personas und Prompt-Vorlagen"),
                         SettingsEntry("tasks", Icons.Outlined.Schedule, "Geplante Aufgaben", "Wiederkehrende Aufträge an den Agenten"),
                         SettingsEntry("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
                     )
-                    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                    OutlinedTextField(
+                        value = s.userName,
+                        onValueChange = { v -> c.settings.update { it.copy(userName = v) } },
+                        label = { Text("Dein Vorname (optional)") },
+                        supportingText = { Text("Für die Begrüßung im neuen Chat und das Profilbild im Menü.") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Surface(shape = RoundedCornerShape(20.dp), color = LocalChatLook.current.card) {
                         Column {
                             entries.forEachIndexed { i, e ->
                                 if (i > 0) HorizontalDivider(Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -443,6 +452,9 @@ private fun ChatSection(c: AppContainer) {
             selected = s.defaultModel,
             onSelect = { id -> c.settings.update { it.copy(defaultModel = id) } },
             onDismiss = { showModelPicker = false },
+            defaultModel = s.defaultModel,
+            title = "Standardmodell",
+            note = "Mit diesem Modell startet jeder neue Chat. Im Chat lässt es sich jederzeit wechseln.",
         )
     }
 }

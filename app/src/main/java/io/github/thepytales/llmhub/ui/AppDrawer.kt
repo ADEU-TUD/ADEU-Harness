@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Close
@@ -38,12 +39,15 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +71,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Conversation
@@ -105,6 +110,9 @@ fun AppDrawer(
 ) {
     val conversations by c.chats.conversations.collectAsStateWithLifecycle()
     val folders by c.folders.items.collectAsStateWithLifecycle()
+    val runs by c.runs.runs.collectAsStateWithLifecycle()
+    val settings by c.settings.settings.collectAsStateWithLifecycle()
+    val look = LocalChatLook.current
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by remember { mutableStateOf(setOf<String>()) }
@@ -148,9 +156,14 @@ fun AppDrawer(
                         modifier = Modifier.weight(1f),
                     )
                 } else {
-                    Text("LLM Hub", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
-                        IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, contentDescription = "Chats durchsuchen") }
+                    Text(
+                        "LLM Hub",
+                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { searching = true }) {
+                        Icon(Icons.Outlined.Search, contentDescription = "Chats durchsuchen", modifier = Modifier.size(26.dp))
                     }
                 }
             }
@@ -178,15 +191,17 @@ fun AppDrawer(
                     return@LazyColumn
                 }
 
+                val newResults = conversations.count { it.unread && it.taskId != null }
+                item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
                 item { NavRow(Icons.Outlined.Image, "Bilder") { onNavigate("images") } }
+                item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
                 item { NavRow(Icons.Outlined.AutoAwesome, "Modelle") { onNavigate("models") } }
                 item { NavRow(Icons.Outlined.CompareArrows, "Modelle vergleichen") { onNavigate("compare") } }
-                item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
-                item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben") { onNavigate("tasks") } }
-                item { NavRow(Icons.Outlined.Insights, "Verbrauch") { onNavigate("usage") } }
+                item { NavRow(Icons.Outlined.Settings, "Einstellungen") { onNavigate("settings") } }
+                item { HorizontalDivider(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant) }
 
                 item {
-                    Row(Modifier.padding(start = 20.dp, end = 8.dp, top = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(start = 20.dp, end = 8.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         SectionTitle("Ordner", Modifier.weight(1f))
                         IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = "Neuer Ordner") }
                     }
@@ -207,7 +222,7 @@ fun AppDrawer(
                     }
                     if (open) {
                         items(inFolder, key = { "fc_" + it.id }) { conv ->
-                            ChatRow(conv, conv.id == currentChatId, indent = true, onOpen = { onOpenChat(conv.id) },
+                            ChatRow(conv, conv.id == currentChatId, indent = true, running = conv.id in runs, onOpen = { onOpenChat(conv.id) },
                                 onPin = { c.chats.modify(conv.id) { it.copy(pinned = !it.pinned) } },
                                 onMove = { moveChat = conv }, onRename = { renameChat = conv }, onDelete = { deleteChat = conv })
                         }
@@ -217,32 +232,47 @@ fun AppDrawer(
                 val pinned = conversations.filter { it.pinned }
                 if (pinned.isNotEmpty()) {
                     item { SectionTitle("Angeheftet", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
-                    chatList(pinned, "p_", currentChatId, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = true)
+                    chatList(pinned, "p_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = true)
                 }
 
                 val recent = conversations.filter { !it.pinned && it.folderId == null }
-                item { SectionTitle("Letzte", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
+                item { SectionTitle("Zuletzt", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
                 if (recent.isEmpty()) item { Hint("Noch keine Chats.") }
-                chatList(recent, "r_", currentChatId, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false)
+                chatList(recent, "r_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false)
             }
 
-            // Bottom: new chat and settings, like the ChatGPT app.
-            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Bottom like the Claude app: avatar (settings) and a black "Neuer Chat" button.
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.clickable(onClick = onNewChat),
+                    shape = CircleShape,
+                    color = look.brand,
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .clickable { onNavigate("settings") },
                 ) {
-                    Row(Modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.EditNote, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text("Neuer Chat", style = MaterialTheme.typography.titleSmall)
+                    Box(contentAlignment = Alignment.Center) {
+                        val initial = settings.userName.trim().firstOrNull()?.uppercaseChar()
+                        if (initial != null) Text(initial.toString(), style = MaterialTheme.typography.titleMedium)
+                        else Icon(Icons.Outlined.Person, contentDescription = "Einstellungen")
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
-                    IconButton(onClick = { onNavigate("settings") }) { Icon(Icons.Outlined.Settings, contentDescription = "Einstellungen") }
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 4.dp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .clickable(onClick = onNewChat),
+                ) {
+                    Row(Modifier.padding(horizontal = 22.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Add, contentDescription = null)
+                        Spacer(Modifier.size(8.dp))
+                        Text("Neuer Chat", style = MaterialTheme.typography.titleMedium)
+                    }
                 }
             }
         }
@@ -265,7 +295,7 @@ fun AppDrawer(
     }
     deleteFolder?.let { f ->
         ConfirmDialog(
-            "Ordner löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder unter „Letzte“.", "Löschen",
+            "Ordner löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder unter „Zuletzt“.", "Löschen",
             onConfirm = {
                 c.chats.clearFolder(f.id)
                 c.folders.delete(f.id)
@@ -279,6 +309,7 @@ private fun LazyListScope.chatList(
     list: List<Conversation>,
     prefix: String,
     currentChatId: String?,
+    running: Set<String>,
     onOpenChat: (String) -> Unit,
     c: AppContainer,
     onMove: (Conversation) -> Unit,
@@ -288,7 +319,7 @@ private fun LazyListScope.chatList(
 ) {
     items(list, key = { prefix + it.id }) { conv ->
         ChatRow(
-            conv, conv.id == currentChatId, indent = false, showIcon = showPin,
+            conv, conv.id == currentChatId, indent = false, showIcon = showPin, running = conv.id in running,
             onOpen = { onOpenChat(conv.id) },
             onPin = { c.chats.modify(conv.id) { it.copy(pinned = !it.pinned) } },
             onMove = { onMove(conv) }, onRename = { onRename(conv) }, onDelete = { onDelete(conv) },
@@ -298,7 +329,7 @@ private fun LazyListScope.chatList(
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
+    Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
 }
 
 @Composable
@@ -312,19 +343,28 @@ private fun Hint(text: String) {
 }
 
 @Composable
-private fun NavRow(icon: ImageVector, label: String, onClick: () -> Unit) {
+private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 11.dp),
+            .padding(horizontal = 12.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.size(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
+        Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
+        Spacer(Modifier.size(18.dp))
+        Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp), modifier = Modifier.weight(1f))
+        if (badge > 0) {
+            Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
+                Text(
+                    if (badge == 1) "1 neu" else "$badge neu",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                )
+            }
+        }
     }
 }
 
@@ -362,6 +402,7 @@ private fun ChatRow(
     selected: Boolean,
     indent: Boolean,
     showIcon: Boolean = false,
+    running: Boolean = false,
     onOpen: () -> Unit,
     onPin: () -> Unit,
     onMove: () -> Unit,
@@ -389,9 +430,20 @@ private fun ChatRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (selected) FontWeight.SemiBold else null,
+                fontWeight = if (selected || conv.unread) FontWeight.SemiBold else null,
                 modifier = Modifier.weight(1f),
             )
+            when {
+                // Answer is still being written (also in the background).
+                running -> CircularProgressIndicator(Modifier.padding(start = 8.dp).size(14.dp), strokeWidth = 2.dp)
+                conv.unread -> Box(
+                    Modifier
+                        .padding(start = 8.dp)
+                        .size(9.dp)
+                        .clip(CircleShape)
+                        .background(LocalChatLook.current.brand)
+                )
+            }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(

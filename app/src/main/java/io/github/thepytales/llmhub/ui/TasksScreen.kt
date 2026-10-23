@@ -1,7 +1,10 @@
 package io.github.thepytales.llmhub.ui
 
 import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,7 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
@@ -32,6 +37,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,17 +62,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.data.Repeat
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.TaskPresets
+import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.tasks.TaskScheduler
 import java.text.DateFormat
@@ -78,11 +89,86 @@ import java.util.Locale
 private fun formatTime(millis: Long?): String =
     millis?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: "–"
 
+@Composable
+private fun StatusLine(ok: Boolean, text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(
+            if (ok) Icons.Outlined.CheckCircle else Icons.Outlined.ErrorOutline,
+            contentDescription = null,
+            tint = if (ok) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(text, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/**
+ * Shows whether results can reach the user (notifications) and whether Android lets tasks run in the
+ * background, with buttons to fix both.
+ */
+@Composable
+private fun DeliveryStatus() {
+    val context = LocalContext.current
+    var notify by remember { mutableStateOf(Notifier.canNotify(context)) }
+    var background by remember { mutableStateOf(Notifier.ignoresBatteryOptimizations(context)) }
+    LifecycleResumeEffect(Unit) {
+        notify = Notifier.canNotify(context)
+        background = Notifier.ignoresBatteryOptimizations(context)
+        onPauseOrDispose { }
+    }
+    fun openSettings(intent: Intent) {
+        runCatching { context.startActivity(intent) }
+    }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        notify = Notifier.canNotify(context)
+        // Asked too often before: Android no longer shows the dialog, so open the settings.
+        if (!granted) openSettings(Notifier.notificationSettingsIntent(context))
+    }
+    Surface(color = LocalChatLook.current.card, shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            StatusLine(
+                notify,
+                if (notify) "Benachrichtigungen sind an – du bekommst eine Nachricht, sobald ein Ergebnis da ist."
+                else "Benachrichtigungen sind aus – Ergebnisse siehst du nur hier in der App.",
+            )
+            if (notify) {
+                TextButton(onClick = { Notifier.test(context) }) { Text("Test-Benachrichtigung senden") }
+            } else {
+                Button(onClick = {
+                    val missing = Build.VERSION.SDK_INT >= 33 &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                    if (missing) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    else openSettings(Notifier.notificationSettingsIntent(context))
+                }) { Text("Benachrichtigungen einschalten") }
+            }
+            StatusLine(
+                background,
+                if (background) "Aufgaben dürfen im Hintergrund laufen – auch wenn die App geschlossen ist."
+                else "Android darf Aufgaben im Energiesparmodus verzögern oder abbrechen, wenn die App geschlossen ist.",
+            )
+            if (!background) {
+                OutlinedButton(onClick = {
+                    runCatching { context.startActivity(Notifier.batteryIntent(context)) }
+                        .onFailure { openSettings(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+                }) { Text("Im Hintergrund erlauben") }
+            }
+        }
+    }
+}
+
+/** Text of the last answer in [chat] without Markdown symbols, for a short preview. */
+private fun resultPreview(chat: Conversation?): String? =
+    chat?.thread()?.lastOrNull { it.role == "assistant" && !it.error }
+        ?.let { splitThinking(it.content).second }
+        ?.replace(Regex("[#*_`>|]"), "")?.replace(Regex("\\s+"), " ")?.trim()?.ifBlank { null }
+
 /** List of scheduled tasks, e.g. a news summary every morning. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, onOpenChat: (String) -> Unit) {
     val tasks by c.tasks.items.collectAsStateWithLifecycle()
+    val chats by c.chats.conversations.collectAsStateWithLifecycle()
     val context = LocalContext.current
     Scaffold(
         topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Geplante Aufgaben") }) },
@@ -101,16 +187,17 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
         ) {
             item {
                 Text(
-                    "Der Agent führt Aufgaben zur geplanten Zeit im Hintergrund aus – z.B. jeden Morgen die Nachrichten zu einem " +
-                        "Thema zusammenfassen. Das Ergebnis landet als Chat im Ordner der Aufgabe, auf Wunsch mit Benachrichtigung. " +
-                        "Android kann die Ausführung im Energiesparmodus etwas verzögern.",
+                    "Der Agent erledigt Aufgaben zur geplanten Zeit im Hintergrund – z.B. jeden Morgen die Nachrichten zu einem " +
+                        "Thema zusammenfassen. Ist eine Aufgabe fertig, bekommst du eine Benachrichtigung; das Ergebnis liegt als Chat " +
+                        "im Ordner der Aufgabe und ist im Menü mit einem Punkt markiert, bis du es geöffnet hast.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            item { DeliveryStatus() }
             if (tasks.isEmpty()) {
                 item {
-                    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = RoundedCornerShape(16.dp)) {
+                    Surface(color = LocalChatLook.current.card, shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Beispiel: Morgen-News", style = MaterialTheme.typography.titleSmall)
                             Text(
@@ -127,17 +214,19 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                 }
             }
             items(tasks, key = { it.id }) { t ->
+                val lastChat = t.lastChatId?.let { id -> chats.firstOrNull { it.id == id } }
+                val failed = t.lastStatus != null && t.lastStatus != "Erfolgreich"
                 Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    shape = RoundedCornerShape(16.dp),
+                    color = LocalChatLook.current.card,
+                    shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.clickable { onEdit(t.id) },
                 ) {
-                    Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
+                    Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.size(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(t.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text(t.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                 Text(
                                     "${t.scheduleLabel()} · ${ModelCatalog.info(t.model).displayName}",
                                     style = MaterialTheme.typography.bodySmall,
@@ -150,32 +239,58 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                                 c.tasks.upsert(updated.copy(nextRunAt = next))
                             })
                         }
-                        Text(t.prompt, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
                         Text(
-                            buildString {
-                                if (t.enabled) append("Nächste Ausführung: ${formatTime(t.nextRunAt)}")
-                                else append("Pausiert")
-                                if (t.lastRunAt != null) append("\nZuletzt: ${formatTime(t.lastRunAt)} – ${t.lastStatus ?: ""}")
-                            },
-                            style = MaterialTheme.typography.labelSmall,
+                            if (t.enabled) "Nächste Ausführung: ${formatTime(t.nextRunAt)}" else "Pausiert – läuft nur über „Jetzt ausführen“",
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 6.dp),
+                            modifier = Modifier.padding(top = 8.dp),
                         )
-                        Row {
+                        if (t.lastRunAt != null) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 10.dp, end = 8.dp)) {
+                                Text(
+                                    (if (failed) "Letzter Lauf fehlgeschlagen · " else "Letztes Ergebnis · ") + formatTime(t.lastRunAt),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (lastChat?.unread == true) {
+                                    Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
+                                        Text("Neu", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                                    }
+                                }
+                            }
+                            val preview = if (failed) t.lastStatus else resultPreview(lastChat)
+                            preview?.let {
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 4.dp, end = 8.dp),
+                                )
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                            if (lastChat != null) {
+                                FilledTonalButton(onClick = { onOpenChat(lastChat.id) }) {
+                                    Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.size(6.dp))
+                                    Text("Ergebnis ansehen")
+                                }
+                                Spacer(Modifier.size(4.dp))
+                            }
                             TextButton(onClick = {
                                 TaskScheduler.runNow(context, t.id)
-                                Toast.makeText(context, "„${t.name}“ wird jetzt ausgeführt – das Ergebnis erscheint im Ordner.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "„${t.name}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.",
+                                    Toast.LENGTH_LONG,
+                                ).show()
                             }) {
                                 Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.size(4.dp))
                                 Text("Jetzt ausführen")
-                            }
-                            t.lastChatId?.takeIf { id -> c.chats.get(id) != null }?.let { id ->
-                                TextButton(onClick = { onOpenChat(id) }) {
-                                    Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.size(4.dp))
-                                    Text("Letztes Ergebnis")
-                                }
                             }
                         }
                     }
@@ -328,7 +443,10 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
     }
 
     if (showModel) {
-        ModelPickerSheet(models.ofType(ModelType.CHAT), task.model, onSelect = { task = task.copy(model = it) }, onDismiss = { showModel = false })
+        ModelPickerSheet(
+            models.ofType(ModelType.CHAT), task.model, onSelect = { task = task.copy(model = it) }, onDismiss = { showModel = false },
+            defaultModel = settings.defaultModel,
+        )
     }
     if (showRepo) {
         RepoPickerDialog(

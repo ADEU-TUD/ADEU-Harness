@@ -1,8 +1,15 @@
 package io.github.thepytales.llmhub.ui
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -23,6 +30,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -32,6 +40,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Psychology
@@ -61,10 +70,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -353,6 +364,7 @@ fun AssistantMessage(
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     if (m.error) {
         Column {
             ErrorCard(m.content, canRetry = item.isLast && !running, onRetry = onRetry)
@@ -380,6 +392,7 @@ fun AssistantMessage(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (text.isNotBlank()) {
                     ActionIcon(Icons.Outlined.ContentCopy, "Kopieren") { clipboard.setText(AnnotatedString(text)) }
+                    ActionIcon(Icons.Outlined.IosShare, "Teilen") { shareText(context, text) }
                     ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
                 }
                 if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
@@ -415,7 +428,43 @@ fun AssistantMessage(
                     )
                 }
             }
+            if (item.isLast) {
+                Text(
+                    "LLM Hub nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+            }
         }
+    }
+}
+
+/** Opens the Android share sheet for [text]. */
+fun shareText(context: Context, text: String, subject: String? = null) {
+    val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+    subject?.let { intent.putExtra(Intent.EXTRA_SUBJECT, it) }
+    runCatching { context.startActivity(Intent.createChooser(intent, "Teilen")) }
+}
+
+/** Shown while the model works on an answer: the brand spark slowly pulsing, like in the Claude app. */
+@Composable
+fun ThinkingIndicator(label: String = "Denkt nach …") {
+    val transition = rememberInfiniteTransition(label = "thinking")
+    val pulse by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+        label = "alpha",
+    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Icons.Outlined.AutoAwesome, contentDescription = null,
+            tint = LocalChatLook.current.brand,
+            modifier = Modifier.size(22.dp).graphicsLayer { alpha = pulse },
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

@@ -35,6 +35,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        AppState.foreground = true
+    }
+
+    override fun onStop() {
+        AppState.foreground = false
+        super.onStop()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.getStringExtra(Notifier.EXTRA_CHAT)?.let { openChat.value = it }

@@ -34,8 +34,8 @@ enum class ThemeMode(val label: String) {
 }
 
 enum class AppStyle(val label: String, val description: String) {
-    STANDARD("Standard", "Material You – Farben passend zum Hintergrundbild (Android 12+)."),
-    CLAUDE("Claude", "Warme Creme-Töne, Terrakotta-Akzent und Serifenschrift für Antworten."),
+    CLAUDE("Claude", "Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App."),
+    STANDARD("Material You", "Farben passend zum Hintergrundbild (Android 12+)."),
     CHATGPT("ChatGPT", "Schlicht in Schwarz, Weiß und Grau; Antworten ohne Sprechblase."),
     GEMINI("Gemini", "Kühles Blau, helle Flächen und runde Formen."),
 }
@@ -64,6 +64,14 @@ data class ChatLook(
     val answerFont: FontFamily,
     val userShape: Shape,
     val inputShape: Shape,
+    /** Raised surfaces on the background: input field, menus, cards. */
+    val card: Color,
+    /** Background of bottom sheets (the cards inside use [card]). */
+    val sheet: Color,
+    /** Brand color for small accents: logo, unread dots. */
+    val brand: Color,
+    /** Font of large titles such as the greeting and the app name in the side menu. */
+    val titleFont: FontFamily,
 )
 
 val LocalChatLook = staticCompositionLocalOf {
@@ -73,8 +81,15 @@ val LocalChatLook = staticCompositionLocalOf {
         answerFont = FontFamily.Default,
         userShape = RoundedCornerShape(18.dp),
         inputShape = RoundedCornerShape(20.dp),
+        card = Color.White,
+        sheet = Color.White,
+        brand = Color(0xFFD97757),
+        titleFont = FontFamily.Default,
     )
 }
+
+/** Terracotta of the Claude look; also the brand color of the app. */
+val ClaudeOrange = Color(0xFFD97757)
 
 private fun Color.hsl(): FloatArray = FloatArray(3).also { ColorUtils.colorToHSL(toArgb(), it) }
 
@@ -189,15 +204,17 @@ private fun styledScheme(style: AppStyle, accent: Accent, dark: Boolean, dynamic
     return when (style) {
         AppStyle.STANDARD -> if (chosen == null) dynamic ?: seedScheme(Color(0xFF1E3A8A), dark) else seedScheme(chosen, dark)
         AppStyle.CLAUDE -> {
-            val base = seedScheme(chosen ?: Color(0xFFD97757), dark)
+            // Like the Claude app: black (or white) buttons, the accent only where it was chosen.
+            val base = seedScheme(chosen ?: ClaudeOrange, dark).let { if (chosen == null) it.monochrome(dark) else it }
+                .copy(tertiary = ClaudeOrange, onTertiary = Color.White)
             if (dark) base.withNeutrals(
-                background = Color(0xFF262624), onSurface = Color(0xFFF5F4EE), onSurfaceVariant = Color(0xFFC2C0B6),
-                outline = Color(0xFF75736C),
-                n = listOf(Color(0xFF1F1E1D), Color(0xFF2B2A28), Color(0xFF30302E), Color(0xFF393937), Color(0xFF42413E)),
+                background = Color(0xFF262624), onSurface = Color(0xFFF5F4EE), onSurfaceVariant = Color(0xFFA6A39A),
+                outline = Color(0xFF6E6C66),
+                n = listOf(Color(0xFF1F1E1D), Color(0xFF2A2927), Color(0xFF30302E), Color(0xFF393937), Color(0xFF42413E)),
             ) else base.withNeutrals(
-                background = Color(0xFFF5F4ED), onSurface = Color(0xFF141413), onSurfaceVariant = Color(0xFF5E5D59),
-                outline = Color(0xFF9C9A92),
-                n = listOf(Color(0xFFFAF9F5), Color(0xFFF0EEE6), Color(0xFFEDEBE3), Color(0xFFE8E6DC), Color(0xFFE2DFD4)),
+                background = Color(0xFFFAF9F5), onSurface = Color(0xFF141413), onSurfaceVariant = Color(0xFF73726C),
+                outline = Color(0xFFA3A199),
+                n = listOf(Color.White, Color(0xFFF5F4EF), Color(0xFFF0EEE6), Color(0xFFE8E6DC), Color(0xFFE0DED5)),
             )
         }
         AppStyle.CHATGPT -> {
@@ -239,35 +256,54 @@ private fun ColorScheme.amoled() = copy(
     surfaceVariant = Color(0xFF222222),
 )
 
-private fun chatLook(style: AppStyle, scheme: ColorScheme) = when (style) {
-    AppStyle.STANDARD -> ChatLook(
-        userBubble = scheme.primaryContainer,
-        onUserBubble = scheme.onPrimaryContainer,
-        answerFont = FontFamily.Default,
-        userShape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp),
-        inputShape = RoundedCornerShape(20.dp),
-    )
-    AppStyle.CLAUDE -> ChatLook(
-        userBubble = scheme.surfaceContainerHighest,
-        onUserBubble = scheme.onSurface,
-        answerFont = FontFamily.Serif,
-        userShape = RoundedCornerShape(12.dp),
-        inputShape = RoundedCornerShape(16.dp),
-    )
-    AppStyle.CHATGPT -> ChatLook(
-        userBubble = scheme.surfaceContainerHigh,
-        onUserBubble = scheme.onSurface,
-        answerFont = FontFamily.Default,
-        userShape = RoundedCornerShape(22.dp),
-        inputShape = RoundedCornerShape(28.dp),
-    )
-    AppStyle.GEMINI -> ChatLook(
-        userBubble = scheme.surfaceContainerHigh,
-        onUserBubble = scheme.onSurface,
-        answerFont = FontFamily.Default,
-        userShape = RoundedCornerShape(24.dp, 4.dp, 24.dp, 24.dp),
-        inputShape = RoundedCornerShape(32.dp),
-    )
+private fun chatLook(style: AppStyle, scheme: ColorScheme, dark: Boolean, amoled: Boolean): ChatLook {
+    val look = when (style) {
+        AppStyle.STANDARD -> ChatLook(
+            userBubble = scheme.primaryContainer,
+            onUserBubble = scheme.onPrimaryContainer,
+            answerFont = FontFamily.Default,
+            userShape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp),
+            inputShape = RoundedCornerShape(26.dp),
+            card = if (dark) scheme.surfaceContainerHigh else scheme.surfaceContainerLowest,
+            sheet = scheme.surfaceContainerLow,
+            brand = scheme.primary,
+            titleFont = FontFamily.Default,
+        )
+        AppStyle.CLAUDE -> ChatLook(
+            userBubble = if (dark) Color(0xFF141413) else Color(0xFFF0EEE6),
+            onUserBubble = scheme.onSurface,
+            answerFont = FontFamily.Default,
+            userShape = RoundedCornerShape(20.dp),
+            inputShape = RoundedCornerShape(28.dp),
+            card = if (dark) Color(0xFF30302E) else Color.White,
+            sheet = if (dark) Color(0xFF262624) else Color(0xFFF5F4EF),
+            brand = ClaudeOrange,
+            titleFont = FontFamily.Serif,
+        )
+        AppStyle.CHATGPT -> ChatLook(
+            userBubble = scheme.surfaceContainerHigh,
+            onUserBubble = scheme.onSurface,
+            answerFont = FontFamily.Default,
+            userShape = RoundedCornerShape(22.dp),
+            inputShape = RoundedCornerShape(28.dp),
+            card = if (dark) Color(0xFF303030) else Color.White,
+            sheet = if (dark) Color(0xFF212121) else Color(0xFFF9F9F9),
+            brand = Color(0xFF10A37F),
+            titleFont = FontFamily.Default,
+        )
+        AppStyle.GEMINI -> ChatLook(
+            userBubble = scheme.surfaceContainerHigh,
+            onUserBubble = scheme.onSurface,
+            answerFont = FontFamily.Default,
+            userShape = RoundedCornerShape(24.dp, 4.dp, 24.dp, 24.dp),
+            inputShape = RoundedCornerShape(32.dp),
+            card = if (dark) Color(0xFF1E1F20) else Color(0xFFF0F4F9),
+            sheet = if (dark) Color(0xFF131314) else Color.White,
+            brand = Color(0xFF4285F4),
+            titleFont = FontFamily.Default,
+        )
+    }
+    return if (dark && amoled) look.copy(card = Color(0xFF161616), sheet = Color(0xFF0A0A0A)) else look
 }
 
 @Composable
@@ -277,7 +313,7 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    val style = enumOr(settings.appStyle, AppStyle.STANDARD)
+    val style = enumOr(settings.appStyle, AppStyle.CLAUDE)
     val accent = enumOr(settings.accent, Accent.AUTO)
     val context = LocalContext.current
     val dynamic = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -299,7 +335,7 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
 
     val density = LocalDensity.current
     CompositionLocalProvider(
-        LocalChatLook provides chatLook(style, colors),
+        LocalChatLook provides chatLook(style, colors, dark, settings.amoled),
         LocalDensity provides Density(density.density, density.fontScale * settings.textScale),
     ) {
         MaterialTheme(colorScheme = colors, content = content)

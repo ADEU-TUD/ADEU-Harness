@@ -12,7 +12,7 @@ data class AppSettings(
     val apiKey: String = "",
     val baseUrl: String = DEFAULT_BASE_URL,
     val githubToken: String = "",
-    val defaultModel: String = "Qwen/Qwen3.8-27B",
+    val defaultModel: String = ModelCatalog.DEFAULT_CHAT,
     val systemPrompt: String = "",
     val imageModel: String = "alias-image-generation",
     val ttsModel: String = "tts-1-hd",
@@ -28,7 +28,7 @@ data class AppSettings(
     val webTools: Boolean = true,
     /** Appearance: enum names from ui/Theme.kt (ThemeMode, AppStyle, Accent). */
     val themeMode: String = "SYSTEM",
-    val appStyle: String = "STANDARD",
+    val appStyle: String = "CLAUDE",
     val accent: String = "AUTO",
     /** Pure black background in dark mode. */
     val amoled: Boolean = false,
@@ -48,6 +48,8 @@ data class AppSettings(
     val docFooter: String = "",
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
+    /** First name for the greeting and the avatar in the side menu (optional). */
+    val userName: String = "",
 ) {
     val hasApiKey get() = apiKey.isNotBlank()
     val hasGitHub get() = githubToken.isNotBlank()
@@ -61,14 +63,34 @@ data class AppSettings(
 class SettingsStore(context: Context) {
     /** Encrypted preferences; also used for environments because they can contain secrets. */
     val prefs: SharedPreferences = createPrefs(context)
-    private val _settings = MutableStateFlow(load())
+    private val _settings = MutableStateFlow(migrate(load()))
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
     val current: AppSettings get() = _settings.value
 
     fun update(transform: (AppSettings) -> AppSettings) {
         val next = transform(_settings.value)
         _settings.value = next
+        save(next)
+    }
+
+    /**
+     * Version 2 changed the defaults: DeepSeek instead of Qwen and the Claude look. Installs that still
+     * use the old defaults (or a model that is no longer offered) get the new ones once.
+     */
+    private fun migrate(s: AppSettings): AppSettings {
+        if (prefs.getInt("settingsVersion", 1) >= SETTINGS_VERSION) return s
+        val oldDefault = s.defaultModel == "Qwen/Qwen3.8-27B" || ModelCatalog.info(s.defaultModel).tier == ModelTier.HIDDEN
+        val next = s.copy(
+            defaultModel = if (oldDefault) ModelCatalog.DEFAULT_CHAT else s.defaultModel,
+            appStyle = if (s.appStyle == "STANDARD") "CLAUDE" else s.appStyle,
+        )
+        save(next)
+        return next
+    }
+
+    private fun save(next: AppSettings) {
         prefs.edit()
+            .putInt("settingsVersion", SETTINGS_VERSION)
             .putString("apiKey", next.apiKey.trim())
             .putString("baseUrl", next.baseUrl.trim())
             .putString("githubToken", next.githubToken.trim())
@@ -96,6 +118,7 @@ class SettingsStore(context: Context) {
             .putString("docAccent", next.docAccent)
             .putString("docFooter", next.docFooter)
             .putBoolean("autoLogo", next.autoLogo)
+            .putString("userName", next.userName)
             .apply()
     }
 
@@ -129,10 +152,13 @@ class SettingsStore(context: Context) {
             docAccent = prefs.getString("docAccent", d.docAccent) ?: d.docAccent,
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
+            userName = prefs.getString("userName", d.userName) ?: d.userName,
         )
     }
 
     private companion object {
+        const val SETTINGS_VERSION = 2
+
         fun createPrefs(context: Context): SharedPreferences = try {
             val key = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
