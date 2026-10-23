@@ -121,6 +121,6 @@ object Notifier {
 
     /** Shows a sample notification so the user can check that results will reach them. */
     fun test(context: Context) {
-        post(context, "test".hashCode(), "LLM Hub", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
+        post(context, "test".hashCode(), "ADEU LLM", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
     }
 }

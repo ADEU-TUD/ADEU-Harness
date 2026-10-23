@@ -241,7 +241,7 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("LLM Hub ist abgestürzt") },
+        title = { Text("ADEU LLM ist abgestürzt") },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 Text(

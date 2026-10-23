@@ -231,7 +231,7 @@ class ChatViewModel(
         val repo = GitHubTools.findRepoUrl(text) ?: return
         val conv = _conversation.value ?: return
         if (!c.settings.current.hasGitHub) {
-            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein GitHub-Token in den Einstellungen eintragen.")
+            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen.")
             return
         }
         if (conv.githubEnabled && conv.repo != null) return

@@ -90,7 +90,11 @@ class DocumentTools(
         val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
         val notes = listOfNotNull(
             warning,
-            if (!doc.designed) "Hinweis: Das Design-PDF war auf diesem Gerät nicht möglich, es wurde ein einfaches PDF erstellt." else null,
+            if (!doc.designed) {
+                "Hinweis: Das gestaltete PDF ließ sich gerade nicht rendern, deshalb wurde ein einfaches PDF mit dem " +
+                    "gleichen Text erstellt. Versuche es nicht erneut; sag dem Nutzer, dass das Layout vereinfacht ist, " +
+                    "und biete bei Bedarf dieselbe Gestaltung zusätzlich als format=html an."
+            } else null,
         )
         return ToolOutput(
             "Dokument erstellt: ${doc.file.name} (${format.label}$pages, $size KB). " +

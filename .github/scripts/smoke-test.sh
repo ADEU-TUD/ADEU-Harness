@@ -52,6 +52,29 @@ for route in drawer settings settings/api settings/github settings/chat settings
   check "$route" 5
 done
 
+# Designed PDFs are rendered by a WebView – in the app and while it is in the background.
+pdf_test() {
+  local mode="$1" wait="$2" line
+  adb logcat -c
+  adb shell am start -n "$PKG/.MainActivity" --es pdftest "$mode" > /dev/null
+  if [ "$mode" = background ]; then sleep 2; adb shell input keyevent KEYCODE_HOME; fi
+  for _ in $(seq "$wait"); do
+    line=$(adb logcat -d -s PdfSelfTest:* | grep "PDF-SELFTEST" | tail -1)
+    [ -n "$line" ] && break
+    sleep 1
+  done
+  adb logcat -d > "$OUT/logcat-pdf-$mode.txt"
+  echo "PDF ($mode): ${line:-keine Meldung}"
+  case "$line" in
+    *"OK:"*gestaltet*) ;;
+    *"OK:"*) echo "::warning::PDF ($mode) nur mit dem einfachen Renderer erstellt: $line" ;;
+    *) echo "::error::PDF ($mode) konnte nicht erstellt werden: ${line:-keine Meldung}"; exit 1 ;;
+  esac
+}
+pdf_test foreground 90
+pdf_test background 100
+check "pdf" 1
+
 adb shell am force-stop "$PKG"
 adb shell am start -W -n "$PKG/.MainActivity"
 check "neustart" 8

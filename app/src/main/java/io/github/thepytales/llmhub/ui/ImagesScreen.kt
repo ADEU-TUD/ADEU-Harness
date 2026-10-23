@@ -99,7 +99,7 @@ private fun saveToGallery(context: Context, img: GeneratedImage) {
     val values = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, "llmhub_${System.currentTimeMillis()}.png")
         put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/LLM Hub")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ADEU LLM")
     }
     val resolver = context.contentResolver
     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
@@ -111,7 +111,7 @@ private fun saveToGallery(context: Context, img: GeneratedImage) {
         val bmp = BitmapFactory.decodeByteArray(img.bytes, 0, img.bytes.size)
         bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
     }
-    Toast.makeText(context, "In Galerie gespeichert (Bilder/LLM Hub).", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "In Galerie gespeichert (Bilder/ADEU LLM).", Toast.LENGTH_SHORT).show()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

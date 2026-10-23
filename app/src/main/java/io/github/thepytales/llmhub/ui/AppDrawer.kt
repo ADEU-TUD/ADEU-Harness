@@ -157,7 +157,7 @@ fun AppDrawer(
                     )
                 } else {
                     Text(
-                        "LLM Hub",
+                        "ADEU LLM",
                         style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f),

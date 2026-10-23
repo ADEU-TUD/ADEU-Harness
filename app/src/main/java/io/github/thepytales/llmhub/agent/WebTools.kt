@@ -103,7 +103,7 @@ class WebTools(http: OkHttpClient) : ToolProvider {
         val body = args.s("body")?.let { env?.substitute(it) ?: it }
         return withContext(Dispatchers.IO) {
             val builder = Request.Builder().url(url)
-                .header("User-Agent", "Mozilla/5.0 (Android) LLMHub")
+                .header("User-Agent", "Mozilla/5.0 (Android) ADEU-LLM")
                 .header("Accept", "text/html,text/plain,application/json;q=0.9,*/*;q=0.5")
             headers.orEmpty().forEach { (k, v) -> builder.header(k, env?.substitute(v) ?: v) }
             val type = (headers.orEmpty().entries.firstOrNull { it.key.equals("Content-Type", true) }?.value
