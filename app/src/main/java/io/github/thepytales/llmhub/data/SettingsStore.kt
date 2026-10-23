@@ -12,6 +12,8 @@ data class AppSettings(
     val apiKey: String = "",
     val baseUrl: String = DEFAULT_BASE_URL,
     val githubToken: String = "",
+    /** GitHub account the token was verified for; empty while the token is unchecked or invalid. */
+    val githubUser: String = "",
     val defaultModel: String = ModelCatalog.DEFAULT_CHAT,
     val systemPrompt: String = "",
     val imageModel: String = "alias-image-generation",
@@ -52,7 +54,8 @@ data class AppSettings(
     val userName: String = "",
 ) {
     val hasApiKey get() = apiKey.isNotBlank()
-    val hasGitHub get() = githubToken.isNotBlank()
+    /** Only a verified token unlocks the GitHub options. */
+    val hasGitHub get() = githubToken.isNotBlank() && githubUser.isNotBlank()
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
@@ -94,6 +97,7 @@ class SettingsStore(context: Context) {
             .putString("apiKey", next.apiKey.trim())
             .putString("baseUrl", next.baseUrl.trim())
             .putString("githubToken", next.githubToken.trim())
+            .putString("githubUser", next.githubUser)
             .putString("defaultModel", next.defaultModel)
             .putString("systemPrompt", next.systemPrompt)
             .putString("imageModel", next.imageModel)
@@ -128,6 +132,7 @@ class SettingsStore(context: Context) {
             apiKey = prefs.getString("apiKey", d.apiKey) ?: d.apiKey,
             baseUrl = prefs.getString("baseUrl", d.baseUrl)?.ifBlank { d.baseUrl } ?: d.baseUrl,
             githubToken = prefs.getString("githubToken", d.githubToken) ?: d.githubToken,
+            githubUser = prefs.getString("githubUser", d.githubUser) ?: d.githubUser,
             defaultModel = prefs.getString("defaultModel", d.defaultModel) ?: d.defaultModel,
             systemPrompt = prefs.getString("systemPrompt", d.systemPrompt) ?: d.systemPrompt,
             imageModel = prefs.getString("imageModel", d.imageModel) ?: d.imageModel,

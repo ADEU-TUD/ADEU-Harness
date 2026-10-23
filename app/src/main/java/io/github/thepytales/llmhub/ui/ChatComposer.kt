@@ -303,7 +303,8 @@ private fun SheetRow(icon: ImageVector, title: String, subtitle: String?, onClic
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlusSheet(
-    repoLabel: String,
+    /** Null hides the repository row (no valid GitHub token). */
+    repoLabel: String?,
     envLabel: String,
     personaLabel: String,
     onCamera: () -> Unit,
@@ -334,7 +335,7 @@ fun PlusSheet(
         )
         SheetRow(Icons.Outlined.Bookmarks, "Vorlagen", "Prompt-Vorlagen und Personas", { pick(onTemplates) })
         SheetRow(Icons.Outlined.Person, "Persona / System-Prompt", personaLabel, { pick(onPersona) })
-        SheetRow(Icons.Outlined.Code, "GitHub-Repository", repoLabel, { pick(onRepo) })
+        if (repoLabel != null) SheetRow(Icons.Outlined.Code, "GitHub-Repository", repoLabel, { pick(onRepo) })
         SheetRow(Icons.Outlined.Tune, "Umgebung", envLabel, { pick(onEnvironment) })
         Spacer(Modifier.height(24.dp))
     }

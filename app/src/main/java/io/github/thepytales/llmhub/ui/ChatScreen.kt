@@ -331,7 +331,7 @@ fun ChatScreen(
                 onStop = { vm.stop() },
             ) {
                 // Always visible while active: the selected repository, environment and persona.
-                if (current.githubEnabled) {
+                if (current.githubEnabled && settings.hasGitHub) {
                     ContextChip(Icons.Outlined.Code, current.repo?.let { r -> r + (current.branch?.let { " · $it" } ?: "") } ?: "GitHub · Repo wählen", { showRepoPicker = true })
                 }
                 if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true })
@@ -406,7 +406,7 @@ fun ChatScreen(
 
     if (showPlus) {
         PlusSheet(
-            repoLabel = repoLabel,
+            repoLabel = repoLabel.takeIf { settings.hasGitHub },
             envLabel = env?.name ?: "Keine",
             personaLabel = current.persona ?: if (current.systemPrompt.isNullOrBlank()) "Keine" else "Eigener System-Prompt",
             onCamera = { takePhoto() },

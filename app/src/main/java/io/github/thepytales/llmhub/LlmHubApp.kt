@@ -25,7 +25,11 @@ import io.github.thepytales.llmhub.net.GitHubClient
 import io.github.thepytales.llmhub.net.LlmClient
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.tasks.TaskScheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import java.io.File
 
 class AppContainer(context: Context) {
@@ -76,7 +80,7 @@ object CrashLog {
         Thread.setDefaultUncaughtExceptionHandler { thread, error ->
             runCatching {
                 file.writeText(
-                    "LLM Hub ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
+                    "ADEU LLM ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
                         "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n" + error.stackTraceToString()
                 )
             }
@@ -102,5 +106,9 @@ class LlmHubApp : Application() {
         container = AppContainer(this)
         Notifier.ensureChannel(this)
         runCatching { TaskScheduler.scheduleAll(this) }
+        // Re-checks the GitHub token, so a revoked one hides the GitHub options again.
+        if (container.settings.current.githubToken.isNotBlank()) {
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { container.github.verify() } }
+        }
     }
 }

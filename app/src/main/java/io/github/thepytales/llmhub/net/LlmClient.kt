@@ -6,6 +6,7 @@ import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.UsageStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -34,7 +35,8 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
 
-class ApiException(val code: Int, message: String) : IOException(message)
+/** [retryAfter] is the wait in seconds the server asked for (header retry-after, sent with 429). */
+class ApiException(val code: Int, message: String, val retryAfter: Long? = null) : IOException(message)
 
 /** Live update while a chat completion streams in. */
 data class StreamUpdate(val content: String, val reasoning: String, val toolCalls: List<ToolCall>)
@@ -85,7 +87,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         }.getOrNull()
         val hint = when (code) {
             401 -> " (API-Key ungültig?)"
-            429 -> " (Rate-Limit erreicht, bitte kurz warten)"
+            429 -> " (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)"
             else -> ""
         }
         return "HTTP $code$hint: ${parsed ?: body?.take(500) ?: "unbekannter Fehler"}"
@@ -103,6 +105,29 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Streams a chat completion and calls [onUpdate] with the accumulated state. */
     suspend fun streamChat(
+        model: String,
+        messages: List<ChatMessage>,
+        tools: JsonArray?,
+        onRateLimit: (waitSeconds: Long) -> Unit = {},
+        onUpdate: (StreamUpdate) -> Unit,
+    ): ChatResult {
+        // Keys of the self-service portal have a low requests-per-minute limit, which agent runs with many
+        // tool steps reach quickly. The server answers 429 with retry-after; waiting and retrying is enough.
+        var attempt = 0
+        while (true) {
+            try {
+                return streamChatWithUsageFallback(model, messages, tools, onUpdate)
+            } catch (e: ApiException) {
+                if (e.code != 429 || attempt >= RATE_LIMIT_RETRIES) throw e
+                val wait = (e.retryAfter ?: (15L * (attempt + 1))).coerceIn(1, MAX_RATE_LIMIT_WAIT)
+                onRateLimit(wait)
+                delay(wait * 1000)
+                attempt++
+            }
+        }
+    }
+
+    private suspend fun streamChatWithUsageFallback(
         model: String,
         messages: List<ChatMessage>,
         tools: JsonArray?,
@@ -143,7 +168,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         try {
             call.execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    throw ApiException(resp.code, errorMessage(resp.code, resp.body?.string()))
+                    val wait = resp.header("retry-after")?.trim()?.toLongOrNull()
+                    throw ApiException(resp.code, errorMessage(resp.code, resp.body?.string()), wait)
                 }
                 val content = StringBuilder()
                 val reasoning = StringBuilder()
@@ -289,6 +315,11 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     private fun Map<Int, PartialToolCall>.toToolCalls(): List<ToolCall> = entries.map { (i, p) ->
         ToolCall(id = p.id ?: "call_$i", name = p.name.toString(), arguments = p.arguments.toString())
+    }
+
+    private companion object {
+        const val RATE_LIMIT_RETRIES = 3
+        const val MAX_RATE_LIMIT_WAIT = 90L
     }
 }
 

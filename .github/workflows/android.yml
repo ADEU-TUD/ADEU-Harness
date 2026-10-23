@@ -34,12 +34,12 @@ jobs:
         run: ./gradlew --no-daemon assembleRelease
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/release/app-release.apk "LLMHub-${VERSION_NAME}.apk"
+        run: cp app/build/outputs/apk/release/app-release.apk "ADEU-LLM-${VERSION_NAME}.apk"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: LLMHub-${{ env.VERSION_NAME }}
-          path: LLMHub-*.apk
+          name: ADEU-LLM-${{ env.VERSION_NAME }}
+          path: ADEU-LLM-*.apk
 
   # Installs the APK on an emulator (as update over the latest release), opens every screen and
   # fails if the app crashes – so no release ships that cannot be opened.
@@ -51,7 +51,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: LLMHub-${{ env.VERSION_NAME }}
+          name: ADEU-LLM-${{ env.VERSION_NAME }}
           path: new
 
       - name: Download previous release
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: LLMHub-${{ env.VERSION_NAME }}
+          name: ADEU-LLM-${{ env.VERSION_NAME }}
 
       - name: Publish GitHub release
         env:
@@ -100,7 +100,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PRERELEASE: ${{ github.ref_name != github.event.repository.default_branch && !startsWith(github.ref, 'refs/tags/') }}
         run: |
-          TITLE="LLM Hub ${VERSION_NAME}"
+          TITLE="ADEU LLM ${VERSION_NAME}"
           NOTES="Automatischer Build von ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). APK herunterladen und auf dem Android-Gerät installieren."
           FLAGS=""
           if [ "$PRERELEASE" = "true" ]; then
@@ -108,7 +108,7 @@ jobs:
             NOTES="Vorabversion vom Branch ${GITHUB_REF_NAME} (${GITHUB_SHA::7}), noch nicht in ${{ github.event.repository.default_branch }} übernommen. APK herunterladen und auf dem Android-Gerät installieren."
             FLAGS="--prerelease"
           fi
-          gh release create "v${VERSION_NAME}" "LLMHub-${VERSION_NAME}.apk" \
+          gh release create "v${VERSION_NAME}" "ADEU-LLM-${VERSION_NAME}.apk" \
             --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes "$NOTES" \

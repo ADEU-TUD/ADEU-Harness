@@ -1,4 +1,4 @@
-# LLM Hub – Android-App für die Uni-LLM-API
+# ADEU LLM – Android-App für die Uni-LLM-API
 
 Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://llm.scads.ai/v1`
 (API-Key aus dem TU-Dresden-Self-Service). Inoffiziell, nicht mit der Universität verbunden.
@@ -57,7 +57,9 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 - **Dokumente erstellen**: PDF, Word (.docx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
   Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
   (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`). Für besondere Gestaltung (Flyer, Rechnung, Lebenslauf …) schreibt das
-  Modell eigenes HTML mit Farben, Formen und Schriften.
+  Modell eigenes HTML mit Farben, Formen und Schriften. Klappt das gestaltete Rendern einmal nicht, entsteht trotzdem
+  ein PDF mit demselben Text (schlichtes Layout); der automatische Test im Emulator prüft das Rendern vor jedem Release,
+  auch bei App im Hintergrund.
 - **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
   meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
 - **Darstellung**: Stile *Claude* (Standard), *Material You*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
@@ -69,7 +71,7 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 
 ## Installation
 
-1. Unter **Releases** die neueste `LLMHub-x.y.z.apk` herunterladen.
+1. Unter **Releases** die neueste `ADEU-LLM-x.y.z.apk` herunterladen.
 2. Auf dem Handy öffnen und die Installation aus unbekannten Quellen erlauben.
 3. Beim ersten Start Benachrichtigungen erlauben (sonst erfährst du nicht, wann Aufgaben fertig sind).
 4. In der App unter **Einstellungen** den API-Key (`sk-…`) eintragen und „Verbindung testen“.
@@ -90,8 +92,20 @@ Unter <https://github.com/settings/personal-access-tokens/new> ein *Fine-grained
 - Repository access: die gewünschten Repositories (oder alle)
 - Permissions: **Contents**, **Pull requests**, **Issues** → *Read and write*; **Metadata** → *Read*
 
+Die App prüft das Token beim Eintragen und bei jedem Start. Erst mit einem gültigen Token erscheinen die
+GitHub-Optionen (im Chat unter „+“, bei geplanten Aufgaben und in den GitHub-Einstellungen); ohne Token oder mit
+einem abgelaufenen Token bleiben sie ausgeblendet.
+
 Im Chat über „+“ › GitHub-Repository ein Repository wählen (oder einfach einen GitHub-Link schreiben). Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
 z.B. DeepSeek V4.1 Flash, Qwen3.8 27B, GLM-5.3, GLM-5.3 Flash oder MiniMax M3.
+
+## Rate-Limit
+
+Keys aus dem Self-Service-Portal haben laut [Doku](https://llm.scads.ai/docs/usage/api/) ein niedriges Limit an
+Anfragen pro Minute (die genaue Zahl ist nicht veröffentlicht). Ein Agent mit vielen Werkzeugschritten erreicht es
+schnell, weil jeder Schritt eine eigene Anfrage ist. Der Server antwortet dann mit HTTP 429 und `retry-after`; die App
+wartet die angegebene Zeit ab und versucht es bis zu dreimal erneut (Hinweis im Chat). Ein Budget oder Kostenlimit
+beschreibt die Doku nicht; ein höheres Limit vergibt das Team auf Anfrage an llm.scads.ai@tu-dresden.de.
 
 ## Selbst bauen
 

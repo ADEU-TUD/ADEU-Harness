@@ -48,7 +48,7 @@ class GitHubClient(private val settings: SettingsStore, private val http: OkHttp
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/vnd.github+json")
                 .header("X-GitHub-Api-Version", "2022-11-28")
-                .header("User-Agent", "LLMHub-Android")
+                .header("User-Agent", "ADEU-LLM-Android")
                 .method(method, reqBody)
                 .build()
             http.newCall(req).execute().use { resp ->
@@ -66,6 +66,23 @@ class GitHubClient(private val settings: SettingsStore, private val http: OkHttp
     suspend fun get(path: String, vararg query: Pair<String, String?>) = call("GET", url(path, *query))
 
     suspend fun me(): String = (get("user") as JsonObject).s("login") ?: "?"
+
+    /**
+     * Checks the stored token and remembers its account, which shows the GitHub options in the app.
+     * A rejected token (401) hides them again; network errors leave the last result as it was.
+     */
+    suspend fun verify(): String {
+        val token = settings.current.githubToken
+        if (token.isBlank()) throw ApiException(401, "Kein GitHub-Token hinterlegt.")
+        val login = try {
+            me()
+        } catch (e: ApiException) {
+            if (e.code == 401) settings.update { if (it.githubToken == token) it.copy(githubUser = "") else it }
+            throw e
+        }
+        settings.update { if (it.githubToken == token) it.copy(githubUser = login) else it }
+        return login
+    }
 
     suspend fun listRepos(): List<RepoSummary> {
         val all = mutableListOf<RepoSummary>()

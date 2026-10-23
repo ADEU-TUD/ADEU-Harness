@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.thepytales.llmhub.docs.PdfSelfTest
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             openChat.value = intent?.getStringExtra(Notifier.EXTRA_CHAT)
             openRoute.value = intent?.getStringExtra(EXTRA_ROUTE)
+            intent?.let(::selfTest)
         }
         setContent {
             val settings by container.settings.settings.collectAsStateWithLifecycle()
@@ -49,9 +51,19 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         intent.getStringExtra(Notifier.EXTRA_CHAT)?.let { openChat.value = it }
         intent.getStringExtra(EXTRA_ROUTE)?.let { openRoute.value = it }
+        selfTest(intent)
+    }
+
+    /** "foreground" or "background" (waits a few seconds so the test can leave the app first). */
+    private fun selfTest(intent: Intent) {
+        when (intent.getStringExtra(EXTRA_PDF_TEST)) {
+            "foreground" -> PdfSelfTest.run(this, 0)
+            "background" -> PdfSelfTest.run(this, 8_000)
+        }
     }
 
     companion object {
         const val EXTRA_ROUTE = "route"
+        const val EXTRA_PDF_TEST = "pdftest"
     }
 }

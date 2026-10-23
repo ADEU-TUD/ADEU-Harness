@@ -410,18 +410,16 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
             Text("Werkzeuge", style = MaterialTheme.typography.titleSmall)
             ToggleRow("Websuche & Nachrichten", "Suchen, News finden und Webseiten lesen.", task.webTools) { task = task.copy(webTools = it) }
             ToggleRow("Dokumente erstellen", "Z.B. das Ergebnis als PDF ablegen.", task.documentTools) { task = task.copy(documentTools = it) }
-            ToggleRow(
-                "GitHub",
-                if (settings.hasGitHub) (task.repo ?: "Kein festes Repository") else "Erst ein GitHub-Token in den Einstellungen eintragen.",
-                task.github,
-            ) { on -> task = task.copy(github = on && settings.hasGitHub) }
-            if (task.github) {
-                OutlinedButton(onClick = { showRepo = true }) { Text(task.repo ?: "Repository wählen") }
-                ToggleRow(
-                    "Schreibaktionen erlauben",
-                    "Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt.",
-                    task.allowWrites,
-                ) { task = task.copy(allowWrites = it) }
+            if (settings.hasGitHub) {
+                ToggleRow("GitHub", task.repo ?: "Kein festes Repository", task.github) { task = task.copy(github = it) }
+                if (task.github) {
+                    OutlinedButton(onClick = { showRepo = true }) { Text(task.repo ?: "Repository wählen") }
+                    ToggleRow(
+                        "Schreibaktionen erlauben",
+                        "Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt.",
+                        task.allowWrites,
+                    ) { task = task.copy(allowWrites = it) }
+                }
             }
 
             Text("Umgebung", style = MaterialTheme.typography.titleSmall)

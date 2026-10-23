@@ -57,7 +57,7 @@ class AgentRunner(private val c: AppContainer) {
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty())
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
-            host.notice("GitHub-Token fehlt – GitHub-Werkzeuge deaktiviert.")
+            host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
         if (ctx.repo != null && ctx.branch == null && settings.hasGitHub) {
             ctx.branch = runCatching { c.github.defaultBranch(ctx.repo!!) }.getOrNull()
@@ -78,6 +78,7 @@ class AgentRunner(private val c: AppContainer) {
                     model = conv.model,
                     messages = apiMessages,
                     tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
+                    onRateLimit = { wait -> host.notice("Rate-Limit des API-Keys erreicht – neuer Versuch in $wait s.") },
                 ) { upd ->
                     host.update { cv ->
                         cv.updateMessage(placeholder.id) {

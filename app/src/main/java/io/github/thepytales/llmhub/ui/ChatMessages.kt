@@ -432,7 +432,7 @@ fun AssistantMessage(
             }
             if (item.isLast) {
                 Text(
-                    "LLM Hub nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.",
+                    "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp),

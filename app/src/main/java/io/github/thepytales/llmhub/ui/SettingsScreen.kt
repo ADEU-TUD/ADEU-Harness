@@ -102,6 +102,7 @@ import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
@@ -270,7 +271,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 else -> {
                     val entries = listOf(
                         SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", if (s.hasApiKey) "API-Key hinterlegt" else "API-Key fehlt"),
-                        SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", if (s.hasGitHub) "Token hinterlegt" else "Kein Token"),
+                        SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", if (s.hasGitHub) "Angemeldet als ${s.githubUser}" else if (s.githubToken.isNotBlank()) "Token ungültig oder nicht geprüft" else "Kein Token"),
                         SettingsEntry("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
                         SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, System-Prompt, Werkzeuge"),
                         SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
@@ -304,7 +305,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                         }
                     }
                     Text(
-                        "LLM Hub ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
+                        "ADEU LLM ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -374,33 +375,56 @@ private fun GitHubSection(c: AppContainer) {
                 "„Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories.",
             style = MaterialTheme.typography.bodySmall,
         )
-        SecretField("GitHub-Token", s.githubToken) { v -> c.settings.update { it.copy(githubToken = v.trim()) } }
+        SecretField("GitHub-Token", s.githubToken) { v ->
+            // A changed token has to be verified again before the GitHub options appear.
+            c.settings.update { if (it.githubToken == v.trim()) it else it.copy(githubToken = v.trim(), githubUser = "") }
+        }
+        suspend fun check() {
+            testing = true
+            status = try {
+                "✓ Angemeldet als ${c.github.verify()}"
+            } catch (e: Exception) {
+                "✗ ${e.message}"
+            }
+            testing = false
+        }
+        // Checks a newly entered token automatically, once typing has paused.
+        LaunchedEffect(s.githubToken) {
+            if (s.githubToken.isBlank()) {
+                status = null
+            } else if (s.githubUser.isBlank()) {
+                delay(800)
+                check()
+            }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(
-                enabled = !testing,
-                onClick = {
-                    testing = true
-                    scope.launch {
-                        status = try {
-                            "✓ Angemeldet als ${c.github.me()}"
-                        } catch (e: Exception) {
-                            "✗ ${e.message}"
-                        }
-                        testing = false
-                    }
-                },
+                enabled = !testing && s.githubToken.isNotBlank(),
+                onClick = { scope.launch { check() } },
             ) { Text("Token testen") }
             if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
         }
-        status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        (status ?: s.githubUser.ifBlank { null }?.let { "✓ Angemeldet als $it" })?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall)
+        }
+        if (!s.hasGitHub) {
+            Text(
+                "Die GitHub-Optionen im Chat und bei geplanten Aufgaben erscheinen, sobald ein gültiges Token hinterlegt ist.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         TextButton(onClick = { uri.openUri("https://github.com/settings/personal-access-tokens/new") }) {
             Text("Token auf GitHub erstellen")
         }
-        SwitchRow(
-            "In neuen Chats automatisch aktiv",
-            "Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer.",
-            s.githubAutoTools,
-        ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
+        if (s.hasGitHub) {
+            SwitchRow(
+                "In neuen Chats automatisch aktiv",
+                "Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer.",
+                s.githubAutoTools,
+            ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
+        }
+        // Also covers writing web requests, so it stays visible without GitHub.
         SwitchRow(
             "Schreibaktionen bestätigen",
             "Vor jedem Commit, Branch, PR, Kommentar oder schreibenden Web-Aufruf nachfragen.",
@@ -523,7 +547,7 @@ private fun VoiceSection(c: AppContainer) {
             Text("Das Tempo gilt für die Gerätestimme.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         OutlinedButton(onClick = {
-            c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit LLM Hub.")
+            c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit ADEU LLM.")
         }) {
             Icon(if (playing == "preview") Icons.Outlined.Stop else Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
