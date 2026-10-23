@@ -1,6 +1,23 @@
 package io.github.thepytales.llmhub.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -11,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -21,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.CrashLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -39,7 +58,7 @@ private fun NavHostController.openChat(route: String) = navigate(route) {
 }
 
 @Composable
-fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>) {
+fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: MutableStateFlow<String?>) {
     val nav = rememberNavController()
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -60,6 +79,25 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>) {
     }
 
     fun closeDrawer() = scope.launch { drawer.close() }
+
+    val route by openRoute.collectAsStateWithLifecycle()
+    LaunchedEffect(route) {
+        route?.let { r ->
+            when (r) {
+                "drawer" -> drawer.open()
+                "chat" -> nav.openChat(chatRoute())
+                else -> runCatching { nav.navigate(r) }
+            }
+            openRoute.value = null
+        }
+    }
+
+    // Shows what went wrong if the app crashed last time.
+    val context = LocalContext.current
+    var crash by remember { mutableStateOf(CrashLog.take(context)) }
+    crash?.let { report ->
+        CrashDialog(report, onDismiss = { crash = null })
+    }
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 
@@ -133,4 +171,37 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>) {
             }
         }
     }
+}
+
+/** Crash report of the last start with buttons to copy or share it. */
+@Composable
+private fun CrashDialog(report: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("LLM Hub ist abgestürzt") },
+        text = {
+            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                Text(
+                    "Beim letzten Mal ist die App abgestürzt. Schick den Bericht gern an den Entwickler, damit der Fehler behoben werden kann.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(report.take(6000), fontFamily = FontFamily.Monospace, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report)
+                context.startActivity(Intent.createChooser(intent, "Absturzbericht teilen").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                onDismiss()
+            }) { Text("Teilen") }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = { clipboard.setText(AnnotatedString(report)) }) { Text("Kopieren") }
+                TextButton(onClick = onDismiss) { Text("Schließen") }
+            }
+        },
+    )
 }
