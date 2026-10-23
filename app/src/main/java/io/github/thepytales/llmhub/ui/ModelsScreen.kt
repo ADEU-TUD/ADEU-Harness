@@ -55,13 +55,14 @@ private val typeHelp = mapOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModelsScreen(c: AppContainer, onStartChat: (String) -> Unit) {
+fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> Unit) {
     val state by c.models.state.collectAsStateWithLifecycle()
     val uri = LocalUriHandler.current
     var filter by remember { mutableStateOf(ModelFilter()) }
     Scaffold(
         topBar = {
             TopAppBar(
+                navigationIcon = { BackButton(onBack) },
                 title = { Text("Modelle") },
                 actions = {
                     IconButton(onClick = { uri.openUri("https://llm.scads.ai/status/") }) {

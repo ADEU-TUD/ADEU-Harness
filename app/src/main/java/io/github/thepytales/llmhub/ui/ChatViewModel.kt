@@ -3,19 +3,22 @@ package io.github.thepytales.llmhub.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.agent.DocumentTools
+import io.github.thepytales.llmhub.agent.AgentHost
 import io.github.thepytales.llmhub.agent.GitHubTools
-import io.github.thepytales.llmhub.agent.RepoContext
-import io.github.thepytales.llmhub.agent.ToolOutput
-import io.github.thepytales.llmhub.agent.ToolProvider
-import io.github.thepytales.llmhub.agent.WebTools
-import io.github.thepytales.llmhub.agent.execute
-import io.github.thepytales.llmhub.agent.toSchema
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
-import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.data.ModelType
+import io.github.thepytales.llmhub.data.NO_CHILD
+import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.ToolCall
-import io.github.thepytales.llmhub.net.ApiException
+import io.github.thepytales.llmhub.data.addVersion
+import io.github.thepytales.llmhub.data.appendToThread
+import io.github.thepytales.llmhub.data.branchAfter
+import io.github.thepytales.llmhub.data.removeSubtree
+import io.github.thepytales.llmhub.data.select
+import io.github.thepytales.llmhub.data.thread
+import io.github.thepytales.llmhub.data.updateMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
@@ -24,16 +27,46 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 
 data class PendingAction(val call: ToolCall, val result: CompletableDeferred<Boolean>)
 
-class ChatViewModel(private val c: AppContainer, private val id: String) : ViewModel() {
-    private val _conversation = MutableStateFlow(c.chats.get(id))
-    val conversation: StateFlow<Conversation?> = _conversation.asStateFlow()
+/** Creates a new, not yet saved conversation with the configured defaults. */
+fun newConversation(c: AppContainer, model: String? = null): Conversation {
+    val s = c.settings.current
+    val wanted = model ?: s.defaultModel
+    val available = c.models.state.value.liveIds
+    val chosen = if (available == null || wanted in available) wanted
+    else c.models.state.value.ofType(ModelType.CHAT).firstOrNull()?.id ?: wanted
+    val env = s.defaultEnvId.takeIf { id -> id.isNotEmpty() && c.environments.get(id) != null }
+    return Conversation(model = chosen, githubEnabled = s.hasGitHub && s.githubAutoTools, envId = env)
+}
+
+/**
+ * State of one chat. A new chat ([initialId] null) only lives in memory until the first message is sent.
+ * [initialModel] / [initialPersona] preset a new chat (from the model list or a template).
+ */
+class ChatViewModel(
+    private val c: AppContainer,
+    initialId: String?,
+    initialModel: String? = null,
+    initialPersona: String? = null,
+) : ViewModel(), AgentHost {
+    private val template = initialPersona?.let { c.templates.get(it) }
+
+    /** Text for the input field of a new chat started from a prompt template. */
+    val prefill: String? = template?.takeIf { it.kind == TemplateKind.PROMPT }?.content
+
+    private val _conversation = MutableStateFlow(
+        if (initialId == null) {
+            newConversation(c, initialModel).let { conv ->
+                template?.takeIf { it.kind == TemplateKind.PERSONA }?.let { t -> conv.copy(systemPrompt = t.content, persona = t.name) } ?: conv
+            }
+        } else c.chats.get(initialId)
+    )
+    override val conversation: Conversation? get() = _conversation.value
+    val state: StateFlow<Conversation?> = _conversation.asStateFlow()
 
     private val _running = MutableStateFlow(false)
     val running: StateFlow<Boolean> = _running.asStateFlow()
@@ -47,205 +80,66 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
     private val _toasts = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val toasts: SharedFlow<String> = _toasts
 
+    /** The chat was deleted elsewhere (drawer); nothing may be saved anymore. */
+    private val _deleted = MutableStateFlow(false)
+    val deleted: StateFlow<Boolean> = _deleted.asStateFlow()
+
     private var job: Job? = null
 
+    /** Whether this chat has been written to the repository at least once. */
+    private var saved = initialId != null
+
     init {
-        if (_conversation.value == null) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (_conversation.value == null && initialId != null) {
                 // The repository loads asynchronously at app start.
-                withTimeoutOrNull(5000) { c.chats.conversations.first { list -> list.any { it.id == id } } }
-                _conversation.value = c.chats.get(id)
+                c.chats.awaitLoaded()
+                _conversation.value = c.chats.get(initialId)
+            }
+        }
+        viewModelScope.launch {
+            // Renaming, pinning or moving the chat in the drawer changes the stored copy.
+            c.chats.conversations.collect { list ->
+                val cur = _conversation.value ?: return@collect
+                val stored = list.firstOrNull { it.id == cur.id }
+                if (stored == null) {
+                    if (c.chats.loaded.value && cur.messages.isNotEmpty() && saved) _deleted.value = true
+                    return@collect
+                }
+                if (stored.title != cur.title || stored.pinned != cur.pinned || stored.folderId != cur.folderId) {
+                    _conversation.value = cur.copy(title = stored.title, pinned = stored.pinned, folderId = stored.folderId)
+                }
             }
         }
     }
 
-    private fun edit(persist: Boolean = false, transform: (Conversation) -> Conversation) {
+    override fun update(transform: (Conversation) -> Conversation) {
         val cur = _conversation.value ?: return
-        val next = transform(cur)
-        _conversation.value = next
-        if (persist) c.chats.save(next)
+        _conversation.value = transform(cur)
     }
 
-    private fun persist() {
-        _conversation.value?.let { c.chats.save(it.copy(updatedAt = System.currentTimeMillis())) }
-    }
-
-    private fun editMessage(messageId: String, transform: (ChatMessage) -> ChatMessage) = edit { conv ->
-        conv.copy(messages = conv.messages.map { if (it.id == messageId) transform(it) else it })
-    }
-
-    private fun append(message: ChatMessage) = edit { it.copy(messages = it.messages + message) }
-
-    fun setModel(model: String) = edit(persist = true) { it.copy(model = model) }
-
-    fun setSystemPrompt(prompt: String) = edit(persist = true) { it.copy(systemPrompt = prompt.ifBlank { null }) }
-
-    fun setGitHub(enabled: Boolean, repo: String?, branch: String?) = edit(persist = true) {
-        it.copy(githubEnabled = enabled, repo = repo, branch = branch)
-    }
-
-    fun deleteChat() {
-        job?.cancel()
-        c.chats.delete(id)
-    }
-
-    fun send(text: String, images: List<String>) {
+    override fun persist() {
         val conv = _conversation.value ?: return
-        if (_running.value || (text.isBlank() && images.isEmpty())) return
-        val isFirst = conv.messages.none { it.role == "user" }
-        edit(persist = true) {
-            it.copy(
-                messages = it.messages + ChatMessage(role = "user", content = text.trim(), images = images),
-                title = if (isFirst) makeTitle(text) else it.title,
-                updatedAt = System.currentTimeMillis(),
-            )
-        }
-        connectMentionedRepo(text)
-        startAgent()
+        if (_deleted.value || conv.messages.isEmpty()) return
+        saved = true
+        c.chats.save(conv.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    /** A GitHub link in the message turns the GitHub tools on and selects that repository. */
-    private fun connectMentionedRepo(text: String) {
-        val repo = GitHubTools.findRepoUrl(text) ?: return
+    /** Saves settings changes without moving the chat to the top of the list. */
+    private fun edit(transform: (Conversation) -> Conversation) {
+        update(transform)
         val conv = _conversation.value ?: return
-        if (!c.settings.current.hasGitHub) {
-            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein GitHub-Token in den Einstellungen eintragen.")
-            return
-        }
-        if (conv.githubEnabled && conv.repo != null) return
-        if (!conv.githubEnabled) _toasts.tryEmit("GitHub-Werkzeuge aktiviert: $repo")
-        edit(persist = true) { it.copy(githubEnabled = true, repo = it.repo ?: repo, branch = if (it.repo == null) null else it.branch) }
-    }
-
-    /** Re-runs the model on the current history (e.g. after an error). */
-    fun retry() {
-        if (_running.value) return
-        edit { conv ->
-            val trimmed = conv.messages.dropLastWhile { it.role == "assistant" && (it.error || it.toolCalls.isEmpty()) }
-            conv.copy(messages = trimmed)
-        }
-        _conversation.value?.messages?.lastOrNull { it.role == "user" }?.let { connectMentionedRepo(it.content) }
-        startAgent()
-    }
-
-    fun stop() {
-        job?.cancel()
-        _pending.value?.result?.complete(false)
-    }
-
-    private fun startAgent() {
-        job = viewModelScope.launch {
-            _running.value = true
-            try {
-                runAgent()
-            } catch (e: CancellationException) {
-                edit { conv ->
-                    val last = conv.messages.lastOrNull()
-                    if (last != null && last.role == "assistant" && last.content.isBlank() && last.toolCalls.isEmpty()) {
-                        conv.copy(messages = conv.messages.dropLast(1) + last.copy(content = "_(abgebrochen)_", error = true))
-                    } else conv
-                }
-            } finally {
-                _running.value = false
-                persist()
-            }
+        if (!_deleted.value && conv.messages.isNotEmpty()) {
+            saved = true
+            c.chats.save(conv)
         }
     }
 
-    /** Tool groups offered to the model in this conversation. */
-    private fun toolProviders(conv: Conversation): List<ToolProvider> {
-        val settings = c.settings.current
-        // Models known not to support function calling only get a plain chat.
-        if (ModelCatalog.info(conv.model).tools == false) return emptyList()
-        return listOfNotNull(
-            c.githubTools.takeIf { conv.githubEnabled && settings.hasGitHub },
-            c.documentTools.takeIf { settings.documentTools },
-            c.webTools.takeIf { settings.webTools },
-        )
+    override fun notice(message: String) {
+        _toasts.tryEmit(message)
     }
 
-    private suspend fun runAgent() {
-        val settings = c.settings.current
-        val start = _conversation.value ?: return
-        val ctx = RepoContext(start.repo, start.branch)
-        if (start.githubEnabled && !settings.hasGitHub) {
-            _toasts.tryEmit("GitHub-Token fehlt – GitHub-Werkzeuge deaktiviert.")
-        }
-        if (ctx.repo != null && ctx.branch == null && settings.hasGitHub) {
-            ctx.branch = runCatching { c.github.defaultBranch(ctx.repo!!) }.getOrNull()
-            if (ctx.branch != null) edit(persist = true) { it.copy(branch = ctx.branch) }
-        }
-        var providers = toolProviders(start)
-        var steps = 0
-        while (true) {
-            val conv = _conversation.value ?: return
-            val apiMessages = buildApiMessages(conv, ctx, providers)
-            val placeholder = ChatMessage(role = "assistant", model = conv.model)
-            append(placeholder)
-            val result = try {
-                c.llm.streamChat(
-                    model = conv.model,
-                    messages = apiMessages,
-                    tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
-                ) { upd ->
-                    editMessage(placeholder.id) {
-                        it.copy(content = upd.content, reasoning = upd.reasoning.ifEmpty { null }, toolCalls = upd.toolCalls)
-                    }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                val partial = _conversation.value?.messages?.firstOrNull { it.id == placeholder.id }
-                if (e is ApiException && e.code in 400..422 && e.message.orEmpty().contains("tool", ignoreCase = true) &&
-                    providers.isNotEmpty() && partial?.content.isNullOrBlank()
-                ) {
-                    // The model (or its server configuration) rejects function calling: answer without tools.
-                    edit { cv -> cv.copy(messages = cv.messages.filterNot { it.id == placeholder.id }) }
-                    _toasts.tryEmit("${ModelCatalog.info(conv.model).displayName} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.")
-                    providers = emptyList()
-                    continue
-                }
-                edit { cv ->
-                    val msgs = cv.messages.filterNot { it.id == placeholder.id && it.content.isBlank() }
-                    cv.copy(messages = msgs + ChatMessage(role = "assistant", content = e.message ?: e.toString(), error = true))
-                }
-                return
-            }
-            persist()
-            if (result.toolCalls.isEmpty() || providers.isEmpty()) return
-
-            for (call in result.toolCalls) {
-                val provider = providers.firstOrNull { it.handles(call.name) }
-                val needsConfirm = provider === c.githubTools && settings.confirmWrites && c.githubTools.isWriteTool(call.name)
-                val output = when {
-                    provider == null -> ToolOutput("FEHLER: Unbekanntes Werkzeug '${call.name}'.")
-                    !needsConfirm || confirm(call) -> provider.execute(call.name, call.arguments, ctx)
-                    else -> ToolOutput(
-                        "Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst."
-                    )
-                }
-                append(
-                    ChatMessage(
-                        role = "tool", content = output.text, toolCallId = call.id, toolName = call.name, file = output.file,
-                    )
-                )
-                edit { it.copy(repo = ctx.repo, branch = ctx.branch) }
-            }
-            persist()
-            steps++
-            if (steps >= settings.maxAgentSteps) {
-                append(
-                    ChatMessage(
-                        role = "assistant", error = true,
-                        content = "Maximale Anzahl an Werkzeugschritten ($steps) erreicht. Schreibe \"weiter\", um fortzufahren.",
-                    )
-                )
-                return
-            }
-        }
-    }
-
-    private suspend fun confirm(call: ToolCall): Boolean {
+    override suspend fun confirm(call: ToolCall): Boolean {
         val deferred = CompletableDeferred<Boolean>()
         _pending.value = PendingAction(call, deferred)
         return try {
@@ -259,58 +153,125 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
         _pending.value?.result?.complete(allow)
     }
 
-    private fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
-        val settings = c.settings.current
-        val useTools = providers.isNotEmpty()
-        val system = listOfNotNull(
-            settings.systemPrompt.ifBlank { null },
-            conv.systemPrompt?.ifBlank { null },
-            if (c.githubTools in providers) GitHubTools.systemPrompt(ctx) else null,
-            if (c.documentTools in providers) DocumentTools.PROMPT else null,
-            if (c.webTools in providers) WebTools.PROMPT else null,
-        ).joinToString("\n\n")
-        val out = mutableListOf<ChatMessage>()
-        if (system.isNotBlank()) out += ChatMessage(role = "system", content = system)
-        // Only keep tool calls that have a matching result, otherwise the API rejects the history.
-        val answered = conv.messages.filter { it.role == "tool" }.mapNotNull { it.toolCallId }.toSet()
-        val sent = mutableSetOf<String>()
-        for (m in conv.messages) {
-            when (m.role) {
-                "assistant" -> {
-                    if (m.error) continue
-                    val calls = if (useTools) m.toolCalls.filter { it.id in answered } else emptyList()
-                    val content = splitThinking(m.content).second
-                    if (content.isBlank() && calls.isEmpty()) continue
-                    sent += calls.map { it.id }
-                    out += m.copy(content = content, toolCalls = calls)
-                }
-                "tool" -> {
-                    if (useTools && m.toolCallId in sent) out += m
-                }
-                else -> out += m
-            }
-        }
-        return out
+    fun setModel(model: String) = edit { it.copy(model = model) }
+
+    fun setSystemPrompt(prompt: String, persona: String? = null) =
+        edit { it.copy(systemPrompt = prompt.ifBlank { null }, persona = if (prompt.isBlank()) null else persona) }
+
+    fun setGitHub(enabled: Boolean, repo: String?, branch: String?) =
+        edit { it.copy(githubEnabled = enabled, repo = repo, branch = branch) }
+
+    fun setEnvironment(envId: String?) = edit { it.copy(envId = envId) }
+
+    fun rename(title: String) = edit { it.copy(title = title.trim().ifBlank { it.title }) }
+
+    fun setPinned(pinned: Boolean) = edit { it.copy(pinned = pinned) }
+
+    fun moveToFolder(folderId: String?) = edit { it.copy(folderId = folderId) }
+
+    fun deleteChat() {
+        job?.cancel()
+        _deleted.value = true
+        _conversation.value?.let { c.chats.delete(it.id) }
     }
 
-    fun speak(message: ChatMessage) {
-        if (c.player.playingId.value == message.id) {
-            c.player.stop()
+    fun send(text: String, images: List<String>, files: List<FileAttachment>) {
+        val conv = _conversation.value ?: return
+        if (_running.value || (text.isBlank() && images.isEmpty() && files.isEmpty())) return
+        val isFirst = conv.messages.none { it.role == "user" }
+        update {
+            it.appendToThread(ChatMessage(role = "user", content = text.trim(), images = images, files = files)).copy(
+                title = if (isFirst) makeTitle(text, files) else it.title,
+            )
+        }
+        persist()
+        connectMentionedRepo(text)
+        startAgent()
+    }
+
+    /** Sends an edited version of a user message as new branch (the old version stays reachable). */
+    fun editMessage(message: ChatMessage, newText: String) {
+        if (_running.value || newText.isBlank()) return
+        update { it.addVersion(message, message.copy(id = java.util.UUID.randomUUID().toString(), content = newText.trim(), createdAt = System.currentTimeMillis())) }
+        persist()
+        connectMentionedRepo(newText)
+        startAgent()
+    }
+
+    /** Generates a new version of the answer to [userMessage], optionally with another model. */
+    fun regenerate(userMessage: ChatMessage, model: String? = null) {
+        if (_running.value) return
+        update { conv -> conv.branchAfter(userMessage).let { if (model != null) it.copy(model = model) else it } }
+        startAgent()
+    }
+
+    /** Shows another version of a message. */
+    fun showVersion(message: ChatMessage) {
+        if (_running.value) return
+        edit { it.select(message) }
+    }
+
+    /** A GitHub link in the message turns the GitHub tools on and selects that repository. */
+    private fun connectMentionedRepo(text: String) {
+        val repo = GitHubTools.findRepoUrl(text) ?: return
+        val conv = _conversation.value ?: return
+        if (!c.settings.current.hasGitHub) {
+            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein GitHub-Token in den Einstellungen eintragen.")
             return
         }
-        viewModelScope.launch {
+        if (conv.githubEnabled && conv.repo != null) return
+        if (!conv.githubEnabled) _toasts.tryEmit("GitHub-Werkzeuge aktiviert: $repo")
+        edit { it.copy(githubEnabled = true, repo = it.repo ?: repo, branch = if (it.repo == null) null else it.branch) }
+    }
+
+    /** Re-runs the model after an error (drops the failed answer). */
+    fun retry() {
+        if (_running.value) return
+        update { conv ->
+            var cv = conv
+            while (true) {
+                val last = cv.thread().lastOrNull() ?: break
+                if (last.role == "assistant" && (last.error || (last.content.isBlank() && last.toolCalls.isEmpty()))) {
+                    cv = cv.removeSubtree(last.id)
+                    last.parentId?.let { pid -> cv.messages.firstOrNull { it.id == pid } }?.let { cv = cv.branchAfter(it) }
+                } else break
+            }
+            cv
+        }
+        _conversation.value?.thread()?.lastOrNull { it.role == "user" }?.let { connectMentionedRepo(it.content) }
+        startAgent()
+    }
+
+    fun stop() {
+        job?.cancel()
+        _pending.value?.result?.complete(false)
+    }
+
+    private fun startAgent() {
+        job = viewModelScope.launch {
+            _running.value = true
             try {
-                val s = c.settings.current
-                val text = plainText(splitThinking(message.content).second).take(4000)
-                val audio = c.llm.speech(s.ttsModel, s.ttsVoice, text)
-                c.player.play(message.id, audio)
+                c.agent.run(this@ChatViewModel)
             } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                _toasts.tryEmit("Vorlesen fehlgeschlagen: ${e.message}")
+                update { conv ->
+                    val last = conv.thread().lastOrNull()
+                    if (last != null && last.role == "assistant" && last.content.isBlank() && last.toolCalls.isEmpty()) {
+                        conv.updateMessage(last.id) { it.copy(content = "_(abgebrochen)_", error = true) }
+                    } else conv
+                }
+            } finally {
+                // Stopped before a new version started: show the previous answer again.
+                update { conv ->
+                    val last = conv.thread().lastOrNull()
+                    if (last != null && conv.selected[last.id] == NO_CHILD) conv.copy(selected = conv.selected - last.id) else conv
+                }
+                _running.value = false
+                persist()
             }
         }
     }
+
+    fun speak(id: String, text: String) = c.speaker.toggle(id, text)
 
     fun transcribe(file: File, onText: (String) -> Unit) {
         viewModelScope.launch {
@@ -332,8 +293,9 @@ class ChatViewModel(private val c: AppContainer, private val id: String) : ViewM
         persist()
     }
 
-    private fun makeTitle(text: String): String {
-        val t = text.trim().lineSequence().firstOrNull().orEmpty().ifBlank { "Bild-Chat" }
+    private fun makeTitle(text: String, files: List<FileAttachment>): String {
+        val t = text.trim().lineSequence().firstOrNull().orEmpty()
+            .ifBlank { files.firstOrNull()?.name ?: "Bild-Chat" }
         return if (t.length > 48) t.take(48).trimEnd() + "…" else t
     }
 }
@@ -350,10 +312,3 @@ fun splitThinking(content: String): Pair<String?, String> {
     if (end >= 0) return content.substring(0, end).trim() to content.substring(end + 8).trimStart()
     return null to content
 }
-
-/** Rough markdown stripping for speech output. */
-fun plainText(md: String): String = md
-    .replace(Regex("```[\\s\\S]*?```"), " Codeblock. ")
-    .replace(Regex("[*_`#>|]"), "")
-    .replace(Regex("\\[([^\\]]+)]\\([^)]+\\)"), "$1")
-    .trim()

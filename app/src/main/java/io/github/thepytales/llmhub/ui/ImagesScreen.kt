@@ -116,14 +116,14 @@ private fun saveToGallery(context: Context, img: GeneratedImage) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImagesScreen(c: AppContainer) {
+fun ImagesScreen(c: AppContainer, onBack: () -> Unit) {
     val vm: ImagesViewModel = viewModel { ImagesViewModel(c) }
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     val models by c.models.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val imageModels = models.ofType(ModelType.IMAGE).map { it.id }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Bilder generieren") }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Bilder generieren") }) }) { pad ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
