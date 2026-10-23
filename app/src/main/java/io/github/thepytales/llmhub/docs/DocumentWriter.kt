@@ -175,7 +175,8 @@ object DocumentWriter {
         val serif = "'Noto Serif', Georgia, 'Times New Roman', serif"
         val sans = "Roboto, 'Helvetica Neue', Arial, sans-serif"
         val s = theme.style
-        val tudFont = "'Open Sans', 'Segoe UI', Roboto, Arial, sans-serif"
+        // Noto Sans is the typeface of the TUD corporate design.
+        val tudFont = "'Noto Sans', 'Open Sans', 'Segoe UI', Roboto, Arial, sans-serif"
         val bodyFont = when (s) {
             DocStyle.CLASSIC -> serif
             DocStyle.TUD -> tudFont
@@ -191,7 +192,16 @@ object DocumentWriter {
             else -> a
         }
         return buildString {
-            if (print) {
+            if (print && s == DocStyle.TUD) {
+                // Margins as in DIN 5008 letters; footer with the unit and "Seite x von y".
+                val footer = theme.footer.ifBlank {
+                    listOfNotNull("Technische Universität Dresden", theme.unit.lines().lastOrNull { it.isNotBlank() }?.trim()).joinToString(" · ")
+                }
+                append("@page{size:A4;margin:18mm 20mm 22mm 25mm;")
+                append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
+                append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
+                append("}")
+            } else if (print) {
                 append("@page{size:A4;margin:18mm 17mm 20mm 17mm;")
                 append("@bottom-right{content:counter(page) \" / \" counter(pages);font:8pt $sans;color:#8a8f98}")
                 if (theme.footer.isNotBlank()) append("@bottom-left{content:${cssString(theme.footer)};font:8pt $sans;color:#8a8f98}")
@@ -264,14 +274,34 @@ object DocumentWriter {
                     append("th{border-bottom:1px solid #333;font-weight:600}td{border-bottom:1px solid #e5e7eb}")
                 }
                 DocStyle.TUD -> {
-                    append(".tud-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16pt;margin-bottom:12pt}")
-                    append(".tud-head img{height:42pt;max-width:180pt;object-fit:contain}")
-                    append(".tud-rule{height:2.2pt;background:$a;margin:0 0 16pt}")
-                    append(".title{color:$a;font-size:21pt}.meta{color:#555}")
-                    append("h2{font-size:13.5pt;padding-bottom:3pt;border-bottom:1pt solid ${a}33}h3{color:$a}")
-                    append("th{background:$a;color:#fff;font-weight:600}td{border:0.8pt solid #c9cbe3}")
-                    append("tr:nth-child(even) td{background:#f5f5fb}.cb{border-color:$a}.sender{color:$a}")
-                    append(".subject{color:$a}")
+                    // Sober official look: blue only for logo, unit, title and headings; thin grey lines; no colour fills.
+                    val line = "#9da1b4"
+                    val muted = "#5a5f73"
+                    append("body{font-size:10pt;line-height:1.5;color:#1a1a1a}")
+                    append(".tud-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24pt;margin-bottom:24pt}")
+                    append(".tud-head img{height:36pt;max-width:170pt;object-fit:contain}")
+                    append(".unit{text-align:right;font-size:7.5pt;line-height:1.45;color:$a;max-width:60%}.unit b{font-weight:700}")
+                    append(".title{color:$a;font-size:16pt;font-weight:700;line-height:1.25;margin:0 0 3pt}")
+                    append(".meta{color:$muted;font-size:8pt;margin:0 0 16pt;padding-bottom:8pt;border-bottom:0.6pt solid $line}")
+                    append("h1{font-size:14pt}h2{font-size:11pt;font-weight:700;color:$a;margin:14pt 0 5pt}")
+                    append("h3{font-size:10pt;font-weight:700;color:#1a1a1a;margin:12pt 0 4pt}")
+                    append("table{font-size:9pt;margin:4pt 0 12pt}")
+                    append("th{background:#eceef4;color:#1a1a1a;font-weight:700;border:0.6pt solid $line;font-size:8.5pt}")
+                    append("td{border:0.6pt solid $line}")
+                    // Two-column rows are form fields: label on the left (small, grey background), space to write on the right.
+                    append("td:first-child:nth-last-child(2):not(:empty){width:36%;background:#f6f7fa;font-size:8.5pt;color:#33384a}")
+                    append("td:empty{height:17pt}td:only-child:empty{height:60pt}")
+                    append(".cb{border:0.8pt solid #1a1a1a;border-radius:0;width:9pt;height:9pt;line-height:9pt}")
+                    append(".fill{border-bottom-color:#1a1a1a}")
+                    append("blockquote{border-left:2pt solid $a;background:#f4f5f9;color:#1a1a1a}")
+                    append(".callout.tud{border:none;border-left:2pt solid $a;background:#f4f5f9;border-radius:0;padding:6pt 10pt}")
+                    append(".callout.tud .label{color:$a;font-size:7.5pt;letter-spacing:.06em}")
+                    // DIN 5008 letter: address field 85 mm wide, information block on the right.
+                    append(".letter-row{display:flex;justify-content:space-between;gap:12mm;margin:4mm 0 12mm}")
+                    append(".letter-row .address{width:85mm;min-height:45mm;margin:0;font-size:10pt}")
+                    append(".postal{font-size:6.5pt;color:$muted;border-bottom:0.5pt solid $line;padding-bottom:1.5pt;margin-bottom:5pt}")
+                    append(".info{width:58mm;font-size:8pt;line-height:1.5}.info .k{color:$muted}")
+                    append(".subject{color:#1a1a1a;font-size:10.5pt;margin-bottom:14pt}")
                 }
             }
         }
@@ -280,13 +310,38 @@ object DocumentWriter {
     private fun linesHtml(text: String) =
         text.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("<br>") { htmlInline(it) }
 
+    /** Logo on the left, the organizational unit (last level bold) on the right. */
+    private fun tudHead(theme: DocTheme): String {
+        val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"TU Dresden\">" }.orEmpty()
+        val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val unit = lines.mapIndexed { i, l -> if (i == lines.lastIndex) "<b>${esc(l)}</b>" else esc(l) }.joinToString("<br>")
+        return "<div class=\"tud-head\">$logo<div class=\"unit\">$unit</div></div>"
+    }
+
+    private fun tudLetterBlock(title: String, theme: DocTheme, letter: Letter): String {
+        val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())
+        val sender = letter.sender.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val info = sender.mapIndexed { i, l ->
+            val k = l.substringBefore(':', "")
+            when {
+                i == 0 -> "<b>${htmlInline(l)}</b>"
+                k.isNotEmpty() && k.length <= 14 -> "<span class=\"k\">${esc(k)}:</span>${htmlInline(l.substringAfter(':'))}"
+                else -> htmlInline(l)
+            }
+        }.joinToString("<br>")
+        return tudHead(theme) +
+            "<div class=\"letter-row\"><div class=\"address\"><div class=\"postal\">${esc(TudBrand.POSTAL)}</div>" +
+            "${linesHtml(letter.recipient)}</div><div class=\"info\">$info" +
+            "${if (info.isEmpty()) "" else "<br><br>"}<span class=\"k\">Datum:</span> $date</div></div>" +
+            (if (title.isBlank()) "" else "<div class=\"subject\"><b>${htmlInline(title)}</b></div>")
+    }
+
     private fun letterBlock(title: String, theme: DocTheme, letter: Letter): String {
+        if (theme.style == DocStyle.TUD) return tudLetterBlock(title, theme, letter)
         val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"Logo\">" }.orEmpty()
         val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())
-        val postal = if (theme.style == DocStyle.TUD) "<div class=\"postal\">${esc(TudBrand.POSTAL)}</div>" else ""
         return "<div class=\"letter-head\">$logo<div class=\"sender\">${linesHtml(letter.sender)}</div></div>" +
-            (if (theme.style == DocStyle.TUD) "<div class=\"tud-rule\"></div>" else "") +
-            "<div class=\"address\">$postal${linesHtml(letter.recipient)}</div>" +
+            "<div class=\"address\">${linesHtml(letter.recipient)}</div>" +
             "<div class=\"letter-date\">Dresden, $date</div>" +
             (if (title.isBlank()) "" else "<div class=\"subject\">${htmlInline(title)}</div>")
     }
@@ -303,7 +358,7 @@ object DocumentWriter {
             DocStyle.ELEGANT -> "<div class=\"header\"><div>$t$meta</div>$logo</div><div class=\"rule\"></div>"
             DocStyle.MODERN -> "<div class=\"bar\"></div><div class=\"header\"><div>$t$meta</div>$logo</div>"
             DocStyle.MINIMAL -> "<div class=\"header\"><div>$t$meta</div>$logo</div>"
-            DocStyle.TUD -> "<div class=\"tud-head\">$logo</div><div class=\"tud-rule\"></div>$t$meta<div style=\"height:10pt\"></div>"
+            DocStyle.TUD -> tudHead(theme) + t + "<div class=\"meta\">Stand: $date</div>"
         }
     }
 
@@ -359,7 +414,9 @@ object DocumentWriter {
                     val c = callout(b.text)
                     val lines = (c?.second ?: b.text).lines().joinToString("<br>\n") { htmlInline(it) }
                     if (c == null || theme.style == DocStyle.MINIMAL) append("<blockquote>$lines</blockquote>\n")
-                    else {
+                    else if (theme.style == DocStyle.TUD) {
+                        append("<div class=\"callout tud\"><div class=\"label\">${c.first.label}</div>$lines</div>\n")
+                    } else {
                         val color = c.first.color
                         append("<div class=\"callout\" style=\"border-color:${color}55;background:${color}12\">")
                         append("<div class=\"label\" style=\"color:$color\">${c.first.label}</div>$lines</div>\n")

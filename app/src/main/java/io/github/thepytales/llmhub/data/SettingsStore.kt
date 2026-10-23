@@ -52,6 +52,8 @@ data class AppSettings(
     val docAccent: String = "#1E40AF",
     /** Footer line for documents, e.g. name and address. */
     val docFooter: String = "",
+    /** Unit below the TU Dresden logo (style TU Dresden), one level per line. */
+    val tudUnit: String = DEFAULT_TUD_UNIT,
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
     /** First name for the greeting and the avatar in the side menu (optional). */
@@ -63,6 +65,8 @@ data class AppSettings(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
+        const val DEFAULT_TUD_UNIT = "Fakultät Erziehungswissenschaften\nInstitut für Erziehungswissenschaft\n" +
+            "Professur für Allgemeine Didaktik und Empirische Unterrichtsforschung"
     }
 }
 
@@ -127,6 +131,7 @@ class SettingsStore(context: Context) {
             .putString("docStyle", next.docStyle)
             .putString("docAccent", next.docAccent)
             .putString("docFooter", next.docFooter)
+            .putString("tudUnit", next.tudUnit)
             .putBoolean("autoLogo", next.autoLogo)
             .putString("userName", next.userName)
             .apply()
@@ -164,6 +169,7 @@ class SettingsStore(context: Context) {
             docStyle = prefs.getString("docStyle", d.docStyle) ?: d.docStyle,
             docAccent = prefs.getString("docAccent", d.docAccent) ?: d.docAccent,
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
+            tudUnit = prefs.getString("tudUnit", d.tudUnit) ?: d.tudUnit,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
             userName = prefs.getString("userName", d.userName) ?: d.userName,
         )

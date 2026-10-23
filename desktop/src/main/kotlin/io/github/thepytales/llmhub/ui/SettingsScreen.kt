@@ -660,6 +660,14 @@ private fun DocumentsSection(c: AppContainer) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
+        OutlinedTextField(
+            value = s.tudUnit,
+            onValueChange = { v -> c.settings.update { it.copy(tudUnit = v) } },
+            label = { Text("Einrichtung für den Stil „TU Dresden“") },
+            supportingText = { Text("Steht im Kopf neben dem Logo, eine Ebene pro Zeile (Fakultät, Institut, Professur).") },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(enabled = !previewBusy, onClick = {
                 previewBusy = true

@@ -35,54 +35,68 @@ object TudBrand {
     private fun form(id: String, name: String, description: String, content: String) =
         Template(id = "tud_$id", name = name, kind = TemplateKind.PROMPT, description = description, content = content)
 
-    private const val MAKE = "Erstelle mit create_document ein PDF im Corporate Design der TU Dresden (style=tud). "
+    private const val MAKE = "Erstelle mit create_document ein PDF im Corporate Design der TU Dresden (style=tud). " +
+        "Logo, Einrichtung (Fakultät, Institut, Professur), Datum und Fußzeile setzt die App – wiederhole sie nicht im " +
+        "Text. Sachlicher, förmlicher Ton wie in amtlichen Schreiben der Universität, Sie-Form, keine Emojis, keine " +
+        "Ausrufezeichen, keine Werbesprache. "
+
+    /** How form fields are written so the TUD style draws them as labelled boxes. */
+    private const val FIELDS = "Formularfelder als zweispaltige Tabelle: Kopfzeile „| Angabe | Eintrag |“, darunter je " +
+        "Feld eine Zeile „| Bezeichnung | |“ mit leerer rechter Zelle. Freitext als einspaltige Tabelle mit leerer Zeile. " +
+        "Auswahl als „- [ ] Option“. Abschnitte als „## 1. …“, „## 2. …“. Am Ende eine Tabelle " +
+        "„| Ort, Datum | Unterschrift |“ mit einer leeren Zeile. "
 
     /** Form templates shown at the top of the template picker; they fill the input field. */
     val templates: List<Template> = listOf(
         form(
-            "letter", "Brief", "Geschäftsbrief mit Absender, Anschriftfeld und Betreff",
-            MAKE + "Layout Brief: Absender in letter_sender, Anschrift in letter_recipient, Betreff als title, " +
-                "Brieftext als content (Anrede, Text, Grußformel, Name).\n\n" +
-                "Absender (Struktureinheit, Name, Telefon, E-Mail): \nEmpfänger (Name, Anschrift): \nBetreff: \n" +
+            "letter", "Brief", "Schreiben nach DIN 5008 mit Anschriftfeld, Infoblock und Betreff",
+            MAKE + "Layout Brief: letter_recipient = Anschrift, letter_sender = Infoblock rechts (1. Zeile Name mit " +
+                "Titel, dann „Telefon: …“, „E-Mail: …“, ggf. „Raum: …“, „Unser Zeichen: …“), title = Betreff ohne das " +
+                "Wort „Betreff“. content: Anrede, Brieftext in kurzen Absätzen, „Mit freundlichen Grüßen“, Leerzeile, " +
+                "Name und Funktion.\n\n" +
+                "Absender (Name, Funktion, Telefon, E-Mail): \nEmpfänger (Name, Anschrift): \nBetreff: \n" +
                 "Inhalt (Stichpunkte reichen): \n",
         ),
         form(
-            "minutes", "Protokoll", "Sitzungs- oder Besprechungsprotokoll mit TOPs, Beschlüssen und Aufgaben",
-            MAKE + "Aufbau: Tabelle mit Datum, Zeit, Ort, Sitzungsleitung, Protokoll, Teilnehmende und Abwesende; " +
-                "danach je Tagesordnungspunkt eine Überschrift „TOP n: …“ mit Diskussion und Ergebnis, Beschlüsse als " +
-                "Hinweisbox (> [!IMPORTANT]), am Ende eine Aufgabentabelle (Was | Wer | Bis wann).\n\n" +
-                "Gremium/Anlass: \nDatum, Zeit, Ort: \nTeilnehmende: \nTagesordnung und Notizen: \n",
+            "minutes", "Protokoll", "Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben",
+            MAKE + "title: „Protokoll der … am …“. Aufbau: Tabelle „| Angabe | Eintrag |“ mit Datum, Zeit, Ort, " +
+                "Sitzungsleitung, Protokoll, Anwesend, Entschuldigt; dann „## Tagesordnung“ als nummerierte Liste; " +
+                "je Punkt „## TOP n – Thema“ mit sachlicher Zusammenfassung; Beschlüsse als „> [!IMPORTANT]“ mit " +
+                "Abstimmungsergebnis; am Ende „## Aufgaben“ als Tabelle (Nr. | Aufgabe | Verantwortlich | Termin) " +
+                "und eine Tabelle „| Protokoll | Sitzungsleitung |“ mit leerer Zeile für die Unterschriften.\n\n" +
+                "Gremium/Anlass: \nDatum, Zeit, Ort: \nAnwesende: \nTagesordnung und Notizen: \n",
         ),
         form(
-            "memo", "Aktennotiz", "Kurze Gesprächs- oder Telefonnotiz",
-            MAKE + "Aufbau: Tabelle mit Datum, Verfasser:in, Beteiligte, Anlass und Aktenzeichen; danach Abschnitte " +
-                "„Sachverhalt“, „Ergebnis“ und „Weiteres Vorgehen“. Knapp und sachlich.\n\n" +
-                "Anlass/Gespräch mit: \nDatum: \nWas wurde besprochen: \n",
+            "memo", "Aktennotiz", "Vermerk über ein Gespräch, Telefonat oder einen Vorgang",
+            MAKE + "title: „Aktennotiz“ bzw. „Vermerk“. Aufbau: Tabelle „| Angabe | Eintrag |“ mit Datum, Verfasser:in, " +
+                "Beteiligte, Anlass, Aktenzeichen; dann „## Sachverhalt“, „## Ergebnis“, „## Weiteres Vorgehen“. " +
+                "Knapp, im Präteritum, ohne Wertungen.\n\nAnlass/Gespräch mit: \nDatum: \nWas wurde besprochen: \n",
         ),
         form(
-            "form", "Formular zum Ausfüllen", "Antrag, Anmeldung oder Abfrage mit Feldern und Ankreuzkästchen",
-            MAKE + "Gestalte ein Formular zum Ausdrucken und Ausfüllen: Abschnitte als Überschriften (## 1. …), " +
-                "Eingabefelder als zweispaltige Tabelle mit Bezeichnung links und leerer Zelle rechts, Auswahlmöglichkeiten " +
-                "als Liste mit „- [ ] Option“, Freitextfelder als Tabelle mit einer leeren Zelle, am Ende Ort/Datum und " +
-                "Unterschrift als Tabelle. Kurze Ausfüllhinweise als > [!NOTE].\n\n" +
-                "Art des Formulars (z.B. Antrag auf …, Anmeldung zu …): \nBenötigte Angaben: \nEinreichen bei: \n",
+            "form", "Formular zum Ausfüllen", "Antrag, Anmeldung oder Erhebungsbogen mit Feldern und Ankreuzkästchen",
+            MAKE + "Gestalte ein Formular zum Ausdrucken und handschriftlichen Ausfüllen. Unter dem Titel ein Satz zum " +
+                "Zweck und ein „> [!NOTE]“ mit Ausfüll- und Abgabehinweisen (wo, bis wann). " + FIELDS +
+                "Bei personenbezogenen Daten am Schluss einen kurzen Datenschutzhinweis (Zweck, Speicherdauer).\n\n" +
+                "Art des Formulars (z.B. Antrag auf …, Anmeldung zu …): \nBenötigte Angaben: \nEinreichen bei/bis: \n",
         ),
         form(
-            "info", "Merkblatt", "Informationsblatt oder Aushang mit Hinweisen",
-            MAKE + "Aufbau: kurzer Einleitungssatz, Abschnitte mit Überschriften und Stichpunkten, wichtige Fristen " +
-                "als > [!WARNING], Kontakt am Ende als Tabelle. Höchstens zwei Seiten.\n\n" +
-                "Thema: \nZielgruppe: \nWichtige Inhalte, Fristen, Kontakt: \n",
+            "info", "Merkblatt", "Informationsblatt oder Aushang für Studierende und Lehrende",
+            MAKE + "Aufbau: ein einleitender Satz, Abschnitte „## 1. …“ mit kurzen Absätzen und Stichpunkten, Fristen " +
+                "und Pflichten als „> [!WARNING]“, am Ende „## Kontakt“ als Tabelle „| Angabe | Eintrag |“. " +
+                "Höchstens zwei Seiten.\n\nThema: \nZielgruppe: \nWichtige Inhalte, Fristen, Kontakt: \n",
         ),
         form(
             "report", "Bericht", "Projekt-, Tätigkeits- oder Abschlussbericht",
-            MAKE + "Aufbau: Zusammenfassung als > [!NOTE], dann Ausgangslage, Vorgehen, Ergebnisse (gern mit Tabellen), " +
-                "Fazit und Ausblick.\n\nProjekt/Thema: \nZeitraum: \nInhalte und Ergebnisse: \n",
+            MAKE + "Aufbau: Tabelle „| Angabe | Eintrag |“ mit Projekt, Zeitraum, Verantwortlich, Förderung; „## Zusammenfassung“; " +
+                "„## 1. Ausgangslage und Ziele“, „## 2. Vorgehen“, „## 3. Ergebnisse“ (gern mit Tabellen), " +
+                "„## 4. Fazit und Ausblick“.\n\nProjekt/Thema: \nZeitraum: \nInhalte und Ergebnisse: \n",
         ),
         form(
-            "agenda", "Einladung mit Tagesordnung", "Einladung zu Sitzung, Workshop oder Veranstaltung",
-            MAKE + "Aufbau: kurzer Einladungstext, Tabelle mit Datum, Uhrzeit, Ort bzw. Link, danach die Tagesordnung " +
-                "als Tabelle (TOP | Thema | Verantwortlich | Zeit) und Hinweise zur Anmeldung.\n\n" +
-                "Anlass: \nDatum, Uhrzeit, Ort: \nTagesordnungspunkte: \nAnmeldung bis/bei: \n",
+            "agenda", "Einladung mit Tagesordnung", "Einladung zu Sitzung, Kolloquium oder Workshop",
+            MAKE + "title: „Einladung zur … am …“. Aufbau: kurzer förmlicher Einladungstext, Tabelle „| Angabe | Eintrag |“ " +
+                "mit Datum, Uhrzeit, Ort bzw. Link, Leitung; „## Tagesordnung“ als Tabelle (TOP | Thema | Verantwortlich | " +
+                "Zeit); Hinweise zu Unterlagen und Anmeldung.\n\nAnlass: \nDatum, Uhrzeit, Ort: \nTagesordnungspunkte: \n" +
+                "Anmeldung bis/bei: \n",
         ),
     )
 

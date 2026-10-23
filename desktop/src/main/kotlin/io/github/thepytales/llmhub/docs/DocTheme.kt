@@ -37,6 +37,8 @@ data class DocTheme(
     /** Logo as PNG bytes. */
     val logo: ByteArray? = null,
     val footer: String = "",
+    /** Organizational unit shown next to the logo in the TU Dresden style, one level per line. */
+    val unit: String = "",
 ) {
     val logoDataUrl: String? get() = logo?.let { "data:image/png;base64," + Base64.encodeToString(it, Base64.NO_WRAP) }
 

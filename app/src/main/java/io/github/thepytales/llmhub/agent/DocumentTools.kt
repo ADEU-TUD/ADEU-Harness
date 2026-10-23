@@ -78,7 +78,7 @@ class DocumentTools(
             s.autoLogo -> logos.default?.let { logos.pngBytes(it) }
             else -> null
         }
-        return DocTheme(style, accent, logo, s.docFooter) to warning
+        return DocTheme(style, accent, logo, s.docFooter, s.tudUnit.trim()) to warning
     }
 
     /** Theme from the app settings (used for manual exports). */
@@ -145,10 +145,12 @@ class DocumentTools(
         append("Flyer, Rechnung, Lebenslauf, Urkunde …), schreibe für format=pdf eine vollständige HTML-Seite mit eigenem CSS ")
         append("(A4: @page { size: A4; margin: 15mm }, keine externen Skripte). ")
         append("Für Dokumente der TU Dresden (Briefe, Protokolle, Formulare, Merkblätter …) nimm Markdown mit style=tud: ")
-        append("die App setzt TUD-Blau (${TudBrand.BLUE}) und das Logo automatisch – das ist schnell und einheitlich, ")
-        append("schreibe dafür kein eigenes HTML. Für Briefe letter_sender und letter_recipient angeben, title ist der Betreff. ")
-        append("Formularelemente in Markdown: „- [ ] Option“ für Ankreuzkästchen, Tabellen mit leeren Zellen als Eingabefelder, ")
-        append("„________“ als Linie zum Ausfüllen. Eingebaute Logos für eigenes HTML: <img src=\"logo:${TudBrand.LOGO_NAME}\"> ")
+        append("die App setzt TUD-Blau (${TudBrand.BLUE}), Logo, Einrichtung, Datum und Fußzeile automatisch – das ist schnell ")
+        append("und einheitlich; schreibe dafür kein eigenes HTML und wiederhole Logo, Einrichtung oder Datum nicht im Text. ")
+        append("Ton: sachlich und förmlich, keine Emojis. Für Briefe letter_sender (Infoblock: Name, Telefon: …, E-Mail: …) und ")
+        append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
+        append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
+        append("Eingebaute Logos für eigenes HTML: <img src=\"logo:${TudBrand.LOGO_NAME}\"> ")
         append("(blau) und <img src=\"logo:${TudBrand.LOGO_WHITE_NAME}\"> (weiß, für blaue Flächen). ")
         val all = logos.current
         if (all.isEmpty()) {

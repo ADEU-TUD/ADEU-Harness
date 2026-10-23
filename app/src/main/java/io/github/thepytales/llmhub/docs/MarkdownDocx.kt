@@ -158,6 +158,14 @@ object MarkdownDocx {
         append("<w:document xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\" ")
         append("xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\"><w:body>")
         if (withLogo) append(logoParagraph(theme))
+        if (theme.style == DocStyle.TUD && theme.unit.isNotBlank()) {
+            val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            lines.forEachIndexed { i, line ->
+                val last = i == lines.lastIndex
+                val style = RunStyle(bold = last, size = 17, color = theme.accentHex)
+                append(para(run(line, style), "<w:spacing w:after=\"${if (last) 240 else 0}\"/>"))
+            }
+        }
         for (b in parseBlocks(DocumentWriter.withTitle(title, markdown))) {
             when (b) {
                 is Block.Heading -> {
@@ -171,7 +179,10 @@ object MarkdownDocx {
                 is Block.Paragraph -> append(para(runs(b.text), SPACING))
                 is Block.Item -> {
                     val left = 360 + 360 * b.indent
-                    append(para(run(b.marker) + "<w:r><w:tab/></w:r>" + runs(b.text), "<w:spacing w:after=\"60\"/><w:ind w:left=\"${left + 360}\" w:hanging=\"360\"/>"))
+                    val box = Regex("^\\[([ xX])]\\s+").find(b.text)
+                    val marker = if (box == null) b.marker else if (box.groupValues[1].isBlank()) "☐" else "☒"
+                    val text = if (box == null) b.text else b.text.substring(box.range.last + 1)
+                    append(para(run(marker) + "<w:r><w:tab/></w:r>" + runs(text), "<w:spacing w:after=\"60\"/><w:ind w:left=\"${left + 360}\" w:hanging=\"360\"/>"))
                 }
                 is Block.Quote -> append(
                     para(

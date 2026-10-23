@@ -61,10 +61,14 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   ein PDF mit demselben Text (schlichtes Layout); der automatische Test im Emulator prüft das Rendern vor jedem Release,
   auch bei App im Hintergrund.
 - **TU-Dresden-Formulare**: Unter „+“ › Vorlagen stehen ganz oben fertige Vorlagen im Corporate Design der TU Dresden –
-  Brief (mit Absender, Anschriftfeld und Betreff), Protokoll, Aktennotiz, Formular zum Ausfüllen (Felder, Ankreuzkästchen,
-  Unterschriftszeile), Merkblatt, Bericht und Einladung mit Tagesordnung. Vorlage wählen, Lücken ausfüllen, senden. Das
-  Modell schreibt nur kurzes Markdown; TUD-Blau, Logo und Layout setzt die App (Stil *TU Dresden*, auch unter
-  *Einstellungen › Dokumente & Logos* wählbar). Das Logo ist eingebaut (blau und weiß für blaue Flächen).
+  Brief nach DIN 5008 (Anschriftfeld mit Rücksendezeile, Infoblock mit Telefon, E-Mail, Zeichen und Datum, Betreff),
+  Protokoll, Aktennotiz, Formular zum Ausfüllen (beschriftete Felder, Ankreuzkästchen, Unterschriftsfelder), Merkblatt,
+  Bericht und Einladung mit Tagesordnung. Vorlage wählen, Lücken ausfüllen, senden. Das Modell schreibt nur kurzes
+  Markdown; Logo, Einrichtung, Datum, Fußzeile mit „Seite x von y“ und das zurückhaltende Layout (Noto Sans, TUD-Blau nur
+  für Logo, Kopf und Überschriften, feine graue Linien) setzt die App. Die Einrichtung im Kopf ist voreingestellt auf
+  Fakultät Erziehungswissenschaften › Institut für Erziehungswissenschaft › Professur für Allgemeine Didaktik und
+  Empirische Unterrichtsforschung und lässt sich unter *Einstellungen › Dokumente & Logos* ändern. Das Logo ist
+  eingebaut (blau und weiß für blaue Flächen).
 - **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
   meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
 - **Darstellung**: Stile *Claude* (Standard), *Material You*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
