@@ -150,7 +150,8 @@ data class AgentEnvironment(
     }
 
     companion object {
-        val VAR_REF = Regex("\\$\\{([A-Za-z_][A-Za-z0-9_]*)}")
+        // Android's regex engine (ICU) needs the closing brace escaped as well.
+        val VAR_REF = Regex("\\$\\{([A-Za-z_][A-Za-z0-9_]*)\\}")
         val NAME = Regex("^[A-Za-z_][A-Za-z0-9_]*$")
 
         /** Parses lines like NAME=value (as in .env files). */

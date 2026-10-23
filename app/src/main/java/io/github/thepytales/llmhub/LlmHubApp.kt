@@ -51,12 +51,39 @@ class AppContainer(context: Context) {
     val agent = AgentRunner(this)
 }
 
+/** Keeps the stack trace of the last crash so the app can show it on the next start. */
+object CrashLog {
+    private const val FILE = "last_crash.txt"
+
+    fun install(context: Context) {
+        val file = File(context.filesDir, FILE)
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            runCatching {
+                file.writeText(
+                    "LLM Hub ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
+                        "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n" + error.stackTraceToString()
+                )
+            }
+            previous?.uncaughtException(thread, error)
+        }
+    }
+
+    /** Returns and forgets the last crash report. */
+    fun take(context: Context): String? {
+        val file = File(context.filesDir, FILE)
+        if (!file.exists()) return null
+        return runCatching { file.readText() }.getOrNull().also { file.delete() }
+    }
+}
+
 class LlmHubApp : Application() {
     lateinit var container: AppContainer
         private set
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         container = AppContainer(this)
         Notifier.ensureChannel(this)
         runCatching { TaskScheduler.scheduleAll(this) }

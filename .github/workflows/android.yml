@@ -13,6 +13,10 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  VERSION_CODE: ${{ github.run_number }}
+  VERSION_NAME: 1.0.${{ github.run_number }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,11 +30,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Set version
-        run: |
-          echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
-          echo "VERSION_NAME=1.0.${{ github.run_number }}" >> "$GITHUB_ENV"
-
       - name: Build release APK
         run: ./gradlew --no-daemon assembleRelease
 
@@ -42,10 +41,63 @@ jobs:
           name: LLMHub-${{ env.VERSION_NAME }}
           path: LLMHub-*.apk
 
-      # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
+  # Installs the APK on an emulator (as update over the latest release), opens every screen and
+  # fails if the app crashes – so no release ships that cannot be opened.
+  smoke-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: LLMHub-${{ env.VERSION_NAME }}
+          path: new
+
+      - name: Download previous release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p old
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' || true)
+          if [ -n "$tag" ]; then gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir old || true; fi
+          ls -l old new
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Start the app on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash .github/scripts/smoke-test.sh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-${{ env.VERSION_NAME }}
+          path: smoke/
+
+  # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
+  release:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: LLMHub-${{ env.VERSION_NAME }}
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           PRERELEASE: ${{ github.ref_name != github.event.repository.default_branch && !startsWith(github.ref, 'refs/tags/') }}
         run: |
           TITLE="LLM Hub ${VERSION_NAME}"

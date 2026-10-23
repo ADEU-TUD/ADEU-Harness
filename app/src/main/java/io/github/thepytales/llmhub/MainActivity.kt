@@ -16,15 +16,21 @@ class MainActivity : ComponentActivity() {
     /** Chat to open, e.g. from the notification of a scheduled task. */
     private val openChat = MutableStateFlow<String?>(null)
 
+    /** Screen to open (route); used by the automated smoke test. */
+    private val openRoute = MutableStateFlow<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = (application as LlmHubApp).container
-        if (savedInstanceState == null) openChat.value = intent?.getStringExtra(Notifier.EXTRA_CHAT)
+        if (savedInstanceState == null) {
+            openChat.value = intent?.getStringExtra(Notifier.EXTRA_CHAT)
+            openRoute.value = intent?.getStringExtra(EXTRA_ROUTE)
+        }
         setContent {
             val settings by container.settings.settings.collectAsStateWithLifecycle()
             LlmHubTheme(settings) {
-                AppRoot(container, openChat)
+                AppRoot(container, openChat, openRoute)
             }
         }
     }
@@ -32,5 +38,10 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.getStringExtra(Notifier.EXTRA_CHAT)?.let { openChat.value = it }
+        intent.getStringExtra(EXTRA_ROUTE)?.let { openRoute.value = it }
+    }
+
+    companion object {
+        const val EXTRA_ROUTE = "route"
     }
 }
