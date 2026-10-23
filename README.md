@@ -1,6 +1,6 @@
-# ADEU LLM – Android-App für die Uni-LLM-API
+# ADEU LLM – Android- und Windows-App für die Uni-LLM-API
 
-Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://llm.scads.ai/v1`
+Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM-Schnittstelle unter `https://llm.scads.ai/v1`
 (API-Key aus dem TU-Dresden-Self-Service). Inoffiziell, nicht mit der Universität verbunden.
 
 ## Funktionen
@@ -80,10 +80,41 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
    (z.B. Xiaomi, Oppo/OnePlus/Realme, Huawei) beenden Apps zusätzlich – dort in den Akku-Einstellungen der App
    „Hintergrundaktivität erlauben“ bzw. „Nicht optimieren“ wählen.
 
-Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und veröffentlicht sie als Release
-(`.github/workflows/android.yml`). Builds anderer Branches erscheinen ebenfalls unter Releases, gekennzeichnet als
+Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und die Windows-Version und veröffentlicht
+beide als Release (`.github/workflows/android.yml`); beide werden vorher automatisch gestartet und getestet (Android im
+Emulator, Windows auf einem Windows-Rechner von GitHub). Builds anderer Branches erscheinen ebenfalls unter Releases, gekennzeichnet als
 *Vorabversion*. Updates lassen sich direkt über die alte Version installieren – API-Key,
 GitHub-Token, Einstellungen und Chats bleiben dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+
+## Windows (portabel, ohne Admin-Rechte)
+
+Dieselbe App gibt es als portable Windows-Version – gleiche Funktionen, gleicher Code (Kotlin/Compose Desktop) und die
+Java-Laufzeit ist eingebaut. Nichts muss installiert werden, Admin-Rechte sind nicht nötig.
+
+1. Unter **Releases** `ADEU-LLM-x.y.z-Windows.exe` herunterladen und doppelklicken.
+   Beim ersten Start einer Version entpackt sie sich einmalig (wenige Sekunden) nach `%LOCALAPPDATA%\ADEU LLM\app`;
+   danach startet sie sofort. Zeigt Windows „Der Computer wurde durch Windows geschützt“ (die Datei ist nicht signiert):
+   *Weitere Informationen* › *Trotzdem ausführen*.
+2. Alternativ `ADEU-LLM-x.y.z-Windows.zip` entpacken (z.B. auf den Desktop oder einen USB-Stick) und `ADEU LLM.exe`
+   im Ordner starten – nützlich, wenn eine Firmenrichtlinie Programme in `AppData` sperrt.
+3. In den **Einstellungen** den API-Key eintragen und „Verbindung testen“.
+
+Unterschiede zu Android:
+
+- **Daten** liegen pro Windows-Benutzer in `%APPDATA%\ADEU LLM` und bleiben bei neuen Versionen erhalten. API-Key,
+  GitHub-Token und Umgebungen sind mit Windows (DPAPI) verschlüsselt – nur das eigene Windows-Konto kann sie lesen.
+- **Im Hintergrund**: Schließt man das Fenster, läuft die App im Infobereich (unten rechts) weiter, Antworten werden
+  fertig geschrieben und geplante Aufgaben laufen. Benachrichtigungen kommen als Windows-Benachrichtigung; ein Klick
+  öffnet den Chat. Unter *Einstellungen › Windows* lässt sich „Mit Windows starten“ einschalten (ohne Admin-Rechte);
+  verpasste Aufgaben werden beim nächsten Start nachgeholt.
+- **Anhänge**: über „+“, per Drag & Drop ins Fenster oder mit Strg+V (Screenshot mit Win+Umschalt+S, kopierte Dateien).
+  Statt der Kamera gibt es „Einfügen“.
+- **PDFs** rendert Microsoft Edge (auf jedem Windows vorhanden) unsichtbar im Hintergrund – dieselbe Chromium-Engine wie
+  auf Android. Ohne Edge/Chrome übernimmt ein eingebauter Renderer.
+- **Vorlesen offline** nutzt die Stimmen von Windows; die KI-Stimme des Uni-Servers funktioniert wie auf Android.
+- **Teilen** kopiert in die Zwischenablage; Dokumente lassen sich öffnen, im Ordner zeigen oder speichern unter.
+- **Tastatur**: Enter sendet, Umschalt+Enter neue Zeile, Strg+N neuer Chat, Strg+B Seitenleiste, Strg+, Einstellungen,
+  Esc zurück. Rechtsklick auf Chats und Nachrichten öffnet das Menü (wie langes Drücken auf Android).
 
 ## GitHub-Token
 
@@ -115,6 +146,15 @@ Voraussetzung: JDK 17 und Android SDK.
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
 ```
 
+Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
+
+```bash
+./gradlew -p desktop run                 # starten
+./gradlew -p desktop createDistributable # desktop/build/compose/binaries/main/app/ADEU LLM/
+```
+
+`.github/scripts/windows-portable.ps1` macht daraus die Ein-Datei-EXE und die ZIP.
+
 Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur haben). Eigene Schlüssel lassen sich
 über die Umgebungsvariablen `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` und `KEY_PASSWORD` setzen.
 
@@ -140,3 +180,21 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | `ui/AppRoot.kt`, `ui/AppDrawer.kt` | Navigation und Seitenleiste |
 | `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `ui/ChatComposer.kt` | Chat-Oberfläche |
 | `ui/Theme.kt` | Stile, Farbtöne, Hell/Dunkel |
+
+### Windows-Version (`desktop/`)
+
+`desktop/` ist ein eigener Gradle-Build mit Compose Desktop. Er kompiliert alle Dateien aus `app/src/main/java` mit,
+außer denen, die unter `desktop/src/main/kotlin` im gleichen Pfad eine Windows-Fassung haben (z.B. `ui/ChatScreen.kt`,
+`docs/HtmlPdf.kt`, `tasks/TaskScheduler.kt`). Änderungen an Logik, Werkzeugen und den meisten Bildschirmen gelten so
+automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`android/content/Context.kt`, `Base64`, `Toast`,
+`LocalContext`) sorgen dafür, dass gemeinsamer Code unverändert kompiliert.
+
+| Pfad | Inhalt |
+| --- | --- |
+| `Main.kt` | Fenster, Symbol im Infobereich, Benachrichtigungen, Tastenkürzel, Drag & Drop |
+| `SelfTest.kt` | Starttest für CI (`--selftest <Ordner>`): alle Bildschirme, Dokumente, Verschlüsselung |
+| `desktop/Paths.kt`, `desktop/Secrets.kt`, `data/FilePrefs.kt` | Datenordner, DPAPI-Verschlüsselung, Einstellungen |
+| `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
+| `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
+| `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |
+
