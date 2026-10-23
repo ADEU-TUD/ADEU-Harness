@@ -40,6 +40,8 @@ fi
 new=$(ls new/*.apk | head -1)
 echo "Installiere $new"
 adb install -r "$new" || { echo "::error::Installation fehlgeschlagen"; exit 1; }
+# The app asks for notifications on first start; the system dialog would cover the app during the test.
+adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS || true
 adb logcat -c
 adb shell am start -W -n "$PKG/.MainActivity"
 check "start" 12

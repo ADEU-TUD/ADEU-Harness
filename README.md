@@ -5,9 +5,27 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 
 ## Funktionen
 
-- **Oberfläche wie ChatGPT/Claude**: Seitenleiste mit Suche, Ordnern, angehefteten und letzten Chats; Modellauswahl
-  oben in der Mitte, Eingabefeld mit „+“-Menü (Kamera, Fotos, Dateien, Vorlagen, Persona, Repository, Umgebung).
-  Gewähltes Repository, Umgebung und Persona bleiben als Chips über dem Eingabefeld sichtbar.
+- **Oberfläche wie die Claude-App** (Standard): ruhige Creme-Töne, weiße Karten, schwarze Knöpfe. Seitenleiste mit Suche,
+  geplanten Aufgaben, Ordnern, angehefteten und letzten Chats, Profilbild und „Neuer Chat“. Das Eingabefeld enthält „+“
+  (Kamera, Fotos, Dateien, Vorlagen, Persona, Repository, Umgebung), die Modellwahl, Mikrofon und Senden. Das Chat-Menü
+  (⋮ oder Tipp auf den Titel) bietet Teilen, Umbenennen, Anheften, Ordner, Verknüpfung auf dem Startbildschirm, Export
+  und Löschen. Andere Stile (Material You, ChatGPT, Gemini) unter *Einstellungen › Darstellung*.
+- **Modellauswahl wie bei Claude**: oben die empfohlenen Modelle mit kurzem Einsatzzweck, darunter „Weitere Modelle“
+  für besondere Zwecke. Veraltete Modelle und Aliase stehen nicht zur Auswahl (in der Modellübersicht als „nicht in der
+  Auswahl“ markiert). Standardmodell ist **DeepSeek V4.1 Flash** – schnell, versteht Bilder, nutzt Websuche und Werkzeuge
+  und hat 1 Mio. Token Kontext.
+
+  | Empfohlen | Wofür |
+  | --- | --- |
+  | DeepSeek V4.1 Flash | Für fast alles: Fragen, Texte, Bilder, Websuche, Dokumente (Standard) |
+  | GLM-5.3 | Die schwierigsten Aufgaben – gründlich, aber langsamer, keine Bilder |
+  | GLM-5.3 Flash | Am schnellsten, auch für sehr lange Dokumente |
+  | Qwen3.8 27B | Programmieren und GitHub-Aufgaben |
+- **Antworten laufen im Hintergrund weiter**: Chat verlassen oder App schließen (aus den letzten Apps wischen) – die
+  Antwort wird trotzdem fertig geschrieben. Solange sie entsteht, zeigt Android eine stille Benachrichtigung mit
+  „Stoppen“; ist sie fertig, kommt eine Benachrichtigung, die direkt in den Chat führt. Braucht der Agent eine
+  Bestätigung (z.B. für einen Commit), meldet er sich ebenfalls per Benachrichtigung. Anhalten lässt sich die Antwort
+  im Chat oder über „Stoppen“ in der Benachrichtigung; „Beenden erzwingen“ in den Android-Einstellungen bricht sie ab.
 - **Chat** mit allen Chat-Modellen (Qwen, GLM, DeepSeek, MiniMax, gpt-oss, Gemma, Llama …), Streaming,
   Markdown/Code-Darstellung, Gedankengang von Reasoning-Modellen, Bilder anhängen (Vision-Modelle), Verlauf lokal.
 - **Chats verwalten**: Volltextsuche über Titel und Nachrichten, Anheften, Ordner, Umbenennen (lange auf einen Chat
@@ -22,7 +40,11 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
   Tokens/s; eine Seite lässt sich als Chat fortsetzen.
 - **Verbrauch**: Anfragen und Tokens pro Tag (Diagramm), nach Modell und Art; nur lokal gezählt.
 - **Geplante Aufgaben**: Der Agent führt Aufträge zeitgesteuert aus (täglich/Wochentage um eine Uhrzeit oder alle
-  N Stunden), z.B. jeden Morgen News zu einem Thema. Ergebnis als Chat im Ordner der Aufgabe, mit Benachrichtigung.
+  N Stunden), z.B. jeden Morgen News zu einem Thema. Ist eine Aufgabe fertig, erscheint eine Benachrichtigung mit dem
+  Anfang des Ergebnisses (Tippen öffnet den Chat) – auch wenn die App gerade offen ist; dann zusätzlich ein Banner oben
+  in der App. Neue Ergebnisse sind in der Seitenleiste markiert. Oben im Bereich *Geplante Aufgaben* zeigt die App, ob
+  Benachrichtigungen erlaubt sind und ob Android die App im Hintergrund arbeiten lässt, mit Knöpfen zum Einschalten
+  und einer Test-Benachrichtigung.
 - **Umgebungen für Agenten**: Name, Netzwerkzugriff (vollständig, nur erlaubte Domains, keiner),
   Umgebungsvariablen (auch als `.env` einfügbar) und Hinweise für das Modell. Geheime Variablen sieht das Modell nie;
   es nutzt sie als `${NAME}` in Web-Anfragen (`fetch_url` mit Methode, Headern und Body). Verschlüsselt gespeichert.
@@ -38,7 +60,7 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
   Modell eigenes HTML mit Farben, Formen und Schriften.
 - **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
   meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
-- **Darstellung**: Stile *Standard* (Material You), *Claude*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
+- **Darstellung**: Stile *Claude* (Standard), *Material You*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
   reines Schwarz (AMOLED) und Schriftgröße.
 - **Bildgenerierung** mit FLUX.2 (Speichern in der Galerie).
 - **Spracheingabe** (Whisper) und **Vorlesen**: wahlweise mit der KI-Stimme des Uni-Servers (der die Antwort ohnehin
@@ -49,8 +71,12 @@ Eigene Android-App für die OpenAI-kompatible LLM-Schnittstelle unter `https://l
 
 1. Unter **Releases** die neueste `LLMHub-x.y.z.apk` herunterladen.
 2. Auf dem Handy öffnen und die Installation aus unbekannten Quellen erlauben.
-3. In der App unter **Einstellungen** den API-Key (`sk-…`) eintragen und „Verbindung testen“.
-4. Optional: GitHub-Token eintragen (siehe unten).
+3. Beim ersten Start Benachrichtigungen erlauben (sonst erfährst du nicht, wann Aufgaben fertig sind).
+4. In der App unter **Einstellungen** den API-Key (`sk-…`) eintragen und „Verbindung testen“.
+5. Optional: Vorname eintragen (Begrüßung) und GitHub-Token (siehe unten).
+6. Für zuverlässige geplante Aufgaben unter *Geplante Aufgaben* „Im Hintergrund erlauben“ tippen. Manche Hersteller
+   (z.B. Xiaomi, Oppo/OnePlus/Realme, Huawei) beenden Apps zusätzlich – dort in den Akku-Einstellungen der App
+   „Hintergrundaktivität erlauben“ bzw. „Nicht optimieren“ wählen.
 
 Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und veröffentlicht sie als Release
 (`.github/workflows/android.yml`). Builds anderer Branches erscheinen ebenfalls unter Releases, gekennzeichnet als
@@ -65,7 +91,7 @@ Unter <https://github.com/settings/personal-access-tokens/new> ein *Fine-grained
 - Permissions: **Contents**, **Pull requests**, **Issues** → *Read and write*; **Metadata** → *Read*
 
 Im Chat über „+“ › GitHub-Repository ein Repository wählen (oder einfach einen GitHub-Link schreiben). Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
-z.B. `Qwen/Qwen3.8-27B`, `zai-org/GLM-5.3`, `zai-org/GLM-5.3-Flash` oder `MiniMaxAI/MiniMax-M3`.
+z.B. DeepSeek V4.1 Flash, Qwen3.8 27B, GLM-5.3, GLM-5.3 Flash oder MiniMax M3.
 
 ## Selbst bauen
 
@@ -85,11 +111,14 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | `net/LlmClient.kt` | Chat-Streaming (SSE) mit Token-Zählung, Modelle, Bilder, TTS, STT |
 | `net/GitHubClient.kt` | GitHub-REST-API |
 | `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben |
+| `agent/ChatRuns.kt`, `agent/AgentService.kt` | Laufende Chat-Antworten unabhängig vom Bildschirm; Vordergrunddienst, damit sie bei geschlossener App fertig werden |
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
 | `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |
 | `data/ChatTree.kt` | Chats als Baum (Versionen beim Bearbeiten/Neu generieren) |
 | `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen, Umgebungen, Logos und deren Speicherung |
-| `data/ScheduledTask.kt`, `tasks/TaskScheduler.kt` | Geplante Aufgaben (WorkManager) und Benachrichtigungen |
+| `data/ModelCatalog.kt` | Modellbeschreibungen, Einsatzzwecke und Einstufung (empfohlen / weitere / ausgeblendet) |
+| `data/ScheduledTask.kt`, `tasks/TaskScheduler.kt` | Geplante Aufgaben (WorkManager) |
+| `tasks/Notifier.kt` | Benachrichtigungen: fertige Antworten, Aufgaben-Ergebnisse, Rückfragen |
 | `data/UsageStore.kt` | Verbrauch pro Tag und Modell |
 | `files/AttachmentReader.kt` | Text aus PDF, Office- und Textdateien |
 | `docs/` | Dokumente: HTML/CSS → PDF (WebView), Word (.docx), HTML, Text; Stile und Logos |

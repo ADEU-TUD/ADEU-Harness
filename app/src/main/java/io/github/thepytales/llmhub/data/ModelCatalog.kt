@@ -10,6 +10,16 @@ enum class ModelType(val label: String) {
     EVALUATION("Evaluation"),
 }
 
+/** Where a chat model appears in the model picker. */
+enum class ModelTier {
+    /** Shown at the top of the picker – the best models, each with a clear purpose. */
+    FEATURED,
+    /** Shown under „Weitere Modelle“. */
+    MORE,
+    /** Not offered for chats (outdated or only an alias of another model). */
+    HIDDEN,
+}
+
 data class ModelInfo(
     val id: String,
     val type: ModelType,
@@ -25,9 +35,16 @@ data class ModelInfo(
     val power: Int? = null,
     /** Rough speed rating 1..5 used for the overview. */
     val speed: Int? = null,
+    /** Readable name, e.g. "DeepSeek V4.1 Flash"; defaults to the part after the provider. */
+    val label: String? = null,
+    /** One line in the picker that says what the model is good for. */
+    val useCase: String = "",
+    val tier: ModelTier = if (aliasOf != null) ModelTier.HIDDEN else ModelTier.MORE,
+    /** Small label next to the name in the picker, e.g. "Neu". */
+    val badge: String? = null,
 ) {
     val isAlias get() = aliasOf != null
-    val displayName get() = id.substringAfter('/')
+    val displayName get() = label ?: id.substringAfter('/')
     val provider get() = if ('/' in id) id.substringBefore('/') else null
 }
 
@@ -36,14 +53,28 @@ data class ModelInfo(
  * at llm.scads.ai/status). Models returned by /v1/models that are unknown here get a generic entry.
  */
 object ModelCatalog {
+    /** Default chat model: fast, sees images, uses tools and has a huge context. */
+    const val DEFAULT_CHAT = "deepseek-ai/DeepSeek-V4.1-Flash"
+
     val known: List<ModelInfo> = listOf(
         // ---- Chat
+        ModelInfo(
+            id = "deepseek-ai/DeepSeek-V4.1-Flash",
+            type = ModelType.CHAT,
+            summary = "Schnelles Mixture-of-Experts-Modell von DeepSeek mit 1 Mio. Token Kontext.",
+            strengths = "Stark bei Programmierung, Mathematik und Logik; unterstützt Denkmodus, Bilder und Werkzeuge.",
+            contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 4, speed = 4,
+            label = "DeepSeek V4.1 Flash", tier = ModelTier.FEATURED,
+            useCase = "Für fast alles: Fragen, Texte, Bilder, Websuche und Dokumente",
+        ),
         ModelInfo(
             id = "Qwen/Qwen3.8-27B",
             type = ModelType.CHAT,
             summary = "Kompaktes Allround-Modell von Alibaba mit Denkmodus, Bildverständnis und Werkzeugnutzung.",
             strengths = "Sehr gutes Preis-Leistungs-Verhältnis, stark bei Code, Mathe und mehrsprachigen Texten. Gute Wahl für die GitHub-Werkzeuge.",
             contextTokens = 262144, thinking = true, vision = true, tools = true, power = 4, speed = 4,
+            label = "Qwen3.8 27B", tier = ModelTier.FEATURED,
+            useCase = "Programmieren und GitHub-Aufgaben – zuverlässig mit Werkzeugen",
         ),
         ModelInfo(
             id = "zai-org/GLM-5.3",
@@ -51,6 +82,8 @@ object ModelCatalog {
             summary = "Großes Flaggschiff-Modell von Zhipu AI für anspruchsvolle Aufgaben.",
             strengths = "Eines der leistungsstärksten Modelle im Angebot: komplexes Schlussfolgern, lange Dokumente, agentisches Programmieren. Kein Bildverständnis, etwas langsamer.",
             contextTokens = 524288, thinking = true, vision = false, tools = true, power = 5, speed = 2,
+            label = "GLM-5.3", tier = ModelTier.FEATURED,
+            useCase = "Für die schwierigsten Aufgaben – gründlich, aber langsamer. Versteht keine Bilder.",
         ),
         ModelInfo(
             id = "zai-org/GLM-5.3-Flash",
@@ -58,13 +91,8 @@ object ModelCatalog {
             summary = "Schnelle, leichtere Variante von GLM-5.3 mit riesigem Kontextfenster.",
             strengths = "1 Mio. Token Kontext, Bildverständnis und Werkzeuge – ideal für große Repositories und lange Dokumente bei hoher Geschwindigkeit.",
             contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 4, speed = 5,
-        ),
-        ModelInfo(
-            id = "deepseek-ai/DeepSeek-V4.1-Flash",
-            type = ModelType.CHAT,
-            summary = "Schnelles Mixture-of-Experts-Modell von DeepSeek mit 1 Mio. Token Kontext.",
-            strengths = "Stark bei Programmierung, Mathematik und Logik; unterstützt Denkmodus, Bilder und Werkzeuge.",
-            contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 4, speed = 4,
+            label = "GLM-5.3 Flash", tier = ModelTier.FEATURED,
+            useCase = "Am schnellsten – auch für sehr lange Dokumente und große Projekte",
         ),
         ModelInfo(
             id = "MiniMaxAI/MiniMax-M3",
@@ -72,6 +100,8 @@ object ModelCatalog {
             summary = "Großes Modell von MiniMax, ausgelegt auf Agenten- und Programmieraufgaben.",
             strengths = "Gut bei mehrstufigen Aufgaben mit vielen Werkzeugaufrufen, langen Kontexten und Bildern.",
             contextTokens = 524288, thinking = true, vision = true, tools = true, power = 5, speed = 3,
+            label = "MiniMax M3",
+            useCase = "Lange Agenten-Aufgaben mit vielen Werkzeugschritten",
         ),
         ModelInfo(
             id = "openai/gpt-oss-120b",
@@ -79,6 +109,8 @@ object ModelCatalog {
             summary = "Offenes Reasoning-Modell von OpenAI (120 Mrd. Parameter, MoE).",
             strengths = "Solides Schlussfolgern und zuverlässige Werkzeugaufrufe. Kein Bildverständnis, 128k Kontext.",
             contextTokens = 131072, thinking = true, vision = false, tools = true, power = 4, speed = 4,
+            label = "gpt-oss 120B",
+            useCase = "Logisches Schlussfolgern und Rechnen – versteht keine Bilder",
         ),
         ModelInfo(
             id = "google/gemma-4-26B-A4B-it",
@@ -86,6 +118,8 @@ object ModelCatalog {
             summary = "Effizientes MoE-Modell von Google (26 Mrd. Parameter, ~4 Mrd. aktiv).",
             strengths = "Sehr schnell, multimodal (Bilder), Denkmodus und Werkzeuge. Gut für Alltagsfragen und Bildanalyse.",
             contextTokens = 262144, thinking = true, vision = true, tools = true, power = 3, speed = 5,
+            label = "Gemma 4 26B",
+            useCase = "Sehr schnell für kurze Fragen und Bildbeschreibungen",
         ),
         ModelInfo(
             id = "meta-llama/Llama-3.3-70B-Instruct",
@@ -93,6 +127,8 @@ object ModelCatalog {
             summary = "Bewährtes 70B-Modell von Meta ohne Denkmodus.",
             strengths = "Schnelle, direkte Antworten und gutes Deutsch. Kein Bildverständnis, kleinerer Kontext (64k). Werkzeuge werden unterstützt.",
             contextTokens = 65536, thinking = false, vision = false, tools = true, power = 3, speed = 4,
+            label = "Llama 3.3 70B", tier = ModelTier.HIDDEN,
+            useCase = "Älteres Modell – die anderen sind in allem besser",
         ),
         // ---- Chat aliases
         ModelInfo(
@@ -198,6 +234,9 @@ object ModelCatalog {
 
     fun info(id: String): ModelInfo = byId[id.lowercase()] ?: guess(id)
 
+    /** Position in the built-in list; unknown models come last. */
+    fun rank(id: String): Int = known.indexOfFirst { it.id.equals(id, ignoreCase = true) }.let { if (it < 0) Int.MAX_VALUE else it }
+
     /** For aliases: fills unknown capabilities and ratings from the model the alias points to. */
     fun effective(m: ModelInfo): ModelInfo {
         val target = m.aliasOf?.let { byId[it.lowercase()] } ?: return m
@@ -226,6 +265,9 @@ object ModelCatalog {
             type = type,
             summary = "Neues Modell – noch keine Beschreibung in der App hinterlegt.",
             strengths = "Siehe Statusseite für die unterstützten Funktionen.",
+            useCase = "Neu auf dem Server – noch ohne Beschreibung in der App",
+            tier = if (l.startsWith("alias-")) ModelTier.HIDDEN else ModelTier.MORE,
+            badge = "Neu",
         )
     }
 }

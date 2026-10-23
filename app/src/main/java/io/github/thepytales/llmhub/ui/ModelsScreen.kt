@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -41,10 +42,11 @@ import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelFilter
 import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelSort
+import io.github.thepytales.llmhub.data.ModelTier
 import io.github.thepytales.llmhub.data.ModelType
 
 private val typeHelp = mapOf(
-    ModelType.CHAT to "Zum Chatten, Programmieren und für die GitHub-Werkzeuge.",
+    ModelType.CHAT to "Zum Chatten, Programmieren und für die Werkzeuge. „Empfohlen“ = oben in der Modellauswahl; Modelle „nicht in der Auswahl“ sind veraltet oder nur ein anderer Name (Alias) für ein Modell.",
     ModelType.IMAGE to "Erzeugt Bilder aus Text – im Tab „Bilder“.",
     ModelType.TTS to "Liest Antworten vor (Lautsprecher-Symbol an einer Antwort).",
     ModelType.STT to "Wandelt Sprache in Text (Mikrofon-Symbol im Chat).",
@@ -129,9 +131,28 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
 
 @Composable
 private fun ModelCard(m: ModelInfo, onStartChat: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    val offered = m.type != ModelType.CHAT || m.tier != ModelTier.HIDDEN
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                val tag = when {
+                    m.type != ModelType.CHAT -> null
+                    m.tier == ModelTier.FEATURED -> "Empfohlen"
+                    m.tier == ModelTier.HIDDEN -> "Nicht in der Auswahl"
+                    else -> m.badge
+                }
+                tag?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (m.tier == ModelTier.FEATURED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (m.type == ModelType.CHAT && m.useCase.isNotBlank()) {
+                Text(m.useCase, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            }
             val sub = listOfNotNull(m.provider, m.aliasOf?.let { "Alias für $it" }).joinToString(" · ")
             if (sub.isNotEmpty()) {
                 Text(sub, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -147,7 +168,7 @@ private fun ModelCard(m: ModelInfo, onStartChat: (String) -> Unit) {
                     e.power?.let { RatingRow("Leistung", it) }
                     e.speed?.let { RatingRow("Tempo   ", it) }
                 }
-                if (m.type == ModelType.CHAT) {
+                if (m.type == ModelType.CHAT && offered) {
                     FilledTonalButton(onClick = { onStartChat(m.id) }) {
                         Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))

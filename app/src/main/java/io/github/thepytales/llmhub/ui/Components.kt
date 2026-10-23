@@ -12,11 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Build
@@ -31,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -46,13 +46,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelFilter
 import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelSort
+import io.github.thepytales.llmhub.data.ModelTier
+import io.github.thepytales.llmhub.data.pickerModels
 import io.github.thepytales.llmhub.data.ModelType
 import java.util.Locale
 
@@ -105,7 +109,95 @@ fun RatingRow(label: String, value: Int) {
     }
 }
 
-/** Bottom sheet to choose a model from [models]. */
+/** Short list of what a model can do, for people who don't know the technical terms. */
+fun capabilityLine(m: ModelInfo): String {
+    val e = ModelCatalog.effective(m)
+    return listOfNotNull(
+        if (e.vision == true) "versteht Bilder" else if (e.vision == false) "keine Bilder" else null,
+        if (e.tools == true) "Websuche & Werkzeuge" else null,
+        e.contextTokens?.let { "${formatTokens(it)} Kontext" },
+    ).joinToString(" · ")
+}
+
+/** Rounded corners for rows that are stacked into one card with small gaps (like the Claude app). */
+private fun stackedShape(index: Int, count: Int): RoundedCornerShape {
+    val big = 20.dp
+    val small = 4.dp
+    return RoundedCornerShape(
+        topStart = if (index == 0) big else small,
+        topEnd = if (index == 0) big else small,
+        bottomStart = if (index == count - 1) big else small,
+        bottomEnd = if (index == count - 1) big else small,
+    )
+}
+
+@Composable
+private fun Badge(text: String, modifier: Modifier = Modifier) {
+    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ModelRows(
+    models: List<ModelInfo>,
+    selected: String,
+    defaultModel: String?,
+    showCapabilities: Boolean,
+    onPick: (String) -> Unit,
+) {
+    val look = LocalChatLook.current
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        models.forEachIndexed { i, m ->
+            Surface(
+                shape = stackedShape(i, models.size),
+                color = look.card,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(stackedShape(i, models.size))
+                    .clickable { onPick(m.id) },
+            ) {
+                Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {
+                            Text(m.displayName, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
+                            if (m.id == defaultModel) Badge("Standard", Modifier.align(Alignment.CenterVertically))
+                            m.badge?.let { Badge(it, Modifier.align(Alignment.CenterVertically)) }
+                        }
+                        Text(
+                            m.useCase.ifBlank { m.summary },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (showCapabilities) {
+                            val caps = capabilityLine(m)
+                            if (caps.isNotEmpty()) {
+                                Text(caps, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    if (m.id == selected) {
+                        Icon(
+                            Icons.Outlined.Check, contentDescription = "Ausgewählt",
+                            modifier = Modifier.padding(start = 12.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Model picker like the Claude app: the best models with what they are good for at the top, the rest
+ * under „Weitere Modelle“. Outdated models and aliases are not offered (see [ModelTier]).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelPickerSheet(
@@ -113,48 +205,88 @@ fun ModelPickerSheet(
     selected: String,
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit,
+    defaultModel: String? = null,
+    title: String = "Modellauswahl",
+    note: String? = null,
 ) {
+    val look = LocalChatLook.current
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var filter by remember { mutableStateOf(ModelFilter()) }
-    val shown = remember(models, filter) { filter.apply(models) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
-        Text(
-            "Modell wählen",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        ModelFilterBar(filter, { filter = it }, modifier = Modifier.padding(horizontal = 16.dp))
-        if (shown.isEmpty()) {
-            Text(
-                "Kein Modell passt zum Filter.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
-            )
-        }
-        LazyColumn {
-            items(shown, key = { it.id }) { m ->
-                ListItem(
-                    modifier = Modifier.clickable { onSelect(m.id); onDismiss() },
-                    headlineContent = {
-                        Text(m.displayName, fontWeight = if (m.id == selected) FontWeight.Bold else null)
-                    },
-                    supportingContent = {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(m.aliasOf?.let { "→ $it · ${m.summary}" } ?: m.summary, style = MaterialTheme.typography.bodySmall)
-                            CapabilityChips(m)
-                            val e = ModelCatalog.effective(m)
-                            if (e.power != null || e.speed != null) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    e.power?.let { RatingRow("Leistung", it) }
-                                    e.speed?.let { RatingRow("Tempo", it) }
-                                }
-                            }
-                        }
-                    },
-                    trailingContent = {
-                        if (m.id == selected) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt")
-                    },
+    val offered = remember(models) { pickerModels(models) }
+    val featured = offered.filter { it.tier == ModelTier.FEATURED }
+    val more = offered.filter { it.tier != ModelTier.FEATURED }
+    var showMore by remember { mutableStateOf(featured.isEmpty()) }
+    fun pick(id: String) {
+        onSelect(id)
+        onDismiss()
+    }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = look.sheet) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+        ) {
+            Box(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                IconButton(
+                    onClick = { if (showMore && featured.isNotEmpty()) showMore = false else onDismiss() },
+                    modifier = Modifier.align(Alignment.CenterStart),
+                ) {
+                    if (showMore && featured.isNotEmpty()) Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                    else Icon(Icons.Outlined.Close, contentDescription = "Schließen")
+                }
+                Text(
+                    if (showMore && featured.isNotEmpty()) "Weitere Modelle" else title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.align(Alignment.Center),
                 )
+            }
+            if (!showMore) {
+                ModelRows(featured, selected, defaultModel, showCapabilities = false, onPick = ::pick)
+                note?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                    )
+                }
+                if (more.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = look.card,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = if (note == null) 16.dp else 4.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showMore = true },
+                    ) {
+                        Row(Modifier.padding(horizontal = 18.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Weitere Modelle", style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), modifier = Modifier.weight(1f))
+                            more.firstOrNull { it.id == selected }?.let {
+                                Text(
+                                    it.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.widthIn(max = 150.dp),
+                                )
+                            }
+                            Icon(
+                                Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    "Modelle für besondere Zwecke. Für den Alltag reichen die Modelle auf der ersten Seite.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                )
+                ModelRows(more, selected, defaultModel, showCapabilities = true, onPick = ::pick)
             }
         }
     }

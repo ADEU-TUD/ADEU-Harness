@@ -75,9 +75,9 @@ class CompareSide(model: String) {
 }
 
 class CompareViewModel(private val c: AppContainer) : ViewModel() {
-    private val chatModels get() = c.models.state.value.ofType(ModelType.CHAT).map { it.id }
+    private val chatModels get() = c.models.state.value.pickable.map { it.id }
     val left = CompareSide(c.settings.current.defaultModel)
-    val right = CompareSide(chatModels.firstOrNull { it != left.model && ModelCatalog.info(it).isAlias.not() } ?: left.model)
+    val right = CompareSide(chatModels.firstOrNull { it != left.model } ?: left.model)
     private val jobs = mutableListOf<Job>()
 
     val busy get() = left.busy || right.busy

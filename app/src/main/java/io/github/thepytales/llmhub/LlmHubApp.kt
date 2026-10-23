@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub
 import android.app.Application
 import android.content.Context
 import io.github.thepytales.llmhub.agent.AgentRunner
+import io.github.thepytales.llmhub.agent.ChatRuns
 import io.github.thepytales.llmhub.agent.DocumentTools
 import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.agent.WebTools
@@ -24,9 +25,11 @@ import io.github.thepytales.llmhub.net.GitHubClient
 import io.github.thepytales.llmhub.net.LlmClient
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.tasks.TaskScheduler
+import kotlinx.coroutines.flow.MutableSharedFlow
 import java.io.File
 
 class AppContainer(context: Context) {
+    val appContext: Context = context.applicationContext
     private val files = context.filesDir
     val settings = SettingsStore(context)
     val usage = UsageStore(files)
@@ -49,6 +52,18 @@ class AppContainer(context: Context) {
     )
     val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
     val agent = AgentRunner(this)
+    /** Finished results while the app is open (shown as banner). */
+    val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
+    val runs = ChatRuns(context.applicationContext, this)
+}
+
+/** A finished answer or task result that the user should know about. */
+data class ResultEvent(val title: String, val chatId: String, val message: String)
+
+/** Whether the app is on screen; set by [MainActivity]. */
+object AppState {
+    @Volatile
+    var foreground = false
 }
 
 /** Keeps the stack trace of the last crash so the app can show it on the next start. */
