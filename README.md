@@ -137,6 +137,15 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 Updates lassen sich direkt über die alte Version installieren – API-Key, GitHub-Token, Einstellungen und Chats bleiben
 dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
 
+### Release über ADEU-TUD/Test
+
+Seit 1.0.26 erscheinen neue Versionen unter **https://github.com/ADEU-TUD/Test/releases** (APK, Windows-EXE und -ZIP).
+Das Repository ist eine Kopie dieses Codes in der Organisation ADEU-TUD, deren Actions-Minuten den Build tragen. Für
+eine neue Version wird der aktuelle Stand dorthin auf `main` übertragen und dort *Actions › Build & Release › Run
+workflow* mit der nächsten **Versionsnummer** gestartet (z.B. `27` für 1.0.27). Die Nummer muss größer sein als die
+installierte Version, sonst lässt sich die APK nicht als Update installieren. Der Workflow baut, testet (Emulator und
+Windows) und veröffentlicht selbst.
+
 ### Release ohne GitHub Actions
 
 Das Actions-Kontingent ist aufgebraucht, deshalb baut der Workflow (`.github/workflows/android.yml`) nicht mehr bei jedem
