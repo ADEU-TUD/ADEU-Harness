@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VpnKey
@@ -48,6 +49,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -374,6 +376,10 @@ fun ChatScreen(
                 if (!current.systemPrompt.isNullOrBlank()) {
                     ContextChip(Icons.Outlined.Person, current.persona ?: "System-Prompt", { showSystemPrompt = true })
                 }
+                // Shows that names and contact details leave the device only as placeholders.
+                if (settings.pseudonymize) {
+                    ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
+                }
             }
             }
             }
@@ -389,6 +395,7 @@ fun ChatScreen(
                 suggestions = TemplateLibrary.suggestions(settings.favoriteTemplates, templates),
                 onTemplate = { useTemplate(it) },
                 onApiKey = { onNavigate("settings/api") },
+                onAllTemplates = { onNavigate("templates") },
             )
         } else {
             val listState = rememberLazyListState()
@@ -600,6 +607,7 @@ private fun EmptyChat(
     suggestions: List<io.github.thepytales.llmhub.data.Template>,
     onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
     onApiKey: () -> Unit,
+    onAllTemplates: () -> Unit,
 ) {
     val look = LocalChatLook.current
     Column(
@@ -669,6 +677,27 @@ private fun EmptyChat(
                     }
                 }
             }
+            // The whole library is one tap away, not only the favourites.
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = look.card,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+                modifier = Modifier
+                    .widthIn(min = 150.dp, max = 200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClick = onAllTemplates),
+            ) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("Alle Vorlagen ›", style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                    Text(
+                        "Lehre, Forschung, Betreuung, TUD-Dokumente",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
@@ -685,6 +714,20 @@ private fun MenuEntry(icon: ImageVector, label: String, enabled: Boolean = true,
         contentPadding = PaddingValues(horizontal = 20.dp),
         modifier = Modifier.heightIn(min = 52.dp),
     )
+}
+
+/** Divider between the groups of the chat menu, optionally with a small heading. */
+@Composable
+private fun MenuGroup(title: String?) {
+    HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+    if (title != null) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 2.dp),
+        )
+    }
 }
 
 /** Chat menu like the Claude app: title on top, big entries, "Löschen" in red. */
@@ -727,10 +770,12 @@ private fun ChatMenu(
             modifier = Modifier.widthIn(max = 280.dp).padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
         )
         MenuEntry(Icons.Outlined.IosShare, "Kopieren (zum Teilen)", hasMessages, onClick = pick(onShare))
+        MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
+        MenuGroup(null)
         MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
         MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
-        MenuEntry(Icons.Outlined.DriveFileMove, "Zu Ordner hinzufügen", hasMessages, onClick = pick(onFolder))
-        MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
+        MenuEntry(Icons.Outlined.DriveFileMove, "In Projekt verschieben", hasMessages, onClick = pick(onFolder))
+        MenuGroup("Für diesen Chat")
         MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))
         MenuEntry(Icons.Outlined.Tune, "Umgebung", onClick = pick(onEnvironment))
         MenuEntry(
@@ -738,6 +783,7 @@ private fun ChatMenu(
             if (autoApprove) "Aktionen wieder bestätigen" else "Aktionen ohne Rückfrage",
             onClick = pick(onAutoApprove),
         )
+        MenuGroup(null)
         MenuEntry(Icons.Outlined.Delete, "Löschen", hasMessages, danger = true, onClick = pick(onDelete))
     }
 }

@@ -299,6 +299,16 @@ private fun SheetRow(icon: ImageVector, title: String, subtitle: String?, onClic
     )
 }
 
+@Composable
+private fun SheetLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
+    )
+}
+
 /** Sheet behind the "+" button: attachments and chat settings. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -322,6 +332,7 @@ fun PlusSheet(
         action()
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
+        SheetLabel("Anhängen")
         Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SheetTile(Icons.Outlined.CameraAlt, "Kamera", { pick(onCamera) }, Modifier.weight(1f))
             SheetTile(Icons.Outlined.Image, "Fotos", { pick(onPhotos) }, Modifier.weight(1f))
@@ -333,8 +344,10 @@ fun PlusSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
-        SheetRow(Icons.Outlined.Bookmarks, "Vorlagen", "Prompt-Vorlagen und Personas", { pick(onTemplates) })
-        SheetRow(Icons.Outlined.Person, "Persona / System-Prompt", personaLabel, { pick(onPersona) })
+        SheetLabel("Starten mit")
+        SheetRow(Icons.Outlined.Bookmarks, "Vorlage", "Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular", { pick(onTemplates) })
+        SheetLabel("Für diesen Chat")
+        SheetRow(Icons.Outlined.Person, "Persona / Anweisungen", personaLabel, { pick(onPersona) })
         if (repoLabel != null) SheetRow(Icons.Outlined.Code, "GitHub-Repository", repoLabel, { pick(onRepo) })
         SheetRow(Icons.Outlined.Tune, "Umgebung", envLabel, { pick(onEnvironment) })
         Spacer(Modifier.height(24.dp))

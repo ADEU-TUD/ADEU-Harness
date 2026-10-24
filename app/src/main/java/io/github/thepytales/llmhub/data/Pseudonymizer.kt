@@ -191,9 +191,13 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
     private fun regex(): Regex? {
         if (entries.isEmpty()) return null
         pattern?.let { return it }
-        // Longest first, so "Anna Müller" wins over "Anna"; never inside a word or an existing placeholder.
-        val alternatives = entries.map { it.value }.distinct().sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
-        return Regex("(?<![\\wäöüÄÖÜß@.\\[])(?:$alternatives)(?![\\wäöüÄÖÜß@])").also { pattern = it }
+        return patternFor(entries).also { pattern = it }
+    }
+
+    /** Longest first, so "Anna Müller" wins over "Anna"; never inside a word or an existing placeholder. */
+    private fun patternFor(list: List<Pseudonym>): Regex {
+        val alternatives = list.map { it.value }.distinct().sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
+        return Regex("(?<![\\wäöüÄÖÜß@.\\[])(?:$alternatives)(?![\\wäöüÄÖÜß@])")
     }
 
     /** Replaces every known and newly found detail in [text]. */
@@ -203,6 +207,19 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
         val r = regex() ?: return text
         val byValue = synchronized(this) { entries.associateBy { it.value } }
         return r.replace(text) { m -> byValue[m.value]?.placeholder ?: m.value }
+    }
+
+    /** What the server would see for [text], without storing new pairs – for trying it out in the settings. */
+    fun preview(text: String): String {
+        if (text.isBlank()) return text
+        val known = all()
+        val tentative = known.toMutableList()
+        for (h in PiiDetector.find(text, ownTerms(), settings().pseudonymAuto)) {
+            if (tentative.none { it.value == h.value }) tentative += Pseudonym(h.value, h.kind, tentative.count { it.kind == h.kind } + 1)
+        }
+        if (tentative.isEmpty()) return text
+        val byValue = tentative.associateBy { it.value }
+        return patternFor(tentative).replace(text) { m -> byValue[m.value]?.placeholder ?: m.value }
     }
 
     /** Puts the real details back; placeholders the app did not make stay as they are. */
@@ -215,13 +232,6 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
             val n = m.groupValues[2].toIntOrNull()
             kind?.let { k -> n?.let { byKey[k.name + ":" + it]?.value } } ?: m.value
         }
-    }
-
-    /** What would be sent for [text] – for the preview in the settings. */
-    fun preview(text: String): String {
-        val r = PiiDetector.find(text, ownTerms(), settings().pseudonymAuto)
-        if (r.isEmpty() && regex() == null) return text
-        return mask(text)
     }
 
     /** The messages as they go to the server; the note for the model is added to the first system message. */
@@ -248,7 +258,7 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
         toolCalls = r.toolCalls.map { it.copy(arguments = unmask(it.arguments)) },
     )
 
-    /** How many details of each kind [messages] contain – for the agent protocol. */
+    /** How many placeholders of each kind a masked [text] contains – for the agent protocol. */
     fun summary(text: String): String? {
         val counts = PLACEHOLDER.findAll(text).mapNotNull { m -> PiiKind.entries.firstOrNull { it.label == m.groupValues[1] } }
             .groupingBy { it }.eachCount()

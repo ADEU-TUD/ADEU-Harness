@@ -33,14 +33,13 @@ import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderSpecial
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Insights
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
@@ -79,6 +78,10 @@ import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.Folder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 private data class SearchHit(val conv: Conversation, val snippet: String?)
 
@@ -99,8 +102,23 @@ private fun search(list: List<Conversation>, query: String): List<SearchHit> {
     }
 }
 
-/** ChatGPT-like side menu: search, features, folders, pinned and recent chats. */
-@OptIn(ExperimentalFoundationApi::class)
+/** Day groups of the chat list, like in the ChatGPT and Claude apps. */
+private fun dayGroup(time: Long, today: LocalDate): String {
+    val day = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate()
+    val days = ChronoUnit.DAYS.between(day, today)
+    return when {
+        days <= 0 -> "Heute"
+        days == 1L -> "Gestern"
+        days < 7 -> "Letzte 7 Tage"
+        days < 30 -> "Letzte 30 Tage"
+        else -> "Älter"
+    }
+}
+
+/**
+ * Side menu: the main features on top, rarely used ones under "Mehr", then projects, pinned chats and the chats by
+ * day. At the bottom the profile (settings) and "Neuer Chat". Shared by Android (drawer) and Windows (side panel).
+ */
 @Composable
 fun AppDrawer(
     c: AppContainer,
@@ -116,6 +134,7 @@ fun AppDrawer(
     val look = LocalChatLook.current
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
+    var more by rememberSaveable { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(setOf<String>()) }
     var renameChat by remember { mutableStateOf<Conversation?>(null) }
     var moveChat by remember { mutableStateOf<Conversation?>(null) }
@@ -192,22 +211,32 @@ fun AppDrawer(
                     return@LazyColumn
                 }
 
+                // The features used every day; models, comparison and usage are for the curious.
                 val newResults = conversations.count { it.unread && it.taskId != null }
-                item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
-                item { NavRow(Icons.Outlined.Image, "Bilder") { onNavigate("images") } }
                 item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
-                item { NavRow(Icons.Outlined.AutoAwesome, "Modelle") { onNavigate("models") } }
-                item { NavRow(Icons.Outlined.CompareArrows, "Modelle vergleichen") { onNavigate("compare") } }
-                item { NavRow(Icons.Outlined.Settings, "Einstellungen") { onNavigate("settings") } }
+                item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
+                item { NavRow(Icons.Outlined.Image, "Bilder erzeugen") { onNavigate("images") } }
+                item {
+                    NavRow(if (more) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, if (more) "Weniger" else "Mehr", muted = true) { more = !more }
+                }
+                if (more) {
+                    item { NavRow(Icons.Outlined.AutoAwesome, "Modelle", indent = true) { onNavigate("models") } }
+                    item { NavRow(Icons.Outlined.CompareArrows, "Modelle vergleichen", indent = true) { onNavigate("compare") } }
+                    item { NavRow(Icons.Outlined.Insights, "Verbrauch", indent = true) { onNavigate("usage") } }
+                }
                 item { HorizontalDivider(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant) }
 
                 item {
                     Row(Modifier.padding(start = 20.dp, end = 8.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        SectionTitle("Ordner", Modifier.weight(1f))
-                        IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = "Neuer Ordner") }
+                        SectionTitle("Projekte", Modifier.weight(1f))
+                        IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = "Neues Projekt") }
                     }
                 }
-                if (folders.isEmpty()) item { Hint("Lege Ordner an, um Chats zu sortieren. Lange drücken › Projekt bearbeiten: Anweisungen und Dateien für alle Chats darin.") }
+                if (folders.isEmpty()) {
+                    item {
+                        Hint("Ein Projekt bündelt Chats zu einem Thema – mit gemeinsamen Anweisungen und Dateien, z.B. „Seminar Allgemeine Didaktik“.")
+                    }
+                }
                 folders.sortedBy { it.name.lowercase() }.forEach { folder ->
                     val inFolder = conversations.filter { it.folderId == folder.id }
                     val open = folder.id in expanded
@@ -223,6 +252,7 @@ fun AppDrawer(
                         )
                     }
                     if (open) {
+                        if (inFolder.isEmpty()) item(key = "fe_" + folder.id) { Hint("Noch keine Chats in diesem Projekt.", indent = true) }
                         items(inFolder, key = { "fc_" + it.id }) { conv ->
                             ChatRow(conv, conv.id == currentChatId, indent = true, running = conv.id in runs, onOpen = { onOpenChat(conv.id) },
                                 onPin = { c.chats.modify(conv.id) { it.copy(pinned = !it.pinned) } },
@@ -238,29 +268,49 @@ fun AppDrawer(
                 }
 
                 val recent = conversations.filter { !it.pinned && it.folderId == null }
-                item { SectionTitle("Zuletzt", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
-                if (recent.isEmpty()) item { Hint("Noch keine Chats.") }
-                chatList(recent, "r_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false)
+                if (recent.isEmpty()) {
+                    item { SectionTitle("Chats", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
+                    item { Hint("Noch keine Chats. Starte unten mit „Neuer Chat“ oder wähle eine Vorlage.") }
+                }
+                val today = LocalDate.now()
+                recent.groupBy { dayGroup(it.updatedAt, today) }.forEach { (group, list) ->
+                    item(key = "g_$group") { SectionTitle(group, Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
+                    chatList(list, "r_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false)
+                }
             }
 
-            // Bottom like the Claude app: avatar (settings) and a black "Neuer Chat" button.
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = CircleShape,
-                    color = look.brand,
-                    contentColor = Color.White,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .clickable { onNavigate("settings") },
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+            // Bottom: who is signed in (opens the settings) and the black "Neuer Chat" button of the Claude app.
+            Row(Modifier.fillMaxWidth().padding(start = 6.dp, end = 12.dp, top = 10.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { onNavigate("settings") }
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        val initial = settings.userName.trim().firstOrNull()?.uppercaseChar()
-                        if (initial != null) Text(initial.toString(), style = MaterialTheme.typography.titleMedium)
-                        else Icon(Icons.Outlined.Person, contentDescription = "Einstellungen")
+                    Surface(shape = CircleShape, color = look.brand, contentColor = Color.White, modifier = Modifier.size(36.dp)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            val initial = settings.userName.trim().firstOrNull()?.uppercaseChar()
+                            if (initial != null) Text(initial.toString(), style = MaterialTheme.typography.titleMedium)
+                            else Icon(Icons.Outlined.Settings, contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                    Spacer(Modifier.size(8.dp))
+                    val name = settings.userName.trim()
+                    Column(Modifier.weight(1f)) {
+                        if (name.isNotEmpty()) Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            "Einstellungen",
+                            style = if (name.isEmpty()) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.labelSmall,
+                            color = if (name.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
                     }
                 }
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.size(6.dp))
                 Surface(
                     shape = RoundedCornerShape(50),
                     color = MaterialTheme.colorScheme.onSurface,
@@ -270,10 +320,10 @@ fun AppDrawer(
                         .clip(RoundedCornerShape(50))
                         .clickable(onClick = onNewChat),
                 ) {
-                    Row(Modifier.padding(horizontal = 22.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Add, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text("Neuer Chat", style = MaterialTheme.typography.titleMedium)
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text("Neuer Chat", style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
@@ -290,12 +340,12 @@ fun AppDrawer(
         ConfirmDialog("Chat löschen?", "„${conv.title}“ wird dauerhaft gelöscht.", "Löschen", onConfirm = { c.chats.delete(conv.id) }, onDismiss = { deleteChat = null })
     }
     if (newFolder) {
-        TextInputDialog("Neuer Ordner", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })
+        TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })
     }
     renameFolder?.let { f -> ProjectDialog(c, f, onDismiss = { renameFolder = null }) }
     deleteFolder?.let { f ->
         ConfirmDialog(
-            "Ordner löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder unter „Zuletzt“. Projektdateien werden entfernt.", "Löschen",
+            "Projekt löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder in der Chat-Liste. Projektdateien werden entfernt.", "Löschen",
             onConfirm = {
                 c.chats.clearFolder(f.id)
                 c.folders.delete(f.id)
@@ -334,29 +384,30 @@ private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun Hint(text: String) {
+private fun Hint(text: String, indent: Boolean = false) {
     Text(
         text,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+        modifier = Modifier.padding(start = if (indent) 52.dp else 20.dp, end = 20.dp, top = 6.dp, bottom = 6.dp),
     )
 }
 
 @Composable
-private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, onClick: () -> Unit) {
+private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, indent: Boolean = false, muted: Boolean = false, onClick: () -> Unit) {
+    val color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 13.dp),
+            .padding(start = if (indent) 24.dp else 12.dp, end = 12.dp, top = if (indent) 10.dp else 12.dp, bottom = if (indent) 10.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (indent) 22.dp else 24.dp))
         Spacer(Modifier.size(18.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp), modifier = Modifier.weight(1f))
+        Text(label, color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
         if (badge > 0) {
             Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
                 Text(
@@ -380,7 +431,8 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .combinedClickable(onClick = onToggle, onLongClick = { menu = true })
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .secondaryClick { menu = true }
+                .padding(start = 12.dp, end = 0.dp, top = 2.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(if (folder.instructions.isNotBlank()) Icons.Outlined.FolderSpecial else Icons.Outlined.Folder, contentDescription = null)
@@ -388,10 +440,14 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
             Text(folder.name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Text("$count", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
+            // The menu is also reachable without knowing about long press / right click.
+            IconButton(onClick = { menu = true }) {
+                Icon(Icons.Outlined.MoreVert, contentDescription = "Projekt-Menü", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text("Neuer Chat im Projekt") }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
-            DropdownMenuItem(text = { Text("Projekt bearbeiten …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text("Anweisungen & Dateien …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
@@ -420,7 +476,8 @@ private fun ChatRow(
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (selected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent)
                 .combinedClickable(onClick = onOpen, onLongClick = { menu = true })
-                .padding(start = if (indent) 44.dp else 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+                .secondaryClick { menu = true }
+                .padding(start = if (indent) 44.dp else 12.dp, end = if (selected) 0.dp else 12.dp, top = if (selected) 0.dp else 10.dp, bottom = if (selected) 0.dp else 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showIcon) {
@@ -446,6 +503,11 @@ private fun ChatRow(
                         .background(LocalChatLook.current.brand)
                 )
             }
+            if (selected) {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Outlined.MoreVert, contentDescription = "Chat-Menü", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
@@ -453,7 +515,7 @@ private fun ChatRow(
                 leadingIcon = { Icon(Icons.Outlined.PushPin, null) },
                 onClick = { menu = false; onPin() },
             )
-            DropdownMenuItem(text = { Text("In Ordner verschieben") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
+            DropdownMenuItem(text = { Text("In Projekt verschieben") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
             DropdownMenuItem(text = { Text("Umbenennen") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
