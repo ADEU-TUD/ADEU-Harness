@@ -46,6 +46,8 @@ fun actionLabel(tool: String): String = when (tool) {
     "create_issue" -> "Issue erstellen"
     "comment_issue" -> "Kommentar schreiben"
     "fetch_url" -> "Web-Anfrage senden"
+    "remember" -> "Im Gedächtnis speichern"
+    "forget" -> "Aus dem Gedächtnis löschen"
     else -> tool
 }
 
@@ -82,7 +84,11 @@ fun ApprovalModeOptions(c: AppContainer) {
 fun ApprovalDialog(action: PendingAction, repo: String?, branch: String?, onAnswer: (allow: Boolean, always: Boolean) -> Unit) {
     var always by remember(action) { mutableStateOf(false) }
     val call = action.call
-    val where = if (call.name == "fetch_url") "im Web" else "in ${repo ?: "GitHub"}" + (branch?.let { " · Branch $it" } ?: "")
+    val where = when (call.name) {
+        "fetch_url" -> "im Web"
+        "remember", "forget" -> "Gilt für alle Chats · Einstellungen › Gedächtnis"
+        else -> "in ${repo ?: "GitHub"}" + (branch?.let { " · Branch $it" } ?: "")
+    }
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Outlined.Build, contentDescription = null) },

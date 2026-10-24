@@ -3,11 +3,14 @@ package io.github.thepytales.llmhub.data
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
+/** A folder of chats; with instructions or files it is a project whose chats share them. */
 @Serializable
 data class Folder(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val createdAt: Long = System.currentTimeMillis(),
+    /** Project instructions: sent to the model in every chat of the folder. */
+    val instructions: String = "",
 )
 
 @Serializable

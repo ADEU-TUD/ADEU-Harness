@@ -334,6 +334,27 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
         }
 
+    /** Embedding vectors for [inputs] (semantic search in the knowledge collection). */
+    suspend fun embed(model: String, inputs: List<String>): List<FloatArray> = withContext(Dispatchers.IO) {
+        limiter.acquire()
+        val body = buildJsonObject {
+            put("model", model)
+            putJsonArray("input") { inputs.forEach { add(JsonPrimitive(it)) } }
+        }
+        http.newCall(request("/embeddings").post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
+            val text = resp.body?.string()
+            if (!resp.isSuccessful) {
+                if (resp.code == 429) limiter.onRateLimited()
+                throw ApiException(resp.code, errorMessage(resp.code, text))
+            }
+            val data = JSON.parseToJsonElement(text ?: "{}").jsonObject["data"]?.jsonArray.orEmpty()
+            usage.record(model, "embedding", inputs.sumOf { it.length } / 4L, 0, estimated = true)
+            data.sortedBy { it.jsonObject.str("index")?.toIntOrNull() ?: 0 }.map { el ->
+                el.jsonObject["embedding"]!!.jsonArray.let { arr -> FloatArray(arr.size) { i -> arr[i].jsonPrimitive.content.toFloat() } }
+            }
+        }
+    }
+
     /** Text to speech; returns audio bytes (usually mp3). */
     suspend fun speech(model: String, voice: String, text: String): ByteArray = withContext(Dispatchers.IO) {
         val body = buildJsonObject {

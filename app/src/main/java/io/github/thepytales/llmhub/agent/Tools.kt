@@ -37,6 +37,10 @@ data class RepoContext(
     val images: List<String> = emptyList(),
     /** Attached PDFs of the chat that were kept for filling in, newest first. */
     val pdfs: List<FileAttachment> = emptyList(),
+    /** All files attached in the chat, newest first (e.g. to add one to the knowledge collection). */
+    val files: List<FileAttachment> = emptyList(),
+    /** Folder (project) of the chat: its knowledge is searched together with the global one. */
+    val folderId: String? = null,
 )
 
 /** What a write action reaches; decides together with [ApprovalMode] whether the user is asked first. */

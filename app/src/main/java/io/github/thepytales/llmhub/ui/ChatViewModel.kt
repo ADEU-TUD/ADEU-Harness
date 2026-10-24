@@ -66,7 +66,7 @@ class ChatViewModel(
 
     private val _conversation = MutableStateFlow(
         if (initialId == null) {
-            newConversation(c, initialModel).let { conv ->
+            newConversation(c, initialModel).copy(folderId = NewChatFolder.take()).let { conv ->
                 template?.takeIf { it.kind == TemplateKind.PERSONA }?.let { t -> conv.copy(systemPrompt = t.content, persona = t.name) } ?: conv
             }
         } else c.runs.get(initialId)?.conversation?.value ?: c.chats.get(initialId)

@@ -73,7 +73,8 @@ class AgentRunner(private val c: AppContainer) {
         val env = environment(start)
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
-        val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty(), pdfs)
+        val attached = start.thread().flatMap { it.files }.asReversed()
+        val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
@@ -323,6 +324,8 @@ class AgentRunner(private val c: AppContainer) {
                     "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
+            if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
+            projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
         ).joinToString("\n\n")
         val out = mutableListOf<ChatMessage>()
@@ -353,6 +356,13 @@ class AgentRunner(private val c: AppContainer) {
             }
         }
         return ContextManager.trimOldToolResults(out)
+    }
+
+    /** Instructions of the chat's project (folder) – also without tools. */
+    private fun projectPrompt(conv: Conversation): String? {
+        val folder = conv.folderId?.let { c.folders.get(it) } ?: return null
+        if (folder.instructions.isBlank()) return null
+        return "Dieser Chat gehört zum Projekt „${folder.name}“. Anweisungen für das Projekt:\n${folder.instructions.trim()}"
     }
 
     /** Whether the long instructions of [guide] go directly into the system prompt for this chat. */

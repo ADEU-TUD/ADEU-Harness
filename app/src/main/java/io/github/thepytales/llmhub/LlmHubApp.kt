@@ -14,7 +14,9 @@ import io.github.thepytales.llmhub.data.ChatRepository
 import io.github.thepytales.llmhub.data.Contact
 import io.github.thepytales.llmhub.data.FileBackend
 import io.github.thepytales.llmhub.data.Folder
+import io.github.thepytales.llmhub.data.KnowledgeStore
 import io.github.thepytales.llmhub.data.ListStore
+import io.github.thepytales.llmhub.data.MemoryEntry
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.ModelsRepository
 import io.github.thepytales.llmhub.data.PrefsBackend
@@ -46,6 +48,10 @@ class AppContainer(context: Context) {
     val logos = LogoStore(files)
     /** Address book for letters. */
     val contacts = ListStore<Contact>(FileBackend(File(files, "contacts.json")), Contact.serializer(), { it.id })
+    /** Own documents the model can search (global and per project). */
+    val knowledge = KnowledgeStore(files)
+    /** What the model knows about the user in every chat. */
+    val memory = ListStore<MemoryEntry>(FileBackend(File(files, "memory.json")), MemoryEntry.serializer(), { it.id })
     /** Template forms typed but not sent yet. */
     val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
     val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts)
