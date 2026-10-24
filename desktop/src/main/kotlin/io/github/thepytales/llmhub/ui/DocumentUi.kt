@@ -24,6 +24,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.AccessibilityNew
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -85,6 +87,8 @@ fun DocumentCard(path: String) {
     /** Raised when open placeholders were filled in and the file was rendered again. */
     var version by remember(path) { mutableIntStateOf(0) }
     val exists = remember(path, version) { file.exists() }
+    var accessibility by remember(path) { mutableStateOf(false) }
+    if (accessibility) AccessibilityDialog(io.github.thepytales.llmhub.App.container, file, onDismiss = { accessibility = false })
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(14.dp),
@@ -109,6 +113,11 @@ fun DocumentCard(path: String) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                if (exists && file.extension.lowercase() in setOf("pdf", "docx", "pptx", "html")) {
+                    IconButton(onClick = { accessibility = true }) {
+                        Icon(Icons.Outlined.AccessibilityNew, contentDescription = "Barrierefreiheit prüfen", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
             if (exists) {
@@ -191,7 +200,7 @@ fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: ()
         title = { Text("Als Dokument exportieren") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                DocFormat.entries.forEach { f ->
+                DocFormat.entries.filter { it.chatExport }.forEach { f ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier

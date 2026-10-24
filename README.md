@@ -5,11 +5,18 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 
 ## Funktionen
 
-- **Oberfläche wie die Claude-App** (Standard): ruhige Creme-Töne, weiße Karten, schwarze Knöpfe. Seitenleiste mit Suche,
-  geplanten Aufgaben, Ordnern, angehefteten und letzten Chats, Profilbild und „Neuer Chat“. Das Eingabefeld enthält „+“
-  (Kamera, Fotos, Dateien, Vorlagen, Persona, Repository, Umgebung), die Modellwahl, Mikrofon und Senden. Das Chat-Menü
-  (⋮ oder Tipp auf den Titel) bietet Teilen, Umbenennen, Anheften, Ordner, Verknüpfung auf dem Startbildschirm, Export
-  und Löschen. Andere Stile (Material You, ChatGPT, Gemini) unter *Einstellungen › Darstellung*.
+- **Oberfläche wie die Claude-App** (Standard): ruhige Creme-Töne, weiße Karten, schwarze Knöpfe. Die Seitenleiste zeigt
+  oben das Tägliche (*Vorlagen*, *Geplante Aufgaben*, *Bilder erzeugen*), unter *Mehr* Modelle, Modellvergleich und
+  Verbrauch, darunter *Projekte*, angeheftete Chats und die Chats nach *Heute*, *Gestern*, *Letzte 7 Tage* … Unten führt
+  das Profil zu den Einstellungen, daneben „Neuer Chat“. Projekte und der offene Chat haben ein sichtbares ⋮-Menü (zusätzlich
+  lange drücken bzw. Rechtsklick). Das „+“ im Eingabefeld ist gegliedert in *Anhängen* (Kamera, Fotos, Dateien), *Starten
+  mit* (Vorlage) und *Für diesen Chat* (Persona, Repository, Umgebung). Das Chat-Menü (⋮ oder Tipp auf den Titel) gruppiert
+  Teilen/Export, Umbenennen/Anheften/Projekt, die Einstellungen des Chats und Löschen. Andere Stile (Material You, ChatGPT,
+  Gemini) unter *Einstellungen › Darstellung*.
+- **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Datenschutz,
+  Gedächtnis, Wissenssammlung), *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung). *Chat & Werkzeuge* ist
+  aufgeteilt in Neue Chats, Werkzeuge, Agent, Freigaben, Zuverlässigkeit und Erweitert. Auf großen Bildschirmen bleibt die
+  Lesebreite angenehm.
 - **Modellauswahl wie bei Claude**: oben die empfohlenen Modelle mit kurzem Einsatzzweck, darunter „Weitere Modelle“
   für besondere Zwecke. Veraltete Modelle und Aliase stehen nicht zur Auswahl (in der Modellübersicht als „nicht in der
   Auswahl“ markiert). Standardmodell ist **DeepSeek V4.1 Flash** – schnell, versteht Bilder, nutzt Websuche und Werkzeuge
@@ -28,13 +35,13 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   im Chat oder über „Stoppen“ in der Benachrichtigung; „Beenden erzwingen“ in den Android-Einstellungen bricht sie ab.
 - **Chat** mit allen Chat-Modellen (Qwen, GLM, DeepSeek, MiniMax, gpt-oss, Gemma, Llama …), Streaming,
   Markdown/Code-Darstellung, Gedankengang von Reasoning-Modellen, Bilder anhängen (Vision-Modelle), Verlauf lokal.
-- **Chats verwalten**: Volltextsuche über Titel und Nachrichten, Anheften, Ordner, Umbenennen (lange auf einen Chat
-  in der Seitenleiste drücken).
+- **Chats verwalten**: Volltextsuche über Titel und Nachrichten, Anheften, Projekte, Umbenennen (⋮ am offenen Chat,
+  lange drücken oder Rechtsklick).
 - **Bearbeiten & Neu generieren mit Versionen**: Eigene Nachrichten bearbeiten oder Antworten neu erzeugen (auch mit
   einem anderen Modell) – frühere Versionen bleiben über „‹ 1/2 ›“ erreichbar, wie bei ChatGPT.
 - **Dateien als Anhang**: PDF (Text; Scans werden als Bilder angehängt), Word, PowerPoint, Excel, OpenDocument,
   Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen.
-- **Vorlagen-Bibliothek für die Professur**: rund 50 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
+- **Vorlagen-Bibliothek für die Professur**: rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
   (Seminarplan, Sitzung planen, Lernziele, Prüfungsaufgaben, Bewertungsraster, Feedback, Unterrichtsentwurf,
   Unterrichtsvignette), *Betreuung & Prüfung* (Exposé-Feedback, Gutachten, Themen für Abschlussarbeiten, mündliche Prüfung),
   *Forschung* (Forschungsfrage, Fragebogen-Items, Interviewleitfaden, Kategoriensystem, Ergebnisse nach APA 7, Abstract,
@@ -59,8 +66,34 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
   Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
-- **Projekte**: Ein Ordner wird zum Projekt (lange drücken › *Projekt bearbeiten*): Anweisungen und Dateien gelten für alle
-  Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
+- **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
+  für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
+- **Pseudonymisierung** (*Einstellungen › Datenschutz*): Vor jeder Anfrage ersetzt die App auf dem Gerät Namen, E-Mail-Adressen,
+  Telefonnummern, Matrikelnummern, IBAN, Geburtsdaten und Anschriften durch Platzhalter wie `[Name 1]` – der Server sieht nur
+  diese. In Antworten, Dokumenten, Briefen und E-Mail-Entwürfen setzt die App die echten Angaben wieder ein. Namen erkennt
+  sie nach Anrede oder Titel (Frau, Herr, Dr., Prof.) und an häufigen Vor- und Nachnamen; vollständig zuverlässig ist nur die
+  eigene Liste (Klassenlisten, Studierende, Schulen). Dieselbe Person behält in allen Chats denselben Platzhalter; die
+  Zuordnung bleibt auf dem Gerät. Ein Vorschaufeld zeigt, was der Server sähe; das Agent-Protokoll nennt, was ersetzt wurde,
+  und über dem Eingabefeld steht „Pseudonymisiert“. Ohne Pseudonymisierung warnt die App, wenn Namen oder Kontaktdaten an
+  einen Anbieter außerhalb der TU Dresden (Gemini) gingen. Bilder und Spracheingaben lassen sich nicht pseudonymisieren.
+- **Quellen-Check**: Das Modell prüft Literaturangaben mit `check_references` gegen Crossref, OpenAlex und Google Books,
+  bevor es sie nennt (bestätigt, Angaben weichen ab, nicht gefunden). An jeder Antwort steht unter „⋯“ *Quellen prüfen* –
+  ohne Modell, direkt bei Crossref. Vorlage *Forschung › Literaturangaben prüfen* für ganze Literaturverzeichnisse.
+- **Tests für OPAL (ONYX)**: Vorlage *Lehre › Test für OPAL* bzw. `create_document` mit `format=qti` erzeugt ein IMS-QTI-2.1-
+  Paket (.zip) mit Einfach- und Mehrfachauswahl, Kurzantwort und Freitext, Punkten und Feedback – in OPAL als
+  Test-Lernressource importieren.
+- **Lehrevaluation auswerten**: Vorlage *Lehre › Lehrevaluation auswerten* – Export (CSV/Excel/PDF) anhängen; Kennwerte je
+  Item exakt in der Sandbox (`describe`, `freq`, `percent`), Themen der Freitexte mit Zitaten, Maßnahmen und Rückmeldung an
+  die Studierenden als Bericht im TUD-Design.
+- **Reisekosten aus Belegen**: Vorlage *Allgemein › Reisekosten aus Belegen* – Fotos von Fahrkarten, Hotel- und
+  Tagungsrechnungen anhängen; die App liest Beträge aus, rechnet Summen und füllt ein angehängtes Abrechnungsformular aus
+  (sonst Belegliste als PDF). Erstattungsregeln erfindet sie nicht.
+- **Barrierefreie Dokumente**: Word-Dateien mit Überschriften-Formatvorlagen, Dokumentsprache, Titel, Alternativtext und
+  wiederholter Tabellenkopfzeile; PowerPoint mit Folientiteln (auch ausgeblendet), sinnvoller Lesereihenfolge und
+  dekorativ markierten Linien; PDFs mit Titel, Sprache und Fenstertitel (Windows zusätzlich getaggt mit Lesezeichen). Zu
+  helle Akzentfarben werden auf einen Kontrast von 4,5:1 abgedunkelt. `check_accessibility` bzw. das Symbol an jeder
+  Dokumentkarte prüft PDFs, Word, PowerPoint und HTML (Text statt Scan, Tags, Sprache, Titel, Alternativtexte …);
+  Vorlage *Allgemein › Barrierefreiheit prüfen*.
 - **Wissenssammlung**: Eigene Dokumente (Modulhandbuch, Prüfungsordnung, Literatur …) unter *Einstellungen ›
   Wissenssammlung* oder pro Projekt. Das Modell sucht die passenden Stellen (Stichworte und semantisch über die
   Embedding-Modelle des Uni-Servers) und nennt die Quelle. „Speichere die Datei im Projektwissen“ übernimmt Anhänge.
@@ -104,7 +137,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Google AI Studio eintragen. Dann stehen **Gemini 3.8 Flash**, **3.6 Flash** und **3.5 Flash** (die besten Modelle des
   kostenlosen API-Plans) bei den empfohlenen Modellen – unter denen von ScaDS.AI, das der Standard bleibt. Weitere
   Gemini-Modelle stehen unter „Weitere Modelle“. Auch andere OpenAI-kompatible Anbieter lassen sich eintragen.
-- **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News) und Webseiten lesen.
+- **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News), Webseiten lesen und Literatur prüfen.
 - **Dokumente erstellen**: PDF, Word (.docx), PowerPoint (.pptx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
   Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
   (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`). Für besondere Gestaltung (Flyer, Rechnung, Lebenslauf …) schreibt das
@@ -284,7 +317,7 @@ Voraussetzung: JDK 17 und Android SDK.
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
-./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox …
+./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI …
 ```
 
 Live-Tests gegen den Uni-Server (prüfen, ob die Modelle sich an die Vorgaben der App halten: ✨ schreibt nur den
@@ -293,6 +326,9 @@ Brieftext, Werkzeugaufrufe sind gültig, Folien haben das richtige Format) laufe
 ```bash
 LLM_API_KEY=sk-… ./gradlew -p desktop test --tests '*LiveApiTest*'   # optional LLM_MODEL=… für ein anderes Modell
 ```
+
+Der Quellen-Check gegen Crossref lässt sich mit Internetzugang ebenso live prüfen:
+`LIVE_WEB=1 ./gradlew -p desktop test --tests '*TeachingAndResearchTest*'`.
 
 Der Starttest der Windows-Version läuft auch unter Linux mit virtuellem Bildschirm:
 `xvfb-run -a ./gradlew -p desktop run --args="--selftest /tmp/selftest"` (öffnet alle Bildschirme, erstellt Brief,
@@ -328,6 +364,11 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | `agent/ChatRuns.kt`, `agent/AgentService.kt` | Laufende Chat-Antworten unabhängig vom Bildschirm; Vordergrunddienst, damit sie bei geschlossener App fertig werden |
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
 | `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |
+| `data/Pseudonymizer.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, Platzhalter, Rückersetzung) und Einstellungen dazu |
+| `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
+| `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |
+| `docs/AccessibilityCheck.kt`, `docs/PdfAccessibility.kt`, `docs/Contrast.kt` | Barrierefreiheit prüfen, PDF-Metadaten, Farbkontrast |
+| `ui/SettingsOverview.kt`, `ui/PlatformUi.kt` | Gegliederte Einstellungsübersicht; Rechtsklick (Windows) bzw. langes Drücken (Android) |
 | `data/ChatTree.kt` | Chats als Baum (Versionen beim Bearbeiten/Neu generieren) |
 | `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen (Bereiche, Platzhalter), Umgebungen, Logos und deren Speicherung |
 | `data/TemplateLibrary.kt` | Eingebaute Vorlagen, Favoriten-Vorschläge, Teilen/Importieren |

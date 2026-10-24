@@ -209,91 +209,25 @@ private fun AppearanceSection(c: AppContainer) {
     }
 }
 
-private data class SettingsEntry(val route: String, val icon: ImageVector, val title: String, val subtitle: String)
 
 /** Settings as a clear list of sections (like the ChatGPT app); [section] opens one of them. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavigate: (String) -> Unit) {
-    val s by c.settings.settings.collectAsStateWithLifecycle()
-    val envs by c.environments.items.collectAsStateWithLifecycle()
-    val logos by c.logos.items.collectAsStateWithLifecycle()
-    val title = when (section) {
-        "api" -> "API-Zugang"
-        "github" -> "GitHub"
-        "chat" -> "Chat & Werkzeuge"
-        "appearance" -> "Darstellung"
-        "voice" -> "Vorlesen & Spracheingabe"
-        "documents" -> "Dokumente & Logos"
-        "memory" -> "Gedächtnis"
-        "knowledge" -> "Wissenssammlung"
-        "backup" -> "Sicherung & Umzug"
-        else -> "Einstellungen"
-    }
-    Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(title) }) }) { pad ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(pad)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+    Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(settingsTitle(section)) }) }) { pad ->
+        ReadableColumn(pad) {
             when (section) {
                 "api" -> ApiSection(c)
                 "github" -> GitHubSection(c)
                 "chat" -> ChatSection(c)
+                "privacy" -> PrivacySection(c)
                 "appearance" -> AppearanceSection(c)
                 "voice" -> VoiceSection(c)
                 "documents" -> DocumentsSection(c)
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
                 "backup" -> BackupSection(c)
-                else -> {
-                    val entries = listOf(
-                        SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", apiSummary(c)),
-                        SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", gitHubSummary(c)),
-                        SettingsEntry("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
-                        SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge, Freigaben: " + ApprovalMode.of(s.approvalMode).label),
-                        SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
-                        SettingsEntry("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline auf dem Gerät" else "KI-Stimme des Uni-Servers"),
-                        SettingsEntry("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.CLAUDE).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
-                        SettingsEntry("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + c.memory.current.size + " Einträge"),
-                        SettingsEntry("settings/knowledge", Icons.Outlined.LibraryBooks, "Wissenssammlung", c.knowledge.of("").size.let { if (it == 0) "Eigene Dokumente durchsuchbar machen" else "$it Dokument(e)" }),
-                        SettingsEntry("templates", Icons.Outlined.Bookmarks, "Vorlagen", "Lehre, Forschung, Betreuung, TUD-Dokumente, Personas"),
-                        SettingsEntry("tasks", Icons.Outlined.Schedule, "Geplante Aufgaben", "Wiederkehrende Aufträge an den Agenten"),
-                        SettingsEntry("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
-                        SettingsEntry("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
-                    )
-                    OutlinedTextField(
-                        value = s.userName,
-                        onValueChange = { v -> c.settings.update { it.copy(userName = v) } },
-                        label = { Text("Dein Vorname (optional)") },
-                        supportingText = { Text("Für die Begrüßung im neuen Chat und das Profilbild im Menü.") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Surface(shape = RoundedCornerShape(20.dp), color = LocalChatLook.current.card) {
-                        Column {
-                            entries.forEachIndexed { i, e ->
-                                if (i > 0) HorizontalDivider(Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                ListItem(
-                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                    modifier = Modifier.clickable { onNavigate(e.route) },
-                                    leadingContent = { Icon(e.icon, contentDescription = null) },
-                                    headlineContent = { Text(e.title) },
-                                    supportingContent = { Text(e.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                    trailingContent = { Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null) },
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        "ADEU LLM ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                else -> SettingsOverview(c, onNavigate, deviceItem = null)
             }
             Spacer(Modifier.size(24.dp))
         }
@@ -423,29 +357,10 @@ private fun ChatSection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val models by c.models.state.collectAsStateWithLifecycle()
     var showModelPicker by remember { mutableStateOf(false) }
-    Section("Chat") {
+    Section("Neue Chats") {
         OutlinedButton(onClick = { showModelPicker = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}")
         }
-        OutlinedTextField(
-            value = s.systemPrompt,
-            onValueChange = { v -> c.settings.update { it.copy(systemPrompt = v) } },
-            label = { Text("Globaler System-Prompt (optional)") },
-            minLines = 3,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        DropdownField(
-            label = "Max. Werkzeugschritte pro Anfrage",
-            value = s.maxAgentSteps.toString(),
-            options = listOf("10", "20", "30", "50", "100"),
-            onSelect = { v -> c.settings.update { it.copy(maxAgentSteps = v.toInt()) } },
-        )
-        SwitchRow(
-            "Danach automatisch weitermachen",
-            "Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens ${AgentRunner.HARD_STEP_LIMIT} Schritte). " +
-                "Wiederholt er immer dieselbe Aktion, hält er an.",
-            s.autoContinue,
-        ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         val thinking = ThinkingLevel.parse(s.thinkingLevel)
         DropdownField(
             label = "Denkstufe (Reasoning)",
@@ -459,23 +374,47 @@ private fun ChatSection(c: AppContainer) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        DropdownField("Bild-Modell", s.imageModel, models.ofType(ModelType.IMAGE).map { it.id }, { v -> c.settings.update { it.copy(imageModel = v) } })
     }
     Section("Werkzeuge") {
         Text("Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung.", style = MaterialTheme.typography.bodySmall)
         SwitchRow(
             "Dokumente erstellen",
-            "PDF-, Word-, PowerPoint-, HTML-, Markdown- und Textdateien, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung und Logo.",
+            "PDF, Word, PowerPoint, OPAL-Tests, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung, Logo und Barrierefreiheit.",
             s.documentTools,
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(
-            "Websuche & Webseiten",
-            "Im Web und nach Nachrichten suchen, Links abrufen und lesen.",
+            "Websuche, Webseiten & Quellen-Check",
+            "Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.",
             s.webTools,
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
+    Section("Agent") {
+        DropdownField(
+            label = "Max. Werkzeugschritte pro Anfrage",
+            value = s.maxAgentSteps.toString(),
+            options = listOf("10", "20", "30", "50", "100"),
+            onSelect = { v -> c.settings.update { it.copy(maxAgentSteps = v.toInt()) } },
+        )
+        SwitchRow(
+            "Danach automatisch weitermachen",
+            "Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens ${AgentRunner.HARD_STEP_LIMIT} Schritte). " +
+                "Wiederholt er immer dieselbe Aktion, hält er an.",
+            s.autoContinue,
+        ) { v -> c.settings.update { it.copy(autoContinue = v) } }
+    }
     Section("Freigaben") { ApprovalModeOptions(c) }
     ReliabilitySection(c)
+    Section("Erweitert") {
+        OutlinedTextField(
+            value = s.systemPrompt,
+            onValueChange = { v -> c.settings.update { it.copy(systemPrompt = v) } },
+            label = { Text("Globaler System-Prompt (optional)") },
+            supportingText = { Text("Gilt in jedem Chat zusätzlich zu Persona und Projekt-Anweisungen.") },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        DropdownField("Bild-Modell", s.imageModel, models.ofType(ModelType.IMAGE).map { it.id }, { v -> c.settings.update { it.copy(imageModel = v) } })
+    }
     if (showModelPicker) {
         ModelPickerSheet(
             models = models.ofType(ModelType.CHAT),

@@ -75,7 +75,8 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                         "schätzen. Ausgabe mit print(...); der Wert des letzten Ausdrucks wird ebenfalls zurückgegeben. Angehängte " +
                         "Dateien stehen als Text in files[\"Name\"] (Liste: fileList). Hilfsfunktionen: parseCSV(text) → Liste von " +
                         "Objekten (Zahlen erkannt, auch Excel-Text mit Tabulatoren), sum, mean, median, sd (Stichprobe), round(x, n), " +
-                        "table(rows) → Markdown-Tabelle.",
+                        "column(rows, name), numbers(list) (nur Zahlen), describe(list) → {n, M, SD, Md, Min, Max}, freq(list) → " +
+                        "Häufigkeiten, percent(teil, gesamt), table(rows) → Markdown-Tabelle.",
                     listOf(Param("code", "JavaScript-Code (ES6)")),
                 )
             )
@@ -200,7 +201,8 @@ object Guides {
 
     private val DOCUMENT_WORDS = Regex(
         "dokument|pdf|word|docx|pptx|powerpoint|präsentation|praesentation|folie|brief|schreiben an|protokoll|formular|urkunde|" +
-            "bescheinigung|zertifikat|merkblatt|aushang|bericht|einladung|flyer|lebenslauf|rechnung|logo|ausfüllen|exportier|als datei|herunterladen",
+            "bescheinigung|zertifikat|merkblatt|aushang|bericht|einladung|flyer|lebenslauf|rechnung|logo|ausfüllen|exportier|als datei|herunterladen|" +
+            "opal|onyx|qti|quiz|multiple.choice|selbsttest|reisekosten|beleg|quittung|barrierefrei",
         RegexOption.IGNORE_CASE,
     )
 

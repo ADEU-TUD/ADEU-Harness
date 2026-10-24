@@ -73,6 +73,12 @@ data class AppSettings(
     val requestsPerMinute: Int = 0,
     /** What the model may note about the user: enum name of agent/MemoryMode. */
     val memoryMode: String = "ASK",
+    /** Replace personal details by placeholders before anything goes to a server (see data/Pseudonymizer). */
+    val pseudonymize: Boolean = false,
+    /** Also find names on their own (after Frau/Herr/Dr., frequent first names), not only the own list. */
+    val pseudonymAuto: Boolean = true,
+    /** Own names and terms that are always replaced, one per line (class lists, schools …). */
+    val pseudonymTerms: String = "",
     /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
     val closeToTray: Boolean = true,
 ) {
@@ -165,6 +171,9 @@ class SettingsStore(context: Context) {
             .putString("fallbackModel", next.fallbackModel)
             .putInt("requestsPerMinute", next.requestsPerMinute)
             .putString("memoryMode", next.memoryMode)
+            .putBoolean("pseudonymize", next.pseudonymize)
+            .putBoolean("pseudonymAuto", next.pseudonymAuto)
+            .putString("pseudonymTerms", next.pseudonymTerms)
             .putBoolean("closeToTray", next.closeToTray)
             .apply()
     }
@@ -212,6 +221,9 @@ class SettingsStore(context: Context) {
             fallbackModel = prefs.getString("fallbackModel", d.fallbackModel) ?: d.fallbackModel,
             requestsPerMinute = prefs.getInt("requestsPerMinute", d.requestsPerMinute),
             memoryMode = prefs.getString("memoryMode", d.memoryMode) ?: d.memoryMode,
+            pseudonymize = prefs.getBoolean("pseudonymize", d.pseudonymize),
+            pseudonymAuto = prefs.getBoolean("pseudonymAuto", d.pseudonymAuto),
+            pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,
             closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
         )
     }

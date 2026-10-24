@@ -253,6 +253,39 @@ object TemplateLibrary {
                 "Am Ende eine Übersicht | Aufgabe | Thema | Anforderungsbereich | Punkte |. " + ACADEMIC + HONEST,
         ),
         prompt(
+            TemplateCategory.TEACHING, "teach_quiz", "Test für OPAL (ONYX)", "Quiz oder Selbsttest zum Import in OPAL – als QTI-Datei",
+            """
+            Inhalte: {{Inhalte|Themen, Lernziele oder Sitzungsfolien – oder Datei anhängen}}
+            Fragen: {{Fragen|z.B. 10 Fragen: 6 Einfachauswahl, 2 Mehrfachauswahl, 2 Freitext}}
+            Zweck: {{Zweck|z.B. Selbsttest zur Sitzung, Eingangstest, Klausurvorbereitung}}
+            Niveau: {{Niveau|optional, z.B. Bachelor 3. Semester, Schwerpunkt Anwenden}}
+            """,
+            "Erstelle einen Test, der sich in OPAL importieren lässt: create_document mit format=qti (Aufbau siehe Anleitung " +
+                "„dokumente“). Fragen eindeutig formuliert, je Frage genau die markierten Optionen richtig, plausible " +
+                "Distraktoren aus typischen Fehlvorstellungen, keine „alle/keine der genannten“-Optionen, Antwortoptionen " +
+                "etwa gleich lang. Zu jeder geschlossenen Frage ein kurzes „Feedback:“ mit der Begründung, zu Freitextfragen " +
+                "eine „Erwartung:“. Nenne danach im Chat kurz die Fragen mit Lösung als Übersicht und biete ein Lösungsblatt " +
+                "als PDF an. " + ACADEMIC + HONEST,
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_evaluation", "Lehrevaluation auswerten", "Ergebnisse und Freitexte als Bericht – Export-Datei anhängen",
+            """
+            Lehrveranstaltung: {{Lehrveranstaltung|Titel, Semester}}
+            Teilnehmende: {{Teilnehmende|optional, z.B. 48 eingeschrieben}}
+            Skala: {{Skala|optional, z.B. 1 = trifft voll zu … 5 = trifft gar nicht zu}}
+            Besonders interessiert: {{Fokus|optional, z.B. Arbeitsbelastung, Prüfungsvorbereitung, Online-Anteile}}
+            """,
+            "Werte die angehängte Lehrevaluation aus (CSV, Excel oder PDF des Evaluationsberichts). Bei Tabellen rechne mit " +
+                "run_javascript (parseCSV, column, describe, freq, percent) – keine geschätzten Zahlen. Achte auf die Richtung der " +
+                "Skala. 1. Rücklauf (n, Quote, falls Teilnehmende bekannt). 2. Kennwerte je Item als Tabelle | Item | n | M | " +
+                "SD | Zustimmung in % |, sortiert nach Bereichen. 3. Stärken und Entwicklungsfelder (die drei besten und " +
+                "schwächsten Items). 4. Freitexte: Themen bilden, je Thema Anzahl der Nennungen und ein typisches, " +
+                "unverändertes Zitat ohne Namen; Lob und Kritik getrennt. 5. Drei bis fünf konkrete Maßnahmen für das " +
+                "nächste Semester. 6. Ein kurzer Text für die Rückmeldung an die Studierenden (z.B. für OPAL). Erstelle " +
+                "daraus mit create_document einen Bericht mit style=tud. Interpretiere vorsichtig (kleine n, Selektion), " +
+                "keine Rückschlüsse auf einzelne Personen. Ist keine Datei angehängt, bitte darum. " + ACADEMIC + HONEST,
+        ),
+        prompt(
             TemplateCategory.TEACHING, "teach_rubric", "Bewertungsraster", "Kriterien und Niveaustufen für Hausarbeit, Referat, Portfolio",
             """
             Leistung: {{Leistung|z.B. Hausarbeit, Referat, Portfolio, Unterrichtsentwurf}}
@@ -516,6 +549,19 @@ object TemplateLibrary {
                 "die Notizen der begutachtenden Person. Konstruktiv, respektvoll, konkret. " + ACADEMIC + HONEST,
         ),
 
+        prompt(
+            TemplateCategory.RESEARCH, "res_refcheck", "Literaturangaben prüfen", "Gibt es die Quellen wirklich? Abgleich mit Crossref & Co.",
+            """
+            Literatur: {{Literatur|Literaturverzeichnis einfügen oder Arbeit als Datei anhängen}}
+            Zitierstil: {{Zitierstil|optional, z.B. APA 7, DGfE}}
+            """,
+            "Prüfe die Literaturangaben mit check_references (bei langen Verzeichnissen in Blöcken zu höchstens 40 Angaben). " +
+                "Gib danach eine Tabelle | Nr. | Angabe (kurz) | Ergebnis | Korrektur / Hinweis | aus: bestätigt, abweichend " +
+                "(mit korrigierter Angabe nach dem gefundenen Eintrag), nicht gefunden (möglicherweise erfunden oder graue " +
+                "Literatur – von Hand prüfen). Prüfe zusätzlich die Formatierung nach dem gewünschten Zitierstil. Ändere " +
+                "keine Angaben ohne Beleg aus der Prüfung. " + ACADEMIC,
+        ),
+
         // ── Kommunikation ─────────────────────────────────────────────────────────────────────────────────────
         prompt(
             TemplateCategory.COMMUNICATION, "mail", "E-Mail schreiben", "Klare, höfliche E-Mail mit Betreff und Signatur",
@@ -577,6 +623,33 @@ object TemplateLibrary {
                 "mit fill_pdf (flatten=true nur, wenn „Abflachen: ja“). Datumsangaben im Format TT.MM.JJJJ. Fehlen " +
                 "Pflichtangaben, frage zuerst nach. Unterschriftsfelder bleiben leer. Danach eine kurze Tabelle | Feld | " +
                 "eingetragen | und eine Liste offener Felder. Ist kein PDF angehängt, bitte darum. " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.GENERAL, "travel_expenses", "Reisekosten aus Belegen", "Belege fotografieren – Aufstellung und Formular ausfüllen",
+            """
+            Dienstreise: {{Dienstreise|Anlass, Ziel, Zeitraum mit Uhrzeiten, z.B. Tagung GEBF in Halle, 10.–12.03.2027}}
+            Meine Angaben: {{Meine Angaben|Name, Personalnummer, Kostenstelle/Projekt – aus den Einstellungen}}
+            Hinweise: {{Hinweise|optional, z.B. Bahncard 50, Frühstück im Hotelpreis enthalten, Privatanteil}}
+            """,
+            "Lies die angehängten Belegfotos bzw. -PDFs (Fahrkarten, Hotelrechnung, Tagungsgebühr, Taxi, ÖPNV …) genau aus: " +
+                "je Beleg Datum, Art, Anbieter, Betrag brutto, Währung und ob er lesbar ist. Erstelle eine Tabelle | Nr. | Datum " +
+                "| Art | Anbieter | Betrag | Hinweis |, rechne die Summen je Art und gesamt mit run_javascript und markiere " +
+                "unleserliche oder fehlende Belege (z.B. Rückfahrt). Weise auf Abzüge hin, die üblich sind (z.B. enthaltenes " +
+                "Frühstück, Mahlzeiten bei Tagungen), ohne Pauschalen oder Erstattungsbeträge zu erfinden – maßgeblich ist das " +
+                "Sächsische Reisekostengesetz bzw. die Reisekostenstelle. Ist zusätzlich das Antrags- oder Abrechnungsformular " +
+                "als PDF angehängt, fülle es mit read_pdf_form und fill_pdf aus; Unterschriftsfelder bleiben leer. Sonst erstelle " +
+                "die Aufstellung als PDF mit style=tud (Belegliste zum Beifügen). Beträge nur aus den Belegen. " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.GENERAL, "accessibility", "Barrierefreiheit prüfen", "Ist das Dokument für Screenreader nutzbar? – PDF anhängen",
+            """
+            Dokument: {{Dokument|PDF anhängen oder Namen eines erstellten Dokuments nennen}}
+            Verwendung: {{Verwendung|optional, z.B. OPAL-Kurs, Website, Prüfungsunterlage}}
+            """,
+            "Prüfe das Dokument mit check_accessibility. Erkläre die Ergebnisse verständlich (was bedeutet der Mangel für " +
+                "Menschen mit Screenreader, Sehbeeinträchtigung oder Leseschwierigkeiten) und nenne je Mangel die konkrete " +
+                "Abhilfe in Word, PowerPoint oder Acrobat. Biete an, den Inhalt als barrierearmes Word-Dokument neu zu " +
+                "erstellen (Überschriften, Alternativtexte, Tabellenköpfe, Sprache sind dort gesetzt). " + ACADEMIC,
         ),
         prompt(
             TemplateCategory.GENERAL, "summary", "Zusammenfassen", "Kernaussagen eines Textes oder einer Datei",

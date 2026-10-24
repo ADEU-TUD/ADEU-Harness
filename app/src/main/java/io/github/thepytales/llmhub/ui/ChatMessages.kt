@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -414,7 +415,9 @@ fun AssistantMessage(
         }
         if (item.turnEnd && !(running && item.isLast)) {
             var more by remember { mutableStateOf(false) }
+            var checkSources by remember { mutableStateOf(false) }
             val text = item.turnText
+            if (checkSources) ReferenceCheckDialog(io.github.thepytales.llmhub.App.container, text, onDismiss = { checkSources = false })
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (text.isNotBlank()) {
                     ActionIcon(Icons.Outlined.ContentCopy, "Kopieren") { clipboard.setText(AnnotatedString(text)) }
@@ -433,6 +436,13 @@ fun AssistantMessage(
                                 text = { Text("Als Dokument exportieren") },
                                 leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null) },
                                 onClick = { more = false; onExport(text) },
+                            )
+                        }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
+                                text = { Text("Quellen prüfen") },
+                                leadingIcon = { Icon(Icons.Outlined.FactCheck, contentDescription = null) },
+                                onClick = { more = false; checkSources = true },
                             )
                         }
                         if (item.question != null) {
@@ -552,6 +562,16 @@ private fun toolLabel(name: String) = when (name) {
     "list_files" -> "Dateien auflisten"
     "write_file", "edit_file" -> "Datei ändern"
     "search_code" -> "Code durchsuchen"
+    "edit_document" -> "Dokument ändern"
+    "check_references" -> "Quellen prüfen"
+    "check_accessibility" -> "Barrierefreiheit prüfen"
+    "run_javascript" -> "Rechnen"
+    "search_knowledge" -> "Wissenssammlung durchsuchen"
+    "read_pdf_form" -> "Formular lesen"
+    "fill_pdf" -> "PDF ausfüllen"
+    "create_email_draft" -> "E-Mail-Entwurf"
+    "create_calendar_event" -> "Termin anlegen"
+    "read_guide" -> "Anleitung lesen"
     else -> name
 }
 

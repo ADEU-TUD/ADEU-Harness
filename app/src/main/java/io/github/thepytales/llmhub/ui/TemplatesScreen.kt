@@ -89,9 +89,8 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             header = {
                 item(key = "intro") {
                     Text(
-                        "Vorlage wählen, Felder ausfüllen, senden – die Anweisungen an das Modell schickt die App unsichtbar mit. " +
-                            "Personas legen fest, wie sich das Modell im ganzen Chat verhält. Mit dem Stern landen Vorlagen als " +
-                            "Favoriten auf dem Startbildschirm. Im Chat: „+“ › Vorlagen.",
+                        "Vorlage antippen, Formular ausfüllen, senden. ★ zeigt eine Vorlage auf dem Startbildschirm; " +
+                            "Personas gelten für den ganzen Chat.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

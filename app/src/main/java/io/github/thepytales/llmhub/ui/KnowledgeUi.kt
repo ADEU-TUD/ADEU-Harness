@@ -143,7 +143,7 @@ fun KnowledgeSection(c: AppContainer) {
         SettingsHint(
             "Eigene Dokumente, die das Modell in jedem Chat durchsuchen kann – z.B. Modulhandbuch, Prüfungsordnung, " +
                 "Leitfäden oder Literatur (PDF, Word, Text …). Es liest nicht alles auf einmal, sondern sucht die passenden Stellen " +
-                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Ordner › Projekt bearbeiten)."
+                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Anweisungen & Dateien)."
         )
         KnowledgeList(c, "")
     }

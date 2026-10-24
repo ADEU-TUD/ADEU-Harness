@@ -26,7 +26,7 @@ object SelfTest {
     private val routes = listOf(
         "models", "images", "compare", "templates", "tasks", "task/new", "usage", "environments", "environment/new",
         "settings", "settings/api", "settings/github", "settings/chat", "settings/appearance", "settings/voice",
-        "settings/documents", "settings/windows", "settings/memory", "settings/knowledge", "settings/backup",
+        "settings/documents", "settings/windows", "settings/privacy", "settings/memory", "settings/knowledge", "settings/backup",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

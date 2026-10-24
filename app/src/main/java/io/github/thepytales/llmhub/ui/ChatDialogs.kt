@@ -99,14 +99,14 @@ fun FolderPickerDialog(c: AppContainer, current: String?, onPick: (String?) -> U
     var creating by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("In Ordner verschieben") },
+        title = { Text("In Projekt verschieben") },
         text = {
             Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                 ListItem(
                     colors = transparentItem(),
                     modifier = Modifier.clickable { onPick(null); onDismiss() },
                     leadingContent = { Icon(Icons.Outlined.FolderOff, contentDescription = null) },
-                    headlineContent = { Text("Kein Ordner") },
+                    headlineContent = { Text("Kein Projekt") },
                     trailingContent = { if (current == null) Icon(Icons.Outlined.Check, contentDescription = null) },
                 )
                 folders.sortedBy { it.name.lowercase() }.forEach { f ->
@@ -122,14 +122,14 @@ fun FolderPickerDialog(c: AppContainer, current: String?, onPick: (String?) -> U
                     colors = transparentItem(),
                     modifier = Modifier.clickable { creating = true },
                     leadingContent = { Icon(Icons.Outlined.CreateNewFolder, contentDescription = null) },
-                    headlineContent = { Text("Neuer Ordner …") },
+                    headlineContent = { Text("Neues Projekt …") },
                 )
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
     )
     if (creating) {
-        TextInputDialog("Neuer Ordner", "", "Name", confirm = "Erstellen", onConfirm = { name ->
+        TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { name ->
             val folder = Folder(name = name)
             c.folders.upsert(folder)
             onPick(folder.id)

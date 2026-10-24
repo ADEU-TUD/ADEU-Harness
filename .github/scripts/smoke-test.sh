@@ -53,7 +53,7 @@ adb shell am start -W -n "$PKG/.MainActivity"
 check "start" 12
 
 for route in drawer settings settings/api settings/github settings/chat settings/appearance settings/voice \
-  settings/documents settings/memory settings/knowledge settings/backup environments environment/new templates tasks task/new usage compare models images chat; do
+  settings/documents settings/privacy settings/memory settings/knowledge settings/backup environments environment/new templates tasks task/new usage compare models images chat; do
   adb shell am start -n "$PKG/.MainActivity" --es route "$route" > /dev/null
   check "$route" 5
 done

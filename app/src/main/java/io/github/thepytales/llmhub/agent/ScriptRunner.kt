@@ -64,6 +64,11 @@ object ScriptRunner {
         function median(a) { var s = a.map(Number).sort(function(x, y) { return x - y; }); var m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
         function sd(a) { var m = mean(a); return Math.sqrt(sum(a.map(function(x) { return (x - m) * (x - m); })) / (a.length - 1)); }
         function round(x, n) { var f = Math.pow(10, n || 0); return Math.round(x * f) / f; }
+        function numbers(a) { return a.filter(function(x) { return x !== null && x !== undefined && String(x).trim() !== ''; }).map(function(x) { return typeof x === 'number' ? x : Number(String(x).replace(',', '.')); }).filter(function(x) { return x === x; }); }
+        function freq(a) { var f = {}; a.forEach(function(x) { var k = (x === undefined || x === null || String(x).trim() === '') ? '(leer)' : String(x).trim(); f[k] = (f[k] || 0) + 1; }); return f; }
+        function percent(part, total, n) { return total ? round(100 * part / total, n === undefined ? 1 : n) : 0; }
+        function column(rows, name) { return rows.map(function(r) { return r[name]; }); }
+        function describe(a) { var v = numbers(a); return { n: v.length, M: round(mean(v), 2), SD: round(sd(v), 2), Md: median(v), Min: Math.min.apply(null, v), Max: Math.max.apply(null, v) }; }
         function table(rows) { if (!rows.length) return ''; var h = Object.keys(rows[0]); return '| ' + h.join(' | ') + ' |\n|' + h.map(function() { return ' --- '; }).join('|') + '|\n' + rows.map(function(r) { return '| ' + h.map(function(k) { return String(r[k]); }).join(' | ') + ' |'; }).join('\n'); }
     """
 

@@ -53,6 +53,13 @@ class WebTools(http: OkHttpClient) : ToolProvider {
                 Param("body", "Optionaler Request-Body (z.B. JSON)", required = false),
             ),
         ),
+        ToolDef(
+            "check_references",
+            "Prüft Literaturangaben gegen Crossref, OpenAlex und Google Books: Gibt es das Werk, stimmen Autor:innen, Jahr, " +
+                "Titel und DOI? Rufe es auf, bevor du Literatur nennst oder ein Literaturverzeichnis schreibst, und wenn der " +
+                "Nutzer Quellen (auch aus einem angehängten Text) prüfen lassen möchte. Höchstens ${ReferenceCheck.MAX_REFERENCES} Angaben pro Aufruf.",
+            listOf(Param("references", "Die Literaturangaben, je Zeile eine vollständige Angabe (z.B. APA: Autor, A. (Jahr). Titel. Zeitschrift, DOI)")),
+        ),
     )
 
     override fun risk(name: String, args: JsonObject) =
@@ -64,6 +71,7 @@ class WebTools(http: OkHttpClient) : ToolProvider {
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput {
         val out = when (name) {
             "fetch_url" -> fetch(args, ctx)
+            "check_references" -> checkReferences(args.req("references"), ctx)
             "web_search" -> webSearch(args.req("query"), (args.int("max_results") ?: 8).coerceIn(1, 20), ctx)
             "news_search" -> newsSearch(
                 args.req("query"), args.s("language")?.lowercase()?.take(2) ?: "de",
@@ -72,6 +80,15 @@ class WebTools(http: OkHttpClient) : ToolProvider {
             else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
         }
         return ctx.env?.let { env -> out.copy(text = env.mask(out.text)) } ?: out
+    }
+
+    private suspend fun checkReferences(text: String, ctx: RepoContext): ToolOutput {
+        val refs = ReferenceCheck.extract(text).ifEmpty {
+            text.lines().map { it.trim() }.filter { it.length >= 20 }.take(ReferenceCheck.MAX_REFERENCES)
+        }
+        if (refs.isEmpty()) return ToolOutput("FEHLER: Keine Literaturangaben erkannt. Gib je Zeile eine vollständige Angabe an.")
+        val results = ReferenceCheck.check(client, refs) { url -> checkAllowed(url, ctx) == null }
+        return ToolOutput(ReferenceCheck.report(results))
     }
 
     private fun checkAllowed(url: HttpUrl, ctx: RepoContext): String? {
@@ -209,7 +226,9 @@ class WebTools(http: OkHttpClient) : ToolProvider {
         private val RSS_ITEM = Regex("<item>([\\s\\S]*?)</item>", RegexOption.IGNORE_CASE)
 
         const val PROMPT = "Mit web_search kannst du im Web suchen, mit news_search aktuelle Nachrichten finden und mit " +
-            "fetch_url Webseiten lesen (z. B. Links des Nutzers). Nenne bei Fakten aus dem Web die Quelle mit Link."
+            "fetch_url Webseiten lesen (z. B. Links des Nutzers). Nenne bei Fakten aus dem Web die Quelle mit Link. " +
+            "Literaturangaben prüfst du mit check_references, bevor du sie nennst – erfinde nie Quellen; was nicht bestätigt " +
+            "ist, kennzeichnest du als ungeprüft."
 
         fun htmlToText(html: String): String {
             val s = html
