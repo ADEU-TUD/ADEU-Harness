@@ -9,10 +9,14 @@ import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
+import io.github.thepytales.llmhub.docs.CalendarEvent
+import io.github.thepytales.llmhub.docs.CalendarFiles
 import io.github.thepytales.llmhub.docs.DocumentSources
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.Letter
 import io.github.thepytales.llmhub.docs.LetterBuilder
+import io.github.thepytales.llmhub.docs.MailDraft
+import io.github.thepytales.llmhub.docs.MailFiles
 import io.github.thepytales.llmhub.docs.Placeholders
 import io.github.thepytales.llmhub.docs.PdfForms
 import io.github.thepytales.llmhub.docs.PdfText
@@ -83,6 +87,29 @@ class DocumentTools(
             ),
         ),
         ToolDef(
+            "create_email_draft",
+            "Legt einen E-Mail-Entwurf an, den der Nutzer in seiner Mail-App öffnet, prüft und selbst sendet (die App sendet " +
+                "nichts). Für fertig formulierte Mails an Studierende, Kolleg:innen oder Ämter.",
+            listOf(
+                Param("to", "Empfängeradresse(n), mit Komma getrennt (leer lassen, wenn unbekannt)", required = false),
+                Param("subject", "Betreff"),
+                Param("body", "Text der Mail mit Anrede und Gruß, ohne Markdown"),
+                Param("cc", "Kopie an (optional)", required = false),
+            ),
+        ),
+        ToolDef(
+            "create_calendar_event",
+            "Erstellt einen Kalendertermin (.ics), den der Nutzer mit einem Tipp in seinen Kalender übernimmt.",
+            listOf(
+                Param("title", "Titel des Termins"),
+                Param("start", "Beginn, z.B. 2026-11-03 14:00 (nur Datum = ganztägig)"),
+                Param("end", "Ende, z.B. 2026-11-03 15:30 (Standard: eine Stunde nach Beginn)", required = false),
+                Param("location", "Ort oder Link (optional)", required = false),
+                Param("description", "Beschreibung (optional)", required = false),
+                Param("reminder_minutes", "Erinnerung so viele Minuten vorher (optional)", required = false, type = "integer"),
+            ),
+        ),
+        ToolDef(
             "read_pdf_form",
             "Liest ein vom Nutzer angehängtes PDF-Formular: die ausfüllbaren Felder mit Typ, erlaubten Werten und " +
                 "Beschriftung – oder bei PDFs ohne Felder die Textzeilen mit Position, um Text daneben zu setzen. Vor fill_pdf aufrufen.",
@@ -120,6 +147,8 @@ class DocumentTools(
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = when (name) {
         "create_document" -> create(args)
         "edit_document" -> edit(args)
+        "create_email_draft" -> emailDraft(args)
+        "create_calendar_event" -> calendarEvent(args)
         "save_logo" -> saveLogo(args, ctx)
         "read_pdf_form" -> readPdfForm(args, ctx)
         "fill_pdf" -> fillPdf(args, ctx)
@@ -238,6 +267,44 @@ class DocumentTools(
             if (built.title.isNotEmpty()) put("file_name", "Brief – " + built.title.take(60))
         }
         return args to create(args, checks = false)
+    }
+
+    private fun newFile(base: String, ext: String): File {
+        folder.mkdirs()
+        val name = DocumentWriter.safeName(base)
+        var f = File(folder, "$name.$ext")
+        var n = 2
+        while (f.exists()) f = File(folder, "$name ($n).$ext").also { n++ }
+        return f
+    }
+
+    private suspend fun emailDraft(args: JsonObject): ToolOutput {
+        val draft = MailDraft(args.s("to").orEmpty(), args.s("cc").orEmpty(), args.req("subject"), args.req("body"))
+        val file = newFile("E-Mail – " + draft.subject.take(60), "eml")
+        withContext(Dispatchers.IO) { MailFiles.write(file, draft) }
+        return ToolOutput(
+            "E-Mail-Entwurf erstellt (${file.name}). Der Nutzer öffnet ihn mit einem Tipp in seiner Mail-App und sendet selbst – " +
+                "sag ihm das kurz, ohne den Text zu wiederholen.",
+            file = file.absolutePath,
+        )
+    }
+
+    private suspend fun calendarEvent(args: JsonObject): ToolOutput {
+        val (start, allDay) = CalendarFiles.parse(args.req("start"))
+            ?: return ToolOutput("FEHLER: Beginn „${args.s("start")}“ nicht verstanden. Format: 2026-11-03 14:00 oder 2026-11-03.")
+        val end = args.s("end")?.let { CalendarFiles.parse(it)?.first } ?: if (allDay) start else start.plusHours(1)
+        if (end.isBefore(start)) return ToolOutput("FEHLER: Das Ende liegt vor dem Beginn.")
+        val event = CalendarEvent(
+            args.req("title"), start, end, allDay, args.s("location").orEmpty(), args.s("description").orEmpty(), args.int("reminder_minutes"),
+        )
+        val file = newFile("Termin – " + event.title.take(60), "ics")
+        withContext(Dispatchers.IO) { CalendarFiles.write(file, event) }
+        val day = java.time.format.DateTimeFormatter.ofPattern(if (allDay) "EEEE, d. MMMM yyyy" else "EEEE, d. MMMM yyyy, HH:mm 'Uhr'", java.util.Locale.GERMANY)
+        return ToolOutput(
+            "Termin erstellt: ${event.title}, ${start.format(day)}${if (!allDay) " bis " + end.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) + " Uhr" else ""}. " +
+                "Der Nutzer übernimmt ihn mit einem Tipp in seinen Kalender.",
+            file = file.absolutePath,
+        )
     }
 
     /** The newest document with a stored source, or the one named [name]. */
@@ -392,6 +459,7 @@ class DocumentTools(
         append("Ton: sachlich und förmlich, keine Emojis. Für Briefe letter_sender (Infoblock: Name, Telefon: …, E-Mail: …) und ")
         append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
+        append("E-Mails, die der Nutzer selbst senden soll: create_email_draft; Termine: create_calendar_event. ")
         append("Teilnahmebescheinigungen, Zertifikate und Urkunden: Markdown mit layout=urkunde. ")
         append(PPTX_HELP)
         append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")

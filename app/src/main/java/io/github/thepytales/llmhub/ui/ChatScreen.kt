@@ -187,6 +187,29 @@ fun ChatScreen(
     }
 
     LaunchedEffect(Unit) {
+        // Shared from another app: a new chat gets the text in the input field and the files as attachments.
+        if (vm.state.value?.messages.isNullOrEmpty()) {
+            MainActivity.shared.value?.let { shared ->
+                MainActivity.shared.value = null
+                if (shared.text.isNotBlank()) input = if (input.isBlank()) shared.text else input + "\n\n" + shared.text
+                shared.uris.forEach { uri ->
+                    val mime = context.contentResolver.getType(uri).orEmpty()
+                    if (mime.startsWith("image/")) {
+                        encodeImage(context, uri)?.let { images.add(it) }
+                    } else {
+                        loadingFiles++
+                        val r = AttachmentReader.read(context, uri)
+                        loadingFiles--
+                        r.file?.let { files.add(it) }
+                        images.addAll(r.images)
+                        (r.error ?: r.note)?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
         // A chat started from the template library opens with that template.
         if (!startTemplateShown) {
             startTemplateShown = true

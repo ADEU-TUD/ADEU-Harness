@@ -47,6 +47,7 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.Button
@@ -115,6 +116,8 @@ sealed interface ChatItem {
         val question: ChatMessage?,
         val turnText: String,
         val isLast: Boolean,
+        /** All messages of the turn including tool results, for the agent protocol (set on the turn end). */
+        val turn: List<ChatMessage> = emptyList(),
     ) : ChatItem {
         override val key get() = m.id
     }
@@ -154,9 +157,22 @@ fun chatItems(conv: Conversation): List<ChatItem> {
             }
         }
     }
+    // Messages of each turn (answers and tool results) by the first answer of the turn.
+    val turns = mutableMapOf<String, MutableList<ChatMessage>>()
+    var turnHead: String? = null
+    for (m in thread) {
+        when (m.role) {
+            "user" -> turnHead = null
+            "assistant", "tool" -> {
+                val h = turnHead ?: m.id.also { turnHead = it }
+                turns.getOrPut(h) { mutableListOf() } += m
+            }
+        }
+    }
     return out.map { item ->
-        if (item is ChatItem.Assistant && item.turnEnd) item.copy(turnText = turnParts[item.head.id].orEmpty().joinToString("\n\n"))
-        else item
+        if (item is ChatItem.Assistant && item.turnEnd) {
+            item.copy(turnText = turnParts[item.head.id].orEmpty().joinToString("\n\n"), turn = turns[item.head.id].orEmpty())
+        } else item
     }
 }
 
@@ -407,6 +423,9 @@ fun AssistantMessage(
                     ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
                 }
                 if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
+                var protocol by remember { mutableStateOf(false) }
+                if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
+                if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false })
                 Box {
                     ActionIcon(Icons.Outlined.MoreHoriz, "Mehr") { more = true }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {

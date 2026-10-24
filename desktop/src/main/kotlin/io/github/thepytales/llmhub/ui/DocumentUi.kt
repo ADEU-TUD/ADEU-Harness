@@ -105,7 +105,7 @@ fun DocumentCard(path: String) {
                 Column(Modifier.weight(1f)) {
                     Text(file.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        if (exists) "${format.label} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
+                        if (exists) "${when (file.extension.lowercase()) { "eml" -> "E-Mail-Entwurf"; "ics" -> "Kalendertermin"; else -> format.label }} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

@@ -19,6 +19,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // JavaScript sandbox for exact calculations and data analysis (run_javascript).
+    implementation("org.mozilla:rhino:1.7.15")
     // Reading attached PDFs (text and scanned pages), page count of generated PDFs.
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
     // HTML/CSS → PDF when neither Edge nor Chrome is available.

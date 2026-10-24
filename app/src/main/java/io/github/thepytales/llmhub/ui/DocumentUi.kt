@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.CalendarContract
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,7 +52,9 @@ import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.docs.CalendarFiles
 import io.github.thepytales.llmhub.docs.DocFormat
+import io.github.thepytales.llmhub.docs.MailFiles
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.data.thread
@@ -72,6 +75,48 @@ fun openDocument(context: Context, file: File) {
     } catch (e: ActivityNotFoundException) {
         Toast.makeText(context, "Keine App zum Öffnen von ${file.extension.uppercase()}-Dateien gefunden.", Toast.LENGTH_LONG).show()
     }
+}
+
+/** Opens the mail app with the draft filled in (the user sends it there). */
+fun openMailDraft(context: Context, file: File) {
+    val d = MailFiles.read(file) ?: return Toast.makeText(context, "Entwurf nicht lesbar.", Toast.LENGTH_SHORT).show()
+    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
+        .putExtra(Intent.EXTRA_EMAIL, d.to.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
+        .putExtra(Intent.EXTRA_CC, d.cc.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
+        .putExtra(Intent.EXTRA_SUBJECT, d.subject)
+        .putExtra(Intent.EXTRA_TEXT, d.body)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "Keine Mail-App gefunden.", Toast.LENGTH_LONG).show()
+    }
+}
+
+/** Opens the calendar app with the event filled in. */
+fun addToCalendar(context: Context, file: File) {
+    val e = CalendarFiles.read(file) ?: return Toast.makeText(context, "Termin nicht lesbar.", Toast.LENGTH_SHORT).show()
+    val intent = Intent(Intent.ACTION_INSERT)
+        .setData(CalendarContract.Events.CONTENT_URI)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, CalendarFiles.millis(e.start))
+        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, CalendarFiles.millis(if (e.allDay) e.end.plusDays(if (e.end == e.start) 1 else 0) else e.end))
+        .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, e.allDay)
+        .putExtra(CalendarContract.Events.TITLE, e.title)
+        .putExtra(CalendarContract.Events.EVENT_LOCATION, e.location)
+        .putExtra(CalendarContract.Events.DESCRIPTION, e.description)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(intent)
+    } catch (ex: ActivityNotFoundException) {
+        openDocument(context, file)
+    }
+}
+
+/** Readable kind of a file in the document card. */
+fun fileKindLabel(file: File, format: DocFormat) = when (file.extension.lowercase()) {
+    "eml" -> "E-Mail-Entwurf"
+    "ics" -> "Kalendertermin"
+    else -> format.label
 }
 
 fun shareDocument(context: Context, file: File) {
@@ -130,7 +175,7 @@ fun DocumentCard(path: String) {
                 Column(Modifier.weight(1f)) {
                     Text(file.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        if (exists) "${format.label} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
+                        if (exists) "${fileKindLabel(file, format)} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -138,10 +183,17 @@ fun DocumentCard(path: String) {
             }
             if (exists) {
                 Row {
-                    TextButton(onClick = { openDocument(context, file) }) {
+                    val ext = file.extension.lowercase()
+                    TextButton(onClick = {
+                        when (ext) {
+                            "eml" -> openMailDraft(context, file)
+                            "ics" -> addToCalendar(context, file)
+                            else -> openDocument(context, file)
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
-                        Text("Öffnen")
+                        Text(when (ext) { "eml" -> "In Mail-App"; "ics" -> "Zum Kalender"; else -> "Öffnen" })
                     }
                     TextButton(onClick = { shareDocument(context, file) }) {
                         Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(16.dp))

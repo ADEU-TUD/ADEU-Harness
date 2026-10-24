@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -68,6 +69,18 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
             }
             add(
                 ToolDef(
+                    "run_javascript",
+                    "Führt JavaScript in einer abgeschotteten Umgebung aus (ohne Internet und Dateizugriff, Zeitlimit 10 s) – für " +
+                        "exakte Berechnungen, Statistik, Datumsrechnungen und Auswertungen von Tabellen. Rechne damit, statt Zahlen zu " +
+                        "schätzen. Ausgabe mit print(...); der Wert des letzten Ausdrucks wird ebenfalls zurückgegeben. Angehängte " +
+                        "Dateien stehen als Text in files[\"Name\"] (Liste: fileList). Hilfsfunktionen: parseCSV(text) → Liste von " +
+                        "Objekten (Zahlen erkannt, auch Excel-Text mit Tabulatoren), sum, mean, median, sd (Stichprobe), round(x, n), " +
+                        "table(rows) → Markdown-Tabelle.",
+                    listOf(Param("code", "JavaScript-Code (ES6)")),
+                )
+            )
+            add(
+                ToolDef(
                     "add_to_knowledge",
                     "Nimmt eine im Chat angehängte Datei in die Wissenssammlung auf, damit sie in künftigen Chats durchsucht " +
                         "werden kann – im Projekt dieses Chats oder allgemein. Nur auf Wunsch des Nutzers.",
@@ -82,7 +95,7 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     override fun risk(name: String, args: JsonObject): Risk? =
         if (name in setOf("remember", "forget") && memoryMode == MemoryMode.ASK) Risk.PUBLIC else null
 
-    override fun parallelSafe(name: String) = name == "read_guide" || name == "search_knowledge"
+    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript")
 
     /** Memory and the existence of knowledge, for the system prompt (changes rarely, so the server cache holds). */
     fun prompt(conv: Conversation): String? {
@@ -125,6 +138,11 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
         }
         "search_knowledge" -> search(args.req("query"), (args.int("max_results") ?: 6).coerceIn(1, 15), ctx)
         "add_to_knowledge" -> addFromChat(args, ctx)
+        "run_javascript" -> {
+            val files = ctx.files.associate { it.name to it.text }
+            val r = withContext(Dispatchers.Default) { ScriptRunner.run(args.req("code"), files) }
+            ToolOutput(if (r.error == null) r.output else "FEHLER im Skript: ${r.error}" + if (r.output.isNotBlank()) "\nAusgabe bis dahin:\n${r.output}" else "")
+        }
         else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
     }
 
