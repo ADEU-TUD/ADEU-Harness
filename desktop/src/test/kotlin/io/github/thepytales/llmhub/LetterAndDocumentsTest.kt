@@ -121,3 +121,72 @@ class LetterAndDocumentsTest {
         assertEquals(listOf(AssistMode.TIDY, AssistMode.CUSTOM), AssistMode.of(t.fields.first { it.label == "Empfänger" }))
     }
 }
+
+class PresentationTest {
+    private val out = File("build/test-output").apply { mkdirs() }
+
+    val sample = """
+        # Classroom Management in der Sekundarstufe
+        ## Seminarsitzung 4 · Allgemeine Didaktik
+        Dominik Töpper · 24. Oktober 2026
+
+        ---
+        # Ablauf der Sitzung
+        1. Einstieg: Fallvignette (10 min)
+        2. Input: Dimensionen nach Kounin
+        3. Gruppenarbeit mit **Videoanalyse**
+        4. Sicherung und Ausblick
+        Notizen: Vignette vorlesen, dann Murmelgruppen.
+
+        ---
+        # Teil 2: Empirische Befunde
+
+        ---
+        # Dimensionen der Klassenführung
+        - Allgegenwärtigkeit (*withitness*)
+          - Lehrkraft signalisiert Überblick
+        - Überlappung
+        - Reibungslosigkeit und Schwung
+        |||
+        - Gruppenmobilisierung
+        - Abwechslung und Herausforderung
+
+        ---
+        # Befunde im Überblick
+        Effektstärken aus Metaanalysen:
+
+        | Merkmal | d | Quelle |
+        | --- | --- | --- |
+        | Klassenführung | 0,52 | Hattie 2009 |
+        | Regeln & Routinen | 0,76 | Marzano 2003 |
+
+        ---
+        > Gute Klassenführung ist die Voraussetzung, nicht der Inhalt guten Unterrichts.
+        > — nach Helmke
+    """.trimIndent()
+
+    @Test
+    fun slidesAreRecognised() {
+        val slides = io.github.thepytales.llmhub.docs.PptxWriter.parse(sample)
+        assertEquals(6, slides.size)
+        assertEquals(io.github.thepytales.llmhub.docs.PptxWriter.Kind.TITLE, slides[0].kind)
+        assertEquals("Seminarsitzung 4 · Allgemeine Didaktik", slides[0].subtitle)
+        assertEquals("Vignette vorlesen, dann Murmelgruppen.", slides[1].notes)
+        assertEquals(io.github.thepytales.llmhub.docs.PptxWriter.Kind.SECTION, slides[2].kind)
+        assertTrue(slides[3].right.isNotEmpty())
+        assertEquals(io.github.thepytales.llmhub.docs.PptxWriter.Kind.QUOTE, slides[5].kind)
+    }
+
+    @Test
+    fun writesAValidPackage() {
+        val file = File(out, "praesentation.pptx")
+        io.github.thepytales.llmhub.docs.PptxWriter.write(file, "Test", sample, "Fakultät Erziehungswissenschaften\nInstitut für Erziehungswissenschaft\nProfessur für Allgemeine Didaktik und Empirische Unterrichtsforschung")
+        val zip = java.util.zip.ZipFile(file)
+        val names = zip.entries().toList().map { it.name }
+        assertTrue("ppt/slides/slide6.xml" in names && "ppt/notesSlides/notesSlide2.xml" in names && "ppt/media/logo-weiss.png" in names)
+        // Every XML part must be well-formed.
+        val parser = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder()
+        names.filter { it.endsWith(".xml") || it.endsWith(".rels") }.forEach { n -> zip.getInputStream(zip.getEntry(n)).use { parser.parse(it) } }
+        zip.close()
+    }
+}

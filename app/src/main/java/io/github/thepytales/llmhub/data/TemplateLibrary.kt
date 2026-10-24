@@ -59,6 +59,25 @@ object TemplateLibrary {
             "Der Brief wurde von der App direkt aus den Angaben erstellt (create_document). Bei Änderungswünschen " +
                 "edit_document mit dem Dateinamen nutzen; den Text des Nutzers nur so weit ändern, wie er es verlangt.",
         ).copy(direct = "letter"),
+        prompt(
+            TemplateCategory.TUD, "tud_presentation", "Präsentation (PowerPoint)",
+            "Folien im TUD-Design – aus Ihren Stichpunkten oder angehängten Dokumenten",
+            """
+            Thema / Titel: {{Thema|z.B. Classroom Management in der Sekundarstufe}}
+            Anlass: {{Anlass|z.B. Vortrag im Kolloquium, Workshop, Tagung, Teamsitzung}}
+            Vortragende und Datum: {{Vortragende|Name(n) und Datum für die Titelfolie}}
+            Zielgruppe und Dauer: {{Zielgruppe und Dauer|z.B. Lehramtsstudierende, 20 Minuten}}
+            Inhalte: {{Inhalte|Stichpunkte oder Gliederung – oder einfach Dateien anhängen (PDF, Word, Text …)}}
+            Folienzahl: {{Folienzahl|optional, z.B. etwa 12}}
+            """,
+            "Erstelle mit create_document eine PowerPoint-Präsentation (format=pptx) im Corporate Design der TU Dresden. " +
+                "Nutze alle Angaben und angehängten Dokumente gründlich; Aussagen, Zahlen und Quellen nur aus diesen Unterlagen. " +
+                "Aufbau: Titelfolie, Agenda, Abschnittsfolien für die Hauptteile, Inhaltsfolien mit kurzen Stichpunkten statt " +
+                "Fließtext, wo sinnvoll Tabelle oder Gegenüberstellung in zwei Spalten, Fazit bzw. Take-home-Message, bei Bedarf " +
+                "Literaturfolie (APA 7) und eine Schlussfolie für Fragen. Zu jeder Inhaltsfolie Sprechernotizen mit 2–5 Sätzen. " +
+                "Ohne Angabe etwa eine Folie pro zwei bis drei Minuten. " + ACADEMIC + HONEST +
+                "Fasse danach in zwei Sätzen zusammen, was die Präsentation enthält.",
+        ),
         tud(
             "minutes", "Protokoll", "Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben",
             """
@@ -185,7 +204,26 @@ object TemplateLibrary {
                 "Phase | Inhalt / Aktivität | Methode & Sozialform | Medien | Funktion der Phase |: Einstieg/Aktivierung, " +
                 "Erarbeitung, Sicherung, Transfer/Reflexion, Abschluss mit Ausblick. Wechsle Sozialformen, formuliere die " +
                 "Arbeitsaufträge wörtlich aus (als Zitatblock) und plane Zeitpuffer ein. Ergänze kurz Differenzierung, " +
-                "kognitive Aktivierung und mögliche Stolpersteine. " + ACADEMIC + HONEST,
+                "kognitive Aktivierung und mögliche Stolpersteine. " + ACADEMIC + HONEST +
+                "Biete am Ende an, dazu passende Folien als PowerPoint im TUD-Design zu erstellen.",
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_slides", "Seminarsitzung als Folien", "PowerPoint für eine Sitzung – mit Ablauf, Arbeitsaufträgen und Sprechernotizen",
+            """
+            Seminar / Modul: {{Seminar|z.B. Allgemeine Didaktik, EW-SEGY-BW 2}}
+            Sitzung und Thema: {{Sitzung|z.B. Sitzung 4: Classroom Management}}
+            Datum und Dozent:in: {{Datum und Dozent:in|für die Titelfolie}}
+            Dauer: {{Dauer|z.B. 90 Minuten}}
+            Lernziele: {{Lernziele|optional – sonst schlägt das Modell welche vor}}
+            Inhalte und Material: {{Inhalte|Stichpunkte, Verlaufsplan oder Texte – oder Dateien anhängen (Literatur, Folien, Skript)}}
+            """,
+            "Erstelle mit create_document eine PowerPoint-Präsentation (format=pptx) im Corporate Design der TU Dresden für " +
+                "diese Seminarsitzung. Folien: Titelfolie (Seminar, Sitzung, Datum, Dozent:in), Lernziele, Ablauf der Sitzung " +
+                "mit Zeiten als Tabelle (| Zeit | Phase | Aktivität |), Einstieg mit Impuls oder Fallvignette, Abschnittsfolien " +
+                "für die Inhaltsteile, Arbeitsaufträge als eigene Folien (Sozialform, Zeit, Auftrag, erwartetes Ergebnis), " +
+                "Sicherung bzw. Zusammenfassung, Ausblick auf die nächste Sitzung und Literatur (APA 7, nur angegebene oder " +
+                "angehängte Quellen). Kurze Stichpunkte statt Fließtext; zu jeder Folie Sprechernotizen mit Moderationshinweisen. " +
+                ACADEMIC + HONEST + "Fasse danach kurz zusammen, was die Folien enthalten.",
         ),
         prompt(
             TemplateCategory.TEACHING, "teach_objectives", "Lernziele formulieren", "Operationalisierte Lernziele nach Taxonomiestufen",

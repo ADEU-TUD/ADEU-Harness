@@ -54,7 +54,7 @@ class DocumentTools(
             listOf(
                 Param("title", "Titel des Dokuments (wird auch als Dateiname verwendet)"),
                 Param("content", "Vollständiger Inhalt in Markdown oder als HTML-Seite (<!DOCTYPE html>…)"),
-                Param("format", "pdf (Standard), docx, html, md oder txt", required = false),
+                Param("format", "pdf (Standard), docx, pptx (PowerPoint-Präsentation im TUD-Design), html, md oder txt", required = false),
                 Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch, schlicht oder tud (Corporate Design der TU Dresden)", required = false),
                 Param("accent_color", "Akzentfarbe als #RRGGBB oder Name (z.B. blau, grün, bordeaux)", required = false),
                 Param("logo", "Name eines gespeicherten Logos, „standard“ für das Standardlogo oder „kein“", required = false),
@@ -393,6 +393,7 @@ class DocumentTools(
         append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
         append("Teilnahmebescheinigungen, Zertifikate und Urkunden: Markdown mit layout=urkunde. ")
+        append(PPTX_HELP)
         append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")
         append("read_pdf_form, dann fill_pdf mit den Angaben aus dem Chat; fehlen Pflichtangaben, frage vorher nach, und ")
         append("erfinde keine persönlichen Daten. Nenne danach kurz, was eingetragen wurde und was offen ist. ")
@@ -410,6 +411,14 @@ class DocumentTools(
     }
 
     companion object {
+        /** How the model writes slides for format=pptx (see docs/PptxWriter). */
+        const val PPTX_HELP = "PowerPoint-Präsentationen: create_document mit format=pptx; content ist Markdown, Folien durch eine " +
+            "Zeile „---“ getrennt. Erste Folie = Titelfolie: „# Titel“, „## Untertitel“, darunter eine Zeile mit Vortragenden " +
+            "und Datum. Jede weitere Folie beginnt mit „# Folientitel“, darunter kurze Listen (höchstens 6 Punkte mit je höchstens " +
+            "12 Wörtern, eine Kernaussage pro Folie), nummerierte Listen, ein kurzer Absatz oder eine Tabelle. Eine Folie nur mit " +
+            "Überschrift (und optional einem Satz) wird zur Abschnittsfolie. Zwei Spalten: eine Zeile „|||“ trennt links und " +
+            "rechts. Zitat-Folie: „> Zitat“ und „> — Quelle“. Sprechernotizen am Ende der Folie nach „Notizen:“ – dort steht, " +
+            "was die Vortragenden sagen. Logo, Einrichtung, Fußzeile und Foliennummern setzt die App im TUD-Design. "
         private val CERTIFICATE_LAYOUTS = setOf("urkunde", "zertifikat", "certificate", "bescheinigung", "teilnahmebescheinigung")
         private val LOGO_SRC = Regex("src\\s*=\\s*([\"'])logo(?::([^\"']*))?\\1", RegexOption.IGNORE_CASE)
     }

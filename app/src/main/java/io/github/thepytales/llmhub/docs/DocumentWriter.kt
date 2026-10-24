@@ -17,6 +17,7 @@ import java.util.Locale
 enum class DocFormat(val ext: String, val mime: String, val label: String) {
     PDF("pdf", "application/pdf", "PDF"),
     DOCX("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Word (.docx)"),
+    PPTX("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "PowerPoint (.pptx)"),
     HTML("html", "text/html", "HTML"),
     MD("md", "text/markdown", "Markdown"),
     TXT("txt", "text/plain", "Text"),
@@ -28,6 +29,7 @@ enum class DocFormat(val ext: String, val mime: String, val label: String) {
             return entries.firstOrNull { it.ext == n || it.name.equals(n, ignoreCase = true) }
                 ?: when (n) {
                     "word", "doc" -> DOCX
+                    "powerpoint", "ppt", "praesentation", "präsentation", "folien", "slides" -> PPTX
                     "markdown" -> MD
                     "text", "plain" -> TXT
                     "htm" -> HTML
@@ -107,6 +109,7 @@ object DocumentWriter {
                 }
             }
             DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
+            DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, markdown, theme.unit, theme.footer) }
             DocFormat.HTML -> withContext(Dispatchers.IO) {
                 file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter, certificate = certificate))
             }
