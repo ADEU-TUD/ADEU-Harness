@@ -22,18 +22,51 @@ object MarkdownDocx {
 <Default Extension="png" ContentType="image/png"/>
 <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 <Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>
+<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
 </Types>"""
 
     private fun docRels(withLogo: Boolean) = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rIdFooter" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>""" +
+<Relationship Id="rIdFooter" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>
+<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>""" +
         (if (withLogo) "\n<Relationship Id=\"rIdLogo\" Type=\"$R_NS/image\" Target=\"media/logo.png\"/>" else "") +
         "\n</Relationships>"
 
     private const val RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
 </Relationships>"""
+
+    /**
+     * Accessibility: German as document language (spell check, screen readers) and real heading styles, so the
+     * structure shows in the navigation pane and screen readers can jump between headings.
+     */
+    private fun styles(font: String) = buildString {
+        append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:styles xmlns:w=\"$W_NS\">")
+        append("<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii=\"$font\" w:hAnsi=\"$font\" w:cs=\"$font\"/>")
+        append("<w:sz w:val=\"21\"/><w:lang w:val=\"de-DE\" w:eastAsia=\"de-DE\" w:bidi=\"ar-SA\"/></w:rPr></w:rPrDefault>")
+        append("<w:pPrDefault><w:pPr><w:spacing w:after=\"120\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>")
+        append("<w:style w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Standard\"><w:name w:val=\"Normal\"/><w:qFormat/></w:style>")
+        for (level in 1..4) {
+            append("<w:style w:type=\"paragraph\" w:styleId=\"Heading$level\"><w:name w:val=\"heading $level\"/>")
+            append("<w:basedOn w:val=\"Standard\"/><w:next w:val=\"Standard\"/><w:uiPriority w:val=\"9\"/><w:qFormat/>")
+            append("<w:pPr><w:keepNext/><w:outlineLvl w:val=\"${level - 1}\"/></w:pPr><w:rPr><w:b/></w:rPr></w:style>")
+        }
+        append("</w:styles>")
+    }
+
+    private fun core(title: String): String {
+        val now = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" " +
+            "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" " +
+            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>${esc(title)}</dc:title>" +
+            "<dc:language>de-DE</dc:language><dc:creator>ADEU LLM</dc:creator>" +
+            "<dcterms:created xsi:type=\"dcterms:W3CDTF\">$now</dcterms:created><dcterms:modified xsi:type=\"dcterms:W3CDTF\">$now</dcterms:modified>" +
+            "</cp:coreProperties>"
+    }
 
     fun write(file: File, title: String, markdown: String, theme: DocTheme = DocTheme()) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
@@ -48,6 +81,8 @@ object MarkdownDocx {
             entry("_rels/.rels", RELS)
             entry("word/_rels/document.xml.rels", docRels(logo != null))
             entry("word/footer1.xml", footer(theme))
+            entry("word/styles.xml", styles(if (theme.style == DocStyle.TUD) "Noto Sans" else if (theme.style == DocStyle.CLASSIC) "Georgia" else "Calibri"))
+            entry("docProps/core.xml", core(title.ifBlank { markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim() ?: "Dokument" }))
             if (logo != null) bytes("word/media/logo.png", logo)
             entry("word/document.xml", document(title, markdown, theme, logo != null))
         }
@@ -85,7 +120,7 @@ object MarkdownDocx {
         }
         return "<w:p><w:pPr><w:spacing w:after=\"120\"/><w:jc w:val=\"$align\"/></w:pPr><w:r><w:drawing>" +
             "<wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"$cx\" cy=\"$cy\"/>" +
-            "<wp:docPr id=\"1\" name=\"Logo\"/>" +
+            "<wp:docPr id=\"1\" name=\"Logo\" descr=\"${if (tud) "Logo der Technischen Universität Dresden" else "Logo"}\"/>" +
             "<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">" +
             "<a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">" +
             "<pic:pic xmlns:pic=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">" +
@@ -177,7 +212,8 @@ object MarkdownDocx {
                     val border = if (b.level == 1) "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"8\" w:space=\"4\" w:color=\"$lineColor\"/></w:pBdr>" else ""
                     val style = RunStyle(bold = true, size = size, color = if (b.level <= 2) accent else null, font = headFont)
                     val align = if (b.level == 1 && theme.style == DocStyle.CLASSIC) "<w:jc w:val=\"center\"/>" else ""
-                    append(para(runs(b.text, style), "<w:keepNext/>$border<w:spacing w:before=\"240\" w:after=\"120\"/>$align"))
+                    val level = b.level.coerceIn(1, 4)
+                    append(para(runs(b.text, style), "<w:pStyle w:val=\"Heading$level\"/><w:keepNext/>$border<w:spacing w:before=\"240\" w:after=\"120\"/>$align"))
                 }
                 is Block.Paragraph -> append(para(runs(b.text), SPACING))
                 is Block.Item -> {
@@ -219,7 +255,8 @@ object MarkdownDocx {
         repeat(cols) { append("<w:gridCol w:w=\"$colW\"/>") }
         append("</w:tblGrid>")
         rows.forEachIndexed { r, row ->
-            append("<w:tr>")
+            // The head row repeats on every page and is announced as column header by screen readers.
+            append(if (r == 0) "<w:tr><w:trPr><w:tblHeader/></w:trPr>" else "<w:tr>")
             for (c in 0 until cols) {
                 val fill = if (accent != null) accent else "F1F3F5"
                 val shade = if (r == 0) "<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"$fill\"/>" else ""

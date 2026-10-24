@@ -16,6 +16,7 @@ import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.KnowledgeStore
 import io.github.thepytales.llmhub.data.ListStore
 import io.github.thepytales.llmhub.data.MemoryEntry
+import io.github.thepytales.llmhub.data.Pseudonymizer
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.ModelsRepository
 import io.github.thepytales.llmhub.data.PrefsBackend
@@ -42,6 +43,8 @@ class AppContainer(context: Context) {
     val settings = SettingsStore(context)
     val usage = UsageStore(files)
     val llm = LlmClient(settings, usage)
+    /** Pairs of personal details and placeholders; used by [llm] when pseudonymization is on. */
+    val privacy = Pseudonymizer(File(files, "pseudonyms.json")) { settings.current }.also { llm.privacy = it }
     val github = GitHubClient(settings, llm.http)
     val githubTools = GitHubTools(github)
     val logos = LogoStore(files)

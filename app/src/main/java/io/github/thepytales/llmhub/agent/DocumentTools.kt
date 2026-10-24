@@ -7,6 +7,7 @@ import io.github.thepytales.llmhub.data.ListStore
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.docs.DocFormat
+import io.github.thepytales.llmhub.docs.Contrast
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.CalendarEvent
@@ -20,6 +21,7 @@ import io.github.thepytales.llmhub.docs.MailFiles
 import io.github.thepytales.llmhub.docs.Placeholders
 import io.github.thepytales.llmhub.docs.PdfForms
 import io.github.thepytales.llmhub.docs.PdfText
+import io.github.thepytales.llmhub.docs.QtiWriter
 import io.github.thepytales.llmhub.docs.TudBrand
 import io.github.thepytales.llmhub.docs.describe
 import io.github.thepytales.llmhub.data.FileAttachment
@@ -58,7 +60,7 @@ class DocumentTools(
             listOf(
                 Param("title", "Titel des Dokuments (wird auch als Dateiname verwendet)"),
                 Param("content", "Vollständiger Inhalt in Markdown oder als HTML-Seite (<!DOCTYPE html>…)"),
-                Param("format", "pdf (Standard), docx, pptx (PowerPoint-Präsentation im TUD-Design), html, md oder txt", required = false),
+                Param("format", "pdf (Standard), docx, pptx (PowerPoint-Präsentation im TUD-Design), qti (Test für OPAL/ONYX als ZIP), html, md oder txt", required = false),
                 Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch, schlicht oder tud (Corporate Design der TU Dresden)", required = false),
                 Param("accent_color", "Akzentfarbe als #RRGGBB oder Name (z.B. blau, grün, bordeaux)", required = false),
                 Param("logo", "Name eines gespeicherten Logos, „standard“ für das Standardlogo oder „kein“", required = false),
@@ -134,6 +136,13 @@ class DocumentTools(
             ),
         ),
         ToolDef(
+            "check_accessibility",
+            "Prüft ein Dokument auf Barrierefreiheit: auswählbarer Text statt Scan, Tags, Sprache, Titel, Überschriften, " +
+                "Alternativtexte, Tabellenköpfe, Folientitel, Formularfeld-Beschreibungen. Für angehängte PDFs und alle von " +
+                "der App erstellten Dokumente (PDF, Word, PowerPoint, HTML).",
+            listOf(Param("file", "Dateiname (Standard: die neueste angehängte PDF bzw. das zuletzt erstellte Dokument)", required = false)),
+        ),
+        ToolDef(
             "save_logo",
             "Speichert ein Bild aus der letzten Nachricht des Nutzers als Logo für Dokumente.",
             listOf(
@@ -152,6 +161,7 @@ class DocumentTools(
         "save_logo" -> saveLogo(args, ctx)
         "read_pdf_form" -> readPdfForm(args, ctx)
         "fill_pdf" -> fillPdf(args, ctx)
+        "check_accessibility" -> checkAccessibility(args, ctx)
         else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
     }
 
@@ -196,9 +206,15 @@ class DocumentTools(
         }
         if (recipient.isNotEmpty()) rememberContact(recipient)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
-        val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
+        val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }
+            ?: if (format == DocFormat.QTI) ", " + QtiWriter.summary(QtiWriter.parse(title, content)) else ""
+        val readable = Contrast.readable(theme.accent)
         val notes = listOfNotNull(
             warning,
+            if (theme.style != DocStyle.TUD && readable != theme.accent) {
+                "Hinweis: Die Akzentfarbe ${theme.accent} wäre als Schrift auf Weiß zu hell (Kontrast unter 4,5:1) und wurde " +
+                    "für die Barrierefreiheit auf $readable abgedunkelt. Erwähne das kurz."
+            } else null,
             if (!doc.designed) {
                 "Hinweis: Das gestaltete PDF ließ sich gerade nicht rendern, deshalb wurde ein einfaches PDF mit dem " +
                     "gleichen Text erstellt. Versuche es nicht erneut; sag dem Nutzer, dass das Layout vereinfacht ist, " +
@@ -435,6 +451,23 @@ class DocumentTools(
         )
     }
 
+    private suspend fun checkAccessibility(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val wanted = args.s("file")?.trim()?.takeIf { it.isNotEmpty() }
+        val attached = ctx.pdfs.mapNotNull { a -> a.path?.let { File(it) }?.takeIf { it.exists() }?.let { a.name to it } }
+        val created = folder.listFiles().orEmpty().filter { it.isFile && it.extension.lowercase() in setOf("pdf", "docx", "pptx", "html") }
+            .map { it.name to it }
+        val all = attached + created
+        val (name, file) = (
+            if (wanted == null) all.maxByOrNull { it.second.lastModified() }
+            else all.firstOrNull { it.first.equals(wanted, ignoreCase = true) } ?: all.firstOrNull { it.first.contains(wanted.substringBeforeLast('.'), ignoreCase = true) }
+            ) ?: return ToolOutput(
+            if (all.isEmpty()) "FEHLER: Es gibt kein Dokument zum Prüfen. Bitte den Nutzer, das PDF anzuhängen."
+            else "FEHLER: „$wanted“ nicht gefunden. Vorhanden: ${all.sortedByDescending { it.second.lastModified() }.take(8).joinToString(", ") { it.first }}."
+        )
+        val findings = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.AccessibilityCheck.check(context, file) }
+        return ToolOutput(io.github.thepytales.llmhub.docs.AccessibilityCheck.report(name, findings))
+    }
+
     /** Tool arguments that should be JSON may also arrive as a string containing JSON. */
     private fun jsonArg(e: JsonElement?): JsonElement? = when {
         e == null || e is JsonNull -> null
@@ -461,7 +494,12 @@ class DocumentTools(
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
         append("E-Mails, die der Nutzer selbst senden soll: create_email_draft; Termine: create_calendar_event. ")
         append("Teilnahmebescheinigungen, Zertifikate und Urkunden: Markdown mit layout=urkunde. ")
+        append("Barrierefreiheit: Überschriften lückenlos hierarchisch (#, ##, ###), Tabellen mit Kopfzeile, Links mit sprechendem ")
+        append("Text statt „hier“, keine Information nur über Farbe, Abkürzungen beim ersten Vorkommen ausschreiben. Die App setzt ")
+        append("Sprache, Titel, Überschriften-Formatvorlagen, Alternativtexte und Folientitel selbst. Mit check_accessibility prüfst ")
+        append("du ein Dokument (auch ein angehängtes PDF) und nennst die Mängel mit Abhilfe. ")
         append(PPTX_HELP)
+        append(QtiWriter.HELP)
         append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")
         append("read_pdf_form, dann fill_pdf mit den Angaben aus dem Chat; fehlen Pflichtangaben, frage vorher nach, und ")
         append("erfinde keine persönlichen Daten. Nenne danach kurz, was eingetragen wurde und was offen ist. ")

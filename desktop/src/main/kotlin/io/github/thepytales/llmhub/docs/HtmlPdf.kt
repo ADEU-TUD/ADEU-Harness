@@ -76,6 +76,8 @@ object HtmlPdf {
                 // Own profile, so an open browser window of the user is not touched.
                 "--user-data-dir=${File(work, "profile").absolutePath}",
                 "--no-pdf-header-footer", "--print-to-pdf-no-header",
+                // Accessibility: tagged PDF (structure for screen readers) and bookmarks from the headings.
+                "--export-tagged-pdf", "--generate-pdf-document-outline",
                 "--virtual-time-budget=8000", "--run-all-compositor-stages-before-draw",
                 "--print-to-pdf=${target.absolutePath}",
                 source.toURI().toString(),

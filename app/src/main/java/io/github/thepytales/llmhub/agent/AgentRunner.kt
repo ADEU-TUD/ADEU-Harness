@@ -6,6 +6,7 @@ import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.NetworkAccess
+import io.github.thepytales.llmhub.data.PiiDetector
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.dropFromThread
@@ -86,6 +87,7 @@ class AgentRunner(private val c: AppContainer) {
                 host.persist()
             }
         }
+        var privacyEvent = privacyNotice(host, start, lastUser)
         var providers = providers(start, tools)
         var steps = 0
         var totalSteps = 0
@@ -99,6 +101,8 @@ class AgentRunner(private val c: AppContainer) {
             val conv = host.conversation ?: return
             val apiMessages = buildApiMessages(conv, ctx, providers)
             val events = mutableListOf<String>()
+            privacyEvent?.let { events += it }
+            privacyEvent = null
             val placeholder = ChatMessage(role = "assistant", model = model)
             host.update { it.appendToThread(placeholder) }
             val started = System.currentTimeMillis()
@@ -236,6 +240,26 @@ class AgentRunner(private val c: AppContainer) {
                 i++
             }
         }
+    }
+
+    /**
+     * Pseudonymization on: the protocol shows what was replaced. Off: a hint when personal details of the message
+     * would leave the university, i.e. go to a further provider such as Google Gemini.
+     */
+    private fun privacyNotice(host: AgentHost, conv: Conversation, lastUser: ChatMessage?): String? {
+        lastUser ?: return null
+        val text = (listOf(lastUser.content) + lastUser.files.map { it.text }).joinToString("\n")
+        val settings = c.settings.current
+        if (settings.pseudonymize) return c.privacy.summary(c.privacy.mask(text))?.let { "Pseudonymisiert gesendet: $it" }
+        val provider = c.llm.providerFor(conv.model) ?: return null
+        val terms = settings.pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }
+        if (PiiDetector.find(text, terms).isEmpty()) return null
+        host.notice(
+            "Die Nachricht enthält personenbezogene Angaben (Namen, Kontaktdaten …) und geht an ${provider.name}, also außerhalb " +
+                "der TU Dresden. Für solche Daten ein ScaDS.AI-Modell wählen oder unter Einstellungen › Datenschutz die " +
+                "Pseudonymisierung einschalten."
+        )
+        return null
     }
 
     /** Errors after which another model may well answer: the gateway does not reach this one. */

@@ -273,7 +273,7 @@ fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: ()
         title = { Text("Als Dokument exportieren") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                DocFormat.entries.forEach { f ->
+                DocFormat.entries.filter { it.chatExport }.forEach { f ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier

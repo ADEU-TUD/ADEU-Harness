@@ -14,13 +14,15 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 
-enum class DocFormat(val ext: String, val mime: String, val label: String) {
+enum class DocFormat(val ext: String, val mime: String, val label: String, val chatExport: Boolean = true) {
     PDF("pdf", "application/pdf", "PDF"),
     DOCX("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Word (.docx)"),
     PPTX("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "PowerPoint (.pptx)"),
     HTML("html", "text/html", "HTML"),
     MD("md", "text/markdown", "Markdown"),
     TXT("txt", "text/plain", "Text"),
+    /** Test for OPAL/ONYX as IMS QTI 2.1 package (docs/QtiWriter); not offered for exporting a chat. */
+    QTI("zip", "application/zip", "OPAL-/ONYX-Test (QTI 2.1)", chatExport = false),
     ;
 
     companion object {
@@ -31,6 +33,7 @@ enum class DocFormat(val ext: String, val mime: String, val label: String) {
                     "word", "doc" -> DOCX
                     "powerpoint", "ppt", "praesentation", "präsentation", "folien", "slides" -> PPTX
                     "markdown" -> MD
+                    "zip", "opal", "onyx", "test", "quiz", "qti21", "ims" -> QTI
                     "text", "plain" -> TXT
                     "htm" -> HTML
                     else -> PDF
@@ -107,9 +110,13 @@ object DocumentWriter {
                     designed = false
                     withContext(Dispatchers.IO) { MarkdownPdf.write(file, title, markdown, theme) }
                 }
+                // Accessibility: title, language and window title for screen readers; the PDF stays usable without it.
+                val docTitle = title.ifBlank { Regex("^#\\s+(.+)", RegexOption.MULTILINE).find(markdown)?.groupValues?.get(1)?.trim().orEmpty() }
+                withContext(Dispatchers.IO) { runCatching { PdfAccessibility.finish(context, file, docTitle) } }
             }
             DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
             DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, markdown, theme.unit, theme.footer) }
+            DocFormat.QTI -> withContext(Dispatchers.IO) { QtiWriter.write(file, title, markdown) }
             DocFormat.HTML -> withContext(Dispatchers.IO) {
                 file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter, certificate = certificate))
             }
@@ -514,9 +521,10 @@ object DocumentWriter {
                 is Block.Table -> {
                     append("<table>\n")
                     b.rows.forEachIndexed { r, row ->
-                        val cell = if (r == 0) "th" else "td"
+                        val cell = if (r == 0) "th scope=\"col\"" else "td"
+                        val close = if (r == 0) "th" else "td"
                         append("<tr>")
-                        row.forEach { append("<$cell>${htmlInline(it)}</$cell>") }
+                        row.forEach { append("<$cell>${htmlInline(it)}</$close>") }
                         append("</tr>\n")
                     }
                     append("</table>\n")

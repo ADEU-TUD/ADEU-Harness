@@ -47,6 +47,8 @@ object TudBrand {
     }
 
     /** Applies the design: TUD blue as accent and the blue logo unless another logo was chosen. */
+    /** TU Dresden: its blue and logo. Other styles: the accent darkened if it would be too light to read. */
     fun apply(theme: DocTheme): DocTheme =
-        if (theme.style != DocStyle.TUD) theme else theme.copy(accent = BLUE, logo = theme.logo ?: logoBlue)
+        if (theme.style != DocStyle.TUD) theme.copy(accent = Contrast.readable(theme.accent))
+        else theme.copy(accent = BLUE, logo = theme.logo ?: logoBlue)
 }

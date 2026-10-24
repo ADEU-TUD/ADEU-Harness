@@ -21,6 +21,7 @@ data class PortableSettings(
     val docFooter: String, val tudUnit: String, val autoLogo: Boolean, val senderInfo: String,
     val favoriteTemplates: List<String>, val userName: String, val fallbackModel: String, val requestsPerMinute: Int,
     val memoryMode: String,
+    val pseudonymize: Boolean = false, val pseudonymAuto: Boolean = true, val pseudonymTerms: String = "",
 )
 
 @Serializable
@@ -59,7 +60,7 @@ object Backup {
         s.defaultModel, s.systemPrompt, s.approvalMode, s.maxAgentSteps, s.autoContinue, s.thinkingLevel, s.documentTools,
         s.webTools, s.themeMode, s.appStyle, s.accent, s.amoled, s.textScale, s.ttsEngine, s.ttsVoice, s.speechRate,
         s.docStyle, s.docAccent, s.docFooter, s.tudUnit, s.autoLogo, s.senderInfo, s.favoriteTemplates, s.userName,
-        s.fallbackModel, s.requestsPerMinute, s.memoryMode,
+        s.fallbackModel, s.requestsPerMinute, s.memoryMode, s.pseudonymize, s.pseudonymAuto, s.pseudonymTerms,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -69,7 +70,8 @@ object Backup {
         ttsEngine = p.ttsEngine, ttsVoice = p.ttsVoice, speechRate = p.speechRate, docStyle = p.docStyle, docAccent = p.docAccent,
         docFooter = p.docFooter, tudUnit = p.tudUnit, autoLogo = p.autoLogo, senderInfo = p.senderInfo,
         favoriteTemplates = p.favoriteTemplates, userName = p.userName, fallbackModel = p.fallbackModel,
-        requestsPerMinute = p.requestsPerMinute, memoryMode = p.memoryMode,
+        requestsPerMinute = p.requestsPerMinute, memoryMode = p.memoryMode, pseudonymize = p.pseudonymize,
+        pseudonymAuto = p.pseudonymAuto, pseudonymTerms = p.pseudonymTerms,
     )
 
     fun export(c: AppContainer, out: OutputStream, withSecrets: Boolean) {

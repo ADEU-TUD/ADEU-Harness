@@ -136,8 +136,7 @@ object PptxWriter {
         val dark = s.kind == Kind.TITLE
         when (s.kind) {
             Kind.TITLE -> {
-                picture(sh, "rIdLogoW", cm(1.6), cm(1.4), cm(1.7))
-                text(sh, "Titel", cm(1.6), cm(5.6), cm(29.5), cm(4.8), listOf(para(s.title, size = if (s.title.length > 60) 34 else 40, color = "FFFFFF")), anchor = "b")
+                text(sh, "Titel", cm(1.6), cm(5.6), cm(29.5), cm(4.8), listOf(para(s.title, size = if (s.title.length > 60) 34 else 40, color = "FFFFFF")), anchor = "b", placeholder = "ctrTitle")
                 if (s.subtitle.isNotBlank()) text(sh, "Untertitel", cm(1.6), cm(10.7), cm(29.5), cm(2.2), listOf(para(s.subtitle, size = 22, color = LIGHT)))
                 val meta = s.blocks.flatMap { blockLines(it) }
                 if (meta.isNotEmpty()) text(sh, "Angaben", cm(1.6), cm(13.2), cm(29.5), cm(2.4), meta.map { para(it, size = 16, color = "FFFFFF") })
@@ -147,16 +146,16 @@ object PptxWriter {
                         unit.mapIndexed { i, l -> para(l, size = 11, color = "FFFFFF", bold = i == unit.lastIndex) }, anchor = "b",
                     )
                 }
+                picture(sh, "rIdLogoW", cm(1.6), cm(1.4), cm(1.7))
             }
             Kind.SECTION -> {
-                chrome(sh, n, footer)
-                rect(sh, cm(1.6), cm(6.4), cm(0.25), cm(5.2), BLUE)
-                text(sh, "Abschnitt", cm(2.5), cm(6.2), cm(28.0), cm(3.4), listOf(para(s.title, size = 36, color = BLUE)), anchor = "b")
+                text(sh, "Abschnitt", cm(2.5), cm(6.2), cm(28.0), cm(3.4), listOf(para(s.title, size = 36, color = BLUE)), anchor = "b", placeholder = "title")
                 if (s.subtitle.isNotBlank()) text(sh, "Beschreibung", cm(2.5), cm(9.8), cm(28.0), cm(2.0), listOf(para(s.subtitle, size = 18, color = GREY)))
+                rect(sh, cm(1.6), cm(6.4), cm(0.25), cm(5.2), BLUE)
+                chrome(sh, n, footer)
             }
             Kind.QUOTE -> {
-                chrome(sh, n, footer)
-                if (s.title.isNotBlank()) title(sh, s.title)
+                if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Zitat")
                 val q = (s.blocks.first() as Block.Quote).text.lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val source = q.lastOrNull()?.takeIf { q.size > 1 && (it.startsWith("—") || it.startsWith("–") || it.startsWith("-")) }
                 val quote = (if (source != null) q.dropLast(1) else q).joinToString(" ")
@@ -165,10 +164,11 @@ object PptxWriter {
                     listOf(para("„$quote“", size = if (quote.length > 220) 24 else 30, color = BLUE, italic = true, align = "ctr")), anchor = "ctr",
                 )
                 if (source != null) text(sh, "Quelle", cm(3.5), cm(14.2), cm(26.8), cm(1.2), listOf(para(source, size = 16, color = GREY, align = "ctr")))
+                chrome(sh, n, footer)
             }
             Kind.CONTENT -> {
-                chrome(sh, n, footer)
                 if (s.title.isNotBlank()) title(sh, s.title)
+                else hiddenTitle(sh, s.blocks.flatMap { blockLines(it) }.firstOrNull()?.take(60) ?: "Folie $n")
                 val top = cm(4.0)
                 val bottom = cm(17.0)
                 if (s.right.isEmpty()) content(sh, s.blocks, cm(1.6), top, cm(30.6), bottom - top, half = false)
@@ -176,6 +176,7 @@ object PptxWriter {
                     content(sh, s.blocks, cm(1.6), top, cm(14.8), bottom - top, half = true)
                     content(sh, s.right, cm(17.4), top, cm(14.8), bottom - top, half = true)
                 }
+                chrome(sh, n, footer)
             }
         }
         val bg = if (dark) "<p:bg><p:bgPr><a:solidFill><a:srgbClr val=\"$BLUE\"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>" else ""
@@ -194,7 +195,12 @@ object PptxWriter {
     }
 
     private fun title(sh: Shapes, title: String) {
-        text(sh, "Titel", cm(1.6), cm(1.0), cm(26.0), cm(2.6), listOf(para(title, size = if (title.length > 55) 24 else 28, color = BLUE)), anchor = "b")
+        text(sh, "Titel", cm(1.6), cm(1.0), cm(26.0), cm(2.6), listOf(para(title, size = if (title.length > 55) 24 else 28, color = BLUE)), anchor = "b", placeholder = "title")
+    }
+
+    /** Slides without a visible title get one above the slide: screen readers announce it, the audience does not see it. */
+    private fun hiddenTitle(sh: Shapes, title: String) {
+        text(sh, "Titel (ausgeblendet)", cm(1.6), -cm(3.0), cm(26.0), cm(2.0), listOf(para(title, size = 20, color = BLUE)), placeholder = "title")
     }
 
     /** Text blocks (and at most one table below them) in the given area. */
@@ -295,10 +301,16 @@ object PptxWriter {
         return "<a:p>$pPr$runs<a:endParaRPr lang=\"de-DE\" sz=\"${size * 100}\" dirty=\"0\"/></a:p>"
     }
 
-    private fun text(sh: Shapes, name: String, x: Long, y: Long, w: Long, h: Long, paragraphs: List<String>, anchor: String = "t") {
+    /**
+     * A text box; with [placeholder] ("title", "ctrTitle") it is the slide title, which screen readers announce and
+     * PowerPoint's accessibility check expects on every slide.
+     */
+    private fun text(sh: Shapes, name: String, x: Long, y: Long, w: Long, h: Long, paragraphs: List<String>, anchor: String = "t", placeholder: String? = null) {
         val id = sh.next()
+        val nv = if (placeholder == null) "<p:cNvSpPr txBox=\"1\"/><p:nvPr/>"
+        else "<p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr><p:ph type=\"$placeholder\"/></p:nvPr>"
         sh.xml.append(
-            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"$name $id\"/><p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr>" +
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"$name $id\"/>$nv</p:nvSpPr>" +
                 "<p:spPr><a:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"$w\" cy=\"$h\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>" +
                 "<p:txBody><a:bodyPr wrap=\"square\" lIns=\"0\" tIns=\"0\" rIns=\"0\" bIns=\"0\" anchor=\"$anchor\"><a:normAutofit/></a:bodyPr><a:lstStyle/>" +
                 paragraphs.ifEmpty { listOf("<a:p><a:endParaRPr lang=\"de-DE\"/></a:p>") }.joinToString("") +
@@ -309,7 +321,7 @@ object PptxWriter {
     private fun rect(sh: Shapes, x: Long, y: Long, w: Long, h: Long, color: String) {
         val id = sh.next()
         sh.xml.append(
-            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"Linie $id\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"Linie $id\">$DECORATIVE</p:cNvPr><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
                 "<p:spPr><a:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"$w\" cy=\"$h\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>" +
                 "<a:solidFill><a:srgbClr val=\"$color\"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr></p:sp>"
         )
@@ -362,6 +374,9 @@ object PptxWriter {
     // ── Package parts ───────────────────────────────────────────────────────────────────────────────────────
 
     private const val XML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+    /** Marks lines and areas as decorative, so screen readers skip them (Office 2019+). */
+    private const val DECORATIVE = "<a:extLst><a:ext uri=\"{C183D7F6-B498-43B3-948B-1728B52AA6E4}\">" +
+        "<adec:decorative xmlns:adec=\"http://schemas.microsoft.com/office/drawing/2017/decorative\" val=\"1\"/></a:ext></a:extLst>"
     private const val NS = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" " +
         "xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" " +
         "xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\""
@@ -403,7 +418,7 @@ object PptxWriter {
         val now = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
         return XML + "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" " +
             "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" " +
-            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>${esc(title)}</dc:title><dc:creator>ADEU LLM</dc:creator>" +
+            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>${esc(title)}</dc:title><dc:language>de-DE</dc:language><dc:creator>ADEU LLM</dc:creator>" +
             "<dcterms:created xsi:type=\"dcterms:W3CDTF\">$now</dcterms:created><dcterms:modified xsi:type=\"dcterms:W3CDTF\">$now</dcterms:modified>" +
             "</cp:coreProperties>"
     }
@@ -454,8 +469,13 @@ object PptxWriter {
     private const val CLR_MAP = "<p:clrMap bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" accent1=\"accent1\" accent2=\"accent2\" accent3=\"accent3\" " +
         "accent4=\"accent4\" accent5=\"accent5\" accent6=\"accent6\" hlink=\"hlink\" folHlink=\"folHlink\"/>"
 
+    /** Title placeholder of master and layout, so the slide titles have something to inherit from. */
+    private const val TITLE_PH = "<p:sp><p:nvSpPr><p:cNvPr id=\"2\" name=\"Titel\"/><p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr>" +
+        "<p:nvPr><p:ph type=\"title\"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x=\"576000\" y=\"360000\"/><a:ext cx=\"9360000\" cy=\"936000\"/></a:xfrm>" +
+        "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr anchor=\"b\"/><a:lstStyle/><a:p><a:endParaRPr lang=\"de-DE\"/></a:p></p:txBody></p:sp>"
+
     private const val MASTER = XML + "<p:sldMaster $NS><p:cSld><p:bg><p:bgRef idx=\"1001\"><a:schemeClr val=\"bg1\"/></p:bgRef></p:bg>" +
-        "<p:spTree>$GROUP</p:spTree></p:cSld>$CLR_MAP" +
+        "<p:spTree>$GROUP$TITLE_PH</p:spTree></p:cSld>$CLR_MAP" +
         "<p:sldLayoutIdLst><p:sldLayoutId id=\"2147483649\" r:id=\"rIdLayout\"/></p:sldLayoutIdLst>" +
         "<p:txStyles><p:titleStyle><a:lvl1pPr><a:defRPr sz=\"2800\"><a:solidFill><a:schemeClr val=\"tx1\"/></a:solidFill><a:latin typeface=\"+mj-lt\"/></a:defRPr></a:lvl1pPr></p:titleStyle>" +
         "<p:bodyStyle><a:lvl1pPr><a:defRPr sz=\"2400\"><a:solidFill><a:schemeClr val=\"tx1\"/></a:solidFill><a:latin typeface=\"+mn-lt\"/></a:defRPr></a:lvl1pPr></p:bodyStyle>" +
@@ -467,7 +487,7 @@ object PptxWriter {
         "<Relationship Id=\"rIdTheme\" Type=\"$REL/theme\" Target=\"../theme/theme1.xml\"/>" +
         "</Relationships>"
 
-    private const val LAYOUT = XML + "<p:sldLayout $NS type=\"blank\" preserve=\"1\"><p:cSld name=\"Leer\"><p:spTree>$GROUP</p:spTree></p:cSld>" +
+    private const val LAYOUT = XML + "<p:sldLayout $NS type=\"titleOnly\" preserve=\"1\"><p:cSld name=\"Nur Titel\"><p:spTree>$GROUP$TITLE_PH</p:spTree></p:cSld>" +
         "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>"
 
     private const val LAYOUT_RELS = XML + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +

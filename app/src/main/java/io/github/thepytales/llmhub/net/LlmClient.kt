@@ -81,6 +81,10 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     @Volatile
     var owners: Map<String, String> = emptyMap()
 
+    /** Replaces personal details before a chat request leaves the device (set by the app container). */
+    @Volatile
+    var privacy: io.github.thepytales.llmhub.data.Pseudonymizer? = null
+
     /** Cleared when the server rejects stream_options (then usage is estimated). */
     @Volatile
     private var askForUsage = true
@@ -176,11 +180,17 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         // tool steps reach quickly. The server answers 429 with retry-after; waiting and retrying is enough.
         // 502/503/504 come from the gateway in front of the models ("upstream connect error … connection
         // termination") while a model restarts or is overloaded – usually gone after a few seconds.
+        // With pseudonymization the server only sees placeholders; the answer gets the real details back here,
+        // so every caller (chat, tasks, ✨, comparison) works with the real text.
+        val masker = privacy?.takeIf { it.enabled }
+        val sent = masker?.maskMessages(messages) ?: messages
+        val update: (StreamUpdate) -> Unit = if (masker == null) onUpdate else { u -> onUpdate(masker.unmask(u)) }
         var attempt = 0
         while (true) {
             try {
                 limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
-                return streamChatWithFallbacks(model, messages, tools, thinking, onUpdate)
+                val result = streamChatWithFallbacks(model, sent, tools, thinking, update)
+                return masker?.unmask(result) ?: result
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
                 // Offline or a broken certificate does not fix itself within seconds.
