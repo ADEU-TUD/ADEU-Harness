@@ -2,9 +2,15 @@ name: Build & Release (Android + Windows)
 
 # Only started by hand (Actions › Build & Release › Run workflow), because the Actions minutes of the account are
 # used up: releases are built locally instead (README › Release ohne GitHub Actions). Started on the default branch
-# it publishes a normal release, on other branches a pre-release.
+# it publishes a normal release, on other branches a pre-release. The same workflow also runs in the copy of the
+# repository at ADEU-TUD/test, whose run numbers start at 1 – there the version number is given when starting it.
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versionsnummer (z.B. 27 für 1.0.27); leer = Laufnummer. Muss größer sein als die installierte Version.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -14,8 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERSION_CODE: ${{ github.run_number }}
-  VERSION_NAME: 1.0.${{ github.run_number }}
+  VERSION_CODE: ${{ inputs.version || github.run_number }}
+  VERSION_NAME: 1.0.${{ inputs.version || github.run_number }}
 
 jobs:
   build:
