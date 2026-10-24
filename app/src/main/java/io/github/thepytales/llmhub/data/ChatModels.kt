@@ -8,6 +8,8 @@ data class ToolCall(
     val id: String,
     val name: String,
     val arguments: String,
+    /** Provider data that has to be sent back with the call (Gemini's thought signature), as JSON. */
+    val extra: String? = null,
 )
 
 /** Text extracted from a file the user attached (PDF, Word, text …). */
@@ -72,10 +74,15 @@ data class Conversation(
     val persona: String? = null,
     /** Whether the GitHub tools are offered to the model. */
     val githubEnabled: Boolean = false,
-    /** Selected repository as owner/name. */
+    /**
+     * First linked repository as owner/name – chats from before several repositories only have this one.
+     * Kept in step with [repos] by [withRepos]; read the repositories through [linkedRepos].
+     */
     val repo: String? = null,
     /** Working branch inside [repo]. */
     val branch: String? = null,
+    /** Repositories linked to the chat (can belong to different accounts and organizations). */
+    val repos: List<LinkedRepo> = emptyList(),
     /** Agent environment (variables, network access). */
     val envId: String? = null,
     /** Write actions in this chat run without asking ("In diesem Chat nicht mehr fragen"). */
@@ -91,4 +98,24 @@ data class Conversation(
     /** Last message covered by [summary]; only used while it is part of the active thread. */
     val summaryUpTo: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
-)
+) {
+    /** The linked repositories, also for chats that only stored [repo]. */
+    val linkedRepos: List<LinkedRepo>
+        get() = repos.ifEmpty { listOfNotNull(repo?.let { LinkedRepo(it, branch) }) }
+
+    fun withRepos(list: List<LinkedRepo>): Conversation {
+        val distinct = list.distinctBy { it.name.lowercase() }
+        return copy(repos = distinct, repo = distinct.firstOrNull()?.name, branch = distinct.firstOrNull()?.branch)
+    }
+}
+
+/** A repository linked to a chat and the branch the agent works on there (null = not looked up yet). */
+@Serializable
+data class LinkedRepo(val name: String, val branch: String? = null)
+
+/** "ADEU-TUD/Test · main" or "3 Repositorys" – for the chip above the input field. */
+fun List<LinkedRepo>.label(): String? = when (size) {
+    0 -> null
+    1 -> first().name + (first().branch?.let { " · $it" } ?: "")
+    else -> "$size Repositorys"
+}

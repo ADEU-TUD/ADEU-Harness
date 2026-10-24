@@ -42,6 +42,8 @@ data class ModelInfo(
     val tier: ModelTier = if (aliasOf != null) ModelTier.HIDDEN else ModelTier.MORE,
     /** Small label next to the name in the picker, e.g. "Neu". */
     val badge: String? = null,
+    /** Further provider whose key the model needs (null = main provider ScaDS.AI). */
+    val via: ProviderKind? = null,
 ) {
     val isAlias get() = aliasOf != null
     val displayName get() = label ?: id.substringAfter('/')
@@ -120,6 +122,35 @@ object ModelCatalog {
             contextTokens = 262144, thinking = true, vision = true, tools = true, power = 3, speed = 5,
             label = "Gemma 4 26B",
             useCase = "Sehr schnell für kurze Fragen und Bildbeschreibungen",
+        ),
+        // ---- Chat over a Gemini key (Einstellungen › API-Zugang › Weitere Anbieter); best models of the free API plan.
+        ModelInfo(
+            id = "gemini-3.8-flash",
+            type = ModelType.CHAT,
+            summary = "Neuestes Flash-Modell von Google – über den eigenen Gemini-API-Key.",
+            strengths = "Schnell, versteht Bilder, nutzt Werkzeuge und denkt bei Bedarf nach; 1 Mio. Token Kontext. " +
+                "Im kostenlosen API-Plan mit Anfragen pro Minute und Tag begrenzt.",
+            contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 4, speed = 5,
+            label = "Gemini 3.8 Flash", tier = ModelTier.FEATURED, badge = "Gemini", via = ProviderKind.GEMINI,
+            useCase = "Googles bestes kostenloses Modell – schnell, mit Bildern und Werkzeugen",
+        ),
+        ModelInfo(
+            id = "gemini-3.6-flash",
+            type = ModelType.CHAT,
+            summary = "Flash-Modell von Google – über den eigenen Gemini-API-Key.",
+            strengths = "Bewährt und schnell, versteht Bilder und nutzt Werkzeuge. Eigenes Kontingent im kostenlosen API-Plan.",
+            contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 4, speed = 5,
+            label = "Gemini 3.6 Flash", tier = ModelTier.FEATURED, badge = "Gemini", via = ProviderKind.GEMINI,
+            useCase = "Ausweiche, wenn das Tageslimit von 3.8 Flash erreicht ist",
+        ),
+        ModelInfo(
+            id = "gemini-3.5-flash",
+            type = ModelType.CHAT,
+            summary = "Älteres Flash-Modell von Google – über den eigenen Gemini-API-Key.",
+            strengths = "Schnell, versteht Bilder und nutzt Werkzeuge. Eigenes Kontingent im kostenlosen API-Plan.",
+            contextTokens = 1048576, thinking = true, vision = true, tools = true, power = 3, speed = 5,
+            label = "Gemini 3.5 Flash", tier = ModelTier.FEATURED, badge = "Gemini", via = ProviderKind.GEMINI,
+            useCase = "Weitere Ausweiche mit eigenem Kontingent",
         ),
         ModelInfo(
             id = "meta-llama/Llama-3.3-70B-Instruct",
@@ -232,6 +263,12 @@ object ModelCatalog {
 
     private val byId = known.associateBy { it.id.lowercase() }
 
+    /** Models of the main provider (ScaDS.AI). */
+    val main: List<ModelInfo> get() = known.filter { it.via == null }
+
+    /** Built-in models of a further provider, shown while its model list cannot be loaded. */
+    fun of(kind: ProviderKind): List<ModelInfo> = known.filter { it.via == kind }
+
     fun info(id: String): ModelInfo = byId[id.lowercase()] ?: guess(id)
 
     /**
@@ -244,7 +281,8 @@ object ModelCatalog {
             .filter { it.type == ModelType.CHAT && it.tier != ModelTier.HIDDEN && !it.id.equals(model, ignoreCase = true) }
             .filter { !needsTools || it.tools == true }
             .filter { !needsVision || it.vision == true }
-            .filter { available == null || it.id in available }
+            // Models of a further provider only when its server listed them (the key is there and works).
+            .filter { if (it.via != null) available?.contains(it.id) == true else available == null || it.id in available }
             .sortedWith(compareBy({ it.tier.ordinal }, { if (it.provider == current.provider) 1 else 0 }))
             .firstOrNull()?.id
     }
@@ -267,6 +305,7 @@ object ModelCatalog {
 
     private fun guess(id: String): ModelInfo {
         val l = id.lowercase()
+        if (l.startsWith("gemini-")) return gemini(id)
         val type = when {
             "whisper" in l || "stt" in l || "transcri" in l -> ModelType.STT
             "tts" in l || "voice" in l || "speech" in l -> ModelType.TTS
@@ -285,4 +324,31 @@ object ModelCatalog {
             badge = "Neu",
         )
     }
+
+    /** Further Gemini models of the key's model list: chat models under „Weitere Modelle“, special ones hidden. */
+    private fun gemini(id: String): ModelInfo {
+        val l = id.lowercase()
+        val type = when {
+            "embedding" in l -> ModelType.EMBEDDING
+            "tts" in l -> ModelType.TTS
+            "image" in l -> ModelType.IMAGE
+            else -> ModelType.CHAT
+        }
+        val special = GEMINI_SPECIAL.any { it in l }
+        return ModelInfo(
+            id = id,
+            type = type,
+            summary = "Modell von Google – über den eigenen Gemini-API-Key.",
+            strengths = "Siehe ai.google.dev für Funktionen und die Grenzen des kostenlosen API-Plans.",
+            vision = true.takeIf { type == ModelType.CHAT }, tools = true.takeIf { type == ModelType.CHAT && !special },
+            label = id.split('-').joinToString(" ") { part -> part.replaceFirstChar { it.uppercase() } },
+            useCase = "Weiteres Gemini-Modell",
+            tier = if (type == ModelType.CHAT && !special) ModelTier.MORE else ModelTier.HIDDEN,
+            badge = "Gemini",
+            via = ProviderKind.GEMINI,
+        )
+    }
+
+    /** Gemini variants that are not general chat models or only previews. */
+    private val GEMINI_SPECIAL = listOf("preview", "exp", "live", "audio", "robotics", "computer-use", "aqa", "learnlm")
 }

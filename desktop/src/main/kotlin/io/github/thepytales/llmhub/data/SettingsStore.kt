@@ -14,6 +14,10 @@ data class AppSettings(
     val githubToken: String = "",
     /** GitHub account the token was verified for; empty while the token is unchecked or invalid. */
     val githubUser: String = "",
+    /** Further GitHub tokens next to the main one, e.g. a fine-grained token per organization. */
+    val githubAccounts: List<GitHubAccount> = emptyList(),
+    /** Further API providers next to the main key (ScaDS.AI), e.g. Google Gemini. */
+    val providers: List<ApiProvider> = emptyList(),
     val defaultModel: String = ModelCatalog.DEFAULT_CHAT,
     val systemPrompt: String = "",
     val imageModel: String = "alias-image-generation",
@@ -72,9 +76,16 @@ data class AppSettings(
     /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
     val closeToTray: Boolean = true,
 ) {
+    /** Key of the main provider (ScaDS.AI); speech, images and embeddings only work with it. */
     val hasApiKey get() = apiKey.isNotBlank()
+    /** Chatting works with the main key or any further provider. */
+    val hasAnyApiKey get() = hasApiKey || providers.any { it.usable }
     /** Only a verified token unlocks the GitHub options. */
-    val hasGitHub get() = githubToken.isNotBlank() && githubUser.isNotBlank()
+    val hasGitHub get() = githubToken.isNotBlank() && githubUser.isNotBlank() ||
+        githubAccounts.any { it.token.isNotBlank() && it.user.isNotBlank() }
+    /** Number of verified GitHub tokens (main token and further ones). */
+    val githubTokenCount get() = (if (githubToken.isNotBlank() && githubUser.isNotBlank()) 1 else 0) +
+        githubAccounts.count { it.token.isNotBlank() && it.user.isNotBlank() }
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
@@ -119,6 +130,8 @@ class SettingsStore(context: Context) {
             .putString("baseUrl", next.baseUrl.trim())
             .putString("githubToken", next.githubToken.trim())
             .putString("githubUser", next.githubUser)
+            .putString("githubAccounts", AccountsJson.accounts(next.githubAccounts.map { it.copy(token = it.token.trim()) }))
+            .putString("providers", AccountsJson.providers(next.providers.map { it.copy(apiKey = it.apiKey.trim(), baseUrl = it.baseUrl.trim()) }))
             .putString("defaultModel", next.defaultModel)
             .putString("systemPrompt", next.systemPrompt)
             .putString("imageModel", next.imageModel)
@@ -163,6 +176,8 @@ class SettingsStore(context: Context) {
             baseUrl = prefs.getString("baseUrl", d.baseUrl)?.ifBlank { d.baseUrl } ?: d.baseUrl,
             githubToken = prefs.getString("githubToken", d.githubToken) ?: d.githubToken,
             githubUser = prefs.getString("githubUser", d.githubUser) ?: d.githubUser,
+            githubAccounts = AccountsJson.accounts(prefs.getString("githubAccounts", null)),
+            providers = AccountsJson.providers(prefs.getString("providers", null)),
             defaultModel = prefs.getString("defaultModel", d.defaultModel) ?: d.defaultModel,
             systemPrompt = prefs.getString("systemPrompt", d.systemPrompt) ?: d.systemPrompt,
             imageModel = prefs.getString("imageModel", d.imageModel) ?: d.imageModel,

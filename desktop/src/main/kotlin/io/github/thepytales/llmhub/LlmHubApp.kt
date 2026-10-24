@@ -57,7 +57,7 @@ class AppContainer(context: Context) {
     val webTools = WebTools(llm.http)
     val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
-    val models = ModelsRepository(llm)
+    val models = ModelsRepository(llm, settings)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
     /** Own templates; the built-in ones come from [TemplateLibrary]. */
@@ -125,9 +125,10 @@ object LlmHubApp {
         CrashLog.install(context)
         container = AppContainer(context)
         runCatching { TaskScheduler.scheduleAll(context) }.onFailure { AppLog.e("Aufgaben planen", it) }
-        // Re-checks the GitHub token, so a revoked one hides the GitHub options again.
-        if (container.settings.current.githubToken.isNotBlank()) {
-            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { container.github.verify() } }
+        // Re-checks the GitHub tokens, so revoked ones hide the GitHub options again.
+        val s = container.settings.current
+        if (s.githubToken.isNotBlank() || s.githubAccounts.isNotEmpty()) {
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { container.github.verifyAll() } }
         }
     }
 }

@@ -34,7 +34,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.agent.ApprovalMode
+import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.agent.PendingAction
+import io.github.thepytales.llmhub.agent.parseArgs
+import io.github.thepytales.llmhub.data.LinkedRepo
+import io.github.thepytales.llmhub.net.s
 
 /** What a write action does, in words for the approval dialog. */
 fun actionLabel(tool: String): String = when (tool) {
@@ -81,13 +85,19 @@ fun ApprovalModeOptions(c: AppContainer) {
  * further actions without asking.
  */
 @Composable
-fun ApprovalDialog(action: PendingAction, repo: String?, branch: String?, onAnswer: (allow: Boolean, always: Boolean) -> Unit) {
+fun ApprovalDialog(action: PendingAction, repos: List<LinkedRepo>, onAnswer: (allow: Boolean, always: Boolean) -> Unit) {
     var always by remember(action) { mutableStateOf(false) }
     val call = action.call
     val where = when (call.name) {
         "fetch_url" -> "im Web"
         "remember", "forget" -> "Gilt für alle Chats · Einstellungen › Gedächtnis"
-        else -> "in ${repo ?: "GitHub"}" + (branch?.let { " · Branch $it" } ?: "")
+        else -> {
+            // The repository named in the call, or the only linked one.
+            val named = parseArgs(call.arguments).s("repo")?.let { GitHubTools.parseRepo(it) }
+            val target = named?.let { n -> repos.firstOrNull { it.name.equals(n, ignoreCase = true) } ?: LinkedRepo(n) }
+                ?: repos.singleOrNull()
+            "in ${target?.name ?: "GitHub"}" + (target?.branch?.let { " · Branch $it" } ?: "")
+        }
     }
     AlertDialog(
         onDismissRequest = {},

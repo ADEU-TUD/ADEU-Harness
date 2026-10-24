@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.data.LinkedRepo
 import io.github.thepytales.llmhub.net.JSON
 import io.github.thepytales.llmhub.net.s
 import kotlinx.serialization.json.JsonArray
@@ -28,9 +29,8 @@ data class ToolOutput(val text: String, val file: String? = null)
 
 /** Mutable state the tools of one agent run operate on. */
 data class RepoContext(
-    /** Selected repository (owner/name) and working branch. */
-    var repo: String?,
-    var branch: String?,
+    /** Linked repositories (owner/name) with their working branch; changed by the GitHub tools. */
+    val repos: MutableList<LinkedRepo>,
     /** Environment with variables and network rules. */
     val env: AgentEnvironment? = null,
     /** Images of the latest user message (data URLs), e.g. to save one as logo. */
@@ -41,7 +41,20 @@ data class RepoContext(
     val files: List<FileAttachment> = emptyList(),
     /** Folder (project) of the chat: its knowledge is searched together with the global one. */
     val folderId: String? = null,
-)
+) {
+    /** Thread-safe copy for storing on the chat (reading tools run in parallel). */
+    fun linked(): List<LinkedRepo> = synchronized(repos) { repos.toList() }
+
+    /** Adds [repo] or replaces its entry (new branch). */
+    fun put(repo: LinkedRepo) {
+        synchronized(repos) {
+            val i = repos.indexOfFirst { it.name.equals(repo.name, ignoreCase = true) }
+            if (i >= 0) repos.set(i, repo) else repos.add(repo)
+        }
+    }
+
+    fun find(name: String): LinkedRepo? = synchronized(repos) { repos.firstOrNull { it.name.equals(name, ignoreCase = true) } }
+}
 
 /** What a write action reaches; decides together with [ApprovalMode] whether the user is asked first. */
 enum class Risk {

@@ -95,7 +95,15 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Suche, Filter und Sortierung.
 - **GitHub-Agent**: Mit einem GitHub-Token arbeitet das Modell in deinen Repositories – Dateien lesen, durchsuchen,
   bearbeiten und committen, Branches und Pull Requests erstellen, Issues lesen/kommentieren. Wann es vorher fragt, legen
-  die *Freigaben* fest (siehe unten). Ein GitHub-Link in einer Nachricht wählt das Repository direkt aus.
+  die *Freigaben* fest (siehe unten). Ein GitHub-Link in einer Nachricht verknüpft das Repository direkt.
+- **Mehrere GitHub-Konten und Repositorys**: Neben dem Token des eigenen Kontos lassen sich weitere Tokens eintragen,
+  z.B. ein Fine-grained Token pro Organisation. Die Repository-Auswahl zeigt die Repositorys aller Tokens zusammen, ein
+  Chat kann mehrere gleichzeitig verknüpfen (auch aus verschiedenen Organisationen) – der Agent liest dann z.B. in einem
+  und überträgt die Änderung in ein anderes. Für jede Aktion nimmt die App automatisch das passende Token.
+- **Weitere Anbieter (Google Gemini)**: Unter *Einstellungen › API-Zugang › Weitere Anbieter* einen Gemini-API-Key aus
+  Google AI Studio eintragen. Dann stehen **Gemini 3.8 Flash**, **3.6 Flash** und **3.5 Flash** (die besten Modelle des
+  kostenlosen API-Plans) bei den empfohlenen Modellen – unter denen von ScaDS.AI, das der Standard bleibt. Weitere
+  Gemini-Modelle stehen unter „Weitere Modelle“. Auch andere OpenAI-kompatible Anbieter lassen sich eintragen.
 - **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News) und Webseiten lesen.
 - **Dokumente erstellen**: PDF, Word (.docx), PowerPoint (.pptx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
   Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
@@ -205,7 +213,15 @@ Die App prüft das Token beim Eintragen und bei jedem Start. Erst mit einem gül
 GitHub-Optionen (im Chat unter „+“, bei geplanten Aufgaben und in den GitHub-Einstellungen); ohne Token oder mit
 einem abgelaufenen Token bleiben sie ausgeblendet.
 
-Im Chat über „+“ › GitHub-Repository ein Repository wählen (oder einfach einen GitHub-Link schreiben). Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
+Ein Fine-grained Token gilt nur für **einen** Besitzer (Resource owner): das eigene Konto *oder* eine Organisation.
+Wer zusätzlich in Organisationen arbeitet, legt für jede ein eigenes Token an (beim Erstellen als *Resource owner* die
+Organisation wählen; je nach Einstellung der Organisation muss ein Owner es bestätigen) und trägt es unter
+*Einstellungen › GitHub › Weitere Tokens* ein. Die App zeigt bei jedem Token, welche Konten und Organisationen es
+erreicht, listet die Repositorys aller Tokens zusammen und wählt pro Anfrage das passende.
+
+Im Chat über „+“ › Repository ein oder mehrere Repositorys verknüpfen (oder einfach einen GitHub-Link schreiben). Sind
+mehrere verknüpft, gibt der Agent bei jedem Werkzeug an, in welchem er arbeitet; jedes behält seinen eigenen
+Arbeitsbranch. Für Agent-Aufgaben eignen sich Modelle mit Werkzeug-Unterstützung,
 z.B. DeepSeek V4.1 Flash, Qwen3.8 27B, GLM-5.3, GLM-5.3 Flash oder MiniMax M3.
 
 ## Rate-Limit
@@ -299,7 +315,7 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | Pfad | Inhalt |
 | --- | --- |
 | `net/LlmClient.kt` | Chat-Streaming (SSE) mit Token-Zählung, Modelle, Bilder, TTS, STT |
-| `net/GitHubClient.kt` | GitHub-REST-API |
+| `net/GitHubClient.kt` | GitHub-REST-API mit mehreren Tokens (Auswahl nach Besitzer des Repositorys) |
 | `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben, Ausweichmodell, parallele Werkzeuge |
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |

@@ -74,14 +74,15 @@ class AgentRunner(private val c: AppContainer) {
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
         val attached = start.thread().flatMap { it.files }.asReversed()
-        val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId)
+        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
-        if (ctx.repo != null && ctx.branch == null && settings.hasGitHub) {
-            ctx.branch = runCatching { c.github.defaultBranch(ctx.repo!!) }.getOrNull()
-            if (ctx.branch != null) {
-                host.update { it.copy(branch = ctx.branch) }
+        val withoutBranch = ctx.linked().filter { it.branch == null }
+        if (withoutBranch.isNotEmpty() && settings.hasGitHub) {
+            withoutBranch.forEach { r -> runCatching { c.github.defaultBranch(r.name) }.getOrNull()?.let { ctx.put(r.copy(branch = it)) } }
+            if (ctx.linked() != start.linkedRepos) {
+                host.update { it.withRepos(ctx.linked()) }
                 host.persist()
             }
         }
@@ -217,7 +218,7 @@ class AgentRunner(private val c: AppContainer) {
             host.update {
                 it.appendToThread(
                     ChatMessage(role = "tool", content = text, toolCallId = call.id, toolName = call.name, file = output.file, durationMs = ms)
-                ).copy(repo = ctx.repo, branch = ctx.branch)
+                ).withRepos(ctx.linked())
             }
         }
         var i = 0
@@ -266,7 +267,7 @@ class AgentRunner(private val c: AppContainer) {
     private suspend fun compactIfNeeded(host: AgentHost, model: String, providers: List<ToolProvider>): Boolean {
         val conv = host.conversation ?: return false
         val budget = ContextManager.budget(model)
-        val ctx = RepoContext(conv.repo, conv.branch, environment(conv))
+        val ctx = RepoContext(conv.linkedRepos.toMutableList(), environment(conv))
         if (ContextManager.tokens(buildApiMessages(conv, ctx, providers)) <= budget) return false
         val thread = conv.thread()
         val cut = ContextManager.cutIndex(thread)

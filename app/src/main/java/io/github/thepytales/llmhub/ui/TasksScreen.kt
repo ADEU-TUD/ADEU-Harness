@@ -72,6 +72,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Conversation
+import io.github.thepytales.llmhub.data.LinkedRepo
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.data.Repeat
@@ -411,9 +412,11 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
             ToggleRow("Websuche & Nachrichten", "Suchen, News finden und Webseiten lesen.", task.webTools) { task = task.copy(webTools = it) }
             ToggleRow("Dokumente erstellen", "Z.B. das Ergebnis als PDF ablegen.", task.documentTools) { task = task.copy(documentTools = it) }
             if (settings.hasGitHub) {
-                ToggleRow("GitHub", task.repo ?: "Kein festes Repository", task.github) { task = task.copy(github = it) }
+                ToggleRow("GitHub", task.linkedRepos.joinToString(", ").ifEmpty { "Kein festes Repository" }, task.github) { task = task.copy(github = it) }
                 if (task.github) {
-                    OutlinedButton(onClick = { showRepo = true }) { Text(task.repo ?: "Repository wählen") }
+                    OutlinedButton(onClick = { showRepo = true }) {
+                        Text(task.linkedRepos.let { if (it.size > 1) "${it.size} Repositorys" else it.firstOrNull() ?: "Repositorys wählen" })
+                    }
                     ToggleRow(
                         "Schreibaktionen erlauben",
                         "Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt.",
@@ -447,9 +450,9 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         )
     }
     if (showRepo) {
-        RepoPickerDialog(
-            c = c, enabled = true, selectedRepo = task.repo, selectedBranch = null, hasToken = settings.hasGitHub,
-            onApply = { on, repo, _ -> task = task.copy(github = on, repo = repo) },
+        RepoPickerSheet(
+            c = c, enabled = task.github, selected = task.linkedRepos.map { LinkedRepo(it) }, hasToken = settings.hasGitHub,
+            onApply = { on, repos -> task = task.copy(github = on).withRepos(repos.map { it.name }) },
             onDismiss = { showRepo = false },
         )
     }

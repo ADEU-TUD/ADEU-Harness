@@ -30,7 +30,10 @@ data class ScheduledTask(
     val webTools: Boolean = true,
     val documentTools: Boolean = false,
     val github: Boolean = false,
+    /** Single repository of tasks from before several repositories; see [linkedRepos]. */
     val repo: String? = null,
+    /** Repositories the task works in (owner/name). */
+    val repos: List<String> = emptyList(),
     /** Allow GitHub write actions without confirmation (nobody can confirm in the background). */
     val allowWrites: Boolean = false,
     val envId: String? = null,
@@ -44,6 +47,10 @@ data class ScheduledTask(
     val nextRunAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
 ) {
+    val linkedRepos: List<String> get() = repos.ifEmpty { listOfNotNull(repo) }
+
+    fun withRepos(list: List<String>) = copy(repos = list.distinctBy { it.lowercase() }, repo = list.firstOrNull())
+
     /** Next run strictly after [after] (epoch millis), or null if no day is selected. */
     fun nextRun(after: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()): Long? = when (repeat) {
         Repeat.INTERVAL -> {

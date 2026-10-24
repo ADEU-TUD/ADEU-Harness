@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.data.LinkedRepo
 import io.github.thepytales.llmhub.net.GitHubClient
 import io.github.thepytales.llmhub.net.s
 import kotlinx.serialization.json.JsonObject
@@ -11,19 +12,20 @@ import kotlinx.serialization.json.put
 class GitHubTools(private val gh: GitHubClient) : ToolProvider {
 
     override val defs = listOf(
-        ToolDef("list_repos", "Listet die GitHub-Repositories des Nutzers auf.", emptyList()),
+        ToolDef("list_repos", "Listet die GitHub-Repositories des Nutzers auf (alle hinterlegten Konten und Organisationen).", emptyList()),
         ToolDef(
-            "select_repo", "Wählt das Repository aus, in dem gearbeitet wird. Setzt den Arbeitsbranch auf den Standardbranch. " +
-                "Funktioniert auch für fremde öffentliche Repositories.",
+            "select_repo", "Verknüpft ein Repository mit dem Chat, zusätzlich zu den schon verknüpften (Arbeitsbranch: Standardbranch). " +
+                "Funktioniert auch für fremde öffentliche Repositories und für Repositories verschiedener Konten und Organisationen.",
             listOf(Param("full_name", "Repository im Format owner/name oder als GitHub-URL")),
         ),
         ToolDef(
             "list_files", "Listet alle Dateipfade im Arbeitsbranch (rekursiv). Optional nur unterhalb eines Pfads.",
-            listOf(Param("path_prefix", "Optionaler Verzeichnispräfix, z.B. 'src/'", required = false)),
+            listOf(REPO, Param("path_prefix", "Optionaler Verzeichnispräfix, z.B. 'src/'", required = false)),
         ),
         ToolDef(
             "read_file", "Liest eine Datei aus dem Arbeitsbranch. Die Ausgabe enthält Zeilennummern.",
             listOf(
+                REPO,
                 Param("path", "Dateipfad relativ zum Repository-Root"),
                 Param("start_line", "Erste Zeile (1-basiert, optional)", required = false, type = "integer"),
                 Param("end_line", "Letzte Zeile (optional)", required = false, type = "integer"),
@@ -31,11 +33,12 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         ),
         ToolDef(
             "search_code", "Durchsucht den Code des Repositories (GitHub-Codesuche, nur Standardbranch).",
-            listOf(Param("query", "Suchbegriff")),
+            listOf(REPO, Param("query", "Suchbegriff")),
         ),
         ToolDef(
             "write_file", "Erstellt oder überschreibt eine Datei vollständig und committet sie in den Arbeitsbranch.",
             listOf(
+                REPO,
                 Param("path", "Dateipfad"),
                 Param("content", "Vollständiger neuer Dateiinhalt"),
                 Param("commit_message", "Commit-Nachricht"),
@@ -45,6 +48,7 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         ToolDef(
             "edit_file", "Ersetzt einen exakt passenden, eindeutigen Textabschnitt in einer Datei und committet die Änderung. Bevorzugen für kleine Änderungen.",
             listOf(
+                REPO,
                 Param("path", "Dateipfad"),
                 Param("old_text", "Exakter bestehender Text (muss genau einmal vorkommen)"),
                 Param("new_text", "Neuer Text"),
@@ -54,26 +58,28 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         ),
         ToolDef(
             "delete_file", "Löscht eine Datei im Arbeitsbranch.",
-            listOf(Param("path", "Dateipfad"), Param("commit_message", "Commit-Nachricht")),
+            listOf(REPO, Param("path", "Dateipfad"), Param("commit_message", "Commit-Nachricht")),
             writes = true,
         ),
-        ToolDef("list_branches", "Listet die Branches des Repositories.", emptyList()),
+        ToolDef("list_branches", "Listet die Branches des Repositories.", listOf(REPO)),
         ToolDef(
             "create_branch", "Erstellt einen neuen Branch und wechselt dorthin.",
             listOf(
+                REPO,
                 Param("name", "Name des neuen Branches"),
                 Param("from", "Ausgangsbranch (Standard: aktueller Arbeitsbranch)", required = false),
             ),
             writes = true,
         ),
-        ToolDef("switch_branch", "Wechselt den Arbeitsbranch.", listOf(Param("name", "Branchname"))),
+        ToolDef("switch_branch", "Wechselt den Arbeitsbranch.", listOf(REPO, Param("name", "Branchname"))),
         ToolDef(
             "list_commits", "Zeigt die letzten Commits des Arbeitsbranches.",
-            listOf(Param("count", "Anzahl (Standard 10)", required = false, type = "integer")),
+            listOf(REPO, Param("count", "Anzahl (Standard 10)", required = false, type = "integer")),
         ),
         ToolDef(
             "create_pull_request", "Erstellt einen Pull Request vom Arbeitsbranch in den Basisbranch.",
             listOf(
+                REPO,
                 Param("title", "Titel"),
                 Param("body", "Beschreibung (Markdown)", required = false),
                 Param("base", "Zielbranch (Standard: Standardbranch)", required = false),
@@ -82,24 +88,24 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         ),
         ToolDef(
             "list_pull_requests", "Listet Pull Requests.",
-            listOf(Param("state", "open, closed oder all (Standard open)", required = false)),
+            listOf(REPO, Param("state", "open, closed oder all (Standard open)", required = false)),
         ),
         ToolDef(
             "list_issues", "Listet Issues des Repositories.",
-            listOf(Param("state", "open, closed oder all (Standard open)", required = false)),
+            listOf(REPO, Param("state", "open, closed oder all (Standard open)", required = false)),
         ),
         ToolDef(
             "read_issue", "Liest ein Issue oder einen Pull Request inklusive Kommentaren.",
-            listOf(Param("number", "Nummer", type = "integer")),
+            listOf(REPO, Param("number", "Nummer", type = "integer")),
         ),
         ToolDef(
             "create_issue", "Erstellt ein neues Issue.",
-            listOf(Param("title", "Titel"), Param("body", "Beschreibung", required = false)),
+            listOf(REPO, Param("title", "Titel"), Param("body", "Beschreibung", required = false)),
             writes = true,
         ),
         ToolDef(
             "comment_issue", "Kommentiert ein Issue oder einen Pull Request.",
-            listOf(Param("number", "Nummer", type = "integer"), Param("body", "Kommentartext")),
+            listOf(REPO, Param("number", "Nummer", type = "integer"), Param("body", "Kommentartext")),
             writes = true,
         ),
     )
@@ -117,9 +123,24 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext) = ToolOutput(dispatch(name, args, ctx))
 
-    private fun need(ctx: RepoContext): Pair<String, String> {
-        val repo = ctx.repo ?: throw IllegalStateException("Kein Repository ausgewählt. Nutze zuerst list_repos und select_repo.")
-        return repo to (ctx.branch ?: "main")
+    /**
+     * The repository a call works in: the one named in its parameter repo or the only linked one. A named repository
+     * that is not linked yet is linked; the working branch is looked up once.
+     */
+    private suspend fun target(ctx: RepoContext, a: JsonObject): LinkedRepo {
+        val named = a.s("repo")?.trim()?.takeIf { it.isNotEmpty() }
+        val linked = ctx.linked()
+        val name = when {
+            named != null -> parseRepo(named) ?: throw IllegalArgumentException("'$named' ist kein Repository im Format owner/name.")
+            linked.isEmpty() -> throw IllegalStateException("Kein Repository ausgewählt. Nutze zuerst list_repos und select_repo.")
+            linked.size == 1 -> linked.first().name
+            else -> throw IllegalStateException(
+                "Mehrere Repositories sind verknüpft (${linked.joinToString { it.name }}). Gib im Parameter repo an, welches gemeint ist."
+            )
+        }
+        val known = ctx.find(name)
+        if (known?.branch != null) return known
+        return LinkedRepo(known?.name ?: name, gh.defaultBranch(name)).also { ctx.put(it) }
     }
 
     private suspend fun dispatch(name: String, a: JsonObject, ctx: RepoContext): String {
@@ -131,13 +152,17 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
             "select_repo" -> {
                 val repo = parseRepo(a.req("full_name"))
                     ?: return "FEHLER: '${a.s("full_name")}' ist kein Repository im Format owner/name."
+                ctx.find(repo)?.branch?.let { return "Repository $repo ist schon verknüpft, Arbeitsbranch: $it" }
                 val branch = gh.defaultBranch(repo)
-                ctx.repo = repo
-                ctx.branch = branch
-                return "Repository $repo ausgewählt, Arbeitsbranch: $branch"
+                ctx.put(LinkedRepo(repo, branch))
+                val all = ctx.linked()
+                return "Repository $repo verknüpft, Arbeitsbranch: $branch" +
+                    if (all.size > 1) ". Verknüpft sind jetzt: ${all.joinToString { it.name }} – gib bei jedem Werkzeug repo an." else ""
             }
         }
-        val (repo, branch) = need(ctx)
+        val target = target(ctx, a)
+        val repo = target.name
+        val branch = target.branch ?: "main"
         return when (name) {
             "list_files" -> {
                 val res = gh.get("repos/$repo/git/trees/$branch", "recursive" to "1") as JsonObject
@@ -198,15 +223,15 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
             "create_branch" -> {
                 val newName = a.req("name")
                 val msg = gh.createBranch(repo, newName, a.s("from") ?: branch)
-                ctx.branch = newName
-                "$msg Arbeitsbranch ist jetzt '$newName'."
+                ctx.put(target.copy(branch = newName))
+                "$msg Arbeitsbranch in $repo ist jetzt '$newName'."
             }
 
             "switch_branch" -> {
-                val target = a.req("name")
-                gh.get("repos/$repo/branches/$target")
-                ctx.branch = target
-                "Arbeitsbranch ist jetzt '$target'."
+                val wanted = a.req("name")
+                gh.get("repos/$repo/branches/$wanted")
+                ctx.put(target.copy(branch = wanted))
+                "Arbeitsbranch in $repo ist jetzt '$wanted'."
             }
 
             "list_commits" -> gh.get(
@@ -289,6 +314,8 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
     }
 
     companion object {
+        private val REPO = Param("repo", "Repository im Format owner/name – nötig, wenn mehrere Repositories verknüpft sind", required = false)
+
         /** Write actions that other people see; the rest only changes files and branches. */
         private val PUBLIC_TOOLS = setOf("create_pull_request", "create_issue", "comment_issue")
 
@@ -315,8 +342,14 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         fun systemPrompt(ctx: RepoContext) = buildString {
             append("Du hast über Werkzeuge Zugriff auf GitHub und kannst selbstständig in Repositories arbeiten ")
             append("(Dateien lesen, suchen, ändern, committen, Branches und Pull Requests erstellen, Issues bearbeiten).\n")
-            if (ctx.repo != null) {
-                append("Aktuelles Repository: ${ctx.repo}, Arbeitsbranch: ${ctx.branch}.\n")
+            val linked = ctx.linked()
+            if (linked.size == 1) {
+                append("Aktuelles Repository: ${linked[0].name}, Arbeitsbranch: ${linked[0].branch ?: "Standardbranch"}.\n")
+            } else if (linked.size > 1) {
+                append("Mit diesem Chat sind mehrere Repositories verknüpft (auch aus verschiedenen Konten/Organisationen):\n")
+                linked.forEach { append("- ${it.name} (Arbeitsbranch: ${it.branch ?: "Standardbranch"})\n") }
+                append("Gib bei jedem Werkzeug im Parameter repo an, in welchem Repository du arbeitest. ")
+                append("So kannst du z.B. in einem lesen und die Änderung in ein anderes übertragen.\n")
             } else {
                 append("Es ist noch kein Repository ausgewählt – nutze list_repos und select_repo, wenn der Nutzer ein Repository nennt ")
                 append("(auch als GitHub-URL).\n")

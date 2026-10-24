@@ -9,6 +9,7 @@ import io.github.thepytales.llmhub.agent.PendingAction
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.data.LinkedRepo
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
@@ -178,8 +179,8 @@ class ChatViewModel(
     fun setSystemPrompt(prompt: String, persona: String? = null) =
         edit { it.copy(systemPrompt = prompt.ifBlank { null }, persona = if (prompt.isBlank()) null else persona) }
 
-    fun setGitHub(enabled: Boolean, repo: String?, branch: String?) =
-        edit { it.copy(githubEnabled = enabled, repo = repo, branch = branch) }
+    fun setGitHub(enabled: Boolean, repos: List<LinkedRepo>) =
+        edit { it.copy(githubEnabled = enabled).withRepos(if (enabled) repos else emptyList()) }
 
     fun setEnvironment(envId: String?) = edit { it.copy(envId = envId) }
 
@@ -285,7 +286,7 @@ class ChatViewModel(
         edit { it.select(message) }
     }
 
-    /** A GitHub link in the message turns the GitHub tools on and selects that repository. */
+    /** A GitHub link in the message turns the GitHub tools on and links that repository to the chat. */
     private fun connectMentionedRepo(text: String) {
         val repo = GitHubTools.findRepoUrl(text) ?: return
         val conv = _conversation.value ?: return
@@ -293,9 +294,10 @@ class ChatViewModel(
             _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen.")
             return
         }
-        if (conv.githubEnabled && conv.repo != null) return
-        if (!conv.githubEnabled) _toasts.tryEmit("GitHub-Werkzeuge aktiviert: $repo")
-        edit { it.copy(githubEnabled = true, repo = it.repo ?: repo, branch = if (it.repo == null) null else it.branch) }
+        val linked = conv.linkedRepos
+        if (conv.githubEnabled && linked.any { it.name.equals(repo, ignoreCase = true) }) return
+        _toasts.tryEmit(if (conv.githubEnabled) "Repository verknüpft: $repo" else "GitHub-Werkzeuge aktiviert: $repo")
+        edit { it.copy(githubEnabled = true).withRepos(it.linkedRepos + LinkedRepo(repo)) }
     }
 
     /** Re-runs the model after an error (drops the failed answer). */
