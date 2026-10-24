@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.data.AgentEnvironment
+import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.net.JSON
 import io.github.thepytales.llmhub.net.s
 import kotlinx.serialization.json.JsonArray
@@ -34,7 +35,46 @@ data class RepoContext(
     val env: AgentEnvironment? = null,
     /** Images of the latest user message (data URLs), e.g. to save one as logo. */
     val images: List<String> = emptyList(),
+    /** Attached PDFs of the chat that were kept for filling in, newest first. */
+    val pdfs: List<FileAttachment> = emptyList(),
 )
+
+/** What a write action reaches; decides together with [ApprovalMode] whether the user is asked first. */
+enum class Risk {
+    /** Commits and branches in the selected repository – traceable and reversible in the Git history. */
+    EDIT,
+    /** Visible to other people or outside the app: pull requests, issues, comments, writing web requests. */
+    PUBLIC,
+}
+
+/** When the agent asks before write actions in chats (Einstellungen › Chat & Werkzeuge › Freigaben). */
+enum class ApprovalMode(val label: String, val description: String) {
+    ASK(
+        "Immer fragen",
+        "Vor jedem Commit, Branch, Pull Request, Kommentar oder schreibenden Web-Aufruf nachfragen.",
+    ),
+    EDITS(
+        "Code-Änderungen automatisch",
+        "Dateien anlegen, ändern, löschen und Branches erstellen ohne Rückfrage – alles bleibt in der Git-Historie " +
+            "nachvollziehbar. Gefragt wird nur noch bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen.",
+    ),
+    ALL(
+        "Alles automatisch",
+        "Nie nachfragen – für lange Coding-Sessions. Der Agent führt auch Pull Requests, Kommentare und schreibende " +
+            "Web-Aufrufe ohne Rückfrage aus.",
+    ),
+    ;
+
+    fun asks(risk: Risk) = when (this) {
+        ASK -> true
+        EDITS -> risk == Risk.PUBLIC
+        ALL -> false
+    }
+
+    companion object {
+        fun of(name: String?) = entries.firstOrNull { it.name == name } ?: ASK
+    }
+}
 
 /** A group of tools the model can call. */
 interface ToolProvider {
@@ -44,8 +84,8 @@ interface ToolProvider {
 
     fun handles(name: String) = defs.any { it.name == name }
 
-    /** Whether the user has to allow this call first (when confirmations are switched on). */
-    fun needsConfirmation(name: String, args: JsonObject): Boolean = false
+    /** What this call changes, or null if it only reads (then it never needs the user's OK). */
+    fun risk(name: String, args: JsonObject): Risk? = null
 }
 
 fun parseArgs(arguments: String): JsonObject =

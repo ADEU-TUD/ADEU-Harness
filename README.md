@@ -34,8 +34,22 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   einem anderen Modell) – frühere Versionen bleiben über „‹ 1/2 ›“ erreichbar, wie bei ChatGPT.
 - **Dateien als Anhang**: PDF (Text; Scans werden als Bilder angehängt), Word, PowerPoint, Excel, OpenDocument,
   Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen.
-- **Vorlagen**: Personas (System-Prompts wie „Übersetzer“, „Code-Reviewer“, „Lektor“) und Prompt-Vorlagen – eigene
-  anlegen, im Chat über „+“ › Vorlagen nutzen.
+- **Vorlagen-Bibliothek für die Professur**: rund 50 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
+  (Seminarplan, Sitzung planen, Lernziele, Prüfungsaufgaben, Bewertungsraster, Feedback, Unterrichtsentwurf,
+  Unterrichtsvignette), *Betreuung & Prüfung* (Exposé-Feedback, Gutachten, Themen für Abschlussarbeiten, mündliche Prüfung),
+  *Forschung* (Forschungsfrage, Fragebogen-Items, Interviewleitfaden, Kategoriensystem, Ergebnisse nach APA 7, Abstract,
+  Exzerpt, Projektskizze, Einwilligungserklärung, Peer Review), *Kommunikation*, *Allgemein* und *Personas*
+  (Didaktik-Beratung, Methoden- & Statistikberatung, Lektorat, kritische:r Gutachter:in …). Vorlage wählen, die Felder in
+  einem Formular ausfüllen, senden – die Anweisungen an das Modell schickt die App unsichtbar mit, im Chat steht nur
+  „Vorlage: …“ und Ihre Angaben. Suche, Filter nach Bereich, Favoriten (★, erscheinen auf dem Startbildschirm), eigene
+  Vorlagen mit Platzhaltern `{{Feld}}` bzw. `{{Feld|Beispiel}}`, eingebaute Vorlagen lassen sich kopieren und anpassen.
+  Eigene Vorlagen per *Teilen* als Text an Kolleg:innen schicken und dort über *Importieren* übernehmen. Die eingebauten
+  Vorlagen kommen mit jedem Update aktuell mit. *Einstellungen › Dokumente & Logos › Meine Absenderangaben* füllt die
+  Absender-Felder automatisch aus.
+- **PDF-Formulare ausfüllen**: Ein angehängtes PDF-Formular (z.B. Dienstreiseantrag, Anmeldung) füllt der Agent aus und
+  gibt es als neue PDF zurück – Textfelder, Ankreuzfelder, Options- und Auswahlfelder; bei PDFs ohne Formularfelder setzt
+  er den Text an die passenden Stellen neben die Beschriftungen. Optional „abgeflacht“ (Felder danach nicht mehr änderbar).
+  Unterschriftsfelder bleiben leer. Vorlage *Allgemein › PDF-Formular ausfüllen* oder einfach „Fülle das Formular aus“.
 - **Modelle vergleichen**: Zwei Modelle beantworten dieselbe Frage nebeneinander, mit Antwortzeit, Tokens und
   Tokens/s; eine Seite lässt sich als Chat fortsetzen.
 - **Verbrauch**: Anfragen und Tokens pro Tag (Diagramm), nach Modell und Art; nur lokal gezählt.
@@ -51,8 +65,8 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **Modellübersicht** mit Beschreibung, Stärken, Leistungs-/Tempo-Einschätzung, Kontextlänge und Fähigkeiten,
   Suche, Filter und Sortierung.
 - **GitHub-Agent**: Mit einem GitHub-Token arbeitet das Modell in deinen Repositories – Dateien lesen, durchsuchen,
-  bearbeiten und committen, Branches und Pull Requests erstellen, Issues lesen/kommentieren. Schreibaktionen müssen
-  standardmäßig bestätigt werden. Ein GitHub-Link in einer Nachricht wählt das Repository direkt aus.
+  bearbeiten und committen, Branches und Pull Requests erstellen, Issues lesen/kommentieren. Wann es vorher fragt, legen
+  die *Freigaben* fest (siehe unten). Ein GitHub-Link in einer Nachricht wählt das Repository direkt aus.
 - **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News) und Webseiten lesen.
 - **Dokumente erstellen**: PDF, Word (.docx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
   Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
@@ -60,15 +74,17 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Modell eigenes HTML mit Farben, Formen und Schriften. Klappt das gestaltete Rendern einmal nicht, entsteht trotzdem
   ein PDF mit demselben Text (schlichtes Layout); der automatische Test im Emulator prüft das Rendern vor jedem Release,
   auch bei App im Hintergrund.
-- **TU-Dresden-Formulare**: Unter „+“ › Vorlagen stehen ganz oben fertige Vorlagen im Corporate Design der TU Dresden –
-  Brief nach DIN 5008 (Anschriftfeld mit Rücksendezeile, Infoblock mit Telefon, E-Mail, Zeichen und Datum, Betreff),
-  Protokoll, Aktennotiz, Formular zum Ausfüllen (beschriftete Felder, Ankreuzkästchen, Unterschriftsfelder), Merkblatt,
-  Bericht und Einladung mit Tagesordnung. Vorlage wählen, Lücken ausfüllen, senden. Das Modell schreibt nur kurzes
-  Markdown; Logo, Einrichtung, Datum, Fußzeile mit „Seite x von y“ und das zurückhaltende Layout (Noto Sans, TUD-Blau nur
-  für Logo, Kopf und Überschriften, feine graue Linien) setzt die App. Die Einrichtung im Kopf ist voreingestellt auf
-  Fakultät Erziehungswissenschaften › Institut für Erziehungswissenschaft › Professur für Allgemeine Didaktik und
-  Empirische Unterrichtsforschung und lässt sich unter *Einstellungen › Dokumente & Logos* ändern. Das Logo ist
-  eingebaut (blau und weiß für blaue Flächen).
+- **TUD-Dokumente im Corporate Design** (nach dem offiziellen CD-Paket 2025): Brief nach DIN 5008 Form B (Anschriftfeld
+  45 mm vom oberen Rand mit Rücksendezeile, Informationsblock ab 125 mm mit Einrichtung, Telefon, E-Mail, Zeichen und
+  Datum, Betreff), Protokoll, Aktennotiz, Formular zum Ausfüllen (beschriftete Felder, Ankreuzkästchen,
+  Unterschriftsfelder), Merkblatt/Aushang, Bericht, Einladung mit Tagesordnung und **Teilnahmebescheinigung/Urkunde**
+  nach der TUD-Vorlage „Zertifikate & Urkunden“. Das Modell schreibt nur kurzes Markdown; die App setzt das Layout:
+  offizielles Logo 17 mm hoch oben links (25 mm/18 mm vom Rand), darunter die Einrichtung, Hausschrift **Noto Sans**
+  (eingebettet, also auf jedem Gerät gleich), Dunkelblau `#00008C` für Titel und Überschriften, Hellblau für
+  Tabellenköpfe und Hinweisboxen, das Grau der TUD-Palette für Nebentexte, Fußzeile mit „Seite x von y“. Die Einrichtung
+  ist voreingestellt auf Fakultät Erziehungswissenschaften › Institut für Erziehungswissenschaft › Professur für
+  Allgemeine Didaktik und Empirische Unterrichtsforschung und lässt sich unter *Einstellungen › Dokumente & Logos*
+  ändern. Das Logo ist eingebaut (blau und weiß für blaue Flächen).
 - **Logos**: Unter *Einstellungen › Dokumente & Logos* gespeicherte Logos bindet das Modell auf Befehl ein („mit
   meinem Logo“) oder automatisch in jedes Dokument. Ein Bild im Chat kann mit „Speichere das als Logo“ übernommen werden.
 - **Darstellung**: Stile *Claude* (Standard), *Material You*, *ChatGPT* und *Gemini*, Farbton, Hell/Dunkel/System,
@@ -91,9 +107,15 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 
 Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und die Windows-Version und veröffentlicht
 beide als Release (`.github/workflows/android.yml`); beide werden vorher automatisch gestartet und getestet (Android im
-Emulator, Windows auf einem Windows-Rechner von GitHub). Builds anderer Branches erscheinen ebenfalls unter Releases, gekennzeichnet als
-*Vorabversion*. Updates lassen sich direkt über die alte Version installieren – API-Key,
-GitHub-Token, Einstellungen und Chats bleiben dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+Emulator, Windows auf einem Windows-Rechner von GitHub). Updates lassen sich direkt über die alte Version installieren –
+API-Key, GitHub-Token, Einstellungen und Chats bleiben dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+
+**GitHub-Actions-Minuten sparen**: Ein Durchlauf kostet etwa 25 Minuten des Kontingents (Windows-Rechner zählen doppelt).
+Deshalb baut nur noch der Standardbranch (und Tags) automatisch. Pushes auf andere Branches bauen nichts; eine
+Vorabversion eines Branches entsteht nur, wenn man sie unter *Actions › Build & Release › Run workflow* (Branch wählen)
+startet. Änderungen, die nur Markdown-Dateien betreffen, lösen keinen Build aus, und `[skip ci]` in der Commit-Nachricht
+überspringt einen Push ganz. Vor dem Merge lassen sich Android- und Windows-Version lokal bauen und testen (siehe
+*Selbst bauen*), sodass nach dem Merge genau ein Durchlauf das Release erzeugt.
 
 ## Windows (portabel, ohne Admin-Rechte)
 
@@ -151,6 +173,21 @@ des Uni-Servers: Es erreicht das Modell dahinter gerade nicht (Modell überlaste
 App versucht es nach 5, 15 und 30 Sekunden automatisch erneut (ebenso bei 502/504 und abgebrochenen Verbindungen).
 Hält der Fehler an, hilft nur warten oder ein anderes Modell wählen; der Status steht unter <https://llm.scads.ai/status>.
 
+## Freigaben („Aktion erlauben?“)
+
+Bevor der Agent etwas verändert, kann er nachfragen. *Einstellungen › Chat & Werkzeuge › Freigaben* (auch unter GitHub):
+
+| Modus | Verhalten |
+| --- | --- |
+| Immer fragen (Standard) | Vor jedem Commit (Datei schreiben, ändern, löschen), Branch, Pull Request, Kommentar und schreibenden Web-Aufruf |
+| Code-Änderungen automatisch | Dateien und Branches ohne Rückfrage (alles bleibt in der Git-Historie nachvollziehbar); gefragt wird nur bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen |
+| Alles automatisch | Nie nachfragen – für lange Coding-Sessions |
+
+Für einen einzelnen Chat: im Dialog „Aktion erlauben?“ *In diesem Chat nicht mehr fragen* ankreuzen oder im Chat-Menü
+(⋮) *Aktionen ohne Rückfrage* wählen. Solange das gilt, zeigt der Chat über dem Eingabefeld „Ohne Rückfrage“; ein Tipp
+darauf schaltet die Rückfragen wieder ein. Geplante Aufgaben haben weiterhin ihre eigene Einstellung
+„Schreibaktionen erlauben“.
+
 ## Agent-Schritte und Denkstufe
 
 - Jeder Werkzeugaufruf ist ein Schritt. Nach *Max. Werkzeugschritte* (Standard 30) macht der Agent automatisch weiter
@@ -167,6 +204,7 @@ Voraussetzung: JDK 17 und Android SDK.
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
+./gradlew -p desktop test   # Vorlagen, Freigaben, PDF-Formulare, TUD-Layouts (ohne Emulator)
 ```
 
 Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
@@ -192,7 +230,12 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
 | `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |
 | `data/ChatTree.kt` | Chats als Baum (Versionen beim Bearbeiten/Neu generieren) |
-| `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen, Umgebungen, Logos und deren Speicherung |
+| `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen (Bereiche, Platzhalter), Umgebungen, Logos und deren Speicherung |
+| `data/TemplateLibrary.kt` | Eingebaute Vorlagen, Favoriten-Vorschläge, Teilen/Importieren |
+| `ui/TemplateUi.kt`, `ui/TemplatesScreen.kt` | Vorlagen durchsuchen, ausfüllen, verwalten |
+| `ui/Approvals.kt` | Freigabe-Modi und Dialog „Aktion erlauben?“ |
+| `docs/PdfForms.kt`, `docs/PdfFormModel.kt` | PDF-Formulare lesen und ausfüllen (Android: pdfbox-android, Windows: PDFBox 3) |
+| `resources/tud/` | Offizielles TUD-Logo (blau/weiß) und Noto Sans für den Dokumentstil „TU Dresden“ |
 | `data/ModelCatalog.kt` | Modellbeschreibungen, Einsatzzwecke und Einstufung (empfohlen / weitere / ausgeblendet) |
 | `data/ScheduledTask.kt`, `tasks/TaskScheduler.kt` | Geplante Aufgaben (WorkManager) |
 | `tasks/Notifier.kt` | Benachrichtigungen: fertige Antworten, Aufgaben-Ergebnisse, Rückfragen |

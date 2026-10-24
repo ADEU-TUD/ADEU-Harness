@@ -70,6 +70,7 @@ object DocumentWriter {
         fileName: String? = null,
         theme: DocTheme = DocTheme(),
         letter: Letter? = null,
+        certificate: Boolean = false,
     ): CreatedDocument {
         @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         val base = safeName(fileName?.substringBeforeLast('.')?.ifBlank { null } ?: title)
@@ -91,7 +92,7 @@ object DocumentWriter {
         var designed = true
         when (format) {
             DocFormat.PDF -> {
-                val page = if (html) content else toHtml(title, content, theme, print = true, letter = letter)
+                val page = if (html) content else toHtml(title, content, theme, print = true, letter = letter, certificate = certificate)
                 pages = try {
                     HtmlPdf.write(context, file, page)
                 } catch (e: CancellationException) {
@@ -103,7 +104,9 @@ object DocumentWriter {
                 }
             }
             DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
-            DocFormat.HTML -> withContext(Dispatchers.IO) { file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter)) }
+            DocFormat.HTML -> withContext(Dispatchers.IO) {
+                file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter, certificate = certificate))
+            }
             DocFormat.MD -> withContext(Dispatchers.IO) { file.writeText(withTitle(title, markdown)) }
             DocFormat.TXT -> withContext(Dispatchers.IO) { file.writeText(toText(title, markdown)) }
         }
@@ -168,15 +171,15 @@ object DocumentWriter {
 
     private fun cssString(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 
-    /** Stylesheet for a document style; [a] is the accent color. */
-    private fun css(theme: DocTheme, print: Boolean): String {
+    /** Stylesheet for a document style; [a] is the accent color. Certificates have no footer. */
+    private fun css(theme: DocTheme, print: Boolean, certificate: Boolean = false): String {
         val a = theme.accent
         val tint = a + "14"
         val serif = "'Noto Serif', Georgia, 'Times New Roman', serif"
         val sans = "Roboto, 'Helvetica Neue', Arial, sans-serif"
         val s = theme.style
-        // Noto Sans is the typeface of the TUD corporate design.
-        val tudFont = "'Noto Sans', 'Open Sans', 'Segoe UI', Roboto, Arial, sans-serif"
+        // Noto Sans is the typeface of the TUD corporate design; it is embedded (TudBrand.fontFaces).
+        val tudFont = "'Noto Sans', 'Segoe UI', Roboto, Arial, sans-serif"
         val bodyFont = when (s) {
             DocStyle.CLASSIC -> serif
             DocStyle.TUD -> tudFont
@@ -192,14 +195,17 @@ object DocumentWriter {
             else -> a
         }
         return buildString {
-            if (print && s == DocStyle.TUD) {
+            if (s == DocStyle.TUD) append(TudBrand.fontFaces)
+            if (print && certificate) {
+                append(if (s == DocStyle.TUD) "@page{size:A4;margin:18mm 25mm 20mm 25mm}" else "@page{size:A4;margin:18mm 20mm 20mm 20mm}")
+            } else if (print && s == DocStyle.TUD) {
                 // Margins as in DIN 5008 letters; footer with the unit and "Seite x von y".
                 val footer = theme.footer.ifBlank {
                     listOfNotNull("Technische Universität Dresden", theme.unit.lines().lastOrNull { it.isNotBlank() }?.trim()).joinToString(" · ")
                 }
                 append("@page{size:A4;margin:18mm 20mm 22mm 25mm;")
-                append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
-                append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:#5a5f73;vertical-align:top;padding-top:6mm}")
+                append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
+                append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
                 append("}")
             } else if (print) {
                 append("@page{size:A4;margin:18mm 17mm 20mm 17mm;")
@@ -244,6 +250,19 @@ object DocumentWriter {
             append(".postal{font-size:7pt;color:#666;border-bottom:0.5pt solid #999;padding-bottom:2pt;margin-bottom:6pt}")
             append(".letter-date{text-align:right;margin-bottom:16pt}")
             append(".subject{font-weight:700;font-size:11pt;margin-bottom:16pt}")
+            // Certificates (layout of the official TUD template „Zertifikate & Urkunden“): centred main part,
+            // small print, date and signatures built up from the bottom of the page.
+            append(".cert{position:relative;min-height:240mm}.cert.print{height:255mm;min-height:0}")
+            append(".cert-main{text-align:center;padding-top:14mm}")
+            append(".cert-kind{font-size:13pt;font-weight:500;letter-spacing:.04em;color:$headColor;margin-bottom:12mm}")
+            append(".cert-big{font-size:23pt;line-height:1.25;color:$headColor;margin:2mm 0 4mm}")
+            append(".cert-text{font-size:11pt;margin:0 0 3mm}")
+            append(".cert-foot{position:absolute;left:0;right:0;bottom:0}")
+            append(".cert-small{font-size:9pt;line-height:1.45;margin-bottom:8mm}.cert-small p{margin:0 0 3pt}")
+            append(".cert-date{font-size:9pt;margin-bottom:22mm}")
+            append(".cert-sign{display:flex;justify-content:space-between;gap:20mm;font-size:9pt;line-height:1.4}")
+            append(".cert-sign>div{flex:0 1 70mm}.cert-sign>div:last-child:not(:first-child){text-align:right}")
+            append(".cert-sign .line{border-top:0.6pt solid #000;padding-top:2mm}")
             when (s) {
                 DocStyle.MODERN -> {
                     append(".bar{height:5pt;background:$a;border-radius:3pt;margin-bottom:14pt}")
@@ -274,34 +293,43 @@ object DocumentWriter {
                     append("th{border-bottom:1px solid #333;font-weight:600}td{border-bottom:1px solid #e5e7eb}")
                 }
                 DocStyle.TUD -> {
-                    // Sober official look: blue only for logo, unit, title and headings; thin grey lines; no colour fills.
-                    val line = "#9da1b4"
-                    val muted = "#5a5f73"
-                    append("body{font-size:10pt;line-height:1.5;color:#1a1a1a}")
-                    append(".tud-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24pt;margin-bottom:24pt}")
-                    append(".tud-head img{height:36pt;max-width:170pt;object-fit:contain}")
-                    append(".unit{text-align:right;font-size:7.5pt;line-height:1.45;color:$a;max-width:60%}.unit b{font-weight:700}")
-                    append(".title{color:$a;font-size:16pt;font-weight:700;line-height:1.25;margin:0 0 3pt}")
-                    append(".meta{color:$muted;font-size:8pt;margin:0 0 16pt;padding-bottom:8pt;border-bottom:0.6pt solid $line}")
-                    append("h1{font-size:14pt}h2{font-size:11pt;font-weight:700;color:$a;margin:14pt 0 5pt}")
-                    append("h3{font-size:10pt;font-weight:700;color:#1a1a1a;margin:12pt 0 4pt}")
-                    append("table{font-size:9pt;margin:4pt 0 12pt}")
-                    append("th{background:#eceef4;color:#1a1a1a;font-weight:700;border:0.6pt solid $line;font-size:8.5pt}")
+                    // Corporate design 2025: Noto Sans (headings Medium), Dunkelblau for title and headings, light
+                    // Hellblau for table heads and boxes, the grey of the theme for secondary text, thin grey lines.
+                    val line = "#BBC1C6"
+                    val muted = TudBrand.GREY
+                    val tint = "#E5F1FF"
+                    val soft = "#F3F8FF"
+                    append("body{font-size:10.5pt;line-height:1.5;color:#000}body.letter{font-size:11pt}")
+                    append("h1,h2,h3,h4,.title,.cert-kind{font-weight:500}")
+                    // Logo 17 mm high at the top left (25 mm / 18 mm from the edges, as in the official templates),
+                    // the organizational unit in small type below it.
+                    append(".tud-head{margin-bottom:10mm}")
+                    append(".tud-head img{display:block;height:17mm;width:auto;max-width:80mm;object-fit:contain;object-position:left top}")
+                    append(".unit{margin-top:3mm;font-size:8.5pt;line-height:1.4;color:#000}.unit b{font-weight:600}")
+                    append(".title{color:$a;font-size:17pt;line-height:1.25;margin:0 0 3pt}")
+                    append(".meta{color:$muted;font-size:8pt;margin:0 0 14pt;padding-bottom:8pt;border-bottom:0.6pt solid $line}")
+                    append("h1{font-size:14pt}h2{font-size:12pt;color:$a;margin:14pt 0 5pt}")
+                    append("h3{font-size:10.5pt;color:#000;margin:12pt 0 4pt}")
+                    append("table{font-size:9.5pt;margin:4pt 0 12pt}")
+                    append("th{background:$tint;color:#000;font-weight:600;border:0.6pt solid $line;font-size:9pt}")
                     append("td{border:0.6pt solid $line}")
-                    // Two-column rows are form fields: label on the left (small, grey background), space to write on the right.
-                    append("td:first-child:nth-last-child(2):not(:empty){width:36%;background:#f6f7fa;font-size:8.5pt;color:#33384a}")
+                    // Two-column rows are form fields: label on the left (small, tinted), space to write on the right.
+                    append("td:first-child:nth-last-child(2):not(:empty){width:36%;background:$soft;font-size:9pt;color:#1a1a1a}")
                     append("td:empty{height:17pt}td:only-child:empty{height:60pt}")
-                    append(".cb{border:0.8pt solid #1a1a1a;border-radius:0;width:9pt;height:9pt;line-height:9pt}")
-                    append(".fill{border-bottom-color:#1a1a1a}")
-                    append("blockquote{border-left:2pt solid $a;background:#f4f5f9;color:#1a1a1a}")
-                    append(".callout.tud{border:none;border-left:2pt solid $a;background:#f4f5f9;border-radius:0;padding:6pt 10pt}")
+                    append(".cb{border:0.8pt solid #000;border-radius:0;width:9pt;height:9pt;line-height:9pt}")
+                    append(".fill{border-bottom-color:#000}")
+                    append("blockquote{border-left:2pt solid $a;background:$soft;color:#000}")
+                    append(".callout.tud{border:none;border-left:2pt solid $a;background:$soft;border-radius:0;padding:6pt 10pt}")
                     append(".callout.tud .label{color:$a;font-size:7.5pt;letter-spacing:.06em}")
-                    // DIN 5008 letter: address field 85 mm wide, information block on the right.
-                    append(".letter-row{display:flex;justify-content:space-between;gap:12mm;margin:4mm 0 12mm}")
-                    append(".letter-row .address{width:85mm;min-height:45mm;margin:0;font-size:10pt}")
-                    append(".postal{font-size:6.5pt;color:$muted;border-bottom:0.5pt solid $line;padding-bottom:1.5pt;margin-bottom:5pt}")
-                    append(".info{width:58mm;font-size:8pt;line-height:1.5}.info .k{color:$muted}")
-                    append(".subject{color:#1a1a1a;font-size:10.5pt;margin-bottom:14pt}")
+                    // DIN 5008 form B: address field 45 mm from the top edge (return line just above the address),
+                    // information block from 125 mm, subject two lines below the address field.
+                    append(".tud-head.letter{margin-bottom:0}")
+                    append(".letter-row{display:flex;justify-content:space-between;margin:10mm 0 8.5mm}")
+                    append(".letter-row .address{width:85mm;min-height:45mm;margin:0;font-size:11pt;line-height:1.35}")
+                    append(".postal{font-size:7pt;color:$muted;border-bottom:0.5pt solid $line;padding-bottom:1.5pt;margin:11mm 0 2mm}")
+                    append(".info{width:65mm;font-size:8.5pt;line-height:1.5}.info .k{color:$muted}")
+                    append(".info .unit{margin:0 0 4mm;font-size:8.5pt}")
+                    append(".subject{color:#000;font-weight:600;font-size:11pt;margin-bottom:8.5mm}")
                 }
             }
         }
@@ -310,12 +338,17 @@ object DocumentWriter {
     private fun linesHtml(text: String) =
         text.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("<br>") { htmlInline(it) }
 
-    /** Logo on the left, the organizational unit (last level bold) on the right. */
-    private fun tudHead(theme: DocTheme): String {
-        val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"TU Dresden\">" }.orEmpty()
+    /** The organizational unit, one level per line, the last (most specific) one bold. */
+    private fun unitHtml(theme: DocTheme): String {
         val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
-        val unit = lines.mapIndexed { i, l -> if (i == lines.lastIndex) "<b>${esc(l)}</b>" else esc(l) }.joinToString("<br>")
-        return "<div class=\"tud-head\">$logo<div class=\"unit\">$unit</div></div>"
+        if (lines.isEmpty()) return ""
+        return "<div class=\"unit\">" + lines.mapIndexed { i, l -> if (i == lines.lastIndex) "<b>${esc(l)}</b>" else esc(l) }.joinToString("<br>") + "</div>"
+    }
+
+    /** Logo at the top left with the organizational unit below it, as in the official TUD templates. */
+    private fun tudHead(theme: DocTheme, withUnit: Boolean = true): String {
+        val logo = theme.logoDataUrl?.let { "<img src=\"$it\" alt=\"TU Dresden\">" }.orEmpty()
+        return "<div class=\"tud-head${if (withUnit) "" else " letter"}\">$logo${if (withUnit) unitHtml(theme) else ""}</div>"
     }
 
     private fun tudLetterBlock(title: String, theme: DocTheme, letter: Letter): String {
@@ -329,9 +362,10 @@ object DocumentWriter {
                 else -> htmlInline(l)
             }
         }.joinToString("<br>")
-        return tudHead(theme) +
+        // The unit moves into the information block, so the address field keeps its place 45 mm from the top.
+        return tudHead(theme, withUnit = false) +
             "<div class=\"letter-row\"><div class=\"address\"><div class=\"postal\">${esc(TudBrand.POSTAL)}</div>" +
-            "${linesHtml(letter.recipient)}</div><div class=\"info\">$info" +
+            "${linesHtml(letter.recipient)}</div><div class=\"info\">${unitHtml(theme)}$info" +
             "${if (info.isEmpty()) "" else "<br><br>"}<span class=\"k\">Datum:</span> $date</div></div>" +
             (if (title.isBlank()) "" else "<div class=\"subject\"><b>${htmlInline(title)}</b></div>")
     }
@@ -362,6 +396,37 @@ object DocumentWriter {
         }
     }
 
+    /**
+     * Certificate after the official template: "## " lines are the big lines (name, event), paragraphs the
+     * centred text, a quote the small print and the last table the signatures (one column per person).
+     */
+    private fun certificateHtml(title: String, markdown: String, theme: DocTheme, print: Boolean): String {
+        val main = StringBuilder()
+        val small = StringBuilder()
+        var signers: List<List<String>> = emptyList()
+        for (b in parseBlocks(markdown)) when (b) {
+            is Block.Heading -> main.append("<div class=\"cert-big\">${htmlInline(b.text)}</div>")
+            is Block.Paragraph -> main.append("<p class=\"cert-text\">${b.text.lines().joinToString("<br>") { htmlInline(it) }}</p>")
+            is Block.Item -> main.append("<p class=\"cert-text\">${htmlInline(b.text)}</p>")
+            is Block.Quote -> small.append("<p>${(callout(b.text)?.second ?: b.text).lines().joinToString("<br>") { htmlInline(it) }}</p>")
+            is Block.Table -> signers = (0 until b.rows.maxOf { it.size }).map { c ->
+                b.rows.mapNotNull { row -> row.getOrNull(c)?.trim()?.takeIf { it.isNotEmpty() } }
+            }
+            else -> {}
+        }
+        val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.GERMANY).format(Date())
+        val head = if (theme.style == DocStyle.TUD) tudHead(theme)
+        else theme.logoDataUrl?.let { "<div class=\"tud-head\"><img src=\"$it\" alt=\"Logo\" style=\"max-height:20mm\"></div>" }.orEmpty()
+        val sign = signers.joinToString("") { lines ->
+            "<div><div class=\"line\">" + lines.mapIndexed { i, l -> if (i == 0) "<b>${htmlInline(l)}</b>" else htmlInline(l) }.joinToString("<br>") + "</div></div>"
+        }
+        return "<div class=\"cert${if (print) " print" else ""}\">$head<div class=\"cert-main\">" +
+            (if (title.isBlank()) "" else "<div class=\"cert-kind\">${htmlInline(title)}</div>") + main +
+            "</div><div class=\"cert-foot\">" + (if (small.isEmpty()) "" else "<div class=\"cert-small\">$small</div>") +
+            "<div class=\"cert-date\">Dresden, $date</div>" + (if (sign.isEmpty()) "" else "<div class=\"cert-sign\">$sign</div>") +
+            "</div></div>\n"
+    }
+
     /** Converts Markdown into a styled HTML page (also the source for PDFs). */
     fun toHtml(
         title: String,
@@ -369,6 +434,7 @@ object DocumentWriter {
         theme: DocTheme = DocTheme(),
         print: Boolean = false,
         letter: Letter? = null,
+        certificate: Boolean = false,
     ): String = buildString {
         @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         // A leading "# Heading" becomes the title of the document.
@@ -381,8 +447,13 @@ object DocumentWriter {
         append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n")
         append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
         append("<title>${esc(docTitle.ifBlank { "Dokument" })}</title>\n<style>\n")
-        append(css(theme, print))
-        append("\n</style>\n</head>\n<body>\n")
+        append(css(theme, print, certificate))
+        append("\n</style>\n</head>\n<body${if (letter != null) " class=\"letter\"" else ""}>\n")
+        if (certificate) {
+            append(certificateHtml(docTitle, body, theme, print))
+            append("</body>\n</html>\n")
+            return@buildString
+        }
         append(if (letter != null) letterBlock(docTitle, theme, letter) else titleBlock(docTitle, theme))
         val blocks = parseBlocks(body)
         var openList: String? = null

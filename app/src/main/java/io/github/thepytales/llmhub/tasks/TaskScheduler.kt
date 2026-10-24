@@ -13,6 +13,7 @@ import io.github.thepytales.llmhub.AppState
 import io.github.thepytales.llmhub.LlmHubApp
 import io.github.thepytales.llmhub.ResultEvent
 import io.github.thepytales.llmhub.agent.AgentHost
+import io.github.thepytales.llmhub.agent.Risk
 import io.github.thepytales.llmhub.agent.ToolSelection
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
@@ -129,7 +130,7 @@ object TaskRunner {
             }
             override fun persist() = c.chats.save(conv.copy(updatedAt = System.currentTimeMillis()))
             override fun notice(message: String) {}
-            override suspend fun confirm(call: ToolCall) = task.allowWrites
+            override suspend fun confirm(call: ToolCall, risk: Risk) = task.allowWrites
         }
         var status = "Erfolgreich"
         try {

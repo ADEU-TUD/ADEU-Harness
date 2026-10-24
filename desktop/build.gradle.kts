@@ -71,6 +71,8 @@ kotlin {
     sourceSets.main {
         kotlin.srcDir(sharedSources)
         kotlin.srcDir(buildConfig)
+        // Logo and font of the TU Dresden design (resources/tud), shared with the Android app.
+        resources.srcDir(file("../app/src/main/resources"))
     }
 }
 

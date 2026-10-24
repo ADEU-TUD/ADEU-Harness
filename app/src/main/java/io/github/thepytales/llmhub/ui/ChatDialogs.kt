@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,7 @@ import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
-import io.github.thepytales.llmhub.docs.TudBrand
+import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.net.RepoSummary
 
 @Composable
@@ -148,7 +149,8 @@ fun SystemPromptDialog(
     onSave: (prompt: String, persona: String?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val templates by c.templates.items.collectAsStateWithLifecycle()
+    val own by c.templates.items.collectAsStateWithLifecycle()
+    val templates = remember(own) { TemplateLibrary.all(own) }
     var text by remember { mutableStateOf(current.orEmpty()) }
     var persona by remember { mutableStateOf<String?>(null) }
     AlertDialog(
@@ -229,62 +231,21 @@ fun envSummary(e: AgentEnvironment): String = listOf(
     if (e.variables.isEmpty()) "keine Variablen" else "${e.variables.size} Variable${if (e.variables.size == 1) "" else "n"}",
 ).joinToString(" · ")
 
-/** Picks a template: prompts go into the input field, personas become the system prompt. */
+/** Picks a template: prompts are filled in and go into the input field, personas become the system prompt. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplatePickerSheet(c: AppContainer, onPick: (Template) -> Unit, onManage: () -> Unit, onDismiss: () -> Unit) {
-    val templates by c.templates.items.collectAsStateWithLifecycle()
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("Vorlagen", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { onDismiss(); onManage() }) { Text("Verwalten") }
         }
-        LazyColumn {
-            item(key = "h_tud") {
-                Text(
-                    "TU Dresden – Formulare im Corporate Design (PDF)",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp),
-                )
-            }
-            items(TudBrand.templates, key = { it.id }) { t ->
-                ListItem(
-                    colors = transparentItem(),
-                    modifier = Modifier.clickable { onPick(t); onDismiss() },
-                    leadingContent = { Icon(Icons.Outlined.Description, contentDescription = null) },
-                    headlineContent = { Text(t.name) },
-                    supportingContent = { Text(t.description, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-                )
-            }
-            TemplateKind.entries.forEach { kind ->
-                val list = templates.filter { it.kind == kind }
-                if (list.isEmpty()) return@forEach
-                item(key = "h_$kind") {
-                    Text(
-                        if (kind == TemplateKind.PERSONA) "Personas – setzen den System-Prompt" else "Prompts – fügen Text ins Eingabefeld ein",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp),
-                    )
-                }
-                items(list, key = { it.id }) { t ->
-                    ListItem(
-                        colors = transparentItem(),
-                        modifier = Modifier.clickable { onPick(t); onDismiss() },
-                        leadingContent = {
-                            Icon(if (kind == TemplateKind.PERSONA) Icons.Outlined.Person else Icons.AutoMirrored.Outlined.ShortText, contentDescription = null)
-                        },
-                        headlineContent = { Text(t.name) },
-                        supportingContent = {
-                            Text(t.description.ifBlank { t.content }, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        },
-                    )
-                }
-            }
-            item { Spacer(Modifier.size(24.dp)) }
-        }
+        TemplateBrowser(
+            c,
+            onOpen = { t -> onDismiss(); onPick(t) },
+            contentPadding = PaddingValues(bottom = 24.dp),
+        )
     }
 }
 

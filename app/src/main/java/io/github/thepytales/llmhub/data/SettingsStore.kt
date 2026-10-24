@@ -20,7 +20,8 @@ data class AppSettings(
     val ttsModel: String = "tts-1-hd",
     val ttsVoice: String = "alloy",
     val sttModel: String = "alias-stt",
-    val confirmWrites: Boolean = true,
+    /** When the agent asks before write actions in chats: enum name of agent/ApprovalMode. */
+    val approvalMode: String = "ASK",
     val maxAgentSteps: Int = 30,
     /** After maxAgentSteps tool rounds the agent continues on its own instead of asking for "weiter". */
     val autoContinue: Boolean = true,
@@ -56,6 +57,10 @@ data class AppSettings(
     val tudUnit: String = DEFAULT_TUD_UNIT,
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
+    /** Own details for letters and e-mails (name, function, phone, e-mail, room); prefills the "Absender" fields of templates. */
+    val senderInfo: String = "",
+    /** Ids of the templates marked as favourite, in the order they were added. */
+    val favoriteTemplates: List<String> = emptyList(),
     /** First name for the greeting and the avatar in the side menu (optional). */
     val userName: String = "",
 ) {
@@ -112,7 +117,7 @@ class SettingsStore(context: Context) {
             .putString("ttsModel", next.ttsModel)
             .putString("ttsVoice", next.ttsVoice)
             .putString("sttModel", next.sttModel)
-            .putBoolean("confirmWrites", next.confirmWrites)
+            .putString("approvalMode", next.approvalMode)
             .putInt("maxAgentSteps", next.maxAgentSteps)
             .putBoolean("autoContinue", next.autoContinue)
             .putString("thinkingLevel", next.thinkingLevel)
@@ -133,6 +138,8 @@ class SettingsStore(context: Context) {
             .putString("docFooter", next.docFooter)
             .putString("tudUnit", next.tudUnit)
             .putBoolean("autoLogo", next.autoLogo)
+            .putString("senderInfo", next.senderInfo)
+            .putString("favoriteTemplates", next.favoriteTemplates.joinToString("\n"))
             .putString("userName", next.userName)
             .apply()
     }
@@ -150,7 +157,8 @@ class SettingsStore(context: Context) {
             ttsModel = prefs.getString("ttsModel", d.ttsModel) ?: d.ttsModel,
             ttsVoice = prefs.getString("ttsVoice", d.ttsVoice) ?: d.ttsVoice,
             sttModel = prefs.getString("sttModel", d.sttModel) ?: d.sttModel,
-            confirmWrites = prefs.getBoolean("confirmWrites", d.confirmWrites),
+            // Before the approval modes there was only "Schreibaktionen bestätigen" (on/off).
+            approvalMode = prefs.getString("approvalMode", null) ?: if (prefs.getBoolean("confirmWrites", true)) "ASK" else "ALL",
             maxAgentSteps = prefs.getInt("maxAgentSteps", d.maxAgentSteps),
             autoContinue = prefs.getBoolean("autoContinue", d.autoContinue),
             thinkingLevel = prefs.getString("thinkingLevel", d.thinkingLevel) ?: d.thinkingLevel,
@@ -171,6 +179,8 @@ class SettingsStore(context: Context) {
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
             tudUnit = prefs.getString("tudUnit", d.tudUnit) ?: d.tudUnit,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
+            senderInfo = prefs.getString("senderInfo", d.senderInfo) ?: d.senderInfo,
+            favoriteTemplates = prefs.getString("favoriteTemplates", "").orEmpty().lines().filter { it.isNotBlank() },
             userName = prefs.getString("userName", d.userName) ?: d.userName,
         )
     }

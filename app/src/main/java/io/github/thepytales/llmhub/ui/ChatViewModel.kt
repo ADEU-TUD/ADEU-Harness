@@ -9,7 +9,9 @@ import io.github.thepytales.llmhub.agent.PendingAction
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
+import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.addVersion
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.branchAfter
@@ -56,10 +58,10 @@ class ChatViewModel(
     initialModel: String? = null,
     initialPersona: String? = null,
 ) : ViewModel() {
-    private val template = initialPersona?.let { c.templates.get(it) }
+    private val template = initialPersona?.let { TemplateLibrary.find(it, c.templates.current) }
 
-    /** Text for the input field of a new chat started from a prompt template. */
-    val prefill: String? = template?.takeIf { it.kind == TemplateKind.PROMPT }?.content
+    /** Prompt template a new chat was started with (from the template library); the screen fills it in. */
+    val startTemplate: Template? = template?.takeIf { it.kind == TemplateKind.PROMPT }
 
     private val _conversation = MutableStateFlow(
         if (initialId == null) {
@@ -165,7 +167,10 @@ class ChatViewModel(
         Notifier.cancel(c.appContext, chatId)
     }
 
-    fun answerPending(allow: Boolean) = c.runs.answer(chatId, allow)
+    fun answerPending(allow: Boolean, always: Boolean = false) = c.runs.answer(chatId, allow, always)
+
+    /** Write actions in this chat run without asking (or ask again). */
+    fun setAutoApprove(on: Boolean) = edit { it.copy(autoApprove = on) }
 
     fun setModel(model: String) = edit { it.copy(model = model) }
 
@@ -189,12 +194,17 @@ class ChatViewModel(
         c.chats.delete(chatId)
     }
 
-    fun send(text: String, images: List<String>, files: List<FileAttachment>) {
+    /** Sends a message; with [template] its hidden instructions go along (see [ChatMessage.instructions]). */
+    fun send(text: String, images: List<String>, files: List<FileAttachment>, template: Template? = null) {
         val conv = _conversation.value ?: return
         if (isRunning || (text.isBlank() && images.isEmpty() && files.isEmpty())) return
         val isFirst = conv.messages.none { it.role == "user" }
+        val message = ChatMessage(
+            role = "user", content = text.trim(), images = images, files = files,
+            template = template?.name, instructions = template?.instructions?.ifBlank { null },
+        )
         update {
-            it.appendToThread(ChatMessage(role = "user", content = text.trim(), images = images, files = files)).copy(
+            it.appendToThread(message).copy(
                 title = if (isFirst) makeTitle(text, files) else it.title,
             )
         }

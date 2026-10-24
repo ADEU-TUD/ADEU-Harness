@@ -13,6 +13,8 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import io.github.thepytales.llmhub.agent.WebTools
 import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.docs.PdfForms
+import io.github.thepytales.llmhub.docs.PdfOriginals
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -100,9 +102,14 @@ object AttachmentReader {
             stripper.setEndPage(minOf(doc.numberOfPages, 500))
             stripper.getText(doc) to doc.numberOfPages
         }
-        if (text.trim().length >= 20 * minOf(pages, 3)) return text(name, "application/pdf", text, pages)
+        // Kept so the agent can fill in the form later (read_pdf_form, fill_pdf).
+        val copy = PdfOriginals.keep(File(context.filesDir, "attachments"), name, bytes)?.absolutePath
+        val fields = PdfForms.fieldCount(context, bytes)
+        fun withCopy(r: ReadResult) = r.copy(file = r.file?.copy(path = copy, formFields = fields))
+        if (text.trim().length >= 20 * minOf(pages, 3)) return withCopy(text(name, "application/pdf", text, pages))
         // Scanned PDF without text layer: send the first pages as images for vision models.
         val images = renderPdfPages(context, bytes, 4)
+        if (fields > 0) return withCopy(text(name, "application/pdf", text.ifBlank { "[Formular ohne Textebene]" }, pages)).copy(images = images)
         if (images.isEmpty()) return ReadResult(error = "„$name“ enthält keinen Text und konnte nicht gerendert werden.")
         return ReadResult(images = images, note = "„$name“ enthält keinen Text (Scan) – die ersten ${images.size} Seiten werden als Bilder angehängt.")
     }

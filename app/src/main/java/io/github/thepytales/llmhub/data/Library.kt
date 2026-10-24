@@ -18,67 +18,66 @@ enum class TemplateKind(val label: String) {
     PROMPT("Prompt-Vorlage"),
 }
 
+/** Sections of the template library, in the order they are shown. */
+enum class TemplateCategory(val label: String, val description: String) {
+    TUD("TUD-Dokumente", "Briefe, Protokolle, Formulare und Bescheinigungen als PDF im Corporate Design der TU Dresden"),
+    TEACHING("Lehre", "Seminare und Sitzungen planen, Lernziele, Prüfungsaufgaben, Feedback"),
+    THESES("Betreuung & Prüfung", "Abschlussarbeiten, Exposés, Gutachten, mündliche Prüfungen"),
+    RESEARCH("Forschung", "Fragestellung, Instrumente, Auswertung, Publikation und Anträge"),
+    COMMUNICATION("Kommunikation", "E-Mails, Antworten an Studierende, Ankündigungen"),
+    GENERAL("Allgemein", "Zusammenfassen, überarbeiten, übersetzen, erklären"),
+    PERSONA("Personas", "Legen fest, wie sich das Modell im ganzen Chat verhält"),
+    OWN("Eigene", "Selbst angelegte oder importierte Vorlagen"),
+    ;
+
+    companion object {
+        fun parse(name: String?) = entries.firstOrNull { it.name == name }
+    }
+}
+
 @Serializable
 data class Template(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val kind: TemplateKind,
+    /** Persona: the system prompt. Prompt: text for the input field, may contain {{Feld}} placeholders. */
     val content: String,
     val description: String = "",
-)
+    /** Section in the library: enum name of [TemplateCategory] (own prompts default to "Eigene"). */
+    val category: String = "",
+    /** Instructions for the model that are sent along with the message but not shown in the chat. */
+    val instructions: String = "",
+) {
+    val builtIn: Boolean get() = id.startsWith(TemplateLibrary.BUILT_IN)
 
-object DefaultTemplates {
-    val all = listOf(
-        Template(
-            id = "tpl_translator", name = "Übersetzer", kind = TemplateKind.PERSONA,
-            description = "Übersetzt jeden Text – Deutsch ↔ Englisch",
-            content = "Du bist ein professioneller Übersetzer. Übersetze jeden Text, den der Nutzer schickt: deutsche Texte " +
-                "ins Englische, alle anderen ins Deutsche – außer der Nutzer nennt eine andere Zielsprache. Behalte Ton, " +
-                "Formatierung und Fachbegriffe bei. Gib nur die Übersetzung aus, ohne Erklärungen.",
-        ),
-        Template(
-            id = "tpl_reviewer", name = "Code-Reviewer", kind = TemplateKind.PERSONA,
-            description = "Prüft Code auf Fehler, Sicherheit und Lesbarkeit",
-            content = "Du bist ein erfahrener Senior-Softwareentwickler und führst Code-Reviews durch. Prüfe den Code auf " +
-                "Fehler, Randfälle, Sicherheitsprobleme, Performance und Lesbarkeit. Gliedere deine Antwort in " +
-                "„Kritisch“, „Verbesserungen“ und „Kleinigkeiten“, nenne jeweils die Stelle und zeige konkrete " +
-                "Korrekturen als Codeblock. Lobe kurz, was gut gelöst ist.",
-        ),
-        Template(
-            id = "tpl_tutor", name = "Erklärer", kind = TemplateKind.PERSONA,
-            description = "Erklärt Themen einfach und Schritt für Schritt",
-            content = "Du bist ein geduldiger Tutor. Erkläre Themen verständlich und Schritt für Schritt, mit Beispielen " +
-                "aus dem Alltag. Prüfe am Ende mit einer kurzen Frage, ob alles verstanden wurde.",
-        ),
-        Template(
-            id = "tpl_editor", name = "Lektor", kind = TemplateKind.PERSONA,
-            description = "Korrigiert Rechtschreibung, Grammatik und Stil",
-            content = "Du bist ein sorgfältiger Lektor. Korrigiere Rechtschreibung, Grammatik und Zeichensetzung der Texte " +
-                "des Nutzers und verbessere behutsam den Stil. Gib zuerst den korrigierten Text aus und liste danach die " +
-                "wichtigsten Änderungen stichpunktartig auf.",
-        ),
-        Template(
-            id = "tpl_summary", name = "Zusammenfassen", kind = TemplateKind.PROMPT,
-            description = "Kernaussagen in Stichpunkten",
-            content = "Fasse den folgenden Text bzw. die angehängte Datei in höchstens 7 Stichpunkten zusammen und nenne " +
-                "am Ende die drei wichtigsten Erkenntnisse:\n\n",
-        ),
-        Template(
-            id = "tpl_mail", name = "E-Mail schreiben", kind = TemplateKind.PROMPT,
-            description = "Höfliche, klare E-Mail formulieren",
-            content = "Schreibe eine höfliche, klare E-Mail. Empfänger: \nAnliegen: \nTon: freundlich-professionell",
-        ),
-        Template(
-            id = "tpl_explain", name = "Einfach erklären", kind = TemplateKind.PROMPT,
-            description = "Wie für Einsteiger erklärt",
-            content = "Erkläre mir so einfach wie möglich, mit einem Beispiel: ",
-        ),
-        Template(
-            id = "tpl_proscons", name = "Pro & Contra", kind = TemplateKind.PROMPT,
-            description = "Abwägung mit Empfehlung",
-            content = "Stelle Vor- und Nachteile in einer Tabelle gegenüber und gib am Ende eine begründete Empfehlung: ",
-        ),
-    )
+    val section: TemplateCategory
+        get() = if (kind == TemplateKind.PERSONA) TemplateCategory.PERSONA
+        else TemplateCategory.parse(category)?.takeIf { it != TemplateCategory.PERSONA } ?: TemplateCategory.OWN
+
+    val fields: List<TemplateField> get() = TemplateFields.of(content)
+}
+
+/** A field to fill in: {{Bezeichnung}} or {{Bezeichnung|Hinweis}} in the text of a prompt template. */
+data class TemplateField(val label: String, val hint: String)
+
+object TemplateFields {
+    // Android's regex engine (ICU) needs the braces escaped, also inside character classes.
+    private val PLACEHOLDER = Regex("\\{\\{([^\\{\\}|]+)(?:\\|([^\\{\\}]*))?\\}\\}")
+
+    fun of(text: String): List<TemplateField> = PLACEHOLDER.findAll(text)
+        .map { TemplateField(it.groupValues[1].trim(), it.groupValues[2].trim()) }
+        .distinctBy { it.label }
+        .toList()
+
+    /** Inserts the values; a line whose fields all stayed empty is left out completely. */
+    fun fill(text: String, values: Map<String, String>): String = text.lines().mapNotNull { line ->
+        val found = PLACEHOLDER.findAll(line).toList()
+        when {
+            found.isEmpty() -> line
+            found.all { values[it.groupValues[1].trim()].isNullOrBlank() } -> null
+            else -> PLACEHOLDER.replace(line) { m -> values[m.groupValues[1].trim()]?.trim().orEmpty() }
+        }
+    }.joinToString("\n").trim()
 }
 
 @Serializable
