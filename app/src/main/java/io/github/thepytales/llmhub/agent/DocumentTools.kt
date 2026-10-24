@@ -2,13 +2,22 @@ package io.github.thepytales.llmhub.agent
 
 import android.content.Context
 import android.util.Base64
+import io.github.thepytales.llmhub.data.Contact
+import io.github.thepytales.llmhub.data.ListStore
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
+import io.github.thepytales.llmhub.docs.CalendarEvent
+import io.github.thepytales.llmhub.docs.CalendarFiles
+import io.github.thepytales.llmhub.docs.DocumentSources
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.Letter
+import io.github.thepytales.llmhub.docs.LetterBuilder
+import io.github.thepytales.llmhub.docs.MailDraft
+import io.github.thepytales.llmhub.docs.MailFiles
+import io.github.thepytales.llmhub.docs.Placeholders
 import io.github.thepytales.llmhub.docs.PdfForms
 import io.github.thepytales.llmhub.docs.PdfText
 import io.github.thepytales.llmhub.docs.TudBrand
@@ -23,7 +32,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.put
 import java.io.File
 
 /** Lets the model create documents (PDF, Word, …) that the user can open, share or save. */
@@ -31,8 +42,10 @@ class DocumentTools(
     private val context: Context,
     private val settings: SettingsStore,
     private val logos: LogoStore,
+    /** Address book: recipients of letters are offered again in the templates. */
+    private val contacts: ListStore<Contact>,
 ) : ToolProvider {
-    private val folder = File(context.filesDir, "documents")
+    val folder = File(context.filesDir, "documents")
 
     override val defs = listOf(
         ToolDef(
@@ -45,7 +58,7 @@ class DocumentTools(
             listOf(
                 Param("title", "Titel des Dokuments (wird auch als Dateiname verwendet)"),
                 Param("content", "Vollständiger Inhalt in Markdown oder als HTML-Seite (<!DOCTYPE html>…)"),
-                Param("format", "pdf (Standard), docx, html, md oder txt", required = false),
+                Param("format", "pdf (Standard), docx, pptx (PowerPoint-Präsentation im TUD-Design), html, md oder txt", required = false),
                 Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch, schlicht oder tud (Corporate Design der TU Dresden)", required = false),
                 Param("accent_color", "Akzentfarbe als #RRGGBB oder Name (z.B. blau, grün, bordeaux)", required = false),
                 Param("logo", "Name eines gespeicherten Logos, „standard“ für das Standardlogo oder „kein“", required = false),
@@ -53,6 +66,47 @@ class DocumentTools(
                 Param("letter_sender", "Nur für Briefe: Absenderblock, Zeilen mit \\n getrennt (Einrichtung, Name, Telefon, E-Mail). title ist dann der Betreff.", required = false),
                 Param("letter_recipient", "Nur für Briefe: Anschrift des Empfängers, Zeilen mit \\n getrennt", required = false),
                 Param("layout", "Optional „urkunde“ für Teilnahmebescheinigungen, Zertifikate und Urkunden (zentriert, nach TUD-Vorlage)", required = false),
+            ),
+        ),
+        ToolDef(
+            "edit_document",
+            "Ändert ein bereits erstelltes Dokument (auch einen von der App erstellten Brief), ohne es neu zu schreiben: " +
+                "einzelne Textstellen ersetzen (replacements) oder den Inhalt komplett austauschen (content). Es entsteht eine " +
+                "neue Version; die alte bleibt erhalten. Auch zum Umwandeln in ein anderes Format (format=docx …).",
+            listOf(
+                Param("file", "Dateiname des Dokuments (Standard: das zuletzt erstellte)", required = false),
+                Param(
+                    "replacements", "JSON-Liste [{\"alt\": \"genauer bisheriger Text\", \"neu\": \"neuer Text\"}] – " +
+                        "alt muss wörtlich im Dokument vorkommen (Markdown-Quelltext)", required = false,
+                ),
+                Param("content", "Optional: kompletter neuer Inhalt (Markdown) statt einzelner Ersetzungen", required = false),
+                Param("title", "Optional: neuer Titel bzw. Betreff", required = false),
+                Param("letter_recipient", "Optional: neue Anschrift (Briefe)", required = false),
+                Param("letter_sender", "Optional: neuer Infoblock (Briefe)", required = false),
+                Param("format", "Optional: anderes Format (pdf, docx, html, md, txt)", required = false),
+            ),
+        ),
+        ToolDef(
+            "create_email_draft",
+            "Legt einen E-Mail-Entwurf an, den der Nutzer in seiner Mail-App öffnet, prüft und selbst sendet (die App sendet " +
+                "nichts). Für fertig formulierte Mails an Studierende, Kolleg:innen oder Ämter.",
+            listOf(
+                Param("to", "Empfängeradresse(n), mit Komma getrennt (leer lassen, wenn unbekannt)", required = false),
+                Param("subject", "Betreff"),
+                Param("body", "Text der Mail mit Anrede und Gruß, ohne Markdown"),
+                Param("cc", "Kopie an (optional)", required = false),
+            ),
+        ),
+        ToolDef(
+            "create_calendar_event",
+            "Erstellt einen Kalendertermin (.ics), den der Nutzer mit einem Tipp in seinen Kalender übernimmt.",
+            listOf(
+                Param("title", "Titel des Termins"),
+                Param("start", "Beginn, z.B. 2026-11-03 14:00 (nur Datum = ganztägig)"),
+                Param("end", "Ende, z.B. 2026-11-03 15:30 (Standard: eine Stunde nach Beginn)", required = false),
+                Param("location", "Ort oder Link (optional)", required = false),
+                Param("description", "Beschreibung (optional)", required = false),
+                Param("reminder_minutes", "Erinnerung so viele Minuten vorher (optional)", required = false, type = "integer"),
             ),
         ),
         ToolDef(
@@ -92,6 +146,9 @@ class DocumentTools(
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = when (name) {
         "create_document" -> create(args)
+        "edit_document" -> edit(args)
+        "create_email_draft" -> emailDraft(args)
+        "create_calendar_event" -> calendarEvent(args)
         "save_logo" -> saveLogo(args, ctx)
         "read_pdf_form" -> readPdfForm(args, ctx)
         "fill_pdf" -> fillPdf(args, ctx)
@@ -122,7 +179,7 @@ class DocumentTools(
     fun settingsTheme(style: DocStyle? = null): DocTheme =
         theme(JsonObject(emptyMap())).first.let { if (style != null) it.copy(style = style) else it }
 
-    private suspend fun create(args: JsonObject): ToolOutput {
+    private suspend fun create(args: JsonObject, overwrite: Boolean = false, checks: Boolean = true): ToolOutput {
         val title = args.s("title")?.trim().orEmpty()
         var content = args.req("content")
         val format = DocFormat.parse(args.s("format"))
@@ -132,7 +189,12 @@ class DocumentTools(
         val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
         val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate)
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite)
+        // The source stays next to the document for edit_document and for filling in open placeholders.
+        withContext(Dispatchers.IO) {
+            DocumentSources.save(doc.file, JsonObject(args + ("file_name" to JsonPrimitive(doc.file.nameWithoutExtension))))
+        }
+        if (recipient.isNotEmpty()) rememberContact(recipient)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
         val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
         val notes = listOfNotNull(
@@ -143,13 +205,156 @@ class DocumentTools(
                     "und biete bei Bedarf dieselbe Gestaltung zusätzlich als format=html an."
             } else null,
         )
+        val gaps = Placeholders.find(DocumentSources.texts(args))
+        val review = buildList {
+            if (gaps.isNotEmpty()) {
+                add(
+                    "Offene Platzhalter: ${gaps.joinToString(", ") { "[$it]" }}. Nenne sie dem Nutzer kurz – er kann sie in der " +
+                        "App über „Ausfüllen“ am Dokument eintragen oder dir die Angaben schreiben (dann edit_document)."
+                )
+            }
+            if (checks) {
+                add(
+                    "Selbstprüfung vor deiner Antwort: Enthält das Dokument alles, worum der Nutzer gebeten hat, und nichts " +
+                        "Erfundenes? Stimmen Namen, Daten und Zahlen mit seinen Angaben überein? Falls nicht, korrigiere es mit " +
+                        "edit_document, sonst antworte kurz (ohne den Inhalt zu wiederholen)."
+                )
+            }
+        }
         return ToolOutput(
             "Dokument erstellt: ${doc.file.name} (${format.label}$pages, $size KB). " +
                 "Es wird dem Nutzer im Chat mit Knöpfen zum Öffnen, Teilen und Speichern angezeigt – nenne keinen Dateipfad." +
-                notes.joinToString("") { "\n$it" },
+                (notes + review).joinToString("") { "\n$it" },
             file = doc.file.absolutePath,
         )
     }
+
+    private fun rememberContact(address: String) {
+        val lines = LetterBuilder.addressLines(address)
+        if (lines.isEmpty() || Placeholders.find(address).size >= lines.size) return
+        val text = lines.joinToString("\n")
+        val existing = contacts.current.firstOrNull { it.label.equals(lines.first(), ignoreCase = true) }
+        contacts.upsert(existing?.copy(address = text, lastUsed = System.currentTimeMillis()) ?: Contact(address = text))
+        // The address book keeps the 60 addresses used last.
+        val keep = contacts.current.sortedByDescending { it.lastUsed }.take(60).map { it.id }.toSet()
+        if (keep.size < contacts.current.size) contacts.replaceAll(contacts.current.filter { it.id in keep })
+    }
+
+    /**
+     * Builds the document of a template marked as direct (the letter) from its fields, without the model.
+     * Returns the arguments (shown in the chat as create_document call, so the model can change it later) and the result.
+     */
+    suspend fun createDirect(kind: String, values: Map<String, String>): Pair<JsonObject, ToolOutput> {
+        require(kind == "letter") { "Unbekannte Vorlage: $kind" }
+        fun v(vararg keys: String) = keys.firstNotNullOfOrNull { k -> values[k]?.trim()?.takeIf { it.isNotEmpty() } }.orEmpty()
+        val built = LetterBuilder.build(
+            LetterBuilder.Input(
+                sender = v("Absender").ifEmpty { settings.current.senderInfo },
+                recipient = v("Empfänger"),
+                subject = v("Betreff"),
+                reference = v("Bezug"),
+                salutation = v("Anrede"),
+                body = v("Brieftext", "Inhalt"),
+            )
+        )
+        val args = buildJsonObject {
+            put("title", built.title)
+            put("content", built.content)
+            put("format", "pdf")
+            put("style", "tud")
+            put("letter_sender", built.letter.sender)
+            put("letter_recipient", built.letter.recipient)
+            if (built.title.isNotEmpty()) put("file_name", "Brief – " + built.title.take(60))
+        }
+        return args to create(args, checks = false)
+    }
+
+    private fun newFile(base: String, ext: String): File {
+        folder.mkdirs()
+        val name = DocumentWriter.safeName(base)
+        var f = File(folder, "$name.$ext")
+        var n = 2
+        while (f.exists()) f = File(folder, "$name ($n).$ext").also { n++ }
+        return f
+    }
+
+    private suspend fun emailDraft(args: JsonObject): ToolOutput {
+        val draft = MailDraft(args.s("to").orEmpty(), args.s("cc").orEmpty(), args.req("subject"), args.req("body"))
+        val file = newFile("E-Mail – " + draft.subject.take(60), "eml")
+        withContext(Dispatchers.IO) { MailFiles.write(file, draft) }
+        return ToolOutput(
+            "E-Mail-Entwurf erstellt (${file.name}). Der Nutzer öffnet ihn mit einem Tipp in seiner Mail-App und sendet selbst – " +
+                "sag ihm das kurz, ohne den Text zu wiederholen.",
+            file = file.absolutePath,
+        )
+    }
+
+    private suspend fun calendarEvent(args: JsonObject): ToolOutput {
+        val (start, allDay) = CalendarFiles.parse(args.req("start"))
+            ?: return ToolOutput("FEHLER: Beginn „${args.s("start")}“ nicht verstanden. Format: 2026-11-03 14:00 oder 2026-11-03.")
+        val end = args.s("end")?.let { CalendarFiles.parse(it)?.first } ?: if (allDay) start else start.plusHours(1)
+        if (end.isBefore(start)) return ToolOutput("FEHLER: Das Ende liegt vor dem Beginn.")
+        val event = CalendarEvent(
+            args.req("title"), start, end, allDay, args.s("location").orEmpty(), args.s("description").orEmpty(), args.int("reminder_minutes"),
+        )
+        val file = newFile("Termin – " + event.title.take(60), "ics")
+        withContext(Dispatchers.IO) { CalendarFiles.write(file, event) }
+        val day = java.time.format.DateTimeFormatter.ofPattern(if (allDay) "EEEE, d. MMMM yyyy" else "EEEE, d. MMMM yyyy, HH:mm 'Uhr'", java.util.Locale.GERMANY)
+        return ToolOutput(
+            "Termin erstellt: ${event.title}, ${start.format(day)}${if (!allDay) " bis " + end.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) + " Uhr" else ""}. " +
+                "Der Nutzer übernimmt ihn mit einem Tipp in seinen Kalender.",
+            file = file.absolutePath,
+        )
+    }
+
+    /** The newest document with a stored source, or the one named [name]. */
+    private fun sourceFile(name: String?): File {
+        val docs = folder.listFiles().orEmpty().filter { it.isFile && DocumentSources.load(it) != null }
+        val wanted = name?.trim()?.takeIf { it.isNotEmpty() }
+        return (
+            if (wanted == null) docs.maxByOrNull { it.lastModified() }
+            else docs.firstOrNull { it.name.equals(wanted, ignoreCase = true) }
+                ?: docs.filter { it.name.contains(wanted.substringBeforeLast('.'), ignoreCase = true) }.maxByOrNull { it.lastModified() }
+            ) ?: throw IllegalArgumentException(
+            if (docs.isEmpty()) "Es gibt noch kein Dokument, das sich ändern lässt – erstelle es mit create_document."
+            else "Dokument „$wanted“ nicht gefunden. Vorhanden: ${docs.sortedByDescending { it.lastModified() }.take(8).joinToString(", ") { it.name }}."
+        )
+    }
+
+    private suspend fun edit(args: JsonObject): ToolOutput {
+        val file = sourceFile(args.s("file"))
+        var source = DocumentSources.load(file)!!
+        val missing = mutableListOf<String>()
+        (jsonArg(args["replacements"]) as? JsonArray).orEmpty().forEach { e ->
+            val o = e as? JsonObject ?: return@forEach
+            val old = o.s("alt") ?: o.s("old") ?: return@forEach
+            val new = o.s("neu") ?: o.s("new") ?: ""
+            if (DocumentSources.texts(source).none { old in it }) missing += old
+            else source = DocumentSources.mapTexts(source) { it.replace(old, new) }
+        }
+        val changes = listOf("content", "title", "letter_recipient", "letter_sender", "format").mapNotNull { k ->
+            args.s(k)?.takeIf { it.isNotBlank() }?.let { k to JsonPrimitive(if (k.startsWith("letter_")) it.replace("\\n", "\n") else it) }
+        }
+        source = JsonObject(source + changes)
+        if (missing.isNotEmpty() && changes.isEmpty() && missing.size == (jsonArg(args["replacements"]) as? JsonArray)?.size) {
+            return ToolOutput("FEHLER: Diese Textstellen kommen im Dokument nicht wörtlich vor: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}. Nichts geändert.")
+        }
+        val out = create(source)
+        return if (missing.isEmpty()) out
+        else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
+    }
+
+    /** Fills in open placeholders of [file] with the user's values and renders it again in place. */
+    suspend fun fillPlaceholders(file: File, values: Map<String, String>): File {
+        val source = DocumentSources.load(file) ?: throw IllegalStateException("Zu diesem Dokument ist keine Quelle gespeichert.")
+        val filled = DocumentSources.mapTexts(source) { Placeholders.fill(it, values) }
+        val format = DocFormat.ofFile(file).ext
+        val out = create(JsonObject(filled + mapOf("file_name" to JsonPrimitive(file.nameWithoutExtension), "format" to JsonPrimitive(format))), overwrite = true, checks = false)
+        return File(out.file!!)
+    }
+
+    /** Open placeholders of a document created with a stored source. */
+    fun openPlaceholders(file: File): List<String> = DocumentSources.load(file)?.let { Placeholders.find(DocumentSources.texts(it)) }.orEmpty()
 
     /** Replaces src="logo" / src="logo:Name" in HTML with the image data. */
     private fun insertLogos(html: String, theme: DocTheme): String = LOGO_SRC.replace(html) { m ->
@@ -247,10 +452,16 @@ class DocumentTools(
         append("Für Dokumente der TU Dresden (Briefe, Protokolle, Formulare, Merkblätter …) nimm Markdown mit style=tud: ")
         append("die App setzt TUD-Blau (${TudBrand.BLUE}), Logo, Einrichtung, Datum und Fußzeile automatisch – das ist schnell ")
         append("und einheitlich; schreibe dafür kein eigenes HTML und wiederhole Logo, Einrichtung oder Datum nicht im Text. ")
+        append("Ein erstelltes Dokument änderst du mit edit_document (einzelne Stellen ersetzen) statt es neu zu erstellen. ")
+        append("Fehlen für ein Dokument wesentliche Angaben (Empfänger, Datum, Beträge, Namen), frage vor dem Erstellen kurz ")
+        append("und gezielt nach (höchstens drei Fragen auf einmal); nebensächliche Lücken lässt du weg. Platzhalter wie [Datum] ")
+        append("nur, wenn der Nutzer ausdrücklich eine Vorlage zum Ausfüllen möchte. ")
         append("Ton: sachlich und förmlich, keine Emojis. Für Briefe letter_sender (Infoblock: Name, Telefon: …, E-Mail: …) und ")
         append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
+        append("E-Mails, die der Nutzer selbst senden soll: create_email_draft; Termine: create_calendar_event. ")
         append("Teilnahmebescheinigungen, Zertifikate und Urkunden: Markdown mit layout=urkunde. ")
+        append(PPTX_HELP)
         append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")
         append("read_pdf_form, dann fill_pdf mit den Angaben aus dem Chat; fehlen Pflichtangaben, frage vorher nach, und ")
         append("erfinde keine persönlichen Daten. Nenne danach kurz, was eingetragen wurde und was offen ist. ")
@@ -268,6 +479,14 @@ class DocumentTools(
     }
 
     companion object {
+        /** How the model writes slides for format=pptx (see docs/PptxWriter). */
+        const val PPTX_HELP = "PowerPoint-Präsentationen: create_document mit format=pptx; content ist Markdown, Folien durch eine " +
+            "Zeile „---“ getrennt. Erste Folie = Titelfolie: „# Titel“, „## Untertitel“, darunter eine Zeile mit Vortragenden " +
+            "und Datum. Jede weitere Folie beginnt mit „# Folientitel“, darunter kurze Listen (höchstens 6 Punkte mit je höchstens " +
+            "12 Wörtern, eine Kernaussage pro Folie), nummerierte Listen, ein kurzer Absatz oder eine Tabelle. Eine Folie nur mit " +
+            "Überschrift (und optional einem Satz) wird zur Abschnittsfolie. Zwei Spalten: eine Zeile „|||“ trennt links und " +
+            "rechts. Zitat-Folie: „> Zitat“ und „> — Quelle“. Sprechernotizen am Ende der Folie nach „Notizen:“ – dort steht, " +
+            "was die Vortragenden sagen. Logo, Einrichtung, Fußzeile und Foliennummern setzt die App im TUD-Design. "
         private val CERTIFICATE_LAYOUTS = setOf("urkunde", "zertifikat", "certificate", "bescheinigung", "teilnahmebescheinigung")
         private val LOGO_SRC = Regex("src\\s*=\\s*([\"'])logo(?::([^\"']*))?\\1", RegexOption.IGNORE_CASE)
     }

@@ -15,8 +15,10 @@ object TemplateLibrary {
     /** Id prefix of built-in templates. */
     const val BUILT_IN = "b_"
 
-    private const val HONEST = "Erfinde keine Fakten, Namen, Zahlen, Termine, Zitate oder Literaturangaben. Fehlt eine " +
-        "Angabe, setze einen gut sichtbaren Platzhalter in eckigen Klammern, z.B. [Datum], statt zu raten. "
+    private const val HONEST = "Erfinde keine Fakten, Namen, Zahlen, Termine, Zitate oder Literaturangaben. Fehlen Angaben, " +
+        "ohne die das Ergebnis nicht brauchbar ist, frage zuerst kurz und gezielt nach (höchstens drei Fragen) und erstelle " +
+        "das Dokument erst danach; nebensächliche Lücken lässt du weg. Nur wenn der Nutzer ausdrücklich einen Entwurf " +
+        "möchte, setze für Fehlendes gut sichtbare Platzhalter in eckigen Klammern, z.B. [Datum]. "
     private const val ACADEMIC = "Schreibe sachlich und präzise, geschlechtergerecht (z.B. Studierende, Lehrkräfte, " +
         "Schüler:innen), ohne Emojis und ohne Werbesprache. "
 
@@ -45,19 +47,36 @@ object TemplateLibrary {
     val builtIn: List<Template> = listOf(
         // ── TUD-Dokumente ──────────────────────────────────────────────────────────────────────────────────────
         tud(
-            "letter", "Brief", "Schreiben nach DIN 5008 mit Anschriftfeld, Infoblock und Betreff",
+            "letter", "Brief", "Schreiben nach DIN 5008 – Ihr Text wird genau so übernommen",
             """
-            Absender: {{Absender|Name mit Titel, Funktion, Telefon, E-Mail, Raum}}
-            Empfänger: {{Empfänger|Name und vollständige Anschrift}}
-            Betreff: {{Betreff}}
-            Bezug: {{Bezug|optional, z.B. Ihr Schreiben vom …}}
-            Inhalt: {{Inhalt|Worum geht es? Stichpunkte reichen}}
+            Absender: {{Absender|Ihr Name, darunter je Zeile: Funktion, Telefon, E-Mail, Raum}}
+            Empfänger: {{Empfänger|Je Zeile: Name (z.B. Frau Dr. Anna Müller), Einrichtung, Straße Nr., PLZ Ort}}
+            Betreff: {{Betreff|Worum es geht, in einer Zeile – steht fett über dem Brief}}
+            Bezug: {{Bezug|optional, z.B. Ihr Schreiben vom 12. Oktober 2026}}
+            Anrede: {{Anrede|optional – sonst automatisch passend zum Empfänger}}
+            Brieftext: {{Brieftext|Der eigentliche Brief ohne Anrede und Gruß – wird wörtlich übernommen. Nur Stichpunkte? ✨ formuliert sie aus.}}
             """,
-            "Layout Brief: letter_recipient = Anschrift (eine Zeile je Anschriftzeile), letter_sender = Infoblock: " +
-                "1. Zeile Name mit Titel, 2. Zeile Funktion, dann „Telefon: …“, „E-Mail: …“, ggf. „Raum: …“, " +
-                "„Ihr Zeichen: …“, „Unser Zeichen: …“. title = Betreff ohne das Wort „Betreff“. content: Anrede " +
-                "(„Sehr geehrte Frau …,“ bzw. „Sehr geehrte Damen und Herren,“), Brieftext in kurzen Absätzen, " +
-                "„Mit freundlichen Grüßen“, eine Leerzeile, Name und Funktion. Möglichst eine Seite.",
+            "Der Brief wurde von der App direkt aus den Angaben erstellt (create_document). Bei Änderungswünschen " +
+                "edit_document mit dem Dateinamen nutzen; den Text des Nutzers nur so weit ändern, wie er es verlangt.",
+        ).copy(direct = "letter"),
+        prompt(
+            TemplateCategory.TUD, "tud_presentation", "Präsentation (PowerPoint)",
+            "Folien im TUD-Design – aus Ihren Stichpunkten oder angehängten Dokumenten",
+            """
+            Thema / Titel: {{Thema|z.B. Classroom Management in der Sekundarstufe}}
+            Anlass: {{Anlass|z.B. Vortrag im Kolloquium, Workshop, Tagung, Teamsitzung}}
+            Vortragende und Datum: {{Vortragende|Name(n) und Datum für die Titelfolie}}
+            Zielgruppe und Dauer: {{Zielgruppe und Dauer|z.B. Lehramtsstudierende, 20 Minuten}}
+            Inhalte: {{Inhalte|Stichpunkte oder Gliederung – oder einfach Dateien anhängen (PDF, Word, Text …)}}
+            Folienzahl: {{Folienzahl|optional, z.B. etwa 12}}
+            """,
+            "Erstelle mit create_document eine PowerPoint-Präsentation (format=pptx) im Corporate Design der TU Dresden. " +
+                "Nutze alle Angaben und angehängten Dokumente gründlich; Aussagen, Zahlen und Quellen nur aus diesen Unterlagen. " +
+                "Aufbau: Titelfolie, Agenda, Abschnittsfolien für die Hauptteile, Inhaltsfolien mit kurzen Stichpunkten statt " +
+                "Fließtext, wo sinnvoll Tabelle oder Gegenüberstellung in zwei Spalten, Fazit bzw. Take-home-Message, bei Bedarf " +
+                "Literaturfolie (APA 7) und eine Schlussfolie für Fragen. Zu jeder Inhaltsfolie Sprechernotizen mit 2–5 Sätzen. " +
+                "Ohne Angabe etwa eine Folie pro zwei bis drei Minuten. " + ACADEMIC + HONEST +
+                "Fasse danach in zwei Sätzen zusammen, was die Präsentation enthält.",
         ),
         tud(
             "minutes", "Protokoll", "Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben",
@@ -185,7 +204,26 @@ object TemplateLibrary {
                 "Phase | Inhalt / Aktivität | Methode & Sozialform | Medien | Funktion der Phase |: Einstieg/Aktivierung, " +
                 "Erarbeitung, Sicherung, Transfer/Reflexion, Abschluss mit Ausblick. Wechsle Sozialformen, formuliere die " +
                 "Arbeitsaufträge wörtlich aus (als Zitatblock) und plane Zeitpuffer ein. Ergänze kurz Differenzierung, " +
-                "kognitive Aktivierung und mögliche Stolpersteine. " + ACADEMIC + HONEST,
+                "kognitive Aktivierung und mögliche Stolpersteine. " + ACADEMIC + HONEST +
+                "Biete am Ende an, dazu passende Folien als PowerPoint im TUD-Design zu erstellen.",
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_slides", "Seminarsitzung als Folien", "PowerPoint für eine Sitzung – mit Ablauf, Arbeitsaufträgen und Sprechernotizen",
+            """
+            Seminar / Modul: {{Seminar|z.B. Allgemeine Didaktik, EW-SEGY-BW 2}}
+            Sitzung und Thema: {{Sitzung|z.B. Sitzung 4: Classroom Management}}
+            Datum und Dozent:in: {{Datum und Dozent:in|für die Titelfolie}}
+            Dauer: {{Dauer|z.B. 90 Minuten}}
+            Lernziele: {{Lernziele|optional – sonst schlägt das Modell welche vor}}
+            Inhalte und Material: {{Inhalte|Stichpunkte, Verlaufsplan oder Texte – oder Dateien anhängen (Literatur, Folien, Skript)}}
+            """,
+            "Erstelle mit create_document eine PowerPoint-Präsentation (format=pptx) im Corporate Design der TU Dresden für " +
+                "diese Seminarsitzung. Folien: Titelfolie (Seminar, Sitzung, Datum, Dozent:in), Lernziele, Ablauf der Sitzung " +
+                "mit Zeiten als Tabelle (| Zeit | Phase | Aktivität |), Einstieg mit Impuls oder Fallvignette, Abschnittsfolien " +
+                "für die Inhaltsteile, Arbeitsaufträge als eigene Folien (Sozialform, Zeit, Auftrag, erwartetes Ergebnis), " +
+                "Sicherung bzw. Zusammenfassung, Ausblick auf die nächste Sitzung und Literatur (APA 7, nur angegebene oder " +
+                "angehängte Quellen). Kurze Stichpunkte statt Fließtext; zu jeder Folie Sprechernotizen mit Moderationshinweisen. " +
+                ACADEMIC + HONEST + "Fasse danach kurz zusammen, was die Folien enthalten.",
         ),
         prompt(
             TemplateCategory.TEACHING, "teach_objectives", "Lernziele formulieren", "Operationalisierte Lernziele nach Taxonomiestufen",

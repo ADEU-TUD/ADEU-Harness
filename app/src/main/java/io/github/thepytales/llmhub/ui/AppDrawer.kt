@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.FolderSpecial
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Person
@@ -206,7 +207,7 @@ fun AppDrawer(
                         IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = "Neuer Ordner") }
                     }
                 }
-                if (folders.isEmpty()) item { Hint("Lege Ordner an, um Chats zu sortieren.") }
+                if (folders.isEmpty()) item { Hint("Lege Ordner an, um Chats zu sortieren. Lange drücken › Projekt bearbeiten: Anweisungen und Dateien für alle Chats darin.") }
                 folders.sortedBy { it.name.lowercase() }.forEach { folder ->
                     val inFolder = conversations.filter { it.folderId == folder.id }
                     val open = folder.id in expanded
@@ -218,6 +219,7 @@ fun AppDrawer(
                             onToggle = { expanded = if (open) expanded - folder.id else expanded + folder.id },
                             onRename = { renameFolder = folder },
                             onDelete = { deleteFolder = folder },
+                            onNewChat = { NewChatFolder.id = folder.id; onNewChat() },
                         )
                     }
                     if (open) {
@@ -290,15 +292,14 @@ fun AppDrawer(
     if (newFolder) {
         TextInputDialog("Neuer Ordner", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })
     }
-    renameFolder?.let { f ->
-        TextInputDialog("Ordner umbenennen", f.name, "Name", onConfirm = { n -> c.folders.update(f.id) { it.copy(name = n) } }, onDismiss = { renameFolder = null })
-    }
+    renameFolder?.let { f -> ProjectDialog(c, f, onDismiss = { renameFolder = null }) }
     deleteFolder?.let { f ->
         ConfirmDialog(
-            "Ordner löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder unter „Zuletzt“.", "Löschen",
+            "Ordner löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder unter „Zuletzt“. Projektdateien werden entfernt.", "Löschen",
             onConfirm = {
                 c.chats.clearFolder(f.id)
                 c.folders.delete(f.id)
+                deleteProjectKnowledge(f.id)
             },
             onDismiss = { deleteFolder = null },
         )
@@ -370,7 +371,7 @@ private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, onClick: ()
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
+private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit, onNewChat: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
     Box {
         Row(
@@ -382,14 +383,15 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Outlined.Folder, contentDescription = null)
+            Icon(if (folder.instructions.isNotBlank()) Icons.Outlined.FolderSpecial else Icons.Outlined.Folder, contentDescription = null)
             Spacer(Modifier.size(16.dp))
             Text(folder.name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Text("$count", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text("Umbenennen") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text("Neuer Chat im Projekt") }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
+            DropdownMenuItem(text = { Text("Projekt bearbeiten …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }

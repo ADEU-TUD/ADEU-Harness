@@ -76,6 +76,9 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     @Volatile
     private var askForUsage = true
 
+    /** Shared by all chats, tasks and helper requests, so together they stay below the key's limit. */
+    val limiter = RateLimiter({ settings.current.requestsPerMinute })
+
     /** Models whose server rejected the reasoning parameters; they get requests without them. */
     private val noThinkingParams = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
@@ -132,6 +135,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         messages: List<ChatMessage>,
         tools: JsonArray?,
         onRetry: (reason: String, waitSeconds: Long) -> Unit = { _, _ -> },
+        /** Overrides the thinking level of the settings, e.g. OFF for quick helper requests. */
+        thinking: ThinkingLevel? = null,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
         // Keys of the self-service portal have a low requests-per-minute limit, which agent runs with many
@@ -141,12 +146,14 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         var attempt = 0
         while (true) {
             try {
-                return streamChatWithFallbacks(model, messages, tools, onUpdate)
+                limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
+                return streamChatWithFallbacks(model, messages, tools, thinking, onUpdate)
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
                 // Offline or a broken certificate does not fix itself within seconds.
                 if (e is java.net.UnknownHostException || e is javax.net.ssl.SSLException) throw e
                 val code = (e as? ApiException)?.code ?: 0
+                if (code == 429) limiter.onRateLimited()
                 val reason = when (code) {
                     0 -> "Verbindung zum Server unterbrochen"
                     429 -> "Rate-Limit des API-Keys erreicht"
@@ -167,9 +174,10 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         model: String,
         messages: List<ChatMessage>,
         tools: JsonArray?,
+        override: ThinkingLevel?,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
-        val thinking = ThinkingLevel.parse(settings.current.thinkingLevel)
+        val thinking = (override ?: ThinkingLevel.parse(settings.current.thinkingLevel))
             .takeIf { ModelCatalog.info(model).thinking != false && model !in noThinkingParams }
             ?: ThinkingLevel.AUTO
         return try {
@@ -180,7 +188,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 e.code !in 400..422 -> throw e
                 askForUsage && msg.contains("stream_options", ignoreCase = true) -> {
                     askForUsage = false
-                    streamChatWithFallbacks(model, messages, tools, onUpdate)
+                    streamChatWithFallbacks(model, messages, tools, override, onUpdate)
                 }
                 thinking != ThinkingLevel.AUTO && THINKING_PARAM_ERROR.containsMatchIn(msg) -> {
                     // The model's server does not know these parameters: answer with its default thinking.
@@ -325,6 +333,27 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                     }
             }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
         }
+
+    /** Embedding vectors for [inputs] (semantic search in the knowledge collection). */
+    suspend fun embed(model: String, inputs: List<String>): List<FloatArray> = withContext(Dispatchers.IO) {
+        limiter.acquire()
+        val body = buildJsonObject {
+            put("model", model)
+            putJsonArray("input") { inputs.forEach { add(JsonPrimitive(it)) } }
+        }
+        http.newCall(request("/embeddings").post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
+            val text = resp.body?.string()
+            if (!resp.isSuccessful) {
+                if (resp.code == 429) limiter.onRateLimited()
+                throw ApiException(resp.code, errorMessage(resp.code, text))
+            }
+            val data = JSON.parseToJsonElement(text ?: "{}").jsonObject["data"]?.jsonArray.orEmpty()
+            usage.record(model, "embedding", inputs.sumOf { it.length } / 4L, 0, estimated = true)
+            data.sortedBy { it.jsonObject.str("index")?.toIntOrNull() ?: 0 }.map { el ->
+                el.jsonObject["embedding"]!!.jsonArray.let { arr -> FloatArray(arr.size) { i -> arr[i].jsonPrimitive.content.toFloat() } }
+            }
+        }
+    }
 
     /** Text to speech; returns audio bytes (usually mp3). */
     suspend fun speech(model: String, voice: String, text: String): ByteArray = withContext(Dispatchers.IO) {

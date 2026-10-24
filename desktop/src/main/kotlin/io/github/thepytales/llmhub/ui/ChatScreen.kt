@@ -113,6 +113,7 @@ fun ChatScreen(
 ) {
     val conv by vm.state.collectAsStateWithLifecycle()
     val running by vm.running.collectAsStateWithLifecycle()
+    val building by vm.building.collectAsStateWithLifecycle()
     val pending by vm.pending.collectAsStateWithLifecycle()
     val transcribing by vm.transcribing.collectAsStateWithLifecycle()
     val deleted by vm.deleted.collectAsStateWithLifecycle()
@@ -410,6 +411,7 @@ fun ChatScreen(
                 ) {
                     item(key = "typing") { ThinkingIndicator() }
                 }
+                if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
                 items(reversed, key = { it.key }) { item ->
                     when (item) {
                         is ChatItem.User -> UserBubble(
@@ -482,8 +484,13 @@ fun ChatScreen(
                 input = if (input.isBlank()) text else text + "\n\n" + input
                 templateId = t.id
             },
-            onSend = { text ->
-                if (running) {
+            onSend = { text, values ->
+                if (t.direct != null) {
+                    if (running) {
+                        c.drafts.upsert(io.github.thepytales.llmhub.data.TemplateDraft(t.id, values))
+                        Toast.makeText(context, "Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.", Toast.LENGTH_LONG).show()
+                    } else vm.sendDirect(text, values, t)
+                } else if (running) {
                     // An answer is still being written: keep the text (and attachments) for later.
                     input = if (input.isBlank()) text else text + "\n\n" + input
                     templateId = t.id

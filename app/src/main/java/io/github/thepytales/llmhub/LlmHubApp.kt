@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub
 import android.app.Application
 import android.content.Context
 import io.github.thepytales.llmhub.agent.AgentRunner
+import io.github.thepytales.llmhub.agent.AssistantTools
 import io.github.thepytales.llmhub.agent.ChatRuns
 import io.github.thepytales.llmhub.agent.DocumentTools
 import io.github.thepytales.llmhub.agent.GitHubTools
@@ -10,15 +11,19 @@ import io.github.thepytales.llmhub.agent.WebTools
 import io.github.thepytales.llmhub.audio.Speaker
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.ChatRepository
+import io.github.thepytales.llmhub.data.Contact
 import io.github.thepytales.llmhub.data.FileBackend
 import io.github.thepytales.llmhub.data.Folder
+import io.github.thepytales.llmhub.data.KnowledgeStore
 import io.github.thepytales.llmhub.data.ListStore
+import io.github.thepytales.llmhub.data.MemoryEntry
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.ModelsRepository
 import io.github.thepytales.llmhub.data.PrefsBackend
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.Template
+import io.github.thepytales.llmhub.data.TemplateDraft
 import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.UsageStore
 import io.github.thepytales.llmhub.net.GitHubClient
@@ -41,8 +46,17 @@ class AppContainer(context: Context) {
     val github = GitHubClient(settings, llm.http)
     val githubTools = GitHubTools(github)
     val logos = LogoStore(files)
-    val documentTools = DocumentTools(context.applicationContext, settings, logos)
+    /** Address book for letters. */
+    val contacts = ListStore<Contact>(FileBackend(File(files, "contacts.json")), Contact.serializer(), { it.id })
+    /** Own documents the model can search (global and per project). */
+    val knowledge = KnowledgeStore(files)
+    /** What the model knows about the user in every chat. */
+    val memory = ListStore<MemoryEntry>(FileBackend(File(files, "memory.json")), MemoryEntry.serializer(), { it.id })
+    /** Template forms typed but not sent yet. */
+    val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
+    val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts)
     val webTools = WebTools(llm.http)
+    val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
     val models = ModelsRepository(llm)
     val speaker = Speaker(context, settings, llm)
@@ -59,6 +73,10 @@ class AppContainer(context: Context) {
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
     val runs = ChatRuns(context.applicationContext, this)
+
+    init {
+        App.container = this
+    }
 }
 
 /** A finished answer or task result that the user should know about. */

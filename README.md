@@ -46,6 +46,35 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Eigene Vorlagen per *Teilen* als Text an Kolleg:innen schicken und dort über *Importieren* übernehmen. Die eingebauten
   Vorlagen kommen mit jedem Update aktuell mit. *Einstellungen › Dokumente & Logos › Meine Absenderangaben* füllt die
   Absender-Felder automatisch aus.
+- **Brief ohne Umwege**: Die Vorlage *TUD-Dokumente › Brief* übernimmt Ihren Text wörtlich – die App setzt daraus
+  direkt das PDF nach DIN 5008 (Anrede passend zum Empfänger, Grußformel und Unterschrift bleiben zusammen, kein Modell
+  dazwischen). Danach lässt er sich im Chat ändern („Formuliere den zweiten Absatz freundlicher“).
+- **✨ in jedem Vorlagenfeld**: Unter jedem Feld steht, was hineingehört; der ✨-Knopf glättet, formuliert aus Stichpunkten
+  aus, kürzt, macht förmlicher/freundlicher, ordnet Anschriften – oder folgt einer eigenen Anweisung. „↶ Rückgängig“
+  stellt den vorherigen Text wieder her. Was Sie eintippen, bleibt als Entwurf gespeichert, bis Sie senden.
+- **Adressbuch**: Empfänger aus früheren Briefen stehen im Feld „Empfänger“ zur Auswahl.
+- **Dokumente nachträglich ändern**: Das Modell ändert erstellte Dokumente gezielt (`edit_document`) statt alles neu zu
+  schreiben; ältere Versionen bleiben erhalten. Lässt es Lücken wie „[Datum]“, zeigt das Dokument „2 Angaben offen“ –
+  „Ausfüllen“ trägt sie ohne Modell ein. Fehlen wesentliche Angaben, fragt das Modell vorher nach.
+- **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
+  Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
+  *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
+- **Projekte**: Ein Ordner wird zum Projekt (lange drücken › *Projekt bearbeiten*): Anweisungen und Dateien gelten für alle
+  Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
+- **Wissenssammlung**: Eigene Dokumente (Modulhandbuch, Prüfungsordnung, Literatur …) unter *Einstellungen ›
+  Wissenssammlung* oder pro Projekt. Das Modell sucht die passenden Stellen (Stichworte und semantisch über die
+  Embedding-Modelle des Uni-Servers) und nennt die Quelle. „Speichere die Datei im Projektwissen“ übernimmt Anhänge.
+- **Gedächtnis**: Das Modell merkt sich auf Wunsch dauerhafte Angaben (Funktion, Lehrveranstaltungen, Stilvorlieben) –
+  *Einstellungen › Gedächtnis*: aus, vorher fragen (Standard) oder automatisch; alle Einträge ansehen, ändern, löschen.
+- **Rechnen und Daten auswerten**: Für exakte Zahlen rechnet das Modell in einer abgeschotteten JavaScript-Umgebung
+  (ohne Internet- und Dateizugriff) – auch mit angehängten CSV- und Excel-Tabellen (Mittelwert, Median, SD, Tabellen).
+- **E-Mail-Entwürfe und Termine**: „Schreib eine Mail an …“ legt einen Entwurf an, der sich in der Mail-App öffnet
+  (gesendet wird dort); Termine entstehen als Kalendereintrag („Zum Kalender“ auf Android, Outlook auf Windows).
+- **Teilen in die App** (Android): Text, Links, PDFs und Bilder aus anderen Apps über „Teilen › ADEU LLM“ – ein neuer
+  Chat startet damit.
+- **Agent-Protokoll**: Unter jeder Antwort zeigt das Verlaufssymbol, was passiert ist: Anfragen, Werkzeuge, Dauer,
+  Tokens, Wartezeiten und ein eventuelles Ausweichmodell.
+- **Sicherung & Umzug**: Alles als ZIP exportieren und auf einem anderen Gerät importieren – auch Android ↔ Windows.
 - **PDF-Formulare ausfüllen**: Ein angehängtes PDF-Formular (z.B. Dienstreiseantrag, Anmeldung) füllt der Agent aus und
   gibt es als neue PDF zurück – Textfelder, Ankreuzfelder, Options- und Auswahlfelder; bei PDFs ohne Formularfelder setzt
   er den Text an die passenden Stellen neben die Beschriftungen. Optional „abgeflacht“ (Felder danach nicht mehr änderbar).
@@ -68,7 +97,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   bearbeiten und committen, Branches und Pull Requests erstellen, Issues lesen/kommentieren. Wann es vorher fragt, legen
   die *Freigaben* fest (siehe unten). Ein GitHub-Link in einer Nachricht wählt das Repository direkt aus.
 - **Web**: Websuche (DuckDuckGo), Nachrichtensuche (Bing News/Google News) und Webseiten lesen.
-- **Dokumente erstellen**: PDF, Word (.docx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
+- **Dokumente erstellen**: PDF, Word (.docx), PowerPoint (.pptx), HTML, Markdown und Text. PDFs werden über HTML/CSS gerendert:
   Stile *Modern*, *Kräftig*, *Elegant*, *Klassisch*, *Schlicht*, frei wählbare Akzentfarbe, Fußzeile, Hinweisboxen
   (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`). Für besondere Gestaltung (Flyer, Rechnung, Lebenslauf …) schreibt das
   Modell eigenes HTML mit Farben, Formen und Schriften. Klappt das gestaltete Rendern einmal nicht, entsteht trotzdem
@@ -105,17 +134,26 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
    (z.B. Xiaomi, Oppo/OnePlus/Realme, Huawei) beenden Apps zusätzlich – dort in den Akku-Einstellungen der App
    „Hintergrundaktivität erlauben“ bzw. „Nicht optimieren“ wählen.
 
-Jeder Push auf den Standardbranch baut automatisch eine neue signierte APK und die Windows-Version und veröffentlicht
-beide als Release (`.github/workflows/android.yml`); beide werden vorher automatisch gestartet und getestet (Android im
-Emulator, Windows auf einem Windows-Rechner von GitHub). Updates lassen sich direkt über die alte Version installieren –
-API-Key, GitHub-Token, Einstellungen und Chats bleiben dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+Updates lassen sich direkt über die alte Version installieren – API-Key, GitHub-Token, Einstellungen und Chats bleiben
+dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
 
-**GitHub-Actions-Minuten sparen**: Ein Durchlauf kostet etwa 25 Minuten des Kontingents (Windows-Rechner zählen doppelt).
-Deshalb baut nur noch der Standardbranch (und Tags) automatisch. Pushes auf andere Branches bauen nichts; eine
-Vorabversion eines Branches entsteht nur, wenn man sie unter *Actions › Build & Release › Run workflow* (Branch wählen)
-startet. Änderungen, die nur Markdown-Dateien betreffen, lösen keinen Build aus, und `[skip ci]` in der Commit-Nachricht
-überspringt einen Push ganz. Vor dem Merge lassen sich Android- und Windows-Version lokal bauen und testen (siehe
-*Selbst bauen*), sodass nach dem Merge genau ein Durchlauf das Release erzeugt.
+### Release ohne GitHub Actions
+
+Das Actions-Kontingent ist aufgebraucht, deshalb baut der Workflow (`.github/workflows/android.yml`) nicht mehr bei jedem
+Push, sondern nur noch, wenn man ihn unter *Actions › Build & Release › Run workflow* startet (Emulator- und Windows-Test,
+Release auf GitHub – ein Durchlauf kostet etwa 25 Minuten). Stattdessen entsteht ein Release lokal:
+
+```bash
+.github/scripts/release-local.sh 26 ADEU-LLM-1.0.25-Windows.zip   # → dist/ADEU-LLM-1.0.26.apk und -Windows.zip
+```
+
+Die APK ist mit demselben Schlüssel signiert wie alle bisherigen und installiert sich als Update. Die Windows-ZIP setzt
+das Skript auf jedem Betriebssystem zusammen: die neuen Jars (mit den Windows-Bibliotheken) plus Starter, Java-Laufzeit
+und Skia-DLL aus der Windows-ZIP einer früheren Version. Das geht, solange Compose, Skia und die Java-Module gleich
+bleiben – sonst bricht das Skript mit einem Hinweis ab, und die Windows-Version muss einmal über den Workflow entstehen.
+Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workflow; die ZIP ist gleichwertig (entpacken,
+`ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
+weitergeben.
 
 ## Windows (portabel, ohne Admin-Rechte)
 
@@ -188,6 +226,23 @@ Für einen einzelnen Chat: im Dialog „Aktion erlauben?“ *In diesem Chat nich
 darauf schaltet die Rückfragen wieder ein. Geplante Aufgaben haben weiterhin ihre eigene Einstellung
 „Schreibaktionen erlauben“.
 
+## Wie der Agent arbeitet
+
+- **Kontext**: Ergebnisse von Werkzeugen aus früheren Runden werden gekürzt mitgeschickt; passt ein langer Chat nicht mehr
+  in das Budget des Modells (höchstens 100.000 Tokens), fasst das Modell den älteren Teil einmal zusammen – die letzten
+  beiden Runden bleiben vollständig. Der Hinweis erscheint im Chat.
+- **Schnell durch gleichbleibenden Anfang**: Der Systemprompt ändert sich innerhalb eines Chats nicht (nur das Datum
+  steht darin, die Uhrzeit hängt an jeder Nachricht); der Uni-Server kann den Anfang der Anfrage so aus seinem Cache nehmen.
+  Lange Anleitungen (Dokumente, Präsentationen, Formulare) kommen nur mit, wenn die Anfrage danach aussieht, sonst lädt
+  das Modell sie bei Bedarf (`read_guide`).
+- **Robuste Werkzeugaufrufe**: Kaputtes JSON (Codeblöcke, Zeilenumbrüche, abgeschnittene Antworten) wird repariert,
+  fehlende Pflichtangaben und vertippte Werkzeugnamen werden dem Modell genau erklärt. Lesende Werkzeuge einer Antwort
+  (Websuche, Dateien lesen, Wissenssuche) laufen gleichzeitig.
+- **Ausweichmodell**: Erreicht der Server das gewählte Modell auch nach den Wiederholungen nicht (502/503/504), antwortet
+  ein ähnliches Modell eines anderen Anbieters (*Einstellungen › Chat & Werkzeuge › Zuverlässigkeit*, abschaltbar).
+- **Rate-Limit vorausschauend**: Die App merkt sich, ab wie vielen Anfragen pro Minute der Server ablehnt, und wartet
+  vorher kurz – oder hält sich an einen eingestellten Wert.
+
 ## Agent-Schritte und Denkstufe
 
 - Jeder Werkzeugaufruf ist ein Schritt. Nach *Max. Werkzeugschritte* (Standard 30) macht der Agent automatisch weiter
@@ -204,8 +259,19 @@ Voraussetzung: JDK 17 und Android SDK.
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
-./gradlew -p desktop test   # Vorlagen, Freigaben, PDF-Formulare, TUD-Layouts (ohne Emulator)
+./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox …
 ```
+
+Live-Tests gegen den Uni-Server (prüfen, ob die Modelle sich an die Vorgaben der App halten: ✨ schreibt nur den
+Brieftext, Werkzeugaufrufe sind gültig, Folien haben das richtige Format) laufen nur mit einem API-Key:
+
+```bash
+LLM_API_KEY=sk-… ./gradlew -p desktop test --tests '*LiveApiTest*'   # optional LLM_MODEL=… für ein anderes Modell
+```
+
+Der Starttest der Windows-Version läuft auch unter Linux mit virtuellem Bildschirm:
+`xvfb-run -a ./gradlew -p desktop run --args="--selftest /tmp/selftest"` (öffnet alle Bildschirme, erstellt Brief,
+PowerPoint und PDFs, Ergebnis in `selftest.txt`).
 
 Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
 
@@ -225,7 +291,15 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | --- | --- |
 | `net/LlmClient.kt` | Chat-Streaming (SSE) mit Token-Zählung, Modelle, Bilder, TTS, STT |
 | `net/GitHubClient.kt` | GitHub-REST-API |
-| `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben |
+| `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben, Ausweichmodell, parallele Werkzeuge |
+| `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
+| `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
+| `agent/FieldAssist.kt` | ✨ in Vorlagenfeldern |
+| `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
+| `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
+| `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |
+| `data/Knowledge.kt`, `data/Backup.kt` | Wissenssammlung und Gedächtnis, Sicherung & Umzug |
+| `ui/KnowledgeUi.kt`, `ui/BackupUi.kt`, `ui/AgentProtocol.kt`, `ui/FilePicker.kt` | Gedächtnis, Wissen, Projekte, Sicherung, Agent-Protokoll, Dateiauswahl je Plattform |
 | `agent/ChatRuns.kt`, `agent/AgentService.kt` | Laufende Chat-Antworten unabhängig vom Bildschirm; Vordergrunddienst, damit sie bei geschlossener App fertig werden |
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
 | `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |

@@ -37,7 +37,10 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Star
@@ -97,6 +100,7 @@ import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.audio.VoiceOption
 import io.github.thepytales.llmhub.data.Logo
+import io.github.thepytales.llmhub.data.MemoryMode
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.docs.DocFormat
@@ -253,6 +257,9 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
         "appearance" -> "Darstellung"
         "voice" -> "Vorlesen & Spracheingabe"
         "documents" -> "Dokumente & Logos"
+        "memory" -> "Gedächtnis"
+        "knowledge" -> "Wissenssammlung"
+        "backup" -> "Sicherung & Umzug"
         else -> "Einstellungen"
     }
     Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(title) }) }) { pad ->
@@ -271,6 +278,9 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "appearance" -> AppearanceSection(c)
                 "voice" -> VoiceSection(c)
                 "documents" -> DocumentsSection(c)
+                "memory" -> MemorySection(c)
+                "knowledge" -> KnowledgeSection(c)
+                "backup" -> BackupSection(c)
                 else -> {
                     val entries = listOf(
                         SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", if (s.hasApiKey) "API-Key hinterlegt" else "API-Key fehlt"),
@@ -280,9 +290,12 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                         SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
                         SettingsEntry("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline auf dem Gerät" else "KI-Stimme des Uni-Servers"),
                         SettingsEntry("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.CLAUDE).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
+                        SettingsEntry("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + c.memory.current.size + " Einträge"),
+                        SettingsEntry("settings/knowledge", Icons.Outlined.LibraryBooks, "Wissenssammlung", c.knowledge.of("").size.let { if (it == 0) "Eigene Dokumente durchsuchbar machen" else "$it Dokument(e)" }),
                         SettingsEntry("templates", Icons.Outlined.Bookmarks, "Vorlagen", "Lehre, Forschung, Betreuung, TUD-Dokumente, Personas"),
                         SettingsEntry("tasks", Icons.Outlined.Schedule, "Geplante Aufgaben", "Wiederkehrende Aufträge an den Agenten"),
                         SettingsEntry("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
+                        SettingsEntry("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
                     )
                     OutlinedTextField(
                         value = s.userName,
@@ -430,6 +443,7 @@ private fun GitHubSection(c: AppContainer) {
     }
     // Also covers writing web requests, so it stays visible without GitHub.
     Section("Freigaben") { ApprovalModeOptions(c) }
+    ReliabilitySection(c)
 }
 
 @Composable
@@ -479,7 +493,7 @@ private fun ChatSection(c: AppContainer) {
         Text("Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung.", style = MaterialTheme.typography.bodySmall)
         SwitchRow(
             "Dokumente erstellen",
-            "PDF-, Word-, HTML-, Markdown- und Textdateien – mit Gestaltung und Logo.",
+            "PDF-, Word-, PowerPoint-, HTML-, Markdown- und Textdateien, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung und Logo.",
             s.documentTools,
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(
@@ -489,6 +503,7 @@ private fun ChatSection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
     Section("Freigaben") { ApprovalModeOptions(c) }
+    ReliabilitySection(c)
     if (showModelPicker) {
         ModelPickerSheet(
             models = models.ofType(ModelType.CHAT),

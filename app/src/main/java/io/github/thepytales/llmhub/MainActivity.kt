@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
             openChat.value = intent?.getStringExtra(Notifier.EXTRA_CHAT)
             openRoute.value = intent?.getStringExtra(EXTRA_ROUTE)
             intent?.let(::selfTest)
+            intent?.let(::receiveShare)
         }
         setContent {
             val settings by container.settings.settings.collectAsStateWithLifecycle()
@@ -52,6 +54,25 @@ class MainActivity : ComponentActivity() {
         intent.getStringExtra(Notifier.EXTRA_CHAT)?.let { openChat.value = it }
         intent.getStringExtra(EXTRA_ROUTE)?.let { openRoute.value = it }
         selfTest(intent)
+        receiveShare(intent)
+    }
+
+    /** Something shared from another app: kept for the new chat, which puts it into the input field. */
+    private fun receiveShare(intent: Intent) {
+        if (intent.action != Intent.ACTION_SEND && intent.action != Intent.ACTION_SEND_MULTIPLE) return
+        val text = listOfNotNull(
+            intent.getStringExtra(Intent.EXTRA_SUBJECT)?.takeIf { it.isNotBlank() },
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() },
+        ).distinct().joinToString("\n\n")
+        @Suppress("DEPRECATION")
+        val uris = if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM).orEmpty()
+        } else {
+            listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
+        }
+        if (text.isEmpty() && uris.isEmpty()) return
+        shared.value = Shared(text, uris)
+        openRoute.value = "chat"
     }
 
     /** "foreground" or "background" (waits a few seconds so the test can leave the app first). */
@@ -62,7 +83,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Text and files shared from another app. */
+    data class Shared(val text: String, val uris: List<Uri>)
+
     companion object {
+        /** Waiting for the next new chat (see ui/ChatScreen.kt). */
+        val shared = MutableStateFlow<Shared?>(null)
+
         const val EXTRA_ROUTE = "route"
         const val EXTRA_PDF_TEST = "pdftest"
     }

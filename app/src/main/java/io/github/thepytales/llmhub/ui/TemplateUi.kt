@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,8 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShortText
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.HistoryEdu
@@ -32,6 +35,9 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,12 +49,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,11 +68,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.agent.AssistMode
+import io.github.thepytales.llmhub.agent.FieldAssist
+import io.github.thepytales.llmhub.data.Contact
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateCategory
+import io.github.thepytales.llmhub.data.TemplateDraft
+import io.github.thepytales.llmhub.data.TemplateField
 import io.github.thepytales.llmhub.data.TemplateFields
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun categoryIcon(category: TemplateCategory): ImageVector = when (category) {
     TemplateCategory.TUD -> Icons.Outlined.Description
@@ -81,9 +98,6 @@ fun toggleFavorite(c: AppContainer, id: String) = c.settings.update { s ->
 }
 
 private const val FAVORITES = "FAVORITES"
-
-/** Fields filled in with the details from the settings (Einstellungen › Dokumente & Logos). */
-private fun isSenderField(label: String) = label.startsWith("Absender") || label.startsWith("Meine Angaben")
 
 /**
  * Searchable template library: filter chips per section, favourites marked with a star. Used by the template
@@ -192,38 +206,103 @@ fun TemplateBrowser(
 }
 
 /**
- * Fills the {{Feld}} placeholders of a prompt template. "Absender" fields start with the details from the
- * settings. [onInsert] puts the result into the input field (to add files or change it), [onSend] sends it.
+ * Fills the {{Feld}} placeholders of a prompt template. Every field shows what belongs into it; ✨ lets the model
+ * tidy, formulate or shorten that one field. "Absender" fields start with the details from the settings, address
+ * fields offer the address book, and what was typed is kept as draft until it is sent. [onInsert] puts the result
+ * into the input field (to add files or change it), [onSend] sends it together with the single values.
  */
 @Composable
-fun TemplateFillDialog(c: AppContainer, template: Template, onInsert: (String) -> Unit, onSend: (String) -> Unit, onDismiss: () -> Unit) {
+fun TemplateFillDialog(
+    c: AppContainer,
+    template: Template,
+    onInsert: (String) -> Unit,
+    onSend: (text: String, values: Map<String, String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val sender = c.settings.current.senderInfo
     val fields = remember(template.id) { template.fields }
+    fun initial(f: TemplateField) = if (f.isSender) sender else ""
     val values = remember(template.id) {
-        mutableStateMapOf<String, String>().apply { fields.forEach { put(it.label, if (isSenderField(it.label)) sender else "") } }
+        val draft = c.drafts.get(template.id)?.values.orEmpty()
+        mutableStateMapOf<String, String>().apply { fields.forEach { put(it.label, draft[it.label] ?: initial(it)) } }
     }
+    /** Text before the last ✨ change, for "Rückgängig". */
+    val undo = remember(template.id) { mutableStateMapOf<String, String>() }
+    var working by remember { mutableStateOf<String?>(null) }
+    var customFor by remember { mutableStateOf<TemplateField?>(null) }
+    var missing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val contacts by c.contacts.items.collectAsStateWithLifecycle()
+
+    // Keeps the typed text as draft, so leaving the app or closing the form loses nothing.
+    LaunchedEffect(template.id) {
+        snapshotFlow { values.toMap() }.collect { current ->
+            delay(400)
+            val changed = fields.any { f -> current[f.label].orEmpty() != initial(f) }
+            if (changed) c.drafts.upsert(TemplateDraft(template.id, current)) else c.drafts.delete(template.id)
+        }
+    }
+
+    fun assist(f: TemplateField, mode: AssistMode, custom: String = "") {
+        working = f.label
+        scope.launch {
+            try {
+                val before = values[f.label].orEmpty()
+                val text = FieldAssist.rewrite(c, template, f, values.toMap(), mode, custom)
+                undo[f.label] = before
+                values[f.label] = text
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(context, "✨ fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+            } finally {
+                working = null
+            }
+        }
+    }
+
+    // A letter needs its text; everything else may stay empty.
+    val required = fields.firstOrNull { template.direct != null && it.multiline && !it.isAddress && !it.isSender }
     // Without any input the template name is sent, so that its instructions still go to the model.
     fun result() = TemplateFields.fill(template.content, values).ifBlank { template.name }
+    fun finish(send: Boolean) {
+        if (send && required != null && values[required.label].isNullOrBlank()) {
+            missing = true
+            return
+        }
+        val text = result()
+        val map = values.toMap()
+        c.drafts.delete(template.id)
+        if (send) onSend(text, map) else onInsert(text)
+        onDismiss()
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(categoryIcon(template.section), contentDescription = null) },
         title = { Text(template.name) },
         text = {
-            Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (template.description.isNotBlank()) {
                     Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 fields.forEach { f ->
-                    OutlinedTextField(
+                    TemplateFieldInput(
+                        field = f,
                         value = values[f.label].orEmpty(),
-                        onValueChange = { values[f.label] = it },
-                        label = { Text(f.label) },
-                        placeholder = if (f.hint.isNotEmpty()) ({ Text(f.hint) }) else null,
-                        maxLines = 8,
-                        modifier = Modifier.fillMaxWidth(),
+                        onChange = { values[f.label] = it; if (f == required) missing = false },
+                        working = working == f.label,
+                        enabled = working == null,
+                        error = if (missing && f == required) "Bitte den Text eingeben – oder Stichpunkte schreiben und mit ✨ ausformulieren lassen." else null,
+                        contacts = if (f.isAddress) contacts.sortedByDescending { it.lastUsed } else emptyList(),
+                        onContact = { values[f.label] = it.address },
+                        onDeleteContact = { c.contacts.delete(it.id) },
+                        canUndo = undo.containsKey(f.label),
+                        onUndo = { undo.remove(f.label)?.let { values[f.label] = it } },
+                        onAssist = { mode -> if (mode == AssistMode.CUSTOM) customFor = f else assist(f, mode) },
                     )
                 }
-                if (sender.isBlank() && fields.any { isSenderField(it.label) }) {
+                if (sender.isBlank() && fields.any { it.isSender }) {
                     Text(
                         "Tipp: Ihre Absenderangaben einmal unter Einstellungen › Dokumente & Logos hinterlegen – dann sind sie hier schon ausgefüllt.",
                         style = MaterialTheme.typography.bodySmall,
@@ -231,20 +310,151 @@ fun TemplateFillDialog(c: AppContainer, template: Template, onInsert: (String) -
                     )
                 }
                 Text(
-                    "Leere Felder werden weggelassen. „Einfügen“ übernimmt den Text ins Eingabefeld, z.B. um noch eine Datei anzuhängen.",
+                    if (template.direct != null) "✨ überarbeitet ein Feld mit KI. Ihre Eingaben bleiben gespeichert, bis Sie senden."
+                    else "Leere Felder werden weggelassen. ✨ überarbeitet ein Feld mit KI. „Einfügen“ übernimmt den Text ins Eingabefeld, z.B. um noch eine Datei anzuhängen.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (fields.any { f -> values[f.label].orEmpty() != initial(f) }) {
+                    Text(
+                        "Felder leeren",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            fields.forEach { values[it.label] = initial(it) }
+                            undo.clear()
+                            c.drafts.delete(template.id)
+                        }.padding(vertical = 4.dp),
+                    )
+                }
             }
         },
-        confirmButton = { TextButton(onClick = { onSend(result()); onDismiss() }) { Text("Senden") } },
+        confirmButton = { TextButton(onClick = { finish(send = true) }, enabled = working == null) { Text(if (template.direct != null) "Erstellen" else "Senden") } },
         dismissButton = {
             Row {
                 TextButton(onClick = onDismiss) { Text("Abbrechen") }
-                TextButton(onClick = { onInsert(result()); onDismiss() }) { Text("Einfügen") }
+                if (template.direct == null) TextButton(onClick = { finish(send = false) }, enabled = working == null) { Text("Einfügen") }
             }
         },
     )
+    customFor?.let { f ->
+        var instruction by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { customFor = null },
+            title = { Text("✨ ${f.label}") },
+            text = {
+                OutlinedTextField(
+                    value = instruction,
+                    onValueChange = { instruction = it },
+                    label = { Text("Was soll mit dem Text passieren?") },
+                    placeholder = { Text("z.B. Füge einen Satz zur Frist hinzu") },
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(enabled = instruction.isNotBlank(), onClick = { customFor = null; assist(f, AssistMode.CUSTOM, instruction) }) { Text("Ausführen") }
+            },
+            dismissButton = { TextButton(onClick = { customFor = null }) { Text("Abbrechen") } },
+        )
+    }
+}
+
+/** One field of the template form: label, what belongs into it, ✨ and – for addresses – the address book. */
+@Composable
+private fun TemplateFieldInput(
+    field: TemplateField,
+    value: String,
+    onChange: (String) -> Unit,
+    working: Boolean,
+    enabled: Boolean,
+    error: String?,
+    contacts: List<Contact>,
+    onContact: (Contact) -> Unit,
+    onDeleteContact: (Contact) -> Unit,
+    canUndo: Boolean,
+    onUndo: () -> Unit,
+    onAssist: (AssistMode) -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    var book by remember { mutableStateOf(false) }
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onChange,
+            label = { Text(field.label) },
+            enabled = !working,
+            isError = error != null,
+            supportingText = (error ?: field.hint.ifBlank { null })?.let { t -> { Text(t) } },
+            minLines = if (field.multiline) 3 else 1,
+            maxLines = 14,
+            trailingIcon = {
+                Row {
+                    if (contacts.isNotEmpty()) Box {
+                        IconButton(onClick = { book = true }, enabled = enabled) {
+                            Icon(Icons.Outlined.Contacts, contentDescription = "Adressbuch")
+                        }
+                        DropdownMenu(expanded = book, onDismissRequest = { book = false }) {
+                            contacts.take(15).forEach { ct ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(ct.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text(
+                                                ct.address.lines().drop(1).joinToString(", "),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                        }
+                                    },
+                                    onClick = { book = false; onContact(ct) },
+                                    trailingIcon = {
+                                        IconButton(onClick = { onDeleteContact(ct) }) {
+                                            Icon(Icons.Outlined.Close, contentDescription = "Aus dem Adressbuch löschen", modifier = Modifier.size(18.dp))
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    Box {
+                        if (working) {
+                            CircularProgressIndicator(Modifier.padding(12.dp).size(22.dp), strokeWidth = 2.dp)
+                        } else {
+                            IconButton(onClick = { menu = true }, enabled = enabled) {
+                                Icon(Icons.Outlined.AutoAwesome, contentDescription = "Mit KI überarbeiten", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            Text(
+                                "Mit KI …",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            )
+                            AssistMode.of(field).forEach { mode ->
+                                DropdownMenuItem(
+                                    text = { Text(if (mode == AssistMode.EXPAND && value.isBlank()) "Vorschlag schreiben" else mode.label) },
+                                    onClick = { menu = false; onAssist(mode) },
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (canUndo && !working) {
+            Text(
+                "↶ Rückgängig",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(onClick = onUndo).padding(start = 4.dp, top = 2.dp),
+            )
+        }
+    }
 }
 
 /** What a template does: its fields, the text and the instructions for the model. */
