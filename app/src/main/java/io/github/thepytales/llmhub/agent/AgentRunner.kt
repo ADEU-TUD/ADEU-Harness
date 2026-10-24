@@ -12,8 +12,15 @@ import io.github.thepytales.llmhub.data.dropFromThread
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.data.updateMessage
 import io.github.thepytales.llmhub.net.ApiException
+import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.ui.splitThinking
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import java.io.IOException
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -47,6 +54,7 @@ class AgentRunner(private val c: AppContainer) {
             c.githubTools.takeIf { sel.github && settings.hasGitHub },
             c.documentTools.takeIf { sel.documents },
             c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE },
+            c.assistantTools,
         )
     }
 
@@ -80,17 +88,27 @@ class AgentRunner(private val c: AppContainer) {
         var steps = 0
         var totalSteps = 0
         val recentRounds = ArrayDeque<String>()
+        /** Model of this run; changes once to a fallback model when the chosen one is unreachable. */
+        var model = start.model
+        var fallbackUsed = false
+        var summarized = false
         while (true) {
+            if (!summarized) summarized = compactIfNeeded(host, model, providers)
             val conv = host.conversation ?: return
             val apiMessages = buildApiMessages(conv, ctx, providers)
-            val placeholder = ChatMessage(role = "assistant", model = conv.model)
+            val events = mutableListOf<String>()
+            val placeholder = ChatMessage(role = "assistant", model = model)
             host.update { it.appendToThread(placeholder) }
+            val started = System.currentTimeMillis()
             val result = try {
                 c.llm.streamChat(
-                    model = conv.model,
+                    model = model,
                     messages = apiMessages,
                     tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
-                    onRetry = { reason, wait -> host.notice("$reason – neuer Versuch in $wait s.") },
+                    onRetry = { reason, wait ->
+                        events += "$reason – $wait s gewartet"
+                        host.notice("$reason – neuer Versuch in $wait s.")
+                    },
                 ) { upd ->
                     host.update { cv ->
                         cv.updateMessage(placeholder.id) {
@@ -107,8 +125,18 @@ class AgentRunner(private val c: AppContainer) {
                 ) {
                     // The model (or its server configuration) rejects function calling: answer without tools.
                     host.update { it.dropFromThread(placeholder.id) }
-                    host.notice("${ModelCatalog.info(conv.model).displayName} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.")
+                    host.notice("${ModelCatalog.info(model).displayName} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.")
                     providers = emptyList()
+                    continue
+                }
+                val fallback = if (!fallbackUsed && unreachable(e) && partial?.content.isNullOrBlank()) fallbackModel(model, conv, providers.isNotEmpty()) else null
+                if (fallback != null) {
+                    // The gateway does not reach the model: the same request goes to a similar model.
+                    fallbackUsed = true
+                    host.update { it.dropFromThread(placeholder.id) }
+                    val text = "${ModelCatalog.info(model).displayName} ist gerade nicht erreichbar – ${ModelCatalog.info(fallback).displayName} antwortet."
+                    host.notice(text)
+                    model = fallback
                     continue
                 }
                 val message = e.message ?: e.toString()
@@ -121,24 +149,21 @@ class AgentRunner(private val c: AppContainer) {
                 }
                 return
             }
+            val elapsed = System.currentTimeMillis() - started
+            host.update { cv ->
+                cv.updateMessage(placeholder.id) {
+                    it.copy(
+                        durationMs = elapsed,
+                        tokensIn = result.usage?.prompt ?: ContextManager.tokens(apiMessages).toLong(),
+                        tokensOut = result.usage?.completion ?: ((result.content.length + result.reasoning.length + result.toolCalls.sumOf { tc -> tc.arguments.length }) / 4L),
+                        events = (if (fallbackUsed && model != start.model) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
+                    )
+                }
+            }
             host.persist()
             if (result.toolCalls.isEmpty() || providers.isEmpty()) return
 
-            for (call in result.toolCalls) {
-                val provider = providers.firstOrNull { it.handles(call.name) }
-                val risk = provider?.risk(call.name, parseArgs(call.arguments))
-                val output = when {
-                    provider == null -> ToolOutput("FEHLER: Unbekanntes Werkzeug '${call.name}'.")
-                    risk == null || host.confirm(call, risk) -> provider.execute(call.name, call.arguments, ctx)
-                    else -> ToolOutput("Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst.")
-                }
-                val text = env?.mask(output.text) ?: output.text
-                host.update {
-                    it.appendToThread(
-                        ChatMessage(role = "tool", content = text, toolCallId = call.id, toolName = call.name, file = output.file)
-                    ).copy(repo = ctx.repo, branch = ctx.branch)
-                }
-            }
+            runTools(host, result.toolCalls, providers, ctx)
             host.persist()
             steps++
             totalSteps++
@@ -161,30 +186,154 @@ class AgentRunner(private val c: AppContainer) {
         }
     }
 
+    /**
+     * Runs the tool calls of one answer. Consecutive calls that only read (web searches, reading files …) run at
+     * the same time; everything that changes something runs alone and in order, after the user's OK if needed.
+     */
+    private suspend fun runTools(host: AgentHost, calls: List<ToolCall>, providers: List<ToolProvider>, ctx: RepoContext) {
+        fun providerOf(call: ToolCall) = providers.firstOrNull { it.handles(call.name) }
+        fun parallel(call: ToolCall): Boolean {
+            val p = providerOf(call) ?: return false
+            return p.parallelSafe(call.name) && p.risk(call.name, parseArgs(call.arguments)) == null
+        }
+        suspend fun one(call: ToolCall): Pair<ToolOutput, Long> {
+            val started = System.currentTimeMillis()
+            val provider = providerOf(call)
+            val risk = provider?.risk(call.name, parseArgs(call.arguments))
+            val output = when {
+                provider == null -> {
+                    val known = providers.flatMap { p -> p.defs.map { it.name } }
+                    val hint = ArgRepair.closest(call.name, known)?.let { " Meintest du „$it“?" }.orEmpty()
+                    ToolOutput("FEHLER: Unbekanntes Werkzeug '${call.name}'.$hint")
+                }
+                risk == null || host.confirm(call, risk) -> provider.execute(call.name, call.arguments, ctx)
+                else -> ToolOutput("Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst.")
+            }
+            return output to System.currentTimeMillis() - started
+        }
+        fun record(call: ToolCall, output: ToolOutput, ms: Long) {
+            val text = ctx.env?.mask(output.text) ?: output.text
+            host.update {
+                it.appendToThread(
+                    ChatMessage(role = "tool", content = text, toolCallId = call.id, toolName = call.name, file = output.file, durationMs = ms)
+                ).copy(repo = ctx.repo, branch = ctx.branch)
+            }
+        }
+        var i = 0
+        while (i < calls.size) {
+            val batch = calls.drop(i).takeWhile { parallel(it) }
+            if (batch.size > 1) {
+                val gate = Semaphore(PARALLEL_TOOLS)
+                val results = coroutineScope { batch.map { call -> async { gate.withPermit { one(call) } } }.awaitAll() }
+                batch.zip(results).forEach { (call, r) -> record(call, r.first, r.second) }
+                i += batch.size
+            } else {
+                val call = calls[i]
+                val (output, ms) = one(call)
+                record(call, output, ms)
+                i++
+            }
+        }
+    }
+
+    /** Errors after which another model may well answer: the gateway does not reach this one. */
+    private fun unreachable(e: Exception): Boolean = when (e) {
+        is ApiException -> e.code in setOf(502, 503, 504, 520, 521, 522, 523, 524, 529) ||
+            e.code == 404 && e.message.orEmpty().contains("model", ignoreCase = true)
+        is java.net.UnknownHostException, is javax.net.ssl.SSLException -> false
+        is IOException -> true
+        else -> false
+    }
+
+    private fun fallbackModel(model: String, conv: Conversation, needsTools: Boolean): String? {
+        val setting = c.settings.current.fallbackModel.trim()
+        if (setting.equals("off", ignoreCase = true)) return null
+        if (setting.isNotEmpty() && !setting.equals("auto", ignoreCase = true)) return setting.takeIf { it != model }
+        val vision = conv.thread().any { it.images.isNotEmpty() }
+        return ModelCatalog.fallbackFor(model, vision, needsTools, c.models.state.value.liveIds?.toSet())
+    }
+
     private fun stopWith(host: AgentHost, message: String) {
         host.update { it.appendToThread(ChatMessage(role = "assistant", error = true, content = message)) }
         host.persist()
     }
 
-    private fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
+    /**
+     * When the history no longer fits the budget of [model], its older part is summarized once by the model and
+     * the summary is stored on the chat; the last turns stay complete. Returns whether a summary was made.
+     */
+    private suspend fun compactIfNeeded(host: AgentHost, model: String, providers: List<ToolProvider>): Boolean {
+        val conv = host.conversation ?: return false
+        val budget = ContextManager.budget(model)
+        val ctx = RepoContext(conv.repo, conv.branch, environment(conv))
+        if (ContextManager.tokens(buildApiMessages(conv, ctx, providers)) <= budget) return false
+        val thread = conv.thread()
+        val cut = ContextManager.cutIndex(thread)
+        if (cut <= 0) return false
+        val coveredFrom = conv.summaryUpTo?.let { id -> thread.indexOfFirst { it.id == id } + 1 }?.coerceAtLeast(0) ?: 0
+        if (cut <= coveredFrom) return false
+        val older = thread.subList(coveredFrom, cut)
+        val previous = conv.summary?.takeIf { coveredFrom > 0 }
+        val transcript = ContextManager.transcript(older, previous, maxChars = budget * 3)
+        val summary = try {
+            c.llm.streamChat(
+                model = model,
+                messages = listOf(
+                    ChatMessage(role = "system", content = ContextManager.SUMMARY_PROMPT),
+                    ChatMessage(role = "user", content = transcript),
+                ),
+                tools = null,
+                thinking = ThinkingLevel.OFF,
+            ) { }.content.let { splitThinking(it).second.trim() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return false
+        }
+        if (summary.isBlank()) return false
+        host.update { it.copy(summary = summary, summaryUpTo = thread[cut - 1].id) }
+        host.persist()
+        host.notice("Der ältere Teil des Chats wurde zusammengefasst, damit die Antwort schnell bleibt.")
+        return true
+    }
+
+    /**
+     * The request: a system prompt that stays the same during a chat (the server can reuse its cache for it),
+     * the summary of older messages if there is one, then the history with shortened old tool results.
+     */
+    internal fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
         val settings = c.settings.current
         val useTools = providers.isNotEmpty()
-        val now = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT, Locale.GERMANY).format(Date())
+        // Only the date: a time that changes every minute would make the whole request new for the server's cache.
+        val today = DateFormat.getDateInstance(DateFormat.FULL, Locale.GERMANY).format(Date())
+        var thread = conv.thread()
+        val summaryAt = conv.summaryUpTo?.let { id -> thread.indexOfFirst { it.id == id } } ?: -1
+        val summary = conv.summary?.takeIf { summaryAt >= 0 }
+        if (summary != null) thread = thread.drop(summaryAt + 1)
+        val documentsFull = c.documentTools in providers && needsGuide(conv, Guides.documents)
         val system = listOfNotNull(
             settings.systemPrompt.ifBlank { null },
             conv.systemPrompt?.ifBlank { null },
             ctx.env?.systemPrompt(),
             if (c.githubTools in providers) GitHubTools.systemPrompt(ctx) else null,
-            if (c.documentTools in providers) c.documentTools.prompt() else null,
+            when {
+                c.documentTools !in providers -> null
+                documentsFull -> c.documentTools.prompt()
+                else -> "Mit create_document erstellst du PDF-, Word-, PowerPoint- und andere Dateien, mit edit_document änderst du sie. " +
+                    "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
+            },
             if (c.webTools in providers) WebTools.PROMPT else null,
-            "Aktuelles Datum: $now.",
+            "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
         ).joinToString("\n\n")
         val out = mutableListOf<ChatMessage>()
         if (system.isNotBlank()) out += ChatMessage(role = "system", content = system)
-        val thread = conv.thread()
+        if (summary != null) {
+            out += ChatMessage(role = "system", content = "Zusammenfassung des bisherigen Chatverlaufs (ältere Nachrichten):\n$summary")
+        }
         // Only keep tool calls that have a matching result, otherwise the API rejects the history.
         val answered = thread.filter { it.role == "tool" }.mapNotNull { it.toolCallId }.toSet()
         val sent = mutableSetOf<String>()
+        val time = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.GERMANY)
         for (m in thread) {
             when (m.role) {
                 "assistant" -> {
@@ -198,10 +347,22 @@ class AgentRunner(private val c: AppContainer) {
                 "tool" -> {
                     if (useTools && m.toolCallId in sent) out += m
                 }
+                // The time comes from the message itself, so it never changes afterwards.
+                "user" -> out += m.copy(content = m.content + "\n\n(geschrieben: ${time.format(Date(m.createdAt))})")
                 else -> out += m
             }
         }
-        return out
+        return ContextManager.trimOldToolResults(out)
+    }
+
+    /** Whether the long instructions of [guide] go directly into the system prompt for this chat. */
+    private fun needsGuide(conv: Conversation, guide: Guides.Guide): Boolean {
+        val thread = conv.thread()
+        if (thread.any { m -> m.toolCalls.any { it.name in setOf("create_document", "edit_document", "fill_pdf", "read_pdf_form") } }) return true
+        val user = thread.lastOrNull { it.role == "user" } ?: return false
+        if (user.files.any { it.path != null }) return true
+        return guide.needed.containsMatchIn(user.content) || guide.needed.containsMatchIn(user.instructions.orEmpty()) ||
+            guide.needed.containsMatchIn(conv.systemPrompt.orEmpty())
     }
 
     companion object {
@@ -209,5 +370,7 @@ class AgentRunner(private val c: AppContainer) {
         const val HARD_STEP_LIMIT = 500
         /** Identical tool rounds in a row after which the agent stops. */
         const val REPEAT_LIMIT = 4
+        /** Read-only tool calls of one answer that run at the same time. */
+        const val PARALLEL_TOOLS = 4
     }
 }

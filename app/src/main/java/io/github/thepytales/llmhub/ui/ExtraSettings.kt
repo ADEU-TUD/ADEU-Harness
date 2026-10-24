@@ -1,0 +1,79 @@
+package io.github.thepytales.llmhub.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.ModelType
+
+/** A settings card like the other sections (shared by Android and Windows). */
+@Composable
+fun SettingsCard(title: String, content: @Composable () -> Unit) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            content()
+        }
+    }
+}
+
+@Composable
+fun SettingsHint(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/** Fallback model and request pacing (Einstellungen › Chat & Werkzeuge). */
+@Composable
+fun ReliabilitySection(c: AppContainer) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val models by c.models.state.collectAsStateWithLifecycle()
+    SettingsCard("Zuverlässigkeit") {
+        val auto = "Automatisch (ähnliches Modell)"
+        val off = "Aus"
+        val chat = models.ofType(ModelType.CHAT).map { it.id }
+        val current = when (s.fallbackModel.lowercase()) {
+            "auto", "" -> auto
+            "off" -> off
+            else -> ModelCatalog.info(s.fallbackModel).displayName
+        }
+        DropdownField(
+            label = "Ausweichmodell",
+            value = current,
+            options = listOf(auto, off) + chat.map { ModelCatalog.info(it).displayName },
+            onSelect = { v ->
+                val id = when (v) {
+                    auto -> "auto"
+                    off -> "off"
+                    else -> chat.firstOrNull { ModelCatalog.info(it).displayName == v } ?: "auto"
+                }
+                c.settings.update { it.copy(fallbackModel = id) }
+            },
+        )
+        SettingsHint(
+            "Erreicht der Uni-Server das gewählte Modell auch nach mehreren Versuchen nicht (HTTP 502/503/504), beantwortet " +
+                "dieses Modell die Anfrage – mit Hinweis im Chat und im Agent-Protokoll."
+        )
+        val learned = c.llm.limiter.limit()
+        DropdownField(
+            label = "Anfragen pro Minute",
+            value = if (s.requestsPerMinute <= 0) "Automatisch" else s.requestsPerMinute.toString(),
+            options = listOf("Automatisch", "5", "10", "15", "20", "30", "60"),
+            onSelect = { v -> c.settings.update { it.copy(requestsPerMinute = v.toIntOrNull() ?: 0) } },
+        )
+        SettingsHint(
+            "Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die " +
+                "Grenze aus den Antworten des Servers" + (if (s.requestsPerMinute <= 0 && learned != null) " (zurzeit $learned pro Minute)." else ".")
+        )
+    }
+}

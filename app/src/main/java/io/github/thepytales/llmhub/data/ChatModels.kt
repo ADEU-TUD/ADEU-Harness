@@ -49,6 +49,13 @@ data class ChatMessage(
     /** Previous message in the thread; messages with the same parent are alternative versions. */
     val parentId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
+    /** Agent protocol: how long the model request or the tool call took. */
+    val durationMs: Long? = null,
+    /** Agent protocol: tokens of the request (prompt) and the answer, as reported or estimated. */
+    val tokensIn: Long? = null,
+    val tokensOut: Long? = null,
+    /** Agent protocol: what happened on the way (retries, fallback model, shortened history …). */
+    val events: List<String> = emptyList(),
 )
 
 @Serializable
@@ -79,5 +86,9 @@ data class Conversation(
     val taskId: String? = null,
     /** Has a result the user has not looked at yet (scheduled task, answer finished in the background). */
     val unread: Boolean = false,
+    /** Summary of the older part of a long chat, sent instead of those messages (see agent/ContextManager). */
+    val summary: String? = null,
+    /** Last message covered by [summary]; only used while it is part of the active thread. */
+    val summaryUpTo: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
 )

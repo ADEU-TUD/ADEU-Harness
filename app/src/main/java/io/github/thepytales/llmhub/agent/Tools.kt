@@ -86,19 +86,34 @@ interface ToolProvider {
 
     /** What this call changes, or null if it only reads (then it never needs the user's OK). */
     fun risk(name: String, args: JsonObject): Risk? = null
+
+    /** Whether the call only reads and may run at the same time as other such calls of the same answer. */
+    fun parallelSafe(name: String): Boolean = false
 }
 
 fun parseArgs(arguments: String): JsonObject =
-    runCatching { JSON.parseToJsonElement(arguments.ifBlank { "{}" }).jsonObject }.getOrDefault(JsonObject(emptyMap()))
+    (ArgRepair.parse(arguments) as? ArgRepair.Result.Ok)?.args ?: JsonObject(emptyMap())
 
 const val MAX_TOOL_RESULT = 60_000
 
-/** Executes a tool call and returns the result for the model. Never throws. */
+/**
+ * Executes a tool call and returns the result for the model. Never throws. Broken JSON is repaired where
+ * possible, missing required parameters are reported precisely so the model can correct the call.
+ */
 suspend fun ToolProvider.execute(name: String, arguments: String, ctx: RepoContext): ToolOutput = try {
-    val args = if (arguments.isBlank()) JsonObject(emptyMap())
-    else JSON.parseToJsonElement(arguments).jsonObject
-    val out = run(name, args, ctx)
-    if (out.text.length > MAX_TOOL_RESULT) out.copy(text = out.text.take(MAX_TOOL_RESULT) + "\n…[gekürzt]") else out
+    when (val parsed = ArgRepair.parse(arguments)) {
+        is ArgRepair.Result.Error -> ToolOutput("FEHLER: ${parsed.message} Sende die Argumente erneut als gültiges JSON-Objekt.")
+        is ArgRepair.Result.Ok -> {
+            val missing = defs.firstOrNull { it.name == name }?.let { ArgRepair.missing(it, parsed.args) }
+            if (missing != null) ToolOutput("FEHLER: $missing")
+            else {
+                val out = run(name, parsed.args, ctx)
+                if (out.text.length > MAX_TOOL_RESULT) out.copy(text = out.text.take(MAX_TOOL_RESULT) + "\n…[gekürzt]") else out
+            }
+        }
+    }
+} catch (e: kotlinx.coroutines.CancellationException) {
+    throw e
 } catch (e: Exception) {
     ToolOutput("FEHLER: ${e.message ?: e.javaClass.simpleName}")
 }

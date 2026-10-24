@@ -112,6 +112,9 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
         else -> Risk.EDIT
     }
 
+    // Reading in the selected repository does not change the shared state (repository, branch).
+    override fun parallelSafe(name: String) = name in setOf("list_files", "read_file", "search_code", "list_commits", "list_pull_requests", "list_issues", "read_issue", "list_branches")
+
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext) = ToolOutput(dispatch(name, args, ctx))
 
     private fun need(ctx: RepoContext): Pair<String, String> {

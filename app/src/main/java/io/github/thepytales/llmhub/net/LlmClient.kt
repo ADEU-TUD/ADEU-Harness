@@ -76,6 +76,9 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     @Volatile
     private var askForUsage = true
 
+    /** Shared by all chats, tasks and helper requests, so together they stay below the key's limit. */
+    val limiter = RateLimiter({ settings.current.requestsPerMinute })
+
     /** Models whose server rejected the reasoning parameters; they get requests without them. */
     private val noThinkingParams = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
@@ -143,12 +146,14 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         var attempt = 0
         while (true) {
             try {
+                limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
                 return streamChatWithFallbacks(model, messages, tools, thinking, onUpdate)
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
                 // Offline or a broken certificate does not fix itself within seconds.
                 if (e is java.net.UnknownHostException || e is javax.net.ssl.SSLException) throw e
                 val code = (e as? ApiException)?.code ?: 0
+                if (code == 429) limiter.onRateLimited()
                 val reason = when (code) {
                     0 -> "Verbindung zum Server unterbrochen"
                     429 -> "Rate-Limit des API-Keys erreicht"

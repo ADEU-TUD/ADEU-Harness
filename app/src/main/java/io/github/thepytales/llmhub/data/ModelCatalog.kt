@@ -234,6 +234,21 @@ object ModelCatalog {
 
     fun info(id: String): ModelInfo = byId[id.lowercase()] ?: guess(id)
 
+    /**
+     * A model to answer with when [model] is unreachable: recommended chat models first, preferably from another
+     * provider (another server behind the gateway), with tools and – if the chat has images – vision.
+     */
+    fun fallbackFor(model: String, needsVision: Boolean, needsTools: Boolean, available: Set<String>?): String? {
+        val current = info(model)
+        return known.asSequence()
+            .filter { it.type == ModelType.CHAT && it.tier != ModelTier.HIDDEN && !it.id.equals(model, ignoreCase = true) }
+            .filter { !needsTools || it.tools == true }
+            .filter { !needsVision || it.vision == true }
+            .filter { available == null || it.id in available }
+            .sortedWith(compareBy({ it.tier.ordinal }, { if (it.provider == current.provider) 1 else 0 }))
+            .firstOrNull()?.id
+    }
+
     /** Position in the built-in list; unknown models come last. */
     fun rank(id: String): Int = known.indexOfFirst { it.id.equals(id, ignoreCase = true) }.let { if (it < 0) Int.MAX_VALUE else it }
 

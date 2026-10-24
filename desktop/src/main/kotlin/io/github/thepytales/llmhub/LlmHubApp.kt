@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub
 
 import android.content.Context
 import io.github.thepytales.llmhub.agent.AgentRunner
+import io.github.thepytales.llmhub.agent.AssistantTools
 import io.github.thepytales.llmhub.agent.ChatRuns
 import io.github.thepytales.llmhub.agent.DocumentTools
 import io.github.thepytales.llmhub.agent.GitHubTools
@@ -48,6 +49,7 @@ class AppContainer(context: Context) {
     val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
     val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts)
     val webTools = WebTools(llm.http)
+    val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
     val models = ModelsRepository(llm)
     val speaker = Speaker(context, settings, llm)

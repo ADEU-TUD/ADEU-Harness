@@ -434,6 +434,7 @@ private fun GitHubSection(c: AppContainer) {
     }
     // Also covers writing web requests, so it stays visible without GitHub.
     Section("Freigaben") { ApprovalModeOptions(c) }
+    ReliabilitySection(c)
 }
 
 @Composable
@@ -493,6 +494,7 @@ private fun ChatSection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
     Section("Freigaben") { ApprovalModeOptions(c) }
+    ReliabilitySection(c)
     if (showModelPicker) {
         ModelPickerSheet(
             models = models.ofType(ModelType.CHAT),

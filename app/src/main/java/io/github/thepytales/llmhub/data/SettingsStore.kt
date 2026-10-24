@@ -63,6 +63,12 @@ data class AppSettings(
     val favoriteTemplates: List<String> = emptyList(),
     /** First name for the greeting and the avatar in the side menu (optional). */
     val userName: String = "",
+    /** Model used when the chosen one stays unreachable (502/503/504): "auto", "off" or a model id. */
+    val fallbackModel: String = "auto",
+    /** Requests per minute the app allows itself (0 = learn the limit from the server's 429 answers). */
+    val requestsPerMinute: Int = 0,
+    /** What the model may note about the user: enum name of agent/MemoryMode. */
+    val memoryMode: String = "ASK",
 ) {
     val hasApiKey get() = apiKey.isNotBlank()
     /** Only a verified token unlocks the GitHub options. */
@@ -141,6 +147,9 @@ class SettingsStore(context: Context) {
             .putString("senderInfo", next.senderInfo)
             .putString("favoriteTemplates", next.favoriteTemplates.joinToString("\n"))
             .putString("userName", next.userName)
+            .putString("fallbackModel", next.fallbackModel)
+            .putInt("requestsPerMinute", next.requestsPerMinute)
+            .putString("memoryMode", next.memoryMode)
             .apply()
     }
 
@@ -182,6 +191,9 @@ class SettingsStore(context: Context) {
             senderInfo = prefs.getString("senderInfo", d.senderInfo) ?: d.senderInfo,
             favoriteTemplates = prefs.getString("favoriteTemplates", "").orEmpty().lines().filter { it.isNotBlank() },
             userName = prefs.getString("userName", d.userName) ?: d.userName,
+            fallbackModel = prefs.getString("fallbackModel", d.fallbackModel) ?: d.fallbackModel,
+            requestsPerMinute = prefs.getInt("requestsPerMinute", d.requestsPerMinute),
+            memoryMode = prefs.getString("memoryMode", d.memoryMode) ?: d.memoryMode,
         )
     }
 

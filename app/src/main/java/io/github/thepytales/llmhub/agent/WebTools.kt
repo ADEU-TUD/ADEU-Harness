@@ -58,6 +58,9 @@ class WebTools(http: OkHttpClient) : ToolProvider {
     override fun risk(name: String, args: JsonObject) =
         if (name == "fetch_url" && (args.s("method")?.uppercase() ?: "GET") !in setOf("GET", "HEAD")) Risk.PUBLIC else null
 
+    // Searches and page reads are independent of each other; writing requests are never run in parallel (they have a risk).
+    override fun parallelSafe(name: String) = true
+
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput {
         val out = when (name) {
             "fetch_url" -> fetch(args, ctx)
