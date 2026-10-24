@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -106,7 +107,9 @@ fun DocumentCard(path: String) {
     val file = remember(path) { File(path) }
     val format = DocFormat.ofFile(file)
     val save = rememberSaveLauncher(format.mime) { uri -> scope.launch { copyTo(context, file, uri) } }
-    val exists = remember(path) { file.exists() }
+    /** Raised when open placeholders were filled in and the file was rendered again. */
+    var version by remember(path) { mutableIntStateOf(0) }
+    val exists = remember(path, version) { file.exists() }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(14.dp),
@@ -127,7 +130,7 @@ fun DocumentCard(path: String) {
                 Column(Modifier.weight(1f)) {
                     Text(file.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        if (exists) "${format.label} · ${formatSize(file.length())}" else "Datei nicht mehr vorhanden",
+                        if (exists) "${format.label} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -151,6 +154,7 @@ fun DocumentCard(path: String) {
                         Text("Speichern")
                     }
                 }
+                DocumentGaps(file, version) { version++ }
             }
         }
     }

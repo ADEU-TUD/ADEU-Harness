@@ -132,6 +132,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         messages: List<ChatMessage>,
         tools: JsonArray?,
         onRetry: (reason: String, waitSeconds: Long) -> Unit = { _, _ -> },
+        /** Overrides the thinking level of the settings, e.g. OFF for quick helper requests. */
+        thinking: ThinkingLevel? = null,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
         // Keys of the self-service portal have a low requests-per-minute limit, which agent runs with many
@@ -141,7 +143,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         var attempt = 0
         while (true) {
             try {
-                return streamChatWithFallbacks(model, messages, tools, onUpdate)
+                return streamChatWithFallbacks(model, messages, tools, thinking, onUpdate)
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
                 // Offline or a broken certificate does not fix itself within seconds.
@@ -167,9 +169,10 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         model: String,
         messages: List<ChatMessage>,
         tools: JsonArray?,
+        override: ThinkingLevel?,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
-        val thinking = ThinkingLevel.parse(settings.current.thinkingLevel)
+        val thinking = (override ?: ThinkingLevel.parse(settings.current.thinkingLevel))
             .takeIf { ModelCatalog.info(model).thinking != false && model !in noThinkingParams }
             ?: ThinkingLevel.AUTO
         return try {
@@ -180,7 +183,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 e.code !in 400..422 -> throw e
                 askForUsage && msg.contains("stream_options", ignoreCase = true) -> {
                     askForUsage = false
-                    streamChatWithFallbacks(model, messages, tools, onUpdate)
+                    streamChatWithFallbacks(model, messages, tools, override, onUpdate)
                 }
                 thinking != ThinkingLevel.AUTO && THINKING_PARAM_ERROR.containsMatchIn(msg) -> {
                     // The model's server does not know these parameters: answer with its default thinking.

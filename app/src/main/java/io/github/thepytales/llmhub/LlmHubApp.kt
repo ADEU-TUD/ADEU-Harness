@@ -10,6 +10,7 @@ import io.github.thepytales.llmhub.agent.WebTools
 import io.github.thepytales.llmhub.audio.Speaker
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.ChatRepository
+import io.github.thepytales.llmhub.data.Contact
 import io.github.thepytales.llmhub.data.FileBackend
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.ListStore
@@ -19,6 +20,7 @@ import io.github.thepytales.llmhub.data.PrefsBackend
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.Template
+import io.github.thepytales.llmhub.data.TemplateDraft
 import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.UsageStore
 import io.github.thepytales.llmhub.net.GitHubClient
@@ -41,7 +43,11 @@ class AppContainer(context: Context) {
     val github = GitHubClient(settings, llm.http)
     val githubTools = GitHubTools(github)
     val logos = LogoStore(files)
-    val documentTools = DocumentTools(context.applicationContext, settings, logos)
+    /** Address book for letters. */
+    val contacts = ListStore<Contact>(FileBackend(File(files, "contacts.json")), Contact.serializer(), { it.id })
+    /** Template forms typed but not sent yet. */
+    val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
+    val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts)
     val webTools = WebTools(llm.http)
     val chats = ChatRepository(context)
     val models = ModelsRepository(llm)
@@ -59,6 +65,10 @@ class AppContainer(context: Context) {
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
     val runs = ChatRuns(context.applicationContext, this)
+
+    init {
+        App.container = this
+    }
 }
 
 /** A finished answer or task result that the user should know about. */

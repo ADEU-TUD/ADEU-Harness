@@ -2,13 +2,18 @@ package io.github.thepytales.llmhub.agent
 
 import android.content.Context
 import android.util.Base64
+import io.github.thepytales.llmhub.data.Contact
+import io.github.thepytales.llmhub.data.ListStore
 import io.github.thepytales.llmhub.data.LogoStore
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
+import io.github.thepytales.llmhub.docs.DocumentSources
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.Letter
+import io.github.thepytales.llmhub.docs.LetterBuilder
+import io.github.thepytales.llmhub.docs.Placeholders
 import io.github.thepytales.llmhub.docs.PdfForms
 import io.github.thepytales.llmhub.docs.PdfText
 import io.github.thepytales.llmhub.docs.TudBrand
@@ -23,7 +28,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.put
 import java.io.File
 
 /** Lets the model create documents (PDF, Word, …) that the user can open, share or save. */
@@ -31,8 +38,10 @@ class DocumentTools(
     private val context: Context,
     private val settings: SettingsStore,
     private val logos: LogoStore,
+    /** Address book: recipients of letters are offered again in the templates. */
+    private val contacts: ListStore<Contact>,
 ) : ToolProvider {
-    private val folder = File(context.filesDir, "documents")
+    val folder = File(context.filesDir, "documents")
 
     override val defs = listOf(
         ToolDef(
@@ -53,6 +62,24 @@ class DocumentTools(
                 Param("letter_sender", "Nur für Briefe: Absenderblock, Zeilen mit \\n getrennt (Einrichtung, Name, Telefon, E-Mail). title ist dann der Betreff.", required = false),
                 Param("letter_recipient", "Nur für Briefe: Anschrift des Empfängers, Zeilen mit \\n getrennt", required = false),
                 Param("layout", "Optional „urkunde“ für Teilnahmebescheinigungen, Zertifikate und Urkunden (zentriert, nach TUD-Vorlage)", required = false),
+            ),
+        ),
+        ToolDef(
+            "edit_document",
+            "Ändert ein bereits erstelltes Dokument (auch einen von der App erstellten Brief), ohne es neu zu schreiben: " +
+                "einzelne Textstellen ersetzen (replacements) oder den Inhalt komplett austauschen (content). Es entsteht eine " +
+                "neue Version; die alte bleibt erhalten. Auch zum Umwandeln in ein anderes Format (format=docx …).",
+            listOf(
+                Param("file", "Dateiname des Dokuments (Standard: das zuletzt erstellte)", required = false),
+                Param(
+                    "replacements", "JSON-Liste [{\"alt\": \"genauer bisheriger Text\", \"neu\": \"neuer Text\"}] – " +
+                        "alt muss wörtlich im Dokument vorkommen (Markdown-Quelltext)", required = false,
+                ),
+                Param("content", "Optional: kompletter neuer Inhalt (Markdown) statt einzelner Ersetzungen", required = false),
+                Param("title", "Optional: neuer Titel bzw. Betreff", required = false),
+                Param("letter_recipient", "Optional: neue Anschrift (Briefe)", required = false),
+                Param("letter_sender", "Optional: neuer Infoblock (Briefe)", required = false),
+                Param("format", "Optional: anderes Format (pdf, docx, html, md, txt)", required = false),
             ),
         ),
         ToolDef(
@@ -92,6 +119,7 @@ class DocumentTools(
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = when (name) {
         "create_document" -> create(args)
+        "edit_document" -> edit(args)
         "save_logo" -> saveLogo(args, ctx)
         "read_pdf_form" -> readPdfForm(args, ctx)
         "fill_pdf" -> fillPdf(args, ctx)
@@ -122,7 +150,7 @@ class DocumentTools(
     fun settingsTheme(style: DocStyle? = null): DocTheme =
         theme(JsonObject(emptyMap())).first.let { if (style != null) it.copy(style = style) else it }
 
-    private suspend fun create(args: JsonObject): ToolOutput {
+    private suspend fun create(args: JsonObject, overwrite: Boolean = false, checks: Boolean = true): ToolOutput {
         val title = args.s("title")?.trim().orEmpty()
         var content = args.req("content")
         val format = DocFormat.parse(args.s("format"))
@@ -132,7 +160,12 @@ class DocumentTools(
         val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
         val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate)
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite)
+        // The source stays next to the document for edit_document and for filling in open placeholders.
+        withContext(Dispatchers.IO) {
+            DocumentSources.save(doc.file, JsonObject(args + ("file_name" to JsonPrimitive(doc.file.nameWithoutExtension))))
+        }
+        if (recipient.isNotEmpty()) rememberContact(recipient)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
         val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
         val notes = listOfNotNull(
@@ -143,13 +176,118 @@ class DocumentTools(
                     "und biete bei Bedarf dieselbe Gestaltung zusätzlich als format=html an."
             } else null,
         )
+        val gaps = Placeholders.find(DocumentSources.texts(args))
+        val review = buildList {
+            if (gaps.isNotEmpty()) {
+                add(
+                    "Offene Platzhalter: ${gaps.joinToString(", ") { "[$it]" }}. Nenne sie dem Nutzer kurz – er kann sie in der " +
+                        "App über „Ausfüllen“ am Dokument eintragen oder dir die Angaben schreiben (dann edit_document)."
+                )
+            }
+            if (checks) {
+                add(
+                    "Selbstprüfung vor deiner Antwort: Enthält das Dokument alles, worum der Nutzer gebeten hat, und nichts " +
+                        "Erfundenes? Stimmen Namen, Daten und Zahlen mit seinen Angaben überein? Falls nicht, korrigiere es mit " +
+                        "edit_document, sonst antworte kurz (ohne den Inhalt zu wiederholen)."
+                )
+            }
+        }
         return ToolOutput(
             "Dokument erstellt: ${doc.file.name} (${format.label}$pages, $size KB). " +
                 "Es wird dem Nutzer im Chat mit Knöpfen zum Öffnen, Teilen und Speichern angezeigt – nenne keinen Dateipfad." +
-                notes.joinToString("") { "\n$it" },
+                (notes + review).joinToString("") { "\n$it" },
             file = doc.file.absolutePath,
         )
     }
+
+    private fun rememberContact(address: String) {
+        val lines = LetterBuilder.addressLines(address)
+        if (lines.isEmpty() || Placeholders.find(address).size >= lines.size) return
+        val text = lines.joinToString("\n")
+        val existing = contacts.current.firstOrNull { it.label.equals(lines.first(), ignoreCase = true) }
+        contacts.upsert(existing?.copy(address = text, lastUsed = System.currentTimeMillis()) ?: Contact(address = text))
+        // The address book keeps the 60 addresses used last.
+        val keep = contacts.current.sortedByDescending { it.lastUsed }.take(60).map { it.id }.toSet()
+        if (keep.size < contacts.current.size) contacts.replaceAll(contacts.current.filter { it.id in keep })
+    }
+
+    /**
+     * Builds the document of a template marked as direct (the letter) from its fields, without the model.
+     * Returns the arguments (shown in the chat as create_document call, so the model can change it later) and the result.
+     */
+    suspend fun createDirect(kind: String, values: Map<String, String>): Pair<JsonObject, ToolOutput> {
+        require(kind == "letter") { "Unbekannte Vorlage: $kind" }
+        fun v(vararg keys: String) = keys.firstNotNullOfOrNull { k -> values[k]?.trim()?.takeIf { it.isNotEmpty() } }.orEmpty()
+        val built = LetterBuilder.build(
+            LetterBuilder.Input(
+                sender = v("Absender").ifEmpty { settings.current.senderInfo },
+                recipient = v("Empfänger"),
+                subject = v("Betreff"),
+                reference = v("Bezug"),
+                salutation = v("Anrede"),
+                body = v("Brieftext", "Inhalt"),
+            )
+        )
+        val args = buildJsonObject {
+            put("title", built.title)
+            put("content", built.content)
+            put("format", "pdf")
+            put("style", "tud")
+            put("letter_sender", built.letter.sender)
+            put("letter_recipient", built.letter.recipient)
+            if (built.title.isNotEmpty()) put("file_name", "Brief – " + built.title.take(60))
+        }
+        return args to create(args, checks = false)
+    }
+
+    /** The newest document with a stored source, or the one named [name]. */
+    private fun sourceFile(name: String?): File {
+        val docs = folder.listFiles().orEmpty().filter { it.isFile && DocumentSources.load(it) != null }
+        val wanted = name?.trim()?.takeIf { it.isNotEmpty() }
+        return (
+            if (wanted == null) docs.maxByOrNull { it.lastModified() }
+            else docs.firstOrNull { it.name.equals(wanted, ignoreCase = true) }
+                ?: docs.filter { it.name.contains(wanted.substringBeforeLast('.'), ignoreCase = true) }.maxByOrNull { it.lastModified() }
+            ) ?: throw IllegalArgumentException(
+            if (docs.isEmpty()) "Es gibt noch kein Dokument, das sich ändern lässt – erstelle es mit create_document."
+            else "Dokument „$wanted“ nicht gefunden. Vorhanden: ${docs.sortedByDescending { it.lastModified() }.take(8).joinToString(", ") { it.name }}."
+        )
+    }
+
+    private suspend fun edit(args: JsonObject): ToolOutput {
+        val file = sourceFile(args.s("file"))
+        var source = DocumentSources.load(file)!!
+        val missing = mutableListOf<String>()
+        (jsonArg(args["replacements"]) as? JsonArray).orEmpty().forEach { e ->
+            val o = e as? JsonObject ?: return@forEach
+            val old = o.s("alt") ?: o.s("old") ?: return@forEach
+            val new = o.s("neu") ?: o.s("new") ?: ""
+            if (DocumentSources.texts(source).none { old in it }) missing += old
+            else source = DocumentSources.mapTexts(source) { it.replace(old, new) }
+        }
+        val changes = listOf("content", "title", "letter_recipient", "letter_sender", "format").mapNotNull { k ->
+            args.s(k)?.takeIf { it.isNotBlank() }?.let { k to JsonPrimitive(if (k.startsWith("letter_")) it.replace("\\n", "\n") else it) }
+        }
+        source = JsonObject(source + changes)
+        if (missing.isNotEmpty() && changes.isEmpty() && missing.size == (jsonArg(args["replacements"]) as? JsonArray)?.size) {
+            return ToolOutput("FEHLER: Diese Textstellen kommen im Dokument nicht wörtlich vor: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}. Nichts geändert.")
+        }
+        val out = create(source)
+        return if (missing.isEmpty()) out
+        else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
+    }
+
+    /** Fills in open placeholders of [file] with the user's values and renders it again in place. */
+    suspend fun fillPlaceholders(file: File, values: Map<String, String>): File {
+        val source = DocumentSources.load(file) ?: throw IllegalStateException("Zu diesem Dokument ist keine Quelle gespeichert.")
+        val filled = DocumentSources.mapTexts(source) { Placeholders.fill(it, values) }
+        val format = DocFormat.ofFile(file).ext
+        val out = create(JsonObject(filled + mapOf("file_name" to JsonPrimitive(file.nameWithoutExtension), "format" to JsonPrimitive(format))), overwrite = true, checks = false)
+        return File(out.file!!)
+    }
+
+    /** Open placeholders of a document created with a stored source. */
+    fun openPlaceholders(file: File): List<String> = DocumentSources.load(file)?.let { Placeholders.find(DocumentSources.texts(it)) }.orEmpty()
 
     /** Replaces src="logo" / src="logo:Name" in HTML with the image data. */
     private fun insertLogos(html: String, theme: DocTheme): String = LOGO_SRC.replace(html) { m ->
@@ -247,6 +385,10 @@ class DocumentTools(
         append("Für Dokumente der TU Dresden (Briefe, Protokolle, Formulare, Merkblätter …) nimm Markdown mit style=tud: ")
         append("die App setzt TUD-Blau (${TudBrand.BLUE}), Logo, Einrichtung, Datum und Fußzeile automatisch – das ist schnell ")
         append("und einheitlich; schreibe dafür kein eigenes HTML und wiederhole Logo, Einrichtung oder Datum nicht im Text. ")
+        append("Ein erstelltes Dokument änderst du mit edit_document (einzelne Stellen ersetzen) statt es neu zu erstellen. ")
+        append("Fehlen für ein Dokument wesentliche Angaben (Empfänger, Datum, Beträge, Namen), frage vor dem Erstellen kurz ")
+        append("und gezielt nach (höchstens drei Fragen auf einmal); nebensächliche Lücken lässt du weg. Platzhalter wie [Datum] ")
+        append("nur, wenn der Nutzer ausdrücklich eine Vorlage zum Ausfüllen möchte. ")
         append("Ton: sachlich und förmlich, keine Emojis. Für Briefe letter_sender (Infoblock: Name, Telefon: …, E-Mail: …) und ")
         append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")

@@ -12,6 +12,7 @@ import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
+import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.addVersion
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.branchAfter
@@ -212,6 +213,54 @@ class ChatViewModel(
         connectMentionedRepo(text)
         startAgent()
     }
+
+    /**
+     * A template the app fills in itself (the letter): the document is built from [values] right away, without the
+     * model, and shown like a create_document call – so follow-up requests ("freundlicher formulieren") can change it.
+     */
+    fun sendDirect(text: String, values: Map<String, String>, template: Template) {
+        val conv = _conversation.value ?: return
+        val kind = template.direct ?: return
+        if (isRunning) return
+        val isFirst = conv.messages.none { it.role == "user" }
+        val subject = values["Betreff"]?.trim().orEmpty()
+        val message = ChatMessage(role = "user", content = text.trim(), template = template.name, instructions = template.instructions.ifBlank { null })
+        update {
+            it.appendToThread(message).copy(
+                title = if (isFirst) (if (subject.isNotEmpty()) "${template.name}: $subject" else template.name).take(60) else it.title,
+            )
+        }
+        persist()
+        _building.value = true
+        viewModelScope.launch {
+            try {
+                val (args, output) = c.documentTools.createDirect(kind, values)
+                val call = ToolCall(id = "direct_" + java.util.UUID.randomUUID().toString().take(8), name = "create_document", arguments = args.toString())
+                val gaps = output.file?.let { c.documentTools.openPlaceholders(File(it)) }.orEmpty()
+                val note = buildString {
+                    append("Ihr ${template.name} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.")
+                    if (gaps.isNotEmpty()) append(" Noch offen: ${gaps.joinToString(", ")} – tippen Sie am Dokument auf „Ausfüllen“.")
+                    append("\n\nÄnderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“.")
+                }
+                update {
+                    it.appendToThread(ChatMessage(role = "assistant", toolCalls = listOf(call)))
+                        .appendToThread(ChatMessage(role = "tool", content = output.text, toolCallId = call.id, toolName = call.name, file = output.file))
+                        .appendToThread(ChatMessage(role = "assistant", content = note))
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                update { it.appendToThread(ChatMessage(role = "assistant", error = true, content = "Der ${template.name} konnte nicht erstellt werden: ${e.message ?: e.javaClass.simpleName}")) }
+            } finally {
+                _building.value = false
+                persist()
+            }
+        }
+    }
+
+    /** A document of a direct template is being built. */
+    private val _building = MutableStateFlow(false)
+    val building: StateFlow<Boolean> = _building.asStateFlow()
 
     /** Sends an edited version of a user message as new branch (the old version stays reachable). */
     fun editMessage(message: ChatMessage, newText: String) {

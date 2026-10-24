@@ -15,8 +15,10 @@ object TemplateLibrary {
     /** Id prefix of built-in templates. */
     const val BUILT_IN = "b_"
 
-    private const val HONEST = "Erfinde keine Fakten, Namen, Zahlen, Termine, Zitate oder Literaturangaben. Fehlt eine " +
-        "Angabe, setze einen gut sichtbaren Platzhalter in eckigen Klammern, z.B. [Datum], statt zu raten. "
+    private const val HONEST = "Erfinde keine Fakten, Namen, Zahlen, Termine, Zitate oder Literaturangaben. Fehlen Angaben, " +
+        "ohne die das Ergebnis nicht brauchbar ist, frage zuerst kurz und gezielt nach (höchstens drei Fragen) und erstelle " +
+        "das Dokument erst danach; nebensächliche Lücken lässt du weg. Nur wenn der Nutzer ausdrücklich einen Entwurf " +
+        "möchte, setze für Fehlendes gut sichtbare Platzhalter in eckigen Klammern, z.B. [Datum]. "
     private const val ACADEMIC = "Schreibe sachlich und präzise, geschlechtergerecht (z.B. Studierende, Lehrkräfte, " +
         "Schüler:innen), ohne Emojis und ohne Werbesprache. "
 
@@ -45,20 +47,18 @@ object TemplateLibrary {
     val builtIn: List<Template> = listOf(
         // ── TUD-Dokumente ──────────────────────────────────────────────────────────────────────────────────────
         tud(
-            "letter", "Brief", "Schreiben nach DIN 5008 mit Anschriftfeld, Infoblock und Betreff",
+            "letter", "Brief", "Schreiben nach DIN 5008 – Ihr Text wird genau so übernommen",
             """
-            Absender: {{Absender|Name mit Titel, Funktion, Telefon, E-Mail, Raum}}
-            Empfänger: {{Empfänger|Name und vollständige Anschrift}}
-            Betreff: {{Betreff}}
-            Bezug: {{Bezug|optional, z.B. Ihr Schreiben vom …}}
-            Inhalt: {{Inhalt|Worum geht es? Stichpunkte reichen}}
+            Absender: {{Absender|Ihr Name, darunter je Zeile: Funktion, Telefon, E-Mail, Raum}}
+            Empfänger: {{Empfänger|Je Zeile: Name (z.B. Frau Dr. Anna Müller), Einrichtung, Straße Nr., PLZ Ort}}
+            Betreff: {{Betreff|Worum es geht, in einer Zeile – steht fett über dem Brief}}
+            Bezug: {{Bezug|optional, z.B. Ihr Schreiben vom 12. Oktober 2026}}
+            Anrede: {{Anrede|optional – sonst passend zum Empfänger, z.B. „Sehr geehrte Frau Dr. Müller,“}}
+            Brieftext: {{Brieftext|Der eigentliche Brief ohne Anrede und Gruß – wird wörtlich übernommen. Nur Stichpunkte? ✨ formuliert sie aus.}}
             """,
-            "Layout Brief: letter_recipient = Anschrift (eine Zeile je Anschriftzeile), letter_sender = Infoblock: " +
-                "1. Zeile Name mit Titel, 2. Zeile Funktion, dann „Telefon: …“, „E-Mail: …“, ggf. „Raum: …“, " +
-                "„Ihr Zeichen: …“, „Unser Zeichen: …“. title = Betreff ohne das Wort „Betreff“. content: Anrede " +
-                "(„Sehr geehrte Frau …,“ bzw. „Sehr geehrte Damen und Herren,“), Brieftext in kurzen Absätzen, " +
-                "„Mit freundlichen Grüßen“, eine Leerzeile, Name und Funktion. Möglichst eine Seite.",
-        ),
+            "Der Brief wurde von der App direkt aus den Angaben erstellt (create_document). Bei Änderungswünschen " +
+                "edit_document mit dem Dateinamen nutzen; den Text des Nutzers nur so weit ändern, wie er es verlangt.",
+        ).copy(direct = "letter"),
         tud(
             "minutes", "Protokoll", "Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben",
             """

@@ -47,6 +47,11 @@ data class Template(
     val category: String = "",
     /** Instructions for the model that are sent along with the message but not shown in the chat. */
     val instructions: String = "",
+    /**
+     * Document the app builds from the fields itself, without the model ("letter"): what the user typed is
+     * taken over as written. Follow-up requests in the chat go to the model as usual.
+     */
+    val direct: String? = null,
 ) {
     val builtIn: Boolean get() = id.startsWith(TemplateLibrary.BUILT_IN)
 
@@ -58,7 +63,36 @@ data class Template(
 }
 
 /** A field to fill in: {{Bezeichnung}} or {{Bezeichnung|Hinweis}} in the text of a prompt template. */
-data class TemplateField(val label: String, val hint: String)
+data class TemplateField(val label: String, val hint: String) {
+    /** Longer texts get a bigger input box. */
+    val multiline: Boolean get() = MULTILINE.containsMatchIn(label) || hint.contains("Stichpunkte")
+    /** Address fields: one line per part, suggestions from the address book. */
+    val isAddress: Boolean get() = label.startsWith("Empfänger") || label.startsWith("Anschrift")
+    val isSender: Boolean get() = label.startsWith("Absender") || label.startsWith("Meine Angaben")
+
+    private companion object {
+        val MULTILINE = Regex("Inhalt|text|Text|Notizen|Tagesordnung|Angaben|Absender|Empfänger|Anschrift|Material|Ergebnisse|Stichpunkte|Beschreibung", RegexOption.IGNORE_CASE)
+    }
+}
+
+/** Fields of a template form that were typed but not sent yet; they survive leaving the app. */
+@Serializable
+data class TemplateDraft(
+    val templateId: String,
+    val values: Map<String, String> = emptyMap(),
+    val updatedAt: Long = System.currentTimeMillis(),
+)
+
+/** An address used in a letter; offered again in the address fields of templates. */
+@Serializable
+data class Contact(
+    val id: String = UUID.randomUUID().toString(),
+    /** One line per part of the address. */
+    val address: String,
+    val lastUsed: Long = System.currentTimeMillis(),
+) {
+    val label: String get() = address.lines().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+}
 
 object TemplateFields {
     // Android's regex engine (ICU) needs the braces escaped, also inside character classes.

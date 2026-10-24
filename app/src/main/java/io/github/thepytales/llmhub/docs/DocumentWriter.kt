@@ -71,6 +71,8 @@ object DocumentWriter {
         theme: DocTheme = DocTheme(),
         letter: Letter? = null,
         certificate: Boolean = false,
+        /** Replace a file of the same name (filling in placeholders) instead of numbering the new one. */
+        overwrite: Boolean = false,
     ): CreatedDocument {
         @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         val base = safeName(fileName?.substringBeforeLast('.')?.ifBlank { null } ?: title)
@@ -78,6 +80,7 @@ object DocumentWriter {
             folder.mkdirs()
             var f = File(folder, "$base.${format.ext}")
             var n = 2
+            if (overwrite) f.delete()
             while (f.exists()) f = File(folder, "$base ($n).${format.ext}").also { n++ }
             f
         }
@@ -250,6 +253,8 @@ object DocumentWriter {
             append(".postal{font-size:7pt;color:#666;border-bottom:0.5pt solid #999;padding-bottom:2pt;margin-bottom:6pt}")
             append(".letter-date{text-align:right;margin-bottom:16pt}")
             append(".subject{font-weight:700;font-size:11pt;margin-bottom:16pt}")
+            // Room for the handwritten signature between closing formula and name.
+            append(".closing{break-inside:avoid;page-break-inside:avoid;margin-top:10pt}.closing p+p{margin-top:13mm}")
             // Certificates (layout of the official TUD template „Zertifikate & Urkunden“): centred main part,
             // small print, date and signatures built up from the bottom of the page.
             append(".cert{position:relative;min-height:240mm}.cert.print{height:255mm;min-height:0}")
@@ -461,11 +466,20 @@ object DocumentWriter {
             openList?.let { append("</$it>\n") }
             openList = null
         }
-        for (b in blocks) {
+        // Letters: closing formula and signature stay together on one page.
+        val closingAt = if (letter == null) -1 else blocks.indexOfLast { it is Block.Paragraph && LetterBuilder.isClosing(it.text) }
+        for ((i, b) in blocks.withIndex()) {
             if (b !is Block.Item) closeList()
+            if (i == closingAt) append("<div class=\"closing\">\n")
             when (b) {
                 is Block.Heading -> append("<h${b.level}>${htmlInline(b.text)}</h${b.level}>\n")
-                is Block.Paragraph -> append("<p>${b.text.lines().joinToString("<br>\n") { htmlInline(it) }}</p>\n")
+                is Block.Paragraph -> {
+                    val lines = b.text.lines()
+                    // "Mit freundlichen Grüßen" directly followed by the name: keep room for the signature in between.
+                    if (i == closingAt && lines.size > 1) {
+                        append("<p>${htmlInline(lines.first())}</p>\n<p>${lines.drop(1).joinToString("<br>\n") { htmlInline(it) }}</p>\n")
+                    } else append("<p>${lines.joinToString("<br>\n") { htmlInline(it) }}</p>\n")
+                }
                 is Block.Item -> {
                     val tag = if (b.marker.first().isDigit()) "ol" else "ul"
                     if (openList != tag) {
@@ -508,6 +522,7 @@ object DocumentWriter {
             }
         }
         closeList()
+        if (closingAt >= 0) append("</div>\n")
         if (!print && theme.footer.isNotBlank()) append("<hr><p class=\"meta\">${esc(theme.footer)}</p>\n")
         append("</body>\n</html>\n")
     }
