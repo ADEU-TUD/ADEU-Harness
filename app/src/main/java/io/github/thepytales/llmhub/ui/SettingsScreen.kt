@@ -493,7 +493,7 @@ private fun ChatSection(c: AppContainer) {
         Text("Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung.", style = MaterialTheme.typography.bodySmall)
         SwitchRow(
             "Dokumente erstellen",
-            "PDF-, Word-, HTML-, Markdown- und Textdateien – mit Gestaltung und Logo.",
+            "PDF-, Word-, PowerPoint-, HTML-, Markdown- und Textdateien, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung und Logo.",
             s.documentTools,
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(

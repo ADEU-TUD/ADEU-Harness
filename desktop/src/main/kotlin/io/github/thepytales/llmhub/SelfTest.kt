@@ -26,7 +26,9 @@ object SelfTest {
     private val routes = listOf(
         "models", "images", "compare", "templates", "tasks", "task/new", "usage", "environments", "environment/new",
         "settings", "settings/api", "settings/github", "settings/chat", "settings/appearance", "settings/voice",
-        "settings/documents", "settings/windows",
+        "settings/documents", "settings/windows", "settings/memory", "settings/knowledge", "settings/backup",
+        // A new chat that opens the form of the letter template.
+        "chat?persona=b_tud_letter",
     )
 
     private const val HTML = """<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">
@@ -61,7 +63,7 @@ object SelfTest {
             routes.forEachIndexed { i, route ->
                 Navigation.openRoute.value = route
                 delay(1200)
-                shot(window, dir, "%02d-%s".format(i + 1, route.replace('/', '-')))
+                shot(window, dir, "%02d-%s".format(i + 1, route.replace('/', '-').replace('?', '-').replace('=', '-')))
                 Navigation.openRoute.value = "back"
                 delay(400)
             }
@@ -86,6 +88,19 @@ object SelfTest {
                 io.github.thepytales.llmhub.docs.MarkdownPdf.write(f, "Fallback", MARKDOWN)
             }
             check("Eingebauter PDF-Renderer", (fallback.getOrNull() ?: 0) > 0, fallback.exceptionOrNull()?.toString().orEmpty())
+            val letter = runCatching {
+                c().documentTools.createDirect(
+                    "letter",
+                    mapOf("Absender" to "Erika Muster\nReferentin", "Empfänger" to "Frau Dr. Anna Müller, Hauptstr. 1, 01069 Dresden", "Betreff" to "Selbsttest", "Brieftext" to "Dies ist der Brieftext."),
+                ).second
+            }
+            check("Brief direkt aus den Feldern", letter.getOrNull()?.file?.let { File(it).length() > 0 } == true, letter.exceptionOrNull()?.toString().orEmpty())
+            val slides = runCatching {
+                DocumentWriter.create(LlmHubApp.context, folder, "Folien", "# Titel\n## Untertitel\n---\n# Folie\n- Punkt\nNotizen: Text", DocFormat.PPTX)
+            }
+            check("PowerPoint im TUD-Design", slides.getOrNull()?.file?.let { it.length() > 10_000 } == true, slides.exceptionOrNull()?.toString().orEmpty())
+            val script = io.github.thepytales.llmhub.agent.ScriptRunner.run("print(6 * 7)")
+            check("JavaScript-Sandbox", script.output.trim() == "42", script.error ?: script.output)
             for (format in listOf(DocFormat.DOCX, DocFormat.HTML, DocFormat.MD, DocFormat.TXT)) {
                 val r = runCatching { DocumentWriter.create(LlmHubApp.context, folder, "Bericht", MARKDOWN, format) }
                 check("Dokument ${format.label}", r.getOrNull()?.file?.let { it.length() > 0 } == true, r.exceptionOrNull()?.toString().orEmpty())

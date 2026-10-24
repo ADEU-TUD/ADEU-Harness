@@ -11,7 +11,8 @@ plugins {
 val appVersion = System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
 
 dependencies {
-    implementation(compose.desktop.currentOs)
+    // -PwindowsJars: the Windows libraries also on another OS (portable release built without a Windows runner).
+    implementation(if (project.hasProperty("windowsJars")) compose.desktop.windows_x64 else compose.desktop.currentOs)
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
     implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
@@ -110,4 +111,15 @@ compose.desktop {
             }
         }
     }
+}
+
+/**
+ * The app's jars (own jar plus all libraries) in build/portable/app – with -PwindowsJars for the portable Windows
+ * version, which .github/scripts/windows-portable-cross.sh assembles from them and the launcher and Java runtime
+ * of a previous release, without a Windows runner.
+ */
+val portableJars by tasks.registering(Sync::class) {
+    from(tasks.named("jar"))
+    from(configurations.named("runtimeClasspath"))
+    into(layout.buildDirectory.dir("portable/app"))
 }

@@ -53,7 +53,7 @@ object TemplateLibrary {
             Empfänger: {{Empfänger|Je Zeile: Name (z.B. Frau Dr. Anna Müller), Einrichtung, Straße Nr., PLZ Ort}}
             Betreff: {{Betreff|Worum es geht, in einer Zeile – steht fett über dem Brief}}
             Bezug: {{Bezug|optional, z.B. Ihr Schreiben vom 12. Oktober 2026}}
-            Anrede: {{Anrede|optional – sonst passend zum Empfänger, z.B. „Sehr geehrte Frau Dr. Müller,“}}
+            Anrede: {{Anrede|optional – sonst automatisch passend zum Empfänger}}
             Brieftext: {{Brieftext|Der eigentliche Brief ohne Anrede und Gruß – wird wörtlich übernommen. Nur Stichpunkte? ✨ formuliert sie aus.}}
             """,
             "Der Brief wurde von der App direkt aus den Angaben erstellt (create_document). Bei Änderungswünschen " +
