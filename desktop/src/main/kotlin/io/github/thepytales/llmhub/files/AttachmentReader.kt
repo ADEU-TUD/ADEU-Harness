@@ -1,6 +1,10 @@
 package io.github.thepytales.llmhub.files
 
+import android.content.Context
 import io.github.thepytales.llmhub.desktop.Images
+import io.github.thepytales.llmhub.desktop.Paths
+import io.github.thepytales.llmhub.docs.PdfForms
+import io.github.thepytales.llmhub.docs.PdfOriginals
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -103,9 +107,14 @@ object AttachmentReader {
             stripper.endPage = minOf(doc.numberOfPages, 500)
             stripper.getText(doc) to doc.numberOfPages
         }
-        if (text.trim().length >= 20 * minOf(pages, 3)) return text(name, "application/pdf", text, pages)
+        // Kept so the agent can fill in the form later (read_pdf_form, fill_pdf).
+        val copy = PdfOriginals.keep(File(Paths.data, "attachments"), name, bytes)?.absolutePath
+        val fields = PdfForms.fieldCount(Context(Paths.data, Paths.cache), bytes)
+        fun withCopy(r: ReadResult) = r.copy(file = r.file?.copy(path = copy, formFields = fields))
+        if (text.trim().length >= 20 * minOf(pages, 3)) return withCopy(text(name, "application/pdf", text, pages))
         // Scanned PDF without text layer: send the first pages as images for vision models.
         val images = renderPdfPages(bytes, 4)
+        if (fields > 0) return withCopy(text(name, "application/pdf", text.ifBlank { "[Formular ohne Textebene]" }, pages)).copy(images = images)
         if (images.isEmpty()) return ReadResult(error = "„$name“ enthält keinen Text und konnte nicht gerendert werden.")
         return ReadResult(images = images, note = "„$name“ enthält keinen Text (Scan) – die ersten ${images.size} Seiten werden als Bilder angehängt.")
     }

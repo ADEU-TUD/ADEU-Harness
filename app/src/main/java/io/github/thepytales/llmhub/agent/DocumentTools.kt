@@ -9,11 +9,21 @@ import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.Letter
+import io.github.thepytales.llmhub.docs.PdfForms
+import io.github.thepytales.llmhub.docs.PdfText
 import io.github.thepytales.llmhub.docs.TudBrand
+import io.github.thepytales.llmhub.docs.describe
+import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.net.JSON
 import io.github.thepytales.llmhub.net.s
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.io.File
 
 /** Lets the model create documents (PDF, Word, …) that the user can open, share or save. */
@@ -42,6 +52,31 @@ class DocumentTools(
                 Param("file_name", "Optionaler Dateiname ohne Endung", required = false),
                 Param("letter_sender", "Nur für Briefe: Absenderblock, Zeilen mit \\n getrennt (Einrichtung, Name, Telefon, E-Mail). title ist dann der Betreff.", required = false),
                 Param("letter_recipient", "Nur für Briefe: Anschrift des Empfängers, Zeilen mit \\n getrennt", required = false),
+                Param("layout", "Optional „urkunde“ für Teilnahmebescheinigungen, Zertifikate und Urkunden (zentriert, nach TUD-Vorlage)", required = false),
+            ),
+        ),
+        ToolDef(
+            "read_pdf_form",
+            "Liest ein vom Nutzer angehängtes PDF-Formular: die ausfüllbaren Felder mit Typ, erlaubten Werten und " +
+                "Beschriftung – oder bei PDFs ohne Felder die Textzeilen mit Position, um Text daneben zu setzen. Vor fill_pdf aufrufen.",
+            listOf(Param("file", "Dateiname des angehängten PDFs (Standard: das zuletzt angehängte)", required = false)),
+        ),
+        ToolDef(
+            "fill_pdf",
+            "Füllt ein angehängtes PDF aus und speichert es als neue Datei, die der Nutzer öffnen, teilen und speichern kann. " +
+                "Formularfelder über fields; bei PDFs ohne Felder Text über texts an Positionen setzen.",
+            listOf(
+                Param("file", "Dateiname des angehängten PDFs (Standard: das zuletzt angehängte)", required = false),
+                Param(
+                    "fields", "Formularfelder als JSON-Objekt {\"Feldname\": \"Wert\"}; Ankreuzfelder mit \"ja\"/\"nein\", " +
+                        "Options- und Auswahlfelder mit einem der erlaubten Werte", required = false, type = "object",
+                ),
+                Param(
+                    "texts", "Nur für PDFs ohne Felder: JSON-Liste [{\"page\": 1, \"x\": 70, \"y\": 52, \"text\": \"…\", " +
+                        "\"size\": 10}], x/y in mm von oben links, y = Grundlinie", required = false,
+                ),
+                Param("flatten", "true: Felder danach nicht mehr änderbar (Standard false)", required = false, type = "boolean"),
+                Param("file_name", "Optionaler Dateiname ohne Endung", required = false),
             ),
         ),
         ToolDef(
@@ -58,6 +93,8 @@ class DocumentTools(
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = when (name) {
         "create_document" -> create(args)
         "save_logo" -> saveLogo(args, ctx)
+        "read_pdf_form" -> readPdfForm(args, ctx)
+        "fill_pdf" -> fillPdf(args, ctx)
         else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
     }
 
@@ -94,7 +131,8 @@ class DocumentTools(
         val sender = args.s("letter_sender")?.replace("\\n", "\n")?.trim().orEmpty()
         val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter)
+        val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
         val pages = doc.pages?.let { ", $it ${if (it == 1) "Seite" else "Seiten"}" }.orEmpty()
         val notes = listOfNotNull(
@@ -137,6 +175,68 @@ class DocumentTools(
         )
     }
 
+    /** The attached PDF named in [args] (or the newest one) whose copy still exists. */
+    private fun pdf(args: JsonObject, ctx: RepoContext): Pair<FileAttachment, File> {
+        val wanted = args.s("file")?.trim()?.takeIf { it.isNotEmpty() }
+        val att = if (wanted == null) ctx.pdfs.firstOrNull()
+        else ctx.pdfs.firstOrNull { it.name.equals(wanted, ignoreCase = true) } ?: ctx.pdfs.firstOrNull { it.name.contains(wanted, ignoreCase = true) }
+        att ?: throw IllegalArgumentException(
+            if (ctx.pdfs.isEmpty()) "In diesem Chat ist kein PDF angehängt. Bitte den Nutzer, das Formular als PDF anzuhängen."
+            else "PDF „$wanted“ nicht gefunden. Angehängt: ${ctx.pdfs.joinToString(", ") { it.name }}."
+        )
+        val file = File(att.path!!)
+        if (!file.exists()) throw IllegalStateException("Die Kopie von „${att.name}“ ist nicht mehr vorhanden – bitte das PDF erneut anhängen.")
+        return att to file
+    }
+
+    private suspend fun readPdfForm(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val (att, file) = pdf(args, ctx)
+        val info = withContext(Dispatchers.IO) { PdfForms.inspect(context, file) }
+        return ToolOutput(info.describe(att.name))
+    }
+
+    private suspend fun fillPdf(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val (att, file) = pdf(args, ctx)
+        val values = jsonArg(args["fields"])?.let { it as? JsonObject }.orEmpty().mapValues { (_, v) ->
+            (v as? JsonPrimitive)?.contentOrNull ?: v.toString()
+        }
+        val texts = (jsonArg(args["texts"]) as? JsonArray).orEmpty().mapNotNull { e ->
+            val o = e as? JsonObject ?: return@mapNotNull null
+            val text = o.s("text") ?: return@mapNotNull null
+            PdfText(
+                page = o.s("page")?.toDoubleOrNull()?.toInt() ?: 1,
+                xMm = o.s("x")?.toFloatOrNull() ?: return@mapNotNull null,
+                yMm = o.s("y")?.toFloatOrNull() ?: return@mapNotNull null,
+                text = text,
+                size = (o.s("size")?.toFloatOrNull() ?: 10f).coerceIn(5f, 30f),
+            )
+        }
+        if (values.isEmpty() && texts.isEmpty()) return ToolOutput("FEHLER: Weder fields noch texts angegeben. Lies das Formular zuerst mit read_pdf_form.")
+        val base = DocumentWriter.safeName(args.s("file_name")?.substringBeforeLast('.')?.ifBlank { null } ?: (att.name.substringBeforeLast('.') + " (ausgefüllt)"))
+        val (out, report) = withContext(Dispatchers.IO) {
+            folder.mkdirs()
+            var f = File(folder, "$base.pdf")
+            var n = 2
+            while (f.exists()) f = File(folder, "$base ($n).pdf").also { n++ }
+            f to PdfForms.fill(context, file, f, values, texts, args.s("flatten")?.lowercase() == "true")
+        }
+        return ToolOutput(
+            buildString {
+                append("PDF ausgefüllt: ${out.name} (${report.filled.size} Angaben eingetragen). ")
+                append("Es wird dem Nutzer im Chat mit Knöpfen zum Öffnen, Teilen und Speichern angezeigt – nenne keinen Dateipfad.")
+                if (report.problems.isNotEmpty()) append("\nProbleme:\n").append(report.problems.joinToString("\n") { "- $it" })
+            },
+            file = out.absolutePath,
+        )
+    }
+
+    /** Tool arguments that should be JSON may also arrive as a string containing JSON. */
+    private fun jsonArg(e: JsonElement?): JsonElement? = when {
+        e == null || e is JsonNull -> null
+        e is JsonPrimitive && e.isString -> runCatching { JSON.parseToJsonElement(e.content) }.getOrNull()
+        else -> e
+    }
+
     /** Instructions with the logos currently available. */
     fun prompt(): String = buildString {
         append("Mit create_document kannst du PDF-, Word-, HTML-, Markdown- oder Textdateien erstellen. Nutze es, wenn der ")
@@ -150,6 +250,10 @@ class DocumentTools(
         append("Ton: sachlich und förmlich, keine Emojis. Für Briefe letter_sender (Infoblock: Name, Telefon: …, E-Mail: …) und ")
         append("letter_recipient angeben, title ist der Betreff. Formulare: zweispaltige Tabellen „| Bezeichnung | |“ mit leerer ")
         append("rechter Zelle werden zu Eingabefeldern, „- [ ] Option“ zu Ankreuzkästchen, „________“ zu einer Linie. ")
+        append("Teilnahmebescheinigungen, Zertifikate und Urkunden: Markdown mit layout=urkunde. ")
+        append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")
+        append("read_pdf_form, dann fill_pdf mit den Angaben aus dem Chat; fehlen Pflichtangaben, frage vorher nach, und ")
+        append("erfinde keine persönlichen Daten. Nenne danach kurz, was eingetragen wurde und was offen ist. ")
         append("Eingebaute Logos für eigenes HTML: <img src=\"logo:${TudBrand.LOGO_NAME}\"> ")
         append("(blau) und <img src=\"logo:${TudBrand.LOGO_WHITE_NAME}\"> (weiß, für blaue Flächen). ")
         val all = logos.current
@@ -164,6 +268,7 @@ class DocumentTools(
     }
 
     companion object {
+        private val CERTIFICATE_LAYOUTS = setOf("urkunde", "zertifikat", "certificate", "bescheinigung", "teilnahmebescheinigung")
         private val LOGO_SRC = Regex("src\\s*=\\s*([\"'])logo(?::([^\"']*))?\\1", RegexOption.IGNORE_CASE)
     }
 }

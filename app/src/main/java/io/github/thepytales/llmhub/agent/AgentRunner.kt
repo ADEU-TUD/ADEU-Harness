@@ -24,8 +24,8 @@ interface AgentHost {
     fun update(transform: (Conversation) -> Conversation)
     fun persist()
     fun notice(message: String)
-    /** Asks whether a write action may run; background hosts decide on their own. */
-    suspend fun confirm(call: ToolCall): Boolean
+    /** Whether a write action may run: chats apply the approval mode or ask, background hosts decide on their own. */
+    suspend fun confirm(call: ToolCall, risk: Risk): Boolean
 }
 
 /** Tool groups for a run; without it the chat's and app's settings apply. */
@@ -64,7 +64,8 @@ class AgentRunner(private val c: AppContainer) {
         val start = host.conversation ?: return
         val env = environment(start)
         val lastUser = start.thread().lastOrNull { it.role == "user" }
-        val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty())
+        val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
+        val ctx = RepoContext(start.repo, start.branch, env, lastUser?.images.orEmpty(), pdfs)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
@@ -125,11 +126,10 @@ class AgentRunner(private val c: AppContainer) {
 
             for (call in result.toolCalls) {
                 val provider = providers.firstOrNull { it.handles(call.name) }
-                val needsConfirm = provider != null && settings.confirmWrites &&
-                    provider.needsConfirmation(call.name, parseArgs(call.arguments))
+                val risk = provider?.risk(call.name, parseArgs(call.arguments))
                 val output = when {
                     provider == null -> ToolOutput("FEHLER: Unbekanntes Werkzeug '${call.name}'.")
-                    !needsConfirm || host.confirm(call) -> provider.execute(call.name, call.arguments, ctx)
+                    risk == null || host.confirm(call, risk) -> provider.execute(call.name, call.arguments, ctx)
                     else -> ToolOutput("Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst.")
                 }
                 val text = env?.mask(output.text) ?: output.text

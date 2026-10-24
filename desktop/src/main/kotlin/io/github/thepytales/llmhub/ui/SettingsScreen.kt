@@ -93,6 +93,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.agent.ApprovalMode
 import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.audio.VoiceOption
@@ -278,12 +279,12 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                         SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", if (s.hasApiKey) "API-Key hinterlegt" else "API-Key fehlt"),
                         SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", if (s.hasGitHub) "Angemeldet als ${s.githubUser}" else if (s.githubToken.isNotBlank()) "Token ungültig oder nicht geprüft" else "Kein Token"),
                         SettingsEntry("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
-                        SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, System-Prompt, Werkzeuge"),
+                        SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge, Freigaben: " + ApprovalMode.of(s.approvalMode).label),
                         SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
                         SettingsEntry("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline mit Windows-Stimme" else "KI-Stimme des Uni-Servers"),
                         SettingsEntry("settings/windows", Icons.Outlined.Computer, "Windows", "Infobereich, Autostart, Datenordner"),
                         SettingsEntry("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.CLAUDE).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
-                        SettingsEntry("templates", Icons.Outlined.Bookmarks, "Vorlagen", "Personas und Prompt-Vorlagen"),
+                        SettingsEntry("templates", Icons.Outlined.Bookmarks, "Vorlagen", "Lehre, Forschung, Betreuung, TUD-Dokumente, Personas"),
                         SettingsEntry("tasks", Icons.Outlined.Schedule, "Geplante Aufgaben", "Wiederkehrende Aufträge an den Agenten"),
                         SettingsEntry("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
                     )
@@ -430,13 +431,9 @@ private fun GitHubSection(c: AppContainer) {
                 s.githubAutoTools,
             ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
         }
-        // Also covers writing web requests, so it stays visible without GitHub.
-        SwitchRow(
-            "Schreibaktionen bestätigen",
-            "Vor jedem Commit, Branch, PR, Kommentar oder schreibenden Web-Aufruf nachfragen.",
-            s.confirmWrites,
-        ) { v -> c.settings.update { it.copy(confirmWrites = v) } }
     }
+    // Also covers writing web requests, so it stays visible without GitHub.
+    Section("Freigaben") { ApprovalModeOptions(c) }
 }
 
 @Composable
@@ -495,6 +492,7 @@ private fun ChatSection(c: AppContainer) {
             s.webTools,
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
+    Section("Freigaben") { ApprovalModeOptions(c) }
     if (showModelPicker) {
         ModelPickerSheet(
             models = models.ofType(ModelType.CHAT),
@@ -664,7 +662,16 @@ private fun DocumentsSection(c: AppContainer) {
             value = s.tudUnit,
             onValueChange = { v -> c.settings.update { it.copy(tudUnit = v) } },
             label = { Text("Einrichtung für den Stil „TU Dresden“") },
-            supportingText = { Text("Steht im Kopf neben dem Logo, eine Ebene pro Zeile (Fakultät, Institut, Professur).") },
+            supportingText = { Text("Steht im Kopf unter dem Logo, eine Ebene pro Zeile (Fakultät, Institut, Professur).") },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = s.senderInfo,
+            onValueChange = { v -> c.settings.update { it.copy(senderInfo = v) } },
+            label = { Text("Meine Absenderangaben") },
+            placeholder = { Text("Dr. Erika Musterfrau\nWissenschaftliche Mitarbeiterin\nTelefon: +49 351 463-…\nE-Mail: …@tu-dresden.de\nRaum: MS1/…") },
+            supportingText = { Text("Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )

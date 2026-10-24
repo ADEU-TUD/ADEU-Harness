@@ -19,6 +19,10 @@ data class FileAttachment(
     val pages: Int? = null,
     /** The text was cut to the maximum length. */
     val truncated: Boolean = false,
+    /** Copy of an attached PDF, kept so the agent can fill it in (see docs/PdfForms). */
+    val path: String? = null,
+    /** Number of fillable form fields of that PDF. */
+    val formFields: Int = 0,
 )
 
 @Serializable
@@ -38,6 +42,10 @@ data class ChatMessage(
     val error: Boolean = false,
     /** Absolute path of a document created by a tool call (tool messages only). */
     val file: String? = null,
+    /** Name of the template the user message was written with (shown above the bubble). */
+    val template: String? = null,
+    /** Instructions of that template: sent to the model in front of the text, not shown in the chat. */
+    val instructions: String? = null,
     /** Previous message in the thread; messages with the same parent are alternative versions. */
     val parentId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
@@ -63,6 +71,8 @@ data class Conversation(
     val branch: String? = null,
     /** Agent environment (variables, network access). */
     val envId: String? = null,
+    /** Write actions in this chat run without asking ("In diesem Chat nicht mehr fragen"). */
+    val autoApprove: Boolean = false,
     val pinned: Boolean = false,
     val folderId: String? = null,
     /** Scheduled task that created this chat. */

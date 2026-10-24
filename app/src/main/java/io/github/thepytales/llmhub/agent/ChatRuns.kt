@@ -89,7 +89,9 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
 
     fun stopAll() = _runs.value.keys.forEach(::stop)
 
-    fun answer(chatId: String, allow: Boolean) {
+    /** Answers the pending action; with [always] the chat runs all further actions without asking. */
+    fun answer(chatId: String, allow: Boolean, always: Boolean = false) {
+        if (allow && always) edit(chatId) { it.copy(autoApprove = true) }
         get(chatId)?.pending?.value?.result?.complete(allow)
     }
 
@@ -112,7 +114,9 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
                 _notices.tryEmit(run.chatId to message)
             }
 
-            override suspend fun confirm(call: ToolCall): Boolean {
+            override suspend fun confirm(call: ToolCall, risk: Risk): Boolean {
+                // Read on every call, so switching the mode or "nicht mehr fragen" applies to the next action already.
+                if (run.conversation.value.autoApprove || !ApprovalMode.of(c.settings.current.approvalMode).asks(risk)) return true
                 val answer = CompletableDeferred<Boolean>()
                 run.pending.value = PendingAction(call, answer)
                 if (!watched(run.chatId)) Notifier.confirmationNeeded(context, run.conversation.value.title, run.chatId, call.name)

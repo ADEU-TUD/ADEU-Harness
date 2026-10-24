@@ -55,8 +55,8 @@ class WebTools(http: OkHttpClient) : ToolProvider {
         ),
     )
 
-    override fun needsConfirmation(name: String, args: JsonObject) =
-        name == "fetch_url" && (args.s("method")?.uppercase() ?: "GET") !in setOf("GET", "HEAD")
+    override fun risk(name: String, args: JsonObject) =
+        if (name == "fetch_url" && (args.s("method")?.uppercase() ?: "GET") !in setOf("GET", "HEAD")) Risk.PUBLIC else null
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput {
         val out = when (name) {

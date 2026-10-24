@@ -32,6 +32,9 @@ old=$(ls old/*.apk 2>/dev/null | head -1)
 if [ -n "$old" ]; then
   echo "Installiere vorherige Version: $old"
   adb install "$old"
+  # Without the grant the old version opens the notification dialog, which stays on top after the update
+  # and swallows the start of the new version.
+  adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS || true
   adb shell am start -W -n "$PKG/.MainActivity"
   sleep 8
   adb shell am force-stop "$PKG"
@@ -42,6 +45,9 @@ echo "Installiere $new"
 adb install -r "$new" || { echo "::error::Installation fehlgeschlagen"; exit 1; }
 # The app asks for notifications on first start; the system dialog would cover the app during the test.
 adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS || true
+# Close system dialogs that may still be open, so the start below reaches the app.
+adb shell am force-stop com.google.android.permissioncontroller || true
+adb shell input keyevent KEYCODE_HOME
 adb logcat -c
 adb shell am start -W -n "$PKG/.MainActivity"
 check "start" 12

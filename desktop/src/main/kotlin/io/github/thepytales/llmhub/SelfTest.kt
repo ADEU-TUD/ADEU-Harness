@@ -3,6 +3,8 @@ package io.github.thepytales.llmhub
 import androidx.compose.ui.awt.ComposeWindow
 import io.github.thepytales.llmhub.docs.Browser
 import io.github.thepytales.llmhub.docs.DocFormat
+import io.github.thepytales.llmhub.docs.DocStyle
+import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.HtmlPdf
 import io.github.thepytales.llmhub.files.AttachmentReader
@@ -75,6 +77,10 @@ object SelfTest {
             if (Browser.find() != null) check("PDF über den Browser gerendert", HtmlPdf.lastEngine != "eingebaut", HtmlPdf.lastEngine)
             val md = runCatching { DocumentWriter.create(LlmHubApp.context, folder, "Bericht", MARKDOWN, DocFormat.PDF) }
             check("Markdown-PDF", md.isSuccess && (md.getOrNull()?.pages ?: 0) > 0, md.exceptionOrNull()?.toString().orEmpty())
+            val tud = runCatching {
+                DocumentWriter.create(LlmHubApp.context, folder, "TUD", MARKDOWN, DocFormat.PDF, theme = DocTheme(style = DocStyle.TUD))
+            }
+            check("PDF im TUD-Design", tud.isSuccess && (tud.getOrNull()?.pages ?: 0) > 0, tud.exceptionOrNull()?.toString().orEmpty())
             val fallback = runCatching {
                 val f = File(folder, "fallback.pdf")
                 io.github.thepytales.llmhub.docs.MarkdownPdf.write(f, "Fallback", MARKDOWN)

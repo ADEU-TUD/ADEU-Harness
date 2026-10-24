@@ -10,7 +10,6 @@ import io.github.thepytales.llmhub.agent.WebTools
 import io.github.thepytales.llmhub.audio.Speaker
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.ChatRepository
-import io.github.thepytales.llmhub.data.DefaultTemplates
 import io.github.thepytales.llmhub.data.FileBackend
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.ListStore
@@ -20,6 +19,7 @@ import io.github.thepytales.llmhub.data.PrefsBackend
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.Template
+import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.UsageStore
 import io.github.thepytales.llmhub.net.GitHubClient
 import io.github.thepytales.llmhub.net.LlmClient
@@ -47,9 +47,9 @@ class AppContainer(context: Context) {
     val models = ModelsRepository(llm)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
-    val templates = ListStore<Template>(
-        FileBackend(File(files, "templates.json")), Template.serializer(), { it.id }, { DefaultTemplates.all },
-    )
+    /** Own templates; the built-in ones come from [TemplateLibrary]. */
+    val templates = ListStore<Template>(FileBackend(File(files, "templates.json")), Template.serializer(), { it.id })
+        .also(TemplateLibrary::removeLegacyDefaults)
     /** In the encrypted preferences because variables can hold API keys. */
     val environments = ListStore<AgentEnvironment>(
         PrefsBackend(settings.prefs, "environments"), AgentEnvironment.serializer(), { it.id },

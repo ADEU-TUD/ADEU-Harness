@@ -67,13 +67,15 @@ object MarkdownDocx {
             "</w:p></w:ftr>"
     }
 
-    /** The logo as inline picture, about 1.4 cm high. */
+    /** The logo as inline picture, about 1.4 cm high (TU Dresden: 17 mm as in the official templates). */
     private fun logoParagraph(theme: DocTheme): String {
         val (w, h) = theme.logoSize ?: return ""
-        var cy = 504_000L
+        val tud = theme.style == DocStyle.TUD
+        var cy = if (tud) 612_000L else 504_000L
         var cx = cy * w / h
-        if (cx > 1_800_000L) {
-            cx = 1_800_000L
+        val maxWidth = if (tud) 1_900_000L else 1_800_000L
+        if (cx > maxWidth) {
+            cx = maxWidth
             cy = cx * h / w
         }
         val align = when (theme.style) {
@@ -162,7 +164,8 @@ object MarkdownDocx {
             val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
             lines.forEachIndexed { i, line ->
                 val last = i == lines.lastIndex
-                val style = RunStyle(bold = last, size = 17, color = theme.accentHex)
+                // As in the official templates: the unit in small black type below the logo.
+                val style = RunStyle(bold = last, size = 17)
                 append(para(run(line, style), "<w:spacing w:after=\"${if (last) 240 else 0}\"/>"))
             }
         }

@@ -390,11 +390,17 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
 private fun JsonObject.str(key: String): String? = (this[key] as? JsonPrimitive)?.contentOrNull
 
-/** User text with the content of attached files in front of it. */
-fun ChatMessage.textWithFiles(): String = if (files.isEmpty()) content else buildString {
+/** User text with the instructions of its template and the content of attached files in front of it. */
+fun ChatMessage.textWithFiles(): String = if (files.isEmpty() && instructions.isNullOrBlank()) content else buildString {
+    instructions?.takeIf { it.isNotBlank() }?.let {
+        append("<vorlage name=\"").append(template.orEmpty()).append("\">\n").append(it.trim()).append("\n</vorlage>\n\n")
+    }
     files.forEach { f ->
         append("<datei name=\"").append(f.name).append("\"")
         f.pages?.let { append(" seiten=\"").append(it).append("\"") }
+        if (f.path != null) {
+            append(" ausfuellbar=\"").append(if (f.formFields > 0) "${f.formFields} Formularfelder" else "per Textposition").append("\"")
+        }
         append(">\n").append(f.text.trim())
         if (f.truncated) append("\n[… gekürzt]")
         append("\n</datei>\n\n")

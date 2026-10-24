@@ -106,7 +106,11 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
 
     fun isWriteTool(name: String) = defs.firstOrNull { it.name == name }?.writes == true
 
-    override fun needsConfirmation(name: String, args: JsonObject) = isWriteTool(name)
+    override fun risk(name: String, args: JsonObject) = when {
+        !isWriteTool(name) -> null
+        name in PUBLIC_TOOLS -> Risk.PUBLIC
+        else -> Risk.EDIT
+    }
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext) = ToolOutput(dispatch(name, args, ctx))
 
@@ -282,7 +286,10 @@ class GitHubTools(private val gh: GitHubClient) : ToolProvider {
     }
 
     companion object {
-        private val REPO_URL = Regex("github\\.com[/:]([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)")
+        /** Write actions that other people see; the rest only changes files and branches. */
+        private val PUBLIC_TOOLS = setOf("create_pull_request", "create_issue", "comment_issue")
+
+        private val REPO_URL =Regex("github\\.com[/:]([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)")
         private val REPO_NAME = Regex("^([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)$")
         /** First path segments on github.com that are not user or organization names. */
         private val RESERVED = setOf(

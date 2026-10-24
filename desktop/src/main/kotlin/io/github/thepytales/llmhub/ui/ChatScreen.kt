@@ -27,9 +27,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
@@ -87,7 +89,9 @@ import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelType
+import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
+import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.files.AttachmentReader
 import io.github.thepytales.llmhub.desktop.DesktopActions
@@ -120,7 +124,12 @@ fun ChatScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var input by rememberSaveable { mutableStateOf(vm.prefill.orEmpty()) }
+    var input by rememberSaveable { mutableStateOf("") }
+    /** Prompt template whose fields are being filled in, and the one whose instructions go with the next message. */
+    var fillingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var templateId by rememberSaveable { mutableStateOf<String?>(null) }
+    var startTemplateShown by rememberSaveable { mutableStateOf(false) }
+    val activeTemplate = templateId?.let { TemplateLibrary.find(it, templates) }
     val images = remember { mutableStateListOf<String>() }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
@@ -148,6 +157,25 @@ fun ChatScreen(
     }
     LaunchedEffect(deleted) {
         if (deleted) onNewChat()
+    }
+
+    fun useTemplate(t: Template) {
+        when {
+            t.kind == TemplateKind.PERSONA -> vm.setSystemPrompt(t.content, t.name)
+            t.fields.isNotEmpty() -> fillingId = t.id
+            else -> {
+                input = if (input.isBlank()) t.content else t.content + "\n\n" + input
+                templateId = t.id.takeIf { t.instructions.isNotBlank() }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        // A chat started from the template library opens with that template.
+        if (!startTemplateShown) {
+            startTemplateShown = true
+            vm.startTemplate?.let(::useTemplate)
+        }
     }
 
     val imageExtensions = listOf("png", "jpg", "jpeg", "gif", "bmp")
@@ -280,6 +308,8 @@ fun ChatScreen(
                             onExport = { export = current.title to chatToMarkdown(current) },
                             onPersona = { showSystemPrompt = true },
                             onEnvironment = { showEnvPicker = true },
+                            autoApprove = current.autoApprove,
+                            onAutoApprove = { vm.setAutoApprove(!current.autoApprove) },
                             onDelete = { showDelete = true },
                         )
                     }
@@ -317,8 +347,9 @@ fun ChatScreen(
                     if (images.isNotEmpty() && modelInfo.vision == false) {
                         Toast.makeText(context, "Hinweis: ${modelInfo.displayName} versteht keine Bilder.", Toast.LENGTH_LONG).show()
                     }
-                    vm.send(input, images.toList(), files.toList())
+                    vm.send(input, images.toList(), files.toList(), activeTemplate)
                     input = ""
+                    templateId = null
                     images.clear()
                     files.clear()
                 },
@@ -330,6 +361,15 @@ fun ChatScreen(
                     ContextChip(Icons.Outlined.Code, current.repo?.let { r -> r + (current.branch?.let { " · $it" } ?: "") } ?: "GitHub · Repo wählen", { showRepoPicker = true })
                 }
                 if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true })
+                activeTemplate?.let { t ->
+                    ContextChip(Icons.Outlined.Bookmarks, "Vorlage: ${t.name}  ✕", { templateId = null })
+                }
+                if (current.autoApprove) {
+                    ContextChip(Icons.Outlined.DoneAll, "Ohne Rückfrage", {
+                        vm.setAutoApprove(false)
+                        Toast.makeText(context, "Aktionen in diesem Chat werden wieder bestätigt.", Toast.LENGTH_SHORT).show()
+                    })
+                }
                 if (!current.systemPrompt.isNullOrBlank()) {
                     ContextChip(Icons.Outlined.Person, current.persona ?: "System-Prompt", { showSystemPrompt = true })
                 }
@@ -345,10 +385,8 @@ fun ChatScreen(
                 model = modelInfo,
                 onModel = { showModelPicker = true },
                 padding = pad,
-                suggestions = templates.take(6),
-                onTemplate = { t ->
-                    if (t.kind == TemplateKind.PERSONA) vm.setSystemPrompt(t.content, t.name) else input = t.content
-                },
+                suggestions = TemplateLibrary.suggestions(settings.favoriteTemplates, templates),
+                onTemplate = { useTemplate(it) },
                 onApiKey = { onNavigate("settings/api") },
             )
         } else {
@@ -431,12 +469,32 @@ fun ChatScreen(
     if (showTemplates) {
         TemplatePickerSheet(
             c = c,
-            onPick = { t ->
-                if (t.kind == TemplateKind.PERSONA) vm.setSystemPrompt(t.content, t.name)
-                else input = if (input.isBlank()) t.content else t.content + input
-            },
+            onPick = { useTemplate(it) },
             onManage = { onNavigate("templates") },
             onDismiss = { showTemplates = false },
+        )
+    }
+
+    fillingId?.let { id -> TemplateLibrary.find(id, templates) }?.let { t ->
+        TemplateFillDialog(
+            c, t,
+            onInsert = { text ->
+                input = if (input.isBlank()) text else text + "\n\n" + input
+                templateId = t.id
+            },
+            onSend = { text ->
+                if (running) {
+                    // An answer is still being written: keep the text (and attachments) for later.
+                    input = if (input.isBlank()) text else text + "\n\n" + input
+                    templateId = t.id
+                    Toast.makeText(context, "Die Antwort läuft noch – der Text steht im Eingabefeld.", Toast.LENGTH_SHORT).show()
+                } else {
+                    vm.send(text, images.toList(), files.toList(), t)
+                    images.clear()
+                    files.clear()
+                }
+            },
+            onDismiss = { fillingId = null },
         )
     }
 
@@ -510,21 +568,7 @@ fun ChatScreen(
     }
 
     pending?.let { p ->
-        AlertDialog(
-            onDismissRequest = {},
-            icon = { Icon(Icons.Outlined.Build, contentDescription = null) },
-            title = { Text("Aktion erlauben?") },
-            text = {
-                Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
-                    val where = if (p.call.name == "fetch_url") "im Web" else "in ${current.repo ?: "GitHub"} (Branch ${current.branch ?: "-"})"
-                    Text("Das Modell möchte „${p.call.name}“ $where ausführen:", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.size(8.dp))
-                    Text(prettyArgs(p.call.arguments).take(4000), fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-                }
-            },
-            confirmButton = { TextButton(onClick = { vm.answerPending(true) }) { Text("Erlauben") } },
-            dismissButton = { TextButton(onClick = { vm.answerPending(false) }) { Text("Ablehnen") } },
-        )
+        ApprovalDialog(p, current.repo, current.branch, onAnswer = { allow, always -> vm.answerPending(allow, always) })
     }
 }
 
@@ -652,6 +696,8 @@ private fun ChatMenu(
     onExport: () -> Unit,
     onPersona: () -> Unit,
     onEnvironment: () -> Unit,
+    autoApprove: Boolean,
+    onAutoApprove: () -> Unit,
     onDelete: () -> Unit,
 ) {
     fun pick(action: () -> Unit): () -> Unit = {
@@ -681,6 +727,11 @@ private fun ChatMenu(
         MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
         MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))
         MenuEntry(Icons.Outlined.Tune, "Umgebung", onClick = pick(onEnvironment))
+        MenuEntry(
+            Icons.Outlined.DoneAll,
+            if (autoApprove) "Aktionen wieder bestätigen" else "Aktionen ohne Rückfrage",
+            onClick = pick(onAutoApprove),
+        )
         MenuEntry(Icons.Outlined.Delete, "Löschen", hasMessages, danger = true, onClick = pick(onDelete))
     }
 }
