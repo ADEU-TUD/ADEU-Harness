@@ -83,7 +83,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     var currentChatId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        if (c.settings.current.hasApiKey) c.models.refresh()
+        if (c.settings.current.hasAnyApiKey) c.models.refresh()
     }
 
     val requested by openChat.collectAsStateWithLifecycle()

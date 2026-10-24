@@ -34,6 +34,10 @@ data class BackupManifest(
     val environments: List<AgentEnvironment> = emptyList(),
     val apiKey: String? = null,
     val githubToken: String? = null,
+    /** Further GitHub tokens (only with secrets). */
+    val githubTokens: List<String> = emptyList(),
+    /** Further API providers; without secrets their keys are empty. */
+    val providers: List<ApiProvider> = emptyList(),
 )
 
 data class ImportResult(val files: Int, val chats: Int, val from: String)
@@ -41,7 +45,7 @@ data class ImportResult(val files: Int, val chats: Int, val from: String)
 /**
  * Everything of the app in one ZIP (Einstellungen › Sicherung & Umzug): chats, projects, templates, tasks,
  * documents, logos, knowledge, memory, address book and the settings – to keep a copy or to move to another
- * device, also between Android and Windows. API key and GitHub token only if the user asks for it.
+ * device, also between Android and Windows. API keys and GitHub tokens only if the user asks for it.
  */
 object Backup {
     private const val VERSION = 1
@@ -78,6 +82,8 @@ object Backup {
             VERSION, BuildConfig.VERSION_NAME, System.currentTimeMillis(), root.absolutePath, portable(s), envs,
             apiKey = s.apiKey.takeIf { withSecrets && it.isNotBlank() },
             githubToken = s.githubToken.takeIf { withSecrets && it.isNotBlank() },
+            githubTokens = if (withSecrets) s.githubAccounts.map { it.token }.filter { it.isNotBlank() } else emptyList(),
+            providers = s.providers.map { if (withSecrets) it else it.copy(apiKey = "") },
         )
         ZipOutputStream(out).use { zip ->
             zip.putNextEntry(ZipEntry(MANIFEST))
@@ -130,6 +136,18 @@ object Backup {
         c.settings.update { s ->
             apply(s, m.settings).let { if (m.apiKey != null) it.copy(apiKey = m.apiKey) else it }
                 .let { if (m.githubToken != null) it.copy(githubToken = m.githubToken, githubUser = "") else it }
+                .let { cur ->
+                    val known = cur.githubAccounts.map { a -> a.token }.toSet() + cur.githubToken
+                    cur.copy(githubAccounts = cur.githubAccounts + m.githubTokens.filter { t -> t !in known }.map { t -> GitHubAccount(token = t) })
+                }
+                .let { cur ->
+                    // Keys that were not exported keep the one of the same provider on this device.
+                    val imported = m.providers.map { p ->
+                        if (p.apiKey.isNotEmpty()) p
+                        else p.copy(apiKey = cur.providers.firstOrNull { o -> o.id == p.id || o.kind == p.kind && o.baseUrl == p.baseUrl }?.apiKey.orEmpty())
+                    }
+                    cur.copy(providers = cur.providers.filter { o -> imported.none { it.id == o.id || it.kind == o.kind && it.baseUrl == o.baseUrl } } + imported)
+                }
         }
         if (m.environments.isNotEmpty()) {
             val current = c.environments.current

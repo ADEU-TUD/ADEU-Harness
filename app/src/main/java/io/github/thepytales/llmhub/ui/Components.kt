@@ -120,7 +120,7 @@ fun capabilityLine(m: ModelInfo): String {
 }
 
 /** Rounded corners for rows that are stacked into one card with small gaps (like the Claude app). */
-private fun stackedShape(index: Int, count: Int): RoundedCornerShape {
+internal fun stackedShape(index: Int, count: Int): RoundedCornerShape {
     val big = 20.dp
     val small = 4.dp
     return RoundedCornerShape(

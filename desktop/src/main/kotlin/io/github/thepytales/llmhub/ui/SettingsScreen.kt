@@ -116,38 +116,6 @@ import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 @Composable
-private fun SecretField(label: String, value: String, onChange: (String) -> Unit) {
-    var visible by remember { mutableStateOf(false) }
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(label) },
-        singleLine = true,
-        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        trailingIcon = {
-            IconButton(onClick = { visible = !visible }) {
-                Icon(
-                    if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                    contentDescription = if (visible) "Verbergen" else "Anzeigen",
-                )
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
-@Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            content()
-        }
-    }
-}
-
-@Composable
 private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
@@ -286,8 +254,8 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "backup" -> BackupSection(c)
                 else -> {
                     val entries = listOf(
-                        SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", if (s.hasApiKey) "API-Key hinterlegt" else "API-Key fehlt"),
-                        SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", if (s.hasGitHub) "Angemeldet als ${s.githubUser}" else if (s.githubToken.isNotBlank()) "Token ungültig oder nicht geprüft" else "Kein Token"),
+                        SettingsEntry("settings/api", Icons.Outlined.VpnKey, "API-Zugang", apiSummary(c)),
+                        SettingsEntry("settings/github", Icons.Outlined.Code, "GitHub", gitHubSummary(c)),
                         SettingsEntry("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
                         SettingsEntry("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge, Freigaben: " + ApprovalMode.of(s.approvalMode).label),
                         SettingsEntry("settings/documents", Icons.Outlined.Description, "Dokumente & Logos", if (logos.isEmpty()) "PDF-Gestaltung, Logos" else "${logos.size} Logo(s) · ${DocStyle.parse(s.docStyle)?.label ?: "Modern"}"),
@@ -343,7 +311,7 @@ private fun ApiSection(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
-    Section("LLM-Zugang") {
+    Section("ScaDS.AI · Standard") {
         Text(
             "API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). Er wird verschlüsselt auf diesem PC gespeichert (nur dein Windows-Konto kann ihn lesen).",
             style = MaterialTheme.typography.bodySmall,
@@ -379,6 +347,7 @@ private fun ApiSection(c: AppContainer) {
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         TextButton(onClick = { uri.openUri("https://llm.scads.ai/status/") }) { Text("Statusseite öffnen") }
     }
+    ApiProvidersSection(c)
 }
 
 @Composable
@@ -388,11 +357,12 @@ private fun GitHubSection(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
-    Section("GitHub") {
+    Section("GitHub · Hauptkonto") {
         Text(
             "Mit einem Personal Access Token kann die App – wie ein Coding-Agent – in deinen Repositories lesen, " +
                 "Dateien ändern, Branches und Pull Requests erstellen. Empfohlen: Fine-grained Token mit " +
-                "„Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories.",
+                "„Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories. " +
+                "Für Repositories von Organisationen weiter unten je ein weiteres Token eintragen.",
             style = MaterialTheme.typography.bodySmall,
         )
         SecretField("GitHub-Token", s.githubToken) { v ->
@@ -429,7 +399,8 @@ private fun GitHubSection(c: AppContainer) {
         }
         if (!s.hasGitHub) {
             Text(
-                "Die GitHub-Optionen im Chat und bei geplanten Aufgaben erscheinen, sobald ein gültiges Token hinterlegt ist.",
+                "Die GitHub-Optionen im Chat und bei geplanten Aufgaben erscheinen, sobald ein gültiges Token hinterlegt ist " +
+                    "(Hauptkonto oder ein weiteres Token).",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -445,6 +416,7 @@ private fun GitHubSection(c: AppContainer) {
             ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
         }
     }
+    GitHubAccountsSection(c)
     // Also covers writing web requests, so it stays visible without GitHub.
     Section("Freigaben") { ApprovalModeOptions(c) }
     ReliabilitySection(c)

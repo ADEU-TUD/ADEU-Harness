@@ -1,7 +1,9 @@
 package io.github.thepytales.llmhub.net
 
+import io.github.thepytales.llmhub.data.ApiProvider
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.ProviderKind
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.UsageStore
@@ -70,8 +72,15 @@ data class ChatResult(
 val JSON = Json { ignoreUnknownKeys = true; isLenient = true; explicitNulls = false }
 private val JSON_TYPE = "application/json".toMediaType()
 
-/** Client for the OpenAI-compatible endpoint (https://llm.scads.ai/v1). */
+/**
+ * Client for the OpenAI-compatible endpoint (https://llm.scads.ai/v1) and the further providers of the settings
+ * (e.g. Gemini): every request goes to the provider that serves its model.
+ */
 class LlmClient(private val settings: SettingsStore, private val usage: UsageStore) {
+    /** Model id (lowercase) → id of the further provider that serves it; set by ModelsRepository. */
+    @Volatile
+    var owners: Map<String, String> = emptyMap()
+
     /** Cleared when the server rejects stream_options (then usage is estimated). */
     @Volatile
     private var askForUsage = true
@@ -88,12 +97,34 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         .writeTimeout(2, TimeUnit.MINUTES)
         .build()
 
-    private fun request(path: String): Request.Builder {
+    /** Further provider that serves [model], or null for the main one. */
+    fun providerFor(model: String?): ApiProvider? {
+        if (model == null) return null
+        val usable = settings.current.providers.filter { it.usable }
+        if (usable.isEmpty()) return null
+        owners[model.lowercase()]?.let { id -> usable.firstOrNull { it.id == id }?.let { return it } }
+        val via = ModelCatalog.info(model).via ?: return null
+        return usable.firstOrNull { it.providerKind == via }
+    }
+
+    /** Request to the provider of [model] (null: the main provider). */
+    private fun request(path: String, model: String?): Request.Builder = request(path, providerFor(model), model)
+
+    private fun request(path: String, provider: ApiProvider?, model: String? = null): Request.Builder {
         val s = settings.current
-        if (!s.hasApiKey) throw ApiException(401, "Kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.")
+        val info = model?.let { ModelCatalog.info(it) }
+        val via = info?.via
+        if (provider == null && info != null && via != null) {
+            throw ApiException(
+                401,
+                "Für ${info.displayName} fehlt der API-Key von ${via.label} (Einstellungen › API-Zugang › Weitere Anbieter).",
+            )
+        }
+        val (url, key) = if (provider != null) provider.baseUrl to provider.apiKey else s.baseUrl to s.apiKey
+        if (key.isBlank()) throw ApiException(401, "Kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.")
         return Request.Builder()
-            .url(s.baseUrl.trimEnd('/') + path)
-            .header("Authorization", "Bearer ${s.apiKey}")
+            .url(url.trimEnd('/') + path)
+            .header("Authorization", "Bearer $key")
     }
 
     private fun errorMessage(code: Int, body: String?): String {
@@ -116,12 +147,14 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         return "HTTP $code$hint: ${parsed ?: body?.take(500) ?: "unbekannter Fehler"}"
     }
 
-    suspend fun listModels(): List<String> = withContext(Dispatchers.IO) {
-        http.newCall(request("/models").get().build()).execute().use { resp ->
+    /** Models of the main provider, or of [provider]. */
+    suspend fun listModels(provider: ApiProvider? = null): List<String> = withContext(Dispatchers.IO) {
+        http.newCall(request("/models", provider).get().build()).execute().use { resp ->
             val body = resp.body?.string()
             if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, body))
             JSON.parseToJsonElement(body ?: "{}").jsonObject["data"]?.jsonArray
-                ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull }
+                // Gemini lists its models as "models/gemini-…", but expects the name without the prefix.
+                ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull?.removePrefix("models/") }
                 .orEmpty()
         }
     }
@@ -208,11 +241,15 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         thinking: ThinkingLevel,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult = withContext(Dispatchers.IO) {
+        val provider = providerFor(model)
         val body = buildJsonObject {
             put("model", model)
             put("stream", true)
             if (withUsage) putJsonObject("stream_options") { put("include_usage", true) }
-            if (thinking != ThinkingLevel.AUTO) {
+            if (thinking != ThinkingLevel.AUTO && provider?.providerKind == ProviderKind.GEMINI) {
+                // Gemini only knows reasoning_effort; its newer models cannot switch thinking off, "low" is the least.
+                put("reasoning_effort", thinking.effort ?: "low")
+            } else if (thinking != ThinkingLevel.AUTO) {
                 // vLLM passes chat_template_kwargs to the model's chat template: Qwen and GLM read enable_thinking,
                 // DeepSeek reads thinking. reasoning_effort is the OpenAI parameter (gpt-oss and others).
                 putJsonObject("chat_template_kwargs") {
@@ -229,7 +266,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             }
         }
         val call = http.newCall(
-            request("/chat/completions")
+            request("/chat/completions", provider, model)
                 .header("Accept", "text/event-stream")
                 .post(body.toString().toRequestBody(JSON_TYPE))
                 .build()
@@ -276,6 +313,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                             val index = tc["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: i
                             val partial = calls.getOrPut(index) { PartialToolCall() }
                             tc.str("id")?.let { if (it.isNotEmpty()) partial.id = it }
+                            // Gemini: thought signature that has to go back with the call in the next request.
+                            (tc["extra_content"] as? JsonObject)?.let { partial.extra = it }
                             (tc["function"] as? JsonObject)?.let { fn ->
                                 fn.str("name")?.let { partial.name.append(it) }
                                 fn.str("arguments")?.let { partial.arguments.append(it) }
@@ -310,7 +349,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                     put("size", size)
                     if (withFormat) put("response_format", "b64_json")
                 }
-                http.newCall(request("/images/generations").post(body.toString().toRequestBody(JSON_TYPE)).build())
+                http.newCall(request("/images/generations", model).post(body.toString().toRequestBody(JSON_TYPE)).build())
                     .execute().use { return it.code to it.body?.string() }
             }
             var (code, body) = attempt(true)
@@ -341,7 +380,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             put("model", model)
             putJsonArray("input") { inputs.forEach { add(JsonPrimitive(it)) } }
         }
-        http.newCall(request("/embeddings").post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
+        http.newCall(request("/embeddings", model).post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
             val text = resp.body?.string()
             if (!resp.isSuccessful) {
                 if (resp.code == 429) limiter.onRateLimited()
@@ -362,7 +401,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             put("input", text)
             put("voice", voice)
         }
-        http.newCall(request("/audio/speech").post(body.toString().toRequestBody(JSON_TYPE)).build())
+        http.newCall(request("/audio/speech", model).post(body.toString().toRequestBody(JSON_TYPE)).build())
             .execute().use { resp ->
                 if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, resp.body?.string()))
                 usage.record(model, "tts", text.length / 4L, 0, estimated = true)
@@ -376,7 +415,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             .addFormDataPart("model", model)
             .addFormDataPart("file", file.name, file.asRequestBody("audio/mp4".toMediaType()))
             .build()
-        http.newCall(request("/audio/transcriptions").post(body).build()).execute().use { resp ->
+        http.newCall(request("/audio/transcriptions", model).post(body).build()).execute().use { resp ->
             val text = resp.body?.string()
             if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, text))
             val result = JSON.parseToJsonElement(text ?: "{}").jsonObject.str("text")?.trim().orEmpty()
@@ -400,12 +439,13 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     private class PartialToolCall {
         var id: String? = null
+        var extra: JsonObject? = null
         val name = StringBuilder()
         val arguments = StringBuilder()
     }
 
     private fun Map<Int, PartialToolCall>.toToolCalls(): List<ToolCall> = entries.map { (i, p) ->
-        ToolCall(id = p.id ?: "call_$i", name = p.name.toString(), arguments = p.arguments.toString())
+        ToolCall(id = p.id ?: "call_$i", name = p.name.toString(), arguments = p.arguments.toString(), extra = p.extra?.toString())
     }
 
     private companion object {
@@ -463,6 +503,7 @@ fun ChatMessage.toApiJson(): JsonElement = buildJsonObject {
                         add(buildJsonObject {
                             put("id", tc.id)
                             put("type", "function")
+                            tc.extra?.let { e -> runCatching { JSON.parseToJsonElement(e) }.getOrNull()?.let { put("extra_content", it) } }
                             putJsonObject("function") {
                                 put("name", tc.name)
                                 put("arguments", tc.arguments.ifBlank { "{}" })

@@ -18,6 +18,7 @@ import io.github.thepytales.llmhub.agent.ToolSelection
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.Folder
+import io.github.thepytales.llmhub.data.LinkedRepo
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.appendToThread
@@ -117,11 +118,10 @@ object TaskRunner {
             model = task.model,
             systemPrompt = task.systemPrompt.ifBlank { null },
             githubEnabled = task.github,
-            repo = task.repo,
             envId = task.envId,
             folderId = folderId,
             taskId = task.id,
-        ).appendToThread(ChatMessage(role = "user", content = task.prompt))
+        ).withRepos(task.linkedRepos.map { LinkedRepo(it) }).appendToThread(ChatMessage(role = "user", content = task.prompt))
         c.chats.save(conv)
         val host = object : AgentHost {
             override val conversation: Conversation get() = conv

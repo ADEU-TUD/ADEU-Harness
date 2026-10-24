@@ -50,13 +50,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
-import io.github.thepytales.llmhub.net.RepoSummary
 
 @Composable
 private fun transparentItem() = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -247,106 +245,4 @@ fun TemplatePickerSheet(c: AppContainer, onPick: (Template) -> Unit, onManage: (
             contentPadding = PaddingValues(bottom = 24.dp),
         )
     }
-}
-
-@Composable
-fun RepoPickerDialog(
-    c: AppContainer,
-    enabled: Boolean,
-    selectedRepo: String?,
-    selectedBranch: String?,
-    hasToken: Boolean,
-    onApply: (Boolean, String?, String?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var repos by remember { mutableStateOf<List<RepoSummary>?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var query by remember { mutableStateOf("") }
-    var toolsOn by remember { mutableStateOf(enabled) }
-
-    LaunchedEffect(hasToken) {
-        if (hasToken) {
-            try {
-                repos = c.github.listRepos()
-            } catch (e: Exception) {
-                error = e.message
-            }
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("GitHub-Repository") },
-        text = {
-            if (!hasToken) {
-                Text("Hinterlege zuerst in den Einstellungen ein GitHub-Token, damit das Modell auf deine Repositories zugreifen kann.")
-            } else Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("GitHub-Werkzeuge")
-                        Text(
-                            selectedRepo?.let { "Aktuell: $it" + (selectedBranch?.let { b -> " · $b" } ?: "") } ?: "Kein Repository gewählt",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(checked = toolsOn, onCheckedChange = {
-                        toolsOn = it
-                        onApply(it, if (it) selectedRepo else null, if (it) selectedBranch else null)
-                        if (!it) onDismiss()
-                    })
-                }
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = { Text("Suchen oder owner/repo bzw. URL eingeben") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                when {
-                    error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                    repos == null -> CircularProgressIndicator(Modifier.size(24.dp))
-                    else -> Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
-                        ListItem(
-                            colors = transparentItem(),
-                            modifier = Modifier.clickable { onApply(true, null, null); onDismiss() },
-                            headlineContent = { Text("Ohne festes Repository") },
-                            supportingContent = { Text("Das Modell wählt bei Bedarf selbst.") },
-                        )
-                        HorizontalDivider()
-                        val typed = GitHubTools.parseRepo(query)
-                        if (typed != null && repos!!.none { it.fullName.equals(typed, ignoreCase = true) }) {
-                            ListItem(
-                                colors = transparentItem(),
-                                modifier = Modifier.clickable { onApply(true, typed, null); onDismiss() },
-                                headlineContent = { Text("„$typed“ verwenden") },
-                                supportingContent = { Text("Auch fremde öffentliche Repositories") },
-                            )
-                        }
-                        repos!!.filter {
-                            it.fullName.contains(query.trim(), ignoreCase = true) || typed != null && it.fullName.equals(typed, ignoreCase = true)
-                        }.forEach { r ->
-                            ListItem(
-                                colors = transparentItem(),
-                                modifier = Modifier.clickable {
-                                    onApply(true, r.fullName, r.defaultBranch)
-                                    onDismiss()
-                                },
-                                headlineContent = { Text(r.fullName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                supportingContent = {
-                                    Text(
-                                        listOfNotNull(if (r.isPrivate) "privat" else "öffentlich", r.description).joinToString(" · "),
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                },
-                                trailingContent = { if (r.fullName == selectedRepo) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt") },
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
-    )
 }

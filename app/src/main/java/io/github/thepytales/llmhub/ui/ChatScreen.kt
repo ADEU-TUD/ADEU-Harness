@@ -105,6 +105,7 @@ import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelCatalog
+import io.github.thepytales.llmhub.data.label
 import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.data.Template
@@ -282,8 +283,7 @@ fun ChatScreen(
     val results = remember(current.messages) { current.messages.filter { it.role == "tool" }.associateBy { it.toolCallId } }
     val repoLabel = when {
         !current.githubEnabled -> "Aus"
-        current.repo == null -> "An – kein festes Repository"
-        else -> current.repo + (current.branch?.let { " · $it" } ?: "")
+        else -> current.linkedRepos.label() ?: "An – kein festes Repository"
     }
 
     val hasMessages = current.messages.isNotEmpty()
@@ -387,7 +387,7 @@ fun ChatScreen(
             ) {
                 // Always visible while active: the selected repository, environment and persona.
                 if (current.githubEnabled && settings.hasGitHub) {
-                    ContextChip(Icons.Outlined.Code, current.repo?.let { r -> r + (current.branch?.let { " · $it" } ?: "") } ?: "GitHub · Repo wählen", { showRepoPicker = true })
+                    ContextChip(Icons.Outlined.Code, current.linkedRepos.label() ?: "GitHub · Repo wählen", { showRepoPicker = true })
                 }
                 if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true })
                 activeTemplate?.let { t ->
@@ -407,7 +407,7 @@ fun ChatScreen(
     ) { pad ->
         if (items.isEmpty() && !running) {
             EmptyChat(
-                hasApiKey = settings.hasApiKey,
+                hasApiKey = settings.hasAnyApiKey,
                 userName = settings.userName,
                 model = modelInfo,
                 onModel = { showModelPicker = true },
@@ -548,13 +548,12 @@ fun ChatScreen(
     }
 
     if (showRepoPicker) {
-        RepoPickerDialog(
+        RepoPickerSheet(
             c = c,
             enabled = current.githubEnabled,
-            selectedRepo = current.repo,
-            selectedBranch = current.branch,
+            selected = current.linkedRepos,
             hasToken = settings.hasGitHub,
-            onApply = { enabled, repo, branch -> vm.setGitHub(enabled, repo, branch) },
+            onApply = { enabled, repos -> vm.setGitHub(enabled, repos) },
             onDismiss = { showRepoPicker = false },
         )
     }
@@ -595,7 +594,7 @@ fun ChatScreen(
     }
 
     pending?.let { p ->
-        ApprovalDialog(p, current.repo, current.branch, onAnswer = { allow, always -> vm.answerPending(allow, always) })
+        ApprovalDialog(p, current.linkedRepos, onAnswer = { allow, always -> vm.answerPending(allow, always) })
     }
 }
 
