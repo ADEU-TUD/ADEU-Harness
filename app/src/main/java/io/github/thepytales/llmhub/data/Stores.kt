@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ open class ListStore<T>(
     val current: List<T> get() = _items.value
 
     private fun load(defaults: () -> List<T>): List<T> {
-        val text = runCatching { backend.read() }.getOrNull() ?: return defaults()
+        val text = runCatching { backend.read() }.logFailure("Liste lesen").getOrNull() ?: return defaults()
         return runCatching { storeJson.decodeFromString(ListSerializer(serializer), text) }.getOrElse { e ->
             // Not silently replaced by the defaults (the next save would overwrite the user's data for good).
             backend.quarantine(e)
@@ -72,6 +73,6 @@ open class ListStore<T>(
     @Synchronized
     private fun change(transform: (List<T>) -> List<T>) {
         _items.update(transform)
-        runCatching { backend.write(storeJson.encodeToString(ListSerializer(serializer), _items.value)) }
+        runCatching { backend.write(storeJson.encodeToString(ListSerializer(serializer), _items.value)) }.logFailure("Liste speichern")
     }
 }

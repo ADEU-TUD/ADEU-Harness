@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.net.JSON
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
@@ -52,12 +53,12 @@ object AccountsJson {
     private val providers = ListSerializer(ApiProvider.serializer())
 
     fun accounts(text: String?): List<GitHubAccount> =
-        text?.takeIf { it.isNotBlank() }?.let { runCatching { JSON.decodeFromString(accounts, it) }.getOrNull() }.orEmpty()
+        text?.takeIf { it.isNotBlank() }?.let { runCatching { JSON.decodeFromString(accounts, it) }.logFailure("Konten lesen").getOrNull() }.orEmpty()
 
     fun accounts(list: List<GitHubAccount>): String = JSON.encodeToString(accounts, list)
 
     fun providers(text: String?): List<ApiProvider> =
-        text?.takeIf { it.isNotBlank() }?.let { runCatching { JSON.decodeFromString(providers, it) }.getOrNull() }.orEmpty()
+        text?.takeIf { it.isNotBlank() }?.let { runCatching { JSON.decodeFromString(providers, it) }.logFailure("Anbieter lesen").getOrNull() }.orEmpty()
 
     fun providers(list: List<ApiProvider>): String = JSON.encodeToString(providers, list)
 }

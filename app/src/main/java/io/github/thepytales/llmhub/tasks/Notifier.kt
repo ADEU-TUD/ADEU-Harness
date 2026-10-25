@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.tasks
 
+import io.github.thepytales.llmhub.logFailure
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -98,7 +99,7 @@ object Notifier {
             .setContentIntent(if (chatId != null) openChat(context, chatId) else openApp(context))
             .setAutoCancel(true)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(id, notification) }
+        runCatching { NotificationManagerCompat.from(context).notify(id, notification) }.logFailure("Benachrichtigung")
     }
 
     fun taskFinished(context: Context, task: ScheduledTask, chatId: String, answer: String?, error: String?) {

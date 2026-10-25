@@ -150,7 +150,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
         val data = File(root, "data")
         val pending = File(data, "jobs.json").let { it.isFile && it.length() > 20 } ||
             File(data, "recordings").listFiles()?.isNotEmpty() == true
-        if (pending) scope.launch { runCatching { engine() } }
+        if (pending) scope.launch { runCatching { engine() }.logFailure("Sprach-Engine starten") }
     }
 
     fun updateSettings(transform: (TranscriptionSettings) -> TranscriptionSettings) {
@@ -448,7 +448,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
             val o = el as? JsonObject ?: return@mapNotNull null
             (o.str("from") ?: return@mapNotNull null) to o.str("to").orEmpty()
         }
-    }.getOrDefault(emptyList())
+    }.logFailure("Ersetzungsliste lesen").getOrDefault(emptyList())
 
     fun saveReplacements(list: List<Pair<String, String>>) {
         val a = org.json.JSONArray()

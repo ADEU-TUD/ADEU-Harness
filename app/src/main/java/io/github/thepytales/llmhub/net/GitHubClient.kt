@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.net
 
+import io.github.thepytales.llmhub.logFailure
 import android.util.Base64
 import io.github.thepytales.llmhub.data.GitHubAccount
 import io.github.thepytales.llmhub.data.SettingsStore
@@ -171,8 +172,8 @@ class GitHubClient(private val settings: SettingsStore, private val http: OkHttp
 
     /** Re-checks all tokens at the start, so revoked ones hide the GitHub options again. */
     suspend fun verifyAll() {
-        if (settings.current.githubToken.isNotBlank()) runCatching { verify() }
-        settings.current.githubAccounts.filter { it.token.isNotBlank() }.forEach { a -> runCatching { verifyAccount(a.id) } }
+        if (settings.current.githubToken.isNotBlank()) runCatching { verify() }.logFailure("GitHub-Token prüfen")
+        settings.current.githubAccounts.filter { it.token.isNotBlank() }.forEach { a -> runCatching { verifyAccount(a.id) }.logFailure("GitHub-Konto prüfen") }
     }
 
     /** Repositories of all tokens, most recently changed first. */

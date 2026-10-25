@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.transcribe
 
+import io.github.thepytales.llmhub.logFailure
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -171,7 +172,7 @@ class TranscriptionService : Service() {
                 if (inst == null) {
                     if (active && !starting) {
                         starting = true
-                        runCatching { ctx.startForegroundService(Intent(ctx, TranscriptionService::class.java)) }
+                        runCatching { ctx.startForegroundService(Intent(ctx, TranscriptionService::class.java)) }.logFailure("Transkriptionsdienst starten")
                             .onFailure { starting = false }
                     }
                     return@post

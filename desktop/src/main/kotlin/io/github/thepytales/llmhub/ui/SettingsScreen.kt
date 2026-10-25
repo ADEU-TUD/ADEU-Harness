@@ -145,6 +145,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
                 "backup" -> BackupSection(c)
+                "trash" -> TrashSection(c)
                 else -> SettingsOverview(c, onNavigate, deviceItem = SettingsItem("settings/windows", Icons.Outlined.Computer, "Windows", "Infobereich, Autostart, Datenordner"))
             }
             Spacer(Modifier.size(24.dp))

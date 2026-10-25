@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,21 +20,28 @@ android {
         versionName = System.getenv("VERSION_NAME") ?: "1.0.0-dev"
     }
 
+    // The release key is not part of the repository (whoever has it can publish "updates" that read API keys and
+    // chats). It comes from keystore.properties next to settings.gradle.kts (not checked in, see
+    // keystore.properties.example) or from the environment (KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS,
+    // KEY_PASSWORD; in GitHub Actions from secrets). Without it the release APK stays unsigned.
+    val keystore = Properties().apply {
+        rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+    }
+    fun signing(env: String, key: String): String? = System.getenv(env)?.takeIf { it.isNotBlank() } ?: keystore.getProperty(key)
+    val storePath = signing("KEYSTORE_PATH", "storeFile")
     signingConfigs {
-        create("release") {
-            // Signing secrets can be supplied by CI; otherwise the bundled keystore is used so
-            // every release has the same signature and can be installed as an update.
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "llmhub-release"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "llmhub"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "llmhub-release"
+        if (storePath != null) create("release") {
+            storeFile = rootProject.file(storePath)
+            storePassword = signing("KEYSTORE_PASSWORD", "storePassword")
+            keyAlias = signing("KEY_ALIAS", "keyAlias")
+            keyPassword = signing("KEY_PASSWORD", "keyPassword")
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             applicationIdSuffix = ".debug"

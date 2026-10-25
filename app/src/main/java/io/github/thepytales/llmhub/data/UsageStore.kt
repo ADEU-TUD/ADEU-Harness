@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +46,7 @@ class UsageStore(dir: File) {
 
     private fun load(): List<UsageEntry> = runCatching {
         json.decodeFromString(ListSerializer(UsageEntry.serializer()), file.readText())
-    }.getOrDefault(emptyList())
+    }.logFailure("Verbrauch lesen").getOrDefault(emptyList())
 
     fun record(model: String, kind: String, promptTokens: Long, completionTokens: Long, estimated: Boolean) {
         val day = LocalDate.now().toString()
@@ -74,7 +75,7 @@ class UsageStore(dir: File) {
         saveJob?.cancel()
         saveJob = scope.launch {
             delay(1000)
-            runCatching { AtomicFiles.write(file, json.encodeToString(ListSerializer(UsageEntry.serializer()), _entries.value)) }
+            runCatching { AtomicFiles.write(file, json.encodeToString(ListSerializer(UsageEntry.serializer()), _entries.value)) }.logFailure("Verbrauch speichern")
         }
     }
 }

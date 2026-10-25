@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds a release without GitHub Actions (when the Actions minutes are used up):
-#   dist/ADEU-LLM-<version>.apk          – signed with app/release.keystore, installs as update
+#   dist/ADEU-LLM-<version>.apk          – signed with the release key (keystore.properties), installs as update
 #   dist/ADEU-LLM-<version>-Windows.zip  – portable Windows version
 #
 # The Windows version is assembled on any OS: the app's jars (with the Windows libraries) are built here, the
@@ -19,6 +19,12 @@ export VERSION_CODE="$code" VERSION_NAME="1.0.$code"
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 dist="$root/dist"
 mkdir -p "$dist"
+
+# The release key is not in the repository (see keystore.properties.example and README › Signaturschlüssel).
+if [ ! -f "$root/keystore.properties" ] && [ -z "${KEYSTORE_PATH:-}" ]; then
+  echo "Kein Signaturschlüssel: keystore.properties anlegen (Vorlage keystore.properties.example) oder KEYSTORE_PATH usw. setzen." >&2
+  exit 1
+fi
 
 echo "== Android $VERSION_NAME"
 (cd "$root" && ./gradlew --no-daemon -q assembleRelease)

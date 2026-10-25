@@ -94,6 +94,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.SecureStorage
 import io.github.thepytales.llmhub.agent.ApprovalMode
 import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.agent.AgentRunner
@@ -142,6 +143,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
                 "backup" -> BackupSection(c)
+                "trash" -> TrashSection(c)
                 else -> SettingsOverview(c, onNavigate, deviceItem = null)
             }
             Spacer(Modifier.size(24.dp))
@@ -156,6 +158,14 @@ private fun ApiSection(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
+    if (!SecureStorage.encrypted) SettingsCard("Achtung") {
+        Text(
+            "Der Schlüsselspeicher dieses Geräts funktioniert nicht. API-Key und Tokens liegen deshalb unverschlüsselt im " +
+                "privaten Speicher der App. Andere Apps können sie nicht lesen, bei einem gerooteten Gerät oder einer Datensicherung " +
+                "per Kabel aber schon. Ein Neustart des Geräts behebt das manchmal.",
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
     Section("ScaDS.AI · Standard") {
         Text(
             "API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). Er wird verschlüsselt auf dem Gerät gespeichert.",

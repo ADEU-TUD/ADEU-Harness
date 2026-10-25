@@ -261,7 +261,7 @@ Release auf GitHub – ein Durchlauf kostet etwa 25 Minuten). Stattdessen entste
 .github/scripts/release-local.sh 26 ADEU-LLM-1.0.25-Windows.zip   # → dist/ADEU-LLM-1.0.26.apk und -Windows.zip
 ```
 
-Die APK ist mit demselben Schlüssel signiert wie alle bisherigen und installiert sich als Update. Die Windows-ZIP setzt
+Die APK wird mit dem Release-Schlüssel signiert (siehe *Signaturschlüssel* unten) und installiert sich als Update. Die Windows-ZIP setzt
 das Skript auf jedem Betriebssystem zusammen: die neuen Jars (mit den Windows-Bibliotheken) plus Starter, Java-Laufzeit
 und Skia-DLL aus der Windows-ZIP einer früheren Version. Das geht, solange Compose, Skia und die Java-Module gleich
 bleiben – sonst bricht das Skript mit einem Hinweis ab, und die Windows-Version muss einmal über den Workflow entstehen.
@@ -420,8 +420,23 @@ Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
 
 `.github/scripts/windows-portable.ps1` macht daraus die Ein-Datei-EXE und die ZIP.
 
-Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur haben). Eigene Schlüssel lassen sich
-über die Umgebungsvariablen `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` und `KEY_PASSWORD` setzen.
+### Signaturschlüssel
+
+Der Release-Schlüssel gehört **nicht** ins Repository: Wer ihn hat, kann „Updates“ bauen, die sich über die echte App
+installieren und API-Keys und Chats lesen. Er liegt deshalb außerhalb des Codes:
+
+- **Lokal:** `keystore.properties.example` nach `keystore.properties` kopieren (wird nicht eingecheckt) und Pfad,
+  Alias und Passwörter eintragen. Alternativ die Umgebungsvariablen `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`
+  und `KEY_PASSWORD` setzen. Ohne Schlüssel entsteht eine unsignierte APK, `release-local.sh` bricht mit einem Hinweis ab.
+- **GitHub Actions:** Repository-Secrets `KEYSTORE_BASE64` (`base64 -w0 release.keystore`), `KEYSTORE_PASSWORD`,
+  `KEY_ALIAS` und `KEY_PASSWORD` anlegen.
+
+Bis Version 1.0.x lag der Schlüssel (`app/release.keystore`, Passwort `llmhub-release`) im Repository und steht damit
+weiter in der Git-Historie. Wer ihn weiter nutzt, behält Updates ohne Neuinstallation, der Schlüssel gilt aber als
+öffentlich. Sicherer ist ein neuer Schlüssel
+(`keytool -genkeypair -v -keystore release.keystore -alias llmhub -keyalg RSA -keysize 4096 -validity 10000`); die App
+muss dann einmal deinstalliert und neu installiert werden (vorher *Einstellungen › Sicherung & Umzug* nutzen, damit
+Chats und Einstellungen erhalten bleiben).
 
 ## Aufbau
 

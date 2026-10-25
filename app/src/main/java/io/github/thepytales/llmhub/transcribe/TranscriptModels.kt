@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.transcribe
 
+import io.github.thepytales.llmhub.logFailure
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -233,7 +234,7 @@ data class Transcript(
                 },
                 summary = o.str("summary")?.takeIf { it.isNotBlank() },
             )
-        }.getOrNull()
+        }.logFailure("Transkript lesen").getOrNull()
     }
 }
 
@@ -271,7 +272,7 @@ data class TranscriptSummary(
                     wordTimes = o.bool("word_times") == true,
                 )
             }.sortedByDescending { it.created }
-        }.getOrDefault(emptyList())
+        }.logFailure("Transkriptliste lesen").getOrDefault(emptyList())
     }
 }
 
@@ -396,7 +397,7 @@ data class SpeechState(
                 modelsSize = o.long("models_size") ?: 0,
                 modelsDir = o.str("models_dir").orEmpty(),
             )
-        }.getOrDefault(previous)
+        }.logFailure("Status der Sprach-Engine").getOrDefault(previous)
     }
 }
 

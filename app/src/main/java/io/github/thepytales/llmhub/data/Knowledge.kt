@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,7 +52,7 @@ class KnowledgeStore(root: File) {
 
     @Synchronized
     fun chunks(doc: KnowledgeDoc): List<KnowledgeChunk> = cache.getOrPut(doc.id) {
-        runCatching { json.decodeFromString(ListSerializer(KnowledgeChunk.serializer()), File(dir, "${doc.id}.json").readText()) }.getOrDefault(emptyList())
+        runCatching { json.decodeFromString(ListSerializer(KnowledgeChunk.serializer()), File(dir, "${doc.id}.json").readText()) }.logFailure("Wissenssammlung lesen").getOrDefault(emptyList())
     }
 
     @Synchronized
