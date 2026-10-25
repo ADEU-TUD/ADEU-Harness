@@ -6,6 +6,7 @@ import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.agent.ChatRun
 import io.github.thepytales.llmhub.agent.GitHubTools
 import io.github.thepytales.llmhub.agent.PendingAction
+import io.github.thepytales.llmhub.data.Privacy
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
@@ -67,7 +68,7 @@ class ChatViewModel(
 
     private val _conversation = MutableStateFlow(
         if (initialId == null) {
-            newConversation(c, initialModel).copy(folderId = NewChatFolder.take()).let { conv ->
+            newConversation(c, initialModel).copy(folderId = NewChatFolder.take()).let { it.copy(model = Privacy.suitableModel(c, it.folderId, it.model)) }.let { conv ->
                 template?.takeIf { it.kind == TemplateKind.PERSONA }?.let { t -> conv.copy(systemPrompt = t.content, persona = t.name) } ?: conv
             }
         } else c.runs.get(initialId)?.conversation?.value ?: c.chats.get(initialId)
@@ -188,7 +189,7 @@ class ChatViewModel(
 
     fun setPinned(pinned: Boolean) = edit { it.copy(pinned = pinned) }
 
-    fun moveToFolder(folderId: String?) = edit { it.copy(folderId = folderId) }
+    fun moveToFolder(folderId: String?) = edit { it.copy(folderId = folderId, model = Privacy.suitableModel(c, folderId, it.model)) }
 
     fun deleteChat() {
         c.runs.stop(chatId)
@@ -333,7 +334,12 @@ class ChatViewModel(
         viewModelScope.launch {
             _transcribing.value = true
             try {
-                val text = c.llm.transcribe(c.settings.current.sttModel, file)
+                val local = !Privacy.level(c, _conversation.value?.folderId).allowsUniServer
+                val text = if (local) {
+                    // Data protection level "Nur auf diesem Gerät": recognized on the device.
+                    c.transcription.recognizeShort(file)
+                        ?: throw IllegalStateException("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
+                } else c.llm.transcribe(c.settings.current.sttModel, file)
                 if (text.isBlank()) _toasts.tryEmit("Keine Sprache erkannt.") else onText(text)
             } catch (e: CancellationException) {
                 throw e

@@ -69,6 +69,65 @@ object ScriptRunner {
         function percent(part, total, n) { return total ? round(100 * part / total, n === undefined ? 1 : n) : 0; }
         function column(rows, name) { return rows.map(function(r) { return r[name]; }); }
         function describe(a) { var v = numbers(a); return { n: v.length, M: round(mean(v), 2), SD: round(sd(v), 2), Md: median(v), Min: Math.min.apply(null, v), Max: Math.max.apply(null, v) }; }
+        // ---- Interrater reliability (exact, for coding qualitative data) ----
+        function _zeros(k) { var a = []; for (var i = 0; i < k; i++) a.push(0); return a; }
+        function _label(x) { return (x === undefined || x === null || String(x).trim() === '') ? null : String(x).trim(); }
+        function _cats(list) { var seen = {}, out = []; list.forEach(function(x) { if (x !== null && !seen[x]) { seen[x] = 1; out.push(x); } });
+            var num = out.every(function(x) { return !isNaN(Number(String(x).replace(',', '.'))); });
+            return out.sort(num ? function(x, y) { return Number(String(x).replace(',', '.')) - Number(String(y).replace(',', '.')); } : undefined); }
+        function interpret(k) { if (k === null || k !== k) return 'nicht berechenbar'; if (k < 0) return 'schlechter als Zufall'; if (k <= 0.20) return 'gering'; if (k <= 0.40) return 'ausreichend'; if (k <= 0.60) return 'mittelmäßig'; if (k <= 0.80) return 'beachtlich'; return 'fast vollkommen'; }
+        function agreement(a, b) { var n = 0, same = 0; for (var i = 0; i < Math.min(a.length, b.length); i++) { var x = _label(a[i]), y = _label(b[i]); if (x === null || y === null) continue; n++; if (x === y) same++; } return { n: n, agreement: n ? round(same / n, 4) : null, percent: percent(same, n) }; }
+        function crosstab(a, b) { var rows = {}; for (var i = 0; i < Math.min(a.length, b.length); i++) { var x = _label(a[i]), y = _label(b[i]); if (x === null || y === null) continue; rows[x] = rows[x] || {}; rows[x][y] = (rows[x][y] || 0) + 1; } return rows; }
+        // Cohen's kappa for two coders; weights: 'linear' or 'quadratic' for ordinal categories (weighted kappa).
+        function cohensKappa(a, b, weights) {
+            var pairs = []; for (var i = 0; i < Math.min(a.length, b.length); i++) { var x = _label(a[i]), y = _label(b[i]); if (x !== null && y !== null) pairs.push([x, y]); }
+            var n = pairs.length; if (!n) return { n: 0, kappa: null };
+            var cats = _cats(pairs.map(function(p) { return p[0]; }).concat(pairs.map(function(p) { return p[1]; }))), k = cats.length, idx = {};
+            cats.forEach(function(c, i) { idx[c] = i; });
+            var obs = [], ra = [], rb = []; for (i = 0; i < k; i++) { obs.push(_zeros(k)); ra.push(0); rb.push(0); }
+            pairs.forEach(function(p) { obs[idx[p[0]]][idx[p[1]]]++; ra[idx[p[0]]]++; rb[idx[p[1]]]++; });
+            function w(i, j) { if (k < 2) return i === j ? 1 : 0; if (weights === 'linear') return 1 - Math.abs(i - j) / (k - 1); if (weights === 'quadratic') return 1 - Math.pow(i - j, 2) / Math.pow(k - 1, 2); return i === j ? 1 : 0; }
+            var po = 0, pe = 0; for (i = 0; i < k; i++) for (var j = 0; j < k; j++) { po += w(i, j) * obs[i][j] / n; pe += w(i, j) * ra[i] * rb[j] / (n * n); }
+            var kappa = pe === 1 ? (po === 1 ? 1 : null) : (po - pe) / (1 - pe);
+            return { n: n, categories: cats, weights: weights || 'keine', observed: round(po, 4), expected: round(pe, 4), kappa: kappa === null ? null : round(kappa, 4), interpretation: interpret(kappa) };
+        }
+        // Fleiss' kappa: ratings = one array per unit with the categories of all coders (same number of coders per unit).
+        function fleissKappa(ratings) {
+            var units = ratings.map(function(r) { return r.map(_label).filter(function(x) { return x !== null; }); }).filter(function(r) { return r.length > 1; });
+            if (!units.length) return { n: 0, kappa: null };
+            var m = units[0].length; if (units.some(function(r) { return r.length !== m; })) return { error: 'Fleiss braucht pro Einheit gleich viele Codierungen; für fehlende Werte krippendorffAlpha verwenden.' };
+            var cats = _cats([].concat.apply([], units)), N = units.length, pj = {}, P = 0;
+            cats.forEach(function(c) { pj[c] = 0; });
+            units.forEach(function(r) { var cnt = {}; r.forEach(function(x) { cnt[x] = (cnt[x] || 0) + 1; pj[x] += 1; }); var s = 0; for (var c in cnt) s += cnt[c] * (cnt[c] - 1); P += s / (m * (m - 1)); });
+            P /= N; var Pe = 0; cats.forEach(function(c) { var p = pj[c] / (N * m); Pe += p * p; });
+            var kappa = Pe === 1 ? null : (P - Pe) / (1 - Pe);
+            return { n: N, raters: m, categories: cats, observed: round(P, 4), expected: round(Pe, 4), kappa: kappa === null ? null : round(kappa, 4), interpretation: interpret(kappa) };
+        }
+        // Krippendorff's alpha: data = one array per unit with the values of all coders (missing: null or ''),
+        // level: 'nominal' (default), 'ordinal', 'interval' or 'ratio'. Any number of coders, missing values allowed.
+        function krippendorffAlpha(data, level) {
+            level = level || 'nominal';
+            var units = data.map(function(r) { return r.map(_label).filter(function(x) { return x !== null; }); }).filter(function(r) { return r.length > 1; });
+            var vals = _cats([].concat.apply([], units)), idx = {}; vals.forEach(function(v, i) { idx[v] = i; });
+            var k = vals.length, o = []; for (var i = 0; i < k; i++) o.push(_zeros(k));
+            units.forEach(function(r) { var mu = r.length; for (var a = 0; a < mu; a++) for (var b = 0; b < mu; b++) if (a !== b) o[idx[r[a]]][idx[r[b]]] += 1 / (mu - 1); });
+            var nc = o.map(function(row) { return sum(row); }), n = sum(nc);
+            if (n < 2) return { n: 0, alpha: null };
+            var num = vals.map(function(v) { return Number(String(v).replace(',', '.')); });
+            function d2(c, kk) {
+                if (c === kk) return 0;
+                if (level === 'interval') return Math.pow(num[c] - num[kk], 2);
+                if (level === 'ratio') return Math.pow((num[c] - num[kk]) / (num[c] + num[kk]), 2);
+                if (level === 'ordinal') { var lo = Math.min(c, kk), hi = Math.max(c, kk), s = 0; for (var g = lo; g <= hi; g++) s += nc[g]; return Math.pow(s - (nc[c] + nc[kk]) / 2, 2); }
+                return 1;
+            }
+            var Do = 0, De = 0; for (i = 0; i < k; i++) for (var j = 0; j < k; j++) { var d = d2(i, j); Do += o[i][j] * d; De += nc[i] * nc[j] * d; }
+            var alpha = De === 0 ? null : 1 - (n - 1) * Do / De;
+            return { units: units.length, pairable: round(n, 2), level: level, values: vals, alpha: alpha === null ? null : round(alpha, 4),
+                interpretation: alpha === null ? 'nicht berechenbar' : alpha >= 0.8 ? 'zuverlässig (α ≥ 0,80)' : alpha >= 0.667 ? 'vorläufige Schlüsse möglich (α ≥ 0,667)' : 'nicht ausreichend (α < 0,667)' };
+        }
+        // Rows of a table (parseCSV) to units: one array per row with the values of the given coder columns.
+        function units(rows, coderColumns) { return rows.map(function(r) { return coderColumns.map(function(c) { return r[c]; }); }); }
         function table(rows) { if (!rows.length) return ''; var h = Object.keys(rows[0]); return '| ' + h.join(' | ') + ' |\n|' + h.map(function() { return ' --- '; }).join('|') + '|\n' + rows.map(function(r) { return '| ' + h.map(function(k) { return String(r[k]); }).join(' | ') + ' |'; }).join('\n'); }
     """
 

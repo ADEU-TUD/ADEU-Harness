@@ -24,7 +24,11 @@ import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CompareArrows
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Psychology
@@ -71,6 +75,7 @@ fun settingsTitle(section: String?): String = when (section) {
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
     "backup" -> "Sicherung & Umzug"
+    "transcription" -> "Transkription"
     else -> "Einstellungen"
 }
 
@@ -129,6 +134,16 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         onNavigate,
     )
     SettingsGroup(
+        "Modelle",
+        listOf(
+            SettingsItem("models", Icons.Outlined.AutoAwesome, "Modellübersicht", "Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck"),
+            SettingsItem("compare", Icons.Outlined.CompareArrows, "Modelle vergleichen", "Zwei Modelle beantworten dieselbe Frage nebeneinander"),
+            SettingsItem("local-models", Icons.Outlined.Memory, "Modelle auf diesem Gerät", localSummary(c)),
+            SettingsItem("settings/transcription", Icons.Outlined.GraphicEq, "Transkription", transcriptionSummary(c)),
+        ),
+        onNavigate,
+    )
+    SettingsGroup(
         "Dokumente & Darstellung",
         listOfNotNull(
             SettingsItem(
@@ -137,7 +152,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
                     if (s.senderInfo.isBlank()) " · Absender fehlt" else "",
             ),
             SettingsItem("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline auf dem Gerät" else "KI-Stimme des Uni-Servers"),
-            SettingsItem("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.CLAUDE).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
+            SettingsItem("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.ADEU).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
             deviceItem,
         ),
         onNavigate,
@@ -162,7 +177,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
 private fun ProfileCard(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val look = LocalChatLook.current
-    Surface(shape = RoundedCornerShape(20.dp), color = look.card) {
+    Surface(shape = look.cardShape, color = look.card, border = look.cardBorder) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(shape = CircleShape, color = look.brand, contentColor = Color.White, modifier = Modifier.size(52.dp)) {
                 Box(contentAlignment = Alignment.Center) {
@@ -187,20 +202,16 @@ private fun ProfileCard(c: AppContainer) {
 @Composable
 private fun SettingsGroup(title: String, entries: List<SettingsItem>, onNavigate: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 12.dp),
-        )
-        Surface(shape = RoundedCornerShape(20.dp), color = LocalChatLook.current.card) {
+        GroupLabel(title, Modifier.padding(start = 8.dp))
+        val look = LocalChatLook.current
+        Surface(shape = look.cardShape, color = look.card, border = look.cardBorder) {
             Column {
                 entries.forEachIndexed { i, e ->
                     if (i > 0) HorizontalDivider(Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     ListItem(
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable { onNavigate(e.route) },
-                        leadingContent = { Icon(e.icon, contentDescription = null) },
+                        leadingContent = { Icon(e.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         headlineContent = { Text(e.title) },
                         supportingContent = { Text(e.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         trailingContent = { Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null) },
@@ -209,4 +220,19 @@ private fun SettingsGroup(title: String, entries: List<SettingsItem>, onNavigate
             }
         }
     }
+}
+
+/** Subtitle of "Transkription" in the overview. */
+internal fun transcriptionSummary(c: AppContainer): String {
+    val t = c.transcription
+    val s = t.settings.value
+    val where = if (s.mode == "SERVER") "Uni-Server" else "Auf diesem Gerät"
+    val n = t.state.value.models.count { it.installed }
+    return where + if (n > 0) " · $n Modell(e) geladen" else ""
+}
+
+/** Subtitle of "Modelle auf diesem Gerät" in the overview. */
+internal fun localSummary(c: AppContainer): String {
+    val n = c.localLlm.state.value.installed.size
+    return if (n == 0) "Sprachmodelle offline – für vertrauliche Daten" else "$n Modell(e) installiert · offline"
 }

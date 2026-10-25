@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "LLMHub"
-include(":app")
+include(":app", ":speech")

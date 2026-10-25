@@ -45,6 +45,7 @@ import io.github.thepytales.llmhub.desktop.SingleInstance
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
+import io.github.thepytales.llmhub.ui.StartAnimation
 import io.github.thepytales.llmhub.ui.Navigation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -101,7 +102,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     )
     val tray = isTraySupported
     val trayState = rememberTrayState()
-    /** Chat of the last notification; clicking the notification opens it. */
+    /** Chat ("chat:<id>") or screen ("route:<r>") of the last notification; clicking the notification opens it. */
     var lastNotified by remember { mutableStateOf<Pair<String, Long>?>(null) }
     var toldAboutTray by remember { mutableStateOf(false) }
 
@@ -121,13 +122,14 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         rememberWindow()
         c.runs.stopAll()
         c.speaker.stop()
+        c.localLlm.shutdown()
         exitApplication()
     }
 
     LaunchedEffect(Unit) {
         Notifier.notifications.collect { n ->
             if (tray) trayState.sendNotification(Notification(n.title, n.text, Notification.Type.Info))
-            lastNotified = n.chatId?.let { it to System.currentTimeMillis() }
+            lastNotified = (n.route?.let { "route:$it" } ?: n.chatId?.let { "chat:$it" })?.let { it to System.currentTimeMillis() }
         }
     }
     LaunchedEffect(Unit) {
@@ -143,7 +145,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             onAction = {
                 val recent = lastNotified?.takeIf { System.currentTimeMillis() - it.second < 10 * 60_000 }?.first
                 lastNotified = null
-                show(recent)
+                show(recent?.removePrefix("chat:")?.takeIf { recent.startsWith("chat:") })
+                recent?.takeIf { it.startsWith("route:") }?.let { Navigation.openRoute.value = it.removePrefix("route:") }
             },
             menu = {
                 Item("ADEU LLM öffnen", onClick = { show() })
@@ -212,7 +215,9 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         }
         LlmHubTheme(settings) {
             Box(Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)) {
-                AppRoot(c, Navigation.openChat, Navigation.openRoute)
+                StartAnimation(enabled = settings.startAnimation) {
+                    AppRoot(c, Navigation.openChat, Navigation.openRoute)
+                }
             }
         }
     }

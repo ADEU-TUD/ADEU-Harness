@@ -31,6 +31,9 @@ dependencies {
     implementation("net.java.dev.jna:jna-platform:5.15.0")
     // Plays the MP3 speech of the server.
     implementation("javazoom:jlayer:1.0.1")
+    // Speech recognition on the device (speech/): sherpa-onnx (Java part) and org.json, which Android has built in.
+    implementation(files("../speech/libs/sherpa-onnx-jvm-1.13.8.jar"))
+    implementation("org.json:json:20250517")
 
     testImplementation(kotlin("test"))
 }
@@ -45,6 +48,7 @@ val desktopSources = file("src/main/kotlin")
 val androidOnly = setOf(
     "android/print/PdfPrintBridge.kt",
     "io/github/thepytales/llmhub/MainActivity.kt",
+    "io/github/thepytales/llmhub/transcribe/TranscriptionService.kt",
 )
 
 val sharedSources by tasks.registering(Sync::class) {
@@ -79,6 +83,14 @@ kotlin {
     }
 }
 
+// Speech recognition: the shared Java sources (speech/), the built-in models as resources and the native libraries
+// plus ffmpeg as app resources (resources/native, resources/tools next to the jars; see speech/natives.gradle.kts).
+apply(from = "../speech/natives.gradle.kts")
+sourceSets.main {
+    java.srcDir("../speech/src/main/java")
+    resources.srcDir(tasks.named("speechBuiltinModels"))
+}
+
 tasks.test {
     useJUnitPlatform()
 }
@@ -89,6 +101,7 @@ compose.desktop {
         jvmArgs += listOf("-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Xss4m")
 
         nativeDistributions {
+            appResourcesRootDir.set(layout.buildDirectory.dir("speech/desktop"))
             // Portable app folder (ADEU LLM.exe + runtime); see .github/scripts/windows-portable.ps1.
             targetFormats(TargetFormat.AppImage)
             packageName = "ADEU LLM"
@@ -123,3 +136,10 @@ val portableJars by tasks.registering(Sync::class) {
     from(configurations.named("runtimeClasspath"))
     into(layout.buildDirectory.dir("portable/app"))
 }
+
+/** Native libraries and ffmpeg for the portable version (app/resources), see release-local.sh. */
+val portableResources by tasks.registering(Sync::class) {
+    from(tasks.named("speechDesktopNatives").map { it.outputs.files.singleFile.resolve("windows") })
+    into(layout.buildDirectory.dir("portable/resources"))
+}
+tasks.matching { it.name == "prepareAppResources" }.configureEach { dependsOn("speechDesktopNatives") }

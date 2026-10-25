@@ -53,3 +53,25 @@ fun rememberFileImport(@Suppress("UNUSED_PARAMETER") mimes: Array<String>, read:
         }
     }
 }
+
+/** Audio and video formats ffmpeg reads (for the file dialog). */
+private val MEDIA = listOf("mp3", "m4a", "wav", "ogg", "opus", "oga", "flac", "aac", "wma", "amr", "webm", "mp4", "mkv", "mov", "avi", "wmv", "m4v", "3gp", "mpg", "mpeg")
+
+/** Picks audio and video files; hands each one's name, size and content to [onPicked] (transcription). */
+@Composable
+fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: String, size: Long, input: InputStream) -> Unit): () -> Unit {
+    val scope = rememberCoroutineScope()
+    return {
+        scope.launch {
+            val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(if (anyFile) "Dateien auswählen" else "Audio- oder Videodatei öffnen", multiple = true, extensions = if (anyFile) emptyList() else MEDIA) }
+            files.forEach { f ->
+                runCatching { onPicked(f.name, f.length(), withContext(Dispatchers.IO) { f.inputStream() }) }
+                    .onFailure { Toasts.show("„${f.name}“ konnte nicht geöffnet werden: ${it.message}") }
+            }
+        }
+    }
+}
+
+/** Windows asks for the microphone itself (privacy settings); the recording reports when access is denied. */
+@Composable
+fun rememberMicPermission(onGranted: () -> Unit): () -> Unit = onGranted

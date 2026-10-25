@@ -21,6 +21,20 @@ object Paths {
         dir.apply { mkdirs() }
     }
 
+    /**
+     * Large files that should not roam with the Windows profile: speech models, recordings, transcripts and local
+     * language models (%LOCALAPPDATA%\ADEU LLM). Elsewhere the data folder.
+     */
+    val local: File by lazy {
+        val custom = System.getProperty("adeu.data")?.takeIf { it.isNotBlank() }
+        val dir = when {
+            custom != null -> File(custom, "local")
+            windows -> File(System.getenv("LOCALAPPDATA")?.takeIf { it.isNotBlank() } ?: File(home, "AppData/Local").path, "ADEU LLM")
+            else -> File(home, ".adeu-llm/local")
+        }
+        dir.apply { mkdirs() }
+    }
+
     /** Temporary files (Android: cacheDir). */
     val cache: File by lazy { File(data, "cache").apply { mkdirs() } }
 

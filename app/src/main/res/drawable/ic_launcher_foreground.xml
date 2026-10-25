@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Logo: the didactic triangle (teacher, learners, content) with a sound wave in the middle – conversation that
+  becomes text. Scaled into the safe zone of adaptive icons.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- chat bubble -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M36,34h36a8,8 0,0 1,8 8v20a8,8 0,0 1,-8 8h-22l-10,9v-9h-4a8,8 0,0 1,-8 -8v-20a8,8 0,0 1,8 -8z" />
-    <!-- sparkle -->
-    <path
-        android:fillColor="#1E3A8A"
-        android:pathData="M54,40l3.2,8.8l8.8,3.2l-8.8,3.2l-3.2,8.8l-3.2,-8.8l-8.8,-3.2l8.8,-3.2z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.72"
+        android:scaleY="0.72"
+        android:translateY="3.5">
+        <path
+            android:pathData="M54,28 L80,73 L28,73 Z"
+            android:strokeWidth="3.6"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M46,57 L46,61 M50,53.5 L50,64.5 M54,50.5 L54,67.5 M58,53.5 L58,64.5 M62,57 L62,61"
+            android:strokeWidth="3.2"
+            android:strokeColor="#97C6FF"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,19.5a8.5,8.5 0,1 1,0 17a8.5,8.5 0,1 1,0 -17z M28,64.5a8.5,8.5 0,1 1,0 17a8.5,8.5 0,1 1,0 -17z" />
+        <path
+            android:fillColor="#97C6FF"
+            android:pathData="M80,64.5a8.5,8.5 0,1 1,0 17a8.5,8.5 0,1 1,0 -17z" />
+    </group>
 </vector>

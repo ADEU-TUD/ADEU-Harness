@@ -11,7 +11,37 @@ data class Folder(
     val createdAt: Long = System.currentTimeMillis(),
     /** Project instructions: sent to the model in every chat of the folder. */
     val instructions: String = "",
+    /** Where the data of this project may go (chats, files, transcription). */
+    val privacy: PrivacyLevel = PrivacyLevel.OPEN,
 )
+
+/**
+ * Data protection level of a project. The app enforces it: models, tools and transcription that would send data
+ * further than allowed are not offered in the project's chats.
+ */
+@Serializable
+enum class PrivacyLevel(val label: String, val short: String, val description: String) {
+    OPEN(
+        "Standard", "Standard",
+        "Uni-Server der TU Dresden und weitere eingetragene Anbieter (z. B. Gemini), Websuche und GitHub.",
+    ),
+    TU(
+        "Nur TU Dresden", "Nur TU-Server",
+        "Nur der Uni-Server (ScaDS.AI) und Modelle auf diesem Gerät. Externe KI-Anbieter sind gesperrt.",
+    ),
+    LOCAL(
+        "Nur auf diesem Gerät", "Nur lokal",
+        "Nichts verlässt das Gerät: Sprachmodelle und Transkription laufen lokal. Uni-Server, externe Anbieter, " +
+            "Websuche, GitHub und Web-Abrufe sind gesperrt.",
+    );
+
+    /** The Uni server may be used (chat, speech, embeddings). */
+    val allowsUniServer get() = this != LOCAL
+    /** Providers outside the TU Dresden may be used. */
+    val allowsExternal get() = this == OPEN
+    /** Web search, web pages, GitHub and other network tools. */
+    val allowsNetworkTools get() = this != LOCAL
+}
 
 @Serializable
 enum class TemplateKind(val label: String) {

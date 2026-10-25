@@ -10,7 +10,8 @@
 #
 # Usage: .github/scripts/release-local.sh <version-code> <template-windows.zip>
 #   e.g. .github/scripts/release-local.sh 26 ADEU-LLM-1.0.25-Windows.zip
-# Needs JDK 17+ and the Android SDK (local.properties with sdk.dir, or ANDROID_HOME).
+# Needs JDK 17+, the Android SDK with NDK (local.properties with sdk.dir, or ANDROID_HOME), git and CMake (for the
+# local language models, see app/llama.gradle.kts) and internet access for the speech libraries.
 set -euo pipefail
 code="${1:?Versionsnummer, z.B. 26}"
 template="${2:?Windows-ZIP einer früheren Version}"
@@ -24,8 +25,10 @@ echo "== Android $VERSION_NAME"
 cp "$root/app/build/outputs/apk/release/app-release.apk" "$dist/ADEU-LLM-$VERSION_NAME.apk"
 
 echo "== Windows $VERSION_NAME (Jars mit Windows-Bibliotheken)"
-(cd "$root" && ./gradlew -p desktop --no-daemon -q -PwindowsJars portableJars)
+(cd "$root" && ./gradlew -p desktop --no-daemon -q -PwindowsJars portableJars portableResources)
 jars="$root/desktop/build/portable/app"
+# Speech recognition: native libraries and ffmpeg for Windows (resources/native, resources/tools).
+resources="$root/desktop/build/portable/resources"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -35,6 +38,8 @@ app="$work/ADEU LLM/app"
 # Old jars out, new ones in; DLL, ICU data and resources stay.
 rm -f "$app"/*.jar
 cp "$jars"/*.jar "$app/"
+mkdir -p "$app/resources"
+cp -r "$resources"/. "$app/resources/"
 main="$(cd "$jars" && ls ADEU-LLM-Desktop*.jar | head -1)"
 {
   echo "[Application]"

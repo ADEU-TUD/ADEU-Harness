@@ -2,8 +2,6 @@ package io.github.thepytales.llmhub.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +37,7 @@ data class AppSettings(
     val webTools: Boolean = true,
     /** Appearance: enum names from ui/Theme.kt (ThemeMode, AppStyle, Accent). */
     val themeMode: String = "SYSTEM",
-    val appStyle: String = "CLAUDE",
+    val appStyle: String = "ADEU",
     val accent: String = "AUTO",
     /** Pure black background in dark mode. */
     val amoled: Boolean = false,
@@ -79,6 +77,10 @@ data class AppSettings(
     val pseudonymAuto: Boolean = true,
     /** Own names and terms that are always replaced, one per line (class lists, schools …). */
     val pseudonymTerms: String = "",
+    /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
+    val closeToTray: Boolean = true,
+    /** Short animation of the logo when the app starts. */
+    val startAnimation: Boolean = true,
 ) {
     /** Key of the main provider (ScaDS.AI); speech, images and embeddings only work with it. */
     val hasApiKey get() = apiKey.isNotBlank()
@@ -98,10 +100,10 @@ data class AppSettings(
     }
 }
 
-/** Stores settings (incl. API keys) in encrypted shared preferences. */
+/** Stores settings (incl. API keys) encrypted: Android keystore, on Windows DPAPI (see [createSecurePrefs]). */
 class SettingsStore(context: Context) {
     /** Encrypted preferences; also used for environments because they can contain secrets. */
-    val prefs: SharedPreferences = createPrefs(context)
+    val prefs: SharedPreferences = createSecurePrefs(context)
     private val _settings = MutableStateFlow(migrate(load()))
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
     val current: AppSettings get() = _settings.value
@@ -113,15 +115,17 @@ class SettingsStore(context: Context) {
     }
 
     /**
-     * Version 2 changed the defaults: DeepSeek instead of Qwen and the Claude look. Installs that still
-     * use the old defaults (or a model that is no longer offered) get the new ones once.
+     * Version 2 changed the defaults: DeepSeek instead of Qwen. Installs that still use the old default (or a model
+     * that is no longer offered) get the new one once. Version 3 brought the common ADEU design (the look of the
+     * transcription), which every install gets once; the other looks stay selectable.
      */
     private fun migrate(s: AppSettings): AppSettings {
-        if (prefs.getInt("settingsVersion", 1) >= SETTINGS_VERSION) return s
+        val version = prefs.getInt("settingsVersion", 1)
+        if (version >= SETTINGS_VERSION) return s
         val oldDefault = s.defaultModel == "Qwen/Qwen3.8-27B" || ModelCatalog.info(s.defaultModel).tier == ModelTier.HIDDEN
         val next = s.copy(
             defaultModel = if (oldDefault) ModelCatalog.DEFAULT_CHAT else s.defaultModel,
-            appStyle = if (s.appStyle == "STANDARD") "CLAUDE" else s.appStyle,
+            appStyle = if (version < 3) "ADEU" else s.appStyle,
         )
         save(next)
         return next
@@ -172,6 +176,8 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymize", next.pseudonymize)
             .putBoolean("pseudonymAuto", next.pseudonymAuto)
             .putString("pseudonymTerms", next.pseudonymTerms)
+            .putBoolean("closeToTray", next.closeToTray)
+            .putBoolean("startAnimation", next.startAnimation)
             .apply()
     }
 
@@ -221,26 +227,12 @@ class SettingsStore(context: Context) {
             pseudonymize = prefs.getBoolean("pseudonymize", d.pseudonymize),
             pseudonymAuto = prefs.getBoolean("pseudonymAuto", d.pseudonymAuto),
             pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,
+            closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
+            startAnimation = prefs.getBoolean("startAnimation", d.startAnimation),
         )
     }
 
     private companion object {
-        const val SETTINGS_VERSION = 2
-
-        fun createPrefs(context: Context): SharedPreferences = try {
-            val key = MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-            EncryptedSharedPreferences.create(
-                context,
-                "secure_settings",
-                key,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
-        } catch (e: Exception) {
-            // Some devices have a broken keystore; fall back to private preferences.
-            context.getSharedPreferences("settings_fallback", Context.MODE_PRIVATE)
-        }
+        const val SETTINGS_VERSION = 3
     }
 }

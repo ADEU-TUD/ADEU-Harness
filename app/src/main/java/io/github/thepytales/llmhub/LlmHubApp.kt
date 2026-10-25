@@ -31,6 +31,9 @@ import io.github.thepytales.llmhub.net.GitHubClient
 import io.github.thepytales.llmhub.net.LlmClient
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.tasks.TaskScheduler
+import io.github.thepytales.llmhub.local.LocalLlm
+import io.github.thepytales.llmhub.transcribe.SpeechHost
+import io.github.thepytales.llmhub.transcribe.Transcription
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -76,6 +79,10 @@ class AppContainer(context: Context) {
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
     val runs = ChatRuns(context.applicationContext, this)
+    /** Speech to text on the device or the Uni server (formerly the Whisper app); starts on first use. */
+    val transcription = Transcription(this, SpeechHost.root(this), SpeechHost.cache(this))
+    /** Language models on this device (llama.cpp); the LLM client starts them on demand. */
+    val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
 
     init {
         App.container = this

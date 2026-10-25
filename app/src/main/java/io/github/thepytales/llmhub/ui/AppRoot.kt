@@ -201,6 +201,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                     TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
                 }
                 composable("usage") { UsageScreen(c, onBack = { nav.popBackStack() }) }
+                composable("local-models") {
+                    LocalModelsScreen(c, onBack = { nav.popBackStack() }, onTry = { model -> nav.openChat(chatRoute(model = model)) })
+                }
+                composable("transcripts") {
+                    TranscriptsScreen(c, onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("transcript/$id") }, onNavigate = { nav.navigate(it) })
+                }
+                composable("transcript/{id}") { back ->
+                    TranscriptScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.popBackStack() }, onOpenChat = { nav.openChat(chatRoute()) })
+                }
                 composable("environments") {
                     EnvironmentsScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("environment/$id") })
                 }

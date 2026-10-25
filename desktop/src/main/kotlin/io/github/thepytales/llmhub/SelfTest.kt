@@ -27,6 +27,7 @@ object SelfTest {
         "models", "images", "compare", "templates", "tasks", "task/new", "usage", "environments", "environment/new",
         "settings", "settings/api", "settings/github", "settings/chat", "settings/appearance", "settings/voice",
         "settings/documents", "settings/windows", "settings/privacy", "settings/memory", "settings/knowledge", "settings/backup",
+        "settings/transcription", "local-models", "transcripts",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )
@@ -70,6 +71,42 @@ object SelfTest {
             Navigation.openRoute.value = "chat"
             delay(800)
             check("Alle Bildschirme geöffnet", errors.isEmpty(), errors.firstOrNull()?.toString().orEmpty())
+
+            // Transcription: a sample transcript (speakers, word times), its screen and every export format.
+            val sample = runCatching { sampleTranscript() }
+            check("Beispiel-Transkript angelegt", sample.isSuccess, sample.exceptionOrNull()?.toString().orEmpty())
+            sample.getOrNull()?.let { t ->
+                Navigation.openRoute.value = "transcript/${t.id}"
+                delay(1500)
+                shot(window, dir, "50-transcript")
+                Navigation.openRoute.value = "back"
+                delay(400)
+                for (f in io.github.thepytales.llmhub.transcribe.TranscriptFormat.entries) {
+                    val text = io.github.thepytales.llmhub.transcribe.TranscriptExport.content(t, f)
+                    check("Export ${f.label}", text.isNotBlank() && "Wir beginnen" in text, text.take(80).replace("\n", " "))
+                }
+                val dp = runCatching {
+                    DocumentWriter.create(LlmHubApp.context, File(dir, "docs"), t.title,
+                        io.github.thepytales.llmhub.transcribe.TranscriptExport.dresingPehl(t), DocFormat.DOCX, fileName = "Dresing-Pehl")
+                }
+                check("Dresing/Pehl als Word", dp.getOrNull()?.file?.let { it.length() > 0 } == true, dp.exceptionOrNull()?.toString().orEmpty())
+            }
+            // The looks: start page of the transcription and settings in each businesslike style.
+            val style = c().settings.current.appStyle
+            io.github.thepytales.llmhub.ui.AppStyle.entries.filter { it.recommended }.forEach { st ->
+                c().settings.update { it.copy(appStyle = st.name) }
+                Navigation.openRoute.value = "transcripts"
+                delay(900)
+                shot(window, dir, "60-style-${st.name.lowercase()}-transcripts")
+                Navigation.openRoute.value = "back"
+                Navigation.openRoute.value = "settings"
+                delay(900)
+                shot(window, dir, "61-style-${st.name.lowercase()}-settings")
+                Navigation.openRoute.value = "back"
+                delay(300)
+            }
+            c().settings.update { it.copy(appStyle = style) }
+            check("Transkription und Stile geöffnet", errors.isEmpty(), errors.firstOrNull()?.toString().orEmpty())
 
             val folder = File(dir, "docs")
             line("Browser für PDF: ${Browser.find()?.absolutePath ?: "keiner (eingebauter Renderer)"}")
@@ -141,6 +178,26 @@ object SelfTest {
     }
 
     private fun c() = LlmHubApp.container
+
+    /** Writes a small interview transcript (two speakers, word times) like the speech engine does. */
+    private suspend fun sampleTranscript(): io.github.thepytales.llmhub.transcribe.Transcript {
+        val e = c().transcription.engine()
+        val id = "selftest01"
+        val dir = File(e.transcripts, id).apply { mkdirs() }
+        File(dir, "transcript.json").writeText(
+            """{"id":"$id","title":"Interview Selbsttest","created":"2026-10-25T10:15:00","duration":21.5,"language":"de",
+            |"model_name":"Parakeet v3","device":"pc","diarization":true,"speakers":{"0":"Sprecher 1","1":"Sprecher 2"},
+            |"segments":[{"id":0,"start":0.4,"end":3.2,"text":"Wir beginnen mit der ersten Frage.","speaker":0,
+            |"words":[[0.4,0.7,"Wir"],[0.7,1.2,"beginnen"],[1.2,1.4,"mit"],[1.4,1.6,"der"],[1.6,2.1,"ersten"],[2.1,3.2,"Frage."]]},
+            |{"id":1,"start":3.4,"end":6.0,"text":"Wie haben Sie den Unterricht erlebt?","speaker":0},
+            |{"id":2,"start":8.5,"end":15.0,"text":"Sehr abwechslungsreich, vor allem die Gruppenarbeit hat mir gefallen, weil alle etwas beitragen konnten.","speaker":1},
+            |{"id":3,"start":15.4,"end":21.0,"text":"Danke. Und was würden Sie beim nächsten Mal anders machen?","speaker":0}],
+            |"audio":null,"folder":null,"marks":[{"t":8.0,"label":"Wichtig"}],"version":3}""".trimMargin()
+        )
+        e.indexInvalidate(id)
+        c().transcription.refreshList()
+        return c().transcription.load(id) ?: error("Transkript nicht lesbar")
+    }
 
     private suspend fun shot(window: ComposeWindow, dir: File, name: String) = withContext(Dispatchers.IO) {
         runCatching {
