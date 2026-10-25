@@ -112,6 +112,16 @@ fun TranscriptionSettings(c: AppContainer) {
                 TitleBlock("Live-Text bei Aufnahmen", "Schon während der Aufnahme transkribieren (auf dem Gerät) – nach dem Stoppen ist der Text fast sofort fertig.", Modifier.weight(1f))
                 Switch(s.live, { v -> t.updateSettings { it.copy(live = v) } })
             }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TitleBlock(
+                    "Wortzeiten messen",
+                    "Nach Whisper oder dem Uni-Server misst Parakeet v3 auf dem Gerät, wann jedes Wort gesprochen wird (im Median 50 ms genau, " +
+                        "Whisper selbst liegt öfter 0,25 s und mehr daneben). Grundlage für Wortmarkierung, Zeitstempel je Satz und Untertitel." +
+                        if (state.models.none { it.id == "parakeet" && it.installed }) " Dafür oben Parakeet v3 laden." else "",
+                    Modifier.weight(1f),
+                )
+                Switch(s.measureWords, { v -> t.updateSettings { it.copy(measureWords = v) } })
+            }
         }
     }
 

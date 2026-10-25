@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
@@ -71,6 +72,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.transcribe.SpeechJob
 import io.github.thepytales.llmhub.transcribe.TranscriptExport
+import io.github.thepytales.llmhub.transcribe.TranscriptStatus
 import io.github.thepytales.llmhub.transcribe.TranscriptSummary
 import io.github.thepytales.llmhub.transcribe.TranscriptionMode
 import kotlinx.coroutines.launch
@@ -373,12 +375,16 @@ private fun TranscriptCard(c: AppContainer, s: TranscriptSummary, modifier: Modi
     val folders by c.folders.items.collectAsStateWithLifecycle()
     AppCard(modifier, onClick = onClick) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-            Text(s.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(s.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (s.status != TranscriptStatus.RAW) StatusPill(s.status.label, if (s.status == TranscriptStatus.CHECKED) PillTone.SUCCESS else PillTone.ACCENT)
+            }
             Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 MetaText(null, transcriptDate(s.created))
                 MetaText(Icons.Outlined.Schedule, TranscriptExport.clock(s.duration))
                 if (s.speakers > 1) MetaText(Icons.Outlined.People, s.speakers.toString())
                 s.folder?.let { id -> folders.firstOrNull { it.id == id } }?.let { MetaText(Icons.Outlined.Folder, it.name) }
+                if (s.wordTimes) MetaText(Icons.Outlined.Timer, "Wortzeiten")
             }
             if (s.preview.isNotBlank()) {
                 Text(s.preview, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))

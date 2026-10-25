@@ -36,7 +36,10 @@ public final class Speech {
 
     public static final class Word {
         public final double start, end; public final String text;
-        public Word(double start, double end, String text) { this.start = start; this.end = end; this.text = text; }
+        /** Guete der Zeit: 'm' gemessen, 's' gemessen (anders geschrieben), 'i' zwischen Nachbarn gelegt (siehe WordAlign). */
+        public final char q;
+        public Word(double start, double end, String text) { this(start, end, text, 'm'); }
+        public Word(double start, double end, String text, char q) { this.start = start; this.end = end; this.text = text; this.q = q; }
     }
 
     public static final class Result {

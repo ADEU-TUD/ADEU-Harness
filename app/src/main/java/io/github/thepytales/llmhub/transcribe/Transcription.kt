@@ -62,6 +62,32 @@ data class TranscriptionSettings(
     val micDevice: String = "",
     /** Windows: compute with lower priority so other programs stay smooth. */
     val gentle: Boolean = true,
+    /** Measure the word times with Parakeet after Whisper or the server (see de.lokal.whisper.WordAlign). */
+    val measureWords: Boolean = true,
+    // View of a transcript (⋮ › Ansicht & Zeitstempel), the same for all transcripts
+    /** Key of [TranscriptEdit.Stamps]. */
+    val stamps: String = "paragraph",
+    /** "auto" (speaker change or pause), "segment" (every segment), "speaker" (only speaker change). */
+    val paragraphs: String = "auto",
+    val wordHighlight: Boolean = true,
+    /** Scroll along while playing. */
+    val follow: Boolean = true,
+    /** "small", "normal", "large", "xlarge". */
+    val textSize: String = "normal",
+    /** Show comments under their passage. */
+    val showComments: Boolean = true,
+    /** Underline words without measured time. */
+    val markUnmeasured: Boolean = false,
+    // Playback for correcting (like f4transkript)
+    /** Seconds the playback goes back when pausing (0 = off). */
+    val rewindOnPause: Double = 2.0,
+    /** Seconds for the skip buttons and keys. */
+    val skipSeconds: Int = 5,
+    /** Skip pauses longer than 1.5 s between passages. */
+    val skipSilence: Boolean = false,
+    val speed: Float = 1f,
+    /** Export: comments into Word, PDF, Markdown and text. */
+    val exportComments: Boolean = true,
 )
 
 /** A transcription that has finished (for the banner and the notification). */
@@ -412,8 +438,15 @@ class Transcription(private val c: AppContainer, private val root: File, private
             speakers = s.speakers,
             sensitivity = s.sensitivity,
             folder = folderId,
+            measureWords = s.measureWords,
         )
     }
+
+    /** Parakeet v3 is loaded, so word times can be measured. */
+    val canMeasureWords get() = _state.value.models.any { it.id == "parakeet" && it.installed }
+
+    /** Measures the word times of an existing transcript (a job in the queue); returns the job id. */
+    fun measureWords(transcriptId: String): String = engine().measureWords(transcriptId)
 
     // ------------------------------------------------------------------ recognition on the Uni server
 
@@ -480,8 +513,11 @@ data class StartOptions(
     val translate: Boolean = false,
     val title: String = "",
     val folder: String? = null,
+    /** Measure the word times afterwards with Parakeet (Whisper and server). */
+    val measureWords: Boolean = true,
 ) {
     fun toJson(): JSONObject = JSONObject()
+        .put("word_times", measureWords)
         .put("model", if (mode == TranscriptionMode.SERVER) Engine.CLOUD else model)
         .put("language", language)
         .put("speakers", speakers)
