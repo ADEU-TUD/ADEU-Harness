@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.MenuBook
@@ -79,6 +81,8 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "appearance" -> "Darstellung"
     "voice" -> "Vorlesen & Spracheingabe"
     "documents" -> "Dokumente & Logos"
+    "folders" -> "Lokale Ordner"
+    "storage" -> "Speicherorte"
     "windows" -> "Windows"
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
@@ -153,7 +157,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     )
     SettingsGroup(
         "Assistent",
-        listOf(
+        listOfNotNull(
             SettingsItem("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge · Freigaben: " + ApprovalMode.of(s.approvalMode).label),
             SettingsItem("settings/privacy", Icons.Outlined.Shield, "Datenschutz", if (s.pseudonymize) "Pseudonymisierung an" else "Pseudonymisierung aus"),
             SettingsItem("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + memory.size + " Einträge"),
@@ -165,6 +169,10 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
                 "settings/literature", Icons.Outlined.MenuBook, "Literatur & Zotero",
                 (io.github.thepytales.llmhub.research.CitationStyle.parse(s.citationStyle)?.label ?: "APA 7") + if (s.zoteroKey.isNotBlank()) " · Zotero verbunden" else "",
             ),
+            SettingsItem(
+                "settings/folders", Icons.Outlined.Folder, "Lokale Ordner",
+                c.localFolders.current.size.let { if (it == 0) "Agent in Ordnern auf diesem PC arbeiten lassen" else "$it Ordner freigegeben" },
+            ).takeIf { FolderAccess.SUPPORTED },
         ),
         onNavigate,
     )
@@ -194,8 +202,12 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     )
     SettingsGroup(
         "Daten",
-        listOf(
+        listOfNotNull(
             SettingsItem("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
+            SettingsItem(
+                "settings/storage", Icons.Outlined.FolderOpen, "Speicherorte",
+                c.docs.vaults.value.size.let { if (it == 0) "Eigene Ordner für Dokumente, z. B. in Google Drive" else "$it Ablageort(e)" },
+            ).takeIf { FolderAccess.SUPPORTED },
             SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
             SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
         ),

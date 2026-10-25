@@ -49,7 +49,7 @@ data class Command(val title: String, val route: String, val group: String, val 
 val APP_COMMANDS: List<Command> get() = listOf(
     Command("Neuer Chat", "chat", "Aktionen", "neu chat gespräch"),
     Command("Literatur", "literature", "Bereiche", "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
-    Command("Dokumente", "docs", "Bereiche", "editor entwurf dokument bearbeiten kommentare versionen"),
+    Command("Dokumente", "docs", "Bereiche", "editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word"),
     Command("Transkription", "transcripts", "Bereiche", "audio interview aufnahme diktat codieren"),
     Command("Vorlagen", "templates", "Bereiche", "prompt vorlage lehre forschung"),
     Command("Bilder erzeugen", "images", "Bereiche", "bild grafik galerie"),
@@ -75,6 +75,8 @@ val SETTINGS_INDEX = listOf(
     Command("Darstellung", "settings/appearance", "Einstellungen", "dunkel hell farbe theme schriftgröße kontrast"),
     Command("Sicherung & Umzug", "settings/backup", "Einstellungen", "backup export import umzug"),
     Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
+    Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
+    Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */

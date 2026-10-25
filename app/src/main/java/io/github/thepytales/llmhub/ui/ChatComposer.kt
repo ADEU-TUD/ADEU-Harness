@@ -85,6 +85,9 @@ fun ContextChip(icon: ImageVector, label: String, onClick: () -> Unit, highlight
     }
 }
 
+/** Pictures that can be picked at once for one message (files have no limit on the number, see AttachmentReader). */
+const val MAX_IMAGES = 10
+
 /** Round button of the input card (attachments, microphone). */
 @Composable
 private fun RoundButton(onClick: () -> Unit, enabled: Boolean = true, content: @Composable () -> Unit) {

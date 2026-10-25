@@ -86,7 +86,7 @@ fun rememberChatPlatform(
         }
     }
 
-    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris ->
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_IMAGES)) { uris ->
         scope.launch { uris.forEach { uri -> encodeImage(context, uri)?.let { images.add(it) } } }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->

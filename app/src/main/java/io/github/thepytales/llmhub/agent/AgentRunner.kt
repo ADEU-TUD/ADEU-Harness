@@ -61,6 +61,7 @@ class AgentRunner(private val c: AppContainer) {
             c.documentTools.takeIf { sel.documents },
             c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
             c.researchTools.takeIf { sel.web || conv.mode == Conversation.MODE_LITERATURE },
+            c.localFolderTools.takeIf { io.github.thepytales.llmhub.files.LocalText.SUPPORTED && c.localFolders.current.isNotEmpty() },
             c.assistantTools,
         )
     }
@@ -371,6 +372,7 @@ class AgentRunner(private val c: AppContainer) {
                     "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
+            if (c.localFolderTools in providers) c.localFolderTools.prompt() else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
             if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),

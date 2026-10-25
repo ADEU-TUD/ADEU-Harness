@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,7 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -153,6 +153,35 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            // "Datei öffnen" and "Aufnehmen" side by side in a bar of their own, so they never cover the list.
+            Surface(color = MaterialTheme.colorScheme.background, shadowElevation = 6.dp) {
+                Row(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Row(Modifier.widthIn(max = 560.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            onClick = pickFile, shape = RoundedCornerShape(28.dp), color = LocalChatLook.current.card,
+                            border = LocalChatLook.current.cardBorder, modifier = Modifier.weight(1f).height(56.dp),
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Datei öffnen", style = MaterialTheme.typography.titleSmall)
+                            }
+                        }
+                        Box(Modifier.weight(1.3f)) {
+                            if (state.recording.active) {
+                                RecordPill("Läuft · ${TranscriptExport.clock(state.recording.seconds)}") { showRecording = true }
+                            } else {
+                                RecordPill("Aufnehmen", enabled = available != false, onClick = record)
+                            }
+                        }
+                    }
+                }
+            }
+        },
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -177,7 +206,7 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
         Box(Modifier.fillMaxSize().padding(pad)) {
             LazyColumn(
                 Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 140.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -217,7 +246,8 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                     }
                 }
                 val jobs = state.jobs.sortedWith(compareByDescending<SpeechJob> { it.active }.thenBy { it.id })
-                items(jobs, key = { "j" + it.id }) { j -> JobCard(c, j, jobText[j.id]?.lastOrNull(), wide, onOpen) }
+                items(jobs.filter { it.status != "done" }, key = { "j" + it.id }) { j -> JobCard(c, j, jobText[j.id]?.lastOrNull(), wide, onOpen) }
+                jobs.filter { it.status == "done" }.takeIf { it.isNotEmpty() }?.let { done -> item(key = "done") { DoneJobs(c, done, wide, onOpen) } }
 
                 if (list.isNotEmpty() && folders.any { f -> list.any { it.folder == f.id } }) item {
                     Row(wide.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -243,31 +273,15 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                 }
                 val today = LocalDate.now()
                 shown.groupBy { group(it.created, today) }.forEach { (g, items) ->
-                    item(key = "g$g") { GroupLabel(g, wide) }
-                    items(items, key = { it.id }) { s -> TranscriptCard(c, s, wide) { onOpen(s.id) } }
-                }
-            }
-            // Bottom: "Datei" and "Aufnehmen".
-            Row(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.background)))
-                    .navigationBarsPadding()
-                    .padding(top = 28.dp, bottom = 18.dp),
-                horizontalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Surface(onClick = pickFile, shape = RoundedCornerShape(18.dp), color = LocalChatLook.current.card, border = LocalChatLook.current.cardBorder, shadowElevation = 3.dp, modifier = Modifier.size(56.dp)) {
-                        Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Datei öffnen") }
+                    item(key = "g$g") { GroupLabel(g, wide.padding(top = 6.dp)) }
+                    item(key = "c$g") {
+                        AppCard(wide) {
+                            items.forEachIndexed { n, s ->
+                                if (n > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(start = 68.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                                TranscriptRow(c, s) { onOpen(s.id) }
+                            }
+                        }
                     }
-                    Text("Datei", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-                }
-                if (state.recording.active) {
-                    RecordPill("Aufnahme läuft · ${TranscriptExport.clock(state.recording.seconds)}") { showRecording = true }
-                } else {
-                    RecordPill("Aufnehmen", enabled = available != false, onClick = record)
                 }
             }
         }
@@ -284,12 +298,13 @@ private fun RecordPill(label: String, enabled: Boolean = true, onClick: () -> Un
         shape = RoundedCornerShape(32.dp),
         color = Color(0xFFE5484D).copy(alpha = if (enabled) 1f else 0.4f),
         contentColor = Color.White,
-        shadowElevation = 8.dp,
+        shadowElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(Modifier.height(64.dp).padding(start = 22.dp, end = 26.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 18.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(14.dp).clip(CircleShape).background(Color.White))
             Spacer(Modifier.width(10.dp))
-            Text(label, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+            Text(label, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1)
         }
     }
 }
@@ -381,16 +396,46 @@ private fun etaText(sec: Double): String = when {
     else -> String.format(Locale.GERMANY, "%.1f h", sec / 3600)
 }
 
+/** Finished transcriptions in one compact card: tap to open, × to hide. */
 @Composable
-private fun TranscriptCard(c: AppContainer, s: TranscriptSummary, modifier: Modifier, onClick: () -> Unit) {
+private fun DoneJobs(c: AppContainer, done: List<SpeechJob>, modifier: Modifier, onOpen: (String) -> Unit) {
+    val look = LocalChatLook.current
+    AppCard(modifier) {
+        done.forEachIndexed { n, j ->
+            if (n > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(start = 48.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+            Row(
+                Modifier.fillMaxWidth().then(j.transcriptId?.let { id -> Modifier.clickable { onOpen(id) } } ?: Modifier).padding(start = 14.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.TaskAlt, contentDescription = null, tint = look.success, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(j.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Fertig – tippen zum Öffnen", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = { c.transcription.dismiss(j.id) }) {
+                    Icon(Icons.Outlined.Close, contentDescription = "Ausblenden", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                }
+            }
+        }
+    }
+}
+
+/** One transcript in the day's card: icon with duration, title, details and the first words. */
+@Composable
+private fun TranscriptRow(c: AppContainer, s: TranscriptSummary, onClick: () -> Unit) {
     val folders by c.folders.items.collectAsStateWithLifecycle()
-    AppCard(modifier, onClick = onClick) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.Top) {
+        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), modifier = Modifier.size(40.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.GraphicEq, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) }
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(s.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                Text(s.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 if (s.status != TranscriptStatus.RAW) StatusPill(s.status.label, if (s.status == TranscriptStatus.CHECKED) PillTone.SUCCESS else PillTone.ACCENT)
             }
-            Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 MetaText(null, transcriptDate(s.created))
                 MetaText(Icons.Outlined.Schedule, TranscriptExport.clock(s.duration))
                 if (s.speakers > 1) MetaText(Icons.Outlined.People, s.speakers.toString())
@@ -398,7 +443,7 @@ private fun TranscriptCard(c: AppContainer, s: TranscriptSummary, modifier: Modi
                 if (s.wordTimes) MetaText(Icons.Outlined.Timer, "Wortzeiten")
             }
             if (s.preview.isNotBlank()) {
-                Text(s.preview, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
+                Text(s.preview, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
             }
         }
     }

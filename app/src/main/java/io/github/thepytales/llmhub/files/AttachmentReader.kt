@@ -69,8 +69,9 @@ object AttachmentReader {
             when {
                 mime == "application/pdf" || ext == "pdf" -> readPdf(context, name, bytes)
                 mime.startsWith("image/") -> ReadResult(images = listOfNotNull(imageDataUrl(bytes)))
-                ext == "docx" -> text(name, mime, zipText(bytes, Regex("word/document\\.xml"), "w:p"))
-                ext == "pptx" -> text(name, mime, zipText(bytes, Regex("ppt/slides/slide(\\d+)\\.xml"), "a:p", "Folie"))
+                // Word and PowerPoint as Markdown: headings, lists and tables stay recognizable for the model.
+                ext == "docx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.docx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("word/document\\.xml"), "w:p"))
+                ext == "pptx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.pptx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("ppt/slides/slide(\\d+)\\.xml"), "a:p", "Folie"))
                 ext in setOf("odt", "odp", "ods") -> text(name, mime, zipText(bytes, Regex("content\\.xml"), "text:p"))
                 ext == "xlsx" -> text(name, mime, xlsxText(bytes))
                 ext in setOf("html", "htm") || mime == "text/html" -> text(name, mime, WebTools.htmlToText(decode(bytes)))

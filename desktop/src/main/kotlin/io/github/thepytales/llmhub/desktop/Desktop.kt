@@ -82,6 +82,21 @@ object DesktopActions {
         return dialog.files.orEmpty().toList()
     }
 
+    /** Dialog to choose a folder (e.g. a storage folder in Google Drive); null if cancelled. */
+    fun pickFolder(title: String, start: File? = null): File? {
+        // Swing dialogs belong on the event thread.
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            var result: File? = null
+            javax.swing.SwingUtilities.invokeAndWait { result = pickFolder(title, start) }
+            return result
+        }
+        val chooser = javax.swing.JFileChooser(start ?: File(System.getProperty("user.home")))
+        chooser.dialogTitle = title
+        chooser.fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
+        chooser.isAcceptAllFileFilterUsed = false
+        return if (chooser.showOpenDialog(window) == javax.swing.JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
+    }
+
     /** Native "Speichern unter" dialog; returns the chosen file (with [extension]) or null. */
     fun pickSaveFile(title: String, suggested: String, extension: String? = null): File? {
         val dialog = FileDialog(window, title, FileDialog.SAVE)

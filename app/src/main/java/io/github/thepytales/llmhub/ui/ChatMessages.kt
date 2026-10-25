@@ -222,14 +222,14 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
     }
 }
 
-/** Small card for an attached document. */
+/** Small card for an attached document; with [onOpen] a tap opens it in the editor. */
 @Composable
-fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null) {
+fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null) {
     Box {
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.widthIn(max = 220.dp),
+            modifier = Modifier.widthIn(max = 260.dp).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
         ) {
             Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(32.dp)) {
@@ -248,6 +248,10 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null) {
                         "${(file.text.length + 999) / 1000}k Zeichen" + if (file.truncated) " (gekürzt)" else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (onOpen != null) {
+                    Spacer(Modifier.size(6.dp))
+                    Icon(Icons.Outlined.EditNote, contentDescription = "Im Editor öffnen", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -301,7 +305,8 @@ fun UserBubble(
         }
         if (m.files.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
-                m.files.forEach { FileChip(it) }
+                // Tap: open in the editor and keep working on it with the model.
+                m.files.forEach { f -> FileChip(f, onOpen = { DocsHandoff.openAttachment(io.github.thepytales.llmhub.App.container, f, null) }) }
             }
         }
         if (m.images.isNotEmpty()) {
@@ -687,6 +692,13 @@ private fun toolLabel(name: String) = when (name) {
     "save_logo" -> "Logo speichern"
     "read_file" -> "Datei lesen"
     "list_files" -> "Dateien auflisten"
+    "list_local_files" -> "Ordner ansehen"
+    "read_local_file" -> "Datei vom PC lesen"
+    "search_local_files" -> "Ordner durchsuchen"
+    "write_local_file", "edit_local_file" -> "Datei auf dem PC speichern"
+    "move_local_file" -> "Datei verschieben"
+    "delete_local_file" -> "Datei in den Papierkorb"
+    "copy_document_to_folder" -> "Dokument in Ordner speichern"
     "write_file", "edit_file" -> "Datei ändern"
     "search_code" -> "Code durchsuchen"
     "edit_document" -> "Dokument ändern"

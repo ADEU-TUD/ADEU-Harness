@@ -85,7 +85,7 @@ fun rememberChatPlatform(
     return remember {
         ChatPlatform(
             pickPhotos = {
-                scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles("Bilder auswählen", extensions = imageExtensions) }.take(6)) }
+                scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles("Bilder auswählen", extensions = imageExtensions) }.take(MAX_IMAGES)) }
             },
             primaryAttach = { if (!paste()) Notices.info("Die Zwischenablage enthält kein Bild und keine Dateien.") },
             pickFiles = { scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles("Dateien auswählen") }) } },

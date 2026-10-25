@@ -145,6 +145,15 @@ fun ChatScreen(
         vm.state.value?.let { out.write(ChatJson.write(it).toByteArray(Charsets.UTF_8)) }
     }
 
+    // Documents sent from the editor ("In Chat senden") wait in the input field of their chat.
+    val handedOver by ChatHandoff.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(vm.chatId, handedOver) {
+        ChatHandoff.takeFor(vm.chatId)?.let { h ->
+            files.addAll(h.files)
+            if (h.text.isNotBlank() && input.isBlank()) input = h.text
+        }
+    }
+
     // The unsent text stays with its chat (also after closing the app).
     LaunchedEffect(vm.chatId) {
         if (input.isBlank()) c.chatDrafts.get(vm.chatId)?.text?.let { input = it }

@@ -47,6 +47,25 @@ data class DocVersion(
     val byAi: Boolean get() = author.startsWith("KI")
 }
 
+/** What a living document is: text (Word), slides (PowerPoint) or tables (Excel) – one editor, three bodies. */
+enum class DocKind(val label: String, val newTitle: String, val ext: String) {
+    DOC("Dokument", "Unbenanntes Dokument", "md"),
+    SLIDES("Präsentation", "Unbenannte Präsentation", "md"),
+    SHEET("Tabelle", "Unbenannte Tabelle", "md"),
+    ;
+
+    companion object {
+        fun of(name: String?) = entries.firstOrNull { it.name == name } ?: DOC
+
+        /** Kind for a file the model created or the user opened. */
+        fun forFile(name: String): DocKind = when (name.substringAfterLast('.', "").lowercase()) {
+            "pptx", "ppt", "odp", "key" -> SLIDES
+            "xlsx", "xls", "xlsm", "ods", "csv", "tsv" -> SHEET
+            else -> DOC
+        }
+    }
+}
+
 /**
  * A living document (like Claude Docs): written by the model in the chat, edited directly by the user, commented
  * and exported as PDF, Word, Markdown, HTML or PowerPoint. The tabs hold Markdown, which the app renders for
@@ -71,7 +90,17 @@ data class LiveDoc(
     val updatedAt: Long = System.currentTimeMillis(),
     /** Who changed it last: "Sie" or "KI · …". */
     val lastAuthor: String = "Sie",
+    /** Enum name of [DocKind]. */
+    val kind: String = DocKind.DOC.name,
+    /** Storage folder ([DocVault] id); null = inside the app. */
+    val vault: String? = null,
+    /** Pinned to the top of the document list. */
+    val starred: Boolean = false,
+    /** File name of the Markdown copy in the vault. */
+    val mirror: String? = null,
 ) {
+    val docKind: DocKind get() = DocKind.of(kind)
+
     fun tab(id: String?): DocTab = tabs.firstOrNull { it.id == id } ?: tabs.first()
 
     /** All tabs as one Markdown text (for export and for the model); tabs from the second on start with their title. */
@@ -103,29 +132,67 @@ data class LiveDoc(
         const val MERGE_MS = 3 * 60_000L
         const val MAX_VERSIONS = 60
 
-        fun create(title: String, markdown: String, author: String, chatId: String? = null, style: String? = null): LiveDoc {
-            val tab = DocTab(title = "Tab 1", markdown = markdown)
+        fun create(title: String, markdown: String, author: String, chatId: String? = null, style: String? = null, kind: DocKind = DocKind.DOC): LiveDoc {
+            val tab = DocTab(title = if (kind == DocKind.SHEET) "Tabelle 1" else "Tab 1", markdown = markdown)
             return LiveDoc(
-                title = title.ifBlank { DocBlocks.titleOf(markdown) ?: "Unbenanntes Dokument" },
-                tabs = listOf(tab), chatId = chatId, style = style, lastAuthor = author,
+                title = title.ifBlank { DocBlocks.titleOf(markdown) ?: kind.newTitle },
+                tabs = listOf(tab), chatId = chatId, style = style, lastAuthor = author, kind = kind.name,
                 versions = listOf(DocVersion(author = author, note = "Erstellt", title = title, tabs = listOf(tab))),
             )
         }
     }
 }
 
-/** The living documents, one JSON file each (versions make them large; the list stays fast). */
+/** A folder outside the app where documents live as readable files (like an Obsidian vault), e.g. in Google Drive. */
+@Serializable
+data class DocVault(val id: String = UUID.randomUUID().toString().take(8), val name: String, val path: String)
+
+@Serializable
+private data class VaultConfig(val vaults: List<DocVault> = emptyList(), val defaultVault: String? = null)
+
+/**
+ * The living documents, one JSON file each (versions make them large; the list stays fast). Documents in a
+ * [DocVault] keep their JSON in "<Ordner>/.adeu" and a Markdown copy "<Titel>.md" next to it, so sync tools
+ * (Google Drive, OneDrive, Nextcloud) carry them to other computers and other editors (Obsidian) can read them.
+ * [refresh] picks up what changed there: edited Markdown copies, documents of other computers, new .md files.
+ */
 class DocsStore(dir: File) {
     private val folder = File(dir, "livedocs").apply { mkdirs() }
+    private val configFile = File(dir, "doc_vaults.json")
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private var config: VaultConfig = runCatching { json.decodeFromString(VaultConfig.serializer(), AtomicFiles.read(configFile) ?: "{}") }.getOrDefault(VaultConfig())
+    private val _vaults = MutableStateFlow(config.vaults)
+    val vaults: StateFlow<List<DocVault>> = _vaults.asStateFlow()
+    private val _defaultVault = MutableStateFlow(config.defaultVault)
+    /** Id of the vault for new documents (observable for the settings). */
+    val defaultVaultId: StateFlow<String?> = _defaultVault.asStateFlow()
+
+    /** Last modification time of each file as written or read by this app (to recognize changes from outside). */
+    private val known = HashMap<String, Long>()
     private val _items = MutableStateFlow(load())
     val items: StateFlow<List<LiveDoc>> = _items.asStateFlow()
     val current: List<LiveDoc> get() = _items.value
 
-    private fun load(): List<LiveDoc> = folder.listFiles { f -> f.extension == "json" }.orEmpty().mapNotNull { f ->
-        runCatching { json.decodeFromString(LiveDoc.serializer(), AtomicFiles.read(f) ?: return@mapNotNull null) }
-            .getOrElse { e -> AtomicFiles.quarantine(f, e); null }
-    }.sortedByDescending { it.updatedAt }
+    /** Vault for new documents; null = inside the app. */
+    val defaultVault: String? get() = config.defaultVault?.takeIf { id -> config.vaults.any { it.id == id } }
+
+    private fun metaDir(v: DocVault) = File(v.path, ".adeu")
+
+    private fun read(f: File): LiveDoc? = runCatching { json.decodeFromString(LiveDoc.serializer(), AtomicFiles.read(f) ?: return null) }
+        .getOrElse { e -> AtomicFiles.quarantine(f, e); null }
+
+    private fun load(): List<LiveDoc> {
+        val own = folder.listFiles { f -> f.extension == "json" }.orEmpty().mapNotNull(::read)
+        return (own + config.vaults.flatMap { loadVault(it) }).distinctBy { it.id }.sortedByDescending { it.updatedAt }
+    }
+
+    private fun loadVault(v: DocVault): List<LiveDoc> {
+        val meta = metaDir(v)
+        return meta.listFiles { f -> f.extension == "json" }.orEmpty().mapNotNull { f ->
+            known[f.path] = f.lastModified()
+            read(f)?.copy(vault = v.id)?.also { d -> mirror(v, d)?.let { m -> if (m.exists()) known[m.path] = m.lastModified() } }
+        }
+    }
 
     fun get(id: String?): LiveDoc? = id?.let { i -> _items.value.firstOrNull { it.id == i } }
 
@@ -134,10 +201,42 @@ class DocsStore(dir: File) {
 
     fun forChat(chatId: String): List<LiveDoc> = _items.value.filter { it.chatId == chatId }
 
+    fun vault(id: String?): DocVault? = id?.let { i -> config.vaults.firstOrNull { it.id == i } }
+
+    /** File name of the Markdown copy in a vault. */
+    private fun mirrorName(d: LiveDoc) = d.title.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), " ").replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "Dokument" } +
+        (if (d.docKind == DocKind.DOC) "" else " (${d.docKind.label})") + ".md"
+
+    private fun mirror(v: DocVault, d: LiveDoc): File? = d.mirror?.let { File(v.path, it) }
+
     @Synchronized
     fun save(doc: LiveDoc) {
-        _items.update { list -> (listOf(doc) + list.filterNot { it.id == doc.id }).sortedByDescending { it.updatedAt } }
-        runCatching { AtomicFiles.write(File(folder, "${doc.id}.json"), json.encodeToString(LiveDoc.serializer(), doc)) }.logFailure("Dokument speichern")
+        val v = vault(doc.vault)
+        val stored = if (v == null) doc.copy(vault = null, mirror = null) else writeMirror(v, doc)
+        _items.update { list -> (listOf(stored) + list.filterNot { it.id == stored.id }).sortedByDescending { it.updatedAt } }
+        runCatching {
+            val f = if (v == null) File(folder, "${stored.id}.json") else File(metaDir(v).apply { mkdirs() }, "${stored.id}.json")
+            AtomicFiles.write(f, json.encodeToString(LiveDoc.serializer(), stored))
+            known[f.path] = f.lastModified()
+        }.logFailure("Dokument speichern")
+    }
+
+    /** Writes the readable copy "<Titel>.md" (renamed with the title); returns the document with its name. */
+    private fun writeMirror(v: DocVault, doc: LiveDoc): LiveDoc {
+        val dir = File(v.path).apply { mkdirs() }
+        val old = doc.mirror
+        var name = old.takeIf { it != null && it.removeSuffix(".md").startsWith(mirrorName(doc).removeSuffix(".md")) } ?: mirrorName(doc)
+        // Another document already uses that name: add a number.
+        var k = 2
+        while (_items.value.any { it.id != doc.id && it.vault == v.id && it.mirror.equals(name, true) }) name = mirrorName(doc).removeSuffix(".md") + " ${k++}.md"
+        val target = File(dir, name)
+        runCatching {
+            val text = doc.markdown()
+            if (!target.exists() || target.readText() != text) AtomicFiles.write(target, text)
+            known[target.path] = target.lastModified()
+            if (old != null && !old.equals(name, true)) File(dir, old).delete()
+        }.logFailure("Markdown-Kopie speichern")
+        return doc.copy(vault = v.id, mirror = name)
     }
 
     fun update(id: String, transform: (LiveDoc) -> LiveDoc): LiveDoc? {
@@ -147,8 +246,118 @@ class DocsStore(dir: File) {
 
     @Synchronized
     fun delete(id: String) {
+        val doc = get(id)
         _items.update { list -> list.filterNot { it.id == id } }
         File(folder, "$id.json").delete()
+        vault(doc?.vault)?.let { v ->
+            File(metaDir(v), "$id.json").delete()
+            mirror(v, doc!!)?.delete()
+        }
+    }
+
+    /** Moves a document into [vaultId] (null = back into the app). */
+    @Synchronized
+    fun move(id: String, vaultId: String?) {
+        val doc = get(id) ?: return
+        if (doc.vault == vaultId) return
+        delete(id)
+        save(doc.copy(vault = vaultId, mirror = null))
+    }
+
+    // ── Vaults ──
+
+    private fun saveConfig() {
+        runCatching { AtomicFiles.write(configFile, json.encodeToString(VaultConfig.serializer(), config)) }.logFailure("Ablageorte speichern")
+        _vaults.value = config.vaults
+        _defaultVault.value = defaultVault
+    }
+
+    /** Adds [path] as vault; documents already there (from another computer) appear right away. */
+    @Synchronized
+    fun addVault(name: String, path: String, makeDefault: Boolean): DocVault {
+        config.vaults.firstOrNull { File(it.path).absoluteFile == File(path).absoluteFile }?.let { return it }
+        val v = DocVault(name = name.ifBlank { File(path).name.ifBlank { "Ablageort" } }, path = File(path).absolutePath)
+        config = config.copy(vaults = config.vaults + v, defaultVault = if (makeDefault) v.id else config.defaultVault)
+        saveConfig()
+        refresh()
+        return v
+    }
+
+    @Synchronized
+    fun setDefaultVault(id: String?) {
+        config = config.copy(defaultVault = id)
+        saveConfig()
+    }
+
+    /** Removes the vault from the app; its files stay in the folder. */
+    @Synchronized
+    fun removeVault(id: String) {
+        config = config.copy(vaults = config.vaults.filterNot { it.id == id }, defaultVault = config.defaultVault.takeIf { it != id })
+        saveConfig()
+        _items.update { list -> list.filterNot { it.vault == id } }
+    }
+
+    /**
+     * Picks up changes made outside the app: documents of other computers (JSON), edited Markdown copies and new
+     * .md files in the vault. Cheap enough to call every few seconds while documents are on screen.
+     */
+    @Synchronized
+    fun refresh() {
+        val vaults = config.vaults
+        if (vaults.isEmpty()) return
+        var list = _items.value
+        var changed = false
+        for (v in vaults) {
+            val dir = File(v.path)
+            if (!dir.isDirectory) continue
+            val metas = metaDir(v).listFiles { f -> f.extension == "json" }.orEmpty().associateBy { it.nameWithoutExtension }
+            // Documents removed on another computer.
+            list.filter { it.vault == v.id && it.id !in metas }.forEach { gone -> list = list.filterNot { it.id == gone.id }; changed = true }
+            for ((id, f) in metas) {
+                if (known[f.path] == f.lastModified() && list.any { it.id == id }) continue
+                val d = read(f)?.copy(vault = v.id) ?: continue
+                known[f.path] = f.lastModified()
+                list = listOf(d) + list.filterNot { it.id == id }
+                mirror(v, d)?.let { m -> if (m.exists()) known[m.path] = m.lastModified() }
+                changed = true
+            }
+            // Markdown copies edited outside (Obsidian, Word, another editor) and new .md files.
+            val names = list.filter { it.vault == v.id }.associateBy { it.mirror?.lowercase() }
+            dir.listFiles { f -> f.isFile && f.extension.equals("md", true) }.orEmpty().forEach { f ->
+                if (known[f.path] == f.lastModified()) return@forEach
+                val text = runCatching { f.readText() }.getOrNull() ?: return@forEach
+                known[f.path] = f.lastModified()
+                val doc = names[f.name.lowercase()]
+                if (doc != null) {
+                    if (doc.tabs.size == 1 && text != doc.markdown()) {
+                        val next = doc.change("Extern", "Außerhalb der App geändert (${f.name})") { it.copy(tabs = listOf(it.tabs[0].copy(markdown = text))) }
+                        list = listOf(next) + list.filterNot { it.id == doc.id }
+                        persist(v, next)
+                        changed = true
+                    }
+                } else {
+                    val kind = when {
+                        f.name.endsWith("(Präsentation).md") -> DocKind.SLIDES
+                        f.name.endsWith("(Tabelle).md") -> DocKind.SHEET
+                        else -> DocKind.DOC
+                    }
+                    val title = f.nameWithoutExtension.removeSuffix(" (Präsentation)").removeSuffix(" (Tabelle)")
+                    val next = LiveDoc.create(title, text, "Extern", kind = kind).copy(vault = v.id, mirror = f.name, updatedAt = f.lastModified())
+                    list = listOf(next) + list
+                    persist(v, next)
+                    changed = true
+                }
+            }
+        }
+        if (changed) _items.value = list.distinctBy { it.id }.sortedByDescending { it.updatedAt }
+    }
+
+    private fun persist(v: DocVault, d: LiveDoc) {
+        runCatching {
+            val f = File(metaDir(v).apply { mkdirs() }, "${d.id}.json")
+            AtomicFiles.write(f, json.encodeToString(LiveDoc.serializer(), d))
+            known[f.path] = f.lastModified()
+        }.logFailure("Dokument speichern")
     }
 }
 
@@ -228,7 +437,7 @@ object DocBlocks {
 
     fun titleOf(markdown: String): String? = markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim()
 
-    enum class Kind(val label: String) { PARAGRAPH("Absatz"), H1("Überschrift 1"), H2("Überschrift 2"), H3("Überschrift 3"), BULLETS("Aufzählung"), NUMBERS("Nummerierte Liste"), QUOTE("Zitat"), NOTE("Hinweisbox"), TABLE("Tabelle"), CODE("Code"), RULE("Trennlinie") }
+    enum class Kind(val label: String) { PARAGRAPH("Absatz"), H1("Überschrift 1"), H2("Überschrift 2"), H3("Überschrift 3"), BULLETS("Aufzählung"), NUMBERS("Nummerierte Liste"), TASKS("Checkliste"), QUOTE("Zitat"), NOTE("Hinweisbox"), TABLE("Tabelle"), CODE("Code"), RULE("Trennlinie") }
 
     fun kindOf(block: String): Kind {
         val t = block.trimStart()
@@ -241,6 +450,7 @@ object DocBlocks {
             t.startsWith("> [!") -> Kind.NOTE
             t.startsWith(">") -> Kind.QUOTE
             Regex("^\\d+[.)]\\s").containsMatchIn(t) -> Kind.NUMBERS
+            Regex("^[-*+]\\s\\[[ xX]]").containsMatchIn(t) -> Kind.TASKS
             Regex("^[-*+]\\s").containsMatchIn(t) -> Kind.BULLETS
             Regex("^([-*_])\\1{2,}$").matches(t) -> Kind.RULE
             else -> Kind.PARAGRAPH
@@ -249,7 +459,7 @@ object DocBlocks {
 
     /** The text of a block without its Markdown marks of the block type. */
     fun plainOf(block: String): String = block.lines().joinToString("\n") { l ->
-        l.replace(Regex("^#{1,6}\\s+"), "").replace(Regex("^>\\s?(\\[![A-Z]+]\\s*)?"), "").replace(Regex("^\\s*([-*+]|\\d+[.)])\\s+"), "")
+        l.replace(Regex("^#{1,6}\\s+"), "").replace(Regex("^>\\s?(\\[![A-Z]+]\\s*)?"), "").replace(Regex("^\\s*([-*+]|\\d+[.)])\\s+(\\[[ xX]]\\s*)?"), "")
     }.trim()
 
     /** Changes the type of a block, keeping its text. */
@@ -263,6 +473,7 @@ object DocBlocks {
             Kind.H3 -> "### " + lines.joinToString(" ")
             Kind.BULLETS -> lines.joinToString("\n") { "- $it" }
             Kind.NUMBERS -> lines.mapIndexed { i, l -> "${i + 1}. $l" }.joinToString("\n")
+            Kind.TASKS -> lines.joinToString("\n") { "- [ ] $it" }
             Kind.QUOTE -> lines.joinToString("\n") { "> $it" }
             Kind.NOTE -> "> [!NOTE]\n" + lines.joinToString("\n") { "> $it" }
             Kind.TABLE -> if (block.trimStart().startsWith("|")) block else "| Spalte 1 | Spalte 2 |\n| --- | --- |\n| ${lines.firstOrNull().orEmpty()} | |"
@@ -275,6 +486,21 @@ object DocBlocks {
     fun tableRows(block: String): List<List<String>> = block.lines().map { it.trim() }.filter { it.startsWith("|") }
         .map { it.trim('|').split('|').map(String::trim) }
         .filterNot { row -> row.all { it.matches(Regex(":?-{2,}:?")) } }
+
+    /** Ticks or unticks item [index] of a checklist block. */
+    fun toggleTask(block: String, index: Int): String {
+        var n = -1
+        return block.lines().joinToString("\n") { line ->
+            val m = Regex("^(\\s*[-*+]\\s\\[)([ xX])(].*)$").find(line) ?: return@joinToString line
+            n++
+            if (n != index) line else m.groupValues[1] + (if (m.groupValues[2].isBlank()) "x" else " ") + m.groupValues[3]
+        }
+    }
+
+    /** Items of a checklist block: text and whether it is ticked. */
+    fun tasks(block: String): List<Pair<String, Boolean>> = block.lines().mapNotNull { line ->
+        Regex("^\\s*[-*+]\\s\\[([ xX])]\\s?(.*)$").find(line)?.let { it.groupValues[2] to it.groupValues[1].isNotBlank() }
+    }
 
     fun table(rows: List<List<String>>): String {
         if (rows.isEmpty()) return ""

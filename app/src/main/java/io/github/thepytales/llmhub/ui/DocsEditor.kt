@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -35,28 +33,31 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Redo
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddComment
-import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.FormatBold
-import androidx.compose.material.icons.outlined.FormatItalic
+import androidx.compose.material.icons.outlined.FindReplace
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.Toc
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -68,13 +69,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -89,12 +89,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
@@ -105,19 +102,17 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.data.ChatMessage
-import io.github.thepytales.llmhub.data.appendToThread
+import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.docs.DocBlocks
 import io.github.thepytales.llmhub.docs.DocComment
 import io.github.thepytales.llmhub.docs.DocFormat
+import io.github.thepytales.llmhub.docs.DocKind
 import io.github.thepytales.llmhub.docs.DocReply
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTab
@@ -126,8 +121,12 @@ import io.github.thepytales.llmhub.docs.DocsLive
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.MarkdownDocx
+import io.github.thepytales.llmhub.docs.OfficeImport
+import io.github.thepytales.llmhub.docs.SheetEngine
 import io.github.thepytales.llmhub.docs.TextDiff
+import io.github.thepytales.llmhub.docs.XlsxWriter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -135,7 +134,7 @@ import java.io.File
 import java.text.DateFormat
 import java.util.Date
 
-/** Opens documents in the editor from anywhere (document cards, literature, chat answers). */
+/** Opens documents in the editor from anywhere (document cards, literature, chat answers, attachments). */
 object DocsHandoff {
     /** Id of the document to open, or "chat:<id>" for the document the model is writing in that chat. */
     val request = MutableStateFlow<String?>(null)
@@ -149,41 +148,41 @@ object DocsHandoff {
     }
 
     /** Creates a document from [markdown] and opens it. */
-    fun open(c: AppContainer, title: String, markdown: String, chatId: String? = null): LiveDoc {
-        val doc = LiveDoc.create(title, markdown, "Sie", chatId)
+    fun open(c: AppContainer, title: String, markdown: String, chatId: String? = null, kind: DocKind = DocKind.DOC): LiveDoc {
+        val doc = LiveDoc.create(title, markdown, "Sie", chatId, kind = kind).copy(vault = c.docs.defaultVault)
         c.docs.save(doc)
         show(doc.id)
         return doc
     }
-}
 
-/** Sends a request about a document to the model in the document's chat (creating one if needed). */
-object DocsAi {
-    fun send(c: AppContainer, doc: LiveDoc, label: String, text: String, instructions: String): Boolean {
-        val existing = doc.chatId?.let { id -> c.runs.get(id)?.conversation?.value ?: c.chats.get(id) }
-        if (existing != null && c.runs.get(existing.id) != null) {
-            Notices.info("Die KI arbeitet gerade in diesem Chat – bitte kurz warten.")
-            return false
-        }
-        val base = existing ?: newConversation(c).copy(title = "Dokument: ${doc.title}".take(60), folderId = null)
-        if (existing == null) c.docs.save(doc.copy(chatId = base.id))
-        val conv = base.appendToThread(ChatMessage(role = "user", content = text, template = label, instructions = instructions))
-        c.chats.save(conv.copy(updatedAt = System.currentTimeMillis()))
-        c.runs.start(conv)
-        return true
+    /**
+     * Imports a file (Word, PowerPoint, Excel, Markdown, text …) to keep working on it in the editor with the model;
+     * a file that is already there is returned instead of imported twice. Reads the file: call it off the main thread.
+     */
+    fun importFile(c: AppContainer, file: File, chatId: String? = null): LiveDoc? {
+        c.docs.forFile(file.absolutePath)?.let { return it }
+        val imported = runCatching { OfficeImport.read(file.name, file.readBytes()) }.getOrNull() ?: return null
+        val doc = OfficeImport.toLiveDoc(imported, chatId = chatId).copy(file = file.absolutePath, vault = c.docs.defaultVault)
+        c.docs.save(doc)
+        return doc
     }
 
-    fun commentInstructions(doc: LiveDoc, comment: DocComment): String =
-        "Der Nutzer hat im Dokument-Editor einen Kommentar zum Dokument „${doc.title}“ geschrieben (Kommentar-id ${comment.id}, " +
-            "Tab „${doc.tab(comment.tabId).title}“). Lies das Dokument mit read_document (file=\"${doc.id}\"), ändere die kommentierte Stelle mit " +
-            "edit_document (file=\"${doc.id}\", wörtliche Ersetzungen) – nur dort, alles andere bleibt – und antworte danach mit " +
-            "reply_to_comment kurz, was du geändert hast. Ist der Wunsch unklar, frage mit reply_to_comment (resolve=false) nach."
+    /** An attachment of a chat message (its text was read when it was attached). */
+    fun openAttachment(c: AppContainer, file: FileAttachment, chatId: String?) {
+        val kind = DocKind.forFile(file.name)
+        val title = file.name.substringBeforeLast('.').removePrefix("Dokument – ")
+        val markdown = when {
+            kind == DocKind.SHEET && file.name.endsWith(".csv", true) -> OfficeImport.csv(file.text)
+            kind == DocKind.SHEET && !file.text.trimStart().startsWith("|") -> SheetEngine.markdown(file.text.lines().filter { it.isNotBlank() }.map { l -> l.split('\t', ';').map(String::trim) })
+            else -> file.text
+        }
+        open(c, title, markdown, chatId, kind)
+    }
 }
 
 private fun time(millis: Long) = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(millis))
 
 /** The editor on its own screen (phones) or as route "doc/{id}". */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat: (String) -> Unit) {
     Scaffold { pad ->
@@ -193,34 +192,56 @@ fun DocScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat: (Stri
     }
 }
 
+/** Side panels of the editor (beside the page on wide screens, as a sheet on phones). */
+private enum class DocPanel { NONE, AI, COMMENTS, OUTLINE }
+
 /**
- * The document editor (like Claude Docs): the document as you will export it, editable block by block, with tabs,
- * comments for people and the model, a version history with comparison and export as PDF, Word (also with
- * tracked changes), Markdown, HTML, Excel or PowerPoint. While the model writes, the text grows on screen.
+ * The editor for documents, presentations and tables (like Google Docs, PowerPoint and Excel, with the model as
+ * co-author): same header, tabs, comments, version history, export and assistant for all three; the body differs.
+ * While the model writes, the text grows on screen; its changes are highlighted.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((String) -> Unit)? = null, inSidePanel: Boolean = false) {
     val docs by c.docs.items.collectAsState()
     val drafts by DocsLive.drafts.collectAsState()
+    val runs by c.runs.runs.collectAsState()
     val chatId = id.removePrefix("chat:").takeIf { id.startsWith("chat:") }
     val doc = if (chatId != null) docs.filter { it.chatId == chatId }.maxByOrNull { it.updatedAt } else docs.firstOrNull { it.id == id }
     val draft = (chatId ?: doc?.chatId)?.let { drafts[it] }
     val writing = draft != null
+    val aiWorking = doc?.chatId?.let { runs[it] } != null
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var tabId by rememberSaveable(doc?.id) { mutableStateOf(doc?.tabs?.firstOrNull()?.id) }
-    var editing by remember(doc?.id) { mutableStateOf<Int?>(null) }
-    var showComments by remember { mutableStateOf(false) }
+    var mode by rememberSaveable(doc?.id) { mutableStateOf(TextMode.EDIT) }
+    var panel by rememberSaveable { mutableStateOf(DocPanel.NONE) }
     var showHistory by remember { mutableStateOf(false) }
     var commentOn by remember { mutableStateOf<String?>(null) }
     var renaming by remember { mutableStateOf(false) }
     var findOpen by remember { mutableStateOf(false) }
     var find by remember { mutableStateOf("") }
+    var replace by remember { mutableStateOf("") }
     var export by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var sendToChat by remember { mutableStateOf(false) }
+    var chooseVault by remember { mutableStateOf(false) }
     var dismissedAi by remember { mutableStateOf<String?>(null) }
+    /** ✨ menu open for this passage. */
+    var aiMenuFor by remember { mutableStateOf<String?>(null) }
     val undo = remember(doc?.id) { mutableStateListOf<List<DocTab>>() }
     val redo = remember(doc?.id) { mutableStateListOf<List<DocTab>>() }
+    val editing = remember(doc?.id, tabId) { TextEditing() }
+    val inlineAi = rememberInlineAi(c)
+    val listState = rememberLazyListState()
+
+    // Documents in a storage folder: pick up what changed there (another computer, another editor).
+    LaunchedEffect(doc?.vault) {
+        if (doc?.vault != null) while (true) {
+            delay(4000)
+            withContext(Dispatchers.IO) { runCatching { c.docs.refresh() } }
+        }
+    }
 
     if (doc == null && draft == null) {
         Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -230,6 +251,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         return
     }
 
+    val kind = doc?.docKind ?: DocKind.DOC
     val tab = doc?.tab(tabId)
     val markdown = when {
         writing && (doc == null || draft?.docId == null && doc.versions.size <= 1 && chatId != null) -> draft!!.markdown
@@ -237,7 +259,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
     val showingDraft = writing && markdown == draft?.markdown
     val blocks = remember(markdown) { DocBlocks.split(markdown) }
-    // What the model changed last (highlighted until the user looks away or edits).
+    // What the model changed last (highlighted until the user dismisses it or edits).
     val lastVersion = doc?.versions?.lastOrNull()
     val aiChanged = remember(doc?.versions?.size, tabId) {
         val v = doc?.versions ?: emptyList()
@@ -250,277 +272,472 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     fun save(author: String = "Sie", note: String = "", transform: (LiveDoc) -> LiveDoc) {
         val d = c.docs.get(doc?.id) ?: return
         undo += d.tabs
-        if (undo.size > 50) undo.removeAt(0)
+        if (undo.size > 80) undo.removeAt(0)
         redo.clear()
         c.docs.save(d.change(author, note, transform))
     }
 
-    fun setBlocks(newBlocks: List<String>) {
+    fun setMarkdown(md: String) {
         val t = tab ?: return
-        save { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = DocBlocks.join(newBlocks)) else it }) }
+        if (md == t.markdown) return
+        save { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = md) else it }) }
     }
 
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
-        // ── Header: title, status, actions ──
-        Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) "Schließen" else "Zurück") }
-            Column(Modifier.weight(1f).clickable(enabled = doc != null) { renaming = true }) {
-                Text(doc?.title ?: draft?.title?.ifBlank { null } ?: "Neues Dokument", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                val status = when {
-                    writing -> "KI schreibt …"
-                    doc != null -> "Gespeichert · ${doc.lastAuthor} · ${time(doc.updatedAt)}"
-                    else -> ""
-                }
-                Text(
-                    status, style = MaterialTheme.typography.labelSmall, color = if (writing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                )
-            }
-            if (doc != null) {
-                IconButton(onClick = {
-                    val last = undo.removeLastOrNull() ?: return@IconButton
-                    redo += doc.tabs
-                    c.docs.save(doc.change("Sie", "Rückgängig") { it.copy(tabs = last) })
-                }, enabled = undo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = "Rückgängig") }
-                IconButton(onClick = {
-                    val next = redo.removeLastOrNull() ?: return@IconButton
-                    undo += doc.tabs
-                    c.docs.save(doc.change("Sie", "Wiederholt") { it.copy(tabs = next) })
-                }, enabled = redo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = "Wiederholen") }
-                IconButton(onClick = { showComments = !showComments }) {
-                    BadgedBox(badge = { if (doc.openComments > 0) Badge { Text("${doc.openComments}") } }) {
-                        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Kommentare")
-                    }
-                }
-                IconButton(onClick = { showHistory = true }) { Icon(Icons.Outlined.History, contentDescription = "Versionsverlauf") }
-                var more by remember { mutableStateOf(false) }
-                Box {
-                    IconButton(onClick = { more = true }) { Icon(Icons.Outlined.FileDownload, contentDescription = "Exportieren und teilen") }
-                    DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
-                        DropdownMenuItem(text = { Text("Exportieren (PDF, Word, Markdown …)") }, leadingIcon = { Icon(Icons.Outlined.Description, null) }, onClick = {
-                            more = false
-                            export = doc.title to DocumentWriter.withTitle(doc.title, doc.markdown())
-                        })
-                        if (doc.tabs.size > 1) DropdownMenuItem(text = { Text("Nur diesen Tab exportieren") }, onClick = {
-                            more = false
-                            export = "${doc.title} – ${tab!!.title}" to tab.markdown
-                        })
-                        DropdownMenuItem(text = { Text("Word mit Änderungsverfolgung …") }, onClick = { more = false; showHistory = true })
-                        DropdownMenuItem(text = { Text("Als Text teilen") }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
-                            more = false
-                            shareText(context, doc.markdown(), doc.title)
-                        })
-                        DropdownMenuItem(text = { Text("Als PowerPoint-Präsentation (KI)") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = {
-                            more = false
-                            if (DocsAi.send(
-                                    c, doc, "Präsentation aus Dokument", "Mach aus dem Dokument „${doc.title}“ eine Präsentation.",
-                                    "Lies das Dokument mit read_document (file=\"${doc.id}\") und erstelle daraus mit create_document eine PowerPoint-Präsentation " +
-                                        "(format=pptx) im TUD-Design: Kernaussagen als kurze Stichpunkte, Sprechernotizen mit den Details.",
-                                )) Notices.info("Die KI erstellt die Präsentation im Chat.")
-                        })
-                        DropdownMenuItem(text = { Text("Suchen im Dokument") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, onClick = { more = false; findOpen = true })
-                        doc.chatId?.takeIf { onOpenChat != null && !inSidePanel }?.let { cid ->
-                            DropdownMenuItem(text = { Text("Zum Chat") }, onClick = { more = false; onOpenChat?.invoke(cid) })
-                        }
-                        DropdownMenuItem(text = { Text("Dokument löschen", color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
-                            more = false
-                            val copy = doc
-                            c.docs.delete(doc.id)
-                            onClose()
-                            Notices.undo("Dokument gelöscht", restore = { c.docs.save(copy) })
-                        })
-                    }
-                }
+    fun setBlocks(newBlocks: List<String>) = setMarkdown(DocBlocks.join(newBlocks))
+
+    fun undoOnce() {
+        val d = c.docs.get(doc?.id) ?: return
+        val last = undo.removeLastOrNull() ?: return
+        redo += d.tabs
+        editing.index = null
+        c.docs.save(d.change("Sie", "Rückgängig") { it.copy(tabs = last) })
+    }
+
+    fun redoOnce() {
+        val d = c.docs.get(doc?.id) ?: return
+        val next = redo.removeLastOrNull() ?: return
+        undo += d.tabs
+        editing.index = null
+        c.docs.save(d.change("Sie", "Wiederholt") { it.copy(tabs = next) })
+    }
+
+    /** The marked passage for requests to the model: selection, edited block or nothing. */
+    fun selection(): String? = editing.selection ?: editing.index?.let { blocks.getOrNull(it) }
+
+    fun togglePanel(p: DocPanel) { panel = if (panel == p) DocPanel.NONE else p }
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
+        val narrow = maxWidth < 600.dp
+        val wide = maxWidth > 980.dp
+        val undoRedo: @Composable () -> Unit = {
+            if (doc != null && narrow) {
+                ToolIcon(Icons.AutoMirrored.Outlined.Undo, "Rückgängig (Strg+Z)", enabled = undo.isNotEmpty()) { undoOnce() }
+                ToolIcon(Icons.AutoMirrored.Outlined.Redo, "Wiederholen (Strg+Y)", enabled = redo.isNotEmpty()) { redoOnce() }
+                VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             }
         }
-        // ── Tabs ──
-        if (doc != null) {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                doc.tabs.forEach { t ->
-                    var tabMenu by remember { mutableStateOf(false) }
-                    var renameTab by remember { mutableStateOf(false) }
+        Column(
+            Modifier.fillMaxSize().onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed || doc == null) return@onPreviewKeyEvent false
+                when (e.key) {
+                    Key.Z -> { if (e.isShiftPressed) redoOnce() else undoOnce(); true }
+                    Key.Y -> { redoOnce(); true }
+                    Key.F, Key.H -> { findOpen = true; true }
+                    Key.E -> { togglePanel(DocPanel.AI); true }
+                    else -> false
+                }
+            },
+        ) {
+            // ── Header: title, status, actions ──
+            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) "Schließen" else "Zurück") }
+                Column(Modifier.weight(1f).clickable(enabled = doc != null) { renaming = true }) {
+                    Text(doc?.title ?: draft?.title?.ifBlank { null } ?: "Neues Dokument", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val status = when {
+                        writing -> "KI schreibt …"
+                        aiWorking -> "KI arbeitet am ${kind.label} …"
+                        doc != null -> kind.label + " · Gespeichert" + (doc.vault?.let { v -> c.docs.vault(v)?.let { " in „${it.name}“" } }.orEmpty()) + " · " + time(doc.updatedAt)
+                        else -> ""
+                    }
+                    Text(
+                        status, style = MaterialTheme.typography.labelSmall, color = if (writing || aiWorking) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+                }
+                if (doc != null) {
+                    if (!narrow) {
+                        IconButton(onClick = ::undoOnce, enabled = undo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = "Rückgängig") }
+                        IconButton(onClick = ::redoOnce, enabled = redo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = "Wiederholen") }
+                    }
+                    IconButton(onClick = { togglePanel(DocPanel.AI) }) {
+                        Icon(Icons.Outlined.AutoAwesome, contentDescription = "KI-Assistent (Strg+E)", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { togglePanel(DocPanel.COMMENTS) }) {
+                        BadgedBox(badge = { if (doc.openComments > 0) Badge { Text("${doc.openComments}") } }) {
+                            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Kommentare")
+                        }
+                    }
+                    var more by remember { mutableStateOf(false) }
                     Box {
-                        FilterChip(
-                            selected = t.id == tab?.id, onClick = { if (t.id == tab?.id) tabMenu = true else { tabId = t.id; editing = null } },
-                            label = { Text(t.title, maxLines = 1) },
-                        )
-                        DropdownMenu(expanded = tabMenu, onDismissRequest = { tabMenu = false }) {
-                            DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { tabMenu = false; renameTab = true })
-                            if (doc.tabs.size > 1) DropdownMenuItem(text = { Text("Tab löschen") }, onClick = {
-                                tabMenu = false
-                                save { d -> d.copy(tabs = d.tabs.filterNot { it.id == t.id }) }
-                                tabId = doc.tabs.firstOrNull { it.id != t.id }?.id
+                        IconButton(onClick = { more = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                        DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                            DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = {
+                                more = false
+                                export = doc.title to exportMarkdown(doc, null)
+                            })
+                            if (doc.tabs.size > 1 && tab != null) DropdownMenuItem(text = { Text("Nur „${tab.title}“ exportieren") }, onClick = {
+                                more = false
+                                export = "${doc.title} – ${tab.title}" to exportMarkdown(doc, tab.id)
+                            })
+                            DropdownMenuItem(text = { Text("In Chat senden …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, null) }, onClick = { more = false; sendToChat = true })
+                            DropdownMenuItem(text = { Text("Als Text teilen") }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
+                                more = false
+                                shareText(context, exportMarkdown(doc, null), doc.title)
+                            })
+                            HorizontalDivider()
+                            if (kind == DocKind.DOC) {
+                                DropdownMenuItem(text = { Text("Gliederung & Verknüpfungen") }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
+                                TextMode.entries.filter { it != mode }.forEach { m ->
+                                    DropdownMenuItem(
+                                        text = { Text(if (m == TextMode.EDIT) "Bearbeiten" else if (m == TextMode.SOURCE) "Markdown-Quelltext bearbeiten" else "Lesemodus") },
+                                        leadingIcon = { Icon(if (m == TextMode.SOURCE) Icons.Outlined.Code else if (m == TextMode.READ) Icons.Outlined.MenuBook else Icons.Outlined.Edit, null) },
+                                        onClick = { more = false; editing.index = null; mode = m },
+                                    )
+                                }
+                            }
+                            DropdownMenuItem(text = { Text("Suchen & Ersetzen") }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { more = false; findOpen = true })
+                            DropdownMenuItem(text = { Text("Versionsverlauf") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { more = false; showHistory = true })
+                            if (kind == DocKind.DOC) DropdownMenuItem(text = { Text("Word mit Änderungsverfolgung …") }, onClick = { more = false; showHistory = true })
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text(if (doc.starred) "Nicht mehr anheften" else "Anheften") },
+                                leadingIcon = { Icon(if (doc.starred) Icons.Outlined.Star else Icons.Outlined.StarBorder, null) },
+                                onClick = { more = false; c.docs.update(doc.id) { it.copy(starred = !it.starred) } },
+                            )
+                            if (FolderAccess.SUPPORTED || doc.vault != null) DropdownMenuItem(
+                                text = { Text("Ablageort …") }, leadingIcon = { Icon(Icons.Outlined.Folder, null) },
+                                onClick = { more = false; chooseVault = true },
+                            )
+                            DropdownMenuItem(text = { Text("Duplizieren") }, leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) }, onClick = {
+                                more = false
+                                val copy = LiveDoc.create(doc.title + " (Kopie)", doc.markdown(), "Sie", kind = kind)
+                                    .copy(tabs = doc.tabs.map { it.copy(id = java.util.UUID.randomUUID().toString()) }, vault = doc.vault)
+                                c.docs.save(copy)
+                                DocsHandoff.show(copy.id)
+                            })
+                            doc.chatId?.takeIf { onOpenChat != null && !inSidePanel }?.let { cid ->
+                                DropdownMenuItem(text = { Text("Chat zum ${kind.label} öffnen") }, onClick = { more = false; onOpenChat?.invoke(cid) })
+                            }
+                            DropdownMenuItem(text = { Text("Löschen", color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
+                                more = false
+                                val copy = doc
+                                c.docs.delete(doc.id)
+                                onClose()
+                                Notices.undo("${kind.label} gelöscht", restore = { c.docs.save(copy) })
                             })
                         }
                     }
-                    if (renameTab) TextPrompt("Tab umbenennen", t.title, onDismiss = { renameTab = false }) { name ->
-                        save { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(title = name) else it }) }
-                        renameTab = false
+                }
+            }
+            // ── Tabs (sheets of a table) ──
+            if (doc != null && (kind != DocKind.SLIDES || doc.tabs.size > 1)) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    doc.tabs.forEach { t ->
+                        var tabMenu by remember { mutableStateOf(false) }
+                        var renameTab by remember { mutableStateOf(false) }
+                        Box {
+                            FilterChip(
+                                selected = t.id == tab?.id, onClick = { if (t.id == tab?.id) tabMenu = true else { editing.index = null; tabId = t.id } },
+                                label = { Text(t.title, maxLines = 1) },
+                            )
+                            DropdownMenu(expanded = tabMenu, onDismissRequest = { tabMenu = false }) {
+                                DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { tabMenu = false; renameTab = true })
+                                DropdownMenuItem(text = { Text("Duplizieren") }, onClick = {
+                                    tabMenu = false
+                                    val copy = DocTab(title = t.title + " (Kopie)", markdown = t.markdown)
+                                    save { d -> d.copy(tabs = d.tabs.toMutableList().apply { add(indexOfFirst { it.id == t.id } + 1, copy) }) }
+                                    tabId = copy.id
+                                })
+                                if (doc.tabs.size > 1) DropdownMenuItem(text = { Text("Löschen") }, onClick = {
+                                    tabMenu = false
+                                    save { d -> d.copy(tabs = d.tabs.filterNot { it.id == t.id }) }
+                                    tabId = doc.tabs.firstOrNull { it.id != t.id }?.id
+                                })
+                            }
+                        }
+                        if (renameTab) TextPrompt(if (kind == DocKind.SHEET) "Tabellenblatt umbenennen" else "Tab umbenennen", t.title, onDismiss = { renameTab = false }) { name ->
+                            save { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(title = name) else it }) }
+                            renameTab = false
+                        }
+                    }
+                    IconButton(onClick = {
+                        val new = when (kind) {
+                            DocKind.SHEET -> DocTab(title = "Tabelle ${doc.tabs.size + 1}", markdown = SheetEngine.blank())
+                            DocKind.SLIDES -> DocTab(title = "Folien ${doc.tabs.size + 1}", markdown = io.github.thepytales.llmhub.docs.SlideDeck.blank("Titel"))
+                            DocKind.DOC -> DocTab(title = "Tab ${doc.tabs.size + 1}")
+                        }
+                        save { d -> d.copy(tabs = d.tabs + new) }
+                        editing.index = null
+                        tabId = new.id
+                    }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = if (kind == DocKind.SHEET) "Tabellenblatt hinzufügen" else "Tab hinzufügen", modifier = Modifier.size(18.dp)) }
+                    if (aiChanged.isNotEmpty()) {
+                        Spacer(Modifier.width(8.dp))
+                        StatusPill("${aiChanged.size} Änderungen der KI markiert ✕", PillTone.ACCENT, Modifier.clickable { dismissedAi = lastVersion?.id })
                     }
                 }
-                IconButton(onClick = {
-                    val new = DocTab(title = "Tab ${doc.tabs.size + 1}")
-                    save { d -> d.copy(tabs = d.tabs + new) }
-                    tabId = new.id
-                }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = "Tab hinzufügen", modifier = Modifier.size(18.dp)) }
-                if (aiChanged.isNotEmpty()) {
-                    Spacer(Modifier.width(8.dp))
-                    StatusPill("${aiChanged.size} Änderungen der KI markiert", PillTone.ACCENT, Modifier.clickable { dismissedAi = lastVersion?.id })
+            }
+            if (findOpen && doc != null) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(find, { find = it }, singleLine = true, placeholder = { Text("Suchen") }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(replace, { replace = it }, singleLine = true, placeholder = { Text("Ersetzen durch") }, modifier = Modifier.weight(1f))
+                    val hits = if (find.isBlank()) 0 else Regex(Regex.escape(find), RegexOption.IGNORE_CASE).findAll(markdown).count()
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("$hits Treffer", style = MaterialTheme.typography.labelSmall)
+                        TextButton(enabled = hits > 0, onClick = {
+                            setMarkdown(markdown.replace(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), Regex.escapeReplacement(replace)))
+                            Notices.info("$hits Stelle(n) ersetzt")
+                        }) { Text("Alle ersetzen") }
+                    }
+                    IconButton(onClick = { findOpen = false; find = ""; replace = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche schließen") }
                 }
             }
-        }
-        if (findOpen) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(find, { find = it }, singleLine = true, placeholder = { Text("Suchen") }, modifier = Modifier.weight(1f))
-                val hits = if (find.isBlank()) 0 else Regex(Regex.escape(find), RegexOption.IGNORE_CASE).findAll(markdown).count()
-                Text(" $hits Treffer ", style = MaterialTheme.typography.labelMedium)
-                IconButton(onClick = { findOpen = false; find = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche schließen") }
+            // ── Toolbar of text documents (slides and tables bring their own) ──
+            if (kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft) {
+                TextToolbar(
+                    editing, blocks, leading = undoRedo,
+                    onBlocks = { list, at ->
+                        setBlocks(list)
+                        if (at != null) list.getOrNull(at)?.let { editing.start(at, it.replace(EMPTY_BLOCK, "")) }
+                    },
+                    onAi = { aiMenuFor = selection() },
+                    onComment = { commentOn = editing.selection ?: editing.index?.let { DocBlocks.plainOf(blocks.getOrNull(it).orEmpty()).take(200) } ?: "" },
+                    onDoneEditing = {
+                        val i = editing.index
+                        val text = editing.value.text.replace(EMPTY_BLOCK, "")
+                        editing.index = null
+                        if (i != null && i in blocks.indices) setBlocks(blocks.toMutableList().apply { if (text.isBlank()) removeAt(i) else set(i, text) })
+                    },
+                )
             }
-        }
-        HorizontalDivider()
-        // ── Page ──
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            val wideComments = maxWidth > 900.dp && showComments && doc != null
-            Row(Modifier.fillMaxSize()) {
-                val listState = rememberLazyListState()
-                LaunchedEffect(blocks.size, showingDraft) { if (showingDraft && blocks.isNotEmpty()) listState.animateScrollToItem(blocks.lastIndex) }
-                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.widthIn(max = 760.dp).fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                    ) {
-                        item {
-                            Surface(
-                                color = LocalChatLook.current.card, shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), modifier = Modifier.fillMaxWidth(),
-                            ) { Spacer(Modifier.height(18.dp)) }
-                        }
-                        itemsIndexed(blocks, key = { i, b -> "$i:${b.hashCode()}" }) { i, block ->
-                            Surface(
-                                color = LocalChatLook.current.card,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Box(Modifier.padding(horizontal = 28.dp)) {
-                                    if (editing == i && doc != null && !showingDraft) {
-                                        BlockEditor(
-                                            block = block,
-                                            onDone = { text ->
-                                                editing = null
-                                                if (text != block) setBlocks(blocks.toMutableList().apply { if (text.isBlank()) removeAt(i) else set(i, text) })
-                                            },
-                                            onInsertBelow = { text ->
-                                                setBlocks(blocks.toMutableList().apply { set(i, text); add(i + 1, "") })
-                                                editing = i + 1
-                                            },
-                                            onMove = { delta ->
-                                                val j = i + delta
-                                                if (j in blocks.indices) {
-                                                    setBlocks(blocks.toMutableList().apply { val x = removeAt(i); add(j, x) })
-                                                    editing = j
-                                                }
-                                            },
-                                            onDelete = { editing = null; setBlocks(blocks.toMutableList().apply { removeAt(i) }) },
-                                            onComment = { quote -> commentOn = quote },
-                                        )
-                                    } else {
-                                        val commented = doc?.comments?.any { !it.resolved && it.tabId == tab?.id && it.quote.isNotBlank() && (it.quote in block || DocBlocks.plainOf(block).contains(it.quote.take(60))) } == true
-                                        val highlight = i in aiChanged || find.isNotBlank() && block.contains(find, true)
-                                        Row(
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .background(if (highlight) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent, RoundedCornerShape(6.dp))
-                                                .clickable(enabled = doc != null && !showingDraft) { editing = i }
-                                                .padding(vertical = 4.dp),
-                                            verticalAlignment = Alignment.Top,
-                                        ) {
-                                            Box(Modifier.weight(1f)) {
-                                                if (block.isBlank()) Text("Leerer Absatz – tippen zum Schreiben", color = MaterialTheme.colorScheme.outline)
-                                                else MarkdownText(block)
-                                            }
-                                            if (commented) {
-                                                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Kommentiert", tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.padding(start = 6.dp, top = 4.dp).size(16.dp).clickable { showComments = true })
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            Surface(
-                                color = LocalChatLook.current.card, shape = RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Column(Modifier.padding(horizontal = 28.dp, vertical = 12.dp)) {
-                                    if (showingDraft) WritingCaret()
-                                    else if (doc != null) {
-                                        TextButton(onClick = { setBlocks(blocks + ""); editing = blocks.size }) {
-                                            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("Absatz hinzufügen")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            if (doc != null) HintText(
-                                "${doc.words} Wörter · ${doc.versions.size} Versionen · Tippen zum Bearbeiten" +
-                                    (if (doc.chatId != null) " · Kommentare mit „An KI senden“ ändert die KI im Chat" else ""),
-                                Modifier.padding(top = 10.dp, start = 4.dp),
+            HorizontalDivider()
+            // ── Page and side panel ──
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    when {
+                        kind == DocKind.SLIDES && doc != null && !showingDraft -> SlidesBody(
+                            c, doc, markdown, writing || aiWorking, narrow, leading = undoRedo, onMarkdown = ::setMarkdown,
+                            onComment = { commentOn = it }, inlineAi = inlineAi,
+                        )
+                        kind == DocKind.SHEET && doc != null && !showingDraft -> SheetBody(
+                            c, doc, markdown, tab?.id, writing, leading = undoRedo, onMarkdown = ::setMarkdown,
+                            onComment = { commentOn = it }, inlineAi = inlineAi,
+                        )
+                        mode == TextMode.SOURCE && doc != null -> SourceEditor(markdown, tab?.id, ::setMarkdown)
+                        else -> {
+                            LaunchedEffect(blocks.size, showingDraft) { if (showingDraft && blocks.isNotEmpty()) listState.animateScrollToItem(blocks.size) }
+                            TextPage(
+                                doc, tab?.id, blocks, mode, writing = showingDraft, aiChanged = aiChanged, find = find, editing = editing, inlineAi = inlineAi,
+                                listState = listState, narrow = narrow, onBlocks = ::setBlocks,
+                                onComment = { commentOn = it }, onShowComments = { panel = DocPanel.COMMENTS },
+                                onAskAi = { text -> if (text.isBlank() || editing.index == null) panel = DocPanel.AI else aiMenuFor = text },
+                                footer = if (doc == null) "" else "${doc.words} Wörter · ca. ${(doc.words / 200).coerceAtLeast(1)} Min. Lesezeit · ${doc.versions.size} Versionen" +
+                                    if (mode == TextMode.EDIT) " · Tippen zum Bearbeiten · „/“ für Formate · Strg+E: KI" else "",
                             )
                         }
                     }
+                    if (doc != null && kind == DocKind.DOC && panel == DocPanel.NONE && mode != TextMode.SOURCE) {
+                        Box(Modifier.align(Alignment.BottomCenter)) { AiPromptBar(kind, aiWorking || writing) { panel = DocPanel.AI } }
+                    }
                 }
-                if (wideComments) {
+                if (wide && panel != DocPanel.NONE && doc != null) {
                     VerticalDivider()
-                    Box(Modifier.width(300.dp).fillMaxHeight()) { CommentsPanel(c, doc!!, tab?.id, onAdd = { commentOn = "" }) }
+                    Box(Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface)) {
+                        PanelContent(c, doc, panel, tab, blocks, ::selection, onOpenChat, onClose = { panel = DocPanel.NONE }, onAddComment = { commentOn = "" }, onJump = { i ->
+                            scope.launch { listState.animateScrollToItem(i + 1) }
+                        })
+                    }
+                }
+            }
+        }
+        if (!wide && panel != DocPanel.NONE && doc != null) {
+            val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(onDismissRequest = { panel = DocPanel.NONE }, sheetState = state) {
+                Box(Modifier.fillMaxWidth().height(if (panel == DocPanel.AI) 560.dp else 520.dp)) {
+                    PanelContent(c, doc, panel, tab, blocks, ::selection, onOpenChat, onClose = { panel = DocPanel.NONE }, onAddComment = { commentOn = "" }, onJump = { i ->
+                        panel = DocPanel.NONE
+                        scope.launch { listState.animateScrollToItem(i + 1) }
+                    })
                 }
             }
         }
     }
 
-    if (showComments && doc != null) {
-        // Narrow screens: comments in a sheet (wide ones show them beside the page).
-        BoxWithConstraints {
-            if (maxWidth <= 900.dp) {
-                val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                ModalBottomSheet(onDismissRequest = { showComments = false }, sheetState = state) {
-                    Box(Modifier.fillMaxWidth().height(520.dp)) { CommentsPanel(c, doc, tab?.id, onAdd = { commentOn = "" }) }
-                }
-            }
+    // ✨ on a passage: menu of actions, then the suggestion appears below it.
+    aiMenuFor?.let { text ->
+        val at = editing.index
+        InlineAiMenu(expanded = true, onDismiss = { aiMenuFor = null }) { action, instruction ->
+            aiMenuFor = null
+            if (at != null) inlineAi.start("b$at", doc, text, action.label, instruction)
         }
     }
     commentOn?.let { quote ->
-        if (doc != null && tab != null) NewCommentDialog(doc, quote.ifBlank { DocBlocks.plainOf(blocks.getOrNull(editing ?: 0).orEmpty()).take(200) }, onDismiss = { commentOn = null }) { text, toAi ->
-            val comment = DocComment(tabId = tab.id, quote = quote.ifBlank { DocBlocks.plainOf(blocks.getOrNull(editing ?: 0).orEmpty()).take(200) }, text = text, toAi = toAi)
-            c.docs.save(doc.copy(comments = doc.comments + comment, sendToAi = toAi))
-            if (toAi) {
-                val current = c.docs.get(doc.id)!!
-                if (DocsAi.send(c, current, "Kommentar im Dokument", "Kommentar zu „${comment.quote.take(120)}“: ${comment.text}", DocsAi.commentInstructions(current, comment))) {
-                    Notices.info("Die KI bearbeitet den Kommentar im Chat.")
+        if (doc != null && tab != null) {
+            val q = quote.ifBlank { editing.index?.let { DocBlocks.plainOf(blocks.getOrNull(it).orEmpty()).take(200) }.orEmpty() }
+            NewCommentDialog(doc, q, onDismiss = { commentOn = null }) { text, toAi ->
+                val comment = DocComment(tabId = tab.id, quote = q, text = text, toAi = toAi)
+                c.docs.save(doc.copy(comments = doc.comments + comment, sendToAi = toAi))
+                if (toAi) {
+                    val current = c.docs.get(doc.id)!!
+                    if (DocsAi.send(c, current, "Kommentar im ${kind.label}", "Kommentar zu „${comment.quote.take(120)}“: ${comment.text}", DocsAi.commentInstructions(current, comment))) {
+                        Notices.info("Die KI bearbeitet den Kommentar.")
+                    }
                 }
+                commentOn = null
+                panel = DocPanel.COMMENTS
             }
-            commentOn = null
-            showComments = true
         }
     }
     if (showHistory && doc != null) VersionHistory(c, doc, tab?.id, onDismiss = { showHistory = false })
-    if (renaming && doc != null) TextPrompt("Dokument umbenennen", doc.title, onDismiss = { renaming = false }) { name ->
+    if (renaming && doc != null) TextPrompt("Umbenennen", doc.title, onDismiss = { renaming = false }) { name ->
         save { it.copy(title = name) }
         renaming = false
     }
+    if (sendToChat && doc != null) SendToChatDialog(c, doc, onDismiss = { sendToChat = false })
+    if (chooseVault && doc != null) VaultDialog(c, doc, onDismiss = { chooseVault = false })
     export?.let { (title, md) ->
-        ExportDialog(c, title, md, onDismiss = { export = null }, onCreated = { file -> doc?.let { d -> c.docs.update(d.id) { it.copy(file = file.absolutePath) } } })
+        val d = doc
+        ExportDialog(
+            c, title, md, onDismiss = { export = null },
+            onCreated = { file -> d?.let { dd -> c.docs.update(dd.id) { it.copy(file = file.absolutePath) } } },
+            initial = when (kind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.PDF },
+            custom = if (kind == DocKind.SHEET && d != null) { format, file ->
+                when (format) {
+                    DocFormat.XLSX -> {
+                        XlsxWriter.writeSheets(file, d.tabs.map { t -> XlsxWriter.Sheet(t.title.take(31), SheetEngine.grid(t.markdown)) })
+                        true
+                    }
+                    else -> false
+                }
+            } else null,
+        )
     }
+}
+
+/** Markdown for export: tables with computed values (the .xlsx export keeps the formulas). */
+private fun exportMarkdown(doc: LiveDoc, tabId: String?): String {
+    val tabs = if (tabId != null) doc.tabs.filter { it.id == tabId } else doc.tabs
+    return when (doc.docKind) {
+        DocKind.SHEET -> tabs.joinToString("\n\n") { t ->
+            val rows = SheetEngine.Sheet(SheetEngine.grid(t.markdown)).computed()
+            (if (tabs.size > 1 || tabId == null) "## ${t.title}\n\n" else "") + SheetEngine.markdown(rows)
+        }.let { DocumentWriter.withTitle(doc.title, it) }
+        DocKind.SLIDES -> tabs.joinToString("\n\n---\n\n") { it.markdown }
+        DocKind.DOC -> DocumentWriter.withTitle(doc.title, if (tabId != null) doc.tab(tabId).markdown else doc.markdown()).replace(EMPTY_BLOCK, "")
+    }
+}
+
+@Composable
+private fun PanelContent(
+    c: AppContainer,
+    doc: LiveDoc,
+    panel: DocPanel,
+    tab: DocTab?,
+    blocks: List<String>,
+    selection: () -> String?,
+    onOpenChat: ((String) -> Unit)?,
+    onClose: () -> Unit,
+    onAddComment: () -> Unit,
+    onJump: (Int) -> Unit,
+) {
+    when (panel) {
+        DocPanel.AI -> DocAssistantPanel(c, doc, tab?.title, selection, onClose, onOpenChat)
+        DocPanel.COMMENTS -> CommentsPanel(c, doc, tab?.id, onAdd = onAddComment)
+        DocPanel.OUTLINE -> OutlinePanel(c, doc, blocks, onJump = onJump, onOpenDoc = { DocsHandoff.show(it) }, onClose = onClose)
+        DocPanel.NONE -> {}
+    }
+}
+
+/** "In Chat senden": the document as attachment in a new or an existing chat. */
+@Composable
+private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Unit) {
+    val chats by c.chats.conversations.collectAsState()
+    var asFile by remember { mutableStateOf(false) }
+    val recent = chats.filter { !it.archived }.sortedByDescending { it.updatedAt }.take(8)
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    fun send(chatId: String?) {
+        onDismiss()
+        if (!asFile) {
+            ChatHandoff.send(chatId, FileAttachment("${doc.title}.md", "text/markdown", exportMarkdown(doc, null)))
+            return
+        }
+        scope.launch {
+            // As Word/PowerPoint/Excel file: the chat gets the text, the file is kept for the model.
+            val format = when (doc.docKind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.DOCX }
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    DocumentWriter.create(context, File(context.cacheDir, "exports"), doc.title, exportMarkdown(doc, null), format, theme = c.documentTools.settingsTheme(DocStyle.parse(doc.style))).file
+                }
+            }.onSuccess { f ->
+                ChatHandoff.send(chatId, FileAttachment(f.name, format.mime, exportMarkdown(doc, null), path = f.absolutePath))
+            }.onFailure { Notices.error("Export fehlgeschlagen: ${it.message}") }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("In Chat senden") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                HintText("„${doc.title}“ wird im Eingabefeld des Chats angehängt – du kannst noch etwas dazu schreiben.")
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { asFile = !asFile }) {
+                    Checkbox(asFile, { asFile = it })
+                    Text(when (doc.docKind) { DocKind.SLIDES -> "Als PowerPoint-Datei"; DocKind.SHEET -> "Als Excel-Datei"; DocKind.DOC -> "Als Word-Datei" } + " (sonst als Text)")
+                }
+                Surface(onClick = { send(null) }, shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), modifier = Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Neuer Chat")
+                    }
+                }
+                LazyColumn(Modifier.height(280.dp)) {
+                    items(recent, key = { it.id }) { conv ->
+                        Text(
+                            conv.title.ifBlank { "Chat" }, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth().clickable { send(conv.id) }.padding(horizontal = 8.dp, vertical = 12.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
+}
+
+/** Moves a document into a storage folder (Google Drive …) or back into the app. */
+@Composable
+private fun VaultDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Unit) {
+    val vaults by c.docs.vaults.collectAsState()
+    var choice by remember { mutableStateOf(doc.vault) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ablageort") },
+        text = {
+            Column {
+                HintText("In einem Ablageort liegt „${doc.title}“ als lesbare Datei im Ordner – in Google Drive oder OneDrive auch auf deinen anderen Rechnern.")
+                Row(Modifier.fillMaxWidth().clickable { choice = null }, verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(choice == null, { choice = null })
+                    Text("In der App")
+                }
+                vaults.forEach { v ->
+                    Row(Modifier.fillMaxWidth().clickable { choice = v.id }, verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(choice == v.id, { choice = v.id })
+                        Column {
+                            Text(v.name)
+                            Text(v.path, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+                if (vaults.isEmpty()) HintText("Noch keine Ablageorte – unter Einstellungen › Speicherorte einen Ordner hinzufügen.")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                c.docs.move(doc.id, choice)
+                onDismiss()
+            }) { Text("Verschieben") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
 }
 
 /** Blinking bar at the end of the text the model is writing. */
 @Composable
-private fun WritingCaret() {
+fun WritingCaret() {
     val alpha by rememberInfiniteTransition(label = "caret").animateFloat(0.2f, 1f, infiniteRepeatable(tween(550), RepeatMode.Reverse), label = "alpha")
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(width = 3.dp, height = 18.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha)))
@@ -539,109 +756,6 @@ fun TextPrompt(title: String, initial: String, onDismiss: () -> Unit, onDone: (S
         confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onDone(text.trim()) }) { Text("OK") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
     )
-}
-
-/** One block in edit mode: its Markdown, type, bold/italic, move, delete, comment; tables as a grid. */
-@Composable
-private fun BlockEditor(
-    block: String,
-    onDone: (String) -> Unit,
-    onInsertBelow: (String) -> Unit,
-    onMove: (Int) -> Unit,
-    onDelete: () -> Unit,
-    onComment: (String) -> Unit,
-) {
-    var value by remember(block) { mutableStateOf(TextFieldValue(block, TextRange(block.length))) }
-    var rows by remember(block) { mutableStateOf(DocBlocks.tableRows(block)) }
-    val kind = DocBlocks.kindOf(value.text)
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
-    fun current() = if (kind == DocBlocks.Kind.TABLE) DocBlocks.table(rows) else value.text
-    fun wrap(mark: String) {
-        val sel = value.selection
-        val t = value.text
-        if (sel.collapsed) return
-        val inner = t.substring(sel.min, sel.max)
-        val next = t.substring(0, sel.min) + mark + inner + mark + t.substring(sel.max)
-        value = TextFieldValue(next, TextRange(sel.min + mark.length, sel.max + mark.length))
-    }
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
-            var kinds by remember { mutableStateOf(false) }
-            Box {
-                OutlinedButton(onClick = { kinds = true }, contentPadding = PaddingValues(horizontal = 10.dp)) { Text(kind.label, style = MaterialTheme.typography.labelMedium) }
-                DropdownMenu(expanded = kinds, onDismissRequest = { kinds = false }) {
-                    DocBlocks.Kind.entries.forEach { k ->
-                        DropdownMenuItem(text = { Text(k.label) }, onClick = {
-                            kinds = false
-                            val converted = DocBlocks.convert(current(), k)
-                            value = TextFieldValue(converted, TextRange(converted.length))
-                            rows = DocBlocks.tableRows(converted)
-                        })
-                    }
-                }
-            }
-            IconButton(onClick = { wrap("**") }) { Icon(Icons.Outlined.FormatBold, contentDescription = "Fett") }
-            IconButton(onClick = { wrap("*") }) { Icon(Icons.Outlined.FormatItalic, contentDescription = "Kursiv") }
-            IconButton(onClick = {
-                val sel = value.selection
-                onComment(if (sel.collapsed) DocBlocks.plainOf(value.text).take(200) else value.text.substring(sel.min, sel.max))
-            }) { Icon(Icons.Outlined.AddComment, contentDescription = "Kommentieren") }
-            IconButton(onClick = { onMove(-1) }) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "Nach oben") }
-            IconButton(onClick = { onMove(1) }) { Icon(Icons.Outlined.ArrowDownward, contentDescription = "Nach unten") }
-            IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = "Block löschen") }
-            IconButton(onClick = { onDone(current()) }) { Icon(Icons.Outlined.Check, contentDescription = "Fertig", tint = MaterialTheme.colorScheme.primary) }
-        }
-        if (kind == DocBlocks.Kind.TABLE) {
-            TableGrid(rows, { rows = it })
-        } else {
-            OutlinedTextField(
-                value, { value = it },
-                modifier = Modifier.fillMaxWidth().focusRequester(focus).onPreviewKeyEvent { e ->
-                    when {
-                        e.type != KeyEventType.KeyDown -> false
-                        e.key == Key.Escape -> { onDone(current()); true }
-                        e.isCtrlPressed && e.key == Key.B -> { wrap("**"); true }
-                        e.isCtrlPressed && e.key == Key.I -> { wrap("*"); true }
-                        e.isCtrlPressed && e.isAltPressed && e.key == Key.M -> { onComment(DocBlocks.plainOf(value.text).take(200)); true }
-                        // Enter at the end of a paragraph starts a new one below (Umschalt+Enter: new line).
-                        e.key == Key.Enter && !e.isShiftPressed && kind in setOf(DocBlocks.Kind.PARAGRAPH, DocBlocks.Kind.H1, DocBlocks.Kind.H2, DocBlocks.Kind.H3) &&
-                            value.selection.collapsed && value.selection.end == value.text.length -> { onInsertBelow(value.text); true }
-                        else -> false
-                    }
-                },
-                textStyle = MaterialTheme.typography.bodyLarge,
-            )
-            HintText("Markdown: **fett**, *kursiv*, [Link](https://…). Enter am Ende: neuer Absatz · Esc: fertig")
-        }
-    }
-}
-
-/** Table cells as fields, with rows and columns to add or remove. */
-@Composable
-private fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) -> Unit) {
-    val cols = (rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
-    Column(Modifier.horizontalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        rows.forEachIndexed { r, row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                (0 until cols).forEach { col ->
-                    OutlinedTextField(
-                        row.getOrElse(col) { "" },
-                        { v -> onChange(rows.mapIndexed { i, rr -> if (i == r) (0 until cols).map { k -> if (k == col) v else rr.getOrElse(k) { "" } } else rr }) },
-                        modifier = Modifier.width(150.dp),
-                        textStyle = if (r == 0) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
-                        singleLine = false,
-                    )
-                }
-                if (r > 0) IconButton(onClick = { onChange(rows.filterIndexed { i, _ -> i != r }) }) { Icon(Icons.Outlined.Close, contentDescription = "Zeile löschen", modifier = Modifier.size(16.dp)) }
-            }
-        }
-        Row {
-            TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text("+ Zeile") }
-            TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text("+ Spalte") }
-            if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text("− Spalte") }
-        }
-    }
 }
 
 @Composable
@@ -809,73 +923,3 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
     )
 }
 
-/** All documents of the editor, newest first (like the Artifacts tab). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit) {
-    val docs by c.docs.items.collectAsState()
-    var query by rememberSaveable { mutableStateOf("") }
-    val shown = docs.filter { query.isBlank() || it.title.contains(query, true) || it.tabs.any { t -> t.markdown.contains(query, true) } }
-    val importFile = rememberFileImport(arrayOf("text/*", "*/*")) { input ->
-        val text = input.readBytes().toString(Charsets.UTF_8)
-        val doc = LiveDoc.create(DocBlocks.titleOf(text) ?: "Importiertes Dokument", text, "Sie")
-        c.docs.save(doc)
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = { BackButton(onBack) }, title = { Text("Dokumente") },
-                actions = {
-                    TextButton(onClick = importFile) { Text("Importieren") }
-                    TextButton(onClick = {
-                        val doc = LiveDoc.create("Unbenanntes Dokument", "# Unbenanntes Dokument\n\n", "Sie")
-                        c.docs.save(doc)
-                        onOpen(doc.id)
-                    }) { Text("Neu") }
-                },
-            )
-        },
-    ) { pad ->
-        Box(Modifier.padding(pad).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            LazyColumn(Modifier.widthIn(max = 820.dp).fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                item {
-                    OutlinedTextField(query, { query = it }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text("Dokumente durchsuchen") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                }
-                if (shown.isEmpty()) item {
-                    Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.Description, null, Modifier.size(40.dp), tint = MaterialTheme.colorScheme.outline)
-                        Text("Noch keine Dokumente", style = MaterialTheme.typography.titleSmall)
-                        HintText("Dokumente entstehen, wenn die KI im Chat ein Dokument schreibt, über „Im Editor öffnen“ an einer Antwort oder mit „Neu“.")
-                    }
-                }
-                items(shown, key = { it.id }) { d ->
-                    AppCard(onClick = { onOpen(d.id) }) {
-                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(d.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                HintText("${time(d.updatedAt)} · ${d.lastAuthor} · ${d.words} Wörter" + (if (d.tabs.size > 1) " · ${d.tabs.size} Tabs" else "") + (if (d.openComments > 0) " · ${d.openComments} Kommentare" else ""))
-                            }
-                            var menu by remember { mutableStateOf(false) }
-                            Box {
-                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
-                                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                    DropdownMenuItem(text = { Text("Duplizieren") }, onClick = {
-                                        menu = false
-                                        c.docs.save(LiveDoc.create(d.title + " (Kopie)", d.markdown(), "Sie").copy(tabs = d.tabs.map { it.copy(id = java.util.UUID.randomUUID().toString()) }))
-                                    })
-                                    DropdownMenuItem(text = { Text("Löschen") }, onClick = {
-                                        menu = false
-                                        c.docs.delete(d.id)
-                                        Notices.undo("Dokument gelöscht", restore = { c.docs.save(d) })
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

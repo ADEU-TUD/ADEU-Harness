@@ -125,11 +125,24 @@ fun DocumentCard(path: String) {
                 }
                 // Markdown documents can be edited and commented in the document editor.
                 val docs by io.github.thepytales.llmhub.App.container.docs.items.collectAsState()
-                docs.firstOrNull { it.file == path }?.let { live ->
+                val live = docs.firstOrNull { it.file == path }
+                if (live != null) {
                     TextButton(onClick = { DocsHandoff.show(live.id) }) {
                         Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
                         Text("Im Editor bearbeiten" + if (live.openComments > 0) " · ${live.openComments} Kommentare" else "")
+                    }
+                } else if (io.github.thepytales.llmhub.docs.OfficeImport.canOpen(file.name)) {
+                    // Word, PowerPoint, Excel, Markdown … from elsewhere: open in the editor to keep working with the model.
+                    TextButton(onClick = {
+                        scope.launch {
+                            val doc = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { DocsHandoff.importFile(io.github.thepytales.llmhub.App.container, file) }
+                            if (doc != null) DocsHandoff.show(doc.id) else Notices.error("„${file.name}“ ließ sich nicht im Editor öffnen.")
+                        }
+                    }) {
+                        Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.size(4.dp))
+                        Text("Im Editor öffnen")
                     }
                 }
                 DocumentGaps(file, version) { version++ }
@@ -160,10 +173,19 @@ fun chatToMarkdown(conv: Conversation): String = buildString {
 /** Lets the user export [markdown] as PDF, Word, HTML, Markdown or text. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: () -> Unit, onCreated: (File) -> Unit = {}) {
+fun ExportDialog(
+    c: AppContainer,
+    title: String,
+    markdown: String,
+    onDismiss: () -> Unit,
+    onCreated: (File) -> Unit = {},
+    initial: DocFormat = DocFormat.PDF,
+    /** Writes some formats itself (tables of the editor with their formulas); null = the usual way. */
+    custom: ((DocFormat, File) -> Boolean)? = null,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var format by remember { mutableStateOf(DocFormat.PDF) }
+    var format by remember { mutableStateOf(initial) }
     var style by remember { mutableStateOf(DocStyle.parse(c.settings.current.docStyle) ?: DocStyle.MODERN) }
     var busy by remember { mutableStateOf(false) }
     val created = remember { mutableStateMapOf<Pair<DocFormat, DocStyle>, File>() }
@@ -174,10 +196,16 @@ fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: ()
         busy = true
         scope.launch {
             val result = runCatching {
-                DocumentWriter.create(
-                    context, File(context.cacheDir, "exports"), title, markdown, key.first,
-                    theme = c.documentTools.settingsTheme(key.second),
-                ).file
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val own = custom?.let { write ->
+                        val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+                        File(dir, DocumentWriter.safeName(title) + "." + key.first.ext).takeIf { write(key.first, it) }
+                    }
+                    own ?: DocumentWriter.create(
+                        context, File(context.cacheDir, "exports"), title, markdown, key.first,
+                        theme = c.documentTools.settingsTheme(key.second),
+                    ).file
+                }
             }
             busy = false
             result.onSuccess {
