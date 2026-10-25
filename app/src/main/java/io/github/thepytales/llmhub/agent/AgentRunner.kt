@@ -154,7 +154,9 @@ class AgentRunner(private val c: AppContainer) {
                     model = fallback
                     continue
                 }
-                val message = NetErrors.describe(e)
+                // Server-side trouble: the status page tells whether the model itself is disrupted.
+                val serverSide = e is ApiException && e.code >= 500 || e is java.net.SocketTimeoutException
+                val message = NetErrors.describe(e) + (if (serverSide) c.llm.status.explain(model)?.let { "\n\n$it" }.orEmpty() else "")
                 host.update { cv ->
                     if (partial == null || partial.content.isBlank()) {
                         cv.updateMessage(placeholder.id) { it.copy(content = message, reasoning = null, toolCalls = emptyList(), error = true) }

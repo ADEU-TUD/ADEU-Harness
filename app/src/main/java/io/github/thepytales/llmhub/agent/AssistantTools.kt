@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.data.Privacy
 
 import io.github.thepytales.llmhub.AppContainer
@@ -161,7 +162,15 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
         val vector = if (model != null && c.knowledge.docs.value.any { it.collection in collections && it.embeddedWith == model }) {
             runCatching { c.llm.embed(model, listOf(query)).firstOrNull() }.getOrNull()
         } else null
-        val hits = c.knowledge.search(query, collections, k, vector, model)
+        // More candidates than needed; the reranker of the Uni server picks the really fitting passages.
+        val reranker = rerankModel().takeIf { Privacy.level(c, ctx.folderId).allowsUniServer }
+        val candidates = c.knowledge.search(query, collections, if (reranker != null) (k * 3).coerceAtMost(30) else k, vector, model)
+        val hits = if (reranker != null && candidates.size > 1) {
+            runCatching { c.llm.rerank(reranker, query, candidates.map { it.text }) }
+                .logFailure("Reranker")
+                .getOrNull()?.map { candidates[it] }?.take(k)
+                ?: candidates.take(k)
+        } else candidates
         if (hits.isEmpty()) return ToolOutput("Keine passende Stelle in der Wissenssammlung gefunden.")
         return ToolOutput(
             hits.joinToString("\n\n") { h ->
@@ -191,6 +200,13 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
         return doc
     }
 
+    /** The reranker of the server, if it offers one (Qwen3 Reranker); null otherwise. */
+    fun rerankModel(): String? {
+        val live = c.models.state.value.liveIds ?: return null
+        return live.firstOrNull { it.equals(PREFERRED_RERANKER, ignoreCase = true) }
+            ?: live.firstOrNull { io.github.thepytales.llmhub.data.ModelCatalog.info(it).type == ModelType.RERANK }
+    }
+
     /** The embedding model of the server: Qwen3 Embedding if offered, else the first one the server lists. */
     fun embeddingModel(): String? {
         val live = c.models.state.value.liveIds
@@ -200,6 +216,7 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     }
 
     companion object {
+        const val PREFERRED_RERANKER = "Qwen/Qwen3-Reranker-4B"
         const val PREFERRED_EMBEDDING = "Qwen/Qwen3-Embedding-4B"
     }
 }

@@ -458,6 +458,34 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
     }
 
+    /** State of the Uni server's models from its public status page. */
+    val status = ServerStatus(http) { settings.current.baseUrl }
+
+    /**
+     * Orders [documents] by relevance to [query] with a reranker model (vLLM /rerank, Cohere/Jina format).
+     * Returns the indices of the documents, most relevant first.
+     */
+    suspend fun rerank(model: String, query: String, documents: List<String>): List<Int> = withContext(Dispatchers.IO) {
+        limiter.acquire()
+        val body = buildJsonObject {
+            put("model", model)
+            put("query", query)
+            putJsonArray("documents") { documents.forEach { add(JsonPrimitive(it)) } }
+            put("top_n", documents.size)
+        }
+        http.newCall(request("/rerank", model).post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
+            val text = resp.body?.string()
+            if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, text))
+            val results = JSON.parseToJsonElement(text ?: "{}").jsonObject["results"]?.jsonArray.orEmpty()
+            results.mapNotNull { r ->
+                val o = r.jsonObject
+                val i = o["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@mapNotNull null
+                val score = (o["relevance_score"] ?: o["score"])?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: 0.0
+                i to score
+            }.sortedByDescending { it.second }.map { it.first }.filter { it in documents.indices }
+        }
+    }
+
     /** Embedding vectors for [inputs] (semantic search in the knowledge collection). */
     suspend fun embed(model: String, inputs: List<String>): List<FloatArray> = withContext(Dispatchers.IO) {
         limiter.acquire()
