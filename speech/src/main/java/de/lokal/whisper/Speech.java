@@ -234,6 +234,24 @@ public final class Speech {
                 .build();
     }
 
+    /** Stimmabdruck (Sprecher-Einbettung) eines Audioausschnitts (16 kHz, mono), fuer Stimmprofile. */
+    public static float[] embedding(float[] samples, File model, int threads) {
+        com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor ex = new com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor(
+                SpeakerEmbeddingExtractorConfig.builder().setModel(model.getAbsolutePath()).setNumThreads(threads).setDebug(false).setProvider("cpu").build());
+        try {
+            com.k2fsa.sherpa.onnx.OnlineStream st = ex.createStream();
+            try {
+                st.acceptWaveform(samples, 16000);
+                st.inputFinished();
+                return ex.compute(st);
+            } finally {
+                st.release();
+            }
+        } finally {
+            ex.release();
+        }
+    }
+
     /**
      * Sprechererkennung. Laeuft in einem eigenen Thread, weil sherpa-onnx sich mittendrin nicht anhalten
      * laesst: bei Abbruch kehrt diese Methode sofort zurueck (InterruptedException), der Rest laeuft im

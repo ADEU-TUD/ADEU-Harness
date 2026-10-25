@@ -226,3 +226,45 @@ class FormatsAndResearchTest {
         assertEquals(2, PageMarks.pageAt(text, text.indexOf("Zitat")))
     }
 }
+
+class TranscriptToolsTest {
+    @Test
+    fun anonymizationIsConsistentAndKeepsTimes() {
+        val t = Transcript(
+            id = "t2", title = "Gespräch mit Frau Müller", created = "", duration = 30.0, language = "de", modelName = "", device = null,
+            speakers = mapOf(0 to "I", 1 to "Anna Müller"),
+            segments = listOf(
+                Segment(0, 0.0, 5.0, "Guten Tag Frau Müller, erreichbar unter anna.mueller@example.org?", 0),
+                Segment(1, 5.0, 9.0, "Ja. Anna reicht. Mein Kollege Herr Schmidt kommt später.", 1),
+            ),
+            audio = null, folder = null, marks = emptyList(), notice = null, raw = kotlinx.serialization.json.JsonObject(emptyMap()),
+        )
+        val r = io.github.thepytales.llmhub.transcribe.TranscriptAnon.anonymize(t, emptyList())
+        val text = r.transcript.segments.joinToString(" ") { it.text }
+        assertTrue("Müller" !in text && "Schmidt" !in text && "@" !in text && "Anna" !in text, text)
+        assertEquals("Person A", r.transcript.speakers[1])
+        assertEquals("I", r.transcript.speakers[0])
+        assertEquals(listOf(0.0, 5.0), r.transcript.segments.map { it.start })
+        assertTrue(r.mapping.any { it.first == "Anna Müller" && it.second == "Person A" })
+        assertTrue(io.github.thepytales.llmhub.transcribe.TranscriptAnon.mappingTable("x", r.mapping).contains("| Anna Müller | Person A |"))
+    }
+
+    @Test
+    fun translationLinesAndVoiceMatching() {
+        assertEquals(listOf("Hello", null, "Bye"), io.github.thepytales.llmhub.transcribe.TranscriptTranslate.parse("1\tHello\n3\tBye\nnoise", 3))
+        val p1 = io.github.thepytales.llmhub.transcribe.VoiceProfile(name = "Interviewer", vector = listOf(1f, 0f, 0f))
+        val p2 = io.github.thepytales.llmhub.transcribe.VoiceProfile(name = "Anna", vector = listOf(0f, 1f, 0f))
+        val m = io.github.thepytales.llmhub.transcribe.Voices.match(mapOf(0 to floatArrayOf(0.1f, 0.9f, 0f), 1 to floatArrayOf(0.95f, 0.05f, 0f), 2 to floatArrayOf(0f, 0f, 1f)), listOf(p1, p2))
+        assertEquals(listOf(0 to "Anna", 1 to "Interviewer"), m.map { it.speaker to it.profile.name })
+    }
+
+    @Test
+    fun seriesDataParsesTablesAndCsv() {
+        val sd = io.github.thepytales.llmhub.docs.SeriesData
+        val csv = sd.parse("Name;Kurs\n\"Meier, Jana\";Mathe\nLi;Physik")
+        assertEquals(listOf(listOf("Name", "Kurs"), listOf("Meier, Jana", "Mathe"), listOf("Li", "Physik")), csv)
+        val md = sd.parse("| Name | Kurs |\n| --- | --- |\n| Jana | Mathe |")
+        assertEquals(listOf("Jana", "Mathe"), md.last())
+        assertEquals("Liebe Jana, Kurs Mathe {{Fehlt}}", sd.fill("Liebe {{ name }}, Kurs {{Kurs|Standard}} {{Fehlt}}", mapOf("Name" to "Jana", "Kurs" to "Mathe")))
+    }
+}

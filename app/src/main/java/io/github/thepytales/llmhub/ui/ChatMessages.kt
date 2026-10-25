@@ -704,6 +704,8 @@ private fun toolLabel(name: String) = when (name) {
     "create_chart" -> "Diagramm"
     "journal_new_articles" -> "Neue Artikel"
     "read_feed" -> "Feed lesen"
+    "create_series" -> "Serienbrief"
+    "create_semester_plan" -> "Semesterplan"
     else -> name
 }
 

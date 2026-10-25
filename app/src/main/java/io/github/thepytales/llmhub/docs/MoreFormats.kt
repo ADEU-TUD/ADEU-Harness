@@ -354,3 +354,40 @@ object LimeSurveyWriter {
         "(„, optional“ für Kann-Fragen); Antwortoptionen bzw. Matrix-Items als Liste „- …“, bei matrix die Skala hinter der Frage: " +
         "„Skala: trifft nicht zu | eher nicht | eher | trifft zu“. Die Datei wird in LimeSurvey unter Umfrage importieren eingelesen. "
 }
+
+/** Data of a series of documents: CSV (comma or semicolon), tab-separated text or a Markdown table. */
+object SeriesData {
+    fun parse(text: String): List<List<String>> {
+        val lines = text.trim().lines().filter { it.isNotBlank() }
+        if (lines.isEmpty()) return emptyList()
+        if (lines.first().trim().startsWith("|")) return DocBlocks.tableRows(lines.joinToString("\n"))
+        val sep = listOf('\t', ';', ',').maxByOrNull { c -> lines.first().count { it == c } } ?: ';'
+        return lines.map { line -> split(line, sep) }
+    }
+
+    /** One CSV line with quoted fields ("a;b" stays one field, "" is a quote). */
+    fun split(line: String, sep: Char): List<String> {
+        val out = mutableListOf<String>()
+        val cur = StringBuilder()
+        var quoted = false
+        var i = 0
+        while (i < line.length) {
+            val ch = line[i]
+            when {
+                quoted && ch == '"' && i + 1 < line.length && line[i + 1] == '"' -> { cur.append('"'); i++ }
+                ch == '"' -> quoted = !quoted
+                ch == sep && !quoted -> { out += cur.toString().trim(); cur.clear() }
+                else -> cur.append(ch)
+            }
+            i++
+        }
+        out += cur.toString().trim()
+        return out
+    }
+
+    /** {{Spalte}} (case-insensitive) by the value of the row. */
+    fun fill(text: String, values: Map<String, String>): String =
+        Regex("\\{\\{\\s*([^{}|]+?)\\s*(?:\\|[^{}]*)?\\}\\}").replace(text) { m ->
+            values.entries.firstOrNull { it.key.equals(m.groupValues[1].trim(), ignoreCase = true) }?.value ?: m.value
+        }
+}

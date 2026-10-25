@@ -62,6 +62,7 @@ import io.github.thepytales.llmhub.transcribe.Transcript
 import io.github.thepytales.llmhub.transcribe.TranscriptCoding
 import io.github.thepytales.llmhub.transcribe.TranscriptExport
 import io.github.thepytales.llmhub.transcribe.withCoding
+import kotlinx.coroutines.launch
 
 fun codeColor(hex: String): Color = runCatching { Color(0xFF000000 or hex.trim().removePrefix("#").take(6).toLong(16)) }.getOrDefault(Color(0xFF1E40AF))
 
@@ -344,4 +345,40 @@ private fun CodebookEditor(initial: Codebook, onSave: (Codebook) -> Unit, onDele
             dismissButton = { TextButton(onClick = { editing = null }) { Text("Abbrechen") } },
         )
     }
+}
+
+/** Translates a transcript into another language as a new transcript (times and speakers stay; for subtitles). */
+@Composable
+fun TranslateDialog(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var language by remember { mutableStateOf(io.github.thepytales.llmhub.transcribe.TranscriptTranslate.LANGUAGES.first()) }
+    var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    AlertDialog(
+        onDismissRequest = { if (progress == null) onDismiss() },
+        title = { Text("Transkript übersetzen") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                HintText("Ergibt ein neues Transkript mit denselben Zeiten und Sprechern – z.B. für Untertitel (SRT/WebVTT) in einer anderen Sprache. Das Original bleibt.")
+                ChoiceField("Zielsprache", io.github.thepytales.llmhub.transcribe.TranscriptTranslate.LANGUAGES.map { it to it }, language, { language = it }, enabled = progress == null)
+                progress?.let { (d, n) ->
+                    androidx.compose.material3.LinearProgressIndicator(progress = { if (n == 0) 0f else d.toFloat() / n }, modifier = Modifier.fillMaxWidth())
+                    HintText("$d von $n Abschnitten …")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = progress == null, onClick = {
+                progress = 0 to t.segments.size
+                scope.launch {
+                    runCatching {
+                        val translated = io.github.thepytales.llmhub.transcribe.TranscriptTranslate.translate(c, t, language) { d, n -> progress = d to n }
+                        c.transcription.save(translated)
+                        translated
+                    }.onSuccess { Notices.info("Übersetzung gespeichert: „${it.title}“ (in der Transkript-Liste)"); onDismiss() }
+                        .onFailure { Notices.error("Übersetzung fehlgeschlagen: ${it.message}"); progress = null }
+                }
+            }) { Text("Übersetzen") }
+        },
+        dismissButton = { TextButton(enabled = progress == null, onClick = onDismiss) { Text("Abbrechen") } },
+    )
 }

@@ -45,6 +45,8 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ModeComment
 import androidx.compose.material.icons.outlined.MoreVert
@@ -225,6 +227,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     var statusDialog by rememberSaveable(id) { mutableStateOf(false) }
     var wordsDialog by rememberSaveable(id) { mutableStateOf(false) }
     var codingSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var translateDialog by rememberSaveable(id) { mutableStateOf(false) }
     var codingMode by rememberSaveable(id) { mutableStateOf(false) }
     var codeSegment by rememberSaveable(id) { mutableStateOf<Int?>(null) }
     val codebooks by c.codebooks.items.collectAsStateWithLifecycle()
@@ -336,6 +339,16 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 DropdownMenuItem(text = { Text("Kapitel & Zusammenfassung …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ListAlt, null) }, onClick = { menu = false; chaptersSheet = true })
                                 DropdownMenuItem(text = { Text("Redeanteile & Statistik …") }, leadingIcon = { Icon(Icons.Outlined.BarChart, null) }, onClick = { menu = false; statsSheet = true })
                                 DropdownMenuItem(text = { Text("Codieren …") }, leadingIcon = { Icon(Icons.Outlined.Label, null) }, onClick = { menu = false; codingSheet = true })
+                                DropdownMenuItem(text = { Text("Protokoll erstellen") }, leadingIcon = { Icon(Icons.Outlined.Description, null) }, onClick = {
+                                    menu = false
+                                    ChatHandoff.pending.value = ChatHandoff.Content(
+                                        "Erstelle aus dieser Besprechung ein Ergebnisprotokoll als PDF im TUD-Design (create_document, style=tud): Datum, Anwesende (soweit erkennbar), Tagesordnungspunkte, Beschlüsse und eine Tabelle der Aufgaben mit Verantwortlichen und Fristen. Nur Inhalte aus dem Transkript; Unklares als offene Frage.",
+                                        listOf(transcriptAttachment(current)), current.folder, send = true,
+                                    )
+                                    NewChatFolder.id = current.folder
+                                    onOpenChat()
+                                })
+                                DropdownMenuItem(text = { Text("Übersetzen …") }, leadingIcon = { Icon(Icons.Outlined.Translate, null) }, onClick = { menu = false; translateDialog = true })
                                 DropdownMenuItem(text = { Text("Status: ${current.status.label} …") }, leadingIcon = { Icon(Icons.Outlined.FactCheck, null) }, onClick = { menu = false; statusDialog = true })
                                 HorizontalDivider()
                                 DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = { menu = false; export = true })
@@ -550,11 +563,12 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     }, onDismiss = { findReplace = false })
     if (export) ExportSheet(c, current, onDismiss = { export = false })
     if (viewSheet) ViewSheet(c, onDismiss = { viewSheet = false })
-    if (speakersSheet) SpeakersSheet(current, onEdit = { editSpeaker = it }, onSave = { update(it) }, onDismiss = { speakersSheet = false })
+    if (speakersSheet) SpeakersSheet(current, onEdit = { editSpeaker = it }, onSave = { update(it) }, onDismiss = { speakersSheet = false }, c = c, hasAudio = audio != null)
     if (segmentSheet) SegmentationSheet(current, onSave = { update(it) }, onDismiss = { segmentSheet = false })
     if (statsSheet) StatsSheet(current, onDismiss = { statsSheet = false })
     if (chaptersSheet) ChaptersSheet(c, current, control, onSave = { update(it) }, onDismiss = { chaptersSheet = false })
     if (statusDialog) StatusDialog(current.status, onPick = { update(current.copy(status = it)) }, onDismiss = { statusDialog = false })
+    if (translateDialog) TranslateDialog(c, current, onDismiss = { translateDialog = false })
     if (codingSheet) CodingSheet(
         c, current, codingMode, onCodingMode = { codingMode = it }, onUpdate = { update(it, undoable = false) },
         onJump = { s -> scope.launch { listState.animateScrollToItem(segs.indexOf(s).coerceAtLeast(0) + 1) } },

@@ -70,6 +70,8 @@ class AppContainer(context: Context) {
     val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
     /** Coding schemes for transcripts (qualitative content analysis). */
     val codebooks = io.github.thepytales.llmhub.transcribe.CodebookStore(files)
+    /** Voices of named speakers, to recognize them in further recordings (only on this device). */
+    val voices = io.github.thepytales.llmhub.transcribe.VoiceProfileStore(files)
     /** Living documents of the editor (versions, comments, tabs). */
     val docs = DocsStore(files)
     val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts, docs)

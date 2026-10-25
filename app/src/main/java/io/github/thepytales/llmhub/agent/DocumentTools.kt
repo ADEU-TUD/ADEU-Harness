@@ -147,6 +147,22 @@ class DocumentTools(
             ),
         ),
         ToolDef(
+            "create_series",
+            "Serienbrief bzw. Serien-Dokumente: aus einer Vorlage mit Platzhaltern {{Spalte}} und einer Tabelle (CSV, Tabulator oder " +
+                "Markdown-Tabelle mit Kopfzeile) entsteht je Zeile ein Dokument – z.B. Teilnahmebescheinigungen, Einladungen, Briefe. " +
+                "Ergebnis: alle Dateien in einem ZIP, das der Nutzer öffnen oder weitergeben kann.",
+            listOf(
+                Param("template", "Markdown der Vorlage mit Platzhaltern wie {{Vorname}} {{Nachname}}; auch im Titel möglich"),
+                Param("data", "Die Daten: Kopfzeile mit den Spaltennamen, darunter je Zeile ein Datensatz"),
+                Param("title", "Titel bzw. Dateiname je Dokument, mit Platzhaltern, z.B. \"Bescheinigung {{Nachname}}\""),
+                Param("format", "pdf (Standard) oder docx", required = false),
+                Param("style", "Gestaltung, z.B. tud", required = false),
+                Param("layout", "urkunde für Teilnahmebescheinigungen und Zertifikate (optional)", required = false),
+                Param("letter_recipient", "Nur für Briefe: Anschrift mit Platzhaltern, Zeilen mit \\n getrennt (optional)", required = false),
+                Param("letter_sender", "Nur für Briefe: Absenderblock (optional)", required = false),
+            ),
+        ),
+        ToolDef(
             "create_semester_plan",
             "Legt alle Sitzungen einer wöchentlichen Lehrveranstaltung als Kalenderdatei (.ics) an – ohne gesetzliche Feiertage in " +
                 "Sachsen (inkl. Reformationstag und Buß- und Bettag) und ohne angegebene vorlesungsfreie Zeiten, mit Thema je Sitzung.",
@@ -210,6 +226,7 @@ class DocumentTools(
         "read_document" -> readDocument(args, ctx)
         "create_chart" -> createChart(args)
         "create_semester_plan" -> semesterPlan(args)
+        "create_series" -> series(args, ctx)
         "reply_to_comment" -> replyToComment(args)
         "create_email_draft" -> emailDraft(args)
         "create_calendar_event" -> calendarEvent(args)
@@ -504,6 +521,53 @@ class DocumentTools(
         return if (missing.isEmpty()) out
         else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
     }
+
+    private suspend fun series(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val rows = io.github.thepytales.llmhub.docs.SeriesData.parse(args.req("data"))
+        if (rows.size < 2) return ToolOutput("FEHLER: Keine Daten erkannt – erste Zeile Spaltennamen, darunter die Datensätze.")
+        if (rows.size > 501) return ToolOutput("FEHLER: Höchstens 500 Datensätze auf einmal.")
+        val head = rows.first()
+        val template = args.req("template")
+        val missing = io.github.thepytales.llmhub.data.TemplateFields.of(template + args.s("title").orEmpty() + args.s("letter_recipient").orEmpty())
+            .map { it.label }.filter { f -> head.none { it.equals(f, ignoreCase = true) } }
+        if (missing.isNotEmpty()) return ToolOutput("FEHLER: Diese Platzhalter fehlen in den Spalten (${head.joinToString()}): ${missing.joinToString()}.")
+        val dir = File(context.cacheDir, "series/" + System.currentTimeMillis()).apply { mkdirs() }
+        val made = mutableListOf<File>()
+        for (row in rows.drop(1)) {
+            val values = head.indices.associate { i -> head[i] to row.getOrElse(i) { "" } }
+            fun fill(t: String) = io.github.thepytales.llmhub.docs.SeriesData.fill(t, values)
+            val one = buildMap<String, kotlinx.serialization.json.JsonElement> {
+                put("title", JsonPrimitive(fill(args.req("title"))))
+                put("content", JsonPrimitive(fill(template)))
+                put("format", JsonPrimitive(args.s("format") ?: "pdf"))
+                args.s("style")?.let { put("style", JsonPrimitive(it)) }
+                args.s("layout")?.let { put("layout", JsonPrimitive(it)) }
+                args.s("letter_recipient")?.let { put("letter_recipient", JsonPrimitive(fill(it))) }
+                args.s("letter_sender")?.let { put("letter_sender", JsonPrimitive(fill(it))) }
+            }
+            val a = JsonObject(one)
+            val (theme, _) = theme(a)
+            val sender = a.s("letter_sender")?.replace("\\n", "\n")?.trim().orEmpty()
+            val recipient = a.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
+            val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) io.github.thepytales.llmhub.docs.Letter(sender, recipient) else null
+            val certificate = letter == null && a.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
+            made += DocumentWriter.create(context, dir, a.req("title"), a.req("content"), DocFormat.parse(a.s("format")), null, theme, letter, certificate).file
+        }
+        val zip = newFile(DocumentWriter.safeName(fill(args.req("title"), emptyMap()).ifBlank { "Serie" }).take(50) + " (${made.size} Dokumente)", "zip")
+        withContext(Dispatchers.IO) {
+            java.util.zip.ZipOutputStream(zip.outputStream()).use { z ->
+                made.forEach { f -> z.putNextEntry(java.util.zip.ZipEntry(f.name)); f.inputStream().use { it.copyTo(z) }; z.closeEntry() }
+            }
+            dir.deleteRecursively()
+        }
+        return ToolOutput(
+            "${made.size} Dokumente erstellt und als ZIP zusammengefasst (${made.take(5).joinToString { it.name }}${if (made.size > 5) " …" else ""}). " +
+                "Der Nutzer öffnet oder teilt das ZIP mit einem Tipp.",
+            file = zip.absolutePath,
+        )
+    }
+
+    private fun fill(t: String, values: Map<String, String>) = io.github.thepytales.llmhub.docs.SeriesData.fill(t, values)
 
     private suspend fun semesterPlan(args: JsonObject): ToolOutput {
         val plan = io.github.thepytales.llmhub.docs.SemesterPlan

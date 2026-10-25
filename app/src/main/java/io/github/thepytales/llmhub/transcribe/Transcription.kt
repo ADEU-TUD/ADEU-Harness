@@ -363,6 +363,15 @@ class Transcription(private val c: AppContainer, private val root: File, private
         }
     }
 
+    /** Voice prints of the speakers of a transcript (from its audio, on the device); see [VoiceProfileStore]. */
+    suspend fun speakerVoices(id: String): Map<Int, FloatArray> = withContext(Dispatchers.IO) {
+        val o = engine().speakerEmbeddings(id)
+        o.keys().asSequence().associate { k ->
+            val arr = o.getJSONArray(k)
+            k.toInt() to FloatArray(arr.length()) { i -> arr.getDouble(i).toFloat() }
+        }
+    }
+
     /** Saves atomically and keeps the previous version as ".bak". */
     suspend fun save(t: Transcript) = withContext(Dispatchers.IO) {
         val f = File(dir(t.id), "transcript.json")
