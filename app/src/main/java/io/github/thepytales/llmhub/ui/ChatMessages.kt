@@ -36,6 +36,13 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.outlined.CallSplit
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Edit
@@ -84,6 +91,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.data.ChatMessage
@@ -275,8 +283,9 @@ fun UserBubble(
     editing: Boolean,
     onStartEdit: () -> Unit,
     onCancelEdit: () -> Unit,
-    onSubmitEdit: (String) -> Unit,
+    onSubmitEdit: (String, List<FileAttachment>, List<String>) -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
+    onFork: () -> Unit = {},
 ) {
     val m = item.m
     val look = LocalChatLook.current
@@ -302,27 +311,55 @@ fun UserBubble(
         }
         if (editing) {
             var text by remember(m.id) { mutableStateOf(m.content) }
+            // Attachments can be removed when editing (the text of the files goes along again otherwise).
+            val keptFiles = remember(m.id) { androidx.compose.runtime.mutableStateListOf<FileAttachment>().apply { addAll(m.files) } }
+            val keptImages = remember(m.id) { androidx.compose.runtime.mutableStateListOf<String>().apply { addAll(m.images) } }
             Surface(color = look.userBubble, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(10.dp)) {
-                    OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), maxLines = 10)
+                    if (keptFiles.isNotEmpty() || keptImages.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                            keptImages.forEach { img -> Thumbnail(img, 60) { keptImages.remove(img) } }
+                            keptFiles.forEach { f -> FileChip(f) { keptFiles.remove(f) } }
+                        }
+                    }
+                    OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 24)
                     Row(Modifier.align(Alignment.End).padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = onCancelEdit) { Text("Abbrechen") }
-                        Button(onClick = { onSubmitEdit(text) }, enabled = text.isNotBlank() && !running) { Text("Senden") }
+                        Button(onClick = { onSubmitEdit(text, keptFiles.toList(), keptImages.toList()) }, enabled = (text.isNotBlank() || keptFiles.isNotEmpty()) && !running) { Text("Senden") }
                     }
                 }
             }
         } else if (m.content.isNotBlank()) {
-            Box {
+            // Long texts (pasted transcripts …) are folded; the bubble takes up to 80 % of the reading width.
+            var expanded by remember(m.id) { mutableStateOf(false) }
+            val long = m.content.length > 1200 || m.content.count { it == '\n' } > 14
+            BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                val bubbleMax = (maxWidth * 0.8f).coerceAtLeast(260.dp)
+                Box {
                 Surface(
                     color = look.userBubble,
                     shape = look.userShape,
                     modifier = Modifier
-                        .widthIn(max = 310.dp)
+                        .widthIn(max = bubbleMax)
                         .clip(look.userShape)
                         .combinedClickable(onClick = {}, onLongClick = { menu = true })
                         .secondaryClick { menu = true },
                 ) {
-                    Text(m.content, color = look.onUserBubble, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        SelectionContainer {
+                            Text(
+                                m.content, color = look.onUserBubble,
+                                maxLines = if (long && !expanded) 12 else Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (long) {
+                            Text(
+                                if (expanded) "Weniger anzeigen" else "Mehr anzeigen",
+                                style = MaterialTheme.typography.labelMedium, color = look.onUserBubble.copy(alpha = 0.75f),
+                                modifier = Modifier.padding(top = 6.dp).clickable { expanded = !expanded },
+                            )
+                        }
+                    }
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
@@ -336,6 +373,12 @@ fun UserBubble(
                         enabled = !running,
                         onClick = { menu = false; onStartEdit() },
                     )
+                    DropdownMenuItem(
+                        text = { Text("Neuer Chat ab hier") },
+                        leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
+                        onClick = { menu = false; onFork() },
+                    )
+                }
                 }
             }
         }
@@ -392,6 +435,10 @@ fun AssistantMessage(
     onBibliography: (String) -> Unit = {},
     onOpenLiterature: (String) -> Unit = {},
     chatId: String? = null,
+    onRate: (Int?) -> Unit = {},
+    onContinue: () -> Unit = {},
+    onQuote: (String) -> Unit = {},
+    onFork: () -> Unit = {},
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -435,6 +482,12 @@ fun AssistantMessage(
                     ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
                 }
                 if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
+                // Helpful or not: stays on the device and shows under Verbrauch which models work well.
+                if (text.isNotBlank()) {
+                    val rating = item.head.rating
+                    ActionIcon(if (rating == 1) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, if (rating == 1) "Bewertung entfernen" else "Hilfreich") { onRate(if (rating == 1) null else 1) }
+                    ActionIcon(if (rating == -1) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown, if (rating == -1) "Bewertung entfernen" else "Nicht hilfreich") { onRate(if (rating == -1) null else -1) }
+                }
                 var protocol by remember { mutableStateOf(false) }
                 if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
                 if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false })
@@ -467,6 +520,18 @@ fun AssistantMessage(
                                 onClick = { more = false; checkSources = true },
                             )
                         }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
+                                text = { Text("Zitieren und nachfragen") },
+                                leadingIcon = { Icon(Icons.Outlined.FormatQuote, contentDescription = null) },
+                                onClick = { more = false; onQuote(text) },
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Neuer Chat ab hier") },
+                            leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
+                            onClick = { more = false; onFork() },
+                        )
                         if (item.question != null) {
                             DropdownMenuItem(
                                 text = { Text("Mit anderem Modell neu generieren") },
@@ -489,13 +554,13 @@ fun AssistantMessage(
                     )
                 }
             }
-            if (item.isLast) {
-                Text(
-                    "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
+            // Stopped at the length limit: continue where it ended.
+            if (item.isLast && !running && item.turn.ifEmpty { listOf(m) }.any { it.truncated }) {
+                OutlinedButton(onClick = onContinue) {
+                    Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.size(6.dp))
+                    Text("Weiterschreiben – die Antwort wurde abgeschnitten")
+                }
             }
         }
     }

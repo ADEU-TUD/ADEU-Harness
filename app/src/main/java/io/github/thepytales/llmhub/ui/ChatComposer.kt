@@ -25,7 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Image
@@ -122,10 +125,19 @@ fun Composer(
     onStop: () -> Unit,
     /** Strg+V: returns true when it attached an image or files from the clipboard. */
     onPaste: () -> Boolean = { false },
+    /** ✨: makes the typed request clearer before it is sent. */
+    onImprove: (() -> Unit)? = null,
+    improving: Boolean = false,
+    /** Suggestions for /commands and @-mentions, shown above the input. */
+    suggestions: @Composable () -> Unit = {},
+    /** Small note under the input (the reminder that AI can make mistakes). */
+    footnote: String? = null,
     chips: @Composable RowScope.() -> Unit,
 ) {
     val canSend = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
     val look = LocalChatLook.current
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    fun buzz() = haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
     Column(
         Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -133,6 +145,7 @@ fun Composer(
             .imePadding()
             .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
     ) {
+        suggestions()
         Row(
             Modifier
                 .horizontalScroll(rememberScrollState())
@@ -188,7 +201,7 @@ fun Composer(
                         when {
                             e.type != KeyEventType.KeyDown -> false
                             ENTER_SENDS && (e.key == Key.Enter || e.key == Key.NumPadEnter) && !e.isShiftPressed -> {
-                                if (canSend && !running) onSend()
+                                if (canSend && !running) { buzz(); onSend() }
                                 true
                             }
                             e.key == Key.V && e.isCtrlPressed -> onPaste()
@@ -216,8 +229,15 @@ fun Composer(
                             }
                         }
                     }
+                    if (onImprove != null && input.isNotBlank() && !running) {
+                        Spacer(Modifier.width(8.dp))
+                        RoundButton(onClick = onImprove, enabled = !improving) {
+                            if (improving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            else Icon(Icons.Outlined.AutoAwesome, contentDescription = "Anfrage verbessern")
+                        }
+                    }
                     Spacer(Modifier.width(8.dp))
-                    RoundButton(onClick = onMic, enabled = !transcribing) {
+                    RoundButton(onClick = { buzz(); onMic() }, enabled = !transcribing) {
                         when {
                             transcribing -> CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                             recording -> Icon(Icons.Outlined.StopCircle, contentDescription = "Aufnahme beenden", tint = MaterialTheme.colorScheme.error)
@@ -233,7 +253,7 @@ fun Composer(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .clickable(enabled = active, onClick = if (running) onStop else onSend),
+                            .clickable(enabled = active, onClick = { buzz(); if (running) onStop() else onSend() }),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             if (running) Icon(Icons.Filled.Stop, contentDescription = "Stopp")
@@ -242,6 +262,12 @@ fun Composer(
                     }
                 }
             }
+        }
+        footnote?.let {
+            Text(
+                it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp),
+            )
         }
     }
 }
@@ -303,6 +329,8 @@ fun PlusSheet(
     onRepo: () -> Unit,
     onEnvironment: () -> Unit,
     onDismiss: () -> Unit,
+    onFromApp: () -> Unit = {},
+    onSnippets: () -> Unit = {},
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     fun pick(action: () -> Unit) {
@@ -322,8 +350,10 @@ fun PlusSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
+        SheetRow(Icons.Outlined.Apps, "Aus der App", "Transkript, Dokument, Literaturliste oder erzeugtes Bild", { pick(onFromApp) })
         SheetLabel("Starten mit")
         SheetRow(Icons.Outlined.Bookmarks, "Vorlage", "Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular", { pick(onTemplates) })
+        SheetRow(Icons.Outlined.ShortText, "Kurztexte", "Eigene Textbausteine einfügen – auch mit /Name", { pick(onSnippets) })
         SheetLabel("Für diesen Chat")
         SheetRow(Icons.Outlined.Person, "Persona / Anweisungen", personaLabel, { pick(onPersona) })
         if (repoLabel != null) SheetRow(Icons.Outlined.Code, "GitHub-Repository", repoLabel, { pick(onRepo) })

@@ -17,6 +17,7 @@ import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.addVersion
 import io.github.thepytales.llmhub.data.appendToThread
+import io.github.thepytales.llmhub.data.updateMessage
 import io.github.thepytales.llmhub.data.branchAfter
 import io.github.thepytales.llmhub.data.removeSubtree
 import io.github.thepytales.llmhub.data.select
@@ -153,7 +154,7 @@ class ChatViewModel(
 
     private fun persist() {
         val conv = _conversation.value ?: return
-        if (_deleted.value || conv.messages.isEmpty() || isRunning) return
+        if (_deleted.value || conv.messages.isEmpty() || isRunning || conv.temporary) return
         saved = true
         c.chats.save(conv.copy(updatedAt = System.currentTimeMillis()))
     }
@@ -163,7 +164,7 @@ class ChatViewModel(
         if (c.runs.edit(chatId, transform)) return
         update(transform)
         val conv = _conversation.value ?: return
-        if (!_deleted.value && conv.messages.isNotEmpty()) {
+        if (!_deleted.value && conv.messages.isNotEmpty() && !conv.temporary) {
             saved = true
             c.chats.save(conv)
         }
@@ -277,9 +278,13 @@ class ChatViewModel(
     val building: StateFlow<Boolean> = _building.asStateFlow()
 
     /** Sends an edited version of a user message as new branch (the old version stays reachable). */
-    fun editMessage(message: ChatMessage, newText: String) {
-        if (isRunning || newText.isBlank()) return
-        update { it.addVersion(message, message.copy(id = java.util.UUID.randomUUID().toString(), content = newText.trim(), createdAt = System.currentTimeMillis())) }
+    fun editMessage(message: ChatMessage, newText: String, files: List<FileAttachment> = message.files, images: List<String> = message.images) {
+        if (isRunning || newText.isBlank() && files.isEmpty() && images.isEmpty()) return
+        update {
+            it.addVersion(message, message.copy(
+                id = java.util.UUID.randomUUID().toString(), content = newText.trim(), files = files, images = images, createdAt = System.currentTimeMillis(),
+            ))
+        }
         persist()
         connectMentionedRepo(newText)
         startAgent()
@@ -333,6 +338,76 @@ class ChatViewModel(
     }
 
     fun stop() = c.runs.stop(chatId)
+
+    /** Rates an answer (1 helpful, -1 not helpful, null removes it); counted under Verbrauch per model. */
+    fun rate(message: ChatMessage, value: Int?, note: String? = null) =
+        edit { conv -> conv.updateMessage(message.id) { it.copy(rating = value, ratingNote = note?.ifBlank { null }) } }
+
+    /** Continues an answer that stopped at the length limit. */
+    fun continueAnswer() {
+        if (isRunning) return
+        update {
+            it.appendToThread(
+                ChatMessage(
+                    role = "user", content = "Weiter", template = "Weiterschreiben",
+                    instructions = "Deine letzte Antwort wurde wegen der Längenbegrenzung abgeschnitten. Schreibe genau an der Stelle weiter, an der sie " +
+                        "endet – ohne Wiederholung, ohne Einleitung und ohne Hinweis auf die Unterbrechung.",
+                )
+            )
+        }
+        persist()
+        startAgent()
+    }
+
+    /**
+     * A new chat with the conversation up to [message] (null: the whole chat), with the same settings – to try
+     * another direction without losing this one. Returns its id.
+     */
+    fun fork(message: ChatMessage?): String? {
+        val conv = _conversation.value ?: return null
+        val thread = conv.thread()
+        val upTo = if (message == null) thread.size else {
+            val i = thread.indexOfFirst { it.id == message.id }
+            if (i < 0) return null
+            // An answer ends where the next question begins (tool calls and results belong to it).
+            if (message.role == "user") i + 1 else thread.drop(i + 1).indexOfFirst { it.role == "user" }.let { if (it < 0) thread.size else i + 1 + it }
+        }
+        val copy = conv.copy(
+            id = java.util.UUID.randomUUID().toString(),
+            title = conv.title.take(50) + if (message == null) " (Kopie)" else " (Abzweigung)",
+            messages = thread.take(upTo), selected = emptyMap(), summary = null, summaryUpTo = null,
+            pinned = false, unread = false, temporary = false, archived = false, taskId = null,
+            updatedAt = System.currentTimeMillis(),
+        )
+        c.chats.save(copy)
+        return copy.id
+    }
+
+    /** A temporary chat is never saved (only before the first message can it be switched). */
+    fun setTemporary(on: Boolean) = update { it.copy(temporary = on) }
+
+    fun setArchived(on: Boolean) = edit { it.copy(archived = on) }
+
+    /** Makes the request clearer for the model (context, goal, format); returns the improved text. */
+    suspend fun improvePrompt(text: String): String {
+        val model = _conversation.value?.model ?: c.settings.current.defaultModel
+        val result = c.llm.streamChat(
+            model = model,
+            messages = listOf(
+                ChatMessage(
+                    role = "system",
+                    content = "Du verbesserst Anfragen an einen KI-Assistenten, bevor sie gesendet werden. Formuliere die Anfrage klarer und " +
+                        "vollständiger: Ziel, Kontext, Zielgruppe, gewünschtes Format und Umfang, sofern sie sich aus dem Text ergeben. Erfinde " +
+                        "keine Fakten; wo Angaben fehlen, setze sie als kurze Platzhalter in eckige Klammern. Behalte Sprache und Anrede bei. " +
+                        "Antworte nur mit der verbesserten Anfrage, ohne Erklärung.",
+                ),
+                ChatMessage(role = "user", content = text),
+            ),
+            tools = null,
+            thinking = io.github.thepytales.llmhub.net.ThinkingLevel.OFF,
+        ) { }
+        return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException("Das Modell hat keinen Text geliefert.") }
+    }
 
     private fun startAgent() {
         val conv = _conversation.value ?: return

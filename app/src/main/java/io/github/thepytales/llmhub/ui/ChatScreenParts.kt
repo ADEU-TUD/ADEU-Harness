@@ -20,6 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.DataObject
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
@@ -214,6 +218,11 @@ internal fun ChatMenu(
     autoApprove: Boolean,
     onAutoApprove: () -> Unit,
     onDelete: () -> Unit,
+    onSearch: () -> Unit = {},
+    onDuplicate: () -> Unit = {},
+    archived: Boolean = false,
+    onArchive: () -> Unit = {},
+    onExportJson: () -> Unit = {},
 ) {
     fun pick(action: () -> Unit): () -> Unit = {
         onDismiss()
@@ -237,10 +246,14 @@ internal fun ChatMenu(
         )
         MenuEntry(Icons.Outlined.IosShare, SHARE_LABEL, hasMessages, onClick = pick(onShare))
         MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
+        MenuEntry(Icons.Outlined.DataObject, "Als JSON exportieren", hasMessages, onClick = pick(onExportJson))
+        MenuEntry(Icons.Outlined.Search, "Im Chat suchen", hasMessages, onClick = pick(onSearch))
         MenuGroup(null)
         MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
         MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
         MenuEntry(Icons.Outlined.DriveFileMove, "In Projekt verschieben", hasMessages, onClick = pick(onFolder))
+        MenuEntry(Icons.Outlined.ContentCopy, "Duplizieren", hasMessages, onClick = pick(onDuplicate))
+        MenuEntry(Icons.Outlined.Archive, if (archived) "Aus dem Archiv holen" else "Archivieren", hasMessages, onClick = pick(onArchive))
         onHomeScreen?.let { MenuEntry(Icons.Outlined.Home, "Zum Startbildschirm hinzufügen", hasMessages, onClick = pick(it)) }
         MenuGroup("Für diesen Chat")
         MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))

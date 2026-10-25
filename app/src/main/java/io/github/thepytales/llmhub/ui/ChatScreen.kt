@@ -5,6 +5,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.SmallFloatingActionButton
 import io.github.thepytales.llmhub.data.Conversation
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material3.VerticalDivider
@@ -123,6 +131,30 @@ fun ChatScreen(
     var menuOpen by remember { mutableStateOf(false) }
     val recorder = remember { Recorder(context.applicationContext) }
     var recording by remember { mutableStateOf(false) }
+    var improving by remember { mutableStateOf(false) }
+    var showSnippets by remember { mutableStateOf(false) }
+    var showFromApp by remember { mutableStateOf(false) }
+    var quoteFrom by remember { mutableStateOf<String?>(null) }
+    var ratingFor by remember { mutableStateOf<ChatMessage?>(null) }
+    var searchOpen by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var searchHit by remember { mutableIntStateOf(0) }
+    var chipsOpen by remember { mutableStateOf(false) }
+    val snippets by c.snippets.items.collectAsStateWithLifecycle()
+    val exportJson = rememberFileExport("application/json", onDone = { ok -> if (!ok) Notices.error("Export fehlgeschlagen") }) { out ->
+        vm.state.value?.let { out.write(ChatJson.write(it).toByteArray(Charsets.UTF_8)) }
+    }
+
+    // The unsent text stays with its chat (also after closing the app).
+    LaunchedEffect(vm.chatId) {
+        if (input.isBlank()) c.chatDrafts.get(vm.chatId)?.text?.let { input = it }
+    }
+    LaunchedEffect(input) {
+        kotlinx.coroutines.delay(600)
+        if (vm.state.value?.temporary == true) return@LaunchedEffect
+        if (input.isBlank()) { if (c.chatDrafts.get(vm.chatId) != null) c.chatDrafts.delete(vm.chatId) }
+        else if (c.chatDrafts.get(vm.chatId)?.text != input) c.chatDrafts.upsert(io.github.thepytales.llmhub.data.ChatDraft(vm.chatId, input))
+    }
 
     LaunchedEffect(vm) {
         vm.toasts.collect { Notices.info(it) }
@@ -236,7 +268,11 @@ fun ChatScreen(
                     if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
                 },
                 title = {
-                    if (hasMessages) {
+                    if (searchOpen) {
+                        ChatSearchField(searchQuery, { searchQuery = it; searchHit = 0 }, matchCount(current, searchQuery), searchHit,
+                            onPrev = { searchHit++ }, onNext = { searchHit = (searchHit - 1).coerceAtLeast(0) },
+                            onClose = { searchOpen = false; searchQuery = "" })
+                    } else if (hasMessages) {
                         Row(
                             Modifier
                                 .clip(RoundedCornerShape(50))
@@ -256,6 +292,19 @@ fun ChatScreen(
                     }
                 },
                 actions = {
+                    if (!hasMessages) {
+                        // Temporary chat: nothing is saved (like the incognito mode of other apps).
+                        IconButton(onClick = {
+                            vm.setTemporary(!current.temporary)
+                            Notices.info(if (!current.temporary) "Temporärer Chat: wird nicht gespeichert." else "Chat wird wieder gespeichert.")
+                        }) {
+                            Icon(
+                                if (current.temporary) Icons.Filled.VisibilityOff else Icons.Outlined.VisibilityOff,
+                                contentDescription = if (current.temporary) "Temporären Chat beenden" else "Temporärer Chat",
+                                tint = if (current.temporary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                     IconButton(onClick = onNewChat) {
                         Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
                     }
@@ -278,6 +327,14 @@ fun ChatScreen(
                             autoApprove = current.autoApprove,
                             onAutoApprove = { vm.setAutoApprove(!current.autoApprove) },
                             onDelete = { showDelete = true },
+                            onSearch = { searchOpen = true },
+                            onDuplicate = { vm.fork(null)?.let { id -> onNavigate(chatRoute(id)) } },
+                            archived = current.archived,
+                            onArchive = {
+                                vm.setArchived(!current.archived)
+                                if (!current.archived) { Notices.undo("Chat archiviert", restore = { vm.setArchived(false) }); onNewChat() }
+                            },
+                            onExportJson = { exportJson(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(current.title) + ".json") },
                         )
                     }
                 },
@@ -316,13 +373,47 @@ fun ChatScreen(
                     }
                     vm.send(input, images.toList(), files.toList(), activeTemplate)
                     input = ""
+                    c.chatDrafts.delete(vm.chatId)
                     templateId = null
                     images.clear()
                     files.clear()
                 },
                 onStop = { vm.stop() },
                 onPaste = platform.paste,
+                onImprove = {
+                    val before = input
+                    improving = true
+                    scope.launch {
+                        runCatching { vm.improvePrompt(before) }
+                            .onSuccess { better ->
+                                input = better
+                                Notices.undo("Anfrage verbessert", restore = { input = before })
+                            }
+                            .onFailure { Notices.error("Verbessern nicht möglich: ${it.message}") }
+                        improving = false
+                    }
+                },
+                improving = improving,
+                suggestions = {
+                    SuggestionList(
+                        remember(input, templates, snippets) {
+                            inputSuggestions(
+                                c, input, templates, snippets,
+                                replace = { input = it },
+                                useTemplate = { useTemplate(it) },
+                                attach = { f -> files.add(f) },
+                                startLiterature = {
+                                    vm.setMode(Conversation.MODE_LITERATURE)
+                                    Notices.info("Literatursuchmodus: Thema und Kontext eingeben – der Agent sucht systematisch.")
+                                },
+                                openDocs = { onNavigate("docs") },
+                            )
+                        }
+                    )
+                },
+                footnote = if (hasMessages) "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen." else null,
             ) {
+                if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
                 if (current.mode == Conversation.MODE_LITERATURE) {
                     ContextChip(Icons.Outlined.ManageSearch, "Literatursuche  ✕", {
@@ -376,6 +467,10 @@ fun ChatScreen(
             val listState = rememberLazyListState()
             val reversed = remember(items) { items.asReversed() }
             val last = current.thread().lastOrNull()
+            val leading = (if (running && (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))) 1 else 0) + (if (building) 1 else 0)
+            val hits = remember(reversed, searchQuery) { if (searchQuery.isBlank()) emptyList() else reversed.indices.filter { i -> itemText(reversed[i]).contains(searchQuery, ignoreCase = true) } }
+            val currentHit = hits.getOrNull(searchHit.coerceAtMost((hits.size - 1).coerceAtLeast(0)))
+            LaunchedEffect(currentHit) { currentHit?.let { listState.animateScrollToItem(it + leading) } }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
@@ -394,7 +489,12 @@ fun ChatScreen(
                     item(key = "typing") { ThinkingIndicator() }
                 }
                 if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
-                items(reversed, key = { it.key }) { item ->
+                items(reversed, key = { it.key }, contentType = { if (it is ChatItem.User) "user" else "assistant" }) { item ->
+                    val hitHere = currentHit != null && reversed.getOrNull(currentHit) === item
+                    Box(
+                        if (hitHere) Modifier.background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f), RoundedCornerShape(12.dp)).padding(4.dp)
+                        else Modifier
+                    ) {
                     when (item) {
                         is ChatItem.User -> UserBubble(
                             item = item,
@@ -402,8 +502,9 @@ fun ChatScreen(
                             editing = editingId == item.m.id,
                             onStartEdit = { editingId = item.m.id },
                             onCancelEdit = { editingId = null },
-                            onSubmitEdit = { text -> editingId = null; vm.editMessage(item.m, text) },
+                            onSubmitEdit = { text, keptFiles, keptImages -> editingId = null; vm.editMessage(item.m, text, keptFiles, keptImages) },
                             onSelectVersion = { vm.showVersion(it) },
+                            onFork = { vm.fork(item.m)?.let { id -> onNavigate(chatRoute(id)) } },
                         )
                         is ChatItem.Assistant -> AssistantMessage(
                             item = item,
@@ -427,8 +528,24 @@ fun ChatScreen(
                             onRegenerateWithModel = { regenerateFor = item.question },
                             onSelectVersion = { vm.showVersion(it) },
                             onRetry = { vm.retry() },
+                            onRate = { value -> if (value == -1) ratingFor = item.head else vm.rate(item.head, value) },
+                            onContinue = { vm.continueAnswer() },
+                            onQuote = { text -> quoteFrom = text },
+                            onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
                         )
                     }
+                }
+                    }
+            }
+            // Back to the newest message (the list starts at the bottom).
+            val away by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+            if (away) {
+                SmallFloatingActionButton(
+                    onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                    containerColor = LocalChatLook.current.card,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
+                ) {
+                    BadgedBox(badge = { if (running) Badge() }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Zur neuesten Nachricht") }
                 }
             }
             }
@@ -460,8 +577,14 @@ fun ChatScreen(
             onRepo = { showRepoPicker = true },
             onEnvironment = { showEnvPicker = true },
             onDismiss = { showPlus = false },
+            onFromApp = { showFromApp = true },
+            onSnippets = { showSnippets = true },
         )
     }
+    if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
+    if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
+    quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }
+    ratingFor?.let { m -> RatingNoteDialog(onDismiss = { ratingFor = null }) { note -> vm.rate(m, -1, note); ratingFor = null } }
 
     if (showTemplates) {
         TemplatePickerSheet(

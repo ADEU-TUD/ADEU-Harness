@@ -11,7 +11,9 @@ import io.github.thepytales.llmhub.agent.WebTools
 import io.github.thepytales.llmhub.audio.Speaker
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.ChatRepository
+import io.github.thepytales.llmhub.data.ChatDraft
 import io.github.thepytales.llmhub.data.Contact
+import io.github.thepytales.llmhub.data.Snippet
 import io.github.thepytales.llmhub.data.FileBackend
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.KnowledgeStore
@@ -60,6 +62,10 @@ class AppContainer(context: Context) {
     val knowledge = KnowledgeStore(files)
     /** What the model knows about the user in every chat. */
     val memory = ListStore<MemoryEntry>(FileBackend(File(files, "memory.json")), MemoryEntry.serializer(), { it.id })
+    /** Text blocks for the input field (Kurztexte). */
+    val snippets = ListStore<Snippet>(FileBackend(File(files, "snippets.json")), Snippet.serializer(), { it.id })
+    /** Unsent text per chat. */
+    val chatDrafts = ListStore<ChatDraft>(FileBackend(File(files, "chat_drafts.json")), ChatDraft.serializer(), { it.chatId })
     /** Template forms typed but not sent yet. */
     val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
     /** Living documents of the editor (versions, comments, tabs). */

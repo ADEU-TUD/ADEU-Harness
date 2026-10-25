@@ -167,6 +167,30 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
 
             UsageTable("Tage", days.reversed().filter { it.requests > 0 }.map { Triple(it.date.format(dayFormat), it.requests, it.tokens) })
 
+            // Ratings of answers (👍/👎 in the chat): which models have proven themselves for this user.
+            val chats by c.chats.conversations.collectAsStateWithLifecycle()
+            val rated = remember(chats) { chats.flatMap { cv -> cv.messages.filter { it.rating != null }.map { (it.model ?: cv.model) to it } } }
+            if (rated.isNotEmpty()) {
+                Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = RoundedCornerShape(16.dp)) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Bewertungen nach Modell", style = MaterialTheme.typography.titleSmall)
+                        rated.groupBy { it.first }.map { (model, list) ->
+                            Triple(ModelCatalog.info(model).displayName, list.count { it.second.rating == 1 }, list.count { it.second.rating == -1 })
+                        }.sortedByDescending { it.second - it.third }.forEach { (name, up, down) ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                Text("👍 $up   👎 $down", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        val reasons = rated.mapNotNull { it.second.ratingNote }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.take(4)
+                        if (reasons.isNotEmpty()) Text(
+                            "Häufigste Gründe für 👎: " + reasons.joinToString(", ") { "${it.key} (${it.value})" },
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             val estimated = inRange.sumOf { it.estimated }
             Text(
                 buildString {

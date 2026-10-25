@@ -184,6 +184,7 @@ class AgentRunner(private val c: AppContainer) {
                         tokensIn = result.usage?.prompt ?: ContextManager.tokens(apiMessages).toLong(),
                         tokensOut = result.usage?.completion ?: ((result.content.length + result.reasoning.length + result.toolCalls.sumOf { tc -> tc.arguments.length }) / 4L),
                         events = (if (fallbackUsed && model != start.model) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
+                        truncated = result.finishReason == "length" && result.toolCalls.isEmpty(),
                     )
                 }
             }
