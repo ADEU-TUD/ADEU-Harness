@@ -33,12 +33,20 @@ val llamaServerAndroid by tasks.registering {
             "libllama-server-basic.so" to "armv8-a",
         )
         if (variants.keys.any { !File(cache, it).isFile }) {
-            // Script plugins do not see the classes of the Android plugin: ask its extension by reflection.
+            // Script plugins do not see the classes of the Android plugin: ask its extension by reflection. Its
+            // ndkDirectory throws when the NDK version is not installed, so the NDK is looked up here.
             val android = project.extensions.getByName("android")
-            fun dir(getter: String) = android.javaClass.getMethod(getter).invoke(android) as File
-            val ndk = dir("getNdkDirectory")
-            val sdkDir = dir("getSdkDirectory")
-            if (!ndk.isDirectory) throw GradleException("NDK fehlt: $ndk")
+            val sdkDir = android.javaClass.getMethod("getSdkDirectory").invoke(android) as File
+            val ndkVersion = runCatching { android.javaClass.getMethod("getNdkVersion").invoke(android) as String? }.getOrNull()
+            val ndk = listOfNotNull(
+                ndkVersion?.let { sdkDir.resolve("ndk/$it") },
+                System.getenv("ANDROID_NDK_HOME")?.let(::File),
+                System.getenv("ANDROID_NDK_LATEST_HOME")?.let(::File),
+                System.getenv("ANDROID_NDK_ROOT")?.let(::File),
+                sdkDir.resolve("ndk").listFiles()?.filter { it.resolve("build/cmake/android.toolchain.cmake").isFile }?.maxByOrNull { it.name },
+            ).firstOrNull { it.resolve("build/cmake/android.toolchain.cmake").isFile }
+                ?: throw GradleException("Android NDK fehlt (gesucht: $sdkDir/ndk/$ndkVersion, ANDROID_NDK_HOME). Installieren: sdkmanager \"ndk;$ndkVersion\" – oder ohne lokale Modelle bauen: -PskipLlama")
+            logger.lifecycle("llama-server: NDK $ndk")
             val src = File(cache, "src")
             if (!File(src, "CMakeLists.txt").isFile) {
                 src.deleteRecursively()
