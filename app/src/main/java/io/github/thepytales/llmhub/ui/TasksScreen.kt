@@ -1,12 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,8 +59,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Conversation
@@ -78,7 +69,6 @@ import io.github.thepytales.llmhub.data.Repeat
 import io.github.thepytales.llmhub.data.ScheduledTask
 import io.github.thepytales.llmhub.data.TaskPresets
 import io.github.thepytales.llmhub.data.thread
-import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.tasks.TaskScheduler
 import java.text.DateFormat
 import java.time.DayOfWeek
@@ -90,7 +80,7 @@ private fun formatTime(millis: Long?): String =
     millis?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: "–"
 
 @Composable
-private fun StatusLine(ok: Boolean, text: String) {
+internal fun StatusLine(ok: Boolean, text: String) {
     Row(verticalAlignment = Alignment.Top) {
         Icon(
             if (ok) Icons.Outlined.CheckCircle else Icons.Outlined.ErrorOutline,
@@ -100,60 +90,6 @@ private fun StatusLine(ok: Boolean, text: String) {
         )
         Spacer(Modifier.size(10.dp))
         Text(text, style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-/**
- * Shows whether results can reach the user (notifications) and whether Android lets tasks run in the
- * background, with buttons to fix both.
- */
-@Composable
-private fun DeliveryStatus() {
-    val context = LocalContext.current
-    var notify by remember { mutableStateOf(Notifier.canNotify(context)) }
-    var background by remember { mutableStateOf(Notifier.ignoresBatteryOptimizations(context)) }
-    LifecycleResumeEffect(Unit) {
-        notify = Notifier.canNotify(context)
-        background = Notifier.ignoresBatteryOptimizations(context)
-        onPauseOrDispose { }
-    }
-    fun openSettings(intent: Intent) {
-        runCatching { context.startActivity(intent) }
-    }
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        notify = Notifier.canNotify(context)
-        // Asked too often before: Android no longer shows the dialog, so open the settings.
-        if (!granted) openSettings(Notifier.notificationSettingsIntent(context))
-    }
-    Surface(color = LocalChatLook.current.card, shape = RoundedCornerShape(20.dp)) {
-        Column(Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatusLine(
-                notify,
-                if (notify) "Benachrichtigungen sind an – du bekommst eine Nachricht, sobald ein Ergebnis da ist."
-                else "Benachrichtigungen sind aus – Ergebnisse siehst du nur hier in der App.",
-            )
-            if (notify) {
-                TextButton(onClick = { Notifier.test(context) }) { Text("Test-Benachrichtigung senden") }
-            } else {
-                Button(onClick = {
-                    val missing = Build.VERSION.SDK_INT >= 33 &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                    if (missing) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    else openSettings(Notifier.notificationSettingsIntent(context))
-                }) { Text("Benachrichtigungen einschalten") }
-            }
-            StatusLine(
-                background,
-                if (background) "Aufgaben dürfen im Hintergrund laufen – auch wenn die App geschlossen ist."
-                else "Android darf Aufgaben im Energiesparmodus verzögern oder abbrechen, wenn die App geschlossen ist.",
-            )
-            if (!background) {
-                OutlinedButton(onClick = {
-                    runCatching { context.startActivity(Notifier.batteryIntent(context)) }
-                        .onFailure { openSettings(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
-                }) { Text("Im Hintergrund erlauben") }
-            }
-        }
     }
 }
 
@@ -194,7 +130,7 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            item { DeliveryStatus() }
+            item { DeliveryStatus(c) }
             if (tasks.isEmpty()) {
                 item {
                     Surface(color = LocalChatLook.current.card, shape = RoundedCornerShape(20.dp)) {
@@ -313,16 +249,12 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
     var showRepo by remember { mutableStateOf(false) }
     var showDelete by remember { mutableStateOf(false) }
 
-    val notifyPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (!granted) Notices.error("Ohne Berechtigung gibt es keine Benachrichtigungen – die Ergebnisse landen trotzdem im Ordner.")
-    }
+    val askNotifications = rememberAskNotifications()
 
     fun save() {
         val next = TaskScheduler.schedule(context, task)
         c.tasks.upsert(task.copy(nextRunAt = next))
-        if (task.notify && Build.VERSION.SDK_INT >= 33 && !Notifier.canNotify(context)) {
-            notifyPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
+        if (task.notify) askNotifications()
         Notices.info(if (next != null) "Gespeichert – nächste Ausführung: ${formatTime(next)}" else "Gespeichert (pausiert).")
         onBack()
     }

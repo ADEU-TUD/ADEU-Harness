@@ -243,7 +243,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             composable("models") { back ->
                 ModelsScreen(c = c, onBack = { nav.back(back) }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
             }
-            composable("images") { back -> ImagesScreen(c, onBack = { nav.back(back) }) }
+            composable("images") { back -> ImagesScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) }) }
             composable("compare") { back ->
                 CompareScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
             }

@@ -6,4 +6,6 @@
     <cache-path name="exports" path="exports/" />
     <!-- Photos taken with the camera for attachments -->
     <cache-path name="camera" path="camera/" />
+    <!-- Generated pictures (Bilder erzeugen) -->
+    <files-path name="images" path="images/" />
 </paths>

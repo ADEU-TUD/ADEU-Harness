@@ -380,6 +380,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     /** Generates images and returns the raw image bytes. */
     suspend fun generateImage(model: String, prompt: String, size: String): List<ByteArray> =
         withContext(Dispatchers.IO) {
+            limiter.acquire()
             fun attempt(withFormat: Boolean): Pair<Int, String?> {
                 val body = buildJsonObject {
                     put("model", model)

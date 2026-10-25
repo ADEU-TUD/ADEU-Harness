@@ -294,7 +294,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
             )
         }
         "models" -> ModelsScreen(c = c, onBack = back, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
-        "images" -> ImagesScreen(c, onBack = back)
+        "images" -> ImagesScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "compare" -> CompareScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "templates" -> TemplatesScreen(c, onBack = back, onUse = { t -> nav.openChat(chatRoute(persona = t.id)) })
         "tasks" -> TasksScreen(c, onBack = back, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
