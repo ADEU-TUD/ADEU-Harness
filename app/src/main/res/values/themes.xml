@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.LlmHub" parent="android:Theme.Material.NoActionBar">
+    <!-- Light window behind the app: visible at start and during transitions, so it must match the app (never dark grey). -->
+    <style name="Theme.LlmHub" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:colorBackground">@color/window_background</item>
     </style>
     <color name="ic_launcher_background">#00008C</color>
+    <color name="window_background">#F9F9FB</color>
 </resources>

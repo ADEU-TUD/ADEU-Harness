@@ -1,5 +1,12 @@
 package io.github.thepytales.llmhub.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import io.github.thepytales.llmhub.net.ServerStatus
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,7 +67,10 @@ private val typeHelp = mapOf(
 fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> Unit) {
     val state by c.models.state.collectAsStateWithLifecycle()
     val uri = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
     var filter by remember { mutableStateOf(ModelFilter()) }
+    val status by c.llm.status.snapshot.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { c.llm.status.refresh() }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,7 +83,7 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
                     if (state.loading) {
                         CircularProgressIndicator(Modifier.size(24.dp).padding(end = 4.dp), strokeWidth = 2.dp)
                     } else {
-                        IconButton(onClick = { c.models.refresh() }) {
+                        IconButton(onClick = { c.models.refresh(); scope.launch { c.llm.status.refresh(force = true) } }) {
                             Icon(Icons.Outlined.Refresh, contentDescription = "Aktualisieren")
                         }
                     }
@@ -106,10 +116,18 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
                     else -> "Eingebauter Katalog – mit API-Key wird die aktuelle Liste vom Server geladen."
                 }
                 Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                status?.let { st ->
+                    val down = st.models.values.count { !it.up }
+                    Text(
+                        if (down == 0) "Statusseite: alle Modelle laufen." else "Statusseite: $down Modell(e) gestört – unten rot markiert.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (down == 0) LocalChatLook.current.success else MaterialTheme.colorScheme.error,
+                    )
+                }
             }
             if (filter.sort != ModelSort.DEFAULT) {
                 // A ranking only makes sense as one list.
-                items(shown, key = { it.id }) { m -> ModelCard(m, onStartChat) }
+                items(shown, key = { it.id }) { m -> ModelCard(m, status?.of(m.id), onStartChat) }
             } else ModelType.entries.forEach { type ->
                 val list = grouped[type].orEmpty()
                 if (list.isEmpty()) return@forEach
@@ -123,18 +141,23 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
                         )
                     }
                 }
-                items(list, key = { it.id }) { m -> ModelCard(m, onStartChat) }
+                items(list, key = { it.id }) { m -> ModelCard(m, status?.of(m.id), onStartChat) }
             }
         }
     }
 }
 
 @Composable
-private fun ModelCard(m: ModelInfo, onStartChat: (String) -> Unit) {
+private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat: (String) -> Unit) {
     val offered = m.type != ModelType.CHAT || m.tier != ModelTier.HIDDEN
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                state?.let { st ->
+                    // Green: answers (with the last response time); red: disrupted according to the status page.
+                    Box(Modifier.size(9.dp).background(if (st.up) LocalChatLook.current.success else MaterialTheme.colorScheme.error, CircleShape))
+                    Spacer(Modifier.size(8.dp))
+                }
                 Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 val tag = when {
                     m.type != ModelType.CHAT -> null
@@ -149,6 +172,14 @@ private fun ModelCard(m: ModelInfo, onStartChat: (String) -> Unit) {
                         color = if (m.tier == ModelTier.FEATURED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+            state?.let { st ->
+                Text(
+                    if (st.up) "Läuft" + (st.seconds?.let { " · Antwort zuletzt in ${String.format(java.util.Locale.GERMANY, "%.1f", it)} s" } ?: "")
+                    else "Gestört laut Statusseite (${st.state})",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (st.up) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                )
             }
             if (m.type == ModelType.CHAT && m.useCase.isNotBlank()) {
                 Text(m.useCase, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)

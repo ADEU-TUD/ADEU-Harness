@@ -18,6 +18,8 @@ fun createSecurePrefs(context: Context): SharedPreferences = try {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 } catch (e: Exception) {
-    // Some devices have a broken keystore; fall back to private preferences.
+    // Some devices have a broken keystore; fall back to private preferences (and say so in the settings).
+    io.github.thepytales.llmhub.ErrorLog.record("Verschlüsselter Speicher nicht verfügbar", e)
+    SecureStorage.encrypted = false
     context.getSharedPreferences("settings_fallback", Context.MODE_PRIVATE)
 }

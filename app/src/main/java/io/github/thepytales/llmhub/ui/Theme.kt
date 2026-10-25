@@ -585,7 +585,7 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
     val style = enumOr(settings.appStyle, AppStyle.ADEU)
     val accent = enumOr(settings.accent, Accent.AUTO)
     val colors = styledScheme(style, accent, dark, dynamicScheme(dark)).let { if (dark && settings.amoled) it.amoled() else it }
-    SystemBars(dark)
+    SystemBars(dark, colors.background)
 
     val density = LocalDensity.current
     CompositionLocalProvider(

@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,7 +101,7 @@ fun DocumentGaps(file: File, version: Int, onUpdated: () -> Unit) {
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Ausfüllen fehlgeschlagen: ${e.message}", Toast.LENGTH_LONG).show()
+                            Notices.error("Ausfüllen fehlgeschlagen: ${e.message}")
                         } finally {
                             working = false
                         }

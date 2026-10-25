@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.horizontalScroll
@@ -255,7 +254,7 @@ fun TemplateFillDialog(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Toast.makeText(context, "✨ fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+                Notices.error("✨ fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
             } finally {
                 working = null
             }
@@ -516,7 +515,7 @@ fun TemplateDetailsDialog(
                     if (!template.builtIn) {
                         TextButton(onClick = {
                             clipboard.setText(AnnotatedString(TemplateLibrary.export(listOf(template))))
-                            Toast.makeText(context, "Vorlage kopiert – z.B. per Mail an Kolleg:innen schicken.", Toast.LENGTH_LONG).show()
+                            Notices.info("Vorlage kopiert – z.B. per Mail an Kolleg:innen schicken.")
                         }) { Text("Teilen") }
                     }
                 }

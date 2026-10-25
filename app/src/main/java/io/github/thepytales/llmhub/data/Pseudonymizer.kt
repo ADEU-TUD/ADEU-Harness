@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.net.ChatResult
 import io.github.thepytales.llmhub.net.StreamUpdate
 import kotlinx.serialization.Serializable
@@ -155,19 +156,15 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
     }
 
     private fun load(): List<Pseudonym> = runCatching {
-        if (file.exists()) json.decodeFromString(ListSerializer(Pseudonym.serializer()), file.readText()) else emptyList()
-    }.getOrDefault(emptyList())
+        AtomicFiles.read(file)?.let { json.decodeFromString(ListSerializer(Pseudonym.serializer()), it) } ?: emptyList()
+    }.getOrElse { e ->
+        AtomicFiles.quarantine(file, e)
+        emptyList()
+    }
 
     private fun save() {
-        runCatching {
-            file.parentFile?.mkdirs()
-            val tmp = File(file.parentFile, file.name + ".tmp")
-            tmp.writeText(json.encodeToString(ListSerializer(Pseudonym.serializer()), entries))
-            if (!tmp.renameTo(file)) {
-                file.writeText(tmp.readText())
-                tmp.delete()
-            }
-        }
+        runCatching { AtomicFiles.write(file, json.encodeToString(ListSerializer(Pseudonym.serializer()), entries)) }
+            .logFailure("Pseudonyme speichern")
     }
 
     private fun ownTerms(): List<String> = settings().pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }

@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -64,12 +63,12 @@ fun TranscriptionSettings(c: AppContainer) {
     val available by t.available.collectAsStateWithLifecycle()
     var manual by remember { mutableStateOf<SpeechModel?>(null) }
     LaunchedEffect(Unit) { t.checkAvailable() }
-    LaunchedEffect(Unit) { t.messages.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() } }
+    LaunchedEffect(Unit) { t.messages.collect { Notices.info(it) } }
 
     val importModel = rememberMediaImport(anyFile = true) { name, _, input ->
         runCatching { t.importModelFile(name, input) }
-            .onSuccess { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
-            .onFailure { Toast.makeText(context, it.message ?: "Fehler", Toast.LENGTH_LONG).show() }
+            .onSuccess { Notices.info(it) }
+            .onFailure { Notices.error(it.message ?: "Fehler") }
     }
 
     GroupLabel("Standard")
@@ -258,7 +257,7 @@ private fun ReplacementList(c: AppContainer) {
                 if (rows.any { it.first.isNotBlank() }) TextButton(onClick = {
                     scope.launch {
                         val n = t.applyReplacementsToAll()
-                        Toast.makeText(context, if (n == 0) "Keine Änderungen nötig." else "$n Transkript(e) korrigiert.", Toast.LENGTH_LONG).show()
+                        Notices.info(if (n == 0) "Keine Änderungen nötig." else "$n Transkript(e) korrigiert.")
                     }
                 }) { Text("Auf vorhandene anwenden") }
             }

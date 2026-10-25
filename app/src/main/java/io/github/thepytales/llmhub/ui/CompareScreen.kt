@@ -116,7 +116,7 @@ class CompareViewModel(private val c: AppContainer) : ViewModel() {
                     replace { it.copy(content = it.content.ifBlank { "_(abgebrochen)_" }) }
                     throw e
                 } catch (e: Exception) {
-                    replace { it.copy(content = e.message ?: e.toString(), error = true) }
+                    replace { it.copy(content = io.github.thepytales.llmhub.net.NetErrors.describe(e), error = true) }
                 } finally {
                     side.busy = false
                 }

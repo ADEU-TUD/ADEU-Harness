@@ -332,7 +332,10 @@ fun AppDrawer(
         FolderPickerDialog(c, conv.folderId, onPick = { f -> c.chats.modify(conv.id) { it.copy(folderId = f) } }, onDismiss = { moveChat = null })
     }
     deleteChat?.let { conv ->
-        ConfirmDialog("Chat löschen?", "„${conv.title}“ wird dauerhaft gelöscht.", "Löschen", onConfirm = { c.chats.delete(conv.id) }, onDismiss = { deleteChat = null })
+        ConfirmDialog("Chat löschen?", "„${conv.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = {
+            c.chats.delete(conv.id)
+            Notices.undo("Chat gelöscht", restore = { c.chats.restore(conv.id) })
+        }, onDismiss = { deleteChat = null })
     }
     if (newFolder) {
         TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })

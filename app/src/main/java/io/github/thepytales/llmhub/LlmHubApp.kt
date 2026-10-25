@@ -109,7 +109,8 @@ object CrashLog {
             runCatching {
                 file.writeText(
                     "ADEU LLM ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
-                        "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n" + error.stackTraceToString()
+                        "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n" + error.stackTraceToString() +
+                        ErrorLog.recentText().takeIf { it.isNotBlank() }?.let { "\n\nZuvor abgefangene Fehler:\n$it" }.orEmpty()
                 )
             }
             previous?.uncaughtException(thread, error)
@@ -133,11 +134,11 @@ class LlmHubApp : Application() {
         CrashLog.install(this)
         container = AppContainer(this)
         Notifier.ensureChannel(this)
-        runCatching { TaskScheduler.scheduleAll(this) }
+        runCatching { TaskScheduler.scheduleAll(this) }.logFailure("Geplante Aufgaben einplanen")
         // Re-checks the GitHub tokens, so revoked ones hide the GitHub options again.
         val s = container.settings.current
         if (s.githubToken.isNotBlank() || s.githubAccounts.isNotEmpty()) {
-            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { container.github.verifyAll() } }
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { container.github.verifyAll() }.logFailure("GitHub-Tokens prüfen") }
         }
     }
 }

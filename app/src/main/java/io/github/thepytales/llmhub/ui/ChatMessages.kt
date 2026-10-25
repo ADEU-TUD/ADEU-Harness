@@ -1,8 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
@@ -39,18 +36,18 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -74,10 +71,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -181,7 +177,7 @@ fun chatItems(conv: Conversation): List<ChatItem> {
 fun rememberDataUrlBitmap(url: String): ImageBitmap? = remember(url) {
     runCatching {
         val bytes = Base64.decode(url.substringAfter(","), Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+        decodeImage(bytes)
     }.getOrNull()
 }
 
@@ -320,7 +316,8 @@ fun UserBubble(
                     modifier = Modifier
                         .widthIn(max = 310.dp)
                         .clip(look.userShape)
-                        .combinedClickable(onClick = {}, onLongClick = { menu = true }),
+                        .combinedClickable(onClick = {}, onLongClick = { menu = true })
+                        .secondaryClick { menu = true },
                 ) {
                     Text(m.content, color = look.onUserBubble, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
                 }
@@ -477,13 +474,6 @@ fun AssistantMessage(
             }
         }
     }
-}
-
-/** Opens the Android share sheet for [text]. */
-fun shareText(context: Context, text: String, subject: String? = null) {
-    val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-    subject?.let { intent.putExtra(Intent.EXTRA_SUBJECT, it) }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Teilen")) }
 }
 
 /** Shown while the model works on an answer: the brand spark slowly pulsing, like in the Claude app. */

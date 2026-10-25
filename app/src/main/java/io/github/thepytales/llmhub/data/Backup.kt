@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
 import kotlinx.serialization.Serializable
@@ -37,11 +38,26 @@ data class BackupManifest(
     val githubToken: String? = null,
     /** Further GitHub tokens (only with secrets). */
     val githubTokens: List<String> = emptyList(),
-    /** Further API providers; without secrets their keys are empty. */
+    /** Further API providers; their keys are only in [secrets]. */
     val providers: List<ApiProvider> = emptyList(),
+    /** API keys, tokens and secret variables, encrypted with the password chosen at export ([BackupSecrets]). */
+    val secrets: SecretBox? = null,
 )
 
-data class ImportResult(val files: Int, val chats: Int, val from: String)
+/** The secret part of a backup; stored only encrypted (see [BackupManifest.secrets]). */
+@Serializable
+data class BackupSecrets(
+    val apiKey: String? = null,
+    val githubToken: String? = null,
+    val githubTokens: List<String> = emptyList(),
+    /** Provider id → API key. */
+    val providerKeys: Map<String, String> = emptyMap(),
+    /** Environment id → variable name → value of secret variables. */
+    val envSecrets: Map<String, Map<String, String>> = emptyMap(),
+)
+
+/** [locked]: the backup carries encrypted keys; [Backup.unlock] with the password applies them. */
+data class ImportResult(val files: Int, val chats: Int, val from: String, val locked: SecretBox? = null)
 
 /**
  * Everything of the app in one ZIP (Einstellungen › Sicherung & Umzug): chats, projects, templates, tasks,
@@ -74,18 +90,29 @@ object Backup {
         pseudonymAuto = p.pseudonymAuto, pseudonymTerms = p.pseudonymTerms,
     )
 
-    fun export(c: AppContainer, out: OutputStream, withSecrets: Boolean) {
+    /**
+     * Writes the backup. With a [password], API keys, tokens and secret variables go along – encrypted with it, never
+     * in plain text.
+     */
+    fun export(c: AppContainer, out: OutputStream, password: String?) {
         val root = c.appContext.filesDir
         val s = c.settings.current
-        val envs = c.environments.current.map { e ->
-            if (withSecrets) e else e.copy(variables = e.variables.map { v -> if (v.secret) v.copy(value = "") else v })
+        val envs = c.environments.current.map { e -> e.copy(variables = e.variables.map { v -> if (v.secret) v.copy(value = "") else v }) }
+        val secrets = password?.let {
+            val plain = BackupSecrets(
+                apiKey = s.apiKey.takeIf { k -> k.isNotBlank() },
+                githubToken = s.githubToken.takeIf { t -> t.isNotBlank() },
+                githubTokens = s.githubAccounts.map { a -> a.token }.filter { t -> t.isNotBlank() },
+                providerKeys = s.providers.filter { p -> p.apiKey.isNotBlank() }.associate { p -> p.id to p.apiKey },
+                envSecrets = c.environments.current.associate { e -> e.id to e.variables.filter { v -> v.secret && v.value.isNotEmpty() }.associate { v -> v.name to v.value } }
+                    .filterValues { m -> m.isNotEmpty() },
+            )
+            SecretBox.seal(json.encodeToString(BackupSecrets.serializer(), plain), it)
         }
         val manifest = BackupManifest(
             VERSION, BuildConfig.VERSION_NAME, System.currentTimeMillis(), root.absolutePath, portable(s), envs,
-            apiKey = s.apiKey.takeIf { withSecrets && it.isNotBlank() },
-            githubToken = s.githubToken.takeIf { withSecrets && it.isNotBlank() },
-            githubTokens = if (withSecrets) s.githubAccounts.map { it.token }.filter { it.isNotBlank() } else emptyList(),
-            providers = s.providers.map { if (withSecrets) it else it.copy(apiKey = "") },
+            providers = s.providers.map { it.copy(apiKey = "") },
+            secrets = secrets,
         )
         ZipOutputStream(out).use { zip ->
             zip.putNextEntry(ZipEntry(MANIFEST))
@@ -134,34 +161,52 @@ object Backup {
         }
         val m = manifest ?: throw IllegalArgumentException("Das ist keine Sicherung von ADEU LLM (backup.json fehlt).")
         // Documents, logos and attachment copies are referenced with absolute paths of the old device.
-        texts.forEach { f -> runCatching { f.writeText(movePaths(f.readText(), m.root, root.absolutePath)) } }
+        texts.forEach { f -> runCatching { f.writeText(movePaths(f.readText(), m.root, root.absolutePath)) }.logFailure("Pfade nach Umzug anpassen") }
+        c.settings.update { s -> apply(s, m.settings) }
+        // Older backups carried the keys in plain text.
+        applySecrets(c, BackupSecrets(m.apiKey, m.githubToken, m.githubTokens), m.providers, m.environments)
+        return ImportResult(files, chats, m.appVersion, locked = m.secrets)
+    }
+
+    /** Applies the encrypted keys of an imported backup; false if the password is wrong. */
+    fun unlock(c: AppContainer, box: SecretBox, password: String): Boolean {
+        val plain = box.open(password) ?: return false
+        applySecrets(c, json.decodeFromString(BackupSecrets.serializer(), plain), emptyList(), emptyList())
+        return true
+    }
+
+    /** Takes over keys, tokens, providers and environments; what is missing keeps the value on this device. */
+    private fun applySecrets(c: AppContainer, secrets: BackupSecrets, providers: List<ApiProvider>, environments: List<AgentEnvironment>) {
         c.settings.update { s ->
-            apply(s, m.settings).let { if (m.apiKey != null) it.copy(apiKey = m.apiKey) else it }
-                .let { if (m.githubToken != null) it.copy(githubToken = m.githubToken, githubUser = "") else it }
+            s.let { if (secrets.apiKey != null) it.copy(apiKey = secrets.apiKey) else it }
+                .let { if (secrets.githubToken != null) it.copy(githubToken = secrets.githubToken, githubUser = "") else it }
                 .let { cur ->
                     val known = cur.githubAccounts.map { a -> a.token }.toSet() + cur.githubToken
-                    cur.copy(githubAccounts = cur.githubAccounts + m.githubTokens.filter { t -> t !in known }.map { t -> GitHubAccount(token = t) })
+                    cur.copy(githubAccounts = cur.githubAccounts + secrets.githubTokens.filter { t -> t !in known }.map { t -> GitHubAccount(token = t) })
                 }
                 .let { cur ->
                     // Keys that were not exported keep the one of the same provider on this device.
-                    val imported = m.providers.map { p ->
+                    val imported = providers.map { p ->
                         if (p.apiKey.isNotEmpty()) p
                         else p.copy(apiKey = cur.providers.firstOrNull { o -> o.id == p.id || o.kind == p.kind && o.baseUrl == p.baseUrl }?.apiKey.orEmpty())
                     }
-                    cur.copy(providers = cur.providers.filter { o -> imported.none { it.id == o.id || it.kind == o.kind && it.baseUrl == o.baseUrl } } + imported)
+                    val merged = cur.providers.filter { o -> imported.none { it.id == o.id || it.kind == o.kind && it.baseUrl == o.baseUrl } } + imported
+                    cur.copy(providers = merged.map { p -> secrets.providerKeys[p.id]?.let { k -> p.copy(apiKey = k) } ?: p })
                 }
         }
-        if (m.environments.isNotEmpty()) {
-            val current = c.environments.current
-            c.environments.replaceAll(current.filter { e -> m.environments.none { it.id == e.id } } + m.environments.map { imported ->
-                // Secret values that were not exported keep the value already on this device.
-                val old = current.firstOrNull { it.id == imported.id }
-                imported.copy(variables = imported.variables.map { v ->
-                    if (v.secret && v.value.isEmpty()) old?.variables?.firstOrNull { it.name == v.name }?.let { v.copy(value = it.value) } ?: v else v
-                })
+        val current = c.environments.current
+        val withImported = if (environments.isEmpty()) current else current.filter { e -> environments.none { it.id == e.id } } + environments.map { imported ->
+            // Secret values that were not exported keep the value already on this device.
+            val old = current.firstOrNull { it.id == imported.id }
+            imported.copy(variables = imported.variables.map { v ->
+                if (v.secret && v.value.isEmpty()) old?.variables?.firstOrNull { it.name == v.name }?.let { v.copy(value = it.value) } ?: v else v
             })
         }
-        return ImportResult(files, chats, m.appVersion)
+        val result = withImported.map { e ->
+            val values = secrets.envSecrets[e.id] ?: return@map e
+            e.copy(variables = e.variables.map { v -> values[v.name]?.let { v.copy(value = it) } ?: v })
+        }
+        if (result != current) c.environments.replaceAll(result)
     }
 
     /** Replaces the old data folder in JSON text with the new one, with forward slashes (valid on Android and Windows). */

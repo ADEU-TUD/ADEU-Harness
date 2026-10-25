@@ -8,7 +8,9 @@ import de.lokal.whisper.Speech
 import de.lokal.whisper.Util
 import de.lokal.whisper.Wav
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.AtomicFiles
 import io.github.thepytales.llmhub.data.PrivacyLevel
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.net.ApiException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +25,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -104,7 +108,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
     private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     private val _settings = MutableStateFlow(
-        runCatching { json.decodeFromString<TranscriptionSettings>(settingsFile.readText()) }.getOrDefault(TranscriptionSettings())
+        runCatching { AtomicFiles.read(settingsFile)?.let { json.decodeFromString<TranscriptionSettings>(it) } }.getOrNull() ?: TranscriptionSettings()
     )
     val settings: StateFlow<TranscriptionSettings> = _settings.asStateFlow()
 
@@ -146,13 +150,13 @@ class Transcription(private val c: AppContainer, private val root: File, private
         val data = File(root, "data")
         val pending = File(data, "jobs.json").let { it.isFile && it.length() > 20 } ||
             File(data, "recordings").listFiles()?.isNotEmpty() == true
-        if (pending) scope.launch { runCatching { engine() } }
+        if (pending) scope.launch { runCatching { engine() }.logFailure("Sprach-Engine starten") }
     }
 
     fun updateSettings(transform: (TranscriptionSettings) -> TranscriptionSettings) {
         val next = transform(_settings.value)
         _settings.value = next
-        runCatching { root.mkdirs(); settingsFile.writeText(json.encodeToString(next)) }
+        runCatching { root.mkdirs(); AtomicFiles.write(settingsFile, json.encodeToString(next)) }.logFailure("Transkriptions-Einstellungen speichern")
     }
 
     /** The engine, started on first use. */
@@ -166,6 +170,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
         Engine.remote = remote
         val e = Engine.start(SpeechHost.platform(c, this, root, cache))
         engine = e
+        scope.launch(Dispatchers.IO) { runCatching { purgeTrash(e) }.logFailure("Papierkorb leeren") }
         _state.value = SpeechState.parse(e.state(), _state.value)
         refreshList()
         refreshIncoming()
@@ -265,9 +270,27 @@ class Transcription(private val c: AppContainer, private val root: File, private
 
     /** Copies a picked or shared file into the app and offers it in the start dialog. */
     suspend fun import(name: String, size: Long, input: InputStream) = withContext(Dispatchers.IO) {
+        checkSpace(size)
         input.use { engine().importStream(name, size, it) }
         refreshIncoming()
     }
+
+    /**
+     * The copy of the file plus the audio extracted from it (16 kHz WAV, about 115 MB per hour) must fit, with some
+     * room left for the phone. Otherwise a clear message instead of a half-copied file.
+     */
+    private fun checkSpace(size: Long) {
+        val free = engine().dataDir.usableSpace
+        val needed = (if (size > 0) size else 0L) + RESERVE_BYTES
+        if (free in 1 until needed) {
+            throw java.io.IOException(
+                "Nicht genug Speicherplatz: frei sind ${megabytes(free)}, gebraucht werden etwa ${megabytes(needed)}. " +
+                    "Bitte Platz schaffen (z. B. alte Transkripte mit Aufnahme löschen und den Papierkorb leeren)."
+            )
+        }
+    }
+
+    private fun megabytes(bytes: Long) = if (bytes >= 1_000_000_000) String.format(java.util.Locale.GERMANY, "%.1f GB", bytes / 1e9) else "${bytes / 1_000_000} MB"
 
     fun discardIncoming(token: String) {
         engine().discardIncoming(token)
@@ -282,7 +305,14 @@ class Transcription(private val c: AppContainer, private val root: File, private
 
     fun retranscribe(transcriptId: String, opts: StartOptions): String = engine().retranscribe(transcriptId, opts.toJson())
 
-    fun cancel(jobId: String) = engine().cancelJob(jobId)
+    /** Time of the last "Abbrechen": server requests waiting to retry stop instead of blocking the queue. */
+    @Volatile
+    private var lastCancel = 0L
+
+    fun cancel(jobId: String) {
+        lastCancel = System.currentTimeMillis()
+        engine().cancelJob(jobId)
+    }
     fun dismiss(jobId: String) = engine().dismissJob(jobId)
 
     fun startRecording(opts: StartOptions) {
@@ -318,22 +348,72 @@ class Transcription(private val c: AppContainer, private val root: File, private
         return File(engine().transcripts, id)
     }
 
+    /** Reads a transcript; if the file is broken, the version before the last save (".bak") is used. */
     suspend fun load(id: String): Transcript? = withContext(Dispatchers.IO) {
         val f = File(dir(id), "transcript.json")
-        if (!f.isFile) null else Transcript.parse(f.readText(), id)
+        val text = AtomicFiles.read(f) ?: return@withContext null
+        runCatching { Transcript.parse(text, id) ?: error("Transkript nicht lesbar") }.getOrElse { e ->
+            val backup = AtomicFiles.backupOf(f)
+            val older = runCatching { Transcript.parse(backup.readText(), id) }.getOrNull()
+            AtomicFiles.quarantine(f, e)
+            older?.also {
+                AtomicFiles.write(f, backup.readText())
+                _messages.tryEmit("Das Transkript war beschädigt – die vorige Fassung wurde wiederhergestellt.")
+            }
+        }
     }
 
+    /** Saves atomically and keeps the previous version as ".bak". */
     suspend fun save(t: Transcript) = withContext(Dispatchers.IO) {
         val f = File(dir(t.id), "transcript.json")
-        Util.writeText(f, SpeechJson.encodeToString(JsonObject.serializer(), t.toJson()))
+        AtomicFiles.write(f, SpeechJson.encodeToString(JsonObject.serializer(), t.toJson()), keepBackup = true)
         engine().indexInvalidate(t.id)
         refreshList()
     }
 
+    /** Deleted transcripts with their audio, restorable for [TRASH_DAYS] days. */
+    private fun trash() = File(engine().dataDir, "papierkorb")
+
+    /** Moves a transcript (with its audio) into the trash; [restore] brings it back. */
     suspend fun delete(id: String) = withContext(Dispatchers.IO) {
-        Util.deleteRecursive(dir(id))
+        val d = dir(id)
+        val target = File(trash().apply { mkdirs() }, id)
+        if (target.exists()) Util.deleteRecursive(target)
+        if (!d.renameTo(target)) Util.deleteRecursive(d) else target.setLastModified(System.currentTimeMillis())
         engine().indexInvalidate(id)
         refreshList()
+    }
+
+    suspend fun restore(id: String) = withContext(Dispatchers.IO) {
+        val from = File(trash(), id)
+        if (from.isDirectory) from.renameTo(dir(id))
+        engine().indexInvalidate(id)
+        refreshList()
+    }
+
+    /** [restore] from places that do not wait (the "Rückgängig" banner). */
+    fun restoreLater(id: String) {
+        scope.launch { runCatching { restore(id) }.logFailure("Transkript wiederherstellen") }
+    }
+
+    /** Transcripts in the trash: id, title, time of deletion (Einstellungen › Daten › Papierkorb). */
+    suspend fun trashed(): List<Triple<String, String, Long>> = withContext(Dispatchers.IO) {
+        trash().listFiles { f -> f.isDirectory }.orEmpty().map { d ->
+            val title = runCatching { Transcript.parse(File(d, "transcript.json").readText(), d.name)?.title }.getOrNull() ?: d.name
+            Triple(d.name, title, d.lastModified())
+        }.sortedByDescending { it.third }
+    }
+
+    suspend fun deleteForever(id: String) = withContext(Dispatchers.IO) {
+        require(id.matches(Regex("[0-9a-zA-Z_-]{3,40}"))) { "id" }
+        Util.deleteRecursive(File(trash(), id))
+    }
+
+    private fun purgeTrash(e: Engine) {
+        val limit = System.currentTimeMillis() - TRASH_DAYS * 24 * 3600_000L
+        File(e.dataDir, "papierkorb").listFiles { f -> f.isDirectory && f.lastModified() < limit }.orEmpty().forEach { Util.deleteRecursive(it) }
+        // Temporary audio of server transcriptions left behind by a crash.
+        cache.listFiles { f -> f.name.startsWith("remote-") && f.name.endsWith(".wav") }.orEmpty().forEach { it.delete() }
     }
 
     /** Audio of a transcript (for playing), null if none was kept. */
@@ -386,7 +466,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
             val o = el as? JsonObject ?: return@mapNotNull null
             (o.str("from") ?: return@mapNotNull null) to o.str("to").orEmpty()
         }
-    }.getOrDefault(emptyList())
+    }.logFailure("Ersetzungsliste lesen").getOrDefault(emptyList())
 
     fun saveReplacements(list: List<Pair<String, String>>) {
         val a = org.json.JSONArray()
@@ -455,24 +535,33 @@ class Transcription(private val c: AppContainer, private val root: File, private
         override fun name(): String = "Uni-Server"
 
         override fun recognize(samples: FloatArray, language: String?): String {
+            val started = System.currentTimeMillis()
             val wav = File(cache, "remote-${Thread.currentThread().id}.wav")
             writeWav(samples, wav)
             try {
                 var wait = 5_000L
                 repeat(6) { attempt ->
                     try {
+                        // Runs on the engine's own worker thread, which waits for the answer anyway; the timeout
+                        // keeps a hanging connection from holding up the whole queue.
                         return runBlocking {
-                            c.llm.limiter.acquire()
-                            c.llm.transcribe(c.settings.current.sttModel, wav, language, "audio/wav")
+                            withTimeout(REMOTE_TIMEOUT_MS) {
+                                c.llm.limiter.acquire()
+                                c.llm.transcribe(c.settings.current.sttModel, wav, language, "audio/wav")
+                            }
                         }
                     } catch (e: ApiException) {
                         val retry = e.code == 429 || e.code in 500..599
                         if (!retry || attempt == 5) throw e
-                        Thread.sleep(e.retryAfter?.let { it * 1000 } ?: wait)
+                        pause(e.retryAfter?.let { it * 1000 } ?: wait, started)
+                        wait = (wait * 2).coerceAtMost(60_000)
+                    } catch (e: TimeoutCancellationException) {
+                        if (attempt == 5) throw java.io.IOException("Der Uni-Server antwortet nicht.")
+                        pause(wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     } catch (e: java.io.IOException) {
-                        if (attempt == 5) throw e
-                        Thread.sleep(wait)
+                        if (attempt == 5) throw java.io.IOException(io.github.thepytales.llmhub.net.NetErrors.describe(e), e)
+                        pause(wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     }
                 }
@@ -481,9 +570,26 @@ class Transcription(private val c: AppContainer, private val root: File, private
                 wav.delete()
             }
         }
+
+        /** Waits before a retry, but stops at once when a job was cancelled meanwhile. */
+        private fun pause(ms: Long, started: Long) {
+            val end = System.currentTimeMillis() + ms
+            while (System.currentTimeMillis() < end) {
+                if (lastCancel > started) throw java.io.InterruptedIOException("Abgebrochen")
+                Thread.sleep(250)
+            }
+        }
     }
 
     companion object {
+        const val TRASH_DAYS = 30
+
+        /** Room kept free besides the imported file (extracted audio, the phone itself). */
+        private const val RESERVE_BYTES = 400_000_000L
+
+        /** Longest wait for the server per piece of speech; afterwards it counts as a network error (retry). */
+        private const val REMOTE_TIMEOUT_MS = 180_000L
+
         /** 16-bit mono WAV at 16 kHz. */
         fun writeWav(samples: FloatArray, file: File) {
             file.parentFile?.mkdirs()

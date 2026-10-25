@@ -1,12 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.ExifInterface
-import android.net.Uri
-import android.util.Base64
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,7 +27,6 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Bookmarks
-import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -45,10 +37,7 @@ import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -64,43 +53,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.data.FileAttachment
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 
-/** Loads, rotates (EXIF), downscales and encodes an image as JPEG data URL. */
-suspend fun encodeImage(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
-    runCatching {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)!!.use { BitmapFactory.decodeStream(it, null, bounds) }
-        var sample = 1
-        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1280) sample *= 2
-        var bmp = context.contentResolver.openInputStream(uri)!!.use {
-            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-        }!!
-        val rotation = runCatching {
-            context.contentResolver.openInputStream(uri)!!.use { stream ->
-                when (ExifInterface(stream).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
-                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                    else -> 0f
-                }
-            }
-        }.getOrDefault(0f)
-        if (rotation != 0f) {
-            bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(rotation) }, true)
-        }
-        val scale = minOf(1f, 1280f / maxOf(bmp.width, bmp.height))
-        if (scale < 1f) bmp = Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true)
-        val out = ByteArrayOutputStream()
-        bmp.compress(Bitmap.CompressFormat.JPEG, 85, out)
-        "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
-    }.getOrNull()
-}
 
 /** Small chip above the input that shows active context (repository, environment, persona). */
 @Composable
@@ -157,8 +120,11 @@ fun Composer(
     onMic: () -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
+    /** Strg+V: returns true when it attached an image or files from the clipboard. */
+    onPaste: () -> Boolean = { false },
     chips: @Composable RowScope.() -> Unit,
 ) {
+    val canSend = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
     val look = LocalChatLook.current
     Column(
         Modifier
@@ -200,7 +166,7 @@ fun Composer(
                     onValueChange = onInput,
                     placeholder = {
                         Text(
-                            if (recording) "Aufnahme läuft … zum Beenden auf das Mikrofon tippen" else placeholder,
+                            if (recording) "Aufnahme läuft … zum Beenden auf das Mikrofon $TAP" else placeholder,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodyLarge,
@@ -216,7 +182,19 @@ fun Composer(
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    // Windows: Enter sends, Umschalt+Enter starts a new line (like the Claude desktop app). On Android
+                    // Enter stays a new line, also with a keyboard attached.
+                    modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { e ->
+                        when {
+                            e.type != KeyEventType.KeyDown -> false
+                            ENTER_SENDS && (e.key == Key.Enter || e.key == Key.NumPadEnter) && !e.isShiftPressed -> {
+                                if (canSend && !running) onSend()
+                                true
+                            }
+                            e.key == Key.V && e.isCtrlPressed -> onPaste()
+                            else -> false
+                        }
+                    },
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 4.dp)) {
                     RoundButton(onClick = onPlus) { Icon(Icons.Outlined.Add, contentDescription = "Hinzufügen") }
@@ -247,7 +225,6 @@ fun Composer(
                         }
                     }
                     Spacer(Modifier.width(8.dp))
-                    val canSend = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
                     val active = running || canSend
                     Surface(
                         shape = CircleShape,
@@ -317,6 +294,7 @@ fun PlusSheet(
     repoLabel: String?,
     envLabel: String,
     personaLabel: String,
+    /** Windows: paste from the clipboard (screenshot, copied files). */
     onCamera: () -> Unit,
     onPhotos: () -> Unit,
     onFiles: () -> Unit,
@@ -334,12 +312,12 @@ fun PlusSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         SheetLabel("Anhängen")
         Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SheetTile(Icons.Outlined.CameraAlt, "Kamera", { pick(onCamera) }, Modifier.weight(1f))
-            SheetTile(Icons.Outlined.Image, "Fotos", { pick(onPhotos) }, Modifier.weight(1f))
+            SheetTile(CameraTile.icon, CameraTile.label, { pick(onCamera) }, Modifier.weight(1f))
+            SheetTile(Icons.Outlined.Image, PHOTOS_LABEL, { pick(onPhotos) }, Modifier.weight(1f))
             SheetTile(Icons.Outlined.AttachFile, "Dateien", { pick(onFiles) }, Modifier.weight(1f))
         }
         Text(
-            "PDF, Word, PowerPoint, Excel, Text- und Code-Dateien werden gelesen und mitgeschickt.",
+            "PDF, Word, PowerPoint, Excel, Text- und Code-Dateien werden gelesen und mitgeschickt.$ATTACH_HINT",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),

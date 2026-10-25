@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.local
 
+import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.ApiProvider
 import io.github.thepytales.llmhub.data.ProviderKind
@@ -66,7 +67,7 @@ class LocalLlm(private val c: AppContainer) {
 
     init {
         refresh()
-        scope.launch { _hardware.value = runCatching { LlamaHost.hardware(c, root) }.getOrNull() }
+        scope.launch { _hardware.value = runCatching { LlamaHost.hardware(c, root) }.logFailure("Hardware erkennen").getOrNull() }
         // Leftover server of an earlier run (app killed): stop it.
         scope.launch { LlamaHost.killStale(root) }
     }

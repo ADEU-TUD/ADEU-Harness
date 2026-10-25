@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -68,7 +67,7 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
                     IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "Vorlagen importieren") }
                     IconButton(enabled = own.isNotEmpty(), onClick = {
                         clipboard.setText(AnnotatedString(TemplateLibrary.export(own)))
-                        Toast.makeText(context, "${own.size} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.", Toast.LENGTH_LONG).show()
+                        Notices.info("${own.size} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.")
                     }) { Icon(Icons.Outlined.IosShare, contentDescription = "Eigene Vorlagen teilen") }
                 },
             )
@@ -122,7 +121,7 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             initial = clipboard.getText()?.text?.takeIf { "{" in it }.orEmpty(),
             onImport = { list ->
                 list.forEach { c.templates.upsert(it) }
-                Toast.makeText(context, "${list.size} Vorlage(n) importiert.", Toast.LENGTH_SHORT).show()
+                Notices.info("${list.size} Vorlage(n) importiert.")
             },
             onDismiss = { importing = false },
         )

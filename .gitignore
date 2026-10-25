@@ -7,3 +7,7 @@ local.properties
 captures/
 .kotlin/
 dist/
+# Release signing: key and passwords stay out of the repository (see keystore.properties.example)
+keystore.properties
+*.keystore
+*.jks

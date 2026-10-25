@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.logFailure
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -101,7 +102,7 @@ class AgentService : Service() {
         fun start(context: Context) {
             Notifier.ensureChannel(context)
             // Only possible while the app is visible; if Android refuses, the answer still runs as long as the app lives.
-            runCatching { ContextCompat.startForegroundService(context, Intent(context, AgentService::class.java)) }
+            runCatching { ContextCompat.startForegroundService(context, Intent(context, AgentService::class.java)) }.logFailure("Agent-Dienst starten")
         }
     }
 }

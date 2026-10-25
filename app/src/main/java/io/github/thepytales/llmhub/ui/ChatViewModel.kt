@@ -195,6 +195,7 @@ class ChatViewModel(
         c.runs.stop(chatId)
         _deleted.value = true
         c.chats.delete(chatId)
+        Notices.undo("Chat gelöscht", restore = { c.chats.restore(chatId) })
     }
 
     /** Sends a message; with [template] its hidden instructions go along (see [ChatMessage.instructions]). */

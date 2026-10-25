@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -25,7 +24,7 @@ fun rememberDocumentPicker(onRead: (FileAttachment) -> Unit): () -> Unit {
                 val r = AttachmentReader.read(context, uri)
                 r.file?.let(onRead)
                 (r.error ?: r.note ?: if (r.file == null) "Aus dieser Datei ließ sich kein Text lesen." else null)
-                    ?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                    ?.let { Notices.error(it) }
             }
         }
     }
@@ -80,7 +79,7 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
                     }
                     val input = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) } ?: error("Datei nicht lesbar")
                     onPicked(name, size, input)
-                }.onFailure { Toast.makeText(context, "Die Datei konnte nicht geöffnet werden: ${it.message}", Toast.LENGTH_LONG).show() }
+                }.onFailure { Notices.error("Die Datei konnte nicht geöffnet werden: ${it.message}") }
             }
         }
     }
@@ -92,10 +91,23 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
 fun rememberMicPermission(onGranted: () -> Unit): () -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) onGranted() else Toast.makeText(context, "Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich.", Toast.LENGTH_LONG).show()
+        if (ok) onGranted() else Notices.error("Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich.")
     }
     return {
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) onGranted()
         else launcher.launch(android.Manifest.permission.RECORD_AUDIO)
     }
+}
+
+/** Picks one picture (photo picker) and hands over its bytes, null if it could not be read. */
+@Composable
+fun rememberImageBytesPicker(onPicked: (ByteArray?) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) scope.launch {
+            onPicked(withContext(Dispatchers.IO) { runCatching { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }.getOrNull() })
+        }
+    }
+    return { launcher.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
 }

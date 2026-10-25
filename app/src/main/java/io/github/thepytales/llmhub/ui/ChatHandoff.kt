@@ -8,7 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * attached files and the project. Taken by the chat screen when it opens empty.
  */
 object ChatHandoff {
-    data class Content(val text: String, val files: List<FileAttachment>, val folderId: String? = null)
+    data class Content(
+        val text: String,
+        val files: List<FileAttachment>,
+        val folderId: String? = null,
+        /** Pictures as data URLs (e.g. a generated image to discuss or describe). */
+        val images: List<String> = emptyList(),
+    )
 
     val pending = MutableStateFlow<Content?>(null)
 

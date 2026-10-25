@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.logFailure
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,18 +15,16 @@ import java.io.File
 interface TextBackend {
     fun read(): String?
     fun write(text: String)
+
+    /** The stored text cannot be read: set it aside before it is overwritten. */
+    fun quarantine(error: Throwable) {}
 }
 
 class FileBackend(private val file: File) : TextBackend {
-    override fun read(): String? = if (file.exists()) file.readText() else null
-    override fun write(text: String) {
-        file.parentFile?.mkdirs()
-        val tmp = File(file.parentFile, file.name + ".tmp")
-        tmp.writeText(text)
-        if (!tmp.renameTo(file)) {
-            file.writeText(text)
-            tmp.delete()
-        }
+    override fun read(): String? = AtomicFiles.read(file)
+    override fun write(text: String) = AtomicFiles.write(file, text)
+    override fun quarantine(error: Throwable) {
+        AtomicFiles.quarantine(file, error)
     }
 }
 
@@ -51,8 +50,12 @@ open class ListStore<T>(
     val current: List<T> get() = _items.value
 
     private fun load(defaults: () -> List<T>): List<T> {
-        val text = runCatching { backend.read() }.getOrNull() ?: return defaults()
-        return runCatching { storeJson.decodeFromString(ListSerializer(serializer), text) }.getOrElse { defaults() }
+        val text = runCatching { backend.read() }.logFailure("Liste lesen").getOrNull() ?: return defaults()
+        return runCatching { storeJson.decodeFromString(ListSerializer(serializer), text) }.getOrElse { e ->
+            // Not silently replaced by the defaults (the next save would overwrite the user's data for good).
+            backend.quarantine(e)
+            defaults()
+        }
     }
 
     fun get(key: String): T? = _items.value.firstOrNull { keyOf(it) == key }
@@ -70,6 +73,6 @@ open class ListStore<T>(
     @Synchronized
     private fun change(transform: (List<T>) -> List<T>) {
         _items.update(transform)
-        runCatching { backend.write(storeJson.encodeToString(ListSerializer(serializer), _items.value)) }
+        runCatching { backend.write(storeJson.encodeToString(ListSerializer(serializer), _items.value)) }.logFailure("Liste speichern")
     }
 }

@@ -15,6 +15,7 @@ import io.github.thepytales.llmhub.docs.PdfSelfTest
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
+import io.github.thepytales.llmhub.ui.Notices
 import io.github.thepytales.llmhub.ui.StartAnimation
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -93,7 +94,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         contentResolver.openInputStream(uri)?.let { container.transcription.import(name, size, it) }
-                    }
+                    }.onFailure { Notices.error(it.message ?: "Die Datei konnte nicht übernommen werden.") }
                 }
             }
             openRoute.value = "transcripts"

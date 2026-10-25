@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,8 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +28,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.ListAlt
@@ -46,23 +42,15 @@ import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FindReplace
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Forward10
-import androidx.compose.material.icons.outlined.Forward30
-import androidx.compose.material.icons.outlined.Forward5
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ModeComment
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.People
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.RepeatOne
-import androidx.compose.material.icons.outlined.Replay10
-import androidx.compose.material.icons.outlined.Replay30
-import androidx.compose.material.icons.outlined.Replay5
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
@@ -77,9 +65,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -94,6 +80,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -112,32 +104,21 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.audio.TranscriptPlayer
-import io.github.thepytales.llmhub.data.FileAttachment
-import io.github.thepytales.llmhub.docs.DocumentWriter
-import io.github.thepytales.llmhub.transcribe.InlineMark
-import io.github.thepytales.llmhub.transcribe.SearchHit
-import io.github.thepytales.llmhub.transcribe.Segment
-import io.github.thepytales.llmhub.transcribe.TextWord
 import io.github.thepytales.llmhub.transcribe.Transcript
 import io.github.thepytales.llmhub.transcribe.TranscriptEdit
 import io.github.thepytales.llmhub.transcribe.TranscriptExport
 import io.github.thepytales.llmhub.transcribe.TranscriptStatus
 import io.github.thepytales.llmhub.transcribe.TranscriptionSettings
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 /** Name of a language code for the meta line. */
 private fun languageName(code: String?) = SPEECH_LANGUAGES.firstOrNull { it.first == code }?.second ?: code?.uppercase()
@@ -195,40 +176,29 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     val scope = rememberCoroutineScope()
     val look = LocalChatLook.current
     val vs by t.settings.collectAsStateWithLifecycle()
-    var tr by remember(id) { mutableStateOf<Transcript?>(null) }
-    var loaded by remember(id) { mutableStateOf(false) }
-    var undo by remember(id) { mutableStateOf<Transcript?>(null) }
-    LaunchedEffect(id) {
-        t.engine()
-        tr = t.load(id)
-        loaded = true
-    }
-    // Word times measured in the background: show them as soon as they are saved
-    LaunchedEffect(id) {
-        t.finished.collect { f -> if (f.transcriptId == id) t.load(id)?.let { tr = it } }
-    }
+    val vm: TranscriptViewModel = viewModel(key = "transcript-$id") { TranscriptViewModel(c, id) }
+    val tr by vm.transcript.collectAsStateWithLifecycle()
+    val loaded by vm.loaded.collectAsStateWithLifecycle()
+    val undo by vm.undo.collectAsStateWithLifecycle()
 
     val current = tr
     if (current == null) {
         Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Transkript") }) }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad), contentAlignment = Alignment.Center) {
-                if (loaded) HintText("Das Transkript gibt es nicht mehr.") else CircularProgressIndicator()
+                if (loaded) HintText("Das Transkript gibt es nicht mehr.")
+                else Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CircularProgressIndicator()
+                    HintText("Transkript wird geladen …")
+                }
             }
         }
         return
     }
 
-    /** Saves a change; the first change keeps the version as transcribed ("Änderungen verwerfen"). */
-    fun update(next: Transcript, undoable: Boolean = true) {
-        val before = tr ?: return
-        if (undoable) undo = before
-        val kept = if (before.hasOriginal || next.hasOriginal) next else next.copy(raw = before.withOriginal().raw)
-        tr = kept
-        scope.launch { t.save(kept) }
-    }
+    fun update(next: Transcript, undoable: Boolean = true) = vm.update(next, undoable)
 
     val audio = remember(current.id, current.audio) { t.audioFile(current) }
-    val player = remember(audio) { audio?.let { TranscriptPlayer(it) } }
+    val player = remember(audio) { audio?.let { TranscriptPlayer(it, context) } }
     DisposableEffect(player) { onDispose { player?.release() } }
     val position by (player?.position ?: remember { MutableStateFlow(0.0) }).collectAsStateWithLifecycle()
     val playing by (player?.playing ?: remember { MutableStateFlow(false) }).collectAsStateWithLifecycle()
@@ -236,27 +206,27 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     val control = remember(player) { PlaybackControl(player, { player?.position?.value ?: 0.0 }, { t.settings.value }) }
     LaunchedEffect(player, vs.speed) { player?.setSpeed(vs.speed) }
 
-    var menu by remember { mutableStateOf(false) }
-    var rename by remember { mutableStateOf(false) }
-    var moveFolder by remember { mutableStateOf(false) }
-    var export by remember { mutableStateOf(false) }
-    var findReplace by remember { mutableStateOf(false) }
-    var retranscribe by remember { mutableStateOf(false) }
-    var delete by remember { mutableStateOf(false) }
-    var discard by remember { mutableStateOf(false) }
-    var viewSheet by remember { mutableStateOf(false) }
-    var speakersSheet by remember { mutableStateOf(false) }
-    var segmentSheet by remember { mutableStateOf(false) }
-    var statsSheet by remember { mutableStateOf(false) }
-    var chaptersSheet by remember { mutableStateOf(false) }
-    var statusDialog by remember { mutableStateOf(false) }
-    var wordsDialog by remember { mutableStateOf(false) }
-    var editSegment by remember { mutableStateOf<Int?>(null) }
-    var editSpeaker by remember { mutableStateOf<Int?>(null) }
-    var loop by remember { mutableStateOf<Int?>(null) }
-    var searching by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-    var hitIndex by remember { mutableIntStateOf(0) }
+    var menu by rememberSaveable(id) { mutableStateOf(false) }
+    var rename by rememberSaveable(id) { mutableStateOf(false) }
+    var moveFolder by rememberSaveable(id) { mutableStateOf(false) }
+    var export by rememberSaveable(id) { mutableStateOf(false) }
+    var findReplace by rememberSaveable(id) { mutableStateOf(false) }
+    var retranscribe by rememberSaveable(id) { mutableStateOf(false) }
+    var delete by rememberSaveable(id) { mutableStateOf(false) }
+    var discard by rememberSaveable(id) { mutableStateOf(false) }
+    var viewSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var speakersSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var segmentSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var statsSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var chaptersSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var statusDialog by rememberSaveable(id) { mutableStateOf(false) }
+    var wordsDialog by rememberSaveable(id) { mutableStateOf(false) }
+    var editSegment by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var editSpeaker by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var loop by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var searching by rememberSaveable(id) { mutableStateOf(false) }
+    var query by rememberSaveable(id) { mutableStateOf("") }
+    var hitIndex by rememberSaveable(id) { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
     val focus = remember { FocusRequester() }
     val searchFocus = remember { FocusRequester() }
@@ -296,6 +266,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
         if (!inside && next.start - position > 1.5) player?.seek(next.start - 0.3)
     }
 
+    PlatformBackHandler(enabled = searching) { searching = false; query = "" }
+
     fun toggleLoop() { loop = if (loop != null) null else active.takeIf { it >= 0 } ?: 0 }
     fun openSearch() { searching = true }
 
@@ -333,7 +305,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                     navigationIcon = { BackButton(onBack) },
                     title = { Text(current.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.clickable { rename = true }) },
                     actions = {
-                        if (undo != null) TextButton(onClick = { undo?.let { update(it, undoable = false) }; undo = null }) { Text("Rückgängig") }
+                        if (undo != null) TextButton(onClick = vm::undoLast) { Text("Rückgängig") }
                         IconButton(onClick = ::openSearch) { Icon(Icons.Outlined.Search, contentDescription = "Suchen (Strg+F)") }
                         IconButton(onClick = {
                             ChatHandoff.pending.value = ChatHandoff.Content(
@@ -501,6 +473,14 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 )
                             }
                             .secondaryClick { editSegment = i }
+                            // TalkBack: tap gestures above are invisible to it, so the same actions as named actions.
+                            .semantics {
+                                onClick(label = if (player != null) "Ab hier abspielen" else "Bearbeiten") {
+                                    if (player == null) editSegment = i else control.play(s.start)
+                                    true
+                                }
+                                customActions = listOf(CustomAccessibilityAction("Abschnitt bearbeiten") { editSegment = i; true })
+                            }
                             .padding(horizontal = 4.dp, vertical = 3.dp),
                     )
                     if (vs.showComments && !s.comment.isNullOrBlank()) {
@@ -526,8 +506,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     if (rename) TextInputDialog("Umbenennen", current.title, "Titel", onConfirm = { v -> update(current.copy(title = v.trim().ifBlank { current.title })) }, onDismiss = { rename = false })
     if (moveFolder) FolderPickerDialog(c, current.folder, onPick = { f -> update(current.copy(folder = f)) }, onDismiss = { moveFolder = false })
     if (delete) ConfirmDialog(
-        "Transkript löschen?", "„${current.title}“ und die Aufnahme werden dauerhaft gelöscht.", "Löschen",
-        onConfirm = { scope.launch { player?.release(); t.delete(current.id); onBack() } }, onDismiss = { delete = false },
+        "Transkript löschen?", "„${current.title}“ kommt mit der Aufnahme in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen",
+        onConfirm = { player?.release(); vm.delete(onBack) }, onDismiss = { delete = false },
     )
     if (discard) ConfirmDialog(
         "Änderungen verwerfen?",
@@ -544,7 +524,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     }
     if (findReplace) FindReplaceDialog(current, onApply = { next, n ->
         update(next)
-        Toast.makeText(context, "$n× ersetzt. Rückgängig ist möglich.", Toast.LENGTH_LONG).show()
+        Notices.show(Notices.Notice("$n× ersetzt", action = "Rückgängig", onAction = vm::undoLast))
     }, onDismiss = { findReplace = false })
     if (export) ExportSheet(c, current, onDismiss = { export = false })
     if (viewSheet) ViewSheet(c, onDismiss = { viewSheet = false })
@@ -557,205 +537,3 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     if (retranscribe) RetranscribeSheet(c, current, onStarted = { retranscribe = false; onBack() }, onDismiss = { retranscribe = false })
 }
 
-/** Text size of the transcript (Ansicht › Schriftgröße). */
-@Composable
-private fun transcriptTextStyle(size: String): TextStyle {
-    val base = MaterialTheme.typography.bodyLarge
-    return when (size) {
-        "small" -> MaterialTheme.typography.bodyMedium
-        "large" -> base.copy(fontSize = base.fontSize * 1.2f, lineHeight = base.lineHeight * 1.2f)
-        "xlarge" -> base.copy(fontSize = base.fontSize * 1.45f, lineHeight = base.lineHeight * 1.45f)
-        else -> base
-    }
-}
-
-/**
- * The text of a segment with inline time stamps "(0:03)", the current word, search hits and (optionally) unmeasured
- * words underlined. Annotations: "w" = index of the word, "t" = time of a stamp.
- */
-private fun segmentText(
-    s: Segment,
-    tw: List<TextWord>,
-    marks: List<InlineMark>,
-    currentWord: Int,
-    hits: List<SearchHit>,
-    currentHit: SearchHit?,
-    markUnmeasured: Boolean,
-    markColor: Color,
-    wordColor: Color,
-): AnnotatedString {
-    val text = s.text
-    val byOffset = marks.groupBy { it.offset }
-    val map = IntArray(text.length + 1)
-    val b = AnnotatedString.Builder()
-    for (i in 0..text.length) {
-        byOffset[i]?.forEach { m ->
-            b.pushStringAnnotation("t", m.time.toString())
-            b.pushStyle(SpanStyle(color = markColor, fontWeight = FontWeight.Normal))
-            b.append("(" + TranscriptExport.clock(m.time) + ") ")
-            b.pop(); b.pop()
-        }
-        map[i] = b.length
-        if (i < text.length) b.append(text[i])
-    }
-    tw.forEachIndexed { k, w ->
-        b.addStringAnnotation("w", k.toString(), map[w.from], map[w.to])
-        if (markUnmeasured && w.word?.measured != true) b.addStyle(SpanStyle(textDecoration = TextDecoration.Underline, color = markColor), map[w.from], map[w.to])
-        if (k == currentWord) b.addStyle(SpanStyle(background = wordColor), map[w.from], map[w.to])
-    }
-    hits.forEach { h ->
-        val strong = currentHit == h
-        b.addStyle(SpanStyle(background = if (strong) Color(0xCCFFB300) else Color(0x66FFD54F)), map[h.from], map[h.to])
-    }
-    return b.toAnnotatedString()
-}
-
-/** Where a tap in the text starts the playback: a stamp, the measured start of the word, else the segment start. */
-private fun tapTime(text: AnnotatedString, offset: Int, s: Segment, tw: List<TextWord>): Double {
-    text.getStringAnnotations("t", offset, offset + 1).firstOrNull()?.item?.toDoubleOrNull()?.let { return it }
-    val k = text.getStringAnnotations("w", offset, offset + 1).firstOrNull()?.item?.toIntOrNull()
-        ?: text.getStringAnnotations("w", (offset - 1).coerceAtLeast(0), offset).firstOrNull()?.item?.toIntOrNull()
-    val w = k?.let { tw.getOrNull(it)?.word }
-    return if (w != null && w.measured) w.start else s.start
-}
-
-/** Color of a speaker in the current look. */
-@Composable
-fun speakerColor(i: Int): Color = LocalChatLook.current.speakers.let { it[i.mod(it.size)] }
-
-/** The transcript as an attachment for the chat (text with times, speakers and comments). */
-fun transcriptAttachment(t: Transcript) = FileAttachment(
-    name = DocumentWriter.safeName(t.title) + ".txt",
-    mime = "text/plain",
-    text = TranscriptExport.markdown(t),
-)
-
-private val SPEEDS = listOf(0.5f, 0.6f, 0.75f, 0.9f, 1f, 1.1f, 1.25f, 1.5f, 1.75f, 2f)
-
-private fun speedLabel(v: Float) = (if (v % 1f == 0f) v.toInt().toString() else v.toString().replace('.', ',')) + "×"
-
-@Composable
-private fun PlayerBar(
-    c: AppContainer,
-    player: TranscriptPlayer,
-    control: PlaybackControl,
-    position: Double,
-    playing: Boolean,
-    duration: Double,
-    error: String?,
-    looping: Boolean,
-    onLoop: () -> Unit,
-) {
-    val look = LocalChatLook.current
-    val vs by c.transcription.settings.collectAsStateWithLifecycle()
-    var speedMenu by remember { mutableStateOf(false) }
-    val skip = vs.skipSeconds
-    Surface(color = look.card, border = look.cardBorder, shadowElevation = 6.dp, shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (error != null) HintText(error, Modifier.padding(4.dp))
-            Row(Modifier.widthIn(max = 760.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { control.skip(-skip.toDouble()) }) {
-                    Icon(when (skip) { 5 -> Icons.Outlined.Replay5; 30 -> Icons.Outlined.Replay30; else -> Icons.Outlined.Replay10 }, contentDescription = "$skip Sekunden zurück (F3)")
-                }
-                Surface(onClick = { control.toggle(playing) }, shape = CircleShape, color = look.action, contentColor = look.onAction, modifier = Modifier.size(48.dp)) {
-                    Box(contentAlignment = Alignment.Center) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = if (playing) "Pause (F4)" else "Abspielen (F4)") }
-                }
-                IconButton(onClick = { control.skip(skip.toDouble()) }) {
-                    Icon(when (skip) { 5 -> Icons.Outlined.Forward5; 30 -> Icons.Outlined.Forward30; else -> Icons.Outlined.Forward10 }, contentDescription = "$skip Sekunden vor (F5)")
-                }
-                Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
-                    Slider(
-                        value = position.toFloat().coerceIn(0f, duration.toFloat().coerceAtLeast(0.1f)),
-                        onValueChange = { player.seek(it.toDouble()) },
-                        valueRange = 0f..duration.toFloat().coerceAtLeast(0.1f),
-                    )
-                    Row {
-                        Text(TranscriptExport.clock(position), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                        Spacer(Modifier.weight(1f))
-                        Text(TranscriptExport.clock(duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                    }
-                }
-                IconButton(onClick = onLoop) {
-                    Icon(if (looping) Icons.Outlined.RepeatOne else Icons.Outlined.Repeat, contentDescription = if (looping) "Wiederholen aus (F6)" else "Abschnitt wiederholen (F6)",
-                        tint = if (looping) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Box {
-                    TextButton(onClick = { speedMenu = true }) { Text(speedLabel(vs.speed)) }
-                    DropdownMenu(expanded = speedMenu, onDismissRequest = { speedMenu = false }) {
-                        SPEEDS.forEach { v ->
-                            DropdownMenuItem(text = { Text(speedLabel(v) + if (v == 1f) " (normal)" else "") }, onClick = {
-                                speedMenu = false
-                                c.transcription.updateSettings { it.copy(speed = v) }
-                            })
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SegmentDialog(
-    t: Transcript,
-    index: Int,
-    control: PlaybackControl,
-    playing: () -> Boolean,
-    onLoop: () -> Unit,
-    onSave: (Transcript) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val s = t.segments[index]
-    var text by remember(s) { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(s.text)) }
-    var speaker by remember(s) { mutableStateOf(s.speaker) }
-    var comment by remember(s) { mutableStateOf(s.comment.orEmpty()) }
-    var message by remember { mutableStateOf<String?>(null) }
-    /** The transcript with the edits of this dialog applied to the segment. */
-    fun edited(): Transcript = t.copy(segments = t.segments.mapIndexed { i, x ->
-        if (i == index) TranscriptEdit.withText(x, text.text).copy(speaker = speaker, comment = comment.trim().ifBlank { null }) else x
-    })
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.onPreviewKeyEvent { e -> transcriptKey(e, control, playing, onLoop) },
-        title = { Text("Abschnitt bei ${TranscriptExport.clock(s.start)}–${TranscriptExport.clock(s.end)}") },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(text, { text = it }, minLines = 3, modifier = Modifier.fillMaxWidth())
-                if (t.diarized) ChoiceField("Sprecher", t.speakers.keys.sorted().map { it to t.speakerName(it) }, speaker, { speaker = it })
-                OutlinedTextField(comment, { comment = it }, label = { Text("Kommentar (nicht Teil des Gesprochenen)") }, minLines = 1, modifier = Modifier.fillMaxWidth())
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (control.available) {
-                        TextButton(onClick = { control.play(s.start) }) { Text("▶ Abspielen") }
-                        TextButton(onClick = {
-                            val next = TranscriptEdit.setStart(edited(), index, control.position())
-                            if (next == null) message = "Die Abspielposition liegt nicht zwischen dem vorigen Abschnitt und dem Ende dieses Abschnitts."
-                            else { onSave(next); onDismiss() }
-                        }) { Text("Start = ${TranscriptExport.clock(control.position())}") }
-                    }
-                    TextButton(onClick = {
-                        val next = TranscriptEdit.split(edited(), index, text.selection.start, control.position().takeIf { control.available })
-                        if (next == null) message = "Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit " +
-                            "die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang."
-                        else { onSave(next); onDismiss() }
-                    }) { Text("Am Cursor teilen") }
-                    if (index > 0) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index - 1)?.let(onSave); onDismiss() }) { Text("Mit vorigem verbinden") }
-                    if (index < t.segments.lastIndex) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index)?.let(onSave); onDismiss() }) { Text("Mit nächstem verbinden") }
-                    TextButton(onClick = { onSave(t.copy(segments = t.segments.filterIndexed { i, _ -> i != index }.mapIndexed { i, x -> x.copy(id = i) })); onDismiss() }) {
-                        Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Löschen")
-                    }
-                }
-                message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                val measured = s.words.count { it.measured }
-                HintText(
-                    (if (measured > 0) "Wortzeiten: $measured von ${TranscriptEdit.textWords(s).size} Wörtern gemessen; geänderte Wörter behalten ihre Zeit, neue liegen dazwischen. "
-                    else "Für diesen Abschnitt gibt es keine gemessenen Wortzeiten. ") + "F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 wiederholen – auch beim Tippen.",
-                )
-            }
-        },
-        confirmButton = { TextButton(onClick = { onSave(edited()); onDismiss() }) { Text("Speichern") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
-    )
-}

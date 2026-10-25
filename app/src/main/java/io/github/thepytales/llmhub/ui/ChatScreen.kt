@@ -1,74 +1,40 @@
 package io.github.thepytales.llmhub.ui
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.ActivityNotFoundException
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Bookmarks
-import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DoneAll
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.DriveFileMove
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -84,50 +50,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.core.content.pm.ShortcutInfoCompat
-import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.BuildConfig
-import io.github.thepytales.llmhub.MainActivity
-import io.github.thepytales.llmhub.R
 import io.github.thepytales.llmhub.audio.Recorder
-import io.github.thepytales.llmhub.data.Privacy
-import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.data.ChatMessage
-import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelCatalog
-import io.github.thepytales.llmhub.data.label
-import io.github.thepytales.llmhub.data.ModelInfo
 import io.github.thepytales.llmhub.data.ModelType
+import io.github.thepytales.llmhub.data.Privacy
+import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
+import io.github.thepytales.llmhub.data.label
 import io.github.thepytales.llmhub.data.thread
-import io.github.thepytales.llmhub.files.AttachmentReader
-import io.github.thepytales.llmhub.tasks.Notifier
-import kotlinx.coroutines.launch
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     c: AppContainer,
     vm: ChatViewModel,
-    onOpenDrawer: () -> Unit,
+    /** Opens the side menu; null when it is always visible (wide screens). */
+    onOpenDrawer: (() -> Unit)?,
     onNewChat: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
@@ -169,13 +117,12 @@ fun ChatScreen(
     var menuOpen by remember { mutableStateOf(false) }
     val recorder = remember { Recorder(context.applicationContext) }
     var recording by remember { mutableStateOf(false) }
-    var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(vm) {
-        vm.toasts.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+        vm.toasts.collect { Notices.info(it) }
     }
     LaunchedEffect(Unit) {
-        c.speaker.errors.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+        c.speaker.errors.collect { Notices.error(it) }
     }
     LaunchedEffect(deleted) {
         if (deleted) onNewChat()
@@ -193,34 +140,12 @@ fun ChatScreen(
     }
 
     LaunchedEffect(Unit) {
-        // Shared from another app: a new chat gets the text in the input field and the files as attachments.
-        if (vm.state.value?.messages.isNullOrEmpty()) {
-            MainActivity.shared.value?.let { shared ->
-                MainActivity.shared.value = null
-                if (shared.text.isNotBlank()) input = if (input.isBlank()) shared.text else input + "\n\n" + shared.text
-                shared.uris.forEach { uri ->
-                    val mime = context.contentResolver.getType(uri).orEmpty()
-                    if (mime.startsWith("image/")) {
-                        encodeImage(context, uri)?.let { images.add(it) }
-                    } else {
-                        loadingFiles++
-                        val r = AttachmentReader.read(context, uri)
-                        loadingFiles--
-                        r.file?.let { files.add(it) }
-                        images.addAll(r.images)
-                        (r.error ?: r.note)?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
-                    }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
         // Handed over from another screen (e.g. a transcript): text into the input field, files as attachments.
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
                 if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
                 files.addAll(h.files)
+                images.addAll(h.images)
             }
         }
     }
@@ -233,49 +158,21 @@ fun ChatScreen(
         }
     }
 
-    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris ->
-        scope.launch { uris.forEach { uri -> encodeImage(context, uri)?.let { images.add(it) } } }
-    }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-        val uri = cameraUri
-        if (ok && uri != null) scope.launch { encodeImage(context, uri)?.let { images.add(it) } }
-    }
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        uris.forEach { uri ->
-            loadingFiles++
-            scope.launch {
-                val r = AttachmentReader.read(context, uri)
-                loadingFiles--
-                r.file?.let { files.add(it) }
-                images.addAll(r.images)
-                (r.error ?: r.note)?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
-            }
-        }
-    }
-
-    fun takePhoto() {
-        try {
-            val f = File(context.cacheDir, "camera/photo_${System.currentTimeMillis()}.jpg").apply { parentFile?.mkdirs() }
-            val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", f)
-            cameraUri = uri
-            camera.launch(uri)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Keine Kamera-App gefunden.", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val platform = rememberChatPlatform(
+        isNewChat = { vm.state.value?.messages.isNullOrEmpty() },
+        images = images,
+        files = files,
+        onText = { text -> input = if (input.isBlank()) text else input + "\n\n" + text },
+        onLoading = { loadingFiles += it },
+    )
 
     fun startRecording() {
         try {
             recorder.start()
             recording = true
         } catch (e: Exception) {
-            Toast.makeText(context, "Aufnahme nicht möglich: ${e.message}", Toast.LENGTH_SHORT).show()
+            Notices.error("Aufnahme nicht möglich: ${e.message}")
         }
-    }
-
-    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) startRecording()
-        else Toast.makeText(context, "Mikrofon-Berechtigung benötigt.", Toast.LENGTH_SHORT).show()
     }
 
     val current = conv
@@ -308,7 +205,7 @@ fun ChatScreen(
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
+                    if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
                 },
                 title = {
                     if (hasMessages) {
@@ -346,11 +243,7 @@ fun ChatScreen(
                             onRename = { showRename = true },
                             onPin = { vm.setPinned(!current.pinned) },
                             onFolder = { showFolder = true },
-                            onHomeScreen = {
-                                if (!pinChatShortcut(context, current)) {
-                                    Toast.makeText(context, "Dein Startbildschirm unterstützt keine Verknüpfungen.", Toast.LENGTH_SHORT).show()
-                                }
-                            },
+                            onHomeScreen = platform.pinShortcut?.let { pin -> { pin(current) } },
                             onExport = { export = current.title to chatToMarkdown(current) },
                             onPersona = { showSystemPrompt = true },
                             onEnvironment = { showEnvPicker = true },
@@ -363,6 +256,9 @@ fun ChatScreen(
             )
         },
         bottomBar = {
+            // Wide screens: the chat stays readable in a centered column.
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(Modifier.widthIn(max = CONTENT_WIDTH)) {
             Composer(
                 input = input,
                 onInput = { input = it },
@@ -382,15 +278,13 @@ fun ChatScreen(
                     if (recording) {
                         recording = false
                         recorder.stop()?.let { file -> vm.transcribe(file) { text -> input = if (input.isBlank()) text else "$input $text" } }
-                    } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                        startRecording()
                     } else {
-                        micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                        platform.withMicrophone(::startRecording)
                     }
                 },
                 onSend = {
                     if (images.isNotEmpty() && modelInfo.vision == false) {
-                        Toast.makeText(context, "Hinweis: ${modelInfo.displayName} versteht keine Bilder.", Toast.LENGTH_LONG).show()
+                        Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
                     }
                     vm.send(input, images.toList(), files.toList(), activeTemplate)
                     input = ""
@@ -399,6 +293,7 @@ fun ChatScreen(
                     files.clear()
                 },
                 onStop = { vm.stop() },
+                onPaste = platform.paste,
             ) {
                 // Always visible while active: the selected repository, environment and persona.
                 if (current.githubEnabled && settings.hasGitHub) {
@@ -411,7 +306,7 @@ fun ChatScreen(
                 if (current.autoApprove) {
                     ContextChip(Icons.Outlined.DoneAll, "Ohne Rückfrage", {
                         vm.setAutoApprove(false)
-                        Toast.makeText(context, "Aktionen in diesem Chat werden wieder bestätigt.", Toast.LENGTH_SHORT).show()
+                        Notices.info("Aktionen in diesem Chat werden wieder bestätigt.")
                     })
                 }
                 if (!current.systemPrompt.isNullOrBlank()) {
@@ -426,6 +321,8 @@ fun ChatScreen(
                     ContextChip(Icons.Outlined.Lock, level.short, { }, highlighted = true)
                 }
             }
+            }
+            }
         },
     ) { pad ->
         if (items.isEmpty() && !running) {
@@ -439,15 +336,17 @@ fun ChatScreen(
                 onTemplate = { useTemplate(it) },
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
+                onOpen = onNavigate,
             )
         } else {
             val listState = rememberLazyListState()
             val reversed = remember(items) { items.asReversed() }
             val last = current.thread().lastOrNull()
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
                 reverseLayout = true,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxHeight().widthIn(max = CONTENT_WIDTH).fillMaxWidth(),
                 contentPadding = PaddingValues(
                     start = 14.dp, end = 14.dp,
                     top = pad.calculateTopPadding() + 8.dp,
@@ -488,6 +387,7 @@ fun ChatScreen(
                     }
                 }
             }
+            }
         }
     }
 
@@ -496,14 +396,14 @@ fun ChatScreen(
             repoLabel = repoLabel.takeIf { settings.hasGitHub },
             envLabel = env?.name ?: "Keine",
             personaLabel = current.persona ?: if (current.systemPrompt.isNullOrBlank()) "Keine" else "Eigener System-Prompt",
-            onCamera = { takePhoto() },
+            onCamera = platform.primaryAttach,
             onPhotos = {
                 if (modelInfo.vision == false) {
-                    Toast.makeText(context, "Hinweis: ${modelInfo.displayName} versteht keine Bilder.", Toast.LENGTH_SHORT).show()
+                    Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
                 }
-                photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                platform.pickPhotos()
             },
-            onFiles = { filePicker.launch(arrayOf("*/*")) },
+            onFiles = platform.pickFiles,
             onTemplates = { showTemplates = true },
             onPersona = { showSystemPrompt = true },
             onRepo = { showRepoPicker = true },
@@ -532,13 +432,13 @@ fun ChatScreen(
                 if (t.direct != null) {
                     if (running) {
                         c.drafts.upsert(io.github.thepytales.llmhub.data.TemplateDraft(t.id, values))
-                        Toast.makeText(context, "Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.", Toast.LENGTH_LONG).show()
+                        Notices.info("Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.")
                     } else vm.sendDirect(text, values, t)
                 } else if (running) {
                     // An answer is still being written: keep the text (and attachments) for later.
                     input = if (input.isBlank()) text else text + "\n\n" + input
                     templateId = t.id
-                    Toast.makeText(context, "Die Antwort läuft noch – der Text steht im Eingabefeld.", Toast.LENGTH_SHORT).show()
+                    Notices.info("Die Antwort läuft noch – der Text steht im Eingabefeld.")
                 } else {
                     vm.send(text, images.toList(), files.toList(), t)
                     images.clear()
@@ -614,7 +514,7 @@ fun ChatScreen(
     }
 
     if (showDelete) {
-        ConfirmDialog("Chat löschen?", "„${current.title}“ wird dauerhaft gelöscht.", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
+        ConfirmDialog("Chat löschen?", "„${current.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
     }
 
     pending?.let { p ->
@@ -622,223 +522,5 @@ fun ChatScreen(
     }
 }
 
-private fun greeting(name: String): String {
-    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-    val hello = when (hour) {
-        in 5..10 -> "Guten Morgen"
-        in 11..17 -> "Guten Tag"
-        in 18..22 -> "Guten Abend"
-        else -> "Hallo"
-    }
-    return if (name.isBlank()) hello else "$hello, ${name.trim()}"
-}
-
-/** Start of a new chat like in the Claude app: greeting, the chosen model and suggestions. */
-@Composable
-private fun EmptyChat(
-    hasApiKey: Boolean,
-    userName: String,
-    model: ModelInfo,
-    onModel: () -> Unit,
-    padding: PaddingValues,
-    suggestions: List<io.github.thepytales.llmhub.data.Template>,
-    onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
-    onApiKey: () -> Unit,
-    onAllTemplates: () -> Unit,
-) {
-    val look = LocalChatLook.current
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.weight(1f))
-        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = look.brand, modifier = Modifier.size(40.dp))
-        Spacer(Modifier.size(14.dp))
-        Text(
-            greeting(userName),
-            style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(
-            model.displayName + (model.useCase.takeIf { it.isNotBlank() }?.let { " – $it" } ?: ""),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onModel)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-        if (!hasApiKey) {
-            Spacer(Modifier.size(20.dp))
-            Button(onClick = onApiKey) {
-                Icon(Icons.Outlined.VpnKey, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.size(8.dp))
-                Text("API-Key eintragen")
-            }
-        }
-        Spacer(Modifier.weight(1f))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            suggestions.forEach { t ->
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = look.card,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                    modifier = Modifier
-                        .widthIn(min = 150.dp, max = 200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onTemplate(t) },
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(t.name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                        Text(
-                            t.description.ifBlank { t.content },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-            // The whole library is one tap away, not only the favourites.
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = look.card,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                modifier = Modifier
-                    .widthIn(min = 150.dp, max = 200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable(onClick = onAllTemplates),
-            ) {
-                Column(Modifier.padding(12.dp)) {
-                    Text("Alle Vorlagen ›", style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                    Text(
-                        "Lehre, Forschung, Betreuung, TUD-Dokumente",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MenuEntry(icon: ImageVector, label: String, enabled: Boolean = true, danger: Boolean = false, onClick: () -> Unit) {
-    val color = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-    DropdownMenuItem(
-        text = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp)) },
-        leadingIcon = { Icon(icon, contentDescription = null) },
-        enabled = enabled,
-        onClick = onClick,
-        colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color),
-        contentPadding = PaddingValues(horizontal = 20.dp),
-        modifier = Modifier.heightIn(min = 52.dp),
-    )
-}
-
-/** Divider between the groups of the chat menu, optionally with a small heading. */
-@Composable
-private fun MenuGroup(title: String?) {
-    HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-    if (title != null) {
-        Text(
-            title,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 2.dp),
-        )
-    }
-}
-
-/** Chat menu like the Claude app: title on top, big entries, "Löschen" in red. */
-@Composable
-private fun ChatMenu(
-    open: Boolean,
-    title: String,
-    hasMessages: Boolean,
-    pinned: Boolean,
-    onDismiss: () -> Unit,
-    onShare: () -> Unit,
-    onRename: () -> Unit,
-    onPin: () -> Unit,
-    onFolder: () -> Unit,
-    onHomeScreen: () -> Unit,
-    onExport: () -> Unit,
-    onPersona: () -> Unit,
-    onEnvironment: () -> Unit,
-    autoApprove: Boolean,
-    onAutoApprove: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    fun pick(action: () -> Unit): () -> Unit = {
-        onDismiss()
-        action()
-    }
-    DropdownMenu(
-        expanded = open,
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(22.dp),
-        containerColor = LocalChatLook.current.card,
-        shadowElevation = 8.dp,
-        modifier = Modifier.widthIn(min = 260.dp),
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 280.dp).padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
-        )
-        MenuEntry(Icons.Outlined.IosShare, "Teilen", hasMessages, onClick = pick(onShare))
-        MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
-        MenuGroup(null)
-        MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
-        MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
-        MenuEntry(Icons.Outlined.DriveFileMove, "In Projekt verschieben", hasMessages, onClick = pick(onFolder))
-        MenuEntry(Icons.Outlined.Home, "Zum Startbildschirm hinzufügen", hasMessages, onClick = pick(onHomeScreen))
-        MenuGroup("Für diesen Chat")
-        MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))
-        MenuEntry(Icons.Outlined.Tune, "Umgebung", onClick = pick(onEnvironment))
-        MenuEntry(
-            Icons.Outlined.DoneAll,
-            if (autoApprove) "Aktionen wieder bestätigen" else "Aktionen ohne Rückfrage",
-            onClick = pick(onAutoApprove),
-        )
-        MenuGroup(null)
-        MenuEntry(Icons.Outlined.Delete, "Löschen", hasMessages, danger = true, onClick = pick(onDelete))
-    }
-}
-
-/** Puts a shortcut to [conv] on the home screen; false if the launcher cannot do that. */
-private fun pinChatShortcut(context: Context, conv: Conversation): Boolean {
-    if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
-    val intent = Intent(context, MainActivity::class.java)
-        .setAction(Intent.ACTION_VIEW)
-        .putExtra(Notifier.EXTRA_CHAT, conv.id)
-    val label = conv.title.ifBlank { "Chat" }
-    val info = ShortcutInfoCompat.Builder(context, "chat_${conv.id}")
-        .setShortLabel(label.take(24))
-        .setLongLabel(label.take(60))
-        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
-        .setIntent(intent)
-        .build()
-    return runCatching { ShortcutManagerCompat.requestPinShortcut(context, info, null) }.getOrDefault(false)
-}
+/** Maximum width of the messages and the input on wide screens (tablets, Windows), like the Claude desktop app. */
+private val CONTENT_WIDTH = 860.dp

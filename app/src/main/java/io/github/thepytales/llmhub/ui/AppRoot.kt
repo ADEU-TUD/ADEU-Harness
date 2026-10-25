@@ -7,7 +7,17 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.PermanentNavigationDrawer
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.key
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.navigation.NavBackStackEntry
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -71,7 +81,26 @@ fun chatRoute(id: String? = null, model: String? = null, persona: String? = null
 /** Opens a chat as the new root of the back stack (like switching chats in ChatGPT). */
 private fun NavHostController.openChat(route: String) = navigate(route) {
     popUpTo(graph.id) { inclusive = true }
+    launchSingleTop = true
 }
+
+/**
+ * "Zurück" from the screen of [from]. Ignored if that screen is no longer on top: a second tap while it slides away
+ * (the burger menu of the chat sits exactly where the back arrow was) would otherwise also remove the chat and
+ * leave an empty, dark window. The chat at the bottom is never removed.
+ */
+private fun NavHostController.back(from: NavBackStackEntry) {
+    if (!isOnTop(currentBackStackEntry?.id, from.id)) return
+    if (previousBackStackEntry == null) openChat(chatRoute()) else popBackStack()
+}
+
+/** Opens [route] from the screen of [from]; double taps and taps on a screen that is leaving are ignored. */
+private fun NavHostController.go(from: NavBackStackEntry, route: String) {
+    if (isOnTop(currentBackStackEntry?.id, from.id)) navigate(route) { launchSingleTop = true }
+}
+
+/** Wide screens (tablets in landscape, foldables): the side menu stays open next to the content. */
+private const val WIDE_DP = 840
 
 @Composable
 fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: MutableStateFlow<String?>) {
@@ -79,8 +108,9 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val entry by nav.currentBackStackEntryAsState()
-    val onChat = entry?.destination?.route?.startsWith("chat") != false
+    val route = entry?.destination?.route
     var currentChatId by remember { mutableStateOf<String?>(null) }
+    val wide = LocalConfiguration.current.screenWidthDp >= WIDE_DP
 
     LaunchedEffect(Unit) {
         if (c.settings.current.hasAnyApiKey) c.models.refresh()
@@ -96,16 +126,26 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
 
     fun closeDrawer() = scope.launch { drawer.close() }
 
-    val route by openRoute.collectAsStateWithLifecycle()
-    LaunchedEffect(route) {
-        route?.let { r ->
+    val requestedRoute by openRoute.collectAsStateWithLifecycle()
+    LaunchedEffect(requestedRoute) {
+        requestedRoute?.let { r ->
             when (r) {
-                "drawer" -> drawer.open()
+                "drawer" -> if (!wide) drawer.open()
                 "chat" -> nav.openChat(chatRoute())
-                else -> runCatching { nav.navigate(r) }
+                else -> runCatching { nav.navigate(r) { launchSingleTop = true } }
             }
             openRoute.value = null
         }
+    }
+
+    // Safety net: should the back stack ever run empty, a new chat appears instead of an empty window.
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(entry) {
+        if (entry != null) shown = true else if (shown) nav.openChat(chatRoute())
+    }
+    // The menu never stays open (or half open) on a screen without it.
+    LaunchedEffect(route, wide) {
+        if (wide || !isTopLevel(route)) drawer.snapTo(DrawerValue.Closed)
     }
 
     // Shows what went wrong if the app crashed last time.
@@ -143,86 +183,123 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             if (result == SnackbarResult.ActionPerformed) nav.openChat(chatRoute(e.chatId))
         }
     }
-
-    Box(Modifier.fillMaxSize()) {
-        ModalNavigationDrawer(
-            drawerState = drawer,
-            gesturesEnabled = onChat,
-            drawerContent = {
-                AppDrawer(
-                    c = c,
-                    currentChatId = currentChatId,
-                    onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
-                    onNewChat = { nav.openChat(chatRoute()); closeDrawer() },
-                    onNavigate = { route -> nav.navigate(route); closeDrawer() },
+    // Errors and "Rückgängig" use the same banner; they wait for each other instead of replacing one another.
+    LaunchedEffect(Unit) {
+        Notices.flow.collect { n ->
+            launch {
+                val result = snackbar.showSnackbar(
+                    message = n.text,
+                    actionLabel = n.action,
+                    withDismissAction = true,
+                    duration = if (n.error || n.action != null) SnackbarDuration.Long else SnackbarDuration.Short,
                 )
-            },
-        ) {
-            NavHost(navController = nav, startDestination = "chat?id={id}&model={model}&persona={persona}") {
-                composable(
-                    "chat?id={id}&model={model}&persona={persona}",
-                    arguments = listOf(
-                        navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("model") { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("persona") { type = NavType.StringType; nullable = true; defaultValue = null },
-                    ),
-                ) { back ->
-                    val args = back.arguments
-                    val vm: ChatViewModel = viewModel {
-                        ChatViewModel(c, args?.getString("id"), args?.getString("model"), args?.getString("persona"))
-                    }
-                    val conv by vm.state.collectAsStateWithLifecycle()
-                    LaunchedEffect(conv?.id) { currentChatId = conv?.id }
-                    ChatScreen(
-                        c = c,
-                        vm = vm,
-                        onOpenDrawer = { scope.launch { drawer.open() } },
-                        onNewChat = { nav.openChat(chatRoute()) },
-                        onNavigate = { nav.navigate(it) },
-                    )
-                }
-                composable("models") {
-                    ModelsScreen(c = c, onBack = { nav.popBackStack() }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
-                }
-                composable("images") { ImagesScreen(c, onBack = { nav.popBackStack() }) }
-                composable("compare") {
-                    CompareScreen(c, onBack = { nav.popBackStack() }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
-                }
-                composable("templates") {
-                    TemplatesScreen(
-                        c, onBack = { nav.popBackStack() },
-                        onUse = { t -> nav.openChat(chatRoute(persona = t.id)) },
-                    )
-                }
-                composable("tasks") {
-                    TasksScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
-                }
-                composable("task/{id}") { back ->
-                    TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
-                }
-                composable("usage") { UsageScreen(c, onBack = { nav.popBackStack() }) }
-                composable("local-models") {
-                    LocalModelsScreen(c, onBack = { nav.popBackStack() }, onTry = { model -> nav.openChat(chatRoute(model = model)) })
-                }
-                composable("transcripts") {
-                    TranscriptsScreen(c, onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("transcript/$id") }, onNavigate = { nav.navigate(it) })
-                }
-                composable("transcript/{id}") { back ->
-                    TranscriptScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.popBackStack() }, onOpenChat = { nav.openChat(chatRoute()) })
-                }
-                composable("environments") {
-                    EnvironmentsScreen(c, onBack = { nav.popBackStack() }, onEdit = { id -> nav.navigate("environment/$id") })
-                }
-                composable("environment/{id}") { back ->
-                    EnvironmentEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.popBackStack() })
-                }
-                composable("settings") {
-                    SettingsScreen(c, section = null, onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
-                }
-                composable("settings/{section}") { back ->
-                    SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.popBackStack() }, onNavigate = { nav.navigate(it) })
-                }
+                if (result == SnackbarResult.ActionPerformed) n.onAction?.invoke() else n.onTimeout?.invoke()
             }
+        }
+    }
+
+    val menu: @Composable () -> Unit = {
+        AppDrawer(
+            c = c,
+            currentChatId = currentChatId,
+            onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
+            onNewChat = { nav.openChat(chatRoute()); closeDrawer() },
+            onNavigate = { r ->
+                // Closed at once: the next screen may not have a menu to close it from.
+                scope.launch { drawer.snapTo(DrawerValue.Closed) }
+                nav.navigate(r) { launchSingleTop = true }
+            },
+        )
+    }
+
+    val screens: @Composable () -> Unit = {
+        NavHost(
+            navController = nav,
+            startDestination = "chat?id={id}&model={model}&persona={persona}",
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        ) {
+            composable(
+                "chat?id={id}&model={model}&persona={persona}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("model") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("persona") { type = NavType.StringType; nullable = true; defaultValue = null },
+                ),
+            ) { back ->
+                val args = back.arguments
+                val vm: ChatViewModel = viewModel {
+                    ChatViewModel(c, args?.getString("id"), args?.getString("model"), args?.getString("persona"))
+                }
+                val conv by vm.state.collectAsStateWithLifecycle()
+                LaunchedEffect(conv?.id) { currentChatId = conv?.id }
+                ChatScreen(
+                    c = c,
+                    vm = vm,
+                    onOpenDrawer = if (wide) null else ({ scope.launch { drawer.open() } }),
+                    onNewChat = { nav.openChat(chatRoute()) },
+                    onNavigate = { nav.go(back, it) },
+                )
+            }
+            composable("models") { back ->
+                ModelsScreen(c = c, onBack = { nav.back(back) }, onStartChat = { model -> nav.openChat(chatRoute(model = model)) })
+            }
+            composable("images") { back -> ImagesScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) }) }
+            composable("compare") { back ->
+                CompareScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+            }
+            composable("templates") { back ->
+                TemplatesScreen(
+                    c, onBack = { nav.back(back) },
+                    onUse = { t -> nav.openChat(chatRoute(persona = t.id)) },
+                )
+            }
+            composable("tasks") { back ->
+                TasksScreen(c, onBack = { nav.back(back) }, onEdit = { id -> nav.go(back, "task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+            }
+            composable("task/{id}") { back ->
+                TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.back(back) })
+            }
+            composable("usage") { back -> UsageScreen(c, onBack = { nav.back(back) }) }
+            composable("local-models") { back ->
+                LocalModelsScreen(c, onBack = { nav.back(back) }, onTry = { model -> nav.openChat(chatRoute(model = model)) })
+            }
+            composable("transcripts") { back ->
+                TranscriptsPane(
+                    c,
+                    onBack = { nav.back(back) },
+                    onOpen = { id -> nav.go(back, "transcript/$id") },
+                    onNavigate = { nav.go(back, it) },
+                    onOpenChat = { nav.openChat(chatRoute()) },
+                )
+            }
+            composable("transcript/{id}") { back ->
+                TranscriptScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) })
+            }
+            composable("environments") { back ->
+                EnvironmentsScreen(c, onBack = { nav.back(back) }, onEdit = { id -> nav.go(back, "environment/$id") })
+            }
+            composable("environment/{id}") { back ->
+                EnvironmentEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.back(back) })
+            }
+            composable("settings") { back ->
+                SettingsScreen(c, section = null, onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
+            composable("settings/{section}") { back ->
+                SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        if (wide) {
+            PermanentNavigationDrawer(drawerContent = menu) { screens() }
+        } else {
+            ModalNavigationDrawer(
+                drawerState = drawer,
+                gesturesEnabled = isTopLevel(route) || drawer.isOpen,
+                drawerContent = menu,
+                content = screens,
+            )
         }
         SnackbarHost(
             snackbar,
@@ -239,6 +316,40 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 actionColor = MaterialTheme.colorScheme.primary,
                 dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+/**
+ * Transcription start page; on wide screens the list and the open transcript side by side (list – detail).
+ */
+@Composable
+private fun TranscriptsPane(
+    c: AppContainer,
+    onBack: () -> Unit,
+    onOpen: (String) -> Unit,
+    onNavigate: (String) -> Unit,
+    onOpenChat: () -> Unit,
+) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth < 720.dp) {
+            TranscriptsScreen(c, onBack = onBack, onOpen = onOpen, onNavigate = onNavigate)
+            return@BoxWithConstraints
+        }
+        var selected by rememberSaveable { mutableStateOf<String?>(null) }
+        Row(Modifier.fillMaxSize()) {
+            Box(Modifier.width(380.dp).fillMaxHeight()) {
+                TranscriptsScreen(c, onBack = onBack, onOpen = { selected = it }, onNavigate = onNavigate)
+            }
+            VerticalDivider()
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                val id = selected
+                if (id == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { HintText("Transkript links auswählen.") }
+                } else {
+                    key(id) { TranscriptScreen(c, id, onBack = { selected = null }, onOpenChat = onOpenChat) }
+                }
+            }
         }
     }
 }

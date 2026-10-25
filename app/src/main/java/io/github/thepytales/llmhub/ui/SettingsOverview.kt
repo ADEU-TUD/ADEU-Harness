@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Tune
@@ -75,6 +76,7 @@ fun settingsTitle(section: String?): String = when (section) {
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
     "backup" -> "Sicherung & Umzug"
+    "trash" -> "Papierkorb"
     "transcription" -> "Transkription"
     else -> "Einstellungen"
 }
@@ -162,6 +164,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         listOf(
             SettingsItem("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
             SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
+            SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
         ),
         onNavigate,
     )

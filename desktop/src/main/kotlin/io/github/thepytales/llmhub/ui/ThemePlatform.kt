@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 /** Windows parts of the theme. */
 const val MATERIAL_YOU_DESCRIPTION = "Material-Design von Google in der gewählten Farbe."
@@ -13,4 +14,4 @@ fun dynamicScheme(dark: Boolean): ColorScheme? = null
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
-fun SystemBars(dark: Boolean) {}
+fun SystemBars(dark: Boolean, background: Color) {}
