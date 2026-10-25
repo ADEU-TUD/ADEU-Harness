@@ -270,9 +270,27 @@ class Transcription(private val c: AppContainer, private val root: File, private
 
     /** Copies a picked or shared file into the app and offers it in the start dialog. */
     suspend fun import(name: String, size: Long, input: InputStream) = withContext(Dispatchers.IO) {
+        checkSpace(size)
         input.use { engine().importStream(name, size, it) }
         refreshIncoming()
     }
+
+    /**
+     * The copy of the file plus the audio extracted from it (16 kHz WAV, about 115 MB per hour) must fit, with some
+     * room left for the phone. Otherwise a clear message instead of a half-copied file.
+     */
+    private fun checkSpace(size: Long) {
+        val free = engine().dataDir.usableSpace
+        val needed = (if (size > 0) size else 0L) + RESERVE_BYTES
+        if (free in 1 until needed) {
+            throw java.io.IOException(
+                "Nicht genug Speicherplatz: frei sind ${megabytes(free)}, gebraucht werden etwa ${megabytes(needed)}. " +
+                    "Bitte Platz schaffen (z. B. alte Transkripte mit Aufnahme löschen und den Papierkorb leeren)."
+            )
+        }
+    }
+
+    private fun megabytes(bytes: Long) = if (bytes >= 1_000_000_000) String.format(java.util.Locale.GERMANY, "%.1f GB", bytes / 1e9) else "${bytes / 1_000_000} MB"
 
     fun discardIncoming(token: String) {
         engine().discardIncoming(token)
@@ -542,7 +560,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
                         pause(wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     } catch (e: java.io.IOException) {
-                        if (attempt == 5) throw e
+                        if (attempt == 5) throw java.io.IOException(io.github.thepytales.llmhub.net.NetErrors.describe(e), e)
                         pause(wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     }
@@ -565,6 +583,9 @@ class Transcription(private val c: AppContainer, private val root: File, private
 
     companion object {
         const val TRASH_DAYS = 30
+
+        /** Room kept free besides the imported file (extracted audio, the phone itself). */
+        private const val RESERVE_BYTES = 400_000_000L
 
         /** Longest wait for the server per piece of speech; afterwards it counts as a network error (retry). */
         private const val REMOTE_TIMEOUT_MS = 180_000L

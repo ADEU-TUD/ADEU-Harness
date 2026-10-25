@@ -94,6 +94,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
@@ -494,6 +498,14 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 )
                             }
                             .secondaryClick { editSegment = i }
+                            // TalkBack: tap gestures above are invisible to it, so the same actions as named actions.
+                            .semantics {
+                                onClick(label = if (player != null) "Ab hier abspielen" else "Bearbeiten") {
+                                    if (player == null) editSegment = i else control.play(s.start)
+                                    true
+                                }
+                                customActions = listOf(CustomAccessibilityAction("Abschnitt bearbeiten") { editSegment = i; true })
+                            }
                             .padding(horizontal = 4.dp, vertical = 3.dp),
                     )
                     if (vs.showComments && !s.comment.isNullOrBlank()) {

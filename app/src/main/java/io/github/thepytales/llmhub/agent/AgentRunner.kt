@@ -14,6 +14,7 @@ import io.github.thepytales.llmhub.data.dropFromThread
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.data.updateMessage
 import io.github.thepytales.llmhub.net.ApiException
+import io.github.thepytales.llmhub.net.NetErrors
 import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.ui.splitThinking
 import kotlinx.coroutines.CancellationException
@@ -153,7 +154,7 @@ class AgentRunner(private val c: AppContainer) {
                     model = fallback
                     continue
                 }
-                val message = e.message ?: e.toString()
+                val message = NetErrors.describe(e)
                 host.update { cv ->
                     if (partial == null || partial.content.isBlank()) {
                         cv.updateMessage(placeholder.id) { it.copy(content = message, reasoning = null, toolCalls = emptyList(), error = true) }

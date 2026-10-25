@@ -82,7 +82,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
                 }
                 results.addAll(0, decoded)
             } catch (e: Exception) {
-                error = e.message ?: e.toString()
+                error = io.github.thepytales.llmhub.net.NetErrors.describe(e)
             } finally {
                 busy = false
             }

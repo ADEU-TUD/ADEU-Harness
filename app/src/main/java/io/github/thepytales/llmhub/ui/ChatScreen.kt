@@ -439,6 +439,7 @@ fun ChatScreen(
                 onTemplate = { useTemplate(it) },
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
+                onOpen = onNavigate,
             )
         } else {
             val listState = rememberLazyListState()
@@ -645,6 +646,7 @@ private fun EmptyChat(
     onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
     onApiKey: () -> Unit,
     onAllTemplates: () -> Unit,
+    onOpen: (String) -> Unit,
 ) {
     val look = LocalChatLook.current
     Column(
@@ -678,11 +680,7 @@ private fun EmptyChat(
         )
         if (!hasApiKey) {
             Spacer(Modifier.size(20.dp))
-            Button(onClick = onApiKey) {
-                Icon(Icons.Outlined.VpnKey, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.size(8.dp))
-                Text("API-Key eintragen")
-            }
+            WelcomeCard(onApiKey = onApiKey, onNavigate = onOpen)
         }
         Spacer(Modifier.weight(1f))
         Row(

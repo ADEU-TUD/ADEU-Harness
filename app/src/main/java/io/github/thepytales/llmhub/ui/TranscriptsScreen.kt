@@ -323,6 +323,14 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
         "queued", "cancelled" -> Icons.Outlined.Schedule to MaterialTheme.colorScheme.onSurfaceVariant
         else -> null to MaterialTheme.colorScheme.primary
     }
+    var confirmCancel by remember { mutableStateOf(false) }
+    // Own estimate when the engine gives none: time so far per progress, from the first progress seen.
+    val start = remember(j.id) { mutableStateOf<Pair<Long, Double>?>(null) }
+    if (j.status == "running" && j.progress > 0 && start.value == null) start.value = System.currentTimeMillis() to j.progress
+    val eta = j.eta ?: start.value?.let { (t0, p0) ->
+        val done = j.progress - p0
+        if (done < 0.03) null else (System.currentTimeMillis() - t0) / 1000.0 / done * (1 - j.progress)
+    }
     AppCard(modifier, onClick = j.transcriptId?.takeIf { j.status == "done" }?.let { id -> { onOpen(id) } }) {
         Column(Modifier.padding(start = 16.dp, end = 6.dp, top = 12.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -338,7 +346,7 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
                     val pct = (j.progress * 100).toInt()
                     Text(
                         when (j.status) {
-                            "running" -> j.stage + (if (pct > 0) " · $pct %" else "") + (j.eta?.let { " · noch ca. ${etaText(it)}" } ?: "")
+                            "running" -> j.stage + (if (pct > 0) " · $pct %" else "") + (eta?.let { " · noch ca. ${etaText(it)}" } ?: "")
                             "done" -> "Fertig – tippen zum Öffnen"
                             "error" -> j.error ?: "Fehler"
                             else -> j.stage
@@ -347,11 +355,15 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
                         color = if (j.status == "error") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(onClick = { if (j.active) t.cancel(j.id) else t.dismiss(j.id) }) {
+                IconButton(onClick = { if (j.status == "running") confirmCancel = true else if (j.active) t.cancel(j.id) else t.dismiss(j.id) }) {
                     Icon(Icons.Outlined.Close, contentDescription = if (j.active) "Abbrechen" else "Ausblenden", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             j.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = look.warning, modifier = Modifier.padding(top = 6.dp, end = 10.dp)) }
+            if (confirmCancel) ConfirmDialog(
+                "Transkription abbrechen?", "„${j.name}“ ist zu ${(j.progress * 100).toInt()} % fertig. Der bisherige Fortschritt geht verloren.",
+                "Abbrechen", onConfirm = { t.cancel(j.id) }, onDismiss = { confirmCancel = false },
+            )
             if (j.status == "running") {
                 LinearProgressIndicator(
                     progress = { j.progress.toFloat().coerceIn(0f, 1f) },

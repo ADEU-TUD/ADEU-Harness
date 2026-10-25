@@ -103,6 +103,12 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         .build()
 
     /**
+     * For streamed answers: tokens arrive continuously, so 3 minutes without a single byte means the connection hangs
+     * (instead of waiting up to 10 minutes as for transcriptions and images).
+     */
+    private val streamHttp: OkHttpClient = http.newBuilder().readTimeout(3, TimeUnit.MINUTES).build()
+
+    /**
      * Starts the server for a model on this device and returns its endpoint (set by the app container, see
      * local/LocalLlm); called before every request to a local model.
      */
@@ -157,7 +163,12 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             }
         }.getOrNull()
         val hint = when (code) {
-            401 -> " (API-Key ungültig?)"
+            400 -> if (body.orEmpty().contains("context", ignoreCase = true) || body.orEmpty().contains("token", ignoreCase = true))
+                " (Der Chat ist zu lang für das Modell – einen neuen Chat beginnen oder ein Modell mit mehr Kontext wählen)" else ""
+            401 -> " (API-Key ungültig oder abgelaufen? Einstellungen › API-Zugang – im TU-Self-Service lässt sich ein neuer erzeugen)"
+            403 -> " (Kein Zugriff auf dieses Modell mit diesem API-Key)"
+            404 -> " (Modell oder Adresse nicht gefunden – das Modell wurde vielleicht abgeschaltet, bitte ein anderes wählen)"
+            413 -> " (Anfrage zu groß – Anhang verkleinern oder weniger Bilder schicken)"
             429 -> " (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)"
             502, 503, 504 -> " (Der Uni-Server erreicht das Modell gerade nicht – es ist überlastet, startet neu oder wird gewartet. " +
                 "Später erneut versuchen oder ein anderes Modell wählen)"
@@ -293,7 +304,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 put("tool_choice", "auto")
             }
         }
-        val call = http.newCall(
+        val call = streamHttp.newCall(
             request("/chat/completions", provider, model)
                 .header("Accept", "text/event-stream")
                 .post(body.toString().toRequestBody(JSON_TYPE))

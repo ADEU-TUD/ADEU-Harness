@@ -99,13 +99,6 @@ private fun NavHostController.go(from: NavBackStackEntry, route: String) {
     if (isOnTop(currentBackStackEntry?.id, from.id)) navigate(route) { launchSingleTop = true }
 }
 
-/** Whether the screen [from] may still act: only the screen on top does (see [back]). */
-internal fun isOnTop(currentId: String?, from: String) = currentId == from
-
-/** Screens of the side menu: there the menu also opens with a swipe from the left. */
-internal fun isTopLevel(route: String?) =
-    route == null || route.startsWith("chat") || route in setOf("transcripts", "templates", "tasks", "images")
-
 /** Wide screens (tablets in landscape, foldables): the side menu stays open next to the content. */
 private const val WIDE_DP = 840
 

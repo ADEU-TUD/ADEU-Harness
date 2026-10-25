@@ -1,0 +1,52 @@
+name: PR-Check
+
+# Fast check for every pull request (about 6–8 minutes): the Android app compiles (without the local language
+# models, whose llama-server build takes long) and the unit tests of the shared code and the speech engine pass.
+# The full build with emulator and Windows test stays in "Build & Release" (started by hand).
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: build/speech-downloads
+          key: speech-${{ hashFiles('speech/natives.gradle.kts') }}
+
+      - name: Android-App kompilieren
+        run: ./gradlew --no-daemon :app:compileDebugKotlin -PskipLlama
+
+      - name: Tests der Sprach-Engine
+        run: ./gradlew --no-daemon :speech:test
+
+      - name: Tests (gemeinsamer Code, Windows-Version)
+        run: ./gradlew --no-daemon -p desktop test
+
+      - name: Testberichte
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testberichte
+          path: |
+            desktop/build/reports/tests
+            speech/build/reports/tests
