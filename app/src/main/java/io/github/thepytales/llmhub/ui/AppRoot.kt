@@ -147,6 +147,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // "In Chat senden" from the document editor: open that chat (or a new one).
+    val chatRequest by ChatHandoff.open.collectAsStateWithLifecycle()
+    LaunchedEffect(chatRequest) {
+        chatRequest?.let { id ->
+            runCatching { nav.openChat(chatRoute(id.ifBlank { null })) }
+            ChatHandoff.open.value = null
+        }
+    }
+
     // Safety net: should the back stack ever run empty, a new chat appears instead of an empty window.
     var shown by remember { mutableStateOf(false) }
     LaunchedEffect(entry) {

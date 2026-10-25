@@ -105,6 +105,8 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "literature" -> LiteratureSettings(c)
                 "backup" -> BackupSection(c)
                 "trash" -> TrashSection(c)
+                "folders" -> LocalFoldersSection(c)
+                "storage" -> StorageSection(c)
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
             Spacer(Modifier.size(24.dp))

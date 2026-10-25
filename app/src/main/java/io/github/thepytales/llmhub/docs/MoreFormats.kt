@@ -71,8 +71,10 @@ object XlsxWriter {
         return normalized.toDoubleOrNull()?.let { if (s.trim().endsWith("%")) it / 100 else it }
     }
 
-    fun write(file: File, title: String, markdown: String) {
-        val sheets = sheets(title, markdown)
+    fun write(file: File, title: String, markdown: String) = writeSheets(file, sheets(title, markdown))
+
+    /** Writes [sheets] as they are; cells starting with "=" become Excel formulas (with their computed value). */
+    fun writeSheets(file: File, sheets: List<Sheet>) {
         ZipOutputStream(file.outputStream()).use { zip ->
             fun entry(name: String, text: String) { zip.putNextEntry(ZipEntry(name)); zip.write(text.toByteArray(Charsets.UTF_8)); zip.closeEntry() }
             entry("[Content_Types].xml", buildString {
@@ -109,13 +111,21 @@ object XlsxWriter {
                     append("<cols>")
                     (0 until cols).forEach { c -> val w = (s.rows.maxOfOrNull { it.getOrElse(c) { "" }.length } ?: 8).coerceIn(8, 60) + 2; append("<col min=\"${c + 1}\" max=\"${c + 1}\" width=\"$w\" customWidth=\"1\"/>") }
                     append("</cols><sheetData>")
+                    val engine = SheetEngine.Sheet(s.rows)
                     s.rows.forEachIndexed { r, row ->
                         append("<row r=\"${r + 1}\">")
                         row.forEachIndexed { c, v ->
                             val ref = col(c) + (r + 1)
                             val head = r == 0 && s.rows.size > 1
                             val n = if (head) null else number(v)
-                            if (n != null) append("<c r=\"$ref\"><v>$n</v></c>")
+                            if (!head && v.trim().startsWith("=") && v.trim().length > 1) {
+                                val f = esc(SheetEngine.toExcel(v))
+                                when (val result = engine.value(r, c)) {
+                                    is SheetEngine.Value.Num -> append("<c r=\"$ref\"><f>$f</f><v>${result.v}</v></c>")
+                                    is SheetEngine.Value.Bool -> append("<c r=\"$ref\" t=\"b\"><f>$f</f><v>${if (result.v) 1 else 0}</v></c>")
+                                    else -> append("<c r=\"$ref\" t=\"str\"><f>$f</f><v>${esc(SheetEngine.format(result))}</v></c>")
+                                }
+                            } else if (n != null) append("<c r=\"$ref\"><v>$n</v></c>")
                             else append("<c r=\"$ref\" t=\"inlineStr\"${if (head) " s=\"1\"" else ""}><is><t xml:space=\"preserve\">${esc(v)}</t></is></c>")
                         }
                         append("</row>")

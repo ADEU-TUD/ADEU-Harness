@@ -92,6 +92,11 @@ class AppContainer(context: Context) {
         PrefsBackend(settings.prefs, "environments"), AgentEnvironment.serializer(), { it.id },
     )
     val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
+    /** Folders on this PC the agent may work in (Windows). */
+    val localFolders = ListStore<io.github.thepytales.llmhub.data.LocalFolder>(
+        FileBackend(File(files, "local_folders.json")), io.github.thepytales.llmhub.data.LocalFolder.serializer(), { it.id },
+    )
+    val localFolderTools = io.github.thepytales.llmhub.agent.LocalFolderTools(this)
     val agent = AgentRunner(this)
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)

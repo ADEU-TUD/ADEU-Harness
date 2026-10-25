@@ -11,7 +11,8 @@ import kotlin.concurrent.thread
 
 /**
  * Only one ADEU LLM per Windows user: a second start (e.g. double-click while the app sits in the
- * notification area) brings the running window to the front instead of opening a second copy.
+ * notification area) brings the running window to the front instead of opening a second copy. The lock lives in
+ * the local folder, so a data folder synced to other computers (Google Drive) does not block them.
  */
 object SingleInstance {
     private var lock: FileLock? = null
@@ -19,8 +20,8 @@ object SingleInstance {
 
     /** Returns true if this is the first instance; [onShow] runs when another start asks to show the window. */
     fun acquire(onShow: () -> Unit): Boolean {
-        val lockFile = File(Paths.data, "instance.lock")
-        val portFile = File(Paths.data, "instance.port")
+        val lockFile = File(Paths.local, "instance.lock")
+        val portFile = File(Paths.local, "instance.port")
         val channel = RandomAccessFile(lockFile, "rw").channel
         val l = runCatching { channel.tryLock() }.getOrNull()
         if (l == null) {

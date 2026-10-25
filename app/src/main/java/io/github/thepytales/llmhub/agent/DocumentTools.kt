@@ -276,7 +276,15 @@ class DocumentTools(
                 d.copy(title = title.ifBlank { d.title }, tabs = if (d.tabs.size == 1) listOf(d.tabs[0].copy(markdown = content)) else d.tabs, file = file.absolutePath)
             }
         } else {
-            LiveDoc.create(title, content, author(ctx), ctx?.chatId, args.s("style")).copy(file = file.absolutePath)
+            val kind = io.github.thepytales.llmhub.docs.DocKind.forFile(file.name)
+            val created = LiveDoc.create(title, content, author(ctx), ctx?.chatId, args.s("style"), kind).copy(file = file.absolutePath, vault = docs.defaultVault)
+            if (kind != io.github.thepytales.llmhub.docs.DocKind.SHEET) created
+            else {
+                // Tables: one tab per table, as in the Excel file.
+                val sheets = io.github.thepytales.llmhub.docs.XlsxWriter.sheets(title, content)
+                val tabs = sheets.map { sh -> io.github.thepytales.llmhub.docs.DocTab(title = sh.name, markdown = io.github.thepytales.llmhub.docs.SheetEngine.markdown(sh.rows)) }
+                created.copy(tabs = tabs, versions = listOf(created.versions.first().copy(tabs = tabs)))
+            }
         }
         docs.save(doc)
         return doc
@@ -621,12 +629,23 @@ class DocumentTools(
             "FEHLER: Kein Dokument im Editor gefunden. Vorhanden: ${docs.current.take(8).joinToString(", ") { "„${it.title}“" }.ifEmpty { "keine" }}."
         )
         return ToolOutput(buildString {
-            append("Dokument „${doc.title}“ (zuletzt geändert von ${doc.lastAuthor}, ${doc.tabs.size} Tab(s), ${doc.words} Wörter")
+            val kind = doc.docKind
+            append("${kind.label} „${doc.title}“ (id ${doc.id}, zuletzt geändert von ${doc.lastAuthor}, ${doc.tabs.size} Tab(s), ${doc.words} Wörter")
             doc.file?.let { append(", Datei ${File(it).name}") }
             append(")\n")
+            when (kind) {
+                io.github.thepytales.llmhub.docs.DocKind.SLIDES -> append("Folien durch „---“ getrennt; „Notizen:“ = Sprechernotizen, „|||“ = rechte Spalte.\n")
+                io.github.thepytales.llmhub.docs.DocKind.SHEET -> append("Jeder Tab ist ein Tabellenblatt; Zeile 1 = Spaltenköpfe, Spalten A, B, C …; Formeln beginnen mit =.\n")
+                else -> {}
+            }
             doc.tabs.forEach { t ->
                 if (doc.tabs.size > 1) append("\n=== Tab „${t.title}“ ===\n")
-                append(t.markdown.take(40_000)).append("\n")
+                append(t.markdown.replace("\u200B", "").take(40_000)).append("\n")
+                if (kind == io.github.thepytales.llmhub.docs.DocKind.SHEET && t.markdown.contains("| =")) {
+                    val rows = io.github.thepytales.llmhub.docs.SheetEngine.grid(t.markdown)
+                    val computed = io.github.thepytales.llmhub.docs.SheetEngine.Sheet(rows).computed()
+                    append("Berechnete Werte:\n").append(io.github.thepytales.llmhub.docs.SheetEngine.markdown(computed).take(20_000)).append("\n")
+                }
             }
             val open = doc.comments.filter { !it.resolved }
             if (open.isNotEmpty()) {

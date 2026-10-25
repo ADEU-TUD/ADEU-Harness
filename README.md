@@ -44,7 +44,9 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **Bearbeiten & Neu generieren mit Versionen**: Eigene Nachrichten bearbeiten oder Antworten neu erzeugen (auch mit
   einem anderen Modell) – frühere Versionen bleiben über „‹ 1/2 ›“ erreichbar, wie bei ChatGPT.
 - **Dateien als Anhang**: PDF (Text; Scans werden als Bilder angehängt), Word, PowerPoint, Excel, OpenDocument,
-  Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen.
+  Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen. Word und PowerPoint kommen mit
+  Überschriften, Listen und Tabellen beim Modell an – „Mach daraus ein Dokument im TUD-Design“ funktioniert so direkt.
+  Beliebig viele Dateien (je bis 25 MB, Text bis 120 000 Zeichen) und bis zu 10 Bilder auf einmal.
 - **Vorlagen-Bibliothek für die Professur**: rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
   (Seminarplan, Sitzung planen, Lernziele, Prüfungsaufgaben, Bewertungsraster, Feedback, Unterrichtsentwurf,
   Unterrichtsvignette), *Betreuung & Prüfung* (Exposé-Feedback, Gutachten, Themen für Abschlussarbeiten, mündliche Prüfung),
@@ -72,7 +74,8 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
 - **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
   für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
-- **Transkription** (die frühere Whisper-App, jetzt eingebaut): Aufnahmen, Sprachnachrichten, Interviews, Vorlesungen und
+- **Transkription** (die frühere Whisper-App, jetzt eingebaut; Startseite mit fester Leiste *Datei öffnen* / *Aufnehmen*,
+  Transkripten je Tag in einer Karte und kompakt zusammengefassten fertigen Aufträgen): Aufnahmen, Sprachnachrichten, Interviews, Vorlesungen und
   Videos werden zu Text – wahlweise **auf diesem Gerät** (Whisper Turbo/Small/Base oder Parakeet v3, einmal laden, danach
   offline) oder auf dem **Uni-Server** (Whisper Large v3 Turbo, schnell auch auf alten Rechnern; Sprecher und Pausen
   erkennt trotzdem das Gerät). Aufnahme mit Pause, Markierungen und Live-Text, Warteschlange im Hintergrund (übersteht
@@ -259,14 +262,44 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   OpenAlex-Schlüssel erhöht das Abfragekontingent.
 - **Bereich Literatur**: Suche, Sammlungen mit Notizen und Schlagwörtern, Einträge bearbeiten, Import aus Dateien, Übertragen nach
   Zotero, Verzeichnis im gewählten Stil – mit einem Tipp in den Chat oder den Dokument-Editor.
-- **Dokument-Editor wie Claude Docs**: Dokumente, die der Assistent schreibt, öffnen sich als **Live-Dokument** – auf
-  breiten Bildschirmen als Seitenleiste neben dem Chat, sonst als eigene Seite. Man sieht beim Schreiben zu, kann jeden
-  Absatz, jede Überschrift und Tabelle direkt bearbeiten (Block-Typ wechseln, verschieben, Tabellenzellen), Tabs
-  anlegen, Text markieren und **kommentieren** – Kommentare gehen mit *An KI senden* zurück in
-  den Chat, die Antwort erscheint im Kommentarverlauf und der Text wird geändert. **Versionsverlauf** mit Vergleich
-  (eingefügt/gelöscht hervorgehoben), Wiederherstellen, Rückgängig/Wiederholen, Suchen & Ersetzen. Export als Word,
-  PDF, Markdown, HTML, PowerPoint – auch als **Word mit Änderungsverfolgung** gegenüber einer früheren Version, damit
-  Kolleg:innen die Änderungen in Word annehmen können. Alle Dokumente stehen im Bereich *Dokumente*.
+- **Office-Suite mit KI: Dokumente, Präsentationen, Tabellen** (Bereich *Dokumente*): drei Editoren mit gleichem Aufbau
+  (Kopfzeile, Tabs, Kommentare, Versionsverlauf, Export, KI-Assistent) – nur der Inhalt unterscheidet sich.
+  - **Dokument** (wie Google Docs/Word, mit Obsidian-Funktionen): Seite wie auf Papier, feste Formatleiste (Absatzformat,
+    fett, kursiv, durchgestrichen, Code, Link, Aufzählung, Nummerierung, **Checklisten zum Abhaken**, Zitat, Tabelle als
+    Zellenraster, Trennlinie, Datum), `/`-Befehle am Absatzanfang, Enter setzt Listen fort, Tab rückt ein, Strg+Umschalt+↑/↓
+    verschiebt Absätze. Getipptes wird nach einer kurzen Pause automatisch gespeichert. Lesemodus, **Markdown-Quelltext**
+    wie in Obsidian, **Gliederung** zum Springen, Verknüpfungen mit `[[Titel]]` samt Rückverweisen, Suchen & Ersetzen,
+    Wortzahl und Lesezeit. Ein leeres Dokument bietet Vorlagen (Protokoll, Seminarplan, Gliederung …) und „Mit KI entwerfen“.
+  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß im TUD-Design, Layouts (Titel, Abschnitt, Inhalt,
+    zwei Spalten, Zitat), Sprechernotizen, Folien duplizieren/verschieben, **Vorführen** im Vollbild (Pfeiltasten, N für
+    Notizen), Export als PowerPoint im TUD-Design.
+  - **Tabelle** (wie Excel): Zellraster mit Spalten- und Zeilenköpfen, **Bearbeitungsleiste mit Formeln** in deutscher
+    Schreibweise (`=SUMME(B2:B9)`, `=MITTELWERT`, `=WENN(…;…;…)`, `=RUNDEN`, `=ZÄHLENWENN`, `=SUMMEWENN`, `=STABW`, `&` …,
+    auch englische Namen), Tabellenblätter als Tabs, Zeilen/Spalten einfügen und löschen, Sortieren, Σ, Statuszeile mit
+    Summe/Mittelwert/Anzahl. Der Excel-Export behält die Formeln (mit berechneten Werten).
+  - **KI als Mitautorin**: ✨ an jeder Stelle (Verbessern, Rechtschreibung, Kürzen, Ausführlicher, Weiterschreiben, Förmlicher,
+    Einfacher, Stichpunkte ↔ Fließtext, Übersetzen, eigene Anweisung) zeigt einen Vorschlag mit *Übernehmen / Verwerfen /
+    Erneut / Darunter einfügen*; in Tabellen „Formel beschreiben“ und „Spalte mit KI füllen“, bei Folien „Folie verbessern“
+    oder „Sprechernotizen“. Der **KI-Assistent** (✨ oben oder „Mit KI schreiben …“ unten, Strg+E) arbeitet direkt im Dokument
+    – mit Schnellaktionen wie Entwurf, Gliederung, Feedback, Sprache glätten, Folien entwerfen, Auswerten, Summenzeile;
+    seine Änderungen werden farbig markiert und stehen im Versionsverlauf. Kommentare mit *An KI senden* bleiben erhalten.
+  - **Dateien aus dem Chat übernehmen**: Erzeugt die KI im Chat ein Word-, PowerPoint-, Excel- oder Markdown-Dokument, öffnet
+    *Im Editor bearbeiten* es dort; *Im Editor öffnen* gibt es auch für andere Dokumentkarten und angehängte Dateien (Tippen
+    auf den Anhang). *Datei öffnen* im Bereich *Dokumente* importiert .docx (Überschriften, Listen, Tabellen, fett/kursiv),
+    .pptx (Folien mit Notizen), .xlsx (Blätter mit Formeln), .csv, .md und .txt.
+  - **In Chat senden** (⋮ im Editor): das Dokument als Text oder als Word/PowerPoint/Excel-Datei in einen neuen oder
+    vorhandenen Chat anhängen. Export als PDF, Word (auch **mit Änderungsverfolgung** gegenüber einer früheren Version),
+    Markdown, HTML, PowerPoint, Excel, CSV.
+- **Speicherorte wie Obsidian-Tresore** (Windows, *Einstellungen › Speicherorte*): Ordner als Ablageort für Dokumente
+  einbinden – jedes Dokument liegt dort als lesbare `.md`-Datei (Versionen und Kommentare in `.adeu`). Liegt der Ordner in
+  **Google Drive**, OneDrive oder Nextcloud, synchronisiert deren Programm alles auf andere Rechner; Änderungen von dort und
+  neue `.md`-Dateien erscheinen nach wenigen Sekunden. Zusätzlich lässt sich unter *Einstellungen › Windows* der ganze
+  **Datenordner** (Chats, Einstellungen …) in einen eigenen Ordner verlegen (kopiert, startet neu; große Modelle bleiben lokal).
+- **Agent in lokalen Ordnern** (Windows, *Einstellungen › Lokale Ordner*): freigegebene Ordner kann der Assistent in jedem Chat
+  auflisten, durchsuchen und lesen (auch Word, PowerPoint, Excel, PDF), Dateien anlegen und ändern, Dokumente direkt als
+  .docx/.pdf/.pptx/.xlsx dort speichern (z. B. im TUD-Design), verschieben und löschen (in den Unterordner
+  `.adeu-papierkorb`). Ordner lassen sich auf „nur lesen“ stellen; außerhalb kommt er nicht. Rückfragen vor Änderungen
+  richten sich nach *Chat & Werkzeuge › Freigaben*.
 - **Chat**: `/`-Befehle und `@`-Erwähnungen (Dateien, Literaturlisten, Dokumente, Kurztexte), *Anfrage verbessern*,
   gespeicherte Kurztexte, Entwürfe pro Chat, Zitieren eines Antwortteils, Antworten bewerten (👍/👎 mit Notiz;
   Auswertung je Modell unter *Verbrauch*), *Weiterschreiben* bei abgeschnittenen Antworten, *Abzweigen* in einen neuen
@@ -528,6 +561,10 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ChatRuns.kt`, `agent/AgentService.kt` | Laufende Chat-Antworten unabhängig vom Bildschirm; Vordergrunddienst, damit sie bei geschlossener App fertig werden |
 | `agent/Tools.kt` | Gemeinsame Werkzeug-Infrastruktur (Function Calling) |
 | `agent/GitHubTools.kt`, `agent/WebTools.kt`, `agent/DocumentTools.kt` | Werkzeuge: GitHub, Web/News-Suche, Dokumente & Logos |
+| `agent/LocalFolderTools.kt`, `files/LocalText.kt` | Agent in freigegebenen Ordnern auf dem PC (lesen, suchen, schreiben, Papierkorb) |
+| `docs/LiveDoc.kt` | Dokumente des Editors (Art, Tabs, Versionen, Kommentare), Speicherorte mit Markdown-Kopie und Abgleich |
+| `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
+| `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, Platzhalter, Rückersetzung) und Einstellungen dazu |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |

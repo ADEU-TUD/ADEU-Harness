@@ -70,6 +70,8 @@ object I18n {
         "Darstellung" to "Appearance",
         "Sicherung & Umzug" to "Backup & transfer",
         "Papierkorb" to "Trash",
+        "Lokale Ordner" to "Local folders",
+        "Speicherorte" to "Storage locations",
         "Sprache der Oberfläche" to "Interface language",
         "Stil" to "Style",
         "Helligkeit" to "Brightness",
