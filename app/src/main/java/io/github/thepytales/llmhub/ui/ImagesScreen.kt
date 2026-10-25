@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.provider.MediaStore
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -93,7 +92,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
 
 private fun saveToGallery(context: Context, img: GeneratedImage) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        Toast.makeText(context, "Speichern wird erst ab Android 10 unterstützt.", Toast.LENGTH_SHORT).show()
+        Notices.info("Speichern wird erst ab Android 10 unterstützt.")
         return
     }
     val values = ContentValues().apply {
@@ -104,14 +103,14 @@ private fun saveToGallery(context: Context, img: GeneratedImage) {
     val resolver = context.contentResolver
     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     if (uri == null) {
-        Toast.makeText(context, "Speichern fehlgeschlagen.", Toast.LENGTH_SHORT).show()
+        Notices.error("Speichern fehlgeschlagen.")
         return
     }
     resolver.openOutputStream(uri)?.use { out ->
         val bmp = BitmapFactory.decodeByteArray(img.bytes, 0, img.bytes.size)
         bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
     }
-    Toast.makeText(context, "In Galerie gespeichert (Bilder/ADEU LLM).", Toast.LENGTH_SHORT).show()
+    Notices.info("In Galerie gespeichert (Bilder/ADEU LLM).")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

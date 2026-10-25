@@ -47,23 +47,36 @@ public final class Util {
         return writeBytes(f, text == null ? new byte[0] : text.getBytes(UTF8));
     }
 
+    /**
+     * Writes atomically: first into a temporary file (flushed to disk), then renamed over the old one. A crash or
+     * an empty battery leaves either the old or the new version, never a half-written file.
+     */
     public static boolean writeBytes(File f, byte[] data) {
         File parent = f.getParentFile();
         if (parent != null) parent.mkdirs();
         File tmp = new File(f.getPath() + ".tmp");
-        try (OutputStream out = new FileOutputStream(tmp)) {
+        try (FileOutputStream out = new FileOutputStream(tmp)) {
             out.write(data);
+            out.flush();
+            out.getFD().sync();
         } catch (IOException e) {
             err("write " + f, e);
+            tmp.delete();
             return false;
         }
-        if (f.exists() && !f.delete()) {
-            // Fallback: direkt ueberschreiben
-            try (OutputStream out = new FileOutputStream(f)) { out.write(data); } catch (IOException e) { return false; }
-            tmp.delete();
+        try {
+            java.nio.file.Files.move(tmp.toPath(), f.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
             return true;
+        } catch (IOException | UnsupportedOperationException e) {
+            try {
+                java.nio.file.Files.move(tmp.toPath(), f.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return true;
+            } catch (IOException e2) {
+                err("rename " + f, e2);
+                return false;
+            }
         }
-        return tmp.renameTo(f);
     }
 
     public static long copy(InputStream in, OutputStream out) throws IOException {

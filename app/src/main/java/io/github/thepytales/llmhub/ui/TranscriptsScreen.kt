@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -135,14 +134,14 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
         t.checkAvailable()
         t.refreshList()
     }
-    LaunchedEffect(Unit) { t.messages.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() } }
+    LaunchedEffect(Unit) { t.messages.collect { Notices.info(it) } }
 
     val pickFile = rememberMediaImport { name, size, input ->
-        runCatching { t.import(name, size, input) }.onFailure { Toast.makeText(context, it.message ?: "Fehler beim Einlesen", Toast.LENGTH_LONG).show() }
+        runCatching { t.import(name, size, input) }.onFailure { Notices.error(it.message ?: "Fehler beim Einlesen") }
     }
     val record = rememberMicPermission {
         runCatching { t.startRecording(t.defaultOptions(folder)); showRecording = true }
-            .onFailure { Toast.makeText(context, "Aufnahme nicht möglich: ${it.message}", Toast.LENGTH_LONG).show() }
+            .onFailure { Notices.error("Aufnahme nicht möglich: ${it.message}") }
     }
 
     val hits by produceState(emptyList<Pair<String, String>>(), query, list) { value = if (query.isBlank()) emptyList() else t.search(query) }

@@ -74,7 +74,7 @@ class UsageStore(dir: File) {
         saveJob?.cancel()
         saveJob = scope.launch {
             delay(1000)
-            runCatching { file.writeText(json.encodeToString(ListSerializer(UsageEntry.serializer()), _entries.value)) }
+            runCatching { AtomicFiles.write(file, json.encodeToString(ListSerializer(UsageEntry.serializer()), _entries.value)) }
         }
     }
 }

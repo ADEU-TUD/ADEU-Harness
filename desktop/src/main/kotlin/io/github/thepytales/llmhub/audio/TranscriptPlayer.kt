@@ -4,6 +4,7 @@ import de.lokal.whisper.desktop.DesktopSpeechPlatform
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import android.content.Context
 import java.io.File
 import java.util.Locale
 import javax.sound.sampled.AudioFormat
@@ -14,7 +15,8 @@ import javax.sound.sampled.SourceDataLine
  * Plays the audio of a transcript on Windows: ffmpeg (part of the app) decodes from the current position – also Opus,
  * M4A and video – and Java Sound plays it. Speed via ffmpeg's tempo filter, seeking restarts the decoder.
  */
-class TranscriptPlayer(private val file: File) {
+@Suppress("UNUSED_PARAMETER")
+class TranscriptPlayer(private val file: File, context: Context? = null) {
     private val rate = 22050f
     private val _position = MutableStateFlow(0.0)
     val position: StateFlow<Double> = _position.asStateFlow()

@@ -94,6 +94,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -195,40 +197,29 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     val scope = rememberCoroutineScope()
     val look = LocalChatLook.current
     val vs by t.settings.collectAsStateWithLifecycle()
-    var tr by remember(id) { mutableStateOf<Transcript?>(null) }
-    var loaded by remember(id) { mutableStateOf(false) }
-    var undo by remember(id) { mutableStateOf<Transcript?>(null) }
-    LaunchedEffect(id) {
-        t.engine()
-        tr = t.load(id)
-        loaded = true
-    }
-    // Word times measured in the background: show them as soon as they are saved
-    LaunchedEffect(id) {
-        t.finished.collect { f -> if (f.transcriptId == id) t.load(id)?.let { tr = it } }
-    }
+    val vm: TranscriptViewModel = viewModel(key = "transcript-$id") { TranscriptViewModel(c, id) }
+    val tr by vm.transcript.collectAsStateWithLifecycle()
+    val loaded by vm.loaded.collectAsStateWithLifecycle()
+    val undo by vm.undo.collectAsStateWithLifecycle()
 
     val current = tr
     if (current == null) {
         Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Transkript") }) }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad), contentAlignment = Alignment.Center) {
-                if (loaded) HintText("Das Transkript gibt es nicht mehr.") else CircularProgressIndicator()
+                if (loaded) HintText("Das Transkript gibt es nicht mehr.")
+                else Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CircularProgressIndicator()
+                    HintText("Transkript wird geladen …")
+                }
             }
         }
         return
     }
 
-    /** Saves a change; the first change keeps the version as transcribed ("Änderungen verwerfen"). */
-    fun update(next: Transcript, undoable: Boolean = true) {
-        val before = tr ?: return
-        if (undoable) undo = before
-        val kept = if (before.hasOriginal || next.hasOriginal) next else next.copy(raw = before.withOriginal().raw)
-        tr = kept
-        scope.launch { t.save(kept) }
-    }
+    fun update(next: Transcript, undoable: Boolean = true) = vm.update(next, undoable)
 
     val audio = remember(current.id, current.audio) { t.audioFile(current) }
-    val player = remember(audio) { audio?.let { TranscriptPlayer(it) } }
+    val player = remember(audio) { audio?.let { TranscriptPlayer(it, context) } }
     DisposableEffect(player) { onDispose { player?.release() } }
     val position by (player?.position ?: remember { MutableStateFlow(0.0) }).collectAsStateWithLifecycle()
     val playing by (player?.playing ?: remember { MutableStateFlow(false) }).collectAsStateWithLifecycle()
@@ -236,27 +227,27 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     val control = remember(player) { PlaybackControl(player, { player?.position?.value ?: 0.0 }, { t.settings.value }) }
     LaunchedEffect(player, vs.speed) { player?.setSpeed(vs.speed) }
 
-    var menu by remember { mutableStateOf(false) }
-    var rename by remember { mutableStateOf(false) }
-    var moveFolder by remember { mutableStateOf(false) }
-    var export by remember { mutableStateOf(false) }
-    var findReplace by remember { mutableStateOf(false) }
-    var retranscribe by remember { mutableStateOf(false) }
-    var delete by remember { mutableStateOf(false) }
-    var discard by remember { mutableStateOf(false) }
-    var viewSheet by remember { mutableStateOf(false) }
-    var speakersSheet by remember { mutableStateOf(false) }
-    var segmentSheet by remember { mutableStateOf(false) }
-    var statsSheet by remember { mutableStateOf(false) }
-    var chaptersSheet by remember { mutableStateOf(false) }
-    var statusDialog by remember { mutableStateOf(false) }
-    var wordsDialog by remember { mutableStateOf(false) }
-    var editSegment by remember { mutableStateOf<Int?>(null) }
-    var editSpeaker by remember { mutableStateOf<Int?>(null) }
-    var loop by remember { mutableStateOf<Int?>(null) }
-    var searching by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-    var hitIndex by remember { mutableIntStateOf(0) }
+    var menu by rememberSaveable(id) { mutableStateOf(false) }
+    var rename by rememberSaveable(id) { mutableStateOf(false) }
+    var moveFolder by rememberSaveable(id) { mutableStateOf(false) }
+    var export by rememberSaveable(id) { mutableStateOf(false) }
+    var findReplace by rememberSaveable(id) { mutableStateOf(false) }
+    var retranscribe by rememberSaveable(id) { mutableStateOf(false) }
+    var delete by rememberSaveable(id) { mutableStateOf(false) }
+    var discard by rememberSaveable(id) { mutableStateOf(false) }
+    var viewSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var speakersSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var segmentSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var statsSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var chaptersSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var statusDialog by rememberSaveable(id) { mutableStateOf(false) }
+    var wordsDialog by rememberSaveable(id) { mutableStateOf(false) }
+    var editSegment by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var editSpeaker by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var loop by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    var searching by rememberSaveable(id) { mutableStateOf(false) }
+    var query by rememberSaveable(id) { mutableStateOf("") }
+    var hitIndex by rememberSaveable(id) { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
     val focus = remember { FocusRequester() }
     val searchFocus = remember { FocusRequester() }
@@ -296,6 +287,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
         if (!inside && next.start - position > 1.5) player?.seek(next.start - 0.3)
     }
 
+    PlatformBackHandler(enabled = searching) { searching = false; query = "" }
+
     fun toggleLoop() { loop = if (loop != null) null else active.takeIf { it >= 0 } ?: 0 }
     fun openSearch() { searching = true }
 
@@ -333,7 +326,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                     navigationIcon = { BackButton(onBack) },
                     title = { Text(current.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.clickable { rename = true }) },
                     actions = {
-                        if (undo != null) TextButton(onClick = { undo?.let { update(it, undoable = false) }; undo = null }) { Text("Rückgängig") }
+                        if (undo != null) TextButton(onClick = vm::undoLast) { Text("Rückgängig") }
                         IconButton(onClick = ::openSearch) { Icon(Icons.Outlined.Search, contentDescription = "Suchen (Strg+F)") }
                         IconButton(onClick = {
                             ChatHandoff.pending.value = ChatHandoff.Content(
@@ -526,8 +519,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     if (rename) TextInputDialog("Umbenennen", current.title, "Titel", onConfirm = { v -> update(current.copy(title = v.trim().ifBlank { current.title })) }, onDismiss = { rename = false })
     if (moveFolder) FolderPickerDialog(c, current.folder, onPick = { f -> update(current.copy(folder = f)) }, onDismiss = { moveFolder = false })
     if (delete) ConfirmDialog(
-        "Transkript löschen?", "„${current.title}“ und die Aufnahme werden dauerhaft gelöscht.", "Löschen",
-        onConfirm = { scope.launch { player?.release(); t.delete(current.id); onBack() } }, onDismiss = { delete = false },
+        "Transkript löschen?", "„${current.title}“ kommt mit der Aufnahme in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen",
+        onConfirm = { player?.release(); vm.delete(onBack) }, onDismiss = { delete = false },
     )
     if (discard) ConfirmDialog(
         "Änderungen verwerfen?",
@@ -544,7 +537,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     }
     if (findReplace) FindReplaceDialog(current, onApply = { next, n ->
         update(next)
-        Toast.makeText(context, "$n× ersetzt. Rückgängig ist möglich.", Toast.LENGTH_LONG).show()
+        Notices.show(Notices.Notice("$n× ersetzt", action = "Rückgängig", onAction = vm::undoLast))
     }, onDismiss = { findReplace = false })
     if (export) ExportSheet(c, current, onDismiss = { export = false })
     if (viewSheet) ViewSheet(c, onDismiss = { viewSheet = false })

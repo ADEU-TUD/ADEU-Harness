@@ -57,7 +57,7 @@ class KnowledgeStore(root: File) {
     @Synchronized
     private fun saveChunks(id: String, chunks: List<KnowledgeChunk>) {
         dir.mkdirs()
-        File(dir, "$id.json").writeText(json.encodeToString(ListSerializer(KnowledgeChunk.serializer()), chunks))
+        AtomicFiles.write(File(dir, "$id.json"), json.encodeToString(ListSerializer(KnowledgeChunk.serializer()), chunks))
         cache[id] = chunks
     }
 

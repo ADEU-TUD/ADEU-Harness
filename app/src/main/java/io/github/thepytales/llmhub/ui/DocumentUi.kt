@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -75,13 +74,13 @@ fun openDocument(context: Context, file: File) {
     try {
         context.startActivity(intent)
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "Keine App zum Öffnen von ${file.extension.uppercase()}-Dateien gefunden.", Toast.LENGTH_LONG).show()
+        Notices.error("Keine App zum Öffnen von ${file.extension.uppercase()}-Dateien gefunden.")
     }
 }
 
 /** Opens the mail app with the draft filled in (the user sends it there). */
 fun openMailDraft(context: Context, file: File) {
-    val d = MailFiles.read(file) ?: return Toast.makeText(context, "Entwurf nicht lesbar.", Toast.LENGTH_SHORT).show()
+    val d = MailFiles.read(file) ?: return Notices.error("Entwurf nicht lesbar.")
     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
         .putExtra(Intent.EXTRA_EMAIL, d.to.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
         .putExtra(Intent.EXTRA_CC, d.cc.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
@@ -91,13 +90,13 @@ fun openMailDraft(context: Context, file: File) {
     try {
         context.startActivity(intent)
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "Keine Mail-App gefunden.", Toast.LENGTH_LONG).show()
+        Notices.error("Keine Mail-App gefunden.")
     }
 }
 
 /** Opens the calendar app with the event filled in. */
 fun addToCalendar(context: Context, file: File) {
-    val e = CalendarFiles.read(file) ?: return Toast.makeText(context, "Termin nicht lesbar.", Toast.LENGTH_SHORT).show()
+    val e = CalendarFiles.read(file) ?: return Notices.error("Termin nicht lesbar.")
     val intent = Intent(Intent.ACTION_INSERT)
         .setData(CalendarContract.Events.CONTENT_URI)
         .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, CalendarFiles.millis(e.start))
@@ -136,7 +135,7 @@ private suspend fun copyTo(context: Context, file: File, target: Uri) {
             context.contentResolver.openOutputStream(target)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
         }.isSuccess
     }
-    Toast.makeText(context, if (ok) "Gespeichert: ${file.name}" else "Speichern fehlgeschlagen.", Toast.LENGTH_SHORT).show()
+    if (ok) Notices.info("Gespeichert: ${file.name}") else Notices.error("Speichern fehlgeschlagen.")
 }
 
 /** Remembers a "save as" launcher that copies a file to a location the user picks. */
@@ -267,7 +266,7 @@ fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: ()
                 created[key] = it
                 action(it)
             }.onFailure {
-                Toast.makeText(context, "Export fehlgeschlagen: ${it.message}", Toast.LENGTH_LONG).show()
+                Notices.error("Export fehlgeschlagen: ${it.message}")
             }
         }
     }

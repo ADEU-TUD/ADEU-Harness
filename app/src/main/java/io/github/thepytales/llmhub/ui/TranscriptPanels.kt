@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -257,7 +256,7 @@ fun StatsSheet(t: Transcript, onDismiss: () -> Unit) {
                     .joinToString(";") { v -> if (v is Double) String.format(Locale.GERMANY, "%.1f", v) else v.toString() }
             }
             clipboard.setText(AnnotatedString(rows.joinToString("\n")))
-            Toast.makeText(context, "Tabelle kopiert (für Excel, SPSS, R).", Toast.LENGTH_SHORT).show()
+            Notices.info("Tabelle kopiert (für Excel, SPSS, R).")
         }) { Text("Als Tabelle kopieren") }
     }
 }
@@ -392,8 +391,8 @@ fun WordTimesDialog(c: AppContainer, t: Transcript, hasAudio: Boolean, onDismiss
         confirmButton = {
             if (hasAudio && !own) TextButton(onClick = {
                 runCatching { c.transcription.measureWords(t.id) }
-                    .onSuccess { Toast.makeText(context, "Wortzeiten werden gemessen – das Transkript aktualisiert sich danach.", Toast.LENGTH_LONG).show(); onDismiss() }
-                    .onFailure { Toast.makeText(context, it.message ?: "Fehler", Toast.LENGTH_LONG).show() }
+                    .onSuccess { Notices.info("Wortzeiten werden gemessen – das Transkript aktualisiert sich danach."); onDismiss() }
+                    .onFailure { Notices.error(it.message ?: "Fehler") }
             }) { Text(if (words.isEmpty()) "Jetzt messen" else "Neu messen") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
@@ -412,7 +411,7 @@ fun RetranscribeSheet(c: AppContainer, t: Transcript, onStarted: () -> Unit, onD
             Button(onClick = {
                 runCatching { c.transcription.retranscribe(t.id, opts) }
                     .onSuccess { onStarted() }
-                    .onFailure { Toast.makeText(context, it.message ?: "Fehler", Toast.LENGTH_LONG).show() }
+                    .onFailure { Notices.error(it.message ?: "Fehler") }
             }) { Text("Starten") }
         }
     }
@@ -465,7 +464,7 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
                 busy = f
                 scope.launch {
                     made = runCatching { exportFile(context, t, f, opts) }
-                        .onFailure { Toast.makeText(context, "Export fehlgeschlagen: ${it.message}", Toast.LENGTH_LONG).show() }.getOrNull()
+                        .onFailure { Notices.error("Export fehlgeschlagen: ${it.message}") }.getOrNull()
                     busy = null
                 }
             }) {

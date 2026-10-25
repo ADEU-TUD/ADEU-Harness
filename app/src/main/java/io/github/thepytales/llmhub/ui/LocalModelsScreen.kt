@@ -1,6 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,8 +67,8 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
     var others by remember { mutableStateOf(false) }
     val import = rememberMediaImport(anyFile = true) { name, _, input ->
         runCatching { local.importFile(name, input) }
-            .onSuccess { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
-            .onFailure { Toast.makeText(context, it.message ?: "Fehler", Toast.LENGTH_LONG).show() }
+            .onSuccess { Notices.info(it) }
+            .onFailure { Notices.error(it.message ?: "Fehler") }
     }
 
     Scaffold(

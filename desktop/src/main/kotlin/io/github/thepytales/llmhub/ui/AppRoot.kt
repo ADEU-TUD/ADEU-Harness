@@ -197,6 +197,20 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             launch { toasts.showSnackbar(text, duration = SnackbarDuration.Short) }
         }
     }
+    // Errors with "Erneut versuchen" and deletions with "Rückgängig" (see Notices); they queue up.
+    LaunchedEffect(Unit) {
+        Notices.flow.collect { n ->
+            launch {
+                val result = toasts.showSnackbar(
+                    message = n.text,
+                    actionLabel = n.action,
+                    withDismissAction = n.error || n.action != null,
+                    duration = if (n.error || n.action != null) SnackbarDuration.Long else SnackbarDuration.Short,
+                )
+                if (result == SnackbarResult.ActionPerformed) n.onAction?.invoke() else n.onTimeout?.invoke()
+            }
+        }
+    }
 
     val menu: @Composable () -> Unit = {
         AppDrawer(

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -127,7 +126,8 @@ import java.io.File
 fun ChatScreen(
     c: AppContainer,
     vm: ChatViewModel,
-    onOpenDrawer: () -> Unit,
+    /** Opens the side menu; null when it is always visible (wide screens). */
+    onOpenDrawer: (() -> Unit)?,
     onNewChat: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
@@ -172,10 +172,10 @@ fun ChatScreen(
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(vm) {
-        vm.toasts.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+        vm.toasts.collect { Notices.info(it) }
     }
     LaunchedEffect(Unit) {
-        c.speaker.errors.collect { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+        c.speaker.errors.collect { Notices.error(it) }
     }
     LaunchedEffect(deleted) {
         if (deleted) onNewChat()
@@ -208,7 +208,7 @@ fun ChatScreen(
                         loadingFiles--
                         r.file?.let { files.add(it) }
                         images.addAll(r.images)
-                        (r.error ?: r.note)?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                        r.error?.let { Notices.error(it) } ?: r.note?.let { Notices.info(it) }
                     }
                 }
             }
@@ -248,7 +248,7 @@ fun ChatScreen(
                 loadingFiles--
                 r.file?.let { files.add(it) }
                 images.addAll(r.images)
-                (r.error ?: r.note)?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                r.error?.let { Notices.error(it) } ?: r.note?.let { Notices.info(it) }
             }
         }
     }
@@ -260,7 +260,7 @@ fun ChatScreen(
             cameraUri = uri
             camera.launch(uri)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Keine Kamera-App gefunden.", Toast.LENGTH_SHORT).show()
+            Notices.error("Keine Kamera-App gefunden.")
         }
     }
 
@@ -269,13 +269,13 @@ fun ChatScreen(
             recorder.start()
             recording = true
         } catch (e: Exception) {
-            Toast.makeText(context, "Aufnahme nicht möglich: ${e.message}", Toast.LENGTH_SHORT).show()
+            Notices.error("Aufnahme nicht möglich: ${e.message}")
         }
     }
 
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startRecording()
-        else Toast.makeText(context, "Mikrofon-Berechtigung benötigt.", Toast.LENGTH_SHORT).show()
+        else Notices.error("Mikrofon-Berechtigung benötigt.")
     }
 
     val current = conv
@@ -308,7 +308,7 @@ fun ChatScreen(
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
+                    if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
                 },
                 title = {
                     if (hasMessages) {
@@ -348,7 +348,7 @@ fun ChatScreen(
                             onFolder = { showFolder = true },
                             onHomeScreen = {
                                 if (!pinChatShortcut(context, current)) {
-                                    Toast.makeText(context, "Dein Startbildschirm unterstützt keine Verknüpfungen.", Toast.LENGTH_SHORT).show()
+                                    Notices.error("Dein Startbildschirm unterstützt keine Verknüpfungen.")
                                 }
                             },
                             onExport = { export = current.title to chatToMarkdown(current) },
@@ -390,7 +390,7 @@ fun ChatScreen(
                 },
                 onSend = {
                     if (images.isNotEmpty() && modelInfo.vision == false) {
-                        Toast.makeText(context, "Hinweis: ${modelInfo.displayName} versteht keine Bilder.", Toast.LENGTH_LONG).show()
+                        Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
                     }
                     vm.send(input, images.toList(), files.toList(), activeTemplate)
                     input = ""
@@ -411,7 +411,7 @@ fun ChatScreen(
                 if (current.autoApprove) {
                     ContextChip(Icons.Outlined.DoneAll, "Ohne Rückfrage", {
                         vm.setAutoApprove(false)
-                        Toast.makeText(context, "Aktionen in diesem Chat werden wieder bestätigt.", Toast.LENGTH_SHORT).show()
+                        Notices.info("Aktionen in diesem Chat werden wieder bestätigt.")
                     })
                 }
                 if (!current.systemPrompt.isNullOrBlank()) {
@@ -499,7 +499,7 @@ fun ChatScreen(
             onCamera = { takePhoto() },
             onPhotos = {
                 if (modelInfo.vision == false) {
-                    Toast.makeText(context, "Hinweis: ${modelInfo.displayName} versteht keine Bilder.", Toast.LENGTH_SHORT).show()
+                    Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
                 }
                 photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
@@ -532,13 +532,13 @@ fun ChatScreen(
                 if (t.direct != null) {
                     if (running) {
                         c.drafts.upsert(io.github.thepytales.llmhub.data.TemplateDraft(t.id, values))
-                        Toast.makeText(context, "Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.", Toast.LENGTH_LONG).show()
+                        Notices.info("Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.")
                     } else vm.sendDirect(text, values, t)
                 } else if (running) {
                     // An answer is still being written: keep the text (and attachments) for later.
                     input = if (input.isBlank()) text else text + "\n\n" + input
                     templateId = t.id
-                    Toast.makeText(context, "Die Antwort läuft noch – der Text steht im Eingabefeld.", Toast.LENGTH_SHORT).show()
+                    Notices.info("Die Antwort läuft noch – der Text steht im Eingabefeld.")
                 } else {
                     vm.send(text, images.toList(), files.toList(), t)
                     images.clear()
@@ -614,7 +614,7 @@ fun ChatScreen(
     }
 
     if (showDelete) {
-        ConfirmDialog("Chat löschen?", "„${current.title}“ wird dauerhaft gelöscht.", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
+        ConfirmDialog("Chat löschen?", "„${current.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
     }
 
     pending?.let { p ->

@@ -594,7 +594,7 @@ fun ChatScreen(
     }
 
     if (showDelete) {
-        ConfirmDialog("Chat löschen?", "„${current.title}“ wird dauerhaft gelöscht.", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
+        ConfirmDialog("Chat löschen?", "„${current.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
     }
 
     pending?.let { p ->

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -283,11 +282,7 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                             }
                             TextButton(onClick = {
                                 TaskScheduler.runNow(context, t.id)
-                                Toast.makeText(
-                                    context,
-                                    "„${t.name}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.",
-                                    Toast.LENGTH_LONG,
-                                ).show()
+                                Notices.info("„${t.name}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.")
                             }) {
                                 Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.size(4.dp))
@@ -319,7 +314,7 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
     var showDelete by remember { mutableStateOf(false) }
 
     val notifyPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (!granted) Toast.makeText(context, "Ohne Berechtigung gibt es keine Benachrichtigungen – die Ergebnisse landen trotzdem im Ordner.", Toast.LENGTH_LONG).show()
+        if (!granted) Notices.error("Ohne Berechtigung gibt es keine Benachrichtigungen – die Ergebnisse landen trotzdem im Ordner.")
     }
 
     fun save() {
@@ -328,11 +323,7 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         if (task.notify && Build.VERSION.SDK_INT >= 33 && !Notifier.canNotify(context)) {
             notifyPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
-        Toast.makeText(
-            context,
-            if (next != null) "Gespeichert – nächste Ausführung: ${formatTime(next)}" else "Gespeichert (pausiert).",
-            Toast.LENGTH_LONG,
-        ).show()
+        Notices.info(if (next != null) "Gespeichert – nächste Ausführung: ${formatTime(next)}" else "Gespeichert (pausiert).")
         onBack()
     }
 

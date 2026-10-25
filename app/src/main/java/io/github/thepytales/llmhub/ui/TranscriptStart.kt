@@ -227,6 +227,8 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
     LaunchedEffect(rec.liveText.size) { if (rec.liveText.isNotEmpty()) listState.animateScrollToItem(rec.liveText.size - 1) }
     val level by animateFloatAsState(if (rec.paused) 0f else rec.level.coerceIn(0f, 1f), label = "level")
     val record = Color(0xFFE5484D)
+    // Back keeps recording in the background instead of leaving the transcription.
+    PlatformBackHandler(onBack = onMinimize)
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {

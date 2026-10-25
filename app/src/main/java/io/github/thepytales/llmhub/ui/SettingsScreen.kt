@@ -1,7 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
 import android.graphics.BitmapFactory
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -524,7 +523,7 @@ private fun DocumentsSection(c: AppContainer) {
                     }
                     previewBusy = false
                     result.onSuccess { openDocument(context, it) }
-                        .onFailure { Toast.makeText(context, "Vorschau fehlgeschlagen: ${it.message}", Toast.LENGTH_LONG).show() }
+                        .onFailure { Notices.error("Vorschau fehlgeschlagen: ${it.message}") }
                 }
             }) { Text("Vorschau als PDF") }
             if (previewBusy) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
@@ -570,7 +569,7 @@ private fun DocumentsSection(c: AppContainer) {
     pendingLogo?.let { bytes ->
         TextInputDialog("Logo speichern", if (logos.isEmpty()) "Logo" else "", "Name", onConfirm = { name ->
             runCatching { c.logos.add(name, bytes) }
-                .onFailure { Toast.makeText(context, it.message ?: "Bild konnte nicht gelesen werden.", Toast.LENGTH_LONG).show() }
+                .onFailure { Notices.error(it.message ?: "Bild konnte nicht gelesen werden.") }
         }, onDismiss = { pendingLogo = null })
     }
     renameLogo?.let { logo ->
