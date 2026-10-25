@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import io.github.thepytales.llmhub.data.Conversation
+import androidx.compose.material.icons.outlined.ManageSearch
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,6 +70,8 @@ import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
+import io.github.thepytales.llmhub.docs.DocBlocks
+import io.github.thepytales.llmhub.docs.DocsLive
 import io.github.thepytales.llmhub.data.label
 import io.github.thepytales.llmhub.data.thread
 
@@ -143,9 +149,14 @@ fun ChatScreen(
         // Handed over from another screen (e.g. a transcript): text into the input field, files as attachments.
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
-                if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
-                files.addAll(h.files)
-                images.addAll(h.images)
+                h.mode?.let { vm.setMode(it) }
+                if (h.send && h.text.isNotBlank()) {
+                    vm.send(h.text, h.images, h.files)
+                } else {
+                    if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
+                    files.addAll(h.files)
+                    images.addAll(h.images)
+                }
             }
         }
     }
@@ -199,6 +210,23 @@ fun ChatScreen(
     }
 
     val hasMessages = current.messages.isNotEmpty()
+    // Documents open beside the chat on wide screens (like Claude Docs); on phones they get their own screen.
+    var docPanel by rememberSaveable(current.id) { mutableStateOf<String?>(null) }
+    val drafts by DocsLive.drafts.collectAsStateWithLifecycle()
+    val writingDoc = drafts[current.id]
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val sideBySide = maxWidth >= 1000.dp
+    DisposableEffect(sideBySide, current.id) {
+        val host: ((String) -> Boolean)? = if (sideBySide) ({ id -> docPanel = id; true }) else null
+        DocsHandoff.sidePanel = host
+        onDispose { if (DocsHandoff.sidePanel === host) DocsHandoff.sidePanel = null }
+    }
+    // The model starts writing a document: it opens beside the chat and fills up there.
+    LaunchedEffect(writingDoc != null, sideBySide) {
+        if (writingDoc != null && sideBySide && docPanel == null) docPanel = "chat:" + current.id
+    }
+    Row(Modifier.fillMaxSize()) {
+    Box(Modifier.weight(1f)) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -296,6 +324,12 @@ fun ChatScreen(
                 onPaste = platform.paste,
             ) {
                 // Always visible while active: the selected repository, environment and persona.
+                if (current.mode == Conversation.MODE_LITERATURE) {
+                    ContextChip(Icons.Outlined.ManageSearch, "Literatursuche  ✕", {
+                        vm.setMode(null)
+                        Notices.info("Literatursuchmodus beendet – normaler Chat.")
+                    })
+                }
                 if (current.githubEnabled && settings.hasGitHub) {
                     ContextChip(Icons.Outlined.Code, current.linkedRepos.label() ?: "GitHub · Repo wählen", { showRepoPicker = true })
                 }
@@ -379,6 +413,16 @@ fun ChatScreen(
                             playing = playingId == item.head.id,
                             onSpeak = { vm.speak(item.head.id, item.turnText) },
                             onExport = { text -> export = current.title to text },
+                            onOpenInEditor = { text -> DocsHandoff.open(c, DocBlocks.titleOf(text) ?: current.title, text, current.id) },
+                            onBibliography = { text ->
+                                LiteratureHandoff.pending.value = LiteratureHandoff.Request(2, text)
+                                onNavigate("literature")
+                            },
+                            onOpenLiterature = { list ->
+                                LiteratureHandoff.pending.value = LiteratureHandoff.Request(1, list = list)
+                                onNavigate("literature")
+                            },
+                            chatId = current.id,
                             onRegenerate = { item.question?.let { vm.regenerate(it) } },
                             onRegenerateWithModel = { regenerateFor = item.question },
                             onSelectVersion = { vm.showVersion(it) },
@@ -389,6 +433,13 @@ fun ChatScreen(
             }
             }
         }
+    }
+    }
+    docPanel?.takeIf { sideBySide }?.let { id ->
+        VerticalDivider()
+        Box(Modifier.weight(1f)) { DocPane(c, id, onClose = { docPanel = null }, inSidePanel = true) }
+    }
+    }
     }
 
     if (showPlus) {

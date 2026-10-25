@@ -14,6 +14,10 @@ object ChatHandoff {
         val folderId: String? = null,
         /** Pictures as data URLs (e.g. a generated image to discuss or describe). */
         val images: List<String> = emptyList(),
+        /** Mode of the new chat, e.g. [io.github.thepytales.llmhub.data.Conversation.MODE_LITERATURE]. */
+        val mode: String? = null,
+        /** Send [text] right away instead of putting it into the input field. */
+        val send: Boolean = false,
     )
 
     val pending = MutableStateFlow<Content?>(null)

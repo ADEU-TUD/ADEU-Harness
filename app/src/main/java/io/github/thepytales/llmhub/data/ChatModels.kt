@@ -97,11 +97,17 @@ data class Conversation(
     val summary: String? = null,
     /** Last message covered by [summary]; only used while it is part of the active thread. */
     val summaryUpTo: String? = null,
+    /** Special mode of the chat: "literature" (literature search); null = normal chat. */
+    val mode: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */
     val linkedRepos: List<LinkedRepo>
         get() = repos.ifEmpty { listOfNotNull(repo?.let { LinkedRepo(it, branch) }) }
+
+    companion object {
+        const val MODE_LITERATURE = "literature"
+    }
 
     fun withRepos(list: List<LinkedRepo>): Conversation {
         val distinct = list.distinctBy { it.name.lowercase() }

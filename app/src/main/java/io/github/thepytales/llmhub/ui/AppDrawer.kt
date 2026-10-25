@@ -26,6 +26,8 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
@@ -216,6 +218,8 @@ fun AppDrawer(
                 // Only what is used every day; models, comparison and usage are under Einstellungen.
                 val newResults = conversations.count { it.unread && it.taskId != null }
                 item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
+                item { NavRow(Icons.Outlined.MenuBook, "Literatur") { onNavigate("literature") } }
+                item { NavRow(Icons.Outlined.Description, "Dokumente") { onNavigate("docs") } }
                 item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
                 item { NavRow(Icons.Outlined.Image, "Bilder erzeugen") { onNavigate("images") } }
                 item { NavRow(Icons.Outlined.GraphicEq, "Transkription", badge = transcribing, badgeText = "läuft") { onNavigate("transcripts") } }

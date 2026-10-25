@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Code
@@ -75,6 +76,7 @@ fun settingsTitle(section: String?): String = when (section) {
     "windows" -> "Windows"
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
+    "literature" -> "Literatur & Zotero"
     "backup" -> "Sicherung & Umzug"
     "trash" -> "Papierkorb"
     "transcription" -> "Transkription"
@@ -131,6 +133,10 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             SettingsItem(
                 "settings/knowledge", Icons.Outlined.LibraryBooks, "Wissenssammlung",
                 knowledge.count { it.collection.isEmpty() }.let { if (it == 0) "Eigene Dokumente durchsuchbar machen" else "$it Dokument(e)" },
+            ),
+            SettingsItem(
+                "settings/literature", Icons.Outlined.MenuBook, "Literatur & Zotero",
+                (io.github.thepytales.llmhub.research.CitationStyle.parse(s.citationStyle)?.label ?: "APA 7") + if (s.zoteroKey.isNotBlank()) " · Zotero verbunden" else "",
             ),
         ),
         onNavigate,

@@ -81,6 +81,19 @@ data class AppSettings(
     val closeToTray: Boolean = true,
     /** Short animation of the logo when the app starts. */
     val startAnimation: Boolean = true,
+    /** Citation style of reference lists: enum name of research/CitationStyle. */
+    val citationStyle: String = "APA7_DE",
+    /** Free OpenAlex API key (without one all users behind the same IP share a small daily budget). */
+    val openAlexKey: String = "",
+    /** Zotero web API: user ID and key with write access (zotero.org/settings/keys). */
+    val zoteroUserId: String = "",
+    val zoteroKey: String = "",
+    /** Databases of the literature search, comma-separated enum names of research/LitSource. */
+    val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB",
+    /** Language of the app's interface: "de" or "en". */
+    val uiLanguage: String = "de",
+    /** Name or initials of the person coding transcripts (intercoder agreement). */
+    val coderName: String = "",
 ) {
     /** Key of the main provider (ScaDS.AI); speech, images and embeddings only work with it. */
     val hasApiKey get() = apiKey.isNotBlank()
@@ -178,6 +191,13 @@ class SettingsStore(context: Context) {
             .putString("pseudonymTerms", next.pseudonymTerms)
             .putBoolean("closeToTray", next.closeToTray)
             .putBoolean("startAnimation", next.startAnimation)
+            .putString("citationStyle", next.citationStyle)
+            .putString("openAlexKey", next.openAlexKey.trim())
+            .putString("zoteroUserId", next.zoteroUserId.trim())
+            .putString("zoteroKey", next.zoteroKey.trim())
+            .putString("literatureSources", next.literatureSources)
+            .putString("uiLanguage", next.uiLanguage)
+            .putString("coderName", next.coderName)
             .apply()
     }
 
@@ -229,6 +249,13 @@ class SettingsStore(context: Context) {
             pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,
             closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
             startAnimation = prefs.getBoolean("startAnimation", d.startAnimation),
+            citationStyle = prefs.getString("citationStyle", d.citationStyle) ?: d.citationStyle,
+            openAlexKey = prefs.getString("openAlexKey", d.openAlexKey) ?: d.openAlexKey,
+            zoteroUserId = prefs.getString("zoteroUserId", d.zoteroUserId) ?: d.zoteroUserId,
+            zoteroKey = prefs.getString("zoteroKey", d.zoteroKey) ?: d.zoteroKey,
+            literatureSources = prefs.getString("literatureSources", d.literatureSources) ?: d.literatureSources,
+            uiLanguage = prefs.getString("uiLanguage", d.uiLanguage) ?: d.uiLanguage,
+            coderName = prefs.getString("coderName", d.coderName) ?: d.coderName,
         )
     }
 

@@ -168,6 +168,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // Documents opened from a card, the literature screen or a chat answer (the chat shows them beside it when wide).
+    val docRequest by DocsHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(docRequest) {
+        docRequest?.let { id ->
+            nav.navigate("doc/$id")
+            DocsHandoff.request.value = null
+        }
+    }
+
     // Shows what went wrong if the app crashed last time.
     val context = LocalContext.current
     var crash by remember { mutableStateOf(CrashLog.take(context)) }
@@ -306,6 +315,9 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "environments" -> EnvironmentsScreen(c, onBack = back, onEdit = { id -> nav.navigate("environment/$id") })
         "environment" -> EnvironmentEditScreen(c, args["id"] ?: "new", onBack = back)
         "settings" -> SettingsScreen(c, section = args["section"], onBack = back, onNavigate = { nav.navigate(it) })
+        "literature" -> LiteratureScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) }, onSettings = { nav.navigate("settings/literature") })
+        "docs" -> DocsListScreen(c, onBack = back, onOpen = { id -> nav.navigate("doc/$id") })
+        "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

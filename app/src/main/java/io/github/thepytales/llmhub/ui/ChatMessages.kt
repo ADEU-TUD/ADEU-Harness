@@ -36,6 +36,8 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -82,6 +84,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
@@ -385,6 +388,10 @@ fun AssistantMessage(
     onRegenerateWithModel: () -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
     onRetry: () -> Unit,
+    onOpenInEditor: (String) -> Unit = {},
+    onBibliography: (String) -> Unit = {},
+    onOpenLiterature: (String) -> Unit = {},
+    chatId: String? = null,
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -408,6 +415,12 @@ fun AssistantMessage(
         m.toolCalls.forEach { call ->
             val result = results[call.id]
             ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
+            // The model is writing a document: it can be watched live in the editor.
+            if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
+            if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
+                val list = io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["list"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
+                if (list != null) LiteratureListCard(list, onOpen = { onOpenLiterature(list) })
+            }
             result?.file?.let { DocumentCard(it) }
         }
         if (item.turnEnd && !(running && item.isLast)) {
@@ -433,6 +446,18 @@ fun AssistantMessage(
                                 text = { Text("Als Dokument exportieren") },
                                 leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null) },
                                 onClick = { more = false; onExport(text) },
+                            )
+                        }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
+                                text = { Text("Im Dokument-Editor öffnen") },
+                                leadingIcon = { Icon(Icons.Outlined.EditNote, contentDescription = null) },
+                                onClick = { more = false; onOpenInEditor(text) },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Literaturverzeichnis erstellen") },
+                                leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                                onClick = { more = false; onBibliography(text) },
                             )
                         }
                         if (text.isNotBlank()) {
@@ -542,6 +567,42 @@ fun ThinkingBox(text: String, active: Boolean) {
 }
 
 /** Human-readable labels for tool calls. */
+/** Shown while the model writes a document: opens the editor where it grows. */
+@Composable
+private fun LiveDraftCard(chatId: String) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(8.dp))
+            Text("Das Dokument entsteht gerade", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text("Live ansehen") }
+        }
+    }
+}
+
+/** Works the literature search kept: opens the list in the collection. */
+@Composable
+private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
+    val c = io.github.thepytales.llmhub.App.container
+    val all by c.literature.items.collectAsStateWithLifecycle()
+    val works = all.filter { r -> r.lists.any { it.equals(list, true) } }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.size(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Literaturliste „$list“", style = MaterialTheme.typography.titleSmall)
+                    Text("${works.size} Werke · ${works.count { it.openAccessUrl.isNotBlank() }} frei zugänglich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 38.dp, top = 2.dp)) }
+            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 38.dp))
+            TextButton(onClick = onOpen) { Text("In der Sammlung öffnen") }
+        }
+    }
+}
+
 private fun toolLabel(name: String) = when (name) {
     "web_search" -> "Websuche"
     "news_search" -> "Nachrichtensuche"
@@ -562,6 +623,15 @@ private fun toolLabel(name: String) = when (name) {
     "create_email_draft" -> "E-Mail-Entwurf"
     "create_calendar_event" -> "Termin anlegen"
     "read_guide" -> "Anleitung lesen"
+    "search_literature" -> "Literatur suchen"
+    "literature_details" -> "Werk ansehen"
+    "snowball_literature" -> "Schneeballsuche"
+    "save_literature" -> "Literatur merken"
+    "format_bibliography" -> "Literaturverzeichnis"
+    "zotero_add" -> "Nach Zotero"
+    "zotero_search" -> "Zotero durchsuchen"
+    "read_document" -> "Dokument lesen"
+    "reply_to_comment" -> "Kommentar beantworten"
     else -> name
 }
 

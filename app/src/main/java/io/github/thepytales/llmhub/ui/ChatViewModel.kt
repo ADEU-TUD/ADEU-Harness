@@ -100,8 +100,14 @@ class ChatViewModel(
     /** Whether this chat has been written to the repository at least once. */
     private var saved = initialId != null
 
+    /** The run this view model mirrors; runs started elsewhere (comments in the document editor) are picked up too. */
+    private var attached: ChatRun? = null
+
     init {
         c.runs.get(chatId)?.let(::attach)
+        viewModelScope.launch {
+            c.runs.runs.collect { all -> all[chatId]?.takeIf { it !== attached }?.let(::attach) }
+        }
         viewModelScope.launch {
             if (_conversation.value == null && initialId != null) {
                 // The repository loads asynchronously at app start.
@@ -130,6 +136,8 @@ class ChatViewModel(
 
     /** Shows the state of [run] while it is in progress and keeps its final state. */
     private fun attach(run: ChatRun) {
+        if (attached === run) return
+        attached = run
         viewModelScope.launch {
             val mirror = launch { run.conversation.collect { _conversation.value = it } }
             run.join()
@@ -184,6 +192,9 @@ class ChatViewModel(
         edit { it.copy(githubEnabled = enabled).withRepos(if (enabled) repos else emptyList()) }
 
     fun setEnvironment(envId: String?) = edit { it.copy(envId = envId) }
+
+    /** Literature search mode and the like; null = normal chat. */
+    fun setMode(mode: String?) = edit { it.copy(mode = mode) }
 
     fun rename(title: String) = edit { it.copy(title = title.trim().ifBlank { it.title }) }
 

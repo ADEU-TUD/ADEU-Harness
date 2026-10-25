@@ -13,6 +13,8 @@ import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.CalendarEvent
 import io.github.thepytales.llmhub.docs.CalendarFiles
 import io.github.thepytales.llmhub.docs.DocumentSources
+import io.github.thepytales.llmhub.docs.DocsStore
+import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.Letter
 import io.github.thepytales.llmhub.docs.LetterBuilder
@@ -46,6 +48,8 @@ class DocumentTools(
     private val logos: LogoStore,
     /** Address book: recipients of letters are offered again in the templates. */
     private val contacts: ListStore<Contact>,
+    /** Living documents (editor with versions and comments) the Markdown documents are kept in. */
+    val docs: DocsStore,
 ) : ToolProvider {
     val folder = File(context.filesDir, "documents")
 
@@ -86,6 +90,23 @@ class DocumentTools(
                 Param("letter_recipient", "Optional: neue Anschrift (Briefe)", required = false),
                 Param("letter_sender", "Optional: neuer Infoblock (Briefe)", required = false),
                 Param("format", "Optional: anderes Format (pdf, docx, html, md, txt)", required = false),
+                Param("tab", "Optional: Name des Tabs, dessen Inhalt content ersetzt (bei Dokumenten mit mehreren Tabs)", required = false),
+            ),
+        ),
+        ToolDef(
+            "read_document",
+            "Liest den aktuellen Stand eines Dokuments aus dem Dokument-Editor (alle Tabs als Markdown) und die offenen " +
+                "Kommentare mit ihrer id. Vor Änderungen aufrufen: Der Nutzer kann das Dokument selbst bearbeitet haben.",
+            listOf(Param("file", "Dateiname oder Titel des Dokuments (Standard: das zuletzt bearbeitete dieses Chats)", required = false)),
+        ),
+        ToolDef(
+            "reply_to_comment",
+            "Antwortet auf einen Kommentar im Dokument-Editor (nach der Änderung mit edit_document): kurz, was du geändert " +
+                "hast und warum – oder warum nicht. Standardmäßig wird der Kommentar damit erledigt.",
+            listOf(
+                Param("comment_id", "id des Kommentars"),
+                Param("text", "Antwort, höchstens zwei Sätze"),
+                Param("resolve", "false, wenn der Kommentar offen bleiben soll (z.B. bei einer Rückfrage)", required = false, type = "boolean"),
             ),
         ),
         ToolDef(
@@ -154,8 +175,10 @@ class DocumentTools(
     )
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = when (name) {
-        "create_document" -> create(args)
-        "edit_document" -> edit(args)
+        "create_document" -> create(args, ctx = ctx)
+        "edit_document" -> edit(args, ctx)
+        "read_document" -> readDocument(args, ctx)
+        "reply_to_comment" -> replyToComment(args)
         "create_email_draft" -> emailDraft(args)
         "create_calendar_event" -> calendarEvent(args)
         "save_logo" -> saveLogo(args, ctx)
@@ -189,7 +212,28 @@ class DocumentTools(
     fun settingsTheme(style: DocStyle? = null): DocTheme =
         theme(JsonObject(emptyMap())).first.let { if (style != null) it.copy(style = style) else it }
 
-    private suspend fun create(args: JsonObject, overwrite: Boolean = false, checks: Boolean = true): ToolOutput {
+    private fun author(ctx: RepoContext?) = "KI" + (ctx?.model?.let { " · " + io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: "")
+
+    /**
+     * Keeps a Markdown document in the editor: a new living document, or a new version of the one in [args] ("doc_id").
+     * With [tabsDone] the tabs were already changed by edit_document and only the file is updated.
+     */
+    private fun keepLive(args: JsonObject, title: String, content: String, file: File, ctx: RepoContext?, tabsDone: Boolean): LiveDoc? {
+        if (DocumentWriter.isHtml(content) || file.extension.lowercase() in setOf("zip", "eml", "ics")) return null
+        val existing = docs.get(args.s("doc_id"))
+        val doc = if (existing != null) {
+            if (tabsDone) existing.copy(file = file.absolutePath, title = title.ifBlank { existing.title })
+            else existing.change(author(ctx), "Von der KI überarbeitet") { d ->
+                d.copy(title = title.ifBlank { d.title }, tabs = if (d.tabs.size == 1) listOf(d.tabs[0].copy(markdown = content)) else d.tabs, file = file.absolutePath)
+            }
+        } else {
+            LiveDoc.create(title, content, author(ctx), ctx?.chatId, args.s("style")).copy(file = file.absolutePath)
+        }
+        docs.save(doc)
+        return doc
+    }
+
+    private suspend fun create(args: JsonObject, overwrite: Boolean = false, checks: Boolean = true, ctx: RepoContext? = null, tabsDone: Boolean = false): ToolOutput {
         val title = args.s("title")?.trim().orEmpty()
         var content = args.req("content")
         val format = DocFormat.parse(args.s("format"))
@@ -200,9 +244,12 @@ class DocumentTools(
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
         val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
         val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite)
+        val live = withContext(Dispatchers.IO) { keepLive(args, title, content, doc.file, ctx, tabsDone) }
         // The source stays next to the document for edit_document and for filling in open placeholders.
         withContext(Dispatchers.IO) {
-            DocumentSources.save(doc.file, JsonObject(args + ("file_name" to JsonPrimitive(doc.file.nameWithoutExtension))))
+            val extra = mutableMapOf<String, kotlinx.serialization.json.JsonElement>("file_name" to JsonPrimitive(doc.file.nameWithoutExtension))
+            if (live != null) extra["doc_id"] = JsonPrimitive(live.id)
+            DocumentSources.save(doc.file, JsonObject(args + extra))
         }
         if (recipient.isNotEmpty()) rememberContact(recipient)
         val size = withContext(Dispatchers.IO) { (doc.file.length() + 1023) / 1024 }
@@ -240,6 +287,7 @@ class DocumentTools(
         return ToolOutput(
             "Dokument erstellt: ${doc.file.name} (${format.label}$pages, $size KB). " +
                 "Es wird dem Nutzer im Chat mit Knöpfen zum Öffnen, Teilen und Speichern angezeigt – nenne keinen Dateipfad." +
+                (if (live != null) " Der Nutzer kann es im Dokument-Editor direkt bearbeiten und kommentieren." else "") +
                 (notes + review).joinToString("") { "\n$it" },
             file = doc.file.absolutePath,
         )
@@ -337,9 +385,74 @@ class DocumentTools(
         )
     }
 
-    private suspend fun edit(args: JsonObject): ToolOutput {
-        val file = sourceFile(args.s("file"))
+    /** A living document by file name, title or id; without a name the newest one of the chat. */
+    private fun findLive(name: String?, ctx: RepoContext?): LiveDoc? {
+        val wanted = name?.trim()?.takeIf { it.isNotEmpty() }
+        val all = docs.current
+        if (wanted == null) return all.filter { ctx?.chatId != null && it.chatId == ctx.chatId }.maxByOrNull { it.updatedAt }
+        return all.firstOrNull { it.id == wanted }
+            ?: all.firstOrNull { it.file?.let { f -> File(f).name.equals(wanted, true) } == true }
+            ?: all.firstOrNull { it.title.equals(wanted.substringBeforeLast('.'), true) }
+            ?: all.filter { it.title.contains(wanted.substringBeforeLast('.'), true) }.maxByOrNull { it.updatedAt }
+    }
+
+    /** Applies the replacements and new content of edit_document to the tabs of [doc]. */
+    private fun editTabs(doc: LiveDoc, args: JsonObject, missing: MutableList<String>): List<io.github.thepytales.llmhub.docs.DocTab> {
+        var tabs = doc.tabs
+        (jsonArg(args["replacements"]) as? JsonArray).orEmpty().forEach { e ->
+            val o = e as? JsonObject ?: return@forEach
+            val old = o.s("alt") ?: o.s("old") ?: return@forEach
+            val new = o.s("neu") ?: o.s("new") ?: ""
+            if (tabs.none { old in it.markdown }) missing += old
+            else tabs = tabs.map { t -> t.copy(markdown = t.markdown.replace(old, new)) }
+        }
+        args.s("content")?.takeIf { it.isNotBlank() }?.let { content ->
+            val wanted = args.s("tab")?.trim()
+            val index = tabs.indexOfFirst { wanted != null && it.title.equals(wanted, true) }.takeIf { it >= 0 } ?: 0
+            tabs = if (tabs.size == 1 || wanted != null) tabs.mapIndexed { i, t -> if (i == index) t.copy(markdown = content) else t }
+            else listOf(tabs[0].copy(markdown = content))
+        }
+        return tabs
+    }
+
+    private suspend fun edit(args: JsonObject, ctx: RepoContext? = null): ToolOutput {
+        val file = runCatching { sourceFile(args.s("file")) }.getOrElse { e ->
+            // A document that so far only lives in the editor (no file yet).
+            val live = findLive(args.s("file"), ctx) ?: throw e
+            val missing = mutableListOf<String>()
+            val tabs = editTabs(live, args, missing)
+            if (tabs == live.tabs && args.s("title").isNullOrBlank()) {
+                return ToolOutput("FEHLER: Nichts geändert" + if (missing.isNotEmpty()) " – nicht gefunden: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}" else ".")
+            }
+            docs.save(live.change(author(ctx), "Von der KI überarbeitet") { it.copy(tabs = tabs, title = args.s("title")?.takeIf { t -> t.isNotBlank() } ?: it.title) })
+            val format = args.s("format")?.takeIf { it.isNotBlank() }
+            if (format == null) {
+                return ToolOutput("Dokument „${live.title}“ im Editor geändert (neue Version)." +
+                    if (missing.isNotEmpty()) " Nicht gefunden: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}" else "")
+            }
+            val updated = docs.get(live.id)!!
+            return create(JsonObject(mapOf("title" to JsonPrimitive(updated.title), "content" to JsonPrimitive(updated.markdown()), "format" to JsonPrimitive(format),
+                "doc_id" to JsonPrimitive(updated.id))), ctx = ctx, tabsDone = true)
+        }
         var source = DocumentSources.load(file)!!
+        val live = docs.get(source.s("doc_id"))
+        if (live != null) {
+            // The editor holds the current text (the user may have changed it there).
+            val missing = mutableListOf<String>()
+            val tabs = editTabs(live, args, missing)
+            val replacements = (jsonArg(args["replacements"]) as? JsonArray)?.size ?: 0
+            if (tabs == live.tabs && missing.size == replacements && replacements > 0 && listOf("title", "letter_recipient", "letter_sender", "format").all { args.s(it).isNullOrBlank() }) {
+                return ToolOutput("FEHLER: Diese Textstellen kommen im Dokument nicht wörtlich vor: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}. Lies den aktuellen Stand mit read_document. Nichts geändert.")
+            }
+            val changed = live.change(author(ctx), "Von der KI überarbeitet") { it.copy(tabs = tabs) }
+            docs.save(changed)
+            val others = listOf("title", "letter_recipient", "letter_sender", "format").mapNotNull { k ->
+                args.s(k)?.takeIf { it.isNotBlank() }?.let { k to JsonPrimitive(if (k.startsWith("letter_")) it.replace("\\n", "\n") else it) }
+            }
+            source = JsonObject(source + others + ("content" to JsonPrimitive(changed.markdown())))
+            val out = create(source, ctx = ctx, tabsDone = true)
+            return if (missing.isEmpty()) out else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
+        }
         val missing = mutableListOf<String>()
         (jsonArg(args["replacements"]) as? JsonArray).orEmpty().forEach { e ->
             val o = e as? JsonObject ?: return@forEach
@@ -355,9 +468,39 @@ class DocumentTools(
         if (missing.isNotEmpty() && changes.isEmpty() && missing.size == (jsonArg(args["replacements"]) as? JsonArray)?.size) {
             return ToolOutput("FEHLER: Diese Textstellen kommen im Dokument nicht wörtlich vor: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}. Nichts geändert.")
         }
-        val out = create(source)
+        val out = create(source, ctx = ctx)
         return if (missing.isEmpty()) out
         else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
+    }
+
+    private fun readDocument(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val doc = findLive(args.s("file"), ctx) ?: return ToolOutput(
+            "FEHLER: Kein Dokument im Editor gefunden. Vorhanden: ${docs.current.take(8).joinToString(", ") { "„${it.title}“" }.ifEmpty { "keine" }}."
+        )
+        return ToolOutput(buildString {
+            append("Dokument „${doc.title}“ (zuletzt geändert von ${doc.lastAuthor}, ${doc.tabs.size} Tab(s), ${doc.words} Wörter")
+            doc.file?.let { append(", Datei ${File(it).name}") }
+            append(")\n")
+            doc.tabs.forEach { t ->
+                if (doc.tabs.size > 1) append("\n=== Tab „${t.title}“ ===\n")
+                append(t.markdown.take(40_000)).append("\n")
+            }
+            val open = doc.comments.filter { !it.resolved }
+            if (open.isNotEmpty()) {
+                append("\nOffene Kommentare:\n")
+                open.forEach { c -> append("- [${c.id}] zu „${c.quote.take(120)}“: ${c.text}").append(if (c.replies.isNotEmpty()) " (${c.replies.size} Antworten)" else "").append("\n") }
+            }
+        })
+    }
+
+    private fun replyToComment(args: JsonObject): ToolOutput {
+        val id = args.req("comment_id").trim().removePrefix("[").removeSuffix("]")
+        val doc = docs.current.firstOrNull { d -> d.comments.any { it.id == id } } ?: return ToolOutput("FEHLER: Kommentar $id nicht gefunden.")
+        val resolve = args.s("resolve")?.lowercase() != "false"
+        docs.save(doc.copy(comments = doc.comments.map { c ->
+            if (c.id == id) c.copy(replies = c.replies + io.github.thepytales.llmhub.docs.DocReply("KI", args.req("text"), ai = true), resolved = resolve) else c
+        }))
+        return ToolOutput("Antwort im Kommentar gespeichert" + if (resolve) " (erledigt)." else ".")
     }
 
     /** Fills in open placeholders of [file] with the user's values and renders it again in place. */
@@ -486,6 +629,9 @@ class DocumentTools(
         append("die App setzt TUD-Blau (${TudBrand.BLUE}), Logo, Einrichtung, Datum und Fußzeile automatisch – das ist schnell ")
         append("und einheitlich; schreibe dafür kein eigenes HTML und wiederhole Logo, Einrichtung oder Datum nicht im Text. ")
         append("Ein erstelltes Dokument änderst du mit edit_document (einzelne Stellen ersetzen) statt es neu zu erstellen. ")
+        append("Markdown-Dokumente stehen dem Nutzer auch im Dokument-Editor zur Verfügung, wo er sie selbst ändert und kommentiert: ")
+        append("lies vor einer Änderung mit read_document den aktuellen Stand; auf Kommentare antwortest du nach der Änderung mit ")
+        append("reply_to_comment. ")
         append("Fehlen für ein Dokument wesentliche Angaben (Empfänger, Datum, Beträge, Namen), frage vor dem Erstellen kurz ")
         append("und gezielt nach (höchstens drei Fragen auf einmal); nebensächliche Lücken lässt du weg. Platzhalter wie [Datum] ")
         append("nur, wenn der Nutzer ausdrücklich eine Vorlage zum Ausfüllen möchte. ")

@@ -41,57 +41,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
-class AppContainer(context: Context) {
-    val appContext: Context = context.applicationContext
-    private val files = context.filesDir
-    val settings = SettingsStore(context)
-    val usage = UsageStore(files)
-    val llm = LlmClient(settings, usage)
-    /** Pairs of personal details and placeholders; used by [llm] when pseudonymization is on. */
-    val privacy = Pseudonymizer(File(files, "pseudonyms.json")) { settings.current }.also { llm.privacy = it }
-    val github = GitHubClient(settings, llm.http)
-    val githubTools = GitHubTools(github)
-    val logos = LogoStore(files)
-    /** Address book for letters. */
-    val contacts = ListStore<Contact>(FileBackend(File(files, "contacts.json")), Contact.serializer(), { it.id })
-    /** Own documents the model can search (global and per project). */
-    val knowledge = KnowledgeStore(files)
-    /** What the model knows about the user in every chat. */
-    val memory = ListStore<MemoryEntry>(FileBackend(File(files, "memory.json")), MemoryEntry.serializer(), { it.id })
-    /** Template forms typed but not sent yet. */
-    val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
-    val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts)
-    val webTools = WebTools(llm.http)
-    val assistantTools = AssistantTools(this)
-    val chats = ChatRepository(context)
-    val models = ModelsRepository(llm, settings)
-    val speaker = Speaker(context, settings, llm)
-    val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
-    /** Own templates; the built-in ones come from [TemplateLibrary]. */
-    val templates = ListStore<Template>(FileBackend(File(files, "templates.json")), Template.serializer(), { it.id })
-        .also(TemplateLibrary::removeLegacyDefaults)
-    /** In the encrypted preferences because variables can hold API keys. */
-    val environments = ListStore<AgentEnvironment>(
-        PrefsBackend(settings.prefs, "environments"), AgentEnvironment.serializer(), { it.id },
-    )
-    val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
-    val agent = AgentRunner(this)
-    /** Finished results while the app is open (shown as banner). */
-    val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
-    val runs = ChatRuns(context.applicationContext, this)
-    /** Speech to text on the device or the Uni server (formerly the Whisper app); starts on first use. */
-    val transcription = Transcription(this, SpeechHost.root(this), SpeechHost.cache(this))
-    /** Language models on this device (llama.cpp); the LLM client starts them on demand. */
-    val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
-
-    init {
-        App.container = this
-    }
-}
-
-/** A finished answer or task result that the user should know about. */
-data class ResultEvent(val title: String, val chatId: String, val message: String)
-
 /** Whether the app is on screen; set by [MainActivity]. */
 object AppState {
     @Volatile
