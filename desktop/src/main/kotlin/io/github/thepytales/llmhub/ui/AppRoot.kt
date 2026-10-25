@@ -19,6 +19,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -154,11 +161,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         if (layout.wide) sidebar = !sidebar else scope.launch { drawer.open() }
     }
 
+    var palette by remember { mutableStateOf(false) }
+    var shortcuts by remember { mutableStateOf(false) }
     val route by openRoute.collectAsStateWithLifecycle()
     LaunchedEffect(route) {
         route?.let { r ->
             when (r) {
                 "drawer" -> openDrawer()
+                "palette" -> palette = true
+                "shortcuts" -> shortcuts = true
                 "chat" -> nav.openChat(chatRoute())
                 // Escape: close the menu, otherwise go back.
                 "back" -> if (drawer.isOpen) closeDrawer() else nav.popBackStack()
@@ -221,8 +232,22 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    if (palette) {
+        CommandPalette(
+            c,
+            onNavigate = { r -> if (r == "chat") nav.openChat(chatRoute()) else nav.navigate(r) },
+            onOpenChat = { id -> nav.openChat(chatRoute(id)) },
+            onDismiss = { palette = false },
+        )
+    }
+    if (shortcuts) ShortcutsDialog(onDismiss = { shortcuts = false })
+
+    /** Width of the side menu; the line beside it can be dragged. */
+    var menuWidth by remember { mutableStateOf(318.dp) }
+    val density = LocalDensity.current
     val menu: @Composable () -> Unit = {
         AppDrawer(
+            width = menuWidth,
             c = c,
             currentChatId = currentChatId,
             onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
@@ -251,7 +276,22 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 AnimatedVisibility(sidebar, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                     Row(Modifier.fillMaxHeight()) {
                         menu()
-                        VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        // Drag handle: makes the side menu wider or narrower (240–520 dp).
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .width(6.dp)
+                                .pointerHoverIcon(PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR)))
+                                .draggable(
+                                    orientation = Orientation.Horizontal,
+                                    state = rememberDraggableState { delta ->
+                                        menuWidth = (menuWidth + with(density) { delta.toDp() }).coerceIn(240.dp, 520.dp)
+                                    },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        }
                     }
                 }
                 Box(Modifier.weight(1f)) { screen() }

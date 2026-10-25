@@ -252,7 +252,8 @@ private fun styledScheme(style: AppStyle, accent: Accent, dark: Boolean, dynamic
                 val c = if (dark) AdeuColors.accentDark else AdeuColors.accent
                 seedScheme(c, dark).copy(
                     primary = c,
-                    onPrimary = Color.White,
+                    // Dark text on the light violet of the dark mode: 5:1 instead of 3.75:1 with white (WCAG AA).
+                    onPrimary = if (dark) Color(0xFF0E0B30) else Color.White,
                     primaryContainer = if (dark) Color(0xFF2E2A5C) else Color(0xFFE9E7FC),
                     onPrimaryContainer = if (dark) Color(0xFFD9D6FF) else Color(0xFF2B1FA8),
                     secondaryContainer = if (dark) Color(0xFF2A2840) else Color(0xFFEDEBFD),
@@ -577,6 +578,7 @@ private fun typographyOf(style: AppStyle): Typography? = when (style) {
 
 @Composable
 fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
+    if (I18n.language != settings.uiLanguage) I18n.language = settings.uiLanguage
     val dark = when (enumOr(settings.themeMode, ThemeMode.SYSTEM)) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false

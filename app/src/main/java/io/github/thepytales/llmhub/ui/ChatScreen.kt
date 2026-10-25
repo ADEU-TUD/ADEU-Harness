@@ -347,7 +347,7 @@ fun ChatScreen(
             Composer(
                 input = input,
                 onInput = { input = it },
-                placeholder = if (hasMessages) "Antworten …" else "Wie kann ich helfen?",
+                placeholder = tr(if (hasMessages) "Antworten …" else "Wie kann ich helfen?"),
                 modelLabel = modelInfo.displayName,
                 onModel = { showModelPicker = true },
                 images = images,
@@ -411,7 +411,7 @@ fun ChatScreen(
                         }
                     )
                 },
-                footnote = if (hasMessages) "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen." else null,
+                footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
             ) {
                 if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
@@ -462,6 +462,15 @@ fun ChatScreen(
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
                 onOpen = onNavigate,
+                onExample = { e ->
+                    when {
+                        e.route != null -> onNavigate(e.route)
+                        else -> {
+                            if (e.literature) vm.setMode(Conversation.MODE_LITERATURE)
+                            input = e.text
+                        }
+                    }
+                },
             )
         } else {
             val listState = rememberLazyListState()

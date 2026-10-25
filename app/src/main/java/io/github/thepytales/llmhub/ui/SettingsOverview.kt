@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VpnKey
@@ -48,6 +49,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,7 +69,9 @@ import io.github.thepytales.llmhub.docs.DocStyle
 data class SettingsItem(val route: String, val icon: ImageVector, val title: String, val subtitle: String)
 
 /** Title of a settings page (shared by Android and Windows). */
-fun settingsTitle(section: String?): String = when (section) {
+fun settingsTitle(section: String?): String = tr(settingsTitleDe(section))
+
+private fun settingsTitleDe(section: String?): String = when (section) {
     "api" -> "API-Zugang"
     "github" -> "GitHub"
     "chat" -> "Chat & Werkzeuge"
@@ -114,6 +120,27 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     val knowledge by c.knowledge.docs.collectAsStateWithLifecycle()
 
     ProfileCard(c)
+
+    // Search over all settings pages (title and what can be set there).
+    var query by rememberSaveable { mutableStateOf("") }
+    OutlinedTextField(
+        value = query,
+        onValueChange = { query = it },
+        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+        placeholder = { Text(tr("Einstellungen durchsuchen")) },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (query.isNotBlank()) {
+        val hits = filterCommands(SETTINGS_INDEX + listOfNotNull(deviceItem?.let { Command(it.title, it.route, "Einstellungen", "windows autostart infobereich datenordner") }), query)
+        if (hits.isEmpty()) {
+            Text(tr("Keine passende Einstellung."), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp))
+        } else {
+            SettingsGroup("Treffer", hits.map { SettingsItem(it.route, Icons.Outlined.Tune, it.title, it.keywords) }, onNavigate)
+        }
+        return
+    }
 
     SettingsGroup(
         "Zugang",
@@ -211,7 +238,7 @@ private fun ProfileCard(c: AppContainer) {
 @Composable
 private fun SettingsGroup(title: String, entries: List<SettingsItem>, onNavigate: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        GroupLabel(title, Modifier.padding(start = 8.dp))
+        GroupLabel(tr(title), Modifier.padding(start = 8.dp))
         val look = LocalChatLook.current
         Surface(shape = look.cardShape, color = look.card, border = look.cardBorder) {
             Column {
@@ -221,7 +248,7 @@ private fun SettingsGroup(title: String, entries: List<SettingsItem>, onNavigate
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable { onNavigate(e.route) },
                         leadingContent = { Icon(e.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                        headlineContent = { Text(e.title) },
+                        headlineContent = { Text(tr(e.title)) },
                         supportingContent = { Text(e.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         trailingContent = { Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null) },
                     )

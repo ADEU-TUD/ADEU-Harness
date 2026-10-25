@@ -223,13 +223,18 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     }
 }
 
-/** Strg+N new chat, Strg+, settings, Strg+B side menu. */
+/** Strg+N new chat, Strg+, settings, Strg+B side menu, Strg+K command palette, Strg+/ shortcut overview (see ShortcutsDialog). */
 private fun shortcut(e: KeyEvent): Boolean {
     if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed) return false
     Navigation.openRoute.value = when (e.key) {
         Key.N -> "chat"
         Key.Comma -> "settings"
         Key.B -> "drawer"
+        Key.K -> "palette"
+        Key.Slash, Key.NumPadDivide -> "shortcuts"
+        Key.L -> "literature"
+        Key.D -> "docs"
+        Key.T -> "transcripts"
         else -> return false
     }
     return true

@@ -459,16 +459,23 @@ fun AssistantMessage(
                 SelectionContainer { MarkdownText(answer) }
             }
         }
+        // Many finished tool calls collapse into one line ("5 Werkzeuge genutzt"); results like documents stay visible.
+        val done = m.toolCalls.all { results[it.id] != null } && !(streaming || running && item.isLast)
+        var showTools by remember(m.id) { mutableStateOf(false) }
+        val grouped = done && m.toolCalls.size >= 3 && !showTools
+        if (done && m.toolCalls.size >= 3) {
+            ToolGroupLine(m.toolCalls.map { it.name }, open = showTools) { showTools = !showTools }
+        }
         m.toolCalls.forEach { call ->
             val result = results[call.id]
-            ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
+            if (!grouped) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
             // The model is writing a document: it can be watched live in the editor.
             if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
             if (call.name == "create_chart" && result != null && !result.content.startsWith("FEHLER")) {
                 val raw = (io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["spec"])?.let { e -> if (e is kotlinx.serialization.json.JsonPrimitive && e.isString) e.content else e.toString() }
                 raw?.let { r -> remember(r) { io.github.thepytales.llmhub.docs.ChartSpec.parse(r) } }?.let { ChartView(it) }
             }
-                        if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
+            if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
                 val list = io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["list"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
                 if (list != null) LiteratureListCard(list, onOpen = { onOpenLiterature(list) })
             }
@@ -707,6 +714,35 @@ private fun toolLabel(name: String) = when (name) {
     "create_series" -> "Serienbrief"
     "create_semester_plan" -> "Semesterplan"
     else -> name
+}
+
+/** Summary of several tool calls, e.g. „5 Werkzeuge genutzt · Websuche ×3, Webseite lesen ×2“. */
+@Composable
+private fun ToolGroupLine(names: List<String>, open: Boolean, onToggle: () -> Unit) {
+    val counts = names.groupingBy { toolLabel(it) }.eachCount()
+    val summary = counts.entries.joinToString(", ") { (k, v) -> if (v > 1) "$k ×$v" else k }
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.clickable(onClickLabel = if (open) "Werkzeuge einklappen" else "Werkzeuge anzeigen", onClick = onToggle)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.Build, contentDescription = null, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.size(6.dp))
+            Text(
+                "${names.size} ${tr("Werkzeuge genutzt")} · $summary",
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = if (open) 3 else 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(if (open) "▴" else "▾", style = MaterialTheme.typography.labelMedium)
+        }
+    }
 }
 
 @Composable

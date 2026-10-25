@@ -129,6 +129,7 @@ fun AppDrawer(
     onOpenChat: (String) -> Unit,
     onNewChat: () -> Unit,
     onNavigate: (String) -> Unit,
+    width: androidx.compose.ui.unit.Dp = 318.dp,
 ) {
     val allConversations by c.chats.conversations.collectAsStateWithLifecycle()
     // Archived chats stay out of the list (section „Archiv“ at the end).
@@ -162,7 +163,7 @@ fun AppDrawer(
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.background,
         drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
-        modifier = Modifier.width(318.dp),
+        modifier = Modifier.width(width),
     ) {
         Column(Modifier.fillMaxHeight().statusBarsPadding().navigationBarsPadding()) {
             // Header
@@ -312,7 +313,7 @@ fun AppDrawer(
                 }
                 if (archived.isNotEmpty()) {
                     item(key = "archive") {
-                        NavRow(Icons.Outlined.Archive, "Archiv (${archived.size})", muted = true) { showArchive = !showArchive }
+                        NavRow(Icons.Outlined.Archive, tr("Archiv") + " (${archived.size})", muted = true) { showArchive = !showArchive }
                     }
                     if (showArchive) {
                         chatList(archived.sortedByDescending { it.updatedAt }, "a_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false,
@@ -365,7 +366,7 @@ fun AppDrawer(
                     Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text("Neuer Chat", style = MaterialTheme.typography.titleSmall)
+                        Text(tr("Neuer Chat"), style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
@@ -438,7 +439,7 @@ private fun LazyListScope.chatList(
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
+    Text(tr(text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
 }
 
 @Composable
@@ -465,7 +466,7 @@ private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: 
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (indent) 22.dp else 24.dp))
         Spacer(Modifier.size(18.dp))
-        Text(label, color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
+        Text(tr(label), color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
         if (badge > 0) {
             Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
                 Text(

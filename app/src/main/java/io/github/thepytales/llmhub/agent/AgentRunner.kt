@@ -373,6 +373,7 @@ class AgentRunner(private val c: AppContainer) {
             if (c.webTools in providers) WebTools.PROMPT else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
             if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
+            io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
