@@ -15,6 +15,7 @@ import io.github.thepytales.llmhub.docs.PdfSelfTest
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
+import io.github.thepytales.llmhub.ui.StartAnimation
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
@@ -37,7 +38,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settings by container.settings.settings.collectAsStateWithLifecycle()
             LlmHubTheme(settings) {
-                AppRoot(container, openChat, openRoute)
+                StartAnimation(enabled = settings.startAnimation && intent?.getStringExtra(EXTRA_ROUTE) == null) {
+                    AppRoot(container, openChat, openRoute)
+                }
             }
         }
     }

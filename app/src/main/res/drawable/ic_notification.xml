@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Monochrome sparkle for notifications of scheduled tasks -->
+<!-- Status bar icon: the didactic triangle of the logo (white, Android tints it). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,2L14.2,9.8L22,12L14.2,14.2L12,22L9.8,14.2L2,12L9.8,9.8Z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M19,2L19.8,4.2L22,5L19.8,5.8L19,8L18.2,5.8L16,5L18.2,4.2Z" />
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateY="3.5">
+        <path
+            android:pathData="M54,28 L80,73 L28,73 Z"
+            android:strokeWidth="7"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M54,16a12,12 0,1 1,0 24a12,12 0,1 1,0 -24z M28,61a12,12 0,1 1,0 24a12,12 0,1 1,0 -24z M80,61a12,12 0,1 1,0 24a12,12 0,1 1,0 -24z" />
+    </group>
 </vector>

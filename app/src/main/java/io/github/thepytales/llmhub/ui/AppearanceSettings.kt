@@ -92,6 +92,13 @@ fun AppearanceSettings(c: AppContainer) {
         }
     }
 
+    AppCard {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            TitleBlock("Startanimation", "Kurze Animation des Logos beim Öffnen der App (etwa eine Sekunde).", Modifier.weight(1f))
+            Switch(checked = s.startAnimation, onCheckedChange = { v -> c.settings.update { it.copy(startAnimation = v) } })
+        }
+    }
+
     GroupLabel("Farbton")
     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Accent.entries.forEach { a -> AccentSwatch(a, a == accent) { c.settings.update { it.copy(accent = a.name) } } }

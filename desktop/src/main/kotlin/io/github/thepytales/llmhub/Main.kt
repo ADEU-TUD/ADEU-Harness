@@ -45,6 +45,7 @@ import io.github.thepytales.llmhub.desktop.SingleInstance
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
+import io.github.thepytales.llmhub.ui.StartAnimation
 import io.github.thepytales.llmhub.ui.Navigation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -214,7 +215,9 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         }
         LlmHubTheme(settings) {
             Box(Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)) {
-                AppRoot(c, Navigation.openChat, Navigation.openRoute)
+                StartAnimation(enabled = settings.startAnimation) {
+                    AppRoot(c, Navigation.openChat, Navigation.openRoute)
+                }
             }
         }
     }

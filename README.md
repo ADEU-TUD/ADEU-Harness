@@ -5,16 +5,20 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 
 ## Funktionen
 
-- **Oberfläche wie die Claude-App** (Standard): ruhige Creme-Töne, weiße Karten, schwarze Knöpfe. Die Seitenleiste zeigt
-  oben das Tägliche (*Vorlagen*, *Geplante Aufgaben*, *Bilder erzeugen*), unter *Mehr* Modelle, Modellvergleich und
-  Verbrauch, darunter *Projekte*, angeheftete Chats und die Chats nach *Heute*, *Gestern*, *Letzte 7 Tage* … Unten führt
-  das Profil zu den Einstellungen, daneben „Neuer Chat“. Projekte und der offene Chat haben ein sichtbares ⋮-Menü (zusätzlich
-  lange drücken bzw. Rechtsklick). Das „+“ im Eingabefeld ist gegliedert in *Anhängen* (Kamera, Fotos, Dateien), *Starten
-  mit* (Vorlage) und *Für diesen Chat* (Persona, Repository, Umgebung). Das Chat-Menü (⋮ oder Tipp auf den Titel) gruppiert
-  Teilen/Export, Umbenennen/Anheften/Projekt, die Einstellungen des Chats und Löschen. Andere Stile (Material You, ChatGPT,
-  Gemini) unter *Einstellungen › Darstellung*.
+- **Gemeinsames Design mit wählbaren Stilen**: Standard ist **ADEU** (die Optik der früheren Whisper-App: helle Flächen,
+  weiße Karten mit feinem Rand, Gruppenüberschriften). Daneben seriöse Stile für den Dienst: **TU Dresden** (Farben des
+  Corporate Designs), **Office** (nüchtern wie Microsoft 365) und **Hoher Kontrast** (barrierearm, WCAG AAA). Unter
+  *Weitere Stile* bleiben Claude, ChatGPT, Gemini und Material You. *Einstellungen › Darstellung* zeigt jeden Stil als
+  kleine Vorschau; dort lässt sich auch die Startanimation ausschalten.
+- **Logo und Startanimation**: Das Logo zeigt das didaktische Dreieck (Lehrende, Lernende, Inhalt) im TU-Blau, in der
+  Mitte eine Klangwelle für das Gespräch. Beim Start baut es sich in gut einer Sekunde auf (abschaltbar unter
+  *Einstellungen › Darstellung*).
+- **Aufgeräumte Seitenleiste**: oben nur das Tägliche (*Vorlagen*, *Geplante Aufgaben*, *Bilder erzeugen*,
+  *Transkription*), darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht, Modellvergleich,
+  Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
 - **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Datenschutz,
-  Gedächtnis, Wissenssammlung), *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung). *Chat & Werkzeuge* ist
+  Gedächtnis, Wissenssammlung), *Modelle* (Übersicht, Vergleich, Modelle auf diesem Gerät, Transkription),
+  *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung). *Chat & Werkzeuge* ist
   aufgeteilt in Neue Chats, Werkzeuge, Agent, Freigaben, Zuverlässigkeit und Erweitert. Auf großen Bildschirmen bleibt die
   Lesebreite angenehm.
 - **Modellauswahl wie bei Claude**: oben die empfohlenen Modelle mit kurzem Einsatzzweck, darunter „Weitere Modelle“
@@ -68,6 +72,32 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
 - **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
   für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
+- **Transkription** (die frühere Whisper-App, jetzt eingebaut): Aufnahmen, Sprachnachrichten, Interviews, Vorlesungen und
+  Videos werden zu Text – wahlweise **auf diesem Gerät** (Whisper Turbo/Small/Base oder Parakeet v3, einmal laden, danach
+  offline) oder auf dem **Uni-Server** (Whisper Large v3 Turbo, schnell auch auf alten Rechnern; Sprecher und Pausen
+  erkennt trotzdem das Gerät). Aufnahme mit Pause, Markierungen und Live-Text, Warteschlange im Hintergrund (übersteht
+  Neustarts), Sprechererkennung mit Umbenennen und Zusammenführen, Abspielen mit Wort-für-Wort-Markierung, Bearbeiten,
+  Suchen & Ersetzen, Ersetzungsliste für immer falsch erkannte Namen, Volltextsuche, Projekte. **Export**: Word, PDF,
+  **Dresing/Pehl** (einfache Transkriptionsregeln, Kürzel, Pausen „(...)“, Zeitmarke je Beitrag), **MAXQDA/f4**
+  (Zeitmarken `#00:01:23-4#`), **Untertitel SRT/WebVTT** für Lehrvideos (höchstens zwei Zeilen à 42 Zeichen, mit
+  Sprechern), Text und Markdown. *Im Chat verwenden* übergibt das Transkript an einen neuen Chat (z. B. „Fasse zusammen“).
+  Audio- und Videodateien, die man aus anderen Apps teilt (WhatsApp …), landen direkt in der Transkription.
+- **Modelle auf diesem Gerät** (*Einstellungen › Modelle auf diesem Gerät*): kleine Sprachmodelle mit llama.cpp, die
+  komplett offline laufen. Die App prüft die Hardware (Arbeitsspeicher, Kerne, Grafikkarte samt Grafikspeicher – ohne
+  Admin-Rechte) und empfiehlt passende Modelle mit einem Knopf zum **Installieren**: vom alten ThinkPad (Qwen 3.5 2B,
+  Gemma 4 E2B) über Büro-Laptops mit 16 GB (Gemma 4 E4B, Qwen 3.5 4B) bis zum Gaming-PC (Gemma 4 26B A4B, Qwen 3.6 35B A3B)
+  und Handys wie dem OnePlus 15. Alle Modelle sind Apache-2.0-lizenziert, werden von einem festen Hugging-Face-Stand
+  geladen und mit SHA-256 geprüft; ist der Download im Firmennetz gesperrt, lassen sich die Dateien von Hand einspielen.
+  Lokale Modelle stehen in der Modellauswahl (Abzeichen „Lokal“), können Werkzeuge nutzen und beenden sich nach zehn
+  Minuten ohne Anfrage, damit der Speicher wieder frei ist. Der Modell-Server lauscht nur auf 127.0.0.1 mit einem
+  Zufallsschlüssel.
+- **Datenschutzstufe pro Projekt** (⋮ am Projekt › *Anweisungen & Dateien*): *Standard*, *Nur TU Dresden* (nur Uni-Server
+  und lokale Modelle, externe Anbieter wie Gemini gesperrt) oder *Nur auf diesem Gerät* (nur lokale Modelle,
+  Transkription und Spracheingabe auf dem Gerät, Websuche, GitHub und semantische Wissenssuche gesperrt). Die App setzt
+  das durch: Modellauswahl, Agent, Ausweichmodell und Werkzeuge halten sich daran, über dem Eingabefeld steht die Stufe.
+- **Interrater-Reliabilität**: In der Rechen-Sandbox stehen Cohens Kappa (auch linear/quadratisch gewichtet), Fleiss'
+  Kappa und Krippendorffs Alpha (nominal, ordinal, Intervall, Verhältnis; mit fehlenden Werten) exakt zur Verfügung –
+  z. B. „Berechne die Übereinstimmung der beiden Codierer in der angehängten Tabelle“.
 - **Pseudonymisierung** (*Einstellungen › Datenschutz*): Vor jeder Anfrage ersetzt die App auf dem Gerät Namen, E-Mail-Adressen,
   Telefonnummern, Matrikelnummern, IBAN, Geburtsdaten und Anschriften durch Platzhalter wie `[Name 1]` – der Server sieht nur
   diese. In Antworten, Dokumenten, Briefen und E-Mail-Entwürfen setzt die App die echten Angaben wieder ein. Namen erkennt
@@ -313,11 +343,17 @@ beschreibt die Doku nicht; ein höheres Limit vergibt das Team auf Anfrage an ll
 
 ## Selbst bauen
 
-Voraussetzung: JDK 17 und Android SDK.
+Voraussetzung: JDK 17, Android SDK mit NDK (Version in `app/build.gradle.kts`), git und CMake. Beim ersten Bauen werden
+geladen bzw. gebaut: sherpa-onnx und die eingebauten Sprachmodelle (`speech/natives.gradle.kts`, feste Versionen mit
+SHA-256), ffmpeg für Windows und `llama-server` für Android aus einem festen llama.cpp-Release (`app/llama.gradle.kts`,
+zwei CPU-Varianten, ein paar Minuten, danach im Zwischenspeicher `build/llama-cache`). Ohne Internet: `-PskipNatives`
+baut ohne Spracherkennung und lokale Modelle.
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
-./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI …
+./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI,
+                            # Transkript-Exporte, Interrater-Reliabilität, Geräteempfehlungen …
+./gradlew :speech:test      # Spracherkennung: Warteschlange, Abschnitte, Ersetzungen, WAV …
 ```
 
 Live-Tests gegen den Uni-Server (prüfen, ob die Modelle sich an die Vorgaben der App halten: ✨ schreibt nur den
@@ -326,6 +362,13 @@ Brieftext, Werkzeugaufrufe sind gültig, Folien haben das richtige Format) laufe
 ```bash
 LLM_API_KEY=sk-… ./gradlew -p desktop test --tests '*LiveApiTest*'   # optional LLM_MODEL=… für ein anderes Modell
 ```
+
+Ein echter Chat mit einem lokalen Modell (inklusive Werkzeugaufruf und Datenschutzstufe) läuft mit einem gebauten
+`llama-server` und dem Modell Qwen 3.5 2B:
+`LLAMA_SERVER=…/llama-server LLAMA_MODELS=<Ordner mit Qwen3.5-2B-Q4_K_M.gguf> ./gradlew -p desktop test --tests '*LocalLlmLiveTest*'`.
+
+Eine echte Transkription auf dem Rechner (lädt Whisper Base über die App, transkribiert die eingebaute Aufnahme mit
+vier Sprechern): `TRANSCRIBE_LIVE=1 ./gradlew -p desktop test --tests '*TranscriptionLiveTest*'`.
 
 Der Quellen-Check gegen Crossref lässt sich mit Internetzugang ebenso live prüfen:
 `LIVE_WEB=1 ./gradlew -p desktop test --tests '*TeachingAndResearchTest*'`.
@@ -385,7 +428,12 @@ Signiert wird mit `app/release.keystore` (damit alle Releases dieselbe Signatur 
 | `audio/` | Aufnahme, Wiedergabe und Vorlesen (Server oder offline) |
 | `ui/AppRoot.kt`, `ui/AppDrawer.kt` | Navigation und Seitenleiste |
 | `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `ui/ChatComposer.kt` | Chat-Oberfläche |
-| `ui/Theme.kt` | Stile, Farbtöne, Hell/Dunkel |
+| `ui/Theme.kt`, `ui/ThemePlatform.kt`, `ui/Design.kt`, `ui/AppearanceSettings.kt` | Stile (ADEU, TU Dresden, Office, Hoher Kontrast …), Bausteine des gemeinsamen Designs, Darstellung mit Vorschau |
+| `speech/` | Spracherkennung (früher Whisper-App, Java): Warteschlange, Whisper/Parakeet über sherpa-onnx, Sprachabschnitte, Sprecher, Suche; `natives.gradle.kts` lädt die nativen Teile |
+| `transcribe/` | Anbindung an die App: `Transcription` (Zustand, Uni-Server-Erkennung, Kurz-Erkennung für Diktate), `TranscriptExport` (Word/PDF, Dresing/Pehl, MAXQDA/f4, SRT/VTT), `SpeechHost` je Plattform |
+| `ui/TranscriptsScreen.kt`, `ui/TranscriptScreen.kt`, `ui/TranscriptStart.kt`, `ui/TranscriptionSettings.kt` | Transkription: Übersicht, Aufnahme, Start-Dialog, Transkript mit Player, Einstellungen |
+| `local/` | Lokale Sprachmodelle: `LocalCatalog` (Modelle, Hardware-Empfehlung), `LocalLlm` (Installieren, Server starten/stoppen), `LlamaHost` je Plattform; `app/llama.gradle.kts` baut llama-server für Android |
+| `data/Privacy.kt` | Datenschutzstufen der Projekte durchsetzen |
 
 ### Windows-Version (`desktop/`)
 

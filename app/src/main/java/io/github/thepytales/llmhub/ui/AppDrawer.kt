@@ -388,20 +388,6 @@ private fun Hint(text: String, indent: Boolean = false) {
     )
 }
 
-/** Logo tile of the app: the accent as a soft gradient with "A" (ADEU), like the icon of the former Whisper app. */
-@Composable
-fun AppLogo(modifier: Modifier = Modifier) {
-    val look = LocalChatLook.current
-    val c1 = look.brand
-    val c2 = MaterialTheme.colorScheme.tertiary
-    Box(
-        modifier.clip(RoundedCornerShape(30)).background(Brush.linearGradient(listOf(c1, if (c2 == c1) c1 else c2))),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("A", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
 @Composable
 private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: String = "neu", indent: Boolean = false, muted: Boolean = false, onClick: () -> Unit) {
     val color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface

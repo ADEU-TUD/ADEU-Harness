@@ -6,7 +6,7 @@
  *   speechAndroidJni     → build/speech/jni/      sherpa-onnx + onnxruntime for Android (arm64, -PwithX86 also x86_64)
  *   speechDesktopNatives → build/speech/desktop/  windows/native/(DLLs) + windows/tools/ffmpeg.exe (or linux/native/(.so))
  *
- * -PskipNatives builds without them (development without internet access): transcription on the device then
+ * -PskipNatives (or -PskipSpeech for only these) builds without them (no internet access): transcription on the device then
  * reports that it is not available.
  */
 import java.io.File
@@ -34,7 +34,7 @@ val artifacts = mapOf(
         "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba"),
 )
 
-val skip = providers.gradleProperty("skipNatives").isPresent
+val skip = providers.gradleProperty("skipNatives").isPresent || providers.gradleProperty("skipSpeech").isPresent
 val withX86 = providers.gradleProperty("withX86").isPresent
 val windowsTarget = providers.gradleProperty("windowsJars").isPresent || System.getProperty("os.name").startsWith("Windows")
 val downloads = File(rootDir, (if (rootDir.name == "desktop") "../" else "") + "build/speech-downloads")

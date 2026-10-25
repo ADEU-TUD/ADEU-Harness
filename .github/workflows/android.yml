@@ -37,6 +37,14 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # llama-server for local models takes a few minutes to compile; speech libraries and models are downloads.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            build/llama-cache
+            build/speech-downloads
+          key: natives-android-${{ hashFiles('app/llama.gradle.kts', 'speech/natives.gradle.kts') }}
+
       - name: Build release APK
         run: ./gradlew --no-daemon assembleRelease
 
@@ -105,6 +113,11 @@ jobs:
           java-version: '21'
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: build/speech-downloads
+          key: natives-windows-${{ hashFiles('speech/natives.gradle.kts') }}
 
       - name: Build Windows app
         run: .\gradlew.bat -p desktop --no-daemon createDistributable

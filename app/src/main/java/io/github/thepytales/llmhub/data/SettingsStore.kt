@@ -79,6 +79,8 @@ data class AppSettings(
     val pseudonymTerms: String = "",
     /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
     val closeToTray: Boolean = true,
+    /** Short animation of the logo when the app starts. */
+    val startAnimation: Boolean = true,
 ) {
     /** Key of the main provider (ScaDS.AI); speech, images and embeddings only work with it. */
     val hasApiKey get() = apiKey.isNotBlank()
@@ -175,6 +177,7 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymAuto", next.pseudonymAuto)
             .putString("pseudonymTerms", next.pseudonymTerms)
             .putBoolean("closeToTray", next.closeToTray)
+            .putBoolean("startAnimation", next.startAnimation)
             .apply()
     }
 
@@ -225,6 +228,7 @@ class SettingsStore(context: Context) {
             pseudonymAuto = prefs.getBoolean("pseudonymAuto", d.pseudonymAuto),
             pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,
             closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
+            startAnimation = prefs.getBoolean("startAnimation", d.startAnimation),
         )
     }
 
