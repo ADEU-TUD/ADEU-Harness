@@ -19,6 +19,16 @@ class ServerStatusTest {
         }}
     """.trimIndent()
 
+    /** Against the real status page: `LIVE_WEB=1 ./gradlew -p desktop test --tests '*ServerStatusTest*'`. */
+    @Test
+    fun liveStatusPage() {
+        if (System.getenv("LIVE_WEB") != "1") return
+        val status = ServerStatus(okhttp3.OkHttpClient()) { "https://llm.scads.ai/v1" }
+        val s = kotlinx.coroutines.runBlocking { status.refresh(force = true) }
+        assertTrue(s != null && s.models.isNotEmpty(), "Statusseite nicht lesbar")
+        assertTrue(s.of("Qwen/Qwen3-Reranker-4B") != null)
+    }
+
     @Test
     fun readsStatesByIdAndAlias() {
         val s = ServerStatus.parse(sample)
