@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import org.jetbrains.skia.Image as SkiaImage
@@ -47,3 +48,7 @@ const val PHOTOS_LABEL = "Bilder"
 
 /** Extra sentence for the attach sheet. */
 const val ATTACH_HINT = " Dateien lassen sich auch ins Fenster ziehen; „Einfügen“ übernimmt einen Screenshot (Win+Umschalt+S) aus der Zwischenablage."
+
+/** PNG bytes of a picture (masks and reference images for "Überarbeiten"). */
+fun encodePng(image: ImageBitmap): ByteArray =
+    SkiaImage.makeFromBitmap(image.asSkiaBitmap()).encodeToData(org.jetbrains.skia.EncodedImageFormat.PNG)!!.bytes

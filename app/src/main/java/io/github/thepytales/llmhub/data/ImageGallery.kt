@@ -25,6 +25,11 @@ data class GalleryImage(
     val style: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val favorite: Boolean = false,
+    /** Pictures of the same request share it (one turn of the conversation). */
+    val turnId: String = id,
+    /** Picture this one was reworked from ("Überarbeiten"), with what was asked for each marked area. */
+    val editOf: String? = null,
+    val edits: List<String> = emptyList(),
 ) {
     val fileName get() = "$id.png"
 }

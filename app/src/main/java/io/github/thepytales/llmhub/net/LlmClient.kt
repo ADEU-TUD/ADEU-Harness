@@ -399,19 +399,64 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             }
             if (code !in 200..299) throw ApiException(code, errorMessage(code, body))
             usage.record(model, "image", 0, 0, estimated = false)
-            val data = JSON.parseToJsonElement(body ?: "{}").jsonObject["data"]?.jsonArray.orEmpty()
-            data.mapNotNull { el ->
-                val obj = el.jsonObject
-                obj.str("b64_json")?.let { android.util.Base64.decode(it, android.util.Base64.DEFAULT) }
-                    ?: obj.str("url")?.let { url ->
-                        if (url.startsWith("data:")) {
-                            android.util.Base64.decode(url.substringAfter(","), android.util.Base64.DEFAULT)
-                        } else {
-                            http.newCall(Request.Builder().url(url).build()).execute().use { it.body?.bytes() }
-                        }
-                    }
-            }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
+            imagesFrom(body)
         }
+
+    /**
+     * Reworks a picture (OpenAI-compatible /images/edits): [mask] is a PNG of the same size whose transparent pixels
+     * mark what may change. Servers whose model edits from a reference without a mask (FLUX.2) get a second request
+     * without it; the prompt then names the places. A server without the endpoint gets a clear message.
+     */
+    suspend fun editImage(model: String, image: ByteArray, mask: ByteArray?, prompt: String, promptWithoutMask: String, size: String): List<ByteArray> =
+        withContext(Dispatchers.IO) {
+            limiter.acquire()
+            fun attempt(withMask: Boolean, withFormat: Boolean): Pair<Int, String?> {
+                val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+                    .addFormDataPart("model", model)
+                    .addFormDataPart("prompt", if (withMask) prompt else promptWithoutMask)
+                    .addFormDataPart("n", "1")
+                    .addFormDataPart("size", size)
+                    .addFormDataPart("image", "image.png", image.toRequestBody("image/png".toMediaType()))
+                    .apply {
+                        if (withMask && mask != null) addFormDataPart("mask", "mask.png", mask.toRequestBody("image/png".toMediaType()))
+                        if (withFormat) addFormDataPart("response_format", "b64_json")
+                    }
+                    .build()
+                http.newCall(request("/images/edits", model).post(body).build()).execute().use { return it.code to it.body?.string() }
+            }
+            var withMask = mask != null
+            var (code, body) = attempt(withMask, true)
+            if (code in 400..422 && code != 401 && code != 403 && code != 404) {
+                // Some servers reject response_format, others the mask: one step back at a time.
+                attempt(withMask, false).let { code = it.first; body = it.second }
+                if (code in 400..422 && withMask) {
+                    withMask = false
+                    attempt(false, false).let { code = it.first; body = it.second }
+                }
+            }
+            if (code == 404 || code == 405 || code == 501) {
+                throw ApiException(code, "Der Server bietet das Überarbeiten von Bildern (noch) nicht an. Neue Bilder erzeugen geht weiterhin.")
+            }
+            if (code !in 200..299) throw ApiException(code, errorMessage(code, body))
+            usage.record(model, "image", 0, 0, estimated = false)
+            imagesFrom(body)
+        }
+
+    /** The pictures of an images response (base64 or URL). */
+    private fun imagesFrom(body: String?): List<ByteArray> {
+        val data = JSON.parseToJsonElement(body ?: "{}").jsonObject["data"]?.jsonArray.orEmpty()
+        return data.mapNotNull { el ->
+            val obj = el.jsonObject
+            obj.str("b64_json")?.let { android.util.Base64.decode(it, android.util.Base64.DEFAULT) }
+                ?: obj.str("url")?.let { url ->
+                    if (url.startsWith("data:")) {
+                        android.util.Base64.decode(url.substringAfter(","), android.util.Base64.DEFAULT)
+                    } else {
+                        http.newCall(Request.Builder().url(url).build()).execute().use { it.body?.bytes() }
+                    }
+                }
+        }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
+    }
 
     /** Embedding vectors for [inputs] (semantic search in the knowledge collection). */
     suspend fun embed(model: String, inputs: List<String>): List<FloatArray> = withContext(Dispatchers.IO) {

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
@@ -49,3 +50,7 @@ const val PHOTOS_LABEL = "Fotos"
 
 /** Extra sentence for the attach sheet. */
 const val ATTACH_HINT = ""
+
+/** PNG bytes of a picture (masks and reference images for "Überarbeiten"). */
+fun encodePng(image: ImageBitmap): ByteArray =
+    java.io.ByteArrayOutputStream().also { image.asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
