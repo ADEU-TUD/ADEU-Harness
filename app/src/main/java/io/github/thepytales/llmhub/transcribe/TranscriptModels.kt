@@ -32,8 +32,14 @@ internal fun JsonObject.bool(key: String): Boolean? = (this[key] as? JsonPrimiti
 internal fun JsonObject.obj(key: String): JsonObject? = this[key] as? JsonObject
 internal fun JsonObject.arr(key: String): JsonArray? = this[key] as? JsonArray
 
-/** One word with its time (Parakeet), for highlighting while playing. */
-data class Word(val start: Double, val end: Double, val text: String)
+/**
+ * One word with its measured time, for highlighting while playing and exact time stamps. [quality]: 'm' measured,
+ * 's' measured but spelled differently by the measuring model (e.g. "45" / "fünfundvierzig"), 'i' not measured and
+ * placed between its measured neighbours (see de.lokal.whisper.WordAlign).
+ */
+data class Word(val start: Double, val end: Double, val text: String, val quality: Char = 'm') {
+    val measured get() = quality != 'i'
+}
 
 data class Segment(
     val id: Int,
@@ -43,7 +49,27 @@ data class Segment(
     /** Index of the speaker, null without speaker detection. */
     val speaker: Int? = null,
     val words: List<Word> = emptyList(),
+    /** Note on this passage (Korrektur, Kodierhinweis …), not part of the spoken text. */
+    val comment: String? = null,
 )
+
+/** Chapter found by the language model: where a topic starts. */
+data class Chapter(val time: Double, val title: String)
+
+/** How far a transcript has been checked. */
+enum class TranscriptStatus(val key: String, val label: String) {
+    RAW("", "Rohfassung"),
+    CORRECTED("corrected", "Korrigiert"),
+    CHECKED("checked", "Geprüft"),
+    ;
+
+    companion object {
+        fun of(key: String?) = entries.firstOrNull { it.key == key.orEmpty() } ?: RAW
+    }
+}
+
+/** Where the word times come from (transcript.json "word_timing"). */
+data class WordTiming(val source: String, val measured: Int, val respelled: Int, val interpolated: Int)
 
 /** Marker set while recording ("Wichtig", "Frage 2" …). */
 data class Mark(val time: Double, val label: String)
@@ -67,11 +93,25 @@ data class Transcript(
     val notice: String?,
     /** The file as read, to keep fields this version does not know. */
     val raw: JsonObject,
+    val status: TranscriptStatus = TranscriptStatus.RAW,
+    val chapters: List<Chapter> = emptyList(),
+    /** Summary written by the language model, null if none. */
+    val summary: String? = null,
 ) {
     val diarized get() = speakers.isNotEmpty() && segments.any { it.speaker != null }
     fun speakerName(i: Int?): String = if (i == null) "" else speakers[i] ?: "Sprecher ${i + 1}"
     val wordCount get() = segments.sumOf { s -> s.text.trim().split(Regex("\\s+")).count { it.isNotEmpty() } }
     val plainText get() = segments.joinToString("\n") { it.text }
+    /** Share of the words that have a measured time (0..1). */
+    val measuredShare get(): Double {
+        val total = segments.sumOf { s -> s.text.trim().split(Regex("\\s+")).count { it.isNotEmpty() } }
+        return if (total == 0) 0.0 else segments.sumOf { s -> s.words.count { it.measured } }.toDouble() / total
+    }
+    val wordTiming get() = raw.obj("word_timing")?.let { o ->
+        WordTiming(o.str("source").orEmpty(), o.int("measured") ?: 0, o.int("respelled") ?: 0, o.int("interpolated") ?: 0)
+    }
+    /** The version as first transcribed, kept on the first edit ("Änderungen verwerfen"). */
+    val hasOriginal get() = raw["original"] is JsonObject
 
     fun toJson(): JsonObject = buildJsonObject {
         raw.forEach { (k, v) -> if (k !in OWN_KEYS) put(k, v) }
@@ -92,9 +132,8 @@ data class Transcript(
                     put("end", s.end)
                     put("text", s.text)
                     s.speaker?.let { put("speaker", it) }
-                    if (s.words.isNotEmpty()) put("words", buildJsonArray {
-                        s.words.forEach { w -> add(buildJsonArray { add(JsonPrimitive(w.start)); add(JsonPrimitive(w.end)); add(JsonPrimitive(w.text)) }) }
-                    })
+                    if (s.words.isNotEmpty()) put("words", wordsJson(s.words))
+                    s.comment?.takeIf { it.isNotBlank() }?.let { put("comment", it) }
                 })
             }
         })
@@ -104,14 +143,46 @@ data class Transcript(
             marks.forEach { m -> add(buildJsonObject { put("t", m.time); put("label", m.label) }) }
         })
         notice?.let { put("notice", it) }
+        if (status != TranscriptStatus.RAW) put("status", status.key)
+        if (chapters.isNotEmpty()) put("chapters", buildJsonArray {
+            chapters.forEach { ch -> add(buildJsonObject { put("t", ch.time); put("title", ch.title) }) }
+        })
+        summary?.takeIf { it.isNotBlank() }?.let { put("summary", it) }
         put("version", 3)
+    }
+
+    /** Keeps the current segments and speakers as the original, once (before the first edit). */
+    fun withOriginal(): Transcript = if (hasOriginal) this else copy(
+        raw = JsonObject(raw + ("original" to buildJsonObject {
+            val j = toJson()
+            j["segments"]?.let { put("segments", it) }
+            j["speakers"]?.let { put("speakers", it) }
+            put("saved", JsonPrimitive(created))
+        })),
+    )
+
+    /** The original version (segments and speakers) with everything else as it is now, null without one. */
+    fun original(): Transcript? {
+        val o = raw.obj("original") ?: return null
+        val j = JsonObject(toJson() + ("segments" to (o["segments"] ?: return null)) + ("speakers" to (o["speakers"] ?: buildJsonObject { })) +
+            ("diarization" to JsonPrimitive((o.obj("speakers")?.isNotEmpty()) == true)))
+        return parse(j.toString(), id)
     }
 
     companion object {
         private val OWN_KEYS = setOf(
             "id", "title", "created", "duration", "language", "model_name", "device", "diarization", "speakers",
-            "segments", "audio", "folder", "marks", "notice", "version",
+            "segments", "audio", "folder", "marks", "notice", "version", "status", "chapters", "summary",
         )
+
+        internal fun wordsJson(words: List<Word>) = buildJsonArray {
+            words.forEach { w ->
+                add(buildJsonArray {
+                    add(JsonPrimitive(Math.round(w.start * 100) / 100.0)); add(JsonPrimitive(Math.round(w.end * 100) / 100.0)); add(JsonPrimitive(w.text))
+                    if (w.quality != 'm') add(JsonPrimitive(w.quality.toString()))
+                })
+            }
+        }
 
         fun parse(text: String, dirName: String): Transcript? = runCatching {
             val o = SpeechJson.parseToJsonElement(text).jsonObject
@@ -131,8 +202,10 @@ data class Transcript(
                             (a[0] as? JsonPrimitive)?.doubleOrNull ?: 0.0,
                             (a[1] as? JsonPrimitive)?.doubleOrNull ?: 0.0,
                             (a[2] as? JsonPrimitive)?.contentOrNull.orEmpty(),
+                            (a.getOrNull(3) as? JsonPrimitive)?.contentOrNull?.firstOrNull() ?: 'm',
                         )
                     },
+                    comment = s.str("comment")?.takeIf { it.isNotBlank() },
                 )
             }
             Transcript(
@@ -153,6 +226,12 @@ data class Transcript(
                 },
                 notice = o.str("notice"),
                 raw = o,
+                status = TranscriptStatus.of(o.str("status")),
+                chapters = o.arr("chapters").orEmpty().mapNotNull { c ->
+                    val x = c as? JsonObject ?: return@mapNotNull null
+                    Chapter(x.num("t") ?: 0.0, x.str("title").orEmpty()).takeIf { it.title.isNotBlank() }
+                },
+                summary = o.str("summary")?.takeIf { it.isNotBlank() },
             )
         }.getOrNull()
     }
@@ -170,6 +249,8 @@ data class TranscriptSummary(
     val speakers: Int,
     val words: Int,
     val hasAudio: Boolean,
+    val status: TranscriptStatus = TranscriptStatus.RAW,
+    val wordTimes: Boolean = false,
 ) {
     companion object {
         fun parseList(json: String): List<TranscriptSummary> = runCatching {
@@ -186,6 +267,8 @@ data class TranscriptSummary(
                     speakers = o.int("speakers") ?: 0,
                     words = o.int("words") ?: 0,
                     hasAudio = o.bool("audio") == true,
+                    status = TranscriptStatus.of(o.str("status")),
+                    wordTimes = o.bool("word_times") == true,
                 )
             }.sortedByDescending { it.created }
         }.getOrDefault(emptyList())

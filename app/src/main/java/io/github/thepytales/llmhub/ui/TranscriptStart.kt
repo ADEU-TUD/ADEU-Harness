@@ -154,6 +154,19 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
                 Switch(opts.translate, { onChange(opts.copy(translate = it)) })
             }
         }
+        // Whisper and the server give no reliable word times: they are measured afterwards with Parakeet
+        if (!parakeet && !(canTranslate && opts.translate)) {
+            val pkReady = state.models.any { it.id == "parakeet" && it.installed }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TitleBlock(
+                    "Wortzeiten messen",
+                    if (pkReady) "Danach mit Parakeet v3 Wort für Wort messen (im Median 50 ms genau) – für Zeitstempel, Wortmarkierung und Untertitel. Kostet etwas Rechenzeit."
+                    else "Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeiten nur je Abschnitt.",
+                    Modifier.weight(1f),
+                )
+                Switch(opts.measureWords && pkReady, { onChange(opts.copy(measureWords = it)) }, enabled = pkReady)
+            }
+        }
     }
 }
 
@@ -194,7 +207,7 @@ fun StartSheet(c: AppContainer, file: IncomingFile, folderId: String?, onDone: (
 /** The choices of the last start become the defaults (where, model, language, speakers). */
 fun rememberDefaults(c: AppContainer, opts: StartOptions) {
     c.transcription.updateSettings {
-        it.copy(mode = opts.mode.name, model = opts.model, language = opts.language, speakers = opts.speakers)
+        it.copy(mode = opts.mode.name, model = opts.model, language = opts.language, speakers = opts.speakers, measureWords = opts.measureWords)
     }
 }
 

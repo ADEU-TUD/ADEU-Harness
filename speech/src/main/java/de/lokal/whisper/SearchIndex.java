@@ -29,6 +29,9 @@ public final class SearchIndex {
 
     public SearchIndex(File transcriptsDir, File indexFile) { dir = transcriptsDir; file = indexFile; }
 
+    /** Stand der Eintraege; bei neuen Feldern erhoehen, dann wird der Index neu aufgebaut. */
+    private static final int VERSION = 2;
+
     public synchronized void invalidate(String id) { entries.remove(id); }
 
     private void load() {
@@ -38,7 +41,7 @@ public final class SearchIndex {
         if (s == null) return;
         try {
             JSONObject o = new JSONObject(s);
-            if (o.optInt("v") != 1) return;
+            if (o.optInt("v") != VERSION) return;
             JSONObject es = o.getJSONObject("entries");
             for (Iterator<String> it = es.keys(); it.hasNext(); ) {
                 String id = it.next();
@@ -57,7 +60,7 @@ public final class SearchIndex {
                 Entry e = en.getValue();
                 es.put(en.getKey(), new JSONObject().put("m", e.mtime).put("l", e.length).put("s", e.summary).put("t", e.text));
             }
-            Util.writeText(file, new JSONObject().put("v", 1).put("entries", es).toString());
+            Util.writeText(file, new JSONObject().put("v", VERSION).put("entries", es).toString());
         } catch (Exception e) { Util.err("index save", e); }
     }
 
@@ -100,12 +103,15 @@ public final class SearchIndex {
             StringBuilder pv = new StringBuilder(), all = new StringBuilder();
             Set<Integer> spk = new HashSet<>();
             int words = 0;
+            boolean timed = false;
             if (segs != null) for (int i = 0; i < segs.length(); i++) {
                 JSONObject sg = segs.optJSONObject(i);
                 if (sg == null) continue;
                 String tx = sg.optString("text", "");
                 if (pv.length() < 160) pv.append(tx).append(' ');
                 all.append(tx).append(' ');
+                if (sg.has("comment")) all.append(sg.optString("comment", "")).append(' ');
+                if (sg.optJSONArray("words") != null && sg.optJSONArray("words").length() > 0) timed = true;
                 words += tx.trim().isEmpty() ? 0 : tx.trim().split("\\s+").length;
                 if (sg.has("speaker")) spk.add(sg.optInt("speaker", 0));
             }
@@ -113,6 +119,8 @@ public final class SearchIndex {
             o.put("speakers", t.optBoolean("diarization", false) ? spk.size() : 0);
             o.put("words", words);
             o.put("marks", t.optJSONArray("marks") == null ? 0 : t.optJSONArray("marks").length());
+            o.put("status", t.optString("status", ""));
+            o.put("word_times", timed);
             Entry e = new Entry();
             e.mtime = f.lastModified(); e.length = f.length(); e.summary = o;
             e.text = (o.optString("title") + "\n" + all).trim();

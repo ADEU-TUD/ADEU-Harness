@@ -5,15 +5,18 @@ import kotlin.math.roundToLong
 
 /** Export formats of a transcript. */
 enum class TranscriptFormat(val label: String, val ext: String, val description: String) {
-    DOCX("Word", "docx", "Mit Sprechern und Zeitmarken, zum Weiterbearbeiten."),
+    DOCX("Word", "docx", "Mit Sprechern, Zeitmarken und Kommentaren, zum Weiterbearbeiten."),
     PDF("PDF", "pdf", "Zum Lesen, Drucken und Weitergeben."),
     DRESING_PEHL("Transkript nach Dresing/Pehl", "docx", "Einfache Transkriptionsregeln: ein Absatz pro Beitrag, Kürzel (I, B1 …), Pausen (...) und Zeitmarke am Absatzende."),
     MAXQDA("MAXQDA / f4 (Text mit Zeitmarken)", "txt", "Zeitmarken #00:01:23-4# – MAXQDA verknüpft sie beim Import mit der Audiodatei."),
     SRT("Untertitel SRT", "srt", "Für Lehrvideos (OPAL, YouTube, Videoplayer): höchstens zwei Zeilen mit je 42 Zeichen."),
     VTT("Untertitel WebVTT", "vtt", "Untertitel für Webseiten und Videoplattformen, mit Sprechernamen."),
-    TXT("Nur Text", "txt", "Reiner Text ohne Zeitmarken."),
+    TXT("Nur Text", "txt", "Reiner Text; Zeitmarken und Kommentare wie oben gewählt."),
     MARKDOWN("Markdown", "md", "Für Notizen und Wikis."),
 }
+
+/** What goes into Word, PDF, Markdown and text: time stamps (as in the view) and comments. */
+data class ExportOptions(val stamps: TranscriptEdit.Stamps = TranscriptEdit.Stamps.PARAGRAPH, val comments: Boolean = true)
 
 /**
  * Turns a transcript into text formats. Pure Kotlin (tested); Word and PDF are made from [markdown] by the document
@@ -57,15 +60,26 @@ object TranscriptExport {
     }
 
     /** Text of a turn; pauses of three seconds or more inside it become "(...)" (Dresing/Pehl). */
-    private fun turnText(turn: Turn, pauses: Boolean): String = buildString {
+    private fun turnText(turn: Turn, pauses: Boolean, marks: Map<Segment, List<InlineMark>> = emptyMap(), comments: Boolean = false): String = buildString {
         turn.segments.forEachIndexed { i, s ->
             if (i > 0) {
                 val gap = s.start - turn.segments[i - 1].end
                 append(if (pauses && gap >= 3.0) " (...) " else " ")
             }
-            append(s.text.trim())
+            val m = marks[s].orEmpty().filter { !(i == 0 && it.offset == 0) }
+            var pos = 0
+            for (mark in m) {
+                append(s.text.substring(pos, mark.offset))
+                append("(").append(clock(mark.time)).append(") ")
+                pos = mark.offset
+            }
+            append(s.text.substring(pos).trim())
+            if (comments && !s.comment.isNullOrBlank()) append(" [Kommentar: ").append(s.comment.trim()).append("]")
         }
-    }
+    }.replace(Regex(" {2,}"), " ").trim()
+
+    private fun marksBySegment(t: Transcript, stamps: TranscriptEdit.Stamps): Map<Segment, List<InlineMark>> =
+        java.util.IdentityHashMap<Segment, List<InlineMark>>().apply { t.segments.zip(TranscriptEdit.inlineMarks(t, stamps)).forEach { (s, m) -> put(s, m) } }
 
     /** Short labels for Dresing/Pehl: the speaker's name if it is short (I, B1, LK …), else I / B1, B2 … */
     fun shortLabels(t: Transcript): Map<Int, String> {
@@ -75,19 +89,33 @@ object TranscriptExport {
         return ids.mapIndexed { i, id -> id to (if (i == 0) "I" else "B$i") }.toMap()
     }
 
-    fun plainText(t: Transcript): String = turns(t).joinToString("\n\n") { turn ->
-        (if (t.diarized) t.speakerName(turn.speaker) + ": " else "") + turnText(turn, pauses = false)
+    fun plainText(t: Transcript, opts: ExportOptions = ExportOptions(TranscriptEdit.Stamps.OFF, comments = false)): String {
+        val marks = marksBySegment(t, opts.stamps)
+        return turns(t).joinToString("\n\n") { turn ->
+            (if (opts.stamps != TranscriptEdit.Stamps.OFF) "[" + clock(turn.start) + "] " else "") +
+                (if (t.diarized) t.speakerName(turn.speaker) + ": " else "") + turnText(turn, pauses = false, marks, opts.comments)
+        }
     }
 
     /** Readable Markdown: title, details, then one paragraph per contribution with time and speaker. */
-    fun markdown(t: Transcript): String = buildString {
+    fun markdown(t: Transcript, opts: ExportOptions = ExportOptions()): String = buildString {
+        val marks = marksBySegment(t, opts.stamps)
         append("# ").append(t.title).append("\n\n")
         append(details(t)).append("\n\n")
+        t.summary?.let { append("## Zusammenfassung\n\n").append(it.trim()).append("\n\n") }
+        if (t.chapters.isNotEmpty()) {
+            append("## Kapitel\n\n")
+            t.chapters.forEach { append("- ").append(clock(it.time)).append(" – ").append(it.title).append("\n") }
+            append("\n## Transkript\n\n")
+        }
         for (turn in turns(t)) {
-            append("**[").append(clock(turn.start)).append("]")
-            if (t.diarized) append(" ").append(t.speakerName(turn.speaker))
-            append("**  \n")
-            append(turnText(turn, pauses = false)).append("\n\n")
+            if (opts.stamps != TranscriptEdit.Stamps.OFF || t.diarized) {
+                append("**")
+                if (opts.stamps != TranscriptEdit.Stamps.OFF) append("[").append(clock(turn.start)).append("]")
+                if (t.diarized) append(if (opts.stamps != TranscriptEdit.Stamps.OFF) " " else "").append(t.speakerName(turn.speaker))
+                append("**  \n")
+            }
+            append(turnText(turn, pauses = false, marks, opts.comments)).append("\n\n")
         }
     }
 
@@ -130,13 +158,16 @@ object TranscriptExport {
             }
             if (cur.isNotEmpty()) lines += cur
             val groups = lines.chunked(2)
-            val timed = s.words.size == words.size
+            // Measured word times where there are some; subtitles need a time for every line, so without them the
+            // segment is divided by the number of words (only then).
+            val tw = TranscriptEdit.textWords(s)
+            val timed = tw.size == words.size && tw.all { it.word?.measured == true }
             val dur = (s.end - s.start).coerceAtLeast(0.5)
             groups.forEach { g ->
                 val first = g.first().first()
                 val last = g.last().last()
-                val start = if (timed) s.words[first].start else s.start + dur * first / words.size
-                val end = if (timed) s.words[last].end else s.start + dur * (last + 1) / words.size
+                val start = if (timed) tw[first].word!!.start else s.start + dur * first / words.size
+                val end = if (timed) tw[last].word!!.end else s.start + dur * (last + 1) / words.size
                 out += Cue(start, maxOf(end, start + 1.0).coerceAtMost(maxOf(s.end, start + 1.0)), g.map { line -> line.joinToString(" ") { words[it] } }, s.speaker)
             }
         }
@@ -170,16 +201,22 @@ object TranscriptExport {
         parts += "Dauer ${clock(t.duration)}"
         if (t.modelName.isNotBlank()) parts += "erkannt mit ${t.modelName}"
         if (t.diarized) parts += "${t.speakers.size} Sprecher"
+        if (t.measuredShare > 0) parts += "Wortzeiten gemessen" + (t.wordTiming?.source?.takeIf { it.isNotBlank() }?.let { " mit $it" } ?: "") +
+            " (${Math.round(t.measuredShare * 100)} % der Wörter)"
+        if (t.status != TranscriptStatus.RAW) parts += t.status.label
         return "*" + parts.joinToString(" · ") + "*"
     }
 
     /** Text content of a format (Word and PDF: the Markdown the document writer renders). */
-    fun content(t: Transcript, f: TranscriptFormat): String = when (f) {
-        TranscriptFormat.DOCX, TranscriptFormat.PDF, TranscriptFormat.MARKDOWN -> markdown(t)
+    fun content(t: Transcript, f: TranscriptFormat, opts: ExportOptions = ExportOptions()): String = when (f) {
+        TranscriptFormat.DOCX, TranscriptFormat.PDF, TranscriptFormat.MARKDOWN -> markdown(t, opts)
         TranscriptFormat.DRESING_PEHL -> dresingPehl(t)
         TranscriptFormat.MAXQDA -> maxqda(t)
         TranscriptFormat.SRT -> srt(t)
         TranscriptFormat.VTT -> vtt(t)
-        TranscriptFormat.TXT -> plainText(t)
+        TranscriptFormat.TXT -> plainText(t, opts)
     }
+
+    /** Formats that take [ExportOptions] (the others follow fixed rules). */
+    fun takesOptions(f: TranscriptFormat) = f in setOf(TranscriptFormat.DOCX, TranscriptFormat.PDF, TranscriptFormat.MARKDOWN, TranscriptFormat.TXT)
 }

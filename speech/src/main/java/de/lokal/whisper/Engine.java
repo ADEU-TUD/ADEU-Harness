@@ -47,6 +47,8 @@ public final class Engine {
         final List<JSONObject> segments = new ArrayList<>();
         long lastEmit;
         transient LiveSession live;
+        /** Woher die Wortzeiten stammen (Modellname), null ohne. */
+        String wordSource;
 
         public boolean active() { return "queued".equals(status) || "running".equals(status); }
 
@@ -846,24 +848,28 @@ public final class Engine {
         return platform.decode(src, pcm, progress, cancel);
     }
 
+    /** Laeuft gerade eine Live-Transkription mit einem anderen Modell, warten (sonst zwei Modelle im Speicher). */
+    private void waitForLive(Job j, String modelId) throws InterruptedException {
+        if ("pc".equals(platform.deviceKind())) return;
+        while (true) {
+            Recording r = recorder;
+            LiveSession l = r == null ? null : r.live;
+            if (l == null || j.live == l || l.model.id.equals(modelId)) break;
+            if (!"Wartet auf das Ende der Aufnahme …".equals(j.stage)) stage(j, "queued", "Wartet auf das Ende der Aufnahme …", 0);
+            check(j);
+            Thread.sleep(1000);
+        }
+    }
+
     private void process(final Job j) throws Exception {
         final JSONObject opts = j.opts;
+        if (WORDS_JOB.equals(opts.optString("kind"))) { processWords(j); return; }
         final boolean cloud = CLOUD.equals(opts.optString("model", "turbo"));
         final Remote rem = remote;
         if (cloud && rem == null) throw new UserError("Die Transkription über den Uni-Server ist nicht eingerichtet (API-Key fehlt).");
         final Models.ModelInfo m = cloud ? CLOUD_INFO : Models.get(opts.optString("model", "turbo"));
         if (m == null || (!cloud && !installed(m))) throw new UserError("Das Modell ist noch nicht heruntergeladen. Bitte in den Einstellungen laden.");
-        // Laeuft gerade eine Live-Transkription mit einem anderen Modell, warten (sonst zwei Modelle im Speicher)
-        if (!cloud && !"pc".equals(platform.deviceKind())) {
-            while (true) {
-                Recording r = recorder;
-                LiveSession l = r == null ? null : r.live;
-                if (l == null || j.live == l || l.model.id.equals(m.id)) break;
-                if (!"Wartet auf das Ende der Aufnahme …".equals(j.stage)) stage(j, "queued", "Wartet auf das Ende der Aufnahme …", 0);
-                check(j);
-                Thread.sleep(1000);
-            }
-        }
+        if (!cloud) waitForLive(j, m.id);
         File work = new File(cacheDir, "work/" + j.id);
         Util.deleteRecursive(work);
         work.mkdirs();
@@ -940,8 +946,11 @@ public final class Engine {
             String lang = m.isWhisper() || cloud ? opts.optString("language", "de") : "auto";
             String task = m.canTranslate ? opts.optString("task", "transcribe") : "transcribe";
             final boolean withSpk = turns != null;
+            // Wortzeiten messen (Whisper und Server liefern keine verlaesslichen): danach mit Parakeet, siehe WordAlign
+            final String wordsSkipped = m.wordTimes ? null : wordsUnavailable(opts, lang, task);
+            final double wordsShare = m.wordTimes || wordsSkipped != null ? 0 : 0.12;
             final double base = 0.05 + diarShare;
-            final double span = 1.0 - base - 0.02;
+            final double span = 1.0 - base - 0.02 - wordsShare;
             final Replacements rep = Replacements.load(dataDir);
             final String[] detected = {null};
 
@@ -1059,6 +1068,30 @@ public final class Engine {
             else if (m.isWhisper()) j.language = "translate".equals(task) ? "en" : lang;
             else j.language = null;
 
+            // 4b) Wortzeiten messen ------------------------------------------------------------
+            if (m.wordTimes) {
+                j.wordSource = m.name;
+            } else if (wordsSkipped == null) {
+                if (j.language == null || WordAlign.PARAKEET_LANGUAGES.contains(j.language)) {
+                    List<JSONObject> segs;
+                    synchronized (j.segments) { segs = new ArrayList<>(j.segments); }
+                    try {
+                        measureWords(j, segs, pcm, total, base + span, 0.98);
+                    } catch (InterruptedException e) {
+                        throw e;
+                    } catch (Throwable e) {
+                        // Das Transkript ist fertig und darf daran nicht scheitern (z. B. zu wenig Speicher fuer Parakeet)
+                        Util.err("words", e);
+                        addNotice(j, "Wortzeiten konnten nicht gemessen werden" + (e instanceof OutOfMemoryError ? " (zu wenig Arbeitsspeicher)" : "")
+                                + ". Später erneut: ⋮ › Wortzeiten › Jetzt messen.");
+                    }
+                } else {
+                    addNotice(j, "Wortzeiten nicht gemessen: Parakeet v3 kennt die Sprache „" + j.language + "“ nicht.");
+                }
+            } else if (!"".equals(wordsSkipped)) {
+                addNotice(j, wordsSkipped);
+            }
+
             // 5) Speichern ---------------------------------------------------------------------
             stage(j, "save", "Wird gespeichert …", 0.99);
             j.transcriptId = saveTranscript(j, m, pcm, withSpk);
@@ -1080,19 +1113,152 @@ public final class Engine {
             if (!t2.equals(text)) { words = rep.applyWords(words, t2); text = t2.trim(); }
             if (text.isEmpty()) return null;
         }
+        // Text passt nicht mehr Wort fuer Wort (bereinigt, ersetzt): die gemessenen Zeiten trotzdem uebertragen
+        if ((words == null || words.isEmpty()) && res.words != null && !res.words.isEmpty()) {
+            words = WordAlign.align(text, res.words, (c.start - fromSample) / 16000.0, (c.end - fromSample) / 16000.0);
+        }
         JSONObject s = new JSONObject();
         s.put("start", Math.round(c.start / 16.0) / 1000.0);
         s.put("end", Math.round(c.end / 16.0) / 1000.0);
         s.put("text", text);
         if (words != null && !words.isEmpty()) {
             double off = fromSample / 16000.0;
-            JSONArray w = new JSONArray();
-            for (Speech.Word x : words) {
-                w.put(new JSONArray().put(Math.round((off + x.start) * 100) / 100.0).put(Math.round((off + x.end) * 100) / 100.0).put(x.text));
-            }
-            s.put("words", w);
+            List<Speech.Word> abs = new ArrayList<>();
+            for (Speech.Word x : words) abs.add(new Speech.Word(off + x.start, off + x.end, x.text, x.q));
+            s.put("words", WordAlign.toJson(abs));
         }
         return s;
+    }
+
+    // ------------------------------------------------------------------ Wortzeiten
+    /** Auftragsart "Wortzeiten eines vorhandenen Transkripts messen". */
+    static final String WORDS_JOB = "words";
+    static final String WORDS_MODEL = "parakeet";
+
+    /** Warum keine Wortzeiten gemessen werden (Hinweis fuer das Transkript), "" ohne Hinweis, null wenn es geht. */
+    String wordsUnavailable(JSONObject opts, String lang, String task) {
+        if (!opts.optBoolean("word_times", true)) return "";
+        if ("translate".equals(task)) return "";
+        if (lang != null && !"auto".equals(lang) && !WordAlign.PARAKEET_LANGUAGES.contains(lang))
+            return "Wortzeiten nicht gemessen: Parakeet v3 kennt die Sprache „" + lang + "“ nicht.";
+        Models.ModelInfo pk = Models.get(WORDS_MODEL);
+        if (pk == null || !installed(pk))
+            return "Wortzeiten nicht gemessen: Dafür Parakeet v3 laden (Einstellungen › Transkription), dann im Transkript ⋮ › Wortzeiten messen.";
+        return null;
+    }
+
+    private static void addNotice(Job j, String text) { j.notice = j.notice == null ? text : j.notice + " " + text; }
+
+    /**
+     * Misst die Wortzeiten der Abschnitte: Parakeet erkennt jeden Abschnitt noch einmal, die gemessenen Woerter
+     * werden mit dem Text abgeglichen (WordAlign). Abschnitte, in denen weniger als ein Drittel der Woerter
+     * uebereinstimmt, bekommen keine Wortzeiten (dort waere der Abgleich nicht verlaesslich).
+     */
+    private void measureWords(Job j, List<JSONObject> segs, File pcm, long total, double p0, double p1) throws Exception {
+        Models.ModelInfo pk = Models.get(WORDS_MODEL);
+        waitForLive(j, pk.id);
+        stage(j, "words", "Wortzeiten werden gemessen …", p0);
+        Speech.Handle h = Speech.acquire(pk, modelDir(pk), "auto", "transcribe", platform.threads());
+        j.wordSource = pk.name;
+        try {
+            for (int i = 0; i < segs.size(); i++) {
+                check(j);
+                JSONObject s = segs.get(i);
+                double st = s.optDouble("start", 0), en = s.optDouble("end", st);
+                String text = s.optString("text", "");
+                long from = Math.max(0, Math.round(st * 16000) - 2400), to = Math.min(total, Math.round(en * 16000) + 2400);
+                if (to - from >= 1600 && !text.trim().isEmpty()) {
+                    Speech.Result r = Speech.recognize(h, Wav.readPcm(pcm, from, to - from));
+                    List<Speech.Word> ref = new ArrayList<>();
+                    double off = from / 16000.0;
+                    if (r.words != null) for (Speech.Word w : r.words) ref.add(new Speech.Word(off + w.start, off + w.end, w.text));
+                    List<Speech.Word> words = WordAlign.align(text, ref, st, en);
+                    if (!words.isEmpty() && WordAlign.count(words)[0] * 3 >= words.size()) s.put("words", WordAlign.toJson(words));
+                    else s.remove("words");
+                }
+                j.progress = p0 + (p1 - p0) * (i + 1) / segs.size();
+                emitJob(j, false);
+            }
+        } finally {
+            Speech.release(h);
+        }
+    }
+
+    /** Zusammenfassung fuer transcript.json: Quelle und wie viele Woerter gemessen sind (fuer den Methodenteil). */
+    static JSONObject wordTiming(JSONArray segs, String source) throws Exception {
+        int[] c = new int[3];
+        int without = 0;
+        for (int i = 0; i < segs.length(); i++) {
+            JSONArray w = segs.getJSONObject(i).optJSONArray("words");
+            if (w == null || w.length() == 0) { without++; continue; }
+            for (int k = 0; k < w.length(); k++) {
+                String q = w.getJSONArray(k).optString(3, "m");
+                c["s".equals(q) ? 1 : "i".equals(q) ? 2 : 0]++;
+            }
+        }
+        return new JSONObject().put("source", source).put("measured", c[0]).put("respelled", c[1]).put("interpolated", c[2])
+                .put("segments_without", without).put("measured_at", isoNow());
+    }
+
+    /** Wortzeiten eines vorhandenen Transkripts (nach)messen; liefert die Auftrags-Id. */
+    public String measureWords(String tid) throws Exception {
+        File dir = new File(transcripts, tid);
+        JSONObject t = new JSONObject(Util.readText(new File(dir, "transcript.json")));
+        String audio = t.optString("audio", "");
+        File src = new File(dir, audio);
+        if (audio.isEmpty() || !src.isFile()) throw new UserError("Für dieses Transkript ist kein Audio gespeichert.");
+        Models.ModelInfo pk = Models.get(WORDS_MODEL);
+        if (pk == null || !installed(pk)) throw new UserError("Für gemessene Wortzeiten wird Parakeet v3 gebraucht (670 MB). Bitte unter Einstellungen › Transkription laden.");
+        JSONObject opts = new JSONObject().put("kind", WORDS_JOB).put("transcript_id", tid);
+        return enqueueFile(src.getAbsolutePath(), "Wortzeiten: " + t.optString("title", "Transkript"), src.length(), opts, false).id;
+    }
+
+    private void processWords(Job j) throws Exception {
+        String tid = j.opts.optString("transcript_id");
+        File tf = new File(new File(transcripts, tid), "transcript.json");
+        if (!tf.isFile()) throw new UserError("Das Transkript gibt es nicht mehr.");
+        Models.ModelInfo pk = Models.get(WORDS_MODEL);
+        if (pk == null || !installed(pk)) throw new UserError("Parakeet v3 ist nicht mehr geladen.");
+        File work = new File(cacheDir, "work/" + j.id);
+        Util.deleteRecursive(work);
+        work.mkdirs();
+        File pcm = new File(work, "audio.pcm");
+        try {
+            stage(j, "decode", "Audio wird gelesen …", 0);
+            long total;
+            try {
+                total = toPcm(new File(j.srcPath), pcm, f -> { j.progress = 0.1 * f; emitJob(j, false); }, () -> j.cancel);
+            } catch (InterruptedException e) {
+                throw e;
+            } catch (Exception e) {
+                Util.err("decode", e);
+                throw new UserError("Die Aufnahme konnte nicht gelesen werden.");
+            }
+            j.duration = total / 16000.0;
+            JSONArray before = new JSONObject(Util.readText(tf)).getJSONArray("segments");
+            List<JSONObject> segs = new ArrayList<>();
+            for (int i = 0; i < before.length(); i++) segs.add(before.getJSONObject(i));
+            measureWords(j, segs, pcm, total, 0.1, 0.98);
+            // Frisch lesen: was in der Zwischenzeit bearbeitet wurde, bleibt; Wortzeiten nur fuer unveraenderte Abschnitte
+            stage(j, "save", "Wird gespeichert …", 0.99);
+            JSONObject t = new JSONObject(Util.readText(tf));
+            JSONArray now = t.getJSONArray("segments");
+            for (int i = 0; i < now.length(); i++) {
+                JSONObject s = now.getJSONObject(i);
+                for (JSONObject m : segs) {
+                    if (Math.abs(m.optDouble("start") - s.optDouble("start")) < 1e-6 && m.optString("text").equals(s.optString("text"))) {
+                        if (m.has("words")) s.put("words", m.getJSONArray("words")); else s.remove("words");
+                        break;
+                    }
+                }
+            }
+            t.put("word_timing", wordTiming(now, j.wordSource));
+            Util.writeText(tf, t.toString());
+            index.invalidate(tid);
+            j.transcriptId = tid;
+        } finally {
+            Util.deleteRecursive(work);
+        }
     }
 
     /** Merkt sich, wie schnell ein Modell auf diesem Geraet ist (Sekunden Rechenzeit pro Sekunde Audio). */
@@ -1244,6 +1410,7 @@ public final class Engine {
         String folder = j.opts.optString("folder", "");
         t.put("folder", folder.isEmpty() ? JSONObject.NULL : folder);
         if (j.notice != null) t.put("notice", j.notice);
+        if (j.wordSource != null) t.put("word_timing", wordTiming(segs, j.wordSource));
         t.put("version", 3);
         Util.writeText(new File(dir, "transcript.json"), t.toString());
         index.invalidate(id);

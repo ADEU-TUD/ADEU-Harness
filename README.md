@@ -76,12 +76,46 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Videos werden zu Text – wahlweise **auf diesem Gerät** (Whisper Turbo/Small/Base oder Parakeet v3, einmal laden, danach
   offline) oder auf dem **Uni-Server** (Whisper Large v3 Turbo, schnell auch auf alten Rechnern; Sprecher und Pausen
   erkennt trotzdem das Gerät). Aufnahme mit Pause, Markierungen und Live-Text, Warteschlange im Hintergrund (übersteht
-  Neustarts), Sprechererkennung mit Umbenennen und Zusammenführen, Abspielen mit Wort-für-Wort-Markierung, Bearbeiten,
-  Suchen & Ersetzen, Ersetzungsliste für immer falsch erkannte Namen, Volltextsuche, Projekte. **Export**: Word, PDF,
+  Neustarts), Ersetzungsliste für immer falsch erkannte Namen, Volltextsuche (auch in Kommentaren), Projekte,
+  Bearbeitungsstatus *Rohfassung › Korrigiert › Geprüft* (in der Liste sichtbar). **Export**: Word, PDF,
   **Dresing/Pehl** (einfache Transkriptionsregeln, Kürzel, Pausen „(...)“, Zeitmarke je Beitrag), **MAXQDA/f4**
   (Zeitmarken `#00:01:23-4#`), **Untertitel SRT/WebVTT** für Lehrvideos (höchstens zwei Zeilen à 42 Zeichen, mit
-  Sprechern), Text und Markdown. *Im Chat verwenden* übergibt das Transkript an einen neuen Chat (z. B. „Fasse zusammen“).
-  Audio- und Videodateien, die man aus anderen Apps teilt (WhatsApp …), landen direkt in der Transkription.
+  Sprechern, Zeiten aus den gemessenen Wortzeiten), Text und Markdown – Word, PDF, Markdown und Text wahlweise mit
+  Zeitstempeln je Satz oder alle 10/30/60 s und mit Kommentaren. *Im Chat verwenden* übergibt das Transkript an einen
+  neuen Chat (z. B. „Fasse zusammen“). Audio- und Videodateien, die man aus anderen Apps teilt (WhatsApp …), landen
+  direkt in der Transkription.
+- **Gemessene Wortzeiten**: Whisper und der Uni-Server liefern keine verlässlichen Zeiten pro Wort. Nach dem
+  Transkribieren erkennt deshalb **Parakeet v3** jeden Abschnitt noch einmal auf dem Gerät, und seine Wortzeiten werden
+  Wort für Wort mit dem Whisper-Text abgeglichen (auch Zahlen und getrennt/zusammen geschriebene Wörter). Geprüft an
+  LibriSpeech *test-clean* (40 Äußerungen, 958 Wörter, Wortgrenzen aus Forced Alignment), Abweichung am Wortanfang:
+
+  | Verfahren | Median | über 250 ms |
+  | --- | --- | --- |
+  | Zeit nach Wortlänge geschätzt | 200 ms | 37 % |
+  | Whisper Turbo selbst (Cross-Attention/DTW) | 60 ms | 8,8 % |
+  | **Whisper-Text + Parakeet-Zeiten (die App)** | **50 ms** | **0,3 %** |
+
+  Jedes Wort trägt seine Güte (gemessen / an derselben Stelle gemessen, aber anders geschrieben / nicht gemessen und
+  zwischen die gemessenen Nachbarn gelegt); geschätzt wird nichts. Das Transkript vermerkt Quelle und Anteil (für den
+  Methodenteil, auch im Export). Für ältere Transkripte: *⋮ › Wortzeiten › Jetzt messen*. Braucht Parakeet v3
+  (670 MB) und eine seiner 25 europäischen Sprachen; abschaltbar unter *Einstellungen › Transkription*.
+- **Transkript lesen und korrigieren**: Beim Abspielen wird das gesprochene Wort markiert; Tippen auf ein Wort spielt
+  genau ab dort. *⋮ › Ansicht & Zeitstempel* (gilt für alle Transkripte): Zeitstempel aus, je Absatz, **je Satz** (wie
+  „(0:03)“ bei TurboScribe) oder alle 10/30/60 s – immer an gemessenen Zeiten –, Absätze bei Sprecherwechsel/Pausen,
+  nur bei Sprecherwechsel oder je Abschnitt, Schriftgröße, Mitlaufen, Kommentare, nicht gemessene Wörter unterstreichen.
+  **Korrekturmodus** wie bei f4transkript: beim Anhalten 1–5 s zurückspringen, Abschnitt in Schleife, Pausen überspringen,
+  Tempo 0,5×–2×, Tastenkürzel auch beim Tippen (F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 wiederholen, Strg+F
+  Suchen). **Suche im Transkript** mit markierten Treffern und Springen von Treffer zu Treffer.
+- **Abschnitte bearbeiten** (lange drücken bzw. Rechtsklick): Text ändern (unveränderte Wörter behalten ihre gemessene
+  Zeit), Sprecher zuordnen, **Kommentar** anfügen, **am Cursor teilen** (an der gemessenen Zeit des Worts, sonst an der
+  Abspielposition), mit vorigem/nächstem Abschnitt verbinden, Anfang auf die Abspielposition setzen. *⋮ › Segmentierung*:
+  ein Satz je Abschnitt oder Abschnitte bis ca. 10/20/45 s. *⋮ › Sprecher*: umbenennen, zusammenführen, von Hand anlegen
+  (auch ohne Sprechererkennung) oder entfernen. *⋮ › Änderungen verwerfen* stellt die Fassung direkt nach dem
+  Transkribieren wieder her; jede Änderung lässt sich sofort rückgängig machen.
+- **Auswerten**: *⋮ › Redeanteile & Statistik* (Redezeit, Anteil, Wörter, Beiträge, Ø und längster Beitrag, Wörter pro
+  Minute, Sprecherwechsel; als Tabelle für Excel/SPSS/R kopieren). *⋮ › Kapitel & Zusammenfassung*: das Sprachmodell
+  schlägt Kapitel und eine Zusammenfassung vor (im Rahmen der Datenschutzstufe des Projekts; Kapitel beginnen nur an
+  gemessenen Zeiten), Kapitel lassen sich von Hand an der Abspielposition einfügen, umbenennen und löschen.
 - **Modelle auf diesem Gerät** (*Einstellungen › Modelle auf diesem Gerät*): kleine Sprachmodelle mit llama.cpp, die
   komplett offline laufen. Die App prüft die Hardware (Arbeitsspeicher, Kerne, Grafikkarte samt Grafikspeicher – ohne
   Admin-Rechte) und empfiehlt passende Modelle mit einem Knopf zum **Installieren**: vom alten ThinkPad (Qwen 3.5 2B,
