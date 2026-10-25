@@ -13,8 +13,8 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **Logo und Startanimation**: Das Logo zeigt das didaktische Dreieck (Lehrende, Lernende, Inhalt) im TU-Blau, in der
   Mitte eine Klangwelle für das Gespräch. Beim Start baut es sich in gut einer Sekunde auf (abschaltbar unter
   *Einstellungen › Darstellung*).
-- **Aufgeräumte Seitenleiste**: oben nur das Tägliche (*Vorlagen*, *Geplante Aufgaben*, *Bilder erzeugen*,
-  *Transkription*), darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht, Modellvergleich,
+- **Aufgeräumte Seitenleiste**: oben nur das Tägliche (*Vorlagen*, *Literatur*, *Dokumente*, *Geplante Aufgaben*,
+  *Bilder erzeugen*, *Transkription*), darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht, Modellvergleich,
   Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
 - **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Datenschutz,
   Gedächtnis, Wissenssammlung), *Modelle* (Übersicht, Vergleich, Modelle auf diesem Gerät, Transkription),
@@ -243,6 +243,57 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **Spracheingabe** (Whisper) und **Vorlesen**: wahlweise mit der KI-Stimme des Uni-Servers (der die Antwort ohnehin
   geschrieben hat – keine Daten an Dritte) oder komplett offline mit einer Stimme des Geräts; lange Antworten werden in
   Abschnitten gelesen, Code und Links übersprungen.
+
+- **Literaturverzeichnis in 8 Zitierstilen**: APA 7 (deutsch und englisch), Zeitschrift für Pädagogik, DIN ISO 690,
+  Harvard, Chicago (Autor-Jahr), MLA 9 und IEEE. Quellen als BibTeX, RIS, CSL-JSON oder einfach als Text einfügen
+  (auch ein fertiges Verzeichnis aus Word) – die App sortiert alphabetisch (mit Namenszusätzen wie „von“ richtig),
+  erkennt Dubletten und **ergänzt fehlende Angaben** (DOI, Verlag, Ort, Seiten, Heft, Mitautor:innen) über Crossref,
+  OpenAlex, die Deutsche Nationalbibliothek und Google Books. Jeder Eintrag zeigt, was ergänzt wurde und was noch fehlt;
+  unsichere Treffer werden nur vorgeschlagen. Export als Word, PDF, Markdown, BibTeX, RIS und CSL-JSON. Im Chat unter
+  einer Antwort: *⋯ › Literaturverzeichnis erstellen*. Der Zitierstil ist unter *Einstellungen › Literatur & Zotero* wählbar.
+- **Literatursuchmodus**: Thema und Kontext angeben (Chip *Literatursuche* oder `/Literatursuche`) – der Agent sucht
+  systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB und Google Books, verfolgt Zitationen in beide
+  Richtungen (Schneeballsuche), prüft Zeitschriften auf neue Artikel und liefert eine gegliederte Übersicht mit
+  Begründung je Quelle und Suchprotokoll. Treffer landen in einer Literaturliste (Bereich *Literatur*), auf Wunsch
+  direkt in einer **Zotero**-Sammlung (Web-API-Schlüssel unter *Einstellungen › Literatur & Zotero*). Ein optionaler
+  OpenAlex-Schlüssel erhöht das Abfragekontingent.
+- **Bereich Literatur**: Suche, Sammlungen mit Notizen und Schlagwörtern, Einträge bearbeiten, Import aus Dateien, Übertragen nach
+  Zotero, Verzeichnis im gewählten Stil – mit einem Tipp in den Chat oder den Dokument-Editor.
+- **Dokument-Editor wie Claude Docs**: Dokumente, die der Assistent schreibt, öffnen sich als **Live-Dokument** – auf
+  breiten Bildschirmen als Seitenleiste neben dem Chat, sonst als eigene Seite. Man sieht beim Schreiben zu, kann jeden
+  Absatz, jede Überschrift und Tabelle direkt bearbeiten (Block-Typ wechseln, verschieben, Tabellenzellen), Tabs
+  anlegen, Text markieren und **kommentieren** – Kommentare gehen mit *An KI senden* zurück in
+  den Chat, die Antwort erscheint im Kommentarverlauf und der Text wird geändert. **Versionsverlauf** mit Vergleich
+  (eingefügt/gelöscht hervorgehoben), Wiederherstellen, Rückgängig/Wiederholen, Suchen & Ersetzen. Export als Word,
+  PDF, Markdown, HTML, PowerPoint – auch als **Word mit Änderungsverfolgung** gegenüber einer früheren Version, damit
+  Kolleg:innen die Änderungen in Word annehmen können. Alle Dokumente stehen im Bereich *Dokumente*.
+- **Chat**: `/`-Befehle und `@`-Erwähnungen (Dateien, Literaturlisten, Dokumente, Kurztexte), *Anfrage verbessern*,
+  gespeicherte Kurztexte, Entwürfe pro Chat, Zitieren eines Antwortteils, Antworten bewerten (👍/👎 mit Notiz;
+  Auswertung je Modell unter *Verbrauch*), *Weiterschreiben* bei abgeschnittenen Antworten, *Abzweigen* in einen neuen
+  Chat, Chat duplizieren, Suche im Chat, temporäre Chats (werden nicht gespeichert), Archiv, Mehrfachauswahl in der
+  Seitenleiste, Export und Import als JSON. Mehrere Werkzeugaufrufe werden zu einer Zeile zusammengefasst
+  („5 Werkzeuge genutzt“), die Startseite zeigt Beispiele.
+- **Forschung**: Codieren von Transkripten mit eigenem Kategoriensystem (Codes, Farben, Ankerbeispiele) –
+  *ausschließlich von Hand*, die KI codiert nicht. Intercoder-Übereinstimmung (Cohen's κ, prozentuale Übereinstimmung,
+  Abweichungsliste) und Export nach **REFI-QDA** (`.qdpx`, für MAXQDA, ATLAS.ti, NVivo) sowie als CSV. Diagramme
+  (Balken, Linie, Kreis, Streuung, Boxplot) direkt im Chat und in Dokumenten, Excel-Tabellen (`.xlsx`) und CSV,
+  Formeln (LaTeX) werden lesbar gesetzt. Neue Vorlagen: Literaturverzeichnis, Literaturrecherche, Fragebogen,
+  Datenmanagementplan, Verarbeitungsverzeichnis, Datenschutzinformation, Ethikantrag. Fundstellen aus der
+  Wissenssammlung nennen die Seitenzahl.
+- **Lehre**: Quizfragen als **Moodle-XML** und **GIFT**, Lernkarten für **Anki**, Fragebögen für **LimeSurvey**,
+  **Semesterplan** mit den Vorlesungszeiten und Feiertagen in Sachsen (auf Wunsch als Kalenderdatei mit allen
+  Terminen), Vorlagen für Moodle-Kurse, Lernkarten, Semesterkalender und Vorlesungsfolien aus einem Skript.
+- **Serienbriefe**: Vorlage mit `{{Platzhaltern}}` plus Tabelle oder CSV – die App erzeugt je Zeile ein Dokument
+  (z.B. Teilnahmebescheinigungen, Briefe) und packt alle in eine ZIP-Datei.
+- **Transkripte**: anonymisierte Kopie (Namen, Kontaktdaten und eigene Begriffe werden einheitlich ersetzt, Sprecher
+  zu „Person A/B“) mit getrennter **Zuordnungsliste** als PDF, **Übersetzung** Abschnitt für Abschnitt mit erhaltenen
+  Zeiten (für Untertitel), **Stimmprofile**, die bekannte Sprecher:innen in neuen Aufnahmen wiedererkennen, und
+  *Protokoll erstellen* aus dem Transkript.
+- **Bedienung**: **Strg+K** Befehlspalette (Bereiche, Einstellungen, Chats), **Strg+/** Übersicht der Tastenkürzel,
+  Strg+L/D/T für Literatur, Dokumente, Transkription; die Seitenleiste unter Windows lässt sich durch Ziehen breiter
+  oder schmaler machen. Suche in den Einstellungen. **Sprache der Oberfläche** Deutsch oder Englisch
+  (*Einstellungen › Darstellung*; bisher sind Menüs, Einstellungen und Startseite übersetzt, Antworten folgen der
+  gewählten Sprache). Ein automatischer Test prüft den Textkontrast aller Stile nach WCAG.
 
 ## Installation
 
