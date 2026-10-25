@@ -160,7 +160,8 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Vorlage *Allgemein › Barrierefreiheit prüfen*.
 - **Wissenssammlung**: Eigene Dokumente (Modulhandbuch, Prüfungsordnung, Literatur …) unter *Einstellungen ›
   Wissenssammlung* oder pro Projekt. Das Modell sucht die passenden Stellen (Stichworte und semantisch über die
-  Embedding-Modelle des Uni-Servers) und nennt die Quelle. „Speichere die Datei im Projektwissen“ übernimmt Anhänge.
+  Embedding-Modelle des Uni-Servers), lässt die Treffer vom Reranker (Qwen3-Reranker) nach Relevanz ordnen und nennt die
+  Quelle. „Speichere die Datei im Projektwissen“ übernimmt Anhänge.
 - **Gedächtnis**: Das Modell merkt sich auf Wunsch dauerhafte Angaben (Funktion, Lehrveranstaltungen, Stilvorlieben) –
   *Einstellungen › Gedächtnis*: aus, vorher fragen (Standard) oder automatisch; alle Einträge ansehen, ändern, löschen.
 - **Rechnen und Daten auswerten**: Für exakte Zahlen rechnet das Modell in einer abgeschotteten JavaScript-Umgebung
@@ -172,6 +173,21 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **Agent-Protokoll**: Unter jeder Antwort zeigt das Verlaufssymbol, was passiert ist: Anfragen, Werkzeuge, Dauer,
   Tokens, Wartezeiten und ein eventuelles Ausweichmodell.
 - **Sicherung & Umzug**: Alles als ZIP exportieren und auf einem anderen Gerät importieren – auch Android ↔ Windows.
+  API-Key, Tokens und geheime Variablen gehen nur mit einem Passwort mit und sind damit verschlüsselt (AES-256-GCM).
+- **Bilder erzeugen** als Verlauf wie bei Gemini: Beschreibung unten eingeben, Stil (Foto, Aquarell, Symbol, Folie …),
+  Auflösung (512 × 512 bis 2048 × 2048 nach Seitenverhältnis oder eigene Breite × Höhe), 1–4 Bilder und Modell wählen;
+  „✨“ verbessert die Beschreibung. **Überarbeiten**: bis zu vier Bereiche farbig markieren und je Bereich sagen, was dort
+  anders werden soll (über `/images/edits` mit Maske; ohne Maske mit Positionsangaben, falls der Server keine annimmt).
+  Alle Bilder bleiben in der Galerie (Favoriten), Vollbild mit Zoom, Speichern, Teilen und „Im Chat verwenden“.
+- **Papierkorb**: Gelöschte Chats, Transkripte und Bilder lassen sich sofort über „Rückgängig“ zurückholen, Chats und
+  Transkripte 30 Tage lang unter *Einstellungen › Daten › Papierkorb*.
+- **Sicher gespeichert**: Chats, Transkripte und Listen werden atomar geschrieben (erst Temp-Datei, dann Umbenennen) –
+  ein Absturz oder leerer Akku hinterlässt keine halbe Datei. Unlesbare Dateien landen in `defekt/` statt verloren zu gehen;
+  Transkripte behalten die vorige Fassung als `.bak`.
+- **Statusseite des Uni-Servers**: Die Modellübersicht zeigt, welche Modelle gerade laufen; bei Serverfehlern sagt der
+  Chat dazu, ob das Modell laut Statusseite gestört ist.
+- **Tablets und Foldables**: Auf breiten Bildschirmen bleibt die Seitenleiste offen, Chat und Eingabe behalten eine
+  lesbare Breite, Transkription zeigt Liste und Transkript nebeneinander.
 - **PDF-Formulare ausfüllen**: Ein angehängtes PDF-Formular (z.B. Dienstreiseantrag, Anmeldung) füllt der Agent aus und
   gibt es als neue PDF zurück – Textfelder, Ankreuzfelder, Options- und Auswahlfelder; bei PDFs ohne Formularfelder setzt
   er den Text an die passenden Stellen neben die Beschriftungen. Optional „abgeflacht“ (Felder danach nicht mehr änderbar).
@@ -250,6 +266,11 @@ eine neue Version wird der aktuelle Stand dorthin auf `main` übertragen und dor
 workflow* mit der nächsten **Versionsnummer** gestartet (z.B. `27` für 1.0.27). Die Nummer muss größer sein als die
 installierte Version, sonst lässt sich die APK nicht als Update installieren. Der Workflow baut, testet (Emulator und
 Windows) und veröffentlicht selbst.
+
+### PR-Check
+
+Jeder Pull Request startet `.github/workflows/pr-check.yml` (etwa 6–8 Minuten): Android-App kompilieren (ohne lokale
+Modelle), Tests der Sprach-Engine und des gemeinsamen Codes. Der vollständige Build mit Emulator bleibt im Release-Workflow.
 
 ### Release ohne GitHub Actions
 
