@@ -98,3 +98,16 @@ fun rememberMicPermission(onGranted: () -> Unit): () -> Unit {
         else launcher.launch(android.Manifest.permission.RECORD_AUDIO)
     }
 }
+
+/** Picks one picture (photo picker) and hands over its bytes, null if it could not be read. */
+@Composable
+fun rememberImageBytesPicker(onPicked: (ByteArray?) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) scope.launch {
+            onPicked(withContext(Dispatchers.IO) { runCatching { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }.getOrNull() })
+        }
+    }
+    return { launcher.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+}

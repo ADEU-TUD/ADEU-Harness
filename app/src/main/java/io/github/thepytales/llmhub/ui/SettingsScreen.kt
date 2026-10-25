@@ -1,14 +1,9 @@
 package io.github.thepytales.llmhub.ui
 
-import android.graphics.BitmapFactory
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,49 +11,24 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Insights
-import androidx.compose.material.icons.outlined.LibraryBooks
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Stop
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -80,27 +50,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.SecureStorage
-import io.github.thepytales.llmhub.agent.ApprovalMode
-import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.audio.VoiceOption
 import io.github.thepytales.llmhub.data.Logo
-import io.github.thepytales.llmhub.data.MemoryMode
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.docs.DocFormat
@@ -108,14 +70,12 @@ import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.DocTheme
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.net.ThinkingLevel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 @Composable
-private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(title)
@@ -144,7 +104,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "knowledge" -> KnowledgeSection(c)
                 "backup" -> BackupSection(c)
                 "trash" -> TrashSection(c)
-                else -> SettingsOverview(c, onNavigate, deviceItem = null)
+                else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
             Spacer(Modifier.size(24.dp))
         }
@@ -168,7 +128,7 @@ private fun ApiSection(c: AppContainer) {
     }
     Section("ScaDS.AI · Standard") {
         Text(
-            "API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). Er wird verschlüsselt auf dem Gerät gespeichert.",
+            "API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). $KEY_STORAGE_HINT",
             style = MaterialTheme.typography.bodySmall,
         )
         SecretField("API-Key", s.apiKey) { v -> c.settings.update { it.copy(apiKey = v.trim()) } }
@@ -367,13 +327,13 @@ private fun VoiceSection(c: AppContainer) {
     Section("Vorlesen") {
         Text(
             "Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem " +
-                "Uni-Server, der die Antwort ohnehin geschrieben hat – es gehen keine Daten an Dritte. Die Gerätestimme " +
+                "Uni-Server, der die Antwort ohnehin geschrieben hat – es gehen keine Daten an Dritte. Die $DEVICE_VOICE " +
                 "arbeitet komplett offline.",
             style = MaterialTheme.typography.bodySmall,
         )
         listOf(
             Triple("SERVER", "KI-Stimme (Uni-Server)", "Sehr natürlich klingende neuronale Stimmen; braucht Internet."),
-            Triple("DEVICE", "Gerätestimme (offline)", "Android-Sprachausgabe, nur Offline-Stimmen – nichts verlässt das Handy."),
+            Triple("DEVICE", "$DEVICE_VOICE_TITLE (offline)", DEVICE_VOICE_DESCRIPTION),
         ).forEach { (key, label, desc) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -390,7 +350,7 @@ private fun VoiceSection(c: AppContainer) {
             when {
                 voices == null -> CircularProgressIndicator(Modifier.size(24.dp))
                 voices!!.isEmpty() -> Text(
-                    "Keine Offline-Stimmen gefunden. Installiere in den Android-Einstellungen (Sprachausgabe) eine deutsche Stimme.",
+                    NO_DEVICE_VOICES,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -414,7 +374,7 @@ private fun VoiceSection(c: AppContainer) {
             steps = 11,
         )
         if (s.ttsEngine == "SERVER") {
-            Text("Das Tempo gilt für die Gerätestimme.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Das Tempo gilt für die $DEVICE_VOICE.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         OutlinedButton(onClick = {
             c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit ADEU LLM.")
@@ -431,7 +391,7 @@ private fun VoiceSection(c: AppContainer) {
 
 private val DOC_COLORS = listOf("#1E40AF", "#0284C7", "#0D9488", "#15803D", "#B45309", "#C2410C", "#B91C1C", "#BE185D", "#6D28D9", "#475569", "#111827")
 
-private fun parseHex(hex: String): Color? = DocTheme.parseColor(hex)?.let { Color(android.graphics.Color.parseColor(it)) }
+private fun parseHex(hex: String): Color? = DocTheme.parseColor(hex)?.let { Color((0xFF000000 or it.removePrefix("#").toLong(16)).toInt()) }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -444,11 +404,7 @@ private fun DocumentsSection(c: AppContainer) {
     var renameLogo by remember { mutableStateOf<Logo?>(null) }
     var previewBusy by remember { mutableStateOf(false) }
     var hex by remember { mutableStateOf(s.docAccent) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) scope.launch {
-            pendingLogo = withContext(Dispatchers.IO) { runCatching { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }.getOrNull() }
-        }
-    }
+    val pickLogo = rememberImageBytesPicker { bytes -> pendingLogo = bytes }
 
     Section("Gestaltung") {
         Text(
@@ -551,7 +507,7 @@ private fun DocumentsSection(c: AppContainer) {
         }
         logos.forEach { logo ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                val bmp = remember(logo.path) { runCatching { BitmapFactory.decodeFile(logo.path)?.asImageBitmap() }.getOrNull() }
+                val bmp = remember(logo.path) { runCatching { decodeImage(java.io.File(logo.path).readBytes()) }.getOrNull() }
                 Surface(color = Color.White, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(width = 72.dp, height = 44.dp)) {
                     if (bmp != null) Image(bmp, contentDescription = logo.name, contentScale = ContentScale.Fit, modifier = Modifier.padding(4.dp))
                 }
@@ -563,7 +519,7 @@ private fun DocumentsSection(c: AppContainer) {
                 IconButton(onClick = { c.logos.remove(logo.id) }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
             }
         }
-        OutlinedButton(onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+        OutlinedButton(onClick = pickLogo) {
             Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
             Text("Logo hinzufügen")

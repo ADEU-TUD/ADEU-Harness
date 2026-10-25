@@ -75,3 +75,17 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
 /** Windows asks for the microphone itself (privacy settings); the recording reports when access is denied. */
 @Composable
 fun rememberMicPermission(onGranted: () -> Unit): () -> Unit = onGranted
+
+/** Picks one picture (file dialog) and hands over its bytes, null if it could not be read. */
+@Composable
+fun rememberImageBytesPicker(onPicked: (ByteArray?) -> Unit): () -> Unit {
+    val scope = rememberCoroutineScope()
+    return {
+        scope.launch {
+            onPicked(withContext(Dispatchers.IO) {
+                DesktopActions.pickFiles("Bild auswählen", multiple = false, extensions = listOf("png", "jpg", "jpeg", "gif", "bmp"))
+                    .firstOrNull()?.let { runCatching { it.readBytes() }.getOrNull() }
+            })
+        }
+    }
+}
