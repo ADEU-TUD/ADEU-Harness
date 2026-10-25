@@ -4,10 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,13 +20,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -40,24 +32,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.AspectRatio
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Collections
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Stop
-import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
@@ -81,272 +66,24 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.GalleryImage
-import io.github.thepytales.llmhub.data.ImageGallery
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.ModelType
-import io.github.thepytales.llmhub.net.NetErrors
-import io.github.thepytales.llmhub.net.ThinkingLevel
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.UUID
-
-/** Look of a picture; the hint is added to the description in English, which image models follow best. */
-enum class ImageStyle(val label: String, val hint: String) {
-    NONE("Ohne Stil", ""),
-    PHOTO("Foto", "photorealistic photograph, natural light, sharp focus, 35mm"),
-    ILLUSTRATION("Illustration", "clean digital illustration, soft colors, friendly"),
-    WATERCOLOR("Aquarell", "watercolor painting, soft washes, paper texture"),
-    FLAT("Flach", "flat vector illustration, simple shapes, limited palette, no text"),
-    ICON("Symbol", "minimal icon, centered, plain background, flat design"),
-    RENDER("3D", "3D render, soft studio lighting, high detail"),
-    SKETCH("Skizze", "pencil sketch, hand drawn, black and white"),
-    COMIC("Comic", "comic style, bold outlines, vibrant colors"),
-    SLIDE("Folie", "modern presentation background, plenty of empty space for text, subtle, professional"),
-}
-
-/** Resolutions to choose from, grouped by aspect ratio. Width and height are multiples of 16 (FLUX). */
-val IMAGE_RESOLUTIONS: List<Pair<String, List<String>>> = listOf(
-    "Quadrat 1:1" to listOf("512x512", "768x768", "1024x1024", "1536x1536", "2048x2048"),
-    "Hochformat 3:4" to listOf("768x1024", "1152x1536", "1536x2048"),
-    "Querformat 4:3" to listOf("1024x768", "1536x1152", "2048x1536"),
-    "Hochformat 2:3" to listOf("832x1248", "1024x1536"),
-    "Querformat 3:2" to listOf("1248x832", "1536x1024"),
-    "Story 9:16" to listOf("720x1280", "768x1344", "1088x1920"),
-    "Breitbild 16:9" to listOf("1280x720", "1344x768", "1920x1088"),
-    "A4 hoch (≈150 dpi)" to listOf("1248x1760"),
-    "Banner 3:1" to listOf("1536x512"),
-)
-
-private const val MIN_SIDE = 256
-private const val MAX_SIDE = 2048
-
-/** "1024x768" → (1024, 768). */
-private fun sides(size: String): Pair<Int, Int>? =
-    size.lowercase().split('x', '×').mapNotNull { it.trim().toIntOrNull() }.takeIf { it.size == 2 }?.let { it[0] to it[1] }
-
-private fun ratioOf(size: String): Float = sides(size)?.let { (w, h) -> w.toFloat() / h.coerceAtLeast(1) } ?: 1f
-
-/** "1024 × 768" for the screen. */
-fun sizeLabel(size: String) = sides(size)?.let { (w, h) -> "$w × $h" } ?: size
-
-/** Own width × height: within the limits and rounded to multiples of 16; null if not a number. */
-fun cleanSide(value: String): Int? = value.toIntOrNull()?.coerceIn(MIN_SIDE, MAX_SIDE)?.let { (it + 8) / 16 * 16 }
-
-/** Ideas for the empty conversation: tap fills the description. */
-private val EXAMPLES = listOf(
-    "Ein Hörsaal voller Studierender, die an einem Projekt arbeiten, warmes Morgenlicht",
-    "Das Dresdner Elbufer bei Sonnenuntergang im Stil eines Aquarells",
-    "Symbol für eine Lernplattform: ein Buch, aus dem Ideen aufsteigen",
-    "Hintergrund für eine Präsentationsfolie zum Thema Digitalisierung in der Schule",
-)
-
-private const val IMPROVE_PROMPT =
-    "Du verbesserst Beschreibungen für Bildgeneratoren (FLUX). Antworte nur mit der verbesserten Beschreibung auf " +
-        "Englisch, ein Absatz, höchstens 80 Wörter: Motiv, Umgebung, Komposition, Licht, Farben und Stimmung. Behalte die " +
-        "Absicht genau bei, erfinde keine Personen oder Marken dazu. Kein Text im Bild, außer er wird ausdrücklich verlangt. " +
-        "Keine Erklärungen, keine Anführungszeichen."
-
-/** A request that is running or failed: shown as the newest turn of the conversation. */
-data class PendingTurn(
-    val id: String,
-    val prompt: String,
-    val style: String,
-    val size: String,
-    val count: Int,
-    val editOf: GalleryImage?,
-    val edits: List<String>,
-    val error: String? = null,
-)
-
-class ImagesViewModel(private val c: AppContainer) : ViewModel() {
-    val gallery = ImageGallery(File(c.appContext.filesDir, "images"))
-    var prompt by mutableStateOf("")
-    var style by mutableStateOf(ImageStyle.NONE)
-    var size by mutableStateOf("1024x1024")
-    var count by mutableIntStateOf(1)
-    /** Picture to rework and the marked areas ("Überarbeiten"). */
-    var editTarget by mutableStateOf<GalleryImage?>(null)
-    var regions by mutableStateOf<List<EditRegion>>(emptyList())
-    var pending by mutableStateOf<PendingTurn?>(null)
-        private set
-    var improving by mutableStateOf(false)
-        private set
-    private var job: Job? = null
-    private var retryAction: (() -> Unit)? = null
-    /** Survives the screen: finishing a deletion after "Rückgängig" was not used. */
-    private val background = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    val busy get() = pending != null && pending?.error == null
-
-    init {
-        viewModelScope.launch { gallery.load() }
-    }
-
-    private fun fullPrompt(text: String, s: ImageStyle) = if (s.hint.isEmpty()) text else "$text, ${s.hint}"
-
-    /** Sends what is in the input: a new picture, or the rework of [editTarget]. */
-    fun send(model: String) {
-        if (busy) return
-        val target = editTarget
-        if (target != null) {
-            if (prompt.isBlank() && regions.none { it.strokes.isNotEmpty() && it.description.isNotBlank() }) return
-            edit(model, target, regions, prompt.trim())
-        } else {
-            if (prompt.isBlank()) return
-            create(model, prompt.trim(), style, size, count)
-        }
-        prompt = ""
-        editTarget = null
-        regions = emptyList()
-    }
-
-    /** Same description again (new variations). */
-    fun again(image: GalleryImage) {
-        if (busy) return
-        val s = ImageStyle.entries.firstOrNull { it.label == image.style } ?: ImageStyle.NONE
-        create(image.model, image.prompt, s, image.size, 1)
-    }
-
-    fun retry() = retryAction?.invoke()
-
-    fun dismissError() {
-        if (pending?.error != null) pending = null
-    }
-
-    private fun create(model: String, text: String, s: ImageStyle, size: String, n: Int) {
-        val turn = PendingTurn(UUID.randomUUID().toString(), text, s.label.takeIf { s != ImageStyle.NONE }.orEmpty(), size, n, null, emptyList())
-        retryAction = { create(model, text, s, size, n) }
-        launchTurn(turn) {
-            repeat(n) {
-                c.llm.generateImage(model, fullPrompt(text, s), size).forEach { bytes ->
-                    gallery.add(GalleryImage(prompt = text, model = model, size = size, style = turn.style, turnId = turn.id), bytes)
-                }
-            }
-        }
-    }
-
-    private class EditInput(val image: ByteArray, val mask: ByteArray?, val width: Int, val height: Int)
-
-    private fun edit(model: String, source: GalleryImage, marked: List<EditRegion>, note: String) {
-        val summary = editSummary(marked)
-        val turn = PendingTurn(UUID.randomUUID().toString(), note, source.style, source.size, 1, source, summary)
-        retryAction = { edit(model, source, marked, note) }
-        launchTurn(turn) {
-            val input = withContext(Dispatchers.Default) {
-                val bmp = decodeImage(gallery.file(source).readBytes()) ?: error("Das Bild lässt sich nicht lesen.")
-                val mask = if (marked.any { it.strokes.isNotEmpty() }) encodePng(renderMask(bmp.width, bmp.height, marked)) else null
-                EditInput(encodePng(bmp), mask, bmp.width, bmp.height)
-            }
-            val (withMask, withoutMask) = editPrompts(marked, note)
-            val size = "${input.width}x${input.height}"
-            c.llm.editImage(model, input.image, input.mask, withMask, withoutMask, size).forEach { bytes ->
-                gallery.add(
-                    GalleryImage(
-                        prompt = note.ifBlank { source.prompt }, model = model, size = size, style = source.style,
-                        turnId = turn.id, editOf = source.id, edits = summary,
-                    ),
-                    bytes,
-                )
-            }
-        }
-    }
-
-    private fun launchTurn(turn: PendingTurn, work: suspend () -> Unit) {
-        pending = turn
-        job = viewModelScope.launch {
-            try {
-                work()
-                pending = null
-            } catch (e: CancellationException) {
-                pending = null
-                throw e
-            } catch (e: Exception) {
-                pending = turn.copy(error = NetErrors.describe(e))
-            }
-        }
-    }
-
-    fun cancel() {
-        job?.cancel()
-    }
-
-    /** Lets the chat model turn a few words into a detailed description. */
-    fun improve() {
-        val text = prompt.trim()
-        if (text.isEmpty() || improving) return
-        improving = true
-        viewModelScope.launch {
-            try {
-                val answer = c.llm.streamChat(
-                    model = c.settings.current.defaultModel,
-                    messages = listOf(ChatMessage(role = "system", content = IMPROVE_PROMPT), ChatMessage(role = "user", content = text)),
-                    tools = null,
-                    thinking = ThinkingLevel.OFF,
-                ) { }.content
-                val better = splitThinking(answer).second.trim().trim('"', '„', '“')
-                if (better.isNotEmpty()) {
-                    val before = prompt
-                    prompt = better
-                    Notices.show(Notices.Notice("Beschreibung verbessert", action = "Rückgängig", onAction = { prompt = before }))
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Notices.error(NetErrors.describe(e), retry = ::improve)
-            } finally {
-                improving = false
-            }
-        }
-    }
-
-    fun toggleFavorite(image: GalleryImage) {
-        viewModelScope.launch { gallery.update(image.copy(favorite = !image.favorite)) }
-    }
-
-    fun delete(image: GalleryImage) {
-        gallery.hide(image.id)
-        Notices.undo("Bild gelöscht", restore = { gallery.unhide(image) }, commit = { background.launch { gallery.commitDelete(image) } })
-    }
-}
 
 /** A finished turn of the conversation: the request and the pictures it brought. */
 private class Turn(val id: String, val images: List<GalleryImage>) {
@@ -500,7 +237,7 @@ private fun RequestBubble(vm: ImagesViewModel, prompt: String, details: String, 
     }
 }
 
-private fun details(style: String, size: String, count: Int) =
+internal fun details(style: String, size: String, count: Int) =
     listOfNotNull(style.ifBlank { null }, sizeLabel(size), if (count > 1) "$count Bilder" else null).joinToString(" · ")
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -728,7 +465,7 @@ private fun CustomSizeDialog(current: String, onPick: (String) -> Unit, onDismis
 
 /** Small frame in the proportions of a format. */
 @Composable
-private fun RatioIcon(ratio: Float, selected: Boolean) {
+internal fun RatioIcon(ratio: Float, selected: Boolean) {
     val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     Box(Modifier.size(18.dp), contentAlignment = Alignment.Center) {
         val w = if (ratio >= 1f) 16.dp else 16.dp * ratio
@@ -737,165 +474,3 @@ private fun RatioIcon(ratio: Float, selected: Boolean) {
     }
 }
 
-/** All pictures as a grid, with favorites. */
-@Composable
-private fun GalleryGrid(vm: ImagesViewModel, images: List<GalleryImage>, pad: PaddingValues, onOpen: (GalleryImage) -> Unit) {
-    var favoritesOnly by rememberSaveable { mutableStateOf(false) }
-    val shown = (if (favoritesOnly) images.filter { it.favorite } else images)
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = pad.calculateTopPadding() + 4.dp, bottom = pad.calculateBottomPadding() + 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = !favoritesOnly, onClick = { favoritesOnly = false }, label = { Text("Alle  ${images.size}") })
-                FilterChip(
-                    selected = favoritesOnly, onClick = { favoritesOnly = true },
-                    leadingIcon = { Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                    label = { Text("Favoriten  ${images.count { it.favorite }}") },
-                )
-            }
-        }
-        if (shown.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
-            HintText(if (favoritesOnly) "Noch keine Favoriten – ☆ auf einem Bild antippen." else "Noch keine Bilder.")
-        }
-        items(shown, key = { it.id }) { img -> Thumb(vm, img, Modifier.fillMaxWidth(), onOpen = { onOpen(img) }) }
-    }
-}
-
-/** The picture from its file, decoded off the main thread; null while loading or if it cannot be read. */
-@Composable
-private fun rememberGalleryBitmap(vm: ImagesViewModel, img: GalleryImage): ImageBitmap? =
-    produceState<ImageBitmap?>(null, img.id) {
-        value = withContext(Dispatchers.IO) { runCatching { decodeImage(vm.gallery.file(img).readBytes()) }.getOrNull() }
-    }.value
-
-@Composable
-private fun Thumb(vm: ImagesViewModel, img: GalleryImage, modifier: Modifier, onOpen: () -> Unit) {
-    val bmp = rememberGalleryBitmap(vm, img)
-    Box(
-        modifier
-            .aspectRatio(ratioOf(img.size))
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onOpen),
-    ) {
-        bmp?.let { Image(it, contentDescription = img.prompt, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
-        Surface(
-            onClick = { vm.toggleFavorite(img) },
-            shape = CircleShape,
-            color = Color.Black.copy(alpha = 0.35f),
-            contentColor = Color.White,
-            modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(32.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    if (img.favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (img.favorite) "Aus Favoriten entfernen" else "Zu Favoriten",
-                    tint = if (img.favorite) Color(0xFFFFC94D) else Color.White,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
-    }
-}
-
-/** Full screen: zoom with two fingers (double tap switches), all actions for the picture. */
-@Composable
-private fun Viewer(
-    vm: ImagesViewModel,
-    img: GalleryImage,
-    onOpenChat: () -> Unit,
-    onDismiss: () -> Unit,
-    onUsePrompt: () -> Unit,
-    onEdit: () -> Unit,
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val bmp = rememberGalleryBitmap(vm, img)
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val transform = rememberTransformableState { zoom, pan, _ ->
-        scale = (scale * zoom).coerceIn(1f, 5f)
-        offset = if (scale == 1f) Offset.Zero else offset + pan
-    }
-    LaunchedEffect(img.id) { scale = 1f; offset = Offset.Zero }
-    val date = remember(img.createdAt) {
-        Instant.ofEpochMilli(img.createdAt).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"))
-    }
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(color = Color(0xFF101114), contentColor = Color.White, modifier = Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-                Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, contentDescription = "Schließen", tint = Color.White) }
-                    Text(
-                        "$date · ${ModelCatalog.info(img.model).displayName}",
-                        style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.7f), modifier = Modifier.weight(1f),
-                    )
-                    IconButton(onClick = { vm.toggleFavorite(img) }) {
-                        Icon(
-                            if (img.favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                            contentDescription = if (img.favorite) "Aus Favoriten entfernen" else "Zu Favoriten",
-                            tint = if (img.favorite) Color(0xFFFFC94D) else Color.White,
-                        )
-                    }
-                }
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .transformable(transform)
-                        .pointerInput(img.id) { detectTapGestures(onDoubleTap = { scale = if (scale > 1f) 1f else 2.5f; offset = Offset.Zero }) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (bmp == null) CircularProgressIndicator(color = Color.White)
-                    else Image(
-                        bmp, contentDescription = img.prompt, contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize().graphicsLayer(scaleX = scale, scaleY = scale, translationX = offset.x, translationY = offset.y),
-                    )
-                }
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(img.prompt, style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
-                    Text(details(img.style, img.size, 1), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-                }
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    ViewerAction(Icons.Outlined.Brush, "Überarbeiten", onEdit)
-                    ViewerAction(Icons.Outlined.FileDownload, SAVE_IMAGE_LABEL) { saveImageToDevice(context, vm.gallery.file(img)) }
-                    ViewerAction(Icons.Outlined.Share, "Teilen") { shareImage(context, vm.gallery.file(img)) }
-                    ViewerAction(Icons.AutoMirrored.Outlined.Chat, "Im Chat") {
-                        scope.launch {
-                            val url = imageDataUrl(context, vm.gallery.file(img))
-                            if (url == null) Notices.error("Das Bild ließ sich nicht anhängen.")
-                            else {
-                                ChatHandoff.pending.value = ChatHandoff.Content("", emptyList(), images = listOf(url))
-                                onDismiss()
-                                onOpenChat()
-                            }
-                        }
-                    }
-                    ViewerAction(Icons.Outlined.Refresh, "Noch eins") { vm.again(img); onDismiss() }
-                    ViewerAction(Icons.Outlined.TextFields, "Beschreibung") { onUsePrompt() }
-                    ViewerAction(Icons.Outlined.Delete, "Löschen") { vm.delete(img); onDismiss() }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ViewerAction(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(
-        Modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White)
-        Spacer(Modifier.size(4.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White)
-    }
-}
