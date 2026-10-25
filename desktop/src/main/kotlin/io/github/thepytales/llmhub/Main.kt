@@ -121,6 +121,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         rememberWindow()
         c.runs.stopAll()
         c.speaker.stop()
+        c.localLlm.shutdown()
         exitApplication()
     }
 

@@ -19,10 +19,12 @@ data class ModelsState(
     val owners: Map<String, String> = emptyMap(),
     /** Built-in models shown for servers whose list is missing (no key yet, offline). */
     val fallback: List<ModelInfo> = ModelCatalog.main,
+    /** Models installed on this device (llama.cpp). */
+    val local: List<ModelInfo> = emptyList(),
 ) {
     /** All models to show: the live lists plus the built-in entries of the servers that could not be asked. */
     val models: List<ModelInfo>
-        get() = ((liveIds?.map { ModelCatalog.info(it) } ?: emptyList()) + fallback)
+        get() = ((liveIds?.map { ModelCatalog.info(it) } ?: emptyList()) + fallback + local)
             .distinctBy { it.id.lowercase() }
             .sortedWith(compareBy<ModelInfo>({ it.type.ordinal }, { it.tier.ordinal }, { ModelCatalog.rank(it.id) }, { it.id.lowercase() }))
 
@@ -68,6 +70,7 @@ class ModelsRepository(private val llm: LlmClient, private val settings: Setting
             val errors = listOfNotNull(mainResult?.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName }) +
                 otherResults.mapNotNull { (p, r) -> r.exceptionOrNull()?.let { "${p.name}: ${it.message ?: it.javaClass.simpleName}" } }
             _state.value = ModelsState(
+                local = _state.value.local,
                 liveIds = live.takeIf { anyLive },
                 error = errors.joinToString("\n").ifEmpty { null },
                 owners = owners,
@@ -78,6 +81,11 @@ class ModelsRepository(private val llm: LlmClient, private val settings: Setting
                 ),
             )
         }
+    }
+
+    /** Models installed on this device changed (see local/LocalLlm). */
+    fun setLocal(models: List<ModelInfo>) {
+        _state.value = _state.value.copy(local = models)
     }
 
     /**

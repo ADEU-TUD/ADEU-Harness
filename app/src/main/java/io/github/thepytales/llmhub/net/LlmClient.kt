@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.net
 
+import io.github.thepytales.llmhub.data.Privacy
 import io.github.thepytales.llmhub.data.ApiProvider
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.ModelCatalog
@@ -101,9 +102,23 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         .writeTimeout(2, TimeUnit.MINUTES)
         .build()
 
+    /**
+     * Starts the server for a model on this device and returns its endpoint (set by the app container, see
+     * local/LocalLlm); called before every request to a local model.
+     */
+    var localProvider: (suspend (String) -> ApiProvider)? = null
+    /** Endpoint of the running local model (127.0.0.1). */
+    @Volatile private var local: ApiProvider? = null
+
+    /** Makes sure the local model is running before a request (no-op for server models). */
+    private suspend fun prepare(model: String) {
+        if (Privacy.isLocal(model)) local = (localProvider ?: error("Lokale Modelle sind nicht verfügbar.")).invoke(model)
+    }
+
     /** Further provider that serves [model], or null for the main one. */
     fun providerFor(model: String?): ApiProvider? {
         if (model == null) return null
+        if (Privacy.isLocal(model)) return local
         val usable = settings.current.providers.filter { it.usable }
         if (usable.isEmpty()) return null
         owners[model.lowercase()]?.let { id -> usable.firstOrNull { it.id == id }?.let { return it } }
@@ -182,13 +197,16 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         // termination") while a model restarts or is overloaded – usually gone after a few seconds.
         // With pseudonymization the server only sees placeholders; the answer gets the real details back here,
         // so every caller (chat, tasks, ✨, comparison) works with the real text.
-        val masker = privacy?.takeIf { it.enabled }
+        // A model on this device: nothing leaves it, so no placeholders and no rate limit.
+        val onDevice = Privacy.isLocal(model)
+        if (onDevice) prepare(model)
+        val masker = privacy?.takeIf { it.enabled && !onDevice }
         val sent = masker?.maskMessages(messages) ?: messages
         val update: (StreamUpdate) -> Unit = if (masker == null) onUpdate else { u -> onUpdate(masker.unmask(u)) }
         var attempt = 0
         while (true) {
             try {
-                limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
+                if (!onDevice) limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
                 val result = streamChatWithFallbacks(model, sent, tools, thinking, update)
                 return masker?.unmask(result) ?: result
             } catch (e: IOException) {

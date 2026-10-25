@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import io.github.thepytales.llmhub.data.PrivacyLevel
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -154,6 +157,7 @@ fun KnowledgeSection(c: AppContainer) {
 fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
     var name by remember(folder.id) { mutableStateOf(folder.name) }
     var instructions by remember(folder.id) { mutableStateOf(folder.instructions) }
+    var privacy by remember(folder.id) { mutableStateOf(folder.privacy) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Projekt") },
@@ -167,6 +171,16 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                Text("Datenschutzstufe", style = MaterialTheme.typography.titleSmall)
+                PrivacyLevel.entries.forEach { level ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { privacy = level },
+                    ) {
+                        RadioButton(selected = privacy == level, onClick = { privacy = level })
+                        TitleBlock(level.label, level.description, Modifier.weight(1f))
+                    }
+                }
                 Text("Projektdateien", style = MaterialTheme.typography.titleSmall)
                 SettingsHint("Nur die Chats in diesem Projekt durchsuchen diese Dokumente.")
                 KnowledgeList(c, folder.id)
@@ -174,7 +188,7 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(enabled = name.isNotBlank(), onClick = {
-                c.folders.update(folder.id) { it.copy(name = name.trim(), instructions = instructions.trim()) }
+                c.folders.update(folder.id) { it.copy(name = name.trim(), instructions = instructions.trim(), privacy = privacy) }
                 onDismiss()
             }) { Text("Speichern") }
         },

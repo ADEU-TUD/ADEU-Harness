@@ -1,10 +1,12 @@
 package io.github.thepytales.llmhub.transcribe
 
 import de.lokal.whisper.Engine
+import de.lokal.whisper.Models
 import de.lokal.whisper.Platform
 import de.lokal.whisper.Replacements
 import de.lokal.whisper.Speech
 import de.lokal.whisper.Util
+import de.lokal.whisper.Wav
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.net.ApiException
@@ -319,6 +321,33 @@ class Transcription(private val c: AppContainer, private val root: File, private
                 (o.str("id") ?: return@mapNotNull null) to o.str("snippet").orEmpty()
             }
         }.getOrDefault(emptyList())
+    }
+
+    /**
+     * Recognizes a short recording (dictation in the chat) on the device, without saving a transcript; null if no
+     * recognition model is loaded. Used where data must not leave the device.
+     */
+    suspend fun recognizeShort(file: File): String? = withContext(Dispatchers.IO) {
+        val modelId = localModel() ?: return@withContext null
+        val e = engine()
+        val m = Models.get(modelId) ?: return@withContext null
+        val pcm = File(cache, "dictation.pcm")
+        try {
+            val n = e.platform.decode(file, pcm, null, null)
+            val all = Wav.readPcm(pcm, 0, n)
+            val lang = if (m.isWhisper) _settings.value.language else "auto"
+            val h = Speech.acquire(m, File(e.models, m.id), lang, "transcribe", e.platform.threads())
+            try {
+                val window = 16000 * 25
+                (0 until all.size step window).joinToString(" ") { from ->
+                    Speech.recognize(h, all.copyOfRange(from, minOf(all.size, from + window))).text.orEmpty().trim()
+                }.trim()
+            } finally {
+                Speech.release(h)
+            }
+        } finally {
+            pcm.delete()
+        }
     }
 
     // ------------------------------------------------------------------ replacement list

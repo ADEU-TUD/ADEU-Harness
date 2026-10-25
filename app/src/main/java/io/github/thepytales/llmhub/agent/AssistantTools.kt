@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.data.Privacy
+
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.KnowledgeDoc
@@ -76,7 +78,12 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                         "Dateien stehen als Text in files[\"Name\"] (Liste: fileList). Hilfsfunktionen: parseCSV(text) → Liste von " +
                         "Objekten (Zahlen erkannt, auch Excel-Text mit Tabulatoren), sum, mean, median, sd (Stichprobe), round(x, n), " +
                         "column(rows, name), numbers(list) (nur Zahlen), describe(list) → {n, M, SD, Md, Min, Max}, freq(list) → " +
-                        "Häufigkeiten, percent(teil, gesamt), table(rows) → Markdown-Tabelle.",
+                        "Häufigkeiten, percent(teil, gesamt), table(rows) → Markdown-Tabelle. Interrater-Reliabilität (exakt): " +
+                        "cohensKappa(codiererA, codiererB, gewichtung?) mit 'linear'/'quadratic' für ordinale Kategorien, " +
+                        "fleissKappa(einheiten) für mehrere Codierer (je Einheit eine Liste der Codes), krippendorffAlpha(einheiten, " +
+                        "'nominal'|'ordinal'|'interval'|'ratio') auch mit fehlenden Werten (null), agreement(a, b) prozentuale " +
+                        "Übereinstimmung, crosstab(a, b), units(rows, ['Spalte A', 'Spalte B']) macht aus einer Tabelle die Einheiten, " +
+                        "interpret(kappa) nach Landis & Koch.",
                     listOf(Param("code", "JavaScript-Code (ES6)")),
                 )
             )
@@ -149,7 +156,8 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
 
     private suspend fun search(query: String, k: Int, ctx: RepoContext): ToolOutput {
         val collections = collections(ctx.folderId)
-        val model = embeddingModel()
+        // Semantic search asks the Uni server; projects that keep data on the device use the keyword search only.
+        val model = embeddingModel().takeIf { Privacy.level(c, ctx.folderId).allowsUniServer }
         val vector = if (model != null && c.knowledge.docs.value.any { it.collection in collections && it.embeddedWith == model }) {
             runCatching { c.llm.embed(model, listOf(query)).firstOrNull() }.getOrNull()
         } else null
@@ -178,7 +186,8 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     /** Adds a document and computes its embeddings in the background. */
     fun add(name: String, text: String, collection: String): KnowledgeDoc {
         val doc = c.knowledge.add(name, text, collection)
-        embeddingModel()?.let { model -> scope.launch { c.knowledge.embed(doc, model) { c.llm.embed(model, it) } } }
+        val serverAllowed = collection.isEmpty() || Privacy.level(c, collection).allowsUniServer
+        embeddingModel()?.takeIf { serverAllowed }?.let { model -> scope.launch { c.knowledge.embed(doc, model) { c.llm.embed(model, it) } } }
         return doc
     }
 

@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.data.Privacy
 import io.github.thepytales.llmhub.data.AgentEnvironment
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
@@ -44,17 +45,18 @@ class AgentRunner(private val c: AppContainer) {
 
     fun environment(conv: Conversation): AgentEnvironment? = conv.envId?.let { c.environments.get(it) }
 
-    /** Tool groups offered to the model in this conversation. */
+    /** Tool groups offered to the model in this conversation (fewer in projects that keep data on the device). */
     fun providers(conv: Conversation, tools: ToolSelection? = null): List<ToolProvider> {
         val settings = c.settings.current
         // Models known not to support function calling only get a plain chat.
         if (ModelCatalog.info(conv.model).tools == false) return emptyList()
         val sel = tools ?: ToolSelection(conv.githubEnabled, settings.documentTools, settings.webTools)
         val env = environment(conv)
+        val network = Privacy.level(c, conv.folderId).allowsNetworkTools
         return listOfNotNull(
-            c.githubTools.takeIf { sel.github && settings.hasGitHub },
+            c.githubTools.takeIf { sel.github && settings.hasGitHub && network },
             c.documentTools.takeIf { sel.documents },
-            c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE },
+            c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
             c.assistantTools,
         )
     }
@@ -71,6 +73,10 @@ class AgentRunner(private val c: AppContainer) {
     ) {
         val settings = c.settings.current
         val start = host.conversation ?: return
+        Privacy.blockReason(c, start.folderId, start.model)?.let { reason ->
+            stopWith(host, reason)
+            return
+        }
         val env = environment(start)
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
@@ -135,7 +141,9 @@ class AgentRunner(private val c: AppContainer) {
                     providers = emptyList()
                     continue
                 }
-                val fallback = if (!fallbackUsed && unreachable(e) && partial?.content.isNullOrBlank()) fallbackModel(model, conv, providers.isNotEmpty()) else null
+                val fallback = if (!fallbackUsed && unreachable(e) && partial?.content.isNullOrBlank()) {
+                    fallbackModel(model, conv, providers.isNotEmpty())?.takeIf { Privacy.allows(c, Privacy.level(c, conv.folderId), it) }
+                } else null
                 if (fallback != null) {
                     // The gateway does not reach the model: the same request goes to a similar model.
                     fallbackUsed = true

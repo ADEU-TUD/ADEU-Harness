@@ -269,7 +269,8 @@ object ModelCatalog {
     /** Built-in models of a further provider, shown while its model list cannot be loaded. */
     fun of(kind: ProviderKind): List<ModelInfo> = known.filter { it.via == kind }
 
-    fun info(id: String): ModelInfo = byId[id.lowercase()] ?: guess(id)
+    fun info(id: String): ModelInfo =
+        byId[id.lowercase()] ?: io.github.thepytales.llmhub.local.LocalCatalog.get(id)?.let(io.github.thepytales.llmhub.local.LocalCatalog::info) ?: guess(id)
 
     /**
      * A model to answer with when [model] is unreachable: recommended chat models first, preferably from another

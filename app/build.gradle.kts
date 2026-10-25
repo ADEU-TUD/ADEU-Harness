@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "io.github.thepytales.llmhub"
     compileSdk = 35
+    ndkVersion = "27.2.12479018"
 
     defaultConfig {
         applicationId = "io.github.thepytales.llmhub"
@@ -67,6 +68,8 @@ android {
 
 // Speech recognition on the device: sherpa-onnx for Android and the built-in models (see speech/natives.gradle.kts).
 apply(from = "../speech/natives.gradle.kts")
+// Local language models: llama-server built with the NDK (see llama.gradle.kts).
+apply(from = "llama.gradle.kts")
 tasks.named("preBuild") { dependsOn("speechBuiltinModels", "speechAndroidJni") }
 
 dependencies {

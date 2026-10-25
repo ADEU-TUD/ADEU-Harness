@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
@@ -85,6 +86,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.audio.Recorder
+import io.github.thepytales.llmhub.data.Privacy
+import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.FileAttachment
@@ -390,6 +393,10 @@ fun ChatScreen(
                 if (settings.pseudonymize) {
                     ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
                 }
+                // The project's data protection level (models and tools are restricted accordingly).
+                Privacy.level(c, current.folderId).takeIf { it != PrivacyLevel.OPEN }?.let { level ->
+                    ContextChip(Icons.Outlined.Lock, level.short, { }, highlighted = true)
+                }
             }
             }
             }
@@ -524,7 +531,7 @@ fun ChatScreen(
 
     if (showModelPicker) {
         ModelPickerSheet(
-            models = modelsState.ofType(ModelType.CHAT),
+            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
             selected = current.model,
             onSelect = { vm.setModel(it) },
             onDismiss = { showModelPicker = false },
@@ -535,7 +542,7 @@ fun ChatScreen(
 
     regenerateFor?.let { question ->
         ModelPickerSheet(
-            models = modelsState.ofType(ModelType.CHAT),
+            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
             selected = current.model,
             onSelect = { vm.regenerate(question, it) },
             onDismiss = { regenerateFor = null },

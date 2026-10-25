@@ -232,4 +232,7 @@ internal fun transcriptionSummary(c: AppContainer): String {
 }
 
 /** Subtitle of "Modelle auf diesem Gerät" in the overview. */
-internal fun localSummary(c: AppContainer): String = "Kleine Sprachmodelle offline – für vertrauliche Daten"
+internal fun localSummary(c: AppContainer): String {
+    val n = c.localLlm.state.value.installed.size
+    return if (n == 0) "Sprachmodelle offline – für vertrauliche Daten" else "$n Modell(e) installiert · offline"
+}
