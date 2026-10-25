@@ -64,7 +64,8 @@ class DocumentTools(
             listOf(
                 Param("title", "Titel des Dokuments (wird auch als Dateiname verwendet)"),
                 Param("content", "Vollständiger Inhalt in Markdown oder als HTML-Seite (<!DOCTYPE html>…)"),
-                Param("format", "pdf (Standard), docx, pptx (PowerPoint-Präsentation im TUD-Design), qti (Test für OPAL/ONYX als ZIP), html, md oder txt", required = false),
+                Param("format", "pdf (Standard), docx, pptx (PowerPoint im TUD-Design), xlsx (Tabellen als Excel), csv, qti (Test für OPAL/ONYX), " +
+                    "moodle (Moodle-XML-Test), gift (Moodle-GIFT), anki (Karteikarten), limesurvey (Fragebogen), html, md oder txt", required = false),
                 Param("style", "Gestaltung bei Markdown: modern, kraeftig, elegant, klassisch, schlicht oder tud (Corporate Design der TU Dresden)", required = false),
                 Param("accent_color", "Akzentfarbe als #RRGGBB oder Name (z.B. blau, grün, bordeaux)", required = false),
                 Param("logo", "Name eines gespeicherten Logos, „standard“ für das Standardlogo oder „kein“", required = false),
@@ -91,6 +92,19 @@ class DocumentTools(
                 Param("letter_sender", "Optional: neuer Infoblock (Briefe)", required = false),
                 Param("format", "Optional: anderes Format (pdf, docx, html, md, txt)", required = false),
                 Param("tab", "Optional: Name des Tabs, dessen Inhalt content ersetzt (bei Dokumenten mit mehreren Tabs)", required = false),
+            ),
+        ),
+        ToolDef(
+            "create_chart",
+            "Zeichnet ein Diagramm aus Daten (z.B. Ergebnissen von run_javascript): bar, stacked, hbar, line, scatter, pie, box " +
+                "(Boxplot aus Rohdaten je Gruppe) oder histogram. Es erscheint im Chat; für ein Dokument den zurückgegebenen ```chart-Block " +
+                "in den Markdown-Inhalt von create_document übernehmen (PDF/HTML zeichnen ihn, Word und PowerPoint zeigen die Datentabelle).",
+            listOf(
+                Param(
+                    "spec", "JSON-Objekt {\"type\": \"bar\", \"title\": \"…\", \"x_label\": \"…\", \"y_label\": \"…\", \"labels\": [\"A\",\"B\"], " +
+                        "\"series\": [{\"name\": \"…\", \"values\": [1,2]}]} – bei scatter je Reihe zusätzlich \"x\": […], bei box/histogram " +
+                        "\"values\" = Rohdaten (box: eine Reihe je Gruppe)", type = "object",
+                ),
             ),
         ),
         ToolDef(
@@ -129,6 +143,22 @@ class DocumentTools(
                 Param("end", "Ende, z.B. 2026-11-03 15:30 (Standard: eine Stunde nach Beginn)", required = false),
                 Param("location", "Ort oder Link (optional)", required = false),
                 Param("description", "Beschreibung (optional)", required = false),
+                Param("reminder_minutes", "Erinnerung so viele Minuten vorher (optional)", required = false, type = "integer"),
+            ),
+        ),
+        ToolDef(
+            "create_semester_plan",
+            "Legt alle Sitzungen einer wöchentlichen Lehrveranstaltung als Kalenderdatei (.ics) an – ohne gesetzliche Feiertage in " +
+                "Sachsen (inkl. Reformationstag und Buß- und Bettag) und ohne angegebene vorlesungsfreie Zeiten, mit Thema je Sitzung.",
+            listOf(
+                Param("title", "Titel der Veranstaltung"),
+                Param("weekday", "Wochentag, z.B. Dienstag"),
+                Param("time", "Uhrzeit, z.B. 13:00–14:30 oder 4. DS"),
+                Param("first_date", "Erster möglicher Termin, z.B. 2026-10-13"),
+                Param("last_date", "Letzter möglicher Termin, z.B. 2027-02-02"),
+                Param("location", "Ort (optional)", required = false),
+                Param("breaks", "Vorlesungsfreie Zeiten, z.B. 2026-12-21..2027-01-03; mehrere mit ; getrennt (optional)", required = false),
+                Param("topics", "Themen der Sitzungen in Reihenfolge, je Zeile eines (optional)", required = false),
                 Param("reminder_minutes", "Erinnerung so viele Minuten vorher (optional)", required = false, type = "integer"),
             ),
         ),
@@ -178,6 +208,8 @@ class DocumentTools(
         "create_document" -> create(args, ctx = ctx)
         "edit_document" -> edit(args, ctx)
         "read_document" -> readDocument(args, ctx)
+        "create_chart" -> createChart(args)
+        "create_semester_plan" -> semesterPlan(args)
         "reply_to_comment" -> replyToComment(args)
         "create_email_draft" -> emailDraft(args)
         "create_calendar_event" -> calendarEvent(args)
@@ -473,6 +505,53 @@ class DocumentTools(
         else out.copy(text = out.text + "\nNicht gefunden und daher nicht geändert: ${missing.joinToString(" | ") { "„${it.take(80)}“" }}")
     }
 
+    private suspend fun semesterPlan(args: JsonObject): ToolOutput {
+        val plan = io.github.thepytales.llmhub.docs.SemesterPlan
+        val day = plan.weekday(args.req("weekday")) ?: return ToolOutput("FEHLER: Wochentag „${args.s("weekday")}“ nicht verstanden.")
+        val (from, to) = plan.time(args.req("time")) ?: return ToolOutput("FEHLER: Uhrzeit „${args.s("time")}“ nicht verstanden (z.B. 13:00–14:30 oder 4. DS).")
+        val first = CalendarFiles.parse(args.req("first_date"))?.first?.toLocalDate() ?: return ToolOutput("FEHLER: first_date nicht verstanden.")
+        val last = CalendarFiles.parse(args.req("last_date"))?.first?.toLocalDate() ?: return ToolOutput("FEHLER: last_date nicht verstanden.")
+        if (last.isBefore(first) || java.time.temporal.ChronoUnit.DAYS.between(first, last) > 370) return ToolOutput("FEHLER: Zeitraum ungültig (höchstens ein Jahr).")
+        val topics = args.s("topics").orEmpty().lines().map { it.trim().replace(Regex("^\\d+[.)]\\s*|^[-*]\\s*"), "") }.filter { it.isNotEmpty() }
+        // ".." or "–" between two dates is a range; ranges() reads two dates within one part.
+        val breaks = plan.ranges(args.s("breaks").orEmpty().replace("..", " bis "))
+        val (sessions2, skipped2) = plan.plan(day, first, last, breaks, topics)
+        if (sessions2.isEmpty()) return ToolOutput("FEHLER: In diesem Zeitraum gibt es keinen freien Termin.")
+        val title = args.req("title")
+        val events = sessions2.map { s ->
+            CalendarEvent(
+                title + if (s.topic.isNotBlank()) ": ${s.topic}" else " (${s.number}. Sitzung)",
+                s.date.atTime(from), s.date.atTime(to), false, args.s("location").orEmpty(),
+                "${s.number}. Sitzung" + if (s.topic.isNotBlank()) " – ${s.topic}" else "", args.int("reminder_minutes"),
+            )
+        }
+        val file = newFile("Termine – " + title.take(60), "ics")
+        withContext(Dispatchers.IO) { CalendarFiles.writeAll(file, events) }
+        val fmt = java.time.format.DateTimeFormatter.ofPattern("EE dd.MM.yyyy", java.util.Locale.GERMANY)
+        return ToolOutput(
+            buildString {
+                append("${sessions2.size} Termine erstellt (${from}–${to} Uhr). Der Nutzer übernimmt alle mit einem Tipp in seinen Kalender.\n")
+                sessions2.forEach { s -> append("- ${s.number}. ${s.date.format(fmt)}${if (s.topic.isNotBlank()) ": ${s.topic}" else ""}\n") }
+                if (skipped2.isNotEmpty()) append("Ausgelassen: " + skipped2.joinToString(", ") { "${it.date.format(fmt)} (${it.reason})" } + "\n")
+                if (topics.size > sessions2.size) append("Achtung: ${topics.size - sessions2.size} Themen haben keinen Termin mehr.\n")
+            },
+            file = file.absolutePath,
+        )
+    }
+
+    private suspend fun createChart(args: JsonObject): ToolOutput {
+        val raw = jsonArg(args["spec"])?.toString() ?: return ToolOutput("FEHLER: spec fehlt.")
+        val spec = io.github.thepytales.llmhub.docs.ChartSpec.parse(raw)
+            ?: return ToolOutput("FEHLER: Diagramm nicht verstanden. Erwartet: {\"type\": \"bar\", \"labels\": [...], \"series\": [{\"name\": \"…\", \"values\": [...]}]}")
+        val file = newFile("Diagramm – " + spec.title.ifBlank { "ohne Titel" }.take(50), "svg")
+        withContext(Dispatchers.IO) { file.writeText(io.github.thepytales.llmhub.docs.ChartLayout.svg(spec)) }
+        return ToolOutput(
+            "Diagramm erstellt und im Chat angezeigt (auch als SVG-Datei). Für ein Dokument diesen Block unverändert in den Markdown-Inhalt übernehmen:\n" +
+                "```chart\n$raw\n```\nDatentabelle (für Word/PowerPoint und Barrierefreiheit):\n" + spec.table(),
+            file = file.absolutePath,
+        )
+    }
+
     private fun readDocument(args: JsonObject, ctx: RepoContext): ToolOutput {
         val doc = findLive(args.s("file"), ctx) ?: return ToolOutput(
             "FEHLER: Kein Dokument im Editor gefunden. Vorhanden: ${docs.current.take(8).joinToString(", ") { "„${it.title}“" }.ifEmpty { "keine" }}."
@@ -646,6 +725,8 @@ class DocumentTools(
         append("du ein Dokument (auch ein angehängtes PDF) und nennst die Mängel mit Abhilfe. ")
         append(PPTX_HELP)
         append(QtiWriter.HELP)
+        append(MORE_FORMATS_HELP)
+        append(io.github.thepytales.llmhub.docs.LimeSurveyWriter.HELP)
         append("Hängt der Nutzer ein PDF-Formular an (im Anhang als ausfuellbar markiert) und möchte es ausgefüllt haben: erst ")
         append("read_pdf_form, dann fill_pdf mit den Angaben aus dem Chat; fehlen Pflichtangaben, frage vorher nach, und ")
         append("erfinde keine persönlichen Daten. Nenne danach kurz, was eingetragen wurde und was offen ist. ")
@@ -671,6 +752,11 @@ class DocumentTools(
             "Überschrift (und optional einem Satz) wird zur Abschnittsfolie. Zwei Spalten: eine Zeile „|||“ trennt links und " +
             "rechts. Zitat-Folie: „> Zitat“ und „> — Quelle“. Sprechernotizen am Ende der Folie nach „Notizen:“ – dort steht, " +
             "was die Vortragenden sagen. Logo, Einrichtung, Fußzeile und Foliennummern setzt die App im TUD-Design. "
+        const val MORE_FORMATS_HELP = "Weitere Formate: xlsx bzw. csv schreiben die Markdown-Tabellen als Excel-Tabelle (ein Blatt je Tabelle, " +
+            "benannt nach der Überschrift darüber; Zahlen bleiben Zahlen) – z.B. Notenübersichten, Auswertungen, Literaturlisten. " +
+            "moodle und gift erzeugen aus demselben Markdown wie qti einen Moodle-Test. anki erzeugt Karteikarten: Tabelle " +
+            "„| Vorderseite | Rückseite |“ oder Zeilen „Frage :: Antwort“. Diagramme: create_chart, im Dokument als ```chart-Block. " +
+            "Formeln schreibst du in LaTeX zwischen \$…\$; die App setzt sie als lesbaren Text. "
         private val CERTIFICATE_LAYOUTS = setOf("urkunde", "zertifikat", "certificate", "bescheinigung", "teilnahmebescheinigung")
         private val LOGO_SRC = Regex("src\\s*=\\s*([\"'])logo(?::([^\"']*))?\\1", RegexOption.IGNORE_CASE)
     }

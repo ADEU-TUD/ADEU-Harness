@@ -68,6 +68,8 @@ class AppContainer(context: Context) {
     val chatDrafts = ListStore<ChatDraft>(FileBackend(File(files, "chat_drafts.json")), ChatDraft.serializer(), { it.chatId })
     /** Template forms typed but not sent yet. */
     val drafts = ListStore<TemplateDraft>(FileBackend(File(files, "drafts.json")), TemplateDraft.serializer(), { it.templateId })
+    /** Coding schemes for transcripts (qualitative content analysis). */
+    val codebooks = io.github.thepytales.llmhub.transcribe.CodebookStore(files)
     /** Living documents of the editor (versions, comments, tabs). */
     val docs = DocsStore(files)
     val documentTools = DocumentTools(context.applicationContext, settings, logos, contacts, docs)

@@ -173,6 +173,27 @@ class LiteratureSources(
         )
     }
 
+    /** Journals by name (Crossref), to find their ISSN. */
+    suspend fun crossrefJournals(name: String): List<Pair<String, String>> {
+        val url = "https://api.crossref.org/journals".toHttpUrl().newBuilder().addQueryParameter("query", name.take(200)).addQueryParameter("rows", "5").build()
+        val items = ((json(url)?.get("message") as? JsonObject)?.get("items") as? JsonArray).orEmpty()
+        return items.mapNotNull { e ->
+            val o = e as? JsonObject ?: return@mapNotNull null
+            val issn = (o["ISSN"] as? JsonArray)?.firstOrNull()?.let { (it as? JsonPrimitive)?.contentOrNull } ?: return@mapNotNull null
+            o.text("title") to issn
+        }
+    }
+
+    /** Newest articles of a journal (by ISSN) since [fromDate] (yyyy-mm-dd). */
+    suspend fun journalArticles(issn: String, fromDate: String, rows: Int = 20): List<Reference> {
+        val url = "https://api.crossref.org/journals/".toHttpUrl().newBuilder().addPathSegment(issn.trim()).addPathSegment("works")
+            .addQueryParameter("filter", "from-pub-date:$fromDate")
+            .addQueryParameter("sort", "published").addQueryParameter("order", "desc")
+            .addQueryParameter("rows", rows.coerceIn(1, 50).toString()).build()
+        val items = ((json(url)?.get("message") as? JsonObject)?.get("items") as? JsonArray).orEmpty()
+        return items.mapNotNull { (it as? JsonObject)?.let(::crossref) }
+    }
+
     // ── OpenAlex ────────────────────────────────────────────────────────────────────────────────────────────
 
     private fun openAlex(path: String): HttpUrl.Builder = "https://api.openalex.org/$path".toHttpUrl().newBuilder().apply {

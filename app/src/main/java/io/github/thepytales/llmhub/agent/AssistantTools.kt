@@ -174,8 +174,8 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
         if (hits.isEmpty()) return ToolOutput("Keine passende Stelle in der Wissenssammlung gefunden.")
         return ToolOutput(
             hits.joinToString("\n\n") { h ->
-                "[${h.doc.name}, Abschnitt ${h.index + 1} von ${h.doc.chunks}${if (h.doc.collection.isNotEmpty()) ", Projekt" else ""}]\n${h.text}"
-            } + "\n\nNenne die Quelle (Dokumentname) bei Aussagen aus diesen Stellen."
+                "[${h.doc.name}${h.page?.let { ", S. $it" } ?: ""}, Abschnitt ${h.index + 1} von ${h.doc.chunks}${if (h.doc.collection.isNotEmpty()) ", Projekt" else ""}]\n${h.text}"
+            } + "\n\nNenne die Quelle (Dokumentname und, falls angegeben, Seite) bei Aussagen aus diesen Stellen."
         )
     }
 

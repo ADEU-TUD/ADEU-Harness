@@ -44,6 +44,7 @@ import androidx.compose.material.icons.outlined.FindReplace
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ModeComment
 import androidx.compose.material.icons.outlined.MoreVert
@@ -114,6 +115,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.audio.TranscriptPlayer
 import io.github.thepytales.llmhub.transcribe.Transcript
+import kotlinx.coroutines.launch
+import io.github.thepytales.llmhub.transcribe.withCoding
 import io.github.thepytales.llmhub.transcribe.TranscriptEdit
 import io.github.thepytales.llmhub.transcribe.TranscriptExport
 import io.github.thepytales.llmhub.transcribe.TranscriptStatus
@@ -221,6 +224,11 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     var chaptersSheet by rememberSaveable(id) { mutableStateOf(false) }
     var statusDialog by rememberSaveable(id) { mutableStateOf(false) }
     var wordsDialog by rememberSaveable(id) { mutableStateOf(false) }
+    var codingSheet by rememberSaveable(id) { mutableStateOf(false) }
+    var codingMode by rememberSaveable(id) { mutableStateOf(false) }
+    var codeSegment by rememberSaveable(id) { mutableStateOf<Int?>(null) }
+    val codebooks by c.codebooks.items.collectAsStateWithLifecycle()
+    val coderName by remember { c.settings.settings }.collectAsStateWithLifecycle()
     var editSegment by rememberSaveable(id) { mutableStateOf<Int?>(null) }
     var editSpeaker by rememberSaveable(id) { mutableStateOf<Int?>(null) }
     var loop by rememberSaveable(id) { mutableStateOf<Int?>(null) }
@@ -234,6 +242,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     LaunchedEffect(searching) { runCatching { if (searching) searchFocus.requestFocus() else focus.requestFocus() } }
 
     val segs = current.segments
+    val coding = remember(current.raw) { io.github.thepytales.llmhub.transcribe.TranscriptCoding.of(current) }
+    val codebook = codebooks.firstOrNull { it.id == coding.codebookId }
     val active = if (playing || position > 0) segs.indexOfLast { it.start <= position + 0.05 } else -1
     val words = remember(segs) { segs.map { TranscriptEdit.textWords(it) } }
     val stamps = TranscriptEdit.Stamps.of(vs.stamps)
@@ -325,6 +335,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 DropdownMenuItem(text = { Text("Wortzeiten …") }, leadingIcon = { Icon(Icons.Outlined.Timer, null) }, onClick = { menu = false; wordsDialog = true })
                                 DropdownMenuItem(text = { Text("Kapitel & Zusammenfassung …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ListAlt, null) }, onClick = { menu = false; chaptersSheet = true })
                                 DropdownMenuItem(text = { Text("Redeanteile & Statistik …") }, leadingIcon = { Icon(Icons.Outlined.BarChart, null) }, onClick = { menu = false; statsSheet = true })
+                                DropdownMenuItem(text = { Text("Codieren …") }, leadingIcon = { Icon(Icons.Outlined.Label, null) }, onClick = { menu = false; codingSheet = true })
                                 DropdownMenuItem(text = { Text("Status: ${current.status.label} …") }, leadingIcon = { Icon(Icons.Outlined.FactCheck, null) }, onClick = { menu = false; statusDialog = true })
                                 HorizontalDivider()
                                 DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = { menu = false; export = true })
@@ -375,6 +386,15 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                         }
                     }
                     current.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = look.warning) }
+                    if (codingMode && codebook != null) {
+                        Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp)) {
+                            Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("Codiermodus · ${codebook.name} · ${coderName.coderName}", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { codingSheet = true }) { Text("Übersicht") }
+                                TextButton(onClick = { codingMode = false }) { Text("Beenden") }
+                            }
+                        }
+                    }
                     if (current.diarized) {
                         val total = segs.sumOf { it.end - it.start }.coerceAtLeast(0.001)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -464,6 +484,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                             .pointerInput(s, player) {
                                 detectTapGestures(
                                     onTap = { pos ->
+                                        if (codingMode && codebook != null) { codeSegment = i; return@detectTapGestures }
                                         if (player == null) { editSegment = i; return@detectTapGestures }
                                         val off = layout?.getOffsetForPosition(pos) ?: 0
                                         if (loop != null) loop = i
@@ -483,6 +504,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                             }
                             .padding(horizontal = 4.dp, vertical = 3.dp),
                     )
+                    SegmentCodes(coding, codebook, s) { codeSegment = i }
                     if (vs.showComments && !s.comment.isNullOrBlank()) {
                         Row(Modifier.padding(start = 6.dp, top = 2.dp, bottom = 4.dp).clickable { editSegment = i }, verticalAlignment = Alignment.Top) {
                             Icon(Icons.Outlined.ModeComment, contentDescription = "Kommentar", Modifier.size(15.dp).padding(top = 2.dp), tint = look.warning)
@@ -533,6 +555,18 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     if (statsSheet) StatsSheet(current, onDismiss = { statsSheet = false })
     if (chaptersSheet) ChaptersSheet(c, current, control, onSave = { update(it) }, onDismiss = { chaptersSheet = false })
     if (statusDialog) StatusDialog(current.status, onPick = { update(current.copy(status = it)) }, onDismiss = { statusDialog = false })
+    if (codingSheet) CodingSheet(
+        c, current, codingMode, onCodingMode = { codingMode = it }, onUpdate = { update(it, undoable = false) },
+        onJump = { s -> scope.launch { listState.animateScrollToItem(segs.indexOf(s).coerceAtLeast(0) + 1) } },
+        onDismiss = { codingSheet = false },
+    )
+    codeSegment?.let { i ->
+        val seg = segs.getOrNull(i)
+        if (seg != null && codebook != null) CodePickerDialog(seg, coding, codebook, coderName.coderName.ifBlank { "Codierer:in" },
+            onToggle = { codeId -> update(current.withCoding(coding.toggle(seg, codeId, coderName.coderName.ifBlank { "Codierer:in" })), undoable = false) },
+            onDismiss = { codeSegment = null })
+        else codeSegment = null
+    }
     if (wordsDialog) WordTimesDialog(c, current, audio != null, onDismiss = { wordsDialog = false })
     if (retranscribe) RetranscribeSheet(c, current, onStarted = { retranscribe = false; onBack() }, onDismiss = { retranscribe = false })
 }

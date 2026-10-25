@@ -28,6 +28,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.File
 import java.time.LocalDate
 
@@ -108,6 +109,24 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
             ),
         ),
         ToolDef(
+            "journal_new_articles",
+            "Neue Artikel einer Fachzeitschrift (über Crossref): Titel, Autor:innen, Datum, DOI und Abstract, wenn vorhanden. " +
+                "Für Hinweise auf Neuerscheinungen, auch als geplante Aufgabe (z.B. jeden Montag).",
+            listOf(
+                Param("journal", "Name der Zeitschrift oder ISSN, z.B. \"Zeitschrift für Erziehungswissenschaft\" oder 1434-663X"),
+                Param("days", "Zeitraum in Tagen zurück (Standard 30)", required = false, type = "integer"),
+            ),
+        ),
+        ToolDef(
+            "read_feed",
+            "Liest einen RSS- oder Atom-Feed (z.B. Inhaltsverzeichnisse von Zeitschriften, Blogs, Pressemitteilungen) und liefert die " +
+                "neuesten Einträge mit Titel, Datum, Link und Kurztext.",
+            listOf(
+                Param("url", "Adresse des Feeds"),
+                Param("max_items", "Anzahl Einträge (Standard 15)", required = false, type = "integer"),
+            ),
+        ),
+        ToolDef(
             "zotero_add",
             "Überträgt Werke in die Zotero-Bibliothek des Nutzers (optional in eine Sammlung). Nur wenn Zotero eingerichtet ist.",
             listOf(
@@ -126,7 +145,7 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
 
     override fun risk(name: String, args: JsonObject) = if (name == "zotero_add") Risk.EDIT else null
 
-    override fun parallelSafe(name: String) = name in setOf("search_literature", "literature_details", "snowball_literature", "zotero_search")
+    override fun parallelSafe(name: String) = name in setOf("search_literature", "literature_details", "snowball_literature", "zotero_search", "journal_new_articles", "read_feed")
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput {
         val online = Privacy.level(c, ctx.folderId).allowsNetworkTools && ctx.env?.network != io.github.thepytales.llmhub.data.NetworkAccess.NONE
@@ -141,6 +160,8 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
             "format_bibliography" -> bibliography(args, ctx, online)
             "zotero_add" -> zoteroAdd(args, ctx)
             "zotero_search" -> zoteroSearch(args.req("query"))
+            "journal_new_articles" -> journalArticles(args.req("journal"), (args.int("days") ?: 30).coerceIn(1, 730), ctx)
+            "read_feed" -> readFeed(args.req("url"), (args.int("max_items") ?: 15).coerceIn(1, 50), ctx)
             else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
         }
     }
@@ -383,6 +404,33 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
         if (refs.isEmpty()) return ToolOutput("In Zotero nichts zu „$query“ gefunden.")
         val src = sources(null)
         return ToolOutput("Zotero (${refs.size} Treffer):\n" + remember(refs, src).joinToString("\n") { (id, r) -> line(id, r, 0) })
+    }
+
+    private suspend fun journalArticles(journal: String, days: Int, ctx: RepoContext): ToolOutput {
+        val src = sources(ctx)
+        val issn = Regex("\\b\\d{4}-\\d{3}[\\dXx]\\b").find(journal)?.value
+        val (name, id) = if (issn != null) journal to issn else {
+            val found = runCatching { src.crossrefJournals(journal) }.getOrElse { return ToolOutput("FEHLER: ${it.message}") }
+            found.firstOrNull() ?: return ToolOutput("FEHLER: Zeitschrift „$journal“ bei Crossref nicht gefunden – bitte die ISSN angeben.")
+        }
+        val from = LocalDate.now().minusDays(days.toLong()).toString()
+        val refs = runCatching { src.journalArticles(id, from) }.getOrElse { return ToolOutput("FEHLER: ${it.message}") }
+        if (refs.isEmpty()) return ToolOutput("„$name“ (ISSN $id): keine neuen Artikel seit $from bei Crossref.")
+        return ToolOutput("„$name“ (ISSN $id), Artikel seit $from:\n" + remember(refs, src).joinToString("\n") { (i, r) -> line(i, r, 300) })
+    }
+
+    private suspend fun readFeed(url: String, max: Int, ctx: RepoContext): ToolOutput {
+        val u = okhttp3.HttpUrl.run { url.trim().let { if ("://" in it) it else "https://$it" }.toHttpUrlOrNull() }
+            ?: return ToolOutput("FEHLER: Ungültige URL.")
+        if (ctx.env?.allowsHost(u.host) == false) return ToolOutput("FEHLER: Die Umgebung erlaubt keinen Zugriff auf ${u.host}.")
+        val xml = withContext(Dispatchers.IO) {
+            c.llm.http.newCall(okhttp3.Request.Builder().url(u).header("User-Agent", LiteratureSources.USER_AGENT).build()).execute().use { r ->
+                if (!r.isSuccessful) null else r.body?.string()
+            }
+        } ?: return ToolOutput("FEHLER: Der Feed antwortet nicht.")
+        val items = io.github.thepytales.llmhub.research.Feeds.parse(xml).take(max)
+        if (items.isEmpty()) return ToolOutput("Keine Einträge gefunden – ist das ein RSS- oder Atom-Feed?")
+        return ToolOutput(items.joinToString("\n\n") { f -> "- ${f.title}" + (if (f.date.isNotBlank()) " (${f.date})" else "") + "\n  ${f.link}" + (if (f.summary.isNotBlank()) "\n  ${f.summary.take(300)}" else "") })
     }
 
     fun prompt(): String = "Literatur: search_literature durchsucht OpenAlex, Crossref, ERIC und die DNB; snowball_literature findet zitierte " +

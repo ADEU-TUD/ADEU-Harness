@@ -464,7 +464,11 @@ fun AssistantMessage(
             ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
             // The model is writing a document: it can be watched live in the editor.
             if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
-            if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
+            if (call.name == "create_chart" && result != null && !result.content.startsWith("FEHLER")) {
+                val raw = (io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["spec"])?.let { e -> if (e is kotlinx.serialization.json.JsonPrimitive && e.isString) e.content else e.toString() }
+                raw?.let { r -> remember(r) { io.github.thepytales.llmhub.docs.ChartSpec.parse(r) } }?.let { ChartView(it) }
+            }
+                        if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
                 val list = io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["list"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
                 if (list != null) LiteratureListCard(list, onOpen = { onOpenLiterature(list) })
             }
@@ -697,6 +701,9 @@ private fun toolLabel(name: String) = when (name) {
     "zotero_search" -> "Zotero durchsuchen"
     "read_document" -> "Dokument lesen"
     "reply_to_comment" -> "Kommentar beantworten"
+    "create_chart" -> "Diagramm"
+    "journal_new_articles" -> "Neue Artikel"
+    "read_feed" -> "Feed lesen"
     else -> name
 }
 
