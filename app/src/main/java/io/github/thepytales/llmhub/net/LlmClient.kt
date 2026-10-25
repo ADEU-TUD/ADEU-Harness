@@ -419,15 +419,19 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             }
     }
 
-    /** Speech to text for a recorded audio file. */
-    suspend fun transcribe(model: String, file: File): String = withContext(Dispatchers.IO) {
+    /** Speech to text for a recorded audio file; [language] (ISO code) helps Whisper with short pieces. */
+    suspend fun transcribe(model: String, file: File, language: String? = null, mime: String = "audio/mp4"): String = withContext(Dispatchers.IO) {
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("model", model)
-            .addFormDataPart("file", file.name, file.asRequestBody("audio/mp4".toMediaType()))
+            .addFormDataPart("file", file.name, file.asRequestBody(mime.toMediaType()))
+            .apply { if (!language.isNullOrBlank()) addFormDataPart("language", language) }
             .build()
         http.newCall(request("/audio/transcriptions", model).post(body).build()).execute().use { resp ->
             val text = resp.body?.string()
-            if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, text))
+            if (!resp.isSuccessful) {
+                if (resp.code == 429) limiter.onRateLimited()
+                throw ApiException(resp.code, errorMessage(resp.code, text), resp.header("retry-after")?.toLongOrNull())
+            }
             val result = JSON.parseToJsonElement(text ?: "{}").jsonObject.str("text")?.trim().orEmpty()
             usage.record(model, "stt", 0, result.length / 4L, estimated = true)
             result

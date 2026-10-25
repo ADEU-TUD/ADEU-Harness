@@ -3,6 +3,9 @@ package io.github.thepytales.llmhub
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -71,6 +74,28 @@ class MainActivity : ComponentActivity() {
             listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
         }
         if (text.isEmpty() && uris.isEmpty()) return
+        // Audio and video (voice messages, recordings, lecture videos) go to the transcription.
+        val media = uris.filter { (contentResolver.getType(it) ?: intent.type.orEmpty()).let { m -> m.startsWith("audio/") || m.startsWith("video/") } }
+        if (media.isNotEmpty() && media.size == uris.size) {
+            val container = (application as LlmHubApp).container
+            lifecycleScope.launch {
+                media.forEach { uri ->
+                    runCatching {
+                        var name = "Audio"
+                        var size = -1L
+                        contentResolver.query(uri, null, null, null, null)?.use { c ->
+                            if (c.moveToFirst()) {
+                                c.getColumnIndex(OpenableColumns.DISPLAY_NAME).takeIf { it >= 0 }?.let { i -> c.getString(i)?.let { name = it } }
+                                c.getColumnIndex(OpenableColumns.SIZE).takeIf { it >= 0 }?.let { i -> if (!c.isNull(i)) size = c.getLong(i) }
+                            }
+                        }
+                        contentResolver.openInputStream(uri)?.let { container.transcription.import(name, size, it) }
+                    }
+                }
+            }
+            openRoute.value = "transcripts"
+            return
+        }
         shared.value = Shared(text, uris)
         openRoute.value = "chat"
     }

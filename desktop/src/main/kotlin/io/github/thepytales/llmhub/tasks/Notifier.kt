@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import java.awt.SystemTray
 
 /** A Windows notification (shown by the tray icon in Main.kt); clicking it opens [chatId]. */
-data class DesktopNotification(val title: String, val text: String, val chatId: String?)
+data class DesktopNotification(val title: String, val text: String, val chatId: String?, val route: String? = null)
 
 /** System notifications: finished answers, results of scheduled tasks and questions of the agent. */
 object Notifier {
@@ -46,6 +46,11 @@ object Notifier {
     @Suppress("UNUSED_PARAMETER")
     fun confirmationNeeded(context: Context, title: String, chatId: String, action: String) {
         post(title, "Der Agent wartet auf deine Bestätigung für „$action“. Klicken zum Öffnen.", chatId)
+    }
+
+    /** A transcription is finished (or failed); clicking opens [route] (the transcript). */
+    fun transcriptionFinished(title: String, text: String, route: String) {
+        _notifications.tryEmit(DesktopNotification(title, text, null, route))
     }
 
     /** Windows removes notifications by itself. */

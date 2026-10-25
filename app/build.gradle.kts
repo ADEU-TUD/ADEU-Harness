@@ -51,10 +51,26 @@ android {
     }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        // Native libraries unpacked at installation: sherpa-onnx loads from there, and the local language model
+        // (libllama-server.so) can only be started from the app's library folder.
+        jniLibs.useLegacyPackaging = true
+    }
+
+    sourceSets["main"].apply {
+        // Android-only Java of the speech recognition (decoding with MediaCodec, Opus, microphone).
+        java.srcDir("src/androidOnly/java")
+        assets.srcDir(layout.buildDirectory.dir("speech/models"))
+        jniLibs.srcDir(layout.buildDirectory.dir("speech/jni"))
+        jniLibs.srcDir(layout.buildDirectory.dir("llama/jni"))
     }
 }
 
+// Speech recognition on the device: sherpa-onnx for Android and the built-in models (see speech/natives.gradle.kts).
+apply(from = "../speech/natives.gradle.kts")
+tasks.named("preBuild") { dependsOn("speechBuiltinModels", "speechAndroidJni") }
+
 dependencies {
+    implementation(project(":speech"))
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")

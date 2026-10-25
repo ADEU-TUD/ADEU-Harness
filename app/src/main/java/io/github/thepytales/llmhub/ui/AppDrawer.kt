@@ -25,10 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DriveFileMove
@@ -37,8 +35,8 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderSpecial
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Schedule
@@ -66,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -132,9 +131,9 @@ fun AppDrawer(
     val runs by c.runs.runs.collectAsStateWithLifecycle()
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     val look = LocalChatLook.current
+    val transcribing by c.transcription.activeJobs.collectAsStateWithLifecycle()
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
-    var more by rememberSaveable { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(setOf<String>()) }
     var renameChat by remember { mutableStateOf<Conversation?>(null) }
     var moveChat by remember { mutableStateOf<Conversation?>(null) }
@@ -148,7 +147,7 @@ fun AppDrawer(
     }
 
     ModalDrawerSheet(
-        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        drawerContainerColor = MaterialTheme.colorScheme.background,
         drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
         modifier = Modifier.width(318.dp),
     ) {
@@ -176,10 +175,13 @@ fun AppDrawer(
                         modifier = Modifier.weight(1f),
                     )
                 } else {
+                    AppLogo(Modifier.size(38.dp))
+                    Spacer(Modifier.size(11.dp))
                     Text(
                         "ADEU LLM",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = look.titleFont),
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = { searching = true }) {
@@ -211,19 +213,12 @@ fun AppDrawer(
                     return@LazyColumn
                 }
 
-                // The features used every day; models, comparison and usage are for the curious.
+                // Only what is used every day; models, comparison and usage are under Einstellungen.
                 val newResults = conversations.count { it.unread && it.taskId != null }
                 item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
                 item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
                 item { NavRow(Icons.Outlined.Image, "Bilder erzeugen") { onNavigate("images") } }
-                item {
-                    NavRow(if (more) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, if (more) "Weniger" else "Mehr", muted = true) { more = !more }
-                }
-                if (more) {
-                    item { NavRow(Icons.Outlined.AutoAwesome, "Modelle", indent = true) { onNavigate("models") } }
-                    item { NavRow(Icons.Outlined.CompareArrows, "Modelle vergleichen", indent = true) { onNavigate("compare") } }
-                    item { NavRow(Icons.Outlined.Insights, "Verbrauch", indent = true) { onNavigate("usage") } }
-                }
+                item { NavRow(Icons.Outlined.GraphicEq, "Transkription", badge = transcribing, badgeText = "läuft") { onNavigate("transcripts") } }
                 item { HorizontalDivider(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant) }
 
                 item {
@@ -303,7 +298,7 @@ fun AppDrawer(
                         if (name.isNotEmpty()) Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
                             "Einstellungen",
-                            style = if (name.isEmpty()) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.labelSmall,
+                            style = if (name.isEmpty()) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelSmall,
                             color = if (name.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             softWrap = false,
@@ -313,14 +308,14 @@ fun AppDrawer(
                 Spacer(Modifier.size(6.dp))
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    contentColor = MaterialTheme.colorScheme.surface,
+                    color = look.action,
+                    contentColor = look.onAction,
                     shadowElevation = 4.dp,
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
                         .clickable(onClick = onNewChat),
                 ) {
-                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.size(6.dp))
                         Text("Neuer Chat", style = MaterialTheme.typography.titleSmall)
@@ -393,8 +388,22 @@ private fun Hint(text: String, indent: Boolean = false) {
     )
 }
 
+/** Logo tile of the app: the accent as a soft gradient with "A" (ADEU), like the icon of the former Whisper app. */
 @Composable
-private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, indent: Boolean = false, muted: Boolean = false, onClick: () -> Unit) {
+fun AppLogo(modifier: Modifier = Modifier) {
+    val look = LocalChatLook.current
+    val c1 = look.brand
+    val c2 = MaterialTheme.colorScheme.tertiary
+    Box(
+        modifier.clip(RoundedCornerShape(30)).background(Brush.linearGradient(listOf(c1, if (c2 == c1) c1 else c2))),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("A", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+    }
+}
+
+@Composable
+private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: String = "neu", indent: Boolean = false, muted: Boolean = false, onClick: () -> Unit) {
     val color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
     Row(
         Modifier
@@ -411,7 +420,7 @@ private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, indent: Boo
         if (badge > 0) {
             Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
                 Text(
-                    if (badge == 1) "1 neu" else "$badge neu",
+                    if (badge == 1) "1 $badgeText" else "$badge $badgeText",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                 )

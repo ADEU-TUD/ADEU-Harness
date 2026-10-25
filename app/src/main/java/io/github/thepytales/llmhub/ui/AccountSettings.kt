@@ -74,7 +74,8 @@ internal fun SecretField(label: String, value: String, onChange: (String) -> Uni
 
 @Composable
 internal fun Section(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
+    val look = LocalChatLook.current
+    Card(Modifier.fillMaxWidth(), shape = look.cardShape, border = look.cardBorder, colors = CardDefaults.cardColors(containerColor = look.card)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()

@@ -60,3 +60,42 @@ fun rememberFileImport(mimes: Array<String>, read: suspend (InputStream) -> Unit
     }
     return { launcher.launch(mimes) }
 }
+
+/** Picks audio and video files; hands each one's name, size and content to [onPicked] (transcription). */
+@Composable
+fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: String, size: Long, input: InputStream) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        uris.forEach { uri ->
+            scope.launch {
+                runCatching {
+                    var name = "Audio"
+                    var size = -1L
+                    context.contentResolver.query(uri, null, null, null, null)?.use { c ->
+                        if (c.moveToFirst()) {
+                            c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME).takeIf { it >= 0 }?.let { c.getString(it)?.let { n -> name = n } }
+                            c.getColumnIndex(android.provider.OpenableColumns.SIZE).takeIf { it >= 0 }?.let { if (!c.isNull(it)) size = c.getLong(it) }
+                        }
+                    }
+                    val input = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) } ?: error("Datei nicht lesbar")
+                    onPicked(name, size, input)
+                }.onFailure { Toast.makeText(context, "Die Datei konnte nicht geöffnet werden: ${it.message}", Toast.LENGTH_LONG).show() }
+            }
+        }
+    }
+    return { launcher.launch(if (anyFile) arrayOf("*/*") else arrayOf("audio/*", "video/*")) }
+}
+
+/** Asks for the microphone if needed and then runs [onGranted] (Windows: runs it directly). */
+@Composable
+fun rememberMicPermission(onGranted: () -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) onGranted() else Toast.makeText(context, "Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich.", Toast.LENGTH_LONG).show()
+    }
+    return {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) onGranted()
+        else launcher.launch(android.Manifest.permission.RECORD_AUDIO)
+    }
+}

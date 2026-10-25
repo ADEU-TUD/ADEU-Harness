@@ -213,6 +213,16 @@ fun ChatScreen(
     }
 
     LaunchedEffect(Unit) {
+        // Handed over from another screen (e.g. a transcript): text into the input field, files as attachments.
+        if (vm.state.value?.messages.isNullOrEmpty()) {
+            ChatHandoff.take()?.let { h ->
+                if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
+                files.addAll(h.files)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
         // A chat started from the template library opens with that template.
         if (!startTemplateShown) {
             startTemplateShown = true

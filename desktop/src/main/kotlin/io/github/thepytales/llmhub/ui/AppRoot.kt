@@ -286,6 +286,8 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "tasks" -> TasksScreen(c, onBack = back, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "task" -> TaskEditScreen(c, args["id"] ?: "new", onBack = back)
         "usage" -> UsageScreen(c, onBack = back)
+        "transcripts" -> TranscriptsScreen(c, onBack = back, onOpen = { id -> nav.navigate("transcript/$id") }, onNavigate = { nav.navigate(it) })
+        "transcript" -> TranscriptScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "environments" -> EnvironmentsScreen(c, onBack = back, onEdit = { id -> nav.navigate("environment/$id") })
         "environment" -> EnvironmentEditScreen(c, args["id"] ?: "new", onBack = back)
         "settings" -> SettingsScreen(c, section = args["section"], onBack = back, onNavigate = { nav.navigate(it) })

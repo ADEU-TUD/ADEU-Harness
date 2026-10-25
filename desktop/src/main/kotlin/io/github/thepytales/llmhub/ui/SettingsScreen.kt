@@ -126,91 +126,6 @@ private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChang
     }
 }
 
-@Composable
-private fun AccentSwatch(accent: Accent, selected: Boolean, onClick: () -> Unit) {
-    val fill = accent.color?.let { Brush.linearGradient(listOf(it, it)) }
-        ?: Brush.sweepGradient(listOf(Color(0xFF2563EB), Color(0xFF16A34A), Color(0xFFEA580C), Color(0xFFDB2777), Color(0xFF2563EB)))
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick).padding(4.dp)) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(fill)
-                .border(
-                    width = if (selected) 3.dp else 1.dp,
-                    color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
-                    shape = CircleShape,
-                ),
-        ) {
-            if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-        }
-        Text(accent.label, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 2.dp))
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun AppearanceSection(c: AppContainer) {
-    val s by c.settings.settings.collectAsStateWithLifecycle()
-    val style = enumOr(s.appStyle, AppStyle.CLAUDE)
-    val accent = enumOr(s.accent, Accent.AUTO)
-    val mode = enumOr(s.themeMode, ThemeMode.SYSTEM)
-    Section("Darstellung") {
-        Text("Stil", style = MaterialTheme.typography.labelLarge)
-        AppStyle.entries.forEach { st ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { c.settings.update { it.copy(appStyle = st.name) } },
-            ) {
-                RadioButton(selected = style == st, onClick = { c.settings.update { it.copy(appStyle = st.name) } })
-                Column(Modifier.weight(1f)) {
-                    Text(st.label)
-                    Text(st.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        Text("Farbton", style = MaterialTheme.typography.labelLarge)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Accent.entries.forEach { a ->
-                AccentSwatch(a, a == accent) { c.settings.update { it.copy(accent = a.name) } }
-            }
-        }
-        Text(
-            if (style == AppStyle.STANDARD) "„Automatisch“ nutzt das Blau von Material Design."
-            else "„Automatisch“ verwendet die typischen Farben des gewählten Stils.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text("Modus", style = MaterialTheme.typography.labelLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemeMode.entries.forEach { m ->
-                FilterChip(
-                    selected = mode == m,
-                    onClick = { c.settings.update { it.copy(themeMode = m.name) } },
-                    label = { Text(m.label) },
-                )
-            }
-        }
-        SwitchRow("Reines Schwarz (AMOLED)", "Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays.", s.amoled) { v ->
-            c.settings.update { it.copy(amoled = v) }
-        }
-        Text("Schriftgröße", style = MaterialTheme.typography.labelLarge)
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
-                FilterChip(
-                    selected = s.textScale == scale,
-                    onClick = { c.settings.update { it.copy(textScale = scale) } },
-                    label = { Text(label) },
-                )
-            }
-        }
-    }
-}
-
-
 /** Settings as a clear list of sections (like the ChatGPT app); [section] opens one of them. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -222,7 +137,8 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "github" -> GitHubSection(c)
                 "chat" -> ChatSection(c)
                 "privacy" -> PrivacySection(c)
-                "appearance" -> AppearanceSection(c)
+                "appearance" -> AppearanceSettings(c)
+                "transcription" -> TranscriptionSettings(c)
                 "voice" -> VoiceSection(c)
                 "documents" -> DocumentsSection(c)
                 "windows" -> WindowsSection(c)
