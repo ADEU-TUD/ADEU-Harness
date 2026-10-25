@@ -26,10 +26,32 @@ data class KnowledgeDoc(
 )
 
 @Serializable
-data class KnowledgeChunk(val text: String, val vector: List<Float>? = null)
+data class KnowledgeChunk(
+    val text: String,
+    val vector: List<Float>? = null,
+    /** Page of a PDF where the passage begins (from the page marks of the text), for citations. */
+    val page: Int? = null,
+)
+
+/** Page marks "[Seite 12]" in the text of PDFs: the model and the knowledge collection can name the page. */
+object PageMarks {
+    /** Written by the PDF reader after every page, then replaced by numbered marks. */
+    const val PAGE_BREAK = "\u000C"
+    private val MARK = Regex("\\[Seite (\\d+)\\]")
+
+    fun number(text: String): String {
+        val pages = text.split(PAGE_BREAK)
+        if (pages.size <= 1) return text
+        return pages.mapIndexed { i, p -> if (p.isBlank()) "" else "[Seite ${i + 1}]\n${p.trim('\n')}" }.filter { it.isNotEmpty() }.joinToString("\n\n")
+    }
+
+    /** Page where [index] of [text] lies (the last mark before it). */
+    fun pageAt(text: String, index: Int): Int? = MARK.findAll(text.substring(0, index.coerceIn(0, text.length))).lastOrNull()?.groupValues?.get(1)?.toIntOrNull()
+        ?: MARK.find(text, index.coerceIn(0, text.length))?.groupValues?.get(1)?.toIntOrNull()?.minus(1)?.takeIf { it >= 1 }
+}
 
 /** A search hit: the passage, its document and the position in it. */
-data class KnowledgeHit(val doc: KnowledgeDoc, val index: Int, val text: String, val score: Double)
+data class KnowledgeHit(val doc: KnowledgeDoc, val index: Int, val text: String, val score: Double, val page: Int? = null)
 
 /**
  * Own documents the model can search (module handbook, examination regulations, literature …). Text is split
@@ -67,7 +89,12 @@ class KnowledgeStore(root: File) {
         index.current.filter { it.collection == collection && it.name == name }.forEach { remove(it) }
         val parts = split(text)
         val doc = KnowledgeDoc(name = name, collection = collection, chars = text.length, chunks = parts.size)
-        saveChunks(doc.id, parts.map { KnowledgeChunk(it) })
+        var from = 0
+        saveChunks(doc.id, parts.map { part ->
+            val at = text.indexOf(part.take(60), from).takeIf { it >= 0 } ?: from
+            from = at
+            KnowledgeChunk(part, page = PageMarks.pageAt(text, at))
+        })
         index.upsert(doc)
         return doc
     }
@@ -129,7 +156,7 @@ class KnowledgeStore(root: File) {
             if (semantic != null) 0.65 * semantic + 0.35 * keyword else keyword
         }
         return all.indices.sortedByDescending { scores[it] }.take(k).filter { scores[it] > 0.05 }
-            .map { i -> KnowledgeHit(all[i].first, all[i].second, all[i].third.text, scores[i]) }
+            .map { i -> KnowledgeHit(all[i].first, all[i].second, all[i].third.text, scores[i], all[i].third.page) }
     }
 
     companion object {

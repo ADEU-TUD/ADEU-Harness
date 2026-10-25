@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.AlertDialog
@@ -28,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -121,6 +123,15 @@ fun DocumentCard(path: String) {
                         Text(SAVE_AS_LABEL)
                     }
                 }
+                // Markdown documents can be edited and commented in the document editor.
+                val docs by io.github.thepytales.llmhub.App.container.docs.items.collectAsState()
+                docs.firstOrNull { it.file == path }?.let { live ->
+                    TextButton(onClick = { DocsHandoff.show(live.id) }) {
+                        Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.size(4.dp))
+                        Text("Im Editor bearbeiten" + if (live.openComments > 0) " · ${live.openComments} Kommentare" else "")
+                    }
+                }
                 DocumentGaps(file, version) { version++ }
             }
         }
@@ -149,7 +160,7 @@ fun chatToMarkdown(conv: Conversation): String = buildString {
 /** Lets the user export [markdown] as PDF, Word, HTML, Markdown or text. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: () -> Unit) {
+fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: () -> Unit, onCreated: (File) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var format by remember { mutableStateOf(DocFormat.PDF) }
@@ -171,6 +182,7 @@ fun ExportDialog(c: AppContainer, title: String, markdown: String, onDismiss: ()
             busy = false
             result.onSuccess {
                 created[key] = it
+                onCreated(it)
                 action(it)
             }.onFailure {
                 Notices.error("Export fehlgeschlagen: ${it.message}")

@@ -68,7 +68,17 @@ object MarkdownDocx {
             "</cp:coreProperties>"
     }
 
-    fun write(file: File, title: String, markdown: String, theme: DocTheme = DocTheme()) {
+    fun write(file: File, title: String, markdown: String, theme: DocTheme = DocTheme()) =
+        writeWith(file, title, markdown, theme) { withLogo -> document(title, markdown, theme, withLogo) }
+
+    /**
+     * Word with tracked changes: the text of [newMarkdown], with what changed since [oldMarkdown] as revisions
+     * (inserted / deleted, by [author]) that can be accepted or rejected in Word.
+     */
+    fun writeTracked(file: File, title: String, oldMarkdown: String, newMarkdown: String, theme: DocTheme = DocTheme(), author: String = "ADEU LLM") =
+        writeWith(file, title, newMarkdown, theme) { withLogo -> trackedDocument(oldMarkdown, newMarkdown, theme, withLogo, author) }
+
+    private fun writeWith(file: File, title: String, markdown: String, theme: DocTheme, body: (Boolean) -> String) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
         ZipOutputStream(file.outputStream()).use { zip ->
             fun bytes(name: String, content: ByteArray) {
@@ -84,7 +94,7 @@ object MarkdownDocx {
             entry("word/styles.xml", styles(if (theme.style == DocStyle.TUD) "Noto Sans" else if (theme.style == DocStyle.CLASSIC) "Georgia" else "Calibri"))
             entry("docProps/core.xml", core(title.ifBlank { markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim() ?: "Dokument" }))
             if (logo != null) bytes("word/media/logo.png", logo)
-            entry("word/document.xml", document(title, markdown, theme, logo != null))
+            entry("word/document.xml", body(logo != null))
         }
     }
 
@@ -187,10 +197,16 @@ object MarkdownDocx {
 
     private const val SPACING = "<w:spacing w:after=\"120\" w:line=\"276\" w:lineRule=\"auto\"/>"
 
+    private fun accentOf(theme: DocTheme) = if (theme.style == DocStyle.CLASSIC || theme.style == DocStyle.MINIMAL) null else theme.accentHex
+    private fun headFontOf(theme: DocTheme) = if (theme.style == DocStyle.CLASSIC || theme.style == DocStyle.ELEGANT) "Georgia" else null
+
     private fun document(title: String, markdown: String, theme: DocTheme, withLogo: Boolean): String = buildString {
-        val plain = theme.style == DocStyle.CLASSIC || theme.style == DocStyle.MINIMAL
-        val accent = if (plain) null else theme.accentHex
-        val headFont = if (theme.style == DocStyle.CLASSIC || theme.style == DocStyle.ELEGANT) "Georgia" else null
+        head(theme, withLogo)
+        for (b in parseBlocks(DocumentWriter.withTitle(title, markdown))) block(b, theme)
+        tail()
+    }
+
+    private fun StringBuilder.head(theme: DocTheme, withLogo: Boolean) {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
         append("<w:document xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\" ")
         append("xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\"><w:body>")
@@ -204,7 +220,100 @@ object MarkdownDocx {
                 append(para(run(line, style), "<w:spacing w:after=\"${if (last) 240 else 0}\"/>"))
             }
         }
-        for (b in parseBlocks(DocumentWriter.withTitle(title, markdown))) {
+    }
+
+    private fun StringBuilder.tail() {
+        append("<w:sectPr><w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/><w:pgSz w:w=\"11906\" w:h=\"16838\"/>")
+        append("<w:pgMar w:top=\"1134\" w:right=\"1134\" w:bottom=\"1134\" w:left=\"1134\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
+        append("</w:sectPr></w:body></w:document>")
+    }
+
+    /** Paragraph properties of a block (style, indent, borders) for the tracked version. */
+    private fun pPrOf(b: Block, theme: DocTheme): String = when (b) {
+        is Block.Heading -> "<w:pStyle w:val=\"Heading${b.level.coerceIn(1, 4)}\"/><w:keepNext/><w:spacing w:before=\"240\" w:after=\"120\"/>"
+        is Block.Item -> "<w:spacing w:after=\"60\"/><w:ind w:left=\"${720 + 360 * b.indent}\" w:hanging=\"360\"/>"
+        is Block.Quote -> "<w:pBdr><w:left w:val=\"single\" w:sz=\"12\" w:space=\"8\" w:color=\"BBBBBB\"/></w:pBdr>$SPACING<w:ind w:left=\"240\"/>"
+        else -> SPACING
+    }
+
+    private fun textOf(b: Block): String = when (b) {
+        is Block.Heading -> b.text
+        is Block.Paragraph -> b.text
+        is Block.Item -> b.marker + " " + b.text
+        is Block.Quote -> b.text
+        is Block.Code -> b.code
+        is Block.Table -> b.rows.joinToString("\n") { it.joinToString(" | ") }
+        Block.Rule -> ""
+    }
+
+    /** Plain text of inline Markdown (the tracked version compares words without formatting marks). */
+    private fun plainInline(text: String) = inlineSegments(text).joinToString("") { it.text }
+
+    private fun trackedDocument(oldMd: String, newMd: String, theme: DocTheme, withLogo: Boolean, author: String): String = buildString {
+        head(theme, withLogo)
+        val date = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
+        var revision = 1
+        fun attrs() = "w:id=\"${revision++}\" w:author=\"${esc(author)}\" w:date=\"$date\""
+        fun insRun(t: String, style: RunStyle) = if (t.isEmpty()) "" else "<w:ins ${attrs()}>${run(t, style)}</w:ins>"
+        fun delRun(t: String, style: RunStyle): String {
+            if (t.isEmpty()) return ""
+            val props = style.xml().let { if (it.isEmpty()) "" else "<w:rPr>$it</w:rPr>" }
+            return "<w:del ${attrs()}>" + t.split('\n').joinToString("<w:r><w:br/></w:r>") { line -> "<w:r>$props<w:delText xml:space=\"preserve\">${esc(line)}</w:delText></w:r>" } + "</w:del>"
+        }
+        fun styleOf(b: Block) = when (b) {
+            is Block.Heading -> RunStyle(bold = true, size = when (b.level) { 1 -> 40; 2 -> 32; 3 -> 27; else -> 24 }, color = if (b.level <= 2) accentOf(theme) else null, font = headFontOf(theme))
+            is Block.Quote -> RunStyle(italic = true, color = "555555")
+            is Block.Code -> RunStyle(mono = true, size = 18)
+            else -> RunStyle()
+        }
+        val oldBlocks = parseBlocks(oldMd)
+        val newBlocks = parseBlocks(newMd)
+        // Longest common subsequence of the blocks; changed neighbours are compared word by word.
+        val dp = Array(oldBlocks.size + 1) { IntArray(newBlocks.size + 1) }
+        for (i in oldBlocks.indices.reversed()) for (j in newBlocks.indices.reversed()) {
+            dp[i][j] = if (oldBlocks[i] == newBlocks[j]) dp[i + 1][j + 1] + 1 else maxOf(dp[i + 1][j], dp[i][j + 1])
+        }
+        var i = 0
+        var j = 0
+        while (i < oldBlocks.size || j < newBlocks.size) {
+            when {
+                i < oldBlocks.size && j < newBlocks.size && oldBlocks[i] == newBlocks[j] -> { block(newBlocks[j], theme); i++; j++ }
+                // A changed paragraph: same kind of block on both sides → word by word.
+                i < oldBlocks.size && j < newBlocks.size && oldBlocks[i]::class == newBlocks[j]::class && oldBlocks[i] !is Block.Table &&
+                    dp[i][j] == dp[i + 1][j + 1] -> {
+                    val style = styleOf(newBlocks[j])
+                    val pieces = io.github.thepytales.llmhub.docs.TextDiff.words(plainInline(textOf(oldBlocks[i])), plainInline(textOf(newBlocks[j])))
+                    val content = pieces.joinToString("") { p ->
+                        when (p.op) {
+                            io.github.thepytales.llmhub.docs.TextDiff.Op.SAME -> run(p.text, style)
+                            io.github.thepytales.llmhub.docs.TextDiff.Op.ADDED -> insRun(p.text, style)
+                            io.github.thepytales.llmhub.docs.TextDiff.Op.REMOVED -> delRun(p.text, style)
+                        }
+                    }
+                    append(para(content, pPrOf(newBlocks[j], theme)))
+                    i++; j++
+                }
+                j < newBlocks.size && (i >= oldBlocks.size || dp[i][j + 1] >= dp[i + 1][j]) -> {
+                    val b = newBlocks[j]
+                    if (b is Block.Table || b is Block.Rule) block(b, theme)
+                    else append(para(insRun(plainInline(textOf(b)), styleOf(b)), pPrOf(b, theme) + "<w:rPr><w:ins ${attrs()}/></w:rPr>"))
+                    j++
+                }
+                else -> {
+                    val b = oldBlocks[i]
+                    val text = if (b is Block.Table) "[Tabelle entfernt] " + textOf(b).take(200) else plainInline(textOf(b))
+                    if (b !is Block.Rule) append(para(delRun(text, styleOf(b)), pPrOf(b, theme) + "<w:rPr><w:del ${attrs()}/></w:rPr>"))
+                    i++
+                }
+            }
+        }
+        tail()
+    }
+
+    private fun StringBuilder.block(b: Block, theme: DocTheme) {
+        val accent = accentOf(theme)
+        val headFont = headFontOf(theme)
+        run {
             when (b) {
                 is Block.Heading -> {
                     val size = when (b.level) { 1 -> 40; 2 -> 32; 3 -> 27; else -> 24 }
@@ -239,9 +348,6 @@ object MarkdownDocx {
                 Block.Rule -> append(para("", "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"1\" w:color=\"BBBBBB\"/></w:pBdr>"))
             }
         }
-        append("<w:sectPr><w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/><w:pgSz w:w=\"11906\" w:h=\"16838\"/>")
-        append("<w:pgMar w:top=\"1134\" w:right=\"1134\" w:bottom=\"1134\" w:left=\"1134\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
-        append("</w:sectPr></w:body></w:document>")
     }
 
     private fun StringBuilder.table(rows: List<List<String>>, accent: String?) {

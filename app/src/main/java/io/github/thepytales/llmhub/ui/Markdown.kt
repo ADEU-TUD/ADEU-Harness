@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.sp
 
 internal sealed interface Block {
@@ -197,11 +198,14 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier, color: Color = Col
     val blocks = remember(text) { parseBlocks(text) }
     val codeBg = MaterialTheme.colorScheme.surfaceVariant
     val link = MaterialTheme.colorScheme.primary
-    fun md(s: String) = inlineMarkdown(s, codeBg, link)
+    fun md(s: String) = inlineMarkdown(io.github.thepytales.llmhub.docs.MathText.inText(s), codeBg, link)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         blocks.forEach { b ->
             when (b) {
-                is Block.Code -> CodeBlock(b.lang, b.code)
+                is Block.Code -> {
+                    val chart = if (b.lang.equals("chart", ignoreCase = true)) remember(b.code) { io.github.thepytales.llmhub.docs.ChartSpec.parse(b.code) } else null
+                    if (chart != null) ChartView(chart) else CodeBlock(b.lang, b.code)
+                }
                 is Block.Heading -> Text(
                     md(b.text),
                     color = color,
@@ -287,8 +291,12 @@ fun CodeBlock(lang: String, code: String) {
                     Icon(Icons.Outlined.ContentCopy, contentDescription = "Kopieren", modifier = Modifier.size(18.dp))
                 }
             }
+            val colors = SyntaxColors(
+                keyword = MaterialTheme.colorScheme.primary, string = Color(0xFF15803D).let { if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color(0xFF86EFAC) else it },
+                comment = MaterialTheme.colorScheme.outline, number = MaterialTheme.colorScheme.tertiary,
+            )
             Text(
-                code,
+                remember(code, lang, colors) { highlight(code, lang, colors) },
                 fontFamily = FontFamily.Monospace,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -297,5 +305,48 @@ fun CodeBlock(lang: String, code: String) {
                     .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
             )
         }
+    }
+}
+
+
+/** Colors of the syntax highlighting (taken from the theme, so dark mode works). */
+data class SyntaxColors(val keyword: Color, val string: Color, val comment: Color, val number: Color)
+
+private val KEYWORDS = setOf(
+    // Kotlin, Java, JavaScript, TypeScript, C-like
+    "fun", "val", "var", "class", "object", "interface", "if", "else", "when", "for", "while", "do", "return", "break", "continue", "import", "package",
+    "public", "private", "protected", "internal", "override", "open", "data", "sealed", "enum", "const", "static", "final", "void", "new", "this", "super",
+    "null", "true", "false", "try", "catch", "finally", "throw", "throws", "function", "let", "async", "await", "export", "default", "extends", "implements",
+    "switch", "case", "typeof", "instanceof", "in", "is", "as", "int", "long", "double", "float", "boolean", "char", "string", "suspend",
+    // Python, R
+    "def", "lambda", "pass", "with", "yield", "from", "and", "or", "not", "None", "True", "False", "elif", "except", "raise", "global", "nonlocal",
+    "library", "require", "function", "repeat", "NULL", "NA", "TRUE", "FALSE", "Inf", "NaN",
+    // SQL
+    "select", "from", "where", "group", "by", "order", "having", "join", "left", "right", "inner", "outer", "on", "insert", "into", "values",
+    "update", "set", "delete", "create", "table", "drop", "alter", "limit", "distinct", "count", "sum", "avg", "as",
+)
+private val TOKEN = Regex("(//[^\\n]*|#(?![\\w{])[^\\n]*|/\\*[\\s\\S]*?\\*/|--[^\\n]*)|(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')|\\b(\\d+(?:\\.\\d+)?)\\b|\\b([A-Za-z_][A-Za-z0-9_]*)\\b")
+
+/** Light syntax highlighting for the usual languages of answers (Kotlin, Java, JavaScript, Python, R, SQL). */
+fun highlight(code: String, lang: String, c: SyntaxColors): AnnotatedString {
+    if (code.length > 20_000 || lang.lowercase() in setOf("text", "txt", "plain", "markdown", "md", "csv")) return AnnotatedString(code)
+    val sql = lang.lowercase() == "sql"
+    val hashComments = lang.lowercase() in setOf("python", "py", "r", "bash", "sh", "shell", "yaml", "yml", "toml", "")
+    return buildAnnotatedString {
+        var last = 0
+        TOKEN.findAll(code).forEach { m ->
+            append(code.substring(last, m.range.first))
+            val v = m.value
+            when {
+                m.groupValues[1].isNotEmpty() && (v.startsWith("#").not() || hashComments) && (!v.startsWith("--") || sql) ->
+                    withStyle(SpanStyle(color = c.comment, fontStyle = FontStyle.Italic)) { append(v) }
+                m.groupValues[2].isNotEmpty() -> withStyle(SpanStyle(color = c.string)) { append(v) }
+                m.groupValues[3].isNotEmpty() -> withStyle(SpanStyle(color = c.number)) { append(v) }
+                m.groupValues[4].isNotEmpty() && (v in KEYWORDS || sql && v.lowercase() in KEYWORDS) -> withStyle(SpanStyle(color = c.keyword, fontWeight = FontWeight.SemiBold)) { append(v) }
+                else -> append(v)
+            }
+            last = m.range.last + 1
+        }
+        append(code.substring(last))
     }
 }

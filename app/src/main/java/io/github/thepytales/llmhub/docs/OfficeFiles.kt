@@ -87,10 +87,14 @@ object CalendarFiles {
         return out.toString()
     }
 
-    fun write(file: File, e: CalendarEvent) {
+    fun write(file: File, e: CalendarEvent) = writeAll(file, listOf(e))
+
+    /** Several events in one calendar file (e.g. all sessions of a semester). */
+    fun writeAll(file: File, events: List<CalendarEvent>) {
         fun utc(t: LocalDateTime) = ZonedDateTime.of(t, ZONE).withZoneSameInstant(ZoneId.of("UTC")).format(UTC)
         val lines = buildList {
             add("BEGIN:VCALENDAR"); add("VERSION:2.0"); add("PRODID:-//ADEU LLM//DE"); add("CALSCALE:GREGORIAN"); add("METHOD:PUBLISH")
+            for (e in events) {
             add("BEGIN:VEVENT")
             add("UID:${UUID.randomUUID()}@adeu-llm")
             add("DTSTAMP:${utc(LocalDateTime.now())}")
@@ -107,7 +111,9 @@ object CalendarFiles {
             e.reminderMinutes?.let { m ->
                 add("BEGIN:VALARM"); add("ACTION:DISPLAY"); add("DESCRIPTION:${esc(e.title)}"); add("TRIGGER:-PT${m}M"); add("END:VALARM")
             }
-            add("END:VEVENT"); add("END:VCALENDAR")
+            add("END:VEVENT")
+            }
+            add("END:VCALENDAR")
         }
         file.writeText(lines.joinToString("\r\n") { fold(it) } + "\r\n")
     }

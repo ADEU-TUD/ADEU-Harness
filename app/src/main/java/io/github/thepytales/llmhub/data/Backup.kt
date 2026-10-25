@@ -23,6 +23,8 @@ data class PortableSettings(
     val favoriteTemplates: List<String>, val userName: String, val fallbackModel: String, val requestsPerMinute: Int,
     val memoryMode: String,
     val pseudonymize: Boolean = false, val pseudonymAuto: Boolean = true, val pseudonymTerms: String = "",
+    val citationStyle: String = "APA7_DE", val zoteroUserId: String = "", val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB",
+    val uiLanguage: String = "de", val coderName: String = "",
 )
 
 @Serializable
@@ -54,6 +56,8 @@ data class BackupSecrets(
     val providerKeys: Map<String, String> = emptyMap(),
     /** Environment id → variable name → value of secret variables. */
     val envSecrets: Map<String, Map<String, String>> = emptyMap(),
+    val zoteroKey: String? = null,
+    val openAlexKey: String? = null,
 )
 
 /** [locked]: the backup carries encrypted keys; [Backup.unlock] with the password applies them. */
@@ -77,6 +81,7 @@ object Backup {
         s.webTools, s.themeMode, s.appStyle, s.accent, s.amoled, s.textScale, s.ttsEngine, s.ttsVoice, s.speechRate,
         s.docStyle, s.docAccent, s.docFooter, s.tudUnit, s.autoLogo, s.senderInfo, s.favoriteTemplates, s.userName,
         s.fallbackModel, s.requestsPerMinute, s.memoryMode, s.pseudonymize, s.pseudonymAuto, s.pseudonymTerms,
+        s.citationStyle, s.zoteroUserId, s.literatureSources, s.uiLanguage, s.coderName,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -88,6 +93,8 @@ object Backup {
         favoriteTemplates = p.favoriteTemplates, userName = p.userName, fallbackModel = p.fallbackModel,
         requestsPerMinute = p.requestsPerMinute, memoryMode = p.memoryMode, pseudonymize = p.pseudonymize,
         pseudonymAuto = p.pseudonymAuto, pseudonymTerms = p.pseudonymTerms,
+        citationStyle = p.citationStyle, zoteroUserId = p.zoteroUserId, literatureSources = p.literatureSources,
+        uiLanguage = p.uiLanguage, coderName = p.coderName,
     )
 
     /**
@@ -106,6 +113,8 @@ object Backup {
                 providerKeys = s.providers.filter { p -> p.apiKey.isNotBlank() }.associate { p -> p.id to p.apiKey },
                 envSecrets = c.environments.current.associate { e -> e.id to e.variables.filter { v -> v.secret && v.value.isNotEmpty() }.associate { v -> v.name to v.value } }
                     .filterValues { m -> m.isNotEmpty() },
+                zoteroKey = s.zoteroKey.takeIf { k -> k.isNotBlank() },
+                openAlexKey = s.openAlexKey.takeIf { k -> k.isNotBlank() },
             )
             SecretBox.seal(json.encodeToString(BackupSecrets.serializer(), plain), it)
         }
@@ -179,6 +188,8 @@ object Backup {
     private fun applySecrets(c: AppContainer, secrets: BackupSecrets, providers: List<ApiProvider>, environments: List<AgentEnvironment>) {
         c.settings.update { s ->
             s.let { if (secrets.apiKey != null) it.copy(apiKey = secrets.apiKey) else it }
+                .let { if (secrets.zoteroKey != null) it.copy(zoteroKey = secrets.zoteroKey) else it }
+                .let { if (secrets.openAlexKey != null) it.copy(openAlexKey = secrets.openAlexKey) else it }
                 .let { if (secrets.githubToken != null) it.copy(githubToken = secrets.githubToken, githubUser = "") else it }
                 .let { cur ->
                     val known = cur.githubAccounts.map { a -> a.token }.toSet() + cur.githubToken

@@ -138,6 +138,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // Documents opened from a card, the literature screen or a chat answer (the chat shows them beside it when wide).
+    val docRequest by DocsHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(docRequest) {
+        docRequest?.let { id ->
+            runCatching { nav.navigate("doc/$id") { launchSingleTop = true } }
+            DocsHandoff.request.value = null
+        }
+    }
+
     // Safety net: should the back stack ever run empty, a new chat appears instead of an empty window.
     var shown by remember { mutableStateOf(false) }
     LaunchedEffect(entry) {
@@ -286,6 +295,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             }
             composable("settings/{section}") { back ->
                 SettingsScreen(c, section = back.arguments?.getString("section"), onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
+            composable("literature") { back ->
+                LiteratureScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) }, onSettings = { nav.go(back, "settings/literature") })
+            }
+            composable("docs") { back ->
+                DocsListScreen(c, onBack = { nav.back(back) }, onOpen = { id -> nav.go(back, "doc/$id") })
+            }
+            composable("doc/{id}") { back ->
+                DocScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
             }
         }
     }

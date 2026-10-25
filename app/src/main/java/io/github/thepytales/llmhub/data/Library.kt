@@ -116,6 +116,22 @@ data class TemplateDraft(
     val updatedAt: Long = System.currentTimeMillis(),
 )
 
+/** A text block the user inserts often (greeting, signature, standard instruction); also as /Name in the input field. */
+@Serializable
+data class Snippet(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val text: String,
+)
+
+/** Text typed into a chat but not sent yet; it stays with that chat. */
+@Serializable
+data class ChatDraft(
+    val chatId: String,
+    val text: String,
+    val updatedAt: Long = System.currentTimeMillis(),
+)
+
 /** An address used in a letter; offered again in the address fields of templates. */
 @Serializable
 data class Contact(

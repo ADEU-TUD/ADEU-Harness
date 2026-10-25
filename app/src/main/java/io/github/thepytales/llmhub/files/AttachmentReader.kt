@@ -21,6 +21,8 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import io.github.thepytales.llmhub.data.PageMarks
+import io.github.thepytales.llmhub.data.PageMarks.PAGE_BREAK
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
@@ -100,7 +102,8 @@ object AttachmentReader {
             val stripper = PDFTextStripper()
             stripper.setSortByPosition(true)
             stripper.setEndPage(minOf(doc.numberOfPages, 500))
-            stripper.getText(doc) to doc.numberOfPages
+            stripper.setPageEnd(PAGE_BREAK)
+            PageMarks.number(stripper.getText(doc)) to doc.numberOfPages
         }
         // Kept so the agent can fill in the form later (read_pdf_form, fill_pdf).
         val copy = PdfOriginals.keep(File(context.filesDir, "attachments"), name, bytes)?.absolutePath

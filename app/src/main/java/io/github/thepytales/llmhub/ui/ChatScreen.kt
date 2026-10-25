@@ -5,6 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.SmallFloatingActionButton
+import io.github.thepytales.llmhub.data.Conversation
+import androidx.compose.material.icons.outlined.ManageSearch
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,6 +78,8 @@ import io.github.thepytales.llmhub.data.PrivacyLevel
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
+import io.github.thepytales.llmhub.docs.DocBlocks
+import io.github.thepytales.llmhub.docs.DocsLive
 import io.github.thepytales.llmhub.data.label
 import io.github.thepytales.llmhub.data.thread
 
@@ -117,6 +131,30 @@ fun ChatScreen(
     var menuOpen by remember { mutableStateOf(false) }
     val recorder = remember { Recorder(context.applicationContext) }
     var recording by remember { mutableStateOf(false) }
+    var improving by remember { mutableStateOf(false) }
+    var showSnippets by remember { mutableStateOf(false) }
+    var showFromApp by remember { mutableStateOf(false) }
+    var quoteFrom by remember { mutableStateOf<String?>(null) }
+    var ratingFor by remember { mutableStateOf<ChatMessage?>(null) }
+    var searchOpen by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var searchHit by remember { mutableIntStateOf(0) }
+    var chipsOpen by remember { mutableStateOf(false) }
+    val snippets by c.snippets.items.collectAsStateWithLifecycle()
+    val exportJson = rememberFileExport("application/json", onDone = { ok -> if (!ok) Notices.error("Export fehlgeschlagen") }) { out ->
+        vm.state.value?.let { out.write(ChatJson.write(it).toByteArray(Charsets.UTF_8)) }
+    }
+
+    // The unsent text stays with its chat (also after closing the app).
+    LaunchedEffect(vm.chatId) {
+        if (input.isBlank()) c.chatDrafts.get(vm.chatId)?.text?.let { input = it }
+    }
+    LaunchedEffect(input) {
+        kotlinx.coroutines.delay(600)
+        if (vm.state.value?.temporary == true) return@LaunchedEffect
+        if (input.isBlank()) { if (c.chatDrafts.get(vm.chatId) != null) c.chatDrafts.delete(vm.chatId) }
+        else if (c.chatDrafts.get(vm.chatId)?.text != input) c.chatDrafts.upsert(io.github.thepytales.llmhub.data.ChatDraft(vm.chatId, input))
+    }
 
     LaunchedEffect(vm) {
         vm.toasts.collect { Notices.info(it) }
@@ -143,9 +181,14 @@ fun ChatScreen(
         // Handed over from another screen (e.g. a transcript): text into the input field, files as attachments.
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
-                if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
-                files.addAll(h.files)
-                images.addAll(h.images)
+                h.mode?.let { vm.setMode(it) }
+                if (h.send && h.text.isNotBlank()) {
+                    vm.send(h.text, h.images, h.files)
+                } else {
+                    if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
+                    files.addAll(h.files)
+                    images.addAll(h.images)
+                }
             }
         }
     }
@@ -199,6 +242,23 @@ fun ChatScreen(
     }
 
     val hasMessages = current.messages.isNotEmpty()
+    // Documents open beside the chat on wide screens (like Claude Docs); on phones they get their own screen.
+    var docPanel by rememberSaveable(current.id) { mutableStateOf<String?>(null) }
+    val drafts by DocsLive.drafts.collectAsStateWithLifecycle()
+    val writingDoc = drafts[current.id]
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val sideBySide = maxWidth >= 1000.dp
+    DisposableEffect(sideBySide, current.id) {
+        val host: ((String) -> Boolean)? = if (sideBySide) ({ id -> docPanel = id; true }) else null
+        DocsHandoff.sidePanel = host
+        onDispose { if (DocsHandoff.sidePanel === host) DocsHandoff.sidePanel = null }
+    }
+    // The model starts writing a document: it opens beside the chat and fills up there.
+    LaunchedEffect(writingDoc != null, sideBySide) {
+        if (writingDoc != null && sideBySide && docPanel == null) docPanel = "chat:" + current.id
+    }
+    Row(Modifier.fillMaxSize()) {
+    Box(Modifier.weight(1f)) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -208,7 +268,11 @@ fun ChatScreen(
                     if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
                 },
                 title = {
-                    if (hasMessages) {
+                    if (searchOpen) {
+                        ChatSearchField(searchQuery, { searchQuery = it; searchHit = 0 }, matchCount(current, searchQuery), searchHit,
+                            onPrev = { searchHit++ }, onNext = { searchHit = (searchHit - 1).coerceAtLeast(0) },
+                            onClose = { searchOpen = false; searchQuery = "" })
+                    } else if (hasMessages) {
                         Row(
                             Modifier
                                 .clip(RoundedCornerShape(50))
@@ -228,6 +292,19 @@ fun ChatScreen(
                     }
                 },
                 actions = {
+                    if (!hasMessages) {
+                        // Temporary chat: nothing is saved (like the incognito mode of other apps).
+                        IconButton(onClick = {
+                            vm.setTemporary(!current.temporary)
+                            Notices.info(if (!current.temporary) "Temporärer Chat: wird nicht gespeichert." else "Chat wird wieder gespeichert.")
+                        }) {
+                            Icon(
+                                if (current.temporary) Icons.Filled.VisibilityOff else Icons.Outlined.VisibilityOff,
+                                contentDescription = if (current.temporary) "Temporären Chat beenden" else "Temporärer Chat",
+                                tint = if (current.temporary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                     IconButton(onClick = onNewChat) {
                         Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
                     }
@@ -250,6 +327,14 @@ fun ChatScreen(
                             autoApprove = current.autoApprove,
                             onAutoApprove = { vm.setAutoApprove(!current.autoApprove) },
                             onDelete = { showDelete = true },
+                            onSearch = { searchOpen = true },
+                            onDuplicate = { vm.fork(null)?.let { id -> onNavigate(chatRoute(id)) } },
+                            archived = current.archived,
+                            onArchive = {
+                                vm.setArchived(!current.archived)
+                                if (!current.archived) { Notices.undo("Chat archiviert", restore = { vm.setArchived(false) }); onNewChat() }
+                            },
+                            onExportJson = { exportJson(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(current.title) + ".json") },
                         )
                     }
                 },
@@ -262,7 +347,7 @@ fun ChatScreen(
             Composer(
                 input = input,
                 onInput = { input = it },
-                placeholder = if (hasMessages) "Antworten …" else "Wie kann ich helfen?",
+                placeholder = tr(if (hasMessages) "Antworten …" else "Wie kann ich helfen?"),
                 modelLabel = modelInfo.displayName,
                 onModel = { showModelPicker = true },
                 images = images,
@@ -288,14 +373,54 @@ fun ChatScreen(
                     }
                     vm.send(input, images.toList(), files.toList(), activeTemplate)
                     input = ""
+                    c.chatDrafts.delete(vm.chatId)
                     templateId = null
                     images.clear()
                     files.clear()
                 },
                 onStop = { vm.stop() },
                 onPaste = platform.paste,
+                onImprove = {
+                    val before = input
+                    improving = true
+                    scope.launch {
+                        runCatching { vm.improvePrompt(before) }
+                            .onSuccess { better ->
+                                input = better
+                                Notices.undo("Anfrage verbessert", restore = { input = before })
+                            }
+                            .onFailure { Notices.error("Verbessern nicht möglich: ${it.message}") }
+                        improving = false
+                    }
+                },
+                improving = improving,
+                suggestions = {
+                    SuggestionList(
+                        remember(input, templates, snippets) {
+                            inputSuggestions(
+                                c, input, templates, snippets,
+                                replace = { input = it },
+                                useTemplate = { useTemplate(it) },
+                                attach = { f -> files.add(f) },
+                                startLiterature = {
+                                    vm.setMode(Conversation.MODE_LITERATURE)
+                                    Notices.info("Literatursuchmodus: Thema und Kontext eingeben – der Agent sucht systematisch.")
+                                },
+                                openDocs = { onNavigate("docs") },
+                            )
+                        }
+                    )
+                },
+                footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
             ) {
+                if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
+                if (current.mode == Conversation.MODE_LITERATURE) {
+                    ContextChip(Icons.Outlined.ManageSearch, "Literatursuche  ✕", {
+                        vm.setMode(null)
+                        Notices.info("Literatursuchmodus beendet – normaler Chat.")
+                    })
+                }
                 if (current.githubEnabled && settings.hasGitHub) {
                     ContextChip(Icons.Outlined.Code, current.linkedRepos.label() ?: "GitHub · Repo wählen", { showRepoPicker = true })
                 }
@@ -337,11 +462,24 @@ fun ChatScreen(
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
                 onOpen = onNavigate,
+                onExample = { e ->
+                    when {
+                        e.route != null -> onNavigate(e.route)
+                        else -> {
+                            if (e.literature) vm.setMode(Conversation.MODE_LITERATURE)
+                            input = e.text
+                        }
+                    }
+                },
             )
         } else {
             val listState = rememberLazyListState()
             val reversed = remember(items) { items.asReversed() }
             val last = current.thread().lastOrNull()
+            val leading = (if (running && (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))) 1 else 0) + (if (building) 1 else 0)
+            val hits = remember(reversed, searchQuery) { if (searchQuery.isBlank()) emptyList() else reversed.indices.filter { i -> itemText(reversed[i]).contains(searchQuery, ignoreCase = true) } }
+            val currentHit = hits.getOrNull(searchHit.coerceAtMost((hits.size - 1).coerceAtLeast(0)))
+            LaunchedEffect(currentHit) { currentHit?.let { listState.animateScrollToItem(it + leading) } }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
@@ -360,7 +498,12 @@ fun ChatScreen(
                     item(key = "typing") { ThinkingIndicator() }
                 }
                 if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
-                items(reversed, key = { it.key }) { item ->
+                items(reversed, key = { it.key }, contentType = { if (it is ChatItem.User) "user" else "assistant" }) { item ->
+                    val hitHere = currentHit != null && reversed.getOrNull(currentHit) === item
+                    Box(
+                        if (hitHere) Modifier.background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f), RoundedCornerShape(12.dp)).padding(4.dp)
+                        else Modifier
+                    ) {
                     when (item) {
                         is ChatItem.User -> UserBubble(
                             item = item,
@@ -368,8 +511,9 @@ fun ChatScreen(
                             editing = editingId == item.m.id,
                             onStartEdit = { editingId = item.m.id },
                             onCancelEdit = { editingId = null },
-                            onSubmitEdit = { text -> editingId = null; vm.editMessage(item.m, text) },
+                            onSubmitEdit = { text, keptFiles, keptImages -> editingId = null; vm.editMessage(item.m, text, keptFiles, keptImages) },
                             onSelectVersion = { vm.showVersion(it) },
+                            onFork = { vm.fork(item.m)?.let { id -> onNavigate(chatRoute(id)) } },
                         )
                         is ChatItem.Assistant -> AssistantMessage(
                             item = item,
@@ -379,16 +523,49 @@ fun ChatScreen(
                             playing = playingId == item.head.id,
                             onSpeak = { vm.speak(item.head.id, item.turnText) },
                             onExport = { text -> export = current.title to text },
+                            onOpenInEditor = { text -> DocsHandoff.open(c, DocBlocks.titleOf(text) ?: current.title, text, current.id) },
+                            onBibliography = { text ->
+                                LiteratureHandoff.pending.value = LiteratureHandoff.Request(2, text)
+                                onNavigate("literature")
+                            },
+                            onOpenLiterature = { list ->
+                                LiteratureHandoff.pending.value = LiteratureHandoff.Request(1, list = list)
+                                onNavigate("literature")
+                            },
+                            chatId = current.id,
                             onRegenerate = { item.question?.let { vm.regenerate(it) } },
                             onRegenerateWithModel = { regenerateFor = item.question },
                             onSelectVersion = { vm.showVersion(it) },
                             onRetry = { vm.retry() },
+                            onRate = { value -> if (value == -1) ratingFor = item.head else vm.rate(item.head, value) },
+                            onContinue = { vm.continueAnswer() },
+                            onQuote = { text -> quoteFrom = text },
+                            onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
                         )
                     }
+                }
+                    }
+            }
+            // Back to the newest message (the list starts at the bottom).
+            val away by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+            if (away) {
+                SmallFloatingActionButton(
+                    onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                    containerColor = LocalChatLook.current.card,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
+                ) {
+                    BadgedBox(badge = { if (running) Badge() }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Zur neuesten Nachricht") }
                 }
             }
             }
         }
+    }
+    }
+    docPanel?.takeIf { sideBySide }?.let { id ->
+        VerticalDivider()
+        Box(Modifier.weight(1f)) { DocPane(c, id, onClose = { docPanel = null }, inSidePanel = true) }
+    }
+    }
     }
 
     if (showPlus) {
@@ -409,8 +586,14 @@ fun ChatScreen(
             onRepo = { showRepoPicker = true },
             onEnvironment = { showEnvPicker = true },
             onDismiss = { showPlus = false },
+            onFromApp = { showFromApp = true },
+            onSnippets = { showSnippets = true },
         )
     }
+    if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
+    if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
+    quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }
+    ratingFor?.let { m -> RatingNoteDialog(onDismiss = { ratingFor = null }) { note -> vm.rate(m, -1, note); ratingFor = null } }
 
     if (showTemplates) {
         TemplatePickerSheet(

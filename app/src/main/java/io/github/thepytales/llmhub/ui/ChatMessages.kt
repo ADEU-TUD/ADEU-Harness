@@ -36,6 +36,15 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.outlined.CallSplit
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -82,6 +91,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.Conversation
@@ -272,8 +283,9 @@ fun UserBubble(
     editing: Boolean,
     onStartEdit: () -> Unit,
     onCancelEdit: () -> Unit,
-    onSubmitEdit: (String) -> Unit,
+    onSubmitEdit: (String, List<FileAttachment>, List<String>) -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
+    onFork: () -> Unit = {},
 ) {
     val m = item.m
     val look = LocalChatLook.current
@@ -299,27 +311,55 @@ fun UserBubble(
         }
         if (editing) {
             var text by remember(m.id) { mutableStateOf(m.content) }
+            // Attachments can be removed when editing (the text of the files goes along again otherwise).
+            val keptFiles = remember(m.id) { androidx.compose.runtime.mutableStateListOf<FileAttachment>().apply { addAll(m.files) } }
+            val keptImages = remember(m.id) { androidx.compose.runtime.mutableStateListOf<String>().apply { addAll(m.images) } }
             Surface(color = look.userBubble, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(10.dp)) {
-                    OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), maxLines = 10)
+                    if (keptFiles.isNotEmpty() || keptImages.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                            keptImages.forEach { img -> Thumbnail(img, 60) { keptImages.remove(img) } }
+                            keptFiles.forEach { f -> FileChip(f) { keptFiles.remove(f) } }
+                        }
+                    }
+                    OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 24)
                     Row(Modifier.align(Alignment.End).padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = onCancelEdit) { Text("Abbrechen") }
-                        Button(onClick = { onSubmitEdit(text) }, enabled = text.isNotBlank() && !running) { Text("Senden") }
+                        Button(onClick = { onSubmitEdit(text, keptFiles.toList(), keptImages.toList()) }, enabled = (text.isNotBlank() || keptFiles.isNotEmpty()) && !running) { Text("Senden") }
                     }
                 }
             }
         } else if (m.content.isNotBlank()) {
-            Box {
+            // Long texts (pasted transcripts …) are folded; the bubble takes up to 80 % of the reading width.
+            var expanded by remember(m.id) { mutableStateOf(false) }
+            val long = m.content.length > 1200 || m.content.count { it == '\n' } > 14
+            BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                val bubbleMax = (maxWidth * 0.8f).coerceAtLeast(260.dp)
+                Box {
                 Surface(
                     color = look.userBubble,
                     shape = look.userShape,
                     modifier = Modifier
-                        .widthIn(max = 310.dp)
+                        .widthIn(max = bubbleMax)
                         .clip(look.userShape)
                         .combinedClickable(onClick = {}, onLongClick = { menu = true })
                         .secondaryClick { menu = true },
                 ) {
-                    Text(m.content, color = look.onUserBubble, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        SelectionContainer {
+                            Text(
+                                m.content, color = look.onUserBubble,
+                                maxLines = if (long && !expanded) 12 else Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (long) {
+                            Text(
+                                if (expanded) "Weniger anzeigen" else "Mehr anzeigen",
+                                style = MaterialTheme.typography.labelMedium, color = look.onUserBubble.copy(alpha = 0.75f),
+                                modifier = Modifier.padding(top = 6.dp).clickable { expanded = !expanded },
+                            )
+                        }
+                    }
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
@@ -333,6 +373,12 @@ fun UserBubble(
                         enabled = !running,
                         onClick = { menu = false; onStartEdit() },
                     )
+                    DropdownMenuItem(
+                        text = { Text("Neuer Chat ab hier") },
+                        leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
+                        onClick = { menu = false; onFork() },
+                    )
+                }
                 }
             }
         }
@@ -385,6 +431,14 @@ fun AssistantMessage(
     onRegenerateWithModel: () -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
     onRetry: () -> Unit,
+    onOpenInEditor: (String) -> Unit = {},
+    onBibliography: (String) -> Unit = {},
+    onOpenLiterature: (String) -> Unit = {},
+    chatId: String? = null,
+    onRate: (Int?) -> Unit = {},
+    onContinue: () -> Unit = {},
+    onQuote: (String) -> Unit = {},
+    onFork: () -> Unit = {},
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -405,9 +459,26 @@ fun AssistantMessage(
                 SelectionContainer { MarkdownText(answer) }
             }
         }
+        // Many finished tool calls collapse into one line ("5 Werkzeuge genutzt"); results like documents stay visible.
+        val done = m.toolCalls.all { results[it.id] != null } && !(streaming || running && item.isLast)
+        var showTools by remember(m.id) { mutableStateOf(false) }
+        val grouped = done && m.toolCalls.size >= 3 && !showTools
+        if (done && m.toolCalls.size >= 3) {
+            ToolGroupLine(m.toolCalls.map { it.name }, open = showTools) { showTools = !showTools }
+        }
         m.toolCalls.forEach { call ->
             val result = results[call.id]
-            ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
+            if (!grouped) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
+            // The model is writing a document: it can be watched live in the editor.
+            if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
+            if (call.name == "create_chart" && result != null && !result.content.startsWith("FEHLER")) {
+                val raw = (io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["spec"])?.let { e -> if (e is kotlinx.serialization.json.JsonPrimitive && e.isString) e.content else e.toString() }
+                raw?.let { r -> remember(r) { io.github.thepytales.llmhub.docs.ChartSpec.parse(r) } }?.let { ChartView(it) }
+            }
+            if (call.name == "save_literature" && result != null && !result.content.startsWith("FEHLER")) {
+                val list = io.github.thepytales.llmhub.agent.parseArgs(call.arguments)["list"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
+                if (list != null) LiteratureListCard(list, onOpen = { onOpenLiterature(list) })
+            }
             result?.file?.let { DocumentCard(it) }
         }
         if (item.turnEnd && !(running && item.isLast)) {
@@ -422,6 +493,12 @@ fun AssistantMessage(
                     ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
                 }
                 if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
+                // Helpful or not: stays on the device and shows under Verbrauch which models work well.
+                if (text.isNotBlank()) {
+                    val rating = item.head.rating
+                    ActionIcon(if (rating == 1) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, if (rating == 1) "Bewertung entfernen" else "Hilfreich") { onRate(if (rating == 1) null else 1) }
+                    ActionIcon(if (rating == -1) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown, if (rating == -1) "Bewertung entfernen" else "Nicht hilfreich") { onRate(if (rating == -1) null else -1) }
+                }
                 var protocol by remember { mutableStateOf(false) }
                 if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
                 if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false })
@@ -437,11 +514,35 @@ fun AssistantMessage(
                         }
                         if (text.isNotBlank()) {
                             DropdownMenuItem(
+                                text = { Text("Im Dokument-Editor öffnen") },
+                                leadingIcon = { Icon(Icons.Outlined.EditNote, contentDescription = null) },
+                                onClick = { more = false; onOpenInEditor(text) },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Literaturverzeichnis erstellen") },
+                                leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                                onClick = { more = false; onBibliography(text) },
+                            )
+                        }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
                                 text = { Text("Quellen prüfen") },
                                 leadingIcon = { Icon(Icons.Outlined.FactCheck, contentDescription = null) },
                                 onClick = { more = false; checkSources = true },
                             )
                         }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
+                                text = { Text("Zitieren und nachfragen") },
+                                leadingIcon = { Icon(Icons.Outlined.FormatQuote, contentDescription = null) },
+                                onClick = { more = false; onQuote(text) },
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Neuer Chat ab hier") },
+                            leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
+                            onClick = { more = false; onFork() },
+                        )
                         if (item.question != null) {
                             DropdownMenuItem(
                                 text = { Text("Mit anderem Modell neu generieren") },
@@ -464,13 +565,13 @@ fun AssistantMessage(
                     )
                 }
             }
-            if (item.isLast) {
-                Text(
-                    "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
+            // Stopped at the length limit: continue where it ended.
+            if (item.isLast && !running && item.turn.ifEmpty { listOf(m) }.any { it.truncated }) {
+                OutlinedButton(onClick = onContinue) {
+                    Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.size(6.dp))
+                    Text("Weiterschreiben – die Antwort wurde abgeschnitten")
+                }
             }
         }
     }
@@ -542,6 +643,42 @@ fun ThinkingBox(text: String, active: Boolean) {
 }
 
 /** Human-readable labels for tool calls. */
+/** Shown while the model writes a document: opens the editor where it grows. */
+@Composable
+private fun LiveDraftCard(chatId: String) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(8.dp))
+            Text("Das Dokument entsteht gerade", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text("Live ansehen") }
+        }
+    }
+}
+
+/** Works the literature search kept: opens the list in the collection. */
+@Composable
+private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
+    val c = io.github.thepytales.llmhub.App.container
+    val all by c.literature.items.collectAsStateWithLifecycle()
+    val works = all.filter { r -> r.lists.any { it.equals(list, true) } }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.size(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Literaturliste „$list“", style = MaterialTheme.typography.titleSmall)
+                    Text("${works.size} Werke · ${works.count { it.openAccessUrl.isNotBlank() }} frei zugänglich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 38.dp, top = 2.dp)) }
+            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 38.dp))
+            TextButton(onClick = onOpen) { Text("In der Sammlung öffnen") }
+        }
+    }
+}
+
 private fun toolLabel(name: String) = when (name) {
     "web_search" -> "Websuche"
     "news_search" -> "Nachrichtensuche"
@@ -562,7 +699,50 @@ private fun toolLabel(name: String) = when (name) {
     "create_email_draft" -> "E-Mail-Entwurf"
     "create_calendar_event" -> "Termin anlegen"
     "read_guide" -> "Anleitung lesen"
+    "search_literature" -> "Literatur suchen"
+    "literature_details" -> "Werk ansehen"
+    "snowball_literature" -> "Schneeballsuche"
+    "save_literature" -> "Literatur merken"
+    "format_bibliography" -> "Literaturverzeichnis"
+    "zotero_add" -> "Nach Zotero"
+    "zotero_search" -> "Zotero durchsuchen"
+    "read_document" -> "Dokument lesen"
+    "reply_to_comment" -> "Kommentar beantworten"
+    "create_chart" -> "Diagramm"
+    "journal_new_articles" -> "Neue Artikel"
+    "read_feed" -> "Feed lesen"
+    "create_series" -> "Serienbrief"
+    "create_semester_plan" -> "Semesterplan"
     else -> name
+}
+
+/** Summary of several tool calls, e.g. „5 Werkzeuge genutzt · Websuche ×3, Webseite lesen ×2“. */
+@Composable
+private fun ToolGroupLine(names: List<String>, open: Boolean, onToggle: () -> Unit) {
+    val counts = names.groupingBy { toolLabel(it) }.eachCount()
+    val summary = counts.entries.joinToString(", ") { (k, v) -> if (v > 1) "$k ×$v" else k }
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.clickable(onClickLabel = if (open) "Werkzeuge einklappen" else "Werkzeuge anzeigen", onClick = onToggle)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.Build, contentDescription = null, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.size(6.dp))
+            Text(
+                "${names.size} ${tr("Werkzeuge genutzt")} · $summary",
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = if (open) 3 else 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(if (open) "▴" else "▾", style = MaterialTheme.typography.labelMedium)
+        }
+    }
 }
 
 @Composable

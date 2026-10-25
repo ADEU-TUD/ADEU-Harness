@@ -1213,6 +1213,65 @@ public final class Engine {
         return enqueueFile(src.getAbsolutePath(), "Wortzeiten: " + t.optString("title", "Transkript"), src.length(), opts, false).id;
     }
 
+    /**
+     * Stimmabdruecke der Sprecher eines Transkripts (aus dem gespeicherten Audio): je Sprecher bis zu 60 s seiner
+     * Abschnitte, gemittelt. Fuer Stimmprofile, mit denen Sprecher in weiteren Aufnahmen erkannt werden. Laeuft nur
+     * auf dem Geraet.
+     */
+    public JSONObject speakerEmbeddings(String tid) throws Exception {
+        File dir = new File(transcripts, tid);
+        JSONObject t = new JSONObject(Util.readText(new File(dir, "transcript.json")));
+        String audio = t.optString("audio", "");
+        File src = new File(dir, audio);
+        if (audio.isEmpty() || !src.isFile()) throw new UserError("Für dieses Transkript ist kein Audio gespeichert.");
+        ensureSpeakerModel(null);
+        File work = new File(cacheDir, "work/voices-" + tid);
+        Util.deleteRecursive(work);
+        work.mkdirs();
+        File pcm = new File(work, "audio.pcm");
+        try {
+            long total = toPcm(src, pcm, f -> { }, () -> false);
+            JSONArray segs = t.getJSONArray("segments");
+            Map<Integer, List<float[]>> parts = new HashMap<>();
+            Map<Integer, Long> taken = new HashMap<>();
+            for (int i = 0; i < segs.length(); i++) {
+                JSONObject s = segs.getJSONObject(i);
+                if (!s.has("speaker") || s.isNull("speaker")) continue;
+                int spk = s.getInt("speaker");
+                long from = (long) (s.optDouble("start") * 16000);
+                long to = Math.min(total, (long) (s.optDouble("end") * 16000));
+                if (to - from < 16000) continue;
+                long have = taken.containsKey(spk) ? taken.get(spk) : 0L;
+                if (have > 60L * 16000) continue;
+                long count = Math.min(to - from, 15L * 16000);
+                if (!parts.containsKey(spk)) parts.put(spk, new ArrayList<>());
+                parts.get(spk).add(Wav.readPcm(pcm, from, count));
+                taken.put(spk, have + count);
+            }
+            JSONObject out = new JSONObject();
+            for (Map.Entry<Integer, List<float[]>> e : parts.entrySet()) {
+                float[] sum = null;
+                int n = 0;
+                for (float[] samples : e.getValue()) {
+                    float[] v = Speech.embedding(samples, speakerModel(), platform.threads());
+                    if (sum == null) sum = new float[v.length];
+                    double norm = 0;
+                    for (float x : v) norm += x * x;
+                    norm = Math.sqrt(norm) + 1e-9;
+                    for (int k = 0; k < v.length; k++) sum[k] += (float) (v[k] / norm);
+                    n++;
+                }
+                if (sum == null || n == 0) continue;
+                JSONArray arr = new JSONArray();
+                for (float x : sum) arr.put(x / n);
+                out.put(String.valueOf(e.getKey()), arr);
+            }
+            return out;
+        } finally {
+            Util.deleteRecursive(work);
+        }
+    }
+
     private void processWords(Job j) throws Exception {
         String tid = j.opts.optString("transcript_id");
         File tf = new File(new File(transcripts, tid), "transcript.json");

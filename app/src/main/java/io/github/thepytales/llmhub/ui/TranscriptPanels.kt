@@ -132,9 +132,12 @@ fun ViewSheet(c: AppContainer, onDismiss: () -> Unit) {
 
 /** ⋮ › Sprecher: rename, merge, add by hand, remove. */
 @Composable
-fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> Unit, onDismiss: () -> Unit) {
+fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> Unit, onDismiss: () -> Unit, c: AppContainer? = null, hasAudio: Boolean = false) {
     var add by remember { mutableStateOf(false) }
     var remove by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var voiceBusy by remember { mutableStateOf(false) }
+    var matches by remember { mutableStateOf<List<io.github.thepytales.llmhub.transcribe.Voices.Match>?>(null) }
     PanelSheet("Sprecher", onDismiss) {
         if (!t.diarized) {
             HintText("In diesem Transkript sind keine Sprecher erkannt. Legen Sie sie von Hand an: Alle Abschnitte gehören zuerst zu „Sprecher 1“, " +
@@ -161,6 +164,49 @@ fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> 
             if (t.diarized) TextButton(onClick = { remove = true }) { Text("Sprecher entfernen") }
         }
         HintText("Tipp: Kurze Namen wie „I“, „B1“ oder „LK“ werden beim Export nach Dresing/Pehl und für MAXQDA direkt als Kürzel benutzt.")
+        if (c != null && t.diarized) {
+            val profiles by c.voices.items.collectAsStateWithLifecycle()
+            Text("Stimmprofile", style = MaterialTheme.typography.titleSmall)
+            HintText(
+                "Benannte Sprecher lassen sich als Stimmprofil merken und in weiteren Aufnahmen (z.B. einer Interviewreihe) an der Stimme " +
+                    "wiedererkennen. Die Stimmabdrücke entstehen und bleiben nur auf diesem Gerät." + if (profiles.isNotEmpty()) " Gespeichert: " + profiles.joinToString { it.name } + "." else ""
+            )
+            if (!hasAudio) HintText("Dafür braucht es die gespeicherte Aufnahme.")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(enabled = hasAudio && !voiceBusy && profiles.isNotEmpty(), onClick = {
+                    voiceBusy = true
+                    scope.launch {
+                        runCatching { io.github.thepytales.llmhub.transcribe.Voices.match(c.transcription.speakerVoices(t.id), profiles) }
+                            .onSuccess { m -> matches = m; if (m.isEmpty()) Notices.info("Keine gespeicherte Stimme erkannt.") }
+                            .onFailure { Notices.error("Stimmen erkennen nicht möglich: ${it.message}") }
+                        voiceBusy = false
+                    }
+                }) { Text("Stimmen erkennen") }
+                OutlinedButton(enabled = hasAudio && !voiceBusy, onClick = {
+                    voiceBusy = true
+                    scope.launch {
+                        runCatching {
+                            val voices = c.transcription.speakerVoices(t.id)
+                            val named = t.speakers.filter { (_, n) -> n.isNotBlank() && !n.startsWith("Sprecher ") }
+                            named.forEach { (k, n) -> voices[k]?.let { c.voices.learn(n, it) } }
+                            named.size
+                        }.onSuccess { n -> Notices.info(if (n == 0) "Bitte die Sprecher zuerst benennen." else "$n Stimmprofil(e) gespeichert.") }
+                            .onFailure { Notices.error("Stimmprofile nicht gespeichert: ${it.message}") }
+                        voiceBusy = false
+                    }
+                }) { Text("Als Profile merken") }
+                if (voiceBusy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            }
+            matches?.takeIf { it.isNotEmpty() }?.let { m ->
+                m.forEach { x -> HintText("${t.speakerName(x.speaker)} → ${x.profile.name} (Ähnlichkeit ${"%.2f".format(x.similarity)})") }
+                TextButton(onClick = {
+                    var next = t
+                    m.forEach { x -> next = next.copy(speakers = next.speakers + (x.speaker to x.profile.name)) }
+                    onSave(next)
+                    matches = null
+                }) { Text("Namen übernehmen") }
+            }
+        }
     }
     if (add) TextInputDialog("Sprecher hinzufügen", "", "Name oder Kürzel", onConfirm = { onSave(TranscriptEdit.addSpeaker(t, it.trim())) }, onDismiss = { add = false })
     if (remove) ConfirmDialog("Sprecher entfernen?", "Alle Zuordnungen werden gelöscht (für Aufnahmen mit nur einer Person).", "Entfernen",
@@ -452,8 +498,23 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
     var made by remember { mutableStateOf<File?>(null) }
     var busy by remember { mutableStateOf<TranscriptFormat?>(null) }
     var stamps by remember { mutableStateOf(TranscriptEdit.Stamps.of(vs.stamps)) }
+    var anonymous by remember { mutableStateOf(false) }
+    var mappingFile by remember { mutableStateOf<File?>(null) }
+    val anon = remember(t, anonymous) {
+        if (!anonymous) null else io.github.thepytales.llmhub.transcribe.TranscriptAnon.anonymize(
+            t, c.settings.current.pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 },
+        )
+    }
     PanelSheet("Exportieren", onDismiss) {
         made?.let { f -> DocumentCard(f.absolutePath) }
+        mappingFile?.let { f -> DocumentCard(f.absolutePath) }
+        ToggleRow(
+            "Anonymisiert exportieren",
+            "Namen, Kontaktdaten, Anschriften und die eigene Liste (Einstellungen › Datenschutz) werden durchgehend ersetzt, Sprecher mit " +
+                "echtem Namen heißen „Person A“ … Das Transkript selbst bleibt unverändert." +
+                (anon?.let { a -> " – ${a.mapping.size} Ersetzungen." } ?: ""),
+            anonymous,
+        ) { anonymous = it }
         Chips("Zeitstempel (Word, PDF, Markdown, Text)", TranscriptEdit.Stamps.entries.map { it to it.label }, stamps, { stamps = it })
         ToggleRow("Kommentare mitexportieren", "Als [Kommentar: …] hinter dem Abschnitt. Dresing/Pehl, MAXQDA und Untertitel bleiben ohne.", vs.exportComments) { v ->
             c.transcription.updateSettings { it.copy(exportComments = v) }
@@ -463,8 +524,17 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
             AppCard(onClick = {
                 busy = f
                 scope.launch {
-                    made = runCatching { exportFile(context, t, f, opts) }
+                    val source = anon?.transcript ?: t
+                    made = runCatching { exportFile(context, source, f, opts) }
                         .onFailure { Notices.error("Export fehlgeschlagen: ${it.message}") }.getOrNull()
+                    // The mapping goes into a separate file (to be kept apart from the anonymized transcript).
+                    if (anon != null && anon.mapping.isNotEmpty()) mappingFile = runCatching {
+                        DocumentWriter.create(
+                            context, File(context.filesDir, "documents/Transkripte"), "Zuordnungsliste – ${t.title}",
+                            io.github.thepytales.llmhub.transcribe.TranscriptAnon.mappingTable(t.title, anon.mapping), DocFormat.PDF,
+                            fileName = DocumentWriter.safeName(t.title) + " (Zuordnungsliste)", overwrite = true,
+                        ).file
+                    }.getOrNull()
                     busy = null
                 }
             }) {

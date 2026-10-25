@@ -26,6 +26,10 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
@@ -125,8 +129,18 @@ fun AppDrawer(
     onOpenChat: (String) -> Unit,
     onNewChat: () -> Unit,
     onNavigate: (String) -> Unit,
+    width: androidx.compose.ui.unit.Dp = 318.dp,
 ) {
-    val conversations by c.chats.conversations.collectAsStateWithLifecycle()
+    val allConversations by c.chats.conversations.collectAsStateWithLifecycle()
+    // Archived chats stay out of the list (section „Archiv“ at the end).
+    val conversations = remember(allConversations) { allConversations.filter { !it.archived } }
+    val archived = remember(allConversations) { allConversations.filter { it.archived } }
+    val chatDrafts by c.chatDrafts.items.collectAsStateWithLifecycle()
+    val drafts = remember(chatDrafts) { chatDrafts.map { it.chatId }.toSet() }
+    /** Chats chosen for an action on several at once (long press › Auswählen). */
+    var selection by remember { mutableStateOf(setOf<String>()) }
+    var showArchive by rememberSaveable { mutableStateOf(false) }
+    var moveSelection by remember { mutableStateOf(false) }
     val folders by c.folders.items.collectAsStateWithLifecycle()
     val runs by c.runs.runs.collectAsStateWithLifecycle()
     val settings by c.settings.settings.collectAsStateWithLifecycle()
@@ -143,18 +157,35 @@ fun AppDrawer(
     var deleteFolder by remember { mutableStateOf<Folder?>(null) }
 
     val hits by produceState(emptyList<SearchHit>(), query, conversations) {
-        value = withContext(Dispatchers.Default) { search(conversations, query) }
+        value = withContext(Dispatchers.Default) { search(allConversations, query) }
     }
 
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.background,
         drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
-        modifier = Modifier.width(318.dp),
+        modifier = Modifier.width(width),
     ) {
         Column(Modifier.fillMaxHeight().statusBarsPadding().navigationBarsPadding()) {
             // Header
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (searching) {
+                if (selection.isNotEmpty()) {
+                    IconButton(onClick = { selection = emptySet() }) { Icon(Icons.Outlined.Close, contentDescription = "Auswahl beenden") }
+                    Text("${selection.size} ausgewählt", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        val ids = selection
+                        val toArchive = allConversations.none { it.id in ids && !it.archived }.not()
+                        ids.forEach { id -> c.chats.modify(id) { it.copy(archived = toArchive) } }
+                        selection = emptySet()
+                        Notices.undo(if (toArchive) "${ids.size} Chats archiviert" else "${ids.size} Chats aus dem Archiv geholt", restore = { ids.forEach { id -> c.chats.modify(id) { it.copy(archived = !toArchive) } } })
+                    }) { Icon(Icons.Outlined.Archive, contentDescription = "Archivieren") }
+                    IconButton(onClick = { moveSelection = true }) { Icon(Icons.Outlined.DriveFileMove, contentDescription = "In Projekt verschieben") }
+                    IconButton(onClick = {
+                        val ids = selection
+                        ids.forEach { c.chats.delete(it) }
+                        selection = emptySet()
+                        Notices.undo("${ids.size} Chats gelöscht", restore = { ids.forEach { c.chats.restore(it) } })
+                    }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
+                } else if (searching) {
                     IconButton(onClick = { searching = false; query = "" }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Suche schließen")
                     }
@@ -216,6 +247,8 @@ fun AppDrawer(
                 // Only what is used every day; models, comparison and usage are under Einstellungen.
                 val newResults = conversations.count { it.unread && it.taskId != null }
                 item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
+                item { NavRow(Icons.Outlined.MenuBook, "Literatur") { onNavigate("literature") } }
+                item { NavRow(Icons.Outlined.Description, "Dokumente") { onNavigate("docs") } }
                 item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
                 item { NavRow(Icons.Outlined.Image, "Bilder erzeugen") { onNavigate("images") } }
                 item { NavRow(Icons.Outlined.GraphicEq, "Transkription", badge = transcribing, badgeText = "läuft") { onNavigate("transcripts") } }
@@ -249,7 +282,11 @@ fun AppDrawer(
                     if (open) {
                         if (inFolder.isEmpty()) item(key = "fe_" + folder.id) { Hint("Noch keine Chats in diesem Projekt.", indent = true) }
                         items(inFolder, key = { "fc_" + it.id }) { conv ->
-                            ChatRow(conv, conv.id == currentChatId, indent = true, running = conv.id in runs, onOpen = { onOpenChat(conv.id) },
+                            ChatRow(conv, conv.id == currentChatId, indent = true, running = conv.id in runs,
+                                draft = conv.id in drafts, selecting = selection.isNotEmpty(), checked = conv.id in selection,
+                                onSelect = { selection = if (conv.id in selection) selection - conv.id else selection + conv.id },
+                                onArchive = { c.chats.modify(conv.id) { it.copy(archived = !it.archived) } },
+                                onOpen = { if (selection.isNotEmpty()) selection = if (conv.id in selection) selection - conv.id else selection + conv.id else onOpenChat(conv.id) },
                                 onPin = { c.chats.modify(conv.id) { it.copy(pinned = !it.pinned) } },
                                 onMove = { moveChat = conv }, onRename = { renameChat = conv }, onDelete = { deleteChat = conv })
                         }
@@ -259,7 +296,8 @@ fun AppDrawer(
                 val pinned = conversations.filter { it.pinned }
                 if (pinned.isNotEmpty()) {
                     item { SectionTitle("Angeheftet", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
-                    chatList(pinned, "p_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = true)
+                    chatList(pinned, "p_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = true,
+                        drafts = drafts, selection = selection, onSelection = { selection = it })
                 }
 
                 val recent = conversations.filter { !it.pinned && it.folderId == null }
@@ -270,7 +308,17 @@ fun AppDrawer(
                 val today = LocalDate.now()
                 recent.groupBy { dayGroup(it.updatedAt, today) }.forEach { (group, list) ->
                     item(key = "g_$group") { SectionTitle(group, Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
-                    chatList(list, "r_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false)
+                    chatList(list, "r_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false,
+                        drafts = drafts, selection = selection, onSelection = { selection = it })
+                }
+                if (archived.isNotEmpty()) {
+                    item(key = "archive") {
+                        NavRow(Icons.Outlined.Archive, tr("Archiv") + " (${archived.size})", muted = true) { showArchive = !showArchive }
+                    }
+                    if (showArchive) {
+                        chatList(archived.sortedByDescending { it.updatedAt }, "a_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = false,
+                            drafts = drafts, selection = selection, onSelection = { selection = it })
+                    }
                 }
             }
 
@@ -318,7 +366,7 @@ fun AppDrawer(
                     Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text("Neuer Chat", style = MaterialTheme.typography.titleSmall)
+                        Text(tr("Neuer Chat"), style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
@@ -336,6 +384,12 @@ fun AppDrawer(
             c.chats.delete(conv.id)
             Notices.undo("Chat gelöscht", restore = { c.chats.restore(conv.id) })
         }, onDismiss = { deleteChat = null })
+    }
+    if (moveSelection) {
+        FolderPickerDialog(c, null, onPick = { folder ->
+            selection.forEach { id -> c.chats.modify(id) { it.copy(folderId = folder) } }
+            selection = emptySet()
+        }, onDismiss = { moveSelection = false })
     }
     if (newFolder) {
         TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })
@@ -365,11 +419,18 @@ private fun LazyListScope.chatList(
     onRename: (Conversation) -> Unit,
     onDelete: (Conversation) -> Unit,
     showPin: Boolean,
+    drafts: Set<String> = emptySet(),
+    selection: Set<String> = emptySet(),
+    onSelection: (Set<String>) -> Unit = {},
 ) {
     items(list, key = { prefix + it.id }) { conv ->
+        fun toggle() = onSelection(if (conv.id in selection) selection - conv.id else selection + conv.id)
         ChatRow(
             conv, conv.id == currentChatId, indent = false, showIcon = showPin, running = conv.id in running,
-            onOpen = { onOpenChat(conv.id) },
+            draft = conv.id in drafts, selecting = selection.isNotEmpty(), checked = conv.id in selection,
+            onSelect = ::toggle,
+            onArchive = { c.chats.modify(conv.id) { it.copy(archived = !it.archived) } },
+            onOpen = { if (selection.isNotEmpty()) toggle() else onOpenChat(conv.id) },
             onPin = { c.chats.modify(conv.id) { it.copy(pinned = !it.pinned) } },
             onMove = { onMove(conv) }, onRename = { onRename(conv) }, onDelete = { onDelete(conv) },
         )
@@ -378,7 +439,7 @@ private fun LazyListScope.chatList(
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
+    Text(tr(text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
 }
 
 @Composable
@@ -405,7 +466,7 @@ private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: 
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (indent) 22.dp else 24.dp))
         Spacer(Modifier.size(18.dp))
-        Text(label, color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
+        Text(tr(label), color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
         if (badge > 0) {
             Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
                 Text(
@@ -459,6 +520,11 @@ private fun ChatRow(
     indent: Boolean,
     showIcon: Boolean = false,
     running: Boolean = false,
+    draft: Boolean = false,
+    selecting: Boolean = false,
+    checked: Boolean = false,
+    onSelect: () -> Unit = {},
+    onArchive: () -> Unit = {},
     onOpen: () -> Unit,
     onPin: () -> Unit,
     onMove: () -> Unit,
@@ -473,12 +539,15 @@ private fun ChatRow(
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (selected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent)
-                .combinedClickable(onClick = onOpen, onLongClick = { menu = true })
+                .combinedClickable(onClick = onOpen, onLongClick = { if (selecting) onSelect() else menu = true })
                 .secondaryClick { menu = true }
                 .padding(start = if (indent) 44.dp else 12.dp, end = if (selected) 0.dp else 12.dp, top = if (selected) 0.dp else 10.dp, bottom = if (selected) 0.dp else 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (showIcon) {
+            if (selecting) {
+                androidx.compose.material3.Checkbox(checked, { onSelect() }, modifier = Modifier.size(32.dp))
+                Spacer(Modifier.size(8.dp))
+            } else if (showIcon) {
                 Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.size(14.dp))
             }
@@ -490,6 +559,9 @@ private fun ChatRow(
                 fontWeight = if (selected || conv.unread) FontWeight.SemiBold else null,
                 modifier = Modifier.weight(1f),
             )
+            if (draft && !running) {
+                Text("Entwurf", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 6.dp))
+            }
             when {
                 // Answer is still being written (also in the background).
                 running -> CircularProgressIndicator(Modifier.padding(start = 8.dp).size(14.dp), strokeWidth = 2.dp)
@@ -515,6 +587,8 @@ private fun ChatRow(
             )
             DropdownMenuItem(text = { Text("In Projekt verschieben") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
             DropdownMenuItem(text = { Text("Umbenennen") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text(if (conv.archived) "Aus dem Archiv holen" else "Archivieren") }, leadingIcon = { Icon(Icons.Outlined.Archive, null) }, onClick = { menu = false; onArchive() })
+            DropdownMenuItem(text = { Text("Auswählen") }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }, onClick = { menu = false; onSelect() })
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }

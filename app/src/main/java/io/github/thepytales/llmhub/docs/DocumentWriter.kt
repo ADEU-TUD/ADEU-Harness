@@ -23,6 +23,13 @@ enum class DocFormat(val ext: String, val mime: String, val label: String, val c
     TXT("txt", "text/plain", "Text"),
     /** Test for OPAL/ONYX as IMS QTI 2.1 package (docs/QtiWriter); not offered for exporting a chat. */
     QTI("zip", "application/zip", "OPAL-/ONYX-Test (QTI 2.1)", chatExport = false),
+    /** Tables of the Markdown as Excel workbook (docs/MoreFormats). */
+    XLSX("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Excel (.xlsx)"),
+    CSV("csv", "text/csv", "CSV (Tabellen)"),
+    MOODLE("xml", "application/xml", "Moodle-Test (Moodle-XML)", chatExport = false),
+    GIFT("txt", "text/plain", "Moodle-Test (GIFT)", chatExport = false),
+    ANKI("txt", "text/plain", "Karteikarten für Anki", chatExport = false),
+    LIMESURVEY("txt", "text/plain", "LimeSurvey-Fragebogen", chatExport = false),
     ;
 
     companion object {
@@ -34,6 +41,11 @@ enum class DocFormat(val ext: String, val mime: String, val label: String, val c
                     "powerpoint", "ppt", "praesentation", "präsentation", "folien", "slides" -> PPTX
                     "markdown" -> MD
                     "zip", "opal", "onyx", "test", "quiz", "qti21", "ims" -> QTI
+                    "excel", "xls", "tabelle", "spreadsheet" -> XLSX
+                    "moodle", "moodlexml", "moodle-xml" -> MOODLE
+                    "gift" -> GIFT
+                    "anki", "karteikarten", "lernkarten", "flashcards" -> ANKI
+                    "limesurvey", "lss", "fragebogen", "survey" -> LIMESURVEY
                     "text", "plain" -> TXT
                     "htm" -> HTML
                     else -> PDF
@@ -89,6 +101,8 @@ object DocumentWriter {
             while (f.exists()) f = File(folder, "$base ($n).${format.ext}").also { n++ }
             f
         }
+        // Formulas ($…$) as readable text in every format (no formula renderer in PDF, Word or slides).
+        @Suppress("NAME_SHADOWING") val content = if (isHtml(content)) content else MathText.inText(content)
         val html = isHtml(content)
         // Word, Markdown and text cannot keep an HTML design; they get its text structure.
         val markdown = when {
@@ -114,14 +128,20 @@ object DocumentWriter {
                 val docTitle = title.ifBlank { Regex("^#\\s+(.+)", RegexOption.MULTILINE).find(markdown)?.groupValues?.get(1)?.trim().orEmpty() }
                 withContext(Dispatchers.IO) { runCatching { PdfAccessibility.finish(context, file, docTitle) } }
             }
-            DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
-            DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, markdown, theme.unit, theme.footer) }
+            DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, ChartBlocks.asTables(markdown), theme) }
+            DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, ChartBlocks.asTables(markdown), theme.unit, theme.footer) }
             DocFormat.QTI -> withContext(Dispatchers.IO) { QtiWriter.write(file, title, markdown) }
             DocFormat.HTML -> withContext(Dispatchers.IO) {
                 file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter, certificate = certificate))
             }
             DocFormat.MD -> withContext(Dispatchers.IO) { file.writeText(withTitle(title, markdown)) }
-            DocFormat.TXT -> withContext(Dispatchers.IO) { file.writeText(toText(title, markdown)) }
+            DocFormat.TXT -> withContext(Dispatchers.IO) { file.writeText(toText(title, ChartBlocks.asTables(markdown))) }
+            DocFormat.XLSX -> withContext(Dispatchers.IO) { XlsxWriter.write(file, title, markdown) }
+            DocFormat.CSV -> withContext(Dispatchers.IO) { file.writeText(XlsxWriter.csv(title, markdown)) }
+            DocFormat.MOODLE -> withContext(Dispatchers.IO) { file.writeText(QuizFormats.moodleXml(title, markdown)) }
+            DocFormat.GIFT -> withContext(Dispatchers.IO) { file.writeText(QuizFormats.gift(title, markdown)) }
+            DocFormat.ANKI -> withContext(Dispatchers.IO) { file.writeText(AnkiWriter.write(title, markdown)) }
+            DocFormat.LIMESURVEY -> withContext(Dispatchers.IO) { file.writeText(LimeSurveyWriter.write(title, markdown)) }
         }
         return CreatedDocument(file, format, pages, designed)
     }
@@ -517,7 +537,15 @@ object DocumentWriter {
                         append("<div class=\"label\" style=\"color:$color\">${c.first.label}</div>$lines</div>\n")
                     }
                 }
-                is Block.Code -> append("<pre><code>${esc(b.code)}</code></pre>\n")
+                is Block.Code -> {
+                    // Charts written as ```chart {…}``` become vector graphics with their data as text alternative.
+                    val chart = if (b.lang.equals("chart", ignoreCase = true)) ChartSpec.parse(b.code) else null
+                    if (chart != null) {
+                        append("<figure class=\"chart\" style=\"margin:1em 0;break-inside:avoid\">").append(ChartLayout.svg(chart))
+                        if (chart.title.isNotBlank()) append("<figcaption style=\"font-size:0.85em;color:#555\">Abbildung: ${esc(chart.title)}</figcaption>")
+                        append("</figure>\n")
+                    } else append("<pre><code>${esc(b.code)}</code></pre>\n")
+                }
                 is Block.Table -> {
                     append("<table>\n")
                     b.rows.forEachIndexed { r, row ->

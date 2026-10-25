@@ -65,7 +65,11 @@ fun AppearanceSettings(c: AppContainer) {
     var more by rememberSaveable { mutableStateOf(!style.recommended) }
     fun pick(st: AppStyle) = c.settings.update { it.copy(appStyle = st.name) }
 
-    GroupLabel("Stil")
+    GroupLabel(tr("Sprache der Oberfläche"))
+    Segmented(I18n.LANGUAGES, s.uiLanguage, { l -> c.settings.update { it.copy(uiLanguage = l) } })
+    HintText(if (s.uiLanguage == "en") "Menus, settings and the start page are in English so far; answers follow this language." else "Englisch übersetzt bisher Menüs, Einstellungen und Startseite; Antworten folgen der gewählten Sprache.")
+
+    GroupLabel(tr("Stil"))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         AppStyle.entries.filter { it.recommended }.forEach { st -> StylePreview(st, dark, st == style) { pick(st) } }
     }
@@ -83,7 +87,7 @@ fun AppearanceSettings(c: AppContainer) {
         }
     }
 
-    GroupLabel("Helligkeit")
+    GroupLabel(tr("Helligkeit"))
     Segmented(ThemeMode.entries.map { it to it.label }, mode, { m -> c.settings.update { it.copy(themeMode = m.name) } })
     AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -99,7 +103,7 @@ fun AppearanceSettings(c: AppContainer) {
         }
     }
 
-    GroupLabel("Farbton")
+    GroupLabel(tr("Farbton"))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Accent.entries.forEach { a -> AccentSwatch(a, a == accent) { c.settings.update { it.copy(accent = a.name) } } }
     }
@@ -108,7 +112,7 @@ fun AppearanceSettings(c: AppContainer) {
         else "„Automatisch“ verwendet die Farben des gewählten Stils (empfohlen).",
     )
 
-    GroupLabel("Schriftgröße")
+    GroupLabel(tr("Schriftgröße"))
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
             FilterChip(selected = s.textScale == scale, onClick = { c.settings.update { it.copy(textScale = scale) } }, label = { Text(label) })

@@ -58,6 +58,12 @@ data class ChatMessage(
     val tokensOut: Long? = null,
     /** Agent protocol: what happened on the way (retries, fallback model, shortened history …). */
     val events: List<String> = emptyList(),
+    /** The user's rating of an answer: 1 helpful, -1 not helpful (only on this device, see Verbrauch). */
+    val rating: Int? = null,
+    /** Why the answer was not helpful (optional). */
+    val ratingNote: String? = null,
+    /** The answer stopped at the model's length limit; "Weiterschreiben" continues it. */
+    val truncated: Boolean = false,
 )
 
 @Serializable
@@ -97,11 +103,21 @@ data class Conversation(
     val summary: String? = null,
     /** Last message covered by [summary]; only used while it is part of the active thread. */
     val summaryUpTo: String? = null,
+    /** Special mode of the chat: "literature" (literature search); null = normal chat. */
+    val mode: String? = null,
+    /** Temporary chat: never saved, gone when it is closed. */
+    val temporary: Boolean = false,
+    /** Archived: hidden from the chat list, kept under „Archiv“. */
+    val archived: Boolean = false,
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */
     val linkedRepos: List<LinkedRepo>
         get() = repos.ifEmpty { listOfNotNull(repo?.let { LinkedRepo(it, branch) }) }
+
+    companion object {
+        const val MODE_LITERATURE = "literature"
+    }
 
     fun withRepos(list: List<LinkedRepo>): Conversation {
         val distinct = list.distinctBy { it.name.lowercase() }

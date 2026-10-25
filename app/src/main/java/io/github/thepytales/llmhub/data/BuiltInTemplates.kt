@@ -256,6 +256,53 @@ internal object BuiltInTemplates {
                 "als PDF an. " + ACADEMIC + HONEST,
         ),
         prompt(
+            TemplateCategory.TEACHING, "teach_moodle", "Test für Moodle", "Quiz zum Import in Moodle – als Moodle-XML oder GIFT",
+            """
+            Inhalte: {{Inhalte|Themen, Lernziele oder Sitzungsfolien – oder Datei anhängen}}
+            Fragen: {{Fragen|z.B. 10 Fragen: 6 Einfachauswahl, 2 Mehrfachauswahl, 2 Kurzantwort}}
+            Format: {{Format|Moodle-XML (Standard) oder GIFT}}
+            """,
+            "Erstelle einen Test für Moodle: create_document mit format=moodle (oder format=gift, wenn gewünscht); das Markdown ist dasselbe " +
+                "wie für OPAL-Tests (Anleitung „dokumente“). Eindeutige Fragen, plausible Distraktoren, Feedback zu jeder geschlossenen Frage. " +
+                "Nenne danach kurz die Fragen mit Lösung. " + ACADEMIC + HONEST,
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_cards", "Karteikarten (Anki)", "Lernkarten aus Skript oder Folien – zum Import in Anki",
+            """
+            Inhalte: {{Inhalte|Begriffe, Skript oder Folien – oder Datei anhängen}}
+            Anzahl: {{Anzahl|optional, z.B. 30 Karten}}
+            Art: {{Art|optional, z.B. Begriff → Definition, Frage → Antwort, Beispiel → Konzept}}
+            """,
+            "Erstelle Karteikarten mit create_document format=anki als Tabelle „| Vorderseite | Rückseite |“: eine Information pro Karte, " +
+                "Rückseite höchstens zwei Sätze, Fachbegriffe korrekt, nur Inhalte aus den Unterlagen. Erkläre danach in einem Satz den " +
+                "Import (Anki › Datei › Importieren). " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_calendar", "Semestertermine als Kalender", "Alle Sitzungen als Kalenderdatei – ohne Feiertage und vorlesungsfreie Zeit",
+            """
+            Veranstaltung: {{Veranstaltung|Titel}}
+            Wochentag und Zeit: {{Wochentag und Zeit|z.B. Dienstag, 4. DS (13:00–14:30)}}
+            Erster und letzter Termin: {{Zeitraum|z.B. 13.10.2026 bis 2.2.2027}}
+            Ort: {{Ort|optional, z.B. WEB/KLEM/U, Raum}}
+            Vorlesungsfreie Zeiten: {{Pausen|optional, z.B. 21.12.2026–3.1.2027}}
+            Themen: {{Themen|optional, je Sitzung ein Thema – oder Seminarplan anhängen}}
+            """,
+            "Erstelle die Termine mit create_semester_plan: Wochentag, Uhrzeiten (DS-Zeiten der TU Dresden: 1. DS 7:30, 2. DS 9:20, " +
+                "3. DS 11:10, 4. DS 13:00, 5. DS 14:50, 6. DS 16:40, 7. DS 18:30, je 90 Minuten), Zeitraum, Pausen und je Sitzung das Thema " +
+                "in der Reihenfolge. Feiertage in Sachsen lässt das Werkzeug selbst aus. Nenne danach die Termine als Tabelle. " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_script_slides", "Folien aus Skript", "Vorhandenes Skript oder PDF in eine Präsentation im TUD-Design umwandeln",
+            """
+            Unterlagen: {{Unterlagen|Skript, Aufsatz oder Notizen als Datei anhängen}}
+            Anlass und Dauer: {{Anlass|z.B. Vorlesung 90 Minuten, Kurzvortrag 15 Minuten}}
+            Schwerpunkte: {{Schwerpunkte|optional}}
+            """,
+            "Erstelle aus den Unterlagen eine PowerPoint-Präsentation (create_document, format=pptx) im TUD-Design: Kernaussagen als kurze " +
+                "Stichpunkte, Details in die Sprechernotizen, Abbildungen und Tabellen als Tabellenfolien, Literaturfolie mit den zitierten " +
+                "Quellen. Nur Inhalte aus den Unterlagen. " + ACADEMIC + HONEST,
+        ),
+        prompt(
             TemplateCategory.TEACHING, "teach_evaluation", "Lehrevaluation auswerten", "Ergebnisse und Freitexte als Bericht – Export-Datei anhängen",
             """
             Lehrveranstaltung: {{Lehrveranstaltung|Titel, Semester}}
@@ -548,6 +595,99 @@ internal object BuiltInTemplates {
                 "(mit korrigierter Angabe nach dem gefundenen Eintrag), nicht gefunden (möglicherweise erfunden oder graue " +
                 "Literatur – von Hand prüfen). Prüfe zusätzlich die Formatierung nach dem gewünschten Zitierstil. Ändere " +
                 "keine Angaben ohne Beleg aus der Prüfung. " + ACADEMIC,
+        ),
+
+        prompt(
+            TemplateCategory.RESEARCH, "res_bibliography", "Literaturverzeichnis erstellen", "Alphabetisch im gewünschten Zitierstil – fehlende Angaben werden ergänzt",
+            """
+            Literatur: {{Literatur|Angaben einfügen (je Zeile eine), BibTeX/RIS einfügen oder Datei anhängen}}
+            Zitierstil: {{Zitierstil|APA 7 (deutsch), APA 7 (englisch), Erziehungswissenschaft (ZfPäd), DIN ISO 690, Harvard, Chicago, MLA, IEEE}}
+            Ausgabe: {{Ausgabe|optional, z.B. als Word-Dokument, zusätzlich BibTeX für Zotero}}
+            """,
+            "Erstelle das Literaturverzeichnis mit format_bibliography (references = alle Angaben, style = gewünschter Stil). Gib das " +
+                "Verzeichnis unverändert aus und fasse den Prüfbericht in zwei, drei Sätzen zusammen: was ergänzt wurde, was abweicht, was " +
+                "fehlt oder nicht gefunden wurde. Erfinde keine fehlenden Angaben. Wünscht der Nutzer ein Dokument, übernimm das Verzeichnis " +
+                "mit create_document; eine BibTeX-/RIS-Datei mit export. " + ACADEMIC,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_litsearch", "Literatursuche", "Agent recherchiert Literatur zu Thema und Kontext – mit Suchprotokoll",
+            """
+            Thema: {{Thema|z.B. Classroom Management bei Berufseinsteigenden}}
+            Kontext und Fragestellung: {{Kontext|Wofür? z.B. Masterarbeit, Seminar, Antrag; Schulform, Fach, Perspektive}}
+            Zeitraum: {{Zeitraum|optional, z.B. ab 2015}}
+            Umfang: {{Umfang|optional, z.B. Überblick mit 10 Werken oder gründlich mit 40}}
+            """,
+            io.github.thepytales.llmhub.agent.ResearchTools.MODE_PROMPT,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_survey", "Fragebogen für LimeSurvey", "Online-Fragebogen zum Import in LimeSurvey (auch Umfragen der TU Dresden)",
+            """
+            Thema und Ziel: {{Thema|Worum geht es, wer wird befragt?}}
+            Konstrukte / Inhalte: {{Inhalte|Skalen, Themenblöcke oder vorhandene Items – auch als Datei}}
+            Antwortformate: {{Antwortformate|optional, z.B. 4-stufig von „trifft nicht zu“ bis „trifft zu“, offene Fragen am Ende}}
+            Länge: {{Länge|optional, z.B. höchstens 10 Minuten}}
+            """,
+            "Entwickle den Fragebogen und erstelle ihn mit create_document format=limesurvey (Aufbau siehe Anleitung „dokumente“): " +
+                "Einleitung mit Zweck, Dauer, Freiwilligkeit und Anonymität; sinnvolle Gruppen; Items kurz, eindeutig, ohne doppelte " +
+                "Verneinung; soziodemografische Fragen am Ende und nur so viele wie nötig. Biete danach den Fragebogen zusätzlich als PDF an. " +
+                ACADEMIC + HONEST,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_dmp", "Datenmanagementplan", "DMP nach den Vorgaben von DFG, BMBF oder EU – als Word-Dokument",
+            """
+            Projekt: {{Projekt|Titel, Laufzeit, beteiligte Einrichtungen}}
+            Daten: {{Daten|Welche Daten entstehen? z.B. Videos aus dem Unterricht, Fragebögen, Interviews; Umfang}}
+            Personenbezug: {{Personenbezug|z.B. Schüler:innen unter 16, Lehrkräfte; Einwilligungen}}
+            Förderer: {{Förderer|optional, z.B. DFG, BMBF, EU Horizon}}
+            Archiv / Nachnutzung: {{Archiv|optional, z.B. OpARA der TU Dresden, Verbund FDB, Embargo}}
+            """,
+            "Erstelle einen Datenmanagementplan als Word-Dokument (create_document, format=docx) mit den Abschnitten: Projekt und Daten " +
+                "(Art, Formate, Umfang), Dokumentation und Metadaten, Speicherung und Sicherung während des Projekts, rechtliche und " +
+                "ethische Aspekte (Einwilligung, Pseudonymisierung, Löschfristen, Zugriffsrechte), Archivierung und Nachnutzung (Repositorium, " +
+                "Lizenz, Embargo), Verantwortlichkeiten und Kosten. Konkrete Angaben nur aus den Feldern; wo Entscheidungen fehlen, " +
+                "formuliere eine kurze Empfehlung und markiere sie als Vorschlag. " + ACADEMIC + HONEST,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_ropa", "Verarbeitungsverzeichnis (Art. 30 DSGVO)", "Eintrag für das Verzeichnis der Verarbeitungstätigkeiten",
+            """
+            Verarbeitung: {{Verarbeitung|z.B. Videostudie im Unterricht, Online-Befragung von Lehrkräften}}
+            Zweck: {{Zweck}}
+            Betroffene und Daten: {{Daten|Personengruppen und Datenarten, auch besondere Kategorien}}
+            Empfänger und Dienste: {{Empfänger|z.B. LimeSurvey der TU Dresden, Transkriptionsdienst, Projektpartner}}
+            Löschung: {{Löschung|Fristen}}
+            """,
+            "Erstelle den Eintrag für das Verzeichnis der Verarbeitungstätigkeiten nach Art. 30 DSGVO als Tabelle „| Angabe | Eintrag |“ " +
+                "(create_document, style=tud): Verantwortliche Stelle, Datenschutzbeauftragte:r (TU Dresden: Kontakt offen lassen, wenn " +
+                "nicht angegeben), Zweck, Rechtsgrundlage (Art. 6 bzw. 9 DSGVO, Einwilligung), Kategorien betroffener Personen und Daten, " +
+                "Empfänger, Übermittlung in Drittländer, Löschfristen, technische und organisatorische Maßnahmen. Keine Rechtsberatung: " +
+                "Hinweis auf Abstimmung mit dem Datenschutz der TU Dresden. " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_privacyinfo", "Datenschutzinformation für Teilnehmende", "Informationen nach Art. 13 DSGVO in verständlicher Sprache",
+            """
+            Studie: {{Studie|Titel, Ziel, Ablauf, Dauer}}
+            Teilnehmende: {{Teilnehmende|z.B. Schüler:innen und Eltern, Studierende}}
+            Daten und Verarbeitung: {{Daten|Was wird erhoben, wie gespeichert, wer hat Zugriff, wann gelöscht?}}
+            Kontakt: {{Kontakt|Studienleitung mit E-Mail}}
+            """,
+            "Erstelle die Datenschutzinformation nach Art. 13 DSGVO als PDF im TUD-Design (create_document, style=tud): Verantwortliche, " +
+                "Zweck und Rechtsgrundlage, Daten, Empfänger, Speicherdauer, Freiwilligkeit und Widerruf ohne Nachteile, Rechte " +
+                "(Auskunft, Berichtigung, Löschung, Einschränkung, Beschwerde bei der Aufsichtsbehörde), Kontakt. Sprache klar und kurz, " +
+                "bei Kindern zusätzlich eine Fassung in einfacher Sprache. " + HONEST,
+        ),
+        prompt(
+            TemplateCategory.RESEARCH, "res_ethics", "Ethikantrag (Kurzfassung)", "Antrag für die Ethikkommission – Studienbeschreibung, Risiken, Schutzmaßnahmen",
+            """
+            Studie: {{Studie|Titel, Fragestellung, Design}}
+            Stichprobe und Rekrutierung: {{Stichprobe}}
+            Verfahren: {{Verfahren|Erhebung, Dauer, Belastung}}
+            Risiken und Nutzen: {{Risiken|optional}}
+            Gremium: {{Gremium|optional, z.B. Ethikkommission der TU Dresden, DGfE-Ethik-Rat}}
+            """,
+            "Erstelle einen Ethikantrag als Word-Dokument (create_document, format=docx) mit: Zusammenfassung, Hintergrund und Ziel, " +
+                "Design und Verfahren, Stichprobe und Rekrutierung (Freiwilligkeit, Abhängigkeiten, Minderjährige), Belastungen und Risiken " +
+                "mit Schutzmaßnahmen, Aufklärung und Einwilligung, Datenschutz (Pseudonymisierung, Speicherung, Löschung), Nutzen, " +
+                "Umgang mit Zufallsbefunden. Lücken als kurze offene Fragen am Ende. " + ACADEMIC + HONEST,
         ),
 
         // ── Kommunikation ─────────────────────────────────────────────────────────────────────────────────────

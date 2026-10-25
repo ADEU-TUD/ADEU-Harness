@@ -13,6 +13,8 @@ import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.dropFromThread
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.data.updateMessage
+import io.github.thepytales.llmhub.docs.DocsLive
+import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.net.ApiException
 import io.github.thepytales.llmhub.net.NetErrors
 import io.github.thepytales.llmhub.net.ThinkingLevel
@@ -58,6 +60,7 @@ class AgentRunner(private val c: AppContainer) {
             c.githubTools.takeIf { sel.github && settings.hasGitHub && network },
             c.documentTools.takeIf { sel.documents },
             c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
+            c.researchTools.takeIf { sel.web || conv.mode == Conversation.MODE_LITERATURE },
             c.assistantTools,
         )
     }
@@ -82,7 +85,7 @@ class AgentRunner(private val c: AppContainer) {
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
         val attached = start.thread().flatMap { it.files }.asReversed()
-        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId)
+        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, start.model)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
@@ -128,10 +131,17 @@ class AgentRunner(private val c: AppContainer) {
                             it.copy(content = upd.content, reasoning = upd.reasoning.ifEmpty { null }, toolCalls = upd.toolCalls)
                         }
                     }
-                }
+                    // A document being written shows up in the editor while it grows (as in Claude Docs).
+                    upd.toolCalls.lastOrNull { it.name == "create_document" }?.let { call ->
+                        val (title, content) = DocsLive.partialArgs(call.arguments)
+                        if (content.isNotEmpty() && !DocumentWriter.isHtml(content)) DocsLive.update(start.id, DocsLive.Draft(title, content))
+                    }
+                }.also { DocsLive.update(start.id, null) }
             } catch (e: CancellationException) {
+                DocsLive.update(start.id, null)
                 throw e
             } catch (e: Exception) {
+                DocsLive.update(start.id, null)
                 val partial = host.conversation?.messages?.firstOrNull { it.id == placeholder.id }
                 if (e is ApiException && e.code in 400..422 && e.message.orEmpty().contains("tool", ignoreCase = true) &&
                     providers.isNotEmpty() && partial?.content.isNullOrBlank()
@@ -174,6 +184,7 @@ class AgentRunner(private val c: AppContainer) {
                         tokensIn = result.usage?.prompt ?: ContextManager.tokens(apiMessages).toLong(),
                         tokensOut = result.usage?.completion ?: ((result.content.length + result.reasoning.length + result.toolCalls.sumOf { tc -> tc.arguments.length }) / 4L),
                         events = (if (fallbackUsed && model != start.model) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
+                        truncated = result.finishReason == "length" && result.toolCalls.isEmpty(),
                     )
                 }
             }
@@ -360,6 +371,9 @@ class AgentRunner(private val c: AppContainer) {
                     "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
+            if (c.researchTools in providers) c.researchTools.prompt() else null,
+            if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
+            io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",

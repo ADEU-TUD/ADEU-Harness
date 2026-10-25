@@ -41,6 +41,10 @@ data class RepoContext(
     val files: List<FileAttachment> = emptyList(),
     /** Folder (project) of the chat: its knowledge is searched together with the global one. */
     val folderId: String? = null,
+    /** Chat the tools run for (documents and comments belong to it). */
+    val chatId: String? = null,
+    /** Model that calls the tools, for "KI · Modell" in the version history of documents. */
+    val model: String? = null,
 ) {
     /** Thread-safe copy for storing on the chat (reading tools run in parallel). */
     fun linked(): List<LinkedRepo> = synchronized(repos) { repos.toList() }

@@ -102,6 +102,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "documents" -> DocumentsSection(c)
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
+                "literature" -> LiteratureSettings(c)
                 "backup" -> BackupSection(c)
                 "trash" -> TrashSection(c)
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())

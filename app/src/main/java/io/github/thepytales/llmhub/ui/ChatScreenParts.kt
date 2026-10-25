@@ -20,6 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.DataObject
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
@@ -28,6 +32,7 @@ import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -61,8 +66,19 @@ internal fun greeting(name: String): String {
         in 18..22 -> "Guten Abend"
         else -> "Hallo"
     }
-    return if (name.isBlank()) hello else "$hello, ${name.trim()}"
+    return if (name.isBlank()) tr(hello) else "${tr(hello)}, ${name.trim()}"
 }
+
+/** An example on the start page: fills the input (and possibly switches mode) or opens an area of the app. */
+internal data class ChatExample(val label: String, val text: String = "", val literature: Boolean = false, val route: String? = null)
+
+internal val CHAT_EXAMPLES = listOf(
+    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", literature = true),
+    ChatExample("Literaturverzeichnis ordnen", route = "literature"),
+    ChatExample("Dokument entwerfen", "Entwirf ein Dokument: "),
+    ChatExample("Diagramm aus Daten", "Erstelle ein Diagramm aus diesen Daten:\n"),
+    ChatExample("Interview transkribieren", route = "transcripts"),
+)
 
 /** Start of a new chat like in the Claude app: greeting, the chosen model and suggestions. */
 @Composable
@@ -77,6 +93,7 @@ internal fun EmptyChat(
     onApiKey: () -> Unit,
     onAllTemplates: () -> Unit,
     onOpen: (String) -> Unit,
+    onExample: (ChatExample) -> Unit = {},
 ) {
     val look = LocalChatLook.current
     Column(
@@ -111,6 +128,17 @@ internal fun EmptyChat(
         if (!hasApiKey) {
             Spacer(Modifier.size(20.dp))
             WelcomeCard(onApiKey = onApiKey, onNavigate = onOpen)
+        } else {
+            // A few examples of what the app can do, as starting points for new users.
+            Spacer(Modifier.size(18.dp))
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                CHAT_EXAMPLES.forEach { e ->
+                    AssistChip(onClick = { onExample(e) }, label = { Text(tr(e.label)) })
+                }
+            }
         }
         Spacer(Modifier.weight(1f))
         Row(
@@ -153,9 +181,9 @@ internal fun EmptyChat(
                     .clickable(onClick = onAllTemplates),
             ) {
                 Column(Modifier.padding(12.dp)) {
-                    Text("Alle Vorlagen ›", style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                    Text(tr("Alle Vorlagen ›"), style = MaterialTheme.typography.labelLarge, maxLines = 1)
                     Text(
-                        "Lehre, Forschung, Betreuung, TUD-Dokumente",
+                        tr("Lehre, Forschung, Betreuung, TUD-Dokumente"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
@@ -214,6 +242,11 @@ internal fun ChatMenu(
     autoApprove: Boolean,
     onAutoApprove: () -> Unit,
     onDelete: () -> Unit,
+    onSearch: () -> Unit = {},
+    onDuplicate: () -> Unit = {},
+    archived: Boolean = false,
+    onArchive: () -> Unit = {},
+    onExportJson: () -> Unit = {},
 ) {
     fun pick(action: () -> Unit): () -> Unit = {
         onDismiss()
@@ -237,10 +270,14 @@ internal fun ChatMenu(
         )
         MenuEntry(Icons.Outlined.IosShare, SHARE_LABEL, hasMessages, onClick = pick(onShare))
         MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
+        MenuEntry(Icons.Outlined.DataObject, "Als JSON exportieren", hasMessages, onClick = pick(onExportJson))
+        MenuEntry(Icons.Outlined.Search, "Im Chat suchen", hasMessages, onClick = pick(onSearch))
         MenuGroup(null)
         MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
         MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
         MenuEntry(Icons.Outlined.DriveFileMove, "In Projekt verschieben", hasMessages, onClick = pick(onFolder))
+        MenuEntry(Icons.Outlined.ContentCopy, "Duplizieren", hasMessages, onClick = pick(onDuplicate))
+        MenuEntry(Icons.Outlined.Archive, if (archived) "Aus dem Archiv holen" else "Archivieren", hasMessages, onClick = pick(onArchive))
         onHomeScreen?.let { MenuEntry(Icons.Outlined.Home, "Zum Startbildschirm hinzufügen", hasMessages, onClick = pick(it)) }
         MenuGroup("Für diesen Chat")
         MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))

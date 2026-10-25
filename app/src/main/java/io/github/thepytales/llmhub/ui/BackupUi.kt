@@ -98,6 +98,21 @@ fun BackupSection(c: AppContainer) {
             Text("Sicherung erstellen")
         }
     }
+    val importChat = rememberFileImport(arrayOf("application/json", "text/*", "*/*")) { input ->
+        message = runCatching {
+            val chats = ChatJson.read(input.readBytes().toString(Charsets.UTF_8))
+            chats.forEach { c.chats.save(it) }
+            "${chats.size} Chat(s) importiert – sie stehen in der Seitenleiste."
+        }.getOrElse { "Chat-Import fehlgeschlagen: ${it.message ?: it.javaClass.simpleName}" }
+    }
+    SettingsCard("Einzelne Chats") {
+        SettingsHint("Ein Chat lässt sich über ⋮ › „Als JSON exportieren“ vollständig speichern (mit allen Versionen) und hier wieder einlesen – auch auf einem anderen Gerät.")
+        OutlinedButton(onClick = importChat) {
+            Icon(Icons.Outlined.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(6.dp))
+            Text("Chat importieren (JSON)")
+        }
+    }
     SettingsCard("Importieren") {
         SettingsHint(
             "Spielt eine Sicherung ein. Chats und Dateien mit gleichem Namen werden ersetzt, alles andere bleibt. Danach wird die App " +
