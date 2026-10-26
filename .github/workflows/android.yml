@@ -213,12 +213,17 @@ jobs:
             NOTES="Vorabversion vom Branch ${GITHUB_REF_NAME} (${GITHUB_SHA::7}), noch nicht in ${{ github.event.repository.default_branch }} übernommen. Android: APK installieren. Windows: die EXE starten (keine Installation, keine Admin-Rechte)."
             FLAGS="--prerelease"
           fi
-          gh release create "v${VERSION_NAME}" "ADEU-LLM-${VERSION_NAME}.apk" \
-            "ADEU-LLM-${VERSION_NAME}-Windows.exe" "ADEU-LLM-${VERSION_NAME}-Windows.zip" \
-            --target "$GITHUB_SHA" \
-            --title "$TITLE" \
-            --notes "$NOTES" \
-            $FLAGS
+          FILES=("ADEU-LLM-${VERSION_NAME}.apk" "ADEU-LLM-${VERSION_NAME}-Windows.exe" "ADEU-LLM-${VERSION_NAME}-Windows.zip")
+          # A re-run (e.g. after adding UPDATER_TOKEN) replaces the files instead of failing.
+          if gh release view "v${VERSION_NAME}" >/dev/null 2>&1; then
+            gh release upload "v${VERSION_NAME}" "${FILES[@]}" --clobber
+          else
+            gh release create "v${VERSION_NAME}" "${FILES[@]}" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              $FLAGS
+          fi
 
       # The apps check https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json at
       # every start. Needs the secret UPDATER_TOKEN (README › Automatische Updates); without it this step only warns.

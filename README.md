@@ -455,8 +455,10 @@ Version neuer als die installierte, erscheint ein Popup mit „Was ist neu“, *
    ADEU-TUD, *Repository access* nur `ADEU-Harness-Updater`, *Permissions › Contents: Read and write*. Ihn hier unter
    *Settings › Secrets and variables › Actions* als `UPDATER_TOKEN` speichern.
 3. Ab dann veröffentlicht *Actions › Build & Release › Run workflow* (Feld „Was ist neu?“ ausfüllen) jede Version von
-   `main` zusätzlich als Update. Lokal: `PUBLISH=1 UPDATE_NOTES="Was ist neu" .github/scripts/release-local.sh 37 …`
-   oder danach `.github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"` (braucht `gh auth login`).
+   `main` zusätzlich als Update. Eine schon gebaute Version (z. B. von vor dem Token) veröffentlicht *Actions › Update
+   veröffentlichen* nachträglich, ohne neu zu bauen. Lokal: `PUBLISH=1 UPDATE_NOTES="Was ist neu"
+   .github/scripts/release-local.sh 37 …` oder danach `.github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"`
+   (braucht `gh auth login`).
 
 **Erste Verteilung:** Versionen bis 1.0.36 kennen die Update-Suche noch nicht. Die erste Version mit Updater muss also
 noch einmal von Hand auf die Rechner (USB-Stick, wie bisher, oder die EXE/APK aus den Releases) – danach aktualisieren

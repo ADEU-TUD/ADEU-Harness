@@ -1,0 +1,51 @@
+name: Update veröffentlichen
+
+# Puts the files of a release that already exists here into the public update repository
+# ADEU-TUD/ADEU-Harness-Updater, from where the apps update themselves (README › Automatische Updates). "Build & Release"
+# does the same on its own; this one is for a build made before the secret UPDATER_TOKEN existed, or to publish a
+# version again with other notes – without building it again.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, die hier schon als Release liegt (z.B. 1.0.37)'
+        required: true
+      notes:
+        description: 'Was ist neu? Erscheint im Update-Hinweis der Apps.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/updater
+
+      - name: Dateien des Releases holen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p dist
+          gh release download "v${VERSION}" --repo "$GITHUB_REPOSITORY" --dir dist \
+            --pattern "ADEU-LLM-${VERSION}.apk" --pattern "ADEU-LLM-${VERSION}-Windows.zip" --pattern "ADEU-LLM-${VERSION}-Windows.exe"
+          ls -l dist
+
+      - name: Veröffentlichen
+        env:
+          GH_TOKEN: ${{ secrets.UPDATER_TOKEN }}
+          UPDATE_NOTES: ${{ inputs.notes }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret UPDATER_TOKEN fehlt (README › Automatische Updates)."
+            exit 1
+          fi
+          bash .github/scripts/publish-update.sh "$VERSION" dist
