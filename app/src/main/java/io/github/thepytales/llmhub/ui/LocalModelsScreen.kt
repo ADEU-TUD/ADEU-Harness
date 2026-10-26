@@ -168,6 +168,13 @@ private fun HardwareCard(hw: Hardware?, state: LocalState) {
                 )
             }
         }
+        if (hw?.limited == true) {
+            HintText(
+                "Die genaue Prüfung (Grafikkarte, Arbeitsspeicher) ist auf diesem PC gesperrt – vermutlich durch IT-Richtlinien. " +
+                    "Die Empfehlungen beruhen deshalb auf den Grundangaben und sind eher vorsichtig; installieren lassen sich alle Modelle trotzdem.",
+                Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+            )
+        }
         if (state.runtime == RuntimeStatus.UNSUPPORTED) {
             HintText("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM und Windows-PCs).", Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
         }

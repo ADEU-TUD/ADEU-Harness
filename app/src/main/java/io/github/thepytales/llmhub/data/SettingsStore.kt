@@ -71,6 +71,8 @@ data class AppSettings(
     val requestsPerMinute: Int = 0,
     /** What the model may note about the user: enum name of agent/MemoryMode. */
     val memoryMode: String = "ASK",
+    /** Template forms suggest values from memory, sender details, knowledge and earlier entries (see agent/FieldSuggestions). */
+    val formSuggestions: Boolean = true,
     /** Replace personal details by placeholders before anything goes to a server (see data/Pseudonymizer). */
     val pseudonymize: Boolean = false,
     /** Also find names on their own (after Frau/Herr/Dr., frequent first names), not only the own list. */
@@ -186,6 +188,7 @@ class SettingsStore(context: Context) {
             .putString("fallbackModel", next.fallbackModel)
             .putInt("requestsPerMinute", next.requestsPerMinute)
             .putString("memoryMode", next.memoryMode)
+            .putBoolean("formSuggestions", next.formSuggestions)
             .putBoolean("pseudonymize", next.pseudonymize)
             .putBoolean("pseudonymAuto", next.pseudonymAuto)
             .putString("pseudonymTerms", next.pseudonymTerms)
@@ -244,6 +247,7 @@ class SettingsStore(context: Context) {
             fallbackModel = prefs.getString("fallbackModel", d.fallbackModel) ?: d.fallbackModel,
             requestsPerMinute = prefs.getInt("requestsPerMinute", d.requestsPerMinute),
             memoryMode = prefs.getString("memoryMode", d.memoryMode) ?: d.memoryMode,
+            formSuggestions = prefs.getBoolean("formSuggestions", d.formSuggestions),
             pseudonymize = prefs.getBoolean("pseudonymize", d.pseudonymize),
             pseudonymAuto = prefs.getBoolean("pseudonymAuto", d.pseudonymAuto),
             pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,

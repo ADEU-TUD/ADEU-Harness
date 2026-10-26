@@ -28,6 +28,9 @@ internal object LlamaHost {
         )
     }
 
+    /** Same as [hardware]; Android needs no system functions that could be blocked. */
+    fun basicHardware(c: AppContainer, root: File): Hardware = hardware(c, root)
+
     private fun libDir(c: AppContainer) = File(c.appContext.applicationInfo.nativeLibraryDir)
 
     /** Dot product instructions (asimddp) make the fast variant possible. */

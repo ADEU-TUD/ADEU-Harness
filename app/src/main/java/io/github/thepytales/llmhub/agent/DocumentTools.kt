@@ -53,6 +53,9 @@ class DocumentTools(
 ) : ToolProvider {
     val folder = File(context.filesDir, "documents")
 
+    /** Storage location (vault id) for editor documents made in a chat of this project – its working folder, if it has one. */
+    var projectVault: (folderId: String?) -> String? = { null }
+
     override val defs = listOf(
         ToolDef(
             "create_document",
@@ -277,7 +280,7 @@ class DocumentTools(
             }
         } else {
             val kind = io.github.thepytales.llmhub.docs.DocKind.forFile(file.name)
-            val created = LiveDoc.create(title, content, author(ctx), ctx?.chatId, args.s("style"), kind).copy(file = file.absolutePath, vault = docs.defaultVault)
+            val created = LiveDoc.create(title, content, author(ctx), ctx?.chatId, args.s("style"), kind).copy(file = file.absolutePath, vault = projectVault(ctx?.folderId) ?: docs.defaultVault)
             if (kind != io.github.thepytales.llmhub.docs.DocKind.SHEET) created
             else {
                 // Tables: one tab per table, as in the Excel file.

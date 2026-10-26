@@ -110,8 +110,9 @@ compose.desktop {
             vendor = "thepytales"
             copyright = "Inoffiziell, nicht mit der Universität verbunden."
             // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files;
-            // jdk.crypto.mscapi: certificates of Windows (company proxies); jdk.localedata: German dates.
-            modules("java.instrument", "java.management", "java.naming", "java.net.http", "java.sql", "jdk.unsupported",
+            // jdk.crypto.mscapi: certificates of Windows (company proxies); jdk.localedata: German dates;
+            // jdk.management: installed memory for the hardware check without JNA.
+            modules("java.instrument", "java.management", "jdk.management", "java.naming", "java.net.http", "java.sql", "jdk.unsupported",
                 "jdk.crypto.ec", "jdk.charsets", "jdk.accessibility", "jdk.localedata")
             if (System.getProperty("os.name").startsWith("Windows")) modules("jdk.crypto.mscapi")
             windows {

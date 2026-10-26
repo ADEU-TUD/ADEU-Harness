@@ -17,6 +17,8 @@ data class Hardware(
     val gpuName: String? = null,
     val vramGb: Double = 0.0,
     val freeDiskGb: Double = Double.NaN,
+    /** Only the basic details could be read (the full check was blocked or too slow, e.g. by IT rules). */
+    val limited: Boolean = false,
 ) {
     /** Memory a model may use: on a dedicated GPU its VRAM, else a part of the RAM (the rest is for Windows/Android and other apps). */
     val usableForModel: Double get() = if (vramGb >= 4) vramGb * 0.92 else ramGb * if (phone) 0.45 else 0.55

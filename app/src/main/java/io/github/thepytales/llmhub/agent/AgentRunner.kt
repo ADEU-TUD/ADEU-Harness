@@ -20,11 +20,14 @@ import io.github.thepytales.llmhub.net.NetErrors
 import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.ui.splitThinking
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 import java.text.DateFormat
 import java.util.Date
@@ -61,7 +64,9 @@ class AgentRunner(private val c: AppContainer) {
             c.documentTools.takeIf { sel.documents },
             c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
             c.researchTools.takeIf { sel.web || conv.mode == Conversation.MODE_LITERATURE },
-            c.localFolderTools.takeIf { io.github.thepytales.llmhub.files.LocalText.SUPPORTED && c.localFolders.current.isNotEmpty() },
+            c.localFolderTools.takeIf {
+                io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
+            },
             c.assistantTools,
         )
     }
@@ -238,7 +243,7 @@ class AgentRunner(private val c: AppContainer) {
                 risk == null || host.confirm(call, risk) -> provider.execute(call.name, call.arguments, ctx)
                 else -> ToolOutput("Der Nutzer hat diese Aktion abgelehnt. Frage nach, wie du fortfahren sollst.")
             }
-            return output to System.currentTimeMillis() - started
+            return toWorkFolder(output, ctx) to System.currentTimeMillis() - started
         }
         fun record(call: ToolCall, output: ToolOutput, ms: Long) {
             val text = ctx.env?.mask(output.text) ?: output.text
@@ -372,7 +377,7 @@ class AgentRunner(private val c: AppContainer) {
                     "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
-            if (c.localFolderTools in providers) c.localFolderTools.prompt() else null,
+            if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId) else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
             if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
@@ -408,6 +413,18 @@ class AgentRunner(private val c: AppContainer) {
             }
         }
         return ContextManager.trimOldToolResults(out)
+    }
+
+    /**
+     * Files the tools created in a project with a working folder are saved there too; the chat then shows the copy
+     * (open, show in folder), and the document in the editor points to it.
+     */
+    private suspend fun toWorkFolder(output: ToolOutput, ctx: RepoContext): ToolOutput {
+        val made = output.file?.let(::File) ?: return output
+        val (copy, note) = withContext(Dispatchers.IO) { WorkFolder.deliver(c, ctx.folderId, made) } ?: return output
+        if (copy == null) return output.copy(text = output.text + "\n" + note)
+        c.docs.forFile(made.absolutePath)?.let { doc -> c.docs.save(doc.copy(file = copy.absolutePath)) }
+        return output.copy(text = output.text + "\n" + note, file = copy.absolutePath)
     }
 
     /** Instructions of the chat's project (folder) – also without tools. */

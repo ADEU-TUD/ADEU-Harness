@@ -25,6 +25,7 @@ data class PortableSettings(
     val pseudonymize: Boolean = false, val pseudonymAuto: Boolean = true, val pseudonymTerms: String = "",
     val citationStyle: String = "APA7_DE", val zoteroUserId: String = "", val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB",
     val uiLanguage: String = "de", val coderName: String = "",
+    val formSuggestions: Boolean = true,
 )
 
 @Serializable
@@ -81,7 +82,7 @@ object Backup {
         s.webTools, s.themeMode, s.appStyle, s.accent, s.amoled, s.textScale, s.ttsEngine, s.ttsVoice, s.speechRate,
         s.docStyle, s.docAccent, s.docFooter, s.tudUnit, s.autoLogo, s.senderInfo, s.favoriteTemplates, s.userName,
         s.fallbackModel, s.requestsPerMinute, s.memoryMode, s.pseudonymize, s.pseudonymAuto, s.pseudonymTerms,
-        s.citationStyle, s.zoteroUserId, s.literatureSources, s.uiLanguage, s.coderName,
+        s.citationStyle, s.zoteroUserId, s.literatureSources, s.uiLanguage, s.coderName, s.formSuggestions,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -94,7 +95,7 @@ object Backup {
         requestsPerMinute = p.requestsPerMinute, memoryMode = p.memoryMode, pseudonymize = p.pseudonymize,
         pseudonymAuto = p.pseudonymAuto, pseudonymTerms = p.pseudonymTerms,
         citationStyle = p.citationStyle, zoteroUserId = p.zoteroUserId, literatureSources = p.literatureSources,
-        uiLanguage = p.uiLanguage, coderName = p.coderName,
+        uiLanguage = p.uiLanguage, coderName = p.coderName, formSuggestions = p.formSuggestions,
     )
 
     /**

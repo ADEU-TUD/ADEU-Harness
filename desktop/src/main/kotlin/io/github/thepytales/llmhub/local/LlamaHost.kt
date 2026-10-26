@@ -36,19 +36,45 @@ internal object LlamaHost {
     private fun runtimeDir(root: File) = File(root, "runtime")
 
     fun hardware(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File): Hardware {
-        val os = ManagementFactory.getOperatingSystemMXBean() as? com.sun.management.OperatingSystemMXBean
-        val ram = (os?.totalMemorySize ?: Runtime.getRuntime().maxMemory()) / 1e9
         val gpu = if (SpeechWin.WINDOWS) gpu() else null
+        val ram = javaRam() ?: windowsRam()
         return Hardware(
             phone = false,
-            ramGb = ram,
+            ramGb = ram ?: 8.0,
             cores = SpeechWin.physicalCores().takeIf { it > 0 } ?: (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1),
-            cpuName = SpeechWin.cpuName().orEmpty(),
+            cpuName = SpeechWin.cpuName().orEmpty().ifBlank { envCpu() },
             gpuName = gpu?.first,
             vramGb = gpu?.second ?: 0.0,
-            freeDiskGb = root.apply { mkdirs() }.usableSpace / 1e9,
+            freeDiskGb = freeDisk(root),
+            limited = ram == null,
         )
     }
+
+    /**
+     * Without registry and system functions (JNA), for PCs where IT rules block them (AppLocker, WDAC, virus scanner):
+     * memory from Java, cores and processor from the environment. The graphics card stays unknown.
+     */
+    fun basicHardware(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File): Hardware = Hardware(
+        phone = false,
+        ramGb = javaRam() ?: 8.0,
+        cores = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1),
+        cpuName = envCpu(),
+        freeDiskGb = freeDisk(root),
+        limited = true,
+    )
+
+    private fun javaRam(): Double? = runCatching {
+        (ManagementFactory.getOperatingSystemMXBean() as? com.sun.management.OperatingSystemMXBean)?.totalMemorySize?.takeIf { it > 0 }?.div(1e9)
+    }.getOrNull()
+
+    private fun windowsRam(): Double? = if (!SpeechWin.WINDOWS) null else runCatching {
+        val status = com.sun.jna.platform.win32.WinBase.MEMORYSTATUSEX()
+        if (com.sun.jna.platform.win32.Kernel32.INSTANCE.GlobalMemoryStatusEx(status)) status.ullTotalPhys.toLong() / 1e9 else null
+    }.getOrNull()
+
+    private fun envCpu(): String = System.getenv("PROCESSOR_IDENTIFIER")?.trim().orEmpty()
+
+    private fun freeDisk(root: File): Double = runCatching { root.apply { mkdirs() }.usableSpace / 1e9 }.getOrDefault(Double.NaN)
 
     /**
      * The graphics card with the most own memory, from the registry (readable without admin rights). Integrated

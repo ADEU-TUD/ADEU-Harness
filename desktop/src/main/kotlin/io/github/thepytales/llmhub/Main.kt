@@ -61,6 +61,11 @@ fun main(args: Array<String>) {
         selfTest.mkdirs()
         System.setProperty("adeu.data", File(selfTest, "data").absolutePath)
     }
+    // JNA unpacks its DLL to %TEMP% by default; IT rules (AppLocker, WDAC, virus scanners) often block DLLs there.
+    // The app's own folder in %LOCALAPPDATA% is allowed wherever the app itself may run.
+    if (System.getProperty("jna.tmpdir") == null) {
+        runCatching { System.setProperty("jna.tmpdir", File(io.github.thepytales.llmhub.desktop.Paths.local, "jna").apply { mkdirs() }.absolutePath) }
+    }
     Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
