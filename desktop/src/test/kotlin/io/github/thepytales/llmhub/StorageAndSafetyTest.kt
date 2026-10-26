@@ -63,9 +63,15 @@ class StorageAndSafetyTest {
         assertEquals(image, repo.get("c1")!!.messages.single().images.single())
         // Saving the light copy (e.g. after renaming from the side menu) keeps the picture.
         repo.save(repo.conversations.value.single().copy(title = "Umbenannt"))
-        delay(300)
-        val again = ChatRepository(Context(dir, File(dir, "cache")))
-        again.awaitLoaded()
+        // Saving runs in the background: read the folder again until the new title is there (slow CI runners need
+        // longer than a fixed pause).
+        val until = System.currentTimeMillis() + 10_000
+        var again: ChatRepository
+        do {
+            delay(100)
+            again = ChatRepository(Context(dir, File(dir, "cache")))
+            again.awaitLoaded()
+        } while (again.get("c1")?.title != "Umbenannt" && System.currentTimeMillis() < until)
         assertEquals("Umbenannt", again.get("c1")!!.title)
         assertEquals(image, again.get("c1")!!.messages.single().images.single())
     }
