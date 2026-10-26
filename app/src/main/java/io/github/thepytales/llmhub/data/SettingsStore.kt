@@ -89,7 +89,7 @@ data class AppSettings(
     val zoteroUserId: String = "",
     val zoteroKey: String = "",
     /** Databases of the literature search, comma-separated enum names of research/LitSource. */
-    val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB",
+    val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB,SLUB",
     /** Language of the app's interface: "de" or "en". */
     val uiLanguage: String = "de",
     /** Name or initials of the person coding transcripts (intercoder agreement). */

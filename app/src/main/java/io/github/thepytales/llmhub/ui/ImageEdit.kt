@@ -53,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -66,6 +65,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlin.math.roundToInt
 
 /** Colors of the marked areas (Bereich 1–4), also used in the chat to show what was marked. */
 val REGION_COLORS = listOf(Color(0xFFE5484D), Color(0xFF3E63DD), Color(0xFF30A46C), Color(0xFFF76B15))
@@ -92,23 +92,58 @@ data class EditRegion(val index: Int, val strokes: List<EditStroke>, val descrip
             else -> "$v $h"
         }
     }
+
+    /** Bounding box of the strokes (0–1): left, top, right, bottom. */
+    private fun box(): FloatArray? {
+        val pts = strokes.flatMap { s -> s.points.map { it to s.width / 2 } }
+        if (pts.isEmpty()) return null
+        return floatArrayOf(
+            pts.minOf { it.first.x - it.second }.coerceIn(0f, 1f), pts.minOf { it.first.y - it.second }.coerceIn(0f, 1f),
+            pts.maxOf { it.first.x + it.second }.coerceIn(0f, 1f), pts.maxOf { it.first.y + it.second }.coerceIn(0f, 1f),
+        )
+    }
+
+    /**
+     * Where the area lies in English, with its extent in percent ("at the bottom center (about 40–60 % from the left,
+     * 70–95 % from the top)"): image models without masks (FLUX.2) only know the place from the words.
+     */
+    fun placeEnglish(): String {
+        val b = box() ?: return "in the image"
+        val x = (b[0] + b[2]) / 2
+        val y = (b[1] + b[3]) / 2
+        val v = when { y < 0.34f -> "top"; y > 0.66f -> "bottom"; else -> "" }
+        val h = when { x < 0.34f -> "left"; x > 0.66f -> "right"; else -> "" }
+        val where = when {
+            v.isEmpty() && h.isEmpty() -> "in the center"
+            v.isEmpty() -> "on the $h side"
+            h.isEmpty() -> "at the $v center"
+            else -> "in the $v $h corner"
+        }
+        fun pct(f: Float) = (f * 100).roundToInt()
+        return "$where (about ${pct(b[0])}–${pct(b[2])} % from the left edge, ${pct(b[1])}–${pct(b[3])} % from the top edge)"
+    }
 }
 
-/** What goes to the model: with a mask ("the marked areas") and without one (places in words). */
+/**
+ * What goes to the model, in English (image models follow it far better than German): with a mask and without one.
+ * Both name the places in words, because many servers accept a mask and still ignore it (FLUX.2 edits from the
+ * reference picture only) – a prompt that only says "the marked areas" then changes nothing. Pass descriptions that
+ * are already English (the view model translates them); German ones still work, just less reliably.
+ */
 fun editPrompts(regions: List<EditRegion>, note: String): Pair<String, String> {
     val used = regions.filter { it.strokes.isNotEmpty() }
     val extra = note.trim().takeIf { it.isNotEmpty() }
     if (used.isEmpty()) {
-        val whole = extra ?: "Verbessere das Bild."
+        val whole = extra ?: "Improve the overall quality of the image."
         return whole to whole
     }
-    val keep = "Alles andere bleibt genau wie im Original (Bildaufbau, Personen, Farben, Licht)."
-    val withMask = "Überarbeite nur die markierten Bereiche. " +
-        used.joinToString(" ") { "Bereich ${it.index + 1}: ${it.description.trim().ifEmpty { "passend ergänzen" }}." } +
-        " $keep" + (extra?.let { " Zusätzlich: $it" } ?: "")
-    val withoutMask = "Überarbeite das Bild nur an diesen Stellen: " +
-        used.joinToString("; ") { "${it.place()}: ${it.description.trim().ifEmpty { "passend ergänzen" }}" } +
-        ". $keep" + (extra?.let { " Zusätzlich: $it" } ?: "")
+    val changes = used.joinToString("; ") { r ->
+        "${r.placeEnglish()}: ${r.description.trim().ifEmpty { "fill in something fitting" }}"
+    }
+    val keep = "Keep the rest of the picture (composition, colors, lighting) as it is."
+    val also = extra?.let { " Also: $it" }.orEmpty()
+    val withMask = "Edit the masked area of this image. Make this change clearly visible – $changes. $keep$also"
+    val withoutMask = "Edit this image. Make this change clearly visible – $changes. $keep$also"
     return withMask to withoutMask
 }
 
@@ -116,27 +151,75 @@ fun editPrompts(regions: List<EditRegion>, note: String): Pair<String, String> {
 fun editSummary(regions: List<EditRegion>): List<String> =
     regions.filter { it.strokes.isNotEmpty() }.map { "${it.index + 1} · ${it.place()}: ${it.description.trim().ifEmpty { "–" }}" }
 
-/**
- * The mask in the size of the picture: opaque everywhere, transparent where something was painted (OpenAI
- * convention: transparent = may change).
- */
+/** The painted strokes in the size of the picture: white where something was painted, black elsewhere. */
 fun renderMask(width: Int, height: Int, regions: List<EditRegion>): ImageBitmap {
     val bmp = ImageBitmap(width, height)
     val canvas = Canvas(bmp)
     canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), Paint().apply { color = Color.Black })
-    val clear = Paint().apply {
-        blendMode = BlendMode.Clear
+    val line = Paint().apply {
+        color = Color.White
         style = PaintingStyle.Stroke
         strokeCap = StrokeCap.Round
     }
-    val dot = Paint().apply { blendMode = BlendMode.Clear }
+    val dot = Paint().apply { color = Color.White }
     regions.flatMap { it.strokes }.forEach { s ->
-        clear.strokeWidth = s.width * width
+        line.strokeWidth = s.width * width
         val pts = s.points.map { Offset(it.x * width, it.y * height) }
         if (pts.size == 1) canvas.drawCircle(pts[0], s.width * width / 2, dot)
-        pts.zipWithNext { a, b -> canvas.drawLine(a, b, clear) }
+        pts.zipWithNext { a, b -> canvas.drawLine(a, b, line) }
     }
     return bmp
+}
+
+/**
+ * The mask as PNG for /images/edits, readable in both conventions: OpenAI reads the alpha channel (transparent = may
+ * change), diffusers-based servers read the brightness (white = may change). Painted pixels are therefore white
+ * *and* transparent, the rest opaque black. Bitmaps store premultiplied colours (a transparent pixel is always
+ * black), so the PNG is written here directly.
+ */
+fun maskPng(width: Int, height: Int, regions: List<EditRegion>): ByteArray {
+    val painted = renderMask(width, height, regions)
+    val pixels = IntArray(width * height)
+    painted.readPixels(pixels, 0, 0, width, height)
+    return Png.rgba(width, height) { x, y ->
+        val p = pixels[y * width + x]
+        if ((p shr 8 and 0xFF) > 127) 0xFFFFFF00.toInt() else 0x000000FF
+    }
+}
+
+/** A minimal PNG encoder (8-bit RGBA, no interlacing); [rgba] gives each pixel as 0xRRGGBBAA. */
+object Png {
+    fun rgba(width: Int, height: Int, rgba: (Int, Int) -> Int): ByteArray {
+        val raw = java.io.ByteArrayOutputStream(height * (width * 4 + 1))
+        for (y in 0 until height) {
+            raw.write(0) // no filter
+            for (x in 0 until width) {
+                val v = rgba(x, y)
+                raw.write(v ushr 24 and 0xFF); raw.write(v ushr 16 and 0xFF); raw.write(v ushr 8 and 0xFF); raw.write(v and 0xFF)
+            }
+        }
+        val out = java.io.ByteArrayOutputStream()
+        out.write(byteArrayOf(0x89.toByte(), 'P'.code.toByte(), 'N'.code.toByte(), 'G'.code.toByte(), 13, 10, 26, 10))
+        fun chunk(type: String, data: ByteArray) {
+            val len = data.size
+            out.write(byteArrayOf((len ushr 24).toByte(), (len ushr 16).toByte(), (len ushr 8).toByte(), len.toByte()))
+            val crc = java.util.zip.CRC32()
+            val t = type.toByteArray(Charsets.US_ASCII)
+            out.write(t); crc.update(t)
+            out.write(data); crc.update(data)
+            val c = crc.value.toInt()
+            out.write(byteArrayOf((c ushr 24).toByte(), (c ushr 16).toByte(), (c ushr 8).toByte(), c.toByte()))
+        }
+        val header = java.nio.ByteBuffer.allocate(13).putInt(width).putInt(height).put(8).put(6).put(0).put(0).put(0).array()
+        chunk("IHDR", header)
+        val deflater = java.util.zip.Deflater(6)
+        val z = java.io.ByteArrayOutputStream()
+        java.util.zip.DeflaterOutputStream(z, deflater).use { it.write(raw.toByteArray()) }
+        deflater.end()
+        chunk("IDAT", z.toByteArray())
+        chunk("IEND", ByteArray(0))
+        return out.toByteArray()
+    }
 }
 
 /**

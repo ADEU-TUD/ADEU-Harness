@@ -10,6 +10,7 @@ import io.github.thepytales.llmhub.research.BibTeX
 import io.github.thepytales.llmhub.research.Bibliography
 import io.github.thepytales.llmhub.research.CitationStyle
 import io.github.thepytales.llmhub.research.CslJson
+import io.github.thepytales.llmhub.research.LitLinks
 import io.github.thepytales.llmhub.research.LitSource
 import io.github.thepytales.llmhub.research.LiteratureSources
 import io.github.thepytales.llmhub.research.RefType
@@ -52,12 +53,14 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
         ToolDef(
             "search_literature",
             "Sucht wissenschaftliche Literatur in offenen Datenbanken: OpenAlex (alle Fächer, mit Abstracts und Zitationen), " +
-                "Crossref (alles mit DOI), ERIC (Bildungsforschung, englisch) und Deutsche Nationalbibliothek (deutschsprachige " +
-                "Bücher und Hochschulschriften). Liefert je Treffer eine id, Autor:innen, Jahr, Titel, Quelle, Zitationen, " +
-                "Open-Access-Link und den Anfang des Abstracts. Mehrmals mit verschiedenen Suchbegriffen (deutsch und englisch) aufrufen.",
+                "Crossref (alles mit DOI), ERIC (Bildungsforschung, englisch), Deutsche Nationalbibliothek (deutschsprachige " +
+                "Bücher und Hochschulschriften), SLUB Dresden (Katalog der Uni-Bibliothek: ausleihbar, E-Books, lizenzierte Artikel), " +
+                "PubMed/Europe PMC (Biologie, Medizin, Psychologie), arXiv (Preprints) und DOAJ (Open-Access-Zeitschriften). " +
+                "Liefert je Treffer eine id, Autor:innen, Jahr, Titel, Quelle, Zitationen, einen Link zum Öffnen und den Anfang " +
+                "des Abstracts. Mehrmals mit verschiedenen Suchbegriffen (deutsch und englisch) aufrufen.",
             listOf(
                 Param("query", "Suchbegriffe, z.B. \"classroom management beginning teachers\" (Phrasen in Anführungszeichen)"),
-                Param("sources", "Kommagetrennt: openalex, crossref, eric, dnb (Standard: die in den Einstellungen gewählten)", required = false),
+                Param("sources", "Kommagetrennt: openalex, crossref, eric, dnb, slub, europepmc, arxiv, doaj (Standard: die in den Einstellungen gewählten)", required = false),
                 Param("from_year", "Frühestes Erscheinungsjahr", required = false, type = "integer"),
                 Param("to_year", "Spätestes Erscheinungsjahr", required = false, type = "integer"),
                 Param("types", "Kommagetrennt: article, book, chapter, thesis, report (Standard: alle)", required = false),
@@ -211,6 +214,7 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
         r.citations?.let { append(" · ").append(it).append(" Zitationen") }
         if (r.openAccessUrl.isNotBlank()) append(" · Open Access")
         if (r.language.isNotBlank()) append(" · ").append(r.language)
+        append("\n   Link: ").append(LitLinks.best(r))
         if (abstractChars > 0 && r.abstract.isNotBlank()) append("\n   Abstract: ").append(r.abstract.take(abstractChars)).append(if (r.abstract.length > abstractChars) " …" else "")
     }
 
@@ -229,6 +233,10 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
                         LitSource.CROSSREF -> src.crossrefSearch(query, max, filter)
                         LitSource.ERIC -> src.ericSearch(query, max, filter)
                         LitSource.DNB -> src.dnbSearch(query, max, filter)
+                        LitSource.SLUB -> src.slubSearch(query, max, filter)
+                        LitSource.EUROPEPMC -> src.europePmcSearch(query, max, filter)
+                        LitSource.ARXIV -> src.arxivSearch(query, max, filter)
+                        LitSource.DOAJ -> src.doajSearch(query, max, filter)
                     }
                 }
             }
@@ -433,11 +441,12 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
         return ToolOutput(items.joinToString("\n\n") { f -> "- ${f.title}" + (if (f.date.isNotBlank()) " (${f.date})" else "") + "\n  ${f.link}" + (if (f.summary.isNotBlank()) "\n  ${f.summary.take(300)}" else "") })
     }
 
-    fun prompt(): String = "Literatur: search_literature durchsucht OpenAlex, Crossref, ERIC und die DNB; snowball_literature findet zitierte " +
+    fun prompt(): String = "Literatur: search_literature durchsucht OpenAlex, Crossref, ERIC, die DNB, den SLUB-Katalog, PubMed/Europe PMC, arXiv und DOAJ; snowball_literature findet zitierte " +
         "und zitierende Arbeiten; save_literature legt Werke in der Literatursammlung ab; format_bibliography erstellt ein " +
         "alphabetisches Literaturverzeichnis im gewünschten Stil und ergänzt fehlende Angaben" +
         (if (zotero.configured) "; zotero_add und zotero_search arbeiten mit der Zotero-Bibliothek des Nutzers" else "") +
-        ". Nenne nie Literatur, die du nicht über diese Werkzeuge gefunden oder geprüft hast. Wünscht der Nutzer ein " +
+        ". Nenne nie Literatur, die du nicht über diese Werkzeuge gefunden oder geprüft hast. Verlinke jedes genannte Werk " +
+        "als Markdown-Link mit dem „Link:“ aus den Ergebnissen, z. B. [Titel](https://doi.org/…), damit es sich direkt öffnen lässt. Wünscht der Nutzer ein " +
         "Literaturverzeichnis, nutze immer format_bibliography statt selbst zu formatieren."
 
     companion object {
@@ -447,16 +456,21 @@ class ResearchTools(private val c: AppContainer) : ToolProvider {
             "1. Ist das Thema zu vage, stelle höchstens zwei kurze Rückfragen (Fragestellung, Zielgruppe/Schulform, Zeitraum, Sprache); sonst beginne sofort.\n" +
             "2. Leite Suchbegriffe ab: Kernbegriffe auf Deutsch und Englisch, Synonyme, englische Fachtermini, engere und weitere Begriffe.\n" +
             "3. Suche mit search_literature in mehreren Durchgängen (mindestens 4 verschiedene Suchanfragen): englische Begriffe in OpenAlex und " +
-            "Crossref, Bildungsthemen zusätzlich in ERIC, deutschsprachige Bücher und Sammelbände in der DNB. Nutze Filter (Jahre, Typen) sinnvoll.\n" +
+            "Crossref, Bildungsthemen zusätzlich in ERIC, deutschsprachige Bücher und Sammelbände in der DNB und im SLUB-Katalog (dort zeigt sich, " +
+            "was an der TU Dresden ausleihbar oder lizenziert ist), Biologie, Medizin und Psychologie in PubMed/Europe PMC, Informatik in arXiv, " +
+            "frei zugängliche Artikel in DOAJ. Durchsuche nur die Datenbanken, die der Nutzer gewählt hat. Nutze Filter (Jahre, Typen) sinnvoll.\n" +
             "4. Schneeballsuche: Für 2–4 zentrale, viel zitierte Arbeiten snowball_literature backward und forward.\n" +
             "5. Prüfe die Relevanz anhand von Titel und Abstract (bei Bedarf literature_details). Nimm nur Werke auf, die zum Thema passen; " +
             "bevorzuge Überblicksarbeiten, Metaanalysen, viel zitierte Grundlagenwerke und aktuelle empirische Studien.\n" +
             "6. Speichere die Auswahl (je nach gewünschtem Umfang etwa 10–40 Werke) mit save_literature in einer Liste mit dem Thema als Namen, " +
             "mit einer kurzen Relevanznotiz je Werk.\n" +
             "7. Antworte strukturiert: (a) Überblick über den Forschungsstand in 4–8 Sätzen, nur gestützt auf die Abstracts, mit Kurzbelegen " +
-            "(Autor, Jahr); (b) die Literatur gruppiert nach Unterthemen als Tabelle | Werk | Typ | Worum es geht | Zugang |; (c) ein " +
+            "(Autor, Jahr); (b) die Literatur gruppiert nach Unterthemen als Tabelle | Werk | Typ | Worum es geht | Zugang |, jedes Werk als " +
+            "Markdown-Link mit dem „Link:“ aus den Suchergebnissen (Volltext, DOI oder Katalogeintrag), Spalte Zugang z. B. „Open Access“, " +
+            "„SLUB“ oder „über DOI“; (c) ein " +
             "Suchprotokoll für den Methodenteil: Datum, Datenbanken, Suchbegriffe, Filter, Trefferzahlen, Auswahlkriterien; (d) Lücken und " +
-            "Hinweise, welche Fachdatenbanken die App nicht durchsuchen kann (z.B. FIS Bildung, pedocs, PsycINFO und Web of Science über die SLUB).\n" +
+            "Hinweise, welche Fachdatenbanken die App nicht durchsuchen kann (z.B. FIS Bildung, pedocs, PsycINFO und Web of Science über die SLUB; " +
+            "Google Scholar und ResearchGate nur von Hand).\n" +
             "8. Biete am Ende an: ein Literaturverzeichnis im gewünschten Stil (format_bibliography mit list), den Export nach Zotero, weitere " +
             "Suche zu einem Unterthema.\n" +
             "Erfinde keine Literatur und verändere keine bibliografischen Angaben. Werke, die du nicht gefunden hast, nennst du nicht."

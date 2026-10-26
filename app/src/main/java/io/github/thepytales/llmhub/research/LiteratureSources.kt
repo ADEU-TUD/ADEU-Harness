@@ -36,6 +36,10 @@ enum class LitSource(val label: String, val description: String) {
     CROSSREF("Crossref", "Alle Werke mit DOI: Zeitschriften, Sammelbände, Tagungsbände"),
     ERIC("ERIC", "Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur"),
     DNB("Deutsche Nationalbibliothek", "Deutschsprachige Bücher, Sammelbände und Hochschulschriften"),
+    SLUB("SLUB Dresden", "Katalog der Sächsischen Landes- und Universitätsbibliothek: Bestand vor Ort, E-Books und lizenzierte Artikel der TU Dresden"),
+    EUROPEPMC("PubMed / Europe PMC", "Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts"),
+    ARXIV("arXiv", "Preprints aus Informatik, Mathematik, Physik und Statistik"),
+    DOAJ("DOAJ", "Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer"),
     ;
 
     companion object {
@@ -45,6 +49,10 @@ enum class LitSource(val label: String, val description: String) {
                 n.startsWith("cross") -> CROSSREF
                 n.startsWith("eric") -> ERIC
                 n.startsWith("dnb") || n.contains("national") -> DNB
+                n.startsWith("slub") || n.contains("dresden") -> SLUB
+                n.contains("pubmed") || n.contains("pmc") -> EUROPEPMC
+                n.startsWith("arxiv") -> ARXIV
+                n.startsWith("doaj") -> DOAJ
                 else -> null
             }
         }
@@ -396,6 +404,159 @@ class LiteratureSources(
         return withContext(Dispatchers.Default) { Marc.parse(xml) }
     }
 
+    // ── SLUB Dresden (katalog.slub-dresden.de, JSON of its app interface) ────────────────────────────────────
+
+    suspend fun slubSearch(query: String, rows: Int = 15, filter: SearchFilter = SearchFilter()): List<Reference> {
+        val url = "https://katalog.slub-dresden.de/".toHttpUrl().newBuilder()
+            .addQueryParameter("tx_find_find[q][default]", query.take(300))
+            .addQueryParameter("tx_find_find[count]", (rows * 2).coerceIn(5, 60).toString())
+            .addQueryParameter("tx_find_find[format]", "data")
+            .addQueryParameter("tx_find_find[data-format]", "app")
+            .addQueryParameter("type", "1369315142")
+            .build()
+        val docs = (json(url)?.get("docs") as? JsonArray).orEmpty()
+        val years = filter.fromYear != null || filter.toYear != null
+        return docs.mapNotNull { (it as? JsonObject)?.let(::slubDoc) }
+            .filter { r ->
+                val y = r.year.toIntOrNull()
+                if (y == null) !years else (filter.fromYear == null || y >= filter.fromYear) && (filter.toYear == null || y <= filter.toYear)
+            }
+            .filter { r -> filter.types.isEmpty() || r.type in filter.types || (r.type == RefType.BOOK && RefType.EDITED_BOOK in filter.types) }
+            .take(rows)
+    }
+
+    private fun slubDoc(o: JsonObject): Reference? {
+        val id = o.text("id").ifBlank { return null }
+        val authors = (o["author"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.let(Person::parse) }
+        val formats = (o["format"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.joinToString(" ")
+        val type = when {
+            "Article" in formats -> RefType.ARTICLE
+            "Thesis" in formats || "Hochschulschrift" in formats -> RefType.THESIS
+            "Book" in formats -> RefType.BOOK
+            else -> RefType.OTHER
+        }
+        // The catalogue appends the statement of responsibility to the title ("… Paul Westrich", "[Autor: …]").
+        var title = o.text("title").replace(Regex("\\s*\\[[^\\]]*]\\s*$"), "").trim()
+        authors.forEach { a ->
+            listOf("${a.given} ${a.family}".trim(), a.family).forEach { n -> if (n.isNotBlank() && title.endsWith(" $n")) title = title.removeSuffix(" $n").trim() }
+        }
+        val imprint = ((o["imprint"] as? JsonArray)?.firstOrNull() as? JsonPrimitive)?.contentOrNull.orEmpty()
+        val year = o.text("creationDate").takeIf { it.isNotBlank() && it != "null" } ?: Regex("\\d{4}").find(imprint)?.value.orEmpty()
+        val book = type != RefType.ARTICLE && ':' in imprint
+        return Reference(
+            type = type, authors = authors, year = year.take(4), title = title,
+            publisher = if (book) imprint.substringAfter(':').substringBeforeLast(',').trim().removeSurrounding("[", "]") else "",
+            place = if (book) imprint.substringBefore(':').trim() else "",
+            url = "https://katalog.slub-dresden.de/id/$id", source = "SLUB",
+        )
+    }
+
+    // ── Europe PMC (PubMed, PMC, preprints) ─────────────────────────────────────────────────────────────────
+
+    suspend fun europePmcSearch(query: String, rows: Int = 15, filter: SearchFilter = SearchFilter()): List<Reference> {
+        var q = query.take(300)
+        if (filter.fromYear != null || filter.toYear != null) q += " AND PUB_YEAR:[${filter.fromYear ?: 1800} TO ${filter.toYear ?: 2100}]"
+        if (filter.openAccessOnly) q += " AND OPEN_ACCESS:y"
+        val b = "https://www.ebi.ac.uk/europepmc/webservices/rest/search".toHttpUrl().newBuilder()
+            .addQueryParameter("query", q).addQueryParameter("format", "json").addQueryParameter("resultType", "core")
+            .addQueryParameter("pageSize", rows.coerceIn(1, 50).toString())
+        if (filter.sortByCitations) b.addQueryParameter("sort", "CITED desc")
+        val list = ((json(b.build())?.get("resultList") as? JsonObject)?.get("result") as? JsonArray).orEmpty()
+        return list.mapNotNull { e ->
+            val o = e as? JsonObject ?: return@mapNotNull null
+            val authors = ((o["authorList"] as? JsonObject)?.get("author") as? JsonArray).orEmpty().mapNotNull { a ->
+                val p = a as? JsonObject ?: return@mapNotNull null
+                when {
+                    p.text("lastName").isNotBlank() -> Person(p.text("lastName"), p.text("firstName"))
+                    p.text("collectiveName").isNotBlank() -> Person(p.text("collectiveName"), literal = true)
+                    else -> null
+                }
+            }
+            val journal = o["journalInfo"] as? JsonObject
+            val types = ((o["pubTypeList"] as? JsonObject)?.get("pubType") as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+            val urls = ((o["fullTextUrlList"] as? JsonObject)?.get("fullTextUrl") as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
+            val oa = urls.firstOrNull { it.text("availabilityCode") == "OA" || it.text("availabilityCode") == "F" }?.text("url").orEmpty()
+            val pmid = o.text("pmid")
+            val pmcid = o.text("pmcid")
+            val doi = o.text("doi")
+            val preprint = o.text("source") == "PPR" || types.any { "preprint" in it.lowercase() }
+            Reference(
+                type = if (preprint) RefType.OTHER else RefType.ARTICLE,
+                authors = authors,
+                year = o.text("pubYear"),
+                title = stripTags(o.text("title")).trimEnd('.'),
+                container = (journal?.get("journal") as? JsonObject)?.text("title").orEmpty(),
+                volume = journal?.text("volume").orEmpty(),
+                issue = journal?.text("issue").orEmpty(),
+                pages = o.text("pageInfo").replace("-", "–"),
+                genre = if (preprint) "Preprint" else "",
+                doi = doi,
+                url = when {
+                    pmid.isNotBlank() -> "https://pubmed.ncbi.nlm.nih.gov/$pmid/"
+                    else -> "https://europepmc.org/article/${o.text("source")}/${o.text("id")}"
+                },
+                abstract = stripTags(o.text("abstractText")),
+                language = when (o.text("language")) { "eng" -> "en"; "ger" -> "de"; else -> o.text("language") },
+                citations = (o["citedByCount"] as? JsonPrimitive)?.intOrNull,
+                openAccessUrl = oa.ifBlank { if (pmcid.isNotBlank()) "https://europepmc.org/article/PMC/$pmcid" else "" },
+                source = "Europe PMC",
+            )
+        }
+    }
+
+    // ── arXiv (Atom feed) ───────────────────────────────────────────────────────────────────────────────────
+
+    suspend fun arxivSearch(query: String, rows: Int = 15, filter: SearchFilter = SearchFilter()): List<Reference> {
+        val terms = query.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.take(8)
+        if (terms.isEmpty()) return emptyList()
+        val url = "https://export.arxiv.org/api/query".toHttpUrl().newBuilder()
+            .addQueryParameter("search_query", terms.joinToString(" AND ") { "all:" + it.replace("\"", "") })
+            .addQueryParameter("max_results", rows.coerceIn(1, 50).toString())
+            .addQueryParameter("sortBy", "relevance")
+            .build()
+        val xml = get(url, "application/atom+xml") ?: return emptyList()
+        return withContext(Dispatchers.Default) { Atom.arxiv(xml) }.filter { r ->
+            val y = r.year.toIntOrNull() ?: return@filter true
+            (filter.fromYear == null || y >= filter.fromYear) && (filter.toYear == null || y <= filter.toYear)
+        }
+    }
+
+    // ── DOAJ (Directory of Open Access Journals) ────────────────────────────────────────────────────────────
+
+    suspend fun doajSearch(query: String, rows: Int = 15, filter: SearchFilter = SearchFilter()): List<Reference> {
+        var q = query.take(250)
+        if (filter.fromYear != null || filter.toYear != null) q += " AND bibjson.year:[${filter.fromYear ?: 1900} TO ${filter.toYear ?: 2100}]"
+        val url = "https://doaj.org/api/search/articles/".toHttpUrl().newBuilder().addPathSegment(q)
+            .addQueryParameter("pageSize", rows.coerceIn(1, 50).toString()).build()
+        val results = (json(url)?.get("results") as? JsonArray).orEmpty()
+        return results.mapNotNull { e ->
+            val bib = (e as? JsonObject)?.get("bibjson") as? JsonObject ?: return@mapNotNull null
+            val journal = bib["journal"] as? JsonObject
+            val ids = (bib["identifier"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
+            val doi = ids.firstOrNull { it.text("type").equals("doi", true) }?.text("id").orEmpty()
+            val link = (bib["link"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }.firstOrNull { it.text("url").startsWith("http") }?.text("url").orEmpty()
+            val first = bib.text("start_page")
+            val last = bib.text("end_page")
+            Reference(
+                type = RefType.ARTICLE,
+                authors = (bib["author"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonObject)?.text("name")?.let(Person::parse) },
+                year = bib.text("year"),
+                title = stripTags(bib.text("title")),
+                container = journal?.text("title").orEmpty(),
+                volume = journal?.text("volume").orEmpty(),
+                issue = journal?.text("number").orEmpty(),
+                pages = if (first.isNotBlank() && last.isNotBlank() && first != last) "$first–$last" else first,
+                doi = doi,
+                url = if (doi.isBlank()) link else "",
+                issn = ((journal?.get("issns") as? JsonArray)?.firstOrNull() as? JsonPrimitive)?.contentOrNull.orEmpty(),
+                abstract = stripTags(bib.text("abstract")),
+                language = ((journal?.get("language") as? JsonArray)?.firstOrNull() as? JsonPrimitive)?.contentOrNull?.lowercase().orEmpty(),
+                openAccessUrl = link,
+                source = "DOAJ",
+            )
+        }
+    }
+
     // ── Google Books (completion only) ──────────────────────────────────────────────────────────────────────
 
     suspend fun googleBooks(title: String, author: String?): List<Reference> {
@@ -429,6 +590,35 @@ class LiteratureSources(
 
         fun stripTags(s: String) = s.replace(Regex("<[^>]+>"), " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
             .replace(Regex("\\s+"), " ").trim()
+    }
+}
+
+/** The Atom feed of arXiv to references (preprints). */
+object Atom {
+    fun arxiv(xml: String): List<Reference> {
+        val factory = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = false }
+        val doc = runCatching { factory.newDocumentBuilder().parse(ByteArrayInputStream(xml.toByteArray(Charsets.UTF_8))) }.getOrNull() ?: return emptyList()
+        val entries = doc.getElementsByTagName("entry")
+        return (0 until entries.length).mapNotNull { i ->
+            val e = entries.item(i) as? Element ?: return@mapNotNull null
+            fun first(tag: String) = (e.getElementsByTagName(tag).item(0) as? Element)?.textContent?.replace(Regex("\\s+"), " ")?.trim().orEmpty()
+            val names = e.getElementsByTagName("name")
+            val links = e.getElementsByTagName("link")
+            val pdf = (0 until links.length).mapNotNull { links.item(it) as? Element }.firstOrNull { it.getAttribute("title") == "pdf" }?.getAttribute("href").orEmpty()
+            Reference(
+                type = RefType.OTHER,
+                authors = (0 until names.length).mapNotNull { Person.parse(names.item(it).textContent.trim()) },
+                year = first("published").take(4),
+                title = first("title"),
+                container = "arXiv",
+                genre = "Preprint",
+                doi = first("arxiv:doi"),
+                url = first("id").replace("http://", "https://"),
+                abstract = first("summary"),
+                openAccessUrl = pdf.replace("http://", "https://"),
+                source = "arXiv",
+            )
+        }
     }
 }
 

@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
@@ -30,7 +32,12 @@ data class GalleryImage(
     /** Picture this one was reworked from ("Überarbeiten"), with what was asked for each marked area. */
     val editOf: String? = null,
     val edits: List<String> = emptyList(),
+    /** Conversation of the Bilder tab the picture belongs to; null = the one conversation of older versions. */
+    val chatId: String? = null,
 ) {
+    /** Key of its conversation ([ImageGallery.FIRST_CHAT] for pictures from before there were several). */
+    val chat: String get() = chatId ?: ImageGallery.FIRST_CHAT
+
     val fileName get() = "$id.png"
 }
 
@@ -40,6 +47,8 @@ data class GalleryImage(
  */
 class ImageGallery(private val dir: File) {
     private val index = File(dir, "index.json")
+    private val titlesFile = File(dir, "chats.json")
+    private val titlesSerializer = MapSerializer(String.serializer(), String.serializer())
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val serializer = ListSerializer(GalleryImage.serializer())
 
@@ -47,10 +56,20 @@ class ImageGallery(private val dir: File) {
     /** Newest first. */
     val items: StateFlow<List<GalleryImage>> = _items.asStateFlow()
 
+    private val _titles = MutableStateFlow<Map<String, String>>(emptyMap())
+    /** Own names of conversations (otherwise the first description names it). */
+    val titles: StateFlow<Map<String, String>> = _titles.asStateFlow()
+
     suspend fun load() = withContext(Dispatchers.IO) {
         val text = runCatching { AtomicFiles.read(index) }.logFailure("Bildergalerie lesen").getOrNull() ?: return@withContext
         val list = runCatching { json.decodeFromString(serializer, text) }.getOrElse { e -> AtomicFiles.quarantine(index, e); emptyList() }
         _items.value = list.filter { File(dir, it.fileName).isFile }.sortedByDescending { it.createdAt }
+        _titles.value = runCatching { AtomicFiles.read(titlesFile)?.let { json.decodeFromString(titlesSerializer, it) } }.getOrNull().orEmpty()
+    }
+
+    suspend fun rename(chat: String, title: String) = withContext(Dispatchers.IO) {
+        _titles.update { m -> if (title.isBlank()) m - chat else m + (chat to title.trim()) }
+        runCatching { AtomicFiles.write(titlesFile, json.encodeToString(titlesSerializer, _titles.value)) }.logFailure("Bilder-Chats speichern")
     }
 
     fun file(image: GalleryImage) = File(dir, image.fileName)
@@ -74,6 +93,10 @@ class ImageGallery(private val dir: File) {
     suspend fun commitDelete(image: GalleryImage) = withContext(Dispatchers.IO) {
         if (_items.value.none { it.id == image.id }) File(dir, image.fileName).delete()
         save()
+    }
+
+    companion object {
+        const val FIRST_CHAT = "first"
     }
 
     private fun save() {

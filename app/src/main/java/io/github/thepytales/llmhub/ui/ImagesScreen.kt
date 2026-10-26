@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -33,18 +34,23 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.AddComment
 import androidx.compose.material.icons.outlined.AspectRatio
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -77,6 +83,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,17 +108,21 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     val models by c.models.state.collectAsStateWithLifecycle()
     val images by vm.gallery.items.collectAsStateWithLifecycle()
+    val titles by vm.gallery.titles.collectAsStateWithLifecycle()
+    val chats = remember(images, titles) { imageChats(images, titles) }
+    var showChats by rememberSaveable { mutableStateOf(false) }
     val imageModels = models.ofType(ModelType.IMAGE).ifEmpty { listOf(ModelCatalog.info(settings.imageModel)) }
         .map { it.id to if (it.aliasOf != null) "Standard" else it.displayName }
     var galleryView by rememberSaveable { mutableStateOf(false) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<GalleryImage?>(null) }
-    val turns = remember(images) {
-        images.groupBy { it.turnId }.map { (id, list) -> Turn(id, list.sortedBy { it.createdAt }) }.sortedBy { it.first.createdAt }
+    val turns = remember(images, vm.chat) {
+        images.filter { it.chat == vm.chat }.groupBy { it.turnId }.map { (id, list) -> Turn(id, list.sortedBy { it.createdAt }) }.sortedBy { it.first.createdAt }
     }
     val listState = rememberLazyListState()
-    LaunchedEffect(turns.size, vm.pending?.id, galleryView) {
-        val last = turns.size + (if (vm.pending != null) 1 else 0) - 1
+    val pending = vm.pending?.takeIf { it.chat == vm.chat }
+    LaunchedEffect(turns.size, pending?.id, galleryView, vm.chat) {
+        val last = turns.size + (if (pending != null) 1 else 0) - 1
         if (last >= 0 && !galleryView) listState.animateScrollToItem(last)
     }
 
@@ -121,8 +132,23 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 navigationIcon = { BackButton(onBack) },
-                title = { Text(if (galleryView) "Galerie" else "Bilder") },
+                title = {
+                    Text(
+                        if (galleryView) "Galerie" else chats.firstOrNull { it.key == vm.chat }?.title ?: "Neuer Bilder-Chat",
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 actions = {
+                    if (!galleryView) {
+                        IconButton(onClick = vm::newChat, enabled = !vm.busy && turns.isNotEmpty()) {
+                            Icon(Icons.Outlined.AddComment, contentDescription = "Neuer Bilder-Chat")
+                        }
+                        IconButton(onClick = { showChats = true }) {
+                            BadgedBox(badge = { if (chats.size > 1) Badge { Text("${chats.size}") } }) {
+                                Icon(Icons.Outlined.History, contentDescription = "Verläufe")
+                            }
+                        }
+                    }
                     IconButton(onClick = { galleryView = !galleryView }) {
                         Icon(
                             if (galleryView) Icons.Outlined.Forum else Icons.Outlined.Collections,
@@ -154,11 +180,11 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
                 verticalArrangement = Arrangement.spacedBy(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (turns.isEmpty() && vm.pending == null) item { Welcome { vm.prompt = it } }
+                if (turns.isEmpty() && pending == null) item { Welcome { vm.prompt = it } }
                 items(turns, key = { it.id }) { t ->
                     TurnView(vm, t, images, onOpen = { open = it.id }, onEdit = { img -> vm.editTarget = img; vm.regions = emptyList(); editing = img })
                 }
-                vm.pending?.let { p -> item(key = "pending-" + p.id) { PendingView(vm, p) } }
+                pending?.let { p -> item(key = "pending-" + p.id) { PendingView(vm, p) } }
             }
         }
     }
@@ -170,15 +196,17 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
             vm, img, onOpenChat,
             onDismiss = { open = null },
             onUsePrompt = {
+                vm.openChat(img.chat)
                 vm.prompt = img.prompt
                 ImageStyle.entries.firstOrNull { it.label == img.style }?.let { vm.style = it }
                 vm.size = img.size
                 open = null
                 galleryView = false
             },
-            onEdit = { vm.editTarget = img; vm.regions = emptyList(); open = null; galleryView = false; editing = img },
+            onEdit = { vm.openChat(img.chat); vm.editTarget = img; vm.regions = emptyList(); open = null; galleryView = false; editing = img },
         )
     }
+    if (showChats) ChatsSheet(vm, chats, onDismiss = { showChats = false })
     editing?.let { img ->
         val bmp = rememberGalleryBitmap(vm, img)
         if (bmp != null) ImageEditor(
@@ -186,6 +214,62 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
             onDone = { r -> vm.regions = r; editing = null },
             onDismiss = { editing = null },
         )
+    }
+}
+
+/** All conversations of the Bilder tab: open, rename, delete, start a new one. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChatsSheet(vm: ImagesViewModel, chats: List<ImageChat>, onDismiss: () -> Unit) {
+    var renaming by remember { mutableStateOf<ImageChat?>(null) }
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Bilder-Chats", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TextButton(onClick = { vm.newChat(); onDismiss() }, enabled = !vm.busy) {
+                    Icon(Icons.Outlined.AddComment, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Neuer Chat")
+                }
+            }
+            if (chats.isEmpty()) HintText("Noch keine Bilder.", Modifier.padding(20.dp))
+            LazyColumn(Modifier.heightIn(max = 520.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                items(chats, key = { it.key }) { ch ->
+                    val active = ch.key == vm.chat
+                    Surface(
+                        onClick = { vm.openChat(ch.key); onDismiss() },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
+                                ch.cover?.let { c -> rememberGalleryBitmap(vm, c)?.let { Image(it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) } }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(ch.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                HintText("${ch.count} ${if (ch.count == 1) "Bild" else "Bilder"} · " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(ch.updatedAt)))
+                            }
+                            var menu by remember { mutableStateOf(false) }
+                            Box {
+                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                    DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { menu = false; renaming = ch })
+                                    DropdownMenuItem(text = { Text("Löschen", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; vm.deleteChat(ch.key) })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    renaming?.let { ch ->
+        TextPrompt("Bilder-Chat umbenennen", ch.title, onDismiss = { renaming = null }) { name ->
+            vm.renameChat(ch.key, name)
+            renaming = null
+        }
     }
 }
 
