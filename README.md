@@ -475,10 +475,12 @@ auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt
   Projekte mit Anweisungen (in IndexedDB des Browsers), Gedächtnis und Absenderangaben, Sicherung als JSON.
 - Anhänge: PDF (Text), Word, PowerPoint (mit Folientiteln und Notizen), Excel, OpenDocument, Text, Bilder; per 📎,
   Ziehen oder Einfügen.
-- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt einen
-  Arbeitsordner (auch Google Drive, OneDrive oder ein Netzlaufwerk), dazu ein Standard-Ordner für Chats ohne Projekt.
-  Der Agent hat dort `list_files`, `read_file` und `write_file`; Word (.docx) und Excel (.xlsx, je Tabelle ein Blatt)
-  entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf ausdrücklichen Wunsch, `..` ist gesperrt.
+- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt wie in
+  der App einen Projektordner (auch Google Drive, OneDrive oder ein Netzlaufwerk); was die KI erstellt, landet im
+  Unterordner `Ausgabe`, und „KI darf die Dateien im Ordner lesen“ lässt sich abschalten (dann sieht sie nur `Ausgabe`).
+  Dazu ein Standard-Ordner für Chats ohne Projekt. Der Agent hat dort `list_files`, `read_file` und `write_file`; Word
+  (.docx) und Excel (.xlsx, je Tabelle ein Blatt) entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf
+  ausdrücklichen Wunsch, `..` ist gesperrt.
   Nach einem Neustart des Browsers fragt dieser einmal nach („Zugriff erlauben“). Firefox und Safari kennen die
   Schnittstelle nicht – dort werden Dateien heruntergeladen.
 - Jede Antwort lässt sich kopieren, als Word, Excel (Tabellen), Markdown oder per Drucken als PDF speichern.
@@ -681,7 +683,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
 | `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
-| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Arbeitsordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
+| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Projekt- und Standard-Ordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
 | `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |

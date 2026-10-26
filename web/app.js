@@ -90,23 +90,40 @@ function renderSidebar() {
 
 const projectOf = (chat) => state.projects.find((p) => p.id === chat?.projectId) || null;
 
-/** The working folder for [chat]: its project's, else the standard one. */
+/** Subfolder of a project folder for everything the AI creates (like the app). */
+const OUTPUT = "Ausgabe/";
+
+/**
+ * The folder for [chat]: its project's (files go into "Ausgabe"; without file access the AI sees only that), else the
+ * standard one.
+ */
 function folderOf(chat) {
   const project = projectOf(chat) || state.projects.find((p) => p.id === state.activeProject) || null;
-  if (project && state.handles[project.id]) return { key: project.id, handle: state.handles[project.id], label: `Projekt „${project.name}“` };
-  if (state.handles[DEFAULT_KEY]) return { key: DEFAULT_KEY, handle: state.handles[DEFAULT_KEY], label: "Standard-Arbeitsordner" };
+  if (project && state.handles[project.id]) {
+    return { key: project.id, handle: state.handles[project.id], label: `Projektordner von „${project.name}“`, output: OUTPUT, readable: project.readFiles !== false };
+  }
+  if (state.handles[DEFAULT_KEY]) return { key: DEFAULT_KEY, handle: state.handles[DEFAULT_KEY], label: "Standard-Ordner", output: "", readable: true };
   return null;
+}
+
+/** Where a new file goes: into "Ausgabe" of a project folder. */
+const outPath = (folder, path) => (folder.output && !path.startsWith(folder.output) ? folder.output + path : path);
+
+/** What the AI may read: everything, or only "Ausgabe" without file access. */
+function readPath(folder, path) {
+  const p = String(path || "").replace(/\\/g, "/").replace(/^\/+/, "");
+  return folder.readable || p.startsWith(folder.output) ? p : folder.output + p;
 }
 
 async function renderFolderStatus() {
   const el = $("folderStatus");
   const f = folderOf(state.current);
   if (!folders.SUPPORTED) {
-    el.textContent = "Dateien werden heruntergeladen (Arbeitsordner gibt es in Chrome und Edge).";
+    el.textContent = "Dateien werden heruntergeladen (Projektordner gibt es in Chrome und Edge).";
     return;
   }
   if (!f) {
-    el.innerHTML = "Kein Arbeitsordner – Dateien werden heruntergeladen. ";
+    el.innerHTML = "Kein Ordner gewählt – Dateien werden heruntergeladen. ";
     return;
   }
   const ok = await folders.permitted(f.handle, false);
@@ -257,14 +274,19 @@ function systemPrompt(chat, folder) {
   const p = projectOf(chat);
   if (p?.instructions?.trim()) parts.push(`Dieser Chat gehört zum Projekt „${p.name}“. Anweisungen für das Projekt:\n${p.instructions.trim()}`);
   if (folder) {
-    parts.push(`Der Nutzer hat den Arbeitsordner „${folder.handle.name}“ (${folder.label}) auf seinem Rechner freigegeben. ` +
-      "Mit list_files und read_file liest du darin, mit write_file legst du Dateien an: .docx (Word, Inhalt als Markdown), " +
+    const out = folder.output ? ` Neue Dateien legt write_file automatisch im Unterordner „${folder.output.slice(0, -1)}“ ab.` : "";
+    const read = folder.readable
+      ? "Mit list_files und read_file liest du darin. Bevor du für das Projekt schreibst (Briefe, Texte, Zusammenfassungen), sieh nach, " +
+        "welche Dateien zum Thema passen, lies sie und nutze sie."
+      : `Lesen darfst du nur im Unterordner „${folder.output.slice(0, -1)}“ (list_files, read_file); die übrigen Dateien sind nicht freigegeben.`;
+    parts.push(`Der Nutzer hat den Ordner „${folder.handle.name}“ (${folder.label}) auf seinem Rechner freigegeben. ${read} ` +
+      "Mit write_file legst du Dateien an: .docx (Word, Inhalt als Markdown), " +
       ".xlsx (Excel, jede Markdown-Tabelle wird ein Tabellenblatt), .md, .txt, .csv, .html, .ics … Wenn der Nutzer ein Dokument, " +
-      "eine Übersicht oder Tabelle haben möchte, speichere sie dort und nenne danach kurz den Dateinamen. Überschreibe vorhandene " +
+      "eine Übersicht oder Tabelle haben möchte, speichere sie dort und nenne danach kurz den Dateinamen." + out + " Überschreibe vorhandene " +
       "Dateien nur, wenn der Nutzer das will (overwrite=true).");
   } else {
     parts.push("Mit write_file erstellst du Dateien (.docx aus Markdown, .xlsx aus Markdown-Tabellen, .md, .txt, .csv, .html …); " +
-      "sie werden im Browser heruntergeladen, weil kein Arbeitsordner gewählt ist.");
+      "sie werden im Browser heruntergeladen, weil kein Ordner gewählt ist.");
   }
   parts.push(`Heute ist ${new Date().toLocaleDateString("de-DE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`);
   return parts.join("\n\n");
@@ -273,7 +295,7 @@ function systemPrompt(chat, folder) {
 function tools(folder) {
   const defs = [{
     name: "write_file",
-    description: "Legt eine Datei an (im Arbeitsordner oder als Download). Word (.docx) und Excel (.xlsx) entstehen aus Markdown.",
+    description: "Legt eine Datei an (im freigegebenen Ordner, bei Projekten unter „Ausgabe“, sonst als Download). Word (.docx) und Excel (.xlsx) entstehen aus Markdown.",
     parameters: {
       type: "object",
       properties: {
@@ -287,11 +309,11 @@ function tools(folder) {
   if (folder) {
     defs.push({
       name: "list_files",
-      description: "Listet Dateien und Unterordner im Arbeitsordner (mit Größe und Datum).",
+      description: "Listet Dateien und Unterordner im freigegebenen Ordner (mit Größe und Datum).",
       parameters: { type: "object", properties: { path: { type: "string", description: "Unterordner (leer = oberste Ebene)" }, recursive: { type: "boolean" } } },
     }, {
       name: "read_file",
-      description: "Liest eine Datei aus dem Arbeitsordner: Text, Markdown, CSV, Word, PowerPoint, Excel (als Markdown), PDF.",
+      description: "Liest eine Datei aus dem freigegebenen Ordner: Text, Markdown, CSV, Word, PowerPoint, Excel (als Markdown), PDF.",
       parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
     });
   }
@@ -304,32 +326,37 @@ async function runTool(call, folder) {
   try {
     switch (call.function.name) {
       case "write_file": {
-        const path = String(a.path || "").trim().replace(/^\/+/, "");
-        if (!path) throw new Error("path fehlt.");
+        const asked = String(a.path || "").trim().replace(/\\/g, "/").replace(/^\/+/, "");
+        if (!asked) throw new Error("path fehlt.");
+        const path = folder ? outPath(folder, asked) : asked;
         const ext = (path.split(".").pop() || "").toLowerCase();
         const data = ext === "docx" ? await markdownToDocx(a.content || "") : ext === "xlsx" ? await markdownToXlsx(a.content || "") : String(a.content ?? "");
         if (folder && await folders.permitted(folder.handle, false)) {
           if (!a.overwrite && await folders.exists(folder.handle, path)) {
-            return { ok: false, text: `FEHLER: „${path}“ gibt es schon im Arbeitsordner. Frag den Nutzer, ob überschrieben werden soll (overwrite=true), oder wähle einen anderen Namen.`, summary: "existiert schon" };
+            return { ok: false, text: `FEHLER: „${path}“ gibt es schon im Ordner. Frag den Nutzer, ob überschrieben werden soll (overwrite=true), oder wähle einen anderen Namen.`, summary: "existiert schon" };
           }
           await folders.writeFile(folder.handle, path, data);
-          return { ok: true, text: `Gespeichert im Arbeitsordner „${folder.handle.name}“: ${path}`, summary: `gespeichert in „${folder.handle.name}“` };
+          return { ok: true, text: `Gespeichert in „${folder.handle.name}“: ${path}`, summary: `gespeichert in „${folder.handle.name}“` };
         }
         folders.download(path.split("/").pop(), data);
         return {
           ok: true,
-          text: `Die Datei „${path.split("/").pop()}“ wurde im Browser heruntergeladen${folder ? " (für den Arbeitsordner fehlt die Erlaubnis – der Nutzer kann sie unten mit „Zugriff erlauben“ erteilen)" : ""}.`,
+          text: `Die Datei „${path.split("/").pop()}“ wurde im Browser heruntergeladen${folder ? " (für den Ordner fehlt die Erlaubnis – der Nutzer kann sie unten mit „Zugriff erlauben“ erteilen)" : ""}.`,
           summary: "heruntergeladen",
         };
       }
       case "list_files": {
-        if (!(await folders.permitted(folder.handle, false))) throw new Error("Für den Arbeitsordner fehlt die Erlaubnis (unten „Zugriff erlauben“).");
-        const entries = await folders.list(folder.handle, a.path || "", !!a.recursive);
+        if (!(await folders.permitted(folder.handle, false))) throw new Error("Für den Ordner fehlt die Erlaubnis (unten „Zugriff erlauben“).");
+        const where = readPath(folder, a.path || "");
+        const entries = await folders.list(folder.handle, where, !!a.recursive).catch((e) => {
+          if (e?.name === "NotFoundError" && where.startsWith(OUTPUT)) return [];
+          throw e;
+        });
         return { ok: true, text: entries.length ? entries.join("\n") : "(leer)", summary: `${entries.length} Einträge` };
       }
       case "read_file": {
-        if (!(await folders.permitted(folder.handle, false))) throw new Error("Für den Arbeitsordner fehlt die Erlaubnis (unten „Zugriff erlauben“).");
-        const file = await folders.readFile(folder.handle, a.path);
+        if (!(await folders.permitted(folder.handle, false))) throw new Error("Für den Ordner fehlt die Erlaubnis (unten „Zugriff erlauben“).");
+        const file = await folders.readFile(folder.handle, readPath(folder, a.path));
         const text = folders.isText(file.name) ? await file.text() : (await readAttachment(file)).text || "";
         return { ok: true, text: text.slice(0, 120000) || "(keine lesbaren Inhalte)", summary: `${Math.round(text.length / 1000)}k Zeichen` };
       }
@@ -441,10 +468,11 @@ async function answerAction(action, content) {
   const folder = folderOf(state.current);
   const saveOut = async (name, data) => {
     if (folder && await folders.permitted(folder.handle, true)) {
-      let target = name;
-      for (let n = 2; await folders.exists(folder.handle, target); n++) target = name.replace(/(\.[^.]+)$/, ` (${n})$1`);
+      const first = outPath(folder, name);
+      let target = first;
+      for (let n = 2; await folders.exists(folder.handle, target); n++) target = first.replace(/(\.[^.]+)$/, ` (${n})$1`);
       await folders.writeFile(folder.handle, target, data);
-      banner(`Gespeichert im Arbeitsordner „${folder.handle.name}“: ${target}`);
+      banner(`Gespeichert in „${folder.handle.name}“: ${target}`);
     } else {
       folders.download(name, data);
     }
@@ -502,6 +530,7 @@ function openProject(project) {
   $("projectName").value = project?.name || "";
   $("projectInstructions").value = project?.instructions || "";
   $("deleteProject").hidden = !project;
+  $("projectReadFiles").checked = project?.readFiles !== false;
   showFolderInfo($("projectFolderInfo"), editingHandle);
   $("projectDialog").showModal();
 }
@@ -645,6 +674,7 @@ function bind() {
     const p = editing ? { ...editing } : { id: store.uid(), createdAt: Date.now() };
     p.name = name;
     p.instructions = $("projectInstructions").value;
+    p.readFiles = $("projectReadFiles").checked;
     await store.put("projects", p.id, p);
     if (editingHandle) state.handles[p.id] = editingHandle; else delete state.handles[p.id];
     await folders.save(p.id, editingHandle);
@@ -654,7 +684,7 @@ function bind() {
     renderHeader();
   });
   $("deleteProject").addEventListener("click", async () => {
-    if (!editing || !confirm(`Projekt „${editing.name}“ löschen? Die Chats bleiben erhalten (ohne Projekt), die Dateien im Arbeitsordner auch.`)) return;
+    if (!editing || !confirm(`Projekt „${editing.name}“ löschen? Die Chats bleiben erhalten (ohne Projekt), die Dateien im Projektordner auch.`)) return;
     await store.remove("projects", editing.id);
     await folders.save(editing.id, null);
     delete state.handles[editing.id];

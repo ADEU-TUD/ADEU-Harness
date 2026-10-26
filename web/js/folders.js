@@ -46,7 +46,7 @@ export function explain(e) {
 /** "a/b/c.txt" inside [root]: the folder handle of "a/b" and the name "c.txt"; folders are created on [create]. */
 async function resolve(root, path, create) {
   const parts = String(path || "").replace(/\\/g, "/").split("/").filter((p) => p && p !== ".");
-  if (parts.some((p) => p === "..")) throw new Error("Pfade mit „..“ sind nicht erlaubt – nur innerhalb des Arbeitsordners.");
+  if (parts.some((p) => p === "..")) throw new Error("Pfade mit „..“ sind nicht erlaubt – nur innerhalb des freigegebenen Ordners.");
   let dir = root;
   for (const p of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(p, { create });
   return { dir, name: parts[parts.length - 1] || "" };
