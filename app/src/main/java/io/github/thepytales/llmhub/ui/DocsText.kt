@@ -71,6 +71,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
@@ -81,12 +82,16 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.docs.DocBlocks
@@ -269,6 +274,9 @@ fun TextPage(
     onShowComments: () -> Unit,
     onAskAi: (String) -> Unit,
     footer: String,
+    /** The page in the corporate design of TU Dresden: logo and organizational unit at the top. */
+    tud: Boolean = false,
+    unit: String = "",
 ) {
     val editable = doc != null && !writing && mode == TextMode.EDIT
     val look = LocalChatLook.current
@@ -324,7 +332,8 @@ fun TextPage(
             contentPadding = PaddingValues(start = if (narrow) 8.dp else 24.dp, end = if (narrow) 8.dp else 24.dp, top = 16.dp, bottom = 120.dp),
         ) {
             item(key = "top") {
-                Box(Modifier.fillMaxWidth().height(if (narrow) 20.dp else 48.dp).background(look.card, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)))
+                if (tud) TudPageHead(unit, pad, look.card)
+                else Box(Modifier.fillMaxWidth().height(if (narrow) 20.dp else 48.dp).background(look.card, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)))
             }
             itemsIndexed(blocks, key = { i, _ -> "b$i" }) { i, block ->
                 Column(Modifier.fillMaxWidth().background(look.card).padding(horizontal = pad)) {
@@ -360,6 +369,7 @@ fun TextPage(
                             },
                             onComment = { onComment(editing.selection ?: DocBlocks.plainOf(editing.value.text).take(200)) },
                             onAi = { onAskAi(editing.selection ?: editing.value.text) },
+                            onAsk = { selected, request -> inlineAi.start("b$i", doc, selected, "KI fragen", askInstruction(request)) },
                         )
                     } else {
                         BlockView(
@@ -414,6 +424,27 @@ fun TextPage(
             }
             item(key = "footer") { HintText(footer, Modifier.padding(top = 10.dp, start = 4.dp)) }
         }
+    }
+}
+
+/**
+ * Head of a page in the TUD design, as in the official templates and the PDF export: the logo at the top left, the
+ * organizational unit below it (last line bold).
+ */
+@Composable
+private fun TudPageHead(unit: String, pad: androidx.compose.ui.unit.Dp, card: Color) {
+    val logo = remember { runCatching { decodeImage(io.github.thepytales.llmhub.docs.TudBrand.logoBlue) }.getOrNull() }
+    val lines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    Column(
+        Modifier.fillMaxWidth().background(card, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)).padding(start = pad, end = pad, top = 28.dp, bottom = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        logo?.let { androidx.compose.foundation.Image(it, contentDescription = "TU Dresden", modifier = Modifier.height(44.dp)) }
+        Spacer(Modifier.height(6.dp))
+        lines.forEachIndexed { i, l ->
+            Text(l, style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (i == lines.lastIndex) FontWeight.SemiBold else FontWeight.Normal), color = Color(0xFF00008C))
+        }
+        if (lines.isEmpty()) HintText("Einrichtung für den Kopf: Einstellungen › Dokumente & Darstellung")
     }
 }
 
@@ -501,10 +532,29 @@ private fun BlockField(
     onDelete: () -> Unit,
     onComment: () -> Unit,
     onAi: () -> Unit,
+    onAsk: (selected: String, request: String) -> Unit,
 ) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(editing.index) { runCatching { focus.requestFocus() } }
     val v = editing.value
+    val link = MaterialTheme.colorScheme.primary
+    val codeBg = MaterialTheme.colorScheme.surfaceVariant
+    val hiding = remember(link, codeBg) { HideMarkdown(link, codeBg) }
+    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var textOrigin by remember { mutableStateOf(Offset.Zero) }
+    // „KI fragen“: on Windows it opens by itself once a selection rests, on phones from the button below.
+    var askFor by remember { mutableStateOf<TextRange?>(null) }
+    var askActive by remember { mutableStateOf(false) }
+    var dismissedFor by remember { mutableStateOf<TextRange?>(null) }
+    LaunchedEffect(v.selection) {
+        if (v.selection.collapsed) { askFor = null; return@LaunchedEffect }
+        if (askFor != null && askActive) return@LaunchedEffect
+        if (DESKTOP && v.selection != dismissedFor) {
+            delay(350)
+            askFor = v.selection
+            askActive = false
+        }
+    }
     val kind = DocBlocks.kindOf(v.text)
     val style = when (kind) {
         DocBlocks.Kind.H1 -> MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
@@ -521,16 +571,25 @@ private fun BlockField(
             Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), shape = RoundedCornerShape(6.dp), modifier = Modifier.fillMaxWidth()) {
                 BasicTextField(
                     value = v,
-                    onValueChange = { editing.value = it },
+                    onValueChange = { editing.value = smartEdit(editing.value, it) },
                     textStyle = style,
+                    visualTransformation = hiding,
+                    onTextLayout = { layout = it },
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 6.dp).focusRequester(focus).onPreviewKeyEvent { e ->
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 6.dp)
+                        .onGloballyPositioned { textOrigin = it.positionInWindow() }
+                        .focusRequester(focus).onPreviewKeyEvent { e ->
                         if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                         val listLike = kind in setOf(DocBlocks.Kind.BULLETS, DocBlocks.Kind.NUMBERS, DocBlocks.Kind.TASKS)
                         when {
                             e.key == Key.Escape -> { onDone(); true }
                             e.isCtrlPressed && e.isAltPressed && e.key == Key.M -> { onComment(); true }
-                            e.isCtrlPressed && e.key == Key.J -> { onAi(); true }
+                            e.isCtrlPressed && e.key == Key.J -> {
+                                if (!v.selection.collapsed) { askFor = v.selection; askActive = true } else onAi()
+                                true
+                            }
+                            e.isCtrlPressed && e.key == Key.B -> { editing.value = toggleMarks(v, "**"); true }
+                            e.isCtrlPressed && e.key == Key.I -> { editing.value = toggleMarks(v, "*"); true }
                             e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionUp -> { onMove(-1); true }
                             e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionDown -> { onMove(1); true }
                             e.key == Key.Backspace && v.text.isEmpty() -> { onBackspaceEmpty(); true }
@@ -573,6 +632,32 @@ private fun BlockField(
                     },
                 )
             }
+            val sel = askFor
+            val l = layout
+            if (sel != null && !sel.collapsed && l != null && sel.max <= v.text.length) {
+                val map = remember(v.text, hiding) { hiding.filter(androidx.compose.ui.text.AnnotatedString(v.text)).offsetMapping }
+                val shownLength = l.layoutInput.text.length
+                val a = map.originalToTransformed(sel.min).coerceIn(0, (shownLength - 1).coerceAtLeast(0))
+                val b = map.originalToTransformed(sel.max).coerceIn(0, shownLength)
+                if (shownLength > 0) {
+                    val first = l.getBoundingBox(a)
+                    val last = l.getBoundingBox((b - 1).coerceAtLeast(a))
+                    val rect = IntRect(
+                        (textOrigin.x + first.left).toInt(), (textOrigin.y + first.top).toInt(),
+                        (textOrigin.x + last.right).toInt(), (textOrigin.y + last.bottom).toInt(),
+                    )
+                    val selected = v.text.substring(sel.min, sel.max)
+                    AskAiPopup(
+                        rect, active = askActive,
+                        onSend = { request ->
+                            onAsk(selected, request)
+                            dismissedFor = sel
+                            askFor = null
+                        },
+                        onDismiss = { dismissedFor = sel; askFor = null },
+                    )
+                }
+            }
             DropdownMenu(expanded = slash, onDismissRequest = { editing.value = TextFieldValue("") }) {
                 val q = v.text.removePrefix("/").lowercase()
                 SLASH.filter { q.isEmpty() || it.first.lowercase().contains(q) }.forEach { (label, md) ->
@@ -589,11 +674,16 @@ private fun BlockField(
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            if (!v.selection.collapsed && askFor == null) TextButton(onClick = { askFor = v.selection; askActive = true }) {
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("KI fragen")
+            }
             HintText(
                 when (kind) {
                     DocBlocks.Kind.TABLE -> "Zellen direkt bearbeiten · Esc: fertig"
                     DocBlocks.Kind.BULLETS, DocBlocks.Kind.NUMBERS, DocBlocks.Kind.TASKS -> "Enter: neuer Punkt · Tab: einrücken"
-                    else -> "Enter: neuer Absatz · Strg+J: KI"
+                    else -> if (DESKTOP) "Enter: neuer Absatz · Text markieren: KI fragen" else "Enter: neuer Absatz · Text markieren: KI fragen"
                 },
                 Modifier.weight(1f),
             )

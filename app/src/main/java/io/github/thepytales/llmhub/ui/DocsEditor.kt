@@ -52,6 +52,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Toc
@@ -226,6 +227,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     var export by remember { mutableStateOf<Pair<String, String>?>(null) }
     var sendToChat by remember { mutableStateOf(false) }
     var chooseVault by remember { mutableStateOf(false) }
+    var chooseStyle by remember { mutableStateOf(false) }
     var dismissedAi by remember { mutableStateOf<String?>(null) }
     /** ✨ menu open for this passage. */
     var aiMenuFor by remember { mutableStateOf<String?>(null) }
@@ -376,6 +378,12 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 shareText(context, exportMarkdown(doc, null), doc.title)
                             })
                             HorizontalDivider()
+                            if (kind == DocKind.DOC) DropdownMenuItem(
+                                text = { Text("Design: " + (DocStyle.parse(doc.style)?.label ?: "wie in den Einstellungen")) },
+                                leadingIcon = { Icon(Icons.Outlined.Palette, null) },
+                                onClick = { more = false; chooseStyle = true },
+                            )
+                            if (kind == DocKind.MARKDOWN) DropdownMenuItem(text = { Text("Gliederung & Verknüpfungen") }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
                             if (kind == DocKind.DOC) {
                                 DropdownMenuItem(text = { Text("Gliederung & Verknüpfungen") }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
                                 TextMode.entries.filter { it != mode }.forEach { m ->
@@ -455,7 +463,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         val new = when (kind) {
                             DocKind.SHEET -> DocTab(title = "Tabelle ${doc.tabs.size + 1}", markdown = SheetEngine.blank())
                             DocKind.SLIDES -> DocTab(title = "Folien ${doc.tabs.size + 1}", markdown = io.github.thepytales.llmhub.docs.SlideDeck.blank("Titel"))
-                            DocKind.DOC -> DocTab(title = "Tab ${doc.tabs.size + 1}")
+                            DocKind.DOC, DocKind.MARKDOWN -> DocTab(title = "Tab ${doc.tabs.size + 1}")
                         }
                         save { d -> d.copy(tabs = d.tabs + new) }
                         editing.index = null
@@ -513,12 +521,15 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             c, doc, markdown, tab?.id, writing, leading = undoRedo, onMarkdown = ::setMarkdown,
                             onComment = { commentOn = it }, inlineAi = inlineAi,
                         )
+                        kind == DocKind.MARKDOWN && doc != null && !showingDraft -> MarkdownBody(markdown, tab?.id, narrow, leading = undoRedo, onChange = ::setMarkdown)
                         mode == TextMode.SOURCE && doc != null -> SourceEditor(markdown, tab?.id, ::setMarkdown)
                         else -> {
                             LaunchedEffect(blocks.size, showingDraft) { if (showingDraft && blocks.isNotEmpty()) listState.animateScrollToItem(blocks.size) }
                             TextPage(
                                 doc, tab?.id, blocks, mode, writing = showingDraft, aiChanged = aiChanged, find = find, editing = editing, inlineAi = inlineAi,
                                 listState = listState, narrow = narrow, onBlocks = ::setBlocks,
+                                tud = kind == DocKind.DOC && DocStyle.parse(doc?.style) == DocStyle.TUD,
+                                unit = c.settings.current.tudUnit,
                                 onComment = { commentOn = it }, onShowComments = { panel = DocPanel.COMMENTS },
                                 onAskAi = { text -> if (text.isBlank() || editing.index == null) panel = DocPanel.AI else aiMenuFor = text },
                                 footer = if (doc == null) "" else "${doc.words} Wörter · ca. ${(doc.words / 200).coerceAtLeast(1)} Min. Lesezeit · ${doc.versions.size} Versionen" +
@@ -526,7 +537,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             )
                         }
                     }
-                    if (doc != null && kind == DocKind.DOC && panel == DocPanel.NONE && mode != TextMode.SOURCE) {
+                    if (doc != null && (kind == DocKind.DOC || kind == DocKind.MARKDOWN) && panel == DocPanel.NONE && mode != TextMode.SOURCE) {
                         Box(Modifier.align(Alignment.BottomCenter)) { AiPromptBar(kind, aiWorking || writing) { panel = DocPanel.AI } }
                     }
                 }
@@ -585,12 +596,17 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
     if (sendToChat && doc != null) SendToChatDialog(c, doc, onDismiss = { sendToChat = false })
     if (chooseVault && doc != null) VaultDialog(c, doc, onDismiss = { chooseVault = false })
+    if (chooseStyle && doc != null) StyleDialog(doc.style, onDismiss = { chooseStyle = false }) { style ->
+        c.docs.update(doc.id) { it.copy(style = style) }
+        chooseStyle = false
+    }
     export?.let { (title, md) ->
         val d = doc
         ExportDialog(
             c, title, md, onDismiss = { export = null },
             onCreated = { file -> d?.let { dd -> c.docs.update(dd.id) { it.copy(file = file.absolutePath) } } },
-            initial = when (kind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.PDF },
+            initial = when (kind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.PDF; DocKind.MARKDOWN -> DocFormat.MD },
+            initialStyle = DocStyle.parse(d?.style),
             custom = if (kind == DocKind.SHEET && d != null) { format, file ->
                 when (format) {
                     DocFormat.XLSX -> {
@@ -614,6 +630,7 @@ private fun exportMarkdown(doc: LiveDoc, tabId: String?): String {
         }.let { DocumentWriter.withTitle(doc.title, it) }
         DocKind.SLIDES -> tabs.joinToString("\n\n---\n\n") { it.markdown }
         DocKind.DOC -> DocumentWriter.withTitle(doc.title, if (tabId != null) doc.tab(tabId).markdown else doc.markdown()).replace(EMPTY_BLOCK, "")
+        DocKind.MARKDOWN -> (if (tabId != null) doc.tab(tabId).markdown else doc.markdown()).replace(EMPTY_BLOCK, "")
     }
 }
 
@@ -655,7 +672,7 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
         }
         scope.launch {
             // As Word/PowerPoint/Excel file: the chat gets the text, the file is kept for the model.
-            val format = when (doc.docKind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.DOCX }
+            val format = when (doc.docKind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.DOCX; DocKind.MARKDOWN -> DocFormat.MD }
             runCatching {
                 withContext(Dispatchers.IO) {
                     DocumentWriter.create(context, File(context.cacheDir, "exports"), doc.title, exportMarkdown(doc, null), format, theme = c.documentTools.settingsTheme(DocStyle.parse(doc.style))).file
@@ -674,7 +691,7 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
                 HintText("„${doc.title}“ wird im Eingabefeld des Chats angehängt – du kannst noch etwas dazu schreiben.")
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { asFile = !asFile }) {
                     Checkbox(asFile, { asFile = it })
-                    Text(when (doc.docKind) { DocKind.SLIDES -> "Als PowerPoint-Datei"; DocKind.SHEET -> "Als Excel-Datei"; DocKind.DOC -> "Als Word-Datei" } + " (sonst als Text)")
+                    Text(when (doc.docKind) { DocKind.SLIDES -> "Als PowerPoint-Datei"; DocKind.SHEET -> "Als Excel-Datei"; DocKind.DOC -> "Als Word-Datei"; DocKind.MARKDOWN -> "Als .md-Datei" } + " (sonst als Text)")
                 }
                 Surface(onClick = { send(null) }, shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), modifier = Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -695,6 +712,30 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
         },
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
+}
+
+/** The look of the document: the page in the editor and the exported PDF and Word file follow it. */
+@Composable
+private fun StyleDialog(current: String?, onDismiss: () -> Unit, onPick: (String?) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Design des Dokuments") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                HintText("Gilt für die Seite im Editor und für PDF und Word beim Export.")
+                (listOf<DocStyle?>(null) + DocStyle.entries).forEach { st ->
+                    Row(Modifier.fillMaxWidth().clickable { onPick(st?.name) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = DocStyle.parse(current) == st, onClick = { onPick(st?.name) })
+                        Column(Modifier.weight(1f)) {
+                            Text(st?.label ?: "Wie in den Einstellungen", style = MaterialTheme.typography.bodyLarge)
+                            HintText(st?.description ?: "Einstellungen › Dokumente & Darstellung")
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
     )
 }
 

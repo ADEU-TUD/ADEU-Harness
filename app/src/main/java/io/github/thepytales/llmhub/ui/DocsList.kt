@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.Folder
@@ -35,6 +36,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.docs.DocBlocks
 import io.github.thepytales.llmhub.docs.DocKind
+import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.OfficeImport
 import io.github.thepytales.llmhub.docs.SheetEngine
@@ -76,13 +79,35 @@ fun kindIcon(kind: DocKind): ImageVector = when (kind) {
     DocKind.DOC -> Icons.Outlined.Description
     DocKind.SLIDES -> Icons.Outlined.Slideshow
     DocKind.SHEET -> Icons.Outlined.TableChart
+    DocKind.MARKDOWN -> Icons.Outlined.Code
 }
 
 fun kindColor(kind: DocKind): Color = when (kind) {
     DocKind.DOC -> Color(0xFF2B579A)
     DocKind.SLIDES -> Color(0xFFC43E1C)
     DocKind.SHEET -> Color(0xFF217346)
+    DocKind.MARKDOWN -> Color(0xFF3D4451)
 }
+
+/**
+ * Documents in the corporate design of TU Dresden: they open with the TUD look (logo, unit, TUD blue) and export as
+ * PDF or Word in that design.
+ */
+val TUD_STARTERS = listOf(
+    "Ergebnisprotokoll" to "# Ergebnisprotokoll\n\n| | |\n| --- | --- |\n| Datum | |\n| Ort | |\n| Leitung | |\n| Protokoll | |\n| Anwesend | |\n| Entschuldigt | |\n\n## Tagesordnung\n\n1. Begrüßung und Genehmigung der Tagesordnung\n2. \n3. Verschiedenes\n\n## TOP 1 – Begrüßung\n\n\n\n## TOP 2 – \n\n**Beschluss:** \n\n## Aufgaben\n\n| Aufgabe | Verantwortlich | Bis |\n| --- | --- | --- |\n| | | |\n",
+    "Aktennotiz" to "# Aktennotiz\n\n**Datum:** \n**Verfasst von:** \n**Betreff:** \n\n## Sachverhalt\n\n\n\n## Ergebnis / weiteres Vorgehen\n\n- \n",
+    "Einladung" to "# Einladung\n\nSehr geehrte Damen und Herren,\n\nwir laden Sie herzlich ein zu\n\n> [!NOTE]\n> **Veranstaltung** · **Datum, Uhrzeit** · **Ort**\n\n## Programm\n\n| Zeit | Programmpunkt |\n| --- | --- |\n| | |\n\nWir bitten um Anmeldung bis zum … an …\n\nMit freundlichen Grüßen\n\n",
+    "Handout / Thesenpapier" to "# Thema\n\n**Seminar:** · **Dozent:in:** · **Referent:innen:** · **Datum:** \n\n## Thesen\n\n1. \n2. \n3. \n\n## Zentrale Begriffe\n\n- **Begriff:** Erklärung\n\n## Diskussionsfragen\n\n- \n\n## Literatur\n\n- \n",
+    "Stellungnahme" to "# Stellungnahme zu …\n\n## Anlass\n\n\n\n## Bewertung\n\n\n\n## Empfehlung\n\n\n",
+    "Merkblatt" to "# Merkblatt: …\n\n> [!NOTE]\n> Das Wichtigste in einem Satz.\n\n## Worum es geht\n\n\n\n## So gehen Sie vor\n\n1. \n2. \n3. \n\n## Ansprechpersonen\n\n| Name | Kontakt | Sprechzeit |\n| --- | --- | --- |\n| | | |\n",
+    "Projektskizze" to "# Projektskizze: …\n\n## Ausgangslage und Problemstellung\n\n\n\n## Ziele und Forschungsfragen\n\n- \n\n## Methodisches Vorgehen\n\n\n\n## Arbeits- und Zeitplan\n\n| Arbeitspaket | Zeitraum | Ergebnis |\n| --- | --- | --- |\n| | | |\n\n## Ressourcen\n\n\n",
+)
+
+/** Templates for Markdown files. */
+private val MARKDOWN_STARTERS = listOf(
+    "README" to "# Projektname\n\nKurze Beschreibung in einem Satz.\n\n## Installation\n\n```bash\n\n```\n\n## Verwendung\n\n\n\n## Lizenz\n\n",
+    "Notiz" to "# Notiz\n\nTags: #\n\n## Gedanken\n\n- \n\n## Verknüpfungen\n\n- [[ ]]\n",
+)
 
 /** Templates for new presentations and tables. */
 private val SLIDE_STARTERS = listOf(
@@ -104,14 +129,14 @@ private val SHEET_STARTERS = listOf(
 )
 
 /** Creates a new document of [kind] (in the default storage folder) and returns it. */
-fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: String? = null): LiveDoc {
+fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: String? = null, style: String? = null): LiveDoc {
     val t = title ?: kind.newTitle
     val md = markdown ?: when (kind) {
-        DocKind.DOC -> "# $t\n\n"
+        DocKind.DOC, DocKind.MARKDOWN -> "# $t\n\n"
         DocKind.SLIDES -> SlideDeck.blank(t)
         DocKind.SHEET -> SheetEngine.blank()
     }
-    val doc = LiveDoc.create(DocBlocks.titleOf(md)?.takeIf { it.isNotBlank() } ?: t, md, "Sie", kind = kind).copy(vault = c.docs.defaultVault)
+    val doc = LiveDoc.create(DocBlocks.titleOf(md)?.takeIf { it.isNotBlank() } ?: t, md, "Sie", kind = kind, style = style).copy(vault = c.docs.defaultVault)
     c.docs.save(doc)
     return doc
 }
@@ -176,7 +201,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
                     Text("Neu erstellen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 4.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         DocKind.entries.forEach { k ->
-                            NewTile(k, onBlank = { onOpen(newLiveDoc(c, k).id) }, onAi = { aiCreate = k }, onTemplate = { title, md -> onOpen(newLiveDoc(c, k, md, title).id) })
+                            NewTile(k, onBlank = { onOpen(newLiveDoc(c, k).id) }, onAi = { aiCreate = k }, onTemplate = { title, md, style -> onOpen(newLiveDoc(c, k, md, title, style).id) })
                         }
                     }
                 }
@@ -193,7 +218,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
                         DocKind.entries.forEach { k ->
                             FilterChip(
                                 kindFilter == k, { kindFilter = if (kindFilter == k) null else k },
-                                label = { Text(when (k) { DocKind.DOC -> "Dokumente"; DocKind.SLIDES -> "Präsentationen"; DocKind.SHEET -> "Tabellen" } + "  ${docs.count { it.docKind == k }}") },
+                                label = { Text(when (k) { DocKind.DOC -> "Dokumente"; DocKind.SLIDES -> "Präsentationen"; DocKind.SHEET -> "Tabellen"; DocKind.MARKDOWN -> "Markdown" } + "  ${docs.count { it.docKind == k }}") },
                                 leadingIcon = { Icon(kindIcon(k), null, Modifier.size(16.dp), tint = kindColor(k)) },
                             )
                         }
@@ -235,6 +260,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
                                     DocKind.DOC -> "z. B. Seminarplan für „Einführung in die Didaktik“, 14 Sitzungen, mit Lektüre"
                                     DocKind.SLIDES -> "z. B. 10 Folien zur Einführung in formatives Assessment für Lehramtsstudierende"
                                     DocKind.SHEET -> "z. B. Bewertungstabelle für 25 Hausarbeiten mit 4 gewichteten Kriterien und Endnote"
+                                    DocKind.MARKDOWN -> "z. B. README für ein Forschungsrepositorium mit Installation und Datenstruktur"
                                 },
                             )
                         },
@@ -255,7 +281,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
 }
 
 @Composable
-private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemplate: (String, String) -> Unit) {
+private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemplate: (String, String, String?) -> Unit) {
     var menu by remember { mutableStateOf(false) }
     val color = kindColor(kind)
     Box {
@@ -271,7 +297,12 @@ private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemp
                 Column(Modifier.weight(1f)) {
                     Text(kind.label, style = MaterialTheme.typography.titleSmall)
                     Text(
-                        when (kind) { DocKind.DOC -> "wie Word / Google Docs"; DocKind.SLIDES -> "wie PowerPoint"; DocKind.SHEET -> "wie Excel, mit Formeln" },
+                        when (kind) {
+                            DocKind.DOC -> "wie Word / Google Docs, auch im TUD-Design"
+                            DocKind.SLIDES -> "wie PowerPoint, im TUD-Design"
+                            DocKind.SHEET -> "wie Excel, mit Formeln"
+                            DocKind.MARKDOWN -> "Quelltext mit Vorschau, wie Obsidian"
+                        },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -282,8 +313,14 @@ private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemp
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text("Leer") }, onClick = { menu = false; onBlank() })
             DropdownMenuItem(text = { Text("Mit KI erstellen …") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = { menu = false; onAi() })
-            val starters = when (kind) { DocKind.DOC -> DOC_STARTERS; DocKind.SLIDES -> SLIDE_STARTERS; DocKind.SHEET -> SHEET_STARTERS }
-            starters.forEach { (label, md) -> DropdownMenuItem(text = { Text("Vorlage: $label") }, onClick = { menu = false; onTemplate(label, md) }) }
+            val starters = when (kind) { DocKind.DOC -> DOC_STARTERS; DocKind.SLIDES -> SLIDE_STARTERS; DocKind.SHEET -> SHEET_STARTERS; DocKind.MARKDOWN -> MARKDOWN_STARTERS }
+            starters.forEach { (label, md) -> DropdownMenuItem(text = { Text("Vorlage: $label") }, onClick = { menu = false; onTemplate(label, md, null) }) }
+            if (kind == DocKind.DOC) {
+                HorizontalDivider()
+                Text("Im TUD-Design", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                DropdownMenuItem(text = { Text("Leeres TUD-Dokument") }, onClick = { menu = false; onTemplate(DocKind.DOC.newTitle, "# ${DocKind.DOC.newTitle}\n\n", DocStyle.TUD.name) })
+                TUD_STARTERS.forEach { (label, md) -> DropdownMenuItem(text = { Text("TUD: $label") }, onClick = { menu = false; onTemplate(label, md, DocStyle.TUD.name) }) }
+            }
         }
     }
 }
@@ -302,7 +339,7 @@ private fun DocRow(c: AppContainer, d: LiveDoc, onOpen: (String) -> Unit) {
                     DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(d.updatedAt)),
                     d.lastAuthor,
                     when (d.docKind) {
-                        DocKind.DOC -> "${d.words} Wörter"
+                        DocKind.DOC, DocKind.MARKDOWN -> "${d.words} Wörter"
                         DocKind.SLIDES -> "${SlideDeck.parse(d.tabs.first().markdown).size} Folien"
                         DocKind.SHEET -> "${d.tabs.size} Blatt"
                     },

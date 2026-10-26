@@ -30,7 +30,7 @@ object OfficeImport {
             in TEXT -> {
                 val text = bytes.toString(Charsets.UTF_8).removePrefix("﻿")
                 val md = if (ext == "html" || ext == "htm") htmlToText(text) else text
-                Imported(DocKind.DOC, DocBlocks.titleOf(md) ?: base, listOf("Tab 1" to md))
+                Imported(if (ext == "md" || ext == "markdown") DocKind.MARKDOWN else DocKind.DOC, DocBlocks.titleOf(md) ?: base, listOf("Tab 1" to md))
             }
             else -> null
         }

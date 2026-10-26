@@ -177,10 +177,13 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Tokens, Wartezeiten und ein eventuelles Ausweichmodell.
 - **Sicherung & Umzug**: Alles als ZIP exportieren und auf einem anderen Gerät importieren – auch Android ↔ Windows.
   API-Key, Tokens und geheime Variablen gehen nur mit einem Passwort mit und sind damit verschlüsselt (AES-256-GCM).
-- **Bilder erzeugen** als Verlauf wie bei Gemini: Beschreibung unten eingeben, Stil (Foto, Aquarell, Symbol, Folie …),
+- **Bilder erzeugen** als Verlauf wie bei Gemini, mit **mehreren Bilder-Chats** (Neuer Chat oben, *Verläufe* zum Wechseln,
+  Umbenennen und Löschen): Beschreibung unten eingeben, Stil (Foto, Aquarell, Symbol, Folie …),
   Auflösung (512 × 512 bis 2048 × 2048 nach Seitenverhältnis oder eigene Breite × Höhe), 1–4 Bilder und Modell wählen;
   „✨“ verbessert die Beschreibung. **Überarbeiten**: bis zu vier Bereiche farbig markieren und je Bereich sagen, was dort
-  anders werden soll (über `/images/edits` mit Maske; ohne Maske mit Positionsangaben, falls der Server keine annimmt).
+  anders werden soll. Die Wünsche werden vorher ins Englische übersetzt und mit genauer Position (z. B. „unten Mitte,
+  40–60 % von links“) geschickt, die Maske ist weiß *und* transparent – so verstehen sie Server mit OpenAI- wie mit
+  diffusers-Konvention, und Modelle ohne Maske (FLUX.2) wissen trotzdem, wo sie ändern sollen.
   Alle Bilder bleiben in der Galerie (Favoriten), Vollbild mit Zoom, Speichern, Teilen und „Im Chat verwenden“.
 - **Papierkorb**: Gelöschte Chats, Transkripte und Bilder lassen sich sofort über „Rückgängig“ zurückholen, Chats und
   Transkripte 30 Tage lang unter *Einstellungen › Daten › Papierkorb*.
@@ -255,14 +258,19 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   unsichere Treffer werden nur vorgeschlagen. Export als Word, PDF, Markdown, BibTeX, RIS und CSL-JSON. Im Chat unter
   einer Antwort: *⋯ › Literaturverzeichnis erstellen*. Der Zitierstil ist unter *Einstellungen › Literatur & Zotero* wählbar.
 - **Literatursuchmodus**: Thema und Kontext angeben (Chip *Literatursuche* oder `/Literatursuche`) – der Agent sucht
-  systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB und Google Books, verfolgt Zitationen in beide
+  systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB, **SLUB-Katalog** (was an der TU Dresden ausleihbar
+  oder lizenziert ist), **PubMed/Europe PMC**, **arXiv**, **DOAJ** und Google Books, verfolgt Zitationen in beide
   Richtungen (Schneeballsuche), prüft Zeitschriften auf neue Artikel und liefert eine gegliederte Übersicht mit
-  Begründung je Quelle und Suchprotokoll. Treffer landen in einer Literaturliste (Bereich *Literatur*), auf Wunsch
+  Begründung je Quelle und Suchprotokoll. **Jedes Werk ist verlinkt** (Volltext, DOI oder Katalogeintrag). Treffer landen in einer Literaturliste (Bereich *Literatur*), auf Wunsch
   direkt in einer **Zotero**-Sammlung (Web-API-Schlüssel unter *Einstellungen › Literatur & Zotero*). Ein optionaler
   OpenAlex-Schlüssel erhöht das Abfragekontingent.
 - **Bereich Literatur**: Suche, Sammlungen mit Notizen und Schlagwörtern, Einträge bearbeiten, Import aus Dateien, Übertragen nach
-  Zotero, Verzeichnis im gewählten Stil – mit einem Tipp in den Chat oder den Dokument-Editor.
-- **Office-Suite mit KI: Dokumente, Präsentationen, Tabellen** (Bereich *Dokumente*): drei Editoren mit gleichem Aufbau
+  Zotero, Verzeichnis im gewählten Stil – mit einem Tipp in den Chat oder den Dokument-Editor. Jedes Werk hat Knöpfe zum
+  Öffnen (Volltext/DOI), *SLUB*, *Scholar* und *ResearchGate*. Portale ohne offene Schnittstelle (Google Scholar,
+  ResearchGate, BASE, FIS Bildung, pedocs, Semantic Scholar, PubPsych) öffnet die Suchseite mit dem Thema im Browser.
+  ResearchGate ist keine Literaturdatenbank, sondern ein Netzwerk, in dem Forschende ihre Arbeiten hochladen: gut für
+  Volltexte, nicht für eine dokumentierbare systematische Suche.
+- **Office-Suite mit KI: Dokumente, Präsentationen, Tabellen, Markdown** (Bereich *Dokumente*): vier Editoren mit gleichem Aufbau
   (Kopfzeile, Tabs, Kommentare, Versionsverlauf, Export, KI-Assistent) – nur der Inhalt unterscheidet sich.
   - **Dokument** (wie Google Docs/Word, mit Obsidian-Funktionen): Seite wie auf Papier, feste Formatleiste (Absatzformat,
     fett, kursiv, durchgestrichen, Code, Link, Aufzählung, Nummerierung, **Checklisten zum Abhaken**, Zitat, Tabelle als
@@ -270,13 +278,29 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
     verschiebt Absätze. Getipptes wird nach einer kurzen Pause automatisch gespeichert. Lesemodus, **Markdown-Quelltext**
     wie in Obsidian, **Gliederung** zum Springen, Verknüpfungen mit `[[Titel]]` samt Rückverweisen, Suchen & Ersetzen,
     Wortzahl und Lesezeit. Ein leeres Dokument bietet Vorlagen (Protokoll, Seminarplan, Gliederung …) und „Mit KI entwerfen“.
-  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß im TUD-Design, Layouts (Titel, Abschnitt, Inhalt,
-    zwei Spalten, Zitat), Sprechernotizen, Folien duplizieren/verschieben, **Vorführen** im Vollbild (Pfeiltasten, N für
-    Notizen), Export als PowerPoint im TUD-Design.
+    **Keine Markdown-Zeichen beim Bearbeiten**: Überschriften ohne „#“, fett statt „\*\*“, „•“ und „☐“ statt „- “ und
+    „- [ ] “, Links ohne Adresse; Rücktaste am Anfang einer Überschrift oder eines Listenpunkts nimmt die Formatierung
+    weg wie in Word. **KI fragen**: Text markieren öffnet am PC sofort ein Fenster „KI fragen“ zum Hineinschreiben und
+    Absenden (am Handy über den Knopf *KI fragen*); der Vorschlag erscheint unter der Stelle. **TUD-Dokumente**: *Neu ›
+    ⋮ › Im TUD-Design* (Ergebnisprotokoll, Aktennotiz, Einladung, Handout, Stellungnahme, Merkblatt, Projektskizze) –
+    die Seite zeigt Logo und Einrichtung, PDF und Word entstehen im Corporate Design; *⋮ › Design* wechselt es je Dokument.
+  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß – **genau so, wie die PowerPoint-Datei sie zeigt** (TUD-Logo,
+    Titelfolie in TUD-Blau mit Untertitel, Angaben und Einrichtung, Fußzeile „TU Dresden · Professur · Titel“ mit
+    Foliennummer, Schriftgröße je Textmenge, Tabellen). Layouts (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat),
+    Felder ohne Markdown-Zeichen mit Leiste für fett, kursiv, Stichpunkte, Einrücken; Sprechernotizen, **Folienübersicht**,
+    Folien duplizieren/verschieben (Strg+M, Strg+D, Strg+Umschalt+↑/↓), **Vorführen** (F5) mit **Referentenansicht**
+    (nächste Folie, Notizen, Timer), Export als PowerPoint im TUD-Design. Fehlt die Einrichtung, fragt der Editor danach.
   - **Tabelle** (wie Excel): Zellraster mit Spalten- und Zeilenköpfen, **Bearbeitungsleiste mit Formeln** in deutscher
     Schreibweise (`=SUMME(B2:B9)`, `=MITTELWERT`, `=WENN(…;…;…)`, `=RUNDEN`, `=ZÄHLENWENN`, `=SUMMEWENN`, `=STABW`, `&` …,
-    auch englische Namen), Tabellenblätter als Tabs, Zeilen/Spalten einfügen und löschen, Sortieren, Σ, Statuszeile mit
+    auch englische Namen), dazu **SVERWEIS, XVERWEIS, INDEX/VERGLEICH, WENNFEHLER, WENNS, ZÄHLENWENNS, SUMMEWENNS,
+    MITTELWERTWENN, LINKS/RECHTS/TEIL, WECHSELN, TEXTVERKETTEN, TEXT, SUMMENPRODUKT, RANG, KGRÖSSTE, VARIANZ, QUANTIL,
+    KORREL** u. a.; WENN wertet wie Excel nur den gewählten Zweig aus. Tabellenblätter als Tabs, Zeilen/Spalten einfügen
+    und löschen, **nach unten/rechts ausfüllen** (relative Bezüge wandern mit, `$`-Bezüge bleiben), Duplikate entfernen,
+    Zeilen und Spalten tauschen, **Filter**, fixierte Kopfzeile, Pfeiltasten wie in Excel, Sortieren, Σ, Statuszeile mit
     Summe/Mittelwert/Anzahl. Der Excel-Export behält die Formeln (mit berechneten Werten).
+  - **Markdown-Datei** (wie Obsidian oder eine README): Quelltext mit allen Zeichen, Werkzeugleiste (H1–H3, fett,
+    kursiv, Code, Link, Listen, Checkliste, Zitat, Tabelle, Codeblock), Vorschau daneben (am Handy umschaltbar),
+    Export als .md. .md-Dateien öffnen sich als Markdown-Datei.
   - **KI als Mitautorin**: ✨ an jeder Stelle (Verbessern, Rechtschreibung, Kürzen, Ausführlicher, Weiterschreiben, Förmlicher,
     Einfacher, Stichpunkte ↔ Fließtext, Übersetzen, eigene Anweisung) zeigt einen Vorschlag mit *Übernehmen / Verwerfen /
     Erneut / Darunter einfügen*; in Tabellen „Formel beschreiben“ und „Spalte mit KI füllen“, bei Folien „Folie verbessern“

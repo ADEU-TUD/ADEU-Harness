@@ -52,6 +52,8 @@ enum class DocKind(val label: String, val newTitle: String, val ext: String) {
     DOC("Dokument", "Unbenanntes Dokument", "md"),
     SLIDES("Präsentation", "Unbenannte Präsentation", "md"),
     SHEET("Tabelle", "Unbenannte Tabelle", "md"),
+    /** Plain Markdown with its marks visible (like Obsidian or a README), with a preview beside it. */
+    MARKDOWN("Markdown-Datei", "Unbenannte Markdown-Datei", "md"),
     ;
 
     companion object {
@@ -61,6 +63,7 @@ enum class DocKind(val label: String, val newTitle: String, val ext: String) {
         fun forFile(name: String): DocKind = when (name.substringAfterLast('.', "").lowercase()) {
             "pptx", "ppt", "odp", "key" -> SLIDES
             "xlsx", "xls", "xlsm", "ods", "csv", "tsv" -> SHEET
+            "md", "markdown" -> MARKDOWN
             else -> DOC
         }
     }
@@ -205,7 +208,7 @@ class DocsStore(dir: File) {
 
     /** File name of the Markdown copy in a vault. */
     private fun mirrorName(d: LiveDoc) = d.title.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), " ").replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "Dokument" } +
-        (if (d.docKind == DocKind.DOC) "" else " (${d.docKind.label})") + ".md"
+        (if (d.docKind == DocKind.SLIDES || d.docKind == DocKind.SHEET) " (${d.docKind.label})" else "") + ".md"
 
     private fun mirror(v: DocVault, d: LiveDoc): File? = d.mirror?.let { File(v.path, it) }
 

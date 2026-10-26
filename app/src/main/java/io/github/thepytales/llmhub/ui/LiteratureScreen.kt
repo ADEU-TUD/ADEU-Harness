@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PlaylistAdd
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,6 +69,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,6 +83,7 @@ import io.github.thepytales.llmhub.research.CitationFormatter
 import io.github.thepytales.llmhub.research.CitationStyle
 import io.github.thepytales.llmhub.research.CslJson
 import io.github.thepytales.llmhub.research.EntryStatus
+import io.github.thepytales.llmhub.research.LitLinks
 import io.github.thepytales.llmhub.research.LitSource
 import io.github.thepytales.llmhub.research.Person
 import io.github.thepytales.llmhub.research.RefType
@@ -156,6 +159,7 @@ private fun SearchStart(c: AppContainer, onOpenChat: () -> Unit, onSettings: () 
     val types = remember { mutableStateListOf<RefType>() }
     val sources = remember { mutableStateListOf<LitSource>().apply { addAll(settings.literatureSources.split(',').mapNotNull { LitSource.parse(it) }) } }
     var style by rememberSaveable { mutableStateOf(settings.citationStyle) }
+    val uri = LocalUriHandler.current
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         AppCard {
@@ -229,9 +233,32 @@ private fun SearchStart(c: AppContainer, onOpenChat: () -> Unit, onSettings: () 
                 }
             }
         }
+        AppCard {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Weitere Portale im Browser", style = MaterialTheme.typography.titleSmall)
+                HintText(
+                    "Diese Portale haben keine offene Schnittstelle für Apps (oder verbieten das automatische Abfragen). Die App öffnet " +
+                        "dort die Suche zum Thema oben. ResearchGate ist keine Literaturdatenbank, sondern ein Netzwerk, in dem " +
+                        "Forschende ihre Arbeiten hochladen – gut, um Volltexte zu finden, aber nicht für eine systematische, " +
+                        "dokumentierbare Suche; zitiert wird immer die Originalveröffentlichung."
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    LitLinks.PORTALS.forEach { p ->
+                        AssistChip(
+                            onClick = { runCatching { uri.openUri(p.search(topic.ifBlank { context }.ifBlank { " " })) } },
+                            enabled = topic.isNotBlank(),
+                            label = { Text(p.label) },
+                            leadingIcon = { Icon(Icons.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                        )
+                    }
+                }
+            }
+        }
         HintText(
-            "Durchsucht werden offene Datenbanken: OpenAlex, Crossref, ERIC und die Deutsche Nationalbibliothek. Lizenzierte " +
-                "Fachdatenbanken (FIS Bildung, PsycINFO, Web of Science) erreicht die App nicht – das Suchprotokoll nennt sie als Ergänzung.",
+            "Durchsucht werden offene Datenbanken: OpenAlex, Crossref, ERIC, die Deutsche Nationalbibliothek, der SLUB-Katalog, " +
+                "PubMed/Europe PMC, arXiv und DOAJ. Lizenzierte Fachdatenbanken (FIS Bildung, PsycINFO, Web of Science) erreicht die " +
+                "App nicht – über die SLUB sind sie mit dem TU-Login zugänglich; das Suchprotokoll nennt sie als Ergänzung. " +
+                "Jedes gefundene Werk ist verlinkt: Volltext, DOI oder Katalogeintrag.",
             Modifier.padding(horizontal = 4.dp),
         )
     }
@@ -364,6 +391,7 @@ private fun Collection(c: AppContainer, initialList: String?, onMakeBibliography
                                 r.lists.take(2).forEach { StatusPill(it, PillTone.ACCENT) }
                             }
                             if (r.note.isNotBlank()) Text(r.note, style = MaterialTheme.typography.bodySmall)
+                            ReferenceLinks(r)
                         }
                     }
                 }
@@ -407,6 +435,27 @@ private fun Collection(c: AppContainer, initialList: String?, onMakeBibliography
             c.literature.upsert(updated)
             editing = null
         }
+    }
+}
+
+/** Open the work (full text, DOI, catalogue) or look for it at the SLUB, in Google Scholar and on ResearchGate. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ReferenceLinks(r: Reference) {
+    val uri = LocalUriHandler.current
+    fun open(url: String) = runCatching { uri.openUri(url) }.onFailure { Notices.error("Link lässt sich nicht öffnen") }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        TextButton(onClick = { open(LitLinks.best(r)) }, contentPadding = PaddingValues(horizontal = 8.dp)) {
+            Icon(Icons.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.size(4.dp))
+            Text(if (r.openAccessUrl.isNotBlank()) "Volltext" else if (r.doi.isNotBlank()) "DOI" else if (r.url.isNotBlank()) "Öffnen" else "Suchen")
+        }
+        LitLinks.landing(r).takeIf { it.isNotBlank() && r.openAccessUrl.isNotBlank() && it != r.openAccessUrl }?.let { l ->
+            TextButton(onClick = { open(l) }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(if (r.doi.isNotBlank()) "DOI" else "Seite") }
+        }
+        if (r.source != "SLUB") TextButton(onClick = { open(LitLinks.slub(r)) }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("SLUB") }
+        TextButton(onClick = { open(LitLinks.scholar(r)) }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Scholar") }
+        TextButton(onClick = { open(LitLinks.researchGate(r)) }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("ResearchGate") }
     }
 }
 

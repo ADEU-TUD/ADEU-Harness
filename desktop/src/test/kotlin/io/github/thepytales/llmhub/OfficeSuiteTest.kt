@@ -173,7 +173,56 @@ class OfficeSuiteTest {
         assertEquals(DocKind.SLIDES, DocKind.forFile("Vortrag.pptx"))
         assertEquals(DocKind.SHEET, DocKind.forFile("Noten.xlsx"))
         assertEquals(DocKind.DOC, DocKind.forFile("Brief.docx"))
+        assertEquals(DocKind.MARKDOWN, DocKind.forFile("README.md"))
+        assertEquals(DocKind.MARKDOWN, OfficeImport.read("notiz.md", "# Notiz\n\n- a".toByteArray())!!.kind)
         val csv = OfficeImport.read("liste.csv", "Name;Punkte\nAnna;3,5\n\"Ben; Jr.\";4".toByteArray())!!
         assertEquals(listOf(listOf("Name", "Punkte"), listOf("Anna", "3,5"), listOf("Ben; Jr.", "4")), SheetEngine.grid(csv.tabs.single().second))
+    }
+
+    @Test
+    fun moreExcelFunctions() {
+        val table = listOf(
+            listOf("Name", "Punkte", "Gruppe", "Note"),
+            listOf("Anna", "92", "A", "1"),
+            listOf("Ben", "71", "B", "3"),
+            listOf("Cleo", "85", "A", "2"),
+            listOf("Dana", "", "B", ""),
+        )
+        fun eval(formula: String) = SheetEngine.Sheet(table + listOf(listOf(formula))).display(table.size, 0)
+        assertEquals("71", eval("=SVERWEIS(\"Ben\";A2:D5;2;FALSCH)"))
+        assertEquals("#NV", eval("=SVERWEIS(\"Zoe\";A2:D5;2;FALSCH)"))
+        assertEquals("fehlt", eval("=WENNFEHLER(SVERWEIS(\"Zoe\";A2:D5;2;FALSCH);\"fehlt\")"))
+        assertEquals("2", eval("=XVERWEIS(\"Cleo\";A2:A5;D2:D5;\"–\")"))
+        assertEquals("–", eval("=XVERWEIS(\"Zoe\";A2:A5;D2:D5;\"–\")"))
+        assertEquals("85", eval("=INDEX(B2:B5;VERGLEICH(\"Cleo\";A2:A5;0))"))
+        assertEquals("A", eval("=INDEX(A2:D5;3;3)"))
+        // IF evaluates only the branch it takes; division by zero in the other one does not matter.
+        assertEquals("0", eval("=WENN(B5=0;0;B2/B5)"))
+        assertEquals("2", eval("=ZÄHLENWENNS(C2:C5;\"A\";B2:B5;\">80\")"))
+        assertEquals("177", eval("=SUMMEWENNS(B2:B5;C2:C5;\"A\")"))
+        assertEquals("88,5", eval("=MITTELWERTWENN(C2:C5;\"A\";B2:B5)"))
+        assertEquals("gut", eval("=WENNS(B2>=90;\"gut\";WAHR;\"ok\")"))
+        assertEquals("An", eval("=LINKS(A2;2)"))
+        assertEquals("leo", eval("=TEIL(A4;2;3)"))
+        assertEquals("Anna, Ben, Cleo, Dana", eval("=TEXTVERKETTEN(\", \";WAHR;A2:A5)"))
+        assertEquals("1", eval("=RANG(B2;B2:B4)"))
+        assertEquals("85", eval("=KGRÖSSTE(B2:B5;2)"))
+        assertEquals("1", eval("=ANZAHLLEEREZELLEN(B2:B5)"))
+        assertEquals("WAHR", eval("=ISTLEER(B5)"))
+        assertEquals("305", eval("=SUMMENPRODUKT(B2:B3;D2:D3)"))
+        assertEquals("92,50 %", eval("=TEXT(0,925;\"0,00%\")"))
+        assertEquals("-0,98", eval("=RUNDEN(KORREL(B2:B4;D2:D4);2)"))
+        // Newer functions carry their prefix in .xlsx files.
+        assertEquals("_xlfn.XLOOKUP(A2,B2:B5,C2:C5)", SheetEngine.toExcel("=XVERWEIS(A2;B2:B5;C2:C5)"))
+        assertEquals("VLOOKUP(A2,B2:C5,2,FALSE)", SheetEngine.toExcel("=SVERWEIS(A2;B2:C5;2;FALSE)"))
+    }
+
+    @Test
+    fun fillingMovesRelativeReferences() {
+        assertEquals("=B3*C3", SheetEngine.shift("=B2*C2", 1, 0))
+        assertEquals("=B5*\$C\$2", SheetEngine.shift("=B2*\$C\$2", 3, 0))
+        assertEquals("=SUMME(C2:C9)", SheetEngine.shift("=SUMME(B2:B9)", 0, 1))
+        assertEquals("=WENN(A3>1;\"B2\";0)", SheetEngine.shift("=WENN(A2>1;\"B2\";0)", 1, 0))
+        assertEquals("Text B2", SheetEngine.shift("Text B2", 1, 0))
     }
 }

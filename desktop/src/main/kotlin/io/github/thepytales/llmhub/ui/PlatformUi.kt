@@ -35,6 +35,9 @@ fun shareText(context: Context, text: String, subject: String? = null) {
 /** Verb for touching something, in hints ("tippen" / "klicken"). */
 const val TAP = "klicken"
 
+/** Windows (mouse and keyboard first): selecting text in a document opens the „KI fragen“ window right away. */
+const val DESKTOP = true
+
 /** Enter in the chat input sends (Windows) or starts a new line (Android). */
 const val ENTER_SENDS = true
 
