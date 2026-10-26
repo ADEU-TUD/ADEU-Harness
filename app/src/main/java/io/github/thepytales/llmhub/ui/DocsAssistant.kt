@@ -94,6 +94,7 @@ object DocsAi {
         append(
             when (doc.docKind) {
                 DocKind.DOC -> "dem Dokument"
+                DocKind.MARKDOWN -> "der Markdown-Datei"
                 DocKind.SLIDES -> "der Präsentation"
                 DocKind.SHEET -> "der Tabelle"
             },
@@ -103,9 +104,17 @@ object DocsAi {
         if (doc.tabs.size > 1) append(" und tab=Name des Tabs")
         append(". Erstelle dafür kein neues Dokument. Antworte im Chat nur kurz (ein, zwei Sätze), was du geändert hast; bei unklaren Wünschen frag nach. ")
         when (doc.docKind) {
-            DocKind.DOC -> append("Format: Markdown mit Überschriften, Listen, Tabellen, Checklisten (- [ ] …) und Hinweisboxen (> [!NOTE]). ")
+            DocKind.DOC -> append(
+                "Format: Markdown mit Überschriften, Listen, Tabellen, Checklisten (- [ ] …) und Hinweisboxen (> [!NOTE]); der Nutzer sieht " +
+                    "das Dokument formatiert wie in Word, ohne die Markdown-Zeichen. ",
+            )
+            DocKind.MARKDOWN -> append("Format: eine Markdown-Datei (z. B. README, Notiz); der Nutzer sieht und bearbeitet den Quelltext mit allen Zeichen. ")
             DocKind.SLIDES -> append(
-                "Format der Präsentation: Folien durch eine Zeile „---“ getrennt; erste Folie „# Titel“ und „## Untertitel“, jede weitere " +
+                "Die App zeigt und exportiert die Folien im Corporate Design der TU Dresden (Logo, Farben, Einrichtung, Fußzeile setzt sie " +
+                    "selbst – schreib sie nicht auf die Folien). " +
+                    "Format der Präsentation: Folien durch eine Zeile „---“ getrennt; erste Folie „# Titel“ und „## Untertitel“, darunter " +
+                    "optional Zeilen wie „Vortrag · Oktober 2026“; eine Folie nur mit „## Titel“ und höchstens einem kurzen Satz ist eine " +
+                    "Abschnittsfolie, eine Folie nur mit „> Zitat“ (letzte Zeile „> – Quelle“) eine Zitatfolie; jede weitere " +
                     "„## Folientitel“ mit wenigen kurzen Stichpunkten (höchstens 6, je eine Zeile); „|||“ beginnt die rechte Spalte, " +
                     "„Notizen: …“ am Ende einer Folie sind die Sprechernotizen. Details gehören in die Notizen, nicht auf die Folie. ",
             )
@@ -266,6 +275,13 @@ fun rememberInlineAi(c: AppContainer): InlineAiRunner {
 
 /** Quick requests offered in the assistant panel, per kind of document. */
 private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
+    DocKind.MARKDOWN -> listOf(
+        "Entwurf schreiben" to "Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht.",
+        "Gliederung" to "Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie in die Datei.",
+        "Inhaltsverzeichnis" to "Füge unter dem Titel ein Inhaltsverzeichnis mit Links auf die Überschriften ein.",
+        "Sprache glätten" to "Glätte Sprache, Stil und Rechtschreibung; Inhalt, Aufbau und Markdown bleiben.",
+        "Auf Englisch" to "Übersetze die ganze Datei ins Englische; Markdown und Code bleiben unverändert.",
+    )
     DocKind.DOC -> listOf(
         "Entwurf schreiben" to "Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht.",
         "Gliederung" to "Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie ins Dokument (vorhandener Text bleibt in den passenden Abschnitten).",
@@ -279,7 +295,9 @@ private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind
         "TUD-Design" to "Prüfe Aufbau und Formulierungen für ein offizielles Dokument der TU Dresden und exportiere es danach mit create_document als Word (format=docx, style=tud).",
     )
     DocKind.SLIDES -> listOf(
-        "Folien entwerfen" to "Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien, Stichpunkte, Sprechernotizen).",
+        "Folien entwerfen" to "Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien): Titelfolie mit Untertitel und einer " +
+            "Zeile Anlass · Datum, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, wo es passt auch " +
+            "zwei Spalten, eine Tabelle oder ein Zitat, eine Abschlussfolie; zu jeder Folie Sprechernotizen.",
         "Sprechernotizen" to "Ergänze zu jeder Folie ausführliche Sprechernotizen (was ich dazu sagen kann).",
         "Straffen" to "Straffe alle Folien: höchstens 5 kurze Stichpunkte je Folie, Details in die Sprechernotizen.",
         "Abschlussfolie" to "Füge am Ende eine Folie mit Zusammenfassung/Take-aways und eine Folie für Fragen hinzu.",
@@ -339,7 +357,7 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         when (doc.docKind) {
-                            DocKind.DOC -> "Schreib gemeinsam mit der KI: Sag ihr, was sie schreiben oder ändern soll – sie arbeitet direkt im Dokument, Änderungen werden farbig markiert und lassen sich im Versionsverlauf zurücknehmen."
+                            DocKind.DOC, DocKind.MARKDOWN -> "Schreib gemeinsam mit der KI: Sag ihr, was sie schreiben oder ändern soll – sie arbeitet direkt im Dokument, Änderungen werden farbig markiert und lassen sich im Versionsverlauf zurücknehmen."
                             DocKind.SLIDES -> "Die KI entwirft und überarbeitet Folien direkt in der Präsentation – sag einfach, was du brauchst."
                             DocKind.SHEET -> "Die KI rechnet, ergänzt Formeln, bereinigt Daten und wertet aus – direkt in der Tabelle."
                         },
@@ -432,7 +450,7 @@ fun AiPromptBar(kind: DocKind, working: Boolean, onOpen: () -> Unit) {
             Spacer(Modifier.size(10.dp))
             Text(
                 if (working) "KI arbeitet …" else when (kind) {
-                    DocKind.DOC -> "Mit KI schreiben …"
+                    DocKind.DOC, DocKind.MARKDOWN -> "Mit KI schreiben …"
                     DocKind.SLIDES -> "Folien mit KI erstellen …"
                     DocKind.SHEET -> "KI fragen: rechnen, auswerten, ergänzen …"
                 },

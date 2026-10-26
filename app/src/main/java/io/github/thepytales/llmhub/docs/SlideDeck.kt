@@ -61,7 +61,10 @@ object SlideDeck {
     private fun slideMarkdown(s: Slide, first: Boolean): String = buildString {
         if (first || s.layout == Layout.TITLE) {
             append("# ").append(s.title.ifBlank { "Titel" })
-            if (s.body.isNotBlank()) append("\n\n## ").append(s.body.lines().joinToString(" ").trim())
+            // First line: subtitle; further lines (speaker, occasion, date) stay lines of their own below it.
+            val lines = s.body.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            if (lines.isNotEmpty()) append("\n\n## ").append(lines.first())
+            if (lines.size > 1) append("\n\n").append(lines.drop(1).joinToString("\n\n"))
         } else {
             append("## ").append(s.title.ifBlank { "Folie" })
             val body = when (s.layout) {

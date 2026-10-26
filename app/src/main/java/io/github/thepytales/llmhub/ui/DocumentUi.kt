@@ -182,11 +182,13 @@ fun ExportDialog(
     initial: DocFormat = DocFormat.PDF,
     /** Writes some formats itself (tables of the editor with their formulas); null = the usual way. */
     custom: ((DocFormat, File) -> Boolean)? = null,
+    /** Look the document itself asks for (e.g. TU Dresden); null = the one from the settings. */
+    initialStyle: DocStyle? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var format by remember { mutableStateOf(initial) }
-    var style by remember { mutableStateOf(DocStyle.parse(c.settings.current.docStyle) ?: DocStyle.MODERN) }
+    var style by remember { mutableStateOf(initialStyle ?: DocStyle.parse(c.settings.current.docStyle) ?: DocStyle.MODERN) }
     var busy by remember { mutableStateOf(false) }
     val created = remember { mutableStateMapOf<Pair<DocFormat, DocStyle>, File>() }
 
