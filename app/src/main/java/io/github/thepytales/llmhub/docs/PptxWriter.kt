@@ -14,7 +14,7 @@ import java.util.zip.ZipOutputStream
  * (blue with the white logo); a slide with only a heading becomes a section slide.
  */
 object PptxWriter {
-    enum class Kind { TITLE, SECTION, CONTENT, QUOTE }
+    enum class Kind { TITLE, SECTION, CONTENT, QUOTE, IMAGE_TEXT, IMAGE, COMPARISON, TABLE, CHART, AGENDA, END }
 
     internal data class Slide(
         val kind: Kind,
@@ -23,6 +23,16 @@ object PptxWriter {
         val blocks: List<Block> = emptyList(),
         val right: List<Block> = emptyList(),
         val notes: String = "",
+        /** Picture: source (absolute path or data URL), description, on the left of the text. */
+        val image: String = "",
+        val imageAlt: String = "",
+        val imageLeft: Boolean = false,
+        val chart: ChartSpec? = null,
+        /** Headings of the two columns of a comparison. */
+        val leftHead: String = "",
+        val rightHead: String = "",
+        /** Items of an agenda slide. */
+        val agenda: List<String> = emptyList(),
     )
 
     private const val W = 12192000L // 33.867 cm
@@ -32,6 +42,7 @@ object PptxWriter {
     private val SEPARATOR = Regex("^\\s*-{3,}\\s*$")
     private val NOTES = Regex("^\\s*(Notizen|Notiz|Sprechernotizen|Sprechertext|Notes)\\s*:\\s*", RegexOption.IGNORE_CASE)
     private val COLUMNS = Regex("^\\s*(\\|\\|\\||::: *rechts|:::\\s*right)\\s*$", RegexOption.IGNORE_CASE)
+    private val LAYOUT = Regex("^\\s*<!--\\s*layout\\s*:\\s*([a-zäöü-]+)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
 
     private val BLUE = TudBrand.BLUE.removePrefix("#")
     private val LIGHT = TudBrand.LIGHT_BLUE.removePrefix("#")
@@ -49,11 +60,27 @@ object PptxWriter {
             if (!inCode && SEPARATOR.matches(line)) chunks += StringBuilder() else chunks.last().append(line).append('\n')
         }
         val texts = chunks.map { it.toString().trim() }.filter { it.isNotEmpty() }
-        return texts.mapIndexed { i, t -> slide(t, first = i == 0) }
+        val slides = texts.mapIndexed { i, t -> slide(t, first = i == 0) }
+        // Agendas without own items list the section slides (or all titles).
+        return slides.mapIndexed { i, s ->
+            if (s.kind != Kind.AGENDA || s.agenda.isNotEmpty()) s
+            else {
+                val rest = slides.drop(1).filter { it.kind != Kind.AGENDA && it.kind != Kind.END && it.title.isNotBlank() }
+                s.copy(agenda = rest.filter { it.kind == Kind.SECTION }.ifEmpty { rest }.map { it.title }.distinct().take(10))
+            }
+        }
     }
 
     private fun slide(text: String, first: Boolean): Slide {
-        val lines = text.lines()
+        var lines = text.lines()
+        val marked = lines.firstNotNullOfOrNull { l -> LAYOUT.find(l)?.groupValues?.get(1)?.let(SlideDeck::layoutOf) }
+        lines = lines.filterNot { LAYOUT.matches(it) }
+        val imageAt = lines.indexOfFirst { DocMarkup.image(it) != null }
+        val img = if (imageAt >= 0) DocMarkup.image(lines[imageAt]) else null
+        if (imageAt >= 0) lines = lines.filterIndexed { i, _ -> i != imageAt }
+        val chart = if (marked?.first == SlideDeck.Layout.CHART) SlideDeck.chartOf(lines.joinToString("\n")) else null
+        // Charts on other slides show their data as table.
+        if (chart == null) lines = ChartBlocks.asTables(lines.joinToString("\n")).lines()
         val notesAt = lines.indexOfFirst { NOTES.containsMatchIn(it) }
         val notes = if (notesAt < 0) "" else (listOf(lines[notesAt].replace(NOTES, "")) + lines.drop(notesAt + 1)).joinToString("\n").trim()
         val main = if (notesAt < 0) lines else lines.take(notesAt)
@@ -67,6 +94,29 @@ object PptxWriter {
             val sub = rest.firstOrNull { it is Block.Heading } as? Block.Heading
             if (sub != null) rest = rest - sub
             return Slide(Kind.TITLE, title, sub?.text?.trim().orEmpty(), rest, notes = notes)
+        }
+        val image = img?.src.orEmpty()
+        val alt = img?.alt.orEmpty()
+        when (marked?.first) {
+            SlideDeck.Layout.IMAGE_TEXT -> return Slide(Kind.IMAGE_TEXT, title, blocks = rest + right, notes = notes, image = image, imageAlt = alt, imageLeft = marked?.second == true)
+            SlideDeck.Layout.IMAGE -> return Slide(Kind.IMAGE, title, blocks = rest, notes = notes, image = image, imageAlt = alt)
+            SlideDeck.Layout.COMPARISON -> {
+                fun head(list: List<Block>) = (list.firstOrNull() as? Block.Heading)?.text?.trim().orEmpty()
+                fun body(list: List<Block>) = if (list.firstOrNull() is Block.Heading) list.drop(1) else list
+                return Slide(Kind.COMPARISON, title, blocks = body(rest), right = body(right), notes = notes, leftHead = head(rest), rightHead = head(right))
+            }
+            SlideDeck.Layout.TABLE -> return Slide(Kind.TABLE, title, blocks = rest + right, notes = notes)
+            SlideDeck.Layout.CHART -> return Slide(Kind.CHART, title, blocks = rest.filter { it !is Block.Code }, notes = notes, chart = chart)
+            SlideDeck.Layout.AGENDA -> return Slide(
+                Kind.AGENDA, title.ifBlank { "Agenda" }, notes = notes,
+                agenda = rest.flatMap { b -> if (b is Block.Item) listOf(b.text) else if (b is Block.Paragraph) b.text.lines() else emptyList() }.map { it.trim() }.filter { it.isNotEmpty() },
+            )
+            SlideDeck.Layout.END -> return Slide(Kind.END, title, blocks = rest, notes = notes)
+            else -> {}
+        }
+        if (img != null) {
+            return if (rest.isEmpty() && right.isEmpty()) Slide(Kind.IMAGE, title, notes = notes, image = image, imageAlt = alt)
+            else Slide(Kind.IMAGE_TEXT, title, blocks = rest + right, notes = notes, image = image, imageAlt = alt)
         }
         if (right.isEmpty() && rest.size == 1 && rest[0] is Block.Quote) return Slide(Kind.QUOTE, title, blocks = rest, notes = notes)
         val short = rest.isEmpty() || rest.size == 1 && rest[0] is Block.Paragraph && (rest[0] as Block.Paragraph).text.length <= 140
@@ -85,6 +135,9 @@ object PptxWriter {
         val deckTitle = slides.first().title.ifBlank { title }
         val unitLines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val foot = footer.ifBlank { listOfNotNull("TU Dresden", unitLines.lastOrNull(), deckTitle.takeIf { it.isNotBlank() }).joinToString(" · ") }
+        // Pictures of the slides (unreadable ones are left out, the slide keeps its text).
+        val pictures = slides.map { s -> s.image.takeIf { it.isNotBlank() }?.let { DocMarkup.imageBytes(it) } }
+        val media = pictures.mapIndexed { i, b -> b?.let { "bild${i + 1}.${DocMarkup.imageType(it) ?: "png"}" } }
         ZipOutputStream(file.outputStream()).use { zip ->
             fun bytes(name: String, content: ByteArray) {
                 zip.putNextEntry(ZipEntry(name))
@@ -92,7 +145,7 @@ object PptxWriter {
                 zip.closeEntry()
             }
             fun entry(name: String, content: String) = bytes(name, content.toByteArray(Charsets.UTF_8))
-            entry("[Content_Types].xml", contentTypes(slides))
+            entry("[Content_Types].xml", contentTypes(slides, media.filterNotNull().map { it.substringAfterLast('.') }.toSet()))
             entry("_rels/.rels", ROOT_RELS)
             entry("docProps/core.xml", core(deckTitle))
             entry("docProps/app.xml", app(slides.size))
@@ -113,8 +166,10 @@ object PptxWriter {
             bytes("ppt/media/logo-weiss.png", TudBrand.logoWhite)
             slides.forEachIndexed { i, s ->
                 val n = i + 1
-                entry("ppt/slides/slide$n.xml", slideXml(s, n, slides.size, unitLines, foot))
-                entry("ppt/slides/_rels/slide$n.xml.rels", slideRels(n, s.notes.isNotBlank()))
+                val picture = pictures[i]
+                if (picture != null) bytes("ppt/media/${media[i]}", picture)
+                entry("ppt/slides/slide$n.xml", slideXml(s, n, slides.size, unitLines, foot, picture?.let { DocMarkup.imageSize(it) ?: (4 to 3) }))
+                entry("ppt/slides/_rels/slide$n.xml.rels", slideRels(n, s.notes.isNotBlank(), media[i]))
                 if (s.notes.isNotBlank()) {
                     entry("ppt/notesSlides/notesSlide$n.xml", notesXml(s.notes))
                     entry("ppt/notesSlides/_rels/notesSlide$n.xml.rels", notesRels(n))
@@ -131,9 +186,9 @@ object PptxWriter {
         fun next() = id++
     }
 
-    private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String): String {
+    private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String, picture: Pair<Int, Int>? = null): String {
         val sh = Shapes()
-        val dark = s.kind == Kind.TITLE
+        val dark = s.kind == Kind.TITLE || s.kind == Kind.END
         when (s.kind) {
             Kind.TITLE -> {
                 text(sh, "Titel", cm(1.6), cm(5.6), cm(29.5), cm(4.8), listOf(para(s.title, size = if (s.title.length > 60) 34 else 40, color = "FFFFFF")), anchor = "b", placeholder = "ctrTitle")
@@ -177,6 +232,64 @@ object PptxWriter {
                     content(sh, s.right, cm(17.4), top, cm(14.8), bottom - top, half = true)
                 }
                 chrome(sh, n, footer)
+            }
+            Kind.IMAGE_TEXT -> {
+                if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, s.imageAlt.ifBlank { "Folie $n" })
+                val top = cm(4.0)
+                val h = cm(13.0)
+                val imgX = if (s.imageLeft) cm(1.6) else cm(17.4)
+                val textX = if (s.imageLeft) cm(17.4) else cm(1.6)
+                if (picture != null) image(sh, picture, s.imageAlt, imgX, top, cm(14.8), h)
+                content(sh, s.blocks, textX, top, cm(14.8), h, half = true)
+                chrome(sh, n, footer)
+            }
+            Kind.IMAGE -> {
+                val withTitle = s.title.isNotBlank()
+                if (withTitle) title(sh, s.title) else hiddenTitle(sh, s.imageAlt.ifBlank { "Bild" })
+                val caption = s.imageAlt.isNotBlank() && s.imageAlt != s.title
+                val top = if (withTitle) cm(4.0) else cm(1.0)
+                val bottom = if (caption) cm(16.2) else cm(17.2)
+                if (picture != null) image(sh, picture, s.imageAlt, cm(1.6), top, W - cm(3.2), bottom - top)
+                if (caption) text(sh, "Bildunterschrift", cm(1.6), cm(16.3), W - cm(3.2), cm(1.0), listOf(para(s.imageAlt, size = 12, color = GREY, align = "ctr")))
+                chrome(sh, n, footer)
+            }
+            Kind.COMPARISON -> {
+                if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Vergleich")
+                val top = cm(4.0)
+                listOf(Triple(cm(1.6), s.leftHead, s.blocks), Triple(cm(17.4), s.rightHead, s.right)).forEach { (x, head, blocks) ->
+                    var y = top
+                    if (head.isNotBlank()) {
+                        rect(sh, x, y, cm(14.8), cm(1.3), TINT)
+                        text(sh, "Spaltenkopf", x + cm(0.4), y, cm(14.0), cm(1.3), listOf(para(head, size = 20, color = BLUE, bold = true)), anchor = "ctr")
+                        y += cm(1.7)
+                    }
+                    content(sh, blocks, x, y, cm(14.8), cm(17.0) - y, half = true)
+                }
+                chrome(sh, n, footer)
+            }
+            Kind.TABLE -> {
+                if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Tabelle")
+                content(sh, s.blocks, cm(1.6), cm(4.0), cm(30.6), cm(13.0), half = false)
+                chrome(sh, n, footer)
+            }
+            Kind.CHART -> {
+                if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, s.chart?.title?.ifBlank { null } ?: "Diagramm")
+                val withText = s.blocks.isNotEmpty()
+                if (s.chart != null) chart(sh, s.chart, cm(1.6), cm(4.0), if (withText) cm(20.0) else cm(30.6), cm(13.0))
+                if (withText) content(sh, s.blocks, cm(22.4), cm(4.0), cm(9.8), cm(13.0), half = true)
+                chrome(sh, n, footer)
+            }
+            Kind.AGENDA -> {
+                title(sh, s.title.ifBlank { "Agenda" })
+                val size = if (s.agenda.size > 7) 20 else 24
+                text(sh, "Agenda", cm(1.6), cm(4.2), cm(30.6), cm(12.8), s.agenda.map { para(it, size = size, bullet = "num", spaceBefore = 10) })
+                chrome(sh, n, footer)
+            }
+            Kind.END -> {
+                text(sh, "Titel", cm(1.6), cm(5.0), cm(29.5), cm(4.4), listOf(para(s.title.ifBlank { "Vielen Dank!" }, size = 40, color = "FFFFFF")), anchor = "b", placeholder = "title")
+                val lines = s.blocks.flatMap { blockLines(it) }.filter { it.isNotBlank() }
+                if (lines.isNotEmpty()) text(sh, "Kontakt", cm(1.6), cm(10.4), cm(29.5), cm(5.6), lines.map { para(it, size = 18, color = "FFFFFF", spaceBefore = 4) })
+                picture(sh, "rIdLogoW", cm(1.6), cm(1.4), cm(1.7))
             }
         }
         val bg = if (dark) "<p:bg><p:bgPr><a:solidFill><a:srgbClr val=\"$BLUE\"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>" else ""
@@ -339,6 +452,86 @@ object PptxWriter {
         )
     }
 
+    /** A picture of the slide, as large as fits into the area, centred, with its description as alternative text. */
+    private fun image(sh: Shapes, size: Pair<Int, Int>, alt: String, x: Long, y: Long, w: Long, h: Long) {
+        val (pw, ph) = size
+        var cw = w
+        var ch = w * ph / pw
+        if (ch > h) { ch = h; cw = h * pw / ph }
+        val id = sh.next()
+        sh.xml.append(
+            "<p:pic><p:nvPicPr><p:cNvPr id=\"$id\" name=\"Bild $id\" descr=\"${esc(alt.ifBlank { "Bild" })}\"/>" +
+                "<p:cNvPicPr><a:picLocks noChangeAspect=\"1\"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>" +
+                "<p:blipFill><a:blip r:embed=\"rIdImg\"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>" +
+                "<p:spPr><a:xfrm><a:off x=\"${x + (w - cw) / 2}\" y=\"${y + (h - ch) / 2}\"/><a:ext cx=\"$cw\" cy=\"$ch\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr></p:pic>"
+        )
+    }
+
+    /** Fill in DrawingML: colour (#RRGGBB) with opacity. */
+    private fun fillOf(color: String, opacity: Float = 1f) = "<a:solidFill><a:srgbClr val=\"${color.removePrefix("#").uppercase()}\">" +
+        (if (opacity < 1f) "<a:alpha val=\"${(opacity * 100000).toInt()}\"/>" else "") + "</a:srgbClr></a:solidFill>"
+
+    private fun shape(sh: Shapes, name: String, x: Long, y: Long, w: Long, h: Long, geom: String, fill: String, line: String = "<a:ln><a:noFill/></a:ln>") {
+        val id = sh.next()
+        sh.xml.append(
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"$name $id\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
+                "<p:spPr><a:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"${w.coerceAtLeast(1)}\" cy=\"${h.coerceAtLeast(1)}\"/></a:xfrm>$geom$fill$line</p:spPr></p:sp>"
+        )
+    }
+
+    private fun line(sh: Shapes, x1: Long, y1: Long, x2: Long, y2: Long, color: String, width: Long) {
+        val id = sh.next()
+        val flip = (if (x2 < x1) " flipH=\"1\"" else "") + (if (y2 < y1) " flipV=\"1\"" else "")
+        sh.xml.append(
+            "<p:cxnSp><p:nvCxnSpPr><p:cNvPr id=\"$id\" name=\"Linie $id\"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr>" +
+                "<p:spPr><a:xfrm$flip><a:off x=\"${minOf(x1, x2)}\" y=\"${minOf(y1, y2)}\"/><a:ext cx=\"${kotlin.math.abs(x2 - x1)}\" cy=\"${kotlin.math.abs(y2 - y1)}\"/></a:xfrm>" +
+                "<a:prstGeom prst=\"line\"><a:avLst/></a:prstGeom><a:ln w=\"$width\">${fillOf(color)}</a:ln></p:spPr></p:cxnSp>"
+        )
+    }
+
+    /** A chart of the slide drawn with shapes from [ChartLayout] – the same drawing as in the editor and the PDF. */
+    private fun chart(sh: Shapes, spec: ChartSpec, x: Long, y: Long, w: Long, h: Long) {
+        val scale = minOf(w / ChartLayout.W.toDouble(), h / ChartLayout.H.toDouble())
+        val ox = x + ((w - ChartLayout.W * scale) / 2).toLong()
+        val oy = y + ((h - ChartLayout.H * scale) / 2).toLong()
+        fun px(v: Float) = ox + (v * scale).toLong()
+        fun py(v: Float) = oy + (v * scale).toLong()
+        fun len(v: Float) = (v * scale).toLong()
+        val rect = "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>"
+        for (s in ChartLayout.layout(spec)) when (s) {
+            is ChartLayout.Rect -> shape(sh, "Balken", px(s.x), py(s.y), len(s.w), len(s.h), rect, fillOf(s.color, s.opacity))
+            is ChartLayout.Line -> line(sh, px(s.x1), py(s.y1), px(s.x2), py(s.y2), s.color, (s.width * scale).toLong().coerceAtLeast(3175))
+            is ChartLayout.Poly -> s.points.zipWithNext().forEach { (a, b) -> line(sh, px(a.first), py(a.second), px(b.first), py(b.second), s.color, (s.width * scale).toLong()) }
+            is ChartLayout.Dot -> shape(sh, "Punkt", px(s.x - s.r), py(s.y - s.r), len(2 * s.r), len(2 * s.r), "<a:prstGeom prst=\"ellipse\"><a:avLst/></a:prstGeom>", fillOf(s.color))
+            is ChartLayout.Wedge -> {
+                val geom = if (s.sweep >= 359.9f) "<a:prstGeom prst=\"ellipse\"><a:avLst/></a:prstGeom>" else {
+                    fun angle(a: Float) = (((a % 360f) + 360f) % 360f * 60000).toLong()
+                    "<a:prstGeom prst=\"pie\"><a:avLst><a:gd name=\"adj1\" fmla=\"val ${angle(s.start)}\"/><a:gd name=\"adj2\" fmla=\"val ${angle(s.start + s.sweep)}\"/></a:avLst></a:prstGeom>"
+                }
+                shape(sh, "Segment", px(s.cx - s.r), py(s.cy - s.r), len(2 * s.r), len(2 * s.r), geom, fillOf(s.color), "<a:ln w=\"12700\"><a:solidFill><a:srgbClr val=\"FFFFFF\"/></a:solidFill></a:ln>")
+            }
+            is ChartLayout.Label -> {
+                val size = (s.size * scale / 12700).coerceIn(6.0, 40.0)
+                val boxW = len((s.text.length * s.size * 0.62f + 8f).coerceAtMost(ChartLayout.W))
+                val boxH = len(s.size * 1.5f)
+                val align = when (s.anchor) { "start" -> "l"; "end" -> "r"; else -> "ctr" }
+                val left = when (s.anchor) { "start" -> px(s.x); "end" -> px(s.x) - boxW; else -> px(s.x) - boxW / 2 }
+                val id = sh.next()
+                val rot = if (s.vertical) " rot=\"-5400000\"" else ""
+                // Rotated labels turn around their centre: the box is centred on the anchor point.
+                val bx = if (s.vertical) px(s.x) - boxW / 2 else left
+                val by = if (s.vertical) py(s.y) - boxH / 2 else py(s.y) - (boxH * 0.75).toLong()
+                sh.xml.append(
+                    "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"Beschriftung $id\"/><p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr>" +
+                        "<p:spPr><a:xfrm$rot><a:off x=\"$bx\" y=\"$by\"/><a:ext cx=\"$boxW\" cy=\"$boxH\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>" +
+                        "<p:txBody><a:bodyPr wrap=\"none\" lIns=\"0\" tIns=\"0\" rIns=\"0\" bIns=\"0\" anchor=\"ctr\"/><a:lstStyle/>" +
+                        "<a:p><a:pPr algn=\"$align\"/><a:r><a:rPr lang=\"de-DE\" sz=\"${(size * 100).toInt()}\"" + (if (s.bold) " b=\"1\"" else "") + " dirty=\"0\">" +
+                        fillOf(s.color) + "<a:latin typeface=\"$FONT\"/></a:rPr><a:t>${esc(s.text)}</a:t></a:r></a:p></p:txBody></p:sp>"
+                )
+            }
+        }
+    }
+
     private fun table(sh: Shapes, t: Block.Table, x: Long, y: Long, w: Long, rowH: Long, size: Int) {
         val id = sh.next()
         val cols = t.rows.maxOf { it.size }
@@ -385,11 +578,12 @@ object PptxWriter {
     private const val REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
     private const val CT = "application/vnd.openxmlformats-officedocument.presentationml"
 
-    private fun contentTypes(slides: List<Slide>) = buildString {
+    private fun contentTypes(slides: List<Slide>, imageTypes: Set<String> = emptySet()) = buildString {
         append(XML).append("<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">")
         append("<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>")
         append("<Default Extension=\"xml\" ContentType=\"application/xml\"/>")
         append("<Default Extension=\"png\" ContentType=\"image/png\"/>")
+        (imageTypes - "png").forEach { append("<Default Extension=\"$it\" ContentType=\"image/$it\"/>") }
         append("<Override PartName=\"/ppt/presentation.xml\" ContentType=\"$CT.presentation.main+xml\"/>")
         append("<Override PartName=\"/ppt/slideMasters/slideMaster1.xml\" ContentType=\"$CT.slideMaster+xml\"/>")
         append("<Override PartName=\"/ppt/slideLayouts/slideLayout1.xml\" ContentType=\"$CT.slideLayout+xml\"/>")
@@ -450,7 +644,8 @@ object PptxWriter {
         append("</Relationships>")
     }
 
-    private fun slideRels(n: Int, notes: Boolean) = XML + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+    private fun slideRels(n: Int, notes: Boolean, image: String? = null) = XML + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+        (if (image != null) "<Relationship Id=\"rIdImg\" Type=\"$REL/image\" Target=\"../media/$image\"/>" else "") +
         "<Relationship Id=\"rIdLayout\" Type=\"$REL/slideLayout\" Target=\"../slideLayouts/slideLayout1.xml\"/>" +
         "<Relationship Id=\"rIdLogo\" Type=\"$REL/image\" Target=\"../media/logo-blau.png\"/>" +
         "<Relationship Id=\"rIdLogoW\" Type=\"$REL/image\" Target=\"../media/logo-weiss.png\"/>" +

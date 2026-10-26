@@ -90,6 +90,8 @@ object DocumentWriter {
         certificate: Boolean = false,
         /** Replace a file of the same name (filling in placeholders) instead of numbering the new one. */
         overwrite: Boolean = false,
+        /** Folder that relative picture paths (![…](Bilder/…)) refer to, e.g. the one of a document of the editor. */
+        imageBase: File? = null,
     ): CreatedDocument {
         @Suppress("NAME_SHADOWING") val theme = TudBrand.apply(theme)
         val base = safeName(fileName?.substringBeforeLast('.')?.ifBlank { null } ?: title)
@@ -102,7 +104,7 @@ object DocumentWriter {
             f
         }
         // Formulas ($…$) as readable text in every format (no formula renderer in PDF, Word or slides).
-        @Suppress("NAME_SHADOWING") val content = if (isHtml(content)) content else MathText.inText(content)
+        @Suppress("NAME_SHADOWING") val content = if (isHtml(content)) content else DocMarkup.resolveImages(MathText.inText(content), imageBase)
         val html = isHtml(content)
         // Word, Markdown and text cannot keep an HTML design; they get its text structure.
         val markdown = when {
@@ -129,7 +131,7 @@ object DocumentWriter {
                 withContext(Dispatchers.IO) { runCatching { PdfAccessibility.finish(context, file, docTitle) } }
             }
             DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, ChartBlocks.asTables(markdown), theme) }
-            DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, ChartBlocks.asTables(markdown), theme.unit, theme.footer) }
+            DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, markdown, theme.unit, theme.footer) }
             DocFormat.QTI -> withContext(Dispatchers.IO) { QtiWriter.write(file, title, markdown) }
             DocFormat.HTML -> withContext(Dispatchers.IO) {
                 file.writeText(if (html) content else toHtml(title, content, theme, print = false, letter = letter, certificate = certificate))
@@ -204,8 +206,31 @@ object DocumentWriter {
 
     private fun cssString(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 
+    /** Header line (left) and date (right) in the top margin of every printed page. */
+    private fun StringBuilder.headerBoxes(setup: DocMarkup.PageSetup, font: String, color: String) {
+        if (setup.header.isNotBlank()) append("@top-left{content:${cssString(setup.header)};font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm}")
+        if (setup.date) append("@top-right{content:${cssString(DocMarkup.today())};font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm}")
+    }
+
+    /** A picture of the document: embedded as data URL (local files) or linked (web addresses). */
+    private fun figure(img: DocMarkup.Image): String {
+        val bytes = DocMarkup.imageBytes(img.src)
+        val src = bytes?.let { DocMarkup.dataUrl(it) } ?: img.src.takeIf { it.startsWith("https://", true) || it.startsWith("http://", true) }
+            ?: return "<p class=\"meta\">[Bild: ${esc(img.alt.ifBlank { img.src.substringAfterLast('/') })}]</p>\n"
+        val width = img.width?.let { " style=\"width:$it%\"" }.orEmpty()
+        return "<figure class=\"img\"><img src=\"$src\" alt=\"${esc(img.alt)}\"$width>" +
+            (if (img.alt.isBlank()) "" else "<figcaption>${htmlInline(img.alt)}</figcaption>") + "</figure>\n"
+    }
+
+    /** Footnote marks of the text as superscript links to the notes at the end. */
+    private fun noteRefs(html: String, numbers: Map<String, Int>): String = if (numbers.isEmpty()) html
+    else DocMarkup.NOTE_REF.replace(html) { m ->
+        val n = numbers[m.groupValues[1]] ?: return@replace m.value
+        "<sup class=\"fnref\"><a href=\"#fn-$n\">$n</a></sup>"
+    }
+
     /** Stylesheet for a document style; [a] is the accent color. Certificates have no footer. */
-    private fun css(theme: DocTheme, print: Boolean, certificate: Boolean = false): String {
+    private fun css(theme: DocTheme, print: Boolean, certificate: Boolean = false, setup: DocMarkup.PageSetup = DocMarkup.PageSetup()): String {
         val a = theme.accent
         val tint = a + "14"
         val serif = "'Noto Serif', Georgia, 'Times New Roman', serif"
@@ -238,16 +263,26 @@ object DocumentWriter {
                 }
                 append("@page{size:A4;margin:18mm 20mm 22mm 25mm;")
                 append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
-                append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
+                if (setup.pageNumbers) append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
+                headerBoxes(setup, "7pt $tudFont", TudBrand.GREY)
                 append("}")
             } else if (print) {
                 append("@page{size:A4;margin:18mm 17mm 20mm 17mm;")
-                append("@bottom-right{content:counter(page) \" / \" counter(pages);font:8pt $sans;color:#8a8f98}")
+                if (setup.pageNumbers) append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:8pt $sans;color:#8a8f98}")
                 if (theme.footer.isNotBlank()) append("@bottom-left{content:${cssString(theme.footer)};font:8pt $sans;color:#8a8f98}")
+                headerBoxes(setup, "8pt $sans", "#8a8f98")
                 append("}")
             } else {
                 append("body{max-width:800px;margin:2rem auto;padding:0 1.2rem}")
             }
+            // Landscape pages (<!-- quer -->), page breaks, pictures and footnotes of the editor.
+            if (print) append("@page quer{size:A4 landscape}section.quer{page:quer;break-before:page;page-break-before:always;break-after:page;page-break-after:always}")
+            append(".pagebreak{break-after:page;page-break-after:always;height:0}")
+            append("figure.img{margin:10pt 0 12pt;text-align:center;break-inside:avoid;page-break-inside:avoid}figure.img img{max-width:100%;height:auto}")
+            append("figure.img figcaption{font-size:9pt;color:#555;font-style:italic;margin-top:4pt}")
+            append("sup.fnref{font-size:.7em;line-height:0}sup.fnref a{text-decoration:none}")
+            append(".footnotes{margin-top:18pt;font-size:8.5pt;color:#333}.footnotes hr{border:none;border-top:0.6pt solid #999;width:30%;margin:0 0 6pt}")
+            append(".footnotes ol{padding-left:14pt;margin:0}.footnotes li{margin:0 0 3pt}")
             append("html{-webkit-print-color-adjust:exact;print-color-adjust:exact}")
             append("body{font-family:$bodyFont;font-size:10.5pt;line-height:1.55;color:#1f2328}")
             append("h1,h2,h3,h4{font-family:$headFont;line-height:1.25;break-after:avoid;page-break-after:avoid}")
@@ -482,7 +517,7 @@ object DocumentWriter {
         append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n")
         append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
         append("<title>${esc(docTitle.ifBlank { "Dokument" })}</title>\n<style>\n")
-        append(css(theme, print, certificate))
+        append(css(theme, print, certificate, DocMarkup.pageSetup(markdown)))
         append("\n</style>\n</head>\n<body${if (letter != null) " class=\"letter\"" else ""}>\n")
         if (certificate) {
             append(certificateHtml(docTitle, body, theme, print))
@@ -490,7 +525,11 @@ object DocumentWriter {
             return@buildString
         }
         append(if (letter != null) letterBlock(docTitle, theme, letter) else titleBlock(docTitle, theme))
-        val blocks = parseBlocks(body)
+        val footnotes = DocMarkup.footnotes(DocMarkup.isolate(body))
+        val numbers = footnotes.numbers
+        fun inl(text: String) = noteRefs(htmlInline(text), numbers)
+        var landscape = false
+        val blocks = parseBlocks(footnotes.body)
         var openList: String? = null
         fun closeList() {
             openList?.let { append("</$it>\n") }
@@ -502,13 +541,24 @@ object DocumentWriter {
             if (b !is Block.Item) closeList()
             if (i == closingAt) append("<div class=\"closing\">\n")
             when (b) {
-                is Block.Heading -> append("<h${b.level}>${htmlInline(b.text)}</h${b.level}>\n")
+                is Block.Heading -> append("<h${b.level}>${inl(b.text)}</h${b.level}>\n")
                 is Block.Paragraph -> {
                     val lines = b.text.lines()
-                    // "Mit freundlichen Grüßen" directly followed by the name: keep room for the signature in between.
-                    if (i == closingAt && lines.size > 1) {
-                        append("<p>${htmlInline(lines.first())}</p>\n<p>${lines.drop(1).joinToString("<br>\n") { htmlInline(it) }}</p>\n")
-                    } else append("<p>${lines.joinToString("<br>\n") { htmlInline(it) }}</p>\n")
+                    val turn = DocMarkup.orientation(b.text)
+                    val img = DocMarkup.image(b.text)
+                    when {
+                        turn != null -> if (turn != landscape) {
+                            append(if (turn) "<section class=\"quer\">\n" else "</section>\n")
+                            landscape = turn
+                        }
+                        DocMarkup.isPageBreak(b.text) -> append("<div class=\"pagebreak\"></div>\n")
+                        DocMarkup.isComment(b.text) -> {}
+                        img != null -> append(figure(img))
+                        // "Mit freundlichen Grüßen" directly followed by the name: keep room for the signature in between.
+                        i == closingAt && lines.size > 1 ->
+                            append("<p>${inl(lines.first())}</p>\n<p>${lines.drop(1).joinToString("<br>\n") { inl(it) }}</p>\n")
+                        else -> append("<p>${lines.joinToString("<br>\n") { inl(it) }}</p>\n")
+                    }
                 }
                 is Block.Item -> {
                     val tag = if (b.marker.first().isDigit()) "ol" else "ul"
@@ -519,15 +569,15 @@ object DocumentWriter {
                     }
                     val style = if (b.indent > 0) " style=\"margin-left:${b.indent * 1.5}em\"" else ""
                     val box = CHECKBOX.find(b.text)
-                    if (box == null) append("<li$style>${htmlInline(b.text)}</li>\n")
+                    if (box == null) append("<li$style>${inl(b.text)}</li>\n")
                     else {
                         val mark = if (box.groupValues[1].isBlank()) "" else "✓"
-                        append("<li class=\"task\"$style><span class=\"cb\">$mark</span>${htmlInline(b.text.substring(box.range.last + 1))}</li>\n")
+                        append("<li class=\"task\"$style><span class=\"cb\">$mark</span>${inl(b.text.substring(box.range.last + 1))}</li>\n")
                     }
                 }
                 is Block.Quote -> {
                     val c = callout(b.text)
-                    val lines = (c?.second ?: b.text).lines().joinToString("<br>\n") { htmlInline(it) }
+                    val lines = (c?.second ?: b.text).lines().joinToString("<br>\n") { inl(it) }
                     if (c == null || theme.style == DocStyle.MINIMAL) append("<blockquote>$lines</blockquote>\n")
                     else if (theme.style == DocStyle.TUD) {
                         append("<div class=\"callout tud\"><div class=\"label\">${c.first.label}</div>$lines</div>\n")
@@ -552,7 +602,7 @@ object DocumentWriter {
                         val cell = if (r == 0) "th scope=\"col\"" else "td"
                         val close = if (r == 0) "th" else "td"
                         append("<tr>")
-                        row.forEach { append("<$cell>${htmlInline(it)}</$close>") }
+                        row.forEach { append("<$cell>${inl(it)}</$close>") }
                         append("</tr>\n")
                     }
                     append("</table>\n")
@@ -562,6 +612,12 @@ object DocumentWriter {
         }
         closeList()
         if (closingAt >= 0) append("</div>\n")
+        if (landscape) append("</section>\n")
+        if (footnotes.notes.isNotEmpty()) {
+            append("<section class=\"footnotes\" aria-label=\"Fußnoten\"><hr><ol>\n")
+            footnotes.notes.forEach { n -> append("<li id=\"fn-${n.number}\">${htmlInline(n.text)}</li>\n") }
+            append("</ol></section>\n")
+        }
         if (!print && theme.footer.isNotBlank()) append("<hr><p class=\"meta\">${esc(theme.footer)}</p>\n")
         append("</body>\n</html>\n")
     }
@@ -572,7 +628,17 @@ object DocumentWriter {
 
     fun toText(title: String, markdown: String): String = buildString {
         var prev: Block? = null
-        for (b in parseBlocks(withTitle(title, markdown))) {
+        val footnotes = DocMarkup.footnotes(DocMarkup.isolate(markdown))
+        fun plainInline(text: String) = DocMarkup.NOTE_REF.replace(this@DocumentWriter.plainInline(text)) { m ->
+            footnotes.numbers[m.groupValues[1]]?.let { "[$it]" } ?: m.value
+        }
+        for (b in parseBlocks(withTitle(title, footnotes.body))) {
+            if (b is Block.Paragraph && (DocMarkup.isComment(b.text) || DocMarkup.isPageBreak(b.text))) continue
+            val img = (b as? Block.Paragraph)?.let { DocMarkup.image(it.text) }
+            if (img != null) {
+                append("[Bild: ").append(img.alt.ifBlank { img.src.substringAfterLast('/') }).append("]\n\n")
+                continue
+            }
             if (prev is Block.Item && b !is Block.Item) append('\n')
             prev = b
             when (b) {
@@ -589,6 +655,10 @@ object DocumentWriter {
                 Block.Rule -> append("-".repeat(40)).append('\n')
             }
             if (b !is Block.Item) append('\n')
+        }
+        if (footnotes.notes.isNotEmpty()) {
+            append("\n").append("-".repeat(20)).append('\n')
+            footnotes.notes.forEach { n -> append("[${n.number}] ").append(plainInline(n.text)).append('\n') }
         }
     }.trimEnd() + "\n"
 }
