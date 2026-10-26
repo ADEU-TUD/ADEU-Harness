@@ -33,10 +33,18 @@ installieren, danach geht es automatisch.
 
 ## Für die Pflege
 
-Der Code liegt im (privaten) Repository `ADEU-TUD/ADEU-Harness`. Jede Version kommt dort aus
-*Actions › Build & Release* oder `.github/scripts/release-local.sh` und wird mit
-`.github/scripts/publish-update.sh` hier als Release veröffentlicht (Details: README dort, Abschnitt
-*Automatische Updates*). Ein Release enthält:
+Der Code liegt im (privaten) Repository `ADEU-TUD/ADEU-Harness`. **Hier nichts von Hand ändern** – Releases und diese
+README kommen von dort (Quelle der README: `.github/updater/README.md`).
+
+**Neue Version veröffentlichen** (ausführlich: README im Code-Repo, *Neue Version veröffentlichen*):
+1. Änderungen per Pull Request in `main` des Code-Repos mergen.
+2. Dort *Actions › Build & Release › Run workflow* auf `main` mit **version** = letzte Version hier + 1 (z. B. `38`,
+   nie leer) und **notes** = „Was ist neu“ in 1–3 kurzen Sätzen.
+3. Nach ca. 15 Minuten liegt die Version hier als Release; die Apps fragen beim nächsten Start.
+4. Nur das Veröffentlichen schlug fehl (z. B. Token abgelaufen)? Secret `UPDATER_TOKEN` im Code-Repo erneuern, dann
+   *Actions › Update veröffentlichen* mit derselben Version – ohne neu zu bauen.
+
+Ein Release enthält:
 
 | Datei | Zweck |
 |---|---|

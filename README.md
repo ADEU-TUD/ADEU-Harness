@@ -421,6 +421,28 @@ Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workfl
 `ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
 weitergeben.
 
+### Neue Version veröffentlichen (Kurzanleitung, auch für KI-Assistenten)
+
+1. Änderungen per Pull Request nach `main`; PR-Check grün, dann mergen.
+2. *Actions › Build & Release (Android + Windows) › Run workflow* auf `main` starten mit
+   - **version**: letzte Version + 1 – nachsehen unter
+     [Updater-Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest), z. B. `38` für 1.0.38. Nie leer
+     lassen: Dann nimmt der Workflow die Laufnummer, die kleiner ist, und Android installiert die APK nicht als Update.
+   - **notes**: „Was ist neu“ in 1–3 kurzen Sätzen für Nutzer:innen ohne Technikkenntnisse (steht im Update-Popup).
+
+   KI-Assistenten: GitHub-MCP `actions_run_trigger`, Methode `run_workflow`, `workflow_id: android.yml`, `ref: main`,
+   `inputs: {"version": "38", "notes": "…"}`; Lauf mit `actions_list`/`actions_get` verfolgen.
+3. Der Workflow (ca. 15 Min.) baut, testet (Emulator, Windows-Selbsttest), legt hier ein Release an und veröffentlicht
+   APK, Windows-ZIP/-EXE und `version.json` im öffentlichen Repo `ADEU-TUD/ADEU-Harness-Updater` (Schritt „Für
+   automatische Updates veröffentlichen“, Secret `UPDATER_TOKEN`).
+4. Prüfen: `https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` zeigt die neue
+   Version – ab dann fragen die Apps beim Start.
+5. Schlug nur das Veröffentlichen fehl (z. B. Token abgelaufen): Token erneuern, Secret `UPDATER_TOKEN` ersetzen,
+   dann *Actions › Update veröffentlichen* mit derselben Version und denselben notes – baut nicht neu.
+
+Der Token in `UPDATER_TOKEN` (Fine-grained, Resource owner ADEU-TUD, *Contents: Read and write* auf
+`ADEU-Harness-Updater`) läuft am **24.01.2027** ab – vorher neu erstellen und das Secret ersetzen.
+
 ### Automatische Updates
 
 Neue Versionen erscheinen im **öffentlichen** Repository
