@@ -118,6 +118,7 @@ object XlsxWriter {
             val bold = style.b || head
             val fillColor = style.fill ?: if (head) "#DCE6F5" else null
             val nf = numFmt(style.nf ?: if (date) "date" else null)
+            if (!bold && !style.i && style.color == null && fillColor == null && nf == 0 && style.align == null) return 0
             val key = "$bold|${style.i}|${style.color}|$fillColor|$nf|${style.align}"
             return xfIndex.getOrPut(key) {
                 val font = index(fonts, "<font>" + (if (bold) "<b/>" else "") + (if (style.i) "<i/>" else "") + "<sz val=\"11\"/>" +

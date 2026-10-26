@@ -645,8 +645,8 @@ class DocumentTools(
                 if (doc.tabs.size > 1) append("\n=== Tab „${t.title}“ ===\n")
                 append(t.markdown.replace("\u200B", "").take(40_000)).append("\n")
                 if (kind == io.github.thepytales.llmhub.docs.DocKind.SHEET && t.markdown.contains("| =")) {
-                    val rows = io.github.thepytales.llmhub.docs.SheetEngine.grid(t.markdown)
-                    val computed = io.github.thepytales.llmhub.docs.SheetEngine.Sheet(rows).computed()
+                    // With the other sheets, so references like 'Tabelle 2'!A1 are computed too.
+                    val computed = io.github.thepytales.llmhub.docs.SheetTools.workbook(doc.tabs).sheet(doc.tabs.indexOf(t)).computed()
                     append("Berechnete Werte:\n").append(io.github.thepytales.llmhub.docs.SheetEngine.markdown(computed).take(20_000)).append("\n")
                 }
             }

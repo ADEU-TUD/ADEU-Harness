@@ -247,27 +247,96 @@ object OfficeImport {
         val shared = xml(files["xl/sharedStrings.xml"])?.children()?.filter { it.localName == "si" }?.map { si -> si.all("t").joinToString("") { it.textContent } }.orEmpty()
         val rels = xml(files["xl/_rels/workbook.xml.rels"])?.children()?.associate { it.attr("Id") to it.attr("Target") }.orEmpty()
         val sheets = xml(files["xl/workbook.xml"])?.all("sheet").orEmpty()
+        val styles = xlsxStyles(xml(files["xl/styles.xml"]))
         return sheets.mapNotNull { s ->
             val target = rels[s.attr("id")] ?: return@mapNotNull null
             val path = if (target.startsWith("/")) target.removePrefix("/") else "xl/" + target.removePrefix("./")
             val root = xml(files[path]) ?: return@mapNotNull null
             val cells = HashMap<Pair<Int, Int>, String>()
+            val formats = HashMap<String, CellStyle>()
+            // Cells Excel filled from a spilling formula (dynamic arrays) are computed here again.
+            val spilled = HashSet<Pair<Int, Int>>()
+            root.all("c").forEach { c ->
+                val f = c.child("f") ?: return@forEach
+                val ref = SheetEngine.parseRef(c.attr("r")) ?: return@forEach
+                val area = f.attr("ref")
+                if (f.attr("t") == "array" && Regex("(?i)(UNIQUE|FILTER|SORT|SEQUENCE)\\s*\\(").containsMatchIn(f.textContent)) {
+                    SheetEngine.parseRange(area)?.let { g -> for (r in g[0]..g[2]) for (cc in g[1]..g[3]) if (r to cc != ref) spilled += r to cc }
+                }
+            }
             root.all("c").forEach { c ->
                 val ref = SheetEngine.parseRef(c.attr("r")) ?: return@forEach
+                if (ref in spilled) return@forEach
                 val f = c.child("f")?.textContent?.takeIf { it.isNotBlank() }
                 val v = c.child("v")?.textContent.orEmpty()
+                val style = styles.getOrNull(c.attr("s").toIntOrNull() ?: -1)
+                val date = style?.nf == "date"
                 cells[ref] = when {
                     f != null -> "=" + fromExcel(f)
                     c.attr("t") == "s" -> shared.getOrNull(v.toIntOrNull() ?: -1).orEmpty()
                     c.attr("t") == "inlineStr" -> c.all("t").joinToString("") { it.textContent }
                     c.attr("t") == "b" -> if (v == "1") "WAHR" else "FALSCH"
+                    date && v.toDoubleOrNull() != null -> SheetEngine.dateText(v.toDouble())
                     else -> v.toDoubleOrNull()?.let(SheetEngine::formatNumber) ?: v
                 }
+                // Dates typed as dates need no format; the head row's bold is the editor's own.
+                var st = style ?: return@forEach
+                if (date && f == null) st = st.copy(nf = null)
+                if (ref.first == 0 && st.b) st = st.copy(b = false, fill = st.fill?.takeIf { !it.equals("#DCE6F5", true) })
+                if (!st.isEmpty) formats[SheetEngine.ref(ref.first, ref.second)] = st
             }
             if (cells.isEmpty()) return@mapNotNull s.attr("name") to SheetEngine.blank()
-            val rows = cells.keys.maxOf { it.first } + 1
-            val cols = cells.keys.maxOf { it.second } + 1
-            s.attr("name") to SheetEngine.markdown((0 until rows.coerceAtMost(2000)).map { r -> (0 until cols.coerceAtMost(200)).map { c -> cells[r to c].orEmpty() } })
+            val rows = (cells.keys.maxOf { it.first } + 1).coerceAtMost(2000)
+            val cols = (cells.keys.maxOf { it.second } + 1).coerceAtMost(200)
+            val grid = (0 until rows).map { r -> (0 until cols).map { c -> cells[r to c].orEmpty() } }
+            val kept = formats.filterKeys { k -> SheetEngine.parseRef(k)?.let { it.first < rows && it.second < cols } == true }
+            s.attr("name") to SheetMeta.compose(grid, SheetMeta(cells = kept))
+        }
+    }
+
+    /** Cell formats of styles.xml (by index of cellXfs): bold, italic, colors, number format and alignment. */
+    private fun xlsxStyles(root: Element?): List<CellStyle?> {
+        root ?: return emptyList()
+        fun color(e: Element?): String? = e?.attr("rgb")?.takeIf { it.length >= 6 }?.let { "#" + it.takeLast(6).uppercase() }
+        val codes = root.child("numFmts")?.children()?.associate { it.attr("numFmtId") to it.attr("formatCode") }.orEmpty()
+        val fonts = root.child("fonts")?.children().orEmpty().map { f ->
+            Triple(
+                f.child("b")?.let { it.attr("val") != "0" && it.attr("val") != "false" } == true,
+                f.child("i")?.let { it.attr("val") != "0" && it.attr("val") != "false" } == true,
+                color(f.child("color"))?.takeIf { it != "#000000" },
+            )
+        }
+        val fills = root.child("fills")?.children().orEmpty().map { f ->
+            f.child("patternFill")?.takeIf { it.attr("patternType") == "solid" }?.let { color(it.child("fgColor")) }?.takeIf { it != "#FFFFFF" }
+        }
+        fun nf(id: String): String? {
+            val n = id.toIntOrNull() ?: return null
+            val code = codes[id].orEmpty()
+            return when {
+                n == 0 || n == 49 -> null
+                n == 1 || n == 3 -> "0"
+                n == 2 -> "0.00"
+                n == 4 -> "#,##0.00"
+                n == 9 -> "0%"
+                n == 10 -> "0.00%"
+                n in 14..22 || n in 27..36 || n in 45..47 || n in 50..58 -> "date"
+                n in 5..8 || n in 37..44 -> "eur"
+                code.isEmpty() -> null
+                '€' in code || "EUR" in code -> "eur"
+                '%' in code -> if (Regex("0[.,]0").containsMatchIn(code)) "0.0%" else "0%"
+                Regex("(?i)[dmy]").containsMatchIn(code.replace(Regex("\"[^\"]*\"|\\[[^\\]]*\\]"), "")) -> "date"
+                code.contains("#,##0.00") -> "#,##0.00"
+                code.contains("0.00") -> "0.00"
+                else -> null
+            }
+        }
+        return root.child("cellXfs")?.children().orEmpty().map { x ->
+            val font = fonts.getOrNull(x.attr("fontId").toIntOrNull() ?: 0)
+            val align = when (x.child("alignment")?.attr("horizontal")) { "left" -> "l"; "center", "centerContinuous" -> "c"; "right" -> "r"; else -> null }
+            CellStyle(
+                b = font?.first == true, i = font?.second == true, color = font?.third,
+                fill = fills.getOrNull(x.attr("fillId").toIntOrNull() ?: 0), nf = nf(x.attr("numFmtId")), align = align,
+            ).takeIf { !it.isEmpty }
         }
     }
 
@@ -275,16 +344,18 @@ object OfficeImport {
     fun fromExcel(formula: String): String {
         val out = StringBuilder()
         var inString = false
-        formula.forEachIndexed { i, ch ->
+        val clean = formula.replace(Regex("_xlfn\\.|_xlws\\.|_xlpm\\."), "")
+        clean.forEachIndexed { i, ch ->
             when {
                 ch == '"' -> { inString = !inString; out.append(ch) }
                 inString -> out.append(ch)
                 ch == ',' -> out.append(';')
-                ch == '.' && formula.getOrNull(i - 1)?.isDigit() == true && formula.getOrNull(i + 1)?.isDigit() == true -> out.append(',')
+                ch == '.' && clean.getOrNull(i - 1)?.isDigit() == true && clean.getOrNull(i + 1)?.isDigit() == true -> out.append(',')
                 else -> out.append(ch)
             }
         }
-        return out.toString()
+        // Excel's WEEKNUM without type counts from 1 January (type 1); the editor's default is ISO weeks.
+        return SheetEngine.withDefaultArg(out.toString(), setOf("WEEKNUM"), "1", ';')
     }
 
     /** CSV (";" or "," – whichever the first line uses more) → table. */

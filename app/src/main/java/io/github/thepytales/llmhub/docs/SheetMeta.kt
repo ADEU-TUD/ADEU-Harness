@@ -306,8 +306,8 @@ object SheetTools {
             // Seed: the filled cells at the start of the range (at least the first one).
             var k = 0
             while (k < span.size && get(span[k]).isNotBlank()) k++
-            if (k == 0) continue
-            if (k == span.size) k = 1
+            // Nothing to fill when the range starts empty or is filled already.
+            if (k == 0 || k == span.size) continue
             val seed = span.take(k)
             val rest = span.drop(k)
             if (seed.any { get(it).trimStart().startsWith("=") }) {
