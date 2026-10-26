@@ -117,6 +117,8 @@ fun ChatScreen(
     val activeTemplate = templateId?.let { TemplateLibrary.find(it, templates) }
     val images = remember { mutableStateListOf<String>() }
     var imageWarning by remember { mutableStateOf(false) }
+    /** The chat follows the newest message until the user scrolls up (see [ChatAutoScroll]). */
+    val follow = remember { mutableStateOf(true) }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -260,6 +262,7 @@ fun ChatScreen(
         if (pictures.isNotEmpty() && modelInfo.vision == false) {
             Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
         }
+        follow.value = true
         vm.send(input, pictures, files.toList(), activeTemplate)
         input = ""
         c.chatDrafts.delete(vm.chatId)
@@ -510,7 +513,9 @@ fun ChatScreen(
             val leading = (if (running && (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))) 1 else 0) + (if (building) 1 else 0)
             val hits = remember(reversed, searchQuery) { if (searchQuery.isBlank()) emptyList() else reversed.indices.filter { i -> itemText(reversed[i]).contains(searchQuery, ignoreCase = true) } }
             val currentHit = hits.getOrNull(searchHit.coerceAtMost((hits.size - 1).coerceAtLeast(0)))
-            LaunchedEffect(currentHit) { currentHit?.let { listState.animateScrollToItem(it + leading) } }
+            LaunchedEffect(currentHit) { currentHit?.let { follow.value = false; listState.animateScrollToItem(it + leading) } }
+            LaunchedEffect(current.id) { follow.value = true }
+            ChatAutoScroll(listState, follow, remember(items, leading, last?.content?.length, last?.toolCalls?.size, last?.reasoning?.length) { Any() })
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
@@ -581,7 +586,7 @@ fun ChatScreen(
             val away by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
             if (away) {
                 SmallFloatingActionButton(
-                    onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                    onClick = { follow.value = true; scope.launch { listState.animateScrollToItem(0) } },
                     containerColor = LocalChatLook.current.card,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
                 ) {
