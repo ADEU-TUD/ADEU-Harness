@@ -486,31 +486,6 @@ Version neuer als die installierte, erscheint ein Popup mit „Was ist neu“, *
 noch einmal von Hand auf die Rechner (USB-Stick, wie bisher, oder die EXE/APK aus den Releases) – danach aktualisieren
 sich die Apps selbst. Die Versionsnummer muss immer größer sein als die installierte.
 
-## Browserversion
-
-Unter `web/` liegt eine Browserversion für alle, die die App nicht installieren können oder wollen – reines HTML und
-JavaScript ohne Build-Schritt, veröffentlicht über GitHub Pages (`.github/workflows/pages.yml`, einmalig *Settings ›
-Pages › Source: GitHub Actions* wählen; danach unter `https://<organisation>.github.io/<repository>/`). Sie lässt sich
-auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt, den Ordner `web/` zu kopieren.
-
-- Spricht direkt mit `https://llm.scads.ai/v1` (der Server erlaubt Browser-Anfragen); der API-Schlüssel bleibt im
-  Browser (lokaler Speicher) und geht nur an diesen Server. Kein eigener Server dazwischen.
-- Chat mit Streaming, Gedankengang, Modellauswahl wie in der App (empfohlene Modelle + Liste des Servers), Chats und
-  Projekte mit Anweisungen (in IndexedDB des Browsers), Gedächtnis und Absenderangaben, Sicherung als JSON.
-- Anhänge: PDF (Text), Word, PowerPoint (mit Folientiteln und Notizen), Excel, OpenDocument, Text, Bilder; per 📎,
-  Ziehen oder Einfügen.
-- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt wie in
-  der App einen Projektordner (auch Google Drive, OneDrive oder ein Netzlaufwerk); was die KI erstellt, landet im
-  Unterordner `Ausgabe`, und „KI darf die Dateien im Ordner lesen“ lässt sich abschalten (dann sieht sie nur `Ausgabe`).
-  Dazu ein Standard-Ordner für Chats ohne Projekt. Der Agent hat dort `list_files`, `read_file` und `write_file`; Word
-  (.docx) und Excel (.xlsx, je Tabelle ein Blatt) entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf
-  ausdrücklichen Wunsch, `..` ist gesperrt.
-  Nach einem Neustart des Browsers fragt dieser einmal nach („Zugriff erlauben“). Firefox und Safari kennen die
-  Schnittstelle nicht – dort werden Dateien heruntergeladen.
-- Jede Antwort lässt sich kopieren, als Word, Excel (Tabellen), Markdown oder per Drucken als PDF speichern.
-- Nicht im Browser (bleibt in der App): Transkription, lokale Modelle, TUD-Briefe und -Präsentationen mit Logo,
-  Pseudonymisierung, Wissenssammlung mit semantischer Suche, GitHub-Werkzeuge, geplante Aufgaben, Websuche.
-
 ## Windows (portabel, ohne Admin-Rechte)
 
 Dieselbe App gibt es als portable Windows-Version – gleiche Funktionen, gleicher Code (Kotlin/Compose Desktop) und die
@@ -707,7 +682,6 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
 | `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
-| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Projekt- und Standard-Ordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
 | `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |

@@ -193,7 +193,7 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
                 )
                 Text("Projektordner", style = MaterialTheme.typography.titleSmall)
                 if (!FolderAccess.SUPPORTED) {
-                    SettingsHint("Einen Projektordner auf dem Rechner gibt es in der Windows-Version (und in Chrome/Edge in der Browserversion). Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
+                    SettingsHint("Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
                 } else {
                     if (workDir.isBlank()) {
                         SettingsHint(
