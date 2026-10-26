@@ -66,6 +66,11 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   aus, kürzt, macht förmlicher/freundlicher, ordnet Anschriften – oder folgt einer eigenen Anweisung. „↶ Rückgängig“
   stellt den vorherigen Text wieder her. Was Sie eintippen, bleibt als Entwurf gespeichert, bis Sie senden.
 - **Adressbuch**: Empfänger aus früheren Briefen stehen im Feld „Empfänger“ zur Auswahl.
+- **Vorschläge aus meinem Wissen**: Beim Öffnen einer Vorlage (Brief, Präsentation, Seminarplan …) stehen unter den
+  Feldern passende Vorschläge zum Antippen – sofort aus früheren Eingaben in gleichnamige Felder, den Absenderangaben und
+  dem Adressbuch, nach wenigen Sekunden auch aus *Gedächtnis* und allgemeiner *Wissenssammlung* (das Modell wählt nur
+  aus diesen Angaben aus, erfindet nichts; der Brieftext selbst bleibt Ihrer). „Vorschlag schreiben“ (✨) kennt das
+  Gedächtnis ebenfalls. Abschaltbar unter *Einstellungen › Gedächtnis › Vorschläge in Formularen*.
 - **Dokumente nachträglich ändern**: Das Modell ändert erstellte Dokumente gezielt (`edit_document`) statt alles neu zu
   schreiben; ältere Versionen bleiben erhalten. Lässt es Lücken wie „[Datum]“, zeigt das Dokument „2 Angaben offen“ –
   „Ausfüllen“ trägt sie ohne Modell ein. Fehlen wesentliche Angaben, fragt das Modell vorher nach.
@@ -74,6 +79,18 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
 - **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
   für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
+- **Arbeitsordner je Projekt** (Windows, ⋮ › *Anweisungen & Dateien › Arbeitsordner*): ein Ordner auf dem Rechner –
+  Google Drive für Desktop, OneDrive, Nextcloud, ein Netzlaufwerk (auch `\\server\freigabe`) oder ein lokaler Ordner.
+  Alles, was die KI in den Chats des Projekts erstellt (PDF, Word, PowerPoint, Excel …), legt die App dort unter seinem
+  Namen ab; „Öffnen“ und „Im Ordner zeigen“ führen zur Datei dort. Dokumente aus dem Editor liegen im Ordner als
+  Markdown (wie ein Ablageort), und der Agent kann darin lesen und schreiben („Fasse alle Protokolle im Arbeitsordner
+  zusammen“). Eigene Dateien mit gleichem Namen werden nie überschrieben („Name (2).pdf“). Beim Wählen macht die App
+  einen Schreibtest und erklärt, falls Windows das Schreiben verweigert (siehe *Dienst-PCs mit IT-Sperre*).
+- **Eigenes Material im Editor**: Im KI-Assistenten von Präsentationen, Dokumenten und Tabellen hängt 📎 eigene PDFs,
+  PowerPoint-, Word- und Excel-Dateien an. Für Präsentationen gibt es dann „Folien aus den Dateien“, „Ins TUD-Design
+  übertragen“ (Folie für Folie, Notizen bleiben Notizen), „Folien ergänzen“ und „Zusammenfassen“; die KI übernimmt Aussagen,
+  Zahlen und Quellen aus dem Material und erfindet nichts hinzu. Ganze .pptx/.docx/.xlsx öffnet *Dokumente › Datei öffnen*
+  weiterhin direkt im Editor.
 - **Transkription** (die frühere Whisper-App, jetzt eingebaut; Startseite mit fester Leiste *Datei öffnen* / *Aufnehmen*,
   Transkripten je Tag in einer Karte und kompakt zusammengefassten fertigen Aufträgen): Aufnahmen, Sprachnachrichten, Interviews, Vorlesungen und
   Videos werden zu Text – wahlweise **auf diesem Gerät** (Whisper Turbo/Small/Base oder Parakeet v3, einmal laden, danach
@@ -398,6 +415,29 @@ Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workfl
 `ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
 weitergeben.
 
+## Browserversion
+
+Unter `web/` liegt eine Browserversion für alle, die die App nicht installieren können oder wollen – reines HTML und
+JavaScript ohne Build-Schritt, veröffentlicht über GitHub Pages (`.github/workflows/pages.yml`, einmalig *Settings ›
+Pages › Source: GitHub Actions* wählen; danach unter `https://<organisation>.github.io/<repository>/`). Sie lässt sich
+auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt, den Ordner `web/` zu kopieren.
+
+- Spricht direkt mit `https://llm.scads.ai/v1` (der Server erlaubt Browser-Anfragen); der API-Schlüssel bleibt im
+  Browser (lokaler Speicher) und geht nur an diesen Server. Kein eigener Server dazwischen.
+- Chat mit Streaming, Gedankengang, Modellauswahl wie in der App (empfohlene Modelle + Liste des Servers), Chats und
+  Projekte mit Anweisungen (in IndexedDB des Browsers), Gedächtnis und Absenderangaben, Sicherung als JSON.
+- Anhänge: PDF (Text), Word, PowerPoint (mit Folientiteln und Notizen), Excel, OpenDocument, Text, Bilder; per 📎,
+  Ziehen oder Einfügen.
+- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt einen
+  Arbeitsordner (auch Google Drive, OneDrive oder ein Netzlaufwerk), dazu ein Standard-Ordner für Chats ohne Projekt.
+  Der Agent hat dort `list_files`, `read_file` und `write_file`; Word (.docx) und Excel (.xlsx, je Tabelle ein Blatt)
+  entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf ausdrücklichen Wunsch, `..` ist gesperrt.
+  Nach einem Neustart des Browsers fragt dieser einmal nach („Zugriff erlauben“). Firefox und Safari kennen die
+  Schnittstelle nicht – dort werden Dateien heruntergeladen.
+- Jede Antwort lässt sich kopieren, als Word, Excel (Tabellen), Markdown oder per Drucken als PDF speichern.
+- Nicht im Browser (bleibt in der App): Transkription, lokale Modelle, TUD-Briefe und -Präsentationen mit Logo,
+  Pseudonymisierung, Wissenssammlung mit semantischer Suche, GitHub-Werkzeuge, geplante Aufgaben, Websuche.
+
 ## Windows (portabel, ohne Admin-Rechte)
 
 Dieselbe App gibt es als portable Windows-Version – gleiche Funktionen, gleicher Code (Kotlin/Compose Desktop) und die
@@ -427,6 +467,20 @@ Unterschiede zu Android:
 - **Teilen** kopiert in die Zwischenablage; Dokumente lassen sich öffnen, im Ordner zeigen oder speichern unter.
 - **Tastatur**: Enter sendet, Umschalt+Enter neue Zeile, Strg+N neuer Chat, Strg+B Seitenleiste, Strg+, Einstellungen,
   Esc zurück. Rechtsklick auf Chats und Nachrichten öffnet das Menü (wie langes Drücken auf Android).
+
+### Dienst-PCs mit IT-Sperre
+
+- **Geräteprüfung** (*Einstellungen › Modelle auf diesem Gerät*): Die genaue Prüfung liest Grafikkarte und Arbeitsspeicher
+  über Windows-Systemfunktionen (JNA). Deren Hilfs-DLL entpackt die App jetzt in den eigenen Ordner
+  `%LOCALAPPDATA%\ADEU LLM\jna` statt nach `%TEMP%` – DLLs in `%TEMP%` sperren AppLocker, WDAC und manche Virenscanner.
+  Bleibt die Prüfung trotzdem gesperrt oder hängt sie, nutzt die App nach 8 Sekunden die Grundangaben von Java
+  (Arbeitsspeicher, Kerne, Prozessor) und sagt das; die Empfehlungen sind dann vorsichtiger, installieren lässt sich
+  alles. Vorher blieb die Seite bei „Gerät wird geprüft …“ stehen.
+- **Arbeitsordner und Ablageorte**: Die App schreibt als angemeldeter Benutzer – was im Explorer geht, geht auch in der
+  App, auch auf Netzlaufwerken und in Google Drive. IT-Sperren betreffen das Ausführen von Programmen, nicht das
+  Speichern. Ausnahme ist der **Überwachte Ordnerzugriff** von Microsoft Defender: Er blockiert unbekannte Programme in
+  *Dokumente*, *Desktop* und *Bilder*. Dann meldet die App das beim Wählen des Ordners; Abhilfe ist ein Ordner außerhalb
+  davon (z. B. `G:\Meine Ablage\…` oder ein Netzlaufwerk) oder die Freigabe von `ADEU LLM.exe` durch die IT.
 
 ## GitHub-Token
 
@@ -576,7 +630,9 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/AgentRunner.kt` | Agent-Schleife (Modell → Werkzeuge → Modell …) für Chat und geplante Aufgaben, Ausweichmodell, parallele Werkzeuge |
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
-| `agent/FieldAssist.kt` | ✨ in Vorlagenfeldern |
+| `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
+| `agent/WorkFolder.kt` | Arbeitsordner der Projekte: Schreibtest, Ablage erstellter Dateien, verständliche Fehlermeldungen |
+| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Arbeitsordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
 | `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |
