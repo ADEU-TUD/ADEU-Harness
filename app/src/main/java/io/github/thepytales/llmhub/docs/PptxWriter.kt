@@ -42,7 +42,7 @@ object PptxWriter {
     private val SEPARATOR = Regex("^\\s*-{3,}\\s*$")
     private val NOTES = Regex("^\\s*(Notizen|Notiz|Sprechernotizen|Sprechertext|Notes)\\s*:\\s*", RegexOption.IGNORE_CASE)
     private val COLUMNS = Regex("^\\s*(\\|\\|\\||::: *rechts|:::\\s*right)\\s*$", RegexOption.IGNORE_CASE)
-    private val LAYOUT = Regex("^\\s*<!--\\s*layout\\s*:\\s*([a-zäöü-]+)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
+    private val LAYOUT_MARK = Regex("^\\s*<!--\\s*layout\\s*:\\s*([a-zäöü-]+)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
 
     private val BLUE = TudBrand.BLUE.removePrefix("#")
     private val LIGHT = TudBrand.LIGHT_BLUE.removePrefix("#")
@@ -73,8 +73,8 @@ object PptxWriter {
 
     private fun slide(text: String, first: Boolean): Slide {
         var lines = text.lines()
-        val marked = lines.firstNotNullOfOrNull { l -> LAYOUT.find(l)?.groupValues?.get(1)?.let(SlideDeck::layoutOf) }
-        lines = lines.filterNot { LAYOUT.matches(it) }
+        val marked = lines.firstNotNullOfOrNull { l -> LAYOUT_MARK.find(l)?.groupValues?.get(1)?.let(SlideDeck::layoutOf) }
+        lines = lines.filterNot { LAYOUT_MARK.matches(it) }
         val imageAt = lines.indexOfFirst { DocMarkup.image(it) != null }
         val img = if (imageAt >= 0) DocMarkup.image(lines[imageAt]) else null
         if (imageAt >= 0) lines = lines.filterIndexed { i, _ -> i != imageAt }

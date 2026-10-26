@@ -94,7 +94,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.docs.AiReview
 import io.github.thepytales.llmhub.docs.DocBlocks
+import io.github.thepytales.llmhub.docs.DocMarkup
 import io.github.thepytales.llmhub.docs.LiveDoc
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -127,7 +129,25 @@ val DOC_STARTERS = listOf(
     "Gliederung" to "# Titel\n\n## Einleitung\n\n## Theoretischer Hintergrund\n\n## Methode\n\n## Ergebnisse\n\n## Diskussion\n\n## Fazit\n",
     "Besprechungsnotiz" to "# Besprechung\n\n## Ziele\n\n- \n\n## Notizen\n\n\n\n## Nächste Schritte\n\n- [ ] \n",
     "Aufgabenliste" to "# Aufgaben\n\n- [ ] \n- [ ] \n- [ ] \n",
+    "Elternbrief" to "# Elternbrief: [Anlass]\n\nSehr geehrte Eltern und Erziehungsberechtigte der Klasse [Klasse],\n\n[Worum es geht – Termin, Ort, was mitzubringen ist.]\n\n" +
+        "| Angabe | Eintrag |\n| --- | --- |\n| Datum | |\n| Uhrzeit | |\n| Ort | |\n| Kosten | |\n\nBitte geben Sie den Abschnitt unten bis zum [Datum] zurück.\n\n" +
+        "Mit freundlichen Grüßen\n\n[Name], Klassenleitung\n\n---\n\n**Rückmeldung** (bitte abtrennen)\n\nName des Kindes: ________________\n\n- [ ] Mein Kind nimmt teil.\n- [ ] Mein Kind nimmt nicht teil.\n\n" +
+        "| Ort, Datum | Unterschrift |\n| --- | --- |\n| | |\n",
+    "Unterrichtsentwurf" to "# Unterrichtsentwurf: [Thema]\n\n| Angabe | Eintrag |\n| --- | --- |\n| Fach / Klasse | |\n| Datum, Zeit | |\n| Lehrkraft | |\n\n" +
+        "## 1. Bedingungsanalyse\n\n## 2. Sachanalyse\n\n## 3. Didaktische Analyse\n\n## 4. Lernziele\n\n- Die Schüler:innen können …\n\n## 5. Methodische Überlegungen\n\n" +
+        "## 6. Verlaufsplan\n\n| Zeit | Phase | Inhalt / Aktivität | Sozialform | Medien |\n| --- | --- | --- | --- | --- |\n| 5 min | Einstieg | | Plenum | |\n| 20 min | Erarbeitung | | Partnerarbeit | |\n| 15 min | Sicherung | | Plenum | |\n| 5 min | Abschluss | | | |\n\n## 7. Literatur\n",
+    "Dienstreiseantrag" to "# Antrag auf Dienstreise / Fortbildung\n\n| Angabe | Eintrag |\n| --- | --- |\n| Name, Vorname | |\n| Einrichtung | |\n| Anlass / Veranstaltung | |\n| Ort | |\n" +
+        "| Zeitraum (mit Uhrzeiten) | |\n| Verkehrsmittel | |\n| Voraussichtliche Kosten | |\n| Kostenstelle / Projekt | |\n\n## Begründung\n\n[Dienstlicher Nutzen, Bezug zu Lehre oder Forschung]\n\n" +
+        "## Vertretung\n\n- [ ] Lehrveranstaltungen sind vertreten bzw. verlegt.\n- [ ] Keine Lehrveranstaltungen betroffen.\n\n| Ort, Datum | Unterschrift |\n| --- | --- |\n| | |\n",
 )
+
+/** What the user does with a change of the model in the text (accept, take back, restore a removed block). */
+sealed interface ReviewAction {
+    data class Accept(val change: AiReview.Change) : ReviewAction
+    data class Reject(val change: AiReview.Change) : ReviewAction
+    data class Restore(val removed: AiReview.Removed) : ReviewAction
+    data class Drop(val removed: AiReview.Removed) : ReviewAction
+}
 
 /**
  * Toolbar for text documents (like Google Docs): block type, bold, italic, strikethrough, code, link, lists,
@@ -142,6 +162,10 @@ fun TextToolbar(
     onAi: () -> Unit,
     onComment: () -> Unit,
     onDoneEditing: () -> Unit,
+    /** Opens the picture picker; null where pictures cannot be stored. */
+    onImage: (() -> Unit)? = null,
+    /** Opens "Literatur einfügen". */
+    onCitation: (() -> Unit)? = null,
 ) {
     val i = editing.index
     fun wrap(mark: String, end: String = mark) {
@@ -183,6 +207,33 @@ fun TextToolbar(
         onBlocks(blocks.toMutableList().apply { add(at.coerceIn(0, size), block) }, if (block == "---") null else at)
     }
 
+    /** The blocks with the edited one as it is in the field. */
+    fun current(): MutableList<String> = blocks.toMutableList().apply { if (i != null && i in indices) set(i, editing.value.text.ifBlank { EMPTY_BLOCK }) }
+
+    /** Footnote: the mark at the cursor (or at the end of the text), the note to write at the end of the document. */
+    fun footnote() {
+        val list = current()
+        val label = DocMarkup.nextNoteLabel(list.joinToString("\n\n"))
+        val ref = "[^$label]"
+        if (i != null && i in list.indices) {
+            val v = editing.value
+            list[i] = v.text.substring(0, v.selection.max) + ref + v.text.substring(v.selection.max)
+        } else {
+            val last = list.indexOfLast { DocBlocks.kindOf(it) == DocBlocks.Kind.PARAGRAPH && !DocMarkup.isComment(it) }
+            if (last < 0) list += "Text$ref" else list[last] = list[last] + ref
+        }
+        list += "[^$label]: "
+        onBlocks(list, list.lastIndex)
+    }
+
+    /** Landscape pages after the edited block: start mark, a paragraph to write in, end mark. */
+    fun landscape() {
+        val list = current()
+        val at = ((i ?: list.lastIndex) + 1).coerceIn(0, list.size)
+        list.addAll(at, listOf(DocMarkup.LANDSCAPE_START, "Inhalt im Querformat, z. B. eine breite Tabelle", DocMarkup.LANDSCAPE_END))
+        onBlocks(list, at + 1)
+    }
+
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -216,6 +267,17 @@ fun TextToolbar(
         ToolIcon(Icons.Outlined.FormatQuote, "Zitat") { setKind(DocBlocks.Kind.QUOTE) }
         ToolIcon(Icons.Outlined.TableChart, "Tabelle einfügen") { insert("| Spalte 1 | Spalte 2 | Spalte 3 |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |") }
         ToolIcon(Icons.Outlined.HorizontalRule, "Trennlinie") { insert("---") }
+        var more by remember { mutableStateOf(false) }
+        Box {
+            ToolLabel("Einfügen ▾") { more = true }
+            DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                if (onImage != null) DropdownMenuItem(text = { Text("Bild …") }, onClick = { more = false; onImage() })
+                DropdownMenuItem(text = { Text("Fußnote") }, onClick = { more = false; footnote() })
+                if (onCitation != null) DropdownMenuItem(text = { Text("Literatur (Beleg) …") }, onClick = { more = false; onCitation() })
+                DropdownMenuItem(text = { Text("Seitenumbruch") }, onClick = { more = false; insert(DocMarkup.PAGE_BREAK) })
+                DropdownMenuItem(text = { Text("Querformat-Seiten") }, onClick = { more = false; landscape() })
+            }
+        }
         ToolIcon(Icons.Outlined.Today, "Heutiges Datum") {
             val date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
             if (i != null) {
@@ -277,8 +339,12 @@ fun TextPage(
     /** The page in the corporate design of TU Dresden: logo and organizational unit at the top. */
     tud: Boolean = false,
     unit: String = "",
+    /** What the model changed last, to accept or reject block by block. */
+    review: AiReview.Result? = null,
+    onReview: (ReviewAction) -> Unit = {},
 ) {
     val editable = doc != null && !writing && mode == TextMode.EDIT
+    val notes = remember(blocks) { DocMarkup.noteNumbers(blocks.joinToString("\n\n")) }
     val look = LocalChatLook.current
 
     /** The blocks with the edited one closed: its text saved, removed when it stayed empty. */
@@ -337,6 +403,7 @@ fun TextPage(
             }
             itemsIndexed(blocks, key = { i, _ -> "b$i" }) { i, block ->
                 Column(Modifier.fillMaxWidth().background(look.card).padding(horizontal = pad)) {
+                    if (editable) review?.removed?.filter { it.at == i }?.forEach { r -> RemovedCard(r, onReview) }
                     if (editing.index == i && editable) {
                         BlockField(
                             editing = editing,
@@ -378,7 +445,9 @@ fun TextPage(
                             onClick = { edit(i) },
                             onToggleTask = { n -> onBlocks(blocks.toMutableList().apply { set(i, DocBlocks.toggleTask(block, n)) }) },
                             onShowComments = onShowComments,
+                            notes = notes,
                         )
+                        if (editable && i in aiChanged) review?.changes?.firstOrNull { it.index == i }?.let { ch -> ChangeBar(ch, onReview) }
                     }
                     inlineAi.state?.takeIf { it.first == "b$i" }?.second?.let { s ->
                         AiSuggestionCard(
@@ -404,6 +473,7 @@ fun TextPage(
                 Column(
                     Modifier.fillMaxWidth().background(look.card, RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)).padding(horizontal = pad, vertical = 12.dp),
                 ) {
+                    if (editable) review?.removed?.filter { it.at >= blocks.size }?.forEach { r -> RemovedCard(r, onReview) }
                     when {
                         writing -> WritingCaret()
                         doc != null && mode == TextMode.EDIT && editing.index == null && DocBlocks.plainOf(blocks.drop(1).joinToString("").replace(EMPTY_BLOCK, "")).isBlank() -> EmptyDocStart(
@@ -484,6 +554,7 @@ private fun BlockView(
     onClick: () -> Unit,
     onToggleTask: (Int) -> Unit,
     onShowComments: () -> Unit,
+    notes: Map<String, Int> = emptyMap(),
 ) {
     val commented = doc?.comments?.any { !it.resolved && it.tabId == tabId && it.quote.isNotBlank() && (it.quote in block || DocBlocks.plainOf(block).contains(it.quote.take(60))) } == true
     Row(
@@ -509,7 +580,21 @@ private fun BlockView(
                         }
                     }
                 }
-                else -> MarkdownText(block)
+                DocMarkup.image(block) != null -> DocImageView(DocMarkup.image(block)!!)
+                DocMarkup.isPageBreak(block) -> MarkerLine("Seitenumbruch")
+                DocMarkup.isComment(block) -> MarkerLine(markerLabel(block))
+                NOTE_DEF_BLOCK.containsMatchIn(block) -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    block.lines().filter { it.isNotBlank() }.forEach { line ->
+                        val m = NOTE_DEF_BLOCK.find(line)
+                        Row {
+                            Text(m?.let { notes[it.groupValues[1]]?.let(DocMarkup::superscript) ?: it.groupValues[1] }.orEmpty(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(18.dp))
+                            Box(Modifier.weight(1f)) {
+                                androidx.compose.material3.ProvideTextStyle(MaterialTheme.typography.bodySmall) { MarkdownText(withNoteMarks(if (m != null) line.substring(m.range.last + 1).trim() else line.trim(), notes).ifBlank { " " }) }
+                            }
+                        }
+                    }
+                }
+                else -> MarkdownText(withNoteMarks(block, notes))
             }
         }
         if (commented) {
@@ -565,7 +650,10 @@ private fun BlockField(
     }.copy(color = MaterialTheme.colorScheme.onSurface)
     val slash = v.text.startsWith("/") && '\n' !in v.text && ' ' !in v.text.trim()
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        if (kind == DocBlocks.Kind.TABLE) {
+        val img = DocMarkup.image(v.text)
+        if (img != null) {
+            ImageBlockEditor(img) { editing.value = TextFieldValue(it.markdown()) }
+        } else if (kind == DocBlocks.Kind.TABLE) {
             TableGrid(DocBlocks.tableRows(v.text)) { rows -> editing.value = TextFieldValue(DocBlocks.table(rows)) }
         } else Box {
             Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), shape = RoundedCornerShape(6.dp), modifier = Modifier.fillMaxWidth()) {
@@ -767,7 +855,7 @@ fun OutlinePanel(c: AppContainer, doc: LiveDoc, blocks: List<String>, onJump: (I
 
 /** Table cells as fields, with rows and columns to add or remove. */
 @Composable
-private fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) -> Unit) {
+internal fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) -> Unit) {
     val cols = (rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
     Column(Modifier.horizontalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         rows.forEachIndexed { r, row ->
@@ -787,6 +875,85 @@ private fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) -
             TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text("+ Zeile") }
             TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text("+ Spalte") }
             if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text("− Spalte") }
+        }
+    }
+}
+
+private val NOTE_DEF_BLOCK = Regex("^\\s{0,3}\\[\\^([^\\]\\s]+)]:\\s?")
+
+/** Footnote marks [^1] shown as superscript numbers in the editor. */
+private fun withNoteMarks(text: String, notes: Map<String, Int>): String = if (notes.isEmpty()) text
+else DocMarkup.NOTE_REF.replace(text) { m -> notes[m.groupValues[1]]?.let(DocMarkup::superscript) ?: m.value }
+
+/** What a comment line of the editor means, in words. */
+private fun markerLabel(block: String): String {
+    val t = block.trim()
+    return when {
+        DocMarkup.orientation(t) == true -> "Ab hier Querformat"
+        DocMarkup.orientation(t) == false -> "Ab hier wieder Hochformat"
+        t.contains("literatur:", true) -> "Literaturverzeichnis – wird über „Einfügen › Literatur“ automatisch gepflegt"
+        t.contains("seitenzahlen", true) || t.contains("kopfzeile", true) || t.contains("datum:", true) ->
+            "Seiteneinrichtung: " + t.removePrefix("<!--").removeSuffix("-->").trim()
+        else -> "Notiz: " + t.removePrefix("<!--").removeSuffix("-->").trim()
+    }
+}
+
+/** A thin line with a label (page break, landscape pages, notes that are not printed). */
+@Composable
+private fun MarkerLine(label: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+        Text(" $label ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+/** Below a block the model changed: take it or go back to what stood there before. */
+@Composable
+private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit) {
+    var before by remember { mutableStateOf(false) }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(if (change.before == null) "Von der KI eingefügt" else "Von der KI geändert", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+            if (change.before != null) TextButton(onClick = { before = !before }) { Text(if (before) "Vorher ausblenden" else "Vorher") }
+            TextButton(onClick = { onReview(ReviewAction.Accept(change)) }) { Text("Übernehmen") }
+            TextButton(onClick = { onReview(ReviewAction.Reject(change)) }) { Text(if (change.before == null) "Entfernen" else "Ablehnen") }
+        }
+        if (before && change.before != null) Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), shape = RoundedCornerShape(6.dp)) {
+            Box(Modifier.fillMaxWidth().padding(8.dp)) { MarkdownText(change.before) }
+        }
+    }
+}
+
+/** A block the model removed: restore it or let it go. */
+@Composable
+private fun RemovedCard(r: AiReview.Removed, onReview: (ReviewAction) -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f), shape = RoundedCornerShape(6.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(Modifier.padding(8.dp)) {
+            Text("Von der KI entfernt", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+            Text(DocBlocks.plainOf(r.text).take(300), style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.LineThrough), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row {
+                TextButton(onClick = { onReview(ReviewAction.Restore(r)) }) { Text("Wiederherstellen") }
+                TextButton(onClick = { onReview(ReviewAction.Drop(r)) }) { Text("Entfernt lassen") }
+            }
+        }
+    }
+}
+
+/** Editing a picture block: caption and width instead of the Markdown line. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ImageBlockEditor(img: DocMarkup.Image, onChange: (DocMarkup.Image) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        DocImageView(img)
+        androidx.compose.material3.OutlinedTextField(
+            img.alt, { onChange(img.copy(alt = it.replace("\n", " "))) }, label = { Text("Bildunterschrift (auch Alternativtext)") },
+            singleLine = true, modifier = Modifier.fillMaxWidth(),
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(25, 50, 75, 100).forEach { w ->
+                androidx.compose.material3.FilterChip(selected = (img.width ?: 100) == w, onClick = { onChange(img.copy(width = w)) }, label = { Text("$w %") })
+            }
         }
     }
 }

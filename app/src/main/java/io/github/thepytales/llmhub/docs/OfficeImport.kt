@@ -12,7 +12,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  * included. Text and Markdown files are taken as they are.
  */
 object OfficeImport {
-    data class Imported(val kind: DocKind, val title: String, val tabs: List<Pair<String, String>>)
+    /** [media]: pictures of the file by the path the Markdown uses ("Bilder/…"), to be saved next to the document. */
+    data class Imported(val kind: DocKind, val title: String, val tabs: List<Pair<String, String>>, val media: Map<String, ByteArray> = emptyMap())
 
     private val TEXT = setOf("md", "markdown", "txt", "text", "html", "htm", "rtf", "tex", "csv", "tsv")
 
@@ -23,8 +24,15 @@ object OfficeImport {
         val ext = name.substringAfterLast('.', "").lowercase()
         val base = name.substringBeforeLast('.').ifBlank { name }
         return when (ext) {
-            "docx" -> docx(bytes).let { md -> Imported(DocKind.DOC, DocBlocks.titleOf(md) ?: base, listOf("Tab 1" to md)) }
-            "pptx" -> Imported(DocKind.SLIDES, base, listOf("Folien" to pptx(bytes)))
+            "docx" -> {
+                val media = LinkedHashMap<String, ByteArray>()
+                val md = docx(bytes, media)
+                Imported(DocKind.DOC, DocBlocks.titleOf(md) ?: base, listOf("Tab 1" to md), media)
+            }
+            "pptx" -> {
+                val media = LinkedHashMap<String, ByteArray>()
+                Imported(DocKind.SLIDES, base, listOf("Folien" to pptx(bytes, media)), media)
+            }
             "xlsx", "xlsm" -> Imported(DocKind.SHEET, base, xlsx(bytes).ifEmpty { listOf("Tabelle 1" to SheetEngine.blank()) })
             "csv", "tsv" -> Imported(DocKind.SHEET, base, listOf("Tabelle 1" to csv(bytes.toString(Charsets.UTF_8).removePrefix("﻿"), if (ext == "tsv") '\t' else null)))
             in TEXT -> {
@@ -57,6 +65,44 @@ object OfficeImport {
         return out
     }
 
+    /** Like [entries], plus the pictures in word/media and ppt/media. */
+    private fun entriesWithMedia(bytes: ByteArray): Map<String, ByteArray> {
+        val out = HashMap<String, ByteArray>()
+        ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+            var e = zip.nextEntry
+            while (e != null) {
+                val media = e.name.contains("/media/") && e.size <= 30L * 1024 * 1024
+                if (!e.isDirectory && (e.name.endsWith(".xml") || e.name.endsWith(".rels") || media)) out[e.name] = zip.readBytes()
+                e = zip.nextEntry
+            }
+        }
+        return out
+    }
+
+    /** Relationship id → target of a part's .rels (targets resolved against [dir], e.g. "word/"). */
+    private fun rels(files: Map<String, ByteArray>, relsPath: String, dir: String): Map<String, String> =
+        xml(files[relsPath])?.children()?.associate { r ->
+            val t = r.attr("Target")
+            r.attr("Id") to normalize(if (t.startsWith("/")) t.removePrefix("/") else dir + t)
+        }.orEmpty()
+
+    /** "ppt/slides/../media/x.png" → "ppt/media/x.png". */
+    private fun normalize(path: String): String {
+        val out = ArrayDeque<String>()
+        path.split('/').forEach { p -> when (p) { ".." -> out.removeLastOrNull(); ".", "" -> {}; else -> out.addLast(p) } }
+        return out.joinToString("/")
+    }
+
+    /** Keeps a picture of the file for the document; returns its Markdown path (null if it is no supported picture). */
+    private fun keepImage(bytes: ByteArray?, media: MutableMap<String, ByteArray>): String? {
+        bytes ?: return null
+        val type = DocMarkup.imageType(bytes) ?: return null
+        val hash = java.security.MessageDigest.getInstance("SHA-1").digest(bytes).joinToString("") { "%02x".format(it) }.take(16)
+        val path = "${DocMarkup.IMAGE_DIR}/bild-$hash.${if (type == "jpeg") "jpg" else type}"
+        media[path] = bytes
+        return path
+    }
+
     private fun xml(bytes: ByteArray?): Element? = bytes?.let {
         runCatching {
             val f = DocumentBuilderFactory.newInstance()
@@ -81,9 +127,19 @@ object OfficeImport {
 
     // ── Word ──
 
-    fun docx(bytes: ByteArray): String {
-        val files = entries(bytes)
+    /**
+     * Word as Markdown; footnotes become [^n] with their text at the end, pictures lines "![…](Bilder/…)" whose files
+     * go into [media].
+     */
+    fun docx(bytes: ByteArray, media: MutableMap<String, ByteArray> = LinkedHashMap()): String {
+        val files = entriesWithMedia(bytes)
         val body = xml(files["word/document.xml"])?.all("body")?.firstOrNull() ?: return ""
+        val docRels = rels(files, "word/_rels/document.xml.rels", "word/")
+        // Footnotes (without the separators) in the order they are used.
+        val noteTexts = xml(files["word/footnotes.xml"])?.children()?.filter { it.localName == "footnote" && it.attr("type").isEmpty() }
+            ?.associate { n -> n.attr("id") to n.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.trim() }.orEmpty()
+        val noteNumbers = LinkedHashMap<String, Int>()
+        val ctx = DocxRefs(noteTexts, noteNumbers, docRels, files, media)
         val bullets = numberingFormats(xml(files["word/numbering.xml"]))
         val styles = styleNames(xml(files["word/styles.xml"]))
         val blocks = mutableListOf<String>()
@@ -91,7 +147,10 @@ object OfficeImport {
         for (el in body.children()) {
             when (el.localName) {
                 "p" -> {
-                    val text = runs(el).trim()
+                    // Pictures of the paragraph become blocks of their own.
+                    pictures(el, ctx).forEach { blocks += it }
+                    if (el.all("br").any { it.attr("type") == "page" } && blocks.isNotEmpty()) blocks += DocMarkup.PAGE_BREAK
+                    val text = runs(el, ctx).trim()
                     val pPr = el.child("pPr")
                     val styleId = pPr?.child("pStyle")?.attr("val").orEmpty()
                     val style = (styles[styleId] ?: styleId).lowercase().replace(" ", "")
@@ -134,8 +193,26 @@ object OfficeImport {
                 }
             }
         }
+        noteNumbers.forEach { (id, n) -> blocks += "[^$n]: " + noteTexts[id].orEmpty().ifBlank { " " } }
         // A document without a heading-styled title starts with its first short line as title.
         return DocBlocks.join(fixTitle(blocks))
+    }
+
+    /** What reading the runs of a .docx needs to resolve footnotes and pictures. */
+    private class DocxRefs(
+        val notes: Map<String, String>,
+        val numbers: MutableMap<String, Int>,
+        val rels: Map<String, String>,
+        val files: Map<String, ByteArray>,
+        val media: MutableMap<String, ByteArray>,
+    )
+
+    /** Pictures (w:drawing with a:blip) of a paragraph as Markdown image lines; the caption is the alternative text. */
+    private fun pictures(p: Element, ctx: DocxRefs): List<String> = p.all("drawing").mapNotNull { d ->
+        val embed = d.all("blip").firstOrNull()?.attributes?.let { a -> (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "embed" }?.nodeValue } ?: return@mapNotNull null
+        val path = keepImage(ctx.files[ctx.rels[embed]], ctx.media) ?: return@mapNotNull null
+        val alt = d.all("docPr").firstOrNull()?.let { it.attr("descr").ifBlank { it.attr("title") } }.orEmpty()
+        DocMarkup.Image(alt.replace(Regex("\\s+"), " ").trim(), path).markdown()
     }
 
     private fun fixTitle(blocks: List<String>): List<String> {
@@ -148,9 +225,17 @@ object OfficeImport {
         } else blocks
     }
 
-    /** Text of a paragraph with **bold** and *italic*. */
-    private fun runs(p: Element): String = buildString {
+    /** Text of a paragraph with **bold** and *italic* (and footnote marks [^n] when [ctx] knows the notes). */
+    private fun runs(p: Element, ctx: DocxRefs? = null): String = buildString {
         fun run(r: Element) {
+            r.children().firstOrNull { it.localName == "footnoteReference" }?.let { ref ->
+                val id = ref.attr("id")
+                if (ctx != null && id in ctx.notes) {
+                    val n = ctx.numbers.getOrPut(id) { ctx.numbers.size + 1 }
+                    append("[^$n]")
+                }
+                return
+            }
             val rPr = r.child("rPr")
             val bold = rPr?.child("b")?.let { it.attr("val") != "0" && it.attr("val") != "false" } == true
             val italic = rPr?.child("i")?.let { it.attr("val") != "0" && it.attr("val") != "false" } == true
@@ -199,40 +284,88 @@ object OfficeImport {
 
     // ── PowerPoint ──
 
-    fun pptx(bytes: ByteArray): String {
-        val files = entries(bytes)
-        val slideNames = files.keys.mapNotNull { k -> Regex("^ppt/slides/slide(\\d+)\\.xml$").find(k)?.groupValues?.get(1)?.toInt()?.let { it to k } }.sortedBy { it.first }
-        val slides = slideNames.mapIndexed { index, (n, key) ->
+    /**
+     * PowerPoint as slides: titles, bullet points, tables, pictures (into [media]) and speaker notes; the layout of
+     * the slide master (title, section header, two contents, comparison, picture with caption) decides the slide type.
+     */
+    fun pptx(bytes: ByteArray, media: MutableMap<String, ByteArray> = LinkedHashMap()): String {
+        val files = entriesWithMedia(bytes)
+        // Slides in the order of the presentation (sldIdLst), otherwise by number.
+        val presRels = rels(files, "ppt/_rels/presentation.xml.rels", "ppt/")
+        val ordered = xml(files["ppt/presentation.xml"])?.all("sldId")?.mapNotNull { sid ->
+            val a = sid.attributes
+            val rid = (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "id" && it.namespaceURI?.contains("relationships") == true }?.nodeValue
+            presRels[rid]?.takeIf { it in files }
+        }.orEmpty()
+        val slideNames = ordered.ifEmpty {
+            files.keys.mapNotNull { k -> Regex("^ppt/slides/slide(\\d+)\\.xml$").find(k)?.groupValues?.get(1)?.toInt()?.let { it to k } }.sortedBy { it.first }.map { it.second }
+        }
+        val slides = slideNames.mapIndexed { index, key ->
             val root = xml(files[key]) ?: return@mapIndexed SlideDeck.Slide("Folie ${index + 1}")
+            val name = key.substringAfterLast('/')
+            val slideRels = rels(files, "ppt/slides/_rels/$name.rels", "ppt/slides/")
+            val layoutType = slideRels.values.firstOrNull { it.contains("slideLayouts/") }?.let { xml(files[it])?.attr("type") }.orEmpty()
             var title = ""
             var subtitle = ""
-            val body = mutableListOf<String>()
+            val columns = mutableListOf<Pair<Long, List<String>>>()
+            val heads = mutableListOf<Pair<Long, String>>()
             root.all("sp").forEach { sp ->
-                val ph = sp.all("ph").firstOrNull()?.attr("type").orEmpty()
+                val ph = sp.all("ph").firstOrNull()
+                val type = ph?.attr("type").orEmpty()
+                val x = sp.all("off").firstOrNull()?.attr("x")?.toLongOrNull() ?: Long.MAX_VALUE
                 val paras = sp.all("p").map { p ->
                     val lvl = p.child("pPr")?.attr("lvl")?.toIntOrNull() ?: 0
                     lvl to p.all("t").joinToString("") { it.textContent }.trim()
                 }.filter { it.second.isNotEmpty() }
-                when (ph) {
+                when (type) {
                     "title", "ctrTitle" -> title = paras.joinToString(" ") { it.second }
                     "subTitle" -> subtitle = paras.joinToString(" ") { it.second }
-                    "sldNum", "dt", "ftr" -> {}
-                    else -> paras.forEach { (lvl, t) -> body += "  ".repeat(lvl) + "- " + t }
+                    "sldNum", "dt", "ftr", "sldImg" -> {}
+                    else -> if (paras.isNotEmpty()) {
+                        // Comparison layouts: small text placeholders above the two contents are the column heads.
+                        if (layoutType == "twoTxTwoObj" && paras.size == 1 && type == "body" && (ph?.attr("sz") == "quarter" || paras[0].second.length < 60) && heads.size < 2) heads += x to paras[0].second
+                        else columns += x to paras.map { (lvl, t) -> "  ".repeat(lvl) + "- " + t }
+                    }
                 }
             }
-            root.all("tbl").forEach { tbl ->
-                val rows = tbl.all("tr").map { tr -> tr.all("tc").map { tc -> tc.all("t").joinToString(" ") { it.textContent }.trim() } }
-                if (rows.isNotEmpty()) body += "\n" + DocBlocks.table(rows) + "\n"
+            val tables = root.all("tbl").mapNotNull { tbl ->
+                val rows = tbl.all("tr").map { tr -> tr.all("tc").map { tc -> tc.all("p").joinToString(" ") { p -> p.all("t").joinToString("") { it.textContent } }.trim() } }
+                if (rows.isEmpty()) null else DocBlocks.table(rows)
             }
-            val notes = notesFor(files, n)
-            if (index == 0) SlideDeck.Slide(title.ifBlank { body.firstOrNull()?.removePrefix("- ").orEmpty() }, subtitle, notes = notes, layout = SlideDeck.Layout.TITLE)
-            else SlideDeck.Slide(title.ifBlank { "Folie ${index + 1}" }, body.joinToString("\n").trim(), notes = notes, layout = if (body.isEmpty()) SlideDeck.Layout.SECTION else SlideDeck.Layout.CONTENT)
+            val picture = root.all("pic").firstNotNullOfOrNull { pic ->
+                val embed = pic.all("blip").firstOrNull()?.attributes?.let { a -> (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "embed" }?.nodeValue }
+                val path = keepImage(files[slideRels[embed]], media) ?: return@firstNotNullOfOrNull null
+                val x = pic.all("off").firstOrNull()?.attr("x")?.toLongOrNull() ?: 0L
+                Triple(path, pic.all("cNvPr").firstOrNull()?.attr("descr").orEmpty(), x)
+            }
+            val notes = notesFor(files, name)
+            val sorted = columns.sortedBy { it.first }
+            val body = (sorted.flatMap { it.second } + tables.map { "\n$it\n" }).joinToString("\n").trim()
+            if (index == 0) return@mapIndexed SlideDeck.Slide(title.ifBlank { body.lines().firstOrNull()?.removePrefix("- ").orEmpty() }, subtitle, notes = notes, layout = SlideDeck.Layout.TITLE)
+            val heading = title.ifBlank { "Folie ${index + 1}" }
+            when {
+                picture != null -> {
+                    val slideWidth = 12192000L
+                    val left = picture.third < slideWidth / 3
+                    if (body.isBlank()) SlideDeck.Slide(heading, "", notes = notes, layout = SlideDeck.Layout.IMAGE, image = picture.first, imageAlt = picture.second)
+                    else SlideDeck.Slide(heading, body, notes = notes, layout = SlideDeck.Layout.IMAGE_TEXT, image = picture.first, imageAlt = picture.second, imageLeft = left)
+                }
+                (layoutType == "twoObj" || layoutType == "twoTxTwoObj" || sorted.size == 2) && sorted.size >= 2 && tables.isEmpty() -> {
+                    val sortedHeads = heads.sortedBy { it.first }.map { it.second }
+                    val leftText = SlideDeck.withColumnHead(sortedHeads.getOrElse(0) { "" }, sorted[0].second.joinToString("\n"))
+                    val rightText = SlideDeck.withColumnHead(sortedHeads.getOrElse(1) { "" }, sorted.drop(1).flatMap { it.second }.joinToString("\n"))
+                    SlideDeck.Slide(heading, leftText, rightText, notes, if (heads.isNotEmpty()) SlideDeck.Layout.COMPARISON else SlideDeck.Layout.TWO_COLUMNS)
+                }
+                tables.isNotEmpty() && sorted.isEmpty() -> SlideDeck.Slide(heading, tables.joinToString("\n\n"), notes = notes, layout = SlideDeck.Layout.TABLE)
+                layoutType == "secHead" || body.isEmpty() -> SlideDeck.Slide(heading, sorted.flatMap { it.second }.joinToString(" ") { it.trim().removePrefix("- ") }.take(140), notes = notes, layout = SlideDeck.Layout.SECTION)
+                else -> SlideDeck.Slide(heading, body, notes = notes, layout = SlideDeck.Layout.CONTENT)
+            }
         }
         return SlideDeck.markdown(slides.ifEmpty { listOf(SlideDeck.Slide("Titel", layout = SlideDeck.Layout.TITLE)) })
     }
 
-    private fun notesFor(files: Map<String, ByteArray>, slide: Int): String {
-        val rels = xml(files["ppt/slides/_rels/slide$slide.xml.rels"]) ?: return ""
+    private fun notesFor(files: Map<String, ByteArray>, slide: String): String {
+        val rels = xml(files["ppt/slides/_rels/$slide.rels"]) ?: return ""
         val target = rels.children().firstOrNull { it.attr("Type").endsWith("/notesSlide") }?.attr("Target") ?: return ""
         val notes = xml(files["ppt/notesSlides/" + target.substringAfterLast('/')]) ?: return ""
         return notes.all("sp").filter { sp -> sp.all("ph").firstOrNull()?.attr("type") == "body" }
