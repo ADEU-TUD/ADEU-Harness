@@ -8,6 +8,7 @@ import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.NetworkAccess
 import io.github.thepytales.llmhub.data.PiiDetector
+import io.github.thepytales.llmhub.data.PrivacyScope
 import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.dropFromThread
@@ -27,6 +28,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 import java.io.IOException
 import java.text.DateFormat
 import java.util.Date
@@ -80,6 +82,11 @@ class AgentRunner(private val c: AppContainer) {
         tools: ToolSelection? = null,
         autoContinue: Boolean = c.settings.current.autoContinue,
     ) {
+        // All requests of this run belong to the chat (own placeholders with „Platzhalter je Chat“).
+        if (coroutineContext[PrivacyScope] == null) {
+            val id = host.conversation?.id ?: return
+            return withContext(PrivacyScope(id)) { run(host, maxSteps, tools, autoContinue) }
+        }
         val settings = c.settings.current
         val start = host.conversation ?: return
         Privacy.blockReason(c, start.folderId, start.model)?.let { reason ->
@@ -277,7 +284,12 @@ class AgentRunner(private val c: AppContainer) {
         lastUser ?: return null
         val text = (listOf(lastUser.content) + lastUser.files.map { it.text }).joinToString("\n")
         val settings = c.settings.current
-        if (settings.pseudonymize) return c.privacy.summary(c.privacy.mask(text))?.let { "Pseudonymisiert gesendet: $it" }
+        if (settings.pseudonymize) {
+            val masked = c.privacy.mask(lastUser.content, conv.id)
+            val summary = c.privacy.summary(c.privacy.mask(text, conv.id)) ?: return null
+            // The protocol shows what the server got, so everyone can check the replacements.
+            return "Pseudonymisiert gesendet: $summary" + if (masked != lastUser.content) "\nSo sah der Server die Nachricht: " + masked.take(600).let { if (masked.length > 600) "$it …" else it } else ""
+        }
         val provider = c.llm.providerFor(conv.model) ?: return null
         val terms = settings.pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }
         if (PiiDetector.find(text, terms).isEmpty()) return null

@@ -22,10 +22,11 @@ data class PortableSettings(
     val docFooter: String, val tudUnit: String, val autoLogo: Boolean, val senderInfo: String,
     val favoriteTemplates: List<String>, val userName: String, val fallbackModel: String, val requestsPerMinute: Int,
     val memoryMode: String,
-    val pseudonymize: Boolean = false, val pseudonymAuto: Boolean = true, val pseudonymTerms: String = "",
+    val pseudonymize: Boolean = true, val pseudonymAuto: Boolean = true, val pseudonymTerms: String = "",
     val citationStyle: String = "APA7_DE", val zoteroUserId: String = "", val literatureSources: String = "OPENALEX,CROSSREF,ERIC,DNB",
     val uiLanguage: String = "de", val coderName: String = "",
     val formSuggestions: Boolean = true,
+    val pseudonymIgnore: String = "", val pseudonymOff: String = "",
 )
 
 @Serializable
@@ -83,6 +84,7 @@ object Backup {
         s.docStyle, s.docAccent, s.docFooter, s.tudUnit, s.autoLogo, s.senderInfo, s.favoriteTemplates, s.userName,
         s.fallbackModel, s.requestsPerMinute, s.memoryMode, s.pseudonymize, s.pseudonymAuto, s.pseudonymTerms,
         s.citationStyle, s.zoteroUserId, s.literatureSources, s.uiLanguage, s.coderName, s.formSuggestions,
+        s.pseudonymIgnore, s.pseudonymOff,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -96,6 +98,7 @@ object Backup {
         pseudonymAuto = p.pseudonymAuto, pseudonymTerms = p.pseudonymTerms,
         citationStyle = p.citationStyle, zoteroUserId = p.zoteroUserId, literatureSources = p.literatureSources,
         uiLanguage = p.uiLanguage, coderName = p.coderName, formSuggestions = p.formSuggestions,
+        pseudonymIgnore = p.pseudonymIgnore, pseudonymOff = p.pseudonymOff,
     )
 
     /**
