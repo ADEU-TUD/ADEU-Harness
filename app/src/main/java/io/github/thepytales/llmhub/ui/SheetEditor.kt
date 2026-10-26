@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -26,12 +28,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.AddComment
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Functions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -76,6 +80,7 @@ private enum class SheetAi { FORMULA, FILL, EXPLAIN }
  * The table editor (like Excel): cells with formulas, formula bar, row and column headers, sorting, Σ, function
  * list, status bar with sum and average, and ✨ for formulas and filling columns. Each tab is one sheet.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SheetBody(
     c: AppContainer,
@@ -99,6 +104,12 @@ fun SheetBody(
     var aiMode by remember { mutableStateOf(SheetAi.FORMULA) }
     val barFocus = remember { FocusRequester() }
     val engine = remember(rows) { SheetEngine.Sheet(rows) }
+    // Filter (like the AutoFilter of Excel): rows whose cells contain the text; the head row always stays.
+    var filterOpen by remember(doc.id, tabId) { mutableStateOf(false) }
+    var filter by remember(doc.id, tabId) { mutableStateOf("") }
+    val visibleRows = remember(rows, filter, engine) {
+        (0 until rows.size).filter { r -> r == 0 || filter.isBlank() || rows[r].indices.any { j -> engine.display(r, j).contains(filter.trim(), ignoreCase = true) } }
+    }
     val hScroll = rememberScrollState()
 
     fun write(next: List<List<String>>) {
@@ -151,6 +162,37 @@ fun SheetBody(
                     DropdownMenuItem(text = { Text("Zeile ${sr + 1} löschen") }, enabled = rows.size > 1, onClick = { rowsMenu = false; write(rows.filterIndexed { i, _ -> i != sr }) })
                     DropdownMenuItem(text = { Text("Spalte ${SheetEngine.colName(sc)} löschen") }, enabled = cols > 1, onClick = { rowsMenu = false; write(rows.map { r -> r.filterIndexed { j, _ -> j != sc } }) })
                     DropdownMenuItem(text = { Text("Leere Zeilen entfernen") }, onClick = { rowsMenu = false; write(rows.filterIndexed { i, r -> i == 0 || r.any { it.isNotBlank() } }) })
+                    HorizontalDivider()
+                    // Like dragging the fill handle in Excel: relative references move along, $-references stay.
+                    DropdownMenuItem(
+                        text = { Text("${SheetEngine.ref(sr, sc)} nach unten ausfüllen") }, enabled = sr in 1 until rows.lastIndex,
+                        onClick = {
+                            rowsMenu = false
+                            setCell(sr, sc, bar.text)
+                            val source = bar.text
+                            write(rows.mapIndexed { r, row -> if (r <= sr) row else (0 until cols).map { j -> if (j == sc) SheetEngine.shift(source, r - sr, 0) else row.getOrNull(j).orEmpty() } })
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("${SheetEngine.ref(sr, sc)} nach rechts ausfüllen") }, enabled = sc < cols - 1,
+                        onClick = {
+                            rowsMenu = false
+                            setCell(sr, sc, bar.text)
+                            val source = bar.text
+                            write(rows.mapIndexed { r, row -> if (r != sr) row else (0 until cols).map { j -> if (j > sc) SheetEngine.shift(source, 0, j - sc) else row.getOrNull(j).orEmpty() } })
+                        },
+                    )
+                    DropdownMenuItem(text = { Text("Duplikate entfernen") }, onClick = {
+                        rowsMenu = false
+                        val before = rows.size
+                        val next = listOf(rows.first()) + rows.drop(1).distinctBy { r -> r.map { it.trim().lowercase() } }
+                        write(next)
+                        Notices.info("${before - next.size} doppelte Zeile(n) entfernt")
+                    })
+                    DropdownMenuItem(text = { Text("Zeilen und Spalten tauschen") }, onClick = {
+                        rowsMenu = false
+                        write((0 until cols).map { j -> rows.map { it.getOrNull(j).orEmpty() } })
+                    })
                 }
             }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
@@ -175,6 +217,7 @@ fun SheetBody(
                     DropdownMenuItem(text = { Text("Nach Spalte ${SheetEngine.colName(sc)} absteigend") }, onClick = { sort(true) })
                 }
             }
+            ToolIcon(Icons.Outlined.FilterList, "Filtern", active = filterOpen || filter.isNotBlank()) { filterOpen = !filterOpen; if (!filterOpen) filter = "" }
             var fx by remember { mutableStateOf(false) }
             Box {
                 ToolIcon(Icons.Outlined.Functions, "Funktion einfügen") { fx = true }
@@ -256,6 +299,9 @@ fun SheetBody(
                             Key.Enter -> { select(if (e.isShiftPressed) sr - 1 else sr + 1, sc); true }
                             Key.Tab -> { select(sr, if (e.isShiftPressed) (sc - 1).coerceAtLeast(0) else sc + 1); true }
                             Key.Escape -> { val v = rows.getOrNull(sr)?.getOrNull(sc).orEmpty(); bar = TextFieldValue(v, TextRange(v.length)); true }
+                            // Arrow keys move between cells like in Excel (not while a formula is being typed).
+                            Key.DirectionUp -> if (!bar.text.startsWith("=")) { select((sr - 1).coerceAtLeast(0), sc); true } else false
+                            Key.DirectionDown -> if (!bar.text.startsWith("=")) { select(sr + 1, sc); true } else false
                             else -> false
                         }
                     },
@@ -291,40 +337,55 @@ fun SheetBody(
                 )
             }
         }
+        if (filterOpen) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    filter, { filter = it }, singleLine = true, modifier = Modifier.weight(1f),
+                    placeholder = { Text("Zeilen filtern: nur Zeilen mit diesem Text zeigen") },
+                    leadingIcon = { Icon(Icons.Outlined.FilterList, contentDescription = null) },
+                )
+                Text("${visibleRows.size - 1} von ${rows.size - 1}", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp))
+            }
+        }
+        val rowView: @Composable (Int) -> Unit = { r ->
+            Row(Modifier.horizontalScroll(hScroll)) {
+                HeadCell(if (r < rows.size) "${r + 1}" else "+", HEAD_W, r == sr) { select(r, sc) }
+                if (r < rows.size) (0 until cols).forEach { j ->
+                    val selected = r == sr && j == sc
+                    val shown = if (selected && !bar.text.startsWith("=")) bar.text else engine.display(r, j)
+                    val value = engine.value(r, j)
+                    Box(
+                        Modifier.width(CELL_W).height(CELL_H)
+                            .background(if (r == 0) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else LocalChatLook.current.card)
+                            .border(if (selected) 2.dp else 0.5.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
+                            .clickable(enabled = !writing) { if (selected) runCatching { barFocus.requestFocus() } else select(r, j) }
+                            .padding(horizontal = 6.dp),
+                        contentAlignment = if (value is SheetEngine.Value.Num && r > 0) Alignment.CenterEnd else Alignment.CenterStart,
+                    ) {
+                        Text(
+                            shown, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (r == 0) FontWeight.SemiBold else FontWeight.Normal),
+                            color = if (value is SheetEngine.Value.Err) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+        }
+                    }
+                        }
         HorizontalDivider()
         // ── Grid ──
         Box(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
             LazyColumn(Modifier.fillMaxSize()) {
-                item(key = "head") {
-                    Row(Modifier.horizontalScroll(hScroll)) {
-                        HeadCell("", HEAD_W, false) {}
-                        (0 until cols + 1).forEach { j -> HeadCell(if (j < cols) SheetEngine.colName(j) else "+", CELL_W, j == sc) { if (j < cols) select(sr, j) else select(sr, cols) } }
-                    }
-                }
-                items(rows.size + 1, key = { "r$it" }) { r ->
-                    Row(Modifier.horizontalScroll(hScroll)) {
-                        HeadCell(if (r < rows.size) "${r + 1}" else "+", HEAD_W, r == sr) { select(r, sc) }
-                        if (r < rows.size) (0 until cols).forEach { j ->
-                            val selected = r == sr && j == sc
-                            val shown = if (selected && !bar.text.startsWith("=")) bar.text else engine.display(r, j)
-                            val value = engine.value(r, j)
-                            Box(
-                                Modifier.width(CELL_W).height(CELL_H)
-                                    .background(if (r == 0) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else LocalChatLook.current.card)
-                                    .border(if (selected) 2.dp else 0.5.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
-                                    .clickable(enabled = !writing) { if (selected) runCatching { barFocus.requestFocus() } else select(r, j) }
-                                    .padding(horizontal = 6.dp),
-                                contentAlignment = if (value is SheetEngine.Value.Num && r > 0) Alignment.CenterEnd else Alignment.CenterStart,
-                            ) {
-                                Text(
-                                    shown, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (r == 0) FontWeight.SemiBold else FontWeight.Normal),
-                                    color = if (value is SheetEngine.Value.Err) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
+                // Column letters and the head row stay at the top while scrolling (like „Fenster fixieren“ in Excel).
+                stickyHeader(key = "head") {
+                    Column {
+                        Row(Modifier.horizontalScroll(hScroll)) {
+                            HeadCell("", HEAD_W, false) {}
+                            (0 until cols + 1).forEach { j -> HeadCell(if (j < cols) SheetEngine.colName(j) else "+", CELL_W, j == sc) { if (j < cols) select(sr, j) else select(sr, cols) } }
                         }
+                        rowView(0)
                     }
                 }
+                items(visibleRows.filter { it != 0 } + rows.size, key = { "r$it" }) { r -> rowView(r) }
             }
         }
         // ── Status bar (like Excel): sum, average and count of the selected column ──

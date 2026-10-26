@@ -52,7 +52,10 @@ object SheetEngine {
         data class Text(val v: String) : Value
         data class Bool(val v: Boolean) : Value
         data class Err(val code: String) : Value
-        data class Range(val values: List<Value>) : Value
+        /** Cells of a range row by row; [cols] is its width (for SVERWEIS, INDEX …). */
+        data class Range(val values: List<Value>, val cols: Int = 1) : Value {
+            val rows: List<List<Value>> get() = values.chunked(cols.coerceAtLeast(1))
+        }
     }
 
     /** Evaluates all cells of [rows]; formulas give their result, other cells stay as they are. */
@@ -114,7 +117,19 @@ object SheetEngine {
         "STABW" to "STDEV", "STABW.S" to "STDEV", "VERKETTEN" to "CONCATENATE", "LÄNGE" to "LEN", "LAENGE" to "LEN",
         "GROSS" to "UPPER", "KLEIN" to "LOWER", "GANZZAHL" to "INT", "REST" to "MOD", "MEDIAN" to "MEDIAN", "MIN" to "MIN", "MAX" to "MAX",
         "ABS" to "ABS", "HEUTE" to "TODAY",
+        "SVERWEIS" to "VLOOKUP", "WVERWEIS" to "HLOOKUP", "XVERWEIS" to "XLOOKUP", "INDEX" to "INDEX", "VERGLEICH" to "MATCH",
+        "WENNFEHLER" to "IFERROR", "WENNNV" to "IFNA", "WENNS" to "IFS", "ZÄHLENWENNS" to "COUNTIFS", "ZAEHLENWENNS" to "COUNTIFS",
+        "SUMMEWENNS" to "SUMIFS", "MITTELWERTWENN" to "AVERAGEIF", "MITTELWERTWENNS" to "AVERAGEIFS", "LINKS" to "LEFT",
+        "RECHTS" to "RIGHT", "TEIL" to "MID", "GLÄTTEN" to "TRIM", "GLAETTEN" to "TRIM", "WECHSELN" to "SUBSTITUTE", "FINDEN" to "FIND",
+        "SUCHEN" to "SEARCH", "TEXTVERKETTEN" to "TEXTJOIN", "GROSS2" to "PROPER", "WIEDERHOLEN" to "REPT", "WERT" to "VALUE",
+        "PRODUKT" to "PRODUCT", "RANG" to "RANK", "RANG.GLEICH" to "RANK", "KGRÖSSTE" to "LARGE", "KGROESSTE" to "LARGE", "KKLEINSTE" to "SMALL",
+        "VARIANZ" to "VAR", "VAR.S" to "VAR", "STABW.N" to "STDEV.P", "ANZAHLLEEREZELLEN" to "COUNTBLANK", "SUMMENPRODUKT" to "SUMPRODUCT",
+        "ISTLEER" to "ISBLANK", "ISTZAHL" to "ISNUMBER", "ISTTEXT" to "ISTEXT", "ISTFEHLER" to "ISERROR", "JETZT" to "NOW",
+        "MODALWERT" to "MODE", "KORREL" to "CORREL", "QUANTIL" to "PERCENTILE", "VERKETTEN2" to "CONCAT",
     )
+
+    /** Functions newer than Excel 2007: in .xlsx files they carry the prefix "_xlfn.". */
+    private val FUTURE = setOf("XLOOKUP", "IFS", "TEXTJOIN", "IFNA", "CONCAT", "STDEV.P")
 
     /** The formula as Excel stores it: English function names, "," between arguments, "." as decimal point. */
     fun toExcel(formula: String): String {
@@ -132,7 +147,7 @@ object SheetEngine {
                     while (j < body.length && (body[j].isLetterOrDigit() || body[j] == '.' || body[j] == '_')) j++
                     val word = body.substring(i, j)
                     val next = body.getOrNull(j)
-                    out.append(if (next == '(') NAMES[word.uppercase()] ?: word.uppercase() else word)
+                    out.append(if (next == '(') (NAMES[word.uppercase()] ?: word.uppercase()).let { if (it in FUTURE) "_xlfn.$it" else it } else word)
                     i = j
                 }
                 ch == ';' -> { out.append(','); i++ }
@@ -174,8 +189,10 @@ object SheetEngine {
         }
 
         fun compare(a: Value, b: Value, op: String): Boolean {
-            val x = scalar(a)
-            val y = scalar(b)
+            // An empty cell counts as 0 when compared with a number (as in Excel: =WENN(B5=0;…)).
+            fun blankAsZero(v: Value, other: Value) = if (v is Value.Text && v.v.isEmpty() && other is Value.Num) Value.Num(0.0) else v
+            val x = blankAsZero(scalar(a), scalar(b))
+            val y = blankAsZero(scalar(b), scalar(a))
             val c = if (x is Value.Num && y is Value.Num) x.v.compareTo(y.v) else text(x).compareTo(text(y), ignoreCase = true)
             return when (op) { "<=" -> c <= 0; ">=" -> c >= 0; "<>" -> c != 0; "=" -> c == 0; "<" -> c < 0; else -> c > 0 }
         }
@@ -256,7 +273,7 @@ object SheetEngine {
                     pos++
                     val args = mutableListOf<Value>()
                     if (!eat(")")) {
-                        do { args += comparison() } while (eat(";") || eat(","))
+                        do { args += argument() } while (eat(";") || eat(","))
                         if (!eat(")")) throw EvalError("#FEHLER!")
                     }
                     return call(NAMES[word.uppercase()] ?: word.uppercase(), args)
@@ -274,11 +291,44 @@ object SheetEngine {
                     for (r in minOf(from.first, to.first)..maxOf(from.first, to.first)) {
                         for (c in minOf(from.second, to.second)..maxOf(from.second, to.second)) values += sheet.value(r, c)
                     }
-                    return Value.Range(values)
+                    return Value.Range(values, abs(to.second - from.second) + 1)
                 }
                 return sheet.value(from.first, from.second)
             }
             throw EvalError("#FEHLER!")
+        }
+
+        /**
+         * One argument of a function. An error inside it becomes an error value instead of ending the whole formula, so
+         * =WENN(B2=0;0;A2/B2) and =WENNFEHLER(A2/B2;"–") work like in Excel.
+         */
+        fun argument(): Value {
+            val start = pos
+            return try {
+                comparison()
+            } catch (e: EvalError) {
+                pos = start
+                skipArgument()
+                Value.Err(e.code)
+            }
+        }
+
+        /** Moves to the end of the current argument (the next ";", "," or ")" outside of brackets and strings). */
+        fun skipArgument() {
+            var depth = 0
+            var inString = false
+            while (pos < src.length) {
+                val c = src[pos]
+                when {
+                    c == '"' -> inString = !inString
+                    inString -> {}
+                    c == '(' -> depth++
+                    c == ')' -> if (depth == 0) return else depth--
+                    depth == 0 && c == ';' -> return
+                    depth == 0 && c == ',' && !(src.getOrNull(pos - 1)?.isDigit() == true && src.getOrNull(pos + 1)?.isDigit() == true) -> return
+                }
+                pos++
+            }
         }
 
         fun scalar(v: Value): Value = when (v) {
@@ -370,7 +420,151 @@ object SheetEngine {
             "UPPER" -> Value.Text(text(args[0]).uppercase())
             "LOWER" -> Value.Text(text(args[0]).lowercase())
             "TODAY" -> Value.Text(java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+            "NOW" -> Value.Text(java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
+            "IFERROR" -> if (args.getOrNull(0).let { it == null || it is Value.Err || (it is Value.Range && it.values.firstOrNull() is Value.Err) }) args.getOrElse(1) { Value.Text("") } else args[0]
+            "IFNA" -> if ((args.getOrNull(0) as? Value.Err)?.code == "#NV") args.getOrElse(1) { Value.Text("") } else args[0]
+            "IFS" -> args.chunked(2).firstOrNull { it.size == 2 && truthy(it[0]) }?.get(1) ?: throw EvalError("#NV")
+            "ISBLANK" -> Value.Bool(scalarOrErr(args[0]).let { it is Value.Text && it.v.isEmpty() })
+            "ISNUMBER" -> Value.Bool(scalarOrErr(args[0]) is Value.Num)
+            "ISTEXT" -> Value.Bool(scalarOrErr(args[0]).let { it is Value.Text && it.v.isNotEmpty() })
+            "ISERROR" -> Value.Bool(scalarOrErr(args[0]) is Value.Err)
+            "VLOOKUP", "HLOOKUP" -> {
+                val table = args[1] as? Value.Range ?: throw EvalError("#BEZUG!")
+                val lines = if (name == "VLOOKUP") table.rows else (0 until table.cols).map { c -> table.rows.map { it.getOrElse(c) { Value.Text("") } } }
+                val index = num(args[2]).toInt()
+                val exact = args.size > 3 && !truthy(args[3])
+                val hit = lookup(scalar(args[0]), lines.map { it.firstOrNull() ?: Value.Text("") }, exact)
+                lines[hit].getOrNull(index - 1) ?: throw EvalError("#BEZUG!")
+            }
+            "XLOOKUP" -> {
+                val keys = flat(listOf(args[1]))
+                val results = flat(listOf(args[2]))
+                val hit = runCatching { lookup(scalar(args[0]), keys, exact = true) }.getOrNull()
+                if (hit == null) args.getOrNull(3) ?: throw EvalError("#NV") else results.getOrNull(hit) ?: throw EvalError("#BEZUG!")
+            }
+            "MATCH" -> {
+                val type = args.getOrNull(2)?.let { num(it).toInt() } ?: 1
+                Value.Num(lookup(scalar(args[0]), flat(listOf(args[1])), exact = type == 0) + 1.0)
+            }
+            "INDEX" -> {
+                val t = args[0] as? Value.Range
+                val r = num(args[1]).toInt()
+                val c = args.getOrNull(2)?.let { num(it).toInt() }
+                val v = when {
+                    t == null -> args[0].takeIf { r == 1 }
+                    c == null && (t.cols == 1 || t.rows.size == 1) -> t.values.getOrNull(r - 1)
+                    else -> t.rows.getOrNull(r - 1)?.getOrNull((c ?: 1) - 1)
+                }
+                v ?: throw EvalError("#BEZUG!")
+            }
+            "COUNTIFS", "SUMIFS", "AVERAGEIF", "AVERAGEIFS" -> {
+                // SUMIFS/AVERAGEIFS: values first, then pairs of range and criterion; AVERAGEIF: range, criterion, [values].
+                val (values, pairs) = when (name) {
+                    "COUNTIFS" -> null to args.chunked(2)
+                    "AVERAGEIF" -> flat(listOf(args.getOrElse(2) { args[0] })) to listOf(args.take(2))
+                    else -> flat(listOf(args[0])) to args.drop(1).chunked(2)
+                }
+                val cells = pairs.filter { it.size == 2 }.map { flat(listOf(it[0])) to it[1] }
+                val n = cells.maxOfOrNull { it.first.size } ?: 0
+                val hits = (0 until n).filter { i -> cells.all { (range, crit) -> range.getOrNull(i)?.let { matches(it, crit) } == true } }
+                when (name) {
+                    "COUNTIFS" -> Value.Num(hits.size.toDouble())
+                    "SUMIFS" -> Value.Num(hits.sumOf { (values!!.getOrNull(it) as? Value.Num)?.v ?: 0.0 })
+                    else -> hits.mapNotNull { (values!!.getOrNull(it) as? Value.Num)?.v }.let { if (it.isEmpty()) throw EvalError("#DIV/0!") else Value.Num(it.average()) }
+                }
+            }
+            "LEFT" -> Value.Text(text(args[0]).take(args.getOrNull(1)?.let { num(it).toInt() } ?: 1))
+            "RIGHT" -> Value.Text(text(args[0]).takeLast(args.getOrNull(1)?.let { num(it).toInt() } ?: 1))
+            "MID" -> text(args[0]).let { t -> val from = (num(args[1]).toInt() - 1).coerceIn(0, t.length); Value.Text(t.substring(from, (from + num(args[2]).toInt()).coerceIn(from, t.length))) }
+            "TRIM" -> Value.Text(text(args[0]).trim().replace(Regex(" +"), " "))
+            "SUBSTITUTE" -> Value.Text(text(args[0]).replace(text(args[1]), text(args[2])))
+            "FIND", "SEARCH" -> {
+                val i = text(args[1]).indexOf(text(args[0]), (args.getOrNull(2)?.let { num(it).toInt() } ?: 1) - 1, ignoreCase = name == "SEARCH")
+                if (i < 0) throw EvalError("#WERT!") else Value.Num(i + 1.0)
+            }
+            "TEXTJOIN" -> Value.Text(flat(args.drop(2)).map { text(it) }.filter { !truthy(args[1]) || it.isNotEmpty() }.joinToString(text(args[0])))
+            "PROPER" -> Value.Text(text(args[0]).lowercase().split(" ").joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } })
+            "REPT" -> Value.Text(text(args[0]).repeat(num(args[1]).toInt().coerceIn(0, 1000)))
+            "VALUE" -> Value.Num(num(Value.Text(text(args[0]).trim())))
+            "TEXT" -> {
+                val n = num(args[0])
+                val pattern = text(args[1]).trim()
+                val pct = pattern.endsWith("%")
+                val body = pattern.removeSuffix("%").trim()
+                val sep = body.indexOfLast { it == ',' || it == '.' }
+                val decimals = if (sep >= 0 && body.substring(sep + 1).all { it == '0' || it == '#' }) body.length - sep - 1 else 0
+                val grouped = Regex("#[.,]##").containsMatchIn(body)
+                val v = if (pct) n * 100 else n
+                Value.Text(String.format(Locale.GERMANY, if (grouped) "%,.${decimals}f" else "%.${decimals}f", v) + if (pct) " %" else "")
+            }
+            "PRODUCT" -> Value.Num(numbers(args).fold(1.0) { a, b -> a * b })
+            "SUMPRODUCT" -> {
+                val lists = args.map { flat(listOf(it)) }
+                val n = lists.minOfOrNull { it.size } ?: 0
+                Value.Num((0 until n).sumOf { i -> lists.fold(1.0) { acc, l -> acc * ((l[i] as? Value.Num)?.v ?: 0.0) } })
+            }
+            "RANK" -> {
+                val x = num(args[0])
+                val list = numbers(listOf(args[1]))
+                val asc = args.getOrNull(2)?.let { num(it) != 0.0 } == true
+                if (x !in list) throw EvalError("#NV")
+                Value.Num(1.0 + list.count { if (asc) it < x else it > x })
+            }
+            "LARGE", "SMALL" -> {
+                val list = numbers(listOf(args[0])).let { if (name == "LARGE") it.sortedDescending() else it.sorted() }
+                list.getOrNull(num(args[1]).toInt() - 1)?.let { Value.Num(it) } ?: throw EvalError("#ZAHL!")
+            }
+            "VAR", "STDEV.P" -> numbers(args).let { l ->
+                val sample = name == "VAR"
+                if (l.size < (if (sample) 2 else 1)) throw EvalError("#DIV/0!")
+                val m = l.average()
+                val v = l.sumOf { (it - m) * (it - m) } / (if (sample) l.size - 1 else l.size)
+                Value.Num(if (sample) v else sqrt(v))
+            }
+            "MODE" -> numbers(args).groupingBy { it }.eachCount().filterValues { it > 1 }.maxByOrNull { it.value }?.let { Value.Num(it.key) } ?: throw EvalError("#NV")
+            "PERCENTILE" -> {
+                val l = numbers(listOf(args[0])).sorted()
+                if (l.isEmpty()) throw EvalError("#ZAHL!")
+                val k = num(args[1]).coerceIn(0.0, 1.0) * (l.size - 1)
+                val lo = floor(k).toInt()
+                val hi = kotlin.math.ceil(k).toInt()
+                Value.Num(l[lo] + (l[hi] - l[lo]) * (k - lo))
+            }
+            "CORREL" -> {
+                val a = flat(listOf(args[0]))
+                val b = flat(listOf(args[1]))
+                val pairs = a.indices.mapNotNull { i -> val x = (a[i] as? Value.Num)?.v; val y = (b.getOrNull(i) as? Value.Num)?.v; if (x != null && y != null) x to y else null }
+                if (pairs.size < 2) throw EvalError("#DIV/0!")
+                val mx = pairs.map { it.first }.average()
+                val my = pairs.map { it.second }.average()
+                val cov = pairs.sumOf { (x, y) -> (x - mx) * (y - my) }
+                val sx = sqrt(pairs.sumOf { (x, _) -> (x - mx) * (x - mx) })
+                val sy = sqrt(pairs.sumOf { (_, y) -> (y - my) * (y - my) })
+                if (sx == 0.0 || sy == 0.0) throw EvalError("#DIV/0!") else Value.Num(cov / (sx * sy))
+            }
+            "COUNTBLANK" -> Value.Num(flat(args).count { it is Value.Text && it.v.isEmpty() }.toDouble())
+            "PI" -> Value.Num(Math.PI)
             else -> throw EvalError("#NAME?")
+        }
+
+        /** Like [scalar], but an error is a value (for ISTFEHLER). */
+        fun scalarOrErr(v: Value): Value = when (v) {
+            is Value.Range -> v.values.firstOrNull() ?: Value.Text("")
+            else -> v
+        }
+
+        /**
+         * Position of [key] in [keys]: exact (case-insensitive for text) or, like Excel's approximate match, the last
+         * key that is not greater than [key] in a sorted column.
+         */
+        fun lookup(key: Value, keys: List<Value>, exact: Boolean): Int {
+            fun same(a: Value, b: Value) = if (a is Value.Num && b is Value.Num) a.v == b.v else format(a).equals(format(b), ignoreCase = true)
+            val i = keys.indexOfFirst { same(it, key) }
+            if (i >= 0 || exact) return if (i >= 0) i else throw EvalError("#NV")
+            var best = -1
+            keys.forEachIndexed { j, k -> if (k is Value.Num && key is Value.Num && k.v <= key.v) best = j }
+            if (best < 0) throw EvalError("#NV")
+            return best
         }
     }
 
@@ -388,7 +582,67 @@ object SheetEngine {
         "ZÄHLENWENN" to "Zählen mit Bedingung, z.B. =ZÄHLENWENN(C2:C30;\"ja\")",
         "SUMMEWENN" to "Summe mit Bedingung",
         "VERKETTEN" to "Texte verbinden",
+        "SVERWEIS" to "Nachschlagen, z.B. =SVERWEIS(A2;E2:F20;2;FALSCH)",
+        "XVERWEIS" to "Nachschlagen: =XVERWEIS(Suchwert;Suchbereich;Ergebnisbereich;\"nicht gefunden\")",
+        "INDEX" to "Wert an Position, z.B. =INDEX(B2:D10;3;2)",
+        "VERGLEICH" to "Position eines Werts, z.B. =VERGLEICH(\"Max\";A2:A30;0)",
+        "WENNFEHLER" to "Ersatz bei Fehler, z.B. =WENNFEHLER(B2/C2;0)",
+        "WENNS" to "Mehrere Bedingungen, z.B. =WENNS(B2>=90;1;B2>=75;2;WAHR;3)",
+        "ZÄHLENWENNS" to "Zählen mit mehreren Bedingungen",
+        "SUMMEWENNS" to "Summe mit mehreren Bedingungen: =SUMMEWENNS(Summe;Bereich1;Krit1;…)",
+        "MITTELWERTWENN" to "Mittelwert mit Bedingung",
+        "LINKS" to "Erste Zeichen eines Texts, z.B. =LINKS(A2;3)",
+        "RECHTS" to "Letzte Zeichen eines Texts",
+        "TEIL" to "Teil eines Texts: =TEIL(A2;Start;Anzahl)",
+        "GLÄTTEN" to "Überzählige Leerzeichen entfernen",
+        "WECHSELN" to "Text ersetzen: =WECHSELN(A2;\"alt\";\"neu\")",
+        "TEXTVERKETTEN" to "Texte mit Trennzeichen: =TEXTVERKETTEN(\", \";WAHR;A2:A9)",
+        "TEXT" to "Zahl formatiert, z.B. =TEXT(B2;\"0,00\") oder =TEXT(B2;\"0%\")",
+        "PRODUKT" to "Produkt",
+        "SUMMENPRODUKT" to "Summe der Produkte, z.B. gewichtete Noten",
+        "RANG" to "Rangplatz, z.B. =RANG(B2;B$2:B$30)",
+        "KGRÖSSTE" to "k-größter Wert",
+        "KKLEINSTE" to "k-kleinster Wert",
+        "VARIANZ" to "Varianz (Stichprobe)",
+        "STABW.N" to "Standardabweichung (Grundgesamtheit)",
+        "MODALWERT" to "Häufigster Wert",
+        "QUANTIL" to "Quantil, z.B. =QUANTIL(B2:B30;0,25)",
+        "KORREL" to "Korrelation (Pearson) zweier Spalten",
+        "ANZAHLLEEREZELLEN" to "Leere Zellen zählen",
+        "ISTLEER" to "Ist die Zelle leer?",
+        "ISTZAHL" to "Ist es eine Zahl?",
+        "HEUTE" to "Heutiges Datum",
     )
+
+    /**
+     * The formula moved by [dRows] rows and [dCols] columns, as when it is filled down or right in Excel: references
+     * without "$" move along, "$B$2" stays.
+     */
+    fun shift(formula: String, dRows: Int, dCols: Int): String {
+        if (!formula.trimStart().startsWith("=")) return formula
+        val out = StringBuilder()
+        var i = 0
+        var inString = false
+        val ref = Regex("^(\\$?)([A-Za-z]{1,3})(\\$?)(\\d{1,6})")
+        while (i < formula.length) {
+            val ch = formula[i]
+            if (ch == '"') { inString = !inString; out.append(ch); i++; continue }
+            val prev = formula.getOrNull(i - 1)
+            val m = if (!inString && (prev == null || !(prev.isLetterOrDigit() || prev == '_' || prev == '.'))) ref.find(formula.substring(i)) else null
+            val after = m?.let { formula.getOrNull(i + it.value.length) }
+            if (m != null && after != '(' && (after == null || !after.isLetterOrDigit())) {
+                val (colAbs, col, rowAbs, row) = m.destructured
+                val c = if (colAbs.isEmpty()) colName((parseRef(col + "1")!!.second + dCols).coerceAtLeast(0)) else col.uppercase()
+                val r = if (rowAbs.isEmpty()) (row.toInt() + dRows).coerceAtLeast(1).toString() else row
+                out.append(colAbs).append(c).append(rowAbs).append(r)
+                i += m.value.length
+            } else {
+                out.append(ch)
+                i++
+            }
+        }
+        return out.toString()
+    }
 
     /** Rounds for display in charts and summaries. */
     fun short(d: Double): String = if (abs(d - d.roundToLong()) < 1e-9) d.roundToLong().toString() else formatNumber((d * 100).roundToLong() / 100.0)
