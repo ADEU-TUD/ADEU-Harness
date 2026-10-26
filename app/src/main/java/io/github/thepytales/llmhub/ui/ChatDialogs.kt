@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.AgentEnvironment
-import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateKind
 import io.github.thepytales.llmhub.data.TemplateLibrary
@@ -129,12 +128,10 @@ fun FolderPickerDialog(c: AppContainer, current: String?, onPick: (String?) -> U
         confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
     )
     if (creating) {
-        TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { name ->
-            val folder = Folder(name = name)
-            c.folders.upsert(folder)
+        ProjectDialog(c, null, onDismiss = { creating = false }, onCreated = { folder ->
             onPick(folder.id)
             onDismiss()
-        }, onDismiss = { creating = false })
+        })
     }
 }
 

@@ -77,15 +77,19 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
   Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
-- **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
-  für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
-- **Arbeitsordner je Projekt** (Windows, ⋮ › *Anweisungen & Dateien › Arbeitsordner*): ein Ordner auf dem Rechner –
-  Google Drive für Desktop, OneDrive, Nextcloud, ein Netzlaufwerk (auch `\\server\freigabe`) oder ein lokaler Ordner.
-  Alles, was die KI in den Chats des Projekts erstellt (PDF, Word, PowerPoint, Excel …), legt die App dort unter seinem
-  Namen ab; „Öffnen“ und „Im Ordner zeigen“ führen zur Datei dort. Dokumente aus dem Editor liegen im Ordner als
-  Markdown (wie ein Ablageort), und der Agent kann darin lesen und schreiben („Fasse alle Protokolle im Arbeitsordner
-  zusammen“). Eigene Dateien mit gleichem Namen werden nie überschrieben („Name (2).pdf“). Beim Wählen macht die App
-  einen Schreibtest und erklärt, falls Windows das Schreiben verweigert (siehe *Dienst-PCs mit IT-Sperre*).
+- **Projekte**: Ein Projekt bündelt Chats zu einem Thema. Beim Anlegen (📁+ in der Seitenleiste) und unter ⋮ › *Projekt
+  bearbeiten* gibt es Name, Projektordner, Anweisungen, Datenschutzstufe und Dokumente zum Durchsuchen; sie gelten für
+  alle Chats darin. „Neuer Chat im Projekt“ startet direkt dort.
+- **Projektordner** (Windows): ein Ordner auf dem Rechner – Google Drive für Desktop, OneDrive, Nextcloud, ein
+  Netzlaufwerk (auch `\\server\freigabe`) oder ein lokaler Ordner. Alles, was im Projekt entsteht – Dokumente der KI
+  (PDF, Word, PowerPoint, Excel …), Briefe aus dem Brief-Formular und Dokumente aus dem Editor (als Markdown) –, legt die
+  App ohne Rückfrage im Unterordner **`Ausgabe`** ab; „Öffnen“ und „Im Ordner zeigen“ führen zur Datei dort, auch
+  „Ausfüllen“ offener Angaben aktualisiert sie dort. Eigene Dateien mit gleichem Namen werden nie überschrieben
+  („Name (2).pdf“). Mit **„KI darf die Dateien im Ordner lesen“** (Standard: an) sieht die KI, was im Ordner liegt, liest
+  die passenden Dateien und bezieht sie ein („Schreib den Antrag anhand meiner Notizen“); ausgeschaltet sieht sie nur
+  `Ausgabe`. Dateien außerhalb von `Ausgabe` ändert sie nur nach Rückfrage. Im Chat zeigt der Chip *Projektordner* die
+  Verbindung (ein Klick öffnet den Ordner), ⋮ › *Projektordner öffnen* in der Seitenleiste ebenso. Beim Wählen macht
+  die App einen Schreibtest und erklärt, falls Windows das Schreiben verweigert (siehe *Dienst-PCs mit IT-Sperre*).
 - **Eigenes Material im Editor**: Im KI-Assistenten von Präsentationen, Dokumenten und Tabellen hängt 📎 eigene PDFs,
   PowerPoint-, Word- und Excel-Dateien an. Für Präsentationen gibt es dann „Folien aus den Dateien“, „Ins TUD-Design
   übertragen“ (Folie für Folie, Notizen bleiben Notizen), „Folien ergänzen“ und „Zusammenfassen“; die KI übernimmt Aussagen,
@@ -145,7 +149,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Lokale Modelle stehen in der Modellauswahl (Abzeichen „Lokal“), können Werkzeuge nutzen und beenden sich nach zehn
   Minuten ohne Anfrage, damit der Speicher wieder frei ist. Der Modell-Server lauscht nur auf 127.0.0.1 mit einem
   Zufallsschlüssel.
-- **Datenschutzstufe pro Projekt** (⋮ am Projekt › *Anweisungen & Dateien*): *Standard*, *Nur TU Dresden* (nur Uni-Server
+- **Datenschutzstufe pro Projekt** (⋮ am Projekt › *Projekt bearbeiten*): *Standard*, *Nur TU Dresden* (nur Uni-Server
   und lokale Modelle, externe Anbieter wie Gemini gesperrt) oder *Nur auf diesem Gerät* (nur lokale Modelle,
   Transkription und Spracheingabe auf dem Gerät, Websuche, GitHub und semantische Wissenssuche gesperrt). Die App setzt
   das durch: Modellauswahl, Agent, Ausweichmodell und Werkzeuge halten sich daran, über dem Eingabefeld steht die Stufe.
@@ -476,7 +480,7 @@ Unterschiede zu Android:
   Bleibt die Prüfung trotzdem gesperrt oder hängt sie, nutzt die App nach 8 Sekunden die Grundangaben von Java
   (Arbeitsspeicher, Kerne, Prozessor) und sagt das; die Empfehlungen sind dann vorsichtiger, installieren lässt sich
   alles. Vorher blieb die Seite bei „Gerät wird geprüft …“ stehen.
-- **Arbeitsordner und Ablageorte**: Die App schreibt als angemeldeter Benutzer – was im Explorer geht, geht auch in der
+- **Projektordner und Ablageorte**: Die App schreibt als angemeldeter Benutzer – was im Explorer geht, geht auch in der
   App, auch auf Netzlaufwerken und in Google Drive. IT-Sperren betreffen das Ausführen von Programmen, nicht das
   Speichern. Ausnahme ist der **Überwachte Ordnerzugriff** von Microsoft Defender: Er blockiert unbekannte Programme in
   *Dokumente*, *Desktop* und *Bilder*. Dann meldet die App das beim Wählen des Ordners; Abhilfe ist ein Ordner außerhalb
@@ -631,7 +635,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
-| `agent/WorkFolder.kt` | Arbeitsordner der Projekte: Schreibtest, Ablage erstellter Dateien, verständliche Fehlermeldungen |
+| `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
 | `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Arbeitsordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |

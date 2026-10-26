@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
@@ -161,27 +162,75 @@ fun KnowledgeSection(c: AppContainer) {
         SettingsHint(
             "Eigene Dokumente, die das Modell in jedem Chat durchsuchen kann – z.B. Modulhandbuch, Prüfungsordnung, " +
                 "Leitfäden oder Literatur (PDF, Word, Text …). Es liest nicht alles auf einmal, sondern sucht die passenden Stellen " +
-                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Anweisungen & Dateien)."
+                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Projekt bearbeiten)."
         )
         KnowledgeList(c, "")
     }
 }
 
-/** A folder as project: name, instructions for every chat in it and its own documents. */
+/**
+ * A folder as project: name, project folder on this PC, instructions for every chat in it, data protection and its own
+ * documents. With [folder] null it creates a new project and hands it to [onCreated].
+ */
 @Composable
-fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
-    var name by remember(folder.id) { mutableStateOf(folder.name) }
-    var instructions by remember(folder.id) { mutableStateOf(folder.instructions) }
-    var privacy by remember(folder.id) { mutableStateOf(folder.privacy) }
-    var workDir by remember(folder.id) { mutableStateOf(folder.workDir) }
-    var workProblem by remember(folder.id) { mutableStateOf<String?>(null) }
+fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCreated: (Folder) -> Unit = {}) {
+    val key = folder?.id ?: "new"
+    var name by remember(key) { mutableStateOf(folder?.name.orEmpty()) }
+    var instructions by remember(key) { mutableStateOf(folder?.instructions.orEmpty()) }
+    var privacy by remember(key) { mutableStateOf(folder?.privacy ?: PrivacyLevel.OPEN) }
+    var workDir by remember(key) { mutableStateOf(folder?.workDir.orEmpty()) }
+    var access by remember(key) { mutableStateOf(folder?.workDirAccess ?: true) }
+    var workProblem by remember(key) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Projekt") },
+        title = { Text(if (folder == null) "Neues Projekt" else "Projekt bearbeiten") },
         text = {
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("z.B. Seminar Allgemeine Didaktik") },
+                )
+                Text("Projektordner", style = MaterialTheme.typography.titleSmall)
+                if (!FolderAccess.SUPPORTED) {
+                    SettingsHint("Einen Projektordner auf dem Rechner gibt es in der Windows-Version (und in Chrome/Edge in der Browserversion). Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
+                } else {
+                    if (workDir.isBlank()) {
+                        SettingsHint(
+                            "Ein Ordner auf diesem PC für das Projekt – z. B. in Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. " +
+                                "Alles, was die KI im Projekt erstellt (Briefe, PDF, Word, PowerPoint, Excel …), landet dort im Unterordner „${WorkFolder.OUTPUT}“.",
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.size(8.dp))
+                            Text(workDir, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { FolderAccess.open(workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
+                            IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = "Projektordner entfernen") }
+                        }
+                        SettingsHint("Was die KI erstellt, landet im Unterordner „${WorkFolder.OUTPUT}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.")
+                        ToggleRow(
+                            "KI darf die Dateien im Ordner lesen",
+                            if (access) "Die KI sieht, welche Dateien im Ordner liegen, und liest die passenden (z. B. Notizen, Vorlagen, frühere Briefe). " +
+                                "Was sie liest, geht an das gewählte Modell – siehe Datenschutzstufe."
+                            else "Die KI sieht nur „${WorkFolder.OUTPUT}“; die übrigen Dateien im Ordner bleiben für sie unsichtbar.",
+                            access,
+                        ) { access = it }
+                    }
+                    workProblem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+                    OutlinedButton(onClick = {
+                        scope.launch {
+                            val path = FolderAccess.pick("Projektordner für „${name.ifBlank { "Neues Projekt" }}“ wählen") ?: return@launch
+                            val problem = withContext(Dispatchers.IO) { WorkFolder.problem(File(path)) }
+                            workProblem = problem
+                            if (problem == null) workDir = path
+                        }
+                    }) {
+                        Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(if (workDir.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …")
+                    }
+                }
                 OutlinedTextField(
                     instructions, { instructions = it },
                     label = { Text("Anweisungen für alle Chats im Projekt") },
@@ -199,46 +248,28 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
                         TitleBlock(level.label, level.description, Modifier.weight(1f))
                     }
                 }
-                Text("Arbeitsordner", style = MaterialTheme.typography.titleSmall)
-                if (!FolderAccess.SUPPORTED) {
-                    SettingsHint("Einen Arbeitsordner auf dem Rechner gibt es in der Windows-Version (und in Chrome/Edge in der Browserversion). Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
+                Text("Dokumente zum Durchsuchen", style = MaterialTheme.typography.titleSmall)
+                if (folder == null) {
+                    SettingsHint("PDF, Word & Co., die nur die Chats in diesem Projekt durchsuchen, lassen sich nach dem Erstellen hinzufügen (⋮ › Projekt bearbeiten).")
                 } else {
-                    SettingsHint(
-                        "Dateien, die die KI in diesem Projekt erstellt (PDF, Word, PowerPoint, Excel …), legt die App zusätzlich hier ab – z. B. in " +
-                            "Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. Der Agent kann im Ordner auch lesen und schreiben, " +
-                            "Dokumente aus dem Editor liegen dort als Markdown.",
-                    )
-                    if (workDir.isNotBlank()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(workDir, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { FolderAccess.open(workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
-                            IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = "Arbeitsordner entfernen") }
-                        }
-                    }
-                    workProblem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                    OutlinedButton(onClick = {
-                        scope.launch {
-                            val path = FolderAccess.pick("Arbeitsordner für „${folder.name}“ wählen") ?: return@launch
-                            val problem = withContext(Dispatchers.IO) { WorkFolder.problem(File(path)) }
-                            workProblem = problem
-                            if (problem == null) workDir = path
-                        }
-                    }) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(if (workDir.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …")
-                    }
+                    SettingsHint("Nur die Chats in diesem Projekt durchsuchen diese Dokumente – sie liegen in der App, nicht im Projektordner.")
+                    KnowledgeList(c, folder.id)
                 }
-                Text("Projektdateien", style = MaterialTheme.typography.titleSmall)
-                SettingsHint("Nur die Chats in diesem Projekt durchsuchen diese Dokumente.")
-                KnowledgeList(c, folder.id)
             }
         },
         confirmButton = {
             TextButton(enabled = name.isNotBlank(), onClick = {
-                c.folders.update(folder.id) { it.copy(name = name.trim(), instructions = instructions.trim(), privacy = privacy, workDir = workDir.trim()) }
+                if (folder == null) {
+                    val created = Folder(name = name.trim(), instructions = instructions.trim(), privacy = privacy, workDir = workDir.trim(), workDirAccess = access)
+                    c.folders.upsert(created)
+                    onCreated(created)
+                } else {
+                    c.folders.update(folder.id) {
+                        it.copy(name = name.trim(), instructions = instructions.trim(), privacy = privacy, workDir = workDir.trim(), workDirAccess = access)
+                    }
+                }
                 onDismiss()
-            }) { Text("Speichern") }
+            }) { Text(if (folder == null) "Erstellen" else "Speichern") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
     )

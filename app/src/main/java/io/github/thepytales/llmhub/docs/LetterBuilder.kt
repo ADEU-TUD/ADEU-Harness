@@ -28,6 +28,9 @@ object LetterBuilder {
 
     fun lines(text: String): List<String> = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
+    /** "Betreff: Antrag …" → "Antrag …" (DIN 5008 has no label before the subject). */
+    fun cleanSubject(text: String): String = text.trim().replace(Regex("^(betreff|betr\\.)\\s*:\\s*", RegexOption.IGNORE_CASE), "").trim()
+
     /** An address typed in one line ("Anna Müller, Hauptstr. 1, 01069 Dresden") becomes one line per part. */
     fun addressLines(text: String): List<String> {
         val l = lines(text)
@@ -97,7 +100,7 @@ object LetterBuilder {
             }
         }
         val letter = Letter(infoLines(input.sender, input.reference).joinToString("\n"), addressLines(input.recipient).joinToString("\n"))
-        return Result(input.subject.trim(), content, letter)
+        return Result(cleanSubject(input.subject), content, letter)
     }
 
     /** Recognises the closing formula in a letter body (used by the layout to keep closing and signature together). */

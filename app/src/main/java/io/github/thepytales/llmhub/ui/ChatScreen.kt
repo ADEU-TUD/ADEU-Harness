@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MoreVert
@@ -449,6 +450,15 @@ fun ChatScreen(
                 // Shows that names and contact details leave the device only as placeholders.
                 if (settings.pseudonymize) {
                     ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
+                }
+                // The project folder (Windows): one click opens it; created files land in its "Ausgabe".
+                current.folderId?.let { c.folders.get(it) }?.takeIf { it.workDir.isNotBlank() && FolderAccess.SUPPORTED }?.let { project ->
+                    ContextChip(
+                        Icons.Outlined.FolderOpen,
+                        if (project.workDirAccess) "Projektordner" else "Projektordner · nur ${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}",
+                        { FolderAccess.open(project.workDir) },
+                        highlighted = false,
+                    )
                 }
                 // The project's data protection level (models and tools are restricted accordingly).
                 Privacy.level(c, current.folderId).takeIf { it != PrivacyLevel.OPEN }?.let { level ->

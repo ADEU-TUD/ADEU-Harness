@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.FolderSpecial
 import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Image
@@ -392,7 +393,7 @@ fun AppDrawer(
         }, onDismiss = { moveSelection = false })
     }
     if (newFolder) {
-        TextInputDialog("Neues Projekt", "", "Name", confirm = "Erstellen", onConfirm = { c.folders.upsert(Folder(name = it)) }, onDismiss = { newFolder = false })
+        ProjectDialog(c, null, onDismiss = { newFolder = false })
     }
     renameFolder?.let { f -> ProjectDialog(c, f, onDismiss = { renameFolder = null }) }
     deleteFolder?.let { f ->
@@ -506,7 +507,14 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text("Neuer Chat im Projekt") }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
-            DropdownMenuItem(text = { Text("Anweisungen & Dateien …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text("Projekt bearbeiten …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            if (folder.workDir.isNotBlank() && FolderAccess.SUPPORTED) {
+                DropdownMenuItem(
+                    text = { Text("Projektordner öffnen") },
+                    leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) },
+                    onClick = { menu = false; FolderAccess.open(folder.workDir) },
+                )
+            }
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
