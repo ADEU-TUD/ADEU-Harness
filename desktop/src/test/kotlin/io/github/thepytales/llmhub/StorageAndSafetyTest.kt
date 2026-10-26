@@ -63,11 +63,25 @@ class StorageAndSafetyTest {
         assertEquals(image, repo.get("c1")!!.messages.single().images.single())
         // Saving the light copy (e.g. after renaming from the side menu) keeps the picture.
         repo.save(repo.conversations.value.single().copy(title = "Umbenannt"))
-        delay(300)
+        repo.awaitWrites()
         val again = ChatRepository(Context(dir, File(dir, "cache")))
         again.awaitLoaded()
         assertEquals("Umbenannt", again.get("c1")!!.title)
         assertEquals(image, again.get("c1")!!.messages.single().images.single())
+    }
+
+    @Test
+    fun quickSavesNeverLeaveAnOlderVersionOnDisk() = runBlocking {
+        val dir = File(out, "quick").apply { mkdirs() }
+        val repo = ChatRepository(Context(dir, File(dir, "cache")))
+        repo.awaitLoaded()
+        val base = Conversation(id = "c3", model = "m", messages = listOf(ChatMessage(role = "user", content = "Hallo")))
+        // Like an answer streaming in while the chat is renamed: many saves right after one another.
+        for (i in 1..200) repo.save(base.copy(title = "Fassung $i"))
+        repo.awaitWrites()
+        val again = ChatRepository(Context(dir, File(dir, "cache")))
+        again.awaitLoaded()
+        assertEquals("Fassung 200", again.get("c3")!!.title)
     }
 
     @Test
