@@ -21,7 +21,8 @@ object ChartBlocks {
 
 /** Markdown tables as Excel workbook: one sheet per table, named after the heading above it; numbers stay numbers. */
 object XlsxWriter {
-    data class Sheet(val name: String, val rows: List<List<String>>)
+    /** [title] is the name formulas of other sheets use (the tab title; [name] may be shortened for Excel). */
+    data class Sheet(val name: String, val rows: List<List<String>>, val meta: SheetMeta = SheetMeta(), val title: String = name)
 
     fun sheets(title: String, markdown: String): List<Sheet> {
         val out = mutableListOf<Sheet>()
@@ -73,8 +74,160 @@ object XlsxWriter {
 
     fun write(file: File, title: String, markdown: String) = writeSheets(file, sheets(title, markdown))
 
-    /** Writes [sheets] as they are; cells starting with "=" become Excel formulas (with their computed value). */
+    /** Sheet tabs (title → Markdown with its formats) as workbook; sheet names are made valid for Excel. */
+    fun writeTabs(file: File, tabs: List<Pair<String, String>>) {
+        val used = mutableSetOf<String>()
+        writeSheets(file, tabs.map { (title, md) ->
+            var n = title.replace(Regex("[\\[\\]:*?/\\\\]"), " ").trim().trim('\'').take(31).ifBlank { "Tabelle" }
+            val base = n.take(28)
+            var k = 2
+            while (!used.add(n.lowercase())) n = "$base ${k++}"
+            Sheet(n, SheetEngine.grid(md), SheetMeta.parse(md), title)
+        })
+    }
+
+    /** Cell formats of a workbook (styles.xml): fonts, fills, number formats, cell formats and those of rules. */
+    private class Styles {
+        val fonts = mutableListOf("<font><sz val=\"11\"/><name val=\"Calibri\"/></font>")
+        val fills = mutableListOf("<fill><patternFill patternType=\"none\"/></fill>", "<fill><patternFill patternType=\"gray125\"/></fill>")
+        val numFmts = LinkedHashMap<String, Int>()
+        val xfs = mutableListOf("<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>")
+        val dxfs = mutableListOf<String>()
+        private val xfIndex = HashMap<String, Int>()
+
+        init { xf(CellStyle(), head = true, date = false) }
+
+        fun argb(hex: String) = "FF" + hex.trim().removePrefix("#").takeLast(6).uppercase()
+
+        private fun <T> index(list: MutableList<T>, v: T): Int = list.indexOf(v).takeIf { it >= 0 } ?: run { list += v; list.size - 1 }
+
+        fun numFmt(nf: String?): Int = when (nf) {
+            null, "" -> 0
+            "0" -> 1
+            "0.00" -> 2
+            "#,##0.00" -> 4
+            "0%" -> 9
+            "0.00%" -> 10
+            else -> numFmts.getOrPut(
+                when (nf) { "date" -> "dd.mm.yyyy"; "eur" -> "#,##0.00\\ \"€\""; else -> nf },
+            ) { 164 + numFmts.size }
+        }
+
+        /** Index of the cell format for [style] (head row bold with light fill; dates as dd.mm.yyyy). */
+        fun xf(style: CellStyle, head: Boolean, date: Boolean): Int {
+            val bold = style.b || head
+            val fillColor = style.fill ?: if (head) "#DCE6F5" else null
+            val nf = numFmt(style.nf ?: if (date) "date" else null)
+            val key = "$bold|${style.i}|${style.color}|$fillColor|$nf|${style.align}"
+            return xfIndex.getOrPut(key) {
+                val font = index(fonts, "<font>" + (if (bold) "<b/>" else "") + (if (style.i) "<i/>" else "") + "<sz val=\"11\"/>" +
+                    (style.color?.let { "<color rgb=\"${argb(it)}\"/>" } ?: "") + "<name val=\"Calibri\"/></font>")
+                val fill = fillColor?.let { index(fills, "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"${argb(it)}\"/><bgColor indexed=\"64\"/></patternFill></fill>") } ?: 0
+                val align = when (style.align) { "l" -> "left"; "c" -> "center"; "r" -> "right"; else -> null }
+                xfs += "<xf numFmtId=\"$nf\" fontId=\"$font\" fillId=\"$fill\" borderId=\"0\" xfId=\"0\"" +
+                    (if (nf != 0) " applyNumberFormat=\"1\"" else "") + (if (font != 0) " applyFont=\"1\"" else "") + (if (fill != 0) " applyFill=\"1\"" else "") +
+                    (if (align != null) " applyAlignment=\"1\"><alignment horizontal=\"$align\"/></xf>" else "/>")
+                xfs.size - 1
+            }
+        }
+
+        fun dxf(fill: String?, color: String?): Int = index(
+            dxfs,
+            "<dxf>" + (color?.let { "<font><color rgb=\"${argb(it)}\"/></font>" } ?: "") +
+                (fill?.let { "<fill><patternFill patternType=\"solid\"><bgColor rgb=\"${argb(it)}\"/></patternFill></fill>" } ?: "") + "</dxf>",
+        )
+
+        fun xml(): String = buildString {
+            append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">")
+            if (numFmts.isNotEmpty()) {
+                append("<numFmts count=\"${numFmts.size}\">")
+                numFmts.forEach { (code, id) -> append("<numFmt numFmtId=\"$id\" formatCode=\"${esc(code)}\"/>") }
+                append("</numFmts>")
+            }
+            append("<fonts count=\"${fonts.size}\">").append(fonts.joinToString("")).append("</fonts>")
+            append("<fills count=\"${fills.size}\">").append(fills.joinToString("")).append("</fills>")
+            append("<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>")
+            append("<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>")
+            append("<cellXfs count=\"${xfs.size}\">").append(xfs.joinToString("")).append("</cellXfs>")
+            append("<cellStyles count=\"1\"><cellStyle name=\"Standard\" xfId=\"0\" builtinId=\"0\"/></cellStyles>")
+            append("<dxfs count=\"${dxfs.size}\">").append(dxfs.joinToString("")).append("</dxfs>")
+            append("</styleSheet>")
+        }
+    }
+
+    /** A number for XML (no "1.0E7", "." as decimal point). */
+    private fun xmlNum(d: Double): String = if (d == Math.floor(d) && Math.abs(d) < 1e15) d.toLong().toString() else d.toString()
+
+    /** A value of a rule as Excel formula: number (dates as serial numbers) or text in quotes. */
+    private fun ruleValue(s: String): String = SheetEngine.numberOrDate(s)?.let(::xmlNum) ?: ("\"" + s.replace("\"", "\"\"") + "\"")
+
+    /** German error codes of the engine → Excel's. */
+    private fun excelError(code: String): String = when (code) {
+        "#NV" -> "#N/A"
+        "#WERT!" -> "#VALUE!"
+        "#BEZUG!" -> "#REF!"
+        "#ZAHL!" -> "#NUM!"
+        "#ÜBERLAUF!" -> "#SPILL!"
+        "#KALK!" -> "#CALC!"
+        "#DIV/0!", "#NAME?" -> code
+        else -> "#VALUE!"
+    }
+
+    /**
+     * Writes [sheets] as they are; cells starting with "=" become Excel formulas (with their computed value), dates
+     * date numbers. The formats, conditional formatting, filter buttons and the frozen head row of [Sheet.meta] come
+     * along; EINDEUTIG, FILTER, SORTIEREN and SEQUENZ become dynamic arrays that spill in Excel too.
+     */
     fun writeSheets(file: File, sheets: List<Sheet>) {
+        val styles = Styles()
+        val workbook = SheetEngine.Workbook(sheets.map { it.title to it.rows })
+        val rename: (String) -> String = { n -> sheets.firstOrNull { it.title.trim().equals(n.trim(), true) || it.name.equals(n.trim(), true) }?.name ?: n }
+        var dynamic = false
+        val sheetXml = sheets.mapIndexed { si, s ->
+            buildString {
+                append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">")
+                // Freeze the head row; columns about as wide as their longest text.
+                if (s.rows.size > 1 && s.meta.freeze) append("<sheetViews><sheetView workbookViewId=\"0\"><pane ySplit=\"1\" topLeftCell=\"A2\" activePane=\"bottomLeft\" state=\"frozen\"/></sheetView></sheetViews>")
+                else append("<sheetViews><sheetView workbookViewId=\"0\"/></sheetViews>")
+                val cols = s.rows.maxOfOrNull { it.size }?.coerceAtLeast(1) ?: 1
+                append("<cols>")
+                (0 until cols).forEach { c -> val w = (s.rows.maxOfOrNull { it.getOrElse(c) { "" }.length } ?: 8).coerceIn(8, 60) + 2; append("<col min=\"${c + 1}\" max=\"${c + 1}\" width=\"$w\" customWidth=\"1\"/>") }
+                append("</cols><sheetData>")
+                val engine = workbook.sheet(si)
+                val spilled = engine.spilledCells()
+                val height = maxOf(s.rows.size, (spilled.keys.maxOfOrNull { it.first } ?: -1) + 1)
+                for (r in 0 until height) {
+                    val row = s.rows.getOrNull(r).orEmpty()
+                    val columns = (row.indices + spilled.keys.filter { it.first == r }.map { it.second }).toSortedSet()
+                    if (columns.isEmpty()) continue
+                    append("<row r=\"${r + 1}\">")
+                    for (c in columns) append(cellXml(engine, styles, s, r, c, row.getOrNull(c).orEmpty(), spilled[r to c], rename) { dynamic = true })
+                    append("</row>")
+                }
+                append("</sheetData>")
+                if (s.rows.size > 1) append("<autoFilter ref=\"A1:${col(cols - 1)}${s.rows.size}\"/>")
+                var priority = 1
+                s.meta.rules.forEach { rule ->
+                    val g = SheetEngine.parseRange(rule.range) ?: return@forEach
+                    val sqref = SheetEngine.rangeRef(g[0], g[1], g[2], g[3])
+                    val first = SheetEngine.ref(g[0], g[1])
+                    val cf = when (rule.op) {
+                        "lt", "gt", "eq" -> "<cfRule type=\"cellIs\" dxfId=\"${styles.dxf(rule.fill, rule.color)}\" priority=\"${priority++}\" operator=\"" +
+                            mapOf("lt" to "lessThan", "gt" to "greaterThan", "eq" to "equal")[rule.op] + "\"><formula>${esc(ruleValue(rule.a))}</formula></cfRule>"
+                        "between" -> "<cfRule type=\"cellIs\" dxfId=\"${styles.dxf(rule.fill, rule.color)}\" priority=\"${priority++}\" operator=\"between\">" +
+                            "<formula>${esc(ruleValue(rule.a))}</formula><formula>${esc(ruleValue(rule.b))}</formula></cfRule>"
+                        "contains" -> "<cfRule type=\"containsText\" dxfId=\"${styles.dxf(rule.fill, rule.color)}\" priority=\"${priority++}\" operator=\"containsText\" text=\"${esc(rule.a)}\">" +
+                            "<formula>${esc("NOT(ISERROR(SEARCH(\"" + rule.a.replace("\"", "\"\"") + "\"," + first + ")))")}</formula></cfRule>"
+                        "scale" -> "<cfRule type=\"colorScale\" priority=\"${priority++}\"><colorScale><cfvo type=\"min\"/><cfvo type=\"max\"/>" +
+                            "<color rgb=\"${styles.argb(rule.fill)}\"/><color rgb=\"${styles.argb(rule.fill2 ?: "#63BE7B")}\"/></colorScale></cfRule>"
+                        else -> null
+                    } ?: return@forEach
+                    append("<conditionalFormatting sqref=\"$sqref\">$cf</conditionalFormatting>")
+                }
+                append("<pageMargins left=\"0.7\" right=\"0.7\" top=\"0.787\" bottom=\"0.787\" header=\"0.3\" footer=\"0.3\"/>")
+                append("</worksheet>")
+            }
+        }
         ZipOutputStream(file.outputStream()).use { zip ->
             fun entry(name: String, text: String) { zip.putNextEntry(ZipEntry(name)); zip.write(text.toByteArray(Charsets.UTF_8)); zip.closeEntry() }
             entry("[Content_Types].xml", buildString {
@@ -82,6 +235,7 @@ object XlsxWriter {
                 append("<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/>")
                 append("<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>")
                 append("<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>")
+                if (dynamic) append("<Override PartName=\"/xl/metadata.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml\"/>")
                 sheets.indices.forEach { append("<Override PartName=\"/xl/worksheets/sheet${it + 1}.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>") }
                 append("</Types>")
             })
@@ -89,51 +243,76 @@ object XlsxWriter {
             entry("xl/_rels/workbook.xml.rels", buildString {
                 append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">")
                 sheets.indices.forEach { append("<Relationship Id=\"rId${it + 1}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet${it + 1}.xml\"/>") }
+                if (dynamic) append("<Relationship Id=\"rIdM\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata\" Target=\"metadata.xml\"/>")
                 append("<Relationship Id=\"rIdS\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>")
             })
             entry("xl/workbook.xml", buildString {
                 append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>")
                 sheets.forEachIndexed { i, s -> append("<sheet name=\"${esc(s.name)}\" sheetId=\"${i + 1}\" r:id=\"rId${i + 1}\"/>") }
-                append("</sheets></workbook>")
+                append("</sheets>")
+                // Hidden names of the filter ranges, as Excel writes them.
+                val filters = sheets.mapIndexedNotNull { i, s ->
+                    if (s.rows.size > 1) i to "${SheetEngine.quoteSheet(s.name)}!\$A\$1:\$${col((s.rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1) - 1)}\$${s.rows.size}" else null
+                }
+                if (filters.isNotEmpty()) {
+                    append("<definedNames>")
+                    filters.forEach { (i, ref) -> append("<definedName name=\"_xlnm._FilterDatabase\" localSheetId=\"$i\" hidden=\"1\">${esc(ref)}</definedName>") }
+                    append("</definedNames>")
+                }
+                append("<calcPr calcId=\"191029\" fullCalcOnLoad=\"1\"/></workbook>")
             })
-            // Style 1: bold head row with light fill.
-            entry("xl/styles.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
-                "<fonts count=\"2\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font><font><b/><sz val=\"11\"/><name val=\"Calibri\"/></font></fonts>" +
-                "<fills count=\"3\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill><fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFDCE6F5\"/></patternFill></fill></fills>" +
-                "<borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf/></cellStyleXfs>" +
-                "<cellXfs count=\"2\"><xf fontId=\"0\" fillId=\"0\"/><xf fontId=\"1\" fillId=\"2\" applyFont=\"1\" applyFill=\"1\"/></cellXfs></styleSheet>")
-            sheets.forEachIndexed { si, s ->
-                entry("xl/worksheets/sheet${si + 1}.xml", buildString {
-                    append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">")
-                    // Freeze the head row; columns about as wide as their longest text.
-                    if (s.rows.size > 1) append("<sheetViews><sheetView workbookViewId=\"0\"><pane ySplit=\"1\" topLeftCell=\"A2\" activePane=\"bottomLeft\" state=\"frozen\"/></sheetView></sheetViews>")
-                    val cols = s.rows.maxOfOrNull { it.size } ?: 1
-                    append("<cols>")
-                    (0 until cols).forEach { c -> val w = (s.rows.maxOfOrNull { it.getOrElse(c) { "" }.length } ?: 8).coerceIn(8, 60) + 2; append("<col min=\"${c + 1}\" max=\"${c + 1}\" width=\"$w\" customWidth=\"1\"/>") }
-                    append("</cols><sheetData>")
-                    val engine = SheetEngine.Sheet(s.rows)
-                    s.rows.forEachIndexed { r, row ->
-                        append("<row r=\"${r + 1}\">")
-                        row.forEachIndexed { c, v ->
-                            val ref = col(c) + (r + 1)
-                            val head = r == 0 && s.rows.size > 1
-                            val n = if (head) null else number(v)
-                            if (!head && v.trim().startsWith("=") && v.trim().length > 1) {
-                                val f = esc(SheetEngine.toExcel(v))
-                                when (val result = engine.value(r, c)) {
-                                    is SheetEngine.Value.Num -> append("<c r=\"$ref\"><f>$f</f><v>${result.v}</v></c>")
-                                    is SheetEngine.Value.Bool -> append("<c r=\"$ref\" t=\"b\"><f>$f</f><v>${if (result.v) 1 else 0}</v></c>")
-                                    else -> append("<c r=\"$ref\" t=\"str\"><f>$f</f><v>${esc(SheetEngine.format(result))}</v></c>")
-                                }
-                            } else if (n != null) append("<c r=\"$ref\"><v>$n</v></c>")
-                            else append("<c r=\"$ref\" t=\"inlineStr\"${if (head) " s=\"1\"" else ""}><is><t xml:space=\"preserve\">${esc(v)}</t></is></c>")
-                        }
-                        append("</row>")
-                    }
-                    append("</sheetData>")
-                    if (s.rows.size > 1) append("<autoFilter ref=\"A1:${col(cols - 1)}${s.rows.size}\"/>")
-                    append("</worksheet>")
-                })
+            entry("xl/styles.xml", styles.xml())
+            if (dynamic) {
+                entry(
+                    "xl/metadata.xml",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<metadata xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:xda=\"http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray\">" +
+                        "<metadataTypes count=\"1\"><metadataType name=\"XLDAPR\" minSupportedVersion=\"120000\" copy=\"1\" pasteAll=\"1\" pasteValues=\"1\" merge=\"1\" splitFirst=\"1\" rowColShift=\"1\" clearFormats=\"1\" clearComments=\"1\" assign=\"1\" coerce=\"1\" cellMeta=\"1\"/></metadataTypes>" +
+                        "<futureMetadata name=\"XLDAPR\" count=\"1\"><bk><extLst><ext uri=\"{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}\"><xda:dynamicArrayProperties fDynamic=\"1\" fCollapsed=\"0\"/></ext></extLst></bk></futureMetadata>" +
+                        "<cellMetadata count=\"1\"><bk><rc t=\"1\" v=\"0\"/></bk></cellMetadata></metadata>",
+                )
+            }
+            sheetXml.forEachIndexed { i, x -> entry("xl/worksheets/sheet${i + 1}.xml", x) }
+        }
+    }
+
+    /** One `<c>` element: formula (dynamic array if it spills), date, number, text or a value spilled into it. */
+    private fun cellXml(
+        engine: SheetEngine.Sheet, styles: Styles, s: Sheet, r: Int, c: Int, v: String, spilled: SheetEngine.Value?,
+        rename: (String) -> String, onDynamic: () -> Unit,
+    ): String {
+        val ref = col(c) + (r + 1)
+        val head = r == 0 && s.rows.size > 1
+        val style = s.meta.style(r, c) ?: CellStyle()
+        fun st(date: Boolean): String = styles.xf(style, head, date).let { if (it == 0) "" else " s=\"$it\"" }
+        fun inline(text: String) = "<c r=\"$ref\" t=\"inlineStr\"${st(false)}><is><t xml:space=\"preserve\">${esc(text)}</t></is></c>"
+        fun plain(value: SheetEngine.Value): String = when (value) {
+            is SheetEngine.Value.Num -> "<c r=\"$ref\"${st(value.date)}><v>${xmlNum(value.v)}</v></c>"
+            is SheetEngine.Value.Bool -> "<c r=\"$ref\" t=\"b\"${st(false)}><v>${if (value.v) 1 else 0}</v></c>"
+            is SheetEngine.Value.Text -> if (value.v.isEmpty()) "" else inline(value.v)
+            else -> "<c r=\"$ref\" t=\"str\"${st(false)}><v>${esc(SheetEngine.format(value))}</v></c>"
+        }
+        val t = v.trim()
+        return when {
+            t.startsWith("=") && t.length > 1 -> {
+                val f = esc(SheetEngine.toExcel(v, rename))
+                val result = engine.value(r, c)
+                val fn = Regex("^=\\s*([\\p{L}_.]+)\\s*\\(").find(t)?.groupValues?.get(1)?.let(SheetEngine::excelName)
+                val size = engine.spillSize(r, c)?.takeIf { fn in SheetEngine.DYNAMIC }
+                if (size != null) onDynamic()
+                val formula = if (size != null) "<f t=\"array\" ref=\"$ref:${col(c + size.second - 1)}${r + size.first}\">$f</f>" else "<f>$f</f>"
+                val cm = if (size != null) " cm=\"1\"" else ""
+                when (result) {
+                    is SheetEngine.Value.Num -> "<c r=\"$ref\"${st(result.date)}$cm>$formula<v>${xmlNum(result.v)}</v></c>"
+                    is SheetEngine.Value.Bool -> "<c r=\"$ref\" t=\"b\"${st(false)}$cm>$formula<v>${if (result.v) 1 else 0}</v></c>"
+                    is SheetEngine.Value.Err -> "<c r=\"$ref\" t=\"e\"${st(false)}$cm>$formula<v>${esc(excelError(result.code))}</v></c>"
+                    else -> "<c r=\"$ref\" t=\"str\"${st(false)}$cm>$formula<v>${esc(SheetEngine.format(result))}</v></c>"
+                }
+            }
+            t.isEmpty() -> spilled?.let(::plain) ?: if (!style.isEmpty) "<c r=\"$ref\"${st(false)}/>" else ""
+            else -> {
+                val lit = SheetEngine.literal(t)
+                // The head row keeps numbers as text (column names), but dates become dates.
+                if (lit is SheetEngine.Value.Text || head && !(lit is SheetEngine.Value.Num && lit.date)) inline(v) else plain(lit)
             }
         }
     }
