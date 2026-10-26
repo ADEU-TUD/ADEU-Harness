@@ -187,6 +187,8 @@ object PiiDetector {
             "((?:[$UPPER]\\.\\s?)?$WORD(?:[ \\t]+(?:von|van|de|zu|vom)?[ \\t]*$WORD){0,3})[ \\t]*(?:,.*)?$"
     )
     private val MAIL_HEADER = Regex("(?im)^[ \\t]*(?:von|from|an|to|cc|bcc|absender|empfänger|gesendet von|antwort an|reply-to)[ \\t]*:[ \\t]*(.+)$")
+    private val FAMOUS_PATTERN by lazy { Regex("(?<![$LETTERS])(?:" + FAMOUS.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) } + ")(?![$LETTERS])") }
+
     /** Endings of nouns that are no names ("Didaktik", "Schulleitung", "Jugendamt"), unless the word is a known name. */
     private val NOUN_ENDING = Regex(".+(?:ung|heit|keit|schaft|ik|tät|ion|ismus|ium|ur|amt|team|rat|wesen|stelle|leitung|gruppe|ei|ität|ologie|ie)")
 
@@ -217,6 +219,28 @@ object PiiDetector {
         "Services", "Union", "Life", "Center", "Card", "Housing", "Didaktik", "Fachdidaktik", "Erziehungswissenschaft", "Kollegium",
         "Schulleitung", "Klassenleitung", "Elternrat", "Elternvertretung", "Förderverein", "Personalrat", "Arbeitsgruppe", "Arbeitsbereich",
         "Forschungsgruppe", "Orga", "Hausmeister", "Hausmeisterin", "Bescheid", "Geburtstag", "Feedback", "Termin", "Unterricht",
+        "Dein", "Deine", "Ihr", "Ihre", "Euer", "Eure", "Unser", "Unsere", "Mein", "Meine",
+    )
+
+    /**
+     * Well-known people of science, education, culture and politics: their names are no personal data of a third party
+     * and the model needs them ("nach Max Weber"). The own list still wins.
+     */
+    private val FAMOUS = setOf(
+        "Max Weber", "Maria Montessori", "Martin Luther", "Martin Luther King", "Karl Marx", "Wilhelm von Humboldt", "Alexander von Humboldt",
+        "Johann Heinrich Pestalozzi", "Friedrich Fröbel", "Jean Piaget", "John Dewey", "Paulo Freire", "Hannah Arendt", "Theodor Adorno",
+        "Jürgen Habermas", "Niklas Luhmann", "Pierre Bourdieu", "Wolfgang Klafki", "Hilbert Meyer", "John Hattie", "Albert Einstein",
+        "Johann Wolfgang", "Friedrich Schiller", "Immanuel Kant", "Sigmund Freud", "Anna Freud", "Angela Merkel", "Olaf Scholz",
+        "Friedrich Merz", "Lev Vygotsky", "Lew Wygotski", "Benjamin Bloom", "Albert Bandura", "Burrhus Skinner", "Erik Erikson",
+        "Lawrence Kohlberg", "Howard Gardner", "Jerome Bruner", "Robert Gagné", "Klaus Hurrelmann", "Andreas Helmke", "Hans Aebli",
+        "Heinrich Roth", "Hartmut von Hentig", "Ewald Terhart", "Mats Alvesson", "Thomas Kuhn", "Karl Popper", "Max Planck",
+        "Marie Curie", "Charles Darwin", "Isaac Newton", "Ludwig van Beethoven", "Johann Sebastian Bach", "Wolfgang Amadeus Mozart",
+        "Anne Frank", "Sophie Scholl", "Hans Scholl", "Willy Brandt", "Helmut Kohl", "Helmut Schmidt", "Konrad Adenauer",
+        "Frank-Walter Steinmeier", "Ursula von der Leyen", "Emmanuel Macron", "Barack Obama", "Donald Trump", "Joe Biden",
+        "Leonardo da Vinci", "Rosa Luxemburg", "Bertolt Brecht", "Thomas Mann", "Heinrich Heine", "Franz Kafka", "Hermann Hesse",
+        "Erich Kästner", "Astrid Lindgren", "Michael Ende", "Otfried Preußler", "Cornelia Funke", "Jean-Jacques Rousseau", "John Locke",
+        "Georg Wilhelm Friedrich Hegel", "Friedrich Nietzsche", "Martin Heidegger", "Ludwig Wittgenstein", "Simone de Beauvoir",
+        "Judith Butler", "Michel Foucault", "Klaus Mollenhauer", "Dietrich Benner", "Wolfgang Schulz", "Paul Heimann", "Gunter Otto",
     )
 
     private val INSTITUTION_WORDS = setOf(
@@ -329,7 +353,8 @@ object PiiDetector {
             PROFILE.findAll(text).forEach { hits += PiiHit(it.value.trimEnd('.', ',', ';', ':'), PiiKind.LINK) }
             IP.findAll(src).forEach { m ->
                 val parts = m.value.split('.').map { it.toInt() }
-                if (parts.first() > 0 && parts.max() >= 10) hits += PiiHit(m.value, PiiKind.IP)
+                // "2.4.10.1" is a chapter, "192.168.10.24" an address.
+                if (parts.first() >= 10) hits += PiiHit(m.value, PiiKind.IP)
             }
             HANDLE.findAll(text).forEach { m -> if (m.groupValues[1].lowercase() !in CODE_AT) hits += PiiHit("@" + m.groupValues[1], PiiKind.HANDLE) }
         }
@@ -427,7 +452,12 @@ object PiiDetector {
                 if (chain.isNotEmpty()) nameWords(chain, PiiKind.NAME)
                 chain = mutableListOf()
             }
+            val famous = FAMOUS_PATTERN.findAll(src).map { it.range }.toList()
             for ((i, w) in words.withIndex()) {
+                if (famous.any { w.range.first in it }) {
+                    flush()
+                    continue
+                }
                 val adjacent = i > 0 && src.substring(words[i - 1].range.last + 1, w.range.first).let { it.isNotEmpty() && it.isBlank() && '\n' !in it }
                 val value = w.value
                 when {
@@ -526,8 +556,13 @@ object PiiDetector {
 
     private fun cap(s: String) = s.replaceFirstChar { it.uppercase() }
 
-    private fun isFirst(w: String) = w in Names.first || deTranslit(w) in Names.first
-    private fun isLast(w: String) = w in Names.last || deTranslit(w) in Names.last
+    /** Also double names: "Anna-Lena", "Ben-Luca" (all parts first names). */
+    private fun isFirst(w: String): Boolean = w in Names.first || deTranslit(w) in Names.first ||
+        '-' in w && w.split('-').let { p -> p.size == 2 && p.all { it in Names.first || deTranslit(it) in Names.first } }
+
+    /** Also double surnames: "Schulz-Wagner" (one part a surname). */
+    private fun isLast(w: String): Boolean = w in Names.last || deTranslit(w) in Names.last ||
+        '-' in w && w.split('-').let { p -> p.size == 2 && p.any { it in Names.last || deTranslit(it) in Names.last } }
 
     private fun luhn(number: String): Boolean {
         val digits = number.filter { it.isDigit() }

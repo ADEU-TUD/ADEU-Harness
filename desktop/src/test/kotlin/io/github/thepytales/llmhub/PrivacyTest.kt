@@ -228,4 +228,17 @@ class PrivacyTest {
         assertEquals(listOf("Jolin Quandel", "Ylvi Wiesenhütter"), NameList.parse("1. Jolin Quandel\n2. Ylvi Wiesenhütter\n\n"))
         assertEquals("A\nB", NameList.merge("A", listOf("a", "B")))
     }
+
+    @Test
+    fun noFalseAlarmsInEverydayTexts() {
+        listOf(
+            "Max Weber prägte den Begriff der Bürokratie. Laut Piaget entwickeln Kinder Schemata. Im Mai 2025 war die Tagung.",
+            "fun main() {\n    @Suppress(\"UNUSED\")\n    val x = listOf(1, 2, 3)\n}\n@dataclass\nclass Foo: pass",
+            "- Termin am 12.03.2026 um 14:00 Uhr in Raum 0.12\n- Budget: 1.234,56 €\n- Version 2.1.3, Abschnitt 2.4.10.1",
+            "Liebe Eltern,\nam Freitag ist Wandertag.\n\nMit freundlichen Grüßen\nIhre Klassenleitung",
+            "Heute hat die Schülerin die Aufgabe gelöst. Der Lehrer Mathematik unterrichtet. ISBN 978-3-16-148410-0, DOI 10.1000/182.",
+        ).forEach { t -> assertTrue(PiiDetector.find(t).isEmpty(), "$t → ${PiiDetector.find(t)}") }
+        val hits = PiiDetector.find("Anna-Lena und Ben-Luca haben Ole geholfen. Emma Schulz-Wagner kommt.").map { it.value }
+        listOf("Anna-Lena", "Ben-Luca", "Ole", "Emma Schulz-Wagner").forEach { assertTrue(it in hits, "$it fehlt: $hits") }
+    }
 }
