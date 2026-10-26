@@ -13,6 +13,11 @@ data class Folder(
     val instructions: String = "",
     /** Where the data of this project may go (chats, files, transcription). */
     val privacy: PrivacyLevel = PrivacyLevel.OPEN,
+    /**
+     * Working folder on this PC (Windows), e.g. in Google Drive, OneDrive or on a network drive: files the model
+     * creates in the project's chats are saved there, and the agent may read and write in it. Empty = none.
+     */
+    val workDir: String = "",
 )
 
 /**
@@ -114,6 +119,14 @@ data class TemplateDraft(
     val templateId: String,
     val values: Map<String, String> = emptyMap(),
     val updatedAt: Long = System.currentTimeMillis(),
+)
+
+/** What was sent earlier in template fields with this label (e.g. "Veranstaltung"), newest first; offered again as suggestion. */
+@Serializable
+data class FieldHistory(
+    /** Field label in lower case, so "Veranstaltung" of different templates shares its entries. */
+    val label: String,
+    val values: List<String> = emptyList(),
 )
 
 /** A text block the user inserts often (greeting, signature, standard instruction); also as /Name in the input field. */

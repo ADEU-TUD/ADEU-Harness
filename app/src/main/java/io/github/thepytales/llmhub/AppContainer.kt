@@ -64,6 +64,10 @@ class AppContainer(context: Context) {
     val memory = ListStore<MemoryEntry>(FileBackend(File(files, "memory.json")), MemoryEntry.serializer(), { it.id })
     /** Text blocks for the input field (Kurztexte). */
     val snippets = ListStore<Snippet>(FileBackend(File(files, "snippets.json")), Snippet.serializer(), { it.id })
+    /** Earlier values of template fields, for the suggestions in the forms. */
+    val fieldHistory = ListStore<io.github.thepytales.llmhub.data.FieldHistory>(
+        FileBackend(File(files, "field_history.json")), io.github.thepytales.llmhub.data.FieldHistory.serializer(), { it.label },
+    )
     /** Unsent text per chat. */
     val chatDrafts = ListStore<ChatDraft>(FileBackend(File(files, "chat_drafts.json")), ChatDraft.serializer(), { it.chatId })
     /** Template forms typed but not sent yet. */
@@ -84,6 +88,15 @@ class AppContainer(context: Context) {
     val models = ModelsRepository(llm, settings)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
+
+    init {
+        // Editor documents of a project with a working folder live there as Markdown (like an own storage location).
+        documentTools.projectVault = { id ->
+            io.github.thepytales.llmhub.agent.WorkFolder.of(this, id)
+                ?.takeIf { (_, dir) -> io.github.thepytales.llmhub.agent.WorkFolder.problem(dir) == null }
+                ?.let { (folder, dir) -> docs.addVault("Projekt ${folder.name}", dir.path, makeDefault = false).id }
+        }
+    }
     /** Own templates; the built-in ones come from [TemplateLibrary]. */
     val templates = ListStore<Template>(FileBackend(File(files, "templates.json")), Template.serializer(), { it.id })
         .also(TemplateLibrary::removeLegacyDefaults)

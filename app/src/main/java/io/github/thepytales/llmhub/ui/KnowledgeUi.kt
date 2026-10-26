@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +46,11 @@ import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Folder
 import io.github.thepytales.llmhub.data.MemoryEntry
 import io.github.thepytales.llmhub.data.MemoryMode
+import io.github.thepytales.llmhub.agent.WorkFolder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 /** Einstellungen › Gedächtnis: what the model may note and what it noted. */
 @Composable
@@ -70,6 +77,14 @@ fun MemorySection(c: AppContainer) {
                 }
             }
         }
+    }
+    SettingsCard("Vorschläge in Formularen") {
+        SwitchRow(
+            "Vorschläge aus meinem Wissen",
+            "Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, " +
+                "Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.",
+            s.formSuggestions,
+        ) { v -> c.settings.update { it.copy(formSuggestions = v) } }
     }
     SettingsCard("Gemerkt (${entries.size})") {
         if (entries.isEmpty()) SettingsHint("Noch nichts. Sagen Sie im Chat z.B. „Merk dir, dass ich im Master Allgemeine Didaktik unterrichte.“")
@@ -158,6 +173,9 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
     var name by remember(folder.id) { mutableStateOf(folder.name) }
     var instructions by remember(folder.id) { mutableStateOf(folder.instructions) }
     var privacy by remember(folder.id) { mutableStateOf(folder.privacy) }
+    var workDir by remember(folder.id) { mutableStateOf(folder.workDir) }
+    var workProblem by remember(folder.id) { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Projekt") },
@@ -181,6 +199,36 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
                         TitleBlock(level.label, level.description, Modifier.weight(1f))
                     }
                 }
+                Text("Arbeitsordner", style = MaterialTheme.typography.titleSmall)
+                if (!FolderAccess.SUPPORTED) {
+                    SettingsHint("Einen Arbeitsordner auf dem Rechner gibt es in der Windows-Version (und in Chrome/Edge in der Browserversion). Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
+                } else {
+                    SettingsHint(
+                        "Dateien, die die KI in diesem Projekt erstellt (PDF, Word, PowerPoint, Excel …), legt die App zusätzlich hier ab – z. B. in " +
+                            "Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. Der Agent kann im Ordner auch lesen und schreiben, " +
+                            "Dokumente aus dem Editor liegen dort als Markdown.",
+                    )
+                    if (workDir.isNotBlank()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(workDir, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { FolderAccess.open(workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
+                            IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = "Arbeitsordner entfernen") }
+                        }
+                    }
+                    workProblem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+                    OutlinedButton(onClick = {
+                        scope.launch {
+                            val path = FolderAccess.pick("Arbeitsordner für „${folder.name}“ wählen") ?: return@launch
+                            val problem = withContext(Dispatchers.IO) { WorkFolder.problem(File(path)) }
+                            workProblem = problem
+                            if (problem == null) workDir = path
+                        }
+                    }) {
+                        Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(if (workDir.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …")
+                    }
+                }
                 Text("Projektdateien", style = MaterialTheme.typography.titleSmall)
                 SettingsHint("Nur die Chats in diesem Projekt durchsuchen diese Dokumente.")
                 KnowledgeList(c, folder.id)
@@ -188,7 +236,7 @@ fun ProjectDialog(c: AppContainer, folder: Folder, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(enabled = name.isNotBlank(), onClick = {
-                c.folders.update(folder.id) { it.copy(name = name.trim(), instructions = instructions.trim(), privacy = privacy) }
+                c.folders.update(folder.id) { it.copy(name = name.trim(), instructions = instructions.trim(), privacy = privacy, workDir = workDir.trim()) }
                 onDismiss()
             }) { Text("Speichern") }
         },

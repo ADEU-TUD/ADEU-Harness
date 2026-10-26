@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Stop
@@ -33,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -44,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,6 +64,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.ChatMessage
+import io.github.thepytales.llmhub.data.FileAttachment
 import io.github.thepytales.llmhub.data.ModelCatalog
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.thread
@@ -74,7 +78,7 @@ import kotlinx.coroutines.launch
 /** Requests about a document to the model: in the document's chat (with tools), or directly for a passage. */
 object DocsAi {
     /** Sends [text] to the model in the document's chat (creating one if needed); it changes the document with its tools. */
-    fun send(c: AppContainer, doc: LiveDoc, label: String, text: String, instructions: String): Boolean {
+    fun send(c: AppContainer, doc: LiveDoc, label: String, text: String, instructions: String, files: List<FileAttachment> = emptyList()): Boolean {
         val existing = doc.chatId?.let { id -> c.runs.get(id)?.conversation?.value ?: c.chats.get(id) }
         if (existing != null && c.runs.get(existing.id) != null) {
             Notices.info("Die KI arbeitet gerade an diesem Dokument – bitte kurz warten.")
@@ -82,7 +86,7 @@ object DocsAi {
         }
         val base = existing ?: newConversation(c).copy(title = "${doc.docKind.label}: ${doc.title}".take(60), folderId = null)
         if (existing == null) c.docs.save(doc.copy(chatId = base.id))
-        val conv = base.appendToThread(ChatMessage(role = "user", content = text, template = label, instructions = instructions))
+        val conv = base.appendToThread(ChatMessage(role = "user", content = text, template = label, instructions = instructions, files = files))
         c.chats.save(conv.copy(updatedAt = System.currentTimeMillis()))
         c.runs.start(conv)
         return true
@@ -127,6 +131,19 @@ object DocsAi {
         }
         tabTitle?.let { if (doc.tabs.size > 1) append("Der Nutzer sieht gerade den Tab „$it“. ") }
         selection?.takeIf { it.isNotBlank() }?.let { append("Er hat diese Stelle markiert (darauf bezieht sich die Bitte): <<<${it.take(4000)}>>> ") }
+    }
+
+    /** Added to [instructions] when the user attached own material (PDFs, presentations …) to the request. */
+    fun materialInstructions(doc: LiveDoc, files: List<FileAttachment>): String = buildString {
+        append("Der Nutzer hat eigenes Material angehängt (").append(files.joinToString(", ") { it.name }).append("). ")
+        append("Nutze es als inhaltliche Grundlage: übernimm Aussagen, Begriffe, Zahlen und Quellen daraus, erfinde nichts hinzu und ")
+        append("nenne bei Zitaten die Quelle. ")
+        if (doc.docKind == DocKind.SLIDES) {
+            append("Bei angehängten Präsentationen sind die Folien mit ihren Titeln und Notizen gekennzeichnet – behalte deren Reihenfolge ")
+            append("und Kernaussagen bei, wenn der Nutzer nichts anderes sagt, verteile lange Textstellen aus PDFs auf mehrere Folien ")
+            append("mit kurzen Stichpunkten und schreibe die Details in die Sprechernotizen. ")
+        }
+        if (files.any { it.truncated }) append("Hinweis: Mindestens eine Datei war sehr lang und wurde gekürzt eingelesen. ")
     }
 
     fun commentInstructions(doc: LiveDoc, comment: DocComment): String =
@@ -273,6 +290,28 @@ fun rememberInlineAi(c: AppContainer): InlineAiRunner {
     return remember { InlineAiRunner(c, scope) }
 }
 
+/** Quick requests when own files are attached, per kind of document. */
+private fun materialActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
+    DocKind.SLIDES -> listOf(
+        "Folien aus den Dateien" to "Erstelle aus den angehängten Dateien eine vollständige Präsentation im TUD-Design (ersetze die bisherigen " +
+            "Platzhalterfolien): Titelfolie, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, Tabellen " +
+            "und Zitate, wo sie im Material stehen, eine Abschlussfolie; zu jeder Folie Sprechernotizen aus dem Material.",
+        "Ins TUD-Design übertragen" to "Übertrage die angehängte Präsentation Folie für Folie in diese Präsentation – gleiche Reihenfolge, " +
+            "gleiche Inhalte, aber in die Folientypen der App (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat); Notizen bleiben Notizen.",
+        "Folien ergänzen" to "Ergänze die vorhandenen Folien mit passenden Inhalten aus den angehängten Dateien (neue Folien, wo nötig); " +
+            "Vorhandenes bleibt erhalten.",
+        "Zusammenfassen" to "Fasse die angehängten Dateien auf 3–5 Folien zusammen (Kernaussagen, wichtigste Zahlen, Fazit).",
+    )
+    DocKind.SHEET -> listOf(
+        "Tabellen übernehmen" to "Übernimm die Tabellen und Zahlen aus den angehängten Dateien in diese Tabelle (ein Tab je Tabelle).",
+    )
+    else -> listOf(
+        "Aus den Dateien schreiben" to "Schreibe auf Grundlage der angehängten Dateien einen vollständigen Text passend zum Titel.",
+        "Zusammenfassen" to "Fasse die angehängten Dateien zusammen und setze die Zusammenfassung ins Dokument.",
+        "Einarbeiten" to "Arbeite die wichtigsten Inhalte der angehängten Dateien an passender Stelle ins Dokument ein.",
+    )
+}
+
 /** Quick requests offered in the assistant panel, per kind of document. */
 private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
     DocKind.MARKDOWN -> listOf(
@@ -330,6 +369,9 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
     val pending = run?.pending?.collectAsState()?.value
     val working = run != null
     var input by remember { mutableStateOf("") }
+    /** Own material for the next request (PDF, PowerPoint, Word …), read like a chat attachment. */
+    val material = remember(doc.id) { mutableStateListOf<FileAttachment>() }
+    val pickMaterial = rememberDocumentPicker { f -> if (material.none { it.name == f.name }) material += f }
     val messages = conv?.thread().orEmpty().filter { (it.role == "user" || it.role == "assistant") && splitThinking(it.content).second.isNotBlank() }
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size, messages.lastOrNull()?.content?.length) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex) }
@@ -337,7 +379,12 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
     fun ask(text: String, label: String = "Im Editor") {
         if (text.isBlank()) return
         val sel = selection()
-        if (DocsAi.send(c, doc, label, text, DocsAi.instructions(doc, tabTitle, sel))) input = ""
+        val files = material.toList()
+        val instructions = DocsAi.instructions(doc, tabTitle, sel) + if (files.isNotEmpty()) DocsAi.materialInstructions(doc, files) else ""
+        if (DocsAi.send(c, doc, label, text, instructions, files)) {
+            input = ""
+            material.clear()
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -364,6 +411,10 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     HintText("Tipp: Text markieren und ✨ wählen, um nur eine Stelle zu ändern.")
+                    HintText(
+                        if (doc.docKind == DocKind.SLIDES) "Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI macht daraus Folien oder überträgt sie ins TUD-Design."
+                        else "Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI arbeitet sie ins Dokument ein.",
+                    )
                 }
             }
             items(messages, key = { it.id }) { m ->
@@ -401,9 +452,25 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 }
             }
         }
-        // Quick requests.
+        if (material.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                material.forEach { f ->
+                    InputChip(
+                        selected = false,
+                        onClick = { material.remove(f) },
+                        label = { Text(f.name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 180.dp)) },
+                        leadingIcon = { Icon(Icons.Outlined.AttachFile, null, Modifier.size(14.dp)) },
+                        trailingIcon = { Icon(Icons.Outlined.Close, contentDescription = "Entfernen", modifier = Modifier.size(14.dp)) },
+                    )
+                }
+            }
+        }
+        // Quick requests (with attached material first those that use it).
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            quickActions(doc.docKind).forEach { (label, text) ->
+            (if (material.isNotEmpty()) materialActions(doc.docKind) + quickActions(doc.docKind) else quickActions(doc.docKind)).forEach { (label, text) ->
                 AssistChip(
                     onClick = { ask(text, label) }, enabled = !working,
                     label = { Text(label) },
@@ -413,6 +480,9 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
             }
         }
         Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.Bottom) {
+            IconButton(onClick = pickMaterial, enabled = !working) {
+                Icon(Icons.Outlined.AttachFile, contentDescription = "Eigene Dateien anhängen (PDF, PowerPoint, Word …)")
+            }
             OutlinedTextField(
                 input, { input = it },
                 placeholder = { Text(if (selection().isNullOrBlank()) "Was soll die KI schreiben oder ändern?" else "Was soll mit der Markierung passieren?") },
@@ -424,8 +494,8 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
             )
             Spacer(Modifier.size(6.dp))
             if (working) IconButton(onClick = { c.runs.stop(doc.chatId!!) }) { Icon(Icons.Outlined.Stop, contentDescription = "Anhalten") }
-            else IconButton(onClick = { ask(input) }, enabled = input.isNotBlank()) {
-                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Senden", tint = if (input.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+            else IconButton(onClick = { ask(input.ifBlank { "Arbeite die angehängten Dateien hier ein." }) }, enabled = input.isNotBlank() || material.isNotEmpty()) {
+                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Senden", tint = if (input.isNotBlank() || material.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
             }
         }
     }

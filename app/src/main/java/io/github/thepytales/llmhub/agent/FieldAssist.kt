@@ -42,7 +42,14 @@ enum class AssistMode(val label: String, val instruction: String) {
 
 /** Rewrites the content of one template field with the model (the ✨ button in the form). */
 object FieldAssist {
-    fun prompt(template: Template, field: TemplateField, values: Map<String, String>, mode: AssistMode, custom: String = ""): List<ChatMessage> {
+    fun prompt(
+        template: Template,
+        field: TemplateField,
+        values: Map<String, String>,
+        mode: AssistMode,
+        custom: String = "",
+        about: List<String> = emptyList(),
+    ): List<ChatMessage> {
         val letterBody = template.direct == "letter" && !field.isAddress && !field.isSender && field.multiline
         val system = buildString {
             append("Du hilfst beim Ausfüllen eines Formulars in einer App der Professur für Allgemeine Didaktik und Empirische ")
@@ -61,6 +68,10 @@ object FieldAssist {
                 append("\n\nAndere Angaben im Formular:\n")
                 others.forEach { (k, v) -> append("- ").append(k).append(": ").append(v.trim().replace("\n", " / ")).append('\n') }
             }
+            if (about.isNotEmpty()) {
+                append("\nWas über den Nutzer bekannt ist (nur verwenden, wenn es zum Feld passt):\n")
+                about.forEach { append("- ").append(it).append('\n') }
+            }
             append("\nFeld „").append(field.label).append("“")
             if (field.hint.isNotBlank()) append(" (Hinweis: ").append(field.hint).append(")")
             val current = values[field.label].orEmpty().trim()
@@ -70,6 +81,11 @@ object FieldAssist {
         }
         return listOf(ChatMessage(role = "system", content = system), ChatMessage(role = "user", content = user))
     }
+
+    /** Memory entries (unless switched off) – so "Vorschlag schreiben" knows e.g. the own courses. */
+    private fun about(c: AppContainer): List<String> =
+        if (io.github.thepytales.llmhub.data.MemoryMode.of(c.settings.current.memoryMode) == io.github.thepytales.llmhub.data.MemoryMode.OFF) emptyList()
+        else c.memory.current.map { it.text }.take(40)
 
     /** Cleans the answer: no reasoning, no code fences, no surrounding quotes or "<<<" markers. */
     fun clean(answer: String): String {
@@ -90,7 +106,7 @@ object FieldAssist {
     ): String {
         val result = c.llm.streamChat(
             model = c.settings.current.defaultModel,
-            messages = prompt(template, field, values, mode, custom),
+            messages = prompt(template, field, values, mode, custom, about(c)),
             tools = null,
             thinking = ThinkingLevel.OFF,
         ) { }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +45,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -69,6 +71,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.agent.AssistMode
 import io.github.thepytales.llmhub.agent.FieldAssist
+import io.github.thepytales.llmhub.agent.FieldSuggestion
+import io.github.thepytales.llmhub.agent.FieldSuggestions
 import io.github.thepytales.llmhub.data.Contact
 import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateCategory
@@ -233,6 +237,27 @@ fun TemplateFillDialog(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val contacts by c.contacts.items.collectAsStateWithLifecycle()
+    /** Suggestions per field: from earlier entries and the address book, then what the model finds in memory and knowledge. */
+    val suggestions = remember(template.id) { mutableStateMapOf<String, List<FieldSuggestion>>() }
+    var suggesting by remember { mutableStateOf(false) }
+
+    LaunchedEffect(template.id) {
+        if (!c.settings.current.formSuggestions) return@LaunchedEffect
+        suggestions.putAll(FieldSuggestions.local(c, template, values.toMap()))
+        if (!FieldSuggestions.hasKnowledge(c)) return@LaunchedEffect
+        suggesting = true
+        try {
+            FieldSuggestions.fromKnowledge(c, template, values.toMap()).forEach { (label, found) ->
+                suggestions[label] = (found + suggestions[label].orEmpty()).distinctBy { it.text.trim() }.take(5)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            io.github.thepytales.llmhub.ErrorLog.record("Vorschläge für Vorlage", e)
+        } finally {
+            suggesting = false
+        }
+    }
 
     // Keeps the typed text as draft, so leaving the app or closing the form loses nothing.
     LaunchedEffect(template.id) {
@@ -273,6 +298,7 @@ fun TemplateFillDialog(
         val text = result()
         val map = values.toMap()
         c.drafts.delete(template.id)
+        if (send) FieldSuggestions.remember(c, template, map)
         if (send) onSend(text, map) else onInsert(text)
         onDismiss()
     }
@@ -299,7 +325,20 @@ fun TemplateFillDialog(
                         canUndo = undo.containsKey(f.label),
                         onUndo = { undo.remove(f.label)?.let { values[f.label] = it } },
                         onAssist = { mode -> if (mode == AssistMode.CUSTOM) customFor = f else assist(f, mode) },
+                        suggestions = suggestions[f.label].orEmpty().filter { it.text.trim() != values[f.label].orEmpty().trim() },
+                        onSuggestion = { text ->
+                            undo[f.label] = values[f.label].orEmpty()
+                            values[f.label] = text
+                            if (f == required) missing = false
+                        },
                     )
+                }
+                if (suggesting) {
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.size(8.dp))
+                        Text("Suche Vorschläge in Gedächtnis und Wissenssammlung …", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
                 if (sender.isBlank() && fields.any { it.isSender }) {
                     Text(
@@ -374,6 +413,8 @@ private fun TemplateFieldInput(
     canUndo: Boolean,
     onUndo: () -> Unit,
     onAssist: (AssistMode) -> Unit,
+    suggestions: List<FieldSuggestion> = emptyList(),
+    onSuggestion: (String) -> Unit = {},
 ) {
     var menu by remember { mutableStateOf(false) }
     var book by remember { mutableStateOf(false) }
@@ -445,6 +486,27 @@ private fun TemplateFieldInput(
             },
             modifier = Modifier.fillMaxWidth(),
         )
+        if (suggestions.isNotEmpty() && !working) {
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = "Vorschläge", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                suggestions.forEach { sg ->
+                    SuggestionChip(
+                        onClick = { onSuggestion(sg.text) },
+                        enabled = enabled,
+                        label = {
+                            Column(Modifier.widthIn(max = 260.dp)) {
+                                Text(sg.text.lines().filter { it.isNotBlank() }.joinToString(" · "), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(sg.source, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                    )
+                }
+            }
+        }
         if (canUndo && !working) {
             Text(
                 "↶ Rückgängig",

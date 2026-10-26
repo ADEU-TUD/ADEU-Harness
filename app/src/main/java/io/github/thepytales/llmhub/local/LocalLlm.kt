@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -67,12 +69,24 @@ class LocalLlm(private val c: AppContainer) {
 
     init {
         refresh()
-        scope.launch { _hardware.value = runCatching { LlamaHost.hardware(c, root) }.logFailure("Hardware erkennen").getOrNull() }
+        scope.launch { _hardware.value = detectHardware() }
         // Leftover server of an earlier run (app killed): stop it.
         scope.launch { LlamaHost.killStale(root) }
     }
 
     fun file(m: LocalModel) = File(modelsDir, m.file)
+
+    /**
+     * The full check (Windows: registry and system functions via JNA) runs in the background and gets
+     * [HARDWARE_TIMEOUT_MS]; on PCs where IT rules block or slow it down, the basic details of Java are used instead,
+     * so the screen never stays at "wird geprüft".
+     */
+    private suspend fun detectHardware(): Hardware {
+        val full = scope.async { runCatching { LlamaHost.hardware(c, root) }.logFailure("Hardware erkennen").getOrNull() }
+        return withTimeoutOrNull(HARDWARE_TIMEOUT_MS) { full.await() }
+            ?: runCatching { LlamaHost.basicHardware(c, root) }.logFailure("Hardware (einfach) erkennen").getOrNull()
+            ?: Hardware(phone = false, ramGb = 8.0, cores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1), limited = true)
+    }
 
     private fun refresh() {
         val installed = LocalCatalog.models.filter { file(it).let { f -> f.isFile && f.length() == it.size } }.map { it.id }.toSet()
@@ -215,7 +229,7 @@ class LocalLlm(private val c: AppContainer) {
         stopLocked()
         if (m.id !in _state.value.installed) error("${m.name} ist nicht installiert (Einstellungen › Modelle auf diesem Gerät).")
         val bin = LlamaHost.binary(c, root) ?: error("Das Programm für lokale Modelle fehlt (Einstellungen › Modelle auf diesem Gerät › Installieren).")
-        val hw = _hardware.value ?: LlamaHost.hardware(c, root).also { _hardware.value = it }
+        val hw = _hardware.value ?: detectHardware().also { _hardware.value = it }
         val port = ServerSocket(0).use { it.localPort }
         val key = UUID.randomUUID().toString()
         val gpu = hw.vramGb >= 4 && m.needGb <= hw.vramGb * 0.92
@@ -295,5 +309,6 @@ class LocalLlm(private val c: AppContainer) {
     companion object {
         const val LOCAL_PROVIDER_ID = "local-device"
         private const val IDLE_MS = 10 * 60_000L
+        private const val HARDWARE_TIMEOUT_MS = 8_000L
     }
 }

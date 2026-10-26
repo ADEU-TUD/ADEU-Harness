@@ -79,16 +79,26 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
 
     override fun parallelSafe(name: String) = name in setOf("list_local_files", "read_local_file", "search_local_files")
 
-    fun prompt(): String = buildString {
+    /** Shared folders plus the working folder of the chat's project, if it has one. */
+    private fun available(folderId: String?): List<LocalFolder> {
+        val project = WorkFolder.of(c, folderId)?.let { (f, dir) -> LocalFolder(id = "project-${f.id}", name = "Projekt ${f.name}", path = dir.path) }
+        return listOfNotNull(project) + c.localFolders.current.filter { project == null || File(it.path).absoluteFile != File(project.path).absoluteFile }
+    }
+
+    fun prompt(folderId: String? = null): String = buildString {
         append("Der Nutzer hat Ordner auf diesem PC freigegeben – du kannst darin mit list_local_files, read_local_file, search_local_files ")
         append("lesen und mit write_local_file, edit_local_file, move_local_file, delete_local_file und copy_document_to_folder arbeiten. ")
         append("Verschaffe dir zuerst einen Überblick, bevor du etwas änderst, und nenne am Ende, welche Dateien du angelegt oder geändert hast. ")
         append("Freigegebene Ordner:\n")
-        c.localFolders.current.forEach { f -> append("- „${f.name}“ (${f.path})").append(if (f.write) "" else " – nur lesen").append('\n') }
+        available(folderId).forEach { f -> append("- „${f.name}“ (${f.path})").append(if (f.write) "" else " – nur lesen").append('\n') }
+        WorkFolder.of(c, folderId)?.let { (f, _) ->
+            append("„Projekt ${f.name}“ ist der Arbeitsordner dieses Projekts (Standard, wenn der Nutzer keinen anderen Ordner nennt); ")
+            append("Dateien, die du mit create_document erstellst, legt die App dort automatisch ab.\n")
+        }
     }
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = withContext(Dispatchers.IO) {
-        val folder = folder(args.s("folder"))
+        val folder = folder(args.s("folder"), ctx.folderId)
         val root = File(folder.path).canonicalFile
         if (!root.isDirectory) throw IllegalArgumentException("Der Ordner „${folder.name}“ (${folder.path}) ist nicht erreichbar.")
         if (defs.first { it.name == name }.writes && !folder.write) throw IllegalArgumentException("Der Ordner „${folder.name}“ ist nur zum Lesen freigegeben.")
@@ -129,9 +139,9 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         }
     }
 
-    private fun folder(name: String?): LocalFolder {
-        val all = c.localFolders.current
-        if (all.isEmpty()) throw IllegalArgumentException("Es ist kein Ordner freigegeben (Einstellungen › Lokale Ordner).")
+    private fun folder(name: String?, folderId: String?): LocalFolder {
+        val all = available(folderId)
+        if (all.isEmpty()) throw IllegalArgumentException("Es ist kein Ordner freigegeben (Einstellungen › Lokale Ordner oder Arbeitsordner des Projekts).")
         val wanted = name?.trim()?.takeIf { it.isNotEmpty() } ?: return all.first()
         return all.firstOrNull { it.name.equals(wanted, true) } ?: all.firstOrNull { it.path.equals(wanted, true) || File(it.path).name.equals(wanted, true) }
             ?: throw IllegalArgumentException("Ordner „$wanted“ ist nicht freigegeben. Freigegeben: ${all.joinToString { "„${it.name}“" }}.")
