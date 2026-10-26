@@ -421,6 +421,28 @@ Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workfl
 `ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
 weitergeben.
 
+### Neue Version veröffentlichen (Kurzanleitung, auch für KI-Assistenten)
+
+1. Änderungen per Pull Request nach `main`; PR-Check grün, dann mergen.
+2. *Actions › Build & Release (Android + Windows) › Run workflow* auf `main` starten mit
+   - **version**: letzte Version + 1 – nachsehen unter
+     [Updater-Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest), z. B. `38` für 1.0.38. Nie leer
+     lassen: Dann nimmt der Workflow die Laufnummer, die kleiner ist, und Android installiert die APK nicht als Update.
+   - **notes**: „Was ist neu“ in 1–3 kurzen Sätzen für Nutzer:innen ohne Technikkenntnisse (steht im Update-Popup).
+
+   KI-Assistenten: GitHub-MCP `actions_run_trigger`, Methode `run_workflow`, `workflow_id: android.yml`, `ref: main`,
+   `inputs: {"version": "38", "notes": "…"}`; Lauf mit `actions_list`/`actions_get` verfolgen.
+3. Der Workflow (ca. 15 Min.) baut, testet (Emulator, Windows-Selbsttest), legt hier ein Release an und veröffentlicht
+   APK, Windows-ZIP/-EXE und `version.json` im öffentlichen Repo `ADEU-TUD/ADEU-Harness-Updater` (Schritt „Für
+   automatische Updates veröffentlichen“, Secret `UPDATER_TOKEN`).
+4. Prüfen: `https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` zeigt die neue
+   Version – ab dann fragen die Apps beim Start.
+5. Schlug nur das Veröffentlichen fehl (z. B. Token abgelaufen): Token erneuern, Secret `UPDATER_TOKEN` ersetzen,
+   dann *Actions › Update veröffentlichen* mit derselben Version und denselben notes – baut nicht neu.
+
+Der Token in `UPDATER_TOKEN` (Fine-grained, Resource owner ADEU-TUD, *Contents: Read and write* auf
+`ADEU-Harness-Updater`) läuft am **24.01.2027** ab – vorher neu erstellen und das Secret ersetzen.
+
 ### Automatische Updates
 
 Neue Versionen erscheinen im **öffentlichen** Repository
@@ -463,31 +485,6 @@ Version neuer als die installierte, erscheint ein Popup mit „Was ist neu“, *
 **Erste Verteilung:** Versionen bis 1.0.36 kennen die Update-Suche noch nicht. Die erste Version mit Updater muss also
 noch einmal von Hand auf die Rechner (USB-Stick, wie bisher, oder die EXE/APK aus den Releases) – danach aktualisieren
 sich die Apps selbst. Die Versionsnummer muss immer größer sein als die installierte.
-
-## Browserversion
-
-Unter `web/` liegt eine Browserversion für alle, die die App nicht installieren können oder wollen – reines HTML und
-JavaScript ohne Build-Schritt, veröffentlicht über GitHub Pages (`.github/workflows/pages.yml`, einmalig *Settings ›
-Pages › Source: GitHub Actions* wählen; danach unter `https://<organisation>.github.io/<repository>/`). Sie lässt sich
-auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt, den Ordner `web/` zu kopieren.
-
-- Spricht direkt mit `https://llm.scads.ai/v1` (der Server erlaubt Browser-Anfragen); der API-Schlüssel bleibt im
-  Browser (lokaler Speicher) und geht nur an diesen Server. Kein eigener Server dazwischen.
-- Chat mit Streaming, Gedankengang, Modellauswahl wie in der App (empfohlene Modelle + Liste des Servers), Chats und
-  Projekte mit Anweisungen (in IndexedDB des Browsers), Gedächtnis und Absenderangaben, Sicherung als JSON.
-- Anhänge: PDF (Text), Word, PowerPoint (mit Folientiteln und Notizen), Excel, OpenDocument, Text, Bilder; per 📎,
-  Ziehen oder Einfügen.
-- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt wie in
-  der App einen Projektordner (auch Google Drive, OneDrive oder ein Netzlaufwerk); was die KI erstellt, landet im
-  Unterordner `Ausgabe`, und „KI darf die Dateien im Ordner lesen“ lässt sich abschalten (dann sieht sie nur `Ausgabe`).
-  Dazu ein Standard-Ordner für Chats ohne Projekt. Der Agent hat dort `list_files`, `read_file` und `write_file`; Word
-  (.docx) und Excel (.xlsx, je Tabelle ein Blatt) entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf
-  ausdrücklichen Wunsch, `..` ist gesperrt.
-  Nach einem Neustart des Browsers fragt dieser einmal nach („Zugriff erlauben“). Firefox und Safari kennen die
-  Schnittstelle nicht – dort werden Dateien heruntergeladen.
-- Jede Antwort lässt sich kopieren, als Word, Excel (Tabellen), Markdown oder per Drucken als PDF speichern.
-- Nicht im Browser (bleibt in der App): Transkription, lokale Modelle, TUD-Briefe und -Präsentationen mit Logo,
-  Pseudonymisierung, Wissenssammlung mit semantischer Suche, GitHub-Werkzeuge, geplante Aufgaben, Websuche.
 
 ## Windows (portabel, ohne Admin-Rechte)
 
@@ -685,7 +682,6 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
 | `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
-| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Projekt- und Standard-Ordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
 | `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |

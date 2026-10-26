@@ -31,6 +31,11 @@ class ChatRepository(context: Context) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val writeLock = Mutex()
+    /**
+     * Newest version of each chat that still has to be written. The write jobs of [save] may run in any order; each
+     * one writes what is newest then, so an older version can never overwrite a newer one on disk.
+     */
+    private val pending = HashMap<String, Conversation>()
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     /** All chats, newest first, with images replaced by [IMAGE_STUB] (see [get] for a full chat). */
@@ -79,6 +84,7 @@ class ChatRepository(context: Context) {
     fun get(id: String): Conversation? {
         synchronized(full) { full[id] }?.let { return it }
         if (_conversations.value.none { it.id == id }) return null
+        synchronized(pending) { pending[id] }?.let { return it }
         val loaded = readFile(File(dir, "$id.json")) ?: return _conversations.value.firstOrNull { it.id == id }?.takeIf { !it.hasStubs() }
         synchronized(full) { full[id] = loaded }
         return loaded
@@ -90,17 +96,26 @@ class ChatRepository(context: Context) {
         _conversations.update { list ->
             (list.filterNot { it.id == complete.id } + complete.light()).sortedByDescending { it.updatedAt }
         }
-        scope.launch {
-            writeLock.withLock {
-                runCatching { AtomicFiles.write(File(dir, "${complete.id}.json"), json.encodeToString(Conversation.serializer(), complete)) }
-                    .logFailure("Chat speichern")
-            }
-        }
+        synchronized(pending) { pending[complete.id] = complete }
+        scope.launch { writeLock.withLock { write(complete.id) } }
+    }
+
+    /** Writes the newest version of [id] if it was not written yet (call with [writeLock]). */
+    private fun write(id: String) {
+        val c = synchronized(pending) { pending.remove(id) } ?: return
+        runCatching { AtomicFiles.write(File(dir, "$id.json"), json.encodeToString(Conversation.serializer(), c)) }
+            .logFailure("Chat speichern")
+    }
+
+    /** Returns when everything saved so far is on disk. */
+    suspend fun awaitWrites() = writeLock.withLock {
+        synchronized(pending) { pending.keys.toList() }.forEach(::write)
     }
 
     /** Puts the images of the stored version back where [c] only has stubs. */
     private fun restoreImages(c: Conversation): Conversation {
-        val stored = (synchronized(full) { full[c.id] } ?: readFile(File(dir, "${c.id}.json")))?.messages?.associateBy { it.id }.orEmpty()
+        val stored = (synchronized(full) { full[c.id] } ?: synchronized(pending) { pending[c.id] } ?: readFile(File(dir, "${c.id}.json")))
+            ?.messages?.associateBy { it.id }.orEmpty()
         return c.copy(messages = c.messages.map { m ->
             if (m.images.none { it == IMAGE_STUB }) m
             else m.copy(images = stored[m.id]?.images?.takeIf { it.size == m.images.size } ?: m.images.filter { it != IMAGE_STUB })
@@ -121,6 +136,8 @@ class ChatRepository(context: Context) {
         synchronized(full) { full.remove(id) }
         scope.launch {
             writeLock.withLock {
+                // A save still waiting goes to the trash with the chat (and cannot bring the file back afterwards).
+                write(id)
                 val f = File(dir, "$id.json")
                 trash.mkdirs()
                 if (f.isFile && !f.renameTo(File(trash, "$id.json"))) f.delete()
