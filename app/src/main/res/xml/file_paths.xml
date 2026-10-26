@@ -8,4 +8,6 @@
     <cache-path name="camera" path="camera/" />
     <!-- Generated pictures (Bilder erzeugen) -->
     <files-path name="images" path="images/" />
+    <!-- Downloaded updates (APK for the system installer) -->
+    <cache-path name="updates" path="updates/" />
 </paths>

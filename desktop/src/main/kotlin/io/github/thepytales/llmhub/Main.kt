@@ -47,6 +47,8 @@ import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
 import io.github.thepytales.llmhub.ui.StartAnimation
 import io.github.thepytales.llmhub.ui.Navigation
+import io.github.thepytales.llmhub.update.UpdateApply
+import io.github.thepytales.llmhub.update.Updates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -54,10 +56,15 @@ import java.awt.datatransfer.DataFlavor
 import java.io.File
 import kotlin.system.exitProcess
 
-/** Windows entry point. Flags: --minimized (autostart into the notification area), --selftest <folder> (CI). */
+/**
+ * Windows entry point. Flags: --minimized (autostart into the notification area), --selftest <folder> (CI),
+ * --apply-update … (second half of an update, see UpdateApply).
+ */
 fun main(args: Array<String>) {
+    if (args.firstOrNull() == UpdateApply.FLAG) UpdateApply.run(args)
     val selfTest = args.indexOf("--selftest").takeIf { it >= 0 }?.let { File(args.getOrNull(it + 1) ?: "selftest").absoluteFile }
     if (selfTest != null) {
+        Updates.disabled = true
         selfTest.mkdirs()
         System.setProperty("adeu.data", File(selfTest, "data").absolutePath)
     }

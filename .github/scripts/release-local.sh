@@ -10,6 +10,8 @@
 #
 # Usage: .github/scripts/release-local.sh <version-code> <template-windows.zip>
 #   e.g. .github/scripts/release-local.sh 26 ADEU-LLM-1.0.25-Windows.zip
+# With PUBLISH=1 (and UPDATE_NOTES="Was ist neu") the result goes straight to the public update repository, from
+# where the apps update themselves (.github/scripts/publish-update.sh, needs "gh auth login").
 # Needs JDK 17+, the Android SDK with NDK (local.properties with sdk.dir, or ANDROID_HOME), git and CMake (for the
 # local language models, see app/llama.gradle.kts) and internet access for the speech libraries.
 set -euo pipefail
@@ -69,3 +71,11 @@ unzip -p "$jars/$skiko_new" skiko-windows-x64.dll.sha256 | cmp -s - "$app/skiko-
 rm -f "$dist/ADEU-LLM-$VERSION_NAME-Windows.zip"
 (cd "$work" && zip -q -r -9 "$dist/ADEU-LLM-$VERSION_NAME-Windows.zip" "ADEU LLM")
 ls -l "$dist"
+
+if [ "${PUBLISH:-}" = "1" ]; then
+  "$root/.github/scripts/publish-update.sh" "$VERSION_NAME" "$dist"
+else
+  echo
+  echo "Als automatisches Update veröffentlichen (Apps fragen dann beim Start):"
+  echo "  .github/scripts/publish-update.sh $VERSION_NAME dist \"Was ist neu …\""
+fi

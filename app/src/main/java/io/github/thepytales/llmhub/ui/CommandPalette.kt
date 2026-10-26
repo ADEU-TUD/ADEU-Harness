@@ -77,6 +77,7 @@ val SETTINGS_INDEX = listOf(
     Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
     Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
     Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
+    Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */

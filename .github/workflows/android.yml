@@ -11,6 +11,10 @@ on:
         description: 'Versionsnummer (z.B. 27 für 1.0.27); leer = Laufnummer. Muss größer sein als die installierte Version.'
         required: false
         default: ''
+      notes:
+        description: 'Was ist neu? Erscheint im Update-Hinweis der Apps (kurz, für Nutzer:innen ohne Technikkenntnisse).'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -175,10 +179,18 @@ jobs:
           path: selftest/
 
   # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
+  # Normal releases also go to the public update repository, from where the apps update themselves.
   release:
     needs: [smoke-test, windows]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          sparse-checkout: |
+            .github/scripts
+            .github/updater
+
       - uses: actions/download-artifact@v4
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}
@@ -202,8 +214,24 @@ jobs:
             FLAGS="--prerelease"
           fi
           gh release create "v${VERSION_NAME}" "ADEU-LLM-${VERSION_NAME}.apk" \
-            "ADEU-LLM-${VERSION_NAME}-Windows.exe" \
+            "ADEU-LLM-${VERSION_NAME}-Windows.exe" "ADEU-LLM-${VERSION_NAME}-Windows.zip" \
             --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes "$NOTES" \
             $FLAGS
+
+      # The apps check https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json at
+      # every start. Needs the secret UPDATER_TOKEN (README › Automatische Updates); without it this step only warns.
+      - name: Für automatische Updates veröffentlichen
+        if: github.ref_name == github.event.repository.default_branch || startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.UPDATER_TOKEN }}
+          UPDATE_NOTES: ${{ inputs.notes }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::Secret UPDATER_TOKEN fehlt – die Version erscheint nicht als automatisches Update (README › Automatische Updates)."
+            exit 0
+          fi
+          mkdir -p dist
+          cp "ADEU-LLM-${VERSION_NAME}.apk" "ADEU-LLM-${VERSION_NAME}-Windows.zip" "ADEU-LLM-${VERSION_NAME}-Windows.exe" dist/
+          bash src/.github/scripts/publish-update.sh "$VERSION_NAME" dist

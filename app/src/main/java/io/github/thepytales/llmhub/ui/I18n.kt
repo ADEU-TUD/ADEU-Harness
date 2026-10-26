@@ -72,6 +72,7 @@ object I18n {
         "Papierkorb" to "Trash",
         "Lokale Ordner" to "Local folders",
         "Speicherorte" to "Storage locations",
+        "Updates" to "Updates",
         "Sprache der Oberfläche" to "Interface language",
         "Stil" to "Style",
         "Helligkeit" to "Brightness",

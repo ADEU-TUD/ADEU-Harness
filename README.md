@@ -384,8 +384,10 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
    (z.B. Xiaomi, Oppo/OnePlus/Realme, Huawei) beenden Apps zusätzlich – dort in den Akku-Einstellungen der App
    „Hintergrundaktivität erlauben“ bzw. „Nicht optimieren“ wählen.
 
-Updates lassen sich direkt über die alte Version installieren – API-Key, GitHub-Token, Einstellungen und Chats bleiben
-dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+Updates kommen von selbst: Gibt es eine neue Version, fragt die App beim Start („Jetzt aktualisieren“), lädt die APK und
+öffnet den Installationsdialog von Android („Aktualisieren“ tippen; beim ersten Mal einmalig „Apps aus dieser Quelle
+zulassen“). API-Key, GitHub-Token, Einstellungen und Chats bleiben dabei erhalten – nur beim Deinstallieren gehen sie
+verloren. Siehe *Automatische Updates*.
 
 ### Release über ADEU-TUD/Test
 
@@ -419,6 +421,47 @@ Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workfl
 `ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
 weitergeben.
 
+### Automatische Updates
+
+Neue Versionen erscheinen im **öffentlichen** Repository
+[ADEU-TUD/ADEU-Harness-Updater](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases) – dort liegen nur die
+fertigen Dateien (`version.json`, Windows-ZIP und -EXE, APK), kein Code. Die Apps lesen bei jedem Start (und alle sechs
+Stunden im Infobereich)
+`https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` – ein einfacher Download ohne
+GitHub-Konto und ohne das API-Limit von 60 Anfragen pro Stunde, das sich ein ganzes Uni-Netz teilen würde. Ist die
+Version neuer als die installierte, erscheint ein Popup mit „Was ist neu“, *Jetzt aktualisieren* und *Später*
+(*Später* fragt beim nächsten Start wieder). Die Datei wird mit ihrer SHA-256-Prüfsumme aus `version.json` geprüft.
+*Einstellungen › Updates* zeigt die Version, sucht auf Knopfdruck und lässt die automatische Suche abschalten.
+
+- **Windows** (`desktop/…/update/`): Die ZIP wird in den Unterordner `.update` des App-Ordners geladen und dort entpackt –
+  von Java geschrieben, also ohne „Mark of the Web“, an der SmartScreen heruntergeladene Programme blockiert. Danach
+  startet die neue `ADEU LLM.exe` mit `--apply-update`, die App beendet sich, die neue Version wartet darauf, legt die
+  alten Dateien nach `.update-alt`, kopiert die neuen an dieselbe Stelle und startet die App neu. Kein `cmd.exe`, keine
+  PowerShell, keine Admin-Rechte; der Pfad bleibt gleich, also funktionieren Verknüpfungen, das Symbol in der Taskleiste
+  und „Mit Windows starten“ weiter. Geht etwas schief, kommen die alten Dateien zurück und die bisherige Version startet
+  (Protokoll: `%LOCALAPPDATA%\ADEU LLM\update.log`). Ist der App-Ordner schreibgeschützt (von der IT installiert), sagt
+  das Popup das und verweist auf die Download-Seite.
+- **Android**: APK in den Cache laden, prüfen, Installationsdialog öffnen (`REQUEST_INSTALL_PACKAGES`, über den
+  vorhandenen FileProvider). Android fragt bei jedem Update einmal nach.
+- **Ohne GitHub** (Firewall): Unter *Einstellungen › Updates › Update-Quelle* einen Ordner eintragen, z. B.
+  `\\server\freigabe\ADEU-Update`, in dem die Dateien eines Releases liegen. Für alle PCs auf einmal: eine Datei
+  `update-quelle.txt` mit diesem Pfad neben `ADEU LLM.exe` legen (bleibt bei Updates erhalten). Den Ordner füllt
+  `NO_UPLOAD=1 .github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"` (schreibt `version.json` in `dist/`).
+
+**Einmalig einrichten:**
+1. Das Repository `ADEU-TUD/ADEU-Harness-Updater` bleibt öffentlich (Releases privater Repositories lassen sich ohne
+   Konto nicht herunterladen).
+2. Einen *Fine-grained personal access token* anlegen (GitHub › Settings › Developer settings): *Resource owner*
+   ADEU-TUD, *Repository access* nur `ADEU-Harness-Updater`, *Permissions › Contents: Read and write*. Ihn hier unter
+   *Settings › Secrets and variables › Actions* als `UPDATER_TOKEN` speichern.
+3. Ab dann veröffentlicht *Actions › Build & Release › Run workflow* (Feld „Was ist neu?“ ausfüllen) jede Version von
+   `main` zusätzlich als Update. Lokal: `PUBLISH=1 UPDATE_NOTES="Was ist neu" .github/scripts/release-local.sh 37 …`
+   oder danach `.github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"` (braucht `gh auth login`).
+
+**Erste Verteilung:** Versionen bis 1.0.36 kennen die Update-Suche noch nicht. Die erste Version mit Updater muss also
+noch einmal von Hand auf die Rechner (USB-Stick, wie bisher, oder die EXE/APK aus den Releases) – danach aktualisieren
+sich die Apps selbst. Die Versionsnummer muss immer größer sein als die installierte.
+
 ## Browserversion
 
 Unter `web/` liegt eine Browserversion für alle, die die App nicht installieren können oder wollen – reines HTML und
@@ -447,7 +490,8 @@ auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt
 Dieselbe App gibt es als portable Windows-Version – gleiche Funktionen, gleicher Code (Kotlin/Compose Desktop) und die
 Java-Laufzeit ist eingebaut. Nichts muss installiert werden, Admin-Rechte sind nicht nötig.
 
-1. Unter **Releases** `ADEU-LLM-x.y.z-Windows.exe` herunterladen und doppelklicken.
+1. Unter **[Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest)** `ADEU-LLM-x.y.z-Windows.exe`
+   herunterladen und doppelklicken. Spätere Versionen installiert die App selbst (*Automatische Updates*).
    Beim ersten Start einer Version entpackt sie sich einmalig (wenige Sekunden) nach `%LOCALAPPDATA%\ADEU LLM\app`;
    danach startet sie sofort. Zeigt Windows „Der Computer wurde durch Windows geschützt“ (die Datei ist nicht signiert):
    *Weitere Informationen* › *Trotzdem ausführen*.
@@ -635,6 +679,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
+| `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
 | `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Arbeitsordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
