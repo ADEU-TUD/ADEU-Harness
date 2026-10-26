@@ -152,6 +152,9 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
             items(tasks, key = { it.id }) { t ->
                 val lastChat = t.lastChatId?.let { id -> chats.firstOrNull { it.id == id } }
                 val failed = t.lastStatus != null && t.lastStatus != "Erfolgreich"
+                // The switch follows the click right away instead of waiting for the list to come back from the store
+                // (on Windows it sometimes only did after leaving the screen); a new stored value takes over again.
+                var enabled by remember(t.id, t.enabled) { mutableStateOf(t.enabled) }
                 Surface(
                     color = LocalChatLook.current.card,
                     shape = RoundedCornerShape(20.dp),
@@ -169,14 +172,17 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            Switch(checked = t.enabled, onCheckedChange = { on ->
-                                val updated = t.copy(enabled = on)
-                                val next = TaskScheduler.schedule(context, updated)
-                                c.tasks.upsert(updated.copy(nextRunAt = next))
+                            Switch(checked = enabled, onCheckedChange = { on ->
+                                enabled = on
+                                // From the stored task, not from [t]: a run that just finished must not be undone.
+                                c.tasks.update(t.id) { cur ->
+                                    val updated = cur.copy(enabled = on)
+                                    updated.copy(nextRunAt = TaskScheduler.schedule(context, updated))
+                                }
                             })
                         }
                         Text(
-                            if (t.enabled) "Nächste Ausführung: ${formatTime(t.nextRunAt)}" else "Pausiert – läuft nur über „Jetzt ausführen“",
+                            if (enabled) "Nächste Ausführung: ${formatTime(t.nextRunAt ?: t.nextRun())}" else "Pausiert – läuft nur über „Jetzt ausführen“",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
@@ -253,7 +259,13 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
 
     fun save() {
         val next = TaskScheduler.schedule(context, task)
-        c.tasks.upsert(task.copy(nextRunAt = next))
+        // A run that finished while the form was open keeps its result.
+        val stored = c.tasks.get(task.id)
+        val merged = if (stored == null) task else task.copy(
+            lastRunAt = stored.lastRunAt, lastStatus = stored.lastStatus, lastChatId = stored.lastChatId,
+            folderId = stored.folderId ?: task.folderId,
+        )
+        c.tasks.upsert(merged.copy(nextRunAt = next))
         if (task.notify) askNotifications()
         Notices.info(if (next != null) "Gespeichert – nächste Ausführung: ${formatTime(next)}" else "Gespeichert (pausiert).")
         onBack()

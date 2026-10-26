@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.HorizontalDivider
@@ -90,6 +91,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "backup" -> "Sicherung & Umzug"
     "trash" -> "Papierkorb"
     "transcription" -> "Transkription"
+    "updates" -> "Updates"
     else -> "Einstellungen"
 }
 
@@ -210,6 +212,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             ).takeIf { FolderAccess.SUPPORTED },
             SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
             SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
+            SettingsItem("settings/updates", Icons.Outlined.SystemUpdate, "Updates", updateSummary()),
         ),
         onNavigate,
     )
@@ -218,6 +221,19 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+/** Version and what the last update check found, for the settings overview. */
+@Composable
+private fun updateSummary(): String {
+    val state by io.github.thepytales.llmhub.update.Updates.state.collectAsStateWithLifecycle()
+    val version = "Version ${BuildConfig.VERSION_NAME}"
+    return when (val s = state) {
+        is io.github.thepytales.llmhub.update.Updates.State.Available -> "$version · Neue Version ${s.info.version} verfügbar"
+        is io.github.thepytales.llmhub.update.Updates.State.Ready -> "$version · ${s.info.version} bereit zum Installieren"
+        io.github.thepytales.llmhub.update.Updates.State.UpToDate -> "$version · aktuell"
+        else -> "$version · automatisch beim Start"
+    }
 }
 
 /** Avatar and first name: used for the greeting and the profile in the side menu. */

@@ -108,6 +108,9 @@ interface ToolProvider {
     /** What this call changes, or null if it only reads (then it never needs the user's OK). */
     fun risk(name: String, args: JsonObject): Risk? = null
 
+    /** Like [risk], for providers whose answer depends on the chat (e.g. its project folder). */
+    fun risk(name: String, args: JsonObject, ctx: RepoContext): Risk? = risk(name, args)
+
     /** Whether the call only reads and may run at the same time as other such calls of the same answer. */
     fun parallelSafe(name: String): Boolean = false
 }

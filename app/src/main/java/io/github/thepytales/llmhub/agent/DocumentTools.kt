@@ -368,7 +368,7 @@ class DocumentTools(
      * Builds the document of a template marked as direct (the letter) from its fields, without the model.
      * Returns the arguments (shown in the chat as create_document call, so the model can change it later) and the result.
      */
-    suspend fun createDirect(kind: String, values: Map<String, String>): Pair<JsonObject, ToolOutput> {
+    suspend fun createDirect(kind: String, values: Map<String, String>, ctx: RepoContext? = null): Pair<JsonObject, ToolOutput> {
         require(kind == "letter") { "Unbekannte Vorlage: $kind" }
         fun v(vararg keys: String) = keys.firstNotNullOfOrNull { k -> values[k]?.trim()?.takeIf { it.isNotEmpty() } }.orEmpty()
         val built = LetterBuilder.build(
@@ -390,7 +390,7 @@ class DocumentTools(
             put("letter_recipient", built.letter.recipient)
             if (built.title.isNotEmpty()) put("file_name", "Brief – " + built.title.take(60))
         }
-        return args to create(args, checks = false)
+        return args to create(args, checks = false, ctx = ctx)
     }
 
     private fun newFile(base: String, ext: String): File {
@@ -670,15 +670,25 @@ class DocumentTools(
 
     /** Fills in open placeholders of [file] with the user's values and renders it again in place. */
     suspend fun fillPlaceholders(file: File, values: Map<String, String>): File {
-        val source = DocumentSources.load(file) ?: throw IllegalStateException("Zu diesem Dokument ist keine Quelle gespeichert.")
+        val origin = origin(file)
+        val source = DocumentSources.load(origin) ?: throw IllegalStateException("Zu diesem Dokument ist keine Quelle gespeichert.")
         val filled = DocumentSources.mapTexts(source) { Placeholders.fill(it, values) }
-        val format = DocFormat.ofFile(file).ext
-        val out = create(JsonObject(filled + mapOf("file_name" to JsonPrimitive(file.nameWithoutExtension), "format" to JsonPrimitive(format))), overwrite = true, checks = false)
-        return File(out.file!!)
+        val format = DocFormat.ofFile(origin).ext
+        val out = create(JsonObject(filled + mapOf("file_name" to JsonPrimitive(origin.nameWithoutExtension), "format" to JsonPrimitive(format))), overwrite = true, checks = false)
+        val made = File(out.file!!)
+        // The copy in a project folder gets the filled-in version too.
+        if (made.absoluteFile != file.absoluteFile) withContext(Dispatchers.IO) { made.copyTo(file, overwrite = true) }
+        return file
     }
 
     /** Open placeholders of a document created with a stored source. */
-    fun openPlaceholders(file: File): List<String> = DocumentSources.load(file)?.let { Placeholders.find(DocumentSources.texts(it)) }.orEmpty()
+    fun openPlaceholders(file: File): List<String> = DocumentSources.load(origin(file))?.let { Placeholders.find(DocumentSources.texts(it)) }.orEmpty()
+
+    /** The app's own file behind a copy in a project folder (same name, with stored source); else [file] itself. */
+    private fun origin(file: File): File {
+        if (DocumentSources.load(file) != null) return file
+        return File(folder, file.name).takeIf { it.isFile && DocumentSources.load(it) != null } ?: file
+    }
 
     /** Replaces src="logo" / src="logo:Name" in HTML with the image data. */
     private fun insertLogos(html: String, theme: DocTheme): String = LOGO_SRC.replace(html) { m ->

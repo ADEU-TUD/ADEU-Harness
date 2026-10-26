@@ -90,11 +90,14 @@ class AppContainer(context: Context) {
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
 
     init {
-        // Editor documents of a project with a working folder live there as Markdown (like an own storage location).
+        // Editor documents of a project with a project folder live in its "Ausgabe" as Markdown (like an own storage location).
         documentTools.projectVault = { id ->
             io.github.thepytales.llmhub.agent.WorkFolder.of(this, id)
                 ?.takeIf { (_, dir) -> io.github.thepytales.llmhub.agent.WorkFolder.problem(dir) == null }
-                ?.let { (folder, dir) -> docs.addVault("Projekt ${folder.name}", dir.path, makeDefault = false).id }
+                ?.let { (folder, dir) ->
+                    val out = io.github.thepytales.llmhub.agent.WorkFolder.output(dir).apply { mkdirs() }
+                    docs.addVault("Projekt ${folder.name}", out.path, makeDefault = false).id
+                }
         }
     }
     /** Own templates; the built-in ones come from [TemplateLibrary]. */

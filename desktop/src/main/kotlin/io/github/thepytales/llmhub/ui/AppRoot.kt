@@ -194,6 +194,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     crash?.let { report ->
         CrashDialog(report, onDismiss = { crash = null })
     }
+    // A new version: asks at the start whether to install it (see Updates).
+    if (crash == null) UpdatePrompt(c)
 
     // Results that arrive while the app is open appear as a banner at the top.
     val snackbar = remember { SnackbarHostState() }

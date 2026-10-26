@@ -14,10 +14,12 @@ data class Folder(
     /** Where the data of this project may go (chats, files, transcription). */
     val privacy: PrivacyLevel = PrivacyLevel.OPEN,
     /**
-     * Working folder on this PC (Windows), e.g. in Google Drive, OneDrive or on a network drive: files the model
-     * creates in the project's chats are saved there, and the agent may read and write in it. Empty = none.
+     * Project folder on this PC (Windows), e.g. in Google Drive, OneDrive or on a network drive: files the model
+     * creates in the project's chats are saved in its subfolder "Ausgabe" (see WorkFolder). Empty = none.
      */
     val workDir: String = "",
+    /** The model may see and read the files in [workDir]; otherwise it only writes into "Ausgabe". */
+    val workDirAccess: Boolean = true,
 )
 
 /**

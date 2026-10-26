@@ -27,7 +27,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 import java.text.DateFormat
 import java.util.Date
@@ -228,12 +227,12 @@ class AgentRunner(private val c: AppContainer) {
         fun providerOf(call: ToolCall) = providers.firstOrNull { it.handles(call.name) }
         fun parallel(call: ToolCall): Boolean {
             val p = providerOf(call) ?: return false
-            return p.parallelSafe(call.name) && p.risk(call.name, parseArgs(call.arguments)) == null
+            return p.parallelSafe(call.name) && p.risk(call.name, parseArgs(call.arguments), ctx) == null
         }
         suspend fun one(call: ToolCall): Pair<ToolOutput, Long> {
             val started = System.currentTimeMillis()
             val provider = providerOf(call)
-            val risk = provider?.risk(call.name, parseArgs(call.arguments))
+            val risk = provider?.risk(call.name, parseArgs(call.arguments), ctx)
             val output = when {
                 provider == null -> {
                     val known = providers.flatMap { p -> p.defs.map { it.name } }
@@ -415,17 +414,9 @@ class AgentRunner(private val c: AppContainer) {
         return ContextManager.trimOldToolResults(out)
     }
 
-    /**
-     * Files the tools created in a project with a working folder are saved there too; the chat then shows the copy
-     * (open, show in folder), and the document in the editor points to it.
-     */
-    private suspend fun toWorkFolder(output: ToolOutput, ctx: RepoContext): ToolOutput {
-        val made = output.file?.let(::File) ?: return output
-        val (copy, note) = withContext(Dispatchers.IO) { WorkFolder.deliver(c, ctx.folderId, made) } ?: return output
-        if (copy == null) return output.copy(text = output.text + "\n" + note)
-        c.docs.forFile(made.absolutePath)?.let { doc -> c.docs.save(doc.copy(file = copy.absolutePath)) }
-        return output.copy(text = output.text + "\n" + note, file = copy.absolutePath)
-    }
+    /** Files the tools created in a project with a project folder land in its "Ausgabe" (see [WorkFolder.place]). */
+    private suspend fun toWorkFolder(output: ToolOutput, ctx: RepoContext): ToolOutput =
+        withContext(Dispatchers.IO) { WorkFolder.place(c, ctx.folderId, output) }
 
     /** Instructions of the chat's project (folder) – also without tools. */
     private fun projectPrompt(conv: Conversation): String? {

@@ -24,6 +24,7 @@ import io.github.thepytales.llmhub.data.select
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.tasks.Notifier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /** Creates a new, not yet saved conversation with the configured defaults. */
@@ -238,7 +240,7 @@ class ChatViewModel(
         val kind = template.direct ?: return
         if (isRunning) return
         val isFirst = conv.messages.none { it.role == "user" }
-        val subject = values["Betreff"]?.trim().orEmpty()
+        val subject = io.github.thepytales.llmhub.docs.LetterBuilder.cleanSubject(values["Betreff"].orEmpty())
         val message = ChatMessage(role = "user", content = text.trim(), template = template.name, instructions = template.instructions.ifBlank { null })
         update {
             it.appendToThread(message).copy(
@@ -249,11 +251,17 @@ class ChatViewModel(
         _building.value = true
         viewModelScope.launch {
             try {
-                val (args, output) = c.documentTools.createDirect(kind, values)
+                val ctx = io.github.thepytales.llmhub.agent.RepoContext(mutableListOf(), folderId = conv.folderId, chatId = conv.id)
+                val (args, made) = c.documentTools.createDirect(kind, values, ctx)
+                // In a project with a project folder the letter lands in its "Ausgabe", like everything the model creates.
+                val output = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.agent.WorkFolder.place(c, conv.folderId, made) }
                 val call = ToolCall(id = "direct_" + java.util.UUID.randomUUID().toString().take(8), name = "create_document", arguments = args.toString())
                 val gaps = output.file?.let { c.documentTools.openPlaceholders(File(it)) }.orEmpty()
+                val placed = output.file?.takeIf { it != made.file }
                 val note = buildString {
                     append("Ihr ${template.name} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.")
+                    if (placed != null) append(" Er liegt im Projektordner unter „${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}“.")
+                    else if (output.text.contains("ließ sich die Datei nicht speichern")) append(" In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab.")
                     if (gaps.isNotEmpty()) append(" Noch offen: ${gaps.joinToString(", ")} – tippen Sie am Dokument auf „Ausfüllen“.")
                     append("\n\nÄnderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“.")
                 }

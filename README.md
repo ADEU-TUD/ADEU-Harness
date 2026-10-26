@@ -77,15 +77,19 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
 - **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
   Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
-- **Projekte**: Ein Projekt bündelt Chats zu einem Thema (⋮ › *Anweisungen & Dateien*): Anweisungen und Dateien gelten
-  für alle Chats darin; „Neuer Chat im Projekt“ startet direkt dort.
-- **Arbeitsordner je Projekt** (Windows, ⋮ › *Anweisungen & Dateien › Arbeitsordner*): ein Ordner auf dem Rechner –
-  Google Drive für Desktop, OneDrive, Nextcloud, ein Netzlaufwerk (auch `\\server\freigabe`) oder ein lokaler Ordner.
-  Alles, was die KI in den Chats des Projekts erstellt (PDF, Word, PowerPoint, Excel …), legt die App dort unter seinem
-  Namen ab; „Öffnen“ und „Im Ordner zeigen“ führen zur Datei dort. Dokumente aus dem Editor liegen im Ordner als
-  Markdown (wie ein Ablageort), und der Agent kann darin lesen und schreiben („Fasse alle Protokolle im Arbeitsordner
-  zusammen“). Eigene Dateien mit gleichem Namen werden nie überschrieben („Name (2).pdf“). Beim Wählen macht die App
-  einen Schreibtest und erklärt, falls Windows das Schreiben verweigert (siehe *Dienst-PCs mit IT-Sperre*).
+- **Projekte**: Ein Projekt bündelt Chats zu einem Thema. Beim Anlegen (📁+ in der Seitenleiste) und unter ⋮ › *Projekt
+  bearbeiten* gibt es Name, Projektordner, Anweisungen, Datenschutzstufe und Dokumente zum Durchsuchen; sie gelten für
+  alle Chats darin. „Neuer Chat im Projekt“ startet direkt dort.
+- **Projektordner** (Windows): ein Ordner auf dem Rechner – Google Drive für Desktop, OneDrive, Nextcloud, ein
+  Netzlaufwerk (auch `\\server\freigabe`) oder ein lokaler Ordner. Alles, was im Projekt entsteht – Dokumente der KI
+  (PDF, Word, PowerPoint, Excel …), Briefe aus dem Brief-Formular und Dokumente aus dem Editor (als Markdown) –, legt die
+  App ohne Rückfrage im Unterordner **`Ausgabe`** ab; „Öffnen“ und „Im Ordner zeigen“ führen zur Datei dort, auch
+  „Ausfüllen“ offener Angaben aktualisiert sie dort. Eigene Dateien mit gleichem Namen werden nie überschrieben
+  („Name (2).pdf“). Mit **„KI darf die Dateien im Ordner lesen“** (Standard: an) sieht die KI, was im Ordner liegt, liest
+  die passenden Dateien und bezieht sie ein („Schreib den Antrag anhand meiner Notizen“); ausgeschaltet sieht sie nur
+  `Ausgabe`. Dateien außerhalb von `Ausgabe` ändert sie nur nach Rückfrage. Im Chat zeigt der Chip *Projektordner* die
+  Verbindung (ein Klick öffnet den Ordner), ⋮ › *Projektordner öffnen* in der Seitenleiste ebenso. Beim Wählen macht
+  die App einen Schreibtest und erklärt, falls Windows das Schreiben verweigert (siehe *Dienst-PCs mit IT-Sperre*).
 - **Eigenes Material im Editor**: Im KI-Assistenten von Präsentationen, Dokumenten und Tabellen hängt 📎 eigene PDFs,
   PowerPoint-, Word- und Excel-Dateien an. Für Präsentationen gibt es dann „Folien aus den Dateien“, „Ins TUD-Design
   übertragen“ (Folie für Folie, Notizen bleiben Notizen), „Folien ergänzen“ und „Zusammenfassen“; die KI übernimmt Aussagen,
@@ -145,7 +149,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Lokale Modelle stehen in der Modellauswahl (Abzeichen „Lokal“), können Werkzeuge nutzen und beenden sich nach zehn
   Minuten ohne Anfrage, damit der Speicher wieder frei ist. Der Modell-Server lauscht nur auf 127.0.0.1 mit einem
   Zufallsschlüssel.
-- **Datenschutzstufe pro Projekt** (⋮ am Projekt › *Anweisungen & Dateien*): *Standard*, *Nur TU Dresden* (nur Uni-Server
+- **Datenschutzstufe pro Projekt** (⋮ am Projekt › *Projekt bearbeiten*): *Standard*, *Nur TU Dresden* (nur Uni-Server
   und lokale Modelle, externe Anbieter wie Gemini gesperrt) oder *Nur auf diesem Gerät* (nur lokale Modelle,
   Transkription und Spracheingabe auf dem Gerät, Websuche, GitHub und semantische Wissenssuche gesperrt). Die App setzt
   das durch: Modellauswahl, Agent, Ausweichmodell und Werkzeuge halten sich daran, über dem Eingabefeld steht die Stufe.
@@ -380,8 +384,10 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
    (z.B. Xiaomi, Oppo/OnePlus/Realme, Huawei) beenden Apps zusätzlich – dort in den Akku-Einstellungen der App
    „Hintergrundaktivität erlauben“ bzw. „Nicht optimieren“ wählen.
 
-Updates lassen sich direkt über die alte Version installieren – API-Key, GitHub-Token, Einstellungen und Chats bleiben
-dabei erhalten. Nur beim Deinstallieren gehen sie verloren.
+Updates kommen von selbst: Gibt es eine neue Version, fragt die App beim Start („Jetzt aktualisieren“), lädt die APK und
+öffnet den Installationsdialog von Android („Aktualisieren“ tippen; beim ersten Mal einmalig „Apps aus dieser Quelle
+zulassen“). API-Key, GitHub-Token, Einstellungen und Chats bleiben dabei erhalten – nur beim Deinstallieren gehen sie
+verloren. Siehe *Automatische Updates*.
 
 ### Release über ADEU-TUD/Test
 
@@ -415,6 +421,49 @@ Die Ein-Datei-EXE braucht den C#-Compiler von Windows und entsteht nur im Workfl
 `ADEU LLM.exe` starten). Die fertigen Dateien lassen sich dann von Hand unter *Releases* hochladen oder direkt
 weitergeben.
 
+### Automatische Updates
+
+Neue Versionen erscheinen im **öffentlichen** Repository
+[ADEU-TUD/ADEU-Harness-Updater](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases) – dort liegen nur die
+fertigen Dateien (`version.json`, Windows-ZIP und -EXE, APK), kein Code. Die Apps lesen bei jedem Start (und alle sechs
+Stunden im Infobereich)
+`https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` – ein einfacher Download ohne
+GitHub-Konto und ohne das API-Limit von 60 Anfragen pro Stunde, das sich ein ganzes Uni-Netz teilen würde. Ist die
+Version neuer als die installierte, erscheint ein Popup mit „Was ist neu“, *Jetzt aktualisieren* und *Später*
+(*Später* fragt beim nächsten Start wieder). Die Datei wird mit ihrer SHA-256-Prüfsumme aus `version.json` geprüft.
+*Einstellungen › Updates* zeigt die Version, sucht auf Knopfdruck und lässt die automatische Suche abschalten.
+
+- **Windows** (`desktop/…/update/`): Die ZIP wird in den Unterordner `.update` des App-Ordners geladen und dort entpackt –
+  von Java geschrieben, also ohne „Mark of the Web“, an der SmartScreen heruntergeladene Programme blockiert. Danach
+  startet die neue `ADEU LLM.exe` mit `--apply-update`, die App beendet sich, die neue Version wartet darauf, legt die
+  alten Dateien nach `.update-alt`, kopiert die neuen an dieselbe Stelle und startet die App neu. Kein `cmd.exe`, keine
+  PowerShell, keine Admin-Rechte; der Pfad bleibt gleich, also funktionieren Verknüpfungen, das Symbol in der Taskleiste
+  und „Mit Windows starten“ weiter. Geht etwas schief, kommen die alten Dateien zurück und die bisherige Version startet
+  (Protokoll: `%LOCALAPPDATA%\ADEU LLM\update.log`). Ist der App-Ordner schreibgeschützt (von der IT installiert), sagt
+  das Popup das und verweist auf die Download-Seite.
+- **Android**: APK in den Cache laden, prüfen, Installationsdialog öffnen (`REQUEST_INSTALL_PACKAGES`, über den
+  vorhandenen FileProvider). Android fragt bei jedem Update einmal nach.
+- **Ohne GitHub** (Firewall): Unter *Einstellungen › Updates › Update-Quelle* einen Ordner eintragen, z. B.
+  `\\server\freigabe\ADEU-Update`, in dem die Dateien eines Releases liegen. Für alle PCs auf einmal: eine Datei
+  `update-quelle.txt` mit diesem Pfad neben `ADEU LLM.exe` legen (bleibt bei Updates erhalten). Den Ordner füllt
+  `NO_UPLOAD=1 .github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"` (schreibt `version.json` in `dist/`).
+
+**Einmalig einrichten:**
+1. Das Repository `ADEU-TUD/ADEU-Harness-Updater` bleibt öffentlich (Releases privater Repositories lassen sich ohne
+   Konto nicht herunterladen).
+2. Einen *Fine-grained personal access token* anlegen (GitHub › Settings › Developer settings): *Resource owner*
+   ADEU-TUD, *Repository access* nur `ADEU-Harness-Updater`, *Permissions › Contents: Read and write*. Ihn hier unter
+   *Settings › Secrets and variables › Actions* als `UPDATER_TOKEN` speichern.
+3. Ab dann veröffentlicht *Actions › Build & Release › Run workflow* (Feld „Was ist neu?“ ausfüllen) jede Version von
+   `main` zusätzlich als Update. Eine schon gebaute Version (z. B. von vor dem Token) veröffentlicht *Actions › Update
+   veröffentlichen* nachträglich, ohne neu zu bauen. Lokal: `PUBLISH=1 UPDATE_NOTES="Was ist neu"
+   .github/scripts/release-local.sh 37 …` oder danach `.github/scripts/publish-update.sh 1.0.37 dist "Was ist neu"`
+   (braucht `gh auth login`).
+
+**Erste Verteilung:** Versionen bis 1.0.36 kennen die Update-Suche noch nicht. Die erste Version mit Updater muss also
+noch einmal von Hand auf die Rechner (USB-Stick, wie bisher, oder die EXE/APK aus den Releases) – danach aktualisieren
+sich die Apps selbst. Die Versionsnummer muss immer größer sein als die installierte.
+
 ## Browserversion
 
 Unter `web/` liegt eine Browserversion für alle, die die App nicht installieren können oder wollen – reines HTML und
@@ -428,10 +477,12 @@ auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt
   Projekte mit Anweisungen (in IndexedDB des Browsers), Gedächtnis und Absenderangaben, Sicherung als JSON.
 - Anhänge: PDF (Text), Word, PowerPoint (mit Folientiteln und Notizen), Excel, OpenDocument, Text, Bilder; per 📎,
   Ziehen oder Einfügen.
-- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt einen
-  Arbeitsordner (auch Google Drive, OneDrive oder ein Netzlaufwerk), dazu ein Standard-Ordner für Chats ohne Projekt.
-  Der Agent hat dort `list_files`, `read_file` und `write_file`; Word (.docx) und Excel (.xlsx, je Tabelle ein Blatt)
-  entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf ausdrücklichen Wunsch, `..` ist gesperrt.
+- **Lokale Ordner gehen auch im Browser** – in Chrome und Edge (File System Access API): Jedes Projekt bekommt wie in
+  der App einen Projektordner (auch Google Drive, OneDrive oder ein Netzlaufwerk); was die KI erstellt, landet im
+  Unterordner `Ausgabe`, und „KI darf die Dateien im Ordner lesen“ lässt sich abschalten (dann sieht sie nur `Ausgabe`).
+  Dazu ein Standard-Ordner für Chats ohne Projekt. Der Agent hat dort `list_files`, `read_file` und `write_file`; Word
+  (.docx) und Excel (.xlsx, je Tabelle ein Blatt) entstehen direkt im Browser. Vorhandene Dateien überschreibt er nur auf
+  ausdrücklichen Wunsch, `..` ist gesperrt.
   Nach einem Neustart des Browsers fragt dieser einmal nach („Zugriff erlauben“). Firefox und Safari kennen die
   Schnittstelle nicht – dort werden Dateien heruntergeladen.
 - Jede Antwort lässt sich kopieren, als Word, Excel (Tabellen), Markdown oder per Drucken als PDF speichern.
@@ -443,7 +494,8 @@ auch auf jedem anderen Webserver ablegen, z. B. dem der Professur – es genügt
 Dieselbe App gibt es als portable Windows-Version – gleiche Funktionen, gleicher Code (Kotlin/Compose Desktop) und die
 Java-Laufzeit ist eingebaut. Nichts muss installiert werden, Admin-Rechte sind nicht nötig.
 
-1. Unter **Releases** `ADEU-LLM-x.y.z-Windows.exe` herunterladen und doppelklicken.
+1. Unter **[Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest)** `ADEU-LLM-x.y.z-Windows.exe`
+   herunterladen und doppelklicken. Spätere Versionen installiert die App selbst (*Automatische Updates*).
    Beim ersten Start einer Version entpackt sie sich einmalig (wenige Sekunden) nach `%LOCALAPPDATA%\ADEU LLM\app`;
    danach startet sie sofort. Zeigt Windows „Der Computer wurde durch Windows geschützt“ (die Datei ist nicht signiert):
    *Weitere Informationen* › *Trotzdem ausführen*.
@@ -476,7 +528,7 @@ Unterschiede zu Android:
   Bleibt die Prüfung trotzdem gesperrt oder hängt sie, nutzt die App nach 8 Sekunden die Grundangaben von Java
   (Arbeitsspeicher, Kerne, Prozessor) und sagt das; die Empfehlungen sind dann vorsichtiger, installieren lässt sich
   alles. Vorher blieb die Seite bei „Gerät wird geprüft …“ stehen.
-- **Arbeitsordner und Ablageorte**: Die App schreibt als angemeldeter Benutzer – was im Explorer geht, geht auch in der
+- **Projektordner und Ablageorte**: Die App schreibt als angemeldeter Benutzer – was im Explorer geht, geht auch in der
   App, auch auf Netzlaufwerken und in Google Drive. IT-Sperren betreffen das Ausführen von Programmen, nicht das
   Speichern. Ausnahme ist der **Überwachte Ordnerzugriff** von Microsoft Defender: Er blockiert unbekannte Programme in
   *Dokumente*, *Desktop* und *Bilder*. Dann meldet die App das beim Wählen des Ordners; Abhilfe ist ein Ordner außerhalb
@@ -631,8 +683,9 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
-| `agent/WorkFolder.kt` | Arbeitsordner der Projekte: Schreibtest, Ablage erstellter Dateien, verständliche Fehlermeldungen |
-| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Arbeitsordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
+| `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
+| `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
+| `web/` | Browserversion (HTML/JS ohne Build): `app.js` Oberfläche und Agent, `js/llm.js` API, `js/files.js` Anhänge lesen und Word/Excel schreiben, `js/folders.js` Projekt- und Standard-Ordner (File System Access), `vendor/` marked, DOMPurify, JSZip, pdf.js |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |
 | `docs/PptxWriter.kt` | PowerPoint im TUD-Design (Office Open XML ohne Bibliothek) |
 | `docs/DocumentSources.kt`, `docs/OfficeFiles.kt` | Quellen für `edit_document` und Platzhalter, E-Mail-Entwürfe (.eml), Termine (.ics) |

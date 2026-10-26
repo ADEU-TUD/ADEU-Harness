@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Lets the user exempt the app from battery optimisation so scheduled tasks run on time -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Automatic updates: hands the downloaded APK to the system installer (the user confirms every install) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".LlmHubApp"

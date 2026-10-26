@@ -172,6 +172,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     crash?.let { report ->
         CrashDialog(report, onDismiss = { crash = null })
     }
+    // A new version: asks at the start whether to install it (see Updates).
+    if (crash == null) UpdatePrompt(c)
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 
