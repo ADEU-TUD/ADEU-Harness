@@ -42,9 +42,12 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                     ToolDef(
                         "remember",
                         "Merkt sich eine dauerhaft nützliche Angabe über den Nutzer für alle künftigen Chats (Funktion, " +
-                            "Lehrveranstaltungen, Vorlieben für Stil und Format, wiederkehrende Kontakte, laufende Vorhaben). Nutze es " +
-                            "von selbst, sobald der Nutzer so etwas über sich sagt – nicht erst auf Nachfrage. Nicht für Einmaliges, " +
-                            "nichts Sensibles (Gesundheit, Passwörter). Ein kurzer Satz in der dritten Person.",
+                            "Lehrveranstaltungen, Vorlieben für Stil und Format, wiederkehrende Kontakte, laufende Vorhaben). " +
+                            // Asking mode with learning: the app suggests details after the chat, so no question mid-answer.
+                            (if (memoryMode == MemoryMode.ASK && c.settings.current.memoryLearn) "Nutze es nur, wenn der Nutzer ausdrücklich " +
+                                "darum bittet („merk dir …“) – anderes schlägt die App nach dem Chat selbst vor. "
+                            else "Nutze es von selbst, sobald der Nutzer so etwas über sich sagt – nicht erst auf Nachfrage. ") +
+                            "Nicht für Einmaliges, nichts Sensibles (Gesundheit, Passwörter). Ein kurzer Satz in der dritten Person.",
                         listOf(
                             Param("text", "Die Angabe, z.B. „Unterrichtet im Master Lehramt das Modul Allgemeine Didaktik.“"),
                             Param(

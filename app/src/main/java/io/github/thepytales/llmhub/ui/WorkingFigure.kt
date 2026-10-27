@@ -1,10 +1,5 @@
 package io.github.thepytales.llmhub.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -121,14 +116,6 @@ fun StepsLine(thinking: Boolean, tools: Int, open: Boolean, onToggle: () -> Unit
             if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = if (open) tr("Einklappen") else tr("Anzeigen"),
             modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-/** Folds [content] in and out with a short animation. */
-@Composable
-fun Folded(open: Boolean, content: @Composable () -> Unit) {
-    AnimatedVisibility(open, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) { content() }
     }
 }
 

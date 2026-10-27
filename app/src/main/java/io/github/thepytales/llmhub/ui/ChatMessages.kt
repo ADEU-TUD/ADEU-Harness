@@ -601,9 +601,6 @@ fun AssistantMessage(
     }
 }
 
-/** Thinking and tool calls of one message: what folds away with „Arbeitsschritte einklappen“. */
-fun hasSteps(m: ChatMessage): Boolean = m.toolCalls.isNotEmpty() || !m.reasoning.isNullOrBlank() || splitThinking(m.content).first != null
-
 /**
  * Whether an assistant message still shows something when its steps are folded: an answer, an error, or a result
  * of a tool such as a document, a chart or a literature list (or the document being written).
