@@ -45,12 +45,15 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FormatBold
 import androidx.compose.material.icons.outlined.FormatItalic
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.SpeakerNotes
@@ -105,10 +108,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.docs.DocBlocks
+import io.github.thepytales.llmhub.docs.DocMarkup
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.SlideDeck
 import io.github.thepytales.llmhub.docs.TudBrand
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val TUD_BLUE = Color(0xFF00008C)
 private val TUD_LIGHT_BLUE = Color(0xFF97C6FF)
@@ -125,6 +137,7 @@ private val SLIDE_AI = listOf(
     "Beispiel ergänzen" to "Ergänze ein anschauliches Beispiel aus Schule oder Hochschule als Stichpunkt. Gleiches Format.",
     "Als Tabelle" to "Stelle den Inhalt der Folie als übersichtliche Markdown-Tabelle dar (höchstens 5 Zeilen). Gleiches Format.",
     "In zwei Spalten" to "Teile den Inhalt sinnvoll auf zwei Spalten auf (z. B. Vorher/Nachher, Pro/Contra); die rechte Spalte beginnt nach einer Zeile „|||“. Gleiches Format.",
+    "Sprechernotizen schreiben" to "Schreibe ausführliche Sprechernotizen zu dieser Folie (Notizen: …): was ich dazu sagen kann und die Überleitung. Die Folie selbst bleibt unverändert. Gleiches Format.",
     "Ins Englische" to "Übersetze die Folie samt Notizen ins Englische. Gleiches Format.",
 )
 
@@ -167,6 +180,8 @@ fun SlidesBody(
     val sel = selected.coerceIn(0, slides.lastIndex)
     var presenting by remember { mutableStateOf<Int?>(null) }
     var sorter by remember { mutableStateOf(false) }
+    var handout by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun set(list: List<SlideDeck.Slide>) = onMarkdown(SlideDeck.markdown(list))
     fun update(i: Int, s: SlideDeck.Slide) = set(slides.toMutableList().apply { set(i, s) })
     fun addSlide(layout: SlideDeck.Layout) {
@@ -179,6 +194,31 @@ fun SlidesBody(
         if (to !in slides.indices || to == 0 || sel == 0) return
         set(slides.toMutableList().apply { val x = removeAt(sel); add(to, x) })
         selected = to
+    }
+    /** Splits slides with more than six points (no model needed). */
+    fun splitFull() {
+        val (list, n) = SlideDeck.splitFull(slides)
+        if (n == 0) Notices.info("Keine Folie hat mehr als sechs Stichpunkte.")
+        else {
+            set(list)
+            Notices.undo("$n Folie(n) aufgeteilt", restore = { set(slides) })
+        }
+    }
+    /** A whole-deck request to the model in the presentation's chat. */
+    fun askDeck(label: String, text: String) {
+        if (DocsAi.send(c, doc, label, text, DocsAi.instructions(doc))) Notices.info("Die KI überarbeitet die Präsentation.")
+    }
+    val base = LocalDocBase.current
+    /** A picture for the current slide: stored next to the document, the slide becomes "Bild + Text" if it shows none. */
+    val pickImage = rememberImageBytesPicker { bytes ->
+        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP)."); return@rememberImageBytesPicker }
+        val target = base ?: c.docs.baseDir(doc)
+        scope.launch {
+            val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(target, bytes) }.getOrNull() } ?: return@launch Notices.error("Das Bild konnte nicht gespeichert werden.")
+            val s = slides[sel]
+            val layout = if (sel == 0 || s.layout.withImage) s.layout else SlideDeck.Layout.IMAGE_TEXT
+            update(sel, s.copy(image = path, imageAlt = s.imageAlt.ifBlank { "" }, layout = layout))
+        }
     }
     fun delete() {
         if (slides.size <= 1) return
@@ -230,24 +270,31 @@ fun SlidesBody(
                             inlineAi.start("s$sel", doc, SlideDeck.markdown(listOf(SlideDeck.Slide(), slides[sel])).substringAfter("---").trim(), label, instruction)
                         })
                     }
+                    HorizontalDivider()
+                    Text("Ganze Präsentation", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    DropdownMenuItem(text = { Text("Sprechernotizen für alle Folien") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck("Sprechernotizen", NOTES_ALL_SLIDES) })
+                    DropdownMenuItem(text = { Text("Stil vereinheitlichen") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck("Stil vereinheitlichen", STYLE_SLIDES) })
+                    DropdownMenuItem(text = { Text("Volle Folien teilen (ohne KI)") }, onClick = { aiMenu = false; splitFull() })
                 }
             }
+            ToolIcon(Icons.Outlined.Image, "Bild einfügen", enabled = !writing) { pickImage() }
             ToolIcon(Icons.Outlined.SpeakerNotes, "Kommentieren") { onComment(slides[sel].title) }
             ToolIcon(Icons.Outlined.GridView, "Folienübersicht", active = sorter) { sorter = !sorter }
             ToolIcon(Icons.Outlined.Slideshow, "Vorführen ab dieser Folie (Umschalt+F5)") { presenting = sel }
+            ToolLabel("Handout (PDF)") { handout = true }
         }
         HorizontalDivider()
         when {
             sorter -> Sorter(slides, sel, frame, onPick = { selected = it; sorter = false })
             narrow -> {
                 LazyRow(contentPadding = PaddingValues(10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.width(120.dp)) { selected = i } }
+                    itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.width(120.dp), slides) { selected = i } }
                 }
                 SlideWork(c, doc, slides, sel, frame, writing, inlineAi, ::update, Modifier.weight(1f))
             }
             else -> Row(Modifier.weight(1f)) {
                 LazyColumn(Modifier.width(190.dp).fillMaxHeight(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.fillMaxWidth()) { selected = i } }
+                    itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.fillMaxWidth(), slides) { selected = i } }
                     item {
                         Surface(
                             onClick = { set(slides + SlideDeck.template(SlideDeck.Layout.CONTENT)); selected = slides.size },
@@ -262,16 +309,17 @@ fun SlidesBody(
         }
     }
     presenting?.let { start -> Presenter(slides, start, frame, narrow) { presenting = null } }
+    if (handout) HandoutDialog(c, doc, DocMarkup.resolveImages(markdown, base ?: c.docs.baseDir(doc)), onDismiss = { handout = false })
 }
 
 @Composable
-private fun Thumb(i: Int, s: SlideDeck.Slide, total: Int, frame: DeckFrame, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun Thumb(i: Int, s: SlideDeck.Slide, total: Int, frame: DeckFrame, selected: Boolean, modifier: Modifier, deck: List<SlideDeck.Slide> = emptyList(), onClick: () -> Unit) {
     Column(modifier) {
         Box(
             Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                 .border(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))
                 .clickable(onClick = onClick),
-        ) { SlideCanvas(s, Modifier.fillMaxSize(), i + 1, total, frame) }
+        ) { SlideCanvas(s, Modifier.fillMaxSize(), i + 1, total, frame, deck) }
         Text("${i + 1}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
     }
 }
@@ -283,7 +331,7 @@ private fun Sorter(slides: List<SlideDeck.Slide>, sel: Int, frame: DeckFrame, on
         columns = GridCells.Adaptive(220.dp), modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.fillMaxWidth()) { onPick(i) } }
+        itemsIndexed(slides) { i, s -> Thumb(i, s, slides.size, frame, i == sel, Modifier.fillMaxWidth(), slides) { onPick(i) } }
     }
 }
 
@@ -332,7 +380,7 @@ private fun SlideWork(
     val live = s.copy(title = title.text, body = bodyText(), right = right.text, notes = notes.text)
     Column(Modifier.then(modifier).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.widthIn(max = 820.dp).fillMaxWidth().aspectRatio(16f / 9f).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))) {
-            SlideCanvas(live, Modifier.fillMaxSize(), sel + 1, slides.size, frame)
+            SlideCanvas(live, Modifier.fillMaxSize(), sel + 1, slides.size, frame, slides)
         }
         if (frame.unit.isEmpty()) UnitHint(c)
         inlineAi.state?.takeIf { it.first == "s$sel" }?.second?.let { sug ->
@@ -356,7 +404,7 @@ private fun SlideWork(
         }
         Column(Modifier.widthIn(max = 820.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                SlideDeck.Layout.entries.filter { sel == 0 || it != SlideDeck.Layout.TITLE }.forEach { l ->
+                SlideDeck.Layout.entries.filter { if (sel == 0) it == SlideDeck.Layout.TITLE else it != SlideDeck.Layout.TITLE }.forEach { l ->
                     FilterChip(selected = s.layout == l, onClick = { update(sel, live.copy(layout = l)) }, label = { Text(l.label) }, enabled = !writing)
                 }
             }
@@ -373,6 +421,30 @@ private fun SlideWork(
                     RichField(right, { right = it }, "Rechte Spalte", minLines = 4, enabled = !writing)
                 }
                 SlideDeck.Layout.CONTENT -> RichField(body, { body = it }, "Inhalt", minLines = 4, enabled = !writing)
+                SlideDeck.Layout.IMAGE_TEXT, SlideDeck.Layout.IMAGE -> {
+                    ImageFields(live, enabled = !writing) { update(sel, it) }
+                    if (s.layout == SlideDeck.Layout.IMAGE_TEXT) RichField(body, { body = it }, "Text neben dem Bild", minLines = 3, enabled = !writing)
+                }
+                SlideDeck.Layout.COMPARISON -> {
+                    RichField(body, { body = it }, "Linke Spalte (erste Zeile „### Überschrift“)", minLines = 4, enabled = !writing)
+                    RichField(right, { right = it }, "Rechte Spalte (erste Zeile „### Überschrift“)", minLines = 4, enabled = !writing)
+                }
+                SlideDeck.Layout.TABLE -> {
+                    val rows = DocBlocks.tableRows(body.text).ifEmpty { listOf(listOf("Spalte 1", "Spalte 2"), listOf("", "")) }
+                    TableGrid(rows) { r -> body = TextFieldValue(DocBlocks.table(r)) }
+                }
+                SlideDeck.Layout.CHART -> {
+                    OutlinedTextField(
+                        body, { body = it }, label = { Text("Diagramm (```chart-Block mit JSON)") }, minLines = 4, enabled = !writing,
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (SlideDeck.chartOf(body.text) == null) HintText("Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram.")
+                }
+                SlideDeck.Layout.AGENDA -> {
+                    RichField(body, { body = it }, "Punkte (leer = automatisch aus den Abschnittsfolien)", minLines = 2, enabled = !writing)
+                    HintText("Automatisch: " + SlideDeck.agenda(slides.mapIndexed { k, x -> if (k == sel) live else x }, sel).joinToString(" · ").ifBlank { "noch keine Abschnitte" })
+                }
+                SlideDeck.Layout.END -> RichField(body, { body = it }, "Text und Kontakt (je Zeile eine Angabe)", minLines = 2, enabled = !writing, toolbar = false)
             }
             OutlinedTextField(
                 notes, { notes = it }, label = { Text("Sprechernotizen") }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
@@ -474,11 +546,12 @@ private const val SLIDE_W_CM = 33.867f
  * the title slide and the footer line with the slide number.
  */
 @Composable
-fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: Int = 1, frame: DeckFrame = DeckFrame(emptyList(), "TU Dresden")) {
+fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: Int = 1, frame: DeckFrame = DeckFrame(emptyList(), "TU Dresden"), deck: List<SlideDeck.Slide> = emptyList()) {
     val logoBlue = remember { runCatching { decodeImage(TudBrand.logoBlue) }.getOrNull() }
     val logoWhite = remember { runCatching { decodeImage(TudBrand.logoWhite) }.getOrNull() }
     val density = LocalDensity.current
-    BoxWithConstraints(modifier.background(if (s.layout == SlideDeck.Layout.TITLE) TUD_BLUE else Color.White, RoundedCornerShape(4.dp))) {
+    val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END
+    BoxWithConstraints(modifier.background(if (dark) TUD_BLUE else Color.White, RoundedCornerShape(4.dp))) {
         val cm: Dp = maxWidth / SLIDE_W_CM
         fun at(v: Double): Dp = cm * v.toFloat()
         fun pt(v: Number): TextUnit = with(density) { (cm * (v.toFloat() * 0.03528f)).toSp() }
@@ -538,7 +611,7 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 if (source != null) area(3.5, 14.2, 26.8, 1.2, Alignment.TopCenter) { Text(source, style = style(16, TUD_GREY, align = TextAlign.Center)) }
                 chrome()
             }
-            SlideDeck.Layout.CONTENT, SlideDeck.Layout.TWO_COLUMNS -> {
+            SlideDeck.Layout.CONTENT, SlideDeck.Layout.TWO_COLUMNS, SlideDeck.Layout.TABLE -> {
                 heading(s.title)
                 if (s.layout == SlideDeck.Layout.TWO_COLUMNS) {
                     area(1.6, 4.0, 14.8, 13.0) { SlideContent(s.body, half = true, ::pt, ::style) }
@@ -546,7 +619,105 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 } else area(1.6, 4.0, 30.6, 13.0) { SlideContent(s.body, half = false, ::pt, ::style) }
                 chrome()
             }
+            SlideDeck.Layout.IMAGE_TEXT -> {
+                heading(s.title)
+                val (ix, tx) = if (s.imageLeft) 1.6 to 17.4 else 17.4 to 1.6
+                area(ix, 4.0, 14.8, 13.0) { SlidePicture(s.image, s.imageAlt) }
+                area(tx, 4.0, 14.8, 13.0) { SlideContent(s.body, half = true, ::pt, ::style) }
+                chrome()
+            }
+            SlideDeck.Layout.IMAGE -> {
+                val withTitle = s.title.isNotBlank()
+                if (withTitle) heading(s.title)
+                val caption = s.imageAlt.isNotBlank() && s.imageAlt != s.title
+                val top = if (withTitle) 4.0 else 1.0
+                area(1.6, top, SLIDE_W_CM - 3.2, (if (caption) 16.2 else 17.2) - top) { SlidePicture(s.image, s.imageAlt) }
+                if (caption) area(1.6, 16.3, SLIDE_W_CM - 3.2, 1.0, Alignment.TopCenter) { Text(s.imageAlt, style = style(12, TUD_GREY, align = TextAlign.Center), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                chrome()
+            }
+            SlideDeck.Layout.COMPARISON -> {
+                heading(s.title)
+                listOf(1.6 to s.body, 17.4 to s.right).forEach { (x, col) ->
+                    val (head, rest) = SlideDeck.columnHead(col)
+                    var y = 4.0
+                    if (head.isNotBlank()) {
+                        area(x, y, 14.8, 1.3, Alignment.CenterStart) {
+                            Box(Modifier.fillMaxSize().background(TUD_TINT).padding(start = at(0.4)), contentAlignment = Alignment.CenterStart) {
+                                Text(plainInline(head), style = style(20, TUD_BLUE, bold = true), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                        y += 1.7
+                    }
+                    area(x, y, 14.8, 17.0 - y) { SlideContent(rest, half = true, ::pt, ::style) }
+                }
+                chrome()
+            }
+            SlideDeck.Layout.CHART -> {
+                heading(s.title)
+                val spec = remember(s.body) { SlideDeck.chartOf(s.body) }
+                area(1.6, 4.0, 30.6, 13.0, Alignment.Center) {
+                    if (spec != null) Box(Modifier.fillMaxHeight().aspectRatio(io.github.thepytales.llmhub.docs.ChartLayout.W / io.github.thepytales.llmhub.docs.ChartLayout.H)) { ChartCanvas(spec, Modifier.fillMaxSize()) }
+                    else Text("Diagramm", style = style(18, TUD_GREY))
+                }
+                chrome()
+            }
+            SlideDeck.Layout.AGENDA -> {
+                heading(s.title.ifBlank { "Agenda" })
+                val items = if (deck.isNotEmpty()) SlideDeck.agenda(deck.mapIndexed { k, x -> if (k == number - 1) s else x }, number - 1) else SlideDeck.agenda(listOf(s), 0)
+                val size = if (items.size > 7) 20 else 24
+                area(1.6, 4.2, 30.6, 12.8) {
+                    Column {
+                        items.forEachIndexed { k, item ->
+                            Row(Modifier.padding(top = with(LocalDensity.current) { pt(10).toDp() })) {
+                                Text("${k + 1}.", style = style(size, TUD_BLUE), modifier = Modifier.width(with(LocalDensity.current) { pt(size * 1.6f).toDp() }))
+                                Text(plainInline(item), style = style(size, Color(0xFF1A1A1A)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                    }
+                }
+                chrome()
+            }
+            SlideDeck.Layout.END -> {
+                logoWhite?.let { area(1.6, 1.4, 1.7 * 1190 / 400, 1.7) { Image(it, contentDescription = "TU Dresden", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) } }
+                area(1.6, 5.0, 29.5, 4.4, Alignment.BottomStart) {
+                    Text(s.title.ifBlank { "Vielen Dank!" }, style = style(40, Color.White, bold = true), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                area(1.6, 10.4, 29.5, 5.6) {
+                    Column { s.body.lines().map { it.trim().removePrefix("- ") }.filter { it.isNotEmpty() }.take(5).forEach { Text(plainInline(it), style = style(18, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
+                }
+            }
         }
+    }
+}
+
+/** Picture of a slide: choose it, its description and its place (left, right, whole slide). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ImageFields(s: SlideDeck.Slide, enabled: Boolean, onChange: (SlideDeck.Slide) -> Unit) {
+    var alt by remember(s.image) { mutableStateOf(s.imageAlt) }
+    LaunchedEffect(alt) {
+        delay(600)
+        if (alt != s.imageAlt) onChange(s.copy(imageAlt = alt))
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (s.image.isBlank()) HintText("Noch kein Bild – über das Bild-Symbol in der Leiste oben einfügen.")
+        OutlinedTextField(alt, { alt = it }, label = { Text("Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)") }, singleLine = true, enabled = enabled, modifier = Modifier.fillMaxWidth())
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = true)) }, label = { Text("Bild links") }, enabled = enabled)
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && !s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = false)) }, label = { Text("Bild rechts") }, enabled = enabled)
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE)) }, label = { Text("Ganze Folie") }, enabled = enabled)
+            if (s.image.isNotBlank()) TextButton(onClick = { onChange(s.copy(image = "", imageAlt = "")) }, enabled = enabled) { Text("Bild entfernen") }
+        }
+    }
+}
+
+/** A picture of the slide in its area (fitted, centred). */
+@Composable
+private fun SlidePicture(src: String, alt: String) {
+    val bitmap = if (src.isBlank()) null else rememberDocImage(src)
+    if (bitmap != null) Image(bitmap, contentDescription = alt.ifBlank { "Bild" }, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+    else Box(Modifier.fillMaxSize().background(TUD_TINT), contentAlignment = Alignment.Center) {
+        Text(if (src.isBlank()) "Bild" else "Bild nicht gefunden", color = TUD_GREY, style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -627,8 +798,9 @@ private fun SlideTable(rows: List<List<String>>, pt: (Number) -> TextUnit, style
 }
 
 /**
- * Full-screen presentation: arrows, space or tap to go on, N for notes, Esc to end. On wide screens the presenter view
- * shows the notes, the next slide and a timer beside the slide.
+ * Full-screen presentation: ←/→, Space or tap to go on, Pos1/Ende, a number and Enter jumps to that slide, B / W
+ * black or white screen, L laser pointer (a red dot follows mouse or finger), N notes, Esc ends. On wide screens the
+ * presenter view shows the notes, the next slide and a timer beside the slide.
  */
 @Composable
 private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFrame, narrow: Boolean, onClose: () -> Unit) {
@@ -636,36 +808,83 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     var notes by remember { mutableStateOf(!narrow) }
     var startedAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    /** Black or white instead of the slide (null = slide). */
+    var blank by remember { mutableStateOf<Color?>(null) }
+    var laser by remember { mutableStateOf(false) }
+    var pointer by remember { mutableStateOf<Offset?>(null) }
+    /** Digits typed for "number + Enter". */
+    var typed by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
+    LaunchedEffect(typed) { if (typed.isNotEmpty()) { delay(3000); typed = "" } }
     val focus = remember { FocusRequester() }
+    fun go(to: Int) { i = to.coerceIn(0, slides.lastIndex); blank = null }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             Modifier.fillMaxSize().background(Color.Black).focusRequester(focus).focusable().onKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown) return@onKeyEvent false
+                val digit = when (e.key) {
+                    Key.Zero, Key.NumPad0 -> 0; Key.One, Key.NumPad1 -> 1; Key.Two, Key.NumPad2 -> 2; Key.Three, Key.NumPad3 -> 3
+                    Key.Four, Key.NumPad4 -> 4; Key.Five, Key.NumPad5 -> 5; Key.Six, Key.NumPad6 -> 6; Key.Seven, Key.NumPad7 -> 7
+                    Key.Eight, Key.NumPad8 -> 8; Key.Nine, Key.NumPad9 -> 9; else -> null
+                }
+                if (digit != null) { typed = (typed + digit).takeLast(3); return@onKeyEvent true }
                 when (e.key) {
-                    Key.DirectionRight, Key.DirectionDown, Key.Spacebar, Key.PageDown, Key.Enter -> { i = (i + 1).coerceAtMost(slides.lastIndex); true }
-                    Key.DirectionLeft, Key.DirectionUp, Key.PageUp, Key.Backspace -> { i = (i - 1).coerceAtLeast(0); true }
-                    Key.MoveHome -> { i = 0; true }
-                    Key.MoveEnd -> { i = slides.lastIndex; true }
+                    Key.Enter, Key.NumPadEnter -> {
+                        val n = typed.toIntOrNull()
+                        typed = ""
+                        if (n != null) go(n - 1) else go(i + 1)
+                        true
+                    }
+                    Key.DirectionRight, Key.DirectionDown, Key.Spacebar, Key.PageDown -> { go(i + 1); true }
+                    Key.DirectionLeft, Key.DirectionUp, Key.PageUp, Key.Backspace -> { go(i - 1); true }
+                    Key.MoveHome -> { go(0); true }
+                    Key.MoveEnd -> { go(slides.lastIndex); true }
+                    Key.B, Key.Period -> { blank = if (blank == Color.Black) null else Color.Black; true }
+                    Key.W, Key.Comma -> { blank = if (blank == Color.White) null else Color.White; true }
+                    Key.L -> { laser = !laser; pointer = null; true }
                     Key.N -> { notes = !notes; true }
-                    Key.Escape -> { onClose(); true }
+                    Key.Escape -> { if (blank != null) blank = null else onClose(); true }
                     else -> false
                 }
             },
         ) {
             LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
             Row(Modifier.weight(1f).fillMaxWidth()) {
-                Box(Modifier.weight(if (notes && !narrow) 2.2f else 1f).fillMaxHeight().clickable { i = (i + 1).coerceAtMost(slides.lastIndex) }, contentAlignment = Alignment.Center) {
-                    SlideCanvas(slides[i], Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 1, slides.size, frame)
+                Box(
+                    Modifier.weight(if (notes && !narrow) 2.2f else 1f).fillMaxHeight()
+                        .then(if (laser) Modifier else Modifier.clickable { go(i + 1) })
+                        .pointerInput(laser) {
+                            if (!laser) return@pointerInput
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull() ?: continue
+                                    pointer = if (event.type == PointerEventType.Exit || (event.type == PointerEventType.Release && change.type != androidx.compose.ui.input.pointer.PointerType.Mouse)) null else change.position
+                                }
+                            }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
+                    else SlideCanvas(slides[i], Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 1, slides.size, frame, slides)
+                    val dot = pointer
+                    if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
+                        drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = dot)
+                        drawCircle(Color(0xFFFF1A1A), radius = 7.dp.toPx(), center = dot)
+                    }
                 }
                 if (notes && !narrow) {
                     Column(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF1C1C1C)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Nächste Folie", color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         slides.getOrNull(i + 1)?.let { next ->
-                            SlideCanvas(next, Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 2, slides.size, frame)
+                            SlideCanvas(next, Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 2, slides.size, frame, slides)
                         } ?: Text("Ende der Präsentation", color = Color.White)
                         Text("Notizen", color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         Text(slides[i].notes.ifBlank { "Keine Notizen zu dieser Folie." }, color = Color.White, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()))
+                        Text(
+                            "←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · N: Notizen · Esc: Ende",
+                            color = Color(0xFF888888), style = MaterialTheme.typography.labelSmall,
+                        )
                     }
                 }
             }
@@ -680,10 +899,19 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     "%d:%02d".format(secs / 60, secs % 60), color = Color.White,
                     modifier = Modifier.padding(start = 4.dp).clickable { startedAt = System.currentTimeMillis(); now = startedAt },
                 )
-                Text("${i + 1} / ${slides.size}", color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Text(
+                    if (typed.isNotEmpty()) "Gehe zu Folie $typed … (Enter)" else "${i + 1} / ${slides.size}",
+                    color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
+                )
+                IconButton(onClick = { laser = !laser; pointer = null }) {
+                    Icon(Icons.Outlined.Circle, contentDescription = if (laser) "Laserpointer aus (L)" else "Laserpointer (L)", tint = if (laser) Color(0xFFFF4040) else Color.White)
+                }
+                IconButton(onClick = { blank = if (blank == Color.Black) null else Color.Black }) {
+                    Icon(Icons.Outlined.DarkMode, contentDescription = "Schwarzer Bildschirm (B)", tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
+                }
                 IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = "Notizen (N)", tint = Color.White) }
-                IconButton(onClick = { i = (i - 1).coerceAtLeast(0) }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Zurück", tint = Color.White) }
-                IconButton(onClick = { i = (i + 1).coerceAtMost(slides.lastIndex) }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weiter", tint = Color.White) }
+                IconButton(onClick = { go(i - 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Zurück", tint = Color.White) }
+                IconButton(onClick = { go(i + 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weiter", tint = Color.White) }
             }
         }
     }

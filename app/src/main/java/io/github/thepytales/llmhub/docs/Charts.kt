@@ -351,3 +351,25 @@ object ChartLayout {
         append("</svg>")
     }
 }
+
+/** The chart as the JSON of a ```chart block (the form [ChartSpec.parse] reads). */
+fun ChartSpec.toJson(): String {
+    fun str(s: String) = JsonPrimitive(s).toString()
+    fun num(d: Double) = if (d == floor(d) && abs(d) < 1e15) d.toLong().toString() else d.toString()
+    val type = when (type) {
+        ChartSpec.Type.BAR -> "bar"; ChartSpec.Type.STACKED -> "stacked"; ChartSpec.Type.HBAR -> "hbar"; ChartSpec.Type.LINE -> "line"
+        ChartSpec.Type.SCATTER -> "scatter"; ChartSpec.Type.PIE -> "pie"; ChartSpec.Type.BOX -> "box"; ChartSpec.Type.HISTOGRAM -> "histogram"
+    }
+    return buildString {
+        append("{\"type\":").append(str(type))
+        if (title.isNotBlank()) append(",\"title\":").append(str(title))
+        if (xLabel.isNotBlank()) append(",\"x_label\":").append(str(xLabel))
+        if (yLabel.isNotBlank()) append(",\"y_label\":").append(str(yLabel))
+        if (labels.isNotEmpty()) append(",\"labels\":[").append(labels.joinToString(",") { str(it) }).append("]")
+        append(",\"series\":[")
+        append(series.joinToString(",") { s ->
+            "{\"name\":${str(s.name)},\"values\":[${s.values.joinToString(",") { num(it) }}]" + (if (s.x.isNotEmpty()) ",\"x\":[${s.x.joinToString(",") { num(it) }}]" else "") + "}"
+        })
+        append("]}")
+    }
+}

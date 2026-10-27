@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.TextButton
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.background
@@ -115,6 +116,9 @@ fun ChatScreen(
     var startTemplateShown by rememberSaveable { mutableStateOf(false) }
     val activeTemplate = templateId?.let { TemplateLibrary.find(it, templates) }
     val images = remember { mutableStateListOf<String>() }
+    var imageWarning by remember { mutableStateOf(false) }
+    /** The chat follows the newest message until the user scrolls up (see [ChatAutoScroll]). */
+    val follow = remember { mutableStateOf(true) }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -252,6 +256,20 @@ fun ChatScreen(
     }
 
     val hasMessages = current.messages.isNotEmpty()
+    /** Sends the typed message; [withImages] false leaves the attached pictures out (after the privacy question). */
+    fun sendNow(withImages: Boolean) {
+        val pictures = if (withImages) images.toList() else emptyList()
+        if (pictures.isNotEmpty() && modelInfo.vision == false) {
+            Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
+        }
+        follow.value = true
+        vm.send(input, pictures, files.toList(), activeTemplate)
+        input = ""
+        c.chatDrafts.delete(vm.chatId)
+        templateId = null
+        images.clear()
+        files.clear()
+    }
     // Documents open beside the chat on wide screens (like Claude Docs); on phones they get their own screen.
     var docPanel by rememberSaveable(current.id) { mutableStateOf<String?>(null) }
     val drafts by DocsLive.drafts.collectAsStateWithLifecycle()
@@ -378,15 +396,11 @@ fun ChatScreen(
                     }
                 },
                 onSend = {
-                    if (images.isNotEmpty() && modelInfo.vision == false) {
-                        Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
-                    }
-                    vm.send(input, images.toList(), files.toList(), activeTemplate)
-                    input = ""
-                    c.chatDrafts.delete(vm.chatId)
-                    templateId = null
-                    images.clear()
-                    files.clear()
+                    // Pictures cannot be pseudonymized: ask first (Einstellungen › Datenschutz › Warnung bei Bildern).
+                    if (images.isNotEmpty() && settings.pii(io.github.thepytales.llmhub.data.PiiFeature.IMAGE_WARNING) &&
+                        !io.github.thepytales.llmhub.data.Privacy.isLocal(current.model)
+                    ) imageWarning = true
+                    else sendNow(true)
                 },
                 onStop = { vm.stop() },
                 onPaste = platform.paste,
@@ -420,6 +434,7 @@ fun ChatScreen(
                             )
                         }
                     )
+                    PrivacySuggestions(c, input)
                 },
                 footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
             ) {
@@ -498,7 +513,9 @@ fun ChatScreen(
             val leading = (if (running && (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))) 1 else 0) + (if (building) 1 else 0)
             val hits = remember(reversed, searchQuery) { if (searchQuery.isBlank()) emptyList() else reversed.indices.filter { i -> itemText(reversed[i]).contains(searchQuery, ignoreCase = true) } }
             val currentHit = hits.getOrNull(searchHit.coerceAtMost((hits.size - 1).coerceAtLeast(0)))
-            LaunchedEffect(currentHit) { currentHit?.let { listState.animateScrollToItem(it + leading) } }
+            LaunchedEffect(currentHit) { currentHit?.let { follow.value = false; listState.animateScrollToItem(it + leading) } }
+            LaunchedEffect(current.id) { follow.value = true }
+            ChatAutoScroll(listState, follow, remember(items, leading, last?.content?.length, last?.toolCalls?.size, last?.reasoning?.length) { Any() })
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
@@ -569,7 +586,7 @@ fun ChatScreen(
             val away by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
             if (away) {
                 SmallFloatingActionButton(
-                    onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                    onClick = { follow.value = true; scope.launch { listState.animateScrollToItem(0) } },
                     containerColor = LocalChatLook.current.card,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
                 ) {
@@ -585,6 +602,26 @@ fun ChatScreen(
         Box(Modifier.weight(1f)) { DocPane(c, id, onClose = { docPanel = null }, inSidePanel = true) }
     }
     }
+    }
+
+    if (imageWarning) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { imageWarning = false },
+            title = { Text("Bilder werden nicht pseudonymisiert") },
+            text = {
+                Text(
+                    "In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – der Server sieht sie so, wie sie sind. " +
+                        "Ohne die Bilder geht nur der Text, pseudonymisiert. (Abschaltbar unter Einstellungen › Datenschutz.)"
+                )
+            },
+            confirmButton = { TextButton(onClick = { imageWarning = false; sendNow(true) }) { Text("Mit Bildern senden") } },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { imageWarning = false }) { Text("Abbrechen") }
+                    TextButton(onClick = { imageWarning = false; sendNow(false) }, enabled = input.isNotBlank() || files.isNotEmpty()) { Text("Ohne Bilder") }
+                }
+            },
+        )
     }
 
     if (showPlus) {

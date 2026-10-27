@@ -212,14 +212,16 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         val onDevice = Privacy.isLocal(model)
         if (onDevice) prepare(model)
         val masker = privacy?.takeIf { it.enabled && !onDevice }
-        val sent = masker?.maskMessages(messages) ?: messages
-        val update: (StreamUpdate) -> Unit = if (masker == null) onUpdate else { u -> onUpdate(masker.unmask(u)) }
+        // The chat of this request: with „Platzhalter je Chat“ it has its own numbering.
+        val scope = coroutineContext[io.github.thepytales.llmhub.data.PrivacyScope]?.id
+        val sent = masker?.maskMessages(messages, scope) ?: messages
+        val update: (StreamUpdate) -> Unit = if (masker == null) onUpdate else { u -> onUpdate(masker.unmask(u, scope)) }
         var attempt = 0
         while (true) {
             try {
                 if (!onDevice) limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
                 val result = streamChatWithFallbacks(model, sent, tools, thinking, update)
-                return masker?.unmask(result) ?: result
+                return masker?.unmask(result, scope) ?: result
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
                 // Offline or a broken certificate does not fix itself within seconds.
@@ -465,12 +467,16 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
      * Orders [documents] by relevance to [query] with a reranker model (vLLM /rerank, Cohere/Jina format).
      * Returns the indices of the documents, most relevant first.
      */
+    /** Texts for embeddings and reranking: with placeholders when „Wissensspeicher pseudonymisiert“ is on (search and stored texts alike). */
+    private fun forSearch(model: String, text: String): String =
+        if (Privacy.isLocal(model)) text else privacy?.maskForSearch(text) ?: text
+
     suspend fun rerank(model: String, query: String, documents: List<String>): List<Int> = withContext(Dispatchers.IO) {
         limiter.acquire()
         val body = buildJsonObject {
             put("model", model)
-            put("query", query)
-            putJsonArray("documents") { documents.forEach { add(JsonPrimitive(it)) } }
+            put("query", forSearch(model, query))
+            putJsonArray("documents") { documents.forEach { add(JsonPrimitive(forSearch(model, it))) } }
             put("top_n", documents.size)
         }
         http.newCall(request("/rerank", model).post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
@@ -491,7 +497,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         limiter.acquire()
         val body = buildJsonObject {
             put("model", model)
-            putJsonArray("input") { inputs.forEach { add(JsonPrimitive(it)) } }
+            putJsonArray("input") { inputs.forEach { add(JsonPrimitive(forSearch(model, it))) } }
         }
         http.newCall(request("/embeddings", model).post(body.toString().toRequestBody(JSON_TYPE)).build()).execute().use { resp ->
             val text = resp.body?.string()

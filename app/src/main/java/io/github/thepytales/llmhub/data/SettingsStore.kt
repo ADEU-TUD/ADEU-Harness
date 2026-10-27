@@ -74,11 +74,15 @@ data class AppSettings(
     /** Template forms suggest values from memory, sender details, knowledge and earlier entries (see agent/FieldSuggestions). */
     val formSuggestions: Boolean = true,
     /** Replace personal details by placeholders before anything goes to a server (see data/Pseudonymizer). */
-    val pseudonymize: Boolean = false,
+    val pseudonymize: Boolean = true,
     /** Also find names on their own (after Frau/Herr/Dr., frequent first names), not only the own list. */
     val pseudonymAuto: Boolean = true,
     /** Own names and terms that are always replaced, one per line (class lists, schools …). */
     val pseudonymTerms: String = "",
+    /** Words that are never replaced although they look like names ("Frank" as a word, a town called "Martin"), one per line. */
+    val pseudonymIgnore: String = "",
+    /** Switched-off parts of the pseudonymization: enum names of data/PiiFeature, one per line (all on by default). */
+    val pseudonymOff: String = "",
     /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
     val closeToTray: Boolean = true,
     /** Short animation of the logo when the app starts. */
@@ -97,6 +101,12 @@ data class AppSettings(
     /** Name or initials of the person coding transcripts (intercoder agreement). */
     val coderName: String = "",
 ) {
+    /** Parts of the pseudonymization that are switched off (Einstellungen › Datenschutz). */
+    val pseudonymOffFeatures: Set<PiiFeature>
+        get() = pseudonymOff.lines().mapNotNull { l -> PiiFeature.entries.firstOrNull { it.name == l.trim() } }.toSet()
+
+    fun pii(f: PiiFeature) = pseudonymize && f !in pseudonymOffFeatures
+
     /** Key of the main provider (ScaDS.AI); speech, images and embeddings only work with it. */
     val hasApiKey get() = apiKey.isNotBlank()
     /** Chatting works with the main key or any further provider. */
@@ -132,7 +142,8 @@ class SettingsStore(context: Context) {
     /**
      * Version 2 changed the defaults: DeepSeek instead of Qwen. Installs that still use the old default (or a model
      * that is no longer offered) get the new one once. Version 3 brought the common ADEU design (the look of the
-     * transcription), which every install gets once; the other looks stay selectable.
+     * transcription), which every install gets once; the other looks stay selectable. Version 4 switched the
+     * pseudonymization on once.
      */
     private fun migrate(s: AppSettings): AppSettings {
         val version = prefs.getInt("settingsVersion", 1)
@@ -141,6 +152,8 @@ class SettingsStore(context: Context) {
         val next = s.copy(
             defaultModel = if (oldDefault) ModelCatalog.DEFAULT_CHAT else s.defaultModel,
             appStyle = if (version < 3) "ADEU" else s.appStyle,
+            // Version 4: the pseudonymization is on for everyone once (it can be switched off again).
+            pseudonymize = if (version < 4) true else s.pseudonymize,
         )
         save(next)
         return next
@@ -192,6 +205,8 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymize", next.pseudonymize)
             .putBoolean("pseudonymAuto", next.pseudonymAuto)
             .putString("pseudonymTerms", next.pseudonymTerms)
+            .putString("pseudonymIgnore", next.pseudonymIgnore)
+            .putString("pseudonymOff", next.pseudonymOff)
             .putBoolean("closeToTray", next.closeToTray)
             .putBoolean("startAnimation", next.startAnimation)
             .putString("citationStyle", next.citationStyle)
@@ -251,6 +266,8 @@ class SettingsStore(context: Context) {
             pseudonymize = prefs.getBoolean("pseudonymize", d.pseudonymize),
             pseudonymAuto = prefs.getBoolean("pseudonymAuto", d.pseudonymAuto),
             pseudonymTerms = prefs.getString("pseudonymTerms", d.pseudonymTerms) ?: d.pseudonymTerms,
+            pseudonymIgnore = prefs.getString("pseudonymIgnore", d.pseudonymIgnore) ?: d.pseudonymIgnore,
+            pseudonymOff = prefs.getString("pseudonymOff", d.pseudonymOff) ?: d.pseudonymOff,
             closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
             startAnimation = prefs.getBoolean("startAnimation", d.startAnimation),
             citationStyle = prefs.getString("citationStyle", d.citationStyle) ?: d.citationStyle,
@@ -264,6 +281,6 @@ class SettingsStore(context: Context) {
     }
 
     private companion object {
-        const val SETTINGS_VERSION = 3
+        const val SETTINGS_VERSION = 4
     }
 }

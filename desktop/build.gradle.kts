@@ -36,6 +36,9 @@ dependencies {
     implementation("org.json:json:20250517")
 
     testImplementation(kotlin("test"))
+    // Compose UI tests without a window (chat scrolling).
+    @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+    testImplementation(compose.uiTest)
 }
 
 /*

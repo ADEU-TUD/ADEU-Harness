@@ -2,20 +2,38 @@ package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.LocalFolder
+import io.github.thepytales.llmhub.data.Privacy
+import io.github.thepytales.llmhub.docs.EpubWriter
+import io.github.thepytales.llmhub.docs.LatexWriter
+import io.github.thepytales.llmhub.docs.OpenDocumentWriter
+import io.github.thepytales.llmhub.docs.RtfWriter
+import io.github.thepytales.llmhub.docs.XlsxWriter
+import io.github.thepytales.llmhub.files.FormatReaders
 import io.github.thepytales.llmhub.files.LocalText
+import io.github.thepytales.llmhub.files.Notebook
+import io.github.thepytales.llmhub.files.OfficeEdit
+import io.github.thepytales.llmhub.files.SyntaxCheck
+import io.github.thepytales.llmhub.files.TextCodec
+import io.github.thepytales.llmhub.files.TextFormats
+import io.github.thepytales.llmhub.files.TextStyle
+import io.github.thepytales.llmhub.files.ZipText
 import io.github.thepytales.llmhub.net.s
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * Lets the agent work in folders on this PC the user shared (Einstellungen › Lokale Ordner): list, read (also Word,
- * PowerPoint, Excel, PDF), search, write text files and documents, edit, move and delete. Nothing outside the shared
+ * Lets the agent work in folders on this PC the user shared (Einstellungen › Lokale Ordner): list, read (Office, PDF,
+ * OpenDocument, e-mails, notebooks, ZIP archives …), search, write text files and documents, edit text files keeping
+ * their encoding, change Office files in place, transcribe recordings, move and delete. Nothing outside the shared
  * folders can be reached; deleted files go to ".adeu-papierkorb" inside the folder.
  */
 class LocalFolderTools(private val c: AppContainer) : ToolProvider {
@@ -23,15 +41,19 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
 
     override val defs = listOf(
         ToolDef(
-            "list_local_files", "Listet Dateien und Unterordner in einem freigegebenen Ordner auf diesem PC (mit Größe und Änderungsdatum).",
+            "list_local_files", "Listet Dateien und Unterordner in einem freigegebenen Ordner auf diesem PC (mit Größe und Änderungsdatum); bei einer .zip-Datei deren Inhalt.",
             listOf(
                 folderParam,
-                Param("path", "Unterordner relativ zum freigegebenen Ordner (Standard: oberste Ebene)", required = false),
+                Param("path", "Unterordner (oder .zip-Datei) relativ zum freigegebenen Ordner (Standard: oberste Ebene)", required = false),
                 Param("recursive", "true: auch alle Unterordner (höchstens 500 Einträge)", required = false, type = "boolean"),
             ),
         ),
         ToolDef(
-            "read_local_file", "Liest eine Datei aus einem freigegebenen Ordner: Text, Code, Markdown, CSV, Word, PowerPoint, Excel (als Markdown) und PDF. Mit Zeilennummern.",
+            "read_local_file",
+            "Liest eine Datei aus einem freigegebenen Ordner, mit Zeilennummern: Text und Code (alle gängigen Sprachen, Kodierung wird erkannt), " +
+                "Markdown, CSV, Word, PowerPoint, Excel (als Markdown), PDF, OpenDocument (.odt/.ods/.odp), RTF, E-Mails (.eml, .msg), " +
+                "Kalender (.ics), Kontakte (.vcf), E-Books (.epub), Jupyter-Notebooks (.ipynb, als Zellen), alte Office-Dateien (.doc/.xls/.ppt) " +
+                "und ZIP-Archive (Inhaltsliste; einzelne Datei mit Pfad „Archiv.zip/ordner/datei.txt“).",
             listOf(
                 folderParam, Param("path", "Dateipfad relativ zum freigegebenen Ordner"),
                 Param("start_line", "Erste Zeile (optional)", required = false, type = "integer"),
@@ -39,13 +61,24 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
             ),
         ),
         ToolDef(
-            "search_local_files", "Sucht in Dateinamen und im Inhalt der Textdateien eines freigegebenen Ordners (ohne Groß-/Kleinschreibung).",
-            listOf(folderParam, Param("query", "Suchbegriff"), Param("path", "Nur in diesem Unterordner (optional)", required = false)),
+            "search_local_files",
+            "Sucht in Dateinamen und im Inhalt eines freigegebenen Ordners (ohne Groß-/Kleinschreibung): Textdateien und Code, Word, " +
+                "PowerPoint, Excel, PDF, OpenDocument, RTF, E-Mails und Notebooks. Treffer mit Zeilennummern.",
+            listOf(
+                folderParam, Param("query", "Suchbegriff (oder regulärer Ausdruck, wenn regex=true)"),
+                Param("path", "Nur in diesem Unterordner (optional)", required = false),
+                Param("regex", "true: query ist ein regulärer Ausdruck (Java-Syntax), z.B. „def \\w+\\(“", required = false, type = "boolean"),
+                Param("file_pattern", "Nur Dateien, deren Name passt, z.B. „*.py“ oder „*.{md,txt}“; mit / gegen den Pfad, z.B. „src/**/*.kt“", required = false),
+                Param("context", "Zeilen vor und nach jedem Treffer zeigen (0–10, Standard 0)", required = false, type = "integer"),
+            ),
         ),
         ToolDef(
             "write_local_file",
-            "Legt eine Datei im freigegebenen Ordner an oder überschreibt sie. Endet path auf .docx, .pdf, .pptx, .xlsx oder .html, " +
-                "ist content Markdown und die App setzt daraus das Dokument (style wie bei create_document, z.B. tud). Sonst wird content wörtlich gespeichert.",
+            "Legt eine Datei im freigegebenen Ordner an oder überschreibt sie. Endet path auf .docx, .pdf, .pptx, .xlsx, .html, .odt, .ods, .odp, " +
+                ".rtf, .epub oder .tex, ist content Markdown und die App setzt daraus das Dokument (style wie bei create_document, z.B. tud; " +
+                "fertiges RTF bzw. LaTeX wird wörtlich gespeichert). .csv: Markdown-Tabellen werden zu CSV mit Semikolon (für Excel). " +
+                "Sonst wird content wörtlich gespeichert; beim Überschreiben bleiben Kodierung und Zeilenenden der Datei erhalten. " +
+                "JSON, XML, YAML, CSV, Notebooks und Python werden danach auf Syntaxfehler geprüft.",
             listOf(
                 folderParam, Param("path", "Dateipfad relativ zum freigegebenen Ordner, z.B. „Berichte/Protokoll.docx“"),
                 Param("content", "Vollständiger Inhalt (Text bzw. Markdown)"),
@@ -54,9 +87,72 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
             writes = true,
         ),
         ToolDef(
-            "edit_local_file", "Ersetzt einen exakt passenden, eindeutigen Abschnitt in einer Textdatei des freigegebenen Ordners.",
-            listOf(folderParam, Param("path", "Dateipfad"), Param("old_text", "Exakter bisheriger Text (genau einmal vorhanden)"), Param("new_text", "Neuer Text")),
+            "edit_local_file",
+            "Ändert eine Textdatei des freigegebenen Ordners, Kodierung (z.B. Windows-1252, UTF-8 mit BOM) und Zeilenenden bleiben erhalten. " +
+                "Entweder old_text/new_text (exakter, eindeutiger Abschnitt), oder edits für mehrere Ersetzungen auf einmal, oder " +
+                "start_line/end_line/new_text, um Zeilen zu ersetzen (Nummern wie bei read_local_file). Für Word/PowerPoint/Excel " +
+                "edit_office_file nehmen, für Notebook-Zellen edit_notebook_cell.",
+            listOf(
+                folderParam, Param("path", "Dateipfad"),
+                Param("old_text", "Exakter bisheriger Text (genau einmal vorhanden)", required = false),
+                Param("new_text", "Neuer Text (auch für den Zeilenmodus)", required = false),
+                Param("edits", "Mehrere Ersetzungen als JSON-Array, nacheinander angewandt: [{\"old_text\": \"…\", \"new_text\": \"…\", \"replace_all\": false}, …]", required = false),
+                Param("replace_all", "true: alle Vorkommen von old_text ersetzen statt genau eines", required = false, type = "boolean"),
+                Param("start_line", "Zeilenmodus: erste zu ersetzende Zeile", required = false, type = "integer"),
+                Param("end_line", "Zeilenmodus: letzte zu ersetzende Zeile (Standard: start_line; start_line − 1 fügt vor start_line ein)", required = false, type = "integer"),
+            ),
             writes = true,
+        ),
+        ToolDef(
+            "edit_notebook_cell",
+            "Ändert eine Zelle eines Jupyter-Notebooks (.ipynb) im freigegebenen Ordner; alles andere (Metadaten, Ausgaben der übrigen Zellen) bleibt. " +
+                "Zellnummern wie bei read_local_file („## Zelle 3“).",
+            listOf(
+                folderParam, Param("path", "Pfad des Notebooks"),
+                Param("cell", "Nummer der Zelle (ab 1); zum Anhängen Anzahl der Zellen + 1 mit action=insert_before", type = "integer"),
+                Param("source", "Neuer Inhalt der Zelle (bei delete leer lassen)", required = false),
+                Param("action", "replace (Standard), insert_before, insert_after oder delete", required = false),
+                Param("cell_type", "code oder markdown (beim Einfügen Standard: code)", required = false),
+            ),
+            writes = true,
+        ),
+        ToolDef(
+            "edit_office_file",
+            "Ersetzt Text in einer Word-, PowerPoint- oder Excel-Datei (.docx, .pptx, .xlsx) direkt in der Datei – Formatierung, Bilder und " +
+                "Layout bleiben erhalten (anders als write_local_file, das neu setzt). Der Text darf über mehrere Formatierungen eines Absatzes gehen, " +
+                "nicht über Absatz- oder Zellgrenzen.",
+            listOf(
+                folderParam, Param("path", "Pfad der Datei"),
+                Param("old_text", "Bisheriger Text (genau einmal vorhanden, außer replace_all=true)"),
+                Param("new_text", "Neuer Text"),
+                Param("replace_all", "true: alle Vorkommen ersetzen", required = false, type = "boolean"),
+                Param("slide", "Nur PowerPoint: nur auf dieser Folie (Nummer)", required = false, type = "integer"),
+            ),
+            writes = true,
+        ),
+        ToolDef(
+            "set_excel_cells",
+            "Setzt Zellen in einem Blatt einer Excel-Datei (.xlsx) im freigegebenen Ordner, Formatierung und übrige Blätter bleiben. " +
+                "Zahlen werden Zahlen, „=…“ Formeln – deutsch wie im Editor (=SUMME(B1:B3); =RUNDEN(A1;2)) oder Excel-Notation (=SUM(B1:B3)); " +
+                "Excel rechnet beim Öffnen neu –, " +
+                "alles andere Text; ein führendes ' erzwingt Text, \"\" leert die Zelle.",
+            listOf(
+                folderParam, Param("path", "Pfad der .xlsx-Datei"),
+                Param("cells", "JSON-Objekt Zelle → Wert, z.B. {\"B3\": \"12\", \"C4\": \"=SUM(B1:B3)\", \"A1\": \"Name\"}"),
+                Param("sheet", "Name oder Nummer (ab 1) des Blatts (Standard: erstes Blatt)", required = false),
+            ),
+            writes = true,
+        ),
+        ToolDef(
+            "transcribe_local_file",
+            "Wandelt eine Audio- oder Videodatei (.mp3, .m4a, .wav, .ogg, .opus, .flac, .mp4, .mov, .webm, .mkv …) aus dem freigegebenen Ordner " +
+                "mit der Spracherkennung der App in Text um – je nach Datenschutzstufe des Projekts auf dem Uni-Server oder auf diesem PC. " +
+                "Für lange Aufnahmen mit Sprechern und Zeitmarken besser die Transkription der App empfehlen.",
+            listOf(
+                folderParam, Param("path", "Pfad der Audio- oder Videodatei"),
+                Param("language", "Sprache als ISO-Code, z.B. de oder en (optional)", required = false),
+                Param("save_as", "Optional: Transkript zusätzlich als Textdatei im Ordner speichern, z.B. „Interview.txt“", required = false),
+            ),
         ),
         ToolDef(
             "move_local_file", "Verschiebt oder benennt eine Datei bzw. einen Ordner innerhalb des freigegebenen Ordners um.",
@@ -75,7 +171,11 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         ),
     )
 
-    override fun risk(name: String, args: JsonObject) = if (defs.firstOrNull { it.name == name }?.writes == true) Risk.EDIT else null
+    override fun risk(name: String, args: JsonObject) = when {
+        name == "transcribe_local_file" -> if (args.s("save_as").isNullOrBlank()) null else Risk.EDIT
+        defs.firstOrNull { it.name == name }?.writes == true -> Risk.EDIT
+        else -> null
+    }
 
     /**
      * New files in the project's "Ausgabe" – and replacing the ones the app put there – need no OK: that is what the folder
@@ -123,6 +223,10 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         append("Du kannst in Ordnern auf diesem PC arbeiten: mit list_local_files, read_local_file und search_local_files ")
         append("lesen, mit write_local_file, edit_local_file, move_local_file, delete_local_file und copy_document_to_folder schreiben. ")
         append("Verschaffe dir zuerst einen Überblick, bevor du etwas änderst, und nenne am Ende, welche Dateien du angelegt oder geändert hast. ")
+        append("read_local_file liest auch PDF, OpenDocument, RTF, E-Mails (.eml/.msg), Kalender (.ics), Kontakte (.vcf), E-Books, Jupyter-Notebooks, ")
+        append("alte Office-Dateien und ZIP-Archive („Archiv.zip/datei.txt“). Bestehende Word-, PowerPoint- und Excel-Dateien änderst du mit ")
+        append("edit_office_file bzw. set_excel_cells (Formatierung bleibt), Notebook-Zellen mit edit_notebook_cell, Textdateien mit edit_local_file ")
+        append("(mehrere Stellen auf einmal mit edits; Kodierung und Zeilenenden bleiben). Audio und Video: transcribe_local_file. ")
         append("Ordner:\n")
         available(folderId).forEach { f -> append("- „${f.name}“ (${f.path})").append(if (f.write) "" else " – nur lesen").append('\n') }
         WorkFolder.of(c, folderId)?.let { (f, dir) ->
@@ -162,14 +266,23 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         if (!root.isDirectory) throw IllegalArgumentException("Der Ordner „${folder.name}“ (${folder.path}) ist nicht erreichbar.")
         if (defs.first { it.name == name }.writes && !folder.write) throw IllegalArgumentException("Der Ordner „${folder.name}“ ist nur zum Lesen freigegeben.")
         when (name) {
-            "list_local_files" -> ToolOutput(list(root, resolve(root, args.s("path").orEmpty()), args.s("recursive") == "true"))
+            "list_local_files" -> {
+                val path = args.s("path").orEmpty()
+                val dir = resolve(root, path)
+                val inZip = if (dir.exists()) null else zipPath(root, path)
+                ToolOutput(inZip?.let { (zip, inner) -> zipListing(root, zip, inner) } ?: list(root, dir, args.s("recursive") == "true"))
+            }
             "read_local_file" -> ToolOutput(read(root, args))
-            "search_local_files" -> ToolOutput(search(root, resolve(root, args.s("path").orEmpty()), args.s("query").orEmpty()))
+            "search_local_files" -> ToolOutput(search(root, resolve(root, args.s("path").orEmpty()), args))
             "write_local_file" -> write(root, args, ctx).also { out ->
                 val target = resolve(root, args.s("path").orEmpty())
                 if (folder.id.startsWith(PROJECT_ID) && out.text.startsWith("Angelegt")) WorkFolder.delivered(c, target)
             }
             "edit_local_file" -> ToolOutput(edit(root, args))
+            "edit_notebook_cell" -> ToolOutput(editNotebook(root, args))
+            "edit_office_file" -> ToolOutput(editOffice(root, args))
+            "set_excel_cells" -> ToolOutput(setCells(root, args))
+            "transcribe_local_file" -> transcribe(root, folder, args, ctx)
             "move_local_file" -> {
                 val from = existing(root, args.s("from").orEmpty())
                 val to = resolve(root, args.s("to").orEmpty())
@@ -224,6 +337,7 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         val ext = target.extension.lowercase()
         target.parentFile?.mkdirs()
         val existed = target.exists()
+        val verb = if (existed) "Überschrieben" else "Angelegt"
         if (ext in DOCUMENTS) {
             val made = c.documentTools.run(
                 "create_document",
@@ -238,41 +352,324 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
                 ctx,
             )
             val file = made.file?.let(::File) ?: throw IllegalStateException(made.text)
-            file.copyTo(target, overwrite = true)
-            return ToolOutput("${if (existed) "Überschrieben" else "Angelegt"}: ${rel(root, target)} (${target.absolutePath})", file = target.absolutePath)
+            save(target) { file.copyTo(target, overwrite = true) }
+            return ToolOutput("$verb: ${rel(root, target)} (${target.absolutePath})", file = target.absolutePath)
         }
-        target.writeText(content)
-        return ToolOutput("${if (existed) "Überschrieben" else "Angelegt"}: ${rel(root, target)} (${content.lines().size} Zeilen)")
+        val title = target.nameWithoutExtension
+        val document: ByteArray? = when (ext) {
+            "odt" -> OpenDocumentWriter.odt(title, content)
+            "ods" -> OpenDocumentWriter.ods(title, content)
+            "odp" -> OpenDocumentWriter.odp(title, content)
+            "epub" -> EpubWriter.write(title, content)
+            "rtf" -> if (content.trimStart().startsWith("{\\rtf")) null else RtfWriter.write(title, content).toByteArray(Charsets.US_ASCII)
+            "tex" -> if (Regex("\\\\(documentclass|begin\\{|section|chapter|usepackage)").containsMatchIn(content)) null
+            else LatexWriter.write(title, content).toByteArray(Charsets.UTF_8)
+            "csv" -> if (content.lines().count { it.trimStart().startsWith("|") } >= 2) XlsxWriter.csv(title, content).toByteArray(Charsets.UTF_8) else null
+            else -> null
+        }
+        if (document != null) {
+            save(target) { target.writeBytes(document) }
+            val what = when (ext) { "rtf" -> "RTF"; "tex" -> "LaTeX"; "csv" -> "CSV aus den Markdown-Tabellen"; "epub" -> "E-Book"; else -> "OpenDocument" }
+            return ToolOutput("$verb: ${rel(root, target)} ($what, ${ZipText.size(target.length())}) (${target.absolutePath})" + warning(target, ext), file = target.absolutePath)
+        }
+        // Plain text: an existing file keeps its encoding and line endings; new files get what Windows expects for their type.
+        val before = if (existed && plainText(target)) runCatching { TextCodec.read(target).style }.getOrNull() else null
+        val style = before ?: when (ext) {
+            "csv" -> TextStyle(Charsets.UTF_8, bom = true, crlf = true)
+            "bat", "cmd", "vbs", "reg", "sln" -> TextStyle(Charsets.UTF_8, bom = false, crlf = true)
+            "ps1", "psm1", "psd1" -> TextStyle(Charsets.UTF_8, bom = true, crlf = true)
+            else -> TextStyle.DEFAULT
+        }
+        var used = style
+        save(target) { used = TextCodec.write(target, content, style) }
+        val kept = when {
+            before != null && used != before -> " – Achtung: Die Datei war ${before.label}; der neue Text enthält Zeichen, die es darin nicht gibt, daher jetzt ${used.label}"
+            before != null && before != TextStyle.DEFAULT -> " – ${before.label} beibehalten"
+            else -> ""
+        }
+        return ToolOutput("$verb: ${rel(root, target)} (${content.lines().size} Zeilen)$kept" + warning(target, ext))
+    }
+
+    /** Syntax warning for the result of a write, empty if the file looks fine. */
+    private fun warning(target: File, ext: String): String {
+        if (ext !in setOf("json", "geojson", "ipynb", "xml", "svg", "xaml", "csproj", "vbproj", "props", "targets", "resx", "yaml", "yml", "csv", "tsv", "py")) return ""
+        val text = runCatching { TextCodec.read(target).text }.getOrNull() ?: return ""
+        val problem = SyntaxCheck.check(target, text) ?: return ""
+        return "\nAchtung – Syntaxprüfung: $problem (Die Datei ist trotzdem gespeichert; bitte prüfen und korrigieren.)"
+    }
+
+    /** Runs [block]; a file opened in another program (Word, Excel) gives a clear message. */
+    private inline fun save(target: File, block: () -> Unit) {
+        try {
+            block()
+        } catch (e: java.io.IOException) {
+            throw IllegalStateException("„${target.name}“ lässt sich nicht speichern – ist die Datei in einem anderen Programm geöffnet? (${e.message})")
+        }
+    }
+
+    private data class Replacement(val old: String, val new: String, val all: Boolean)
+
+    /** Replacements of edit_local_file: the edits array (JSON array or string) plus old_text/new_text. */
+    private fun replacements(args: JsonObject): List<Replacement> {
+        val list = mutableListOf<Replacement>()
+        val raw = args["edits"]
+        val array = when (raw) {
+            is JsonArray -> raw
+            is JsonPrimitive -> raw.contentOrNull?.takeIf { it.isNotBlank() }?.let {
+                runCatching { Json.parseToJsonElement(it) as? JsonArray }.getOrNull()
+                    ?: throw IllegalArgumentException("edits ist kein gültiges JSON-Array: [{\"old_text\": \"…\", \"new_text\": \"…\"}]")
+            }
+            else -> null
+        }
+        array?.forEachIndexed { i, el ->
+            val o = el as? JsonObject ?: throw IllegalArgumentException("edits[${i + 1}] ist kein Objekt mit old_text und new_text.")
+            val old = o.s("old_text") ?: o.s("old") ?: throw IllegalArgumentException("edits[${i + 1}]: old_text fehlt.")
+            list += Replacement(old, o.s("new_text") ?: o.s("new").orEmpty(), o.s("replace_all") == "true")
+        }
+        args.s("old_text")?.takeIf { it.isNotEmpty() }?.let { list += Replacement(it, args.s("new_text").orEmpty(), args.s("replace_all") == "true") }
+        return list
     }
 
     private fun edit(root: File, args: JsonObject): String {
         val target = existing(root, args.s("path").orEmpty())
-        if (target.extension.lowercase() in BINARY) throw IllegalArgumentException("„${target.name}“ ist keine Textdatei – mit write_local_file neu schreiben.")
-        val text = target.readText()
-        val old = args.s("old_text").orEmpty()
-        val count = if (old.isEmpty()) 0 else generateSequence(text.indexOf(old)) { i -> text.indexOf(old, i + 1).takeIf { it >= 0 } }.takeWhile { it >= 0 }.take(2).count()
-        when {
-            count == 0 -> throw IllegalArgumentException("old_text kommt in „${target.name}“ nicht vor. Lies die Datei mit read_local_file.")
-            count > 1 -> throw IllegalArgumentException("old_text kommt ${count}-mal vor – mehr Kontext angeben.")
+        if (target.isDirectory) throw IllegalArgumentException("„${rel(root, target)}“ ist ein Ordner.")
+        val ext = target.extension.lowercase()
+        if (ext in OFFICE) throw IllegalArgumentException("„${target.name}“ ist eine Office-Datei – Text darin mit edit_office_file ändern (Formatierung bleibt) oder mit write_local_file neu schreiben.")
+        if (!editable(target)) throw IllegalArgumentException("„${target.name}“ ist keine Textdatei – mit write_local_file neu schreiben.")
+        val decoded = TextCodec.read(target)
+        var text = decoded.text
+        val start = args.int("start_line")
+        val summary: String
+        if (start != null) {
+            if (!plainText(target)) throw IllegalArgumentException("Der Zeilenmodus geht nur bei reinen Textdateien – hier old_text/new_text verwenden" + (if (ext == "ipynb") " oder edit_notebook_cell." else "."))
+            val lines = text.split('\n').toMutableList()
+            val end = args.int("end_line") ?: start
+            if (start < 1 || start > lines.size + 1 || end < start - 1 || end > lines.size) {
+                throw IllegalArgumentException("Zeilen $start–$end gibt es nicht – die Datei hat ${lines.size} Zeilen.")
+            }
+            val replacement = args.s("new_text").orEmpty().replace("\r\n", "\n").removeSuffix("\n")
+            val newLines = if (replacement.isEmpty() && args.s("new_text").isNullOrEmpty()) emptyList() else replacement.split('\n')
+            repeat(end - start + 1) { lines.removeAt(start - 1) }
+            lines.addAll(start - 1, newLines)
+            text = lines.joinToString("\n")
+            summary = when {
+                end < start -> "${newLines.size} Zeilen vor Zeile $start eingefügt"
+                newLines.isEmpty() -> "Zeilen $start–$end gelöscht"
+                else -> "Zeilen $start–$end ersetzt durch ${newLines.size} Zeilen"
+            }
+        } else {
+            val edits = replacements(args)
+            if (edits.isEmpty()) throw IllegalArgumentException("Es fehlt, was geändert werden soll: old_text/new_text, edits oder start_line.")
+            var total = 0
+            edits.forEachIndexed { i, e ->
+                val label = if (edits.size > 1) "Änderung ${i + 1}: " else ""
+                val old = e.old.replace("\r\n", "\n")
+                if (old.isEmpty()) throw IllegalArgumentException("${label}old_text ist leer.")
+                val count = occurrences(text, old)
+                when {
+                    count == 0 -> throw IllegalArgumentException(
+                        "${label}old_text kommt in „${target.name}“ nicht vor" + (if (i > 0) " (nach den vorherigen Änderungen)" else "") +
+                            ". Nichts wurde geändert. Lies die Datei mit read_local_file." + hint(text, old),
+                    )
+                    count > 1 && !e.all -> throw IllegalArgumentException("${label}old_text kommt $count-mal vor – mehr Kontext angeben oder replace_all=true. Nichts wurde geändert.")
+                }
+                text = if (e.all) text.replace(old, e.new.replace("\r\n", "\n")) else text.replaceFirst(old, e.new.replace("\r\n", "\n"))
+                total += count
+            }
+            summary = if (total == 1) "1 Ersetzung" else "$total Ersetzungen"
         }
-        target.writeText(text.replace(old, args.s("new_text").orEmpty()))
-        return "Geändert: ${rel(root, target)}"
+        var used = decoded.style
+        save(target) { used = TextCodec.write(target, text, decoded.style) }
+        val style = when {
+            used != decoded.style -> " – Achtung: Die Datei war ${decoded.style.label}; der neue Text enthält Zeichen, die es darin nicht gibt, daher jetzt ${used.label}"
+            decoded.style != TextStyle.DEFAULT -> " – ${decoded.style.label} beibehalten"
+            else -> ""
+        }
+        return "Geändert: ${rel(root, target)} ($summary)$style" + warning(target, ext)
+    }
+
+    private fun occurrences(text: String, old: String): Int {
+        var n = 0
+        var i = text.indexOf(old)
+        while (i >= 0) { n++; i = text.indexOf(old, i + old.length) }
+        return n
+    }
+
+    /** Why old_text was not found, if it is only a matter of spaces or case. */
+    private fun hint(text: String, old: String): String {
+        fun squeeze(s: String) = s.lines().joinToString("\n") { it.trim() }.replace(Regex("[ \\t]+"), " ")
+        return when {
+            squeeze(text).contains(squeeze(old)) -> " Hinweis: Der Text kommt mit anderen Leerzeichen bzw. Einrückungen vor – genau wie in der Datei angeben."
+            text.contains(old, ignoreCase = true) -> " Hinweis: Der Text kommt mit anderer Groß-/Kleinschreibung vor."
+            else -> ""
+        }
+    }
+
+    private fun editNotebook(root: File, args: JsonObject): String {
+        val target = existing(root, args.s("path").orEmpty())
+        if (target.extension.lowercase() != "ipynb") throw IllegalArgumentException("„${target.name}“ ist kein Jupyter-Notebook (.ipynb).")
+        val decoded = TextCodec.read(target)
+        val mode = when (args.s("action")?.trim()?.lowercase()) {
+            null, "", "replace", "ersetzen" -> Notebook.Mode.REPLACE
+            "insert_before", "insert", "einfügen" -> Notebook.Mode.INSERT_BEFORE
+            "insert_after" -> Notebook.Mode.INSERT_AFTER
+            "delete", "löschen" -> Notebook.Mode.DELETE
+            else -> throw IllegalArgumentException("action muss replace, insert_before, insert_after oder delete sein.")
+        }
+        val cell = args.int("cell") ?: throw IllegalArgumentException("cell fehlt.")
+        val next = Notebook.edit(decoded.text, cell, args.s("source").orEmpty().replace("\r\n", "\n"), mode, args.s("cell_type")?.trim()?.lowercase()?.takeIf { it.isNotEmpty() })
+        save(target) { TextCodec.write(target, next, decoded.style) }
+        val cells = runCatching { (Json.parseToJsonElement(next) as JsonObject)["cells"].let { (it as JsonArray).size } }.getOrDefault(0)
+        val what = when (mode) {
+            Notebook.Mode.REPLACE -> "Zelle $cell ersetzt"
+            Notebook.Mode.INSERT_BEFORE -> "Neue Zelle $cell eingefügt"
+            Notebook.Mode.INSERT_AFTER -> "Neue Zelle ${cell + 1} eingefügt"
+            Notebook.Mode.DELETE -> "Zelle $cell gelöscht"
+        }
+        return "$what: ${rel(root, target)} (jetzt $cells Zellen; Ausgaben der übrigen Zellen unverändert)" + warning(target, "ipynb")
+    }
+
+    private fun editOffice(root: File, args: JsonObject): String {
+        val target = existing(root, args.s("path").orEmpty())
+        val ext = target.extension.lowercase()
+        if (ext !in OFFICE) throw IllegalArgumentException("edit_office_file ändert .docx, .pptx und .xlsx – für Textdateien edit_local_file nehmen.")
+        val r = OfficeEdit.replace(ext, target.readBytes(), args.s("old_text").orEmpty(), args.s("new_text").orEmpty(), args.s("replace_all") == "true", args.int("slide"))
+        save(target) { target.writeBytes(r.bytes) }
+        val where = r.parts.map { p ->
+            Regex("slides/slide(\\d+)").find(p)?.let { "Folie ${it.groupValues[1]}" }
+                ?: Regex("notesSlide(\\d+)").find(p)?.let { "Notizen zu Folie ${it.groupValues[1]}" }
+                ?: when {
+                    "header" in p -> "Kopfzeile"; "footer" in p -> "Fußzeile"; "footnotes" in p -> "Fußnoten"; "endnotes" in p -> "Endnoten"
+                    "comments" in p -> "Kommentare"; "sharedStrings" in p || "worksheets" in p -> "Zellen"; else -> "Text"
+                }
+        }.distinct().joinToString(", ")
+        return "Geändert: ${rel(root, target)} (${if (r.count == 1) "1 Ersetzung" else "${r.count} Ersetzungen"} – $where; Formatierung unverändert)"
+    }
+
+    private fun setCells(root: File, args: JsonObject): String {
+        val target = existing(root, args.s("path").orEmpty())
+        if (target.extension.lowercase() !in setOf("xlsx", "xlsm")) throw IllegalArgumentException("set_excel_cells geht nur mit .xlsx-Dateien.")
+        val raw = args["cells"]
+        val obj = when (raw) {
+            is JsonObject -> raw
+            is JsonPrimitive -> runCatching { Json.parseToJsonElement(raw.content) as JsonObject }.getOrNull()
+            else -> null
+        } ?: throw IllegalArgumentException("cells muss ein JSON-Objekt sein, z.B. {\"B3\": \"12\", \"C4\": \"=SUM(B1:B3)\"}.")
+        val values = LinkedHashMap<String, String>()
+        obj.forEach { (k, v) -> values[k] = (v as? JsonPrimitive)?.contentOrNull ?: if (v is kotlinx.serialization.json.JsonNull) "" else v.toString() }
+        val r = OfficeEdit.setCells(target.readBytes(), args.s("sheet"), values)
+        save(target) { target.writeBytes(r.bytes) }
+        val formulas = values.values.count { it.startsWith("=") }
+        return "In „${r.sheet}“ von ${rel(root, target)} ${if (r.cells == 1) "1 Zelle" else "${r.cells} Zellen"} gesetzt: ${values.keys.take(20).joinToString(", ")}" +
+            (if (values.size > 20) ", …" else "") + "." + (if (formulas > 0) " Formeln berechnet Excel beim Öffnen; andere Programme zeigen sie evtl. erst nach Neuberechnung an." else "")
+    }
+
+    private suspend fun transcribe(root: File, folder: LocalFolder, args: JsonObject, ctx: RepoContext): ToolOutput {
+        val f = existing(root, args.s("path").orEmpty())
+        val ext = f.extension.lowercase()
+        if (ext !in TextFormats.MEDIA) throw IllegalArgumentException("„${f.name}“ ist keine Audio- oder Videodatei.")
+        val saveAs = args.s("save_as")?.trim()?.takeIf { it.isNotEmpty() }
+        if (saveAs != null && !folder.write) throw IllegalArgumentException("Der Ordner „${folder.name}“ ist nur zum Lesen freigegeben – ohne save_as aufrufen.")
+        val onDevice = !Privacy.level(c, ctx.folderId).allowsUniServer
+        val serverOk = !onDevice && c.settings.current.hasApiKey && f.length() <= 25L * 1024 * 1024 && ext in SERVER_AUDIO
+        val text = if (serverOk) {
+            c.llm.transcribe(c.settings.current.sttModel, f, args.s("language")?.trim()?.takeIf { it.isNotEmpty() }, mimeOf(ext))
+        } else {
+            c.transcription.recognizeShort(f) ?: throw IllegalArgumentException(
+                if (onDevice) "In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden."
+                else "Die Datei kann nicht an den Uni-Server gehen (kein API-Schlüssel, größer als 25 MB oder Videoformat) und auf diesem PC ist kein " +
+                    "Erkennungsmodell geladen (Einstellungen › Transkription). Alternativ die Datei in der Transkription der App öffnen.",
+            )
+        }.trim()
+        if (text.isEmpty()) return ToolOutput("In „${rel(root, f)}“ wurde keine Sprache erkannt.")
+        val saved = saveAs?.let { name ->
+            val target = resolve(root, if ('/' in name || '\\' in name) name else (rel(root, f).substringBeforeLast('/', "").let { if (it.isEmpty()) name else "$it/$name" }))
+            if (target.isDirectory) throw IllegalArgumentException("„$name“ ist ein Ordner.")
+            target.parentFile?.mkdirs()
+            save(target) { TextCodec.write(target, text + "\n", TextStyle.DEFAULT) }
+            target
+        }
+        val where = if (serverOk) "Uni-Server" else "auf diesem PC"
+        return ToolOutput(
+            "Transkript von ${rel(root, f)} ($where, ${text.length} Zeichen)" + (saved?.let { ", gespeichert als ${rel(root, it)}" } ?: "") + ":\n\n" + text,
+            file = saved?.absolutePath,
+        )
+    }
+
+    /** ZIP archive and path inside it for "Archiv.zip/ordner/datei.txt"; null if [path] does not lead into an archive. */
+    private fun zipPath(root: File, path: String): Pair<File, String>? {
+        val parts = path.trim().replace('\\', '/').trim('/').split('/')
+        for (i in 1 until parts.size) {
+            if (!parts[i - 1].lowercase().endsWith(".zip")) continue
+            val zip = resolve(root, parts.take(i).joinToString("/"))
+            if (zip.isFile) return zip to parts.drop(i).joinToString("/")
+        }
+        return null
+    }
+
+    private fun zipBytes(zip: File): ByteArray {
+        if (zip.length() > 200L * 1024 * 1024) throw IllegalArgumentException("„${zip.name}“ ist zu groß (max. 200 MB).")
+        return zip.readBytes()
+    }
+
+    private suspend fun readZipEntry(root: File, zip: File, inner: String, args: JsonObject): String {
+        val bytes = zipBytes(zip)
+        val entry = ZipText.entry(bytes, inner)
+        if (entry == null) {
+            if (ZipText.isDirectory(bytes, inner)) return zipListing(root, zip, inner)
+            throw IllegalArgumentException("„$inner“ gibt es in „${zip.name}“ nicht. Mit list_local_files auf „${rel(root, zip)}“ nachsehen.")
+        }
+        val name = inner.substringAfterLast('/')
+        val text = LocalText.read(name, entry)
+        return numbered("${rel(root, zip)}/$inner (aus dem ZIP-Archiv, nur lesen)", text, args, TextFormats.language(name))
+    }
+
+    private fun zipListing(root: File, zip: File, inner: String = ""): String {
+        val bytes = zipBytes(zip)
+        if (inner.isEmpty()) return ZipText.listing(rel(root, zip), bytes)
+        val prefix = inner.trim('/') + "/"
+        val entries = ZipText.entries(bytes).filter { it.name.startsWith(prefix, true) }
+        return buildString {
+            append("Inhalt von ${rel(root, zip)}/$prefix:\n")
+            entries.take(500).forEach { e -> append(if (e.directory) "[Ordner] ${e.name}" else "${e.name} · ${ZipText.size(e.size)}").append('\n') }
+        }
+    }
+
+    /** Text with line numbers and a header (path, number of lines, language). */
+    private fun numbered(header: String, text: String, args: JsonObject, language: String?, style: TextStyle? = null): String {
+        val lines = text.lines()
+        val from = (args.int("start_line") ?: 1).coerceAtLeast(1)
+        val to = (args.int("end_line") ?: lines.size).coerceAtMost(lines.size)
+        return buildString {
+            append(header).append(" (").append(lines.size).append(" Zeilen")
+            language?.let { append(" · ").append(it) }
+            if (style != null && style != TextStyle.DEFAULT) append(" · ").append(style.label)
+            append(")\n")
+            for (i in from..to) append(i).append(": ").append(lines[i - 1]).append('\n')
+            if (from > to && lines.isNotEmpty()) append("(keine Zeilen in diesem Bereich)\n")
+        }
     }
 
     private suspend fun read(root: File, args: JsonObject): String {
-        val f = existing(root, args.s("path").orEmpty())
+        val path = args.s("path").orEmpty()
+        if (!resolve(root, path).exists()) zipPath(root, path)?.let { (zip, inner) -> return readZipEntry(root, zip, inner, args) }
+        val f = existing(root, path)
         if (f.isDirectory) return list(root, f, false)
-        if (f.length() > 25L * 1024 * 1024) throw IllegalArgumentException("„${f.name}“ ist zu groß (max. 25 MB).")
-        val lines = LocalText.read(f).lines()
-        val from = (args.s("start_line")?.toIntOrNull() ?: 1).coerceAtLeast(1)
-        val to = (args.s("end_line")?.toIntOrNull() ?: lines.size).coerceAtMost(lines.size)
-        return buildString {
-            append("${rel(root, f)} (${lines.size} Zeilen)\n")
-            for (i in from..to) append(i).append(": ").append(lines[i - 1]).append('\n')
+        if (f.extension.lowercase() == "zip") return zipListing(root, f)
+        if (f.length() > 25L * 1024 * 1024 && !(f.extension.lowercase() in TextFormats.MEDIA)) throw IllegalArgumentException("„${f.name}“ ist zu groß (max. 25 MB).")
+        if (plainText(f)) {
+            val decoded = TextCodec.read(f)
+            return numbered(rel(root, f), decoded.text, args, TextFormats.language(f.name), decoded.style)
         }
+        if (f.extension.lowercase() in TextFormats.MEDIA) {
+            return "[Audio-/Videodatei „${rel(root, f)}“, ${size(f.length())}]\n" +
+                (if (LocalText.SUPPORTED) "Mit transcribe_local_file lässt sie sich in Text umwandeln (Spracherkennung der App)." else "")
+        }
+        return numbered(rel(root, f), LocalText.read(f), args, TextFormats.language(f.name))
     }
 
     private fun list(root: File, dir: File, recursive: Boolean): String {
+        if (dir.isFile && dir.extension.lowercase() == "zip") return zipListing(root, dir)
         if (!dir.isDirectory) throw IllegalArgumentException("„${rel(root, dir)}“ ist kein Ordner.")
         val entries = (if (recursive) dir.walkTopDown().filter { it != dir } else dir.listFiles().orEmpty().asSequence())
             .filterNot { hidden(root, it) }.take(MAX_LIST + 1).toList()
@@ -288,21 +685,102 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         }
     }
 
-    private suspend fun search(root: File, dir: File, query: String): String {
+    /** First bytes of [f], to tell text from binary files. */
+    private fun head(f: File): ByteArray = runCatching {
+        f.inputStream().use { input ->
+            val b = ByteArray(4096)
+            val n = input.read(b)
+            if (n <= 0) ByteArray(0) else b.copyOf(n)
+        }
+    }.getOrDefault(ByteArray(0))
+
+    /** Plain text shown as it is (code, configuration, Markdown, CSV, SVG …), so lines can be edited by number. */
+    private fun plainText(f: File): Boolean {
+        val ext = f.extension.lowercase()
+        if (ext == "svg") return true
+        if (ext in OFFICE || ext in NOT_TEXT || FormatReaders.handles(f.name) || ext in TextFormats.IMAGES || ext in TextFormats.MEDIA) return false
+        return TextFormats.isText(f.name) || TextCodec.looksLikeText(head(f))
+    }
+
+    /** Text formats edit_local_file may change as text (also RTF, e-mails, calendars and notebooks as raw text). */
+    private fun editable(f: File): Boolean {
+        val ext = f.extension.lowercase()
+        if (ext in setOf("rtf", "eml", "ics", "vcf", "ipynb", "svg")) return true
+        return plainText(f)
+    }
+
+    /** Text of [f] for searching, null for binary files and files that are too large. */
+    private suspend fun searchable(f: File): String? {
+        val ext = f.extension.lowercase()
+        if (plainText(f)) return if (f.length() > 5L * 1024 * 1024) null else runCatching { TextCodec.read(f).text }.getOrNull()
+        val limit = if (ext == "pdf") 40L * 1024 * 1024 else 15L * 1024 * 1024
+        if (ext !in SEARCH_DOCUMENTS || f.length() > limit) return null
+        val key = f.absolutePath
+        val stamp = f.lastModified() * 31 + f.length()
+        synchronized(searchCache) { searchCache[key]?.let { (s, text) -> if (s == stamp) return text } }
+        val text = LocalText.searchText(f) ?: ""
+        synchronized(searchCache) {
+            searchCache[key] = stamp to text
+            var total = searchCache.values.sumOf { it.second.length.toLong() }
+            val it = searchCache.entries.iterator()
+            while (total > 30_000_000 && it.hasNext()) { total -= it.next().value.second.length; it.remove() }
+        }
+        return text
+    }
+
+    private suspend fun search(root: File, dir: File, args: JsonObject): String {
+        val query = args.s("query").orEmpty()
         if (query.isBlank()) throw IllegalArgumentException("query fehlt.")
-        val hits = mutableListOf<String>()
-        for (f in dir.walkTopDown().filter { it.isFile && !hidden(root, it) }) {
-            if (hits.size >= 80) break
-            if (f.name.contains(query, true)) hits += "${rel(root, f)} (Dateiname)"
-            if (f.length() > 3L * 1024 * 1024) continue
-            val text = if (f.extension.lowercase() in BINARY) {
-                if (f.extension.lowercase() in setOf("docx", "pptx", "xlsx")) runCatching { LocalText.read(f) }.getOrNull() else null
-            } else runCatching { f.readText() }.getOrNull()
-            text?.lines()?.forEachIndexed { i, line ->
-                if (hits.size < 80 && line.contains(query, true)) hits += "${rel(root, f)}:${i + 1}: ${line.trim().take(160)}"
+        val pattern = if (args.s("regex") == "true") {
+            try {
+                Regex(query, RegexOption.IGNORE_CASE)
+            } catch (e: Exception) {
+                throw IllegalArgumentException("Ungültiger regulärer Ausdruck: ${e.message?.lines()?.first()}")
+            }
+        } else null
+        fun hit(s: String) = pattern?.containsMatchIn(s) ?: s.contains(query, ignoreCase = true)
+        val glob = args.s("file_pattern")?.trim()?.takeIf { it.isNotEmpty() }
+        val globRegex = glob?.let(::globToRegex)
+        val context = (args.int("context") ?: 0).coerceIn(0, 10)
+        val out = StringBuilder()
+        var matches = 0
+        var files = 0
+        var truncated = false
+        for (f in dir.walkTopDown().onEnter { it == dir || !hidden(root, it) }.filter { it.isFile && !hidden(root, it) }) {
+            if (matches >= MAX_HITS || out.length > 40_000) { truncated = true; break }
+            val relPath = rel(root, f)
+            if (globRegex != null && !globRegex.matches(if ('/' in glob) relPath else f.name)) continue
+            val nameHit = hit(f.name)
+            val lines = searchable(f)?.lines().orEmpty()
+            val found = lines.indices.filter { hit(lines[it]) }
+            if (!nameHit && found.isEmpty()) continue
+            files++
+            if (nameHit && found.isEmpty()) { out.append(relPath).append(" (Dateiname)\n"); matches++; continue }
+            if (context == 0) {
+                if (nameHit) out.append(relPath).append(" (Dateiname)\n")
+                for (i in found) {
+                    if (matches >= MAX_HITS) break
+                    out.append(relPath).append(':').append(i + 1).append(": ").append(lines[i].trim().take(200)).append('\n')
+                    matches++
+                }
+            } else {
+                out.append("== ").append(relPath).append(if (nameHit) " (auch im Dateinamen)" else "").append(" ==\n")
+                var last = -1
+                for (i in found) {
+                    if (matches >= MAX_HITS) break
+                    val from = maxOf(i - context, last + 1)
+                    if (last >= 0 && from > last + 1) out.append("--\n")
+                    for (k in from..minOf(lines.lastIndex, i + context)) {
+                        if (k <= last) continue
+                        out.append(k + 1).append(if (hit(lines[k])) ": " else "- ").append(lines[k].take(200)).append('\n')
+                        last = k
+                    }
+                    matches++
+                }
             }
         }
-        return if (hits.isEmpty()) "Keine Treffer für „$query“." else hits.joinToString("\n")
+        if (out.isEmpty()) return "Keine Treffer für „$query“" + (glob?.let { " in Dateien „$it“" } ?: "") + "."
+        return "$matches Treffer in $files ${if (files == 1) "Datei" else "Dateien"}" + (if (truncated) " (gekürzt – Suche eingrenzen)" else "") + ":\n" + out
     }
 
     private fun hidden(root: File, f: File) = rel(root, f).split('/').any { it.startsWith(".") || it == "node_modules" }
@@ -317,7 +795,58 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         private const val MAX_LIST = 500
         private const val MAX_OVERVIEW = 60
         private val DOCUMENTS = setOf("docx", "pdf", "pptx", "xlsx", "html")
-        private val BINARY = setOf("docx", "pptx", "xlsx", "xls", "doc", "ppt", "pdf", "zip", "png", "jpg", "jpeg", "gif", "mp3", "mp4", "wav", "exe", "dll", "odt", "ods", "odp")
+        private const val MAX_HITS = 100
+        private val OFFICE = setOf("docx", "docm", "pptx", "pptm", "xlsx", "xlsm")
+        /** Binary files that are never read as text. */
+        private val NOT_TEXT = setOf(
+            "pdf", "zip", "7z", "rar", "gz", "tgz", "tar", "exe", "dll", "msi", "jar", "class", "so", "bin", "iso", "db", "sqlite",
+            "mdb", "accdb", "pst", "ost", "woff", "woff2", "ttf", "otf", "eot", "pyc", "o", "obj", "lib",
+        )
+        /** Documents search_local_files looks into (besides plain text). */
+        private val SEARCH_DOCUMENTS = setOf("docx", "pptx", "xlsx", "xlsm", "pdf", "odt", "ods", "odp", "rtf", "eml", "msg", "ipynb", "epub", "doc", "xls", "ppt", "ics", "vcf")
+        /** Formats the Uni server's speech recognition accepts. */
+        private val SERVER_AUDIO = setOf("mp3", "m4a", "aac", "wav", "ogg", "oga", "opus", "flac", "webm", "mp4", "mpeg", "mpg")
+
+        /** Text of searched documents by path, with modification time and size (PDFs take a while). */
+        private val searchCache = object : LinkedHashMap<String, Pair<Long, String>>(64, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<Long, String>>?) = size > 300
+        }
+
+        private fun mimeOf(ext: String) = when (ext) {
+            "mp3", "mpeg", "mpg" -> "audio/mpeg"
+            "m4a", "aac" -> "audio/mp4"
+            "wav" -> "audio/wav"
+            "ogg", "oga", "opus" -> "audio/ogg"
+            "flac" -> "audio/flac"
+            "webm" -> "audio/webm"
+            "mp4" -> "video/mp4"
+            else -> "application/octet-stream"
+        }
+
+        /** "*.py", "*.{md,txt}", "src/**/*.kt" as regular expression (case-insensitive). */
+        fun globToRegex(glob: String): Regex {
+            val sb = StringBuilder()
+            var i = 0
+            var brace = 0
+            while (i < glob.length) {
+                val ch = glob[i]
+                when {
+                    ch == '*' && glob.getOrNull(i + 1) == '*' -> {
+                        if (glob.getOrNull(i + 2) == '/') { sb.append("(?:.*/)?"); i += 2 } else { sb.append(".*"); i++ }
+                    }
+                    ch == '*' -> sb.append("[^/]*")
+                    ch == '?' -> sb.append("[^/]")
+                    ch == '{' -> { sb.append("(?:"); brace++ }
+                    ch == '}' && brace > 0 -> { sb.append(')'); brace-- }
+                    ch == ',' && brace > 0 -> sb.append('|')
+                    ch == '\\' -> sb.append('/')
+                    ch.isLetterOrDigit() || ch == '/' || ch == '_' || ch == '-' || ch == ' ' -> sb.append(ch)
+                    else -> sb.append('\\').append(ch)
+                }
+                i++
+            }
+            return Regex(sb.toString(), RegexOption.IGNORE_CASE)
+        }
 
         /** [path] inside [root]; anything that leads outside (.., absolute paths, links) is refused. */
         fun resolve(root: File, path: String): File {

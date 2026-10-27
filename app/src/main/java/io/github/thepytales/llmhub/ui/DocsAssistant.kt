@@ -110,7 +110,7 @@ object DocsAi {
         when (doc.docKind) {
             DocKind.DOC -> append(
                 "Format: Markdown mit Überschriften, Listen, Tabellen, Checklisten (- [ ] …) und Hinweisboxen (> [!NOTE]); der Nutzer sieht " +
-                    "das Dokument formatiert wie in Word, ohne die Markdown-Zeichen. ",
+                    "das Dokument formatiert wie in Word, ohne die Markdown-Zeichen. " + DOC_MARKUP_HELP,
             )
             DocKind.MARKDOWN -> append("Format: eine Markdown-Datei (z. B. README, Notiz); der Nutzer sieht und bearbeitet den Quelltext mit allen Zeichen. ")
             DocKind.SLIDES -> append(
@@ -120,7 +120,8 @@ object DocsAi {
                     "optional Zeilen wie „Vortrag · Oktober 2026“; eine Folie nur mit „## Titel“ und höchstens einem kurzen Satz ist eine " +
                     "Abschnittsfolie, eine Folie nur mit „> Zitat“ (letzte Zeile „> – Quelle“) eine Zitatfolie; jede weitere " +
                     "„## Folientitel“ mit wenigen kurzen Stichpunkten (höchstens 6, je eine Zeile); „|||“ beginnt die rechte Spalte, " +
-                    "„Notizen: …“ am Ende einer Folie sind die Sprechernotizen. Details gehören in die Notizen, nicht auf die Folie. ",
+                    "„Notizen: …“ am Ende einer Folie sind die Sprechernotizen. Details gehören in die Notizen, nicht auf die Folie. " +
+                    SLIDE_LAYOUT_HELP,
             )
             DocKind.SHEET -> append(
                 "Format der Tabelle: jeder Tab ist ein Tabellenblatt mit genau einer Markdown-Tabelle, die erste Zeile sind die " +
@@ -176,6 +177,21 @@ object DocsAi {
             thinking = ThinkingLevel.OFF,
         ) { u -> onText(io.github.thepytales.llmhub.agent.FieldAssist.clean(u.content)) }
         return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException("Das Modell hat keinen Text geliefert.") }
+    }
+
+    /** Spelling and grammar check of [text] by the model: the corrections it suggests (see [SpellCheck]). */
+    suspend fun spellCheck(c: AppContainer, doc: LiveDoc?, text: String): List<io.github.thepytales.llmhub.docs.SpellCheck.Correction> {
+        val system = "Du bist ein sorgfältiges Korrektorat in einem Schreibprogramm" + (doc?.title?.let { " (Dokument „$it“)" } ?: "") + ". " +
+            io.github.thepytales.llmhub.docs.SpellCheck.INSTRUCTION
+        val result = c.llm.streamChat(
+            model = c.settings.current.defaultModel,
+            messages = listOf(ChatMessage(role = "system", content = system), ChatMessage(role = "user", content = "Text:\n<<<\n${text.take(30_000)}\n>>>")),
+            tools = null,
+            thinking = ThinkingLevel.OFF,
+        ) { }
+        val answer = splitThinking(result.content).second
+        if (answer.isBlank()) throw IllegalStateException("Das Modell hat nicht geantwortet.")
+        return io.github.thepytales.llmhub.docs.SpellCheck.parse(answer)
     }
 }
 
@@ -312,6 +328,28 @@ private fun materialActions(kind: DocKind): List<Pair<String, String>> = when (k
     )
 }
 
+/** Extras of the text documents the model may use (see docs/DocMarkup). */
+const val DOC_MARKUP_HELP = "Fußnoten: [^1] im Text und eine Zeile „[^1]: Text“ am Ende. Bilder: eigene Zeile „![Bildunterschrift](Pfad){width=50%}“ " +
+    "(vorhandene Bildzeilen unverändert lassen). Seitenumbruch: eine Zeile \\newpage. Querformat-Seiten zwischen den Zeilen " +
+    "„<!-- quer -->“ und „<!-- hoch -->“. Zeilen mit <!-- … --> (Seiteneinrichtung, Literaturliste) nicht ändern. "
+
+/** Slide layouts beyond the ones recognized from their content (see docs/SlideDeck). */
+const val SLIDE_LAYOUT_HELP = "Weitere Folientypen über eine Zeile direkt unter dem Folientitel: „<!-- layout: bild-text -->“ " +
+    "(bzw. bild-links; Bild als Zeile „![Beschreibung](Pfad)“), „<!-- layout: bild -->“ (Vollbild), „<!-- layout: vergleich -->“ " +
+    "(zwei Spalten mit „### Überschrift“ oben, getrennt durch „|||“), „<!-- layout: tabelle -->“, „<!-- layout: diagramm -->“ " +
+    "(mit ```chart-Block), „<!-- layout: agenda -->“ (leer = automatisch aus den Abschnittsfolien), „<!-- layout: abschluss -->“ " +
+    "(Dank und Kontakt). "
+
+/** Makes all slides look and read alike (also from the slide toolbar). */
+const val STYLE_SLIDES = "Vereinheitliche den Stil aller Folien: gleiche Form der Titel (kurz, ohne Punkt), Stichpunkte in derselben " +
+    "grammatischen Form (z. B. alle als Nominalphrase oder alle als kurzer Satz), einheitliche Schreibweisen, Zahlen und " +
+    "Abkürzungen, gleiche Anrede, höchstens 6 Stichpunkte je Folie. Inhalte, Reihenfolge, Folientypen (<!-- layout: … -->), " +
+    "Bilder und Notizen bleiben erhalten."
+
+/** Speaker notes for every slide (also from the slide toolbar). */
+const val NOTES_ALL_SLIDES = "Schreibe zu jeder Folie ausführliche Sprechernotizen (Notizen: … am Ende der Folie) – was ich dazu " +
+    "sagen kann, mit Überleitung zur nächsten Folie. Vorhandene Notizen ergänzt du; die Folien selbst bleiben unverändert."
+
 /** Quick requests offered in the assistant panel, per kind of document. */
 private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
     DocKind.MARKDOWN -> listOf(
@@ -337,8 +375,9 @@ private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind
         "Folien entwerfen" to "Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien): Titelfolie mit Untertitel und einer " +
             "Zeile Anlass · Datum, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, wo es passt auch " +
             "zwei Spalten, eine Tabelle oder ein Zitat, eine Abschlussfolie; zu jeder Folie Sprechernotizen.",
-        "Sprechernotizen" to "Ergänze zu jeder Folie ausführliche Sprechernotizen (was ich dazu sagen kann).",
+        "Sprechernotizen" to NOTES_ALL_SLIDES,
         "Straffen" to "Straffe alle Folien: höchstens 5 kurze Stichpunkte je Folie, Details in die Sprechernotizen.",
+        "Stil vereinheitlichen" to STYLE_SLIDES,
         "Abschlussfolie" to "Füge am Ende eine Folie mit Zusammenfassung/Take-aways und eine Folie für Fragen hinzu.",
         "Interaktion" to "Ergänze an passenden Stellen Folien mit kurzen Aktivierungen für das Publikum (Frage, Murmelgruppe, Abstimmung).",
         "Feedback" to "Gib mir Feedback zur Präsentation (Roter Faden, Textmenge, Verständlichkeit) – ändere noch nichts.",

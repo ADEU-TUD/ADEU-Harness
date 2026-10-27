@@ -1,0 +1,278 @@
+package io.github.thepytales.llmhub.ui
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.docs.DocMarkup
+import io.github.thepytales.llmhub.docs.DocumentWriter
+import io.github.thepytales.llmhub.docs.HtmlPdf
+import io.github.thepytales.llmhub.docs.LiveDoc
+import io.github.thepytales.llmhub.docs.SlideHandout
+import io.github.thepytales.llmhub.docs.SpellCheck
+import io.github.thepytales.llmhub.research.CitationStyle
+import io.github.thepytales.llmhub.research.Reference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+
+/** Folder the pictures of the open document are relative to (set by the editor). */
+val LocalDocBase = staticCompositionLocalOf<File?> { null }
+
+/** A picture of the document, loaded in the background; null while loading or when it cannot be read. */
+@Composable
+fun rememberDocImage(src: String): ImageBitmap? {
+    val base = LocalDocBase.current
+    val state = produceState<ImageBitmap?>(null, src, base) {
+        value = withContext(Dispatchers.IO) { DocMarkup.imageBytes(src, base)?.let { runCatching { decodeImage(it) }.getOrNull() } }
+    }
+    return state.value
+}
+
+/** A picture block on the page: at its width, centred, the caption below it. */
+@Composable
+fun DocImageView(img: DocMarkup.Image, modifier: Modifier = Modifier) {
+    val bitmap = rememberDocImage(img.src)
+    Column(modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (bitmap != null) {
+            Image(
+                bitmap, contentDescription = img.alt.ifBlank { "Bild" }, contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth((img.width ?: 100) / 100f).heightIn(max = 520.dp),
+            )
+        } else {
+            Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(0.6f).height(90.dp)) {
+                Box(contentAlignment = Alignment.Center) { HintText("Bild nicht gefunden: ${img.src.substringAfterLast('/')}") }
+            }
+        }
+        if (img.alt.isNotBlank()) Text(
+            img.alt, style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+}
+
+/** Header and footer of the exported pages: page numbers, date, header line. */
+@Composable
+fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (DocMarkup.PageSetup) -> Unit) {
+    var numbers by remember { mutableStateOf(setup.pageNumbers) }
+    var date by remember { mutableStateOf(setup.date) }
+    var header by remember { mutableStateOf(setup.header) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seite einrichten") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                HintText("Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein.")
+                Row(Modifier.fillMaxWidth().clickable { numbers = !numbers }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(numbers, { numbers = it })
+                    Text("Seitenzahlen „Seite X von Y“ in der Fußzeile")
+                }
+                Row(Modifier.fillMaxWidth().clickable { date = !date }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(date, { date = it })
+                    Text("Datum in der Kopfzeile")
+                }
+                OutlinedTextField(header, { header = it }, label = { Text("Kopfzeile (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim())) }) { Text("Übernehmen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
+}
+
+/** Picks a work from the literature collection and the citation style for "Literatur einfügen". */
+@Composable
+fun CitationDialog(c: AppContainer, initialStyle: CitationStyle, onDismiss: () -> Unit, onPick: (Reference, CitationStyle) -> Unit) {
+    val all by c.literature.items.collectAsState()
+    var query by remember { mutableStateOf("") }
+    var style by remember { mutableStateOf(initialStyle) }
+    var styles by remember { mutableStateOf(false) }
+    val list = all.filter { r -> query.isBlank() || r.short().contains(query, true) || r.container.contains(query, true) }
+        .sortedByDescending { it.addedAt }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Literatur einfügen") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                HintText("Setzt den Beleg an der Cursorposition ein und pflegt „Literatur“ am Ende des Dokuments automatisch.")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Zitierstil: ", style = MaterialTheme.typography.labelLarge)
+                    Box {
+                        TextButton(onClick = { styles = true }) { Text(style.label) }
+                        androidx.compose.material3.DropdownMenu(expanded = styles, onDismissRequest = { styles = false }) {
+                            CitationStyle.entries.forEach { st ->
+                                androidx.compose.material3.DropdownMenuItem(text = { Text(st.label) }, onClick = { style = st; styles = false })
+                            }
+                        }
+                    }
+                }
+                OutlinedTextField(query, { query = it }, placeholder = { Text("Suchen (Autor:in, Titel, Jahr)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                if (all.isEmpty()) HintText("Die Literatursammlung ist noch leer – Werke unter „Literatur“ hinzufügen oder suchen lassen.")
+                LazyColumn(Modifier.heightIn(max = 340.dp)) {
+                    items(list.take(200), key = { it.id }) { r ->
+                        Text(
+                            r.short(), maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.fillMaxWidth().clickable { onPick(r, style) }.padding(vertical = 8.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
+}
+
+/**
+ * The model's spelling and grammar check of [text]: suggestions to take one by one or all at once. [onApply] gets
+ * each accepted correction.
+ */
+@Composable
+fun SpellCheckDialog(c: AppContainer, doc: LiveDoc?, text: String, onDismiss: () -> Unit, onApply: (List<SpellCheck.Correction>) -> Unit) {
+    var busy by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val suggestions = remember { mutableStateListOf<SpellCheck.Correction>() }
+    LaunchedEffect(text) {
+        runCatching { DocsAi.spellCheck(c, doc, text) }
+            .onSuccess { suggestions.clear(); suggestions += SpellCheck.applicable(text, it) }
+            .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) error = e.message ?: "Fehler" }
+        busy = false
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Rechtschreibung prüfen") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                when {
+                    busy -> Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Text("  Die KI prüft den Text …")
+                    }
+                    error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
+                    suggestions.isEmpty() -> Text("Keine Fehler gefunden.")
+                    else -> HintText("${suggestions.size} Vorschläge – einzeln übernehmen oder alle auf einmal.")
+                }
+                LazyColumn(Modifier.heightIn(max = 380.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(suggestions.toList(), key = { it.original + "→" + it.korrektur }) { s ->
+                        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(10.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(s.original, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.LineThrough))
+                                    Text("  →  ", style = MaterialTheme.typography.bodyMedium)
+                                    Text(s.korrektur, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+                                }
+                                if (s.grund.isNotBlank()) HintText(s.grund)
+                                Row {
+                                    TextButton(onClick = { onApply(listOf(s)); suggestions.remove(s) }) { Text("Übernehmen") }
+                                    TextButton(onClick = { suggestions.remove(s) }) { Text("Ignorieren") }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (suggestions.size > 1) TextButton(onClick = { onApply(suggestions.toList()); suggestions.clear(); onDismiss() }) { Text("Alle übernehmen") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+    )
+}
+
+/** Handout of a presentation as PDF: 3 or 6 slides per page, with or without the speaker notes. */
+@Composable
+fun HandoutDialog(c: AppContainer, doc: LiveDoc, markdown: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var perPage by remember { mutableStateOf(3) }
+    var notes by remember { mutableStateOf(true) }
+    var busy by remember { mutableStateOf(false) }
+    val saveAs = rememberSaveAs("application/pdf")
+
+    fun make(then: (File) -> Unit) {
+        busy = true
+        scope.launch {
+            val result = runCatching {
+                val settings = c.settings.current
+                val html = withContext(Dispatchers.Default) {
+                    SlideHandout.html(markdown, doc.title, perPage, notes, settings.tudUnit, settings.docFooter, c.docs.baseDir(doc))
+                }
+                val file = withContext(Dispatchers.IO) {
+                    File(File(context.cacheDir, "exports").apply { mkdirs() }, DocumentWriter.safeName("${doc.title} – Handout") + ".pdf")
+                }
+                HtmlPdf.write(context, file, html)
+                file
+            }
+            busy = false
+            result.onSuccess(then).onFailure { Notices.error("Handout fehlgeschlagen: ${it.message}") }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Handout als PDF") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                listOf(3 to "3 Folien pro Seite (daneben Notizen oder Linien)", 6 to "6 Folien pro Seite").forEach { (n, label) ->
+                    Row(Modifier.fillMaxWidth().clickable { perPage = n }, verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(perPage == n, { perPage = n })
+                        Text(label)
+                    }
+                }
+                Row(Modifier.fillMaxWidth().clickable { notes = !notes }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(notes, { notes = it })
+                    Text("Sprechernotizen drucken")
+                }
+                if (busy) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            }
+        },
+        confirmButton = {
+            Row {
+                TextButton(enabled = !busy, onClick = { make { openDocument(context, it) } }) { Text("Öffnen") }
+                TextButton(enabled = !busy, onClick = { make(saveAs) }) { Text(SAVE_AS_LABEL) }
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+    )
+}

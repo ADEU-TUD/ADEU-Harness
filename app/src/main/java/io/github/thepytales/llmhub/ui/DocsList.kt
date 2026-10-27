@@ -121,12 +121,12 @@ private val SHEET_STARTERS = listOf(
             (2..6).map { r -> listOf("", "", "=WENN(B$r>=90;1;WENN(B$r>=75;2;WENN(B$r>=60;3;WENN(B$r>=50;4;5))))", "=WENN(B$r>=50;\"ja\";\"nein\")") } +
             listOf(listOf("Mittelwert", "=MITTELWERT(B2:B6)", "=MITTELWERT(C2:C6)", "=ZÄHLENWENN(D2:D6;\"ja\")")),
     ),
-    "Budget" to SheetEngine.markdown(
+    "Kostenaufstellung" to SheetEngine.markdown(
         listOf(listOf("Posten", "Menge", "Einzelpreis", "Summe")) +
             (2..5).map { r -> listOf("", "", "", "=B$r*C$r") } + listOf(listOf("Gesamt", "", "", "=SUMME(D2:D5)")),
     ),
     "Zeitplan" to SheetEngine.markdown(listOf(listOf("Aufgabe", "Verantwortlich", "Beginn", "Ende", "Status")) + List(6) { List(5) { "" } }),
-)
+) + io.github.thepytales.llmhub.docs.SheetTemplates.ALL
 
 /** Creates a new document of [kind] (in the default storage folder) and returns it. */
 fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: String? = null, style: String? = null): LiveDoc {
@@ -170,6 +170,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
             Notices.error("„$name“ lässt sich nicht im Editor öffnen (Word, PowerPoint, Excel, CSV, Markdown und Text gehen).")
         } else {
             val doc = OfficeImport.toLiveDoc(imported).copy(vault = c.docs.defaultVault)
+            withContext(Dispatchers.IO) { DocsHandoff.saveMedia(c, doc, imported) }
             c.docs.save(doc)
             onOpen(doc.id)
         }

@@ -303,7 +303,9 @@ class DocumentTools(
         val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
         val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite)
+        // Pictures of a document of the editor are relative to its folder.
+        val imageBase = docs.get(args.s("doc_id"))?.let { docs.baseDir(it) }
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite, imageBase)
         val live = withContext(Dispatchers.IO) { keepLive(args, title, content, doc.file, ctx, tabsDone) }
         // The source stays next to the document for edit_document and for filling in open placeholders.
         withContext(Dispatchers.IO) {
@@ -645,8 +647,8 @@ class DocumentTools(
                 if (doc.tabs.size > 1) append("\n=== Tab „${t.title}“ ===\n")
                 append(t.markdown.replace("\u200B", "").take(40_000)).append("\n")
                 if (kind == io.github.thepytales.llmhub.docs.DocKind.SHEET && t.markdown.contains("| =")) {
-                    val rows = io.github.thepytales.llmhub.docs.SheetEngine.grid(t.markdown)
-                    val computed = io.github.thepytales.llmhub.docs.SheetEngine.Sheet(rows).computed()
+                    // With the other sheets, so references like 'Tabelle 2'!A1 are computed too.
+                    val computed = io.github.thepytales.llmhub.docs.SheetTools.workbook(doc.tabs).sheet(doc.tabs.indexOf(t)).computed()
                     append("Berechnete Werte:\n").append(io.github.thepytales.llmhub.docs.SheetEngine.markdown(computed).take(20_000)).append("\n")
                 }
             }
@@ -819,7 +821,9 @@ class DocumentTools(
         append("Text statt „hier“, keine Information nur über Farbe, Abkürzungen beim ersten Vorkommen ausschreiben. Die App setzt ")
         append("Sprache, Titel, Überschriften-Formatvorlagen, Alternativtexte und Folientitel selbst. Mit check_accessibility prüfst ")
         append("du ein Dokument (auch ein angehängtes PDF) und nennst die Mängel mit Abhilfe. ")
+        append("Word/PDF-Extras im Markdown: ").append(io.github.thepytales.llmhub.ui.DOC_MARKUP_HELP)
         append(PPTX_HELP)
+        append(io.github.thepytales.llmhub.ui.SLIDE_LAYOUT_HELP)
         append(QtiWriter.HELP)
         append(MORE_FORMATS_HELP)
         append(io.github.thepytales.llmhub.docs.LimeSurveyWriter.HELP)

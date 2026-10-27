@@ -206,6 +206,12 @@ class DocsStore(dir: File) {
 
     fun vault(id: String?): DocVault? = id?.let { i -> config.vaults.firstOrNull { it.id == i } }
 
+    /**
+     * Folder that the pictures of [doc] are relative to (Markdown "![…](Bilder/…)"): the vault next to its Markdown copy
+     * (so Obsidian and other editors show them too), otherwise the app's document folder.
+     */
+    fun baseDir(doc: LiveDoc?): File = vault(doc?.vault)?.let { File(it.path) } ?: folder
+
     /** File name of the Markdown copy in a vault. */
     private fun mirrorName(d: LiveDoc) = d.title.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), " ").replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "Dokument" } +
         (if (d.docKind == DocKind.SLIDES || d.docKind == DocKind.SHEET) " (${d.docKind.label})" else "") + ".md"
@@ -263,8 +269,15 @@ class DocsStore(dir: File) {
     fun move(id: String, vaultId: String?) {
         val doc = get(id) ?: return
         if (doc.vault == vaultId) return
+        val from = baseDir(doc)
         delete(id)
-        save(doc.copy(vault = vaultId, mirror = null))
+        val moved = doc.copy(vault = vaultId, mirror = null)
+        // The pictures go along, so the relative paths stay valid.
+        val to = baseDir(moved)
+        if (from.absoluteFile != to.absoluteFile) DocMarkup.imagePaths(doc.markdown()).forEach { rel ->
+            runCatching { File(from, rel).takeIf { it.isFile }?.copyTo(File(to, rel), overwrite = false) }
+        }
+        save(moved)
     }
 
     // ── Vaults ──
