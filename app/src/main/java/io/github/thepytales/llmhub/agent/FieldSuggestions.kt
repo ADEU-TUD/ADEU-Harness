@@ -67,7 +67,7 @@ object FieldSuggestions {
         val fields = template.fields.filter { wanted(template, it) && values[it.label].isNullOrBlank() }
         if (fields.isEmpty()) return null
         val s = c.settings.current
-        val memory = if (MemoryMode.of(s.memoryMode) != MemoryMode.OFF) c.memory.current.map { it.text } else emptyList()
+        val memory = Memory.entries(c, null).map { it.text }
         val query = listOf(template.name, template.description).plus(fields.map { it.label }).plus(values.values).joinToString(" ")
         val hits = runCatching { c.knowledge.search(query, listOf(""), 4) }.getOrDefault(emptyList())
         if (memory.isEmpty() && hits.isEmpty() && s.senderInfo.isBlank() && s.userName.isBlank()) return null

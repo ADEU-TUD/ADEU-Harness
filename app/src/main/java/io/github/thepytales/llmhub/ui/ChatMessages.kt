@@ -290,6 +290,7 @@ fun UserBubble(
     onSubmitEdit: (String, List<FileAttachment>, List<String>) -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
     onFork: () -> Unit = {},
+    onRemember: (String) -> Unit = {},
 ) {
     val m = item.m
     val look = LocalChatLook.current
@@ -379,6 +380,11 @@ fun UserBubble(
                         onClick = { menu = false; onStartEdit() },
                     )
                     DropdownMenuItem(
+                        text = { Text(tr("Merken …")) },
+                        leadingIcon = { Icon(Icons.Outlined.Psychology, contentDescription = null) },
+                        onClick = { menu = false; onRemember(m.content) },
+                    )
+                    DropdownMenuItem(
                         text = { Text("Neuer Chat ab hier") },
                         leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
                         onClick = { menu = false; onFork() },
@@ -444,6 +450,11 @@ fun AssistantMessage(
     onContinue: () -> Unit = {},
     onQuote: (String) -> Unit = {},
     onFork: () -> Unit = {},
+    onRemember: (String) -> Unit = {},
+    /** Thinking and tool steps folded away (Arbeitsschritte einklappen); results like documents stay visible. */
+    fold: Boolean = false,
+    /** The line that opens folded steps, on the first message of a turn. */
+    stepsLine: (@Composable () -> Unit)? = null,
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -458,7 +469,8 @@ fun AssistantMessage(
     val (inlineThinking, answer) = remember(m.content) { splitThinking(m.content) }
     val thinking = listOfNotNull(m.reasoning, inlineThinking).joinToString("\n").ifBlank { null }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (thinking != null) ThinkingBox(thinking, streaming && answer.isBlank())
+        stepsLine?.invoke()
+        if (thinking != null && !fold) ThinkingBox(thinking, streaming && answer.isBlank())
         if (answer.isNotBlank()) {
             ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = LocalChatLook.current.answerFont)) {
                 SelectionContainer { MarkdownText(answer) }
@@ -468,12 +480,12 @@ fun AssistantMessage(
         val done = m.toolCalls.all { results[it.id] != null } && !(streaming || running && item.isLast)
         var showTools by remember(m.id) { mutableStateOf(false) }
         val grouped = done && m.toolCalls.size >= 3 && !showTools
-        if (done && m.toolCalls.size >= 3) {
+        if (done && m.toolCalls.size >= 3 && !fold) {
             ToolGroupLine(m.toolCalls.map { it.name }, open = showTools) { showTools = !showTools }
         }
         m.toolCalls.forEach { call ->
             val result = results[call.id]
-            if (!grouped) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
+            if (!grouped && !fold) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
             // The model is writing a document: it can be watched live in the editor.
             if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
             if (call.name == "create_chart" && result != null && !result.content.startsWith("FEHLER")) {
@@ -543,6 +555,13 @@ fun AssistantMessage(
                                 onClick = { more = false; onQuote(text) },
                             )
                         }
+                        if (text.isNotBlank()) {
+                            DropdownMenuItem(
+                                text = { Text(tr("Merken …")) },
+                                leadingIcon = { Icon(Icons.Outlined.Psychology, contentDescription = null) },
+                                onClick = { more = false; onRemember(text) },
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text("Neuer Chat ab hier") },
                             leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
@@ -581,6 +600,21 @@ fun AssistantMessage(
         }
     }
 }
+
+/**
+ * Whether an assistant message still shows something when its steps are folded: an answer, an error, or a result
+ * of a tool such as a document, a chart or a literature list (or the document being written).
+ */
+fun showsWithoutSteps(m: ChatMessage, results: Map<String?, ChatMessage>, running: Boolean): Boolean =
+    m.error || splitThinking(m.content).second.isNotBlank() || m.toolCalls.any { call ->
+        val r = results[call.id]
+        when {
+            r == null -> call.name == "create_document" && running
+            r.file != null -> true
+            r.content.startsWith("FEHLER") -> false
+            else -> call.name == "create_chart" || call.name == "save_literature"
+        }
+    }
 
 /** Shown while the model works on an answer: the brand spark slowly pulsing, like in the Claude app. */
 @Composable
@@ -684,7 +718,7 @@ private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
     }
 }
 
-private fun toolLabel(name: String) = when (name) {
+internal fun toolLabel(name: String) = when (name) {
     "web_search" -> "Websuche"
     "news_search" -> "Nachrichtensuche"
     "fetch_url" -> "Webseite lesen"
@@ -729,6 +763,9 @@ private fun toolLabel(name: String) = when (name) {
     "read_feed" -> "Feed lesen"
     "create_series" -> "Serienbrief"
     "create_semester_plan" -> "Semesterplan"
+    "remember" -> "Merken"
+    "forget" -> "Vergessen"
+    "search_chats" -> "Frühere Chats durchsuchen"
     else -> name
 }
 

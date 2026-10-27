@@ -22,6 +22,13 @@ class Recorder(private val context: Context) {
     private var thread: Thread? = null
     private var buffer = ByteArrayOutputStream()
 
+    /** Loudest sample since the last [level] call, 0..1. */
+    @Volatile
+    private var peak = 0f
+
+    /** Loudness since the last call, 0..1 (for the voice mode: has the user stopped speaking?). */
+    fun level(): Float = peak.also { peak = 0f }
+
     fun start() {
         val info = DataLine.Info(TargetDataLine::class.java, format)
         if (!AudioSystem.isLineSupported(info)) throw IllegalStateException("Kein Mikrofon gefunden.")
@@ -37,6 +44,15 @@ class Recorder(private val context: Context) {
                 val n = l.read(chunk, 0, chunk.size)
                 if (n <= 0) break
                 synchronized(out) { out.write(chunk, 0, n) }
+                var max = 0
+                var i = 0
+                while (i + 1 < n) {
+                    val v = kotlin.math.abs((chunk[i].toInt() and 0xFF) or (chunk[i + 1].toInt() shl 8))
+                    if (v > max) max = v
+                    i += 2
+                }
+                val level = (max / 32768f).coerceAtMost(1f)
+                if (level > peak) peak = level
             }
         }, "recorder").apply { isDaemon = true; start() }
     }

@@ -57,6 +57,12 @@ data class ModelInfo(
 object ModelCatalog {
     /** Default chat model: fast, sees images, uses tools and has a huge context. */
     const val DEFAULT_CHAT = "deepseek-ai/DeepSeek-V4.1-Flash"
+    /** Fastest model for small helper requests (learning the memory) and very long documents. */
+    const val FAST_CHAT = "zai-org/GLM-5.3-Flash"
+    /** Most thorough model, for the hardest tasks (automatic model choice). */
+    const val HARD_CHAT = "zai-org/GLM-5.3"
+    /** Model for programming and GitHub (automatic model choice). */
+    const val CODE_CHAT = "Qwen/Qwen3.8-27B"
 
     val known: List<ModelInfo> = listOf(
         // ---- Chat

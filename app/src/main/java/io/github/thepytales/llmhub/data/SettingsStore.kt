@@ -100,6 +100,18 @@ data class AppSettings(
     val uiLanguage: String = "de",
     /** Name or initials of the person coding transcripts (intercoder agreement). */
     val coderName: String = "",
+    /** While the agent works, thinking and tool steps are folded away behind a small animated figure (see ui/WorkingFigure). */
+    val collapseSteps: Boolean = true,
+    /** After a chat, a small model looks for lasting details about the user and suggests them (see agent/MemoryLearner). */
+    val memoryLearn: Boolean = true,
+    /** The model may search earlier chats (search_chats) and knows the titles of the latest ones. */
+    val memoryChats: Boolean = true,
+    /** The three questions that fill an empty memory were answered or dismissed. */
+    val memoryIntroDone: Boolean = false,
+    /** New chats start with the automatic model choice (Automatisch in the model picker). */
+    val autoModel: Boolean = false,
+    /** Automatic model choice: ask before a request goes to another model than the current one. */
+    val autoModelAsk: Boolean = true,
 ) {
     /** Parts of the pseudonymization that are switched off (Einstellungen › Datenschutz). */
     val pseudonymOffFeatures: Set<PiiFeature>
@@ -216,6 +228,12 @@ class SettingsStore(context: Context) {
             .putString("literatureSources", next.literatureSources)
             .putString("uiLanguage", next.uiLanguage)
             .putString("coderName", next.coderName)
+            .putBoolean("collapseSteps", next.collapseSteps)
+            .putBoolean("memoryLearn", next.memoryLearn)
+            .putBoolean("memoryChats", next.memoryChats)
+            .putBoolean("memoryIntroDone", next.memoryIntroDone)
+            .putBoolean("autoModelAsk", next.autoModelAsk)
+            .putBoolean("autoModel", next.autoModel)
             .apply()
     }
 
@@ -277,6 +295,12 @@ class SettingsStore(context: Context) {
             literatureSources = prefs.getString("literatureSources", d.literatureSources) ?: d.literatureSources,
             uiLanguage = prefs.getString("uiLanguage", d.uiLanguage) ?: d.uiLanguage,
             coderName = prefs.getString("coderName", d.coderName) ?: d.coderName,
+            collapseSteps = prefs.getBoolean("collapseSteps", d.collapseSteps),
+            memoryLearn = prefs.getBoolean("memoryLearn", d.memoryLearn),
+            memoryChats = prefs.getBoolean("memoryChats", d.memoryChats),
+            memoryIntroDone = prefs.getBoolean("memoryIntroDone", d.memoryIntroDone),
+            autoModelAsk = prefs.getBoolean("autoModelAsk", d.autoModelAsk),
+            autoModel = prefs.getBoolean("autoModel", d.autoModel),
         )
     }
 

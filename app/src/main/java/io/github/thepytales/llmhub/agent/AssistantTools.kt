@@ -6,6 +6,7 @@ import io.github.thepytales.llmhub.data.Privacy
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Conversation
 import io.github.thepytales.llmhub.data.KnowledgeDoc
+import io.github.thepytales.llmhub.data.MemoryCategory
 import io.github.thepytales.llmhub.data.MemoryEntry
 import io.github.thepytales.llmhub.data.MemoryMode
 import io.github.thepytales.llmhub.data.ModelType
@@ -41,9 +42,22 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                     ToolDef(
                         "remember",
                         "Merkt sich eine dauerhaft nützliche Angabe über den Nutzer für alle künftigen Chats (Funktion, " +
-                            "Lehrveranstaltungen, Vorlieben für Stil und Format, wiederkehrende Kontakte). Nicht für Einmaliges, " +
-                            "nichts Sensibles (Gesundheit, Passwörter). Ein kurzer Satz in der dritten Person.",
-                        listOf(Param("text", "Die Angabe, z.B. „Unterrichtet im Master Lehramt das Modul Allgemeine Didaktik.“")),
+                            "Lehrveranstaltungen, Vorlieben für Stil und Format, wiederkehrende Kontakte, laufende Vorhaben). " +
+                            // Asking mode with learning: the app suggests details after the chat, so no question mid-answer.
+                            (if (memoryMode == MemoryMode.ASK && c.settings.current.memoryLearn) "Nutze es nur, wenn der Nutzer ausdrücklich " +
+                                "darum bittet („merk dir …“) – anderes schlägt die App nach dem Chat selbst vor. "
+                            else "Nutze es von selbst, sobald der Nutzer so etwas über sich sagt – nicht erst auf Nachfrage. ") +
+                            "Nicht für Einmaliges, nichts Sensibles (Gesundheit, Passwörter). Ein kurzer Satz in der dritten Person.",
+                        listOf(
+                            Param("text", "Die Angabe, z.B. „Unterrichtet im Master Lehramt das Modul Allgemeine Didaktik.“"),
+                            Param(
+                                "category",
+                                "Bereich: " + MemoryCategory.entries.joinToString(", ") { "${it.name} (${it.label}: ${it.hint})" },
+                                required = false,
+                            ),
+                            Param("scope", "allgemein (Standard, für alle Chats) oder projekt (nur im Projekt dieses Chats)", required = false),
+                            Param("valid_until", "Nur für Zeitgebundenes: Datum JJJJ-MM-TT, ab dem die Angabe nicht mehr gilt", required = false),
+                        ),
                         writes = true,
                     )
                 )
@@ -55,6 +69,20 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                         writes = true,
                     )
                 )
+                if (c.settings.current.memoryChats) {
+                    add(
+                        ToolDef(
+                            "search_chats",
+                            "Durchsucht die früheren Chats des Nutzers (Titel, Fragen und Antworten) und liefert passende Auszüge – " +
+                                "nutze es, wenn er sich auf Früheres bezieht („wie letztes Mal“, „der Brief an Frau …“). Mit chat_id " +
+                                "liefert es den Verlauf eines Chats.",
+                            listOf(
+                                Param("query", "Suchbegriffe, z.B. „Exposé Feedback Methodenteil“"),
+                                Param("chat_id", "Optional: ID (oder Titel) eines Chats aus einem früheren Treffer, um ihn ganz zu lesen", required = false),
+                            ),
+                        )
+                    )
+                }
             }
             if (c.knowledge.docs.value.isNotEmpty()) {
                 add(
@@ -104,16 +132,15 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     override fun risk(name: String, args: JsonObject): Risk? =
         if (name in setOf("remember", "forget") && memoryMode == MemoryMode.ASK) Risk.PUBLIC else null
 
-    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript")
+    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript", "search_chats")
 
-    /** Memory and the existence of knowledge, for the system prompt (changes rarely, so the server cache holds). */
+    /**
+     * The existence of knowledge and of earlier chats, for the system prompt (changes rarely, so the server cache holds).
+     * The memory itself is part of every request (see [Memory] and AgentRunner).
+     */
     fun prompt(conv: Conversation): String? {
         val parts = mutableListOf<String>()
-        val memory = c.memory.current
-        if (memoryMode != MemoryMode.OFF && memory.isNotEmpty()) {
-            parts += "Was du über den Nutzer weißt (er sieht und verwaltet das unter Einstellungen › Gedächtnis):\n" +
-                memory.joinToString("\n") { "- ${it.text}" }
-        }
+        Memory.chatsHint(c, conv, conv.model)?.let { parts += it }
         val collections = collections(conv.folderId)
         val docs = c.knowledge.docs.value.filter { it.collection in collections }
         if (docs.isNotEmpty()) {
@@ -135,9 +162,25 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
         }
         "remember" -> {
             val text = args.req("text").trim().take(300)
-            val existing = c.memory.current.firstOrNull { it.text.equals(text, ignoreCase = true) }
-            if (existing == null) c.memory.upsert(MemoryEntry(text = text))
-            ToolOutput("Gemerkt: „$text“. Erwähne es kurz in deiner Antwort.")
+            val project = ctx.folderId.takeIf { args.s("scope")?.trim()?.lowercase()?.startsWith("proj") == true }
+            val category = MemoryCategory.of(args.s("category"))
+            val until = Memory.parseDate(args.s("valid_until"))
+            val existing = c.memory.current.firstOrNull { it.text.equals(text, ignoreCase = true) && it.projectId == project }
+            if (existing == null) {
+                c.memory.upsert(MemoryEntry(text = text, category = category.name, projectId = project, expiresAt = until, source = "chat"))
+            } else if (until != existing.expiresAt || category.name != existing.category) {
+                c.memory.update(existing.id) { it.copy(expiresAt = until, category = category.name) }
+            }
+            val where = if (project != null) " (nur in diesem Projekt)" else ""
+            ToolOutput("Gemerkt$where: „$text“. Erwähne es kurz in deiner Antwort.")
+        }
+        "search_chats" -> {
+            val conv = ctx.chatId?.let { id -> c.runs.get(id)?.conversation?.value ?: c.chats.get(id) }
+            when {
+                conv == null -> ToolOutput("FEHLER: Frühere Chats sind hier nicht verfügbar.")
+                !Memory.chatsAllowed(c, conv) -> ToolOutput("Frühere Chats sind für diesen Chat ausgeschaltet (Gedächtnis aus oder temporärer Chat).")
+                else -> ToolOutput(Memory.searchChats(c, conv, ctx.model ?: conv.model, args.s("query").orEmpty(), args.s("chat_id")))
+            }
         }
         "forget" -> {
             val text = args.req("text").trim()

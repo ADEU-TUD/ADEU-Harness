@@ -153,6 +153,7 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
             save(run)
             _runs.update { it - run.chatId }
             if (!seen && !cancelled && c.chats.get(run.chatId) != null) announce(run.conversation.value)
+            if (!cancelled && c.chats.get(run.chatId) != null) c.memoryLearner.afterAnswer(run.conversation.value)
         }
     }
 

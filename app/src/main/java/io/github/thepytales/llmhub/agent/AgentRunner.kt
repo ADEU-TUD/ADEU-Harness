@@ -110,6 +110,10 @@ class AgentRunner(private val c: AppContainer) {
             }
         }
         var privacyEvent = privacyNotice(host, start, lastUser)
+        // Agent protocol: how much of the memory went along (once per answer).
+        var memoryEvent = Memory.entriesFor(c, start).size.takeIf { it > 0 }?.let { n ->
+            "Gedächtnis: " + (if (n == 1) "1 Angabe" else "$n Angaben") + if (Memory.chatsAllowed(c, start)) ", frühere Chats durchsuchbar" else ""
+        }
         var providers = providers(start, tools)
         var steps = 0
         var totalSteps = 0
@@ -125,6 +129,8 @@ class AgentRunner(private val c: AppContainer) {
             val events = mutableListOf<String>()
             privacyEvent?.let { events += it }
             privacyEvent = null
+            memoryEvent?.let { events += it }
+            memoryEvent = null
             val placeholder = ChatMessage(role = "assistant", model = model)
             host.update { it.appendToThread(placeholder) }
             val started = System.currentTimeMillis()
@@ -378,6 +384,8 @@ class AgentRunner(private val c: AppContainer) {
         val documentsFull = c.documentTools in providers && needsGuide(conv, Guides.documents)
         val system = listOfNotNull(
             settings.systemPrompt.ifBlank { null },
+            // The memory goes along with every request, also without tools (see Memory).
+            Memory.prompt(c, conv),
             conv.systemPrompt?.ifBlank { null },
             ctx.env?.systemPrompt(),
             if (c.githubTools in providers) GitHubTools.systemPrompt(ctx) else null,

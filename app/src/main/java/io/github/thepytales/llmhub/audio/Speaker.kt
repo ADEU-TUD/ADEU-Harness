@@ -53,14 +53,15 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
         if (_playingId.value == id) stop() else speak(id, markdown)
     }
 
-    fun speak(id: String, markdown: String) {
+    /** Reads [markdown] aloud; [deviceOnly]: with the device's voice even if the server's is chosen (data stays here). */
+    fun speak(id: String, markdown: String, deviceOnly: Boolean = false) {
         stop()
         val text = speechText(markdown)
         if (text.isBlank()) return
         _playingId.value = id
         job = scope.launch {
             try {
-                if (settings.current.ttsEngine == "DEVICE") speakDevice(id, text) else speakServer(text)
+                if (deviceOnly || settings.current.ttsEngine == "DEVICE") speakDevice(id, text) else speakServer(text)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

@@ -84,8 +84,7 @@ object FieldAssist {
 
     /** Memory entries (unless switched off) – so "Vorschlag schreiben" knows e.g. the own courses. */
     private fun about(c: AppContainer): List<String> =
-        if (io.github.thepytales.llmhub.data.MemoryMode.of(c.settings.current.memoryMode) == io.github.thepytales.llmhub.data.MemoryMode.OFF) emptyList()
-        else c.memory.current.map { it.text }.take(40)
+        Memory.entries(c, null).map { it.text }.take(40)
 
     /** Cleans the answer: no reasoning, no code fences, no surrounding quotes or "<<<" markers. */
     fun clean(answer: String): String {

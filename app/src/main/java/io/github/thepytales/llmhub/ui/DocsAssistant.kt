@@ -163,7 +163,9 @@ object DocsAi {
             (if (kind == DocKind.SLIDES) "einer Präsentationsfolie" else if (kind == DocKind.SHEET) "einer Tabelle" else "eines Dokuments") +
             ". Antworte ausschließlich mit dem neuen Text für die markierte Stelle – ohne Einleitung, ohne Erklärung, ohne " +
             "Anführungszeichen. Behalte Markdown-Auszeichnungen (Überschrift, Liste, **fett**) bei, wenn sie zur Stelle gehören. " +
-            "Deutsch, sofern nicht anders verlangt; geschlechtergerecht; keine Emojis; erfinde keine Fakten – fehlende Angaben als [Platzhalter]."
+            "Deutsch, sofern nicht anders verlangt; geschlechtergerecht; keine Emojis; erfinde keine Fakten – fehlende Angaben als [Platzhalter]." +
+            // The memory (style, function …) also applies here, so texts sound like the user's own.
+            (io.github.thepytales.llmhub.agent.Memory.promptFor(c, null)?.let { "\n\n$it" } ?: "")
         val context = doc?.markdown()?.take(6000).orEmpty()
         val user = buildString {
             if (context.isNotBlank()) append("Zusammenhang (das ganze Dokument „${doc?.title}“, gekürzt):\n<<<\n").append(context).append("\n>>>\n\n")
