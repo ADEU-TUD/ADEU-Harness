@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Archive
@@ -91,6 +92,8 @@ internal fun EmptyChat(
     onExample: (ChatExample) -> Unit = {},
     /** Something is typed in the input: Lora takes notes and the bubble steps aside. */
     typing: Boolean = false,
+    /** Lora ausblenden: the brand symbol instead of Lora, the ideas in a bubble below the greeting. */
+    hideLora: Boolean = false,
     /** Below the greeting, e.g. the invitation to set up the memory. */
     extra: @Composable () -> Unit = {},
 ) {
@@ -114,7 +117,8 @@ internal fun EmptyChat(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.weight(1f))
-            LoraHome(ideas = if (bubble) ideas else emptyList(), typing = typing, loraHeight = loraHeight)
+            if (hideLora) Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = look.brand, modifier = Modifier.size(40.dp))
+            else LoraHome(ideas = if (bubble) ideas else emptyList(), typing = typing, loraHeight = loraHeight)
             Spacer(Modifier.size(10.dp))
             Text(
                 greeting(userName),
@@ -141,6 +145,10 @@ internal fun EmptyChat(
                 Spacer(Modifier.size(20.dp))
                 WelcomeCard(onApiKey = onApiKey, onNavigate = onOpen)
             } else {
+                if (hideLora && bubble) {
+                    Spacer(Modifier.size(16.dp))
+                    IdeaRow(ideas, typing)
+                }
                 Spacer(Modifier.size(14.dp))
                 Box(Modifier.widthIn(max = 520.dp)) { extra() }
             }

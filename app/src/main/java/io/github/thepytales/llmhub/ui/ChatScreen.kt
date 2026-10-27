@@ -537,6 +537,7 @@ fun ChatScreen(
                 onAllTemplates = { onNavigate("templates") },
                 onOpen = onNavigate,
                 typing = input.isNotBlank(),
+                hideLora = settings.hideLora,
                 extra = { MemoryIntroCard(c) },
                 onExample = { e ->
                     when {
@@ -655,7 +656,9 @@ fun ChatScreen(
                             else -> null
                         }
                         val head = runningHead ?: "new"
-                        WorkingCard(step, pendingCall?.name, thinking, steps[head]?.second ?: 0, stepsOpen(head)) { openSteps[head] = !stepsOpen(head) }
+                        WorkingCard(step, pendingCall?.name, thinking, steps[head]?.second ?: 0, stepsOpen(head), settings.hideLora) {
+                            openSteps[head] = !stepsOpen(head)
+                        }
                     } else ThinkingIndicator()
                 }
             }

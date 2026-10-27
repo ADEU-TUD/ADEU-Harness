@@ -70,25 +70,32 @@ class LoraUiTest {
         val tool = mutableStateOf<String?>(null)
         val count = mutableIntStateOf(0)
         val open = mutableStateOf(false)
+        val hidden = mutableStateOf(false)
         setContent {
             LlmHubTheme(AppSettings()) {
                 Box(Modifier.width(width.value).testTag("card")) {
-                    WorkingCard(step.value, tool.value, step.value == "Denkt nach …", count.intValue, open.value) { open.value = !open.value }
+                    WorkingCard(step.value, tool.value, step.value == "Denkt nach …", count.intValue, open.value, hidden.value) {
+                        open.value = !open.value
+                    }
                 }
             }
         }
-        val heights = mutableMapOf<String, Int>()
-        for (w in listOf(360.dp, 412.dp)) for (s in listOf(null, "Denkt nach …", "Websuche …", "Ordner durchsuchen – ein sehr langer Schritt, der nie in eine Zeile passt …"))
-            for (n in listOf(0, 1, 71)) for (o in listOf(false, true)) {
-                width.value = w
-                step.value = s
-                tool.value = if (s == "Websuche …") "web_search" else null
-                count.intValue = n
-                open.value = o
-                repeat(20) { mainClock.advanceTimeByFrame() }
-                heights["$w/$s/$n/$o"] = onNodeWithTag("card").fetchSemanticsNode().size.height
-            }
-        assertEquals(1, heights.values.toSet().size, "Karte immer gleich hoch: $heights")
+        // With Lora and without (Lora ausblenden): each variant keeps one height whatever the step says.
+        for (h in listOf(false, true)) {
+            val heights = mutableMapOf<String, Int>()
+            for (w in listOf(360.dp, 412.dp)) for (s in listOf(null, "Denkt nach …", "Websuche …", "Ordner durchsuchen – ein sehr langer Schritt, der nie in eine Zeile passt …"))
+                for (n in listOf(0, 1, 71)) for (o in listOf(false, true)) {
+                    hidden.value = h
+                    width.value = w
+                    step.value = s
+                    tool.value = if (s == "Websuche …") "web_search" else null
+                    count.intValue = n
+                    open.value = o
+                    repeat(20) { mainClock.advanceTimeByFrame() }
+                    heights["$w/$s/$n/$o"] = onNodeWithTag("card").fetchSemanticsNode().size.height
+                }
+            assertEquals(1, heights.values.toSet().size, "Karte immer gleich hoch (Lora ausgeblendet: $h): $heights")
+        }
     }
 
     @Test
@@ -97,26 +104,29 @@ class LoraUiTest {
         listOf(412 to 800, 360 to 640).forEach { (w, h) -> home(w, h, typing = false, name = "lora-home-$w.png", advance = 1300) }
         home(412, 800, typing = true, name = "lora-home-typing.png", advance = 2500)
         home(412, 430, typing = false, name = "lora-home-keyboard.png", advance = 900)
-        ui(412, 330) {
-            setContent {
-                LlmHubTheme(AppSettings()) {
-                    Column(
-                        Modifier.width(412.dp).background(MaterialTheme.colorScheme.background).padding(14.dp).testTag("shot"),
-                        verticalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
-                        WorkingCard(null, null, false, 0, false, null)
-                        WorkingCard("Websuche …", "web_search", false, 71, false) {}
-                        WorkingCard("Denkt nach …", null, true, 3, true) {}
+        home(412, 800, typing = false, name = "lora-hidden-home.png", advance = 900, hideLora = true)
+        listOf(false to "lora-card.png", true to "lora-hidden-card.png").forEach { (hide, name) ->
+            ui(412, 330) {
+                setContent {
+                    LlmHubTheme(AppSettings()) {
+                        Column(
+                            Modifier.width(412.dp).background(MaterialTheme.colorScheme.background).padding(14.dp).testTag("shot"),
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                        ) {
+                            WorkingCard(null, null, false, 0, false, hide, null)
+                            WorkingCard("Websuche …", "web_search", false, 71, false, hide) {}
+                            WorkingCard("Denkt nach …", null, true, 3, true, hide) {}
+                        }
                     }
                 }
+                mainClock.advanceTimeBy(1600)
+                save(name)
             }
-            mainClock.advanceTimeBy(1600)
-            save("lora-card.png")
         }
     }
 
-    private fun home(w: Int, h: Int, typing: Boolean, name: String, advance: Long) = ui(w, h) {
-        setContent { LlmHubTheme(AppSettings()) { Phone(w.dp, h.dp, typing) } }
+    private fun home(w: Int, h: Int, typing: Boolean, name: String, advance: Long, hideLora: Boolean = false) = ui(w, h) {
+        setContent { LlmHubTheme(AppSettings()) { Phone(w.dp, h.dp, typing, hideLora) } }
         mainClock.advanceTimeBy(advance)
         save(name)
     }
@@ -128,7 +138,7 @@ class LoraUiTest {
 
     /** The start of a new chat as on the phone: top bar, the start page, the chips and the input. */
     @Composable
-    private fun Phone(width: Dp, height: Dp, typing: Boolean) {
+    private fun Phone(width: Dp, height: Dp, typing: Boolean, hideLora: Boolean) {
         Column(Modifier.size(width, height).background(MaterialTheme.colorScheme.background).testTag("shot")) {
             Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 12.dp)) {
                 Icon(Icons.Outlined.Menu, null, Modifier.padding(top = 16.dp))
@@ -149,6 +159,7 @@ class LoraUiTest {
                     onAllTemplates = {},
                     onOpen = {},
                     typing = typing,
+                    hideLora = hideLora,
                 )
             }
             Composer(

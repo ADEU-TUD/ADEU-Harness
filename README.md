@@ -219,7 +219,9 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um, liest, dreht den
   Globus …) und bietet in einer Sprechblase eine Idee an – Favoriten bzw. empfohlene Vorlagen, Beispiele wie
   „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp auf Lora bringt mit einem Geistesblitz die
-  nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt Lora ein.
+  nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt Lora ein. Wer Lora nicht sehen möchte,
+  schaltet *Chat & Werkzeuge › Lora ausblenden* ein (Standard aus): Dann zeigen Startseite, Arbeitskarte und Sprachmodus
+  das Symbol der App, die Ideen bleiben erreichbar.
 - **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
   still stehen – die Chatliste ist oben verankert, die Antwort wächst darunter weiter. Beim Mitlaufen bleibt das Ende im
   selben Bild sichtbar (kein Ruckeln).

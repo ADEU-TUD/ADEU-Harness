@@ -2,7 +2,11 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Checklist
@@ -50,6 +56,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -65,28 +72,41 @@ private val CARD_LORA_WIDTH = 110.dp
  * Shown instead of the thinking and the tool steps while the agent works (Einstellungen › Chat & Werkzeuge ›
  * Arbeitsschritte einklappen): Lora, the mascot, acts out research things – matching the current step ([toolName],
  * [thinking]) now and then –, next to it „Lora ist dran“, the current [step] and a small pill with the number of steps
- * that opens them. The card has a fixed height, so nothing jumps when the step changes or the pill appears.
+ * that opens them. The card has a fixed height, so nothing jumps when the step changes or the pill appears. With
+ * [hideLora] (Einstellungen › Chat & Werkzeuge › Lora ausblenden) a smaller card shows the pulsing brand symbol instead.
  */
 @Composable
-fun WorkingCard(step: String?, toolName: String?, thinking: Boolean, stepsCount: Int, open: Boolean, onToggle: (() -> Unit)?) {
+fun WorkingCard(
+    step: String?,
+    toolName: String?,
+    thinking: Boolean,
+    stepsCount: Int,
+    open: Boolean,
+    hideLora: Boolean = false,
+    onToggle: (() -> Unit)?,
+) {
     val loraHeight = CARD_LORA_WIDTH / LORA_ASPECT
     Surface(
         color = LocalChatLook.current.card,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().height(loraHeight + 12.dp),
+        modifier = Modifier.fillMaxWidth().height(if (hideLora) 64.dp else loraHeight + 12.dp),
     ) {
         Row(Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            LoraFigure(
-                Modifier.size(CARD_LORA_WIDTH, loraHeight),
-                label = tr("Lora bei der Arbeit"),
-                hint = loraHint(toolName, thinking),
-            )
+            if (hideLora) {
+                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { PulsingBrandSymbol(Modifier.size(24.dp)) }
+            } else {
+                LoraFigure(
+                    Modifier.size(CARD_LORA_WIDTH, loraHeight),
+                    label = tr("Lora bei der Arbeit"),
+                    hint = loraHint(toolName, thinking),
+                )
+            }
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
                 Row(Modifier.fillMaxWidth().height(32.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        tr("Lora ist dran"),
+                        tr(if (hideLora) "Arbeitet an der Antwort" else "Lora ist dran"),
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -112,6 +132,21 @@ fun WorkingCard(step: String?, toolName: String?, thinking: Boolean, stepsCount:
             }
         }
     }
+}
+
+/** The brand symbol, slowly pulsing (in place of Lora while Lora is hidden). */
+@Composable
+private fun PulsingBrandSymbol(modifier: Modifier) {
+    val pulse by rememberInfiniteTransition(label = "symbol").animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+        label = "alpha",
+    )
+    Icon(
+        Icons.Outlined.AutoAwesome, contentDescription = null, tint = LocalChatLook.current.brand,
+        modifier = modifier.graphicsLayer { alpha = pulse },
+    )
 }
 
 /** Number of steps with a chevron; opens and closes them. */
@@ -231,6 +266,20 @@ internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, mo
             hint = hint,
             hintEvery = 1,
         )
+    }
+}
+
+/**
+ * The ideas without Lora (Lora ausblenden): the same bubble without the tail, e.g. below the greeting; it steps aside
+ * while the user is [typing].
+ */
+@Composable
+internal fun IdeaRow(ideas: List<LoraIdea>, typing: Boolean, modifier: Modifier = Modifier) {
+    if (ideas.isEmpty()) return
+    var index by remember { mutableIntStateOf(ideaVisits++) }
+    val shown by animateFloatAsState(if (typing) 0f else 1f, tween(250), label = "ideas")
+    Box(modifier.alpha(shown)) {
+        IdeaBubble(ideas, index, enabled = !typing, onUse = { ideas[index.mod(ideas.size)].run() }, onNext = { index++ })
     }
 }
 
