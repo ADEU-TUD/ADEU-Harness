@@ -132,6 +132,7 @@ import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.MarkdownDocx
 import io.github.thepytales.llmhub.docs.OfficeImport
 import io.github.thepytales.llmhub.docs.SheetEngine
+import io.github.thepytales.llmhub.docs.SheetTools
 import io.github.thepytales.llmhub.docs.TextDiff
 import io.github.thepytales.llmhub.docs.XlsxWriter
 import kotlinx.coroutines.Dispatchers
@@ -767,7 +768,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
             custom = if (kind == DocKind.SHEET && d != null) { format, file ->
                 when (format) {
                     DocFormat.XLSX -> {
-                        XlsxWriter.writeSheets(file, d.tabs.map { t -> XlsxWriter.Sheet(t.title.take(31), SheetEngine.grid(t.markdown)) })
+                        // With formats, conditional formatting, filter and frozen head row of each tab.
+                        XlsxWriter.writeTabs(file, d.tabs.map { t -> t.title to t.markdown })
                         true
                     }
                     else -> false
@@ -781,10 +783,13 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
 private fun exportMarkdown(doc: LiveDoc, tabId: String?): String {
     val tabs = if (tabId != null) doc.tabs.filter { it.id == tabId } else doc.tabs
     return when (doc.docKind) {
-        DocKind.SHEET -> tabs.joinToString("\n\n") { t ->
-            val rows = SheetEngine.Sheet(SheetEngine.grid(t.markdown)).computed()
-            (if (tabs.size > 1 || tabId == null) "## ${t.title}\n\n" else "") + SheetEngine.markdown(rows)
-        }.let { DocumentWriter.withTitle(doc.title, it) }
+        DocKind.SHEET -> {
+            // References to other tabs are computed with the whole workbook; charts of a tab become chart blocks.
+            val book = SheetTools.workbook(doc.tabs)
+            tabs.joinToString("\n\n") { t ->
+                (if (tabs.size > 1 || tabId == null) "## ${t.title}\n\n" else "") + SheetTools.exportMarkdown(t.markdown, book, t.title)
+            }.let { DocumentWriter.withTitle(doc.title, it) }
+        }
         DocKind.SLIDES -> tabs.joinToString("\n\n---\n\n") { it.markdown }
         DocKind.DOC -> DocumentWriter.withTitle(doc.title, if (tabId != null) doc.tab(tabId).markdown else doc.markdown()).replace(EMPTY_BLOCK, "")
         DocKind.MARKDOWN -> (if (tabId != null) doc.tab(tabId).markdown else doc.markdown()).replace(EMPTY_BLOCK, "")
