@@ -300,6 +300,7 @@ object OfficeImport {
         val slideNames = ordered.ifEmpty {
             files.keys.mapNotNull { k -> Regex("^ppt/slides/slide(\\d+)\\.xml$").find(k)?.groupValues?.get(1)?.toInt()?.let { it to k } }.sortedBy { it.first }.map { it.second }
         }
+        val slideHeight = xml(files["ppt/presentation.xml"])?.all("sldSz")?.firstOrNull()?.attr("cy")?.toLongOrNull() ?: 6858000L
         val slides = slideNames.mapIndexed { index, key ->
             val root = xml(files[key]) ?: return@mapIndexed SlideDeck.Slide("Folie ${index + 1}")
             val name = key.substringAfterLast('/')
@@ -309,10 +310,23 @@ object OfficeImport {
             var subtitle = ""
             val columns = mutableListOf<Pair<Long, List<String>>>()
             val heads = mutableListOf<Pair<Long, String>>()
+            // The largest picture of the slide (logos of the design are left out).
+            val picture = root.all("pic").filter { !it.all("cNvPr").firstOrNull()?.attr("name").orEmpty().startsWith("Logo") }.mapNotNull { pic ->
+                val ext = pic.all("ext").firstOrNull { it.parentNode?.localName == "xfrm" }
+                val area = (ext?.attr("cx")?.toLongOrNull() ?: 0L) * (ext?.attr("cy")?.toLongOrNull() ?: 0L)
+                area to pic
+            }.sortedByDescending { it.first }.firstNotNullOfOrNull { (_, pic) ->
+                val embed = pic.all("blip").firstOrNull()?.attributes?.let { a -> (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "embed" }?.nodeValue }
+                val path = keepImage(files[slideRels[embed]], media) ?: return@firstNotNullOfOrNull null
+                val x = pic.all("off").firstOrNull()?.attr("x")?.toLongOrNull() ?: 0L
+                Triple(path, pic.all("cNvPr").firstOrNull()?.attr("descr").orEmpty(), x)
+            }
             root.all("sp").forEach { sp ->
                 val ph = sp.all("ph").firstOrNull()
                 val type = ph?.attr("type").orEmpty()
                 val x = sp.all("off").firstOrNull()?.attr("x")?.toLongOrNull() ?: Long.MAX_VALUE
+                val y = sp.all("off").firstOrNull()?.attr("y")?.toLongOrNull() ?: 0L
+                val shapeName = sp.all("cNvPr").firstOrNull()?.attr("name").orEmpty()
                 val paras = sp.all("p").map { p ->
                     val lvl = p.child("pPr")?.attr("lvl")?.toIntOrNull() ?: 0
                     lvl to p.all("t").joinToString("") { it.textContent }.trim()
@@ -322,21 +336,23 @@ object OfficeImport {
                     "subTitle" -> subtitle = paras.joinToString(" ") { it.second }
                     "sldNum", "dt", "ftr", "sldImg" -> {}
                     else -> if (paras.isNotEmpty()) {
-                        // Comparison layouts: small text placeholders above the two contents are the column heads.
-                        if (layoutType == "twoTxTwoObj" && paras.size == 1 && type == "body" && (ph?.attr("sz") == "quarter" || paras[0].second.length < 60) && heads.size < 2) heads += x to paras[0].second
-                        else columns += x to paras.map { (lvl, t) -> "  ".repeat(lvl) + "- " + t }
+                        val text = paras.joinToString(" ") { it.second }
+                        when {
+                            // Footer lines and slide numbers of the design, labels of drawn charts, the picture's caption.
+                            type.isEmpty() && y > slideHeight * 9 / 10 -> {}
+                            shapeName.startsWith("Beschriftung") || picture != null && text == picture.second -> {}
+                            // Column heads of a comparison (this app's export).
+                            shapeName.startsWith("Spaltenkopf") && heads.size < 2 -> heads += x to text
+                            // Comparison layouts: small text placeholders above the two contents are the column heads.
+                            layoutType == "twoTxTwoObj" && paras.size == 1 && type == "body" && (ph?.attr("sz") == "quarter" || paras[0].second.length < 60) && heads.size < 2 -> heads += x to paras[0].second
+                            else -> columns += x to paras.map { (lvl, t) -> "  ".repeat(lvl) + "- " + t }
+                        }
                     }
                 }
             }
             val tables = root.all("tbl").mapNotNull { tbl ->
                 val rows = tbl.all("tr").map { tr -> tr.all("tc").map { tc -> tc.all("p").joinToString(" ") { p -> p.all("t").joinToString("") { it.textContent } }.trim() } }
                 if (rows.isEmpty()) null else DocBlocks.table(rows)
-            }
-            val picture = root.all("pic").firstNotNullOfOrNull { pic ->
-                val embed = pic.all("blip").firstOrNull()?.attributes?.let { a -> (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "embed" }?.nodeValue }
-                val path = keepImage(files[slideRels[embed]], media) ?: return@firstNotNullOfOrNull null
-                val x = pic.all("off").firstOrNull()?.attr("x")?.toLongOrNull() ?: 0L
-                Triple(path, pic.all("cNvPr").firstOrNull()?.attr("descr").orEmpty(), x)
             }
             val notes = notesFor(files, name)
             val sorted = columns.sortedBy { it.first }
