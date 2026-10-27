@@ -45,76 +45,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.App
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Folder
-import io.github.thepytales.llmhub.data.MemoryEntry
-import io.github.thepytales.llmhub.data.MemoryMode
 import io.github.thepytales.llmhub.agent.WorkFolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-
-/** Einstellungen › Gedächtnis: what the model may note and what it noted. */
-@Composable
-fun MemorySection(c: AppContainer) {
-    val s by c.settings.settings.collectAsStateWithLifecycle()
-    val entries by c.memory.items.collectAsStateWithLifecycle()
-    val mode = MemoryMode.of(s.memoryMode)
-    var adding by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<MemoryEntry?>(null) }
-    SettingsCard("Gedächtnis") {
-        SettingsHint(
-            "Angaben, die das Modell in jedem Chat kennt – z.B. Ihre Funktion, Lehrveranstaltungen oder wie Texte klingen sollen. " +
-                "Sie bleiben auf diesem Gerät und gehen nur als Teil Ihrer Anfragen an den Uni-Server."
-        )
-        MemoryMode.entries.forEach { m ->
-            Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.fillMaxWidth().clickable { c.settings.update { it.copy(memoryMode = m.name) } },
-            ) {
-                RadioButton(selected = mode == m, onClick = { c.settings.update { it.copy(memoryMode = m.name) } })
-                Column(Modifier.padding(top = 12.dp)) {
-                    Text(m.label)
-                    SettingsHint(m.description)
-                }
-            }
-        }
-    }
-    SettingsCard("Vorschläge in Formularen") {
-        SwitchRow(
-            "Vorschläge aus meinem Wissen",
-            "Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, " +
-                "Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.",
-            s.formSuggestions,
-        ) { v -> c.settings.update { it.copy(formSuggestions = v) } }
-    }
-    SettingsCard("Gemerkt (${entries.size})") {
-        if (entries.isEmpty()) SettingsHint("Noch nichts. Sagen Sie im Chat z.B. „Merk dir, dass ich im Master Allgemeine Didaktik unterrichte.“")
-        entries.sortedByDescending { it.createdAt }.forEach { e ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { editing = e }) {
-                Text(e.text, modifier = Modifier.weight(1f).padding(vertical = 6.dp))
-                IconButton(onClick = { c.memory.delete(e.id) }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
-            }
-        }
-        OutlinedButton(onClick = { adding = true }) {
-            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.size(6.dp))
-            Text("Selbst eintragen")
-        }
-    }
-    if (adding || editing != null) {
-        TextInputDialog(
-            if (editing != null) "Eintrag ändern" else "Neuer Eintrag",
-            editing?.text.orEmpty(),
-            "Was soll das Modell wissen?",
-            confirm = "Speichern",
-            onConfirm = { t ->
-                val e = editing
-                if (e != null) c.memory.update(e.id) { it.copy(text = t.trim()) } else c.memory.upsert(MemoryEntry(text = t.trim()))
-            },
-            onDismiss = { adding = false; editing = null },
-        )
-    }
-}
 
 /**
  * Documents of one knowledge collection ("" = general, else a project) with "Dokumente hinzufügen". Text is read

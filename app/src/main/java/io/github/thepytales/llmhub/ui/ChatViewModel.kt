@@ -130,8 +130,13 @@ class ChatViewModel(
                     if (c.chats.loaded.value && cur.messages.isNotEmpty() && saved) _deleted.value = true
                     return@collect
                 }
-                if (stored.title != cur.title || stored.pinned != cur.pinned || stored.folderId != cur.folderId || stored.unread != cur.unread) {
-                    _conversation.value = cur.copy(title = stored.title, pinned = stored.pinned, folderId = stored.folderId, unread = stored.unread)
+                if (stored.title != cur.title || stored.pinned != cur.pinned || stored.folderId != cur.folderId || stored.unread != cur.unread ||
+                    stored.learnedUpTo != cur.learnedUpTo
+                ) {
+                    _conversation.value = cur.copy(
+                        title = stored.title, pinned = stored.pinned, folderId = stored.folderId, unread = stored.unread,
+                        learnedUpTo = stored.learnedUpTo,
+                    )
                 }
             }
         }
@@ -185,6 +190,9 @@ class ChatViewModel(
 
     /** Write actions in this chat run without asking (or ask again). */
     fun setAutoApprove(on: Boolean) = edit { it.copy(autoApprove = on) }
+
+    /** Memory off (or on again) for this chat only. */
+    fun setMemoryOff(off: Boolean) = edit { it.copy(memoryOff = off) }
 
     fun setModel(model: String) = edit { it.copy(model = model) }
 

@@ -109,6 +109,10 @@ data class Conversation(
     val temporary: Boolean = false,
     /** Archived: hidden from the chat list, kept under „Archiv“. */
     val archived: Boolean = false,
+    /** The memory is switched off for this chat (chip „Gedächtnis“ above the input field). */
+    val memoryOff: Boolean = false,
+    /** Last message the memory learner looked at (see agent/MemoryLearner), so nothing is suggested twice. */
+    val learnedUpTo: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */

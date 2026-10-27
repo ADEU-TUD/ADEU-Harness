@@ -122,6 +122,7 @@ fun ChatScreen(
     val follow = remember { mutableStateOf(true) }
     /** Text of a message the user wants to remember („Merken …“). */
     var rememberFrom by remember { mutableStateOf<String?>(null) }
+    var showMemory by remember { mutableStateOf(false) }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -440,6 +441,7 @@ fun ChatScreen(
                         }
                     )
                     PrivacySuggestions(c, input)
+                    MemoryLearnBar(c, current.id)
                 },
                 footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
             ) {
@@ -467,6 +469,8 @@ fun ChatScreen(
                 if (!current.systemPrompt.isNullOrBlank()) {
                     ContextChip(Icons.Outlined.Person, current.persona ?: "System-Prompt", { showSystemPrompt = true })
                 }
+                // The memory goes along automatically; the chip shows how much and switches it off for this chat.
+                MemoryChip(c, current) { showMemory = true }
                 // Shows that names and contact details leave the device only as placeholders.
                 if (settings.pseudonymize) {
                     ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
@@ -501,6 +505,7 @@ fun ChatScreen(
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
                 onOpen = onNavigate,
+                extra = { MemoryIntroCard(c) },
                 onExample = { e ->
                     when {
                         e.route != null -> onNavigate(e.route)
@@ -569,6 +574,7 @@ fun ChatScreen(
                             onSubmitEdit = { text, keptFiles, keptImages -> editingId = null; vm.editMessage(item.m, text, keptFiles, keptImages) },
                             onSelectVersion = { vm.showVersion(it) },
                             onFork = { vm.fork(item.m)?.let { id -> onNavigate(chatRoute(id)) } },
+                            onRemember = { text -> rememberFrom = text },
                         )
                         is ChatItem.Assistant -> AssistantMessage(
                             item = item,
@@ -689,6 +695,15 @@ fun ChatScreen(
     if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
     quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }
     ratingFor?.let { m -> RatingNoteDialog(onDismiss = { ratingFor = null }) { note -> vm.rate(m, -1, note); ratingFor = null } }
+    rememberFrom?.let { text -> MemoryEditDialog(c, null, text, current.folderId, onDismiss = { rememberFrom = null }) }
+    if (showMemory) {
+        MemoryChatDialog(
+            c, current,
+            onMemoryOff = { off -> vm.setMemoryOff(off) },
+            onSettings = { onNavigate("settings/memory") },
+            onDismiss = { showMemory = false },
+        )
+    }
 
     if (showTemplates) {
         TemplatePickerSheet(

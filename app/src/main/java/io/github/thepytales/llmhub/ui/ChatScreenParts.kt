@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -94,6 +95,8 @@ internal fun EmptyChat(
     onAllTemplates: () -> Unit,
     onOpen: (String) -> Unit,
     onExample: (ChatExample) -> Unit = {},
+    /** Below the examples, e.g. the invitation to set up the memory. */
+    extra: @Composable () -> Unit = {},
 ) {
     val look = LocalChatLook.current
     Column(
@@ -139,6 +142,8 @@ internal fun EmptyChat(
                     AssistChip(onClick = { onExample(e) }, label = { Text(tr(e.label)) })
                 }
             }
+            Spacer(Modifier.size(14.dp))
+            Box(Modifier.widthIn(max = 520.dp)) { extra() }
         }
         Spacer(Modifier.weight(1f))
         Row(

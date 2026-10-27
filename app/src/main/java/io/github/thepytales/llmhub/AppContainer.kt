@@ -117,6 +117,8 @@ class AppContainer(context: Context) {
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
     val runs = ChatRuns(context.applicationContext, this)
+    /** Suggests lasting details for the memory when a chat has been quiet for a moment. */
+    val memoryLearner = io.github.thepytales.llmhub.agent.MemoryLearner(this)
     /** Speech to text on the device or the Uni server (formerly the Whisper app); starts on first use. */
     val transcription = Transcription(this, SpeechHost.root(this), SpeechHost.cache(this))
     /** Language models on this device (llama.cpp); the LLM client starts them on demand. */

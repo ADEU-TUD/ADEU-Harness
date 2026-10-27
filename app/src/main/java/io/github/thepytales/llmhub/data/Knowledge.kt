@@ -222,10 +222,35 @@ enum class MemoryMode(val label: String, val description: String) {
     }
 }
 
+/** Groups of the memory (Einstellungen › Gedächtnis); the model files each entry under one of them. */
+enum class MemoryCategory(val label: String, val hint: String) {
+    ABOUT("Über mich", "Funktion, Einrichtung, Fachgebiet"),
+    TEACHING("Lehre", "Lehrveranstaltungen, Module, Studiengänge"),
+    STYLE("Schreibstil", "Ton, Anrede, Format, Sprache"),
+    CONTACTS("Kontakte", "Kolleg:innen, Ansprechpersonen, Rollen"),
+    PROJECTS("Laufende Vorhaben", "Projekte, Anträge, Abschlussarbeiten, Fristen"),
+    OTHER("Sonstiges", "Was sonst dauerhaft hilft"),
+    ;
+
+    companion object {
+        fun of(name: String?) = entries.firstOrNull { it.name.equals(name, ignoreCase = true) || it.label.equals(name, ignoreCase = true) } ?: OTHER
+    }
+}
+
 /** Something the model knows about the user in every chat, e.g. "Unterrichtet Allgemeine Didaktik im Master". */
 @Serializable
 data class MemoryEntry(
     val id: String = UUID.randomUUID().toString(),
     val text: String,
     val createdAt: Long = System.currentTimeMillis(),
-)
+    /** Enum name of [MemoryCategory]. */
+    val category: String = MemoryCategory.OTHER.name,
+    /** Project (folder id) the entry belongs to; null = all chats. */
+    val projectId: String? = null,
+    /** After this moment the entry no longer goes to the model ("bis Semesterende"); null = no end. */
+    val expiresAt: Long? = null,
+    /** Where it came from: "chat" (remember), "learned" (suggested after a chat), "user" (typed in) or "intro". */
+    val source: String = "user",
+) {
+    fun expired(now: Long = System.currentTimeMillis()) = expiresAt != null && expiresAt < now
+}

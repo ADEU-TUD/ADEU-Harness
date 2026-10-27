@@ -98,7 +98,10 @@ class CompareViewModel(private val c: AppContainer) : ViewModel() {
                     if (i >= 0) side.messages[i] = transform(side.messages[i])
                 }
                 try {
-                    val result = c.llm.streamChat(side.model, history, null) { upd ->
+                    // The memory goes along here too, so both models know the same about the user.
+                    val memory = io.github.thepytales.llmhub.agent.Memory.promptFor(c, null)
+                    val sent = if (memory != null) listOf(ChatMessage(role = "system", content = memory)) + history else history
+                    val result = c.llm.streamChat(side.model, sent, null) { upd ->
                         if (first == 0L && (upd.content.isNotEmpty() || upd.reasoning.isNotEmpty())) first = System.currentTimeMillis()
                         replace { it.copy(content = upd.content, reasoning = upd.reasoning.ifEmpty { null }) }
                     }

@@ -290,6 +290,7 @@ fun UserBubble(
     onSubmitEdit: (String, List<FileAttachment>, List<String>) -> Unit,
     onSelectVersion: (ChatMessage) -> Unit,
     onFork: () -> Unit = {},
+    onRemember: (String) -> Unit = {},
 ) {
     val m = item.m
     val look = LocalChatLook.current
@@ -377,6 +378,11 @@ fun UserBubble(
                         leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                         enabled = !running,
                         onClick = { menu = false; onStartEdit() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(tr("Merken …")) },
+                        leadingIcon = { Icon(Icons.Outlined.Psychology, contentDescription = null) },
+                        onClick = { menu = false; onRemember(m.content) },
                     )
                     DropdownMenuItem(
                         text = { Text("Neuer Chat ab hier") },
