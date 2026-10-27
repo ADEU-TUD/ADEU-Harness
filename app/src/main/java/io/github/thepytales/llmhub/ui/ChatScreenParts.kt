@@ -1,24 +1,19 @@
 package io.github.thepytales.llmhub.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Archive
@@ -33,18 +28,14 @@ import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,7 +72,10 @@ internal val CHAT_EXAMPLES = listOf(
     ChatExample("Interview transkribieren", route = "transcripts"),
 )
 
-/** Start of a new chat like in the Claude app: greeting, the chosen model and suggestions. */
+/**
+ * Start of a new chat: Lora waves and offers ideas (the favourite or suggested templates and a few examples of what
+ * the app can do) in a speech bubble, below the greeting and the chosen model.
+ */
 @Composable
 internal fun EmptyChat(
     hasApiKey: Boolean,
@@ -95,107 +89,62 @@ internal fun EmptyChat(
     onAllTemplates: () -> Unit,
     onOpen: (String) -> Unit,
     onExample: (ChatExample) -> Unit = {},
-    /** Below the examples, e.g. the invitation to set up the memory. */
+    /** Something is typed in the input: Lora takes notes and the bubble steps aside. */
+    typing: Boolean = false,
+    /** Below the greeting, e.g. the invitation to set up the memory. */
     extra: @Composable () -> Unit = {},
 ) {
     val look = LocalChatLook.current
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.weight(1f))
-        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = look.brand, modifier = Modifier.size(40.dp))
-        Spacer(Modifier.size(14.dp))
-        Text(
-            greeting(userName),
-            style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(
-            model.displayName + (model.useCase.takeIf { it.isNotBlank() }?.let { " – $it" } ?: ""),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onModel)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-        if (!hasApiKey) {
-            Spacer(Modifier.size(20.dp))
-            WelcomeCard(onApiKey = onApiKey, onNavigate = onOpen)
-        } else {
-            // A few examples of what the app can do, as starting points for new users.
-            Spacer(Modifier.size(18.dp))
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                CHAT_EXAMPLES.forEach { e ->
-                    AssistChip(onClick = { onExample(e) }, label = { Text(tr(e.label)) })
-                }
-            }
-            Spacer(Modifier.size(14.dp))
-            Box(Modifier.widthIn(max = 520.dp)) { extra() }
+    // Templates and examples take turns, the whole library comes last.
+    val ideas = buildList {
+        val templates = suggestions.map { t -> LoraIdea(t.name, tr("Vorlage"), template = true) { onTemplate(t) } }
+        val examples = CHAT_EXAMPLES.map { e -> LoraIdea(tr(e.label), tr("Idee"), template = false) { onExample(e) } }
+        for (i in 0 until maxOf(templates.size, examples.size)) {
+            templates.getOrNull(i)?.let(::add)
+            examples.getOrNull(i)?.let(::add)
         }
-        Spacer(Modifier.weight(1f))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        add(LoraIdea(tr("Alle Vorlagen ansehen"), tr("Vorlagen"), template = true, run = onAllTemplates))
+    }
+    BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
+        // Lora shrinks with the space (keyboard open); the bubble needs some room.
+        val loraHeight = if (hasApiKey) (maxHeight * 0.22f).coerceIn(72.dp, 132.dp) else 72.dp
+        val bubble = hasApiKey && maxHeight >= 380.dp
+        Column(
+            Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            suggestions.forEach { t ->
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = look.card,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                    modifier = Modifier
-                        .widthIn(min = 150.dp, max = 200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onTemplate(t) },
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(t.name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                        Text(
-                            t.description.ifBlank { t.content },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-            // The whole library is one tap away, not only the favourites.
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = look.card,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+            Spacer(Modifier.weight(1f))
+            LoraHome(ideas = if (bubble) ideas else emptyList(), typing = typing, loraHeight = loraHeight)
+            Spacer(Modifier.size(10.dp))
+            Text(
+                greeting(userName),
+                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = look.titleFont),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.size(6.dp))
+            Text(
+                model.displayName + (model.useCase.takeIf { it.isNotBlank() }?.let { " – $it" } ?: ""),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .widthIn(min = 150.dp, max = 200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable(onClick = onAllTemplates),
-            ) {
-                Column(Modifier.padding(12.dp)) {
-                    Text(tr("Alle Vorlagen ›"), style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                    Text(
-                        tr("Lehre, Forschung, Betreuung, TUD-Dokumente"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                    .widthIn(max = 520.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onModel)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+            if (!hasApiKey) {
+                Spacer(Modifier.size(20.dp))
+                WelcomeCard(onApiKey = onApiKey, onNavigate = onOpen)
+            } else {
+                Spacer(Modifier.size(14.dp))
+                Box(Modifier.widthIn(max = 520.dp)) { extra() }
             }
+            Spacer(Modifier.weight(1.3f))
         }
     }
 }

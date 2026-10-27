@@ -54,7 +54,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Exzerpt, Projektskizze, Einwilligungserklärung, Peer Review), *Kommunikation*, *Allgemein* und *Personas*
   (Didaktik-Beratung, Methoden- & Statistikberatung, Lektorat, kritische:r Gutachter:in …). Vorlage wählen, die Felder in
   einem Formular ausfüllen, senden – die Anweisungen an das Modell schickt die App unsichtbar mit, im Chat steht nur
-  „Vorlage: …“ und Ihre Angaben. Suche, Filter nach Bereich, Favoriten (★, erscheinen auf dem Startbildschirm), eigene
+  „Vorlage: …“ und Ihre Angaben. Suche, Filter nach Bereich, Favoriten (★, Lora bietet sie auf dem Startbildschirm an), eigene
   Vorlagen mit Platzhaltern `{{Feld}}` bzw. `{{Feld|Beispiel}}`, eingebaute Vorlagen lassen sich kopieren und anpassen.
   Eigene Vorlagen per *Teilen* als Text an Kolleg:innen schicken und dort über *Importieren* übernehmen. Die eingebauten
   Vorlagen kommen mit jedem Update aktuell mit. *Einstellungen › Dokumente & Logos › Meine Absenderangaben* füllt die
@@ -208,11 +208,18 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Dokumente: GLM-5.3 Flash) und **fragt vorher** („Anderes Modell verwenden? – Ja, GLM-5.3 / Nein, DeepSeek V4.1
   Flash“). Entschieden wird auf dem Gerät, ohne zusätzliche Anfrage. *Einstellungen › Chat & Werkzeuge*: neue Chats
   automatisch, Rückfrage abschaltbar.
-- **Arbeitsschritte eingeklappt**: Gedankengang und Werkzeugschritte bleiben eingeklappt (*Chat & Werkzeuge ›
-  Arbeitsschritte einklappen*, Standard an). Solange der Agent arbeitet, zeigt eine kleine Figur im TU-Blau, was los ist
-  – sie läuft, liest, tippt, jongliert, sucht mit der Lupe, tanzt oder denkt nach –, daneben „Der Agent arbeitet an einer
-  Antwort, bitte warte kurz.“ und der aktuelle Schritt; „Schritte“ klappt alles auf. Fertige Antworten zeigen eine
-  ruhige Zeile „Gedankengang und 4 Arbeitsschritte“.
+- **Lora, das Maskottchen**: ein kleiner, runder Roboter in der Farbe des Stils (benannt nach *Low-Rank Adaptation*).
+  **Im Chat** bleiben Gedankengang und Werkzeugschritte eingeklappt (*Chat & Werkzeuge › Arbeitsschritte einklappen*,
+  Standard an); solange der Agent arbeitet, begleitet Lora die Antwort in einer Karte mit fester Höhe (nichts springt) –
+  mit „Lora ist dran“, dem aktuellen Schritt und der Zahl der Schritte, die alles aufklappt. Lora forscht dabei mit:
+  mikroskopiert, experimentiert mit dem Erlenmeyerkolben, dreht den Globus, schaut durchs Teleskop, gräbt ein Fossil
+  aus, schleppt Bücherstapel, notiert, präsentiert ein Diagramm, hat Geistesblitze, liest, tippt, jongliert, tanzt und
+  trinkt zwischendurch Kaffee – und spielt oft nach, was der Agent gerade tut (Websuche: Lupe und Teleskop, Literatur:
+  Bücher, Rechnen: Experiment, Nachdenken: Denkerpose). Fertige Antworten zeigen eine ruhige Zeile „Gedankengang und
+  4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um, liest, dreht den
+  Globus …) und bietet in einer Sprechblase eine Idee an – Favoriten bzw. empfohlene Vorlagen, Beispiele wie
+  „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp auf Lora bringt mit einem Geistesblitz die
+  nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt Lora ein.
 - **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
   still stehen – die Chatliste ist oben verankert, die Antwort wächst darunter weiter. Beim Mitlaufen bleibt das Ende im
   selben Bild sichtbar (kein Ruckeln).
@@ -378,7 +385,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Auswertung je Modell unter *Verbrauch*), *Weiterschreiben* bei abgeschnittenen Antworten, *Abzweigen* in einen neuen
   Chat, Chat duplizieren, Suche im Chat, temporäre Chats (werden nicht gespeichert), Archiv, Mehrfachauswahl in der
   Seitenleiste, Export und Import als JSON. Mehrere Werkzeugaufrufe werden zu einer Zeile zusammengefasst
-  („5 Werkzeuge genutzt“), die Startseite zeigt Beispiele.
+  („5 Werkzeuge genutzt“), auf der Startseite schlägt Lora Beispiele und Vorlagen vor.
 - **Forschung**: Codieren von Transkripten mit eigenem Kategoriensystem (Codes, Farben, Ankerbeispiele) –
   *ausschließlich von Hand*, die KI codiert nicht. Intercoder-Übereinstimmung (Cohen's κ, prozentuale Übereinstimmung,
   Abweichungsliste) und Export nach **REFI-QDA** (`.qdpx`, für MAXQDA, ATLAS.ti, NVivo) sowie als CSV. Diagramme
@@ -711,7 +718,8 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/Memory.kt`, `agent/MemoryLearner.kt`, `ui/MemoryUi.kt` | Gedächtnis im System-Prompt jeder Anfrage, frühere Chats (`search_chats`), Dazulernen nach dem Chat, Knopf, Dialoge und Einstellungen |
 | `agent/ModelRouter.kt` | Automatische Modellwahl (auf dem Gerät, ohne zusätzliche Anfrage) |
 | `ui/VoiceMode.kt` | Sprachmodus: Zuhören bis zur Sprechpause, Antwort vorlesen, wieder zuhören |
-| `ui/WorkingFigure.kt` | Figur und eingeklappte Arbeitsschritte, solange der Agent arbeitet |
+| `ui/LoraFigure.kt` | Lora: Zeichnung, Aktionen und Ablauf (welche Aktion wann, passend zum aktuellen Schritt) |
+| `ui/LoraUi.kt` | Arbeitskarte mit Lora und eingeklappte Arbeitsschritte im Chat, Lora mit Sprechblase auf der Startseite |
 | `ui/ChatAutoScroll.kt` | Mitlaufen beim Streamen, ohne die Lesestelle zu verschieben |
 | `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |

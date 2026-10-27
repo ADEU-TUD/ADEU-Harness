@@ -305,8 +305,8 @@ private fun ChatSection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         SwitchRow(
             "Arbeitsschritte einklappen",
-            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt eine kleine Figur, dass er " +
-                "an der Antwort sitzt; „Schritte“ klappt sie jederzeit auf.",
+            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt Lora, das Maskottchen der " +
+                "App, den aktuellen Schritt; die Zahl daneben klappt alle Schritte jederzeit auf.",
             s.collapseSteps,
         ) { v -> c.settings.update { it.copy(collapseSteps = v) } }
     }

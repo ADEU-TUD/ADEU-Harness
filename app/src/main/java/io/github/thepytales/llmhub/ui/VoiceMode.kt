@@ -62,7 +62,7 @@ enum class VoicePhase(val label: String) {
     LISTENING("Ich höre zu …"),
     PAUSED("Pausiert – tippen Sie auf „Weiter“"),
     UNDERSTANDING("Verstehe …"),
-    WORKING("Der Agent arbeitet an einer Antwort, bitte warte kurz."),
+    WORKING("Lora ist dran …"),
     SPEAKING("Antwort wird vorgelesen …"),
 }
 
