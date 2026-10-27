@@ -57,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -248,13 +247,8 @@ internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, mo
         }
         LoraFigure(
             Modifier
+                // The sky above Lora stays free: the light bulb and the stars of the telescope rise up to the bubble.
                 .size(loraHeight * LORA_ASPECT, loraHeight)
-                // The empty sky above Lora (room for the light bulb) may reach under the bubble's tail.
-                .layout { measurable, constraints ->
-                    val p = measurable.measure(constraints)
-                    val cut = (p.height * 9 / 56f).toInt()
-                    layout(p.width, p.height - cut) { p.place(0, -cut) }
-                }
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
