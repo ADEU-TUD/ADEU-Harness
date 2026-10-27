@@ -218,7 +218,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                 )
                 Spacer(Modifier.height(8.dp))
                 Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
-                    if (phase == VoicePhase.WORKING) WorkingFigure(Modifier.size(width = 190.dp, height = 130.dp))
+                    if (phase == VoicePhase.WORKING) LoraFigure(Modifier.size(width = 190.dp, height = 133.dp), label = tr("Lora bei der Arbeit"))
                     else VoiceOrb(phase, level, Modifier.fillMaxSize())
                 }
                 Text(

@@ -100,7 +100,7 @@ data class AppSettings(
     val uiLanguage: String = "de",
     /** Name or initials of the person coding transcripts (intercoder agreement). */
     val coderName: String = "",
-    /** While the agent works, thinking and tool steps are folded away behind a small animated figure (see ui/WorkingFigure). */
+    /** While the agent works, thinking and tool steps are folded away behind Lora, the animated mascot (see ui/LoraFigure). */
     val collapseSteps: Boolean = true,
     /** After a chat, a small model looks for lasting details about the user and suggests them (see agent/MemoryLearner). */
     val memoryLearn: Boolean = true,
