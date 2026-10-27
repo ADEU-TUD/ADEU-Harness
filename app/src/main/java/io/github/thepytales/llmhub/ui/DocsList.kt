@@ -170,6 +170,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
             Notices.error("„$name“ lässt sich nicht im Editor öffnen (Word, PowerPoint, Excel, CSV, Markdown und Text gehen).")
         } else {
             val doc = OfficeImport.toLiveDoc(imported).copy(vault = c.docs.defaultVault)
+            withContext(Dispatchers.IO) { DocsHandoff.saveMedia(c, doc, imported) }
             c.docs.save(doc)
             onOpen(doc.id)
         }

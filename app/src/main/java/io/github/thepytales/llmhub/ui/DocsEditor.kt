@@ -172,11 +172,15 @@ object DocsHandoff {
         c.docs.forFile(file.absolutePath)?.let { return it }
         val imported = runCatching { OfficeImport.read(file.name, file.readBytes()) }.getOrNull() ?: return null
         val doc = OfficeImport.toLiveDoc(imported, chatId = chatId).copy(file = file.absolutePath, vault = c.docs.defaultVault)
-        // Pictures of the file go next to the document (Bilder/…), where its Markdown points.
-        val base = c.docs.baseDir(doc)
-        imported.media.forEach { (path, bytes) -> runCatching { File(base, path).apply { parentFile?.mkdirs() }.writeBytes(bytes) } }
+        saveMedia(c, doc, imported)
         c.docs.save(doc)
         return doc
+    }
+
+    /** Pictures of an imported file go next to the document (Bilder/…), where its Markdown points. */
+    fun saveMedia(c: AppContainer, doc: LiveDoc, imported: OfficeImport.Imported) {
+        val base = c.docs.baseDir(doc)
+        imported.media.forEach { (path, bytes) -> runCatching { File(base, path).apply { parentFile?.mkdirs() }.writeBytes(bytes) } }
     }
 
     /** An attachment of a chat message (its text was read when it was attached). */
