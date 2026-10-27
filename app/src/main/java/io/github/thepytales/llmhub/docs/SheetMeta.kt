@@ -109,7 +109,7 @@ data class SheetMeta(
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false; explicitNulls = false }
-        private val COMMENT = Regex("(?m)^<!--\\s*sheet:\\s*(\\{.*})\\s*-->\\s*$")
+        private val COMMENT = Regex("(?m)^<!--\\s*sheet:\\s*(\\{.*\\})\\s*-->\\s*$")
 
         /** The formats stored in the Markdown of a sheet tab. */
         fun parse(markdown: String): SheetMeta =
