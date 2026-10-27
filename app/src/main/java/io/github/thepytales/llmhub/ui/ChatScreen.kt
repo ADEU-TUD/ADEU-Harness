@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
@@ -56,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -119,6 +120,8 @@ fun ChatScreen(
     var imageWarning by remember { mutableStateOf(false) }
     /** The chat follows the newest message until the user scrolls up (see [ChatAutoScroll]). */
     val follow = remember { mutableStateOf(true) }
+    /** Text of a message the user wants to remember („Merken …“). */
+    var rememberFrom by remember { mutableStateOf<String?>(null) }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -233,6 +236,8 @@ fun ChatScreen(
     }
 
     val current = conv
+    /** Turns (by their first answer) whose folded steps the user opened. */
+    val openSteps = remember(current?.id) { mutableStateMapOf<String, Boolean>() }
     if (current == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -507,19 +512,39 @@ fun ChatScreen(
                 },
             )
         } else {
-            val listState = rememberLazyListState()
-            val reversed = remember(items) { items.asReversed() }
             val last = current.thread().lastOrNull()
-            val leading = (if (running && (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))) 1 else 0) + (if (building) 1 else 0)
-            val hits = remember(reversed, searchQuery) { if (searchQuery.isBlank()) emptyList() else reversed.indices.filter { i -> itemText(reversed[i]).contains(searchQuery, ignoreCase = true) } }
+            // Arbeitsschritte einklappen: thinking and tools of a turn fold away; while the agent works, the figure shows.
+            val collapse = settings.collapseSteps
+            val runningHead = (items.lastOrNull() as? ChatItem.Assistant)?.head?.id.takeIf { running } ?: if (running) "new" else null
+            val lastAnswerBlank = last == null || last.role != "assistant" || splitThinking(last.content).second.isBlank()
+            val typing = running && if (collapse) lastAnswerBlank
+                else (last == null || last.role != "assistant" || (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))
+            val steps = remember(items) {
+                val out = mutableMapOf<String, Pair<Boolean, Int>>()
+                items.filterIsInstance<ChatItem.Assistant>().forEach { a ->
+                    val (thinking, tools) = out[a.head.id] ?: (false to 0)
+                    out[a.head.id] = (thinking || !a.m.reasoning.isNullOrBlank() || splitThinking(a.m.content).first != null) to tools + a.m.toolCalls.size
+                }
+                out
+            }
+            fun stepsOpen(head: String?) = head != null && openSteps[head] == true
+            val shown = if (!collapse) items else items.filter { item ->
+                if (item !is ChatItem.Assistant || stepsOpen(item.head.id)) return@filter true
+                val turnRunning = item.head.id == runningHead
+                val line = item.m.id == item.head.id && !(turnRunning && typing) && steps[item.head.id]?.let { it.first || it.second > 0 } == true
+                line || (item.turnEnd && !(running && item.isLast)) || showsWithoutSteps(item.m, results, running)
+            }
+            val itemCount = shown.size + (if (typing) 1 else 0) + (if (building) 1 else 0)
+            // Opened at the end; oldest message first, so the text being read stays put while an answer grows below it.
+            val listState = remember(current.id) { LazyListState(firstVisibleItemIndex = (itemCount - 1).coerceAtLeast(0), firstVisibleItemScrollOffset = END) }
+            val hits = remember(shown, searchQuery) { if (searchQuery.isBlank()) emptyList() else shown.indices.filter { i -> itemText(shown[i]).contains(searchQuery, ignoreCase = true) }.asReversed() }
             val currentHit = hits.getOrNull(searchHit.coerceAtMost((hits.size - 1).coerceAtLeast(0)))
-            LaunchedEffect(currentHit) { currentHit?.let { follow.value = false; listState.animateScrollToItem(it + leading) } }
+            LaunchedEffect(currentHit) { currentHit?.let { follow.value = false; listState.animateScrollToItem(it) } }
             LaunchedEffect(current.id) { follow.value = true }
-            ChatAutoScroll(listState, follow, remember(items, leading, last?.content?.length, last?.toolCalls?.size, last?.reasoning?.length) { Any() })
+            ChatAutoScroll(listState, follow, remember(shown, typing, building, last?.content?.length, last?.toolCalls?.size, last?.reasoning?.length) { Any() }, itemCount)
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 state = listState,
-                reverseLayout = true,
                 modifier = Modifier.fillMaxHeight().widthIn(max = CONTENT_WIDTH).fillMaxWidth(),
                 contentPadding = PaddingValues(
                     start = 14.dp, end = 14.dp,
@@ -528,14 +553,8 @@ fun ChatScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                if (running && (last == null || last.role != "assistant" ||
-                        (last.content.isEmpty() && last.reasoning.isNullOrEmpty() && last.toolCalls.isEmpty()))
-                ) {
-                    item(key = "typing") { ThinkingIndicator() }
-                }
-                if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
-                items(reversed, key = { it.key }, contentType = { if (it is ChatItem.User) "user" else "assistant" }) { item ->
-                    val hitHere = currentHit != null && reversed.getOrNull(currentHit) === item
+                items(shown, key = { it.key }, contentType = { if (it is ChatItem.User) "user" else "assistant" }) { item ->
+                    val hitHere = currentHit != null && shown.getOrNull(currentHit) === item
                     Box(
                         if (hitHere) Modifier.background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f), RoundedCornerShape(12.dp)).padding(4.dp)
                         else Modifier
@@ -577,16 +596,36 @@ fun ChatScreen(
                             onContinue = { vm.continueAnswer() },
                             onQuote = { text -> quoteFrom = text },
                             onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
+                            onRemember = { text -> rememberFrom = text },
+                            fold = collapse && !stepsOpen(item.head.id),
+                            stepsLine = steps[item.head.id]?.takeIf { collapse && item.m.id == item.head.id && (it.first || it.second > 0) && !(item.head.id == runningHead && typing && !stepsOpen(item.head.id)) }?.let { (thinking, tools) ->
+                                { StepsLine(thinking, tools, stepsOpen(item.head.id)) { openSteps[item.head.id] = !stepsOpen(item.head.id) } }
+                            },
                         )
                     }
                 }
                     }
+                if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
+                if (typing) item(key = "typing") {
+                    if (collapse) {
+                        val pendingCall = last?.toolCalls?.lastOrNull { results[it.id] == null }
+                        val step = when {
+                            pendingCall != null -> tr(toolLabel(pendingCall.name)) + " …"
+                            last?.role == "assistant" && (!last.reasoning.isNullOrBlank() || splitThinking(last.content).first != null) -> tr("Denkt nach …")
+                            else -> null
+                        }
+                        val head = runningHead ?: "new"
+                        WorkingCard(step, steps[head]?.second ?: 0, stepsOpen(head)) { openSteps[head] = !stepsOpen(head) }
+                    } else ThinkingIndicator()
+                }
             }
-            // Back to the newest message (the list starts at the bottom).
-            val away by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+            // Back to the newest message (more than about one message above the end).
+            val away by remember {
+                derivedStateOf { (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) < listState.layoutInfo.totalItemsCount - 2 }
+            }
             if (away) {
                 SmallFloatingActionButton(
-                    onClick = { follow.value = true; scope.launch { listState.animateScrollToItem(0) } },
+                    onClick = { scope.launch { scrollToEnd(listState); follow.value = true } },
                     containerColor = LocalChatLook.current.card,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
                 ) {

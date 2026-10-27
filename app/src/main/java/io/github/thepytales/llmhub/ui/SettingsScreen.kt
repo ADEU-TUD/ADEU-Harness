@@ -290,6 +290,12 @@ private fun ChatSection(c: AppContainer) {
                 "Wiederholt er immer dieselbe Aktion, hält er an.",
             s.autoContinue,
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
+        SwitchRow(
+            "Arbeitsschritte einklappen",
+            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt eine kleine Figur, dass er " +
+                "an der Antwort sitzt; „Schritte“ klappt sie jederzeit auf.",
+            s.collapseSteps,
+        ) { v -> c.settings.update { it.copy(collapseSteps = v) } }
     }
     Section("Freigaben") { ApprovalModeOptions(c) }
     ReliabilitySection(c)

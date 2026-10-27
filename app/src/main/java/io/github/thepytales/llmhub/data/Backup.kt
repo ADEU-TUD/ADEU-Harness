@@ -27,6 +27,10 @@ data class PortableSettings(
     val uiLanguage: String = "de", val coderName: String = "",
     val formSuggestions: Boolean = true,
     val pseudonymIgnore: String = "", val pseudonymOff: String = "",
+    val collapseSteps: Boolean = true,
+    val memoryLearn: Boolean = true,
+    val memoryChats: Boolean = true,
+    val autoModelAsk: Boolean = true,
 )
 
 @Serializable
@@ -85,6 +89,10 @@ object Backup {
         s.fallbackModel, s.requestsPerMinute, s.memoryMode, s.pseudonymize, s.pseudonymAuto, s.pseudonymTerms,
         s.citationStyle, s.zoteroUserId, s.literatureSources, s.uiLanguage, s.coderName, s.formSuggestions,
         s.pseudonymIgnore, s.pseudonymOff,
+        collapseSteps = s.collapseSteps,
+        memoryLearn = s.memoryLearn,
+        memoryChats = s.memoryChats,
+        autoModelAsk = s.autoModelAsk,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -99,6 +107,10 @@ object Backup {
         citationStyle = p.citationStyle, zoteroUserId = p.zoteroUserId, literatureSources = p.literatureSources,
         uiLanguage = p.uiLanguage, coderName = p.coderName, formSuggestions = p.formSuggestions,
         pseudonymIgnore = p.pseudonymIgnore, pseudonymOff = p.pseudonymOff,
+        collapseSteps = p.collapseSteps,
+        memoryLearn = p.memoryLearn,
+        memoryChats = p.memoryChats,
+        autoModelAsk = p.autoModelAsk,
     )
 
     /**
