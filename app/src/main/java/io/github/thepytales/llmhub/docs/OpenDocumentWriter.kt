@@ -94,7 +94,7 @@ object OpenDocumentWriter {
         append("</office:document-styles>")
     }
 
-    private const val AUTO_STYLES = "<office:automatic-styles>" +
+    private val AUTO_STYLES = "<office:automatic-styles>" +
         "<style:style style:name=\"T_b\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style>" +
         "<style:style style:name=\"T_i\" style:family=\"text\"><style:text-properties fo:font-style=\"italic\"/></style:style>" +
         "<style:style style:name=\"T_bi\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" fo:font-style=\"italic\"/></style:style>" +
@@ -142,7 +142,14 @@ object OpenDocumentWriter {
                 is Block.Table -> append(table(b.rows))
                 is Block.Item -> {
                     val items = mutableListOf<Block.Item>()
-                    while (i < blocks.size && blocks[i] is Block.Item) { items += blocks[i] as Block.Item; i++ }
+                    // One list per run of items; a top-level item of the other kind (numbered/bullet) starts a new list.
+                    fun numbered(it: Block.Item) = it.marker.firstOrNull()?.isDigit() == true
+                    while (i < blocks.size && blocks[i] is Block.Item) {
+                        val item = blocks[i] as Block.Item
+                        if (items.isNotEmpty() && item.indent == 0 && numbered(item) != numbered(items.first())) break
+                        items += item
+                        i++
+                    }
                     i--
                     append(list(items, 0, 0, items.size))
                 }

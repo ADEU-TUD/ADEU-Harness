@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.files
 
+import io.github.thepytales.llmhub.docs.SheetEngine
 import io.github.thepytales.llmhub.docs.XlsxWriter
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -305,7 +306,7 @@ object OfficeEdit {
         return when {
             v.isEmpty() -> "<c r=\"$ref\"$s/>"
             v.startsWith("'") -> "<c r=\"$ref\"$s t=\"inlineStr\"><is><t xml:space=\"preserve\">${encode(v.drop(1))}</t></is></c>"
-            v.startsWith("=") && v.length > 1 -> "<c r=\"$ref\"$s><f>${encode(v.drop(1))}</f></c>"
+            v.startsWith("=") && v.length > 1 -> "<c r=\"$ref\"$s><f>${encode(excelFormula(v))}</f></c>"
             v.trim().equals("TRUE", true) || v.trim().equals("WAHR", true) -> "<c r=\"$ref\"$s t=\"b\"><v>1</v></c>"
             v.trim().equals("FALSE", true) || v.trim().equals("FALSCH", true) -> "<c r=\"$ref\"$s t=\"b\"><v>0</v></c>"
             else -> {
@@ -319,6 +320,17 @@ object OfficeEdit {
                 else "<c r=\"$ref\"$s t=\"inlineStr\"><is><t xml:space=\"preserve\">${encode(v)}</t></is></c>"
             }
         }
+    }
+
+    /**
+     * Formula in Excel notation: German as in the editor ("=SUMME(A1;B1)", "=RUNDEN(A1;2)") is converted, English
+     * ("=SUM(A1,B1)") stays as it is.
+     */
+    internal fun excelFormula(v: String): String {
+        val excel = SheetEngine.toExcel(v)
+        fun letters(s: String) = s.replace("_xlfn.", "").uppercase().filter { it.isLetter() }
+        val german = Regex(";").containsMatchIn(v.replace(Regex("\"[^\"]*\""), "")) || letters(excel) != letters(v)
+        return if (german) excel else v.trim().removePrefix("=")
     }
 
     private fun plain(d: Double): String = if (d == Math.floor(d) && kotlin.math.abs(d) < 1e15) d.toLong().toString() else d.toString()
