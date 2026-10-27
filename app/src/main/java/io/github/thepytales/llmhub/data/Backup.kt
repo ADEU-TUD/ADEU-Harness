@@ -31,6 +31,7 @@ data class PortableSettings(
     val memoryLearn: Boolean = true,
     val memoryChats: Boolean = true,
     val autoModelAsk: Boolean = true,
+    val autoModel: Boolean = false,
 )
 
 @Serializable
@@ -93,6 +94,7 @@ object Backup {
         memoryLearn = s.memoryLearn,
         memoryChats = s.memoryChats,
         autoModelAsk = s.autoModelAsk,
+        autoModel = s.autoModel,
     )
 
     fun apply(s: AppSettings, p: PortableSettings) = s.copy(
@@ -111,6 +113,7 @@ object Backup {
         memoryLearn = p.memoryLearn,
         memoryChats = p.memoryChats,
         autoModelAsk = p.autoModelAsk,
+        autoModel = p.autoModel,
     )
 
     /**

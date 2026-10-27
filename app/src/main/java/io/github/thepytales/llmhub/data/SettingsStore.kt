@@ -108,7 +108,9 @@ data class AppSettings(
     val memoryChats: Boolean = true,
     /** The three questions that fill an empty memory were answered or dismissed. */
     val memoryIntroDone: Boolean = false,
-    /** Automatic model choice (model "auto"): ask before a request goes to another model than the standard one. */
+    /** New chats start with the automatic model choice (Automatisch in the model picker). */
+    val autoModel: Boolean = false,
+    /** Automatic model choice: ask before a request goes to another model than the current one. */
     val autoModelAsk: Boolean = true,
 ) {
     /** Parts of the pseudonymization that are switched off (Einstellungen › Datenschutz). */
@@ -231,6 +233,7 @@ class SettingsStore(context: Context) {
             .putBoolean("memoryChats", next.memoryChats)
             .putBoolean("memoryIntroDone", next.memoryIntroDone)
             .putBoolean("autoModelAsk", next.autoModelAsk)
+            .putBoolean("autoModel", next.autoModel)
             .apply()
     }
 
@@ -297,6 +300,7 @@ class SettingsStore(context: Context) {
             memoryChats = prefs.getBoolean("memoryChats", d.memoryChats),
             memoryIntroDone = prefs.getBoolean("memoryIntroDone", d.memoryIntroDone),
             autoModelAsk = prefs.getBoolean("autoModelAsk", d.autoModelAsk),
+            autoModel = prefs.getBoolean("autoModel", d.autoModel),
         )
     }
 

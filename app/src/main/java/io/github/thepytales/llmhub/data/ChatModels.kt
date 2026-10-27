@@ -109,6 +109,8 @@ data class Conversation(
     val temporary: Boolean = false,
     /** Archived: hidden from the chat list, kept under „Archiv“. */
     val archived: Boolean = false,
+    /** Automatic model choice: before each request the app suggests the fitting model (see agent/ModelRouter). */
+    val autoModel: Boolean = false,
     /** The memory is switched off for this chat (chip „Gedächtnis“ above the input field). */
     val memoryOff: Boolean = false,
     /** Last message the memory learner looked at (see agent/MemoryLearner), so nothing is suggested twice. */

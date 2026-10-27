@@ -44,6 +44,8 @@ class ChatPlatform(
     val withMicrophone: (start: () -> Unit) -> Unit,
     /** Puts a shortcut to a chat on the home screen; null where that does not exist. */
     val pinShortcut: ((Conversation) -> Unit)?,
+    /** Keeps the display on (voice mode), or lets it go off again. */
+    val keepScreenOn: (Boolean) -> Unit = {},
 )
 
 /**
@@ -125,6 +127,14 @@ fun rememberChatPlatform(
             },
             pinShortcut = { conv ->
                 if (!pinChatShortcut(context, conv)) Notices.error("Dein Startbildschirm unterstützt keine Verknüpfungen.")
+            },
+            keepScreenOn = { on ->
+                var ctx: Context? = context
+                while (ctx is android.content.ContextWrapper && ctx !is android.app.Activity) ctx = ctx.baseContext
+                (ctx as? android.app.Activity)?.window?.let { w ->
+                    val flag = android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    if (on) w.addFlags(flag) else w.clearFlags(flag)
+                }
             },
         )
     }

@@ -186,8 +186,36 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Wissenssammlung* oder pro Projekt. Das Modell sucht die passenden Stellen (Stichworte und semantisch über die
   Embedding-Modelle des Uni-Servers), lässt die Treffer vom Reranker (Qwen3-Reranker) nach Relevanz ordnen und nennt die
   Quelle. „Speichere die Datei im Projektwissen“ übernimmt Anhänge.
-- **Gedächtnis**: Das Modell merkt sich auf Wunsch dauerhafte Angaben (Funktion, Lehrveranstaltungen, Stilvorlieben) –
-  *Einstellungen › Gedächtnis*: aus, vorher fragen (Standard) oder automatisch; alle Einträge ansehen, ändern, löschen.
+- **Gedächtnis, das von selbst mitläuft**: Gemerkte Angaben (Funktion, Lehre, Schreibstil, Kontakte, laufende Vorhaben)
+  gehen bei jeder Anfrage automatisch mit – auch bei Modellen ohne Werkzeuge, im Editor-Assistenten und beim
+  Modellvergleich; niemand muss die KI darauf hinweisen. Über dem Eingabefeld zeigt **„Gedächtnis · 12“**, wie viele
+  Angaben mitgehen; ein Tipp zeigt sie, ändert sie oder schaltet das Gedächtnis für diesen Chat aus. **Dazulernen**: Ruht
+  ein Chat kurz, liest ein kleines Modell die neuen Nachrichten und schlägt dauerhafte Angaben vor („2 neue Angaben für
+  das Gedächtnis – Übernehmen / Nein, danke“; im Modus *Automatisch* gespeichert mit „Rückgängig“). **„Merken …“** an
+  jeder Nachricht (lange Texte verdichtet das Modell vorher zu einem Satz). **Frühere Chats**: Das Modell kennt die
+  Titel der letzten Chats und durchsucht sie mit `search_chats`, wenn man sich auf Früheres bezieht („wie letztes Mal“) –
+  Chats aus Projekten mit strengerer Datenschutzstufe bleiben außen vor. Einträge haben einen Bereich, gelten auf Wunsch
+  nur in einem Projekt und können ablaufen („bis Semesterende“). Auf der Startseite richten drei kurze Fragen ein leeres
+  Gedächtnis ein. Das Agent-Protokoll nennt, wie viele Angaben mitgingen. *Einstellungen › Gedächtnis*: aus, vorher
+  fragen (Standard) oder automatisch, Dazulernen und frühere Chats einzeln abschaltbar.
+- **Sprachmodus** (Wellen-Symbol statt Senden, solange nichts getippt ist): freihändig sprechen, die Antwort wird
+  vorgelesen, danach hört die App wieder zu – bis „Beenden“. Das Ende eines Satzes erkennt sie an der Sprechpause (die
+  Schwelle passt sich dem Raumgeräusch an); „Unterbrechen“ springt während des Vorlesens direkt zum Zuhören. Alles läuft
+  über den normalen Chat (Gedächtnis, Werkzeuge, Datenschutzstufe) und steht danach dort; in Projekten „Nur auf diesem
+  Gerät“ liest die Gerätestimme vor.
+- **Automatische Modellwahl**: In der Modellauswahl ganz oben *Automatisch* – je Anfrage schlägt die App das passende
+  Modell vor (Bilder und Alltag: Standardmodell, Programmieren und GitHub: Qwen, schwierige Analysen: GLM-5.3, sehr lange
+  Dokumente: GLM-5.3 Flash) und **fragt vorher** („Anderes Modell verwenden? – Ja, GLM-5.3 / Nein, DeepSeek V4.1
+  Flash“). Entschieden wird auf dem Gerät, ohne zusätzliche Anfrage. *Einstellungen › Chat & Werkzeuge*: neue Chats
+  automatisch, Rückfrage abschaltbar.
+- **Arbeitsschritte eingeklappt**: Gedankengang und Werkzeugschritte bleiben eingeklappt (*Chat & Werkzeuge ›
+  Arbeitsschritte einklappen*, Standard an). Solange der Agent arbeitet, zeigt eine kleine Figur im TU-Blau, was los ist
+  – sie läuft, liest, tippt, jongliert, sucht mit der Lupe, tanzt oder denkt nach –, daneben „Der Agent arbeitet an einer
+  Antwort, bitte warte kurz.“ und der aktuelle Schritt; „Schritte“ klappt alles auf. Fertige Antworten zeigen eine
+  ruhige Zeile „Gedankengang und 4 Arbeitsschritte“.
+- **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
+  still stehen – die Chatliste ist oben verankert, die Antwort wächst darunter weiter. Beim Mitlaufen bleibt das Ende im
+  selben Bild sichtbar (kein Ruckeln).
 - **Rechnen und Daten auswerten**: Für exakte Zahlen rechnet das Modell in einer abgeschotteten JavaScript-Umgebung
   (ohne Internet- und Dateizugriff) – auch mit angehängten CSV- und Excel-Tabellen (Mittelwert, Median, SD, Tabellen).
 - **E-Mail-Entwürfe und Termine**: „Schreib eine Mail an …“ legt einen Entwurf an, der sich in der Mail-App öffnet
@@ -680,6 +708,11 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ContextManager.kt`, `agent/ArgRepair.kt`, `net/RateLimiter.kt` | Kontext kürzen/zusammenfassen, Werkzeugargumente reparieren, Anfragen drosseln |
 | `agent/AssistantTools.kt` | Anleitungen (`read_guide`), Gedächtnis, Wissenssuche, JavaScript-Sandbox (`agent/ScriptRunner.kt`) |
 | `agent/FieldAssist.kt`, `agent/FieldSuggestions.kt` | ✨ in Vorlagenfeldern; Vorschläge aus Verlauf, Absender, Gedächtnis und Wissen |
+| `agent/Memory.kt`, `agent/MemoryLearner.kt`, `ui/MemoryUi.kt` | Gedächtnis im System-Prompt jeder Anfrage, frühere Chats (`search_chats`), Dazulernen nach dem Chat, Knopf, Dialoge und Einstellungen |
+| `agent/ModelRouter.kt` | Automatische Modellwahl (auf dem Gerät, ohne zusätzliche Anfrage) |
+| `ui/VoiceMode.kt` | Sprachmodus: Zuhören bis zur Sprechpause, Antwort vorlesen, wieder zuhören |
+| `ui/WorkingFigure.kt` | Figur und eingeklappte Arbeitsschritte, solange der Agent arbeitet |
+| `ui/ChatAutoScroll.kt` | Mitlaufen beim Streamen, ohne die Lesestelle zu verschieben |
 | `update/` | Automatische Updates: `version.json` lesen, Download mit SHA-256, Popup (`ui/UpdatePrompt.kt`); Windows tauscht den App-Ordner (`desktop/…/update/UpdateApply.kt`), Android öffnet den Installer |
 | `agent/WorkFolder.kt` | Projektordner: Schreibtest, Ablage erstellter Dateien in `Ausgabe`, verständliche Fehlermeldungen |
 | `docs/LetterBuilder.kt` | Brief direkt aus den Feldern |

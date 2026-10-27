@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Stop
@@ -135,6 +136,8 @@ fun Composer(
     suggestions: @Composable () -> Unit = {},
     /** Small note under the input (the reminder that AI can make mistakes). */
     footnote: String? = null,
+    /** Voice mode (hands-free conversation): shown in place of the send button while nothing is typed. */
+    onVoice: (() -> Unit)? = null,
     chips: @Composable RowScope.() -> Unit,
 ) {
     val canSend = input.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
@@ -248,7 +251,8 @@ fun Composer(
                         }
                     }
                     Spacer(Modifier.width(8.dp))
-                    val active = running || canSend
+                    val voice = onVoice != null && !running && !canSend && !recording
+                    val active = running || canSend || voice
                     Surface(
                         shape = CircleShape,
                         color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -256,11 +260,14 @@ fun Composer(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .clickable(enabled = active, onClick = { buzz(); if (running) onStop() else onSend() }),
+                            .clickable(enabled = active, onClick = { buzz(); if (running) onStop() else if (voice) onVoice?.invoke() else onSend() }),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            if (running) Icon(Icons.Filled.Stop, contentDescription = "Stopp")
-                            else Icon(Icons.Filled.ArrowUpward, contentDescription = "Senden")
+                            when {
+                                running -> Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                                voice -> Icon(Icons.Outlined.GraphicEq, contentDescription = tr("Sprachmodus: freihändig sprechen"))
+                                else -> Icon(Icons.Filled.ArrowUpward, contentDescription = "Senden")
+                            }
                         }
                     }
                 }

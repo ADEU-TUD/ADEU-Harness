@@ -28,6 +28,9 @@ class Recorder(private val context: Context) {
         file = out
     }
 
+    /** Loudness since the last call, 0..1 (for the voice mode: has the user stopped speaking?). */
+    fun level(): Float = runCatching { (recorder?.maxAmplitude ?: 0) / 32767f }.getOrDefault(0f)
+
     /** Stops recording and returns the file, or null if nothing was recorded. */
     fun stop(): File? {
         val r = recorder ?: return null

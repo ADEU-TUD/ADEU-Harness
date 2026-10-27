@@ -208,6 +208,9 @@ fun ModelPickerSheet(
     defaultModel: String? = null,
     title: String = "Modellauswahl",
     note: String? = null,
+    /** Offers „Automatisch“ on top; true while it is chosen. Null: not offered (comparison, tasks …). */
+    auto: Boolean? = null,
+    onAuto: () -> Unit = {},
 ) {
     val look = LocalChatLook.current
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -241,7 +244,30 @@ fun ModelPickerSheet(
                 )
             }
             if (!showMore) {
-                ModelRows(featured, selected, defaultModel, showCapabilities = false, onPick = ::pick)
+                if (auto != null) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = look.card,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { onAuto(); onDismiss() },
+                    ) {
+                        Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(tr("Automatisch"), style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
+                                Text(
+                                    tr("Die App schlägt je Anfrage das passende Modell vor und fragt vorher nach."),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (auto) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt", modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+                ModelRows(featured, if (auto == true) "" else selected, defaultModel, showCapabilities = false, onPick = ::pick)
                 note?.let {
                     Text(
                         it,

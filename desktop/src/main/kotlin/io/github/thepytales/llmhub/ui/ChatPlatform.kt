@@ -27,6 +27,8 @@ class ChatPlatform(
     val withMicrophone: (start: () -> Unit) -> Unit,
     /** Puts a shortcut to a chat on the home screen; null where that does not exist. */
     val pinShortcut: ((Conversation) -> Unit)?,
+    /** Keeps the display on (voice mode); Windows does not turn it off while the app is used. */
+    val keepScreenOn: (Boolean) -> Unit = {},
 )
 
 private val imageExtensions = listOf("png", "jpg", "jpeg", "gif", "bmp")

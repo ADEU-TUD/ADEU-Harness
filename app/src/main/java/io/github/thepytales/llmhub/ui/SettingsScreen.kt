@@ -248,7 +248,20 @@ private fun ChatSection(c: AppContainer) {
     var showModelPicker by remember { mutableStateOf(false) }
     Section("Neue Chats") {
         OutlinedButton(onClick = { showModelPicker = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}")
+            Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}" + if (s.autoModel) " · Automatisch" else "")
+        }
+        SwitchRow(
+            "Modell automatisch wählen",
+            "Neue Chats starten mit „Automatisch“: Je Anfrage schlägt die App das passende Modell vor – Bilder und Alltag: " +
+                "Standardmodell, Programmieren: Qwen, schwierige Analysen: GLM-5.3, sehr lange Dokumente: GLM-5.3 Flash.",
+            s.autoModel,
+        ) { v -> c.settings.update { it.copy(autoModel = v) } }
+        if (s.autoModel) {
+            SwitchRow(
+                "Vor dem Wechsel fragen",
+                "Die App fragt jedes Mal, bevor sie ein anderes Modell nimmt. Aus: Sie wechselt selbst und sagt kurz, warum.",
+                s.autoModelAsk,
+            ) { v -> c.settings.update { it.copy(autoModelAsk = v) } }
         }
         val thinking = ThinkingLevel.parse(s.thinkingLevel)
         DropdownField(

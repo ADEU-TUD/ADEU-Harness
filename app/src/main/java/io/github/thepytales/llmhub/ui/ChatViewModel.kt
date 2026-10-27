@@ -48,7 +48,7 @@ fun newConversation(c: AppContainer, model: String? = null): Conversation {
     val chosen = if (available == null || wanted in available) wanted
     else c.models.state.value.pickable.firstOrNull()?.id ?: wanted
     val env = s.defaultEnvId.takeIf { id -> id.isNotEmpty() && c.environments.get(id) != null }
-    return Conversation(model = chosen, githubEnabled = s.hasGitHub && s.githubAutoTools, envId = env)
+    return Conversation(model = chosen, githubEnabled = s.hasGitHub && s.githubAutoTools, envId = env, autoModel = model == null && s.autoModel)
 }
 
 /**
@@ -195,6 +195,9 @@ class ChatViewModel(
     fun setMemoryOff(off: Boolean) = edit { it.copy(memoryOff = off) }
 
     fun setModel(model: String) = edit { it.copy(model = model) }
+
+    /** Automatic model choice on or off for this chat (see agent/ModelRouter). */
+    fun setAutoModel(on: Boolean) = edit { it.copy(autoModel = on) }
 
     fun setSystemPrompt(prompt: String, persona: String? = null) =
         edit { it.copy(systemPrompt = prompt.ifBlank { null }, persona = if (prompt.isBlank()) null else persona) }
@@ -433,16 +436,21 @@ class ChatViewModel(
 
     fun speak(id: String, text: String) = c.speaker.toggle(id, text)
 
+    /** Speech of [file] as text: on the Uni server, or on the device in projects that keep data here. */
+    suspend fun recognize(file: File): String {
+        val local = !Privacy.level(c, _conversation.value?.folderId).allowsUniServer
+        return if (local) {
+            // Data protection level "Nur auf diesem Gerät": recognized on the device.
+            c.transcription.recognizeShort(file)
+                ?: throw IllegalStateException("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
+        } else c.llm.transcribe(c.settings.current.sttModel, file)
+    }
+
     fun transcribe(file: File, onText: (String) -> Unit) {
         viewModelScope.launch {
             _transcribing.value = true
             try {
-                val local = !Privacy.level(c, _conversation.value?.folderId).allowsUniServer
-                val text = if (local) {
-                    // Data protection level "Nur auf diesem Gerät": recognized on the device.
-                    c.transcription.recognizeShort(file)
-                        ?: throw IllegalStateException("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
-                } else c.llm.transcribe(c.settings.current.sttModel, file)
+                val text = recognize(file)
                 if (text.isBlank()) _toasts.tryEmit("Keine Sprache erkannt.") else onText(text)
             } catch (e: CancellationException) {
                 throw e

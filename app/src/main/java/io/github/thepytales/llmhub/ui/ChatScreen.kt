@@ -123,6 +123,10 @@ fun ChatScreen(
     /** Text of a message the user wants to remember („Merken …“). */
     var rememberFrom by remember { mutableStateOf<String?>(null) }
     var showMemory by remember { mutableStateOf(false) }
+    /** Automatic model choice: the suggested model, waiting for the user's yes or no (and whether pictures go along). */
+    var autoAsk by remember { mutableStateOf<Pair<io.github.thepytales.llmhub.agent.ModelRouter.Choice, Boolean>?>(null) }
+    /** Hands-free conversation (Sprachmodus). */
+    var voiceMode by remember { mutableStateOf(false) }
     val files = remember { mutableStateListOf<FileAttachment>() }
     var loadingFiles by remember { mutableIntStateOf(0) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -276,6 +280,27 @@ fun ChatScreen(
         images.clear()
         files.clear()
     }
+    /**
+     * Sends, with the automatic model choice: if another model fits the request better, the app asks first
+     * (Einstellungen › Chat & Werkzeuge › Vor dem Wechsel fragen) – or switches and says so.
+     */
+    fun send(withImages: Boolean) {
+        if (current.autoModel) {
+            val choice = io.github.thepytales.llmhub.agent.ModelRouter.suggest(
+                input, if (withImages) images.size else 0, files.toList(), current.githubEnabled && current.linkedRepos.isNotEmpty(), settings.defaultModel,
+            )
+            val usable = Privacy.allows(c, Privacy.level(c, current.folderId), choice.model) && modelsState.liveIds?.contains(choice.model) != false
+            if (usable && choice.model != current.model) {
+                if (settings.autoModelAsk) {
+                    autoAsk = choice to withImages
+                    return
+                }
+                vm.setModel(choice.model)
+                Notices.info(tr("Automatisch") + ": ${ModelCatalog.info(choice.model).displayName} – ${choice.reason}")
+            }
+        }
+        sendNow(withImages)
+    }
     // Documents open beside the chat on wide screens (like Claude Docs); on phones they get their own screen.
     var docPanel by rememberSaveable(current.id) { mutableStateOf<String?>(null) }
     val drafts by DocsLive.drafts.collectAsStateWithLifecycle()
@@ -382,7 +407,7 @@ fun ChatScreen(
                 input = input,
                 onInput = { input = it },
                 placeholder = tr(if (hasMessages) "Antworten …" else "Wie kann ich helfen?"),
-                modelLabel = modelInfo.displayName,
+                modelLabel = if (current.autoModel) tr("Automatisch") + " · " + modelInfo.displayName else modelInfo.displayName,
                 onModel = { showModelPicker = true },
                 images = images,
                 files = files,
@@ -406,7 +431,7 @@ fun ChatScreen(
                     if (images.isNotEmpty() && settings.pii(io.github.thepytales.llmhub.data.PiiFeature.IMAGE_WARNING) &&
                         !io.github.thepytales.llmhub.data.Privacy.isLocal(current.model)
                     ) imageWarning = true
-                    else sendNow(true)
+                    else send(true)
                 },
                 onStop = { vm.stop() },
                 onPaste = platform.paste,
@@ -444,6 +469,7 @@ fun ChatScreen(
                     MemoryLearnBar(c, current.id)
                 },
                 footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
+                onVoice = { platform.withMicrophone { voiceMode = true } },
             ) {
                 if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
@@ -659,11 +685,11 @@ fun ChatScreen(
                         "Ohne die Bilder geht nur der Text, pseudonymisiert. (Abschaltbar unter Einstellungen › Datenschutz.)"
                 )
             },
-            confirmButton = { TextButton(onClick = { imageWarning = false; sendNow(true) }) { Text("Mit Bildern senden") } },
+            confirmButton = { TextButton(onClick = { imageWarning = false; send(true) }) { Text("Mit Bildern senden") } },
             dismissButton = {
                 Row {
                     TextButton(onClick = { imageWarning = false }) { Text("Abbrechen") }
-                    TextButton(onClick = { imageWarning = false; sendNow(false) }, enabled = input.isNotBlank() || files.isNotEmpty()) { Text("Ohne Bilder") }
+                    TextButton(onClick = { imageWarning = false; send(false) }, enabled = input.isNotBlank() || files.isNotEmpty()) { Text("Ohne Bilder") }
                 }
             },
         )
@@ -695,6 +721,26 @@ fun ChatScreen(
     if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
     quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }
     ratingFor?.let { m -> RatingNoteDialog(onDismiss = { ratingFor = null }) { note -> vm.rate(m, -1, note); ratingFor = null } }
+    if (voiceMode) VoiceModeDialog(c, vm, platform, onClose = { voiceMode = false })
+    autoAsk?.let { (choice, withImages) ->
+        val suggested = ModelCatalog.info(choice.model).displayName
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { autoAsk = null },
+            title = { Text(tr("Anderes Modell verwenden?")) },
+            text = {
+                Text(
+                    tr("Für diese Anfrage passt") + " $suggested " + tr("besser") + " (${choice.reason}). " +
+                        tr("Eingestellt ist gerade") + " ${modelInfo.displayName}."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { autoAsk = null; vm.setModel(choice.model); sendNow(withImages) }) { Text(tr("Ja,") + " $suggested") }
+            },
+            dismissButton = {
+                TextButton(onClick = { autoAsk = null; sendNow(withImages) }) { Text(tr("Nein,") + " ${modelInfo.displayName}") }
+            },
+        )
+    }
     rememberFrom?.let { text -> MemoryEditDialog(c, null, text, current.folderId, onDismiss = { rememberFrom = null }) }
     if (showMemory) {
         MemoryChatDialog(
@@ -746,10 +792,12 @@ fun ChatScreen(
         ModelPickerSheet(
             models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
             selected = current.model,
-            onSelect = { vm.setModel(it) },
+            onSelect = { vm.setModel(it); vm.setAutoModel(false) },
             onDismiss = { showModelPicker = false },
             defaultModel = settings.defaultModel,
             note = "Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest.",
+            auto = current.autoModel,
+            onAuto = { vm.setAutoModel(true) },
         )
     }
 
