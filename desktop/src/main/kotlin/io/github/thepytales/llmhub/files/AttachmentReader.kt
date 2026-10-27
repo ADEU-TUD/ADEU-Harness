@@ -19,10 +19,6 @@ import java.io.File
 import io.github.thepytales.llmhub.data.PageMarks
 import io.github.thepytales.llmhub.data.PageMarks.PAGE_BREAK
 import java.nio.file.Files
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
-import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
 import java.util.zip.ZipInputStream
 
 /** Result of reading an attached file: its text, page images (scanned PDFs, pictures) or an error. */
@@ -38,14 +34,10 @@ object AttachmentReader {
     const val MAX_CHARS = 120_000
     private const val MAX_BYTES = 25L * 1024 * 1024
 
-    private val TEXT_EXTENSIONS = setOf(
-        "txt", "md", "markdown", "csv", "tsv", "json", "xml", "yaml", "yml", "toml", "ini", "cfg", "conf", "log", "html", "htm",
-        "css", "js", "ts", "jsx", "tsx", "kt", "kts", "java", "py", "rb", "go", "rs", "c", "h", "cpp", "hpp", "cs", "swift",
-        "php", "sh", "bash", "zsh", "sql", "gradle", "properties", "tex", "bib", "srt", "vtt", "rtf", "env", "gitignore", "dart",
-        "lua", "r", "m", "scala", "vue", "svelte",
-    )
+    /** Code, configuration and markup (shared list, see [TextFormats]). */
+    private val TEXT_EXTENSIONS = TextFormats.TEXT_EXTENSIONS
 
-    private val IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "gif", "bmp", "wbmp")
+    private val IMAGE_EXTENSIONS = TextFormats.IMAGES
 
     private fun mimeOf(file: File, ext: String): String = when (ext) {
         "pdf" -> "application/pdf"
@@ -55,6 +47,8 @@ object AttachmentReader {
         "bmp" -> "image/bmp"
         "webp" -> "image/webp"
         "heic", "heif" -> "image/heic"
+        "tif", "tiff" -> "image/tiff"
+        "svg" -> "image/svg+xml"
         "html", "htm" -> "text/html"
         "json" -> "application/json"
         "xml" -> "application/xml"
@@ -72,16 +66,16 @@ object AttachmentReader {
             val bytes = file.readBytes()
             when {
                 mime == "application/pdf" || ext == "pdf" -> readPdf(name, bytes)
-                mime.startsWith("image/") || ext in IMAGE_EXTENSIONS -> Images.dataUrl(bytes)
-                    ?.let { ReadResult(images = listOf(it)) }
-                    ?: ReadResult(error = "„$name“: Dieses Bildformat wird nicht unterstützt (PNG, JPEG, GIF und BMP gehen).")
+                FormatReaders.handles(name) -> text(name, mime, FormatReaders.text(name, bytes).orEmpty())
+                mime.startsWith("image/") || ext in IMAGE_EXTENSIONS -> image(name, ext, bytes)
+                ext in TextFormats.MEDIA || mime.startsWith("audio/") || mime.startsWith("video/") ->
+                    ReadResult(error = "„$name“ ist eine Audio- oder Videodatei – bitte über „Transkription“ in Text umwandeln und das Transkript anhängen.")
                 // Word and PowerPoint as Markdown: headings, lists and tables stay recognizable for the model.
                 ext == "docx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.docx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("word/document\\.xml"), "w:p"))
                 ext == "pptx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.pptx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("ppt/slides/slide(\\d+)\\.xml"), "a:p", "Folie"))
-                ext in setOf("odt", "odp", "ods") -> text(name, mime, zipText(bytes, Regex("content\\.xml"), "text:p"))
                 ext == "xlsx" -> text(name, mime, xlsxText(bytes))
                 ext in setOf("html", "htm") || mime == "text/html" -> text(name, mime, WebTools.htmlToText(decode(bytes)))
-                mime.startsWith("text/") || ext in TEXT_EXTENSIONS || mime in setOf("application/json", "application/xml") ->
+                mime.startsWith("text/") || ext in TEXT_EXTENSIONS || TextFormats.isText(name) || mime in setOf("application/json", "application/xml") ->
                     text(name, mime, decode(bytes))
                 looksLikeText(bytes) -> text(name, mime, decode(bytes))
                 else -> ReadResult(error = "„$name“: Dieser Dateityp wird nicht unterstützt (PDF, Word, PowerPoint, Excel, Text und Code gehen).")
@@ -92,6 +86,24 @@ object AttachmentReader {
             ReadResult(error = "„$name“ konnte nicht gelesen werden: ${e.message ?: e.javaClass.simpleName}")
         }
     }
+
+    /** Pictures for vision models: ImageIO (PNG, JPEG, GIF, BMP, TIFF), else Skia (WebP …); HEIC usually not. */
+    private fun image(name: String, ext: String, bytes: ByteArray): ReadResult {
+        Images.dataUrl(bytes)?.let { return ReadResult(images = listOf(it)) }
+        skiaJpeg(bytes)?.let { jpeg -> Images.dataUrl(jpeg)?.let { return ReadResult(images = listOf(it)) } }
+        val hint = when (ext) {
+            "heic", "heif" -> "HEIC-Fotos (iPhone) kann die Windows-App nicht lesen – bitte als JPEG speichern, z. B. in der Fotos-App über „Speichern unter“ oder am iPhone unter Einstellungen › Kamera › Formate › „Maximale Kompatibilität“."
+            "webp" -> "Dieses WebP-Bild ließ sich nicht lesen – bitte als PNG oder JPEG speichern (z. B. in Paint über „Speichern unter“)."
+            else -> "Dieses Bildformat wird nicht unterstützt (PNG, JPEG, GIF, BMP, TIFF und WebP gehen)."
+        }
+        return ReadResult(error = "„$name“: $hint")
+    }
+
+    /** JPEG bytes of a picture Skia can decode (WebP and others ImageIO lacks), null if it cannot. */
+    fun skiaJpeg(bytes: ByteArray): ByteArray? = runCatching {
+        val img = org.jetbrains.skia.Image.makeFromEncoded(bytes)
+        img.encodeToData(org.jetbrains.skia.EncodedImageFormat.JPEG, 90)?.bytes
+    }.getOrNull()
 
     private fun text(name: String, mime: String, text: String, pages: Int? = null): ReadResult {
         val clean = text.replace("\r\n", "\n").replace(Regex("\n{3,}"), "\n\n").trim()
@@ -192,21 +204,8 @@ object AttachmentReader {
         }
     }
 
-    private fun looksLikeText(bytes: ByteArray): Boolean {
-        val sample = bytes.take(4096)
-        if (sample.isEmpty()) return false
-        return sample.count { it == 0.toByte() } == 0 && runCatching { strictUtf8(bytes.copyOf(minOf(bytes.size, 4096))) }.isSuccess
-    }
+    private fun looksLikeText(bytes: ByteArray): Boolean = TextCodec.looksLikeText(bytes)
 
-    private fun strictUtf8(bytes: ByteArray): String = Charsets.UTF_8.newDecoder()
-        .onMalformedInput(CodingErrorAction.REPORT)
-        .onUnmappableCharacter(CodingErrorAction.REPORT)
-        .decode(ByteBuffer.wrap(bytes)).toString()
-
-    /** UTF-8, or Windows-1252 for older text files. */
-    private fun decode(bytes: ByteArray): String = try {
-        strictUtf8(bytes).removePrefix("﻿")
-    } catch (e: CharacterCodingException) {
-        String(bytes, Charset.forName("windows-1252"))
-    }
+    /** UTF-8 (with or without BOM), UTF-16 with BOM, or Windows-1252 for older text files. */
+    private fun decode(bytes: ByteArray): String = TextCodec.text(bytes)
 }
