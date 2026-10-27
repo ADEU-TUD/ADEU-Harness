@@ -305,13 +305,13 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
     }
     LoraAction.THINK -> LoraPose(
         tilt = -4f, lookX = 0.5f, lookY = -0.7f, legs = 0.25f * maxOf(0f, wave(s, 1.5f)) * ramp(p, 0.4f, 0.5f),
-        armL = 14f, armR = -100 + 4 * wave(s, 0.7f), mouth = LoraMouth.FLAT,
+        armL = 14f, armR = -92 + 4 * wave(s, 0.7f), mouth = LoraMouth.FLAT,
     )
     LoraAction.MICROSCOPE -> {
         val lean = ramp(p, 0.04f, 0.16f) * (1 - ramp(p, 0.66f, 0.74f))
         val amazed = ramp(p, 0.70f, 0.78f)
         LoraPose(
-            dx = 2.5f * lean, hop = amazed * abs(wave(s, 1.6f)) * 2.2f, tilt = 12 * lean - 4 * amazed * (1 - ramp(p, 0.9f, 1f)),
+            dx = 3 * lean, hop = amazed * abs(wave(s, 1.6f)) * 2.2f, tilt = 16 * lean - 4 * amazed * (1 - ramp(p, 0.9f, 1f)),
             lookX = 0.9f * lean, lookY = 0.4f * lean - 0.5f * amazed,
             armL = mix(14f, 145 - 15 * wave(s, 2f), amazed),
             armR = mix(mix(14f, 38 + 8 * wave(s, 1.5f), lean), 150 + 15 * wave(s, 2f), amazed),
@@ -332,7 +332,7 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
     LoraAction.GLOBE -> {
         val happy = p > 0.5f && p < 0.85f
         LoraPose(
-            tilt = -4f, lookX = -0.9f, lookY = 0.1f, armL = 58 + 14 * maxOf(0f, wave(s, 0.7f)), armR = 12 + 4 * wave(s, 0.5f),
+            dx = -1.5f, tilt = -4f, lookX = -0.9f, lookY = 0.1f, armL = 62 + 14 * maxOf(0f, wave(s, 0.7f)), armR = 12 + 4 * wave(s, 0.5f),
             eyes = if (happy) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (happy) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
@@ -360,7 +360,7 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val lift = ramp(p, 0.66f, 0.76f)
         LoraPose(
             hop = lift * abs(wave(s, 1.4f)) * 2, tilt = 8 * crouch, lookX = 0.9f * crouch, lookY = 0.9f * crouch - 0.7f * lift,
-            armL = mix(mix(14f, 20f, crouch), 165f, lift), armR = mix(mix(14f, 60 + 18 * wave(s, 2.4f), crouch), 165f, lift),
+            armL = mix(mix(14f, 20f, crouch), 140 - 15 * wave(s, 2f), lift), armR = mix(mix(14f, 60 + 18 * wave(s, 2.4f), crouch), 150 + 6 * wave(s, 2f), lift),
             squash = mix(1f, 0.86f, crouch),
             eyes = if (lift > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (lift > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
@@ -439,8 +439,8 @@ private class LoraGeo(
 private fun Color.fade(a: Float) = copy(alpha = alpha * a.coerceIn(0f, 1f))
 
 /** Fixed colors of a few props that should read the same in every style. */
-private val Ocean = Color(0xFF6EC1E4)
-private val Land = Color(0xFF7BC67E)
+private val Ocean = Color(0xFF5DADE2)
+private val Land = Color(0xFF4CAF50)
 private val Potion = Color(0xFF2EC4B6)
 private val Ivory = Color(0xFFF4EBD9)
 private val Tick = Color(0xFF34A853)
@@ -480,31 +480,31 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
     val line = c.line.fade(a)
     when (action) {
         LoraAction.MICROSCOPE -> {
-            val mx = g.cx0 + 18.5f * u
+            val mx = g.cx0 + 23 * u
             drawRoundRect(line, Offset(mx - 6 * u, ground - 2.2f * u), Size(11 * u, 2.2f * u), CornerRadius(1.1f * u))
             drawLine(line, Offset(mx + 3 * u, ground - 2 * u), Offset(mx + 3 * u, ground - 12.5f * u), 2.2f * u, StrokeCap.Round)
             val arm = Path().apply {
                 moveTo(mx + 3 * u, ground - 12.5f * u)
-                quadraticTo(mx + 3.2f * u, ground - 17 * u, mx - 1.5f * u, ground - 15.5f * u)
+                quadraticTo(mx + 3.2f * u, ground - 18 * u, mx - 4.2f * u, ground - 15 * u)
             }
             drawPath(arm, line, style = Stroke(2 * u, cap = StrokeCap.Round))
             drawLine(line, Offset(mx - 4.5f * u, ground - 7.5f * u), Offset(mx + 3 * u, ground - 7.5f * u), 1.4f * u, StrokeCap.Round)
             drawCircle(c.spark.fade(a * (0.45f + 0.45f * (0.5f + 0.5f * wave(s, 1.2f)))), 1.0f * u, Offset(mx - 1.2f * u, ground - 8.5f * u))
-            drawLine(c.prop.fade(a), Offset(mx - 1.2f * u, ground - 10 * u), Offset(mx - 4.6f * u, ground - 19 * u), 3.2f * u, StrokeCap.Round)
+            drawLine(c.prop.fade(a), Offset(mx - 1.2f * u, ground - 10 * u), Offset(mx - 6.8f * u, ground - 18.6f * u), 3.2f * u, StrokeCap.Round)
             drawLine(line, Offset(mx - 1.2f * u, ground - 10 * u), Offset(mx - 0.8f * u, ground - 8.9f * u), 1.8f * u, StrokeCap.Round)
-            drawLine(line, Offset(mx - 4.6f * u, ground - 19 * u), Offset(mx - 5.2f * u, ground - 20.8f * u), 3.8f * u, StrokeCap.Round)
+            drawLine(line, Offset(mx - 6.8f * u, ground - 18.6f * u), Offset(mx - 7.6f * u, ground - 20.2f * u), 3.8f * u, StrokeCap.Round)
             drawCircle(c.prop.fade(a), 1.3f * u, Offset(mx + 3 * u, ground - 10.5f * u))
             drawCircle(c.visor.fade(a), 0.5f * u, Offset(mx + 3 * u, ground - 10.5f * u))
         }
         LoraAction.GLOBE -> {
-            val gx = g.cx0 - 18 * u
-            val gy = ground - 12 * u
-            val r = 6 * u
+            val gx = g.cx0 - 21 * u
+            val gy = ground - 12.5f * u
+            val r = 6.5f * u
             drawOval(line, Offset(gx - 4.5f * u, ground - 1.8f * u), Size(9 * u, 1.8f * u))
             drawLine(line, Offset(gx, ground - 1.2f * u), Offset(gx, gy + r + 1.2f * u), 1.4f * u, StrokeCap.Round)
             drawArc(
-                line, 90f, 180f, useCenter = false, topLeft = Offset(gx - r - 1.2f * u, gy - r - 1.2f * u),
-                size = Size(2 * r + 2.4f * u, 2 * r + 2.4f * u), style = Stroke(1.1f * u, cap = StrokeCap.Round),
+                c.line.fade(a * 0.7f), 90f, 180f, useCenter = false, topLeft = Offset(gx - r - 1.2f * u, gy - r - 1.2f * u),
+                size = Size(2 * r + 2.4f * u, 2 * r + 2.4f * u), style = Stroke(0.8f * u, cap = StrokeCap.Round),
             )
             drawCircle(Ocean.fade(a), r, Offset(gx, gy))
             val rot = s * 1.4f
@@ -666,7 +666,7 @@ private fun DrawScope.drawHeld(
             }
         }
         LoraAction.JUGGLE -> {
-            val peak = top - 9 * u
+            val peak = top - 12 * u
             val colors = listOf(c.prop, c.spark, c.blush)
             for (i in 0..2) {
                 val k = (s * 0.7f + i / 3f) % 1f
@@ -752,24 +752,24 @@ private fun DrawScope.drawHeld(
             }
         }
         LoraAction.NOTES -> {
-            val x0 = cx - 7.2f * u
-            val y0 = top + 14.8f * u
-            drawRoundRect(c.line.fade(a * 0.75f), Offset(x0, y0), Size(10 * u, 10.2f * u), CornerRadius(0.9f * u))
-            drawRoundRect(c.visor.fade(a), Offset(x0 + 0.8f * u, y0 + 0.9f * u), Size(8.4f * u, 8.5f * u), CornerRadius(0.4f * u))
-            drawRoundRect(c.eye.fade(a * 0.8f), Offset(cx - 4.2f * u, y0 - 0.8f * u), Size(4 * u, 1.6f * u), CornerRadius(0.5f * u))
+            val x0 = cx - 8 * u
+            val y0 = top + 14.2f * u
+            drawRoundRect(c.line.fade(a * 0.75f), Offset(x0, y0), Size(11 * u, 11.4f * u), CornerRadius(1 * u))
+            drawRoundRect(c.visor.fade(a), Offset(x0 + 0.8f * u, y0 + 1 * u), Size(9.4f * u, 9.6f * u), CornerRadius(0.4f * u))
+            drawRoundRect(c.eye.fade(a * 0.8f), Offset(x0 + 3.3f * u, y0 - 0.8f * u), Size(4.4f * u, 1.7f * u), CornerRadius(0.5f * u))
             for (i in 0..3) {
                 val lp = ((p - 0.08f - i * 0.17f) / 0.17f).coerceIn(0f, 1f)
                 if (lp > 0f) {
-                    val y = y0 + 2.6f * u + i * 1.9f * u
-                    drawLine(c.line.fade(a), Offset(x0 + 1.8f * u, y), Offset(x0 + 1.8f * u + 6 * u * lp, y), 0.55f * u, StrokeCap.Round)
+                    val y = y0 + 3 * u + i * 2.1f * u
+                    drawLine(c.line.fade(a), Offset(x0 + 2 * u, y), Offset(x0 + 2 * u + 6.6f * u * lp, y), 0.65f * u, StrokeCap.Round)
                 }
             }
             val tick = ramp(p, 0.8f, 0.88f)
             if (tick > 0f) {
                 val path = Path().apply {
-                    moveTo(x0 + 2.6f * u, y0 + 6.4f * u); lineTo(x0 + 4.2f * u, y0 + 8 * u); lineTo(x0 + 7.6f * u, y0 + 3.6f * u)
+                    moveTo(x0 + 2.8f * u, y0 + 7 * u); lineTo(x0 + 4.6f * u, y0 + 8.8f * u); lineTo(x0 + 8.4f * u, y0 + 3.8f * u)
                 }
-                drawPath(path, Tick.fade(a * tick), style = Stroke(1.0f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                drawPath(path, Tick.fade(a * tick), style = Stroke(1.1f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
             }
             // The pencil in the other hand.
             val tip = Offset(handR.x - 3.2f * u, handR.y + 1.4f * u)
@@ -785,11 +785,11 @@ private fun DrawScope.drawHeld(
                 drawLine(c.spark.fade(f), Offset(handR.x + 2 * u, handR.y + 1.4f * u), Offset(handR.x + 2.9f * u, handR.y + 2.3f * u), 1.8f * u, StrokeCap.Round)
             }
             if (lift > 0f) {
-                val center = Offset((handL.x + handR.x) / 2, (handL.y + handR.y) / 2 - 1.2f * u)
+                val center = Offset(handR.x + 0.6f * u, handR.y - 2.6f * u)
                 bone(center, 8 * u, u, c.line, a * lift)
                 val shine = ramp(p, 0.76f, 0.82f)
                 for (side in listOf(-1, 1)) {
-                    star(Offset(center.x + side * 6.5f * u, center.y - 1.6f * u), 1.5f * u * shine * (0.75f + 0.25f * wave(s, 2f)), c.spark.fade(a))
+                    star(Offset(center.x + side * 5.5f * u, center.y - 2 * u), 1.5f * u * shine * (0.75f + 0.25f * wave(s, 2f + side * 0.4f)), c.spark.fade(a))
                 }
             }
         }
@@ -843,12 +843,20 @@ private fun DrawScope.drawHeld(
             val w = 4.4f * u
             val h = 5 * u
             drawArc(
-                c.prop.fade(a), -90f, 180f, useCenter = false, topLeft = Offset(mug.x + w / 2 - 1.3f * u, mug.y - 1.5f * u),
-                size = Size(2.8f * u, 3 * u), style = Stroke(0.8f * u),
+                c.line.fade(a), -90f, 180f, useCenter = false, topLeft = Offset(mug.x + w / 2 - 1.3f * u, mug.y - 1.5f * u),
+                size = Size(2.8f * u, 3 * u), style = Stroke(0.9f * u),
             )
-            drawRoundRect(c.prop.fade(a), Offset(mug.x - w / 2, mug.y - h / 2), Size(w, h), CornerRadius(0.9f * u))
-            drawLine(Color.White.fade(a * 0.6f), Offset(mug.x - w / 2 + 0.8f * u, mug.y), Offset(mug.x + w / 2 - 0.8f * u, mug.y), 0.45f * u)
-            val steam = a * (1 - sip) * 0.7f
+            drawRoundRect(Ivory.fade(a), Offset(mug.x - w / 2, mug.y - h / 2), Size(w, h), CornerRadius(0.9f * u))
+            drawRoundRect(c.line.fade(a), Offset(mug.x - w / 2, mug.y - h / 2), Size(w, h), CornerRadius(0.9f * u), style = Stroke(0.4f * u))
+            // A little heart on the mug.
+            val hc = Offset(mug.x, mug.y + 0.3f * u)
+            drawCircle(c.blush.fade(a), 0.62f * u, Offset(hc.x - 0.55f * u, hc.y - 0.35f * u))
+            drawCircle(c.blush.fade(a), 0.62f * u, Offset(hc.x + 0.55f * u, hc.y - 0.35f * u))
+            drawPath(
+                Path().apply { moveTo(hc.x - 1.15f * u, hc.y - 0.15f * u); lineTo(hc.x + 1.15f * u, hc.y - 0.15f * u); lineTo(hc.x, hc.y + 1.15f * u); close() },
+                c.blush.fade(a),
+            )
+            val steam = a * (1 - sip) * 0.85f
             if (steam > 0f) {
                 for (i in 0..1) {
                     val x0 = mug.x + (i - 0.5f) * 1.6f * u
@@ -857,7 +865,7 @@ private fun DrawScope.drawHeld(
                         moveTo(x0, y0)
                         for (k in 1..8) lineTo(x0 + sin(k * 0.8f + s * 3 + i * 2f) * 0.6f * u, y0 - k * 0.5f * u)
                     }
-                    drawPath(path, c.line.fade(steam), style = Stroke(0.45f * u, cap = StrokeCap.Round))
+                    drawPath(path, c.line.fade(steam), style = Stroke(0.55f * u, cap = StrokeCap.Round))
                 }
             }
         }
