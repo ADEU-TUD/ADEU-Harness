@@ -53,6 +53,7 @@ import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Toc
@@ -110,7 +111,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.FileAttachment
+import io.github.thepytales.llmhub.docs.AiReview
 import io.github.thepytales.llmhub.docs.DocBlocks
+import io.github.thepytales.llmhub.docs.DocCitations
+import io.github.thepytales.llmhub.docs.DocMarkup
+import io.github.thepytales.llmhub.docs.DocStats
+import io.github.thepytales.llmhub.docs.SlideDeck
+import io.github.thepytales.llmhub.docs.SpellCheck
+import io.github.thepytales.llmhub.research.CitationStyle
 import io.github.thepytales.llmhub.docs.DocComment
 import io.github.thepytales.llmhub.docs.DocFormat
 import io.github.thepytales.llmhub.docs.DocKind
@@ -164,8 +172,15 @@ object DocsHandoff {
         c.docs.forFile(file.absolutePath)?.let { return it }
         val imported = runCatching { OfficeImport.read(file.name, file.readBytes()) }.getOrNull() ?: return null
         val doc = OfficeImport.toLiveDoc(imported, chatId = chatId).copy(file = file.absolutePath, vault = c.docs.defaultVault)
+        saveMedia(c, doc, imported)
         c.docs.save(doc)
         return doc
+    }
+
+    /** Pictures of an imported file go next to the document (Bilder/…), where its Markdown points. */
+    fun saveMedia(c: AppContainer, doc: LiveDoc, imported: OfficeImport.Imported) {
+        val base = c.docs.baseDir(doc)
+        imported.media.forEach { (path, bytes) -> runCatching { File(base, path).apply { parentFile?.mkdirs() }.writeBytes(bytes) } }
     }
 
     /** An attachment of a chat message (its text was read when it was attached). */
@@ -231,11 +246,18 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     var dismissedAi by remember { mutableStateOf<String?>(null) }
     /** ✨ menu open for this passage. */
     var aiMenuFor by remember { mutableStateOf<String?>(null) }
+    var pageSetup by remember { mutableStateOf(false) }
+    var citing by remember { mutableStateOf(false) }
+    var spellFor by remember { mutableStateOf<String?>(null) }
+    var deckFromDoc by remember { mutableStateOf(false) }
+    /** Changes of the model the user has accepted (block texts), per version of the model. */
+    val acceptedAi = remember(doc?.versions?.lastOrNull { it.byAi }?.id) { mutableStateListOf<String>() }
     val undo = remember(doc?.id) { mutableStateListOf<List<DocTab>>() }
     val redo = remember(doc?.id) { mutableStateListOf<List<DocTab>>() }
     val editing = remember(doc?.id, tabId) { TextEditing() }
     val inlineAi = rememberInlineAi(c)
     val listState = rememberLazyListState()
+    val docBase = remember(doc?.id, doc?.vault) { c.docs.baseDir(doc) }
 
     // Documents in a storage folder: pick up what changed there (another computer, another editor).
     LaunchedEffect(doc?.vault) {
@@ -261,15 +283,20 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
     val showingDraft = writing && markdown == draft?.markdown
     val blocks = remember(markdown) { DocBlocks.split(markdown) }
-    // What the model changed last (highlighted until the user dismisses it or edits).
-    val lastVersion = doc?.versions?.lastOrNull()
-    val aiChanged = remember(doc?.versions?.size, tabId) {
-        val v = doc?.versions ?: emptyList()
-        if (v.size >= 2 && v.last().byAi && tab != null) {
-            val before = v[v.size - 2].tabs.firstOrNull { it.id == tab.id }?.markdown.orEmpty()
-            TextDiff.changedBlocks(before, tab.markdown)
-        } else emptySet()
-    }.takeIf { lastVersion?.id != dismissedAi }.orEmpty()
+    // What the model changed last (highlighted until the user dismisses it or edits): compared with the version before
+    // the model's, as long as only reviews of its changes ("KI-Änderung …") came after it.
+    val versions = doc?.versions.orEmpty()
+    val aiAt = versions.indexOfLast { it.byAi }
+    val lastVersion = versions.getOrNull(aiAt)
+    val review = remember(versions.size, tabId, tab?.markdown) {
+        if (aiAt >= 1 && tab != null && versions.drop(aiAt + 1).all { it.note.startsWith("KI-Änderung") }) {
+            val before = versions[aiAt - 1].tabs.firstOrNull { it.id == tab.id }?.markdown.orEmpty()
+            AiReview.compare(before.replace(EMPTY_BLOCK, ""), tab.markdown.replace(EMPTY_BLOCK, ""))
+        } else null
+    }?.takeIf { lastVersion?.id != dismissedAi }?.let { r ->
+        r.copy(changes = r.changes.filter { blocks.getOrNull(it.index) !in acceptedAi }, removed = r.removed.filter { it.text !in acceptedAi })
+    }
+    val aiChanged = review?.changes?.map { it.index }?.toSet().orEmpty()
 
     fun save(author: String = "Sie", note: String = "", transform: (LiveDoc) -> LiveDoc) {
         val d = c.docs.get(doc?.id) ?: return
@@ -286,6 +313,62 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
 
     fun setBlocks(newBlocks: List<String>) = setMarkdown(DocBlocks.join(newBlocks))
+
+    fun reviewAction(action: ReviewAction) {
+        val t = tab ?: return
+        fun set(list: List<String>, note: String) = save(note = note) { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = DocBlocks.join(list)) else it }) }
+        editing.index = null
+        when (action) {
+            is ReviewAction.Accept -> blocks.getOrNull(action.change.index)?.let { acceptedAi += it }
+            is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), "KI-Änderung abgelehnt")
+            is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), "KI-Änderung zurückgenommen")
+            is ReviewAction.Drop -> acceptedAi += action.removed.text
+        }
+    }
+
+    /** Inserts [block] after the edited block (or at the end) and opens it. */
+    fun insertBlock(block: String) {
+        val list = blocks.toMutableList()
+        val i = editing.index
+        if (i != null && i in list.indices) list[i] = editing.value.text.ifBlank { EMPTY_BLOCK }
+        val at = ((i ?: list.lastIndex) + 1).coerceIn(0, list.size)
+        list.add(at, block)
+        setBlocks(list)
+        editing.start(at, block)
+    }
+
+    /** A citation at the cursor and the work in the generated literature list at the end. */
+    fun cite(ref: io.github.thepytales.llmhub.research.Reference, style: CitationStyle) {
+        val t = tab ?: return
+        val list = blocks.toMutableList()
+        val i = editing.index
+        val md0 = DocBlocks.join(list.mapIndexed { k, b -> if (k == i) editing.value.text else b })
+        val cited = DocCitations.cited(md0)
+        val refs = (cited.ids.mapNotNull { c.literature.get(it) } + ref).distinctBy { it.id }
+        val citation = DocCitations.inText(ref, style, DocCitations.number(refs, ref, style))
+        if (i != null && i in list.indices) {
+            val v = editing.value
+            val at = v.selection.max
+            val spacer = if (at > 0 && !v.text[at - 1].isWhitespace()) " " else ""
+            list[i] = v.text.substring(0, at) + spacer + citation + v.text.substring(at)
+        } else {
+            val last = list.indexOfLast { DocBlocks.kindOf(it) == DocBlocks.Kind.PARAGRAPH && !DocMarkup.isComment(it) }
+            if (last >= 0) list[last] = list[last].trimEnd() + " " + citation else list += citation
+        }
+        editing.index = null
+        val md = DocCitations.withBibliography(DocBlocks.join(list), refs, style)
+        save(note = "Beleg eingefügt") { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = md) else it }) }
+        Notices.info("Beleg eingefügt: $citation")
+    }
+
+    val pickImage = rememberImageBytesPicker { bytes ->
+        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP)."); return@rememberImageBytesPicker }
+        scope.launch {
+            val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(docBase, bytes) }.getOrNull() }
+            if (path == null) Notices.error("Das Bild konnte nicht gespeichert werden.")
+            else insertBlock(DocMarkup.Image("Bildunterschrift", path, 60).markdown())
+        }
+    }
 
     fun undoOnce() {
         val d = c.docs.get(doc?.id) ?: return
@@ -366,11 +449,11 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
                             DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = {
                                 more = false
-                                export = doc.title to exportMarkdown(doc, null)
+                                export = doc.title to DocMarkup.resolveImages(exportMarkdown(doc, null), docBase)
                             })
                             if (doc.tabs.size > 1 && tab != null) DropdownMenuItem(text = { Text("Nur „${tab.title}“ exportieren") }, onClick = {
                                 more = false
-                                export = "${doc.title} – ${tab.title}" to exportMarkdown(doc, tab.id)
+                                export = "${doc.title} – ${tab.title}" to DocMarkup.resolveImages(exportMarkdown(doc, tab.id), docBase)
                             })
                             DropdownMenuItem(text = { Text("In Chat senden …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, null) }, onClick = { more = false; sendToChat = true })
                             DropdownMenuItem(text = { Text("Als Text teilen") }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
@@ -393,6 +476,15 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                         onClick = { more = false; editing.index = null; mode = m },
                                     )
                                 }
+                            }
+                            if (kind == DocKind.DOC) {
+                                DropdownMenuItem(text = { Text("Seite einrichten …") }, onClick = { more = false; pageSetup = true })
+                                DropdownMenuItem(text = { Text("Literatur einfügen …") }, onClick = { more = false; citing = true })
+                                DropdownMenuItem(text = { Text("Rechtschreibung prüfen (KI)") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = {
+                                    more = false
+                                    spellFor = selection()?.takeIf { it.isNotBlank() && editing.selection != null } ?: markdown.replace(EMPTY_BLOCK, "")
+                                })
+                                DropdownMenuItem(text = { Text("Präsentation aus Dokument …") }, leadingIcon = { Icon(Icons.Outlined.Slideshow, null) }, onClick = { more = false; deckFromDoc = true })
                             }
                             DropdownMenuItem(text = { Text("Suchen & Ersetzen") }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { more = false; findOpen = true })
                             DropdownMenuItem(text = { Text("Versionsverlauf") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { more = false; showHistory = true })
@@ -506,10 +598,19 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         editing.index = null
                         if (i != null && i in blocks.indices) setBlocks(blocks.toMutableList().apply { if (text.isBlank()) removeAt(i) else set(i, text) })
                     },
+                    onImage = pickImage,
+                    onCitation = { citing = true },
                 )
+            }
+            // Statistics of the text (of the selection, if there is one).
+            if ((kind == DocKind.DOC || kind == DocKind.MARKDOWN) && doc != null && !showingDraft) {
+                val sel = editing.selection
+                val stats = remember(markdown, sel) { DocStats.of(sel ?: markdown) }
+                HintText((if (sel != null) "Auswahl: " else "") + stats.label(), Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 1.dp))
             }
             HorizontalDivider()
             // ── Page and side panel ──
+            androidx.compose.runtime.CompositionLocalProvider(LocalDocBase provides docBase) {
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 Box(Modifier.weight(1f).fillMaxHeight()) {
                     when {
@@ -534,6 +635,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 onAskAi = { text -> if (text.isBlank() || editing.index == null) panel = DocPanel.AI else aiMenuFor = text },
                                 footer = if (doc == null) "" else "${doc.words} Wörter · ca. ${(doc.words / 200).coerceAtLeast(1)} Min. Lesezeit · ${doc.versions.size} Versionen" +
                                     if (mode == TextMode.EDIT) " · Tippen zum Bearbeiten · „/“ für Formate · Strg+E: KI" else "",
+                                review = review, onReview = ::reviewAction,
                             )
                         }
                     }
@@ -549,6 +651,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         })
                     }
                 }
+            }
             }
         }
         if (!wide && panel != DocPanel.NONE && doc != null) {
@@ -588,6 +691,60 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 panel = DocPanel.COMMENTS
             }
         }
+    }
+    if (pageSetup && tab != null) PageSetupDialog(DocMarkup.pageSetup(tab.markdown), onDismiss = { pageSetup = false }) { setup ->
+        pageSetup = false
+        editing.index = null
+        setMarkdown(DocMarkup.withPageSetup(tab.markdown, setup))
+    }
+    if (citing && doc != null) {
+        val style = DocCitations.cited(markdown).style ?: CitationStyle.parse(c.settings.current.citationStyle) ?: CitationStyle.APA7_DE
+        CitationDialog(c, style, onDismiss = { citing = false }) { ref, st ->
+            citing = false
+            cite(ref, st)
+        }
+    }
+    spellFor?.let { text ->
+        SpellCheckDialog(c, doc, text, onDismiss = { spellFor = null }) { list ->
+            val t = tab ?: return@SpellCheckDialog
+            editing.index = null
+            val current = c.docs.get(doc?.id)?.tab(t.id)?.markdown ?: t.markdown
+            val next = SpellCheck.applyAll(current, list)
+            if (next != current) save(note = "Rechtschreibung korrigiert") { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = next) else it }) }
+        }
+    }
+    if (deckFromDoc && doc != null) {
+        var withAi by remember { mutableStateOf(true) }
+        AlertDialog(
+            onDismissRequest = { deckFromDoc = false },
+            title = { Text("Präsentation aus Dokument") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    HintText("Aus Überschriften, Listen, Tabellen und Bildern entstehen Folien im TUD-Design; lange Absätze wandern in die Sprechernotizen.")
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { withAi = !withAi }) {
+                        Checkbox(withAi, { withAi = it })
+                        Text("Anschließend von der KI überarbeiten lassen")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    deckFromDoc = false
+                    val slides = SlideDeck.fromDocument(doc.markdown().replace(EMPTY_BLOCK, ""), doc.title)
+                    val deck = LiveDoc.create(doc.title, SlideDeck.markdown(slides), "Sie", kind = DocKind.SLIDES).copy(vault = doc.vault)
+                    c.docs.save(deck)
+                    if (withAi) DocsAi.send(
+                        c, deck, "Präsentation aus Dokument",
+                        "Überarbeite diese aus dem Dokument „${doc.title}“ erzeugte Präsentation: prägnante Folientitel, höchstens 5 kurze " +
+                            "Stichpunkte je Folie, passende Folientypen (Abschnitt, Vergleich, Tabelle, Bild), Sprechernotizen zu jeder Folie. " +
+                            "Bilder und Tabellen bleiben erhalten. Das Dokument zur Orientierung:\n\n" + doc.markdown().take(20_000),
+                        DocsAi.instructions(deck),
+                    )
+                    DocsHandoff.show(deck.id)
+                }) { Text("Erstellen") }
+            },
+            dismissButton = { TextButton(onClick = { deckFromDoc = false }) { Text("Abbrechen") } },
+        )
     }
     if (showHistory && doc != null) VersionHistory(c, doc, tab?.id, onDismiss = { showHistory = false })
     if (renaming && doc != null) TextPrompt("Umbenennen", doc.title, onDismiss = { renaming = false }) { name ->
@@ -675,7 +832,10 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
             val format = when (doc.docKind) { DocKind.SLIDES -> DocFormat.PPTX; DocKind.SHEET -> DocFormat.XLSX; DocKind.DOC -> DocFormat.DOCX; DocKind.MARKDOWN -> DocFormat.MD }
             runCatching {
                 withContext(Dispatchers.IO) {
-                    DocumentWriter.create(context, File(context.cacheDir, "exports"), doc.title, exportMarkdown(doc, null), format, theme = c.documentTools.settingsTheme(DocStyle.parse(doc.style))).file
+                    DocumentWriter.create(
+                        context, File(context.cacheDir, "exports"), doc.title, exportMarkdown(doc, null), format,
+                        theme = c.documentTools.settingsTheme(DocStyle.parse(doc.style)), imageBase = c.docs.baseDir(doc),
+                    ).file
                 }
             }.onSuccess { f ->
                 ChatHandoff.send(chatId, FileAttachment(f.name, format.mime, exportMarkdown(doc, null), path = f.absolutePath))
@@ -942,9 +1102,10 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
                             withContext(Dispatchers.IO) {
                                 val dir = File(context.cacheDir, "exports").apply { mkdirs() }
                                 val f = File(dir, DocumentWriter.safeName("${doc.title} (Änderungen)") + ".docx")
+                                val base = c.docs.baseDir(doc)
                                 MarkdownDocx.writeTracked(
-                                    f, doc.title, DocumentWriter.withTitle(sel.title, sel.tabs.joinToString("\n\n") { it.markdown }),
-                                    DocumentWriter.withTitle(doc.title, doc.markdown()), c.documentTools.settingsTheme(DocStyle.parse(doc.style)), author = "ADEU LLM",
+                                    f, doc.title, DocMarkup.resolveImages(DocumentWriter.withTitle(sel.title, sel.tabs.joinToString("\n\n") { it.markdown }), base),
+                                    DocMarkup.resolveImages(DocumentWriter.withTitle(doc.title, doc.markdown()), base), c.documentTools.settingsTheme(DocStyle.parse(doc.style)), author = "ADEU LLM",
                                 )
                                 f
                             }

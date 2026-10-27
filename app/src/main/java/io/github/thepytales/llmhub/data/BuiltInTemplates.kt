@@ -196,6 +196,64 @@ internal object BuiltInTemplates {
                 "Biete am Ende an, dazu passende Folien als PowerPoint im TUD-Design zu erstellen.",
         ),
         prompt(
+            TemplateCategory.TEACHING, "teach_lesson_draft", "Unterrichtsentwurf (Stundenentwurf)",
+            "Ausführlicher Entwurf mit Analysen, Lernzielen und Verlaufsplan-Tabelle – für Praktikum und Referendariat",
+            """
+            Fach, Klassenstufe, Schulart: {{Fach und Klasse|z.B. Geschichte, Klasse 8, Oberschule}}
+            Thema der Stunde: {{Thema}}
+            Einordnung in die Einheit: {{Einordnung|optional: Thema der Einheit, vorherige und folgende Stunde}}
+            Lerngruppe: {{Lerngruppe|optional: Größe, Vorwissen, Besonderheiten – ohne Namen}}
+            Dauer: {{Dauer|z.B. 45 Minuten}}
+            Vorgaben: {{Vorgaben|optional: Lehrplanbezug, Methoden, Medien, Gliederung der Ausbildungsstätte}}
+            """,
+            "Erstelle mit create_document ein Word-Dokument (format=docx) „Unterrichtsentwurf: …“. Aufbau: Tabelle „| Angabe | " +
+                "Eintrag |“ (Fach/Klasse, Datum, Zeit, Lehrkraft, Thema); „## 1. Bedingungsanalyse“ (Lerngruppe, Rahmen – " +
+                "anonym), „## 2. Sachanalyse“, „## 3. Didaktische Analyse“ (Lehrplanbezug, Gegenwarts- und Zukunftsbedeutung, " +
+                "didaktische Reduktion), „## 4. Lernziele“ (Grobziel und 3–5 operationalisierte Feinziele mit Operatoren), " +
+                "„## 5. Methodische Überlegungen“ (Begründung von Einstieg, Sozialformen, Medien, Differenzierung), „## 6. " +
+                "Verlaufsplan“ als Tabelle | Zeit | Phase | Lehrer:innenaktivität | Schüler:innenaktivität | Sozialform | Medien | " +
+                "mit Einstieg, Erarbeitung, Sicherung und Abschluss (Zeiten summieren sich zur Dauer), danach die Arbeitsaufträge " +
+                "wörtlich, „## 7. Erwartungshorizont“ und „## 8. Literatur“. Den Verlaufsplan bei Bedarf zwischen den Zeilen " +
+                "„<!-- quer -->“ und „<!-- hoch -->“ setzen, damit er im Querformat steht. " + ACADEMIC + HONEST,
+        ),
+        prompt(
+            TemplateCategory.TEACHING, "teach_parent_letter", "Elternbrief",
+            "Information an Eltern: Wandertag, Klassenfahrt, Elternabend – mit Rückmeldeabschnitt",
+            """
+            Anlass: {{Anlass|z.B. Wandertag, Klassenfahrt, Elternabend, Projektwoche}}
+            Klasse und Schule: {{Klasse und Schule}}
+            Termine und Ort: {{Termine und Ort}}
+            Wichtiges: {{Wichtiges|Kosten, Mitzubringendes, Treffpunkt, Abholung, Fristen}}
+            Absender: {{Absender|Name und Funktion, z.B. Klassenleitung}}
+            Rückmeldung: {{Rückmeldung|optional: was die Eltern ankreuzen oder zurückgeben sollen}}
+            """,
+            "Erstelle mit create_document ein PDF „Elternbrief: …“ in freundlichem, klarem Ton (Sie-Form, kurze Sätze, keine " +
+                "Fachbegriffe, an alle Erziehungsberechtigten gerichtet). Aufbau: Anrede, worum es geht, die wichtigsten Angaben " +
+                "als Tabelle „| Angabe | Eintrag |“ (Datum, Uhrzeit, Ort, Kosten, Mitzubringen), Bitte um Rückmeldung mit Frist, " +
+                "Gruß und Absender; danach eine Trennlinie und ein Rückmeldeabschnitt zum Abtrennen mit Feld für den Namen des " +
+                "Kindes, Ankreuzkästchen („- [ ] …“) und einer Tabelle „| Ort, Datum | Unterschrift |“ mit leerer Zeile. Nur " +
+                "Angaben aus der Eingabe verwenden. " + HONEST,
+        ),
+        tud(
+            "travel_request", "Antrag Dienstreise / Fortbildung",
+            "Genehmigungsantrag mit Anlass, Zeitraum, Kosten und Begründung",
+            """
+            Art: {{Art|Dienstreise oder Fortbildung}}
+            Anlass / Veranstaltung: {{Anlass|z.B. Jahrestagung der GEBF, Workshop Hochschuldidaktik}}
+            Ort und Zeitraum: {{Ort und Zeitraum|mit Uhrzeiten von Abfahrt und Rückkehr}}
+            Antragsteller:in: {{Antragsteller|Name, Einrichtung, Personalnummer – aus den Einstellungen}}
+            Kosten: {{Kosten|Fahrt, Übernachtung, Teilnahmegebühr – geschätzt; Kostenstelle/Projekt}}
+            Begründung: {{Begründung|dienstlicher Nutzen, Bezug zu Lehre oder Forschung}}
+            Vertretung: {{Vertretung|optional: betroffene Lehrveranstaltungen und wie sie vertreten werden}}
+            """,
+            "title: „Antrag auf Genehmigung einer Dienstreise“ bzw. „… einer Fortbildung“. Aufbau: Tabelle „| Angabe | " +
+                "Eintrag |“ mit Antragsteller:in, Einrichtung, Anlass, Ort, Zeitraum, Verkehrsmittel; „## Voraussichtliche " +
+                "Kosten“ als Tabelle | Posten | Betrag | mit Summe (rechne mit run_javascript); „## Begründung“ (sachlich, " +
+                "dienstlicher Nutzen); „## Vertretung“ mit Ankreuzkästchen; am Ende eine Tabelle „| Ort, Datum | Unterschrift " +
+                "Antragsteller:in | Genehmigung Vorgesetzte:r |“ mit leerer Zeile. Keine Pauschalen oder Erstattungssätze " +
+                "erfinden – maßgeblich ist das Sächsische Reisekostengesetz.",
+        ),
+        prompt(
             TemplateCategory.TEACHING, "teach_slides", "Seminarsitzung als Folien", "PowerPoint für eine Sitzung – mit Ablauf, Arbeitsaufträgen und Sprechernotizen",
             """
             Seminar / Modul: {{Seminar|z.B. Allgemeine Didaktik, EW-SEGY-BW 2}}

@@ -303,7 +303,9 @@ class DocumentTools(
         val recipient = args.s("letter_recipient")?.replace("\\n", "\n")?.trim().orEmpty()
         val letter = if (sender.isNotEmpty() || recipient.isNotEmpty()) Letter(sender, recipient) else null
         val certificate = letter == null && args.s("layout")?.trim()?.lowercase() in CERTIFICATE_LAYOUTS
-        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite)
+        // Pictures of a document of the editor are relative to its folder.
+        val imageBase = docs.get(args.s("doc_id"))?.let { docs.baseDir(it) }
+        val doc = DocumentWriter.create(context, folder, title, content, format, args.s("file_name"), theme, letter, certificate, overwrite, imageBase)
         val live = withContext(Dispatchers.IO) { keepLive(args, title, content, doc.file, ctx, tabsDone) }
         // The source stays next to the document for edit_document and for filling in open placeholders.
         withContext(Dispatchers.IO) {
@@ -819,7 +821,9 @@ class DocumentTools(
         append("Text statt „hier“, keine Information nur über Farbe, Abkürzungen beim ersten Vorkommen ausschreiben. Die App setzt ")
         append("Sprache, Titel, Überschriften-Formatvorlagen, Alternativtexte und Folientitel selbst. Mit check_accessibility prüfst ")
         append("du ein Dokument (auch ein angehängtes PDF) und nennst die Mängel mit Abhilfe. ")
+        append("Word/PDF-Extras im Markdown: ").append(io.github.thepytales.llmhub.ui.DOC_MARKUP_HELP)
         append(PPTX_HELP)
+        append(io.github.thepytales.llmhub.ui.SLIDE_LAYOUT_HELP)
         append(QtiWriter.HELP)
         append(MORE_FORMATS_HELP)
         append(io.github.thepytales.llmhub.docs.LimeSurveyWriter.HELP)
