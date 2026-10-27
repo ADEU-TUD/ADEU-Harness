@@ -364,8 +364,11 @@ fun ChatScreen(
                             )
                         }
                     }
-                    IconButton(onClick = onNewChat) {
-                        Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
+                    // On a fresh, ordinary chat a "new chat" button would only start the same again.
+                    if (hasMessages || current.folderId != null || current.temporary) {
+                        IconButton(onClick = onNewChat) {
+                            Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
+                        }
                     }
                     Box {
                         IconButton(onClick = { menuOpen = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
@@ -468,7 +471,7 @@ fun ChatScreen(
                     PrivacySuggestions(c, input)
                     MemoryLearnBar(c, current.id)
                 },
-                footnote = if (hasMessages) tr("ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen.") else null,
+                footnote = if (hasMessages) tr("KI kann Fehler machen. Wichtiges bitte prüfen.") else null,
                 onVoice = { platform.withMicrophone { voiceMode = true } },
             ) {
                 if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
@@ -480,9 +483,11 @@ fun ChatScreen(
                     })
                 }
                 if (current.githubEnabled && settings.hasGitHub) {
-                    ContextChip(Icons.Outlined.Code, current.linkedRepos.label() ?: "GitHub · Repo wählen", { showRepoPicker = true })
+                    // Quiet while nothing is chosen; highlighted once a repository is linked.
+                    val repos = current.linkedRepos.label()
+                    ContextChip(Icons.Outlined.Code, repos ?: "GitHub · Repo wählen", { showRepoPicker = true }, highlighted = repos != null)
                 }
-                if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true })
+                if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true }, highlighted = env.id != settings.defaultEnvId)
                 activeTemplate?.let { t ->
                     ContextChip(Icons.Outlined.Bookmarks, "Vorlage: ${t.name}  ✕", { templateId = null })
                 }
@@ -531,6 +536,7 @@ fun ChatScreen(
                 onApiKey = { onNavigate("settings/api") },
                 onAllTemplates = { onNavigate("templates") },
                 onOpen = onNavigate,
+                typing = input.isNotBlank(),
                 extra = { MemoryIntroCard(c) },
                 onExample = { e ->
                     when {
@@ -641,13 +647,15 @@ fun ChatScreen(
                 if (typing) item(key = "typing") {
                     if (collapse) {
                         val pendingCall = last?.toolCalls?.lastOrNull { results[it.id] == null }
+                        val thinking = pendingCall == null && last?.role == "assistant" &&
+                            (!last.reasoning.isNullOrBlank() || splitThinking(last.content).first != null)
                         val step = when {
                             pendingCall != null -> tr(toolLabel(pendingCall.name)) + " …"
-                            last?.role == "assistant" && (!last.reasoning.isNullOrBlank() || splitThinking(last.content).first != null) -> tr("Denkt nach …")
+                            thinking -> tr("Denkt nach …")
                             else -> null
                         }
                         val head = runningHead ?: "new"
-                        WorkingCard(step, steps[head]?.second ?: 0, stepsOpen(head)) { openSteps[head] = !stepsOpen(head) }
+                        WorkingCard(step, pendingCall?.name, thinking, steps[head]?.second ?: 0, stepsOpen(head)) { openSteps[head] = !stepsOpen(head) }
                     } else ThinkingIndicator()
                 }
             }
