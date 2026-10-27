@@ -183,7 +183,7 @@ object DocMarkup {
         fun markdown(): String = "![${alt.replace("]", ")").replace("\n", " ")}]($src)" + (width?.let { "{width=$it%}" } ?: "")
     }
 
-    private val IMAGE = Regex("^\\s*!\\[([^\\]]*)]\\(\\s*<?([^)\\s>]+)>?(?:\\s+\"[^\"]*\")?\\s*\\)\\s*(\\{[^}]*})?\\s*$")
+    private val IMAGE = Regex("^\\s*!\\[([^\\]]*)]\\(\\s*<?([^)\\s>]+)>?(?:\\s+\"[^\"]*\")?\\s*\\)\\s*(\\{[^}]*\\})?\\s*$")
     private val WIDTH = Regex("width\\s*=\\s*\"?(\\d{1,3})\\s*%?", RegexOption.IGNORE_CASE)
 
     /** The image if [text] (a line or block) is exactly one image. */
