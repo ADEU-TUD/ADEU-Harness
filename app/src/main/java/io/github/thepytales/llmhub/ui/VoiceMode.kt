@@ -62,7 +62,7 @@ enum class VoicePhase(val label: String) {
     LISTENING("Ich höre zu …"),
     PAUSED("Pausiert – tippen Sie auf „Weiter“"),
     UNDERSTANDING("Verstehe …"),
-    WORKING("Der Agent arbeitet an einer Antwort, bitte warte kurz."),
+    WORKING("Lora ist dran …"),
     SPEAKING("Antwort wird vorgelesen …"),
 }
 
@@ -115,6 +115,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
     /** Skips the rest of the reading and listens again. */
     var interrupt by remember { mutableStateOf(0) }
     val conv by vm.state.collectAsStateWithLifecycle()
+    val hideLora = c.settings.settings.collectAsStateWithLifecycle().value.hideLora
 
     DisposableEffect(Unit) {
         platform.keepScreenOn(true)
@@ -218,11 +219,11 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                 )
                 Spacer(Modifier.height(8.dp))
                 Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
-                    if (phase == VoicePhase.WORKING) LoraFigure(Modifier.size(width = 190.dp, height = 133.dp), label = tr("Lora bei der Arbeit"))
+                    if (phase == VoicePhase.WORKING && !hideLora) LoraFigure(Modifier.size(width = 190.dp, height = 133.dp), label = tr("Lora bei der Arbeit"))
                     else VoiceOrb(phase, level, Modifier.fillMaxSize())
                 }
                 Text(
-                    tr(phase.label),
+                    tr(if (phase == VoicePhase.WORKING && hideLora) "Arbeitet an der Antwort …" else phase.label),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )

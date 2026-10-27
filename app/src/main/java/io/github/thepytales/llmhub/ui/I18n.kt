@@ -16,7 +16,22 @@ object I18n {
 
     internal val EN: Map<String, String> = mapOf(
         // Working figure, memory, voice mode, automatic model choice
-        "Der Agent arbeitet an einer Antwort, bitte warte kurz." to "The agent is working on an answer, please wait a moment.",
+        "Lora ist dran" to "Lora is on it",
+        "Lora ist dran …" to "Lora is on it …",
+        "Bereitet die Antwort vor …" to "Preparing the answer …",
+        "Lora bei der Arbeit" to "Lora at work",
+        "Lora, das Maskottchen der App" to "Lora, the app's mascot",
+        "Schritte anzeigen" to "Show steps",
+        "Schritte ausblenden" to "Hide steps",
+        "Idee" to "Idea",
+        "Vorlage" to "Template",
+        "Andere Idee" to "Another idea",
+        "Alle Vorlagen ansehen" to "Browse all templates",
+        "Lora ausblenden" to "Hide Lora",
+        "Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben." to
+            "Lora appears nowhere – not on the start page, in the chat or in voice mode; the app's symbol is shown there instead. The ideas on the start page stay.",
+        "Arbeitet an der Antwort" to "Working on the answer",
+        "Arbeitet an der Antwort …" to "Working on the answer …",
         "Schritte" to "Steps",
         "Ausblenden" to "Hide",
         "Anzeigen" to "Show",
@@ -125,7 +140,7 @@ object I18n {
         "Diagramm aus Daten" to "Chart from data",
         "Interview transkribieren" to "Transcribe an interview",
         "Werkzeuge genutzt" to "tools used",
-        "ADEU LLM nutzt KI und kann Fehler machen. Wichtiges bitte prüfen." to "ADEU LLM uses AI and can make mistakes. Please check important information.",
+        "KI kann Fehler machen. Wichtiges bitte prüfen." to "AI can make mistakes. Please check important information.",
         // Settings
         "Zugang" to "Access",
         "Assistent" to "Assistant",
