@@ -125,7 +125,7 @@ class AgentRunner(private val c: AppContainer) {
         while (true) {
             if (!summarized) summarized = compactIfNeeded(host, model, providers)
             val conv = host.conversation ?: return
-            val apiMessages = buildApiMessages(conv, ctx, providers)
+            val apiMessages = buildApiMessages(conv, ctx, providers, model)
             val events = mutableListOf<String>()
             privacyEvent?.let { events += it }
             privacyEvent = null
@@ -337,7 +337,7 @@ class AgentRunner(private val c: AppContainer) {
         val conv = host.conversation ?: return false
         val budget = ContextManager.budget(model)
         val ctx = RepoContext(conv.linkedRepos.toMutableList(), environment(conv))
-        if (ContextManager.tokens(buildApiMessages(conv, ctx, providers)) <= budget) return false
+        if (ContextManager.tokens(buildApiMessages(conv, ctx, providers, model)) <= budget) return false
         val thread = conv.thread()
         val cut = ContextManager.cutIndex(thread)
         if (cut <= 0) return false
@@ -370,9 +370,15 @@ class AgentRunner(private val c: AppContainer) {
 
     /**
      * The request: a system prompt that stays the same during a chat (the server can reuse its cache for it),
-     * the summary of older messages if there is one, then the history with shortened old tool results.
+     * the summary of older messages if there is one, then the history with shortened old tool results. [model] answers
+     * the request (Lora names it when asked).
      */
-    internal fun buildApiMessages(conv: Conversation, ctx: RepoContext, providers: List<ToolProvider>): List<ChatMessage> {
+    internal fun buildApiMessages(
+        conv: Conversation,
+        ctx: RepoContext,
+        providers: List<ToolProvider>,
+        model: String = conv.model,
+    ): List<ChatMessage> {
         val settings = c.settings.current
         val useTools = providers.isNotEmpty()
         // Only the date: a time that changes every minute would make the whole request new for the server's cache.
@@ -383,6 +389,8 @@ class AgentRunner(private val c: AppContainer) {
         if (summary != null) thread = thread.drop(summaryAt + 1)
         val documentsFull = c.documentTools in providers && needsGuide(conv, Guides.documents)
         val system = listOfNotNull(
+            // Who answers: Lora; an own system prompt or a persona below may give another role.
+            identityPrompt(ModelCatalog.info(model).displayName),
             settings.systemPrompt.ifBlank { null },
             // The memory goes along with every request, also without tools (see Memory).
             Memory.prompt(c, conv),
@@ -456,6 +464,18 @@ class AgentRunner(private val c: AppContainer) {
     }
 
     companion object {
+        /**
+         * Lora, the research assistant of the app (and its mascot), introduces itself by that name; asked for the model,
+         * it names [modelName], the one answering right now.
+         */
+        internal fun identityPrompt(modelName: String) =
+            "Du bist Lora, der KI-Forschungsassistent der App „ADEU LLM“ (TU Dresden) – benannt nach Low-Rank " +
+                "Adaptation, in der App ein kleiner runder Roboter. Du unterstützt bei Forschung, Lehre und Verwaltung: " +
+                "Literatur finden und prüfen, Texte und Dokumente schreiben, Daten auswerten, Lehrveranstaltungen planen. " +
+                "Fragt jemand, wie du heißt oder wer du bist, stellst du dich als Lora vor, der Forschungsassistent dieser " +
+                "App. Nach dem Sprachmodell gefragt, sagst du, dass im Hintergrund gerade $modelName antwortet (in der App " +
+                "wählbar). Weist dir eine Anweisung weiter unten eine andere Rolle oder einen anderen Namen zu, gilt diese."
+
         /** Upper bound for one request even with automatic continuation. */
         const val HARD_STEP_LIMIT = 500
         /** Identical tool rounds in a row after which the agent stops. */

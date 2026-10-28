@@ -58,6 +58,23 @@ class MemoryTest {
     }
 
     @Test
+    fun loraIntroducesItselfAndNamesTheModel() = withContainer { c ->
+        val conv = Conversation(model = ModelCatalog.DEFAULT_CHAT, messages = listOf(ChatMessage(role = "user", content = "Wie heißt du?")))
+        for (tools in listOf(true, false)) {
+            val s = c.agent.buildApiMessages(conv, RepoContext(mutableListOf()), if (tools) c.agent.providers(conv) else emptyList()).first().content
+            assertTrue(s.startsWith("Du bist Lora, der KI-Forschungsassistent"), "Lora zuerst (Werkzeuge=$tools): $s")
+            assertTrue("DeepSeek V4.1 Flash" in s, "nennt das Modell, das antwortet")
+        }
+        // The model of the run (e.g. a fallback) is the one Lora names.
+        val fallback = c.agent.buildApiMessages(conv, RepoContext(mutableListOf()), emptyList(), ModelCatalog.FAST_CHAT).first().content
+        assertTrue(ModelCatalog.info(ModelCatalog.FAST_CHAT).displayName in fallback && "DeepSeek V4.1 Flash" !in fallback, fallback)
+        // A persona comes after Lora and may give another role.
+        val persona = conv.copy(systemPrompt = "Du bist eine kritische Gutachterin.")
+        val s = c.agent.buildApiMessages(persona, RepoContext(mutableListOf()), emptyList()).first().content
+        assertTrue(s.indexOf("Du bist Lora") < s.indexOf("kritische Gutachterin"), s)
+    }
+
+    @Test
     fun projectEntriesAndEndDates() = withContainer { c ->
         val seminar = Folder(name = "Seminar")
         c.folders.upsert(seminar)

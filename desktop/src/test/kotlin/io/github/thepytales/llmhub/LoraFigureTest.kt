@@ -15,6 +15,7 @@ import io.github.thepytales.llmhub.ui.LoraDirector
 import io.github.thepytales.llmhub.ui.LoraFrame
 import io.github.thepytales.llmhub.ui.WORKING_SEQUENCE
 import io.github.thepytales.llmhub.ui.HOME_SEQUENCE
+import io.github.thepytales.llmhub.ui.LORA_TAP_REACTIONS
 import io.github.thepytales.llmhub.ui.drawLora
 import io.github.thepytales.llmhub.ui.loraHint
 import java.awt.image.BufferedImage
@@ -114,15 +115,21 @@ class LoraFigureTest {
 
     @Test
     fun hintsForTools() {
-        assertEquals(listOf(LoraAction.SEARCH, LoraAction.TELESCOPE), loraHint("web_search", false))
-        assertEquals(listOf(LoraAction.BOOKS, LoraAction.READ), loraHint("search_literature", false))
+        assertEquals(listOf(LoraAction.SEARCH, LoraAction.RADAR, LoraAction.TELESCOPE, LoraAction.BINOCULARS), loraHint("web_search", false))
+        assertEquals(listOf(LoraAction.BOOKS, LoraAction.CARDS, LoraAction.SHELF, LoraAction.READ), loraHint("search_literature", false))
         assertEquals(listOf(LoraAction.READ, LoraAction.MICROSCOPE), loraHint("read_document", false))
-        assertEquals(listOf(LoraAction.FLASK, LoraAction.CHART), loraHint("run_javascript", false))
+        assertEquals(listOf(LoraAction.FLASK, LoraAction.ABACUS, LoraAction.CHART), loraHint("run_javascript", false))
         assertEquals(listOf(LoraAction.TYPE, LoraAction.NOTES), loraHint("create_document", false))
+        assertEquals(listOf(LoraAction.PLANE, LoraAction.TYPE), loraHint("create_email_draft", false))
+        assertEquals(listOf(LoraAction.DIG, LoraAction.NET, LoraAction.SEARCH), loraHint("search_knowledge", false))
+        assertEquals(listOf(LoraAction.HEADPHONES, LoraAction.NOTES), loraHint("transcribe_local_file", false))
         assertEquals(listOf(LoraAction.CHART), loraHint("create_chart", false))
-        assertEquals(listOf(LoraAction.THINK, LoraAction.EUREKA), loraHint(null, true))
+        assertEquals(listOf(LoraAction.THINK, LoraAction.PUZZLE, LoraAction.EUREKA), loraHint(null, true))
         assertEquals(emptyList(), loraHint(null, false))
         assertEquals(emptyList(), loraHint("unbekanntes_werkzeug", false))
+        // Every action shows up somewhere: while working, on the start page or as a reaction to a tap.
+        val used = WORKING_SEQUENCE + HOME_SEQUENCE + LORA_TAP_REACTIONS + LoraAction.SLEEP
+        assertEquals(LoraAction.entries.toSet(), used.toSet(), "ungenutzte Aktionen")
     }
 
     @Test
@@ -158,11 +165,11 @@ class LoraFigureTest {
         for (y in 0 until img.height) for (x in listOf(0, img.width - 1)) assertTrue((img.getRGB(x, y) ushr 24) == 0, "bleibt im Bild (links/rechts): $what")
     }
 
-    /** A contact sheet to look at: each action a row, five moments of its round (plus a blend at the start). */
+    /** A contact sheet to look at: each action a row, seven moments of its round (plus a blend at the start). */
     private fun sheet(colors: LoraColors, path: String) {
         val w = 330
         val h = 231
-        val cols = 6
+        val cols = 8
         val actions = LoraAction.entries
         val img = BufferedImage(w * cols, h * actions.size, BufferedImage.TYPE_INT_ARGB)
         val g = img.createGraphics()
@@ -171,7 +178,7 @@ class LoraFigureTest {
         actions.forEachIndexed { row, action ->
             val prev = actions[(row + actions.size - 1) % actions.size]
             g.drawImage(render(LoraFrame(action, 0.03f, 150, prev, 0.4f), 2_150, w, h, colors), 0, row * h, null)
-            listOf(0.12f, 0.35f, 0.58f, 0.78f, 0.94f).forEachIndexed { i, phase ->
+            listOf(0.08f, 0.22f, 0.38f, 0.52f, 0.66f, 0.8f, 0.94f).forEachIndexed { i, phase ->
                 val t = (phase * action.periodMs).toLong()
                 g.drawImage(render(LoraFrame(action, phase, t, null, 1f), 2_000 + t, w, h, colors), (i + 1) * w, row * h, null)
             }

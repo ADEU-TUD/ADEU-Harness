@@ -208,20 +208,30 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Dokumente: GLM-5.3 Flash) und **fragt vorher** („Anderes Modell verwenden? – Ja, GLM-5.3 / Nein, DeepSeek V4.1
   Flash“). Entschieden wird auf dem Gerät, ohne zusätzliche Anfrage. *Einstellungen › Chat & Werkzeuge*: neue Chats
   automatisch, Rückfrage abschaltbar.
-- **Lora, das Maskottchen**: ein kleiner, runder Roboter in der Farbe des Stils (benannt nach *Low-Rank Adaptation*).
+- **Lora, das Maskottchen und der Forschungsassistent**: ein kleiner, runder Roboter in der Farbe des Stils (benannt
+  nach *Low-Rank Adaptation*). Auf „Wie heißt du?“ stellt sich der Assistent als Lora vor, der Forschungsassistent der
+  App; nach dem Modell gefragt, nennt Lora das Sprachmodell, das gerade antwortet. Eine Persona oder ein eigener
+  System-Prompt darf eine andere Rolle vorgeben.
   **Im Chat** bleiben Gedankengang und Werkzeugschritte eingeklappt (*Chat & Werkzeuge › Arbeitsschritte einklappen*,
   Standard an); solange der Agent arbeitet, begleitet Lora die Antwort in einer Karte mit fester Höhe (nichts springt) –
   mit „Lora ist dran“, dem aktuellen Schritt und der Zahl der Schritte, die alles aufklappt. Lora forscht dabei mit:
-  mikroskopiert, experimentiert mit dem Erlenmeyerkolben, dreht den Globus, schaut durchs Teleskop, gräbt ein Fossil
-  aus, schleppt Bücherstapel, notiert, präsentiert ein Diagramm, hat Geistesblitze, liest, tippt, jongliert, tanzt und
-  trinkt zwischendurch Kaffee – und spielt oft nach, was der Agent gerade tut (Websuche: Lupe und Teleskop, Literatur:
-  Bücher, Rechnen: Experiment, Nachdenken: Denkerpose). Fertige Antworten zeigen eine ruhige Zeile „Gedankengang und
-  4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um, liest, dreht den
-  Globus …) und bietet in einer Sprechblase eine Idee an – Favoriten bzw. empfohlene Vorlagen, Beispiele wie
-  „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp auf Lora bringt mit einem Geistesblitz die
-  nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt Lora ein. Wer Lora nicht sehen möchte,
-  schaltet *Chat & Werkzeuge › Lora ausblenden* ein (Standard aus): Dann zeigen Startseite, Arbeitskarte und Sprachmodus
-  das Symbol der App, die Ideen bleiben erreichbar.
+  mikroskopiert, experimentiert mit dem Erlenmeyerkolben, dreht den Globus, schaut durchs Teleskop und durchs Fernglas,
+  funkt mit der Antenne, blättert im Karteikasten, holt ein Buch aus dem Regal, fängt umherflatternde Seiten mit dem
+  Kescher, gräbt ein Fossil aus, schleppt Bücherstapel, puzzelt, rechnet am Abakus, faltet Papierflieger, hört mit
+  Kopfhörern zu, notiert, präsentiert ein Diagramm, hat Geistesblitze, liest, tippt, jongliert, tanzt, dreht Pirouetten
+  und trinkt zwischendurch Kaffee – und spielt oft nach, was der Agent gerade tut (Websuche: Lupe, Antenne, Teleskop,
+  Fernglas; Literatur: Bücher, Karteikasten, Regal; Rechnen: Experiment und Abakus; E-Mail: Papierflieger;
+  Transkription: Kopfhörer; Nachdenken: Denkerpose und Puzzle). Dabei geht es natürlich zu: Ein Buch hält Lora mit dem
+  Einband nach außen, auf dem Klemmbrett schreibt Lora von hinten und dreht es zum Zeigen um. Lora dreht Kopf und Körper
+  zu dem, was gerade wichtig ist, lehnt sich in Bewegungen, federt beim Hüpfen, die Antenne schwingt nach, die Arme
+  haben weiche Ellbogen, und zwischen zwei Tätigkeiten hüpft Lora kurz hinüber. Ein Tipp auf Lora in der Arbeitskarte
+  bringt ein Winken, eine Pirouette oder einen Geistesblitz. Fertige Antworten zeigen eine ruhige Zeile
+  „Gedankengang und 4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um,
+  streckt sich, gießt die Pflanze, hört Musik, liest, dreht den Globus …) und bietet in einer Sprechblase eine Idee an –
+  Favoriten bzw. empfohlene Vorlagen, Beispiele wie „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp
+  auf Lora bringt mit einem Geistesblitz die nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt
+  Lora ein. Wer Lora nicht sehen möchte, schaltet *Chat & Werkzeuge › Lora ausblenden* ein (Standard aus): Dann zeigen
+  Startseite, Arbeitskarte und Sprachmodus das Symbol der App, die Ideen bleiben erreichbar.
 - **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
   still stehen – die Chatliste ist oben verankert, die Antwort wächst darunter weiter. Beim Mitlaufen bleibt das Ende im
   selben Bild sichtbar (kein Ruckeln).
