@@ -100,8 +100,10 @@ data class AppSettings(
     val uiLanguage: String = "de",
     /** Name or initials of the person coding transcripts (intercoder agreement). */
     val coderName: String = "",
-    /** While the agent works, thinking and tool steps are folded away behind a small animated figure (see ui/WorkingFigure). */
+    /** While the agent works, thinking and tool steps are folded away behind Lora, the animated mascot (see ui/LoraFigure). */
     val collapseSteps: Boolean = true,
+    /** Lora, the mascot, nowhere (start page, working card, voice mode): a calm symbol of the style instead. */
+    val hideLora: Boolean = false,
     /** After a chat, a small model looks for lasting details about the user and suggests them (see agent/MemoryLearner). */
     val memoryLearn: Boolean = true,
     /** The model may search earlier chats (search_chats) and knows the titles of the latest ones. */
@@ -229,6 +231,7 @@ class SettingsStore(context: Context) {
             .putString("uiLanguage", next.uiLanguage)
             .putString("coderName", next.coderName)
             .putBoolean("collapseSteps", next.collapseSteps)
+            .putBoolean("hideLora", next.hideLora)
             .putBoolean("memoryLearn", next.memoryLearn)
             .putBoolean("memoryChats", next.memoryChats)
             .putBoolean("memoryIntroDone", next.memoryIntroDone)
@@ -296,6 +299,7 @@ class SettingsStore(context: Context) {
             uiLanguage = prefs.getString("uiLanguage", d.uiLanguage) ?: d.uiLanguage,
             coderName = prefs.getString("coderName", d.coderName) ?: d.coderName,
             collapseSteps = prefs.getBoolean("collapseSteps", d.collapseSteps),
+            hideLora = prefs.getBoolean("hideLora", d.hideLora),
             memoryLearn = prefs.getBoolean("memoryLearn", d.memoryLearn),
             memoryChats = prefs.getBoolean("memoryChats", d.memoryChats),
             memoryIntroDone = prefs.getBoolean("memoryIntroDone", d.memoryIntroDone),

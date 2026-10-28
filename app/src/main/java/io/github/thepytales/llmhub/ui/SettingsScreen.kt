@@ -305,10 +305,15 @@ private fun ChatSection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         SwitchRow(
             "Arbeitsschritte einklappen",
-            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt eine kleine Figur, dass er " +
-                "an der Antwort sitzt; „Schritte“ klappt sie jederzeit auf.",
+            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt Lora, das Maskottchen der " +
+                "App, den aktuellen Schritt; die Zahl daneben klappt alle Schritte jederzeit auf.",
             s.collapseSteps,
         ) { v -> c.settings.update { it.copy(collapseSteps = v) } }
+        SwitchRow(
+            tr("Lora ausblenden"),
+            tr("Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben."),
+            s.hideLora,
+        ) { v -> c.settings.update { it.copy(hideLora = v) } }
     }
     Section("Freigaben") { ApprovalModeOptions(c) }
     ReliabilitySection(c)

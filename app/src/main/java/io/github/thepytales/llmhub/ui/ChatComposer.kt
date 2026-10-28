@@ -276,6 +276,7 @@ fun Composer(
         footnote?.let {
             Text(
                 it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp),
             )
         }
