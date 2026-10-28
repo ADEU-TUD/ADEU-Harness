@@ -71,8 +71,9 @@ private val CARD_LORA_WIDTH = 110.dp
  * Shown instead of the thinking and the tool steps while the agent works (Einstellungen › Chat & Werkzeuge ›
  * Arbeitsschritte einklappen): Lora, the mascot, acts out research things – matching the current step ([toolName],
  * [thinking]) now and then –, next to it „Lora ist dran“, the current [step] and a small pill with the number of steps
- * that opens them. The card has a fixed height, so nothing jumps when the step changes or the pill appears. With
- * [hideLora] (Einstellungen › Chat & Werkzeuge › Lora ausblenden) a smaller card shows the pulsing brand symbol instead.
+ * that opens them; a tap on Lora brings a little reaction. The card has a fixed height, so nothing jumps when the step
+ * changes or the pill appears. With [hideLora] (Einstellungen › Chat & Werkzeuge › Lora ausblenden) a smaller card shows
+ * the pulsing brand symbol instead.
  */
 @Composable
 fun WorkingCard(
@@ -95,9 +96,19 @@ fun WorkingCard(
             if (hideLora) {
                 Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { PulsingBrandSymbol(Modifier.size(24.dp)) }
             } else {
+                val director = rememberLoraDirector()
+                var taps by remember { mutableIntStateOf(0) }
                 LoraFigure(
-                    Modifier.size(CARD_LORA_WIDTH, loraHeight),
+                    Modifier
+                        .size(CARD_LORA_WIDTH, loraHeight)
+                        // A tap: Lora waves, spins or has an idea – and then goes back to work.
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClickLabel = tr("Lora antippen"),
+                        ) { director.play(LORA_TAP_REACTIONS[taps++ % LORA_TAP_REACTIONS.size]) },
                     label = tr("Lora bei der Arbeit"),
+                    director = director,
                     hint = loraHint(toolName, thinking),
                 )
             }

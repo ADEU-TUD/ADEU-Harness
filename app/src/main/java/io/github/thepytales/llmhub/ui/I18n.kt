@@ -20,6 +20,7 @@ object I18n {
         "Lora ist dran …" to "Lora is on it …",
         "Bereitet die Antwort vor …" to "Preparing the answer …",
         "Lora bei der Arbeit" to "Lora at work",
+        "Lora antippen" to "Tap Lora",
         "Lora, das Maskottchen der App" to "Lora, the app's mascot",
         "Schritte anzeigen" to "Show steps",
         "Schritte ausblenden" to "Hide steps",
