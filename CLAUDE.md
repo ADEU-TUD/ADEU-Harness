@@ -5,3 +5,5 @@
   verständlich.
 - Das öffentliche Repo `ADEU-TUD/ADEU-Harness-Updater` nicht direkt bearbeiten: Releases kommen aus dem Workflow, seine
   README aus `.github/updater/README.md`.
+- **Arbeitsplan:** Geplante Erweiterungen mit Arbeitspaketen, Prioritäten und Entscheidungen stehen in
+  `docs/ARBEITSPLAN.md`. Status dort pflegen (☐/◐/☑), wenn ein Paket begonnen oder fertig wird.
