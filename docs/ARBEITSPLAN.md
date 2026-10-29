@@ -435,6 +435,8 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 - Jedes fremde Werkzeug läuft über die *Freigaben* und hält die Datenschutzstufe ein; Professur-Richtlinie legt
   erlaubte Server fest (W4-03).
 
+### W9-Zusatz: Ein eigener Broswer im Tool um direkt Linsk zu öffnen und diese mit KI untersuchen zu lassen usw.
+
 ### W9-02 ☐ MCP-Client: lokale Server (W) · P2 · M
 - Lokale Server (stdio) unter Windows; Hinweis/Installationshilfe, wenn Node.js oder Python fehlen.
 
