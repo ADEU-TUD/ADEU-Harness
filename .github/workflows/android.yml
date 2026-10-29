@@ -108,7 +108,6 @@ jobs:
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}
           path: new
-          retention-days: 3
 
       - name: Download previous release
         env:
