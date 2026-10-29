@@ -506,12 +506,12 @@ fun ChatScreen(
                 if (settings.pseudonymize) {
                     ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
                 }
-                // The project folder (Windows): one click opens it; created files land in its "Ausgabe".
-                current.folderId?.let { c.folders.get(it) }?.takeIf { it.workDir.isNotBlank() && FolderAccess.SUPPORTED }?.let { project ->
+                // The project folder: one click opens it; created files land in its "Ausgabe".
+                current.folderId?.let { c.folders.get(it) }?.takeIf { it.workDir.isNotBlank() && PROJECT_FOLDERS }?.let { project ->
                     ContextChip(
                         Icons.Outlined.FolderOpen,
-                        if (project.workDirAccess) "Projektordner" else "Projektordner · nur ${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}",
-                        { FolderAccess.open(project.workDir) },
+                        if (project.workDirAccess) "Projektordner · liest mit" else "Projektordner · nur ${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}",
+                        { openProjectFolder(c.appContext, project.workDir) },
                         highlighted = false,
                     )
                 }

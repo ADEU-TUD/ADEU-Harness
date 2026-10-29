@@ -75,7 +75,7 @@ Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 v
 - **Fertig, wenn**: Zoomen wirkt auf Chat, Seitenleiste, Einstellungen und Editoren, bleibt nach Neustart erhalten.
 - Betrifft: `desktop/…/Main.kt`, `ui/AppearanceSettings.kt`.
 
-### W1-04 ☐ Projektordner auf Android · P1 · M
+### W1-04 ☑ Projektordner auf Android · P1 · M
 - Beim Anlegen/Bearbeiten eines Projekts Ordner über den Systemdialog wählen (dauerhafte Berechtigung), auch Nextcloud-
   oder Drive-Ordner, soweit der Dateianbieter sie anbietet.
 - Alles, was im Projekt entsteht, landet automatisch in `Ausgabe` (wie unter Windows).
@@ -84,8 +84,10 @@ Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 v
 - **Fertig, wenn**: Projekt mit Ordner auf Android anlegen → Dokument erzeugen → Datei liegt in `Ausgabe`; Frage
   erscheint einmal und ist unter *Projekt bearbeiten* änderbar.
 - Betrifft: `agent/WorkFolder.kt`, `ui/FolderSettings.kt`, `ui/FolderAccess.kt`, `ui/KnowledgeUi.kt`.
+- Umgesetzt: `files/ProjectTree.kt` (Android-Ordner aus dem Systemdialog), Lesen über `agent/ProjectFolderTools.kt`
+  (`list_project_files`, `read_project_file`); Schreiben eigener Dateien in den Ordner bleibt Windows vorbehalten.
 
-### W1-05 ☐ Sprachmodus beschleunigen · P1 · M
+### W1-05 ☑ Sprachmodus beschleunigen · P1 · M
 Heute läuft alles nacheinander: 1,3 s Pause abwarten → ganze Aufnahme erkennen → **komplette** Antwort abwarten →
 Vorlesen mit einem ersten TTS-Abschnitt von bis zu 3500 Zeichen (`audio/Speaker.kt`). Maßnahmen nach Wirkung:
 1. **Vorlesen ab dem ersten fertigen Satz**, während die Antwort noch gestreamt wird (Satz-Warteschlange im Speaker).
@@ -98,12 +100,16 @@ Vorlesen mit einem ersten TTS-Abschnitt von bis zu 3500 Zeichen (`audio/Speaker.
 - **Fertig, wenn**: Zeit von Sprechende bis erstem Ton im Agent-Protokoll gemessen und gegenüber heute deutlich kürzer;
   Unterbrechen und Pause funktionieren weiter.
 - Betrifft: `ui/VoiceMode.kt`, `audio/Speaker.kt` (beide Plattformen), `ui/ChatViewModel.kt`.
+- Umgesetzt: `audio/SpeechStream.kt`, Modell unter *Sprachausgabe › Modell im Sprachmodus*, Pause 0,8 s, Haptik + Lora beim
+  Übergang, Messwerte als Hinweis im Agent-Protokoll. Messung auf Geräten steht noch aus.
 
-### W1-06 ☐ Fehlerbericht mit einem Klick und „Was ist neu“ · P2 · S
+### W1-06 ☑ Fehlerbericht mit einem Klick und „Was ist neu“ · P2 · S
 - *Hilfe › Problem melden*: Beschreibung + anonymisiertes Fehlerprotokoll (ohne Inhalte, Schlüssel, Namen) als E-Mail-
   Entwurf oder GitHub-Issue.
 - Nach jedem Update einmal eine kurze Seite „Was ist neu“ (aus den Release-Notizen).
 - Betrifft: `ErrorLog.kt`, `update/`, neue `ui/HelpScreen.kt`.
+- Umgesetzt: *Einstellungen › Problem melden* (Teilen/E-Mail oder Issue im öffentlichen Updater-Repo), „Was ist neu“-Dialog nach
+  dem Update aus den Notizen von `version.json`.
 
 ---
 
@@ -520,6 +526,6 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 | Screenshot aus Zwischenablage | ☑ | ☑ | W1-01 |
 | Absatz im Chat (Umschalt+Enter) | ☑ | ☑ | W1-02 |
 | Zoom der Oberfläche | System | ☑ | W1-03 |
-| Projektordner mit `Ausgabe` | ☐ | ☑ | W1-04 |
+| Projektordner mit `Ausgabe` | ☑ | ☑ | W1-04 |
 | Agent in lokalen Ordnern | ☐ | ☑ | später |
 | Speicherorte (Tresore) | ☐ | ☑ | W4-02 |

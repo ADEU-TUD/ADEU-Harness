@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -70,7 +72,7 @@ enum class VoicePhase(val label: String) {
  * Decides from the microphone level when the user has finished a sentence: speech starts above a threshold that
  * adapts to the background noise, and a pause of [silenceMs] after speech ends the turn. Pure logic, so it can be tested.
  */
-class SpeechEndDetector(private val silenceMs: Long = 1300, private val maxMs: Long = 60_000) {
+class SpeechEndDetector(private val silenceMs: Long = 800, private val maxMs: Long = 60_000) {
     private var noise = 0.02f
     private var heardMs = 0L
     private var silentMs = 0L
@@ -97,6 +99,11 @@ class SpeechEndDetector(private val silenceMs: Long = 1300, private val maxMs: L
     }
 }
 
+/** Sent along (hidden) with what was said in the Sprachmodus, so the answer suits being read aloud. */
+private const val VOICE_INSTRUCTIONS =
+    "Sprachmodus: Die Antwort wird vorgelesen. Antworte kurz und in gesprochener Sprache, ohne Markdown, Tabellen, " +
+        "Listenzeichen oder Code. Nutze Werkzeuge nur, wenn die Frage es wirklich erfordert."
+
 /**
  * Hands-free conversation (Sprachmodus): speak, the answer is read aloud, then the app listens again – until the user
  * ends it. Uses the chat's normal way (memory, tools, privacy level of the project): what was said appears in the chat
@@ -116,6 +123,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
     var interrupt by remember { mutableStateOf(0) }
     val conv by vm.state.collectAsStateWithLifecycle()
     val hideLora = c.settings.settings.collectAsStateWithLifecycle().value.hideLora
+    val haptics = LocalHapticFeedback.current
 
     DisposableEffect(Unit) {
         platform.keepScreenOn(true)
@@ -151,6 +159,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                 if (detector.feed(l, 100)) break
             }
             val file = recorder.stop()
+            val spokeAt = System.currentTimeMillis()
             level = 0f
             if (!detector.heard || file == null) continue
 
@@ -169,30 +178,48 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             heardText = text
             answerText = ""
 
-            // 3. The agent answers in the chat as usual.
+            val recognizedAt = System.currentTimeMillis()
+
+            // 3. The agent answers in the chat as usual; reading starts with its first finished sentence.
             phase = VoicePhase.WORKING
-            vm.send(text, emptyList(), emptyList())
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            vm.send(text, emptyList(), emptyList(), instructions = VOICE_INSTRUCTIONS, voice = true)
             withTimeoutOrNull(5_000) { vm.running.first { it } }
+            var firstTokenAt = 0L
+            var firstSoundAt = 0L
+            fun answerSoFar(): String {
+                val thread = vm.state.value?.thread().orEmpty()
+                val lastUser = thread.indexOfLast { it.role == "user" }
+                return thread.drop(lastUser + 1).filter { it.role == "assistant" && !it.error }
+                    .joinToString("\n\n") { splitThinking(it.content).second.trim() }.trim()
+            }
+            val id = "voice-" + System.nanoTime()
+            val deviceOnly = !Privacy.level(c, vm.state.value?.folderId).allowsUniServer
+            c.speaker.speakStream(id, deviceOnly, onFirstSound = {
+                firstSoundAt = System.currentTimeMillis()
+                phase = VoicePhase.SPEAKING
+            }) {
+                val answer = answerSoFar()
+                if (answer.isNotEmpty() && firstTokenAt == 0L) firstTokenAt = System.currentTimeMillis()
+                answerText = answer
+                answer to !vm.running.value
+            }
+            withTimeoutOrNull(5_000) { c.speaker.playingId.first { it == id } }
+            c.speaker.playingId.first { it != id }
             vm.running.first { !it }
-            val thread = vm.state.value?.thread().orEmpty()
-            val lastUser = thread.indexOfLast { it.role == "user" }
-            val answer = thread.drop(lastUser + 1).filter { it.role == "assistant" && !it.error }
-                .joinToString("\n\n") { splitThinking(it.content).second.trim() }.trim()
-            val failed = thread.lastOrNull()?.takeIf { it.role == "assistant" && it.error }?.content
-            if (answer.isBlank()) {
-                error = failed?.take(200) ?: "Keine Antwort erhalten."
+
+            // 4. Waiting times in the agent protocol; without an answer, say why.
+            fun s(from: Long, to: Long) = if (to == 0L) "–" else String.format(java.util.Locale.GERMANY, "%.1f s", (to - from) / 1000.0)
+            if (answerSoFar().isBlank()) {
+                val thread = vm.state.value?.thread().orEmpty()
+                error = thread.lastOrNull()?.takeIf { it.role == "assistant" && it.error }?.content?.take(200) ?: "Keine Antwort erhalten."
                 delay(1500)
                 continue
             }
-            answerText = answer
-
-            // 4. Read the answer aloud and wait until it is done (or skipped).
-            phase = VoicePhase.SPEAKING
-            val id = "voice-" + System.nanoTime()
-            val deviceOnly = !Privacy.level(c, vm.state.value?.folderId).allowsUniServer
-            c.speaker.speak(id, answer, deviceOnly = deviceOnly)
-            withTimeoutOrNull(5_000) { c.speaker.playingId.first { it == id } }
-            c.speaker.playingId.first { it != id }
+            vm.noteOnLastAnswer(
+                "Sprachmodus ab Sprechende: erkannt nach ${s(spokeAt, recognizedAt)}, erstes Wort der Antwort nach " +
+                    "${s(spokeAt, firstTokenAt)}, erster Ton nach ${s(spokeAt, firstSoundAt)}",
+            )
         }
         } finally {
             runCatching { recorder.stop() }

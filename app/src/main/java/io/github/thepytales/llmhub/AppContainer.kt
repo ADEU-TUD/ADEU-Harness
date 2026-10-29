@@ -113,6 +113,7 @@ class AppContainer(context: Context) {
         FileBackend(File(files, "local_folders.json")), io.github.thepytales.llmhub.data.LocalFolder.serializer(), { it.id },
     )
     val localFolderTools = io.github.thepytales.llmhub.agent.LocalFolderTools(this)
+    val projectFolderTools = io.github.thepytales.llmhub.agent.ProjectFolderTools(this)
     val agent = AgentRunner(this)
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)

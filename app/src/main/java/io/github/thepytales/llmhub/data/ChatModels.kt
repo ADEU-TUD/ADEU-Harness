@@ -48,6 +48,8 @@ data class ChatMessage(
     val template: String? = null,
     /** Instructions of that template: sent to the model in front of the text, not shown in the chat. */
     val instructions: String? = null,
+    /** Said in the Sprachmodus: the answer uses the voice model (see [AppSettings.voiceModel]) without thinking. */
+    val voice: Boolean = false,
     /** Previous message in the thread; messages with the same parent are alternative versions. */
     val parentId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),

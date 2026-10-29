@@ -68,6 +68,7 @@ class AgentRunner(private val c: AppContainer) {
             c.localFolderTools.takeIf {
                 io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
             },
+            c.projectFolderTools.takeIf { it.active(conv.folderId) },
             c.assistantTools,
         )
     }
@@ -89,7 +90,10 @@ class AgentRunner(private val c: AppContainer) {
         }
         val settings = c.settings.current
         val start = host.conversation ?: return
-        Privacy.blockReason(c, start.folderId, start.model)?.let { reason ->
+        val voice = start.thread().lastOrNull { it.role == "user" }?.voice == true
+        /** Sprachmodus: the quick voice model, unless the project's privacy level does not allow it. */
+        val startModel = settings.voiceModel.takeIf { voice && it.isNotBlank() && Privacy.blockReason(c, start.folderId, it) == null } ?: start.model
+        Privacy.blockReason(c, start.folderId, startModel)?.let { reason ->
             stopWith(host, reason)
             return
         }
@@ -97,7 +101,7 @@ class AgentRunner(private val c: AppContainer) {
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
         val attached = start.thread().flatMap { it.files }.asReversed()
-        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, start.model)
+        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, startModel)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
         }
@@ -119,7 +123,7 @@ class AgentRunner(private val c: AppContainer) {
         var totalSteps = 0
         val recentRounds = ArrayDeque<String>()
         /** Model of this run; changes once to a fallback model when the chosen one is unreachable. */
-        var model = start.model
+        var model = startModel
         var fallbackUsed = false
         var summarized = false
         while (true) {
@@ -138,6 +142,7 @@ class AgentRunner(private val c: AppContainer) {
                 c.llm.streamChat(
                     model = model,
                     messages = apiMessages,
+                    thinking = if (voice) ThinkingLevel.OFF else null,
                     tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
                     onRetry = { reason, wait ->
                         events += "$reason – $wait s gewartet"
@@ -201,7 +206,7 @@ class AgentRunner(private val c: AppContainer) {
                         durationMs = elapsed,
                         tokensIn = result.usage?.prompt ?: ContextManager.tokens(apiMessages).toLong(),
                         tokensOut = result.usage?.completion ?: ((result.content.length + result.reasoning.length + result.toolCalls.sumOf { tc -> tc.arguments.length }) / 4L),
-                        events = (if (fallbackUsed && model != start.model) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
+                        events = (if (fallbackUsed && model != startModel) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
                         truncated = result.finishReason == "length" && result.toolCalls.isEmpty(),
                     )
                 }
@@ -405,6 +410,7 @@ class AgentRunner(private val c: AppContainer) {
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
             if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId) else null,
+            if (c.projectFolderTools in providers) c.projectFolderTools.prompt(conv.folderId) else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
             if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),

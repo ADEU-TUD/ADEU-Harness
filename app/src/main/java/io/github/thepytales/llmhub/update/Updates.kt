@@ -96,13 +96,15 @@ object Updates {
 
     /**
      * Called when the window is first shown: removes what an earlier update left behind, tells once that the app was
-     * updated, then checks now and every few hours.
+     * updated (with the notes of that version, kept at install), then checks now and every few hours.
      */
-    fun start(context: Context, onUpdated: (String) -> Unit) {
+    fun start(context: Context, onUpdated: (version: String, notes: String?) -> Unit) {
         if (disabled || !UpdatePlatform.supported) return
         val p = prefs(context)
         val last = p.getString("last_version", null)
-        if (last != null && Versions.newer(installed, last)) onUpdated(installed)
+        if (last != null && Versions.newer(installed, last)) {
+            onUpdated(installed, p.getString("notes", null)?.takeIf { p.getString("notes_version", null) == installed && it.isNotBlank() })
+        }
         if (last != installed) p.edit().putString("last_version", installed).apply()
         if (autoJob != null) return
         autoJob = scope.launch {
@@ -215,6 +217,7 @@ object Updates {
     /** Installs a downloaded update (Windows: ends the app and restarts it). */
     fun install(context: Context) {
         val ready = _state.value as? State.Ready ?: return
+        prefs(context).edit().putString("notes_version", ready.info.version).putString("notes", ready.info.notes).apply()
         val note = runCatching { UpdatePlatform.install(context, ready.prepared, ready.info) }.getOrElse { e ->
             ErrorLog.record("Update installieren", e)
             _state.value = State.Failed(ready.info, explain(e))

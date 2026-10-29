@@ -46,8 +46,21 @@ private val windows get() = UpdatePlatform.KEY == "windows"
 @Composable
 fun UpdatePrompt(c: AppContainer) {
     val context = LocalContext.current.applicationContext
+    /** Version and notes, shown once after an update. */
+    var whatsNew by remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(Unit) {
-        Updates.start(context) { v -> Notices.info("ADEU LLM wurde auf Version $v aktualisiert.") }
+        Updates.start(context) { v, notes ->
+            if (notes == null) Notices.info("ADEU LLM wurde auf Version $v aktualisiert.") else whatsNew = v to notes
+        }
+    }
+    whatsNew?.let { (v, notes) ->
+        AlertDialog(
+            onDismissRequest = { whatsNew = null },
+            icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
+            title = { Text("Was ist neu in $v") },
+            text = { Text(notes, modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) },
+            confirmButton = { TextButton(onClick = { whatsNew = null }) { Text("OK") } },
+        )
     }
     val state by Updates.state.collectAsState()
     val postponed by Updates.postponed.collectAsState()

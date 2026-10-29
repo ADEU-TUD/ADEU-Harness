@@ -108,6 +108,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "folders" -> LocalFoldersSection(c)
                 "storage" -> StorageSection(c)
                 "updates" -> UpdateSection(c)
+                "help" -> HelpSection()
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
             Spacer(Modifier.size(24.dp))
@@ -394,6 +395,11 @@ private fun VoiceSection(c: AppContainer) {
             DropdownField("Sprachausgabe-Modell", s.ttsModel, models.ofType(ModelType.TTS).map { it.id }, { v -> c.settings.update { it.copy(ttsModel = v) } })
             DropdownField("Stimme", s.ttsVoice, (SERVER_VOICES + s.ttsVoice).distinct(), { v -> c.settings.update { it.copy(ttsVoice = v) } })
         }
+        val fastVoice = "Schnell: ${ModelCatalog.info(ModelCatalog.FAST_CHAT).displayName} (empfohlen)"
+        DropdownField(
+            "Modell im Sprachmodus", if (s.voiceModel.isBlank()) "Modell des Chats" else fastVoice, listOf(fastVoice, "Modell des Chats"),
+            { v -> c.settings.update { it.copy(voiceModel = if (v == fastVoice) ModelCatalog.FAST_CHAT else "") } },
+        )
         Text("Tempo: ${String.format(java.util.Locale.GERMANY, "%.1f", s.speechRate)}×", style = MaterialTheme.typography.labelLarge)
         Slider(
             value = s.speechRate,

@@ -44,6 +44,8 @@ data class AppSettings(
     val textScale: Float = 1f,
     /** Zoom of the whole interface on Windows (Strg+/Strg−/Strg+0), 0.8 to 2. */
     val uiZoom: Float = 1f,
+    /** Model for answers in the Sprachmodus (quick); empty = the chat's model. */
+    val voiceModel: String = ModelCatalog.FAST_CHAT,
     /** Environment used for new chats (empty = none). */
     val defaultEnvId: String = "",
     /** SERVER: speech model of the API; DEVICE: Android's offline text-to-speech. */
@@ -203,6 +205,7 @@ class SettingsStore(context: Context) {
             .putBoolean("amoled", next.amoled)
             .putFloat("textScale", next.textScale)
             .putFloat("uiZoom", next.uiZoom)
+            .putString("voiceModel", next.voiceModel)
             .putString("defaultEnvId", next.defaultEnvId)
             .putString("ttsEngine", next.ttsEngine)
             .putString("deviceVoice", next.deviceVoice)
@@ -272,6 +275,7 @@ class SettingsStore(context: Context) {
             amoled = prefs.getBoolean("amoled", d.amoled),
             textScale = prefs.getFloat("textScale", d.textScale),
             uiZoom = prefs.getFloat("uiZoom", d.uiZoom),
+            voiceModel = prefs.getString("voiceModel", d.voiceModel) ?: d.voiceModel,
             defaultEnvId = prefs.getString("defaultEnvId", d.defaultEnvId) ?: d.defaultEnvId,
             ttsEngine = prefs.getString("ttsEngine", d.ttsEngine) ?: d.ttsEngine,
             deviceVoice = prefs.getString("deviceVoice", d.deviceVoice) ?: d.deviceVoice,
