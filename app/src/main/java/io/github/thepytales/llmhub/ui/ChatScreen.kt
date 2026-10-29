@@ -726,6 +726,10 @@ fun ChatScreen(
             onDismiss = { showPlus = false },
             onFromApp = { showFromApp = true },
             onSnippets = { showSnippets = true },
+            onClipboard = {
+                if (!platform.paste()) Notices.info("In der Zwischenablage ist kein Bild.")
+                else if (modelInfo.vision == false) Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
+            },
         )
     }
     if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })

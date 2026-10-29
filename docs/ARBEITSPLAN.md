@@ -52,21 +52,23 @@ Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 v
 
 ## W1 – Schnelle Verbesserungen
 
-### W1-01 ☐ Screenshots aus der Zwischenablage einfügen (A) · P1 · S
+### W1-01 ☑ Screenshots aus der Zwischenablage einfügen (A) · P1 · S
 - Bilder aus der Zwischenablage im Chat-Eingabefeld annehmen: langes Drücken › *Einfügen* und die Zwischenablage-Leiste
   der Tastatur (Gboard) über `contentReceiver` des Textfelds; zusätzlich *Bild aus Zwischenablage* im „+“-Menü.
 - Gleiche Behandlung wie angehängte Bilder (Verkleinern, Vision-Hinweis bei Modellen ohne Bildverständnis).
 - **Fertig, wenn**: Screenshot machen → im Chat einfügen → Bild hängt als Anhang am Entwurf.
 - Betrifft: `ui/ChatComposer.kt`, `ui/ChatScreen.kt` (Android), `ui/ImageEncoding.kt`.
+- Umgesetzt: *Aus der Zwischenablage* im „+“-Menü (beide Plattformen) und Strg+V mit Tastatur. Offen: Einfügen über
+  Gboard-Leiste/langes Drücken (braucht Umstellung des Eingabefelds auf `TextFieldState` für `contentReceiver`).
 
-### W1-02 ☐ Absätze im Chat auf Windows (W) · P1 · S
+### W1-02 ☑ Absätze im Chat auf Windows (W) · P1 · S
 - Umschalt+Enter fügt derzeit keinen Zeilenumbruch ein (die Taste wird an das Textfeld durchgereicht, Compose Desktop
   setzt bei gedrückter Umschalttaste aber keinen Umbruch). Umbruch an der Cursorposition selbst einfügen.
 - Gleiche Prüfung für alle Eingabefelder mit „Enter sendet“ (`AskAiPopup.kt`, `DocsAssistant.kt`).
 - **Fertig, wenn**: Umschalt+Enter erzeugt in Chat, *KI fragen* und Dokument-Assistent eine neue Zeile, Enter sendet.
 - Betrifft: `ui/ChatComposer.kt`, `ui/AskAiPopup.kt`, `ui/DocsAssistant.kt`.
 
-### W1-03 ☐ Zoom mit Strg + / Strg − / Strg 0 (W) · P1 · S
+### W1-03 ☑ Zoom mit Strg + / Strg − / Strg 0 (W) · P1 · S
 - Oberfläche in Stufen von 80 % bis 200 % skalieren (Dichte/Schrift über `LocalDensity`), Strg+0 setzt zurück,
   Strg+Mausrad ebenfalls. Stufe wird gespeichert; kurze Anzeige „110 %“.
 - Auch unter *Einstellungen › Darstellung* als Regler; in der Tastenkürzel-Übersicht (Strg+/) ergänzen.
@@ -515,9 +517,9 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 
 | Funktion | Android | Windows | Paket |
 | --- | --- | --- | --- |
-| Screenshot aus Zwischenablage | ☐ | ☑ | W1-01 |
-| Absatz im Chat (Umschalt+Enter) | ☑ | ☐ | W1-02 |
-| Zoom der Oberfläche | System | ☐ | W1-03 |
+| Screenshot aus Zwischenablage | ☑ | ☑ | W1-01 |
+| Absatz im Chat (Umschalt+Enter) | ☑ | ☑ | W1-02 |
+| Zoom der Oberfläche | System | ☑ | W1-03 |
 | Projektordner mit `Ausgabe` | ☐ | ☑ | W1-04 |
 | Agent in lokalen Ordnern | ☐ | ☑ | später |
 | Speicherorte (Tresore) | ☐ | ☑ | W4-02 |

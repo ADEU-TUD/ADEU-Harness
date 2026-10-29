@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import android.content.ClipboardManager
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -38,7 +39,7 @@ class ChatPlatform(
     /** First tile of the attach sheet (see [CameraTile]): take a photo. */
     val primaryAttach: () -> Unit,
     val pickFiles: () -> Unit,
-    /** Strg+V on Windows; nothing to paste on Android. */
+    /** Picture (screenshot) from the clipboard: Strg+V or „Aus der Zwischenablage“; false if there is none. */
     val paste: () -> Boolean,
     /** Runs [start] once the microphone may be used (asks for the permission first). */
     val withMicrophone: (start: () -> Unit) -> Unit,
@@ -72,6 +73,15 @@ fun rememberChatPlatform(
         r.file?.let { files.add(it) }
         images.addAll(r.images)
         r.error?.let { Notices.error(it) } ?: r.note?.let { Notices.info(it) }
+    }
+
+    /** Screenshot or copied picture from the clipboard, read like a picked photo; false if there is none. */
+    fun paste(): Boolean {
+        val clip = (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip ?: return false
+        val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it).uri }
+        if (uris.isEmpty()) return false
+        scope.launch { uris.take(MAX_IMAGES).forEach { read(it) } }
+        return true
     }
 
     LaunchedEffect(Unit) {
@@ -117,7 +127,7 @@ fun rememberChatPlatform(
                 }
             },
             pickFiles = { filePicker.launch(arrayOf("*/*")) },
-            paste = { false },
+            paste = ::paste,
             withMicrophone = { start ->
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) start()
                 else {

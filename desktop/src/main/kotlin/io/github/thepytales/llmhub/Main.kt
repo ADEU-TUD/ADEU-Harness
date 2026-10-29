@@ -1,5 +1,10 @@
 package io.github.thepytales.llmhub
 
+import io.github.thepytales.llmhub.ui.Notices
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.isCtrlPressed
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Box
@@ -226,7 +231,16 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             }
         }
         LlmHubTheme(settings) {
-            Box(Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)) {
+            Box(
+                Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)
+                    // Strg+Mausrad zooms; seen before any scrollable list gets the wheel.
+                    .onPointerEvent(PointerEventType.Scroll, PointerEventPass.Initial) { e ->
+                        if (!e.keyboardModifiers.isCtrlPressed) return@onPointerEvent
+                        val dy = e.changes.firstOrNull()?.scrollDelta?.y ?: 0f
+                        if (dy != 0f) zoom(if (dy < 0) 1 else -1)
+                        e.changes.forEach { it.consume() }
+                    }
+            ) {
                 StartAnimation(enabled = settings.startAnimation) {
                     AppRoot(c, Navigation.openChat, Navigation.openRoute)
                 }
@@ -235,9 +249,22 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     }
 }
 
-/** Strg+N new chat, Strg+, settings, Strg+B side menu, Strg+K command palette, Strg+/ shortcut overview (see ShortcutsDialog). */
+/** Steps the interface zoom by 10 % (0 resets it) and briefly shows the new level. */
+private fun zoom(step: Int) {
+    val store = LlmHubApp.container.settings
+    val tenths = if (step == 0) 10 else (Math.round(store.settings.value.uiZoom * 10) + step).coerceIn(8, 20)
+    store.update { it.copy(uiZoom = tenths / 10f) }
+    Notices.info("Zoom ${tenths * 10} %")
+}
+
+/** Strg+N new chat, Strg+, settings, Strg++/Strg+−/Strg+0 zoom, Strg+B side menu, Strg+K command palette, Strg+/ shortcut overview (see ShortcutsDialog). */
 private fun shortcut(e: KeyEvent): Boolean {
     if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed) return false
+    when (e.key) {
+        Key.Plus, Key.Equals, Key.NumPadAdd -> { zoom(1); return true }
+        Key.Minus, Key.NumPadSubtract -> { zoom(-1); return true }
+        Key.Zero, Key.NumPad0 -> { zoom(0); return true }
+    }
     Navigation.openRoute.value = when (e.key) {
         Key.N -> "chat"
         Key.Comma -> "settings"

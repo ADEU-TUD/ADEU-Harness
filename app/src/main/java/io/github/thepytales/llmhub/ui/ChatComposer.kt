@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -180,9 +183,10 @@ fun Composer(
                         if (loadingFiles > 0) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                     }
                 }
+                var field by rememberCursorValue(input)
                 TextField(
-                    value = input,
-                    onValueChange = onInput,
+                    value = field,
+                    onValueChange = { field = it; onInput(it.text) },
                     placeholder = {
                         Text(
                             if (recording) "Aufnahme läuft … zum Beenden auf das Mikrofon $TAP" else placeholder,
@@ -208,6 +212,10 @@ fun Composer(
                             e.type != KeyEventType.KeyDown -> false
                             ENTER_SENDS && (e.key == Key.Enter || e.key == Key.NumPadEnter) && !e.isShiftPressed -> {
                                 if (canSend && !running) { buzz(); onSend() }
+                                true
+                            }
+                            ENTER_SENDS && (e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
+                                field = field.withLineBreak(); onInput(field.text)
                                 true
                             }
                             e.key == Key.V && e.isCtrlPressed -> onPaste()
@@ -342,6 +350,7 @@ fun PlusSheet(
     onDismiss: () -> Unit,
     onFromApp: () -> Unit = {},
     onSnippets: () -> Unit = {},
+    onClipboard: () -> Unit = {},
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     fun pick(action: () -> Unit) {
@@ -361,6 +370,7 @@ fun PlusSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
+        SheetRow(Icons.Outlined.ContentPaste, "Aus der Zwischenablage", "Screenshot oder kopiertes Bild anhängen", { pick(onClipboard) })
         SheetRow(Icons.Outlined.Apps, "Aus der App", "Transkript, Dokument, Literaturliste oder erzeugtes Bild", { pick(onFromApp) })
         SheetLabel("Starten mit")
         SheetRow(Icons.Outlined.Bookmarks, "Vorlage", "Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular", { pick(onTemplates) })

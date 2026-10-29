@@ -42,6 +42,8 @@ data class AppSettings(
     /** Pure black background in dark mode. */
     val amoled: Boolean = false,
     val textScale: Float = 1f,
+    /** Zoom of the whole interface on Windows (Strg+/Strg−/Strg+0), 0.8 to 2. */
+    val uiZoom: Float = 1f,
     /** Environment used for new chats (empty = none). */
     val defaultEnvId: String = "",
     /** SERVER: speech model of the API; DEVICE: Android's offline text-to-speech. */
@@ -200,6 +202,7 @@ class SettingsStore(context: Context) {
             .putString("accent", next.accent)
             .putBoolean("amoled", next.amoled)
             .putFloat("textScale", next.textScale)
+            .putFloat("uiZoom", next.uiZoom)
             .putString("defaultEnvId", next.defaultEnvId)
             .putString("ttsEngine", next.ttsEngine)
             .putString("deviceVoice", next.deviceVoice)
@@ -268,6 +271,7 @@ class SettingsStore(context: Context) {
             accent = prefs.getString("accent", d.accent) ?: d.accent,
             amoled = prefs.getBoolean("amoled", d.amoled),
             textScale = prefs.getFloat("textScale", d.textScale),
+            uiZoom = prefs.getFloat("uiZoom", d.uiZoom),
             defaultEnvId = prefs.getString("defaultEnvId", d.defaultEnvId) ?: d.defaultEnvId,
             ttsEngine = prefs.getString("ttsEngine", d.ttsEngine) ?: d.ttsEngine,
             deviceVoice = prefs.getString("deviceVoice", d.deviceVoice) ?: d.deviceVoice,

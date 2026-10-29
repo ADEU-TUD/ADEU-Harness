@@ -592,7 +592,7 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
     val density = LocalDensity.current
     CompositionLocalProvider(
         LocalChatLook provides chatLook(style, colors, dark, settings.amoled),
-        LocalDensity provides Density(density.density, density.fontScale * settings.textScale),
+        LocalDensity provides Density(density.density * settings.uiZoom, density.fontScale * settings.textScale),
     ) {
         MaterialTheme(
             colorScheme = colors,
