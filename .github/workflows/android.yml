@@ -26,9 +26,22 @@ concurrency:
 env:
   VERSION_CODE: ${{ inputs.version || github.run_number }}
   VERSION_NAME: 1.0.${{ inputs.version || github.run_number }}
+  # Draft release that carries the built files between the jobs (instead of Actions artifacts, whose small storage
+  # quota ran full); the release job deletes it again.
+  TRANSFER: ci-${{ github.run_id }}
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Draft release for the built files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$TRANSFER" --draft --title "Zwischenablage für Lauf ${{ github.run_id }}" --notes "Wird vom Workflow wieder gelöscht."
+
   build:
+    needs: prepare
     # Skipped jobs cost no minutes; smoke-test and release are skipped along with it.
     runs-on: ubuntu-latest
     steps:
@@ -90,11 +103,11 @@ jobs:
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk "ADEU-LLM-${VERSION_NAME}.apk"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ADEU-LLM-${{ env.VERSION_NAME }}
-          path: ADEU-LLM-*.apk
-          retention-days: 3
+      - name: Hand the APK on
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "$TRANSFER" "ADEU-LLM-${VERSION_NAME}.apk" --clobber
 
   # Installs the APK on an emulator (as update over the latest release), opens every screen and
   # fails if the app crashes – so no release ships that cannot be opened.
@@ -104,17 +117,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: ADEU-LLM-${{ env.VERSION_NAME }}
-          path: new
+      - name: Get the new APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release download "$TRANSFER" --pattern '*.apk' --dir new
 
       - name: Download previous release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p old
-          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' || true)
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName' || true)
           if [ -n "$tag" ]; then gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir old || true; fi
           ls -l old new
 
@@ -136,6 +150,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         if: always()
+        # Only the test report; a full artifact storage must not stop the release.
+        continue-on-error: true
         with:
           name: smoke-test-${{ env.VERSION_NAME }}
           path: smoke/
@@ -144,6 +160,7 @@ jobs:
   # Portable Windows version (same features, shares the code of the app): one EXE that needs no
   # installation and no admin rights, plus the same as ZIP. Started once on Windows before release.
   windows:
+    needs: prepare
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -169,14 +186,15 @@ jobs:
       - name: Start test (every screen, PDF/Word)
         run: .github/scripts/windows-selftest.ps1 -Exe "dist/ADEU-LLM-$env:VERSION_NAME-Windows.exe"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ADEU-LLM-${{ env.VERSION_NAME }}-Windows
-          path: dist/
-          retention-days: 3
+      - name: Hand the EXE and ZIP on
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "$env:TRANSFER" "dist/ADEU-LLM-$env:VERSION_NAME-Windows.exe" "dist/ADEU-LLM-$env:VERSION_NAME-Windows.zip" --clobber
 
       - uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: windows-selftest-${{ env.VERSION_NAME }}
           path: selftest/
@@ -195,13 +213,11 @@ jobs:
             .github/scripts
             .github/updater
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: ADEU-LLM-${{ env.VERSION_NAME }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: ADEU-LLM-${{ env.VERSION_NAME }}-Windows
+      - name: Get the built files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release download "$TRANSFER" --pattern 'ADEU-LLM-*'
 
       - name: Publish GitHub release
         env:
@@ -244,3 +260,10 @@ jobs:
           mkdir -p dist
           cp "ADEU-LLM-${VERSION_NAME}.apk" "ADEU-LLM-${VERSION_NAME}-Windows.zip" "ADEU-LLM-${VERSION_NAME}-Windows.exe" dist/
           bash src/.github/scripts/publish-update.sh "$VERSION_NAME" dist
+
+      - name: Remove the draft release
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release delete "$TRANSFER" --yes || true
