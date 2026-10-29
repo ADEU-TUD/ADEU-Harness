@@ -94,6 +94,7 @@ jobs:
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}
           path: ADEU-LLM-*.apk
+          retention-days: 3
 
   # Installs the APK on an emulator (as update over the latest release), opens every screen and
   # fails if the app crashes – so no release ships that cannot be opened.
@@ -107,6 +108,7 @@ jobs:
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}
           path: new
+          retention-days: 3
 
       - name: Download previous release
         env:
@@ -138,6 +140,7 @@ jobs:
         with:
           name: smoke-test-${{ env.VERSION_NAME }}
           path: smoke/
+          retention-days: 3
 
   # Portable Windows version (same features, shares the code of the app): one EXE that needs no
   # installation and no admin rights, plus the same as ZIP. Started once on Windows before release.
@@ -171,12 +174,14 @@ jobs:
         with:
           name: ADEU-LLM-${{ env.VERSION_NAME }}-Windows
           path: dist/
+          retention-days: 3
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: windows-selftest-${{ env.VERSION_NAME }}
           path: selftest/
+          retention-days: 3
 
   # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
   # Normal releases also go to the public update repository, from where the apps update themselves.
