@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material3.Slider
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -117,6 +118,18 @@ fun AppearanceSettings(c: AppContainer) {
         listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
             FilterChip(selected = s.textScale == scale, onClick = { c.settings.update { it.copy(textScale = scale) } }, label = { Text(label) })
         }
+    }
+
+    if (DESKTOP) {
+        GroupLabel(tr("Zoom"))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Slider(
+                value = s.uiZoom, onValueChange = { v -> c.settings.update { it.copy(uiZoom = Math.round(v * 10) / 10f) } },
+                valueRange = 0.8f..2f, steps = 11, modifier = Modifier.weight(1f),
+            )
+            Text("${Math.round(s.uiZoom * 100)} %", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 12.dp).widthIn(min = 48.dp))
+        }
+        HintText("Vergrößert die ganze Oberfläche. Auch mit Strg++ und Strg+−, Strg+0 setzt zurück, oder Strg+Mausrad.")
     }
 }
 

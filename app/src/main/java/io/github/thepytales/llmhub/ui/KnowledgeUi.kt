@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import io.github.thepytales.llmhub.files.ProjectTree
 import io.github.thepytales.llmhub.data.PrivacyLevel
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -117,6 +118,39 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
     var access by remember(key) { mutableStateOf(folder?.workDirAccess ?: true) }
     var workProblem by remember(key) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    /** After a folder was chosen: asks once whether the model may read its files. */
+    var askAccess by remember { mutableStateOf(false) }
+    val pickFolder = rememberProjectFolderPicker { path ->
+        scope.launch {
+            val problem = withContext(Dispatchers.IO) {
+                if (ProjectTree.isTree(path)) ProjectTree.problem(c.appContext, path) else WorkFolder.problem(File(path))
+            }
+            workProblem = problem
+            if (problem == null) {
+                workDir = path
+                askAccess = true
+            }
+        }
+    }
+    if (askAccess) {
+        AlertDialog(
+            onDismissRequest = { access = false; askAccess = false },
+            title = { Text("Ordner als Kontext nutzen?") },
+            text = {
+                Text(
+                    "Soll die KI die Dateien in diesem Ordner als Kontext nutzen? Was sie liest, geht an das gewählte Modell – siehe " +
+                        "Datenschutzstufe. Was sie erstellt, landet in jedem Fall in „${WorkFolder.OUTPUT}“. Änderbar unter Projekt bearbeiten.",
+                )
+            },
+            confirmButton = { TextButton(onClick = { access = true; askAccess = false }) { Text("Ja, alles lesen") } },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { access = false; askAccess = false }) { Text("Später entscheiden") }
+                    TextButton(onClick = { access = false; askAccess = false }) { Text("Nur ${WorkFolder.OUTPUT}") }
+                }
+            },
+        )
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (folder == null) "Neues Projekt" else "Projekt bearbeiten") },
@@ -127,20 +161,21 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
                     placeholder = { Text("z.B. Seminar Allgemeine Didaktik") },
                 )
                 Text("Projektordner", style = MaterialTheme.typography.titleSmall)
-                if (!FolderAccess.SUPPORTED) {
+                if (!PROJECT_FOLDERS) {
                     SettingsHint("Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
                 } else {
                     if (workDir.isBlank()) {
                         SettingsHint(
-                            "Ein Ordner auf diesem PC für das Projekt – z. B. in Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. " +
+                            (if (ProjectTree.SUPPORTED) "Ein Ordner auf dem Gerät für das Projekt – auch in Nextcloud oder Google Drive, wenn deren App ihn im Auswahldialog anbietet. "
+                            else "Ein Ordner auf diesem PC für das Projekt – z. B. in Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. ") +
                                 "Alles, was die KI im Projekt erstellt (Briefe, PDF, Word, PowerPoint, Excel …), landet dort im Unterordner „${WorkFolder.OUTPUT}“.",
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.size(8.dp))
-                            Text(workDir, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { FolderAccess.open(workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
+                            Text(ProjectTree.label(workDir), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { openProjectFolder(c.appContext, workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Ordner öffnen") }
                             IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = "Projektordner entfernen") }
                         }
                         SettingsHint("Was die KI erstellt, landet im Unterordner „${WorkFolder.OUTPUT}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.")
@@ -153,14 +188,7 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
                         ) { access = it }
                     }
                     workProblem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                    OutlinedButton(onClick = {
-                        scope.launch {
-                            val path = FolderAccess.pick("Projektordner für „${name.ifBlank { "Neues Projekt" }}“ wählen") ?: return@launch
-                            val problem = withContext(Dispatchers.IO) { WorkFolder.problem(File(path)) }
-                            workProblem = problem
-                            if (problem == null) workDir = path
-                        }
-                    }) {
+                    OutlinedButton(onClick = { pickFolder("Projektordner für „${name.ifBlank { "Neues Projekt" }}“ wählen") }) {
                         Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
                         Text(if (workDir.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …")
@@ -220,3 +248,11 @@ object NewChatFolder {
 
 /** Removes the documents of a deleted project. */
 fun deleteProjectKnowledge(folderId: String) = App.container.knowledge.removeCollection(folderId)
+
+/** Project folders exist on Windows (paths) and Android (chosen in the system dialog). */
+val PROJECT_FOLDERS = FolderAccess.SUPPORTED || ProjectTree.SUPPORTED
+
+/** Opens a project folder in Explorer or in the file app. */
+fun openProjectFolder(context: android.content.Context, path: String) {
+    if (ProjectTree.isTree(path)) ProjectTree.open(context, path) else FolderAccess.open(path)
+}

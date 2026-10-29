@@ -118,14 +118,16 @@ fun AskAiPopup(target: IntRect, active: Boolean = false, onSend: (String) -> Uni
                 Row(Modifier.padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), shape = RoundedCornerShape(10.dp), modifier = Modifier.weight(1f)) {
                         Box(Modifier.padding(horizontal = 10.dp, vertical = 9.dp)) {
+                            var field by rememberCursorValue(text)
                             BasicTextField(
-                                value = text, onValueChange = { text = it }, maxLines = 5,
+                                value = field, onValueChange = { field = it; text = it.text }, maxLines = 5,
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                 modifier = Modifier.fillMaxWidth().focusRequester(focus).onPreviewKeyEvent { e ->
                                     if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                                     when {
                                         e.key == Key.Enter && !e.isShiftPressed -> { send(text); true }
+                                        e.key == Key.Enter -> { field = field.withLineBreak(); text = field.text; true }
                                         e.key == Key.Escape -> { onDismiss(); true }
                                         else -> false
                                     }

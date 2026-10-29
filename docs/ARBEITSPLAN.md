@@ -52,28 +52,30 @@ Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 v
 
 ## W1 – Schnelle Verbesserungen
 
-### W1-01 ☐ Screenshots aus der Zwischenablage einfügen (A) · P1 · S
+### W1-01 ☑ Screenshots aus der Zwischenablage einfügen (A) · P1 · S
 - Bilder aus der Zwischenablage im Chat-Eingabefeld annehmen: langes Drücken › *Einfügen* und die Zwischenablage-Leiste
   der Tastatur (Gboard) über `contentReceiver` des Textfelds; zusätzlich *Bild aus Zwischenablage* im „+“-Menü.
 - Gleiche Behandlung wie angehängte Bilder (Verkleinern, Vision-Hinweis bei Modellen ohne Bildverständnis).
 - **Fertig, wenn**: Screenshot machen → im Chat einfügen → Bild hängt als Anhang am Entwurf.
 - Betrifft: `ui/ChatComposer.kt`, `ui/ChatScreen.kt` (Android), `ui/ImageEncoding.kt`.
+- Umgesetzt: *Aus der Zwischenablage* im „+“-Menü (beide Plattformen) und Strg+V mit Tastatur. Offen: Einfügen über
+  Gboard-Leiste/langes Drücken (braucht Umstellung des Eingabefelds auf `TextFieldState` für `contentReceiver`).
 
-### W1-02 ☐ Absätze im Chat auf Windows (W) · P1 · S
+### W1-02 ☑ Absätze im Chat auf Windows (W) · P1 · S
 - Umschalt+Enter fügt derzeit keinen Zeilenumbruch ein (die Taste wird an das Textfeld durchgereicht, Compose Desktop
   setzt bei gedrückter Umschalttaste aber keinen Umbruch). Umbruch an der Cursorposition selbst einfügen.
 - Gleiche Prüfung für alle Eingabefelder mit „Enter sendet“ (`AskAiPopup.kt`, `DocsAssistant.kt`).
 - **Fertig, wenn**: Umschalt+Enter erzeugt in Chat, *KI fragen* und Dokument-Assistent eine neue Zeile, Enter sendet.
 - Betrifft: `ui/ChatComposer.kt`, `ui/AskAiPopup.kt`, `ui/DocsAssistant.kt`.
 
-### W1-03 ☐ Zoom mit Strg + / Strg − / Strg 0 (W) · P1 · S
+### W1-03 ☑ Zoom mit Strg + / Strg − / Strg 0 (W) · P1 · S
 - Oberfläche in Stufen von 80 % bis 200 % skalieren (Dichte/Schrift über `LocalDensity`), Strg+0 setzt zurück,
   Strg+Mausrad ebenfalls. Stufe wird gespeichert; kurze Anzeige „110 %“.
 - Auch unter *Einstellungen › Darstellung* als Regler; in der Tastenkürzel-Übersicht (Strg+/) ergänzen.
 - **Fertig, wenn**: Zoomen wirkt auf Chat, Seitenleiste, Einstellungen und Editoren, bleibt nach Neustart erhalten.
 - Betrifft: `desktop/…/Main.kt`, `ui/AppearanceSettings.kt`.
 
-### W1-04 ☐ Projektordner auf Android · P1 · M
+### W1-04 ☑ Projektordner auf Android · P1 · M
 - Beim Anlegen/Bearbeiten eines Projekts Ordner über den Systemdialog wählen (dauerhafte Berechtigung), auch Nextcloud-
   oder Drive-Ordner, soweit der Dateianbieter sie anbietet.
 - Alles, was im Projekt entsteht, landet automatisch in `Ausgabe` (wie unter Windows).
@@ -82,8 +84,10 @@ Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 v
 - **Fertig, wenn**: Projekt mit Ordner auf Android anlegen → Dokument erzeugen → Datei liegt in `Ausgabe`; Frage
   erscheint einmal und ist unter *Projekt bearbeiten* änderbar.
 - Betrifft: `agent/WorkFolder.kt`, `ui/FolderSettings.kt`, `ui/FolderAccess.kt`, `ui/KnowledgeUi.kt`.
+- Umgesetzt: `files/ProjectTree.kt` (Android-Ordner aus dem Systemdialog), Lesen über `agent/ProjectFolderTools.kt`
+  (`list_project_files`, `read_project_file`); Schreiben eigener Dateien in den Ordner bleibt Windows vorbehalten.
 
-### W1-05 ☐ Sprachmodus beschleunigen · P1 · M
+### W1-05 ☑ Sprachmodus beschleunigen · P1 · M
 Heute läuft alles nacheinander: 1,3 s Pause abwarten → ganze Aufnahme erkennen → **komplette** Antwort abwarten →
 Vorlesen mit einem ersten TTS-Abschnitt von bis zu 3500 Zeichen (`audio/Speaker.kt`). Maßnahmen nach Wirkung:
 1. **Vorlesen ab dem ersten fertigen Satz**, während die Antwort noch gestreamt wird (Satz-Warteschlange im Speaker).
@@ -96,12 +100,16 @@ Vorlesen mit einem ersten TTS-Abschnitt von bis zu 3500 Zeichen (`audio/Speaker.
 - **Fertig, wenn**: Zeit von Sprechende bis erstem Ton im Agent-Protokoll gemessen und gegenüber heute deutlich kürzer;
   Unterbrechen und Pause funktionieren weiter.
 - Betrifft: `ui/VoiceMode.kt`, `audio/Speaker.kt` (beide Plattformen), `ui/ChatViewModel.kt`.
+- Umgesetzt: `audio/SpeechStream.kt`, Modell unter *Sprachausgabe › Modell im Sprachmodus*, Pause 0,8 s, Haptik + Lora beim
+  Übergang, Messwerte als Hinweis im Agent-Protokoll. Messung auf Geräten steht noch aus.
 
-### W1-06 ☐ Fehlerbericht mit einem Klick und „Was ist neu“ · P2 · S
+### W1-06 ☑ Fehlerbericht mit einem Klick und „Was ist neu“ · P2 · S
 - *Hilfe › Problem melden*: Beschreibung + anonymisiertes Fehlerprotokoll (ohne Inhalte, Schlüssel, Namen) als E-Mail-
   Entwurf oder GitHub-Issue.
 - Nach jedem Update einmal eine kurze Seite „Was ist neu“ (aus den Release-Notizen).
 - Betrifft: `ErrorLog.kt`, `update/`, neue `ui/HelpScreen.kt`.
+- Umgesetzt: *Einstellungen › Problem melden* (Teilen/E-Mail oder Issue im öffentlichen Updater-Repo), „Was ist neu“-Dialog nach
+  dem Update aus den Notizen von `version.json`.
 
 ---
 
@@ -515,9 +523,9 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 
 | Funktion | Android | Windows | Paket |
 | --- | --- | --- | --- |
-| Screenshot aus Zwischenablage | ☐ | ☑ | W1-01 |
-| Absatz im Chat (Umschalt+Enter) | ☑ | ☐ | W1-02 |
-| Zoom der Oberfläche | System | ☐ | W1-03 |
-| Projektordner mit `Ausgabe` | ☐ | ☑ | W1-04 |
+| Screenshot aus Zwischenablage | ☑ | ☑ | W1-01 |
+| Absatz im Chat (Umschalt+Enter) | ☑ | ☑ | W1-02 |
+| Zoom der Oberfläche | System | ☑ | W1-03 |
+| Projektordner mit `Ausgabe` | ☑ | ☑ | W1-04 |
 | Agent in lokalen Ordnern | ☐ | ☑ | später |
 | Speicherorte (Tresore) | ☐ | ☑ | W4-02 |

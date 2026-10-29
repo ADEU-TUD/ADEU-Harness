@@ -173,6 +173,7 @@ fun ShortcutsDialog(onDismiss: () -> Unit) {
         "Strg+T" to "Transkription",
         "Strg+," to "Einstellungen",
         "Strg+/" to "Diese Übersicht",
+        "Strg++ / Strg+−" to "Zoom (Strg+0: 100 %, auch Strg+Mausrad)",
         "Enter" to "Senden (Umschalt+Enter: neue Zeile)",
         "/" to "Befehle im Eingabefeld",
         "@" to "Dateien, Literatur und Dokumente erwähnen",

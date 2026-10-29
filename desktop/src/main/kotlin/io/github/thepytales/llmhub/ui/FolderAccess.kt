@@ -1,5 +1,10 @@
 package io.github.thepytales.llmhub.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,4 +20,12 @@ object FolderAccess {
     fun open(path: String) {
         DesktopActions.open(File(path))
     }
+}
+
+/** Asks for a project folder on this PC. */
+@Composable
+fun rememberProjectFolderPicker(onPicked: (String) -> Unit): (title: String) -> Unit {
+    val scope = rememberCoroutineScope()
+    val current by rememberUpdatedState(onPicked)
+    return { title -> scope.launch { FolderAccess.pick(title)?.let { current(it) } } }
 }

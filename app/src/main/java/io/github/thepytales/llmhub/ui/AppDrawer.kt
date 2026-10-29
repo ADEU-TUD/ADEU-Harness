@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -483,6 +484,7 @@ private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit, onNewChat: () -> Unit) {
+    val context = LocalContext.current.applicationContext
     var menu by remember { mutableStateOf(false) }
     Box {
         Row(
@@ -508,11 +510,11 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text("Neuer Chat im Projekt") }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
             DropdownMenuItem(text = { Text("Projekt bearbeiten …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
-            if (folder.workDir.isNotBlank() && FolderAccess.SUPPORTED) {
+            if (folder.workDir.isNotBlank() && PROJECT_FOLDERS) {
                 DropdownMenuItem(
                     text = { Text("Projektordner öffnen") },
                     leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) },
-                    onClick = { menu = false; FolderAccess.open(folder.workDir) },
+                    onClick = { menu = false; openProjectFolder(context, folder.workDir) },
                 )
             }
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })

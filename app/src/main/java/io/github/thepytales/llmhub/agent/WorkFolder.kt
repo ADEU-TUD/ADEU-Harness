@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.files.ProjectTree
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Folder
 import java.io.File
@@ -20,7 +21,8 @@ object WorkFolder {
 
     fun of(c: AppContainer, folderId: String?): Pair<Folder, File>? {
         val folder = folderId?.let { c.folders.get(it) } ?: return null
-        return folder.workDir.takeIf { it.isNotBlank() }?.let { folder to File(it) }
+        // Android's folders from the system dialog are no paths; they get the copies through ProjectTree.
+        return folder.workDir.takeIf { it.isNotBlank() && !ProjectTree.isTree(it) }?.let { folder to File(it) }
     }
 
     fun output(dir: File) = File(dir, OUTPUT)
@@ -55,6 +57,7 @@ object WorkFolder {
      * a note for the model, or null if the project has no folder or the file is not one the app made.
      */
     fun deliver(c: AppContainer, folderId: String?, file: File): Pair<File?, String>? {
+        deliverToTree(c, folderId, file)?.let { return null to it }
         val (folder, dir) = of(c, folderId) ?: return null
         if (!file.isFile) return null
         // Only what the app made in its own documents folder; files the agent wrote into a shared folder stay where they are.
@@ -69,6 +72,19 @@ object WorkFolder {
             target to "Die Datei liegt im Projektordner von „${folder.name}“ unter $OUTPUT: ${target.absolutePath}. Erwähne das kurz."
         } catch (e: Exception) {
             null to "Hinweis: In den Projektordner von „${folder.name}“ ließ sich die Datei nicht speichern – ${explain(out, e)} " +
+                "Sag das dem Nutzer kurz; die Datei ist in der App trotzdem vorhanden."
+        }
+    }
+
+    /** Android: copies [file] into „Ausgabe“ of a project folder from the system dialog; the note for the model, or null. */
+    private fun deliverToTree(c: AppContainer, folderId: String?, file: File): String? {
+        val folder = folderId?.let { c.folders.get(it) }?.takeIf { ProjectTree.isTree(it.workDir) } ?: return null
+        if (!file.isFile || !inside(file, c.documentTools.folder)) return null
+        return try {
+            delivered(c, ProjectTree.deliver(c.appContext, folder.workDir, file, written(c)))
+            "Die Datei liegt im Projektordner von „${folder.name}“ unter $OUTPUT (${ProjectTree.label(folder.workDir)}/$OUTPUT). Erwähne das kurz."
+        } catch (e: Exception) {
+            "Hinweis: In den Projektordner von „${folder.name}“ ließ sich die Datei nicht speichern – ${e.message ?: e.javaClass.simpleName}. " +
                 "Sag das dem Nutzer kurz; die Datei ist in der App trotzdem vorhanden."
         }
     }
@@ -111,9 +127,11 @@ object WorkFolder {
     @Synchronized
     private fun written(c: AppContainer): Set<String> = runCatching { log(c).readLines().toSet() }.getOrDefault(emptySet())
 
+    fun delivered(c: AppContainer, f: File) = delivered(c, f.absolutePath)
+
     @Synchronized
-    fun delivered(c: AppContainer, f: File) {
-        val all = (written(c) + f.absolutePath).toList().takeLast(2000)
+    private fun delivered(c: AppContainer, path: String) {
+        val all = (written(c) + path).toList().takeLast(2000)
         runCatching { log(c).writeText(all.joinToString("\n")) }
     }
 }

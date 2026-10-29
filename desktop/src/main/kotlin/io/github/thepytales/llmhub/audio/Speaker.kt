@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.audio
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
 import android.content.Context
 import io.github.thepytales.llmhub.data.SettingsStore
 import io.github.thepytales.llmhub.net.LlmClient
@@ -62,6 +64,65 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
         }
     }
 
+    /**
+     * Sprachmodus: reads an answer while it is still being written. [answer] gives the text so far and whether it is
+     * complete; every finished sentence is spoken right away (the server voice prepares the next parts meanwhile).
+     * [onFirstSound] runs when the first part starts playing.
+     */
+    fun speakStream(id: String, deviceOnly: Boolean, onFirstSound: () -> Unit = {}, answer: () -> Pair<String, Boolean>) {
+        stop()
+        _playingId.value = id
+        job = scope.launch {
+            try {
+                coroutineScope {
+                    val parts = Channel<String>(Channel.UNLIMITED)
+                    launch {
+                        val stream = SpeechStream()
+                        while (true) {
+                            val (text, done) = answer()
+                            while (true) {
+                                val part = stream.next(text, done) ?: break
+                                speechText(part).takeIf { it.isNotBlank() }?.let { t -> chunk(t, 3500).forEach { parts.send(it) } }
+                            }
+                            if (done) break
+                            delay(150)
+                        }
+                        parts.close()
+                    }
+                    var first = true
+                    fun started() {
+                        if (first) onFirstSound()
+                        first = false
+                    }
+                    if (deviceOnly || settings.current.ttsEngine == "DEVICE") {
+                        for (part in parts) {
+                            started()
+                            speakDevice(id, part)
+                        }
+                    } else {
+                        val s = settings.current
+                        val audio = Channel<Deferred<ByteArray>>(2)
+                        launch {
+                            for (part in parts) audio.send(async { llm.speech(s.ttsModel, s.ttsVoice, part) })
+                            audio.close()
+                        }
+                        for (next in audio) {
+                            val bytes = next.await()
+                            started()
+                            player.play(bytes)
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errors.tryEmit("Vorlesen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+            } finally {
+                if (_playingId.value == id) _playingId.value = null
+            }
+        }
+    }
+
     fun stop() {
         job?.cancel()
         job = null
@@ -71,7 +132,8 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
 
     private suspend fun speakServer(text: String) = coroutineScope {
         val s = settings.current
-        val chunks = chunk(text, 3500)
+        // A short first part, so the voice starts quickly.
+        val chunks = SpeechStream().all(text).flatMap { chunk(it, 3500) }
         // Fetch the next part while the current one plays.
         var next: Deferred<ByteArray> = async { llm.speech(s.ttsModel, s.ttsVoice, chunks[0]) }
         for (i in chunks.indices) {

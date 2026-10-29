@@ -223,14 +223,17 @@ class ChatViewModel(
         Notices.undo("Chat gelöscht", restore = { c.chats.restore(chatId) })
     }
 
-    /** Sends a message; with [template] its hidden instructions go along (see [ChatMessage.instructions]). */
-    fun send(text: String, images: List<String>, files: List<FileAttachment>, template: Template? = null) {
+    /**
+     * Sends a message; with [template] its hidden instructions go along (see [ChatMessage.instructions]), likewise
+     * [instructions] of the Sprachmodus ([voice]).
+     */
+    fun send(text: String, images: List<String>, files: List<FileAttachment>, template: Template? = null, instructions: String? = null, voice: Boolean = false) {
         val conv = _conversation.value ?: return
         if (isRunning || (text.isBlank() && images.isEmpty() && files.isEmpty())) return
         val isFirst = conv.messages.none { it.role == "user" }
         val message = ChatMessage(
             role = "user", content = text.trim(), images = images, files = files,
-            template = template?.name, instructions = template?.instructions?.ifBlank { null },
+            template = template?.name, instructions = template?.instructions?.ifBlank { null } ?: instructions, voice = voice,
         )
         update {
             it.appendToThread(message).copy(
@@ -435,6 +438,12 @@ class ChatViewModel(
     }
 
     fun speak(id: String, text: String) = c.speaker.toggle(id, text)
+
+    /** Adds a line to the agent protocol of the last answer (Sprachmodus: measured waiting times). */
+    fun noteOnLastAnswer(event: String) {
+        val id = _conversation.value?.thread()?.lastOrNull { it.role == "assistant" }?.id ?: return
+        edit { it.updateMessage(id) { m -> m.copy(events = m.events + event) } }
+    }
 
     /** Speech of [file] as text: on the Uni server, or on the device in projects that keep data here. */
     suspend fun recognize(file: File): String {

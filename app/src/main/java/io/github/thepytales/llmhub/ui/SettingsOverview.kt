@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,6 +93,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "trash" -> "Papierkorb"
     "transcription" -> "Transkription"
     "updates" -> "Updates"
+    "help" -> "Problem melden"
     else -> "Einstellungen"
 }
 
@@ -213,6 +215,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
             SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
             SettingsItem("settings/updates", Icons.Outlined.SystemUpdate, "Updates", updateSummary()),
+            SettingsItem("settings/help", Icons.Outlined.BugReport, "Problem melden", "Beschreibung und anonymes Fehlerprotokoll senden"),
         ),
         onNavigate,
     )

@@ -22,6 +22,16 @@ object ErrorLog {
 
     /** The last caught errors, oldest first (for crash reports). */
     fun recentText(): String = synchronized(recent) { recent.joinToString("\n") }
+
+    /** [recentText] without what could be personal: paths, quoted names, e-mail addresses, keys and web addresses. */
+    fun anonymizedText(): String = anonymize(recentText())
+
+    fun anonymize(text: String): String = text
+        .replace(Regex("""[\w.+-]+@[\w-]+\.[\w.-]+"""), "<E-Mail>")
+        .replace(Regex("""https?://\S+"""), "<Adresse>")
+        .replace(Regex("""([A-Za-z]:)?([\\/][^\s\\/:]+){2,}[\\/]?"""), "<Pfad>")
+        .replace(Regex("""[„"«][^"“”»\n]{1,200}["“”»]"""), "„…“")
+        .replace(Regex("""\b[A-Za-z0-9_\-]{24,}\b"""), "<Schlüssel>")
 }
 
 /** Records a failure in [ErrorLog]; the result stays as it is (use like `runCatching { … }.logFailure("…")`). */

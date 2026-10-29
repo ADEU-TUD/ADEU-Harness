@@ -524,11 +524,16 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
             IconButton(onClick = pickMaterial, enabled = !working) {
                 Icon(Icons.Outlined.AttachFile, contentDescription = "Eigene Dateien anhängen (PDF, PowerPoint, Word …)")
             }
+            var field by rememberCursorValue(input)
             OutlinedTextField(
-                input, { input = it },
+                field, { field = it; input = it.text },
                 placeholder = { Text(if (selection().isNullOrBlank()) "Was soll die KI schreiben oder ändern?" else "Was soll mit der Markierung passieren?") },
                 modifier = Modifier.weight(1f).heightIn(max = 160.dp).onPreviewKeyEvent { e ->
-                    if (e.type == KeyEventType.KeyDown && e.key == Key.Enter && !e.isShiftPressed) { ask(input); true } else false
+                    when {
+                        e.type != KeyEventType.KeyDown || e.key != Key.Enter -> false
+                        e.isShiftPressed -> { field = field.withLineBreak(); input = field.text; true }
+                        else -> { ask(input); true }
+                    }
                 },
                 shape = RoundedCornerShape(20.dp),
                 maxLines = 5,
