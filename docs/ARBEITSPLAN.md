@@ -1,13 +1,14 @@
 # Arbeitsplan ADEU LLM
 
-Stand: 28.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 30.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 
 **Legende**
 
 - **Priorität**: P1 = als Nächstes, P2 = danach, P3 = später
 - **Größe**: S (bis 1 Tag) · M (einige Tage) · L (1–2 Wochen) · XL (mehrere Wochen, in Meilensteine teilen)
 - **Status**: ☐ offen · ◐ in Arbeit · ☑ erledigt
-- **Plattform**: A = Android, W = Windows, beide wenn nicht angegeben
+- **Plattform**: A = Android, W = Windows, D = nur Desktop (Windows, später macOS/Linux), beide (A + W) wenn nicht
+  angegeben. Pakete mit **D** kommen bewusst nicht nach Android (zu groß, kleiner Bildschirm, dort nicht gebraucht).
 
 ---
 
@@ -15,7 +16,7 @@ Stand: 28.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 
 | Thema | Entscheidung |
 | --- | --- |
-| Web-Version | **Wird nicht gebaut.** |
+| Web-Version | **Wird doch gebaut**, mit möglichst vielen Funktionen, aber **geringe Priorität** (W9-09). |
 | Betreuungs-Cockpit | Vorerst nicht. |
 | Sprachen | Englisch vervollständigen (niedrige Priorität), keine weiteren Sprachen. |
 | Seitenleiste | Grundfunktionen oben, fortgeschrittene Bereiche (Dokumente usw.) unter ausklappbarem **„Mehr“**. *Vorlagen* heißt künftig **„TU Vorlagen“**. Keine Einfach-/Expertenansicht. |
@@ -26,6 +27,10 @@ Stand: 28.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | E-Mail/Kalender | Das **neue Outlook** ist Standard → keine COM-Anbindung, sondern direkt an den Exchange-Server (siehe W7-01). |
 | PDF-Werkzeugkasten | Funktionsumfang wie **pdf24 + Xodo**. |
 | Kreativbereich | Ziel **so nah wie möglich an Canva**, Schwerpunkt Corporate Design und Uni-Kontext. |
+| Eigene Werkzeuge statt Fremd-Apps | **Selbst bauen, gehört vollständig uns.** Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden. Nachgebaut werden nur **PDF, Word, Excel, Präsentation und ein Canva-Klon**; je Werkzeug wird geprüft, ob Code aus den Craft-Apps übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
+| Videoeditor | Ziel **wie DaVinci Resolve**, nur Desktop (D), nicht für Android (W8-07). |
+| Eigener Browser | Ja: Links direkt in der App öffnen und mit KI untersuchen (W9-08). |
+| macOS und Linux | Ja, aber **erst wenn die Windows-Version fertig ist** (W9-06). |
 | MCP/Plugins | Vollständig: App als MCP-Client (Fern- und lokale Server) **und** als MCP-Server. |
 | Aus der Ideenliste übernommen | Profilpflege (ORCID, FIS, Publikationsliste, Lebenslauf), Assistent für Bewerbungsverfahren, MCP-/Plugin-Schnittstelle. |
 
@@ -42,11 +47,12 @@ Stand: 28.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | **W5** | Modi Forschung | Systematic Review, Exzerpte, Quellenmodus, Panel, Anträge, Forschungsdaten, Profil, KI-Nachweis |
 | **W6** | Modi Lehre & Prüfung | Massenkontrolle, Klausuranalyse, Lernbaukasten, Live-Untertitel |
 | **W7** | Kommunikation & Verwaltung | Mail/Kalender, Podcast, Bewerbungsverfahren |
-| **W8** | Dokumente-Tab | PDF-Werkzeugkasten, Kreativbereich, Diagramme, Formate, Dateiverwaltung |
-| **W9** | Plattformen & Erweiterbarkeit | MCP, macOS/Linux, Englisch |
+| **W8** | Dokumente & Werkzeuge | Werkzeug-Module, PDF, Office (Word/Excel/PowerPoint), Kreativbereich, Videoeditor, Diagramme, Formate, Dateiverwaltung |
+| **W9** | Plattformen & Erweiterbarkeit | MCP, Browser, macOS/Linux, Website, Englisch |
 | **Q** | Querschnitt | Qualität, Datenschutz, Recht, Tests |
 
-Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 vor W5–W7, W4-01 vor W4-02/03.
+Reihenfolge innerhalb einer Welle = vorgeschlagene Bearbeitungsreihenfolge. W3 vor W5–W7, W4-01 vor W4-02/03,
+W8-00 vor den großen Werkzeugen (W8-02, W8-03, W8-07, W9-08).
 
 ---
 
@@ -191,6 +197,7 @@ Vorlesen mit einem ersten TTS-Abschnitt von bis zu 3500 Zeichen (`audio/Speaker.
 
 ### W2-10 ☐ Gleicher Funktionsumfang Android/Windows · P2 · S (laufend)
 - Tabelle aller Funktionen mit Plattform pflegen (Anhang dieses Plans), Lücken als eigene Pakete anlegen.
+- Ausgenommen sind Pakete mit **D** (nur Desktop) und die vereinfachten Android-Fassungen aus der Übersicht in W8.
 
 ### W2-11 ☐ Barrierefreiheit der App · P2 · M
 - Screenreader (TalkBack/Narrator): Beschriftungen aller Knöpfe, sinnvolle Reihenfolge; große Schrift ohne
@@ -372,13 +379,54 @@ Synchronisation):
 
 ---
 
-## W8 – Dokumente-Tab
+## W8 – Dokumente & Werkzeuge
 
-Neue Gliederung des Bereichs: **Office · PDF · Kreativ · Diagramme · Dateien**
+Neue Gliederung des Bereichs: **Office · PDF · Kreativ · Video · Diagramme · Dateien**
 
-### W8-01 ☐ Office (Ausbau des Vorhandenen) · P2 · M
-- Zitieren beim Schreiben (Zitat-Platzhalter aus *Literatur*, Verzeichnis aktualisiert sich), Formeleditor (LaTeX),
-  Diktat im Editor, gemeinsames Bearbeiten über die Professur-Datenbank (Sperre/Zusammenführen).
+Alles wird selbst gebaut (keine Fremd-Apps per MCP). Welche Plattform was bekommt:
+
+| Werkzeug | Android | Windows | Website | Warum |
+| --- | --- | --- | --- | --- |
+| PDF-Werkzeugkasten (W8-02) | voll | voll | teilweise | wird unterwegs oft gebraucht (lesen, unterschreiben, Seiten) |
+| Dokument, Tabelle, Präsentation (W8-01) | vereinfacht | voll | voll | Android: ansehen, kleine Änderungen, KI-Assistent |
+| Kreativbereich (W8-03) | vereinfacht | voll | voll | Android: Vorlagen ausfüllen, ansehen, exportieren |
+| Videoeditor (W8-07) | – | voll (D) | – | braucht großen Bildschirm, Leistung und Speicher |
+| Browser (W9-08) | einfach (System-WebView) | voll | – | im Web ist man schon im Browser |
+
+### W8-00 ☐ Werkzeug-Module und nachladbare Erweiterungen · P1 · L
+Ziel: Die App bleibt **eine** App (ein Symbol, eine Anmeldung, ein Update, Lora und Chat überall), wird aber nicht schwer,
+obwohl immer mehr Werkzeuge dazukommen. **Vorschlag, noch zu bestätigen** (Offene Frage 8).
+1. **Module im Code**: jedes große Werkzeug (PDF, Dokument, Tabelle, Präsentation, Kreativ, Video, Browser) als eigenes
+   Gradle-Modul mit gemeinsamer Schnittstelle (Name, Symbol, Plattformen, Startbildschirm, Dateitypen zum Öffnen,
+   Agent-Werkzeuge für Chat und Lora). Werkzeuge kennen nur den gemeinsamen Kern, nicht einander.
+2. **Werkzeuge ein- und ausblenden**: *Einstellungen › Werkzeuge* mit Schaltern; Seitenleiste und Startseite zeigen nur
+   eingeschaltete Werkzeuge. Vorauswahl beim ersten Start (W2-08); Lora schlägt passende Werkzeuge vor („Für Poster gibt
+   es den Kreativbereich – einschalten?“).
+3. **Nachladbare Erweiterungen (D)**: schwere Teile (Videoeditor, Browser-Engine, OCR-Daten, später Kreativ-Bibliotheken)
+   stecken nicht in der Grund-EXE, sondern werden beim ersten Öffnen geladen („Videoeditor einrichten · ca. 200 MB“),
+   liegen unter `%LOCALAPPDATA%\ADEU LLM\tools\<werkzeug>\<version>` und kommen über denselben Updater
+   (`version.json` um Werkzeug-Einträge erweitern). Entfernen jederzeit möglich.
+4. **Android**: nur Module mit A im Build, keine nachladbaren Pakete (Verteilung als APK ohne Play Store); die Größe
+   bleibt über die Modulauswahl begrenzt.
+5. **Leistung**: Werkzeuge erst beim Öffnen laden (kein Ballast beim Start), Startzeit und Speicher messen (Q-05).
+- **Fertig, wenn**: ein vorhandenes Werkzeug (z. B. Tabelle) läuft als Modul, lässt sich ausblenden, und ein Testpaket
+  wird unter Windows nachgeladen, aktualisiert und wieder entfernt.
+- Kein eigener Launcher mit mehreren Apps: Kolleg:innen sollen nicht zwischen Programmen wechseln oder mehrere Updates
+  verwalten. Eigene Werkzeuge laufen über W8-00; W9-05 (Plugins) bleibt für Erweiterungen aus der Professur.
+- Betrifft: `settings.gradle.kts`, `desktop/settings.gradle.kts`, Seitenleiste, `update/` (Android und Windows).
+
+### W8-01 ☐ Office: Dokument, Tabelle, Präsentation (Ziel: Word, Excel, PowerPoint) · P2 · XL
+Die vier Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; sie werden in Richtung Word, Excel und
+PowerPoint ausgebaut. Android bekommt die vereinfachte Fassung (siehe Übersicht oben).
+1. **Dokument (wie Word)**: Zitieren beim Schreiben (Zitat-Platzhalter aus *Literatur*, Verzeichnis aktualisiert sich),
+   Formeleditor (LaTeX), Diktat im Editor, Seitenansicht mit Rändern, Abschnitten, Kopf-/Fußzeilen, Inhaltsverzeichnis,
+   Kommentare und Änderungen nachverfolgen.
+2. **Tabelle (wie Excel)**: Zellformate, bedingte Formatierung, Diagramme aus Bereichen, Pivot-Tabellen, mehr Funktionen,
+   verlustfreies Öffnen und Speichern von .xlsx.
+3. **Präsentation (wie PowerPoint)**: Elemente frei auf der Folie platzieren (gemeinsame Leinwand mit W8-03), Bilder und
+   Formen, Masterfolien, Übergänge und Animationen.
+4. **Gemeinsam**: gemeinsames Bearbeiten über die Professur-Datenbank (Sperre/Zusammenführen).
+- Code aus WordCraft, GridCraft und DeckCraft prüfen (*Anhang: Craft-Apps*).
 
 ### W8-02 ☐ PDF-Werkzeugkasten (Ziel: Umfang wie pdf24 + Xodo) · P1 · XL
 Meilensteine:
@@ -399,6 +447,7 @@ Meilensteine:
 9. **Vergleichen & Prüfen**: zwei PDFs vergleichen (Text und Bild), Barrierefreiheit nach PDF/UA (vorhanden ausbauen).
 10. **KI**: „Frag das PDF“ mit Belegpflicht, zusammenfassen, Tabellen herausziehen, Formulare erklären.
 - Technik: PDFBox (Android: pdfbox-android, Windows: PDFBox 3 – vorhanden), Rendering über PdfRenderer bzw. PDFBox.
+- Code aus PdfCraft prüfen (*Anhang: Craft-Apps*).
 
 ### W8-03 ☐ Kreativbereich (Ziel: so nah wie möglich an Canva) · P2 · XL
 Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. Meilensteine:
@@ -417,6 +466,8 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 8. **KI**: Design aus Beschreibung, „Poster aus diesem Paper“, Texte umschreiben, Layout-Vorschläge.
 9. **Export**: PNG, JPG, SVG, PDF (Druck mit Beschnitt und Schnittmarken), PowerPoint.
 10. **Später (P3)**: Animation, kurze Videos, gemeinsames Bearbeiten in Echtzeit.
+- Plattform: Windows voll, Android vereinfacht (Vorlagen ausfüllen, ansehen, exportieren).
+- Code aus DesignCraft, VectorCraft und PhotoCraft prüfen – hier lohnt die Übernahme am ehesten (*Anhang: Craft-Apps*).
 
 ### W8-04 ☐ Diagramme und Whiteboard · P2 · L
 - Flussdiagramme, Mindmaps, Konzeptkarten, Zeitstrahl, Gantt, Organigramm; Mermaid- und draw.io-Import/Export;
@@ -433,6 +484,20 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 - Ordner, Schlagwörter, Volltextsuche über alle Formate (Index aus W4-01), Versionsvergleich, „Zuletzt bearbeitet“,
   Freigaben im Professur-Ordner.
 
+### W8-07 ☐ Videoeditor (Ziel: wie DaVinci Resolve) (D) · P3 · XL
+Nur Desktop, nicht für Android. Als nachladbare Erweiterung (W8-00). Meilensteine:
+1. **Schnitt**: Medienpool, Zeitleiste mit mehreren Video- und Tonspuren, schneiden, trimmen, verschieben, Übergänge,
+   Titel und Bauchbinden im TUD-Design, Export (MP4/H.264, Vorgaben für OPAL und YouTube).
+2. **Ton**: Pegel, Blenden, Rauschminderung, Musik unterlegen; Untertitel aus der vorhandenen Transkription einbrennen
+   oder als SRT/VTT.
+3. **Lehrvideos**: Bildschirmaufnahme mit Kamera, Folien aus Präsentationen als Clips, Kapitelmarken.
+4. **Farbe**: Grundkorrektur (Belichtung, Weißabgleich, Kurven), LUTs; später Farbräder und Nodes wie in Resolve.
+5. **Effekte & Grafik**: Bild-in-Bild, Zoom, Masken, Keyframes, Stabilisierung.
+6. **KI**: Rohschnitt aus dem Transkript (Füllwörter und Pausen entfernen), Schneiden über den Text, Kurzfassung.
+- Technik: ffmpeg (in der Windows-Version schon enthalten) zum Dekodieren und Exportieren, eigene Vorschau mit
+  Proxy-Dateien für flüssigen Schnitt; Lizenz des ffmpeg-Builds (LGPL/GPL) prüfen.
+- Code aus FilmCraft und EffectCraft prüfen (*Anhang: Craft-Apps*).
+
 ---
 
 ## W9 – Plattformen & Erweiterbarkeit
@@ -442,8 +507,6 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 - *Einstellungen › Verbindungen*: Server hinzufügen, Werkzeuge ansehen, je Werkzeug erlauben/fragen/sperren.
 - Jedes fremde Werkzeug läuft über die *Freigaben* und hält die Datenschutzstufe ein; Professur-Richtlinie legt
   erlaubte Server fest (W4-03).
-
-### W9-Zusatz: Ein eigener Broswer im Tool um direkt Linsk zu öffnen und diese mit KI untersuchen zu lassen usw.
 
 ### W9-02 ☐ MCP-Client: lokale Server (W) · P2 · M
 - Lokale Server (stdio) unter Windows; Hinweis/Installationshilfe, wenn Node.js oder Python fehlen.
@@ -463,14 +526,33 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 ### W9-05 ☐ Plugins · P3 · M
 - Eigene Erweiterungen als Paket (Modus-Definition + Prompt + MCP-Server/Werkzeuge + TU Vorlagen), verteilbar über
   die Professur-Datenbank.
+- Die eigenen großen Werkzeuge der App laufen nicht hierüber, sondern über W8-00.
 
-### W9-06 ☐ macOS und Linux · P2 · L
+### W9-06 ☐ macOS und Linux · P3 · L
+- **Erst wenn die Windows-Version fertig ist.**
 - Compose Desktop baut bereits plattformunabhängig; zu tun: Pakete (DMG signiert/notarisiert, AppImage/DEB),
-  PDF-Rendering ohne Edge (Chromium headless oder openhtmltopdf), Pfade, Autostart, Updater, Tastenkürzel (⌘).
+  PDF-Rendering ohne Edge (Chromium headless oder openhtmltopdf), Pfade, Autostart, Updater, Tastenkürzel (⌘),
+  nachladbare Erweiterungen (W8-00) je Plattform bauen.
 
 ### W9-07 ☐ Englisch vervollständigen · P3 · M
 - Alle Texte in `I18n` überführen, englische Fassung vollständig (Einstellungen, Editoren, TU Vorlagen, Fehlermeldungen,
   Lora). Keine weiteren Sprachen.
+
+### W9-08 ☐ Eigener Browser · P2 · L
+- Links aus Chat, Literatur und Dokumenten direkt in der App öffnen; Tabs, Lesezeichen, Verlauf.
+- KI-Leiste neben der Seite: „Seite zusammenfassen“, Fragen zur Seite (mit Belegpflicht), Seite in Wissenssammlung oder
+  Literatur übernehmen, Paper-PDFs erkennen und im PDF-Werkzeugkasten öffnen.
+- Der Agent darf (nach Freigabe) Seiten öffnen, lesen und Formulare ausfüllen – Browser-Automatisierung für Portale ohne
+  Schnittstelle (vgl. W9-03).
+- Technik: keine eigene Engine. Windows: Chromium über JCEF als nachladbare Erweiterung (W8-00); Android: System-WebView
+  (einfachere Fassung). Tracking-Schutz, Anmeldung über die TU (Shibboleth) bleibt erhalten.
+
+### W9-09 ☐ Website · P3 · XL
+- Möglichst viele Funktionen der App im Browser: Chat, TU Vorlagen, Lora, Literatur, Office-Editoren, PDF-Werkzeuge,
+  Kreativbereich.
+- Nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser.
+- Technik (zu prüfen): Compose Multiplatform für Web (Wasm) mit dem gemeinsamen Code; API-Schlüssel nicht im Klartext
+  im Browser speichern; CORS der Uni-API klären (sonst kleiner Proxy).
 
 ---
 
@@ -506,10 +588,12 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 5. **Live-Untertitel**: Mitlesen auf Studierenden-Geräten gewünscht (bräuchte lokalen Webserver im selben Netz)?
 6. **Startseite**: Wortlaut der Tätigkeits-Kacheln final abstimmen.
 7. **Microsoft 365**: Ist eine Tenant-Freigabe für Teams/SharePoint realistisch?
+8. **Werkzeug-Module (W8-00)**: Vorschlag „eine App mit ein- und ausblendbaren Werkzeugen und nachladbaren
+   Erweiterungen“ statt eines Launchers mit mehreren Apps – bestätigen.
 
 ## Zurückgestellt
 
-- Web-Version (entschieden: nein), Betreuungs-Cockpit (vorerst nicht), weitere Sprachen außer Englisch.
+- Betreuungs-Cockpit (vorerst nicht), weitere Sprachen außer Englisch.
 - Ideen ohne Auftrag (bei Bedarf wieder aufnehmen): Literatur-Radar, Zitieren beim Schreiben als eigener Modus
   (teilweise in W8-01), Statistik-Werkstatt, Zettelkasten/Wissensgraph, Förder-/Call-Radar, Fragebogen-Auswertung,
   KI als zweite Coder:in, Lehrveranstaltungs-Cockpit, Kurs-Assistent für Studierende, Folien zu Lernvideo,
@@ -529,3 +613,31 @@ Schwerpunkt Corporate Design und Uni-Kontext, trotzdem großer Funktionsumfang. 
 | Projektordner mit `Ausgabe` | ☑ | ☑ | W1-04 |
 | Agent in lokalen Ordnern | ☐ | ☑ | später |
 | Speicherorte (Tresore) | ☐ | ☑ | W4-02 |
+| Videoeditor | – (nicht geplant) | ☐ | W8-07 |
+| Eigener Browser | ☐ (einfach) | ☐ | W9-08 |
+
+---
+
+## Anhang: Craft-Apps (getartcraft.com)
+
+Die Craft-Apps des ArtCraft Team sind Open Source unter **MIT oder Apache-2.0**, in Rust geschrieben und Stand 10/2026
+noch Alpha bzw. in Entwicklung. Eine Anbindung per MCP ist entschieden: **nein**. Direkt einbauen lässt sich ihr Code
+nicht (Rust, unsere App ist Kotlin), aber Algorithmen, Datenmodelle und Abläufe dürfen übernommen und nach Kotlin
+übertragen werden.
+
+Regeln bei Übernahme:
+- Lizenztext und Copyright-Hinweis („ArtCraft Team and the ArtCraft contributors“) in die Drittanbieter-Hinweise der App
+  aufnehmen und die Herkunft im Code-Kommentar nennen.
+- Name, Logo und „A“-Zeichen von ArtCraft sind Marken und nicht freigegeben – nicht verwenden.
+- Mitgelieferte Schriften, Icons und Assets haben eigene Lizenzen (ATTRIBUTION.md) – einzeln prüfen.
+- Vor der Übernahme die Lizenz des jeweiligen App-Repos prüfen (bisher nur Haupt-Repo und Launcher geprüft).
+
+| Werkzeug | Craft-App | Stand dort | Vorschlag |
+| --- | --- | --- | --- |
+| PDF (W8-02) | PdfCraft | Early alpha | Selbst schreiben auf PDFBox (vorhanden); PdfCraft nur für Abläufe und Bedienung ansehen |
+| Dokument (W8-01) | WordCraft | In Entwicklung | Selbst schreiben (Editor vorhanden); Seitenumbruch- und Layoutlogik ggf. ansehen |
+| Tabelle (W8-01) | GridCraft | In Entwicklung | Selbst schreiben (`SheetEngine` vorhanden); Formelfunktionen ggf. abgleichen |
+| Präsentation (W8-01) | DeckCraft | In Entwicklung | Selbst schreiben (Editor vorhanden) |
+| Kreativbereich (W8-03) | DesignCraft, VectorCraft, PhotoCraft | In Entwicklung / Early alpha | Bester Kandidat für Übernahme: Leinwand-Datenmodell, Vektorpfade (Bézier, boolesche Operationen), Bildfilter und Mischmodi; Bedienung selbst |
+| Videoeditor (W8-07) | FilmCraft, EffectCraft | In Entwicklung | Zeitleisten-Modell und Effekt-Graph ansehen; Grundlage bleibt ffmpeg |
+| Nicht übernommen | LightCraft, SoundCraft, CADCraft, FigCraft | – | kein Bedarf an der Professur |
