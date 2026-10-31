@@ -23,6 +23,10 @@ enum class PiiKind(val label: String, val title: String) {
     TEACHER("Lehrkraft", "Lehrkräfte"),
     COLLEAGUE("Kollege/in", "Kolleg/innen"),
     PARENT("Elternteil", "Eltern"),
+    /** Schools, day-care centres and similar places that identify a person in research data (AP-03). */
+    SCHOOL("Einrichtung", "Schulen und Einrichtungen"),
+    /** A town in a description of a person ("die Schulleiterin in Pirna"). */
+    PLACE("Ortsangabe", "Orte in Personenbeschreibungen"),
     ;
 
     /** Kinds that stand for a person (a name with or without a role). */
@@ -50,6 +54,10 @@ enum class PiiFeature(val title: String, val detail: String, val group: String) 
     ROLES("Namen nach Rollen, Gruß und Unterschrift", "Schülerin Jolina, Kollege Brandt, „Liebe Anna,“, Grußformel mit Namen, Von:/An: in E-Mails", "Namen"),
     EMAIL_NAMES("Namen aus E-Mail-Adressen", "steht anna.mueller@… im Text, gelten auch „Anna“ und „Müller“ als Namen", "Namen"),
     TABLES("Spalten in Tabellen", "ganze Spalten wie Name, Vorname, Schüler/in, Geburtsdatum, Anschrift in Tabellen, CSV und Excel", "Namen"),
+    INSTITUTIONS(
+        "Schulen, Einrichtungen und Orte",
+        "„Grundschule am Park“, „Goethe-Gymnasium“, „Kita Sonnenschein“ und der Ort in „die Schulleiterin in Pirna“", "Namen",
+    ),
     INFLECTION("Gebeugte Namen", "Annas, Müllers, Schmidt'sche werden mit ersetzt", "Namen"),
     VARIANTS("Andere Schreibweisen", "MÜLLER, müller, Mueller zu „Müller“ aus der eigenen Liste; Mueller auch bei erkannten Namen", "Namen"),
     FILE_NAMES("Datei- und Ordnernamen", "Elterngespräch_Mueller.docx – auch mit Unterstrich", "Namen"),
@@ -189,6 +197,74 @@ object PiiDetector {
     private val MAIL_HEADER = Regex("(?im)^[ \\t]*(?:von|from|an|to|cc|bcc|absender|empfänger|gesendet von|antwort an|reply-to)[ \\t]*:[ \\t]*(.+)$")
     private val FAMOUS_PATTERN by lazy { Regex("(?<![$LETTERS])(?:" + FAMOUS.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) } + ")(?![$LETTERS])") }
 
+    /** Kinds of schools and day-care centres that are followed by their name. */
+    private const val SCHOOL_KINDS = "Grundschule|Oberschule|Mittelschule|Realschule|Hauptschule|Gesamtschule|Gemeinschaftsschule|Förderschule|" +
+        "Berufsschule|Berufliches Schulzentrum|BSZ|Gymnasium|Abendgymnasium|Waldorfschule|Montessorischule|Freie Schule|Evangelische Schule|" +
+        "Kita|Kindertagesstätte|Kindergarten|Hort|Krippe|Schulhort"
+
+    /** „Grundschule am Park“, „Gymnasium Dresden-Plauen“, „Kita „Sonnenschein““, „32. Grundschule“. */
+    private val SCHOOL = Regex(
+        "(?:\\b\\d{1,3}\\.\\s?)?\\b(?:$SCHOOL_KINDS)\\s+(?:[„\"»][^“”\"«\\n]{2,40}[“”\"«]|" +
+            "(?:am|an der|im|in der|zum|zur|auf dem|unterm)\\s+$WORD(?:\\s+$WORD)?|$WORD(?:[- ]$WORD){0,2})" +
+            "|\\b\\d{1,3}\\.\\s?(?:$SCHOOL_KINDS)\\b"
+    )
+
+    /** „Goethe-Gymnasium“, „Pestalozzi-Oberschule“, „Lindenschule“. */
+    private val NAMED_SCHOOL = Regex("\\b([$UPPER][$LOWER]+)-?(?:Schule|Grundschule|Oberschule|Gymnasium|Gesamtschule|Kita)\\b")
+    private val NOT_SCHOOL_PREFIX = setOf(
+        "Grund", "Ober", "Mittel", "Real", "Haupt", "Gesamt", "Förder", "Berufs", "Hoch", "Fach", "Volks", "Musik", "Sprach", "Kunst",
+        "Tanz", "Fahr", "Abend", "Privat", "Partner", "Modell", "Gemeinschafts", "Waldorf", "Montessori", "Sommer", "Ganztags", "Halbtags",
+        "Brennpunkt", "Schwerpunkt", "Projekt", "Pilot", "Stadt", "Land", "Dorf", "Regel", "Inklusions", "Sport", "Ausbildungs", "Universitäts",
+    )
+
+    /** A person's role followed by a town: „die Schulleiterin in Pirna“, „Klassenlehrer aus Meißen“. */
+    private val ROLE_PLACE = Regex(
+        "\\b(?:Schulleiter|Klassenlehrer|Lehrer|Fachlehrer|Rektor|Direktor|Leiter|Kitaleiter|Hortleiter|Erzieher|Sozialarbeiter|" +
+            "Schulsozialarbeiter|Bürgermeister|Pfarrer|Trainer|Schüler|Referendar|Hausmeister|Sekretär|Elternsprecher|Elternvertreter)(?:in|innen)?" +
+            "\\s+(?:der\\s+\\S+\\s+)?(?:in|aus|von|bei)\\s+($WORD(?:-$WORD)?)"
+    )
+    private val NOT_PLACES = setOf(
+        "Deutschland", "Sachsen", "Bayern", "Europa", "Österreich", "Schweiz", "Thüringen", "Brandenburg", "Berlin", "Frankreich",
+        "Polen", "Tschechien", "Ruhestand", "Elternzeit", "Teilzeit", "Vollzeit", "Ausbildung", "Rente", "Zukunft", "Mathematik", "Deutsch",
+    )
+
+    /** First name, then a capitalized word that ends the phrase (punctuation, line end or a lower-case word). */
+    private val RARE_AFTER_FIRST = Regex("(?<![$LETTERS-])($WORD)[ \\t]+([$UPPER][$LOWER]+(?:-[$UPPER][$LOWER]+)?)(?=[ \\t]*(?:[.,;:!?)]|\\n|$|[ \\t]+[a-zäöü]))")
+
+    /** Citations in the text: „Müller (2020)“, „(Müller & Schmidt, 2019)“, „Müller et al. 2018“, „Müller, A. (2021)“. */
+    private val CITATION = Regex(
+        "($WORD(?:\\s+(?:von|van|de|zu)\\s+$WORD)?)(?:,\\s*((?:[$UPPER]\\.\\s?){1,3}))?" +
+            "(?:\\s*(?:&|und|and|/)\\s*($WORD)(?:,\\s*(?:[$UPPER]\\.\\s?){1,3})?)?(\\s+et\\s+al\\.)?,?\\s*\\(?((?:19|20)\\d{2}[a-z]?)\\b"
+    )
+
+    /** DOI or ISBN: the text is a published book or paper (AP-03: public sources stay as they are). */
+    private val PUBLIC_MARK = Regex("(?i)\\b(?:doi:?\\s*|https?://(?:dx\\.)?doi\\.org/)?10\\.\\d{4,9}/[^\\s\"<>]+|\\bISBN(?:-1[03])?:?\\s*[\\d-]{10,17}[\\dX]\\b|\\bISSN:?\\s*\\d{4}-\\d{3}[\\dX]\\b")
+
+    /**
+     * Authors cited in [text] (surnames, and „A. Müller“ when the initial is given) – they are public and never
+     * replaced, unless they are on the own list.
+     */
+    fun citedAuthors(text: String): Set<String> {
+        val out = LinkedHashSet<String>()
+        CITATION.findAll(text).forEach { m ->
+            val first = m.groupValues[1]
+            if (first in NOT_NAMES || first in INSTITUTION_WORDS || first in ROLE_WORDS || NOUN_ENDING.matches(first) && !isLast(first)) return@forEach
+            out += first
+            m.groupValues[2].trim().takeIf { it.isNotEmpty() }?.let { out += "$it $first".replace(Regex("\\s+"), " ") }
+            m.groupValues[3].takeIf { it.isNotEmpty() && it !in NOT_NAMES && it !in INSTITUTION_WORDS }?.let { out += it }
+        }
+        return out
+    }
+
+    /** Whether [name] names a school or day-care centre (for names found by the local model). */
+    fun looksLikeSchool(name: String): Boolean = SCHOOL.containsMatchIn(name) || NAMED_SCHOOL.containsMatchIn(name)
+
+    /** Whether [text] is a published source (book, paper with DOI/ISBN/ISSN) – suggested as „öffentlich“ for attachments. */
+    fun looksPublic(text: String): Boolean = PUBLIC_MARK.containsMatchIn(text.take(60_000))
+
+    /** Well-known people (science, education, politics) whose names are no personal data of a third party. */
+    fun isFamous(name: String): Boolean = name in FAMOUS
+
     /** Endings of nouns that are no names ("Didaktik", "Schulleitung", "Jugendamt"), unless the word is a known name. */
     private val NOUN_ENDING = Regex(".+(?:ung|heit|keit|schaft|ik|tät|ion|ismus|ium|ur|amt|team|rat|wesen|stelle|leitung|gruppe|ei|ität|ologie|ie)")
 
@@ -241,6 +317,19 @@ object PiiDetector {
         "Erich Kästner", "Astrid Lindgren", "Michael Ende", "Otfried Preußler", "Cornelia Funke", "Jean-Jacques Rousseau", "John Locke",
         "Georg Wilhelm Friedrich Hegel", "Friedrich Nietzsche", "Martin Heidegger", "Ludwig Wittgenstein", "Simone de Beauvoir",
         "Judith Butler", "Michel Foucault", "Klaus Mollenhauer", "Dietrich Benner", "Wolfgang Schulz", "Paul Heimann", "Gunter Otto",
+        "Herbert Gudjons", "Werner Jank", "Hilbert L. Meyer", "Eckhard Klieme", "Jürgen Baumert", "Mareike Kunter", "Frank Lipowsky",
+        "Kurt Reusser", "Tina Seidel", "Manfred Prenzel", "Olaf Köller", "Heinz-Elmar Tenorth", "Horst Rumpf", "Wolfgang Edelstein",
+        "Rainer Bromme", "Fritz Oser", "Jean-Pierre Changeux", "Daniel Kahneman", "Carol Dweck", "Richard Mayer", "John Sweller",
+        "Robert Slavin", "Lee Shulman", "Linda Darling-Hammond", "Dylan Wiliam", "Paul Black", "Edward Deci", "Richard Ryan",
+        "Urie Bronfenbrenner", "Kurt Lewin", "Max Horkheimer", "Walter Benjamin", "Erich Fromm", "Norbert Elias", "Georg Simmel",
+        "Émile Durkheim", "Talcott Parsons", "Erving Goffman", "Anthony Giddens", "Ulrich Beck", "Hartmut Rosa", "Andreas Reckwitz",
+        "Armin Nassehi", "Heinz Bude", "Steffen Mau", "Ralf Dahrendorf", "Robert Merton", "Alfred Schütz", "Peter Berger",
+        "Thomas Luckmann", "Barney Glaser", "Anselm Strauss", "Philipp Mayring", "Udo Kuckartz", "Uwe Flick", "Ralf Bohnsack",
+        "Fritz Schütze", "Ulrich Oevermann", "Winfried Marotzki", "Gabriele Rosenthal", "Christel Hopf", "Siegfried Lamnek",
+        "Johann Friedrich Herbart", "Johann Amos Comenius", "Friedrich Schleiermacher", "Herman Nohl", "Eduard Spranger",
+        "Theodor Litt", "Wilhelm Dilthey", "Peter Petersen", "Célestin Freinet", "Janusz Korczak", "Rudolf Steiner", "Alexander Neill",
+        "Elisabeth Noelle-Neumann", "Svenja Schulze", "Robert Habeck", "Annalena Baerbock", "Christian Lindner", "Michael Kretschmer",
+        "Bettina Stark-Watzinger", "Karin Prien", "Christian Piwarz", "Conrad Clemens",
     )
 
     private val INSTITUTION_WORDS = setOf(
@@ -359,6 +448,7 @@ object PiiDetector {
             HANDLE.findAll(text).forEach { m -> if (m.groupValues[1].lowercase() !in CODE_AT) hits += PiiHit("@" + m.groupValues[1], PiiKind.HANDLE) }
         }
 
+        val famous = if (automatic) FAMOUS_PATTERN.findAll(src).map { it.range }.toList() else emptyList()
         val names = LinkedHashMap<String, PiiKind>()
         fun name(value: String, kind: PiiKind = PiiKind.NAME) {
             val v = value.trim()
@@ -452,7 +542,6 @@ object PiiDetector {
                 if (chain.isNotEmpty()) nameWords(chain, PiiKind.NAME)
                 chain = mutableListOf()
             }
-            val famous = FAMOUS_PATTERN.findAll(src).map { it.range }.toList()
             for ((i, w) in words.withIndex()) {
                 if (famous.any { w.range.first in it }) {
                     flush()
@@ -474,6 +563,28 @@ object PiiDetector {
                 }
             }
             flush()
+        }
+
+        if (on(PiiFeature.INSTITUTIONS)) {
+            SCHOOL.findAll(src).forEach { m -> hits += PiiHit(m.value.trim().trimEnd('.', ',', ';'), PiiKind.SCHOOL) }
+            NAMED_SCHOOL.findAll(src).forEach { m -> if (m.groupValues[1] !in NOT_SCHOOL_PREFIX) hits += PiiHit(m.value, PiiKind.SCHOOL) }
+            ROLE_PLACE.findAll(src).forEach { m ->
+                val place = m.groupValues[1]
+                if (place.split(' ', '-').first() !in NOT_PLACES) hits += PiiHit(place, PiiKind.PLACE)
+            }
+        }
+
+        // Rare surnames without a title: a known first name, then a capitalized word that is no usual noun and ends the
+        // phrase ("Jolina Kretzschmann sagte …", "mit Anna Wojtyła.").
+        if (automatic) RARE_AFTER_FIRST.findAll(src).forEach { m ->
+            val first = m.groupValues[1]
+            val last = m.groupValues[2]
+            if (isFirst(first) && !isFirst(last) && last !in NOT_NAMES && last !in INSTITUTION_WORDS && last !in ROLE_WORDS &&
+                !NOUN_ENDING.matches(last) && last.length in 3..24 && famous.none { m.range.first in it }
+            ) {
+                name(last)
+                name("$first $last")
+            }
         }
 
         // Spellings of found names: "MÜLLER", "Mueller" (not lower case – "frank" is a word).

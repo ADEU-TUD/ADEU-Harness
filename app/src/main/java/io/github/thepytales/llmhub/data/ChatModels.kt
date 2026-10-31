@@ -25,6 +25,11 @@ data class FileAttachment(
     val path: String? = null,
     /** Number of fillable form fields of that PDF. */
     val formFields: Int = 0,
+    /**
+     * Public source (book, paper) that is sent without placeholders, or confidential; null: the app decides (DOI/ISBN →
+     * public, see data/Pseudonymizer.isPublic). The user can switch it at the attachment (AP-03).
+     */
+    val public: Boolean? = null,
 )
 
 @Serializable

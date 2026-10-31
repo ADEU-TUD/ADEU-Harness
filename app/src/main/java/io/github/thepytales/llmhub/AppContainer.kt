@@ -52,7 +52,18 @@ class AppContainer(context: Context) {
     val usage = UsageStore(files)
     val llm = LlmClient(settings, usage)
     /** Pairs of personal details and placeholders; used by [llm] when pseudonymization is on. */
-    val privacy = Pseudonymizer(File(files, "pseudonyms.json")) { settings.current }.also { llm.privacy = it }
+    val privacy = Pseudonymizer(File(files, "pseudonyms.json"), publicNames = { literatureAuthors() }) { settings.current }.also { llm.privacy = it }
+
+    /** Authors of the literature collection: public, never replaced (AP-03); recomputed only when the collection changes. */
+    private var authorCache: Pair<List<Any>, List<String>>? = null
+
+    private fun literatureAuthors(): List<String> {
+        val refs = literature.current
+        authorCache?.let { (key, names) -> if (key === refs) return names }
+        val names = refs.flatMap { r -> r.authors.filter { !it.literal }.flatMap { listOf(it.family, it.display) } }.distinct()
+        authorCache = refs to names
+        return names
+    }
     val github = GitHubClient(settings, llm.http)
     val githubTools = GitHubTools(github)
     val logos = LogoStore(files)
@@ -124,6 +135,23 @@ class AppContainer(context: Context) {
     val transcription = Transcription(this, SpeechHost.root(this), SpeechHost.cache(this))
     /** Language models on this device (llama.cpp); the LLM client starts them on demand. */
     val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
+
+    init {
+        // Gründliche Erkennung (AP-03): the smallest installed local model lists names the rules missed.
+        privacy.thoroughFinder = finder@{ text ->
+            val model = localLlm.installedModels().minByOrNull { it.needGb }?.modelId ?: return@finder emptyList()
+            val result = llm.streamChat(
+                model = model,
+                messages = listOf(
+                    io.github.thepytales.llmhub.data.ChatMessage(role = "system", content = io.github.thepytales.llmhub.data.Pseudonymizer.THOROUGH_PROMPT),
+                    io.github.thepytales.llmhub.data.ChatMessage(role = "user", content = text),
+                ),
+                tools = null,
+                thinking = io.github.thepytales.llmhub.net.ThinkingLevel.OFF,
+            ) { }
+            io.github.thepytales.llmhub.data.Pseudonymizer.parseThorough(result.content)
+        }
+    }
 
     init {
         App.container = this

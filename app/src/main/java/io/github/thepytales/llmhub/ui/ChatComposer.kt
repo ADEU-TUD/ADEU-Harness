@@ -123,6 +123,8 @@ fun Composer(
     loadingFiles: Int,
     onRemoveImage: (String) -> Unit,
     onRemoveFile: (FileAttachment) -> Unit,
+    /** Switches an attachment between „öffentlich“ and „vertraulich“ (pseudonymization, AP-03). */
+    onToggleFilePublic: ((FileAttachment) -> Unit)? = null,
     running: Boolean,
     recording: Boolean,
     transcribing: Boolean,
@@ -179,7 +181,13 @@ fun Composer(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         images.forEach { a -> Thumbnail(a, 60) { onRemoveImage(a) } }
-                        files.forEach { f -> FileChip(f) { onRemoveFile(f) } }
+                        files.forEach { f ->
+                            FileChip(
+                                f, onRemove = { onRemoveFile(f) },
+                                onTogglePublic = onToggleFilePublic.takeIf { io.github.thepytales.llmhub.App.container.settings.current.let { it.pseudonymize && it.pseudonymPublic } }
+                                    ?.let { toggle -> { toggle(f) } },
+                            )
+                        }
                         if (loadingFiles > 0) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                     }
                 }

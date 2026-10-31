@@ -422,6 +422,10 @@ fun ChatScreen(
                 loadingFiles = loadingFiles,
                 onRemoveImage = { images.remove(it) },
                 onRemoveFile = { files.remove(it) },
+                onToggleFilePublic = { f ->
+                    val i = files.indexOf(f)
+                    if (i >= 0) files[i] = f.copy(public = !io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(f))
+                },
                 running = running,
                 recording = recording,
                 transcribing = transcribing,

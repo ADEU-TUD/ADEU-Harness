@@ -214,6 +214,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         val masker = privacy?.takeIf { it.enabled && !onDevice }
         // The chat of this request: with „Platzhalter je Chat“ it has its own numbering.
         val scope = coroutineContext[io.github.thepytales.llmhub.data.PrivacyScope]?.id
+        masker?.prepareThorough(messages, scope)
         val sent = masker?.maskMessages(messages, scope) ?: messages
         val update: (StreamUpdate) -> Unit = if (masker == null) onUpdate else { u -> onUpdate(masker.unmask(u, scope)) }
         var attempt = 0

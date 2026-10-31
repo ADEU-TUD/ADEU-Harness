@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -89,6 +91,21 @@ fun PrivacySection(c: AppContainer) {
                 "nach Rollen, in Grußformeln und Tabellen. Ohne diesen Schalter nur die Angaben mit festem Muster und die eigene Liste.",
             s.pseudonymAuto,
         ) { v -> c.settings.update { it.copy(pseudonymAuto = v) } }
+        ToggleRow(
+            "Öffentliche Quellen nicht ersetzen",
+            "Ergebnisse der Web- und Literatursuche, Bücher und Paper (erkennbar an DOI oder ISBN), die Autor:innen der Literatur-" +
+                "sammlung und im Text zitierte Autor:innen („Müller (2020)“) bleiben, wie sie sind – sonst entstehen falsche Antworten. " +
+                "Anhänge lassen sich am Anhang selbst als öffentlich oder vertraulich markieren. Die eigene Liste geht immer vor.",
+            s.pseudonymPublic,
+        ) { v -> c.settings.update { it.copy(pseudonymPublic = v) } }
+        val local = c.localLlm.installedModels().isNotEmpty()
+        ToggleRow(
+            "Gründlich: lokales Erkennungsmodell",
+            "Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
+                "die die festen Regeln übersehen. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät." +
+                if (local) "" else " Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden.",
+            s.pseudonymThorough,
+        ) { v -> c.settings.update { it.copy(pseudonymThorough = v) } }
         if (!s.pseudonymize) SettingsHint("Die Pseudonymisierung ist aus – die Schalter unten wirken erst, wenn sie an ist.")
     }
 
@@ -139,6 +156,8 @@ fun PrivacySection(c: AppContainer) {
                 modifier = Modifier.padding(12.dp),
             )
         }
+        // One click corrects the recognition; it holds for all future chats (AP-03).
+        PseudonymCorrections(c, listOf(sample))
     }
 
     SettingsCard("Zuordnungen") {
@@ -231,6 +250,58 @@ fun PrivacySuggestions(c: AppContainer, input: String) {
                     IconButton(onClick = { c.settings.update { it.copy(pseudonymIgnore = NameList.merge(it.pseudonymIgnore, listOf(w))) } }) {
                         Icon(Icons.Outlined.Close, contentDescription = "Kein Name")
                     }
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ * Ein-Klick-Korrektur (AP-03): the details replaced in [texts] with „nicht ersetzen“, and words that might be names but
+ * stayed with „auch ersetzen“. The choice goes to the lists under Einstellungen › Datenschutz and holds for every
+ * future chat. Shown in the preview of the settings and in the agent protocol.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun PseudonymCorrections(c: AppContainer, texts: List<String>, scope: String? = null) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    if (!s.pseudonymize) return
+    var version by remember { mutableStateOf(0) }
+    val joined = texts.joinToString("\n\n")
+    val replaced = remember(joined, s, version) { runCatching { c.privacy.replacements(joined, scope) }.getOrDefault(emptyList()) }
+    val missed = remember(joined, s, version) { runCatching { c.privacy.missed(joined) }.getOrDefault(emptyList()).take(8) }
+    if (replaced.isEmpty() && missed.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (replaced.isNotEmpty()) {
+            Text(tr("Ersetzt – antippen, wenn es kein privater Name ist:"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                replaced.take(24).forEach { (value, placeholder) ->
+                    androidx.compose.material3.AssistChip(
+                        onClick = {
+                            c.privacy.neverReplace(value) { t -> c.settings.update(t) }
+                            version++
+                            Notices.info("„$value“ " + tr("wird nicht mehr ersetzt."))
+                        },
+                        label = { Text("$value → $placeholder · " + tr("nicht ersetzen"), maxLines = 1) },
+                        leadingIcon = { Icon(Icons.Outlined.Block, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    )
+                }
+            }
+        }
+        if (missed.isNotEmpty()) {
+            Text(tr("Nicht ersetzt – vielleicht ein Name?"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                missed.forEach { w ->
+                    androidx.compose.material3.AssistChip(
+                        onClick = {
+                            c.privacy.alwaysReplace(w) { t -> c.settings.update(t) }
+                            version++
+                            Notices.info("„$w“ " + tr("wird ab jetzt ersetzt."))
+                        },
+                        label = { Text("$w · " + tr("auch ersetzen"), maxLines = 1) },
+                        leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    )
                 }
             }
         }

@@ -224,7 +224,7 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
 
 /** Small card for an attached document; with [onOpen] a tap opens it in the editor. */
 @Composable
-fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null) {
+fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null) {
     Box {
         // Attachments look like the document cards (AP-01): card color, fine frame, icon on a light accent tint.
         Surface(
@@ -243,6 +243,16 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
                         "${(file.text.length + 999) / 1000}k Zeichen" + if (file.truncated) " (gekürzt)" else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Public sources go without placeholders (AP-03); the app suggests it, a tap switches it.
+                    if (onTogglePublic != null) {
+                        val public = io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(file)
+                        Text(
+                            if (public) "öffentlich · Namen bleiben" else "vertraulich · pseudonymisiert",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (public) MaterialTheme.colorScheme.primary else LocalChatLook.current.success,
+                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).clickable(onClickLabel = "Umschalten", onClick = onTogglePublic).padding(vertical = 1.dp),
+                        )
+                    }
                 }
                 if (onOpen != null) {
                     Spacer(Modifier.size(6.dp))
@@ -515,7 +525,7 @@ fun AssistantMessage(
                 }
                 var protocol by remember { mutableStateOf(false) }
                 if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
-                if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false })
+                if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false }, question = item.question, chatId = chatId)
                 Box {
                     ActionIcon(Icons.Outlined.MoreHoriz, "Mehr") { more = true }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
