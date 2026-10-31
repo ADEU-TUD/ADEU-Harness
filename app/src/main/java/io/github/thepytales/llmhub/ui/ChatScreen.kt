@@ -196,6 +196,8 @@ fun ChatScreen(
     }
 
     fun useTemplate(t: Template) {
+        // „Literatur exzerpieren“ runs in the Exzerpt mode (AP-09): pages are checked, the excerpt lands at the literature entry.
+        if (t.id == io.github.thepytales.llmhub.research.Excerpts.TEMPLATE_ID && vm.state.value?.mode == null) pendingMode = io.github.thepytales.llmhub.agent.ChatModes.EXCERPT.id
         when {
             t.kind == TemplateKind.PERSONA -> vm.setSystemPrompt(t.content, t.name)
             t.fields.isNotEmpty() -> fillingId = t.id
@@ -282,6 +284,8 @@ fun ChatScreen(
     val env = current.envId?.let { id -> environments.firstOrNull { it.id == id } }
     val items = remember(current.messages, current.selected) { chatItems(current) }
     val results = remember(current.messages) { current.messages.filter { it.role == "tool" }.associateBy { it.toolCallId } }
+    // Quellenmodus (AP-08): the evidence of every finished answer, checked against the sources of the chat.
+    val evidence = remember(items, current.mode, running) { if (running) emptyMap() else evidenceReports(current, items) }
     val repoLabel = when {
         !current.githubEnabled -> "Aus"
         else -> current.linkedRepos.label() ?: "An – kein festes Repository"
@@ -671,6 +675,7 @@ fun ChatScreen(
                             onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
                             onRemember = { text -> rememberFrom = text },
                             onAnswer = { text -> follow.value = true; vm.send(text, emptyList(), emptyList()) },
+                            evidence = evidence[item.m.id],
                             fold = collapse && !stepsOpen(item.head.id),
                             stepsLine = steps[item.head.id]?.takeIf { collapse && item.m.id == item.head.id && (it.first || it.second > 0) && !(item.head.id == runningHead && typing && !stepsOpen(item.head.id)) }?.let { (thinking, tools) ->
                                 { StepsLine(thinking, tools, stepsOpen(item.head.id)) { openSteps[item.head.id] = !stepsOpen(item.head.id) } }

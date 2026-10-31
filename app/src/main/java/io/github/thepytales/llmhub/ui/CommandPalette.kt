@@ -72,6 +72,7 @@ val SETTINGS_INDEX = listOf(
     Command("GitHub", "settings/github", "Einstellungen", "repository token code"),
     Command("Chat & Werkzeuge", "settings/chat", "Einstellungen", "standardmodell werkzeuge freigaben websuche denken"),
     Command("Werkzeuge", "settings/tools", "Einstellungen", "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
+    Command("Lora", "settings/lora", "Einstellungen", "lora maskottchen ausblenden navigator helfer animation hinweise"),
     Command("Datenschutz", "settings/privacy", "Einstellungen", "pseudonymisierung namen eigene begriffe"),
     Command("Gedächtnis", "settings/memory", "Einstellungen", "erinnerungen merken"),
     Command("Wissenssammlung", "settings/knowledge", "Einstellungen", "pdf wissen dokumente durchsuchen"),
@@ -133,6 +134,13 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                     modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
                 LazyColumn(Modifier.heightIn(max = 420.dp).padding(top = 6.dp)) {
+                    // Lora fragen (AP-07): the typed wish goes to Lora, who finds the place or hands it to a chat.
+                    item(key = "lora") {
+                        PaletteRow(
+                            if (query.isBlank()) tr("Lora fragen") else tr("Lora fragen") + ": „" + query.trim() + "“",
+                            "Lora",
+                        ) { LoraHelper.open(query.trim()); onDismiss() }
+                    }
                     var lastGroup: String? = null
                     commands.forEach { cmd ->
                         if (cmd.group != lastGroup) {

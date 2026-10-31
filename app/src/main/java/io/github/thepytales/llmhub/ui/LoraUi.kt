@@ -16,6 +16,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,6 +77,7 @@ private val CARD_LORA_WIDTH = 110.dp
  * little reaction. The card has a fixed height, so nothing jumps when the step changes or the pill appears. With
  * [hideLora] (Lora ausblenden) a smaller card shows the pulsing brand symbol instead.
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun WorkingCard(
     step: String?,
@@ -118,11 +120,14 @@ fun WorkingCard(
                         LoraFigure(
                             Modifier
                                 .size(CARD_LORA_WIDTH, loraHeight)
-                                // A tap: Lora waves, spins or has an idea – and then goes back to work.
-                                .clickable(
+                                // A tap: Lora waves, spins or has an idea – and then goes back to work. A long press asks
+                                // Lora, the navigator (AP-07).
+                                .combinedClickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null,
                                     onClickLabel = tr("Lora antippen"),
+                                    onLongClickLabel = tr("Lora fragen"),
+                                    onLongClick = { LoraHelper.open() },
                                 ) { director.play(LORA_TAP_REACTIONS[taps++ % LORA_TAP_REACTIONS.size]) },
                             label = tr("Lora bei der Arbeit"),
                             director = director,

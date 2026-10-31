@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.EventNote
 import androidx.compose.material.icons.outlined.GraphicEq
+import androidx.compose.material.icons.outlined.FactCheck
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material3.Icon
@@ -34,6 +36,8 @@ fun ChatMode.iconVector(): ImageVector = when (icon) {
     "search" -> Icons.Outlined.ManageSearch
     "plan" -> Icons.Outlined.EventNote
     "voice" -> Icons.Outlined.GraphicEq
+    "sources" -> Icons.Outlined.FactCheck
+    "excerpt" -> Icons.Outlined.MenuBook
     else -> Icons.Outlined.TipsAndUpdates
 }
 

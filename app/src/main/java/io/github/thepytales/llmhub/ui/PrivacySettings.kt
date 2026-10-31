@@ -78,13 +78,13 @@ fun PrivacySection(c: AppContainer) {
     }
 
     SettingsCard("Pseudonymisierung") {
-        ToggleRow(
+        Spot("privacy.pseudonymize") { ToggleRow(
             "Personenbezogene Daten ersetzen",
             "Vor jeder Anfrage ersetzt die App Namen, Kontaktdaten, Nummern, Geburtsdaten und Anschriften auf dem Gerät durch " +
                 "Platzhalter wie [Name 1]. Der Server sieht nur die Platzhalter; in der Antwort, in Dokumenten und E-Mail-Entwürfen " +
                 "setzt die App die echten Angaben wieder ein.",
             s.pseudonymize,
-        ) { v -> c.settings.update { it.copy(pseudonymize = v) } }
+        ) { v -> c.settings.update { it.copy(pseudonymize = v) } } }
         ToggleRow(
             "Namen automatisch erkennen",
             "Namen nach Anrede oder Titel (Frau, Herr, Dr., Prof.), häufige Vor- und Nachnamen und – mit den Schaltern unten – Namen " +

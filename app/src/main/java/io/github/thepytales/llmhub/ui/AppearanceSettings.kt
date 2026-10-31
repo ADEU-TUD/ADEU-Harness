@@ -67,13 +67,13 @@ fun AppearanceSettings(c: AppContainer) {
     fun pick(st: AppStyle) = c.settings.update { it.copy(appStyle = st.name) }
 
     GroupLabel(tr("Sprache der Oberfläche"))
-    Segmented(I18n.LANGUAGES, s.uiLanguage, { l -> c.settings.update { it.copy(uiLanguage = l) } })
+    Spot("appearance.language") { Segmented(I18n.LANGUAGES, s.uiLanguage, { l -> c.settings.update { it.copy(uiLanguage = l) } }) }
     HintText(if (s.uiLanguage == "en") "Menus, settings and the start page are in English so far; answers follow this language." else "Englisch übersetzt bisher Menüs, Einstellungen und Startseite; Antworten folgen der gewählten Sprache.")
 
     GroupLabel(tr("Stil"))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Spot("appearance.style") { FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         AppStyle.entries.filter { it.recommended }.forEach { st -> StylePreview(st, dark, st == style) { pick(st) } }
-    }
+    } }
     HintText(style.description)
     Row(
         Modifier.clip(RoundedCornerShape(10.dp)).clickable { more = !more }.padding(vertical = 6.dp, horizontal = 4.dp),
@@ -89,7 +89,7 @@ fun AppearanceSettings(c: AppContainer) {
     }
 
     GroupLabel(tr("Helligkeit"))
-    Segmented(ThemeMode.entries.map { it to it.label }, mode, { m -> c.settings.update { it.copy(themeMode = m.name) } })
+    Spot("appearance.theme") { Segmented(ThemeMode.entries.map { it to it.label }, mode, { m -> c.settings.update { it.copy(themeMode = m.name) } }) }
     AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             TitleBlock("Reines Schwarz (AMOLED)", "Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays.", Modifier.weight(1f))
@@ -97,12 +97,12 @@ fun AppearanceSettings(c: AppContainer) {
         }
     }
 
-    AppCard {
+    Spot("appearance.startAnimation") { AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             TitleBlock("Startanimation", "Kurze Animation des Logos beim Öffnen der App (etwa eine Sekunde).", Modifier.weight(1f))
             Switch(checked = s.startAnimation, onCheckedChange = { v -> c.settings.update { it.copy(startAnimation = v) } })
         }
-    }
+    } }
 
     GroupLabel(tr("Farbton"))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -114,21 +114,21 @@ fun AppearanceSettings(c: AppContainer) {
     )
 
     GroupLabel(tr("Schriftgröße"))
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Spot("appearance.textsize") { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
             FilterChip(selected = s.textScale == scale, onClick = { c.settings.update { it.copy(textScale = scale) } }, label = { Text(label) })
         }
-    }
+    } }
 
     if (DESKTOP) {
         GroupLabel(tr("Zoom"))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spot("appearance.zoom") { Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = s.uiZoom, onValueChange = { v -> c.settings.update { it.copy(uiZoom = Math.round(v * 10) / 10f) } },
                 valueRange = 0.8f..2f, steps = 11, modifier = Modifier.weight(1f),
             )
             Text("${Math.round(s.uiZoom * 100)} %", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 12.dp).widthIn(min = 48.dp))
-        }
+        } }
         HintText("Vergrößert die ganze Oberfläche. Auch mit Strg++ und Strg+−, Strg+0 setzt zurück, oder Strg+Mausrad.")
     }
 }

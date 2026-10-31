@@ -174,6 +174,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     }
     // A new version: asks at the start whether to install it (see Updates).
     if (crash == null) UpdatePrompt(c)
+    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    LoraHelperHost(c) { r ->
+        runCatching { if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) { launchSingleTop = true } }
+    }
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 

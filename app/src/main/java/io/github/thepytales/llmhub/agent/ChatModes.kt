@@ -61,6 +61,33 @@ object ChatModes {
         keywords = "plan planung vorhaben seminar antrag projekt paper arbeitsplan rückfragen",
     )
 
+    val SOURCES = ChatMode(
+        id = "sources",
+        name = "Quellenmodus",
+        icon = "sources",
+        explain = "Belegpflicht: Jede Aussage bekommt eine Fundstelle (Datei und Seite, DOI, URL, Transkriptzeit); die App prüft danach jedes Zitat gegen die Quelle.",
+        data = "Wie im normalen Chat; Suchbegriffe gehen an Websuche und Literaturdatenbanken, die Prüfung der Zitate läuft auf dem Gerät.",
+        example = "Was sagen die angehängten Texte über Feedback im Unterricht? Belege jede Aussage mit Seite und Zitat.",
+        command = "Quellen",
+        tools = setOf(ModeTool.RESEARCH, ModeTool.WEB),
+        prompt = Evidence.PROMPT,
+        keywords = "quellen belege belegpflicht fundstelle zitat seitenangabe nachweis quellenmodus",
+    )
+
+    /** Exzerpt-Agent (AP-09): an excerpt of a text with checked page numbers, attached to the literature entry. */
+    val EXCERPT = ChatMode(
+        id = "excerpt",
+        name = "Exzerpt",
+        icon = "excerpt",
+        explain = "Der Agent exzerpiert einen Text nach einem Schema (empirisch, theoretisch, Review, Buchkapitel) mit Zitaten und geprüften Seitenangaben und hängt das Exzerpt an den Literatureintrag.",
+        data = "Der Text geht an das gewählte Modell, Namen pseudonymisiert; die Prüfung der Seitenangaben läuft auf dem Gerät.",
+        example = "Exzerpiere den angehängten Artikel für meine Literaturarbeit.",
+        command = "Exzerpt",
+        tools = setOf(ModeTool.RESEARCH, ModeTool.DOCUMENTS),
+        prompt = io.github.thepytales.llmhub.research.Excerpts.MODE_PROMPT,
+        keywords = "exzerpt exzerpieren zusammenfassung artikel paper lesen literaturarbeit",
+    )
+
     val VOICE = ChatMode(
         id = "voice",
         name = "Sprachmodus",
@@ -74,7 +101,7 @@ object ChatModes {
     )
 
     /** All modes, in the order of the menus. */
-    val all: List<ChatMode> = listOf(LITERATURE, PLANNING, VOICE)
+    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, VOICE)
 
     fun byId(id: String?): ChatMode? = all.firstOrNull { it.id == id }
 

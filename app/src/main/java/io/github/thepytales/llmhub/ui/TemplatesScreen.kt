@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Template
@@ -73,11 +74,15 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Neue Vorlage") },
-            )
+            androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                LoraHelperButton(c)
+                androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                ExtendedFloatingActionButton(
+                    onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    text = { Text("Neue Vorlage") },
+                )
+            }
         },
     ) { pad ->
         TemplateBrowser(

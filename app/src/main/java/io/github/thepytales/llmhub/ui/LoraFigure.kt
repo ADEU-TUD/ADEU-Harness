@@ -113,7 +113,9 @@ class LoraDirector internal constructor(
     }
 
     /** Starts [action] at once. */
-    fun play(action: LoraAction) = switch(action, now)
+    fun play(action: LoraAction) {
+        if (LoraMotion.allows(action)) switch(action, now)
+    }
 
     internal fun frame(timeMs: Long): LoraFrame {
         now = timeMs
@@ -200,12 +202,28 @@ internal fun loraColors(): LoraColors {
     )
 }
 
+/** Einstellungen › Lora › Ruhigere Bewegungen (AP-07): no walking, dancing or spinning. */
+object LoraMotion {
+    @Volatile
+    var calm: Boolean = false
+
+    private val LIVELY = setOf(LoraAction.WALK, LoraAction.DANCE, LoraAction.TWIRL, LoraAction.JUGGLE, LoraAction.PLANE, LoraAction.DIG, LoraAction.NET)
+
+    /** [sequence] without the lively actions when calm. */
+    fun filter(sequence: List<LoraAction>): List<LoraAction> = if (!calm) sequence else sequence.filter { it !in LIVELY }.ifEmpty { listOf(LoraAction.READ) }
+
+    fun allows(action: LoraAction) = !calm || action !in LIVELY
+}
+
 @Composable
 fun rememberLoraDirector(
     sequence: List<LoraAction> = WORKING_SEQUENCE,
     start: LoraAction = sequence.first(),
     minDwellMs: Long = 1500,
-): LoraDirector = remember { LoraDirector(sequence, start, minDwellMs) }
+): LoraDirector = remember {
+    val seq = LoraMotion.filter(sequence)
+    LoraDirector(seq, start.takeIf { LoraMotion.allows(it) } ?: seq.first(), minDwellMs)
+}
 
 /** Lora, animated; [hint] and [hintEvery] go to [LoraDirector.hint]. */
 @Composable

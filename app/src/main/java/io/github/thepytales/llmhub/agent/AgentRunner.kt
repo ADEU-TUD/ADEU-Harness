@@ -50,6 +50,7 @@ data class ToolSelection(val github: Boolean, val documents: Boolean, val web: B
 /** The agent loop: model → tools → model … until the model answers without tool calls. */
 class AgentRunner(private val c: AppContainer) {
     private val askUser = AskUserTool()
+    private val excerptTools = ExcerptTools(c)
 
     fun environment(conv: Conversation): AgentEnvironment? = conv.envId?.let { c.environments.get(it) }
 
@@ -75,6 +76,8 @@ class AgentRunner(private val c: AppContainer) {
             c.assistantTools,
             // Rückfragen mit Antwortknöpfen (AP-06): only in chats, where someone can answer.
             askUser.takeIf { conv.taskId == null },
+            // Exzerpt-Agent (AP-09): save_excerpt checks the pages and attaches the excerpt to the literature entry.
+            excerptTools.takeIf { conv.mode == ChatModes.EXCERPT.id },
         )
     }
 

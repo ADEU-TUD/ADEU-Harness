@@ -82,6 +82,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "github" -> "GitHub"
     "chat" -> "Chat & Werkzeuge"
     "tools" -> "Werkzeuge"
+    "lora" -> "Lora"
     "ram" -> "Arbeitsspeicher"
     "privacy" -> "Datenschutz"
     "appearance" -> "Darstellung"
@@ -170,6 +171,10 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             SettingsItem(
                 "settings/tools", Icons.Outlined.Handyman, "Werkzeuge",
                 s.enabledToolIds.size.let { if (it == 0) "Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen" else "$it eingeschaltet" },
+            ),
+            SettingsItem(
+                "settings/lora", Icons.Outlined.AutoAwesome, "Lora",
+                when (s.loraMode) { "CHAT" -> "Nur im Chat"; "OFF" -> "Aus"; else -> "Überall · Navigatorin für Einstellungen und Bereiche" },
             ),
             SettingsItem("settings/privacy", Icons.Outlined.Shield, "Datenschutz", if (s.pseudonymize) "Pseudonymisierung an" else "Pseudonymisierung aus"),
             SettingsItem("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + memory.size + " Einträge"),

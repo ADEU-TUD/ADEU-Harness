@@ -480,6 +480,8 @@ fun AssistantMessage(
     stepsLine: (@Composable () -> Unit)? = null,
     /** Sends the answers of a question card (ask_user, AP-06); null while the answer runs. */
     onAnswer: ((String) -> Unit)? = null,
+    /** Belegprotokoll of this turn in the Quellenmodus (AP-08): marks, clickable evidence and the card at the end. */
+    evidence: io.github.thepytales.llmhub.agent.EvidenceReport? = null,
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -498,7 +500,14 @@ fun AssistantMessage(
         if (thinking != null && !fold) ThinkingBox(thinking, streaming && answer.isBlank())
         if (answer.isNotBlank()) {
             ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = LocalChatLook.current.answerFont)) {
-                SelectionContainer { MarkdownText(answer) }
+                if (evidence != null) {
+                    // Quellenmodus: statements without evidence are marked, a marker opens the page of its source.
+                    val marked = remember(answer, evidence) { io.github.thepytales.llmhub.agent.Evidence.mark(answer, evidence) }
+                    val targets = remember(evidence) { evidenceTargets(evidence) }
+                    androidx.compose.runtime.CompositionLocalProvider(LocalSourceTargets provides targets) {
+                        SelectionContainer { MarkdownText(marked) }
+                    }
+                } else SelectionContainer { MarkdownText(answer) }
             }
         }
         // Many finished tool calls collapse into one line ("5 Werkzeuge genutzt"); results like documents stay visible.
@@ -531,6 +540,7 @@ fun AssistantMessage(
             }
             result?.file?.let { DocumentCard(it) }
         }
+        if (item.turnEnd && !(running && item.isLast) && evidence != null) EvidenceCard(evidence, onExport)
         if (item.turnEnd && !(running && item.isLast)) {
             var more by remember { mutableStateOf(false) }
             var checkSources by remember { mutableStateOf(false) }

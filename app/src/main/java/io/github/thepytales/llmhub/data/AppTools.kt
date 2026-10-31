@@ -23,13 +23,11 @@ enum class AppTool(
         "pdf", "PDF-Werkzeugkasten",
         "PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, Formulare ausfüllbar machen.",
         "pdf", listOf("pdf", "zusammenfugen", "zusammenfuehren", "seiten drehen", "seiten loschen", "seitenzahlen", "markieren", "formular", "ausfullbar", "heften"),
-        planned = true,
     ),
     VAULT(
         "vault", "Tresor",
         "Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Daten von Studierenden: verschlüsselt, nur Uni-Server oder lokale Modelle.",
         "vault", listOf("tresor", "sensibel", "vertraulich", "geschutzt", "pin", "interviewdaten", "daten von studierenden", "geheim"),
-        planned = true,
     ),
     BROWSER(
         "browser", "Browser neben dem Chat", "Links in Tabs neben dem Chat öffnen, Fragen zur Seite stellen.", "browser",

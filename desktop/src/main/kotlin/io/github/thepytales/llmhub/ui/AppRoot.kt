@@ -243,6 +243,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         )
     }
     if (shortcuts) ShortcutsDialog(onDismiss = { shortcuts = false })
+    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    LoraHelperHost(c) { r -> if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) }
 
     /** Width of the side menu; the line beside it can be dragged. */
     var menuWidth by remember { mutableStateOf(318.dp) }
