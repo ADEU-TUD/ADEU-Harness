@@ -42,6 +42,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 
+/** Route of a mode in the command palette: starts a new chat in it (AP-05). */
+const val MODE_ROUTE = "mode:"
+
 /** Something the command palette and the settings search can jump to. */
 data class Command(val title: String, val route: String, val group: String, val keywords: String = "")
 
@@ -58,7 +61,10 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command("Modelle", "models", "Bereiche", "modell liste"),
     Command("Verbrauch", "usage", "Bereiche", "kosten token bewertungen statistik"),
     Command("Einstellungen", "settings", "Einstellungen", "optionen"),
-) + SETTINGS_INDEX
+) + io.github.thepytales.llmhub.agent.ChatModes.all.map { m ->
+    // Modes (AP-05) start a new chat in that mode.
+    Command(m.name, MODE_ROUTE + m.id, "Modi", m.keywords + " modus " + m.command.lowercase())
+} + SETTINGS_INDEX
 
 /** Settings pages with what can be set there, for the search in the settings overview. */
 val SETTINGS_INDEX = listOf(
@@ -103,8 +109,15 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
         if (query.isBlank()) conversations.filter { !it.archived }.sortedByDescending { it.updatedAt }.take(5)
         else conversations.filter { it.title.contains(query.trim(), ignoreCase = true) }.sortedByDescending { it.updatedAt }.take(8)
     }
+    /** Areas and settings open as screens; a mode starts a new chat in it. */
+    fun go(route: String) {
+        if (route.startsWith(MODE_ROUTE)) {
+            ChatHandoff.pending.value = ChatHandoff.Content("", emptyList(), mode = route.removePrefix(MODE_ROUTE))
+            onNavigate("chat")
+        } else onNavigate(route)
+    }
     fun first() {
-        commands.firstOrNull()?.let { onNavigate(it.route); onDismiss() } ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
+        commands.firstOrNull()?.let { go(it.route); onDismiss() } ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
     }
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
@@ -127,7 +140,7 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                             item(key = "g_" + cmd.group) { PaletteHeading(cmd.group) }
                         }
                         item(key = "c_" + cmd.route) {
-                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { onNavigate(cmd.route); onDismiss() }
+                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { go(cmd.route); onDismiss() }
                         }
                     }
                     if (chats.isNotEmpty()) {

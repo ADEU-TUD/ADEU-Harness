@@ -478,6 +478,8 @@ fun AssistantMessage(
     fold: Boolean = false,
     /** The line that opens folded steps, on the first message of a turn. */
     stepsLine: (@Composable () -> Unit)? = null,
+    /** Sends the answers of a question card (ask_user, AP-06); null while the answer runs. */
+    onAnswer: ((String) -> Unit)? = null,
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -508,6 +510,14 @@ fun AssistantMessage(
         }
         m.toolCalls.forEach { call ->
             val result = results[call.id]
+            // A question round (AP-06): a card with answer buttons instead of a tool step; active only as the last word.
+            if (call.name == io.github.thepytales.llmhub.agent.AskUserTool.NAME) {
+                val questions = remember(call.arguments) { io.github.thepytales.llmhub.agent.AskUserTool.parse(call.arguments) }
+                if (result != null && !result.content.startsWith("FEHLER")) {
+                    QuestionCard(questions, onAnswer.takeIf { item.isLast && !running && !streaming })
+                }
+                return@forEach
+            }
             if (!grouped && !fold) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
             // The model is writing a document: it can be watched live in the editor.
             if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
@@ -639,6 +649,7 @@ fun showsWithoutSteps(m: ChatMessage, results: Map<String?, ChatMessage>, runnin
             r == null -> call.name == "create_document" && running
             r.file != null -> true
             r.content.startsWith("FEHLER") -> false
+            call.name == io.github.thepytales.llmhub.agent.AskUserTool.NAME -> true
             else -> call.name == "create_chart" || call.name == "save_literature"
         }
     }
@@ -746,6 +757,7 @@ private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
 }
 
 internal fun toolLabel(name: String) = when (name) {
+    "ask_user" -> "Rückfrage"
     "web_search" -> "Websuche"
     "news_search" -> "Nachrichtensuche"
     "fetch_url" -> "Webseite lesen"

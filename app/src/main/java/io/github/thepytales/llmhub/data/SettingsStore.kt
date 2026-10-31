@@ -138,8 +138,6 @@ data class AppSettings(
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
     val pseudonymThorough: Boolean = false,
-    /** Answers in the Quellenmodus (and with Belegpflicht) are checked against their sources afterwards. */
-    val evidenceCheck: Boolean = true,
 ) {
     /** Tools switched on (see data/AppTool). */
     val enabledToolIds: Set<String> get() = enabledTools.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
@@ -281,7 +279,6 @@ class SettingsStore(context: Context) {
             .putBoolean("loraIntroDone", next.loraIntroDone)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
-            .putBoolean("evidenceCheck", next.evidenceCheck)
             .apply()
     }
 
@@ -363,7 +360,6 @@ class SettingsStore(context: Context) {
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
-            evidenceCheck = prefs.getBoolean("evidenceCheck", d.evidenceCheck),
         )
     }
 

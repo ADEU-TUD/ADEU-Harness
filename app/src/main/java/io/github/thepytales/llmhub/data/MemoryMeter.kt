@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
-import java.lang.management.ManagementFactory
 
 /**
  * Working memory of the app (AP-04): what the Java heap uses, what it holds from the system, its upper limit and – where
@@ -21,13 +20,16 @@ object MemoryMeter {
     /** Memory of the whole process in bytes (Windows: working set, see desktop/ProcessMemory); null when unknown. */
     var processBytes: () -> Long? = ::procStatus
 
+    /** Java memory outside the heap (code, metadata); set on Windows (java.lang.management does not exist on Android). */
+    var nonHeapBytes: () -> Long = { 0L }
+
     private val _samples = MutableStateFlow<List<Sample>>(emptyList())
     /** The latest measuring points, oldest first (at most [MAX_SAMPLES]). */
     val samples: StateFlow<List<Sample>> = _samples.asStateFlow()
 
     fun now(label: String = "Jetzt"): Sample {
         val rt = Runtime.getRuntime()
-        val nonHeap = runCatching { ManagementFactory.getMemoryMXBean().nonHeapMemoryUsage.used }.getOrDefault(0L)
+        val nonHeap = runCatching { nonHeapBytes() }.getOrDefault(0L)
         return Sample(label, System.currentTimeMillis(), rt.totalMemory() - rt.freeMemory(), rt.totalMemory(), rt.maxMemory(), nonHeap, runCatching { processBytes() }.getOrNull())
     }
 

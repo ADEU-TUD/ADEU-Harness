@@ -49,6 +49,7 @@ data class ToolSelection(val github: Boolean, val documents: Boolean, val web: B
 
 /** The agent loop: model → tools → model … until the model answers without tool calls. */
 class AgentRunner(private val c: AppContainer) {
+    private val askUser = AskUserTool()
 
     fun environment(conv: Conversation): AgentEnvironment? = conv.envId?.let { c.environments.get(it) }
 
@@ -60,16 +61,20 @@ class AgentRunner(private val c: AppContainer) {
         val sel = tools ?: ToolSelection(conv.githubEnabled, settings.documentTools, settings.webTools)
         val env = environment(conv)
         val network = Privacy.level(c, conv.folderId).allowsNetworkTools
+        // A mode (AP-05) brings the tool groups it needs.
+        val mode = ChatModes.byId(conv.mode)?.tools.orEmpty()
         return listOfNotNull(
             c.githubTools.takeIf { sel.github && settings.hasGitHub && network },
-            c.documentTools.takeIf { sel.documents },
-            c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
-            c.researchTools.takeIf { sel.web || conv.mode == Conversation.MODE_LITERATURE },
+            c.documentTools.takeIf { sel.documents || ModeTool.DOCUMENTS in mode },
+            c.webTools.takeIf { (sel.web || ModeTool.WEB in mode) && env?.network != NetworkAccess.NONE && network },
+            c.researchTools.takeIf { sel.web || ModeTool.RESEARCH in mode },
             c.localFolderTools.takeIf {
                 io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
             },
             c.projectFolderTools.takeIf { it.active(conv.folderId) },
             c.assistantTools,
+            // Rückfragen mit Antwortknöpfen (AP-06): only in chats, where someone can answer.
+            askUser.takeIf { conv.taskId == null },
         )
     }
 
@@ -216,6 +221,8 @@ class AgentRunner(private val c: AppContainer) {
 
             runTools(host, result.toolCalls, providers, ctx)
             host.persist()
+            // After a question to the user the turn ends: the answers come as the next message (AP-06).
+            if (result.toolCalls.any { it.name == AskUserTool.NAME }) return
             steps++
             totalSteps++
             // The same tool calls several rounds in a row mean the model is stuck; continuing only burns requests.
@@ -412,9 +419,10 @@ class AgentRunner(private val c: AppContainer) {
             if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId) else null,
             if (c.projectFolderTools in providers) c.projectFolderTools.prompt(conv.folderId) else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
-            if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
+            ChatModes.byId(conv.mode)?.prompt?.ifBlank { null },
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
+            if (askUser in providers) AskUserTool.PROMPT else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
         ).joinToString("\n\n")

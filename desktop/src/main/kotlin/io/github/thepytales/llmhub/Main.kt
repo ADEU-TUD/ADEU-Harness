@@ -81,6 +81,7 @@ fun main(args: Array<String>) {
     Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
+    io.github.thepytales.llmhub.data.MemoryMeter.nonHeapBytes = { java.lang.management.ManagementFactory.getMemoryMXBean().nonHeapMemoryUsage.used }
     // AP-04: on Windows the working set of the whole process (Java + native parts) for the memory display.
     if (System.getProperty("os.name").orEmpty().startsWith("Windows")) {
         io.github.thepytales.llmhub.data.MemoryMeter.processBytes = { io.github.thepytales.llmhub.desktop.ProcessMemory.workingSet() }

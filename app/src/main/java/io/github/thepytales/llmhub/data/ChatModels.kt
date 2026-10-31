@@ -110,7 +110,7 @@ data class Conversation(
     val summary: String? = null,
     /** Last message covered by [summary]; only used while it is part of the active thread. */
     val summaryUpTo: String? = null,
-    /** Special mode of the chat: "literature" (literature search); null = normal chat. */
+    /** Special mode of the chat: the id of an agent/ChatModes entry ("literature", "planning"); null = normal chat. */
     val mode: String? = null,
     /** Temporary chat: never saved, gone when it is closed. */
     val temporary: Boolean = false,

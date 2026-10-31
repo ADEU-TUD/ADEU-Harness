@@ -70,13 +70,14 @@ internal fun greeting(name: String): String {
 }
 
 /** An example on the start page: fills the input (and possibly switches mode) or opens an area of the app. */
-internal data class ChatExample(val label: String, val text: String = "", val literature: Boolean = false, val route: String? = null)
+internal data class ChatExample(val label: String, val text: String = "", val mode: String? = null, val route: String? = null)
 
 /** A tile of the start page (AP-02): one activity, e.g. „Dateien auswerten“. */
 internal class StartTile(val label: String, val icon: ImageVector, val run: () -> Unit)
 
 internal val CHAT_EXAMPLES = listOf(
-    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", literature = true),
+    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", mode = "literature"),
+    ChatExample("Ein Vorhaben planen (Planungsmodus)", "", mode = "planning"),
     ChatExample("Literaturverzeichnis ordnen", route = "literature"),
     ChatExample("Dokument entwerfen", "Entwirf ein Dokument: "),
     ChatExample("Diagramm aus Daten", "Erstelle ein Diagramm aus diesen Daten:\n"),
@@ -112,6 +113,10 @@ internal fun EmptyChat(
     recent: List<io.github.thepytales.llmhub.data.Conversation> = emptyList(),
     favorites: List<io.github.thepytales.llmhub.data.Template> = emptyList(),
     onOpenChat: (String) -> Unit = {},
+    /** The chat's mode (AP-05): its example to tap replaces the tiles. */
+    mode: io.github.thepytales.llmhub.agent.ChatMode? = null,
+    onModeExample: (String) -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onMode: (io.github.thepytales.llmhub.agent.ChatMode) -> Unit = {},
 ) {
     val look = LocalChatLook.current
     // Templates and examples take turns, the whole library comes last.
@@ -168,7 +173,10 @@ internal fun EmptyChat(
                     Spacer(Modifier.size(16.dp))
                     IdeaRow(ideas, typing)
                 }
-                if (tiles.isNotEmpty() && roomForTiles) {
+                if (mode != null) {
+                    Spacer(Modifier.size(18.dp))
+                    ModeExample(mode, onModeExample)
+                } else if (tiles.isNotEmpty() && roomForTiles) {
                     Spacer(Modifier.size(18.dp))
                     StartTiles(tiles)
                 }
