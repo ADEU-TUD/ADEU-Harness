@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -69,11 +70,11 @@ private val CARD_LORA_WIDTH = 110.dp
 
 /**
  * Shown instead of the thinking and the tool steps while the agent works (Einstellungen › Chat & Werkzeuge ›
- * Arbeitsschritte einklappen): Lora, the mascot, acts out research things – matching the current step ([toolName],
- * [thinking]) now and then –, next to it „Lora ist dran“, the current [step] and a small pill with the number of steps
- * that opens them; a tap on Lora brings a little reaction. The card has a fixed height, so nothing jumps when the step
- * changes or the pill appears. With [hideLora] (Einstellungen › Chat & Werkzeuge › Lora ausblenden) a smaller card shows
- * the pulsing brand symbol instead.
+ * Arbeitsschritte einklappen): Lora, the mascot, acts out research things on a small lit stage – matching the current
+ * step ([toolName], [thinking]) now and then –, next to it „Lora ist dran“ with the time so far, the current [step],
+ * a small pill with the number of steps that opens them, and a fine moving line at the bottom; a tap on Lora brings a
+ * little reaction. The card has a fixed height, so nothing jumps when the step changes or the pill appears. With
+ * [hideLora] (Lora ausblenden) a smaller card shows the pulsing brand symbol instead.
  */
 @Composable
 fun WorkingCard(
@@ -86,63 +87,98 @@ fun WorkingCard(
     onToggle: (() -> Unit)?,
 ) {
     val loraHeight = CARD_LORA_WIDTH / LORA_ASPECT
+    val accent = MaterialTheme.colorScheme.primary
+    val shape = MaterialTheme.shapes.medium
+    // Seconds since the card appeared, so a long step does not look like a hang.
+    val seconds by androidx.compose.runtime.produceState(0) {
+        while (true) {
+            delay(1000)
+            value++
+        }
+    }
     Surface(
         color = LocalChatLook.current.card,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().height(if (hideLora) 64.dp else loraHeight + 12.dp),
+        border = boxBorder(),
+        shape = shape,
+        modifier = Modifier.fillMaxWidth().height(if (hideLora) 64.dp else loraHeight + 16.dp),
     ) {
-        Row(Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (hideLora) {
-                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { PulsingBrandSymbol(Modifier.size(24.dp)) }
-            } else {
-                val director = rememberLoraDirector()
-                var taps by remember { mutableIntStateOf(0) }
-                LoraFigure(
+        Box {
+            Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(
                     Modifier
-                        .size(CARD_LORA_WIDTH, loraHeight)
-                        // A tap: Lora waves, spins or has an idea – and then goes back to work.
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClickLabel = tr("Lora antippen"),
-                        ) { director.play(LORA_TAP_REACTIONS[taps++ % LORA_TAP_REACTIONS.size]) },
-                    label = tr("Lora bei der Arbeit"),
-                    director = director,
-                    hint = loraHint(toolName, thinking),
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            Column(Modifier.weight(1f)) {
-                Row(Modifier.fillMaxWidth().height(32.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        tr(if (hideLora) "Arbeitet an der Antwort" else "Lora ist dran"),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (onToggle != null && stepsCount > 0) StepsPill(stepsCount, open, onToggle)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(accent.copy(alpha = 0.04f), accent.copy(alpha = 0.12f)))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (hideLora) {
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { PulsingBrandSymbol(Modifier.size(24.dp)) }
+                    } else {
+                        val director = rememberLoraDirector()
+                        var taps by remember { mutableIntStateOf(0) }
+                        LoraFigure(
+                            Modifier
+                                .size(CARD_LORA_WIDTH, loraHeight)
+                                // A tap: Lora waves, spins or has an idea – and then goes back to work.
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClickLabel = tr("Lora antippen"),
+                                ) { director.play(LORA_TAP_REACTIONS[taps++ % LORA_TAP_REACTIONS.size]) },
+                            label = tr("Lora bei der Arbeit"),
+                            director = director,
+                            hint = loraHint(toolName, thinking),
+                        )
+                    }
                 }
-                AnimatedContent(
-                    targetState = step ?: tr("Bereitet die Antwort vor …"),
-                    transitionSpec = { (fadeIn(tween(220)) + slideInVertically(tween(220)) { it / 3 }) togetherWith fadeOut(tween(150)) },
-                    label = "step",
-                ) { text ->
-                    Text(
-                        text,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Row(Modifier.fillMaxWidth().height(32.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            tr(if (hideLora) "Arbeitet an der Antwort" else "Lora ist dran"),
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (seconds >= 3) {
+                            Text(
+                                " · " + elapsedLabel(seconds),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        if (onToggle != null && stepsCount > 0) StepsPill(stepsCount, open, onToggle)
+                    }
+                    AnimatedContent(
+                        targetState = step ?: tr("Bereitet die Antwort vor …"),
+                        transitionSpec = { (fadeIn(tween(220)) + slideInVertically(tween(220)) { it / 3 }) togetherWith fadeOut(tween(150)) },
+                        label = "step",
+                    ) { text ->
+                        Text(
+                            text,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
                 }
-                Spacer(Modifier.height(6.dp))
             }
+            androidx.compose.material3.LinearProgressIndicator(
+                color = accent.copy(alpha = 0.55f),
+                trackColor = androidx.compose.ui.graphics.Color.Transparent,
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(2.dp),
+            )
         }
     }
 }
+
+/** "12 s", "1 min 5 s". */
+internal fun elapsedLabel(seconds: Int): String =
+    if (seconds < 60) "$seconds s" else "${seconds / 60} min" + if (seconds % 60 != 0) " ${seconds % 60} s" else ""
 
 /** The brand symbol, slowly pulsing (in place of Lora while Lora is hidden). */
 @Composable
@@ -361,4 +397,11 @@ private fun BubbleTail() {
         }
         drawPath(sides, edge, style = Stroke(1.dp.toPx()))
     }
+}
+
+/** Lora standing still in [action] (no animation), e.g. as a small signature under answers. */
+@Composable
+fun LoraStill(modifier: Modifier = Modifier, action: LoraAction = LoraAction.READ, timeMs: Long = LOGO_TIME_MS) {
+    val colors = loraColors()
+    Canvas(modifier.semantics { contentDescription = "Lora" }) { drawLora(LoraFrame(action, 0.18f, timeMs, null, 1f), timeMs, colors) }
 }

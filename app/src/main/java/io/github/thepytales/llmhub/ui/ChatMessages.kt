@@ -226,21 +226,16 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
 @Composable
 fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null) {
     Box {
+        // Attachments look like the document cards (AP-01): card color, fine frame, icon on a light accent tint.
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.widthIn(max = 260.dp).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
+            color = LocalChatLook.current.card,
+            border = boxBorder(),
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.widthIn(max = 280.dp).clip(MaterialTheme.shapes.small).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
         ) {
-            Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        if (file.mime == "application/pdf") Icons.Outlined.PictureAsPdf else Icons.AutoMirrored.Outlined.InsertDriveFile,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(6.dp),
-                    )
-                }
-                Spacer(Modifier.size(8.dp))
+            Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 7.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconTile(if (file.mime == "application/pdf") Icons.Outlined.PictureAsPdf else Icons.AutoMirrored.Outlined.InsertDriveFile, size = 32.dp)
+                Spacer(Modifier.size(10.dp))
                 Column {
                     Text(file.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val info = listOfNotNull(
@@ -411,13 +406,15 @@ fun UserBubble(
 
 @Composable
 fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit) {
+    val error = MaterialTheme.colorScheme.error
     Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        shape = RoundedCornerShape(14.dp),
+        color = error.copy(alpha = 0.06f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, error.copy(alpha = 0.45f)),
+        shape = MaterialTheme.shapes.small,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(12.dp)) {
-            Text(text, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+        Column(Modifier.accentStripe(error).padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 8.dp)) {
+            Text(text, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall)
             if (canRetry) {
                 TextButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) {
                     Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -579,6 +576,10 @@ fun AssistantMessage(
                 }
                 VersionSwitcher(item.head, item.versions, !running, onSelectVersion)
                 Spacer(Modifier.weight(1f))
+                // Lora signs the answer: small and still, next to the model that wrote it.
+                if (!io.github.thepytales.llmhub.App.container.settings.current.hideLora) {
+                    LoraStill(Modifier.padding(end = 4.dp).size(26.dp, 18.dp))
+                }
                 m.model?.let {
                     Text(
                         ModelCatalog.info(it).displayName,
@@ -685,10 +686,10 @@ fun ThinkingBox(text: String, active: Boolean) {
 /** Shown while the model writes a document: opens the editor where it grows. */
 @Composable
 private fun LiveDraftCard(chatId: String) {
-    Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.size(8.dp))
+    AccentBox {
+        Row(Modifier.padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconTile(Icons.Outlined.EditNote, size = 30.dp)
+            Spacer(Modifier.size(10.dp))
             Text("Das Dokument entsteht gerade", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text("Live ansehen") }
         }
@@ -701,18 +702,18 @@ private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
     val c = io.github.thepytales.llmhub.App.container
     val all by c.literature.items.collectAsStateWithLifecycle()
     val works = all.filter { r -> r.lists.any { it.equals(list, true) } }
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
+    AccentBox {
+        Column(Modifier.padding(start = 10.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                IconTile(Icons.Outlined.MenuBook, size = 34.dp)
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Literaturliste „$list“", style = MaterialTheme.typography.titleSmall)
                     Text("${works.size} Werke · ${works.count { it.openAccessUrl.isNotBlank() }} frei zugänglich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 38.dp, top = 2.dp)) }
-            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 38.dp))
+            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 44.dp, top = 2.dp)) }
+            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 44.dp))
             TextButton(onClick = onOpen) { Text("In der Sammlung öffnen") }
         }
     }

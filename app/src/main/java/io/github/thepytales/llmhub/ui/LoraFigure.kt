@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.foundation.Canvas
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -1641,10 +1642,14 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors) {
         star(tip, 2.4f * u * (0.88f + 0.12f * pulse) * (if (pose.glow > 1f) 1.15f else 1f), c.spark.fade((0.75f + 0.25f * pulse) * min(1f, pose.glow)))
 
         // Body with a glossy highlight (it slides the other way when Lora turns).
-        drawRoundRect(c.body, Offset(cx - bw / 2, top), Size(bw, bh), CornerRadius(min(9 * u, bh / 2)))
-        drawRoundRect(
-            Color.White.copy(alpha = 0.22f), Offset(cx - bw / 2 + 2.6f * u - sideways * 2 * u, top + 1.1f * u), Size(5.5f * u, 1.5f * u), CornerRadius(0.75f * u),
-        )
+        val bodyShape = Path().apply { addRoundRect(RoundRect(cx - bw / 2, top, cx + bw / 2, top + bh, CornerRadius(min(9 * u, bh / 2)))) }
+        drawPath(bodyShape, c.body)
+        // The highlight stays on the body (at the rounded corner it would stick out).
+        clipPath(bodyShape) {
+            drawRoundRect(
+                Color.White.copy(alpha = 0.22f), Offset(cx - bw / 2 + 2.6f * u - sideways * 2 * u, top + 1.1f * u), Size(5.5f * u, 1.5f * u), CornerRadius(0.75f * u),
+            )
+        }
 
         val visorTop = top + 3.2f * u * pose.squash
         if (facing > 0.04f) {
