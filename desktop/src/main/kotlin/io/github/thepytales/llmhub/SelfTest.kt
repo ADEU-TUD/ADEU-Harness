@@ -158,9 +158,18 @@ object SelfTest {
                 }
                 check("Seitenzahl Markdown-PDF", (doc.pages ?: 0) >= 1)
             }
-            check("Daten verschlüsselt gespeichert", runCatching {
-                c().settings.update { it.copy(userName = "Test") }
-                File(LlmHubApp.context.filesDir, "secure_settings.dat").let { it.exists() && !it.readText(Charsets.ISO_8859_1).contains("Test") }
+            // AP-12: API keys and tokens are encrypted on this PC (schluessel.dat), the other settings lie readable in the
+            // (possibly synced) data folder – the key must be in neither file in plain text.
+            check("Schlüssel verschlüsselt gespeichert", runCatching {
+                val before = c().settings.current.apiKey
+                val marker = "sk-selbsttest-" + System.nanoTime()
+                c().settings.update { it.copy(apiKey = marker) }
+                val secret = File(io.github.thepytales.llmhub.desktop.Paths.machine, io.github.thepytales.llmhub.data.SECRET_FILE)
+                val plain = File(io.github.thepytales.llmhub.desktop.Paths.data, io.github.thepytales.llmhub.data.PLAIN_FILE)
+                val ok = secret.exists() && !secret.readText(Charsets.ISO_8859_1).contains(marker) &&
+                    (!plain.exists() || !plain.readText().contains(marker)) && c().settings.current.apiKey == marker
+                c().settings.update { it.copy(apiKey = before) }
+                ok
             }.getOrDefault(false))
             // Information only: depends on the PC, not on the app.
             val https = withContext(Dispatchers.IO) {

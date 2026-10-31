@@ -153,6 +153,25 @@ class SyncAndBrowserTest {
     }
 
     @Test
+    fun theSettingsStoreKeepsTheKeyOutOfTheSyncedFile() {
+        // The same way the Windows self-test checks it: the key is encrypted on the PC, the name readable in the data folder.
+        val dir = folder()
+        val store = io.github.thepytales.llmhub.data.SettingsStore(android.content.Context(File(dir, "files").apply { mkdirs() }, File(dir, "cache").apply { mkdirs() }))
+        val before = store.current
+        val marker = "sk-test-" + System.nanoTime()
+        store.update { it.copy(apiKey = marker, userName = "Name ok") }
+        val secret = File(io.github.thepytales.llmhub.desktop.Paths.machine, io.github.thepytales.llmhub.data.SECRET_FILE)
+        val plain = File(io.github.thepytales.llmhub.desktop.Paths.data, io.github.thepytales.llmhub.data.PLAIN_FILE)
+        try {
+            assertTrue(secret.exists() && marker !in secret.readText(Charsets.ISO_8859_1), "Schlüssel verschlüsselt")
+            assertTrue(plain.exists() && marker !in plain.readText() && "Name ok" in plain.readText(), "Name lesbar, Schlüssel nicht")
+            assertEquals(marker, store.current.apiKey)
+        } finally {
+            store.update { before }
+        }
+    }
+
+    @Test
     fun paperPagesBecomeReferences() {
         val html = """
             <html><head><title>Classroom management – Springer</title>
