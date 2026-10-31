@@ -31,6 +31,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -107,10 +111,13 @@ fun ChatScreen(
     val playingId by c.speaker.playingId.collectAsStateWithLifecycle()
     val environments by c.environments.items.collectAsStateWithLifecycle()
     val templates by c.templates.items.collectAsStateWithLifecycle()
+    val allChats by c.chats.conversations.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var input by rememberSaveable { mutableStateOf("") }
+    /** A mode handed over from the palette, the start page or another screen; started once the screen is ready (AP-05). */
+    var pendingMode by remember { mutableStateOf<String?>(null) }
     /** Prompt template whose fields are being filled in, and the one whose instructions go with the next message. */
     var fillingId by rememberSaveable { mutableStateOf<String?>(null) }
     var templateId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -189,6 +196,8 @@ fun ChatScreen(
     }
 
     fun useTemplate(t: Template) {
+        // „Literatur exzerpieren“ runs in the Exzerpt mode (AP-09): pages are checked, the excerpt lands at the literature entry.
+        if (t.id == io.github.thepytales.llmhub.research.Excerpts.TEMPLATE_ID && vm.state.value?.mode == null) pendingMode = io.github.thepytales.llmhub.agent.ChatModes.EXCERPT.id
         when {
             t.kind == TemplateKind.PERSONA -> vm.setSystemPrompt(t.content, t.name)
             t.fields.isNotEmpty() -> fillingId = t.id
@@ -203,7 +212,7 @@ fun ChatScreen(
         // Handed over from another screen (e.g. a transcript): text into the input field, files as attachments.
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
-                h.mode?.let { vm.setMode(it) }
+                h.mode?.let { pendingMode = it }
                 if (h.send && h.text.isNotBlank()) {
                     vm.send(h.text, h.images, h.files)
                 } else {
@@ -231,6 +240,21 @@ fun ChatScreen(
         onLoading = { loadingFiles += it },
     )
 
+    /** Starts [mode] (AP-05): the Sprachmodus opens, other modes stay on for the chat (with their model in a new chat). */
+    fun startMode(mode: io.github.thepytales.llmhub.agent.ChatMode) {
+        val conv = vm.state.value ?: return
+        if (mode.action) {
+            if (mode.id == io.github.thepytales.llmhub.agent.ChatModes.VOICE.id) platform.withMicrophone { voiceMode = true }
+            return
+        }
+        vm.setMode(mode.id)
+        mode.defaultModel?.takeIf { conv.messages.isEmpty() && Privacy.allows(c, Privacy.level(c, conv.folderId), it) }?.let { vm.setModel(it) }
+    }
+    LaunchedEffect(pendingMode) {
+        pendingMode?.let { id -> io.github.thepytales.llmhub.agent.ChatModes.byId(id)?.let(::startMode) ?: vm.setMode(id) }
+        pendingMode = null
+    }
+
     fun startRecording() {
         try {
             recorder.start()
@@ -247,6 +271,15 @@ fun ChatScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
+    // Tresor (AP-10): a vault chat shows nothing while the vault is locked; activity keeps it open.
+    if (current.vault) {
+        val vaultState by c.vault.state.collectAsStateWithLifecycle()
+        if (vaultState != io.github.thepytales.llmhub.data.VaultStore.State.UNLOCKED) {
+            VaultLockedNotice(onUnlock = { onNavigate("vault") })
+            return
+        }
+        LaunchedEffect(input, current.messages.size, running) { c.vault.touch() }
+    }
     // No notification for the chat on screen; opening it marks its result as read.
     DisposableEffect(current.id) {
         c.runs.visibleChatId = current.id
@@ -260,6 +293,8 @@ fun ChatScreen(
     val env = current.envId?.let { id -> environments.firstOrNull { it.id == id } }
     val items = remember(current.messages, current.selected) { chatItems(current) }
     val results = remember(current.messages) { current.messages.filter { it.role == "tool" }.associateBy { it.toolCallId } }
+    // Quellenmodus (AP-08): the evidence of every finished answer, checked against the sources of the chat.
+    val evidence = remember(items, current.mode, running) { if (running) emptyMap() else evidenceReports(current, items) }
     val repoLabel = when {
         !current.githubEnabled -> "Aus"
         else -> current.linkedRepos.label() ?: "An – kein festes Repository"
@@ -289,7 +324,7 @@ fun ChatScreen(
             val choice = io.github.thepytales.llmhub.agent.ModelRouter.suggest(
                 input, if (withImages) images.size else 0, files.toList(), current.githubEnabled && current.linkedRepos.isNotEmpty(), settings.defaultModel,
             )
-            val usable = Privacy.allows(c, Privacy.level(c, current.folderId), choice.model) && modelsState.liveIds?.contains(choice.model) != false
+            val usable = Privacy.allows(c, Privacy.level(c, current), choice.model) && modelsState.liveIds?.contains(choice.model) != false
             if (usable && choice.model != current.model) {
                 if (settings.autoModelAsk) {
                     autoAsk = choice to withImages
@@ -417,6 +452,10 @@ fun ChatScreen(
                 loadingFiles = loadingFiles,
                 onRemoveImage = { images.remove(it) },
                 onRemoveFile = { files.remove(it) },
+                onToggleFilePublic = { f ->
+                    val i = files.indexOf(f)
+                    if (i >= 0) files[i] = f.copy(public = !io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(f))
+                },
                 running = running,
                 recording = recording,
                 transcribing = transcribing,
@@ -460,15 +499,15 @@ fun ChatScreen(
                                 replace = { input = it },
                                 useTemplate = { useTemplate(it) },
                                 attach = { f -> files.add(f) },
-                                startLiterature = {
-                                    vm.setMode(Conversation.MODE_LITERATURE)
-                                    Notices.info("Literatursuchmodus: Thema und Kontext eingeben – der Agent sucht systematisch.")
-                                },
+                                startMode = { m -> startMode(m) },
                                 openDocs = { onNavigate("docs") },
                             )
                         }
                     )
+                    // The frame of the active mode (AP-05): chip with ✕ and one line „what happens · Daten“.
+                    io.github.thepytales.llmhub.agent.ChatModes.byId(current.mode)?.let { m -> ModeBanner(m) { vm.setMode(null) } }
                     PrivacySuggestions(c, input)
+                    ToolSuggestion(c, input, files.map { it.name })
                     MemoryLearnBar(c, current.id)
                 },
                 footnote = if (hasMessages) tr("KI kann Fehler machen. Wichtiges bitte prüfen.") else null,
@@ -476,12 +515,6 @@ fun ChatScreen(
             ) {
                 if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
-                if (current.mode == Conversation.MODE_LITERATURE) {
-                    ContextChip(Icons.Outlined.ManageSearch, "Literatursuche  ✕", {
-                        vm.setMode(null)
-                        Notices.info("Literatursuchmodus beendet – normaler Chat.")
-                    })
-                }
                 if (current.githubEnabled && settings.hasGitHub) {
                     // Quiet while nothing is chosen; highlighted once a repository is linked.
                     val repos = current.linkedRepos.label()
@@ -539,11 +572,25 @@ fun ChatScreen(
                 typing = input.isNotBlank(),
                 hideLora = settings.hideLora,
                 extra = { MemoryIntroCard(c) },
+                tiles = startTiles(
+                    onInput = { text -> input = text },
+                    onNavigate = onNavigate,
+                    onFiles = { platform.pickFiles(); if (input.isBlank()) input = tr("Werte die angehängten Dateien aus: ") },
+                    onLiterature = { startMode(io.github.thepytales.llmhub.agent.ChatModes.LITERATURE); input = tr("Finde aktuelle Literatur zum Thema: ") },
+                ),
+                recent = remember(allChats) { allChats.filter { !it.archived && it.id != current.id }.sortedByDescending { it.updatedAt }.take(3) },
+                favorites = remember(settings.favoriteTemplates, templates) {
+                    settings.favoriteTemplates.mapNotNull { TemplateLibrary.find(it, templates) }.take(4)
+                },
+                onOpenChat = { id -> onNavigate(chatRoute(id)) },
+                mode = io.github.thepytales.llmhub.agent.ChatModes.byId(current.mode),
+                onModeExample = { text -> input = text },
+                onMode = { m -> startMode(m) },
                 onExample = { e ->
                     when {
                         e.route != null -> onNavigate(e.route)
                         else -> {
-                            if (e.literature) vm.setMode(Conversation.MODE_LITERATURE)
+                            e.mode?.let { id -> io.github.thepytales.llmhub.agent.ChatModes.byId(id)?.let(::startMode) }
                             input = e.text
                         }
                     }
@@ -636,6 +683,8 @@ fun ChatScreen(
                             onQuote = { text -> quoteFrom = text },
                             onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
                             onRemember = { text -> rememberFrom = text },
+                            onAnswer = { text -> follow.value = true; vm.send(text, emptyList(), emptyList()) },
+                            evidence = evidence[item.m.id],
                             fold = collapse && !stepsOpen(item.head.id),
                             stepsLine = steps[item.head.id]?.takeIf { collapse && item.m.id == item.head.id && (it.first || it.second > 0) && !(item.head.id == runningHead && typing && !stepsOpen(item.head.id)) }?.let { (thinking, tools) ->
                                 { StepsLine(thinking, tools, stepsOpen(item.head.id)) { openSteps[item.head.id] = !stepsOpen(item.head.id) } }
@@ -800,12 +849,24 @@ fun ChatScreen(
                 }
             },
             onDismiss = { fillingId = null },
+            onInterview = { tpl, known ->
+                if (running) Notices.info(tr("Die Antwort läuft noch – bitte gleich noch einmal."))
+                else {
+                    follow.value = true
+                    vm.send(
+                        io.github.thepytales.llmhub.agent.TemplateInterview.request(tpl), images.toList(), files.toList(),
+                        instructions = io.github.thepytales.llmhub.agent.TemplateInterview.instructions(tpl, known),
+                    )
+                    images.clear()
+                    files.clear()
+                }
+            },
         )
     }
 
     if (showModelPicker) {
         ModelPickerSheet(
-            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
+            models = modelsState.ofType(ModelType.CHAT).filter { Privacy.allows(c, Privacy.level(c, current), it.id) },
             selected = current.model,
             onSelect = { vm.setModel(it); vm.setAutoModel(false) },
             onDismiss = { showModelPicker = false },
@@ -818,7 +879,7 @@ fun ChatScreen(
 
     regenerateFor?.let { question ->
         ModelPickerSheet(
-            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
+            models = modelsState.ofType(ModelType.CHAT).filter { Privacy.allows(c, Privacy.level(c, current), it.id) },
             selected = current.model,
             onSelect = { vm.regenerate(question, it) },
             onDismiss = { regenerateFor = null },
@@ -877,6 +938,15 @@ fun ChatScreen(
         ApprovalDialog(p, current.linkedRepos, onAnswer = { allow, always -> vm.answerPending(allow, always) })
     }
 }
+
+/** Tiles of the start page by activity (AP-02); the wording follows the work plan's proposal. */
+internal fun startTiles(onInput: (String) -> Unit, onNavigate: (String) -> Unit, onFiles: () -> Unit, onLiterature: () -> Unit) = listOf(
+    StartTile("Fragen & schreiben", Icons.Outlined.ChatBubbleOutline) { onInput(tr("Hilf mir beim Schreiben: ")) },
+    StartTile("TU Vorlagen", Icons.Outlined.Bookmarks) { onNavigate("templates") },
+    StartTile("Dokument erstellen", Icons.Outlined.Description) { onInput(tr("Entwirf ein Dokument: ")) },
+    StartTile("Dateien auswerten", Icons.Outlined.AttachFile) { onFiles() },
+    StartTile("Literatur finden", Icons.Outlined.MenuBook) { onLiterature() },
+)
 
 /** Maximum width of the messages and the input on wide screens (tablets, Windows), like the Claude desktop app. */
 private val CONTENT_WIDTH = 860.dp

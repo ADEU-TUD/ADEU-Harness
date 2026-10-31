@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub
 
 import android.content.Context
+import de.lokal.whisper.Speech
 import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.agent.AssistantTools
 import io.github.thepytales.llmhub.agent.ChatRuns
@@ -52,7 +53,18 @@ class AppContainer(context: Context) {
     val usage = UsageStore(files)
     val llm = LlmClient(settings, usage)
     /** Pairs of personal details and placeholders; used by [llm] when pseudonymization is on. */
-    val privacy = Pseudonymizer(File(files, "pseudonyms.json")) { settings.current }.also { llm.privacy = it }
+    val privacy = Pseudonymizer(File(files, "pseudonyms.json"), publicNames = { literatureAuthors() }) { settings.current }.also { llm.privacy = it }
+
+    /** Authors of the literature collection: public, never replaced (AP-03); recomputed only when the collection changes. */
+    private var authorCache: Pair<List<Any>, List<String>>? = null
+
+    private fun literatureAuthors(): List<String> {
+        val refs = literature.current
+        authorCache?.let { (key, names) -> if (key === refs) return names }
+        val names = refs.flatMap { r -> r.authors.filter { !it.literal }.flatMap { listOf(it.family, it.display) } }.distinct()
+        authorCache = refs to names
+        return names
+    }
     val github = GitHubClient(settings, llm.http)
     val githubTools = GitHubTools(github)
     val logos = LogoStore(files)
@@ -85,6 +97,8 @@ class AppContainer(context: Context) {
     val webTools = WebTools(llm.http)
     val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
+    /** Tresor (AP-10): encrypted chats behind an app PIN. */
+    val vault = io.github.thepytales.llmhub.data.VaultStore(files).also { chats.vault = it }
     val models = ModelsRepository(llm, settings)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
@@ -126,7 +140,37 @@ class AppContainer(context: Context) {
     val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
 
     init {
+        // Gründliche Erkennung (AP-03): the smallest installed local model lists names the rules missed.
+        privacy.thoroughFinder = finder@{ text ->
+            val model = localLlm.installedModels().minByOrNull { it.needGb }?.modelId ?: return@finder emptyList()
+            val result = llm.streamChat(
+                model = model,
+                messages = listOf(
+                    io.github.thepytales.llmhub.data.ChatMessage(role = "system", content = io.github.thepytales.llmhub.data.Pseudonymizer.THOROUGH_PROMPT),
+                    io.github.thepytales.llmhub.data.ChatMessage(role = "user", content = text),
+                ),
+                tools = null,
+                thinking = io.github.thepytales.llmhub.net.ThinkingLevel.OFF,
+            ) { }
+            io.github.thepytales.llmhub.data.Pseudonymizer.parseThorough(result.content)
+        }
+    }
+
+    /** Background work of the container itself (memory care, AP-04). */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
         App.container = this
+        // AP-04: measuring points and release of speech models that nobody used for a few minutes.
+        io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
+        scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }
+        // The vault locks itself after its idle time (AP-10).
+        scope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(20_000)
+                vault.lockIfIdle()
+            }
+        }
     }
 }
 

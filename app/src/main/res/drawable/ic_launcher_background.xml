@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- TU blue with a light diagonal gradient. -->
+<!-- Light lavender with a soft diagonal gradient (behind Lora, see ic_launcher.xml). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
@@ -14,8 +14,8 @@
                 android:startY="0"
                 android:endX="108"
                 android:endY="108">
-                <item android:offset="0" android:color="#FF0A0AA0" />
-                <item android:offset="1" android:color="#FF00006E" />
+                <item android:offset="0" android:color="#FFF6F4FF" />
+                <item android:offset="1" android:color="#FFDCD6FF" />
             </gradient>
         </aapt:attr>
     </path>

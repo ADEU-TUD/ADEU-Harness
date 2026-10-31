@@ -20,9 +20,11 @@ import java.io.File
  * Persists conversations as one JSON file each in the app's private storage.
  *
  * The list in [conversations] is kept light: attached images (the bulk of a chat, as data URLs) are replaced by
- * [IMAGE_STUB] there, so hundreds of chats with pictures do not fill the memory. [get] returns the full chat (from a
- * small cache or the file), and [save] puts stubbed images back from the stored version, so a light copy can never
- * overwrite pictures.
+ * [IMAGE_STUB] there, and long texts that only the open chat needs – attached documents (up to 120 000 characters),
+ * tool results and thinking – are cut to a short start with [TEXT_STUB] (AP-04), so hundreds of chats do not fill the
+ * memory. The list is enough for the side menu, the search over questions and answers and the memory. [get] returns
+ * the full chat (from a small cache or the file), and [save] puts stubbed parts back from the stored version, so a
+ * light copy can never overwrite them.
  */
 class ChatRepository(context: Context) {
     private val dir = File(context.filesDir, "conversations").apply { mkdirs() }
@@ -54,7 +56,8 @@ class ChatRepository(context: Context) {
             val all = dir.listFiles { f -> f.extension == "json" || f.name.endsWith(".json.tmp") }.orEmpty()
                 .map { if (it.name.endsWith(".tmp")) File(dir, it.name.removeSuffix(".tmp")) else it }
                 .distinct()
-                .mapNotNull { f -> readFile(f) }
+                // Each chat is made light right after reading, so the full texts of all chats are never in memory at once.
+                .mapNotNull { f -> readFile(f)?.light() }
             // Chats that were opened but never used are not worth keeping (after a day, so a crash right after
             // creating a chat in a project does not lose its settings).
             val dayAgo = System.currentTimeMillis() - 24 * 3600_000L
@@ -62,7 +65,7 @@ class ChatRepository(context: Context) {
             empty.forEach { File(dir, "${it.id}.json").delete() }
             _conversations.update { current ->
                 // Keep chats saved while loading (e.g. by a background task).
-                (current + used.filter { u -> current.none { it.id == u.id } }.map { it.light() }).sortedByDescending { it.updatedAt }
+                (current + used.filter { u -> current.none { it.id == u.id } }).sortedByDescending { it.updatedAt }
             }
             _loaded.value = true
             purgeTrash()
@@ -80,8 +83,16 @@ class ChatRepository(context: Context) {
         loaded.first { it }
     }
 
+    /**
+     * The vault (AP-10): its chats are kept and written there, encrypted – never in [conversations] or the files of
+     * this folder, so they stay out of the chat list, the search, the memory and suggestions.
+     */
+    @Volatile
+    var vault: VaultStore? = null
+
     /** The full chat with all images, or null if there is none with this id. */
     fun get(id: String): Conversation? {
+        vault?.get(id)?.let { return it }
         synchronized(full) { full[id] }?.let { return it }
         if (_conversations.value.none { it.id == id }) return null
         synchronized(pending) { pending[id] }?.let { return it }
@@ -91,7 +102,11 @@ class ChatRepository(context: Context) {
     }
 
     fun save(conversation: Conversation) {
-        val complete = if (conversation.hasStubs()) restoreImages(conversation) else conversation
+        if (conversation.vault) {
+            vault?.save(conversation)
+            return
+        }
+        val complete = if (conversation.hasStubs()) restoreStubs(conversation) else conversation
         synchronized(full) { full[complete.id] = complete }
         _conversations.update { list ->
             (list.filterNot { it.id == complete.id } + complete.light()).sortedByDescending { it.updatedAt }
@@ -112,13 +127,24 @@ class ChatRepository(context: Context) {
         synchronized(pending) { pending.keys.toList() }.forEach(::write)
     }
 
-    /** Puts the images of the stored version back where [c] only has stubs. */
-    private fun restoreImages(c: Conversation): Conversation {
+    /** Puts images and long texts of the stored version back where [c] only has stubs. */
+    private fun restoreStubs(c: Conversation): Conversation {
         val stored = (synchronized(full) { full[c.id] } ?: synchronized(pending) { pending[c.id] } ?: readFile(File(dir, "${c.id}.json")))
             ?.messages?.associateBy { it.id }.orEmpty()
         return c.copy(messages = c.messages.map { m ->
-            if (m.images.none { it == IMAGE_STUB }) m
-            else m.copy(images = stored[m.id]?.images?.takeIf { it.size == m.images.size } ?: m.images.filter { it != IMAGE_STUB })
+            val old = stored[m.id]
+            var out = m
+            if (m.images.any { it == IMAGE_STUB }) {
+                out = out.copy(images = old?.images?.takeIf { it.size == m.images.size } ?: m.images.filter { it != IMAGE_STUB })
+            }
+            if (m.content.endsWith(TEXT_STUB)) out = out.copy(content = old?.content ?: m.content.removeSuffix(TEXT_STUB))
+            if (m.reasoning?.endsWith(TEXT_STUB) == true) out = out.copy(reasoning = old?.reasoning ?: m.reasoning.removeSuffix(TEXT_STUB))
+            if (m.files.any { it.text.endsWith(TEXT_STUB) }) {
+                out = out.copy(files = m.files.mapIndexed { i, f ->
+                    if (!f.text.endsWith(TEXT_STUB)) f else old?.files?.getOrNull(i)?.takeIf { it.name == f.name } ?: f.copy(text = f.text.removeSuffix(TEXT_STUB))
+                })
+            }
+            out
         })
     }
 
@@ -132,6 +158,10 @@ class ChatRepository(context: Context) {
      * is emptied.
      */
     fun delete(id: String) {
+        vault?.takeIf { it.contains(id) }?.let { v ->
+            v.delete(id)
+            return
+        }
         _conversations.update { list -> list.filterNot { it.id == id } }
         synchronized(full) { full.remove(id) }
         scope.launch {
@@ -185,13 +215,35 @@ class ChatRepository(context: Context) {
     companion object {
         /** Placeholder for an image in the light list (see class comment). */
         const val IMAGE_STUB = "stub:"
+        /** End of a text that was cut in the light list (see class comment). */
+        const val TEXT_STUB = "\u2063⟪gekürzt⟫"
+        /** Texts up to this length stay whole in the list. */
+        internal const val KEEP_CHARS = 3000
         const val TRASH_DAYS = 30
         private const val FULL_CACHE = 8
     }
 }
 
-private fun Conversation.hasStubs() = messages.any { m -> m.images.any { it == ChatRepository.IMAGE_STUB } }
+private fun Conversation.hasStubs() = messages.any { m ->
+    m.images.any { it == ChatRepository.IMAGE_STUB } || m.content.endsWith(ChatRepository.TEXT_STUB) ||
+        m.reasoning?.endsWith(ChatRepository.TEXT_STUB) == true || m.files.any { it.text.endsWith(ChatRepository.TEXT_STUB) }
+}
 
-private fun Conversation.light(): Conversation =
-    if (messages.none { it.images.isNotEmpty() }) this
-    else copy(messages = messages.map { m -> if (m.images.isEmpty()) m else m.copy(images = m.images.map { ChatRepository.IMAGE_STUB }) })
+private fun String.cut(keep: Int): String = if (length <= ChatRepository.KEEP_CHARS) this else take(keep) + ChatRepository.TEXT_STUB
+
+/** The chat as kept in the list: images as stubs, long attachments, tool results and thinking cut (see class comment). */
+internal fun Conversation.light(): Conversation {
+    val heavy = messages.any { m ->
+        m.images.isNotEmpty() || m.files.any { it.text.length > ChatRepository.KEEP_CHARS } ||
+            m.role == "tool" && m.content.length > ChatRepository.KEEP_CHARS || (m.reasoning?.length ?: 0) > ChatRepository.KEEP_CHARS
+    }
+    if (!heavy) return this
+    return copy(messages = messages.map { m ->
+        m.copy(
+            images = if (m.images.isEmpty()) m.images else m.images.map { ChatRepository.IMAGE_STUB },
+            files = m.files.map { f -> if (f.text.length > ChatRepository.KEEP_CHARS) f.copy(text = f.text.cut(1500)) else f },
+            content = if (m.role == "tool") m.content.cut(1500) else m.content,
+            reasoning = m.reasoning?.cut(800),
+        )
+    })
+}

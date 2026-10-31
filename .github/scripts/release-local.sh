@@ -62,6 +62,11 @@ main="$(cd "$jars" && ls ADEU-LLM-Desktop*.jar | head -1)"
   echo "java-options=-Dfile.encoding=UTF-8"
   echo "java-options=-Dsun.stdout.encoding=UTF-8"
   echo "java-options=-Xss4m"
+  # Memory (AP-04, same list as MEMORY_JVM_ARGS in desktop/build.gradle.kts): fixed limit, free heap back to Windows.
+  for opt in -Xms64m -Xmx1536m -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 \
+    -XX:+UseStringDeduplication -XX:SoftRefLRUPolicyMSPerMB=200; do
+    echo "java-options=$opt"
+  done
   echo "java-options=-Dskiko.library.path=\$APPDIR"
 } | sed 's/$/\r/' > "$app/ADEU LLM.cfg"
 # The Skia library inside the jar must match the DLL next to it.

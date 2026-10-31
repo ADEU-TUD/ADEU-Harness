@@ -28,6 +28,8 @@ object SelfTest {
         "settings", "settings/api", "settings/github", "settings/chat", "settings/appearance", "settings/voice",
         "settings/documents", "settings/windows", "settings/privacy", "settings/memory", "settings/knowledge", "settings/backup",
         "settings/transcription", "settings/updates", "local-models", "transcripts",
+        // AP-07 to AP-11: Lora, tools, vault, PDF toolbox.
+        "settings/lora", "settings/tools", "vault", "pdf",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

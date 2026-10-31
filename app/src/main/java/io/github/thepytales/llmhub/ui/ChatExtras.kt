@@ -106,7 +106,7 @@ fun inputSuggestions(
     replace: (String) -> Unit,
     useTemplate: (Template) -> Unit,
     attach: (FileAttachment) -> Unit,
-    startLiterature: () -> Unit,
+    startMode: (io.github.thepytales.llmhub.agent.ChatMode) -> Unit,
     openDocs: () -> Unit,
 ): List<InputSuggestion> {
     val (kind, query) = trigger(input) ?: return emptyList()
@@ -115,7 +115,10 @@ fun inputSuggestions(
     fun matches(name: String) = q.isEmpty() || norm(name).contains(q)
     val out = mutableListOf<InputSuggestion>()
     if (kind == '/') {
-        if (matches("Literatursuche")) out += InputSuggestion(Icons.Outlined.ManageSearch, "/Literatursuche", "Agent sucht Literatur zu einem Thema") { replace(before); startLiterature() }
+        // Every mode (AP-05) by its command.
+        io.github.thepytales.llmhub.agent.ChatModes.matching(query).forEach { m ->
+            out += InputSuggestion(m.iconVector(), "/" + m.command, m.explain) { replace(before); startMode(m) }
+        }
         if (matches("Dokumente")) out += InputSuggestion(Icons.Outlined.Description, "/Dokumente", "Dokument-Editor öffnen") { replace(before); openDocs() }
         snippets.filter { matches(it.name) }.take(5).forEach { s ->
             out += InputSuggestion(Icons.Outlined.ShortText, "/" + s.name, s.text.take(60).replace('\n', ' ')) { replace(before + s.text) }

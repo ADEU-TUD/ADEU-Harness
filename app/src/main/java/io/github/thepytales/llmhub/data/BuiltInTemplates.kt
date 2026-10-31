@@ -591,10 +591,11 @@ internal object BuiltInTemplates {
             Eigene Fragestellung: {{Fragestellung|wofür ist der Text relevant?}}
             Schwerpunkt: {{Schwerpunkt|optional, z.B. Methode, Befunde, Begriffe}}
             """,
-            "Exzerpiere den angehängten Text: bibliografische Angabe (nur aus dem Text), Fragestellung, theoretischer Rahmen " +
-                "und zentrale Begriffe, Design, Methode und Stichprobe, Befunde mit Seitenangaben, Limitationen, Relevanz für " +
-                "die eigene Fragestellung, zitierfähige Kernaussagen mit Seitenzahl. Trenne klar zwischen Aussagen des Textes " +
-                "und eigener Einschätzung. Ist kein Text angehängt, bitte darum. " + ACADEMIC + HONEST,
+            "Exzerpiere den angehängten Text nach dem Schema seiner Textart (empirisch, theoretisch, Review, Buchkapitel): " +
+                "bibliografische Angabe (nur aus dem Text), Fragestellung, theoretischer Rahmen und zentrale Begriffe, Design, " +
+                "Methode und Stichprobe, Befunde mit Seitenangaben, Limitationen, Relevanz für die eigene Fragestellung, " +
+                "wörtliche Zitate als „…“ (S. N). Trenne klar zwischen Aussagen des Textes und eigener Einschätzung. Speichere " +
+                "das Exzerpt danach mit save_excerpt, wenn verfügbar. Ist kein Text angehängt, bitte darum. " + ACADEMIC + HONEST,
         ),
         prompt(
             TemplateCategory.RESEARCH, "res_proposal", "Projektskizze / Antrag", "Gliederung und Entwurf für einen Förderantrag",

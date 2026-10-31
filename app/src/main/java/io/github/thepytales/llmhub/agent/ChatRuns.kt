@@ -159,6 +159,12 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
 
     /** Tells the user that an answer is ready: in the app as banner, otherwise as notification. */
     private fun announce(conv: Conversation) {
+        // Vault chats (AP-10): no title and no text outside the vault, not even in a notification.
+        if (conv.vault) {
+            if (AppState.foreground) c.events.tryEmit(ResultEvent("Tresor", conv.id, "Antwort fertig"))
+            else Notifier.chatFinished(context, "Tresor", conv.id, null, null)
+            return
+        }
         val last = conv.thread().lastOrNull { it.role == "assistant" }
         val error = last?.takeIf { it.error }?.content?.take(200)
         if (AppState.foreground) {

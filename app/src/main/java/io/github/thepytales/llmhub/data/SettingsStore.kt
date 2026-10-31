@@ -118,7 +118,32 @@ data class AppSettings(
     val autoModel: Boolean = false,
     /** Automatic model choice: ask before a request goes to another model than the current one. */
     val autoModelAsk: Boolean = true,
+    /** Big tools switched on under Einstellungen › Werkzeuge: ids of data/AppTool, one per line (all off at first). */
+    val enabledTools: String = "",
+    /** Areas of the side menu shown on top (ids of ui/DrawerArea, one per line); the rest is under „Mehr“. */
+    val drawerTop: String = DEFAULT_DRAWER_TOP,
+    /** „Mehr“ in the side menu is unfolded. */
+    val drawerMoreOpen: Boolean = false,
+    /** Where Lora appears: EVERYWHERE (start page, chat, settings …), CHAT (only in the chat) or OFF. */
+    val loraMode: String = "EVERYWHERE",
+    /** Model of Lora, the navigator (short answers, thinking off). */
+    val loraModel: String = ModelCatalog.FAST_CHAT,
+    /** Lora moves less (no hopping, no walking across the card). */
+    val loraCalm: Boolean = false,
+    /** Lora may give a one-time hint per area (e.g. that a tool exists). */
+    val loraHints: Boolean = true,
+    /** The two questions of the first start (Lora, visible tools) were answered or skipped. */
+    val loraIntroDone: Boolean = false,
+    /** Texts from public sources (web search, books and papers with ISBN/DOI, the literature collection) stay as they are. */
+    val pseudonymPublic: Boolean = true,
+    /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
+    val pseudonymThorough: Boolean = false,
 ) {
+    /** Tools switched on (see data/AppTool). */
+    val enabledToolIds: Set<String> get() = enabledTools.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+    fun toolOn(id: String) = id in enabledToolIds
+
     /** Parts of the pseudonymization that are switched off (Einstellungen › Datenschutz). */
     val pseudonymOffFeatures: Set<PiiFeature>
         get() = pseudonymOff.lines().mapNotNull { l -> PiiFeature.entries.firstOrNull { it.name == l.trim() } }.toSet()
@@ -138,6 +163,7 @@ data class AppSettings(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
+        const val DEFAULT_DRAWER_TOP = "templates\nliterature\ntranscripts"
         const val DEFAULT_TUD_UNIT = "Fakultät Erziehungswissenschaften\nInstitut für Erziehungswissenschaft\n" +
             "Professur für Allgemeine Didaktik und Empirische Unterrichtsforschung"
     }
@@ -243,6 +269,16 @@ class SettingsStore(context: Context) {
             .putBoolean("memoryIntroDone", next.memoryIntroDone)
             .putBoolean("autoModelAsk", next.autoModelAsk)
             .putBoolean("autoModel", next.autoModel)
+            .putString("enabledTools", next.enabledTools)
+            .putString("drawerTop", next.drawerTop)
+            .putBoolean("drawerMoreOpen", next.drawerMoreOpen)
+            .putString("loraMode", next.loraMode)
+            .putString("loraModel", next.loraModel)
+            .putBoolean("loraCalm", next.loraCalm)
+            .putBoolean("loraHints", next.loraHints)
+            .putBoolean("loraIntroDone", next.loraIntroDone)
+            .putBoolean("pseudonymPublic", next.pseudonymPublic)
+            .putBoolean("pseudonymThorough", next.pseudonymThorough)
             .apply()
     }
 
@@ -313,6 +349,17 @@ class SettingsStore(context: Context) {
             memoryIntroDone = prefs.getBoolean("memoryIntroDone", d.memoryIntroDone),
             autoModelAsk = prefs.getBoolean("autoModelAsk", d.autoModelAsk),
             autoModel = prefs.getBoolean("autoModel", d.autoModel),
+            enabledTools = prefs.getString("enabledTools", d.enabledTools) ?: d.enabledTools,
+            drawerTop = prefs.getString("drawerTop", d.drawerTop) ?: d.drawerTop,
+            drawerMoreOpen = prefs.getBoolean("drawerMoreOpen", d.drawerMoreOpen),
+            // „Lora ausblenden“ became Lora: aus.
+            loraMode = prefs.getString("loraMode", null) ?: if (prefs.getBoolean("hideLora", false)) "OFF" else d.loraMode,
+            loraModel = prefs.getString("loraModel", d.loraModel) ?: d.loraModel,
+            loraCalm = prefs.getBoolean("loraCalm", d.loraCalm),
+            loraHints = prefs.getBoolean("loraHints", d.loraHints),
+            loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
+            pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
+            pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
         )
     }
 

@@ -7,6 +7,15 @@ plugins {
     id("org.jetbrains.compose") version "1.7.3"
 }
 
+/**
+ * Java memory of the Windows app (AP-04): limit 1.5 GB (large PDFs and transcripts fit), free memory goes back to the
+ * system, duplicate strings (chat texts) are shared. Also written into "ADEU LLM.cfg" by .github/scripts/release-local.sh.
+ */
+val MEMORY_JVM_ARGS = listOf(
+    "-Xms64m", "-Xmx1536m", "-XX:+UseG1GC", "-XX:G1PeriodicGCInterval=60000", "-XX:MinHeapFreeRatio=10",
+    "-XX:MaxHeapFreeRatio=30", "-XX:+UseStringDeduplication", "-XX:SoftRefLRUPolicyMSPerMB=200",
+)
+
 /** Same version scheme as the APK: 1.0.<build number>. */
 val appVersion = System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
 
@@ -102,6 +111,9 @@ compose.desktop {
     application {
         mainClass = "io.github.thepytales.llmhub.MainKt"
         jvmArgs += listOf("-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Xss4m")
+        // AP-04: a fixed upper limit instead of a quarter of the RAM, and free heap goes back to Windows while idle
+        // (G1 collects every minute when nothing happens, keeps at most 30 % free). The same list is in release-local.sh.
+        jvmArgs += MEMORY_JVM_ARGS
 
         nativeDistributions {
             appResourcesRootDir.set(layout.buildDirectory.dir("speech/desktop"))

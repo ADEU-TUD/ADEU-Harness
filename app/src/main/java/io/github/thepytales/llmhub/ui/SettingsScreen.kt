@@ -75,26 +75,36 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-internal fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(title)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+internal fun SwitchRow(title: String, subtitle: String, checked: Boolean, spot: String? = null, onChange: (Boolean) -> Unit) {
+    val row: @Composable () -> Unit = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Switch(checked = checked, onCheckedChange = onChange)
         }
-        Switch(checked = checked, onCheckedChange = onChange)
     }
+    if (spot != null) Spot(spot) { row() } else row()
 }
 
 /** Settings as a clear list of sections (like the ChatGPT app); [section] opens one of them. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavigate: (String) -> Unit) {
-    Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(settingsTitle(section)) }) }) { pad ->
+    Scaffold(
+        topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(settingsTitle(section)) }) },
+        // Lora schläft unten rechts – ein Tipp weckt sie (AP-07).
+        floatingActionButton = { LoraHelperButton(c) },
+    ) { pad ->
         ReadableColumn(pad) {
             when (section) {
                 "api" -> ApiSection(c)
+                "lora" -> LoraSettings(c)
                 "github" -> GitHubSection(c)
                 "chat" -> ChatSection(c)
+                "tools" -> ToolsSection(c)
+                "ram" -> MemoryUsageSection(c)
                 "privacy" -> PrivacySection(c)
                 "appearance" -> AppearanceSettings(c)
                 "transcription" -> TranscriptionSettings(c)
@@ -248,14 +258,18 @@ private fun ChatSection(c: AppContainer) {
     val models by c.models.state.collectAsStateWithLifecycle()
     var showModelPicker by remember { mutableStateOf(false) }
     Section("Neue Chats") {
-        OutlinedButton(onClick = { showModelPicker = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}" + if (s.autoModel) " · Automatisch" else "")
+        Spot("chat.defaultModel") {
+            OutlinedButton(onClick = { showModelPicker = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}" + if (s.autoModel) " · Automatisch" else "")
+            }
         }
         SwitchRow(
-            "Modell automatisch wählen",
+            spot = "chat.autoModel",
+            title = "Modell automatisch wählen",
+            subtitle =
             "Neue Chats starten mit „Automatisch“: Je Anfrage schlägt die App das passende Modell vor – Bilder und Alltag: " +
                 "Standardmodell, Programmieren: Qwen, schwierige Analysen: GLM-5.3, sehr lange Dokumente: GLM-5.3 Flash.",
-            s.autoModel,
+            checked = s.autoModel,
         ) { v -> c.settings.update { it.copy(autoModel = v) } }
         if (s.autoModel) {
             SwitchRow(
@@ -265,12 +279,12 @@ private fun ChatSection(c: AppContainer) {
             ) { v -> c.settings.update { it.copy(autoModelAsk = v) } }
         }
         val thinking = ThinkingLevel.parse(s.thinkingLevel)
-        DropdownField(
+        Spot("chat.thinking") { DropdownField(
             label = "Denkstufe (Reasoning)",
             value = thinking.label,
             options = ThinkingLevel.entries.map { it.label },
             onSelect = { v -> c.settings.update { it.copy(thinkingLevel = ThinkingLevel.entries.first { e -> e.label == v }.name) } },
-        )
+        ) }
         Text(
             thinking.description + " Gilt für Modelle mit Denkmodus (DeepSeek, GLM, Qwen, gpt-oss …). Unterstützt der Server " +
                 "die Einstellung für ein Modell nicht, antwortet es mit seinem Standard.",
@@ -286,9 +300,11 @@ private fun ChatSection(c: AppContainer) {
             s.documentTools,
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(
-            "Websuche, Webseiten & Quellen-Check",
+            spot = "chat.web",
+            title = "Websuche, Webseiten & Quellen-Check",
+            subtitle =
             "Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.",
-            s.webTools,
+            checked = s.webTools,
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
     Section("Agent") {
@@ -305,18 +321,15 @@ private fun ChatSection(c: AppContainer) {
             s.autoContinue,
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         SwitchRow(
-            "Arbeitsschritte einklappen",
+            spot = "chat.collapse",
+            title = "Arbeitsschritte einklappen",
+            subtitle =
             "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt Lora, das Maskottchen der " +
                 "App, den aktuellen Schritt; die Zahl daneben klappt alle Schritte jederzeit auf.",
-            s.collapseSteps,
+            checked = s.collapseSteps,
         ) { v -> c.settings.update { it.copy(collapseSteps = v) } }
-        SwitchRow(
-            tr("Lora ausblenden"),
-            tr("Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben."),
-            s.hideLora,
-        ) { v -> c.settings.update { it.copy(hideLora = v) } }
     }
-    Section("Freigaben") { ApprovalModeOptions(c) }
+    Spot("chat.approvals") { Section("Freigaben") { ApprovalModeOptions(c) } }
     ReliabilitySection(c)
     Section("Erweitert") {
         OutlinedTextField(
@@ -360,7 +373,7 @@ private fun VoiceSection(c: AppContainer) {
                 "arbeitet komplett offline.",
             style = MaterialTheme.typography.bodySmall,
         )
-        listOf(
+        Spot("voice.engine") { Column { listOf(
             Triple("SERVER", "KI-Stimme (Uni-Server)", "Sehr natürlich klingende neuronale Stimmen; braucht Internet."),
             Triple("DEVICE", "$DEVICE_VOICE_TITLE (offline)", DEVICE_VOICE_DESCRIPTION),
         ).forEach { (key, label, desc) ->
@@ -374,7 +387,7 @@ private fun VoiceSection(c: AppContainer) {
                     Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-        }
+        } } }
         if (s.ttsEngine == "DEVICE") {
             when {
                 voices == null -> CircularProgressIndicator(Modifier.size(24.dp))

@@ -74,23 +74,15 @@ fun DocumentCard(path: String) {
     val exists = remember(path, version) { file.exists() }
     var accessibility by remember(path) { mutableStateOf(false) }
     if (accessibility) AccessibilityDialog(io.github.thepytales.llmhub.App.container, file, onDismiss = { accessibility = false })
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
+    // Same card as attachments and links in the chat (AP-01): fine frame, accent bar, icon on a light tint.
+    AccentBox {
+        Column(Modifier.padding(start = 10.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable(enabled = exists) { openDocument(context, file) },
             ) {
-                Icon(
-                    if (format == DocFormat.PDF) Icons.Outlined.PictureAsPdf else Icons.Outlined.Description,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp),
-                )
-                Spacer(Modifier.size(10.dp))
+                IconTile(if (format == DocFormat.PDF) Icons.Outlined.PictureAsPdf else Icons.Outlined.Description, size = 38.dp)
+                Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(file.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
@@ -111,6 +103,10 @@ fun DocumentCard(path: String) {
                         Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
                         Text(primaryLabel(file))
+                    }
+                    // A PDF (e.g. made fillable by the agent) opens in the PDF-Werkzeugkasten when it is switched on (AP-11).
+                    if (file.extension.equals("pdf", ignoreCase = true) && io.github.thepytales.llmhub.App.container.settings.current.toolOn("pdf")) {
+                        TextButton(onClick = { PdfHandoff.open(file.absolutePath, 1, file.name) }) { Text(tr("Werkzeugkasten")) }
                     }
                     TextButton(onClick = { shareDocument(context, file) }) {
                         Icon(ShareDoc.icon, contentDescription = null, modifier = Modifier.size(16.dp))

@@ -15,7 +15,14 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 
-data class Param(val name: String, val description: String, val required: Boolean = true, val type: String = "string")
+data class Param(
+    val name: String,
+    val description: String,
+    val required: Boolean = true,
+    val type: String = "string",
+    /** Full JSON schema of the parameter (arrays of objects, see AskUserTool); replaces [type]. */
+    val schema: JsonObject? = null,
+)
 
 data class ToolDef(
     val name: String,
@@ -154,7 +161,8 @@ fun List<ToolDef>.toSchema(): JsonArray = buildJsonArray {
                     put("type", "object")
                     putJsonObject("properties") {
                         d.params.forEach { p ->
-                            putJsonObject(p.name) {
+                            if (p.schema != null) put(p.name, JsonObject(p.schema + ("description" to JsonPrimitive(p.description))))
+                            else putJsonObject(p.name) {
                                 put("type", p.type)
                                 put("description", p.description)
                             }

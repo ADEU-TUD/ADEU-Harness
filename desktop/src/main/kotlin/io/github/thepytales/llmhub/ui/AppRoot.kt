@@ -179,6 +179,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // A PDF to open in the PDF-Werkzeugkasten (evidence of the Quellenmodus, a document card); the screen takes it.
+    val pdfRequest by PdfHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(pdfRequest) {
+        if (pdfRequest != null && nav.current.base != "pdf") nav.navigate("pdf")
+    }
+
     // Documents opened from a card, the literature screen or a chat answer (the chat shows them beside it when wide).
     val docRequest by DocsHandoff.request.collectAsStateWithLifecycle()
     LaunchedEffect(docRequest) {
@@ -243,6 +249,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         )
     }
     if (shortcuts) ShortcutsDialog(onDismiss = { shortcuts = false })
+    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    LoraHelperHost(c) { r -> if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) }
 
     /** Width of the side menu; the line beside it can be dragged. */
     var menuWidth by remember { mutableStateOf(318.dp) }
@@ -360,6 +368,8 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "literature" -> LiteratureScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) }, onSettings = { nav.navigate("settings/literature") })
         "docs" -> DocsListScreen(c, onBack = back, onOpen = { id -> nav.navigate("doc/$id") })
         "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+        "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+        "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

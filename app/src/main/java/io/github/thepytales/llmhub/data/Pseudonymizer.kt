@@ -32,7 +32,15 @@ data class Pseudonym(val value: String, val kind: PiiKind, val n: Int, val alias
  * send their arguments to the internet). The pairs are kept on the device, so the same person has the same
  * placeholder in every request (and, with „Platzhalter je Chat“, within a chat).
  */
-class Pseudonymizer(private val file: File, private val settings: () -> AppSettings) {
+class Pseudonymizer(
+    private val file: File,
+    /** Names that are public and never replaced, e.g. the authors of the literature collection (AP-03). */
+    private val publicNames: () -> Collection<String> = { emptyList() },
+    private val userSettings: () -> AppSettings,
+) {
+    /** The settings of the user – or the strict ones inside the vault (see [STRICT]). */
+    private fun settings(): AppSettings = userSettings().let { if (STRICT.get() == true) strict(it) else it }
+
     private val json = Json { ignoreUnknownKeys = true }
     private val chatsFile = File(file.parentFile, file.nameWithoutExtension + "-chats.json")
     private var entries: List<Pseudonym> = load()
@@ -63,10 +71,19 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
     /** Forgets [value] and its other spellings (Einstellungen › Datenschutz › Zuordnungen). */
     @Synchronized
     fun remove(value: String) {
-        val hit = entries.firstOrNull { it.value == value } ?: return
-        entries = entries.filterNot { it.kind == hit.kind && it.n == hit.n }
+        entries.firstOrNull { it.value == value }?.let { hit ->
+            entries = entries.filterNot { it.kind == hit.kind && it.n == hit.n }
+            save()
+        }
+        // The chats' own lists too, so a correction („nicht ersetzen“) holds everywhere.
+        var changed = false
+        for ((k, list) in scoped.entries.toList()) {
+            val hit = list.firstOrNull { it.value == value } ?: continue
+            scoped[k] = list.filterNot { it.kind == hit.kind && it.n == hit.n }
+            changed = true
+        }
+        if (changed) saveScoped()
         patterns.clear()
-        save()
     }
 
     private fun load(): List<Pseudonym> = runCatching {
@@ -95,8 +112,51 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
     private fun ownTerms(): List<String> = settings().pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }
     private fun ignored(): List<String> = settings().pseudonymIgnore.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
-    /** What [text] contains, with the switches of the settings. */
-    fun detect(text: String): List<PiiHit> = PiiDetector.find(text, ownTerms(), settings().pseudonymAuto, off(), ignored())
+    /** What [text] contains, with the switches of the settings; public names (authors, „Nie ersetzen“) are left out. */
+    fun detect(text: String): List<PiiHit> {
+        val ex = exemptions(text)
+        val never = ignored().map { it.lowercase() }.toSet()
+        return PiiDetector.find(text, ownTerms(), settings().pseudonymAuto, off(), ignored() + ex.names).filterNot { h ->
+            exempt(h.value, ex) ||
+                // "Jolina Kretzschmann" with „Kretzschmann“ on the „Nie ersetzen“ list: only „Jolina“ is replaced.
+                h.kind.person && ' ' in h.value && h.value.lowercase() !in ex.own && h.value.lowercase().split(' ').any { it in never }
+        }
+    }
+
+    /**
+     * What stays as it is in [text] (AP-03): the „Nie ersetzen“ list, and with „Öffentliche Quellen“ the authors of the
+     * literature collection and the authors cited in the text. The own list always wins.
+     */
+    class Exemptions(val names: Set<String>, val surnames: Set<String>, val own: Set<String>)
+
+    private fun exemptions(text: String): Exemptions {
+        val s = settings()
+        val names = LinkedHashSet<String>()
+        if (s.pseudonymPublic) {
+            names += PiiDetector.citedAuthors(text)
+            publicNames().forEach { n -> n.trim().takeIf { it.length >= 2 }?.let { names += it } }
+        }
+        val surnames = names.map { it.substringAfterLast(' ') }.filter { it.length >= 3 }.toSet()
+        val own = ownTerms().flatMap { t -> listOf(t) + t.split(Regex("\\s+")) }.map { it.lowercase() }.toSet()
+        return Exemptions(names.map { it.lowercase() }.toSet(), surnames.map { it.lowercase() }.toSet(), own)
+    }
+
+    /**
+     * Whether [value] is public: on the „Nie ersetzen“ list, a known author, or a surname of one („Müller“ for
+     * „Müller (2020)“); a full name only if first name or initial fit („A. Müller“, „Anna Müller“ with „Müller, A.“).
+     */
+    private fun exempt(value: String, ex: Exemptions): Boolean {
+        val v = value.lowercase()
+        if (v in ex.own) return false
+        if (ignored().any { it.lowercase() == v }) return true
+        if (v in ex.names) return true
+        val words = v.split(' ').filter { it.isNotEmpty() }
+        if (words.size == 1) return v in ex.surnames
+        val last = words.last()
+        if (last !in ex.surnames) return false
+        val initial = words.first().first()
+        return ex.names.any { n -> n.endsWith(" $last") && n.first() == initial }
+    }
 
     /** Key of the list for [scope]: the chat's own with „Platzhalter je Chat“, else the shared one (""). */
     private fun key(scope: String?): String = if (!scope.isNullOrBlank() && on(PiiFeature.PER_CHAT)) scope else ""
@@ -158,7 +218,82 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
         register(detect(text), key)
         val r = regex(key) ?: return text
         val byValue = synchronized(this) { list(key).associateBy { it.value } }
-        return r.replace(text) { m -> (byValue[m.groupValues[1]]?.placeholder ?: m.groupValues[1]) + m.groupValues[2] }
+        // A detail stored earlier ("Müller" as a parent) stays where it is public in this text ("Müller (2020)").
+        val ex = exemptions(text)
+        return r.replace(text) { m ->
+            val v = m.groupValues[1]
+            if (exempt(v, ex)) m.value else (byValue[v]?.placeholder ?: v) + m.groupValues[2]
+        }
+    }
+
+    /** The details [mask] would replace in [text] with their placeholders (without storing new ones) – for corrections. */
+    fun replacements(text: String, scope: String? = null): List<Pair<String, String>> {
+        if (text.isBlank() || !enabled) return emptyList()
+        val key = key(scope)
+        val known = synchronized(this) { list(key).associateBy { it.value } }
+        val ex = exemptions(text)
+        val found = LinkedHashMap<String, String>()
+        for (h in detect(text)) found[h.canonical ?: h.value] = known[h.canonical ?: h.value]?.placeholder ?: "[${h.kind.label}]"
+        regex(key)?.findAll(text)?.forEach { m ->
+            val v = m.groupValues[1]
+            val p = known[v] ?: return@forEach
+            if (!exempt(v, ex) && !p.alias) found.putIfAbsent(v, p.placeholder)
+        }
+        return found.entries.map { it.key to it.value }
+    }
+
+    /** Words in [text] that might be names but are not replaced – „auch ersetzen“ in the corrections. */
+    fun missed(text: String): List<String> {
+        if (text.isBlank() || !enabled) return emptyList()
+        val known = detect(text).map { it.value } + ownTerms().flatMap { it.split(' ') }
+        return PiiDetector.suspects(text, known, ignored())
+    }
+
+    /** One click in the preview or the agent protocol: [value] is never replaced again (AP-03). */
+    fun neverReplace(value: String, update: ((AppSettings) -> AppSettings) -> Unit) {
+        update { it.copy(pseudonymIgnore = NameList.merge(it.pseudonymIgnore, listOf(value)), pseudonymTerms = NameList.remove(it.pseudonymTerms, value)) }
+        remove(value)
+    }
+
+    /** One click: [value] is always replaced from now on. */
+    fun alwaysReplace(value: String, update: ((AppSettings) -> AppSettings) -> Unit) {
+        update { it.copy(pseudonymTerms = NameList.merge(it.pseudonymTerms, listOf(value)), pseudonymIgnore = NameList.remove(it.pseudonymIgnore, value)) }
+        patterns.clear()
+    }
+
+    /**
+     * Thorough recognition (Einstellungen › Datenschutz › Gründlich, AP-03): a language model on this device lists the
+     * names, schools and places of a text that the rules missed. Set by the app; null when no local model is installed.
+     */
+    var thoroughFinder: (suspend (String) -> List<String>)? = null
+
+    /** Texts the local model has already looked at (hash → found names), so a long chat is not read again and again. */
+    private val thoroughSeen = object : LinkedHashMap<Int, List<String>>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, List<String>>?) = size > 400
+    }
+
+    /**
+     * Before [maskMessages]: with „Gründlich“ the local model reads the texts of [messages] once and the names it finds
+     * are registered like found ones. Does nothing when it is off or no local model is there.
+     */
+    suspend fun prepareThorough(messages: List<ChatMessage>, scope: String? = null) {
+        if (!enabled || !settings().pseudonymThorough) return
+        val finder = thoroughFinder ?: return
+        val public = settings().pseudonymPublic
+        val texts = messages.flatMap { m ->
+            if (m.role == "system" || public && m.role == "tool" && m.toolName in PUBLIC_TOOLS) emptyList()
+            else listOf(m.content) + m.files.filter { !(public && isPublic(it)) }.map { it.text }
+        }.filter { it.isNotBlank() }
+        for (text in texts) {
+            val h = text.hashCode()
+            val found = synchronized(this) { thoroughSeen[h] } ?: runCatching { finder(text.take(12_000)) }.getOrDefault(emptyList()).also {
+                synchronized(this) { thoroughSeen[h] = it }
+            }
+            val ex = exemptions(text)
+            val hits = found.map { it.trim() }.filter { it.length >= 2 && PiiDetector.containsWord(text, it, false) && !exempt(it, ex) }
+                .map { PiiHit(it, if (PiiDetector.looksLikeSchool(it)) PiiKind.SCHOOL else PiiKind.NAME) }
+            if (hits.isNotEmpty()) register(hits, key(scope))
+        }
     }
 
     /** Text for the semantic search of the knowledge base (embeddings, reranking): with placeholders if that is on. */
@@ -198,12 +333,15 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
 
     /** The messages as they go to the server; the note for the model is added to the first system message. */
     fun maskMessages(messages: List<ChatMessage>, scope: String? = null): List<ChatMessage> {
+        val public = settings().pseudonymPublic
         val masked = messages.map { m ->
+            // Results of the web and literature search are public (AP-03): authors and people in the news stay as they are.
+            if (public && m.role == "tool" && m.toolName in PUBLIC_TOOLS) return@map m
             m.copy(
                 content = mask(m.content, scope),
                 reasoning = m.reasoning?.let { mask(it, scope) },
                 instructions = m.instructions?.let { mask(it, scope) },
-                files = m.files.map { f -> f.copy(text = mask(f.text, scope), name = mask(f.name, scope)) },
+                files = m.files.map { f -> if (public && isPublic(f)) f else f.copy(text = mask(f.text, scope), name = mask(f.name, scope)) },
                 toolCalls = m.toolCalls.map { tc -> tc.copy(arguments = mask(tc.arguments, scope)) },
             )
         }
@@ -238,7 +376,42 @@ class Pseudonymizer(private val file: File, private val settings: () -> AppSetti
     }
 
     companion object {
+        /**
+         * Strenge Pseudonymisierung (AP-10): set for the requests of a vault chat (as coroutine context element, see
+         * AgentRunner): always on, every part on, no exemption for public sources, thorough recognition with the local model.
+         */
+        val STRICT: ThreadLocal<Boolean> = ThreadLocal()
+
+        fun strict(s: AppSettings): AppSettings = s.copy(pseudonymize = true, pseudonymOff = "", pseudonymPublic = false, pseudonymThorough = true)
         private const val MAX_CHATS = 400
+
+        /** Tools whose results are public sources (web, news, literature databases) and are sent as they are. */
+        val PUBLIC_TOOLS = setOf(
+            "web_search", "news_search", "fetch_url", "search_literature", "literature_details", "snowball_literature",
+            "journal_new_articles", "read_feed", "zotero_search", "check_references",
+        )
+
+        /** Task of the local model in the thorough recognition. */
+        const val THOROUGH_PROMPT = "Du findest personenbezogene Angaben in deutschen Texten. Liste alle Namen privater Personen " +
+            "(Vor- und Nachnamen, auch ohne Anrede), Namen von Schulen, Kitas und Einrichtungen sowie Orte, die eine Person " +
+            "erkennbar machen. Nicht aufnehmen: Autorinnen und Autoren zitierter Literatur, bekannte öffentliche Personen, " +
+            "Platzhalter in eckigen Klammern. Antworte nur mit einem JSON-Array von Zeichenketten, genau so geschrieben wie im " +
+            "Text, z.B. [\"Jolina Kretzschmann\", \"Grundschule am Park\"]. Ohne Funde: []."
+
+        /** The names of the local model's answer (a JSON array, also inside a code block or with text around it). */
+        fun parseThorough(answer: String): List<String> {
+            val start = answer.indexOf('[')
+            val end = answer.lastIndexOf(']')
+            if (start < 0 || end <= start) return emptyList()
+            return runCatching {
+                Json.parseToJsonElement(answer.substring(start, end + 1)).let { it as kotlinx.serialization.json.JsonArray }
+                    .mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim() }
+                    .filter { it.length in 2..80 && !it.startsWith("[") }
+            }.getOrDefault(emptyList())
+        }
+
+        /** An attachment marked „öffentlich“, or – unmarked – a book or paper (DOI, ISBN, ISSN). */
+        fun isPublic(f: FileAttachment): Boolean = f.public ?: PiiDetector.looksPublic(f.text)
         private val SCOPED = MapSerializer(String.serializer(), ListSerializer(Pseudonym.serializer()))
 
         /** Tools that send their arguments to servers on the internet (search engines, literature databases, GitHub). */
@@ -323,6 +496,10 @@ object NameList {
         if (t.length < 2 || t.length > 60 || t.any { it.isDigit() } || t.split(' ').size > 5 || !t.first().isLetter()) return null
         return t
     }
+
+    /** [current] without [value] (ignoring case). */
+    fun remove(current: String, value: String): String =
+        current.lines().filter { it.trim().isNotEmpty() && !it.trim().equals(value.trim(), ignoreCase = true) }.joinToString("\n")
 
     /** [current] with [added] at the end, without duplicates (ignoring case). */
     fun merge(current: String, added: List<String>): String {

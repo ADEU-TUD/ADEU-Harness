@@ -42,6 +42,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 
+/** Route of a mode in the command palette: starts a new chat in it (AP-05). */
+const val MODE_ROUTE = "mode:"
+
 /** Something the command palette and the settings search can jump to. */
 data class Command(val title: String, val route: String, val group: String, val keywords: String = "")
 
@@ -51,20 +54,25 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command("Literatur", "literature", "Bereiche", "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
     Command("Dokumente", "docs", "Bereiche", "editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word"),
     Command("Transkription", "transcripts", "Bereiche", "audio interview aufnahme diktat codieren"),
-    Command("Vorlagen", "templates", "Bereiche", "prompt vorlage lehre forschung"),
+    Command("TU Vorlagen", "templates", "Bereiche", "vorlagen prompt vorlage lehre forschung"),
     Command("Bilder erzeugen", "images", "Bereiche", "bild grafik galerie"),
     Command("Geplante Aufgaben", "tasks", "Bereiche", "aufgabe zeitplan"),
     Command("Modelle vergleichen", "compare", "Bereiche", "vergleich antwort"),
     Command("Modelle", "models", "Bereiche", "modell liste"),
     Command("Verbrauch", "usage", "Bereiche", "kosten token bewertungen statistik"),
     Command("Einstellungen", "settings", "Einstellungen", "optionen"),
-) + SETTINGS_INDEX
+) + io.github.thepytales.llmhub.agent.ChatModes.all.map { m ->
+    // Modes (AP-05) start a new chat in that mode.
+    Command(m.name, MODE_ROUTE + m.id, "Modi", m.keywords + " modus " + m.command.lowercase())
+} + SETTINGS_INDEX
 
 /** Settings pages with what can be set there, for the search in the settings overview. */
 val SETTINGS_INDEX = listOf(
     Command("API-Zugang", "settings/api", "Einstellungen", "schlüssel api key server konto anmelden"),
     Command("GitHub", "settings/github", "Einstellungen", "repository token code"),
     Command("Chat & Werkzeuge", "settings/chat", "Einstellungen", "standardmodell werkzeuge freigaben websuche denken"),
+    Command("Werkzeuge", "settings/tools", "Einstellungen", "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
+    Command("Lora", "settings/lora", "Einstellungen", "lora maskottchen ausblenden navigator helfer animation hinweise"),
     Command("Datenschutz", "settings/privacy", "Einstellungen", "pseudonymisierung namen eigene begriffe"),
     Command("Gedächtnis", "settings/memory", "Einstellungen", "erinnerungen merken"),
     Command("Wissenssammlung", "settings/knowledge", "Einstellungen", "pdf wissen dokumente durchsuchen"),
@@ -75,6 +83,7 @@ val SETTINGS_INDEX = listOf(
     Command("Darstellung", "settings/appearance", "Einstellungen", "dunkel hell farbe theme schriftgröße kontrast"),
     Command("Sicherung & Umzug", "settings/backup", "Einstellungen", "backup export import umzug"),
     Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
+    Command("Arbeitsspeicher", "settings/ram", "Einstellungen", "speicher ram arbeitsspeicher langsam messen freigeben"),
     Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
     Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
     Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
@@ -101,8 +110,15 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
         if (query.isBlank()) conversations.filter { !it.archived }.sortedByDescending { it.updatedAt }.take(5)
         else conversations.filter { it.title.contains(query.trim(), ignoreCase = true) }.sortedByDescending { it.updatedAt }.take(8)
     }
+    /** Areas and settings open as screens; a mode starts a new chat in it. */
+    fun go(route: String) {
+        if (route.startsWith(MODE_ROUTE)) {
+            ChatHandoff.pending.value = ChatHandoff.Content("", emptyList(), mode = route.removePrefix(MODE_ROUTE))
+            onNavigate("chat")
+        } else onNavigate(route)
+    }
     fun first() {
-        commands.firstOrNull()?.let { onNavigate(it.route); onDismiss() } ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
+        commands.firstOrNull()?.let { go(it.route); onDismiss() } ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
     }
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
@@ -118,6 +134,13 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                     modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
                 LazyColumn(Modifier.heightIn(max = 420.dp).padding(top = 6.dp)) {
+                    // Lora fragen (AP-07): the typed wish goes to Lora, who finds the place or hands it to a chat.
+                    item(key = "lora") {
+                        PaletteRow(
+                            if (query.isBlank()) tr("Lora fragen") else tr("Lora fragen") + ": „" + query.trim() + "“",
+                            "Lora",
+                        ) { LoraHelper.open(query.trim()); onDismiss() }
+                    }
                     var lastGroup: String? = null
                     commands.forEach { cmd ->
                         if (cmd.group != lastGroup) {
@@ -125,7 +148,7 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                             item(key = "g_" + cmd.group) { PaletteHeading(cmd.group) }
                         }
                         item(key = "c_" + cmd.route) {
-                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { onNavigate(cmd.route); onDismiss() }
+                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { go(cmd.route); onDismiss() }
                         }
                     }
                     if (chats.isNotEmpty()) {

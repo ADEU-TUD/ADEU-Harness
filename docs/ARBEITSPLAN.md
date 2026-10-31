@@ -1,6 +1,6 @@
 # Arbeitsplan ADEU LLM
 
-Stand: 30.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 
 **So ist der Plan aufgebaut**
 
@@ -49,7 +49,7 @@ Stand: 30.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** | AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 |
+| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2 · AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis |
 | **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
@@ -60,7 +60,7 @@ zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 
 
 ## Jetzt
 
-### AP-01 ☐ Chat-Design und Logo · M
+### AP-01 ☑ Chat-Design und Logo · M
 - **Eigener ADEU-Stil statt grauer Kästen mit runden Ecken**: Antworten als ruhiger Text, Kästen (Code, Tabellen,
   Hinweise, Dokumentkarten) mit feinem Rand und TUD-Farbakzent statt grauer Fläche, klare Abstände und Typografie.
   Erkennbar eigenständig, Lora eingebunden.
@@ -75,8 +75,10 @@ zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 
   Startanimation auf beiden Plattformen; Screenshots vorher/nachher im Pull Request.
 - Betrifft: `ui/ChatMessages.kt`, `ui/Markdown.kt`, `ui/ChatExtras.kt`, `ui/Design.kt`, `ui/Theme.kt`, `ui/Logo.kt`,
   `ui/LoraFigure.kt`, `ui/LoraUi.kt`, `desktop/icons/`.
+- **Ergebnis (31.10.2026)**: umgesetzt; Logo = Lora liest (violett, weißes Gesicht, helle Kachel). Bilder aller Stile
+  erzeugt `ChatLookTest` (`desktop/build/chat-look`), Symbole `LogoTest`. Rest: Vorher-Bilder für den Pull Request.
 
-### AP-02 ☐ Übersicht: Seitenleiste, Startseite, einschaltbare Werkzeuge · M (bisher W2-01, W2-02, Teil von W8-00)
+### AP-02 ☑ Übersicht: Seitenleiste, Startseite, einschaltbare Werkzeuge · M (bisher W2-01, W2-02, Teil von W8-00)
 - **Seitenleiste**: oben die Grundfunktionen *Neuer Chat*, *TU Vorlagen* (umbenannt aus *Vorlagen*), *Literatur*,
   *Transkription*. Darunter ausklappbar **„Mehr“**: *Dokumente*, *Bilder erzeugen*, *Geplante Aufgaben* und alle
   eingeschalteten Werkzeuge. Auf-/Zugeklappt wird gespeichert; Bereiche lassen sich per Rechtsklick/langem Drücken nach
@@ -92,8 +94,11 @@ zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 
   einschalten, Tastenkürzel funktionieren weiter.
 - Betrifft: `ui/AppDrawer.kt`, `ui/CommandPalette.kt`, `ui/TemplatesScreen.kt`, `ui/LoraUi.kt`, `ui/ChatScreenParts.kt`,
   `ui/SettingsOverview.kt`, `ui/I18n.kt`.
+- **Ergebnis (31.10.2026)**: umgesetzt (`data/AppTools.kt`, `ui/ToolsSettings.kt`, `ui/NavRules.kt`). Kacheln mit dem
+  Vorschlags-Wortlaut. PDF-Werkzeugkasten und Tresor stehen als „geplant“ im Register und werden mit AP-10/AP-11
+  einschaltbar; Loras Vorschlag über dem Eingabefeld ist dafür schon da.
 
-### AP-03 ☐ Pseudonymisierung: treffsicherer · M
+### AP-03 ☑ Pseudonymisierung: treffsicherer · M
 Heute rutschen Namen durch, und gleichzeitig werden Namen ersetzt, die nicht ersetzt werden sollen (Autor:innen in
 Büchern, Namen in Ergebnissen der Websuche) – das führt zu falschen Antworten.
 1. **Öffentliche Quellen ausnehmen**: Ergebnisse der Websuche, Bücher und Paper (erkennbar an ISBN/DOI) und
@@ -113,8 +118,10 @@ Büchern, Namen in Ergebnissen der Websuche) – das führt zu falschen Antworte
 - **Fertig, wenn**: Zusammenfassen eines Buchs und Websuche ersetzen keine Autor:innen mehr; die Testsammlung findet
   deutlich mehr private Namen als heute; Korrekturen wirken im nächsten Chat.
 - Betrifft: `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `data/Privacy.kt`, `ui/PrivacySettings.kt`, `ui/AgentProtocol.kt`.
+- **Ergebnis (31.10.2026)**: umgesetzt, Testsammlung `PseudonymCorpusTest` (12/12 private Namen ersetzt, 7/7 öffentliche
+  erhalten). Gründliche Erkennung nutzt ein installiertes lokales Sprachmodell; „im Tresor standardmäßig an“ kommt mit AP-10.
 
-### AP-04 ☐ Weniger Arbeitsspeicher (W) · S–M (bisher Teil von Q-05)
+### AP-04 ☑ Weniger Arbeitsspeicher (W) · S–M (bisher Teil von Q-05)
 Die Windows-App braucht ohne lokale Modelle ca. 500 MB bis 1 GB. Hauptursache: Der Java-Speicher hat keine Obergrenze
 (Standard: ein Viertel des Arbeitsspeichers) und gibt freien Speicher kaum an Windows zurück. Maßnahmen nach Wirkung:
 1. **Messen**: Anzeige unter *Einstellungen › Daten* (Java-Speicher, gesamt) und Messpunkte für Start, eine Stunde Chat,
@@ -131,8 +138,11 @@ Die Windows-App braucht ohne lokale Modelle ca. 500 MB bis 1 GB. Hauptursache: D
 - **Fertig, wenn**: Messwerte vorher/nachher im Pull Request; im Leerlauf deutlich weniger als heute, und nach großen
   Aufgaben sinkt der Verbrauch wieder.
 - Betrifft: `desktop/build.gradle.kts`, `.github/scripts/release-local.sh`, `data/ChatRepository.kt`, `desktop/…/Main.kt`.
+- **Ergebnis (31.10.2026)**: umgesetzt (Obergrenze 1,5 GB und Rückgabe im Leerlauf, schlanke Chat-Liste, Entladen der
+  Spracherkennung, kleine Vorschaubilder, *Einstellungen › Arbeitsspeicher* mit Messpunkten). Rest: Messwerte
+  vorher/nachher auf einem Windows-PC eintragen (Messpunkte stehen in der App und im Log).
 
-### AP-05 ☐ Einheitlicher Modus-Rahmen · M (bisher W2-03)
+### AP-05 ☑ Einheitlicher Modus-Rahmen · M (bisher W2-03)
 - Gemeinsames Modell `ChatMode` (Name, Symbol, Erklärzeile, Beispielanfrage, Datenhinweis, Werkzeuge, Prompt-Zusatz,
   Standardmodell). Bestehende Modi (Literatursuche, Sprachmodus …) darauf umstellen.
 - Anzeige: Chip über dem Eingabefeld mit ✕, darunter eine Zeile „Was passiert hier · Daten: …“, im leeren Chat ein
@@ -140,8 +150,10 @@ Die Windows-App braucht ohne lokale Modelle ca. 500 MB bis 1 GB. Hauptursache: D
 - Modi über `/`-Befehl, Befehlspalette, Startseite und Lora aufrufbar.
 - **Fertig, wenn**: Jeder Modus sieht gleich aus und lässt sich mit ✕ verlassen; neue Modi brauchen nur eine Definition.
 - Betrifft: neu `agent/ChatModes.kt`, `ui/ChatComposer.kt`, `ui/ChatViewModel.kt`.
+- **Ergebnis (31.10.2026)**: umgesetzt (`agent/ChatModes.kt`, `ui/ModeUi.kt`): Literatursuche, Planungsmodus, Sprachmodus;
+  `/`, Strg+K, Startseite und Loras Ideen. Aufruf über Lora kommt mit AP-07.
 
-### AP-06 ☐ Rückfragen mit Antwortknöpfen · M (neu)
+### AP-06 ☑ Rückfragen mit Antwortknöpfen · M (neu)
 Wie die Fragerunden, mit denen dieser Plan entstanden ist: Statt zu raten, stellt die KI 1–4 kurze Fragen mit
 Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
 1. **Werkzeug für den Chat** (`ask_user`): alle Chat-Modelle können vor großen Aufgaben (Dokument, Antrag, Stapel)
@@ -155,8 +167,10 @@ Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
 - **Fertig, wenn**: Ein Modell stellt eine Rückfrage mit Knöpfen, die Antwort fließt in die Aufgabe ein; Planungsmodus
   erzeugt aus mehreren Runden ein Plan-Dokument; eine TU Vorlage lässt sich als Fragerunde ausfüllen.
 - Betrifft: neu `agent/AskUserTool.kt`, `ui/ChatMessages.kt`, `ui/TemplateUi.kt`, `agent/AgentRunner.kt`.
+- **Ergebnis (31.10.2026)**: Punkte 1, 3 und 4 umgesetzt (`ask_user`, `ui/QuestionCard.kt`, Planungsmodus,
+  „Lieber mit Lora Schritt für Schritt“ in TU Vorlagen ab drei Feldern). Punkt 2 (Lora fragt bei Unklarem) kommt mit AP-07.
 
-### AP-07 ☐ Lora als Navigator · L (bisher W2-04, W2-05, W2-06)
+### AP-07 ☑ Lora als Navigator · L (bisher W2-04, W2-05, W2-06)
 - Eigene, schlanke Agent-Schleife **LoraAgent** mit **GLM-5.3 Flash**, Denkphase aus, kurzer System-Prompt.
 - **Landkarte der App** (`AppMap`): alle Bereiche, Einstellungen, Modi, TU Vorlagen und Werkzeuge mit ID, Pfad,
   Beschreibung, Synonymen und Plattform. Wird aus vorhandenen Registern erzeugt (Einstellungssuche, Vorlagen, Modi),
@@ -183,8 +197,11 @@ Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
   zusammenfügen“ → Lora schlägt den PDF-Werkzeugkasten vor; „Erklär mir Exzerpte“ → Übergabe an einen Chat.
 - Betrifft: neu `agent/LoraAgent.kt`, `data/AppMap.kt`, `ui/LoraHelper.kt`; `ui/AppRoot.kt`, `ui/NavRules.kt`,
   `ui/SettingsOverview.kt`, `ui/Welcome.kt`, `agent/ModelRouter.kt`.
+- **Ergebnis (31.10.2026)**: umgesetzt wie beschrieben (`data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`,
+  `ui/Spotlight.kt`). Leuchtrahmen an den wichtigsten Optionen (Darstellung, Chat, Lora, Datenschutz, Stimme); weitere
+  Optionen öffnen ihre Seite ohne Rahmen. Damit ist auch AP-06 Punkt 2 erledigt (Lora fragt mit Antwortknöpfen nach).
 
-### AP-08 ☐ Belegpflicht und Quellenmodus · M (bisher W3-03, W5-02)
+### AP-08 ☑ Belegpflicht und Quellenmodus · M (bisher W3-03, W5-02)
 - **Belegpflicht**: Antworten enthalten zu jeder Aussage eine Fundstelle (Datei + Seite, DOI, URL, Transkriptzeit).
 - Prüfschritt nach der Antwort: Belege gegen die Quelle abgleichen (Zitat vorhanden?), unbelegte Sätze markieren oder
   entfernen; Belegprotokoll am Ende, exportierbar.
@@ -192,8 +209,11 @@ Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
 - **Quellenmodus** (nach AP-05) für jeden Chat; Quellen: Wissenssammlung, Projektordner, Anhänge, Web, Literatur.
 - **Fertig, wenn**: Im Quellenmodus hat jede Aussage einen Beleg, falsche Zitate werden markiert, ein Klick öffnet die Stelle.
 - Betrifft: neu `agent/Evidence.kt`; `ui/ChatMessages.kt`, `data/Knowledge.kt`.
+- **Ergebnis (31.10.2026)**: `agent/Evidence.kt` (Prüfung auf dem Gerät, Seiten über die Seitenmarken der PDFs),
+  `ui/EvidenceCard.kt`. Klick öffnet PDF-Seite (PDF-Werkzeugkasten) oder Webseite; Stellen in der Wissenssammlung werden
+  geprüft, aber noch nicht in einer eigenen Ansicht geöffnet.
 
-### AP-09 ☐ Exzerpt-Agent · M (bisher W5-01)
+### AP-09 ☑ Exzerpt-Agent · M (bisher W5-01)
 - Standardfelder: Bibliografie, Fragestellung, Theorie, Methode, Stichprobe, zentrale Befunde, wörtliche Zitate mit Seite,
   Begriffe, eigene Bewertung, Anschlussfragen.
 - Schemata je Texttyp (empirisch, theoretisch, Review, Buchkapitel); eigene Schemata als TU Vorlage.
@@ -201,8 +221,10 @@ Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
   einfach, große Stapel mit Pause/Fortsetzen über AP-20.
 - Baut auf der vorhandenen Vorlage *Forschung › Exzerpt* auf.
 - **Fertig, wenn**: Ein PDF ergibt ein Exzerpt mit geprüften Seitenangaben, das am Literatureintrag hängt.
+- **Ergebnis (31.10.2026)**: `research/Excerpts.kt`, `agent/ExcerptTools.kt` (`save_excerpt` nimmt das Exzerpt erst
+  mit stimmenden Seiten an), Exzerpt-Modus, Knopf am Literatureintrag, *Exzerpte als Tabelle*. Große Stapel folgen mit AP-20.
 
-### AP-10 ☐ Tresor für sensible Forschung · M (neu, ersetzt W4-04)
+### AP-10 ☑ Tresor für sensible Forschung · M (neu, ersetzt W4-04)
 - Eigener Bereich für sensible Chats und Projekte, z. B. Interviews oder Daten von Studierenden.
 - **App-interne PIN**, festgelegt beim ersten Öffnen des Tresors; sperrt nach Inaktivität. Beim Einrichten wird ein
   **Wiederherstellungsschlüssel** zum Ausdrucken/Aufbewahren angezeigt, mit dem sich die PIN neu setzen lässt.
@@ -214,8 +236,11 @@ Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
 - **Fertig, wenn**: Tresor-Chat ist ohne PIN nicht lesbar (auch nicht als Datei), PIN lässt sich mit dem
   Wiederherstellungsschlüssel zurücksetzen, externe Modelle sind gesperrt.
 - Betrifft: `data/SecretBox.kt`, `data/SecureStorage.kt`, `data/Privacy.kt`, `data/ChatRepository.kt`, `ui/PrivacySettings.kt`.
+- **Ergebnis (31.10.2026)**: `data/Vault.kt`, `data/DeviceKey.kt` (Keystore/DPAPI), `ui/VaultScreen.kt`; strenge
+  Pseudonymisierung über `Pseudonymizer.STRICT`. Tresor-Projekte (Ordner im Tresor) und Sync je Tresor-Chat kommen mit
+  AP-12.
 
-### AP-11 ☐ PDF-Werkzeugkasten Stufe 1 · L (bisher W8-02, Stufen 1–3 und Teil von 5)
+### AP-11 ☑ PDF-Werkzeugkasten Stufe 1 · L (bisher W8-02, Stufen 1–3 und Teil von 5)
 Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02).
 1. **Betrachter**: mehrere PDFs in Tabs, Miniaturen, Gliederung/Lesezeichen, Suche, Nachtmodus.
 2. **Seiten**: zusammenführen, teilen, extrahieren, löschen, drehen, sortieren (Ziehen in der Miniaturansicht),
@@ -229,6 +254,9 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   PdfCraft nur für Abläufe und Bedienung ansehen (*Anhang: Craft-Apps*).
 - **Fertig, wenn**: Zwei PDFs in Tabs öffnen, zusammenfügen, Seiten umsortieren, markieren und speichern; ein
   Papierformular wird per Agent ausfüllbar und lässt sich danach am PC ausfüllen.
+- **Ergebnis (31.10.2026)**: `docs/PdfTools.kt` (je Plattform), `docs/PdfToolModel.kt` (Felderkennung),
+  `ui/PdfRender.kt`, `ui/PdfToolScreen.kt`, Agent-Werkzeug `make_pdf_fillable`; Lora schneidet, heftet und stempelt.
+  Markieren per Rechteck (noch ohne Einrasten am Text).
 
 ---
 
@@ -414,12 +442,23 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ Projektordner auf Android (W1-04) | Ordner aus dem Systemdialog, Lesen über `list_project_files`/`read_project_file` | Schreiben in den Ordner nur unter Windows |
 | ☑ Sprachmodus beschleunigen (W1-05) | Vorlesen ab dem ersten Satz (`audio/SpeechStream.kt`), eigenes Modell, Pause 0,8 s, Messwerte im Agent-Protokoll | Messung auf Geräten |
 | ☑ Problem melden und „Was ist neu“ (W1-06) | *Einstellungen › Problem melden*, Dialog nach Updates | – |
+| ☑ AP-01 Chat-Design und Logo | ADEU-Stil ohne graue Kästen, Domain- und Quellenmarken, neue Lora-Arbeitskarte, Logo „Lora liest“ mit Startanimation und Symbolen | Vorher-Bilder für den PR |
+| ☑ AP-02 Übersicht | Seitenleiste mit „Mehr“, *Einstellungen › Werkzeuge*, Kacheln, Zuletzt/Favoriten, „TU Vorlagen“ | erste Werkzeuge mit AP-10/11 |
+| ☑ AP-03 Pseudonymisierung | öffentliche Quellen, Autor:innen, Ein-Klick-Korrektur, Schulen/Orte, lokales Modell, Testsammlung | Tresor-Standard mit AP-10 |
+| ☑ AP-04 Arbeitsspeicher (W) | JVM-Grenzen, schlanke Chat-Liste, Entladen, Messpunkte unter *Einstellungen › Arbeitsspeicher* | Messung auf Windows |
+| ☑ AP-05 Modus-Rahmen | `ChatModes` mit Chip, Erklärzeile, Beispiel; `/`, Strg+K, Startseite | Lora-Aufruf mit AP-07 |
+| ☑ AP-06 Rückfragen | `ask_user` mit Antwortknöpfen, Planungsmodus, TU Vorlagen als Fragerunde | – (Lora fragt seit AP-07) |
+| ☑ AP-07 Lora-Navigator | Landkarte der App, lokale Suche, LoraAgent mit Werkzeugen, Leuchtrahmen, Einstiege, *Einstellungen › Lora* | Leuchtrahmen für weitere Optionen |
+| ☑ AP-08 Belegpflicht | Quellenmodus, Prüfung jedes Zitats und jeder Seite auf dem Gerät, Belegprotokoll, Klick öffnet die Stelle | eigene Ansicht für Stellen der Wissenssammlung |
+| ☑ AP-09 Exzerpt-Agent | Schemata je Textart, `save_excerpt` mit Seitenprüfung, Exzerpt am Literatureintrag, Tabelle | große Stapel mit AP-20 |
+| ☑ AP-10 Tresor | PIN, Wiederherstellungsschlüssel, AES-256 mit Keystore/DPAPI, nur Uni/lokal, strenge Pseudonymisierung | Tresor-Projekte, Sync mit AP-12 |
+| ☑ AP-11 PDF Stufe 1 | Tabs, Seiten, Markieren, Kommentare, Formulare ausfüllbar (Erkennung, Editor, Agent) | Einrasten am Text beim Markieren |
 
 ---
 
 ## Offene Fragen
 
-1. **Startseite** (AP-02): Wortlaut der Tätigkeits-Kacheln final abstimmen.
+1. **Startseite** (AP-02): Wortlaut der Tätigkeits-Kacheln final abstimmen (umgesetzt ist der Vorschlag aus AP-02).
 2. **Outlook über COM** (AP-13): Welche Brücke aus Kotlin/JVM (JACOB, com4j, PowerShell)? Läuft sie auf den Dienst-PCs
    ohne Admin-Rechte?
 3. **Exchange der TU** (nur für AP-27): selbst betrieben (EWS) oder Exchange Online (Graph mit Freigabe der IT)? Wann
@@ -435,8 +474,10 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 
 | Werkzeug | Android | Windows |
 | --- | --- | --- |
-| Chat-Design, Übersicht, Lora, Modi, Rückfragen (AP-01, 02, 05–07) | ☐ | ☐ |
-| Pseudonymisierung, Tresor (AP-03, AP-10) | ☐ | ☐ |
+| Chat-Design, Übersicht, Modi, Rückfragen (AP-01, 02, 05, 06) | ☑ | ☑ |
+| Lora-Navigator (AP-07) | ☐ | ☐ |
+| Pseudonymisierung (AP-03) | ☑ | ☑ |
+| Tresor (AP-10) | ☐ | ☐ |
 | PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren | voll |
 | Sync (AP-12, AP-28) | später (AP-28) | ☐ |
 | Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☐ (Outlook) |

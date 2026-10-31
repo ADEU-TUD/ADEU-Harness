@@ -233,7 +233,7 @@ fun TemplatePickerSheet(c: AppContainer, onPick: (Template) -> Unit, onManage: (
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Vorlagen", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Text(tr("TU Vorlagen"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { onDismiss(); onManage() }) { Text("Verwalten") }
         }
         TemplateBrowser(

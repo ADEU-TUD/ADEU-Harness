@@ -126,12 +126,13 @@ fun LiteratureScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit
                 }
             }
         },
+        floatingActionButton = { LoraHelperButton(c) },
     ) { pad ->
         Box(Modifier.padding(pad).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Box(Modifier.widthIn(max = 820.dp).fillMaxSize()) {
                 when (tab) {
                     TAB_SEARCH -> SearchStart(c, onOpenChat, onSettings)
-                    TAB_COLLECTION -> Collection(c, initialList = handoff?.list) { refs ->
+                    TAB_COLLECTION -> Collection(c, initialList = handoff?.list, onOpenChat = onOpenChat) { refs ->
                         bibRefs = refs
                         bibInput = ""
                         tab = TAB_BIBLIOGRAPHY
@@ -268,7 +269,7 @@ private fun SearchStart(c: AppContainer, onOpenChat: () -> Unit, onSettings: () 
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Collection(c: AppContainer, initialList: String?, onMakeBibliography: (List<Reference>) -> Unit) {
+private fun Collection(c: AppContainer, initialList: String?, onOpenChat: () -> Unit = {}, onMakeBibliography: (List<Reference>) -> Unit) {
     val all by c.literature.items.collectAsState()
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboardManager.current
@@ -329,6 +330,12 @@ private fun Collection(c: AppContainer, initialList: String?, onMakeBibliography
                     IconButton(onClick = { more = true }, enabled = shown.isNotEmpty()) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
                         DropdownMenuItem(text = { Text("Literaturverzeichnis erstellen") }, leadingIcon = { Icon(Icons.Outlined.LibraryBooks, null) }, onClick = { more = false; onMakeBibliography(chosen) })
+                        if (chosen.any { it.excerpt.isNotBlank() }) {
+                            DropdownMenuItem(text = { Text(tr("Exzerpte als Tabelle")) }, leadingIcon = { Icon(Icons.Outlined.LibraryBooks, null) }, onClick = {
+                                more = false
+                                DocsHandoff.open(c, "Exzerpte", excerptTable(chosen))
+                            })
+                        }
                         DropdownMenuItem(text = { Text("Als BibTeX exportieren") }, leadingIcon = { Icon(Icons.Outlined.Download, null) }, onClick = { more = false; exportKind = "bib"; export("Literatur.bib") })
                         DropdownMenuItem(text = { Text("Als RIS exportieren (Citavi, EndNote)") }, leadingIcon = { Icon(Icons.Outlined.Download, null) }, onClick = { more = false; exportKind = "ris"; export("Literatur.ris") })
                         DropdownMenuItem(text = { Text("Als CSL-JSON exportieren (Zotero)") }, leadingIcon = { Icon(Icons.Outlined.Download, null) }, onClick = { more = false; exportKind = "json"; export("Literatur.json") })
@@ -392,6 +399,7 @@ private fun Collection(c: AppContainer, initialList: String?, onMakeBibliography
                             }
                             if (r.note.isNotBlank()) Text(r.note, style = MaterialTheme.typography.bodySmall)
                             ReferenceLinks(r)
+                            ExcerptRow(c, r, onOpenChat)
                         }
                     }
                 }
@@ -683,6 +691,59 @@ private fun BibliographyMaker(c: AppContainer, input: String, onInput: (String) 
             val res = result ?: return@ReferenceEditor
             result = Bibliography.build(res.entries.map { if (it.ref.id == e.ref.id) it.copy(ref = updated) else it }, res.style)
             editing = null
+        }
+    }
+}
+
+
+/**
+ * Exzerpt am Literatureintrag (AP-09): open the excerpt as document, or start the Exzerpt mode for the work – with its
+ * details and id, so save_excerpt attaches the result here.
+ */
+@Composable
+private fun ExcerptRow(c: AppContainer, r: Reference, onOpenChat: () -> Unit) {
+    androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (r.excerpt.isNotBlank()) {
+            StatusPill(tr("Exzerpt"), PillTone.SUCCESS)
+            TextButton(onClick = {
+                val doc = r.excerptDocId?.let { id -> c.docs.items.value.firstOrNull { it.id == id } }
+                if (doc != null) DocsHandoff.show(doc.id) else DocsHandoff.open(c, "Exzerpt: " + r.title, r.excerpt)
+            }) { Text(tr("Exzerpt öffnen")) }
+        }
+        TextButton(onClick = {
+            ChatHandoff.pending.value = ChatHandoff.Content(
+                excerptRequest(r), emptyList(), mode = io.github.thepytales.llmhub.agent.ChatModes.EXCERPT.id,
+            )
+            onOpenChat()
+        }) { Text(tr(if (r.excerpt.isBlank()) "Exzerpt erstellen" else "Neu exzerpieren")) }
+    }
+}
+
+/** The request for the Exzerpt mode: the work, its id and a reminder to attach the PDF. */
+internal fun excerptRequest(r: Reference): String = buildString {
+    append("Exzerpiere „").append(r.title.ifBlank { r.raw }).append("“")
+    val who = r.creators.take(3).joinToString(", ") { it.family }
+    if (who.isNotBlank() || r.year.isNotBlank()) append(" (").append(listOf(who, r.year).filter { it.isNotBlank() }.joinToString(", ")).append(")")
+    if (r.doi.isNotBlank()) append(", doi:").append(r.doi)
+    append(". Literatur-ID: ").append(r.id).append(".\n")
+    append(if (r.openAccessUrl.isNotBlank()) "Volltext: ${r.openAccessUrl} – oder ich hänge das PDF an." else "Ich hänge das PDF an.")
+}
+
+/** All excerpts of [refs] as one table: a row per work, a column per field of the standard schema. */
+internal fun excerptTable(refs: List<Reference>): String {
+    val fields = io.github.thepytales.llmhub.research.ExcerptSchema.STANDARD.filter { it != "Bibliografie" && it != "Wörtliche Zitate" }
+    fun section(md: String, field: String): String {
+        val m = Regex("(?ims)^##\\s*" + Regex.escape(field) + "[^\\n]*\\n(.*?)(?=^##\\s|\\z|^---)").find(md) ?: return ""
+        return m.groupValues[1].trim().replace("\n", " ").replace("|", "/").take(400)
+    }
+    return buildString {
+        append("# Exzerpte\n\n| Werk | ").append(fields.joinToString(" | ")).append(" |\n|")
+        repeat(fields.size + 1) { append("---|") }
+        append('\n')
+        refs.filter { it.excerpt.isNotBlank() }.forEach { r ->
+            append("| ").append((r.creators.firstOrNull()?.family ?: "") + " " + r.year + ": " + r.title.replace("|", "/").take(80))
+            fields.forEach { f -> append(" | ").append(section(r.excerpt, f)) }
+            append(" |\n")
         }
     }
 }

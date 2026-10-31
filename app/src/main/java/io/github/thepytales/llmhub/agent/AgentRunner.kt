@@ -28,6 +28,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.asContextElement
 import kotlin.coroutines.coroutineContext
 import java.io.IOException
 import java.text.DateFormat
@@ -49,6 +50,8 @@ data class ToolSelection(val github: Boolean, val documents: Boolean, val web: B
 
 /** The agent loop: model → tools → model … until the model answers without tool calls. */
 class AgentRunner(private val c: AppContainer) {
+    private val askUser = AskUserTool()
+    private val excerptTools = ExcerptTools(c)
 
     fun environment(conv: Conversation): AgentEnvironment? = conv.envId?.let { c.environments.get(it) }
 
@@ -59,17 +62,24 @@ class AgentRunner(private val c: AppContainer) {
         if (ModelCatalog.info(conv.model).tools == false) return emptyList()
         val sel = tools ?: ToolSelection(conv.githubEnabled, settings.documentTools, settings.webTools)
         val env = environment(conv)
-        val network = Privacy.level(c, conv.folderId).allowsNetworkTools
+        // In the vault (AP-10) nothing goes to the internet: no web search, no GitHub.
+        val network = Privacy.level(c, conv).allowsNetworkTools && !conv.vault
+        // A mode (AP-05) brings the tool groups it needs.
+        val mode = ChatModes.byId(conv.mode)?.tools.orEmpty()
         return listOfNotNull(
             c.githubTools.takeIf { sel.github && settings.hasGitHub && network },
-            c.documentTools.takeIf { sel.documents },
-            c.webTools.takeIf { sel.web && env?.network != NetworkAccess.NONE && network },
-            c.researchTools.takeIf { sel.web || conv.mode == Conversation.MODE_LITERATURE },
+            c.documentTools.takeIf { sel.documents || ModeTool.DOCUMENTS in mode },
+            c.webTools.takeIf { (sel.web || ModeTool.WEB in mode) && env?.network != NetworkAccess.NONE && network },
+            c.researchTools.takeIf { sel.web || ModeTool.RESEARCH in mode },
             c.localFolderTools.takeIf {
                 io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
             },
             c.projectFolderTools.takeIf { it.active(conv.folderId) },
             c.assistantTools,
+            // Rückfragen mit Antwortknöpfen (AP-06): only in chats, where someone can answer.
+            askUser.takeIf { conv.taskId == null },
+            // Exzerpt-Agent (AP-09): save_excerpt checks the pages and attaches the excerpt to the literature entry.
+            excerptTools.takeIf { conv.mode == ChatModes.EXCERPT.id },
         )
     }
 
@@ -86,14 +96,16 @@ class AgentRunner(private val c: AppContainer) {
         // All requests of this run belong to the chat (own placeholders with „Platzhalter je Chat“).
         if (coroutineContext[PrivacyScope] == null) {
             val id = host.conversation?.id ?: return
-            return withContext(PrivacyScope(id)) { run(host, maxSteps, tools, autoContinue) }
+            // Vault chats (AP-10): strict pseudonymization for every request of this run.
+            val strict = if (host.conversation?.vault == true) io.github.thepytales.llmhub.data.Pseudonymizer.STRICT.asContextElement(true) else kotlin.coroutines.EmptyCoroutineContext
+            return withContext(PrivacyScope(id) + strict) { run(host, maxSteps, tools, autoContinue) }
         }
         val settings = c.settings.current
         val start = host.conversation ?: return
         val voice = start.thread().lastOrNull { it.role == "user" }?.voice == true
         /** Sprachmodus: the quick voice model, unless the project's privacy level does not allow it. */
-        val startModel = settings.voiceModel.takeIf { voice && it.isNotBlank() && Privacy.blockReason(c, start.folderId, it) == null } ?: start.model
-        Privacy.blockReason(c, start.folderId, startModel)?.let { reason ->
+        val startModel = settings.voiceModel.takeIf { voice && it.isNotBlank() && Privacy.blockReason(c, start, it) == null } ?: start.model
+        Privacy.blockReason(c, start, startModel)?.let { reason ->
             stopWith(host, reason)
             return
         }
@@ -176,7 +188,7 @@ class AgentRunner(private val c: AppContainer) {
                     continue
                 }
                 val fallback = if (!fallbackUsed && unreachable(e) && partial?.content.isNullOrBlank()) {
-                    fallbackModel(model, conv, providers.isNotEmpty())?.takeIf { Privacy.allows(c, Privacy.level(c, conv.folderId), it) }
+                    fallbackModel(model, conv, providers.isNotEmpty())?.takeIf { Privacy.allows(c, Privacy.level(c, conv), it) }
                 } else null
                 if (fallback != null) {
                     // The gateway does not reach the model: the same request goes to a similar model.
@@ -216,6 +228,8 @@ class AgentRunner(private val c: AppContainer) {
 
             runTools(host, result.toolCalls, providers, ctx)
             host.persist()
+            // After a question to the user the turn ends: the answers come as the next message (AP-06).
+            if (result.toolCalls.any { it.name == AskUserTool.NAME }) return
             steps++
             totalSteps++
             // The same tool calls several rounds in a row mean the model is stuck; continuing only burns requests.
@@ -412,9 +426,10 @@ class AgentRunner(private val c: AppContainer) {
             if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId) else null,
             if (c.projectFolderTools in providers) c.projectFolderTools.prompt(conv.folderId) else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
-            if (conv.mode == Conversation.MODE_LITERATURE) ResearchTools.MODE_PROMPT else null,
+            ChatModes.byId(conv.mode)?.prompt?.ifBlank { null },
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
+            if (askUser in providers) AskUserTool.PROMPT else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
         ).joinToString("\n\n")

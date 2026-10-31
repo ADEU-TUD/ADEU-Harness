@@ -25,6 +25,11 @@ data class FileAttachment(
     val path: String? = null,
     /** Number of fillable form fields of that PDF. */
     val formFields: Int = 0,
+    /**
+     * Public source (book, paper) that is sent without placeholders, or confidential; null: the app decides (DOI/ISBN →
+     * public, see data/Pseudonymizer.isPublic). The user can switch it at the attachment (AP-03).
+     */
+    val public: Boolean? = null,
 )
 
 @Serializable
@@ -105,7 +110,7 @@ data class Conversation(
     val summary: String? = null,
     /** Last message covered by [summary]; only used while it is part of the active thread. */
     val summaryUpTo: String? = null,
-    /** Special mode of the chat: "literature" (literature search); null = normal chat. */
+    /** Special mode of the chat: the id of an agent/ChatModes entry ("literature", "planning"); null = normal chat. */
     val mode: String? = null,
     /** Temporary chat: never saved, gone when it is closed. */
     val temporary: Boolean = false,
@@ -117,6 +122,8 @@ data class Conversation(
     val memoryOff: Boolean = false,
     /** Last message the memory learner looked at (see agent/MemoryLearner), so nothing is suggested twice. */
     val learnedUpTo: String? = null,
+    /** Chat of the vault (AP-10): stored encrypted, only Uni server or local models, strict pseudonymization. */
+    val vault: Boolean = false,
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */

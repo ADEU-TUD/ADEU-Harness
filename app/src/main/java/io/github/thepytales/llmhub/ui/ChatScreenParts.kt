@@ -1,6 +1,13 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -63,10 +70,14 @@ internal fun greeting(name: String): String {
 }
 
 /** An example on the start page: fills the input (and possibly switches mode) or opens an area of the app. */
-internal data class ChatExample(val label: String, val text: String = "", val literature: Boolean = false, val route: String? = null)
+internal data class ChatExample(val label: String, val text: String = "", val mode: String? = null, val route: String? = null)
+
+/** A tile of the start page (AP-02): one activity, e.g. „Dateien auswerten“. */
+internal class StartTile(val label: String, val icon: ImageVector, val run: () -> Unit)
 
 internal val CHAT_EXAMPLES = listOf(
-    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", literature = true),
+    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", mode = "literature"),
+    ChatExample("Ein Vorhaben planen (Planungsmodus)", "", mode = "planning"),
     ChatExample("Literaturverzeichnis ordnen", route = "literature"),
     ChatExample("Dokument entwerfen", "Entwirf ein Dokument: "),
     ChatExample("Diagramm aus Daten", "Erstelle ein Diagramm aus diesen Daten:\n"),
@@ -96,22 +107,35 @@ internal fun EmptyChat(
     hideLora: Boolean = false,
     /** Below the greeting, e.g. the invitation to set up the memory. */
     extra: @Composable () -> Unit = {},
+    /** One row of tiles by activity below the greeting (AP-02). */
+    tiles: List<StartTile> = emptyList(),
+    /** The latest chats („Zuletzt“) and the favourite templates („Favoriten“), shown when there is room. */
+    recent: List<io.github.thepytales.llmhub.data.Conversation> = emptyList(),
+    favorites: List<io.github.thepytales.llmhub.data.Template> = emptyList(),
+    onOpenChat: (String) -> Unit = {},
+    /** The chat's mode (AP-05): its example to tap replaces the tiles. */
+    mode: io.github.thepytales.llmhub.agent.ChatMode? = null,
+    onModeExample: (String) -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onMode: (io.github.thepytales.llmhub.agent.ChatMode) -> Unit = {},
 ) {
     val look = LocalChatLook.current
     // Templates and examples take turns, the whole library comes last.
     val ideas = buildList {
-        val templates = suggestions.map { t -> LoraIdea(t.name, tr("Vorlage"), template = true) { onTemplate(t) } }
+        // Favourites have their own row below; Lora's bubble offers the other suggestions and the examples, one at a time.
+        val templates = suggestions.filter { t -> favorites.none { it.id == t.id } }.map { t -> LoraIdea(t.name, tr("Vorlage"), template = true) { onTemplate(t) } }
         val examples = CHAT_EXAMPLES.map { e -> LoraIdea(tr(e.label), tr("Idee"), template = false) { onExample(e) } }
         for (i in 0 until maxOf(templates.size, examples.size)) {
             templates.getOrNull(i)?.let(::add)
             examples.getOrNull(i)?.let(::add)
         }
-        add(LoraIdea(tr("Alle Vorlagen ansehen"), tr("Vorlagen"), template = true, run = onAllTemplates))
+        add(LoraIdea(tr("Alle TU Vorlagen ansehen"), tr("TU Vorlagen"), template = true, run = onAllTemplates))
     }
     BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
         // Lora shrinks with the space (keyboard open); the bubble needs some room.
         val loraHeight = if (hasApiKey) (maxHeight * 0.22f).coerceIn(72.dp, 132.dp) else 72.dp
         val bubble = hasApiKey && maxHeight >= 380.dp
+        val roomForTiles = maxHeight >= 420.dp
+        val roomForLists = maxHeight >= 600.dp
         Column(
             Modifier.fillMaxSize().padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -149,10 +173,105 @@ internal fun EmptyChat(
                     Spacer(Modifier.size(16.dp))
                     IdeaRow(ideas, typing)
                 }
+                if (mode != null) {
+                    Spacer(Modifier.size(18.dp))
+                    ModeExample(mode, onModeExample)
+                } else if (tiles.isNotEmpty() && roomForTiles) {
+                    Spacer(Modifier.size(18.dp))
+                    StartTiles(tiles)
+                }
+                if (roomForLists && (recent.isNotEmpty() || favorites.isNotEmpty())) {
+                    Spacer(Modifier.size(14.dp))
+                    RecentAndFavorites(recent, favorites, onOpenChat, onTemplate)
+                }
+                if (!hideLora) {
+                    // Lora als Navigatorin (AP-07): finds settings and areas, hands questions to a chat.
+                    androidx.compose.material3.TextButton(onClick = { LoraHelper.open() }) {
+                        Text(tr("Lora fragen: Wo finde ich …?"), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
                 Spacer(Modifier.size(14.dp))
                 Box(Modifier.widthIn(max = 520.dp)) { extra() }
             }
             Spacer(Modifier.weight(1.3f))
+        }
+    }
+}
+
+/** The row of activity tiles; scrolls sideways when the window is narrow. */
+@Composable
+private fun StartTiles(tiles: List<StartTile>) {
+    val look = LocalChatLook.current
+    Row(
+        Modifier.widthIn(max = 760.dp).horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        tiles.forEach { t ->
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = look.card,
+                border = boxBorder(),
+                modifier = Modifier.width(132.dp).clip(MaterialTheme.shapes.medium).clickable(onClick = t.run),
+            ) {
+                Column(Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
+                    IconTile(t.icon, size = 32.dp)
+                    Spacer(Modifier.size(8.dp))
+                    Text(tr(t.label), style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+    }
+}
+
+/** „Zuletzt“ (the latest chats) and „Favoriten“ (favourite templates), side by side on wide screens. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun RecentAndFavorites(
+    recent: List<io.github.thepytales.llmhub.data.Conversation>,
+    favorites: List<Template>,
+    onOpenChat: (String) -> Unit,
+    onTemplate: (Template) -> Unit,
+) {
+    androidx.compose.foundation.layout.FlowRow(
+        Modifier.widthIn(max = 760.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (recent.isNotEmpty()) {
+            Column(Modifier.widthIn(min = 220.dp, max = 360.dp)) {
+                GroupLabel(tr("Zuletzt"))
+                recent.forEach { conv ->
+                    Row(
+                        Modifier
+                            .clip(MaterialTheme.shapes.small)
+                            .clickable { onOpenChat(conv.id) }
+                            .padding(horizontal = 6.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.size(8.dp))
+                        Text(conv.title, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+        if (favorites.isNotEmpty()) {
+            Column(Modifier.widthIn(min = 220.dp, max = 360.dp)) {
+                GroupLabel(tr("Favoriten"))
+                favorites.forEach { t ->
+                    Row(
+                        Modifier
+                            .clip(MaterialTheme.shapes.small)
+                            .clickable { onTemplate(t) }
+                            .padding(horizontal = 6.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp), tint = LocalChatLook.current.brand)
+                        Spacer(Modifier.size(8.dp))
+                        Text(t.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
         }
     }
 }

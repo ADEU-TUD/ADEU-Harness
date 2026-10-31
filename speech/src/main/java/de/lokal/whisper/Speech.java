@@ -52,6 +52,8 @@ public final class Speech {
         final String key, modelId; final boolean words;
         final OfflineRecognizer rec;
         int users;
+        /** Zeitpunkt der letzten Freigabe (fuer das Entladen unbenutzter Modelle). */
+        long releasedAt = System.currentTimeMillis();
         Handle(String key, String modelId, boolean words, OfflineRecognizer rec) { this.key = key; this.modelId = modelId; this.words = words; this.rec = rec; }
     }
 
@@ -83,6 +85,21 @@ public final class Speech {
     public static synchronized void release(Handle h) {
         if (h == null) return;
         h.users = Math.max(0, h.users - 1);
+        h.releasedAt = System.currentTimeMillis();
+    }
+
+    /** Gibt Modelle frei, die seit mindestens {@code millis} niemand benutzt hat (weniger Arbeitsspeicher im Leerlauf). */
+    public static synchronized int evictUnusedFor(long millis) {
+        long now = System.currentTimeMillis();
+        int n = 0;
+        for (Iterator<Handle> it = loaded.values().iterator(); it.hasNext(); ) {
+            Handle h = it.next();
+            if (h.users > 0 || now - h.releasedAt < millis) continue;
+            try { h.rec.release(); } catch (Throwable ignored) {}
+            it.remove();
+            n++;
+        }
+        return n;
     }
 
     /** Gibt unbenutzte Modelle frei (alle, oder nur die mit dieser Kennung). */

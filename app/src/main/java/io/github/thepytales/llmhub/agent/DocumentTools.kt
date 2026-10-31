@@ -206,6 +206,22 @@ class DocumentTools(
             ),
         ),
         ToolDef(
+            "make_pdf_fillable",
+            "Macht ein angehängtes Papierformular (PDF ohne Formularfelder) ausfüllbar: erkennt, wo Eingaben hingehören (Linien " +
+                "„____“, „Name:“ mit Platz dahinter, Kästchen ☐), und setzt Text-, Datums- und Ankreuzfelder. Optional eigene " +
+                "Felder über fields. Ergebnis: ein neues PDF, das sich am PC ausfüllen lässt; im PDF-Werkzeugkasten kann der " +
+                "Nutzer die Felder noch verschieben, in der Größe ändern oder umbenennen.",
+            listOf(
+                Param("file", "Dateiname des angehängten PDFs (Standard: das zuletzt angehängte)", required = false),
+                Param(
+                    "fields", "Optional statt der Erkennung: JSON-Liste [{\"name\": \"Name\", \"page\": 1, \"x\": 70, \"y\": 52, " +
+                        "\"width\": 80, \"height\": 7, \"type\": \"text|multiline|checkbox|date|signature\"}], Maße in mm von oben links",
+                    required = false,
+                ),
+                Param("file_name", "Optionaler Dateiname ohne Endung", required = false),
+            ),
+        ),
+        ToolDef(
             "check_accessibility",
             "Prüft ein Dokument auf Barrierefreiheit: auswählbarer Text statt Scan, Tags, Sprache, Titel, Überschriften, " +
                 "Alternativtexte, Tabellenköpfe, Folientitel, Formularfeld-Beschreibungen. Für angehängte PDFs und alle von " +
@@ -236,6 +252,7 @@ class DocumentTools(
         "save_logo" -> saveLogo(args, ctx)
         "read_pdf_form" -> readPdfForm(args, ctx)
         "fill_pdf" -> fillPdf(args, ctx)
+        "make_pdf_fillable" -> makeFillable(args, ctx)
         "check_accessibility" -> checkAccessibility(args, ctx)
         else -> ToolOutput("FEHLER: Unbekanntes Werkzeug '$name'.")
     }
@@ -734,6 +751,61 @@ class DocumentTools(
         val (att, file) = pdf(args, ctx)
         val info = withContext(Dispatchers.IO) { PdfForms.inspect(context, file) }
         return ToolOutput(info.describe(att.name))
+    }
+
+    /** Formulare ausfüllbar machen (AP-11): detected (or given) fields are written into a copy of the PDF. */
+    private suspend fun makeFillable(args: JsonObject, ctx: RepoContext): ToolOutput {
+        val (att, file) = pdf(args, ctx)
+        val given = (jsonArg(args["fields"]) as? JsonArray).orEmpty()
+        val (out, fields) = withContext(Dispatchers.IO) {
+            val info = io.github.thepytales.llmhub.docs.PdfTools.info(context, file)
+            val existing = io.github.thepytales.llmhub.docs.PdfTools.formFields(context, file)
+            val specs = if (given.isNotEmpty()) given.mapNotNull { e ->
+                val o = e as? JsonObject ?: return@mapNotNull null
+                val page = ((o.s("page")?.toDoubleOrNull()?.toInt() ?: 1) - 1).coerceIn(0, info.pages - 1)
+                val (pw, ph) = info.sizes[page]
+                val mm = 72f / 25.4f
+                fun num(k: String) = o.s(k)?.toFloatOrNull()
+                val x = num("x") ?: return@mapNotNull null
+                val y = num("y") ?: return@mapNotNull null
+                val w = num("width") ?: 60f
+                val h = num("height") ?: 7f
+                val type = when (o.s("type")?.lowercase()) {
+                    "checkbox", "ankreuzfeld" -> io.github.thepytales.llmhub.docs.PdfFieldType.CHECKBOX
+                    "multiline", "mehrzeilig" -> io.github.thepytales.llmhub.docs.PdfFieldType.MULTILINE
+                    "date", "datum" -> io.github.thepytales.llmhub.docs.PdfFieldType.DATE
+                    "signature", "unterschrift" -> io.github.thepytales.llmhub.docs.PdfFieldType.SIGNATURE
+                    else -> io.github.thepytales.llmhub.docs.PdfFieldType.TEXT
+                }
+                io.github.thepytales.llmhub.docs.PdfFieldSpec(
+                    o.s("name") ?: "Feld", page,
+                    io.github.thepytales.llmhub.docs.PdfBox(x * mm / pw, y * mm / ph, w * mm / pw, h * mm / ph), type, o.s("name").orEmpty(),
+                )
+            } else io.github.thepytales.llmhub.docs.PdfTools.detectFields(context, file)
+            val base = DocumentWriter.safeName(args.s("file_name")?.substringBeforeLast('.')?.ifBlank { null } ?: (att.name.substringBeforeLast('.') + " (ausfüllbar)"))
+            folder.mkdirs()
+            var f = File(folder, "$base.pdf")
+            var n = 2
+            while (f.exists()) f = File(folder, "$base ($n).pdf").also { n++ }
+            if (specs.isNotEmpty()) io.github.thepytales.llmhub.docs.PdfTools.setFormFields(context, file, existing + specs, f)
+            f to specs
+        }
+        if (fields.isEmpty()) {
+            return ToolOutput(
+                "FEHLER: Keine Eingabestellen erkannt (keine Linien „____“, kein „Name:“ mit Platz, keine Kästchen). Lies das Formular mit " +
+                    "read_pdf_form und gib die Felder über fields an (Maße in mm von oben links).",
+            )
+        }
+        return ToolOutput(
+            buildString {
+                append("PDF ausfüllbar gemacht: ${out.name} mit ${fields.size} Feldern (")
+                append(fields.groupBy { it.type.label }.entries.joinToString { "${it.value.size} × ${it.key}" }).append("). ")
+                append("Felder: ").append(fields.take(30).joinToString { "„${it.name}“ (S. ${it.page + 1})" }).append(". ")
+                append("Es wird dem Nutzer im Chat mit Knöpfen angezeigt – nenne keinen Dateipfad. Weise darauf hin, dass sich die Felder im ")
+                append("PDF-Werkzeugkasten (Formular) verschieben, in der Größe ändern und umbenennen lassen.")
+            },
+            file = out.absolutePath,
+        )
     }
 
     private suspend fun fillPdf(args: JsonObject, ctx: RepoContext): ToolOutput {

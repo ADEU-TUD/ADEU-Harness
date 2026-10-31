@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.Template
@@ -62,9 +63,9 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Vorlagen") },
+                title = { Text(tr("TU Vorlagen")) },
                 actions = {
-                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "Vorlagen importieren") }
+                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "TU Vorlagen importieren") }
                     IconButton(enabled = own.isNotEmpty(), onClick = {
                         clipboard.setText(AnnotatedString(TemplateLibrary.export(own)))
                         Notices.info("${own.size} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.")
@@ -73,11 +74,15 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Neue Vorlage") },
-            )
+            androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                LoraHelperButton(c)
+                androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                ExtendedFloatingActionButton(
+                    onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    text = { Text("Neue Vorlage") },
+                )
+            }
         },
     ) { pad ->
         TemplateBrowser(
@@ -134,7 +139,7 @@ private fun ImportTemplatesDialog(initial: String, onImport: (List<Template>) ->
     val found = remember(text) { TemplateLibrary.import(text) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Vorlagen importieren") },
+        title = { Text("TU Vorlagen importieren") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(

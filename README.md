@@ -10,15 +10,41 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Corporate Designs), **Office** (nüchtern wie Microsoft 365) und **Hoher Kontrast** (barrierearm, WCAG AAA). Unter
   *Weitere Stile* bleiben Claude, ChatGPT, Gemini und Material You. *Einstellungen › Darstellung* zeigt jeden Stil als
   kleine Vorschau; dort lässt sich auch die Startanimation ausschalten.
-- **Logo und Startanimation**: Das Logo zeigt das didaktische Dreieck (Lehrende, Lernende, Inhalt) im TU-Blau, in der
-  Mitte eine Klangwelle für das Gespräch. Beim Start baut es sich in gut einer Sekunde auf (abschaltbar unter
-  *Einstellungen › Darstellung*).
-- **Aufgeräumte Seitenleiste**: oben nur das Tägliche (*Vorlagen*, *Literatur*, *Dokumente*, *Geplante Aufgaben*,
-  *Bilder erzeugen*, *Transkription*), darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht, Modellvergleich,
-  Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
-- **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Datenschutz,
-  Gedächtnis, Wissenssammlung), *Modelle* (Übersicht, Vergleich, Modelle auf diesem Gerät, Transkription),
-  *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung). *Chat & Werkzeuge* ist
+- **Logo und Startanimation**: Das Logo zeigt Lora, das Maskottchen, beim Lesen – im App-Violett mit weißem Gesicht auf
+  einer hellen Kachel. Beim Start erscheint die Kachel, Lora hüpft hinein und blättert eine Seite um (abschaltbar unter
+  *Einstellungen › Darstellung*). App-Symbole für Windows (`.ico`, Infobereich) und Android (Launcher, Benachrichtigung)
+  entstehen aus derselben Zeichnung (siehe *Logo ändern* unten).
+- **Chat im ADEU-Stil**: Antworten sind ruhiger Text; Kästen für Code, Tabellen und Hinweise (`> [!NOTE]` oder
+  `> **Hinweis:**`) haben einen feinen Rand und einen Farbakzent statt grauer Flächen. Links zeigen ihre Domain als kleine
+  Marke, bloße Adressen erscheinen nur als Marke, Quellen wie `[1]` werden zu nummerierten Marken, die auf die
+  Quellenliste am Ende der Antwort verlinken. Anhänge, Dokumentkarten, die Literaturliste und Fehler sehen einheitlich
+  aus; Lora signiert jede Antwort klein neben dem Modellnamen. Gilt für alle Stile, Hoher Kontrast bleibt WCAG AAA.
+- **Aufgeräumte Seitenleiste**: oben *Neuer Chat* und bis zu vier Bereiche (Standard: *TU Vorlagen*, *Literatur*,
+  *Transkription*), darunter ausklappbar **„Mehr“** mit *Dokumente*, *Bilder erzeugen*, *Geplante Aufgaben* und allen
+  eingeschalteten Werkzeugen (auf-/zugeklappt bleibt gespeichert). Rechtsklick bzw. langes Drücken holt einen Bereich
+  nach oben oder schiebt ihn unter „Mehr“. Darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht,
+  Modellvergleich, Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
+- **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge (PDF-Werkzeugkasten, Tresor, später Browser,
+  Lernspiele, Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
+  „Mehr“. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor. Einschaltbar
+  sind der *PDF-Werkzeugkasten* und der *Tresor*; die übrigen sind als „geplant“ zu sehen.
+- **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
+  zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
+  PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
+  Gerät** über eine Landkarte der App (`data/AppMap.kt`, mit Synonymen) – ohne Anfrage; nur für echte Gespräche fragt sie
+  GLM-5.3 Flash (Denkphase aus) mit den Werkzeugen *navigate*, *open_mode*, *change_setting* (nur nach Bestätigung),
+  *enable_tool*, *handoff_chat*, *explain* (eingebaute Hilfe) und Rückfragen mit Antwortknöpfen. Einstiege: schlafende Lora
+  unten rechts in den Einstellungen, TU Vorlagen und Literatur (Tipp weckt sie, Text oder Sprache), *Lora fragen* auf der
+  Startseite, Strg+K › *Lora fragen*, langes Drücken auf Lora im Chat. Beim ersten Start höchstens zwei Fragen (wo Lora
+  erscheint, welche Werkzeuge sichtbar sind). *Einstellungen › Lora*: überall / nur im Chat / aus (ersetzt „Lora
+  ausblenden“), Modell, ruhigere Bewegungen, Hinweise. Lora läuft nur auf Abruf; in Projekten „Nur auf diesem Gerät“ sucht
+  sie nur lokal.
+- **Startseite**: unter der Begrüßung eine Reihe Kacheln nach Tätigkeiten – *Fragen & schreiben*, *TU Vorlagen*,
+  *Dokument erstellen*, *Dateien auswerten*, *Literatur finden* –, darunter *Zuletzt* (die letzten Chats) und *Favoriten*
+  (★-Vorlagen). Lora bietet in der Sprechblase jeweils eine Idee an.
+- **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Werkzeuge,
+  Datenschutz, Gedächtnis, Wissenssammlung), *Modelle* (Übersicht, Vergleich, Modelle auf diesem Gerät, Transkription),
+  *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung, Arbeitsspeicher). *Chat & Werkzeuge* ist
   aufgeteilt in Neue Chats, Werkzeuge, Agent, Freigaben, Zuverlässigkeit und Erweitert. Auf großen Bildschirmen bleibt die
   Lesebreite angenehm.
 - **Modellauswahl wie bei Claude**: oben die empfohlenen Modelle mit kurzem Einsatzzweck, darunter „Weitere Modelle“
@@ -47,7 +73,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen. Word und PowerPoint kommen mit
   Überschriften, Listen und Tabellen beim Modell an – „Mach daraus ein Dokument im TUD-Design“ funktioniert so direkt.
   Beliebig viele Dateien (je bis 25 MB, Text bis 120 000 Zeichen) und bis zu 10 Bilder auf einmal.
-- **Vorlagen-Bibliothek für die Professur**: rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
+- **TU Vorlagen – die Vorlagen-Bibliothek für die Professur**: rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
   (Seminarplan, Sitzung planen, Lernziele, Prüfungsaufgaben, Bewertungsraster, Feedback, Unterrichtsentwurf,
   Unterrichtsvignette), *Betreuung & Prüfung* (Exposé-Feedback, Gutachten, Themen für Abschlussarbeiten, mündliche Prüfung),
   *Forschung* (Forschungsfrage, Fragebogen-Items, Interviewleitfaden, Kategoriensystem, Ergebnisse nach APA 7, Abstract,
@@ -164,6 +190,16 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Zuordnung bleibt auf dem Gerät. Ein Vorschaufeld zeigt, was der Server sähe; das Agent-Protokoll nennt, was ersetzt wurde,
   und über dem Eingabefeld steht „Pseudonymisiert“. Ohne Pseudonymisierung warnt die App, wenn Namen oder Kontaktdaten an
   einen Anbieter außerhalb der TU Dresden (Gemini) gingen. Bilder und Spracheingaben lassen sich nicht pseudonymisieren.
+  **Treffsicherer**: Öffentliche Quellen bleiben, wie sie sind – Ergebnisse von Web- und Literatursuche, Bücher und Paper
+  (DOI, ISBN, ISSN), die Autor:innen der Literatursammlung und im Text zitierte Autor:innen („Müller (2020)“, „Lipowsky &
+  Rzejak, 2021“) sowie bekannte Personen aus Wissenschaft und Politik; ein früher als Elternteil gespeichertes „Müller“
+  bleibt in einer Literaturangabe stehen. Anhänge zeigen „öffentlich“ oder „vertraulich“ (Vorschlag der App, ein Tipp
+  schaltet um). Zusätzlich erkannt: seltene Nachnamen nach einem Vornamen, Schulen und Kitas („Grundschule am Park“,
+  „Goethe-Gymnasium“) und Orte in Personenbeschreibungen („die Schulleiterin in Pirna“). In der Vorschau und im
+  Agent-Protokoll korrigiert ein Tipp – „nicht ersetzen“ bzw. „auch ersetzen“ –, und das gilt ab dem nächsten Chat.
+  Wahlweise liest ein **lokales Erkennungsmodell** jeden Text einmal und findet, was die Regeln übersehen (schneller ↔
+  gründlicher, nichts verlässt das Gerät). Die Testsammlung `PseudonymCorpusTest` misst, wie viele private Namen ersetzt
+  und wie viele öffentliche erhalten bleiben.
 - **Quellen-Check**: Das Modell prüft Literaturangaben mit `check_references` gegen Crossref, OpenAlex und Google Books,
   bevor es sie nennt (bestätigt, Angaben weichen ab, nicht gefunden). An jeder Antwort steht unter „⋯“ *Quellen prüfen* –
   ohne Modell, direkt bei Crossref. Vorlage *Forschung › Literaturangaben prüfen* für ganze Literaturverzeichnisse.
@@ -214,7 +250,8 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   System-Prompt darf eine andere Rolle vorgeben.
   **Im Chat** bleiben Gedankengang und Werkzeugschritte eingeklappt (*Chat & Werkzeuge › Arbeitsschritte einklappen*,
   Standard an); solange der Agent arbeitet, begleitet Lora die Antwort in einer Karte mit fester Höhe (nichts springt) –
-  mit „Lora ist dran“, dem aktuellen Schritt und der Zahl der Schritte, die alles aufklappt. Lora forscht dabei mit:
+  Lora auf einer kleinen, hell beleuchteten Bühne, daneben „Lora ist dran“ mit der bisherigen Zeit, der aktuelle Schritt,
+  die Zahl der Schritte, die alles aufklappt, und eine feine Fortschrittslinie am unteren Rand. Lora forscht dabei mit:
   mikroskopiert, experimentiert mit dem Erlenmeyerkolben, dreht den Globus, schaut durchs Teleskop und durchs Fernglas,
   funkt mit der Antenne, blättert im Karteikasten, holt ein Buch aus dem Regal, fängt umherflatternde Seiten mit dem
   Kescher, gräbt ein Fossil aus, schleppt Bücherstapel, puzzelt, rechnet am Abakus, faltet Papierflieger, hört mit
@@ -325,7 +362,45 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   OpenAlex, die Deutsche Nationalbibliothek und Google Books. Jeder Eintrag zeigt, was ergänzt wurde und was noch fehlt;
   unsichere Treffer werden nur vorgeschlagen. Export als Word, PDF, Markdown, BibTeX, RIS und CSL-JSON. Im Chat unter
   einer Antwort: *⋯ › Literaturverzeichnis erstellen*. Der Zitierstil ist unter *Einstellungen › Literatur & Zotero* wählbar.
-- **Literatursuchmodus**: Thema und Kontext angeben (Chip *Literatursuche* oder `/Literatursuche`) – der Agent sucht
+- **Modi mit einheitlichem Rahmen**: Jeder Modus zeigt über dem Eingabefeld einen Chip mit ✕ zum Verlassen und eine Zeile
+  „was passiert hier · Daten: …“; im leeren Chat steht ein Beispiel zum Antippen. Modi starten mit `/` (z. B. `/Planen`),
+  über die Befehlspalette (Strg+K, Gruppe *Modi*), die Startseite und Loras Ideen: *Literatursuche*, *Quellenmodus*,
+  *Exzerpt*, *Planungsmodus* und *Sprachmodus*. Neue Modi brauchen nur eine Definition in `agent/ChatModes.kt`.
+- **Rückfragen mit Antwortknöpfen**: Statt zu raten, stellt das Modell vor größeren Aufgaben 1–4 kurze Fragen
+  (`ask_user`) – als Karte im Chat mit Antwortknöpfen (eine oder mehrere Antworten) und einem Feld für eine eigene
+  Antwort; *Antworten* schickt alles als eine Nachricht, *Überspringen* lässt das Modell mit Annahmen weitermachen. Im
+  **Planungsmodus** klärt Lora ein Vorhaben (Seminar, Antrag, Projekt, Paper, Arbeitsplan) in mehreren solchen Runden und
+  schreibt daraus einen Plan als Dokument. **TU Vorlagen mit vielen Feldern** lassen sich statt im Formular mit
+  *Lieber mit Lora Schritt für Schritt* als Fragerunde ausfüllen.
+- **Quellenmodus mit Belegpflicht** (`/Quellen`): Jede Aussage bekommt einen Marker [n], die Antwort endet mit
+  „## Belege“ – Datei und Seite, DOI, URL oder Transkriptzeit, jeweils mit wörtlichem Zitat. Danach prüft die App **auf dem
+  Gerät** jedes Zitat gegen die Quellen des Chats (Anhänge mit ihren Seitenmarken, gelesene Webseiten, Wissenssammlung,
+  Transkripte): bestätigt, andere Seite, nicht gefunden oder nicht prüfbar. Aussagen ohne Beleg werden im Text mit ⚠
+  markiert. Unter der Antwort steht das **Belegprotokoll** (aufklappbar, als Dokument exportierbar); ein Klick auf einen
+  Beleg öffnet die PDF-Seite im PDF-Werkzeugkasten oder die Webseite.
+- **Exzerpt-Agent** (`/Exzerpt`, *Literatur › Eintrag › Exzerpt erstellen* oder die TU Vorlage *Literatur exzerpieren*):
+  Schemata je Textart – empirisch (Bibliografie, Fragestellung, Theorie, Methode, Stichprobe, zentrale Befunde, wörtliche
+  Zitate mit Seite, Begriffe, eigene Bewertung, Anschlussfragen), theoretisch, Review und Buchkapitel. `save_excerpt`
+  prüft jede Seitenangabe gegen das angehängte PDF und nimmt das Exzerpt erst an, wenn sie stimmen; dann hängt es am
+  Literatureintrag (wird bei Bedarf angelegt) und liegt unter *Dokumente*. Mehrere Exzerpte: *Literatur › ⋯ › Exzerpte als
+  Tabelle*.
+- **Tresor für sensible Forschung** (Werkzeug, *Einstellungen › Werkzeuge*): eigener Bereich mit App-PIN für Interviews oder
+  Daten von Studierenden. Beim Einrichten erscheint einmal ein **Wiederherstellungsschlüssel** zum Ausdrucken, mit dem sich
+  eine vergessene PIN neu setzen lässt. Tresor-Chats sind mit AES-256 verschlüsselt (Schlüssel aus PIN, zusätzlich mit
+  Android Keystore bzw. Windows DPAPI gesichert) – ohne PIN auch als Datei nicht lesbar; sie erscheinen nicht in Chatliste,
+  Suche, Gedächtnis, Vorschlägen oder Benachrichtigungstexten. Im Tresor gelten **nur Uni-Server oder lokale Modelle**,
+  keine Websuche/GitHub und eine **strenge Pseudonymisierung** (gründliche Erkennung, keine Ausnahmen). Nach fünf falschen
+  PINs wartet jeder weitere Versuch länger; der Tresor sperrt sich nach einstellbarer Inaktivität.
+- **PDF-Werkzeugkasten** (Werkzeug, Vorbild pdf24 + Xodo): mehrere PDFs in **Tabs** mit Miniaturen, Gliederung, Suche,
+  Zoom und Nachtmodus; **Seiten** zusammenführen, teilen (alle n Seiten oder nach Bereichen), extrahieren, löschen, drehen,
+  **sortieren durch Ziehen** der Miniaturen und **Seitenzahlen** setzen; **Markieren**: hervorheben, unterstreichen,
+  durchstreichen, Freihand, Notizen und Stempel als echte PDF-Anmerkungen, Kommentarliste als Dokument exportieren.
+  Jeder Schritt lässt sich rückgängig machen; *Speichern* bzw. *Speichern unter / Teilen*. Auf Windows zusätzlich
+  **Formulare ausfüllbar machen**: *Felder erkennen* findet Eingabestellen (Linien „____“, „Name:“ mit Platz, Kästchen ☐,
+  Datum, Unterschrift), die Felder lassen sich verschieben, in der Größe ändern, umbenennen und umtypisieren; oder der
+  Agent macht es im Chat (`make_pdf_fillable`). Danach füllt man das PDF am PC aus (auch der Agent mit `fill_pdf`).
+  Android: Betrachter, Seiten und Markieren. Lora schneidet, heftet und stempelt dazu.
+- **Literatursuchmodus**: Thema und Kontext angeben (`/Literatursuche`, Kachel *Literatur finden* oder Strg+K) – der Agent sucht
   systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB, **SLUB-Katalog** (was an der TU Dresden ausleihbar
   oder lizenziert ist), **PubMed/Europe PMC**, **arXiv**, **DOAJ** und Google Books, verfolgt Zitationen in beide
   Richtungen (Schneeballsuche), prüft Zeitschriften auf neue Artikel und liefert eine gegliederte Übersicht mit
@@ -563,6 +638,13 @@ Unterschiede zu Android:
 - **Teilen** kopiert in die Zwischenablage; Dokumente lassen sich öffnen, im Ordner zeigen oder speichern unter.
 - **Tastatur**: Enter sendet, Umschalt+Enter neue Zeile, Strg+N neuer Chat, Strg+B Seitenleiste, Strg+, Einstellungen,
   Esc zurück. Rechtsklick auf Chats und Nachrichten öffnet das Menü (wie langes Drücken auf Android).
+- **Arbeitsspeicher**: Der Java-Speicher hat eine feste Obergrenze (1,5 GB) und gibt freien Speicher nach etwa einer
+  Minute ohne Arbeit an Windows zurück (G1 mit `G1PeriodicGCInterval`, `Min/MaxHeapFreeRatio`, String-Deduplizierung;
+  Liste in `desktop/build.gradle.kts` › `MEMORY_JVM_ARGS` und in `release-local.sh`). Die Chat-Liste hält keine langen
+  Texte mehr: Anhänge, Werkzeugergebnisse und Denkwege liegen dort nur gekürzt, ganz erst im geöffneten Chat.
+  Spracherkennungsmodelle werden nach drei Minuten ohne Nutzung entladen, Vorschaubilder verkleinert gehalten.
+  *Einstellungen › Arbeitsspeicher* zeigt Java-Speicher und App gesamt (Working Set wie im Task-Manager) sowie
+  Messpunkte (Start, nach großem PDF, nach Transkription, nach einer Stunde, von Hand) und hat *Speicher freigeben*.
 
 ### Dienst-PCs mit IT-Sperre
 
@@ -699,6 +781,14 @@ Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
 
 `.github/scripts/windows-portable.ps1` macht daraus die Ein-Datei-EXE und die ZIP.
 
+### Logo ändern
+
+Das Logo wird in `ui/Logo.kt` gezeichnet (Lora aus `ui/LoraFigure.kt`, eigene Farben in `LogoColors`). Die App-Symbole
+erzeugt `./gradlew -p desktop test --tests '*LogoTest*'` nach `desktop/build/icons`: `app.ico` und `app.png` gehören nach
+`desktop/icons/`, `app.png` als `icon.png` und `tray.png` nach `desktop/src/main/resources/`, die Ordner unter `android/`
+nach `app/src/main/res/`. `ChatLookTest` rendert den Chat in allen Stilen nach `desktop/build/chat-look` (für
+Vorher/Nachher-Bilder).
+
 ### Signaturschlüssel
 
 Der Release-Schlüssel gehört **nicht** ins Repository: Wer ihn hat, kann „Updates“ bauen, die sich über die echte App
@@ -747,7 +837,7 @@ Chats und Einstellungen erhalten bleiben).
 | `docs/LiveDoc.kt` | Dokumente des Editors (Art, Tabs, Versionen, Kommentare), Speicherorte mit Markdown-Kopie und Abgleich |
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
-| `data/Pseudonymizer.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, Platzhalter, Rückersetzung) und Einstellungen dazu |
+| `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |
 | `docs/AccessibilityCheck.kt`, `docs/PdfAccessibility.kt`, `docs/Contrast.kt` | Barrierefreiheit prüfen, PDF-Metadaten, Farbkontrast |
@@ -755,7 +845,7 @@ Chats und Einstellungen erhalten bleiben).
 | `data/ChatTree.kt` | Chats als Baum (Versionen beim Bearbeiten/Neu generieren) |
 | `data/Library.kt`, `data/Stores.kt` | Ordner, Vorlagen (Bereiche, Platzhalter), Umgebungen, Logos und deren Speicherung |
 | `data/TemplateLibrary.kt` | Eingebaute Vorlagen, Favoriten-Vorschläge, Teilen/Importieren |
-| `ui/TemplateUi.kt`, `ui/TemplatesScreen.kt` | Vorlagen durchsuchen, ausfüllen, verwalten |
+| `ui/TemplateUi.kt`, `ui/TemplatesScreen.kt` | TU Vorlagen durchsuchen, ausfüllen (auch als Fragerunde), verwalten |
 | `ui/Approvals.kt` | Freigabe-Modi und Dialog „Aktion erlauben?“ |
 | `docs/PdfForms.kt`, `docs/PdfFormModel.kt` | PDF-Formulare lesen und ausfüllen (Android: pdfbox-android, Windows: PDFBox 3) |
 | `resources/tud/` | Offizielles TUD-Logo (blau/weiß) und Noto Sans für den Dokumentstil „TU Dresden“ |
@@ -774,6 +864,15 @@ Chats und Einstellungen erhalten bleiben).
 | `ui/TranscriptsScreen.kt`, `ui/TranscriptScreen.kt`, `ui/TranscriptStart.kt`, `ui/TranscriptionSettings.kt` | Transkription: Übersicht, Aufnahme, Start-Dialog, Transkript mit Player, Einstellungen |
 | `local/` | Lokale Sprachmodelle: `LocalCatalog` (Modelle, Hardware-Empfehlung), `LocalLlm` (Installieren, Server starten/stoppen), `LlamaHost` je Plattform; `app/llama.gradle.kts` baut llama-server für Android |
 | `data/Privacy.kt` | Datenschutzstufen der Projekte durchsetzen |
+| `data/AppTools.kt`, `ui/ToolsSettings.kt`, `ui/NavRules.kt` | Einschaltbare Werkzeuge, Seitenleiste mit „Mehr“, Loras Werkzeug-Vorschlag |
+| `agent/ChatModes.kt`, `ui/ModeUi.kt` | Modi (Literatursuche, Quellenmodus, Exzerpt, Planungsmodus, Sprachmodus) mit einheitlichem Rahmen |
+| `agent/AskUserTool.kt`, `ui/QuestionCard.kt` | Rückfragen mit Antwortknöpfen (`ask_user`), TU Vorlagen als Fragerunde |
+| `data/MemoryMeter.kt`, `ui/MemoryUsage.kt` | Arbeitsspeicher messen und anzeigen, Modelle im Leerlauf entladen |
+| `data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, `ui/Spotlight.kt` | Lora als Navigatorin: Landkarte der App, lokale Suche, Agent-Schleife, Dialog, Leuchtrahmen |
+| `agent/Evidence.kt`, `ui/EvidenceCard.kt` | Quellenmodus: Belege lesen, gegen die Quellen prüfen, Belegprotokoll |
+| `research/Excerpts.kt`, `agent/ExcerptTools.kt` | Exzerpt-Agent: Schemata, Seitenprüfung, `save_excerpt` |
+| `data/Vault.kt`, `data/DeviceKey.kt`, `ui/VaultScreen.kt` | Tresor: PIN, Wiederherstellungsschlüssel, Verschlüsselung (Keystore bzw. DPAPI) |
+| `docs/PdfTools.kt`, `docs/PdfToolModel.kt`, `ui/PdfRender.kt`, `ui/PdfToolScreen.kt` | PDF-Werkzeugkasten: Seiten, Anmerkungen, Formularfelder (erkennen und setzen), Darstellung je Plattform |
 
 ### Windows-Version (`desktop/`)
 
@@ -786,6 +885,7 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | Pfad | Inhalt |
 | --- | --- |
 | `Main.kt` | Fenster, Symbol im Infobereich, Benachrichtigungen, Tastenkürzel, Drag & Drop |
+| `desktop/ProcessMemory.kt` | Arbeitsspeicher des ganzen Prozesses (Working Set) für *Einstellungen › Arbeitsspeicher* |
 | `SelfTest.kt` | Starttest für CI (`--selftest <Ordner>`): alle Bildschirme, Dokumente, Verschlüsselung |
 | `desktop/Paths.kt`, `desktop/Secrets.kt`, `data/FilePrefs.kt` | Datenordner, DPAPI-Verschlüsselung, Einstellungen |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.Card
@@ -165,4 +167,52 @@ fun formatBytes(b: Long): String = when {
     b >= 1_000_000 -> "${(b / 1e6).toInt()} MB"
     b >= 1000 -> "${(b / 1e3).toInt()} KB"
     else -> "$b B"
+}
+
+/*
+ * ADEU style of the chat (AP-01): boxes in answers – code, tables, notes, document cards – have a fine frame and a
+ * colored accent on the left instead of a gray surface. The frame follows the look (2 dp black in Hoher Kontrast).
+ */
+
+/** Frame of boxes in the chat. */
+@Composable
+fun boxBorder(): androidx.compose.foundation.BorderStroke =
+    LocalChatLook.current.cardBorder ?: androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+
+/** A colored bar along the left edge (drawn behind the content, inside the box's clip). */
+fun Modifier.accentStripe(color: Color, width: androidx.compose.ui.unit.Dp = 3.dp): Modifier = drawBehind {
+    drawRect(color, size = androidx.compose.ui.geometry.Size(width.toPx(), size.height))
+}
+
+/** A box in the chat: card color, fine frame, accent bar; [onClick] makes the whole box tappable. */
+@Composable
+fun AccentBox(
+    modifier: Modifier = Modifier,
+    accent: Color = MaterialTheme.colorScheme.primary,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val shape = MaterialTheme.shapes.small
+    Surface(
+        color = LocalChatLook.current.card,
+        border = boxBorder(),
+        shape = shape,
+        modifier = modifier.fillMaxWidth().clip(shape).then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
+        Column(Modifier.accentStripe(accent).padding(start = 3.dp), content = content)
+    }
+}
+
+/** Small square with an icon in the accent color on a light tint (file and document cards). */
+@Composable
+fun IconTile(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color = MaterialTheme.colorScheme.primary, size: androidx.compose.ui.unit.Dp = 34.dp) {
+    Box(
+        Modifier
+            .size(size)
+            .clip(MaterialTheme.shapes.small)
+            .background(color.copy(alpha = 0.12f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(size * 0.56f))
+    }
 }

@@ -147,6 +147,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // A PDF to open in the PDF-Werkzeugkasten (evidence of the Quellenmodus, a document card); the screen takes it.
+    val pdfRequest by PdfHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(pdfRequest) {
+        if (pdfRequest != null && route != "pdf") runCatching { nav.navigate("pdf") { launchSingleTop = true } }
+    }
+
     // "In Chat senden" from the document editor: open that chat (or a new one).
     val chatRequest by ChatHandoff.open.collectAsStateWithLifecycle()
     LaunchedEffect(chatRequest) {
@@ -174,6 +180,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     }
     // A new version: asks at the start whether to install it (see Updates).
     if (crash == null) UpdatePrompt(c)
+    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    LoraHelperHost(c) { r ->
+        runCatching { if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) { launchSingleTop = true } }
+    }
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 
@@ -312,6 +322,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             }
             composable("docs") { back ->
                 DocsListScreen(c, onBack = { nav.back(back) }, onOpen = { id -> nav.go(back, "doc/$id") })
+            }
+            composable("pdf") { back ->
+                PdfToolScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) })
+            }
+            composable("vault") { back ->
+                VaultScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
             }
             composable("doc/{id}") { back ->
                 DocScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })

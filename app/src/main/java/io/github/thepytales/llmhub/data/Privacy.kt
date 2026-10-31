@@ -13,6 +13,21 @@ object Privacy {
     fun level(c: AppContainer, folderId: String?): PrivacyLevel =
         folderId?.let { id -> c.folders.items.value.firstOrNull { it.id == id }?.privacy } ?: PrivacyLevel.OPEN
 
+    /** Level of a chat: in the vault (AP-10) at least „Nur TU Dresden“ – only the Uni server or local models. */
+    fun level(c: AppContainer, conv: Conversation): PrivacyLevel {
+        val project = level(c, conv.folderId)
+        return if (conv.vault && project == PrivacyLevel.OPEN) PrivacyLevel.TU else project
+    }
+
+    /** Why [model] may not be used in the chat [conv], null if it may. */
+    fun blockReason(c: AppContainer, conv: Conversation, model: String): String? {
+        if (conv.vault && !allows(c, level(c, conv), model)) {
+            return "Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – ${ModelCatalog.info(model).displayName} läuft bei " +
+                "einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen."
+        }
+        return blockReason(c, conv.folderId, model)
+    }
+
     fun isLocal(model: String) = model.startsWith(LOCAL_PREFIX)
 
     /** Served by a provider outside the TU Dresden (e.g. Gemini or an own OpenAI-compatible server). */

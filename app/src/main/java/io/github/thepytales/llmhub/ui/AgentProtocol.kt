@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,7 +67,7 @@ fun protocolOf(turn: List<ChatMessage>): Protocol {
 private fun seconds(ms: Long) = if (ms < 1000) "$ms ms" else "%.1f s".format(ms / 1000.0)
 
 @Composable
-fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit) {
+fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit, question: ChatMessage? = null, chatId: String? = null) {
     val p = protocolOf(turn)
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -79,6 +80,16 @@ fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit) {
                 )
                 SettingsHint("Tokens sind Angaben des Servers, sonst geschätzt. Werkzeuge einer Antwort laufen teilweise gleichzeitig.")
                 HorizontalDivider()
+                // What the pseudonymization replaced in this turn, with one-click corrections (AP-03).
+                val c = io.github.thepytales.llmhub.App.container
+                if (c.settings.current.pseudonymize) {
+                    val texts = remember(turn, question) {
+                        listOfNotNull(question?.content) + (question?.files.orEmpty().map { it.text }) +
+                            turn.filter { it.role == "tool" && it.toolName !in io.github.thepytales.llmhub.data.Pseudonymizer.PUBLIC_TOOLS }.map { it.content }
+                    }
+                    PseudonymCorrections(c, texts, chatId)
+                    HorizontalDivider()
+                }
                 p.steps.forEach { s ->
                     Row(Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {

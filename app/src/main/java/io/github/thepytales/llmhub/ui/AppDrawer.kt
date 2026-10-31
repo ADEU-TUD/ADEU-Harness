@@ -48,6 +48,10 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PictureAsPdf
+import io.github.thepytales.llmhub.data.withTool
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -246,14 +250,40 @@ fun AppDrawer(
                     return@LazyColumn
                 }
 
-                // Only what is used every day; models, comparison and usage are under Einstellungen.
+                // AP-02: „Neuer Chat“ and up to four areas on top, everything else (and switched-on tools) under „Mehr“.
+                // Right click or long press moves an area up or down; the folded state of „Mehr“ is kept.
                 val newResults = conversations.count { it.unread && it.taskId != null }
-                item { NavRow(Icons.Outlined.Bookmarks, "Vorlagen") { onNavigate("templates") } }
-                item { NavRow(Icons.Outlined.MenuBook, "Literatur") { onNavigate("literature") } }
-                item { NavRow(Icons.Outlined.Description, "Dokumente") { onNavigate("docs") } }
-                item { NavRow(Icons.Outlined.Schedule, "Geplante Aufgaben", badge = newResults) { onNavigate("tasks") } }
-                item { NavRow(Icons.Outlined.Image, "Bilder erzeugen") { onNavigate("images") } }
-                item { NavRow(Icons.Outlined.GraphicEq, "Transkription", badge = transcribing, badgeText = "läuft") { onNavigate("transcripts") } }
+                val (topAreas, moreAreas) = drawerLayout(settings.drawerTop, settings.enabledToolIds)
+                fun badgeOf(a: DrawerArea) = when (a) {
+                    DrawerArea.TASKS -> newResults
+                    DrawerArea.TRANSCRIPTS -> transcribing
+                    else -> 0
+                }
+                fun move(a: DrawerArea, toTop: Boolean) {
+                    val next = moveDrawerArea(settings.drawerTop, a, toTop)
+                    if (next == null) Notices.info(tr("Oben ist Platz für") + " $MAX_TOP_AREAS " + tr("Bereiche – zuerst einen unter „Mehr“ schieben."))
+                    else c.settings.update { it.copy(drawerTop = next) }
+                }
+                item(key = "nav_new") { NavRow(Icons.Outlined.EditNote, "Neuer Chat", accent = true, onClick = onNewChat) }
+                items(topAreas, key = { "nav_" + it.id }) { a ->
+                    AreaRow(a, onTop = true, badge = badgeOf(a), onOpen = { onNavigate(a.route) }, onMove = { move(a, false) },
+                        onToolOff = a.tool?.let { t -> { c.settings.update { it.withTool(t, false) } } })
+                }
+                if (moreAreas.isNotEmpty()) {
+                    item(key = "nav_more") {
+                        val more = moreAreas.sumOf { badgeOf(it) }
+                        NavRow(
+                            if (settings.drawerMoreOpen) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, "Mehr",
+                            badge = if (settings.drawerMoreOpen) 0 else more, muted = true,
+                        ) { c.settings.update { it.copy(drawerMoreOpen = !it.drawerMoreOpen) } }
+                    }
+                    if (settings.drawerMoreOpen) {
+                        items(moreAreas, key = { "nav_" + it.id }) { a ->
+                            AreaRow(a, onTop = false, badge = badgeOf(a), onOpen = { onNavigate(a.route) }, onMove = { move(a, true) },
+                                onToolOff = a.tool?.let { t -> { c.settings.update { it.withTool(t, false) } } })
+                        }
+                    }
+                }
                 item { HorizontalDivider(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant) }
 
                 item {
@@ -325,7 +355,7 @@ fun AppDrawer(
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            // Bottom: who is signed in (opens the settings) and the black "Neuer Chat" button of the Claude app.
+            // Bottom: who is signed in (opens the settings); „Neuer Chat“ is the first entry on top (AP-02).
             Row(Modifier.fillMaxWidth().padding(start = 6.dp, end = 12.dp, top = 10.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(
                     Modifier
@@ -353,22 +383,6 @@ fun AppDrawer(
                             maxLines = 1,
                             softWrap = false,
                         )
-                    }
-                }
-                Spacer(Modifier.size(6.dp))
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = look.action,
-                    contentColor = look.onAction,
-                    shadowElevation = 4.dp,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .clickable(onClick = onNewChat),
-                ) {
-                    Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(tr("Neuer Chat"), style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
@@ -454,27 +468,79 @@ private fun Hint(text: String, indent: Boolean = false) {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun NavRow(icon: ImageVector, label: String, badge: Int = 0, badgeText: String = "neu", indent: Boolean = false, muted: Boolean = false, onClick: () -> Unit) {
+private fun NavRow(
+    icon: ImageVector,
+    label: String,
+    badge: Int = 0,
+    badgeText: String = "neu",
+    indent: Boolean = false,
+    muted: Boolean = false,
+    accent: Boolean = false,
+    onMenu: (() -> Unit)? = null,
+    onClick: () -> Unit,
+) {
     val color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .then(if (onMenu != null) Modifier.combinedClickable(onClick = onClick, onLongClick = onMenu).secondaryClick(onMenu) else Modifier.clickable(onClick = onClick))
             .padding(start = if (indent) 24.dp else 12.dp, end = 12.dp, top = if (indent) 10.dp else 12.dp, bottom = if (indent) 10.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (indent) 22.dp else 24.dp))
+        Icon(icon, contentDescription = null, tint = if (accent) LocalChatLook.current.brand else color, modifier = Modifier.size(if (indent) 22.dp else 24.dp))
         Spacer(Modifier.size(18.dp))
-        Text(tr(label), color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp), modifier = Modifier.weight(1f))
+        Text(
+            tr(label), color = color, style = MaterialTheme.typography.bodyLarge.copy(fontSize = if (indent) 16.sp else 17.sp),
+            fontWeight = if (accent) FontWeight.SemiBold else null, modifier = Modifier.weight(1f),
+        )
         if (badge > 0) {
             Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
                 Text(
                     if (badge == 1) "1 $badgeText" else "$badge $badgeText",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                )
+            }
+        }
+    }
+}
+
+/** Icon of an area of the side menu. */
+internal fun DrawerArea.icon(): ImageVector = when (this) {
+    DrawerArea.TEMPLATES -> Icons.Outlined.Bookmarks
+    DrawerArea.LITERATURE -> Icons.Outlined.MenuBook
+    DrawerArea.TRANSCRIPTS -> Icons.Outlined.GraphicEq
+    DrawerArea.DOCS -> Icons.Outlined.Description
+    DrawerArea.IMAGES -> Icons.Outlined.Image
+    DrawerArea.TASKS -> Icons.Outlined.Schedule
+    DrawerArea.PDF -> Icons.Outlined.PictureAsPdf
+    DrawerArea.VAULT -> Icons.Outlined.Lock
+}
+
+/** An area of the side menu; right click or long press: move it on top or under „Mehr“ (tools: also switch off). */
+@Composable
+private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> Unit, onMove: () -> Unit, onToolOff: (() -> Unit)?) {
+    var menu by remember { mutableStateOf(false) }
+    Box {
+        NavRow(
+            area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) "läuft" else "neu",
+            indent = !onTop, onMenu = { menu = true }, onClick = onOpen,
+        )
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(
+                text = { Text(tr(if (onTop) "Unter „Mehr“ verschieben" else "Nach oben holen")) },
+                leadingIcon = { Icon(if (onTop) Icons.Outlined.ExpandMore else Icons.Outlined.ExpandLess, null) },
+                onClick = { menu = false; onMove() },
+            )
+            if (onToolOff != null) {
+                DropdownMenuItem(
+                    text = { Text(tr("Werkzeug ausschalten")) },
+                    leadingIcon = { Icon(Icons.Outlined.Close, null) },
+                    onClick = { menu = false; onToolOff() },
                 )
             }
         }

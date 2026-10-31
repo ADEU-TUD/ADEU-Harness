@@ -185,11 +185,27 @@ fun chatItems(conv: Conversation): List<ChatItem> {
 }
 
 @Composable
-fun rememberDataUrlBitmap(url: String): ImageBitmap? = remember(url) {
+fun rememberDataUrlBitmap(url: String, maxPx: Int = THUMB_MAX_PX): ImageBitmap? = remember(url, maxPx) {
     runCatching {
         val bytes = Base64.decode(url.substringAfter(","), Base64.DEFAULT)
-        decodeImage(bytes)
+        decodeImage(bytes)?.let { downscale(it, maxPx) }
     }.getOrNull()
+}
+
+/** Thumbnails in the chat are kept small in memory (AP-04): a 12-megapixel photo needs 48 MB, its thumbnail 1 MB. */
+const val THUMB_MAX_PX = 512
+
+/** [img] scaled down so that its longer side is at most [maxPx]; smaller pictures stay as they are. */
+fun downscale(img: ImageBitmap, maxPx: Int): ImageBitmap {
+    val longer = maxOf(img.width, img.height)
+    if (longer <= maxPx) return img
+    val f = maxPx.toFloat() / longer
+    val out = ImageBitmap((img.width * f).toInt().coerceAtLeast(1), (img.height * f).toInt().coerceAtLeast(1))
+    androidx.compose.ui.graphics.Canvas(out).drawImageRect(
+        img, dstSize = androidx.compose.ui.unit.IntSize(out.width, out.height),
+        paint = androidx.compose.ui.graphics.Paint().apply { filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium },
+    )
+    return out
 }
 
 @Composable
@@ -224,23 +240,18 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
 
 /** Small card for an attached document; with [onOpen] a tap opens it in the editor. */
 @Composable
-fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null) {
+fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null) {
     Box {
+        // Attachments look like the document cards (AP-01): card color, fine frame, icon on a light accent tint.
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.widthIn(max = 260.dp).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
+            color = LocalChatLook.current.card,
+            border = boxBorder(),
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.widthIn(max = 280.dp).clip(MaterialTheme.shapes.small).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
         ) {
-            Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        if (file.mime == "application/pdf") Icons.Outlined.PictureAsPdf else Icons.AutoMirrored.Outlined.InsertDriveFile,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(6.dp),
-                    )
-                }
-                Spacer(Modifier.size(8.dp))
+            Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 7.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconTile(if (file.mime == "application/pdf") Icons.Outlined.PictureAsPdf else Icons.AutoMirrored.Outlined.InsertDriveFile, size = 32.dp)
+                Spacer(Modifier.size(10.dp))
                 Column {
                     Text(file.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val info = listOfNotNull(
@@ -248,6 +259,16 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
                         "${(file.text.length + 999) / 1000}k Zeichen" + if (file.truncated) " (gekürzt)" else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Public sources go without placeholders (AP-03); the app suggests it, a tap switches it.
+                    if (onTogglePublic != null) {
+                        val public = io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(file)
+                        Text(
+                            if (public) "öffentlich · Namen bleiben" else "vertraulich · pseudonymisiert",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (public) MaterialTheme.colorScheme.primary else LocalChatLook.current.success,
+                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).clickable(onClickLabel = "Umschalten", onClick = onTogglePublic).padding(vertical = 1.dp),
+                        )
+                    }
                 }
                 if (onOpen != null) {
                     Spacer(Modifier.size(6.dp))
@@ -411,13 +432,15 @@ fun UserBubble(
 
 @Composable
 fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit) {
+    val error = MaterialTheme.colorScheme.error
     Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        shape = RoundedCornerShape(14.dp),
+        color = error.copy(alpha = 0.06f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, error.copy(alpha = 0.45f)),
+        shape = MaterialTheme.shapes.small,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(12.dp)) {
-            Text(text, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+        Column(Modifier.accentStripe(error).padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 8.dp)) {
+            Text(text, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall)
             if (canRetry) {
                 TextButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) {
                     Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -455,6 +478,10 @@ fun AssistantMessage(
     fold: Boolean = false,
     /** The line that opens folded steps, on the first message of a turn. */
     stepsLine: (@Composable () -> Unit)? = null,
+    /** Sends the answers of a question card (ask_user, AP-06); null while the answer runs. */
+    onAnswer: ((String) -> Unit)? = null,
+    /** Belegprotokoll of this turn in the Quellenmodus (AP-08): marks, clickable evidence and the card at the end. */
+    evidence: io.github.thepytales.llmhub.agent.EvidenceReport? = null,
 ) {
     val m = item.m
     val clipboard = LocalClipboardManager.current
@@ -473,7 +500,14 @@ fun AssistantMessage(
         if (thinking != null && !fold) ThinkingBox(thinking, streaming && answer.isBlank())
         if (answer.isNotBlank()) {
             ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = LocalChatLook.current.answerFont)) {
-                SelectionContainer { MarkdownText(answer) }
+                if (evidence != null) {
+                    // Quellenmodus: statements without evidence are marked, a marker opens the page of its source.
+                    val marked = remember(answer, evidence) { io.github.thepytales.llmhub.agent.Evidence.mark(answer, evidence) }
+                    val targets = remember(evidence) { evidenceTargets(evidence) }
+                    androidx.compose.runtime.CompositionLocalProvider(LocalSourceTargets provides targets) {
+                        SelectionContainer { MarkdownText(marked) }
+                    }
+                } else SelectionContainer { MarkdownText(answer) }
             }
         }
         // Many finished tool calls collapse into one line ("5 Werkzeuge genutzt"); results like documents stay visible.
@@ -485,6 +519,14 @@ fun AssistantMessage(
         }
         m.toolCalls.forEach { call ->
             val result = results[call.id]
+            // A question round (AP-06): a card with answer buttons instead of a tool step; active only as the last word.
+            if (call.name == io.github.thepytales.llmhub.agent.AskUserTool.NAME) {
+                val questions = remember(call.arguments) { io.github.thepytales.llmhub.agent.AskUserTool.parse(call.arguments) }
+                if (result != null && !result.content.startsWith("FEHLER")) {
+                    QuestionCard(questions, onAnswer.takeIf { item.isLast && !running && !streaming })
+                }
+                return@forEach
+            }
             if (!grouped && !fold) ToolCallCard(call.name, shortArgs(call.arguments), result?.content, streaming || running && result == null)
             // The model is writing a document: it can be watched live in the editor.
             if (call.name == "create_document" && result == null && (streaming || running) && chatId != null) LiveDraftCard(chatId)
@@ -498,6 +540,7 @@ fun AssistantMessage(
             }
             result?.file?.let { DocumentCard(it) }
         }
+        if (item.turnEnd && !(running && item.isLast) && evidence != null) EvidenceCard(evidence, onExport)
         if (item.turnEnd && !(running && item.isLast)) {
             var more by remember { mutableStateOf(false) }
             var checkSources by remember { mutableStateOf(false) }
@@ -518,7 +561,7 @@ fun AssistantMessage(
                 }
                 var protocol by remember { mutableStateOf(false) }
                 if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
-                if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false })
+                if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false }, question = item.question, chatId = chatId)
                 Box {
                     ActionIcon(Icons.Outlined.MoreHoriz, "Mehr") { more = true }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
@@ -579,6 +622,10 @@ fun AssistantMessage(
                 }
                 VersionSwitcher(item.head, item.versions, !running, onSelectVersion)
                 Spacer(Modifier.weight(1f))
+                // Lora signs the answer: small and still, next to the model that wrote it.
+                if (!io.github.thepytales.llmhub.App.container.settings.current.hideLora) {
+                    LoraStill(Modifier.padding(end = 4.dp).size(26.dp, 18.dp))
+                }
                 m.model?.let {
                     Text(
                         ModelCatalog.info(it).displayName,
@@ -612,6 +659,7 @@ fun showsWithoutSteps(m: ChatMessage, results: Map<String?, ChatMessage>, runnin
             r == null -> call.name == "create_document" && running
             r.file != null -> true
             r.content.startsWith("FEHLER") -> false
+            call.name == io.github.thepytales.llmhub.agent.AskUserTool.NAME -> true
             else -> call.name == "create_chart" || call.name == "save_literature"
         }
     }
@@ -685,10 +733,10 @@ fun ThinkingBox(text: String, active: Boolean) {
 /** Shown while the model writes a document: opens the editor where it grows. */
 @Composable
 private fun LiveDraftCard(chatId: String) {
-    Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.size(8.dp))
+    AccentBox {
+        Row(Modifier.padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconTile(Icons.Outlined.EditNote, size = 30.dp)
+            Spacer(Modifier.size(10.dp))
             Text("Das Dokument entsteht gerade", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text("Live ansehen") }
         }
@@ -701,24 +749,25 @@ private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
     val c = io.github.thepytales.llmhub.App.container
     val all by c.literature.items.collectAsStateWithLifecycle()
     val works = all.filter { r -> r.lists.any { it.equals(list, true) } }
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
+    AccentBox {
+        Column(Modifier.padding(start = 10.dp, end = 4.dp, top = 10.dp, bottom = 2.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                IconTile(Icons.Outlined.MenuBook, size = 34.dp)
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Literaturliste „$list“", style = MaterialTheme.typography.titleSmall)
                     Text("${works.size} Werke · ${works.count { it.openAccessUrl.isNotBlank() }} frei zugänglich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 38.dp, top = 2.dp)) }
-            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 38.dp))
+            works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 44.dp, top = 2.dp)) }
+            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 44.dp))
             TextButton(onClick = onOpen) { Text("In der Sammlung öffnen") }
         }
     }
 }
 
 internal fun toolLabel(name: String) = when (name) {
+    "ask_user" -> "Rückfrage"
     "web_search" -> "Websuche"
     "news_search" -> "Nachrichtensuche"
     "fetch_url" -> "Webseite lesen"

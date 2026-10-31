@@ -102,6 +102,11 @@ data class Reference(
     /** Project the work was collected in. */
     val folderId: String? = null,
     val addedAt: Long = System.currentTimeMillis(),
+    /** Excerpt of the work (AP-09, Markdown with checked page numbers). */
+    val excerpt: String = "",
+    /** Document of the excerpt in „Dokumente“. */
+    val excerptDocId: String? = null,
+    val excerptAt: Long? = null,
 ) {
     /** Persons named first in the reference: authors, otherwise the editors. */
     val creators: List<Person> get() = authors.ifEmpty { editors }

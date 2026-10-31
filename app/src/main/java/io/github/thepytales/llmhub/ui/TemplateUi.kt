@@ -134,7 +134,7 @@ fun TemplateBrowser(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Vorlagen durchsuchen") },
+                placeholder = { Text("TU Vorlagen durchsuchen") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche leeren") }
@@ -221,6 +221,8 @@ fun TemplateFillDialog(
     onInsert: (String) -> Unit,
     onSend: (text: String, values: Map<String, String>) -> Unit,
     onDismiss: () -> Unit,
+    /** „Mit Lora Schritt für Schritt“ (AP-06): the fields as rounds of questions in the chat instead of the form. */
+    onInterview: ((Template, Map<String, String>) -> Unit)? = null,
 ) {
     val sender = c.settings.current.senderInfo
     val fields = remember(template.id) { template.fields }
@@ -310,6 +312,17 @@ fun TemplateFillDialog(
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (template.description.isNotBlank()) {
                     Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (onInterview != null && io.github.thepytales.llmhub.agent.TemplateInterview.offered(template)) {
+                    androidx.compose.material3.AssistChip(
+                        onClick = {
+                            c.drafts.delete(template.id)
+                            onInterview(template, values.toMap())
+                            onDismiss()
+                        },
+                        label = { Text(tr("Lieber mit Lora Schritt für Schritt")) },
+                        leadingIcon = { LoraStill(Modifier.size(24.dp, 17.dp)) },
+                    )
                 }
                 fields.forEach { f ->
                     TemplateFieldInput(
