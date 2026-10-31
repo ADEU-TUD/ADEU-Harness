@@ -38,18 +38,38 @@ object Paths {
     }
 
     /**
-     * Uses [target] as data folder from the next start. With [copy] the current data is copied there first
-     * (files that already exist there are kept, so data of another computer is not overwritten). null = back
-     * to the standard folder.
+     * Files that belong to this PC and never roam with a synced data folder (AP-12): the API keys and tokens, the
+     * window position, the update state. The standard folder (or the data folder in tests).
      */
-    fun relocate(target: File?, copy: Boolean) {
-        if (target != null && copy) {
+    val machine: File
+        get() = if (!System.getProperty("adeu.data").isNullOrBlank()) data else standard
+
+    /** Files of this PC in [machine] that are never copied into another data folder. */
+    private val PER_PC = setOf("speicherort.txt", "secure_settings.dat", "schluessel.dat", "key.bin", "pc-id.txt", "ui_state.prefs.json", "updates.prefs.json")
+
+    /** Whether [dir] already holds Lora's data (e.g. of another PC, synced by the cloud service). */
+    fun hasData(dir: File): Boolean =
+        listOf("einstellungen.json", "secure_settings.dat").any { File(dir, it).isFile } ||
+            listOf("conversations", "documents", "livedocs").any { File(dir, it).isDirectory }
+
+    /**
+     * Uses [target] as data folder from the next start. With [copy] the current data is copied there first
+     * (files that already exist there are kept, so data of another computer is not overwritten – unless
+     * [overwriteOlder] and the existing file is older). null = back to the standard folder.
+     */
+    fun relocate(target: File?, copy: Boolean, overwriteOlder: Boolean = false) {
+        val dest0 = target ?: standard
+        if (copy && dest0.canonicalFile != data.canonicalFile) {
             val from = data.canonicalFile
-            from.walkTopDown().filter { it.isFile }.forEach { f ->
+            from.walkTopDown().onEnter { it == from || it.parentFile != from || it.name != "cache" }.filter { it.isFile }.forEach { f ->
                 val rel = f.canonicalFile.path.removePrefix(from.path).trimStart(File.separatorChar)
-                if (rel.startsWith("cache") || rel.startsWith("instance.") || rel == pointer.name) return@forEach
-                val dest = File(target, rel)
-                if (!dest.exists()) { dest.parentFile?.mkdirs(); f.copyTo(dest) }
+                if (rel.startsWith("instance.") || rel.endsWith(".tmp") || rel in PER_PC) return@forEach
+                val dest = File(dest0, rel)
+                if (!dest.exists() || (overwriteOlder && dest.lastModified() < f.lastModified())) {
+                    dest.parentFile?.mkdirs()
+                    f.copyTo(dest, overwrite = true)
+                    dest.setLastModified(f.lastModified())
+                }
             }
         }
         if (target == null) pointer.delete() else pointer.writeText(target.absolutePath)

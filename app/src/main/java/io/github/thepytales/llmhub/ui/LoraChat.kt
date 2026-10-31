@@ -92,7 +92,7 @@ fun LoraHandoffCard(m: ChatMessage) {
     ) {
         Column(Modifier.clip(RoundedCornerShape(14.dp)).clickable(enabled = !m.instructions.isNullOrBlank()) { open = !open }.padding(horizontal = 10.dp, vertical = 6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                LoraStill(Modifier.size(26.dp, 18.dp), action = LoraAction.WAVE)
+                LoraFaceStill(Modifier.size(24.dp), action = LoraAction.WAVE)
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f, fill = false)) {
                     Text(tr("Von Lora übergeben"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
@@ -125,7 +125,7 @@ fun LoraPreparedBanner(line: String, onRemove: () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
     ) {
         Row(Modifier.padding(start = 10.dp, end = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-            LoraStill(Modifier.size(24.dp, 17.dp), action = LoraAction.WAVE)
+            LoraFaceStill(Modifier.size(22.dp), action = LoraAction.WAVE)
             Spacer(Modifier.width(8.dp))
             Text(
                 tr("Von Lora vorbereitet – ihr Wissen geht mit") + if (line.isNotBlank()) " · $line" else "",
@@ -169,7 +169,7 @@ fun LoraTypingHint(c: AppContainer, input: String, onUsed: () -> Unit) {
                 }.padding(start = 10.dp, end = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                LoraStill(Modifier.size(24.dp, 17.dp), action = LoraAction.LOOK)
+                LoraFaceStill(Modifier.size(22.dp), action = LoraAction.LOOK)
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
                     Text(tr("Lora: Meinst du") + " „${t.title}“?", style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -209,7 +209,7 @@ fun LoraNextSteps(c: AppContainer, answer: String, chatId: String?) {
         }
     }
     Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.Top) {
-        LoraStill(Modifier.padding(top = 6.dp).size(24.dp, 17.dp), action = LoraAction.EUREKA)
+        LoraFaceStill(Modifier.padding(top = 6.dp).size(22.dp), action = LoraAction.EUREKA)
         Spacer(Modifier.width(8.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             steps.forEachIndexed { i, step ->
@@ -287,7 +287,7 @@ fun LoraSignature(justDone: Boolean) {
         val director = rememberLoraDirector(sequence = listOf(LoraAction.CHEER), start = LoraAction.CHEER)
         LoraFigure(Modifier.padding(end = 4.dp).size(30.dp, 21.dp), label = tr("Lora freut sich"), director = director)
     } else {
-        LoraStill(Modifier.padding(end = 4.dp).size(26.dp, 18.dp).alpha(0.95f))
+        LoraFaceStill(Modifier.padding(end = 4.dp).size(24.dp).alpha(0.95f))
     }
 }
 

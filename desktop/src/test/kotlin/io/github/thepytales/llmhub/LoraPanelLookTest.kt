@@ -30,7 +30,11 @@ import io.github.thepytales.llmhub.data.AppSettings
 import io.github.thepytales.llmhub.data.AppTool
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.ui.LlmHubTheme
-import io.github.thepytales.llmhub.ui.LoraAskField
+import io.github.thepytales.llmhub.ui.LoraFace
+import io.github.thepytales.llmhub.ui.LoraFaceStill
+import io.github.thepytales.llmhub.ui.LoraHelperButton
+import io.github.thepytales.llmhub.ui.LoraTopBarButton
+import io.github.thepytales.llmhub.ui.LoraAction
 import io.github.thepytales.llmhub.ui.LoraHandoffCard
 import io.github.thepytales.llmhub.ui.LoraHelper
 import io.github.thepytales.llmhub.ui.LoraNextSteps
@@ -155,11 +159,43 @@ class LoraPanelLookTest {
                 ) {
                     LoraHandoffCard(handed)
                     LoraNextSteps(c, answer, null)
-                    LoraAskField()
                 }
             }
         }
         mainClock.advanceTimeBy(2500)
         save("lora-chat-parts.png")
+    }
+
+    /**
+     * Lora's entries as close-ups (the whole figure would be tiny there): „Frag Lora“ in the top bar (wide and compact),
+     * the sleeping Lora in the corner and the face in a few moods – build/lora-entries.png.
+     */
+    @Test
+    fun entriesShowHerFace() = ui(520, 260) {
+        LoraHelper.isOpen.value = false
+        setContent {
+            Themed {
+                Column(
+                    Modifier.width(520.dp).background(MaterialTheme.colorScheme.background).padding(16.dp).testTag("shot"),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LoraTopBarButton(c)
+                        LoraTopBarButton(c, compact = true)
+                        LoraHelperButton(c)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        listOf(LoraAction.IDLE, LoraAction.WAVE, LoraAction.SLEEP, LoraAction.EUREKA, LoraAction.CHEER, LoraAction.THINK).forEach { a ->
+                            LoraFaceStill(Modifier.size(56.dp), action = a)
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        listOf(24, 32, 40).forEach { d -> LoraFace(Modifier.size(d.dp), label = "Lora") }
+                    }
+                }
+            }
+        }
+        mainClock.advanceTimeBy(1200)
+        save("lora-entries.png")
     }
 }

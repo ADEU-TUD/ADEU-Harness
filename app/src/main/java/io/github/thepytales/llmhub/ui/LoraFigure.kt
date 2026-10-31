@@ -2484,6 +2484,78 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
     }
 }
 
+/** Width and height of the close-up's square space (units of the full figure). */
+private const val FACE_SPACE = 30f
+
+/**
+ * Lora as a close-up (the head with antenna and face, no legs, arms or scene) in a square: for small places like the
+ * button in the top bar or the sleeping Lora in a corner, where the whole figure would be tiny. Eyes and mouth follow
+ * the activity of [frame] (happy while waving, closed while sleeping), she breathes, blinks and tilts her head a little;
+ * while waving a hand waves at the side, while sleeping small z's rise. Everything stays inside the canvas.
+ */
+internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColors, gaze: Offset? = null) {
+    val s = timeMs / 1000f
+    val base = posed(frame, s)
+    val pose = if (gaze != null && frame.action in GAZE_ACTIONS) base.copy(
+        lookX = mix(base.lookX, gaze.x, 0.75f), lookY = mix(base.lookY, gaze.y * 0.8f, 0.75f),
+    ) else base
+    val u = min(size.width, size.height) / FACE_SPACE
+    val ox = (size.width - FACE_SPACE * u) / 2
+    val oy = (size.height - FACE_SPACE * u) / 2
+    val cx = ox + 15 * u
+    // The head breathes and squashes a little with the pose (never as much as the whole figure hops).
+    val squash = 1 + (pose.squash - 1) * 0.5f + 0.012f * wave(s, 0.3f)
+    val bw = 23 * u
+    val bh = 20 * u * squash
+    val bottom = oy + 30.5f * u
+    val top = bottom - bh
+    // A gentle tilt of the head: half of the figure's, at most six degrees.
+    val tilt = (pose.tilt * 0.5f).coerceIn(-6f, 6f)
+    rotate(tilt, Offset(cx, bottom)) {
+        val pulse = 0.5f + 0.5f * wave(s, 0.9f)
+        val tip = Offset(cx + 0.7f * u * wave(s, 0.6f), top - 4.6f * u)
+        val antenna = Path().apply { moveTo(cx, top + 0.6f * u); quadraticTo(cx, top - 2.2f * u, tip.x, tip.y) }
+        drawPath(antenna, c.line, style = Stroke(1.3f * u, cap = StrokeCap.Round))
+        if (pose.glow > 1f) drawCircle(c.spark.fade(0.2f * (pose.glow - 1f) / 0.4f), 3.8f * u, tip)
+        star(tip, 2.3f * u * (0.88f + 0.12f * pulse), c.spark.fade((0.75f + 0.25f * pulse) * min(1f, pose.glow)))
+        val head = Path().apply { addRoundRect(RoundRect(cx - bw / 2, top, cx + bw / 2, top + bh, CornerRadius(8.5f * u))) }
+        drawPath(head, c.body)
+        clipPath(head) {
+            drawRoundRect(Color.White.copy(alpha = 0.22f), Offset(cx - bw / 2 + 2.6f * u, top + 1.1f * u), Size(5.5f * u, 1.5f * u), CornerRadius(0.75f * u))
+        }
+        drawFace(pose, s, cx, top + 3.4f * u, u, c)
+    }
+    when (frame.action) {
+        LoraAction.WAVE -> {
+            // A hand waving at the lower right, with two small lines.
+            val swing = wave(s, 1.8f)
+            val hand = Offset(ox + 25.6f * u + swing * 0.8f * u, oy + 21f * u - abs(swing) * 0.6f * u)
+            drawCircle(c.visor.copy(alpha = 0.55f), 2.3f * u, hand)
+            drawCircle(c.body, 1.85f * u, hand)
+            for (i in 0..1) {
+                val r = (3.1f + i * 1.2f) * u
+                drawArc(
+                    c.line.copy(alpha = 0.6f), -115f, 60f, useCenter = false, topLeft = Offset(hand.x - r, hand.y - r),
+                    size = Size(2 * r, 2 * r), style = Stroke(0.6f * u, cap = StrokeCap.Round),
+                )
+            }
+        }
+        LoraAction.SLEEP -> {
+            for (i in 0..2) {
+                val k = (s * 0.35f + i / 3f) % 1f
+                val z = (0.9f + k * 0.8f) * u
+                val center = Offset(ox + 21.5f * u + k * 4.5f * u, oy + 8.5f * u - k * 6f * u)
+                val path = Path().apply {
+                    moveTo(center.x - z, center.y - z); lineTo(center.x + z, center.y - z)
+                    lineTo(center.x - z, center.y + z); lineTo(center.x + z, center.y + z)
+                }
+                drawPath(path, c.line.fade(sin(PI * k).toFloat()), style = Stroke(0.6f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+        }
+        else -> Unit
+    }
+}
+
 /** Lora's visor with eyes, cheeks and mouth; blinks now and then, sometimes twice. */
 private fun DrawScope.drawFace(pose: LoraPose, s: Float, cx: Float, visorTop: Float, u: Float, c: LoraColors) {
     drawRoundRect(c.visor, Offset(cx - 9 * u, visorTop), Size(18 * u, 11 * u), CornerRadius(5.5f * u))

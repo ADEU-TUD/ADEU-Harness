@@ -30,6 +30,8 @@ object SelfTest {
         "settings/transcription", "settings/updates", "local-models", "transcripts",
         // AP-07 to AP-11: Lora, tools, vault, PDF toolbox.
         "settings/lora", "settings/tools", "vault", "pdf",
+        // AP-12, AP-17.
+        "settings/sync", "games",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

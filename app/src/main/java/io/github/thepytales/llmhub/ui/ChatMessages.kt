@@ -543,6 +543,10 @@ fun AssistantMessage(
                 if (list != null) LiteratureListCard(list, onOpen = { onOpenLiterature(list) })
             }
             result?.file?.let { DocumentCard(it) }
+            // A learning game was built or changed (AP-17): play it right here, export it for OPAL.
+            if ((call.name == io.github.thepytales.llmhub.agent.GameTools.CREATE || call.name == io.github.thepytales.llmhub.agent.GameTools.UPDATE) &&
+                result != null && !result.content.startsWith("FEHLER")
+            ) io.github.thepytales.llmhub.agent.GameTools.idIn(result.content)?.let { GameCard(it) }
         }
         if (item.turnEnd && !(running && item.isLast) && evidence != null) EvidenceCard(evidence, onExport)
         if (item.turnEnd && !(running && item.isLast)) {
@@ -776,6 +780,9 @@ internal fun toolLabel(name: String) = when (name) {
     "news_search" -> "Nachrichtensuche"
     "fetch_url" -> "Webseite lesen"
     "create_document" -> "Dokument erstellen"
+    "create_learning_game" -> "Lernspiel bauen"
+    "update_learning_game" -> "Lernspiel ändern"
+    "read_learning_game" -> "Lernspiel lesen"
     "save_logo" -> "Logo speichern"
     "read_file" -> "Datei lesen"
     "list_files" -> "Dateien auflisten"

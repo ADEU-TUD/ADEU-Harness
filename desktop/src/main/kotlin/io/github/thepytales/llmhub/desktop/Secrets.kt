@@ -21,7 +21,9 @@ object Secrets {
         if (windows) Crypt32Util.cryptUnprotectData(data) else aes(Cipher.DECRYPT_MODE, data)
 
     private fun key(): ByteArray {
-        val file = File(Paths.data, "key.bin")
+        val file = File(Paths.machine, "key.bin")
+        // Until 1.0.44 in the data folder.
+        File(Paths.data, "key.bin").takeIf { !file.exists() && it.isFile && it != file }?.let { runCatching { it.copyTo(file) } }
         if (!file.exists()) {
             file.parentFile.mkdirs()
             file.writeBytes(ByteArray(32).also { SecureRandom().nextBytes(it) })

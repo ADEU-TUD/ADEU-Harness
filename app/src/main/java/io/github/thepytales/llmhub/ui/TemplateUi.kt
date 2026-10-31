@@ -321,7 +321,7 @@ fun TemplateFillDialog(
                             onDismiss()
                         },
                         label = { Text(tr("Lieber mit Lora Schritt für Schritt")) },
-                        leadingIcon = { LoraStill(Modifier.size(24.dp, 17.dp)) },
+                        leadingIcon = { LoraFaceStill(Modifier.size(22.dp)) },
                     )
                 }
                 fields.forEach { f ->

@@ -90,7 +90,7 @@ fun ToolSuggestion(c: AppContainer, input: String, fileNames: List<String>) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        LoraStill(Modifier.size(30.dp, 21.dp))
+        LoraFaceStill(Modifier.size(28.dp))
         Text(
             tr("Dafür gibt es") + " „${tool.label}“ – " + tr("einschalten?"),
             style = MaterialTheme.typography.labelMedium,

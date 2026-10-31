@@ -80,6 +80,8 @@ class AgentRunner(private val c: AppContainer) {
             askUser.takeIf { conv.taskId == null },
             // Exzerpt-Agent (AP-09): save_excerpt checks the pages and attaches the excerpt to the literature entry.
             excerptTools.takeIf { conv.mode == ChatModes.EXCERPT.id },
+            // Lernspiele (AP-17): while the tool is switched on (and always in the Lernspiel mode).
+            c.gameTools.takeIf { ModeTool.GAMES in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.GAMES.id) },
         )
     }
 

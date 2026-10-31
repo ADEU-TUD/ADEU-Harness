@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -37,6 +38,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -186,6 +188,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         if (pdfRequest != null && nav.current.base != "pdf") nav.navigate("pdf")
     }
 
+    // "In Chat senden" from the document editor, the browser beside the chat (AP-14) …: open that chat (or a new one).
+    val chatRequest by ChatHandoff.open.collectAsStateWithLifecycle()
+    LaunchedEffect(chatRequest) {
+        chatRequest?.let { id ->
+            nav.openChat(chatRoute(id.ifBlank { null }))
+            ChatHandoff.open.value = null
+        }
+    }
+
     // Documents opened from a card, the literature screen or a chat answer (the chat shows them beside it when wide).
     val docRequest by DocsHandoff.request.collectAsStateWithLifecycle()
     LaunchedEffect(docRequest) {
@@ -281,6 +292,13 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // Browser beside the chat (AP-14): web links open as tabs in a panel at the right instead of the system browser.
+    val settingsNow by c.settings.settings.collectAsStateWithLifecycle()
+    val systemUri = LocalUriHandler.current
+    val uriHandler = remember(systemUri) { PanelUriHandler(systemUri) { c.settings.current.browserPanel } }
+    SideEffect { Browser.chatId = currentChatId?.takeIf { entry.route.startsWith("chat") } }
+    LaunchedEffect(settingsNow.browserPanel) { if (!settingsNow.browserPanel) Browser.open = false }
+    CompositionLocalProvider(LocalUriHandler provides uriHandler) {
     BoxWithConstraints(Modifier.fillMaxSize().trackLoraGaze()) {
         val wide = maxWidth >= 1000.dp
         layout.wide = wide
@@ -308,11 +326,13 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                     }
                 }
                 Box(Modifier.weight(1f)) { screen() }
-                // Lora's panel beside the app; the app gets narrower instead of covered.
+                // The browser beside the chat (AP-14) and Lora's panel; the app gets narrower instead of covered.
+                BrowserSidePanel(c)
                 LoraSidePanel(c)
             }
         } else {
             ModalNavigationDrawer(drawerState = drawer, gesturesEnabled = onChat, drawerContent = menu) { screen() }
+            BrowserOverlay(c)
             LoraSheet(c)
         }
         // Lora flying from her panel to the place she leads to.
@@ -340,6 +360,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 .padding(bottom = 120.dp)
                 .widthIn(max = 640.dp),
         ) { data -> Snackbar(data, shape = RoundedCornerShape(14.dp)) }
+    }
     }
 }
 
@@ -378,6 +399,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
+        "games" -> GamesScreen(c, onBack = back)
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

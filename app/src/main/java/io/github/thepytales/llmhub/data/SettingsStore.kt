@@ -142,6 +142,10 @@ data class AppSettings(
     val loraNextSteps: Boolean = true,
     /** While typing in the chat, Lora points to a matching place of the app (AP-35). */
     val loraTyping: Boolean = true,
+    /** Windows (AP-14): links open as tabs in the browser beside the chat instead of the system browser. */
+    val browserPanel: Boolean = true,
+    /** KI-Nutzungsnachweis (AP-19): offer the declaration once a chat about a work has text written by the AI. */
+    val aiUseHint: Boolean = true,
     /** Texts from public sources (web search, books and papers with ISBN/DOI, the literature collection) stay as they are. */
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
@@ -288,6 +292,8 @@ class SettingsStore(context: Context) {
             .putBoolean("loraHandoffReview", next.loraHandoffReview)
             .putBoolean("loraNextSteps", next.loraNextSteps)
             .putBoolean("loraTyping", next.loraTyping)
+            .putBoolean("browserPanel", next.browserPanel)
+            .putBoolean("aiUseHint", next.aiUseHint)
             .putBoolean("loraIntroDone", next.loraIntroDone)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
@@ -373,6 +379,8 @@ class SettingsStore(context: Context) {
             loraHandoffReview = prefs.getBoolean("loraHandoffReview", d.loraHandoffReview),
             loraNextSteps = prefs.getBoolean("loraNextSteps", d.loraNextSteps),
             loraTyping = prefs.getBoolean("loraTyping", d.loraTyping),
+            browserPanel = prefs.getBoolean("browserPanel", d.browserPanel),
+            aiUseHint = prefs.getBoolean("aiUseHint", d.aiUseHint),
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),

@@ -3,7 +3,7 @@ package io.github.thepytales.llmhub.agent
 import java.text.Normalizer
 
 /** Tool groups a mode needs in addition to the chat's (see AgentRunner.providers). */
-enum class ModeTool { RESEARCH, WEB, DOCUMENTS }
+enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES }
 
 /**
  * A special way of working in a chat (AP-05). Every mode looks the same: a chip above the input with ✕, below it one
@@ -32,6 +32,8 @@ data class ChatMode(
     val action: Boolean = false,
     /** Further words that find the mode in the palette and with "/". */
     val keywords: String = "",
+    /** A big tool (data/AppTool id) the mode belongs to: hidden while the tool is switched off (AP-02). */
+    val tool: String? = null,
 )
 
 object ChatModes {
@@ -88,6 +90,21 @@ object ChatModes {
         keywords = "exzerpt exzerpieren zusammenfassung artikel paper lesen literaturarbeit",
     )
 
+    /** Lernspiele (AP-17): only while the tool „Lernspiele“ is switched on. */
+    val GAMES = ChatMode(
+        id = "games",
+        name = "Lernspiel",
+        icon = "games",
+        explain = "Der Agent baut aus Skript, Folien oder Beschreibung ein eigenständiges Browserspiel (Quiz, Zuordnen, Memory, Escape-Room) – zum Testen in der App und als HTML/ZIP für OPAL.",
+        data = "Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; das Spiel läuft abgeschottet ohne Internet.",
+        example = "Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts: Begriffe und Definitionen, für Studierende im 1. Semester.",
+        command = "Lernspiel",
+        tools = setOf(ModeTool.GAMES),
+        prompt = GameTools.MODE_PROMPT,
+        keywords = "lernspiel spiel quiz memory zuordnen escape room opal moodle gamification",
+        tool = "games",
+    )
+
     val VOICE = ChatMode(
         id = "voice",
         name = "Sprachmodus",
@@ -100,8 +117,15 @@ object ChatModes {
         keywords = "sprechen stimme vorlesen freihändig gespräch",
     )
 
-    /** All modes, in the order of the menus. */
-    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, VOICE)
+    /** All modes, in the order of the menus (some only while their tool is on, see [visible]). */
+    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, VOICE)
+
+    /** The switched-on big tools (set by the app from its settings); modes of other tools stay hidden. */
+    @Volatile
+    var enabledTools: () -> Set<String> = { emptySet() }
+
+    /** Modes the menus offer now: those without a tool and those whose tool is switched on. */
+    fun visible(): List<ChatMode> = enabledTools().let { on -> all.filter { it.tool == null || it.tool in on } }
 
     fun byId(id: String?): ChatMode? = all.firstOrNull { it.id == id }
 
@@ -110,8 +134,9 @@ object ChatModes {
     /** Modes that fit what follows the "/" (or a search in the palette); all for an empty [query]. */
     fun matching(query: String): List<ChatMode> {
         val q = norm(query).trim()
-        if (q.isEmpty()) return all
-        return all.filter { m -> norm(m.name + " " + m.command + " " + m.keywords).split(' ').any { it.startsWith(q) } || norm(m.name).contains(q) }
+        val modes = visible()
+        if (q.isEmpty()) return modes
+        return modes.filter { m -> norm(m.name + " " + m.command + " " + m.keywords).split(' ').any { it.startsWith(q) } || norm(m.name).contains(q) }
     }
 }
 

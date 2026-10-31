@@ -32,8 +32,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.AttachFile
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DoneAll
@@ -149,6 +149,7 @@ fun ChatScreen(
     var showPlus by remember { mutableStateOf(false) }
     var showDelete by remember { mutableStateOf(false) }
     var showRename by remember { mutableStateOf(false) }
+    var showAiNote by remember { mutableStateOf(false) }
     var showFolder by remember { mutableStateOf(false) }
     var editingId by remember { mutableStateOf<String?>(null) }
     var export by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -365,6 +366,7 @@ fun ChatScreen(
     val writingDoc = drafts[current.id]
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val sideBySide = maxWidth >= 1000.dp
+    val narrow = maxWidth < 640.dp
     DisposableEffect(sideBySide, current.id) {
         val host: ((String) -> Boolean)? = if (sideBySide) ({ id -> docPanel = id; true }) else null
         DocsHandoff.sidePanel = host
@@ -409,8 +411,9 @@ fun ChatScreen(
                     }
                 },
                 actions = {
-                    // Lora, the helper (Strg+L): her panel with suggestions for this chat.
-                    LoraTopBarButton(c, current.folderId)
+                    // Lora, the helper (Strg+L): her panel with suggestions for this chat – „Frag Lora“ with her face; only the
+                    // face on narrow windows with a chat title.
+                    LoraTopBarButton(c, current.folderId, compact = hasMessages && narrow)
                     if (!hasMessages) {
                         // Temporary chat: nothing is saved (like the incognito mode of other apps).
                         IconButton(onClick = {
@@ -456,6 +459,7 @@ fun ChatScreen(
                                 vm.setArchived(!current.archived)
                                 if (!current.archived) { Notices.undo("Chat archiviert", restore = { vm.setArchived(false) }); onNewChat() }
                             },
+                            onAiNote = { showAiNote = true },
                             onExportJson = { exportJson(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(current.title) + ".json") },
                         )
                     }
@@ -538,6 +542,8 @@ fun ChatScreen(
                     PrivacySuggestions(c, input)
                     ToolSuggestion(c, input, files.map { it.name })
                     MemoryLearnBar(c, current.id)
+                    // KI-Nutzungsnachweis (AP-19): offered once a chat about a work has text written by the AI.
+                    AiUseNoteSuggestion(c, current, running) { showAiNote = true }
                 },
                 footnote = if (hasMessages) tr("KI kann Fehler machen. Wichtiges bitte prüfen.") else null,
                 onVoice = { platform.withMicrophone { voiceMode = true } },
@@ -601,11 +607,13 @@ fun ChatScreen(
                 typing = input.isNotBlank(),
                 hideLora = settings.hideLora,
                 extra = { MemoryIntroCard(c) },
-                tiles = startTiles(
+                actions = startActions(
                     onInput = { text -> input = text },
                     onNavigate = onNavigate,
-                    onFiles = { platform.pickFiles(); if (input.isBlank()) input = tr("Werte die angehängten Dateien aus: ") },
-                    onLiterature = { startMode(io.github.thepytales.llmhub.agent.ChatModes.LITERATURE); input = tr("Finde aktuelle Literatur zum Thema: ") },
+                    onFiles = { prompt -> platform.pickFiles(); input = prompt },
+                    onMode = { id, text -> io.github.thepytales.llmhub.agent.ChatModes.byId(id)?.let(::startMode); input = text },
+                    templates = TemplateLibrary.suggestions(settings.favoriteTemplates, templates),
+                    onTemplate = { useTemplate(it) },
                 ),
                 recent = remember(allChats) { allChats.filter { !it.archived && it.id != current.id }.sortedByDescending { it.updatedAt }.take(3) },
                 favorites = remember(settings.favoriteTemplates, templates) {
@@ -950,6 +958,8 @@ fun ChatScreen(
         )
     }
 
+    if (showAiNote) AiUseNoteDialog(c, current) { showAiNote = false }
+
     if (showRename) {
         TextInputDialog("Chat umbenennen", current.title, "Titel", onConfirm = { vm.rename(it) }, onDismiss = { showRename = false })
     }
@@ -971,13 +981,58 @@ fun ChatScreen(
     }
 }
 
-/** Tiles of the start page by activity (AP-02); the wording follows the work plan's proposal. */
-internal fun startTiles(onInput: (String) -> Unit, onNavigate: (String) -> Unit, onFiles: () -> Unit, onLiterature: () -> Unit) = listOf(
-    StartTile("Fragen & schreiben", Icons.Outlined.ChatBubbleOutline) { onInput(tr("Hilf mir beim Schreiben: ")) },
-    StartTile("TU Vorlagen", Icons.Outlined.Bookmarks) { onNavigate("templates") },
-    StartTile("Dokument erstellen", Icons.Outlined.Description) { onInput(tr("Entwirf ein Dokument: ")) },
-    StartTile("Dateien auswerten", Icons.Outlined.AttachFile) { onFiles() },
-    StartTile("Literatur finden", Icons.Outlined.MenuBook) { onLiterature() },
+/**
+ * The activities of the start page (AP-02) with concrete starts: what one can actually ask, so nobody has to think up a
+ * first sentence. A start fills the input (the user completes and sends it) or opens the place.
+ */
+internal fun startActions(
+    onInput: (String) -> Unit,
+    onNavigate: (String) -> Unit,
+    onFiles: (String) -> Unit,
+    onMode: (String, String) -> Unit,
+    templates: List<io.github.thepytales.llmhub.data.Template>,
+    onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
+) = listOf(
+    StartAction(
+        "Schreiben", Icons.Outlined.EditNote,
+        listOf(
+            StartExample("E-Mail formulieren") { onInput(tr("Formuliere eine freundliche E-Mail an ")) },
+            StartExample("Text kürzen und verständlicher machen") { onInput(tr("Mach diesen Text kürzer und verständlicher:\n")) },
+            StartExample("Ins Englische übersetzen") { onInput(tr("Übersetze ins Englische:\n")) },
+            StartExample("Ideen sammeln") { onInput(tr("Sammle Ideen für ")) },
+        ),
+    ),
+    StartAction(
+        "Dokument erstellen", Icons.Outlined.Description,
+        listOf(
+            StartExample("Protokoll aus Notizen") { onInput(tr("Erstelle ein Protokoll aus diesen Notizen:\n")) },
+            StartExample("Handout oder Merkblatt") { onInput(tr("Entwirf ein Handout zum Thema ")) },
+            StartExample("Präsentation") { onInput(tr("Erstelle eine Präsentation zum Thema ")) },
+            StartExample("Diagramm aus Daten") { onInput(tr("Erstelle ein Diagramm aus diesen Daten:\n")) },
+        ),
+    ),
+    StartAction(
+        "Dateien auswerten", Icons.Outlined.AttachFile,
+        listOf(
+            StartExample("Zusammenfassen") { onFiles(tr("Fasse die angehängten Dateien zusammen.")) },
+            StartExample("Fragen zu den Dateien stellen") { onFiles(tr("Beantworte anhand der angehängten Dateien: ")) },
+            StartExample("Tabelle auswerten") { onFiles(tr("Werte die angehängte Tabelle aus: ")) },
+            StartExample("Dokumente vergleichen") { onFiles(tr("Vergleiche die angehängten Dokumente: ")) },
+        ),
+    ),
+    StartAction(
+        "Literatur finden", Icons.Outlined.MenuBook,
+        listOf(
+            StartExample("Aktuelle Literatur zu einem Thema") { onMode("literature", tr("Finde aktuelle Literatur zum Thema: ")) },
+            StartExample("Antwort nur mit Belegen (Quellenmodus)") { onMode("sources", "") },
+            StartExample("Quellenangaben eines Textes prüfen") { onInput(tr("Prüfe die Quellenangaben in diesem Text:\n")) },
+            StartExample("Literaturverzeichnis ordnen") { onNavigate("literature") },
+        ),
+    ),
+    StartAction(
+        "TU Vorlagen", Icons.Outlined.Bookmarks,
+        templates.take(3).map { t -> StartExample(t.name) { onTemplate(t) } } + StartExample("Alle TU Vorlagen ansehen") { onNavigate("templates") },
+    ),
 )
 
 /** Maximum width of the messages and the input on wide screens (tablets, Windows), like the Claude desktop app. */

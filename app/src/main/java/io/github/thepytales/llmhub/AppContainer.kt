@@ -94,6 +94,9 @@ class AppContainer(context: Context) {
     /** Works the user or the literature search collected (see research/). */
     val literature = LiteratureStore(files)
     val researchTools = ResearchTools(this)
+    /** Lernspiele (AP-17): the collection and the agent's tools for it (offered while the tool is switched on). */
+    val games = io.github.thepytales.llmhub.data.LearningGameStore(files)
+    val gameTools = io.github.thepytales.llmhub.agent.GameTools(this)
     val webTools = WebTools(llm.http)
     val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
@@ -102,6 +105,11 @@ class AppContainer(context: Context) {
     val models = ModelsRepository(llm, settings)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
+
+    init {
+        // Modes of big tools (AP-17 Lernspiel) appear only while their tool is switched on.
+        io.github.thepytales.llmhub.agent.ChatModes.enabledTools = { settings.current.enabledToolIds }
+    }
 
     init {
         // Editor documents of a project with a project folder live in its "Ausgabe" as Markdown (like an own storage location).

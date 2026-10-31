@@ -67,6 +67,11 @@ main="$(cd "$jars" && ls ADEU-LLM-Desktop*.jar | head -1)"
     -XX:+UseStringDeduplication -XX:SoftRefLRUPolicyMSPerMB=200; do
     echo "java-options=$opt"
   done
+  # Browser beside the chat (AP-14, same list as BROWSER_JVM_ARGS in desktop/build.gradle.kts).
+  for opt in --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.desktop/sun.java2d=ALL-UNNAMED \
+    --add-opens=java.desktop/sun.awt=ALL-UNNAMED --add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens=java.desktop/java.awt.peer=ALL-UNNAMED; do
+    echo "java-options=$opt"
+  done
   echo "java-options=-Dskiko.library.path=\$APPDIR"
 } | sed 's/$/\r/' > "$app/ADEU LLM.cfg"
 # The Skia library inside the jar must match the DLL next to it.

@@ -10,6 +10,9 @@ fun PlatformSettingsSection(c: AppContainer, section: String?): Boolean = false
 
 fun platformSettingsItem(): SettingsItem? = null
 
+/** Einstellungen › Synchronisation (AP-12) is Windows-only for now (Android: AP-28). */
+fun syncSettingsItem(): SettingsItem? = null
+
 const val KEY_STORAGE_HINT = "Er wird verschlüsselt auf dem Gerät gespeichert."
 const val DEVICE_VOICE = "Gerätestimme"
 const val DEVICE_VOICE_TITLE = "Gerätestimme"

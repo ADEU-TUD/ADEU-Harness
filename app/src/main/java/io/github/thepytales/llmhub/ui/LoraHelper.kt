@@ -15,6 +15,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -133,8 +136,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * Lora, the helper at the core of the app (AP-07, AP-34). [open] from anywhere: Strg+L, the Lora button in the chat's
- * top bar, „Frag Lora …“ on the start page, Strg+K › „Lora fragen“, the sleeping Lora in the settings and other areas,
+ * Lora, the helper at the core of the app (AP-07, AP-34). [open] from anywhere: Strg+L, the „Frag Lora“ button in the
+ * chat's top bar, a tap on Lora on the start page, Strg+K › „Lora fragen“, the sleeping Lora in the settings and other areas,
  * a long press on Lora in the chat. On wide screens she works in a panel beside the app that stays open while she
  * leads somewhere; on phones she comes up from the bottom. The conversation stays until „Neu beginnen“.
  */
@@ -648,7 +651,7 @@ private fun WishBubble(text: String) {
 @Composable
 private fun LoraSays(content: @Composable () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        LoraStill(Modifier.padding(top = 2.dp).size(30.dp, 21.dp), action = LoraAction.LOOK)
+        LoraFaceStill(Modifier.padding(top = 2.dp).size(28.dp), action = LoraAction.LOOK)
         Spacer(Modifier.width(10.dp))
         Box(Modifier.weight(1f)) { content() }
     }
@@ -905,61 +908,69 @@ fun LoraHelperButton(c: AppContainer, modifier: Modifier = Modifier) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val open by LoraHelper.isOpen.collectAsStateWithLifecycle()
     if (!LoraHelper.visible(s) || open) return
+    val look = LocalChatLook.current
     val director = rememberLoraDirector(sequence = listOf(LoraAction.SLEEP), start = LoraAction.SLEEP)
+    // With a mouse: she wakes up and waves while the pointer is over her.
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    LaunchedEffect(hovered) { if (hovered) director.play(LoraAction.WAVE) }
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = LocalChatLook.current.card,
-        border = boxBorder(),
-        shadowElevation = 4.dp,
-        modifier = modifier,
+        shape = CircleShape,
+        color = look.card,
+        border = BorderStroke(1.dp, look.brand.copy(alpha = 0.35f)),
+        shadowElevation = 6.dp,
+        modifier = modifier.size(LORA_BUTTON_SIZE),
     ) {
         Box(
             Modifier
+                .background(look.brand.copy(alpha = if (hovered) 0.16f else 0.08f))
                 .semantics { contentDescription = tr("Lora fragen") }
+                .hoverable(interaction)
                 .combinedClickable(
-                    interactionSource = remember { MutableInteractionSource() },
+                    interactionSource = interaction,
                     indication = null,
                     onClickLabel = tr("Lora fragen"),
                     onClick = { LoraHelper.open() },
-                )
-                .padding(6.dp),
+                ),
+            contentAlignment = Alignment.Center,
         ) {
-            LoraFigure(Modifier.size(52.dp, 52.dp / LORA_ASPECT * 1.4f), label = tr("Lora schläft – antippen zum Fragen"), director = director)
+            LoraFace(Modifier.padding(top = 2.dp).size(LORA_BUTTON_SIZE - 12.dp), label = tr("Lora schläft – antippen zum Fragen"), director = director, fps = 20)
         }
     }
 }
 
+/** Size of the sleeping Lora in the corner: a round button as big as a floating action button, with her close-up. */
+private val LORA_BUTTON_SIZE = 62.dp
+
 /** Room screens leave at the end of their lists for the sleeping Lora (so she covers no entry). */
 val LORA_BUTTON_ROOM = 96.dp
 
-/** Lora in the chat's top bar: opens her panel (Strg+L). */
+/**
+ * Lora in the chat's top bar (Strg+L opens and closes her panel): her close-up in a tinted pill with „Frag Lora“, so
+ * she is easy to find; [compact] (narrow windows with a chat title) shows only the round face.
+ */
 @Composable
-fun LoraTopBarButton(c: AppContainer, folderId: String? = null) {
+fun LoraTopBarButton(c: AppContainer, folderId: String? = null, compact: Boolean = false) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     if (!LoraHelper.available(s)) return
-    IconButton(onClick = { if (LoraHelper.isOpen.value) LoraHelper.close() else LoraHelper.open(folderId = folderId) }) {
-        LoraStill(Modifier.size(30.dp, 21.dp).semantics { contentDescription = tr("Lora fragen (Strg+L)") }, action = LoraAction.WAVE)
-    }
-}
-
-/** „Frag Lora …“ on the start page: looks like an input field and opens Lora's panel. */
-@Composable
-fun LoraAskField(modifier: Modifier = Modifier) {
+    val open by LoraHelper.isOpen.collectAsStateWithLifecycle()
     val look = LocalChatLook.current
+    // Waves hello once, then is just there: looks around, follows the pointer with her eyes, blinks.
+    val director = rememberLoraDirector(sequence = listOf(LoraAction.IDLE, LoraAction.LOOK), start = LoraAction.WAVE)
+    val label = tr("Lora fragen") + if (DESKTOP) " (Strg+L)" else ""
     Surface(
+        onClick = { if (LoraHelper.isOpen.value) LoraHelper.close() else LoraHelper.open(folderId = folderId) },
         shape = RoundedCornerShape(50),
-        color = look.card,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = modifier.widthIn(max = 420.dp).fillMaxWidth().clip(RoundedCornerShape(50)).clickable(onClickLabel = tr("Lora fragen")) { LoraHelper.open() },
+        color = look.brand.copy(alpha = if (open) 0.22f else 0.10f),
+        border = BorderStroke(1.dp, look.brand.copy(alpha = if (open) 0.6f else 0.3f)),
+        modifier = Modifier.padding(horizontal = 4.dp).height(42.dp).semantics { contentDescription = label },
     ) {
-        Row(Modifier.padding(start = 10.dp, end = 14.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            LoraStill(Modifier.size(30.dp, 21.dp), action = LoraAction.WAVE)
-            Spacer(Modifier.width(8.dp))
-            Text(
-                tr("Frag Lora: Wo finde ich …?"), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
-            )
-            if (DESKTOP) Text("Strg+L", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+        Row(Modifier.padding(start = 3.dp, end = if (compact) 3.dp else 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            LoraFace(Modifier.size(36.dp), label = label, director = director, fps = 20)
+            if (!compact) {
+                Spacer(Modifier.width(6.dp))
+                Text(tr("Frag Lora"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+            }
         }
     }
 }
@@ -1073,6 +1084,9 @@ fun LoraSettings(c: AppContainer) {
         }
         SwitchRow(tr("Nächste Schritte unter Antworten"), tr("Lora bietet unter der letzten Antwort an, Fristen in den Kalender zu übernehmen, Tabellen als Excel zu speichern oder Literatur zu übernehmen – erkannt auf dem Gerät."), s.loraNextSteps) { v ->
             c.settings.update { it.copy(loraNextSteps = v) }
+        }
+        SwitchRow(tr("KI-Nutzungsnachweis vorschlagen"), tr("Geht es in einem Chat um eine Arbeit (Hausarbeit, Masterarbeit, Paper, Antrag …) und hat die KI dafür Text geschrieben, bietet Lora einmal an, einen KI-Nutzungsnachweis zu erstellen. Im Chat-Menü ist er immer erreichbar."), s.aiUseHint) { v ->
+            c.settings.update { it.copy(aiUseHint = v) }
         }
         SwitchRow(tr("Hinweise beim Tippen"), tr("Tippst du im Chat etwas wie „dunkles Design“, zeigt Lora darüber den passenden Ort der App."), s.loraTyping) { v ->
             c.settings.update { it.copy(loraTyping = v) }
