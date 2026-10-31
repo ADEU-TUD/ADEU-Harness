@@ -27,13 +27,19 @@ import kotlinx.coroutines.launch
 /** Windows-only settings page; true if [section] was one of them. */
 @Composable
 fun PlatformSettingsSection(c: AppContainer, section: String?): Boolean {
-    if (section != "windows") return false
-    WindowsSection(c)
+    when (section) {
+        "windows" -> WindowsSection(c)
+        "sync" -> SyncSettings(c)
+        else -> return false
+    }
     return true
 }
 
+/** Entry for Einstellungen › Synchronisation (AP-12) in the overview's „Daten“. */
+fun syncSettingsItem(): SettingsItem? = syncSettingsItemDesktop()
+
 /** Entry for the Windows page in the settings overview. */
-fun platformSettingsItem(): SettingsItem? = SettingsItem("settings/windows", Icons.Outlined.Computer, "Windows", "Infobereich, Autostart, Datenordner (auch in Google Drive)")
+fun platformSettingsItem(): SettingsItem? = SettingsItem("settings/windows", Icons.Outlined.Computer, "Windows", "Infobereich, Autostart, Datenordner")
 
 const val KEY_STORAGE_HINT = "Er wird verschlüsselt auf diesem PC gespeichert (nur dein Windows-Konto kann ihn lesen)."
 const val DEVICE_VOICE = "Windows-Stimme"
@@ -66,15 +72,18 @@ private fun WindowsSection(c: AppContainer) {
             }
         }
     }
-    var target by remember { mutableStateOf<java.io.File?>(null) }
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    Section("Browser neben dem Chat") {
+        SwitchRow(
+            "Links neben dem Chat öffnen",
+            "Links aus Chat, Literatur und Dokumenten öffnen sich als Tabs rechts neben der App – mit Fragen zur Seite, Zusammenfassung " +
+                "und Übernahme in die Literatur. Beim ersten Mal richtet Lora dafür einmalig Chromium ein (ca. 170 MB). Aus: im normalen Browser.",
+            s.browserPanel,
+        ) { v -> c.settings.update { it.copy(browserPanel = v) } }
+    }
     Section("Datenordner") {
         Text(
-            "Chats, Einstellungen, Dokumente und Transkripte liegen in diesem Ordner. Wie bei Obsidian kannst du einen eigenen " +
-                "wählen – etwa in Google Drive, OneDrive oder Nextcloud, dann synchronisiert deren Programm alles auf deine " +
-                "anderen Rechner. Große Dateien (Sprach- und Erkennungsmodelle) bleiben auf diesem PC. API-Key, Tokens und " +
-                "Umgebungen sind mit Windows verschlüsselt und gelten nur auf diesem PC – auf einem anderen Rechner trägst du " +
-                "den API-Key einmal neu ein. Öffne die App nicht auf zwei Rechnern gleichzeitig mit demselben Ordner.",
+            "Chats, Einstellungen, Dokumente und Transkripte liegen in diesem Ordner. Auf mehreren PCs arbeiten: unter Einstellungen › " +
+                "Synchronisation den Datenordner in OneDrive, Google Drive oder Nextcloud legen.",
             style = MaterialTheme.typography.bodySmall,
         )
         Text(Paths.data.absolutePath + if (Paths.chosen != null) " (selbst gewählt)" else " (Standard)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -84,45 +93,11 @@ private fun WindowsSection(c: AppContainer) {
                 Spacer(Modifier.size(6.dp))
                 Text("Datenordner öffnen")
             }
-            OutlinedButton(onClick = {
-                scope.launch { FolderAccess.pick("Neuen Datenordner wählen (z. B. in Google Drive)")?.let { target = java.io.File(it) } }
-            }) { Text("Speicherort ändern …") }
-            if (Paths.chosen != null) androidx.compose.material3.TextButton(onClick = {
-                Paths.relocate(null, copy = false)
-                Paths.restart()
-            }) { Text("Zurück zum Standardordner") }
+            OutlinedButton(onClick = { Navigation.openRoute.value = "settings/sync" }) { Text("Synchronisation …") }
         }
         Text(
             "Nur Dokumente in einen Sync-Ordner legen? Dafür gibt es unter Einstellungen › Speicherorte eigene Ablageorte.",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    target?.let { dir ->
-        val hasData = java.io.File(dir, "settings.json").exists() || java.io.File(dir, "livedocs").isDirectory || java.io.File(dir, "chats").isDirectory
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { target = null },
-            title = { Text("Datenordner wechseln") },
-            text = {
-                Text(
-                    if (hasData) "In „${dir.absolutePath}“ liegen schon Daten (z. B. von einem anderen Rechner). Die App nutzt sie nach dem Neustart; " +
-                        "„Meine Daten dazukopieren“ ergänzt nur Dateien, die dort noch fehlen."
-                    else "Deine bisherigen Daten werden nach „${dir.absolutePath}“ kopiert, danach startet die App neu und arbeitet dort weiter. " +
-                        "Der alte Ordner bleibt als Sicherung erhalten.",
-                )
-            },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
-                    runCatching { Paths.relocate(dir, copy = true) }
-                        .onSuccess { Paths.restart() }
-                        .onFailure { Notices.error("Kopieren fehlgeschlagen: ${it.message}") }
-                }) { Text(if (hasData) "Meine Daten dazukopieren" else "Kopieren und neu starten") }
-            },
-            dismissButton = {
-                Row {
-                    if (hasData) androidx.compose.material3.TextButton(onClick = { Paths.relocate(dir, copy = false); Paths.restart() }) { Text("Nur wechseln") }
-                    androidx.compose.material3.TextButton(onClick = { target = null }) { Text("Abbrechen") }
-                }
-            },
         )
     }
 }

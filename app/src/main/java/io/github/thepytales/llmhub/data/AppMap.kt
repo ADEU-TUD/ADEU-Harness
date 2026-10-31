@@ -69,6 +69,7 @@ object AppMap {
         settings("trash", "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen.", "papierkorb gelöscht wiederherstellen"),
         settings("ram", "Arbeitsspeicher", "Speicherverbrauch der App messen und freigeben.", "arbeitsspeicher ram speicher langsam"),
         settings("folders", "Lokale Ordner", "Den Agenten in Ordnern auf diesem PC arbeiten lassen.", "ordner lokale dateien pc explorer freigeben", android = false),
+        settings("sync", "Synchronisation", "Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten.", "sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner", android = false),
         settings("storage", "Speicherorte", "Eigene Ordner für Dokumente, z. B. in Google Drive.", "speicherort ablage ordner google drive onedrive", android = false),
         settings("updates", "Updates", "Version, nach Updates suchen, automatische Suche.", "update aktualisieren neue version installieren"),
         settings("help", "Problem melden", "Fehler beschreiben und anonymes Protokoll senden.", "problem fehler melden bug feedback absturz"),
@@ -114,7 +115,7 @@ object AppMap {
 
     /** All places of this platform; [templates] are the built-in and own TU Vorlagen. */
     fun build(templates: List<Template> = TemplateLibrary.builtIn, android: Boolean = false): List<AppTarget> {
-        val modes = ChatModes.all.map { m ->
+        val modes = ChatModes.visible().map { m ->
             AppTarget("mode.${m.id}", MapKind.MODE, m.name, "Chat › /${m.command}", m.explain, m.keywords + " modus " + m.command.lowercase(), "mode:${m.id}")
         }
         val tools = AppTool.entries.filter { !it.planned }.map { t ->

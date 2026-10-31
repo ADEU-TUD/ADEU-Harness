@@ -49,8 +49,8 @@ Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
-| **Danach** | AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2 · AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis |
+| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
+| **Danach** | ~~AP-12 Einfacher Sync~~ (☑) · AP-13 Mail und Kalender über Outlook · ~~AP-14 Browser neben dem Chat~~ (☑) · AP-15 PDF Stufe 2 · AP-16 Office-Ausbau · ~~AP-17 Lernspiele~~ (☑) · AP-18 Dateiverwaltung · ~~AP-19 KI-Nutzungsnachweis~~ (☑) |
 | **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
@@ -303,11 +303,28 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
 - Kontaktbogen aller 51 Aktionen: `LoraFigureTest` (`desktop/build/lora.png`), Bilder des Panels: `LoraPanelLookTest`.
 - Betrifft: `ui/LoraFigure.kt`, `ui/LoraFlight.kt`, `ui/LoraUi.kt`, `ui/VoiceMode.kt`, `ui/Spotlight.kt`.
 
+### AP-37 ☑ Lora leichter finden, Startseite mit Chips · S–M (neu, 31.10.2026, auf Wunsch)
+- **Anlass**: Das Lora-Symbol oben im Chat war winzig (die ganze Figur in 30 × 21 dp), das Panel dadurch schwer zu
+  entdecken; die Kacheln der Startseite wirkten unschön; das zweite Eingabefeld *Frag Lora …* in der Mitte war überflüssig;
+  die schlafende Lora unten rechts (Android) war klein.
+- **Nahaufnahme**: Loras Gesicht (Kopf mit Antenne und Visier) als eigene Zeichnung (`drawLoraFace`), mit Mimik aus
+  derselben Steuerung, Blinzeln, Atmen, Blick zum Zeiger, winkender Hand oder „z“ im Schlaf. Überall, wo wenig Platz
+  ist: Kopfleiste, schlafende Lora, Karten und Chips.
+- **Kopfleiste**: Pille **„Frag Lora“** mit Loras Gesicht (36 dp) und Markenfarbe, aktiv hervorgehoben; auf schmalen
+  Fenstern mit Chat-Titel nur das runde Gesicht. **Schlafende Lora**: runder Knopf (62 dp) mit dem schlafenden Gesicht,
+  wacht unter der Maus auf und winkt.
+- **Startseite**: Chips statt Kacheln (*Schreiben*, *Dokument erstellen*, *Dateien auswerten*, *Literatur finden*,
+  *TU Vorlagen*); ein Chip öffnet an seiner Stelle konkrete Starts, die das Eingabefeld füllen oder den Ort öffnen.
+  *Frag Lora …* auf der Startseite entfällt; ein Tipp auf Lora öffnet ihr Panel.
+- Bilder: `LoraPanelLookTest` (`desktop/build/lora-entries.png`), `LoraUiTest` (`lora-home-*.png`, `lora-home-starts.png`).
+- Betrifft: `ui/LoraFigure.kt`, `ui/LoraUi.kt`, `ui/LoraHelper.kt`, `ui/ChatScreenParts.kt`, `ui/ChatScreen.kt`,
+  `ui/LoraChat.kt`, `ui/TemplateUi.kt`, `ui/ToolsSettings.kt`.
+
 ---
 
 ## Danach
 
-### AP-12 ☐ Einfacher Sync zwischen PCs (W) · M (bisher W4-02, stark vereinfacht)
+### AP-12 ☑ Einfacher Sync zwischen PCs (W) · M (bisher W4-02, stark vereinfacht)
 - *Einstellungen › Synchronisation*: „**Datenordner in Cloud-Ordner legen**“ – Nextcloud, Google Drive für Desktop oder
   OneDrive, der auf beiden PCs eingerichtet ist (wie ein Obsidian-Tresor). Auf dem zweiten PC „Vorhandenen Ordner
   öffnen“ → alles ist da.
@@ -318,6 +335,17 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
 - Speicherorte (Windows) und Datenordner-Verlegung gehen darin auf.
 - **Fertig, wenn**: Chat am Büro-PC beginnen, am Laptop weiterführen, ohne ZIP-Umzug; nichts geht verloren, wenn beide
   PCs kurz nacheinander offen waren.
+- **Ergebnis (31.10.2026)**: *Einstellungen › Synchronisation* mit Knöpfen für gefundene Cloud-Ordner (OneDrive,
+  Google Drive für Desktop, Nextcloud, Dropbox), *Vorhandenen Ordner öffnen*, Liste der PCs, *Synchronisation beenden*.
+  Je PC eine Notiz in `sync/` (offen seit, lebt noch, geschlossen, geänderte Dateien mit Größe); **vor dem Laden** wartet
+  ein kleines Fenster, solange Lora anderswo offen ist oder dessen Änderungen fehlen, und geht von selbst weiter. Ein PC,
+  der nur im Infobereich wartet, beendet sich, wenn ein anderer öffnet. Konfliktkopien (OneDrive, Google Drive,
+  Nextcloud, Dropbox, Syncthing): Chats als „zweite Fassung“, Rest in `sync/konflikte/`. **Wichtiger Fund**: Bis 1.0.44
+  lagen alle Einstellungen DPAPI-verschlüsselt im Datenordner – ein zweiter PC konnte sie nicht lesen und überschrieb
+  sie. Jetzt liegen Schlüssel/Tokens/Konten/Umgebungen verschlüsselt auf dem PC (`schluessel.dat`), der Rest lesbar in
+  `einstellungen.json` (einmalige Aufteilung beim Start). Fensterposition, Update-Stand und Protokoll bleiben auf dem PC.
+  Tests: `SyncAndBrowserTest`. Betrifft: `data/SyncGuard.kt`, `desktop/SyncSession.kt`, `ui/SyncUi.kt`,
+  `data/SecurePrefs.kt` (Windows), `desktop/Paths.kt`, `Main.kt`.
 
 ### AP-13 ☐ Mail und Kalender über das klassische Outlook (W) · L (bisher W7-01)
 - **Anbindung**: lokal über COM an das klassische Outlook (Mails, Ordner, Kalender, Frei/Gebucht) – ohne Server-Zugang
@@ -334,7 +362,7 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
 - **Fertig, wenn**: Zusammenfassung des Posteingangs, ein sortierter Ordner, ein Antwortentwurf und ein Kalendereintrag
   aus einer Mail – ohne dass etwas gesendet oder gelöscht wurde.
 
-### AP-14 ☐ Browser neben dem Chat · L (bisher W9-08)
+### AP-14 ☑ Browser neben dem Chat (W) · L (bisher W9-08)
 - Wie bei Google Antigravity: Links aus Chat, Literatur und Dokumenten öffnen sich **in Tabs neben dem Chatfenster**.
 - Kleine Zusatzfunktionen: Fragen zur Seite (mit Belegen, AP-08), Seite zusammenfassen, in Literatur oder
   Wissenssammlung übernehmen, Paper-PDFs im PDF-Werkzeugkasten öffnen.
@@ -342,6 +370,17 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   einfache Fassung mit System-WebView. Anmeldung über die TU (Shibboleth) bleibt erhalten.
 - Browser-Automatisierung (Agent füllt Formulare aus) → Ideen.
 - **Fertig, wenn**: Link im Chat öffnet sich als Tab daneben, eine Frage zur Seite wird mit Beleg beantwortet.
+- **Ergebnis (31.10.2026)**: Panel rechts neben der App (ziehbar; auf schmalen Fenstern darüber) mit Tabs, Zurück/Vor,
+  Adresszeile; alle Web-Links der App (Chat, Literatur, Dokumente) gehen dorthin, Download-Seiten der App extern. Unter der
+  Seite: *Frage zur Seite* (Seite als Anhang, neuer Chat im Quellenmodus), *Zusammenfassen*, *In die Literatur* (DOI →
+  Crossref, sonst `citation_*`-Meta-Tags, sonst Webquelle), *In die Wissenssammlung*, *PDF im Werkzeugkasten* (mit den
+  Cookies des Browsers, also auch hinter der TU-Anmeldung). Profil mit Cookies in `%LOCALAPPDATA%`, Anmeldung bleibt.
+  **Entscheidung (Abweichung)**: Chromium (~170 MB) steckt **nicht fest in der App**, sondern wird beim ersten Link nach
+  Rückfrage einmalig eingerichtet (`jcefmaven`) – sonst wäre jedes Update 170 MB größer. Das ist kein allgemeines
+  Erweiterungssystem (das bleibt bei AP-25). Bekannte Grenze: App-Dialoge über dem Browser werden von der Chromium-Fläche
+  teilweise verdeckt. Android später (WebView). Tests: `SyncAndBrowserTest`, mit echtem Chromium `BrowserLiveTest`
+  (`ADEU_BROWSER_TEST=1`, `xvfb-run`). Betrifft: `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt`,
+  `ui/AppRoot.kt` (Windows), `desktop/build.gradle.kts`, `release-local.sh`.
 
 ### AP-15 ☐ PDF-Werkzeugkasten Stufe 2 · L (bisher W8-02, Stufen 5–7)
 - **OCR**: Scans durchsuchbar machen (lokal Tesseract, alternativ Vision-Modell je Datenschutzstufe).
@@ -357,7 +396,7 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
 - Android: ansehen, kleine Änderungen, KI-Assistent.
 - Code aus WordCraft und DeckCraft ggf. ansehen (*Anhang: Craft-Apps*).
 
-### AP-17 ☐ Lernspiele-Baukasten · L (bisher W6-03, neu gedacht)
+### AP-17 ☑ Lernspiele-Baukasten · L (bisher W6-03, neu gedacht)
 - Die KI baut **eigenständige Browserspiele aus HTML, JavaScript und CSS** (Quiz, Zuordnen, Memory, Escape-Room …) aus
   Skript, Folien oder Beschreibung.
 - **Direkt in der App testen** (Vorschau im eingebetteten Browser), ändern per Chat („mach Level 2 schwerer“), Versionen.
@@ -366,15 +405,31 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
 - Sicherheit: Spiele laufen abgeschottet (kein Zugriff auf App-Daten, keine Netzwerkanfragen ohne Freigabe).
 - **Fertig, wenn**: „Mach ein Zuordnungsspiel zu Kapitel 3“ ergibt ein spielbares Spiel in der App, das sich als
   HTML-Datei in OPAL nutzen lässt.
+- **Ergebnis (31.10.2026)**: Werkzeug *Lernspiele* (auf Wunsch **standardmäßig aus**, unter *Einstellungen › Werkzeuge*
+  einschaltbar; Lora schlägt es bei „Quiz“, „Memory“ … vor). Erst eingeschaltet erscheinen *Mehr › Lernspiele* und der
+  Modus *Lernspiel* (`ChatMode.tool`, `ChatModes.visible()`), und der Agent bekommt `create_learning_game`,
+  `read_learning_game`, `update_learning_game`. Karte unter der Antwort mit *Spielen* (Windows: Tab im Browser neben dem
+  Chat, sonst normaler Browser; Android: WebView im Vollbild ohne Netz) und *Exportieren* (ZIP mit index.html oder
+  HTML-Datei). Sammlung mit Suche, Versionen (spielen, wiederherstellen), *Im Chat ändern*. Abschottung über eine
+  Content-Security-Policy (keine Anfragen, keine Frames), externe Skripte/Stylesheets werden beim Speichern abgelehnt.
+  Tests: `GamesAndAiNoteTest`. Rest: SCORM/H5P (Ideen), Klärung OPAL-Einbindung (Offene Fragen).
 
 ### AP-18 ☐ Dateiverwaltung · L (bisher W8-06, mit W4-01)
 - Ordner, Schlagwörter, Volltextsuche über alle Formate, Versionsvergleich, „Zuletzt bearbeitet“.
 - Für die Volltextsuche bei Bedarf eine lokale Index-Datenbank (SQLite mit Volltextindex; bisher W4-01) – nur, wenn die
   Suche ohne Index zu langsam ist. Sanfte Migration, Sicherung & Umzug bleiben kompatibel.
 
-### AP-19 ☐ KI-Nutzungsnachweis · M (bisher W5-07)
+### AP-19 ☑ KI-Nutzungsnachweis · M (bisher W5-07)
 - Aus dem Agent-Protokoll eines Chats/Projekts: Modelle, Zweck, Zeitraum, betroffene Textteile, Werkzeuge.
 - Formate: TUD-Vorgaben/Prüfungsordnung (für Studierende), Verlags-Policies, kurze Fußnote; als Dokument oder Text.
+- **Ergebnis (31.10.2026)**: Auf Wunsch nur dann als **Pop-up-Vorschlag** über dem Eingabefeld, wenn ein Chat um eine
+  Arbeit geht (Hausarbeit, Abschlussarbeit, Dissertation, Paper, Förderantrag, Abstract …) **und** die KI dafür Text
+  geschrieben hat (Dokument oder längere Antwort auf „formuliere/überarbeite/kürze …“) – einmal je Chat, abschaltbar
+  unter *Einstellungen › Lora*; immer im Chat-Menü. Nachweis auf dem Gerät aus dem Chat bzw. allen Chats des Projekts:
+  Modelle, Zweck, Zeitraum, Funktionen, Entwürfe; betroffene Teile als Platzhalter. Formate: Prüfungsleistung (Tabelle),
+  Verlag/Zeitschrift (EN + DE), kurze Fußnote; kopieren oder als Dokument. Kein offizieller TUD-Wortlaut – der Dialog
+  erinnert an den Abgleich mit Prüfungsordnung bzw. Verlag. Tests: `GamesAndAiNoteTest`. Betrifft: `agent/AiUseNote.kt`,
+  `ui/AiUseNoteUi.kt`, `ui/ChatScreen.kt`, `ui/ChatScreenParts.kt`, `ui/LoraHelper.kt`.
 
 ---
 
@@ -503,12 +558,17 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-34 Lora-Panel | Seitenleiste/Blatt, Kontext-Vorschläge, Ergebnis-Karten mit Rückgängig, Strg+L, Android-Verknüpfung | – |
 | ☑ AP-35 Lora im Chat | nächste Schritte (Kalender, Excel, Literatur, Word), Chat-Suche, Erinnerungen, Hinweis beim Tippen, Schrittzeilen | – |
 | ☑ AP-36 Animationen | Schere/Stempel/Tacker korrigiert, 16 neue Aktionen, Flug zum Ziel, Augen folgen dem Zeiger | – |
+| ☑ AP-37 Lora leichter finden | Gesicht in Nahaufnahme, „Frag Lora“-Pille, schlafende Lora als runder Knopf, Chips mit konkreten Starts, *Frag Lora …*-Feld entfernt | – |
+| ☑ AP-12 Einfacher Sync (W) | Cloud-Ordner per Klick, Notiz je PC, Warten vor dem Laden, Konfliktkopien behalten, Schlüssel bleiben auf dem PC | Tresor-Projekte im Sync prüfen; Android mit AP-28 |
+| ☑ AP-17 Lernspiele | Werkzeug (Standard aus) mit Modus, Agent-Werkzeugen, Sammlung, Versionen, Spielen, Export HTML/ZIP, CSP-Abschottung | SCORM/H5P; OPAL-Einbindung klären |
+| ☑ AP-19 KI-Nutzungsnachweis | Pop-up nur bei Text für eine Arbeit, drei Formate, Chat oder Projekt, Chat-Menü | offizielle TUD-Vorlage einpflegen, sobald vorhanden |
+| ☑ AP-14 Browser neben dem Chat (W) | JCEF-Panel mit Tabs, Frage zur Seite (Quellenmodus), Zusammenfassen, Literatur, Wissenssammlung, PDF | Android (WebView); Dialoge über dem Browser |
 
 ---
 
 ## Offene Fragen
 
-1. **Startseite** (AP-02): Wortlaut der Tätigkeits-Kacheln final abstimmen (umgesetzt ist der Vorschlag aus AP-02).
+1. **Startseite** (AP-02, AP-37): Wortlaut der Chips und ihrer Starts final abstimmen (umgesetzt ist der Vorschlag aus AP-37).
 2. **Outlook über COM** (AP-13): Welche Brücke aus Kotlin/JVM (JACOB, com4j, PowerShell)? Läuft sie auf den Dienst-PCs
    ohne Admin-Rechte?
 3. **Exchange der TU** (nur für AP-27): selbst betrieben (EWS) oder Exchange Online (Graph mit Freigabe der IT)? Wann
@@ -529,9 +589,9 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Pseudonymisierung (AP-03) | ☑ | ☑ |
 | Tresor (AP-10) | ☐ | ☐ |
 | PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren | voll |
-| Sync (AP-12, AP-28) | später (AP-28) | ☐ |
+| Sync (AP-12, AP-28) | später (AP-28) | ☑ |
 | Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☐ (Outlook) |
-| Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☐ |
+| Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
 | Office (AP-16) | ansehen, kleine Änderungen | voll |
 | Lernspiele (AP-17) | ansehen, spielen | voll |
 | Kreativbereich (AP-24) | – (nicht geplant) | ☐ |

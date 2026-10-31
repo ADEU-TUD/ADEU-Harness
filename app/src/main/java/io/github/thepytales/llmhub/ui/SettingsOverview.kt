@@ -91,6 +91,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "folders" -> "Lokale Ordner"
     "storage" -> "Speicherorte"
     "windows" -> "Windows"
+    "sync" -> "Synchronisation"
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
     "literature" -> "Literatur & Zotero"
@@ -146,7 +147,10 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         modifier = Modifier.fillMaxWidth(),
     )
     if (query.isNotBlank()) {
-        val hits = filterCommands(SETTINGS_INDEX + listOfNotNull(deviceItem?.let { Command(it.title, it.route, "Einstellungen", "windows autostart infobereich datenordner") }), query)
+        val hits = filterCommands(SETTINGS_INDEX + listOfNotNull(
+            deviceItem?.let { Command(it.title, it.route, "Einstellungen", "windows autostart infobereich datenordner") },
+            syncSettingsItem()?.let { Command(it.title, it.route, "Einstellungen", "sync synchronisieren cloud onedrive google drive nextcloud zweiter pc laptop") },
+        ), query)
         if (hits.isEmpty()) {
             Text(tr("Keine passende Einstellung."), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp))
         } else {
@@ -220,6 +224,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     SettingsGroup(
         "Daten",
         listOfNotNull(
+            syncSettingsItem(),
             SettingsItem("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
             SettingsItem(
                 "settings/storage", Icons.Outlined.FolderOpen, "Speicherorte",

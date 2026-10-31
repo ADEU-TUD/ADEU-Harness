@@ -61,7 +61,7 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command("Modelle", "models", "Bereiche", "modell liste"),
     Command("Verbrauch", "usage", "Bereiche", "kosten token bewertungen statistik"),
     Command("Einstellungen", "settings", "Einstellungen", "optionen"),
-) + io.github.thepytales.llmhub.agent.ChatModes.all.map { m ->
+) + io.github.thepytales.llmhub.agent.ChatModes.visible().map { m ->
     // Modes (AP-05) start a new chat in that mode.
     Command(m.name, MODE_ROUTE + m.id, "Modi", m.keywords + " modus " + m.command.lowercase())
 } + SETTINGS_INDEX
@@ -85,6 +85,7 @@ val SETTINGS_INDEX = listOf(
     Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
     Command("Arbeitsspeicher", "settings/ram", "Einstellungen", "speicher ram arbeitsspeicher langsam messen freigeben"),
     Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
+    Command("Synchronisation", "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
     Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
     Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
 )

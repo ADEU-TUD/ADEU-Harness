@@ -29,6 +29,18 @@ import kotlin.test.assertTrue
 class ModesAndQuestionsTest {
     @Test
     fun everyModeIsCompleteAndReachable() {
+        // Modes of a big tool (AP-17 Lernspiel) are reachable once the tool is switched on.
+        val before = ChatModes.enabledTools
+        ChatModes.enabledTools = { ChatModes.all.mapNotNull { it.tool }.toSet() }
+        try {
+            checkModes()
+        } finally {
+            ChatModes.enabledTools = before
+        }
+        assertTrue(ChatModes.all.filter { it.tool == null }.containsAll(ChatModes.visible()), "Werkzeug-Modi standardmäßig ausgeblendet")
+    }
+
+    private fun checkModes() {
         ChatModes.all.forEach { m ->
             assertTrue(m.name.isNotBlank() && m.explain.isNotBlank() && m.data.isNotBlank() && m.example.isNotBlank() && m.command.isNotBlank(), m.id)
             assertTrue(m.action || m.prompt.isNotBlank(), "Modus ${m.id} braucht einen Prompt-Zusatz")

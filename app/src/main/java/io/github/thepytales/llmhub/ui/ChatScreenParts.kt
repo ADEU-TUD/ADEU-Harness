@@ -1,8 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.outlined.History
@@ -15,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +21,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.NorthWest
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Archive
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -44,6 +46,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,8 +79,14 @@ internal fun greeting(name: String): String {
 /** An example on the start page: fills the input (and possibly switches mode) or opens an area of the app. */
 internal data class ChatExample(val label: String, val text: String = "", val mode: String? = null, val route: String? = null)
 
-/** A tile of the start page (AP-02): one activity, e.g. „Dateien auswerten“. */
-internal class StartTile(val label: String, val icon: ImageVector, val run: () -> Unit)
+/** A concrete start under an activity of the start page, e.g. „E-Mail formulieren“: fills the input or opens a place. */
+internal class StartExample(val label: String, val run: () -> Unit)
+
+/**
+ * An activity of the start page (AP-02), shown as a chip, e.g. „Dateien auswerten“: a tap opens its [examples] to
+ * pick from (what one can actually ask); without examples it runs [run] at once.
+ */
+internal class StartAction(val label: String, val icon: ImageVector, val examples: List<StartExample> = emptyList(), val run: () -> Unit = {})
 
 internal val CHAT_EXAMPLES = listOf(
     ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", mode = "literature"),
@@ -86,7 +99,8 @@ internal val CHAT_EXAMPLES = listOf(
 
 /**
  * Start of a new chat: Lora waves and offers ideas (the favourite or suggested templates and a few examples of what
- * the app can do) in a speech bubble, below the greeting and the chosen model.
+ * the app can do) in a speech bubble – a tap on her opens her panel –, below the greeting, the chosen model and the
+ * activities as chips; a chip opens concrete starts in place of the chips.
  */
 @Composable
 internal fun EmptyChat(
@@ -107,8 +121,8 @@ internal fun EmptyChat(
     hideLora: Boolean = false,
     /** Below the greeting, e.g. the invitation to set up the memory. */
     extra: @Composable () -> Unit = {},
-    /** One row of tiles by activity below the greeting (AP-02). */
-    tiles: List<StartTile> = emptyList(),
+    /** The activities as chips below the greeting (AP-02); each opens concrete starts. */
+    actions: List<StartAction> = emptyList(),
     /** The latest chats („Zuletzt“) and the favourite templates („Favoriten“), shown when there is room. */
     recent: List<io.github.thepytales.llmhub.data.Conversation> = emptyList(),
     favorites: List<io.github.thepytales.llmhub.data.Template> = emptyList(),
@@ -130,12 +144,16 @@ internal fun EmptyChat(
         }
         add(LoraIdea(tr("Alle TU Vorlagen ansehen"), tr("TU Vorlagen"), template = true, run = onAllTemplates))
     }
+    // The activity whose starts are open (in place of the chips); typing closes it.
+    var opened by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(typing) { if (typing) opened = null }
+    val open = actions.firstOrNull { it.label == opened }
     BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
-        // Lora shrinks with the space (keyboard open); the bubble needs some room.
-        val loraHeight = if (hasApiKey) (maxHeight * 0.22f).coerceIn(72.dp, 132.dp) else 72.dp
-        val bubble = hasApiKey && maxHeight >= 380.dp
+        // Lora shrinks with the space (keyboard open) and while the starts of an activity are open; the bubble needs room.
+        val loraHeight = if (!hasApiKey) 72.dp else if (open != null) (maxHeight * 0.14f).coerceIn(64.dp, 96.dp) else (maxHeight * 0.22f).coerceIn(72.dp, 132.dp)
+        val bubble = hasApiKey && maxHeight >= (if (open != null) 560.dp else 380.dp)
         val roomForTiles = maxHeight >= 420.dp
-        val roomForLists = maxHeight >= 600.dp
+        val roomForLists = maxHeight >= 600.dp && open == null
         Column(
             Modifier.fillMaxSize().padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,18 +194,15 @@ internal fun EmptyChat(
                 if (mode != null) {
                     Spacer(Modifier.size(18.dp))
                     ModeExample(mode, onModeExample)
-                } else if (tiles.isNotEmpty() && roomForTiles) {
+                } else if (actions.isNotEmpty() && roomForTiles) {
                     Spacer(Modifier.size(18.dp))
-                    StartTiles(tiles)
+                    // The chips, or the starts of the opened activity in their place.
+                    if (open == null) StartChips(actions) { a -> if (a.examples.isEmpty()) a.run() else opened = a.label }
+                    else StartExamples(open, onClose = { opened = null }) { e -> opened = null; e.run() }
                 }
                 if (roomForLists && (recent.isNotEmpty() || favorites.isNotEmpty())) {
                     Spacer(Modifier.size(14.dp))
                     RecentAndFavorites(recent, favorites, onOpenChat, onTemplate)
-                }
-                if (!hideLora) {
-                    // Lora (AP-07, AP-34): finds settings and areas, hands questions to a chat – „Frag Lora …“.
-                    Spacer(Modifier.size(12.dp))
-                    LoraAskField()
                 }
                 Spacer(Modifier.size(14.dp))
                 Box(Modifier.widthIn(max = 520.dp)) { extra() }
@@ -197,25 +212,61 @@ internal fun EmptyChat(
     }
 }
 
-/** The row of activity tiles; scrolls sideways when the window is narrow. */
+/** The activities as chips, centered and wrapping onto a second line on narrow windows. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun StartTiles(tiles: List<StartTile>) {
+private fun StartChips(actions: List<StartAction>, onPick: (StartAction) -> Unit) {
     val look = LocalChatLook.current
-    Row(
-        Modifier.widthIn(max = 760.dp).horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    androidx.compose.foundation.layout.FlowRow(
+        Modifier.widthIn(max = 900.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        tiles.forEach { t ->
+        actions.forEach { a ->
             Surface(
-                shape = MaterialTheme.shapes.medium,
+                onClick = { onPick(a) },
+                shape = RoundedCornerShape(50),
                 color = look.card,
                 border = boxBorder(),
-                modifier = Modifier.width(132.dp).clip(MaterialTheme.shapes.medium).clickable(onClick = t.run),
+                modifier = Modifier.heightIn(min = 42.dp),
             ) {
-                Column(Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
-                    IconTile(t.icon, size = 32.dp)
-                    Spacer(Modifier.size(8.dp))
-                    Text(tr(t.label), style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Row(Modifier.padding(start = 12.dp, end = 16.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(a.icon, contentDescription = null, tint = look.brand, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(tr(a.label), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+/** The concrete starts of [action] in a card (in place of the chips): a tap fills the input or opens the place. */
+@Composable
+private fun StartExamples(action: StartAction, onClose: () -> Unit, onPick: (StartExample) -> Unit) {
+    val look = LocalChatLook.current
+    Surface(shape = MaterialTheme.shapes.medium, color = look.card, border = boxBorder(), modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 6.dp)) {
+            Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(action.icon, contentDescription = null, tint = look.brand, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Text(tr(action.label), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                androidx.compose.material3.IconButton(onClick = onClose) {
+                    Icon(Icons.Outlined.Close, contentDescription = tr("Schließen"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            action.examples.forEach { e ->
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { onPick(e) }
+                        .heightIn(min = 46.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(tr(e.label), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.Outlined.NorthWest, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -327,6 +378,7 @@ internal fun ChatMenu(
     archived: Boolean = false,
     onArchive: () -> Unit = {},
     onExportJson: () -> Unit = {},
+    onAiNote: () -> Unit = {},
 ) {
     fun pick(action: () -> Unit): () -> Unit = {
         onDismiss()
@@ -352,6 +404,7 @@ internal fun ChatMenu(
         MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
         MenuEntry(Icons.Outlined.DataObject, "Als JSON exportieren", hasMessages, onClick = pick(onExportJson))
         MenuEntry(Icons.Outlined.Search, "Im Chat suchen", hasMessages, onClick = pick(onSearch))
+        MenuEntry(Icons.Outlined.VerifiedUser, "KI-Nutzungsnachweis", hasMessages, onClick = pick(onAiNote))
         MenuGroup(null)
         MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
         MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))

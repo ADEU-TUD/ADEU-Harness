@@ -29,13 +29,10 @@ enum class AppTool(
         "Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Daten von Studierenden: verschlüsselt, nur Uni-Server oder lokale Modelle.",
         "vault", listOf("tresor", "sensibel", "vertraulich", "geschutzt", "pin", "interviewdaten", "daten von studierenden", "geheim"),
     ),
-    BROWSER(
-        "browser", "Browser neben dem Chat", "Links in Tabs neben dem Chat öffnen, Fragen zur Seite stellen.", "browser",
-        listOf("browser", "webseite offnen", "tab"), android = false, planned = true,
-    ),
     GAMES(
-        "games", "Lernspiele", "Quiz, Zuordnen, Memory und Escape-Rooms als Browserspiele für OPAL bauen.", "games",
-        listOf("lernspiel", "quiz", "memory", "escape"), planned = true,
+        "games", "Lernspiele",
+        "Quiz, Zuordnen, Memory und Escape-Rooms als eigenständige Browserspiele bauen lassen, in der App testen und als HTML/ZIP für OPAL oder Moodle exportieren.",
+        "games", listOf("lernspiel", "quiz", "memory", "escape", "zuordnungsspiel", "spiel fur", "gamification"),
     ),
     CREATIVE(
         "creative", "Kreativbereich", "Poster, Flyer und Aushänge im Corporate Design gestalten.", "creative",

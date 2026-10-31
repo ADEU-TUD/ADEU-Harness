@@ -16,6 +16,16 @@ val MEMORY_JVM_ARGS = listOf(
     "-XX:MaxHeapFreeRatio=30", "-XX:+UseStringDeduplication", "-XX:SoftRefLRUPolicyMSPerMB=200",
 )
 
+/**
+ * JCEF (browser beside the chat, AP-14) reaches into AWT internals for the native window of its browser. Also written
+ * into "ADEU LLM.cfg" by .github/scripts/release-local.sh.
+ */
+val BROWSER_JVM_ARGS = listOf(
+    "--add-exports=java.desktop/sun.awt=ALL-UNNAMED", "--add-exports=java.desktop/sun.java2d=ALL-UNNAMED",
+    "--add-opens=java.desktop/sun.awt=ALL-UNNAMED", "--add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
+)
+
 /** Same version scheme as the APK: 1.0.<build number>. */
 val appVersion = System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
 
@@ -43,6 +53,9 @@ dependencies {
     // Speech recognition on the device (speech/): sherpa-onnx (Java part) and org.json, which Android has built in.
     implementation(files("../speech/libs/sherpa-onnx-jvm-1.13.8.jar"))
     implementation("org.json:json:20250517")
+    // Browser beside the chat (AP-14): Chromium through JCEF. Only the Java part is in the app; Chromium itself
+    // (about 170 MB) is set up once on first use into %LOCALAPPDATA%\ADEU LLM\browser (see desktop/WebEngine.kt).
+    implementation("me.friwi:jcefmaven:152.0.6")
 
     testImplementation(kotlin("test"))
     // Compose UI tests without a window (chat scrolling).
@@ -105,6 +118,7 @@ sourceSets.main {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs(BROWSER_JVM_ARGS)
 }
 
 compose.desktop {
@@ -114,6 +128,7 @@ compose.desktop {
         // AP-04: a fixed upper limit instead of a quarter of the RAM, and free heap goes back to Windows while idle
         // (G1 collects every minute when nothing happens, keeps at most 30 % free). The same list is in release-local.sh.
         jvmArgs += MEMORY_JVM_ARGS
+        jvmArgs += BROWSER_JVM_ARGS
 
         nativeDistributions {
             appResourcesRootDir.set(layout.buildDirectory.dir("speech/desktop"))

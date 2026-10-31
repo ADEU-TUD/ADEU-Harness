@@ -82,6 +82,12 @@ fun main(args: Array<String>) {
     Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
+    // Einfacher Sync (AP-12): before anything is loaded, make sure the synced data folder is not open on another PC and
+    // that PC's changes have arrived; then this PC keeps its note there.
+    if (selfTest == null && io.github.thepytales.llmhub.desktop.SyncSession.active) {
+        if (!io.github.thepytales.llmhub.ui.runSyncGate()) exitProcess(0)
+        io.github.thepytales.llmhub.desktop.SyncSession.start()
+    }
     io.github.thepytales.llmhub.data.MemoryMeter.nonHeapBytes = { java.lang.management.ManagementFactory.getMemoryMXBean().nonHeapMemoryUsage.used }
     // AP-04: on Windows the working set of the whole process (Java + native parts) for the memory display.
     if (System.getProperty("os.name").orEmpty().startsWith("Windows")) {
@@ -153,6 +159,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         c.runs.stopAll()
         c.speaker.stop()
         c.localLlm.shutdown()
+        io.github.thepytales.llmhub.desktop.WebEngine.dispose()
         exitApplication()
     }
 
@@ -164,6 +171,16 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     }
     LaunchedEffect(Unit) {
         showRequests.collect { if (it > 0) show() }
+    }
+    // AP-12: the note says whether Lora only waits in the notification area (another PC may then open the folder).
+    val runs by c.runs.runs.collectAsState()
+    val idle = runs.isEmpty()
+    SideEffect { io.github.thepytales.llmhub.desktop.SyncSession.background = { !visible && idle } }
+    LaunchedEffect(Unit) {
+        io.github.thepytales.llmhub.desktop.SyncSession.kept.value?.let { k ->
+            if (k.chats.isNotEmpty()) Notices.info("${k.chats.size} Chat(s) gab es nach der Synchronisation in zwei Fassungen – beide sind da („zweite Fassung“).")
+            else if (k.setAside.isNotEmpty()) Notices.info("${k.setAside.size} Konfliktkopie(n) des Cloud-Dienstes beiseitegelegt (Einstellungen › Synchronisation).")
+        }
     }
 
     if (tray) {
@@ -244,6 +261,10 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             }
         }
         LlmHubTheme(settings) {
+            io.github.thepytales.llmhub.ui.SyncNewcomerDialog(visible = visible, idle = idle) { note ->
+                if (note != null && tray) trayState.sendNotification(Notification("Lora", note, Notification.Type.Info))
+                quit()
+            }
             Box(
                 Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)
                     // Strg+Mausrad zooms; seen before any scrollable list gets the wheel.

@@ -59,6 +59,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -254,11 +256,12 @@ internal const val LORA_SLEEP_AFTER_MS = 45_000L
 
 /**
  * Lora on the start page: waves hello, then waits (looks around, sips coffee, reads, spins the globe …), offers one of
- * the [ideas] in a speech bubble (tap: use it; ↻ or a tap on Lora: the next one, with a flash of inspiration), takes
- * notes while the user is [typing] and dozes off after a while. Without ideas the bubble is left out.
+ * the [ideas] in a speech bubble (tap: use it; ↻: the next one, with a flash of inspiration), takes notes while the user
+ * is [typing] and dozes off after a while. A tap on Lora wakes her and opens her panel ([onTap]). Without ideas the
+ * bubble is left out.
  */
 @Composable
-internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, modifier: Modifier = Modifier) {
+internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, modifier: Modifier = Modifier, onTap: () -> Unit = { LoraHelper.open() }) {
     // Mornings with a coffee, late evenings calmer (AP-36).
     val director = rememberLoraDirector(remember { homeSequence(java.time.LocalTime.now().hour) }, start = LoraAction.WAVE, minDwellMs = 600)
     var index by remember { mutableIntStateOf(ideaVisits++) }
@@ -305,9 +308,13 @@ internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, mo
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClickLabel = tr("Andere Idee"),
-                    onClick = ::nextIdea,
-                ),
+                    onClickLabel = tr("Lora fragen"),
+                ) {
+                    touches++
+                    sleeping = false
+                    director.play(LoraAction.WAVE)
+                    onTap()
+                },
             label = tr("Lora, das Maskottchen der App"),
             director = director,
             hint = hint,
@@ -403,6 +410,45 @@ private fun BubbleTail() {
         }
         drawPath(sides, edge, style = Stroke(1.dp.toPx()))
     }
+}
+
+/**
+ * Lora's close-up ([drawLoraFace]), animated: blinks, breathes and follows the pointer with her eyes. For small places
+ * (the button in the top bar, the sleeping Lora in a corner), where the whole figure would be tiny. [fps] limits how
+ * often she is redrawn – a small face needs few frames; 0 = every frame.
+ */
+@Composable
+fun LoraFace(
+    modifier: Modifier = Modifier,
+    label: String,
+    director: LoraDirector = rememberLoraDirector(listOf(LoraAction.IDLE, LoraAction.LOOK), LoraAction.IDLE),
+    fps: Int = 24,
+) {
+    val time by androidx.compose.runtime.produceState(0L) {
+        val start = androidx.compose.runtime.withFrameMillis { it }
+        while (true) {
+            if (fps > 0) delay(1000L / fps)
+            androidx.compose.runtime.withFrameMillis { value = it - start }
+        }
+    }
+    val colors = loraColors()
+    val center = remember { floatArrayOf(Float.NaN, Float.NaN) }
+    Canvas(
+        modifier
+            .semantics { contentDescription = label }
+            .onGloballyPositioned { val r = it.boundsInRoot(); center[0] = r.center.x; center[1] = r.center.y },
+    ) {
+        val t = time
+        val gaze = if (center[0].isNaN() || LoraMotion.calm) null else LoraGaze.direction(androidx.compose.ui.geometry.Offset(center[0], center[1]), 260f * density)
+        drawLoraFace(director.frame(t), t, colors, gaze)
+    }
+}
+
+/** Lora's close-up standing still in [action] (no animation), e.g. on small chips and cards. */
+@Composable
+fun LoraFaceStill(modifier: Modifier = Modifier, action: LoraAction = LoraAction.IDLE, timeMs: Long = LOGO_TIME_MS) {
+    val colors = loraColors()
+    Canvas(modifier.semantics { contentDescription = "Lora" }) { drawLoraFace(LoraFrame(action, 0.18f, timeMs, null, 1f), timeMs, colors) }
 }
 
 /** Lora standing still in [action] (no animation), e.g. as a small signature under answers. */

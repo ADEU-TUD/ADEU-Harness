@@ -5,9 +5,9 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/** Small log file in the data folder (log.txt), useful when something goes wrong on a colleague's PC. */
+/** Small log file of this PC (log.txt in the standard folder – not in a synced data folder, AP-12), useful when something goes wrong on a colleague's PC. */
 object AppLog {
-    private val file by lazy { File(Paths.data, "log.txt") }
+    private val file by lazy { File(Paths.machine, "log.txt") }
     private val stamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     @Synchronized

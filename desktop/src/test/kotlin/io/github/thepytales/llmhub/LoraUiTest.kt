@@ -43,6 +43,9 @@ import io.github.thepytales.llmhub.data.TemplateLibrary
 import io.github.thepytales.llmhub.ui.Composer
 import io.github.thepytales.llmhub.ui.ContextChip
 import io.github.thepytales.llmhub.ui.EmptyChat
+import io.github.thepytales.llmhub.ui.startActions
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import io.github.thepytales.llmhub.ui.LlmHubTheme
 import io.github.thepytales.llmhub.ui.WorkingCard
 import java.io.File
@@ -105,6 +108,9 @@ class LoraUiTest {
         home(412, 800, typing = true, name = "lora-home-typing.png", advance = 2500)
         home(412, 430, typing = false, name = "lora-home-keyboard.png", advance = 900)
         home(412, 800, typing = false, name = "lora-hidden-home.png", advance = 900, hideLora = true)
+        // A chip opens its concrete starts in place of the chips; the same on a wide window.
+        home(412, 800, typing = false, name = "lora-home-starts.png", advance = 1300, open = "Schreiben")
+        home(1000, 760, typing = false, name = "lora-home-wide.png", advance = 1300)
         listOf(false to "lora-card.png", true to "lora-hidden-card.png").forEach { (hide, name) ->
             ui(412, 330) {
                 setContent {
@@ -125,9 +131,15 @@ class LoraUiTest {
         }
     }
 
-    private fun home(w: Int, h: Int, typing: Boolean, name: String, advance: Long, hideLora: Boolean = false) = ui(w, h) {
+    private fun home(w: Int, h: Int, typing: Boolean, name: String, advance: Long, hideLora: Boolean = false, open: String? = null) = ui(w, h) {
         setContent { LlmHubTheme(AppSettings()) { Phone(w.dp, h.dp, typing, hideLora) } }
         mainClock.advanceTimeBy(advance)
+        if (open != null) {
+            onNodeWithText(open).performClick()
+            mainClock.advanceTimeBy(1500)
+            onNodeWithText(open).assertExists()
+            onNodeWithText("E-Mail formulieren").assertExists()
+        }
         save(name)
     }
 
@@ -160,6 +172,10 @@ class LoraUiTest {
                     onOpen = {},
                     typing = typing,
                     hideLora = hideLora,
+                    actions = startActions(
+                        onInput = {}, onNavigate = {}, onFiles = {}, onMode = { _, _ -> },
+                        templates = TemplateLibrary.suggestions(emptyList(), emptyList()), onTemplate = {},
+                    ),
                 )
             }
             Composer(

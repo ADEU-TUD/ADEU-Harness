@@ -30,10 +30,12 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   eingeschalteten Werkzeugen (auf-/zugeklappt bleibt gespeichert). Rechtsklick bzw. langes Drücken holt einen Bereich
   nach oben oder schiebt ihn unter „Mehr“. Darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht,
   Modellvergleich, Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
-- **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge (PDF-Werkzeugkasten, Tresor, später Browser,
-  Lernspiele, Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
-  „Mehr“. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor. Einschaltbar
-  sind der *PDF-Werkzeugkasten* und der *Tresor*; die übrigen sind als „geplant“ zu sehen.
+- **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge (PDF-Werkzeugkasten, Tresor, Lernspiele,
+  später Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
+  „Mehr“, zugehörige Modi (z. B. *Lernspiel*) erst dann in `/`, Strg+K und Loras Landkarte. Passt eine Anfrage zu einem
+  ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor („Quiz“ → *Lernspiele*). Einschaltbar sind der
+  *PDF-Werkzeugkasten*, der *Tresor* und *Lernspiele*; die übrigen sind als „geplant“ zu sehen. Der Browser neben dem
+  Chat ist kein eigenes Werkzeug, sondern ein Schalter unter *Einstellungen › Windows*.
 - **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
   - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
     App wird schmaler statt verdeckt –, auf dem Handy ein Blatt von unten. Das Gespräch bleibt bis *Neu beginnen*,
@@ -56,9 +58,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Crossref), *Als Word-Dokument*. Beim Tippen zeigt Lora über dem Eingabefeld den passenden Ort der App („dunkles
     Design“ → *Darstellung › Helligkeit*), nie bei echten Fragen. Die Arbeitskarte beschreibt den Schritt verständlich
     („Sucht im Web: „…““, „Liest dfg.de“, „Schreibt „Antrag““); ist eine Antwort fertig, jubelt Loras Signatur kurz.
-  - **Überall erreichbar**: **Strg+L** (Windows; Literatur jetzt Strg+Umschalt+L), Lora-Knopf oben im Chat, Feld *Frag
-    Lora …* auf der Startseite, Strg+K › *Lora fragen*, die schlafende Lora (verdeckt keine Einträge mehr), Android:
+  - **Überall erreichbar**: **Strg+L** (Windows; Literatur jetzt Strg+Umschalt+L), der Knopf **„Frag Lora“** oben im
+    Chat (Loras Gesicht in einer violetten Pille, auf schmalen Fenstern mit Chat-Titel nur das runde Gesicht), ein Tipp
+    auf Lora auf der Startseite, Strg+K › *Lora fragen*, die schlafende Lora unten rechts (verdeckt keine Einträge), Android:
     langes Drücken aufs App-Symbol › *Lora fragen*.
+  - **Nahaufnahme statt Miniatur**: Wo wenig Platz ist – Knopf in der Kopfleiste, schlafende Lora unten rechts, kleine
+    Karten und Chips –, zeigt die App Loras **Gesicht in Nahaufnahme** (Kopf mit Antenne und Visier) statt der ganzen,
+    dort winzigen Figur. Sie blinzelt, atmet, folgt dem Mauszeiger mit den Augen, winkt (Hand am Rand) oder schläft
+    (geschlossene Augen, aufsteigende „z“); mit der Maus über der schlafenden Lora wacht sie auf und winkt
+    (`drawLoraFace` in `ui/LoraFigure.kt`, `LoraFace`/`LoraFaceStill` in `ui/LoraUi.kt`).
   - **Wege mit Animation**: Führt Lora irgendwohin, fliegt sie aus ihrem Panel dorthin – ins Eingabefeld des Chats, zum
     Eintrag der Seitenleiste oder zur Einstellung, die dann leuchtet – mit einer Spur kleiner Sterne und einem Ring bei
     der Landung.
@@ -68,14 +76,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Gerät** über eine Landkarte der App (`data/AppMap.kt`, mit Synonymen) – ohne Anfrage; nur für echte Gespräche fragt sie
   GLM-5.3 Flash (Denkphase aus) mit den Werkzeugen *navigate*, *open_mode*, *change_setting* (nur nach Bestätigung),
   *enable_tool*, *handoff_chat*, *explain* (eingebaute Hilfe) und Rückfragen mit Antwortknöpfen. Einstiege: schlafende Lora
-  unten rechts in den Einstellungen, TU Vorlagen und Literatur (Tipp weckt sie, Text oder Sprache), *Lora fragen* auf der
-  Startseite, Strg+K › *Lora fragen*, langes Drücken auf Lora im Chat. Beim ersten Start höchstens zwei Fragen (wo Lora
+  unten rechts in den Einstellungen, TU Vorlagen und Literatur (Tipp weckt sie, Text oder Sprache), ein Tipp auf Lora auf
+  der Startseite, *Frag Lora* oben im Chat, Strg+K › *Lora fragen*, langes Drücken auf Lora im Chat. Beim ersten Start höchstens zwei Fragen (wo Lora
   erscheint, welche Werkzeuge sichtbar sind). *Einstellungen › Lora*: überall / nur im Chat / aus (ersetzt „Lora
   ausblenden“), Modell, ruhigere Bewegungen, Hinweise. Lora läuft nur auf Abruf; in Projekten „Nur auf diesem Gerät“ sucht
   sie nur lokal.
-- **Startseite**: unter der Begrüßung eine Reihe Kacheln nach Tätigkeiten – *Fragen & schreiben*, *TU Vorlagen*,
-  *Dokument erstellen*, *Dateien auswerten*, *Literatur finden* –, darunter *Zuletzt* (die letzten Chats) und *Favoriten*
-  (★-Vorlagen). Lora bietet in der Sprechblase jeweils eine Idee an.
+- **Startseite**: unter der Begrüßung die Tätigkeiten als schlichte **Chips** – *Schreiben*, *Dokument erstellen*,
+  *Dateien auswerten*, *Literatur finden*, *TU Vorlagen*. Ein Tipp öffnet an ihrer Stelle **konkrete Starts**, damit
+  niemand einen ersten Satz erfinden muss: z. B. *E-Mail formulieren*, *Text kürzen und verständlicher machen*,
+  *Protokoll aus Notizen*, *Präsentation*, *Zusammenfassen* (wählt Dateien und legt den Auftrag ins Eingabefeld),
+  *Aktuelle Literatur zu einem Thema* (Literatursuchmodus), *Antwort nur mit Belegen* (Quellenmodus) oder die eigenen
+  TU Vorlagen; ✕ führt zurück, Tippen schließt sie. Darunter *Zuletzt* (die letzten Chats) und *Favoriten*
+  (★-Vorlagen). Lora bietet in der Sprechblase jeweils eine Idee an; ein Tipp auf Lora öffnet ihr Panel. Das frühere
+  zweite Eingabefeld *Frag Lora …* ist weggefallen – dafür ist der Knopf oben deutlich größer.
 - **Einstellungen in Gruppen**: Profil, *Zugang* (API, GitHub, Umgebungen), *Assistent* (Chat & Werkzeuge, Werkzeuge,
   Datenschutz, Gedächtnis, Wissenssammlung), *Modelle* (Übersicht, Vergleich, Modelle auf diesem Gerät, Transkription),
   *Dokumente & Darstellung* und *Daten* (Verbrauch, Sicherung, Arbeitsspeicher). *Chat & Werkzeuge* ist
@@ -310,8 +323,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   ist sie ruhiger. *Ruhigere Bewegungen* (Einstellungen › Lora) gilt auch für das Fliegen. Fertige Antworten zeigen eine ruhige Zeile
   „Gedankengang und 4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um,
   streckt sich, gießt die Pflanze, hört Musik, liest, dreht den Globus …) und bietet in einer Sprechblase eine Idee an –
-  Favoriten bzw. empfohlene Vorlagen, Beispiele wie „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp
-  auf Lora bringt mit einem Geistesblitz die nächste. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt
+  Favoriten bzw. empfohlene Vorlagen, Beispiele wie „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ bringt mit
+  einem Geistesblitz die nächste, ein Tipp auf Lora öffnet ihr Panel. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt
   Lora ein. Wer Lora nicht sehen möchte, schaltet *Chat & Werkzeuge › Lora ausblenden* ein (Standard aus): Dann zeigen
   Startseite, Arbeitskarte und Sprachmodus das Symbol der App, die Ideen bleiben erreichbar.
 - **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
@@ -505,8 +518,75 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Speicherorte wie Obsidian-Tresore** (Windows, *Einstellungen › Speicherorte*): Ordner als Ablageort für Dokumente
   einbinden – jedes Dokument liegt dort als lesbare `.md`-Datei (Versionen und Kommentare in `.adeu`). Liegt der Ordner in
   **Google Drive**, OneDrive oder Nextcloud, synchronisiert deren Programm alles auf andere Rechner; Änderungen von dort und
-  neue `.md`-Dateien erscheinen nach wenigen Sekunden. Zusätzlich lässt sich unter *Einstellungen › Windows* der ganze
-  **Datenordner** (Chats, Einstellungen …) in einen eigenen Ordner verlegen (kopiert, startet neu; große Modelle bleiben lokal).
+  neue `.md`-Dateien erscheinen nach wenigen Sekunden. Den ganzen **Datenordner** synchronisiert *Einstellungen ›
+  Synchronisation* (siehe unten).
+- **Einfacher Sync zwischen PCs** (Windows, *Einstellungen › Synchronisation*, AP-12): wie bei Obsidian liegt der
+  Datenordner in einem Cloud-Ordner, der auf allen PCs eingerichtet ist – **Nextcloud**, **Google Drive für Desktop** oder
+  **OneDrive** (gefundene Cloud-Ordner stehen als Knopf da: *In OneDrive legen* …). Erster PC: Daten werden kopiert, Lora
+  startet neu. Zweiter PC: *Vorhandenen Ordner öffnen* – alles ist da. Am Büro-PC beginnen, am Laptop weiterarbeiten,
+  ohne ZIP-Umzug.
+  - **Was synchronisiert**: Chats, Projekte, Dokumente, Literatur, TU Vorlagen, Gedächtnis und Einstellungen
+    (`einstellungen.json`). **API-Schlüssel, Tokens, Konten und Umgebungen nie**: Sie liegen mit DPAPI verschlüsselt in
+    `%APPDATA%\ADEU LLM\schluessel.dat` auf jedem PC. Bis 1.0.44 lagen alle Einstellungen verschlüsselt im Datenordner,
+    die ein zweiter PC nicht lesen konnte und überschrieb; beim ersten Start teilt Lora sie einmal auf. Fensterposition,
+    Update-Stand und `log.txt` bleiben ebenfalls auf dem PC, große Dateien (Modelle, Aufnahmen) wie bisher in
+    `%LOCALAPPDATA%`.
+  - **Nie gleichzeitig**: Jeder PC hinterlegt in `sync/geoeffnet-<PC>-<id>.json` eine kleine Notiz (seit wann offen,
+    alle zwei Minuten „lebt noch“, beim Beenden „geschlossen“, dazu die in der Sitzung geänderten Dateien mit Größe).
+    **Vor dem Laden** prüft Lora: Ist sie auf einem anderen PC offen („Lora ist auf „BUERO-PC“ geöffnet – seit …“) oder
+    sind dessen Änderungen noch nicht angekommen („3 Dateien fehlen noch, z. B. ein Chat“), wartet ein kleines Fenster und
+    geht von selbst weiter, sobald alles da ist (*Trotzdem öffnen* / *Beenden*). Läuft Lora dort nur im Infobereich
+    ohne Arbeit, beendet sie sich von selbst, sobald ein anderer PC den Ordner öffnet; mit offenem Fenster fragt sie.
+    Notizen ohne Lebenszeichen seit 15 Minuten (Absturz, Standby) blockieren nicht.
+  - **Konfliktkopien** des Cloud-Dienstes (OneDrive „name-PC.json“, Google Drive „name (1).json“, Nextcloud/Dropbox
+    „conflicted copy“, Syncthing „sync-conflict“) erkennt Lora beim Start und **behält beide Fassungen**: ein Chat
+    erscheint als zweiter Chat „… (zweite Fassung)“, alles andere liegt unter `sync/konflikte/<Datum>/`. Nichts wird
+    gelöscht. *Synchronisation beenden* kopiert die aktuellen Daten zurück in den Standardordner.
+- **Browser neben dem Chat** (Windows, AP-14): Links aus Chat, Literatur und Dokumenten öffnen sich wie bei Google
+  Antigravity **als Tabs rechts neben der App** – die App wird schmaler statt verdeckt, die Breite lässt sich ziehen; auf
+  schmalen Fenstern liegt der Browser über der App. Oben Tabs, Zurück/Vor/Neu laden und eine Adresszeile (Suchbegriffe
+  gehen an DuckDuckGo), ↗ öffnet die Seite im normalen Browser. Unter der Seite:
+  - **Frage zur Seite**: hängt die Seite als Text an den gerade offenen Chat (sonst einen neuen im **Quellenmodus**, AP-08)
+    – die Antwort belegt mit Zitaten aus der Seite.
+  - **Zusammenfassen**, **In die Literatur** (DOI aus den Meta-Tags → Crossref, sonst Autor:innen, Jahr, Zeitschrift aus
+    den `citation_*`-Tags oder die Seite als Webquelle mit Abrufdatum), **In die Wissenssammlung**.
+  - **PDF im Werkzeugkasten**: lädt das PDF eines Papers (`citation_pdf_url` oder die PDF-Adresse selbst) mit den Cookies
+    des Browsers – also auch hinter der TU-Anmeldung – und öffnet es im PDF-Werkzeugkasten. Heruntergeladene PDFs öffnen
+    sich dort ebenfalls, andere Downloads landen in *Downloads*.
+  - **Technik**: keine eigene Engine – Chromium über **JCEF** (`me.friwi:jcefmaven`). Chromium ist rund 170 MB groß und
+    steckt deshalb **nicht in jedem Update**: Beim ersten Link fragt Lora einmal und richtet es dann ohne Admin-Rechte in
+    `%LOCALAPPDATA%\ADEU LLM\browser` ein (Download von GitHub bzw. Maven Central). Das Profil dort behält Cookies, eine
+    Anmeldung über die TU (Shibboleth) bleibt also erhalten. *Einstellungen › Windows › Links neben dem Chat öffnen*
+    schaltet den Browser ab (dann wie bisher der normale Browser). Download-Seiten der App öffnen immer extern.
+    Bekannte Grenze: Dialoge der App, die über dem Browser liegen, verdeckt die Browserfläche teilweise (Chromium ist
+    ein eigenes Fenster).
+  - Hängt Chromium auf einem PC beim Start, merkt Lora das (`browser/start.pending`) und startet ihn beim nächsten Mal nicht
+    von selbst, sondern bietet *Erneut versuchen* oder den normalen Browser an.
+  - Test mit echtem Chromium (für Windows gedacht; in Linux-Containern kann CEF beim Initialisieren hängen):
+    `ADEU_BROWSER_TEST=1 ./gradlew -p desktop test --tests '*BrowserLiveTest*'`.
+- **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
+  **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
+  JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei
+  eingeschaltetem Werkzeug) mit Vorgaben für gute Spiele (Anleitung, Rückmeldung je Antwort, Punktestand, Auswertung,
+  barrierearm, Handy und PC); bei eingeschaltetem Werkzeug kann der Agent auch in normalen Chats Spiele bauen
+  (`create_learning_game`, `read_learning_game`, `update_learning_game`).
+  - **Direkt testen**: Unter der Antwort erscheint eine Karte mit *Spielen* (Windows: als Tab im Browser neben dem Chat,
+    sonst im normalen Browser; Android: Vollbild in der App) und *Exportieren*. Ändern per Chat („mach Level 2 schwerer“) –
+    jede Änderung ist eine neue **Version**, frühere lassen sich spielen und wiederherstellen.
+  - **Sammlung** (*Mehr › Lernspiele*): Suche, Spielen, Versionen, *Im Chat ändern*, Löschen, *Neues Lernspiel*.
+  - **Export für OPAL/Moodle**: *ZIP* (index.html und eine kurze Anleitung) oder *HTML-Datei*.
+  - **Abgeschottet**: Jedes Spiel bekommt eine Content-Security-Policy, die jede Anfrage verbietet (kein Netzwerk, keine
+    anderen Dateien, keine Frames) – auch nach dem Export. Externe Skripte und Stylesheets lehnt die App schon beim
+    Speichern ab; auf Android läuft die WebView zusätzlich ohne Netzwerk- und Dateizugriff.
+- **KI-Nutzungsnachweis** (AP-19): Geht es in einem Chat um eine Arbeit (Hausarbeit, Bachelor-/Masterarbeit, Dissertation,
+  Paper, Förderantrag, Abstract …) **und** hat die KI dafür Text geschrieben (ein Dokument oder längere Texte nach
+  „formuliere“, „überarbeite“, „kürze“ …), erscheint über dem Eingabefeld einmal ein **Pop-up-Vorschlag** *KI-Nutzung
+  dokumentieren?* – nie bei Mails, Verwaltung oder bloßen Fragen. Der Nachweis entsteht auf dem Gerät aus dem Chat (im
+  Projekt wahlweise aus allen Chats): Modelle, Zweck (Formulierungshilfe, Überarbeitung, Gliederung, Recherche …),
+  Zeitraum, genutzte Funktionen, entstandene Entwürfe; betroffene Teile werden als „[bitte ergänzen …]“ markiert. Formate:
+  **Prüfungsleistung** (Erklärung mit Tabelle), **Verlag/Zeitschrift** (übliche englische Erklärung mit deutscher
+  Fassung), **kurze Fußnote** – kopieren oder als Dokument öffnen. Immer erreichbar im Chat-Menü (*KI-Nutzungsnachweis*);
+  der Vorschlag lässt sich unter *Einstellungen › Lora* abschalten.
 - **Agent in lokalen Ordnern** (Windows, *Einstellungen › Lokale Ordner*): freigegebene Ordner kann der Assistent in jedem Chat
   auflisten, durchsuchen und lesen (auch Word, PowerPoint, Excel, PDF), Dateien anlegen und ändern, Dokumente direkt als
   .docx/.pdf/.pptx/.xlsx dort speichern (z. B. im TUD-Design), verschieben und löschen (in den Unterordner
@@ -934,7 +1014,11 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `Main.kt` | Fenster, Symbol im Infobereich, Benachrichtigungen, Tastenkürzel, Drag & Drop |
 | `desktop/ProcessMemory.kt` | Arbeitsspeicher des ganzen Prozesses (Working Set) für *Einstellungen › Arbeitsspeicher* |
 | `SelfTest.kt` | Starttest für CI (`--selftest <Ordner>`): alle Bildschirme, Dokumente, Verschlüsselung |
-| `desktop/Paths.kt`, `desktop/Secrets.kt`, `data/FilePrefs.kt` | Datenordner, DPAPI-Verschlüsselung, Einstellungen |
+| `desktop/Paths.kt`, `desktop/Secrets.kt`, `data/FilePrefs.kt`, `data/SecurePrefs.kt` | Datenordner, DPAPI-Verschlüsselung, Einstellungen (Schlüssel auf dem PC, Rest im Datenordner) |
+| `desktop/SyncSession.kt`, `ui/SyncUi.kt` (gemeinsam: `data/SyncGuard.kt`) | Einfacher Sync (AP-12): Notiz je PC, Prüfung vor dem Laden, Konfliktkopien, *Einstellungen › Synchronisation*, Cloud-Ordner finden |
+| `data/LearningGames.kt`, `agent/GameTools.kt`, `ui/GamesScreen.kt`, `ui/GamePlatform.kt` (beide) | Lernspiele (AP-17): Sammlung mit Versionen, Abschottung (CSP), Export als HTML/ZIP, Agent-Werkzeuge, Spielen |
+| `agent/AiUseNote.kt`, `ui/AiUseNoteUi.kt` | KI-Nutzungsnachweis (AP-19): Erkennung „Text für eine Arbeit“, Nachweis in drei Formaten, Pop-up-Vorschlag |
+| `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt` | Browser neben dem Chat (AP-14): Chromium über JCEF (einmalig eingerichtet), Tabs, Seitenaktionen, Meta-Tags → Literatur |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
 | `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
 | `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |
