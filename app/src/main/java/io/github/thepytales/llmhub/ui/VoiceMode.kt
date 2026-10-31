@@ -248,6 +248,13 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                 Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
                     if (phase == VoicePhase.WORKING && !hideLora) LoraFigure(Modifier.size(width = 190.dp, height = 133.dp), label = tr("Lora bei der Arbeit"))
                     else VoiceOrb(phase, level, Modifier.fillMaxSize())
+                    // Listening: Lora nods along at the edge of the orb (AP-36).
+                    if (phase == VoicePhase.LISTENING && !hideLora) {
+                        LoraFigure(
+                            Modifier.align(Alignment.BottomEnd).size(64.dp, 45.dp), label = tr("Lora hört zu"),
+                            director = rememberLoraDirector(sequence = listOf(LoraAction.NOD, LoraAction.IDLE), start = LoraAction.NOD),
+                        )
+                    }
                 }
                 Text(
                     tr(if (phase == VoicePhase.WORKING && hideLora) "Arbeitet an der Antwort …" else phase.label),

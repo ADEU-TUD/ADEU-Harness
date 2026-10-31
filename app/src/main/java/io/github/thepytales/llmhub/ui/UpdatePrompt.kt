@@ -50,7 +50,7 @@ fun UpdatePrompt(c: AppContainer) {
     var whatsNew by remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(Unit) {
         Updates.start(context) { v, notes ->
-            if (notes == null) Notices.info("ADEU LLM wurde auf Version $v aktualisiert.") else whatsNew = v to notes
+            if (notes == null) Notices.info("Lora wurde auf Version $v aktualisiert.") else whatsNew = v to notes
         }
     }
     whatsNew?.let { (v, notes) ->
@@ -87,7 +87,7 @@ fun UpdatePrompt(c: AppContainer) {
         is State.Downloading -> if (!background) AlertDialog(
             onDismissRequest = {},
             icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
-            title = { Text("ADEU LLM ${s.info.version} wird geladen") },
+            title = { Text("Lora ${s.info.version} wird geladen") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     LinearProgressIndicator(progress = { s.progress }, modifier = Modifier.fillMaxWidth())
@@ -97,7 +97,7 @@ fun UpdatePrompt(c: AppContainer) {
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
-                        if (windows) "Danach startet ADEU LLM kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart."
+                        if (windows) "Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart."
                         else "Danach fragt Android, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -116,8 +116,8 @@ fun UpdatePrompt(c: AppContainer) {
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (windows) "ADEU LLM ${s.info.version} ist heruntergeladen. Zum Installieren startet die App kurz neu – Chats und Einstellungen bleiben erhalten."
-                            else "ADEU LLM ${s.info.version} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.",
+                            if (windows) "Lora ${s.info.version} ist heruntergeladen. Zum Installieren startet die App kurz neu – Chats und Einstellungen bleiben erhalten."
+                            else "Lora ${s.info.version} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.",
                         )
                         if (busy) Text("Gerade wird noch eine Antwort geschrieben – sie wird beim Neustart abgebrochen.", color = MaterialTheme.colorScheme.error)
                         s.note?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
@@ -159,13 +159,13 @@ fun UpdatePrompt(c: AppContainer) {
 @Composable
 private fun UpdateText(info: UpdateInfo) {
     Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("ADEU LLM ${info.version} ist da (installiert: ${Updates.installed}).")
+        Text("Lora ${info.version} ist da (installiert: ${Updates.installed}).")
         if (info.notes.isNotBlank()) {
             Text("Neu", style = MaterialTheme.typography.titleSmall)
             Text(info.notes, style = MaterialTheme.typography.bodyMedium)
         }
         Text(
-            if (windows) "Das Update dauert etwa eine Minute. Danach startet ADEU LLM von selbst neu – Chats, Einstellungen und API-Key bleiben erhalten."
+            if (windows) "Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats, Einstellungen und API-Key bleiben erhalten."
             else "Danach fragt Android einmal nach („Aktualisieren“). Chats, Einstellungen und API-Key bleiben erhalten.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -183,10 +183,10 @@ fun UpdateSection(c: AppContainer) {
     var auto by remember { mutableStateOf(Updates.autoCheck(context)) }
     var source by remember { mutableStateOf(Updates.ownSource(context)) }
     Section("Version") {
-        Text("Installiert: ADEU LLM ${Updates.installed}", style = MaterialTheme.typography.titleSmall)
+        Text("Installiert: Lora ${Updates.installed}", style = MaterialTheme.typography.titleSmall)
         if (!UpdatePlatform.supported) {
             SettingsHint(
-                "Automatische Updates gibt es in der installierten Windows-Version (ADEU LLM.exe) und in der Android-App. " +
+                "Automatische Updates gibt es in der installierten Windows-Version („ADEU LLM.exe“) und in der Android-App. " +
                     "Neue Versionen stehen unter ${Updates.RELEASES_PAGE}.",
             )
         } else {

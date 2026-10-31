@@ -220,14 +220,14 @@ object RefiQda {
 
     fun write(out: java.io.OutputStream, t: Transcript, coding: TranscriptCoding, codebook: Codebook?) {
         val now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
-        val users = (coding.coders().ifEmpty { listOf("ADEU LLM") }).associateWith { guid() }
+        val users = (coding.coders().ifEmpty { listOf("Lora") }).associateWith { guid() }
         val defaultUser = users.values.first()
         val codeGuids = codebook?.codes?.associate { it.id to guid() }.orEmpty()
         val sourceGuid = guid()
         val (text, ranges) = sourceText(t)
         val xml = buildString {
             append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-            append("<Project name=\"${esc(t.title)}\" origin=\"ADEU LLM\" creatingUserGUID=\"$defaultUser\" creationDateTime=\"$now\" ")
+            append("<Project name=\"${esc(t.title)}\" origin=\"Lora\" creatingUserGUID=\"$defaultUser\" creationDateTime=\"$now\" ")
             append("xmlns=\"urn:QDA-XML:project:1.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n")
             append("<Users>\n")
             users.forEach { (name, g) -> append("<User guid=\"$g\" name=\"${esc(name)}\"/>\n") }

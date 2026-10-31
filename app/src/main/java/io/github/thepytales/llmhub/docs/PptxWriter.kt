@@ -612,13 +612,13 @@ object PptxWriter {
         val now = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
         return XML + "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" " +
             "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" " +
-            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>${esc(title)}</dc:title><dc:language>de-DE</dc:language><dc:creator>ADEU LLM</dc:creator>" +
+            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:title>${esc(title)}</dc:title><dc:language>de-DE</dc:language><dc:creator>Lora</dc:creator>" +
             "<dcterms:created xsi:type=\"dcterms:W3CDTF\">$now</dcterms:created><dcterms:modified xsi:type=\"dcterms:W3CDTF\">$now</dcterms:modified>" +
             "</cp:coreProperties>"
     }
 
     private fun app(count: Int) = XML + "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\">" +
-        "<Application>ADEU LLM</Application><PresentationFormat>Breitbild</PresentationFormat><Slides>$count</Slides></Properties>"
+        "<Application>Lora</Application><PresentationFormat>Breitbild</PresentationFormat><Slides>$count</Slides></Properties>"
 
     private fun presentation(count: Int) = buildString {
         append(XML).append("<p:presentation $NS saveSubsetFonts=\"1\">")

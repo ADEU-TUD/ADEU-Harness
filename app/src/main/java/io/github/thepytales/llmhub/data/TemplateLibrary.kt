@@ -48,7 +48,7 @@ object TemplateLibrary {
 
     /** Text with [list] for colleagues (mail, chat); [import] reads it back. */
     fun export(list: List<Template>): String =
-        "ADEU-LLM-Vorlagen – in der App unter TU Vorlagen › Importieren einfügen:\n" +
+        "Lora-Vorlagen – in der App unter TU Vorlagen › Importieren einfügen:\n" +
             json.encodeToString(ListSerializer(Template.serializer()), list.map { it.copy(id = "") })
 
     /** Templates from text made by [export] (or a single template as JSON); they get new ids. */

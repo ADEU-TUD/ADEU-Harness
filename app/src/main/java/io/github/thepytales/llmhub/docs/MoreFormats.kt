@@ -438,7 +438,7 @@ object AnkiWriter {
     }.replace("&lt;br&gt;", "<br>")
 
     fun write(title: String, markdown: String): String = buildString {
-        append("#separator:tab\n#html:true\n#deck:${title.ifBlank { "ADEU LLM" }.replace('\t', ' ')}\n#columns:Vorderseite\tRückseite\n")
+        append("#separator:tab\n#html:true\n#deck:${title.ifBlank { "Lora" }.replace('\t', ' ')}\n#columns:Vorderseite\tRückseite\n")
         cards(markdown).forEach { (q, a) -> append(html(q).replace('\t', ' ')).append('\t').append(html(a).replace('\t', ' ')).append('\n') }
     }
 }

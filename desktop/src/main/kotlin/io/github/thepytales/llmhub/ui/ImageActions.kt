@@ -7,18 +7,18 @@ import java.io.File
 
 /** Windows parts of "Bilder erzeugen". */
 
-/** Saves the picture as PNG in Pictures\ADEU LLM and shows it in Explorer. */
+/** Saves the picture as PNG in Pictures\Lora and shows it in Explorer. */
 @Suppress("UNUSED_PARAMETER")
 fun saveImageToDevice(context: Context, file: File) {
     runCatching {
         val home = File(System.getProperty("user.home"))
-        val dir = File(File(home, "Pictures").takeIf { it.isDirectory } ?: home, "ADEU LLM").apply { mkdirs() }
+        val dir = File(File(home, "Pictures").takeIf { it.isDirectory } ?: home, "Lora").apply { mkdirs() }
         val target = File(dir, "adeu_llm_${System.currentTimeMillis()}.png")
         val bytes = file.readBytes()
         target.writeBytes(Images.decode(bytes)?.let { Images.png(it) } ?: bytes)
         target
     }.onSuccess {
-        Notices.info("Gespeichert in Bilder\\ADEU LLM.")
+        Notices.info("Gespeichert in Bilder\\Lora.")
         DesktopActions.showInFolder(it)
     }.onFailure { Notices.error("Speichern fehlgeschlagen.") }
 }

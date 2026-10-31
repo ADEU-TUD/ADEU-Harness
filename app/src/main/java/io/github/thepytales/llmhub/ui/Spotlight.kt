@@ -19,6 +19,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
@@ -38,6 +40,9 @@ object Spotlight {
 
     /** How long the frame stays. */
     const val DURATION_MS = 4500L
+
+    /** Where each spot is on screen (root coordinates), so Lora can fly there (ui/LoraFlight). */
+    val bounds: MutableMap<String, androidx.compose.ui.geometry.Rect> = java.util.concurrent.ConcurrentHashMap()
 }
 
 /** Wraps an option that Lora can highlight ([id] as in data/AppMap). */
@@ -47,6 +52,7 @@ fun Spot(id: String, modifier: Modifier = Modifier, content: @Composable () -> U
     val target by Spotlight.target.collectAsStateWithLifecycle()
     val active = target == id
     val requester = remember { BringIntoViewRequester() }
+    androidx.compose.runtime.DisposableEffect(id) { onDispose { Spotlight.bounds.remove(id) } }
     LaunchedEffect(active) {
         if (active) {
             delay(250)
@@ -64,6 +70,7 @@ fun Spot(id: String, modifier: Modifier = Modifier, content: @Composable () -> U
     Box(
         modifier
             .bringIntoViewRequester(requester)
+            .onGloballyPositioned { Spotlight.bounds[id] = it.boundsInRoot() }
             .then(
                 if (active) Modifier
                     .border(3.dp, color.copy(alpha = glow), shape)

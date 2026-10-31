@@ -52,8 +52,8 @@ fun DeliveryStatus(c: AppContainer) {
             if (Autostart.supported) {
                 StatusLine(
                     autostart,
-                    if (autostart) "ADEU LLM startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast."
-                    else "Aufgaben laufen nur, wenn ADEU LLM gestartet wurde. Verpasste Termine werden beim nächsten Start nachgeholt.",
+                    if (autostart) "Lora startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast."
+                    else "Aufgaben laufen nur, wenn Lora gestartet wurde. Verpasste Termine werden beim nächsten Start nachgeholt.",
                 )
                 if (!autostart) {
                     OutlinedButton(onClick = {

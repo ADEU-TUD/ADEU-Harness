@@ -1,7 +1,10 @@
-# ADEU LLM – Downloads und automatische Updates
+# Lora – Downloads und automatische Updates
 
-Hier liegen **nur die fertigen Versionen** von ADEU LLM für Windows und Android – kein Quellcode.
-Die Apps holen sich neue Versionen von hier selbst.
+**Lora – Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden.**
+
+Hier liegen **nur die fertigen Versionen** von Lora (bis Version 1.0.43 „ADEU LLM“) für Windows und Android – kein
+Quellcode. Die Apps holen sich neue Versionen von hier selbst. Die Dateien und der Programmordner tragen aus technischen
+Gründen weiter den alten Namen (`ADEU-LLM-…`, `ADEU LLM.exe`), damit Updates und vorhandene Daten weiter funktionieren.
 
 ## Herunterladen (zum ersten Mal)
 
@@ -20,7 +23,7 @@ Gibt es eine neue Version, fragt die App **beim Start**:
 
 > **Neue Version verfügbar** – *Jetzt aktualisieren* / *Später*
 
-- **Windows:** *Jetzt aktualisieren* lädt die neue Version, ADEU LLM startet kurz neu – fertig. Chats, Einstellungen
+- **Windows:** *Jetzt aktualisieren* lädt die neue Version, Lora startet kurz neu – fertig. Chats, Einstellungen
   und der API-Key bleiben erhalten, Verknüpfungen auf dem Desktop und in der Taskleiste funktionieren weiter.
 - **Android:** Nach dem Herunterladen fragt Android noch einmal – einfach *Aktualisieren* tippen. Beim allerersten
   Update einmalig „Apps aus dieser Quelle zulassen“ einschalten (die App führt dorthin).

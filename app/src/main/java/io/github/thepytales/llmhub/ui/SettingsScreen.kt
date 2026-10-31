@@ -121,7 +121,8 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "help" -> HelpSection()
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
-            Spacer(Modifier.size(24.dp))
+            // Room for the sleeping Lora at the bottom right, so she covers no entry.
+            Spacer(Modifier.size(LORA_BUTTON_ROOM))
         }
     }
 }
@@ -424,7 +425,7 @@ private fun VoiceSection(c: AppContainer) {
             Text("Das Tempo gilt für die $DEVICE_VOICE.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         OutlinedButton(onClick = {
-            c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit ADEU LLM.")
+            c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit Lora.")
         }) {
             Icon(if (playing == "preview") Icons.Outlined.Stop else Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))

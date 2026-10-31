@@ -318,6 +318,8 @@ fun UserBubble(
     val clipboard = LocalClipboardManager.current
     var menu by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+        // Handed over by Lora (AP-33): who chose the model and why; what Lora already knew opens with a tap.
+        LoraHandoffCard(m)
         m.template?.let { name ->
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp, end = 4.dp)) {
                 Icon(Icons.Outlined.Bookmarks, contentDescription = null, modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -486,6 +488,8 @@ fun AssistantMessage(
     val m = item.m
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
+    // The answer was just finished: Lora's signature cheers for a moment.
+    val justDone = rememberJustFinished(item.isLast && (running || streaming))
     if (m.error) {
         Column {
             ErrorCard(m.content, canRetry = item.isLast && !running, onRetry = onRetry)
@@ -622,10 +626,8 @@ fun AssistantMessage(
                 }
                 VersionSwitcher(item.head, item.versions, !running, onSelectVersion)
                 Spacer(Modifier.weight(1f))
-                // Lora signs the answer: small and still, next to the model that wrote it.
-                if (!io.github.thepytales.llmhub.App.container.settings.current.hideLora) {
-                    LoraStill(Modifier.padding(end = 4.dp).size(26.dp, 18.dp))
-                }
+                // Lora signs the answer next to the model that wrote it – and cheers for a moment when it is done.
+                if (!io.github.thepytales.llmhub.App.container.settings.current.hideLora) LoraSignature(justDone)
                 m.model?.let {
                     Text(
                         ModelCatalog.info(it).displayName,
@@ -636,6 +638,8 @@ fun AssistantMessage(
                     )
                 }
             }
+            // Lora's next steps under the last answer (AP-35): deadlines, tables, literature, Word.
+            if (item.isLast && !running && text.isNotBlank()) LoraNextSteps(io.github.thepytales.llmhub.App.container, text, chatId)
             // Stopped at the length limit: continue where it ended.
             if (item.isLast && !running && item.turn.ifEmpty { listOf(m) }.any { it.truncated }) {
                 OutlinedButton(onClick = onContinue) {

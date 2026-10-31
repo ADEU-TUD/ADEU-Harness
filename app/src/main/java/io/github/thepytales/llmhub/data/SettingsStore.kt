@@ -134,6 +134,14 @@ data class AppSettings(
     val loraHints: Boolean = true,
     /** The two questions of the first start (Lora, visible tools) were answered or skipped. */
     val loraIntroDone: Boolean = false,
+    /** Model of the chats Lora hands questions to (AP-33): DeepSeek by default, "auto" = chosen per question. */
+    val loraHandoffModel: String = ModelCatalog.DEFAULT_CHAT,
+    /** A question Lora hands to a chat lands in the input field first instead of being sent right away (AP-33). */
+    val loraHandoffReview: Boolean = false,
+    /** Lora offers next steps under answers (reminder for a deadline, table as Excel …), found on the device (AP-35). */
+    val loraNextSteps: Boolean = true,
+    /** While typing in the chat, Lora points to a matching place of the app (AP-35). */
+    val loraTyping: Boolean = true,
     /** Texts from public sources (web search, books and papers with ISBN/DOI, the literature collection) stay as they are. */
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
@@ -276,6 +284,10 @@ class SettingsStore(context: Context) {
             .putString("loraModel", next.loraModel)
             .putBoolean("loraCalm", next.loraCalm)
             .putBoolean("loraHints", next.loraHints)
+            .putString("loraHandoffModel", next.loraHandoffModel)
+            .putBoolean("loraHandoffReview", next.loraHandoffReview)
+            .putBoolean("loraNextSteps", next.loraNextSteps)
+            .putBoolean("loraTyping", next.loraTyping)
             .putBoolean("loraIntroDone", next.loraIntroDone)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
@@ -357,6 +369,10 @@ class SettingsStore(context: Context) {
             loraModel = prefs.getString("loraModel", d.loraModel) ?: d.loraModel,
             loraCalm = prefs.getBoolean("loraCalm", d.loraCalm),
             loraHints = prefs.getBoolean("loraHints", d.loraHints),
+            loraHandoffModel = prefs.getString("loraHandoffModel", d.loraHandoffModel) ?: d.loraHandoffModel,
+            loraHandoffReview = prefs.getBoolean("loraHandoffReview", d.loraHandoffReview),
+            loraNextSteps = prefs.getBoolean("loraNextSteps", d.loraNextSteps),
+            loraTyping = prefs.getBoolean("loraTyping", d.loraTyping),
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),

@@ -490,7 +490,7 @@ class AgentRunner(private val c: AppContainer) {
          * it names [modelName], the one answering right now.
          */
         internal fun identityPrompt(modelName: String) =
-            "Du bist Lora, der KI-Forschungsassistent der App „ADEU LLM“ (TU Dresden) – benannt nach Low-Rank " +
+            "Du bist Lora, der KI-Forschungsassistent der App „Lora“ (TU Dresden) – benannt nach Low-Rank " +
                 "Adaptation, in der App ein kleiner runder Roboter. Du unterstützt bei Forschung, Lehre und Verwaltung: " +
                 "Literatur finden und prüfen, Texte und Dokumente schreiben, Daten auswerten, Lehrveranstaltungen planen. " +
                 "Fragt jemand, wie du heißt oder wer du bist, stellst du dich als Lora vor, der Forschungsassistent dieser " +

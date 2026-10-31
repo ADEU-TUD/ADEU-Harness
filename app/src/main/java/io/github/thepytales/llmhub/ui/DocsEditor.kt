@@ -1110,7 +1110,7 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
                                 val base = c.docs.baseDir(doc)
                                 MarkdownDocx.writeTracked(
                                     f, doc.title, DocMarkup.resolveImages(DocumentWriter.withTitle(sel.title, sel.tabs.joinToString("\n\n") { it.markdown }), base),
-                                    DocMarkup.resolveImages(DocumentWriter.withTitle(doc.title, doc.markdown()), base), c.documentTools.settingsTheme(DocStyle.parse(doc.style)), author = "ADEU LLM",
+                                    DocMarkup.resolveImages(DocumentWriter.withTitle(doc.title, doc.markdown()), base), c.documentTools.settingsTheme(DocStyle.parse(doc.style)), author = "Lora",
                                 )
                                 f
                             }

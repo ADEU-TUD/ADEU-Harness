@@ -185,10 +185,9 @@ internal fun EmptyChat(
                     RecentAndFavorites(recent, favorites, onOpenChat, onTemplate)
                 }
                 if (!hideLora) {
-                    // Lora als Navigatorin (AP-07): finds settings and areas, hands questions to a chat.
-                    androidx.compose.material3.TextButton(onClick = { LoraHelper.open() }) {
-                        Text(tr("Lora fragen: Wo finde ich …?"), style = MaterialTheme.typography.labelLarge)
-                    }
+                    // Lora (AP-07, AP-34): finds settings and areas, hands questions to a chat – „Frag Lora …“.
+                    Spacer(Modifier.size(12.dp))
+                    LoraAskField()
                 }
                 Spacer(Modifier.size(14.dp))
                 Box(Modifier.widthIn(max = 520.dp)) { extra() }

@@ -26,6 +26,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -88,7 +89,7 @@ fun main(args: Array<String>) {
     }
     LlmHubApp.start()
     Autostart.refresh()
-    AppLog.i("ADEU LLM ${BuildConfig.VERSION_NAME} gestartet (${System.getProperty("os.name")}, Java ${System.getProperty("java.version")})")
+    AppLog.i("Lora ${BuildConfig.VERSION_NAME} gestartet (${System.getProperty("os.name")}, Java ${System.getProperty("java.version")})")
     val minimized = Autostart.FLAG in args && isTraySupported
     // Measuring point once the app has started (AP-04), a few seconds later when the first screen is up.
     Thread {
@@ -169,7 +170,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         Tray(
             icon = painterResource("tray.png"),
             state = trayState,
-            tooltip = "ADEU LLM",
+            tooltip = "Lora",
             // Double-click on the icon or click on a notification.
             onAction = {
                 val recent = lastNotified?.takeIf { System.currentTimeMillis() - it.second < 10 * 60_000 }?.first
@@ -178,7 +179,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 recent?.takeIf { it.startsWith("route:") }?.let { Navigation.openRoute.value = it.removePrefix("route:") }
             },
             menu = {
-                Item("ADEU LLM öffnen", onClick = { show() })
+                Item("Lora öffnen", onClick = { show() })
                 Item("Neuer Chat", onClick = {
                     show()
                     Navigation.openRoute.value = "chat"
@@ -198,7 +199,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                     toldAboutTray = true
                     trayState.sendNotification(
                         Notification(
-                            "ADEU LLM läuft weiter",
+                            "Lora läuft weiter",
                             "Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich.",
                             Notification.Type.Info,
                         )
@@ -208,7 +209,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         },
         visible = visible,
         state = windowState,
-        title = "ADEU LLM",
+        title = "Lora",
         icon = painterResource("icon.png"),
         onPreviewKeyEvent = ::shortcut,
         onKeyEvent = { e ->
@@ -269,7 +270,10 @@ private fun zoom(step: Int) {
     Notices.info("Zoom ${tenths * 10} %")
 }
 
-/** Strg+N new chat, Strg+, settings, Strg++/Strg+−/Strg+0 zoom, Strg+B side menu, Strg+K command palette, Strg+/ shortcut overview (see ShortcutsDialog). */
+/**
+ * Strg+N new chat, Strg+, settings, Strg++/Strg+−/Strg+0 zoom, Strg+B side menu, Strg+K command palette, Strg+L Lora,
+ * Strg+Umschalt+L literature, Strg+/ shortcut overview (see ShortcutsDialog).
+ */
 private fun shortcut(e: KeyEvent): Boolean {
     if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed) return false
     when (e.key) {
@@ -283,7 +287,7 @@ private fun shortcut(e: KeyEvent): Boolean {
         Key.B -> "drawer"
         Key.K -> "palette"
         Key.Slash, Key.NumPadDivide -> "shortcuts"
-        Key.L -> "literature"
+        Key.L -> if (e.isShiftPressed) "literature" else "lora"
         Key.D -> "docs"
         Key.T -> "transcripts"
         else -> return false

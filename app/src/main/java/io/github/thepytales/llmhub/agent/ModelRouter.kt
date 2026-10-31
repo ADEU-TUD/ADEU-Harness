@@ -14,17 +14,21 @@ object ModelRouter {
     /** The suggested model and why, in a few words for the question to the user. */
     data class Choice(val model: String, val reason: String)
 
-    private val codeWords = listOf(
-        "programm", "quellcode", "code", "skript", "script", "python", "javascript", "typescript", "kotlin", "java ", "c++", "c#",
-        "html", "css", "sql", "regex", "regulärer ausdruck", "funktion schreiben", "bug", "fehlermeldung", "stacktrace", "exception",
-        "compil", "kompilier", "debugg", "github", "repository", "pull request", "commit", "api-aufruf", "json", "latex-code",
-        "excel-makro", "vba", "r-skript", "spss-syntax", "jupyter", "notebook",
+    /**
+     * Signs of programming – whole words where a part would also match everyday words („Förderprogramm“,
+     * „Vorlesungsskript“, „Notebook“ for the laptop, „Dresscode“).
+     */
+    private val code = Regex(
+        "(programmier|quellcode|\\bcode\\b|\\bskript(e|s)?\\b|\\bscript\\b|python|javascript|typescript|kotlin|\\bjava\\b|c\\+\\+|\\bc#|" +
+            "\\bhtml\\b|\\bcss\\b|\\bsql\\b|regex|regulärer ausdruck|funktion schreiben|\\bbugs?\\b|fehlermeldung|stacktrace|exception|" +
+            "compil|kompilier|debugg|github|repository|pull request|\\bcommit|api-aufruf|\\bjson\\b|latex-code|excel-makro|\\bvba\\b|" +
+            "r-skript|spss-syntax|jupyter)",
     )
     private val hardWords = listOf(
         "beweis", "herleit", "gründlich", "grundlich", "ausführlich analys", "ausfuhrlich analys", "schritt für schritt", "schritt fur schritt",
-        "komplex", "kritisch prüf", "kritisch pruf", "gutachten", "forschungsdesign", "methodisch", "systematisch vergleich", "abwägen",
-        "abwagen", "argumentation prüf", "logik", "rätsel", "ratsel", "mathemat", "berechne exakt", "statistische auswertung",
-        "widerspr", "begründe ausführlich", "strategie", "konzept entwickeln",
+        "kritisch prüf", "kritisch pruf", "gutachten", "forschungsdesign", "methodisch", "systematisch vergleich", "abwägen",
+        "abwagen", "argumentation prüf", "rätsel", "ratsel", "mathemat", "berechne exakt", "statistische auswertung",
+        "widerspr", "begründe ausführlich", "konzept entwickeln",
     )
 
     private fun norm(s: String) = Normalizer.normalize(s.lowercase(), Normalizer.Form.NFC)
@@ -38,7 +42,7 @@ object ModelRouter {
         val attached = files.sumOf { it.text.length }
         return when {
             images > 0 || files.any { it.mime.startsWith("image/") } -> Choice(standard, "versteht Bilder")
-            github || "```" in text || codeWords.any { it in t } -> Choice(ModelCatalog.CODE_CHAT, "Programmieren und GitHub")
+            github || "```" in text || code.containsMatchIn(t) -> Choice(ModelCatalog.CODE_CHAT, "Programmieren und GitHub")
             attached > 300_000 -> Choice(ModelCatalog.FAST_CHAT, "sehr lange Dokumente, am schnellsten")
             hardWords.any { it in t } || (text.length > 1500 && attached == 0) -> Choice(ModelCatalog.HARD_CHAT, "schwierige Aufgabe – gründlich, aber langsamer")
             else -> Choice(standard, "für fast alles, schnell")

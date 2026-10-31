@@ -56,7 +56,7 @@ private fun WindowsSection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(closeToTray = v) } }
         SwitchRow(
             "Mit Windows starten",
-            if (Autostart.supported) "Startet ADEU LLM nach der Anmeldung unsichtbar im Infobereich – für geplante Aufgaben. Keine Admin-Rechte nötig."
+            if (Autostart.supported) "Startet Lora nach der Anmeldung unsichtbar im Infobereich – für geplante Aufgaben. Keine Admin-Rechte nötig."
             else "Nur in der Windows-Version verfügbar.",
             autostart,
         ) { v ->

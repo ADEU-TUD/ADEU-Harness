@@ -41,7 +41,7 @@ object ShareDoc {
 
 const val SAVE_AS_LABEL = "Speichern unter …"
 
-/** "Speichern unter": copies the file to a place the user picks (Documents\ADEU LLM by default). */
+/** "Speichern unter": copies the file to a place the user picks (Documents\Lora by default). */
 @Suppress("UNUSED_PARAMETER")
 @Composable
 fun rememberSaveAs(mime: String): (File) -> Unit {

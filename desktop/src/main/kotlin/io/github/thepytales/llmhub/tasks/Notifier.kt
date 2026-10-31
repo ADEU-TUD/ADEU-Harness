@@ -60,6 +60,6 @@ object Notifier {
     /** Shows a sample notification so the user can check that results will reach them. */
     @Suppress("UNUSED_PARAMETER")
     fun test(context: Context) {
-        post("ADEU LLM", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
+        post("Lora", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
     }
 }

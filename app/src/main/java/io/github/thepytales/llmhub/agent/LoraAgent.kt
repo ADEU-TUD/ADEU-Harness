@@ -31,8 +31,14 @@ sealed interface LoraStep {
     /** Suggests a tool that is switched off; switched on after the user confirms. */
     data class EnableTool(val tool: AppTool) : LoraStep
 
-    /** Hands the wish to a chat model. */
-    data class Handoff(val model: String, val request: String, val summary: String = "") : LoraStep
+    /** Hands the wish to a chat model; [reason] says why this model (shown on the card in the chat). */
+    data class Handoff(val model: String, val request: String, val summary: String = "", val reason: String = "") : LoraStep
+
+    /** Opens an earlier chat (found by Lora's chat search, AP-35). */
+    data class OpenChat(val id: String, val title: String, val updatedAt: Long) : LoraStep
+
+    /** Puts a deadline or reminder into the calendar (.ics with a reminder) – after the user confirms (AP-35). */
+    data class Reminder(val title: String, val date: java.time.LocalDate, val daysBefore: Int = 3) : LoraStep
 
     /** Questions with answer buttons when the wish is unclear (AP-06). */
     data class Ask(val questions: List<UserQuestion>) : LoraStep
@@ -76,17 +82,70 @@ class LoraAgent(private val c: AppContainer) {
      * Answers [wish]. [history] are the earlier turns of this conversation with Lora (wish, answer); [folderId] the
      * project of the chat Lora was called from (its privacy level decides whether a model may be asked).
      */
-    suspend fun ask(wish: String, history: List<Pair<String, String>> = emptyList(), folderId: String? = null, android: Boolean = false): LoraReply {
+    suspend fun ask(
+        wish: String, history: List<Pair<String, String>> = emptyList(), folderId: String? = null, android: Boolean = false,
+        onText: (String) -> Unit = {},
+    ): LoraReply {
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
-        local(wish, targets, settings.enabledToolIds, android)?.let { return it }
+        local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
+        localChats(wish)?.let { return it }
         val model = modelFor(folderId)
             ?: return fallback(wish, targets, if (!settings.hasAnyApiKey) "Ohne API-Schlüssel suche ich nur in der App." else "In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App.")
-        return runCatching { remote(wish, history, model, targets, android) }
+        return runCatching { remote(wish, history, model, targets, android, onText) }
             .getOrElse { e ->
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                fallback(wish, targets, "Ich erreiche gerade kein Modell (${e.message?.take(80) ?: "Fehler"}) – das habe ich in der App gefunden:")
+                fallback(wish, targets, friendlyError(e))
             }
+    }
+
+    /** „Wo hatte ich …“, „mein letzter Chat“: earlier chats, found on the device. Null for other wishes. */
+    private fun localChats(wish: String): LoraReply? {
+        val n = AppMap.norm(wish)
+        val recent = RECENT.containsMatchIn(n)
+        val find = FIND_CHAT.containsMatchIn(n)
+        if (!recent && !find) return null
+        val query = if (recent) "" else FIND_CHAT.replace(n, " ").trim()
+        val chats = searchChats(query)
+        if (chats.isEmpty()) return LoraReply(if (recent) "Es gibt noch keine Chats." else "Dazu habe ich keinen Chat gefunden – versuch ein anderes Stichwort.")
+        return LoraReply(if (recent) "Deine letzten Chats:" else if (chats.size == 1) "Das könnte er sein:" else "Diese Chats passen:", chats)
+    }
+
+    /** Chats whose title or text fits [query] (all words), newest first; an empty query gives the latest chats. */
+    internal fun searchChats(query: String, limit: Int = 5): List<LoraStep.OpenChat> {
+        val words = AppMap.words(query)
+        val all = c.chats.conversations.value.filter { !it.archived && !it.temporary }
+        val hits = if (words.isEmpty()) all.sortedByDescending { it.updatedAt } else all.mapNotNull { conv ->
+            val title = AppMap.norm(conv.title)
+            val text = AppMap.norm(conv.messages.joinToString(" ") { it.content.take(4000) })
+            val score = words.sumOf { w -> (if (title.contains(w)) 3 else 0) + (if (text.contains(w)) 1 else 0) }
+            val every = words.all { w -> title.contains(w) || text.contains(w) }
+            if (score > 0 && every) conv to score else null
+        }.sortedWith(compareByDescending<Pair<io.github.thepytales.llmhub.data.Conversation, Int>> { it.second }.thenByDescending { it.first.updatedAt }).map { it.first }
+        return hits.take(limit).map { LoraStep.OpenChat(it.id, it.title, it.updatedAt) }
+    }
+
+    /**
+     * The model a handed-over question goes to (AP-33): the one set under Einstellungen › Lora (DeepSeek by default);
+     * with „Automatisch“ Lora's own choice or the automatic one for the question.
+     */
+    internal fun handoffModel(request: String, chosen: String? = null, why: String? = null): Pair<String, String> =
+        handoffModel(c.settings.current.loraHandoffModel, request, chosen, why)
+
+    /** A short, kind sentence instead of a raw exception. */
+    private fun friendlyError(e: Throwable): String {
+        val reason = when (e) {
+            is java.net.UnknownHostException, is java.net.ConnectException, is java.net.NoRouteToHostException -> "ohne Internetverbindung"
+            is java.net.SocketTimeoutException -> "der Server antwortet gerade zu langsam"
+            is io.github.thepytales.llmhub.net.ApiException -> when (e.code) {
+                401, 403 -> "der API-Schlüssel wird nicht angenommen"
+                429 -> "gerade sind zu viele Anfragen unterwegs"
+                in 500..599 -> "der Uni-Server hat eine Störung"
+                else -> "der Server meldet einen Fehler (${e.code})"
+            }
+            else -> null
+        }
+        return "Ich erreiche gerade kein Modell" + (reason?.let { " – $it" } ?: "") + ". In der App habe ich das gefunden:"
     }
 
     /** The model Lora may use here, or null (no key, or the project keeps everything on the device without a local model). */
@@ -105,7 +164,9 @@ class LoraAgent(private val c: AppContainer) {
         return LoraReply(text, hits = hits)
     }
 
-    private suspend fun remote(wish: String, history: List<Pair<String, String>>, model: String, targets: List<AppTarget>, android: Boolean): LoraReply {
+    private suspend fun remote(
+        wish: String, history: List<Pair<String, String>>, model: String, targets: List<AppTarget>, android: Boolean, onText: (String) -> Unit,
+    ): LoraReply {
         val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android)))
         history.takeLast(4).forEach { (q, a) ->
             messages += ChatMessage(role = "user", content = q)
@@ -115,7 +176,9 @@ class LoraAgent(private val c: AppContainer) {
         val steps = mutableListOf<LoraStep>()
         var text = ""
         repeat(MAX_ROUNDS) { round ->
-            val result = c.llm.streamChat(model, messages, TOOLS.toSchema(), thinking = ThinkingLevel.OFF) { }
+            val result = c.llm.streamChat(model, messages, TOOLS.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
+                splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
+            }
             text = splitThinking(result.content).second.trim()
             if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { "Wie kann ich helfen?" }, steps, local = false)
             messages += ChatMessage(role = "assistant", content = result.content, toolCalls = result.toolCalls)
@@ -124,7 +187,8 @@ class LoraAgent(private val c: AppContainer) {
                 val args = parseArgs(call.arguments)
                 val (output, step) = runTool(call.name, args, targets)
                 step?.let(steps::add)
-                if (call.name == "explain") needsAnswer = true
+                if (call.name == "search_chats") steps += searchChats(args.s("suche").orEmpty())
+                if (call.name == "explain" || call.name == "search_chats") needsAnswer = true
                 messages += ChatMessage(role = "tool", content = output, toolCallId = call.id, toolName = call.name)
             }
             // Actions are carried out by the screen; only an explanation needs the model once more for the answer.
@@ -165,9 +229,19 @@ class LoraAgent(private val c: AppContainer) {
         }
         "handoff_chat" -> {
             val request = args.s("anfrage").orEmpty().ifBlank { args.s("zusammenfassung").orEmpty() }
-            val model = args.s("modell")?.takeIf { it.isNotBlank() && ModelCatalog.info(it).displayName.isNotBlank() }
-                ?: ModelRouter.suggest(request, 0, emptyList(), false, c.settings.current.defaultModel).model
-            "Übergeben an einen Chat." to LoraStep.Handoff(model, request, args.s("zusammenfassung").orEmpty())
+            val chosen = args.s("modell")?.takeIf { it.isNotBlank() && ModelCatalog.info(it).displayName.isNotBlank() }
+            val (model, reason) = handoffModel(request, chosen, args.s("grund"))
+            "Übergeben an einen Chat." to LoraStep.Handoff(model, request, args.s("zusammenfassung").orEmpty(), reason)
+        }
+        "search_chats" -> {
+            val found = searchChats(args.s("suche").orEmpty())
+            (if (found.isEmpty()) "Keine passenden Chats." else "Gefunden (werden als Karten gezeigt): " + found.joinToString("; ") { it.title }) to null
+        }
+        "add_reminder" -> {
+            val date = args.s("datum")?.let { io.github.thepytales.llmhub.docs.CalendarFiles.parse(it)?.first?.toLocalDate() }
+            val title = args.s("titel").orEmpty().ifBlank { "Erinnerung" }
+            if (date == null) "FEHLER: Datum nicht verstanden. Format: 2026-11-30." to null
+            else "Der Nutzer wird gefragt, ob „$title“ am $date in den Kalender soll." to LoraStep.Reminder(title.take(80), date, args.s("tage_vorher")?.toIntOrNull()?.coerceIn(0, 30) ?: 3)
         }
         "explain" -> explain(args.s("thema").orEmpty()) to null
         AskUserTool.NAME -> {
@@ -178,14 +252,21 @@ class LoraAgent(private val c: AppContainer) {
     }
 
     private fun systemPrompt(wish: String, targets: List<AppTarget>, android: Boolean): String = buildString {
-        append("Du bist Lora, die Navigatorin der App ADEU LLM (").append(if (android) "Android" else "Windows").append("). ")
+        append("Du bist Lora, die freundliche Helferin und Navigatorin der App Lora (").append(if (android) "Android" else "Windows").append(") ")
+        append("für Forschung, Lehre und Verwaltung an der TU Dresden. ")
         append("Du hilfst, Bereiche, Einstellungen, Modi, TU Vorlagen und Werkzeuge zu finden, und führst dorthin. ")
         append("Antworte auf Deutsch, freundlich und sehr kurz (1–2 Sätze). Erfinde keine Funktionen.\n")
         append("Werkzeuge: navigate(ziel) öffnet einen Ort und hebt die Option hervor; open_mode(modus, text) startet einen Modus oder ")
         append("eine TU Vorlage; change_setting(id, wert) nur, wenn der Nutzer ausdrücklich etwas umstellen will (er bestätigt); ")
         append("enable_tool(werkzeug) schlägt ein ausgeschaltetes Werkzeug vor; handoff_chat(anfrage, zusammenfassung) gibt Fach- und ")
-        append("Inhaltsfragen (Erklärungen, Texte, Recherche) an einen Chat weiter; explain(thema) liest die Hilfe der App für ")
-        append("„Wie geht …?“; ask_user nur bei echt mehrdeutigen Wünschen.\n")
+        append("Inhaltsfragen (Erklärungen, Texte, Recherche) an einen Chat weiter – Standardmodell ist ")
+        append(ModelCatalog.info(c.settings.current.loraHandoffModel.ifBlank { ModelCatalog.DEFAULT_CHAT }).displayName)
+        append("; nur in Sonderfällen setzt du modell und grund selbst: Programmieren ").append(ModelCatalog.CODE_CHAT)
+        append(", sehr schwierige, mehrstufige Analysen ").append(ModelCatalog.HARD_CHAT)
+        append(", riesige Textmengen ").append(ModelCatalog.FAST_CHAT).append("; explain(thema) liest die Hilfe der App für ")
+        append("„Wie geht …?“; search_chats(suche) findet frühere Chats („Wo hatte ich …?“); add_reminder(titel, datum) legt eine Frist ")
+        append("oder Erinnerung im Kalender an (der Nutzer bestätigt); ask_user nur bei echt mehrdeutigen Wünschen. Heute ist ")
+        append(java.time.LocalDate.now()).append(".\n")
         append("Änderbare Einstellungen: ").append(SETTINGS.joinToString { "${it.id} (${it.values.joinToString("/") { v -> v.first }})" }).append('\n')
         append("Werkzeuge der App: ").append(AppTool.entries.filter { !it.planned && (!android || it.android) }.joinToString { "${it.id} (${it.label})" }).append('\n')
         append("Orte (id | Art | Pfad | Beschreibung):\n").append(AppMap.candidatesText(wish, targets))
@@ -245,9 +326,14 @@ class LoraAgent(private val c: AppContainer) {
                 listOf(
                     Param("anfrage", "Die Anfrage für den Chat, ausformuliert"),
                     Param("zusammenfassung", "Was im Gespräch mit Lora schon klar wurde", required = false),
-                    Param("modell", "Modell-id, leer lassen für automatische Wahl", required = false),
+                    Param("modell", "Nur in Sonderfällen setzen, sonst leer lassen (dann gilt der Standard, DeepSeek)", required = false),
+                    Param("grund", "Warum ein anderes Modell, kurz (nur mit modell)", required = false),
                 )),
             ToolDef("explain", "Liest die eingebaute Hilfe der App zu einem Thema („Wie geht …?“).", listOf(Param("thema", "Thema, z. B. Exzerpt, Tresor, PDF"))),
+            ToolDef("search_chats", "Sucht in den früheren Chats des Nutzers (Titel und Text); die Treffer erscheinen als Karten zum Öffnen.",
+                listOf(Param("suche", "Stichworte, leer für die letzten Chats"))),
+            ToolDef("add_reminder", "Legt eine Frist oder Erinnerung als ganztägigen Kalendereintrag mit Erinnerung an (öffnet in Outlook bzw. dem Kalender); der Nutzer bestätigt.",
+                listOf(Param("titel", "Wofür, z. B. Skizzenfrist BMFTR"), Param("datum", "Tag, z. B. 2026-11-30"), Param("tage_vorher", "Erinnerung so viele Tage vorher (Standard 3)", required = false))),
         ) + AskUserTool().defs
 
         /** Built-in help (short sections of the README) for explain and the local answer to „Wie geht …?“. */
@@ -287,10 +373,14 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.EnableTool -> "Dafür gibt es „${s.tool.label}“ – einschalten?"
             is LoraStep.Handoff -> "Das klärt am besten ein Chat – ich gebe es weiter."
             is LoraStep.Ask -> "Kurz nachgefragt:"
+            is LoraStep.OpenChat -> "Das habe ich gefunden:"
+            is LoraStep.Reminder -> "Soll ich „${s.title}“ in den Kalender eintragen?"
             null -> "Wie kann ich helfen?"
         }
 
         private val EXPLAIN_START = Regex("^(erklar|erklaer|was (ist|sind|bedeutet|heisst|meint)|wer (ist|war)|warum|wieso|weshalb|schreib|formulier|ubersetz|uebersetz|fass|gib mir|nenne|hilf mir beim)")
+        private val RECENT = Regex("(letzte[nrm]? chats?|zuletzt|mein(en)? letzte[nrm]? (chat|gesprach)|letzte gesprach)")
+        private val FIND_CHAT = Regex("^(wo hatte ich|wo war (das|der chat)|finde? (den |meinen )?chat|such(e)? (den |meinen )?chat|welcher chat)( (das|den|die|der|uber|mit|zu|zum|zur))*")
         private val HOWTO = Regex("^(wie (geht|funktioniert|nutze|benutze|verwende|mache|kann ich|lege|richte))")
         private val APP_WORDS = Regex("(app|einstellung|lora|seitenleiste|modus|vorlage|tresor|werkzeug|pdf werkzeug|knopf|menu|menue)")
 
@@ -298,7 +388,22 @@ class LoraAgent(private val c: AppContainer) {
          * Lokal zuerst: answers the wish on the device when it is clear – a tool that is switched off, a mode, one clear
          * place, an explanation for a chat or „Wie geht …?“ from the help. Null when the model should help.
          */
-        fun local(wish: String, targets: List<AppTarget>, enabledTools: Set<String>, android: Boolean): LoraReply? {
+        /**
+         * The model for a handed-over question: the standard of Einstellungen › Lora (DeepSeek by default). Only in
+         * special cases another one – when Lora chose one herself ([chosen], with her [why]), or when the question
+         * clearly needs it (programming, a very demanding analysis; see ModelRouter).
+         */
+        fun handoffModel(setting: String, request: String, chosen: String?, why: String? = null): Pair<String, String> {
+            val standard = setting.ifBlank { ModelCatalog.DEFAULT_CHAT }
+            if (chosen != null && chosen != standard) return chosen to (why?.takeIf { it.isNotBlank() } ?: "von Lora gewählt")
+            val route = ModelRouter.suggest(request, 0, emptyList(), false, standard)
+            return if (route.model != standard) route.model to route.reason else standard to "Standard für Übergaben"
+        }
+
+        fun local(
+            wish: String, targets: List<AppTarget>, enabledTools: Set<String>, android: Boolean,
+            handoff: String = ModelCatalog.DEFAULT_CHAT,
+        ): LoraReply? {
             val n = AppMap.norm(wish)
             if (n.isBlank()) return LoraReply("Was möchtest du machen oder einstellen?")
             // A big tool: suggest it when it is off, otherwise open it.
@@ -311,7 +416,8 @@ class LoraAgent(private val c: AppContainer) {
             }
             // „Erklär mir …“ about something that is not the app: a chat answers that.
             if (EXPLAIN_START.containsMatchIn(n) && !APP_WORDS.containsMatchIn(n)) {
-                return LoraReply("Das klärt am besten ein Chat – ich gebe es weiter.", listOf(LoraStep.Handoff(ModelRouter.suggest(wish, 0, emptyList(), false).model, wish.trim())))
+                val (model, reason) = handoffModel(handoff, wish, null)
+                return LoraReply("Das klärt am besten ein Chat – ich gebe es weiter.", listOf(LoraStep.Handoff(model, wish.trim(), reason = reason)))
             }
             val hit = AppMap.clearHit(wish, targets)
             if (HOWTO.containsMatchIn(n) && (hit == null || hit.kind == MapKind.TEMPLATE)) {
@@ -334,4 +440,23 @@ fun AppContainer.applyLoraStep(step: LoraStep) {
         is LoraStep.EnableTool -> settings.update { it.withTool(step.tool, true) }
         else -> Unit
     }
+}
+
+/**
+ * Writes deadlines as all-day calendar entries with a reminder [daysBefore] days ahead (AP-35) and returns the .ics,
+ * which opens in Outlook or the calendar app. Several deadlines go into one file.
+ */
+fun AppContainer.loraCalendar(deadlines: List<Pair<String, java.time.LocalDate>>, daysBefore: Int = 3, note: String = ""): java.io.File {
+    val events = deadlines.map { (title, day) ->
+        io.github.thepytales.llmhub.docs.CalendarEvent(
+            title = if (title.startsWith("Frist", ignoreCase = true)) title else "Frist: $title",
+            start = day.atStartOfDay(), end = day.atStartOfDay(), allDay = true,
+            description = note.ifBlank { "Von Lora eingetragen." },
+            reminderMinutes = daysBefore.coerceAtLeast(0) * 24 * 60,
+        )
+    }
+    val name = if (deadlines.size == 1) "Frist – " + deadlines[0].first.take(50) else "Fristen (${deadlines.size})"
+    val file = documentTools.newFile(name, "ics")
+    io.github.thepytales.llmhub.docs.CalendarFiles.writeAll(file, events)
+    return file
 }

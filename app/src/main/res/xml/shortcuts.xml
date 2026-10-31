@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long press on the app icon (AP-34): ask Lora right away, or start a new chat. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="lora"
+        android:shortcutLongLabel="@string/shortcut_lora_long"
+        android:shortcutShortLabel="@string/shortcut_lora_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="io.github.thepytales.llmhub.MainActivity"
+            android:targetPackage="io.github.thepytales.llmhub">
+            <extra android:name="route" android:value="lora" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="chat"
+        android:shortcutShortLabel="@string/shortcut_chat_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="io.github.thepytales.llmhub.MainActivity"
+            android:targetPackage="io.github.thepytales.llmhub">
+            <extra android:name="route" android:value="chat" />
+        </intent>
+    </shortcut>
+</shortcuts>

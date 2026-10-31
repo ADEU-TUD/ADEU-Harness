@@ -227,13 +227,17 @@ class ChatViewModel(
      * Sends a message; with [template] its hidden instructions go along (see [ChatMessage.instructions]), likewise
      * [instructions] of the Sprachmodus ([voice]).
      */
-    fun send(text: String, images: List<String>, files: List<FileAttachment>, template: Template? = null, instructions: String? = null, voice: Boolean = false) {
+    fun send(
+        text: String, images: List<String>, files: List<FileAttachment>, template: Template? = null, instructions: String? = null, voice: Boolean = false,
+        handoff: String? = null,
+    ) {
         val conv = _conversation.value ?: return
         if (isRunning || (text.isBlank() && images.isEmpty() && files.isEmpty())) return
         val isFirst = conv.messages.none { it.role == "user" }
         val message = ChatMessage(
             role = "user", content = text.trim(), images = images, files = files,
             template = template?.name, instructions = template?.instructions?.ifBlank { null } ?: instructions, voice = voice,
+            handoff = handoff,
         )
         update {
             it.appendToThread(message).copy(
@@ -475,11 +479,9 @@ class ChatViewModel(
         persist()
     }
 
-    private fun makeTitle(text: String, files: List<FileAttachment>): String {
-        val t = text.trim().lineSequence().firstOrNull().orEmpty()
-            .ifBlank { files.firstOrNull()?.name ?: "Bild-Chat" }
-        return if (t.length > 48) t.take(48).trimEnd() + "…" else t
-    }
+    /** A short title from the first message (AP-33): without courtesies and the request verb. */
+    private fun makeTitle(text: String, files: List<FileAttachment>): String =
+        io.github.thepytales.llmhub.data.ChatTitles.make(text).ifBlank { files.firstOrNull()?.name ?: "Bild-Chat" }
 }
 
 /** Splits `<think>…</think>` reasoning that some models put into the content. */

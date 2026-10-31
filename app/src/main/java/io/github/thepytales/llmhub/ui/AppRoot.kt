@@ -131,6 +131,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         requestedRoute?.let { r ->
             when (r) {
                 "drawer" -> if (!wide) drawer.open()
+                "lora" -> LoraHelper.open()
                 "chat" -> nav.openChat(chatRoute())
                 else -> runCatching { nav.navigate(r) { launchSingleTop = true } }
             }
@@ -180,10 +181,16 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     }
     // A new version: asks at the start whether to install it (see Updates).
     if (crash == null) UpdatePrompt(c)
-    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    // Lora (AP-07, AP-34): answers wishes, leads to places, and the two questions of the first start.
     LoraHelperHost(c) { r ->
         runCatching { if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) { launchSingleTop = true } }
     }
+    // Where the user is, so Lora's suggestions fit the screen ("settings/{section}" with its section filled in).
+    LaunchedEffect(entry) {
+        val e = entry ?: return@LaunchedEffect
+        LoraHelper.route.value = (e.destination.route ?: "chat").replace(Regex("\\{(\\w+)\\}")) { m -> e.arguments?.getString(m.groupValues[1]).orEmpty() }
+    }
+    BackHandler(enabled = LoraHelper.isOpen.collectAsStateWithLifecycle().value) { LoraHelper.close() }
 
     BackHandler(enabled = drawer.isOpen) { closeDrawer() }
 
@@ -335,9 +342,13 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).trackLoraGaze()) {
         if (wide) {
-            PermanentNavigationDrawer(drawerContent = menu) { screens() }
+            androidx.compose.foundation.layout.Row(Modifier.fillMaxSize()) {
+                PermanentNavigationDrawer(drawerContent = menu, modifier = Modifier.weight(1f)) { screens() }
+                // Lora's panel beside the app on tablets.
+                LoraSidePanel(c)
+            }
         } else {
             ModalNavigationDrawer(
                 drawerState = drawer,
@@ -345,7 +356,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 drawerContent = menu,
                 content = screens,
             )
+            LoraSheet(c)
         }
+        // Lora flying from her panel to the place she leads to.
+        LoraFlightLayer()
         SnackbarHost(
             snackbar,
             modifier = Modifier
@@ -406,7 +420,7 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("ADEU LLM ist abgestürzt") },
+        title = { Text("Lora ist abgestürzt") },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 Text(

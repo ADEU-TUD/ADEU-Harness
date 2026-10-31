@@ -1,4 +1,4 @@
-// Single-file start program for the portable Windows version of ADEU LLM.
+// Single-file start program for the portable Windows version of Lora (technical name ADEU LLM: folders and exe stay).
 //
 // The app (Java runtime included) is embedded as app.zip. On the first start of a version it is unpacked
 // to %LOCALAPPDATA%\ADEU LLM\app\<version> – no admin rights, no installation – and then started.
@@ -14,9 +14,9 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-[assembly: AssemblyTitle("ADEU LLM")]
-[assembly: AssemblyProduct("ADEU LLM")]
-[assembly: AssemblyDescription("ADEU LLM – Chat, Agenten und Dokumente mit der Uni-LLM-API")]
+[assembly: AssemblyTitle("Lora")]
+[assembly: AssemblyProduct("Lora")]
+[assembly: AssemblyDescription("Lora – Der freundliche Helfer für Forschung, Lehre und Verwaltung an der TU Dresden")]
 [assembly: AssemblyVersion("@VERSION@")]
 [assembly: AssemblyFileVersion("@VERSION@")]
 
@@ -41,9 +41,9 @@ static class Launcher
                 if (error != null)
                 {
                     MessageBox.Show(
-                        "ADEU LLM konnte nicht vorbereitet werden:\n\n" + error.Message +
+                        "Lora konnte nicht vorbereitet werden:\n\n" + error.Message +
                         "\n\nAlternative: die ZIP-Version herunterladen, entpacken und \"ADEU LLM.exe\" starten.",
-                        "ADEU LLM", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        "Lora", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return 1;
                 }
             }
@@ -56,7 +56,7 @@ static class Launcher
         }
         catch (Exception e)
         {
-            MessageBox.Show("ADEU LLM konnte nicht gestartet werden:\n\n" + e.Message, "ADEU LLM",
+            MessageBox.Show("Lora konnte nicht gestartet werden:\n\n" + e.Message, "Lora",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
@@ -68,7 +68,7 @@ static class Launcher
         Exception error = null;
         Application.EnableVisualStyles();
         var form = new Form();
-        form.Text = "ADEU LLM";
+        form.Text = "Lora";
         form.FormBorderStyle = FormBorderStyle.FixedDialog;
         form.StartPosition = FormStartPosition.CenterScreen;
         form.ClientSize = new Size(380, 96);
@@ -78,7 +78,7 @@ static class Launcher
         form.ShowInTaskbar = true;
         try { form.Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location); } catch (Exception) { }
         var label = new Label();
-        label.Text = "ADEU LLM " + Version + " wird beim ersten Start vorbereitet …";
+        label.Text = "Lora " + Version + " wird beim ersten Start vorbereitet …";
         label.SetBounds(16, 18, 348, 22);
         var bar = new ProgressBar();
         bar.SetBounds(16, 50, 348, 22);

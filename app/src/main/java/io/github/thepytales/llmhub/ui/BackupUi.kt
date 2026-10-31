@@ -81,7 +81,7 @@ fun BackupSection(c: AppContainer) {
             message = "Import fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
         }
     }
-    val fileName = "ADEU-LLM-Sicherung-${LocalDate.now()}.zip"
+    val fileName = "Lora-Sicherung-${LocalDate.now()}.zip"
     SettingsCard("Sicherung") {
         SettingsHint(
             "Speichert Chats, Projekte, Vorlagen, geplante Aufgaben, Dokumente, Logos, Wissenssammlung, Gedächtnis, Adressbuch " +

@@ -215,7 +215,7 @@ fun AppDrawer(
                     AppLogo(Modifier.size(38.dp))
                     Spacer(Modifier.size(11.dp))
                     Text(
-                        "ADEU LLM",
+                        io.github.thepytales.llmhub.Brand.NAME,
                         style = MaterialTheme.typography.headlineSmall.copy(fontFamily = look.titleFont),
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -526,10 +526,13 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
 private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> Unit, onMove: () -> Unit, onToolOff: (() -> Unit)?) {
     var menu by remember { mutableStateOf(false) }
     Box {
-        NavRow(
-            area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) "läuft" else "neu",
-            indent = !onTop, onMenu = { menu = true }, onClick = onOpen,
-        )
+        // Lora flies here and lets the entry glow when she leads to this area (AP-36).
+        Spot("drawer.${area.route}") {
+            NavRow(
+                area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) "läuft" else "neu",
+                indent = !onTop, onMenu = { menu = true }, onClick = onOpen,
+            )
+        }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
                 text = { Text(tr(if (onTop) "Unter „Mehr“ verschieben" else "Nach oben holen")) },
