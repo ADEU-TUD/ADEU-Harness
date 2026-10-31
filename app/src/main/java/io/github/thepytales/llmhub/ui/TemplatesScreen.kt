@@ -62,9 +62,9 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Vorlagen") },
+                title = { Text(tr("TU Vorlagen")) },
                 actions = {
-                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "Vorlagen importieren") }
+                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "TU Vorlagen importieren") }
                     IconButton(enabled = own.isNotEmpty(), onClick = {
                         clipboard.setText(AnnotatedString(TemplateLibrary.export(own)))
                         Notices.info("${own.size} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.")
@@ -134,7 +134,7 @@ private fun ImportTemplatesDialog(initial: String, onImport: (List<Template>) ->
     val found = remember(text) { TemplateLibrary.import(text) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Vorlagen importieren") },
+        title = { Text("TU Vorlagen importieren") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(

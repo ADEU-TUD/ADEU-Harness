@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 /** Windows: the right click opens the same menu as a long press on Android. */
 fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action)
 
+/** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
+const val IS_ANDROID = false
+
 /** How a context menu is opened – for hints in the interface. */
 const val CONTEXT_GESTURE = "Rechtsklick"
 

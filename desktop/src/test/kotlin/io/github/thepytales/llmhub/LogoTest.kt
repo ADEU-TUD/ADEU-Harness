@@ -25,7 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * The logo (Lora reading on a TU-blue tile): renders every stage of the start animation (build/logo-frames, for
+ * The logo (Lora reading on a light tile): renders every stage of the start animation (build/logo-frames, for
  * checking by eye) and exports the app icons to build/icons – Windows .ico, the PNGs of the window and the tray, and
  * the Android launcher and notification icons. After a change of the logo, copy them over (see README › Logo).
  */
@@ -42,9 +42,9 @@ class LogoTest {
                 File(dir, "frame%02d.png".format(i)).writeBytes(png)
                 if (i == frames) {
                     val bmp = org.jetbrains.skia.Bitmap.makeFromImage(img)
-                    // Lora's white body stands on the tile, the corners stay transparent (rounded tile).
-                    val body = (0 until 240).flatMap { x -> (0 until 240).map { y -> bmp.getColor(x, y) } }.count { (it and 0xFFFFFF) == 0xFFFFFF }
-                    assertTrue(body > 2000, "Loras weißer Körper: $body Pixel")
+                    // Lora's white face shows on the tile, the corners stay transparent (rounded tile).
+                    val face = (0 until 240).flatMap { x -> (0 until 240).map { y -> bmp.getColor(x, y) } }.count { (it and 0xFFFFFF) == 0xFFFFFF }
+                    assertTrue(face > 1500, "Loras weißes Gesicht: $face Pixel")
                     assertTrue((bmp.getColor(1, 1) ushr 24) == 0, "Ecke transparent")
                 }
             }
@@ -83,14 +83,14 @@ class LogoTest {
         return bitmap.toAwtImage()
     }
 
-    /** White with the alpha of the drawing; dark parts (the visor) stay faint, so the face still shows. */
+    /** White with the alpha of the drawing; very dark parts (the eyes) stay faint, so the face still shows. */
     private fun monochrome(src: BufferedImage): BufferedImage {
         val out = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_ARGB)
         for (y in 0 until src.height) for (x in 0 until src.width) {
             val c = src.getRGB(x, y)
             val a = c ushr 24
             val lum = (0.299 * (c shr 16 and 0xFF) + 0.587 * (c shr 8 and 0xFF) + 0.114 * (c and 0xFF)) / 255
-            val alpha = (a * if (lum > 0.45) 1.0 else 0.28).toInt().coerceIn(0, 255)
+            val alpha = (a * if (lum > 0.2) 1.0 else 0.25).toInt().coerceIn(0, 255)
             out.setRGB(x, y, (alpha shl 24) or 0xFFFFFF)
         }
         return out

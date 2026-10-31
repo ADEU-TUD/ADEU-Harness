@@ -95,6 +95,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "api" -> ApiSection(c)
                 "github" -> GitHubSection(c)
                 "chat" -> ChatSection(c)
+                "tools" -> ToolsSection(c)
                 "privacy" -> PrivacySection(c)
                 "appearance" -> AppearanceSettings(c)
                 "transcription" -> TranscriptionSettings(c)

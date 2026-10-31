@@ -31,6 +31,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddComment
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -107,6 +111,7 @@ fun ChatScreen(
     val playingId by c.speaker.playingId.collectAsStateWithLifecycle()
     val environments by c.environments.items.collectAsStateWithLifecycle()
     val templates by c.templates.items.collectAsStateWithLifecycle()
+    val allChats by c.chats.conversations.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -469,6 +474,7 @@ fun ChatScreen(
                         }
                     )
                     PrivacySuggestions(c, input)
+                    ToolSuggestion(c, input, files.map { it.name })
                     MemoryLearnBar(c, current.id)
                 },
                 footnote = if (hasMessages) tr("KI kann Fehler machen. Wichtiges bitte prüfen.") else null,
@@ -539,6 +545,17 @@ fun ChatScreen(
                 typing = input.isNotBlank(),
                 hideLora = settings.hideLora,
                 extra = { MemoryIntroCard(c) },
+                tiles = startTiles(
+                    onInput = { text -> input = text },
+                    onNavigate = onNavigate,
+                    onFiles = { platform.pickFiles(); if (input.isBlank()) input = tr("Werte die angehängten Dateien aus: ") },
+                    onLiterature = { vm.setMode(Conversation.MODE_LITERATURE); input = tr("Finde aktuelle Literatur zum Thema: ") },
+                ),
+                recent = remember(allChats) { allChats.filter { !it.archived && it.id != current.id }.sortedByDescending { it.updatedAt }.take(3) },
+                favorites = remember(settings.favoriteTemplates, templates) {
+                    settings.favoriteTemplates.mapNotNull { TemplateLibrary.find(it, templates) }.take(4)
+                },
+                onOpenChat = { id -> onNavigate(chatRoute(id)) },
                 onExample = { e ->
                     when {
                         e.route != null -> onNavigate(e.route)
@@ -877,6 +894,15 @@ fun ChatScreen(
         ApprovalDialog(p, current.linkedRepos, onAnswer = { allow, always -> vm.answerPending(allow, always) })
     }
 }
+
+/** Tiles of the start page by activity (AP-02); the wording follows the work plan's proposal. */
+internal fun startTiles(onInput: (String) -> Unit, onNavigate: (String) -> Unit, onFiles: () -> Unit, onLiterature: () -> Unit) = listOf(
+    StartTile("Fragen & schreiben", Icons.Outlined.ChatBubbleOutline) { onInput(tr("Hilf mir beim Schreiben: ")) },
+    StartTile("TU Vorlagen", Icons.Outlined.Bookmarks) { onNavigate("templates") },
+    StartTile("Dokument erstellen", Icons.Outlined.Description) { onInput(tr("Entwirf ein Dokument: ")) },
+    StartTile("Dateien auswerten", Icons.Outlined.AttachFile) { onFiles() },
+    StartTile("Literatur finden", Icons.Outlined.MenuBook) { onLiterature() },
+)
 
 /** Maximum width of the messages and the input on wide screens (tablets, Windows), like the Claude desktop app. */
 private val CONTENT_WIDTH = 860.dp

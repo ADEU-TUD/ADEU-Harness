@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Handyman
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.LibraryBooks
@@ -79,6 +80,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "api" -> "API-Zugang"
     "github" -> "GitHub"
     "chat" -> "Chat & Werkzeuge"
+    "tools" -> "Werkzeuge"
     "privacy" -> "Datenschutz"
     "appearance" -> "Darstellung"
     "voice" -> "Vorlesen & Spracheingabe"
@@ -163,6 +165,10 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         "Assistent",
         listOfNotNull(
             SettingsItem("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge · Freigaben: " + ApprovalMode.of(s.approvalMode).label),
+            SettingsItem(
+                "settings/tools", Icons.Outlined.Handyman, "Werkzeuge",
+                s.enabledToolIds.size.let { if (it == 0) "Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen" else "$it eingeschaltet" },
+            ),
             SettingsItem("settings/privacy", Icons.Outlined.Shield, "Datenschutz", if (s.pseudonymize) "Pseudonymisierung an" else "Pseudonymisierung aus"),
             SettingsItem("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + memory.size + " Einträge"),
             SettingsItem(

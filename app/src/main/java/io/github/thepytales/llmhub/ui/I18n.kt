@@ -28,6 +28,8 @@ object I18n {
         "Vorlage" to "Template",
         "Andere Idee" to "Another idea",
         "Alle Vorlagen ansehen" to "Browse all templates",
+        "Alle TU Vorlagen ansehen" to "Browse all TU templates",
+        "TU Vorlagen" to "TU templates",
         "Lora ausblenden" to "Hide Lora",
         "Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben." to
             "Lora appears nowhere – not on the start page, in the chat or in voice mode; the app's symbol is shown there instead. The ideas on the start page stay.",

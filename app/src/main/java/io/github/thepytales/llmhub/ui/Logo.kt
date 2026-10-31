@@ -40,22 +40,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-/** Colors of the logo (TU Dresden blue tile, Lora in white), the same in every look. */
+/** Colors of the logo (light lavender tile, Lora as in the app: violet with a white face), the same in every look. */
 private object LogoColors {
-    val top = Color(0xFF0A0AA0)
-    val bottom = Color(0xFF00006E)
-    val light = Color(0xFF97C6FF)
+    val top = Color(0xFFF6F4FF)
+    val bottom = Color(0xFFDCD6FF)
+    val light = Color.White
 
-    /** Lora on the tile: a white body, a dark visor with light eyes, a light-blue book. */
+    /** Lora as she looks in the ADEU style: violet body, white visor with dark eyes, a warm orange book. */
     val lora = LoraColors(
-        body = Color.White,
-        visor = Color(0xFF00006E),
-        eye = Color(0xFFDCEBFF),
-        line = Color(0xFFDCEBFF),
-        prop = light,
-        spark = Color(0xFFFFC233),
+        body = Color(0xFF5B4FE9),
+        visor = Color.White,
+        eye = Color(0xFF1B1B2F),
+        line = Color(0xFF6A6290),
+        prop = Color(0xFFFF8A3D),
+        spark = Color(0xFFFFB300),
         blush = Color(0xFFFF8FA3),
-        shadow = Color.Black.copy(alpha = 0.22f),
+        shadow = Color(0xFF2B1FA8).copy(alpha = 0.16f),
     )
 }
 
@@ -74,7 +74,7 @@ private fun pop(x: Float): Float {
 internal const val LOGO_TIME_MS = 1000L
 
 /**
- * The logo: Lora, the mascot, reading a book on a TU-blue tile – the research assistant of the professorship.
+ * The logo: Lora, the mascot, reading a book on a light tile – the research assistant of the professorship.
  * [reveal] 0 → 1 builds it up (start animation: the tile appears, Lora hops in and turns a page); 1 is the finished
  * logo, always in the same pose.
  */
@@ -96,7 +96,7 @@ internal fun DrawScope.drawLogo(t: Float, tile: Boolean = true, scale: Float = 1
         val glow = phase(t, 0.15f, 0.6f)
         if (glow > 0f) {
             drawCircle(
-                Brush.radialGradient(listOf(LogoColors.light.copy(alpha = 0.32f * glow), Color.Transparent), Offset(54 * k, 50 * k), 46 * k),
+                Brush.radialGradient(listOf(LogoColors.light.copy(alpha = 0.75f * glow), Color.Transparent), Offset(54 * k, 50 * k), 46 * k),
                 radius = 46 * k, center = Offset(54 * k, 50 * k),
             )
         }

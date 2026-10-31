@@ -134,7 +134,7 @@ fun TemplateBrowser(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Vorlagen durchsuchen") },
+                placeholder = { Text("TU Vorlagen durchsuchen") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche leeren") }
