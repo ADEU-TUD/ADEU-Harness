@@ -97,6 +97,8 @@ class AppContainer(context: Context) {
     val webTools = WebTools(llm.http)
     val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)
+    /** Tresor (AP-10): encrypted chats behind an app PIN. */
+    val vault = io.github.thepytales.llmhub.data.VaultStore(files).also { chats.vault = it }
     val models = ModelsRepository(llm, settings)
     val speaker = Speaker(context, settings, llm)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
@@ -162,6 +164,13 @@ class AppContainer(context: Context) {
         // AP-04: measuring points and release of speech models that nobody used for a few minutes.
         io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
         scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }
+        // The vault locks itself after its idle time (AP-10).
+        scope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(20_000)
+                vault.lockIfIdle()
+            }
+        }
     }
 }
 

@@ -317,6 +317,9 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             composable("docs") { back ->
                 DocsListScreen(c, onBack = { nav.back(back) }, onOpen = { id -> nav.go(back, "doc/$id") })
             }
+            composable("vault") { back ->
+                VaultScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+            }
             composable("doc/{id}") { back ->
                 DocScreen(c, back.arguments?.getString("id").orEmpty(), onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
             }

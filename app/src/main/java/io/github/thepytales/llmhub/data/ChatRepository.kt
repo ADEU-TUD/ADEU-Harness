@@ -83,8 +83,16 @@ class ChatRepository(context: Context) {
         loaded.first { it }
     }
 
+    /**
+     * The vault (AP-10): its chats are kept and written there, encrypted – never in [conversations] or the files of
+     * this folder, so they stay out of the chat list, the search, the memory and suggestions.
+     */
+    @Volatile
+    var vault: VaultStore? = null
+
     /** The full chat with all images, or null if there is none with this id. */
     fun get(id: String): Conversation? {
+        vault?.get(id)?.let { return it }
         synchronized(full) { full[id] }?.let { return it }
         if (_conversations.value.none { it.id == id }) return null
         synchronized(pending) { pending[id] }?.let { return it }
@@ -94,6 +102,10 @@ class ChatRepository(context: Context) {
     }
 
     fun save(conversation: Conversation) {
+        if (conversation.vault) {
+            vault?.save(conversation)
+            return
+        }
         val complete = if (conversation.hasStubs()) restoreStubs(conversation) else conversation
         synchronized(full) { full[complete.id] = complete }
         _conversations.update { list ->
@@ -146,6 +158,10 @@ class ChatRepository(context: Context) {
      * is emptied.
      */
     fun delete(id: String) {
+        vault?.takeIf { it.contains(id) }?.let { v ->
+            v.delete(id)
+            return
+        }
         _conversations.update { list -> list.filterNot { it.id == id } }
         synchronized(full) { full.remove(id) }
         scope.launch {

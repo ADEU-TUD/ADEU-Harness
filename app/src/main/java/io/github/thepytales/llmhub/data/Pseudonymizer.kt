@@ -36,8 +36,11 @@ class Pseudonymizer(
     private val file: File,
     /** Names that are public and never replaced, e.g. the authors of the literature collection (AP-03). */
     private val publicNames: () -> Collection<String> = { emptyList() },
-    private val settings: () -> AppSettings,
+    private val userSettings: () -> AppSettings,
 ) {
+    /** The settings of the user – or the strict ones inside the vault (see [STRICT]). */
+    private fun settings(): AppSettings = userSettings().let { if (STRICT.get() == true) strict(it) else it }
+
     private val json = Json { ignoreUnknownKeys = true }
     private val chatsFile = File(file.parentFile, file.nameWithoutExtension + "-chats.json")
     private var entries: List<Pseudonym> = load()
@@ -373,6 +376,13 @@ class Pseudonymizer(
     }
 
     companion object {
+        /**
+         * Strenge Pseudonymisierung (AP-10): set for the requests of a vault chat (as coroutine context element, see
+         * AgentRunner): always on, every part on, no exemption for public sources, thorough recognition with the local model.
+         */
+        val STRICT: ThreadLocal<Boolean> = ThreadLocal()
+
+        fun strict(s: AppSettings): AppSettings = s.copy(pseudonymize = true, pseudonymOff = "", pseudonymPublic = false, pseudonymThorough = true)
         private const val MAX_CHATS = 400
 
         /** Tools whose results are public sources (web, news, literature databases) and are sent as they are. */

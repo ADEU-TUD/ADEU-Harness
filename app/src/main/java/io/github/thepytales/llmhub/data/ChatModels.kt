@@ -122,6 +122,8 @@ data class Conversation(
     val memoryOff: Boolean = false,
     /** Last message the memory learner looked at (see agent/MemoryLearner), so nothing is suggested twice. */
     val learnedUpTo: String? = null,
+    /** Chat of the vault (AP-10): stored encrypted, only Uni server or local models, strict pseudonymization. */
+    val vault: Boolean = false,
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */

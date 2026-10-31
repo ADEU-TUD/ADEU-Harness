@@ -271,6 +271,15 @@ fun ChatScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
+    // Tresor (AP-10): a vault chat shows nothing while the vault is locked; activity keeps it open.
+    if (current.vault) {
+        val vaultState by c.vault.state.collectAsStateWithLifecycle()
+        if (vaultState != io.github.thepytales.llmhub.data.VaultStore.State.UNLOCKED) {
+            VaultLockedNotice(onUnlock = { onNavigate("vault") })
+            return
+        }
+        LaunchedEffect(input, current.messages.size, running) { c.vault.touch() }
+    }
     // No notification for the chat on screen; opening it marks its result as read.
     DisposableEffect(current.id) {
         c.runs.visibleChatId = current.id
@@ -315,7 +324,7 @@ fun ChatScreen(
             val choice = io.github.thepytales.llmhub.agent.ModelRouter.suggest(
                 input, if (withImages) images.size else 0, files.toList(), current.githubEnabled && current.linkedRepos.isNotEmpty(), settings.defaultModel,
             )
-            val usable = Privacy.allows(c, Privacy.level(c, current.folderId), choice.model) && modelsState.liveIds?.contains(choice.model) != false
+            val usable = Privacy.allows(c, Privacy.level(c, current), choice.model) && modelsState.liveIds?.contains(choice.model) != false
             if (usable && choice.model != current.model) {
                 if (settings.autoModelAsk) {
                     autoAsk = choice to withImages
@@ -857,7 +866,7 @@ fun ChatScreen(
 
     if (showModelPicker) {
         ModelPickerSheet(
-            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
+            models = modelsState.ofType(ModelType.CHAT).filter { Privacy.allows(c, Privacy.level(c, current), it.id) },
             selected = current.model,
             onSelect = { vm.setModel(it); vm.setAutoModel(false) },
             onDismiss = { showModelPicker = false },
@@ -870,7 +879,7 @@ fun ChatScreen(
 
     regenerateFor?.let { question ->
         ModelPickerSheet(
-            models = Privacy.allowedModels(c, current.folderId, modelsState.ofType(ModelType.CHAT)),
+            models = modelsState.ofType(ModelType.CHAT).filter { Privacy.allows(c, Privacy.level(c, current), it.id) },
             selected = current.model,
             onSelect = { vm.regenerate(question, it) },
             onDismiss = { regenerateFor = null },
