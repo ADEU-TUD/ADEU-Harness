@@ -76,6 +76,7 @@ val SETTINGS_INDEX = listOf(
     Command("Darstellung", "settings/appearance", "Einstellungen", "dunkel hell farbe theme schriftgröße kontrast"),
     Command("Sicherung & Umzug", "settings/backup", "Einstellungen", "backup export import umzug"),
     Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
+    Command("Arbeitsspeicher", "settings/ram", "Einstellungen", "speicher ram arbeitsspeicher langsam messen freigeben"),
     Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
     Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
     Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),

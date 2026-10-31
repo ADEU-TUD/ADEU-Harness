@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub
 
 import android.content.Context
+import de.lokal.whisper.Speech
 import io.github.thepytales.llmhub.agent.AgentRunner
 import io.github.thepytales.llmhub.agent.AssistantTools
 import io.github.thepytales.llmhub.agent.ChatRuns
@@ -153,8 +154,14 @@ class AppContainer(context: Context) {
         }
     }
 
+    /** Background work of the container itself (memory care, AP-04). */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     init {
         App.container = this
+        // AP-04: measuring points and release of speech models that nobody used for a few minutes.
+        io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
+        scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }
     }
 }
 

@@ -81,10 +81,21 @@ fun main(args: Array<String>) {
     Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
+    // AP-04: on Windows the working set of the whole process (Java + native parts) for the memory display.
+    if (System.getProperty("os.name").orEmpty().startsWith("Windows")) {
+        io.github.thepytales.llmhub.data.MemoryMeter.processBytes = { io.github.thepytales.llmhub.desktop.ProcessMemory.workingSet() }
+    }
     LlmHubApp.start()
     Autostart.refresh()
     AppLog.i("ADEU LLM ${BuildConfig.VERSION_NAME} gestartet (${System.getProperty("os.name")}, Java ${System.getProperty("java.version")})")
     val minimized = Autostart.FLAG in args && isTraySupported
+    // Measuring point once the app has started (AP-04), a few seconds later when the first screen is up.
+    Thread {
+        Thread.sleep(8000)
+        io.github.thepytales.llmhub.data.MemoryMeter.mark("Start").let { m ->
+            AppLog.i("Speicher beim Start: Java ${m.heapUsed / 1_000_000} MB von ${m.heapMax / 1_000_000} MB, Prozess ${m.process?.let { "${it / 1_000_000} MB" } ?: "?"}")
+        }
+    }.apply { isDaemon = true }.start()
     application {
         App(startHidden = minimized, selfTest = selfTest, showRequests = showRequests)
     }

@@ -65,7 +65,10 @@ object AttachmentReader {
             if (file.length() > MAX_BYTES) return@withContext ReadResult(error = "„$name“ ist zu groß (max. 25 MB).")
             val bytes = file.readBytes()
             when {
-                mime == "application/pdf" || ext == "pdf" -> readPdf(name, bytes)
+                mime == "application/pdf" || ext == "pdf" -> readPdf(name, bytes).also {
+                    // AP-04: measuring point after a big PDF (does the memory go down again afterwards?).
+                    if (bytes.size > 2_000_000) io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach PDF-Anhang (${bytes.size / 1_000_000} MB)")
+                }
                 FormatReaders.handles(name) -> text(name, mime, FormatReaders.text(name, bytes).orEmpty())
                 mime.startsWith("image/") || ext in IMAGE_EXTENSIONS -> image(name, ext, bytes)
                 ext in TextFormats.MEDIA || mime.startsWith("audio/") || mime.startsWith("video/") ->

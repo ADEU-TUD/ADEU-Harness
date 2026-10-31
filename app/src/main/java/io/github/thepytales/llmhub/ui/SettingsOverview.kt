@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Handyman
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.LibraryBooks
@@ -81,6 +82,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "github" -> "GitHub"
     "chat" -> "Chat & Werkzeuge"
     "tools" -> "Werkzeuge"
+    "ram" -> "Arbeitsspeicher"
     "privacy" -> "Datenschutz"
     "appearance" -> "Darstellung"
     "voice" -> "Vorlesen & Spracheingabe"
@@ -220,6 +222,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             ).takeIf { FolderAccess.SUPPORTED },
             SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
             SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
+            SettingsItem("settings/ram", Icons.Outlined.Speed, "Arbeitsspeicher", memorySummary()),
             SettingsItem("settings/updates", Icons.Outlined.SystemUpdate, "Updates", updateSummary()),
             SettingsItem("settings/help", Icons.Outlined.BugReport, "Problem melden", "Beschreibung und anonymes Fehlerprotokoll senden"),
         ),

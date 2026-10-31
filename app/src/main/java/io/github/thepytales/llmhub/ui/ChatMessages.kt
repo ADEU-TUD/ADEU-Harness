@@ -185,11 +185,27 @@ fun chatItems(conv: Conversation): List<ChatItem> {
 }
 
 @Composable
-fun rememberDataUrlBitmap(url: String): ImageBitmap? = remember(url) {
+fun rememberDataUrlBitmap(url: String, maxPx: Int = THUMB_MAX_PX): ImageBitmap? = remember(url, maxPx) {
     runCatching {
         val bytes = Base64.decode(url.substringAfter(","), Base64.DEFAULT)
-        decodeImage(bytes)
+        decodeImage(bytes)?.let { downscale(it, maxPx) }
     }.getOrNull()
+}
+
+/** Thumbnails in the chat are kept small in memory (AP-04): a 12-megapixel photo needs 48 MB, its thumbnail 1 MB. */
+const val THUMB_MAX_PX = 512
+
+/** [img] scaled down so that its longer side is at most [maxPx]; smaller pictures stay as they are. */
+fun downscale(img: ImageBitmap, maxPx: Int): ImageBitmap {
+    val longer = maxOf(img.width, img.height)
+    if (longer <= maxPx) return img
+    val f = maxPx.toFloat() / longer
+    val out = ImageBitmap((img.width * f).toInt().coerceAtLeast(1), (img.height * f).toInt().coerceAtLeast(1))
+    androidx.compose.ui.graphics.Canvas(out).drawImageRect(
+        img, dstSize = androidx.compose.ui.unit.IntSize(out.width, out.height),
+        paint = androidx.compose.ui.graphics.Paint().apply { filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium },
+    )
+    return out
 }
 
 @Composable
