@@ -99,7 +99,8 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     LoraMotion.calm = s.loraCalm
     wish?.let { start -> LoraHelperDialog(c, start, go, onDismiss = { LoraHelper.request.value = null }) }
-    if (!s.loraIntroDone && s.hasAnyApiKey && wish == null) LoraIntroDialog(c)
+    // Who switched Lora off before is not asked again.
+    if (!s.loraIntroDone && s.hasAnyApiKey && !s.hideLora && wish == null) LoraIntroDialog(c)
 }
 
 /** Carries out a step that needs no confirmation; returns false for steps the user confirms first. */

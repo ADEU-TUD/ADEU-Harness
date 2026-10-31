@@ -179,6 +179,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // A PDF to open in the PDF-Werkzeugkasten (evidence of the Quellenmodus, a document card); the screen takes it.
+    val pdfRequest by PdfHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(pdfRequest) {
+        if (pdfRequest != null && nav.current.base != "pdf") nav.navigate("pdf")
+    }
+
     // Documents opened from a card, the literature screen or a chat answer (the chat shows them beside it when wide).
     val docRequest by DocsHandoff.request.collectAsStateWithLifecycle()
     LaunchedEffect(docRequest) {
@@ -363,6 +369,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "docs" -> DocsListScreen(c, onBack = back, onOpen = { id -> nav.navigate("doc/$id") })
         "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
+        "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

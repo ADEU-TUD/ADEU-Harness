@@ -48,6 +48,9 @@ enum class LoraAction(val periodMs: Long) {
     BOOKS(4600), CHART(5000), COFFEE(4600), RADAR(4600), BINOCULARS(5000), CARDS(5000), SHELF(5600), NET(4600),
     PUZZLE(5000), PLANE(4800), HEADPHONES(4800), ABACUS(4600), TWIRL(2600),
 
+    // PDF-Werkzeugkasten (AP-11): cutting, stapling, stamping.
+    SCISSORS(4200), STAPLER(4200), STAMP(4400),
+
     // On the start page.
     WAVE(2800), LOOK(5200), SLEEP(6000), STRETCH(4200), WATER(5400),
 }
@@ -58,7 +61,7 @@ internal val WORKING_SEQUENCE = listOf(
     LoraAction.GLOBE, LoraAction.JUGGLE, LoraAction.BINOCULARS, LoraAction.FLASK, LoraAction.PUZZLE, LoraAction.SEARCH,
     LoraAction.NOTES, LoraAction.NET, LoraAction.TELESCOPE, LoraAction.DANCE, LoraAction.SHELF, LoraAction.DIG,
     LoraAction.THINK, LoraAction.ABACUS, LoraAction.BOOKS, LoraAction.PLANE, LoraAction.CHART, LoraAction.HEADPHONES,
-    LoraAction.EUREKA, LoraAction.TWIRL, LoraAction.COFFEE,
+    LoraAction.EUREKA, LoraAction.TWIRL, LoraAction.COFFEE, LoraAction.SCISSORS, LoraAction.STAPLER, LoraAction.STAMP,
 )
 
 /** On the start page: calmer, with a look around between the activities. */
@@ -162,6 +165,8 @@ internal fun loraHint(tool: String?, thinking: Boolean): List<LoraAction> = when
     tool == "check_references" || tool == "check_accessibility" -> listOf(LoraAction.NOTES, LoraAction.MICROSCOPE)
     tool == "run_javascript" -> listOf(LoraAction.FLASK, LoraAction.ABACUS, LoraAction.CHART)
     tool == "create_chart" -> listOf(LoraAction.CHART)
+    tool == "make_pdf_fillable" -> listOf(LoraAction.STAMP, LoraAction.SCISSORS)
+    tool == "fill_pdf" || tool == "read_pdf_form" -> listOf(LoraAction.STAMP, LoraAction.STAPLER)
     tool == "create_email_draft" -> listOf(LoraAction.PLANE, LoraAction.TYPE)
     tool.startsWith("read_") || tool == "fetch_url" -> listOf(LoraAction.READ, LoraAction.MICROSCOPE)
     tool.startsWith("search_") || tool.startsWith("list_") -> listOf(LoraAction.DIG, LoraAction.NET, LoraAction.SEARCH)
@@ -313,6 +318,13 @@ private fun lerp(a: LoraPose, b: LoraPose, t: Float, tArms: Float = t) = LoraPos
 /** How far the clipboard of [LoraAction.NOTES] shows its front (1) or its back (0): turned to write, turned back to show. */
 private fun notesShow(p: Float) = 1 - ramp(p, 0f, 0.08f) + ramp(p, 0.76f, 0.86f)
 
+/** Stapler: three presses. */
+private fun staplerPress(p: Float) = maxOf(bump(p, 0.12f, 0.18f, 0.22f, 0.28f), bump(p, 0.36f, 0.42f, 0.46f, 0.52f), bump(p, 0.6f, 0.66f, 0.7f, 0.76f))
+
+/** Stamp: up high, then down onto the page, twice. */
+private fun stampLift(p: Float) = maxOf(bump(p, 0.06f, 0.2f, 0.26f, 0.32f), bump(p, 0.42f, 0.54f, 0.6f, 0.66f))
+private fun stampHit(p: Float) = maxOf(bump(p, 0.32f, 0.34f, 0.38f, 0.42f), bump(p, 0.66f, 0.68f, 0.72f, 0.76f))
+
 /** Where the paper plane of [LoraAction.PLANE] flies at [k] (0..1): up from the hand, a loop, then off to the right. */
 private fun planePath(k: Float): Offset {
     fun quad(a: Offset, c: Offset, b: Offset, t: Float) = Offset(
@@ -357,6 +369,41 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         lookX = 0.15f * wave(s, 0.5f), lookY = 0.8f, armL = -40 + 9 * wave(s, 4f), armR = -40 - 9 * wave(s, 4f),
         mouth = LoraMouth.FLAT,
     )
+    LoraAction.SCISSORS -> {
+        // Cuts along a sheet held in the other hand: the blades snip, Lora follows the cut with her eyes.
+        val cut = bump(p, 0.06f, 0.14f, 0.78f, 0.86f)
+        val done = ramp(p, 0.84f, 0.92f)
+        LoraPose(
+            tilt = 4 * cut, lookX = 0.6f * cut - 0.2f * done, lookY = 0.4f * cut - 0.4f * done, turn = 14 * cut,
+            hop = done * abs(wave(s, 1.4f)) * 0.8f,
+            armL = mix(14f, 48f, cut), armR = mix(14f, 52f + 10 * wave(s, 5f), cut),
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else if (cut > 0.5f) LoraEyes.FOCUS else LoraEyes.OPEN,
+            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.FLAT,
+        )
+    }
+    LoraAction.STAPLER -> {
+        // Presses the stapler with both hands, three times, a little hop at each press.
+        val press = staplerPress(p)
+        val done = ramp(p, 0.86f, 0.94f)
+        LoraPose(
+            hop = done * abs(wave(s, 1.5f)) * 0.8f - 0.6f * press, squash = 1 - 0.05f * press, lookY = 0.7f * (1 - done) - 0.3f * done,
+            armL = -30 - 14 * press, armR = -30 - 14 * press,
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else if (press > 0.5f) LoraEyes.FOCUS else LoraEyes.OPEN,
+            mouth = if (press > 0.5f) LoraMouth.FLAT else if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+        )
+    }
+    LoraAction.STAMP -> {
+        // Raises the stamp high and brings it down onto the page – twice –, then shows the result.
+        val lift = stampLift(p)
+        val hit = stampHit(p)
+        val done = ramp(p, 0.82f, 0.9f)
+        LoraPose(
+            hop = 1.4f * hit + done * abs(wave(s, 1.4f)) * 0.8f, tilt = -4 * lift + 3 * hit, lookX = 0.4f, lookY = 0.6f - 0.8f * lift,
+            armL = 14f + 30 * done, armR = mix(-20f, 150f, lift),
+            eyes = when { hit > 0.5f -> LoraEyes.WIDE; done > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.FOCUS },
+            mouth = if (done > 0.5f || hit > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+        )
+    }
     LoraAction.JUGGLE -> LoraPose(
         hop = abs(wave(s, 1.6f)) * 0.6f, lookX = 0.5f * wave(s, 0.35f), lookY = -0.7f,
         armL = 60 + 25 * wave(s, 1.6f), armR = 60 - 25 * wave(s, 1.6f), mouth = LoraMouth.GRIN,
@@ -685,6 +732,9 @@ private val Ocean = Color(0xFF5DADE2)
 private val Land = Color(0xFF4CAF50)
 private val Potion = Color(0xFF2EC4B6)
 private val Ivory = Color(0xFFF4EBD9)
+
+/** Red of the stamp (AP-11). */
+private val StampRed = Color(0xFFD32F2F)
 private val Tick = Color(0xFF34A853)
 private val Clay = Color(0xFFD9825B)
 
@@ -1148,6 +1198,54 @@ private fun DrawScope.drawHeld(
                 drawLine(c.line.fade(a * 0.6f), Offset(cx + 3.2f * u, y), Offset(cx + (6.6f - i * 1.2f) * u, y), 0.3f * u, StrokeCap.Round)
             }
             star(Offset(cx + 4.9f * u, bt + 6.2f * u), 1.1f * u, c.spark.fade(a))
+        }
+        LoraAction.SCISSORS -> {
+            val cut = bump(p, 0.06f, 0.14f, 0.78f, 0.86f)
+            // The sheet in the left hand, cut from the right edge as the scissors move along.
+            val sheet = Offset(handL.x - 3 * u, handL.y - 1 * u)
+            drawRoundRect(Ivory.fade(a), Offset(sheet.x - 3.5f * u, sheet.y - 4.5f * u), Size(7 * u, 9 * u), CornerRadius(0.4f * u))
+            drawRoundRect(c.line.fade(a * 0.6f), Offset(sheet.x - 3.5f * u, sheet.y - 4.5f * u), Size(7 * u, 9 * u), CornerRadius(0.4f * u), style = Stroke(0.25f * u))
+            val progress = ramp(p, 0.14f, 0.78f)
+            drawLine(c.line.fade(a * 0.7f * cut), Offset(sheet.x + 3.5f * u, sheet.y), Offset(sheet.x + 3.5f * u - 7 * u * progress, sheet.y), 0.3f * u, StrokeCap.Round, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(0.8f * u, 0.6f * u)))
+            // Two blades crossing at the hand, opening and closing.
+            val open = 18f + 16f * abs(wave(s, 5f)) * cut
+            listOf(-open, open).forEach { deg ->
+                rotate(deg - 180f, handR) {
+                    drawLine(c.line.fade(a), handR, Offset(handR.x + 4.2f * u, handR.y), 0.7f * u, StrokeCap.Round)
+                }
+                rotate(deg, handR) {
+                    drawCircle(c.prop.fade(a), 1.1f * u, Offset(handR.x + 1.6f * u, handR.y), style = Stroke(0.5f * u))
+                }
+            }
+        }
+        LoraAction.STAPLER -> {
+            val press = staplerPress(p)
+            val base = Offset(cx, bottom - 0.6f * u)
+            // Paper under the stapler, then the stapler: base and the top arm that goes down at each press.
+            drawRoundRect(Ivory.fade(a), Offset(base.x - 7 * u, base.y - 1.4f * u), Size(9 * u, 1.2f * u), CornerRadius(0.2f * u))
+            drawRoundRect(c.line.fade(a), Offset(base.x - 6 * u, base.y), Size(12 * u, 1.4f * u), CornerRadius(0.6f * u))
+            rotate(-14f * (1 - press), Offset(base.x + 5.5f * u, base.y - 1.2f * u)) {
+                drawRoundRect(c.prop.fade(a), Offset(base.x - 6 * u, base.y - 3.2f * u), Size(12 * u, 2.2f * u), CornerRadius(1 * u))
+                drawRoundRect(Color.White.fade(a * 0.35f), Offset(base.x - 5 * u, base.y - 2.9f * u), Size(7 * u, 0.6f * u), CornerRadius(0.3f * u))
+            }
+            if (press > 0.8f) star(Offset(base.x - 4.5f * u, base.y - 4.2f * u), 1 * u, c.spark.fade(a))
+        }
+        LoraAction.STAMP -> {
+            val hit = stampHit(p)
+            val pageAt = Offset(cx + 7 * u, bottom - 0.4f * u)
+            drawRoundRect(Ivory.fade(a), Offset(pageAt.x - 4 * u, pageAt.y - 1.2f * u), Size(8 * u, 1.2f * u), CornerRadius(0.2f * u))
+            // The red mark stays after the first hit.
+            if (p > 0.34f) {
+                drawRoundRect(StampRed.fade(a * 0.85f), Offset(pageAt.x - 2.6f * u, pageAt.y - 1.1f * u), Size(5.2f * u, 0.9f * u), CornerRadius(0.2f * u), style = Stroke(0.3f * u))
+            }
+            // The stamp in the right hand: wooden handle and a red rubber base.
+            val handle = Offset(handR.x, handR.y)
+            drawRoundRect(c.line.fade(a), Offset(handle.x - 0.8f * u, handle.y - 2.4f * u), Size(1.6f * u, 3.2f * u), CornerRadius(0.8f * u))
+            drawRoundRect(StampRed.fade(a), Offset(handle.x - 2.2f * u, handle.y + 0.6f * u), Size(4.4f * u, 1.3f * u), CornerRadius(0.3f * u))
+            if (hit > 0.5f) {
+                star(Offset(pageAt.x - 4.5f * u, pageAt.y - 3 * u), 0.9f * u, c.spark.fade(a))
+                star(Offset(pageAt.x + 4.2f * u, pageAt.y - 3.4f * u), 0.8f * u, c.spark.fade(a))
+            }
         }
         LoraAction.TYPE -> {
             drawRoundRect(c.line.fade(a), Offset(cx - 10 * u, bottom + 0.3f * u), Size(20 * u, 2 * u), CornerRadius(0.9f * u))

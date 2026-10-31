@@ -26,8 +26,19 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Modellvergleich, Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
 - **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge (PDF-Werkzeugkasten, Tresor, später Browser,
   Lernspiele, Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
-  „Mehr“. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor. Die ersten
-  Werkzeuge kommen mit den nächsten Paketen; bis dahin sind sie als „geplant“ zu sehen.
+  „Mehr“. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor. Einschaltbar
+  sind der *PDF-Werkzeugkasten* und der *Tresor*; die übrigen sind als „geplant“ zu sehen.
+- **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
+  zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
+  PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
+  Gerät** über eine Landkarte der App (`data/AppMap.kt`, mit Synonymen) – ohne Anfrage; nur für echte Gespräche fragt sie
+  GLM-5.3 Flash (Denkphase aus) mit den Werkzeugen *navigate*, *open_mode*, *change_setting* (nur nach Bestätigung),
+  *enable_tool*, *handoff_chat*, *explain* (eingebaute Hilfe) und Rückfragen mit Antwortknöpfen. Einstiege: schlafende Lora
+  unten rechts in den Einstellungen, TU Vorlagen und Literatur (Tipp weckt sie, Text oder Sprache), *Lora fragen* auf der
+  Startseite, Strg+K › *Lora fragen*, langes Drücken auf Lora im Chat. Beim ersten Start höchstens zwei Fragen (wo Lora
+  erscheint, welche Werkzeuge sichtbar sind). *Einstellungen › Lora*: überall / nur im Chat / aus (ersetzt „Lora
+  ausblenden“), Modell, ruhigere Bewegungen, Hinweise. Lora läuft nur auf Abruf; in Projekten „Nur auf diesem Gerät“ sucht
+  sie nur lokal.
 - **Startseite**: unter der Begrüßung eine Reihe Kacheln nach Tätigkeiten – *Fragen & schreiben*, *TU Vorlagen*,
   *Dokument erstellen*, *Dateien auswerten*, *Literatur finden* –, darunter *Zuletzt* (die letzten Chats) und *Favoriten*
   (★-Vorlagen). Lora bietet in der Sprechblase jeweils eine Idee an.
@@ -353,14 +364,42 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   einer Antwort: *⋯ › Literaturverzeichnis erstellen*. Der Zitierstil ist unter *Einstellungen › Literatur & Zotero* wählbar.
 - **Modi mit einheitlichem Rahmen**: Jeder Modus zeigt über dem Eingabefeld einen Chip mit ✕ zum Verlassen und eine Zeile
   „was passiert hier · Daten: …“; im leeren Chat steht ein Beispiel zum Antippen. Modi starten mit `/` (z. B. `/Planen`),
-  über die Befehlspalette (Strg+K, Gruppe *Modi*), die Startseite und Loras Ideen: *Literatursuche*, *Planungsmodus* und
-  *Sprachmodus*. Neue Modi brauchen nur eine Definition in `agent/ChatModes.kt`.
+  über die Befehlspalette (Strg+K, Gruppe *Modi*), die Startseite und Loras Ideen: *Literatursuche*, *Quellenmodus*,
+  *Exzerpt*, *Planungsmodus* und *Sprachmodus*. Neue Modi brauchen nur eine Definition in `agent/ChatModes.kt`.
 - **Rückfragen mit Antwortknöpfen**: Statt zu raten, stellt das Modell vor größeren Aufgaben 1–4 kurze Fragen
   (`ask_user`) – als Karte im Chat mit Antwortknöpfen (eine oder mehrere Antworten) und einem Feld für eine eigene
   Antwort; *Antworten* schickt alles als eine Nachricht, *Überspringen* lässt das Modell mit Annahmen weitermachen. Im
   **Planungsmodus** klärt Lora ein Vorhaben (Seminar, Antrag, Projekt, Paper, Arbeitsplan) in mehreren solchen Runden und
   schreibt daraus einen Plan als Dokument. **TU Vorlagen mit vielen Feldern** lassen sich statt im Formular mit
   *Lieber mit Lora Schritt für Schritt* als Fragerunde ausfüllen.
+- **Quellenmodus mit Belegpflicht** (`/Quellen`): Jede Aussage bekommt einen Marker [n], die Antwort endet mit
+  „## Belege“ – Datei und Seite, DOI, URL oder Transkriptzeit, jeweils mit wörtlichem Zitat. Danach prüft die App **auf dem
+  Gerät** jedes Zitat gegen die Quellen des Chats (Anhänge mit ihren Seitenmarken, gelesene Webseiten, Wissenssammlung,
+  Transkripte): bestätigt, andere Seite, nicht gefunden oder nicht prüfbar. Aussagen ohne Beleg werden im Text mit ⚠
+  markiert. Unter der Antwort steht das **Belegprotokoll** (aufklappbar, als Dokument exportierbar); ein Klick auf einen
+  Beleg öffnet die PDF-Seite im PDF-Werkzeugkasten oder die Webseite.
+- **Exzerpt-Agent** (`/Exzerpt`, *Literatur › Eintrag › Exzerpt erstellen* oder die TU Vorlage *Literatur exzerpieren*):
+  Schemata je Textart – empirisch (Bibliografie, Fragestellung, Theorie, Methode, Stichprobe, zentrale Befunde, wörtliche
+  Zitate mit Seite, Begriffe, eigene Bewertung, Anschlussfragen), theoretisch, Review und Buchkapitel. `save_excerpt`
+  prüft jede Seitenangabe gegen das angehängte PDF und nimmt das Exzerpt erst an, wenn sie stimmen; dann hängt es am
+  Literatureintrag (wird bei Bedarf angelegt) und liegt unter *Dokumente*. Mehrere Exzerpte: *Literatur › ⋯ › Exzerpte als
+  Tabelle*.
+- **Tresor für sensible Forschung** (Werkzeug, *Einstellungen › Werkzeuge*): eigener Bereich mit App-PIN für Interviews oder
+  Daten von Studierenden. Beim Einrichten erscheint einmal ein **Wiederherstellungsschlüssel** zum Ausdrucken, mit dem sich
+  eine vergessene PIN neu setzen lässt. Tresor-Chats sind mit AES-256 verschlüsselt (Schlüssel aus PIN, zusätzlich mit
+  Android Keystore bzw. Windows DPAPI gesichert) – ohne PIN auch als Datei nicht lesbar; sie erscheinen nicht in Chatliste,
+  Suche, Gedächtnis, Vorschlägen oder Benachrichtigungstexten. Im Tresor gelten **nur Uni-Server oder lokale Modelle**,
+  keine Websuche/GitHub und eine **strenge Pseudonymisierung** (gründliche Erkennung, keine Ausnahmen). Nach fünf falschen
+  PINs wartet jeder weitere Versuch länger; der Tresor sperrt sich nach einstellbarer Inaktivität.
+- **PDF-Werkzeugkasten** (Werkzeug, Vorbild pdf24 + Xodo): mehrere PDFs in **Tabs** mit Miniaturen, Gliederung, Suche,
+  Zoom und Nachtmodus; **Seiten** zusammenführen, teilen (alle n Seiten oder nach Bereichen), extrahieren, löschen, drehen,
+  **sortieren durch Ziehen** der Miniaturen und **Seitenzahlen** setzen; **Markieren**: hervorheben, unterstreichen,
+  durchstreichen, Freihand, Notizen und Stempel als echte PDF-Anmerkungen, Kommentarliste als Dokument exportieren.
+  Jeder Schritt lässt sich rückgängig machen; *Speichern* bzw. *Speichern unter / Teilen*. Auf Windows zusätzlich
+  **Formulare ausfüllbar machen**: *Felder erkennen* findet Eingabestellen (Linien „____“, „Name:“ mit Platz, Kästchen ☐,
+  Datum, Unterschrift), die Felder lassen sich verschieben, in der Größe ändern, umbenennen und umtypisieren; oder der
+  Agent macht es im Chat (`make_pdf_fillable`). Danach füllt man das PDF am PC aus (auch der Agent mit `fill_pdf`).
+  Android: Betrachter, Seiten und Markieren. Lora schneidet, heftet und stempelt dazu.
 - **Literatursuchmodus**: Thema und Kontext angeben (`/Literatursuche`, Kachel *Literatur finden* oder Strg+K) – der Agent sucht
   systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB, **SLUB-Katalog** (was an der TU Dresden ausleihbar
   oder lizenziert ist), **PubMed/Europe PMC**, **arXiv**, **DOAJ** und Google Books, verfolgt Zitationen in beide
@@ -826,9 +865,14 @@ Chats und Einstellungen erhalten bleiben).
 | `local/` | Lokale Sprachmodelle: `LocalCatalog` (Modelle, Hardware-Empfehlung), `LocalLlm` (Installieren, Server starten/stoppen), `LlamaHost` je Plattform; `app/llama.gradle.kts` baut llama-server für Android |
 | `data/Privacy.kt` | Datenschutzstufen der Projekte durchsetzen |
 | `data/AppTools.kt`, `ui/ToolsSettings.kt`, `ui/NavRules.kt` | Einschaltbare Werkzeuge, Seitenleiste mit „Mehr“, Loras Werkzeug-Vorschlag |
-| `agent/ChatModes.kt`, `ui/ModeUi.kt` | Modi (Literatursuche, Planungsmodus, Sprachmodus) mit einheitlichem Rahmen |
+| `agent/ChatModes.kt`, `ui/ModeUi.kt` | Modi (Literatursuche, Quellenmodus, Exzerpt, Planungsmodus, Sprachmodus) mit einheitlichem Rahmen |
 | `agent/AskUserTool.kt`, `ui/QuestionCard.kt` | Rückfragen mit Antwortknöpfen (`ask_user`), TU Vorlagen als Fragerunde |
 | `data/MemoryMeter.kt`, `ui/MemoryUsage.kt` | Arbeitsspeicher messen und anzeigen, Modelle im Leerlauf entladen |
+| `data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, `ui/Spotlight.kt` | Lora als Navigatorin: Landkarte der App, lokale Suche, Agent-Schleife, Dialog, Leuchtrahmen |
+| `agent/Evidence.kt`, `ui/EvidenceCard.kt` | Quellenmodus: Belege lesen, gegen die Quellen prüfen, Belegprotokoll |
+| `research/Excerpts.kt`, `agent/ExcerptTools.kt` | Exzerpt-Agent: Schemata, Seitenprüfung, `save_excerpt` |
+| `data/Vault.kt`, `data/DeviceKey.kt`, `ui/VaultScreen.kt` | Tresor: PIN, Wiederherstellungsschlüssel, Verschlüsselung (Keystore bzw. DPAPI) |
+| `docs/PdfTools.kt`, `docs/PdfToolModel.kt`, `ui/PdfRender.kt`, `ui/PdfToolScreen.kt` | PDF-Werkzeugkasten: Seiten, Anmerkungen, Formularfelder (erkennen und setzen), Darstellung je Plattform |
 
 ### Windows-Version (`desktop/`)
 

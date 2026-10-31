@@ -147,6 +147,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // A PDF to open in the PDF-Werkzeugkasten (evidence of the Quellenmodus, a document card); the screen takes it.
+    val pdfRequest by PdfHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(pdfRequest) {
+        if (pdfRequest != null && route != "pdf") runCatching { nav.navigate("pdf") { launchSingleTop = true } }
+    }
+
     // "In Chat senden" from the document editor: open that chat (or a new one).
     val chatRequest by ChatHandoff.open.collectAsStateWithLifecycle()
     LaunchedEffect(chatRequest) {
@@ -316,6 +322,9 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             }
             composable("docs") { back ->
                 DocsListScreen(c, onBack = { nav.back(back) }, onOpen = { id -> nav.go(back, "doc/$id") })
+            }
+            composable("pdf") { back ->
+                PdfToolScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) })
             }
             composable("vault") { back ->
                 VaultScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })

@@ -104,6 +104,10 @@ fun DocumentCard(path: String) {
                         Spacer(Modifier.size(4.dp))
                         Text(primaryLabel(file))
                     }
+                    // A PDF (e.g. made fillable by the agent) opens in the PDF-Werkzeugkasten when it is switched on (AP-11).
+                    if (file.extension.equals("pdf", ignoreCase = true) && io.github.thepytales.llmhub.App.container.settings.current.toolOn("pdf")) {
+                        TextButton(onClick = { PdfHandoff.open(file.absolutePath, 1, file.name) }) { Text(tr("Werkzeugkasten")) }
+                    }
                     TextButton(onClick = { shareDocument(context, file) }) {
                         Icon(ShareDoc.icon, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
