@@ -93,7 +93,7 @@ object CalendarFiles {
     fun writeAll(file: File, events: List<CalendarEvent>) {
         fun utc(t: LocalDateTime) = ZonedDateTime.of(t, ZONE).withZoneSameInstant(ZoneId.of("UTC")).format(UTC)
         val lines = buildList {
-            add("BEGIN:VCALENDAR"); add("VERSION:2.0"); add("PRODID:-//ADEU LLM//DE"); add("CALSCALE:GREGORIAN"); add("METHOD:PUBLISH")
+            add("BEGIN:VCALENDAR"); add("VERSION:2.0"); add("PRODID:-//Lora//DE"); add("CALSCALE:GREGORIAN"); add("METHOD:PUBLISH")
             for (e in events) {
             add("BEGIN:VEVENT")
             add("UID:${UUID.randomUUID()}@adeu-llm")

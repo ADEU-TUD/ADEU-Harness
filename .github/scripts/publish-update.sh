@@ -79,6 +79,6 @@ if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
   gh release upload "$tag" "${files[@]}" --repo "$repo" --clobber
   gh release edit "$tag" --repo "$repo" --notes "$body" --latest
 else
-  gh release create "$tag" "${files[@]}" --repo "$repo" --title "ADEU LLM $version" --notes "$body" --latest
+  gh release create "$tag" "${files[@]}" --repo "$repo" --title "Lora $version" --notes "$body" --latest
 fi
 echo "Veröffentlicht: https://github.com/$repo/releases/tag/$tag"

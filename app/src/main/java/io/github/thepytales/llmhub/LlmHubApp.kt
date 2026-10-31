@@ -57,7 +57,7 @@ object CrashLog {
         Thread.setDefaultUncaughtExceptionHandler { thread, error ->
             runCatching {
                 file.writeText(
-                    "ADEU LLM ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
+                    "Lora ${BuildConfig.VERSION_NAME} · Android ${android.os.Build.VERSION.RELEASE} · " +
                         "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n" + error.stackTraceToString() +
                         ErrorLog.recentText().takeIf { it.isNotBlank() }?.let { "\n\nZuvor abgefangene Fehler:\n$it" }.orEmpty()
                 )

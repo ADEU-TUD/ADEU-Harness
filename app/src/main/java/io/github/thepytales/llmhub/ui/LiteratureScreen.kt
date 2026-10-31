@@ -383,7 +383,7 @@ private fun Collection(c: AppContainer, initialList: String?, onOpenChat: () -> 
                 OutlinedButton(onClick = { importing = true }) { Text("Importieren") }
             }
         }
-        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = LORA_BUTTON_ROOM), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(shown, key = { it.id }) { r ->
                 AppCard(onClick = { editing = r }) {
                     Row(Modifier.padding(start = 4.dp, end = 12.dp, top = 6.dp, bottom = 8.dp), verticalAlignment = Alignment.Top) {
@@ -592,7 +592,7 @@ private fun BibliographyMaker(c: AppContainer, input: String, onInput: (String) 
         }
     }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = LORA_BUTTON_ROOM), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             AppCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

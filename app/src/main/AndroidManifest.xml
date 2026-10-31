@@ -33,6 +33,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Long press on the icon: "Lora fragen" and "Neuer Chat" -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
             <!-- "Teilen" from other apps: text, links, documents and images start a new chat -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

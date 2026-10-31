@@ -21,6 +21,12 @@ object ChatHandoff {
         val send: Boolean = false,
         /** Existing chat the content is for; null = a new chat. */
         val chatId: String? = null,
+        /** Sent to the model in front of the text, not shown (e.g. what Lora already found out). */
+        val instructions: String? = null,
+        /** Handed over by Lora: the line on the card above the message (see [io.github.thepytales.llmhub.data.ChatMessage.handoff]). */
+        val handoff: String? = null,
+        /** Model the chat should use (Lora's choice); set before sending. */
+        val model: String? = null,
     )
 
     val pending = MutableStateFlow<Content?>(null)

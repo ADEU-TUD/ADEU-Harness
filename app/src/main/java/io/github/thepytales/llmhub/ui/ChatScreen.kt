@@ -68,6 +68,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -116,6 +118,8 @@ fun ChatScreen(
     val scope = rememberCoroutineScope()
 
     var input by rememberSaveable { mutableStateOf("") }
+    /** A question Lora prepared (Übergaben erst zeigen): its context and card go along with the next message. */
+    var loraHandoff by remember { mutableStateOf<ChatHandoff.Content?>(null) }
     /** A mode handed over from the palette, the start page or another screen; started once the screen is ready (AP-05). */
     var pendingMode by remember { mutableStateOf<String?>(null) }
     /** Prompt template whose fields are being filled in, and the one whose instructions go with the next message. */
@@ -170,7 +174,11 @@ fun ChatScreen(
     LaunchedEffect(vm.chatId, handedOver) {
         ChatHandoff.takeFor(vm.chatId)?.let { h ->
             files.addAll(h.files)
-            if (h.text.isNotBlank() && input.isBlank()) input = h.text
+            // A wish about this chat from Lora („Fasse diesen Chat zusammen“) is sent right away.
+            if (h.send && h.text.isNotBlank() && !vm.running.value) {
+                follow.value = true
+                vm.send(h.text, emptyList(), h.files, instructions = h.instructions, handoff = h.handoff)
+            } else if (h.text.isNotBlank() && input.isBlank()) input = h.text
         }
     }
 
@@ -213,12 +221,19 @@ fun ChatScreen(
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
                 h.mode?.let { pendingMode = it }
+                // Lora chose the model: the chat keeps it (no automatic switch afterwards).
+                h.model?.takeIf { m -> vm.state.value?.let { conv -> Privacy.allows(c, Privacy.level(c, conv), m) } != false }?.let { m ->
+                    vm.setModel(m)
+                    vm.setAutoModel(false)
+                }
                 if (h.send && h.text.isNotBlank()) {
-                    vm.send(h.text, h.images, h.files)
+                    vm.send(h.text, h.images, h.files, instructions = h.instructions, handoff = h.handoff)
                 } else {
                     if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
                     files.addAll(h.files)
                     images.addAll(h.images)
+                    // „Übergaben erst zeigen“: the context goes along when the user sends.
+                    if (h.handoff != null) loraHandoff = h
                 }
             }
         }
@@ -301,6 +316,12 @@ fun ChatScreen(
     }
 
     val hasMessages = current.messages.isNotEmpty()
+    // Lora knows which chat is open (for „Fasse diesen Chat zusammen“ and the privacy level of its project).
+    LaunchedEffect(current.id, hasMessages, current.folderId) {
+        LoraHelper.chatId = current.id
+        LoraHelper.chatHasMessages = hasMessages
+        LoraHelper.folderId = current.folderId
+    }
     /** Sends the typed message; [withImages] false leaves the attached pictures out (after the privacy question). */
     fun sendNow(withImages: Boolean) {
         val pictures = if (withImages) images.toList() else emptyList()
@@ -308,7 +329,9 @@ fun ChatScreen(
             Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
         }
         follow.value = true
-        vm.send(input, pictures, files.toList(), activeTemplate)
+        val prepared = loraHandoff
+        vm.send(input, pictures, files.toList(), activeTemplate, instructions = prepared?.instructions, handoff = prepared?.handoff)
+        loraHandoff = null
         input = ""
         c.chatDrafts.delete(vm.chatId)
         templateId = null
@@ -386,6 +409,8 @@ fun ChatScreen(
                     }
                 },
                 actions = {
+                    // Lora, the helper (Strg+L): her panel with suggestions for this chat.
+                    LoraTopBarButton(c, current.folderId)
                     if (!hasMessages) {
                         // Temporary chat: nothing is saved (like the incognito mode of other apps).
                         IconButton(onClick = {
@@ -440,7 +465,7 @@ fun ChatScreen(
         bottomBar = {
             // Wide screens: the chat stays readable in a centered column.
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Box(Modifier.widthIn(max = CONTENT_WIDTH)) {
+            Box(Modifier.widthIn(max = CONTENT_WIDTH).onGloballyPositioned { LoraFlight.composer = it.boundsInRoot().center }) {
             Composer(
                 input = input,
                 onInput = { input = it },
@@ -506,6 +531,10 @@ fun ChatScreen(
                     )
                     // The frame of the active mode (AP-05): chip with ✕ and one line „what happens · Daten“.
                     io.github.thepytales.llmhub.agent.ChatModes.byId(current.mode)?.let { m -> ModeBanner(m) { vm.setMode(null) } }
+                    // Prepared by Lora (Übergaben erst zeigen): what goes along, with ✕ to leave it out.
+                    loraHandoff?.let { h -> LoraPreparedBanner(h.handoff.orEmpty()) { loraHandoff = null } }
+                    // While typing: the place of the app that fits („dunkles Design“ → Darstellung › Helligkeit).
+                    LoraTypingHint(c, input, onUsed = { input = "" })
                     PrivacySuggestions(c, input)
                     ToolSuggestion(c, input, files.map { it.name })
                     MemoryLearnBar(c, current.id)
@@ -699,9 +728,12 @@ fun ChatScreen(
                         val pendingCall = last?.toolCalls?.lastOrNull { results[it.id] == null }
                         val thinking = pendingCall == null && last?.role == "assistant" &&
                             (!last.reasoning.isNullOrBlank() || splitThinking(last.content).first != null)
+                        // A readable line for the step (AP-35): „Sucht im Web: „…““ instead of the bare tool name.
                         val step = when {
-                            pendingCall != null -> tr(toolLabel(pendingCall.name)) + " …"
+                            pendingCall != null -> io.github.thepytales.llmhub.agent.LoraSense.stepLine(pendingCall.name, pendingCall.arguments, tr(toolLabel(pendingCall.name)))
                             thinking -> tr("Denkt nach …")
+                            last?.role == "assistant" && splitThinking(last.content).second.isNotBlank() -> tr("Schreibt die Antwort …")
+                            (steps[runningHead ?: "new"]?.second ?: 0) > 0 -> tr("Wertet die Ergebnisse aus …")
                             else -> null
                         }
                         val head = runningHead ?: "new"

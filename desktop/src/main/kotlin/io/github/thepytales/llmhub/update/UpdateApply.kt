@@ -47,8 +47,8 @@ object UpdateApply {
                 JOptionPane.showMessageDialog(
                     null,
                     "Das Update konnte nicht installiert werden:\n\n${e.message}\n\n" +
-                        "ADEU LLM startet in der bisherigen Version. Einfach später noch einmal versuchen.\nProtokoll: ${log.path}",
-                    "ADEU LLM – Update",
+                        "Lora startet in der bisherigen Version. Einfach später noch einmal versuchen.\nProtokoll: ${log.path}",
+                    "Lora – Update",
                     JOptionPane.WARNING_MESSAGE,
                 )
             }
@@ -105,7 +105,7 @@ object UpdateApply {
                 Thread.sleep(500)
             }
         }
-        throw IOException("„$name“ ist noch in Benutzung – läuft ADEU LLM noch, oder ist eine Datei daraus geöffnet? (${last?.message})")
+        throw IOException("„$name“ ist noch in Benutzung – läuft Lora noch, oder ist eine Datei daraus geöffnet? (${last?.message})")
     }
 
     private fun start(exe: File) {

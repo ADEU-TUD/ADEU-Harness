@@ -412,7 +412,7 @@ class DocumentTools(
         return args to create(args, checks = false, ctx = ctx)
     }
 
-    private fun newFile(base: String, ext: String): File {
+    internal fun newFile(base: String, ext: String): File {
         folder.mkdirs()
         val name = DocumentWriter.safeName(base)
         var f = File(folder, "$name.$ext")

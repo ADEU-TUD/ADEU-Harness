@@ -16,6 +16,7 @@ import io.github.thepytales.llmhub.ui.LoraFrame
 import io.github.thepytales.llmhub.ui.WORKING_SEQUENCE
 import io.github.thepytales.llmhub.ui.HOME_SEQUENCE
 import io.github.thepytales.llmhub.ui.LORA_TAP_REACTIONS
+import io.github.thepytales.llmhub.ui.LORA_MOODS
 import io.github.thepytales.llmhub.ui.drawLora
 import io.github.thepytales.llmhub.ui.loraHint
 import java.awt.image.BufferedImage
@@ -117,10 +118,14 @@ class LoraFigureTest {
     fun hintsForTools() {
         assertEquals(listOf(LoraAction.SEARCH, LoraAction.RADAR, LoraAction.TELESCOPE, LoraAction.BINOCULARS), loraHint("web_search", false))
         assertEquals(listOf(LoraAction.BOOKS, LoraAction.CARDS, LoraAction.SHELF, LoraAction.READ), loraHint("search_literature", false))
-        assertEquals(listOf(LoraAction.READ, LoraAction.MICROSCOPE), loraHint("read_document", false))
+        assertEquals(listOf(LoraAction.HIGHLIGHT, LoraAction.READ), loraHint("read_document", false))
+        assertEquals(listOf(LoraAction.READ, LoraAction.MICROSCOPE), loraHint("read_file", false))
         assertEquals(listOf(LoraAction.FLASK, LoraAction.ABACUS, LoraAction.CHART), loraHint("run_javascript", false))
-        assertEquals(listOf(LoraAction.TYPE, LoraAction.NOTES), loraHint("create_document", false))
-        assertEquals(listOf(LoraAction.PLANE, LoraAction.TYPE), loraHint("create_email_draft", false))
+        assertEquals(listOf(LoraAction.TYPE, LoraAction.NOTES, LoraAction.SLIDES), loraHint("create_document", false))
+        assertEquals(listOf(LoraAction.MAIL, LoraAction.PLANE), loraHint("create_email_draft", false))
+        assertEquals(listOf(LoraAction.CALENDAR), loraHint("create_calendar_event", false))
+        assertEquals(listOf(LoraAction.SHEET, LoraAction.TYPE), loraHint("set_excel_cells", false))
+        assertEquals(listOf(LoraAction.STAMP, LoraAction.STAPLER), loraHint("fill_pdf", false))
         assertEquals(listOf(LoraAction.DIG, LoraAction.NET, LoraAction.SEARCH), loraHint("search_knowledge", false))
         assertEquals(listOf(LoraAction.HEADPHONES, LoraAction.NOTES), loraHint("transcribe_local_file", false))
         assertEquals(listOf(LoraAction.CHART), loraHint("create_chart", false))
@@ -128,7 +133,7 @@ class LoraFigureTest {
         assertEquals(emptyList(), loraHint(null, false))
         assertEquals(emptyList(), loraHint("unbekanntes_werkzeug", false))
         // Every action shows up somewhere: while working, on the start page or as a reaction to a tap.
-        val used = WORKING_SEQUENCE + HOME_SEQUENCE + LORA_TAP_REACTIONS + LoraAction.SLEEP
+        val used = WORKING_SEQUENCE + HOME_SEQUENCE + LORA_TAP_REACTIONS + LORA_MOODS + LoraAction.SLEEP
         assertEquals(LoraAction.entries.toSet(), used.toSet(), "ungenutzte Aktionen")
     }
 

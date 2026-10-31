@@ -169,6 +169,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             when (r) {
                 "drawer" -> openDrawer()
                 "palette" -> palette = true
+                "lora" -> LoraHelper.toggle()
                 "shortcuts" -> shortcuts = true
                 "chat" -> nav.openChat(chatRoute())
                 // Escape: close the menu, otherwise go back.
@@ -249,8 +250,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         )
     }
     if (shortcuts) ShortcutsDialog(onDismiss = { shortcuts = false })
-    // Lora als Navigatorin (AP-07): her conversation and the two questions of the first start.
+    // Lora (AP-07, AP-34): answers wishes, leads to places, and the two questions of the first start. She knows where
+    // the user is, so her suggestions fit the screen.
     LoraHelperHost(c) { r -> if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) }
+    LaunchedEffect(entry.route) { LoraHelper.route.value = entry.route }
 
     /** Width of the side menu; the line beside it can be dragged. */
     var menuWidth by remember { mutableStateOf(318.dp) }
@@ -278,7 +281,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.fillMaxSize().trackLoraGaze()) {
         val wide = maxWidth >= 1000.dp
         layout.wide = wide
         if (wide) {
@@ -305,10 +308,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                     }
                 }
                 Box(Modifier.weight(1f)) { screen() }
+                // Lora's panel beside the app; the app gets narrower instead of covered.
+                LoraSidePanel(c)
             }
         } else {
             ModalNavigationDrawer(drawerState = drawer, gesturesEnabled = onChat, drawerContent = menu) { screen() }
+            LoraSheet(c)
         }
+        // Lora flying from her panel to the place she leads to.
+        LoraFlightLayer()
         SnackbarHost(
             snackbar,
             modifier = Modifier
@@ -380,7 +388,7 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("ADEU LLM ist abgestürzt") },
+        title = { Text("Lora ist abgestürzt") },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 Text(

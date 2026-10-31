@@ -1,4 +1,4 @@
-# Arbeitsplan ADEU LLM
+# Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“)
 
 Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 
@@ -30,7 +30,7 @@ Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. |
 | Übersichtlichkeit | Die App darf durch neue Funktionen nicht unübersichtlich werden: große Werkzeuge sind **einschaltbar** (anfangs aus, Lora schlägt sie passend vor), eingeschaltete Fortgeschrittene stehen in der Seitenleiste unter **„Mehr“**. Jedes neue Werkzeug fügt sich in AP-02 ein. Keine Einfach-/Expertenansicht. |
 | Plattformen | **Windows-PC ist die Hauptplattform.** Android zieht nur Funktionen nach, die dort sinnvoll sind – **kein** Videoeditor, **kein** Kreativbereich. Website, macOS und Linux erst ganz am Ende. |
-| Lora | Navigator und Helfer: findet Einstellungen, öffnet Modi und Vorlagen, übergibt an Chat-Modelle (GLM-5.3 Flash). Lora reagiert, unterbricht nicht. Neue **Animationen kommen mit dem jeweiligen Werkzeug**, nicht als eigenes Paket. |
+| Lora | **Kern der App** und Namensgeberin (seit 1.0.44 heißt die App „Lora“, Slogan: *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden*; technische Namen wie `ADEU LLM.exe` und die Datenordner bleiben). Navigator und Helfer: findet Einstellungen, öffnet Modi und Vorlagen, übergibt an Chat-Modelle – **Standard für Übergaben ist DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora selbst entscheidet und begründet. Lora antwortet selbst mit GLM-5.3 Flash. Lora reagiert, unterbricht nicht. Animationen dürfen auch ohne neues Werkzeug kommen, wenn sie Lora lebendiger machen (AP-36); sie bleiben seriös und respektieren *Ruhigere Bewegungen*. |
 | Modus-Konzept | Einheitlich: Chip über dem Eingabefeld, eine Zeile „was passiert hier“, Datenhinweis, ✕ zum Verlassen. |
 | Datenschutz | Pseudonymisierung wird treffsicherer (weniger Fehlalarme, weniger Übersehenes). Für sensible Forschung gibt es den **Tresor** statt einer allgemeinen App-Sperre. |
 | KI entscheidet nicht | Die KI schlägt vor, ein Mensch entscheidet (Bewertungen, Mails). Mails werden **nie gelöscht und nie ohne Aufforderung gesendet**. KI-Verordnung: Prüfungsbewertung ist Hochrisiko → nur Assistenz, Protokoll, Hinweis in der App. Datenschutzhinweise und Löschfristen für Mails und Abgaben laufend mitpflegen (bisher Q-04). |
@@ -41,7 +41,7 @@ Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Eigene Werkzeuge statt Fremd-Apps | Selbst bauen, gehört vollständig uns. Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden; je Werkzeug wird geprüft, ob Code übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
 | Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); **nachladbare Erweiterungen** erst mit dem Videoeditor (AP-25). |
 | Sprachen | Englisch vervollständigen (eigenes Paket, später), keine weiteren Sprachen. |
-| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, Lora-Animationen als eigenes Paket (W2-07), weitere Sprachen. |
+| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen. (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
 
 ---
 
@@ -49,7 +49,7 @@ Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
+| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2 · AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis |
 | **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
@@ -258,6 +258,51 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   `ui/PdfRender.kt`, `ui/PdfToolScreen.kt`, Agent-Werkzeug `make_pdf_fillable`; Lora schneidet, heftet und stempelt.
   Markieren per Rechteck (noch ohne Einrasten am Text).
 
+### AP-33 ☑ Umbenennung in Lora und sichtbare Fehler · S–M (neu, 31.10.2026)
+- App-Name **Lora** mit Slogan *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU
+  Dresden*: Fenstertitel, Infobereich, Android-App-Name, Startanimation, Seitenleiste, Über/Hilfe, Update-Dialoge,
+  Benachrichtigungen, Dokument-Metadaten, Loras Prompts, Release-Titel, README und Updater-README.
+- **Technische Namen bleiben** (`ADEU LLM.exe`, `%APPDATA%\ADEU LLM`, `%LOCALAPPDATA%\ADEU LLM`, `ADEU-LLM-…`-Dateien,
+  Autostart): ältere Versionen suchen beim Update genau diese Namen. Umzug später nur mit Migration (Ideen).
+- **Übergabe an den Chat**: Karte *Von Lora übergeben · Modell · Grund* über der Frage; Loras Zusammenfassung geht als
+  versteckte Anweisung mit statt sichtbar im Text; das gewählte Modell bleibt (vorher sprang die automatische Wahl auf
+  das Standardmodell bzw. ein Förderprogramm landete wegen „programm“ beim Programmiermodell); Standard für Übergaben
+  **DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora entscheidet und begründet; *Übergaben erst zeigen*.
+- Schlafende Lora verdeckt keine Einträge mehr; kurze Chat-Titel aus der ersten Nachricht (`data/ChatTitles.kt`);
+  breite Tabellen zeigen, dass sie seitlich weitergehen.
+- Betrifft: `Brand.kt`, `ui/Logo.kt`, `ui/AppDrawer.kt`, `desktop/…/Main.kt`, `desktop/launcher/Launcher.cs`,
+  `agent/LoraAgent.kt`, `agent/ModelRouter.kt`, `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `ui/Markdown.kt`.
+
+### AP-34 ☑ Lora-Panel mit Kontext · M (neu, 31.10.2026)
+- Panel statt Popup: Seitenleiste rechts bei breiten Fenstern (bleibt beim Navigieren offen), Blatt von unten auf dem
+  Handy; Gespräch bleibt bis *Neu beginnen*; Antworten schrittweise und formatiert; *Abbrechen*; freundliche Fehler.
+- **Kontext**: Lora kennt den Bereich und zeigt passende Vorschläge („Das passt hier“), feste Ziele öffnen ohne Anfrage,
+  Wünsche zum offenen Chat landen in diesem Chat.
+- **Ergebnis-Karten** für Orte, Einstellungen (Vorher → Nachher, *Rückgängig*), Werkzeuge, Fristen und frühere Chats.
+- Einstiege: **Strg+L** (Literatur: Strg+Umschalt+L), Lora-Knopf im Chat, *Frag Lora …* auf der Startseite, Android-
+  Verknüpfung am App-Symbol, Strg+K, schlafende Lora.
+- Betrifft: `ui/LoraHelper.kt`, `ui/AppRoot.kt` (beide), `ui/ChatScreenParts.kt`, `res/xml/shortcuts.xml`.
+
+### AP-35 ☑ Lora hilft im Chat · M (neu, 31.10.2026)
+- **Nächste Schritte** unter der letzten Antwort, auf dem Gerät erkannt: Fristen in den Kalender (.ics mit Erinnerung),
+  Tabelle als Excel, DOIs in die Literatur, langer Text als Word.
+- Neue Fähigkeiten: `search_chats` (frühere Chats, auch lokal „Wo hatte ich …?“), `add_reminder` (Frist/Erinnerung).
+- **Hinweis beim Tippen**: klarer App-Wunsch im Chatfeld → Lora zeigt den Ort darüber (nie bei echten Fragen).
+- **Arbeitskarte**: verständliche Schrittzeilen („Sucht im Web: „…““, „Liest dfg.de“), „Schreibt die Antwort …“.
+- Betrifft: `agent/LoraSense.kt`, `ui/LoraChat.kt`, `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `data/SettingsStore.kt`.
+
+### AP-36 ☑ Animationen · M (neu, 31.10.2026, auf Wunsch statt „nur mit dem Werkzeug“)
+- **Korrigiert**: Schere schneidet das Blatt entlang der Linie (vorher schnitt sie in die Luft), Stempel trifft das Blatt
+  auf einem Beistelltisch und zeigt das Siegel (vorher landete er unter dem Blatt, das mitsprang), Tacker steht auf dem
+  Tisch (vorher hing er vor Loras Bauch). Grundlage: Hände können gezielt nach einem Punkt greifen (`reachL/reachR`).
+- **Neu**: Brief, Kalender, Staffelei, Schloss, Präsentation, Tabelle, Übersetzen, Textmarker, Ordner; Stimmungen Nicken,
+  Jubel mit Konfetti, Schulterzucken, Kopfkratzen, Zeigen, Fliegen, Ruhe; Augen folgen dem Zeiger; Startseite nach
+  Tageszeit; im Sprachmodus nickt Lora beim Zuhören.
+- **Vom Wunsch zum Ort**: Lora fliegt aus dem Panel zum Ziel (Chat-Eingabe, Seitenleiste, Einstellung) und landet mit
+  einem Ring; der Ort leuchtet.
+- Kontaktbogen aller 51 Aktionen: `LoraFigureTest` (`desktop/build/lora.png`), Bilder des Panels: `LoraPanelLookTest`.
+- Betrifft: `ui/LoraFigure.kt`, `ui/LoraFlight.kt`, `ui/LoraUi.kt`, `ui/VoiceMode.kt`, `ui/Spotlight.kt`.
+
 ---
 
 ## Danach
@@ -421,6 +466,7 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
   Browser-Automatisierung für Portale ohne Schnittstelle.
 - **Anbindungen**: Zotero, Obsidian, Moodle, LimeSurvey und weitere aus dem alten Katalog (W9-03); ADEU als MCP-Server
   (W9-04); Plugins (W9-05).
+- **Lora**: technische Namen (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
 - **Bedienung**: Rollenauswahl beim ersten Start (W2-08), Fehlermeldungen in Klartext mit Lösungsknopf (W2-09),
   Einfügen über die Gboard-Leiste/langes Drücken auf Android (Rest von W1-01).
 - **Team**: gemeinsamer Ordner für TU Vorlagen der Professur (abgespeckte W4-03, sehr niedrige Priorität).
@@ -453,6 +499,10 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-09 Exzerpt-Agent | Schemata je Textart, `save_excerpt` mit Seitenprüfung, Exzerpt am Literatureintrag, Tabelle | große Stapel mit AP-20 |
 | ☑ AP-10 Tresor | PIN, Wiederherstellungsschlüssel, AES-256 mit Keystore/DPAPI, nur Uni/lokal, strenge Pseudonymisierung | Tresor-Projekte, Sync mit AP-12 |
 | ☑ AP-11 PDF Stufe 1 | Tabs, Seiten, Markieren, Kommentare, Formulare ausfüllbar (Erkennung, Editor, Agent) | Einrasten am Text beim Markieren |
+| ☑ AP-33 Umbenennung in Lora | sichtbarer Name und Slogan, saubere Übergabe (DeepSeek als Standard), Chat-Titel, Tabellenhinweis | technische Namen mit Migration (Ideen) |
+| ☑ AP-34 Lora-Panel | Seitenleiste/Blatt, Kontext-Vorschläge, Ergebnis-Karten mit Rückgängig, Strg+L, Android-Verknüpfung | – |
+| ☑ AP-35 Lora im Chat | nächste Schritte (Kalender, Excel, Literatur, Word), Chat-Suche, Erinnerungen, Hinweis beim Tippen, Schrittzeilen | – |
+| ☑ AP-36 Animationen | Schere/Stempel/Tacker korrigiert, 16 neue Aktionen, Flug zum Ziel, Augen folgen dem Zeiger | – |
 
 ---
 

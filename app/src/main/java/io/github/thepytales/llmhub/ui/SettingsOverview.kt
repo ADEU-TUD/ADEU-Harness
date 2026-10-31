@@ -234,7 +234,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         onNavigate,
     )
     Text(
-        "ADEU LLM ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
+        "Lora ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

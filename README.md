@@ -1,7 +1,13 @@
-# ADEU LLM – Android- und Windows-App für die Uni-LLM-API
+# Lora – Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden
 
 Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM-Schnittstelle unter `https://llm.scads.ai/v1`
 (API-Key aus dem TU-Dresden-Self-Service). Inoffiziell, nicht mit der Universität verbunden.
+
+**Name**: Die App heißt seit Version 1.0.44 **Lora** – wie ihre Helferin (bis 1.0.43 „ADEU LLM“). Sichtbar heißt alles
+Lora (Fenster, Taskleiste, Android-Symbol, Startanimation mit Slogan, Updates, Dokument-Metadaten). **Technische Namen
+bleiben bewusst**: `ADEU LLM.exe`, die Datenordner `%APPDATA%\ADEU LLM` und `%LOCALAPPDATA%\ADEU LLM`, die Dateien der
+Releases (`ADEU-LLM-x.y.z-…`) und der Autostart-Eintrag – ältere Versionen suchen beim Update genau diese Namen, und
+vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen wäre ein eigener Schritt mit Migration.
 
 ## Funktionen
 
@@ -28,6 +34,34 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Lernspiele, Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
   „Mehr“. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor. Einschaltbar
   sind der *PDF-Werkzeugkasten* und der *Tresor*; die übrigen sind als „geplant“ zu sehen.
+- **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
+  - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
+    App wird schmaler statt verdeckt –, auf dem Handy ein Blatt von unten. Das Gespräch bleibt bis *Neu beginnen*,
+    Antworten erscheinen schrittweise und formatiert, *Abbrechen* stoppt, Fehler sind freundlich formuliert.
+  - **Kontext**: Lora weiß, wo du bist, und zeigt passende Vorschläge („Das passt hier“): im Chat *Chat zusammenfassen*
+    und *Als Word-Dokument* (landen direkt im offenen Chat), in den Einstellungen *Hell oder dunkel*, in der Literatur
+    *Exzerpt erstellen* und *Zitierstil* usw. Feste Ziele öffnen sofort, ohne Anfrage.
+  - **Ergebnis-Karten**: Orte mit Pfad und *Öffnen*, Einstellungen mit Vorher → Nachher, *Umstellen* und **Rückgängig**,
+    Werkzeuge mit Beschreibung, Fristen als Kalenderkarte, frühere Chats zum Öffnen.
+  - **Neue Fähigkeiten**: frühere Chats durchsuchen („Wo hatte ich das mit der Wübben-Stiftung?“, „meine letzten Chats“ –
+    auf dem Gerät), **Fristen und Erinnerungen in den Kalender** (ganztägiger Termin mit Erinnerung, öffnet in Outlook
+    bzw. der Kalender-App), mehrere Einstellungen auf einmal.
+  - **Saubere Übergabe an den Chat**: Über der Frage steht eine Karte *Von Lora übergeben · Modell · Grund*; was Lora
+    schon geklärt hat, geht als versteckte Anweisung mit (aufklappbar) statt sichtbar in deinem Text. **Standardmodell
+    für Übergaben ist DeepSeek V4.1 Flash** (*Einstellungen › Lora*); nur in Sonderfällen – Programmieren, sehr
+    schwierige Analysen, riesige Textmengen – wählt Lora selbst ein anderes und nennt den Grund. Der Chat behält das
+    Modell (kein automatischer Wechsel danach). *Übergaben erst zeigen* legt die Frage nur ins Eingabefeld.
+  - **Lora im Chat**: *Nächste Schritte* unter der letzten Antwort, auf dem Gerät erkannt – *Frist 30.11. in den
+    Kalender* (auch aus Tabellen mit Spalte „Frist“), *Tabelle als Excel*, *In Literatur übernehmen* (DOIs über
+    Crossref), *Als Word-Dokument*. Beim Tippen zeigt Lora über dem Eingabefeld den passenden Ort der App („dunkles
+    Design“ → *Darstellung › Helligkeit*), nie bei echten Fragen. Die Arbeitskarte beschreibt den Schritt verständlich
+    („Sucht im Web: „…““, „Liest dfg.de“, „Schreibt „Antrag““); ist eine Antwort fertig, jubelt Loras Signatur kurz.
+  - **Überall erreichbar**: **Strg+L** (Windows; Literatur jetzt Strg+Umschalt+L), Lora-Knopf oben im Chat, Feld *Frag
+    Lora …* auf der Startseite, Strg+K › *Lora fragen*, die schlafende Lora (verdeckt keine Einträge mehr), Android:
+    langes Drücken aufs App-Symbol › *Lora fragen*.
+  - **Wege mit Animation**: Führt Lora irgendwohin, fliegt sie aus ihrem Panel dorthin – ins Eingabefeld des Chats, zum
+    Eintrag der Seitenleiste oder zur Einstellung, die dann leuchtet – mit einer Spur kleiner Sterne und einem Ring bei
+    der Landung.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -262,7 +296,18 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Einband nach außen, auf dem Klemmbrett schreibt Lora von hinten und dreht es zum Zeigen um. Lora dreht Kopf und Körper
   zu dem, was gerade wichtig ist, lehnt sich in Bewegungen, federt beim Hüpfen, die Antenne schwingt nach, die Arme
   haben weiche Ellbogen, und zwischen zwei Tätigkeiten hüpft Lora kurz hinüber. Ein Tipp auf Lora in der Arbeitskarte
-  bringt ein Winken, eine Pirouette oder einen Geistesblitz. Fertige Antworten zeigen eine ruhige Zeile
+  bringt ein Winken, eine Pirouette, einen Geistesblitz, einen Jubel oder ein Nicken. **Seit AP-36** arbeitet Lora auch
+  mit Werkzeugen, die wirklich ansetzen – ihre Hände greifen dabei gezielt nach einem Punkt: Die **Schere** schneidet ein
+  Blatt entlang der Linie durch (die untere Hälfte fällt), **Stempel** und **Tacker** stehen auf einem kleinen
+  Beistelltisch – der Stempel trifft das Blatt und hinterlässt ein rotes Siegel, das Lora danach zeigt; dazu ein
+  **Brief**, der gefaltet, eingesteckt und mit einem Herz versiegelt wird (E-Mail-Entwürfe), der **Wandkalender**, an dem
+  sie umblättert und einen Tag rot einkreist (Termine, Fristen), die **Staffelei** (Logos), das **Vorhängeschloss** mit
+  Schlüssel, eine **Präsentation** mit Zeigestock (Dokumente), eine **Tabelle**, die sich füllt (Excel), **Übersetzen** mit
+  zwei Sprechblasen, der **Textmarker** (Dokumente und Quellen prüfen) und ein **Ordner**, in den ein Blatt fällt. Dazu
+  Stimmungen: Lora **zeigt den Weg**, wenn sie irgendwohin führt, **nickt**, **zuckt mit den Schultern**, wenn sie nichts
+  findet, **kratzt sich am Kopf** bei Fehlern, **jubelt** mit Konfetti und **fliegt** von ihrem Panel zum Ziel. Ihre
+  Augen folgen dem Mauszeiger, solange sie nur da ist; morgens beginnt sie auf der Startseite mit einem Kaffee, spätabends
+  ist sie ruhiger. *Ruhigere Bewegungen* (Einstellungen › Lora) gilt auch für das Fliegen. Fertige Antworten zeigen eine ruhige Zeile
   „Gedankengang und 4 Arbeitsschritte“. **Auf der Startseite** winkt Lora zur Begrüßung, wartet dann (schaut sich um,
   streckt sich, gießt die Pflanze, hört Musik, liest, dreht den Globus …) und bietet in einer Sprechblase eine Idee an –
   Favoriten bzw. empfohlene Vorlagen, Beispiele wie „Literatur zu einem Thema finden“ und alle Vorlagen; ↻ oder ein Tipp
@@ -490,7 +535,7 @@ Eigene Android-App (und portable Windows-Version) für die OpenAI-kompatible LLM
   Zeiten (für Untertitel), **Stimmprofile**, die bekannte Sprecher:innen in neuen Aufnahmen wiedererkennen, und
   *Protokoll erstellen* aus dem Transkript.
 - **Bedienung**: **Strg+K** Befehlspalette (Bereiche, Einstellungen, Chats), **Strg+/** Übersicht der Tastenkürzel,
-  Strg+L/D/T für Literatur, Dokumente, Transkription; die Seitenleiste unter Windows lässt sich durch Ziehen breiter
+  **Strg+L** Lora, Strg+Umschalt+L Literatur, Strg+D/T Dokumente, Transkription; die Seitenleiste unter Windows lässt sich durch Ziehen breiter
   oder schmaler machen. Suche in den Einstellungen. **Sprache der Oberfläche** Deutsch oder Englisch
   (*Einstellungen › Darstellung*; bisher sind Menüs, Einstellungen und Startseite übersetzt, Antworten folgen der
   gewählten Sprache). Ein automatischer Test prüft den Textkontrast aller Stile nach WCAG.
@@ -868,7 +913,9 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/ChatModes.kt`, `ui/ModeUi.kt` | Modi (Literatursuche, Quellenmodus, Exzerpt, Planungsmodus, Sprachmodus) mit einheitlichem Rahmen |
 | `agent/AskUserTool.kt`, `ui/QuestionCard.kt` | Rückfragen mit Antwortknöpfen (`ask_user`), TU Vorlagen als Fragerunde |
 | `data/MemoryMeter.kt`, `ui/MemoryUsage.kt` | Arbeitsspeicher messen und anzeigen, Modelle im Leerlauf entladen |
-| `data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, `ui/Spotlight.kt` | Lora als Navigatorin: Landkarte der App, lokale Suche, Agent-Schleife, Dialog, Leuchtrahmen |
+| `data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, `ui/Spotlight.kt` | Lora als Navigatorin: Landkarte der App, lokale Suche, Agent-Schleife, Panel (Seitenleiste/Blatt) mit Ergebnis-Karten, Leuchtrahmen |
+| `agent/LoraSense.kt`, `ui/LoraChat.kt`, `ui/LoraFlight.kt` | Was Lora auf dem Gerät erkennt (Vorschläge je Bereich, Fristen, Tabellen, DOIs, Ort beim Tippen, Schrittzeilen), Übergabe-Karte und nächste Schritte im Chat, Flug zum Ziel und Augen, die dem Zeiger folgen |
+| `Brand.kt`, `data/ChatTitles.kt` | Name und Slogan der App; kurze Chat-Titel aus der ersten Nachricht |
 | `agent/Evidence.kt`, `ui/EvidenceCard.kt` | Quellenmodus: Belege lesen, gegen die Quellen prüfen, Belegprotokoll |
 | `research/Excerpts.kt`, `agent/ExcerptTools.kt` | Exzerpt-Agent: Schemata, Seitenprüfung, `save_excerpt` |
 | `data/Vault.kt`, `data/DeviceKey.kt`, `ui/VaultScreen.kt` | Tresor: PIN, Wiederherstellungsschlüssel, Verschlüsselung (Keystore bzw. DPAPI) |

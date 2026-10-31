@@ -117,11 +117,11 @@ compose.desktop {
 
         nativeDistributions {
             appResourcesRootDir.set(layout.buildDirectory.dir("speech/desktop"))
-            // Portable app folder (ADEU LLM.exe + runtime); see .github/scripts/windows-portable.ps1.
+            // Portable app folder (ADEU LLM.exe + runtime; the technical name stays, the app is called Lora – see Brand.kt); see .github/scripts/windows-portable.ps1.
             targetFormats(TargetFormat.AppImage)
             packageName = "ADEU LLM"
             packageVersion = appVersion
-            description = "ADEU LLM – Chat, Agenten und Dokumente mit der Uni-LLM-API"
+            description = "Lora – Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden"
             vendor = "thepytales"
             copyright = "Inoffiziell, nicht mit der Universität verbunden."
             // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files;

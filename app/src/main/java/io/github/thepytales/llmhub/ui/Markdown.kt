@@ -49,6 +49,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.text.withStyle
@@ -499,8 +501,12 @@ private fun TableBlock(rows: List<List<String>>, sources: Map<Int, SourceTarget>
     val widths = (0 until cols).map { c -> rows.maxOf { it.getOrNull(c)?.length ?: 0 }.coerceIn(3, 40) }
     val accent = MaterialTheme.colorScheme.primary
     val line = MaterialTheme.colorScheme.outlineVariant
-    Surface(color = LocalChatLook.current.card, border = boxBorder(), shape = MaterialTheme.shapes.small) {
-        Column(Modifier.horizontalScroll(rememberScrollState())) {
+    val scroll = rememberScrollState()
+    val card = LocalChatLook.current.card
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    Surface(color = card, border = boxBorder(), shape = MaterialTheme.shapes.small) {
+      Box {
+        Column(Modifier.horizontalScroll(scroll)) {
             rows.forEachIndexed { r, row ->
                 Row(
                     Modifier
@@ -522,6 +528,28 @@ private fun TableBlock(rows: List<List<String>>, sources: Map<Int, SourceTarget>
                 if (r < rows.lastIndex) HorizontalDivider(color = if (r == 0) accent.copy(alpha = 0.35f) else line.copy(alpha = 0.6f))
             }
         }
+        // More columns to the right: a soft edge and an arrow that scrolls on, so nothing looks cut off.
+        if (scroll.canScrollForward) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(40.dp)
+                    .matchParentSize()
+                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(0.55f to card.copy(alpha = 0f), 1f to card)),
+            )
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = androidx.compose.foundation.BorderStroke(1.dp, line),
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp).size(28.dp)
+                    .clickable(onClickLabel = "Weitere Spalten") { scope.launch { scroll.animateScrollTo(scroll.value + 360) } },
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weitere Spalten", modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+      }
     }
 }
 

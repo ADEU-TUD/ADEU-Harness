@@ -16,6 +16,10 @@ class VoiceAndAutoModelTest {
         fun pick(text: String, images: Int = 0, files: List<FileAttachment> = emptyList(), github: Boolean = false) =
             ModelRouter.suggest(text, images, files, github).model
         assertEquals(ModelCatalog.DEFAULT_CHAT, pick("Schreib eine kurze Mail an das Prüfungsamt."))
+        // Everyday words that only contain a programming word stay with the standard model.
+        assertEquals(ModelCatalog.DEFAULT_CHAT, pick("Suche aktuelle Förderprogramme für Forschung und Lehre mit Frist und Kurzbeschreibung"))
+        assertEquals(ModelCatalog.DEFAULT_CHAT, pick("Fasse mein Vorlesungsskript zusammen"))
+        assertEquals(ModelCatalog.DEFAULT_CHAT, pick("Welches Notebook für die Lehre?"))
         assertEquals(ModelCatalog.DEFAULT_CHAT, pick("Was steht auf dem Foto?", images = 1))
         assertEquals(ModelCatalog.CODE_CHAT, pick("Warum wirft mein Python-Skript eine Exception?"))
         assertEquals(ModelCatalog.CODE_CHAT, pick("Ändere die README", github = true))

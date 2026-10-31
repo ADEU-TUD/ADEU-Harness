@@ -259,7 +259,8 @@ internal const val LORA_SLEEP_AFTER_MS = 45_000L
  */
 @Composable
 internal fun LoraHome(ideas: List<LoraIdea>, typing: Boolean, loraHeight: Dp, modifier: Modifier = Modifier) {
-    val director = rememberLoraDirector(HOME_SEQUENCE, start = LoraAction.WAVE, minDwellMs = 600)
+    // Mornings with a coffee, late evenings calmer (AP-36).
+    val director = rememberLoraDirector(remember { homeSequence(java.time.LocalTime.now().hour) }, start = LoraAction.WAVE, minDwellMs = 600)
     var index by remember { mutableIntStateOf(ideaVisits++) }
     var sleeping by remember { mutableStateOf(false) }
     var touches by remember { mutableIntStateOf(0) }

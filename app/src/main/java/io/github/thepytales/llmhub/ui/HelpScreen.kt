@@ -34,7 +34,7 @@ fun HelpSection() {
     val log = remember { ErrorLog.anonymizedText() }
     fun report() = buildString {
         append(text.trim().ifBlank { "(keine Beschreibung)" })
-        append("\n\n---\nADEU LLM ${BuildConfig.VERSION_NAME} · ${UpdatePlatform.KEY} · ${System.getProperty("os.name").orEmpty()}")
+        append("\n\n---\nLora ${BuildConfig.VERSION_NAME} · ${UpdatePlatform.KEY} · ${System.getProperty("os.name").orEmpty()}")
         append("\n\nFehlerprotokoll (anonymisiert):\n").append(log.ifBlank { "(leer)" })
     }
     Section("Was ist passiert?") {
@@ -45,7 +45,7 @@ fun HelpSection() {
         )
         SettingsHint("Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen.")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { shareText(context, report(), "Problem mit ADEU LLM ${BuildConfig.VERSION_NAME}") }) { Text("Per E-Mail senden …") }
+            Button(onClick = { shareText(context, report(), "Problem mit Lora ${BuildConfig.VERSION_NAME}") }) { Text("Per E-Mail senden …") }
             OutlinedButton(onClick = {
                 val title = text.trim().lineSequence().firstOrNull().orEmpty().take(80).ifBlank { "Problem melden" }
                 fun enc(s: String) = URLEncoder.encode(s, "UTF-8")

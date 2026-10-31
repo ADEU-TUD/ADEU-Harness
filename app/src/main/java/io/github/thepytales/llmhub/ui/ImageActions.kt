@@ -11,7 +11,7 @@ import java.io.File
 
 /** Android parts of "Bilder erzeugen" (Windows has its own version of this file). */
 
-/** Copies a generated picture into the gallery (Pictures/ADEU LLM). */
+/** Copies a generated picture into the gallery (Pictures/Lora). */
 fun saveImageToDevice(context: Context, file: File) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         Notices.info("Speichern in die Galerie geht erst ab Android 10 – „Teilen“ funktioniert trotzdem.")
@@ -20,13 +20,13 @@ fun saveImageToDevice(context: Context, file: File) {
     val values = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, "adeu_llm_${System.currentTimeMillis()}.png")
         put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ADEU LLM")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Lora")
     }
     val ok = runCatching {
         val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)!!
         context.contentResolver.openOutputStream(uri)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
     }.isSuccess
-    if (ok) Notices.info("In der Galerie gespeichert (Bilder › ADEU LLM).") else Notices.error("Speichern fehlgeschlagen.")
+    if (ok) Notices.info("In der Galerie gespeichert (Bilder › Lora).") else Notices.error("Speichern fehlgeschlagen.")
 }
 
 /** Share sheet for a generated picture (mail, messenger, other apps). */

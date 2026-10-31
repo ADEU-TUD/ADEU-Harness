@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ADEU LLM</string>
+    <string name="app_name">Lora</string>
+    <string name="shortcut_lora_short">Lora fragen</string>
+    <string name="shortcut_lora_long">Lora fragen – Wo finde ich …?</string>
+    <string name="shortcut_chat_short">Neuer Chat</string>
 </resources>

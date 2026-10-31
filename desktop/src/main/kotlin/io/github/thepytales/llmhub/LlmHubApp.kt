@@ -56,7 +56,7 @@ object CrashLog {
         Thread.setDefaultUncaughtExceptionHandler { thread, error ->
             runCatching {
                 file.writeText(
-                    "ADEU LLM ${BuildConfig.VERSION_NAME} · ${System.getProperty("os.name")} ${System.getProperty("os.version")} · " +
+                    "Lora ${BuildConfig.VERSION_NAME} · ${System.getProperty("os.name")} ${System.getProperty("os.version")} · " +
                         "Java ${System.getProperty("java.version")}\n\n" + error.stackTraceToString()
                 )
             }

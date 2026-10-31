@@ -160,12 +160,12 @@ fun StartAnimation(enabled: Boolean, content: @Composable () -> Unit) {
                     AppLogo(Modifier.size(120.dp).scale(tile.value).alpha(phase(reveal.value, 0f, 0.12f).coerceAtLeast(0.001f)), reveal = reveal.value)
                     Spacer(Modifier.height(22.dp))
                     Text(
-                        "ADEU LLM",
+                        io.github.thepytales.llmhub.Brand.NAME,
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
                         modifier = Modifier.alpha(text.value),
                     )
                     Text(
-                        "Allgemeine Didaktik und Empirische Unterrichtsforschung",
+                        io.github.thepytales.llmhub.Brand.SLOGAN,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,

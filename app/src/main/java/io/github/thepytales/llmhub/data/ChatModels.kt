@@ -71,6 +71,11 @@ data class ChatMessage(
     val ratingNote: String? = null,
     /** The answer stopped at the model's length limit; "Weiterschreiben" continues it. */
     val truncated: Boolean = false,
+    /**
+     * Handed over by Lora (AP-33): the line shown on the card above the message, e.g. "Qwen3.8 27B · kann im Web
+     * suchen". What Lora already found out goes along as [instructions], not into the text.
+     */
+    val handoff: String? = null,
 )
 
 @Serializable

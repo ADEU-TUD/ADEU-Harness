@@ -82,6 +82,6 @@ object Paths {
     /** Temporary files (Android: cacheDir). */
     val cache: File by lazy { File(data, "cache").apply { mkdirs() } }
 
-    /** Default folder for saving files the user exports (Documents\ADEU LLM, created on demand). */
-    val exports: File get() = File(File(home, "Documents").takeIf { it.isDirectory } ?: home, "ADEU LLM")
+    /** Default folder for saving files the user exports (Documents\Lora, created on demand). */
+    val exports: File get() = File(File(home, "Documents").takeIf { it.isDirectory } ?: home, "Lora")
 }

@@ -60,7 +60,7 @@ object SelfTest {
             previous?.uncaughtException(t, e)
         }
         try {
-            line("ADEU LLM ${BuildConfig.VERSION_NAME} · ${System.getProperty("os.name")} · Java ${System.getProperty("java.version")}")
+            line("Lora ${BuildConfig.VERSION_NAME} · ${System.getProperty("os.name")} · Java ${System.getProperty("java.version")}")
             delay(3000)
             shot(window, dir, "00-chat")
             routes.forEachIndexed { i, route ->
