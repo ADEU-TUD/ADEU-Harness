@@ -97,6 +97,9 @@ class AppContainer(context: Context) {
     /** Lernspiele (AP-17): the collection and the agent's tools for it (offered while the tool is switched on). */
     val games = io.github.thepytales.llmhub.data.LearningGameStore(files)
     val gameTools = io.github.thepytales.llmhub.agent.GameTools(this)
+    /** Kreativbereich (AP-24): the designs and the agent's tools for them (offered while the tool is switched on). */
+    val designs = io.github.thepytales.llmhub.data.DesignStore(files)
+    val designTools = io.github.thepytales.llmhub.agent.DesignTools(this)
     /** Mail & Kalender (AP-13): fixed sorting rules, the protocol of every change in Outlook, the agent's tools. */
     val mailRules = ListStore<io.github.thepytales.llmhub.data.MailRule>(FileBackend(File(files, "mail_rules.json")), io.github.thepytales.llmhub.data.MailRule.serializer(), { it.id })
     val outlookLog = ListStore<io.github.thepytales.llmhub.data.OutlookAction>(FileBackend(File(files, "outlook_log.json")), io.github.thepytales.llmhub.data.OutlookAction.serializer(), { it.id })

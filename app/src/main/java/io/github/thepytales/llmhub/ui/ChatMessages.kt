@@ -547,6 +547,10 @@ fun AssistantMessage(
             if ((call.name == io.github.thepytales.llmhub.agent.GameTools.CREATE || call.name == io.github.thepytales.llmhub.agent.GameTools.UPDATE) &&
                 result != null && !result.content.startsWith("FEHLER")
             ) io.github.thepytales.llmhub.agent.GameTools.idIn(result.content)?.let { GameCard(it) }
+            // A design was made or changed (AP-24): preview and „Im Kreativbereich öffnen“.
+            if ((call.name == io.github.thepytales.llmhub.agent.DesignTools.CREATE || call.name == io.github.thepytales.llmhub.agent.DesignTools.UPDATE) &&
+                result != null && !result.content.startsWith("FEHLER")
+            ) io.github.thepytales.llmhub.agent.DesignTools.idIn(result.content)?.let { DesignCard(it) }
         }
         if (item.turnEnd && !(running && item.isLast) && evidence != null) EvidenceCard(evidence, onExport)
         if (item.turnEnd && !(running && item.isLast)) {
@@ -796,6 +800,9 @@ internal fun toolLabel(name: String) = when (name) {
     "outlook_apply_rules" -> "Sortierregeln anwenden"
     "update_learning_game" -> "Lernspiel ändern"
     "read_learning_game" -> "Lernspiel lesen"
+    "create_design" -> "Design gestalten"
+    "update_design" -> "Design ändern"
+    "read_design" -> "Design ansehen"
     "save_logo" -> "Logo speichern"
     "read_file" -> "Datei lesen"
     "list_files" -> "Dateien auflisten"

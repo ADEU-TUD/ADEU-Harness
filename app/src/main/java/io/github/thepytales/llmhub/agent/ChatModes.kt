@@ -3,7 +3,7 @@ package io.github.thepytales.llmhub.agent
 import java.text.Normalizer
 
 /** Tool groups a mode needs in addition to the chat's (see AgentRunner.providers). */
-enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL }
+enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL, DESIGN }
 
 /**
  * A special way of working in a chat (AP-05). Every mode looks the same: a chip above the input with ✕, below it one
@@ -105,6 +105,21 @@ object ChatModes {
         tool = "games",
     )
 
+    /** Kreativbereich (AP-24): only while the tool „Kreativbereich“ is switched on (Windows). */
+    val DESIGN = ChatMode(
+        id = "design",
+        name = "Gestalten",
+        icon = "design",
+        explain = "Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungen, Bescheinigungen und Social-Media-Beiträge – z. B. ein Tagungsposter aus dem angehängten Paper. Danach im Kreativbereich bearbeiten und als PNG, PDF oder PowerPoint exportieren.",
+        data = "Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; Bildbeschreibungen an das Bildmodell des Uni-Servers.",
+        example = "Mach aus dem angehängten Paper ein Tagungsposter (A1) mit Einleitung, Methode, Ergebnissen und Fazit.",
+        command = "Gestalten",
+        tools = setOf(ModeTool.DESIGN),
+        prompt = DesignTools.MODE_PROMPT,
+        keywords = "gestalten design poster tagungsposter flyer aushang plakat einladung urkunde teilnahmebescheinigung social media instagram banner canva",
+        tool = "creative",
+    )
+
     /** Mail & Kalender (AP-13): only while the tool is switched on (Windows with the classic Outlook). */
     val MAIL = ChatMode(
         id = "mail",
@@ -133,7 +148,7 @@ object ChatModes {
     )
 
     /** All modes, in the order of the menus (some only while their tool is on, see [visible]). */
-    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, MAIL, VOICE)
+    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, DESIGN, MAIL, VOICE)
 
     /** The switched-on big tools (set by the app from its settings); modes of other tools stay hidden. */
     @Volatile

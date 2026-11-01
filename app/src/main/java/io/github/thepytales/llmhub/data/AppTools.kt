@@ -44,12 +44,19 @@ enum class AppTool(
         android = false,
     ),
     CREATIVE(
-        "creative", "Kreativbereich", "Poster, Flyer und Aushänge im Corporate Design gestalten.", "creative",
-        listOf("poster", "flyer", "aushang", "canva"), android = false, planned = true,
+        "creative", "Kreativbereich",
+        "Poster, Flyer, Aushänge, Einladungen, Teilnahmebescheinigungen, Social-Media-Beiträge, OPAL-Kursbanner und Titelbilder im TUD-Design gestalten: Leinwand mit Ebenen, Vorlagen, Brand-Kit, Symbole, QR-Codes, Bilder (auch vom Bildmodell), Poster aus einem Paper; Export als PNG, PDF (Druck) und PowerPoint.",
+        "creative", listOf(
+            "poster", "tagungsposter", "flyer", "aushang", "plakat", "einladung gestalten", "urkunde", "teilnahmebescheinigung", "social media", "instagram",
+            "kursbanner", "titelbild", "canva", "qr-code", "qr code",
+        ),
+        android = false,
     ),
     VIDEO(
-        "video", "Videoeditor", "Lehrvideos schneiden, Untertitel einbrennen, für OPAL und YouTube exportieren.", "video",
-        listOf("video schneiden", "videoschnitt", "untertitel einbrennen"), android = false, planned = true,
+        "video", "Videoeditor",
+        "Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube.",
+        "video", listOf("video schneiden", "videoschnitt", "videoeditor", "lehrvideo", "untertitel einbrennen", "bauchbinde", "screencast", "video kurzen"),
+        android = false,
     );
 
     companion object {

@@ -10,7 +10,7 @@ fun isOnTop(currentId: String?, from: String) = currentId == from
 
 /** Screens of the side menu: there the menu also opens with a swipe from the left. */
 fun isTopLevel(route: String?) =
-    route == null || route.startsWith("chat") || route in setOf("transcripts", "templates", "tasks", "images", "literature", "docs", "pdf", "vault", "games", "mail", "files")
+    route == null || route.startsWith("chat") || route in setOf("transcripts", "templates", "tasks", "images", "literature", "docs", "pdf", "vault", "games", "mail", "files", "creative", "video")
 
 /**
  * Areas of the side menu (AP-02). „Neuer Chat“ always comes first; up to [MAX_TOP_AREAS] areas sit next to it on
@@ -27,6 +27,8 @@ enum class DrawerArea(val id: String, val label: String, val route: String, val 
     VAULT("vault", "Tresor", "vault", io.github.thepytales.llmhub.data.AppTool.VAULT),
     GAMES("games", "Lernspiele", "games", io.github.thepytales.llmhub.data.AppTool.GAMES),
     MAIL("mail", "Mail & Kalender", "mail", io.github.thepytales.llmhub.data.AppTool.MAIL),
+    CREATIVE("creative", "Kreativbereich", "creative", io.github.thepytales.llmhub.data.AppTool.CREATIVE),
+    VIDEO("video", "Videoeditor", "video", io.github.thepytales.llmhub.data.AppTool.VIDEO),
     ;
 
     companion object {
