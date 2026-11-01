@@ -69,6 +69,37 @@ class UpdatesTest {
         }
     }
 
+    /** macOS and Linux (AP-31): the tar.gz keeps the launcher executable and the links of the Java runtime. */
+    @Test
+    fun theTarGzOfLinuxAndMacKeepsRightsAndLinks() {
+        if (System.getProperty("os.name").startsWith("Windows")) return
+        val base = Files.createTempDirectory("adeu-tar").toFile()
+        if (System.getProperty("adeu.data").isNullOrBlank()) System.setProperty("adeu.data", File(base, "daten").absolutePath)
+        try {
+            val context = Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() })
+            val src = File(base, "src").apply { mkdirs() }
+            val app = File(src, "ADEU LLM").apply { mkdirs() }
+            File(app, "bin").mkdirs(); File(app, "bin/ADEU LLM").writeText("#!/bin/sh\n"); File(app, "bin/ADEU LLM").setExecutable(true)
+            File(app, "lib/app").mkdirs(); File(app, "lib/app/ADEU-LLM-Desktop.jar").writeText("jar")
+            File(app, "lib/runtime/legal/java.base").mkdirs(); File(app, "lib/runtime/legal/java.base/LICENSE").writeText("lizenz")
+            File(app, "lib/runtime/legal/java.desktop").mkdirs()
+            Files.createSymbolicLink(File(app, "lib/runtime/legal/java.desktop/LICENSE").toPath(), java.nio.file.Paths.get("../java.base/LICENSE"))
+            File(app, "._AppleDouble").writeText("weg")
+            val tgz = File(base, "ADEU-LLM-1.0.99-Linux.tar.gz")
+            assertEquals(0, ProcessBuilder("tar", "-czf", tgz.path, "-C", src.path, "ADEU LLM").inheritIO().start().waitFor())
+            val info = UpdateInfo("1.0.99", "", null, emptyMap())
+            val unpacked = UpdatePlatform.prepare(context, tgz, info) {}
+            assertEquals("ADEU LLM", unpacked.name)
+            assertTrue(File(unpacked, "bin/ADEU LLM").canExecute(), "Starter bleibt ausführbar")
+            assertTrue(Files.isSymbolicLink(File(unpacked, "lib/runtime/legal/java.desktop/LICENSE").toPath()), "Verknüpfung bleibt")
+            assertEquals("lizenz", File(unpacked, "lib/runtime/legal/java.desktop/LICENSE").readText())
+            assertFalse(File(unpacked, "._AppleDouble").exists())
+            assertEquals(unpacked.canonicalFile, UpdatePlatform.prepared(context, info)!!.canonicalFile)
+        } finally {
+            base.deleteRecursively()
+        }
+    }
+
     @Test
     fun swappingTheAppFolderKeepsUserFilesAndCanBeUndone() {
         val base = Files.createTempDirectory("adeu-tausch").toFile()

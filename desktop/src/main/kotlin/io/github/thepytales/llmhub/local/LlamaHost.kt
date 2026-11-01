@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.local
 
+import io.github.thepytales.llmhub.desktop.Os
+import io.github.thepytales.llmhub.ui.tr
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.jna.platform.win32.WinReg
 import de.lokal.whisper.desktop.SpeechWin
@@ -23,9 +25,10 @@ import java.security.MessageDigest
 import java.util.zip.ZipInputStream
 
 /**
- * Windows parts of the local models. The llama.cpp program is loaded once from the official release (CPU; with a
- * graphics card also the Vulkan backend, which works with NVIDIA, AMD and Intel without admin rights) into
- * %LOCALAPPDATA%\ADEU LLM\llm\runtime and checked against the SHA-256 GitHub publishes for it.
+ * Desktop parts of the local models. The llama.cpp program is loaded once from the official release into
+ * <local folder>/llm/runtime and checked against the SHA-256 GitHub publishes for it: Windows the CPU package (with a
+ * graphics card also the Vulkan backend, which works with NVIDIA, AMD and Intel without admin rights), macOS the package
+ * for Apple Silicon with Metal, Linux the Ubuntu x64 package (AP-31).
  */
 internal object LlamaHost {
     /** llama.cpp release; change only here. If it lacks a package, the latest release is used. */
@@ -33,10 +36,24 @@ internal object LlamaHost {
 
     fun root(@Suppress("UNUSED_PARAMETER") c: AppContainer): File = File(Paths.local, "llm")
 
+    /** Release package of this system (CPU, on a Mac with Metal). */
+    private val cpuPackage: String? get() = when {
+        Os.windows -> "bin-win-cpu-x64.zip"
+        Os.mac -> if (Os.arm) "bin-macos-arm64.zip" else "bin-macos-x64.zip"
+        Os.arm -> null
+        else -> "bin-ubuntu-x64.zip"
+    }
+
+    /** Extra package for graphics cards (only Windows; macOS has Metal in the main package). */
+    private val gpuPackage: String? get() = if (Os.windows) "bin-win-vulkan-x64.zip" else null
+
+    private val serverName get() = if (Os.windows) "llama-server.exe" else "llama-server"
+
     private fun runtimeDir(root: File) = File(root, "runtime")
 
     fun hardware(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File): Hardware {
-        val gpu = if (SpeechWin.WINDOWS) gpu() else null
+        // Apple Silicon: the graphics share the memory; llama.cpp computes with Metal.
+        val gpu = if (SpeechWin.WINDOWS) gpu() else if (Os.mac && Os.arm) javaRam()?.let { "Apple Silicon (Metal)" to it * 0.66 } else null
         val ram = javaRam() ?: windowsRam()
         return Hardware(
             phone = false,
@@ -105,22 +122,22 @@ internal object LlamaHost {
 
     fun binary(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File): File? {
         System.getProperty("adeu.llamaServer")?.let { File(it) }?.takeIf { it.isFile }?.let { return it }
-        return File(runtimeDir(root), if (SpeechWin.WINDOWS) "llama-server.exe" else "llama-server").takeIf { it.isFile }
+        return File(runtimeDir(root), serverName).takeIf { it.isFile }
     }
 
     fun runtimeStatus(c: AppContainer, root: File): RuntimeStatus = when {
         binary(c, root) != null -> RuntimeStatus.READY
-        SpeechWin.WINDOWS -> RuntimeStatus.MISSING
+        cpuPackage != null -> RuntimeStatus.MISSING
         else -> RuntimeStatus.UNSUPPORTED
     }
 
     /** Downloads the CPU package (and the Vulkan backend for graphics cards) and unpacks it. */
     suspend fun installRuntime(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File, gpu: Boolean, progress: (Double) -> Unit) = withContext(Dispatchers.IO) {
-        if (!SpeechWin.WINDOWS) error("Lokale Modelle gibt es für Windows und Android.")
-        val assets = releaseAssets(TAG).takeIf { a -> a.any { it.name.endsWith("bin-win-cpu-x64.zip") } } ?: releaseAssets(null)
+        val cpu = cpuPackage ?: error(tr("Für dieses System gibt es kein fertiges Programm für lokale Modelle."))
+        val assets = releaseAssets(TAG).takeIf { a -> a.any { it.name.endsWith(cpu) } } ?: releaseAssets(null)
         val wanted = listOfNotNull(
-            assets.firstOrNull { it.name.endsWith("bin-win-cpu-x64.zip") } ?: error("Kein Windows-Paket im llama.cpp-Release gefunden."),
-            assets.firstOrNull { it.name.endsWith("bin-win-vulkan-x64.zip") }.takeIf { gpu },
+            assets.firstOrNull { it.name.endsWith(cpu) } ?: error(tr("Kein Paket für {0} im llama.cpp-Release gefunden.", Os.label)),
+            gpuPackage?.let { g -> assets.firstOrNull { it.name.endsWith(g) } }.takeIf { gpu },
         )
         val dir = runtimeDir(root)
         val tmp = File(root, "runtime.new").apply { deleteRecursively(); mkdirs() }
@@ -134,7 +151,8 @@ internal object LlamaHost {
             done += a.size
             zip.delete()
         }
-        if (!File(tmp, "llama-server.exe").isFile) error("llama-server.exe fehlt im Paket.")
+        if (!File(tmp, serverName).isFile) error(tr("{0} fehlt im Paket.", serverName))
+        executable(tmp)
         dir.deleteRecursively()
         if (!tmp.renameTo(dir)) error("Programm konnte nicht gespeichert werden.")
         progress(1.0)
@@ -144,7 +162,14 @@ internal object LlamaHost {
     fun importRuntime(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File, input: InputStream) {
         val dir = runtimeDir(root).apply { mkdirs() }
         unzip(input, dir)
-        if (!File(dir, "llama-server.exe").isFile) error("In der ZIP-Datei fehlt llama-server.exe (llama.cpp für Windows, Paket „bin-win-cpu-x64“).")
+        if (!File(dir, serverName).isFile) error(tr("In der ZIP-Datei fehlt {0} (llama.cpp, Paket „{1}“).", serverName, cpuPackage?.removeSuffix(".zip") ?: "–"))
+        executable(dir)
+    }
+
+    /** ZIP files carry no rights: the programs of llama.cpp must be executable on macOS and Linux. */
+    private fun executable(dir: File) {
+        if (Os.windows) return
+        dir.listFiles().orEmpty().filter { it.isFile && (it.name.startsWith("llama-") || !it.name.contains('.')) }.forEach { it.setExecutable(true) }
     }
 
     private data class Asset(val name: String, val url: String, val size: Long, val sha256: String?)

@@ -38,7 +38,7 @@ fun PlatformSettingsSection(c: AppContainer, section: String?): Boolean {
 fun syncSettingsItem(): SettingsItem? = syncSettingsItemDesktop()
 
 /** Entry for the Windows page in the settings overview. */
-fun platformSettingsItem(): SettingsItem? = SettingsItem("settings/windows", Icons.Outlined.Computer, "Windows", tr("Infobereich, Autostart, Datenordner"))
+fun platformSettingsItem(): SettingsItem? = SettingsItem("settings/windows", Icons.Outlined.Computer, io.github.thepytales.llmhub.desktop.Os.label, tr("Infobereich, Autostart, Datenordner"))
 
 val KEY_STORAGE_HINT: String get() = tr("Er wird verschlüsselt auf diesem PC gespeichert (nur dein Windows-Konto kann ihn lesen).")
 val DEVICE_VOICE: String get() = tr("Windows-Stimme")

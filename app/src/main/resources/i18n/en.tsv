@@ -127,6 +127,7 @@ Ab Monat	From month
 Abbrechen	Cancel
 Abgabe-Check	Submission check
 Abgabe-Check ok	Submission check ok
+Abgebrochen.	Cancelled.
 Abgeglichen: {0} hin, {1} zurück	Synced: {0} there, {1} back
 abgelaufen am	expired on
 Abgemeldet. Das App-Passwort kannst du in Nextcloud unter Einstellungen › Sicherheit widerrufen.	Signed out. You can revoke the app password in Nextcloud under Settings › Security.
@@ -440,6 +441,7 @@ Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 6
 Auf diesem Gerät – vertraulich und offline	On this device – confidential and offline
 Auf diesem PC erkennen	Recognize on this PC
 Auf diesem PC: mit der Texterkennung von Windows, nichts verlässt den PC. Mit KI-Modell: besser bei Handschrift und schlechten Scans, die Seitenbilder gehen an den Server.	On this PC: with Windows text recognition, nothing leaves the PC. With an AI model: better for handwriting and poor scans, the page images go to the server.
+Auf diesem Rechner gibt es den eingebauten Browser nicht.	The built-in browser is not available on this computer.
 auf einen Bereich holst du ihn nach oben, schiebst ihn unter „Mehr“ oder blendest ihn aus.	on an area you move it to the top, push it under “More” or hide it.
 Auf Englisch	In English
 Auf vorhandene anwenden	Apply to existing ones
@@ -536,6 +538,7 @@ Automatisch erkennen	Detect automatically
 Automatisch nach Updates suchen	Check for updates automatically
 Automatisch: 	Automatic: 
 Automatische Updates gibt es in der installierten Windows-Version („ADEU LLM.exe“) und in der Android-App. 	Automatic updates are available in the installed Windows version (“ADEU LLM.exe”) and in the Android app. 
+Automatische Updates gibt es nur in der installierten App.	Automatic updates are only available in the installed app.
 Autor:in	Author
 Autor:innen (Nachname, Vorname; …)	Authors (last name, first name; …)
 A−	A−
@@ -794,6 +797,7 @@ Das Modell merkt sich nichts über Chats hinweg.	The model does not remember any
 Das Modell merkt sich wichtige Angaben selbst; Sie sehen und löschen sie hier.	The model remembers important details by itself; you see and delete them here.
 Das Modell schlägt vor, sich etwas zu merken – Sie bestätigen jeden Eintrag.	The model suggests remembering something – you confirm every entry.
 das Modell sieht es nicht	the model doesn't see it
+Das Paket gibt es für {0} noch nicht. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg des Systems.	The package is not available for {0} yet. The video editor still works – with the system's ffmpeg.
 Das passt hier	This fits here
 Das PDF ließ sich nicht lesen.	The PDF could not be read.
 das Rechnen dauert etwa so lange wie das Video, je nach PC auch länger.	computing takes about as long as the video, depending on the PC also longer.
@@ -804,6 +808,7 @@ Das Tempo gilt für die {0}.	The speed applies to the {0}.
 Das Transkript fehlt.	The transcript is missing.
 Das Transkript gibt es nicht mehr.	The transcript no longer exists.
 Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats, Einstellungen und API-Key bleiben erhalten.	The update takes about a minute. Then Lora restarts by itself – chats, settings and API key are kept.
+Das Update-Paket ist unvollständig (keine vollständige App darin).	The update package is incomplete (no complete app inside).
 Das Video liegt unter Transkription bereit – dort starten, danach hier das Transkript wählen.	The video is ready under Transcription – start it there, then choose the transcript here.
 Das Video ließ sich nicht übernehmen.	The video could not be taken over.
 Datei	File
@@ -899,6 +904,7 @@ Der Kalendereintrag ließ sich nicht anlegen.	The calendar entry could not be cr
 Der Mailserver {0} ist nicht erreichbar: {1}	The mail server {0} cannot be reached: {1}
 Der markierte Ort gilt für neue Dokumente. Vorhandene Dokumente verschiebst du im Editor über ⋮ › Ablageort.	The marked place applies to new documents. Existing documents are moved in the editor via ⋮ › Storage location.
 Der Ordner „Entwürfe“ wurde auf dem Mailserver nicht gefunden.	The “Drafts” folder was not found on the mail server.
+Der Ordner „{0}“ ist schreibgeschützt (z. B. von der IT oder als Systempaket installiert). Bitte die neue Version von {1} herunterladen oder die IT um das Update bitten.	The folder “{0}” is read-only (e.g. installed by IT or as a system package). Please download the new version from {1} or ask IT for the update.
 Der Papierkorb ist leer.	The trash is empty.
 Der Schlüssel passt nicht.	The key does not fit.
 Der Schlüsselspeicher dieses Geräts funktioniert nicht. API-Key und Tokens liegen deshalb unverschlüsselt im privaten Speicher der App. Andere Apps können sie nicht lesen, bei einem gerooteten Gerät oder einer Datensicherung per Kabel aber schon. Ein Neustart des Geräts behebt das manchmal.	The key store of this device does not work. API key and tokens are therefore stored unencrypted in the app's private storage. Other apps cannot read them, but on a rooted device or with a backup via cable they can. Restarting the device sometimes fixes this.
@@ -974,6 +980,7 @@ Die KI ändert die Stelle und antwortet im Kommentar.	The AI changes the passage
 Die KI überarbeitet die Präsentation.	The AI is revising the presentation.
 Die Literatursammlung ist noch leer – Werke unter „Literatur“ hinzufügen oder suchen lassen.	The literature collection is still empty – add works under “Literature” or have them searched.
 Die Modelle erscheinen, sobald die Spracherkennung gestartet ist.	The models appear as soon as speech recognition has started.
+Die neue Version ließ sich nicht starten (Code {0}). Möglicherweise blockiert eine IT-Regel Programme in „{1}“. Die neue Version gibt es auch unter {2}.	The new version could not be started (code {0}). An IT rule may be blocking programs in “{1}”. The new version is also available at {2}.
 Die Passwörter stimmen nicht überein.	The passwords do not match.
 Die PINs stimmen nicht überein.	The PINs do not match.
 Die Prüfung ist fehlgeschlagen: {0}	The check failed: {0}
@@ -986,6 +993,7 @@ Die Sicherung konnte nicht gespeichert werden.	The backup could not be saved.
 Die Token-Zahlen stammen vom Server.	The token counts come from the server.
 Die TUD-Icons stammen aus dem Corporate Design der TU Dresden (Icon-Themensets).	The TUD icons come from the corporate design of TU Dresden (icon theme sets).
 Die Unterschrift bleibt in den Daten der App und lässt sich unter „Unterschreiben“ wieder löschen.	The signature stays in the app's data and can be deleted again under “Sign”.
+Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.	The update source does not offer the package (yet). The video editor still works – with the app's ffmpeg.
 Die Vorschau erscheint, sobald du schreibst.	The preview appears as soon as you write.
 Die Web-Werkzeuge dürfen alle Webseiten aufrufen.	The web tools may open all web pages.
 Die Zugangsdaten der TU Dresden stehen in der Anleitung des ZIH zu Exchange/IMAP.	The access details of TU Dresden are in the ZIH guide to Exchange/IMAP.
@@ -1192,6 +1200,7 @@ Enter: neuer Punkt · Tab: einrücken	Enter: new item · Tab: indent
 Entfernen	Remove
 Entfernt lassen	Keep removed
 enthält „{0}“	contains “{0}”
+Entpackt …	Unpacking …
 Entscheidung speichern	Save decision
 entschieden	decided
 Entsperren	Unlock
@@ -1491,6 +1500,7 @@ Für diese Anfrage passt {0} besser ({1}). Eingestellt ist gerade {2}.	{0} fits 
 Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem.	No dictionary is set up on the device for this language (Windows: Settings › Time & language › Language). The check with the AI still works.
 Für diesen Abschnitt gibt es keine gemessenen Wortzeiten. 	There are no measured word times for this section. 
 Für diesen Chat	For this chat
+Für dieses System gibt es kein fertiges Programm für lokale Modelle.	There is no ready-made program for local models on this system.
 Für Eltern, Schüler:innen oder barrierearme Informationen	For parents, pupils or low-barrier information
 Für fast alles: Fragen, Texte, Bilder, Websuche und Dokumente	For almost everything: questions, texts, images, web search and documents
 Für Fragen, Tabellen und Erklärungen braucht die KI den Text: erst die Texterkennung laufen lassen.	For questions, tables and explanations the AI needs the text: run text recognition first.
@@ -1804,6 +1814,7 @@ In der Sammlung suchen	Search in the collection
 In der Sammlung öffnen	Open in the collection
 In der Seitenleiste zeigen – sonst über Strg+K und Lora erreichbar.	Show in the side menu – otherwise reachable via Ctrl+K and Lora.
 In der Wissenssammlung: 	In the knowledge base: 
+In der ZIP-Datei fehlt {0} (llama.cpp, Paket „{1}“).	The ZIP file does not contain {0} (llama.cpp, package “{1}”).
 In der Zwischenablage ist kein Bild.	There is no image in the clipboard.
 In die Literatur	Add to literature
 In die Literatur übernommen: 	Taken over into the literature: 
@@ -1929,6 +1940,7 @@ Kein Gedankengang – am schnellsten.	No reasoning – fastest.
 Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram.	Not a valid chart – types: bar, line, pie, hbar, stacked, scatter, box, histogram.
 Kein Mikrofon gefunden? Windows-Einstellungen › Datenschutz › Mikrofon › „Desktop-Apps den Zugriff erlauben“.	No microphone found? Windows Settings › Privacy › Microphone › “Allow desktop apps to access your microphone”.
 Kein Name	Not a name
+Kein Paket für {0} im llama.cpp-Release gefunden.	No package for {0} found in the llama.cpp release.
 Kein Programm zum Öffnen von {0}-Dateien gefunden.	No program found to open {0} files.
 Kein Projekt	No project
 Kein Repository passt zu „{0}“.	No repository matches “{0}”.
@@ -2281,6 +2293,8 @@ Lora-Ordner öffnen	Open Lora folder
 Lora-Ordner …	Lora folder …
 Lora: Meinst du	Lora: Do you mean
 Loslegen	Get going
+Lädt Chromium herunter (einmalig, ca. 170 MB) …	Downloading Chromium (once, approx. 170 MB) …
+Lädt herunter ({0} von {1} MB) …	Downloading ({0} of {1} MB) …
 Länge	Length
 Länge (s)	Length (s)
 längster {0} · {1} Wörter/min	longest {0} · {1} words/min
@@ -2968,6 +2982,7 @@ Rerank	Rerank
 Reranker von Qwen.	Reranker from Qwen.
 ResearchGate	ResearchGate
 Review / Metaanalyse	Review / meta-analysis
+Richtet ein …	Setting up …
 Richtig	Correct
 RIS speichern	Save RIS
 Rohfassung	Draft
@@ -3307,6 +3322,8 @@ Suchen (Autor:in, Titel, Jahr)	Search (author, title, year)
 Suchen (Strg+F)	Search (Ctrl+F)
 Suchen, News finden und Webseiten lesen.	Search, find news and read web pages.
 Suchfilter schließen	Close search filter
+Sucht Chromium …	Looking for Chromium …
+Sucht das Paket …	Looking for the package …
 Sucht im Web …	Searching the web …
 Sucht im Web: {0}	Searching the web: {0}
 Sucht Literatur …	Searching literature …
@@ -3975,6 +3992,7 @@ Zu lang	Too long
 zu lang:	too long:
 Zu langer Text wird kleiner statt überzustehen.	Text that is too long gets smaller instead of overflowing.
 Zu viele Versuche – bitte {0} s warten.	Too many attempts – please wait {0} s.
+Zu wenig freier Speicher für das Update (nötig etwa {0} MB, frei {1} MB).	Not enough free space for the update (about {0} MB needed, {1} MB free).
 Zuerst einen Bereich markieren (lange tippen oder Umschalt + Klick), z. B. Namen und Werte.	First select a range (long-press or Shift + click), e.g. names and values.
 Zugang	Access
 Zuklappen	Collapse
@@ -4058,6 +4076,7 @@ Zwischenüberschrift	Subheading
 {0} Elemente ausgewählt	{0} elements selected
 {0} ergänzt	{0} completed
 {0} ersetzen	Replace {0}
+{0} fehlt im Paket.	{0} is missing in the package.
 {0} Folie(n) aufgeteilt	{0} slide(s) split
 {0} Folien	{0} slides
 {0} Fristen in den Kalender	{0} deadlines to the calendar

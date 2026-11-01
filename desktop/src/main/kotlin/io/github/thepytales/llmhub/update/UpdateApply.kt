@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.update
 
+import io.github.thepytales.llmhub.desktop.Os
 import io.github.thepytales.llmhub.desktop.Paths
 import java.io.File
 import java.io.IOException
@@ -10,10 +11,11 @@ import javax.swing.JOptionPane
 import kotlin.system.exitProcess
 
 /**
- * Second half of an update on Windows (see [UpdatePlatform]). The NEW "ADEU LLM.exe" runs from the unpacked update as
- * `ADEU LLM.exe --apply-update <pid> <new app folder> <app folder>`: it waits until the old app (pid) has ended, moves
- * its files into [BACKUP], copies the new ones in and starts the app again. If anything fails, the old files go back
- * and the old version starts, with a message. Its log is %LOCALAPPDATA%\ADEU LLM\update.log.
+ * Second half of an update (see [UpdatePlatform]). The NEW launcher runs from the unpacked update as
+ * `ADEU LLM.exe --apply-update <pid> <new app folder> <app folder>` (macOS/Linux: its own launcher, AP-31): it waits
+ * until the old app (pid) has ended, moves its files into [BACKUP], copies the new ones in and starts the app again. If
+ * anything fails, the old files go back and the old version starts, with a message. Its log is update.log in the local
+ * folder of the app (Windows: %LOCALAPPDATA%\ADEU LLM).
  */
 object UpdateApply {
     const val FLAG = "--apply-update"
@@ -21,7 +23,6 @@ object UpdateApply {
     const val STAGING = ".update"
     /** The replaced files until the next start of the new version. */
     const val BACKUP = ".update-alt"
-    private const val EXE = "ADEU LLM.exe"
 
     fun run(args: Array<String>): Nothing {
         val pid = args.getOrNull(1)?.toLongOrNull()
@@ -37,12 +38,12 @@ object UpdateApply {
             // Windows releases the files of an ended process a moment later.
             Thread.sleep(1_000)
             swap(source, target, ::note)
-            note("Fertig, starte ${File(target, EXE).path}")
-            start(File(target, EXE))
+            note("Fertig, starte ${target.path}")
+            start(target)
             0
         } catch (e: Throwable) {
             note("FEHLER: ${e.stackTraceToString()}")
-            runCatching { start(File(target, EXE)) }
+            runCatching { start(target) }
             runCatching {
                 JOptionPane.showMessageDialog(
                     null,
@@ -65,10 +66,10 @@ object UpdateApply {
         source: File,
         target: File,
         note: (String) -> Unit = {},
-        copy: (File, File) -> Unit = { from, to -> from.copyRecursively(to, overwrite = true) },
+        copy: (File, File) -> Unit = ::copyTree,
     ) {
         val names = source.listFiles().orEmpty().map { it.name }.filterNot { it.startsWith(".") }.sorted()
-        require(EXE in names && "app" in names) { "Das Update-Paket ist unvollständig." }
+        require(AppLayout.ofNames(names) != null) { "Das Update-Paket ist unvollständig." }
         val backup = File(target, BACKUP)
         backup.deleteRecursively()
         backup.mkdirs()
@@ -108,7 +109,26 @@ object UpdateApply {
         throw IOException("„$name“ ist noch in Benutzung – läuft Lora noch, oder ist eine Datei daraus geöffnet? (${last?.message})")
     }
 
-    private fun start(exe: File) {
-        ProcessBuilder(exe.path).directory(exe.parentFile).start()
+    /**
+     * Copies a folder of the new version. Windows: plain copy. macOS and Linux: `cp -a`, which keeps executable bits and
+     * the links inside the Java runtime (Java's copy would turn them into files without rights).
+     */
+    private fun copyTree(from: File, to: File) {
+        if (Os.windows) {
+            from.copyRecursively(to, overwrite = true)
+            return
+        }
+        val p = ProcessBuilder("cp", "-a", from.path, to.path).redirectErrorStream(true).start()
+        val out = p.inputStream.bufferedReader().readText()
+        if (p.waitFor() != 0) throw IOException("Kopieren von ${from.name} fehlgeschlagen: $out")
+    }
+
+    /** Starts the app in [appDir] (the folder with ADEU LLM.exe, the .app bundle or the folder with bin/). */
+    private fun start(appDir: File) {
+        val layout = AppLayout.of(appDir) ?: AppLayout.current
+        when (layout) {
+            AppLayout.MAC -> ProcessBuilder("open", "-n", appDir.path).start()
+            else -> File(appDir, layout.launcher).let { ProcessBuilder(it.path).directory(appDir).start() }
+        }
     }
 }

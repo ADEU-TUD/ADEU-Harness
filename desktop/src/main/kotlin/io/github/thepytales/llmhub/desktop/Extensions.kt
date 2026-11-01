@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.desktop
 
+import io.github.thepytales.llmhub.ui.tr
 import android.content.Context
 import io.github.thepytales.llmhub.AppLog
 import io.github.thepytales.llmhub.update.ExtensionFile
@@ -75,8 +76,26 @@ object Extensions {
         }
     }
 
-    /** The entry of [id] in version.json of the update source (null when the release has none). */
-    fun catalog(context: Context, id: String): ExtensionFile? = Updates.readInfo(context).extensions.firstOrNull { it.id == id }
+    /**
+     * The entry of [id] in version.json of the update source (null when the release has none). Packages are made for
+     * one system (AP-31): "videoeditor" is the Windows package; macOS/Linux get "videoeditor-macos"/"-linux" once there
+     * are such packages.
+     */
+    fun catalog(context: Context, id: String): ExtensionFile? = forThisSystem(Updates.readInfo(context).extensions, id)
+
+    private fun forThisSystem(all: List<ExtensionFile>, id: String): ExtensionFile? =
+        all.firstOrNull { it.id == "$id-${Os.updateKey}" } ?: all.firstOrNull { it.id == id }?.takeIf { Os.windows }
+
+    /** The id an entry of version.json is installed under on this system, or null if it is for another system. */
+    private fun baseId(e: ExtensionFile): String? {
+        val suffix = "-${Os.updateKey}"
+        return when {
+            e.id.endsWith(suffix) -> e.id.removeSuffix(suffix)
+            listOf("-windows", "-macos", "-linux").any { e.id.endsWith(it) } -> null
+            Os.windows -> e.id
+            else -> null
+        }
+    }
 
     @Volatile
     private var cancelled = false
@@ -93,18 +112,21 @@ object Extensions {
         cancelled = false
         fun step(text: String, p: Float) = _states.update { it + (id to State.Installing(text, p)) }
         try {
-            step("Sucht das Paket …", -1f)
+            step(tr("Sucht das Paket …"), -1f)
             val e = entry ?: catalog(context, id)
-                ?: throw IllegalStateException("Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.")
+                ?: throw IllegalStateException(
+                    if (Os.windows) tr("Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.")
+                    else tr("Das Paket gibt es für {0} noch nicht. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg des Systems.", Os.label),
+                )
             val downloads = File(root, ".download").apply { mkdirs() }
             val zip = File(downloads, e.file.name)
             if (!(zip.isFile && zip.length() == e.file.size && Updates.sha256(zip) == e.file.sha256)) {
                 Updates.downloadFile(context, e.file, zip, { cancelled }) { got ->
                     val total = e.file.size.takeIf { it > 0 } ?: got
-                    step("Lädt herunter (${got shr 20} von ${total shr 20} MB) …", (got.toFloat() / total).coerceIn(0f, 1f))
+                    step(tr("Lädt herunter ({0} von {1} MB) …", got shr 20, total shr 20), (got.toFloat() / total).coerceIn(0f, 1f))
                 }
             }
-            step("Entpackt …", -1f)
+            step(tr("Entpackt …"), -1f)
             unpack(zip, id, e.version)
             zip.delete()
             AppLog.i("Erweiterung $id ${e.version} eingerichtet")
@@ -112,7 +134,7 @@ object Extensions {
             null
         } catch (x: CancellationException) {
             _states.update { it + (id to (version(id)?.let { v -> State.Installed(v, sizeOnDisk(dir(id))) } ?: State.Missing)) }
-            "Abgebrochen."
+            tr("Abgebrochen.")
         } catch (x: Exception) {
             AppLog.e("Erweiterung $id einrichten", x)
             val msg = x.message ?: x.javaClass.simpleName
@@ -182,9 +204,10 @@ object Extensions {
     /** Hook of the update check: installed extensions with a newer version in version.json are brought up to date. */
     fun onUpdateInfo(context: Context, info: UpdateInfo) {
         info.extensions.forEach { e ->
-            val have = version(e.id) ?: return@forEach
-            if (Versions.newer(e.version, have) && _states.value[e.id] !is State.Installing) {
-                kotlinx.coroutines.runBlocking { install(context, e.id, e) }
+            val id = baseId(e) ?: return@forEach
+            val have = version(id) ?: return@forEach
+            if (Versions.newer(e.version, have) && _states.value[id] !is State.Installing) {
+                kotlinx.coroutines.runBlocking { install(context, id, e) }
             }
         }
     }

@@ -48,6 +48,10 @@ object Os {
     fun adaptText(text: String): String {
         if (windows) return text
         var t = text
+        if ("Windows" in t) {
+            t = t.replace("Mit Windows starten", "Beim Anmelden starten").replace("Start with Windows", "Start at login")
+                .replace("startet mit Windows", "startet beim Anmelden").replace("starts with Windows", "starts at login")
+        }
         if (mac) {
             if ("Strg" in t || "Ctrl" in t || "Win+" in t || "Umschalt+" in t || "Shift+" in t) {
                 t = t.replace("Win+Umschalt+S", "⇧⌘4").replace("Win+Shift+S", "⇧⌘4")
