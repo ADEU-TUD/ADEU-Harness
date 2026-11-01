@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +69,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -155,11 +157,10 @@ internal fun PdfSigner(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> Uni
                     selected = s.id == sig?.id, onClick = { selected = s.id },
                     label = { SignaturePreview(s, Modifier.size(72.dp, 24.dp)) },
                     trailingIcon = {
-                        Icon(Icons.Outlined.Close, contentDescription = tr("Unterschrift löschen"), modifier = Modifier.size(16.dp).pointerInput(s.id) {
-                            detectTapGestures {
-                                c.signatures.delete(s.id)
-                                Notices.undo(tr("Unterschrift gelöscht"), restore = { c.signatures.upsert(s) })
-                            }
+                        // A button of its own, so Tab and Enter reach it too (AP-30).
+                        Icon(Icons.Outlined.Close, contentDescription = tr("Unterschrift löschen"), modifier = Modifier.size(16.dp).clickable(role = Role.Button) {
+                            c.signatures.delete(s.id)
+                            Notices.undo(tr("Unterschrift gelöscht"), restore = { c.signatures.upsert(s) })
                         })
                     },
                 )
