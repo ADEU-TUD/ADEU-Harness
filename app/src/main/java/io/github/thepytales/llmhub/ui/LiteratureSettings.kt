@@ -12,7 +12,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,13 +38,13 @@ fun LiteratureSettings(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
-    Section("Literaturverzeichnis") {
-        ChoiceField("Standard-Zitierstil", CitationStyle.entries.map { it.name to it.label }, s.citationStyle, { v -> c.settings.update { it.copy(citationStyle = v) } })
+    Section(tr("Literaturverzeichnis")) {
+        ChoiceField(tr("Standard-Zitierstil"), CitationStyle.entries.map { it.name to it.label }, s.citationStyle, { v -> c.settings.update { it.copy(citationStyle = v) } })
         HintText(CitationStyle.parse(s.citationStyle)?.description.orEmpty())
-        HintText("Alle Stile sortieren alphabetisch nach Erstautor:in; gleiche Autor:innen und Jahr bekommen a/b. Fehlende Angaben ergänzt die App aus Crossref, der Deutschen Nationalbibliothek, Google Books und OpenAlex.")
+        HintText(tr("Alle Stile sortieren alphabetisch nach Erstautor:in; gleiche Autor:innen und Jahr bekommen a/b. Fehlende Angaben ergänzt die App aus Crossref, der Deutschen Nationalbibliothek, Google Books und OpenAlex."))
     }
-    Section("Literatursuche") {
-        Text("Durchsuchte Datenbanken", style = MaterialTheme.typography.labelLarge)
+    Section(tr("Literatursuche")) {
+        Text(tr("Durchsuchte Datenbanken"), style = MaterialTheme.typography.labelLarge)
         val chosen = s.literatureSources.split(',').mapNotNull { LitSource.parse(it) }.toSet()
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             LitSource.entries.forEach { src ->
@@ -56,29 +55,29 @@ fun LiteratureSettings(c: AppContainer) {
             }
         }
         LitSource.entries.forEach { HintText("${it.label}: ${it.description}") }
-        SecretField("OpenAlex-API-Schlüssel (kostenlos, empfohlen)", s.openAlexKey) { v -> c.settings.update { it.copy(openAlexKey = v.trim()) } }
-        HintText("Ohne eigenen Schlüssel teilen sich alle Nutzer:innen hinter derselben IP-Adresse (z.B. im Uni-Netz) ein kleines Tageskontingent. Den Schlüssel gibt es kostenlos mit einer E-Mail-Adresse.")
-        TextButton(onClick = { uri.openUri("https://openalex.org/settings/api") }) { Text("Schlüssel bei OpenAlex holen") }
+        SecretField(tr("OpenAlex-API-Schlüssel (kostenlos, empfohlen)"), s.openAlexKey) { v -> c.settings.update { it.copy(openAlexKey = v.trim()) } }
+        HintText(tr("Ohne eigenen Schlüssel teilen sich alle Nutzer:innen hinter derselben IP-Adresse (z.B. im Uni-Netz) ein kleines Tageskontingent. Den Schlüssel gibt es kostenlos mit einer E-Mail-Adresse."))
+        TextButton(onClick = { uri.openUri("https://openalex.org/settings/api") }) { Text(tr("Schlüssel bei OpenAlex holen")) }
     }
     Section("Zotero") {
-        HintText("Werke aus der Sammlung oder der Literatursuche direkt in die eigene Zotero-Bibliothek übertragen. Die User-ID und einen Schlüssel mit Schreibrechten gibt es unter zotero.org › Einstellungen › Feeds/API.")
+        HintText(tr("Werke aus der Sammlung oder der Literatursuche direkt in die eigene Zotero-Bibliothek übertragen. Die User-ID und einen Schlüssel mit Schreibrechten gibt es unter zotero.org › Einstellungen › Feeds/API."))
         OutlinedTextField(
             s.zoteroUserId, { v -> c.settings.update { it.copy(zoteroUserId = v.filter(Char::isDigit)) } },
-            label = { Text("User-ID (Zahl)") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+            label = { Text(tr("User-ID (Zahl)")) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
         )
-        SecretField("API-Schlüssel", s.zoteroKey) { v -> c.settings.update { it.copy(zoteroKey = v.trim()) } }
+        SecretField(tr("API-Schlüssel"), s.zoteroKey) { v -> c.settings.update { it.copy(zoteroKey = v.trim()) } }
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(enabled = !testing && s.zoteroUserId.isNotBlank() && s.zoteroKey.isNotBlank(), onClick = {
                 testing = true
                 scope.launch {
                     status = runCatching { c.researchTools.zotero.collections() }
-                        .fold({ "✓ Verbunden – ${it.size} Sammlungen" }, { "✗ ${it.message}" })
+                        .fold({ tr("✓ Verbunden – {0} Sammlungen", it.size) }, { "✗ ${it.message}" })
                     testing = false
                 }
-            }) { Text("Verbindung testen") }
+            }) { Text(tr("Verbindung testen")) }
             if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-        TextButton(onClick = { uri.openUri("https://www.zotero.org/settings/keys/new") }) { Text("Schlüssel bei Zotero anlegen") }
+        TextButton(onClick = { uri.openUri("https://www.zotero.org/settings/keys/new") }) { Text(tr("Schlüssel bei Zotero anlegen")) }
     }
 }

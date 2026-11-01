@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,10 +59,10 @@ fun ConnectionsSettings(c: AppContainer) {
 /** Subtitle of „Verbindungen“ in the settings overview. */
 internal fun connectionsSummary(c: AppContainer): String {
     val parts = listOfNotNull(
-        if (c.settings.current.hasNextcloud) "Nextcloud verbunden" else null,
-        c.mcpServers.current.count { it.enabled }.takeIf { it > 0 }?.let { "$it MCP-Server" },
+        if (c.settings.current.hasNextcloud) tr("Nextcloud verbunden") else null,
+        c.mcpServers.current.count { it.enabled }.takeIf { it > 0 }?.let { tr("{0} MCP-Server", it) },
     )
-    return parts.joinToString(" · ").ifEmpty { "Nextcloud, MCP-Server (fremde Werkzeuge)" }
+    return parts.joinToString(" · ").ifEmpty { tr("Nextcloud, MCP-Server (fremde Werkzeuge)") }
 }
 
 /**
@@ -86,7 +85,7 @@ private fun MailServerSection(c: AppContainer) {
             tr("Für Mail & Kalender ohne das klassische Outlook – mit dem neuen Outlook, einem anderen Mailprogramm oder auf dem Handy: Lora liest Postfach und Ordner über IMAP, sortiert und speichert Antworten als Entwurf in „Entwürfe“. Sie löscht nie und sendet nie; Kalender und Aufgaben gehen auf diesem Weg nicht (dafür braucht es Exchange mit Freigabe der IT).") +
                 " " + tr("Die Zugangsdaten der TU Dresden stehen in der Anleitung des ZIH zu Exchange/IMAP.")
         )
-        OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text("z. B. imap.example.org") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text(tr("z. B. imap.example.org")) }, modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = port, onValueChange = { v -> port = v.filter(Char::isDigit).take(5) }, singleLine = true, label = { Text(tr("Port")) },
                 supportingText = { Text(tr("993 = TLS, 143 = STARTTLS")) }, modifier = Modifier.weight(1f))
@@ -193,7 +192,7 @@ private fun McpServerCard(c: AppContainer, s: McpServer, onEdit: () -> Unit) {
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Switch(checked = s.enabled, onCheckedChange = { on -> c.mcpServers.update(s.id) { it.copy(enabled = on) }; if (!on) c.mcp.disconnect(s.id) })
+                Switch(modifier = Modifier.a11yLabel(s.name), checked = s.enabled, onCheckedChange = { on -> c.mcpServers.update(s.id) { it.copy(enabled = on) }; if (!on) c.mcp.disconnect(s.id) })
             }
             val line = status ?: s.lastError ?: if (s.tools.isNotEmpty()) "${s.tools.size} " + tr("Werkzeuge") + if (s.internal) " · " + tr("auch in Projekten „Nur TU Dresden“") else "" else tr("Noch nicht verbunden")
             Text(line, style = MaterialTheme.typography.bodySmall, color = if (s.lastError != null && status == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
@@ -278,7 +277,7 @@ private fun McpServerDialog(c: AppContainer, existing: McpServer?, onDismiss: ()
                 if (local) {
                     OutlinedTextField(
                         value = command, onValueChange = { command = it }, label = { Text(tr("Befehl")) },
-                        supportingText = { Text(tr("z. B.") + " npx -y @modelcontextprotocol/server-filesystem \"C:\\Daten\"") },
+                        supportingText = { Text(tr("z. B." + " npx -y @modelcontextprotocol/server-filesystem \"C:\\Daten\"")) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     OutlinedTextField(
@@ -309,7 +308,7 @@ private fun McpServerDialog(c: AppContainer, existing: McpServer?, onDismiss: ()
                         Text(tr("Läuft an der TU Dresden oder auf diesem PC"))
                         Text(tr("Dann auch in Projekten mit „Nur TU Dresden“ nutzbar."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Switch(checked = internal, onCheckedChange = { internal = it })
+                    Switch(modifier = Modifier.a11yLabel(tr("Läuft an der TU Dresden oder auf diesem PC")), checked = internal, onCheckedChange = { internal = it })
                 }
             }
         },

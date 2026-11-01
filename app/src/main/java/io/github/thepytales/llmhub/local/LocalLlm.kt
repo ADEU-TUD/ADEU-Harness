@@ -4,6 +4,7 @@ import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.ApiProvider
 import io.github.thepytales.llmhub.data.ProviderKind
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -113,15 +114,15 @@ class LocalLlm(private val c: AppContainer) {
                 val dst = file(m)
                 val part = File(dst.path + ".part")
                 download(m.url, part, m.size, { cancel[m.id] == true }) { p -> _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to p)) }
-                _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 1.0), message = "${m.name} wird geprüft …")
+                _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 1.0), message = tr("{0} wird geprüft …", m.name))
                 verify(part, m)
-                if (!part.renameTo(dst)) error("Datei konnte nicht gespeichert werden")
-                _state.value = _state.value.copy(message = "${m.name} ist bereit.")
+                if (!part.renameTo(dst)) error(tr("Datei konnte nicht gespeichert werden"))
+                _state.value = _state.value.copy(message = tr("{0} ist bereit.", m.name))
             } catch (e: InterruptedException) {
-                _state.value = _state.value.copy(message = "Download abgebrochen – beim nächsten Mal wird fortgesetzt.")
+                _state.value = _state.value.copy(message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
-                    message = "Download von ${m.name} fehlgeschlagen: ${e.message}. Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.",
+                    message = tr("Download von {0} fehlgeschlagen: {1}. Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.", m.name, e.message),
                 )
             } finally {
                 _state.value = _state.value.copy(downloads = _state.value.downloads - m.id)
@@ -157,17 +158,17 @@ class LocalLlm(private val c: AppContainer) {
         if (name.endsWith(".zip", ignoreCase = true)) {
             input.use { LlamaHost.importRuntime(c, root, it) }
             refresh()
-            return@withContext "Programm für lokale Modelle eingespielt."
+            return@withContext tr("Programm für lokale Modelle eingespielt.")
         }
         val m = LocalCatalog.models.firstOrNull { it.file.equals(name, ignoreCase = true) }
-            ?: error("„$name“ gehört zu keinem Modell der Liste.")
+            ?: error(tr("„{0}“ gehört zu keinem Modell der Liste.", name))
         val part = File(file(m).path + ".import")
         input.use { i -> part.outputStream().use { i.copyTo(it, 1 shl 20) } }
         try { verify(part, m) } catch (e: Exception) { part.delete(); throw e }
         file(m).delete()
         part.renameTo(file(m))
         refresh()
-        "${m.name} ist bereit."
+        tr("{0} ist bereit.", m.name)
     }
 
     private fun download(url: String, part: File, total: Long, cancelled: () -> Boolean, progress: (Double) -> Unit) {
@@ -209,11 +210,11 @@ class LocalLlm(private val c: AppContainer) {
     }
 
     private fun verify(f: File, m: LocalModel) {
-        if (f.length() != m.size) error("Datei unvollständig (${f.length()} statt ${m.size} Bytes)")
+        if (f.length() != m.size) error(tr("Datei unvollständig ({0} statt {1} Bytes)", f.length(), m.size))
         val md = MessageDigest.getInstance("SHA-256")
         f.inputStream().use { i -> val b = ByteArray(1 shl 20); while (true) { val n = i.read(b); if (n <= 0) break; md.update(b, 0, n) } }
         val sha = md.digest().joinToString("") { "%02x".format(it) }
-        if (sha != m.sha256) error("Prüfsumme stimmt nicht – die Datei ist beschädigt")
+        if (sha != m.sha256) error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
     }
 
     // ------------------------------------------------------------------ server
@@ -224,11 +225,11 @@ class LocalLlm(private val c: AppContainer) {
      */
     suspend fun provider(modelId: String): ApiProvider = serverMutex.withLock {
         lastUse = System.currentTimeMillis()
-        val m = LocalCatalog.get(modelId) ?: error("Unbekanntes lokales Modell: $modelId")
+        val m = LocalCatalog.get(modelId) ?: error(tr("Unbekanntes lokales Modell: {0}", modelId))
         provider?.takeIf { _state.value.running == m.modelId && process?.isAlive == true }?.let { return it }
         stopLocked()
-        if (m.id !in _state.value.installed) error("${m.name} ist nicht installiert (Einstellungen › Modelle auf diesem Gerät).")
-        val bin = LlamaHost.binary(c, root) ?: error("Das Programm für lokale Modelle fehlt (Einstellungen › Modelle auf diesem Gerät › Installieren).")
+        if (m.id !in _state.value.installed) error(tr("{0} ist nicht installiert (Einstellungen › Modelle auf diesem Gerät).", m.name))
+        val bin = LlamaHost.binary(c, root) ?: error(tr("Das Programm für lokale Modelle fehlt (Einstellungen › Modelle auf diesem Gerät › Installieren)."))
         val hw = _hardware.value ?: detectHardware().also { _hardware.value = it }
         val port = ServerSocket(0).use { it.localPort }
         val key = UUID.randomUUID().toString()
@@ -251,8 +252,8 @@ class LocalLlm(private val c: AppContainer) {
             // Loading takes a few seconds to a minute (large models, slow disks).
             val deadline = System.currentTimeMillis() + 5 * 60_000
             while (true) {
-                if (!p.isAlive) error("Der Modell-Server hat sich beendet:\n" + File(root, "server.log").readLines().takeLast(6).joinToString("\n"))
-                if (System.currentTimeMillis() > deadline) error("Das Modell lädt zu lange.")
+                if (!p.isAlive) error(tr("Der Modell-Server hat sich beendet:\n") + File(root, "server.log").readLines().takeLast(6).joinToString("\n"))
+                if (System.currentTimeMillis() > deadline) error(tr("Das Modell lädt zu lange."))
                 val ok = withContext(Dispatchers.IO) {
                     runCatching {
                         (URL("$base/health").openConnection() as HttpURLConnection).run {

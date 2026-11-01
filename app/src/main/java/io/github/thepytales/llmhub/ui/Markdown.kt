@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -308,7 +307,7 @@ internal fun sourceList(text: String): Map<Int, SourceTarget> {
         val rest = m.groupValues[4]
         val url = URL_IN.find(rest)?.value ?: DOI_IN.find(rest)?.value?.let { "https://doi.org/$it" }
         val label = rest.replace(Regex("\\[([^\\]]+)]\\(([^)]+)\\)"), "$1").replace(URL_IN, "").trim().trimEnd('–', '-', ':', ',').trim()
-        if (n !in out) out[n] = SourceTarget(label.ifBlank { url ?: "Quelle $n" }, url = url)
+        if (n !in out) out[n] = SourceTarget(label.ifBlank { url ?: tr("Quelle {0}", n) }, url = url)
     }
     return out
 }
@@ -434,7 +433,7 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier, color: Color = Col
 }
 
 /** Kind of a highlighted note in an answer ("> [!NOTE]", "> **Hinweis:** …"). */
-internal enum class CalloutKind(val title: String) { NOTE("Hinweis"), TIP("Tipp"), IMPORTANT("Wichtig"), WARNING("Achtung") }
+internal enum class CalloutKind(val title: String) { NOTE(trLater("Hinweis")), TIP(trLater("Tipp")), IMPORTANT(trLater("Wichtig")), WARNING(trLater("Achtung")) }
 
 private val CALLOUT_TAG = Regex("^\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)]\\s*", RegexOption.IGNORE_CASE)
 private val CALLOUT_WORD = Regex("^\\*\\*(Hinweis|Tipp|Wichtig|Achtung|Warnung|Note|Tip|Important|Warning)\\s*:?\\*\\*\\s*:?\\s*", RegexOption.IGNORE_CASE)
@@ -542,10 +541,10 @@ private fun TableBlock(rows: List<List<String>>, sources: Map<Int, SourceTarget>
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 border = androidx.compose.foundation.BorderStroke(1.dp, line),
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp).size(28.dp)
-                    .clickable(onClickLabel = "Weitere Spalten") { scope.launch { scroll.animateScrollTo(scroll.value + 360) } },
+                    .clickable(onClickLabel = tr("Weitere Spalten")) { scope.launch { scroll.animateScrollTo(scroll.value + 360) } },
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weitere Spalten", modifier = Modifier.size(16.dp))
+                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weitere Spalten"), modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -573,7 +572,7 @@ fun CodeBlock(lang: String, code: String) {
                 )
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { clipboard.setText(AnnotatedString(code)) }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Outlined.ContentCopy, contentDescription = "Kopieren", modifier = Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Outlined.ContentCopy, contentDescription = tr("Kopieren"), modifier = Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))

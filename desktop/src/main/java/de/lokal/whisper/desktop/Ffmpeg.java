@@ -26,15 +26,44 @@ final class Ffmpeg {
     /** Folder of the app's resources (tools/ffmpeg.exe, native/*.dll); set by the app. */
     static volatile File resources;
 
+    private static volatile String found;
+
+    /**
+     * ffmpeg of the app (Windows: tools/ffmpeg.exe). macOS and Linux (AP-31) use the system's ffmpeg – from the PATH or,
+     * because apps started from the Dock or menu do not see the PATH of a terminal, from the usual folders of Homebrew,
+     * MacPorts, the package manager and Snap. Null if there is none.
+     */
     static String exe() {
         File f = resources == null ? null : new File(resources, "tools/" + (SpeechWin.WINDOWS ? "ffmpeg.exe" : "ffmpeg"));
         if (f != null && f.isFile()) return f.getAbsolutePath();
-        return SpeechWin.WINDOWS ? null : "ffmpeg"; // Entwicklung unter Linux: ffmpeg aus dem System
+        if (SpeechWin.WINDOWS) return null;
+        String cached = found;
+        if (cached != null && new File(cached).canExecute()) return cached;
+        List<String> dirs = new ArrayList<>();
+        String path = System.getenv("PATH");
+        if (path != null) dirs.addAll(Arrays.asList(path.split(File.pathSeparator)));
+        dirs.addAll(Arrays.asList("/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin", "/usr/bin", "/snap/bin"));
+        for (String d : dirs) {
+            if (d.isEmpty()) continue;
+            File c = new File(d, "ffmpeg");
+            if (c.isFile() && c.canExecute()) {
+                found = c.getAbsolutePath();
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /** What to do when ffmpeg is missing (macOS/Linux: install it). */
+    static String missing() {
+        if (SpeechWin.WINDOWS) return "ffmpeg fehlt in der App";
+        boolean mac = System.getProperty("os.name", "").startsWith("Mac");
+        return "ffmpeg fehlt – bitte installieren (" + (mac ? "Terminal: brew install ffmpeg" : "Terminal: sudo apt install ffmpeg") + ")";
     }
 
     static long decode(File src, File pcmOut, Platform.Progress progress, Platform.Cancel cancel) throws Exception {
         String exe = exe();
-        if (exe == null) throw new Exception("ffmpeg fehlt in der App");
+        if (exe == null) throw new Exception(missing());
         List<String> cmd = new ArrayList<>(Arrays.asList(exe, "-nostdin", "-hide_banner", "-y", "-i", src.getAbsolutePath(),
                 "-vn", "-sn", "-dn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", "-f", "s16le",
                 "-progress", "pipe:1", "-nostats", pcmOut.getAbsolutePath()));

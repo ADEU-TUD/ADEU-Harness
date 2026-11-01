@@ -11,6 +11,7 @@ import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.data.updateMessage
 import io.github.thepytales.llmhub.tasks.Notifier
 import io.github.thepytales.llmhub.ui.splitThinking
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -141,7 +142,7 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
             }
         } catch (e: Exception) {
             // AgentRunner turns API errors into messages; anything else must not crash the app.
-            host.notice("Fehler: ${e.message ?: e.javaClass.simpleName}")
+            host.notice(tr("Fehler: {0}", e.message ?: e.javaClass.simpleName))
         } finally {
             // Stopped before a new version started: show the previous answer again.
             host.update { conv ->
@@ -161,14 +162,14 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
     private fun announce(conv: Conversation) {
         // Vault chats (AP-10): no title and no text outside the vault, not even in a notification.
         if (conv.vault) {
-            if (AppState.foreground) c.events.tryEmit(ResultEvent("Tresor", conv.id, "Antwort fertig"))
-            else Notifier.chatFinished(context, "Tresor", conv.id, null, null)
+            if (AppState.foreground) c.events.tryEmit(ResultEvent(tr("Tresor"), conv.id, tr("Antwort fertig")))
+            else Notifier.chatFinished(context, tr("Tresor"), conv.id, null, null)
             return
         }
         val last = conv.thread().lastOrNull { it.role == "assistant" }
         val error = last?.takeIf { it.error }?.content?.take(200)
         if (AppState.foreground) {
-            c.events.tryEmit(ResultEvent(conv.title, conv.id, if (error != null) "Fehler bei der Antwort" else "Antwort fertig"))
+            c.events.tryEmit(ResultEvent(conv.title, conv.id, if (error != null) tr("Fehler bei der Antwort") else tr("Antwort fertig")))
         } else {
             val answer = last?.takeIf { !it.error }?.let { splitThinking(it.content).second }
             Notifier.chatFinished(context, conv.title, conv.id, answer, error)

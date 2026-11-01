@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,19 +30,19 @@ import androidx.compose.ui.unit.dp
 fun WelcomeCard(onApiKey: () -> Unit, onNavigate: (String) -> Unit) {
     AppCard(Modifier.widthIn(max = 520.dp).fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Willkommen! So geht es los:", style = MaterialTheme.typography.titleMedium)
-            Step(1, "API-Key holen", "Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“).")
-            Step(2, "Eintragen", "Er wird verschlüsselt nur auf diesem Gerät gespeichert.")
-            Step(3, "Loslegen", "Frage stellen, Datei anhängen oder eine Vorlage wählen.")
+            Text(tr("Willkommen! So geht es los:"), style = MaterialTheme.typography.titleMedium)
+            Step(1, tr("API-Key holen"), tr("Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“)."))
+            Step(2, tr("Eintragen"), tr("Er wird verschlüsselt nur auf diesem Gerät gespeichert."))
+            Step(3, tr("Loslegen"), tr("Frage stellen, Datei anhängen oder eine Vorlage wählen."))
             Button(onClick = onApiKey, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Outlined.VpnKey, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(8.dp))
-                Text("API-Key eintragen")
+                Text(tr("API-Key eintragen"))
             }
-            HintText("Schon ohne API-Key: Aufnahmen transkribieren und Modelle direkt auf dem Gerät nutzen.")
+            HintText(tr("Schon ohne API-Key: Aufnahmen transkribieren und Modelle direkt auf dem Gerät nutzen."))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = { onNavigate("transcripts") }) { Text("Transkription") }
-                TextButton(onClick = { onNavigate("local-models") }) { Text("Modelle auf dem Gerät") }
+                TextButton(onClick = { onNavigate("transcripts") }) { Text(tr("Transkription")) }
+                TextButton(onClick = { onNavigate("local-models") }) { Text(tr("Modelle auf dem Gerät")) }
             }
         }
     }

@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -156,11 +157,10 @@ internal fun PdfSigner(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> Uni
                     selected = s.id == sig?.id, onClick = { selected = s.id },
                     label = { SignaturePreview(s, Modifier.size(72.dp, 24.dp)) },
                     trailingIcon = {
-                        Icon(Icons.Outlined.Close, contentDescription = tr("Unterschrift löschen"), modifier = Modifier.size(16.dp).pointerInput(s.id) {
-                            detectTapGestures {
-                                c.signatures.delete(s.id)
-                                Notices.undo(tr("Unterschrift gelöscht"), restore = { c.signatures.upsert(s) })
-                            }
+                        // A button of its own, so Tab and Enter reach it too (AP-30).
+                        Icon(Icons.Outlined.Close, contentDescription = tr("Unterschrift löschen"), modifier = Modifier.size(16.dp).clickable(role = Role.Button) {
+                            c.signatures.delete(s.id)
+                            Notices.undo(tr("Unterschrift gelöscht"), restore = { c.signatures.upsert(s) })
                         })
                     },
                 )
@@ -283,7 +283,7 @@ internal fun PdfConverter(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> 
                 if (found.isEmpty()) Notices.error(tr("Auf den Seiten wurde kein Text erkannt."))
                 else {
                     onRun { src, out -> PdfExtras.addTextLayer(context, src, found, out) }
-                    Notices.info(tr("Text auf") + " ${found.size} " + tr(if (found.size == 1) "Seite" else "Seiten") + " " + tr("erkannt") + " (${r.engine})" + if (r.failed.isNotEmpty()) " · " + tr("nicht erkannt") + ": " + r.failed.joinToString(", ") { "${it + 1}" } else "")
+                    Notices.info(tr(if (found.size == 1) "Text auf {0} Seite erkannt" else "Text auf {0} Seiten erkannt", found.size) + " (${r.engine})" + if (r.failed.isNotEmpty()) " · " + tr("nicht erkannt") + ": " + r.failed.joinToString(", ") { "${it + 1}" } else "")
                 }
             }
         }
@@ -381,7 +381,7 @@ internal fun PdfConverter(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> 
             title = { Text(tr("Mit KI-Modell erkennen?")) },
             text = {
                 Text(
-                    tr("Die Bilder von") + " ${scanned?.size ?: 0} " + tr("Seiten gehen an") + " ${io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName}. " +
+                    tr("Die Bilder von {0} Seiten gehen an {1}.", scanned?.size ?: 0, io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) + " " +
                         tr("In Bildern lassen sich keine Namen ersetzen – für sensible Unterlagen besser die Texterkennung auf dem PC nutzen."),
                 )
             },

@@ -39,6 +39,7 @@ import io.github.thepytales.llmhub.local.LocalLlm
 import io.github.thepytales.llmhub.research.LiteratureStore
 import io.github.thepytales.llmhub.transcribe.SpeechHost
 import io.github.thepytales.llmhub.transcribe.Transcription
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -184,9 +185,9 @@ class AppContainer(context: Context) {
         },
         onFinished = { j ->
             Notifier.batchFinished(
-                appContext, "Stapel fertig: ${j.title}",
-                "${j.done - j.failed} von ${j.items.size} Dateien bearbeitet" + (if (j.failed > 0) ", ${j.failed} mit Fehler" else "") +
-                    if (j.grading) " – die Vorschläge warten auf deine Entscheidung." else ".",
+                appContext, tr("Stapel fertig: {0}", j.title),
+                tr("{0} von {1} Dateien bearbeitet", j.done - j.failed, j.items.size) + (if (j.failed > 0) tr(", {0} mit Fehler", j.failed) else "") +
+                    if (j.grading) tr(" – die Vorschläge warten auf deine Entscheidung.") else ".",
             )
         },
     )

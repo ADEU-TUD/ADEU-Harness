@@ -35,7 +35,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -105,28 +104,28 @@ private fun <T> Chips(label: String, options: List<Pair<T, String>>, selected: T
 fun ViewSheet(c: AppContainer, onDismiss: () -> Unit) {
     val t = c.transcription
     val s by t.settings.collectAsStateWithLifecycle()
-    PanelSheet("Ansicht & Zeitstempel", onDismiss) {
-        Chips("Zeitstempel", TranscriptEdit.Stamps.entries.map { it.key to it.label }, s.stamps, { v -> t.updateSettings { it.copy(stamps = v) } })
+    PanelSheet(tr("Ansicht & Zeitstempel"), onDismiss) {
+        Chips(tr("Zeitstempel"), TranscriptEdit.Stamps.entries.map { it.key to it.label }, s.stamps, { v -> t.updateSettings { it.copy(stamps = v) } })
         HintText(
-            "„Je Satz“ und „Alle … s“ setzen die Zeit vor das Wort, bei dem sie gemessen wurde. Ohne gemessene Wortzeiten gibt es nur die Zeiten " +
-                "der Abschnittsanfänge – geschätzt wird nichts. Der Export übernimmt diese Einstellung.",
+            tr("„Je Satz“ und „Alle … s“ setzen die Zeit vor das Wort, bei dem sie gemessen wurde. Ohne gemessene Wortzeiten gibt es nur die Zeiten " +
+                "der Abschnittsanfänge – geschätzt wird nichts. Der Export übernimmt diese Einstellung."),
         )
         Chips(
-            "Absätze",
-            listOf("auto" to "Bei Sprecherwechsel und Pausen", "speaker" to "Nur bei Sprecherwechsel", "segment" to "Jeder Abschnitt"),
+            tr("Absätze"),
+            listOf("auto" to tr("Bei Sprecherwechsel und Pausen"), "speaker" to tr("Nur bei Sprecherwechsel"), "segment" to tr("Jeder Abschnitt")),
             s.paragraphs, { v -> t.updateSettings { it.copy(paragraphs = v) } },
         )
-        Chips("Schriftgröße", listOf("small" to "Klein", "normal" to "Normal", "large" to "Groß", "xlarge" to "Sehr groß"), s.textSize, { v -> t.updateSettings { it.copy(textSize = v) } })
-        ToggleRow("Aktuelles Wort markieren", "Beim Abspielen wird das gerade gesprochene Wort hervorgehoben (nur gemessene Wortzeiten).", s.wordHighlight) { v -> t.updateSettings { it.copy(wordHighlight = v) } }
-        ToggleRow("Text mitlaufen lassen", "Beim Abspielen scrollt der Text mit.", s.follow) { v -> t.updateSettings { it.copy(follow = v) } }
-        ToggleRow("Kommentare anzeigen", "Kommentare stehen klein unter ihrem Abschnitt.", s.showComments) { v -> t.updateSettings { it.copy(showComments = v) } }
-        ToggleRow("Nicht gemessene Wörter unterstreichen", "Zeigt, wo eine Wortzeit fehlt oder nur zwischen gemessenen Nachbarn liegt.", s.markUnmeasured) { v -> t.updateSettings { it.copy(markUnmeasured = v) } }
+        Chips(tr("Schriftgröße"), listOf("small" to tr("Klein"), "normal" to tr("Normal"), "large" to tr("Groß"), "xlarge" to tr("Sehr groß")), s.textSize, { v -> t.updateSettings { it.copy(textSize = v) } })
+        ToggleRow(tr("Aktuelles Wort markieren"), tr("Beim Abspielen wird das gerade gesprochene Wort hervorgehoben (nur gemessene Wortzeiten)."), s.wordHighlight) { v -> t.updateSettings { it.copy(wordHighlight = v) } }
+        ToggleRow(tr("Text mitlaufen lassen"), tr("Beim Abspielen scrollt der Text mit."), s.follow) { v -> t.updateSettings { it.copy(follow = v) } }
+        ToggleRow(tr("Kommentare anzeigen"), tr("Kommentare stehen klein unter ihrem Abschnitt."), s.showComments) { v -> t.updateSettings { it.copy(showComments = v) } }
+        ToggleRow(tr("Nicht gemessene Wörter unterstreichen"), tr("Zeigt, wo eine Wortzeit fehlt oder nur zwischen gemessenen Nachbarn liegt."), s.markUnmeasured) { v -> t.updateSettings { it.copy(markUnmeasured = v) } }
         HorizontalDivider()
-        Text("Abspielen zum Korrigieren", style = MaterialTheme.typography.titleSmall)
-        Chips("Beim Anhalten zurückspringen", listOf(0.0 to "Aus", 1.0 to "1 s", 2.0 to "2 s", 3.0 to "3 s", 5.0 to "5 s"), s.rewindOnPause, { v -> t.updateSettings { it.copy(rewindOnPause = v) } })
-        Chips("Sprungweite (Knöpfe, F3/F5)", listOf(5 to "5 s", 10 to "10 s", 30 to "30 s"), s.skipSeconds, { v -> t.updateSettings { it.copy(skipSeconds = v) } })
-        ToggleRow("Pausen überspringen", "Stille zwischen den Abschnitten (über 1,5 s) wird beim Abspielen übersprungen.", s.skipSilence) { v -> t.updateSettings { it.copy(skipSilence = v) } }
-        HintText("Tastatur (Windows, Tablet mit Tastatur), auch beim Tippen im Abschnitt: F4 Abspielen/Anhalten · F3 zurück · F5 vor · F6 Abschnitt wiederholen · Strg+F Suchen.")
+        Text(tr("Abspielen zum Korrigieren"), style = MaterialTheme.typography.titleSmall)
+        Chips(tr("Beim Anhalten zurückspringen"), listOf(0.0 to tr("Aus"), 1.0 to "1 s", 2.0 to "2 s", 3.0 to "3 s", 5.0 to "5 s"), s.rewindOnPause, { v -> t.updateSettings { it.copy(rewindOnPause = v) } })
+        Chips(tr("Sprungweite (Knöpfe, F3/F5)"), listOf(5 to "5 s", 10 to "10 s", 30 to "30 s"), s.skipSeconds, { v -> t.updateSettings { it.copy(skipSeconds = v) } })
+        ToggleRow(tr("Pausen überspringen"), tr("Stille zwischen den Abschnitten (über 1,5 s) wird beim Abspielen übersprungen."), s.skipSilence) { v -> t.updateSettings { it.copy(skipSilence = v) } }
+        HintText(tr("Tastatur (Windows, Tablet mit Tastatur), auch beim Tippen im Abschnitt: F4 Abspielen/Anhalten · F3 zurück · F5 vor · F6 Abschnitt wiederholen · Strg+F Suchen."))
     }
 }
 
@@ -138,10 +137,10 @@ fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> 
     val scope = rememberCoroutineScope()
     var voiceBusy by remember { mutableStateOf(false) }
     var matches by remember { mutableStateOf<List<io.github.thepytales.llmhub.transcribe.Voices.Match>?>(null) }
-    PanelSheet("Sprecher", onDismiss) {
+    PanelSheet(tr("Sprecher"), onDismiss) {
         if (!t.diarized) {
-            HintText("In diesem Transkript sind keine Sprecher erkannt. Legen Sie sie von Hand an: Alle Abschnitte gehören zuerst zu „Sprecher 1“, " +
-                "einzelne Abschnitte ordnen Sie per langem Drücken zu.")
+            HintText(tr("In diesem Transkript sind keine Sprecher erkannt. Legen Sie sie von Hand an: Alle Abschnitte gehören zuerst zu „Sprecher 1“, " +
+                "einzelne Abschnitte ordnen Sie per langem Drücken zu."))
         }
         val stats = TranscriptEdit.stats(t).associateBy { it.speaker }
         t.speakers.keys.sorted().forEach { k ->
@@ -150,8 +149,8 @@ fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> 
                     Box(Modifier.size(10.dp).clip(CircleShape).background(speakerColor(k)))
                     Spacer(Modifier.width(10.dp))
                     val st = stats[k]
-                    TitleBlock(t.speakerName(k), st?.let { "${Math.round(it.share * 100)} % · ${it.turns} Beiträge · ${it.words} Wörter" } ?: "keine Abschnitte", Modifier.weight(1f))
-                    Icon(Icons.Outlined.Edit, contentDescription = "Umbenennen oder zusammenführen")
+                    TitleBlock(t.speakerName(k), st?.let { tr("{0} % · {1} Beiträge · {2} Wörter", Math.round(it.share * 100), it.turns, it.words) } ?: tr("keine Abschnitte"), Modifier.weight(1f))
+                    Icon(Icons.Outlined.Edit, contentDescription = tr("Umbenennen oder zusammenführen"))
                 }
             }
         }
@@ -159,29 +158,29 @@ fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> 
             OutlinedButton(onClick = { add = true }) {
                 Icon(Icons.Outlined.Add, contentDescription = null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text(if (t.diarized) "Sprecher hinzufügen" else "Sprecher anlegen")
+                Text(if (t.diarized) tr("Sprecher hinzufügen") else tr("Sprecher anlegen"))
             }
-            if (t.diarized) TextButton(onClick = { remove = true }) { Text("Sprecher entfernen") }
+            if (t.diarized) TextButton(onClick = { remove = true }) { Text(tr("Sprecher entfernen")) }
         }
-        HintText("Tipp: Kurze Namen wie „I“, „B1“ oder „LK“ werden beim Export nach Dresing/Pehl und für MAXQDA direkt als Kürzel benutzt.")
+        HintText(tr("Tipp: Kurze Namen wie „I“, „B1“ oder „LK“ werden beim Export nach Dresing/Pehl und für MAXQDA direkt als Kürzel benutzt."))
         if (c != null && t.diarized) {
             val profiles by c.voices.items.collectAsStateWithLifecycle()
-            Text("Stimmprofile", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Stimmprofile"), style = MaterialTheme.typography.titleSmall)
             HintText(
-                "Benannte Sprecher lassen sich als Stimmprofil merken und in weiteren Aufnahmen (z.B. einer Interviewreihe) an der Stimme " +
-                    "wiedererkennen. Die Stimmabdrücke entstehen und bleiben nur auf diesem Gerät." + if (profiles.isNotEmpty()) " Gespeichert: " + profiles.joinToString { it.name } + "." else ""
+                tr("Benannte Sprecher lassen sich als Stimmprofil merken und in weiteren Aufnahmen (z.B. einer Interviewreihe) an der Stimme " +
+                    "wiedererkennen. Die Stimmabdrücke entstehen und bleiben nur auf diesem Gerät.") + if (profiles.isNotEmpty()) tr(" Gespeichert: ") + profiles.joinToString { it.name } + "." else ""
             )
-            if (!hasAudio) HintText("Dafür braucht es die gespeicherte Aufnahme.")
+            if (!hasAudio) HintText(tr("Dafür braucht es die gespeicherte Aufnahme."))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(enabled = hasAudio && !voiceBusy && profiles.isNotEmpty(), onClick = {
                     voiceBusy = true
                     scope.launch {
                         runCatching { io.github.thepytales.llmhub.transcribe.Voices.match(c.transcription.speakerVoices(t.id), profiles) }
-                            .onSuccess { m -> matches = m; if (m.isEmpty()) Notices.info("Keine gespeicherte Stimme erkannt.") }
-                            .onFailure { Notices.error("Stimmen erkennen nicht möglich: ${it.message}") }
+                            .onSuccess { m -> matches = m; if (m.isEmpty()) Notices.info(tr("Keine gespeicherte Stimme erkannt.")) }
+                            .onFailure { Notices.error(tr("Stimmen erkennen nicht möglich: {0}", it.message)) }
                         voiceBusy = false
                     }
-                }) { Text("Stimmen erkennen") }
+                }) { Text(tr("Stimmen erkennen")) }
                 OutlinedButton(enabled = hasAudio && !voiceBusy, onClick = {
                     voiceBusy = true
                     scope.launch {
@@ -190,26 +189,26 @@ fun SpeakersSheet(t: Transcript, onEdit: (Int) -> Unit, onSave: (Transcript) -> 
                             val named = t.speakers.filter { (_, n) -> n.isNotBlank() && !n.startsWith("Sprecher ") }
                             named.forEach { (k, n) -> voices[k]?.let { c.voices.learn(n, it) } }
                             named.size
-                        }.onSuccess { n -> Notices.info(if (n == 0) "Bitte die Sprecher zuerst benennen." else "$n Stimmprofil(e) gespeichert.") }
-                            .onFailure { Notices.error("Stimmprofile nicht gespeichert: ${it.message}") }
+                        }.onSuccess { n -> Notices.info(if (n == 0) tr("Bitte die Sprecher zuerst benennen.") else tr("{0} Stimmprofil(e) gespeichert.", n)) }
+                            .onFailure { Notices.error(tr("Stimmprofile nicht gespeichert: {0}", it.message)) }
                         voiceBusy = false
                     }
-                }) { Text("Als Profile merken") }
+                }) { Text(tr("Als Profile merken")) }
                 if (voiceBusy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             }
             matches?.takeIf { it.isNotEmpty() }?.let { m ->
-                m.forEach { x -> HintText("${t.speakerName(x.speaker)} → ${x.profile.name} (Ähnlichkeit ${"%.2f".format(x.similarity)})") }
+                m.forEach { x -> HintText(tr("{0} → {1} (Ähnlichkeit {2})", t.speakerName(x.speaker), x.profile.name, "%.2f".format(x.similarity))) }
                 TextButton(onClick = {
                     var next = t
                     m.forEach { x -> next = next.copy(speakers = next.speakers + (x.speaker to x.profile.name)) }
                     onSave(next)
                     matches = null
-                }) { Text("Namen übernehmen") }
+                }) { Text(tr("Namen übernehmen")) }
             }
         }
     }
-    if (add) TextInputDialog("Sprecher hinzufügen", "", "Name oder Kürzel", onConfirm = { onSave(TranscriptEdit.addSpeaker(t, it.trim())) }, onDismiss = { add = false })
-    if (remove) ConfirmDialog("Sprecher entfernen?", "Alle Zuordnungen werden gelöscht (für Aufnahmen mit nur einer Person).", "Entfernen",
+    if (add) TextInputDialog(tr("Sprecher hinzufügen"), "", tr("Name oder Kürzel"), onConfirm = { onSave(TranscriptEdit.addSpeaker(t, it.trim())) }, onDismiss = { add = false })
+    if (remove) ConfirmDialog(tr("Sprecher entfernen?"), tr("Alle Zuordnungen werden gelöscht (für Aufnahmen mit nur einer Person)."), tr("Entfernen"),
         onConfirm = { onSave(TranscriptEdit.removeSpeakers(t)) }, onDismiss = { remove = false })
 }
 
@@ -219,15 +218,15 @@ fun SpeakerDialog(t: Transcript, speaker: Int, onSave: (Transcript) -> Unit, onD
     var mergeInto by remember { mutableStateOf<Int?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Sprecher") },
+        title = { Text(tr("Sprecher")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Name oder Kürzel") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(name, { name = it }, label = { Text(tr("Name oder Kürzel")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 val others = t.speakers.keys.filter { it != speaker }.sorted()
                 if (others.isNotEmpty()) {
                     ChoiceField(
-                        "Zusammenführen mit (falls doppelt erkannt)",
-                        listOf<Pair<Int?, String>>(null to "Nicht zusammenführen") + others.map { it to t.speakerName(it) },
+                        tr("Zusammenführen mit (falls doppelt erkannt)"),
+                        listOf<Pair<Int?, String>>(null to tr("Nicht zusammenführen")) + others.map { it to t.speakerName(it) },
                         mergeInto, { mergeInto = it },
                     )
                 }
@@ -239,9 +238,9 @@ fun SpeakerDialog(t: Transcript, speaker: Int, onSave: (Transcript) -> Unit, onD
                 onSave(if (target != null) TranscriptEdit.mergeSpeaker(t, speaker, target)
                 else t.copy(speakers = t.speakers + (speaker to name.trim().ifBlank { "Sprecher ${speaker + 1}" })))
                 onDismiss()
-            }) { Text("Speichern") }
+            }) { Text(tr("Speichern")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -251,15 +250,15 @@ fun SegmentationSheet(t: Transcript, onSave: (Transcript) -> Unit, onDismiss: ()
     var max by remember { mutableStateOf(20) }
     val preview = remember(t, max) { TranscriptEdit.resegment(t, max) }
     val untimed = t.segments.count { s -> TranscriptEdit.textWords(s).let { tw -> tw.isEmpty() || tw.any { it.word?.measured != true } } }
-    PanelSheet("Segmentierung", onDismiss) {
-        HintText("Teilt Abschnitte an Satzenden – genau an der gemessenen Zeit des ersten Worts – und verbindet dann Sätze desselben Sprechers bis zur gewählten Länge.")
-        Chips("Abschnitte", listOf(0 to "Ein Satz je Abschnitt", 10 to "Bis ca. 10 s", 20 to "Bis ca. 20 s", 45 to "Bis ca. 45 s"), max, { max = it })
-        Text("Ergibt ${preview.segments.size} Abschnitte (bisher ${t.segments.size}).", style = MaterialTheme.typography.bodyMedium)
-        if (untimed > 0) HintText("$untimed Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.")
-        HintText("Einzelne Abschnitte teilen oder verbinden: Abschnitt lange drücken. Rückgängig ist möglich.")
+    PanelSheet(tr("Segmentierung"), onDismiss) {
+        HintText(tr("Teilt Abschnitte an Satzenden – genau an der gemessenen Zeit des ersten Worts – und verbindet dann Sätze desselben Sprechers bis zur gewählten Länge."))
+        Chips(tr("Abschnitte"), listOf(0 to tr("Ein Satz je Abschnitt"), 10 to tr("Bis ca. 10 s"), 20 to tr("Bis ca. 20 s"), 45 to tr("Bis ca. 45 s")), max, { max = it })
+        Text(tr("Ergibt {0} Abschnitte (bisher {1}).", preview.segments.size, t.segments.size), style = MaterialTheme.typography.bodyMedium)
+        if (untimed > 0) HintText(tr("{0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.", untimed))
+        HintText(tr("Einzelne Abschnitte teilen oder verbinden: Abschnitt lange drücken. Rückgängig ist möglich."))
         Row {
             Spacer(Modifier.weight(1f))
-            Button(onClick = { onSave(preview); onDismiss() }) { Text("Übernehmen") }
+            Button(onClick = { onSave(preview); onDismiss() }) { Text(tr("Übernehmen")) }
         }
     }
 }
@@ -274,10 +273,10 @@ fun StatsSheet(t: Transcript, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val speech = t.segments.sumOf { it.end - it.start }
-    PanelSheet("Redeanteile & Statistik", onDismiss) {
+    PanelSheet(tr("Redeanteile & Statistik"), onDismiss) {
         Text(
-            "Gesprochen ${minutes(speech)} von ${minutes(t.duration)} (${pct(speech / t.duration.coerceAtLeast(0.001))}) · ${t.wordCount} Wörter" +
-                if (t.diarized) " · ${TranscriptEdit.speakerChanges(t)} Sprecherwechsel" else "",
+            tr("Gesprochen {0} von {1} ({2}) · {3} Wörter", minutes(speech), minutes(t.duration), pct(speech / t.duration.coerceAtLeast(0.001)), t.wordCount) +
+                if (t.diarized) tr(" · {0} Sprecherwechsel", TranscriptEdit.speakerChanges(t)) else "",
             style = MaterialTheme.typography.bodyMedium,
         )
         stats.forEach { s ->
@@ -289,21 +288,21 @@ fun StatsSheet(t: Transcript, onDismiss: () -> Unit) {
                         Text(pct(s.share), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                     }
                     HintText(
-                        "Redezeit ${minutes(s.seconds)} · ${s.words} Wörter · ${s.turns} Beiträge · Ø ${String.format(Locale.GERMANY, "%.1f", s.averageTurn)} s je Beitrag · " +
-                            "längster ${minutes(s.longestTurn)} · ${Math.round(s.wordsPerMinute)} Wörter/min",
+                        tr("Redezeit {0} · {1} Wörter · {2} Beiträge · Ø {3} s je Beitrag · ", minutes(s.seconds), s.words, s.turns, String.format(Locale.GERMANY, "%.1f", s.averageTurn)) +
+                            tr("längster {0} · {1} Wörter/min", minutes(s.longestTurn), Math.round(s.wordsPerMinute)),
                     )
                 }
             }
         }
-        HintText("Redezeit = Summe der Abschnitte (Sprachaktivität), ohne Pausen. Beiträge = zusammenhängende Abschnitte desselben Sprechers.")
+        HintText(tr("Redezeit = Summe der Abschnitte (Sprachaktivität), ohne Pausen. Beiträge = zusammenhängende Abschnitte desselben Sprechers."))
         OutlinedButton(onClick = {
             val rows = listOf("Sprecher;Redezeit (s);Anteil (%);Wörter;Beiträge;Ø Beitrag (s);Längster Beitrag (s);Wörter pro Minute") + stats.map { s ->
                 listOf(s.name, s.seconds, s.share * 100, s.words, s.turns, s.averageTurn, s.longestTurn, s.wordsPerMinute)
                     .joinToString(";") { v -> if (v is Double) String.format(Locale.GERMANY, "%.1f", v) else v.toString() }
             }
             clipboard.setText(AnnotatedString(rows.joinToString("\n")))
-            Notices.info("Tabelle kopiert (für Excel, SPSS, R).")
-        }) { Text("Als Tabelle kopieren") }
+            Notices.info(tr("Tabelle kopiert (für Excel, SPSS, R)."))
+        }) { Text(tr("Als Tabelle kopieren")) }
     }
 }
 
@@ -318,31 +317,31 @@ fun ChaptersSheet(c: AppContainer, t: Transcript, control: PlaybackControl, onSa
     var summaryEdit by remember { mutableStateOf(false) }
     val model = Privacy.suitableModel(c, t.folder, c.settings.current.defaultModel)
     val block = Privacy.blockReason(c, t.folder, model)
-    PanelSheet("Kapitel & Zusammenfassung", onDismiss) {
+    PanelSheet(tr("Kapitel & Zusammenfassung"), onDismiss) {
         t.summary?.let { sum ->
             AppCard(onClick = { summaryEdit = true }) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Zusammenfassung", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Zusammenfassung"), style = MaterialTheme.typography.titleSmall)
                     Text(sum, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
-        if (t.chapters.isEmpty()) HintText("Noch keine Kapitel.")
+        if (t.chapters.isEmpty()) HintText(tr("Noch keine Kapitel."))
         t.chapters.forEach { ch ->
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { control.play(ch.time) }) {
                 Text(TranscriptExport.clock(ch.time), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.outline, modifier = Modifier.width(56.dp))
                 Text(ch.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                IconButton(onClick = { editing = ch }) { Icon(Icons.Outlined.Edit, contentDescription = "Umbenennen") }
-                IconButton(onClick = { onSave(t.copy(chapters = t.chapters - ch)) }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
+                IconButton(onClick = { editing = ch }) { Icon(Icons.Outlined.Edit, contentDescription = tr("Umbenennen")) }
+                IconButton(onClick = { onSave(t.copy(chapters = t.chapters - ch)) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
             }
         }
-        if (control.available) OutlinedButton(onClick = { adding = true }) { Text("Kapitel bei ${TranscriptExport.clock(control.position())} einfügen") }
+        if (control.available) OutlinedButton(onClick = { adding = true }) { Text(tr("Kapitel bei {0} einfügen", TranscriptExport.clock(control.position()))) }
         HorizontalDivider()
         if (block != null) {
             HintText(block)
         } else {
-            HintText("Das Sprachmodell ${ModelCatalog.info(model).displayName} liest das Transkript und schlägt Kapitel und eine Zusammenfassung vor. " +
-                "Kapitel beginnen nur an gemessenen Zeiten des Transkripts. Bisherige Kapitel und Zusammenfassung werden ersetzt.")
+            HintText(tr("Das Sprachmodell {0} liest das Transkript und schlägt Kapitel und eine Zusammenfassung vor. ", ModelCatalog.info(model).displayName) +
+                tr("Kapitel beginnen nur an gemessenen Zeiten des Transkripts. Bisherige Kapitel und Zusammenfassung werden ersetzt."))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(enabled = !busy, onClick = {
                     busy = true; error = null
@@ -351,30 +350,30 @@ fun ChaptersSheet(c: AppContainer, t: Transcript, control: PlaybackControl, onSa
                             val result = c.llm.streamChat(model = model, messages = TranscriptChapters.prompt(t), tools = null, thinking = ThinkingLevel.OFF) { }
                             TranscriptChapters.parse(splitThinking(result.content).second, t)
                         }.onSuccess { (summary, chapters) ->
-                            if (chapters.isEmpty() && summary == null) error = "Das Modell hat keine brauchbare Gliederung geliefert. Bitte noch einmal versuchen."
+                            if (chapters.isEmpty() && summary == null) error = tr("Das Modell hat keine brauchbare Gliederung geliefert. Bitte noch einmal versuchen.")
                             else onSave(t.copy(summary = summary ?: t.summary, chapters = chapters.ifEmpty { t.chapters }))
-                        }.onFailure { error = it.message ?: "Fehler" }
+                        }.onFailure { error = it.message ?: tr("Fehler") }
                         busy = false
                     }
-                }) { Text("Mit dem Sprachmodell erstellen") }
+                }) { Text(tr("Mit dem Sprachmodell erstellen")) }
                 if (busy) { Spacer(Modifier.width(12.dp)); CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) }
             }
         }
         error?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
     }
     editing?.let { ch ->
-        TextInputDialog("Kapitel", ch.title, "Titel", onConfirm = { v ->
+        TextInputDialog(tr("Kapitel"), ch.title, tr("Titel"), onConfirm = { v ->
             onSave(t.copy(chapters = t.chapters.map { if (it == ch) it.copy(title = v.trim().ifBlank { ch.title }) else it }))
         }, onDismiss = { editing = null })
     }
     if (adding) {
         val at = control.position()
-        TextInputDialog("Kapitel bei ${TranscriptExport.clock(at)}", "", "Titel", onConfirm = { v ->
+        TextInputDialog(tr("Kapitel bei {0}", TranscriptExport.clock(at)), "", tr("Titel"), onConfirm = { v ->
             if (v.isNotBlank()) onSave(t.copy(chapters = (t.chapters + Chapter(at, v.trim())).sortedBy { it.time }))
         }, onDismiss = { adding = false })
     }
     if (summaryEdit) {
-        TextInputDialog("Zusammenfassung", t.summary.orEmpty(), "Text", onConfirm = { v -> onSave(t.copy(summary = v.trim().ifBlank { null })) }, onDismiss = { summaryEdit = false })
+        TextInputDialog(tr("Zusammenfassung"), t.summary.orEmpty(), tr("Text"), onConfirm = { v -> onSave(t.copy(summary = v.trim().ifBlank { null })) }, onDismiss = { summaryEdit = false })
     }
 }
 
@@ -382,13 +381,13 @@ fun ChaptersSheet(c: AppContainer, t: Transcript, control: PlaybackControl, onSa
 @Composable
 fun StatusDialog(status: TranscriptStatus, onPick: (TranscriptStatus) -> Unit, onDismiss: () -> Unit) {
     val help = mapOf(
-        TranscriptStatus.RAW to "So, wie es die Erkennung geliefert hat.",
-        TranscriptStatus.CORRECTED to "Einmal vollständig gegengehört und korrigiert.",
-        TranscriptStatus.CHECKED to "Von einer zweiten Person geprüft; bereit für die Auswertung.",
+        TranscriptStatus.RAW to tr("So, wie es die Erkennung geliefert hat."),
+        TranscriptStatus.CORRECTED to tr("Einmal vollständig gegengehört und korrigiert."),
+        TranscriptStatus.CHECKED to tr("Von einer zweiten Person geprüft; bereit für die Auswertung."),
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Bearbeitungsstatus") },
+        title = { Text(tr("Bearbeitungsstatus")) },
         text = {
             Column {
                 TranscriptStatus.entries.forEach { s ->
@@ -399,7 +398,7 @@ fun StatusDialog(status: TranscriptStatus, onPick: (TranscriptStatus) -> Unit, o
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -415,33 +414,33 @@ fun WordTimesDialog(c: AppContainer, t: Transcript, hasAudio: Boolean, onDismiss
     val own = t.modelName.startsWith("Parakeet")
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Wortzeiten") },
+        title = { Text(tr("Wortzeiten")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (words.isEmpty()) Text("Noch keine Wortzeiten – es gibt nur die Zeiten der Abschnitte (aus der Spracherkennung der Pausen).")
+                if (words.isEmpty()) Text(tr("Noch keine Wortzeiten – es gibt nur die Zeiten der Abschnitte (aus der Spracherkennung der Pausen)."))
                 else {
-                    Text("Gemessen: ${exact + respelled} von $total Wörtern (${pct((exact + respelled).toDouble() / total.coerceAtLeast(1))})")
-                    if (respelled > 0) HintText("Davon $respelled an derselben Stelle gemessen, aber anders geschrieben erkannt (z. B. Zahlen).")
-                    if (between > 0) HintText("$between Wörter ohne eigene Messung, zwischen ihre gemessenen Nachbarn gelegt.")
+                    Text(tr("Gemessen: {0} von {1} Wörtern ({2})", exact + respelled, total, pct((exact + respelled).toDouble() / total.coerceAtLeast(1))))
+                    if (respelled > 0) HintText(tr("Davon {0} an derselben Stelle gemessen, aber anders geschrieben erkannt (z. B. Zahlen).", respelled))
+                    if (between > 0) HintText(tr("{0} Wörter ohne eigene Messung, zwischen ihre gemessenen Nachbarn gelegt.", between))
                     val missing = total - words.size
-                    if (missing > 0) HintText("$missing Wörter in Abschnitten ohne verlässlichen Abgleich – dort gibt es nur die Abschnittszeit.")
-                    t.wordTiming?.source?.takeIf { it.isNotBlank() }?.let { HintText("Gemessen mit $it.") }
+                    if (missing > 0) HintText(tr("{0} Wörter in Abschnitten ohne verlässlichen Abgleich – dort gibt es nur die Abschnittszeit.", missing))
+                    t.wordTiming?.source?.takeIf { it.isNotBlank() }?.let { HintText(tr("Gemessen mit {0}.", it)) }
                 }
                 HintText(
-                    "Whisper und der Uni-Server liefern keine verlässlichen Zeiten pro Wort. Deshalb erkennt Parakeet v3 jeden Abschnitt noch einmal auf diesem " +
+                    tr("Whisper und der Uni-Server liefern keine verlässlichen Zeiten pro Wort. Deshalb erkennt Parakeet v3 jeden Abschnitt noch einmal auf diesem " +
                         "Gerät; seine Wortzeiten werden mit dem Text abgeglichen. Geprüft an LibriSpeech (958 Wörter mit Wortgrenzen aus Forced Alignment): Wortanfang " +
-                        "im Median 50 ms genau, 0,3 % über 250 ms. Whispers eigene Zeiten lagen bei 8,8 % über 250 ms, Schätzungen bei 37 %.",
+                        "im Median 50 ms genau, 0,3 % über 250 ms. Whispers eigene Zeiten lagen bei 8,8 % über 250 ms, Schätzungen bei 37 %."),
                 )
             }
         },
         confirmButton = {
             if (hasAudio && !own) TextButton(onClick = {
                 runCatching { c.transcription.measureWords(t.id) }
-                    .onSuccess { Notices.info("Wortzeiten werden gemessen – das Transkript aktualisiert sich danach."); onDismiss() }
-                    .onFailure { Notices.error(it.message ?: "Fehler") }
-            }) { Text(if (words.isEmpty()) "Jetzt messen" else "Neu messen") }
+                    .onSuccess { Notices.info(tr("Wortzeiten werden gemessen – das Transkript aktualisiert sich danach.")); onDismiss() }
+                    .onFailure { Notices.error(it.message ?: tr("Fehler")) }
+            }) { Text(if (words.isEmpty()) tr("Jetzt messen") else tr("Neu messen")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -449,16 +448,16 @@ fun WordTimesDialog(c: AppContainer, t: Transcript, hasAudio: Boolean, onDismiss
 fun RetranscribeSheet(c: AppContainer, t: Transcript, onStarted: () -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var opts by remember { mutableStateOf(c.transcription.defaultOptions(t.folder).copy(title = t.title)) }
-    PanelSheet("Neu transkribieren", onDismiss) {
-        HintText("Die Aufnahme wird mit den neuen Einstellungen noch einmal transkribiert; das bisherige Transkript bleibt erhalten.")
+    PanelSheet(tr("Neu transkribieren"), onDismiss) {
+        HintText(tr("Die Aufnahme wird mit den neuen Einstellungen noch einmal transkribiert; das bisherige Transkript bleibt erhalten."))
         StartOptionsForm(c, opts, { opts = it })
         Row {
             Spacer(Modifier.weight(1f))
             Button(onClick = {
                 runCatching { c.transcription.retranscribe(t.id, opts) }
                     .onSuccess { onStarted() }
-                    .onFailure { Notices.error(it.message ?: "Fehler") }
-            }) { Text("Starten") }
+                    .onFailure { Notices.error(it.message ?: tr("Fehler")) }
+            }) { Text(tr("Starten")) }
         }
     }
 }
@@ -470,12 +469,12 @@ fun FindReplaceDialog(t: Transcript, onApply: (Transcript, Int) -> Unit, onDismi
     val count = remember(find) { TranscriptEdit.search(t, find).size }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Suchen & Ersetzen") },
+        title = { Text(tr("Suchen & Ersetzen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(find, { find = it }, label = { Text("Suchen") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(with, { with = it }, label = { Text("Ersetzen durch") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                HintText(if (find.isBlank()) "Groß-/Kleinschreibung egal. Für Namen, die immer falsch erkannt werden: Einstellungen › Transkription › Ersetzungsliste." else "$count Treffer · Wortzeiten bleiben erhalten")
+                OutlinedTextField(find, { find = it }, label = { Text(tr("Suchen")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(with, { with = it }, label = { Text(tr("Ersetzen durch")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                HintText(if (find.isBlank()) tr("Groß-/Kleinschreibung egal. Für Namen, die immer falsch erkannt werden: Einstellungen › Transkription › Ersetzungsliste.") else tr("{0} Treffer · Wortzeiten bleiben erhalten", count))
             }
         },
         confirmButton = {
@@ -483,9 +482,9 @@ fun FindReplaceDialog(t: Transcript, onApply: (Transcript, Int) -> Unit, onDismi
                 val re = Regex(Regex.escape(find.trim()), RegexOption.IGNORE_CASE)
                 onApply(t.copy(segments = t.segments.map { s -> if (re.containsMatchIn(s.text)) TranscriptEdit.withText(s, re.replace(s.text, Regex.escapeReplacement(with))) else s }), count)
                 onDismiss()
-            }) { Text("Alle ersetzen") }
+            }) { Text(tr("Alle ersetzen")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -505,18 +504,18 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
             t, c.settings.current.pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 },
         )
     }
-    PanelSheet("Exportieren", onDismiss) {
+    PanelSheet(tr("Exportieren"), onDismiss) {
         made?.let { f -> DocumentCard(f.absolutePath) }
         mappingFile?.let { f -> DocumentCard(f.absolutePath) }
         ToggleRow(
-            "Anonymisiert exportieren",
-            "Namen, Kontaktdaten, Anschriften und die eigene Liste (Einstellungen › Datenschutz) werden durchgehend ersetzt, Sprecher mit " +
-                "echtem Namen heißen „Person A“ … Das Transkript selbst bleibt unverändert." +
-                (anon?.let { a -> " – ${a.mapping.size} Ersetzungen." } ?: ""),
+            tr("Anonymisiert exportieren"),
+            tr("Namen, Kontaktdaten, Anschriften und die eigene Liste (Einstellungen › Datenschutz) werden durchgehend ersetzt, Sprecher mit " +
+                "echtem Namen heißen „Person A“ … Das Transkript selbst bleibt unverändert.") +
+                (anon?.let { a -> tr(" – {0} Ersetzungen.", a.mapping.size) } ?: ""),
             anonymous,
         ) { anonymous = it }
-        Chips("Zeitstempel (Word, PDF, Markdown, Text)", TranscriptEdit.Stamps.entries.map { it to it.label }, stamps, { stamps = it })
-        ToggleRow("Kommentare mitexportieren", "Als [Kommentar: …] hinter dem Abschnitt. Dresing/Pehl, MAXQDA und Untertitel bleiben ohne.", vs.exportComments) { v ->
+        Chips(tr("Zeitstempel (Word, PDF, Markdown, Text)"), TranscriptEdit.Stamps.entries.map { it to it.label }, stamps, { stamps = it })
+        ToggleRow(tr("Kommentare mitexportieren"), tr("Als [Kommentar: …] hinter dem Abschnitt. Dresing/Pehl, MAXQDA und Untertitel bleiben ohne."), vs.exportComments) { v ->
             c.transcription.updateSettings { it.copy(exportComments = v) }
         }
         val opts = ExportOptions(stamps, vs.exportComments)
@@ -526,7 +525,7 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
                 scope.launch {
                     val source = anon?.transcript ?: t
                     made = runCatching { exportFile(context, source, f, opts) }
-                        .onFailure { Notices.error("Export fehlgeschlagen: ${it.message}") }.getOrNull()
+                        .onFailure { Notices.error(tr("Export fehlgeschlagen: {0}", it.message)) }.getOrNull()
                     // The mapping goes into a separate file (to be kept apart from the anonymized transcript).
                     if (anon != null && anon.mapping.isNotEmpty()) mappingFile = runCatching {
                         DocumentWriter.create(

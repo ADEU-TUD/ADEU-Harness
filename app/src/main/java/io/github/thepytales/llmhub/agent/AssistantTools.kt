@@ -17,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Tools of the assistant itself (offered whenever the model supports tools): instructions that are only loaded
@@ -296,7 +297,7 @@ object Guides {
         RegexOption.IGNORE_CASE,
     )
 
-    val documents = Guide("dokumente", "Dokumente, Briefe, Präsentationen, PDF-Formulare und Logos", DOCUMENT_WORDS) { c -> c.documentTools.prompt() }
+    val documents = Guide("dokumente", trLater("Dokumente, Briefe, Präsentationen, PDF-Formulare und Logos"), DOCUMENT_WORDS) { c -> c.documentTools.prompt() }
 
     val all = listOf(documents)
 }

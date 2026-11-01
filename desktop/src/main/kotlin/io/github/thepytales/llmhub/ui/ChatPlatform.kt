@@ -53,7 +53,7 @@ fun rememberChatPlatform(
                 if (file.extension.lowercase() in imageExtensions) {
                     val img = encodeImage(file)
                     onLoading(-1)
-                    if (img != null) images.add(img) else Notices.error("„${file.name}“ konnte nicht gelesen werden.")
+                    if (img != null) images.add(img) else Notices.error(tr("„{0}“ konnte nicht gelesen werden.", file.name))
                 } else {
                     val r = AttachmentReader.read(file)
                     onLoading(-1)
@@ -87,10 +87,10 @@ fun rememberChatPlatform(
     return remember {
         ChatPlatform(
             pickPhotos = {
-                scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles("Bilder auswählen", extensions = imageExtensions) }.take(MAX_IMAGES)) }
+                scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Bilder auswählen"), extensions = imageExtensions) }.take(MAX_IMAGES)) }
             },
-            primaryAttach = { if (!paste()) Notices.info("Die Zwischenablage enthält kein Bild und keine Dateien.") },
-            pickFiles = { scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles("Dateien auswählen") }) } },
+            primaryAttach = { if (!paste()) Notices.info(tr("Die Zwischenablage enthält kein Bild und keine Dateien.")) },
+            pickFiles = { scope.launch { attach(withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Dateien auswählen")) }) } },
             paste = ::paste,
             withMicrophone = { start -> start() },
             pinShortcut = null,
@@ -99,4 +99,4 @@ fun rememberChatPlatform(
 }
 
 /** Label of the share entry in the chat menu (Windows copies the text). */
-const val SHARE_LABEL = "Kopieren (zum Teilen)"
+val SHARE_LABEL: String get() = tr("Kopieren (zum Teilen)")

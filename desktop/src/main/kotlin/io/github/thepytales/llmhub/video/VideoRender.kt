@@ -8,6 +8,8 @@ import java.io.File
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
+import io.github.thepytales.llmhub.ui.tr
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Export of the video editor (AP-25): one ffmpeg run builds the whole film – the clips cut and joined (with
@@ -19,9 +21,9 @@ object VideoRender {
     data class Preset(val id: String, val label: String, val height: Int, val crf: Int, val audioKbps: Int, val speed: String, val hint: String)
 
     val PRESETS = listOf(
-        Preset("opal", "OPAL (kleine Datei, 720p)", 720, 26, 128, "medium", "Gut für die Lernplattform: etwa 5–10 MB pro Minute."),
-        Preset("youtube", "YouTube (Full HD, 1080p)", 1080, 20, 192, "medium", "Hohe Qualität zum Hochladen; YouTube rechnet selbst noch einmal um."),
-        Preset("projekt", "Wie das Projekt (beste Qualität)", 0, 18, 192, "slow", "Auflösung des Projekts, große Datei – z. B. zum Archivieren."),
+        Preset("opal", trLater("OPAL (kleine Datei, 720p)"), 720, 26, 128, "medium", trLater("Gut für die Lernplattform: etwa 5–10 MB pro Minute.")),
+        Preset("youtube", trLater("YouTube (Full HD, 1080p)"), 1080, 20, 192, "medium", trLater("Hohe Qualität zum Hochladen; YouTube rechnet selbst noch einmal um.")),
+        Preset("projekt", trLater("Wie das Projekt (beste Qualität)"), 0, 18, 192, "slow", trLater("Auflösung des Projekts, große Datei – z. B. zum Archivieren.")),
     )
 
     fun preset(id: String?) = PRESETS.firstOrNull { it.id == id } ?: PRESETS.first()
@@ -48,7 +50,7 @@ object VideoRender {
      * [graphFile] receives the filter graph (long graphs exceed the command line of Windows).
      */
     fun plan(p: VideoProject, preset: Preset, out: File, work: File, info: (File) -> MediaInfo?, rnnoise: File? = Media.rnnoiseModel(), scriptOption: String = "-filter_complex_script"): Plan {
-        require(p.clips.isNotEmpty()) { "Das Projekt hat noch keine Clips." }
+        require(p.clips.isNotEmpty()) { tr("Das Projekt hat noch keine Clips.") }
         work.mkdirs()
         val (w, h) = size(p, preset)
         val fps = p.fps.coerceIn(10, 60)
@@ -188,7 +190,7 @@ object VideoRender {
      * coroutine stops ffmpeg.
      */
     suspend fun render(p: VideoProject, preset: Preset, out: File, progress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
-        val exe = Media.ffmpeg() ?: throw IllegalStateException("ffmpeg fehlt in der App.")
+        val exe = Media.ffmpeg() ?: throw IllegalStateException(tr("ffmpeg fehlt in der App."))
         val work = File(Media.cacheDir, "export-${System.nanoTime()}")
         val tmp = File(out.parentFile, out.nameWithoutExtension + ".teil.mp4")
         try {
@@ -209,7 +211,7 @@ object VideoRender {
             if (proc.exitValue() != 0 || !tmp.isFile) {
                 val log = File(work, "ffmpeg.log").takeIf { it.isFile }?.readLines().orEmpty().filter { it.isNotBlank() }.takeLast(6).joinToString("\n")
                 AppLog.i("Videoexport fehlgeschlagen:\n$log")
-                throw IllegalStateException("ffmpeg konnte das Video nicht schreiben." + if (log.isNotBlank()) "\n$log" else "")
+                throw IllegalStateException(tr("ffmpeg konnte das Video nicht schreiben.") + if (log.isNotBlank()) "\n$log" else "")
             }
             out.delete()
             if (!tmp.renameTo(out)) tmp.copyTo(out, overwrite = true).also { tmp.delete() }

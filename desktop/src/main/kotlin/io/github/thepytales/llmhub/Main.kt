@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub
 
+import io.github.thepytales.llmhub.ui.isCmd
 import io.github.thepytales.llmhub.ui.Notices
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.isCtrlPressed
@@ -53,6 +54,7 @@ import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
 import io.github.thepytales.llmhub.ui.StartAnimation
 import io.github.thepytales.llmhub.ui.Navigation
+import io.github.thepytales.llmhub.ui.tr
 import io.github.thepytales.llmhub.update.UpdateApply
 import io.github.thepytales.llmhub.update.Updates
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +69,10 @@ import kotlin.system.exitProcess
  * --apply-update … (second half of an update, see UpdateApply).
  */
 fun main(args: Array<String>) {
+    // AP-30: NVDA/JAWS on Windows – before anything touches AWT.
+    io.github.thepytales.llmhub.desktop.Accessibility.enableScreenReaders()
+    // AP-31: ⌘ instead of Strg, Finder instead of Explorer … in the texts on macOS and Linux.
+    if (!io.github.thepytales.llmhub.desktop.Os.windows) io.github.thepytales.llmhub.ui.I18n.platformText = io.github.thepytales.llmhub.desktop.Os::adaptText
     if (args.firstOrNull() == UpdateApply.FLAG) UpdateApply.run(args)
     val selfTest = args.indexOf("--selftest").takeIf { it >= 0 }?.let { File(args.getOrNull(it + 1) ?: "selftest").absoluteFile }
     if (selfTest != null) {
@@ -183,8 +189,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     SideEffect { io.github.thepytales.llmhub.desktop.SyncSession.background = { !visible && idle } }
     LaunchedEffect(Unit) {
         io.github.thepytales.llmhub.desktop.SyncSession.kept.value?.let { k ->
-            if (k.chats.isNotEmpty()) Notices.info("${k.chats.size} Chat(s) gab es nach der Synchronisation in zwei Fassungen – beide sind da („zweite Fassung“).")
-            else if (k.setAside.isNotEmpty()) Notices.info("${k.setAside.size} Konfliktkopie(n) des Cloud-Dienstes beiseitegelegt (Einstellungen › Synchronisation).")
+            if (k.chats.isNotEmpty()) Notices.info(tr("{0} Chat(s) gab es nach der Synchronisation in zwei Fassungen – beide sind da („zweite Fassung“).", k.chats.size))
+            else if (k.setAside.isNotEmpty()) Notices.info(tr("{0} Konfliktkopie(n) des Cloud-Dienstes beiseitegelegt (Einstellungen › Synchronisation).", k.setAside.size))
         }
     }
 
@@ -201,13 +207,13 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 recent?.takeIf { it.startsWith("route:") }?.let { Navigation.openRoute.value = it.removePrefix("route:") }
             },
             menu = {
-                Item("Lora öffnen", onClick = { show() })
-                Item("Neuer Chat", onClick = {
+                Item(tr("Lora öffnen"), onClick = { show() })
+                Item(tr("Neuer Chat"), onClick = {
                     show()
                     Navigation.openRoute.value = "chat"
                 })
                 Separator()
-                Item("Beenden", onClick = ::quit)
+                Item(tr("Beenden"), onClick = ::quit)
             },
         )
     }
@@ -221,8 +227,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                     toldAboutTray = true
                     trayState.sendNotification(
                         Notification(
-                            "Lora läuft weiter",
-                            "Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich.",
+                            tr("Lora läuft weiter"),
+                            tr("Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich."),
                             Notification.Type.Info,
                         )
                     )
@@ -274,7 +280,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)
                     // Strg+Mausrad zooms; seen before any scrollable list gets the wheel.
                     .onPointerEvent(PointerEventType.Scroll, PointerEventPass.Initial) { e ->
-                        if (!e.keyboardModifiers.isCtrlPressed) return@onPointerEvent
+                        if (!e.keyboardModifiers.isCmd) return@onPointerEvent
                         val dy = e.changes.firstOrNull()?.scrollDelta?.y ?: 0f
                         if (dy != 0f) zoom(if (dy < 0) 1 else -1)
                         e.changes.forEach { it.consume() }
@@ -301,7 +307,7 @@ private fun zoom(step: Int) {
  * Strg+Umschalt+L literature, Strg+/ shortcut overview (see ShortcutsDialog).
  */
 private fun shortcut(e: KeyEvent): Boolean {
-    if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed) return false
+    if (e.type != KeyEventType.KeyDown || !e.isCmd) return false
     when (e.key) {
         Key.Plus, Key.Equals, Key.NumPadAdd -> { zoom(1); return true }
         Key.Minus, Key.NumPadSubtract -> { zoom(-1); return true }

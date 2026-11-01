@@ -25,7 +25,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -97,17 +96,17 @@ fun RepoPickerSheet(
         ) {
             Box(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                 IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Schließen")
+                    Icon(Icons.Outlined.Close, contentDescription = tr("Schließen"))
                 }
                 Text(
-                    if (chosen.isEmpty()) "Repositorys" else "Repositorys (${chosen.size})",
+                    if (chosen.isEmpty()) tr("Repositorys") else tr("Repositorys ({0})", chosen.size),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
             if (!hasToken) {
                 Text(
-                    "Hinterlege zuerst in den Einstellungen ein GitHub-Token, damit das Modell auf deine Repositories zugreifen kann.",
+                    tr("Hinterlege zuerst in den Einstellungen ein GitHub-Token, damit das Modell auf deine Repositories zugreifen kann."),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(12.dp),
                 )
@@ -116,7 +115,7 @@ fun RepoPickerSheet(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Repositorys durchsuchen") },
+                placeholder = { Text(tr("Repositorys durchsuchen")) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 singleLine = true,
                 shape = RoundedCornerShape(20.dp),
@@ -130,7 +129,7 @@ fun RepoPickerSheet(
 
             val linked = chosen.filter { matches(it.name) }
             if (linked.isNotEmpty()) {
-                SectionLabel("Ausgewählt")
+                SectionLabel(tr("Ausgewählt"))
                 RepoRows(linked.map { it.name to it.branch }, checked = true) { name -> toggle(name, null) }
             }
 
@@ -145,7 +144,7 @@ fun RepoPickerSheet(
                 else -> {
                     val rest = all.filter { !isChosen(it.fullName) && matches(it.fullName) }
                     if (typed != null && !isChosen(typed) && all.none { it.fullName.equals(typed, ignoreCase = true) }) {
-                        SectionLabel("Hinzufügen")
+                        SectionLabel(tr("Hinzufügen"))
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = look.card,
@@ -156,9 +155,9 @@ fun RepoPickerSheet(
                         ) {
                             Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
-                                    Text("„$typed“ verknüpfen", style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
+                                    Text(tr("„{0}“ verknüpfen", typed), style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
                                     Text(
-                                        "Auch fremde öffentliche Repositories",
+                                        tr("Auch fremde öffentliche Repositories"),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -168,13 +167,13 @@ fun RepoPickerSheet(
                         }
                     }
                     if (rest.isNotEmpty()) {
-                        SectionLabel("Repositorys")
+                        SectionLabel(tr("Repositorys"))
                         RepoRows(rest.map { it.fullName to null }, checked = false) { name ->
                             toggle(name, rest.firstOrNull { it.fullName == name }?.defaultBranch)
                         }
                     } else if (linked.isEmpty() && typed == null) {
                         Text(
-                            if (q.isEmpty()) "Keine Repositories gefunden." else "Kein Repository passt zu „$q“.",
+                            if (q.isEmpty()) tr("Keine Repositories gefunden.") else tr("Kein Repository passt zu „{0}“.", q),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(12.dp),
@@ -193,19 +192,19 @@ fun RepoPickerSheet(
             ) {
                 Row(Modifier.padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("GitHub-Werkzeuge", style = MaterialTheme.typography.titleMedium)
+                        Text(tr("GitHub-Werkzeuge"), style = MaterialTheme.typography.titleMedium)
                         Text(
                             when {
-                                !toolsOn -> "Aus – das Modell greift nicht auf GitHub zu"
-                                chosen.isEmpty() -> "An – ohne festes Repository, das Modell wählt bei Bedarf selbst"
-                                chosen.size == 1 -> "An – arbeitet in ${chosen.first().name}"
-                                else -> "An – arbeitet in allen ${chosen.size} Repositorys"
+                                !toolsOn -> tr("Aus – das Modell greift nicht auf GitHub zu")
+                                chosen.isEmpty() -> tr("An – ohne festes Repository, das Modell wählt bei Bedarf selbst")
+                                chosen.size == 1 -> tr("An – arbeitet in {0}", chosen.first().name)
+                                else -> tr("An – arbeitet in allen {0} Repositorys", chosen.size)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = toolsOn, onCheckedChange = { on -> apply(if (on) chosen else emptyList(), on) })
+                    Switch(modifier = Modifier.a11yLabel(tr("GitHub-Werkzeuge")), checked = toolsOn, onCheckedChange = { on -> apply(if (on) chosen else emptyList(), on) })
                 }
             }
         }
@@ -251,7 +250,7 @@ private fun RepoRows(rows: List<Pair<String, String?>>, checked: Boolean, onTogg
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    if (checked) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt", modifier = Modifier.padding(start = 12.dp))
+                    if (checked) Icon(Icons.Outlined.Check, contentDescription = tr("Ausgewählt"), modifier = Modifier.padding(start = 12.dp))
                 }
             }
         }

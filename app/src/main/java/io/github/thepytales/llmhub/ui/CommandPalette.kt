@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,45 +49,45 @@ data class Command(val title: String, val route: String, val group: String, val 
 
 /** Areas of the app and settings pages with words people search for (Strg+K and the settings search). */
 val APP_COMMANDS: List<Command> get() = listOf(
-    Command("Neuer Chat", "chat", "Aktionen", "neu chat gespräch"),
-    Command("Literatur", "literature", "Bereiche", "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
-    Command("Dateien", "files", "Bereiche", "dokumente editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word ordner hochgeladen erstellt papierkorb lora-ordner"),
-    Command("Transkription", "transcripts", "Bereiche", "audio interview aufnahme diktat codieren"),
-    Command("Erstellen", "templates", "Bereiche", "tu vorlagen vorlagen prompt vorlage lehre forschung gestalten design poster flyer aushang social media kreativ"),
-    Command("Bilder erzeugen", "images", "Bereiche", "bild grafik galerie"),
-    Command("Geplante Aufgaben", "tasks", "Bereiche", "aufgabe zeitplan"),
-    Command("Modelle vergleichen", "compare", "Bereiche", "vergleich antwort"),
-    Command("Modelle", "models", "Bereiche", "modell liste"),
-    Command("Verbrauch", "usage", "Bereiche", "kosten token bewertungen statistik"),
-    Command("Einstellungen", "settings", "Einstellungen", "optionen"),
+    Command(trLater("Neuer Chat"), "chat", trLater("Aktionen"), "neu chat gespräch"),
+    Command(trLater("Literatur"), "literature", trLater("Bereiche"), "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
+    Command(trLater("Dateien"), "files", trLater("Bereiche"), "dokumente editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word ordner hochgeladen erstellt papierkorb lora-ordner"),
+    Command(trLater("Transkription"), "transcripts", trLater("Bereiche"), "audio interview aufnahme diktat codieren"),
+    Command(trLater("Erstellen"), "templates", trLater("Bereiche"), "tu vorlagen vorlagen prompt vorlage lehre forschung gestalten design poster flyer aushang social media kreativ"),
+    Command(trLater("Bilder erzeugen"), "images", trLater("Bereiche"), "bild grafik galerie"),
+    Command(trLater("Geplante Aufgaben"), "tasks", trLater("Bereiche"), "aufgabe zeitplan"),
+    Command(trLater("Modelle vergleichen"), "compare", trLater("Bereiche"), "vergleich antwort"),
+    Command(trLater("Modelle"), "models", trLater("Bereiche"), "modell liste"),
+    Command(trLater("Verbrauch"), "usage", trLater("Bereiche"), "kosten token bewertungen statistik"),
+    Command(trLater("Einstellungen"), "settings", trLater("Einstellungen"), "optionen"),
 ) + io.github.thepytales.llmhub.agent.ChatModes.visible().map { m ->
     // Modes (AP-05) start a new chat in that mode.
-    Command(m.name, MODE_ROUTE + m.id, "Modi", m.keywords + " modus " + m.command.lowercase())
+    Command(m.name, MODE_ROUTE + m.id, trLater("Modi"), m.keywords + " modus " + m.command.lowercase())
 } + SETTINGS_INDEX
 
 /** Settings pages with what can be set there, for the search in the settings overview. */
 val SETTINGS_INDEX = listOf(
-    Command("API-Zugang", "settings/api", "Einstellungen", "schlüssel api key server konto anmelden"),
-    Command("GitHub", "settings/github", "Einstellungen", "repository token code"),
-    Command("Chat & Werkzeuge", "settings/chat", "Einstellungen", "standardmodell werkzeuge freigaben websuche denken"),
-    Command("Werkzeuge", "settings/tools", "Einstellungen", "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
-    Command("Lora", "settings/lora", "Einstellungen", "lora maskottchen ausblenden navigator helfer animation hinweise"),
-    Command("Datenschutz", "settings/privacy", "Einstellungen", "pseudonymisierung namen eigene begriffe"),
-    Command("Gedächtnis", "settings/memory", "Einstellungen", "erinnerungen merken"),
-    Command("Wissenssammlung", "settings/knowledge", "Einstellungen", "pdf wissen dokumente durchsuchen"),
-    Command("Literatur & Zotero", "settings/literature", "Einstellungen", "zitierstil apa din harvard openalex zotero quellen"),
-    Command("Transkription", "settings/transcription", "Einstellungen", "whisper modell sprecher diarisierung"),
-    Command("Dokumente & Logos", "settings/documents", "Einstellungen", "logo briefkopf stil schrift corporate design"),
-    Command("Vorlesen & Spracheingabe", "settings/voice", "Einstellungen", "stimme tts sprechen diktieren"),
-    Command("Darstellung", "settings/appearance", "Einstellungen", "dunkel hell farbe theme schriftgröße kontrast"),
-    Command("Sicherung & Umzug", "settings/backup", "Einstellungen", "backup export import umzug"),
-    Command("Papierkorb", "settings/trash", "Einstellungen", "gelöscht wiederherstellen"),
-    Command("Arbeitsspeicher", "settings/ram", "Einstellungen", "speicher ram arbeitsspeicher langsam messen freigeben"),
-    Command("Lokale Ordner", "settings/folders", "Einstellungen", "ordner pc dateien agent explorer freigeben windows"),
-    Command("Synchronisation", "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
-    Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
-    Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
-    Command("Verbindungen", "settings/connections", "Einstellungen", "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
+    Command(trLater("API-Zugang"), "settings/api", trLater("Einstellungen"), "schlüssel api key server konto anmelden"),
+    Command(trLater("GitHub"), "settings/github", trLater("Einstellungen"), "repository token code"),
+    Command(trLater("Chat & Werkzeuge"), "settings/chat", trLater("Einstellungen"), "standardmodell werkzeuge freigaben websuche denken"),
+    Command(trLater("Werkzeuge"), "settings/tools", trLater("Einstellungen"), "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
+    Command(trLater("Lora"), "settings/lora", trLater("Einstellungen"), "lora maskottchen ausblenden navigator helfer animation hinweise"),
+    Command(trLater("Datenschutz"), "settings/privacy", trLater("Einstellungen"), "pseudonymisierung namen eigene begriffe"),
+    Command(trLater("Gedächtnis"), "settings/memory", trLater("Einstellungen"), "erinnerungen merken"),
+    Command(trLater("Wissenssammlung"), "settings/knowledge", trLater("Einstellungen"), "pdf wissen dokumente durchsuchen"),
+    Command(trLater("Literatur & Zotero"), "settings/literature", trLater("Einstellungen"), "zitierstil apa din harvard openalex zotero quellen"),
+    Command(trLater("Transkription"), "settings/transcription", trLater("Einstellungen"), "whisper modell sprecher diarisierung"),
+    Command(trLater("Dokumente & Logos"), "settings/documents", trLater("Einstellungen"), "logo briefkopf stil schrift corporate design"),
+    Command(trLater("Vorlesen & Spracheingabe"), "settings/voice", trLater("Einstellungen"), "stimme tts sprechen diktieren"),
+    Command(trLater("Darstellung"), "settings/appearance", trLater("Einstellungen"), "dunkel hell farbe theme schriftgröße kontrast"),
+    Command(trLater("Sicherung & Umzug"), "settings/backup", trLater("Einstellungen"), "backup export import umzug"),
+    Command(trLater("Papierkorb"), "settings/trash", trLater("Einstellungen"), "gelöscht wiederherstellen"),
+    Command(trLater("Arbeitsspeicher"), "settings/ram", trLater("Einstellungen"), "speicher ram arbeitsspeicher langsam messen freigeben"),
+    Command(trLater("Lokale Ordner"), "settings/folders", trLater("Einstellungen"), "ordner pc dateien agent explorer freigeben windows"),
+    Command(trLater("Synchronisation"), "settings/sync", trLater("Einstellungen"), "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
+    Command(trLater("Speicherorte"), "settings/storage", trLater("Einstellungen"), "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
+    Command(trLater("Updates"), "settings/updates", trLater("Einstellungen"), "update aktualisieren neue version installieren netzlaufwerk"),
+    Command(trLater("Verbindungen"), "settings/connections", trLater("Einstellungen"), "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */
@@ -96,8 +95,8 @@ fun filterCommands(commands: List<Command>, query: String): List<Command> {
     val words = query.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
     if (words.isEmpty()) return commands
     return commands
-        .filter { cmd -> val hay = "${cmd.title} ${cmd.group} ${cmd.keywords}".lowercase(); words.all { it in hay } }
-        .sortedBy { cmd -> if (cmd.title.lowercase().startsWith(words.first())) 0 else if (words.first() in cmd.title.lowercase()) 1 else 2 }
+        .filter { cmd -> val hay = "${cmd.title} ${tr(cmd.title)} ${cmd.group} ${tr(cmd.group)} ${cmd.keywords}".lowercase(); words.all { it in hay } }
+        .sortedBy { cmd -> val t = tr(cmd.title).lowercase(); if (t.startsWith(words.first()) || cmd.title.lowercase().startsWith(words.first())) 0 else if (words.first() in t || words.first() in cmd.title.lowercase()) 1 else 2 }
 }
 
 /** Strg+K: jump to any area, settings page or chat by typing. */
@@ -150,7 +149,7 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                             item(key = "g_" + cmd.group) { PaletteHeading(cmd.group) }
                         }
                         item(key = "c_" + cmd.route) {
-                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { go(cmd.route); onDismiss() }
+                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { tr("Einstellungen") }) { go(cmd.route); onDismiss() }
                         }
                     }
                     if (chats.isNotEmpty()) {
@@ -190,20 +189,20 @@ private fun PaletteRow(title: String, hint: String?, chat: Boolean = false, onCl
 @Composable
 fun ShortcutsDialog(onDismiss: () -> Unit) {
     val shortcuts = listOf(
-        "Strg+K" to "Befehlspalette: Bereiche, Einstellungen, Chats",
-        "Strg+N" to "Neuer Chat",
-        "Strg+B" to "Seitenleiste ein/aus",
-        "Strg+L" to "Lora öffnen und schließen",
-        "Strg+Umschalt+L" to "Literatur",
-        "Strg+D" to "Dateien",
-        "Strg+T" to "Transkription",
-        "Strg+," to "Einstellungen",
-        "Strg+/" to "Diese Übersicht",
-        "Strg++ / Strg+−" to "Zoom (Strg+0: 100 %, auch Strg+Mausrad)",
-        "Enter" to "Senden (Umschalt+Enter: neue Zeile)",
-        "/" to "Befehle im Eingabefeld",
-        "@" to "Dateien, Literatur und Dokumente erwähnen",
-        "Esc" to "Menü schließen bzw. zurück",
+        tr("Strg+K") to tr("Befehlspalette: Bereiche, Einstellungen, Chats"),
+        tr("Strg+N") to tr("Neuer Chat"),
+        tr("Strg+B") to tr("Seitenleiste ein/aus"),
+        tr("Strg+L") to tr("Lora öffnen und schließen"),
+        tr("Strg+Umschalt+L") to tr("Literatur"),
+        tr("Strg+D") to tr("Dateien"),
+        tr("Strg+T") to tr("Transkription"),
+        tr("Strg+,") to tr("Einstellungen"),
+        tr("Strg+/") to tr("Diese Übersicht"),
+        tr("Strg++ / Strg+−") to tr("Zoom (Strg+0: 100 %, auch Strg+Mausrad)"),
+        tr("Enter") to tr("Senden (Umschalt+Enter: neue Zeile)"),
+        "/" to tr("Befehle im Eingabefeld"),
+        "@" to tr("Dateien, Literatur und Dokumente erwähnen"),
+        tr("Esc") to tr("Menü schließen bzw. zurück"),
     )
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 480.dp)) {

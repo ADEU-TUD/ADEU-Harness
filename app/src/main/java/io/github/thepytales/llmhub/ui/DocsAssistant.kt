@@ -40,7 +40,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -81,7 +80,7 @@ object DocsAi {
     fun send(c: AppContainer, doc: LiveDoc, label: String, text: String, instructions: String, files: List<FileAttachment> = emptyList()): Boolean {
         val existing = doc.chatId?.let { id -> c.runs.get(id)?.conversation?.value ?: c.chats.get(id) }
         if (existing != null && c.runs.get(existing.id) != null) {
-            Notices.info("Die KI arbeitet gerade an diesem Dokument – bitte kurz warten.")
+            Notices.info(tr("Die KI arbeitet gerade an diesem Dokument – bitte kurz warten."))
             return false
         }
         val base = existing ?: newConversation(c).copy(title = "${doc.docKind.label}: ${doc.title}".take(60), folderId = null)
@@ -178,7 +177,7 @@ object DocsAi {
             tools = null,
             thinking = ThinkingLevel.OFF,
         ) { u -> onText(io.github.thepytales.llmhub.agent.FieldAssist.clean(u.content)) }
-        return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException("Das Modell hat keinen Text geliefert.") }
+        return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException(tr("Das Modell hat keinen Text geliefert.")) }
     }
 
     /** Spelling and grammar check of [text] by the model: the corrections it suggests (see [SpellCheck]). */
@@ -192,25 +191,25 @@ object DocsAi {
             thinking = ThinkingLevel.OFF,
         ) { }
         val answer = splitThinking(result.content).second
-        if (answer.isBlank()) throw IllegalStateException("Das Modell hat nicht geantwortet.")
+        if (answer.isBlank()) throw IllegalStateException(tr("Das Modell hat nicht geantwortet."))
         return io.github.thepytales.llmhub.docs.SpellCheck.parse(answer)
     }
 }
 
 /** ✨ actions on a passage: what the menu shows and what the model is asked to do. */
 enum class InlineAi(val label: String, val instruction: String) {
-    IMPROVE("Verbessern", "Verbessere Stil, Verständlichkeit und Grammatik; Inhalt und Länge bleiben ungefähr gleich."),
-    SPELLING("Rechtschreibung", "Korrigiere nur Rechtschreibung, Grammatik und Zeichensetzung; sonst nichts ändern."),
-    SHORTER("Kürzen", "Kürze deutlich auf das Wesentliche; wichtige Inhalte, Zahlen und Termine bleiben."),
-    LONGER("Ausführlicher", "Formuliere ausführlicher und konkreter, mit Beispielen, wo sie helfen; erfinde keine Fakten."),
-    CONTINUE("Weiterschreiben", "Schreibe den Text sinnvoll weiter (ein bis zwei Absätze) und gib den bisherigen Text samt Fortsetzung zurück."),
-    FORMAL("Förmlicher", "Formuliere förmlicher und sachlicher (Sie-Form, wie in einem Schreiben der Universität)."),
-    SIMPLE("Einfacher", "Formuliere einfacher und leichter verständlich (kurze Sätze, wenig Fachwörter)."),
-    BULLETS("Als Stichpunkte", "Fasse als knappe Markdown-Aufzählung zusammen."),
-    PROSE("Als Fließtext", "Formuliere die Stichpunkte als zusammenhängenden Fließtext aus."),
-    ENGLISH("Ins Englische", "Übersetze ins Englische (akademischer Stil)."),
-    GERMAN("Ins Deutsche", "Übersetze ins Deutsche."),
-    CUSTOM("Eigene Anweisung …", ""),
+    IMPROVE(trLater("Verbessern"), "Verbessere Stil, Verständlichkeit und Grammatik; Inhalt und Länge bleiben ungefähr gleich."),
+    SPELLING(trLater("Rechtschreibung"), "Korrigiere nur Rechtschreibung, Grammatik und Zeichensetzung; sonst nichts ändern."),
+    SHORTER(trLater("Kürzen"), "Kürze deutlich auf das Wesentliche; wichtige Inhalte, Zahlen und Termine bleiben."),
+    LONGER(trLater("Ausführlicher"), "Formuliere ausführlicher und konkreter, mit Beispielen, wo sie helfen; erfinde keine Fakten."),
+    CONTINUE(trLater("Weiterschreiben"), "Schreibe den Text sinnvoll weiter (ein bis zwei Absätze) und gib den bisherigen Text samt Fortsetzung zurück."),
+    FORMAL(trLater("Förmlicher"), "Formuliere förmlicher und sachlicher (Sie-Form, wie in einem Schreiben der Universität)."),
+    SIMPLE(trLater("Einfacher"), "Formuliere einfacher und leichter verständlich (kurze Sätze, wenig Fachwörter)."),
+    BULLETS(trLater("Als Stichpunkte"), "Fasse als knappe Markdown-Aufzählung zusammen."),
+    PROSE(trLater("Als Fließtext"), "Formuliere die Stichpunkte als zusammenhängenden Fließtext aus."),
+    ENGLISH(trLater("Ins Englische"), "Übersetze ins Englische (akademischer Stil)."),
+    GERMAN(trLater("Ins Deutsche"), "Übersetze ins Deutsche."),
+    CUSTOM(trLater("Eigene Anweisung …"), ""),
 }
 
 /** What the model suggested for a passage, shown below it with Übernehmen / Verwerfen. */
@@ -230,19 +229,19 @@ fun AiSuggestionCard(s: AiSuggestion, onAccept: () -> Unit, onDiscard: () -> Uni
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("KI-Vorschlag · ${s.label}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                Text(tr("KI-Vorschlag · {0}", s.label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
                 if (!s.done) CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
             }
             when {
                 s.error != null -> Text(s.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                s.text.isBlank() -> Text("KI schreibt …", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                s.text.isBlank() -> Text(tr("KI schreibt …"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> MarkdownText(s.text)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = onAccept, enabled = s.done && s.error == null && s.text.isNotBlank(), contentPadding = PaddingValues(horizontal = 14.dp)) { Text("Übernehmen") }
-                if (onInsertBelow != null) OutlinedButton(onClick = onInsertBelow, enabled = s.done && s.error == null, contentPadding = PaddingValues(horizontal = 12.dp)) { Text("Darunter einfügen") }
-                TextButton(onClick = onRetry, enabled = s.done) { Text("Erneut") }
-                TextButton(onClick = onDiscard) { Text("Verwerfen") }
+                Button(onClick = onAccept, enabled = s.done && s.error == null && s.text.isNotBlank(), contentPadding = PaddingValues(horizontal = 14.dp)) { Text(tr("Übernehmen")) }
+                if (onInsertBelow != null) OutlinedButton(onClick = onInsertBelow, enabled = s.done && s.error == null, contentPadding = PaddingValues(horizontal = 12.dp)) { Text(tr("Darunter einfügen")) }
+                TextButton(onClick = onRetry, enabled = s.done) { Text(tr("Erneut")) }
+                TextButton(onClick = onDiscard) { Text(tr("Verwerfen")) }
             }
         }
     }
@@ -255,7 +254,7 @@ fun InlineAiMenu(expanded: Boolean, onDismiss: () -> Unit, actions: List<InlineA
     androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         actions.forEach { a ->
             androidx.compose.material3.DropdownMenuItem(
-                text = { Text(a.label) },
+                text = { Text(tr(a.label)) },
                 leadingIcon = if (a == InlineAi.CUSTOM) null else ({ Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }),
                 onClick = {
                     onDismiss()
@@ -264,7 +263,7 @@ fun InlineAiMenu(expanded: Boolean, onDismiss: () -> Unit, actions: List<InlineA
             )
         }
     }
-    if (custom) TextPrompt("Was soll die KI mit der Stelle tun?", "", onDismiss = { custom = false }) { text ->
+    if (custom) TextPrompt(tr("Was soll die KI mit der Stelle tun?"), "", onDismiss = { custom = false }) { text ->
         custom = false
         onPick(InlineAi.CUSTOM, text)
     }
@@ -286,7 +285,7 @@ class InlineAiRunner(private val c: AppContainer, private val scope: kotlinx.cor
             runCatching {
                 DocsAi.rewrite(c, doc, text, instruction) { partial -> state = key to AiSuggestion(text, partial, label, done = false) }
             }.onSuccess { r -> state = key to AiSuggestion(text, r, label, done = true) }
-                .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) state = key to AiSuggestion(text, "", label, done = true, error = e.message ?: "Fehler") }
+                .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) state = key to AiSuggestion(text, "", label, done = true, error = e.message ?: tr("Fehler")) }
         }
     }
 
@@ -311,22 +310,22 @@ fun rememberInlineAi(c: AppContainer): InlineAiRunner {
 /** Quick requests when own files are attached, per kind of document. */
 private fun materialActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
     DocKind.SLIDES -> listOf(
-        "Folien aus den Dateien" to "Erstelle aus den angehängten Dateien eine vollständige Präsentation im TUD-Design (ersetze die bisherigen " +
+        tr("Folien aus den Dateien") to tr("Erstelle aus den angehängten Dateien eine vollständige Präsentation im TUD-Design (ersetze die bisherigen " +
             "Platzhalterfolien): Titelfolie, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, Tabellen " +
-            "und Zitate, wo sie im Material stehen, eine Abschlussfolie; zu jeder Folie Sprechernotizen aus dem Material.",
-        "Ins TUD-Design übertragen" to "Übertrage die angehängte Präsentation Folie für Folie in diese Präsentation – gleiche Reihenfolge, " +
-            "gleiche Inhalte, aber in die Folientypen der App (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat); Notizen bleiben Notizen.",
-        "Folien ergänzen" to "Ergänze die vorhandenen Folien mit passenden Inhalten aus den angehängten Dateien (neue Folien, wo nötig); " +
-            "Vorhandenes bleibt erhalten.",
-        "Zusammenfassen" to "Fasse die angehängten Dateien auf 3–5 Folien zusammen (Kernaussagen, wichtigste Zahlen, Fazit).",
+            "und Zitate, wo sie im Material stehen, eine Abschlussfolie; zu jeder Folie Sprechernotizen aus dem Material."),
+        tr("Ins TUD-Design übertragen") to tr("Übertrage die angehängte Präsentation Folie für Folie in diese Präsentation – gleiche Reihenfolge, " +
+            "gleiche Inhalte, aber in die Folientypen der App (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat); Notizen bleiben Notizen."),
+        tr("Folien ergänzen") to tr("Ergänze die vorhandenen Folien mit passenden Inhalten aus den angehängten Dateien (neue Folien, wo nötig); " +
+            "Vorhandenes bleibt erhalten."),
+        tr("Zusammenfassen") to tr("Fasse die angehängten Dateien auf 3–5 Folien zusammen (Kernaussagen, wichtigste Zahlen, Fazit)."),
     )
     DocKind.SHEET -> listOf(
-        "Tabellen übernehmen" to "Übernimm die Tabellen und Zahlen aus den angehängten Dateien in diese Tabelle (ein Tab je Tabelle).",
+        tr("Tabellen übernehmen") to tr("Übernimm die Tabellen und Zahlen aus den angehängten Dateien in diese Tabelle (ein Tab je Tabelle)."),
     )
     else -> listOf(
-        "Aus den Dateien schreiben" to "Schreibe auf Grundlage der angehängten Dateien einen vollständigen Text passend zum Titel.",
-        "Zusammenfassen" to "Fasse die angehängten Dateien zusammen und setze die Zusammenfassung ins Dokument.",
-        "Einarbeiten" to "Arbeite die wichtigsten Inhalte der angehängten Dateien an passender Stelle ins Dokument ein.",
+        tr("Aus den Dateien schreiben") to tr("Schreibe auf Grundlage der angehängten Dateien einen vollständigen Text passend zum Titel."),
+        tr("Zusammenfassen") to tr("Fasse die angehängten Dateien zusammen und setze die Zusammenfassung ins Dokument."),
+        tr("Einarbeiten") to tr("Arbeite die wichtigsten Inhalte der angehängten Dateien an passender Stelle ins Dokument ein."),
     )
 }
 
@@ -355,43 +354,43 @@ const val NOTES_ALL_SLIDES = "Schreibe zu jeder Folie ausführliche Sprechernoti
 /** Quick requests offered in the assistant panel, per kind of document. */
 private fun quickActions(kind: DocKind): List<Pair<String, String>> = when (kind) {
     DocKind.MARKDOWN -> listOf(
-        "Entwurf schreiben" to "Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht.",
-        "Gliederung" to "Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie in die Datei.",
-        "Inhaltsverzeichnis" to "Füge unter dem Titel ein Inhaltsverzeichnis mit Links auf die Überschriften ein.",
-        "Sprache glätten" to "Glätte Sprache, Stil und Rechtschreibung; Inhalt, Aufbau und Markdown bleiben.",
-        "Auf Englisch" to "Übersetze die ganze Datei ins Englische; Markdown und Code bleiben unverändert.",
+        tr("Entwurf schreiben") to tr("Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht."),
+        tr("Gliederung") to tr("Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie in die Datei."),
+        tr("Inhaltsverzeichnis") to tr("Füge unter dem Titel ein Inhaltsverzeichnis mit Links auf die Überschriften ein."),
+        tr("Sprache glätten") to tr("Glätte Sprache, Stil und Rechtschreibung; Inhalt, Aufbau und Markdown bleiben."),
+        tr("Auf Englisch") to tr("Übersetze die ganze Datei ins Englische; Markdown und Code bleiben unverändert."),
     )
     DocKind.DOC -> listOf(
-        "Entwurf schreiben" to "Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht.",
-        "Gliederung" to "Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie ins Dokument (vorhandener Text bleibt in den passenden Abschnitten).",
-        "Weiterschreiben" to "Schreibe am Ende des Dokuments sinnvoll weiter (ein bis drei Absätze).",
-        "Sprache glätten" to "Glätte Sprache, Stil und Rechtschreibung im ganzen Dokument; Inhalt und Aufbau bleiben.",
-        "Kürzen" to "Kürze das Dokument um etwa ein Drittel, ohne wichtige Inhalte zu verlieren.",
-        "Zusammenfassung oben" to "Füge direkt unter dem Titel eine kurze Zusammenfassung (3–5 Sätze) ein.",
-        "Feedback" to "Gib mir kritisches, konkretes Feedback zum Dokument (Aufbau, Argumentation, Verständlichkeit) – ändere noch nichts.",
-        "Leichte Sprache" to "Formuliere das ganze Dokument in einfacher, gut verständlicher Sprache.",
-        "Auf Englisch" to "Übersetze das ganze Dokument ins Englische (Titel eingeschlossen).",
-        "TUD-Design" to "Prüfe Aufbau und Formulierungen für ein offizielles Dokument der TU Dresden und exportiere es danach mit create_document als Word (format=docx, style=tud).",
+        tr("Entwurf schreiben") to tr("Schreibe einen ersten vollständigen Entwurf passend zum Titel und zu dem, was schon dasteht."),
+        tr("Gliederung") to tr("Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie ins Dokument (vorhandener Text bleibt in den passenden Abschnitten)."),
+        tr("Weiterschreiben") to tr("Schreibe am Ende des Dokuments sinnvoll weiter (ein bis drei Absätze)."),
+        tr("Sprache glätten") to tr("Glätte Sprache, Stil und Rechtschreibung im ganzen Dokument; Inhalt und Aufbau bleiben."),
+        tr("Kürzen") to tr("Kürze das Dokument um etwa ein Drittel, ohne wichtige Inhalte zu verlieren."),
+        tr("Zusammenfassung oben") to tr("Füge direkt unter dem Titel eine kurze Zusammenfassung (3–5 Sätze) ein."),
+        tr("Feedback") to tr("Gib mir kritisches, konkretes Feedback zum Dokument (Aufbau, Argumentation, Verständlichkeit) – ändere noch nichts."),
+        tr("Leichte Sprache") to tr("Formuliere das ganze Dokument in einfacher, gut verständlicher Sprache."),
+        tr("Auf Englisch") to tr("Übersetze das ganze Dokument ins Englische (Titel eingeschlossen)."),
+        tr("TUD-Design") to tr("Prüfe Aufbau und Formulierungen für ein offizielles Dokument der TU Dresden und exportiere es danach mit create_document als Word (format=docx, style=tud)."),
     )
     DocKind.SLIDES -> listOf(
-        "Folien entwerfen" to "Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien): Titelfolie mit Untertitel und einer " +
+        tr("Folien entwerfen") to tr("Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien): Titelfolie mit Untertitel und einer " +
             "Zeile Anlass · Datum, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, wo es passt auch " +
-            "zwei Spalten, eine Tabelle oder ein Zitat, eine Abschlussfolie; zu jeder Folie Sprechernotizen.",
-        "Sprechernotizen" to NOTES_ALL_SLIDES,
-        "Straffen" to "Straffe alle Folien: höchstens 5 kurze Stichpunkte je Folie, Details in die Sprechernotizen.",
-        "Stil vereinheitlichen" to STYLE_SLIDES,
-        "Abschlussfolie" to "Füge am Ende eine Folie mit Zusammenfassung/Take-aways und eine Folie für Fragen hinzu.",
-        "Interaktion" to "Ergänze an passenden Stellen Folien mit kurzen Aktivierungen für das Publikum (Frage, Murmelgruppe, Abstimmung).",
-        "Feedback" to "Gib mir Feedback zur Präsentation (Roter Faden, Textmenge, Verständlichkeit) – ändere noch nichts.",
-        "Als PowerPoint" to "Exportiere die Präsentation mit create_document als PowerPoint (format=pptx) im TUD-Design.",
+            "zwei Spalten, eine Tabelle oder ein Zitat, eine Abschlussfolie; zu jeder Folie Sprechernotizen."),
+        tr("Sprechernotizen") to NOTES_ALL_SLIDES,
+        tr("Straffen") to tr("Straffe alle Folien: höchstens 5 kurze Stichpunkte je Folie, Details in die Sprechernotizen."),
+        tr("Stil vereinheitlichen") to STYLE_SLIDES,
+        tr("Abschlussfolie") to tr("Füge am Ende eine Folie mit Zusammenfassung/Take-aways und eine Folie für Fragen hinzu."),
+        tr("Interaktion") to tr("Ergänze an passenden Stellen Folien mit kurzen Aktivierungen für das Publikum (Frage, Murmelgruppe, Abstimmung)."),
+        tr("Feedback") to tr("Gib mir Feedback zur Präsentation (Roter Faden, Textmenge, Verständlichkeit) – ändere noch nichts."),
+        tr("Als PowerPoint") to tr("Exportiere die Präsentation mit create_document als PowerPoint (format=pptx) im TUD-Design."),
     )
     DocKind.SHEET -> listOf(
-        "Auswerten" to "Werte die Daten aus: wichtigste Kennwerte (Mittelwert, Min, Max, Anzahl) und Auffälligkeiten – rechne exakt mit run_javascript und schreib das Ergebnis in den Chat.",
-        "Summenzeile" to "Füge unter jeder Zahlenspalte eine Zeile mit Summe und Mittelwert als Formeln hinzu.",
-        "Diagramm" to "Erstelle aus den Daten ein passendes Diagramm (create_chart) und erkläre kurz, was es zeigt.",
-        "Bereinigen" to "Bereinige die Tabelle: einheitliche Schreibweisen, Zahlen als Zahlen, leere Zeilen entfernen, sinnvolle Spaltenköpfe.",
-        "Spalte ergänzen" to "Schlage eine sinnvolle zusätzliche Spalte (mit Formel, wenn möglich) vor und füge sie ein.",
-        "Als Excel" to "Exportiere die Tabelle mit create_document als Excel-Datei (format=xlsx).",
+        tr("Auswerten") to tr("Werte die Daten aus: wichtigste Kennwerte (Mittelwert, Min, Max, Anzahl) und Auffälligkeiten – rechne exakt mit run_javascript und schreib das Ergebnis in den Chat."),
+        tr("Summenzeile") to tr("Füge unter jeder Zahlenspalte eine Zeile mit Summe und Mittelwert als Formeln hinzu."),
+        tr("Diagramm") to tr("Erstelle aus den Daten ein passendes Diagramm (create_chart) und erkläre kurz, was es zeigt."),
+        tr("Bereinigen") to tr("Bereinige die Tabelle: einheitliche Schreibweisen, Zahlen als Zahlen, leere Zeilen entfernen, sinnvolle Spaltenköpfe."),
+        tr("Spalte ergänzen") to tr("Schlage eine sinnvolle zusätzliche Spalte (mit Formel, wenn möglich) vor und füge sie ein."),
+        tr("Als Excel") to tr("Exportiere die Tabelle mit create_document als Excel-Datei (format=xlsx)."),
     )
 }
 
@@ -417,7 +416,7 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size, messages.lastOrNull()?.content?.length) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex) }
 
-    fun ask(text: String, label: String = "Im Editor") {
+    fun ask(text: String, label: String = tr("Im Editor")) {
         if (text.isBlank()) return
         val sel = selection()
         val files = material.toList()
@@ -437,8 +436,8 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 Text("Lora", style = MaterialTheme.typography.titleSmall)
                 Text(ModelCatalog.info(conv?.model ?: c.settings.current.defaultModel).displayName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (doc.chatId != null && onOpenChat != null) TextButton(onClick = { onOpenChat(doc.chatId) }) { Text("Im Chat") }
-            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Lora schließen") }
+            if (doc.chatId != null && onOpenChat != null) TextButton(onClick = { onOpenChat(doc.chatId) }) { Text(tr("Im Chat")) }
+            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = tr("Lora schließen")) }
         }
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -446,16 +445,16 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         when (doc.docKind) {
-                            DocKind.DOC, DocKind.MARKDOWN -> "Schreib gemeinsam mit der KI: Sag ihr, was sie schreiben oder ändern soll – sie arbeitet direkt im Dokument, Änderungen werden farbig markiert und lassen sich im Versionsverlauf zurücknehmen."
-                            DocKind.SLIDES -> "Die KI entwirft und überarbeitet Folien direkt in der Präsentation – sag einfach, was du brauchst."
-                            DocKind.SHEET -> "Die KI rechnet, ergänzt Formeln, bereinigt Daten und wertet aus – direkt in der Tabelle."
+                            DocKind.DOC, DocKind.MARKDOWN -> tr("Schreib gemeinsam mit der KI: Sag ihr, was sie schreiben oder ändern soll – sie arbeitet direkt im Dokument, Änderungen werden farbig markiert und lassen sich im Versionsverlauf zurücknehmen.")
+                            DocKind.SLIDES -> tr("Die KI entwirft und überarbeitet Folien direkt in der Präsentation – sag einfach, was du brauchst.")
+                            DocKind.SHEET -> tr("Die KI rechnet, ergänzt Formeln, bereinigt Daten und wertet aus – direkt in der Tabelle.")
                         },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    HintText("Tipp: Text markieren und ✨ wählen, um nur eine Stelle zu ändern.")
+                    HintText(tr("Tipp: Text markieren und ✨ wählen, um nur eine Stelle zu ändern."))
                     HintText(
-                        if (doc.docKind == DocKind.SLIDES) "Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI macht daraus Folien oder überträgt sie ins TUD-Design."
-                        else "Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI arbeitet sie ins Dokument ein.",
+                        if (doc.docKind == DocKind.SLIDES) tr("Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI macht daraus Folien oder überträgt sie ins TUD-Design.")
+                        else tr("Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI arbeitet sie ins Dokument ein."),
                     )
                 }
             }
@@ -478,17 +477,17 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.size(8.dp))
-                    Text("KI arbeitet am Dokument …", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(tr("KI arbeitet am Dokument …"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }
             }
             if (pending != null) item {
                 Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(12.dp)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Die KI möchte: ${pending.call.name}", style = MaterialTheme.typography.labelLarge)
+                        Text(tr("Die KI möchte: {0}", pending.call.name), style = MaterialTheme.typography.labelLarge)
                         Row {
-                            Button(onClick = { c.runs.answer(doc.chatId!!, allow = true) }) { Text("Erlauben") }
+                            Button(onClick = { c.runs.answer(doc.chatId!!, allow = true) }) { Text(tr("Erlauben")) }
                             Spacer(Modifier.size(8.dp))
-                            TextButton(onClick = { c.runs.answer(doc.chatId!!, allow = false) }) { Text("Ablehnen") }
+                            TextButton(onClick = { c.runs.answer(doc.chatId!!, allow = false) }) { Text(tr("Ablehnen")) }
                         }
                     }
                 }
@@ -505,7 +504,7 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                         onClick = { material.remove(f) },
                         label = { Text(f.name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 180.dp)) },
                         leadingIcon = { Icon(Icons.Outlined.AttachFile, null, Modifier.size(14.dp)) },
-                        trailingIcon = { Icon(Icons.Outlined.Close, contentDescription = "Entfernen", modifier = Modifier.size(14.dp)) },
+                        trailingIcon = { Icon(Icons.Outlined.Close, contentDescription = tr("Entfernen"), modifier = Modifier.size(14.dp)) },
                     )
                 }
             }
@@ -523,12 +522,12 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
         }
         Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.Bottom) {
             IconButton(onClick = pickMaterial, enabled = !working) {
-                Icon(Icons.Outlined.AttachFile, contentDescription = "Eigene Dateien anhängen (PDF, PowerPoint, Word …)")
+                Icon(Icons.Outlined.AttachFile, contentDescription = tr("Eigene Dateien anhängen (PDF, PowerPoint, Word …)"))
             }
             var field by rememberCursorValue(input)
             OutlinedTextField(
                 field, { field = it; input = it.text },
-                placeholder = { Text(if (selection().isNullOrBlank()) "Was soll die KI schreiben oder ändern?" else "Was soll mit der Markierung passieren?") },
+                placeholder = { Text(if (selection().isNullOrBlank()) tr("Was soll die KI schreiben oder ändern?") else tr("Was soll mit der Markierung passieren?")) },
                 modifier = Modifier.weight(1f).heightIn(max = 160.dp).onPreviewKeyEvent { e ->
                     when {
                         e.type != KeyEventType.KeyDown || e.key != Key.Enter -> false
@@ -540,9 +539,9 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
                 maxLines = 5,
             )
             Spacer(Modifier.size(6.dp))
-            if (working) IconButton(onClick = { c.runs.stop(doc.chatId!!) }) { Icon(Icons.Outlined.Stop, contentDescription = "Anhalten") }
-            else IconButton(onClick = { ask(input.ifBlank { "Arbeite die angehängten Dateien hier ein." }) }, enabled = input.isNotBlank() || material.isNotEmpty()) {
-                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Senden", tint = if (input.isNotBlank() || material.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+            if (working) IconButton(onClick = { c.runs.stop(doc.chatId!!) }) { Icon(Icons.Outlined.Stop, contentDescription = tr("Anhalten")) }
+            else IconButton(onClick = { ask(input.ifBlank { tr("Arbeite die angehängten Dateien hier ein.") }) }, enabled = input.isNotBlank() || material.isNotEmpty()) {
+                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = tr("Senden"), tint = if (input.isNotBlank() || material.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
             }
         }
     }
@@ -566,10 +565,10 @@ fun AiPromptBar(kind: DocKind, working: Boolean, onOpen: () -> Unit) {
             else Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(10.dp))
             Text(
-                if (working) "KI arbeitet …" else when (kind) {
-                    DocKind.DOC, DocKind.MARKDOWN -> "Mit KI schreiben …"
-                    DocKind.SLIDES -> "Folien mit KI erstellen …"
-                    DocKind.SHEET -> "KI fragen: rechnen, auswerten, ergänzen …"
+                if (working) tr("KI arbeitet …") else when (kind) {
+                    DocKind.DOC, DocKind.MARKDOWN -> tr("Mit KI schreiben …")
+                    DocKind.SLIDES -> tr("Folien mit KI erstellen …")
+                    DocKind.SHEET -> tr("KI fragen: rechnen, auswerten, ergänzen …")
                 },
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

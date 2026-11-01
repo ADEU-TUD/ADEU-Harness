@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.data
 
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.ui.tr
 
 /**
  * Enforces the data protection level of a project ([PrivacyLevel]): which models a chat may use and whether data
@@ -22,8 +23,11 @@ object Privacy {
     /** Why [model] may not be used in the chat [conv], null if it may. */
     fun blockReason(c: AppContainer, conv: Conversation, model: String): String? {
         if (conv.vault && !allows(c, level(c, conv), model)) {
-            return "Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – ${ModelCatalog.info(model).displayName} läuft bei " +
-                "einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen."
+            return tr(
+                "Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei " +
+                    "einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen.",
+                ModelCatalog.info(model).displayName,
+            )
         }
         return blockReason(c, conv.folderId, model)
     }
@@ -64,10 +68,16 @@ object Privacy {
         val level = level(c, folderId)
         if (allows(c, level, model)) return null
         return when (level) {
-            PrivacyLevel.LOCAL -> "Dieses Projekt hat die Datenschutzstufe „Nur auf diesem Gerät“. Bitte ein Modell auf diesem Gerät wählen " +
-                "(Einstellungen › Modelle auf diesem Gerät) – ${ModelCatalog.info(model).displayName} läuft auf einem Server."
-            PrivacyLevel.TU -> "Dieses Projekt hat die Datenschutzstufe „Nur TU Dresden“. ${ModelCatalog.info(model).displayName} läuft bei einem " +
-                "externen Anbieter – bitte ein Modell des Uni-Servers oder eines auf diesem Gerät wählen."
+            PrivacyLevel.LOCAL -> tr(
+                "Dieses Projekt hat die Datenschutzstufe „Nur auf diesem Gerät“. Bitte ein Modell auf diesem Gerät wählen " +
+                    "(Einstellungen › Modelle auf diesem Gerät) – {0} läuft auf einem Server.",
+                ModelCatalog.info(model).displayName,
+            )
+            PrivacyLevel.TU -> tr(
+                "Dieses Projekt hat die Datenschutzstufe „Nur TU Dresden“. {0} läuft bei einem " +
+                    "externen Anbieter – bitte ein Modell des Uni-Servers oder eines auf diesem Gerät wählen.",
+                ModelCatalog.info(model).displayName,
+            )
             PrivacyLevel.OPEN -> null
         }
     }

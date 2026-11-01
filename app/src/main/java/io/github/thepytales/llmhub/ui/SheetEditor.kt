@@ -58,7 +58,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -130,8 +129,8 @@ private data class ColFilter(val values: Set<String>? = null, val contains: Stri
 }
 
 /** Colors offered for text and fill (Excel's light tones for fills). */
-private val TEXT_COLORS = listOf("#000000" to "Schwarz", "#C00000" to "Rot", "#E26B0A" to "Orange", "#00863D" to "Grün", "#1F4E79" to "Blau", "#7030A0" to "Lila", "#7F7F7F" to "Grau")
-private val FILL_COLORS = listOf("#FFF2CC" to "Gelb", "#FFC7CE" to "Rot", "#C6EFCE" to "Grün", "#DDEBF7" to "Blau", "#FCE4D6" to "Orange", "#E4DFEC" to "Lila", "#EDEDED" to "Grau")
+private val TEXT_COLORS = listOf("#000000" to trLater("Schwarz"), "#C00000" to trLater("Rot"), "#E26B0A" to trLater("Orange"), "#00863D" to trLater("Grün"), "#1F4E79" to trLater("Blau"), "#7030A0" to trLater("Lila"), "#7F7F7F" to trLater("Grau"))
+private val FILL_COLORS = listOf("#FFF2CC" to trLater("Gelb"), "#FFC7CE" to trLater("Rot"), "#C6EFCE" to trLater("Grün"), "#DDEBF7" to trLater("Blau"), "#FCE4D6" to trLater("Orange"), "#E4DFEC" to trLater("Lila"), "#EDEDED" to trLater("Grau"))
 
 private fun hexColor(hex: String?): Color? = hex?.let { SheetTools.rgb(it) }?.let { (r, g, b) -> Color(r, g, b) }
 
@@ -252,7 +251,7 @@ fun SheetBody(
         val text = SheetTools.toTsv(shown)
         clipboard.setText(AnnotatedString(text))
         lastClip = SheetClip(text, raw, top, left)
-        Notices.info("${raw.size * (right - left + 1)} Zelle(n) kopiert")
+        Notices.info(tr("{0} Zelle(n) kopiert", raw.size * (right - left + 1)))
     }
 
     fun paste() {
@@ -302,7 +301,7 @@ fun SheetBody(
             leading()
             var rowsMenu by remember { mutableStateOf(false) }
             Box {
-                ToolLabel("Zeilen & Spalten ▾") { rowsMenu = true }
+                ToolLabel(tr("Zeilen & Spalten ▾")) { rowsMenu = true }
                 DropdownMenu(expanded = rowsMenu, onDismissRequest = { rowsMenu = false }) {
                     fun insertRow(at: Int) {
                         rowsMenu = false
@@ -313,17 +312,17 @@ fun SheetBody(
                         write(rows.map { r -> r.toMutableList().apply { while (size < cols) add(""); add(at, "") } }, meta.remapCols((0 until at).toList() + listOf(null) + (at until cols)))
                     }
                     fun keepRows(kept: List<Int>) = write(kept.map { rows[it] }, meta.remapRows(kept))
-                    DropdownMenuItem(text = { Text("Zeile darüber einfügen") }, onClick = { insertRow(sr) })
-                    DropdownMenuItem(text = { Text("Zeile darunter einfügen") }, onClick = { insertRow(sr + 1) })
-                    DropdownMenuItem(text = { Text("Spalte links einfügen") }, onClick = { insertCol(sc) })
-                    DropdownMenuItem(text = { Text("Spalte rechts einfügen") }, onClick = { insertCol(sc + 1) })
+                    DropdownMenuItem(text = { Text(tr("Zeile darüber einfügen")) }, onClick = { insertRow(sr) })
+                    DropdownMenuItem(text = { Text(tr("Zeile darunter einfügen")) }, onClick = { insertRow(sr + 1) })
+                    DropdownMenuItem(text = { Text(tr("Spalte links einfügen")) }, onClick = { insertCol(sc) })
+                    DropdownMenuItem(text = { Text(tr("Spalte rechts einfügen")) }, onClick = { insertCol(sc + 1) })
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text(if (bottom > top) "Zeilen ${top + 1}–${bottom + 1} löschen" else "Zeile ${sr + 1} löschen") }, enabled = rows.size > bottom - top + 1,
+                        text = { Text(if (bottom > top) tr("Zeilen {0}–{1} löschen", top + 1, bottom + 1) else tr("Zeile {0} löschen", sr + 1)) }, enabled = rows.size > bottom - top + 1,
                         onClick = { rowsMenu = false; anchor = null; keepRows(rows.indices.filter { it !in top..bottom }) },
                     )
                     DropdownMenuItem(
-                        text = { Text(if (right > left) "Spalten ${SheetEngine.colName(left)}–${SheetEngine.colName(right)} löschen" else "Spalte ${SheetEngine.colName(sc)} löschen") },
+                        text = { Text(if (right > left) tr("Spalten {0}–{1} löschen", SheetEngine.colName(left), SheetEngine.colName(right)) else tr("Spalte {0} löschen", SheetEngine.colName(sc))) },
                         enabled = cols > right - left + 1,
                         onClick = {
                             rowsMenu = false
@@ -332,21 +331,21 @@ fun SheetBody(
                             write(rows.map { r -> kept.map { r.getOrNull(it).orEmpty() } }, meta.remapCols(kept))
                         },
                     )
-                    DropdownMenuItem(text = { Text("Leere Zeilen entfernen") }, onClick = { rowsMenu = false; keepRows(rows.indices.filter { i -> i == 0 || rows[i].any { it.isNotBlank() } }) })
+                    DropdownMenuItem(text = { Text(tr("Leere Zeilen entfernen")) }, onClick = { rowsMenu = false; keepRows(rows.indices.filter { i -> i == 0 || rows[i].any { it.isNotBlank() } }) })
                     HorizontalDivider()
                     // Like dragging the fill handle in Excel: relative references move along, $-references stay.
                     if (isRange) {
                         DropdownMenuItem(
-                            text = { Text("$rangeName nach unten ausfüllen (Reihe)") }, enabled = bottom > top,
+                            text = { Text(tr("{0} nach unten ausfüllen (Reihe)", rangeName)) }, enabled = bottom > top,
                             onClick = { rowsMenu = false; setCell(sr, sc, bar.text); write(SheetTools.fill(rows, top, left, bottom, right, down = true)) },
                         )
                         DropdownMenuItem(
-                            text = { Text("$rangeName nach rechts ausfüllen (Reihe)") }, enabled = right > left,
+                            text = { Text(tr("{0} nach rechts ausfüllen (Reihe)", rangeName)) }, enabled = right > left,
                             onClick = { rowsMenu = false; setCell(sr, sc, bar.text); write(SheetTools.fill(rows, top, left, bottom, right, down = false)) },
                         )
                     } else {
                         DropdownMenuItem(
-                            text = { Text("${SheetEngine.ref(sr, sc)} nach unten ausfüllen") }, enabled = sr in 1 until rows.lastIndex,
+                            text = { Text(tr("{0} nach unten ausfüllen", SheetEngine.ref(sr, sc))) }, enabled = sr in 1 until rows.lastIndex,
                             onClick = {
                                 rowsMenu = false
                                 setCell(sr, sc, bar.text)
@@ -358,7 +357,7 @@ fun SheetBody(
                             },
                         )
                         DropdownMenuItem(
-                            text = { Text("${SheetEngine.ref(sr, sc)} nach rechts ausfüllen") }, enabled = sc < cols - 1,
+                            text = { Text(tr("{0} nach rechts ausfüllen", SheetEngine.ref(sr, sc))) }, enabled = sc < cols - 1,
                             onClick = {
                                 rowsMenu = false
                                 setCell(sr, sc, bar.text)
@@ -370,43 +369,43 @@ fun SheetBody(
                             },
                         )
                     }
-                    DropdownMenuItem(text = { Text("Duplikate entfernen") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Duplikate entfernen")) }, onClick = {
                         rowsMenu = false
                         val before = rows.size
                         val kept = listOf(0) + (1 until rows.size).distinctBy { i -> rows[i].map { it.trim().lowercase() } }
                         keepRows(kept)
-                        Notices.info("${before - kept.size} doppelte Zeile(n) entfernt")
+                        Notices.info(tr("{0} doppelte Zeile(n) entfernt", before - kept.size))
                     })
-                    DropdownMenuItem(text = { Text("Zeilen und Spalten tauschen") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Zeilen und Spalten tauschen")) }, onClick = {
                         rowsMenu = false
                         write((0 until cols).map { j -> rows.map { it.getOrNull(j).orEmpty() } }, meta.transposed())
                     })
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text((if (meta.freeze) "✓ " else "") + "Kopfzeile fixieren") },
+                        text = { Text((if (meta.freeze) "✓ " else "") + tr("Kopfzeile fixieren")) },
                         onClick = { rowsMenu = false; write(rows, meta.copy(freeze = !meta.freeze)) },
                     )
                 }
             }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-            ToolIcon(Icons.Outlined.ContentCopy, "Kopieren (als Tabelle für Excel und Word)") { copy() }
-            ToolIcon(Icons.Outlined.ContentPaste, "Einfügen (aus Excel, Word oder dem Web)") { paste() }
+            ToolIcon(Icons.Outlined.ContentCopy, tr("Kopieren (als Tabelle für Excel und Word)")) { copy() }
+            ToolIcon(Icons.Outlined.ContentPaste, tr("Einfügen (aus Excel, Word oder dem Web)")) { paste() }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             // ── Formats of the selected cells ──
-            ToolIcon(Icons.Outlined.FormatBold, "Fett", active = style.b) { restyle { it.copy(b = !style.b) } }
-            ToolIcon(Icons.Outlined.FormatItalic, "Kursiv", active = style.i) { restyle { it.copy(i = !style.i) } }
+            ToolIcon(Icons.Outlined.FormatBold, tr("Fett"), active = style.b) { restyle { it.copy(b = !style.b) } }
+            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv"), active = style.i) { restyle { it.copy(i = !style.i) } }
             var colorMenu by remember { mutableStateOf<String?>(null) }
             Box {
                 Row {
-                    ToolIcon(Icons.Outlined.FormatColorText, "Textfarbe", active = style.color != null) { colorMenu = "text" }
-                    ToolIcon(Icons.Outlined.FormatColorFill, "Füllfarbe", active = style.fill != null) { colorMenu = "fill" }
+                    ToolIcon(Icons.Outlined.FormatColorText, tr("Textfarbe"), active = style.color != null) { colorMenu = "text" }
+                    ToolIcon(Icons.Outlined.FormatColorFill, tr("Füllfarbe"), active = style.fill != null) { colorMenu = "fill" }
                 }
                 DropdownMenu(expanded = colorMenu != null, onDismissRequest = { colorMenu = null }) {
                     val fill = colorMenu == "fill"
-                    DropdownMenuItem(text = { Text(if (fill) "Keine Füllung" else "Automatisch") }, onClick = { restyle { if (fill) it.copy(fill = null) else it.copy(color = null) }; colorMenu = null })
+                    DropdownMenuItem(text = { Text(if (fill) tr("Keine Füllung") else tr("Automatisch")) }, onClick = { restyle { if (fill) it.copy(fill = null) else it.copy(color = null) }; colorMenu = null })
                     (if (fill) FILL_COLORS else TEXT_COLORS).forEach { (hex, label) ->
                         DropdownMenuItem(
-                            text = { Text(label) },
+                            text = { Text(tr(label)) },
                             leadingIcon = { Box(Modifier.size(18.dp).background(hexColor(hex) ?: Color.Gray, CircleShape).border(0.5.dp, MaterialTheme.colorScheme.outline, CircleShape)) },
                             onClick = { restyle { if (fill) it.copy(fill = hex) else it.copy(color = hex) }; colorMenu = null },
                         )
@@ -415,7 +414,7 @@ fun SheetBody(
             }
             var nfMenu by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.Outlined.Numbers, "Zahlenformat", active = style.nf != null) { nfMenu = true }
+                ToolIcon(Icons.Outlined.Numbers, tr("Zahlenformat"), active = style.nf != null) { nfMenu = true }
                 DropdownMenu(expanded = nfMenu, onDismissRequest = { nfMenu = false }) {
                     SheetMeta.NUMBER_FORMATS.forEach { (nf, label) ->
                         DropdownMenuItem(text = { Text((if (style.nf == nf) "✓ " else "") + label) }, onClick = { nfMenu = false; restyle { it.copy(nf = nf) } })
@@ -426,35 +425,35 @@ fun SheetBody(
             Box {
                 ToolIcon(
                     when (style.align) { "c" -> Icons.Outlined.FormatAlignCenter; "r" -> Icons.Outlined.FormatAlignRight; else -> Icons.Outlined.FormatAlignLeft },
-                    "Ausrichtung", active = style.align != null,
+                    tr("Ausrichtung"), active = style.align != null,
                 ) { alignMenu = true }
                 DropdownMenu(expanded = alignMenu, onDismissRequest = { alignMenu = false }) {
-                    listOf(null to "Standard", "l" to "Links", "c" to "Mitte", "r" to "Rechts").forEach { (a, label) ->
+                    listOf(null to tr("Standard"), "l" to tr("Links"), "c" to tr("Mitte"), "r" to tr("Rechts")).forEach { (a, label) ->
                         DropdownMenuItem(text = { Text((if (style.align == a) "✓ " else "") + label) }, onClick = { alignMenu = false; restyle { it.copy(align = a) } })
                     }
                 }
             }
-            ToolIcon(Icons.Outlined.FormatPaint, "Bedingte Formatierung", active = meta.rules.isNotEmpty()) { setCell(sr, sc, bar.text); condDialog = true }
+            ToolIcon(Icons.Outlined.FormatPaint, tr("Bedingte Formatierung"), active = meta.rules.isNotEmpty()) { setCell(sr, sc, bar.text); condDialog = true }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             var sortMenu by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.AutoMirrored.Outlined.Sort, "Sortieren") { sortMenu = true }
+                ToolIcon(Icons.AutoMirrored.Outlined.Sort, tr("Sortieren")) { sortMenu = true }
                 DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                    DropdownMenuItem(text = { Text("Nach Spalte ${SheetEngine.colName(sc)} aufsteigend") }, onClick = { sortMenu = false; sort(sc, false) })
-                    DropdownMenuItem(text = { Text("Nach Spalte ${SheetEngine.colName(sc)} absteigend") }, onClick = { sortMenu = false; sort(sc, true) })
+                    DropdownMenuItem(text = { Text(tr("Nach Spalte {0} aufsteigend", SheetEngine.colName(sc))) }, onClick = { sortMenu = false; sort(sc, false) })
+                    DropdownMenuItem(text = { Text(tr("Nach Spalte {0} absteigend", SheetEngine.colName(sc))) }, onClick = { sortMenu = false; sort(sc, true) })
                 }
             }
             var filterMenu by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.Outlined.FilterList, "Filtern", active = filterOpen || filter.isNotBlank() || colFilters.isNotEmpty()) { filterMenu = true }
+                ToolIcon(Icons.Outlined.FilterList, tr("Filtern"), active = filterOpen || filter.isNotBlank() || colFilters.isNotEmpty()) { filterMenu = true }
                 DropdownMenu(expanded = filterMenu, onDismissRequest = { filterMenu = false }) {
-                    DropdownMenuItem(text = { Text("Spalte ${SheetEngine.colName(sc)} filtern …") }, onClick = { filterMenu = false; filterDialog = sc })
-                    DropdownMenuItem(text = { Text(if (filterOpen) "Suchfilter schließen" else "Zeilen nach Text durchsuchen …") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Spalte {0} filtern …", SheetEngine.colName(sc))) }, onClick = { filterMenu = false; filterDialog = sc })
+                    DropdownMenuItem(text = { Text(if (filterOpen) tr("Suchfilter schließen") else tr("Zeilen nach Text durchsuchen …")) }, onClick = {
                         filterMenu = false
                         filterOpen = !filterOpen
                         if (!filterOpen) filter = ""
                     })
-                    DropdownMenuItem(text = { Text("Alle Filter aufheben") }, enabled = colFilters.isNotEmpty() || filter.isNotBlank(), onClick = {
+                    DropdownMenuItem(text = { Text(tr("Alle Filter aufheben")) }, enabled = colFilters.isNotEmpty() || filter.isNotBlank(), onClick = {
                         filterMenu = false
                         colFilters = emptyMap()
                         filter = ""
@@ -464,9 +463,9 @@ fun SheetBody(
             }
             var fx by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.Outlined.Functions, "Funktion einfügen") { fx = true }
+                ToolIcon(Icons.Outlined.Functions, tr("Funktion einfügen")) { fx = true }
                 DropdownMenu(expanded = fx, onDismissRequest = { fx = false }) {
-                    DropdownMenuItem(text = { Text("Σ Summe der Spalte darunter einfügen") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Σ Summe der Spalte darunter einfügen")) }, onClick = {
                         fx = false
                         val last = rows.indexOfLast { r -> r.getOrNull(sc)?.isNotBlank() == true }.coerceAtLeast(1)
                         val formula = "=SUMME(${SheetEngine.ref(1, sc)}:${SheetEngine.ref(last, sc)})"
@@ -486,19 +485,19 @@ fun SheetBody(
             }
             var chartMenu by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.Outlined.BarChart, "Diagramm aus Auswahl") { chartMenu = true }
+                ToolIcon(Icons.Outlined.BarChart, tr("Diagramm aus Auswahl")) { chartMenu = true }
                 DropdownMenu(expanded = chartMenu, onDismissRequest = { chartMenu = false }) {
                     if (!isRange) Text(
-                        "Zuerst einen Bereich markieren (lange tippen oder Umschalt + Klick), z. B. Namen und Werte.",
+                        tr("Zuerst einen Bereich markieren (lange tippen oder Umschalt + Klick), z. B. Namen und Werte."),
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).width(260.dp),
                     )
-                    listOf("bar" to "Säulendiagramm", "line" to "Liniendiagramm", "pie" to "Kreisdiagramm").forEach { (type, label) ->
-                        DropdownMenuItem(text = { Text("$label aus $rangeName") }, enabled = isRange, onClick = {
+                    listOf("bar" to tr("Säulendiagramm"), "line" to tr("Liniendiagramm"), "pie" to tr("Kreisdiagramm")).forEach { (type, label) ->
+                        DropdownMenuItem(text = { Text(tr("{0} aus {1}", label, rangeName)) }, enabled = isRange, onClick = {
                             chartMenu = false
                             setCell(sr, sc, bar.text)
                             val title = rows.getOrNull(top)?.getOrNull(if (right > left) left + 1 else left).orEmpty().takeIf { top == 0 }.orEmpty()
                             val chart = SheetChart(type, rangeName, title)
-                            if (SheetTools.chartSpec(chart, engine) == null) Notices.info("Im Bereich $rangeName stehen keine Zahlen für ein Diagramm")
+                            if (SheetTools.chartSpec(chart, engine) == null) Notices.info(tr("Im Bereich {0} stehen keine Zahlen für ein Diagramm", rangeName))
                             else write(rows, meta.copy(charts = meta.charts + chart))
                         })
                     }
@@ -507,33 +506,33 @@ fun SheetBody(
             var ai by remember { mutableStateOf(false) }
             var ask by remember { mutableStateOf<SheetAi?>(null) }
             Box {
-                ToolIcon(Icons.Outlined.AutoAwesome, "KI") { ai = true }
+                ToolIcon(Icons.Outlined.AutoAwesome, tr("KI")) { ai = true }
                 DropdownMenu(expanded = ai, onDismissRequest = { ai = false }) {
-                    DropdownMenuItem(text = { Text("Formel für ${SheetEngine.ref(sr, sc)} beschreiben …") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { ai = false; ask = SheetAi.FORMULA })
-                    DropdownMenuItem(text = { Text("Spalte ${SheetEngine.colName(sc)} mit KI ausfüllen …") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { ai = false; ask = SheetAi.FILL })
-                    DropdownMenuItem(text = { Text("Formel in ${SheetEngine.ref(sr, sc)} erklären") }, enabled = bar.text.startsWith("="), onClick = {
+                    DropdownMenuItem(text = { Text(tr("Formel für {0} beschreiben …", SheetEngine.ref(sr, sc))) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { ai = false; ask = SheetAi.FORMULA })
+                    DropdownMenuItem(text = { Text(tr("Spalte {0} mit KI ausfüllen …", SheetEngine.colName(sc))) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { ai = false; ask = SheetAi.FILL })
+                    DropdownMenuItem(text = { Text(tr("Formel in {0} erklären", SheetEngine.ref(sr, sc))) }, enabled = bar.text.startsWith("="), onClick = {
                         ai = false
                         aiMode = SheetAi.EXPLAIN
-                        inlineAi.start("sheet", doc, bar.text, "Erklärung", "Erkläre kurz und verständlich, was diese Excel-Formel berechnet (2–3 Sätze). Tabelle:\n${csvSample()}")
+                        inlineAi.start("sheet", doc, bar.text, tr("Erklärung"), "Erkläre kurz und verständlich, was diese Excel-Formel berechnet (2–3 Sätze). Tabelle:\n${csvSample()}")
                     })
                 }
             }
             ask?.let { mode ->
                 TextPrompt(
-                    if (mode == SheetAi.FORMULA) "Was soll in ${SheetEngine.ref(sr, sc)} berechnet werden?" else "Womit soll Spalte ${SheetEngine.colName(sc)} gefüllt werden?",
+                    if (mode == SheetAi.FORMULA) tr("Was soll in {0} berechnet werden?", SheetEngine.ref(sr, sc)) else tr("Womit soll Spalte {0} gefüllt werden?", SheetEngine.colName(sc)),
                     "", onDismiss = { ask = null },
                 ) { text ->
                     ask = null
                     aiMode = mode
                     if (mode == SheetAi.FORMULA) {
                         inlineAi.start(
-                            "sheet", doc, "", "Formel",
+                            "sheet", doc, "", tr("Formel"),
                             "Gib genau eine Formel für Zelle ${SheetEngine.ref(sr, sc)} zurück (eine Zeile, beginnt mit =, deutsche Funktionsnamen wie SUMME, MITTELWERT, WENN, " +
                                 "ANZAHL, RUNDEN; Argumente mit ; trennen; Zellbezüge wie B2:B9). Aufgabe: $text\nTabelle (Zeilennummer: Werte, Zeile 1 = Kopf, Spalten A, B, C …):\n${csvSample()}",
                         )
                     } else {
                         inlineAi.start(
-                            "sheet", doc, "", "Spalte füllen",
+                            "sheet", doc, "", tr("Spalte füllen"),
                             "Fülle Spalte ${SheetEngine.colName(sc)} („${rows[0].getOrNull(sc).orEmpty()}“) für die Datenzeilen 2 bis ${rows.size}: $text\n" +
                                 "Gib genau ${rows.size - 1} Zeilen zurück, je Datenzeile eine, nur den Wert (ohne Nummer, ohne Aufzählungszeichen; leere Zeile für leer).\n" +
                                 "Tabelle (Zeilennummer: Werte):\n${rows.mapIndexed { r, row -> "${r + 1}: " + row.mapIndexed { j, _ -> engine.display(r, j) }.joinToString(" | ") }.take(200).joinToString("\n")}",
@@ -541,7 +540,7 @@ fun SheetBody(
                     }
                 }
             }
-            ToolIcon(Icons.Outlined.AddComment, "Kommentieren") { onComment("${SheetEngine.ref(sr, sc)}: ${engine.display(sr, sc)}") }
+            ToolIcon(Icons.Outlined.AddComment, tr("Kommentieren")) { onComment("${SheetEngine.ref(sr, sc)}: ${engine.display(sr, sc)}") }
         }
         // ── Formula bar ──
         Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -565,7 +564,7 @@ fun SheetBody(
                 )
             }
             Spacer(Modifier.width(6.dp))
-            Text("fx", style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Serif), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(tr("fx"), style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Serif), color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.width(6.dp))
             Surface(shape = RoundedCornerShape(6.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), color = LocalChatLook.current.card, modifier = Modifier.weight(1f)) {
                 BasicTextField(
@@ -576,7 +575,7 @@ fun SheetBody(
                     keyboardActions = KeyboardActions(onNext = { select(sr + 1, sc) }),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).focusRequester(barFocus).onPreviewKeyEvent { e ->
                         if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                        val ctrl = e.isCtrlPressed || e.isMetaPressed
+                        val ctrl = e.isCmd || e.isMetaPressed
                         val formula = bar.text.startsWith("=")
                         when {
                             // Ranges are copied and pasted as cells; within one cell the text field does it.
@@ -596,7 +595,7 @@ fun SheetBody(
                         }
                     },
                     decorationBox = { inner ->
-                        if (bar.text.isEmpty()) Text("Wert oder Formel, z. B. =SUMME(B2:B9)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+                        if (bar.text.isEmpty()) Text(tr("Wert oder Formel, z. B. =SUMME(B2:B9)"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                         inner()
                     },
                 )
@@ -631,19 +630,19 @@ fun SheetBody(
             Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     filter, { filter = it }, singleLine = true, modifier = Modifier.weight(1f),
-                    placeholder = { Text("Zeilen filtern: nur Zeilen mit diesem Text zeigen") },
+                    placeholder = { Text(tr("Zeilen filtern: nur Zeilen mit diesem Text zeigen")) },
                     leadingIcon = { Icon(Icons.Outlined.FilterList, contentDescription = null) },
                 )
-                Text("${visibleRows.size - 1} von ${rows.size - 1}", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp))
+                Text(tr("{0} von {1}", visibleRows.size - 1, rows.size - 1), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp))
             }
         }
         if (colFilters.isNotEmpty()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Gefiltert nach Spalte ${colFilters.keys.sorted().joinToString(", ") { SheetEngine.colName(it) }} · ${visibleRows.size - 1} von ${rows.size - 1} Zeilen",
+                    tr("Gefiltert nach Spalte {0} · {1} von {2} Zeilen", colFilters.keys.sorted().joinToString(", ") { SheetEngine.colName(it) }, visibleRows.size - 1, rows.size - 1),
                     style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = { colFilters = emptyMap() }) { Text("Filter aufheben") }
+                TextButton(onClick = { colFilters = emptyMap() }) { Text(tr("Filter aufheben")) }
             }
         }
         val defaultText = MaterialTheme.colorScheme.onSurface
@@ -747,28 +746,28 @@ fun SheetBody(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f),
                             )
                             IconButton(onClick = { write(rows, meta.copy(charts = meta.charts.filterIndexed { k, _ -> k != i })) }, modifier = Modifier.size(28.dp)) {
-                                Icon(Icons.Outlined.Close, contentDescription = "Diagramm entfernen", modifier = Modifier.size(16.dp))
+                                Icon(Icons.Outlined.Close, contentDescription = tr("Diagramm entfernen"), modifier = Modifier.size(16.dp))
                             }
                         }
-                        if (spec != null) ChartView(spec, Modifier.width(360.dp)) else Text("Keine Zahlen im Bereich", style = MaterialTheme.typography.bodySmall)
+                        if (spec != null) ChartView(spec, Modifier.width(360.dp)) else Text(tr("Keine Zahlen im Bereich"), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
         }
         // ── Status bar (like Excel): sum, average and count of the selected range or column ──
         val nums = if (isRange) (top..bottom).flatMap { r -> (left..right).mapNotNull { j -> (engine.value(r, j) as? SheetEngine.Value.Num)?.takeIf { !it.date }?.v } } else numbers(sc)
-        val where = if (isRange) rangeName else "Spalte ${SheetEngine.colName(sc)}"
+        val where = if (isRange) rangeName else tr("Spalte {0}", SheetEngine.colName(sc))
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                if (nums.isEmpty()) "$where · ${rows.size - 1} Zeilen · Formeln mit = beginnen · Bereich: lange tippen oder Umschalt + Klick"
-                else "$where · Summe ${SheetEngine.short(nums.sum())} · Mittelwert ${SheetEngine.short(nums.average())} · Anzahl ${nums.size}",
+                if (nums.isEmpty()) tr("{0} · {1} Zeilen · Formeln mit = beginnen · Bereich: lange tippen oder Umschalt + Klick", where, rows.size - 1)
+                else tr("{0} · Summe {1} · Mittelwert {2} · Anzahl {3}", where, SheetEngine.short(nums.sum()), SheetEngine.short(nums.average()), nums.size),
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
     filterDialog?.let { col ->
         ColumnFilterDialog(
-            title = rows.firstOrNull()?.getOrNull(col).orEmpty().ifBlank { "Spalte ${SheetEngine.colName(col)}" },
+            title = rows.firstOrNull()?.getOrNull(col).orEmpty().ifBlank { tr("Spalte {0}", SheetEngine.colName(col)) },
             values = (1 until rows.size).map { engine.display(it, col) }.distinct().sortedWith(compareBy({ SheetEngine.numberOrDate(it) == null }, { SheetEngine.numberOrDate(it) ?: 0.0 }, { it.lowercase() })),
             current = colFilters[col] ?: ColFilter(),
             onDismiss = { filterDialog = null },
@@ -796,18 +795,18 @@ private fun ColumnFilterDialog(title: String, values: List<String>, current: Col
     var below by remember { mutableStateOf(current.below) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Filter: $title") },
+        title = { Text(tr("Filter: {0}", title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                OutlinedTextField(contains, { contains = it }, singleLine = true, label = { Text("Text enthält") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(contains, { contains = it }, singleLine = true, label = { Text(tr("Text enthält")) }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(above, { above = it }, singleLine = true, label = { Text("Zahl größer als") }, modifier = Modifier.weight(1f))
-                    OutlinedTextField(below, { below = it }, singleLine = true, label = { Text("kleiner als") }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(above, { above = it }, singleLine = true, label = { Text(tr("Zahl größer als")) }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(below, { below = it }, singleLine = true, label = { Text(tr("kleiner als")) }, modifier = Modifier.weight(1f))
                 }
-                Text("Nur diese Werte zeigen", style = MaterialTheme.typography.labelLarge)
+                Text(tr("Nur diese Werte zeigen"), style = MaterialTheme.typography.labelLarge)
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { chosen = if (chosen.size == values.size) emptySet() else values.toSet() }) {
                     Checkbox(chosen.size == values.size, { chosen = if (it) values.toSet() else emptySet() })
-                    Text("(Alle auswählen)")
+                    Text(tr("(Alle auswählen)"))
                 }
                 values.take(300).forEach { v ->
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { chosen = if (v in chosen) chosen - v else chosen + v }) {
@@ -818,9 +817,9 @@ private fun ColumnFilterDialog(title: String, values: List<String>, current: Col
             }
         },
         confirmButton = {
-            TextButton(onClick = { onApply(ColFilter(chosen.takeIf { it.size < values.size }, contains, above, below)) }) { Text("Anwenden") }
+            TextButton(onClick = { onApply(ColFilter(chosen.takeIf { it.size < values.size }, contains, above, below)) }) { Text(tr("Anwenden")) }
         },
-        dismissButton = { TextButton(onClick = { onApply(null) }) { Text("Filter entfernen") } },
+        dismissButton = { TextButton(onClick = { onApply(null) }) { Text(tr("Filter entfernen")) } },
     )
 }
 
@@ -833,41 +832,41 @@ private fun ConditionalDialog(rules: List<CondRule>, range: String, onDismiss: (
     var a by remember { mutableStateOf("5") }
     var b by remember { mutableStateOf("6") }
     var color by remember { mutableStateOf(0) }
-    val ops = listOf("lt" to "Wert <", "gt" to "Wert >", "between" to "zwischen", "eq" to "gleich", "contains" to "Text enthält", "scale" to "Farbskala")
-    val colors = listOf(Triple("Rot", "#FFC7CE", "#9C0006"), Triple("Gelb", "#FFEB9C", "#9C5700"), Triple("Grün", "#C6EFCE", "#006100"), Triple("Blau", "#DDEBF7", "#1F4E79"))
-    val scales = listOf(Triple("Rot → Grün", "#F8696B", "#63BE7B"), Triple("Grün → Rot", "#63BE7B", "#F8696B"), Triple("Weiß → Blau", "#FFFFFF", "#5B9BD5"))
+    val ops = listOf("lt" to tr("Wert <"), "gt" to tr("Wert >"), "between" to "zwischen", "eq" to "gleich", "contains" to tr("Text enthält"), "scale" to tr("Farbskala"))
+    val colors = listOf(Triple(tr("Rot"), "#FFC7CE", "#9C0006"), Triple(tr("Gelb"), "#FFEB9C", "#9C5700"), Triple(tr("Grün"), "#C6EFCE", "#006100"), Triple(tr("Blau"), "#DDEBF7", "#1F4E79"))
+    val scales = listOf(Triple(tr("Rot → Grün"), "#F8696B", "#63BE7B"), Triple(tr("Grün → Rot"), "#63BE7B", "#F8696B"), Triple(tr("Weiß → Blau"), "#FFFFFF", "#5B9BD5"))
     fun describe(r: CondRule) = r.range + ": " + when (r.op) {
-        "lt" -> "Wert < ${r.a}"
-        "gt" -> "Wert > ${r.a}"
-        "between" -> "zwischen ${r.a} und ${r.b}"
+        "lt" -> tr("Wert < {0}", r.a)
+        "gt" -> tr("Wert > {0}", r.a)
+        "between" -> tr("zwischen {0} und {1}", r.a, r.b)
         "eq" -> "gleich ${r.a}"
-        "contains" -> "enthält „${r.a}“"
-        else -> "Farbskala"
+        "contains" -> tr("enthält „{0}“", r.a)
+        else -> tr("Farbskala")
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Bedingte Formatierung") },
+        title = { Text(tr("Bedingte Formatierung")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (list.isEmpty()) Text("Noch keine Regeln. Beispiel: Noten zwischen 5 und 6 rot.", style = MaterialTheme.typography.bodySmall)
+                if (list.isEmpty()) Text(tr("Noch keine Regeln. Beispiel: Noten zwischen 5 und 6 rot."), style = MaterialTheme.typography.bodySmall)
                 list.forEachIndexed { i, r ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(16.dp).background(hexColor(r.fill) ?: Color.Gray, CircleShape))
                         Spacer(Modifier.width(6.dp))
                         Text(describe(r), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { list = list.filterIndexed { k, _ -> k != i }; onRules(list) }) { Icon(Icons.Outlined.Close, contentDescription = "Regel löschen") }
+                        IconButton(onClick = { list = list.filterIndexed { k, _ -> k != i }; onRules(list) }) { Icon(Icons.Outlined.Close, contentDescription = tr("Regel löschen")) }
                     }
                 }
                 HorizontalDivider()
-                Text("Neue Regel", style = MaterialTheme.typography.labelLarge)
-                OutlinedTextField(area, { area = it.uppercase() }, singleLine = true, label = { Text("Bereich, z. B. C2:C30") }, modifier = Modifier.fillMaxWidth())
+                Text(tr("Neue Regel"), style = MaterialTheme.typography.labelLarge)
+                OutlinedTextField(area, { area = it.uppercase() }, singleLine = true, label = { Text(tr("Bereich, z. B. C2:C30")) }, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ops.forEach { (k, label) -> FilterChip(op == k, { op = k; color = 0 }, label = { Text(label) }) }
                 }
                 if (op != "scale") {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(a, { a = it }, singleLine = true, label = { Text(if (op == "contains") "Text" else if (op == "between") "von" else "Wert") }, modifier = Modifier.weight(1f))
-                        if (op == "between") OutlinedTextField(b, { b = it }, singleLine = true, label = { Text("bis") }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(a, { a = it }, singleLine = true, label = { Text(if (op == "contains") tr("Text") else if (op == "between") tr("von") else tr("Wert")) }, modifier = Modifier.weight(1f))
+                        if (op == "between") OutlinedTextField(b, { b = it }, singleLine = true, label = { Text(tr("bis")) }, modifier = Modifier.weight(1f))
                     }
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -883,9 +882,9 @@ private fun ConditionalDialog(rules: List<CondRule>, range: String, onDismiss: (
                 else colors[color.coerceIn(0, colors.lastIndex)].let { (_, fill, text) -> CondRule(area.trim(), op, a.trim(), b.trim(), fill, text) }
                 list = list + rule
                 onRules(list)
-            }) { Text("Regel hinzufügen") }
+            }) { Text(tr("Regel hinzufügen")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Fertig") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Fertig")) } },
     )
 }
 

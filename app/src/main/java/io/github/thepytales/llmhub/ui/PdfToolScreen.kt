@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -66,7 +68,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -160,9 +161,9 @@ object PdfWork {
 }
 
 private enum class PdfMode(val label: String) {
-    VIEW("Ansehen"), PAGES("Seiten"), MARK("Markieren"), SIGN("Unterschreiben"), FORM("Formular"), CONVERT("Umwandeln"), AI("KI"),
+    VIEW(trLater("Ansehen")), PAGES(trLater("Seiten")), MARK(trLater("Markieren")), SIGN(trLater("Unterschreiben")), FORM(trLater("Formular")), CONVERT(trLater("Umwandeln")), AI("KI"),
     // AP-26: Schwärzen, ändern, verkleinern, PDF/A, Passwort, Metadaten, PDF/UA, vergleichen.
-    EDIT("Schwärzen & mehr"),
+    EDIT(trLater("Schwärzen & mehr")),
 }
 
 /** Runs a change of the PDF: the result becomes a new version, the old one stays for „Rückgängig“. */
@@ -568,7 +569,7 @@ private fun MergeDialog(tab: PdfTab, onDismiss: () -> Unit, onRun: ((File, File)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (others.isEmpty()) Text(tr("Öffne zuerst weitere PDFs (Ordner-Symbol oben); sie werden dann an dieses angehängt."))
                 else {
-                    Text(tr("An") + " „${tab.name}“ " + tr("anhängen, in dieser Reihenfolge:"))
+                    Text(tr("An „{0}“ anhängen, in dieser Reihenfolge:", tab.name))
                     others.forEach { t ->
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { if (t.id in chosen) chosen.remove(t.id) else chosen.add(t.id) }) {
                             Checkbox(t.id in chosen, { on -> if (on) chosen.add(t.id) else chosen.remove(t.id) })
@@ -617,7 +618,7 @@ private fun SplitDialog(pages: Int, onDismiss: () -> Unit, onSplit: (List<List<I
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NumbersDialog(onDismiss: () -> Unit, onApply: (PdfNumbering) -> Unit) {
-    var format by remember { mutableStateOf("Seite {n} von {N}") }
+    var format by remember { mutableStateOf(tr("Seite {n} von {N}")) }
     var start by remember { mutableStateOf("1") }
     var position by remember { mutableStateOf(PdfNumbering.Position.BOTTOM_CENTER) }
     AlertDialog(
@@ -658,7 +659,8 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
             Box(
                 Modifier.size(28.dp).background(Color(0xFF000000 or col.toLong()), RoundedCornerShape(14.dp))
                     .border(if (color == col) 3.dp else 1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (color == col) 0.8f else 0.2f), RoundedCornerShape(14.dp))
-                    .clickable { color = col },
+                    .a11yLabel(tr("Farbe") + " #" + "%06X".format(col))
+                    .selectable(selected = color == col, role = Role.RadioButton) { color = col },
             )
         }
         TextButton(onClick = { showComments = true }) { Text(tr("Kommentarliste")) }
@@ -666,10 +668,10 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
     HintText(
         tr(
             when (tool) {
-                PdfMarkKind.INK -> "Mit dem Finger oder der Maus zeichnen."
-                PdfMarkKind.NOTE -> "Auf die Stelle tippen, an der die Notiz stehen soll."
-                PdfMarkKind.STAMP -> "Auf die Stelle tippen, an der der Stempel stehen soll."
-                else -> "Über den Text ziehen, der markiert werden soll."
+                PdfMarkKind.INK -> tr("Mit dem Finger oder der Maus zeichnen.")
+                PdfMarkKind.NOTE -> tr("Auf die Stelle tippen, an der die Notiz stehen soll.")
+                PdfMarkKind.STAMP -> tr("Auf die Stelle tippen, an der der Stempel stehen soll.")
+                else -> tr("Über den Text ziehen, der markiert werden soll.")
             },
         ),
         Modifier.padding(horizontal = 16.dp, vertical = 4.dp),

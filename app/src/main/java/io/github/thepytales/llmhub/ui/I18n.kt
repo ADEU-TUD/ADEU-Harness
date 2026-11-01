@@ -14,327 +14,62 @@ object I18n {
     /** Set from the settings by the theme; a state so the interface switches at once. */
     var language by mutableStateOf("de")
 
-    internal val EN: Map<String, String> = mapOf(
-        // Working figure, memory, voice mode, automatic model choice
-        "Lora ist dran" to "Lora is on it",
-        "Lora ist dran …" to "Lora is on it …",
-        "Bereitet die Antwort vor …" to "Preparing the answer …",
-        "Lora bei der Arbeit" to "Lora at work",
-        "Lora antippen" to "Tap Lora",
-        "Lora, das Maskottchen der App" to "Lora, the app's mascot",
-        "Schritte anzeigen" to "Show steps",
-        "Schritte ausblenden" to "Hide steps",
-        "Idee" to "Idea",
-        "Vorlage" to "Template",
-        "Andere Idee" to "Another idea",
-        "Alle Vorlagen ansehen" to "Browse all templates",
-        "Alle TU Vorlagen ansehen" to "Browse all TU templates",
-        "TU Vorlagen" to "TU templates",
-        // Erstellen and the video editor (AP-24, AP-25)
-        "Erstellen" to "Create",
-        "Was möchtest du erstellen?" to "What would you like to create?",
-        "Lora machen lassen" to "Let Lora do it",
-        "Gestalten" to "Design",
-        "Selbst gestalten" to "Design it yourself",
-        "Meine Designs" to "My designs",
-        "Leeres Design" to "Blank design",
-        "Poster aus einem Paper" to "Poster from a paper",
-        "Bearbeiten" to "Edit",
-        "Exportieren" to "Export",
-        "Videoeditor" to "Video editor",
-        "Erweiterungen" to "Extensions",
-        "Lora ausblenden" to "Hide Lora",
-        "Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben." to
-            "Lora appears nowhere – not on the start page, in the chat or in voice mode; the app's symbol is shown there instead. The ideas on the start page stay.",
-        "Arbeitet an der Antwort" to "Working on the answer",
-        "Arbeitet an der Antwort …" to "Working on the answer …",
-        "Schritte" to "Steps",
-        "Ausblenden" to "Hide",
-        "Anzeigen" to "Show",
-        "Einklappen" to "Collapse",
-        "Gedankengang" to "Reasoning",
-        "1 Arbeitsschritt" to "1 step",
-        "Arbeitsschritte" to "steps",
-        "und" to "and",
-        "Animierte Figur: der Agent arbeitet" to "Animated figure: the agent is working",
-        "Denkt nach …" to "Thinking …",
-        "Gedächtnis aus" to "Memory off",
-        "Gedächtnis in diesem Chat" to "Memory in this chat",
-        "Gedächtnis nutzen" to "Use memory",
-        "In diesem Chat aus – das Modell kennt die Angaben nicht und lernt nichts dazu." to "Off in this chat – the model does not know these details and learns nothing.",
-        "Geht bei jeder Anfrage automatisch mit; Sie müssen nichts dazuschreiben." to "Goes along with every request automatically; you don't have to mention it.",
-        "Noch nichts gemerkt. Erzählen Sie im Chat etwas über sich oder tragen Sie es hier ein." to "Nothing remembered yet. Tell the chat something about yourself or add it here.",
-        "Eintrag hinzufügen" to "Add entry",
-        "Alle verwalten" to "Manage all",
-        "Fertig" to "Done",
-        "Nur Projekt" to "Project only",
-        "abgelaufen am" to "expired on",
-        "gilt bis" to "valid until",
-        "dazugelernt" to "learned",
-        "Löschen" to "Delete",
-        "Eintrag ändern" to "Edit entry",
-        "Merken" to "Remember",
-        "Merken …" to "Remember …",
-        "Was soll das Modell wissen?" to "What should the model know?",
-        "Vorschlag wird formuliert …" to "Writing a suggestion …",
-        "Bereich" to "Area",
-        "Für alle Chats" to "For all chats",
-        "Nur im Projekt" to "Only in the project",
-        "Gilt bis (optional, TT.MM.JJJJ)" to "Valid until (optional, DD.MM.YYYY)",
-        "Gemerkt." to "Remembered.",
-        "Speichern" to "Save",
-        "Abbrechen" to "Cancel",
-        "1 neue Angabe für das Gedächtnis" to "1 new detail for the memory",
-        "neue Angaben für das Gedächtnis" to "new details for the memory",
-        "Ins Gedächtnis übernommen" to "Added to the memory",
-        "Nein, danke" to "No, thanks",
-        "Übernehmen" to "Add",
-        "Rückgängig" to "Undo",
-        "OK" to "OK",
-        "Gedächtnis einrichten" to "Set up memory",
-        "Drei kurze Angaben genügen – das Modell kennt sie dann in jedem Chat. Alles lässt sich später ändern." to "Three short answers are enough – the model then knows them in every chat. You can change everything later.",
-        "Ihre Funktion und Einrichtung" to "Your role and institution",
-        "Lehre oder Themen, an denen Sie arbeiten" to "Teaching or topics you work on",
-        "Wie sollen Texte klingen?" to "How should texts sound?",
-        "Später" to "Later",
-        "Damit die KI Sie kennt" to "So the AI knows you",
-        "Drei kurze Fragen – dann müssen Sie nichts mehr dazuschreiben." to "Three short questions – then you never have to explain again.",
-        "Sprachmodus" to "Voice mode",
-        "Sprechen Sie einfach los." to "Just start speaking.",
-        "Ich höre zu …" to "Listening …",
-        "Pausiert – tippen Sie auf „Weiter“" to "Paused – tap “Resume”",
-        "Verstehe …" to "Understanding …",
-        "Antwort wird vorgelesen …" to "Reading the answer aloud …",
-        "Unterbrechen" to "Interrupt",
-        "Weiter" to "Resume",
-        "Beenden" to "End",
-        "Alles Gesagte steht danach auch im Chat." to "Everything said also appears in the chat.",
-        "Sprachmodus: freihändig sprechen" to "Voice mode: talk hands-free",
-        "Automatisch" to "Automatic",
-        "Die App schlägt je Anfrage das passende Modell vor und fragt vorher nach." to "The app suggests the fitting model for each request and asks first.",
-        "Anderes Modell verwenden?" to "Use another model?",
-        "Für diese Anfrage passt" to "For this request,",
-        "besser" to "fits better",
-        "Eingestellt ist gerade" to "Currently selected:",
-        "Ja," to "Yes,",
-        "Nein," to "No,",
-        "Websuche" to "Web search",
-        "Webseite lesen" to "Read web page",
-        "Dokument erstellen" to "Create document",
-        "Frühere Chats durchsuchen" to "Search earlier chats",
-        "Literatur suchen" to "Search literature",
-        "Rechnen" to "Calculate",
-        // Side menu and areas
-        "Neuer Chat" to "New chat",
-        "Vorlagen" to "Templates",
-        "Literatur" to "Literature",
-        "Dokumente" to "Documents",
-        "Dateien" to "Files",
-        "Geplante Aufgaben" to "Scheduled tasks",
-        "Bilder erzeugen" to "Create images",
-        "Transkription" to "Transcription",
-        "Projekte" to "Projects",
-        "Angeheftet" to "Pinned",
-        "Chats" to "Chats",
-        "Archiv" to "Archive",
-        "Einstellungen" to "Settings",
-        // AP-01 to AP-06
-        "Literatursuche" to "Literature search",
-        "Planungsmodus" to "Planning mode",
-        "Sprachmodus" to "Voice mode",
-        // AP-07 to AP-11
-        "Quellenmodus" to "Source mode",
-        "Exzerpt" to "Excerpt",
-        "Lora" to "Lora",
-        "Lora fragen" to "Ask Lora",
-        "Was möchtest du machen oder einstellen?" to "What would you like to do or change?",
-        "Frag Lora …" to "Ask Lora …",
-        "Lora fragen: Wo finde ich …?" to "Ask Lora: where do I find …?",
-        "Wo Lora erscheint" to "Where Lora appears",
-        "Überall" to "Everywhere",
-        "Nur im Chat" to "Only in the chat",
-        "Aus" to "Off",
-        "Belegprotokoll" to "Evidence log",
-        "Belegprotokoll exportieren" to "Export evidence log",
-        "Aussagen ohne Beleg" to "Statements without evidence",
-        "Exzerpt erstellen" to "Create excerpt",
-        "Exzerpt öffnen" to "Open excerpt",
-        "Exzerpte als Tabelle" to "Excerpts as table",
-        "Tresor" to "Vault",
-        "Tresor einrichten" to "Set up vault",
-        "Entsperren" to "Unlock",
-        "Sperren" to "Lock",
-        "PIN vergessen?" to "Forgot PIN?",
-        "Neuer Tresor-Chat" to "New vault chat",
-        "Wiederherstellungsschlüssel" to "Recovery key",
-        "PDF-Werkzeugkasten" to "PDF toolbox",
-        "PDF öffnen" to "Open PDF",
-        "Ansehen" to "View",
-        "Seiten" to "Pages",
-        "Markieren" to "Mark up",
-        "Formular" to "Form",
-        "Zusammenfügen" to "Merge",
-        "Seitenzahlen" to "Page numbers",
-        "Drehen" to "Rotate",
-        "Extrahieren" to "Extract",
-        "Felder erkennen" to "Detect fields",
-        "Übernehmen" to "Apply",
-        "Kommentarliste" to "Comment list",
-        "Werkzeuge" to "Tools",
-        "Arbeitsspeicher" to "Memory usage",
-        "Mehr" to "More",
-        "Hinweis" to "Note",
-        "Tipp" to "Tip",
-        "Wichtig" to "Important",
-        "Achtung" to "Caution",
-        "Fragen & schreiben" to "Ask & write",
-        "Frag Lora" to "Ask Lora",
-        "Schreiben" to "Write",
-        "E-Mail formulieren" to "Draft an email",
-        "Text kürzen und verständlicher machen" to "Shorten and simplify a text",
-        "Ins Englische übersetzen" to "Translate into English",
-        "Ideen sammeln" to "Brainstorm ideas",
-        "Protokoll aus Notizen" to "Minutes from notes",
-        "Handout oder Merkblatt" to "Handout or fact sheet",
-        "Präsentation" to "Presentation",
-        "Zusammenfassen" to "Summarize",
-        "Fragen zu den Dateien stellen" to "Ask about the files",
-        "Tabelle auswerten" to "Analyse a table",
-        "Dokumente vergleichen" to "Compare documents",
-        "Aktuelle Literatur zu einem Thema" to "Recent literature on a topic",
-        "Antwort nur mit Belegen (Quellenmodus)" to "Answer with evidence only (sources mode)",
-        "Quellenangaben eines Textes prüfen" to "Check the references of a text",
-        "Synchronisation" to "Sync",
-        // AP-20 to AP-23.
-        "Verbindungen" to "Connections",
-        "Stapel & Massenkontrolle" to "Batches & bulk grading",
-        "Stapel" to "Batches",
-        "Neuer Stapel" to "New batch",
-        "Massenkontrolle" to "Bulk grading",
-        "Antrags-Werkstatt" to "Proposal workshop",
-        "Anträge" to "Proposals",
-        "Neuer Antrag" to "New proposal",
-        "Abgabe-Check" to "Submission check",
-        "Arbeitspakete" to "Work packages",
-        "Gliederung" to "Outline",
-        "Übersicht" to "Overview",
-        "Budget" to "Budget",
-        "Fristen" to "Deadlines",
-        "Checkliste" to "Checklist",
-        "MCP-Server" to "MCP servers",
-        "Server hinzufügen" to "Add server",
-        "Aus Nextcloud anhängen" to "Attach from Nextcloud",
-        "In Nextcloud speichern" to "Save to Nextcloud",
-        "Aus Nextcloud holen …" to "Get from Nextcloud …",
-        "Im Browser anmelden" to "Sign in in the browser",
-        "Erlauben" to "Allow",
-        "Fragen" to "Ask",
-        "Starten" to "Start",
-        "Fortsetzen" to "Resume",
-        "Vorschlag übernehmen" to "Accept suggestion",
-        "Entscheidung speichern" to "Save decision",
-        "Von Hand bewerten" to "Grade by hand",
-        "Frage zur Seite" to "Ask about the page",
-        "In die Literatur" to "Add to literature",
-        "In die Wissenssammlung" to "Add to knowledge",
-        "PDF im Werkzeugkasten" to "Open PDF in the toolbox",
-        "Links neben dem Chat öffnen" to "Open links beside the chat",
-        "Dokument erstellen" to "Create a document",
-        "Dateien auswerten" to "Analyse files",
-        "Literatur finden" to "Find literature",
-        "Favoriten" to "Favourites",
-        "Große Werkzeuge" to "Big tools",
-        "Geplant" to "Planned",
-        "geplant" to "planned",
-        "Seitenleiste" to "Side menu",
-        "Nach oben holen" to "Move to the top",
-        "Unter „Mehr“ verschieben" to "Move to “More”",
-        "Werkzeug ausschalten" to "Switch tool off",
-        "Einschalten" to "Switch on",
-        "Nicht jetzt" to "Not now",
-        "Kurze Rückfrage" to "Quick question",
-        "Rückfrage beantwortet" to "Question answered",
-        "Antworten" to "Answer",
-        "Überspringen" to "Skip",
-        "Mehrere Antworten möglich" to "Several answers possible",
-        "Oder eigene Antwort …" to "Or your own answer …",
-        "Lieber mit Lora Schritt für Schritt" to "Step by step with Lora instead",
-        "Modus verlassen" to "Leave mode",
-        "Daten:" to "Data:",
-        "Beispiel zum Antippen" to "Example to tap",
-        "Messpunkt setzen" to "Take a measurement",
-        "Speicher freigeben" to "Free memory",
-        "Messpunkte" to "Measurements",
-        "nicht ersetzen" to "don't replace",
-        "auch ersetzen" to "replace too",
-        "Modelle vergleichen" to "Compare models",
-        "Modelle" to "Models",
-        "Verbrauch" to "Usage",
-        // Chat
-        "Wie kann ich helfen?" to "How can I help?",
-        "Antworten …" to "Reply …",
-        "Guten Morgen" to "Good morning",
-        "Guten Tag" to "Good afternoon",
-        "Guten Abend" to "Good evening",
-        "Hallo" to "Hello",
-        "Alle Vorlagen ›" to "All templates ›",
-        "Lehre, Forschung, Betreuung, TUD-Dokumente" to "Teaching, research, supervision, TUD documents",
-        "Literatur zu einem Thema finden" to "Find literature on a topic",
-        "Literaturverzeichnis ordnen" to "Tidy up a bibliography",
-        "Dokument entwerfen" to "Draft a document",
-        "Diagramm aus Daten" to "Chart from data",
-        "Interview transkribieren" to "Transcribe an interview",
-        "Werkzeuge genutzt" to "tools used",
-        "KI kann Fehler machen. Wichtiges bitte prüfen." to "AI can make mistakes. Please check important information.",
-        // Settings
-        "Zugang" to "Access",
-        "Assistent" to "Assistant",
-        "Dokumente & Darstellung" to "Documents & appearance",
-        "Daten" to "Data",
-        "Treffer" to "Results",
-        "Einstellungen durchsuchen" to "Search settings",
-        "Keine passende Einstellung." to "No matching setting.",
-        "API-Zugang" to "API access",
-        "GitHub" to "GitHub",
-        "Umgebungen" to "Environments",
-        "Chat & Werkzeuge" to "Chat & tools",
-        "Datenschutz" to "Privacy",
-        "Gedächtnis" to "Memory",
-        "Wissenssammlung" to "Knowledge base",
-        "Literatur & Zotero" to "Literature & Zotero",
-        "Modellübersicht" to "Model overview",
-        "Modelle auf diesem Gerät" to "Models on this device",
-        "Dokumente & Logos" to "Documents & logos",
-        "Vorlesen & Spracheingabe" to "Read aloud & voice input",
-        "Darstellung" to "Appearance",
-        "Sicherung & Umzug" to "Backup & transfer",
-        "Papierkorb" to "Trash",
-        "Lokale Ordner" to "Local folders",
-        "Speicherorte" to "Storage locations",
-        "Updates" to "Updates",
-        "Sprache der Oberfläche" to "Interface language",
-        "Stil" to "Style",
-        "Helligkeit" to "Brightness",
-        "Farbton" to "Accent colour",
-        "Schriftgröße" to "Text size",
-        // Command palette and shortcuts
-        "Bereich, Einstellung oder Chat suchen …" to "Search areas, settings or chats …",
-        "Aktionen" to "Actions",
-        "Bereiche" to "Areas",
-        "Zuletzt" to "Recent",
-        "Nichts gefunden." to "Nothing found.",
-        "Tastenkürzel" to "Keyboard shortcuts",
-        "Schließen" to "Close",
-        "Befehlspalette: Bereiche, Einstellungen, Chats" to "Command palette: areas, settings, chats",
-        "Seitenleiste ein/aus" to "Show/hide side menu",
-        "Diese Übersicht" to "This overview",
-        "Senden (Umschalt+Enter: neue Zeile)" to "Send (Shift+Enter: new line)",
-        "Befehle im Eingabefeld" to "Commands in the input field",
-        "Dateien, Literatur und Dokumente erwähnen" to "Mention files, literature and documents",
-        "Menü schließen bzw. zurück" to "Close menu or go back",
-    )
+    /**
+     * German → English, read once from `i18n/en.tsv` in the resources (shared by both platforms): one line per text,
+     * German, a tab, English; `\n`, `\t` and `\\` stand for line break, tab and backslash; `#` starts a comment.
+     */
+    val EN: Map<String, String> by lazy { load() }
 
-    fun tr(german: String): String = if (language == "en") EN[german] ?: german else german
+    private fun load(): Map<String, String> {
+        val stream = I18n::class.java.getResourceAsStream("/i18n/en.tsv") ?: return emptyMap()
+        return stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.filter { it.isNotBlank() && !it.startsWith("#") }.mapNotNull { line ->
+                val tab = line.indexOf('\t')
+                if (tab <= 0) null else unescape(line.substring(0, tab)) to unescape(line.substring(tab + 1))
+            }.toMap()
+        }
+    }
+
+    private fun unescape(s: String): String {
+        if ('\\' !in s) return s
+        val out = StringBuilder(s.length)
+        var i = 0
+        while (i < s.length) {
+            val c = s[i]
+            if (c == '\\' && i + 1 < s.length) {
+                out.append(when (s[i + 1]) { 'n' -> '\n'; 't' -> '\t'; else -> s[i + 1] })
+                i += 2
+            } else {
+                out.append(c); i++
+            }
+        }
+        return out.toString()
+    }
+
+    fun tr(german: String): String {
+        val text = if (language == "en") EN[german] ?: path(german) else german
+        return platformText?.invoke(text) ?: text
+    }
+
+    /**
+     * The desktop app on macOS and Linux (AP-31) adapts every shown text to its system: ⌘ instead of Strg, Finder instead
+     * of Explorer … Null on Windows and Android.
+     */
+    var platformText: ((String) -> String)? = null
+
+    /** „Einstellungen › Darstellung › Zoom“: a path of the app is translated part by part. */
+    private fun path(german: String): String =
+        if (" › " !in german) german else german.split(" › ").joinToString(" › ") { EN[it] ?: it }
+
+    /**
+     * Text with placeholders: `tr("„{0}“ gelöscht", name)` translates the text and then puts the values in for `{0}`, `{1}` …
+     * (in both languages), so the English text can order them differently.
+     */
+    fun tr(german: String, vararg args: Any?): String {
+        var text = tr(german)
+        args.forEachIndexed { i, a -> text = text.replace("{$i}", a.toString()) }
+        return text
+    }
 
     /** Added to the system prompt so answers follow the interface language unless the user writes otherwise. */
     fun answerHint(language: String): String? =
@@ -343,3 +78,12 @@ object I18n {
 
 /** Shortcut for [I18n.tr]. */
 fun tr(german: String): String = I18n.tr(german)
+
+/** Shortcut for [I18n.tr] with placeholders `{0}`, `{1}` … */
+fun tr(german: String, vararg args: Any?): String = I18n.tr(german, *args)
+
+/**
+ * Marks a German text in a list or enum that is created once: it stays German there and is translated with [tr] where it
+ * is shown. The marker lets UiChecksTest find it and check that it has an English text.
+ */
+fun trLater(german: String): String = german

@@ -49,7 +49,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -95,7 +94,7 @@ internal fun proposalChat(text: String, p: Proposal? = null, send: Boolean = fal
     ChatHandoff.open.value = chat.orEmpty()
 }
 
-private val TABS = listOf("Übersicht", "Gliederung", "Arbeitspakete", "Budget", "Abgabe-Check")
+private val TABS = listOf(trLater("Übersicht"), trLater("Gliederung"), trLater("Arbeitspakete"), trLater("Budget"), trLater("Abgabe-Check"))
 
 /**
  * Antrags-Werkstatt (AP-21): the proposals; each with checklist and deadlines (into the calendar), the outline with the
@@ -219,7 +218,7 @@ private fun ProposalDetail(c: AppContainer, p: Proposal) {
                 Icon(Icons.Outlined.RateReview, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Probelauf: Gutachter:in"))
             }
             OutlinedButton(onClick = {
-                scope.launch { runCatching { withContext(Dispatchers.IO) { docx() } }.onSuccess(saveDocx).onFailure { Notices.error(it.message ?: "Export fehlgeschlagen") } }
+                scope.launch { runCatching { withContext(Dispatchers.IO) { docx() } }.onSuccess(saveDocx).onFailure { Notices.error(it.message ?: tr("Export fehlgeschlagen")) } }
             }) { Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Als Word")) }
             if (toNextcloud != null) TextButton(onClick = { scope.launch { runCatching { withContext(Dispatchers.IO) { docx() } }.onSuccess(toNextcloud) } }) { Text(tr("In Nextcloud")) }
             TextButton(onClick = { confirmDelete = true }) { Icon(Icons.Outlined.Delete, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Löschen")) }
@@ -382,7 +381,7 @@ private fun SectionCard(p: Proposal, index: Int, s: ProposalSection, change: ((P
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(s.title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                TextButton(onClick = { proposalChat(tr("Schreibe im Antrag") + " „${p.title}“ (${ProposalTools.ID_LABEL} ${p.id}) " + tr("den Abschnitt") + " „${s.title}“: ", p) }) { Text(tr("Mit Lora")) }
+                TextButton(onClick = { proposalChat(tr("Schreibe im Antrag „{0}“ ({1}) den Abschnitt „{2}“: ", p.title, "${ProposalTools.ID_LABEL} ${p.id}", s.title), p) }) { Text(tr("Mit Lora")) }
                 TextButton(onClick = { limits = true }) { Text(tr("Grenze")) }
             }
             if (s.guidance.isNotBlank()) Text(s.guidance, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -502,7 +501,7 @@ private fun Gantt(p: Proposal, onEdit: (WorkPackage) -> Unit) {
                 val outside = wp.start + wp.months - 1 > months
                 Row(Modifier.fillMaxWidth().clickable { onEdit(wp) }, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.width(150.dp).padding(end = 8.dp)) {
-                        Text("AP ${i + 1} " + wp.title, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(tr("AP {0} ", i + 1) + wp.title, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text("M${wp.start}–M${wp.start + wp.months - 1}" + if (wp.lead.isNotBlank()) " · ${wp.lead}" else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
                     BoxWithConstraints(Modifier.weight(1f).height(22.dp).background(grid.copy(alpha = 0.25f), RoundedCornerShape(4.dp))) {

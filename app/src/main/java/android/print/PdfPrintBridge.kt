@@ -2,6 +2,7 @@ package android.print
 
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /**
@@ -28,9 +29,9 @@ object PdfPrintBridge {
                     override fun onWriteFinished(pages: Array<out PageRange>?) = finish(null)
 
                     override fun onWriteFailed(error: CharSequence?) =
-                        finish(IllegalStateException(error?.toString() ?: "PDF konnte nicht geschrieben werden."))
+                        finish(IllegalStateException(error?.toString() ?: tr("PDF konnte nicht geschrieben werden.")))
 
-                    override fun onWriteCancelled() = finish(IllegalStateException("PDF-Erstellung abgebrochen."))
+                    override fun onWriteCancelled() = finish(IllegalStateException(tr("PDF-Erstellung abgebrochen.")))
 
                     private fun finish(error: Throwable?) {
                         runCatching { fd.close() }

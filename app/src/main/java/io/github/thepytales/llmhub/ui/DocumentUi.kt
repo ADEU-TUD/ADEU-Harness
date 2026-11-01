@@ -27,7 +27,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.outlined.AccessibilityNew
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -89,14 +88,14 @@ fun DocumentCard(path: String) {
                 Column(Modifier.weight(1f)) {
                     Text(file.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        if (exists) "${fileKindLabel(file, format)} · ${formatSize(remember(path, version) { file.length() })}" else "Datei nicht mehr vorhanden",
+                        if (exists) "${fileKindLabel(file, format)} · ${formatSize(remember(path, version) { file.length() })}" else tr("Datei nicht mehr vorhanden"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (exists && file.extension.lowercase() in setOf("pdf", "docx", "pptx", "html")) {
                     IconButton(onClick = { accessibility = true }) {
-                        Icon(Icons.Outlined.AccessibilityNew, contentDescription = "Barrierefreiheit prüfen", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Outlined.AccessibilityNew, contentDescription = tr("Barrierefreiheit prüfen"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -134,19 +133,19 @@ fun DocumentCard(path: String) {
                     TextButton(onClick = { DocsHandoff.show(live.id) }) {
                         Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
-                        Text("Im Editor bearbeiten" + if (live.openComments > 0) " · ${live.openComments} Kommentare" else "")
+                        Text(tr("Im Editor bearbeiten") + if (live.openComments > 0) tr(" · {0} Kommentare", live.openComments) else "")
                     }
                 } else if (io.github.thepytales.llmhub.docs.OfficeImport.canOpen(file.name)) {
                     // Word, PowerPoint, Excel, Markdown … from elsewhere: open in the editor to keep working with the model.
                     TextButton(onClick = {
                         scope.launch {
                             val doc = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { DocsHandoff.importFile(io.github.thepytales.llmhub.App.container, file) }
-                            if (doc != null) DocsHandoff.show(doc.id) else Notices.error("„${file.name}“ ließ sich nicht im Editor öffnen.")
+                            if (doc != null) DocsHandoff.show(doc.id) else Notices.error(tr("„{0}“ ließ sich nicht im Editor öffnen.", file.name))
                         }
                     }) {
                         Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
-                        Text("Im Editor öffnen")
+                        Text(tr("Im Editor öffnen"))
                     }
                 }
                 DocumentGaps(file, version) { version++ }
@@ -162,8 +161,8 @@ fun chatToMarkdown(conv: Conversation): String = buildString {
             "user" -> {
                 append("## Du\n\n")
                 if (m.content.isNotBlank()) append(m.content.trim()).append("\n\n")
-                if (m.images.isNotEmpty()) append("_(${m.images.size} Bild(er) angehängt)_\n\n")
-                if (m.files.isNotEmpty()) append("_(Dateien: ${m.files.joinToString(", ") { it.name }})_\n\n")
+                if (m.images.isNotEmpty()) append(tr("_({0} Bild(er) angehängt)_", m.images.size)).append("\n\n")
+                if (m.files.isNotEmpty()) append(tr("_(Dateien: {0})_", m.files.joinToString(", ") { it.name })).append("\n\n")
             }
             "assistant" -> {
                 val answer = splitThinking(m.content).second.trim()
@@ -219,7 +218,7 @@ fun ExportDialog(
                 onCreated(it)
                 action(it)
             }.onFailure {
-                Notices.error("Export fehlgeschlagen: ${it.message}")
+                Notices.error(tr("Export fehlgeschlagen: {0}", it.message))
             }
         }
     }
@@ -228,7 +227,7 @@ fun ExportDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Als Dokument exportieren") },
+        title = { Text(tr("Als Dokument exportieren")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 DocFormat.entries.filter { it.chatExport }.forEach { f ->
@@ -243,7 +242,7 @@ fun ExportDialog(
                     }
                 }
                 if (format == DocFormat.PDF || format == DocFormat.DOCX || format == DocFormat.HTML) {
-                    Text("Gestaltung", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
+                    Text(tr("Gestaltung"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         DocStyle.entries.forEach { st ->
                             FilterChip(selected = style == st, onClick = { style = st }, label = { Text(st.label) })
@@ -255,11 +254,11 @@ fun ExportDialog(
         },
         confirmButton = {
             Row {
-                TextButton(enabled = !busy, onClick = { withFile { openDocument(context, it) } }) { Text("Öffnen") }
+                TextButton(enabled = !busy, onClick = { withFile { openDocument(context, it) } }) { Text(tr("Öffnen")) }
                 if (ShareDoc.inExport) TextButton(enabled = !busy, onClick = { withFile { shareDocument(context, it) } }) { Text(ShareDoc.label) }
                 TextButton(enabled = !busy, onClick = { withFile(saveAs) }) { Text(SAVE_AS_LABEL) }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }

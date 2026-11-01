@@ -13,23 +13,24 @@ import java.io.File
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
+import io.github.thepytales.llmhub.ui.trLater
 
 enum class DocFormat(val ext: String, val mime: String, val label: String, val chatExport: Boolean = true) {
     PDF("pdf", "application/pdf", "PDF"),
-    DOCX("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Word (.docx)"),
+    DOCX("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", trLater("Word (.docx)")),
     PPTX("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "PowerPoint (.pptx)"),
     HTML("html", "text/html", "HTML"),
     MD("md", "text/markdown", "Markdown"),
     TXT("txt", "text/plain", "Text"),
     /** Test for OPAL/ONYX as IMS QTI 2.1 package (docs/QtiWriter); not offered for exporting a chat. */
-    QTI("zip", "application/zip", "OPAL-/ONYX-Test (QTI 2.1)", chatExport = false),
+    QTI("zip", "application/zip", trLater("OPAL-/ONYX-Test (QTI 2.1)"), chatExport = false),
     /** Tables of the Markdown as Excel workbook (docs/MoreFormats). */
-    XLSX("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Excel (.xlsx)"),
-    CSV("csv", "text/csv", "CSV (Tabellen)"),
-    MOODLE("xml", "application/xml", "Moodle-Test (Moodle-XML)", chatExport = false),
-    GIFT("txt", "text/plain", "Moodle-Test (GIFT)", chatExport = false),
-    ANKI("txt", "text/plain", "Karteikarten für Anki", chatExport = false),
-    LIMESURVEY("txt", "text/plain", "LimeSurvey-Fragebogen", chatExport = false),
+    XLSX("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", trLater("Excel (.xlsx)")),
+    CSV("csv", "text/csv", trLater("CSV (Tabellen)")),
+    MOODLE("xml", "application/xml", trLater("Moodle-Test (Moodle-XML)"), chatExport = false),
+    GIFT("txt", "text/plain", trLater("Moodle-Test (GIFT)"), chatExport = false),
+    ANKI("txt", "text/plain", trLater("Karteikarten für Anki"), chatExport = false),
+    LIMESURVEY("txt", "text/plain", trLater("LimeSurvey-Fragebogen"), chatExport = false),
     ;
 
     companion object {
@@ -187,8 +188,8 @@ object DocumentWriter {
     }
 
     private enum class Callout(val label: String, val color: String) {
-        NOTE("Hinweis", "#2563EB"), TIP("Tipp", "#15803D"), IMPORTANT("Wichtig", "#7C3AED"),
-        WARNING("Achtung", "#B45309"), CAUTION("Vorsicht", "#B91C1C"),
+        NOTE(trLater("Hinweis"), "#2563EB"), TIP(trLater("Tipp"), "#15803D"), IMPORTANT(trLater("Wichtig"), "#7C3AED"),
+        WARNING(trLater("Achtung"), "#B45309"), CAUTION(trLater("Vorsicht"), "#B91C1C"),
     }
 
     private val CALLOUT = Regex("^\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|HINWEIS|TIPP|WICHTIG|ACHTUNG|VORSICHT)]\\s*", RegexOption.IGNORE_CASE)

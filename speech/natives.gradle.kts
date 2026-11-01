@@ -4,7 +4,8 @@
  *
  *   speechBuiltinModels  → build/speech/models/   VAD, speaker segmentation, calibration recording (into the app)
  *   speechAndroidJni     → build/speech/jni/      sherpa-onnx + onnxruntime for Android (arm64, -PwithX86 also x86_64)
- *   speechDesktopNatives → build/speech/desktop/  windows/native/(DLLs) + windows/tools/ffmpeg.exe (or linux/native/(.so))
+ *   speechDesktopNatives → build/speech/desktop/  windows/native/(DLLs) + windows/tools/ffmpeg.exe, linux/native/(.so) or
+ *                                                 macos/native/(.dylib, Apple Silicon) – macOS and Linux use the system's ffmpeg
  *
  * -PskipNatives (or -PskipSpeech for only these) builds without them (no internet access): transcription on the device then
  * reports that it is not available.
@@ -25,6 +26,9 @@ val artifacts = mapOf(
         "d1da3b30a1ce347461dbe62d3114255b3e5bb1d6180f0b404a7915d1c5a956b4"),
     "linux" to (listOf("$sherpa/v$sherpaVersion/sherpa-onnx-v$sherpaVersion-linux-x64-jni.tar.bz2") to
         "f18bf581b408d8c28539c1b28899b4d4811faebb74eede08db21fd6e9243e346"),
+    // AP-31: macOS on Apple Silicon (sherpa-onnx publishes no universal JNI build).
+    "macos" to (listOf("$sherpa/v$sherpaVersion/sherpa-onnx-v$sherpaVersion-osx-arm64-jni.tar.bz2") to
+        "2505fd9bd46a28615ab3a14833caae8479c80993658402d57a949d7403c931ad"),
     "silero" to (listOf("$sherpa/asr-models/silero_vad.onnx") to
         "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6"),
     "pyannote" to (listOf("$sherpa/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2") to
@@ -37,6 +41,7 @@ val artifacts = mapOf(
 val skip = providers.gradleProperty("skipNatives").isPresent || providers.gradleProperty("skipSpeech").isPresent
 val withX86 = providers.gradleProperty("withX86").isPresent
 val windowsTarget = providers.gradleProperty("windowsJars").isPresent || System.getProperty("os.name").startsWith("Windows")
+val macTarget = !windowsTarget && System.getProperty("os.name").startsWith("Mac")
 val downloads = File(rootDir, (if (rootDir.name == "desktop") "../" else "") + "build/speech-downloads")
 
 fun sha256(f: File): String {
@@ -118,11 +123,16 @@ val speechAndroidJni by tasks.registering {
 val speechDesktopNatives by tasks.registering {
     val out = layout.buildDirectory.dir("speech/desktop")
     inputs.property("windows", windowsTarget)
+    inputs.property("macos", macTarget)
     inputs.property("skip", skip)
     outputs.dir(out)
     doLast {
         val dir = out.get().asFile.apply { deleteRecursively(); mkdirs() }
-        if (windowsTarget) {
+        if (macTarget) {
+            fetch("macos")?.let { tar ->
+                project.copy { from(tarTree(resources.bzip2(tar))) { include("**/lib/*.dylib"); eachFile { path = "macos/native/$name" }; includeEmptyDirs = false }; into(dir) }
+            }
+        } else if (windowsTarget) {
             fetch("windows")?.let { tar ->
                 project.copy { from(tarTree(resources.bzip2(tar))) { include("**/lib/*.dll"); eachFile { path = "windows/native/$name" }; includeEmptyDirs = false }; into(dir) }
             }

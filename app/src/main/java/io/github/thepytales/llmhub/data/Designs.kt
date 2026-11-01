@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Kinds of [DesignElement]s (AP-24). */
 object ElementKind {
@@ -168,22 +169,22 @@ data class DesignFormat(val id: String, val label: String, val width: Float, val
         val ALL = listOf(
             A4,
             DesignFormat("a4-quer", "A4 quer", 297f, 210f),
-            DesignFormat("a5", "A5 hoch (Flyer)", 148f, 210f),
-            DesignFormat("a5-quer", "A5 quer (Einladung)", 210f, 148f),
-            DesignFormat("din-lang", "DIN lang (Flyer)", 99f, 210f),
-            DesignFormat("a6-quer", "A6 quer (Postkarte)", 148f, 105f),
-            DesignFormat("a3", "A3 hoch (Aushang)", 297f, 420f),
-            DesignFormat("a2", "A2 hoch (Poster)", 420f, 594f),
-            DesignFormat("a1", "A1 hoch (Tagungsposter)", 594f, 841f),
-            DesignFormat("a1-quer", "A1 quer (Tagungsposter)", 841f, 594f),
-            DesignFormat("a0", "A0 hoch (Tagungsposter)", 841f, 1189f),
+            DesignFormat("a5", trLater("A5 hoch (Flyer)"), 148f, 210f),
+            DesignFormat("a5-quer", trLater("A5 quer (Einladung)"), 210f, 148f),
+            DesignFormat("din-lang", trLater("DIN lang (Flyer)"), 99f, 210f),
+            DesignFormat("a6-quer", trLater("A6 quer (Postkarte)"), 148f, 105f),
+            DesignFormat("a3", trLater("A3 hoch (Aushang)"), 297f, 420f),
+            DesignFormat("a2", trLater("A2 hoch (Poster)"), 420f, 594f),
+            DesignFormat("a1", trLater("A1 hoch (Tagungsposter)"), 594f, 841f),
+            DesignFormat("a1-quer", trLater("A1 quer (Tagungsposter)"), 841f, 594f),
+            DesignFormat("a0", trLater("A0 hoch (Tagungsposter)"), 841f, 1189f),
             px("post", "Social Media: Beitrag", 1080, 1080),
             px("post-hoch", "Social Media: Beitrag hoch", 1080, 1350),
             px("story", "Social Media: Story", 1080, 1920),
             px("banner", "OPAL-Kursbanner", 1500, 300),
             px("video", "Titelbild für Lehrvideos", 1920, 1080),
             px("poster-16-9", "Digitales Poster 16:9 (Bildschirm)", 1920, 1080),
-            DesignFormat("folie", "Folie 16:9", 338.67f, 190.5f),
+            DesignFormat("folie", trLater("Folie 16:9"), 338.67f, 190.5f),
         )
 
         fun byId(id: String?): DesignFormat? = ALL.firstOrNull { it.id == id }

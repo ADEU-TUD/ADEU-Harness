@@ -15,6 +15,11 @@ on:
         description: 'Was ist neu? Erscheint im Update-Hinweis der Apps (kurz, für Nutzer:innen ohne Technikkenntnisse).'
         required: false
         default: ''
+      macos_linux:
+        description: 'Auch macOS und Linux bauen und testen (macOS-Minuten zählen in privaten Repositorys zehnfach).'
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: write
@@ -200,10 +205,192 @@ jobs:
           path: selftest/
           retention-days: 3
 
+  # macOS version (AP-31, Apple Silicon only): DMG for the first installation, tar.gz with "ADEU LLM.app" for the
+  # automatic update. macOS minutes count ten times on private repositories, so this job only builds, packs and starts
+  # the app once (the shared code is tested by the PR-Check). Signature and notarization only with the optional
+  # secrets MAC_CERT_P12_BASE64, MAC_CERT_PASSWORD, MAC_SIGN_IDENTITY (+ MAC_NOTARY_APPLE_ID, MAC_NOTARY_PASSWORD,
+  # MAC_NOTARY_TEAM_ID); without them Compose signs ad hoc and macOS asks once before the first start.
+  macos:
+    needs: prepare
+    if: inputs.macos_linux
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: build/speech-downloads
+          key: natives-macos-${{ hashFiles('speech/natives.gradle.kts') }}
+
+      - name: Signaturzertifikat (optional)
+        env:
+          MAC_CERT_P12_BASE64: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
+          MAC_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
+          MAC_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
+          MAC_NOTARY_TEAM_ID: ${{ secrets.MAC_NOTARY_TEAM_ID }}
+        run: |
+          if [ -z "$MAC_CERT_P12_BASE64" ] || [ -z "$MAC_SIGN_IDENTITY" ]; then
+            echo "::notice::Ohne Developer-ID-Zertifikat (Secrets MAC_CERT_P12_BASE64, MAC_SIGN_IDENTITY) wird die macOS-App nur ad hoc signiert und nicht notarisiert."
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password="$(openssl rand -hex 24)"
+          echo "$MAC_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/cert.p12" -P "$MAC_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          rm -f "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          # Search list: the new keychain first, then the existing ones (one path per word, without quotes).
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          {
+            echo "MAC_SIGN_KEYCHAIN=$keychain"
+            echo "MAC_SIGNED=1"
+          } >> "$GITHUB_ENV"
+          if [ -n "$MAC_NOTARY_APPLE_ID" ] && [ -n "$MAC_NOTARY_PASSWORD" ] && [ -n "$MAC_NOTARY_TEAM_ID" ]; then
+            echo "MAC_NOTARIZE=1" >> "$GITHUB_ENV"
+          else
+            echo "::notice::Ohne MAC_NOTARY_APPLE_ID, MAC_NOTARY_PASSWORD und MAC_NOTARY_TEAM_ID wird die signierte App nicht notarisiert."
+          fi
+
+      - name: Build macOS app (DMG)
+        env:
+          MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
+          MAC_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
+          MAC_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
+          MAC_NOTARY_TEAM_ID: ${{ secrets.MAC_NOTARY_TEAM_ID }}
+        run: |
+          # Without an imported certificate the identity must not reach Gradle (it would try to sign with it).
+          if [ "${MAC_SIGNED:-}" != "1" ]; then unset MAC_SIGN_IDENTITY; fi
+          tasks=(createDistributable packageDmg)
+          if [ "${MAC_NOTARIZE:-}" = "1" ]; then tasks+=(notarizeDmg); fi
+          # The runner has 7 GB of memory: less than desktop/gradle.properties (4 + 3 GB) for Gradle and the compiler.
+          ./gradlew -p desktop --no-daemon "-Dorg.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8" -Pkotlin.daemon.jvmargs=-Xmx2560m "${tasks[@]}"
+          if [ "${MAC_NOTARIZE:-}" = "1" ]; then
+            # The DMG is stapled by notarizeDmg; the app for the tar.gz gets its ticket too (same code signature).
+            xcrun stapler staple "desktop/build/compose/binaries/main/app/ADEU LLM.app" \
+              || echo "::warning::Notarisierungs-Ticket ließ sich nicht an die App heften (Updates funktionieren trotzdem)."
+          fi
+
+      - name: Pack DMG and tar.gz
+        run: bash .github/scripts/desktop-package.sh macos "$VERSION_NAME"
+
+      - name: Start test (every screen, PDF/Word)
+        run: |
+          app="$RUNNER_TEMP/mac-app"
+          mkdir -p "$app"
+          tar -xzf "dist/ADEU-LLM-$VERSION_NAME-macOS.tar.gz" -C "$app"
+          # The signature must survive packing and unpacking (otherwise macOS refuses the updated app).
+          if codesign --verify --deep --strict "$app/ADEU LLM.app"; then
+            codesign -dv "$app/ADEU LLM.app" 2>&1 | grep -E "^(Identifier|Authority|Signature|TeamIdentifier)" || true
+          elif [ "${MAC_SIGNED:-}" = "1" ]; then
+            echo "::error::Signatur der App nach dem Entpacken ungültig."
+            exit 1
+          else
+            echo "::warning::Ad-hoc-Signatur der App nach dem Entpacken ungültig."
+          fi
+          bash .github/scripts/desktop-selftest.sh "$app/ADEU LLM.app/Contents/MacOS/ADEU LLM"
+
+      - name: Hand the DMG and tar.gz on
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "$TRANSFER" "dist/ADEU-LLM-$VERSION_NAME-macOS.dmg" "dist/ADEU-LLM-$VERSION_NAME-macOS.tar.gz" --clobber
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: macos-selftest-${{ env.VERSION_NAME }}
+          path: selftest/
+          retention-days: 3
+
+  # Linux version (AP-31, x64): tar.gz with the folder "ADEU LLM" (start without installing, automatic update) and the
+  # Debian package "adeu-llm". Started once without a screen (Xvfb) like the Windows version.
+  # Ubuntu 22.04 on purpose: jpackage takes the package dependencies from the build machine, and 24.04 would write the
+  # "t64" names (libasound2t64 …) that Ubuntu 22.04 and Debian 12 lack; 24.04 accepts the old names (Provides).
+  linux:
+    needs: prepare
+    if: inputs.macos_linux
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: build/speech-downloads
+          key: natives-linux-${{ hashFiles('speech/natives.gradle.kts') }}
+
+      # dpkg-deb, fakeroot (packageDeb) and Xvfb (start test) are part of the runner image; install them if not.
+      - name: Tools for the DEB package and the start test
+        run: |
+          missing=()
+          command -v fakeroot > /dev/null || missing+=(fakeroot)
+          command -v xvfb-run > /dev/null || missing+=(xvfb)
+          if [ ${#missing[@]} -gt 0 ]; then
+            sudo apt-get update -q
+            sudo apt-get install -y -q "${missing[@]}"
+          fi
+
+      - name: Build Linux app (DEB)
+        run: ./gradlew -p desktop --no-daemon createDistributable packageDeb
+
+      - name: Pack tar.gz and DEB
+        run: bash .github/scripts/desktop-package.sh linux "$VERSION_NAME"
+
+      - name: Start test (every screen, PDF/Word)
+        run: |
+          app="$RUNNER_TEMP/linux-app"
+          mkdir -p "$app"
+          tar -xzf "dist/ADEU-LLM-$VERSION_NAME-Linux.tar.gz" -C "$app"
+          # The self test prints PDFs with the runner's Google Chrome; from Ubuntu 24.04 on the user namespaces its
+          # sandbox needs are blocked unless this is off (no such setting on 22.04 – then nothing happens).
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 > /dev/null 2>&1 || true
+          xvfb-run -a -s "-screen 0 1600x1000x24" bash .github/scripts/desktop-selftest.sh "$app/ADEU LLM/bin/ADEU LLM"
+
+      - name: Hand the tar.gz and DEB on
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "$TRANSFER" "dist/ADEU-LLM-$VERSION_NAME-Linux.tar.gz" "dist/ADEU-LLM-$VERSION_NAME-Linux.deb" --clobber
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: linux-selftest-${{ env.VERSION_NAME }}
+          path: selftest/
+          retention-days: 3
+
   # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
   # Normal releases also go to the public update repository, from where the apps update themselves.
+  # macOS and Linux are skipped when started with macos_linux = false; a failed build or start test stops the release.
   release:
-    needs: [smoke-test, windows]
+    needs: [smoke-test, windows, macos, linux]
+    if: >-
+      !cancelled() && needs.smoke-test.result == 'success' && needs.windows.result == 'success'
+      && (needs.macos.result == 'success' || needs.macos.result == 'skipped')
+      && (needs.linux.result == 'success' || needs.linux.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -234,6 +421,15 @@ jobs:
             FLAGS="--prerelease"
           fi
           FILES=("ADEU-LLM-${VERSION_NAME}.apk" "ADEU-LLM-${VERSION_NAME}-Windows.exe" "ADEU-LLM-${VERSION_NAME}-Windows.zip")
+          # macOS and Linux (AP-31), unless the run was started without them.
+          if [ -f "ADEU-LLM-${VERSION_NAME}-macOS.dmg" ]; then
+            FILES+=("ADEU-LLM-${VERSION_NAME}-macOS.dmg" "ADEU-LLM-${VERSION_NAME}-macOS.tar.gz")
+            NOTES="${NOTES} macOS (Apple-Chip): ADEU-LLM-${VERSION_NAME}-macOS.dmg öffnen und die App in den Ordner Programme ziehen."
+          fi
+          if [ -f "ADEU-LLM-${VERSION_NAME}-Linux.tar.gz" ]; then
+            FILES+=("ADEU-LLM-${VERSION_NAME}-Linux.tar.gz" "ADEU-LLM-${VERSION_NAME}-Linux.deb")
+            NOTES="${NOTES} Linux: ADEU-LLM-${VERSION_NAME}-Linux.tar.gz entpacken und im Ordner ADEU LLM/bin das Programm ADEU LLM starten oder die .deb installieren."
+          fi
           # A re-run (e.g. after adding UPDATER_TOKEN) replaces the files instead of failing.
           if gh release view "v${VERSION_NAME}" >/dev/null 2>&1; then
             gh release upload "v${VERSION_NAME}" "${FILES[@]}" --clobber
@@ -259,6 +455,10 @@ jobs:
           fi
           mkdir -p dist
           cp "ADEU-LLM-${VERSION_NAME}.apk" "ADEU-LLM-${VERSION_NAME}-Windows.zip" "ADEU-LLM-${VERSION_NAME}-Windows.exe" dist/
+          # macOS/Linux (AP-31): the tar.gz go into version.json ("macos", "linux"), DMG and DEB only into the release.
+          for f in "ADEU-LLM-${VERSION_NAME}"-macOS.* "ADEU-LLM-${VERSION_NAME}"-Linux.*; do
+            if [ -f "$f" ]; then cp "$f" dist/; fi
+          done
           bash src/.github/scripts/publish-update.sh "$VERSION_NAME" dist
 
       - name: Remove the draft release

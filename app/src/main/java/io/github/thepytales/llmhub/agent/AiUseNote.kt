@@ -7,6 +7,7 @@ import io.github.thepytales.llmhub.net.s
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * KI-Nutzungsnachweis (AP-19): what the AI did for a piece of work, taken from the chat (or all chats of a project) on
@@ -16,9 +17,9 @@ import java.util.Locale
  */
 object AiUseNote {
     enum class Format(val label: String) {
-        EXAM("Prüfungsleistung"),
+        EXAM(trLater("Prüfungsleistung")),
         PUBLISHER("Verlag/Zeitschrift"),
-        FOOTNOTE("Kurze Fußnote"),
+        FOOTNOTE(trLater("Kurze Fußnote")),
     }
 
     /** What the AI did: [work] like „Masterarbeit“ (null: not named). */

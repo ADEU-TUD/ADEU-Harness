@@ -15,7 +15,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,14 +49,14 @@ fun UpdatePrompt(c: AppContainer) {
     var whatsNew by remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(Unit) {
         Updates.start(context) { v, notes ->
-            if (notes == null) Notices.info("Lora wurde auf Version $v aktualisiert.") else whatsNew = v to notes
+            if (notes == null) Notices.info(tr("Lora wurde auf Version {0} aktualisiert.", v)) else whatsNew = v to notes
         }
     }
     whatsNew?.let { (v, notes) ->
         AlertDialog(
             onDismissRequest = { whatsNew = null },
             icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
-            title = { Text("Was ist neu in $v") },
+            title = { Text(tr("Was ist neu in {0}", v)) },
             text = { Text(notes, modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) },
             confirmButton = { TextButton(onClick = { whatsNew = null }) { Text("OK") } },
         )
@@ -78,76 +77,76 @@ fun UpdatePrompt(c: AppContainer) {
             AlertDialog(
                 onDismissRequest = Updates::postpone,
                 icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
-                title = { Text("Neue Version verfügbar") },
+                title = { Text(tr("Neue Version verfügbar")) },
                 text = { UpdateText(s.info) },
-                confirmButton = { Button(onClick = ::start) { Text("Jetzt aktualisieren") } },
-                dismissButton = { TextButton(onClick = Updates::postpone) { Text("Später") } },
+                confirmButton = { Button(onClick = ::start) { Text(tr("Jetzt aktualisieren")) } },
+                dismissButton = { TextButton(onClick = Updates::postpone) { Text(tr("Später")) } },
             )
         }
         is State.Downloading -> if (!background) AlertDialog(
             onDismissRequest = {},
             icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
-            title = { Text("Lora ${s.info.version} wird geladen") },
+            title = { Text(tr("Lora {0} wird geladen", s.info.version)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     LinearProgressIndicator(progress = { s.progress }, modifier = Modifier.fillMaxWidth())
                     val size = s.info.files[UpdatePlatform.KEY]?.size ?: 0
                     Text(
-                        "${s.step} ${(s.progress * 100).toInt()} %" + if (size > 0) " von ${size shr 20} MB" else "",
+                        "${s.step} ${(s.progress * 100).toInt()} %" + if (size > 0) tr(" von {0} MB", size shr 20) else "",
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
-                        if (windows) "Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart."
-                        else "Danach fragt Android, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.",
+                        if (windows) tr("Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart.")
+                        else tr("Danach fragt Android, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
-            confirmButton = { TextButton(onClick = Updates::toBackground) { Text("Im Hintergrund") } },
-            dismissButton = { TextButton(onClick = Updates::cancelDownload) { Text("Abbrechen") } },
+            confirmButton = { TextButton(onClick = Updates::toBackground) { Text(tr("Im Hintergrund")) } },
+            dismissButton = { TextButton(onClick = Updates::cancelDownload) { Text(tr("Abbrechen")) } },
         )
         is State.Ready -> if (postponed != s.info.version) {
             val busy = windows && runs.isNotEmpty()
             AlertDialog(
                 onDismissRequest = Updates::postpone,
                 icon = { Icon(Icons.Outlined.SystemUpdate, contentDescription = null) },
-                title = { Text("Update ist bereit") },
+                title = { Text(tr("Update ist bereit")) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (windows) "Lora ${s.info.version} ist heruntergeladen. Zum Installieren startet die App kurz neu – Chats und Einstellungen bleiben erhalten."
-                            else "Lora ${s.info.version} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.",
+                            if (windows) tr("Lora {0} ist heruntergeladen. Zum Installieren startet die App kurz neu – Chats und Einstellungen bleiben erhalten.", s.info.version)
+                            else tr("Lora {0} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.", s.info.version),
                         )
-                        if (busy) Text("Gerade wird noch eine Antwort geschrieben – sie wird beim Neustart abgebrochen.", color = MaterialTheme.colorScheme.error)
+                        if (busy) Text(tr("Gerade wird noch eine Antwort geschrieben – sie wird beim Neustart abgebrochen."), color = MaterialTheme.colorScheme.error)
                         s.note?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
                     }
                 },
                 confirmButton = {
-                    Button(onClick = { Updates.install(context) }) { Text(if (windows) "Jetzt neu starten" else "Installieren") }
+                    Button(onClick = { Updates.install(context) }) { Text(if (windows) tr("Jetzt neu starten") else tr("Installieren")) }
                 },
-                dismissButton = { TextButton(onClick = Updates::postpone) { Text("Später") } },
+                dismissButton = { TextButton(onClick = Updates::postpone) { Text(tr("Später")) } },
             )
         }
         is State.Failed -> if (s.info != null && postponed != s.info.version) {
             AlertDialog(
                 onDismissRequest = Updates::postpone,
-                title = { Text("Update hat nicht geklappt") },
+                title = { Text(tr("Update hat nicht geklappt")) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(s.message)
                         Text(
-                            "Die bisherige Version funktioniert weiter. Beim nächsten Start fragt die App erneut.",
+                            tr("Die bisherige Version funktioniert weiter. Beim nächsten Start fragt die App erneut."),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
-                confirmButton = { Button(onClick = ::start) { Text("Erneut versuchen") } },
+                confirmButton = { Button(onClick = ::start) { Text(tr("Erneut versuchen")) } },
                 dismissButton = {
                     Column {
-                        TextButton(onClick = { runCatching { uri.openUri(Updates.RELEASES_PAGE) } }) { Text("Download-Seite öffnen") }
-                        TextButton(onClick = Updates::postpone) { Text("Schließen") }
+                        TextButton(onClick = { runCatching { uri.openUri(Updates.RELEASES_PAGE) } }) { Text(tr("Download-Seite öffnen")) }
+                        TextButton(onClick = Updates::postpone) { Text(tr("Schließen")) }
                     }
                 },
             )
@@ -159,14 +158,14 @@ fun UpdatePrompt(c: AppContainer) {
 @Composable
 private fun UpdateText(info: UpdateInfo) {
     Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Lora ${info.version} ist da (installiert: ${Updates.installed}).")
+        Text(tr("Lora {0} ist da (installiert: {1}).", info.version, Updates.installed))
         if (info.notes.isNotBlank()) {
-            Text("Neu", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Neu"), style = MaterialTheme.typography.titleSmall)
             Text(info.notes, style = MaterialTheme.typography.bodyMedium)
         }
         Text(
-            if (windows) "Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats, Einstellungen und API-Key bleiben erhalten."
-            else "Danach fragt Android einmal nach („Aktualisieren“). Chats, Einstellungen und API-Key bleiben erhalten.",
+            if (windows) tr("Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats, Einstellungen und API-Key bleiben erhalten.")
+            else tr("Danach fragt Android einmal nach („Aktualisieren“). Chats, Einstellungen und API-Key bleiben erhalten."),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -182,22 +181,22 @@ fun UpdateSection(c: AppContainer) {
     val state by Updates.state.collectAsState()
     var auto by remember { mutableStateOf(Updates.autoCheck(context)) }
     var source by remember { mutableStateOf(Updates.ownSource(context)) }
-    Section("Version") {
-        Text("Installiert: Lora ${Updates.installed}", style = MaterialTheme.typography.titleSmall)
+    Section(tr("Version")) {
+        Text(tr("Installiert: Lora {0}", Updates.installed), style = MaterialTheme.typography.titleSmall)
         if (!UpdatePlatform.supported) {
             SettingsHint(
-                "Automatische Updates gibt es in der installierten Windows-Version („ADEU LLM.exe“) und in der Android-App. " +
-                    "Neue Versionen stehen unter ${Updates.RELEASES_PAGE}.",
+                tr("Automatische Updates gibt es in der installierten Windows-Version („ADEU LLM.exe“) und in der Android-App. ") +
+                    tr("Neue Versionen stehen unter {0}.", Updates.RELEASES_PAGE),
             )
         } else {
             Text(
                 when (val s = state) {
-                    State.Idle -> "Noch nicht gesucht."
-                    State.Checking -> "Suche nach Updates …"
-                    State.UpToDate -> "Du hast die neueste Version."
-                    is State.Available -> "Version ${s.info.version} ist verfügbar."
-                    is State.Downloading -> "Version ${s.info.version} wird geladen (${(s.progress * 100).toInt()} %)."
-                    is State.Ready -> "Version ${s.info.version} ist bereit zum Installieren."
+                    State.Idle -> tr("Noch nicht gesucht.")
+                    State.Checking -> tr("Suche nach Updates …")
+                    State.UpToDate -> tr("Du hast die neueste Version.")
+                    is State.Available -> tr("Version {0} ist verfügbar.", s.info.version)
+                    is State.Downloading -> tr("Version {0} wird geladen ({1} %).", s.info.version, (s.progress * 100).toInt())
+                    is State.Ready -> tr("Version {0} ist bereit zum Installieren.", s.info.version)
                     is State.Failed -> s.message
                 },
                 style = MaterialTheme.typography.bodyMedium,
@@ -206,26 +205,26 @@ fun UpdateSection(c: AppContainer) {
             OutlinedButton(
                 enabled = state !is State.Checking && state !is State.Downloading,
                 onClick = { scope.launch { Updates.check(context, manual = true) } },
-            ) { Text("Jetzt nach Updates suchen") }
+            ) { Text(tr("Jetzt nach Updates suchen")) }
         }
-        TextButton(onClick = { runCatching { uri.openUri(Updates.RELEASES_PAGE) } }) { Text("Alle Versionen ansehen") }
+        TextButton(onClick = { runCatching { uri.openUri(Updates.RELEASES_PAGE) } }) { Text(tr("Alle Versionen ansehen")) }
     }
     if (UpdatePlatform.supported) {
-        Section("Automatisch") {
+        Section(tr("Automatisch")) {
             ToggleRow(
-                "Beim Start nach Updates suchen",
-                "Gibt es eine neue Version, fragt die App beim Start, ob sie installiert werden soll. Kein GitHub-Konto nötig.",
+                tr("Beim Start nach Updates suchen"),
+                tr("Gibt es eine neue Version, fragt die App beim Start, ob sie installiert werden soll. Kein GitHub-Konto nötig."),
                 auto,
             ) {
                 auto = it
                 Updates.setAutoCheck(context, it)
             }
         }
-        Section("Update-Quelle") {
+        Section(tr("Update-Quelle")) {
             SettingsHint(
-                "Leer lassen für den Standard: die öffentlichen Releases unter github.com/${Updates.REPOSITORY}. " +
-                    "Für Dienst-PCs, die GitHub nicht erreichen: einen Ordner eintragen (z. B. auf dem Netzlaufwerk " +
-                    "„\\\\server\\freigabe\\ADEU-Update“), in dem die Dateien eines Releases liegen – version.json, die Windows-ZIP und die APK.",
+                tr("Leer lassen für den Standard: die öffentlichen Releases unter github.com/{0}. ", Updates.REPOSITORY) +
+                    tr("Für Dienst-PCs, die GitHub nicht erreichen: einen Ordner eintragen (z. B. auf dem Netzlaufwerk " +
+                    "„\\\\server\\freigabe\\ADEU-Update“), in dem die Dateien eines Releases liegen – version.json, die Windows-ZIP und die APK."),
             )
             OutlinedTextField(
                 value = source,
@@ -233,9 +232,9 @@ fun UpdateSection(c: AppContainer) {
                     source = it
                     Updates.setSource(context, it)
                 },
-                label = { Text("Ordner oder Adresse (optional)") },
+                label = { Text(tr("Ordner oder Adresse (optional)")) },
                 placeholder = { UpdatePlatform.presetSource()?.let { Text(it) } },
-                supportingText = { UpdatePlatform.presetSource()?.let { Text("Vorgegeben durch update-quelle.txt im App-Ordner") } },
+                supportingText = { UpdatePlatform.presetSource()?.let { Text(tr("Vorgegeben durch update-quelle.txt im App-Ordner")) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )

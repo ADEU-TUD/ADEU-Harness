@@ -11,31 +11,44 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.net.URI
 
-/** Windows integration: files, folders, links and the clipboard. */
+/** Desktop integration (Windows, macOS, Linux): files, folders, links and the clipboard. */
 object DesktopActions {
     /** Main window, so dialogs open in front of it (set by Main.kt). */
     @Volatile
     var window: Frame? = null
 
     fun open(file: File): Boolean = runCatching {
-        if (Paths.windows) ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", file.absolutePath).start()
-        else Desktop.getDesktop().open(file)
+        when {
+            Paths.windows -> ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", file.absolutePath).start()
+            Os.mac -> ProcessBuilder("open", file.absolutePath).start()
+            // Linux (AP-31): AWT's Desktop only works with GNOME libraries; xdg-open with every desktop.
+            else -> runCatching { Desktop.getDesktop().open(file) }.getOrElse { ProcessBuilder("xdg-open", file.absolutePath).start() }
+        }
         true
     }.getOrElse {
         AppLog.e("Öffnen von ${file.name}", it)
         false
     }
 
-    /** Opens Explorer with [file] selected. */
+    /** Opens Explorer (macOS: Finder) with [file] selected; Linux opens its folder. */
     fun showInFolder(file: File): Boolean = runCatching {
-        if (Paths.windows) ProcessBuilder("explorer.exe", "/select,", file.absolutePath).start()
-        else Desktop.getDesktop().open(file.parentFile)
+        when {
+            Paths.windows -> ProcessBuilder("explorer.exe", "/select,", file.absolutePath).start()
+            Os.mac -> ProcessBuilder("open", "-R", file.absolutePath).start()
+            else -> {
+                val dir = if (file.isDirectory) file else file.parentFile
+                runCatching { Desktop.getDesktop().open(dir) }.getOrElse { ProcessBuilder("xdg-open", dir.absolutePath).start() }
+            }
+        }
         true
     }.getOrDefault(false)
 
     fun browse(url: String): Boolean = runCatching {
-        if (Paths.windows) ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", url).start()
-        else Desktop.getDesktop().browse(URI(url))
+        when {
+            Paths.windows -> ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", url).start()
+            Os.mac -> ProcessBuilder("open", url).start()
+            else -> runCatching { Desktop.getDesktop().browse(URI(url)) }.getOrElse { ProcessBuilder("xdg-open", url).start() }
+        }
         true
     }.getOrDefault(false)
 
@@ -46,7 +59,7 @@ object DesktopActions {
     /** Text "shared" from the app goes to the clipboard, ready to paste into mail, Teams … */
     fun share(text: String) {
         copy(text)
-        Toasts.show("In die Zwischenablage kopiert – zum Teilen einfach einfügen (Strg+V).")
+        Toasts.show(io.github.thepytales.llmhub.ui.tr("In die Zwischenablage kopiert – zum Teilen einfach einfügen (Strg+V)."))
     }
 
     /** Image in the clipboard (e.g. a screenshot with Win+Umschalt+S), or null. */
@@ -89,6 +102,19 @@ object DesktopActions {
             var result: File? = null
             javax.swing.SwingUtilities.invokeAndWait { result = pickFolder(title, start) }
             return result
+        }
+        if (Os.mac) {
+            // The Finder's own dialog instead of Swing's (AP-31).
+            System.setProperty("apple.awt.fileDialogForDirectories", "true")
+            try {
+                val dialog = FileDialog(window, title, FileDialog.LOAD)
+                start?.let { dialog.directory = it.absolutePath }
+                dialog.isVisible = true
+                val name = dialog.file ?: return null
+                return File(dialog.directory ?: "", name)
+            } finally {
+                System.setProperty("apple.awt.fileDialogForDirectories", "false")
+            }
         }
         val chooser = javax.swing.JFileChooser(start ?: File(System.getProperty("user.home")))
         chooser.dialogTitle = title

@@ -24,6 +24,7 @@ import java.io.File
 import io.github.thepytales.llmhub.data.PageMarks
 import io.github.thepytales.llmhub.data.PageMarks.PAGE_BREAK
 import java.util.zip.ZipInputStream
+import io.github.thepytales.llmhub.ui.tr
 
 /** Result of reading an attached file: its text, page images (scanned PDFs, pictures) or an error. */
 data class ReadResult(
@@ -55,16 +56,16 @@ object AttachmentReader {
             val size = runCatching {
                 context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize }
             }.getOrNull() ?: -1L
-            if (size > MAX_BYTES) return@withContext ReadResult(error = "„$name“ ist zu groß (max. 25 MB).")
+            if (size > MAX_BYTES) return@withContext ReadResult(error = tr("„{0}“ ist zu groß (max. 25 MB).", name))
             val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: return@withContext ReadResult(error = "„$name“ konnte nicht geöffnet werden.")
+                ?: return@withContext ReadResult(error = tr("„{0}“ konnte nicht geöffnet werden.", name))
             when {
                 mime == "application/pdf" || ext == "pdf" -> readPdf(context, name, bytes)
                 FormatReaders.handles(name) -> text(name, mime, FormatReaders.text(name, bytes).orEmpty())
                 mime.startsWith("image/") -> imageDataUrl(bytes)?.let { ReadResult(images = listOf(it)) }
-                    ?: ReadResult(error = "„$name“: Dieses Bildformat kann das Gerät nicht lesen – bitte als JPEG oder PNG speichern.")
+                    ?: ReadResult(error = tr("„{0}“: Dieses Bildformat kann das Gerät nicht lesen – bitte als JPEG oder PNG speichern.", name))
                 ext in TextFormats.MEDIA || mime.startsWith("audio/") || mime.startsWith("video/") ->
-                    ReadResult(error = "„$name“ ist eine Audio- oder Videodatei – bitte über „Transkription“ in Text umwandeln und das Transkript anhängen.")
+                    ReadResult(error = tr("„{0}“ ist eine Audio- oder Videodatei – bitte über „Transkription“ in Text umwandeln und das Transkript anhängen.", name))
                 // Word and PowerPoint as Markdown: headings, lists and tables stay recognizable for the model.
                 ext == "docx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.docx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("word/document\\.xml"), "w:p"))
                 ext == "pptx" -> text(name, mime, runCatching { io.github.thepytales.llmhub.docs.OfficeImport.pptx(bytes) }.getOrNull()?.takeIf { it.isNotBlank() } ?: zipText(bytes, Regex("ppt/slides/slide(\\d+)\\.xml"), "a:p", "Folie"))
@@ -73,24 +74,24 @@ object AttachmentReader {
                 mime.startsWith("text/") || ext in TEXT_EXTENSIONS || TextFormats.isText(name) || mime in setOf("application/json", "application/xml") ->
                     text(name, mime, decode(bytes))
                 looksLikeText(bytes) -> text(name, mime, decode(bytes))
-                else -> ReadResult(error = "„$name“: Dieser Dateityp wird nicht unterstützt (PDF, Word, PowerPoint, Excel, Text und Code gehen).")
+                else -> ReadResult(error = tr("„{0}“: Dieser Dateityp wird nicht unterstützt (PDF, Word, PowerPoint, Excel, Text und Code gehen).", name))
             }.let { r -> r.copy(file = r.file?.copy(name = name)) }
                 // Lora-Ordner (AP-16): a copy of the file goes into „Hochgeladen“.
                 .let { r -> if (r.error == null && r.file != null) r.copy(file = io.github.thepytales.llmhub.data.UploadSink.stored(name, bytes, r.file)) else r }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
-            ReadResult(error = "„$name“ konnte nicht gelesen werden: ${e.message ?: e.javaClass.simpleName}")
+            ReadResult(error = tr("„{0}“ konnte nicht gelesen werden: {1}", name, e.message ?: e.javaClass.simpleName))
         }
     }
 
     private fun text(name: String, mime: String, text: String, pages: Int? = null): ReadResult {
         val clean = text.replace("\r\n", "\n").replace(Regex("\n{3,}"), "\n\n").trim()
-        if (clean.isEmpty()) return ReadResult(error = "„$name“ enthält keinen lesbaren Text.")
+        if (clean.isEmpty()) return ReadResult(error = tr("„{0}“ enthält keinen lesbaren Text.", name))
         val truncated = clean.length > MAX_CHARS
         return ReadResult(
             file = FileAttachment(name, mime.ifEmpty { "text/plain" }, clean.take(MAX_CHARS), pages, truncated),
-            note = if (truncated) "„$name“ ist sehr lang – nur die ersten ${MAX_CHARS / 1000}k Zeichen werden gesendet." else null,
+            note = if (truncated) tr("„{0}“ ist sehr lang – nur die ersten {1}k Zeichen werden gesendet.", name, MAX_CHARS / 1000) else null,
         )
     }
 
@@ -111,8 +112,8 @@ object AttachmentReader {
         // Scanned PDF without text layer: send the first pages as images for vision models.
         val images = renderPdfPages(context, bytes, 4)
         if (fields > 0) return withCopy(text(name, "application/pdf", text.ifBlank { "[Formular ohne Textebene]" }, pages)).copy(images = images)
-        if (images.isEmpty()) return ReadResult(error = "„$name“ enthält keinen Text und konnte nicht gerendert werden.")
-        return ReadResult(images = images, note = "„$name“ enthält keinen Text (Scan) – die ersten ${images.size} Seiten werden als Bilder angehängt.")
+        if (images.isEmpty()) return ReadResult(error = tr("„{0}“ enthält keinen Text und konnte nicht gerendert werden.", name))
+        return ReadResult(images = images, note = tr("„{0}“ enthält keinen Text (Scan) – die ersten {1} Seiten werden als Bilder angehängt.", name, images.size))
     }
 
     private fun renderPdfPages(context: Context, bytes: ByteArray, max: Int): List<String> = runCatching {

@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A tab of a document, like a section of a notebook; exported one after another or on its own. */
 @Serializable
@@ -51,11 +52,11 @@ data class DocVersion(
 
 /** What a living document is: text (Word), slides (PowerPoint) or tables (Excel) – one editor, three bodies. */
 enum class DocKind(val label: String, val newTitle: String, val ext: String) {
-    DOC("Dokument", "Unbenanntes Dokument", "md"),
-    SLIDES("Präsentation", "Unbenannte Präsentation", "md"),
-    SHEET("Tabelle", "Unbenannte Tabelle", "md"),
+    DOC(trLater("Dokument"), "Unbenanntes Dokument", "md"),
+    SLIDES(trLater("Präsentation"), "Unbenannte Präsentation", "md"),
+    SHEET(trLater("Tabelle"), "Unbenannte Tabelle", "md"),
     /** Plain Markdown with its marks visible (like Obsidian or a README), with a preview beside it. */
-    MARKDOWN("Markdown-Datei", "Unbenannte Markdown-Datei", "md"),
+    MARKDOWN(trLater("Markdown-Datei"), "Unbenannte Markdown-Datei", "md"),
     ;
 
     /** Format of its real file in the Lora-Ordner (AP-16). */
@@ -670,7 +671,7 @@ object DocBlocks {
 
     fun titleOf(markdown: String): String? = markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim()
 
-    enum class Kind(val label: String) { PARAGRAPH("Absatz"), H1("Überschrift 1"), H2("Überschrift 2"), H3("Überschrift 3"), BULLETS("Aufzählung"), NUMBERS("Nummerierte Liste"), TASKS("Checkliste"), QUOTE("Zitat"), NOTE("Hinweisbox"), TABLE("Tabelle"), CODE("Code"), RULE("Trennlinie") }
+    enum class Kind(val label: String) { PARAGRAPH(trLater("Absatz")), H1(trLater("Überschrift 1")), H2(trLater("Überschrift 2")), H3(trLater("Überschrift 3")), BULLETS(trLater("Aufzählung")), NUMBERS(trLater("Nummerierte Liste")), TASKS(trLater("Checkliste")), QUOTE(trLater("Zitat")), NOTE(trLater("Hinweisbox")), TABLE(trLater("Tabelle")), CODE("Code"), RULE(trLater("Trennlinie")) }
 
     fun kindOf(block: String): Kind {
         val t = block.trimStart()

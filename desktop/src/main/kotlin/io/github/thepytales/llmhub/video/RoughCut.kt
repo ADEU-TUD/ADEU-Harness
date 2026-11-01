@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.transcribe.Transcript
 import io.github.thepytales.llmhub.transcribe.TranscriptExport
+import io.github.thepytales.llmhub.ui.tr
 import java.util.Locale
 
 /**
@@ -75,7 +76,7 @@ object RoughCut {
      */
     suspend fun withLora(c: AppContainer, t: Transcript, from: Double, to: Double, wish: String): List<Pair<Double, Double>> {
         val segs = t.segments.filter { it.end > from && it.start < to && it.text.isNotBlank() }
-        require(segs.isNotEmpty()) { "Im gewählten Clip ist nichts gesprochen." }
+        require(segs.isNotEmpty()) { tr("Im gewählten Clip ist nichts gesprochen.") }
         val list = segs.mapIndexed { i, s -> "${i + 1} [${clock(s.start)}–${clock(s.end)}] ${s.text.trim()}" }.joinToString("\n")
         val prompt = "Du schneidest ein Lehrvideo. Unten stehen die gesprochenen Abschnitte des Videos, nummeriert, mit Zeit. " +
             "Wähle die Abschnitte, die bleiben sollen, nach diesem Wunsch: „${wish.trim()}“. Behalte ganze Gedanken, schneide nicht mitten in eine " +
@@ -83,7 +84,7 @@ object RoughCut {
         val model = c.settings.current.defaultModel
         val result = c.llm.streamChat(model = model, messages = listOf(ChatMessage(role = "user", content = prompt)), tools = null, thinking = ThinkingLevel.OFF) { }
         val keep = numbers(result.content, segs.size)
-        require(keep.isNotEmpty()) { "Lora hat keine Abschnitte ausgewählt." }
+        require(keep.isNotEmpty()) { tr("Lora hat keine Abschnitte ausgewählt.") }
         val parts = keep.sorted().map { i -> segs[i - 1].start.coerceAtLeast(from) to segs[i - 1].end.coerceAtMost(to) }
         val merged = mutableListOf<Pair<Double, Double>>()
         for (pp in parts) {

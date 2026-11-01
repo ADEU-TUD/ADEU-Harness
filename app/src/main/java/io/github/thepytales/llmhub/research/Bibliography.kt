@@ -8,14 +8,15 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.text.Collator
 import java.util.Locale
+import io.github.thepytales.llmhub.ui.trLater
 
 /** How an entry of the reference list was checked online. */
 enum class EntryStatus(val symbol: String, val label: String) {
-    FOUND("✓", "gefunden, Angaben stimmen"),
-    COMPLETED("✚", "gefunden und ergänzt"),
-    CORRECTED("≈", "gefunden, Angaben abweichend"),
-    NOT_FOUND("✗", "nicht gefunden"),
-    UNCHECKED("·", "nicht geprüft"),
+    FOUND("✓", trLater("gefunden, Angaben stimmen")),
+    COMPLETED("✚", trLater("gefunden und ergänzt")),
+    CORRECTED("≈", trLater("gefunden, Angaben abweichend")),
+    NOT_FOUND("✗", trLater("nicht gefunden")),
+    UNCHECKED("·", trLater("nicht geprüft")),
 }
 
 /** One entry after checking: the reference, what was added and what is still missing. */

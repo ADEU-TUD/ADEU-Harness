@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.data.BatchItem
 import io.github.thepytales.llmhub.data.BatchJob
 import io.github.thepytales.llmhub.data.BatchStore
 import io.github.thepytales.llmhub.data.ChatMessage
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -162,14 +163,14 @@ class BatchRunner(
         _current.value = Current(job.id, item.id, item.name)
         val text = store.text(job.id, item.id)
         if (text.isNullOrBlank()) {
-            store.updateItem(job.id, item.id) { it.copy(status = BatchItem.FAILED, error = "Die Datei enthält keinen lesbaren Text.") }
+            store.updateItem(job.id, item.id) { it.copy(status = BatchItem.FAILED, error = tr("Die Datei enthält keinen lesbaren Text.")) }
             return
         }
         store.updateItem(job.id, item.id) { it.copy(status = BatchItem.RUNNING, startedAt = clock(), attempts = it.attempts + 1) }
         try {
             val answer = ask(job, messages(job, item, text))
             if (job.grading) {
-                val grade = BatchGrading.parse(answer, job.rubric) ?: throw IllegalStateException("Die Antwort enthielt keine lesbare Bewertung.")
+                val grade = BatchGrading.parse(answer, job.rubric) ?: throw IllegalStateException(tr("Die Antwort enthielt keine lesbare Bewertung."))
                 store.updateItem(job.id, item.id) { it.copy(status = BatchItem.DONE, result = answer, grade = grade, error = null, finishedAt = clock()) }
             } else {
                 if (answer.isBlank()) throw IllegalStateException("Leere Antwort.")

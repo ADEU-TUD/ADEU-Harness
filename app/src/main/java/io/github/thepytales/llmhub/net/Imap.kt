@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.net
 
+import io.github.thepytales.llmhub.ui.tr
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
@@ -36,7 +37,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
         while (true) {
             val b = input.read()
             if (b < 0) {
-                if (out.size() == 0) throw IOException("Der Mailserver hat die Verbindung beendet.")
+                if (out.size() == 0) throw IOException(tr("Der Mailserver hat die Verbindung beendet."))
                 break
             }
             if (b == '\n'.code) break
@@ -63,7 +64,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
             var read = 0
             while (read < n) {
                 val r = input.read(buf, read, n - read)
-                if (r < 0) throw IOException("Der Mailserver hat die Verbindung mitten in einer Nachricht beendet.")
+                if (r < 0) throw IOException(tr("Der Mailserver hat die Verbindung mitten in einer Nachricht beendet."))
                 read += r
             }
             literals += buf
@@ -73,7 +74,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
 
     fun greeting() {
         val l = readLine()
-        if (!l.text.startsWith("* OK") && !l.text.startsWith("* PREAUTH")) throw IOException("Unerwartete Begrüßung des Mailservers: ${l.text.take(120)}")
+        if (!l.text.startsWith("* OK") && !l.text.startsWith("* PREAUTH")) throw IOException(tr("Unerwartete Begrüßung des Mailservers: {0}", l.text.take(120)))
         capabilityFrom(l.text)
     }
 
@@ -126,7 +127,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
     fun login(user: String, password: String) {
         if (capabilities.isEmpty()) ok("CAPABILITY")
         val r = command("LOGIN ${ImapParser.quote(user)} ${ImapParser.quote(password)}")
-        if (!r.ok) throw IOException("Der Mailserver lehnt die Anmeldung ab. Benutzername und Passwort prüfen (Einstellungen › Verbindungen › Mail über den Server).")
+        if (!r.ok) throw IOException(tr("Der Mailserver lehnt die Anmeldung ab. Benutzername und Passwort prüfen (Einstellungen › Verbindungen › Mail über den Server)."))
         if (!r.text.contains("CAPABILITY", ignoreCase = true)) ok("CAPABILITY")
     }
 

@@ -63,7 +63,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -134,25 +133,25 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
                 navigationIcon = { BackButton(onBack) },
                 title = {
                     Text(
-                        if (galleryView) "Galerie" else chats.firstOrNull { it.key == vm.chat }?.title ?: "Neuer Bilder-Chat",
+                        if (galleryView) tr("Galerie") else chats.firstOrNull { it.key == vm.chat }?.title ?: tr("Neuer Bilder-Chat"),
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 },
                 actions = {
                     if (!galleryView) {
                         IconButton(onClick = vm::newChat, enabled = !vm.busy && turns.isNotEmpty()) {
-                            Icon(Icons.Outlined.AddComment, contentDescription = "Neuer Bilder-Chat")
+                            Icon(Icons.Outlined.AddComment, contentDescription = tr("Neuer Bilder-Chat"))
                         }
                         IconButton(onClick = { showChats = true }) {
                             BadgedBox(badge = { if (chats.size > 1) Badge { Text("${chats.size}") } }) {
-                                Icon(Icons.Outlined.History, contentDescription = "Verläufe")
+                                Icon(Icons.Outlined.History, contentDescription = tr("Verläufe"))
                             }
                         }
                     }
                     IconButton(onClick = { galleryView = !galleryView }) {
                         Icon(
                             if (galleryView) Icons.Outlined.Forum else Icons.Outlined.Collections,
-                            contentDescription = if (galleryView) "Als Verlauf zeigen" else "Alle Bilder als Galerie",
+                            contentDescription = if (galleryView) tr("Als Verlauf zeigen") else tr("Alle Bilder als Galerie"),
                         )
                     }
                 },
@@ -225,14 +224,14 @@ private fun ChatsSheet(vm: ImagesViewModel, chats: List<ImageChat>, onDismiss: (
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Bilder-Chats", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(tr("Bilder-Chats"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = { vm.newChat(); onDismiss() }, enabled = !vm.busy) {
                     Icon(Icons.Outlined.AddComment, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Neuer Chat")
+                    Text(tr("Neuer Chat"))
                 }
             }
-            if (chats.isEmpty()) HintText("Noch keine Bilder.", Modifier.padding(20.dp))
+            if (chats.isEmpty()) HintText(tr("Noch keine Bilder."), Modifier.padding(20.dp))
             LazyColumn(Modifier.heightIn(max = 520.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(chats, key = { it.key }) { ch ->
                     val active = ch.key == vm.chat
@@ -253,10 +252,10 @@ private fun ChatsSheet(vm: ImagesViewModel, chats: List<ImageChat>, onDismiss: (
                             }
                             var menu by remember { mutableStateOf(false) }
                             Box {
-                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                    DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { menu = false; renaming = ch })
-                                    DropdownMenuItem(text = { Text("Löschen", color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; vm.deleteChat(ch.key) })
+                                    DropdownMenuItem(text = { Text(tr("Umbenennen")) }, onClick = { menu = false; renaming = ch })
+                                    DropdownMenuItem(text = { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }, onClick = { menu = false; vm.deleteChat(ch.key) })
                                 }
                             }
                         }
@@ -266,7 +265,7 @@ private fun ChatsSheet(vm: ImagesViewModel, chats: List<ImageChat>, onDismiss: (
         }
     }
     renaming?.let { ch ->
-        TextPrompt("Bilder-Chat umbenennen", ch.title, onDismiss = { renaming = null }) { name ->
+        TextPrompt(tr("Bilder-Chat umbenennen"), ch.title, onDismiss = { renaming = null }) { name ->
             vm.renameChat(ch.key, name)
             renaming = null
         }
@@ -279,12 +278,12 @@ private fun Welcome(onExample: (String) -> Unit) {
         Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.11f), modifier = Modifier.size(64.dp)) {
             Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Image, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(30.dp)) }
         }
-        Text("Was soll ich malen?", style = MaterialTheme.typography.headlineSmall)
-        HintText("Beschreibe unten ein Bild. Fertige Bilder lassen sich überarbeiten: Stellen markieren und sagen, was dort anders werden soll.")
+        Text(tr("Was soll ich malen?"), style = MaterialTheme.typography.headlineSmall)
+        HintText(tr("Beschreibe unten ein Bild. Fertige Bilder lassen sich überarbeiten: Stellen markieren und sagen, was dort anders werden soll."))
         Spacer(Modifier.size(4.dp))
         EXAMPLES.forEach { e ->
-            AppCard(Modifier.fillMaxWidth(), onClick = { onExample(e) }) {
-                Text(e, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+            AppCard(Modifier.fillMaxWidth(), onClick = { onExample(tr(e)) }) {
+                Text(tr(e), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
             }
         }
     }
@@ -303,7 +302,7 @@ private fun RequestBubble(vm: ImagesViewModel, prompt: String, details: String, 
                             bmp?.let { Image(it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
                         }
                         Spacer(Modifier.width(10.dp))
-                        Text("Überarbeiten", style = MaterialTheme.typography.labelLarge)
+                        Text(tr("Überarbeiten"), style = MaterialTheme.typography.labelLarge)
                     }
                     edits.forEachIndexed { i, e ->
                         val n = e.substringBefore(' ').toIntOrNull()?.minus(1) ?: i
@@ -343,12 +342,12 @@ private fun TurnView(vm: ImagesViewModel, t: Turn, all: List<GalleryImage>, onOp
             TextButton(onClick = { vm.again(first) }, enabled = !vm.busy) {
                 Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Noch eins")
+                Text(tr("Noch eins"))
             }
             if (t.images.size == 1) TextButton(onClick = { onEdit(first) }, enabled = !vm.busy) {
                 Icon(Icons.Outlined.Brush, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Überarbeiten")
+                Text(tr("Überarbeiten"))
             }
         }
     }
@@ -363,8 +362,8 @@ private fun PendingView(vm: ImagesViewModel, p: PendingTurn) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(p.error, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodyMedium)
                     Row {
-                        TextButton(onClick = vm::retry) { Text("Erneut versuchen") }
-                        TextButton(onClick = vm::dismissError) { Text("Verwerfen") }
+                        TextButton(onClick = vm::retry) { Text(tr("Erneut versuchen")) }
+                        TextButton(onClick = vm::dismissError) { Text(tr("Verwerfen")) }
                     }
                 }
             }
@@ -375,11 +374,11 @@ private fun PendingView(vm: ImagesViewModel, p: PendingTurn) {
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        ThinkingIndicator(if (p.editOf != null) "Wird überarbeitet …" else "Wird gemalt …")
+                        ThinkingIndicator(if (p.editOf != null) tr("Wird überarbeitet …") else tr("Wird gemalt …"))
                         TextButton(onClick = vm::cancel) {
                             Icon(Icons.Outlined.Stop, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Stopp")
+                            Text(tr("Stopp"))
                         }
                     }
                 }
@@ -409,17 +408,17 @@ private fun Composer(vm: ImagesViewModel, model: String, models: List<Pair<Strin
                     Spacer(Modifier.width(6.dp))
                     val marked = vm.regions.count { it.strokes.isNotEmpty() }
                     Text(
-                        if (marked == 0) "Überarbeiten – ganzes Bild" else "Überarbeiten – $marked Bereich${if (marked == 1) "" else "e"} markiert",
+                        if (marked == 0) tr("Überarbeiten – ganzes Bild") else tr("Überarbeiten – {0} Bereich{1} markiert", marked, if (marked == 1) "" else "e"),
                         style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f),
                     )
-                    TextButton(onClick = onEditAreas) { Text("Markieren") }
-                    IconButton(onClick = { vm.editTarget = null; vm.regions = emptyList() }) { Icon(Icons.Outlined.Close, contentDescription = "Überarbeiten beenden") }
+                    TextButton(onClick = onEditAreas) { Text(tr("Markieren")) }
+                    IconButton(onClick = { vm.editTarget = null; vm.regions = emptyList() }) { Icon(Icons.Outlined.Close, contentDescription = tr("Überarbeiten beenden")) }
                 }
             }
             TextField(
                 value = vm.prompt,
                 onValueChange = { vm.prompt = it },
-                placeholder = { Text(if (target != null) "Was soll sich sonst noch ändern? (optional)" else "Beschreibe ein Bild …") },
+                placeholder = { Text(if (target != null) tr("Was soll sich sonst noch ändern? (optional)") else tr("Beschreibe ein Bild …")) },
                 maxLines = 6,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
@@ -431,16 +430,16 @@ private fun Composer(vm: ImagesViewModel, model: String, models: List<Pair<Strin
                 Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (target == null) {
                         Box {
-                            OptionChip(Icons.Outlined.Palette, vm.style.label) { styleMenu = true }
+                            OptionChip(Icons.Outlined.Palette, tr(vm.style.label)) { styleMenu = true }
                             DropdownMenu(expanded = styleMenu, onDismissRequest = { styleMenu = false }) {
-                                ImageStyle.entries.forEach { s -> DropdownMenuItem(text = { Text(s.label) }, onClick = { vm.style = s; styleMenu = false }) }
+                                ImageStyle.entries.forEach { s -> DropdownMenuItem(text = { Text(tr(s.label)) }, onClick = { vm.style = s; styleMenu = false }) }
                             }
                         }
                         OptionChip(Icons.Outlined.AspectRatio, sizeLabel(vm.size)) { sizeSheet = true }
                         Box {
-                            OptionChip(Icons.Outlined.Collections, if (vm.count == 1) "1 Bild" else "${vm.count} Bilder") { countMenu = true }
+                            OptionChip(Icons.Outlined.Collections, if (vm.count == 1) tr("1 Bild") else tr("{0} Bilder", vm.count)) { countMenu = true }
                             DropdownMenu(expanded = countMenu, onDismissRequest = { countMenu = false }) {
-                                (1..4).forEach { n -> DropdownMenuItem(text = { Text(if (n == 1) "1 Bild" else "$n Bilder") }, onClick = { vm.count = n; countMenu = false }) }
+                                (1..4).forEach { n -> DropdownMenuItem(text = { Text(if (n == 1) tr("1 Bild") else tr("{0} Bilder", n)) }, onClick = { vm.count = n; countMenu = false }) }
                             }
                         }
                     }
@@ -463,7 +462,7 @@ private fun Composer(vm: ImagesViewModel, model: String, models: List<Pair<Strin
                 }
                 IconButton(onClick = vm::improve, enabled = vm.prompt.isNotBlank() && !vm.improving) {
                     if (vm.improving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                    else Icon(Icons.Outlined.AutoAwesome, contentDescription = "Beschreibung verbessern")
+                    else Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("Beschreibung verbessern"))
                 }
                 val canSend = !vm.busy && (vm.prompt.isNotBlank() || target != null && vm.regions.any { it.strokes.isNotEmpty() && it.description.isNotBlank() })
                 Surface(
@@ -473,7 +472,7 @@ private fun Composer(vm: ImagesViewModel, model: String, models: List<Pair<Strin
                     modifier = Modifier.size(44.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = if (target != null) "Überarbeiten" else "Erzeugen", modifier = Modifier.size(20.dp))
+                        Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = if (target != null) tr("Überarbeiten") else tr("Erzeugen"), modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -498,11 +497,11 @@ private fun ResolutionPicker(current: String, onPick: (String) -> Unit) {
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Auflösung", style = MaterialTheme.typography.titleMedium)
-        HintText("Größere Bilder brauchen länger. Eigene Größen werden auf Vielfache von 16 gerundet.")
+        Text(tr("Auflösung"), style = MaterialTheme.typography.titleMedium)
+        HintText(tr("Größere Bilder brauchen länger. Eigene Größen werden auf Vielfache von 16 gerundet."))
         IMAGE_RESOLUTIONS.forEach { (group, sizes) ->
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(group, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr(group), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     sizes.forEach { s ->
                         FilterChip(selected = current == s, onClick = { onPick(s) }, leadingIcon = { RatioIcon(ratioOf(s), current == s) }, label = { Text(sizeLabel(s)) })
@@ -511,7 +510,7 @@ private fun ResolutionPicker(current: String, onPick: (String) -> Unit) {
             }
         }
         val known = IMAGE_RESOLUTIONS.any { current in it.second }
-        FilterChip(selected = !known, onClick = { custom = true }, label = { Text(if (known) "Eigene Größe …" else "Eigene: ${sizeLabel(current)}") })
+        FilterChip(selected = !known, onClick = { custom = true }, label = { Text(if (known) tr("Eigene Größe …") else tr("Eigene: {0}", sizeLabel(current))) })
     }
     if (custom) CustomSizeDialog(current, onPick = { custom = false; onPick(it) }, onDismiss = { custom = false })
 }
@@ -525,25 +524,25 @@ private fun CustomSizeDialog(current: String, onPick: (String) -> Unit, onDismis
     val hi = cleanSide(h)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Eigene Größe") },
+        title = { Text(tr("Eigene Größe")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
-                        w, { w = it.filter(Char::isDigit).take(4) }, label = { Text("Breite") }, singleLine = true,
+                        w, { w = it.filter(Char::isDigit).take(4) }, label = { Text(tr("Breite")) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f),
                     )
                     Text("×")
                     OutlinedTextField(
-                        h, { h = it.filter(Char::isDigit).take(4) }, label = { Text("Höhe") }, singleLine = true,
+                        h, { h = it.filter(Char::isDigit).take(4) }, label = { Text(tr("Höhe")) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f),
                     )
                 }
-                HintText("$MIN_SIDE bis $MAX_SIDE Pixel je Seite." + if (wi != null && hi != null) " Wird zu $wi × $hi." else "")
+                HintText(tr("{0} bis {1} Pixel je Seite.", MIN_SIDE, MAX_SIDE) + if (wi != null && hi != null) tr(" Wird zu {0} × {1}.", wi, hi) else "")
             }
         },
-        confirmButton = { TextButton(enabled = wi != null && hi != null, onClick = { onPick("${wi}x$hi") }) { Text("Übernehmen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(enabled = wi != null && hi != null, onClick = { onPick("${wi}x$hi") }) { Text(tr("Übernehmen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 

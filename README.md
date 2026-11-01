@@ -858,8 +858,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Bedienung**: **Strg+K** Befehlspalette (Bereiche, Einstellungen, Chats), **Strg+/** Übersicht der Tastenkürzel,
   **Strg+L** Lora, Strg+Umschalt+L Literatur, Strg+D/T Dokumente, Transkription; die Seitenleiste unter Windows lässt sich durch Ziehen breiter
   oder schmaler machen. Suche in den Einstellungen. **Sprache der Oberfläche** Deutsch oder Englisch
-  (*Einstellungen › Darstellung*; bisher sind Menüs, Einstellungen und Startseite übersetzt, Antworten folgen der
-  gewählten Sprache). Ein automatischer Test prüft den Textkontrast aller Stile nach WCAG.
+  (*Einstellungen › Darstellung*): seit AP-29 ist die ganze Oberfläche übersetzt – Einstellungen, Editoren, TU Vorlagen,
+  Modelle, Modi, Fehlermeldungen und Loras eigene Antworten; Antworten der Modelle folgen der gewählten Sprache. Loras
+  Suche findet Bereiche auch mit englischen Wörtern. Ein automatischer Test prüft den Textkontrast aller Stile nach WCAG.
+- **Barrierefreiheit** (AP-30): Screenreader (TalkBack, unter Windows NVDA/JAWS über die Java Access Bridge, die die App
+  für sich selbst einschaltet; macOS VoiceOver) lesen Knöpfe mit Beschriftung, Schalterzeilen als *ein* Schalter mit
+  Titel und Zustand, Umschalter als Auswahl, Farbfelder mit Namen und Abschnitte als Überschriften (zum Springen). Die
+  Tastatur erreicht alles mit Tab, das gewählte Element ist deutlich markiert; große Schrift (Android bis 200 %,
+  *Darstellung › Schriftgröße*, Zoom) bricht um statt abzuschneiden. Der Windows-Sprachausgabe *Narrator* fehlt die
+  Schnittstelle für Java-Programme – dafür das kostenlose NVDA nutzen.
 
 ## Installation
 
@@ -917,12 +924,18 @@ weitergeben.
      [Updater-Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest), z. B. `38` für 1.0.38. Nie leer
      lassen: Dann nimmt der Workflow die Laufnummer, die kleiner ist, und Android installiert die APK nicht als Update.
    - **notes**: „Was ist neu“ in 1–3 kurzen Sätzen für Nutzer:innen ohne Technikkenntnisse (steht im Update-Popup).
+   - **macos_linux** (Standard an): auch macOS und Linux bauen und testen (AP-31). Aus, wenn nur Windows/Android
+     erscheinen sollen – macOS-Minuten zählen in privaten Repositorys zehnfach.
 
    KI-Assistenten: GitHub-MCP `actions_run_trigger`, Methode `run_workflow`, `workflow_id: android.yml`, `ref: main`,
    `inputs: {"version": "38", "notes": "…"}`; Lauf mit `actions_list`/`actions_get` verfolgen.
-3. Der Workflow (ca. 15 Min.) baut, testet (Emulator, Windows-Selbsttest), legt hier ein Release an und veröffentlicht
-   APK, Windows-ZIP/-EXE und `version.json` im öffentlichen Repo `ADEU-TUD/ADEU-Harness-Updater` (Schritt „Für
-   automatische Updates veröffentlichen“, Secret `UPDATER_TOKEN`).
+
+   macOS signieren und notarisieren (optional, sobald ein Apple-Entwicklerkonto da ist): Secrets `MAC_CERT_P12_BASE64`,
+   `MAC_CERT_PASSWORD`, `MAC_SIGN_IDENTITY` (Signieren) und `MAC_NOTARY_APPLE_ID`, `MAC_NOTARY_PASSWORD`,
+   `MAC_NOTARY_TEAM_ID` (Notarisieren). Ohne sie ist die Mac-App nur ad hoc signiert (Hinweis beim ersten Start).
+3. Der Workflow (ca. 15–20 Min.) baut, testet (Emulator, Selbsttest unter Windows, macOS und Linux), legt hier ein Release
+   an und veröffentlicht APK, Windows-ZIP/-EXE, macOS-DMG/-tar.gz, Linux-tar.gz/-deb und `version.json` im öffentlichen
+   Repo `ADEU-TUD/ADEU-Harness-Updater` (Schritt „Für automatische Updates veröffentlichen“, Secret `UPDATER_TOKEN`).
 4. Prüfen: `https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` zeigt die neue
    Version – ab dann fragen die Apps beim Start.
 5. Schlug nur das Veröffentlichen fehl (z. B. Token abgelaufen): Token erneuern, Secret `UPDATER_TOKEN` ersetzen,
@@ -1012,6 +1025,33 @@ Unterschiede zu Android:
   Spracherkennungsmodelle werden nach drei Minuten ohne Nutzung entladen, Vorschaubilder verkleinert gehalten.
   *Einstellungen › Arbeitsspeicher* zeigt Java-Speicher und App gesamt (Working Set wie im Task-Manager) sowie
   Messpunkte (Start, nach großem PDF, nach Transkription, nach einer Stunde, von Hand) und hat *Speicher freigeben*.
+
+## macOS und Linux (AP-31)
+
+Dieselbe App gibt es für **Macs mit Apple-Chip** (M1 und neuer) und **Linux (x64)** – gleicher Code wie unter Windows,
+Java-Laufzeit eingebaut, ohne Admin-Rechte.
+
+- **macOS**: `ADEU-LLM-x.y.z-macOS.dmg` öffnen und *ADEU LLM* in *Programme* ziehen. Die App ist (noch) nicht bei Apple
+  notarisiert: beim ersten Start Rechtsklick › *Öffnen* bzw. *Systemeinstellungen › Datenschutz & Sicherheit ›
+  Dennoch öffnen*. Updates installiert die App danach selbst (aus `ADEU-LLM-x.y.z-macOS.tar.gz`, ohne erneute Rückfrage).
+- **Linux**: `ADEU-LLM-x.y.z-Linux.tar.gz` entpacken (z. B. nach `~/Programme`) und `ADEU LLM/bin/ADEU LLM` starten –
+  so aktualisiert sich die App selbst. Alternativ `sudo apt install ./ADEU-LLM-x.y.z-Linux.deb` (Startmenü-Eintrag,
+  Updates dann über die nächste .deb, da `/opt` schreibgeschützt ist).
+- **Daten**: der Lora-Ordner wie unter Windows (`Dokumente/Lora`, unter Linux der Dokumente-Ordner des Desktops, z. B.
+  `~/Dokumente`); was zum Rechner gehört in `~/Library/Application Support/ADEU LLM` bzw. `~/.config/adeu-llm` und
+  `~/.local/share/adeu-llm`. API-Key und Tokens sind mit AES verschlüsselt, dessen Schlüssel im **Schlüsselbund**
+  (macOS) bzw. im **Secret Service** des Desktops (GNOME Schlüsselbund, KWallet) liegt; ohne beides in einer Datei, die
+  nur das eigene Konto lesen darf.
+- **Bedienung**: Kürzel mit **⌘** statt Strg (Strg geht auch), Hinweise in der App zeigen ⌘, Finder statt Explorer,
+  Menüleiste statt Infobereich. *Einstellungen › macOS/Linux* hat „Beim Anmelden starten“ (LaunchAgent bzw.
+  `~/.config/autostart`).
+- **ffmpeg** (Audio/Video öffnen, Transkription von Dateien, Videoeditor) kommt vom System: `brew install ffmpeg` bzw.
+  `sudo apt install ffmpeg`; die App findet es auch ohne PATH (Homebrew, MacPorts, Snap). Aufnahmen gehen ohne.
+- **Was es dort nicht gibt**: Outlook über COM (dafür *Mail über den Server*), Office → PDF über Microsoft Office,
+  Texterkennung von Windows (dafür *Mit KI-Modell erkennen*), das Videoeditor-Paket (der Editor läuft mit dem ffmpeg des
+  Systems) und die Ein-Datei-EXE. Lokale Modelle laden llama.cpp für Apple Silicon (Metal) bzw. Ubuntu x64;
+  Spracherkennung auf dem Gerät (sherpa-onnx) und der Browser neben dem Chat (Chromium über JCEF) laufen auf beiden.
+  Macs mit Intel-Chip werden nicht unterstützt.
 
 ### Dienst-PCs mit IT-Sperre
 
@@ -1151,12 +1191,26 @@ Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
 
 `.github/scripts/windows-portable.ps1` macht daraus die Ein-Datei-EXE und die ZIP.
 
+macOS und Linux (AP-31) bauen auf dem jeweiligen System: `./gradlew -p desktop createDistributable packageDmg` (Mac) bzw.
+`createDistributable packageDeb` (Linux). Der Workflow *Build & Release* macht daraus DMG und tar.gz (macOS) bzw.
+tar.gz und .deb (Linux) und testet beide mit `--selftest`.
+
+### Englisch (Texte übersetzen)
+
+Neue Texte der Oberfläche schreibt man auf Deutsch in `tr("…")` (mit `{0}`, `{1}` statt `$`-Vorlagen), in Listen und
+Aufzählungen in `trLater("…")`; im Paket `ui` übersetzt `Text("…")` von selbst. Die englische Fassung kommt als Zeile
+`Deutsch<TAB>Englisch` nach `app/src/main/resources/i18n/en.tsv` (sortiert, `\n` für Zeilenumbrüche).
+`./gradlew -p desktop test --tests '*I18nCoverageTest*'` meldet jeden markierten Text ohne englische Zeile mit Datei und
+Zeile und prüft, dass die Platzhalter in beiden Sprachen gleich sind. Prompts an die Modelle und Wörter, mit denen die App
+deutsche Eingaben erkennt, bleiben deutsch.
+
 ### Logo ändern
 
 Das Logo wird in `ui/Logo.kt` gezeichnet (Lora aus `ui/LoraFigure.kt`, eigene Farben in `LogoColors`). Die App-Symbole
 erzeugt `./gradlew -p desktop test --tests '*LogoTest*'` nach `desktop/build/icons`: `app.ico` und `app.png` gehören nach
 `desktop/icons/`, `app.png` als `icon.png` und `tray.png` nach `desktop/src/main/resources/`, die Ordner unter `android/`
-nach `app/src/main/res/`. `ChatLookTest` rendert den Chat in allen Stilen nach `desktop/build/chat-look` (für
+nach `app/src/main/res/`. Das Mac-Symbol `desktop/icons/app.icns` erzeugt `python3 .github/scripts/make-icns.py` aus
+`app.png`. `ChatLookTest` rendert den Chat in allen Stilen nach `desktop/build/chat-look` (für
 Vorher/Nachher-Bilder).
 
 ### Signaturschlüssel
@@ -1279,7 +1333,10 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
-| `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
+| `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“ (macOS: LaunchAgent, Linux: `~/.config/autostart`), nur eine laufende App |
+| `desktop/Os.kt`, `update/AppLayout.kt`, `ui/Keys.kt` (gemeinsam) | macOS und Linux (AP-31): System, App-Ordner je System, tar.gz mit Rechten und Links, ⌘/Strg, Texte (⌘, Finder) |
+| `desktop/Accessibility.kt`, `ui/Design.kt` (`a11yLabel`, `Segmented`, `GroupLabel`), `ui/Theme.kt` (Fokus) | Barrierefreiheit (AP-30): Java Access Bridge für NVDA/JAWS, Beschriftungen, Überschriften, sichtbarer Fokus |
+| `ui/I18n.kt`, `ui/TextI18n.kt`, `resources/i18n/en.tsv` (gemeinsam) | Englisch (AP-29): `tr`, `trLater`, übersetzendes `Text`, englische Texte |
 | `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
 | `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |
 

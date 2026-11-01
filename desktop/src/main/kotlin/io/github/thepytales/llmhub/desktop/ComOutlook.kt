@@ -14,6 +14,7 @@ import io.github.thepytales.llmhub.data.NewEvent
 import io.github.thepytales.llmhub.data.NewTask
 import io.github.thepytales.llmhub.data.OutlookBridge
 import io.github.thepytales.llmhub.data.OutlookException
+import io.github.thepytales.llmhub.ui.tr
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -50,7 +51,7 @@ object ComOutlook : OutlookBridge {
         thread.run(
             TIMEOUT_S,
             onTimeout = {
-                OutlookException("Outlook antwortet nicht. Ist in Outlook gerade ein Fenster oder eine Rückfrage offen (z. B. „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“)? Bitte dort antworten und es noch einmal versuchen.")
+                OutlookException(tr("Outlook antwortet nicht. Ist in Outlook gerade ein Fenster oder eine Rückfrage offen (z. B. „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“)? Bitte dort antworten und es noch einmal versuchen."))
             },
         ) {
             val app = try {
@@ -74,15 +75,15 @@ object ComOutlook : OutlookBridge {
     private val NOT_INSTALLED = setOf(0x80040154.toInt(), 0x800401F3.toInt())
 
     private fun startProblem(e: COMException): String = when (hresult(e)) {
-        in NOT_INSTALLED -> "Das klassische Outlook ist auf diesem PC nicht installiert. Das neue Outlook (und Outlook im Browser) bieten keine Schnittstelle für Programme – dafür kommt später der Weg über den Mailserver."
-        0x80080005.toInt() -> "Outlook ließ sich nicht ansprechen. Läuft Outlook mit anderen Rechten als Lora (z. B. „Als Administrator ausführen“)? Dann beide normal starten."
-        else -> "Outlook ließ sich nicht starten: ${e.message ?: "unbekannter Fehler"}"
+        in NOT_INSTALLED -> tr("Das klassische Outlook ist auf diesem PC nicht installiert. Das neue Outlook (und Outlook im Browser) bieten keine Schnittstelle für Programme – dafür kommt später der Weg über den Mailserver.")
+        0x80080005.toInt() -> tr("Outlook ließ sich nicht ansprechen. Läuft Outlook mit anderen Rechten als Lora (z. B. „Als Administrator ausführen“)? Dann beide normal starten.")
+        else -> tr("Outlook ließ sich nicht starten: {0}", e.message ?: tr("unbekannter Fehler"))
     }
 
     private fun problem(e: Throwable): String = when (hresult(e)) {
-        in NOT_INSTALLED -> "Das klassische Outlook ist auf diesem PC nicht installiert."
-        0x80004004.toInt() -> "Der Zugriff wurde in Outlook abgelehnt (Rückfrage „Ein Programm versucht …“ mit „Nein“ beantwortet?)."
-        else -> "Outlook meldet einen Fehler: ${e.message ?: e.javaClass.simpleName}"
+        in NOT_INSTALLED -> tr("Das klassische Outlook ist auf diesem PC nicht installiert.")
+        0x80004004.toInt() -> tr("Der Zugriff wurde in Outlook abgelehnt (Rückfrage „Ein Programm versucht …“ mit „Nein“ beantwortet?).")
+        else -> tr("Outlook meldet einen Fehler: {0}", e.message ?: e.javaClass.simpleName)
     }
 
     // ── Ids: entry id and store id together, so items of every mailbox (also shared ones) are found again. ──
@@ -95,7 +96,7 @@ object ComOutlook : OutlookBridge {
         return try {
             if (store.isEmpty()) ns.obj("GetFolderFromID", VARIANT(entry)) else ns.obj("GetFolderFromID", VARIANT(entry), VARIANT(store))
         } catch (e: Exception) {
-            throw OutlookException("Den Ordner gibt es in Outlook nicht mehr (oder er gehört zu einem anderen Postfach).")
+            throw OutlookException(tr("Den Ordner gibt es in Outlook nicht mehr (oder er gehört zu einem anderen Postfach)."))
         }
     }
 
@@ -104,7 +105,7 @@ object ComOutlook : OutlookBridge {
         return try {
             if (store.isEmpty()) ns.obj("GetItemFromID", VARIANT(entry)) else ns.obj("GetItemFromID", VARIANT(entry), VARIANT(store))
         } catch (e: Exception) {
-            throw OutlookException("Diese Mail gibt es in Outlook nicht mehr (verschoben oder gelöscht).")
+            throw OutlookException(tr("Diese Mail gibt es in Outlook nicht mehr (verschoben oder gelöscht)."))
         }
     }
 

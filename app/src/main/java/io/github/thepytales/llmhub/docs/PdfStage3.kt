@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.docs
 
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /**
@@ -10,7 +11,7 @@ import java.io.File
 object PdfStage3 {
     const val SUPPORTED = false
 
-    private fun pc(): Nothing = throw UnsupportedOperationException("Diese Funktion gibt es in der Windows-App.")
+    private fun pc(): Nothing = throw UnsupportedOperationException(tr("Diese Funktion gibt es in der Windows-App."))
 
     fun find(file: File, terms: List<String>, wholeWords: Boolean = true, limit: Int = 2000): List<PdfRedaction> = pc()
     fun redact(file: File, boxes: List<PdfRedaction>, out: File, dpi: Int = 200, cleanMetadata: Boolean = true): Unit = pc()

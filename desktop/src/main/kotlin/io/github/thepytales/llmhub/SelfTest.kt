@@ -125,7 +125,12 @@ object SelfTest {
             val pdf = runCatching { DocumentWriter.create(LlmHubApp.context, folder, "Selbsttest", HTML, DocFormat.PDF) }
             check("Gestaltetes PDF", pdf.isSuccess && (pdf.getOrNull()?.pages ?: 0) > 0,
                 pdf.fold({ "${it.pages} Seite(n), ${if (it.designed) "gestaltet" else "EINFACH"}" }, { it.toString() }))
-            if (Browser.find() != null) check("PDF über den Browser gerendert", HtmlPdf.lastEngine != "eingebaut", HtmlPdf.lastEngine)
+            // Windows renders with Edge; on macOS/Linux (AP-31) the built-in renderer is the intended fallback, so a
+            // browser that does not start there (e.g. a runner without a desktop session) is only reported.
+            if (Browser.find() != null) {
+                if (io.github.thepytales.llmhub.desktop.Os.windows) check("PDF über den Browser gerendert", HtmlPdf.lastEngine != "eingebaut", HtmlPdf.lastEngine)
+                else line("Info: PDF über den Browser: ${HtmlPdf.lastEngine}")
+            }
             val md = runCatching { DocumentWriter.create(LlmHubApp.context, folder, "Bericht", MARKDOWN, DocFormat.PDF) }
             check("Markdown-PDF", md.isSuccess && (md.getOrNull()?.pages ?: 0) > 0, md.exceptionOrNull()?.toString().orEmpty())
             val tud = runCatching {

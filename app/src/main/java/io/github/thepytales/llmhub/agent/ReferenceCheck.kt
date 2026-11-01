@@ -13,11 +13,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Checks literature references against Crossref (journal articles, books and chapters with DOI), OpenAlex and
@@ -26,10 +28,10 @@ import java.text.Normalizer
  */
 object ReferenceCheck {
     enum class Status(val symbol: String, val label: String) {
-        VERIFIED("✓", "bestätigt"),
-        DIFFERS("≈", "gefunden, Angaben weichen ab"),
-        NOT_FOUND("✗", "nicht gefunden"),
-        UNCHECKED("?", "nicht prüfbar"),
+        VERIFIED("✓", trLater("bestätigt")),
+        DIFFERS("≈", trLater("gefunden, Angaben weichen ab")),
+        NOT_FOUND("✗", trLater("nicht gefunden")),
+        UNCHECKED("?", trLater("nicht prüfbar")),
     }
 
     data class Work(
@@ -135,11 +137,11 @@ object ReferenceCheck {
         return try {
             if (p.doi != null) {
                 val w = crossrefDoi(http, p.doi, allowed)
-                    ?: return Result(ref, Status.NOT_FOUND, null, "Die DOI ${p.doi} ist bei Crossref nicht registriert.")
+                    ?: return Result(ref, Status.NOT_FOUND, null, tr("Die DOI {0} ist bei Crossref nicht registriert.", p.doi))
                 val (status, note) = judge(p, w, viaDoi = true)
                 return Result(ref, status, w, note)
             }
-            if (p.title.length < 8) return Result(ref, Status.UNCHECKED, null, "Zu wenig Angaben (Titel fehlt).")
+            if (p.title.length < 8) return Result(ref, Status.UNCHECKED, null, tr("Zu wenig Angaben (Titel fehlt)."))
             var best: Pair<Work, Pair<Status, String>>? = null
             for (search in listOf(::crossrefSearch, ::openAlexSearch, ::googleBooksSearch)) {
                 val works = runCatching { search(http, ref, p, allowed) }.getOrDefault(emptyList())
@@ -150,22 +152,22 @@ object ReferenceCheck {
                 if (best?.second?.first == Status.VERIFIED) break
             }
             best?.let { (w, j) -> if (j.first == Status.NOT_FOUND) Result(ref, Status.NOT_FOUND, null, j.second) else Result(ref, j.first, w, j.second) }
-                ?: Result(ref, Status.NOT_FOUND, null, "Weder Crossref noch OpenAlex noch Google Books kennen das Werk.")
+                ?: Result(ref, Status.NOT_FOUND, null, tr("Weder Crossref noch OpenAlex noch Google Books kennen das Werk."))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            Result(ref, Status.UNCHECKED, null, "Prüfung nicht möglich: ${e.message ?: e.javaClass.simpleName}")
+            Result(ref, Status.UNCHECKED, null, tr("Prüfung nicht möglich: {0}", e.message ?: e.javaClass.simpleName))
         }
     }
 
     private suspend fun getJson(http: OkHttpClient, url: HttpUrl, allowed: (HttpUrl) -> Boolean): JsonObject? {
-        if (!allowed(url)) throw IllegalStateException("Zugriff auf ${url.host} ist in dieser Umgebung nicht erlaubt")
+        if (!allowed(url)) throw IllegalStateException(tr("Zugriff auf {0} ist in dieser Umgebung nicht erlaubt", url.host))
         return withContext(Dispatchers.IO) {
             val req = Request.Builder().url(url).header("User-Agent", USER_AGENT).header("Accept", "application/json").build()
             http.newCall(req).execute().use { resp ->
                 when {
                     resp.code == 404 -> null
-                    !resp.isSuccessful -> throw IllegalStateException("${url.host} antwortet mit HTTP ${resp.code}")
+                    !resp.isSuccessful -> throw IllegalStateException(tr("{0} antwortet mit HTTP {1}", url.host, resp.code))
                     else -> JSON.parseToJsonElement(resp.body?.string().orEmpty()) as? JsonObject
                 }
             }

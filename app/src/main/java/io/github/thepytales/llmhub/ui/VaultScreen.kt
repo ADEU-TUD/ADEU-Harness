@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -62,7 +61,7 @@ fun newVaultChat(c: AppContainer): Conversation {
     val base = newConversation(c)
     val model = base.model.takeIf { Privacy.allows(c, PrivacyLevel.TU, it) }
         ?: c.settings.current.defaultModel.takeIf { Privacy.allows(c, PrivacyLevel.TU, it) } ?: ModelCatalog.DEFAULT_CHAT
-    return base.copy(title = "Tresor-Chat", model = model, vault = true, memoryOff = true, autoModel = false, githubEnabled = false)
+    return base.copy(title = tr("Tresor-Chat"), model = model, vault = true, memoryOff = true, autoModel = false, githubEnabled = false)
 }
 
 /**
@@ -105,11 +104,11 @@ private fun VaultFacts() {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(tr("Was der Tresor schützt"), style = MaterialTheme.typography.titleSmall)
             listOf(
-                "Chats im Tresor sind verschlüsselt gespeichert (AES-256) – ohne PIN auch als Datei nicht lesbar.",
-                "Sie erscheinen nicht in der Chatliste, der Suche, dem Gedächtnis oder in Vorschlägen.",
-                "Nur der Uni-Server oder Modelle auf diesem Gerät; Websuche und GitHub sind gesperrt.",
-                "Namen und persönliche Angaben werden streng ersetzt – im Zweifel lieber einmal zu viel.",
-                "Der Tresor sperrt sich nach einigen Minuten ohne Aktivität.",
+                tr("Chats im Tresor sind verschlüsselt gespeichert (AES-256) – ohne PIN auch als Datei nicht lesbar."),
+                tr("Sie erscheinen nicht in der Chatliste, der Suche, dem Gedächtnis oder in Vorschlägen."),
+                tr("Nur der Uni-Server oder Modelle auf diesem Gerät; Websuche und GitHub sind gesperrt."),
+                tr("Namen und persönliche Angaben werden streng ersetzt – im Zweifel lieber einmal zu viel."),
+                tr("Der Tresor sperrt sich nach einigen Minuten ohne Aktivität."),
             ).forEach { Text("• " + tr(it), style = MaterialTheme.typography.bodySmall) }
         }
     }
@@ -179,7 +178,7 @@ private fun RecoveryKeyDialog(key: String, onDone: () -> Unit) {
         confirmButton = { Button(enabled = kept, onClick = onDone) { Text(tr("Weiter")) } },
         dismissButton = {
             TextButton(onClick = {
-                clipboard.setText(AnnotatedString("Lora – Wiederherstellungsschlüssel des Tresors: $key"))
+                clipboard.setText(AnnotatedString(tr("Lora – Wiederherstellungsschlüssel des Tresors: {0}", key)))
                 Notices.info(tr("Kopiert – zum Ausdrucken einfügen und danach aus der Zwischenablage löschen."))
             }) { Text(tr("Kopieren")) }
         },
@@ -212,7 +211,7 @@ private fun VaultUnlock(c: AppContainer) {
                     message = when (result) {
                         VaultStore.Unlock.Ok -> null
                         is VaultStore.Unlock.Wrong -> tr("Falsche PIN.") + if (result.waitSeconds > 0) " " + tr("Nächster Versuch in") + " ${result.waitSeconds} s." else ""
-                        is VaultStore.Unlock.Blocked -> tr("Zu viele Versuche – bitte") + " ${result.waitSeconds} s " + tr("warten.")
+                        is VaultStore.Unlock.Blocked -> tr("Zu viele Versuche – bitte {0} s warten.", result.waitSeconds)
                     }
                 }
             },

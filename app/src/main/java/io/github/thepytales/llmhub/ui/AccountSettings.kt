@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -23,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,7 +65,7 @@ internal fun SecretField(label: String, value: String, onChange: (String) -> Uni
             IconButton(onClick = { visible = !visible }) {
                 Icon(
                     if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                    contentDescription = if (visible) "Verbergen" else "Anzeigen",
+                    contentDescription = if (visible) tr("Verbergen") else tr("Anzeigen"),
                 )
             }
         },
@@ -77,7 +78,7 @@ internal fun Section(title: String, content: @Composable () -> Unit) {
     val look = LocalChatLook.current
     Card(Modifier.fillMaxWidth(), shape = look.cardShape, border = look.cardBorder, colors = CardDefaults.cardColors(containerColor = look.card)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
             content()
         }
     }
@@ -88,10 +89,10 @@ internal fun gitHubSummary(c: AppContainer): String {
     val s = c.settings.current
     val user = s.githubUser.ifBlank { s.githubAccounts.firstOrNull { it.user.isNotBlank() }?.user.orEmpty() }
     return when {
-        s.hasGitHub && s.githubTokenCount > 1 -> "Angemeldet als $user · ${s.githubTokenCount} Tokens"
-        s.hasGitHub -> "Angemeldet als $user"
-        s.githubToken.isNotBlank() || s.githubAccounts.isNotEmpty() -> "Token ungültig oder nicht geprüft"
-        else -> "Kein Token"
+        s.hasGitHub && s.githubTokenCount > 1 -> tr("Angemeldet als {0} · {1} Tokens", user, s.githubTokenCount)
+        s.hasGitHub -> tr("Angemeldet als {0}", user)
+        s.githubToken.isNotBlank() || s.githubAccounts.isNotEmpty() -> tr("Token ungültig oder nicht geprüft")
+        else -> tr("Kein Token")
     }
 }
 
@@ -101,9 +102,9 @@ internal fun apiSummary(c: AppContainer): String {
     val extra = s.providers.filter { it.usable }.map { it.name }
     return when {
         s.hasApiKey && extra.isNotEmpty() -> "ScaDS.AI + ${extra.joinToString(", ")}"
-        s.hasApiKey -> "API-Key hinterlegt"
-        extra.isNotEmpty() -> "Nur ${extra.joinToString(", ")} – ScaDS.AI-Key fehlt"
-        else -> "API-Key fehlt"
+        s.hasApiKey -> tr("API-Key hinterlegt")
+        extra.isNotEmpty() -> tr("Nur {0} – ScaDS.AI-Key fehlt", extra.joinToString(", "))
+        else -> tr("API-Key fehlt")
     }
 }
 
@@ -114,12 +115,12 @@ internal fun apiSummary(c: AppContainer): String {
 @Composable
 fun GitHubAccountsSection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
-    Section("Weitere Tokens (Organisationen)") {
+    Section(tr("Weitere Tokens (Organisationen)")) {
         Text(
-            "Ein Fine-grained Token gilt immer nur für einen Besitzer – dein Konto oder eine Organisation. " +
-                "Lege für jede Organisation ein eigenes Token an (beim Erstellen unter „Resource owner“ die Organisation wählen) " +
-                "und trage es hier ein. Die App zeigt die Repositories aller Tokens zusammen und nimmt bei jeder Aktion " +
-                "automatisch das passende.",
+            tr("Ein Fine-grained Token gilt immer nur für einen Besitzer – dein Konto oder eine Organisation. " +
+                "Lege für jede Organisation ein eigenes Token an (beim Erstellen unter „Resource owner“ die Organisation wählen) ") +
+                tr("und trage es hier ein. Die App zeigt die Repositories aller Tokens zusammen und nimmt bei jeder Aktion " +
+                "automatisch das passende."),
             style = MaterialTheme.typography.bodySmall,
         )
         s.githubAccounts.forEachIndexed { i, account ->
@@ -128,7 +129,7 @@ fun GitHubAccountsSection(c: AppContainer) {
         }
         OutlinedButton(onClick = { c.settings.update { it.copy(githubAccounts = it.githubAccounts + GitHubAccount()) } }) {
             Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("Token hinzufügen", Modifier.padding(start = 6.dp))
+            Text(tr("Token hinzufügen"), Modifier.padding(start = 6.dp))
         }
     }
 }
@@ -149,7 +150,7 @@ private fun GitHubAccountRow(c: AppContainer, number: Int, account: GitHubAccoun
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            SecretField("GitHub-Token $number", account.token) { v ->
+            SecretField(tr("GitHub-Token {0}", number), account.token) { v ->
                 // A changed token has to be verified again before it is used for the GitHub options.
                 c.settings.update { s ->
                     s.copy(githubAccounts = s.githubAccounts.map {
@@ -159,7 +160,7 @@ private fun GitHubAccountRow(c: AppContainer, number: Int, account: GitHubAccoun
             }
         }
         IconButton(onClick = { c.settings.update { s -> s.copy(githubAccounts = s.githubAccounts.filter { it.id != account.id }) } }) {
-            Icon(Icons.Outlined.Delete, contentDescription = "Token entfernen")
+            Icon(Icons.Outlined.Delete, contentDescription = tr("Token entfernen"))
         }
     }
     // Checks a newly entered token automatically, once typing has paused.
@@ -172,7 +173,7 @@ private fun GitHubAccountRow(c: AppContainer, number: Int, account: GitHubAccoun
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(enabled = !testing && account.token.isNotBlank(), onClick = { scope.launch { check() } }) { Text("Token testen") }
+        TextButton(enabled = !testing && account.token.isNotBlank(), onClick = { scope.launch { check() } }) { Text(tr("Token testen")) }
         if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
     }
     (status ?: account.user.ifBlank { null }?.let { accessLine(it, account.owners) })?.let {
@@ -200,11 +201,11 @@ fun ApiProvidersSection(c: AppContainer) {
             c.models.refresh()
         }
     }
-    Section("Weitere Anbieter") {
+    Section(tr("Weitere Anbieter")) {
         Text(
-            "Zusätzliche API-Keys, z.B. für Google Gemini (kostenloser Key aus Google AI Studio). Ihre Modelle erscheinen " +
+            tr("Zusätzliche API-Keys, z.B. für Google Gemini (kostenloser Key aus Google AI Studio). Ihre Modelle erscheinen " +
                 "in der Modellauswahl unter denen von ScaDS.AI. Vorlesen, Spracheingabe, Bilder und die Wissenssuche " +
-                "laufen weiter über ScaDS.AI.",
+                "laufen weiter über ScaDS.AI."),
             style = MaterialTheme.typography.bodySmall,
         )
         s.providers.forEachIndexed { i, p ->
@@ -215,16 +216,16 @@ fun ApiProvidersSection(c: AppContainer) {
             if (s.providers.none { it.providerKind == ProviderKind.GEMINI }) {
                 OutlinedButton(onClick = { add(ProviderKind.GEMINI) }) {
                     Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Gemini hinzufügen", Modifier.padding(start = 6.dp))
+                    Text(tr("Gemini hinzufügen"), Modifier.padding(start = 6.dp))
                 }
             }
             OutlinedButton(onClick = { add(ProviderKind.OPENAI) }) {
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("Anderer Anbieter", Modifier.padding(start = 6.dp))
+                Text(tr("Anderer Anbieter"), Modifier.padding(start = 6.dp))
             }
         }
         if (s.providers.any { it.providerKind == ProviderKind.GEMINI }) {
-            TextButton(onClick = { uri.openUri("https://aistudio.google.com/apikey") }) { Text("Gemini-Key in Google AI Studio erstellen") }
+            TextButton(onClick = { uri.openUri("https://aistudio.google.com/apikey") }) { Text(tr("Gemini-Key in Google AI Studio erstellen")) }
         }
     }
 }
@@ -246,27 +247,27 @@ private fun ProviderRow(c: AppContainer, p: ApiProvider) {
             c.settings.update { s -> s.copy(providers = s.providers.filter { it.id != p.id }) }
             c.models.refresh()
         }) {
-            Icon(Icons.Outlined.Delete, contentDescription = "Anbieter entfernen")
+            Icon(Icons.Outlined.Delete, contentDescription = tr("Anbieter entfernen"))
         }
     }
     if (p.providerKind == ProviderKind.OPENAI) {
         OutlinedTextField(
             value = p.name,
             onValueChange = { v -> edit { it.copy(name = v) } },
-            label = { Text("Name") },
+            label = { Text(tr("Name")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = p.baseUrl,
             onValueChange = { v -> edit { it.copy(baseUrl = v.trim()) } },
-            label = { Text("API-Basis-URL (OpenAI-kompatibel)") },
+            label = { Text(tr("API-Basis-URL (OpenAI-kompatibel)")) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),
         )
     }
-    SecretField("API-Key", p.apiKey) { v -> edit { it.copy(apiKey = v.trim()) } }
+    SecretField(tr("API-Key"), p.apiKey) { v -> edit { it.copy(apiKey = v.trim()) } }
     Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(
             enabled = !testing && p.usable,
@@ -276,14 +277,14 @@ private fun ProviderRow(c: AppContainer, p: ApiProvider) {
                     status = try {
                         val ids = c.llm.listModels(c.settings.current.providers.first { it.id == p.id })
                         c.models.refresh()
-                        "✓ Verbunden – ${ids.size} Modelle verfügbar"
+                        tr("✓ Verbunden – {0} Modelle verfügbar", ids.size)
                     } catch (e: Exception) {
                         "✗ ${e.message}"
                     }
                     testing = false
                 }
             },
-        ) { Text("Verbindung testen") }
+        ) { Text(tr("Verbindung testen")) }
         if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
     }
     status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }

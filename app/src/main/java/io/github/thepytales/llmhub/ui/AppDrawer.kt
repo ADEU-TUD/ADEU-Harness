@@ -68,7 +68,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -106,11 +105,11 @@ private fun dayGroup(time: Long, today: LocalDate): String {
     val day = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate()
     val days = ChronoUnit.DAYS.between(day, today)
     return when {
-        days <= 0 -> "Heute"
-        days == 1L -> "Gestern"
-        days < 7 -> "Letzte 7 Tage"
-        days < 30 -> "Letzte 30 Tage"
-        else -> "Älter"
+        days <= 0 -> tr("Heute")
+        days == 1L -> tr("Gestern")
+        days < 7 -> tr("Letzte 7 Tage")
+        days < 30 -> tr("Letzte 30 Tage")
+        else -> tr("Älter")
     }
 }
 
@@ -169,30 +168,30 @@ fun AppDrawer(
             // Header
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (selection.isNotEmpty()) {
-                    IconButton(onClick = { selection = emptySet() }) { Icon(Icons.Outlined.Close, contentDescription = "Auswahl beenden") }
-                    Text("${selection.size} ausgewählt", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { selection = emptySet() }) { Icon(Icons.Outlined.Close, contentDescription = tr("Auswahl beenden")) }
+                    Text(tr("{0} ausgewählt", selection.size), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     IconButton(onClick = {
                         val ids = selection
                         val toArchive = allConversations.none { it.id in ids && !it.archived }.not()
                         ids.forEach { id -> c.chats.modify(id) { it.copy(archived = toArchive) } }
                         selection = emptySet()
-                        Notices.undo(if (toArchive) "${ids.size} Chats archiviert" else "${ids.size} Chats aus dem Archiv geholt", restore = { ids.forEach { id -> c.chats.modify(id) { it.copy(archived = !toArchive) } } })
-                    }) { Icon(Icons.Outlined.Archive, contentDescription = "Archivieren") }
-                    IconButton(onClick = { moveSelection = true }) { Icon(Icons.Outlined.DriveFileMove, contentDescription = "In Projekt verschieben") }
+                        Notices.undo(if (toArchive) tr("{0} Chats archiviert", ids.size) else tr("{0} Chats aus dem Archiv geholt", ids.size), restore = { ids.forEach { id -> c.chats.modify(id) { it.copy(archived = !toArchive) } } })
+                    }) { Icon(Icons.Outlined.Archive, contentDescription = tr("Archivieren")) }
+                    IconButton(onClick = { moveSelection = true }) { Icon(Icons.Outlined.DriveFileMove, contentDescription = tr("In Projekt verschieben")) }
                     IconButton(onClick = {
                         val ids = selection
                         ids.forEach { c.chats.delete(it) }
                         selection = emptySet()
-                        Notices.undo("${ids.size} Chats gelöscht", restore = { ids.forEach { c.chats.restore(it) } })
-                    }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
+                        Notices.undo(tr("{0} Chats gelöscht", ids.size), restore = { ids.forEach { c.chats.restore(it) } })
+                    }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
                 } else if (searching) {
                     IconButton(onClick = { searching = false; query = "" }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Suche schließen")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Suche schließen"))
                     }
                     TextField(
                         value = query,
                         onValueChange = { query = it },
-                        placeholder = { Text("Chats durchsuchen") },
+                        placeholder = { Text(tr("Chats durchsuchen")) },
                         singleLine = true,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -201,7 +200,7 @@ fun AppDrawer(
                             unfocusedIndicatorColor = Color.Transparent,
                         ),
                         trailingIcon = {
-                            if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Leeren") }
+                            if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Leeren")) }
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -216,7 +215,7 @@ fun AppDrawer(
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = { searching = true }) {
-                        Icon(Icons.Outlined.Search, contentDescription = "Chats durchsuchen", modifier = Modifier.size(26.dp))
+                        Icon(Icons.Outlined.Search, contentDescription = tr("Chats durchsuchen"), modifier = Modifier.size(26.dp))
                     }
                 }
             }
@@ -225,9 +224,9 @@ fun AppDrawer(
             LazyColumn(Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)) {
                 if (searching) {
                     if ((query.isNotBlank() || filter.active) && hits.isEmpty()) {
-                        item { Hint("Keine Chats gefunden.") }
+                        item { Hint(tr("Keine Chats gefunden.")) }
                     }
-                    if (query.isBlank() && !filter.active) item { Hint("Suchwort eingeben oder oben filtern – nach Zeitraum, Projekt, Modell, Anhängen oder erstellten Dateien.") }
+                    if (query.isBlank() && !filter.active) item { Hint(tr("Suchwort eingeben oder oben filtern – nach Zeitraum, Projekt, Modell, Anhängen oder erstellten Dateien.")) }
                     items(hits, key = { "s_" + it.conv.id }) { hit ->
                         Column(
                             Modifier
@@ -242,7 +241,7 @@ fun AppDrawer(
                                 listOfNotNull(
                                     java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(hit.conv.updatedAt)),
                                     hit.conv.folderId?.let { id -> folders.firstOrNull { it.id == id }?.name },
-                                    if (hit.conv.archived) "Archiv" else null,
+                                    if (hit.conv.archived) tr("Archiv") else null,
                                 ).joinToString(" · "),
                                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline,
                             )
@@ -279,7 +278,7 @@ fun AppDrawer(
                     if (next == null) Notices.info(tr("Oben ist Platz für") + " $MAX_TOP_AREAS " + tr("Bereiche – zuerst einen unter „Mehr“ schieben."))
                     else c.settings.update { it.copy(drawerTop = next) }
                 }
-                item(key = "nav_new") { NavRow(Icons.Outlined.EditNote, "Neuer Chat", accent = true, onClick = onNewChat) }
+                item(key = "nav_new") { NavRow(Icons.Outlined.EditNote, tr("Neuer Chat"), accent = true, onClick = onNewChat) }
                 items(topAreas, key = { "nav_" + it.id }) { a ->
                     AreaRow(a, onTop = true, badge = badgeOf(a), onOpen = { onNavigate(a.route) }, onMove = { move(a, false) },
                         onHide = hideAction(a))
@@ -288,7 +287,7 @@ fun AppDrawer(
                     item(key = "nav_more") {
                         val more = moreAreas.sumOf { badgeOf(it) }
                         NavRow(
-                            if (settings.drawerMoreOpen) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, "Mehr",
+                            if (settings.drawerMoreOpen) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, tr("Mehr"),
                             badge = if (settings.drawerMoreOpen) 0 else more, muted = true,
                         ) { c.settings.update { it.copy(drawerMoreOpen = !it.drawerMoreOpen) } }
                     }
@@ -303,13 +302,13 @@ fun AppDrawer(
 
                 item {
                     Row(Modifier.padding(start = 20.dp, end = 8.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        SectionTitle("Projekte", Modifier.weight(1f))
-                        IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = "Neues Projekt") }
+                        SectionTitle(tr("Projekte"), Modifier.weight(1f))
+                        IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = tr("Neues Projekt")) }
                     }
                 }
                 if (folders.isEmpty()) {
                     item {
-                        Hint("Ein Projekt bündelt Chats zu einem Thema – mit gemeinsamen Anweisungen und Dateien, z.B. „Seminar Allgemeine Didaktik“.")
+                        Hint(tr("Ein Projekt bündelt Chats zu einem Thema – mit gemeinsamen Anweisungen und Dateien, z.B. „Seminar Allgemeine Didaktik“."))
                     }
                 }
                 folders.sortedBy { it.name.lowercase() }.forEach { folder ->
@@ -327,7 +326,7 @@ fun AppDrawer(
                         )
                     }
                     if (open) {
-                        if (inFolder.isEmpty()) item(key = "fe_" + folder.id) { Hint("Noch keine Chats in diesem Projekt.", indent = true) }
+                        if (inFolder.isEmpty()) item(key = "fe_" + folder.id) { Hint(tr("Noch keine Chats in diesem Projekt."), indent = true) }
                         items(inFolder, key = { "fc_" + it.id }) { conv ->
                             ChatRow(conv, conv.id == currentChatId, indent = true, running = conv.id in runs,
                                 draft = conv.id in drafts, selecting = selection.isNotEmpty(), checked = conv.id in selection,
@@ -342,15 +341,15 @@ fun AppDrawer(
 
                 val pinned = conversations.filter { it.pinned }
                 if (pinned.isNotEmpty()) {
-                    item { SectionTitle("Angeheftet", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
+                    item { SectionTitle(tr("Angeheftet"), Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
                     chatList(pinned, "p_", currentChatId, runs.keys, onOpenChat, c, { moveChat = it }, { renameChat = it }, { deleteChat = it }, showPin = true,
                         drafts = drafts, selection = selection, onSelection = { selection = it })
                 }
 
                 val recent = conversations.filter { !it.pinned && it.folderId == null }
                 if (recent.isEmpty()) {
-                    item { SectionTitle("Chats", Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
-                    item { Hint("Noch keine Chats. Starte unten mit „Neuer Chat“ oder wähle eine Vorlage.") }
+                    item { SectionTitle(tr("Chats"), Modifier.padding(start = 20.dp, top = 18.dp, bottom = 4.dp)) }
+                    item { Hint(tr("Noch keine Chats. Starte unten mit „Neuer Chat“ oder wähle eine Vorlage.")) }
                 }
                 val today = LocalDate.now()
                 recent.groupBy { dayGroup(it.updatedAt, today) }.forEach { (group, list) ->
@@ -392,7 +391,7 @@ fun AppDrawer(
                     Column(Modifier.weight(1f)) {
                         if (name.isNotEmpty()) Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
-                            "Einstellungen",
+                            tr("Einstellungen"),
                             style = if (name.isEmpty()) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelSmall,
                             color = if (name.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -405,15 +404,15 @@ fun AppDrawer(
     }
 
     renameChat?.let { conv ->
-        TextInputDialog("Chat umbenennen", conv.title, "Titel", onConfirm = { t -> c.chats.modify(conv.id) { it.copy(title = t) } }, onDismiss = { renameChat = null })
+        TextInputDialog(tr("Chat umbenennen"), conv.title, tr("Titel"), onConfirm = { t -> c.chats.modify(conv.id) { it.copy(title = t) } }, onDismiss = { renameChat = null })
     }
     moveChat?.let { conv ->
         FolderPickerDialog(c, conv.folderId, onPick = { f -> c.chats.modify(conv.id) { it.copy(folderId = f) } }, onDismiss = { moveChat = null })
     }
     deleteChat?.let { conv ->
-        ConfirmDialog("Chat löschen?", "„${conv.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = {
+        ConfirmDialog(tr("Chat löschen?"), tr("„{0}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", conv.title), tr("Löschen"), onConfirm = {
             c.chats.delete(conv.id)
-            Notices.undo("Chat gelöscht", restore = { c.chats.restore(conv.id) })
+            Notices.undo(tr("Chat gelöscht"), restore = { c.chats.restore(conv.id) })
         }, onDismiss = { deleteChat = null })
     }
     if (moveSelection) {
@@ -428,7 +427,7 @@ fun AppDrawer(
     renameFolder?.let { f -> ProjectDialog(c, f, onDismiss = { renameFolder = null }) }
     deleteFolder?.let { f ->
         ConfirmDialog(
-            "Projekt löschen?", "Die Chats in „${f.name}“ bleiben erhalten und erscheinen wieder in der Chat-Liste. Projektdateien werden entfernt.", "Löschen",
+            tr("Projekt löschen?"), tr("Die Chats in „{0}“ bleiben erhalten und erscheinen wieder in der Chat-Liste. Projektdateien werden entfernt.", f.name), tr("Löschen"),
             onConfirm = {
                 c.chats.clearFolder(f.id)
                 c.folders.delete(f.id)
@@ -489,7 +488,7 @@ private fun NavRow(
     icon: ImageVector,
     label: String,
     badge: Int = 0,
-    badgeText: String = "neu",
+    badgeText: String = tr("neu"),
     indent: Boolean = false,
     muted: Boolean = false,
     accent: Boolean = false,
@@ -549,7 +548,7 @@ private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> 
         // Lora flies here and lets the entry glow when she leads to this area (AP-36).
         Spot("drawer.${area.route}") {
             NavRow(
-                area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) "läuft" else "neu",
+                area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) tr("läuft") else tr("neu"),
                 indent = !onTop, onMenu = { menu = true }, onClick = onOpen,
             )
         }
@@ -593,20 +592,20 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
             Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
             // The menu is also reachable without knowing about long press / right click.
             IconButton(onClick = { menu = true }) {
-                Icon(Icons.Outlined.MoreVert, contentDescription = "Projekt-Menü", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Outlined.MoreVert, contentDescription = tr("Projekt-Menü"), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text("Neuer Chat im Projekt") }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
-            DropdownMenuItem(text = { Text("Projekt bearbeiten …") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text(tr("Neuer Chat im Projekt")) }, leadingIcon = { Icon(Icons.Outlined.Add, null) }, onClick = { menu = false; onNewChat() })
+            DropdownMenuItem(text = { Text(tr("Projekt bearbeiten …")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             if (folder.workDir.isNotBlank() && PROJECT_FOLDERS) {
                 DropdownMenuItem(
-                    text = { Text("Projektordner öffnen") },
+                    text = { Text(tr("Projektordner öffnen")) },
                     leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) },
                     onClick = { menu = false; openProjectFolder(context, folder.workDir) },
                 )
             }
-            DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
+            DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
 }
@@ -659,7 +658,7 @@ private fun ChatRow(
                 modifier = Modifier.weight(1f),
             )
             if (draft && !running) {
-                Text("Entwurf", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 6.dp))
+                Text(tr("Entwurf"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 6.dp))
             }
             when {
                 // Answer is still being written (also in the background).
@@ -674,21 +673,21 @@ private fun ChatRow(
             }
             if (selected) {
                 IconButton(onClick = { menu = true }) {
-                    Icon(Icons.Outlined.MoreVert, contentDescription = "Chat-Menü", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Outlined.MoreVert, contentDescription = tr("Chat-Menü"), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
-                text = { Text(if (conv.pinned) "Lösen" else "Anheften") },
+                text = { Text(if (conv.pinned) tr("Lösen") else tr("Anheften")) },
                 leadingIcon = { Icon(Icons.Outlined.PushPin, null) },
                 onClick = { menu = false; onPin() },
             )
-            DropdownMenuItem(text = { Text("In Projekt verschieben") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
-            DropdownMenuItem(text = { Text("Umbenennen") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
-            DropdownMenuItem(text = { Text(if (conv.archived) "Aus dem Archiv holen" else "Archivieren") }, leadingIcon = { Icon(Icons.Outlined.Archive, null) }, onClick = { menu = false; onArchive() })
-            DropdownMenuItem(text = { Text("Auswählen") }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }, onClick = { menu = false; onSelect() })
-            DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
+            DropdownMenuItem(text = { Text(tr("In Projekt verschieben")) }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
+            DropdownMenuItem(text = { Text(tr("Umbenennen")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+            DropdownMenuItem(text = { Text(if (conv.archived) tr("Aus dem Archiv holen") else tr("Archivieren")) }, leadingIcon = { Icon(Icons.Outlined.Archive, null) }, onClick = { menu = false; onArchive() })
+            DropdownMenuItem(text = { Text(tr("Auswählen")) }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }, onClick = { menu = false; onSelect() })
+            DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
 }
@@ -705,36 +704,36 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
     ) {
         Box {
-            androidx.compose.material3.FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> "7 Tage"; 30 -> "30 Tage"; 365 -> "1 Jahr"; else -> "Zeitraum" }) })
+            androidx.compose.material3.FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> tr("7 Tage"); 30 -> tr("30 Tage"); 365 -> tr("1 Jahr"); else -> tr("Zeitraum") }) })
             androidx.compose.material3.DropdownMenu(period, { period = false }) {
-                listOf(0 to "Immer", 7 to "Letzte 7 Tage", 30 to "Letzte 30 Tage", 365 to "Letztes Jahr").forEach { (d, label) ->
+                listOf(0 to tr("Immer"), 7 to tr("Letzte 7 Tage"), 30 to tr("Letzte 30 Tage"), 365 to tr("Letztes Jahr")).forEach { (d, label) ->
                     androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = { period = false; onChange(filter.copy(days = d)) })
                 }
             }
         }
         Box {
             androidx.compose.material3.FilterChip(filter.project != null, { project = true }, label = {
-                Text(filter.project?.let { id -> if (id.isEmpty()) "Ohne Projekt" else folders.firstOrNull { it.id == id }?.name ?: "Projekt" } ?: "Projekt", maxLines = 1)
+                Text(filter.project?.let { id -> if (id.isEmpty()) tr("Ohne Projekt") else folders.firstOrNull { it.id == id }?.name ?: tr("Projekt") } ?: tr("Projekt"), maxLines = 1)
             })
             androidx.compose.material3.DropdownMenu(project, { project = false }) {
-                androidx.compose.material3.DropdownMenuItem(text = { Text("Alle") }, onClick = { project = false; onChange(filter.copy(project = null)) })
-                androidx.compose.material3.DropdownMenuItem(text = { Text("Ohne Projekt") }, onClick = { project = false; onChange(filter.copy(project = "")) })
+                androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Alle")) }, onClick = { project = false; onChange(filter.copy(project = null)) })
+                androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Ohne Projekt")) }, onClick = { project = false; onChange(filter.copy(project = "")) })
                 folders.forEach { f -> androidx.compose.material3.DropdownMenuItem(text = { Text(f.name) }, onClick = { project = false; onChange(filter.copy(project = f.id)) }) }
             }
         }
         Box {
             val models = remember(chats) { chats.map { it.model }.filter { it.isNotBlank() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }.take(15) }
             androidx.compose.material3.FilterChip(filter.model != null, { model = true }, label = {
-                Text(filter.model?.let { io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: "Modell", maxLines = 1)
+                Text(filter.model?.let { io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: tr("Modell"), maxLines = 1)
             })
             androidx.compose.material3.DropdownMenu(model, { model = false }) {
-                androidx.compose.material3.DropdownMenuItem(text = { Text("Alle") }, onClick = { model = false; onChange(filter.copy(model = null)) })
+                androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Alle")) }, onClick = { model = false; onChange(filter.copy(model = null)) })
                 models.forEach { m -> androidx.compose.material3.DropdownMenuItem(text = { Text(io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) }, onClick = { model = false; onChange(filter.copy(model = m)) }) }
             }
         }
-        androidx.compose.material3.FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text("Mit Anhängen") })
-        androidx.compose.material3.FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text("Mit erstellten Dateien") })
-        androidx.compose.material3.FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text("Archiv") })
-        if (filter.active) androidx.compose.material3.TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text("Zurücksetzen") }
+        androidx.compose.material3.FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text(tr("Mit Anhängen")) })
+        androidx.compose.material3.FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text(tr("Mit erstellten Dateien")) })
+        androidx.compose.material3.FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text(tr("Archiv")) })
+        if (filter.active) androidx.compose.material3.TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text(tr("Zurücksetzen")) }
     }
 }

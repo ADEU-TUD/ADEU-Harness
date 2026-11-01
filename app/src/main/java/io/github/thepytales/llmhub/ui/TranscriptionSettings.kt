@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -68,55 +67,55 @@ fun TranscriptionSettings(c: AppContainer) {
     val importModel = rememberMediaImport(anyFile = true) { name, _, input ->
         runCatching { t.importModelFile(name, input) }
             .onSuccess { Notices.info(it) }
-            .onFailure { Notices.error(it.message ?: "Fehler") }
+            .onFailure { Notices.error(it.message ?: tr("Fehler")) }
     }
 
-    GroupLabel("Standard")
+    GroupLabel(tr("Standard"))
     val mode = enumValues<TranscriptionMode>().firstOrNull { it.name == s.mode } ?: TranscriptionMode.LOCAL
     Segmented(TranscriptionMode.entries.map { it to it.label }, mode, { m -> t.updateSettings { it.copy(mode = m.name) } }, enabled = { it == TranscriptionMode.LOCAL || c.settings.current.hasApiKey })
-    HintText(mode.description + " Projekte mit der Datenschutzstufe „Nur auf diesem Gerät“ transkribieren immer hier.")
+    HintText(mode.description + tr(" Projekte mit der Datenschutzstufe „Nur auf diesem Gerät“ transkribieren immer hier."))
 
-    GroupLabel("Erkennungsmodelle")
-    if (available == false) HintText(t.unavailableReason ?: "Auf diesem Gerät nicht verfügbar.")
+    GroupLabel(tr("Erkennungsmodelle"))
+    if (available == false) HintText(t.unavailableReason ?: tr("Auf diesem Gerät nicht verfügbar."))
     AppCard {
         Column {
             state.models.forEachIndexed { i, m ->
                 if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ModelRow(m, recommended = m.id == "parakeet", onDownload = { t.download(m.id) }, onCancel = { t.cancelDownload(m.id) }, onDelete = { t.deleteModel(m.id) }, onManual = { manual = m })
             }
-            if (state.models.isEmpty()) HintText("Die Modelle erscheinen, sobald die Spracherkennung gestartet ist.", Modifier.padding(16.dp))
+            if (state.models.isEmpty()) HintText(tr("Die Modelle erscheinen, sobald die Spracherkennung gestartet ist."), Modifier.padding(16.dp))
         }
     }
     HintText(
-        "Modelle werden einmalig geladen (am besten im WLAN) und laufen danach komplett offline. Für die Sprechererkennung " +
+        tr("Modelle werden einmalig geladen (am besten im WLAN) und laufen danach komplett offline. Für die Sprechererkennung " +
             "kommt einmalig ein kleines Zusatzmodell (26 MB) dazu. Parakeet ist auf Rechnern ohne Grafikkarte am schnellsten, " +
-            "Whisper Turbo erkennt am genauesten.",
+            "Whisper Turbo erkennt am genauesten."),
     )
-    OutlinedButton(onClick = importModel) { Text("Modelldateien einspielen (auch ZIP)") }
+    OutlinedButton(onClick = importModel) { Text(tr("Modelldateien einspielen (auch ZIP)")) }
 
-    GroupLabel("Voreinstellungen")
+    GroupLabel(tr("Voreinstellungen"))
     AppCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ChoiceField("Sprache", SPEECH_LANGUAGES, s.language, { v -> t.updateSettings { it.copy(language = v) } })
-            Text("Sprecher erkennen", style = MaterialTheme.typography.labelLarge)
+            ChoiceField(tr("Sprache"), SPEECH_LANGUAGES, s.language, { v -> t.updateSettings { it.copy(language = v) } })
+            Text(tr("Sprecher erkennen"), style = MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 SPEAKER_OPTIONS.forEach { (v, l) -> FilterChip(selected = s.speakers == v, onClick = { t.updateSettings { it.copy(speakers = v) } }, label = { Text(l) }) }
             }
             ChoiceField(
-                "Empfindlichkeit der Sprecher-Automatik",
-                listOf("fewer" to "Weniger Sprecher", "normal" to "Normal", "more" to "Mehr Sprecher"),
+                tr("Empfindlichkeit der Sprecher-Automatik"),
+                listOf("fewer" to tr("Weniger Sprecher"), "normal" to tr("Normal"), "more" to tr("Mehr Sprecher")),
                 s.sensitivity, { v -> t.updateSettings { it.copy(sensitivity = v) } },
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TitleBlock("Live-Text bei Aufnahmen", "Schon während der Aufnahme transkribieren (auf dem Gerät) – nach dem Stoppen ist der Text fast sofort fertig.", Modifier.weight(1f))
+                TitleBlock(tr("Live-Text bei Aufnahmen"), tr("Schon während der Aufnahme transkribieren (auf dem Gerät) – nach dem Stoppen ist der Text fast sofort fertig."), Modifier.weight(1f))
                 Switch(s.live, { v -> t.updateSettings { it.copy(live = v) } })
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TitleBlock(
-                    "Wortzeiten messen",
-                    "Nach Whisper oder dem Uni-Server misst Parakeet v3 auf dem Gerät, wann jedes Wort gesprochen wird (im Median 50 ms genau, " +
-                        "Whisper selbst liegt öfter 0,25 s und mehr daneben). Grundlage für Wortmarkierung, Zeitstempel je Satz und Untertitel." +
-                        if (state.models.none { it.id == "parakeet" && it.installed }) " Dafür oben Parakeet v3 laden." else "",
+                    tr("Wortzeiten messen"),
+                    tr("Nach Whisper oder dem Uni-Server misst Parakeet v3 auf dem Gerät, wann jedes Wort gesprochen wird (im Median 50 ms genau, " +
+                        "Whisper selbst liegt öfter 0,25 s und mehr daneben). Grundlage für Wortmarkierung, Zeitstempel je Satz und Untertitel.") +
+                        if (state.models.none { it.id == "parakeet" && it.installed }) tr(" Dafür oben Parakeet v3 laden.") else "",
                     Modifier.weight(1f),
                 )
                 Switch(s.measureWords, { v -> t.updateSettings { it.copy(measureWords = v) } })
@@ -124,42 +123,42 @@ fun TranscriptionSettings(c: AppContainer) {
         }
     }
 
-    GroupLabel(if (SpeechHost.IS_PC) "Leistung & Mikrofon" else "Leistung & Mikrofon")
+    GroupLabel(if (SpeechHost.IS_PC) tr("Leistung & Mikrofon") else tr("Leistung & Mikrofon"))
     AppCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             val cores = Runtime.getRuntime().availableProcessors()
             ChoiceField(
-                "Rechenkerne",
-                listOf(0 to "Automatisch (${state.threads.takeIf { it > 0 } ?: "–"})") + (1..cores.coerceAtMost(16)).map { it to it.toString() },
+                tr("Rechenkerne"),
+                listOf(0 to tr("Automatisch ({0})", state.threads.takeIf { it > 0 } ?: "–")) + (1..cores.coerceAtMost(16)).map { it to it.toString() },
                 s.threads, { v -> t.updateSettings { it.copy(threads = v) } },
             )
             if (SpeechHost.IS_PC) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TitleBlock("Schonend rechnen", "Niedrige Priorität, damit Office und Browser flüssig bleiben.", Modifier.weight(1f))
+                    TitleBlock(tr("Schonend rechnen"), tr("Niedrige Priorität, damit Office und Browser flüssig bleiben."), Modifier.weight(1f))
                     Switch(s.gentle, { v -> t.updateSettings { it.copy(gentle = v) } })
                 }
                 val mics = remember { SpeechHost.microphones() }
-                ChoiceField("Mikrofon", listOf("" to "Standard (Windows)") + mics.map { it to it }, s.micDevice, { v -> t.updateSettings { it.copy(micDevice = v) } })
-                HintText("Kein Mikrofon gefunden? Windows-Einstellungen › Datenschutz › Mikrofon › „Desktop-Apps den Zugriff erlauben“.")
+                ChoiceField(tr("Mikrofon"), listOf("" to tr("Standard (Windows)")) + mics.map { it to it }, s.micDevice, { v -> t.updateSettings { it.copy(micDevice = v) } })
+                HintText(tr("Kein Mikrofon gefunden? Windows-Einstellungen › Datenschutz › Mikrofon › „Desktop-Apps den Zugriff erlauben“."))
             } else {
                 ChoiceField(
-                    "Mikrofon-Modus",
-                    listOf("speech" to "Für Spracherkennung (empfohlen)", "standard" to "Standard"),
+                    tr("Mikrofon-Modus"),
+                    listOf("speech" to tr("Für Spracherkennung (empfohlen)"), "standard" to tr("Standard")),
                     s.micMode, { v -> t.updateSettings { it.copy(micMode = v) } },
                 )
             }
         }
     }
 
-    GroupLabel("Ersetzungsliste")
+    GroupLabel(tr("Ersetzungsliste"))
     ReplacementList(c)
 
-    GroupLabel("Speicher")
+    GroupLabel(tr("Speicher"))
     AppCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Transkripte und Aufnahmen: ${formatBytes(state.storage)} · Modelle: ${formatBytes(state.modelsSize)}", style = MaterialTheme.typography.bodyMedium)
+            Text(tr("Transkripte und Aufnahmen: {0} · Modelle: {1}", formatBytes(state.storage), formatBytes(state.modelsSize)), style = MaterialTheme.typography.bodyMedium)
             if (state.modelsDir.isNotBlank()) HintText(state.modelsDir)
-            if (state.calibrated) TextButton(onClick = { t.recalibrate() }) { Text("Sprecher-Automatik neu einrichten") }
+            if (state.calibrated) TextButton(onClick = { t.recalibrate() }) { Text(tr("Sprecher-Automatik neu einrichten")) }
         }
     }
 
@@ -173,21 +172,21 @@ private fun ModelRow(m: SpeechModel, recommended: Boolean, onDownload: () -> Uni
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(m.name, style = MaterialTheme.typography.titleSmall)
-                    if (recommended) StatusPill("Empfohlen")
-                    if (m.installed) StatusPill("bereit", PillTone.SUCCESS)
+                    if (recommended) StatusPill(tr("Empfohlen"))
+                    if (m.installed) StatusPill(tr("bereit"), PillTone.SUCCESS)
                 }
                 HintText(
                     m.description + " · " + formatBytes(m.size) +
-                        (m.speed?.let { " · hier ca. ${(it * 60).toInt().coerceAtLeast(1)} min pro Stunde Audio" } ?: ""),
+                        (m.speed?.let { tr(" · hier ca. {0} min pro Stunde Audio", (it * 60).toInt().coerceAtLeast(1)) } ?: ""),
                 )
             }
             when {
-                m.installed -> IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen", tint = MaterialTheme.colorScheme.error) }
-                m.downloading != null -> TextButton(onClick = onCancel) { Text("Stopp") }
+                m.installed -> IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), tint = MaterialTheme.colorScheme.error) }
+                m.downloading != null -> TextButton(onClick = onCancel) { Text(tr("Stopp")) }
                 else -> OutlinedButton(onClick = onDownload) {
                     Icon(Icons.Outlined.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Laden")
+                    Text(tr("Laden"))
                 }
             }
         }
@@ -197,7 +196,7 @@ private fun ModelRow(m: SpeechModel, recommended: Boolean, onDownload: () -> Uni
         }
         if (!m.installed && m.downloading == null) {
             Text(
-                "Download gesperrt? Dateien selbst laden und einspielen",
+                tr("Download gesperrt? Dateien selbst laden und einspielen"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(4.dp)).clickable(onClick = onManual),
@@ -212,20 +211,20 @@ private fun ManualDownloadDialog(m: SpeechModel, onImport: () -> Unit, onDismiss
     val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("${m.name} von Hand laden") },
+        title = { Text(tr("{0} von Hand laden", m.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                HintText("Die Dateien im Browser (oder an einem anderen Rechner) herunterladen und dann mit „Einspielen“ übernehmen. Jede Datei wird mit ihrer Prüfsumme kontrolliert.")
+                HintText(tr("Die Dateien im Browser (oder an einem anderen Rechner) herunterladen und dann mit „Einspielen“ übernehmen. Jede Datei wird mit ihrer Prüfsumme kontrolliert."))
                 m.files.forEach { (name, url) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(name, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(url)) }) { Text("Link kopieren") }
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(url)) }) { Text(tr("Link kopieren")) }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onImport) { Text("Einspielen …") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onImport) { Text(tr("Einspielen …")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -239,27 +238,27 @@ private fun ReplacementList(c: AppContainer) {
     fun persist() = t.saveReplacements(rows.toList())
     AppCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            HintText("Namen und Fachbegriffe, die immer gleich falsch erkannt werden (z. B. „Maier“ → „Meyer“), werden in neuen Transkripten automatisch korrigiert.")
+            HintText(tr("Namen und Fachbegriffe, die immer gleich falsch erkannt werden (z. B. „Maier“ → „Meyer“), werden in neuen Transkripten automatisch korrigiert."))
             rows.forEachIndexed { i, (from, to) ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(from, { v -> rows[i] = v to rows[i].second; persist() }, label = { Text("Erkannt") }, singleLine = true, modifier = Modifier.weight(1f))
-                    OutlinedTextField(to, { v -> rows[i] = rows[i].first to v; persist() }, label = { Text("Richtig") }, singleLine = true, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { rows.removeAt(i); persist() }) { Icon(Icons.Outlined.Delete, contentDescription = "Entfernen") }
+                    OutlinedTextField(from, { v -> rows[i] = v to rows[i].second; persist() }, label = { Text(tr("Erkannt")) }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(to, { v -> rows[i] = rows[i].first to v; persist() }, label = { Text(tr("Richtig")) }, singleLine = true, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { rows.removeAt(i); persist() }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Entfernen")) }
                 }
             }
             Row {
                 TextButton(onClick = { rows.add("" to "") }) {
                     Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Eintrag")
+                    Text(tr("Eintrag"))
                 }
                 Spacer(Modifier.weight(1f))
                 if (rows.any { it.first.isNotBlank() }) TextButton(onClick = {
                     scope.launch {
                         val n = t.applyReplacementsToAll()
-                        Notices.info(if (n == 0) "Keine Änderungen nötig." else "$n Transkript(e) korrigiert.")
+                        Notices.info(if (n == 0) tr("Keine Änderungen nötig.") else tr("{0} Transkript(e) korrigiert.", n))
                     }
-                }) { Text("Auf vorhandene anwenden") }
+                }) { Text(tr("Auf vorhandene anwenden")) }
             }
         }
     }

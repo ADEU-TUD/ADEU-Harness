@@ -7,6 +7,8 @@ import io.github.thepytales.llmhub.data.MapKind
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import io.github.thepytales.llmhub.ui.tr
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * What Lora notices on the device, without any request (AP-34, AP-35): where the user is and what fits there, next
@@ -26,22 +28,22 @@ object LoraSense {
         val r = route.orEmpty().substringBefore('?')
         val section = r.substringAfter("settings/", "").substringBefore('/')
         return when {
-            r.isEmpty() || r == "chat" -> "Chat"
-            r == "settings" || r.startsWith("settings/{") -> "Einstellungen"
-            section.isNotEmpty() -> "Einstellungen › " + (AppMap.byId("settings.$section")?.title ?: section)
-            r == "templates" || r == "creative" -> "Erstellen"
-            r.startsWith("design/") -> "Design"
-            r == "literature" -> "Literatur"
-            r == "transcripts" || r.startsWith("transcript") -> "Transkription"
-            r == "docs" || r == "files" -> "Dateien"
-            r.startsWith("doc/") -> "Dokument"
-            r == "images" -> "Bilder erzeugen"
-            r == "tasks" -> "Geplante Aufgaben"
-            r == "pdf" -> "PDF-Werkzeugkasten"
-            r == "vault" -> "Tresor"
-            r == "models" -> "Modellübersicht"
-            r == "compare" -> "Modelle vergleichen"
-            else -> AppMap.build().firstOrNull { it.route == r }?.title ?: "App"
+            r.isEmpty() || r == "chat" -> trLater("Chat")
+            r == "settings" || r.startsWith("settings/{") -> trLater("Einstellungen")
+            section.isNotEmpty() -> trLater("Einstellungen › ") + (AppMap.byId("settings.$section")?.title ?: section)
+            r == "templates" || r == "creative" -> trLater("Erstellen")
+            r.startsWith("design/") -> trLater("Design")
+            r == "literature" -> trLater("Literatur")
+            r == "transcripts" || r.startsWith("transcript") -> trLater("Transkription")
+            r == "docs" || r == "files" -> trLater("Dateien")
+            r.startsWith("doc/") -> trLater("Dokument")
+            r == "images" -> trLater("Bilder erzeugen")
+            r == "tasks" -> trLater("Geplante Aufgaben")
+            r == "pdf" -> trLater("PDF-Werkzeugkasten")
+            r == "vault" -> trLater("Tresor")
+            r == "models" -> trLater("Modellübersicht")
+            r == "compare" -> trLater("Modelle vergleichen")
+            else -> AppMap.build().firstOrNull { it.route == r }?.title ?: trLater("App")
         }
     }
 
@@ -54,65 +56,65 @@ object LoraSense {
         val pdfOn = AppTool.PDF.id in enabledTools
         val list = when {
             r.isEmpty() || r == "chat" -> if (inChat) listOf(
-                Suggestion("Chat zusammenfassen", "Fasse diesen Chat in wenigen Stichpunkten zusammen.", inChat = true),
-                Suggestion("Als Word-Dokument", "Mach aus deiner letzten Antwort ein Word-Dokument (docx).", inChat = true),
-                Suggestion("Standardmodell", "Standardmodell", "option.chat.defaultModel"),
+                Suggestion(trLater("Chat zusammenfassen"), "Fasse diesen Chat in wenigen Stichpunkten zusammen.", inChat = true),
+                Suggestion(trLater("Als Word-Dokument"), "Mach aus deiner letzten Antwort ein Word-Dokument (docx).", inChat = true),
+                Suggestion(trLater("Standardmodell"), "Standardmodell", "option.chat.defaultModel"),
             ) else listOf(
-                Suggestion("Literatur finden", "Literatursuche", "mode.literature"),
-                Suggestion(if (pdfOn) "PDFs bearbeiten" else "PDF-Werkzeugkasten", "PDF zusammenfügen", if (pdfOn) "tool.pdf" else null),
-                Suggestion("Brief schreiben", "Brief", "template.b_tud_letter"),
+                Suggestion(trLater("Literatur finden"), "Literatursuche", "mode.literature"),
+                Suggestion(if (pdfOn) trLater("PDFs bearbeiten") else trLater("PDF-Werkzeugkasten"), "PDF zusammenfügen", if (pdfOn) "tool.pdf" else null),
+                Suggestion(trLater("Brief schreiben"), "Brief", "template.b_tud_letter"),
             )
             r.startsWith("settings") -> listOf(
-                Suggestion("Hell oder dunkel", "Dunkles Design", "option.appearance.theme"),
-                Suggestion("Schriftgröße", "Schriftgröße", "option.appearance.textsize"),
-                Suggestion("Namen schützen", "Wie funktioniert die Pseudonymisierung?"),
+                Suggestion(trLater("Hell oder dunkel"), "Dunkles Design", "option.appearance.theme"),
+                Suggestion(trLater("Schriftgröße"), "Schriftgröße", "option.appearance.textsize"),
+                Suggestion(trLater("Namen schützen"), "Wie funktioniert die Pseudonymisierung?"),
             )
             r == "templates" || r == "creative" -> listOfNotNull(
                 // Erstellen (AP-24): on Windows Lora also designs.
-                Suggestion("Poster gestalten lassen", "Gestalten", "mode.design").takeIf { !android && ChatModes.visible().any { it.id == ChatModes.DESIGN.id } },
-                Suggestion("Antwort an Studierende", "Mail an Studierende", "template.b_mail_student"),
-                Suggestion("Vorlage Schritt für Schritt", "Wie geht eine Vorlage mit Lora?"),
-                Suggestion("Eigene Vorlage", "Wie lege ich eine eigene Vorlage an?").takeIf { android || ChatModes.visible().none { it.id == ChatModes.DESIGN.id } },
+                Suggestion(trLater("Poster gestalten lassen"), "Gestalten", "mode.design").takeIf { !android && ChatModes.visible().any { it.id == ChatModes.DESIGN.id } },
+                Suggestion(trLater("Antwort an Studierende"), "Mail an Studierende", "template.b_mail_student"),
+                Suggestion(trLater("Vorlage Schritt für Schritt"), "Wie geht eine Vorlage mit Lora?"),
+                Suggestion(trLater("Eigene Vorlage"), "Wie lege ich eine eigene Vorlage an?").takeIf { android || ChatModes.visible().none { it.id == ChatModes.DESIGN.id } },
             )
             r == "literature" -> listOf(
-                Suggestion("Exzerpt erstellen", "Exzerpt", "mode.excerpt"),
-                Suggestion("Zitierstil ändern", "Zitierstil", "settings.literature"),
-                Suggestion("Literatur suchen", "Literatursuche", "mode.literature"),
+                Suggestion(trLater("Exzerpt erstellen"), "Exzerpt", "mode.excerpt"),
+                Suggestion(trLater("Zitierstil ändern"), "Zitierstil", "settings.literature"),
+                Suggestion(trLater("Literatur suchen"), "Literatursuche", "mode.literature"),
             )
             r == "transcripts" || r.startsWith("transcript") -> listOf(
-                Suggestion("Interview transkribieren", "Wie transkribiere ich ein Interview?"),
-                Suggestion("Spracherkennung", "Transkription", "settings.transcription"),
-                Suggestion("Namen schützen", "Pseudonymisierung", "option.privacy.pseudonymize"),
+                Suggestion(trLater("Interview transkribieren"), "Wie transkribiere ich ein Interview?"),
+                Suggestion(trLater("Spracherkennung"), "Transkription", "settings.transcription"),
+                Suggestion(trLater("Namen schützen"), "Pseudonymisierung", "option.privacy.pseudonymize"),
             )
             r == "pdf" -> listOf(
-                Suggestion("Wie geht zusammenfügen?", "Wie füge ich PDFs zusammen?"),
-                Suggestion("PDF zusammenfassen", "Erklär mir, wie ich ein PDF im Chat zusammenfassen lasse"),
-                Suggestion("Formular ausfüllen", "Wie fülle ich ein PDF-Formular aus?"),
+                Suggestion(trLater("Wie geht zusammenfügen?"), "Wie füge ich PDFs zusammen?"),
+                Suggestion(trLater("PDF zusammenfassen"), "Erklär mir, wie ich ein PDF im Chat zusammenfassen lasse"),
+                Suggestion(trLater("Formular ausfüllen"), "Wie fülle ich ein PDF-Formular aus?"),
             )
             r == "vault" -> listOf(
-                Suggestion("Wie sicher ist der Tresor?", "Wie funktioniert der Tresor?"),
-                Suggestion("Lokale Modelle", "Modelle auf diesem Gerät", "area.local"),
+                Suggestion(trLater("Wie sicher ist der Tresor?"), "Wie funktioniert der Tresor?"),
+                Suggestion(trLater("Lokale Modelle"), "Modelle auf diesem Gerät", "area.local"),
             )
             r == "docs" || r == "files" -> listOf(
-                Suggestion("Wo liegen meine Dateien?", "Erklär mir den Lora-Ordner und wie ich ihn verschiebe"),
-                Suggestion("Datei finden", "Wie finde ich eine Datei über ihren Inhalt?"),
+                Suggestion(trLater("Wo liegen meine Dateien?"), "Erklär mir den Lora-Ordner und wie ich ihn verschiebe"),
+                Suggestion(trLater("Datei finden"), "Wie finde ich eine Datei über ihren Inhalt?"),
             )
             r.startsWith("doc/") -> listOf(
-                Suggestion("Änderungen nachverfolgen", "Wie verfolge ich Änderungen im Dokument nach?"),
-                Suggestion("Dokumente & Logos", "Dokumente & Logos", "settings.documents"),
-                Suggestion("Absender ändern", "Absender", "option.documents.sender"),
+                Suggestion(trLater("Änderungen nachverfolgen"), "Wie verfolge ich Änderungen im Dokument nach?"),
+                Suggestion(trLater("Dokumente & Logos"), "Dokumente & Logos", "settings.documents"),
+                Suggestion(trLater("Absender ändern"), "Absender", "option.documents.sender"),
             )
             r == "images" -> listOf(
-                Suggestion("Bild für eine Folie", "Erklär mir, wie ich ein gutes Bild für eine Folie erzeuge"),
-                Suggestion("Eigene Logos", "Logos", "option.documents.logo"),
+                Suggestion(trLater("Bild für eine Folie"), "Erklär mir, wie ich ein gutes Bild für eine Folie erzeuge"),
+                Suggestion(trLater("Eigene Logos"), "Logos", "option.documents.logo"),
             )
             r == "tasks" -> listOf(
-                Suggestion("Wie geht eine Aufgabe?", "Wie lege ich eine geplante Aufgabe an?"),
-                Suggestion("Benachrichtigungen", "Wie geht Benachrichtigungen?"),
+                Suggestion(trLater("Wie geht eine Aufgabe?"), "Wie lege ich eine geplante Aufgabe an?"),
+                Suggestion(trLater("Benachrichtigungen"), "Wie geht Benachrichtigungen?"),
             )
             else -> emptyList()
         }
-        return (list + Suggestion("Was kann ich hier tun?", "Wie geht ${place(route)}?")).distinctBy { it.wish }.take(4)
+        return (list + Suggestion(trLater("Was kann ich hier tun?"), "Wie geht ${place(route)}?")).distinctBy { it.wish }.take(4)
     }
 
     // ── Next steps under an answer (AP-35) ──────────────────────────────────────────────────────────────────
@@ -249,10 +251,10 @@ object LoraSense {
     /** The label of a next step's chip. */
     fun label(step: NextStep): String = when (step) {
         is NextStep.Calendar -> if (step.deadlines.size == 1) {
-            "Frist ${step.deadlines[0].date.format(DateTimeFormatter.ofPattern("d.M.", Locale.GERMANY))} in den Kalender"
-        } else "${step.deadlines.size} Fristen in den Kalender"
-        is NextStep.Excel -> "Tabelle als Excel"
-        NextStep.Word -> "Als Word-Dokument"
+            tr("Frist {0} in den Kalender", step.deadlines[0].date.format(DateTimeFormatter.ofPattern("d.M.", Locale.GERMANY)))
+        } else tr("{0} Fristen in den Kalender", step.deadlines.size)
+        is NextStep.Excel -> tr("Tabelle als Excel")
+        NextStep.Word -> tr("Als Word-Dokument")
         is NextStep.Literature -> if (step.dois.size == 1) "In Literatur übernehmen" else "${step.dois.size} Titel in Literatur übernehmen"
     }
 
@@ -277,22 +279,22 @@ object LoraSense {
         val title = arg(args, "title", "file_name", "subject", "name")
         val path = arg(args, "path", "file", "name")
         return when (name) {
-            "web_search" -> q?.let { "Sucht im Web: ${quote(it)}" } ?: "Sucht im Web …"
-            "news_search" -> q?.let { "Sucht Nachrichten: ${quote(it)}" } ?: "Sucht Nachrichten …"
-            "fetch_url" -> url?.let { "Liest ${host(it)}" } ?: "Liest eine Webseite …"
-            "search_literature" -> q?.let { "Sucht Literatur: ${quote(it)}" } ?: "Sucht Literatur …"
-            "search_knowledge" -> q?.let { "Durchsucht die Wissenssammlung: ${quote(it)}" } ?: "Durchsucht die Wissenssammlung …"
-            "search_chats" -> q?.let { "Erinnert sich an frühere Chats: ${quote(it)}" } ?: "Durchsucht frühere Chats …"
-            "create_document" -> title?.let { "Schreibt ${quote(it)}" } ?: "Schreibt ein Dokument …"
-            "edit_document" -> "Überarbeitet das Dokument …"
-            "create_email_draft" -> title?.let { "Entwirft die Mail ${quote(it)}" } ?: "Entwirft eine Mail …"
-            "create_calendar_event" -> title?.let { "Trägt ${quote(it)} ein" } ?: "Legt einen Termin an …"
-            "create_chart" -> title?.let { "Zeichnet das Diagramm ${quote(it)}" } ?: "Zeichnet ein Diagramm …"
-            "run_javascript" -> "Rechnet nach …"
-            "read_file", "read_local_file", "read_document" -> path?.let { "Liest ${quote(it.substringAfterLast('/').substringAfterLast('\\'))}" } ?: "Liest eine Datei …"
-            "check_references" -> "Prüft die Quellen …"
-            "ask_user" -> "Hat eine Rückfrage …"
-            "remember" -> "Merkt sich etwas …"
+            "web_search" -> q?.let { tr("Sucht im Web: {0}", quote(it)) } ?: tr("Sucht im Web …")
+            "news_search" -> q?.let { tr("Sucht Nachrichten: {0}", quote(it)) } ?: tr("Sucht Nachrichten …")
+            "fetch_url" -> url?.let { tr("Liest {0}", host(it)) } ?: tr("Liest eine Webseite …")
+            "search_literature" -> q?.let { tr("Sucht Literatur: {0}", quote(it)) } ?: tr("Sucht Literatur …")
+            "search_knowledge" -> q?.let { tr("Durchsucht die Wissenssammlung: {0}", quote(it)) } ?: tr("Durchsucht die Wissenssammlung …")
+            "search_chats" -> q?.let { tr("Erinnert sich an frühere Chats: {0}", quote(it)) } ?: tr("Durchsucht frühere Chats …")
+            "create_document" -> title?.let { tr("Schreibt {0}", quote(it)) } ?: tr("Schreibt ein Dokument …")
+            "edit_document" -> tr("Überarbeitet das Dokument …")
+            "create_email_draft" -> title?.let { tr("Entwirft die Mail {0}", quote(it)) } ?: tr("Entwirft eine Mail …")
+            "create_calendar_event" -> title?.let { tr("Trägt {0} ein", quote(it)) } ?: tr("Legt einen Termin an …")
+            "create_chart" -> title?.let { tr("Zeichnet das Diagramm {0}", quote(it)) } ?: tr("Zeichnet ein Diagramm …")
+            "run_javascript" -> tr("Rechnet nach …")
+            "read_file", "read_local_file", "read_document" -> path?.let { tr("Liest {0}", quote(it.substringAfterLast('/').substringAfterLast('\\'))) } ?: tr("Liest eine Datei …")
+            "check_references" -> tr("Prüft die Quellen …")
+            "ask_user" -> tr("Hat eine Rückfrage …")
+            "remember" -> tr("Merkt sich etwas …")
             else -> "$fallback …"
         }
     }

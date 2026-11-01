@@ -42,7 +42,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,12 +68,12 @@ import io.github.thepytales.llmhub.transcribe.TranscriptionMode
 
 /** Languages offered for Whisper (Parakeet recognizes the language itself). */
 val SPEECH_LANGUAGES = listOf(
-    "de" to "Deutsch", "en" to "Englisch", "auto" to "Automatisch erkennen", "fr" to "Französisch", "es" to "Spanisch",
-    "it" to "Italienisch", "pl" to "Polnisch", "cs" to "Tschechisch", "nl" to "Niederländisch", "ru" to "Russisch",
-    "uk" to "Ukrainisch", "tr" to "Türkisch", "ar" to "Arabisch", "pt" to "Portugiesisch",
+    "de" to trLater("Deutsch"), "en" to trLater("Englisch"), "auto" to trLater("Automatisch erkennen"), "fr" to trLater("Französisch"), "es" to trLater("Spanisch"),
+    "it" to trLater("Italienisch"), "pl" to trLater("Polnisch"), "cs" to trLater("Tschechisch"), "nl" to trLater("Niederländisch"), "ru" to trLater("Russisch"),
+    "uk" to trLater("Ukrainisch"), "tr" to trLater("Türkisch"), "ar" to trLater("Arabisch"), "pt" to trLater("Portugiesisch"),
 )
 
-val SPEAKER_OPTIONS = listOf("off" to "Keine", "auto" to "Automatisch", "2" to "2", "3" to "3", "4" to "4", "5" to "5", "6" to "6")
+val SPEAKER_OPTIONS = listOf("off" to trLater("Keine"), "auto" to trLater("Automatisch"), "2" to "2", "3" to "3", "4" to "4", "5" to "5", "6" to "6")
 
 /**
  * The choices before a transcription: where (device / Uni server, as far as the project's data protection level
@@ -92,11 +91,11 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (showTitle) {
-            OutlinedTextField(opts.title, { onChange(opts.copy(title = it)) }, label = { Text("Titel (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(opts.title, { onChange(opts.copy(title = it)) }, label = { Text(tr("Titel (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         }
         ChoiceField(
-            "Projekt",
-            listOf<Pair<String?, String>>(null to "Kein Projekt") + folders.sortedBy { it.name.lowercase() }.map { it.id to it.name + if (it.privacy != PrivacyLevel.OPEN) " · ${it.privacy.short}" else "" },
+            tr("Projekt"),
+            listOf<Pair<String?, String>>(null to tr("Kein Projekt")) + folders.sortedBy { it.name.lowercase() }.map { it.id to it.name + if (it.privacy != PrivacyLevel.OPEN) " · ${it.privacy.short}" else "" },
             opts.folder,
             { f ->
                 val next = opts.copy(folder = f)
@@ -104,7 +103,7 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
             },
         )
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Transkribieren", style = MaterialTheme.typography.labelLarge)
+            Text(tr("Transkribieren"), style = MaterialTheme.typography.labelLarge)
             Segmented(
                 TranscriptionMode.entries.map { it to it.label },
                 opts.mode,
@@ -114,8 +113,8 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
             HintText(
                 when {
                     opts.mode == TranscriptionMode.SERVER -> TranscriptionMode.SERVER.description
-                    !privacy.allowsUniServer -> "Datenschutzstufe des Projekts „${privacy.label}“: Die Aufnahme verlässt das Gerät nicht."
-                    !c.settings.current.hasApiKey -> "Für den Uni-Server fehlt der API-Key (Einstellungen › API-Zugang)."
+                    !privacy.allowsUniServer -> tr("Datenschutzstufe des Projekts „{0}“: Die Aufnahme verlässt das Gerät nicht.", privacy.label)
+                    !c.settings.current.hasApiKey -> tr("Für den Uni-Server fehlt der API-Key (Einstellungen › API-Zugang).")
                     else -> TranscriptionMode.LOCAL.description
                 },
             )
@@ -124,33 +123,33 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
             if (installed.isEmpty()) {
                 AppCard {
                     Column(Modifier.padding(14.dp)) {
-                        Text("Noch kein Erkennungsmodell geladen", style = MaterialTheme.typography.titleSmall)
-                        HintText("Unter Einstellungen › Transkription ein Modell laden (einmalig, z. B. Parakeet v3 mit 670 MB).")
+                        Text(tr("Noch kein Erkennungsmodell geladen"), style = MaterialTheme.typography.titleSmall)
+                        HintText(tr("Unter Einstellungen › Transkription ein Modell laden (einmalig, z. B. Parakeet v3 mit 670 MB)."))
                     }
                 }
             } else {
                 ChoiceField(
-                    "Erkennungsmodell",
-                    installed.map { m -> m.id to m.name + (m.speed?.let { s -> " · ca. ${(s * 60).toInt().coerceAtLeast(1)} min pro Stunde" } ?: "") },
+                    tr("Erkennungsmodell"),
+                    installed.map { m -> m.id to m.name + (m.speed?.let { s -> tr(" · ca. {0} min pro Stunde", (s * 60).toInt().coerceAtLeast(1)) } ?: "") },
                     opts.model.takeIf { id -> installed.any { it.id == id } } ?: installed.first().id,
                     { onChange(opts.copy(model = it)) },
                 )
             }
         }
         val parakeet = opts.mode == TranscriptionMode.LOCAL && opts.model == "parakeet"
-        ChoiceField("Sprache", SPEECH_LANGUAGES, opts.language, { onChange(opts.copy(language = it)) }, enabled = !parakeet)
-        if (parakeet) HintText("Parakeet erkennt die Sprache selbst (25 europäische Sprachen).")
+        ChoiceField(tr("Sprache"), SPEECH_LANGUAGES, opts.language, { onChange(opts.copy(language = it)) }, enabled = !parakeet)
+        if (parakeet) HintText(tr("Parakeet erkennt die Sprache selbst (25 europäische Sprachen)."))
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Sprecher erkennen", style = MaterialTheme.typography.labelLarge)
+            Text(tr("Sprecher erkennen"), style = MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 SPEAKER_OPTIONS.forEach { (v, l) -> FilterChip(selected = opts.speakers == v, onClick = { onChange(opts.copy(speakers = v)) }, label = { Text(l) }) }
             }
-            if (!state.speakerModelReady && opts.speakers != "off") HintText("Beim ersten Mal wird ein kleines Sprechermodell geladen (26 MB).")
+            if (!state.speakerModelReady && opts.speakers != "off") HintText(tr("Beim ersten Mal wird ein kleines Sprechermodell geladen (26 MB)."))
         }
         val canTranslate = opts.mode == TranscriptionMode.LOCAL && installed.firstOrNull { it.id == opts.model }?.canTranslate == true
         if (canTranslate) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TitleBlock("Ins Englische übersetzen", "Whisper übersetzt direkt beim Erkennen.", Modifier.weight(1f))
+                TitleBlock(tr("Ins Englische übersetzen"), tr("Whisper übersetzt direkt beim Erkennen."), Modifier.weight(1f))
                 Switch(opts.translate, { onChange(opts.copy(translate = it)) })
             }
         }
@@ -159,9 +158,9 @@ fun StartOptionsForm(c: AppContainer, opts: StartOptions, onChange: (StartOption
             val pkReady = state.models.any { it.id == "parakeet" && it.installed }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TitleBlock(
-                    "Wortzeiten messen",
-                    if (pkReady) "Danach mit Parakeet v3 Wort für Wort messen (im Median 50 ms genau) – für Zeitstempel, Wortmarkierung und Untertitel. Kostet etwas Rechenzeit."
-                    else "Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeiten nur je Abschnitt.",
+                    tr("Wortzeiten messen"),
+                    if (pkReady) tr("Danach mit Parakeet v3 Wort für Wort messen (im Median 50 ms genau) – für Zeitstempel, Wortmarkierung und Untertitel. Kostet etwas Rechenzeit.")
+                    else tr("Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeiten nur je Abschnitt."),
                     Modifier.weight(1f),
                 )
                 Switch(opts.measureWords && pkReady, { onChange(opts.copy(measureWords = it)) }, enabled = pkReady)
@@ -184,21 +183,21 @@ fun StartSheet(c: AppContainer, file: IncomingFile, folderId: String?, onDone: (
             Modifier.fillMaxWidth().heightIn(max = 720.dp).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(if (file.recovered) "Aufnahme wiederhergestellt" else "Datei transkribieren", style = MaterialTheme.typography.titleLarge)
+            Text(if (file.recovered) tr("Aufnahme wiederhergestellt") else tr("Datei transkribieren"), style = MaterialTheme.typography.titleLarge)
             HintText(
                 file.name + (file.duration?.let { " · " + TranscriptExport.clock(it) } ?: "") + (if (file.size > 0) " · " + formatBytes(file.size) else "") +
-                    if (file.recovered) "\nDie App wurde während einer Aufnahme beendet. Die Aufnahme ist repariert." else "",
+                    if (file.recovered) tr("\nDie App wurde während einer Aufnahme beendet. Die Aufnahme ist repariert.") else "",
             )
             StartOptionsForm(c, opts, { opts = it })
             val ready = opts.mode == TranscriptionMode.SERVER || t.state.value.models.any { it.installed }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { t.discardIncoming(file.token); onDone() }) { Text("Verwerfen") }
+                TextButton(onClick = { t.discardIncoming(file.token); onDone() }) { Text(tr("Verwerfen")) }
                 Spacer(Modifier.weight(1f))
                 Button(enabled = ready, onClick = {
                     rememberDefaults(c, opts)
                     t.start(file.token, opts)
                     onDone()
-                }) { Text("Transkribieren") }
+                }) { Text(tr("Transkribieren")) }
             }
         }
     }
@@ -233,9 +232,9 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onMinimize) { Text("Minimieren") }
+                TextButton(onClick = onMinimize) { Text(tr("Minimieren")) }
                 Spacer(Modifier.weight(1f))
-                Text("Aufnahme", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Aufnahme"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.width(96.dp))
             }
@@ -244,7 +243,7 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                 Row(Modifier.padding(horizontal = 12.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(if (rec.paused) MaterialTheme.colorScheme.outline else record))
                     Spacer(Modifier.width(7.dp))
-                    Text(if (rec.paused) "Pausiert" else "Aufnahme läuft", color = if (rec.paused) MaterialTheme.colorScheme.outline else record, style = MaterialTheme.typography.labelLarge)
+                    Text(if (rec.paused) tr("Pausiert") else tr("Aufnahme läuft"), color = if (rec.paused) MaterialTheme.colorScheme.outline else record, style = MaterialTheme.typography.labelLarge)
                 }
             }
             Text(
@@ -256,12 +255,12 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
             Box(Modifier.padding(top = 8.dp).width(220.dp).height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
                 Box(Modifier.fillMaxWidth((0.04f + level * 0.96f).coerceAtMost(1f)).height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.primary))
             }
-            if (rec.marks.isNotEmpty()) HintText("${rec.marks.size} Markierung(en) · zuletzt „${rec.marks.last().label}“", Modifier.padding(top = 10.dp))
+            if (rec.marks.isNotEmpty()) HintText(tr("{0} Markierung(en) · zuletzt „{1}“", rec.marks.size, rec.marks.last().label), Modifier.padding(top = 10.dp))
             Box(Modifier.weight(1f).fillMaxWidth().widthIn(max = 720.dp).padding(horizontal = 20.dp, vertical = 16.dp)) {
                 if (rec.liveText.isEmpty()) {
                     HintText(
-                        if (rec.liveModel != null) "Der Text erscheint hier schon während der Aufnahme (${rec.liveModel})."
-                        else "Nach dem Stoppen wird transkribiert.",
+                        if (rec.liveModel != null) tr("Der Text erscheint hier schon während der Aufnahme ({0}).", rec.liveModel)
+                        else tr("Nach dem Stoppen wird transkribiert."),
                         Modifier.align(Alignment.Center),
                     )
                 } else {
@@ -271,7 +270,7 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                 }
             }
             Row(Modifier.padding(bottom = 28.dp), horizontalArrangement = Arrangement.spacedBy(22.dp), verticalAlignment = Alignment.CenterVertically) {
-                RoundAction(Icons.Outlined.BookmarkAdd, "Markierung") { t.addMark() }
+                RoundAction(Icons.Outlined.BookmarkAdd, tr("Markierung")) { t.addMark() }
                 Surface(
                     onClick = { stopping = true },
                     shape = CircleShape,
@@ -279,8 +278,8 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                     contentColor = Color.White,
                     shadowElevation = 6.dp,
                     modifier = Modifier.size(76.dp),
-                ) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Stop, contentDescription = "Stopp", modifier = Modifier.size(34.dp)) } }
-                RoundAction(if (rec.paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, if (rec.paused) "Weiter" else "Pause") { t.pauseRecording(!rec.paused) }
+                ) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Stop, contentDescription = tr("Stopp"), modifier = Modifier.size(34.dp)) } }
+                RoundAction(if (rec.paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, if (rec.paused) tr("Weiter") else tr("Pause")) { t.pauseRecording(!rec.paused) }
             }
         }
     }
@@ -292,8 +291,8 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                 Modifier.fillMaxWidth().heightIn(max = 720.dp).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text("Aufnahme beenden", style = MaterialTheme.typography.titleLarge)
-                HintText("Dauer ${TranscriptExport.clock(rec.seconds)}" + if (rec.liveText.isNotEmpty()) " · der Text ist schon fast fertig" else "")
+                Text(tr("Aufnahme beenden"), style = MaterialTheme.typography.titleLarge)
+                HintText(tr("Dauer {0}", TranscriptExport.clock(rec.seconds)) + if (rec.liveText.isNotEmpty()) tr(" · der Text ist schon fast fertig") else "")
                 StartOptionsForm(c, opts, { opts = it })
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(
@@ -302,7 +301,7 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                     ) {
                         Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Verwerfen")
+                        Text(tr("Verwerfen"))
                     }
                     Spacer(Modifier.weight(1f))
                     Button(onClick = {
@@ -310,7 +309,7 @@ fun RecordingScreen(c: AppContainer, folderId: String?, onMinimize: () -> Unit) 
                         t.stopRecording(true, opts)
                         stopping = false
                         onMinimize()
-                    }) { Text("Transkribieren") }
+                    }) { Text(tr("Transkribieren")) }
                 }
             }
         }

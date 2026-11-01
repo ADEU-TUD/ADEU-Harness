@@ -6,6 +6,7 @@ import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
 import android.webkit.MimeTypeMap
 import io.github.thepytales.llmhub.data.AtomicFiles
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -95,8 +96,8 @@ object LoraMirror {
             ?: DocumentsContract.createDocument(
                 r, DocumentsContract.buildDocumentUriUsingTree(tree, parentId),
                 MimeTypeMap.getSingleton().getMimeTypeFromExtension(f.extension.lowercase()) ?: "application/octet-stream", f.name,
-            ) ?: error("Datei ließ sich nicht anlegen")
-        (r.openOutputStream(target, "wt") ?: error("nicht schreibbar")).use { o -> f.inputStream().use { it.copyTo(o) } }
+            ) ?: error(tr("Datei ließ sich nicht anlegen"))
+        (r.openOutputStream(target, "wt") ?: error(tr("nicht schreibbar"))).use { o -> f.inputStream().use { it.copyTo(o) } }
         remote[path] = Remote(DocumentsContract.getDocumentId(target), false, System.currentTimeMillis())
     }
 
@@ -107,7 +108,7 @@ object LoraMirror {
         val parent = folder(context, tree, remote, path.substringBeforeLast('/', ""))
         val made = DocumentsContract.createDocument(
             context.contentResolver, DocumentsContract.buildDocumentUriUsingTree(tree, parent), Document.MIME_TYPE_DIR, path.substringAfterLast('/'),
-        ) ?: error("Ordner ließ sich nicht anlegen")
+        ) ?: error(tr("Ordner ließ sich nicht anlegen"))
         val id = DocumentsContract.getDocumentId(made)
         remote[path] = Remote(id, true, System.currentTimeMillis())
         return id

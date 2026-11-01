@@ -14,7 +14,7 @@ import java.io.File
 /** Copies a generated picture into the gallery (Pictures/Lora). */
 fun saveImageToDevice(context: Context, file: File) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        Notices.info("Speichern in die Galerie geht erst ab Android 10 – „Teilen“ funktioniert trotzdem.")
+        Notices.info(tr("Speichern in die Galerie geht erst ab Android 10 – „Teilen“ funktioniert trotzdem."))
         return
     }
     val values = ContentValues().apply {
@@ -26,7 +26,7 @@ fun saveImageToDevice(context: Context, file: File) {
         val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)!!
         context.contentResolver.openOutputStream(uri)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
     }.isSuccess
-    if (ok) Notices.info("In der Galerie gespeichert (Bilder › Lora).") else Notices.error("Speichern fehlgeschlagen.")
+    if (ok) Notices.info(tr("In der Galerie gespeichert (Bilder › Lora).")) else Notices.error(tr("Speichern fehlgeschlagen."))
 }
 
 /** Share sheet for a generated picture (mail, messenger, other apps). */
@@ -35,8 +35,8 @@ fun shareImage(context: Context, file: File) {
     val intent = Intent(Intent.ACTION_SEND).setType("image/png")
         .putExtra(Intent.EXTRA_STREAM, uri)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    runCatching { context.startActivity(Intent.createChooser(intent, "Bild teilen").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-        .onFailure { Notices.error("Keine App zum Teilen gefunden.") }
+    runCatching { context.startActivity(Intent.createChooser(intent, tr("Bild teilen")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        .onFailure { Notices.error(tr("Keine App zum Teilen gefunden.")) }
 }
 
 const val SAVE_IMAGE_LABEL = "In Galerie"

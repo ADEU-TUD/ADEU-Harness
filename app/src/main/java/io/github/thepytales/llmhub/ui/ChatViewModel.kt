@@ -220,7 +220,7 @@ class ChatViewModel(
         c.runs.stop(chatId)
         _deleted.value = true
         c.chats.delete(chatId)
-        Notices.undo("Chat gelöscht", restore = { c.chats.restore(chatId) })
+        Notices.undo(tr("Chat gelöscht"), restore = { c.chats.restore(chatId) })
     }
 
     /**
@@ -285,11 +285,12 @@ class ChatViewModel(
                 val gaps = output.file?.let { c.documentTools.openPlaceholders(File(it)) }.orEmpty()
                 val placed = output.file?.takeIf { it != made.file }
                 val note = buildString {
-                    append("Ihr ${template.name} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.")
-                    if (placed != null) append(" Er liegt im Projektordner unter „${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}“.")
-                    else if (output.text.contains("ließ sich die Datei nicht speichern")) append(" In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab.")
-                    if (gaps.isNotEmpty()) append(" Noch offen: ${gaps.joinToString(", ")} – tippen Sie am Dokument auf „Ausfüllen“.")
-                    append("\n\nÄnderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“.")
+                    append(tr("Ihr {0} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.", tr(template.name)))
+                    if (placed != null) append(" ").append(tr("Er liegt im Projektordner unter „{0}“.", io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT))
+                    // WorkFolder's message to the model stays German, so this check does not depend on the language.
+                    else if (output.text.contains("ließ sich die Datei nicht speichern")) append(" ").append(tr("In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab."))
+                    if (gaps.isNotEmpty()) append(" ").append(tr("Noch offen: {0} – tippen Sie am Dokument auf „Ausfüllen“.", gaps.joinToString(", ")))
+                    append("\n\n").append(tr("Änderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“."))
                 }
                 update {
                     it.appendToThread(ChatMessage(role = "assistant", toolCalls = listOf(call)))
@@ -299,7 +300,7 @@ class ChatViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                update { it.appendToThread(ChatMessage(role = "assistant", error = true, content = "Der ${template.name} konnte nicht erstellt werden: ${e.message ?: e.javaClass.simpleName}")) }
+                update { it.appendToThread(ChatMessage(role = "assistant", error = true, content = tr("Der {0} konnte nicht erstellt werden: {1}", template.name, e.message ?: e.javaClass.simpleName))) }
             } finally {
                 _building.value = false
                 persist()
@@ -343,12 +344,12 @@ class ChatViewModel(
         val repo = GitHubTools.findRepoUrl(text) ?: return
         val conv = _conversation.value ?: return
         if (!c.settings.current.hasGitHub) {
-            _toasts.tryEmit("Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen.")
+            _toasts.tryEmit(tr("Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen."))
             return
         }
         val linked = conv.linkedRepos
         if (conv.githubEnabled && linked.any { it.name.equals(repo, ignoreCase = true) }) return
-        _toasts.tryEmit(if (conv.githubEnabled) "Repository verknüpft: $repo" else "GitHub-Werkzeuge aktiviert: $repo")
+        _toasts.tryEmit(if (conv.githubEnabled) tr("Repository verknüpft: {0}", repo) else tr("GitHub-Werkzeuge aktiviert: {0}", repo))
         edit { it.copy(githubEnabled = true).withRepos(it.linkedRepos + LinkedRepo(repo)) }
     }
 
@@ -408,7 +409,7 @@ class ChatViewModel(
         }
         val copy = conv.copy(
             id = java.util.UUID.randomUUID().toString(),
-            title = conv.title.take(50) + if (message == null) " (Kopie)" else " (Abzweigung)",
+            title = conv.title.take(50) + if (message == null) tr(" (Kopie)") else tr(" (Abzweigung)"),
             messages = thread.take(upTo), selected = emptyMap(), summary = null, summaryUpTo = null,
             pinned = false, unread = false, temporary = false, archived = false, taskId = null,
             updatedAt = System.currentTimeMillis(),
@@ -440,7 +441,7 @@ class ChatViewModel(
             tools = null,
             thinking = io.github.thepytales.llmhub.net.ThinkingLevel.OFF,
         ) { }
-        return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException("Das Modell hat keinen Text geliefert.") }
+        return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException(tr("Das Modell hat keinen Text geliefert.")) }
     }
 
     private fun startAgent() {
@@ -463,7 +464,7 @@ class ChatViewModel(
         return if (local) {
             // Data protection level "Nur auf diesem Gerät": recognized on the device.
             c.transcription.recognizeShort(file)
-                ?: throw IllegalStateException("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
+                ?: throw IllegalStateException(tr("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden."))
         } else c.llm.transcribe(c.settings.current.sttModel, file)
     }
 
@@ -472,11 +473,11 @@ class ChatViewModel(
             _transcribing.value = true
             try {
                 val text = recognize(file)
-                if (text.isBlank()) _toasts.tryEmit("Keine Sprache erkannt.") else onText(text)
+                if (text.isBlank()) _toasts.tryEmit(tr("Keine Sprache erkannt.")) else onText(text)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _toasts.tryEmit("Spracherkennung fehlgeschlagen: ${e.message}")
+                _toasts.tryEmit(tr("Spracherkennung fehlgeschlagen: {0}", e.message))
             } finally {
                 _transcribing.value = false
             }
@@ -489,7 +490,7 @@ class ChatViewModel(
 
     /** A short title from the first message (AP-33): without courtesies and the request verb. */
     private fun makeTitle(text: String, files: List<FileAttachment>): String =
-        io.github.thepytales.llmhub.data.ChatTitles.make(text).ifBlank { files.firstOrNull()?.name ?: "Bild-Chat" }
+        io.github.thepytales.llmhub.data.ChatTitles.make(text).ifBlank { files.firstOrNull()?.name ?: tr("Bild-Chat") }
 }
 
 /** Splits `<think>…</think>` reasoning that some models put into the content. */

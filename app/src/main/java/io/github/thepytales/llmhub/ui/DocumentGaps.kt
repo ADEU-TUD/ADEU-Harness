@@ -16,7 +16,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,7 +53,7 @@ fun DocumentGaps(file: File, version: Int, onUpdated: () -> Unit) {
     if (gaps.isEmpty()) return
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 8.dp)) {
         Text(
-            "${if (gaps.size == 1) "1 Angabe" else "${gaps.size} Angaben"} offen: ${gaps.joinToString(", ")}",
+            tr("{0} offen: {1}", if (gaps.size == 1) tr("1 Angabe") else tr("{0} Angaben", gaps.size), gaps.joinToString(", ")),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
             maxLines = 2,
@@ -64,18 +63,18 @@ fun DocumentGaps(file: File, version: Int, onUpdated: () -> Unit) {
         if (working) CircularProgressIndicator(Modifier.padding(12.dp).size(18.dp), strokeWidth = 2.dp)
         else TextButton(onClick = { open = true }) {
             Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
-            Text(" Ausfüllen")
+            Text(tr(" Ausfüllen"))
         }
     }
     if (open) {
         val values = remember(gaps) { mutableStateMapOf<String, String>() }
         AlertDialog(
             onDismissRequest = { open = false },
-            title = { Text("Angaben ausfüllen") },
+            title = { Text(tr("Angaben ausfüllen")) },
             text = {
                 Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Was Sie eintragen, ersetzt die Lücke im Dokument. Leere Felder bleiben offen.",
+                        tr("Was Sie eintragen, ersetzt die Lücke im Dokument. Leere Felder bleiben offen."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -101,14 +100,14 @@ fun DocumentGaps(file: File, version: Int, onUpdated: () -> Unit) {
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
-                            Notices.error("Ausfüllen fehlgeschlagen: ${e.message}")
+                            Notices.error(tr("Ausfüllen fehlgeschlagen: {0}", e.message))
                         } finally {
                             working = false
                         }
                     }
-                }) { Text("Übernehmen") }
+                }) { Text(tr("Übernehmen")) }
             },
-            dismissButton = { TextButton(onClick = { open = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { open = false }) { Text(tr("Abbrechen")) } },
         )
     }
 }

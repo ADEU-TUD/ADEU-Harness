@@ -63,6 +63,8 @@ class ExtensionsTest {
     @Test
     fun setsUpUpdatesAndRemovesFromAFolderSource() = runBlocking {
         Extensions.root = File(base, "tools")
+        // The package without a system suffix is the Windows one (AP-31); the CI runs on Linux.
+        Extensions.system = "windows"
         Updates.setSource(context, source.absolutePath)
         val v1 = pack("Lora-Videoeditor-1.zip", mapOf("ffprobe.exe" to "probe", "rnnoise/sh.rnnn" to "modell"))
         publish("1", v1)
@@ -88,6 +90,22 @@ class ExtensionsTest {
         Extensions.remove("videoeditor")
         assertFalse(Extensions.installed("videoeditor"))
         assertNull(Extensions.file("videoeditor", "ffprobe.exe"))
+    }
+
+    /** macOS and Linux (AP-31) are not offered the Windows package, only one made for them. */
+    @Test
+    fun packagesAreMadeForOneSystem() = runBlocking {
+        Extensions.root = File(base, "tools")
+        Updates.setSource(context, source.absolutePath)
+        publish("1", pack("Lora-Videoeditor-1.zip", mapOf("ffprobe.exe" to "probe")))
+        Extensions.system = "macos"
+        try {
+            assertNull(Extensions.catalog(context, "videoeditor"), "Das Windows-Paket gibt es auf dem Mac nicht")
+            assertNotNull(Extensions.install(context, "videoeditor"), "Klare Meldung statt Windows-Programmen")
+            assertFalse(Extensions.installed("videoeditor"))
+        } finally {
+            Extensions.system = "windows"
+        }
     }
 
     @Test

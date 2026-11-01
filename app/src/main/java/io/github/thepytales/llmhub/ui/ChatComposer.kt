@@ -51,7 +51,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -198,7 +197,7 @@ fun Composer(
                     onValueChange = { field = it; onInput(it.text) },
                     placeholder = {
                         Text(
-                            if (recording) "Aufnahme läuft … zum Beenden auf das Mikrofon $TAP" else placeholder,
+                            if (recording) tr("Aufnahme läuft … zum Beenden auf das Mikrofon {0}", TAP) else placeholder,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodyLarge,
@@ -227,13 +226,13 @@ fun Composer(
                                 field = field.withLineBreak(); onInput(field.text)
                                 true
                             }
-                            e.key == Key.V && e.isCtrlPressed -> onPaste()
+                            e.key == Key.V && e.isCmd -> onPaste()
                             else -> false
                         }
                     },
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 4.dp)) {
-                    RoundButton(onClick = onPlus) { Icon(Icons.Outlined.Add, contentDescription = "Hinzufügen") }
+                    RoundButton(onClick = onPlus) { Icon(Icons.Outlined.Add, contentDescription = tr("Hinzufügen")) }
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.weight(1f)) {
                         Surface(
@@ -248,7 +247,7 @@ fun Composer(
                                     modelLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f, fill = false),
                                 )
-                                Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Modell wählen", modifier = Modifier.size(18.dp))
+                                Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Modell wählen"), modifier = Modifier.size(18.dp))
                             }
                         }
                     }
@@ -256,15 +255,15 @@ fun Composer(
                         Spacer(Modifier.width(8.dp))
                         RoundButton(onClick = onImprove, enabled = !improving) {
                             if (improving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            else Icon(Icons.Outlined.AutoAwesome, contentDescription = "Anfrage verbessern")
+                            else Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("Anfrage verbessern"))
                         }
                     }
                     Spacer(Modifier.width(8.dp))
                     RoundButton(onClick = { buzz(); onMic() }, enabled = !transcribing) {
                         when {
                             transcribing -> CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            recording -> Icon(Icons.Outlined.StopCircle, contentDescription = "Aufnahme beenden", tint = MaterialTheme.colorScheme.error)
-                            else -> Icon(Icons.Outlined.Mic, contentDescription = "Spracheingabe")
+                            recording -> Icon(Icons.Outlined.StopCircle, contentDescription = tr("Aufnahme beenden"), tint = MaterialTheme.colorScheme.error)
+                            else -> Icon(Icons.Outlined.Mic, contentDescription = tr("Spracheingabe"))
                         }
                     }
                     Spacer(Modifier.width(8.dp))
@@ -281,9 +280,9 @@ fun Composer(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             when {
-                                running -> Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                                running -> Icon(Icons.Filled.Stop, contentDescription = tr("Stopp"))
                                 voice -> Icon(Icons.Outlined.GraphicEq, contentDescription = tr("Sprachmodus: freihändig sprechen"))
-                                else -> Icon(Icons.Filled.ArrowUpward, contentDescription = "Senden")
+                                else -> Icon(Icons.Filled.ArrowUpward, contentDescription = tr("Senden"))
                             }
                         }
                     }
@@ -369,28 +368,28 @@ fun PlusSheet(
         action()
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
-        SheetLabel("Anhängen")
+        SheetLabel(tr("Anhängen"))
         Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SheetTile(CameraTile.icon, CameraTile.label, { pick(onCamera) }, Modifier.weight(1f))
             SheetTile(Icons.Outlined.Image, PHOTOS_LABEL, { pick(onPhotos) }, Modifier.weight(1f))
-            SheetTile(Icons.Outlined.AttachFile, "Dateien", { pick(onFiles) }, Modifier.weight(1f))
+            SheetTile(Icons.Outlined.AttachFile, tr("Dateien"), { pick(onFiles) }, Modifier.weight(1f))
         }
         Text(
-            "PDF, Word, PowerPoint, Excel, Text- und Code-Dateien werden gelesen und mitgeschickt.$ATTACH_HINT",
+            tr("PDF, Word, PowerPoint, Excel, Text- und Code-Dateien werden gelesen und mitgeschickt.{0}", ATTACH_HINT),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
-        SheetRow(Icons.Outlined.ContentPaste, "Aus der Zwischenablage", "Screenshot oder kopiertes Bild anhängen", { pick(onClipboard) })
-        SheetRow(Icons.Outlined.Apps, "Aus der App", "Transkript, Dokument, Literaturliste oder erzeugtes Bild", { pick(onFromApp) })
-        if (onNextcloud != null) SheetRow(Icons.Outlined.Cloud, "Aus Nextcloud", "Dateien aus deiner Nextcloud anhängen", { pick(onNextcloud) })
-        SheetLabel("Starten mit")
-        SheetRow(Icons.Outlined.Bookmarks, "Vorlage", "Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular", { pick(onTemplates) })
-        SheetRow(Icons.Outlined.ShortText, "Kurztexte", "Eigene Textbausteine einfügen – auch mit /Name", { pick(onSnippets) })
-        SheetLabel("Für diesen Chat")
-        SheetRow(Icons.Outlined.Person, "Persona / Anweisungen", personaLabel, { pick(onPersona) })
-        if (repoLabel != null) SheetRow(Icons.Outlined.Code, "GitHub-Repository", repoLabel, { pick(onRepo) })
-        SheetRow(Icons.Outlined.Tune, "Umgebung", envLabel, { pick(onEnvironment) })
+        SheetRow(Icons.Outlined.ContentPaste, tr("Aus der Zwischenablage"), tr("Screenshot oder kopiertes Bild anhängen"), { pick(onClipboard) })
+        SheetRow(Icons.Outlined.Apps, tr("Aus der App"), tr("Transkript, Dokument, Literaturliste oder erzeugtes Bild"), { pick(onFromApp) })
+        if (onNextcloud != null) SheetRow(Icons.Outlined.Cloud, tr("Aus Nextcloud"), tr("Dateien aus deiner Nextcloud anhängen"), { pick(onNextcloud) })
+        SheetLabel(tr("Starten mit"))
+        SheetRow(Icons.Outlined.Bookmarks, tr("Vorlage"), tr("Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular"), { pick(onTemplates) })
+        SheetRow(Icons.Outlined.ShortText, tr("Kurztexte"), tr("Eigene Textbausteine einfügen – auch mit /Name"), { pick(onSnippets) })
+        SheetLabel(tr("Für diesen Chat"))
+        SheetRow(Icons.Outlined.Person, tr("Persona / Anweisungen"), personaLabel, { pick(onPersona) })
+        if (repoLabel != null) SheetRow(Icons.Outlined.Code, tr("GitHub-Repository"), repoLabel, { pick(onRepo) })
+        SheetRow(Icons.Outlined.Tune, tr("Umgebung"), envLabel, { pick(onEnvironment) })
         Spacer(Modifier.height(24.dp))
     }
 }

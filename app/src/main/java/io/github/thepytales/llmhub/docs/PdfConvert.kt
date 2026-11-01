@@ -8,6 +8,7 @@ import io.github.thepytales.llmhub.data.ModelTier
 import io.github.thepytales.llmhub.data.ModelType
 import io.github.thepytales.llmhub.data.Privacy
 import io.github.thepytales.llmhub.net.ThinkingLevel
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,7 +41,7 @@ object PdfConvert {
                     val imported = OfficeImport.read(name, bytes)
                     val markdown = imported?.tabs?.joinToString("\n\n") { (title, md) -> if (imported.tabs.size > 1) "## $title\n\n$md" else md }
                         ?: io.github.thepytales.llmhub.files.FormatReaders.takeIf { it.handles(name) }?.text(name, bytes)
-                        ?: throw IllegalArgumentException("„$name“ lässt sich ohne Microsoft Office nicht umwandeln.")
+                        ?: throw IllegalArgumentException(tr("„{0}“ lässt sich ohne Microsoft Office nicht umwandeln.", name))
                     val made = DocumentWriter.create(context, dir, imported?.title ?: base, markdown, DocFormat.PDF, fileName = out.name)
                     Converted(made.file, "mit dem Leser der App (Layout vereinfacht)")
                 }
@@ -61,7 +62,7 @@ object PdfConvert {
                 val made = DocumentWriter.create(context, dir, base, markdown, DocFormat.PDF, fileName = out.name)
                 Converted(made.file, "")
             }
-            ToPdfKind.UNSUPPORTED -> throw IllegalArgumentException("„$name“ lässt sich nicht in ein PDF umwandeln (Word, Excel, PowerPoint, Bilder, HTML und Text gehen).")
+            ToPdfKind.UNSUPPORTED -> throw IllegalArgumentException(tr("„{0}“ lässt sich nicht in ein PDF umwandeln (Word, Excel, PowerPoint, Bilder, HTML und Text gehen).", name))
         }
     }
 
@@ -77,8 +78,8 @@ object PdfConvert {
     suspend fun fromPdf(context: Context, file: File, title: String, format: DocFormat, dir: File): File = withContext(Dispatchers.IO) {
         val markdown = if (format == DocFormat.XLSX) {
             tables(context, file).takeIf { it.isNotEmpty() }?.let { PdfTables.markdown(it) }
-                ?: throw IllegalArgumentException("Keine Tabellen erkannt. Bei Scans erst die Texterkennung laufen lassen – oder „Tabellen mit KI“ versuchen.")
-        } else markdown(context, file).ifBlank { throw IllegalArgumentException("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.") }
+                ?: throw IllegalArgumentException(tr("Keine Tabellen erkannt. Bei Scans erst die Texterkennung laufen lassen – oder „Tabellen mit KI“ versuchen."))
+        } else markdown(context, file).ifBlank { throw IllegalArgumentException(tr("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.")) }
         DocumentWriter.create(context, dir, title, markdown, format, fileName = DocumentWriter.safeName(title)).file
     }
 }
@@ -115,7 +116,7 @@ object PdfOcr {
         val failed = mutableListOf<Int>()
         work.mkdirs()
         if (model == null) {
-            val engine = PdfPlatform.localOcr ?: throw IllegalStateException("Auf diesem Gerät gibt es keine eingebaute Texterkennung.")
+            val engine = PdfPlatform.localOcr ?: throw IllegalStateException(tr("Auf diesem Gerät gibt es keine eingebaute Texterkennung."))
             pages.chunked(4).forEach { chunk ->
                 val images = PdfExtras.pageImages(context, file, chunk, 300, work)
                 val results = engine.recognize(images)

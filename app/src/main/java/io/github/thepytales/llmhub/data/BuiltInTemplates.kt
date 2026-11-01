@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.ui.trLater
+
 
 /** Texts of the built-in templates: the shared rules first, then the templates by area. */
 internal object BuiltInTemplates {
@@ -35,7 +37,7 @@ internal object BuiltInTemplates {
     val all: List<Template> = listOf(
         // ── TUD-Dokumente ──────────────────────────────────────────────────────────────────────────────────────
         tud(
-            "letter", "Brief", "Schreiben nach DIN 5008 – Ihr Text wird genau so übernommen",
+            "letter", trLater("Brief"), trLater("Schreiben nach DIN 5008 – Ihr Text wird genau so übernommen"),
             """
             Absender: {{Absender|Ihr Name, darunter je Zeile: Funktion, Telefon, E-Mail, Raum}}
             Empfänger: {{Empfänger|Je Zeile: Name (z.B. Frau Dr. Anna Müller), Einrichtung, Straße Nr., PLZ Ort}}
@@ -48,8 +50,8 @@ internal object BuiltInTemplates {
                 "edit_document mit dem Dateinamen nutzen; den Text des Nutzers nur so weit ändern, wie er es verlangt.",
         ).copy(direct = "letter"),
         prompt(
-            TemplateCategory.TUD, "tud_presentation", "Präsentation (PowerPoint)",
-            "Folien im TUD-Design – aus Ihren Stichpunkten oder angehängten Dokumenten",
+            TemplateCategory.TUD, "tud_presentation", trLater("Präsentation (PowerPoint)"),
+            trLater("Folien im TUD-Design – aus Ihren Stichpunkten oder angehängten Dokumenten"),
             """
             Thema / Titel: {{Thema|z.B. Classroom Management in der Sekundarstufe}}
             Anlass: {{Anlass|z.B. Vortrag im Kolloquium, Workshop, Tagung, Teamsitzung}}
@@ -67,7 +69,7 @@ internal object BuiltInTemplates {
                 "Fasse danach in zwei Sätzen zusammen, was die Präsentation enthält.",
         ),
         tud(
-            "minutes", "Protokoll", "Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben",
+            "minutes", trLater("Protokoll"), trLater("Ergebnisprotokoll mit Tagesordnung, Beschlüssen und Aufgaben"),
             """
             Gremium / Anlass: {{Gremium|z.B. Teamsitzung der Professur, Institutsrat}}
             Datum, Zeit, Ort: {{Datum, Zeit, Ort}}
@@ -84,7 +86,7 @@ internal object BuiltInTemplates {
                 "eine Tabelle „| Protokoll | Sitzungsleitung |“ mit leerer Zeile für die Unterschriften.",
         ),
         tud(
-            "memo", "Aktennotiz", "Vermerk über ein Gespräch, Telefonat oder einen Vorgang",
+            "memo", trLater("Aktennotiz"), trLater("Vermerk über ein Gespräch, Telefonat oder einen Vorgang"),
             """
             Anlass / Gespräch mit: {{Anlass}}
             Datum: {{Datum}}
@@ -97,7 +99,7 @@ internal object BuiltInTemplates {
                 "im Präteritum, ohne Wertungen.",
         ),
         tud(
-            "form", "Formular zum Ausfüllen", "Antrag, Anmeldung oder Erhebungsbogen mit Feldern und Ankreuzkästchen",
+            "form", trLater("Formular zum Ausfüllen"), trLater("Antrag, Anmeldung oder Erhebungsbogen mit Feldern und Ankreuzkästchen"),
             """
             Art des Formulars: {{Art|z.B. Anmeldung zum Workshop, Antrag auf …, Rückmeldebogen}}
             Benötigte Angaben: {{Angaben|z.B. Name, Matrikelnummer, Studiengang, Auswahl}}
@@ -108,7 +110,7 @@ internal object BuiltInTemplates {
                 "Bei personenbezogenen Daten am Schluss einen kurzen Datenschutzhinweis (Zweck, Speicherdauer).",
         ),
         tud(
-            "info", "Merkblatt / Aushang", "Informationsblatt für Studierende, Lehrende oder Schulen",
+            "info", trLater("Merkblatt / Aushang"), trLater("Informationsblatt für Studierende, Lehrende oder Schulen"),
             """
             Thema: {{Thema}}
             Zielgruppe: {{Zielgruppe|z.B. Studierende im Modul EW-SEGY-BW 2}}
@@ -118,7 +120,7 @@ internal object BuiltInTemplates {
                 "Pflichten als „> [!WARNING]“, am Ende „## Kontakt“ als Tabelle „| Angabe | Eintrag |“. Höchstens zwei Seiten.",
         ),
         tud(
-            "report", "Bericht", "Projekt-, Tätigkeits- oder Abschlussbericht",
+            "report", trLater("Bericht"), trLater("Projekt-, Tätigkeits- oder Abschlussbericht"),
             """
             Projekt / Thema: {{Projekt}}
             Zeitraum: {{Zeitraum}}
@@ -130,7 +132,7 @@ internal object BuiltInTemplates {
                 "„## 4. Fazit und Ausblick“.",
         ),
         tud(
-            "invitation", "Einladung mit Tagesordnung", "Einladung zu Sitzung, Kolloquium oder Workshop",
+            "invitation", trLater("Einladung mit Tagesordnung"), trLater("Einladung zu Sitzung, Kolloquium oder Workshop"),
             """
             Anlass: {{Anlass|z.B. Forschungskolloquium, Teamsitzung}}
             Datum, Uhrzeit, Ort: {{Termin|Raum oder Link}}
@@ -142,7 +144,7 @@ internal object BuiltInTemplates {
                 "Hinweise zu Unterlagen und Anmeldung.",
         ),
         tud(
-            "certificate", "Teilnahmebescheinigung", "Bescheinigung, Zertifikat oder Urkunde nach der TUD-Vorlage",
+            "certificate", trLater("Teilnahmebescheinigung"), trLater("Bescheinigung, Zertifikat oder Urkunde nach der TUD-Vorlage"),
             """
             Art: {{Art|Teilnahmebescheinigung, Zertifikat oder Urkunde}}
             Teilnehmer:in: {{Name|mit akademischem Grad}}
@@ -162,7 +164,7 @@ internal object BuiltInTemplates {
 
         // ── Lehre ──────────────────────────────────────────────────────────────────────────────────────────────
         prompt(
-            TemplateCategory.TEACHING, "teach_syllabus", "Seminarplan", "Semesterplan mit Lernzielen, Sitzungen und Leistungen",
+            TemplateCategory.TEACHING, "teach_syllabus", trLater("Seminarplan"), trLater("Semesterplan mit Lernzielen, Sitzungen und Leistungen"),
             """
             Lehrveranstaltung / Modul: {{Lehrveranstaltung|z.B. Seminar im Modul EW-SEGY-BW 2}}
             Zielgruppe: {{Zielgruppe|Studiengang, Semester, Vorwissen}}
@@ -180,7 +182,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST + "Biete am Ende an, den Plan als PDF im TUD-Design zu erstellen.",
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_session", "Sitzung planen", "Verlaufsplan für eine Seminarsitzung oder Unterrichtsstunde",
+            TemplateCategory.TEACHING, "teach_session", trLater("Sitzung planen"), trLater("Verlaufsplan für eine Seminarsitzung oder Unterrichtsstunde"),
             """
             Thema der Sitzung: {{Thema}}
             Lernziele: {{Lernziele|optional – sonst schlägt das Modell welche vor}}
@@ -196,8 +198,8 @@ internal object BuiltInTemplates {
                 "Biete am Ende an, dazu passende Folien als PowerPoint im TUD-Design zu erstellen.",
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_lesson_draft", "Unterrichtsentwurf (Stundenentwurf)",
-            "Ausführlicher Entwurf mit Analysen, Lernzielen und Verlaufsplan-Tabelle – für Praktikum und Referendariat",
+            TemplateCategory.TEACHING, "teach_lesson_draft", trLater("Unterrichtsentwurf (Stundenentwurf)"),
+            trLater("Ausführlicher Entwurf mit Analysen, Lernzielen und Verlaufsplan-Tabelle – für Praktikum und Referendariat"),
             """
             Fach, Klassenstufe, Schulart: {{Fach und Klasse|z.B. Geschichte, Klasse 8, Oberschule}}
             Thema der Stunde: {{Thema}}
@@ -217,8 +219,8 @@ internal object BuiltInTemplates {
                 "„<!-- quer -->“ und „<!-- hoch -->“ setzen, damit er im Querformat steht. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_parent_letter", "Elternbrief",
-            "Information an Eltern: Wandertag, Klassenfahrt, Elternabend – mit Rückmeldeabschnitt",
+            TemplateCategory.TEACHING, "teach_parent_letter", trLater("Elternbrief"),
+            trLater("Information an Eltern: Wandertag, Klassenfahrt, Elternabend – mit Rückmeldeabschnitt"),
             """
             Anlass: {{Anlass|z.B. Wandertag, Klassenfahrt, Elternabend, Projektwoche}}
             Klasse und Schule: {{Klasse und Schule}}
@@ -235,8 +237,8 @@ internal object BuiltInTemplates {
                 "Angaben aus der Eingabe verwenden. " + HONEST,
         ),
         tud(
-            "travel_request", "Antrag Dienstreise / Fortbildung",
-            "Genehmigungsantrag mit Anlass, Zeitraum, Kosten und Begründung",
+            "travel_request", trLater("Antrag Dienstreise / Fortbildung"),
+            trLater("Genehmigungsantrag mit Anlass, Zeitraum, Kosten und Begründung"),
             """
             Art: {{Art|Dienstreise oder Fortbildung}}
             Anlass / Veranstaltung: {{Anlass|z.B. Jahrestagung der GEBF, Workshop Hochschuldidaktik}}
@@ -254,7 +256,7 @@ internal object BuiltInTemplates {
                 "erfinden – maßgeblich ist das Sächsische Reisekostengesetz.",
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_slides", "Seminarsitzung als Folien", "PowerPoint für eine Sitzung – mit Ablauf, Arbeitsaufträgen und Sprechernotizen",
+            TemplateCategory.TEACHING, "teach_slides", trLater("Seminarsitzung als Folien"), trLater("PowerPoint für eine Sitzung – mit Ablauf, Arbeitsaufträgen und Sprechernotizen"),
             """
             Seminar / Modul: {{Seminar|z.B. Allgemeine Didaktik, EW-SEGY-BW 2}}
             Sitzung und Thema: {{Sitzung|z.B. Sitzung 4: Classroom Management}}
@@ -272,7 +274,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST + "Fasse danach kurz zusammen, was die Folien enthalten.",
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_objectives", "Lernziele formulieren", "Operationalisierte Lernziele nach Taxonomiestufen",
+            TemplateCategory.TEACHING, "teach_objectives", trLater("Lernziele formulieren"), trLater("Operationalisierte Lernziele nach Taxonomiestufen"),
             """
             Thema / Kompetenz: {{Thema}}
             Zielgruppe: {{Zielgruppe|z.B. Lehramtsstudierende im 3. Semester, Klasse 8}}
@@ -285,7 +287,7 @@ internal object BuiltInTemplates {
                 "Stufen. " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_exam", "Prüfungsaufgaben", "Klausur- oder Prüfungsaufgaben mit Erwartungshorizont",
+            TemplateCategory.TEACHING, "teach_exam", trLater("Prüfungsaufgaben"), trLater("Klausur- oder Prüfungsaufgaben mit Erwartungshorizont"),
             """
             Inhalte: {{Inhalte|Themen, Texte, Lernziele – oder Datei anhängen}}
             Prüfungsform: {{Prüfungsform|z.B. Klausur 90 min, Single Choice, offene Aufgaben}}
@@ -299,7 +301,7 @@ internal object BuiltInTemplates {
                 "Am Ende eine Übersicht | Aufgabe | Thema | Anforderungsbereich | Punkte |. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_quiz", "Test für OPAL (ONYX)", "Quiz oder Selbsttest zum Import in OPAL – als QTI-Datei",
+            TemplateCategory.TEACHING, "teach_quiz", trLater("Test für OPAL (ONYX)"), trLater("Quiz oder Selbsttest zum Import in OPAL – als QTI-Datei"),
             """
             Inhalte: {{Inhalte|Themen, Lernziele oder Sitzungsfolien – oder Datei anhängen}}
             Fragen: {{Fragen|z.B. 10 Fragen: 6 Einfachauswahl, 2 Mehrfachauswahl, 2 Freitext}}
@@ -314,7 +316,7 @@ internal object BuiltInTemplates {
                 "als PDF an. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_moodle", "Test für Moodle", "Quiz zum Import in Moodle – als Moodle-XML oder GIFT",
+            TemplateCategory.TEACHING, "teach_moodle", trLater("Test für Moodle"), trLater("Quiz zum Import in Moodle – als Moodle-XML oder GIFT"),
             """
             Inhalte: {{Inhalte|Themen, Lernziele oder Sitzungsfolien – oder Datei anhängen}}
             Fragen: {{Fragen|z.B. 10 Fragen: 6 Einfachauswahl, 2 Mehrfachauswahl, 2 Kurzantwort}}
@@ -325,7 +327,7 @@ internal object BuiltInTemplates {
                 "Nenne danach kurz die Fragen mit Lösung. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_cards", "Karteikarten (Anki)", "Lernkarten aus Skript oder Folien – zum Import in Anki",
+            TemplateCategory.TEACHING, "teach_cards", trLater("Karteikarten (Anki)"), trLater("Lernkarten aus Skript oder Folien – zum Import in Anki"),
             """
             Inhalte: {{Inhalte|Begriffe, Skript oder Folien – oder Datei anhängen}}
             Anzahl: {{Anzahl|optional, z.B. 30 Karten}}
@@ -336,7 +338,7 @@ internal object BuiltInTemplates {
                 "Import (Anki › Datei › Importieren). " + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_calendar", "Semestertermine als Kalender", "Alle Sitzungen als Kalenderdatei – ohne Feiertage und vorlesungsfreie Zeit",
+            TemplateCategory.TEACHING, "teach_calendar", trLater("Semestertermine als Kalender"), trLater("Alle Sitzungen als Kalenderdatei – ohne Feiertage und vorlesungsfreie Zeit"),
             """
             Veranstaltung: {{Veranstaltung|Titel}}
             Wochentag und Zeit: {{Wochentag und Zeit|z.B. Dienstag, 4. DS (13:00–14:30)}}
@@ -350,7 +352,7 @@ internal object BuiltInTemplates {
                 "in der Reihenfolge. Feiertage in Sachsen lässt das Werkzeug selbst aus. Nenne danach die Termine als Tabelle. " + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_script_slides", "Folien aus Skript", "Vorhandenes Skript oder PDF in eine Präsentation im TUD-Design umwandeln",
+            TemplateCategory.TEACHING, "teach_script_slides", trLater("Folien aus Skript"), trLater("Vorhandenes Skript oder PDF in eine Präsentation im TUD-Design umwandeln"),
             """
             Unterlagen: {{Unterlagen|Skript, Aufsatz oder Notizen als Datei anhängen}}
             Anlass und Dauer: {{Anlass|z.B. Vorlesung 90 Minuten, Kurzvortrag 15 Minuten}}
@@ -361,7 +363,7 @@ internal object BuiltInTemplates {
                 "Quellen. Nur Inhalte aus den Unterlagen. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_evaluation", "Lehrevaluation auswerten", "Ergebnisse und Freitexte als Bericht – Export-Datei anhängen",
+            TemplateCategory.TEACHING, "teach_evaluation", trLater("Lehrevaluation auswerten"), trLater("Ergebnisse und Freitexte als Bericht – Export-Datei anhängen"),
             """
             Lehrveranstaltung: {{Lehrveranstaltung|Titel, Semester}}
             Teilnehmende: {{Teilnehmende|optional, z.B. 48 eingeschrieben}}
@@ -379,7 +381,7 @@ internal object BuiltInTemplates {
                 "keine Rückschlüsse auf einzelne Personen. Ist keine Datei angehängt, bitte darum. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_rubric", "Bewertungsraster", "Kriterien und Niveaustufen für Hausarbeit, Referat, Portfolio",
+            TemplateCategory.TEACHING, "teach_rubric", trLater("Bewertungsraster"), trLater("Kriterien und Niveaustufen für Hausarbeit, Referat, Portfolio"),
             """
             Leistung: {{Leistung|z.B. Hausarbeit, Referat, Portfolio, Unterrichtsentwurf}}
             Aufgabenstellung: {{Aufgabenstellung|optional}}
@@ -392,7 +394,7 @@ internal object BuiltInTemplates {
                 "Hinweise zur Anwendung. " + ACADEMIC + "Biete an, es als ausfüllbares PDF im TUD-Design zu erstellen.",
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_feedback", "Feedback zu einer Studienleistung", "Wertschätzend und konkret – Arbeit als Datei anhängen",
+            TemplateCategory.TEACHING, "teach_feedback", trLater("Feedback zu einer Studienleistung"), trLater("Wertschätzend und konkret – Arbeit als Datei anhängen"),
             """
             Art der Leistung: {{Art|z.B. Hausarbeit, Portfolio, Reflexionsbericht}}
             Aufgabenstellung / Kriterien: {{Kriterien|optional, oder Bewertungsraster anhängen}}
@@ -406,7 +408,7 @@ internal object BuiltInTemplates {
                 "angehängt, bitte darum. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_lessonplan", "Unterrichtsentwurf besprechen", "Rückmeldung im Praktikum – Entwurf als Datei anhängen",
+            TemplateCategory.TEACHING, "teach_lessonplan", trLater("Unterrichtsentwurf besprechen"), trLater("Rückmeldung im Praktikum – Entwurf als Datei anhängen"),
             """
             Fach und Klassenstufe: {{Fach und Klassenstufe}}
             Thema der Stunde: {{Thema}}
@@ -420,7 +422,7 @@ internal object BuiltInTemplates {
                 "Nachgespräch. Wertschätzend und entwicklungsorientiert. Ist kein Entwurf angehängt, bitte darum. " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.TEACHING, "teach_vignette", "Unterrichtsvignette", "Fallbeispiel aus dem Unterricht für die Analyse im Seminar",
+            TemplateCategory.TEACHING, "teach_vignette", trLater("Unterrichtsvignette"), trLater("Fallbeispiel aus dem Unterricht für die Analyse im Seminar"),
             """
             Thema: {{Thema|z.B. Classroom Management, Heterogenität, Feedback, Fachlichkeit}}
             Schulform und Klassenstufe: {{Schulform}}
@@ -434,7 +436,7 @@ internal object BuiltInTemplates {
 
         // ── Betreuung & Prüfung ───────────────────────────────────────────────────────────────────────────────
         prompt(
-            TemplateCategory.THESES, "thesis_expose", "Exposé-Feedback", "Rückmeldung zu Fragestellung, Theorie, Methode und Zeitplan",
+            TemplateCategory.THESES, "thesis_expose", trLater("Exposé-Feedback"), trLater("Rückmeldung zu Fragestellung, Theorie, Methode und Zeitplan"),
             """
             Art der Arbeit: {{Art|Bachelor-, Master- oder Wissenschaftliche Arbeit (Staatsexamen)}}
             Thema: {{Thema}}
@@ -448,7 +450,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.THESES, "thesis_review", "Gutachten zur Abschlussarbeit", "Entwurf eines Gutachtens aus Ihren Notizen",
+            TemplateCategory.THESES, "thesis_review", trLater("Gutachten zur Abschlussarbeit"), trLater("Entwurf eines Gutachtens aus Ihren Notizen"),
             """
             Art der Arbeit: {{Art|Bachelor-, Master- oder Wissenschaftliche Arbeit}}
             Titel: {{Titel}}
@@ -465,7 +467,7 @@ internal object BuiltInTemplates {
                 "Biete am Ende an, das Gutachten als PDF im TUD-Design zu erstellen.",
         ),
         prompt(
-            TemplateCategory.THESES, "thesis_topics", "Themen für Abschlussarbeiten", "Themenvorschläge mit Forschungsfrage und Design",
+            TemplateCategory.THESES, "thesis_topics", trLater("Themen für Abschlussarbeiten"), trLater("Themenvorschläge mit Forschungsfrage und Design"),
             """
             Forschungsfeld: {{Forschungsfeld|z.B. Gamifiziertes Lernen, Fachlichkeit, Inklusion, Digitalisierung/VR, Lehrkräftebildung, Seiteneinstieg}}
             Abschluss: {{Abschluss|Bachelor, Master oder Staatsexamen}}
@@ -479,7 +481,7 @@ internal object BuiltInTemplates {
                 "Auswertung), Machbarkeitshinweise und 2–3 Suchbegriffe für die Recherche (keine erfundenen Quellen). " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.THESES, "thesis_reply", "Antwort auf Betreuungsanfrage", "Zusage, Absage oder Rückfragen per E-Mail",
+            TemplateCategory.THESES, "thesis_reply", trLater("Antwort auf Betreuungsanfrage"), trLater("Zusage, Absage oder Rückfragen per E-Mail"),
             """
             Anfrage: {{Anfrage|E-Mail der/des Studierenden einfügen}}
             Entscheidung: {{Entscheidung|Zusage, Absage, Rückfragen oder Gesprächstermin}}
@@ -491,7 +493,7 @@ internal object BuiltInTemplates {
                 "verbindlich; bei einer Absage wertschätzend und möglichst mit Hinweis auf Alternativen. " + HONEST,
         ),
         prompt(
-            TemplateCategory.THESES, "thesis_oral", "Mündliche Prüfung vorbereiten", "Ablauf, Leitfragen, Erwartungshorizont und Protokollbogen",
+            TemplateCategory.THESES, "thesis_oral", trLater("Mündliche Prüfung vorbereiten"), trLater("Ablauf, Leitfragen, Erwartungshorizont und Protokollbogen"),
             """
             Prüfungsgebiet / Themen: {{Themen}}
             Dauer: {{Dauer|z.B. 30 Minuten}}
@@ -505,7 +507,7 @@ internal object BuiltInTemplates {
 
         // ── Forschung ─────────────────────────────────────────────────────────────────────────────────────────
         prompt(
-            TemplateCategory.RESEARCH, "res_question", "Forschungsfrage schärfen", "Fragestellung, Konstrukte, Hypothesen und Design",
+            TemplateCategory.RESEARCH, "res_question", trLater("Forschungsfrage schärfen"), trLater("Fragestellung, Konstrukte, Hypothesen und Design"),
             """
             Thema / Idee: {{Thema}}
             Hintergrund: {{Hintergrund|Was ist bekannt, was interessiert Sie?}}
@@ -520,7 +522,7 @@ internal object BuiltInTemplates {
                 "Erhebungen an Schulen in Sachsen. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_items", "Fragebogen-Items", "Items mit Antwortformat für ein oder mehrere Konstrukte",
+            TemplateCategory.RESEARCH, "res_items", trLater("Fragebogen-Items"), trLater("Items mit Antwortformat für ein oder mehrere Konstrukte"),
             """
             Konstrukt(e): {{Konstrukte|z.B. Selbstwirksamkeit von Lehrkräften im inklusiven Unterricht}}
             Zielgruppe: {{Zielgruppe}}
@@ -534,7 +536,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_interview", "Interviewleitfaden", "Leitfaden mit Einstieg, Themenblöcken und Nachfragen",
+            TemplateCategory.RESEARCH, "res_interview", trLater("Interviewleitfaden"), trLater("Leitfaden mit Einstieg, Themenblöcken und Nachfragen"),
             """
             Forschungsfrage: {{Forschungsfrage}}
             Interviewte: {{Interviewte|z.B. Seiteneinsteiger:innen, Lehrkräfte, Schulleitungen}}
@@ -547,7 +549,7 @@ internal object BuiltInTemplates {
                 "suggestiv, ohne Fachjargon. " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_coding", "Kategoriensystem", "Für die qualitative Inhaltsanalyse – Material gern anhängen",
+            TemplateCategory.RESEARCH, "res_coding", trLater("Kategoriensystem"), trLater("Für die qualitative Inhaltsanalyse – Material gern anhängen"),
             """
             Forschungsfrage: {{Forschungsfrage}}
             Material: {{Material|z.B. Interviewtranskripte, Unterrichtsvideos, Dokumente}}
@@ -560,7 +562,7 @@ internal object BuiltInTemplates {
                 "zu Probekodierung, Intercoder-Übereinstimmung, Memos und Umsetzung in MAXQDA. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_results", "Ergebnisse berichten (APA 7)", "Statistik-Ausgabe als Ergebnisteil formulieren",
+            TemplateCategory.RESEARCH, "res_results", trLater("Ergebnisse berichten (APA 7)"), trLater("Statistik-Ausgabe als Ergebnisteil formulieren"),
             """
             Fragestellung / Hypothese: {{Hypothese}}
             Ausgabe: {{Ausgabe|Output aus SPSS, R oder JASP einfügen oder anhängen}}
@@ -573,7 +575,7 @@ internal object BuiltInTemplates {
                 "und ggf. eine Tabelle im APA-Format. " + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_abstract", "Abstract", "Strukturiertes Abstract für Tagung oder Zeitschrift",
+            TemplateCategory.RESEARCH, "res_abstract", trLater("Abstract"), trLater("Strukturiertes Abstract für Tagung oder Zeitschrift"),
             """
             Titel: {{Titel}}
             Anlass: {{Anlass|z.B. GEBF-Tagung, DGfE-Kongress, Zeitschrift}}
@@ -586,7 +588,7 @@ internal object BuiltInTemplates {
                 "Schlage 3–5 Keywords vor. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_excerpt", "Literatur exzerpieren", "Fragestellung, Methode, Befunde – Text oder PDF anhängen",
+            TemplateCategory.RESEARCH, "res_excerpt", trLater("Literatur exzerpieren"), trLater("Fragestellung, Methode, Befunde – Text oder PDF anhängen"),
             """
             Eigene Fragestellung: {{Fragestellung|wofür ist der Text relevant?}}
             Schwerpunkt: {{Schwerpunkt|optional, z.B. Methode, Befunde, Begriffe}}
@@ -598,7 +600,7 @@ internal object BuiltInTemplates {
                 "das Exzerpt danach mit save_excerpt, wenn verfügbar. Ist kein Text angehängt, bitte darum. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_proposal", "Projektskizze / Antrag", "Gliederung und Entwurf für einen Förderantrag",
+            TemplateCategory.RESEARCH, "res_proposal", trLater("Projektskizze / Antrag"), trLater("Gliederung und Entwurf für einen Förderantrag"),
             """
             Förderprogramm: {{Förderprogramm|z.B. DFG-Sachbeihilfe, BMBF, SMK, DAAD, interne Förderung}}
             Projektidee: {{Idee}}
@@ -613,7 +615,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_consent", "Einwilligungserklärung", "Information und Einwilligung zur Studienteilnahme (PDF)",
+            TemplateCategory.RESEARCH, "res_consent", trLater("Einwilligungserklärung"), trLater("Information und Einwilligung zur Studienteilnahme (PDF)"),
             """
             Studie: {{Studie|Titel und Ziel}}
             Erhebung: {{Erhebung|z.B. Videoaufzeichnung im Unterricht, Interview, Fragebogen}}
@@ -630,7 +632,7 @@ internal object BuiltInTemplates {
                 "Datenschutz der TU Dresden und ggf. dem Landesamt für Schule und Bildung abzustimmen.",
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_review", "Peer Review", "Gutachten zu einem Manuskript – Datei anhängen",
+            TemplateCategory.RESEARCH, "res_review", trLater("Peer Review"), trLater("Gutachten zu einem Manuskript – Datei anhängen"),
             """
             Zeitschrift / Tagung: {{Zeitschrift}}
             Art der Einreichung: {{Art|Zeitschriftenartikel, Tagungsbeitrag, Antrag}}
@@ -644,7 +646,7 @@ internal object BuiltInTemplates {
         ),
 
         prompt(
-            TemplateCategory.RESEARCH, "res_refcheck", "Literaturangaben prüfen", "Gibt es die Quellen wirklich? Abgleich mit Crossref & Co.",
+            TemplateCategory.RESEARCH, "res_refcheck", trLater("Literaturangaben prüfen"), trLater("Gibt es die Quellen wirklich? Abgleich mit Crossref & Co."),
             """
             Literatur: {{Literatur|Literaturverzeichnis einfügen oder Arbeit als Datei anhängen}}
             Zitierstil: {{Zitierstil|optional, z.B. APA 7, DGfE}}
@@ -657,7 +659,7 @@ internal object BuiltInTemplates {
         ),
 
         prompt(
-            TemplateCategory.RESEARCH, "res_bibliography", "Literaturverzeichnis erstellen", "Alphabetisch im gewünschten Zitierstil – fehlende Angaben werden ergänzt",
+            TemplateCategory.RESEARCH, "res_bibliography", trLater("Literaturverzeichnis erstellen"), trLater("Alphabetisch im gewünschten Zitierstil – fehlende Angaben werden ergänzt"),
             """
             Literatur: {{Literatur|Angaben einfügen (je Zeile eine), BibTeX/RIS einfügen oder Datei anhängen}}
             Zitierstil: {{Zitierstil|APA 7 (deutsch), APA 7 (englisch), Erziehungswissenschaft (ZfPäd), DIN ISO 690, Harvard, Chicago, MLA, IEEE}}
@@ -669,7 +671,7 @@ internal object BuiltInTemplates {
                 "mit create_document; eine BibTeX-/RIS-Datei mit export. " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_litsearch", "Literatursuche", "Agent recherchiert Literatur zu Thema und Kontext – mit Suchprotokoll",
+            TemplateCategory.RESEARCH, "res_litsearch", trLater("Literatursuche"), trLater("Agent recherchiert Literatur zu Thema und Kontext – mit Suchprotokoll"),
             """
             Thema: {{Thema|z.B. Classroom Management bei Berufseinsteigenden}}
             Kontext und Fragestellung: {{Kontext|Wofür? z.B. Masterarbeit, Seminar, Antrag; Schulform, Fach, Perspektive}}
@@ -679,7 +681,7 @@ internal object BuiltInTemplates {
             io.github.thepytales.llmhub.agent.ResearchTools.MODE_PROMPT,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_survey", "Fragebogen für LimeSurvey", "Online-Fragebogen zum Import in LimeSurvey (auch Umfragen der TU Dresden)",
+            TemplateCategory.RESEARCH, "res_survey", trLater("Fragebogen für LimeSurvey"), trLater("Online-Fragebogen zum Import in LimeSurvey (auch Umfragen der TU Dresden)"),
             """
             Thema und Ziel: {{Thema|Worum geht es, wer wird befragt?}}
             Konstrukte / Inhalte: {{Inhalte|Skalen, Themenblöcke oder vorhandene Items – auch als Datei}}
@@ -692,7 +694,7 @@ internal object BuiltInTemplates {
                 ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_dmp", "Datenmanagementplan", "DMP nach den Vorgaben von DFG, BMBF oder EU – als Word-Dokument",
+            TemplateCategory.RESEARCH, "res_dmp", trLater("Datenmanagementplan"), trLater("DMP nach den Vorgaben von DFG, BMBF oder EU – als Word-Dokument"),
             """
             Projekt: {{Projekt|Titel, Laufzeit, beteiligte Einrichtungen}}
             Daten: {{Daten|Welche Daten entstehen? z.B. Videos aus dem Unterricht, Fragebögen, Interviews; Umfang}}
@@ -707,7 +709,7 @@ internal object BuiltInTemplates {
                 "formuliere eine kurze Empfehlung und markiere sie als Vorschlag. " + ACADEMIC + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_ropa", "Verarbeitungsverzeichnis (Art. 30 DSGVO)", "Eintrag für das Verzeichnis der Verarbeitungstätigkeiten",
+            TemplateCategory.RESEARCH, "res_ropa", trLater("Verarbeitungsverzeichnis (Art. 30 DSGVO)"), trLater("Eintrag für das Verzeichnis der Verarbeitungstätigkeiten"),
             """
             Verarbeitung: {{Verarbeitung|z.B. Videostudie im Unterricht, Online-Befragung von Lehrkräften}}
             Zweck: {{Zweck}}
@@ -722,7 +724,7 @@ internal object BuiltInTemplates {
                 "Hinweis auf Abstimmung mit dem Datenschutz der TU Dresden. " + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_privacyinfo", "Datenschutzinformation für Teilnehmende", "Informationen nach Art. 13 DSGVO in verständlicher Sprache",
+            TemplateCategory.RESEARCH, "res_privacyinfo", trLater("Datenschutzinformation für Teilnehmende"), trLater("Informationen nach Art. 13 DSGVO in verständlicher Sprache"),
             """
             Studie: {{Studie|Titel, Ziel, Ablauf, Dauer}}
             Teilnehmende: {{Teilnehmende|z.B. Schüler:innen und Eltern, Studierende}}
@@ -735,7 +737,7 @@ internal object BuiltInTemplates {
                 "bei Kindern zusätzlich eine Fassung in einfacher Sprache. " + HONEST,
         ),
         prompt(
-            TemplateCategory.RESEARCH, "res_ethics", "Ethikantrag (Kurzfassung)", "Antrag für die Ethikkommission – Studienbeschreibung, Risiken, Schutzmaßnahmen",
+            TemplateCategory.RESEARCH, "res_ethics", trLater("Ethikantrag (Kurzfassung)"), trLater("Antrag für die Ethikkommission – Studienbeschreibung, Risiken, Schutzmaßnahmen"),
             """
             Studie: {{Studie|Titel, Fragestellung, Design}}
             Stichprobe und Rekrutierung: {{Stichprobe}}
@@ -751,7 +753,7 @@ internal object BuiltInTemplates {
 
         // ── Kommunikation ─────────────────────────────────────────────────────────────────────────────────────
         prompt(
-            TemplateCategory.COMMUNICATION, "mail", "E-Mail schreiben", "Klare, höfliche E-Mail mit Betreff und Signatur",
+            TemplateCategory.COMMUNICATION, "mail", trLater("E-Mail schreiben"), trLater("Klare, höfliche E-Mail mit Betreff und Signatur"),
             """
             An: {{An|Person oder Personenkreis}}
             Anliegen: {{Anliegen|Stichpunkte reichen}}
@@ -763,7 +765,7 @@ internal object BuiltInTemplates {
                 HONEST,
         ),
         prompt(
-            TemplateCategory.COMMUNICATION, "mail_student", "Antwort an Studierende", "Anfrage einfügen, Antwort in Stichpunkten",
+            TemplateCategory.COMMUNICATION, "mail_student", trLater("Antwort an Studierende"), trLater("Anfrage einfügen, Antwort in Stichpunkten"),
             """
             Anfrage: {{Anfrage|E-Mail einfügen}}
             Inhalt der Antwort: {{Antwort|Stichpunkte}}
@@ -774,7 +776,7 @@ internal object BuiltInTemplates {
                 "Zusagen, die nicht in den Stichpunkten stehen. " + HONEST,
         ),
         prompt(
-            TemplateCategory.COMMUNICATION, "announcement", "Ankündigung für OPAL oder Rundmail", "Kurz, mit Terminen und klarer Handlungsaufforderung",
+            TemplateCategory.COMMUNICATION, "announcement", trLater("Ankündigung für OPAL oder Rundmail"), trLater("Kurz, mit Terminen und klarer Handlungsaufforderung"),
             """
             Kanal: {{Kanal|z.B. OPAL-Kurs, Rundmail an Studierende, Institutsverteiler}}
             Lehrveranstaltung / Anlass: {{Anlass}}
@@ -786,7 +788,7 @@ internal object BuiltInTemplates {
                 "Anrede und Signatur. " + HONEST,
         ),
         prompt(
-            TemplateCategory.COMMUNICATION, "mail_english", "E-Mail auf Englisch", "Für internationale Partner – mit deutscher Kurzfassung",
+            TemplateCategory.COMMUNICATION, "mail_english", trLater("E-Mail auf Englisch"), trLater("Für internationale Partner – mit deutscher Kurzfassung"),
             """
             An: {{An|Person, Funktion, Einrichtung}}
             Anliegen: {{Anliegen|auf Deutsch oder Englisch, Stichpunkte reichen}}
@@ -800,7 +802,7 @@ internal object BuiltInTemplates {
 
         // ── Allgemein ─────────────────────────────────────────────────────────────────────────────────────────
         prompt(
-            TemplateCategory.GENERAL, "pdf_fill", "PDF-Formular ausfüllen", "Hochgeladenes Formular automatisch ausfüllen – PDF anhängen",
+            TemplateCategory.GENERAL, "pdf_fill", trLater("PDF-Formular ausfüllen"), trLater("Hochgeladenes Formular automatisch ausfüllen – PDF anhängen"),
             """
             Angaben: {{Angaben|Was soll eingetragen werden? z.B. Reiseziel, Zeitraum, Kostenstelle}}
             Meine Angaben: {{Meine Angaben|Name, Anschrift, Personalnummer … – aus den Einstellungen}}
@@ -812,7 +814,7 @@ internal object BuiltInTemplates {
                 "eingetragen | und eine Liste offener Felder. Ist kein PDF angehängt, bitte darum. " + HONEST,
         ),
         prompt(
-            TemplateCategory.GENERAL, "travel_expenses", "Reisekosten aus Belegen", "Belege fotografieren – Aufstellung und Formular ausfüllen",
+            TemplateCategory.GENERAL, "travel_expenses", trLater("Reisekosten aus Belegen"), trLater("Belege fotografieren – Aufstellung und Formular ausfüllen"),
             """
             Dienstreise: {{Dienstreise|Anlass, Ziel, Zeitraum mit Uhrzeiten, z.B. Tagung GEBF in Halle, 10.–12.03.2027}}
             Meine Angaben: {{Meine Angaben|Name, Personalnummer, Kostenstelle/Projekt – aus den Einstellungen}}
@@ -828,7 +830,7 @@ internal object BuiltInTemplates {
                 "die Aufstellung als PDF mit style=tud (Belegliste zum Beifügen). Beträge nur aus den Belegen. " + HONEST,
         ),
         prompt(
-            TemplateCategory.GENERAL, "accessibility", "Barrierefreiheit prüfen", "Ist das Dokument für Screenreader nutzbar? – PDF anhängen",
+            TemplateCategory.GENERAL, "accessibility", trLater("Barrierefreiheit prüfen"), trLater("Ist das Dokument für Screenreader nutzbar? – PDF anhängen"),
             """
             Dokument: {{Dokument|PDF anhängen oder Namen eines erstellten Dokuments nennen}}
             Verwendung: {{Verwendung|optional, z.B. OPAL-Kurs, Website, Prüfungsunterlage}}
@@ -839,7 +841,7 @@ internal object BuiltInTemplates {
                 "erstellen (Überschriften, Alternativtexte, Tabellenköpfe, Sprache sind dort gesetzt). " + ACADEMIC,
         ),
         prompt(
-            TemplateCategory.GENERAL, "summary", "Zusammenfassen", "Kernaussagen eines Textes oder einer Datei",
+            TemplateCategory.GENERAL, "summary", trLater("Zusammenfassen"), trLater("Kernaussagen eines Textes oder einer Datei"),
             """
             Text: {{Text|einfügen oder Datei anhängen}}
             Länge: {{Länge|z.B. 7 Stichpunkte, eine halbe Seite}}
@@ -849,7 +851,7 @@ internal object BuiltInTemplates {
                 "Punkte in der gewünschten Länge, am Ende offene Fragen oder Handlungsbedarf. Nur Inhalte aus der Vorlage. " + HONEST,
         ),
         prompt(
-            TemplateCategory.GENERAL, "edit", "Text überarbeiten", "Korrigieren, kürzen, verständlicher oder wissenschaftlicher machen",
+            TemplateCategory.GENERAL, "edit", trLater("Text überarbeiten"), trLater("Korrigieren, kürzen, verständlicher oder wissenschaftlicher machen"),
             """
             Text: {{Text}}
             Ziel: {{Ziel|z.B. Rechtschreibung prüfen, verständlicher, kürzer, wissenschaftlicher}}
@@ -858,7 +860,7 @@ internal object BuiltInTemplates {
                 "als Stichpunkte. Aussagen nicht verändern, Fachbegriffe beibehalten, geschlechtergerechte Sprache einheitlich.",
         ),
         prompt(
-            TemplateCategory.GENERAL, "translate", "Übersetzen", "Fachgerecht, mit Liste der Fachbegriffe",
+            TemplateCategory.GENERAL, "translate", trLater("Übersetzen"), trLater("Fachgerecht, mit Liste der Fachbegriffe"),
             """
             Text: {{Text}}
             Zielsprache: {{Zielsprache|z.B. Englisch}}
@@ -869,7 +871,7 @@ internal object BuiltInTemplates {
                 "die Wahl kurz begründen. Erst die Übersetzung, dann eine kurze Liste der Fachbegriffe.",
         ),
         prompt(
-            TemplateCategory.GENERAL, "simple", "Einfache oder Leichte Sprache", "Für Eltern, Schüler:innen oder barrierearme Informationen",
+            TemplateCategory.GENERAL, "simple", trLater("Einfache oder Leichte Sprache"), trLater("Für Eltern, Schüler:innen oder barrierearme Informationen"),
             """
             Text: {{Text}}
             Zielgruppe: {{Zielgruppe|z.B. Eltern, Schüler:innen, Menschen mit Lernschwierigkeiten}}
@@ -880,7 +882,7 @@ internal object BuiltInTemplates {
                 "Wörtern, Beispiele. Inhalt vollständig und korrekt erhalten.",
         ),
         prompt(
-            TemplateCategory.GENERAL, "slides", "Präsentation gliedern", "Folien für die TUD-Präsentationsvorlage mit Sprechernotizen",
+            TemplateCategory.GENERAL, "slides", trLater("Präsentation gliedern"), trLater("Folien für die TUD-Präsentationsvorlage mit Sprechernotizen"),
             """
             Thema: {{Thema}}
             Anlass und Publikum: {{Anlass|z.B. Vorlesung, Tagungsvortrag, Elternabend}}
@@ -893,13 +895,13 @@ internal object BuiltInTemplates {
                 "Minuten. Biete an, die Gliederung als Word-Datei zu erstellen. " + HONEST,
         ),
         prompt(
-            TemplateCategory.GENERAL, "explain", "Einfach erklären", "Wie für Einsteiger, mit Beispiel",
+            TemplateCategory.GENERAL, "explain", trLater("Einfach erklären"), trLater("Wie für Einsteiger, mit Beispiel"),
             "Erkläre mir: {{Thema}}",
             "Erkläre Schritt für Schritt und so einfach wie möglich, mit einem Beispiel aus Schule oder Hochschule, und " +
                 "prüfe am Ende mit einer kurzen Frage das Verständnis.",
         ),
         prompt(
-            TemplateCategory.GENERAL, "proscons", "Pro & Contra", "Abwägung mit Empfehlung",
+            TemplateCategory.GENERAL, "proscons", trLater("Pro & Contra"), trLater("Abwägung mit Empfehlung"),
             """
             Frage / Entscheidung: {{Frage}}
             Kontext: {{Kontext|optional}}
@@ -910,7 +912,7 @@ internal object BuiltInTemplates {
 
         // ── Personas ──────────────────────────────────────────────────────────────────────────────────────────
         persona(
-            "didactics", "Didaktik-Beratung", "Plant Unterricht und Lehre theoriegeleitet mit",
+            "didactics", trLater("Didaktik-Beratung"), trLater("Plant Unterricht und Lehre theoriegeleitet mit"),
             "Du bist eine erfahrene Beraterin für Allgemeine Didaktik und Hochschuldidaktik. Du unterstützt Lehrende bei der " +
                 "Planung von Unterricht und Lehrveranstaltungen: Lernziele, Constructive Alignment, kognitive Aktivierung, " +
                 "Methoden und Sozialformen, Differenzierung, Inklusion, digitale Medien und Prüfen. Du argumentierst " +
@@ -918,7 +920,7 @@ internal object BuiltInTemplates {
                 "umsetzbare Vorschläge. Frage nach, wenn Zielgruppe, Rahmen oder Ziel unklar sind.",
         ),
         persona(
-            "methods", "Methoden- & Statistikberatung", "Quantitative und qualitative Bildungsforschung",
+            "methods", trLater("Methoden- & Statistikberatung"), trLater("Quantitative und qualitative Bildungsforschung"),
             "Du bist Methodenberaterin für empirische Bildungsforschung – quantitativ (Design, Stichprobenplanung, " +
                 "Skalenbildung, Regression, Mehrebenenmodelle, Strukturgleichungsmodelle), qualitativ (Interviews, " +
                 "Videografie, qualitative Inhaltsanalyse, Dokumentarische Methode) und Mixed Methods. Erkläre Verfahren " +
@@ -926,39 +928,39 @@ internal object BuiltInTemplates {
                 "Rechne nie mit erfundenen Daten und weise auf Grenzen und Alternativen hin.",
         ),
         persona(
-            "translator", "Übersetzer:in Wissenschaft", "Übersetzt jeden Text Deutsch ↔ Englisch, fachgerecht",
+            "translator", trLater("Übersetzer:in Wissenschaft"), trLater("Übersetzt jeden Text Deutsch ↔ Englisch, fachgerecht"),
             "Du bist professionelle Fachübersetzerin für Erziehungswissenschaft und Bildungsforschung. Übersetze jeden Text " +
                 "des Nutzers: deutsche Texte ins Englische, alle anderen ins Deutsche – außer der Nutzer nennt eine andere " +
                 "Zielsprache. Behalte Ton, Formatierung, Zitationen und Fachbegriffe bei (z.B. Lehrkräftebildung – teacher " +
                 "education). Gib nur die Übersetzung aus; nur bei mehrdeutigen Fachbegriffen eine kurze Anmerkung darunter.",
         ),
         persona(
-            "editor", "Lektorat", "Korrigiert Rechtschreibung, Grammatik und Stil wissenschaftlicher Texte",
+            "editor", trLater("Lektorat"), trLater("Korrigiert Rechtschreibung, Grammatik und Stil wissenschaftlicher Texte"),
             "Du bist ein sorgfältiges wissenschaftliches Lektorat. Korrigiere Rechtschreibung, Grammatik und Zeichensetzung " +
                 "nach der amtlichen Rechtschreibung, verbessere behutsam Stil, Verständlichkeit und Kohärenz, achte auf " +
                 "einheitliche, geschlechtergerechte Sprache und auf die Zitierweise nach APA 7. Gib zuerst den korrigierten " +
                 "Text aus, danach die wichtigsten Änderungen als Stichpunkte. Verändere keine inhaltlichen Aussagen.",
         ),
         persona(
-            "reviewer", "Kritische:r Gutachter:in", "Prüft Texte auf Schwachstellen – wie ein strenges Review",
+            "reviewer", trLater("Kritische:r Gutachter:in"), trLater("Prüft Texte auf Schwachstellen – wie ein strenges Review"),
             "Du bist eine kritische, faire Gutachterin für erziehungswissenschaftliche Texte. Prüfe Argumentation, " +
                 "Theoriebezug, Fragestellung, Methode, Belege und Schlussfolgerungen auf Schwachstellen, Lücken und " +
                 "alternative Erklärungen. Gliedere in „Grundsätzliche Einwände“, „Weitere Anmerkungen“ und „Was überzeugt“. " +
                 "Sei konkret, nenne Textstellen und schlage Verbesserungen vor.",
         ),
         persona(
-            "coach", "Lerncoach für Studierende", "Führt mit Fragen zum eigenen Verständnis statt mit fertigen Lösungen",
+            "coach", trLater("Lerncoach für Studierende"), trLater("Führt mit Fragen zum eigenen Verständnis statt mit fertigen Lösungen"),
             "Du bist Lerncoach für Lehramtsstudierende. Gib keine fertigen Lösungen, sondern führe mit gezielten Fragen, " +
                 "Hinweisen und Beispielen zum eigenen Verständnis. Prüfe zwischendurch das Verständnis und fasse am Ende " +
                 "zusammen, was erarbeitet wurde.",
         ),
         persona(
-            "tutor", "Erklärer", "Erklärt Themen einfach und Schritt für Schritt",
+            "tutor", trLater("Erklärer"), trLater("Erklärt Themen einfach und Schritt für Schritt"),
             "Du bist ein geduldiger Tutor. Erkläre Themen verständlich und Schritt für Schritt, mit Beispielen aus dem " +
                 "Alltag. Prüfe am Ende mit einer kurzen Frage, ob alles verstanden wurde.",
         ),
         persona(
-            "code", "Code-Reviewer", "Prüft Code auf Fehler, Sicherheit und Lesbarkeit",
+            "code", trLater("Code-Reviewer"), trLater("Prüft Code auf Fehler, Sicherheit und Lesbarkeit"),
             "Du bist ein erfahrener Senior-Softwareentwickler und führst Code-Reviews durch. Prüfe den Code auf Fehler, " +
                 "Randfälle, Sicherheitsprobleme, Performance und Lesbarkeit. Gliedere deine Antwort in „Kritisch“, " +
                 "„Verbesserungen“ und „Kleinigkeiten“, nenne jeweils die Stelle und zeige konkrete Korrekturen als Codeblock. " +

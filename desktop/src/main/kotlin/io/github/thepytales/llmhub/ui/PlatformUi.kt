@@ -8,18 +8,31 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import org.jetbrains.skia.Image as SkiaImage
 import androidx.compose.ui.Modifier
 
-/** Windows: the right click opens the same menu as a long press on Android. */
-fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action)
+/**
+ * Windows: the right click opens the same menu as a long press on Android – and so do the menu key and Shift+F10 on
+ * the focused element (keyboard, AP-30; every caller puts this after its clickable).
+ */
+fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action).onKeyEvent { e ->
+    val menuKey = e.key == Key.Menu || e.isShiftPressed && e.key == Key.F10
+    if (menuKey && e.type == KeyEventType.KeyUp) action()
+    menuKey
+}
 
 /** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
 const val IS_ANDROID = false
 
 /** How a context menu is opened – for hints in the interface. */
-const val CONTEXT_GESTURE = "Rechtsklick"
+val CONTEXT_GESTURE: String get() = tr("Rechtsklick")
 
 /** Windows has no system back; Escape is handled per screen. */
 @Suppress("UNUSED_PARAMETER")
@@ -36,7 +49,7 @@ fun shareText(context: Context, text: String, subject: String? = null) {
 }
 
 /** Verb for touching something, in hints ("tippen" / "klicken"). */
-const val TAP = "klicken"
+val TAP: String get() = tr("klicken")
 
 /** Windows (mouse and keyboard first): selecting text in a document opens the „KI fragen“ window right away. */
 const val DESKTOP = true
@@ -47,13 +60,13 @@ const val ENTER_SENDS = true
 /** First tile of the attach sheet: the camera on Android, pasting from the clipboard on Windows. */
 object CameraTile {
     val icon: ImageVector get() = Icons.Outlined.ContentPaste
-    const val label = "Einfügen"
+    val label: String get() = tr("Einfügen")
 }
 
-const val PHOTOS_LABEL = "Bilder"
+val PHOTOS_LABEL: String get() = tr("Bilder")
 
 /** Extra sentence for the attach sheet. */
-const val ATTACH_HINT = " Dateien lassen sich auch ins Fenster ziehen; „Einfügen“ übernimmt einen Screenshot (Win+Umschalt+S) aus der Zwischenablage."
+val ATTACH_HINT: String get() = tr(" Dateien lassen sich auch ins Fenster ziehen; „Einfügen“ übernimmt einen Screenshot (Win+Umschalt+S) aus der Zwischenablage.")
 
 /** PNG bytes of a picture (masks and reference images for "Überarbeiten"). */
 fun encodePng(image: ImageBitmap): ByteArray =

@@ -23,7 +23,7 @@ fun rememberDocumentPicker(onRead: (FileAttachment) -> Unit): () -> Unit {
             scope.launch {
                 val r = AttachmentReader.read(context, uri)
                 r.file?.let(onRead)
-                (r.error ?: r.note ?: if (r.file == null) "Aus dieser Datei ließ sich kein Text lesen." else null)
+                (r.error ?: r.note ?: if (r.file == null) tr("Aus dieser Datei ließ sich kein Text lesen.") else null)
                     ?.let { Notices.error(it) }
             }
         }
@@ -77,9 +77,9 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
                             c.getColumnIndex(android.provider.OpenableColumns.SIZE).takeIf { it >= 0 }?.let { if (!c.isNull(it)) size = c.getLong(it) }
                         }
                     }
-                    val input = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) } ?: error("Datei nicht lesbar")
+                    val input = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) } ?: error(tr("Datei nicht lesbar"))
                     onPicked(name, size, input)
-                }.onFailure { Notices.error("Die Datei konnte nicht geöffnet werden: ${it.message}") }
+                }.onFailure { Notices.error(tr("Die Datei konnte nicht geöffnet werden: {0}", it.message)) }
             }
         }
     }
@@ -91,7 +91,7 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
 fun rememberMicPermission(onGranted: () -> Unit): () -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) onGranted() else Notices.error("Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich.")
+        if (ok) onGranted() else Notices.error(tr("Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich."))
     }
     return {
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) onGranted()

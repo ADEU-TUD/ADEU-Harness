@@ -16,15 +16,43 @@ val MEMORY_JVM_ARGS = listOf(
     "-XX:MaxHeapFreeRatio=30", "-XX:+UseStringDeduplication", "-XX:SoftRefLRUPolicyMSPerMB=200",
 )
 
+/** The packages are built on the OS they are for (Windows, macOS, Linux runner); only -PwindowsJars builds across. */
+val hostOs: String = System.getProperty("os.name").orEmpty()
+val isMacHost = hostOs.startsWith("Mac")
+val isLinuxHost = hostOs.startsWith("Linux")
+
 /**
- * JCEF (browser beside the chat, AP-14) reaches into AWT internals for the native window of its browser. Also written
- * into "ADEU LLM.cfg" by .github/scripts/release-local.sh.
+ * JCEF (browser beside the chat, AP-14) reaches into AWT internals for the native window of its browser. The Windows
+ * list is also written into "ADEU LLM.cfg" by .github/scripts/release-local.sh. On macOS JCEF needs the LWAWT packages
+ * instead of sun.awt.windows (jcefmaven README, "To use on MacOSX"); on Linux it takes the window through JAWT and
+ * needs neither (an --add-opens for a package the JDK lacks there only prints a warning).
  */
 val BROWSER_JVM_ARGS = listOf(
     "--add-exports=java.desktop/sun.awt=ALL-UNNAMED", "--add-exports=java.desktop/sun.java2d=ALL-UNNAMED",
-    "--add-opens=java.desktop/sun.awt=ALL-UNNAMED", "--add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED",
-    "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
-)
+    "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+) + when {
+    isMacHost -> listOf("--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED", "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
+    isLinuxHost -> emptyList()
+    else -> listOf("--add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED")
+} + "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED"
+
+/**
+ * macOS signature and notarization (AP-31), only when the variables are set (secrets of the release workflow);
+ * otherwise Compose signs ad hoc ("-"), which Apple Silicon requires, and the DMG is not notarized.
+ *   MAC_SIGN_IDENTITY     "Developer ID Application: Name (TEAMID)" or only "Name (TEAMID)"
+ *   MAC_SIGN_KEYCHAIN     keychain with that certificate (optional, else the default keychain)
+ *   MAC_NOTARY_APPLE_ID, MAC_NOTARY_PASSWORD (app-specific password), MAC_NOTARY_TEAM_ID – for ./gradlew notarizeDmg
+ */
+fun env(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
+val macSignIdentity = env("MAC_SIGN_IDENTITY")?.removePrefix("Developer ID Application:")?.trim()
+
+/** Info.plist texts for the permission prompts of macOS (without them macOS ends the app on first use). */
+val MAC_PLIST_KEYS = """
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Lora braucht das Mikrofon für die Spracheingabe und für Aufnahmen, die transkribiert werden sollen.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Lora steuert andere Programme nur auf Wunsch, z. B. Outlook oder Mail für Mails und Termine.</string>
+""".trimIndent()
 
 /** Same version scheme as the APK: 1.0.<build number>. */
 val appVersion = System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
@@ -134,8 +162,11 @@ compose.desktop {
 
         nativeDistributions {
             appResourcesRootDir.set(layout.buildDirectory.dir("speech/desktop"))
-            // Portable app folder (ADEU LLM.exe + runtime; the technical name stays, the app is called Lora – see Brand.kt); see .github/scripts/windows-portable.ps1.
-            targetFormats(TargetFormat.AppImage)
+            // AppImage: the portable app folder of createDistributable (Windows: ADEU LLM.exe + runtime, see
+            // .github/scripts/windows-portable.ps1; macOS: ADEU LLM.app; Linux: ADEU LLM/bin/ADEU LLM) – the technical
+            // name stays, the app is called Lora (Brand.kt). Dmg and Deb only exist on their own OS (packageDmg on
+            // macOS, packageDeb on Linux with dpkg-deb and fakeroot); Windows ignores them.
+            targetFormats(TargetFormat.AppImage, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "ADEU LLM"
             packageVersion = appVersion
             description = "Lora – Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden"
@@ -152,8 +183,45 @@ compose.desktop {
                 // Without console window; errors go to log.txt in the data folder.
                 console = false
             }
+            // AP-31: Apple Silicon (macos-14 runner). ADEU LLM.app keeps the technical name, menu bar and Dock say Lora.
+            macOS {
+                iconFile.set(project.file("icons/app.icns"))
+                bundleID = "de.tu-dresden.adeu.lora"
+                packageName = "Lora"
+                dockName = "Lora"
+                appCategory = "public.app-category.productivity"
+                // Chromium of the browser (JCEF 152) needs macOS 12.
+                minimumSystemVersion = "12.0"
+                // Hardened runtime (Developer ID and ad-hoc signature): the JVM's JIT, native libraries that are not
+                // signed by us (JNA, JCEF/Chromium, sherpa-onnx, Skia), microphone, Apple Events. No XML comments in
+                // these files – codesign embeds them as they are.
+                entitlementsFile.set(project.file("macos/entitlements.plist"))
+                runtimeEntitlementsFile.set(project.file("macos/runtime-entitlements.plist"))
+                infoPlist { extraKeysRawXml = MAC_PLIST_KEYS }
+                if (macSignIdentity != null) {
+                    signing {
+                        sign.set(true)
+                        identity.set(macSignIdentity)
+                        env("MAC_SIGN_KEYCHAIN")?.let { keychain.set(it) }
+                    }
+                }
+                notarization {
+                    env("MAC_NOTARY_APPLE_ID")?.let { appleID.set(it) }
+                    env("MAC_NOTARY_PASSWORD")?.let { password.set(it) }
+                    env("MAC_NOTARY_TEAM_ID")?.let { teamID.set(it) }
+                }
+            }
             linux {
                 iconFile.set(project.file("icons/app.png"))
+                // Debian package "adeu-llm" (installs to /opt/adeu-llm, menu entry in "Büro"/Office).
+                packageName = "adeu-llm"
+                // Only the address – jpackage writes "Maintainer: <vendor> <address>".
+                debMaintainer = "thepytales@users.noreply.github.com"
+                // Categories= of the .desktop file (freedesktop main category).
+                menuGroup = "Office"
+                // Section: of the DEB control file; the Debian list has no "office", "misc" is jpackage's default.
+                appCategory = "misc"
+                shortcut = true
             }
         }
     }

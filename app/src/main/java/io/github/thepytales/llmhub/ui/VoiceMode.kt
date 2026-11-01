@@ -26,7 +26,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,11 +60,11 @@ import kotlin.math.sin
 
 /** Where the conversation is: listening, understanding what was said, the agent working, reading the answer aloud. */
 enum class VoicePhase(val label: String) {
-    LISTENING("Ich höre zu …"),
-    PAUSED("Pausiert – tippen Sie auf „Weiter“"),
-    UNDERSTANDING("Verstehe …"),
-    WORKING("Lora ist dran …"),
-    SPEAKING("Antwort wird vorgelesen …"),
+    LISTENING(trLater("Ich höre zu …")),
+    PAUSED(trLater("Pausiert – tippen Sie auf „Weiter“")),
+    UNDERSTANDING(trLater("Verstehe …")),
+    WORKING(trLater("Lora ist dran …")),
+    SPEAKING(trLater("Antwort wird vorgelesen …")),
 }
 
 /**
@@ -147,7 +146,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             try {
                 recorder.start()
             } catch (e: Exception) {
-                error = "Mikrofon nicht verfügbar: ${e.message ?: e.javaClass.simpleName}"
+                error = tr("Mikrofon nicht verfügbar: {0}", e.message ?: e.javaClass.simpleName)
                 paused = true
                 return@LaunchedEffect
             }
@@ -170,7 +169,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                error = "Spracherkennung fehlgeschlagen: ${e.message}"
+                error = tr("Spracherkennung fehlgeschlagen: {0}", e.message)
                 delay(1500)
                 continue
             }
@@ -212,7 +211,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             fun s(from: Long, to: Long) = if (to == 0L) "–" else String.format(java.util.Locale.GERMANY, "%.1f s", (to - from) / 1000.0)
             if (answerSoFar().isBlank()) {
                 val thread = vm.state.value?.thread().orEmpty()
-                error = thread.lastOrNull()?.takeIf { it.role == "assistant" && it.error }?.content?.take(200) ?: "Keine Antwort erhalten."
+                error = thread.lastOrNull()?.takeIf { it.role == "assistant" && it.error }?.content?.take(200) ?: tr("Keine Antwort erhalten.")
                 delay(1500)
                 continue
             }

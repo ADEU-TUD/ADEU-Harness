@@ -3,7 +3,6 @@ package io.github.thepytales.llmhub.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,29 +27,29 @@ import java.util.UUID
 
 /** Look of a picture; the hint is added to the description in English, which image models follow best. */
 enum class ImageStyle(val label: String, val hint: String) {
-    NONE("Ohne Stil", ""),
-    PHOTO("Foto", "photorealistic photograph, natural light, sharp focus, 35mm"),
-    ILLUSTRATION("Illustration", "clean digital illustration, soft colors, friendly"),
-    WATERCOLOR("Aquarell", "watercolor painting, soft washes, paper texture"),
-    FLAT("Flach", "flat vector illustration, simple shapes, limited palette, no text"),
-    ICON("Symbol", "minimal icon, centered, plain background, flat design"),
+    NONE(trLater("Ohne Stil"), ""),
+    PHOTO(trLater("Foto"), "photorealistic photograph, natural light, sharp focus, 35mm"),
+    ILLUSTRATION(trLater("Illustration"), "clean digital illustration, soft colors, friendly"),
+    WATERCOLOR(trLater("Aquarell"), "watercolor painting, soft washes, paper texture"),
+    FLAT(trLater("Flach"), "flat vector illustration, simple shapes, limited palette, no text"),
+    ICON(trLater("Symbol"), "minimal icon, centered, plain background, flat design"),
     RENDER("3D", "3D render, soft studio lighting, high detail"),
-    SKETCH("Skizze", "pencil sketch, hand drawn, black and white"),
-    COMIC("Comic", "comic style, bold outlines, vibrant colors"),
-    SLIDE("Folie", "modern presentation background, plenty of empty space for text, subtle, professional"),
+    SKETCH(trLater("Skizze"), "pencil sketch, hand drawn, black and white"),
+    COMIC(trLater("Comic"), "comic style, bold outlines, vibrant colors"),
+    SLIDE(trLater("Folie"), "modern presentation background, plenty of empty space for text, subtle, professional"),
 }
 
 /** Resolutions to choose from, grouped by aspect ratio. Width and height are multiples of 16 (FLUX). */
 val IMAGE_RESOLUTIONS: List<Pair<String, List<String>>> = listOf(
-    "Quadrat 1:1" to listOf("512x512", "768x768", "1024x1024", "1536x1536", "2048x2048"),
-    "Hochformat 3:4" to listOf("768x1024", "1152x1536", "1536x2048"),
-    "Querformat 4:3" to listOf("1024x768", "1536x1152", "2048x1536"),
-    "Hochformat 2:3" to listOf("832x1248", "1024x1536"),
-    "Querformat 3:2" to listOf("1248x832", "1536x1024"),
-    "Story 9:16" to listOf("720x1280", "768x1344", "1088x1920"),
-    "Breitbild 16:9" to listOf("1280x720", "1344x768", "1920x1088"),
+    trLater("Quadrat 1:1") to listOf("512x512", "768x768", "1024x1024", "1536x1536", "2048x2048"),
+    trLater("Hochformat 3:4") to listOf("768x1024", "1152x1536", "1536x2048"),
+    trLater("Querformat 4:3") to listOf("1024x768", "1536x1152", "2048x1536"),
+    trLater("Hochformat 2:3") to listOf("832x1248", "1024x1536"),
+    trLater("Querformat 3:2") to listOf("1248x832", "1536x1024"),
+    trLater("Story 9:16") to listOf("720x1280", "768x1344", "1088x1920"),
+    trLater("Breitbild 16:9") to listOf("1280x720", "1344x768", "1920x1088"),
     "A4 hoch (≈150 dpi)" to listOf("1248x1760"),
-    "Banner 3:1" to listOf("1536x512"),
+    trLater("Banner 3:1") to listOf("1536x512"),
 )
 
 internal const val MIN_SIDE = 256
@@ -70,10 +69,10 @@ fun cleanSide(value: String): Int? = value.toIntOrNull()?.coerceIn(MIN_SIDE, MAX
 
 /** Ideas for the empty conversation: tap fills the description. */
 internal val EXAMPLES = listOf(
-    "Ein Hörsaal voller Studierender, die an einem Projekt arbeiten, warmes Morgenlicht",
-    "Das Dresdner Elbufer bei Sonnenuntergang im Stil eines Aquarells",
-    "Symbol für eine Lernplattform: ein Buch, aus dem Ideen aufsteigen",
-    "Hintergrund für eine Präsentationsfolie zum Thema Digitalisierung in der Schule",
+    trLater("Ein Hörsaal voller Studierender, die an einem Projekt arbeiten, warmes Morgenlicht"),
+    trLater("Das Dresdner Elbufer bei Sonnenuntergang im Stil eines Aquarells"),
+    trLater("Symbol für eine Lernplattform: ein Buch, aus dem Ideen aufsteigen"),
+    trLater("Hintergrund für eine Präsentationsfolie zum Thema Digitalisierung in der Schule"),
 )
 
 internal const val IMPROVE_PROMPT =
@@ -105,7 +104,7 @@ fun imageChats(images: List<GalleryImage>, titles: Map<String, String>): List<Im
         val first = list.minByOrNull { it.createdAt }
         ImageChat(
             key = key,
-            title = titles[key] ?: first?.prompt?.trim()?.lineSequence()?.firstOrNull()?.take(60)?.ifBlank { null } ?: "Bilder",
+            title = titles[key] ?: first?.prompt?.trim()?.lineSequence()?.firstOrNull()?.take(60)?.ifBlank { null } ?: tr("Bilder"),
             updatedAt = list.maxOf { it.createdAt },
             count = list.size,
             cover = list.maxByOrNull { it.createdAt },
@@ -176,7 +175,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
         removed.forEach { gallery.hide(it.id) }
         if (chat == key) chat = gallery.items.value.firstOrNull()?.chat ?: UUID.randomUUID().toString().take(12)
         Notices.undo(
-            "Verlauf gelöscht (${removed.size} Bilder)",
+            tr("Verlauf gelöscht ({0} Bilder)", removed.size),
             restore = { removed.forEach { gallery.unhide(it) } },
             commit = { background.launch { removed.forEach { gallery.commitDelete(it) } } },
         )
@@ -235,7 +234,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
         retryAction = { edit(model, source, marked, note) }
         launchTurn(turn) {
             val input = withContext(Dispatchers.Default) {
-                val bmp = decodeImage(gallery.file(source).readBytes()) ?: error("Das Bild lässt sich nicht lesen.")
+                val bmp = decodeImage(gallery.file(source).readBytes()) ?: error(tr("Das Bild lässt sich nicht lesen."))
                 val mask = if (marked.any { it.strokes.isNotEmpty() }) maskPng(bmp.width, bmp.height, marked) else null
                 EditInput(encodePng(bmp), mask, bmp.width, bmp.height)
             }
@@ -314,7 +313,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
                 if (better.isNotEmpty()) {
                     val before = prompt
                     prompt = better
-                    Notices.show(Notices.Notice("Beschreibung verbessert", action = "Rückgängig", onAction = { prompt = before }))
+                    Notices.show(Notices.Notice(tr("Beschreibung verbessert"), action = tr("Rückgängig"), onAction = { prompt = before }))
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -332,7 +331,7 @@ class ImagesViewModel(private val c: AppContainer) : ViewModel() {
 
     fun delete(image: GalleryImage) {
         gallery.hide(image.id)
-        Notices.undo("Bild gelöscht", restore = { gallery.unhide(image) }, commit = { background.launch { gallery.commitDelete(image) } })
+        Notices.undo(tr("Bild gelöscht"), restore = { gallery.unhide(image) }, commit = { background.launch { gallery.commitDelete(image) } })
     }
 }
 

@@ -11,6 +11,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -101,9 +102,9 @@ object McpOAuth {
             put("token_endpoint_auth_method", "none")
         }
         http.newCall(Request.Builder().url(endpoint).post(body.toString().toRequestBody("application/json".toMediaType())).build()).execute().use { r ->
-            if (!r.isSuccessful) throw IOException("Der Server lässt die App nicht als Anwendung zu (Registrierung: HTTP ${r.code}). Trage stattdessen einen Token ein.")
+            if (!r.isSuccessful) throw IOException(tr("Der Server lässt die App nicht als Anwendung zu (Registrierung: HTTP {0}). Trage stattdessen einen Token ein.", r.code))
             val o = JSON.parseToJsonElement(r.body?.string().orEmpty()).jsonObject
-            (o["client_id"]?.jsonPrimitive?.contentOrNull ?: throw IOException("Die Registrierung lieferte keine client_id.")) to o["client_secret"]?.jsonPrimitive?.contentOrNull
+            (o["client_id"]?.jsonPrimitive?.contentOrNull ?: throw IOException(tr("Die Registrierung lieferte keine client_id."))) to o["client_secret"]?.jsonPrimitive?.contentOrNull
         }
     }
 
@@ -125,7 +126,7 @@ object McpOAuth {
             val (id, secret) = when {
                 !clientId.isNullOrBlank() -> clientId.trim() to null
                 ends.registration != null -> register(http, ends.registration, redirect)
-                else -> throw IOException("Der Server verlangt eine eigene Client-ID. Trage sie beim Server ein oder nutze einen Token.")
+                else -> throw IOException(tr("Der Server verlangt eine eigene Client-ID. Trage sie beim Server ein oder nutze einen Token."))
             }
             val verifier = b64(ByteArray(48).also { random.nextBytes(it) })
             val challenge = b64(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII)))
@@ -140,7 +141,7 @@ object McpOAuth {
             val code = try {
                 awaitCode(socket, state)
             } catch (e: SocketTimeoutException) {
-                throw IOException("Keine Anmeldung innerhalb von fünf Minuten. Bitte noch einmal versuchen.")
+                throw IOException(tr("Keine Anmeldung innerhalb von fünf Minuten. Bitte noch einmal versuchen."))
             }
             exchange(http, ends.token, FormBody.Builder()
                 .add("grant_type", "authorization_code").add("code", code).add("redirect_uri", redirect)

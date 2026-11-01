@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +39,7 @@ fun ChartView(spec: ChartSpec, modifier: Modifier = Modifier) {
     Surface(color = Color.White, shape = MaterialTheme.shapes.medium, modifier = modifier.fillMaxWidth().widthIn(max = 640.dp)) {
         Column {
             ChartCanvas(spec, Modifier.fillMaxWidth().padding(4.dp))
-            TextButton(onClick = { table = !table }) { Text(if (table) "Daten ausblenden" else "Daten als Tabelle", color = Color(0xFF1E40AF)) }
+            TextButton(onClick = { table = !table }) { Text(if (table) tr("Daten ausblenden") else tr("Daten als Tabelle"), color = Color(0xFF1E40AF)) }
             if (table) MarkdownText(spec.table(), Modifier.padding(horizontal = 12.dp, vertical = 4.dp), color = Color(0xFF1A1A1A))
         }
     }
@@ -53,7 +52,7 @@ fun ChartCanvas(spec: ChartSpec, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
     Canvas(
         modifier.aspectRatio(ChartLayout.W / ChartLayout.H)
-            .semantics { contentDescription = "Diagramm: ${spec.title.ifBlank { spec.type.name }}. Daten: " + spec.table().replace("|", " ").take(600) },
+            .semantics { contentDescription = tr("Diagramm: {0}. Daten: ", spec.title.ifBlank { spec.type.name }) + spec.table().replace("|", " ").take(600) },
     ) {
         val k = size.width / ChartLayout.W
         fun c(hex: String) = runCatching { Color(0xFF000000 or hex.removePrefix("#").toLong(16)) }.getOrDefault(Color.Gray)

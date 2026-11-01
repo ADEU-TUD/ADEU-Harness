@@ -33,15 +33,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import io.github.thepytales.llmhub.ui.tr
 import org.json.JSONObject
 import java.io.File
 import java.io.InputStream
 import java.io.RandomAccessFile
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Where speech is turned into text. */
 enum class TranscriptionMode(val label: String, val description: String) {
-    LOCAL("Auf diesem Gerät", "Nichts verlässt das Gerät. Braucht ein geladenes Erkennungsmodell; dauert auf schwachen Rechnern länger."),
-    SERVER("Uni-Server", "Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten Rechnern. Sprecher und Pausen werden trotzdem auf dem Gerät erkannt."),
+    LOCAL(trLater("Auf diesem Gerät"), trLater("Nichts verlässt das Gerät. Braucht ein geladenes Erkennungsmodell; dauert auf schwachen Rechnern länger.")),
+    SERVER("Uni-Server", trLater("Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten Rechnern. Sprecher und Pausen werden trotzdem auf dem Gerät erkannt.")),
 }
 
 @Serializable
@@ -189,8 +191,8 @@ class Transcription(private val c: AppContainer, private val root: File, private
             SpeechHost.log("Spracherkennung nicht verfügbar", t)
             unavailableReason = when (t) {
                 is UnsatisfiedLinkError, is NoClassDefFoundError ->
-                    "Die Spracherkennung ist für diesen Prozessor nicht enthalten (nur 64-Bit-ARM-Handys und Windows-PCs)."
-                else -> "Die Spracherkennung konnte nicht gestartet werden: ${t.message ?: t.javaClass.simpleName}"
+                    tr("Die Spracherkennung ist für diesen Prozessor nicht enthalten (nur 64-Bit-ARM-Handys und Windows-PCs).")
+                else -> tr("Die Spracherkennung konnte nicht gestartet werden: {0}", t.message ?: t.javaClass.simpleName)
             }
             false
         }
@@ -284,8 +286,11 @@ class Transcription(private val c: AppContainer, private val root: File, private
         val needed = (if (size > 0) size else 0L) + RESERVE_BYTES
         if (free in 1 until needed) {
             throw java.io.IOException(
-                "Nicht genug Speicherplatz: frei sind ${megabytes(free)}, gebraucht werden etwa ${megabytes(needed)}. " +
-                    "Bitte Platz schaffen (z. B. alte Transkripte mit Aufnahme löschen und den Papierkorb leeren)."
+                tr(
+                    "Nicht genug Speicherplatz: frei sind {0}, gebraucht werden etwa {1}. " +
+                        "Bitte Platz schaffen (z. B. alte Transkripte mit Aufnahme löschen und den Papierkorb leeren).",
+                    megabytes(free), megabytes(needed),
+                )
             )
         }
     }
@@ -358,7 +363,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
             AtomicFiles.quarantine(f, e)
             older?.also {
                 AtomicFiles.write(f, backup.readText())
-                _messages.tryEmit("Das Transkript war beschädigt – die vorige Fassung wurde wiederhergestellt.")
+                _messages.tryEmit(tr("Das Transkript war beschädigt – die vorige Fassung wurde wiederhergestellt."))
             }
         }
     }
@@ -565,7 +570,7 @@ class Transcription(private val c: AppContainer, private val root: File, private
                         pause(e.retryAfter?.let { it * 1000 } ?: wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     } catch (e: TimeoutCancellationException) {
-                        if (attempt == 5) throw java.io.IOException("Der Uni-Server antwortet nicht.")
+                        if (attempt == 5) throw java.io.IOException(tr("Der Uni-Server antwortet nicht."))
                         pause(wait, started)
                         wait = (wait * 2).coerceAtMost(60_000)
                     } catch (e: java.io.IOException) {

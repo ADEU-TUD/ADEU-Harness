@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -77,12 +79,16 @@ import kotlin.math.roundToInt
 @Composable
 internal fun SwitchRow(title: String, subtitle: String, checked: Boolean, spot: String? = null, onChange: (Boolean) -> Unit) {
     val row: @Composable () -> Unit = {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // One switch for screen readers and the keyboard (AP-30): title and subtitle are read with its state.
+        Row(
+            Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Column(Modifier.weight(1f)) {
                 Text(title)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Switch(checked = checked, onCheckedChange = onChange)
+            Switch(checked = checked, onCheckedChange = null)
         }
     }
     if (spot != null) Spot(spot) { row() } else row()
@@ -135,24 +141,24 @@ private fun ApiSection(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
-    if (!SecureStorage.encrypted) SettingsCard("Achtung") {
+    if (!SecureStorage.encrypted) SettingsCard(tr("Achtung")) {
         Text(
-            "Der Schlüsselspeicher dieses Geräts funktioniert nicht. API-Key und Tokens liegen deshalb unverschlüsselt im " +
+            tr("Der Schlüsselspeicher dieses Geräts funktioniert nicht. API-Key und Tokens liegen deshalb unverschlüsselt im " +
                 "privaten Speicher der App. Andere Apps können sie nicht lesen, bei einem gerooteten Gerät oder einer Datensicherung " +
-                "per Kabel aber schon. Ein Neustart des Geräts behebt das manchmal.",
+                "per Kabel aber schon. Ein Neustart des Geräts behebt das manchmal."),
             color = MaterialTheme.colorScheme.error,
         )
     }
-    Section("ScaDS.AI · Standard") {
+    Section(tr("ScaDS.AI · Standard")) {
         Text(
-            "API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). $KEY_STORAGE_HINT",
+            tr("API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). {0}", KEY_STORAGE_HINT),
             style = MaterialTheme.typography.bodySmall,
         )
-        SecretField("API-Key", s.apiKey) { v -> c.settings.update { it.copy(apiKey = v.trim()) } }
+        SecretField(tr("API-Key"), s.apiKey) { v -> c.settings.update { it.copy(apiKey = v.trim()) } }
         OutlinedTextField(
             value = s.baseUrl,
             onValueChange = { v -> c.settings.update { it.copy(baseUrl = v.trim()) } },
-            label = { Text("API-Basis-URL") },
+            label = { Text(tr("API-Basis-URL")) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),
@@ -166,18 +172,18 @@ private fun ApiSection(c: AppContainer) {
                         status = try {
                             val ids = c.llm.listModels()
                             c.models.refresh()
-                            "✓ Verbunden – ${ids.size} Modelle verfügbar"
+                            tr("✓ Verbunden – {0} Modelle verfügbar", ids.size)
                         } catch (e: Exception) {
                             "✗ ${e.message}"
                         }
                         testing = false
                     }
                 },
-            ) { Text("Verbindung testen") }
+            ) { Text(tr("Verbindung testen")) }
             if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-        TextButton(onClick = { uri.openUri("https://llm.scads.ai/status/") }) { Text("Statusseite öffnen") }
+        TextButton(onClick = { uri.openUri("https://llm.scads.ai/status/") }) { Text(tr("Statusseite öffnen")) }
     }
     ApiProvidersSection(c)
 }
@@ -189,22 +195,22 @@ private fun GitHubSection(c: AppContainer) {
     val uri = LocalUriHandler.current
     var status by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
-    Section("GitHub · Hauptkonto") {
+    Section(tr("GitHub · Hauptkonto")) {
         Text(
-            "Mit einem Personal Access Token kann die App – wie ein Coding-Agent – in deinen Repositories lesen, " +
-                "Dateien ändern, Branches und Pull Requests erstellen. Empfohlen: Fine-grained Token mit " +
-                "„Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories. " +
-                "Für Repositories von Organisationen weiter unten je ein weiteres Token eintragen.",
+            tr("Mit einem Personal Access Token kann die App – wie ein Coding-Agent – in deinen Repositories lesen, " +
+                "Dateien ändern, Branches und Pull Requests erstellen. Empfohlen: Fine-grained Token mit ") +
+                tr("„Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories. " +
+                "Für Repositories von Organisationen weiter unten je ein weiteres Token eintragen."),
             style = MaterialTheme.typography.bodySmall,
         )
-        SecretField("GitHub-Token", s.githubToken) { v ->
+        SecretField(tr("GitHub-Token"), s.githubToken) { v ->
             // A changed token has to be verified again before the GitHub options appear.
             c.settings.update { if (it.githubToken == v.trim()) it else it.copy(githubToken = v.trim(), githubUser = "") }
         }
         suspend fun check() {
             testing = true
             status = try {
-                "✓ Angemeldet als ${c.github.verify()}"
+                tr("✓ Angemeldet als {0}", c.github.verify())
             } catch (e: Exception) {
                 "✗ ${e.message}"
             }
@@ -223,34 +229,34 @@ private fun GitHubSection(c: AppContainer) {
             OutlinedButton(
                 enabled = !testing && s.githubToken.isNotBlank(),
                 onClick = { scope.launch { check() } },
-            ) { Text("Token testen") }
+            ) { Text(tr("Token testen")) }
             if (testing) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
         }
-        (status ?: s.githubUser.ifBlank { null }?.let { "✓ Angemeldet als $it" })?.let {
+        (status ?: s.githubUser.ifBlank { null }?.let { tr("✓ Angemeldet als {0}", it) })?.let {
             Text(it, style = MaterialTheme.typography.bodySmall)
         }
         if (!s.hasGitHub) {
             Text(
-                "Die GitHub-Optionen im Chat und bei geplanten Aufgaben erscheinen, sobald ein gültiges Token hinterlegt ist " +
-                    "(Hauptkonto oder ein weiteres Token).",
+                tr("Die GitHub-Optionen im Chat und bei geplanten Aufgaben erscheinen, sobald ein gültiges Token hinterlegt ist " +
+                    "(Hauptkonto oder ein weiteres Token)."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         TextButton(onClick = { uri.openUri("https://github.com/settings/personal-access-tokens/new") }) {
-            Text("Token auf GitHub erstellen")
+            Text(tr("Token auf GitHub erstellen"))
         }
         if (s.hasGitHub) {
             SwitchRow(
-                "In neuen Chats automatisch aktiv",
-                "Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer.",
+                tr("In neuen Chats automatisch aktiv"),
+                tr("Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer."),
                 s.githubAutoTools,
             ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
         }
     }
     GitHubAccountsSection(c)
     // Also covers writing web requests, so it stays visible without GitHub.
-    Section("Freigaben") { ApprovalModeOptions(c) }
+    Section(tr("Freigaben")) { ApprovalModeOptions(c) }
     ReliabilitySection(c)
 }
 
@@ -259,90 +265,90 @@ private fun ChatSection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val models by c.models.state.collectAsStateWithLifecycle()
     var showModelPicker by remember { mutableStateOf(false) }
-    Section("Neue Chats") {
+    Section(tr("Neue Chats")) {
         Spot("chat.defaultModel") {
             OutlinedButton(onClick = { showModelPicker = true }, modifier = Modifier.fillMaxWidth()) {
-                Text("Standardmodell: ${ModelCatalog.info(s.defaultModel).displayName}" + if (s.autoModel) " · Automatisch" else "")
+                Text(tr("Standardmodell: {0}", ModelCatalog.info(s.defaultModel).displayName) + if (s.autoModel) tr(" · Automatisch") else "")
             }
         }
         SwitchRow(
             spot = "chat.autoModel",
-            title = "Modell automatisch wählen",
+            title = tr("Modell automatisch wählen"),
             subtitle =
-            "Neue Chats starten mit „Automatisch“: Je Anfrage schlägt die App das passende Modell vor – Bilder und Alltag: " +
-                "Standardmodell, Programmieren: Qwen, schwierige Analysen: GLM-5.3, sehr lange Dokumente: GLM-5.3 Flash.",
+            tr("Neue Chats starten mit „Automatisch“: Je Anfrage schlägt die App das passende Modell vor – Bilder und Alltag: " +
+                "Standardmodell, Programmieren: Qwen, schwierige Analysen: GLM-5.3, sehr lange Dokumente: GLM-5.3 Flash."),
             checked = s.autoModel,
         ) { v -> c.settings.update { it.copy(autoModel = v) } }
         if (s.autoModel) {
             SwitchRow(
-                "Vor dem Wechsel fragen",
-                "Die App fragt jedes Mal, bevor sie ein anderes Modell nimmt. Aus: Sie wechselt selbst und sagt kurz, warum.",
+                tr("Vor dem Wechsel fragen"),
+                tr("Die App fragt jedes Mal, bevor sie ein anderes Modell nimmt. Aus: Sie wechselt selbst und sagt kurz, warum."),
                 s.autoModelAsk,
             ) { v -> c.settings.update { it.copy(autoModelAsk = v) } }
         }
         val thinking = ThinkingLevel.parse(s.thinkingLevel)
         Spot("chat.thinking") { DropdownField(
-            label = "Denkstufe (Reasoning)",
+            label = tr("Denkstufe (Reasoning)"),
             value = thinking.label,
             options = ThinkingLevel.entries.map { it.label },
             onSelect = { v -> c.settings.update { it.copy(thinkingLevel = ThinkingLevel.entries.first { e -> e.label == v }.name) } },
         ) }
         Text(
-            thinking.description + " Gilt für Modelle mit Denkmodus (DeepSeek, GLM, Qwen, gpt-oss …). Unterstützt der Server " +
-                "die Einstellung für ein Modell nicht, antwortet es mit seinem Standard.",
+            thinking.description + tr(" Gilt für Modelle mit Denkmodus (DeepSeek, GLM, Qwen, gpt-oss …). Unterstützt der Server " +
+                "die Einstellung für ein Modell nicht, antwortet es mit seinem Standard."),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    Section("Werkzeuge") {
-        Text("Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung.", style = MaterialTheme.typography.bodySmall)
+    Section(tr("Werkzeuge")) {
+        Text(tr("Zusätzliche Fähigkeiten für Modelle mit Werkzeug-Unterstützung."), style = MaterialTheme.typography.bodySmall)
         SwitchRow(
-            "Dokumente erstellen",
-            "PDF, Word, PowerPoint, OPAL-Tests, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung, Logo und Barrierefreiheit.",
+            tr("Dokumente erstellen"),
+            tr("PDF, Word, PowerPoint, OPAL-Tests, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung, Logo und Barrierefreiheit."),
             s.documentTools,
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(
             spot = "chat.web",
-            title = "Websuche, Webseiten & Quellen-Check",
+            title = tr("Websuche, Webseiten & Quellen-Check"),
             subtitle =
-            "Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.",
+            tr("Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen."),
             checked = s.webTools,
         ) { v -> c.settings.update { it.copy(webTools = v) } }
     }
-    Section("Agent") {
+    Section(tr("Agent")) {
         DropdownField(
-            label = "Max. Werkzeugschritte pro Anfrage",
+            label = tr("Max. Werkzeugschritte pro Anfrage"),
             value = s.maxAgentSteps.toString(),
             options = listOf("10", "20", "30", "50", "100"),
             onSelect = { v -> c.settings.update { it.copy(maxAgentSteps = v.toInt()) } },
         )
         SwitchRow(
-            "Danach automatisch weitermachen",
-            "Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens ${AgentRunner.HARD_STEP_LIMIT} Schritte). " +
-                "Wiederholt er immer dieselbe Aktion, hält er an.",
+            tr("Danach automatisch weitermachen"),
+            tr("Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens {0} Schritte). ", AgentRunner.HARD_STEP_LIMIT) +
+                tr("Wiederholt er immer dieselbe Aktion, hält er an."),
             s.autoContinue,
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         SwitchRow(
             spot = "chat.collapse",
-            title = "Arbeitsschritte einklappen",
+            title = tr("Arbeitsschritte einklappen"),
             subtitle =
-            "Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt Lora, das Maskottchen der " +
-                "App, den aktuellen Schritt; die Zahl daneben klappt alle Schritte jederzeit auf.",
+            tr("Gedankengang und Werkzeugschritte bleiben eingeklappt. Solange der Agent arbeitet, zeigt Lora, das Maskottchen der " +
+                "App, den aktuellen Schritt; die Zahl daneben klappt alle Schritte jederzeit auf."),
             checked = s.collapseSteps,
         ) { v -> c.settings.update { it.copy(collapseSteps = v) } }
     }
-    Spot("chat.approvals") { Section("Freigaben") { ApprovalModeOptions(c) } }
+    Spot("chat.approvals") { Section(tr("Freigaben")) { ApprovalModeOptions(c) } }
     ReliabilitySection(c)
-    Section("Erweitert") {
+    Section(tr("Erweitert")) {
         OutlinedTextField(
             value = s.systemPrompt,
             onValueChange = { v -> c.settings.update { it.copy(systemPrompt = v) } },
-            label = { Text("Globaler System-Prompt (optional)") },
-            supportingText = { Text("Gilt in jedem Chat zusätzlich zu Persona und Projekt-Anweisungen.") },
+            label = { Text(tr("Globaler System-Prompt (optional)")) },
+            supportingText = { Text(tr("Gilt in jedem Chat zusätzlich zu Persona und Projekt-Anweisungen.")) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
-        DropdownField("Bild-Modell", s.imageModel, models.ofType(ModelType.IMAGE).map { it.id }, { v -> c.settings.update { it.copy(imageModel = v) } })
+        DropdownField(tr("Bild-Modell"), s.imageModel, models.ofType(ModelType.IMAGE).map { it.id }, { v -> c.settings.update { it.copy(imageModel = v) } })
     }
     if (showModelPicker) {
         ModelPickerSheet(
@@ -351,8 +357,8 @@ private fun ChatSection(c: AppContainer) {
             onSelect = { id -> c.settings.update { it.copy(defaultModel = id) } },
             onDismiss = { showModelPicker = false },
             defaultModel = s.defaultModel,
-            title = "Standardmodell",
-            note = "Mit diesem Modell startet jeder neue Chat. Im Chat lässt es sich jederzeit wechseln.",
+            title = tr("Standardmodell"),
+            note = tr("Mit diesem Modell startet jeder neue Chat. Im Chat lässt es sich jederzeit wechseln."),
         )
     }
 }
@@ -368,15 +374,15 @@ private fun VoiceSection(c: AppContainer) {
     LaunchedEffect(s.ttsEngine) {
         if (s.ttsEngine == "DEVICE" && voices == null) voices = c.speaker.deviceVoices()
     }
-    Section("Vorlesen") {
+    Section(tr("Vorlesen")) {
         Text(
-            "Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem " +
-                "Uni-Server, der die Antwort ohnehin geschrieben hat – es gehen keine Daten an Dritte. Die $DEVICE_VOICE " +
-                "arbeitet komplett offline.",
+            tr("Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem ") +
+                tr("Uni-Server, der die Antwort ohnehin geschrieben hat – es gehen keine Daten an Dritte. Die {0} ", DEVICE_VOICE) +
+                tr("arbeitet komplett offline."),
             style = MaterialTheme.typography.bodySmall,
         )
         Spot("voice.engine") { Column { listOf(
-            Triple("SERVER", "KI-Stimme (Uni-Server)", "Sehr natürlich klingende neuronale Stimmen; braucht Internet."),
+            Triple("SERVER", tr("KI-Stimme (Uni-Server)"), tr("Sehr natürlich klingende neuronale Stimmen; braucht Internet.")),
             Triple("DEVICE", "$DEVICE_VOICE_TITLE (offline)", DEVICE_VOICE_DESCRIPTION),
         ).forEach { (key, label, desc) ->
             Row(
@@ -400,22 +406,22 @@ private fun VoiceSection(c: AppContainer) {
                 )
                 else -> {
                     val list = voices!!
-                    val current = list.firstOrNull { it.name == s.deviceVoice }?.label ?: "Automatisch (beste deutsche Stimme)"
-                    DropdownField("Stimme", current, listOf("Automatisch (beste deutsche Stimme)") + list.map { it.label }, { label ->
+                    val current = list.firstOrNull { it.name == s.deviceVoice }?.label ?: tr("Automatisch (beste deutsche Stimme)")
+                    DropdownField(tr("Stimme"), current, listOf(tr("Automatisch (beste deutsche Stimme)")) + list.map { it.label }, { label ->
                         c.settings.update { it.copy(deviceVoice = list.firstOrNull { v -> v.label == label }?.name.orEmpty()) }
                     })
                 }
             }
         } else {
-            DropdownField("Sprachausgabe-Modell", s.ttsModel, models.ofType(ModelType.TTS).map { it.id }, { v -> c.settings.update { it.copy(ttsModel = v) } })
-            DropdownField("Stimme", s.ttsVoice, (SERVER_VOICES + s.ttsVoice).distinct(), { v -> c.settings.update { it.copy(ttsVoice = v) } })
+            DropdownField(tr("Sprachausgabe-Modell"), s.ttsModel, models.ofType(ModelType.TTS).map { it.id }, { v -> c.settings.update { it.copy(ttsModel = v) } })
+            DropdownField(tr("Stimme"), s.ttsVoice, (SERVER_VOICES + s.ttsVoice).distinct(), { v -> c.settings.update { it.copy(ttsVoice = v) } })
         }
-        val fastVoice = "Schnell: ${ModelCatalog.info(ModelCatalog.FAST_CHAT).displayName} (empfohlen)"
+        val fastVoice = tr("Schnell: {0} (empfohlen)", ModelCatalog.info(ModelCatalog.FAST_CHAT).displayName)
         DropdownField(
-            "Modell im Sprachmodus", if (s.voiceModel.isBlank()) "Modell des Chats" else fastVoice, listOf(fastVoice, "Modell des Chats"),
+            tr("Modell im Sprachmodus"), if (s.voiceModel.isBlank()) tr("Modell des Chats") else fastVoice, listOf(fastVoice, tr("Modell des Chats")),
             { v -> c.settings.update { it.copy(voiceModel = if (v == fastVoice) ModelCatalog.FAST_CHAT else "") } },
         )
-        Text("Tempo: ${String.format(java.util.Locale.GERMANY, "%.1f", s.speechRate)}×", style = MaterialTheme.typography.labelLarge)
+        Text(tr("Tempo: {0}×", String.format(java.util.Locale.GERMANY, "%.1f", s.speechRate)), style = MaterialTheme.typography.labelLarge)
         Slider(
             value = s.speechRate,
             onValueChange = { v -> c.settings.update { it.copy(speechRate = (v * 10).roundToInt() / 10f) } },
@@ -423,18 +429,18 @@ private fun VoiceSection(c: AppContainer) {
             steps = 11,
         )
         if (s.ttsEngine == "SERVER") {
-            Text("Das Tempo gilt für die $DEVICE_VOICE.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(tr("Das Tempo gilt für die {0}.", DEVICE_VOICE), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         OutlinedButton(onClick = {
-            c.speaker.toggle("preview", "Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit Lora.")
+            c.speaker.toggle("preview", tr("Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit Lora."))
         }) {
             Icon(if (playing == "preview") Icons.Outlined.Stop else Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
-            Text(if (playing == "preview") "Stopp" else "Probehören")
+            Text(if (playing == "preview") tr("Stopp") else tr("Probehören"))
         }
     }
-    Section("Spracheingabe") {
-        DropdownField("Spracherkennungs-Modell", s.sttModel, models.ofType(ModelType.STT).map { it.id }, { v -> c.settings.update { it.copy(sttModel = v) } })
+    Section(tr("Spracheingabe")) {
+        DropdownField(tr("Spracherkennungs-Modell"), s.sttModel, models.ofType(ModelType.STT).map { it.id }, { v -> c.settings.update { it.copy(sttModel = v) } })
     }
 }
 
@@ -455,10 +461,10 @@ private fun DocumentsSection(c: AppContainer) {
     var hex by remember { mutableStateOf(s.docAccent) }
     val pickLogo = rememberImageBytesPicker { bytes -> pendingLogo = bytes }
 
-    Section("Gestaltung") {
+    Section(tr("Gestaltung")) {
         Text(
-            "So sehen PDFs und Word-Dateien aus, die das Modell erstellt oder die du exportierst. Das Modell kann für besondere " +
-                "Wünsche (Flyer, Rechnung, Lebenslauf …) auch ein eigenes Design mit Farben, Formen und Schriften verwenden.",
+            tr("So sehen PDFs und Word-Dateien aus, die das Modell erstellt oder die du exportierst. Das Modell kann für besondere " +
+                "Wünsche (Flyer, Rechnung, Lebenslauf …) auch ein eigenes Design mit Farben, Formen und Schriften verwenden."),
             style = MaterialTheme.typography.bodySmall,
         )
         DocStyle.entries.forEach { st ->
@@ -473,7 +479,7 @@ private fun DocumentsSection(c: AppContainer) {
                 }
             }
         }
-        Text("Akzentfarbe", style = MaterialTheme.typography.labelLarge)
+        Text(tr("Akzentfarbe"), style = MaterialTheme.typography.labelLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             DOC_COLORS.forEach { h ->
                 val selected = s.docAccent.equals(h, ignoreCase = true)
@@ -484,7 +490,8 @@ private fun DocumentsSection(c: AppContainer) {
                         .clip(CircleShape)
                         .background(parseHex(h) ?: Color.Gray)
                         .border(if (selected) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                        .clickable { hex = h; c.settings.update { it.copy(docAccent = h) } },
+                        .a11yLabel(tr("Akzentfarbe") + " " + h)
+                        .selectable(selected = selected, role = Role.RadioButton) { hex = h; c.settings.update { it.copy(docAccent = h) } },
                 ) {
                     if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
@@ -496,7 +503,7 @@ private fun DocumentsSection(c: AppContainer) {
                 hex = v
                 DocTheme.parseColor(v)?.let { col -> c.settings.update { it.copy(docAccent = col) } }
             },
-            label = { Text("Eigene Farbe (#RRGGBB)") },
+            label = { Text(tr("Eigene Farbe (#RRGGBB)")) },
             singleLine = true,
             isError = DocTheme.parseColor(hex) == null,
             modifier = Modifier.fillMaxWidth(),
@@ -504,25 +511,25 @@ private fun DocumentsSection(c: AppContainer) {
         OutlinedTextField(
             value = s.docFooter,
             onValueChange = { v -> c.settings.update { it.copy(docFooter = v) } },
-            label = { Text("Fußzeile (optional)") },
-            placeholder = { Text("z.B. Max Muster · Musterstraße 1 · 01069 Dresden") },
+            label = { Text(tr("Fußzeile (optional)")) },
+            placeholder = { Text(tr("z.B. Max Muster · Musterstraße 1 · 01069 Dresden")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = s.tudUnit,
             onValueChange = { v -> c.settings.update { it.copy(tudUnit = v) } },
-            label = { Text("Einrichtung für den Stil „TU Dresden“") },
-            supportingText = { Text("Steht im Kopf unter dem Logo, eine Ebene pro Zeile (Fakultät, Institut, Professur).") },
+            label = { Text(tr("Einrichtung für den Stil „TU Dresden“")) },
+            supportingText = { Text(tr("Steht im Kopf unter dem Logo, eine Ebene pro Zeile (Fakultät, Institut, Professur).")) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = s.senderInfo,
             onValueChange = { v -> c.settings.update { it.copy(senderInfo = v) } },
-            label = { Text("Meine Absenderangaben") },
-            placeholder = { Text("Dr. Erika Musterfrau\nWissenschaftliche Mitarbeiterin\nTelefon: +49 351 463-…\nE-Mail: …@tu-dresden.de\nRaum: MS1/…") },
-            supportingText = { Text("Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.") },
+            label = { Text(tr("Meine Absenderangaben")) },
+            placeholder = { Text(tr("Dr. Erika Musterfrau\nWissenschaftliche Mitarbeiterin\nTelefon: +49 351 463-…\nE-Mail: …@tu-dresden.de\nRaum: MS1/…")) },
+            supportingText = { Text(tr("Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.")) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -538,20 +545,20 @@ private fun DocumentsSection(c: AppContainer) {
                     }
                     previewBusy = false
                     result.onSuccess { openDocument(context, it) }
-                        .onFailure { Notices.error("Vorschau fehlgeschlagen: ${it.message}") }
+                        .onFailure { Notices.error(tr("Vorschau fehlgeschlagen: {0}", it.message)) }
                 }
-            }) { Text("Vorschau als PDF") }
+            }) { Text(tr("Vorschau als PDF")) }
             if (previewBusy) CircularProgressIndicator(Modifier.padding(start = 12.dp).size(20.dp), strokeWidth = 2.dp)
         }
     }
 
-    Section("Logos") {
+    Section(tr("Logos")) {
         Text(
-            "Gespeicherte Logos kann das Modell auf Befehl einbinden („mit meinem Logo“, „mit dem Logo Firma“). Das " +
-                "Standardlogo (★) wird verwendet, wenn kein Name genannt wird.",
+            tr("Gespeicherte Logos kann das Modell auf Befehl einbinden („mit meinem Logo“, „mit dem Logo Firma“). Das " +
+                "Standardlogo (★) wird verwendet, wenn kein Name genannt wird."),
             style = MaterialTheme.typography.bodySmall,
         )
-        SwitchRow("Standardlogo automatisch einfügen", "In jedes erstellte oder exportierte Dokument.", s.autoLogo) { v ->
+        SwitchRow(tr("Standardlogo automatisch einfügen"), tr("In jedes erstellte oder exportierte Dokument."), s.autoLogo) { v ->
             c.settings.update { it.copy(autoLogo = v) }
         }
         logos.forEach { logo ->
@@ -563,32 +570,32 @@ private fun DocumentsSection(c: AppContainer) {
                 Spacer(Modifier.size(12.dp))
                 Text(logo.name, modifier = Modifier.weight(1f).clickable { renameLogo = logo }, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 IconButton(onClick = { c.logos.setDefault(logo.id) }) {
-                    Icon(if (logo.isDefault) Icons.Outlined.Star else Icons.Outlined.StarBorder, contentDescription = "Als Standard")
+                    Icon(if (logo.isDefault) Icons.Outlined.Star else Icons.Outlined.StarBorder, contentDescription = tr("Als Standard"))
                 }
-                IconButton(onClick = { c.logos.remove(logo.id) }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
+                IconButton(onClick = { c.logos.remove(logo.id) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
             }
         }
         OutlinedButton(onClick = pickLogo) {
             Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
-            Text("Logo hinzufügen")
+            Text(tr("Logo hinzufügen"))
         }
         Text(
-            "Tipp: PNG mit transparentem Hintergrund sieht am besten aus. Du kannst dem Modell auch ein Bild schicken und " +
-                "„Speichere das als Logo“ sagen.",
+            tr("Tipp: PNG mit transparentem Hintergrund sieht am besten aus. Du kannst dem Modell auch ein Bild schicken und " +
+                "„Speichere das als Logo“ sagen."),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 
     pendingLogo?.let { bytes ->
-        TextInputDialog("Logo speichern", if (logos.isEmpty()) "Logo" else "", "Name", onConfirm = { name ->
+        TextInputDialog(tr("Logo speichern"), if (logos.isEmpty()) "Logo" else "", tr("Name"), onConfirm = { name ->
             runCatching { c.logos.add(name, bytes) }
-                .onFailure { Notices.error(it.message ?: "Bild konnte nicht gelesen werden.") }
+                .onFailure { Notices.error(it.message ?: tr("Bild konnte nicht gelesen werden.")) }
         }, onDismiss = { pendingLogo = null })
     }
     renameLogo?.let { logo ->
-        TextInputDialog("Logo umbenennen", logo.name, "Name", onConfirm = { n -> c.logos.update(logo.id) { it.copy(name = n) } }, onDismiss = { renameLogo = null })
+        TextInputDialog(tr("Logo umbenennen"), logo.name, tr("Name"), onConfirm = { n -> c.logos.update(logo.id) { it.copy(name = n) } }, onDismiss = { renameLogo = null })
     }
 }
 

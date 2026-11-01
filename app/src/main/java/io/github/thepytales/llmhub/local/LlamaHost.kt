@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 import java.io.InputStream
 
@@ -51,7 +52,7 @@ internal object LlamaHost {
     suspend fun installRuntime(c: AppContainer, root: File, gpu: Boolean, progress: (Double) -> Unit) {}
 
     @Suppress("UNUSED_PARAMETER")
-    fun importRuntime(c: AppContainer, root: File, input: InputStream): Unit = error("Auf Android ist das Programm schon in der App enthalten.")
+    fun importRuntime(c: AppContainer, root: File, input: InputStream): Unit = error(tr("Auf Android ist das Programm schon in der App enthalten."))
 
     fun environment(c: AppContainer, env: MutableMap<String, String>) {
         env["LD_LIBRARY_PATH"] = libDir(c).absolutePath

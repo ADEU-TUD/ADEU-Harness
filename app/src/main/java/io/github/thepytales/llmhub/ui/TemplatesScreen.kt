@@ -24,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -65,11 +64,11 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Erstellen")) },
                 actions = {
-                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "TU Vorlagen importieren") }
+                    IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = tr("TU Vorlagen importieren")) }
                     IconButton(enabled = own.isNotEmpty(), onClick = {
                         clipboard.setText(AnnotatedString(TemplateLibrary.export(own)))
-                        Notices.info("${own.size} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.")
-                    }) { Icon(Icons.Outlined.IosShare, contentDescription = "Eigene Vorlagen teilen") }
+                        Notices.info(tr("{0} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.", own.size))
+                    }) { Icon(Icons.Outlined.IosShare, contentDescription = tr("Eigene Vorlagen teilen")) }
                 },
             )
         },
@@ -80,7 +79,7 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
                 ExtendedFloatingActionButton(
                     onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
                     icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = { Text("Neue Vorlage") },
+                    text = { Text(tr("Neue Vorlage")) },
                 )
             }
         },
@@ -130,7 +129,7 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             initial = clipboard.getText()?.text?.takeIf { "{" in it }.orEmpty(),
             onImport = { list ->
                 list.forEach { c.templates.upsert(it) }
-                Notices.info("${list.size} Vorlage(n) importiert.")
+                Notices.info(tr("{0} Vorlage(n) importiert.", list.size))
             },
             onDismiss = { importing = false },
         )
@@ -143,16 +142,16 @@ private fun ImportTemplatesDialog(initial: String, onImport: (List<Template>) ->
     val found = remember(text) { TemplateLibrary.import(text) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("TU Vorlagen importieren") },
+        title = { Text(tr("TU Vorlagen importieren")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Text einfügen, den eine Kollegin oder ein Kollege über „Teilen“ kopiert hat.",
+                    tr("Text einfügen, den eine Kollegin oder ein Kollege über „Teilen“ kopiert hat."),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 OutlinedTextField(value = text, onValueChange = { text = it }, minLines = 4, maxLines = 10, modifier = Modifier.fillMaxWidth())
                 Text(
-                    if (found.isEmpty()) "Keine Vorlagen erkannt." else found.joinToString(", ") { it.name },
+                    if (found.isEmpty()) tr("Keine Vorlagen erkannt.") else found.joinToString(", ") { it.name },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -160,10 +159,10 @@ private fun ImportTemplatesDialog(initial: String, onImport: (List<Template>) ->
         },
         confirmButton = {
             TextButton(enabled = found.isNotEmpty(), onClick = { onImport(found); onDismiss() }) {
-                Text(if (found.size > 1) "${found.size} importieren" else "Importieren")
+                Text(if (found.size > 1) tr("{0} importieren", found.size) else tr("Importieren"))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -178,25 +177,25 @@ private fun TemplateEditor(template: Template, isNew: Boolean, onSave: (Template
     val categories = TemplateCategory.entries.filter { it != TemplateCategory.PERSONA }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (isNew) "Neue Vorlage" else "Vorlage bearbeiten") },
+        title = { Text(if (isNew) tr("Neue Vorlage") else tr("Vorlage bearbeiten")) },
         text = {
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TemplateKind.entries.forEach { k ->
-                        FilterChip(selected = kind == k, onClick = { kind = k }, label = { Text(if (k == TemplateKind.PERSONA) "Persona" else "Prompt") })
+                        FilterChip(selected = kind == k, onClick = { kind = k }, label = { Text(if (k == TemplateKind.PERSONA) tr("Persona") else tr("Prompt")) })
                     }
                 }
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Kurzbeschreibung (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text(tr("Kurzbeschreibung (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 if (kind == TemplateKind.PROMPT) {
-                    DropdownField("Bereich", category.label, categories.map { it.label }, { v -> category = categories.first { it.label == v } })
+                    DropdownField(tr("Bereich"), category.label, categories.map { it.label }, { v -> category = categories.first { it.label == v } })
                 }
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text(if (kind == TemplateKind.PERSONA) "System-Prompt" else "Text für das Eingabefeld") },
+                    label = { Text(if (kind == TemplateKind.PERSONA) tr("System-Prompt") else tr("Text für das Eingabefeld")) },
                     supportingText = if (kind == TemplateKind.PROMPT) ({
-                        Text("{{Feld}} oder {{Feld|Beispiel}} wird beim Verwenden zu einem Eingabefeld; Zeilen mit leeren Feldern entfallen. Ein Feld „Absender“ füllt die App mit Ihren Angaben aus den Einstellungen.")
+                        Text(tr("{{Feld}} oder {{Feld|Beispiel}} wird beim Verwenden zu einem Eingabefeld; Zeilen mit leeren Feldern entfallen. Ein Feld „Absender“ füllt die App mit Ihren Angaben aus den Einstellungen."))
                     }) else null,
                     minLines = 5,
                     maxLines = 12,
@@ -206,8 +205,8 @@ private fun TemplateEditor(template: Template, isNew: Boolean, onSave: (Template
                     OutlinedTextField(
                         value = instructions,
                         onValueChange = { instructions = it },
-                        label = { Text("Anweisungen an das Modell (optional)") },
-                        supportingText = { Text("Werden mitgeschickt, aber im Chat nicht angezeigt – z.B. Aufbau, Ton, Format.") },
+                        label = { Text(tr("Anweisungen an das Modell (optional)")) },
+                        supportingText = { Text(tr("Werden mitgeschickt, aber im Chat nicht angezeigt – z.B. Aufbau, Ton, Format.")) },
                         minLines = 3,
                         maxLines = 10,
                         modifier = Modifier.fillMaxWidth(),
@@ -228,14 +227,14 @@ private fun TemplateEditor(template: Template, isNew: Boolean, onSave: (Template
                     )
                     onDismiss()
                 },
-            ) { Text("Speichern") }
+            ) { Text(tr("Speichern")) }
         },
         dismissButton = {
             Row {
                 if (!isNew) {
-                    IconButton(onClick = { onDelete(); onDismiss() }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
+                    IconButton(onClick = { onDelete(); onDismiss() }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
                 }
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
             }
         },
     )

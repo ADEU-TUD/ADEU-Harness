@@ -52,7 +52,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
-| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android~~ (☑) · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
+| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · AP-31 macOS und Linux~~ (☑) · *ganz am Ende:* AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
 zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 vor AP-28 · AP-20 vor großen Exzerpt-Stapeln.
@@ -733,19 +733,52 @@ Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
   Betrifft: `data/PhoneSync.kt`, `net/WebDav.kt`, `data/Stores.kt` (`reload`), `data/ChatRepository.kt` (`rescan`),
   `ui/NextcloudUi.kt`.
 
-### AP-29 ☐ Englisch vervollständigen · M (bisher W9-07)
+### AP-29 ☑ Englisch vervollständigen · M (bisher W9-07)
 - Alle Texte in `I18n` überführen, englische Fassung vollständig (Einstellungen, Editoren, TU Vorlagen, Fehlermeldungen,
   Lora). Keine weiteren Sprachen.
+- **Entscheidungen (01.11.2026)**: (a) Deutsch bleibt die Quellsprache im Code; `tr("…")` mit Platzhaltern `{0}`,
+  `trLater("…")` für Listen/Aufzählungen, ein eigenes `Text()` im Paket `ui` übersetzt Angezeigtes von selbst.
+  (b) Die englischen Texte stehen in einer Datei (`i18n/en.tsv`), nicht im Code. (c) Prompts an die Modelle, Wörter zum
+  Erkennen deutscher Eingaben, Dokumentvorlagen (Inhalt) und Protokolle bleiben deutsch; Antworten folgen der Sprache.
+- **Ergebnis (01.11.2026)**: rund 4 300 Texte auf Englisch – Einstellungen, alle Editoren, TU Vorlagen und Personas,
+  Modelle, Modi, Datenschutzstufen, Designs, Literatur, Transkription, Fehlermeldungen von Server, Updates und Anhängen,
+  Loras Antworten; Pfade wie „Einstellungen › Darstellung“ Teil für Teil; Loras Suche versteht englische Wörter.
+  Tests: `I18nCoverageTest` (jeder markierte Text hat eine englische Zeile, Platzhalter passen, `$`-Vorlagen in `tr()`
+  verboten). Rest: Inhalte der Dokumentvorlagen (Protokoll, Seminarplan …) bleiben deutsch.
+  Betrifft: `ui/I18n.kt`, `ui/TextI18n.kt`, `resources/i18n/en.tsv`, fast alle Bildschirme.
 
-### AP-30 ☐ Barrierefreiheit der App · M (bisher W2-11)
+### AP-30 ☑ Barrierefreiheit der App · M (bisher W2-11)
 - Screenreader (TalkBack/Narrator): Beschriftungen aller Knöpfe, sinnvolle Reihenfolge; große Schrift ohne
   abgeschnittene Texte; komplette Bedienung per Tastatur unter Windows.
+- **Entscheidungen (01.11.2026)**: (a) Windows: Compose Desktop spricht über die **Java Access Bridge** – die App schaltet
+  sie für sich selbst ein (ohne `jabswitch`, ohne Admin-Rechte), wenn die mitgelieferte Java-Laufzeit sie enthält.
+  Damit lesen **NVDA** und JAWS; Narrator kennt diese Schnittstelle nicht. (b) Gemeinsame Bausteine statt jeder Bildschirm
+  einzeln: Abschnitte und Gruppen sind Überschriften, Schalterzeilen ein Schalter, Umschalter eine Auswahl.
+  (c) Fokus deutlich sichtbar über den Ripple-Zustand (26 % statt 10 %).
+- **Ergebnis (01.11.2026)**: Beschriftungen für alle Knöpfe mit Symbol und Schalter ohne eigene Zeile, Farbfelder mit
+  Namen und Auswahlzustand, Überschriften in den Einstellungen, große Schrift bricht um (Umschalter, feste Höhen
+  entfernt), sichtbarer Tastaturfokus, Access Bridge. Tests: `AccessibilityTest` (Schalterzeile, Überschriften,
+  Umschalter bei 200 % Schrift ohne Abschneiden, jeder Symbolknopf beschriftet). Rest: Test mit NVDA auf einem Dienst-PC.
+  Betrifft: `ui/Design.kt`, `ui/SettingsScreen.kt`, `ui/Theme.kt`, `desktop/Accessibility.kt` u. a.
 
 **Ganz am Ende** – erst, wenn alles andere fertig ist:
 
-### AP-31 ☐ macOS und Linux · L (bisher W9-06)
+### AP-31 ☑ macOS und Linux · L (bisher W9-06)
 - Compose Desktop baut bereits plattformunabhängig; zu tun: Pakete (DMG signiert/notarisiert, AppImage/DEB),
   PDF-Rendering ohne Edge, Pfade, Autostart, Updater, Tastenkürzel (⌘), nachladbare Erweiterungen je Plattform.
+- **Entscheidungen (01.11.2026)**: (a) macOS nur Apple Silicon (arm64), Linux x64. (b) Pakete: DMG für die Erstinstallation,
+  tar.gz für automatische Updates (behält Rechte und Links), Linux tar.gz und .deb. Signieren/Notarisieren erst, wenn ein
+  Apple-Entwicklerkonto da ist (Workflow nutzt es dann über Secrets). (c) ffmpeg vom System statt mitgeliefert
+  (Homebrew/apt). (d) Schlüssel im Keychain bzw. Secret Service. (e) Erweiterungen je System (`videoeditor-macos` …),
+  das Windows-Paket wird dort nicht angeboten.
+- **Ergebnis (01.11.2026)**: Ordner nach Systemstandard, Keychain/Secret Service, Autostart (LaunchAgent, XDG),
+  Updater für .app-Bündel und App-Ordner, ⌘-Kürzel und angepasste Texte (⌘, Finder, Menüleiste), Öffnen/Zeigen mit
+  `open`/`xdg-open`, Ordnerwahl im Finder-Dialog, PDF über Chrome/Edge des Systems oder den eingebauten Renderer mit den
+  Mac-Schriften, llama.cpp für Apple Silicon/Linux, sherpa-onnx für macOS, Build & Release mit macOS- und Linux-Job und
+  Selbsttest. Tests: `UpdatesTest` (tar.gz mit Rechten und Links). Rest: Notarisierung (Apple-Konto), Intel-Macs,
+  Videoeditor-Paket für macOS/Linux, Outlook-Ersatz für den Kalender.
+  Betrifft: `desktop/Os.kt`, `desktop/Paths.kt`, `desktop/Secrets.kt`, `desktop/Autostart.kt`, `desktop/Desktop.kt`,
+  `update/*`, `local/LlamaHost.kt`, `docs/HtmlPdf.kt`, `desktop/build.gradle.kts`, `.github/workflows/android.yml`.
 
 ### AP-32 ☐ Website · XL (bisher W9-09)
 - Möglichst viele Funktionen im Browser: Chat, TU Vorlagen, Lora, Literatur, Office-Editoren, PDF-Werkzeuge.
@@ -822,6 +855,9 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-27 Mail über den Server | IMAP mit derselben Schnittstelle wie Outlook, Entwürfe statt Senden, Verschieben nur sicher, Android | Exchange mit Kalender (EWS/Graph) |
 | ☑ AP-28 Sync für Android | Handy spiegelt den Lora-Ordner des PCs über Nextcloud/WebDAV mit den Regeln von AP-12 | Literatur/Wissen, Hintergrund-Sync |
 | ☑ AP-23 MCP-Client | Streamable HTTP mit Token/OAuth (PKCE), stdio unter Windows, *Einstellungen › Verbindungen*, Erlauben/Fragen/Sperren je Werkzeug, Datenschutzstufe | Ressourcen, Prompts, Elicitation |
+| ☑ AP-29 Englisch | ganze Oberfläche übersetzt (`en.tsv`), Pfade Teil für Teil, Lora versteht Englisch, Test für jeden Text | Inhalte der Dokumentvorlagen |
+| ☑ AP-30 Barrierefreiheit | Beschriftungen, Überschriften, Schalter/Auswahl für Screenreader, sichtbarer Fokus, große Schrift, Access Bridge (NVDA/JAWS) | Test mit NVDA |
+| ☑ AP-31 macOS und Linux | DMG/tar.gz (Apple Silicon), tar.gz/.deb (Linux), Updater, Keychain, Autostart, ⌘, ffmpeg vom System | Notarisierung, Intel-Macs |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
 ---

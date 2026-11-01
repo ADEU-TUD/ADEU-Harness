@@ -7,7 +7,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
-/** One download of a release: the Windows ZIP or the Android APK. [url] is missing in a folder on a network drive. */
+/** One download of a release: the Windows ZIP, the macOS/Linux tar.gz (AP-31) or the Android APK. [url] is missing in a folder on a network drive. */
 data class UpdateFile(val name: String, val url: String?, val sha256: String, val size: Long)
 
 /**
@@ -22,6 +22,7 @@ data class ExtensionFile(val id: String, val name: String, val version: String, 
  * {"version": "1.0.37", "published": "2026-10-26", "notes": "Was ist neu …",
  *  "windows": {"file": "ADEU-LLM-1.0.37-Windows.zip", "url": "https://…", "sha256": "…", "size": 123},
  *  "android": {"file": "ADEU-LLM-1.0.37.apk", "url": "https://…", "sha256": "…", "size": 123},
+ *  "macos": {"file": "ADEU-LLM-1.0.37-macOS.tar.gz", …}, "linux": {"file": "ADEU-LLM-1.0.37-Linux.tar.gz", …},
  *  "extensions": [{"id": "videoeditor", "name": "Videoeditor-Paket", "version": "1", "description": "…",
  *                  "file": "Lora-Videoeditor-1.zip", "url": "https://…", "sha256": "…", "size": 123}]}
  * ```
@@ -39,8 +40,8 @@ data class UpdateInfo(
         fun parse(text: String): UpdateInfo {
             val o = json.parseToJsonElement(text).jsonObject
             fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-            val version = o.str("version") ?: error("version.json enthält keine Versionsnummer.")
-            val files = listOf("windows", "android").mapNotNull { key ->
+            val version = o.str("version") ?: error(io.github.thepytales.llmhub.ui.tr("version.json enthält keine Versionsnummer."))
+            val files = listOf("windows", "android", "macos", "linux").mapNotNull { key ->
                 val f = (o[key] as? JsonObject) ?: return@mapNotNull null
                 val name = f.str("file") ?: return@mapNotNull null
                 val sha = f.str("sha256")?.lowercase() ?: return@mapNotNull null

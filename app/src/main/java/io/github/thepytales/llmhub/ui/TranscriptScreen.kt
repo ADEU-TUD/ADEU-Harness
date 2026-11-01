@@ -70,7 +70,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -159,11 +158,11 @@ fun transcriptKey(e: KeyEvent, control: PlaybackControl, playing: () -> Boolean,
     if (e.type != KeyEventType.KeyDown) return false
     val skip = control.settings().skipSeconds.toDouble()
     return when {
-        e.key == Key.F4 || e.isCtrlPressed && e.key == Key.Spacebar -> { control.toggle(playing()); true }
+        e.key == Key.F4 || e.isCmd && e.key == Key.Spacebar -> { control.toggle(playing()); true }
         e.key == Key.F3 -> { control.skip(-skip); true }
         e.key == Key.F5 -> { control.skip(skip); true }
         e.key == Key.F6 -> { onLoop(); true }
-        e.isCtrlPressed && e.key == Key.F && onSearch != null -> { onSearch(); true }
+        e.isCmd && e.key == Key.F && onSearch != null -> { onSearch(); true }
         else -> false
     }
 }
@@ -188,12 +187,12 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
 
     val current = tr
     if (current == null) {
-        Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Transkript") }) }) { pad ->
+        Scaffold(topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(tr("Transkript")) }) }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad), contentAlignment = Alignment.Center) {
-                if (loaded) HintText("Das Transkript gibt es nicht mehr.")
+                if (loaded) HintText(tr("Das Transkript gibt es nicht mehr."))
                 else Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircularProgressIndicator()
-                    HintText("Transkript wird geladen …")
+                    HintText(tr("Transkript wird geladen …"))
                 }
             }
         }
@@ -294,11 +293,11 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
             if (searching) {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                    navigationIcon = { IconButton(onClick = { searching = false; query = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche schließen") } },
+                    navigationIcon = { IconButton(onClick = { searching = false; query = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) } },
                     title = {
                         TextField(
                             query, { query = it; hitIndex = 0 },
-                            placeholder = { Text("Im Transkript suchen") },
+                            placeholder = { Text(tr("Im Transkript suchen")) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = { if (hits.isNotEmpty()) hitIndex = (hitIndex + 1) % hits.size }),
@@ -308,8 +307,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                     },
                     actions = {
                         Text(if (query.isBlank()) "" else if (hits.isEmpty()) "0" else "${hitIndex + 1}/${hits.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline)
-                        IconButton(enabled = hits.isNotEmpty(), onClick = { hitIndex = (hitIndex - 1 + hits.size) % hits.size }) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "Voriger Treffer") }
-                        IconButton(enabled = hits.isNotEmpty(), onClick = { hitIndex = (hitIndex + 1) % hits.size }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Nächster Treffer") }
+                        IconButton(enabled = hits.isNotEmpty(), onClick = { hitIndex = (hitIndex - 1 + hits.size) % hits.size }) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = tr("Voriger Treffer")) }
+                        IconButton(enabled = hits.isNotEmpty(), onClick = { hitIndex = (hitIndex + 1) % hits.size }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Nächster Treffer")) }
                     },
                 )
             } else {
@@ -318,47 +317,47 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                     navigationIcon = { BackButton(onBack) },
                     title = { Text(current.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.clickable { rename = true }) },
                     actions = {
-                        if (undo != null) TextButton(onClick = vm::undoLast) { Text("Rückgängig") }
-                        IconButton(onClick = ::openSearch) { Icon(Icons.Outlined.Search, contentDescription = "Suchen (Strg+F)") }
+                        if (undo != null) TextButton(onClick = vm::undoLast) { Text(tr("Rückgängig")) }
+                        IconButton(onClick = ::openSearch) { Icon(Icons.Outlined.Search, contentDescription = tr("Suchen (Strg+F)")) }
                         IconButton(onClick = {
                             ChatHandoff.pending.value = ChatHandoff.Content(
-                                "Fasse das Transkript zusammen: wichtigste Punkte, Entscheidungen und offene Fragen.",
+                                tr("Fasse das Transkript zusammen: wichtigste Punkte, Entscheidungen und offene Fragen."),
                                 listOf(transcriptAttachment(current)),
                                 current.folder,
                             )
                             NewChatFolder.id = current.folder
                             onOpenChat()
-                        }) { Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = "Im Chat verwenden") }
+                        }) { Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = tr("Im Chat verwenden")) }
                         Box {
-                            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                DropdownMenuItem(text = { Text("Ansicht & Zeitstempel …") }, leadingIcon = { Icon(Icons.Outlined.Tune, null) }, onClick = { menu = false; viewSheet = true })
-                                DropdownMenuItem(text = { Text("Sprecher …") }, leadingIcon = { Icon(Icons.Outlined.People, null) }, onClick = { menu = false; speakersSheet = true })
-                                DropdownMenuItem(text = { Text("Segmentierung …") }, leadingIcon = { Icon(Icons.Outlined.ContentCut, null) }, onClick = { menu = false; segmentSheet = true })
-                                DropdownMenuItem(text = { Text("Wortzeiten …") }, leadingIcon = { Icon(Icons.Outlined.Timer, null) }, onClick = { menu = false; wordsDialog = true })
-                                DropdownMenuItem(text = { Text("Kapitel & Zusammenfassung …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ListAlt, null) }, onClick = { menu = false; chaptersSheet = true })
-                                DropdownMenuItem(text = { Text("Redeanteile & Statistik …") }, leadingIcon = { Icon(Icons.Outlined.BarChart, null) }, onClick = { menu = false; statsSheet = true })
-                                DropdownMenuItem(text = { Text("Codieren …") }, leadingIcon = { Icon(Icons.Outlined.Label, null) }, onClick = { menu = false; codingSheet = true })
-                                DropdownMenuItem(text = { Text("Protokoll erstellen") }, leadingIcon = { Icon(Icons.Outlined.Description, null) }, onClick = {
+                                DropdownMenuItem(text = { Text(tr("Ansicht & Zeitstempel …")) }, leadingIcon = { Icon(Icons.Outlined.Tune, null) }, onClick = { menu = false; viewSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Sprecher …")) }, leadingIcon = { Icon(Icons.Outlined.People, null) }, onClick = { menu = false; speakersSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Segmentierung …")) }, leadingIcon = { Icon(Icons.Outlined.ContentCut, null) }, onClick = { menu = false; segmentSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Wortzeiten …")) }, leadingIcon = { Icon(Icons.Outlined.Timer, null) }, onClick = { menu = false; wordsDialog = true })
+                                DropdownMenuItem(text = { Text(tr("Kapitel & Zusammenfassung …")) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ListAlt, null) }, onClick = { menu = false; chaptersSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Redeanteile & Statistik …")) }, leadingIcon = { Icon(Icons.Outlined.BarChart, null) }, onClick = { menu = false; statsSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Codieren …")) }, leadingIcon = { Icon(Icons.Outlined.Label, null) }, onClick = { menu = false; codingSheet = true })
+                                DropdownMenuItem(text = { Text(tr("Protokoll erstellen")) }, leadingIcon = { Icon(Icons.Outlined.Description, null) }, onClick = {
                                     menu = false
                                     ChatHandoff.pending.value = ChatHandoff.Content(
-                                        "Erstelle aus dieser Besprechung ein Ergebnisprotokoll als PDF im TUD-Design (create_document, style=tud): Datum, Anwesende (soweit erkennbar), Tagesordnungspunkte, Beschlüsse und eine Tabelle der Aufgaben mit Verantwortlichen und Fristen. Nur Inhalte aus dem Transkript; Unklares als offene Frage.",
+                                        tr("Erstelle aus dieser Besprechung ein Ergebnisprotokoll als PDF im TUD-Design (create_document, style=tud): Datum, Anwesende (soweit erkennbar), Tagesordnungspunkte, Beschlüsse und eine Tabelle der Aufgaben mit Verantwortlichen und Fristen. Nur Inhalte aus dem Transkript; Unklares als offene Frage."),
                                         listOf(transcriptAttachment(current)), current.folder, send = true,
                                     )
                                     NewChatFolder.id = current.folder
                                     onOpenChat()
                                 })
-                                DropdownMenuItem(text = { Text("Übersetzen …") }, leadingIcon = { Icon(Icons.Outlined.Translate, null) }, onClick = { menu = false; translateDialog = true })
-                                DropdownMenuItem(text = { Text("Status: ${current.status.label} …") }, leadingIcon = { Icon(Icons.Outlined.FactCheck, null) }, onClick = { menu = false; statusDialog = true })
+                                DropdownMenuItem(text = { Text(tr("Übersetzen …")) }, leadingIcon = { Icon(Icons.Outlined.Translate, null) }, onClick = { menu = false; translateDialog = true })
+                                DropdownMenuItem(text = { Text(tr("Status: {0} …", current.status.label)) }, leadingIcon = { Icon(Icons.Outlined.FactCheck, null) }, onClick = { menu = false; statusDialog = true })
                                 HorizontalDivider()
-                                DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = { menu = false; export = true })
-                                DropdownMenuItem(text = { Text("Umbenennen") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; rename = true })
-                                DropdownMenuItem(text = { Text("Projekt zuordnen") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; moveFolder = true })
-                                DropdownMenuItem(text = { Text("Suchen & Ersetzen") }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { menu = false; findReplace = true })
-                                if (audio != null) DropdownMenuItem(text = { Text("Neu transkribieren …") }, leadingIcon = { Icon(Icons.Outlined.Refresh, null) }, onClick = { menu = false; retranscribe = true })
-                                if (current.hasOriginal) DropdownMenuItem(text = { Text("Änderungen verwerfen …") }, leadingIcon = { Icon(Icons.Outlined.Restore, null) }, onClick = { menu = false; discard = true })
+                                DropdownMenuItem(text = { Text(tr("Exportieren …")) }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = { menu = false; export = true })
+                                DropdownMenuItem(text = { Text(tr("Umbenennen")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; rename = true })
+                                DropdownMenuItem(text = { Text(tr("Projekt zuordnen")) }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; moveFolder = true })
+                                DropdownMenuItem(text = { Text(tr("Suchen & Ersetzen")) }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { menu = false; findReplace = true })
+                                if (audio != null) DropdownMenuItem(text = { Text(tr("Neu transkribieren …")) }, leadingIcon = { Icon(Icons.Outlined.Refresh, null) }, onClick = { menu = false; retranscribe = true })
+                                if (current.hasOriginal) DropdownMenuItem(text = { Text(tr("Änderungen verwerfen …")) }, leadingIcon = { Icon(Icons.Outlined.Restore, null) }, onClick = { menu = false; discard = true })
                                 HorizontalDivider()
-                                DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; delete = true })
+                                DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; delete = true })
                             }
                         }
                     },
@@ -383,14 +382,14 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                         MetaText(Icons.Outlined.Schedule, TranscriptExport.clock(current.duration))
                         languageName(current.language)?.let { MetaText(Icons.Outlined.Language, it) }
                         if (current.modelName.isNotBlank()) MetaText(Icons.Outlined.AutoAwesome, current.modelName)
-                        MetaText(null, "${current.wordCount} Wörter")
+                        MetaText(null, tr("{0} Wörter", current.wordCount))
                         current.folder?.let { f -> c.folders.items.value.firstOrNull { it.id == f } }?.let { MetaText(Icons.Outlined.Folder, it.name) }
                     }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         val share = current.measuredShare
                         Box(Modifier.clip(RoundedCornerShape(50)).clickable { wordsDialog = true }) {
                             StatusPill(
-                                if (share > 0) "Wortzeiten gemessen · ${Math.round(share * 100)} %" else "Wortzeiten nicht gemessen",
+                                if (share > 0) tr("Wortzeiten gemessen · {0} %", Math.round(share * 100)) else tr("Wortzeiten nicht gemessen"),
                                 if (share >= 0.9) PillTone.SUCCESS else if (share > 0) PillTone.WARNING else PillTone.NEUTRAL,
                             )
                         }
@@ -402,9 +401,9 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                     if (codingMode && codebook != null) {
                         Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp)) {
                             Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("Codiermodus · ${codebook.name} · ${coderName.coderName}", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { codingSheet = true }) { Text("Übersicht") }
-                                TextButton(onClick = { codingMode = false }) { Text("Beenden") }
+                                Text(tr("Codiermodus · {0} · {1}", codebook.name, coderName.coderName), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { codingSheet = true }) { Text(tr("Übersicht")) }
+                                TextButton(onClick = { codingMode = false }) { Text(tr("Beenden")) }
                             }
                         }
                     }
@@ -424,7 +423,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 }
                             }
                         }
-                        HintText("Tippe auf einen Sprecher, um ihn zu benennen (z. B. „I“ und „B1“ für Interviews).")
+                        HintText(tr("Tippe auf einen Sprecher, um ihn zu benennen (z. B. „I“ und „B1“ für Interviews)."))
                     }
                     if (current.marks.isNotEmpty() || current.chapters.isNotEmpty()) {
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -440,7 +439,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                         var open by remember { mutableStateOf(false) }
                         AppCard(onClick = { open = !open }) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Zusammenfassung", style = MaterialTheme.typography.titleSmall)
+                                Text(tr("Zusammenfassung"), style = MaterialTheme.typography.titleSmall)
                                 Text(sum, style = MaterialTheme.typography.bodyMedium, maxLines = if (open) Int.MAX_VALUE else 3, overflow = TextOverflow.Ellipsis)
                             }
                         }
@@ -473,7 +472,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 Spacer(Modifier.width(8.dp))
                             }
                             if (headerTime) Text(TranscriptExport.clock(s.start), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline)
-                            if (loop == i) { Spacer(Modifier.width(8.dp)); Icon(Icons.Outlined.RepeatOne, contentDescription = "Wird wiederholt", Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) }
+                            if (loop == i) { Spacer(Modifier.width(8.dp)); Icon(Icons.Outlined.RepeatOne, contentDescription = tr("Wird wiederholt"), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) }
                         }
                     }
                     val segMarks = marks.getOrElse(i) { emptyList() }.filter { !(headerTime && it.offset == 0) }
@@ -509,18 +508,26 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                             .secondaryClick { editSegment = i }
                             // TalkBack: tap gestures above are invisible to it, so the same actions as named actions.
                             .semantics {
-                                onClick(label = if (player != null) "Ab hier abspielen" else "Bearbeiten") {
+                                onClick(label = if (player != null) tr("Ab hier abspielen") else tr("Bearbeiten")) {
                                     if (player == null) editSegment = i else control.play(s.start)
                                     true
                                 }
-                                customActions = listOf(CustomAccessibilityAction("Abschnitt bearbeiten") { editSegment = i; true })
+                                customActions = listOf(CustomAccessibilityAction(tr("Abschnitt bearbeiten")) { editSegment = i; true })
+                            }
+                            // Keyboard (AP-30): Tab to the passage, Enter plays from it (or edits it), F2 edits it.
+                            .keyboardClick(onSecondary = { editSegment = i }) {
+                                when {
+                                    codingMode && codebook != null -> codeSegment = i
+                                    player == null -> editSegment = i
+                                    else -> { if (loop != null) loop = i; control.play(s.start) }
+                                }
                             }
                             .padding(horizontal = 4.dp, vertical = 3.dp),
                     )
                     SegmentCodes(coding, codebook, s) { codeSegment = i }
                     if (vs.showComments && !s.comment.isNullOrBlank()) {
                         Row(Modifier.padding(start = 6.dp, top = 2.dp, bottom = 4.dp).clickable { editSegment = i }, verticalAlignment = Alignment.Top) {
-                            Icon(Icons.Outlined.ModeComment, contentDescription = "Kommentar", Modifier.size(15.dp).padding(top = 2.dp), tint = look.warning)
+                            Icon(Icons.Outlined.ModeComment, contentDescription = tr("Kommentar"), Modifier.size(15.dp).padding(top = 2.dp), tint = look.warning)
                             Spacer(Modifier.width(6.dp))
                             Text(s.comment, style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -529,26 +536,26 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
             }
             item {
                 HintText(
-                    if (player != null) "Tippen: ab diesem Wort abspielen · lange drücken (Rechtsklick): bearbeiten, teilen, kommentieren · " +
-                        "F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 Abschnitt wiederholen, Strg+F Suchen"
-                    else "Tippen oder lange drücken: Abschnitt bearbeiten",
+                    if (player != null) tr("Tippen: ab diesem Wort abspielen · lange drücken (Rechtsklick): bearbeiten, teilen, kommentieren · " +
+                        "F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 Abschnitt wiederholen, Strg+F Suchen")
+                    else tr("Tippen oder lange drücken: Abschnitt bearbeiten"),
                     wide.padding(top = 18.dp),
                 )
             }
         }
     }
 
-    if (rename) TextInputDialog("Umbenennen", current.title, "Titel", onConfirm = { v -> update(current.copy(title = v.trim().ifBlank { current.title })) }, onDismiss = { rename = false })
+    if (rename) TextInputDialog(tr("Umbenennen"), current.title, tr("Titel"), onConfirm = { v -> update(current.copy(title = v.trim().ifBlank { current.title })) }, onDismiss = { rename = false })
     if (moveFolder) FolderPickerDialog(c, current.folder, onPick = { f -> update(current.copy(folder = f)) }, onDismiss = { moveFolder = false })
     if (delete) ConfirmDialog(
-        "Transkript löschen?", "„${current.title}“ kommt mit der Aufnahme in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen",
+        tr("Transkript löschen?"), tr("„{0}“ kommt mit der Aufnahme in den Papierkorb (30 Tage, Einstellungen › Daten).", current.title), tr("Löschen"),
         onConfirm = { player?.release(); vm.delete(onBack) }, onDismiss = { delete = false },
     )
     if (discard) ConfirmDialog(
-        "Änderungen verwerfen?",
-        "Text, Abschnitte und Sprecher werden auf die Fassung direkt nach dem Transkribieren zurückgesetzt. Titel, Projekt, Kapitel und Status bleiben. " +
-            "Gleich danach geht es mit „Rückgängig“ noch zurück.",
-        "Verwerfen",
+        tr("Änderungen verwerfen?"),
+        tr("Text, Abschnitte und Sprecher werden auf die Fassung direkt nach dem Transkribieren zurückgesetzt. Titel, Projekt, Kapitel und Status bleiben. " +
+            "Gleich danach geht es mit „Rückgängig“ noch zurück."),
+        tr("Verwerfen"),
         onConfirm = { current.original()?.let { update(it) } },
         onDismiss = { discard = false },
     )
@@ -559,7 +566,7 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     }
     if (findReplace) FindReplaceDialog(current, onApply = { next, n ->
         update(next)
-        Notices.show(Notices.Notice("$n× ersetzt", action = "Rückgängig", onAction = vm::undoLast))
+        Notices.show(Notices.Notice(tr("{0}× ersetzt", n), action = tr("Rückgängig"), onAction = vm::undoLast))
     }, onDismiss = { findReplace = false })
     if (export) ExportSheet(c, current, onDismiss = { export = false })
     if (viewSheet) ViewSheet(c, onDismiss = { viewSheet = false })
@@ -576,8 +583,8 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
     )
     codeSegment?.let { i ->
         val seg = segs.getOrNull(i)
-        if (seg != null && codebook != null) CodePickerDialog(seg, coding, codebook, coderName.coderName.ifBlank { "Codierer:in" },
-            onToggle = { codeId -> update(current.withCoding(coding.toggle(seg, codeId, coderName.coderName.ifBlank { "Codierer:in" })), undoable = false) },
+        if (seg != null && codebook != null) CodePickerDialog(seg, coding, codebook, coderName.coderName.ifBlank { tr("Codierer:in") },
+            onToggle = { codeId -> update(current.withCoding(coding.toggle(seg, codeId, coderName.coderName.ifBlank { tr("Codierer:in") })), undoable = false) },
             onDismiss = { codeSegment = null })
         else codeSegment = null
     }

@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.files
 
+import io.github.thepytales.llmhub.ui.tr
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -26,7 +27,7 @@ class Cfb private constructor(private val data: ByteArray) {
     val root: Entry
 
     init {
-        require(sectorSize in setOf(512, 4096) && miniSectorSize == 64) { "Kein gültiges OLE-Dokument." }
+        require(sectorSize in setOf(512, 4096) && miniSectorSize == 64) { tr("Kein gültiges OLE-Dokument.") }
         // DIFAT: the first 109 FAT sectors in the header, the rest in a chain of DIFAT sectors.
         val fatSectors = mutableListOf<Int>()
         for (i in 0 until 109) buf.getInt(76 + i * 4).takeIf { it >= 0 }?.let(fatSectors::add)
@@ -52,7 +53,7 @@ class Cfb private constructor(private val data: ByteArray) {
                 b.getInt(i * 128 + 68), b.getInt(i * 128 + 72), b.getInt(i * 128 + 76),
             )
         }
-        root = entries.firstOrNull { it.type == 5 } ?: throw IllegalArgumentException("Kein gültiges OLE-Dokument.")
+        root = entries.firstOrNull { it.type == 5 } ?: throw IllegalArgumentException(tr("Kein gültiges OLE-Dokument."))
         val miniFatBytes = chain(buf.getInt(60), Long.MAX_VALUE)
         miniFat = IntArray(miniFatBytes.size / 4) { ByteBuffer.wrap(miniFatBytes).order(ByteOrder.LITTLE_ENDIAN).getInt(it * 4) }
         miniStream = chain(root.start, root.size)

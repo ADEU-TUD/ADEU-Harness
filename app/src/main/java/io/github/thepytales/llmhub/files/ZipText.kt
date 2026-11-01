@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.files
 
+import io.github.thepytales.llmhub.ui.tr
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
@@ -24,7 +25,7 @@ object ZipText {
                 last = e
             }
         }
-        throw last ?: IllegalArgumentException("Das ZIP-Archiv kann nicht gelesen werden.")
+        throw last ?: IllegalArgumentException(tr("Das ZIP-Archiv kann nicht gelesen werden."))
     }
 
     fun entries(bytes: ByteArray): List<Entry> = withCharset(bytes) { zip ->
@@ -78,7 +79,7 @@ object ZipText {
                         val n = zip.read(buf)
                         if (n < 0) break
                         out.write(buf, 0, n)
-                        if (out.size() > MAX_ENTRY) throw IllegalArgumentException("„$wanted“ ist entpackt zu groß (max. 25 MB).")
+                        if (out.size() > MAX_ENTRY) throw IllegalArgumentException(tr("„{0}“ ist entpackt zu groß (max. 25 MB).", wanted))
                     }
                     return@withCharset out.toByteArray()
                 }

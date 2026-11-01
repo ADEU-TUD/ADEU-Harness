@@ -31,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,13 +52,13 @@ import io.github.thepytales.llmhub.data.ModelTier
 import io.github.thepytales.llmhub.data.ModelType
 
 private val typeHelp = mapOf(
-    ModelType.CHAT to "Zum Chatten, Programmieren und für die Werkzeuge. „Empfohlen“ = oben in der Modellauswahl; Modelle „nicht in der Auswahl“ sind veraltet oder nur ein anderer Name (Alias) für ein Modell.",
-    ModelType.IMAGE to "Erzeugt Bilder aus Text – im Tab „Bilder“.",
-    ModelType.TTS to "Liest Antworten vor (Lautsprecher-Symbol an einer Antwort).",
-    ModelType.STT to "Wandelt Sprache in Text (Mikrofon-Symbol im Chat).",
-    ModelType.EMBEDDING to "Erzeugt Vektoren für semantische Suche/RAG – nur über die API nutzbar.",
-    ModelType.RERANK to "Sortiert Dokumente nach Relevanz – nur über die API nutzbar.",
-    ModelType.EVALUATION to "Bewertet Texte – nur über die API nutzbar.",
+    ModelType.CHAT to trLater("Zum Chatten, Programmieren und für die Werkzeuge. „Empfohlen“ = oben in der Modellauswahl; Modelle „nicht in der Auswahl“ sind veraltet oder nur ein anderer Name (Alias) für ein Modell."),
+    ModelType.IMAGE to trLater("Erzeugt Bilder aus Text – im Tab „Bilder“."),
+    ModelType.TTS to trLater("Liest Antworten vor (Lautsprecher-Symbol an einer Antwort)."),
+    ModelType.STT to trLater("Wandelt Sprache in Text (Mikrofon-Symbol im Chat)."),
+    ModelType.EMBEDDING to trLater("Erzeugt Vektoren für semantische Suche/RAG – nur über die API nutzbar."),
+    ModelType.RERANK to trLater("Sortiert Dokumente nach Relevanz – nur über die API nutzbar."),
+    ModelType.EVALUATION to trLater("Bewertet Texte – nur über die API nutzbar."),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,16 +74,16 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Modelle") },
+                title = { Text(tr("Modelle")) },
                 actions = {
                     IconButton(onClick = { uri.openUri("https://llm.scads.ai/status/") }) {
-                        Icon(Icons.Outlined.Info, contentDescription = "Statusseite")
+                        Icon(Icons.Outlined.Info, contentDescription = tr("Statusseite"))
                     }
                     if (state.loading) {
                         CircularProgressIndicator(Modifier.size(24.dp).padding(end = 4.dp), strokeWidth = 2.dp)
                     } else {
                         IconButton(onClick = { c.models.refresh(); scope.launch { c.llm.status.refresh(force = true) } }) {
-                            Icon(Icons.Outlined.Refresh, contentDescription = "Aktualisieren")
+                            Icon(Icons.Outlined.Refresh, contentDescription = tr("Aktualisieren"))
                         }
                     }
                 },
@@ -110,16 +109,16 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
             }
             item(key = "info") {
                 val text = when {
-                    filter.isActive -> "${shown.size} von ${state.models.size} Modellen passen zum Filter."
-                    state.error != null -> "Liste konnte nicht geladen werden (${state.error}). Angezeigt wird der eingebaute Katalog."
-                    state.liveIds != null -> "${state.liveIds!!.size} Modelle live vom Server geladen."
-                    else -> "Eingebauter Katalog – mit API-Key wird die aktuelle Liste vom Server geladen."
+                    filter.isActive -> tr("{0} von {1} Modellen passen zum Filter.", shown.size, state.models.size)
+                    state.error != null -> tr("Liste konnte nicht geladen werden ({0}). Angezeigt wird der eingebaute Katalog.", state.error)
+                    state.liveIds != null -> tr("{0} Modelle live vom Server geladen.", state.liveIds!!.size)
+                    else -> tr("Eingebauter Katalog – mit API-Key wird die aktuelle Liste vom Server geladen.")
                 }
                 Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 status?.let { st ->
                     val down = st.models.values.count { !it.up }
                     Text(
-                        if (down == 0) "Statusseite: alle Modelle laufen." else "Statusseite: $down Modell(e) gestört – unten rot markiert.",
+                        if (down == 0) tr("Statusseite: alle Modelle laufen.") else tr("Statusseite: {0} Modell(e) gestört – unten rot markiert.", down),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (down == 0) LocalChatLook.current.success else MaterialTheme.colorScheme.error,
                     )
@@ -135,7 +134,7 @@ fun ModelsScreen(c: AppContainer, onBack: () -> Unit, onStartChat: (String) -> U
                     Column(Modifier.padding(top = 8.dp)) {
                         Text(type.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Text(
-                            typeHelp[type].orEmpty(),
+                            tr(typeHelp[type].orEmpty()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -161,8 +160,8 @@ private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat
                 Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 val tag = when {
                     m.type != ModelType.CHAT -> null
-                    m.tier == ModelTier.FEATURED -> "Empfohlen"
-                    m.tier == ModelTier.HIDDEN -> "Nicht in der Auswahl"
+                    m.tier == ModelTier.FEATURED -> tr("Empfohlen")
+                    m.tier == ModelTier.HIDDEN -> tr("Nicht in der Auswahl")
                     else -> m.badge
                 }
                 tag?.let {
@@ -175,8 +174,8 @@ private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat
             }
             state?.let { st ->
                 Text(
-                    if (st.up) "Läuft" + (st.seconds?.let { " · Antwort zuletzt in ${String.format(java.util.Locale.GERMANY, "%.1f", it)} s" } ?: "")
-                    else "Gestört laut Statusseite (${st.state})",
+                    if (st.up) tr("Läuft") + (st.seconds?.let { tr(" · Antwort zuletzt in {0} s", String.format(java.util.Locale.GERMANY, "%.1f", it)) } ?: "")
+                    else tr("Gestört laut Statusseite ({0})", st.state),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (st.up) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
                 )
@@ -184,7 +183,7 @@ private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat
             if (m.type == ModelType.CHAT && m.useCase.isNotBlank()) {
                 Text(m.useCase, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             }
-            val sub = listOfNotNull(m.provider, m.aliasOf?.let { "Alias für $it" }).joinToString(" · ")
+            val sub = listOfNotNull(m.provider, m.aliasOf?.let { tr("Alias für {0}", it) }).joinToString(" · ")
             if (sub.isNotEmpty()) {
                 Text(sub, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -196,14 +195,14 @@ private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     val e = ModelCatalog.effective(m)
-                    e.power?.let { RatingRow("Leistung", it) }
-                    e.speed?.let { RatingRow("Tempo   ", it) }
+                    e.power?.let { RatingRow(tr("Leistung"), it) }
+                    e.speed?.let { RatingRow(tr("Tempo   "), it) }
                 }
                 if (m.type == ModelType.CHAT && offered) {
                     FilledTonalButton(onClick = { onStartChat(m.id) }) {
                         Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text("Chatten")
+                        Text(tr("Chatten"))
                     }
                 }
             }

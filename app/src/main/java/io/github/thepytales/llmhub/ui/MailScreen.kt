@@ -44,7 +44,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -200,7 +199,7 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
                                         Text(r.name, style = MaterialTheme.typography.bodyMedium)
                                         HintText(OutlookTools.ruleText(r) + if (r.moved > 0) " · " + tr("bisher") + " ${r.moved}" else "")
                                     }
-                                    Switch(checked = r.enabled, onCheckedChange = { on -> c.mailRules.update(r.id) { it.copy(enabled = on) } })
+                                    Switch(modifier = Modifier.a11yLabel(r.name), checked = r.enabled, onCheckedChange = { on -> c.mailRules.update(r.id) { it.copy(enabled = on) } })
                                     IconButton(onClick = {
                                         c.mailRules.delete(r.id)
                                         Notices.undo(tr("Regel gelöscht"), restore = { c.mailRules.upsert(r) })
@@ -267,11 +266,11 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
 private data class MailStart(val label: String, val text: String, val send: Boolean, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 private val MAIL_STARTS = listOf(
-    MailStart("Was ist seit gestern wichtig?", "Was ist seit gestern im Posteingang wichtig?", true, Icons.Outlined.Inbox),
-    MailStart("Posteingang sortieren", "Schau dir die letzten 100 Mails im Posteingang an und schlag mir Ordner und feste Regeln zum Sortieren vor. Noch nichts verschieben.", true, Icons.Outlined.DriveFileMove),
-    MailStart("Fristen und Termine aus Mails", "Finde in den Mails der letzten 7 Tage Fristen und Termine und schlag vor, was ich als Termin oder Aufgabe übernehmen soll.", true, Icons.Outlined.TaskAlt),
-    MailStart("Antwort entwerfen …", "Entwirf eine Antwort auf die Mail von ", false, Icons.Outlined.EditNote),
-    MailStart("Freie Zeit finden …", "Finde einen gemeinsamen Termin (60 Minuten) in den nächsten zwei Wochen mit ", false, Icons.Outlined.EventAvailable),
+    MailStart(trLater("Was ist seit gestern wichtig?"), trLater("Was ist seit gestern im Posteingang wichtig?"), true, Icons.Outlined.Inbox),
+    MailStart(trLater("Posteingang sortieren"), trLater("Schau dir die letzten 100 Mails im Posteingang an und schlag mir Ordner und feste Regeln zum Sortieren vor. Noch nichts verschieben."), true, Icons.Outlined.DriveFileMove),
+    MailStart(trLater("Fristen und Termine aus Mails"), trLater("Finde in den Mails der letzten 7 Tage Fristen und Termine und schlag vor, was ich als Termin oder Aufgabe übernehmen soll."), true, Icons.Outlined.TaskAlt),
+    MailStart(trLater("Antwort entwerfen …"), trLater("Entwirf eine Antwort auf die Mail von "), false, Icons.Outlined.EditNote),
+    MailStart(trLater("Freie Zeit finden …"), trLater("Finde einen gemeinsamen Termin (60 Minuten) in den nächsten zwei Wochen mit "), false, Icons.Outlined.EventAvailable),
 )
 
 @Composable

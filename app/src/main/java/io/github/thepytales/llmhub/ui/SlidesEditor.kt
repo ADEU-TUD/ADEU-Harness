@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.AssistChip
@@ -72,7 +74,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -137,14 +138,14 @@ private val TUD_LINE = Color(0xFFBBC1C6)
 
 /** ✨ actions on a slide. */
 private val SLIDE_AI = listOf(
-    "Verbessern" to "Verbessere die Folie: prägnanter Titel, höchstens 5 kurze Stichpunkte, klare Sprache. Gib die Folie im selben Markdown-Format zurück (## Titel, Stichpunkte, ggf. Notizen: …).",
-    "Kürzen" to "Kürze die Folie auf das Wesentliche (höchstens 4 Stichpunkte); Details wandern in „Notizen: …“. Gleiches Format.",
-    "Stichpunkte ausformulieren" to "Formuliere zu den Stichpunkten ausführliche Sprechernotizen (Notizen: …); die Folie selbst bleibt knapp. Gleiches Format.",
-    "Beispiel ergänzen" to "Ergänze ein anschauliches Beispiel aus Schule oder Hochschule als Stichpunkt. Gleiches Format.",
-    "Als Tabelle" to "Stelle den Inhalt der Folie als übersichtliche Markdown-Tabelle dar (höchstens 5 Zeilen). Gleiches Format.",
-    "In zwei Spalten" to "Teile den Inhalt sinnvoll auf zwei Spalten auf (z. B. Vorher/Nachher, Pro/Contra); die rechte Spalte beginnt nach einer Zeile „|||“. Gleiches Format.",
-    "Sprechernotizen schreiben" to "Schreibe ausführliche Sprechernotizen zu dieser Folie (Notizen: …): was ich dazu sagen kann und die Überleitung. Die Folie selbst bleibt unverändert. Gleiches Format.",
-    "Ins Englische" to "Übersetze die Folie samt Notizen ins Englische. Gleiches Format.",
+    trLater("Verbessern") to "Verbessere die Folie: prägnanter Titel, höchstens 5 kurze Stichpunkte, klare Sprache. Gib die Folie im selben Markdown-Format zurück (## Titel, Stichpunkte, ggf. Notizen: …).",
+    trLater("Kürzen") to "Kürze die Folie auf das Wesentliche (höchstens 4 Stichpunkte); Details wandern in „Notizen: …“. Gleiches Format.",
+    trLater("Stichpunkte ausformulieren") to "Formuliere zu den Stichpunkten ausführliche Sprechernotizen (Notizen: …); die Folie selbst bleibt knapp. Gleiches Format.",
+    trLater("Beispiel ergänzen") to "Ergänze ein anschauliches Beispiel aus Schule oder Hochschule als Stichpunkt. Gleiches Format.",
+    trLater("Als Tabelle") to "Stelle den Inhalt der Folie als übersichtliche Markdown-Tabelle dar (höchstens 5 Zeilen). Gleiches Format.",
+    trLater("In zwei Spalten") to "Teile den Inhalt sinnvoll auf zwei Spalten auf (z. B. Vorher/Nachher, Pro/Contra); die rechte Spalte beginnt nach einer Zeile „|||“. Gleiches Format.",
+    trLater("Sprechernotizen schreiben") to "Schreibe ausführliche Sprechernotizen zu dieser Folie (Notizen: …): was ich dazu sagen kann und die Überleitung. Die Folie selbst bleibt unverändert. Gleiches Format.",
+    trLater("Ins Englische") to "Übersetze die Folie samt Notizen ins Englische. Gleiches Format.",
 )
 
 /**
@@ -181,7 +182,7 @@ fun SlidesBody(
     inlineAi: InlineAiRunner,
 ) {
     val settings by c.settings.settings.collectAsState()
-    val slides = remember(markdown) { SlideDeck.parse(markdown).ifEmpty { listOf(SlideDeck.Slide("Titel", layout = SlideDeck.Layout.TITLE)) } }
+    val slides = remember(markdown) { SlideDeck.parse(markdown).ifEmpty { listOf(SlideDeck.Slide(tr("Titel"), layout = SlideDeck.Layout.TITLE)) } }
     val frame = DeckFrame.of(
         settings.tudUnit, settings.docFooter, slides.first().title.ifBlank { doc.title },
         slides.first().takeIf { it.layout == SlideDeck.Layout.TITLE }?.body?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() },
@@ -208,23 +209,23 @@ fun SlidesBody(
     /** Splits slides with more than six points (no model needed). */
     fun splitFull() {
         val (list, n) = SlideDeck.splitFull(slides)
-        if (n == 0) Notices.info("Keine Folie hat mehr als sechs Stichpunkte.")
+        if (n == 0) Notices.info(tr("Keine Folie hat mehr als sechs Stichpunkte."))
         else {
             set(list)
-            Notices.undo("$n Folie(n) aufgeteilt", restore = { set(slides) })
+            Notices.undo(tr("{0} Folie(n) aufgeteilt", n), restore = { set(slides) })
         }
     }
     /** A whole-deck request to the model in the presentation's chat. */
     fun askDeck(label: String, text: String) {
-        if (DocsAi.send(c, doc, label, text, DocsAi.instructions(doc))) Notices.info("Die KI überarbeitet die Präsentation.")
+        if (DocsAi.send(c, doc, label, text, DocsAi.instructions(doc))) Notices.info(tr("Die KI überarbeitet die Präsentation."))
     }
     val base = LocalDocBase.current
     /** A picture for the current slide: stored next to the document, the slide becomes "Bild + Text" if it shows none. */
     val pickImage = rememberImageBytesPicker { bytes ->
-        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP)."); return@rememberImageBytesPicker }
+        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error(tr("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP).")); return@rememberImageBytesPicker }
         val target = base ?: c.docs.baseDir(doc)
         scope.launch {
-            val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(target, bytes) }.getOrNull() } ?: return@launch Notices.error("Das Bild konnte nicht gespeichert werden.")
+            val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(target, bytes) }.getOrNull() } ?: return@launch Notices.error(tr("Das Bild konnte nicht gespeichert werden."))
             val s = slides[sel]
             val layout = if (sel == 0 || s.layout.withImage) s.layout else SlideDeck.Layout.IMAGE_TEXT
             update(sel, s.copy(image = path, imageAlt = s.imageAlt.ifBlank { "" }, layout = layout))
@@ -236,7 +237,7 @@ fun SlidesBody(
         val at = sel
         set(slides.toMutableList().apply { removeAt(at) })
         selected = (at - 1).coerceAtLeast(0)
-        Notices.undo("Folie gelöscht", restore = { set(slides.toMutableList().apply { add(at.coerceAtMost(size), removed) }) })
+        Notices.undo(tr("Folie gelöscht"), restore = { set(slides.toMutableList().apply { add(at.coerceAtMost(size), removed) }) })
     }
 
     Column(
@@ -244,10 +245,10 @@ fun SlidesBody(
             if (e.type != KeyEventType.KeyDown || writing) return@onPreviewKeyEvent false
             when {
                 e.key == Key.F5 -> { presenting = if (e.isShiftPressed) sel else 0; true }
-                e.isCtrlPressed && e.key == Key.M -> { addSlide(SlideDeck.Layout.CONTENT); true }
-                e.isCtrlPressed && e.key == Key.D -> { duplicate(); true }
-                e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionUp -> { move(-1); true }
-                e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionDown -> { move(1); true }
+                e.isCmd && e.key == Key.M -> { addSlide(SlideDeck.Layout.CONTENT); true }
+                e.isCmd && e.key == Key.D -> { duplicate(); true }
+                e.isCmd && e.isShiftPressed && e.key == Key.DirectionUp -> { move(-1); true }
+                e.isCmd && e.isShiftPressed && e.key == Key.DirectionDown -> { move(1); true }
                 else -> false
             }
         },
@@ -257,7 +258,7 @@ fun SlidesBody(
             leading()
             var add by remember { mutableStateOf(false) }
             Box {
-                ToolLabel("+ Neue Folie ▾") { add = true }
+                ToolLabel(tr("+ Neue Folie ▾")) { add = true }
                 DropdownMenu(expanded = add, onDismissRequest = { add = false }) {
                     SlideDeck.Layout.entries.filter { it != SlideDeck.Layout.TITLE }.forEach { l ->
                         DropdownMenuItem(text = { Text(l.label) }, onClick = { add = false; addSlide(l) })
@@ -265,14 +266,14 @@ fun SlidesBody(
                 }
             }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-            ToolIcon(Icons.Outlined.ContentCopy, "Folie duplizieren (Strg+D)") { duplicate() }
-            ToolIcon(Icons.Outlined.ArrowUpward, "Nach vorn (Strg+Umschalt+↑)", enabled = sel > 1) { move(-1) }
-            ToolIcon(Icons.Outlined.ArrowDownward, "Nach hinten (Strg+Umschalt+↓)", enabled = sel in 1 until slides.lastIndex) { move(1) }
-            ToolIcon(Icons.Outlined.Delete, "Folie löschen", enabled = slides.size > 1) { delete() }
+            ToolIcon(Icons.Outlined.ContentCopy, tr("Folie duplizieren (Strg+D)")) { duplicate() }
+            ToolIcon(Icons.Outlined.ArrowUpward, tr("Nach vorn (Strg+Umschalt+↑)"), enabled = sel > 1) { move(-1) }
+            ToolIcon(Icons.Outlined.ArrowDownward, tr("Nach hinten (Strg+Umschalt+↓)"), enabled = sel in 1 until slides.lastIndex) { move(1) }
+            ToolIcon(Icons.Outlined.Delete, tr("Folie löschen"), enabled = slides.size > 1) { delete() }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             var aiMenu by remember { mutableStateOf(false) }
             Box {
-                ToolIcon(Icons.Outlined.AutoAwesome, "KI für diese Folie") { aiMenu = true }
+                ToolIcon(Icons.Outlined.AutoAwesome, tr("KI für diese Folie")) { aiMenu = true }
                 DropdownMenu(expanded = aiMenu, onDismissRequest = { aiMenu = false }) {
                     SLIDE_AI.forEach { (label, instruction) ->
                         DropdownMenuItem(text = { Text(label) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = {
@@ -281,17 +282,17 @@ fun SlidesBody(
                         })
                     }
                     HorizontalDivider()
-                    Text("Ganze Präsentation", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-                    DropdownMenuItem(text = { Text("Sprechernotizen für alle Folien") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck("Sprechernotizen", NOTES_ALL_SLIDES) })
-                    DropdownMenuItem(text = { Text("Stil vereinheitlichen") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck("Stil vereinheitlichen", STYLE_SLIDES) })
-                    DropdownMenuItem(text = { Text("Volle Folien teilen (ohne KI)") }, onClick = { aiMenu = false; splitFull() })
+                    Text(tr("Ganze Präsentation"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    DropdownMenuItem(text = { Text(tr("Sprechernotizen für alle Folien")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck(tr("Sprechernotizen"), NOTES_ALL_SLIDES) })
+                    DropdownMenuItem(text = { Text(tr("Stil vereinheitlichen")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck(tr("Stil vereinheitlichen"), STYLE_SLIDES) })
+                    DropdownMenuItem(text = { Text(tr("Volle Folien teilen (ohne KI)")) }, onClick = { aiMenu = false; splitFull() })
                 }
             }
-            ToolIcon(Icons.Outlined.Image, "Bild einfügen", enabled = !writing) { pickImage() }
-            ToolIcon(Icons.Outlined.SpeakerNotes, "Kommentieren") { onComment(slides[sel].title) }
-            ToolIcon(Icons.Outlined.GridView, "Folienübersicht", active = sorter) { sorter = !sorter }
-            ToolIcon(Icons.Outlined.Slideshow, "Vorführen ab dieser Folie (Umschalt+F5)") { presenting = sel }
-            ToolLabel("Handout (PDF)") { handout = true }
+            ToolIcon(Icons.Outlined.Image, tr("Bild einfügen"), enabled = !writing) { pickImage() }
+            ToolIcon(Icons.Outlined.SpeakerNotes, tr("Kommentieren")) { onComment(slides[sel].title) }
+            ToolIcon(Icons.Outlined.GridView, tr("Folienübersicht"), active = sorter) { sorter = !sorter }
+            ToolIcon(Icons.Outlined.Slideshow, tr("Vorführen ab dieser Folie (Umschalt+F5)")) { presenting = sel }
+            ToolLabel(tr("Handout (PDF)")) { handout = true }
         }
         HorizontalDivider()
         when {
@@ -310,7 +311,7 @@ fun SlidesBody(
                             onClick = { set(slides + SlideDeck.template(SlideDeck.Layout.CONTENT)); selected = slides.size },
                             shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                             color = Color.Transparent, modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                        ) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Add, contentDescription = "Folie hinzufügen (Strg+M)") } }
+                        ) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Add, contentDescription = tr("Folie hinzufügen (Strg+M)")) } }
                     }
                 }
                 VerticalDivider()
@@ -422,26 +423,26 @@ private fun SlideWork(
                     FilterChip(selected = s.layout == l, onClick = { update(sel, live.copy(layout = l)) }, label = { Text(l.label) }, enabled = !writing)
                 }
             }
-            OutlinedTextField(title, { title = it }, label = { Text("Titel") }, singleLine = true, enabled = !writing, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(title, { title = it }, label = { Text(tr("Titel")) }, singleLine = true, enabled = !writing, modifier = Modifier.fillMaxWidth())
             when (s.layout) {
                 SlideDeck.Layout.TITLE -> {
-                    OutlinedTextField(body, { body = it }, label = { Text("Untertitel") }, singleLine = true, enabled = !writing, modifier = Modifier.fillMaxWidth())
-                    RichField(meta, { meta = it }, "Angaben (Vortragende, Anlass, Datum – je Zeile eine)", minLines = 2, enabled = !writing, toolbar = false)
+                    OutlinedTextField(body, { body = it }, label = { Text(tr("Untertitel")) }, singleLine = true, enabled = !writing, modifier = Modifier.fillMaxWidth())
+                    RichField(meta, { meta = it }, tr("Angaben (Vortragende, Anlass, Datum – je Zeile eine)"), minLines = 2, enabled = !writing, toolbar = false)
                 }
-                SlideDeck.Layout.SECTION -> RichField(body, { body = it }, "Kurze Beschreibung (optional)", minLines = 1, enabled = !writing, toolbar = false)
-                SlideDeck.Layout.QUOTE -> RichField(body, { body = it }, "Zitat (letzte Zeile mit „– Quelle“)", minLines = 3, enabled = !writing, toolbar = false)
+                SlideDeck.Layout.SECTION -> RichField(body, { body = it }, tr("Kurze Beschreibung (optional)"), minLines = 1, enabled = !writing, toolbar = false)
+                SlideDeck.Layout.QUOTE -> RichField(body, { body = it }, tr("Zitat (letzte Zeile mit „– Quelle“)"), minLines = 3, enabled = !writing, toolbar = false)
                 SlideDeck.Layout.TWO_COLUMNS -> {
-                    RichField(body, { body = it }, "Linke Spalte", minLines = 4, enabled = !writing)
-                    RichField(right, { right = it }, "Rechte Spalte", minLines = 4, enabled = !writing)
+                    RichField(body, { body = it }, tr("Linke Spalte"), minLines = 4, enabled = !writing)
+                    RichField(right, { right = it }, tr("Rechte Spalte"), minLines = 4, enabled = !writing)
                 }
-                SlideDeck.Layout.CONTENT -> RichField(body, { body = it }, "Inhalt", minLines = 4, enabled = !writing)
+                SlideDeck.Layout.CONTENT -> RichField(body, { body = it }, tr("Inhalt"), minLines = 4, enabled = !writing)
                 SlideDeck.Layout.IMAGE_TEXT, SlideDeck.Layout.IMAGE -> {
                     ImageFields(live, enabled = !writing) { update(sel, it) }
-                    if (s.layout == SlideDeck.Layout.IMAGE_TEXT) RichField(body, { body = it }, "Text neben dem Bild", minLines = 3, enabled = !writing)
+                    if (s.layout == SlideDeck.Layout.IMAGE_TEXT) RichField(body, { body = it }, tr("Text neben dem Bild"), minLines = 3, enabled = !writing)
                 }
                 SlideDeck.Layout.COMPARISON -> {
-                    RichField(body, { body = it }, "Linke Spalte (erste Zeile „### Überschrift“)", minLines = 4, enabled = !writing)
-                    RichField(right, { right = it }, "Rechte Spalte (erste Zeile „### Überschrift“)", minLines = 4, enabled = !writing)
+                    RichField(body, { body = it }, tr("Linke Spalte (erste Zeile „### Überschrift“)"), minLines = 4, enabled = !writing)
+                    RichField(right, { right = it }, tr("Rechte Spalte (erste Zeile „### Überschrift“)"), minLines = 4, enabled = !writing)
                 }
                 SlideDeck.Layout.TABLE -> {
                     val rows = DocBlocks.tableRows(body.text).ifEmpty { listOf(listOf("Spalte 1", "Spalte 2"), listOf("", "")) }
@@ -449,28 +450,28 @@ private fun SlideWork(
                 }
                 SlideDeck.Layout.CHART -> {
                     OutlinedTextField(
-                        body, { body = it }, label = { Text("Diagramm (```chart-Block mit JSON)") }, minLines = 4, enabled = !writing,
+                        body, { body = it }, label = { Text(tr("Diagramm (```chart-Block mit JSON)")) }, minLines = 4, enabled = !writing,
                         textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), modifier = Modifier.fillMaxWidth(),
                     )
-                    if (SlideDeck.chartOf(body.text) == null) HintText("Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram.")
+                    if (SlideDeck.chartOf(body.text) == null) HintText(tr("Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram."))
                 }
                 SlideDeck.Layout.AGENDA -> {
-                    RichField(body, { body = it }, "Punkte (leer = automatisch aus den Abschnittsfolien)", minLines = 2, enabled = !writing)
-                    HintText("Automatisch: " + SlideDeck.agenda(slides.mapIndexed { k, x -> if (k == sel) live else x }, sel).joinToString(" · ").ifBlank { "noch keine Abschnitte" })
+                    RichField(body, { body = it }, tr("Punkte (leer = automatisch aus den Abschnittsfolien)"), minLines = 2, enabled = !writing)
+                    HintText(tr("Automatisch: ") + SlideDeck.agenda(slides.mapIndexed { k, x -> if (k == sel) live else x }, sel).joinToString(" · ").ifBlank { tr("noch keine Abschnitte") })
                 }
-                SlideDeck.Layout.END -> RichField(body, { body = it }, "Text und Kontakt (je Zeile eine Angabe)", minLines = 2, enabled = !writing, toolbar = false)
+                SlideDeck.Layout.END -> RichField(body, { body = it }, tr("Text und Kontakt (je Zeile eine Angabe)"), minLines = 2, enabled = !writing, toolbar = false)
                 SlideDeck.Layout.FREE -> {
-                    RichField(body, { body = it }, "Text unter dem Titel (optional)", minLines = 1, enabled = !writing)
-                    HintText("Freie Folie: Textfelder, Bilder und Formen über die Leiste unter der Folie einfügen, auf der Folie verschieben, an der Ecke unten rechts in der Größe ändern.")
+                    RichField(body, { body = it }, tr("Text unter dem Titel (optional)"), minLines = 1, enabled = !writing)
+                    HintText(tr("Freie Folie: Textfelder, Bilder und Formen über die Leiste unter der Folie einfügen, auf der Folie verschieben, an der Ecke unten rechts in der Größe ändern."))
                 }
             }
             OutlinedTextField(
-                notes, { notes = it }, label = { Text("Sprechernotizen") }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
+                notes, { notes = it }, label = { Text(tr("Sprechernotizen")) }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
                 leadingIcon = { Icon(Icons.Outlined.SpeakerNotes, contentDescription = null) },
             )
             HintText(
-                "Folie ${sel + 1} von ${slides.size} · Enter: neuer Stichpunkt, Tab: einrücken, Strg+B: fett · Strg+M: neue Folie, F5: vorführen · " +
-                    "Export als PowerPoint im TUD-Design über ⋮ › Exportieren",
+                tr("Folie {0} von {1} · Enter: neuer Stichpunkt, Tab: einrücken, Strg+B: fett · Strg+M: neue Folie, F5: vorführen · ", sel + 1, slides.size) +
+                    tr("Export als PowerPoint im TUD-Design über ⋮ › Exportieren"),
             )
         }
     }
@@ -485,11 +486,11 @@ private fun UnitHint(c: AppContainer) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Info, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Für das TUD-Design fehlt die Einrichtung", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Für das TUD-Design fehlt die Einrichtung"), style = MaterialTheme.typography.titleSmall)
             }
-            HintText("Sie steht auf der Titelfolie unten und in der Fußzeile jeder Folie – eine Ebene pro Zeile (Fakultät, Institut, Professur).")
-            OutlinedTextField(unit, { unit = it }, minLines = 3, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Fakultät …\nInstitut …\nProfessur …") })
-            TextButton(enabled = unit.isNotBlank(), onClick = { c.settings.update { it.copy(tudUnit = unit.trim()) } }) { Text("Für alle Präsentationen übernehmen") }
+            HintText(tr("Sie steht auf der Titelfolie unten und in der Fußzeile jeder Folie – eine Ebene pro Zeile (Fakultät, Institut, Professur)."))
+            OutlinedTextField(unit, { unit = it }, minLines = 3, modifier = Modifier.fillMaxWidth(), placeholder = { Text(tr("Fakultät …\nInstitut …\nProfessur …")) })
+            TextButton(enabled = unit.isNotBlank(), onClick = { c.settings.update { it.copy(tudUnit = unit.trim()) } }) { Text(tr("Für alle Präsentationen übernehmen")) }
         }
     }
 }
@@ -505,11 +506,11 @@ private fun RichField(value: TextFieldValue, onChange: (TextFieldValue) -> Unit,
     val transformation = remember(link, code) { HideMarkdown(link, code) }
     Column(Modifier.fillMaxWidth()) {
         if (toolbar) Row(verticalAlignment = Alignment.CenterVertically) {
-            ToolIcon(Icons.Outlined.FormatBold, "Fett (Strg+B)", enabled = enabled) { onChange(toggleMarks(value, "**")) }
-            ToolIcon(Icons.Outlined.FormatItalic, "Kursiv (Strg+I)", enabled = enabled) { onChange(toggleMarks(value, "*")) }
-            ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, "Stichpunkte an/aus", enabled = enabled) { onChange(toggleBullets(value)) }
-            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentIncrease, "Einrücken (Tab)", enabled = enabled) { onChange(indentLine(value, outdent = false)) }
-            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentDecrease, "Ausrücken (Umschalt+Tab)", enabled = enabled) { onChange(indentLine(value, outdent = true)) }
+            ToolIcon(Icons.Outlined.FormatBold, tr("Fett (Strg+B)"), enabled = enabled) { onChange(toggleMarks(value, "**")) }
+            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv (Strg+I)"), enabled = enabled) { onChange(toggleMarks(value, "*")) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Stichpunkte an/aus"), enabled = enabled) { onChange(toggleBullets(value)) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentIncrease, tr("Einrücken (Tab)"), enabled = enabled) { onChange(indentLine(value, outdent = false)) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentDecrease, tr("Ausrücken (Umschalt+Tab)"), enabled = enabled) { onChange(indentLine(value, outdent = true)) }
         }
         OutlinedTextField(
             value = value,
@@ -522,8 +523,8 @@ private fun RichField(value: TextFieldValue, onChange: (TextFieldValue) -> Unit,
                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when {
                     e.key == Key.Tab -> { onChange(indentLine(value, outdent = e.isShiftPressed)); true }
-                    e.isCtrlPressed && e.key == Key.B -> { onChange(toggleMarks(value, "**")); true }
-                    e.isCtrlPressed && e.key == Key.I -> { onChange(toggleMarks(value, "*")); true }
+                    e.isCmd && e.key == Key.B -> { onChange(toggleMarks(value, "**")); true }
+                    e.isCmd && e.key == Key.I -> { onChange(toggleMarks(value, "*")); true }
                     else -> false
                 }
             },
@@ -643,7 +644,7 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                     Column { lines.take(5).forEach { Text(plainInline(it), style = style(if (lines.size > 3) 16 else 20, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
                 }
                 area(TudSlide.X, TudSlide.COVER_TITLE_Y, TudSlide.CONTENT_W, TudSlide.COVER_TITLE_H) {
-                    Text(s.title.ifBlank { "Titel" }, style = style(if (s.title.length > 60) 36 else TudSlide.COVER_TITLE_PT, Color.White, medium = true), maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    Text(s.title.ifBlank { tr("Titel") }, style = style(if (s.title.length > 60) 36 else TudSlide.COVER_TITLE_PT, Color.White, medium = true), maxLines = 3, overflow = TextOverflow.Ellipsis)
                 }
                 if (frame.unit.isNotEmpty()) area(TudSlide.X, TudSlide.COVER_FOOT_Y, 21.76, 0.71) {
                     Text(frame.unit.joinToString(" · "), style = style(12, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -715,7 +716,7 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 val spec = remember(s.body) { SlideDeck.chartOf(s.body) }
                 area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH, Alignment.Center) {
                     if (spec != null) Box(Modifier.fillMaxHeight().aspectRatio(io.github.thepytales.llmhub.docs.ChartLayout.W / io.github.thepytales.llmhub.docs.ChartLayout.H)) { ChartCanvas(spec, Modifier.fillMaxSize()) }
-                    else Text("Diagramm", style = style(18, TUD_GREY))
+                    else Text(tr("Diagramm"), style = style(18, TUD_GREY))
                 }
                 chrome()
             }
@@ -805,13 +806,13 @@ private fun ImageFields(s: SlideDeck.Slide, enabled: Boolean, onChange: (SlideDe
         if (alt != s.imageAlt) onChange(s.copy(imageAlt = alt))
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (s.image.isBlank()) HintText("Noch kein Bild – über das Bild-Symbol in der Leiste oben einfügen.")
-        OutlinedTextField(alt, { alt = it }, label = { Text("Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)") }, singleLine = true, enabled = enabled, modifier = Modifier.fillMaxWidth())
+        if (s.image.isBlank()) HintText(tr("Noch kein Bild – über das Bild-Symbol in der Leiste oben einfügen."))
+        OutlinedTextField(alt, { alt = it }, label = { Text(tr("Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)")) }, singleLine = true, enabled = enabled, modifier = Modifier.fillMaxWidth())
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = true)) }, label = { Text("Bild links") }, enabled = enabled)
-            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && !s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = false)) }, label = { Text("Bild rechts") }, enabled = enabled)
-            FilterChip(s.layout == SlideDeck.Layout.IMAGE, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE)) }, label = { Text("Ganze Folie") }, enabled = enabled)
-            if (s.image.isNotBlank()) TextButton(onClick = { onChange(s.copy(image = "", imageAlt = "")) }, enabled = enabled) { Text("Bild entfernen") }
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = true)) }, label = { Text(tr("Bild links")) }, enabled = enabled)
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE_TEXT && !s.imageLeft, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE_TEXT, imageLeft = false)) }, label = { Text(tr("Bild rechts")) }, enabled = enabled)
+            FilterChip(s.layout == SlideDeck.Layout.IMAGE, { onChange(s.copy(layout = SlideDeck.Layout.IMAGE)) }, label = { Text(tr("Ganze Folie")) }, enabled = enabled)
+            if (s.image.isNotBlank()) TextButton(onClick = { onChange(s.copy(image = "", imageAlt = "")) }, enabled = enabled) { Text(tr("Bild entfernen")) }
         }
     }
 }
@@ -820,9 +821,9 @@ private fun ImageFields(s: SlideDeck.Slide, enabled: Boolean, onChange: (SlideDe
 @Composable
 private fun SlidePicture(src: String, alt: String) {
     val bitmap = if (src.isBlank()) null else rememberDocImage(src)
-    if (bitmap != null) Image(bitmap, contentDescription = alt.ifBlank { "Bild" }, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+    if (bitmap != null) Image(bitmap, contentDescription = alt.ifBlank { tr("Bild") }, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
     else Box(Modifier.fillMaxSize().background(TUD_TINT), contentAlignment = Alignment.Center) {
-        Text(if (src.isBlank()) "Bild" else "Bild nicht gefunden", color = TUD_GREY, style = MaterialTheme.typography.labelSmall)
+        Text(if (src.isBlank()) tr("Bild") else tr("Bild nicht gefunden"), color = TUD_GREY, style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -980,14 +981,14 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                 }
                 if (notes && !narrow) {
                     Column(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF1C1C1C)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Nächste Folie", color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
+                        Text(tr("Nächste Folie"), color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         slides.getOrNull(i + 1)?.let { next ->
                             SlideCanvas(next, Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 2, slides.size, frame, slides)
-                        } ?: Text("Ende der Präsentation", color = Color.White)
-                        Text("Notizen", color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
-                        Text(slides[i].notes.ifBlank { "Keine Notizen zu dieser Folie." }, color = Color.White, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()))
+                        } ?: Text(tr("Ende der Präsentation"), color = Color.White)
+                        Text(tr("Notizen"), color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
+                        Text(slides[i].notes.ifBlank { tr("Keine Notizen zu dieser Folie.") }, color = Color.White, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()))
                         Text(
-                            "←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · N: Notizen · Esc: Ende",
+                            tr("←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · N: Notizen · Esc: Ende"),
                             color = Color(0xFF888888), style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -997,7 +998,7 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                 Text(slides[i].notes, color = Color.White, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth().background(Color(0xFF222222)).padding(16.dp))
             }
             Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Beenden (Esc)", tint = Color.White) }
+                IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = tr("Beenden (Esc)"), tint = Color.White) }
                 val secs = ((now - startedAt) / 1000).coerceAtLeast(0)
                 Icon(Icons.Outlined.Timer, contentDescription = null, tint = Color(0xFFBBBBBB), modifier = Modifier.size(18.dp))
                 Text(
@@ -1005,18 +1006,18 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     modifier = Modifier.padding(start = 4.dp).clickable { startedAt = System.currentTimeMillis(); now = startedAt },
                 )
                 Text(
-                    if (typed.isNotEmpty()) "Gehe zu Folie $typed … (Enter)" else "${i + 1} / ${slides.size}",
+                    if (typed.isNotEmpty()) tr("Gehe zu Folie {0} … (Enter)", typed) else "${i + 1} / ${slides.size}",
                     color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
                 )
                 IconButton(onClick = { laser = !laser; pointer = null }) {
-                    Icon(Icons.Outlined.Circle, contentDescription = if (laser) "Laserpointer aus (L)" else "Laserpointer (L)", tint = if (laser) Color(0xFFFF4040) else Color.White)
+                    Icon(Icons.Outlined.Circle, contentDescription = if (laser) tr("Laserpointer aus (L)") else tr("Laserpointer (L)"), tint = if (laser) Color(0xFFFF4040) else Color.White)
                 }
                 IconButton(onClick = { blank = if (blank == Color.Black) null else Color.Black }) {
-                    Icon(Icons.Outlined.DarkMode, contentDescription = "Schwarzer Bildschirm (B)", tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
+                    Icon(Icons.Outlined.DarkMode, contentDescription = tr("Schwarzer Bildschirm (B)"), tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
                 }
-                IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = "Notizen (N)", tint = Color.White) }
-                IconButton(onClick = { go(i - 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Zurück", tint = Color.White) }
-                IconButton(onClick = { go(i + 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weiter", tint = Color.White) }
+                IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = tr("Notizen (N)"), tint = Color.White) }
+                IconButton(onClick = { go(i - 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück"), tint = Color.White) }
+                IconButton(onClick = { go(i + 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weiter"), tint = Color.White) }
             }
         }
     }
@@ -1102,12 +1103,12 @@ private fun FreeDesignBar(
     }
     Column(Modifier.widthIn(max = 820.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            AssistChip(onClick = { add(io.github.thepytales.llmhub.docs.SlideElement(kind = "text", text = "Text")) }, label = { Text("Textfeld") })
-            AssistChip(onClick = pickImage, label = { Text("Bild …") })
+            AssistChip(onClick = { add(io.github.thepytales.llmhub.docs.SlideElement(kind = "text", text = tr("Text"))) }, label = { Text(tr("Textfeld")) })
+            AssistChip(onClick = pickImage, label = { Text(tr("Bild …")) })
             Box {
-                AssistChip(onClick = { shapes = true }, label = { Text("Form ▾") })
+                AssistChip(onClick = { shapes = true }, label = { Text(tr("Form ▾")) })
                 DropdownMenu(shapes, { shapes = false }) {
-                    listOf("rechteck" to "Rechteck", "abgerundet" to "Abgerundetes Rechteck", "ellipse" to "Ellipse", "pfeil" to "Pfeil", "linie" to "Linie").forEach { (k, label) ->
+                    listOf("rechteck" to tr("Rechteck"), "abgerundet" to tr("Abgerundetes Rechteck"), "ellipse" to tr("Ellipse"), "pfeil" to tr("Pfeil"), "linie" to tr("Linie")).forEach { (k, label) ->
                         DropdownMenuItem(text = { Text(label) }, onClick = {
                             shapes = false
                             add(io.github.thepytales.llmhub.docs.SlideElement(kind = "form", shape = k, w = if (k == "linie") 10.0 else 8.0, h = if (k == "linie") 0.6 else 4.0, color = if (k == "linie") "#00008C" else "#FFFFFF"))
@@ -1115,45 +1116,45 @@ private fun FreeDesignBar(
                     }
                 }
             }
-            AssistChip(onClick = { masterOpen = true }, label = { Text("Masterfolie …") })
-            if (s.layout != SlideDeck.Layout.FREE && sel > 0) AssistChip(onClick = { onChange(s.copy(layout = SlideDeck.Layout.FREE)) }, label = { Text("Leere Folie (frei)") })
+            AssistChip(onClick = { masterOpen = true }, label = { Text(tr("Masterfolie …")) })
+            if (s.layout != SlideDeck.Layout.FREE && sel > 0) AssistChip(onClick = { onChange(s.copy(layout = SlideDeck.Layout.FREE)) }, label = { Text(tr("Leere Folie (frei)")) })
         }
         val el = picked?.let { s.elements.getOrNull(it) }
         if (el != null) {
             fun set(next: io.github.thepytales.llmhub.docs.SlideElement) = onChange(s.copy(elements = s.elements.toMutableList().apply { set(picked, next) }))
             Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
                 Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(when (el.kind) { "bild" -> "Bild"; "form" -> "Form"; else -> "Textfeld" } + " ${picked + 1}", style = MaterialTheme.typography.labelLarge)
+                    Text(when (el.kind) { "bild" -> tr("Bild"); "form" -> tr("Form"); else -> tr("Textfeld") } + " ${picked + 1}", style = MaterialTheme.typography.labelLarge)
                     if (el.kind != "bild" && el.shape != "linie") {
                         var text by remember(el) { mutableStateOf(el.text) }
                         LaunchedEffect(text) { delay(500); if (text != el.text) set(el.copy(text = text)) }
-                        OutlinedTextField(text, { text = it }, label = { Text("Text") }, modifier = Modifier.fillMaxWidth(), minLines = 1)
+                        OutlinedTextField(text, { text = it }, label = { Text(tr("Text")) }, modifier = Modifier.fillMaxWidth(), minLines = 1)
                     } else if (el.kind == "bild") {
                         var alt by remember(el) { mutableStateOf(el.text) }
                         LaunchedEffect(alt) { delay(500); if (alt != el.text) set(el.copy(text = alt)) }
-                        OutlinedTextField(alt, { alt = it }, label = { Text("Bildbeschreibung (Alternativtext)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(alt, { alt = it }, label = { Text(tr("Bildbeschreibung (Alternativtext)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     }
                     if (el.kind != "bild") {
-                        HintText(if (el.kind == "form" && el.shape != "linie") "Füllung" else "Hintergrund")
+                        HintText(if (el.kind == "form" && el.shape != "linie") tr("Füllung") else tr("Hintergrund"))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             if (el.kind == "text") ColorDot(null, el.fill.isBlank()) { set(el.copy(fill = "")) }
                             if (el.shape != "linie") FREE_COLORS.forEach { col -> ColorDot(col, el.fill.equals(col, true)) { set(el.copy(fill = col)) } }
                         }
-                        HintText(if (el.shape == "linie") "Linienfarbe" else "Schriftfarbe")
+                        HintText(if (el.shape == "linie") tr("Linienfarbe") else tr("Schriftfarbe"))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { FREE_COLORS.forEach { col -> ColorDot(col, el.color.equals(col, true)) { set(el.copy(color = col)) } } }
                         if (el.shape != "linie") Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             TextButton(onClick = { set(el.copy(size = (el.size - 2).coerceAtLeast(8))) }) { Text("A−") }
-                            Text("${el.size} pt", style = MaterialTheme.typography.bodySmall)
+                            Text(tr("{0} pt", el.size), style = MaterialTheme.typography.bodySmall)
                             TextButton(onClick = { set(el.copy(size = (el.size + 2).coerceAtMost(96))) }) { Text("A+") }
-                            FilterChip(el.bold, { set(el.copy(bold = !el.bold)) }, label = { Text("Fett") })
+                            FilterChip(el.bold, { set(el.copy(bold = !el.bold)) }, label = { Text(tr("Fett")) })
                             listOf("links" to "◧", "mitte" to "▣", "rechts" to "◨").forEach { (k, sym) -> FilterChip(el.align == k, { set(el.copy(align = k)) }, label = { Text(sym) }) }
                         }
                     }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(removeAt(picked)) })); onPick(s.elements.lastIndex) }) { Text("Nach vorn") }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(0, removeAt(picked)) })); onPick(0) }) { Text("Nach hinten") }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text("Duplizieren") }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text("Löschen", color = MaterialTheme.colorScheme.error) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(removeAt(picked)) })); onPick(s.elements.lastIndex) }) { Text(tr("Nach vorn")) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(0, removeAt(picked)) })); onPick(0) }) { Text(tr("Nach hinten")) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text(tr("Duplizieren")) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
                     }
                 }
             }
@@ -1168,21 +1169,21 @@ private fun FreeDesignBar(
         var logo by remember { mutableStateOf(m.logo) }
         AlertDialog(
             onDismissRequest = { masterOpen = false },
-            title = { Text("Masterfolie") },
+            title = { Text(tr("Masterfolie")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HintText("Gilt für alle Folien der Präsentation (Titel- und Abschlussfolie bleiben im TUD-Blau).")
-                    Text("Hintergrund", style = MaterialTheme.typography.labelLarge)
+                    HintText(tr("Gilt für alle Folien der Präsentation (Titel- und Abschlussfolie bleiben im TUD-Blau)."))
+                    Text(tr("Hintergrund"), style = MaterialTheme.typography.labelLarge)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         ColorDot("#FFFFFF", bg.isBlank() || bg.equals("#FFFFFF", true)) { bg = "" }
                         listOf("#F5F7FA", "#E5F1FF", "#FFF8E1", "#EEF7EE", "#F3F0FA").forEach { col -> ColorDot(col, bg.equals(col, true)) { bg = col } }
                     }
-                    Text("Akzentfarbe (Formen)", style = MaterialTheme.typography.labelLarge)
+                    Text(tr("Akzentfarbe (Formen)"), style = MaterialTheme.typography.labelLarge)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { FREE_COLORS.filter { it != "#FFFFFF" }.forEach { col -> ColorDot(col, accent.equals(col, true)) { accent = col } } }
-                    OutlinedTextField(footer, { footer = it }, label = { Text("Fußzeile (leer: TU Dresden · Einrichtung · Titel)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(footer, { footer = it }, label = { Text(tr("Fußzeile (leer: TU Dresden · Einrichtung · Titel)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     Row(Modifier.clickable { logo = !logo }, verticalAlignment = Alignment.CenterVertically) {
                         androidx.compose.material3.Checkbox(logo, { logo = it })
-                        Text("Logo und Fußzeile auf freien Folien")
+                        Text(tr("Logo und Fußzeile auf freien Folien"))
                     }
                 }
             },
@@ -1191,9 +1192,9 @@ private fun FreeDesignBar(
                     masterOpen = false
                     val next = io.github.thepytales.llmhub.docs.SlideMaster(bg, accent, footer.trim(), logo)
                     if (sel == 0) onChange(s.copy(master = next)) else updateAt(0, first.copy(master = next))
-                }) { Text("Übernehmen") }
+                }) { Text(tr("Übernehmen")) }
             },
-            dismissButton = { TextButton(onClick = { masterOpen = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { masterOpen = false }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -1205,7 +1206,8 @@ private fun ColorDot(hex: String?, selected: Boolean, onClick: () -> Unit) {
         Modifier.size(26.dp).clip(androidx.compose.foundation.shape.CircleShape)
             .background(color ?: Color.Transparent)
             .border(if (selected) 3.dp else 1.dp, if (selected) Color(0xFF2F57B2) else Color(0xFFBBC1C6), androidx.compose.foundation.shape.CircleShape)
-            .clickable(onClick = onClick),
+            .a11yLabel(hex?.let { tr("Farbe") + " " + it } ?: tr("Keine Füllung"))
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { if (color == null) Text("∅", style = MaterialTheme.typography.labelSmall) }
 }

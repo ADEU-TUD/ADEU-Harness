@@ -36,7 +36,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -64,12 +63,12 @@ fun EnvironmentsScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> 
     val envs by c.environments.items.collectAsStateWithLifecycle()
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     Scaffold(
-        topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Umgebungen") }) },
+        topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(tr("Umgebungen")) }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onEdit("new") },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Neue Umgebung") },
+                text = { Text(tr("Neue Umgebung")) },
             )
         },
     ) { pad ->
@@ -80,15 +79,15 @@ fun EnvironmentsScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> 
         ) {
             item {
                 Text(
-                    "Eine Umgebung gibt dem Agenten Variablen (z.B. API-Keys für Web-APIs), Hinweise und Regeln für den " +
+                    tr("Eine Umgebung gibt dem Agenten Variablen (z.B. API-Keys für Web-APIs), Hinweise und Regeln für den " +
                         "Internetzugriff. Geheime Werte sieht das Modell nie – es nutzt sie nur als \${NAME} in Web-Anfragen. " +
-                        "Alles wird verschlüsselt auf dem Gerät gespeichert. Wähle die Umgebung im Chat über „+“ › Umgebung.",
+                        "Alles wird verschlüsselt auf dem Gerät gespeichert. Wähle die Umgebung im Chat über „+“ › Umgebung."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (envs.isEmpty()) item {
-                Text("Noch keine Umgebungen.", modifier = Modifier.padding(vertical = 16.dp))
+                Text(tr("Noch keine Umgebungen."), modifier = Modifier.padding(vertical = 16.dp))
             }
             items(envs, key = { it.id }) { e ->
                 val isDefault = settings.defaultEnvId == e.id
@@ -103,12 +102,12 @@ fun EnvironmentsScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> 
                         Column(Modifier.weight(1f)) {
                             Text(e.name, style = MaterialTheme.typography.titleSmall)
                             Text(envSummary(e), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (isDefault) Text("Standard für neue Chats", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                            if (isDefault) Text(tr("Standard für neue Chats"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                         }
                         IconButton(onClick = { c.settings.update { it.copy(defaultEnvId = if (isDefault) "" else e.id) } }) {
                             Icon(
                                 if (isDefault) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                                contentDescription = if (isDefault) "Nicht mehr Standard" else "Als Standard für neue Chats",
+                                contentDescription = if (isDefault) tr("Nicht mehr Standard") else tr("Als Standard für neue Chats"),
                             )
                         }
                     }
@@ -143,10 +142,10 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text(if (existing == null) "Neue Umgebung" else "Umgebung bearbeiten") },
+                title = { Text(if (existing == null) tr("Neue Umgebung") else tr("Umgebung bearbeiten")) },
                 actions = {
-                    if (existing != null) IconButton(onClick = { showDelete = true }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
-                    TextButton(enabled = nameError == null, onClick = { save() }) { Text(if (existing == null) "Erstellen" else "Speichern") }
+                    if (existing != null) IconButton(onClick = { showDelete = true }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
+                    TextButton(enabled = nameError == null, onClick = { save() }) { Text(if (existing == null) tr("Erstellen") else tr("Speichern")) }
                 },
             )
         },
@@ -159,9 +158,9 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            OutlinedTextField(value = env.name, onValueChange = { env = env.copy(name = it) }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = env.name, onValueChange = { env = env.copy(name = it) }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
-            Text("Netzwerkzugriff", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Netzwerkzugriff"), style = MaterialTheme.typography.titleSmall)
             Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                 Column {
                     NetworkAccess.entries.forEachIndexed { i, n ->
@@ -177,7 +176,7 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                                 Text(n.label, style = MaterialTheme.typography.titleSmall)
                                 Text(n.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            if (env.network == n) Icon(Icons.Outlined.CheckCircle, contentDescription = "Ausgewählt", tint = MaterialTheme.colorScheme.primary)
+                            if (env.network == n) Icon(Icons.Outlined.CheckCircle, contentDescription = tr("Ausgewählt"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -186,19 +185,19 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                 OutlinedTextField(
                     value = domains,
                     onValueChange = { domains = it },
-                    label = { Text("Erlaubte Domains (eine pro Zeile)") },
-                    placeholder = { Text("api.example.com\nbing.com\nduckduckgo.com") },
+                    label = { Text(tr("Erlaubte Domains (eine pro Zeile)")) },
+                    placeholder = { Text(tr("api.example.com\nbing.com\nduckduckgo.com")) },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    "Subdomains sind eingeschlossen. Für die Websuche duckduckgo.com, für Nachrichten bing.com bzw. news.google.com erlauben.",
+                    tr("Subdomains sind eingeschlossen. Für die Websuche duckduckgo.com, für Nachrichten bing.com bzw. news.google.com erlauben."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            Text("Umgebungsvariablen", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Umgebungsvariablen"), style = MaterialTheme.typography.titleSmall)
             env.variables.forEachIndexed { i, v ->
                 VariableRow(
                     v = v,
@@ -208,7 +207,7 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
             }
             nameError?.let {
                 Text(
-                    "„${it.name}“ ist kein gültiger Name (Buchstaben, Ziffern, _; nicht mit Ziffer beginnen).",
+                    tr("„{0}“ ist kein gültiger Name (Buchstaben, Ziffern, _; nicht mit Ziffer beginnen).", it.name),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -216,24 +215,24 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
             OutlinedButton(onClick = { env = env.copy(variables = env.variables + EnvVar("", "", secret = true)) }) {
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Variable hinzufügen")
+                Text(tr("Variable hinzufügen"))
             }
             OutlinedTextField(
                 value = bulk,
                 onValueChange = { bulk = it },
-                label = { Text("Oder als .env einfügen") },
+                label = { Text(tr("Oder als .env einfügen")) },
                 placeholder = { Text("API_KEY=hunter2") },
                 minLines = 3,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                supportingText = { Text("Zeilen im Format NAME=Wert werden beim Speichern als geheime Variablen übernommen.") },
+                supportingText = { Text(tr("Zeilen im Format NAME=Wert werden beim Speichern als geheime Variablen übernommen.")) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
                 value = env.notes,
                 onValueChange = { env = env.copy(notes = it) },
-                label = { Text("Hinweise für das Modell (optional)") },
-                placeholder = { Text("z.B. Nutze die API unter https://api.example.com/v2 mit Header X-Key: \${API_KEY}.") },
+                label = { Text(tr("Hinweise für das Modell (optional)")) },
+                placeholder = { Text(tr("z.B. Nutze die API unter https://api.example.com/v2 mit Header X-Key: \${API_KEY}.")) },
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -242,7 +241,7 @@ fun EnvironmentEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
     }
 
     if (showDelete) {
-        ConfirmDialog("Umgebung löschen?", "Chats, die sie nutzen, laufen danach ohne Umgebung.", "Löschen", onConfirm = {
+        ConfirmDialog(tr("Umgebung löschen?"), tr("Chats, die sie nutzen, laufen danach ohne Umgebung."), tr("Löschen"), onConfirm = {
             c.environments.delete(id)
             if (c.settings.current.defaultEnvId == id) c.settings.update { it.copy(defaultEnvId = "") }
             onBack()
@@ -259,7 +258,7 @@ private fun VariableRow(v: EnvVar, onChange: (EnvVar) -> Unit, onRemove: () -> U
                 OutlinedTextField(
                     value = v.name,
                     onValueChange = { onChange(v.copy(name = it.trim().replace(' ', '_'))) },
-                    label = { Text("Name") },
+                    label = { Text(tr("Name")) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
@@ -268,19 +267,19 @@ private fun VariableRow(v: EnvVar, onChange: (EnvVar) -> Unit, onRemove: () -> U
                 IconButton(onClick = { onChange(v.copy(secret = !v.secret)); visible = v.secret }) {
                     Icon(
                         if (v.secret) Icons.Outlined.Lock else Icons.Outlined.LockOpen,
-                        contentDescription = if (v.secret) "Geheim – für das Modell unsichtbar" else "Sichtbar für das Modell",
+                        contentDescription = if (v.secret) tr("Geheim – für das Modell unsichtbar") else tr("Sichtbar für das Modell"),
                     )
                 }
-                IconButton(onClick = onRemove) { Icon(Icons.Outlined.Close, contentDescription = "Entfernen") }
+                IconButton(onClick = onRemove) { Icon(Icons.Outlined.Close, contentDescription = tr("Entfernen")) }
             }
             OutlinedTextField(
                 value = v.value,
                 onValueChange = { onChange(v.copy(value = it)) },
-                label = { Text(if (v.secret) "Wert (geheim)" else "Wert (für das Modell sichtbar)") },
+                label = { Text(if (v.secret) tr("Wert (geheim)") else tr("Wert (für das Modell sichtbar)")) },
                 singleLine = true,
                 visualTransformation = if (v.secret && !visible) PasswordVisualTransformation() else VisualTransformation.None,
                 trailingIcon = {
-                    if (v.secret) TextButton(onClick = { visible = !visible }) { Text(if (visible) "Verbergen" else "Zeigen") }
+                    if (v.secret) TextButton(onClick = { visible = !visible }) { Text(if (visible) tr("Verbergen") else tr("Zeigen")) }
                 },
                 modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
             )

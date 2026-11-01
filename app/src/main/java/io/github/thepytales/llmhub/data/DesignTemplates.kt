@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.data
 
 import io.github.thepytales.llmhub.docs.TudBrand
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Gestaltungsvorlagen unter „Erstellen“ (AP-24) für den Uni-Alltag nach dem Corporate Design 2025 der TU Dresden:
@@ -96,7 +97,7 @@ object DesignTemplates {
 
     private fun format(id: String) = DesignFormat.byId(id) ?: DesignFormat.A4
 
-    val POSTER = DesignTemplate("poster", "Tagungsposter", "A1 hoch, weiß mit Logo, Shape und vier Abschnitten in zwei Spalten, Bild und QR-Code.", format("a1")) {
+    val POSTER = DesignTemplate("poster", trLater("Tagungsposter"), trLater("A1 hoch, weiß mit Logo, Shape und vier Abschnitten in zwei Spalten, Bild und QR-Code."), format("a1")) {
         val c1 = 40f
         val c2 = 317f
         val cw = 237f
@@ -126,7 +127,7 @@ object DesignTemplates {
     }
 
     val DIGITAL_POSTER = DesignTemplate(
-        "digital", "Digitales Poster", "1920 × 1080 px für Bildschirme: Logo, Headline und Subline, Bild oben rechts, drei Spalten, Link und QR-Code.",
+        "digital", trLater("Digitales Poster"), trLater("1920 × 1080 px für Bildschirme: Logo, Headline und Subline, Bild oben rechts, drei Spalten, Link und QR-Code."),
         format("poster-16-9"),
     ) {
         // Layout „3 Spalten“ of the CD's digital poster (55″ monitor, 5 m distance): text 32 px, headings Medium.
@@ -155,7 +156,7 @@ object DesignTemplates {
         )
     }
 
-    val FLYER = DesignTemplate("flyer", "Flyer", "A5 hoch, weiß mit Logo, Foto in der Shape, Titel, Text, Kontakt und QR-Code.", format("a5")) {
+    val FLYER = DesignTemplate("flyer", "Flyer", trLater("A5 hoch, weiß mit Logo, Foto in der Shape, Titel, Text, Kontakt und QR-Code."), format("a5")) {
         listOf(
             DesignPage(
                 elements = listOf(
@@ -172,7 +173,7 @@ object DesignTemplates {
         )
     }
 
-    val NOTICE = DesignTemplate("aushang", "Aushang", "A4 hoch für das Schwarze Brett: Logo, Shape, große Überschrift, Wann/Wo/Wer mit TUD-Icons und QR-Code.", format("a4")) {
+    val NOTICE = DesignTemplate("aushang", trLater("Aushang"), trLater("A4 hoch für das Schwarze Brett: Logo, Shape, große Überschrift, Wann/Wo/Wer mit TUD-Icons und QR-Code."), format("a4")) {
         listOf(
             DesignPage(
                 elements = listOf(
@@ -196,7 +197,7 @@ object DesignTemplates {
         )
     }
 
-    val INVITATION = DesignTemplate("einladung", "Einladungskarte", "A5 quer: Brillantblau mit Logo und Shape links, Programm und Anmeldung rechts.", format("a5-quer")) {
+    val INVITATION = DesignTemplate("einladung", trLater("Einladungskarte"), trLater("A5 quer: Brillantblau mit Logo und Shape links, Programm und Anmeldung rechts."), format("a5-quer")) {
         listOf(
             DesignPage(
                 elements = listOf(
@@ -215,7 +216,7 @@ object DesignTemplates {
         )
     }
 
-    val POST = DesignTemplate("post", "Social Media: Beitrag", "1080 × 1080 px auf Brillantblau mit Logo, großer Aussage und Shape.", format("post")) {
+    val POST = DesignTemplate("post", trLater("Social Media: Beitrag"), trLater("1080 × 1080 px auf Brillantblau mit Logo, großer Aussage und Shape."), format("post")) {
         listOf(
             DesignPage(
                 background = BLUE,
@@ -230,7 +231,7 @@ object DesignTemplates {
         )
     }
 
-    val STORY = DesignTemplate("story", "Social Media: Story", "1080 × 1920 px auf Brillantblau: Logo, Foto in der Shape, Überschrift und Text.", format("story")) {
+    val STORY = DesignTemplate("story", trLater("Social Media: Story"), trLater("1080 × 1920 px auf Brillantblau: Logo, Foto in der Shape, Überschrift und Text."), format("story")) {
         listOf(
             DesignPage(
                 background = BLUE,
@@ -244,7 +245,7 @@ object DesignTemplates {
         )
     }
 
-    val BANNER = DesignTemplate("banner", "OPAL-Kursbanner", "1500 × 300 px auf Brillantblau: Logo, Kurstitel, Semester und ein Foto in der Shape.", format("banner")) {
+    val BANNER = DesignTemplate("banner", "OPAL-Kursbanner", trLater("1500 × 300 px auf Brillantblau: Logo, Kurstitel, Semester und ein Foto in der Shape."), format("banner")) {
         listOf(
             DesignPage(
                 background = BLUE,
@@ -258,7 +259,7 @@ object DesignTemplates {
         )
     }
 
-    val VIDEO_TITLE = DesignTemplate("video", "Titelbild für Lehrvideos", "1920 × 1080 px auf Brillantblau: Reihe, Titel und Person, Foto in der Shape rechts.", format("video")) {
+    val VIDEO_TITLE = DesignTemplate("video", trLater("Titelbild für Lehrvideos"), trLater("1920 × 1080 px auf Brillantblau: Reihe, Titel und Person, Foto in der Shape rechts."), format("video")) {
         listOf(
             DesignPage(
                 background = BLUE,

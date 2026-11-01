@@ -8,6 +8,9 @@ import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.I18n
+import io.github.thepytales.llmhub.ui.tr
+import io.github.thepytales.llmhub.ui.trLater
 
 @Serializable
 enum class Repeat { DAYS, INTERVAL }
@@ -69,25 +72,43 @@ data class ScheduledTask(
     }
 
     fun scheduleLabel(): String = when (repeat) {
-        Repeat.INTERVAL -> if (intervalHours == 1) "Stündlich" else "Alle $intervalHours Stunden"
+        Repeat.INTERVAL -> if (intervalHours == 1) tr("Stündlich") else tr("Alle {0} Stunden", intervalHours)
         Repeat.DAYS -> {
             val time = "%02d:%02d".format(hour, minute)
             val sorted = days.sorted()
             val label = when {
-                sorted == (1..7).toList() -> "Täglich"
-                sorted == (1..5).toList() -> "Mo–Fr"
-                sorted == listOf(6, 7) -> "Am Wochenende"
-                sorted.isEmpty() -> "Nie"
-                else -> sorted.joinToString(", ") { DayOfWeek.of(it).getDisplayName(TextStyle.SHORT, Locale.GERMAN) }
+                sorted == (1..7).toList() -> tr("Täglich")
+                sorted == (1..5).toList() -> tr("Mo–Fr")
+                sorted == listOf(6, 7) -> tr("Am Wochenende")
+                sorted.isEmpty() -> tr("Nie")
+                else -> {
+                    val locale = if (I18n.language == "en") Locale.ENGLISH else Locale.GERMAN
+                    sorted.joinToString(", ") { DayOfWeek.of(it).getDisplayName(TextStyle.SHORT, locale) }
+                }
             }
-            "$label um $time"
+            tr("{0} um {1}", label, time)
+        }
+    }
+
+    companion object {
+        /** [lastStatus] of a run without errors; the status is stored in German and shown with [statusText]. */
+        const val SUCCESS = "Erfolgreich"
+        const val CANCELLED = "Abgebrochen"
+        const val ERROR_PREFIX = "Fehler: "
+
+        /** The stored [lastStatus] in the language of the interface. */
+        fun statusText(status: String): String = when {
+            status == SUCCESS -> tr("Erfolgreich")
+            status == CANCELLED -> tr("Abgebrochen")
+            status.startsWith(ERROR_PREFIX) -> tr("Fehler: {0}", status.removePrefix(ERROR_PREFIX))
+            else -> tr(status)
         }
     }
 }
 
 object TaskPresets {
     fun news(model: String) = ScheduledTask(
-        name = "Morgen-News",
+        name = trLater("Morgen-News"),
         model = model,
         prompt = "Recherchiere mit news_search die wichtigsten Nachrichten der letzten 24 Stunden zum Thema " +
             "„Künstliche Intelligenz“. Fasse die 5 relevantesten Meldungen jeweils in 2–3 Sätzen zusammen, " +

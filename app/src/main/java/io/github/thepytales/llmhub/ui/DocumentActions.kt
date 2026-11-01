@@ -39,13 +39,13 @@ fun openDocument(context: Context, file: File) {
     try {
         context.startActivity(intent)
     } catch (e: ActivityNotFoundException) {
-        Notices.error("Keine App zum Öffnen von ${file.extension.uppercase()}-Dateien gefunden.")
+        Notices.error(tr("Keine App zum Öffnen von {0}-Dateien gefunden.", file.extension.uppercase()))
     }
 }
 
 /** Opens the mail app with the draft filled in (the user sends it there). */
 fun openMailDraft(context: Context, file: File) {
-    val d = MailFiles.read(file) ?: return Notices.error("Entwurf nicht lesbar.")
+    val d = MailFiles.read(file) ?: return Notices.error(tr("Entwurf nicht lesbar."))
     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
         .putExtra(Intent.EXTRA_EMAIL, d.to.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
         .putExtra(Intent.EXTRA_CC, d.cc.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray())
@@ -55,13 +55,13 @@ fun openMailDraft(context: Context, file: File) {
     try {
         context.startActivity(intent)
     } catch (e: ActivityNotFoundException) {
-        Notices.error("Keine Mail-App gefunden.")
+        Notices.error(tr("Keine Mail-App gefunden."))
     }
 }
 
 /** Opens the calendar app with the event filled in. */
 fun addToCalendar(context: Context, file: File) {
-    val e = CalendarFiles.read(file) ?: return Notices.error("Termin nicht lesbar.")
+    val e = CalendarFiles.read(file) ?: return Notices.error(tr("Termin nicht lesbar."))
     val intent = Intent(Intent.ACTION_INSERT)
         .setData(CalendarContract.Events.CONTENT_URI)
         .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, CalendarFiles.millis(e.start))
@@ -84,7 +84,7 @@ fun shareDocument(context: Context, file: File) {
         .putExtra(Intent.EXTRA_STREAM, uriFor(context, file))
         .putExtra(Intent.EXTRA_SUBJECT, file.nameWithoutExtension)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(Intent.createChooser(intent, "Teilen").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    context.startActivity(Intent.createChooser(intent, tr("Teilen")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }
 
 private suspend fun copyTo(context: Context, file: File, target: Uri) {
@@ -93,7 +93,7 @@ private suspend fun copyTo(context: Context, file: File, target: Uri) {
             context.contentResolver.openOutputStream(target)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
         }.isSuccess
     }
-    if (ok) Notices.info("Gespeichert: ${file.name}") else Notices.error("Speichern fehlgeschlagen.")
+    if (ok) Notices.info(tr("Gespeichert: {0}", file.name)) else Notices.error(tr("Speichern fehlgeschlagen."))
 }
 
 /** Remembers a "save as" launcher that copies a file to a location the user picks. */
@@ -109,16 +109,16 @@ fun openPrimary(context: Context, file: File) = when (file.extension.lowercase()
     else -> openDocument(context, file)
 }
 
-fun primaryLabel(file: File) = when (file.extension.lowercase()) { "eml" -> "In Mail-App"; "ics" -> "Zum Kalender"; else -> "Öffnen" }
+fun primaryLabel(file: File) = when (file.extension.lowercase()) { "eml" -> tr("In Mail-App"); "ics" -> tr("Zum Kalender"); else -> tr("Öffnen") }
 
 /** "Teilen": the Android share sheet. */
 object ShareDoc {
     val icon: ImageVector get() = Icons.Outlined.Share
-    const val label = "Teilen"
+    val label: String get() = tr("Teilen")
     const val inExport = true
 }
 
-const val SAVE_AS_LABEL = "Speichern"
+val SAVE_AS_LABEL: String get() = tr("Speichern")
 
 /** "Speichern": the system dialog to pick a place; the file is copied there. */
 @Composable

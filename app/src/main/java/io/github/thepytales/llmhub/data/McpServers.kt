@@ -3,12 +3,13 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.net.McpOAuthState
 import kotlinx.serialization.Serializable
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** What happens when the model wants to use a tool of a MCP server (Einstellungen › Verbindungen). */
 enum class McpPolicy(val label: String, val description: String) {
-    ALLOW("Erlauben", "ohne Rückfrage"),
-    ASK("Fragen", "über die Freigaben"),
-    BLOCK("Sperren", "das Modell sieht es nicht"),
+    ALLOW(trLater("Erlauben"), trLater("ohne Rückfrage")),
+    ASK(trLater("Fragen"), trLater("über die Freigaben")),
+    BLOCK(trLater("Sperren"), trLater("das Modell sieht es nicht")),
     ;
 
     companion object {

@@ -70,7 +70,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -234,7 +233,7 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
             .size(22.dp)
             .clickable(onClick = onRemove),
     ) {
-        Icon(Icons.Outlined.Close, contentDescription = "Entfernen", modifier = Modifier.padding(3.dp))
+        Icon(Icons.Outlined.Close, contentDescription = tr("Entfernen"), modifier = Modifier.padding(3.dp))
     }
 }
 
@@ -247,7 +246,7 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
             color = LocalChatLook.current.card,
             border = boxBorder(),
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.widthIn(max = 280.dp).clip(MaterialTheme.shapes.small).then(if (onOpen != null) Modifier.clickable(onClickLabel = "Im Editor öffnen", onClick = onOpen) else Modifier),
+            modifier = Modifier.widthIn(max = 280.dp).clip(MaterialTheme.shapes.small).then(if (onOpen != null) Modifier.clickable(onClickLabel = tr("Im Editor öffnen"), onClick = onOpen) else Modifier),
         ) {
             Row(Modifier.padding(start = 8.dp, end = if (onRemove != null) 24.dp else 10.dp, top = 7.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconTile(if (file.mime == "application/pdf") Icons.Outlined.PictureAsPdf else Icons.AutoMirrored.Outlined.InsertDriveFile, size = 32.dp)
@@ -256,23 +255,23 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
                     Text(file.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val info = listOfNotNull(
                         file.pages?.let { "$it ${if (it == 1) "Seite" else "Seiten"}" },
-                        "${(file.text.length + 999) / 1000}k Zeichen" + if (file.truncated) " (gekürzt)" else "",
+                        tr("{0}k Zeichen", (file.text.length + 999) / 1000) + if (file.truncated) tr(" (gekürzt)") else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     // Public sources go without placeholders (AP-03); the app suggests it, a tap switches it.
                     if (onTogglePublic != null) {
                         val public = io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(file)
                         Text(
-                            if (public) "öffentlich · Namen bleiben" else "vertraulich · pseudonymisiert",
+                            if (public) tr("öffentlich · Namen bleiben") else tr("vertraulich · pseudonymisiert"),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (public) MaterialTheme.colorScheme.primary else LocalChatLook.current.success,
-                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).clickable(onClickLabel = "Umschalten", onClick = onTogglePublic).padding(vertical = 1.dp),
+                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).clickable(onClickLabel = tr("Umschalten"), onClick = onTogglePublic).padding(vertical = 1.dp),
                         )
                     }
                 }
                 if (onOpen != null) {
                     Spacer(Modifier.size(6.dp))
-                    Icon(Icons.Outlined.EditNote, contentDescription = "Im Editor öffnen", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.EditNote, contentDescription = tr("Im Editor öffnen"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -287,7 +286,7 @@ fun VersionSwitcher(current: ChatMessage, versions: List<ChatMessage>, enabled: 
     val index = versions.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(enabled = enabled && index > 0, onClick = { onSelect(versions[index - 1]) }, modifier = Modifier.size(28.dp)) {
-            Icon(Icons.Outlined.ChevronLeft, contentDescription = "Vorherige Version", modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.ChevronLeft, contentDescription = tr("Vorherige Version"), modifier = Modifier.size(18.dp))
         }
         Text(
             "${index + 1}/${versions.size}",
@@ -295,7 +294,7 @@ fun VersionSwitcher(current: ChatMessage, versions: List<ChatMessage>, enabled: 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         IconButton(enabled = enabled && index < versions.lastIndex, onClick = { onSelect(versions[index + 1]) }, modifier = Modifier.size(28.dp)) {
-            Icon(Icons.Outlined.ChevronRight, contentDescription = "Nächste Version", modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.ChevronRight, contentDescription = tr("Nächste Version"), modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -324,7 +323,7 @@ fun UserBubble(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp, end = 4.dp)) {
                 Icon(Icons.Outlined.Bookmarks, contentDescription = null, modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.size(4.dp))
-                Text("Vorlage: $name", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("Vorlage: {0}", name), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (m.files.isNotEmpty()) {
@@ -353,8 +352,8 @@ fun UserBubble(
                     }
                     OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 24)
                     Row(Modifier.align(Alignment.End).padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onCancelEdit) { Text("Abbrechen") }
-                        Button(onClick = { onSubmitEdit(text, keptFiles.toList(), keptImages.toList()) }, enabled = (text.isNotBlank() || keptFiles.isNotEmpty()) && !running) { Text("Senden") }
+                        OutlinedButton(onClick = onCancelEdit) { Text(tr("Abbrechen")) }
+                        Button(onClick = { onSubmitEdit(text, keptFiles.toList(), keptImages.toList()) }, enabled = (text.isNotBlank() || keptFiles.isNotEmpty()) && !running) { Text(tr("Senden")) }
                     }
                 }
             }
@@ -383,7 +382,7 @@ fun UserBubble(
                         }
                         if (long) {
                             Text(
-                                if (expanded) "Weniger anzeigen" else "Mehr anzeigen",
+                                if (expanded) tr("Weniger anzeigen") else tr("Mehr anzeigen"),
                                 style = MaterialTheme.typography.labelMedium, color = look.onUserBubble.copy(alpha = 0.75f),
                                 modifier = Modifier.padding(top = 6.dp).clickable { expanded = !expanded },
                             )
@@ -392,12 +391,12 @@ fun UserBubble(
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
-                        text = { Text("Kopieren") },
+                        text = { Text(tr("Kopieren")) },
                         leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
                         onClick = { clipboard.setText(AnnotatedString(m.content)); menu = false },
                     )
                     DropdownMenuItem(
-                        text = { Text("Bearbeiten") },
+                        text = { Text(tr("Bearbeiten")) },
                         leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                         enabled = !running,
                         onClick = { menu = false; onStartEdit() },
@@ -408,7 +407,7 @@ fun UserBubble(
                         onClick = { menu = false; onRemember(m.content) },
                     )
                     DropdownMenuItem(
-                        text = { Text("Neuer Chat ab hier") },
+                        text = { Text(tr("Neuer Chat ab hier")) },
                         leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
                         onClick = { menu = false; onFork() },
                     )
@@ -422,7 +421,7 @@ fun UserBubble(
                 if (!running && m.content.isNotBlank()) {
                     IconButton(onClick = onStartEdit, modifier = Modifier.size(30.dp)) {
                         Icon(
-                            Icons.Outlined.Edit, contentDescription = "Bearbeiten", modifier = Modifier.size(16.dp),
+                            Icons.Outlined.Edit, contentDescription = tr("Bearbeiten"), modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -447,7 +446,7 @@ fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit) {
                 TextButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) {
                     Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.size(6.dp))
-                    Text("Erneut versuchen")
+                    Text(tr("Erneut versuchen"))
                 }
             }
         }
@@ -560,52 +559,52 @@ fun AssistantMessage(
             if (checkSources) ReferenceCheckDialog(io.github.thepytales.llmhub.App.container, text, onDismiss = { checkSources = false })
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (text.isNotBlank()) {
-                    ActionIcon(Icons.Outlined.ContentCopy, "Kopieren") { clipboard.setText(AnnotatedString(text)) }
-                    ActionIcon(Icons.Outlined.IosShare, "Teilen") { shareText(context, text) }
-                    ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen", onClick = onSpeak)
+                    ActionIcon(Icons.Outlined.ContentCopy, tr("Kopieren")) { clipboard.setText(AnnotatedString(text)) }
+                    ActionIcon(Icons.Outlined.IosShare, tr("Teilen")) { shareText(context, text) }
+                    ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, tr("Vorlesen"), onClick = onSpeak)
                 }
-                if (item.question != null) ActionIcon(Icons.Outlined.Refresh, "Neu generieren", enabled = !running, onClick = onRegenerate)
+                if (item.question != null) ActionIcon(Icons.Outlined.Refresh, tr("Neu generieren"), enabled = !running, onClick = onRegenerate)
                 // Helpful or not: stays on the device and shows under Verbrauch which models work well.
                 if (text.isNotBlank()) {
                     val rating = item.head.rating
-                    ActionIcon(if (rating == 1) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, if (rating == 1) "Bewertung entfernen" else "Hilfreich") { onRate(if (rating == 1) null else 1) }
-                    ActionIcon(if (rating == -1) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown, if (rating == -1) "Bewertung entfernen" else "Nicht hilfreich") { onRate(if (rating == -1) null else -1) }
+                    ActionIcon(if (rating == 1) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, if (rating == 1) tr("Bewertung entfernen") else tr("Hilfreich")) { onRate(if (rating == 1) null else 1) }
+                    ActionIcon(if (rating == -1) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown, if (rating == -1) tr("Bewertung entfernen") else tr("Nicht hilfreich")) { onRate(if (rating == -1) null else -1) }
                 }
                 var protocol by remember { mutableStateOf(false) }
-                if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, "Agent-Protokoll") { protocol = true }
+                if (item.turn.any { it.durationMs != null }) ActionIcon(Icons.Outlined.Timeline, tr("Agent-Protokoll")) { protocol = true }
                 if (protocol) AgentProtocolDialog(item.turn, onDismiss = { protocol = false }, question = item.question, chatId = chatId)
                 Box {
-                    ActionIcon(Icons.Outlined.MoreHoriz, "Mehr") { more = true }
+                    ActionIcon(Icons.Outlined.MoreHoriz, tr("Mehr")) { more = true }
                     DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
                         if (text.isNotBlank()) {
                             DropdownMenuItem(
-                                text = { Text("Als Dokument exportieren") },
+                                text = { Text(tr("Als Dokument exportieren")) },
                                 leadingIcon = { Icon(Icons.Outlined.Description, contentDescription = null) },
                                 onClick = { more = false; onExport(text) },
                             )
                         }
                         if (text.isNotBlank()) {
                             DropdownMenuItem(
-                                text = { Text("Im Dokument-Editor öffnen") },
+                                text = { Text(tr("Im Dokument-Editor öffnen")) },
                                 leadingIcon = { Icon(Icons.Outlined.EditNote, contentDescription = null) },
                                 onClick = { more = false; onOpenInEditor(text) },
                             )
                             DropdownMenuItem(
-                                text = { Text("Literaturverzeichnis erstellen") },
+                                text = { Text(tr("Literaturverzeichnis erstellen")) },
                                 leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
                                 onClick = { more = false; onBibliography(text) },
                             )
                         }
                         if (text.isNotBlank()) {
                             DropdownMenuItem(
-                                text = { Text("Quellen prüfen") },
+                                text = { Text(tr("Quellen prüfen")) },
                                 leadingIcon = { Icon(Icons.Outlined.FactCheck, contentDescription = null) },
                                 onClick = { more = false; checkSources = true },
                             )
                         }
                         if (text.isNotBlank()) {
                             DropdownMenuItem(
-                                text = { Text("Zitieren und nachfragen") },
+                                text = { Text(tr("Zitieren und nachfragen")) },
                                 leadingIcon = { Icon(Icons.Outlined.FormatQuote, contentDescription = null) },
                                 onClick = { more = false; onQuote(text) },
                             )
@@ -618,13 +617,13 @@ fun AssistantMessage(
                             )
                         }
                         DropdownMenuItem(
-                            text = { Text("Neuer Chat ab hier") },
+                            text = { Text(tr("Neuer Chat ab hier")) },
                             leadingIcon = { Icon(Icons.Outlined.CallSplit, contentDescription = null) },
                             onClick = { more = false; onFork() },
                         )
                         if (item.question != null) {
                             DropdownMenuItem(
-                                text = { Text("Mit anderem Modell neu generieren") },
+                                text = { Text(tr("Mit anderem Modell neu generieren")) },
                                 leadingIcon = { Icon(Icons.Outlined.SwapHoriz, contentDescription = null) },
                                 enabled = !running,
                                 onClick = { more = false; onRegenerateWithModel() },
@@ -653,7 +652,7 @@ fun AssistantMessage(
                 OutlinedButton(onClick = onContinue) {
                     Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.size(6.dp))
-                    Text("Weiterschreiben – die Antwort wurde abgeschnitten")
+                    Text(tr("Weiterschreiben – die Antwort wurde abgeschnitten"))
                 }
             }
         }
@@ -678,7 +677,7 @@ fun showsWithoutSteps(m: ChatMessage, results: Map<String?, ChatMessage>, runnin
 
 /** Shown while the model works on an answer: the brand spark slowly pulsing, like in the Claude app. */
 @Composable
-fun ThinkingIndicator(label: String = "Denkt nach …") {
+fun ThinkingIndicator(label: String = tr("Denkt nach …")) {
     val transition = rememberInfiniteTransition(label = "thinking")
     val pulse by transition.animateFloat(
         initialValue = 0.35f,
@@ -720,7 +719,7 @@ fun ThinkingBox(text: String, active: Boolean) {
                 Icon(Icons.Outlined.Psychology, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.size(6.dp))
                 Text(
-                    if (active) "Denkt nach…" else "Gedankengang",
+                    if (active) tr("Denkt nach…") else tr("Gedankengang"),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.weight(1f),
                 )
@@ -749,8 +748,8 @@ private fun LiveDraftCard(chatId: String) {
         Row(Modifier.padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconTile(Icons.Outlined.EditNote, size = 30.dp)
             Spacer(Modifier.size(10.dp))
-            Text("Das Dokument entsteht gerade", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text("Live ansehen") }
+            Text(tr("Das Dokument entsteht gerade"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { DocsHandoff.show("chat:$chatId") }) { Text(tr("Live ansehen")) }
         }
     }
 }
@@ -767,85 +766,85 @@ private fun LiteratureListCard(list: String, onOpen: () -> Unit) {
                 IconTile(Icons.Outlined.MenuBook, size = 34.dp)
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Literaturliste „$list“", style = MaterialTheme.typography.titleSmall)
-                    Text("${works.size} Werke · ${works.count { it.openAccessUrl.isNotBlank() }} frei zugänglich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr("Literaturliste „{0}“", list), style = MaterialTheme.typography.titleSmall)
+                    Text(tr("{0} Werke · {1} frei zugänglich", works.size, works.count { it.openAccessUrl.isNotBlank() }), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             works.take(4).forEach { r -> Text("• " + r.short(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 44.dp, top = 2.dp)) }
-            if (works.size > 4) Text("… und ${works.size - 4} weitere", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 44.dp))
-            TextButton(onClick = onOpen) { Text("In der Sammlung öffnen") }
+            if (works.size > 4) Text(tr("… und {0} weitere", works.size - 4), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 44.dp))
+            TextButton(onClick = onOpen) { Text(tr("In der Sammlung öffnen")) }
         }
     }
 }
 
 internal fun toolLabel(name: String) = when (name) {
-    "ask_user" -> "Rückfrage"
-    "web_search" -> "Websuche"
-    "news_search" -> "Nachrichtensuche"
-    "fetch_url" -> "Webseite lesen"
-    "create_document" -> "Dokument erstellen"
-    "create_learning_game" -> "Lernspiel bauen"
-    "search_files" -> "Dateien durchsuchen"
-    "outlook_list_folders" -> "Outlook-Ordner ansehen"
-    "outlook_list_mails" -> "Postfach lesen"
-    "outlook_read_mail" -> "Mail lesen"
-    "outlook_move_mails" -> "Mails verschieben"
-    "outlook_create_folder" -> "Mail-Ordner anlegen"
-    "outlook_save_draft" -> "Entwurf in Outlook speichern"
-    "outlook_list_events" -> "Kalender ansehen"
-    "outlook_create_event" -> "Termin eintragen"
-    "outlook_create_task" -> "Aufgabe anlegen"
-    "outlook_find_free_times" -> "Freie Zeiten suchen"
-    "outlook_save_rule" -> "Sortierregel speichern"
-    "outlook_apply_rules" -> "Sortierregeln anwenden"
-    "update_learning_game" -> "Lernspiel ändern"
-    "read_learning_game" -> "Lernspiel lesen"
-    "create_design" -> "Design gestalten"
-    "update_design" -> "Design ändern"
-    "read_design" -> "Design ansehen"
-    "save_logo" -> "Logo speichern"
-    "read_file" -> "Datei lesen"
-    "list_files" -> "Dateien auflisten"
-    "list_local_files" -> "Ordner ansehen"
-    "read_local_file" -> "Datei vom PC lesen"
-    "search_local_files" -> "Ordner durchsuchen"
-    "write_local_file", "edit_local_file" -> "Datei auf dem PC speichern"
-    "move_local_file" -> "Datei verschieben"
-    "delete_local_file" -> "Datei in den Papierkorb"
-    "copy_document_to_folder" -> "Dokument in Ordner speichern"
-    "edit_notebook_cell" -> "Notebook-Zelle ändern"
-    "edit_office_file" -> "Office-Datei ändern"
-    "set_excel_cells" -> "Excel-Zellen setzen"
-    "transcribe_local_file" -> "Aufnahme transkribieren"
-    "write_file", "edit_file" -> "Datei ändern"
-    "search_code" -> "Code durchsuchen"
-    "edit_document" -> "Dokument ändern"
-    "check_references" -> "Quellen prüfen"
-    "check_accessibility" -> "Barrierefreiheit prüfen"
-    "run_javascript" -> "Rechnen"
-    "search_knowledge" -> "Wissenssammlung durchsuchen"
-    "read_pdf_form" -> "Formular lesen"
-    "fill_pdf" -> "PDF ausfüllen"
-    "create_email_draft" -> "E-Mail-Entwurf"
-    "create_calendar_event" -> "Termin anlegen"
-    "read_guide" -> "Anleitung lesen"
-    "search_literature" -> "Literatur suchen"
-    "literature_details" -> "Werk ansehen"
-    "snowball_literature" -> "Schneeballsuche"
-    "save_literature" -> "Literatur merken"
-    "format_bibliography" -> "Literaturverzeichnis"
-    "zotero_add" -> "Nach Zotero"
-    "zotero_search" -> "Zotero durchsuchen"
-    "read_document" -> "Dokument lesen"
-    "reply_to_comment" -> "Kommentar beantworten"
-    "create_chart" -> "Diagramm"
-    "journal_new_articles" -> "Neue Artikel"
-    "read_feed" -> "Feed lesen"
-    "create_series" -> "Serienbrief"
-    "create_semester_plan" -> "Semesterplan"
-    "remember" -> "Merken"
-    "forget" -> "Vergessen"
-    "search_chats" -> "Frühere Chats durchsuchen"
+    "ask_user" -> tr("Rückfrage")
+    "web_search" -> tr("Websuche")
+    "news_search" -> tr("Nachrichtensuche")
+    "fetch_url" -> tr("Webseite lesen")
+    "create_document" -> tr("Dokument erstellen")
+    "create_learning_game" -> tr("Lernspiel bauen")
+    "search_files" -> tr("Dateien durchsuchen")
+    "outlook_list_folders" -> tr("Outlook-Ordner ansehen")
+    "outlook_list_mails" -> tr("Postfach lesen")
+    "outlook_read_mail" -> tr("Mail lesen")
+    "outlook_move_mails" -> tr("Mails verschieben")
+    "outlook_create_folder" -> tr("Mail-Ordner anlegen")
+    "outlook_save_draft" -> tr("Entwurf in Outlook speichern")
+    "outlook_list_events" -> tr("Kalender ansehen")
+    "outlook_create_event" -> tr("Termin eintragen")
+    "outlook_create_task" -> tr("Aufgabe anlegen")
+    "outlook_find_free_times" -> tr("Freie Zeiten suchen")
+    "outlook_save_rule" -> tr("Sortierregel speichern")
+    "outlook_apply_rules" -> tr("Sortierregeln anwenden")
+    "update_learning_game" -> tr("Lernspiel ändern")
+    "read_learning_game" -> tr("Lernspiel lesen")
+    "create_design" -> tr("Design gestalten")
+    "update_design" -> tr("Design ändern")
+    "read_design" -> tr("Design ansehen")
+    "save_logo" -> tr("Logo speichern")
+    "read_file" -> tr("Datei lesen")
+    "list_files" -> tr("Dateien auflisten")
+    "list_local_files" -> tr("Ordner ansehen")
+    "read_local_file" -> tr("Datei vom PC lesen")
+    "search_local_files" -> tr("Ordner durchsuchen")
+    "write_local_file", "edit_local_file" -> tr("Datei auf dem PC speichern")
+    "move_local_file" -> tr("Datei verschieben")
+    "delete_local_file" -> tr("Datei in den Papierkorb")
+    "copy_document_to_folder" -> tr("Dokument in Ordner speichern")
+    "edit_notebook_cell" -> tr("Notebook-Zelle ändern")
+    "edit_office_file" -> tr("Office-Datei ändern")
+    "set_excel_cells" -> tr("Excel-Zellen setzen")
+    "transcribe_local_file" -> tr("Aufnahme transkribieren")
+    "write_file", "edit_file" -> tr("Datei ändern")
+    "search_code" -> tr("Code durchsuchen")
+    "edit_document" -> tr("Dokument ändern")
+    "check_references" -> tr("Quellen prüfen")
+    "check_accessibility" -> tr("Barrierefreiheit prüfen")
+    "run_javascript" -> tr("Rechnen")
+    "search_knowledge" -> tr("Wissenssammlung durchsuchen")
+    "read_pdf_form" -> tr("Formular lesen")
+    "fill_pdf" -> tr("PDF ausfüllen")
+    "create_email_draft" -> tr("E-Mail-Entwurf")
+    "create_calendar_event" -> tr("Termin anlegen")
+    "read_guide" -> tr("Anleitung lesen")
+    "search_literature" -> tr("Literatur suchen")
+    "literature_details" -> tr("Werk ansehen")
+    "snowball_literature" -> tr("Schneeballsuche")
+    "save_literature" -> tr("Literatur merken")
+    "format_bibliography" -> tr("Literaturverzeichnis")
+    "zotero_add" -> tr("Nach Zotero")
+    "zotero_search" -> tr("Zotero durchsuchen")
+    "read_document" -> tr("Dokument lesen")
+    "reply_to_comment" -> tr("Kommentar beantworten")
+    "create_chart" -> tr("Diagramm")
+    "journal_new_articles" -> tr("Neue Artikel")
+    "read_feed" -> tr("Feed lesen")
+    "create_series" -> tr("Serienbrief")
+    "create_semester_plan" -> tr("Semesterplan")
+    "remember" -> tr("Merken")
+    "forget" -> tr("Vergessen")
+    "search_chats" -> tr("Frühere Chats durchsuchen")
     else -> name
 }
 
@@ -860,7 +859,7 @@ private fun ToolGroupLine(names: List<String>, open: Boolean, onToggle: () -> Un
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            Modifier.clickable(onClickLabel = if (open) "Werkzeuge einklappen" else "Werkzeuge anzeigen", onClick = onToggle)
+            Modifier.clickable(onClickLabel = if (open) tr("Werkzeuge einklappen") else tr("Werkzeuge anzeigen"), onClick = onToggle)
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

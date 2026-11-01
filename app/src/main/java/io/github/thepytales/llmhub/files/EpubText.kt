@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.files
 
 import io.github.thepytales.llmhub.agent.WebTools
+import io.github.thepytales.llmhub.ui.tr
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
 import java.net.URLDecoder
@@ -19,7 +20,7 @@ object EpubText {
                 if (!e.isDirectory) {
                     val data = zip.readBytes()
                     total += data.size
-                    if (total > 200L * 1024 * 1024) throw IllegalArgumentException("Das E-Book ist entpackt zu groß.")
+                    if (total > 200L * 1024 * 1024) throw IllegalArgumentException(tr("Das E-Book ist entpackt zu groß."))
                     files[e.name] = data
                 }
                 e = zip.nextEntry
@@ -27,8 +28,8 @@ object EpubText {
         }
         val container = files["META-INF/container.xml"]?.let(OdfText::parse)
         val opfPath = container?.let { c -> elements(c, "rootfile").firstOrNull()?.getAttribute("full-path") }?.takeIf { it.isNotBlank() }
-            ?: files.keys.firstOrNull { it.endsWith(".opf") } ?: throw IllegalArgumentException("Kein gültiges E-Book (OPF fehlt).")
-        val opf = files[opfPath]?.let(OdfText::parse) ?: throw IllegalArgumentException("Kein gültiges E-Book (OPF fehlt).")
+            ?: files.keys.firstOrNull { it.endsWith(".opf") } ?: throw IllegalArgumentException(tr("Kein gültiges E-Book (OPF fehlt)."))
+        val opf = files[opfPath]?.let(OdfText::parse) ?: throw IllegalArgumentException(tr("Kein gültiges E-Book (OPF fehlt)."))
         val base = opfPath.substringBeforeLast('/', "").let { if (it.isEmpty()) "" else "$it/" }
         val manifest = elements(opf, "item").associate { it.getAttribute("id") to it.getAttribute("href") }
         val spine = elements(opf, "itemref").mapNotNull { manifest[it.getAttribute("idref")] }

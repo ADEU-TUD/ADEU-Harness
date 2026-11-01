@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,13 +54,13 @@ import androidx.compose.ui.window.PopupProperties
 
 /** Quick requests of the „KI fragen“ window (label, request). */
 private val ASK_QUICK = listOf(
-    "Verbessern" to "Verbessere Stil und Verständlichkeit.",
-    "Kürzen" to "Kürze auf das Wesentliche.",
-    "Erklären" to "Erkläre kurz, was hier gemeint ist (als Antwort, nicht als Ersatz).",
-    "Förmlicher" to "Formuliere förmlicher, wie in einem Schreiben der Universität.",
-    "Englisch" to "Übersetze ins Englische.",
-    "Einfacher" to "Formuliere einfacher und leichter verständlich.",
-    "Rechtschreibung" to "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung – sonst nichts ändern.",
+    trLater("Verbessern") to "Verbessere Stil und Verständlichkeit.",
+    trLater("Kürzen") to "Kürze auf das Wesentliche.",
+    trLater("Erklären") to "Erkläre kurz, was hier gemeint ist (als Antwort, nicht als Ersatz).",
+    trLater("Förmlicher") to "Formuliere förmlicher, wie in einem Schreiben der Universität.",
+    trLater("Englisch") to "Übersetze ins Englische.",
+    trLater("Einfacher") to "Formuliere einfacher und leichter verständlich.",
+    trLater("Rechtschreibung") to "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung – sonst nichts ändern.",
 )
 
 /** What the model gets for a request from the „KI fragen“ window. */
@@ -114,8 +113,8 @@ fun AskAiPopup(target: IntRect, active: Boolean = false, onSend: (String) -> Uni
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LoraFaceStill(Modifier.size(22.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Lora fragen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Close, contentDescription = "Schließen (Esc)", modifier = Modifier.size(16.dp)) }
+                    Text(tr("Lora fragen"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Close, contentDescription = tr("Schließen (Esc)"), modifier = Modifier.size(16.dp)) }
                 }
                 Row(Modifier.padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), shape = RoundedCornerShape(10.dp), modifier = Modifier.weight(1f)) {
@@ -135,16 +134,16 @@ fun AskAiPopup(target: IntRect, active: Boolean = false, onSend: (String) -> Uni
                                     }
                                 },
                                 decorationBox = { inner ->
-                                    if (text.isEmpty()) Text("Was soll Lora mit der Markierung machen?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+                                    if (text.isEmpty()) Text(tr("Was soll Lora mit der Markierung machen?"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                                     inner()
                                 },
                             )
                         }
                     }
-                    IconButton(onClick = { send(text) }, enabled = text.isNotBlank()) { Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Absenden (Enter)", tint = MaterialTheme.colorScheme.primary) }
+                    IconButton(onClick = { send(text) }, enabled = text.isNotBlank()) { Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = tr("Absenden (Enter)"), tint = MaterialTheme.colorScheme.primary) }
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    ASK_QUICK.forEach { (label, request) -> AssistChip(onClick = { send(request) }, label = { Text(label) }) }
+                    ASK_QUICK.forEach { (label, request) -> AssistChip(onClick = { send(request) }, label = { Text(tr(label)) }) }
                 }
             }
         }

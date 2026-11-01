@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material3.RippleConfiguration
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,9 +26,9 @@ import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.data.AppSettings
 
 enum class ThemeMode(val label: String) {
-    SYSTEM("System"),
-    LIGHT("Hell"),
-    DARK("Dunkel"),
+    SYSTEM(trLater("System")),
+    LIGHT(trLater("Hell")),
+    DARK(trLater("Dunkel")),
 }
 
 /**
@@ -33,28 +36,28 @@ enum class ThemeMode(val label: String) {
  * well-known chat apps for those who are used to them.
  */
 enum class AppStyle(val label: String, val description: String, val recommended: Boolean = false) {
-    ADEU("ADEU", "Klar und aufgeräumt: helle Flächen, weiße Karten, Violett als Akzent. Standard.", true),
-    TUD("TU Dresden", "Farben des Corporate Designs der TU Dresden: Dunkelblau, sachliches Grau, ruhige Formen.", true),
-    OFFICE("Office", "Nüchtern wie Microsoft 365: Weiß, neutrales Grau, Blau, kleine Ecken, keine Schatten.", true),
-    CONTRAST("Hoher Kontrast", "Barrierearm: Schwarz auf Weiß, deutliche Rahmen und kräftige Akzente (WCAG AAA).", true),
-    CLAUDE("Claude", "Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App."),
+    ADEU("ADEU", trLater("Klar und aufgeräumt: helle Flächen, weiße Karten, Violett als Akzent. Standard."), true),
+    TUD(trLater("TU Dresden"), trLater("Farben des Corporate Designs der TU Dresden: Dunkelblau, sachliches Grau, ruhige Formen."), true),
+    OFFICE("Office", trLater("Nüchtern wie Microsoft 365: Weiß, neutrales Grau, Blau, kleine Ecken, keine Schatten."), true),
+    CONTRAST(trLater("Hoher Kontrast"), trLater("Barrierearm: Schwarz auf Weiß, deutliche Rahmen und kräftige Akzente (WCAG AAA)."), true),
+    CLAUDE("Claude", trLater("Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App.")),
     STANDARD("Material You", MATERIAL_YOU_DESCRIPTION),
-    CHATGPT("ChatGPT", "Schlicht in Schwarz, Weiß und Grau; Antworten ohne Sprechblase."),
-    GEMINI("Gemini", "Kühles Blau, helle Flächen und runde Formen."),
+    CHATGPT("ChatGPT", trLater("Schlicht in Schwarz, Weiß und Grau; Antworten ohne Sprechblase.")),
+    GEMINI("Gemini", trLater("Kühles Blau, helle Flächen und runde Formen.")),
 }
 
 enum class Accent(val label: String, val color: Color?) {
-    AUTO("Automatisch", null),
-    BLUE("Blau", Color(0xFF2563EB)),
-    INDIGO("Indigo", Color(0xFF4F46E5)),
-    VIOLET("Violett", Color(0xFF7C3AED)),
-    PINK("Pink", Color(0xFFDB2777)),
-    RED("Rot", Color(0xFFDC2626)),
-    ORANGE("Orange", Color(0xFFEA580C)),
-    AMBER("Gelb", Color(0xFFD97706)),
-    GREEN("Grün", Color(0xFF16A34A)),
-    TEAL("Türkis", Color(0xFF0D9488)),
-    GRAY("Grau", Color(0xFF64748B)),
+    AUTO(trLater("Automatisch"), null),
+    BLUE(trLater("Blau"), Color(0xFF2563EB)),
+    INDIGO(trLater("Indigo"), Color(0xFF4F46E5)),
+    VIOLET(trLater("Violett"), Color(0xFF7C3AED)),
+    PINK(trLater("Pink"), Color(0xFFDB2777)),
+    RED(trLater("Rot"), Color(0xFFDC2626)),
+    ORANGE(trLater("Orange"), Color(0xFFEA580C)),
+    AMBER(trLater("Gelb"), Color(0xFFD97706)),
+    GREEN(trLater("Grün"), Color(0xFF16A34A)),
+    TEAL(trLater("Türkis"), Color(0xFF0D9488)),
+    GRAY(trLater("Grau"), Color(0xFF64748B)),
 }
 
 inline fun <reified T : Enum<T>> enumOr(name: String, default: T): T =
@@ -576,6 +579,7 @@ private fun typographyOf(style: AppStyle): Typography? = when (style) {
     else -> null
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
     if (I18n.language != settings.uiLanguage) I18n.language = settings.uiLanguage
@@ -598,10 +602,18 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
             colorScheme = colors,
             typography = typographyOf(style) ?: MaterialTheme.typography,
             shapes = shapesOf(style) ?: MaterialTheme.shapes,
-            content = content,
-        )
+        ) {
+            // AP-30: the element with keyboard focus (Tab) is clearly highlighted, not only faintly as by default.
+            CompositionLocalProvider(LocalRippleConfiguration provides FOCUS_VISIBLE, content = content)
+        }
     }
 }
+
+/** Ripple with a clearly visible focus state (keyboard operation, AP-30); pressing and hovering stay as usual. */
+@OptIn(ExperimentalMaterial3Api::class)
+private val FOCUS_VISIBLE = RippleConfiguration(
+    rippleAlpha = androidx.compose.material.ripple.RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0.26f, hoveredAlpha = 0.08f, pressedAlpha = 0.12f),
+)
 
 /** Colors and look of a style without applying it (previews under Einstellungen › Darstellung). */
 fun stylePreview(style: AppStyle, dark: Boolean): Pair<ColorScheme, ChatLook> {

@@ -38,17 +38,19 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
+import io.github.thepytales.llmhub.ui.trLater
+import io.github.thepytales.llmhub.ui.tr
 
 /** [retryAfter] is the wait in seconds the server asked for (header retry-after, sent with 429). */
 class ApiException(val code: Int, message: String, val retryAfter: Long? = null) : IOException(message)
 
 /** How much a reasoning model thinks before answering; AUTO sends nothing and keeps the model's default. */
 enum class ThinkingLevel(val label: String, val description: String, val effort: String?) {
-    AUTO("Modellstandard", "Das Modell entscheidet selbst (wie bisher).", null),
-    OFF("Aus", "Kein Gedankengang – am schnellsten.", null),
-    LOW("Niedrig", "Kurz nachdenken – schnelle Antworten.", "low"),
-    MEDIUM("Mittel", "Ausgewogen.", "medium"),
-    HIGH("Hoch", "Gründlich nachdenken – langsamer, für schwierige Aufgaben.", "high"),
+    AUTO(trLater("Modellstandard"), trLater("Das Modell entscheidet selbst (wie bisher)."), null),
+    OFF(trLater("Aus"), trLater("Kein Gedankengang – am schnellsten."), null),
+    LOW(trLater("Niedrig"), trLater("Kurz nachdenken – schnelle Antworten."), "low"),
+    MEDIUM(trLater("Mittel"), trLater("Ausgewogen."), "medium"),
+    HIGH(trLater("Hoch"), trLater("Gründlich nachdenken – langsamer, für schwierige Aufgaben."), "high"),
     ;
 
     companion object {
@@ -118,7 +120,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Makes sure the local model is running before a request (no-op for server models). */
     private suspend fun prepare(model: String) {
-        if (Privacy.isLocal(model)) local = (localProvider ?: error("Lokale Modelle sind nicht verfügbar.")).invoke(model)
+        if (Privacy.isLocal(model)) local = (localProvider ?: error(tr("Lokale Modelle sind nicht verfügbar."))).invoke(model)
     }
 
     /** Further provider that serves [model], or null for the main one. */
@@ -142,11 +144,11 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         if (provider == null && info != null && via != null) {
             throw ApiException(
                 401,
-                "Für ${info.displayName} fehlt der API-Key von ${via.label} (Einstellungen › API-Zugang › Weitere Anbieter).",
+                tr("Für {0} fehlt der API-Key von {1} (Einstellungen › API-Zugang › Weitere Anbieter).", info.displayName, via.label),
             )
         }
         val (url, key) = if (provider != null) provider.baseUrl to provider.apiKey else s.baseUrl to s.apiKey
-        if (key.isBlank()) throw ApiException(401, "Kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.")
+        if (key.isBlank()) throw ApiException(401, tr("Kein API-Key hinterlegt. Bitte in den Einstellungen eintragen."))
         return Request.Builder()
             .url(url.trimEnd('/') + path)
             .header("Authorization", "Bearer $key")
@@ -164,14 +166,14 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         }.getOrNull()
         val hint = when (code) {
             400 -> if (body.orEmpty().contains("context", ignoreCase = true) || body.orEmpty().contains("token", ignoreCase = true))
-                " (Der Chat ist zu lang für das Modell – einen neuen Chat beginnen oder ein Modell mit mehr Kontext wählen)" else ""
-            401 -> " (API-Key ungültig oder abgelaufen? Einstellungen › API-Zugang – im TU-Self-Service lässt sich ein neuer erzeugen)"
-            403 -> " (Kein Zugriff auf dieses Modell mit diesem API-Key)"
-            404 -> " (Modell oder Adresse nicht gefunden – das Modell wurde vielleicht abgeschaltet, bitte ein anderes wählen)"
-            413 -> " (Anfrage zu groß – Anhang verkleinern oder weniger Bilder schicken)"
-            429 -> " (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)"
-            502, 503, 504 -> " (Der Uni-Server erreicht das Modell gerade nicht – es ist überlastet, startet neu oder wird gewartet. " +
-                "Später erneut versuchen oder ein anderes Modell wählen)"
+                tr(" (Der Chat ist zu lang für das Modell – einen neuen Chat beginnen oder ein Modell mit mehr Kontext wählen)") else ""
+            401 -> tr(" (API-Key ungültig oder abgelaufen? Einstellungen › API-Zugang – im TU-Self-Service lässt sich ein neuer erzeugen)")
+            403 -> tr(" (Kein Zugriff auf dieses Modell mit diesem API-Key)")
+            404 -> tr(" (Modell oder Adresse nicht gefunden – das Modell wurde vielleicht abgeschaltet, bitte ein anderes wählen)")
+            413 -> tr(" (Anfrage zu groß – Anhang verkleinern oder weniger Bilder schicken)")
+            429 -> tr(" (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)")
+            502, 503, 504 -> tr(" (Der Uni-Server erreicht das Modell gerade nicht – es ist überlastet, startet neu oder wird gewartet. " +
+                "Später erneut versuchen oder ein anderes Modell wählen)")
             else -> ""
         }
         return "HTTP $code$hint: ${parsed ?: body?.take(500) ?: "unbekannter Fehler"}"
@@ -220,7 +222,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         var attempt = 0
         while (true) {
             try {
-                if (!onDevice) limiter.acquire { wait -> onRetry("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird", wait) }
+                if (!onDevice) limiter.acquire { wait -> onRetry(tr("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird"), wait) }
                 val result = streamChatWithFallbacks(model, sent, tools, thinking, update)
                 return masker?.unmask(result, scope) ?: result
             } catch (e: IOException) {
@@ -230,9 +232,9 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 val code = (e as? ApiException)?.code ?: 0
                 if (code == 429) limiter.onRateLimited()
                 val reason = when (code) {
-                    0 -> "Verbindung zum Server unterbrochen"
-                    429 -> "Rate-Limit des API-Keys erreicht"
-                    in RETRY_CODES -> "Server des Modells vorübergehend nicht erreichbar (HTTP $code)"
+                    0 -> tr("Verbindung zum Server unterbrochen")
+                    429 -> tr("Rate-Limit des API-Keys erreicht")
+                    in RETRY_CODES -> tr("Server des Modells vorübergehend nicht erreichbar (HTTP {0})", code)
                     else -> throw e
                 }
                 if (attempt >= RETRIES) throw e
@@ -438,7 +440,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 }
             }
             if (code == 404 || code == 405 || code == 501) {
-                throw ApiException(code, "Der Server bietet das Überarbeiten von Bildern (noch) nicht an. Neue Bilder erzeugen geht weiterhin.")
+                throw ApiException(code, tr("Der Server bietet das Überarbeiten von Bildern (noch) nicht an. Neue Bilder erzeugen geht weiterhin."))
             }
             if (code !in 200..299) throw ApiException(code, errorMessage(code, body))
             usage.record(model, "image", 0, 0, estimated = false)
@@ -458,7 +460,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                         http.newCall(Request.Builder().url(url).build()).execute().use { it.body?.bytes() }
                     }
                 }
-        }.ifEmpty { throw ApiException(500, "Keine Bilddaten in der Antwort") }
+        }.ifEmpty { throw ApiException(500, tr("Keine Bilddaten in der Antwort")) }
     }
 
     /** State of the Uni server's models from its public status page. */

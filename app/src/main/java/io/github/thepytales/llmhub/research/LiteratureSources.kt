@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -16,6 +17,7 @@ import okhttp3.Request
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Search filters shared by all sources. */
 data class SearchFilter(
@@ -32,14 +34,14 @@ data class SearchFilter(
 
 /** Databases the literature search and the completion of reference lists use. */
 enum class LitSource(val label: String, val description: String) {
-    OPENALEX("OpenAlex", "Über 250 Mio. wissenschaftliche Arbeiten aller Fächer, mit Abstracts und Zitationen"),
-    CROSSREF("Crossref", "Alle Werke mit DOI: Zeitschriften, Sammelbände, Tagungsbände"),
-    ERIC("ERIC", "Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur"),
-    DNB("Deutsche Nationalbibliothek", "Deutschsprachige Bücher, Sammelbände und Hochschulschriften"),
-    SLUB("SLUB Dresden", "Katalog der Sächsischen Landes- und Universitätsbibliothek: Bestand vor Ort, E-Books und lizenzierte Artikel der TU Dresden"),
-    EUROPEPMC("PubMed / Europe PMC", "Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts"),
-    ARXIV("arXiv", "Preprints aus Informatik, Mathematik, Physik und Statistik"),
-    DOAJ("DOAJ", "Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer"),
+    OPENALEX("OpenAlex", trLater("Über 250 Mio. wissenschaftliche Arbeiten aller Fächer, mit Abstracts und Zitationen")),
+    CROSSREF(trLater("Crossref"), trLater("Alle Werke mit DOI: Zeitschriften, Sammelbände, Tagungsbände")),
+    ERIC("ERIC", trLater("Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur")),
+    DNB(trLater("Deutsche Nationalbibliothek"), trLater("Deutschsprachige Bücher, Sammelbände und Hochschulschriften")),
+    SLUB(trLater("SLUB Dresden"), trLater("Katalog der Sächsischen Landes- und Universitätsbibliothek: Bestand vor Ort, E-Books und lizenzierte Artikel der TU Dresden")),
+    EUROPEPMC(trLater("PubMed / Europe PMC"), trLater("Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts")),
+    ARXIV("arXiv", trLater("Preprints aus Informatik, Mathematik, Physik und Statistik")),
+    DOAJ("DOAJ", trLater("Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer")),
     ;
 
     companion object {
@@ -70,14 +72,14 @@ class LiteratureSources(
     private val allowed: (HttpUrl) -> Boolean = { true },
 ) {
     private suspend fun get(url: HttpUrl, accept: String = "application/json"): String? {
-        if (!allowed(url)) throw IllegalStateException("Zugriff auf ${url.host} ist in dieser Umgebung nicht erlaubt")
+        if (!allowed(url)) throw IllegalStateException(tr("Zugriff auf {0} ist in dieser Umgebung nicht erlaubt", url.host))
         return withContext(Dispatchers.IO) {
             val req = Request.Builder().url(url).header("User-Agent", USER_AGENT).header("Accept", accept).build()
             http.newCall(req).execute().use { resp ->
                 when {
                     resp.code == 404 -> null
                     resp.code == 429 -> throw RateLimited(url.host)
-                    !resp.isSuccessful -> throw IllegalStateException("${url.host} antwortet mit HTTP ${resp.code}")
+                    !resp.isSuccessful -> throw IllegalStateException(tr("{0} antwortet mit HTTP {1}", url.host, resp.code))
                     else -> resp.body?.string()
                 }
             }

@@ -14,6 +14,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import io.github.thepytales.llmhub.ui.trLater
 
 data class Param(
     val name: String,
@@ -78,18 +79,18 @@ enum class Risk {
 /** When the agent asks before write actions in chats (Einstellungen › Chat & Werkzeuge › Freigaben). */
 enum class ApprovalMode(val label: String, val description: String) {
     ASK(
-        "Immer fragen",
-        "Vor jedem Commit, Branch, Pull Request, Kommentar oder schreibenden Web-Aufruf nachfragen.",
+        trLater("Immer fragen"),
+        trLater("Vor jedem Commit, Branch, Pull Request, Kommentar oder schreibenden Web-Aufruf nachfragen."),
     ),
     EDITS(
-        "Code-Änderungen automatisch",
-        "Dateien anlegen, ändern, löschen und Branches erstellen ohne Rückfrage – alles bleibt in der Git-Historie " +
-            "nachvollziehbar. Gefragt wird nur noch bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen.",
+        trLater("Code-Änderungen automatisch"),
+        trLater("Dateien anlegen, ändern, löschen und Branches erstellen ohne Rückfrage – alles bleibt in der Git-Historie " +
+            "nachvollziehbar. Gefragt wird nur noch bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen."),
     ),
     ALL(
-        "Alles automatisch",
-        "Nie nachfragen – für lange Coding-Sessions. Der Agent führt auch Pull Requests, Kommentare und schreibende " +
-            "Web-Aufrufe ohne Rückfrage aus.",
+        trLater("Alles automatisch"),
+        trLater("Nie nachfragen – für lange Coding-Sessions. Der Agent führt auch Pull Requests, Kommentare und schreibende " +
+            "Web-Aufrufe ohne Rückfrage aus."),
     ),
     ;
 

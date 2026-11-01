@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.desktop
 import io.github.thepytales.llmhub.docs.LocalOcr
 import io.github.thepytales.llmhub.docs.OcrPage
 import io.github.thepytales.llmhub.docs.WindowsOcrOutput
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 import java.util.Base64
 import java.util.concurrent.TimeUnit
@@ -75,8 +76,8 @@ for (${'$'}i = 0; ${'$'}i -lt ${'$'}paths.Count; ${'$'}i++) {
             parsed.error?.let { e ->
                 throw IllegalStateException(
                     when {
-                        e.startsWith("NOENGINE") -> "Windows hat keine Texterkennung für Deutsch oder Englisch (Einstellungen › Zeit und Sprache › Sprache: Sprachpaket mit „Optische Zeichenerkennung“ hinzufügen)."
-                        e.startsWith("WINRT") -> "Die Texterkennung von Windows ist hier nicht erreichbar (PowerShell eingeschränkt?): ${e.removePrefix("WINRT").trim()}"
+                        e.startsWith("NOENGINE") -> tr("Windows hat keine Texterkennung für Deutsch oder Englisch (Einstellungen › Zeit und Sprache › Sprache: Sprachpaket mit „Optische Zeichenerkennung“ hinzufügen).")
+                        e.startsWith("WINRT") -> tr("Die Texterkennung von Windows ist hier nicht erreichbar (PowerShell eingeschränkt?): {0}", e.removePrefix("WINRT").trim())
                         else -> e
                     },
                 )

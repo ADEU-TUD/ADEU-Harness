@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,9 +37,9 @@ fun SettingsHint(text: String) {
 fun ReliabilitySection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val models by c.models.state.collectAsStateWithLifecycle()
-    SettingsCard("Zuverlässigkeit") {
-        val auto = "Automatisch (ähnliches Modell)"
-        val off = "Aus"
+    SettingsCard(tr("Zuverlässigkeit")) {
+        val auto = tr("Automatisch (ähnliches Modell)")
+        val off = tr("Aus")
         val chat = models.ofType(ModelType.CHAT).map { it.id }
         val current = when (s.fallbackModel.lowercase()) {
             "auto", "" -> auto
@@ -48,7 +47,7 @@ fun ReliabilitySection(c: AppContainer) {
             else -> ModelCatalog.info(s.fallbackModel).displayName
         }
         DropdownField(
-            label = "Ausweichmodell",
+            label = tr("Ausweichmodell"),
             value = current,
             options = listOf(auto, off) + chat.map { ModelCatalog.info(it).displayName },
             onSelect = { v ->
@@ -61,30 +60,30 @@ fun ReliabilitySection(c: AppContainer) {
             },
         )
         SettingsHint(
-            "Erreicht der Uni-Server das gewählte Modell auch nach mehreren Versuchen nicht (HTTP 502/503/504), beantwortet " +
-                "dieses Modell die Anfrage – mit Hinweis im Chat und im Agent-Protokoll."
+            tr("Erreicht der Uni-Server das gewählte Modell auch nach mehreren Versuchen nicht (HTTP 502/503/504), beantwortet " +
+                "dieses Modell die Anfrage – mit Hinweis im Chat und im Agent-Protokoll.")
         )
         val learned = c.llm.limiter.limit()
         DropdownField(
-            label = "Anfragen pro Minute",
-            value = if (s.requestsPerMinute <= 0) "Automatisch" else s.requestsPerMinute.toString(),
-            options = listOf("Automatisch", "5", "10", "15", "20", "30", "60"),
+            label = tr("Anfragen pro Minute"),
+            value = if (s.requestsPerMinute <= 0) tr("Automatisch") else s.requestsPerMinute.toString(),
+            options = listOf(tr("Automatisch"), "5", "10", "15", "20", "30", "60"),
             onSelect = { v -> c.settings.update { it.copy(requestsPerMinute = v.toIntOrNull() ?: 0) } },
         )
         SettingsHint(
-            "Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die " +
-                "Grenze aus den Antworten des Servers" + (if (s.requestsPerMinute <= 0 && learned != null) " (zurzeit $learned pro Minute)." else ".")
+            tr("Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die " +
+                "Grenze aus den Antworten des Servers") + (if (s.requestsPerMinute <= 0 && learned != null) tr(" (zurzeit {0} pro Minute).", learned) else ".")
         )
         // Stapel (AP-20): how much of the limit a batch may take, so chats stay quick.
         DropdownField(
-            label = "Stapel: Anfragen pro Minute",
-            value = if (s.batchPerMinute <= 0) "Automatisch" else s.batchPerMinute.toString(),
-            options = listOf("Automatisch", "2", "4", "6", "10", "20"),
+            label = tr("Stapel: Anfragen pro Minute"),
+            value = if (s.batchPerMinute <= 0) tr("Automatisch") else s.batchPerMinute.toString(),
+            options = listOf(tr("Automatisch"), "2", "4", "6", "10", "20"),
             onSelect = { v -> c.settings.update { it.copy(batchPerMinute = v.toIntOrNull() ?: 0) } },
         )
         SettingsHint(
-            "Stapel und Massenkontrolle warten, solange ein Chat antwortet. „Automatisch“ lässt zwei Anfragen pro Minute für " +
-                "Chats frei, wenn das Limit bekannt ist."
+            tr("Stapel und Massenkontrolle warten, solange ein Chat antwortet. „Automatisch“ lässt zwei Anfragen pro Minute für " +
+                "Chats frei, wenn das Limit bekannt ist.")
         )
     }
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
 /** Android parts of the theme (Windows has its own version of this file). */
-const val MATERIAL_YOU_DESCRIPTION = "Farben passend zum Hintergrundbild (Android 12+)."
+val MATERIAL_YOU_DESCRIPTION = trLater("Farben passend zum Hintergrundbild (Android 12+).")
 
 /** Colors of the wallpaper (Android 12+) for the Material You look. */
 @Composable

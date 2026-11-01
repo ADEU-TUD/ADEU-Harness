@@ -19,6 +19,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import io.github.thepytales.llmhub.ui.tr
 
 /**
  * Automatic updates for colleagues without technical background: at every start (and every few hours while the app
@@ -134,7 +135,7 @@ object Updates {
             onInfo?.let { hook -> runCatching { hook(context, info) }.onFailure { ErrorLog.record("Erweiterungen prüfen", it) } }
             when {
                 !Versions.newer(info.version, installed) -> State.UpToDate
-                info.files[UpdatePlatform.KEY] == null -> State.Failed(info, "Version ${info.version} enthält keine Datei für dieses Gerät.")
+                info.files[UpdatePlatform.KEY] == null -> State.Failed(info, tr("Version {0} enthält keine Datei für dieses Gerät.", info.version))
                 // Downloaded before ("Später" after the download): ready right away.
                 else -> UpdatePlatform.prepared(context, info)?.let { State.Ready(info, it) } ?: State.Available(info)
             }
@@ -182,21 +183,21 @@ object Updates {
                 val target = File(dir, file.name)
                 if (!(target.isFile && target.length() == file.size && sha256(target) == file.sha256)) {
                     val tmp = File(dir, file.name + ".part")
-                    _state.value = State.Downloading(info, 0f, "Wird heruntergeladen …")
+                    _state.value = State.Downloading(info, 0f, tr("Wird heruntergeladen …"))
                     fetch(context, file, tmp, { stopDownload }) { got ->
                         val total = file.size.takeIf { it > 0 } ?: got
-                        _state.value = State.Downloading(info, (got.toFloat() / total).coerceIn(0f, 1f), "Wird heruntergeladen …")
+                        _state.value = State.Downloading(info, (got.toFloat() / total).coerceIn(0f, 1f), tr("Wird heruntergeladen …"))
                     }
-                    _state.value = State.Downloading(info, 1f, "Wird geprüft …")
+                    _state.value = State.Downloading(info, 1f, tr("Wird geprüft …"))
                     if (sha256(tmp) != file.sha256) {
                         tmp.delete()
-                        throw UpdateProblem("Die heruntergeladene Datei ist unvollständig oder verändert (Prüfsumme stimmt nicht). Bitte noch einmal versuchen.")
+                        throw UpdateProblem(tr("Die heruntergeladene Datei ist unvollständig oder verändert (Prüfsumme stimmt nicht). Bitte noch einmal versuchen."))
                     }
                     target.delete()
                     if (!tmp.renameTo(target)) throw IOException("Datei konnte nicht umbenannt werden: ${tmp.path}")
                 }
                 val prepared = UpdatePlatform.prepare(context, target, info) { p ->
-                    _state.value = State.Downloading(info, p, "Wird vorbereitet …")
+                    _state.value = State.Downloading(info, p, tr("Wird vorbereitet …"))
                 }
                 val ready = State.Ready(info, prepared)
                 _state.value = ready
@@ -229,7 +230,7 @@ object Updates {
         val tmp = File(dest.path + ".part")
         try {
             fetch(context, file, tmp, cancelled, progress)
-            if (sha256(tmp) != file.sha256) throw UpdateProblem("Die heruntergeladene Datei ist unvollständig oder verändert (Prüfsumme stimmt nicht). Bitte noch einmal versuchen.")
+            if (sha256(tmp) != file.sha256) throw UpdateProblem(tr("Die heruntergeladene Datei ist unvollständig oder verändert (Prüfsumme stimmt nicht). Bitte noch einmal versuchen."))
             dest.delete()
             if (!tmp.renameTo(dest)) throw IOException("Datei konnte nicht umbenannt werden: ${tmp.path}")
         } catch (e: Exception) {
@@ -261,9 +262,9 @@ object Updates {
     private fun explain(e: Throwable): String = when (e) {
         is UpdateProblem -> e.message.orEmpty()
         is java.net.UnknownHostException, is java.net.ConnectException, is java.net.SocketTimeoutException ->
-            "Keine Verbindung zum Update-Server (github.com). Ist das Internet erreichbar? Auf Dienst-PCs kann die IT GitHub sperren – " +
-                "dann lässt sich unter Einstellungen › Updates ein Ordner auf dem Netzlaufwerk als Update-Quelle eintragen."
-        is javax.net.ssl.SSLException -> "Sichere Verbindung zum Update-Server nicht möglich (${e.message}). Möglicherweise prüft ein Firmen-Proxy die Verbindung."
+            tr("Keine Verbindung zum Update-Server (github.com). Ist das Internet erreichbar? Auf Dienst-PCs kann die IT GitHub sperren – " +
+                "dann lässt sich unter Einstellungen › Updates ein Ordner auf dem Netzlaufwerk als Update-Quelle eintragen.")
+        is javax.net.ssl.SSLException -> tr("Sichere Verbindung zum Update-Server nicht möglich ({0}). Möglicherweise prüft ein Firmen-Proxy die Verbindung.", e.message)
         else -> e.message ?: e.javaClass.simpleName
     }
 
@@ -275,7 +276,7 @@ object Updates {
     private fun readText(context: Context, source: String): String {
         if (isFolder(source)) {
             val f = File(source).let { if (it.isDirectory) File(it, "version.json") else it }
-            if (!f.isFile) throw UpdateProblem("In „${f.parent}“ liegt keine version.json – ist das Netzlaufwerk verbunden?")
+            if (!f.isFile) throw UpdateProblem(tr("In „{0}“ liegt keine version.json – ist das Netzlaufwerk verbunden?", f.parent))
             return f.readText()
         }
         val url = source.ifBlank { DEFAULT_SOURCE }
@@ -289,7 +290,7 @@ object Updates {
         if (isFolder(source)) {
             val dir = File(source).let { if (it.isDirectory) it else it.parentFile }
             val from = File(dir, file.name)
-            if (!from.isFile) throw UpdateProblem("„${file.name}“ fehlt in „${dir.path}“.")
+            if (!from.isFile) throw UpdateProblem(tr("„{0}“ fehlt in „{1}“.", file.name, dir.path))
             from.inputStream().use { copy(it, dest, cancelled, progress) }
             return
         }
@@ -331,8 +332,8 @@ object Updates {
                     u = URL(URL(u), con.getHeaderField("Location")).toString()
                     continue
                 }
-                if (code == 404) throw UpdateProblem("Auf dem Update-Server ist noch keine Version veröffentlicht ($u).")
-                if (code != 200) throw IOException("Update-Server antwortet mit HTTP $code ($u)")
+                if (code == 404) throw UpdateProblem(tr("Auf dem Update-Server ist noch keine Version veröffentlicht ({0}).", u))
+                if (code != 200) throw IOException(tr("Update-Server antwortet mit HTTP {0} ({1})", code, u))
                 con.inputStream.use { read(it, con.contentLengthLong) }
                 return
             } finally {

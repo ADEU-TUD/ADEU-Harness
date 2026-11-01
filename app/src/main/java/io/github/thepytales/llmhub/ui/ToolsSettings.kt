@@ -10,7 +10,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -62,7 +61,7 @@ fun ToolsSection(c: AppContainer) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             HintText(
                 tr("Oben stehen „Neuer Chat“ und bis zu vier Bereiche, alles andere unter „Mehr“.") + " " +
-                    tr("Mit") + " " + CONTEXT_GESTURE + " " + tr("auf einen Bereich holst du ihn nach oben, schiebst ihn unter „Mehr“ oder blendest ihn aus."),
+                    tr("Mit {0} auf einen Bereich holst du ihn nach oben, schiebst ihn unter „Mehr“ oder blendest ihn aus.", CONTEXT_GESTURE),
             )
             // Bereiche ausblenden, damit die Liste kurz bleibt (Werkzeuge oben ausschalten); „Erstellen“ und „Dateien“ bleiben.
             DrawerArea.entries.filter { it.tool == null && it !in DrawerArea.ALWAYS }.forEach { area ->

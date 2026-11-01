@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
 import java.io.File
 import java.security.MessageDigest
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /*
  * Dateiverwaltung (AP-18): one place for everything the app keeps as files – documents of the editor, the files in
@@ -35,11 +36,11 @@ data class FileMeta(
     val starred: Boolean = false,
 )
 
-enum class FileSource(val label: String) { APP("In der App"), DISK("Ablageort"), KNOWLEDGE("Wissenssammlung") }
+enum class FileSource(val label: String) { APP(trLater("In der App")), DISK(trLater("Ablageort")), KNOWLEDGE(trLater("Wissenssammlung")) }
 
 enum class FileKind(val label: String) {
-    DOC("Dokument"), SLIDES("Präsentation"), SHEET("Tabelle"), MARKDOWN("Markdown"), PDF("PDF"), WORD("Word"), EXCEL("Excel"),
-    POWERPOINT("PowerPoint"), IMAGE("Bild"), MAIL("Mail"), TEXT("Text"), KNOWLEDGE("Wissen"), OTHER("Datei");
+    DOC(trLater("Dokument")), SLIDES(trLater("Präsentation")), SHEET(trLater("Tabelle")), MARKDOWN("Markdown"), PDF("PDF"), WORD("Word"), EXCEL("Excel"),
+    POWERPOINT("PowerPoint"), IMAGE(trLater("Bild")), MAIL("Mail"), TEXT("Text"), KNOWLEDGE(trLater("Wissen")), OTHER(trLater("Datei"));
 
     companion object {
         fun ofDoc(kind: DocKind) = when (kind) {

@@ -27,7 +27,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -137,7 +136,7 @@ private fun TemplateCard(c: AppContainer, t: DesignTemplate) {
             }
             TextButton(
                 onClick = {
-                    ChatHandoff.pending.value = ChatHandoff.Content(tr("Gestalte ${t.name.lowercase().let { if (it.startsWith("social")) "einen ${t.name}" else "ein(e) ${t.name}" }} (Vorlage ${t.id}): "), emptyList(), mode = ChatModes.DESIGN.id)
+                    ChatHandoff.pending.value = ChatHandoff.Content(tr("Gestalte {0} (Vorlage {1}): ", t.name.lowercase().let { if (it.startsWith("social")) "einen ${t.name}" else "ein(e) ${t.name}" }, t.id), emptyList(), mode = ChatModes.DESIGN.id)
                     ChatHandoff.open.value = ""
                 },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),

@@ -33,7 +33,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -108,11 +107,11 @@ class CompareViewModel(private val c: AppContainer) : ViewModel() {
                     val total = (System.currentTimeMillis() - start) / 1000.0
                     val ttft = if (first > 0) (first - start) / 1000.0 else total
                     val tokens = result.usage?.completion
-                    val parts = mutableListOf(String.format(Locale.GERMANY, "%.1f s bis zur Antwort", ttft), String.format(Locale.GERMANY, "%.1f s gesamt", total))
+                    val parts = mutableListOf(String.format(Locale.GERMANY, tr("%.1f s bis zur Antwort"), ttft), String.format(Locale.GERMANY, "%.1f s gesamt", total))
                     if (tokens != null && tokens > 0) {
-                        parts += "$tokens Tokens"
+                        parts += tr("{0} Tokens", tokens)
                         val genTime = (total - ttft).coerceAtLeast(0.1)
-                        parts += String.format(Locale.GERMANY, "%.0f Tok/s", tokens / genTime)
+                        parts += String.format(Locale.GERMANY, tr("%.0f Tok/s"), tokens / genTime)
                     }
                     side.stats += answer.id to parts.joinToString(" · ")
                 } catch (e: CancellationException) {
@@ -161,9 +160,9 @@ fun CompareScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: (String) -> U
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Modelle vergleichen") },
+                title = { Text(tr("Modelle vergleichen")) },
                 actions = {
-                    IconButton(onClick = { vm.clear() }) { Icon(Icons.Outlined.DeleteSweep, contentDescription = "Leeren") }
+                    IconButton(onClick = { vm.clear() }) { Icon(Icons.Outlined.DeleteSweep, contentDescription = tr("Leeren")) }
                 },
             )
         },
@@ -180,7 +179,7 @@ fun CompareScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: (String) -> U
                         TextField(
                             value = input,
                             onValueChange = { input = it },
-                            placeholder = { Text("Frage an beide Modelle") },
+                            placeholder = { Text(tr("Frage an beide Modelle")) },
                             maxLines = 5,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -196,10 +195,10 @@ fun CompareScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: (String) -> U
                         FilledIconButton(
                             onClick = { vm.stop() },
                             colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.onSurface),
-                        ) { Icon(Icons.Outlined.Stop, contentDescription = "Stopp", tint = MaterialTheme.colorScheme.surface) }
+                        ) { Icon(Icons.Outlined.Stop, contentDescription = tr("Stopp"), tint = MaterialTheme.colorScheme.surface) }
                     } else {
                         FilledIconButton(enabled = input.isNotBlank(), onClick = { vm.send(input); input = "" }) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Senden")
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = tr("Senden"))
                         }
                     }
                 }
@@ -287,7 +286,7 @@ private fun CompareColumn(side: CompareSide, modifier: Modifier, onPick: () -> U
                     TextButton(onClick = onContinue) {
                         Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text("Als Chat fortsetzen")
+                        Text(tr("Als Chat fortsetzen"))
                     }
                 }
             }

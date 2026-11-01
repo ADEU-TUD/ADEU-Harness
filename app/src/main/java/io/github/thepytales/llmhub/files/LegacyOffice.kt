@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.files
 
 import io.github.thepytales.llmhub.docs.OfficeImport
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -34,7 +35,7 @@ object LegacyOffice {
                 ". Für das Original in Office öffnen oder als ${if (ext.startsWith("x")) ".xlsx" else if (ext.startsWith("p")) ".pptx" else ".docx"} speichern.]\n\n$parsed"
         }
         val runs = textRuns(bytes)
-        if (runs.isBlank()) throw IllegalArgumentException("„$name“: Aus dieser alten $label-Datei ließ sich kein Text gewinnen.")
+        if (runs.isBlank()) throw IllegalArgumentException(tr("„{0}“: Aus dieser alten {1}-Datei ließ sich kein Text gewinnen.", name, label))
         return "[Hinweis: Text heuristisch aus dem alten $label-Format (.$ext) gewonnen – Reihenfolge, Formatierung und einzelne Stellen " +
             "können fehlen oder Reste enthalten.]\n\n$runs"
     }

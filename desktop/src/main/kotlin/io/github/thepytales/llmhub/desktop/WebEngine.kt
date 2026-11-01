@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.desktop
 
+import io.github.thepytales.llmhub.ui.tr
 import io.github.thepytales.llmhub.AppLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,21 +94,21 @@ object WebEngine {
     suspend fun start(): CefClient? = withContext(Dispatchers.IO) {
         client?.let { return@withContext it }
         if (!supported) {
-            state.value = State.Failed("Auf diesem Rechner gibt es den eingebauten Browser nicht.")
+            state.value = State.Failed(tr("Auf diesem Rechner gibt es den eingebauten Browser nicht."))
             return@withContext null
         }
         runCatching {
-            state.value = State.Preparing("Wird vorbereitet …", -1f)
+            state.value = State.Preparing(tr("Wird vorbereitet …"), -1f)
             val builder = CefAppBuilder()
             builder.setInstallDir(installDir)
             builder.setProgressHandler { step, percent ->
                 state.value = State.Preparing(
                     when (step) {
-                        EnumProgress.LOCATING -> "Sucht Chromium …"
-                        EnumProgress.DOWNLOADING -> "Lädt Chromium herunter (einmalig, ca. 170 MB) …"
-                        EnumProgress.EXTRACTING -> "Entpackt …"
-                        EnumProgress.INSTALL -> "Richtet ein …"
-                        else -> "Startet den Browser …"
+                        EnumProgress.LOCATING -> tr("Sucht Chromium …")
+                        EnumProgress.DOWNLOADING -> tr("Lädt Chromium herunter (einmalig, ca. 170 MB) …")
+                        EnumProgress.EXTRACTING -> tr("Entpackt …")
+                        EnumProgress.INSTALL -> tr("Richtet ein …")
+                        else -> tr("Startet den Browser …")
                     },
                     if (percent == EnumProgress.NO_ESTIMATION) -1f else percent,
                 )

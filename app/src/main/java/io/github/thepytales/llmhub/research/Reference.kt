@@ -3,19 +3,20 @@ package io.github.thepytales.llmhub.research
 import kotlinx.serialization.Serializable
 import java.text.Normalizer
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Kind of a work; decides which details a reference needs and how the styles write it. */
 @Serializable
 enum class RefType(val label: String) {
-    ARTICLE("Zeitschriftenartikel"),
-    BOOK("Buch (Monografie)"),
-    EDITED_BOOK("Sammelband (Herausgeberwerk)"),
-    CHAPTER("Beitrag im Sammelband"),
-    CONFERENCE("Tagungsbeitrag"),
-    THESIS("Hochschulschrift"),
-    REPORT("Bericht / graue Literatur"),
-    WEB("Webseite"),
-    OTHER("Sonstiges"),
+    ARTICLE(trLater("Zeitschriftenartikel")),
+    BOOK(trLater("Buch (Monografie)")),
+    EDITED_BOOK(trLater("Sammelband (Herausgeberwerk)")),
+    CHAPTER(trLater("Beitrag im Sammelband")),
+    CONFERENCE(trLater("Tagungsbeitrag")),
+    THESIS(trLater("Hochschulschrift")),
+    REPORT(trLater("Bericht / graue Literatur")),
+    WEB(trLater("Webseite")),
+    OTHER(trLater("Sonstiges")),
 }
 
 /** A person (family and given name) or an organization ([literal]: written as is, never shortened). */

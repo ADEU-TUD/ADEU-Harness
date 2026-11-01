@@ -52,7 +52,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -167,7 +166,7 @@ fun ChatScreen(
     var searchHit by remember { mutableIntStateOf(0) }
     var chipsOpen by remember { mutableStateOf(false) }
     val snippets by c.snippets.items.collectAsStateWithLifecycle()
-    val exportJson = rememberFileExport("application/json", onDone = { ok -> if (!ok) Notices.error("Export fehlgeschlagen") }) { out ->
+    val exportJson = rememberFileExport("application/json", onDone = { ok -> if (!ok) Notices.error(tr("Export fehlgeschlagen")) }) { out ->
         vm.state.value?.let { out.write(ChatJson.write(it).toByteArray(Charsets.UTF_8)) }
     }
 
@@ -277,7 +276,7 @@ fun ChatScreen(
             recorder.start()
             recording = true
         } catch (e: Exception) {
-            Notices.error("Aufnahme nicht möglich: ${e.message}")
+            Notices.error(tr("Aufnahme nicht möglich: {0}", e.message))
         }
     }
 
@@ -313,8 +312,8 @@ fun ChatScreen(
     // Quellenmodus (AP-08): the evidence of every finished answer, checked against the sources of the chat.
     val evidence = remember(items, current.mode, running) { if (running) emptyMap() else evidenceReports(current, items) }
     val repoLabel = when {
-        !current.githubEnabled -> "Aus"
-        else -> current.linkedRepos.label() ?: "An – kein festes Repository"
+        !current.githubEnabled -> tr("Aus")
+        else -> current.linkedRepos.label() ?: tr("An – kein festes Repository")
     }
 
     val hasMessages = current.messages.isNotEmpty()
@@ -328,7 +327,7 @@ fun ChatScreen(
     fun sendNow(withImages: Boolean) {
         val pictures = if (withImages) images.toList() else emptyList()
         if (pictures.isNotEmpty() && modelInfo.vision == false) {
-            Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
+            Notices.info(tr("Hinweis: {0} versteht keine Bilder.", modelInfo.displayName))
         }
         follow.value = true
         val prepared = loraHandoff
@@ -385,7 +384,7 @@ fun ChatScreen(
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 navigationIcon = {
-                    if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = "Menü") }
+                    if (onOpenDrawer != null) IconButton(onClick = onOpenDrawer) { Icon(Icons.Outlined.Menu, contentDescription = tr("Menü")) }
                 },
                 title = {
                     if (searchOpen) {
@@ -419,11 +418,11 @@ fun ChatScreen(
                         // Temporary chat: nothing is saved (like the incognito mode of other apps).
                         IconButton(onClick = {
                             vm.setTemporary(!current.temporary)
-                            Notices.info(if (!current.temporary) "Temporärer Chat: wird nicht gespeichert." else "Chat wird wieder gespeichert.")
+                            Notices.info(if (!current.temporary) tr("Temporärer Chat: wird nicht gespeichert.") else tr("Chat wird wieder gespeichert."))
                         }) {
                             Icon(
                                 if (current.temporary) Icons.Filled.VisibilityOff else Icons.Outlined.VisibilityOff,
-                                contentDescription = if (current.temporary) "Temporären Chat beenden" else "Temporärer Chat",
+                                contentDescription = if (current.temporary) tr("Temporären Chat beenden") else tr("Temporärer Chat"),
                                 tint = if (current.temporary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             )
                         }
@@ -431,14 +430,14 @@ fun ChatScreen(
                     // On a fresh, ordinary chat a "new chat" button would only start the same again.
                     if (hasMessages || current.folderId != null || current.temporary) {
                         IconButton(onClick = onNewChat) {
-                            Icon(Icons.Filled.AddComment, contentDescription = "Neuer Chat", modifier = Modifier.size(26.dp))
+                            Icon(Icons.Filled.AddComment, contentDescription = tr("Neuer Chat"), modifier = Modifier.size(26.dp))
                         }
                     }
                     Box {
-                        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                         ChatMenu(
                             open = menuOpen,
-                            title = if (hasMessages) current.title else "Neuer Chat",
+                            title = if (hasMessages) current.title else tr("Neuer Chat"),
                             hasMessages = hasMessages,
                             pinned = current.pinned,
                             onDismiss = { menuOpen = false },
@@ -458,7 +457,7 @@ fun ChatScreen(
                             archived = current.archived,
                             onArchive = {
                                 vm.setArchived(!current.archived)
-                                if (!current.archived) { Notices.undo("Chat archiviert", restore = { vm.setArchived(false) }); onNewChat() }
+                                if (!current.archived) { Notices.undo(tr("Chat archiviert"), restore = { vm.setArchived(false) }); onNewChat() }
                             },
                             onAiNote = { showAiNote = true },
                             onFiles = conv?.takeIf { cv -> !cv.vault && cv.messages.any { m -> m.file != null || m.files.isNotEmpty() || m.images.isNotEmpty() } }?.let { cv ->
@@ -517,9 +516,9 @@ fun ChatScreen(
                         runCatching { vm.improvePrompt(before) }
                             .onSuccess { better ->
                                 input = better
-                                Notices.undo("Anfrage verbessert", restore = { input = before })
+                                Notices.undo(tr("Anfrage verbessert"), restore = { input = before })
                             }
-                            .onFailure { Notices.error("Verbessern nicht möglich: ${it.message}") }
+                            .onFailure { Notices.error(tr("Verbessern nicht möglich: {0}", it.message)) }
                         improving = false
                     }
                 },
@@ -552,37 +551,37 @@ fun ChatScreen(
                 footnote = if (hasMessages) tr("KI kann Fehler machen. Wichtiges bitte prüfen.") else null,
                 onVoice = { platform.withMicrophone { voiceMode = true } },
             ) {
-                if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, "Temporär – wird nicht gespeichert", { }, highlighted = true)
+                if (current.temporary) ContextChip(Icons.Outlined.VisibilityOff, tr("Temporär – wird nicht gespeichert"), { }, highlighted = true)
                 // Always visible while active: the selected repository, environment and persona.
                 if (current.githubEnabled && settings.hasGitHub) {
                     // Quiet while nothing is chosen; highlighted once a repository is linked.
                     val repos = current.linkedRepos.label()
-                    ContextChip(Icons.Outlined.Code, repos ?: "GitHub · Repo wählen", { showRepoPicker = true }, highlighted = repos != null)
+                    ContextChip(Icons.Outlined.Code, repos ?: tr("GitHub · Repo wählen"), { showRepoPicker = true }, highlighted = repos != null)
                 }
                 if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true }, highlighted = env.id != settings.defaultEnvId)
                 activeTemplate?.let { t ->
-                    ContextChip(Icons.Outlined.Bookmarks, "Vorlage: ${t.name}  ✕", { templateId = null })
+                    ContextChip(Icons.Outlined.Bookmarks, tr("Vorlage: {0}  ✕", tr(t.name)), { templateId = null })
                 }
                 if (current.autoApprove) {
-                    ContextChip(Icons.Outlined.DoneAll, "Ohne Rückfrage", {
+                    ContextChip(Icons.Outlined.DoneAll, tr("Ohne Rückfrage"), {
                         vm.setAutoApprove(false)
-                        Notices.info("Aktionen in diesem Chat werden wieder bestätigt.")
+                        Notices.info(tr("Aktionen in diesem Chat werden wieder bestätigt."))
                     })
                 }
                 if (!current.systemPrompt.isNullOrBlank()) {
-                    ContextChip(Icons.Outlined.Person, current.persona ?: "System-Prompt", { showSystemPrompt = true })
+                    ContextChip(Icons.Outlined.Person, current.persona ?: tr("System-Prompt"), { showSystemPrompt = true })
                 }
                 // The memory goes along automatically; the chip shows how much and switches it off for this chat.
                 MemoryChip(c, current) { showMemory = true }
                 // Shows that names and contact details leave the device only as placeholders.
                 if (settings.pseudonymize) {
-                    ContextChip(Icons.Outlined.Shield, "Pseudonymisiert", { onNavigate("settings/privacy") }, highlighted = false)
+                    ContextChip(Icons.Outlined.Shield, tr("Pseudonymisiert"), { onNavigate("settings/privacy") }, highlighted = false)
                 }
                 // The project folder: one click opens it; created files land in its "Ausgabe".
                 current.folderId?.let { c.folders.get(it) }?.takeIf { it.workDir.isNotBlank() && PROJECT_FOLDERS }?.let { project ->
                     ContextChip(
                         Icons.Outlined.FolderOpen,
-                        if (project.workDirAccess) "Projektordner · liest mit" else "Projektordner · nur ${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}",
+                        if (project.workDirAccess) tr("Projektordner · liest mit") else tr("Projektordner · nur {0}", io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT),
                         { openProjectFolder(c.appContext, project.workDir) },
                         highlighted = false,
                     )
@@ -632,7 +631,7 @@ fun ChatScreen(
                         e.route != null -> onNavigate(e.route)
                         else -> {
                             e.mode?.let { id -> io.github.thepytales.llmhub.agent.ChatModes.byId(id)?.let(::startMode) }
-                            input = e.text
+                            input = tr(e.text)
                         }
                     }
                 },
@@ -734,7 +733,7 @@ fun ChatScreen(
                     }
                 }
                     }
-                if (building) item(key = "building") { ThinkingIndicator("Dokument wird erstellt …") }
+                if (building) item(key = "building") { ThinkingIndicator(tr("Dokument wird erstellt …")) }
                 if (typing) item(key = "typing") {
                     if (collapse) {
                         val pendingCall = last?.toolCalls?.lastOrNull { results[it.id] == null }
@@ -765,7 +764,7 @@ fun ChatScreen(
                     containerColor = LocalChatLook.current.card,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = pad.calculateBottomPadding() + 12.dp),
                 ) {
-                    BadgedBox(badge = { if (running) Badge() }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Zur neuesten Nachricht") }
+                    BadgedBox(badge = { if (running) Badge() }) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Zur neuesten Nachricht")) }
                 }
             }
             }
@@ -782,18 +781,18 @@ fun ChatScreen(
     if (imageWarning) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { imageWarning = false },
-            title = { Text("Bilder werden nicht pseudonymisiert") },
+            title = { Text(tr("Bilder werden nicht pseudonymisiert")) },
             text = {
                 Text(
-                    "In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – der Server sieht sie so, wie sie sind. " +
-                        "Ohne die Bilder geht nur der Text, pseudonymisiert. (Abschaltbar unter Einstellungen › Datenschutz.)"
+                    tr("In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – der Server sieht sie so, wie sie sind. " +
+                        "Ohne die Bilder geht nur der Text, pseudonymisiert. (Abschaltbar unter Einstellungen › Datenschutz.)")
                 )
             },
-            confirmButton = { TextButton(onClick = { imageWarning = false; send(true) }) { Text("Mit Bildern senden") } },
+            confirmButton = { TextButton(onClick = { imageWarning = false; send(true) }) { Text(tr("Mit Bildern senden")) } },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { imageWarning = false }) { Text("Abbrechen") }
-                    TextButton(onClick = { imageWarning = false; send(false) }, enabled = input.isNotBlank() || files.isNotEmpty()) { Text("Ohne Bilder") }
+                    TextButton(onClick = { imageWarning = false }) { Text(tr("Abbrechen")) }
+                    TextButton(onClick = { imageWarning = false; send(false) }, enabled = input.isNotBlank() || files.isNotEmpty()) { Text(tr("Ohne Bilder")) }
                 }
             },
         )
@@ -802,12 +801,12 @@ fun ChatScreen(
     if (showPlus) {
         PlusSheet(
             repoLabel = repoLabel.takeIf { settings.hasGitHub },
-            envLabel = env?.name ?: "Keine",
-            personaLabel = current.persona ?: if (current.systemPrompt.isNullOrBlank()) "Keine" else "Eigener System-Prompt",
+            envLabel = env?.name ?: tr("Keine"),
+            personaLabel = current.persona ?: if (current.systemPrompt.isNullOrBlank()) tr("Keine") else tr("Eigener System-Prompt"),
             onCamera = platform.primaryAttach,
             onPhotos = {
                 if (modelInfo.vision == false) {
-                    Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
+                    Notices.info(tr("Hinweis: {0} versteht keine Bilder.", modelInfo.displayName))
                 }
                 platform.pickPhotos()
             },
@@ -821,8 +820,8 @@ fun ChatScreen(
             onSnippets = { showSnippets = true },
             onNextcloud = if (settings.hasNextcloud && !current.vault) ({ showNextcloud = true }) else null,
             onClipboard = {
-                if (!platform.paste()) Notices.info("In der Zwischenablage ist kein Bild.")
-                else if (modelInfo.vision == false) Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
+                if (!platform.paste()) Notices.info(tr("In der Zwischenablage ist kein Bild."))
+                else if (modelInfo.vision == false) Notices.info(tr("Hinweis: {0} versteht keine Bilder.", modelInfo.displayName))
             },
         )
     }
@@ -839,8 +838,7 @@ fun ChatScreen(
             title = { Text(tr("Anderes Modell verwenden?")) },
             text = {
                 Text(
-                    tr("Für diese Anfrage passt") + " $suggested " + tr("besser") + " (${choice.reason}). " +
-                        tr("Eingestellt ist gerade") + " ${modelInfo.displayName}."
+                    tr("Für diese Anfrage passt {0} besser ({1}). Eingestellt ist gerade {2}.", suggested, choice.reason, modelInfo.displayName)
                 )
             },
             confirmButton = {
@@ -881,13 +879,13 @@ fun ChatScreen(
                 if (t.direct != null) {
                     if (running) {
                         c.drafts.upsert(io.github.thepytales.llmhub.data.TemplateDraft(t.id, values))
-                        Notices.info("Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen.")
+                        Notices.info(tr("Die Antwort läuft noch – Ihre Angaben sind gespeichert, bitte gleich erneut erstellen."))
                     } else vm.sendDirect(text, values, t)
                 } else if (running) {
                     // An answer is still being written: keep the text (and attachments) for later.
                     input = if (input.isBlank()) text else text + "\n\n" + input
                     templateId = t.id
-                    Notices.info("Die Antwort läuft noch – der Text steht im Eingabefeld.")
+                    Notices.info(tr("Die Antwort läuft noch – der Text steht im Eingabefeld."))
                 } else {
                     vm.send(text, images.toList(), files.toList(), t)
                     images.clear()
@@ -917,7 +915,7 @@ fun ChatScreen(
             onSelect = { vm.setModel(it); vm.setAutoModel(false) },
             onDismiss = { showModelPicker = false },
             defaultModel = settings.defaultModel,
-            note = "Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest.",
+            note = tr("Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest."),
             auto = current.autoModel,
             onAuto = { vm.setAutoModel(true) },
         )
@@ -930,7 +928,7 @@ fun ChatScreen(
             onSelect = { vm.regenerate(question, it) },
             onDismiss = { regenerateFor = null },
             defaultModel = settings.defaultModel,
-            title = "Neu generieren mit …",
+            title = tr("Neu generieren mit …"),
         )
     }
 
@@ -967,7 +965,7 @@ fun ChatScreen(
     if (showAiNote) AiUseNoteDialog(c, current) { showAiNote = false }
 
     if (showRename) {
-        TextInputDialog("Chat umbenennen", current.title, "Titel", onConfirm = { vm.rename(it) }, onDismiss = { showRename = false })
+        TextInputDialog(tr("Chat umbenennen"), current.title, tr("Titel"), onConfirm = { vm.rename(it) }, onDismiss = { showRename = false })
     }
 
     if (showFolder) {
@@ -979,7 +977,7 @@ fun ChatScreen(
     }
 
     if (showDelete) {
-        ConfirmDialog("Chat löschen?", "„${current.title}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", "Löschen", onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
+        ConfirmDialog(tr("Chat löschen?"), tr("„{0}“ kommt in den Papierkorb (30 Tage, Einstellungen › Daten).", current.title), tr("Löschen"), onConfirm = { vm.deleteChat() }, onDismiss = { showDelete = false })
     }
 
     pending?.let { p ->
@@ -1000,44 +998,44 @@ internal fun startActions(
     onTemplate: (io.github.thepytales.llmhub.data.Template) -> Unit,
 ) = listOf(
     StartAction(
-        "Schreiben", Icons.Outlined.EditNote,
+        tr("Schreiben"), Icons.Outlined.EditNote,
         listOf(
-            StartExample("E-Mail formulieren") { onInput(tr("Formuliere eine freundliche E-Mail an ")) },
-            StartExample("Text kürzen und verständlicher machen") { onInput(tr("Mach diesen Text kürzer und verständlicher:\n")) },
-            StartExample("Ins Englische übersetzen") { onInput(tr("Übersetze ins Englische:\n")) },
-            StartExample("Ideen sammeln") { onInput(tr("Sammle Ideen für ")) },
+            StartExample(tr("E-Mail formulieren")) { onInput(tr("Formuliere eine freundliche E-Mail an ")) },
+            StartExample(tr("Text kürzen und verständlicher machen")) { onInput(tr("Mach diesen Text kürzer und verständlicher:\n")) },
+            StartExample(tr("Ins Englische übersetzen")) { onInput(tr("Übersetze ins Englische:\n")) },
+            StartExample(tr("Ideen sammeln")) { onInput(tr("Sammle Ideen für ")) },
         ),
     ),
     StartAction(
-        "Dokument erstellen", Icons.Outlined.Description,
+        tr("Dokument erstellen"), Icons.Outlined.Description,
         listOf(
-            StartExample("Protokoll aus Notizen") { onInput(tr("Erstelle ein Protokoll aus diesen Notizen:\n")) },
-            StartExample("Handout oder Merkblatt") { onInput(tr("Entwirf ein Handout zum Thema ")) },
-            StartExample("Präsentation") { onInput(tr("Erstelle eine Präsentation zum Thema ")) },
-            StartExample("Diagramm aus Daten") { onInput(tr("Erstelle ein Diagramm aus diesen Daten:\n")) },
+            StartExample(tr("Protokoll aus Notizen")) { onInput(tr("Erstelle ein Protokoll aus diesen Notizen:\n")) },
+            StartExample(tr("Handout oder Merkblatt")) { onInput(tr("Entwirf ein Handout zum Thema ")) },
+            StartExample(tr("Präsentation")) { onInput(tr("Erstelle eine Präsentation zum Thema ")) },
+            StartExample(tr("Diagramm aus Daten")) { onInput(tr("Erstelle ein Diagramm aus diesen Daten:\n")) },
         ),
     ),
     StartAction(
-        "Dateien auswerten", Icons.Outlined.AttachFile,
+        tr("Dateien auswerten"), Icons.Outlined.AttachFile,
         listOf(
-            StartExample("Zusammenfassen") { onFiles(tr("Fasse die angehängten Dateien zusammen.")) },
-            StartExample("Fragen zu den Dateien stellen") { onFiles(tr("Beantworte anhand der angehängten Dateien: ")) },
-            StartExample("Tabelle auswerten") { onFiles(tr("Werte die angehängte Tabelle aus: ")) },
-            StartExample("Dokumente vergleichen") { onFiles(tr("Vergleiche die angehängten Dokumente: ")) },
+            StartExample(tr("Zusammenfassen")) { onFiles(tr("Fasse die angehängten Dateien zusammen.")) },
+            StartExample(tr("Fragen zu den Dateien stellen")) { onFiles(tr("Beantworte anhand der angehängten Dateien: ")) },
+            StartExample(tr("Tabelle auswerten")) { onFiles(tr("Werte die angehängte Tabelle aus: ")) },
+            StartExample(tr("Dokumente vergleichen")) { onFiles(tr("Vergleiche die angehängten Dokumente: ")) },
         ),
     ),
     StartAction(
-        "Literatur finden", Icons.Outlined.MenuBook,
+        tr("Literatur finden"), Icons.Outlined.MenuBook,
         listOf(
-            StartExample("Aktuelle Literatur zu einem Thema") { onMode("literature", tr("Finde aktuelle Literatur zum Thema: ")) },
-            StartExample("Antwort nur mit Belegen (Quellenmodus)") { onMode("sources", "") },
-            StartExample("Quellenangaben eines Textes prüfen") { onInput(tr("Prüfe die Quellenangaben in diesem Text:\n")) },
-            StartExample("Literaturverzeichnis ordnen") { onNavigate("literature") },
+            StartExample(tr("Aktuelle Literatur zu einem Thema")) { onMode("literature", tr("Finde aktuelle Literatur zum Thema: ")) },
+            StartExample(tr("Antwort nur mit Belegen (Quellenmodus)")) { onMode("sources", "") },
+            StartExample(tr("Quellenangaben eines Textes prüfen")) { onInput(tr("Prüfe die Quellenangaben in diesem Text:\n")) },
+            StartExample(tr("Literaturverzeichnis ordnen")) { onNavigate("literature") },
         ),
     ),
     StartAction(
-        "TU Vorlagen", Icons.Outlined.Bookmarks,
-        templates.take(3).map { t -> StartExample(t.name) { onTemplate(t) } } + StartExample("Alle TU Vorlagen ansehen") { onNavigate("templates") },
+        tr("TU Vorlagen"), Icons.Outlined.Bookmarks,
+        templates.take(3).map { t -> StartExample(tr(t.name)) { onTemplate(t) } } + StartExample(tr("Alle TU Vorlagen ansehen")) { onNavigate("templates") },
     ),
 )
 

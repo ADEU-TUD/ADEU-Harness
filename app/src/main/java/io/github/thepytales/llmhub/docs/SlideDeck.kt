@@ -1,4 +1,5 @@
 package io.github.thepytales.llmhub.docs
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Slides of the presentation editor, stored as the Markdown [PptxWriter] reads: slides separated by "---", the
@@ -8,11 +9,11 @@ package io.github.thepytales.llmhub.docs
  */
 object SlideDeck {
     enum class Layout(val label: String, val key: String = "") {
-        TITLE("Titelfolie"), SECTION("Abschnitt"), CONTENT("Inhalt"), TWO_COLUMNS("Zwei Spalten"), QUOTE("Zitat"),
-        IMAGE_TEXT("Bild + Text", "bild-text"), IMAGE("Vollbild-Bild", "bild"), COMPARISON("Vergleich", "vergleich"),
-        TABLE("Tabelle", "tabelle"), CHART("Diagramm", "diagramm"), AGENDA("Agenda", "agenda"), END("Abschluss", "abschluss"),
+        TITLE(trLater("Titelfolie")), SECTION(trLater("Abschnitt")), CONTENT(trLater("Inhalt")), TWO_COLUMNS(trLater("Zwei Spalten")), QUOTE(trLater("Zitat")),
+        IMAGE_TEXT(trLater("Bild + Text"), "bild-text"), IMAGE(trLater("Vollbild-Bild"), "bild"), COMPARISON(trLater("Vergleich"), "vergleich"),
+        TABLE(trLater("Tabelle"), "tabelle"), CHART(trLater("Diagramm"), "diagramm"), AGENDA("Agenda", "agenda"), END(trLater("Abschluss"), "abschluss"),
         /** Frei gestalten (AP-16): only the title (optional) and freely placed elements. */
-        FREE("Frei", "frei"),
+        FREE(trLater("Frei"), "frei"),
         ;
 
         /** Whether the layout shows the picture of the slide. */

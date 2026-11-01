@@ -20,7 +20,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -137,7 +136,7 @@ private fun ReplaceTextCard(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) 
             OutlinedTextField(value = replace, onValueChange = { replace = it }, singleLine = true, label = { Text(tr("Ersetzen durch")) }, modifier = Modifier.weight(1f))
         }
         Button(enabled = find.length >= 2, onClick = {
-            onRun { src, out -> if (PdfStage3.replaceText(src, find, replace, null, out) == 0) error(tr("„$find“ kommt im Text nicht vor.")) }
+            onRun { src, out -> if (PdfStage3.replaceText(src, find, replace, null, out) == 0) error(tr("„{0}“ kommt im Text nicht vor.", find)) }
         }) { Text(tr("Ersetzen")) }
     }
 }
@@ -165,7 +164,7 @@ private fun ImagesCard(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
                 preview?.let { Image(it, contentDescription = null, modifier = Modifier.size(56.dp)) } ?: Spacer(Modifier.size(56.dp))
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(tr("Seite") + " ${img.page + 1} · ${img.width} × ${img.height} px", style = MaterialTheme.typography.bodyMedium)
+                    Text(tr("Seite") + tr(" {0} · {1} × {2} px", img.page + 1, img.width, img.height), style = MaterialTheme.typography.bodyMedium)
                     Text(io.github.thepytales.llmhub.data.NextcloudService.size(img.bytes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 TextButton(onClick = { target = img; pick() }) { Text(tr("Ersetzen …")) }

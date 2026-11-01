@@ -3,23 +3,24 @@ package io.github.thepytales.llmhub.research
 import io.github.thepytales.llmhub.agent.CitationStatus
 import io.github.thepytales.llmhub.agent.Evidence
 import io.github.thepytales.llmhub.agent.EvidenceSource
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Kind of text: decides the fields of the excerpt (AP-09). */
 enum class ExcerptSchema(val id: String, val label: String, val fields: List<String>) {
     EMPIRICAL(
-        "empirisch", "Empirische Studie",
+        "empirisch", trLater("Empirische Studie"),
         listOf("Bibliografie", "Fragestellung", "Theorie", "Methode", "Stichprobe", "Zentrale Befunde", "Wörtliche Zitate", "Begriffe", "Eigene Bewertung", "Anschlussfragen"),
     ),
     THEORETICAL(
-        "theoretisch", "Theoretischer Text",
+        "theoretisch", trLater("Theoretischer Text"),
         listOf("Bibliografie", "Fragestellung", "Theorie", "Zentrale Thesen und Argumentation", "Wörtliche Zitate", "Begriffe", "Eigene Bewertung", "Anschlussfragen"),
     ),
     REVIEW(
-        "review", "Review / Metaanalyse",
+        "review", trLater("Review / Metaanalyse"),
         listOf("Bibliografie", "Fragestellung", "Methode (Suche, Einschluss, Auswertung)", "Stichprobe (Zahl und Art der Studien)", "Zentrale Befunde", "Forschungslücken", "Wörtliche Zitate", "Begriffe", "Eigene Bewertung", "Anschlussfragen"),
     ),
     CHAPTER(
-        "kapitel", "Buchkapitel",
+        "kapitel", trLater("Buchkapitel"),
         listOf("Bibliografie", "Fragestellung", "Einordnung im Buch", "Theorie", "Zentrale Thesen", "Wörtliche Zitate", "Begriffe", "Eigene Bewertung", "Anschlussfragen"),
     );
 

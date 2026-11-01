@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -87,13 +86,13 @@ private fun Chip(text: String, icon: ImageVector? = null, on: Boolean = true) {
 fun CapabilityChips(model: ModelInfo, modifier: Modifier = Modifier) {
     val info = ModelCatalog.effective(model)
     FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        info.contextTokens?.let { Chip("${formatTokens(it)} Kontext") }
-        if (info.thinking == true) Chip("Denken", Icons.Outlined.Psychology)
-        if (info.vision == true) Chip("Bilder", Icons.Outlined.Visibility)
-        if (info.tools == true) Chip("Werkzeuge", Icons.Outlined.Build)
-        if (info.thinking == false) Chip("kein Denken", on = false)
-        if (info.vision == false) Chip("keine Bilder", on = false)
-        if (info.isAlias) Chip("Alias", on = false)
+        info.contextTokens?.let { Chip(tr("{0} Kontext", formatTokens(it))) }
+        if (info.thinking == true) Chip(tr("Denken"), Icons.Outlined.Psychology)
+        if (info.vision == true) Chip(tr("Bilder"), Icons.Outlined.Visibility)
+        if (info.tools == true) Chip(tr("Werkzeuge"), Icons.Outlined.Build)
+        if (info.thinking == false) Chip(tr("kein Denken"), on = false)
+        if (info.vision == false) Chip(tr("keine Bilder"), on = false)
+        if (info.isAlias) Chip(tr("Alias"), on = false)
     }
 }
 
@@ -113,9 +112,9 @@ fun RatingRow(label: String, value: Int) {
 fun capabilityLine(m: ModelInfo): String {
     val e = ModelCatalog.effective(m)
     return listOfNotNull(
-        if (e.vision == true) "versteht Bilder" else if (e.vision == false) "keine Bilder" else null,
-        if (e.tools == true) "Websuche & Werkzeuge" else null,
-        e.contextTokens?.let { "${formatTokens(it)} Kontext" },
+        if (e.vision == true) tr("versteht Bilder") else if (e.vision == false) tr("keine Bilder") else null,
+        if (e.tools == true) tr("Websuche & Werkzeuge") else null,
+        e.contextTokens?.let { tr("{0} Kontext", formatTokens(it)) },
     ).joinToString(" · ")
 }
 
@@ -167,7 +166,7 @@ private fun ModelRows(
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {
                             Text(m.displayName, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
-                            if (m.id == defaultModel) Badge("Standard", Modifier.align(Alignment.CenterVertically))
+                            if (m.id == defaultModel) Badge(tr("Standard"), Modifier.align(Alignment.CenterVertically))
                             m.badge?.let { Badge(it, Modifier.align(Alignment.CenterVertically)) }
                         }
                         Text(
@@ -184,7 +183,7 @@ private fun ModelRows(
                     }
                     if (m.id == selected) {
                         Icon(
-                            Icons.Outlined.Check, contentDescription = "Ausgewählt",
+                            Icons.Outlined.Check, contentDescription = tr("Ausgewählt"),
                             modifier = Modifier.padding(start = 12.dp),
                         )
                     }
@@ -234,11 +233,11 @@ fun ModelPickerSheet(
                     onClick = { if (showMore && featured.isNotEmpty()) showMore = false else onDismiss() },
                     modifier = Modifier.align(Alignment.CenterStart),
                 ) {
-                    if (showMore && featured.isNotEmpty()) Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
-                    else Icon(Icons.Outlined.Close, contentDescription = "Schließen")
+                    if (showMore && featured.isNotEmpty()) Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück"))
+                    else Icon(Icons.Outlined.Close, contentDescription = tr("Schließen"))
                 }
                 Text(
-                    if (showMore && featured.isNotEmpty()) "Weitere Modelle" else title,
+                    if (showMore && featured.isNotEmpty()) tr("Weitere Modelle") else title,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.align(Alignment.Center),
                 )
@@ -263,7 +262,7 @@ fun ModelPickerSheet(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            if (auto) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt", modifier = Modifier.padding(start = 12.dp))
+                            if (auto) Icon(Icons.Outlined.Check, contentDescription = tr("Ausgewählt"), modifier = Modifier.padding(start = 12.dp))
                         }
                     }
                 }
@@ -287,7 +286,7 @@ fun ModelPickerSheet(
                             .clickable { showMore = true },
                     ) {
                         Row(Modifier.padding(horizontal = 18.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Weitere Modelle", style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), modifier = Modifier.weight(1f))
+                            Text(tr("Weitere Modelle"), style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), modifier = Modifier.weight(1f))
                             more.firstOrNull { it.id == selected }?.let {
                                 Text(
                                     it.displayName,
@@ -307,7 +306,7 @@ fun ModelPickerSheet(
                 }
             } else {
                 Text(
-                    "Modelle für besondere Zwecke. Für den Alltag reichen die Modelle auf der ersten Seite.",
+                    tr("Modelle für besondere Zwecke. Für den Alltag reichen die Modelle auf der ersten Seite."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
@@ -363,10 +362,10 @@ private fun LevelChip(label: String, value: Int, onSelect: (Int) -> Unit) {
             trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, contentDescription = null, modifier = Modifier.size(18.dp)) },
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text("Alle") }, onClick = { onSelect(0); open = false })
+            DropdownMenuItem(text = { Text(tr("Alle")) }, onClick = { onSelect(0); open = false })
             (3..5).forEach { v ->
                 DropdownMenuItem(
-                    text = { Text("mind. " + "●".repeat(v) + "○".repeat(5 - v)) },
+                    text = { Text(tr("mind. ") + "●".repeat(v) + "○".repeat(5 - v)) },
                     onClick = { onSelect(v); open = false },
                 )
             }
@@ -390,12 +389,12 @@ fun ModelFilterBar(
         OutlinedTextField(
             value = filter.query,
             onValueChange = { onChange(filter.copy(query = it)) },
-            placeholder = { Text("Modelle suchen (Name, Stärke, Anbieter …)") },
+            placeholder = { Text(tr("Modelle suchen (Name, Stärke, Anbieter …)")) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
                 if (filter.query.isNotEmpty()) {
                     IconButton(onClick = { onChange(filter.copy(query = "")) }) {
-                        Icon(Icons.Outlined.Close, contentDescription = "Suche leeren")
+                        Icon(Icons.Outlined.Close, contentDescription = tr("Suche leeren"))
                     }
                 }
             },
@@ -405,7 +404,7 @@ fun ModelFilterBar(
         )
         if (types != null) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(selected = filter.type == null, onClick = { onChange(filter.copy(type = null)) }, label = { Text("Alle") })
+                FilterChip(selected = filter.type == null, onClick = { onChange(filter.copy(type = null)) }, label = { Text(tr("Alle")) })
                 types.forEach { t ->
                     FilterChip(
                         selected = filter.type == t,
@@ -423,29 +422,29 @@ fun ModelFilterBar(
             FilterChip(
                 selected = filter.thinking,
                 onClick = { onChange(filter.copy(thinking = !filter.thinking)) },
-                label = { Text("Denken") },
+                label = { Text(tr("Denken")) },
                 leadingIcon = { Icon(Icons.Outlined.Psychology, contentDescription = null, modifier = Modifier.size(16.dp)) },
             )
             FilterChip(
                 selected = filter.vision,
                 onClick = { onChange(filter.copy(vision = !filter.vision)) },
-                label = { Text("Bilder") },
+                label = { Text(tr("Bilder")) },
                 leadingIcon = { Icon(Icons.Outlined.Visibility, contentDescription = null, modifier = Modifier.size(16.dp)) },
             )
             FilterChip(
                 selected = filter.tools,
                 onClick = { onChange(filter.copy(tools = !filter.tools)) },
-                label = { Text("Werkzeuge") },
+                label = { Text(tr("Werkzeuge")) },
                 leadingIcon = { Icon(Icons.Outlined.Build, contentDescription = null, modifier = Modifier.size(16.dp)) },
             )
-            LevelChip("Leistung", filter.minPower) { onChange(filter.copy(minPower = it)) }
-            LevelChip("Tempo", filter.minSpeed) { onChange(filter.copy(minSpeed = it)) }
+            LevelChip(tr("Leistung"), filter.minPower) { onChange(filter.copy(minPower = it)) }
+            LevelChip(tr("Tempo"), filter.minSpeed) { onChange(filter.copy(minSpeed = it)) }
             var sortOpen by remember { mutableStateOf(false) }
             Box {
                 FilterChip(
                     selected = filter.sort != ModelSort.DEFAULT,
                     onClick = { sortOpen = true },
-                    label = { Text(if (filter.sort == ModelSort.DEFAULT) "Sortieren" else "Nach ${filter.sort.label}") },
+                    label = { Text(if (filter.sort == ModelSort.DEFAULT) tr("Sortieren") else tr("Nach {0}", filter.sort.label)) },
                     leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = null, modifier = Modifier.size(16.dp)) },
                 )
                 DropdownMenu(expanded = sortOpen, onDismissRequest = { sortOpen = false }) {
@@ -461,11 +460,11 @@ fun ModelFilterBar(
             FilterChip(
                 selected = filter.hideAliases,
                 onClick = { onChange(filter.copy(hideAliases = !filter.hideAliases)) },
-                label = { Text("Ohne Aliase") },
+                label = { Text(tr("Ohne Aliase")) },
             )
             if (filter.isActive) {
                 TextButton(onClick = { onChange(ModelFilter(type = if (types == null) filter.type else null)) }) {
-                    Text("Zurücksetzen")
+                    Text(tr("Zurücksetzen"))
                 }
             }
         }
@@ -475,6 +474,6 @@ fun ModelFilterBar(
 @Composable
 fun BackButton(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück"))
     }
 }

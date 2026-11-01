@@ -47,7 +47,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -121,7 +120,7 @@ fun TemplateBrowser(
     val all = remember(own) { TemplateLibrary.all(own) }
     val q = query.trim()
     val shown = all.filter { t ->
-        (q.isEmpty() || listOf(t.name, t.description, t.content).any { it.contains(q, ignoreCase = true) }) && when (filter) {
+        (q.isEmpty() || listOf(t.name, tr(t.name), t.description, tr(t.description), t.content).any { it.contains(q, ignoreCase = true) }) && when (filter) {
             null -> true
             FAVORITES -> t.id in s.favoriteTemplates
             TemplateCategory.OWN.name -> !t.builtIn
@@ -134,10 +133,10 @@ fun TemplateBrowser(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("TU Vorlagen durchsuchen") },
+                placeholder = { Text(tr("TU Vorlagen durchsuchen")) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
-                    if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche leeren") }
+                    if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche leeren")) }
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -149,12 +148,12 @@ fun TemplateBrowser(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                FilterChip(selected = filter == null, onClick = { filter = null }, label = { Text("Alle") })
+                FilterChip(selected = filter == null, onClick = { filter = null }, label = { Text(tr("Alle")) })
                 if (s.favoriteTemplates.isNotEmpty()) {
                     FilterChip(
                         selected = filter == FAVORITES,
                         onClick = { filter = if (filter == FAVORITES) null else FAVORITES },
-                        label = { Text("Favoriten") },
+                        label = { Text(tr("Favoriten")) },
                         leadingIcon = { Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp)) },
                     )
                 }
@@ -163,7 +162,7 @@ fun TemplateBrowser(
                     if (count > 0) FilterChip(
                         selected = filter == cat.name,
                         onClick = { filter = if (filter == cat.name) null else cat.name },
-                        label = { Text(cat.label) },
+                        label = { Text(tr(cat.label)) },
                     )
                 }
             }
@@ -173,8 +172,8 @@ fun TemplateBrowser(
             if (list.isEmpty()) return@forEach
             item(key = "h_$cat") {
                 Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 2.dp)) {
-                    Text(cat.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                    Text(cat.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr(cat.label), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(tr(cat.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             items(list, key = { it.id }) { t ->
@@ -183,13 +182,13 @@ fun TemplateBrowser(
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable { onOpen(t) },
                     leadingContent = { Icon(categoryIcon(cat), contentDescription = null) },
-                    headlineContent = { Text(if (t.builtIn) t.name else "${t.name} · eigene") },
-                    supportingContent = { Text(t.description.ifBlank { t.content }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+                    headlineContent = { Text(if (t.builtIn) tr(t.name) else tr("{0} · eigene", t.name)) },
+                    supportingContent = { Text(tr(t.description).ifBlank { t.content }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                     trailingContent = {
                         IconButton(onClick = { toggleFavorite(c, t.id) }) {
                             Icon(
                                 if (favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                                contentDescription = if (favorite) "Aus den Favoriten entfernen" else "Zu den Favoriten",
+                                contentDescription = if (favorite) tr("Aus den Favoriten entfernen") else tr("Zu den Favoriten"),
                                 tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
@@ -199,7 +198,7 @@ fun TemplateBrowser(
         }
         if (shown.isEmpty()) item(key = "empty") {
             Text(
-                "Keine passende Vorlage gefunden.",
+                tr("Keine passende Vorlage gefunden."),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(20.dp),
@@ -281,7 +280,7 @@ fun TemplateFillDialog(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Notices.error("✨ fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+                Notices.error(tr("✨ fehlgeschlagen: {0}", e.message ?: e.javaClass.simpleName))
             } finally {
                 working = null
             }
@@ -307,11 +306,11 @@ fun TemplateFillDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(categoryIcon(template.section), contentDescription = null) },
-        title = { Text(template.name) },
+        title = { Text(tr(template.name)) },
         text = {
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (template.description.isNotBlank()) {
-                    Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr(template.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (onInterview != null && io.github.thepytales.llmhub.agent.TemplateInterview.offered(template)) {
                     androidx.compose.material3.AssistChip(
@@ -331,7 +330,7 @@ fun TemplateFillDialog(
                         onChange = { values[f.label] = it; if (f == required) missing = false },
                         working = working == f.label,
                         enabled = working == null,
-                        error = if (missing && f == required) "Bitte den Text eingeben – oder Stichpunkte schreiben und mit ✨ ausformulieren lassen." else null,
+                        error = if (missing && f == required) tr("Bitte den Text eingeben – oder Stichpunkte schreiben und mit ✨ ausformulieren lassen.") else null,
                         contacts = if (f.isAddress) contacts.sortedByDescending { it.lastUsed } else emptyList(),
                         onContact = { values[f.label] = it.address },
                         onDeleteContact = { c.contacts.delete(it.id) },
@@ -350,25 +349,25 @@ fun TemplateFillDialog(
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.size(8.dp))
-                        Text("Suche Vorschläge in Gedächtnis und Wissenssammlung …", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(tr("Suche Vorschläge in Gedächtnis und Wissenssammlung …"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 if (sender.isBlank() && fields.any { it.isSender }) {
                     Text(
-                        "Tipp: Ihre Absenderangaben einmal unter Einstellungen › Dokumente & Logos hinterlegen – dann sind sie hier schon ausgefüllt.",
+                        tr("Tipp: Ihre Absenderangaben einmal unter Einstellungen › Dokumente & Logos hinterlegen – dann sind sie hier schon ausgefüllt."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Text(
-                    if (template.direct != null) "✨ überarbeitet ein Feld mit KI. Ihre Eingaben bleiben gespeichert, bis Sie senden."
-                    else "Leere Felder werden weggelassen. ✨ überarbeitet ein Feld mit KI. „Einfügen“ übernimmt den Text ins Eingabefeld, z.B. um noch eine Datei anzuhängen.",
+                    if (template.direct != null) tr("✨ überarbeitet ein Feld mit KI. Ihre Eingaben bleiben gespeichert, bis Sie senden.")
+                    else tr("Leere Felder werden weggelassen. ✨ überarbeitet ein Feld mit KI. „Einfügen“ übernimmt den Text ins Eingabefeld, z.B. um noch eine Datei anzuhängen."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (fields.any { f -> values[f.label].orEmpty() != initial(f) }) {
                     Text(
-                        "Felder leeren",
+                        tr("Felder leeren"),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable {
@@ -380,11 +379,11 @@ fun TemplateFillDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { finish(send = true) }, enabled = working == null) { Text(if (template.direct != null) "Erstellen" else "Senden") } },
+        confirmButton = { TextButton(onClick = { finish(send = true) }, enabled = working == null) { Text(if (template.direct != null) tr("Erstellen") else tr("Senden")) } },
         dismissButton = {
             Row {
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
-                if (template.direct == null) TextButton(onClick = { finish(send = false) }, enabled = working == null) { Text("Einfügen") }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
+                if (template.direct == null) TextButton(onClick = { finish(send = false) }, enabled = working == null) { Text(tr("Einfügen")) }
             }
         },
     )
@@ -397,16 +396,16 @@ fun TemplateFillDialog(
                 OutlinedTextField(
                     value = instruction,
                     onValueChange = { instruction = it },
-                    label = { Text("Was soll mit dem Text passieren?") },
-                    placeholder = { Text("z.B. Füge einen Satz zur Frist hinzu") },
+                    label = { Text(tr("Was soll mit dem Text passieren?")) },
+                    placeholder = { Text(tr("z.B. Füge einen Satz zur Frist hinzu")) },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
-                TextButton(enabled = instruction.isNotBlank(), onClick = { customFor = null; assist(f, AssistMode.CUSTOM, instruction) }) { Text("Ausführen") }
+                TextButton(enabled = instruction.isNotBlank(), onClick = { customFor = null; assist(f, AssistMode.CUSTOM, instruction) }) { Text(tr("Ausführen")) }
             },
-            dismissButton = { TextButton(onClick = { customFor = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { customFor = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -435,17 +434,17 @@ private fun TemplateFieldInput(
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            label = { Text(field.label) },
+            label = { Text(tr(field.label)) },
             enabled = !working,
             isError = error != null,
-            supportingText = (error ?: field.hint.ifBlank { null })?.let { t -> { Text(t) } },
+            supportingText = (error ?: field.hint.ifBlank { null }?.let { tr(it) })?.let { t -> { Text(t) } },
             minLines = if (field.multiline) 3 else 1,
             maxLines = 14,
             trailingIcon = {
                 Row {
                     if (contacts.isNotEmpty()) Box {
                         IconButton(onClick = { book = true }, enabled = enabled) {
-                            Icon(Icons.Outlined.Contacts, contentDescription = "Adressbuch")
+                            Icon(Icons.Outlined.Contacts, contentDescription = tr("Adressbuch"))
                         }
                         DropdownMenu(expanded = book, onDismissRequest = { book = false }) {
                             contacts.take(15).forEach { ct ->
@@ -465,7 +464,7 @@ private fun TemplateFieldInput(
                                     onClick = { book = false; onContact(ct) },
                                     trailingIcon = {
                                         IconButton(onClick = { onDeleteContact(ct) }) {
-                                            Icon(Icons.Outlined.Close, contentDescription = "Aus dem Adressbuch löschen", modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Outlined.Close, contentDescription = tr("Aus dem Adressbuch löschen"), modifier = Modifier.size(18.dp))
                                         }
                                     },
                                 )
@@ -477,19 +476,19 @@ private fun TemplateFieldInput(
                             CircularProgressIndicator(Modifier.padding(12.dp).size(22.dp), strokeWidth = 2.dp)
                         } else {
                             IconButton(onClick = { menu = true }, enabled = enabled) {
-                                Icon(Icons.Outlined.AutoAwesome, contentDescription = "Mit KI überarbeiten", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("Mit KI überarbeiten"), tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             Text(
-                                "Mit KI …",
+                                tr("Mit KI …"),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             )
                             AssistMode.of(field).forEach { mode ->
                                 DropdownMenuItem(
-                                    text = { Text(if (mode == AssistMode.EXPAND && value.isBlank()) "Vorschlag schreiben" else mode.label) },
+                                    text = { Text(if (mode == AssistMode.EXPAND && value.isBlank()) tr("Vorschlag schreiben") else mode.label) },
                                     onClick = { menu = false; onAssist(mode) },
                                 )
                             }
@@ -505,7 +504,7 @@ private fun TemplateFieldInput(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.AutoAwesome, contentDescription = "Vorschläge", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("Vorschläge"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                 suggestions.forEach { sg ->
                     SuggestionChip(
                         onClick = { onSuggestion(sg.text) },
@@ -522,7 +521,7 @@ private fun TemplateFieldInput(
         }
         if (canUndo && !working) {
             Text(
-                "↶ Rückgängig",
+                tr("↶ Rückgängig"),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onUndo).padding(start = 4.dp, top = 2.dp),
@@ -548,21 +547,21 @@ fun TemplateDetailsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(categoryIcon(template.section), contentDescription = null) },
-        title = { Text(template.name) },
+        title = { Text(tr(template.name)) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    listOf(template.section.label, if (template.builtIn) "in der App enthalten" else "eigene Vorlage").joinToString(" · "),
+                    listOf(template.section.label, if (template.builtIn) tr("in der App enthalten") else tr("eigene Vorlage")).joinToString(" · "),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                if (template.description.isNotBlank()) Text(template.description, style = MaterialTheme.typography.bodyMedium)
+                if (template.description.isNotBlank()) Text(tr(template.description), style = MaterialTheme.typography.bodyMedium)
                 val fields = template.fields
                 Text(
                     when {
-                        template.kind == TemplateKind.PERSONA -> "Persona: legt fest, wie sich das Modell im ganzen Chat verhält."
-                        fields.isEmpty() -> "Fügt den Text ins Eingabefeld ein."
-                        else -> "Beim Verwenden fragt die App: " + fields.joinToString(", ") { it.label } + "."
+                        template.kind == TemplateKind.PERSONA -> tr("Persona: legt fest, wie sich das Modell im ganzen Chat verhält.")
+                        fields.isEmpty() -> tr("Fügt den Text ins Eingabefeld ein.")
+                        else -> tr("Beim Verwenden fragt die App: ") + fields.joinToString(", ") { it.label } + "."
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -572,7 +571,7 @@ fun TemplateDetailsDialog(
                 }
                 if (template.instructions.isNotBlank()) {
                     Text(
-                        if (showInstructions) "Anweisungen an das Modell ausblenden" else "Anweisungen an das Modell anzeigen",
+                        if (showInstructions) tr("Anweisungen an das Modell ausblenden") else tr("Anweisungen an das Modell anzeigen"),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable { showInstructions = !showInstructions }.padding(vertical = 4.dp),
@@ -585,22 +584,22 @@ fun TemplateDetailsDialog(
                     TextButton(onClick = { toggleFavorite(c, template.id) }) {
                         Icon(if (favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text(if (favorite) "Favorit" else "Zu Favoriten")
+                        Text(if (favorite) tr("Favorit") else tr("Zu Favoriten"))
                     }
                     if (!template.builtIn) {
                         TextButton(onClick = {
                             clipboard.setText(AnnotatedString(TemplateLibrary.export(listOf(template))))
-                            Notices.info("Vorlage kopiert – z.B. per Mail an Kolleg:innen schicken.")
-                        }) { Text("Teilen") }
+                            Notices.info(tr("Vorlage kopiert – z.B. per Mail an Kolleg:innen schicken."))
+                        }) { Text(tr("Teilen")) }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onDismiss(); onUse() }) { Text("Verwenden") } },
+        confirmButton = { TextButton(onClick = { onDismiss(); onUse() }) { Text(tr("Verwenden")) } },
         dismissButton = {
             Row {
-                TextButton(onClick = onDismiss) { Text("Schließen") }
-                TextButton(onClick = { onDismiss(); onEdit() }) { Text(if (template.builtIn) "Anpassen" else "Bearbeiten") }
+                TextButton(onClick = onDismiss) { Text(tr("Schließen")) }
+                TextButton(onClick = { onDismiss(); onEdit() }) { Text(if (template.builtIn) tr("Anpassen") else tr("Bearbeiten")) }
             }
         },
     )

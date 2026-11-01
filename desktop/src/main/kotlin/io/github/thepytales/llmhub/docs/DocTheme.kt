@@ -2,14 +2,15 @@ package io.github.thepytales.llmhub.docs
 
 import android.util.Base64
 import io.github.thepytales.llmhub.desktop.Images
+import io.github.thepytales.llmhub.ui.trLater
 
 enum class DocStyle(val label: String, val description: String) {
-    MODERN("Modern", "Serifenlose Schrift, Akzentleiste und farbige Überschriften."),
-    BOLD("Kräftig", "Farbiger Titelblock, farbige Tabellenköpfe und Hinweisboxen."),
-    ELEGANT("Elegant", "Serifen-Überschriften in Akzentfarbe, feine Linien, viel Weißraum."),
-    CLASSIC("Klassisch", "Serifenschrift in Schwarz, zentrierter Titel – wie ein Brief."),
-    MINIMAL("Schlicht", "Schwarz auf Weiß ohne Schmuck."),
-    TUD("TU Dresden", "Corporate Design der TU Dresden: TUD-Blau, Logo im Kopf, Briefe mit Anschriftfeld."),
+    MODERN("Modern", trLater("Serifenlose Schrift, Akzentleiste und farbige Überschriften.")),
+    BOLD(trLater("Kräftig"), trLater("Farbiger Titelblock, farbige Tabellenköpfe und Hinweisboxen.")),
+    ELEGANT(trLater("Elegant"), trLater("Serifen-Überschriften in Akzentfarbe, feine Linien, viel Weißraum.")),
+    CLASSIC(trLater("Klassisch"), trLater("Serifenschrift in Schwarz, zentrierter Titel – wie ein Brief.")),
+    MINIMAL(trLater("Schlicht"), trLater("Schwarz auf Weiß ohne Schmuck.")),
+    TUD(trLater("TU Dresden"), trLater("Corporate Design der TU Dresden: TUD-Blau, Logo im Kopf, Briefe mit Anschriftfeld.")),
     ;
 
     companion object {

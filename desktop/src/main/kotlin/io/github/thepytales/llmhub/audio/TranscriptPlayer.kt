@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.audio
 
 import de.lokal.whisper.desktop.DesktopSpeechPlatform
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +23,7 @@ class TranscriptPlayer(private val file: File, context: Context? = null) {
     val position: StateFlow<Double> = _position.asStateFlow()
     private val _playing = MutableStateFlow(false)
     val playing: StateFlow<Boolean> = _playing.asStateFlow()
-    private val _error = MutableStateFlow<String?>(if (DesktopSpeechPlatform.ffmpeg() == null) "ffmpeg fehlt – die Aufnahme lässt sich nicht abspielen." else null)
+    private val _error = MutableStateFlow<String?>(if (DesktopSpeechPlatform.ffmpeg() == null) tr("ffmpeg fehlt – die Aufnahme lässt sich nicht abspielen.") else null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
     private var speed = 1f

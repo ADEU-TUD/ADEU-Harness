@@ -18,16 +18,16 @@ fun saveImageToDevice(context: Context, file: File) {
         target.writeBytes(Images.decode(bytes)?.let { Images.png(it) } ?: bytes)
         target
     }.onSuccess {
-        Notices.info("Gespeichert in Bilder\\Lora.")
+        Notices.info(tr("Gespeichert in Bilder\\Lora."))
         DesktopActions.showInFolder(it)
-    }.onFailure { Notices.error("Speichern fehlgeschlagen.") }
+    }.onFailure { Notices.error(tr("Speichern fehlgeschlagen.")) }
 }
 
 /** Windows has no share sheet: the picture is shown in Explorer, from where it can be dragged into mail or Teams. */
 @Suppress("UNUSED_PARAMETER")
 fun shareImage(context: Context, file: File) {
-    if (DesktopActions.showInFolder(file)) Notices.info("Im Explorer markiert – von dort in Mail oder Teams ziehen.")
-    else Notices.error("Explorer ließ sich nicht öffnen.")
+    if (DesktopActions.showInFolder(file)) Notices.info(tr("Im Explorer markiert – von dort in Mail oder Teams ziehen."))
+    else Notices.error(tr("Explorer ließ sich nicht öffnen."))
 }
 
 const val SAVE_IMAGE_LABEL = "Speichern"
