@@ -43,6 +43,22 @@ enum class AppTool(
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
         android = false,
     ),
+    BATCH(
+        "batch", "Stapel & Massenkontrolle",
+        "Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person.",
+        "batches", listOf(
+            "stapel", "massenkontrolle", "alle dateien", "viele dateien", "alle pdfs", "jede datei", "abgaben", "hausarbeiten", "korrigieren", "korrektur",
+            "bewerten", "bewertungsraster", "punkte vergeben", "notenvorschlag", "opal-abgaben", "ordner mit",
+        ),
+    ),
+    PROPOSALS(
+        "proposals", "Antrags-Werkstatt",
+        "Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check.",
+        "proposals", listOf(
+            "antrag", "drittmittel", "forderantrag", "projektantrag", "ausschreibung", "dfg", "bmbf", "horizon", "erc", "sab", "foerderung", "forderung",
+            "projektskizze", "sachbeihilfe", "gantt", "budgetplan", "finanzplan", "gutachter",
+        ),
+    ),
     VIDEO(
         "video", "Videoeditor",
         "Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube.",

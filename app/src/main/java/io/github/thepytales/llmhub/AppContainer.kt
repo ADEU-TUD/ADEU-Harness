@@ -43,6 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -144,6 +145,14 @@ class AppContainer(context: Context) {
     val environments = ListStore<AgentEnvironment>(
         PrefsBackend(settings.prefs, "environments"), AgentEnvironment.serializer(), { it.id },
     )
+    /** Nextcloud (AP-22): files of the user's Nextcloud for chats, the Dateien tab and the agent. */
+    val nextcloud = io.github.thepytales.llmhub.data.NextcloudService(this)
+    val nextcloudTools = io.github.thepytales.llmhub.agent.NextcloudTools(this)
+    /** MCP-Client (AP-23): servers of Einstellungen › Verbindungen (tokens encrypted, on Windows only on this PC). */
+    val mcpServers = ListStore<io.github.thepytales.llmhub.data.McpServer>(
+        PrefsBackend(settings.prefs, "mcpServers"), io.github.thepytales.llmhub.data.McpServer.serializer(), { it.id },
+    )
+    val mcp = io.github.thepytales.llmhub.agent.McpHub(this)
     val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
     /** Folders on this PC the agent may work in (Windows). */
     val localFolders = ListStore<io.github.thepytales.llmhub.data.LocalFolder>(
@@ -151,6 +160,40 @@ class AppContainer(context: Context) {
     )
     val localFolderTools = io.github.thepytales.llmhub.agent.LocalFolderTools(this)
     val projectFolderTools = io.github.thepytales.llmhub.agent.ProjectFolderTools(this)
+    /** Stapel und Massenkontrolle (AP-20): the jobs, their runner in the background and the agent's tools. */
+    val batches = io.github.thepytales.llmhub.data.BatchStore(files)
+    val batchRunner = io.github.thepytales.llmhub.agent.BatchRunner(
+        batches,
+        ask = { job, messages -> askBatch(job, messages) },
+        chatsBusy = { runs.runs.value.isNotEmpty() },
+        perMinute = {
+            // Leaves room for chats: the own limit, else two requests less than the API key allows (when known).
+            settings.current.batchPerMinute.takeIf { it > 0 } ?: llm.limiter.limit()?.let { (it - 2).coerceAtLeast(1) }
+        },
+        onFinished = { j ->
+            Notifier.batchFinished(
+                appContext, "Stapel fertig: ${j.title}",
+                "${j.done - j.failed} von ${j.items.size} Dateien bearbeitet" + (if (j.failed > 0) ", ${j.failed} mit Fehler" else "") +
+                    if (j.grading) " – die Vorschläge warten auf deine Entscheidung." else ".",
+            )
+        },
+    )
+    val batchTools = io.github.thepytales.llmhub.agent.BatchTools(this)
+    /** Antrags-Werkstatt (AP-21): proposals with checklist, deadlines, outline, work packages, budget. */
+    val proposals = ListStore<io.github.thepytales.llmhub.data.Proposal>(
+        FileBackend(File(files, "proposals.json")), io.github.thepytales.llmhub.data.Proposal.serializer(), { it.id },
+    )
+    val proposalTools = io.github.thepytales.llmhub.agent.ProposalTools(this)
+
+    /** One request of a batch: only the Uni server if the job says so, pseudonymized if it says so. */
+    private suspend fun askBatch(job: io.github.thepytales.llmhub.data.BatchJob, messages: List<io.github.thepytales.llmhub.data.ChatMessage>): String {
+        val model = if (job.uniOnly && io.github.thepytales.llmhub.data.Privacy.isExternal(this, job.model)) settings.current.defaultModel
+            .takeIf { !io.github.thepytales.llmhub.data.Privacy.isExternal(this, it) } ?: io.github.thepytales.llmhub.data.ModelCatalog.DEFAULT_CHAT else job.model
+        val context = io.github.thepytales.llmhub.data.PrivacyScope("batch-${job.id}") +
+            if (job.pseudonymize) io.github.thepytales.llmhub.data.Pseudonymizer.FORCE.asContextElement(true) else kotlin.coroutines.EmptyCoroutineContext
+        val result = kotlinx.coroutines.withContext(context) { llm.streamChat(model = model, messages = messages, tools = null) { } }
+        return io.github.thepytales.llmhub.ui.splitThinking(result.content).second
+    }
     val agent = AgentRunner(this)
     /** Finished results while the app is open (shown as banner). */
     val events = MutableSharedFlow<ResultEvent>(extraBufferCapacity = 8)
@@ -196,6 +239,14 @@ class AppContainer(context: Context) {
 
     init {
         App.container = this
+        // Stapel (AP-20): jobs that were running carry on; Android keeps the app alive while one runs.
+        scope.launch {
+            kotlinx.coroutines.delay(3000)
+            runCatching { batchRunner.resume() }
+        }
+        scope.launch {
+            batchRunner.active.collect { on -> if (on) io.github.thepytales.llmhub.agent.AgentService.start(appContext) }
+        }
         // AP-04: measuring points and release of speech models that nobody used for a few minutes.
         io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
         scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }

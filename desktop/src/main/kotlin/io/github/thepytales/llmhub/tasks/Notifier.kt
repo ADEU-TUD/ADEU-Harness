@@ -48,6 +48,12 @@ object Notifier {
         post(title, "Der Agent wartet auf deine Bestätigung für „$action“. Klicken zum Öffnen.", chatId)
     }
 
+    /** A batch (AP-20) is finished; clicking opens the Stapel. */
+    @Suppress("UNUSED_PARAMETER")
+    fun batchFinished(context: Context, title: String, text: String) {
+        _notifications.tryEmit(DesktopNotification(title, text, null, "batches"))
+    }
+
     /** A transcription is finished (or failed); clicking opens [route] (the transcript). */
     fun transcriptionFinished(title: String, text: String, route: String) {
         _notifications.tryEmit(DesktopNotification(title, text, null, route))

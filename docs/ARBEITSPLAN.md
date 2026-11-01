@@ -52,7 +52,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
-| **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · ~~AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor~~ (☑) · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
+| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor~~ (☑) · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
 zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 vor AP-28 · AP-20 vor großen Exzerpt-Stapeln.
@@ -522,7 +522,7 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
 
 ## Später
 
-### AP-20 ☐ Stapel und Massenkontrolle · L (bisher W3-01, W6-01, Q-02)
+### AP-20 ☑ Stapel und Massenkontrolle · L (bisher W3-01, W6-01, Q-02)
 - **Stapel**: Warteschlange für viele Dateien (Ordner, ZIP, Mehrfachauswahl) mit demselben Auftrag/Raster; Fortschritt
   mit Lora-Karte („23 von 80“, Animation: Akten abarbeiten), Pause/Fortsetzen, übersteht Neustart, läuft im Hintergrund,
   optional nachts über *Geplante Aufgaben*; Drosselung über `RateLimiter`, interaktive Anfragen haben Vorrang.
@@ -531,19 +531,78 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
   Begründung, Belegstellen; Ergebnistabelle mit Ausreißern, Feedback je Person (Serienbriefe vorhanden).
 - **Die KI schlägt nur vor, ein Mensch entscheidet**; Protokoll der Entscheidung. Standard: pseudonymisiert, „Nur TU Dresden“.
 - **Fertig, wenn**: 80 PDFs laufen ohne Eingriff durch, Abbruch und Fortsetzen verlieren nichts.
+- **Entscheidungen (01.11.2026)**: (a) **Eigenes Werkzeug** *Stapel & Massenkontrolle* (anfangs aus) mit einem Bildschirm
+  für beides; die Massenkontrolle ist ein Stapel mit Raster. (b) Je Datei **eine Anfrage ohne Werkzeuge** (gleicher
+  Systemprompt für alle Dateien, gut für den Cache des Servers) statt eines Agent-Laufs – berechenbar, schnell, ohne
+  Rückfragen. (c) „Nachts“ ist ein Schalter am Stapel (22–6 Uhr) statt einer Geplanten Aufgabe: Der Stapel kennt seinen
+  Stand selbst. (d) Pseudonymisiert und „Nur TU Dresden“ gelten für den Stapel auch dann, wenn sie für Chats aus sind.
+  (e) Die Animation nutzt die vorhandenen Aktionen Ordner, Stempel, Tacker statt einer neuen Zeichnung.
+- **Ergebnis (01.11.2026)**: Dateien aus Mehrfachauswahl, ZIP (auch ZIP je Person, ohne `__MACOSX`), Ordner (Windows) und
+  Nextcloud, Texte auf dem Gerät gelesen. Vorlagen für den Auftrag (Zusammenfassen, Exzerpt, Steckbrief, Übersetzen).
+  **Runner** im Hintergrund: eine Datei nach der anderen, jedes Ergebnis sofort gespeichert (`batches/<id>/job.json`),
+  Pause bricht die laufende Anfrage ab und legt die Datei zurück, nach dem Start geht es weiter; drei Versuche je Datei;
+  wartet, solange ein Chat antwortet; lässt bei bekanntem Limit zwei Anfragen pro Minute frei (eigene Grenze unter
+  *Chat & Werkzeuge › Zuverlässigkeit*); Android hält die App mit dem Vordergrunddienst wach; Benachrichtigung am Ende.
+  **Massenkontrolle**: Raster als Tabelle (*Kriterium; Punkte; Beschreibung*, auch aus Markdown/Excel), Kalibrierung mit
+  von Hand bewerteten Arbeiten im Systemprompt, Antwort als JSON (Punkte je Kriterium, Begründung, Belege mit Seite,
+  Rückmeldung), Belegprüfung auf dem Gerät (✓/✗), Ausreißer (|z| ≥ 1,8, nicht bewertbar, große Abweichung zur
+  Entscheidung), Entscheidung je Arbeit mit Protokoll, Exporte Excel, Word-Rückmeldungen je Person (ZIP), Protokoll.
+  Agent: `create_batch`, `batch_status`, `read_batch_results`. Tests: `BatchTest` (80 Dateien ohne Eingriff, Pause und
+  Neustart ohne Verlust, Wiederholungen, Vorrang der Chats, Raster, Ausreißer, ZIP). Rest: große Exzerpt-Stapel direkt an
+  die Literatureinträge hängen; OPAL-Exportformat prüfen (Offene Fragen 4); Bewertungsraster aus Excel per Datei laden.
+  Betrifft: `data/Batches.kt`, `agent/BatchRunner.kt`, `agent/BatchTools.kt`, `ui/BatchScreen.kt`, `agent/AgentService.kt`
+  (Android), `tasks/Notifier.kt` (beide).
 
-### AP-21 ☐ Antrags-Werkstatt · L (bisher W5-05)
+### AP-21 ☑ Antrags-Werkstatt · L (bisher W5-05)
 - Ausschreibung einlesen (PDF/URL: DFG, BMBF, EU, SAB, TUD-intern) → Checkliste, Fristen in den Kalender.
 - Gliederung nach Förderer-Vorgabe, Arbeitspakete mit Gantt, Budgettabelle, Zeichen-/Seitenwächter, DMP (Vorlage
   vorhanden), Ethik; Probelauf mit einer Gutachter-Rolle, Abgabe-Check. Gut geeignet für den Planungsmodus (AP-06).
+- **Entscheidungen (01.11.2026)**: (a) Werkzeug *Antrags-Werkstatt* (anfangs aus) mit Modus *Antrag*; der Antrag ist ein
+  eigener Eintrag (nicht ein Dokument), die Texte der Abschnitte liegen am Antrag, damit der Wächter sie zählt; Export als
+  Word. (b) Förderer-Vorlagen sind nur ein Start (Gliederung, Checkliste, Kategorien, Pauschale: DFG 22 %, BMBF 20 %,
+  EU 25 %); Seiten- und Zeichengrenzen kommen aus der Ausschreibung, die Lora liest – erfunden wird nichts. (c) Fristen
+  gehen als Kalenderdatei (.ics, Erinnerung eine Woche vorher) an Outlook bzw. die Kalender-App statt direkt über COM.
+- **Ergebnis (01.11.2026)**: Tabs *Übersicht* (Ausschreibung, Fristen, Checkliste, DMP und Ethik), *Gliederung* (Text je
+  Abschnitt, Grenzen in Zeichen/Wörtern/Seiten, Balken, Zeichen je Seite einstellbar), *Arbeitspakete* (Gantt über die
+  Laufzeit), *Budget* (je Projektjahr, Kategorien des Förderers, Pauschale), *Abgabe-Check* (Checkliste, Fristen, leere und
+  zu lange Abschnitte, Seitenlimit, Arbeitspakete außerhalb der Laufzeit, Budget, DMP, Ethik, Probelauf) und die
+  Probeläufe. Agent: `save_proposal`, `write_proposal_section`, `read_proposal`, `save_proposal_review`; *Probelauf:
+  Gutachter:in* startet den Chat mit der Rolle. Tests: `ProposalTest`. Rest: Vorlagen der Förderer (Word) direkt
+  befüllen; Personalmittelsätze der DFG hinterlegen; Gantt als Bild in den Word-Export.
+  Betrifft: `data/Proposals.kt`, `agent/ProposalTools.kt`, `ui/ProposalScreen.kt`, `agent/ChatModes.kt`.
 
-### AP-22 ☐ Nextcloud fest eingebaut · M (bisher Teil von W9-03)
+### AP-22 ☑ Nextcloud fest eingebaut · M (bisher Teil von W9-03)
 - Dateien aus Nextcloud direkt öffnen/anhängen und Ergebnisse dort speichern; auf Android per WebDAV (Grundlage für AP-28).
+- **Entscheidungen (01.11.2026)**: WebDAV auf **beiden** Plattformen (nicht nur Android), Anmeldung über den
+  **Login Flow v2** im Browser (funktioniert mit TU-Login und zweitem Faktor, die App bekommt ein eigenes App-Passwort),
+  manuell mit App-Passwort als Ausweg; vorbelegt `cloudstore.zih.tu-dresden.de`. Das App-Passwort liegt verschlüsselt und
+  unter Windows nur auf dem PC (nicht im Sync).
+- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Nextcloud* (Anmelden, Testen, Ordner für Ergebnisse,
+  Abmelden), Datei-Browser (Ordner, Pfadleiste, Mehrfachauswahl, neuer Ordner), *Aus Nextcloud* im „+“ des Chats,
+  *Aus Nextcloud holen* in den Lora-Ordner, *In Nextcloud speichern* an Dokumentkarten, Dateien, Stapel-Ergebnissen und
+  Anträgen (gleichnamige Dateien bleiben, die neue bekommt „ (2)“), Agent: `nextcloud_list`, `nextcloud_read`,
+  `nextcloud_save` (nicht im Tresor, nicht „Nur auf diesem Gerät“). Tests: `ConnectionsTest` gegen einen lokalen
+  WebDAV-Testserver. Rest: Sync für Android darauf aufbauen (AP-28); Freigabelinks erzeugen.
+  Betrifft: `net/WebDav.kt`, `data/Nextcloud.kt`, `agent/NextcloudTools.kt`, `ui/NextcloudUi.kt`, `files/FileText.kt` (beide).
 
-### AP-23 ☐ MCP-Client · L (bisher W9-01, W9-02)
+### AP-23 ☑ MCP-Client · L (bisher W9-01, W9-02)
 - Fern-Server (Streamable HTTP mit OAuth/Token) auf beiden Plattformen, lokale Server (stdio) unter Windows.
 - *Einstellungen › Verbindungen*: Server hinzufügen, Werkzeuge ansehen, je Werkzeug erlauben/fragen/sperren; fremde
   Werkzeuge laufen über die *Freigaben* und halten die Datenschutzstufe ein.
+- **Entscheidungen (01.11.2026)**: (a) Eigener schlanker Client (JSON-RPC über OkHttp, Protokoll 2025-06-18) statt einer
+  SDK-Bibliothek. (b) Standard je Werkzeug **Fragen** (= Freigaben, Risiko „nach außen“); *Erlauben* ohne Rückfrage,
+  *Sperren* versteckt es. (c) **Datenschutzstufe**: nie im Tresor, nie „Nur auf diesem Gerät“; „Nur TU Dresden“ nur für
+  Server, die als *an der TU Dresden oder auf diesem PC* markiert sind. (d) OAuth mit PKCE und dynamischer Registrierung,
+  Rückkehr aus dem Browser über 127.0.0.1 (Windows und Android); feste Tokens auch in eigenem Header.
+- **Ergebnis (01.11.2026)**: Streamable HTTP (JSON- und SSE-Antworten, Sitzungs-ID, Protokoll-Header), stdio unter Windows
+  (`npx`/`uvx` über `cmd /c`, Umgebungsvariablen, Fehlermeldung des Programms), Werkzeugliste mit Seiten, Ergebnisse als
+  Text (Bilder und Ressourcen benannt, Fehler als „FEHLER:“), Werkzeuge im Chat als `mcp_<server>_<werkzeug>`, abgelaufene
+  Anmeldungen werden erneuert. *Einstellungen › Verbindungen › MCP-Server*: hinzufügen, bearbeiten, ein/aus, Verbinden,
+  Anmelden im Browser, Werkzeuge mit Erlauben/Fragen/Sperren (einzeln und für alle). Tests: `ConnectionsTest` (Sitzung,
+  SSE, 401, OAuth mit PKCE gegen einen lokalen Testserver, Regeln, Datenschutzstufe). Rest: Ressourcen und Prompts der
+  Server; Rückfragen des Servers (Elicitation); lokale Server unter Android gibt es nicht.
+  Betrifft: `net/Mcp.kt`, `net/McpOAuth.kt`, `net/McpStdio.kt` (beide), `data/McpServers.kt`, `agent/McpTools.kt`,
+  `ui/ConnectionsSettings.kt`, `data/SecurePrefs.kt` (Windows).
 
 ### AP-24 ☑ Kreativbereich → „Erstellen“ › Gestalten (D) · XL (bisher W8-03)
 Alltagsumfang nach dem Vorbild Canva, Schwerpunkt Corporate Design. Nur Windows (kein Android).
@@ -714,6 +773,10 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-25 Videoeditor und Erweiterungen | Erweiterungen über den Updater (Videoeditor-Paket, Browser-Engine entfernbar), Zeitleiste, TUD-Titel, Ton, Untertitel aus der Transkription, Rohschnitt, Mit Lora kürzen, MP4 für OPAL/YouTube | Musik und Übergänge in der Vorschau, zweite Videospur, Farbkorrektur |
 | ☑ Seitenleiste ausblendbar (Nachtrag AP-02) | jeder Bereich außer Erstellen und Dateien per Rechtsklick oder in den Einstellungen ausblendbar, über Strg+K und Lora erreichbar | – |
 | ☑ AP-16 Office-Ausbau | Tab *Dateien* wie Google Drive, Lora-Ordner (`.lora`), echte docx/pptx/xlsx, ins Original schreiben, Änderungen nachverfolgen, Word-Kommentare, Fußzeile/Ränder/Inhaltsverzeichnis/Formeln, Rechtschreibung auf dem Gerät, freie Folien mit Masterfolie, Lora-Panel und -Popup, Chatfilter | echter Seitenumbruch in der Seitenansicht; Windows-Papierkorb; Scannen (Ideen) |
+| ☑ AP-20 Stapel und Massenkontrolle | Warteschlange im Hintergrund (Ordner, ZIP, Mehrfachauswahl, Nextcloud) mit Pause/Fortsetzen über Neustarts, Vorrang für Chats, nachts; Massenkontrolle mit Raster, Kalibrierung, Belegprüfung, Ausreißern, Entscheidung mit Protokoll, Excel/Word-Exporten | Exzerpt-Stapel an Literatureinträge; OPAL-Format klären |
+| ☑ AP-21 Antrags-Werkstatt | Modus *Antrag*, Förderer-Vorlagen (DFG, BMBF, EU, SAB, TUD), Checkliste, Fristen als Kalenderdatei, Gliederung mit Zeichen-/Seitenwächter, Gantt, Budget mit Pauschale, DMP, Ethik, Probelauf, Abgabe-Check, Word-Export | Förderer-Vorlagen befüllen, Personalmittelsätze |
+| ☑ AP-22 Nextcloud | WebDAV auf beiden Plattformen, Anmeldung im Browser (Login Flow v2), Datei-Browser, Anhängen, Holen, Speichern, Agent-Werkzeuge | Android-Sync (AP-28), Freigabelinks |
+| ☑ AP-23 MCP-Client | Streamable HTTP mit Token/OAuth (PKCE), stdio unter Windows, *Einstellungen › Verbindungen*, Erlauben/Fragen/Sperren je Werkzeug, Datenschutzstufe | Ressourcen, Prompts, Elicitation |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
 ---
@@ -750,6 +813,10 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Erstellen (AP-24) | TU Vorlagen; Gestalten nicht geplant | ☑ (mit Gestalten) |
 | Videoeditor (AP-25) | – (nicht geplant) | ☑ |
 | Nachladbare Erweiterungen (AP-25) | – | ☑ |
+| Stapel & Massenkontrolle (AP-20) | ☑ (Dateien, ZIP, Nextcloud) | ☑ (dazu Ordner) |
+| Antrags-Werkstatt (AP-21) | ☑ | ☑ |
+| Nextcloud (AP-22) | ☑ | ☑ |
+| MCP-Client (AP-23) | ☑ (Fern-Server) | ☑ (dazu lokale Server) |
 | Agent in lokalen Ordnern | – (nur Lesen im Projektordner) | ☑ |
 
 ---

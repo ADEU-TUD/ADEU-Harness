@@ -35,8 +35,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge haben je einen Schalter und sind anfangs
   aus; eingeschaltete erscheinen unter „Mehr“, zugehörige Modi (z. B. *Lernspiel*) erst dann in `/`, Strg+K und Loras
   Landkarte. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor („Quiz“ →
-  *Lernspiele*). Einschaltbar sind der *PDF-Werkzeugkasten*, der *Tresor*, *Lernspiele* und (Windows) *Mail & Kalender*
-  und der *Videoeditor*. Gestalten (Poster, Flyer …) ist kein Werkzeug mehr, sondern Teil von *Erstellen*. Der Browser
+  *Lernspiele*). Einschaltbar sind der *PDF-Werkzeugkasten*, der *Tresor*, *Lernspiele*, *Stapel & Massenkontrolle*, die
+  *Antrags-Werkstatt* und (Windows) *Mail & Kalender* und der *Videoeditor*. Gestalten (Poster, Flyer …) ist kein Werkzeug mehr, sondern Teil von *Erstellen*. Der Browser
   neben dem Chat ist ein Schalter unter *Einstellungen › Windows*.
 - **Nachladbare Erweiterungen** (Windows, AP-25, *Einstellungen › Werkzeuge › Erweiterungen*): große Teile, die nicht
   alle brauchen, kommen nicht mit jedem Update, sondern werden beim ersten Gebrauch einmalig eingerichtet – aus derselben
@@ -739,6 +739,64 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   **Prüfungsleistung** (Erklärung mit Tabelle), **Verlag/Zeitschrift** (übliche englische Erklärung mit deutscher
   Fassung), **kurze Fußnote** – kopieren oder als Dokument öffnen. Immer erreichbar im Chat-Menü (*KI-Nutzungsnachweis*);
   der Vorschlag lässt sich unter *Einstellungen › Lora* abschalten.
+- **Stapel & Massenkontrolle** (AP-20, Werkzeug *Stapel & Massenkontrolle*, anfangs aus): viele Dateien mit **demselben
+  Auftrag** – nacheinander im Hintergrund statt in einem endlosen Chat. Dateien kommen aus der Mehrfachauswahl, einem
+  **ZIP** (z. B. die Abgaben aus OPAL; ZIPs je Person werden mit geöffnet), einem **Ordner** (Windows) oder der Nextcloud;
+  der Text wird auf dem Gerät gelesen. Vorlagen für den Auftrag: Zusammenfassen, Exzerpt, Steckbrief, Übersetzen – oder
+  ein eigener. Lora sitzt dabei auf der Fortschrittskarte („23 von 80“) und arbeitet Akten ab.
+  - **Pause und Fortsetzen**, übersteht einen Neustart (jedes Ergebnis wird sofort gespeichert; eine Datei, die beim
+    Schließen lief, kommt zurück in die Warteschlange), läuft im Hintergrund (Windows im Infobereich, Android mit
+    Benachrichtigung) und auf Wunsch **nur nachts** (22–6 Uhr). Fehlgeschlagene Dateien werden dreimal versucht, danach
+    geht es mit der nächsten weiter; *Fehler erneut versuchen* holt sie nach. Eine Benachrichtigung meldet das Ende.
+  - **Chats haben Vorrang**: Solange ein Chat antwortet, wartet der Stapel; kennt die App das Limit des API-Keys, lässt er
+    zwei Anfragen pro Minute für Chats frei (eigene Grenze möglich).
+  - **Standard: pseudonymisiert und „Nur TU Dresden“** – auch wenn die Pseudonymisierung für Chats aus ist; externe
+    Anbieter sind dann gesperrt.
+  - **Massenkontrolle** (typisch 30–100 Abgaben): Bewertungsraster als Tabelle (je Zeile *Kriterium; Punkte;
+    Beschreibung*, aus Excel oder der TU Vorlage *Bewertungsraster* einfügbar) plus Hinweise (Erwartungshorizont).
+    **Kalibrierung**: 2–3 Arbeiten vor dem Start von Hand bewerten – sie gehen als Maßstab an die KI. Je Arbeit kommen
+    Punkte je Kriterium mit Begründung und **Belegstellen** (wörtliche Zitate mit Seite); die App prüft auf dem Gerät, ob
+    jedes Zitat wirklich in der Arbeit steht (✓/✗). **Die KI schlägt nur vor, ein Mensch entscheidet**: *Vorschlag
+    übernehmen* oder Punkte anpassen, mit Notiz – jede Entscheidung steht mit Zeit im **Protokoll** (KI-Verordnung).
+    **Ausreißer** (weit weg von den anderen, nicht bewertbar oder stark von der Entscheidung abweichend) sind markiert.
+  - **Exporte**: Ergebnistabelle als Excel, **Rückmeldung je Person** als Word-Dateien in einem ZIP, Protokoll als Word;
+    beim normalen Stapel alle Ergebnisse als ein Word-Dokument (auch direkt in die Nextcloud).
+  - Lora kann einen Stapel auch aus den Anhängen eines Chats anlegen (`create_batch`, `batch_status`, `read_batch_results`).
+- **Antrags-Werkstatt** (AP-21, Werkzeug *Antrags-Werkstatt*, anfangs aus; Modus *Antrag*): von der Ausschreibung bis zur
+  Abgabe. Lora liest die **Ausschreibung** (PDF oder Link) und legt den Antrag an: Förderer und Programm, Zusammenfassung,
+  **Checkliste** zum Abhaken, **Fristen** (mit *In den Kalender* als Kalenderdatei, Erinnerung eine Woche vorher) und die
+  **Gliederung** mit den Grenzen der Ausschreibung. Vorlagen für **DFG** (Sachbeihilfe, Programmpauschale 22 %),
+  **BMBF** (Projektskizze, Projektpauschale 20 %), **EU** (Horizon Europe Part B, 25 % indirekte Kosten, 45 Seiten),
+  **SAB**, **TUD-intern** und andere – immer nur ein Start, die Ausschreibung gewinnt.
+  - **Gliederung mit Zeichen-/Seitenwächter**: Text je Abschnitt hier oder mit Lora schreiben; die App zählt Zeichen,
+    Wörter und Seiten (einstellbar, Standard 3.000 Zeichen je Seite) und färbt, was zu lang ist.
+  - **Arbeitspakete mit Gantt** (Balken über die Monate, Jahre markiert), **Budget** je Projektjahr nach den Kategorien
+    des Förderers mit Pauschale, **DMP** und **Ethik** (die TU Vorlagen *Datenmanagementplan* und *Ethikantrag* helfen).
+  - **Probelauf mit Gutachter-Rolle**: Lora begutachtet den Antrag nach den Kriterien des Förderers (Stärken, Schwächen,
+    Fragen, die fünf wichtigsten Änderungen); das Ergebnis bleibt am Antrag.
+  - **Abgabe-Check**: offene Punkte der Checkliste, nahe oder verpasste Fristen, leere oder zu lange Abschnitte,
+    Seitenlimit, Arbeitspakete außerhalb der Laufzeit, Budget, DMP, Ethik, Probelauf. Export des ganzen Antrags als Word.
+  - Werkzeuge für Lora: `save_proposal`, `write_proposal_section`, `read_proposal`, `save_proposal_review`; gut
+    kombinierbar mit Rückfragen (Planungsmodus, AP-06).
+- **Nextcloud** (AP-22, *Einstellungen › Verbindungen*, Android und Windows): **Im Browser anmelden** (Nextcloud-Login,
+  auch mit TU-Login und zweitem Faktor; die App bekommt ein eigenes App-Passwort, kein Passwort wird in die App getippt)
+  oder Anmeldename und App-Passwort eintragen. Vorbelegt ist der Cloudstore der TU Dresden. Danach:
+  - **Anhängen** im Chat („+“ › *Aus Nextcloud*), **holen** in den Lora-Ordner (*Dateien* › ⋮ › *Aus Nextcloud holen*),
+    **speichern** an jeder Dokumentkarte im Chat und an jeder Datei im Tab *Dateien* (*In Nextcloud speichern*, Ordner
+    wählbar, Standard *Ordner für Ergebnisse*; eine gleichnamige Datei bleibt erhalten, die neue bekommt „ (2)“).
+  - Lora kann selbst nachsehen, lesen und Ergebnisse ablegen (`nextcloud_list`, `nextcloud_read`, `nextcloud_save`; das
+    Speichern läuft über die Freigaben) – nicht im Tresor und nicht in Projekten „Nur auf diesem Gerät“.
+  - Technik: WebDAV über OkHttp auf beiden Plattformen – die Grundlage für den Sync unter Android (AP-28).
+- **MCP-Client** (AP-23, *Einstellungen › Verbindungen › MCP-Server*): Werkzeuge anderer Dienste über das **Model Context
+  Protocol**. **Fern-Server** (Streamable HTTP, Android und Windows) mit festem Token (auch in eigenem Header) oder
+  **OAuth** (Anmeldung im Browser mit PKCE, die App meldet sich beim Server selbst an; Token werden erneuert), **lokale
+  Server** unter Windows als Programm über stdio (z. B. `npx -y @modelcontextprotocol/server-filesystem "C:\Daten"`, mit
+  Umgebungsvariablen).
+  - *Verbinden* listet die Werkzeuge; **je Werkzeug Erlauben, Fragen oder Sperren** (Standard: Fragen). *Fragen* läuft
+    über die **Freigaben** wie andere Aktionen nach außen, *Sperren* versteckt das Werkzeug vor dem Modell.
+  - **Datenschutzstufe**: Fremde Werkzeuge gibt es nie im Tresor und nie in Projekten „Nur auf diesem Gerät“; in Projekten
+    „Nur TU Dresden“ nur von Servern, die als *läuft an der TU Dresden oder auf diesem PC* markiert sind. Tokens liegen
+    verschlüsselt (Windows: nur auf diesem PC, nicht im Sync).
 - **Agent in lokalen Ordnern** (Windows, *Einstellungen › Lokale Ordner*): freigegebene Ordner kann der Assistent in jedem Chat
   auflisten, durchsuchen und lesen (auch Word, PowerPoint, Excel, PDF), Dateien anlegen und ändern, Dokumente direkt als
   .docx/.pdf/.pptx/.xlsx dort speichern (z. B. im TUD-Design), verschieben und löschen (in den Unterordner
@@ -1026,7 +1084,8 @@ baut ohne Spracherkennung und lokale Modelle.
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
 ./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI,
                             # Transkript-Exporte, Interrater-Reliabilität, Geräteempfehlungen, Gestalten (Bilder in
-                            # desktop/build/creative-look), Videoeditor mit echtem ffmpeg-Export (desktop/build/video-look) …
+                            # desktop/build/creative-look), Videoeditor mit echtem ffmpeg-Export (desktop/build/video-look),
+                            # Stapel (80 Dateien, Pause, Neustart), Anträge, Nextcloud/MCP gegen lokale Testserver …
 ./gradlew :speech:test      # Spracherkennung: Warteschlange, Abschnitte, Ersetzungen, WAV …
 ```
 
@@ -1154,6 +1213,10 @@ Chats und Einstellungen erhalten bleiben).
 | `research/Excerpts.kt`, `agent/ExcerptTools.kt` | Exzerpt-Agent: Schemata, Seitenprüfung, `save_excerpt` |
 | `data/Vault.kt`, `data/DeviceKey.kt`, `ui/VaultScreen.kt` | Tresor: PIN, Wiederherstellungsschlüssel, Verschlüsselung (Keystore bzw. DPAPI) |
 | `docs/PdfTools.kt`, `docs/PdfToolModel.kt`, `ui/PdfRender.kt`, `ui/PdfToolScreen.kt` | PDF-Werkzeugkasten: Seiten, Anmerkungen, Formularfelder (erkennen und setzen), Darstellung je Plattform |
+| `data/Batches.kt`, `agent/BatchRunner.kt`, `agent/BatchTools.kt`, `ui/BatchScreen.kt` | Stapel & Massenkontrolle (AP-20): Aufträge und Raster, Warteschlange im Hintergrund mit Pause/Fortsetzen, Kalibrierung, Belegprüfung, Ausreißer, Entscheidungen mit Protokoll, Exporte |
+| `data/Proposals.kt`, `agent/ProposalTools.kt`, `ui/ProposalScreen.kt` | Antrags-Werkstatt (AP-21): Förderer-Vorlagen, Checkliste, Fristen (Kalender), Gliederung mit Zeichen-/Seitenwächter, Gantt, Budget, Abgabe-Check, Probelauf |
+| `net/WebDav.kt`, `data/Nextcloud.kt`, `agent/NextcloudTools.kt`, `ui/NextcloudUi.kt`, `files/FileText.kt` (beide) | Nextcloud (AP-22): WebDAV, Login Flow v2, Datei-Browser, Anhängen/Holen/Speichern, Agent-Werkzeuge |
+| `net/Mcp.kt`, `net/McpOAuth.kt`, `net/McpStdio.kt` (beide), `data/McpServers.kt`, `agent/McpTools.kt`, `ui/ConnectionsSettings.kt` | MCP-Client (AP-23): Streamable HTTP, OAuth mit PKCE, lokale Server (Windows), Werkzeuge je Server mit Erlauben/Fragen/Sperren, *Einstellungen › Verbindungen* |
 
 ### Windows-Version (`desktop/`)
 

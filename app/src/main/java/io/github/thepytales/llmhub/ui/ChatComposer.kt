@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ShortText
@@ -359,6 +360,8 @@ fun PlusSheet(
     onFromApp: () -> Unit = {},
     onSnippets: () -> Unit = {},
     onClipboard: () -> Unit = {},
+    /** Nextcloud (AP-22) is set up: attach files from there. */
+    onNextcloud: (() -> Unit)? = null,
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     fun pick(action: () -> Unit) {
@@ -380,6 +383,7 @@ fun PlusSheet(
         )
         SheetRow(Icons.Outlined.ContentPaste, "Aus der Zwischenablage", "Screenshot oder kopiertes Bild anhängen", { pick(onClipboard) })
         SheetRow(Icons.Outlined.Apps, "Aus der App", "Transkript, Dokument, Literaturliste oder erzeugtes Bild", { pick(onFromApp) })
+        if (onNextcloud != null) SheetRow(Icons.Outlined.Cloud, "Aus Nextcloud", "Dateien aus deiner Nextcloud anhängen", { pick(onNextcloud) })
         SheetLabel("Starten mit")
         SheetRow(Icons.Outlined.Bookmarks, "Vorlage", "Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular", { pick(onTemplates) })
         SheetRow(Icons.Outlined.ShortText, "Kurztexte", "Eigene Textbausteine einfügen – auch mit /Name", { pick(onSnippets) })

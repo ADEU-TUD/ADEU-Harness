@@ -39,7 +39,14 @@ class Pseudonymizer(
     private val userSettings: () -> AppSettings,
 ) {
     /** The settings of the user – or the strict ones inside the vault (see [STRICT]). */
-    private fun settings(): AppSettings = userSettings().let { if (STRICT.get() == true) strict(it) else it }
+    private fun settings(): AppSettings = userSettings().let {
+        when {
+            STRICT.get() == true -> strict(it)
+            // Stapel (AP-20): pseudonymized by default, even when it is switched off for chats.
+            FORCE.get() == true -> it.copy(pseudonymize = true)
+            else -> it
+        }
+    }
 
     private val json = Json { ignoreUnknownKeys = true }
     private val chatsFile = File(file.parentFile, file.nameWithoutExtension + "-chats.json")
@@ -381,6 +388,9 @@ class Pseudonymizer(
          * AgentRunner): always on, every part on, no exemption for public sources, thorough recognition with the local model.
          */
         val STRICT: ThreadLocal<Boolean> = ThreadLocal()
+
+        /** Pseudonymization on for these requests whatever the settings say (a batch with „pseudonymisiert“, AP-20). */
+        val FORCE: ThreadLocal<Boolean> = ThreadLocal()
 
         fun strict(s: AppSettings): AppSettings = s.copy(pseudonymize = true, pseudonymOff = "", pseudonymPublic = false, pseudonymThorough = true)
         private const val MAX_CHATS = 400

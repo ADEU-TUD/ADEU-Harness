@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
@@ -69,6 +70,8 @@ fun DocumentCard(path: String) {
     val file = remember(path) { File(path) }
     val format = DocFormat.ofFile(file)
     val saveAs = rememberSaveAs(format.mime)
+    // Nextcloud (AP-22): results straight into the cloud, once it is set up.
+    val toNextcloud = rememberNextcloudSave(io.github.thepytales.llmhub.App.container)
     /** Raised when open placeholders were filled in and the file was rendered again. */
     var version by remember(path) { mutableIntStateOf(0) }
     val exists = remember(path, version) { file.exists() }
@@ -118,6 +121,11 @@ fun DocumentCard(path: String) {
                         Spacer(Modifier.size(4.dp))
                         Text(SAVE_AS_LABEL)
                     }
+                }
+                if (toNextcloud != null) TextButton(onClick = { toNextcloud(file) }) {
+                    Icon(Icons.Outlined.Cloud, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.size(4.dp))
+                    Text(tr("In Nextcloud speichern"))
                 }
                 // Markdown documents can be edited and commented in the document editor.
                 val docs by io.github.thepytales.llmhub.App.container.docs.items.collectAsState()

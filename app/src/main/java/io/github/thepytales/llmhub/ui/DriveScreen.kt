@@ -42,6 +42,7 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
@@ -290,6 +291,22 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     var aiCreate by remember { mutableStateOf<DocKind?>(null) }
     var templates by remember { mutableStateOf(false) }
     var folderSettings by remember { mutableStateOf(false) }
+    // Nextcloud (AP-22): fetch files into „Hochgeladen“, save copies there.
+    val toNextcloud = rememberNextcloudSave(c)
+    var fromNextcloud by remember { mutableStateOf(false) }
+    if (fromNextcloud) NextcloudBrowser(
+        c, "Aus Nextcloud holen", confirm = "In „Hochgeladen“ holen", onDismiss = { fromNextcloud = false },
+        onFiles = { picked ->
+            fromNextcloud = false
+            scope.launch {
+                val got = picked.mapNotNull { e -> runCatching { c.nextcloud.import(e.path) }.onFailure { Notices.error("„${e.name}“: ${it.message}") }.getOrNull() }
+                if (got.isNotEmpty()) {
+                    drive.changed()
+                    Notices.info(if (got.size == 1) "„${got.first().name}“ liegt jetzt unter „Hochgeladen“." else "${got.size} Dateien liegen jetzt unter „Hochgeladen“.")
+                }
+            }
+        },
+    )
 
     fun go(s: DriveSection) {
         section = s
@@ -378,6 +395,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         select = { if (selection.containsKey(it.key)) selection.remove(it.key) else selection[it.key] = it },
         selecting = { selection.isNotEmpty() },
         selected = { selection.containsKey(it.key) },
+        toNextcloud = toNextcloud?.let { save -> { item: DriveItem -> save(item.file) } },
     )
 
     // Dragging onto a folder (Windows): folders note where they are on screen.
@@ -418,6 +436,8 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                             if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text("Im Explorer öffnen") }, leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) }, onClick = { menu = false; openLoraFolder(currentDir) })
                             DropdownMenuItem(text = { Text("Lora-Ordner …") }, leadingIcon = { Icon(Icons.Outlined.Settings, null) }, onClick = { menu = false; folderSettings = true })
                             DropdownMenuItem(text = { Text("Wissenssammlung") }, onClick = { menu = false; onNavigate("settings/knowledge") })
+                            if (settings.hasNextcloud) DropdownMenuItem(text = { Text(tr("Aus Nextcloud holen …")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { menu = false; fromNextcloud = true })
+                            else DropdownMenuItem(text = { Text(tr("Nextcloud verbinden …")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { menu = false; onNavigate("settings/connections") })
                         }
                     }
                 },
@@ -606,6 +626,8 @@ private class DriveActions(
     val select: (DriveItem) -> Unit,
     val selecting: () -> Boolean,
     val selected: (DriveItem) -> Boolean,
+    /** Nextcloud (AP-22): save a copy there; null while it is not set up. */
+    val toNextcloud: ((DriveItem) -> Unit)? = null,
 )
 
 /** Dragging items onto folders with the mouse (Windows). */
@@ -887,6 +909,7 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
             return@DropdownMenu
         }
         if (!item.dir) DropdownMenuItem(text = { Text("Mit anderer App öffnen") }, onClick = { act { actions.external(item) } })
+        if (!item.dir) actions.toNextcloud?.let { save -> DropdownMenuItem(text = { Text(tr("In Nextcloud speichern")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { act { save(item) } }) }
         item.chatId?.let { id -> DropdownMenuItem(text = { Text("Zum Chat") }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { actions.chat(id) } }) }
         HorizontalDivider()
         DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { act { actions.rename(item) } })

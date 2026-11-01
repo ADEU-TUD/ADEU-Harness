@@ -35,7 +35,11 @@ class AgentService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
         val runs = (application as LlmHubApp).container.runs
-        if (intent?.action == ACTION_STOP) runs.stopAll()
+        if (intent?.action == ACTION_STOP) {
+            runs.stopAll()
+            val c = (application as LlmHubApp).container
+            c.batchRunner.current.value?.let { c.batchRunner.pause(it.jobId) }
+        }
         // Must be called for every start, even if the answer is already finished.
         try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(runs), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -44,9 +48,11 @@ class AgentService : Service() {
             return START_NOT_STICKY
         }
         if (watcher == null) {
+            val batches = (application as LlmHubApp).container.batchRunner
             watcher = scope.launch {
-                runs.runs.collect { map ->
-                    if (map.isEmpty()) {
+                // Chats and batches (AP-20) keep the service; it stops when neither runs.
+                kotlinx.coroutines.flow.combine(runs.runs, batches.active, batches.current) { map, batch, _ -> map to batch }.collect { (map, batch) ->
+                    if (map.isEmpty() && !batch) {
                         ServiceCompat.stopForeground(this@AgentService, ServiceCompat.STOP_FOREGROUND_REMOVE)
                         stopSelf(lastStartId)
                     } else {
@@ -72,8 +78,10 @@ class AgentService : Service() {
     private fun notification(runs: ChatRuns): Notification {
         val active = runs.runs.value.values.toList()
         val titles = active.map { it.conversation.value.title }
+        val c = (application as LlmHubApp).container
+        val batch = c.batchRunner.current.value?.let { cur -> c.batches.get(cur.jobId)?.let { j -> "Stapel „${j.title}“: ${j.done} von ${j.items.size}" } }
         val text = when (titles.size) {
-            0 -> "Wird abgeschlossen …"
+            0 -> batch ?: "Wird abgeschlossen …"
             1 -> titles.first()
             else -> "${titles.size} Chats: " + titles.joinToString(", ")
         }
@@ -83,7 +91,7 @@ class AgentService : Service() {
         )
         val builder = NotificationCompat.Builder(this, Notifier.CHANNEL_RUNNING)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Antwort wird geschrieben …")
+            .setContentTitle(if (titles.isEmpty() && batch != null) "Stapel läuft …" else "Antwort wird geschrieben …")
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

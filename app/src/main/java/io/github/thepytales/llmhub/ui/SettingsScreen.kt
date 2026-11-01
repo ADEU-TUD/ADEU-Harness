@@ -117,6 +117,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "trash" -> TrashSection(c)
                 "folders" -> LocalFoldersSection(c)
                 "storage" -> StorageSection(c)
+                "connections" -> ConnectionsSettings(c)
                 "updates" -> UpdateSection(c)
                 "help" -> HelpSection()
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())

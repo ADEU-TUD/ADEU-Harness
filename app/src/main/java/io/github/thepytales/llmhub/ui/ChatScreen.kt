@@ -159,6 +159,7 @@ fun ChatScreen(
     var improving by remember { mutableStateOf(false) }
     var showSnippets by remember { mutableStateOf(false) }
     var showFromApp by remember { mutableStateOf(false) }
+    var showNextcloud by remember { mutableStateOf(false) }
     var quoteFrom by remember { mutableStateOf<String?>(null) }
     var ratingFor by remember { mutableStateOf<ChatMessage?>(null) }
     var searchOpen by remember { mutableStateOf(false) }
@@ -818,6 +819,7 @@ fun ChatScreen(
             onDismiss = { showPlus = false },
             onFromApp = { showFromApp = true },
             onSnippets = { showSnippets = true },
+            onNextcloud = if (settings.hasNextcloud && !current.vault) ({ showNextcloud = true }) else null,
             onClipboard = {
                 if (!platform.paste()) Notices.info("In der Zwischenablage ist kein Bild.")
                 else if (modelInfo.vision == false) Notices.info("Hinweis: ${modelInfo.displayName} versteht keine Bilder.")
@@ -826,6 +828,7 @@ fun ChatScreen(
     }
     if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
     if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
+    if (showNextcloud) NextcloudAttachDialog(c, onFile = { files.add(it) }, onDismiss = { showNextcloud = false })
     quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }
     ratingFor?.let { m -> RatingNoteDialog(onDismiss = { ratingFor = null }) { note -> vm.rate(m, -1, note); ratingFor = null } }
     if (voiceMode) VoiceModeDialog(c, vm, platform, onClose = { voiceMode = false })

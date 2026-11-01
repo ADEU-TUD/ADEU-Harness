@@ -159,7 +159,17 @@ data class AppSettings(
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
     val pseudonymThorough: Boolean = false,
+    /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
+    val nextcloudServer: String = "",
+    val nextcloudUser: String = "",
+    val nextcloudPassword: String = "",
+    val nextcloudFolder: String = "/Lora",
+    /** Stapel (AP-20): how many requests per minute a batch may use at most, so chats stay quick (0 = no own limit). */
+    val batchPerMinute: Int = 0,
 ) {
+    /** Nextcloud is set up (Einstellungen › Verbindungen). */
+    val hasNextcloud get() = nextcloudServer.isNotBlank() && nextcloudUser.isNotBlank() && nextcloudPassword.isNotBlank()
+
     /** Tools switched on (see data/AppTool). */
     val enabledToolIds: Set<String> get() = enabledTools.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
@@ -293,6 +303,11 @@ class SettingsStore(context: Context) {
             .putBoolean("autoModelAsk", next.autoModelAsk)
             .putBoolean("autoModel", next.autoModel)
             .putString("enabledTools", next.enabledTools)
+            .putString("nextcloudServer", next.nextcloudServer.trim())
+            .putString("nextcloudUser", next.nextcloudUser.trim())
+            .putString("nextcloudPassword", next.nextcloudPassword.trim())
+            .putString("nextcloudFolder", next.nextcloudFolder.trim())
+            .putInt("batchPerMinute", next.batchPerMinute)
             .putString("drawerTop", next.drawerTop)
             .putBoolean("drawerFilesOnce", true)
             .putBoolean("drawerMoreOpen", next.drawerMoreOpen)
@@ -411,6 +426,11 @@ class SettingsStore(context: Context) {
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
+            nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
+            nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
+            nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,
+            nextcloudFolder = prefs.getString("nextcloudFolder", d.nextcloudFolder) ?: d.nextcloudFolder,
+            batchPerMinute = prefs.getInt("batchPerMinute", d.batchPerMinute),
         )
     }
 

@@ -89,6 +89,13 @@ class AgentRunner(private val c: AppContainer) {
                 io.github.thepytales.llmhub.data.Outlook.supported && !conv.vault &&
                     (ModeTool.MAIL in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.MAIL.id))
             },
+            // Nextcloud (AP-22): once it is set up, in every chat that may use the network (not in the vault).
+            c.nextcloudTools.takeIf { settings.hasNextcloud && network },
+            // Stapel (AP-20) and Antrags-Werkstatt (AP-21): while their tools are on (or in their modes).
+            c.batchTools.takeIf { settings.toolOn(io.github.thepytales.llmhub.data.AppTool.BATCH.id) },
+            c.proposalTools.takeIf { ModeTool.PROPOSAL in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.PROPOSALS.id) },
+            // MCP-Client (AP-23): tools of the connected servers that keep the chat's privacy level.
+            c.mcp.tools(conv).takeIf { network },
         )
     }
 
@@ -439,6 +446,8 @@ class AgentRunner(private val c: AppContainer) {
             io.github.thepytales.llmhub.ui.I18n.answerHint(c.settings.current.uiLanguage),
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
             if (askUser in providers) AskUserTool.PROMPT else null,
+            if (c.nextcloudTools in providers) NextcloudTools.PROMPT else null,
+            if (providers.any { it is McpTools }) McpTools.PROMPT else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",
         ).joinToString("\n\n")
