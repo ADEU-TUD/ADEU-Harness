@@ -32,7 +32,7 @@ object Extensions {
         "videoeditor", "Videoeditor-Paket",
         "ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren) und das Sprachmodell der Rauschminderung (RNNoise). " +
             "Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher.",
-        100,
+        40,
     )
 
     val ALL = listOf(VIDEO)
@@ -107,16 +107,16 @@ object Extensions {
             unpack(zip, id, e.version)
             zip.delete()
             AppLog.i("Erweiterung $id ${e.version} eingerichtet")
-            refresh()
+            _states.update { it + (id to State.Installed(version(id) ?: e.version, sizeOnDisk(dir(id)))) }
             null
         } catch (x: CancellationException) {
-            _states.update { it + (id to State.Missing) }
-            refresh()
+            _states.update { it + (id to (version(id)?.let { v -> State.Installed(v, sizeOnDisk(dir(id))) } ?: State.Missing)) }
             "Abgebrochen."
         } catch (x: Exception) {
             AppLog.e("Erweiterung $id einrichten", x)
             val msg = x.message ?: x.javaClass.simpleName
-            _states.update { it + (id to State.Failed(msg)) }
+            // An older version keeps working; the message is shown where the setup was started.
+            _states.update { it + (id to (version(id)?.let { v -> State.Installed(v, sizeOnDisk(dir(id))) } ?: State.Failed(msg))) }
             msg
         }
     }

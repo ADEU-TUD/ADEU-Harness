@@ -40,6 +40,8 @@ fun ToolsSection(c: AppContainer) {
             SwitchRow(tool.label, tool.description, s.toolOn(tool.id)) { on -> c.settings.update { it.withTool(tool, on) } }
         }
     }
+    // Nachladbare Erweiterungen (AP-25, Windows): Videoeditor-Paket, Browser-Engine.
+    ExtensionsSettings(c)
     val planned = AppTool.planned(IS_ANDROID)
     if (planned.isNotEmpty()) {
         Section(tr("Geplant")) {
