@@ -34,6 +34,8 @@ object SelfTest {
         "settings/sync", "games",
         // AP-13: without Outlook on the runner the screen must explain that instead of failing.
         "mail",
+        // AP-18: the Dateiverwaltung.
+        "files",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

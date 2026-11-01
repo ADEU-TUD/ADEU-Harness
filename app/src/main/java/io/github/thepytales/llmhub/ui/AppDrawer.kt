@@ -517,6 +517,7 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
     DrawerArea.LITERATURE -> Icons.Outlined.MenuBook
     DrawerArea.TRANSCRIPTS -> Icons.Outlined.GraphicEq
     DrawerArea.DOCS -> Icons.Outlined.Description
+    DrawerArea.FILES -> Icons.Outlined.FolderOpen
     DrawerArea.IMAGES -> Icons.Outlined.Image
     DrawerArea.TASKS -> Icons.Outlined.Schedule
     DrawerArea.PDF -> Icons.Outlined.PictureAsPdf

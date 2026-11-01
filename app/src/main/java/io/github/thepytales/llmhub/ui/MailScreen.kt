@@ -279,7 +279,7 @@ private fun StatusCard(state: OutlookState, onRetry: () -> Unit) {
     AppCard {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             LoraFigure(
-                Modifier.size(84.dp, 84.dp / LORA_ASPECT), label = tr("Lora sortiert Briefe"),
+                Modifier.size(104.dp, 104.dp / LORA_ASPECT), label = tr("Lora sortiert Briefe"),
                 director = rememberLoraDirector(listOf(LoraAction.MAIL, LoraAction.FOLDER, LoraAction.CALENDAR), LoraAction.MAIL),
             )
             Spacer(Modifier.width(12.dp))

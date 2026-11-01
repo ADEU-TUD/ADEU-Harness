@@ -84,6 +84,19 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                     )
                 }
             }
+            // Dateiverwaltung (AP-18): every file of the app in full text.
+            add(
+                ToolDef(
+                    "search_files",
+                    "Durchsucht ALLE Dateien der App im Volltext – Dokumente des Editors, Dateien in Ablageorten und Projektordnern, " +
+                        "Wissenssammlung (PDF, Word, Excel, PowerPoint, OpenDocument, Mails, Text) – nach Name, Schlagwörtern und Inhalt. " +
+                        "Liefert Ort, Ordner, Seite und eine Textstelle. Für „Wo hatte ich die Datei mit …?“ oder um eine Datei zu finden.",
+                    listOf(
+                        Param("query", "Suchwörter, z. B. „Kooperationsvertrag SLUB 2025“"),
+                        Param("max_results", "Anzahl Treffer (Standard 8)", required = false, type = "integer"),
+                    ),
+                )
+            )
             if (c.knowledge.docs.value.isNotEmpty()) {
                 add(
                     ToolDef(
@@ -132,7 +145,7 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     override fun risk(name: String, args: JsonObject): Risk? =
         if (name in setOf("remember", "forget") && memoryMode == MemoryMode.ASK) Risk.PUBLIC else null
 
-    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript", "search_chats")
+    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript", "search_chats", "search_files")
 
     /**
      * The existence of knowledge and of earlier chats, for the system prompt (changes rarely, so the server cache holds).
@@ -189,6 +202,14 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
             ToolOutput(if (hits.isEmpty()) "Nichts Passendes gemerkt." else "Gelöscht: ${hits.joinToString("; ") { "„${it.text}“" }}")
         }
         "search_knowledge" -> search(args.req("query"), (args.int("max_results") ?: 6).coerceIn(1, 15), ctx)
+        "search_files" -> withContext(Dispatchers.IO) {
+            val lib = c.fileLibrary
+            val items = lib.items()
+            val hits = lib.search(args.req("query"), items, (args.int("max_results") ?: 8).coerceIn(1, 20), extract = false)
+            // Files whose text was never read: read them in the background for the next search.
+            scope.launch { runCatching { lib.index(items) } }
+            ToolOutput(io.github.thepytales.llmhub.data.FileLibrary.describe(hits))
+        }
         "add_to_knowledge" -> addFromChat(args, ctx)
         "run_javascript" -> {
             val files = ctx.files.associate { it.name to it.text }

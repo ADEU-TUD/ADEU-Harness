@@ -781,6 +781,7 @@ internal fun toolLabel(name: String) = when (name) {
     "fetch_url" -> "Webseite lesen"
     "create_document" -> "Dokument erstellen"
     "create_learning_game" -> "Lernspiel bauen"
+    "search_files" -> "Dateien durchsuchen"
     "outlook_list_folders" -> "Outlook-Ordner ansehen"
     "outlook_list_mails" -> "Postfach lesen"
     "outlook_read_mail" -> "Mail lesen"
