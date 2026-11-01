@@ -730,7 +730,8 @@ internal fun excerptRequest(r: Reference): String = buildString {
 
 /** All excerpts of [refs] as one table: a row per work, a column per field of the standard schema. */
 internal fun excerptTable(refs: List<Reference>): String {
-    val fields = io.github.thepytales.llmhub.research.ExcerptSchema.STANDARD.filter { it != tr("Bibliografie") && it != tr("Wörtliche Zitate") }
+    // The fields are the German headings of the stored excerpts, not texts of the interface.
+    val fields = io.github.thepytales.llmhub.research.ExcerptSchema.STANDARD.filter { it != "Bibliografie" && it != "Wörtliche Zitate" }
     fun section(md: String, field: String): String {
         val m = Regex("(?ims)^##\\s*" + Regex.escape(field) + "[^\\n]*\\n(.*?)(?=^##\\s|\\z|^---)").find(md) ?: return ""
         return m.groupValues[1].trim().replace("\n", " ").replace("|", "/").take(400)

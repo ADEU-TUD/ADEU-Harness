@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.net.DavEntry
 import io.github.thepytales.llmhub.net.WebDavClient
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -129,7 +130,7 @@ class PhoneSync(
         val now = clock()
         val others = notes(root)
         others.filter { it.isOpen(now) && !it.background }.maxByOrNull { it.aliveAt }?.let { o ->
-            return@withLock Result(waiting = "Der Ordner ist gerade am PC „${o.pc}“ geöffnet – der Sync wartet, bis er dort geschlossen ist.")
+            return@withLock Result(waiting = tr("Der Ordner ist gerade am PC „{0}“ geöffnet – der Sync wartet, bis er dort geschlossen ist.", o.pc))
         }
         var state = state().let { if (it.root != WebDavClient.normalize(root)) State(root = WebDavClient.normalize(root)) else it }
         val remote = remoteFiles(root)
@@ -140,14 +141,14 @@ class PhoneSync(
                 val key = "d:$rel"
                 (rel in SYNCED_FILES || SYNCED_DIRS.any { rel.startsWith("$it/") }) && (remote[key] == null || (o.closedAt != null && remote[key]!!.size != size))
             }
-            if (missing.isNotEmpty()) return@withLock Result(waiting = "Am PC „${o.pc}“ sind noch ${missing.size} Änderung(en) unterwegs – der Sync wartet auf die Nextcloud.")
+            if (missing.isNotEmpty()) return@withLock Result(waiting = tr("Am PC „{0}“ sind noch {1} Änderung(en) unterwegs – der Sync wartet auf die Nextcloud.", o.pc, missing.size))
         }
         val locals = localFiles()
         val keys = (locals.keys + remote.keys + state.files.keys).toSortedSet()
         val plan = keys.map { k -> k to decide(locals[k], remote[k], state.files[k]) }
         val deletions = plan.count { it.second == Action.DELETE_HERE || it.second == Action.DELETE_THERE }
         if (deletions > maxOf(20, state.files.size * 3 / 10) && state.files.isNotEmpty()) {
-            return@withLock Result(waiting = "Der Sync würde $deletions Dateien löschen – das ist ungewöhnlich viel, deshalb ist er angehalten. Bitte am PC prüfen.")
+            return@withLock Result(waiting = tr("Der Sync würde {0} Dateien löschen – das ist ungewöhnlich viel, deshalb ist er angehalten. Bitte am PC prüfen.", deletions))
         }
         val d = dav()
         val dirs = mutableSetOf<String>()

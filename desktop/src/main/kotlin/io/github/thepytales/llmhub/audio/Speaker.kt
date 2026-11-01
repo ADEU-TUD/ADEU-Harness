@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.audio
 
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import android.content.Context
@@ -57,7 +58,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _errors.tryEmit("Vorlesen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+                _errors.tryEmit(tr("Vorlesen fehlgeschlagen: {0}", e.message ?: e.javaClass.simpleName))
             } finally {
                 if (_playingId.value == id) _playingId.value = null
             }
@@ -116,7 +117,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _errors.tryEmit("Vorlesen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+                _errors.tryEmit(tr("Vorlesen fehlgeschlagen: {0}", e.message ?: e.javaClass.simpleName))
             } finally {
                 if (_playingId.value == id) _playingId.value = null
             }

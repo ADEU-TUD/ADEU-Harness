@@ -285,11 +285,12 @@ class ChatViewModel(
                 val gaps = output.file?.let { c.documentTools.openPlaceholders(File(it)) }.orEmpty()
                 val placed = output.file?.takeIf { it != made.file }
                 val note = buildString {
-                    append("Ihr ${template.name} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.")
-                    if (placed != null) append(" Er liegt im Projektordner unter „${io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT}“.")
-                    else if (output.text.contains("ließ sich die Datei nicht speichern")) append(" In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab.")
-                    if (gaps.isNotEmpty()) append(" Noch offen: ${gaps.joinToString(", ")} – tippen Sie am Dokument auf „Ausfüllen“.")
-                    append("\n\nÄnderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“.")
+                    append(tr("Ihr {0} ist fertig – Ihr Text wurde so übernommen, wie Sie ihn eingegeben haben.", tr(template.name)))
+                    if (placed != null) append(" ").append(tr("Er liegt im Projektordner unter „{0}“.", io.github.thepytales.llmhub.agent.WorkFolder.OUTPUT))
+                    // WorkFolder's message to the model stays German, so this check does not depend on the language.
+                    else if (output.text.contains("ließ sich die Datei nicht speichern")) append(" ").append(tr("In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab."))
+                    if (gaps.isNotEmpty()) append(" ").append(tr("Noch offen: {0} – tippen Sie am Dokument auf „Ausfüllen“.", gaps.joinToString(", ")))
+                    append("\n\n").append(tr("Änderungen können Sie einfach hier schreiben, z.B. „Formuliere den zweiten Absatz freundlicher“ oder „Ergänze die Frist 30. November“."))
                 }
                 update {
                     it.appendToThread(ChatMessage(role = "assistant", toolCalls = listOf(call)))

@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat
 import io.github.thepytales.llmhub.MainActivity
 import io.github.thepytales.llmhub.R
 import io.github.thepytales.llmhub.data.ScheduledTask
+import io.github.thepytales.llmhub.ui.tr
 
 /** System notifications: finished answers, results of scheduled tasks and questions of the agent. */
 object Notifier {
@@ -32,13 +33,13 @@ object Notifier {
         val nm = context.getSystemService(NotificationManager::class.java)
         nm.deleteNotificationChannel(OLD_CHANNEL)
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_RESULTS, "Ergebnisse", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Fertige Antworten, Ergebnisse geplanter Aufgaben und Rückfragen des Agenten"
+            NotificationChannel(CHANNEL_RESULTS, tr("Ergebnisse"), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = tr("Fertige Antworten, Ergebnisse geplanter Aufgaben und Rückfragen des Agenten")
             }
         )
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_RUNNING, "Laufende Antworten", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Wird angezeigt, solange eine Antwort im Hintergrund entsteht"
+            NotificationChannel(CHANNEL_RUNNING, tr("Laufende Antworten"), NotificationManager.IMPORTANCE_LOW).apply {
+                description = tr("Wird angezeigt, solange eine Antwort im Hintergrund entsteht")
                 setShowBadge(false)
             }
         )
@@ -103,7 +104,7 @@ object Notifier {
     }
 
     fun taskFinished(context: Context, task: ScheduledTask, chatId: String, answer: String?, error: String?) {
-        post(context, task.id.hashCode(), task.name, error ?: preview(answer) ?: "Fertig – tippen, um das Ergebnis zu sehen.", chatId)
+        post(context, task.id.hashCode(), task.name, error ?: preview(answer) ?: tr("Fertig – tippen, um das Ergebnis zu sehen."), chatId)
     }
 
     /** A batch (AP-20) is finished; tapping opens the app. */
@@ -113,12 +114,12 @@ object Notifier {
 
     /** An answer that was generated in the background is ready. */
     fun chatFinished(context: Context, title: String, chatId: String, answer: String?, error: String?) {
-        post(context, chatId.hashCode(), title, error?.let { "Fehler: $it" } ?: preview(answer) ?: "Antwort fertig.", chatId)
+        post(context, chatId.hashCode(), title, error?.let { tr("Fehler: {0}", it) } ?: preview(answer) ?: tr("Antwort fertig."), chatId)
     }
 
     /** The agent waits for permission to run a write action. */
     fun confirmationNeeded(context: Context, title: String, chatId: String, action: String) {
-        post(context, chatId.hashCode(), title, "Der Agent wartet auf deine Bestätigung für „$action“. Tippen zum Öffnen.", chatId)
+        post(context, chatId.hashCode(), title, tr("Der Agent wartet auf deine Bestätigung für „{0}“. Tippen zum Öffnen.", action), chatId)
     }
 
     fun cancel(context: Context, chatId: String) {
@@ -127,6 +128,6 @@ object Notifier {
 
     /** Shows a sample notification so the user can check that results will reach them. */
     fun test(context: Context) {
-        post(context, "test".hashCode(), "Lora", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
+        post(context, "test".hashCode(), "Lora", tr("So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren."), null)
     }
 }

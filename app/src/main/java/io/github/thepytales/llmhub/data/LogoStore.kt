@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.data
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import io.github.thepytales.llmhub.ui.tr
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -18,7 +19,7 @@ class LogoStore(filesDir: File) : ListStore<Logo>(
 
     /** Saves an image (any format Android can decode) as logo; the first logo becomes the default. */
     fun add(name: String, bytes: ByteArray): Logo {
-        val src = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException("Bild konnte nicht gelesen werden.")
+        val src = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException(tr("Bild konnte nicht gelesen werden."))
         val scale = minOf(1f, 1024f / maxOf(src.width, src.height))
         val bmp = if (scale < 1f) Bitmap.createScaledBitmap(src, (src.width * scale).toInt(), (src.height * scale).toInt(), true) else src
         val logo = Logo(name = name.trim().ifBlank { "Logo" }, path = "", isDefault = current.isEmpty())

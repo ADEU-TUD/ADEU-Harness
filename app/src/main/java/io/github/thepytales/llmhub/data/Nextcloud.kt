@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.files.FileText
 import io.github.thepytales.llmhub.files.ReadResult
 import io.github.thepytales.llmhub.net.DavEntry
 import io.github.thepytales.llmhub.net.WebDavClient
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -21,7 +22,7 @@ class NextcloudService(private val c: AppContainer) {
 
     fun client(): WebDavClient {
         val s = c.settings.current
-        if (!s.hasNextcloud) throw IOException("Nextcloud ist noch nicht eingerichtet (Einstellungen › Verbindungen › Nextcloud).")
+        if (!s.hasNextcloud) throw IOException(tr("Nextcloud ist noch nicht eingerichtet (Einstellungen › Verbindungen › Nextcloud)."))
         return WebDavClient(c.llm.http, s.nextcloudServer, s.nextcloudUser, s.nextcloudPassword)
     }
 

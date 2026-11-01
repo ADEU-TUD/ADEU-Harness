@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import io.github.thepytales.llmhub.LlmHubApp
 import io.github.thepytales.llmhub.R
 import io.github.thepytales.llmhub.tasks.Notifier
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -79,11 +80,11 @@ class AgentService : Service() {
         val active = runs.runs.value.values.toList()
         val titles = active.map { it.conversation.value.title }
         val c = (application as LlmHubApp).container
-        val batch = c.batchRunner.current.value?.let { cur -> c.batches.get(cur.jobId)?.let { j -> "Stapel „${j.title}“: ${j.done} von ${j.items.size}" } }
+        val batch = c.batchRunner.current.value?.let { cur -> c.batches.get(cur.jobId)?.let { j -> tr("Stapel „{0}“: {1} von {2}", j.title, j.done, j.items.size) } }
         val text = when (titles.size) {
-            0 -> batch ?: "Wird abgeschlossen …"
+            0 -> batch ?: tr("Wird abgeschlossen …")
             1 -> titles.first()
-            else -> "${titles.size} Chats: " + titles.joinToString(", ")
+            else -> tr("{0} Chats: ", titles.size) + titles.joinToString(", ")
         }
         val stop = PendingIntent.getService(
             this, 1, Intent(this, AgentService::class.java).setAction(ACTION_STOP),
@@ -91,7 +92,7 @@ class AgentService : Service() {
         )
         val builder = NotificationCompat.Builder(this, Notifier.CHANNEL_RUNNING)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(if (titles.isEmpty() && batch != null) "Stapel läuft …" else "Antwort wird geschrieben …")
+            .setContentTitle(if (titles.isEmpty() && batch != null) tr("Stapel läuft …") else tr("Antwort wird geschrieben …"))
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

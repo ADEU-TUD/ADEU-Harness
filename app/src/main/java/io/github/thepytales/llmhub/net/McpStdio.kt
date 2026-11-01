@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.net
 
+import io.github.thepytales.llmhub.ui.tr
 import java.io.IOException
 
 /** Local MCP servers (a program started by the app, stdio) exist on Windows only; Windows has its own version of this file. */
@@ -8,7 +9,7 @@ object McpStdio {
 
     @Suppress("UNUSED_PARAMETER")
     fun start(command: String, args: List<String>, env: Map<String, String>, workDir: String?): McpTransport =
-        throw IOException("Lokale MCP-Server gibt es nur in der Windows-Version.")
+        throw IOException(tr("Lokale MCP-Server gibt es nur in der Windows-Version."))
 
     /** Splits „npx -y paket "C:\\Mit Leerzeichen"“ into its parts (quotes keep spaces). */
     fun split(line: String): List<String> {

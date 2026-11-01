@@ -15,6 +15,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -66,9 +67,9 @@ class McpHttpTransport(
             }
             if (resp.code == 404 && session != null) {
                 session = null
-                throw IOException("Die Sitzung beim Server ist abgelaufen – bitte noch einmal versuchen.")
+                throw IOException(tr("Die Sitzung beim Server ist abgelaufen – bitte noch einmal versuchen."))
             }
-            if (!resp.isSuccessful) throw IOException("Der MCP-Server antwortet mit HTTP ${resp.code}" + (resp.body?.string()?.take(200)?.let { ": $it" } ?: "."))
+            if (!resp.isSuccessful) throw IOException(tr("Der MCP-Server antwortet mit HTTP {0}", resp.code) + (resp.body?.string()?.take(200)?.let { ": $it" } ?: "."))
             if (!expectResponse) return@withContext null
             val id = message["id"]
             val type = resp.header("Content-Type").orEmpty()
@@ -89,7 +90,7 @@ class McpHttpTransport(
                     }
                 }
                 if (data.isNotEmpty()) runCatching { JSON.parseToJsonElement(data.toString()).jsonObject }.getOrNull()?.let { if (it["id"] == id) return@withContext it }
-                throw IOException("Der MCP-Server hat die Verbindung ohne Antwort beendet.")
+                throw IOException(tr("Der MCP-Server hat die Verbindung ohne Antwort beendet."))
             }
             val text = body.string()
             val parsed = JSON.parseToJsonElement(text)
@@ -129,7 +130,7 @@ class McpSession(private val transport: McpTransport, private val clientVersion:
         val resp = transport.send(msg, expectResponse = true) ?: throw IOException("Keine Antwort auf $method.")
         resp["error"]?.let { e ->
             val o = e as? JsonObject
-            throw IOException("Der MCP-Server meldet einen Fehler bei $method: " + (o?.get("message")?.jsonPrimitive?.contentOrNull ?: e.toString()))
+            throw IOException(tr("Der MCP-Server meldet einen Fehler bei {0}: ", method) + (o?.get("message")?.jsonPrimitive?.contentOrNull ?: e.toString()))
         }
         return resp["result"] as? JsonObject ?: JsonObject(emptyMap())
     }

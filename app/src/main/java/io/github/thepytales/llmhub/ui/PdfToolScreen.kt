@@ -618,7 +618,7 @@ private fun SplitDialog(pages: Int, onDismiss: () -> Unit, onSplit: (List<List<I
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NumbersDialog(onDismiss: () -> Unit, onApply: (PdfNumbering) -> Unit) {
-    var format by remember { mutableStateOf("Seite {n} von {N}") }
+    var format by remember { mutableStateOf(tr("Seite {n} von {N}")) }
     var start by remember { mutableStateOf("1") }
     var position by remember { mutableStateOf(PdfNumbering.Position.BOTTOM_CENTER) }
     AlertDialog(

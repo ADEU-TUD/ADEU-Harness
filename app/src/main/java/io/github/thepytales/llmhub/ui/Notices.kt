@@ -27,7 +27,7 @@ object Notices {
     fun info(text: String) = show(Notice(text))
 
     fun error(text: String, retry: (() -> Unit)? = null) =
-        show(Notice(text, action = retry?.let { "Erneut versuchen" }, onAction = retry, error = true))
+        show(Notice(text, action = retry?.let { tr("Erneut versuchen") }, onAction = retry, error = true))
 
     /** "… gelöscht – Rückgängig": [restore] on the button, otherwise [commit] once the banner is gone. */
     fun undo(text: String, restore: () -> Unit, commit: () -> Unit = {}) =

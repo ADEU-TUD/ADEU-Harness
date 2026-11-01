@@ -20,6 +20,7 @@ import io.github.thepytales.llmhub.net.ApiException
 import io.github.thepytales.llmhub.net.NetErrors
 import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.ui.splitThinking
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -131,7 +132,7 @@ class AgentRunner(private val c: AppContainer) {
         val attached = start.thread().flatMap { it.files }.asReversed()
         val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, startModel)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
-            host.notice("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert.")
+            host.notice(tr("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert."))
         }
         val withoutBranch = ctx.linked().filter { it.branch == null }
         if (withoutBranch.isNotEmpty() && settings.hasGitHub) {
@@ -173,8 +174,8 @@ class AgentRunner(private val c: AppContainer) {
                     thinking = if (voice) ThinkingLevel.OFF else null,
                     tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
                     onRetry = { reason, wait ->
-                        events += "$reason – $wait s gewartet"
-                        host.notice("$reason – neuer Versuch in $wait s.")
+                        events += tr("{0} – {1} s gewartet", reason, wait)
+                        host.notice(tr("{0} – neuer Versuch in {1} s.", reason, wait))
                     },
                 ) { upd ->
                     host.update { cv ->
@@ -199,7 +200,7 @@ class AgentRunner(private val c: AppContainer) {
                 ) {
                     // The model (or its server configuration) rejects function calling: answer without tools.
                     host.update { it.dropFromThread(placeholder.id) }
-                    host.notice("${ModelCatalog.info(model).displayName} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.")
+                    host.notice(tr("{0} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.", ModelCatalog.info(model).displayName))
                     providers = emptyList()
                     continue
                 }
@@ -210,7 +211,7 @@ class AgentRunner(private val c: AppContainer) {
                     // The gateway does not reach the model: the same request goes to a similar model.
                     fallbackUsed = true
                     host.update { it.dropFromThread(placeholder.id) }
-                    val text = "${ModelCatalog.info(model).displayName} ist gerade nicht erreichbar – ${ModelCatalog.info(fallback).displayName} antwortet."
+                    val text = tr("{0} ist gerade nicht erreichbar – {1} antwortet.", ModelCatalog.info(model).displayName, ModelCatalog.info(fallback).displayName)
                     host.notice(text)
                     model = fallback
                     continue
@@ -257,7 +258,7 @@ class AgentRunner(private val c: AppContainer) {
             }
             if (steps >= maxSteps) {
                 if (autoContinue && totalSteps < HARD_STEP_LIMIT) {
-                    host.notice("$totalSteps Werkzeugschritte – der Agent macht automatisch weiter.")
+                    host.notice(tr("{0} Werkzeugschritte – der Agent macht automatisch weiter.", totalSteps))
                     steps = 0
                     continue
                 }
@@ -335,9 +336,12 @@ class AgentRunner(private val c: AppContainer) {
         val terms = settings.pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }
         if (PiiDetector.find(text, terms).isEmpty()) return null
         host.notice(
-            "Die Nachricht enthält personenbezogene Angaben (Namen, Kontaktdaten …) und geht an ${provider.name}, also außerhalb " +
-                "der TU Dresden. Für solche Daten ein ScaDS.AI-Modell wählen oder unter Einstellungen › Datenschutz die " +
-                "Pseudonymisierung einschalten."
+            tr(
+                "Die Nachricht enthält personenbezogene Angaben (Namen, Kontaktdaten …) und geht an {0}, also außerhalb " +
+                    "der TU Dresden. Für solche Daten ein ScaDS.AI-Modell wählen oder unter Einstellungen › Datenschutz die " +
+                    "Pseudonymisierung einschalten.",
+                provider.name,
+            )
         )
         return null
     }
@@ -399,7 +403,7 @@ class AgentRunner(private val c: AppContainer) {
         if (summary.isBlank()) return false
         host.update { it.copy(summary = summary, summaryUpTo = thread[cut - 1].id) }
         host.persist()
-        host.notice("Der ältere Teil des Chats wurde zusammengefasst, damit die Antwort schnell bleibt.")
+        host.notice(tr("Der ältere Teil des Chats wurde zusammengefasst, damit die Antwort schnell bleibt."))
         return true
     }
 

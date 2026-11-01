@@ -8,12 +8,25 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import org.jetbrains.skia.Image as SkiaImage
 import androidx.compose.ui.Modifier
 
-/** Windows: the right click opens the same menu as a long press on Android. */
-fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action)
+/**
+ * Windows: the right click opens the same menu as a long press on Android – and so do the menu key and Shift+F10 on
+ * the focused element (keyboard, AP-30; every caller puts this after its clickable).
+ */
+fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action).onKeyEvent { e ->
+    val menuKey = e.key == Key.Menu || e.isShiftPressed && e.key == Key.F10
+    if (menuKey && e.type == KeyEventType.KeyUp) action()
+    menuKey
+}
 
 /** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
 const val IS_ANDROID = false

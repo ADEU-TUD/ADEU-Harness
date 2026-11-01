@@ -514,6 +514,14 @@ fun TranscriptScreen(c: AppContainer, id: String, onBack: () -> Unit, onOpenChat
                                 }
                                 customActions = listOf(CustomAccessibilityAction(tr("Abschnitt bearbeiten")) { editSegment = i; true })
                             }
+                            // Keyboard (AP-30): Tab to the passage, Enter plays from it (or edits it), F2 edits it.
+                            .keyboardClick(onSecondary = { editSegment = i }) {
+                                when {
+                                    codingMode && codebook != null -> codeSegment = i
+                                    player == null -> editSegment = i
+                                    else -> { if (loop != null) loop = i; control.play(s.start) }
+                                }
+                            }
                             .padding(horizontal = 4.dp, vertical = 3.dp),
                     )
                     SegmentCodes(coding, codebook, s) { codeSegment = i }

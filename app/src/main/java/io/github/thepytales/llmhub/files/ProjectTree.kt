@@ -8,6 +8,7 @@ import android.provider.DocumentsContract.Document
 import android.webkit.MimeTypeMap
 import io.github.thepytales.llmhub.agent.WorkFolder
 import io.github.thepytales.llmhub.ui.Notices
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /**
@@ -51,13 +52,13 @@ object ProjectTree {
         val out = children(context, tree, root(path)).firstOrNull { it.dir && it.path == WorkFolder.OUTPUT }?.id
             ?: DocumentsContract.createDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, root(path)), Document.MIME_TYPE_DIR, WorkFolder.OUTPUT)
                 ?.let(DocumentsContract::getDocumentId)
-            ?: error("Der Ordner „${WorkFolder.OUTPUT}“ ließ sich nicht anlegen.")
+            ?: error(tr("Der Ordner „{0}“ ließ sich nicht anlegen.", WorkFolder.OUTPUT))
         val existing = children(context, tree, out).firstOrNull { !it.dir && it.path == file.name }?.let { DocumentsContract.buildDocumentUriUsingTree(tree, it.id) }
         val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase()) ?: "application/octet-stream"
         val target = existing?.takeIf { it.toString() in own }
             ?: DocumentsContract.createDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, out), mime, file.name)
-            ?: error("Die Datei ließ sich nicht anlegen.")
-        (r.openOutputStream(target, "wt") ?: error("Die Datei ließ sich nicht schreiben.")).use { o -> file.inputStream().use { it.copyTo(o) } }
+            ?: error(tr("Die Datei ließ sich nicht anlegen."))
+        (r.openOutputStream(target, "wt") ?: error(tr("Die Datei ließ sich nicht schreiben."))).use { o -> file.inputStream().use { it.copyTo(o) } }
         return target.toString()
     }
 
@@ -87,7 +88,7 @@ object ProjectTree {
                 Intent(Intent.ACTION_VIEW).setDataAndType(uri, Document.MIME_TYPE_DIR)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION),
             )
-        }.onFailure { Notices.info("Keine App zum Öffnen von Ordnern gefunden – der Ordner „${label(path)}“ ist in der Dateien-App zu finden.") }
+        }.onFailure { Notices.info(tr("Keine App zum Öffnen von Ordnern gefunden – der Ordner „{0}“ ist in der Dateien-App zu finden.", label(path))) }
     }
 
     private fun root(path: String) = DocumentsContract.getTreeDocumentId(Uri.parse(path))
@@ -95,7 +96,7 @@ object ProjectTree {
     private fun children(context: Context, tree: Uri, id: String): List<Entry> {
         val cols = arrayOf(Document.COLUMN_DISPLAY_NAME, Document.COLUMN_DOCUMENT_ID, Document.COLUMN_MIME_TYPE, Document.COLUMN_SIZE)
         val cursor = context.contentResolver.query(DocumentsContract.buildChildDocumentsUriUsingTree(tree, id), cols, null, null, null)
-            ?: error("Ordner nicht lesbar")
+            ?: error(tr("Ordner nicht lesbar"))
         return cursor.use { c ->
             buildList {
                 while (c.moveToNext()) {

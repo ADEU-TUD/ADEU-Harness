@@ -91,7 +91,7 @@ object AttachmentReader {
         val truncated = clean.length > MAX_CHARS
         return ReadResult(
             file = FileAttachment(name, mime.ifEmpty { "text/plain" }, clean.take(MAX_CHARS), pages, truncated),
-            note = if (truncated) "„$name“ ist sehr lang – nur die ersten ${MAX_CHARS / 1000}k Zeichen werden gesendet." else null,
+            note = if (truncated) tr("„{0}“ ist sehr lang – nur die ersten {1}k Zeichen werden gesendet.", name, MAX_CHARS / 1000) else null,
         )
     }
 
@@ -113,7 +113,7 @@ object AttachmentReader {
         val images = renderPdfPages(context, bytes, 4)
         if (fields > 0) return withCopy(text(name, "application/pdf", text.ifBlank { "[Formular ohne Textebene]" }, pages)).copy(images = images)
         if (images.isEmpty()) return ReadResult(error = tr("„{0}“ enthält keinen Text und konnte nicht gerendert werden.", name))
-        return ReadResult(images = images, note = "„$name“ enthält keinen Text (Scan) – die ersten ${images.size} Seiten werden als Bilder angehängt.")
+        return ReadResult(images = images, note = tr("„{0}“ enthält keinen Text (Scan) – die ersten {1} Seiten werden als Bilder angehängt.", name, images.size))
     }
 
     private fun renderPdfPages(context: Context, bytes: ByteArray, max: Int): List<String> = runCatching {

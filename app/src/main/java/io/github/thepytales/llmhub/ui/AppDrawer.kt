@@ -488,7 +488,7 @@ private fun NavRow(
     icon: ImageVector,
     label: String,
     badge: Int = 0,
-    badgeText: String = "neu",
+    badgeText: String = tr("neu"),
     indent: Boolean = false,
     muted: Boolean = false,
     accent: Boolean = false,
@@ -548,7 +548,7 @@ private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> 
         // Lora flies here and lets the entry glow when she leads to this area (AP-36).
         Spot("drawer.${area.route}") {
             NavRow(
-                area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) tr("läuft") else "neu",
+                area.icon(), area.label, badge = badge, badgeText = if (area == DrawerArea.TRANSCRIPTS) tr("läuft") else tr("neu"),
                 indent = !onTop, onMenu = { menu = true }, onClick = onOpen,
             )
         }

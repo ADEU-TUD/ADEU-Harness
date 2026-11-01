@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import androidx.lifecycle.lifecycleScope
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -94,7 +95,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         contentResolver.openInputStream(uri)?.let { container.transcription.import(name, size, it) }
-                    }.onFailure { Notices.error(it.message ?: "Die Datei konnte nicht übernommen werden.") }
+                    }.onFailure { Notices.error(it.message ?: tr("Die Datei konnte nicht übernommen werden.")) }
                 }
             }
             openRoute.value = "transcripts"

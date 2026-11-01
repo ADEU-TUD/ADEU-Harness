@@ -152,7 +152,8 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
             }
             items(tasks, key = { it.id }) { t ->
                 val lastChat = t.lastChatId?.let { id -> chats.firstOrNull { it.id == id } }
-                val failed = t.lastStatus != null && t.lastStatus != tr("Erfolgreich")
+                // lastStatus is stored in German (see TaskScheduler); statusText translates it for the screen.
+                val failed = t.lastStatus != null && t.lastStatus != ScheduledTask.SUCCESS
                 // The switch follows the click right away instead of waiting for the list to come back from the store
                 // (on Windows it sometimes only did after leaving the screen); a new stored value takes over again.
                 var enabled by remember(t.id, t.enabled) { mutableStateOf(t.enabled) }
@@ -202,7 +203,7 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                                     }
                                 }
                             }
-                            val preview = if (failed) t.lastStatus else resultPreview(lastChat)
+                            val preview = if (failed) t.lastStatus?.let(ScheduledTask::statusText) else resultPreview(lastChat)
                             preview?.let {
                                 Text(
                                     it,

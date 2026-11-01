@@ -9,6 +9,7 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import io.github.thepytales.llmhub.ui.tr
 import org.apache.pdfbox.Loader
 import org.jsoup.Jsoup
 import org.jsoup.helper.W3CDom
@@ -57,7 +58,7 @@ object HtmlPdf {
             if (!viaBrowser) renderBuiltIn(page, file)
             lastEngine = if (viaBrowser) Browser.find()?.name.orEmpty() else "eingebaut"
             val pages = pageCount(file)
-            if (pages <= 0) throw IllegalStateException("Die PDF-Datei ist leer.")
+            if (pages <= 0) throw IllegalStateException(tr("Die PDF-Datei ist leer."))
             pages
         }
     }
@@ -85,13 +86,13 @@ object HtmlPdf {
             val process = ProcessBuilder(cmd).redirectErrorStream(true).redirectOutput(File(work, "browser.log")).start()
             try {
                 val finished = runInterruptible { process.waitFor(BROWSER_TIMEOUT, TimeUnit.SECONDS) }
-                if (!finished) throw IllegalStateException("Der Browser hat das PDF nicht rechtzeitig erstellt.")
+                if (!finished) throw IllegalStateException(tr("Der Browser hat das PDF nicht rechtzeitig erstellt."))
             } finally {
                 if (process.isAlive) process.descendants().forEach { it.destroyForcibly() }
                 process.destroyForcibly()
             }
             if (!target.exists() || target.length() < 100 || pageCount(target) <= 0) {
-                throw IllegalStateException("Der Browser hat kein PDF geschrieben.")
+                throw IllegalStateException(tr("Der Browser hat kein PDF geschrieben."))
             }
             target.copyTo(out, overwrite = true)
         } finally {

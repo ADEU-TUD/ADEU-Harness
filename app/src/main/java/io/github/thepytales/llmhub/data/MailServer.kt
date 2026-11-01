@@ -40,7 +40,7 @@ class ImapBridge(
                 conn.login(config.user, config.password)
                 block(conn)
             } catch (e: IOException) {
-                throw OutlookException(e.message ?: "Fehler beim Mailserver")
+                throw OutlookException(e.message ?: tr("Fehler beim Mailserver"))
             }
         }
     }

@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.BuildConfig
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -190,7 +191,7 @@ object Backup {
                 }
             }
         }
-        val m = manifest ?: throw IllegalArgumentException("Das ist keine Sicherung von Lora (backup.json fehlt).")
+        val m = manifest ?: throw IllegalArgumentException(tr("Das ist keine Sicherung von Lora (backup.json fehlt)."))
         // Documents, logos and attachment copies are referenced with absolute paths of the old device.
         texts.forEach { f -> runCatching { f.writeText(movePaths(f.readText(), m.root, root.absolutePath)) }.logFailure("Pfade nach Umzug anpassen") }
         c.settings.update { s -> apply(s, m.settings) }

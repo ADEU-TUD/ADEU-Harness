@@ -325,9 +325,9 @@ object ModelCatalog {
         return ModelInfo(
             id = id,
             type = type,
-            summary = "Neues Modell – noch keine Beschreibung in der App hinterlegt.",
-            strengths = "Siehe Statusseite für die unterstützten Funktionen.",
-            useCase = "Neu auf dem Server – noch ohne Beschreibung in der App",
+            summary = trLater("Neues Modell – noch keine Beschreibung in der App hinterlegt."),
+            strengths = trLater("Siehe Statusseite für die unterstützten Funktionen."),
+            useCase = trLater("Neu auf dem Server – noch ohne Beschreibung in der App"),
             tier = if (l.startsWith("alias-")) ModelTier.HIDDEN else ModelTier.MORE,
             badge = "Neu",
         )
@@ -346,11 +346,11 @@ object ModelCatalog {
         return ModelInfo(
             id = id,
             type = type,
-            summary = "Modell von Google – über den eigenen Gemini-API-Key.",
-            strengths = "Siehe ai.google.dev für Funktionen und die Grenzen des kostenlosen API-Plans.",
+            summary = trLater("Modell von Google – über den eigenen Gemini-API-Key."),
+            strengths = trLater("Siehe ai.google.dev für Funktionen und die Grenzen des kostenlosen API-Plans."),
             vision = true.takeIf { type == ModelType.CHAT }, tools = true.takeIf { type == ModelType.CHAT && !special },
             label = id.split('-').joinToString(" ") { part -> part.replaceFirstChar { it.uppercase() } },
-            useCase = "Weiteres Gemini-Modell",
+            useCase = trLater("Weiteres Gemini-Modell"),
             tier = if (type == ModelType.CHAT && !special) ModelTier.MORE else ModelTier.HIDDEN,
             badge = "Gemini",
             via = ProviderKind.GEMINI,

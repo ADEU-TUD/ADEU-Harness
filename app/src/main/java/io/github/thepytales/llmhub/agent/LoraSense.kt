@@ -88,7 +88,7 @@ object LoraSense {
             )
             r == "pdf" -> listOf(
                 Suggestion(trLater("Wie geht zusammenfügen?"), "Wie füge ich PDFs zusammen?"),
-                Suggestion("PDF zusammenfassen", "Erklär mir, wie ich ein PDF im Chat zusammenfassen lasse"),
+                Suggestion(trLater("PDF zusammenfassen"), "Erklär mir, wie ich ein PDF im Chat zusammenfassen lasse"),
                 Suggestion(trLater("Formular ausfüllen"), "Wie fülle ich ein PDF-Formular aus?"),
             )
             r == "vault" -> listOf(

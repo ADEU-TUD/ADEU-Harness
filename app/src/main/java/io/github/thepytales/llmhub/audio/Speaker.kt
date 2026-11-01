@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.audio
 
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import android.content.Context
@@ -67,7 +68,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _errors.tryEmit("Vorlesen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+                _errors.tryEmit(tr("Vorlesen fehlgeschlagen: {0}", e.message ?: e.javaClass.simpleName))
             } finally {
                 if (_playingId.value == id) _playingId.value = null
             }
@@ -126,7 +127,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _errors.tryEmit("Vorlesen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}")
+                _errors.tryEmit(tr("Vorlesen fehlgeschlagen: {0}", e.message ?: e.javaClass.simpleName))
             } finally {
                 if (_playingId.value == id) _playingId.value = null
             }
@@ -197,7 +198,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
     }
 
     private suspend fun speakDevice(id: String, text: String) {
-        val engine = engine() ?: throw IllegalStateException("Auf diesem Gerät ist keine Sprachausgabe verfügbar.")
+        val engine = engine() ?: throw IllegalStateException(tr("Auf diesem Gerät ist keine Sprachausgabe verfügbar."))
         configure(engine)
         val max = (TextToSpeech.getMaxSpeechInputLength() - 100).coerceIn(500, 3500)
         val chunks = chunk(text, max)

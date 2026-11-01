@@ -8,6 +8,7 @@ import java.io.File
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
+import io.github.thepytales.llmhub.ui.tr
 import io.github.thepytales.llmhub.ui.trLater
 
 /**
@@ -49,7 +50,7 @@ object VideoRender {
      * [graphFile] receives the filter graph (long graphs exceed the command line of Windows).
      */
     fun plan(p: VideoProject, preset: Preset, out: File, work: File, info: (File) -> MediaInfo?, rnnoise: File? = Media.rnnoiseModel(), scriptOption: String = "-filter_complex_script"): Plan {
-        require(p.clips.isNotEmpty()) { "Das Projekt hat noch keine Clips." }
+        require(p.clips.isNotEmpty()) { tr("Das Projekt hat noch keine Clips.") }
         work.mkdirs()
         val (w, h) = size(p, preset)
         val fps = p.fps.coerceIn(10, 60)
@@ -189,7 +190,7 @@ object VideoRender {
      * coroutine stops ffmpeg.
      */
     suspend fun render(p: VideoProject, preset: Preset, out: File, progress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
-        val exe = Media.ffmpeg() ?: throw IllegalStateException("ffmpeg fehlt in der App.")
+        val exe = Media.ffmpeg() ?: throw IllegalStateException(tr("ffmpeg fehlt in der App."))
         val work = File(Media.cacheDir, "export-${System.nanoTime()}")
         val tmp = File(out.parentFile, out.nameWithoutExtension + ".teil.mp4")
         try {
@@ -210,7 +211,7 @@ object VideoRender {
             if (proc.exitValue() != 0 || !tmp.isFile) {
                 val log = File(work, "ffmpeg.log").takeIf { it.isFile }?.readLines().orEmpty().filter { it.isNotBlank() }.takeLast(6).joinToString("\n")
                 AppLog.i("Videoexport fehlgeschlagen:\n$log")
-                throw IllegalStateException("ffmpeg konnte das Video nicht schreiben." + if (log.isNotBlank()) "\n$log" else "")
+                throw IllegalStateException(tr("ffmpeg konnte das Video nicht schreiben.") + if (log.isNotBlank()) "\n$log" else "")
             }
             out.delete()
             if (!tmp.renameTo(out)) tmp.copyTo(out, overwrite = true).also { tmp.delete() }

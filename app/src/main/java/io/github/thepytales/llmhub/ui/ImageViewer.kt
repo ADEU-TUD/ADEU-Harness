@@ -192,7 +192,9 @@ internal fun Viewer(
                         .weight(1f)
                         .fillMaxWidth()
                         .transformable(transform)
-                        .pointerInput(img.id) { detectTapGestures(onDoubleTap = { scale = if (scale > 1f) 1f else 2.5f; offset = Offset.Zero }) },
+                        .pointerInput(img.id) { detectTapGestures(onDoubleTap = { scale = if (scale > 1f) 1f else 2.5f; offset = Offset.Zero }) }
+                        // Keyboard (AP-30): Enter zooms in and out like a double tap.
+                        .keyboardClick { scale = if (scale > 1f) 1f else 2.5f; offset = Offset.Zero },
                     contentAlignment = Alignment.Center,
                 ) {
                     if (bmp == null) CircularProgressIndicator(color = Color.White)

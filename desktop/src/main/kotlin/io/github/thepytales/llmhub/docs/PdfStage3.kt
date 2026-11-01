@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.docs
 
+import io.github.thepytales.llmhub.ui.tr
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.cos.COSName
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -210,13 +211,13 @@ object PdfStage3 {
     /** Replaces picture [name] on [page] by [image] (PNG/JPEG bytes) or, with null, removes it (a white pixel). */
     fun replaceImage(file: File, page: Int, name: String, image: ByteArray?, out: File) {
         PdfTools.load(file).use { doc ->
-            val res = doc.getPage(page).resources ?: error("Die Seite hat keine Bilder.")
+            val res = doc.getPage(page).resources ?: error(tr("Die Seite hat keine Bilder."))
             val cos = COSName.getPDFName(name)
-            res.getXObject(cos) as? PDImageXObject ?: error("Bild „$name“ nicht gefunden.")
+            res.getXObject(cos) as? PDImageXObject ?: error(tr("Bild „{0}“ nicht gefunden.", name))
             val next = if (image == null) {
                 LosslessFactory.createFromImage(doc, BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).apply { setRGB(0, 0, 0xFFFFFF) })
             } else {
-                val img = ImageIO.read(ByteArrayInputStream(image)) ?: error("Das Bild lässt sich nicht lesen (PNG oder JPEG verwenden).")
+                val img = ImageIO.read(ByteArrayInputStream(image)) ?: error(tr("Das Bild lässt sich nicht lesen (PNG oder JPEG verwenden)."))
                 if (img.colorModel.hasAlpha()) LosslessFactory.createFromImage(doc, img) else JPEGFactory.createFromImage(doc, img, 0.9f)
             }
             res.put(cos, next)
@@ -372,7 +373,7 @@ object PdfStage3 {
         val doc = try {
             Loader.loadPDF(file, password)
         } catch (e: org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException) {
-            throw IllegalArgumentException("Das Passwort stimmt nicht.")
+            throw IllegalArgumentException(tr("Das Passwort stimmt nicht."))
         }
         doc.use {
             it.isAllSecurityToBeRemoved = true

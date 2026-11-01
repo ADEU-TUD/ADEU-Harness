@@ -14,6 +14,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
@@ -67,8 +68,8 @@ class ServerStatus(private val http: OkHttpClient, private val baseUrl: () -> St
         val s = refresh(force = true) ?: return null
         val m = s.of(model)
         return when {
-            m != null && !m.up -> "Laut Statusseite des Uni-Servers ist dieses Modell gerade gestört (${m.state}) – ein anderes Modell wählen oder später erneut versuchen."
-            !s.allUp -> "Laut Statusseite des Uni-Servers gibt es gerade Störungen bei einzelnen Modellen."
+            m != null && !m.up -> tr("Laut Statusseite des Uni-Servers ist dieses Modell gerade gestört ({0}) – ein anderes Modell wählen oder später erneut versuchen.", m.state)
+            !s.allUp -> tr("Laut Statusseite des Uni-Servers gibt es gerade Störungen bei einzelnen Modellen.")
             else -> null
         }
     }

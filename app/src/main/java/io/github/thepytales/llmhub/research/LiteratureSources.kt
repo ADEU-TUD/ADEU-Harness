@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -71,14 +72,14 @@ class LiteratureSources(
     private val allowed: (HttpUrl) -> Boolean = { true },
 ) {
     private suspend fun get(url: HttpUrl, accept: String = "application/json"): String? {
-        if (!allowed(url)) throw IllegalStateException("Zugriff auf ${url.host} ist in dieser Umgebung nicht erlaubt")
+        if (!allowed(url)) throw IllegalStateException(tr("Zugriff auf {0} ist in dieser Umgebung nicht erlaubt", url.host))
         return withContext(Dispatchers.IO) {
             val req = Request.Builder().url(url).header("User-Agent", USER_AGENT).header("Accept", accept).build()
             http.newCall(req).execute().use { resp ->
                 when {
                     resp.code == 404 -> null
                     resp.code == 429 -> throw RateLimited(url.host)
-                    !resp.isSuccessful -> throw IllegalStateException("${url.host} antwortet mit HTTP ${resp.code}")
+                    !resp.isSuccessful -> throw IllegalStateException(tr("{0} antwortet mit HTTP {1}", url.host, resp.code))
                     else -> resp.body?.string()
                 }
             }

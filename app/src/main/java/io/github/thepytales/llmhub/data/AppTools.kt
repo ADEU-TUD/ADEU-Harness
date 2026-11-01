@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.ui.trLater
+
 import java.text.Normalizer
 
 /**
@@ -20,47 +22,47 @@ enum class AppTool(
     val planned: Boolean = false,
 ) {
     PDF(
-        "pdf", "PDF-Werkzeugkasten",
-        "PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, unterschreiben, Formulare ausfüllbar machen, Scans durchsuchbar machen (OCR), Word/Excel/PowerPoint/Bilder ↔ PDF umwandeln, Fragen an das PDF, Tabellen herausziehen.",
+        "pdf", trLater("PDF-Werkzeugkasten"),
+        trLater("PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, unterschreiben, Formulare ausfüllbar machen, Scans durchsuchbar machen (OCR), Word/Excel/PowerPoint/Bilder ↔ PDF umwandeln, Fragen an das PDF, Tabellen herausziehen."),
         "pdf", listOf(
             "pdf", "zusammenfugen", "zusammenfuehren", "seiten drehen", "seiten loschen", "seitenzahlen", "markieren", "formular", "ausfullbar", "heften",
             "unterschreiben", "unterschrift", "signieren", "ocr", "texterkennung", "scan durchsuchbar", "in pdf umwandeln", "als pdf speichern", "pdf in word", "frag das pdf",
         ),
     ),
     VAULT(
-        "vault", "Tresor",
-        "Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Daten von Studierenden: verschlüsselt, nur Uni-Server oder lokale Modelle.",
+        "vault", trLater("Tresor"),
+        trLater("Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Daten von Studierenden: verschlüsselt, nur Uni-Server oder lokale Modelle."),
         "vault", listOf("tresor", "sensibel", "vertraulich", "geschutzt", "pin", "interviewdaten", "daten von studierenden", "geheim"),
     ),
     GAMES(
-        "games", "Lernspiele",
-        "Quiz, Zuordnen, Memory und Escape-Rooms als eigenständige Browserspiele bauen lassen, in der App testen und als HTML/ZIP für OPAL oder Moodle exportieren.",
+        "games", trLater("Lernspiele"),
+        trLater("Quiz, Zuordnen, Memory und Escape-Rooms als eigenständige Browserspiele bauen lassen, in der App testen und als HTML/ZIP für OPAL oder Moodle exportieren."),
         "games", listOf("lernspiel", "quiz", "memory", "escape", "zuordnungsspiel", "spiel fur", "gamification"),
     ),
     MAIL(
-        "mail", "Mail & Kalender",
-        "Postfach im klassischen Outlook (Windows) oder über den Mailserver (IMAP, auch auf dem Handy) zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, mit Outlook auch Termine und Aufgaben aus Mails und freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
+        "mail", trLater("Mail & Kalender"),
+        trLater("Postfach im klassischen Outlook (Windows) oder über den Mailserver (IMAP, auch auf dem Handy) zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, mit Outlook auch Termine und Aufgaben aus Mails und freie Zeiten mit Kolleg:innen – nie löschen, nie senden."),
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
     ),
     BATCH(
-        "batch", "Stapel & Massenkontrolle",
-        "Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person.",
+        "batch", trLater("Stapel & Massenkontrolle"),
+        trLater("Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person."),
         "batches", listOf(
             "stapel", "massenkontrolle", "alle dateien", "viele dateien", "alle pdfs", "jede datei", "abgaben", "hausarbeiten", "korrigieren", "korrektur",
             "bewerten", "bewertungsraster", "punkte vergeben", "notenvorschlag", "opal-abgaben", "ordner mit",
         ),
     ),
     PROPOSALS(
-        "proposals", "Antrags-Werkstatt",
-        "Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check.",
+        "proposals", trLater("Antrags-Werkstatt"),
+        trLater("Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check."),
         "proposals", listOf(
             "antrag", "drittmittel", "forderantrag", "projektantrag", "ausschreibung", "dfg", "bmbf", "horizon", "erc", "sab", "foerderung", "forderung",
             "projektskizze", "sachbeihilfe", "gantt", "budgetplan", "finanzplan", "gutachter",
         ),
     ),
     VIDEO(
-        "video", "Videoeditor",
-        "Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube.",
+        "video", trLater("Videoeditor"),
+        trLater("Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube."),
         "video", listOf("video schneiden", "videoschnitt", "videoeditor", "lehrvideo", "untertitel einbrennen", "bauchbinde", "screencast", "video kurzen"),
         android = false,
     );

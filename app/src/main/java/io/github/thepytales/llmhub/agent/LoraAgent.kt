@@ -340,32 +340,32 @@ class LoraAgent(private val c: AppContainer) {
 
         /** Built-in help (short sections of the README) for explain and the local answer to „Wie geht …?“. */
         val HELP: List<Pair<String, String>> = listOf(
-            "Chat und Modelle" to "Neuer Chat oben in der Seitenleiste. Das Modell wechselst du über den Namen über dem Eingabefeld; „Automatisch“ schlägt je Anfrage das passende vor. Dateien und Bilder hängst du mit + an oder ziehst sie hinein.",
-            "Modi" to "Modi (Literatursuche, Planungsmodus, Quellenmodus, Exzerpt, Sprachmodus) startest du mit „/“ im Eingabefeld, über Strg+K oder die Startseite. Der Chip über dem Eingabefeld zeigt den Modus, ✕ verlässt ihn.",
-            "TU Vorlagen" to "Unter „Erstellen“ in der Seitenleiste: TU Vorlagen (Briefe, Mails, Lehre, Forschung) und unter Windows Gestalten (Poster, Flyer, Social Media) mit Meine Designs. Vorlagen mit vielen Feldern lassen sich auch Schritt für Schritt mit Lora ausfüllen. Mit dem Stern landen sie unter Favoriten auf der Startseite.",
-            "Literatur" to "Literatur in der Seitenleiste: Einträge per DOI, ISBN, BibTeX/RIS oder Zotero, Zitierstil unter Einstellungen › Literatur & Zotero. Zu einem Eintrag lässt sich ein Exzerpt erstellen.",
-            "Exzerpt" to "Exzerpt-Modus (/Exzerpt) oder Literatur › Eintrag › Exzerpt: PDF anhängen, der Agent füllt Bibliografie, Fragestellung, Theorie, Methode, Befunde und Zitate mit Seitenangaben aus, prüft die Zitate gegen das PDF und hängt das Exzerpt an den Literatureintrag.",
-            "Quellenmodus" to "Quellenmodus (/Quellen): Jede Aussage bekommt einen Beleg (Datei und Seite, DOI, URL). Danach prüft die App die Zitate gegen die Quellen und zeigt ein Belegprotokoll, das sich exportieren lässt.",
-            "Tresor" to "Der Tresor (Einstellungen › Werkzeuge einschalten) ist ein Bereich mit PIN für sensible Forschung. Inhalte sind verschlüsselt, nur der Uni-Server oder lokale Modelle sind erlaubt, Namen werden streng ersetzt. Der Wiederherstellungsschlüssel setzt eine vergessene PIN zurück.",
-            "PDF-Werkzeugkasten" to "Der PDF-Werkzeugkasten (Einstellungen › Werkzeuge einschalten): PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen, markieren, Notizen und Stempel, Formulare ausfüllbar machen.",
-            "Datenschutz" to "Einstellungen › Datenschutz: Pseudonymisierung ersetzt Namen vor dem Senden durch Platzhalter und setzt sie in der Antwort zurück. Öffentliche Quellen bleiben, wie sie sind; eine Nie-ersetzen-Liste und ein gründlicher lokaler Modus helfen.",
-            "Projekte" to "Projekte bündeln Chats, Anweisungen, Dateien und eine Datenschutzstufe (Standard, Nur TU Dresden, Nur auf diesem Gerät).",
-            "Transkription" to "Transkription in der Seitenleiste: Audio wählen, auf dem Uni-Server oder dem Gerät verschriften, Sprecher benennen, codieren und exportieren.",
-            "Dokumente" to "Der Agent erstellt PDF, Word, PowerPoint und mehr. Unter Dokumente bearbeitest du Entwürfe mit Versionen und Kommentaren.",
-            "Darstellung" to "Einstellungen › Darstellung: Stil, Helligkeit (hell/dunkel), Farbton, Schriftgröße und Zoom.",
-            "Lora" to "Lora hilft beim Finden: In den Einstellungen unten rechts antippen, auf der Startseite „Lora fragen“ oder Strg+K › Lora fragen. Einstellungen › Lora legt fest, wo sie erscheint.",
-            "Updates" to "Neue Versionen meldet die App beim Start. Einstellungen › Updates sucht auf Knopfdruck.",
+            trLater("Chat und Modelle") to trLater("Neuer Chat oben in der Seitenleiste. Das Modell wechselst du über den Namen über dem Eingabefeld; „Automatisch“ schlägt je Anfrage das passende vor. Dateien und Bilder hängst du mit + an oder ziehst sie hinein."),
+            trLater("Modi") to trLater("Modi (Literatursuche, Planungsmodus, Quellenmodus, Exzerpt, Sprachmodus) startest du mit „/“ im Eingabefeld, über Strg+K oder die Startseite. Der Chip über dem Eingabefeld zeigt den Modus, ✕ verlässt ihn."),
+            trLater("TU Vorlagen") to trLater("Unter „Erstellen“ in der Seitenleiste: TU Vorlagen (Briefe, Mails, Lehre, Forschung) und unter Windows Gestalten (Poster, Flyer, Social Media) mit Meine Designs. Vorlagen mit vielen Feldern lassen sich auch Schritt für Schritt mit Lora ausfüllen. Mit dem Stern landen sie unter Favoriten auf der Startseite."),
+            trLater("Literatur") to trLater("Literatur in der Seitenleiste: Einträge per DOI, ISBN, BibTeX/RIS oder Zotero, Zitierstil unter Einstellungen › Literatur & Zotero. Zu einem Eintrag lässt sich ein Exzerpt erstellen."),
+            trLater("Exzerpt") to trLater("Exzerpt-Modus (/Exzerpt) oder Literatur › Eintrag › Exzerpt: PDF anhängen, der Agent füllt Bibliografie, Fragestellung, Theorie, Methode, Befunde und Zitate mit Seitenangaben aus, prüft die Zitate gegen das PDF und hängt das Exzerpt an den Literatureintrag."),
+            trLater("Quellenmodus") to trLater("Quellenmodus (/Quellen): Jede Aussage bekommt einen Beleg (Datei und Seite, DOI, URL). Danach prüft die App die Zitate gegen die Quellen und zeigt ein Belegprotokoll, das sich exportieren lässt."),
+            trLater("Tresor") to trLater("Der Tresor (Einstellungen › Werkzeuge einschalten) ist ein Bereich mit PIN für sensible Forschung. Inhalte sind verschlüsselt, nur der Uni-Server oder lokale Modelle sind erlaubt, Namen werden streng ersetzt. Der Wiederherstellungsschlüssel setzt eine vergessene PIN zurück."),
+            trLater("PDF-Werkzeugkasten") to trLater("Der PDF-Werkzeugkasten (Einstellungen › Werkzeuge einschalten): PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen, markieren, Notizen und Stempel, Formulare ausfüllbar machen."),
+            trLater("Datenschutz") to trLater("Einstellungen › Datenschutz: Pseudonymisierung ersetzt Namen vor dem Senden durch Platzhalter und setzt sie in der Antwort zurück. Öffentliche Quellen bleiben, wie sie sind; eine Nie-ersetzen-Liste und ein gründlicher lokaler Modus helfen."),
+            trLater("Projekte") to trLater("Projekte bündeln Chats, Anweisungen, Dateien und eine Datenschutzstufe (Standard, Nur TU Dresden, Nur auf diesem Gerät)."),
+            trLater("Transkription") to trLater("Transkription in der Seitenleiste: Audio wählen, auf dem Uni-Server oder dem Gerät verschriften, Sprecher benennen, codieren und exportieren."),
+            trLater("Dokumente") to trLater("Der Agent erstellt PDF, Word, PowerPoint und mehr. Unter Dokumente bearbeitest du Entwürfe mit Versionen und Kommentaren."),
+            trLater("Darstellung") to trLater("Einstellungen › Darstellung: Stil, Helligkeit (hell/dunkel), Farbton, Schriftgröße und Zoom."),
+            trLater("Lora") to trLater("Lora hilft beim Finden: In den Einstellungen unten rechts antippen, auf der Startseite „Lora fragen“ oder Strg+K › Lora fragen. Einstellungen › Lora legt fest, wo sie erscheint."),
+            trLater("Updates") to trLater("Neue Versionen meldet die App beim Start. Einstellungen › Updates sucht auf Knopfdruck."),
         )
 
-        /** The help sections that fit [topic]. */
-        fun explain(topic: String): String {
+        /** The help sections that fit [topic]; [shown] in the language of the interface (Lora's own answer), else German for the model. */
+        fun explain(topic: String, shown: Boolean = false): String {
             val words = AppMap.words(topic)
             val hits = HELP.map { (title, text) ->
                 val hay = AppMap.norm("$title $text")
                 title to text to words.count { w -> w.length >= 3 && hay.contains(w.take(maxOf(4, w.length - 2))) }
             }.filter { it.second > 0 }.sortedByDescending { it.second }.take(2)
             if (hits.isEmpty()) return "Dazu steht nichts in der Hilfe. Themen: ${HELP.joinToString { it.first }}."
-            return hits.joinToString("\n\n") { (p, _) -> "${p.first}: ${p.second}" }
+            return hits.joinToString("\n\n") { (p, _) -> if (shown) "${tr(p.first)}: ${tr(p.second)}" else "${p.first}: ${p.second}" }
         }
 
         private fun defaultText(steps: List<LoraStep>): String = when (val s = steps.firstOrNull()) {
@@ -411,10 +411,10 @@ class LoraAgent(private val c: AppContainer) {
             // A big tool: suggest it when it is off, otherwise open it.
             val tools = AppTool.available(android)
             AppTool.suggestFor(wish, enabledTools, android, tools)?.let { tool ->
-                return LoraReply("Dafür gibt es „${tool.label}“ – ${tool.description} Einschalten?", listOf(LoraStep.EnableTool(tool)))
+                return LoraReply(tr("Dafür gibt es „{0}“ – {1} Einschalten?", tr(tool.label), tr(tool.description)), listOf(LoraStep.EnableTool(tool)))
             }
             tools.firstOrNull { t -> t.id in enabledTools && t.keywords.any { k -> Regex("(^|[^a-z])" + Regex.escape(k)).containsMatchIn(n) } }?.let { tool ->
-                targets.firstOrNull { it.id == "tool.${tool.id}" }?.let { return LoraReply("Ich öffne „${tool.label}“.", listOf(LoraStep.Navigate(it))) }
+                targets.firstOrNull { it.id == "tool.${tool.id}" }?.let { return LoraReply(tr("Ich öffne „{0}“.", tr(tool.label)), listOf(LoraStep.Navigate(it))) }
             }
             // „Erklär mir …“ about something that is not the app: a chat answers that.
             if (EXPLAIN_START.containsMatchIn(n) && !APP_WORDS.containsMatchIn(n)) {
@@ -423,12 +423,12 @@ class LoraAgent(private val c: AppContainer) {
             }
             val hit = AppMap.clearHit(wish, targets)
             if (HOWTO.containsMatchIn(n) && (hit == null || hit.kind == MapKind.TEMPLATE)) {
-                val help = explain(wish)
+                val help = explain(wish, shown = true)
                 if (!help.startsWith("Dazu steht nichts")) return LoraReply(help, hits = AppMap.search(wish, targets, 3).map { it.target })
             }
             hit ?: return null
             return when (hit.kind) {
-                MapKind.MODE, MapKind.TEMPLATE -> LoraReply("Ich öffne „${hit.title}“.", listOf(LoraStep.OpenMode(hit)))
+                MapKind.MODE, MapKind.TEMPLATE -> LoraReply(tr("Ich öffne „{0}“.", tr(hit.title)), listOf(LoraStep.OpenMode(hit)))
                 else -> LoraReply(tr("Hier ist es: {0}.", tr(hit.path)), listOf(LoraStep.Navigate(hit)))
             }
         }

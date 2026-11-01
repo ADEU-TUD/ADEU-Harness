@@ -10,6 +10,7 @@ import io.github.thepytales.llmhub.AppState
 import io.github.thepytales.llmhub.BuildConfig
 import io.github.thepytales.llmhub.desktop.Paths
 import io.github.thepytales.llmhub.tasks.Notifier
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /** Windows parts of the transcription: folders, ffmpeg and native libraries, energy saving, notifications. */
@@ -40,9 +41,9 @@ internal object SpeechHost {
                 if (AppState.foreground || job.status == "cancelled") return
                 val name = job.name.substringBeforeLast('.')
                 if (job.status == "done") {
-                    Notifier.transcriptionFinished("Transkription fertig – klicken zum Öffnen", name, job.transcriptId?.let { "transcript/$it" } ?: "transcripts")
+                    Notifier.transcriptionFinished(tr("Transkription fertig – klicken zum Öffnen"), name, job.transcriptId?.let { "transcript/$it" } ?: "transcripts")
                 } else {
-                    Notifier.transcriptionFinished("Transkription fehlgeschlagen", "$name: ${job.error}", "transcripts")
+                    Notifier.transcriptionFinished(tr("Transkription fehlgeschlagen"), "$name: ${job.error}", "transcripts")
                 }
             }
             override fun threads(): Int = t.settings.value.threads

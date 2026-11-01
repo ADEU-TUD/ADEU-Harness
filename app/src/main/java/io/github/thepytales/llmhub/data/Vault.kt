@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.data
 
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,7 +90,7 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
     @Synchronized
     fun setUp(pin: String): String {
         require(validPin(pin)) { PIN_RULE }
-        check(!metaFile.isFile) { "Der Tresor ist schon eingerichtet." }
+        check(!metaFile.isFile) { tr("Der Tresor ist schon eingerichtet.") }
         val data = ByteArray(32).also(random::nextBytes)
         val recovery = newRecoveryKey()
         writeMeta(wrapAll(data, pin, recovery))

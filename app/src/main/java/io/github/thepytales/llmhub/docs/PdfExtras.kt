@@ -18,6 +18,7 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.graphics.state.RenderingMode
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import com.tom_roush.pdfbox.util.Matrix
+import io.github.thepytales.llmhub.ui.tr
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Base64
@@ -119,7 +120,7 @@ object PdfExtras {
                 val image = signature.image
                 if (image != null) {
                     val bytes = Base64.getDecoder().decode(image)
-                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException("Das Bild der Unterschrift ist nicht lesbar.")
+                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException(tr("Das Bild der Unterschrift ist nicht lesbar."))
                     cs.drawImage(LosslessFactory.createFromImage(doc, bmp), x0, top - bh, bw, bh)
                 } else {
                     val col = signature.color
@@ -152,7 +153,7 @@ object PdfExtras {
         PdfTools.init(context)
         PDDocument().use { doc ->
             images.forEach { (name, bytes) ->
-                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException("„$name“ ist kein lesbares Bild.")
+                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw IllegalArgumentException(tr("„{0}“ ist kein lesbares Bild.", name))
                 val img = if (name.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") }) JPEGFactory.createFromImage(doc, bmp) else LosslessFactory.createFromImage(doc, bmp)
                 val landscape = bmp.width > bmp.height
                 val a4 = if (landscape) PDRectangle(PDRectangle.A4.height, PDRectangle.A4.width) else PDRectangle.A4

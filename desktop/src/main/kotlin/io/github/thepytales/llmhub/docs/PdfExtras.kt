@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.docs
 
 import android.content.Context
+import io.github.thepytales.llmhub.ui.tr
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
@@ -156,7 +157,7 @@ object PdfExtras {
                 val img = runCatching { PDImageXObject.createFromByteArray(doc, bytes, name) }.getOrElse {
                     // WebP and others ImageIO lacks: through Skia as JPEG.
                     val jpeg = org.jetbrains.skia.Image.makeFromEncoded(bytes).encodeToData(org.jetbrains.skia.EncodedImageFormat.JPEG, 92)?.bytes
-                        ?: throw IllegalArgumentException("„$name“ ist kein lesbares Bild.")
+                        ?: throw IllegalArgumentException(tr("„{0}“ ist kein lesbares Bild.", name))
                     PDImageXObject.createFromByteArray(doc, jpeg, "bild$i.jpg")
                 }
                 val landscape = img.width > img.height
