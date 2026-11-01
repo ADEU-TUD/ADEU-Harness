@@ -282,7 +282,7 @@ internal fun PdfConverter(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> 
                 if (found.isEmpty()) Notices.error(tr("Auf den Seiten wurde kein Text erkannt."))
                 else {
                     onRun { src, out -> PdfExtras.addTextLayer(context, src, found, out) }
-                    Notices.info(tr("Text auf") + " ${found.size} " + tr(if (found.size == 1) "Seite" else "Seiten") + " " + tr("erkannt") + " (${r.engine})" + if (r.failed.isNotEmpty()) " · " + tr("nicht erkannt") + ": " + r.failed.joinToString(", ") { "${it + 1}" } else "")
+                    Notices.info(tr(if (found.size == 1) "Text auf {0} Seite erkannt" else "Text auf {0} Seiten erkannt", found.size) + " (${r.engine})" + if (r.failed.isNotEmpty()) " · " + tr("nicht erkannt") + ": " + r.failed.joinToString(", ") { "${it + 1}" } else "")
                 }
             }
         }
@@ -380,7 +380,7 @@ internal fun PdfConverter(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> 
             title = { Text(tr("Mit KI-Modell erkennen?")) },
             text = {
                 Text(
-                    tr("Die Bilder von") + " ${scanned?.size ?: 0} " + tr("Seiten gehen an") + " ${io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName}. " +
+                    tr("Die Bilder von {0} Seiten gehen an {1}.", scanned?.size ?: 0, io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) + " " +
                         tr("In Bildern lassen sich keine Namen ersetzen – für sensible Unterlagen besser die Texterkennung auf dem PC nutzen."),
                 )
             },

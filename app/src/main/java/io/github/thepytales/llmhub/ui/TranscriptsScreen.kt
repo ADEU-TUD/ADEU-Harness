@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -162,7 +163,7 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                     Row(Modifier.widthIn(max = 560.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             onClick = pickFile, shape = RoundedCornerShape(28.dp), color = LocalChatLook.current.card,
-                            border = LocalChatLook.current.cardBorder, modifier = Modifier.weight(1f).height(56.dp),
+                            border = LocalChatLook.current.cardBorder, modifier = Modifier.weight(1f).heightIn(min = 56.dp),
                         ) {
                             Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(20.dp))
@@ -300,7 +301,7 @@ private fun RecordPill(label: String, enabled: Boolean = true, onClick: () -> Un
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 18.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 18.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(14.dp).clip(CircleShape).background(Color.White))
             Spacer(Modifier.width(10.dp))
             Text(label, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1)

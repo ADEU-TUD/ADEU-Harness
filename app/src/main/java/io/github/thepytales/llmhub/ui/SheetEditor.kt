@@ -575,7 +575,7 @@ fun SheetBody(
                     keyboardActions = KeyboardActions(onNext = { select(sr + 1, sc) }),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).focusRequester(barFocus).onPreviewKeyEvent { e ->
                         if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                        val ctrl = e.isCtrlPressed || e.isMetaPressed
+                        val ctrl = e.isCmd || e.isMetaPressed
                         val formula = bar.text.startsWith("=")
                         when {
                             // Ranges are copied and pasted as cells; within one cell the text field does it.

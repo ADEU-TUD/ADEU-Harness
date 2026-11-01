@@ -327,17 +327,17 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         if (trackBase != null) {
             fun base(next: String, note: String) = save(note = note) { d -> d.copy(trackBase = d.trackBase.orEmpty() + (t.id to next)) }
             when (action) {
-                is ReviewAction.Accept -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, accepted = action.change), "Änderung angenommen")
-                is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), "Änderung abgelehnt")
-                is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), "Löschung abgelehnt")
-                is ReviewAction.Drop -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, dropped = action.removed), "Löschung angenommen")
+                is ReviewAction.Accept -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, accepted = action.change), trLater("Änderung angenommen"))
+                is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), trLater("Änderung abgelehnt"))
+                is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), trLater("Löschung abgelehnt"))
+                is ReviewAction.Drop -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, dropped = action.removed), trLater("Löschung angenommen"))
             }
             return
         }
         when (action) {
             is ReviewAction.Accept -> blocks.getOrNull(action.change.index)?.let { acceptedAi += it }
-            is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), "KI-Änderung abgelehnt")
-            is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), "KI-Änderung zurückgenommen")
+            is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), trLater("KI-Änderung abgelehnt"))
+            is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), trLater("KI-Änderung zurückgenommen"))
             is ReviewAction.Drop -> acceptedAi += action.removed.text
         }
     }
@@ -391,7 +391,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         val last = undo.removeLastOrNull() ?: return
         redo += d.tabs
         editing.index = null
-        c.docs.save(d.change("Sie", "Rückgängig") { it.copy(tabs = last) })
+        c.docs.save(d.change("Sie", trLater("Rückgängig")) { it.copy(tabs = last) })
     }
 
     fun redoOnce() {
@@ -421,7 +421,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         }
         Column(
             Modifier.fillMaxSize().onPreviewKeyEvent { e ->
-                if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed || doc == null) return@onPreviewKeyEvent false
+                if (e.type != KeyEventType.KeyDown || !e.isCmd || doc == null) return@onPreviewKeyEvent false
                 when (e.key) {
                     Key.Z -> { if (e.isShiftPressed) redoOnce() else undoOnce(); true }
                     Key.Y -> { redoOnce(); true }
@@ -1159,7 +1159,7 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
                         val file = runCatching {
                             withContext(Dispatchers.IO) {
                                 val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-                                val f = File(dir, DocumentWriter.safeName("${doc.title} (Änderungen)") + ".docx")
+                                val f = File(dir, DocumentWriter.safeName(tr("{0} (Änderungen)", doc.title)) + ".docx")
                                 val base = c.docs.baseDir(doc)
                                 MarkdownDocx.writeTracked(
                                     f, doc.title, DocMarkup.resolveImages(DocumentWriter.withTitle(sel.title, sel.tabs.joinToString("\n\n") { it.markdown }), base),

@@ -381,7 +381,7 @@ private fun SectionCard(p: Proposal, index: Int, s: ProposalSection, change: ((P
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(s.title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                TextButton(onClick = { proposalChat(tr("Schreibe im Antrag") + " „${p.title}“ (${ProposalTools.ID_LABEL} ${p.id}) " + tr("den Abschnitt") + " „${s.title}“: ", p) }) { Text(tr("Mit Lora")) }
+                TextButton(onClick = { proposalChat(tr("Schreibe im Antrag „{0}“ ({1}) den Abschnitt „{2}“: ", p.title, "${ProposalTools.ID_LABEL} ${p.id}", s.title), p) }) { Text(tr("Mit Lora")) }
                 TextButton(onClick = { limits = true }) { Text(tr("Grenze")) }
             }
             if (s.guidance.isNotBlank()) Text(s.guidance, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

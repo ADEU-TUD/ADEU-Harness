@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.RepeatMode
@@ -138,7 +139,7 @@ fun WorkingCard(
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Row(Modifier.fillMaxWidth().height(32.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             tr(if (hideLora) "Arbeitet an der Antwort" else "Lora ist dran"),
                             style = MaterialTheme.typography.titleSmall,

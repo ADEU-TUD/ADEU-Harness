@@ -161,8 +161,8 @@ fun chatToMarkdown(conv: Conversation): String = buildString {
             "user" -> {
                 append("## Du\n\n")
                 if (m.content.isNotBlank()) append(m.content.trim()).append("\n\n")
-                if (m.images.isNotEmpty()) append("_(${m.images.size} Bild(er) angehängt)_\n\n")
-                if (m.files.isNotEmpty()) append("_(Dateien: ${m.files.joinToString(", ") { it.name }})_\n\n")
+                if (m.images.isNotEmpty()) append(tr("_({0} Bild(er) angehängt)_", m.images.size)).append("\n\n")
+                if (m.files.isNotEmpty()) append(tr("_(Dateien: {0})_", m.files.joinToString(", ") { it.name })).append("\n\n")
             }
             "assistant" -> {
                 val answer = splitThinking(m.content).second.trim()

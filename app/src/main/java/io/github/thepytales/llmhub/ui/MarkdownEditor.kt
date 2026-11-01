@@ -125,9 +125,9 @@ fun MarkdownBody(markdown: String, tabId: String?, narrow: Boolean, leading: @Co
                         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp).onPreviewKeyEvent { e ->
                             if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                             when {
-                                e.isCtrlPressed && e.key == Key.B -> { value = toggleMarks(value, "**"); true }
-                                e.isCtrlPressed && e.key == Key.I -> { value = toggleMarks(value, "*"); true }
-                                e.isCtrlPressed && e.key == Key.K -> { value = toggleMarks(value, "[", "](https://)"); true }
+                                e.isCmd && e.key == Key.B -> { value = toggleMarks(value, "**"); true }
+                                e.isCmd && e.key == Key.I -> { value = toggleMarks(value, "*"); true }
+                                e.isCmd && e.key == Key.K -> { value = toggleMarks(value, "[", "](https://)"); true }
                                 e.key == Key.Tab && Regex("^\\s*([-*+]|\\d+\\.)\\s").containsMatchIn(value.text.substring(value.text.lastIndexOf('\n', value.selection.start - 1) + 1)) -> {
                                     value = indentLine(value, e.isShiftPressed); true
                                 }

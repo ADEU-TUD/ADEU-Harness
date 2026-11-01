@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -76,7 +78,7 @@ internal fun Section(title: String, content: @Composable () -> Unit) {
     val look = LocalChatLook.current
     Card(Modifier.fillMaxWidth(), shape = look.cardShape, border = look.cardBorder, colors = CardDefaults.cardColors(containerColor = look.card)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
             content()
         }
     }

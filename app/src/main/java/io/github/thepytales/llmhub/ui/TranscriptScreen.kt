@@ -158,11 +158,11 @@ fun transcriptKey(e: KeyEvent, control: PlaybackControl, playing: () -> Boolean,
     if (e.type != KeyEventType.KeyDown) return false
     val skip = control.settings().skipSeconds.toDouble()
     return when {
-        e.key == Key.F4 || e.isCtrlPressed && e.key == Key.Spacebar -> { control.toggle(playing()); true }
+        e.key == Key.F4 || e.isCmd && e.key == Key.Spacebar -> { control.toggle(playing()); true }
         e.key == Key.F3 -> { control.skip(-skip); true }
         e.key == Key.F5 -> { control.skip(skip); true }
         e.key == Key.F6 -> { onLoop(); true }
-        e.isCtrlPressed && e.key == Key.F && onSearch != null -> { onSearch(); true }
+        e.isCmd && e.key == Key.F && onSearch != null -> { onSearch(); true }
         else -> false
     }
 }

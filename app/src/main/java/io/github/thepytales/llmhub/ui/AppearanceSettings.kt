@@ -67,7 +67,7 @@ fun AppearanceSettings(c: AppContainer) {
 
     GroupLabel(tr("Sprache der Oberfläche"))
     Spot("appearance.language") { Segmented(I18n.LANGUAGES, s.uiLanguage, { l -> c.settings.update { it.copy(uiLanguage = l) } }) }
-    HintText(if (s.uiLanguage == "en") tr("Menus, settings and the start page are in English so far; answers follow this language.") else tr("Englisch übersetzt bisher Menüs, Einstellungen und Startseite; Antworten folgen der gewählten Sprache."))
+    HintText(tr("Die ganze Oberfläche gibt es auf Deutsch und Englisch; Antworten folgen der gewählten Sprache, solange du nicht in einer anderen schreibst."))
 
     GroupLabel(tr("Stil"))
     Spot("appearance.style") { FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -92,14 +92,14 @@ fun AppearanceSettings(c: AppContainer) {
     AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             TitleBlock(tr("Reines Schwarz (AMOLED)"), tr("Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays."), Modifier.weight(1f))
-            Switch(checked = s.amoled, onCheckedChange = { v -> c.settings.update { it.copy(amoled = v) } })
+            Switch(modifier = Modifier.a11yLabel(tr("Reines Schwarz (AMOLED)")), checked = s.amoled, onCheckedChange = { v -> c.settings.update { it.copy(amoled = v) } })
         }
     }
 
     Spot("appearance.startAnimation") { AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             TitleBlock(tr("Startanimation"), tr("Kurze Animation des Logos beim Öffnen der App (etwa eine Sekunde)."), Modifier.weight(1f))
-            Switch(checked = s.startAnimation, onCheckedChange = { v -> c.settings.update { it.copy(startAnimation = v) } })
+            Switch(modifier = Modifier.a11yLabel(tr("Startanimation")), checked = s.startAnimation, onCheckedChange = { v -> c.settings.update { it.copy(startAnimation = v) } })
         }
     } }
 

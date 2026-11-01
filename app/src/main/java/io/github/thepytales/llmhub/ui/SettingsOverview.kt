@@ -101,7 +101,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "transcription" -> "Transkription"
     "updates" -> "Updates"
     "help" -> tr("Problem melden")
-    else -> "Einstellungen"
+    else -> tr("Einstellungen")
 }
 
 /**
@@ -149,8 +149,8 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     )
     if (query.isNotBlank()) {
         val hits = filterCommands(SETTINGS_INDEX + listOfNotNull(
-            deviceItem?.let { Command(it.title, it.route, "Einstellungen", "windows autostart infobereich datenordner") },
-            syncSettingsItem()?.let { Command(it.title, it.route, "Einstellungen", "sync synchronisieren cloud onedrive google drive nextcloud zweiter pc laptop") },
+            deviceItem?.let { Command(it.title, it.route, trLater("Einstellungen"), "windows autostart infobereich datenordner") },
+            syncSettingsItem()?.let { Command(it.title, it.route, trLater("Einstellungen"), "sync synchronisieren cloud onedrive google drive nextcloud zweiter pc laptop") },
         ), query)
         if (hits.isEmpty()) {
             Text(tr("Keine passende Einstellung."), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp))

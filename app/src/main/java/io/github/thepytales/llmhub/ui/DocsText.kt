@@ -707,15 +707,15 @@ private fun BlockField(
                         val listLike = kind in setOf(DocBlocks.Kind.BULLETS, DocBlocks.Kind.NUMBERS, DocBlocks.Kind.TASKS)
                         when {
                             e.key == Key.Escape -> { onDone(); true }
-                            e.isCtrlPressed && e.isAltPressed && e.key == Key.M -> { onComment(); true }
-                            e.isCtrlPressed && e.key == Key.J -> {
+                            e.isCmd && e.isAltPressed && e.key == Key.M -> { onComment(); true }
+                            e.isCmd && e.key == Key.J -> {
                                 if (!v.selection.collapsed) { askFor = v.selection; askActive = true } else onAi()
                                 true
                             }
-                            e.isCtrlPressed && e.key == Key.B -> { editing.value = toggleMarks(v, "**"); true }
-                            e.isCtrlPressed && e.key == Key.I -> { editing.value = toggleMarks(v, "*"); true }
-                            e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionUp -> { onMove(-1); true }
-                            e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionDown -> { onMove(1); true }
+                            e.isCmd && e.key == Key.B -> { editing.value = toggleMarks(v, "**"); true }
+                            e.isCmd && e.key == Key.I -> { editing.value = toggleMarks(v, "*"); true }
+                            e.isCmd && e.isShiftPressed && e.key == Key.DirectionUp -> { onMove(-1); true }
+                            e.isCmd && e.isShiftPressed && e.key == Key.DirectionDown -> { onMove(1); true }
                             e.key == Key.Backspace && v.text.isEmpty() -> { onBackspaceEmpty(); true }
                             // Enter at the end of a paragraph or heading starts a new block (Umschalt+Enter: new line).
                             e.key == Key.Enter && !e.isShiftPressed && !listLike && kind !in setOf(DocBlocks.Kind.CODE, DocBlocks.Kind.TABLE, DocBlocks.Kind.QUOTE, DocBlocks.Kind.NOTE) &&

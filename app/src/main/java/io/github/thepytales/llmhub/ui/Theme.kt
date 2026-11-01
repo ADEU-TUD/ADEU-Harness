@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material3.RippleConfiguration
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -576,6 +579,7 @@ private fun typographyOf(style: AppStyle): Typography? = when (style) {
     else -> null
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
     if (I18n.language != settings.uiLanguage) I18n.language = settings.uiLanguage
@@ -598,10 +602,18 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
             colorScheme = colors,
             typography = typographyOf(style) ?: MaterialTheme.typography,
             shapes = shapesOf(style) ?: MaterialTheme.shapes,
-            content = content,
-        )
+        ) {
+            // AP-30: the element with keyboard focus (Tab) is clearly highlighted, not only faintly as by default.
+            CompositionLocalProvider(LocalRippleConfiguration provides FOCUS_VISIBLE, content = content)
+        }
     }
 }
+
+/** Ripple with a clearly visible focus state (keyboard operation, AP-30); pressing and hovering stay as usual. */
+@OptIn(ExperimentalMaterial3Api::class)
+private val FOCUS_VISIBLE = RippleConfiguration(
+    rippleAlpha = androidx.compose.material.ripple.RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0.26f, hoveredAlpha = 0.08f, pressedAlpha = 0.12f),
+)
 
 /** Colors and look of a style without applying it (previews under Einstellungen › Darstellung). */
 fun stylePreview(style: AppStyle, dark: Boolean): Pair<ColorScheme, ChatLook> {

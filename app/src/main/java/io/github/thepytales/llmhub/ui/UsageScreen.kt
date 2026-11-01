@@ -193,11 +193,11 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
             val estimated = inRange.sumOf { it.estimated }
             Text(
                 buildString {
-                    append("Gezählt wird nur lokal auf diesem Gerät – es werden keine Daten übertragen. ")
+                    append(tr("Gezählt wird nur lokal auf diesem Gerät – es werden keine Daten übertragen.")).append(" ")
                     if (estimated > 0) {
-                        append("Bei $estimated Anfragen hat der Server keine Token-Zahlen geliefert; diese sind geschätzt (≈ 4 Zeichen pro Token).")
+                        append(tr("Bei {0} Anfragen hat der Server keine Token-Zahlen geliefert; diese sind geschätzt (≈ 4 Zeichen pro Token).", estimated))
                     } else {
-                        append("Die Token-Zahlen stammen vom Server.")
+                        append(tr("Die Token-Zahlen stammen vom Server."))
                     }
                 },
                 style = MaterialTheme.typography.bodySmall,

@@ -8,6 +8,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import io.github.thepytales.llmhub.ui.tr
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * What Lora notices on the device, without any request (AP-34, AP-35): where the user is and what fits there, next

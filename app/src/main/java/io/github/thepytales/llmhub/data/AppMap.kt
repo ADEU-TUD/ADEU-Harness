@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.agent.ChatModes
 import java.text.Normalizer
 import io.github.thepytales.llmhub.ui.trLater
+import io.github.thepytales.llmhub.ui.tr
 
 /** What a place of the [AppMap] is. */
 enum class MapKind(val label: String) {
@@ -38,81 +39,81 @@ object AppMap {
     data class Hit(val target: AppTarget, val score: Int)
 
     private val AREAS = listOf(
-        AppTarget("area.chat", MapKind.AREA, trLater("Neuer Chat"), "Seitenleiste › Neuer Chat", trLater("Ein neues Gespräch mit dem gewählten Modell."), "neu chat gespräch frage stellen", "chat"),
+        AppTarget("area.chat", MapKind.AREA, trLater("Neuer Chat"), trLater("Seitenleiste › Neuer Chat"), trLater("Ein neues Gespräch mit dem gewählten Modell."), "neu chat gespräch frage stellen", "chat"),
         AppTarget(
-            "area.templates", MapKind.AREA, trLater("Erstellen"), "Seitenleiste › Erstellen",
+            "area.templates", MapKind.AREA, trLater("Erstellen"), trLater("Seitenleiste › Erstellen"),
             trLater("Neues erstellen: TU Vorlagen für Briefe, Mails, Protokolle, Bescheinigungen, Lehre und Forschung; unter Windows außerdem Gestalten (Poster, Flyer, Aushänge, Social Media, Kursbanner, Titelbilder) und Meine Designs. Oder Lora sagen, was entstehen soll."),
             "erstellen tu vorlagen vorlagen vorlage prompt brief formular lehre forschung verwaltung gestalten design poster tagungsposter flyer aushang plakat einladungskarte social media instagram kursbanner titelbild kreativ kreativbereich canva meine designs", "templates",
         ),
-        AppTarget("area.literature", MapKind.AREA, trLater("Literatur"), "Seitenleiste › Literatur", trLater("Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte."), "literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt", "literature"),
-        AppTarget("area.transcripts", MapKind.AREA, trLater("Transkription"), "Seitenleiste › Transkription", trLater("Audio und Interviews verschriften, Sprecher erkennen, codieren."), "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
-        AppTarget("area.files", MapKind.AREA, trLater("Dateien"), "Seitenleiste › Dateien", trLater("Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner."),
+        AppTarget("area.literature", MapKind.AREA, trLater("Literatur"), trLater("Seitenleiste › Literatur"), trLater("Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte."), "literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt", "literature"),
+        AppTarget("area.transcripts", MapKind.AREA, trLater("Transkription"), trLater("Seitenleiste › Transkription"), trLater("Audio und Interviews verschriften, Sprecher erkennen, codieren."), "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
+        AppTarget("area.files", MapKind.AREA, trLater("Dateien"), trLater("Seitenleiste › Dateien"), trLater("Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner."),
             "dateien dokumente dokument editor entwurf word tabelle excel präsentation folien powerpoint dateiverwaltung datei finden ordner hochgeladen erstellt papierkorb verschieben schlagwort schlagwörter tag tags volltextsuche suchen durchsuchen zuletzt bearbeitet versionen vergleichen wo ist lora-ordner speicherort", "files"),
-        AppTarget("area.images", MapKind.AREA, trLater("Bilder erzeugen"), "Seitenleiste › Mehr › Bilder erzeugen", trLater("Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten."), "bild bilder grafik erzeugen malen zeichnen illustration galerie", "images"),
-        AppTarget("area.tasks", MapKind.AREA, trLater("Geplante Aufgaben"), "Seitenleiste › Mehr › Geplante Aufgaben", trLater("Aufgaben, die der Agent zu festen Zeiten ausführt."), "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
-        AppTarget("area.models", MapKind.AREA, trLater("Modellübersicht"), "Einstellungen › Modellübersicht", trLater("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck."), "modelle modell liste welches modell", "models"),
-        AppTarget("area.compare", MapKind.AREA, trLater("Modelle vergleichen"), "Einstellungen › Modelle vergleichen", trLater("Zwei Modelle beantworten dieselbe Frage nebeneinander."), "vergleichen vergleich nebeneinander zwei modelle", "compare"),
-        AppTarget("area.local", MapKind.AREA, trLater("Modelle auf diesem Gerät"), "Einstellungen › Modelle auf diesem Gerät", trLater("Sprachmodelle offline auf dem Gerät – für vertrauliche Daten."), "lokal offline gerät herunterladen lokales modell", "local-models"),
-        AppTarget("area.usage", MapKind.AREA, trLater("Verbrauch"), "Einstellungen › Verbrauch", trLater("Anfragen und Tokens pro Tag, Bewertungen."), "verbrauch kosten token statistik anfragen", "usage"),
-        AppTarget("area.environments", MapKind.AREA, trLater("Umgebungen"), "Einstellungen › Umgebungen", trLater("Variablen und Netzwerkzugriff für Agenten."), "umgebung variablen netzwerk agent", "environments"),
+        AppTarget("area.images", MapKind.AREA, trLater("Bilder erzeugen"), trLater("Seitenleiste › Mehr › Bilder erzeugen"), trLater("Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten."), "bild bilder grafik erzeugen malen zeichnen illustration galerie", "images"),
+        AppTarget("area.tasks", MapKind.AREA, trLater("Geplante Aufgaben"), trLater("Seitenleiste › Mehr › Geplante Aufgaben"), trLater("Aufgaben, die der Agent zu festen Zeiten ausführt."), "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
+        AppTarget("area.models", MapKind.AREA, trLater("Modellübersicht"), trLater("Einstellungen › Modellübersicht"), trLater("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck."), "modelle modell liste welches modell", "models"),
+        AppTarget("area.compare", MapKind.AREA, trLater("Modelle vergleichen"), trLater("Einstellungen › Modelle vergleichen"), trLater("Zwei Modelle beantworten dieselbe Frage nebeneinander."), "vergleichen vergleich nebeneinander zwei modelle", "compare"),
+        AppTarget("area.local", MapKind.AREA, trLater("Modelle auf diesem Gerät"), trLater("Einstellungen › Modelle auf diesem Gerät"), trLater("Sprachmodelle offline auf dem Gerät – für vertrauliche Daten."), "lokal offline gerät herunterladen lokales modell", "local-models"),
+        AppTarget("area.usage", MapKind.AREA, trLater("Verbrauch"), trLater("Einstellungen › Verbrauch"), trLater("Anfragen und Tokens pro Tag, Bewertungen."), "verbrauch kosten token statistik anfragen", "usage"),
+        AppTarget("area.environments", MapKind.AREA, trLater("Umgebungen"), trLater("Einstellungen › Umgebungen"), trLater("Variablen und Netzwerkzugriff für Agenten."), "umgebung variablen netzwerk agent", "environments"),
     )
 
     private val SETTINGS = listOf(
-        settings("api", "API-Zugang", "API-Schlüssel des Uni-Servers und weiterer Anbieter.", "api schlüssel key zugang anmelden konto server token"),
-        settings("github", "GitHub", "GitHub-Token für die Arbeit in Repositorys.", "github repository token code programmieren"),
-        settings("connections", "Verbindungen", "Nextcloud (TU-Cloudstore) verbinden und MCP-Server mit fremden Werkzeugen hinzufügen, je Werkzeug erlauben, fragen oder sperren.",
+        settings("api", trLater("API-Zugang"), trLater("API-Schlüssel des Uni-Servers und weiterer Anbieter."), "api schlüssel key zugang anmelden konto server token"),
+        settings("github", trLater("GitHub"), trLater("GitHub-Token für die Arbeit in Repositorys."), "github repository token code programmieren"),
+        settings("connections", trLater("Verbindungen"), trLater("Nextcloud (TU-Cloudstore) verbinden und MCP-Server mit fremden Werkzeugen hinzufügen, je Werkzeug erlauben, fragen oder sperren."),
             "verbindungen verbindung nextcloud cloudstore cloud webdav mcp model context protocol server werkzeuge anbinden integration schnittstelle connector"),
-        settings("chat", "Chat & Werkzeuge", "Standardmodell, Denkstufe, Werkzeuge, Freigaben und Agent.", "chat werkzeuge standardmodell freigaben agent websuche"),
-        settings("tools", "Werkzeuge", "Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen.", "werkzeuge einschalten ausschalten seitenleiste mehr reihenfolge"),
-        settings("lora", "Lora", "Wo Lora erscheint, Modell, ruhigere Bewegungen, Hinweise.", "lora maskottchen helfer navigator assistentin"),
-        settings("privacy", "Datenschutz", "Pseudonymisierung, Nie-ersetzen-Liste, gründliche Erkennung.", "datenschutz pseudonymisierung anonym namen ersetzen dsgvo"),
-        settings("memory", "Gedächtnis", "Was sich die App über dich merkt.", "gedächtnis erinnerung merken memory"),
-        settings("knowledge", "Wissenssammlung", "Eigene Dokumente durchsuchbar machen.", "wissen wissenssammlung dokumente durchsuchen rag"),
-        settings("literature", "Literatur & Zotero", "Zitierstil, Literaturdatenbanken, Zotero.", "zitierstil apa din harvard zotero literaturdatenbank"),
-        settings("transcription", "Transkription", "Spracherkennung auf dem Server oder Gerät, Modelle.", "transkription whisper spracherkennung sprecher"),
-        settings("documents", "Dokumente & Logos", "Dokumentstil, Logos, Absender.", "dokumente logo briefkopf absender stil corporate design"),
-        settings("voice", "Vorlesen & Spracheingabe", "Stimme, Vorlesen, Diktieren.", "vorlesen stimme sprache tts diktieren spracheingabe mikrofon"),
-        settings("appearance", "Darstellung", "Stil, Helligkeit, Farbton, Schriftgröße, Zoom.", "darstellung aussehen design farbe theme"),
-        settings("backup", "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren.", "sicherung backup export import umzug neues gerät"),
-        settings("trash", "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen.", "papierkorb gelöscht wiederherstellen"),
-        settings("ram", "Arbeitsspeicher", "Speicherverbrauch der App messen und freigeben.", "arbeitsspeicher ram speicher langsam"),
-        settings("folders", "Lokale Ordner", "Den Agenten in Ordnern auf diesem PC arbeiten lassen.", "ordner lokale dateien pc explorer freigeben", android = false),
-        settings("sync", "Synchronisation", "Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten.", "sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner", android = false),
-        settings("storage", "Speicherorte", "Eigene Ordner für Dokumente, z. B. in Google Drive.", "speicherort ablage ordner google drive onedrive", android = false),
-        settings("updates", "Updates", "Version, nach Updates suchen, automatische Suche.", "update aktualisieren neue version installieren"),
-        settings("help", "Problem melden", "Fehler beschreiben und anonymes Protokoll senden.", "problem fehler melden bug feedback absturz"),
+        settings("chat", trLater("Chat & Werkzeuge"), trLater("Standardmodell, Denkstufe, Werkzeuge, Freigaben und Agent."), "chat werkzeuge standardmodell freigaben agent websuche"),
+        settings("tools", trLater("Werkzeuge"), trLater("Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen."), "werkzeuge einschalten ausschalten seitenleiste mehr reihenfolge"),
+        settings("lora", trLater("Lora"), trLater("Wo Lora erscheint, Modell, ruhigere Bewegungen, Hinweise."), "lora maskottchen helfer navigator assistentin"),
+        settings("privacy", trLater("Datenschutz"), trLater("Pseudonymisierung, Nie-ersetzen-Liste, gründliche Erkennung."), "datenschutz pseudonymisierung anonym namen ersetzen dsgvo"),
+        settings("memory", trLater("Gedächtnis"), trLater("Was sich die App über dich merkt."), "gedächtnis erinnerung merken memory"),
+        settings("knowledge", trLater("Wissenssammlung"), trLater("Eigene Dokumente durchsuchbar machen."), "wissen wissenssammlung dokumente durchsuchen rag"),
+        settings("literature", trLater("Literatur & Zotero"), trLater("Zitierstil, Literaturdatenbanken, Zotero."), "zitierstil apa din harvard zotero literaturdatenbank"),
+        settings("transcription", trLater("Transkription"), trLater("Spracherkennung auf dem Server oder Gerät, Modelle."), "transkription whisper spracherkennung sprecher"),
+        settings("documents", trLater("Dokumente & Logos"), trLater("Dokumentstil, Logos, Absender."), "dokumente logo briefkopf absender stil corporate design"),
+        settings("voice", trLater("Vorlesen & Spracheingabe"), trLater("Stimme, Vorlesen, Diktieren."), "vorlesen stimme sprache tts diktieren spracheingabe mikrofon"),
+        settings("appearance", trLater("Darstellung"), trLater("Stil, Helligkeit, Farbton, Schriftgröße, Zoom."), "darstellung aussehen design farbe theme"),
+        settings("backup", trLater("Sicherung & Umzug"), trLater("Alles exportieren und auf einem anderen Gerät importieren."), "sicherung backup export import umzug neues gerät"),
+        settings("trash", trLater("Papierkorb"), trLater("Gelöschte Chats und Transkripte wiederherstellen."), "papierkorb gelöscht wiederherstellen"),
+        settings("ram", trLater("Arbeitsspeicher"), trLater("Speicherverbrauch der App messen und freigeben."), "arbeitsspeicher ram speicher langsam"),
+        settings("folders", trLater("Lokale Ordner"), trLater("Den Agenten in Ordnern auf diesem PC arbeiten lassen."), "ordner lokale dateien pc explorer freigeben", android = false),
+        settings("sync", trLater("Synchronisation"), trLater("Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten."), "sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner", android = false),
+        settings("storage", trLater("Speicherorte"), trLater("Eigene Ordner für Dokumente, z. B. in Google Drive."), "speicherort ablage ordner google drive onedrive", android = false),
+        settings("updates", trLater("Updates"), trLater("Version, nach Updates suchen, automatische Suche."), "update aktualisieren neue version installieren"),
+        settings("help", trLater("Problem melden"), trLater("Fehler beschreiben und anonymes Protokoll senden."), "problem fehler melden bug feedback absturz"),
     )
 
     /** Single options with the id their screen highlights (see ui/Spotlight). */
     private val OPTIONS = listOf(
-        option("appearance.theme", "appearance", "Helligkeit (hell oder dunkel)", "Darstellung › Helligkeit", "Hell, dunkel oder wie das System.",
+        option("appearance.theme", "appearance", trLater("Helligkeit (hell oder dunkel)"), trLater("Darstellung › Helligkeit"), trLater("Hell, dunkel oder wie das System."),
             "dunkel dunkles design dunkelmodus dark mode darkmode nachtmodus nacht hell helles design light theme schwarz augen"),
-        option("appearance.style", "appearance", "Stil der App", "Darstellung › Stil", "ADEU, TU Dresden, Office, Hoher Kontrast und weitere.",
+        option("appearance.style", "appearance", trLater("Stil der App"), trLater("Darstellung › Stil"), trLater("ADEU, TU Dresden, Office, Hoher Kontrast und weitere."),
             "stil aussehen tu dresden office hoher kontrast farben look"),
-        option("appearance.textsize", "appearance", "Schriftgröße", "Darstellung › Schriftgröße", "Text kleiner oder größer.",
+        option("appearance.textsize", "appearance", trLater("Schriftgröße"), trLater("Darstellung › Schriftgröße"), trLater("Text kleiner oder größer."),
             "schrift schriftgröße größer kleiner lesbar lesen text groß"),
-        option("appearance.zoom", "appearance", "Zoom", "Darstellung › Zoom", "Die ganze Oberfläche vergrößern.", "zoom vergrößern verkleinern skalierung", android = false),
-        option("appearance.language", "appearance", "Sprache der Oberfläche", "Darstellung › Sprache der Oberfläche", "Deutsch oder Englisch.",
+        option("appearance.zoom", "appearance", trLater("Zoom"), trLater("Darstellung › Zoom"), trLater("Die ganze Oberfläche vergrößern."), "zoom vergrößern verkleinern skalierung", android = false),
+        option("appearance.language", "appearance", trLater("Sprache der Oberfläche"), trLater("Darstellung › Sprache der Oberfläche"), trLater("Deutsch oder Englisch."),
             "sprache englisch english deutsch oberfläche"),
-        option("appearance.startAnimation", "appearance", "Startanimation", "Darstellung › Startanimation", "Kurze Animation beim Öffnen.", "startanimation animation start"),
-        option("chat.defaultModel", "chat", "Standardmodell", "Chat & Werkzeuge › Standardmodell", "Mit diesem Modell startet jeder neue Chat.",
+        option("appearance.startAnimation", "appearance", trLater("Startanimation"), trLater("Darstellung › Startanimation"), trLater("Kurze Animation beim Öffnen."), "startanimation animation start"),
+        option("chat.defaultModel", "chat", trLater("Standardmodell"), trLater("Chat & Werkzeuge › Standardmodell"), trLater("Mit diesem Modell startet jeder neue Chat."),
             "standardmodell modell wechseln anderes modell voreinstellung"),
-        option("chat.autoModel", "chat", "Modell automatisch wählen", "Chat & Werkzeuge › Modell automatisch wählen", "Die App schlägt je Anfrage das passende Modell vor.",
+        option("chat.autoModel", "chat", trLater("Modell automatisch wählen"), trLater("Chat & Werkzeuge › Modell automatisch wählen"), trLater("Die App schlägt je Anfrage das passende Modell vor."),
             "automatisch modell wählen auto"),
-        option("chat.thinking", "chat", "Denkstufe", "Chat & Werkzeuge › Denkstufe", "Wie gründlich Modelle nachdenken.", "denken denkstufe reasoning gedankengang nachdenken"),
-        option("chat.web", "chat", "Websuche", "Chat & Werkzeuge › Websuche, Webseiten & Quellen-Check", "Im Web suchen und Links lesen.", "websuche internet suchen web"),
-        option("chat.collapse", "chat", "Arbeitsschritte einklappen", "Chat & Werkzeuge › Arbeitsschritte einklappen", "Werkzeugschritte eingeklappt lassen.", "arbeitsschritte einklappen schritte werkzeugschritte"),
-        option("chat.approvals", "chat", "Freigaben", "Chat & Werkzeuge › Freigaben", "Wann der Agent vor Änderungen fragt.", "freigabe fragen bestätigen genehmigen"),
-        option("lora.mode", "lora", "Lora ein- oder ausblenden", "Lora › Wo Lora erscheint", "Überall, nur im Chat oder aus.",
+        option("chat.thinking", "chat", trLater("Denkstufe"), trLater("Chat & Werkzeuge › Denkstufe"), trLater("Wie gründlich Modelle nachdenken."), "denken denkstufe reasoning gedankengang nachdenken"),
+        option("chat.web", "chat", trLater("Websuche"), trLater("Chat & Werkzeuge › Websuche, Webseiten & Quellen-Check"), trLater("Im Web suchen und Links lesen."), "websuche internet suchen web"),
+        option("chat.collapse", "chat", trLater("Arbeitsschritte einklappen"), trLater("Chat & Werkzeuge › Arbeitsschritte einklappen"), trLater("Werkzeugschritte eingeklappt lassen."), "arbeitsschritte einklappen schritte werkzeugschritte"),
+        option("chat.approvals", "chat", trLater("Freigaben"), trLater("Chat & Werkzeuge › Freigaben"), trLater("Wann der Agent vor Änderungen fragt."), "freigabe fragen bestätigen genehmigen"),
+        option("lora.mode", "lora", trLater("Lora ein- oder ausblenden"), trLater("Lora › Wo Lora erscheint"), trLater("Überall, nur im Chat oder aus."),
             "lora ausblenden ausschalten verstecken weg maskottchen figur einblenden"),
-        option("lora.calm", "lora", "Ruhigere Bewegungen", "Lora › Ruhigere Bewegungen", "Lora bewegt sich weniger.", "animation ruhig weniger bewegung reduziert"),
-        option("privacy.pseudonymize", "privacy", "Pseudonymisierung", "Datenschutz › Pseudonymisierung", "Namen und persönliche Angaben vor dem Senden ersetzen.",
+        option("lora.calm", "lora", trLater("Ruhigere Bewegungen"), trLater("Lora › Ruhigere Bewegungen"), trLater("Lora bewegt sich weniger."), "animation ruhig weniger bewegung reduziert"),
+        option("privacy.pseudonymize", "privacy", trLater("Pseudonymisierung"), trLater("Datenschutz › Pseudonymisierung"), trLater("Namen und persönliche Angaben vor dem Senden ersetzen."),
             "pseudonymisierung pseudonym anonym anonymisieren namen ersetzen platzhalter"),
-        option("privacy.never", "privacy", "Nie ersetzen", "Datenschutz › Nie ersetzen", "Namen, die nie ersetzt werden.", "nie ersetzen ausnahme erlaubt liste"),
-        option("voice.engine", "voice", "Stimme", "Vorlesen & Spracheingabe › Stimme", "KI-Stimme des Uni-Servers oder offline.", "stimme vorlesen sprecher stimme ändern tts"),
-        option("documents.sender", "documents", "Absender", "Dokumente & Logos › Absender", "Name und Anschrift für Briefe.", "absender anschrift adresse briefkopf"),
-        option("documents.logo", "documents", "Logos", "Dokumente & Logos › Logos", "Eigene Logos für Dokumente.", "logo logos hochladen"),
-        option("updates.auto", "updates", "Automatisch nach Updates suchen", "Updates", "Beim Start nach neuen Versionen suchen.", "update automatisch suchen"),
+        option("privacy.never", "privacy", trLater("Nie ersetzen"), trLater("Datenschutz › Nie ersetzen"), trLater("Namen, die nie ersetzt werden."), "nie ersetzen ausnahme erlaubt liste"),
+        option("voice.engine", "voice", trLater("Stimme"), trLater("Vorlesen & Spracheingabe › Stimme"), trLater("KI-Stimme des Uni-Servers oder offline."), "stimme vorlesen sprecher stimme ändern tts"),
+        option("documents.sender", "documents", trLater("Absender"), trLater("Dokumente & Logos › Absender"), trLater("Name und Anschrift für Briefe."), "absender anschrift adresse briefkopf"),
+        option("documents.logo", "documents", trLater("Logos"), trLater("Dokumente & Logos › Logos"), trLater("Eigene Logos für Dokumente."), "logo logos hochladen"),
+        option("updates.auto", "updates", trLater("Automatisch nach Updates suchen"), trLater("Updates"), trLater("Beim Start nach neuen Versionen suchen."), "update automatisch suchen"),
     )
 
     private fun settings(section: String, title: String, description: String, synonyms: String, android: Boolean = true) =
@@ -163,10 +164,11 @@ object AppMap {
         if (q.isEmpty()) return emptyList()
         val phrase = q.joinToString(" ")
         return targets.mapNotNull { t ->
-            val title = norm(t.title).split(' ')
+            // English interface (AP-29): the English title and description count as well.
+            val title = norm(t.title + " " + tr(t.title)).split(' ')
             val syn = norm(t.synonyms)
             val synWords = syn.split(' ')
-            val desc = norm(t.description).split(' ')
+            val desc = norm(t.description + " " + tr(t.description)).split(' ')
             var score = 0
             var matched = 0
             for (w in q) {
@@ -184,7 +186,7 @@ object AppMap {
             }
             if (matched == 0) return@mapNotNull null
             if (q.size > 1 && " $syn ".contains(" $phrase ")) score += 12
-            if (norm(t.title) == phrase) score += 15
+            if (norm(t.title) == phrase || norm(tr(t.title)) == phrase) score += 15
             // Options are more precise than their page; templates only count with a strong match.
             score += when (t.kind) {
                 MapKind.OPTION -> 2

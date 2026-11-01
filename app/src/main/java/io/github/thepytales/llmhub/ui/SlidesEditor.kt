@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.AssistChip
@@ -243,10 +245,10 @@ fun SlidesBody(
             if (e.type != KeyEventType.KeyDown || writing) return@onPreviewKeyEvent false
             when {
                 e.key == Key.F5 -> { presenting = if (e.isShiftPressed) sel else 0; true }
-                e.isCtrlPressed && e.key == Key.M -> { addSlide(SlideDeck.Layout.CONTENT); true }
-                e.isCtrlPressed && e.key == Key.D -> { duplicate(); true }
-                e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionUp -> { move(-1); true }
-                e.isCtrlPressed && e.isShiftPressed && e.key == Key.DirectionDown -> { move(1); true }
+                e.isCmd && e.key == Key.M -> { addSlide(SlideDeck.Layout.CONTENT); true }
+                e.isCmd && e.key == Key.D -> { duplicate(); true }
+                e.isCmd && e.isShiftPressed && e.key == Key.DirectionUp -> { move(-1); true }
+                e.isCmd && e.isShiftPressed && e.key == Key.DirectionDown -> { move(1); true }
                 else -> false
             }
         },
@@ -521,8 +523,8 @@ private fun RichField(value: TextFieldValue, onChange: (TextFieldValue) -> Unit,
                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when {
                     e.key == Key.Tab -> { onChange(indentLine(value, outdent = e.isShiftPressed)); true }
-                    e.isCtrlPressed && e.key == Key.B -> { onChange(toggleMarks(value, "**")); true }
-                    e.isCtrlPressed && e.key == Key.I -> { onChange(toggleMarks(value, "*")); true }
+                    e.isCmd && e.key == Key.B -> { onChange(toggleMarks(value, "**")); true }
+                    e.isCmd && e.key == Key.I -> { onChange(toggleMarks(value, "*")); true }
                     else -> false
                 }
             },
@@ -1204,7 +1206,8 @@ private fun ColorDot(hex: String?, selected: Boolean, onClick: () -> Unit) {
         Modifier.size(26.dp).clip(androidx.compose.foundation.shape.CircleShape)
             .background(color ?: Color.Transparent)
             .border(if (selected) 3.dp else 1.dp, if (selected) Color(0xFF2F57B2) else Color(0xFFBBC1C6), androidx.compose.foundation.shape.CircleShape)
-            .clickable(onClick = onClick),
+            .a11yLabel(hex?.let { tr("Farbe") + " " + it } ?: tr("Keine Füllung"))
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { if (color == null) Text("∅", style = MaterialTheme.typography.labelSmall) }
 }

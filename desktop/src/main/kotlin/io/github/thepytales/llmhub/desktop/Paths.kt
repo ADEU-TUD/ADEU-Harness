@@ -4,8 +4,9 @@ import io.github.thepytales.llmhub.AppLog
 import java.io.File
 
 /**
- * Folders of the Windows app. Data lives per Windows user in %APPDATA%\ADEU LLM, so it survives updates
- * (a new version is just started instead of the old one) and needs no admin rights.
+ * Folders of the desktop app. Data lives per user – Windows: %APPDATA%\ADEU LLM, macOS: ~/Library/Application Support/
+ * ADEU LLM, Linux: ~/.config/adeu-llm and ~/.local/share/adeu-llm (AP-31) –, so it survives updates and needs no admin
+ * rights.
  */
 object Paths {
     val windows = System.getProperty("os.name").orEmpty().startsWith("Windows")
@@ -13,8 +14,13 @@ object Paths {
 
     /** Where the data lived before the Lora-Ordner (AP-16): %APPDATA%\\ADEU LLM. It keeps the files of this PC and the pointer. */
     private val standard: File by lazy {
-        val dir = if (windows) File(System.getenv("APPDATA")?.takeIf { it.isNotBlank() } ?: File(home, "AppData/Roaming").path, "ADEU LLM")
-        else File(home, ".adeu-llm")
+        val dir = when {
+            windows -> File(System.getenv("APPDATA")?.takeIf { it.isNotBlank() } ?: File(home, "AppData/Roaming").path, "ADEU LLM")
+            // Development runs before AP-31 kept it here.
+            File(home, ".adeu-llm").isDirectory -> File(home, ".adeu-llm")
+            Os.mac -> File(home, "Library/Application Support/ADEU LLM")
+            else -> File(xdg("XDG_CONFIG_HOME", ".config"), "adeu-llm")
+        }
         dir.apply { mkdirs() }
     }
 
@@ -29,11 +35,26 @@ object Paths {
 
     private val testData: String? get() = System.getProperty("adeu.data")?.takeIf { it.isNotBlank() }
 
-    /** The Documents folder of Windows (also when it was moved into OneDrive), else ~/Documents. */
+    /** A base folder of the XDG standard (Linux), e.g. ~/.config. */
+    private fun xdg(variable: String, fallback: String): File =
+        System.getenv(variable)?.takeIf { it.isNotBlank() }?.let(::File) ?: File(home, fallback)
+
+    /**
+     * The Documents folder of Windows (also when it was moved into OneDrive); on Linux the one of the desktop
+     * (~/Dokumente on a German system, from user-dirs.dirs); else ~/Documents.
+     */
     val documents: File by lazy {
-        val known = if (windows) runCatching {
-            com.sun.jna.platform.win32.Shell32Util.getKnownFolderPath(com.sun.jna.platform.win32.KnownFolders.FOLDERID_Documents)
-        }.getOrNull()?.let(::File)?.takeIf { it.isDirectory } else null
+        val known = when {
+            windows -> runCatching {
+                com.sun.jna.platform.win32.Shell32Util.getKnownFolderPath(com.sun.jna.platform.win32.KnownFolders.FOLDERID_Documents)
+            }.getOrNull()?.let(::File)
+            Os.linux -> runCatching {
+                File(xdg("XDG_CONFIG_HOME", ".config"), "user-dirs.dirs").readLines()
+                    .firstOrNull { it.startsWith("XDG_DOCUMENTS_DIR=") }?.substringAfter('=')?.trim()?.trim('"')
+                    ?.replace("\$HOME", home.path)?.let(::File)
+            }.getOrNull()
+            else -> null
+        }?.takeIf { it.isDirectory && it != home }
         known ?: File(home, "Documents").takeIf { it.isDirectory } ?: home
     }
 
@@ -157,12 +178,16 @@ object Paths {
         }
     }
 
-    /** Starts the app again (Windows) and ends this instance, e.g. after choosing another data folder. */
+    /** Starts the app again and ends this instance, e.g. after choosing another data folder. */
     fun restart(): Nothing {
         val exe = ProcessHandle.current().info().command().orElse(null)
-        if (windows && exe != null) {
-            // Wait two seconds so this instance has released its lock.
-            runCatching { ProcessBuilder("cmd", "/c", "ping -n 3 127.0.0.1 >nul & start \"\" \"$exe\"").start() }
+        // Wait two seconds so this instance has released its lock.
+        when {
+            windows && exe != null -> runCatching { ProcessBuilder("cmd", "/c", "ping -n 3 127.0.0.1 >nul & start \"\" \"$exe\"").start() }
+            Os.mac -> Os.appDir?.let { app -> runCatching { ProcessBuilder("sh", "-c", "sleep 2; open -n \"$1\"", "sh", app.path).start() } }
+            else -> (Os.launcher?.path ?: exe)?.let { launcher ->
+                runCatching { ProcessBuilder("sh", "-c", "sleep 2; \"$1\" >/dev/null 2>&1 &", "sh", launcher).start() }
+            }
         }
         kotlin.system.exitProcess(0)
     }
@@ -176,7 +201,9 @@ object Paths {
         val dir = when {
             custom != null -> File(custom, "local")
             windows -> File(System.getenv("LOCALAPPDATA")?.takeIf { it.isNotBlank() } ?: File(home, "AppData/Local").path, "ADEU LLM")
-            else -> File(home, ".adeu-llm/local")
+            File(home, ".adeu-llm/local").isDirectory -> File(home, ".adeu-llm/local")
+            Os.mac -> File(home, "Library/Application Support/ADEU LLM/local")
+            else -> File(xdg("XDG_DATA_HOME", ".local/share"), "adeu-llm")
         }
         dir.apply { mkdirs() }
     }

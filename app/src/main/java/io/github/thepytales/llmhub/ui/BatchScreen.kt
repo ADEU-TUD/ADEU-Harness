@@ -261,7 +261,7 @@ private fun BatchDetail(c: AppContainer, j: BatchJob) {
                             })
                             DropdownMenuItem(text = { Text(tr("Rückmeldungen je Person (Word, ZIP)")) }, onClick = {
                                 menu = false
-                                export({ feedbackZip(c, j, out("${j.title} – Rückmeldungen.zip")) }, saveZip)
+                                export({ feedbackZip(c, j, out(tr("{0} – Rückmeldungen.zip", j.title))) }, saveZip)
                             })
                             DropdownMenuItem(text = { Text(tr("Protokoll der Entscheidungen (Word)")) }, onClick = {
                                 menu = false
@@ -328,7 +328,7 @@ private fun feedbackZip(c: AppContainer, j: BatchJob, target: File): File {
             var n = 2
             while (!used.add(name)) name = FileText.safeName(i.name.substringBeforeLast('.')) + " – Rückmeldung ($n).docx".also { n++ }
             val f = File(tmp, name)
-            MarkdownDocx.write(f, "Rückmeldung", BatchGrading.feedback(j, i))
+            MarkdownDocx.write(f, tr("Rückmeldung"), BatchGrading.feedback(j, i))
             zip.putNextEntry(ZipEntry(name))
             f.inputStream().use { it.copyTo(zip) }
             zip.closeEntry()
@@ -432,7 +432,7 @@ private fun ItemDialog(c: AppContainer, j: BatchJob, i: BatchItem, onDismiss: ()
         confirmButton = {
             if (j.grading) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (g != null) TextButton(onClick = {
-                    c.batches.decide(j.id, i.id, BatchDecision(g.scores.map { it.points }, note, accepted = true), "Vorschlag übernommen (${BatchGrading.fmt(g.total)} Punkte)" + if (note.isNotBlank()) " – $note" else "")
+                    c.batches.decide(j.id, i.id, BatchDecision(g.scores.map { it.points }, note, accepted = true), tr("Vorschlag übernommen ({0} Punkte)", BatchGrading.fmt(g.total)) + if (note.isNotBlank()) " – $note" else "")
                     onDismiss()
                 }) { Text(tr("Vorschlag übernehmen")) }
                 Button(enabled = parsed() != null, onClick = {

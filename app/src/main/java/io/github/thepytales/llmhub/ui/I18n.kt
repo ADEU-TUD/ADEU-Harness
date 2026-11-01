@@ -46,7 +46,20 @@ object I18n {
         return out.toString()
     }
 
-    fun tr(german: String): String = if (language == "en") EN[german] ?: german else german
+    fun tr(german: String): String {
+        val text = if (language == "en") EN[german] ?: path(german) else german
+        return platformText?.invoke(text) ?: text
+    }
+
+    /**
+     * The desktop app on macOS and Linux (AP-31) adapts every shown text to its system: ⌘ instead of Strg, Finder instead
+     * of Explorer … Null on Windows and Android.
+     */
+    var platformText: ((String) -> String)? = null
+
+    /** „Einstellungen › Darstellung › Zoom“: a path of the app is translated part by part. */
+    private fun path(german: String): String =
+        if (" › " !in german) german else german.split(" › ").joinToString(" › ") { EN[it] ?: it }
 
     /**
      * Text with placeholders: `tr("„{0}“ gelöscht", name)` translates the text and then puts the values in for `{0}`, `{1}` …

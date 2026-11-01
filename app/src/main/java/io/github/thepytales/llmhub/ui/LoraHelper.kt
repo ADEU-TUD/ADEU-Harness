@@ -455,7 +455,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
         // A fixed place: Lora answers at once, without searching.
         val step = if (target.kind == MapKind.MODE || target.kind == MapKind.TEMPLATE) LoraStep.OpenMode(target) else LoraStep.Navigate(target)
         val turn = LoraTurn(sg.label).apply {
-            reply = LoraReply(if (step is LoraStep.OpenMode) tr("Ich öffne „{0}“.", target.title) else tr("Hier ist es: {0}.", target.path), listOf(step))
+            reply = LoraReply(if (step is LoraStep.OpenMode) tr("Ich öffne „{0}“.", target.title) else tr("Hier ist es: {0}.", tr(target.path)), listOf(step))
             state[0] = "done"
         }
         LoraHelper.turns += turn
@@ -890,7 +890,7 @@ internal fun relativeDay(millis: Long): String {
     return when {
         days <= 0L -> tr("heute")
         days == 1L -> tr("gestern")
-        days < 7L -> tr("vor") + " $days " + tr("Tagen")
+        days < 7L -> tr("vor {0} Tagen", days)
         else -> day.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
     }
 }

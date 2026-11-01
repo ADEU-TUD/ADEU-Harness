@@ -226,7 +226,7 @@ fun Composer(
                                 field = field.withLineBreak(); onInput(field.text)
                                 true
                             }
-                            e.key == Key.V && e.isCtrlPressed -> onPaste()
+                            e.key == Key.V && e.isCmd -> onPaste()
                             else -> false
                         }
                     },

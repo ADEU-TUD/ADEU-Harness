@@ -201,7 +201,7 @@ fun PhoneSyncSection(c: AppContainer) {
             picking = false
             scope.launch {
                 if (!c.phoneSync.looksLikeLoraFolder(folder)) {
-                    hint = tr("In") + " $folder " + tr("liegt kein Lora-Ordner (es fehlt „.lora“). Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.")
+                    hint = tr("In {0} liegt kein Lora-Ordner (es fehlt „.lora“).", folder) + " " + tr("Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.")
                 } else {
                     c.settings.update { it.copy(phoneSyncRoot = folder) }
                     hint = c.phoneSync.syncNow()

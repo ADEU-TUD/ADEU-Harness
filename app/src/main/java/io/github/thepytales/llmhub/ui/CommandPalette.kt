@@ -84,10 +84,10 @@ val SETTINGS_INDEX = listOf(
     Command(trLater("Papierkorb"), "settings/trash", trLater("Einstellungen"), "gelöscht wiederherstellen"),
     Command(trLater("Arbeitsspeicher"), "settings/ram", trLater("Einstellungen"), "speicher ram arbeitsspeicher langsam messen freigeben"),
     Command(trLater("Lokale Ordner"), "settings/folders", trLater("Einstellungen"), "ordner pc dateien agent explorer freigeben windows"),
-    Command(trLater("Synchronisation"), "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
-    Command(trLater("Speicherorte"), "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
-    Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
-    Command(trLater("Verbindungen"), "settings/connections", "Einstellungen", "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
+    Command(trLater("Synchronisation"), "settings/sync", trLater("Einstellungen"), "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
+    Command(trLater("Speicherorte"), "settings/storage", trLater("Einstellungen"), "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
+    Command(trLater("Updates"), "settings/updates", trLater("Einstellungen"), "update aktualisieren neue version installieren netzlaufwerk"),
+    Command(trLater("Verbindungen"), "settings/connections", trLater("Einstellungen"), "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */
@@ -149,7 +149,7 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                             item(key = "g_" + cmd.group) { PaletteHeading(cmd.group) }
                         }
                         item(key = "c_" + cmd.route) {
-                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { "Einstellungen" }) { go(cmd.route); onDismiss() }
+                            PaletteRow(cmd.title, cmd.route.takeIf { it.startsWith("settings/") }?.let { tr("Einstellungen") }) { go(cmd.route); onDismiss() }
                         }
                     }
                     if (chats.isNotEmpty()) {

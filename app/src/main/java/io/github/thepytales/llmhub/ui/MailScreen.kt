@@ -199,7 +199,7 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
                                         Text(r.name, style = MaterialTheme.typography.bodyMedium)
                                         HintText(OutlookTools.ruleText(r) + if (r.moved > 0) " · " + tr("bisher") + " ${r.moved}" else "")
                                     }
-                                    Switch(checked = r.enabled, onCheckedChange = { on -> c.mailRules.update(r.id) { it.copy(enabled = on) } })
+                                    Switch(modifier = Modifier.a11yLabel(r.name), checked = r.enabled, onCheckedChange = { on -> c.mailRules.update(r.id) { it.copy(enabled = on) } })
                                     IconButton(onClick = {
                                         c.mailRules.delete(r.id)
                                         Notices.undo(tr("Regel gelöscht"), restore = { c.mailRules.upsert(r) })

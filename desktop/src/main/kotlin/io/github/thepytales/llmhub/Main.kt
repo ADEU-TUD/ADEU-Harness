@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub
 
+import io.github.thepytales.llmhub.ui.isCmd
 import io.github.thepytales.llmhub.ui.Notices
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.isCtrlPressed
@@ -67,6 +68,10 @@ import kotlin.system.exitProcess
  * --apply-update … (second half of an update, see UpdateApply).
  */
 fun main(args: Array<String>) {
+    // AP-30: NVDA/JAWS on Windows – before anything touches AWT.
+    io.github.thepytales.llmhub.desktop.Accessibility.enableScreenReaders()
+    // AP-31: ⌘ instead of Strg, Finder instead of Explorer … in the texts on macOS and Linux.
+    if (!io.github.thepytales.llmhub.desktop.Os.windows) io.github.thepytales.llmhub.ui.I18n.platformText = io.github.thepytales.llmhub.desktop.Os::adaptText
     if (args.firstOrNull() == UpdateApply.FLAG) UpdateApply.run(args)
     val selfTest = args.indexOf("--selftest").takeIf { it >= 0 }?.let { File(args.getOrNull(it + 1) ?: "selftest").absoluteFile }
     if (selfTest != null) {
@@ -274,7 +279,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)
                     // Strg+Mausrad zooms; seen before any scrollable list gets the wheel.
                     .onPointerEvent(PointerEventType.Scroll, PointerEventPass.Initial) { e ->
-                        if (!e.keyboardModifiers.isCtrlPressed) return@onPointerEvent
+                        if (!e.keyboardModifiers.isCmd) return@onPointerEvent
                         val dy = e.changes.firstOrNull()?.scrollDelta?.y ?: 0f
                         if (dy != 0f) zoom(if (dy < 0) 1 else -1)
                         e.changes.forEach { it.consume() }
@@ -301,7 +306,7 @@ private fun zoom(step: Int) {
  * Strg+Umschalt+L literature, Strg+/ shortcut overview (see ShortcutsDialog).
  */
 private fun shortcut(e: KeyEvent): Boolean {
-    if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed) return false
+    if (e.type != KeyEventType.KeyDown || !e.isCmd) return false
     when (e.key) {
         Key.Plus, Key.Equals, Key.NumPadAdd -> { zoom(1); return true }
         Key.Minus, Key.NumPadSubtract -> { zoom(-1); return true }

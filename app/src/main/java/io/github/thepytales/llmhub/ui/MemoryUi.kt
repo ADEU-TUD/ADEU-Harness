@@ -98,7 +98,7 @@ fun MemoryChatDialog(c: AppContainer, conv: Conversation, onMemoryOff: (Boolean)
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = !conv.memoryOff, onCheckedChange = { onMemoryOff(!it) })
+                    Switch(modifier = Modifier.a11yLabel(tr("Gedächtnis in diesem Chat")), checked = !conv.memoryOff, onCheckedChange = { onMemoryOff(!it) })
                 }
                 HorizontalDivider()
                 if (entries.isEmpty()) {
@@ -337,9 +337,9 @@ fun MemoryIntroDialog(c: AppContainer, onDismiss: () -> Unit) {
                         style to MemoryCategory.STYLE,
                     ).filter { it.first.isNotBlank() }.forEach { (text, cat) ->
                         val sentence = when (cat) {
-                            MemoryCategory.ABOUT -> "Funktion und Einrichtung: " + text.trim()
-                            MemoryCategory.TEACHING -> "Lehre und Themen: " + text.trim()
-                            else -> "Texte sollen so klingen: " + text.trim()
+                            MemoryCategory.ABOUT -> tr("Funktion und Einrichtung:") + " " + text.trim()
+                            MemoryCategory.TEACHING -> tr("Lehre und Themen:") + " " + text.trim()
+                            else -> tr("Texte sollen so klingen:") + " " + text.trim()
                         }
                         if (!Memory.known(c, sentence)) c.memory.upsert(MemoryEntry(text = sentence, category = cat.name, source = "intro"))
                     }

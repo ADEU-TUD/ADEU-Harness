@@ -1,5 +1,8 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,12 +79,16 @@ import kotlin.math.roundToInt
 @Composable
 internal fun SwitchRow(title: String, subtitle: String, checked: Boolean, spot: String? = null, onChange: (Boolean) -> Unit) {
     val row: @Composable () -> Unit = {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // One switch for screen readers and the keyboard (AP-30): title and subtitle are read with its state.
+        Row(
+            Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Column(Modifier.weight(1f)) {
                 Text(title)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Switch(checked = checked, onCheckedChange = onChange)
+            Switch(checked = checked, onCheckedChange = null)
         }
     }
     if (spot != null) Spot(spot) { row() } else row()
@@ -483,7 +490,8 @@ private fun DocumentsSection(c: AppContainer) {
                         .clip(CircleShape)
                         .background(parseHex(h) ?: Color.Gray)
                         .border(if (selected) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                        .clickable { hex = h; c.settings.update { it.copy(docAccent = h) } },
+                        .a11yLabel(tr("Akzentfarbe") + " " + h)
+                        .selectable(selected = selected, role = Role.RadioButton) { hex = h; c.settings.update { it.copy(docAccent = h) } },
                 ) {
                     if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }

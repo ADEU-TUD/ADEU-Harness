@@ -472,7 +472,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                                 badge = { if (s == DriveSection.TRASH && trash.isNotEmpty()) Text("${trash.size}") },
                                 selected = section == s,
                                 onClick = { go(s) },
-                                modifier = Modifier.height(44.dp).then(if (target != null && drag != null) Modifier.dropTarget("nav:${s.name}", target, drag, hovered) else Modifier),
+                                modifier = Modifier.heightIn(min = 44.dp).then(if (target != null && drag != null) Modifier.dropTarget("nav:${s.name}", target, drag, hovered) else Modifier),
                             )
                         }
                         Spacer(Modifier.weight(1f))
@@ -589,12 +589,12 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     )
 }
 
-private const val FileLibraryPlace = "Lora-Ordner"
+private val FileLibraryPlace = trLater("Lora-Ordner")
 
 /** Formats the editor opens in place (and writes back into) when they lie in the Lora-Ordner. */
 private val EDITABLE = setOf("docx", "pptx", "xlsx", "xlsm", "md", "markdown")
 
-private fun chatTitle(c: AppContainer, id: String?): String = id?.let { c.chats.conversations.value.firstOrNull { it.id == id }?.title } ?: "Aus dem Chat"
+private fun chatTitle(c: AppContainer, id: String?): String = id?.let { c.chats.conversations.value.firstOrNull { it.id == id }?.title } ?: tr("Aus dem Chat")
 
 /** Folders first (except in „Zuletzt“), then by [sort]. */
 internal fun sortItems(items: List<DriveItem>, sort: String, down: Boolean, keepFolders: Boolean = true): List<DriveItem> {
@@ -763,7 +763,7 @@ private fun FolderCard(c: AppContainer, item: DriveItem, actions: DriveActions, 
     Box {
         Surface(
             shape = RoundedCornerShape(12.dp), color = if (selected) MaterialTheme.colorScheme.secondaryContainer else LocalChatLook.current.card, border = LocalChatLook.current.cardBorder,
-            modifier = Modifier.fillMaxWidth().height(56.dp).then(if (drag != null) Modifier.dropTarget(item.key, item.file, drag, hovered) else Modifier).itemGestures(item, actions, drag) { menu = true },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).then(if (drag != null) Modifier.dropTarget(item.key, item.file, drag, hovered) else Modifier).itemGestures(item, actions, drag) { menu = true },
         ) {
             Row(Modifier.padding(start = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 KindTile(item, selected, size = 32)

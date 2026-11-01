@@ -84,13 +84,13 @@ enum class ApprovalMode(val label: String, val description: String) {
     ),
     EDITS(
         trLater("Code-Änderungen automatisch"),
-        "Dateien anlegen, ändern, löschen und Branches erstellen ohne Rückfrage – alles bleibt in der Git-Historie " +
-            trLater("nachvollziehbar. Gefragt wird nur noch bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen."),
+        trLater("Dateien anlegen, ändern, löschen und Branches erstellen ohne Rückfrage – alles bleibt in der Git-Historie " +
+            "nachvollziehbar. Gefragt wird nur noch bei Pull Requests, Issues, Kommentaren und schreibenden Web-Aufrufen."),
     ),
     ALL(
         trLater("Alles automatisch"),
-        "Nie nachfragen – für lange Coding-Sessions. Der Agent führt auch Pull Requests, Kommentare und schreibende " +
-            trLater("Web-Aufrufe ohne Rückfrage aus."),
+        trLater("Nie nachfragen – für lange Coding-Sessions. Der Agent führt auch Pull Requests, Kommentare und schreibende " +
+            "Web-Aufrufe ohne Rückfrage aus."),
     ),
     ;
 

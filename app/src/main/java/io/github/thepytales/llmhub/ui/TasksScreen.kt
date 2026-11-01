@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -171,7 +173,7 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            Switch(checked = enabled, onCheckedChange = { on ->
+                            Switch(modifier = Modifier.a11yLabel(t.name), checked = enabled, onCheckedChange = { on ->
                                 enabled = on
                                 // From the stored task, not from [t]: a run that just finished must not be undone.
                                 c.tasks.update(t.id) { cur ->
@@ -411,11 +413,11 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
 
 @Composable
 fun ToggleRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onChange(!checked) }) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().toggleable(value = checked, role = Role.Switch, onValueChange = onChange)) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
             Text(title)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onChange)
+        Switch(checked = checked, onCheckedChange = null)
     }
 }

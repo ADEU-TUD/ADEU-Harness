@@ -178,7 +178,7 @@ private fun RecoveryKeyDialog(key: String, onDone: () -> Unit) {
         confirmButton = { Button(enabled = kept, onClick = onDone) { Text(tr("Weiter")) } },
         dismissButton = {
             TextButton(onClick = {
-                clipboard.setText(AnnotatedString("Lora – Wiederherstellungsschlüssel des Tresors: $key"))
+                clipboard.setText(AnnotatedString(tr("Lora – Wiederherstellungsschlüssel des Tresors: {0}", key)))
                 Notices.info(tr("Kopiert – zum Ausdrucken einfügen und danach aus der Zwischenablage löschen."))
             }) { Text(tr("Kopieren")) }
         },
@@ -211,7 +211,7 @@ private fun VaultUnlock(c: AppContainer) {
                     message = when (result) {
                         VaultStore.Unlock.Ok -> null
                         is VaultStore.Unlock.Wrong -> tr("Falsche PIN.") + if (result.waitSeconds > 0) " " + tr("Nächster Versuch in") + " ${result.waitSeconds} s." else ""
-                        is VaultStore.Unlock.Blocked -> tr("Zu viele Versuche – bitte") + " ${result.waitSeconds} s " + tr("warten.")
+                        is VaultStore.Unlock.Blocked -> tr("Zu viele Versuche – bitte {0} s warten.", result.waitSeconds)
                     }
                 }
             },

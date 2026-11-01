@@ -1,5 +1,11 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,11 +56,14 @@ fun AppCard(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, conten
 /** Small uppercase heading above a group of cards ("HEUTE", "ERKENNUNGSMODELLE"). */
 @Composable
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
+    // Translated before the capitals, otherwise "HEUTE" would not be found in i18n/en.tsv (AP-29).
+    val shown = tr(text)
     Text(
-        text.uppercase(),
+        shown.uppercase(),
         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp),
         color = MaterialTheme.colorScheme.outline,
-        modifier = modifier.padding(start = 4.dp, top = 10.dp, bottom = 2.dp),
+        // Read as written ("Heute", not "H-E-U-T-E") and as a heading (AP-30).
+        modifier = modifier.padding(start = 4.dp, top = 10.dp, bottom = 2.dp).semantics { heading(); contentDescription = shown },
     )
 }
 
@@ -92,6 +101,7 @@ fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> 
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         options.forEach { (value, label) ->
             val sel = value == selected
@@ -99,10 +109,10 @@ fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> 
             Box(
                 Modifier
                     .weight(1f)
-                    .height(38.dp)
+                    .heightIn(min = 38.dp)
                     .clip(RoundedCornerShape(11.dp))
                     .background(if (sel) look.card else Color.Transparent)
-                    .clickable(enabled = on) { onSelect(value) },
+                    .selectable(selected = sel, enabled = on, role = Role.RadioButton) { onSelect(value) },
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -114,13 +124,17 @@ fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> 
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                     textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    modifier = Modifier.padding(horizontal = 4.dp),
+                    // Large text (Android up to 200 %) wraps instead of being cut off (AP-30).
+                    maxLines = 3,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
                 )
             }
         }
     }
 }
+
+/** Name a screen reader reads for an element without visible text of its own, e.g. a switch beside its label (AP-30). */
+fun Modifier.a11yLabel(text: String): Modifier = semantics { contentDescription = text }
 
 /** Hint text below a field or group. */
 @Composable

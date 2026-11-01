@@ -101,7 +101,7 @@ private fun ago(ms: Long): String {
     return when {
         min < 1 -> tr("gerade eben")
         min < 60 -> tr("vor {0} Min.", min)
-        else -> "am " + TIME.format(Date(ms))
+        else -> tr("am {0}", TIME.format(Date(ms)))
     }
 }
 
@@ -231,10 +231,10 @@ fun SyncSettings(c: AppContainer) {
             notes.forEach { n ->
                 val me = n.id == SyncSession.me.id
                 Text(
-                    "• ${n.pc}${if (me) " (dieser PC)" else ""} – " + when {
+                    "• ${n.pc}${if (me) " " + tr("(dieser PC)") else ""} – " + when {
                         me -> tr("geöffnet seit {0}", TIME.format(Date(n.openedAt)))
                         n.isOpen(System.currentTimeMillis()) -> tr("gerade geöffnet") + if (n.background) tr(" (im Hintergrund)") else ""
-                        else -> "zuletzt ${ago(n.lastSeen)}"
+                        else -> tr("zuletzt {0}", ago(n.lastSeen))
                     },
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -252,8 +252,8 @@ fun SyncSettings(c: AppContainer) {
             kept?.let { k ->
                 HintText(
                     buildString {
-                        if (k.chats.isNotEmpty()) append("${k.chats.size} Chat(s) gab es in zwei Fassungen – beide sind da („… (zweite Fassung)“). ")
-                        if (k.setAside.isNotEmpty()) append("${k.setAside.size} Konfliktkopie(n) liegen unter sync/konflikte.")
+                        if (k.chats.isNotEmpty()) append(tr("{0} Chat(s) gab es in zwei Fassungen – beide sind da („… (zweite Fassung)“).", k.chats.size)).append(" ")
+                        if (k.setAside.isNotEmpty()) append(tr("{0} Konfliktkopie(n) liegen unter sync/konflikte.", k.setAside.size))
                     },
                 )
             }

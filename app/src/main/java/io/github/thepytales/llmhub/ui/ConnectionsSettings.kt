@@ -192,7 +192,7 @@ private fun McpServerCard(c: AppContainer, s: McpServer, onEdit: () -> Unit) {
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Switch(checked = s.enabled, onCheckedChange = { on -> c.mcpServers.update(s.id) { it.copy(enabled = on) }; if (!on) c.mcp.disconnect(s.id) })
+                Switch(modifier = Modifier.a11yLabel(s.name), checked = s.enabled, onCheckedChange = { on -> c.mcpServers.update(s.id) { it.copy(enabled = on) }; if (!on) c.mcp.disconnect(s.id) })
             }
             val line = status ?: s.lastError ?: if (s.tools.isNotEmpty()) "${s.tools.size} " + tr("Werkzeuge") + if (s.internal) " · " + tr("auch in Projekten „Nur TU Dresden“") else "" else tr("Noch nicht verbunden")
             Text(line, style = MaterialTheme.typography.bodySmall, color = if (s.lastError != null && status == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
@@ -308,7 +308,7 @@ private fun McpServerDialog(c: AppContainer, existing: McpServer?, onDismiss: ()
                         Text(tr("Läuft an der TU Dresden oder auf diesem PC"))
                         Text(tr("Dann auch in Projekten mit „Nur TU Dresden“ nutzbar."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Switch(checked = internal, onCheckedChange = { internal = it })
+                    Switch(modifier = Modifier.a11yLabel(tr("Läuft an der TU Dresden oder auf diesem PC")), checked = internal, onCheckedChange = { internal = it })
                 }
             }
         },

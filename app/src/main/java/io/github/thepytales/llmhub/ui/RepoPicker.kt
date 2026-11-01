@@ -204,7 +204,7 @@ fun RepoPickerSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = toolsOn, onCheckedChange = { on -> apply(if (on) chosen else emptyList(), on) })
+                    Switch(modifier = Modifier.a11yLabel(tr("GitHub-Werkzeuge")), checked = toolsOn, onCheckedChange = { on -> apply(if (on) chosen else emptyList(), on) })
                 }
             }
         }

@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -567,7 +569,7 @@ private fun MergeDialog(tab: PdfTab, onDismiss: () -> Unit, onRun: ((File, File)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (others.isEmpty()) Text(tr("Öffne zuerst weitere PDFs (Ordner-Symbol oben); sie werden dann an dieses angehängt."))
                 else {
-                    Text(tr("An") + " „${tab.name}“ " + tr("anhängen, in dieser Reihenfolge:"))
+                    Text(tr("An „{0}“ anhängen, in dieser Reihenfolge:", tab.name))
                     others.forEach { t ->
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { if (t.id in chosen) chosen.remove(t.id) else chosen.add(t.id) }) {
                             Checkbox(t.id in chosen, { on -> if (on) chosen.add(t.id) else chosen.remove(t.id) })
@@ -657,7 +659,8 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
             Box(
                 Modifier.size(28.dp).background(Color(0xFF000000 or col.toLong()), RoundedCornerShape(14.dp))
                     .border(if (color == col) 3.dp else 1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (color == col) 0.8f else 0.2f), RoundedCornerShape(14.dp))
-                    .clickable { color = col },
+                    .a11yLabel(tr("Farbe") + " #" + "%06X".format(col))
+                    .selectable(selected = color == col, role = Role.RadioButton) { color = col },
             )
         }
         TextButton(onClick = { showComments = true }) { Text(tr("Kommentarliste")) }

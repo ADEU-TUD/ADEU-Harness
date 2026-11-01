@@ -338,10 +338,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).focusRequester(focus).focusable().onPreviewKeyEvent { ev ->
             if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
             when {
-                ev.isCtrlPressed && ev.key == Key.Z -> { h.undo(); true }
-                ev.isCtrlPressed && ev.key == Key.Y -> { h.redo(); true }
+                ev.isCmd && ev.key == Key.Z -> { h.undo(); true }
+                ev.isCmd && ev.key == Key.Y -> { h.redo(); true }
                 ev.key == Key.Spacebar -> { player.toggle(p); true }
-                ev.key == Key.S && !ev.isCtrlPressed -> { split(); true }
+                ev.key == Key.S && !ev.isCmd -> { split(); true }
                 ev.key == Key.Delete -> { deleteSelected(); true }
                 ev.key == Key.DirectionLeft -> { player.seek(p, pos - 1.0 / p.fps); true }
                 ev.key == Key.DirectionRight -> { player.seek(p, pos + 1.0 / p.fps); true }

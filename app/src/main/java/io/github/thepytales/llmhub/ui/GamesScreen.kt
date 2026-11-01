@@ -152,11 +152,11 @@ private fun GameRow(c: AppContainer, g: LearningGame) {
                         }
                         (g.versions - 1 downTo 1).firstOrNull()?.let { prev ->
                             DropdownMenuItem(
-                                text = { Text(tr("Version") + " $prev " + tr("wiederherstellen")) },
+                                text = { Text(tr("Version {0} wiederherstellen", prev)) },
                                 onClick = {
                                     versions = false
                                     c.games.html(g.id, prev)?.let { c.games.update(g.id, it) }
-                                    Notices.info(tr("Version") + " $prev " + tr("ist wieder die aktuelle (als neue Version gespeichert)."))
+                                    Notices.info(tr("Version {0} ist wieder die aktuelle (als neue Version gespeichert).", prev))
                                 },
                             )
                         }

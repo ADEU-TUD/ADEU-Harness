@@ -369,7 +369,7 @@ class LoraAgent(private val c: AppContainer) {
         }
 
         private fun defaultText(steps: List<LoraStep>): String = when (val s = steps.firstOrNull()) {
-            is LoraStep.Navigate -> tr("Hier ist es: {0}.", s.target.path)
+            is LoraStep.Navigate -> tr("Hier ist es: {0}.", tr(s.target.path))
             is LoraStep.OpenMode -> tr("Ich öffne „{0}“.", tr(s.target.title))
             is LoraStep.ChangeSetting -> tr("Soll ich „{0}“ auf „{1}“ stellen?", tr(s.setting.label), tr(s.setting.labelOf(s.value)))
             is LoraStep.EnableTool -> tr("Dafür gibt es „{0}“ – einschalten?", tr(s.tool.label))
@@ -429,7 +429,7 @@ class LoraAgent(private val c: AppContainer) {
             hit ?: return null
             return when (hit.kind) {
                 MapKind.MODE, MapKind.TEMPLATE -> LoraReply("Ich öffne „${hit.title}“.", listOf(LoraStep.OpenMode(hit)))
-                else -> LoraReply(tr("Hier ist es: {0}.", hit.path), listOf(LoraStep.Navigate(hit)))
+                else -> LoraReply(tr("Hier ist es: {0}.", tr(hit.path)), listOf(LoraStep.Navigate(hit)))
             }
         }
     }

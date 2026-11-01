@@ -838,8 +838,7 @@ fun ChatScreen(
             title = { Text(tr("Anderes Modell verwenden?")) },
             text = {
                 Text(
-                    tr("Für diese Anfrage passt") + " $suggested " + tr("besser") + " (${choice.reason}). " +
-                        tr("Eingestellt ist gerade") + " ${modelInfo.displayName}."
+                    tr("Für diese Anfrage passt {0} besser ({1}). Eingestellt ist gerade {2}.", suggested, choice.reason, modelInfo.displayName)
                 )
             },
             confirmButton = {
