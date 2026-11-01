@@ -299,8 +299,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
             val before = versions[aiAt - 1].tabs.firstOrNull { it.id == tab.id }?.markdown.orEmpty()
             AiReview.compare(before.replace(EMPTY_BLOCK, ""), tab.markdown.replace(EMPTY_BLOCK, ""))
         } else null
-    }?.takeIf { trackBase != null || lastVersion?.id != dismissedAi }?.let { r ->
-        if (trackBase != null) return@let r
+    }?.takeIf { lastVersion?.id != dismissedAi }?.let { r ->
         r.copy(changes = r.changes.filter { blocks.getOrNull(it.index) !in acceptedAi }, removed = r.removed.filter { it.text !in acceptedAi })
     }
     val aiChanged = review?.changes?.map { it.index }?.toSet().orEmpty()
