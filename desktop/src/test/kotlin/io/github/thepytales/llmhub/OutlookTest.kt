@@ -227,9 +227,10 @@ class OutlookTest {
 
     @Test
     fun theToolAndItsModeAppearOnlyWhenSwitchedOn() {
-        assertFalse(AppTool.MAIL.android, "nur Windows")
+        // Since AP-27 also on Android (over the mail server).
+        assertTrue(AppTool.MAIL.android)
         assertEquals(AppTool.MAIL, AppTool.suggestFor("Kannst du mein Postfach sortieren?", emptySet(), android = false))
-        assertNull(AppTool.suggestFor("Kannst du mein Postfach sortieren?", emptySet(), android = true))
+        assertEquals(AppTool.MAIL, AppTool.suggestFor("Kannst du mein Postfach sortieren?", emptySet(), android = true))
         ChatModes.enabledTools = { emptySet() }
         assertTrue(ChatModes.visible().none { it.id == "mail" })
         ChatModes.enabledTools = { setOf("mail") }
