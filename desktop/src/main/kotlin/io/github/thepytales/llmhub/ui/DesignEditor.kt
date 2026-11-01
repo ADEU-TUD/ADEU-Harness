@@ -476,6 +476,8 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
     var drag by remember { mutableStateOf<Drag?>(null) }
     var hover by remember { mutableStateOf<Int?>(null) }
     var lastClick by remember { mutableStateOf(0L to Offset.Zero) }
+    // Scale and position of the page now: the gesture handler lives longer than one composition (zoom, scrolling).
+    val geo = remember { floatArrayOf(1f, 0f, 0f) }
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -508,9 +510,12 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
         val fit = min((viewW - 64f) / d.width, (viewH - 64f) / d.height).coerceAtLeast(0.05f)
         val scale = fit * state.zoom
         val origin = Offset((viewW - d.width * scale) / 2, (viewH - d.height * scale) / 2) + state.pan
-        fun toMm(p: Offset) = (p - origin) / scale
+        geo[0] = scale; geo[1] = origin.x; geo[2] = origin.y
+        fun toMm(p: Offset) = (p - Offset(geo[1], geo[2])) / geo[0]
         val handlePx = 10f
         fun handleAt(p: Offset): Int? {
+            val scale = geo[0]
+            val origin = Offset(geo[1], geo[2])
             val e = state.single ?: return null
             if (e.locked) return null
             val hs = if (DesignGeometry.isLine(e)) listOf(Handle.START, Handle.END) else (0..7).toList() + Handle.ROTATE
@@ -563,6 +568,7 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
                         val now = System.currentTimeMillis()
                         val double = now - lastClick.first < 400 && (lastClick.second - p).getDistance() < 6f
                         lastClick = now to p
+                        val scale = geo[0]
                         val tol = 4f / scale
                         val handle = handleAt(p)
                         val hit = DesignGeometry.hit(state.current, mm, tol)

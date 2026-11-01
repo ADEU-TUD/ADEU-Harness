@@ -413,6 +413,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         // The Kreativbereich became part of „Erstellen“ (AP-24).
         "creative" -> TemplatesScreen(c, onBack = back, onUse = { t -> nav.openChat(chatRoute(persona = t.id)) })
         "design" -> DesignEditor(c, args["id"] ?: "", onClose = back)
+        "video" -> VideoScreen(c, onBack = back)
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }
