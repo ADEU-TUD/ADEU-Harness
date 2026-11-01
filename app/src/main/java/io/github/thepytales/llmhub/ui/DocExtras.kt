@@ -78,12 +78,12 @@ fun DocImageView(img: DocMarkup.Image, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (bitmap != null) {
             Image(
-                bitmap, contentDescription = img.alt.ifBlank { "Bild" }, contentScale = ContentScale.Fit,
+                bitmap, contentDescription = img.alt.ifBlank { tr("Bild") }, contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxWidth((img.width ?: 100) / 100f).heightIn(max = 520.dp),
             )
         } else {
             Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(0.6f).height(90.dp)) {
-                Box(contentAlignment = Alignment.Center) { HintText("Bild nicht gefunden: ${img.src.substringAfterLast('/')}") }
+                Box(contentAlignment = Alignment.Center) { HintText(tr("Bild nicht gefunden: {0}", img.src.substringAfterLast('/'))) }
             }
         }
         if (img.alt.isNotBlank()) Text(
@@ -103,31 +103,31 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
     var margins by remember { mutableStateOf(setup.margins) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seite einrichten") },
+        title = { Text(tr("Seite einrichten")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                HintText("Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein.")
+                HintText(tr("Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein."))
                 Row(Modifier.fillMaxWidth().clickable { numbers = !numbers }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(numbers, { numbers = it })
-                    Text("Seitenzahlen „Seite X von Y“ in der Fußzeile")
+                    Text(tr("Seitenzahlen „Seite X von Y“ in der Fußzeile"))
                 }
                 Row(Modifier.fillMaxWidth().clickable { date = !date }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(date, { date = it })
-                    Text("Datum in der Kopfzeile")
+                    Text(tr("Datum in der Kopfzeile"))
                 }
-                OutlinedTextField(header, { header = it }, label = { Text("Kopfzeile (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(footer, { footer = it }, label = { Text("Fußzeile (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                Text("Seitenränder", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
+                OutlinedTextField(header, { header = it }, label = { Text(tr("Kopfzeile (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(footer, { footer = it }, label = { Text(tr("Fußzeile (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Text(tr("Seitenränder"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("schmal" to "Schmal (1,27 cm)", "normal" to "Normal (2 cm)", "breit" to "Breit (2,54 cm)").forEach { (k, label) ->
+                    listOf("schmal" to tr("Schmal (1,27 cm)"), "normal" to tr("Normal (2 cm)"), "breit" to tr("Breit (2,54 cm)")).forEach { (k, label) ->
                         androidx.compose.material3.FilterChip(margins == k, { margins = k }, label = { Text(label) })
                     }
                 }
-                HintText("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen.")
+                HintText(tr("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen."))
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim(), footer.trim(), margins)) }) { Text("Übernehmen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim(), footer.trim(), margins)) }) { Text(tr("Übernehmen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -142,12 +142,12 @@ fun CitationDialog(c: AppContainer, initialStyle: CitationStyle, onDismiss: () -
         .sortedByDescending { it.addedAt }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Literatur einfügen") },
+        title = { Text(tr("Literatur einfügen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                HintText("Setzt den Beleg an der Cursorposition ein und pflegt „Literatur“ am Ende des Dokuments automatisch.")
+                HintText(tr("Setzt den Beleg an der Cursorposition ein und pflegt „Literatur“ am Ende des Dokuments automatisch."))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Zitierstil: ", style = MaterialTheme.typography.labelLarge)
+                    Text(tr("Zitierstil: "), style = MaterialTheme.typography.labelLarge)
                     Box {
                         TextButton(onClick = { styles = true }) { Text(style.label) }
                         androidx.compose.material3.DropdownMenu(expanded = styles, onDismissRequest = { styles = false }) {
@@ -157,8 +157,8 @@ fun CitationDialog(c: AppContainer, initialStyle: CitationStyle, onDismiss: () -
                         }
                     }
                 }
-                OutlinedTextField(query, { query = it }, placeholder = { Text("Suchen (Autor:in, Titel, Jahr)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                if (all.isEmpty()) HintText("Die Literatursammlung ist noch leer – Werke unter „Literatur“ hinzufügen oder suchen lassen.")
+                OutlinedTextField(query, { query = it }, placeholder = { Text(tr("Suchen (Autor:in, Titel, Jahr)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                if (all.isEmpty()) HintText(tr("Die Literatursammlung ist noch leer – Werke unter „Literatur“ hinzufügen oder suchen lassen."))
                 LazyColumn(Modifier.heightIn(max = 340.dp)) {
                     items(list.take(200), key = { it.id }) { r ->
                         Text(
@@ -170,7 +170,7 @@ fun CitationDialog(c: AppContainer, initialStyle: CitationStyle, onDismiss: () -
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -186,22 +186,22 @@ fun SpellCheckDialog(c: AppContainer, doc: LiveDoc?, text: String, onDismiss: ()
     LaunchedEffect(text) {
         runCatching { DocsAi.spellCheck(c, doc, text) }
             .onSuccess { suggestions.clear(); suggestions += SpellCheck.applicable(text, it) }
-            .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) error = e.message ?: "Fehler" }
+            .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) error = e.message ?: tr("Fehler") }
         busy = false
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rechtschreibung prüfen") },
+        title = { Text(tr("Rechtschreibung prüfen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 when {
                     busy -> Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                        Text("  Die KI prüft den Text …")
+                        Text(tr("  Die KI prüft den Text …"))
                     }
                     error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                    suggestions.isEmpty() -> Text("Keine Fehler gefunden.")
-                    else -> HintText("${suggestions.size} Vorschläge – einzeln übernehmen oder alle auf einmal.")
+                    suggestions.isEmpty() -> Text(tr("Keine Fehler gefunden."))
+                    else -> HintText(tr("{0} Vorschläge – einzeln übernehmen oder alle auf einmal.", suggestions.size))
                 }
                 LazyColumn(Modifier.heightIn(max = 380.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(suggestions.toList(), key = { it.original + "→" + it.korrektur }) { s ->
@@ -214,8 +214,8 @@ fun SpellCheckDialog(c: AppContainer, doc: LiveDoc?, text: String, onDismiss: ()
                                 }
                                 if (s.grund.isNotBlank()) HintText(s.grund)
                                 Row {
-                                    TextButton(onClick = { onApply(listOf(s)); suggestions.remove(s) }) { Text("Übernehmen") }
-                                    TextButton(onClick = { suggestions.remove(s) }) { Text("Ignorieren") }
+                                    TextButton(onClick = { onApply(listOf(s)); suggestions.remove(s) }) { Text(tr("Übernehmen")) }
+                                    TextButton(onClick = { suggestions.remove(s) }) { Text(tr("Ignorieren")) }
                                 }
                             }
                         }
@@ -224,9 +224,9 @@ fun SpellCheckDialog(c: AppContainer, doc: LiveDoc?, text: String, onDismiss: ()
             }
         },
         confirmButton = {
-            if (suggestions.size > 1) TextButton(onClick = { onApply(suggestions.toList()); suggestions.clear(); onDismiss() }) { Text("Alle übernehmen") }
+            if (suggestions.size > 1) TextButton(onClick = { onApply(suggestions.toList()); suggestions.clear(); onDismiss() }) { Text(tr("Alle übernehmen")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -255,16 +255,16 @@ fun HandoutDialog(c: AppContainer, doc: LiveDoc, markdown: String, onDismiss: ()
                 file
             }
             busy = false
-            result.onSuccess(then).onFailure { Notices.error("Handout fehlgeschlagen: ${it.message}") }
+            result.onSuccess(then).onFailure { Notices.error(tr("Handout fehlgeschlagen: {0}", it.message)) }
         }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Handout als PDF") },
+        title = { Text(tr("Handout als PDF")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf(3 to "3 Folien pro Seite (daneben Notizen oder Linien)", 6 to "6 Folien pro Seite").forEach { (n, label) ->
+                listOf(3 to tr("3 Folien pro Seite (daneben Notizen oder Linien)"), 6 to tr("6 Folien pro Seite")).forEach { (n, label) ->
                     Row(Modifier.fillMaxWidth().clickable { perPage = n }, verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(perPage == n, { perPage = n })
                         Text(label)
@@ -272,18 +272,18 @@ fun HandoutDialog(c: AppContainer, doc: LiveDoc, markdown: String, onDismiss: ()
                 }
                 Row(Modifier.fillMaxWidth().clickable { notes = !notes }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(notes, { notes = it })
-                    Text("Sprechernotizen drucken")
+                    Text(tr("Sprechernotizen drucken"))
                 }
                 if (busy) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
             }
         },
         confirmButton = {
             Row {
-                TextButton(enabled = !busy, onClick = { make { openDocument(context, it) } }) { Text("Öffnen") }
+                TextButton(enabled = !busy, onClick = { make { openDocument(context, it) } }) { Text(tr("Öffnen")) }
                 TextButton(enabled = !busy, onClick = { make(saveAs) }) { Text(SAVE_AS_LABEL) }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -314,17 +314,17 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
     val shown = found?.filter { (_, e) -> e.word !in ignored }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rechtschreibung") },
+        title = { Text(tr("Rechtschreibung")) },
         text = {
             Column(Modifier.heightIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    androidx.compose.material3.FilterChip(lang == "de-DE", { lang = "de-DE" }, label = { Text("Deutsch") })
-                    androidx.compose.material3.FilterChip(lang == "en-US", { lang = "en-US" }, label = { Text("Englisch") })
+                    androidx.compose.material3.FilterChip(lang == "de-DE", { lang = "de-DE" }, label = { Text(tr("Deutsch")) })
+                    androidx.compose.material3.FilterChip(lang == "en-US", { lang = "en-US" }, label = { Text(tr("Englisch")) })
                 }
                 when {
-                    none -> HintText("Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem.")
-                    shown == null -> HintText("Prüfe …")
-                    shown.isEmpty() -> HintText("Keine Fehler gefunden.")
+                    none -> HintText(tr("Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem."))
+                    shown == null -> HintText(tr("Prüfe …"))
+                    shown.isEmpty() -> HintText(tr("Keine Fehler gefunden."))
                     else -> androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(shown.size) { k ->
                             val (i, e) = shown[k]
@@ -352,10 +352,10 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
                                             val next = re.find(block)?.let { m -> block.replaceRange(m.range, sug) } ?: block
                                             if (next != block) onReplace(i, next)
                                             ignored += e.word
-                                        }, label = { Text(sug.ifEmpty { "löschen" }) })
+                                        }, label = { Text(sug.ifEmpty { tr("löschen") }) })
                                     }
-                                    TextButton(onClick = { ignored += e.word }) { Text("Ignorieren") }
-                                    TextButton(onClick = { ignored += e.word; scope.launch { io.github.thepytales.llmhub.docs.LocalSpelling.learn(e.word, lang) } }) { Text("Ins Wörterbuch") }
+                                    TextButton(onClick = { ignored += e.word }) { Text(tr("Ignorieren")) }
+                                    TextButton(onClick = { ignored += e.word; scope.launch { io.github.thepytales.llmhub.docs.LocalSpelling.learn(e.word, lang) } }) { Text(tr("Ins Wörterbuch")) }
                                 }
                             }
                         }
@@ -363,7 +363,7 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Fertig") } },
-        dismissButton = { TextButton(onClick = { onDismiss(); onAskAi() }) { Text("Mit KI prüfen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Fertig")) } },
+        dismissButton = { TextButton(onClick = { onDismiss(); onAskAi() }) { Text(tr("Mit KI prüfen")) } },
     )
 }

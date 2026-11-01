@@ -37,29 +37,29 @@ fun DeliveryStatus(c: AppContainer) {
         Column(Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             StatusLine(
                 notify,
-                if (notify) "Benachrichtigungen sind an – Windows meldet sich, sobald ein Ergebnis da ist."
-                else "Dieser PC zeigt keine Benachrichtigungen – Ergebnisse siehst du hier in der App.",
+                if (notify) tr("Benachrichtigungen sind an – Windows meldet sich, sobald ein Ergebnis da ist.")
+                else tr("Dieser PC zeigt keine Benachrichtigungen – Ergebnisse siehst du hier in der App."),
             )
-            if (notify) TextButton(onClick = { Notifier.test(context) }) { Text("Test-Benachrichtigung senden") }
+            if (notify) TextButton(onClick = { Notifier.test(context) }) { Text(tr("Test-Benachrichtigung senden")) }
             StatusLine(
                 background,
-                if (background) "Aufgaben laufen weiter, wenn du das Fenster schließt (Symbol im Infobereich)."
-                else "Aufgaben laufen nur, solange das Fenster offen ist.",
+                if (background) tr("Aufgaben laufen weiter, wenn du das Fenster schließt (Symbol im Infobereich).")
+                else tr("Aufgaben laufen nur, solange das Fenster offen ist."),
             )
             if (!background) {
-                OutlinedButton(onClick = { c.settings.update { it.copy(closeToTray = true) } }) { Text("Im Infobereich weiterlaufen") }
+                OutlinedButton(onClick = { c.settings.update { it.copy(closeToTray = true) } }) { Text(tr("Im Infobereich weiterlaufen")) }
             }
             if (Autostart.supported) {
                 StatusLine(
                     autostart,
-                    if (autostart) "Lora startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast."
-                    else "Aufgaben laufen nur, wenn Lora gestartet wurde. Verpasste Termine werden beim nächsten Start nachgeholt.",
+                    if (autostart) tr("Lora startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast.")
+                    else tr("Aufgaben laufen nur, wenn Lora gestartet wurde. Verpasste Termine werden beim nächsten Start nachgeholt."),
                 )
                 if (!autostart) {
                     OutlinedButton(onClick = {
                         Autostart.set(true)
                         autostart = Autostart.enabled
-                    }) { Text("Mit Windows starten") }
+                    }) { Text(tr("Mit Windows starten")) }
                 }
             }
         }

@@ -33,27 +33,27 @@ fun HelpSection() {
     var text by rememberSaveable { mutableStateOf("") }
     val log = remember { ErrorLog.anonymizedText() }
     fun report() = buildString {
-        append(text.trim().ifBlank { "(keine Beschreibung)" })
+        append(text.trim().ifBlank { tr("(keine Beschreibung)") })
         append("\n\n---\nLora ${BuildConfig.VERSION_NAME} · ${UpdatePlatform.KEY} · ${System.getProperty("os.name").orEmpty()}")
         append("\n\nFehlerprotokoll (anonymisiert):\n").append(log.ifBlank { "(leer)" })
     }
-    Section("Was ist passiert?") {
+    Section(tr("Was ist passiert?")) {
         OutlinedTextField(
             text, { text = it },
-            placeholder = { Text("Was hast du gemacht, was ist passiert, was hättest du erwartet?") },
+            placeholder = { Text(tr("Was hast du gemacht, was ist passiert, was hättest du erwartet?")) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
         )
-        SettingsHint("Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen.")
+        SettingsHint(tr("Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen."))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { shareText(context, report(), "Problem mit Lora ${BuildConfig.VERSION_NAME}") }) { Text("Per E-Mail senden …") }
+            Button(onClick = { shareText(context, report(), tr("Problem mit Lora {0}", BuildConfig.VERSION_NAME)) }) { Text(tr("Per E-Mail senden …")) }
             OutlinedButton(onClick = {
-                val title = text.trim().lineSequence().firstOrNull().orEmpty().take(80).ifBlank { "Problem melden" }
+                val title = text.trim().lineSequence().firstOrNull().orEmpty().take(80).ifBlank { tr("Problem melden") }
                 fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
                 runCatching { uri.openUri("https://github.com/${Updates.REPOSITORY}/issues/new?title=${enc(title)}&body=${enc(report().take(6000))}") }
-            }) { Text("Als GitHub-Issue") }
+            }) { Text(tr("Als GitHub-Issue")) }
         }
     }
-    Section("Fehlerprotokoll") {
-        Text(log.ifBlank { "Keine Fehler seit dem Start." }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Section(tr("Fehlerprotokoll")) {
+        Text(log.ifBlank { tr("Keine Fehler seit dem Start.") }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

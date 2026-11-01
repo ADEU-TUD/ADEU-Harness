@@ -69,10 +69,10 @@ import io.github.thepytales.llmhub.data.label
 internal fun greeting(name: String): String {
     val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
     val hello = when (hour) {
-        in 5..10 -> "Guten Morgen"
-        in 11..17 -> "Guten Tag"
-        in 18..22 -> "Guten Abend"
-        else -> "Hallo"
+        in 5..10 -> tr("Guten Morgen")
+        in 11..17 -> tr("Guten Tag")
+        in 18..22 -> tr("Guten Abend")
+        else -> tr("Hallo")
     }
     return if (name.isBlank()) tr(hello) else "${tr(hello)}, ${name.trim()}"
 }
@@ -90,12 +90,12 @@ internal class StartExample(val label: String, val run: () -> Unit)
 internal class StartAction(val label: String, val icon: ImageVector, val examples: List<StartExample> = emptyList(), val run: () -> Unit = {})
 
 internal val CHAT_EXAMPLES = listOf(
-    ChatExample("Literatur zu einem Thema finden", "Finde aktuelle Literatur zum Thema: ", mode = "literature"),
-    ChatExample("Ein Vorhaben planen (Planungsmodus)", "", mode = "planning"),
-    ChatExample("Literaturverzeichnis ordnen", route = "literature"),
-    ChatExample("Dokument entwerfen", "Entwirf ein Dokument: "),
-    ChatExample("Diagramm aus Daten", "Erstelle ein Diagramm aus diesen Daten:\n"),
-    ChatExample("Interview transkribieren", route = "transcripts"),
+    ChatExample(trLater("Literatur zu einem Thema finden"), trLater("Finde aktuelle Literatur zum Thema: "), mode = "literature"),
+    ChatExample(trLater("Ein Vorhaben planen (Planungsmodus)"), "", mode = "planning"),
+    ChatExample(trLater("Literaturverzeichnis ordnen"), route = "literature"),
+    ChatExample(trLater("Dokument entwerfen"), trLater("Entwirf ein Dokument: ")),
+    ChatExample(trLater("Diagramm aus Daten"), trLater("Erstelle ein Diagramm aus diesen Daten:\n")),
+    ChatExample(trLater("Interview transkribieren"), route = "transcripts"),
 )
 
 /**
@@ -404,28 +404,28 @@ internal fun ChatMenu(
             modifier = Modifier.widthIn(max = 280.dp).padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
         )
         MenuEntry(Icons.Outlined.IosShare, SHARE_LABEL, hasMessages, onClick = pick(onShare))
-        MenuEntry(Icons.Outlined.Description, "Als PDF/Word exportieren", hasMessages, onClick = pick(onExport))
-        MenuEntry(Icons.Outlined.DataObject, "Als JSON exportieren", hasMessages, onClick = pick(onExportJson))
-        MenuEntry(Icons.Outlined.Search, "Im Chat suchen", hasMessages, onClick = pick(onSearch))
-        MenuEntry(Icons.Outlined.VerifiedUser, "KI-Nutzungsnachweis", hasMessages, onClick = pick(onAiNote))
-        onFiles?.let { MenuEntry(Icons.Outlined.Folder, "Dateien dieses Chats", hasMessages, onClick = pick(it)) }
+        MenuEntry(Icons.Outlined.Description, tr("Als PDF/Word exportieren"), hasMessages, onClick = pick(onExport))
+        MenuEntry(Icons.Outlined.DataObject, tr("Als JSON exportieren"), hasMessages, onClick = pick(onExportJson))
+        MenuEntry(Icons.Outlined.Search, tr("Im Chat suchen"), hasMessages, onClick = pick(onSearch))
+        MenuEntry(Icons.Outlined.VerifiedUser, tr("KI-Nutzungsnachweis"), hasMessages, onClick = pick(onAiNote))
+        onFiles?.let { MenuEntry(Icons.Outlined.Folder, tr("Dateien dieses Chats"), hasMessages, onClick = pick(it)) }
         MenuGroup(null)
-        MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
-        MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))
-        MenuEntry(Icons.Outlined.DriveFileMove, "In Projekt verschieben", hasMessages, onClick = pick(onFolder))
-        MenuEntry(Icons.Outlined.ContentCopy, "Duplizieren", hasMessages, onClick = pick(onDuplicate))
-        MenuEntry(Icons.Outlined.Archive, if (archived) "Aus dem Archiv holen" else "Archivieren", hasMessages, onClick = pick(onArchive))
-        onHomeScreen?.let { MenuEntry(Icons.Outlined.Home, "Zum Startbildschirm hinzufügen", hasMessages, onClick = pick(it)) }
-        MenuGroup("Für diesen Chat")
-        MenuEntry(Icons.Outlined.Person, "Anweisungen & Persona", onClick = pick(onPersona))
-        MenuEntry(Icons.Outlined.Tune, "Umgebung", onClick = pick(onEnvironment))
+        MenuEntry(Icons.Outlined.Edit, tr("Umbenennen"), hasMessages, onClick = pick(onRename))
+        MenuEntry(Icons.Outlined.PushPin, if (pinned) tr("Lösen") else tr("Anheften"), hasMessages, onClick = pick(onPin))
+        MenuEntry(Icons.Outlined.DriveFileMove, tr("In Projekt verschieben"), hasMessages, onClick = pick(onFolder))
+        MenuEntry(Icons.Outlined.ContentCopy, tr("Duplizieren"), hasMessages, onClick = pick(onDuplicate))
+        MenuEntry(Icons.Outlined.Archive, if (archived) tr("Aus dem Archiv holen") else tr("Archivieren"), hasMessages, onClick = pick(onArchive))
+        onHomeScreen?.let { MenuEntry(Icons.Outlined.Home, tr("Zum Startbildschirm hinzufügen"), hasMessages, onClick = pick(it)) }
+        MenuGroup(tr("Für diesen Chat"))
+        MenuEntry(Icons.Outlined.Person, tr("Anweisungen & Persona"), onClick = pick(onPersona))
+        MenuEntry(Icons.Outlined.Tune, tr("Umgebung"), onClick = pick(onEnvironment))
         MenuEntry(
             Icons.Outlined.DoneAll,
-            if (autoApprove) "Aktionen wieder bestätigen" else "Aktionen ohne Rückfrage",
+            if (autoApprove) tr("Aktionen wieder bestätigen") else tr("Aktionen ohne Rückfrage"),
             onClick = pick(onAutoApprove),
         )
         MenuGroup(null)
-        MenuEntry(Icons.Outlined.Delete, "Löschen", hasMessages, danger = true, onClick = pick(onDelete))
+        MenuEntry(Icons.Outlined.Delete, tr("Löschen"), hasMessages, danger = true, onClick = pick(onDelete))
     }
 }
 

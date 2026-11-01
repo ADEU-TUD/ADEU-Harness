@@ -81,27 +81,27 @@ fun settingsTitle(section: String?): String = tr(settingsTitleDe(section))
 private fun settingsTitleDe(section: String?): String = when (section) {
     "api" -> "API-Zugang"
     "github" -> "GitHub"
-    "chat" -> "Chat & Werkzeuge"
+    "chat" -> tr("Chat & Werkzeuge")
     "tools" -> "Werkzeuge"
     "lora" -> "Lora"
     "ram" -> "Arbeitsspeicher"
     "privacy" -> "Datenschutz"
     "appearance" -> "Darstellung"
-    "voice" -> "Vorlesen & Spracheingabe"
-    "documents" -> "Dokumente & Logos"
-    "folders" -> "Lokale Ordner"
+    "voice" -> tr("Vorlesen & Spracheingabe")
+    "documents" -> tr("Dokumente & Logos")
+    "folders" -> tr("Lokale Ordner")
     "storage" -> "Speicherorte"
     "windows" -> "Windows"
     "sync" -> "Synchronisation"
     "connections" -> "Verbindungen"
-    "memory" -> "Gedächtnis"
+    "memory" -> tr("Gedächtnis")
     "knowledge" -> "Wissenssammlung"
-    "literature" -> "Literatur & Zotero"
-    "backup" -> "Sicherung & Umzug"
+    "literature" -> tr("Literatur & Zotero")
+    "backup" -> tr("Sicherung & Umzug")
     "trash" -> "Papierkorb"
     "transcription" -> "Transkription"
     "updates" -> "Updates"
-    "help" -> "Problem melden"
+    "help" -> tr("Problem melden")
     else -> "Einstellungen"
 }
 
@@ -164,38 +164,38 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     SettingsGroup(
         "Zugang",
         listOf(
-            SettingsItem("settings/api", Icons.Outlined.VpnKey, "API-Zugang", apiSummary(c)),
+            SettingsItem("settings/api", Icons.Outlined.VpnKey, tr("API-Zugang"), apiSummary(c)),
             SettingsItem("settings/github", Icons.Outlined.Code, "GitHub", gitHubSummary(c)),
-            SettingsItem("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
-            SettingsItem("settings/connections", Icons.Outlined.Hub, "Verbindungen", connectionsSummary(c)),
+            SettingsItem("environments", Icons.Outlined.Tune, tr("Umgebungen"), if (envs.isEmpty()) tr("Variablen & Netzwerkzugriff für Agenten") else tr("{0} Umgebung(en)", envs.size)),
+            SettingsItem("settings/connections", Icons.Outlined.Hub, tr("Verbindungen"), connectionsSummary(c)),
         ),
         onNavigate,
     )
     SettingsGroup(
         "Assistent",
         listOfNotNull(
-            SettingsItem("settings/chat", Icons.Outlined.ChatBubbleOutline, "Chat & Werkzeuge", "Standardmodell, Werkzeuge · Freigaben: " + ApprovalMode.of(s.approvalMode).label),
+            SettingsItem("settings/chat", Icons.Outlined.ChatBubbleOutline, tr("Chat & Werkzeuge"), tr("Standardmodell, Werkzeuge · Freigaben: ") + ApprovalMode.of(s.approvalMode).label),
             SettingsItem(
-                "settings/tools", Icons.Outlined.Handyman, "Werkzeuge",
-                s.enabledToolIds.size.let { if (it == 0) "Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen" else "$it eingeschaltet" },
+                "settings/tools", Icons.Outlined.Handyman, tr("Werkzeuge"),
+                s.enabledToolIds.size.let { if (it == 0) tr("Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen") else "$it eingeschaltet" },
             ),
             SettingsItem(
                 "settings/lora", Icons.Outlined.AutoAwesome, "Lora",
-                when (s.loraMode) { "CHAT" -> "Nur im Chat"; "OFF" -> "Aus"; else -> "Überall · Navigatorin für Einstellungen und Bereiche" },
+                when (s.loraMode) { "CHAT" -> tr("Nur im Chat"); "OFF" -> tr("Aus"); else -> tr("Überall · Navigatorin für Einstellungen und Bereiche") },
             ),
-            SettingsItem("settings/privacy", Icons.Outlined.Shield, "Datenschutz", if (s.pseudonymize) "Pseudonymisierung an" else "Pseudonymisierung aus"),
-            SettingsItem("settings/memory", Icons.Outlined.Psychology, "Gedächtnis", MemoryMode.of(s.memoryMode).label + " · " + memory.size + " Einträge"),
+            SettingsItem("settings/privacy", Icons.Outlined.Shield, tr("Datenschutz"), if (s.pseudonymize) tr("Pseudonymisierung an") else tr("Pseudonymisierung aus")),
+            SettingsItem("settings/memory", Icons.Outlined.Psychology, tr("Gedächtnis"), MemoryMode.of(s.memoryMode).label + " · " + memory.size + tr(" Einträge")),
             SettingsItem(
-                "settings/knowledge", Icons.Outlined.LibraryBooks, "Wissenssammlung",
-                knowledge.count { it.collection.isEmpty() }.let { if (it == 0) "Eigene Dokumente durchsuchbar machen" else "$it Dokument(e)" },
-            ),
-            SettingsItem(
-                "settings/literature", Icons.Outlined.MenuBook, "Literatur & Zotero",
-                (io.github.thepytales.llmhub.research.CitationStyle.parse(s.citationStyle)?.label ?: "APA 7") + if (s.zoteroKey.isNotBlank()) " · Zotero verbunden" else "",
+                "settings/knowledge", Icons.Outlined.LibraryBooks, tr("Wissenssammlung"),
+                knowledge.count { it.collection.isEmpty() }.let { if (it == 0) tr("Eigene Dokumente durchsuchbar machen") else tr("{0} Dokument(e)", it) },
             ),
             SettingsItem(
-                "settings/folders", Icons.Outlined.Folder, "Lokale Ordner",
-                c.localFolders.current.size.let { if (it == 0) "Agent in Ordnern auf diesem PC arbeiten lassen" else "$it Ordner freigegeben" },
+                "settings/literature", Icons.Outlined.MenuBook, tr("Literatur & Zotero"),
+                (io.github.thepytales.llmhub.research.CitationStyle.parse(s.citationStyle)?.label ?: "APA 7") + if (s.zoteroKey.isNotBlank()) tr(" · Zotero verbunden") else "",
+            ),
+            SettingsItem(
+                "settings/folders", Icons.Outlined.Folder, tr("Lokale Ordner"),
+                c.localFolders.current.size.let { if (it == 0) tr("Agent in Ordnern auf diesem PC arbeiten lassen") else tr("{0} Ordner freigegeben", it) },
             ).takeIf { FolderAccess.SUPPORTED },
         ),
         onNavigate,
@@ -203,23 +203,23 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     SettingsGroup(
         "Modelle",
         listOf(
-            SettingsItem("models", Icons.Outlined.AutoAwesome, "Modellübersicht", "Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck"),
-            SettingsItem("compare", Icons.Outlined.CompareArrows, "Modelle vergleichen", "Zwei Modelle beantworten dieselbe Frage nebeneinander"),
-            SettingsItem("local-models", Icons.Outlined.Memory, "Modelle auf diesem Gerät", localSummary(c)),
-            SettingsItem("settings/transcription", Icons.Outlined.GraphicEq, "Transkription", transcriptionSummary(c)),
+            SettingsItem("models", Icons.Outlined.AutoAwesome, tr("Modellübersicht"), tr("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck")),
+            SettingsItem("compare", Icons.Outlined.CompareArrows, tr("Modelle vergleichen"), tr("Zwei Modelle beantworten dieselbe Frage nebeneinander")),
+            SettingsItem("local-models", Icons.Outlined.Memory, tr("Modelle auf diesem Gerät"), localSummary(c)),
+            SettingsItem("settings/transcription", Icons.Outlined.GraphicEq, tr("Transkription"), transcriptionSummary(c)),
         ),
         onNavigate,
     )
     SettingsGroup(
-        "Dokumente & Darstellung",
+        tr("Dokumente & Darstellung"),
         listOfNotNull(
             SettingsItem(
-                "settings/documents", Icons.Outlined.Description, "Dokumente & Logos",
+                "settings/documents", Icons.Outlined.Description, tr("Dokumente & Logos"),
                 (DocStyle.parse(s.docStyle)?.label ?: "Modern") + (if (logos.isEmpty()) "" else " · ${logos.size} Logo(s)") +
-                    if (s.senderInfo.isBlank()) " · Absender fehlt" else "",
+                    if (s.senderInfo.isBlank()) tr(" · Absender fehlt") else "",
             ),
-            SettingsItem("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, "Vorlesen & Spracheingabe", if (s.ttsEngine == "DEVICE") "Offline auf dem Gerät" else "KI-Stimme des Uni-Servers"),
-            SettingsItem("settings/appearance", Icons.Outlined.Palette, "Darstellung", enumOr(s.appStyle, AppStyle.ADEU).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
+            SettingsItem("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, tr("Vorlesen & Spracheingabe"), if (s.ttsEngine == "DEVICE") tr("Offline auf dem Gerät") else tr("KI-Stimme des Uni-Servers")),
+            SettingsItem("settings/appearance", Icons.Outlined.Palette, tr("Darstellung"), enumOr(s.appStyle, AppStyle.ADEU).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
             deviceItem,
         ),
         onNavigate,
@@ -228,21 +228,21 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         "Daten",
         listOfNotNull(
             syncSettingsItem(),
-            SettingsItem("usage", Icons.Outlined.Insights, "Verbrauch", "Anfragen und Tokens pro Tag"),
+            SettingsItem("usage", Icons.Outlined.Insights, tr("Verbrauch"), tr("Anfragen und Tokens pro Tag")),
             SettingsItem(
-                "settings/storage", Icons.Outlined.FolderOpen, "Speicherorte",
-                c.docs.vaults.value.size.let { if (it == 0) "Eigene Ordner für Dokumente, z. B. in Google Drive" else "$it Ablageort(e)" },
+                "settings/storage", Icons.Outlined.FolderOpen, tr("Speicherorte"),
+                c.docs.vaults.value.size.let { if (it == 0) tr("Eigene Ordner für Dokumente, z. B. in Google Drive") else tr("{0} Ablageort(e)", it) },
             ).takeIf { FolderAccess.SUPPORTED },
-            SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, "Sicherung & Umzug", "Alles exportieren und auf einem anderen Gerät importieren"),
-            SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, "Papierkorb", "Gelöschte Chats und Transkripte wiederherstellen"),
-            SettingsItem("settings/ram", Icons.Outlined.Speed, "Arbeitsspeicher", memorySummary()),
-            SettingsItem("settings/updates", Icons.Outlined.SystemUpdate, "Updates", updateSummary()),
-            SettingsItem("settings/help", Icons.Outlined.BugReport, "Problem melden", "Beschreibung und anonymes Fehlerprotokoll senden"),
+            SettingsItem("settings/backup", Icons.Outlined.SettingsBackupRestore, tr("Sicherung & Umzug"), tr("Alles exportieren und auf einem anderen Gerät importieren")),
+            SettingsItem("settings/trash", Icons.Outlined.DeleteOutline, tr("Papierkorb"), tr("Gelöschte Chats und Transkripte wiederherstellen")),
+            SettingsItem("settings/ram", Icons.Outlined.Speed, tr("Arbeitsspeicher"), memorySummary()),
+            SettingsItem("settings/updates", Icons.Outlined.SystemUpdate, tr("Updates"), updateSummary()),
+            SettingsItem("settings/help", Icons.Outlined.BugReport, tr("Problem melden"), tr("Beschreibung und anonymes Fehlerprotokoll senden")),
         ),
         onNavigate,
     )
     Text(
-        "Lora ${BuildConfig.VERSION_NAME} · Inoffizielle App, nicht mit der Universität verbunden.",
+        tr("Lora {0} · Inoffizielle App, nicht mit der Universität verbunden.", BuildConfig.VERSION_NAME),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -252,12 +252,12 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
 @Composable
 private fun updateSummary(): String {
     val state by io.github.thepytales.llmhub.update.Updates.state.collectAsStateWithLifecycle()
-    val version = "Version ${BuildConfig.VERSION_NAME}"
+    val version = tr("Version {0}", BuildConfig.VERSION_NAME)
     return when (val s = state) {
-        is io.github.thepytales.llmhub.update.Updates.State.Available -> "$version · Neue Version ${s.info.version} verfügbar"
-        is io.github.thepytales.llmhub.update.Updates.State.Ready -> "$version · ${s.info.version} bereit zum Installieren"
+        is io.github.thepytales.llmhub.update.Updates.State.Available -> tr("{0} · Neue Version {1} verfügbar", version, s.info.version)
+        is io.github.thepytales.llmhub.update.Updates.State.Ready -> tr("{0} · {1} bereit zum Installieren", version, s.info.version)
         io.github.thepytales.llmhub.update.Updates.State.UpToDate -> "$version · aktuell"
-        else -> "$version · automatisch beim Start"
+        else -> tr("{0} · automatisch beim Start", version)
     }
 }
 
@@ -279,8 +279,8 @@ private fun ProfileCard(c: AppContainer) {
             OutlinedTextField(
                 value = s.userName,
                 onValueChange = { v -> c.settings.update { it.copy(userName = v) } },
-                label = { Text("Vorname (optional)") },
-                supportingText = { Text("Für die Begrüßung und das Profil in der Seitenleiste.") },
+                label = { Text(tr("Vorname (optional)")) },
+                supportingText = { Text(tr("Für die Begrüßung und das Profil in der Seitenleiste.")) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
@@ -315,13 +315,13 @@ private fun SettingsGroup(title: String, entries: List<SettingsItem>, onNavigate
 internal fun transcriptionSummary(c: AppContainer): String {
     val t = c.transcription
     val s = t.settings.value
-    val where = if (s.mode == "SERVER") "Uni-Server" else "Auf diesem Gerät"
+    val where = if (s.mode == "SERVER") tr("Uni-Server") else tr("Auf diesem Gerät")
     val n = t.state.value.models.count { it.installed }
-    return where + if (n > 0) " · $n Modell(e) geladen" else ""
+    return where + if (n > 0) tr(" · {0} Modell(e) geladen", n) else ""
 }
 
 /** Subtitle of "Modelle auf diesem Gerät" in the overview. */
 internal fun localSummary(c: AppContainer): String {
     val n = c.localLlm.state.value.installed.size
-    return if (n == 0) "Sprachmodelle offline – für vertrauliche Daten" else "$n Modell(e) installiert · offline"
+    return if (n == 0) tr("Sprachmodelle offline – für vertrauliche Daten") else tr("{0} Modell(e) installiert · offline", n)
 }

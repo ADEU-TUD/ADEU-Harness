@@ -109,7 +109,7 @@ fun rememberChatPlatform(
         uris.forEach { uri -> scope.launch { read(uri) } }
     }
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) afterPermission?.invoke() else Notices.error("Mikrofon-Berechtigung benötigt.")
+        if (granted) afterPermission?.invoke() else Notices.error(tr("Mikrofon-Berechtigung benötigt."))
         afterPermission = null
     }
 
@@ -123,7 +123,7 @@ fun rememberChatPlatform(
                     cameraUri = uri
                     camera.launch(uri)
                 } catch (e: ActivityNotFoundException) {
-                    Notices.error("Keine Kamera-App gefunden.")
+                    Notices.error(tr("Keine Kamera-App gefunden."))
                 }
             },
             pickFiles = { filePicker.launch(arrayOf("*/*")) },
@@ -136,7 +136,7 @@ fun rememberChatPlatform(
                 }
             },
             pinShortcut = { conv ->
-                if (!pinChatShortcut(context, conv)) Notices.error("Dein Startbildschirm unterstützt keine Verknüpfungen.")
+                if (!pinChatShortcut(context, conv)) Notices.error(tr("Dein Startbildschirm unterstützt keine Verknüpfungen."))
             },
             keepScreenOn = { on ->
                 var ctx: Context? = context
@@ -151,7 +151,7 @@ fun rememberChatPlatform(
 }
 
 /** Label of the share entry in the chat menu. */
-const val SHARE_LABEL = "Teilen"
+val SHARE_LABEL: String get() = tr("Teilen")
 
 /** Puts a shortcut to [conv] on the home screen; false if the launcher cannot do that. */
 private fun pinChatShortcut(context: Context, conv: Conversation): Boolean {

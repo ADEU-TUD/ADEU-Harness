@@ -240,15 +240,15 @@ fun ImageEditor(image: ImageBitmap, initial: List<EditRegion>, onDone: (List<Edi
         Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, contentDescription = "Abbrechen") }
-                    Text("Bereiche markieren", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, contentDescription = tr("Abbrechen")) }
+                    Text(tr("Bereiche markieren"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     IconButton(enabled = strokes.isNotEmpty(), onClick = { strokes.removeAt(strokes.lastIndex) }) {
-                        Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = "Letzten Strich zurücknehmen")
+                        Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Letzten Strich zurücknehmen"))
                     }
                     IconButton(enabled = strokes.isNotEmpty(), onClick = { strokes.clear() }) {
-                        Icon(Icons.Outlined.DeleteSweep, contentDescription = "Alle Markierungen löschen")
+                        Icon(Icons.Outlined.DeleteSweep, contentDescription = tr("Alle Markierungen löschen"))
                     }
-                    Button(onClick = { onDone(regions()) }, modifier = Modifier.padding(end = 8.dp)) { Text("Fertig") }
+                    Button(onClick = { onDone(regions()) }, modifier = Modifier.padding(end = 8.dp)) { Text(tr("Fertig")) }
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     BoxWithConstraints(Modifier.fillMaxWidth().heightIn(max = 520.dp), contentAlignment = Alignment.Center) {
@@ -258,7 +258,7 @@ fun ImageEditor(image: ImageBitmap, initial: List<EditRegion>, onDone: (List<Edi
                                 .aspectRatio(ratio)
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
                         ) {
-                            Image(image, contentDescription = "Bild zum Überarbeiten", contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
+                            Image(image, contentDescription = tr("Bild zum Überarbeiten"), contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
                             Canvas(
                                 Modifier
                                     .fillMaxSize()
@@ -296,9 +296,9 @@ fun ImageEditor(image: ImageBitmap, initial: List<EditRegion>, onDone: (List<Edi
                         }
                     }
                     Spacer(Modifier.size(10.dp))
-                    HintText("Mit dem Finger (oder der Maus) über die Stellen malen, die sich ändern sollen. Für jede Farbe beschreiben, was dort passieren soll.")
+                    HintText(tr("Mit dem Finger (oder der Maus) über die Stellen malen, die sich ändern sollen. Für jede Farbe beschreiben, was dort passieren soll."))
                     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Pinsel", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(56.dp))
+                        Text(tr("Pinsel"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(56.dp))
                         Slider(value = brush, onValueChange = { brush = it }, valueRange = 0.02f..0.15f, modifier = Modifier.weight(1f))
                     }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -306,7 +306,7 @@ fun ImageEditor(image: ImageBitmap, initial: List<EditRegion>, onDone: (List<Edi
                             FilterChip(
                                 selected = region == i, onClick = { region = i },
                                 leadingIcon = { Box(Modifier.size(12.dp).background(REGION_COLORS[i], CircleShape)) },
-                                label = { Text("Bereich ${i + 1}") },
+                                label = { Text(tr("Bereich {0}", i + 1)) },
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = REGION_COLORS[i].copy(alpha = 0.18f)),
                             )
                         }
@@ -317,13 +317,13 @@ fun ImageEditor(image: ImageBitmap, initial: List<EditRegion>, onDone: (List<Edi
                             value = descriptions[i],
                             onValueChange = { descriptions[i] = it },
                             leadingIcon = { Box(Modifier.size(14.dp).background(REGION_COLORS[i], CircleShape)) },
-                            label = { Text("Bereich ${i + 1}: was soll dort hin?") },
-                            placeholder = { Text("z. B. ein blauer Himmel mit Wolken") },
+                            label = { Text(tr("Bereich {0}: was soll dort hin?", i + 1)) },
+                            placeholder = { Text(tr("z. B. ein blauer Himmel mit Wolken")) },
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         )
                     }
                     if (strokes.isEmpty()) {
-                        TextButton(onClick = { onDone(emptyList()) }) { Text("Ohne Markierung: das ganze Bild nach der Beschreibung überarbeiten") }
+                        TextButton(onClick = { onDone(emptyList()) }) { Text(tr("Ohne Markierung: das ganze Bild nach der Beschreibung überarbeiten")) }
                     }
                     Spacer(Modifier.size(16.dp))
                 }

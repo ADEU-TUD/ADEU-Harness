@@ -231,7 +231,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             snackbar.currentSnackbarData?.dismiss()
             val result = snackbar.showSnackbar(
                 message = "${e.title}: ${e.message}",
-                actionLabel = "Ansehen",
+                actionLabel = tr("Ansehen"),
                 withDismissAction = true,
                 duration = SnackbarDuration.Long,
             )
@@ -426,11 +426,11 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Lora ist abgestürzt") },
+        title = { Text(tr("Lora ist abgestürzt")) },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 Text(
-                    "Beim letzten Mal ist die App abgestürzt. Schick den Bericht gern an den Entwickler, damit der Fehler behoben werden kann.",
+                    tr("Beim letzten Mal ist die App abgestürzt. Schick den Bericht gern an den Entwickler, damit der Fehler behoben werden kann."),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(report.take(6000), fontFamily = FontFamily.Monospace, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
@@ -440,12 +440,12 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
             TextButton(onClick = {
                 DesktopActions.share(report)
                 onDismiss()
-            }) { Text("Kopieren & schließen") }
+            }) { Text(tr("Kopieren & schließen")) }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = { clipboard.setText(AnnotatedString(report)) }) { Text("Kopieren") }
-                TextButton(onClick = onDismiss) { Text("Schließen") }
+                TextButton(onClick = { clipboard.setText(AnnotatedString(report)) }) { Text(tr("Kopieren")) }
+                TextButton(onClick = onDismiss) { Text(tr("Schließen")) }
             }
         },
     )

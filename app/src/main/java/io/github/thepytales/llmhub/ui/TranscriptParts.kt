@@ -169,13 +169,13 @@ internal fun PlayerBar(
             if (error != null) HintText(error, Modifier.padding(4.dp))
             Row(Modifier.widthIn(max = 760.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { control.skip(-skip.toDouble()) }) {
-                    Icon(when (skip) { 5 -> Icons.Outlined.Replay5; 30 -> Icons.Outlined.Replay30; else -> Icons.Outlined.Replay10 }, contentDescription = "$skip Sekunden zurück (F3)")
+                    Icon(when (skip) { 5 -> Icons.Outlined.Replay5; 30 -> Icons.Outlined.Replay30; else -> Icons.Outlined.Replay10 }, contentDescription = tr("{0} Sekunden zurück (F3)", skip))
                 }
                 Surface(onClick = { control.toggle(playing) }, shape = CircleShape, color = look.action, contentColor = look.onAction, modifier = Modifier.size(48.dp)) {
-                    Box(contentAlignment = Alignment.Center) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = if (playing) "Pause (F4)" else "Abspielen (F4)") }
+                    Box(contentAlignment = Alignment.Center) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = if (playing) tr("Pause (F4)") else tr("Abspielen (F4)")) }
                 }
                 IconButton(onClick = { control.skip(skip.toDouble()) }) {
-                    Icon(when (skip) { 5 -> Icons.Outlined.Forward5; 30 -> Icons.Outlined.Forward30; else -> Icons.Outlined.Forward10 }, contentDescription = "$skip Sekunden vor (F5)")
+                    Icon(when (skip) { 5 -> Icons.Outlined.Forward5; 30 -> Icons.Outlined.Forward30; else -> Icons.Outlined.Forward10 }, contentDescription = tr("{0} Sekunden vor (F5)", skip))
                 }
                 Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
                     Slider(
@@ -190,14 +190,14 @@ internal fun PlayerBar(
                     }
                 }
                 IconButton(onClick = onLoop) {
-                    Icon(if (looping) Icons.Outlined.RepeatOne else Icons.Outlined.Repeat, contentDescription = if (looping) "Wiederholen aus (F6)" else "Abschnitt wiederholen (F6)",
+                    Icon(if (looping) Icons.Outlined.RepeatOne else Icons.Outlined.Repeat, contentDescription = if (looping) tr("Wiederholen aus (F6)") else tr("Abschnitt wiederholen (F6)"),
                         tint = if (looping) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Box {
                     TextButton(onClick = { speedMenu = true }) { Text(speedLabel(vs.speed)) }
                     DropdownMenu(expanded = speedMenu, onDismissRequest = { speedMenu = false }) {
                         SPEEDS.forEach { v ->
-                            DropdownMenuItem(text = { Text(speedLabel(v) + if (v == 1f) " (normal)" else "") }, onClick = {
+                            DropdownMenuItem(text = { Text(speedLabel(v) + if (v == 1f) tr(" (normal)") else "") }, onClick = {
                                 speedMenu = false
                                 c.transcription.updateSettings { it.copy(speed = v) }
                             })
@@ -232,44 +232,44 @@ internal fun SegmentDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.onPreviewKeyEvent { e -> transcriptKey(e, control, playing, onLoop) },
-        title = { Text("Abschnitt bei ${TranscriptExport.clock(s.start)}–${TranscriptExport.clock(s.end)}") },
+        title = { Text(tr("Abschnitt bei {0}–{1}", TranscriptExport.clock(s.start), TranscriptExport.clock(s.end))) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(text, { text = it }, minLines = 3, modifier = Modifier.fillMaxWidth())
-                if (t.diarized) ChoiceField("Sprecher", t.speakers.keys.sorted().map { it to t.speakerName(it) }, speaker, { speaker = it })
-                OutlinedTextField(comment, { comment = it }, label = { Text("Kommentar (nicht Teil des Gesprochenen)") }, minLines = 1, modifier = Modifier.fillMaxWidth())
+                if (t.diarized) ChoiceField(tr("Sprecher"), t.speakers.keys.sorted().map { it to t.speakerName(it) }, speaker, { speaker = it })
+                OutlinedTextField(comment, { comment = it }, label = { Text(tr("Kommentar (nicht Teil des Gesprochenen)")) }, minLines = 1, modifier = Modifier.fillMaxWidth())
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (control.available) {
-                        TextButton(onClick = { control.play(s.start) }) { Text("▶ Abspielen") }
+                        TextButton(onClick = { control.play(s.start) }) { Text(tr("▶ Abspielen")) }
                         TextButton(onClick = {
                             val next = TranscriptEdit.setStart(edited(), index, control.position())
-                            if (next == null) message = "Die Abspielposition liegt nicht zwischen dem vorigen Abschnitt und dem Ende dieses Abschnitts."
+                            if (next == null) message = tr("Die Abspielposition liegt nicht zwischen dem vorigen Abschnitt und dem Ende dieses Abschnitts.")
                             else { onSave(next); onDismiss() }
-                        }) { Text("Start = ${TranscriptExport.clock(control.position())}") }
+                        }) { Text(tr("Start = {0}", TranscriptExport.clock(control.position()))) }
                     }
                     TextButton(onClick = {
                         val next = TranscriptEdit.split(edited(), index, text.selection.start, control.position().takeIf { control.available })
-                        if (next == null) message = "Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit " +
-                            "die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang."
+                        if (next == null) message = tr("Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit " +
+                            "die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang.")
                         else { onSave(next); onDismiss() }
-                    }) { Text("Am Cursor teilen") }
-                    if (index > 0) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index - 1)?.let(onSave); onDismiss() }) { Text("Mit vorigem verbinden") }
-                    if (index < t.segments.lastIndex) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index)?.let(onSave); onDismiss() }) { Text("Mit nächstem verbinden") }
+                    }) { Text(tr("Am Cursor teilen")) }
+                    if (index > 0) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index - 1)?.let(onSave); onDismiss() }) { Text(tr("Mit vorigem verbinden")) }
+                    if (index < t.segments.lastIndex) TextButton(onClick = { TranscriptEdit.mergeWithNext(edited(), index)?.let(onSave); onDismiss() }) { Text(tr("Mit nächstem verbinden")) }
                     TextButton(onClick = { onSave(t.copy(segments = t.segments.filterIndexed { i, _ -> i != index }.mapIndexed { i, x -> x.copy(id = i) })); onDismiss() }) {
                         Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Löschen")
+                        Text(tr("Löschen"))
                     }
                 }
                 message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
                 val measured = s.words.count { it.measured }
                 HintText(
-                    (if (measured > 0) "Wortzeiten: $measured von ${TranscriptEdit.textWords(s).size} Wörtern gemessen; geänderte Wörter behalten ihre Zeit, neue liegen dazwischen. "
-                    else "Für diesen Abschnitt gibt es keine gemessenen Wortzeiten. ") + "F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 wiederholen – auch beim Tippen.",
+                    (if (measured > 0) tr("Wortzeiten: {0} von {1} Wörtern gemessen; geänderte Wörter behalten ihre Zeit, neue liegen dazwischen. ", measured, TranscriptEdit.textWords(s).size)
+                    else tr("Für diesen Abschnitt gibt es keine gemessenen Wortzeiten. ")) + tr("F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 wiederholen – auch beim Tippen."),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(edited()); onDismiss() }) { Text("Speichern") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(onClick = { onSave(edited()); onDismiss() }) { Text(tr("Speichern")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }

@@ -52,8 +52,8 @@ fun LoraFolderSettings() {
     var target by remember { mutableStateOf<Pair<File, Boolean>?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            "Alles liegt in einem Ordner, wie bei Obsidian: deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, " +
-                "Excel- und PowerPoint-Dateien) und versteckt im Unterordner „.lora“ Chats und Einstellungen. API-Schlüssel bleiben auf diesem PC.",
+            tr("Alles liegt in einem Ordner, wie bei Obsidian: deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, " +
+                "Excel- und PowerPoint-Dateien) und versteckt im Unterordner „.lora“ Chats und Einstellungen. API-Schlüssel bleiben auf diesem PC."),
             style = MaterialTheme.typography.bodySmall,
         )
         Text(loraFolderLabel(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -61,11 +61,11 @@ fun LoraFolderSettings() {
             OutlinedButton(onClick = { openLoraFolder() }) {
                 Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Im Explorer öffnen")
+                Text(tr("Im Explorer öffnen"))
             }
             OutlinedButton(onClick = {
                 scope.launch {
-                    val picked = FolderAccess.pick("Wohin soll der Lora-Ordner?")?.let(::File) ?: return@launch
+                    val picked = FolderAccess.pick(tr("Wohin soll der Lora-Ordner?"))?.let(::File) ?: return@launch
                     // An empty folder or one named „Lora“ is used as it is; otherwise „Lora“ inside it.
                     val dir = if (picked.name.equals("Lora", true) || picked.listFiles().isNullOrEmpty()) picked else File(picked, "Lora")
                     target = dir to false
@@ -73,29 +73,29 @@ fun LoraFolderSettings() {
             }) {
                 Icon(Icons.Outlined.DriveFileMove, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Verschieben …")
+                Text(tr("Verschieben …"))
             }
             OutlinedButton(onClick = {
-                scope.launch { FolderAccess.pick("Vorhandenen Lora-Ordner wählen")?.let { target = File(it) to true } }
-            }) { Text("Anderen Lora-Ordner wählen …") }
-            TextButton(onClick = { Navigation.openRoute.value = "settings/sync" }) { Text("Synchronisation …") }
+                scope.launch { FolderAccess.pick(tr("Vorhandenen Lora-Ordner wählen"))?.let { target = File(it) to true } }
+            }) { Text(tr("Anderen Lora-Ordner wählen …")) }
+            TextButton(onClick = { Navigation.openRoute.value = "settings/sync" }) { Text(tr("Synchronisation …")) }
         }
         HintText(
-            "Selbst verschieben geht auch: Lora beenden, den Ordner im Explorer verschieben, Lora starten – sie fragt dann, wo er jetzt liegt.",
+            tr("Selbst verschieben geht auch: Lora beenden, den Ordner im Explorer verschieben, Lora starten – sie fragt dann, wo er jetzt liegt."),
         )
     }
     target?.let { (dir, existing) ->
         val hasData = existing && Paths.hasData(dir)
         AlertDialog(
             onDismissRequest = { target = null },
-            title = { Text(if (existing) "Lora-Ordner wechseln" else "Lora-Ordner verschieben") },
+            title = { Text(if (existing) tr("Lora-Ordner wechseln") else tr("Lora-Ordner verschieben")) },
             text = {
                 Text(
                     when {
-                        existing && hasData -> "In „${dir.absolutePath}“ liegt schon ein Lora-Ordner. Lora startet neu und arbeitet dort weiter."
-                        existing -> "„${dir.absolutePath}“ enthält noch keinen Lora-Ordner. Lora startet dort neu und leer – zum Mitnehmen deiner Daten „Verschieben …“ nehmen."
-                        else -> "Alles wird nach „${dir.absolutePath}“ kopiert, dann startet Lora neu und arbeitet dort. Der bisherige Ordner bleibt als Sicherung – " +
-                            "löschen, sobald alles da ist."
+                        existing && hasData -> tr("In „{0}“ liegt schon ein Lora-Ordner. Lora startet neu und arbeitet dort weiter.", dir.absolutePath)
+                        existing -> tr("„{0}“ enthält noch keinen Lora-Ordner. Lora startet dort neu und leer – zum Mitnehmen deiner Daten „Verschieben …“ nehmen.", dir.absolutePath)
+                        else -> tr("Alles wird nach „{0}“ kopiert, dann startet Lora neu und arbeitet dort. Der bisherige Ordner bleibt als Sicherung – ", dir.absolutePath) +
+                            tr("löschen, sobald alles da ist.")
                     },
                 )
             },
@@ -109,11 +109,11 @@ fun LoraFolderSettings() {
                                 runCatching { App.container.chats.awaitWrites() }
                                 Paths.relocate(dir, copy = !existing)
                             }
-                        }.onSuccess { Paths.restart() }.onFailure { Notices.error("Das ging nicht: ${it.message}") }
+                        }.onSuccess { Paths.restart() }.onFailure { Notices.error(tr("Das ging nicht: {0}", it.message)) }
                     }
-                }) { Text(if (existing) "Wechseln und neu starten" else "Kopieren und neu starten") }
+                }) { Text(if (existing) tr("Wechseln und neu starten") else tr("Kopieren und neu starten")) }
             },
-            dismissButton = { TextButton(onClick = { target = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { target = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }

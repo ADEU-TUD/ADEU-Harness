@@ -107,7 +107,7 @@ fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> 
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    label,
+                    tr(label),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                     color = when {
                         !on -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
@@ -144,7 +144,7 @@ fun <T> ChoiceField(label: String, options: List<Pair<T, String>>, selected: T, 
     var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     Box(modifier) {
         androidx.compose.material3.OutlinedTextField(
-            value = options.firstOrNull { it.first == selected }?.second ?: "",
+            value = tr(options.firstOrNull { it.first == selected }?.second ?: ""),
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
@@ -155,7 +155,7 @@ fun <T> ChoiceField(label: String, options: List<Pair<T, String>>, selected: T, 
         Box(Modifier.matchParentSize().clickable(enabled = enabled) { open = true })
         androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (v, l) ->
-                androidx.compose.material3.DropdownMenuItem(text = { Text(l) }, onClick = { onSelect(v); open = false })
+                androidx.compose.material3.DropdownMenuItem(text = { Text(tr(l)) }, onClick = { onSelect(v); open = false })
             }
         }
     }

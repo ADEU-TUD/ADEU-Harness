@@ -142,7 +142,7 @@ object FilesHandoff {
 
 /** The parts of the Dateien tab (left on wide screens, chips on top on phones). */
 enum class DriveSection(val label: String) {
-    RECENT("Zuletzt"), STARRED("Markiert"), MINE("Meine Dateien"), UPLOADS("Hochgeladen"), CREATED("Erstellt"), PLACES("Orte"), TRASH("Papierkorb"), CHAT("Aus dem Chat"),
+    RECENT(trLater("Zuletzt")), STARRED(trLater("Markiert")), MINE(trLater("Meine Dateien")), UPLOADS(trLater("Hochgeladen")), CREATED(trLater("Erstellt")), PLACES(trLater("Orte")), TRASH(trLater("Papierkorb")), CHAT(trLater("Aus dem Chat")),
 }
 
 private fun DriveSection.icon() = when (this) {
@@ -295,14 +295,14 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     val toNextcloud = rememberNextcloudSave(c)
     var fromNextcloud by remember { mutableStateOf(false) }
     if (fromNextcloud) NextcloudBrowser(
-        c, "Aus Nextcloud holen", confirm = "In „Hochgeladen“ holen", onDismiss = { fromNextcloud = false },
+        c, tr("Aus Nextcloud holen"), confirm = tr("In „Hochgeladen“ holen"), onDismiss = { fromNextcloud = false },
         onFiles = { picked ->
             fromNextcloud = false
             scope.launch {
                 val got = picked.mapNotNull { e -> runCatching { c.nextcloud.import(e.path) }.onFailure { Notices.error("„${e.name}“: ${it.message}") }.getOrNull() }
                 if (got.isNotEmpty()) {
                     drive.changed()
-                    Notices.info(if (got.size == 1) "„${got.first().name}“ liegt jetzt unter „Hochgeladen“." else "${got.size} Dateien liegen jetzt unter „Hochgeladen“.")
+                    Notices.info(if (got.size == 1) tr("„{0}“ liegt jetzt unter „Hochgeladen“.", got.first().name) else tr("{0} Dateien liegen jetzt unter „Hochgeladen“.", got.size))
                 }
             }
         },
@@ -357,7 +357,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         val removed = drive.delete(items.map { it.file })
         selection.clear()
         if (removed.isNotEmpty()) Notices.undo(
-            if (removed.size == 1) "„${removed.first().name}“ im Papierkorb" else "${removed.size} Einträge im Papierkorb",
+            if (removed.size == 1) tr("„{0}“ im Papierkorb", removed.first().name) else tr("{0} Einträge im Papierkorb", removed.size),
             restore = { removed.forEach { e -> drive.restore(e) } },
         )
     }
@@ -371,12 +371,12 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
 
     val importFile = rememberMediaImport(anyFile = true) { name, _, input ->
         val bytes = withContext(Dispatchers.IO) { input.use { it.readBytes() } }
-        withContext(Dispatchers.IO) { runCatching { upload(name, bytes) }.onFailure { Notices.error("„$name“ ließ sich nicht ablegen: ${it.message}") } }
+        withContext(Dispatchers.IO) { runCatching { upload(name, bytes) }.onFailure { Notices.error(tr("„{0}“ ließ sich nicht ablegen: {1}", name, it.message)) } }
     }
     DroppedFilesEffect { files ->
         scope.launch(Dispatchers.IO) {
             val copied = runCatching { drive.copy(files.filter { it.exists() }, targetDir) }.getOrDefault(emptyList())
-            if (copied.isNotEmpty()) Notices.info("${copied.size} Datei(en) nach „${targetDir.name}“ kopiert")
+            if (copied.isNotEmpty()) Notices.info(tr("{0} Datei(en) nach „{1}“ kopiert", copied.size, targetDir.name))
         }
     }
 
@@ -411,9 +411,9 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
             val items = dragging.orEmpty()
             dragging = null
             if (target != null && items.none { it.file.absoluteFile == target.absoluteFile }) {
-                val moved = runCatching { drive.move(items.map { it.file }, target) }.onFailure { Notices.error("Verschieben ging nicht: ${it.message}") }.getOrDefault(emptyList())
+                val moved = runCatching { drive.move(items.map { it.file }, target) }.onFailure { Notices.error(tr("Verschieben ging nicht: {0}", it.message)) }.getOrDefault(emptyList())
                 selection.clear()
-                if (moved.isNotEmpty()) Notices.info("${moved.size} nach „${target.name}“ verschoben")
+                if (moved.isNotEmpty()) Notices.info(tr("{0} nach „{1}“ verschoben", moved.size, target.name))
             }
         },
         register = { key, rect, dir -> if (rect == null) dropTargets.remove(key) else dropTargets[key] = rect to dir },
@@ -423,19 +423,19 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Dateien") },
+                title = { Text(tr("Dateien")) },
                 actions = {
                     IconButton(onClick = { c.settings.update { it.copy(filesGrid = !it.filesGrid) } }) {
-                        Icon(if (settings.filesGrid) Icons.Outlined.ViewList else Icons.Outlined.GridView, contentDescription = if (settings.filesGrid) "Liste" else "Raster")
+                        Icon(if (settings.filesGrid) Icons.Outlined.ViewList else Icons.Outlined.GridView, contentDescription = if (settings.filesGrid) tr("Liste") else tr("Raster"))
                     }
                     SortMenu(settings.filesSort, settings.filesSortDown) { sort, down -> c.settings.update { it.copy(filesSort = sort, filesSortDown = down) } }
                     var menu by remember { mutableStateOf(false) }
                     Box {
-                        IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                        IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                         DropdownMenu(menu, { menu = false }) {
-                            if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text("Im Explorer öffnen") }, leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) }, onClick = { menu = false; openLoraFolder(currentDir) })
-                            DropdownMenuItem(text = { Text("Lora-Ordner …") }, leadingIcon = { Icon(Icons.Outlined.Settings, null) }, onClick = { menu = false; folderSettings = true })
-                            DropdownMenuItem(text = { Text("Wissenssammlung") }, onClick = { menu = false; onNavigate("settings/knowledge") })
+                            if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer öffnen")) }, leadingIcon = { Icon(Icons.Outlined.FolderOpen, null) }, onClick = { menu = false; openLoraFolder(currentDir) })
+                            DropdownMenuItem(text = { Text(tr("Lora-Ordner …")) }, leadingIcon = { Icon(Icons.Outlined.Settings, null) }, onClick = { menu = false; folderSettings = true })
+                            DropdownMenuItem(text = { Text(tr("Wissenssammlung")) }, onClick = { menu = false; onNavigate("settings/knowledge") })
                             if (settings.hasNextcloud) DropdownMenuItem(text = { Text(tr("Aus Nextcloud holen …")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { menu = false; fromNextcloud = true })
                             else DropdownMenuItem(text = { Text(tr("Nextcloud verbinden …")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { menu = false; onNavigate("settings/connections") })
                         }
@@ -468,7 +468,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                                 else -> null
                             }
                             NavigationDrawerItem(
-                                label = { Text(if (s == DriveSection.CHAT) chatTitle(c, chatFilter) else s.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                label = { Text(if (s == DriveSection.CHAT) chatTitle(c, chatFilter) else tr(s.label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 icon = { Icon(s.icon(), contentDescription = null) },
                                 badge = { if (s == DriveSection.TRASH && trash.isNotEmpty()) Text("${trash.size}") },
                                 selected = section == s,
@@ -485,13 +485,13 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                         query, { query = it }, singleLine = true, shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp).widthIn(max = 900.dp),
                         leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, "Leeren") } },
-                        placeholder = { Text("In Dateien suchen – Namen, Schlagwörter und Inhalt") },
+                        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, tr("Leeren")) } },
+                        placeholder = { Text(tr("In Dateien suchen – Namen, Schlagwörter und Inhalt")) },
                     )
                     if (!wide) {
                         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             DriveSection.entries.filter { it != DriveSection.CHAT || chatFilter != null }.forEach { s ->
-                                FilterChip(section == s, { go(s) }, label = { Text(if (s == DriveSection.CHAT) chatTitle(c, chatFilter) else s.label, maxLines = 1) }, leadingIcon = { Icon(s.icon(), null, Modifier.size(16.dp)) })
+                                FilterChip(section == s, { go(s) }, label = { Text(if (s == DriveSection.CHAT) chatTitle(c, chatFilter) else tr(s.label), maxLines = 1) }, leadingIcon = { Icon(s.icon(), null, Modifier.size(16.dp)) })
                             }
                         }
                     }
@@ -542,7 +542,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                     modifier = Modifier.offset { IntOffset(dragAt.x.roundToInt() + 12, dragAt.y.roundToInt() - with(density) { 60.dp.roundToPx() }) },
                 ) {
                     Text(
-                        (if (list.size == 1) list.first().name else "${list.size} Einträge") + (hovered?.let { " → ${it.name}" } ?: ""),
+                        (if (list.size == 1) list.first().name else tr("{0} Einträge", list.size)) + (hovered?.let { " → ${it.name}" } ?: ""),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge,
                     )
                 }
@@ -551,22 +551,22 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     }
 
     renaming?.let { it0 ->
-        TextDialog("Umbenennen", if (it0.dir) it0.name else it0.file.nameWithoutExtension, confirm = "Umbenennen", onDismiss = { renaming = null }) { name ->
+        TextDialog(tr("Umbenennen"), if (it0.dir) it0.name else it0.file.nameWithoutExtension, confirm = tr("Umbenennen"), onDismiss = { renaming = null }) { name ->
             renaming = null
-            runCatching { drive.rename(it0.file, name) }.onFailure { Notices.error(it.message ?: "Umbenennen ging nicht.") }
+            runCatching { drive.rename(it0.file, name) }.onFailure { Notices.error(it.message ?: tr("Umbenennen ging nicht.")) }
         }
     }
     moving?.let { list ->
         MoveDialog(drive, list, placeRoot?.let(::File), onDismiss = { moving = null }) { target ->
             moving = null
-            val moved = runCatching { drive.move(list.map { it.file }, target) }.onFailure { Notices.error("Verschieben ging nicht: ${it.message}") }.getOrDefault(emptyList())
+            val moved = runCatching { drive.move(list.map { it.file }, target) }.onFailure { Notices.error(tr("Verschieben ging nicht: {0}", it.message)) }.getOrDefault(emptyList())
             selection.clear()
-            if (moved.isNotEmpty()) Notices.info("${moved.size} nach „${target.name.ifBlank { "Lora-Ordner" }}“ verschoben")
+            if (moved.isNotEmpty()) Notices.info(tr("{0} nach „{1}“ verschoben", moved.size, target.name.ifBlank { tr("Lora-Ordner") }))
         }
     }
-    if (newFolder) TextDialog("Neuer Ordner", "Neuer Ordner", confirm = "Erstellen", onDismiss = { newFolder = false }) { name ->
+    if (newFolder) TextDialog(tr("Neuer Ordner"), tr("Neuer Ordner"), confirm = tr("Erstellen"), onDismiss = { newFolder = false }) { name ->
         newFolder = false
-        runCatching { drive.mkdir(targetDir, name) }.onFailure { Notices.error("Ordner ließ sich nicht anlegen: ${it.message}") }
+        runCatching { drive.mkdir(targetDir, name) }.onFailure { Notices.error(tr("Ordner ließ sich nicht anlegen: {0}", it.message)) }
     }
     tagsFor?.let { it0 ->
         val key = drive.metaKey(it0.file)
@@ -584,9 +584,9 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     }
     if (folderSettings) AlertDialog(
         onDismissRequest = { folderSettings = false },
-        title = { Text("Lora-Ordner") },
+        title = { Text(tr("Lora-Ordner")) },
         text = { Column(Modifier.heightIn(max = 520.dp)) { LoraFolderSettings() } },
-        confirmButton = { TextButton(onClick = { folderSettings = false }) { Text("Fertig") } },
+        confirmButton = { TextButton(onClick = { folderSettings = false }) { Text(tr("Fertig")) } },
     )
 }
 
@@ -700,9 +700,9 @@ private fun DriveRow(c: AppContainer, item: DriveItem, actions: DriveActions, dr
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     HintText(
                         listOfNotNull(
-                            "Geändert " + WHEN.format(Date(item.modified)),
-                            if (item.dir) "${item.count} " + (if (item.count == 1) "Eintrag" else "Einträge") else fileSizeLabel(item.size).ifEmpty { null },
-                            item.doc?.let { d -> d.openComments.takeIf { it > 0 }?.let { "$it Kommentare" } },
+                            tr("Geändert ") + WHEN.format(Date(item.modified)),
+                            if (item.dir) "${item.count} " + (if (item.count == 1) tr("Eintrag") else tr("Einträge")) else fileSizeLabel(item.size).ifEmpty { null },
+                            item.doc?.let { d -> d.openComments.takeIf { it > 0 }?.let { tr("{0} Kommentare", it) } },
                         ).joinToString(" · "),
                     )
                     item.chatId?.let { id ->
@@ -711,14 +711,14 @@ private fun DriveRow(c: AppContainer, item: DriveItem, actions: DriveActions, dr
                             Row(Modifier.padding(horizontal = 6.dp, vertical = 1.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Outlined.ChatBubbleOutline, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.primary)
                                 Spacer(Modifier.width(4.dp))
-                                Text("aus „${chatTitles[id] ?: "Chat"}“".take(48), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, maxLines = 1)
+                                Text(tr("aus „{0}“", chatTitles[id] ?: tr("Chat")).take(48), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, maxLines = 1)
                             }
                         }
                     }
                 }
             }
-            if (item.starred) Icon(Icons.Outlined.Star, contentDescription = "Markiert", tint = Color(0xFFF2B01E), modifier = Modifier.size(18.dp))
-            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+            if (item.starred) Icon(Icons.Outlined.Star, contentDescription = tr("Markiert"), tint = Color(0xFFF2B01E), modifier = Modifier.size(18.dp))
+            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
         }
         ItemMenu(c, item, actions, menu) { menu = false }
     }
@@ -730,7 +730,7 @@ private fun KindTile(item: DriveItem, selected: Boolean, size: Int = 40) {
     Surface(shape = RoundedCornerShape(10.dp), color = color.copy(alpha = 0.12f), modifier = Modifier.size(size.dp)) {
         Box(contentAlignment = Alignment.Center) {
             when {
-                selected -> Icon(Icons.Outlined.CheckCircle, contentDescription = "Ausgewählt", tint = MaterialTheme.colorScheme.primary)
+                selected -> Icon(Icons.Outlined.CheckCircle, contentDescription = tr("Ausgewählt"), tint = MaterialTheme.colorScheme.primary)
                 item.fixed -> Icon(if (item.name == LoraDrive.UPLOADS) Icons.Outlined.CloudUpload else Icons.Outlined.FolderSpecial, null, tint = Color(0xFF00305D))
                 item.dir -> Icon(Icons.Outlined.Folder, null, tint = color)
                 else -> Icon(item.kind.icon(), null, tint = color, modifier = Modifier.size((size / 2).dp))
@@ -750,9 +750,9 @@ private fun DriveGrid(c: AppContainer, items: List<DriveItem>, actions: DriveAct
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (folders.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { HintText("Ordner") }
+        if (folders.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { HintText(tr("Ordner")) }
         items(folders, key = { it.key }) { f -> FolderCard(c, f, actions, drag, hovered) }
-        if (files.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { HintText("Dateien", Modifier.padding(top = 6.dp)) }
+        if (files.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { HintText(tr("Dateien"), Modifier.padding(top = 6.dp)) }
         items(files, key = { it.key }) { f -> FileCard(c, f, actions, drag) }
     }
 }
@@ -770,7 +770,7 @@ private fun FolderCard(c: AppContainer, item: DriveItem, actions: DriveActions, 
                 KindTile(item, selected, size = 32)
                 Spacer(Modifier.width(10.dp))
                 Text(item.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
             }
         }
         ItemMenu(c, item, actions, menu) { menu = false }
@@ -791,12 +791,12 @@ private fun FileCard(c: AppContainer, item: DriveItem, actions: DriveActions, dr
                     Icon(if (selected) Icons.Outlined.CheckCircle else item.kind.icon(), null, Modifier.size(18.dp), tint = if (selected) MaterialTheme.colorScheme.primary else item.kind.color())
                     Spacer(Modifier.width(8.dp))
                     Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { menu = true }, modifier = Modifier.size(36.dp)) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr", modifier = Modifier.size(18.dp)) }
+                    IconButton(onClick = { menu = true }, modifier = Modifier.size(36.dp)) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr"), modifier = Modifier.size(18.dp)) }
                 }
                 Box(Modifier.fillMaxWidth().aspectRatio(1.25f).padding(start = 8.dp, end = 8.dp, bottom = 8.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
                     DriveThumb(c, item)
                     if (item.starred) Icon(Icons.Outlined.Star, null, Modifier.align(Alignment.TopEnd).padding(4.dp).size(16.dp), tint = Color(0xFFF2B01E))
-                    if (item.chatId != null) Icon(Icons.Outlined.ChatBubbleOutline, "Aus einem Chat", Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                    if (item.chatId != null) Icon(Icons.Outlined.ChatBubbleOutline, tr("Aus einem Chat"), Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp), tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -903,29 +903,29 @@ private fun page(title: String, markdown: String): Preview {
 private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, open: Boolean, onDismiss: () -> Unit) {
     DropdownMenu(open, onDismiss) {
         fun act(a: () -> Unit) { onDismiss(); a() }
-        DropdownMenuItem(text = { Text("Öffnen") }, onClick = { act { actions.open(item) } })
+        DropdownMenuItem(text = { Text(tr("Öffnen")) }, onClick = { act { actions.open(item) } })
         if (item.fixed) {
-            if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text("Im Explorer zeigen") }, onClick = { act { openLoraFolder(item.file) } })
+            if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { openLoraFolder(item.file) } })
             return@DropdownMenu
         }
-        if (!item.dir) DropdownMenuItem(text = { Text("Mit anderer App öffnen") }, onClick = { act { actions.external(item) } })
+        if (!item.dir) DropdownMenuItem(text = { Text(tr("Mit anderer App öffnen")) }, onClick = { act { actions.external(item) } })
         if (!item.dir) actions.toNextcloud?.let { save -> DropdownMenuItem(text = { Text(tr("In Nextcloud speichern")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { act { save(item) } }) }
-        item.chatId?.let { id -> DropdownMenuItem(text = { Text("Zum Chat") }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { actions.chat(id) } }) }
+        item.chatId?.let { id -> DropdownMenuItem(text = { Text(tr("Zum Chat")) }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { actions.chat(id) } }) }
         HorizontalDivider()
-        DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { act { actions.rename(item) } })
-        DropdownMenuItem(text = { Text("Verschieben nach …") }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { act { actions.move(item) } })
-        DropdownMenuItem(text = { Text("Kopie erstellen") }, onClick = { act { actions.copy(item) } })
+        DropdownMenuItem(text = { Text(tr("Umbenennen")) }, onClick = { act { actions.rename(item) } })
+        DropdownMenuItem(text = { Text(tr("Verschieben nach …")) }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { act { actions.move(item) } })
+        DropdownMenuItem(text = { Text(tr("Kopie erstellen")) }, onClick = { act { actions.copy(item) } })
         DropdownMenuItem(
-            text = { Text(if (item.starred) "Markierung entfernen" else "Markieren") },
+            text = { Text(if (item.starred) tr("Markierung entfernen") else tr("Markieren")) },
             leadingIcon = { Icon(if (item.starred) Icons.Outlined.StarBorder else Icons.Outlined.Star, null) },
             onClick = { act { actions.star(item) } },
         )
-        DropdownMenuItem(text = { Text("Schlagwörter …") }, onClick = { act { actions.tags(item) } })
-        DropdownMenuItem(text = { Text(if (actions.selected(item)) "Auswahl aufheben" else "Auswählen") }, onClick = { act { actions.select(item) } })
-        item.doc?.takeIf { it.versions.size > 1 }?.let { d -> DropdownMenuItem(text = { Text("Versionen vergleichen") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { act { actions.versions(d) } }) }
-        if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text("Im Explorer zeigen") }, onClick = { act { actions.reveal(item) } })
+        DropdownMenuItem(text = { Text(tr("Schlagwörter …")) }, onClick = { act { actions.tags(item) } })
+        DropdownMenuItem(text = { Text(if (actions.selected(item)) tr("Auswahl aufheben") else tr("Auswählen")) }, onClick = { act { actions.select(item) } })
+        item.doc?.takeIf { it.versions.size > 1 }?.let { d -> DropdownMenuItem(text = { Text(tr("Versionen vergleichen")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { act { actions.versions(d) } }) }
+        if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { actions.reveal(item) } })
         HorizontalDivider()
-        DropdownMenuItem(text = { Text("In den Papierkorb") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { act { actions.delete(item) } })
+        DropdownMenuItem(text = { Text(tr("In den Papierkorb")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { act { actions.delete(item) } })
     }
 }
 
@@ -933,11 +933,11 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
 private fun SelectionBar(count: Int, onMove: () -> Unit, onStar: () -> Unit, onDelete: () -> Unit, onClear: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClear) { Icon(Icons.Outlined.Close, contentDescription = "Auswahl aufheben") }
-            Text("$count ausgewählt", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            IconButton(onClick = onMove) { Icon(Icons.Outlined.DriveFileMove, contentDescription = "Verschieben nach …") }
-            IconButton(onClick = onStar) { Icon(Icons.Outlined.Star, contentDescription = "Markieren") }
-            IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = "In den Papierkorb") }
+            IconButton(onClick = onClear) { Icon(Icons.Outlined.Close, contentDescription = tr("Auswahl aufheben")) }
+            Text(tr("{0} ausgewählt", count), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            IconButton(onClick = onMove) { Icon(Icons.Outlined.DriveFileMove, contentDescription = tr("Verschieben nach …")) }
+            IconButton(onClick = onStar) { Icon(Icons.Outlined.Star, contentDescription = tr("Markieren")) }
+            IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = tr("In den Papierkorb")) }
         }
     }
 }
@@ -966,7 +966,7 @@ private fun Breadcrumbs(
                 val (rootLabel, rootPath) = when (section) {
                     DriveSection.UPLOADS -> LoraDrive.UPLOADS to LoraDrive.UPLOADS
                     DriveSection.CREATED -> LoraDrive.CREATED to LoraDrive.CREATED
-                    else -> "Meine Dateien" to ""
+                    else -> tr("Meine Dateien") to ""
                 }
                 val skip = if (rootPath.isEmpty()) 0 else 1
                 crumb(rootLabel, drive.fileOf(rootPath), parts.size <= skip) { onPath(rootPath) }
@@ -977,7 +977,7 @@ private fun Breadcrumbs(
                 }
             }
             DriveSection.PLACES -> {
-                crumb("Orte", null, placeRoot == null) { onPlaces() }
+                crumb(tr("Orte"), null, placeRoot == null) { onPlaces() }
                 placeRoot?.let { r ->
                     Icon(Icons.Outlined.ChevronRight, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline)
                     crumb(File(r).name, File(r), parts.isEmpty()) { onPath("") }
@@ -988,8 +988,8 @@ private fun Breadcrumbs(
                     }
                 }
             }
-            DriveSection.CHAT -> crumb("Dateien aus „$chatTitle“", null, true) {}
-            else -> crumb(section.label, null, true) {}
+            DriveSection.CHAT -> crumb(tr("Dateien aus „{0}“", chatTitle), null, true) {}
+            else -> crumb(tr(section.label), null, true) {}
         }
     }
 }
@@ -998,9 +998,9 @@ private fun Breadcrumbs(
 private fun SortMenu(sort: String, down: Boolean, onChange: (String, Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = "Sortieren") }
+        IconButton(onClick = { open = true }) { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = tr("Sortieren")) }
         DropdownMenu(open, { open = false }) {
-            listOf("name" to "Name", "modified" to "Geändert", "kind" to "Typ", "size" to "Größe").forEach { (k, label) ->
+            listOf("name" to tr("Name"), "modified" to tr("Geändert"), "kind" to tr("Typ"), "size" to tr("Größe")).forEach { (k, label) ->
                 DropdownMenuItem(
                     text = { Text(label + if (k == sort) (if (down) "  ↓" else "  ↑") else "") },
                     onClick = { open = false; onChange(k, if (k == sort) !down else k == "modified") },
@@ -1018,18 +1018,18 @@ private fun NewMenuButton(onFolder: () -> Unit, onDoc: (DocKind) -> Unit, onTemp
         FloatingActionButton(
             onClick = { open = true }, shape = RoundedCornerShape(20.dp), containerColor = Color(0xFF00305D), contentColor = Color.White,
             modifier = Modifier.padding(bottom = LORA_BUTTON_ROOM - 24.dp).size(72.dp),
-        ) { Icon(Icons.Outlined.Add, contentDescription = "Neu", modifier = Modifier.size(34.dp)) }
+        ) { Icon(Icons.Outlined.Add, contentDescription = tr("Neu"), modifier = Modifier.size(34.dp)) }
         DropdownMenu(open, { open = false }) {
-            DropdownMenuItem(text = { Text("Ordner") }, leadingIcon = { Icon(Icons.Outlined.CreateNewFolder, null) }, onClick = { open = false; onFolder() })
-            DropdownMenuItem(text = { Text("Hochladen …") }, leadingIcon = { Icon(Icons.Outlined.CloudUpload, null) }, onClick = { open = false; onUpload() })
+            DropdownMenuItem(text = { Text(tr("Ordner")) }, leadingIcon = { Icon(Icons.Outlined.CreateNewFolder, null) }, onClick = { open = false; onFolder() })
+            DropdownMenuItem(text = { Text(tr("Hochladen …")) }, leadingIcon = { Icon(Icons.Outlined.CloudUpload, null) }, onClick = { open = false; onUpload() })
             HorizontalDivider()
             DocKind.entries.forEach { k ->
                 DropdownMenuItem(text = { Text(k.label) }, leadingIcon = { Icon(kindIcon(k), null, tint = kindColor(k)) }, onClick = { open = false; onDoc(k) })
             }
             HorizontalDivider()
-            DropdownMenuItem(text = { Text("Aus Vorlage …") }, onClick = { open = false; onTemplate() })
+            DropdownMenuItem(text = { Text(tr("Aus Vorlage …")) }, onClick = { open = false; onTemplate() })
             DocKind.entries.forEach { k ->
-                DropdownMenuItem(text = { Text("${k.label} mit KI …") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary) }, onClick = { open = false; onAi(k) })
+                DropdownMenuItem(text = { Text(tr("{0} mit KI …", k.label)) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary) }, onClick = { open = false; onAi(k) })
             }
         }
     }
@@ -1045,7 +1045,7 @@ private fun TextDialog(title: String, initial: String, confirm: String, onDismis
         title = { Text(title) },
         text = { OutlinedTextField(text, { text = it }, singleLine = true, modifier = Modifier.fillMaxWidth()) },
         confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onDone(text.trim()) }) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -1066,7 +1066,7 @@ private fun MoveDialog(drive: LoraDrive, items: List<DriveItem>, placeRoot: File
     val moving = items.map { it.file.absolutePath }.toSet()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (items.size == 1) "„${items.first().name}“ verschieben" else "${items.size} Einträge verschieben", maxLines = 2, overflow = TextOverflow.Ellipsis) },
+        title = { Text(if (items.size == 1) tr("„{0}“ verschieben", items.first().name) else tr("{0} Einträge verschieben", items.size), maxLines = 2, overflow = TextOverflow.Ellipsis) },
         text = {
             Column(Modifier.heightIn(max = 460.dp)) {
                 LazyColumn(Modifier.weight(1f, fill = false)) {
@@ -1080,22 +1080,22 @@ private fun MoveDialog(drive: LoraDrive, items: List<DriveItem>, placeRoot: File
                         ) {
                             Icon(if (f.isEmpty()) Icons.Outlined.FolderOpen else Icons.Outlined.Folder, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(if (f.isEmpty()) (placeRoot?.name ?: "Meine Dateien") else f.substringAfterLast('/'), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(if (f.isEmpty()) (placeRoot?.name ?: tr("Meine Dateien")) else f.substringAfterLast('/'), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
                 TextButton(onClick = { newName = "" }) {
                     Icon(Icons.Outlined.CreateNewFolder, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Neuer Ordner hier")
+                    Text(tr("Neuer Ordner hier"))
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onMove(if (chosen.isEmpty()) base else File(base, chosen)) }) { Text("Hierhin verschieben") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(onClick = { onMove(if (chosen.isEmpty()) base else File(base, chosen)) }) { Text(tr("Hierhin verschieben")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
     newName?.let {
-        TextDialog("Neuer Ordner", "Neuer Ordner", confirm = "Erstellen", onDismiss = { newName = null }) { name ->
+        TextDialog(tr("Neuer Ordner"), tr("Neuer Ordner"), confirm = tr("Erstellen"), onDismiss = { newName = null }) { name ->
             newName = null
             val dir = drive.mkdir(if (chosen.isEmpty()) base else File(base, chosen), name)
             chosen = dir.absoluteFile.relativeTo(base.absoluteFile).path.replace(File.separatorChar, '/')
@@ -1109,14 +1109,14 @@ private fun MoveDialog(drive: LoraDrive, items: List<DriveItem>, placeRoot: File
 private fun TemplatePickerDialog(onDismiss: () -> Unit, onPick: (DocKind, String, String, String?) -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Aus Vorlage") },
+        title = { Text(tr("Aus Vorlage")) },
         text = {
             LazyColumn(Modifier.heightIn(max = 480.dp)) {
                 val groups = listOf(
-                    Triple(DocKind.DOC, "Dokumente", DOC_STARTERS.map { Triple(it.first, it.second, null as String?) } +
-                        listOf(Triple("Leeres TUD-Dokument", "# ${DocKind.DOC.newTitle}\n\n", DocStyle.TUD.name)) + TUD_STARTERS.map { Triple("TUD: " + it.first, it.second, DocStyle.TUD.name) }),
-                    Triple(DocKind.SLIDES, "Präsentationen", SLIDE_STARTERS.map { Triple(it.first, it.second, null) }),
-                    Triple(DocKind.SHEET, "Tabellen", SHEET_STARTERS.map { Triple(it.first, it.second, null) }),
+                    Triple(DocKind.DOC, tr("Dokumente"), DOC_STARTERS.map { Triple(it.first, it.second, null as String?) } +
+                        listOf(Triple(tr("Leeres TUD-Dokument"), "# ${DocKind.DOC.newTitle}\n\n", DocStyle.TUD.name)) + TUD_STARTERS.map { Triple("TUD: " + it.first, it.second, DocStyle.TUD.name) }),
+                    Triple(DocKind.SLIDES, tr("Präsentationen"), SLIDE_STARTERS.map { Triple(it.first, it.second, null) }),
+                    Triple(DocKind.SHEET, tr("Tabellen"), SHEET_STARTERS.map { Triple(it.first, it.second, null) }),
                     Triple(DocKind.MARKDOWN, "Markdown", MARKDOWN_STARTERS.map { Triple(it.first, it.second, null) }),
                 )
                 groups.forEach { (kind, label, list) ->
@@ -1131,7 +1131,7 @@ private fun TemplatePickerDialog(onDismiss: () -> Unit, onPick: (DocKind, String
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -1139,8 +1139,8 @@ private fun TemplatePickerDialog(onDismiss: () -> Unit, onPick: (DocKind, String
 private fun SearchResults(c: AppContainer, hits: List<FileHit>?, query: String, onOpen: (FileHit) -> Unit) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = LORA_BUTTON_ROOM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         when {
-            hits == null -> item { HintText("Suche …", Modifier.padding(16.dp)) }
-            hits.isEmpty() -> item { HintText("Nichts gefunden zu „$query“.", Modifier.padding(16.dp)) }
+            hits == null -> item { HintText(tr("Suche …"), Modifier.padding(16.dp)) }
+            hits.isEmpty() -> item { HintText(tr("Nichts gefunden zu „{0}“.", query), Modifier.padding(16.dp)) }
             else -> items(hits, key = { it.item.key }) { h ->
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onOpen(h) }.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(10.dp), color = h.item.kind.color().copy(alpha = 0.12f), modifier = Modifier.size(40.dp)) {
@@ -1150,7 +1150,7 @@ private fun SearchResults(c: AppContainer, hits: List<FileHit>?, query: String, 
                     Column(Modifier.weight(1f)) {
                         Text(h.item.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         HintText(
-                            listOfNotNull(h.item.where + (h.item.folder.takeIf { it.isNotEmpty() }?.let { " › $it" } ?: ""), h.page?.let { "Seite $it" }, WHEN.format(Date(h.item.modified)))
+                            listOfNotNull(h.item.where + (h.item.folder.takeIf { it.isNotEmpty() }?.let { " › $it" } ?: ""), h.page?.let { tr("Seite {0}", it) }, WHEN.format(Date(h.item.modified)))
                                 .joinToString(" · "),
                         )
                         if (h.snippet.isNotBlank()) Text("„${h.snippet}“", style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -1167,30 +1167,30 @@ private fun TrashList(drive: LoraDrive, trash: List<TrashEntry>) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = LORA_BUTTON_ROOM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                HintText("Gelöschtes bleibt ${LoraDrive.TRASH_DAYS} Tage hier und lässt sich wiederherstellen.", Modifier.weight(1f))
-                if (trash.isNotEmpty()) TextButton(onClick = { confirmEmpty = true }) { Text("Papierkorb leeren") }
+                HintText(tr("Gelöschtes bleibt {0} Tage hier und lässt sich wiederherstellen.", LoraDrive.TRASH_DAYS), Modifier.weight(1f))
+                if (trash.isNotEmpty()) TextButton(onClick = { confirmEmpty = true }) { Text(tr("Papierkorb leeren")) }
             }
         }
-        if (trash.isEmpty()) item { HintText("Der Papierkorb ist leer.", Modifier.padding(16.dp)) }
+        if (trash.isEmpty()) item { HintText(tr("Der Papierkorb ist leer."), Modifier.padding(16.dp)) }
         items(trash.sortedByDescending { it.deletedAt }, key = { it.id }) { e ->
             Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(if (e.dir) Icons.Outlined.Folder else FileKind.ofName(e.name).icon(), null, tint = if (e.dir) Color(0xFF5F6B7A) else FileKind.ofName(e.name).color())
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(e.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    HintText("Gelöscht " + WHEN.format(Date(e.deletedAt)) + " · aus " + (File(e.from).parentFile?.name ?: ""))
+                    HintText(tr("Gelöscht ") + WHEN.format(Date(e.deletedAt)) + tr(" · aus ") + (File(e.from).parentFile?.name ?: ""))
                 }
-                IconButton(onClick = { drive.restore(e)?.let { Notices.info("„${e.name}“ wiederhergestellt") } }) { Icon(Icons.Outlined.RestoreFromTrash, contentDescription = "Wiederherstellen") }
-                IconButton(onClick = { drive.deleteForever(e) }) { Icon(Icons.Outlined.DeleteForever, contentDescription = "Endgültig löschen") }
+                IconButton(onClick = { drive.restore(e)?.let { Notices.info(tr("„{0}“ wiederhergestellt", e.name)) } }) { Icon(Icons.Outlined.RestoreFromTrash, contentDescription = tr("Wiederherstellen")) }
+                IconButton(onClick = { drive.deleteForever(e) }) { Icon(Icons.Outlined.DeleteForever, contentDescription = tr("Endgültig löschen")) }
             }
         }
     }
     if (confirmEmpty) AlertDialog(
         onDismissRequest = { confirmEmpty = false },
-        title = { Text("Papierkorb leeren?") },
-        text = { Text("${trash.size} Einträge werden endgültig gelöscht.") },
-        confirmButton = { TextButton(onClick = { confirmEmpty = false; drive.emptyTrash() }) { Text("Endgültig löschen") } },
-        dismissButton = { TextButton(onClick = { confirmEmpty = false }) { Text("Abbrechen") } },
+        title = { Text(tr("Papierkorb leeren?")) },
+        text = { Text(tr("{0} Einträge werden endgültig gelöscht.", trash.size)) },
+        confirmButton = { TextButton(onClick = { confirmEmpty = false; drive.emptyTrash() }) { Text(tr("Endgültig löschen")) } },
+        dismissButton = { TextButton(onClick = { confirmEmpty = false }) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -1201,8 +1201,8 @@ private fun PlacesList(c: AppContainer, onOpen: (File) -> Unit) {
         value = withContext(Dispatchers.IO) { runCatching { c.fileLibrary.roots().filter { (_, d) -> d.absoluteFile != c.drive.root.absoluteFile } }.getOrDefault(emptyList()) }
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = LORA_BUTTON_ROOM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        item { HintText("Ordner außerhalb des Lora-Ordners, die Lora kennt: Ablageorte und Projektordner. Ihre Dateien lassen sich hier öffnen, umbenennen, verschieben und löschen.", Modifier.padding(8.dp)) }
-        if (places.isEmpty()) item { HintText("Noch keine – Ablageorte unter Einstellungen › Speicherorte, Projektordner am Projekt.", Modifier.padding(8.dp)) }
+        item { HintText(tr("Ordner außerhalb des Lora-Ordners, die Lora kennt: Ablageorte und Projektordner. Ihre Dateien lassen sich hier öffnen, umbenennen, verschieben und löschen."), Modifier.padding(8.dp)) }
+        if (places.isEmpty()) item { HintText(tr("Noch keine – Ablageorte unter Einstellungen › Speicherorte, Projektordner am Projekt."), Modifier.padding(8.dp)) }
         items(places) { (name, dir) ->
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onOpen(dir) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Storage, null, tint = Color(0xFF5F6B7A))
@@ -1223,21 +1223,21 @@ private fun EmptyHint(section: DriveSection) {
         Spacer(Modifier.height(8.dp))
         Text(
             when (section) {
-                DriveSection.STARRED -> "Noch nichts markiert"
-                DriveSection.UPLOADS -> "Noch nichts hochgeladen"
-                DriveSection.CREATED -> "Noch nichts im Chat erstellt"
-                DriveSection.CHAT -> "Dieser Chat hat keine Dateien"
-                DriveSection.RECENT -> "Noch keine Dateien"
-                else -> "Dieser Ordner ist leer"
+                DriveSection.STARRED -> tr("Noch nichts markiert")
+                DriveSection.UPLOADS -> tr("Noch nichts hochgeladen")
+                DriveSection.CREATED -> tr("Noch nichts im Chat erstellt")
+                DriveSection.CHAT -> tr("Dieser Chat hat keine Dateien")
+                DriveSection.RECENT -> tr("Noch keine Dateien")
+                else -> tr("Dieser Ordner ist leer")
             },
             style = MaterialTheme.typography.titleSmall,
         )
         HintText(
             when (section) {
-                DriveSection.UPLOADS -> "Jede Datei, die du in einen Chat ziehst oder anhängst, landet hier als Kopie."
-                DriveSection.CREATED -> "Was die KI im Chat erstellt – Dokumente, PDFs, Tabellen –, landet hier."
-                DriveSection.STARRED -> "Über ⋮ › Markieren erscheinen Dateien und Ordner hier."
-                else -> "Mit dem großen „+“ unten rechts legst du Ordner und Dokumente an oder lädst Dateien hoch."
+                DriveSection.UPLOADS -> tr("Jede Datei, die du in einen Chat ziehst oder anhängst, landet hier als Kopie.")
+                DriveSection.CREATED -> tr("Was die KI im Chat erstellt – Dokumente, PDFs, Tabellen –, landet hier.")
+                DriveSection.STARRED -> tr("Über ⋮ › Markieren erscheinen Dateien und Ordner hier.")
+                else -> tr("Mit dem großen „+“ unten rechts legst du Ordner und Dokumente an oder lädst Dateien hoch.")
             },
             Modifier.padding(top = 4.dp),
         )

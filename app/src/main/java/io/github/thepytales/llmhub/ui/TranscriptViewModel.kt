@@ -60,7 +60,7 @@ class TranscriptViewModel(private val c: AppContainer, val id: String) : ViewMod
         val title = _transcript.value?.title ?: "Transkript"
         viewModelScope.launch {
             t.delete(id)
-            Notices.undo("„$title“ gelöscht", restore = { t.restoreLater(id) })
+            Notices.undo(tr("„{0}“ gelöscht", title), restore = { t.restoreLater(id) })
             onDone()
         }
     }

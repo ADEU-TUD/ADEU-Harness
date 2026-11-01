@@ -42,16 +42,16 @@ import io.github.thepytales.llmhub.net.s
 
 /** What a write action does, in words for the approval dialog. */
 fun actionLabel(tool: String): String = when (tool) {
-    "write_file" -> "Datei schreiben"
-    "edit_file" -> "Datei ändern"
-    "delete_file" -> "Datei löschen"
-    "create_branch" -> "Branch erstellen"
-    "create_pull_request" -> "Pull Request erstellen"
-    "create_issue" -> "Issue erstellen"
-    "comment_issue" -> "Kommentar schreiben"
-    "fetch_url" -> "Web-Anfrage senden"
-    "remember" -> "Im Gedächtnis speichern"
-    "forget" -> "Aus dem Gedächtnis löschen"
+    "write_file" -> tr("Datei schreiben")
+    "edit_file" -> tr("Datei ändern")
+    "delete_file" -> tr("Datei löschen")
+    "create_branch" -> tr("Branch erstellen")
+    "create_pull_request" -> tr("Pull Request erstellen")
+    "create_issue" -> tr("Issue erstellen")
+    "comment_issue" -> tr("Kommentar schreiben")
+    "fetch_url" -> tr("Web-Anfrage senden")
+    "remember" -> tr("Im Gedächtnis speichern")
+    "forget" -> tr("Aus dem Gedächtnis löschen")
     else -> tool
 }
 
@@ -61,8 +61,8 @@ fun ApprovalModeOptions(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
     val current = ApprovalMode.of(s.approvalMode)
     Text(
-        "Wann der Agent nachfragt, bevor er etwas verändert. Gilt für alle Chats; einzelne Chats lassen sich im " +
-            "Bestätigungsdialog mit „In diesem Chat nicht mehr fragen“ freischalten. Geplante Aufgaben haben eine eigene Einstellung.",
+        tr("Wann der Agent nachfragt, bevor er etwas verändert. Gilt für alle Chats; einzelne Chats lassen sich im " +
+            "Bestätigungsdialog mit „In diesem Chat nicht mehr fragen“ freischalten. Geplante Aufgaben haben eine eigene Einstellung."),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -89,20 +89,20 @@ fun ApprovalDialog(action: PendingAction, repos: List<LinkedRepo>, onAnswer: (al
     var always by remember(action) { mutableStateOf(false) }
     val call = action.call
     val where = when (call.name) {
-        "fetch_url" -> "im Web"
-        "remember", "forget" -> "Gilt für alle Chats · Einstellungen › Gedächtnis"
+        "fetch_url" -> tr("im Web")
+        "remember", "forget" -> tr("Gilt für alle Chats · Einstellungen › Gedächtnis")
         else -> {
             // The repository named in the call, or the only linked one.
             val named = parseArgs(call.arguments).s("repo")?.let { GitHubTools.parseRepo(it) }
             val target = named?.let { n -> repos.firstOrNull { it.name.equals(n, ignoreCase = true) } ?: LinkedRepo(n) }
                 ?: repos.singleOrNull()
-            "in ${target?.name ?: "GitHub"}" + (target?.branch?.let { " · Branch $it" } ?: "")
+            tr("in {0}", target?.name ?: tr("GitHub")) + (target?.branch?.let { tr(" · Branch {0}", it) } ?: "")
         }
     }
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Outlined.Build, contentDescription = null) },
-        title = { Text("Aktion erlauben?") },
+        title = { Text(tr("Aktion erlauben?")) },
         text = {
             Column {
                 Text(actionLabel(call.name), style = MaterialTheme.typography.titleMedium)
@@ -123,16 +123,16 @@ fun ApprovalDialog(action: PendingAction, repos: List<LinkedRepo>, onAnswer: (al
                     modifier = Modifier.fillMaxWidth().clickable { always = !always },
                 ) {
                     Checkbox(checked = always, onCheckedChange = { always = it })
-                    Text("In diesem Chat nicht mehr fragen", style = MaterialTheme.typography.bodyMedium)
+                    Text(tr("In diesem Chat nicht mehr fragen"), style = MaterialTheme.typography.bodyMedium)
                 }
                 Text(
-                    "Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben.",
+                    tr("Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onAnswer(true, always) }) { Text(if (always) "Immer erlauben" else "Erlauben") } },
-        dismissButton = { TextButton(onClick = { onAnswer(false, false) }) { Text("Ablehnen") } },
+        confirmButton = { TextButton(onClick = { onAnswer(true, always) }) { Text(if (always) tr("Immer erlauben") else tr("Erlauben")) } },
+        dismissButton = { TextButton(onClick = { onAnswer(false, false) }) { Text(tr("Ablehnen")) } },
     )
 }

@@ -18,11 +18,11 @@ fun rememberDocumentPicker(onRead: (FileAttachment) -> Unit): () -> Unit {
     val scope = rememberCoroutineScope()
     return {
         scope.launch {
-            val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles("Dokumente auswählen") }
+            val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Dokumente auswählen")) }
             files.forEach { f ->
                 val r = AttachmentReader.read(f)
                 r.file?.let(onRead)
-                (r.error ?: r.note ?: if (r.file == null) "Aus „${f.name}“ ließ sich kein Text lesen." else null)?.let { Toasts.show(it) }
+                (r.error ?: r.note ?: if (r.file == null) tr("Aus „{0}“ ließ sich kein Text lesen.", f.name) else null)?.let { Toasts.show(it) }
             }
         }
     }
@@ -35,7 +35,7 @@ fun rememberFileExport(mime: String, onDone: (Boolean) -> Unit, write: suspend (
     return { name ->
         scope.launch {
             val ext = name.substringAfterLast('.', "").ifEmpty { null }
-            val target = withContext(Dispatchers.IO) { DesktopActions.pickSaveFile("Speichern unter", name, ext) } ?: return@launch
+            val target = withContext(Dispatchers.IO) { DesktopActions.pickSaveFile(tr("Speichern unter"), name, ext) } ?: return@launch
             val ok = withContext(Dispatchers.IO) { runCatching { target.outputStream().use { write(it) } }.isSuccess }
             onDone(ok)
         }
@@ -48,7 +48,7 @@ fun rememberFileImport(@Suppress("UNUSED_PARAMETER") mimes: Array<String>, read:
     val scope = rememberCoroutineScope()
     return {
         scope.launch {
-            val file = withContext(Dispatchers.IO) { DesktopActions.pickFiles("Datei öffnen", multiple = false).firstOrNull() } ?: return@launch
+            val file = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Datei öffnen"), multiple = false).firstOrNull() } ?: return@launch
             withContext(Dispatchers.IO) { file.inputStream().use { read(it) } }
         }
     }
@@ -63,10 +63,10 @@ fun rememberMediaImport(anyFile: Boolean = false, onPicked: suspend (name: Strin
     val scope = rememberCoroutineScope()
     return {
         scope.launch {
-            val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(if (anyFile) "Dateien auswählen" else "Audio- oder Videodatei öffnen", multiple = true, extensions = if (anyFile) emptyList() else MEDIA) }
+            val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(if (anyFile) tr("Dateien auswählen") else tr("Audio- oder Videodatei öffnen"), multiple = true, extensions = if (anyFile) emptyList() else MEDIA) }
             files.forEach { f ->
                 runCatching { onPicked(f.name, f.length(), withContext(Dispatchers.IO) { f.inputStream() }) }
-                    .onFailure { Toasts.show("„${f.name}“ konnte nicht geöffnet werden: ${it.message}") }
+                    .onFailure { Toasts.show(tr("„{0}“ konnte nicht geöffnet werden: {1}", f.name, it.message)) }
             }
         }
     }
@@ -83,7 +83,7 @@ fun rememberImageBytesPicker(onPicked: (ByteArray?) -> Unit): () -> Unit {
     return {
         scope.launch {
             onPicked(withContext(Dispatchers.IO) {
-                DesktopActions.pickFiles("Bild auswählen", multiple = false, extensions = listOf("png", "jpg", "jpeg", "gif", "bmp"))
+                DesktopActions.pickFiles(tr("Bild auswählen"), multiple = false, extensions = listOf("png", "jpg", "jpeg", "gif", "bmp"))
                     .firstOrNull()?.let { runCatching { it.readBytes() }.getOrNull() }
             })
         }

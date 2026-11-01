@@ -158,9 +158,9 @@ object Browser {
             is WebEngine.Event.Popup -> open(e.url)
             is WebEngine.Event.Downloaded -> {
                 if (e.mime.contains("pdf") || e.file.name.lowercase().endsWith(".pdf")) {
-                    Notices.info("PDF gespeichert: ${e.file.name} – öffnet im PDF-Werkzeugkasten.")
+                    Notices.info(tr("PDF gespeichert: {0} – öffnet im PDF-Werkzeugkasten.", e.file.name))
                     PdfHandoff.open(e.file.absolutePath, name = e.file.name)
-                } else Notices.info("Gespeichert unter Downloads: ${e.file.name}")
+                } else Notices.info(tr("Gespeichert unter Downloads: {0}", e.file.name))
             }
         }
     }
@@ -233,7 +233,7 @@ private fun BrowserPane(c: AppContainer) {
                 is WebEngine.State.Failed -> Problem(e.message, tab)
                 WebEngine.State.Missing -> when {
                     WebEngine.installed && WebEngine.lastStartFailed -> Problem(tr("Beim letzten Mal ist der Browser nicht fertig gestartet."), tab)
-                    WebEngine.installed -> Preparing(WebEngine.State.Preparing("Startet den Browser …", -1f))
+                    WebEngine.installed -> Preparing(WebEngine.State.Preparing(tr("Startet den Browser …"), -1f))
                     else -> SetUp(c, tab)
                 }
             }
@@ -472,15 +472,15 @@ private fun PageActions(c: AppContainer, tab: Browser.Tab) {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ActionChip(Icons.Outlined.QuestionAnswer, tr("Frage zur Seite")) {
-                act("Frage") { page -> toChat(page, tr("Frage zur Seite „${page.title.ifBlank { page.host }}“: "), send = false) }
+                act(tr("Frage")) { page -> toChat(page, tr("Frage zur Seite „{0}“: ", page.title.ifBlank { page.host }), send = false) }
             }
             ActionChip(Icons.Outlined.Summarize, tr("Zusammenfassen")) {
-                act("Zusammenfassen") { page ->
+                act(tr("Zusammenfassen")) { page ->
                     toChat(page, tr("Fasse die angehängte Webseite kurz zusammen – die wichtigsten Aussagen mit Belegen aus dem Text."), send = true)
                 }
             }
             ActionChip(Icons.Outlined.MenuBook, tr("In die Literatur")) {
-                act("Literatur") { page ->
+                act(tr("Literatur")) { page ->
                     val fromDoi = page.doi?.let { doi ->
                         withContext(Dispatchers.IO) { runCatching { LiteratureSources(c.llm.http).crossrefDoi(doi) }.getOrNull() }
                     }
@@ -490,7 +490,7 @@ private fun PageActions(c: AppContainer, tab: Browser.Tab) {
                 }
             }
             ActionChip(Icons.Outlined.LibraryBooks, tr("In die Wissenssammlung")) {
-                act("Wissen") { page ->
+                act(tr("Wissen")) { page ->
                     val (body, _) = page.asAttachment()
                     withContext(Dispatchers.IO) { c.knowledge.add(page.title.ifBlank { page.host }.take(80), body, "") }
                     Notices.info(tr("In der Wissenssammlung: ") + page.title.ifBlank { page.host }.take(80))
@@ -514,9 +514,9 @@ private suspend fun downloadPdf(c: AppContainer, url: String, title: String): Fi
     val cookies = WebEngine.cookieHeader(url)
     val request = Request.Builder().url(url).apply { if (!cookies.isNullOrBlank()) header("Cookie", cookies) }.build()
     c.llm.http.newCall(request).execute().use { r ->
-        if (!r.isSuccessful) error("PDF nicht erreichbar (HTTP ${r.code})")
+        if (!r.isSuccessful) error(tr("PDF nicht erreichbar (HTTP {0})", r.code))
         val bytes = r.body?.bytes() ?: error("PDF leer")
-        if (!(bytes.size > 4 && String(bytes, 0, 4) == "%PDF")) error("Unter der Adresse liegt kein PDF (vielleicht erst anmelden).")
+        if (!(bytes.size > 4 && String(bytes, 0, 4) == "%PDF")) error(tr("Unter der Adresse liegt kein PDF (vielleicht erst anmelden)."))
         val name = (title.ifBlank { url.substringAfterLast('/').substringBefore('?') }).replace(Regex("[\\\\/:*?\"<>|]"), "_").take(80).removeSuffix(".pdf") + ".pdf"
         File(File(Paths.cache, "browser").apply { mkdirs() }, name).apply { writeBytes(bytes) }
     }

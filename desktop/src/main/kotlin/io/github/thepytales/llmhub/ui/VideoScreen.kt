@@ -355,7 +355,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             var title by remember(id) { mutableStateOf(p.title) }
             OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(320.dp), textStyle = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(8.dp))
-            Text("${p.width} × ${p.height} · ${p.fps} fps · ${clock(p.duration)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+            Text(tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
             IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
             IconButton(onClick = h::redo, enabled = h.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
             Spacer(Modifier.size(8.dp))
@@ -367,7 +367,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                 Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     IconButton(onClick = { player.seek(p, 0.0) }) { Icon(Icons.Outlined.SkipPrevious, contentDescription = tr("Zum Anfang")) }
-                    IconButton(onClick = { player.toggle(p) }) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (playing) "Pause" else "Abspielen") + " (Leertaste)") }
+                    IconButton(onClick = { player.toggle(p) }) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (playing) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
                     IconButton(onClick = { player.seek(p, p.duration) }) { Icon(Icons.Outlined.SkipNext, contentDescription = tr("Zum Ende")) }
                     Text("${clock(pos, true)} / ${clock(p.duration, true)}", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.weight(1f))
@@ -604,7 +604,7 @@ private fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
             Column(Modifier.width(520.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (withTranscript < 0) HintText(tr("Dafür braucht ein Clip ein Transkript: unter Rohschnitt › Pausen und Füllwörter oder Untertitel › Aus der Transkription eines zuordnen."))
                 else {
-                    HintText(tr("Lora liest das Transkript des Clips „${File(h.project.clips[withTranscript].path).name}“ und wählt die Abschnitte, die bleiben. Der Text geht an das Standardmodell, Namen pseudonymisiert."))
+                    HintText(tr("Lora liest das Transkript des Clips „{0}“ und wählt die Abschnitte, die bleiben. Der Text geht an das Standardmodell, Namen pseudonymisiert.", File(h.project.clips[withTranscript].path).name))
                     OutlinedTextField(wish, { wish = it }, minLines = 2, modifier = Modifier.fillMaxWidth(), placeholder = { Text(tr("z. B. „Nur die Erklärung des Versuchsaufbaus, höchstens 5 Minuten“")) })
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -917,7 +917,7 @@ private fun ProjectSettings(h: History) {
     Text(tr("Ton"), style = MaterialTheme.typography.titleSmall)
     Text(tr("Rauschminderung"), style = MaterialTheme.typography.labelLarge)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf("aus" to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
+        listOf(tr("aus") to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
             FilterChip(selected = p.sound.denoise == k, onClick = { h.edit { it.copy(sound = it.sound.copy(denoise = k)) } }, label = { Text(l) })
         }
     }
@@ -929,7 +929,7 @@ private fun ProjectSettings(h: History) {
         }
         Switch(p.sound.normalize, { v -> h.edit { it.copy(sound = it.sound.copy(normalize = v)) } })
     }
-    Text(tr("Pegel") + " ${"%+.0f".format(p.sound.gainDb)} dB", style = MaterialTheme.typography.labelMedium)
+    Text(tr("Pegel") + tr(" {0} dB", "%+.0f".format(p.sound.gainDb)), style = MaterialTheme.typography.labelMedium)
     Slider(value = p.sound.gainDb, onValueChange = { v -> h.edit("gain") { it.copy(sound = it.sound.copy(gainDb = Math.round(v).toFloat())) } }, valueRange = -12f..12f)
     HorizontalDivider()
     Text(tr("Untertitel") + if (p.subtitles.isNotEmpty()) " · ${p.subtitles.size}" else "", style = MaterialTheme.typography.titleSmall)

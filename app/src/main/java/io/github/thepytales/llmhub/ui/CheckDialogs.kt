@@ -59,19 +59,19 @@ fun ReferenceCheckDialog(c: AppContainer, text: String, onDismiss: () -> Unit) {
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Quellen prüfen") },
+        title = { Text(tr("Quellen prüfen")) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 when {
                     refs.isEmpty() -> Text(
-                        "In dieser Antwort stehen keine vollständigen Literaturangaben (Autor:in, Jahr, Titel). Bitte das Modell um " +
-                            "ein Literaturverzeichnis oder nutze die Vorlage „Literaturangaben prüfen“."
+                        tr("In dieser Antwort stehen keine vollständigen Literaturangaben (Autor:in, Jahr, Titel). Bitte das Modell um " +
+                            "ein Literaturverzeichnis oder nutze die Vorlage „Literaturangaben prüfen“.")
                     )
-                    error != null -> Text("Die Prüfung ist fehlgeschlagen: $error", color = MaterialTheme.colorScheme.error)
+                    error != null -> Text(tr("Die Prüfung ist fehlgeschlagen: {0}", error), color = MaterialTheme.colorScheme.error)
                     results == null -> Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(12.dp))
-                        Text("${refs.size} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …")
+                        Text(tr("{0} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …", refs.size))
                     }
                     else -> {
                         val list = results!!
@@ -86,16 +86,16 @@ fun ReferenceCheckDialog(c: AppContainer, text: String, onDismiss: () -> Unit) {
                                     style = MaterialTheme.typography.labelLarge,
                                 )
                                 Text(r.input, style = MaterialTheme.typography.bodySmall)
-                                r.work?.let { w -> SettingsHint("Gefunden (${w.source}): ${w.cite()}") }
+                                r.work?.let { w -> SettingsHint(tr("Gefunden ({0}): {1}", w.source, w.cite())) }
                                 if (r.note.isNotBlank()) SettingsHint(r.note)
                             }
                         }
-                        SettingsHint("Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.")
+                        SettingsHint(tr("Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen."))
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -111,12 +111,12 @@ fun AccessibilityDialog(c: AppContainer, file: File, onDismiss: () -> Unit) {
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Barrierefreiheit") },
+        title = { Text(tr("Barrierefreiheit")) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(file.name, style = MaterialTheme.typography.labelLarge)
                 when {
-                    error != null -> Text("Prüfung nicht möglich: $error", color = MaterialTheme.colorScheme.error)
+                    error != null -> Text(tr("Prüfung nicht möglich: {0}", error), color = MaterialTheme.colorScheme.error)
                     findings == null -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                     else -> findings!!.forEach { f ->
                         Row(Modifier.fillMaxWidth()) {
@@ -128,10 +128,10 @@ fun AccessibilityDialog(c: AppContainer, file: File, onDismiss: () -> Unit) {
                         }
                     }
                 }
-                SettingsHint("Geprüft werden die häufigsten Hürden. Eine vollständige Prüfung nach PDF/UA oder WCAG (z.B. mit PAC) ersetzt das nicht.")
+                SettingsHint(tr("Geprüft werden die häufigsten Hürden. Eine vollständige Prüfung nach PDF/UA oder WCAG (z.B. mit PAC) ersetzt das nicht."))
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
         modifier = Modifier.padding(8.dp),
     )
 }

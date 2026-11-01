@@ -119,7 +119,7 @@ fun inputSuggestions(
         io.github.thepytales.llmhub.agent.ChatModes.matching(query).forEach { m ->
             out += InputSuggestion(m.iconVector(), "/" + m.command, m.explain) { replace(before); startMode(m) }
         }
-        if (matches("Dateien") || matches("Dokumente")) out += InputSuggestion(Icons.Outlined.Description, "/Dateien", "Dateien und Dokumente öffnen") { replace(before); openDocs() }
+        if (matches("Dateien") || matches("Dokumente")) out += InputSuggestion(Icons.Outlined.Description, "/Dateien", tr("Dateien und Dokumente öffnen")) { replace(before); openDocs() }
         snippets.filter { matches(it.name) }.take(5).forEach { s ->
             out += InputSuggestion(Icons.Outlined.ShortText, "/" + s.name, s.text.take(60).replace('\n', ' ')) { replace(before + s.text) }
         }
@@ -128,7 +128,7 @@ fun inputSuggestions(
         }
     } else {
         c.transcription.transcripts.value.filter { matches(it.title) }.take(4).forEach { t ->
-            out += InputSuggestion(Icons.Outlined.GraphicEq, "@" + t.title, "Transkript · ${t.words} Wörter") {
+            out += InputSuggestion(Icons.Outlined.GraphicEq, "@" + t.title, tr("Transkript · {0} Wörter", t.words)) {
                 replace("$before@${t.title} ")
                 kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
                     c.transcription.load(t.id)?.let { tr -> attach(FileAttachment("Transkript – ${t.title}.txt", "text/plain", TranscriptExport.plainText(tr))) }
@@ -136,13 +136,13 @@ fun inputSuggestions(
             }
         }
         c.docs.current.filter { matches(it.title) }.take(4).forEach { d ->
-            out += InputSuggestion(Icons.Outlined.Description, "@" + d.title, "Dokument · ${d.words} Wörter") {
+            out += InputSuggestion(Icons.Outlined.Description, "@" + d.title, tr("Dokument · {0} Wörter", d.words)) {
                 replace("$before@${d.title} ")
                 attach(FileAttachment("Dokument – ${d.title}.md", "text/markdown", d.markdown()))
             }
         }
         c.literature.lists().filter { matches(it) }.take(4).forEach { l ->
-            out += InputSuggestion(Icons.Outlined.MenuBook, "@$l", "Literaturliste") {
+            out += InputSuggestion(Icons.Outlined.MenuBook, "@$l", tr("Literaturliste")) {
                 replace("$before@$l ")
                 val style = CitationStyle.parse(c.settings.current.citationStyle) ?: CitationStyle.APA7_DE
                 val result = Bibliography.build(c.literature.inList(l).map { io.github.thepytales.llmhub.research.BibEntry(it) }, style)
@@ -151,7 +151,7 @@ fun inputSuggestions(
             }
         }
         c.knowledge.docs.value.filter { matches(it.name) }.take(3).forEach { k ->
-            out += InputSuggestion(Icons.Outlined.Description, "@" + k.name, "Wissenssammlung") {
+            out += InputSuggestion(Icons.Outlined.Description, "@" + k.name, tr("Wissenssammlung")) {
                 replace("$before@${k.name} ")
                 attach(FileAttachment(k.name, "text/plain", "Aus der Wissenssammlung: „${k.name}“ – bitte mit search_knowledge darin suchen."))
             }
@@ -192,13 +192,13 @@ fun SnippetsSheet(c: AppContainer, onInsert: (String) -> Unit, onDismiss: () -> 
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Kurztexte", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Text(tr("Kurztexte"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { editing = Snippet(name = "", text = "") }) {
-                Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text("Neu")
+                Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Neu"))
             }
         }
-        HintText("Häufige Textbausteine – antippen fügt sie ins Eingabefeld ein. Im Eingabefeld auch mit „/Name“.", Modifier.padding(horizontal = 20.dp))
-        if (snippets.isEmpty()) HintText("Noch keine Kurztexte, z.B. „Signatur“, „Kurz und förmlich antworten“ oder „Als Tabelle“.", Modifier.padding(20.dp))
+        HintText(tr("Häufige Textbausteine – antippen fügt sie ins Eingabefeld ein. Im Eingabefeld auch mit „/Name“."), Modifier.padding(horizontal = 20.dp))
+        if (snippets.isEmpty()) HintText(tr("Noch keine Kurztexte, z.B. „Signatur“, „Kurz und förmlich antworten“ oder „Als Tabelle“."), Modifier.padding(20.dp))
         LazyColumn(Modifier.heightIn(max = 460.dp)) {
             items(snippets, key = { it.id }) { s ->
                 ListItem(
@@ -208,9 +208,9 @@ fun SnippetsSheet(c: AppContainer, onInsert: (String) -> Unit, onDismiss: () -> 
                     supportingContent = { Text(s.text, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                     trailingContent = {
                         Row {
-                            IconButton(onClick = { editing = s }) { Icon(Icons.Outlined.Edit, contentDescription = "Bearbeiten") }
-                            IconButton(onClick = { c.snippets.delete(s.id); Notices.undo("Kurztext gelöscht", restore = { c.snippets.upsert(s) }) }) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Löschen")
+                            IconButton(onClick = { editing = s }) { Icon(Icons.Outlined.Edit, contentDescription = tr("Bearbeiten")) }
+                            IconButton(onClick = { c.snippets.delete(s.id); Notices.undo(tr("Kurztext gelöscht"), restore = { c.snippets.upsert(s) }) }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"))
                             }
                         }
                     },
@@ -224,17 +224,17 @@ fun SnippetsSheet(c: AppContainer, onInsert: (String) -> Unit, onDismiss: () -> 
         var text by remember(s.id) { mutableStateOf(s.text) }
         AlertDialog(
             onDismissRequest = { editing = null },
-            title = { Text(if (s.name.isBlank()) "Neuer Kurztext" else "Kurztext bearbeiten") },
+            title = { Text(if (s.name.isBlank()) tr("Neuer Kurztext") else tr("Kurztext bearbeiten")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(name, { name = it }, label = { Text("Name (für /Name)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(text, { text = it }, label = { Text("Text") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(name, { name = it }, label = { Text(tr("Name (für /Name)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(text, { text = it }, label = { Text(tr("Text")) }, minLines = 4, modifier = Modifier.fillMaxWidth())
                 }
             },
             confirmButton = {
-                TextButton(enabled = name.isNotBlank() && text.isNotBlank(), onClick = { c.snippets.upsert(s.copy(name = name.trim(), text = text)); editing = null }) { Text("Speichern") }
+                TextButton(enabled = name.isNotBlank() && text.isNotBlank(), onClick = { c.snippets.upsert(s.copy(name = name.trim(), text = text)); editing = null }) { Text(tr("Speichern")) }
             },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -246,10 +246,10 @@ fun QuoteDialog(text: String, onDismiss: () -> Unit, onQuote: (String) -> Unit) 
     val chosen = remember { mutableStateListOf<Int>() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Zitieren und nachfragen") },
+        title = { Text(tr("Zitieren und nachfragen")) },
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                HintText("Absätze wählen, auf die sich die Nachfrage bezieht.")
+                HintText(tr("Absätze wählen, auf die sich die Nachfrage bezieht."))
                 blocks.forEachIndexed { i, b ->
                     Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth().clickable { if (i in chosen) chosen.remove(i) else chosen.add(i) }) {
                         Checkbox(i in chosen, { if (it) chosen.add(i) else chosen.remove(i) })
@@ -261,9 +261,9 @@ fun QuoteDialog(text: String, onDismiss: () -> Unit, onQuote: (String) -> Unit) 
         confirmButton = {
             TextButton(enabled = chosen.isNotEmpty(), onClick = {
                 onQuote(chosen.sorted().joinToString("\n>\n") { i -> DocBlocks.plainOf(blocks[i]).lines().joinToString("\n") { "> $it" } } + "\n\n")
-            }) { Text("Zitieren") }
+            }) { Text(tr("Zitieren")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -272,21 +272,21 @@ fun QuoteDialog(text: String, onDismiss: () -> Unit, onQuote: (String) -> Unit) 
 @Composable
 fun RatingNoteDialog(onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var note by remember { mutableStateOf("") }
-    val reasons = listOf("Sachlich falsch", "Zu lang", "Zu kurz", "Thema verfehlt", "Quellen fehlen", "Falsches Format")
+    val reasons = listOf(tr("Sachlich falsch"), tr("Zu lang"), tr("Zu kurz"), tr("Thema verfehlt"), tr("Quellen fehlen"), tr("Falsches Format"))
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Was war nicht hilfreich?") },
+        title = { Text(tr("Was war nicht hilfreich?")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     reasons.forEach { r -> androidx.compose.material3.FilterChip(note == r, { note = r }, label = { Text(r) }) }
                 }
-                OutlinedTextField(note, { note = it }, placeholder = { Text("Optional") }, modifier = Modifier.fillMaxWidth())
-                HintText("Bleibt auf diesem Gerät. Unter Einstellungen › Verbrauch sehen Sie, welche Modelle sich bewährt haben.")
+                OutlinedTextField(note, { note = it }, placeholder = { Text(tr("Optional")) }, modifier = Modifier.fillMaxWidth())
+                HintText(tr("Bleibt auf diesem Gerät. Unter Einstellungen › Verbrauch sehen Sie, welche Modelle sich bewährt haben."))
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(note) }) { Text("Speichern") } },
-        dismissButton = { TextButton(onClick = { onSave("") }) { Text("Überspringen") } },
+        confirmButton = { TextButton(onClick = { onSave(note) }) { Text(tr("Speichern")) } },
+        dismissButton = { TextButton(onClick = { onSave("") }) { Text(tr("Überspringen")) } },
     )
 }
 
@@ -305,32 +305,32 @@ fun FromAppSheet(c: AppContainer, onFile: (FileAttachment) -> Unit, onImage: (St
     fun done(action: () -> Unit) { action(); onDismiss() }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         LazyColumn(Modifier.heightIn(max = 560.dp)) {
-            item { SectionHeader("Transkripte") }
-            if (transcripts.isEmpty()) item { HintText("Keine Transkripte.", Modifier.padding(horizontal = 20.dp)) }
+            item { SectionHeader(tr("Transkripte")) }
+            if (transcripts.isEmpty()) item { HintText(tr("Keine Transkripte."), Modifier.padding(horizontal = 20.dp)) }
             items(transcripts.take(8), key = { "t" + it.id }) { t ->
-                Pick(Icons.Outlined.GraphicEq, t.title, "${t.words} Wörter") {
+                Pick(Icons.Outlined.GraphicEq, t.title, tr("{0} Wörter", t.words)) {
                     done { scope.launch { c.transcription.load(t.id)?.let { tr -> onFile(FileAttachment("Transkript – ${t.title}.txt", "text/plain", TranscriptExport.plainText(tr))) } } }
                 }
             }
-            item { SectionHeader("Dokumente") }
-            if (docs.isEmpty()) item { HintText("Keine Dokumente im Editor.", Modifier.padding(horizontal = 20.dp)) }
+            item { SectionHeader(tr("Dokumente")) }
+            if (docs.isEmpty()) item { HintText(tr("Keine Dokumente im Editor."), Modifier.padding(horizontal = 20.dp)) }
             items(docs.take(8), key = { "d" + it.id }) { d ->
-                Pick(Icons.Outlined.Description, d.title, "${d.words} Wörter") { done { onFile(FileAttachment("Dokument – ${d.title}.md", "text/markdown", d.markdown())) } }
+                Pick(Icons.Outlined.Description, d.title, tr("{0} Wörter", d.words)) { done { onFile(FileAttachment("Dokument – ${d.title}.md", "text/markdown", d.markdown())) } }
             }
             val lists = c.literature.lists()
-            item { SectionHeader("Literaturlisten") }
-            if (lists.isEmpty()) item { HintText("Keine Literaturlisten.", Modifier.padding(horizontal = 20.dp)) }
+            item { SectionHeader(tr("Literaturlisten")) }
+            if (lists.isEmpty()) item { HintText(tr("Keine Literaturlisten."), Modifier.padding(horizontal = 20.dp)) }
             items(lists.take(8), key = { "l$it" }) { l ->
                 val works = literature.filter { r -> r.lists.any { it.equals(l, true) } }
-                Pick(Icons.Outlined.MenuBook, l, "${works.size} Werke") {
+                Pick(Icons.Outlined.MenuBook, l, tr("{0} Werke", works.size)) {
                     done {
                         val style = CitationStyle.parse(c.settings.current.citationStyle) ?: CitationStyle.APA7_DE
                         onFile(FileAttachment("Literaturliste – $l.md", "text/markdown", Bibliography.build(works.map { io.github.thepytales.llmhub.research.BibEntry(it) }, style).markdown(l)))
                     }
                 }
             }
-            item { SectionHeader("Erzeugte Bilder") }
-            if (images.isEmpty()) item { HintText("Keine Bilder in der Galerie.", Modifier.padding(horizontal = 20.dp)) }
+            item { SectionHeader(tr("Erzeugte Bilder")) }
+            if (images.isEmpty()) item { HintText(tr("Keine Bilder in der Galerie."), Modifier.padding(horizontal = 20.dp)) }
             items(images.take(8), key = { "i" + it.id }) { img ->
                 Pick(Icons.Outlined.Image, img.prompt.take(60), img.size) {
                     done {
@@ -373,7 +373,7 @@ object ChatJson {
         val t = text.trim()
         val list = if (t.startsWith("[")) json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(Conversation.serializer()), t)
         else listOf(json.decodeFromString(Conversation.serializer(), t))
-        return list.map { it.copy(id = java.util.UUID.randomUUID().toString(), title = it.title + " (importiert)", folderId = null, taskId = null, temporary = false) }
+        return list.map { it.copy(id = java.util.UUID.randomUUID().toString(), title = it.title + tr(" (importiert)"), folderId = null, taskId = null, temporary = false) }
     }
 }
 
@@ -393,7 +393,7 @@ fun ChatSearchField(query: String, onQuery: (String) -> Unit, count: Int, hit: I
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     Row(verticalAlignment = Alignment.CenterVertically) {
         androidx.compose.material3.TextField(
-            query, onQuery, singleLine = true, placeholder = { Text("Im Chat suchen") },
+            query, onQuery, singleLine = true, placeholder = { Text(tr("Im Chat suchen")) },
             colors = androidx.compose.material3.TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
@@ -401,8 +401,8 @@ fun ChatSearchField(query: String, onQuery: (String) -> Unit, count: Int, hit: I
             modifier = Modifier.weight(1f, fill = false).widthIn(max = 260.dp).focusRequester(focus),
         )
         Text(if (count == 0) "0" else "${(hit.coerceAtMost(count - 1)) + 1}/$count", style = MaterialTheme.typography.labelMedium)
-        IconButton(onClick = onPrev, enabled = count > 0) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "Vorheriger Treffer") }
-        IconButton(onClick = onNext, enabled = count > 0) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Nächster Treffer") }
-        IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Suche schließen") }
+        IconButton(onClick = onPrev, enabled = count > 0) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = tr("Vorheriger Treffer")) }
+        IconButton(onClick = onNext, enabled = count > 0) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Nächster Treffer")) }
+        IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) }
     }
 }

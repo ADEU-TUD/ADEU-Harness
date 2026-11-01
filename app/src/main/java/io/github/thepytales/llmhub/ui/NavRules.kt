@@ -18,19 +18,19 @@ fun isTopLevel(route: String?) =
  */
 enum class DrawerArea(val id: String, val label: String, val route: String, val tool: io.github.thepytales.llmhub.data.AppTool? = null) {
     /** „Erstellen“ (AP-24): the TU Vorlagen and, on Windows, designs (poster, flyer …) – next to „Dateien“ the second place for content. */
-    TEMPLATES("templates", "Erstellen", "templates"),
-    LITERATURE("literature", "Literatur", "literature"),
-    TRANSCRIPTS("transcripts", "Transkription", "transcripts"),
-    FILES("files", "Dateien", "files"),
-    IMAGES("images", "Bilder erzeugen", "images"),
-    TASKS("tasks", "Geplante Aufgaben", "tasks"),
-    PDF("pdf", "PDF-Werkzeugkasten", "pdf", io.github.thepytales.llmhub.data.AppTool.PDF),
-    VAULT("vault", "Tresor", "vault", io.github.thepytales.llmhub.data.AppTool.VAULT),
-    GAMES("games", "Lernspiele", "games", io.github.thepytales.llmhub.data.AppTool.GAMES),
-    MAIL("mail", "Mail & Kalender", "mail", io.github.thepytales.llmhub.data.AppTool.MAIL),
-    BATCH("batches", "Stapel", "batches", io.github.thepytales.llmhub.data.AppTool.BATCH),
-    PROPOSALS("proposals", "Anträge", "proposals", io.github.thepytales.llmhub.data.AppTool.PROPOSALS),
-    VIDEO("video", "Videoeditor", "video", io.github.thepytales.llmhub.data.AppTool.VIDEO),
+    TEMPLATES("templates", trLater("Erstellen"), "templates"),
+    LITERATURE("literature", trLater("Literatur"), "literature"),
+    TRANSCRIPTS("transcripts", trLater("Transkription"), "transcripts"),
+    FILES("files", trLater("Dateien"), "files"),
+    IMAGES("images", trLater("Bilder erzeugen"), "images"),
+    TASKS("tasks", trLater("Geplante Aufgaben"), "tasks"),
+    PDF("pdf", trLater("PDF-Werkzeugkasten"), "pdf", io.github.thepytales.llmhub.data.AppTool.PDF),
+    VAULT("vault", trLater("Tresor"), "vault", io.github.thepytales.llmhub.data.AppTool.VAULT),
+    GAMES("games", trLater("Lernspiele"), "games", io.github.thepytales.llmhub.data.AppTool.GAMES),
+    MAIL("mail", trLater("Mail & Kalender"), "mail", io.github.thepytales.llmhub.data.AppTool.MAIL),
+    BATCH("batches", trLater("Stapel"), "batches", io.github.thepytales.llmhub.data.AppTool.BATCH),
+    PROPOSALS("proposals", trLater("Anträge"), "proposals", io.github.thepytales.llmhub.data.AppTool.PROPOSALS),
+    VIDEO("video", trLater("Videoeditor"), "video", io.github.thepytales.llmhub.data.AppTool.VIDEO),
     ;
 
     companion object {

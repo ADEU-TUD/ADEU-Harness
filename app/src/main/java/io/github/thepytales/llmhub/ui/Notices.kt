@@ -31,5 +31,5 @@ object Notices {
 
     /** "… gelöscht – Rückgängig": [restore] on the button, otherwise [commit] once the banner is gone. */
     fun undo(text: String, restore: () -> Unit, commit: () -> Unit = {}) =
-        show(Notice(text, action = "Rückgängig", onAction = restore, onTimeout = commit))
+        show(Notice(text, action = tr("Rückgängig"), onAction = restore, onTimeout = commit))
 }

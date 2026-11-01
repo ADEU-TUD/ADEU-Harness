@@ -68,18 +68,18 @@ fun AppearanceSettings(c: AppContainer) {
 
     GroupLabel(tr("Sprache der Oberfläche"))
     Spot("appearance.language") { Segmented(I18n.LANGUAGES, s.uiLanguage, { l -> c.settings.update { it.copy(uiLanguage = l) } }) }
-    HintText(if (s.uiLanguage == "en") "Menus, settings and the start page are in English so far; answers follow this language." else "Englisch übersetzt bisher Menüs, Einstellungen und Startseite; Antworten folgen der gewählten Sprache.")
+    HintText(if (s.uiLanguage == "en") tr("Menus, settings and the start page are in English so far; answers follow this language.") else tr("Englisch übersetzt bisher Menüs, Einstellungen und Startseite; Antworten folgen der gewählten Sprache."))
 
     GroupLabel(tr("Stil"))
     Spot("appearance.style") { FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         AppStyle.entries.filter { it.recommended }.forEach { st -> StylePreview(st, dark, st == style) { pick(st) } }
     } }
-    HintText(style.description)
+    HintText(tr(style.description))
     Row(
         Modifier.clip(RoundedCornerShape(10.dp)).clickable { more = !more }.padding(vertical = 6.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Weitere Stile (wie andere Chat-Apps)", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tr("Weitere Stile (wie andere Chat-Apps)"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Icon(if (more) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     if (more) {
@@ -89,17 +89,17 @@ fun AppearanceSettings(c: AppContainer) {
     }
 
     GroupLabel(tr("Helligkeit"))
-    Spot("appearance.theme") { Segmented(ThemeMode.entries.map { it to it.label }, mode, { m -> c.settings.update { it.copy(themeMode = m.name) } }) }
+    Spot("appearance.theme") { Segmented(ThemeMode.entries.map { it to tr(it.label) }, mode, { m -> c.settings.update { it.copy(themeMode = m.name) } }) }
     AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            TitleBlock("Reines Schwarz (AMOLED)", "Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays.", Modifier.weight(1f))
+            TitleBlock(tr("Reines Schwarz (AMOLED)"), tr("Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays."), Modifier.weight(1f))
             Switch(checked = s.amoled, onCheckedChange = { v -> c.settings.update { it.copy(amoled = v) } })
         }
     }
 
     Spot("appearance.startAnimation") { AppCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            TitleBlock("Startanimation", "Kurze Animation des Logos beim Öffnen der App (etwa eine Sekunde).", Modifier.weight(1f))
+            TitleBlock(tr("Startanimation"), tr("Kurze Animation des Logos beim Öffnen der App (etwa eine Sekunde)."), Modifier.weight(1f))
             Switch(checked = s.startAnimation, onCheckedChange = { v -> c.settings.update { it.copy(startAnimation = v) } })
         }
     } }
@@ -109,13 +109,13 @@ fun AppearanceSettings(c: AppContainer) {
         Accent.entries.forEach { a -> AccentSwatch(a, a == accent) { c.settings.update { it.copy(accent = a.name) } } }
     }
     HintText(
-        if (style == AppStyle.STANDARD) "„Automatisch“: $MATERIAL_YOU_DESCRIPTION"
-        else "„Automatisch“ verwendet die Farben des gewählten Stils (empfohlen).",
+        if (style == AppStyle.STANDARD) tr("„Automatisch“: {0}", tr(MATERIAL_YOU_DESCRIPTION))
+        else tr("„Automatisch“ verwendet die Farben des gewählten Stils (empfohlen)."),
     )
 
     GroupLabel(tr("Schriftgröße"))
     Spot("appearance.textsize") { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(0.9f to "Klein", 1f to "Normal", 1.15f to "Groß", 1.3f to "Sehr groß").forEach { (scale, label) ->
+        listOf(0.9f to tr("Klein"), 1f to tr("Normal"), 1.15f to tr("Groß"), 1.3f to tr("Sehr groß")).forEach { (scale, label) ->
             FilterChip(selected = s.textScale == scale, onClick = { c.settings.update { it.copy(textScale = scale) } }, label = { Text(label) })
         }
     } }
@@ -129,7 +129,7 @@ fun AppearanceSettings(c: AppContainer) {
             )
             Text("${Math.round(s.uiZoom * 100)} %", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 12.dp).widthIn(min = 48.dp))
         } }
-        HintText("Vergrößert die ganze Oberfläche. Auch mit Strg++ und Strg+−, Strg+0 setzt zurück, oder Strg+Mausrad.")
+        HintText(tr("Vergrößert die ganze Oberfläche. Auch mit Strg++ und Strg+−, Strg+0 setzt zurück, oder Strg+Mausrad."))
     }
 }
 
@@ -173,8 +173,8 @@ private fun StylePreview(style: AppStyle, dark: Boolean, selected: Boolean, onCl
             Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLowest).padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(style.label, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), modifier = Modifier.weight(1f), maxLines = 1)
-            if (selected) Icon(Icons.Outlined.Check, contentDescription = "Ausgewählt", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Text(tr(style.label), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), modifier = Modifier.weight(1f), maxLines = 1)
+            if (selected) Icon(Icons.Outlined.Check, contentDescription = tr("Ausgewählt"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -198,7 +198,7 @@ private fun AccentSwatch(accent: Accent, selected: Boolean, onClick: () -> Unit)
         ) {
             if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
         }
-        Text(accent.label, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 2.dp))
+        Text(tr(accent.label), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 2.dp))
         Spacer(Modifier.size(0.dp))
     }
 }

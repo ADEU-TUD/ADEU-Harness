@@ -273,8 +273,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
 
     if (doc == null && draft == null) {
         Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text("Dokument nicht gefunden", style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = onClose) { Text("Schließen") }
+            Text(tr("Dokument nicht gefunden"), style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = onClose) { Text(tr("Schließen")) }
         }
         return
     }
@@ -374,15 +374,15 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         }
         editing.index = null
         val md = DocCitations.withBibliography(DocBlocks.join(list), refs, style)
-        save(note = "Beleg eingefügt") { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = md) else it }) }
-        Notices.info("Beleg eingefügt: $citation")
+        save(note = tr("Beleg eingefügt")) { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = md) else it }) }
+        Notices.info(tr("Beleg eingefügt: {0}", citation))
     }
 
     val pickImage = rememberImageBytesPicker { bytes ->
-        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP)."); return@rememberImageBytesPicker }
+        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error(tr("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP).")); return@rememberImageBytesPicker }
         scope.launch {
             val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(docBase, bytes) }.getOrNull() }
-            if (path == null) Notices.error("Das Bild konnte nicht gespeichert werden.")
+            if (path == null) Notices.error(tr("Das Bild konnte nicht gespeichert werden."))
             else insertBlock(DocMarkup.Image("Bildunterschrift", path, 60).markdown())
         }
     }
@@ -415,8 +415,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         LaunchedEffect(doc?.id, wide) { if (wide && doc != null && !loraShown && panel == DocPanel.NONE && (kind == DocKind.DOC || kind == DocKind.MARKDOWN || kind == DocKind.SLIDES)) { panel = DocPanel.AI; loraShown = true } }
         val undoRedo: @Composable () -> Unit = {
             if (doc != null && narrow) {
-                ToolIcon(Icons.AutoMirrored.Outlined.Undo, "Rückgängig (Strg+Z)", enabled = undo.isNotEmpty()) { undoOnce() }
-                ToolIcon(Icons.AutoMirrored.Outlined.Redo, "Wiederholen (Strg+Y)", enabled = redo.isNotEmpty()) { redoOnce() }
+                ToolIcon(Icons.AutoMirrored.Outlined.Undo, tr("Rückgängig (Strg+Z)"), enabled = undo.isNotEmpty()) { undoOnce() }
+                ToolIcon(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen (Strg+Y)"), enabled = redo.isNotEmpty()) { redoOnce() }
                 VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             }
         }
@@ -434,13 +434,13 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         ) {
             // ── Header: title, status, actions ──
             Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) "Schließen" else "Zurück") }
+                IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) tr("Schließen") else tr("Zurück")) }
                 Column(Modifier.weight(1f).clickable(enabled = doc != null) { renaming = true }) {
-                    Text(doc?.title ?: draft?.title?.ifBlank { null } ?: "Neues Dokument", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(doc?.title ?: draft?.title?.ifBlank { null } ?: tr("Neues Dokument"), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val status = when {
                         writing -> "KI schreibt …"
                         aiWorking -> "KI arbeitet am ${kind.label} …"
-                        doc != null -> kind.label + " · Gespeichert" + (doc.vault?.let { v -> c.docs.vault(v)?.let { " in „${it.name}“" } }.orEmpty()) + " · " + time(doc.updatedAt)
+                        doc != null -> kind.label + tr(" · Gespeichert") + (doc.vault?.let { v -> c.docs.vault(v)?.let { tr(" in „{0}“", it.name) } }.orEmpty()) + " · " + time(doc.updatedAt)
                         else -> ""
                     }
                     Text(
@@ -451,84 +451,84 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 }
                 if (doc != null) {
                     if (!narrow) {
-                        IconButton(onClick = ::undoOnce, enabled = undo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = "Rückgängig") }
-                        IconButton(onClick = ::redoOnce, enabled = redo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = "Wiederholen") }
+                        IconButton(onClick = ::undoOnce, enabled = undo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
+                        IconButton(onClick = ::redoOnce, enabled = redo.isNotEmpty()) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
                     }
                     IconButton(onClick = { togglePanel(DocPanel.AI) }) {
-                        Icon(Icons.Outlined.AutoAwesome, contentDescription = "KI-Assistent (Strg+E)", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("KI-Assistent (Strg+E)"), tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = { togglePanel(DocPanel.COMMENTS) }) {
                         BadgedBox(badge = { if (doc.openComments > 0) Badge { Text("${doc.openComments}") } }) {
-                            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Kommentare")
+                            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = tr("Kommentare"))
                         }
                     }
                     var more by remember { mutableStateOf(false) }
                     Box {
-                        IconButton(onClick = { more = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                        IconButton(onClick = { more = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                         DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
-                            DropdownMenuItem(text = { Text("Exportieren …") }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = {
+                            DropdownMenuItem(text = { Text(tr("Exportieren …")) }, leadingIcon = { Icon(Icons.Outlined.FileDownload, null) }, onClick = {
                                 more = false
                                 export = doc.title to DocMarkup.resolveImages(exportMarkdown(doc, null), docBase)
                             })
-                            if (doc.tabs.size > 1 && tab != null) DropdownMenuItem(text = { Text("Nur „${tab.title}“ exportieren") }, onClick = {
+                            if (doc.tabs.size > 1 && tab != null) DropdownMenuItem(text = { Text(tr("Nur „{0}“ exportieren", tab.title)) }, onClick = {
                                 more = false
                                 export = "${doc.title} – ${tab.title}" to DocMarkup.resolveImages(exportMarkdown(doc, tab.id), docBase)
                             })
-                            DropdownMenuItem(text = { Text("In Chat senden …") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, null) }, onClick = { more = false; sendToChat = true })
-                            DropdownMenuItem(text = { Text("Als Text teilen") }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
+                            DropdownMenuItem(text = { Text(tr("In Chat senden …")) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, null) }, onClick = { more = false; sendToChat = true })
+                            DropdownMenuItem(text = { Text(tr("Als Text teilen")) }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
                                 more = false
                                 shareText(context, exportMarkdown(doc, null), doc.title)
                             })
                             HorizontalDivider()
                             if (kind == DocKind.DOC) DropdownMenuItem(
-                                text = { Text("Design: " + (DocStyle.parse(doc.style)?.label ?: "wie in den Einstellungen")) },
+                                text = { Text(tr("Design: ") + (DocStyle.parse(doc.style)?.label ?: tr("wie in den Einstellungen"))) },
                                 leadingIcon = { Icon(Icons.Outlined.Palette, null) },
                                 onClick = { more = false; chooseStyle = true },
                             )
-                            if (kind == DocKind.MARKDOWN) DropdownMenuItem(text = { Text("Gliederung & Verknüpfungen") }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
+                            if (kind == DocKind.MARKDOWN) DropdownMenuItem(text = { Text(tr("Gliederung & Verknüpfungen")) }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
                             if (kind == DocKind.DOC) {
-                                DropdownMenuItem(text = { Text("Gliederung & Verknüpfungen") }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
+                                DropdownMenuItem(text = { Text(tr("Gliederung & Verknüpfungen")) }, leadingIcon = { Icon(Icons.Outlined.Toc, null) }, onClick = { more = false; togglePanel(DocPanel.OUTLINE) })
                                 TextMode.entries.filter { it != mode }.forEach { m ->
                                     DropdownMenuItem(
-                                        text = { Text(if (m == TextMode.EDIT) "Bearbeiten" else if (m == TextMode.SOURCE) "Markdown-Quelltext bearbeiten" else "Lesemodus") },
+                                        text = { Text(if (m == TextMode.EDIT) tr("Bearbeiten") else if (m == TextMode.SOURCE) tr("Markdown-Quelltext bearbeiten") else tr("Lesemodus")) },
                                         leadingIcon = { Icon(if (m == TextMode.SOURCE) Icons.Outlined.Code else if (m == TextMode.READ) Icons.Outlined.MenuBook else Icons.Outlined.Edit, null) },
                                         onClick = { more = false; editing.index = null; mode = m },
                                     )
                                 }
                             }
                             if (kind == DocKind.DOC) {
-                                DropdownMenuItem(text = { Text("Seite einrichten …") }, onClick = { more = false; pageSetup = true })
-                                DropdownMenuItem(text = { Text("Literatur einfügen …") }, onClick = { more = false; citing = true })
-                                DropdownMenuItem(text = { Text("Rechtschreibung prüfen") }, onClick = { more = false; editing.index = null; spellLocal = true })
-                                DropdownMenuItem(text = { Text("Rechtschreibung prüfen (KI)") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = {
+                                DropdownMenuItem(text = { Text(tr("Seite einrichten …")) }, onClick = { more = false; pageSetup = true })
+                                DropdownMenuItem(text = { Text(tr("Literatur einfügen …")) }, onClick = { more = false; citing = true })
+                                DropdownMenuItem(text = { Text(tr("Rechtschreibung prüfen")) }, onClick = { more = false; editing.index = null; spellLocal = true })
+                                DropdownMenuItem(text = { Text(tr("Rechtschreibung prüfen (KI)")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = {
                                     more = false
                                     spellFor = selection()?.takeIf { it.isNotBlank() && editing.selection != null } ?: markdown.replace(EMPTY_BLOCK, "")
                                 })
-                                DropdownMenuItem(text = { Text("Präsentation aus Dokument …") }, leadingIcon = { Icon(Icons.Outlined.Slideshow, null) }, onClick = { more = false; deckFromDoc = true })
+                                DropdownMenuItem(text = { Text(tr("Präsentation aus Dokument …")) }, leadingIcon = { Icon(Icons.Outlined.Slideshow, null) }, onClick = { more = false; deckFromDoc = true })
                             }
-                            DropdownMenuItem(text = { Text("Suchen & Ersetzen") }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { more = false; findOpen = true })
-                            DropdownMenuItem(text = { Text("Versionsverlauf") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { more = false; showHistory = true })
+                            DropdownMenuItem(text = { Text(tr("Suchen & Ersetzen")) }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { more = false; findOpen = true })
+                            DropdownMenuItem(text = { Text(tr("Versionsverlauf")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { more = false; showHistory = true })
                             if (kind == DocKind.DOC || kind == DocKind.MARKDOWN) DropdownMenuItem(
-                                text = { Text(if (doc.trackBase != null) "Änderungen nicht mehr nachverfolgen" else "Änderungen nachverfolgen") },
+                                text = { Text(if (doc.trackBase != null) tr("Änderungen nicht mehr nachverfolgen") else tr("Änderungen nachverfolgen")) },
                                 leadingIcon = { Icon(Icons.Outlined.History, null) },
                                 onClick = {
                                     more = false
-                                    if (doc.trackBase == null) save(note = "Änderungen nachverfolgen an") { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
+                                    if (doc.trackBase == null) save(note = tr("Änderungen nachverfolgen an")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
                                     else stopTracking = true
                                 },
                             )
-                            if (kind == DocKind.DOC) DropdownMenuItem(text = { Text("Word mit Änderungsverfolgung …") }, onClick = { more = false; showHistory = true })
+                            if (kind == DocKind.DOC) DropdownMenuItem(text = { Text(tr("Word mit Änderungsverfolgung …")) }, onClick = { more = false; showHistory = true })
                             HorizontalDivider()
                             DropdownMenuItem(
-                                text = { Text(if (doc.starred) "Nicht mehr anheften" else "Anheften") },
+                                text = { Text(if (doc.starred) tr("Nicht mehr anheften") else tr("Anheften")) },
                                 leadingIcon = { Icon(if (doc.starred) Icons.Outlined.Star else Icons.Outlined.StarBorder, null) },
                                 onClick = { more = false; c.docs.update(doc.id) { it.copy(starred = !it.starred) } },
                             )
                             if (FolderAccess.SUPPORTED || doc.vault != null) DropdownMenuItem(
-                                text = { Text("Ablageort …") }, leadingIcon = { Icon(Icons.Outlined.Folder, null) },
+                                text = { Text(tr("Ablageort …")) }, leadingIcon = { Icon(Icons.Outlined.Folder, null) },
                                 onClick = { more = false; chooseVault = true },
                             )
-                            DropdownMenuItem(text = { Text("Duplizieren") }, leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) }, onClick = {
+                            DropdownMenuItem(text = { Text(tr("Duplizieren")) }, leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) }, onClick = {
                                 more = false
                                 val copy = LiveDoc.create(doc.title + " (Kopie)", doc.markdown(), "Sie", kind = kind)
                                     .copy(tabs = doc.tabs.map { it.copy(id = java.util.UUID.randomUUID().toString()) }, vault = doc.vault)
@@ -536,14 +536,14 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 DocsHandoff.show(copy.id)
                             })
                             doc.chatId?.takeIf { onOpenChat != null && !inSidePanel }?.let { cid ->
-                                DropdownMenuItem(text = { Text("Chat zum ${kind.label} öffnen") }, onClick = { more = false; onOpenChat?.invoke(cid) })
+                                DropdownMenuItem(text = { Text(tr("Chat zum {0} öffnen", kind.label)) }, onClick = { more = false; onOpenChat?.invoke(cid) })
                             }
-                            DropdownMenuItem(text = { Text("Löschen", color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
+                            DropdownMenuItem(text = { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
                                 more = false
                                 val copy = doc
                                 c.docs.delete(doc.id)
                                 onClose()
-                                Notices.undo("${kind.label} gelöscht", restore = { c.docs.save(copy) })
+                                Notices.undo(tr("{0} gelöscht", kind.label), restore = { c.docs.save(copy) })
                             })
                         }
                     }
@@ -561,60 +561,60 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 label = { Text(t.title, maxLines = 1) },
                             )
                             DropdownMenu(expanded = tabMenu, onDismissRequest = { tabMenu = false }) {
-                                DropdownMenuItem(text = { Text("Umbenennen") }, onClick = { tabMenu = false; renameTab = true })
-                                DropdownMenuItem(text = { Text("Duplizieren") }, onClick = {
+                                DropdownMenuItem(text = { Text(tr("Umbenennen")) }, onClick = { tabMenu = false; renameTab = true })
+                                DropdownMenuItem(text = { Text(tr("Duplizieren")) }, onClick = {
                                     tabMenu = false
-                                    val copy = DocTab(title = t.title + " (Kopie)", markdown = t.markdown)
+                                    val copy = DocTab(title = t.title + tr(" (Kopie)"), markdown = t.markdown)
                                     save { d -> d.copy(tabs = d.tabs.toMutableList().apply { add(indexOfFirst { it.id == t.id } + 1, copy) }) }
                                     tabId = copy.id
                                 })
-                                if (doc.tabs.size > 1) DropdownMenuItem(text = { Text("Löschen") }, onClick = {
+                                if (doc.tabs.size > 1) DropdownMenuItem(text = { Text(tr("Löschen")) }, onClick = {
                                     tabMenu = false
                                     save { d -> d.copy(tabs = d.tabs.filterNot { it.id == t.id }) }
                                     tabId = doc.tabs.firstOrNull { it.id != t.id }?.id
                                 })
                             }
                         }
-                        if (renameTab) TextPrompt(if (kind == DocKind.SHEET) "Tabellenblatt umbenennen" else "Tab umbenennen", t.title, onDismiss = { renameTab = false }) { name ->
+                        if (renameTab) TextPrompt(if (kind == DocKind.SHEET) tr("Tabellenblatt umbenennen") else tr("Tab umbenennen"), t.title, onDismiss = { renameTab = false }) { name ->
                             save { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(title = name) else it }) }
                             renameTab = false
                         }
                     }
                     IconButton(onClick = {
                         val new = when (kind) {
-                            DocKind.SHEET -> DocTab(title = "Tabelle ${doc.tabs.size + 1}", markdown = SheetEngine.blank())
-                            DocKind.SLIDES -> DocTab(title = "Folien ${doc.tabs.size + 1}", markdown = io.github.thepytales.llmhub.docs.SlideDeck.blank("Titel"))
-                            DocKind.DOC, DocKind.MARKDOWN -> DocTab(title = "Tab ${doc.tabs.size + 1}")
+                            DocKind.SHEET -> DocTab(title = tr("Tabelle {0}", doc.tabs.size + 1), markdown = SheetEngine.blank())
+                            DocKind.SLIDES -> DocTab(title = tr("Folien {0}", doc.tabs.size + 1), markdown = io.github.thepytales.llmhub.docs.SlideDeck.blank(tr("Titel")))
+                            DocKind.DOC, DocKind.MARKDOWN -> DocTab(title = tr("Tab {0}", doc.tabs.size + 1))
                         }
                         save { d -> d.copy(tabs = d.tabs + new) }
                         editing.index = null
                         tabId = new.id
-                    }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = if (kind == DocKind.SHEET) "Tabellenblatt hinzufügen" else "Tab hinzufügen", modifier = Modifier.size(18.dp)) }
+                    }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = if (kind == DocKind.SHEET) tr("Tabellenblatt hinzufügen") else tr("Tab hinzufügen"), modifier = Modifier.size(18.dp)) }
                     if (doc?.trackBase != null) {
                         Spacer(Modifier.width(8.dp))
                         val open = io.github.thepytales.llmhub.docs.Tracking.pending(doc)
-                        StatusPill(if (open == 0) "Änderungen werden nachverfolgt" else "$open Änderungen offen · alle annehmen", PillTone.ACCENT, Modifier.clickable(enabled = open > 0) {
-                            save(note = "Alle Änderungen angenommen") { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
+                        StatusPill(if (open == 0) tr("Änderungen werden nachverfolgt") else tr("{0} Änderungen offen · alle annehmen", open), PillTone.ACCENT, Modifier.clickable(enabled = open > 0) {
+                            save(note = tr("Alle Änderungen angenommen")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
                         })
                     } else if (aiChanged.isNotEmpty()) {
                         Spacer(Modifier.width(8.dp))
-                        StatusPill("${aiChanged.size} Änderungen der KI markiert ✕", PillTone.ACCENT, Modifier.clickable { dismissedAi = lastVersion?.id })
+                        StatusPill(tr("{0} Änderungen der KI markiert ✕", aiChanged.size), PillTone.ACCENT, Modifier.clickable { dismissedAi = lastVersion?.id })
                     }
                 }
             }
             if (findOpen && doc != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(find, { find = it }, singleLine = true, placeholder = { Text("Suchen") }, modifier = Modifier.weight(1f))
-                    OutlinedTextField(replace, { replace = it }, singleLine = true, placeholder = { Text("Ersetzen durch") }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(find, { find = it }, singleLine = true, placeholder = { Text(tr("Suchen")) }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(replace, { replace = it }, singleLine = true, placeholder = { Text(tr("Ersetzen durch")) }, modifier = Modifier.weight(1f))
                     val hits = if (find.isBlank()) 0 else Regex(Regex.escape(find), RegexOption.IGNORE_CASE).findAll(markdown).count()
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$hits Treffer", style = MaterialTheme.typography.labelSmall)
+                        Text(tr("{0} Treffer", hits), style = MaterialTheme.typography.labelSmall)
                         TextButton(enabled = hits > 0, onClick = {
                             setMarkdown(markdown.replace(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), Regex.escapeReplacement(replace)))
-                            Notices.info("$hits Stelle(n) ersetzt")
-                        }) { Text("Alle ersetzen") }
+                            Notices.info(tr("{0} Stelle(n) ersetzt", hits))
+                        }) { Text(tr("Alle ersetzen")) }
                     }
-                    IconButton(onClick = { findOpen = false; find = ""; replace = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Suche schließen") }
+                    IconButton(onClick = { findOpen = false; find = ""; replace = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) }
                 }
             }
             // ── Toolbar of text documents (slides and tables bring their own) ──
@@ -668,8 +668,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 unit = c.settings.current.tudUnit,
                                 onComment = { commentOn = it }, onShowComments = { panel = DocPanel.COMMENTS },
                                 onAskAi = { text -> if (text.isBlank() || editing.index == null) panel = DocPanel.AI else aiMenuFor = text },
-                                footer = if (doc == null) "" else "${doc.words} Wörter · ca. ${(doc.words / 200).coerceAtLeast(1)} Min. Lesezeit · ${doc.versions.size} Versionen" +
-                                    if (mode == TextMode.EDIT) " · Tippen zum Bearbeiten · „/“ für Formate · Strg+E: KI" else "",
+                                footer = if (doc == null) "" else tr("{0} Wörter · ca. {1} Min. Lesezeit · {2} Versionen", doc.words, (doc.words / 200).coerceAtLeast(1), doc.versions.size) +
+                                    if (mode == TextMode.EDIT) tr(" · Tippen zum Bearbeiten · „/“ für Formate · Strg+E: KI") else "",
                                 review = review, onReview = ::reviewAction, tracking = trackBase != null,
                             )
                         }
@@ -718,8 +718,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 c.docs.save(doc.copy(comments = doc.comments + comment, sendToAi = toAi))
                 if (toAi) {
                     val current = c.docs.get(doc.id)!!
-                    if (DocsAi.send(c, current, "Kommentar im ${kind.label}", "Kommentar zu „${comment.quote.take(120)}“: ${comment.text}", DocsAi.commentInstructions(current, comment))) {
-                        Notices.info("Die KI bearbeitet den Kommentar.")
+                    if (DocsAi.send(c, current, tr("Kommentar im {0}", kind.label), tr("Kommentar zu „{0}“: {1}", comment.quote.take(120), comment.text), DocsAi.commentInstructions(current, comment))) {
+                        Notices.info(tr("Die KI bearbeitet den Kommentar."))
                     }
                 }
                 commentOn = null
@@ -735,16 +735,16 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     )
     if (stopTracking && doc != null) AlertDialog(
         onDismissRequest = { stopTracking = false },
-        title = { Text("Änderungen nicht mehr nachverfolgen") },
-        text = { Text(if (io.github.thepytales.llmhub.docs.Tracking.pending(doc) == 0) "Es sind keine Änderungen offen." else "Was soll mit den offenen Änderungen passieren?") },
+        title = { Text(tr("Änderungen nicht mehr nachverfolgen")) },
+        text = { Text(if (io.github.thepytales.llmhub.docs.Tracking.pending(doc) == 0) tr("Es sind keine Änderungen offen.") else tr("Was soll mit den offenen Änderungen passieren?")) },
         confirmButton = {
-            TextButton(onClick = { stopTracking = false; save(note = "Alle Änderungen angenommen") { d -> d.copy(trackBase = null) } }) { Text("Alle annehmen") }
+            TextButton(onClick = { stopTracking = false; save(note = tr("Alle Änderungen angenommen")) { d -> d.copy(trackBase = null) } }) { Text(tr("Alle annehmen")) }
         },
         dismissButton = {
             TextButton(onClick = {
                 stopTracking = false
-                save(note = "Alle Änderungen abgelehnt") { d -> d.copy(tabs = d.tabs.map { t -> d.trackBase?.get(t.id)?.let { b -> t.copy(markdown = b) } ?: t }, trackBase = null) }
-            }) { Text("Alle ablehnen") }
+                save(note = tr("Alle Änderungen abgelehnt")) { d -> d.copy(tabs = d.tabs.map { t -> d.trackBase?.get(t.id)?.let { b -> t.copy(markdown = b) } ?: t }, trackBase = null) }
+            }) { Text(tr("Alle ablehnen")) }
         },
     )
     if (pageSetup && tab != null) PageSetupDialog(DocMarkup.pageSetup(tab.markdown), onDismiss = { pageSetup = false }) { setup ->
@@ -765,20 +765,20 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
             editing.index = null
             val current = c.docs.get(doc?.id)?.tab(t.id)?.markdown ?: t.markdown
             val next = SpellCheck.applyAll(current, list)
-            if (next != current) save(note = "Rechtschreibung korrigiert") { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = next) else it }) }
+            if (next != current) save(note = tr("Rechtschreibung korrigiert")) { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = next) else it }) }
         }
     }
     if (deckFromDoc && doc != null) {
         var withAi by remember { mutableStateOf(true) }
         AlertDialog(
             onDismissRequest = { deckFromDoc = false },
-            title = { Text("Präsentation aus Dokument") },
+            title = { Text(tr("Präsentation aus Dokument")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    HintText("Aus Überschriften, Listen, Tabellen und Bildern entstehen Folien im TUD-Design; lange Absätze wandern in die Sprechernotizen.")
+                    HintText(tr("Aus Überschriften, Listen, Tabellen und Bildern entstehen Folien im TUD-Design; lange Absätze wandern in die Sprechernotizen."))
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { withAi = !withAi }) {
                         Checkbox(withAi, { withAi = it })
-                        Text("Anschließend von der KI überarbeiten lassen")
+                        Text(tr("Anschließend von der KI überarbeiten lassen"))
                     }
                 }
             },
@@ -789,20 +789,20 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                     val deck = LiveDoc.create(doc.title, SlideDeck.markdown(slides), "Sie", kind = DocKind.SLIDES).copy(vault = doc.vault)
                     c.docs.save(deck)
                     if (withAi) DocsAi.send(
-                        c, deck, "Präsentation aus Dokument",
-                        "Überarbeite diese aus dem Dokument „${doc.title}“ erzeugte Präsentation: prägnante Folientitel, höchstens 5 kurze " +
-                            "Stichpunkte je Folie, passende Folientypen (Abschnitt, Vergleich, Tabelle, Bild), Sprechernotizen zu jeder Folie. " +
-                            "Bilder und Tabellen bleiben erhalten. Das Dokument zur Orientierung:\n\n" + doc.markdown().take(20_000),
+                        c, deck, tr("Präsentation aus Dokument"),
+                        tr("Überarbeite diese aus dem Dokument „{0}“ erzeugte Präsentation: prägnante Folientitel, höchstens 5 kurze ", doc.title) +
+                            tr("Stichpunkte je Folie, passende Folientypen (Abschnitt, Vergleich, Tabelle, Bild), Sprechernotizen zu jeder Folie. " +
+                            "Bilder und Tabellen bleiben erhalten. Das Dokument zur Orientierung:\n\n") + doc.markdown().take(20_000),
                         DocsAi.instructions(deck),
                     )
                     DocsHandoff.show(deck.id)
-                }) { Text("Erstellen") }
+                }) { Text(tr("Erstellen")) }
             },
-            dismissButton = { TextButton(onClick = { deckFromDoc = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { deckFromDoc = false }) { Text(tr("Abbrechen")) } },
         )
     }
     if (showHistory && doc != null) VersionHistory(c, doc, tab?.id, onDismiss = { showHistory = false })
-    if (renaming && doc != null) TextPrompt("Umbenennen", doc.title, onDismiss = { renaming = false }) { name ->
+    if (renaming && doc != null) TextPrompt(tr("Umbenennen"), doc.title, onDismiss = { renaming = false }) { name ->
         save { it.copy(title = name) }
         renaming = false
     }
@@ -898,25 +898,25 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
                 }
             }.onSuccess { f ->
                 ChatHandoff.send(chatId, FileAttachment(f.name, format.mime, exportMarkdown(doc, null), path = f.absolutePath))
-            }.onFailure { Notices.error("Export fehlgeschlagen: ${it.message}") }
+            }.onFailure { Notices.error(tr("Export fehlgeschlagen: {0}", it.message)) }
         }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("In Chat senden") },
+        title = { Text(tr("In Chat senden")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                HintText("„${doc.title}“ wird im Eingabefeld des Chats angehängt – du kannst noch etwas dazu schreiben.")
+                HintText(tr("„{0}“ wird im Eingabefeld des Chats angehängt – du kannst noch etwas dazu schreiben.", doc.title))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { asFile = !asFile }) {
                     Checkbox(asFile, { asFile = it })
-                    Text(when (doc.docKind) { DocKind.SLIDES -> "Als PowerPoint-Datei"; DocKind.SHEET -> "Als Excel-Datei"; DocKind.DOC -> "Als Word-Datei"; DocKind.MARKDOWN -> "Als .md-Datei" } + " (sonst als Text)")
+                    Text(when (doc.docKind) { DocKind.SLIDES -> tr("Als PowerPoint-Datei"); DocKind.SHEET -> tr("Als Excel-Datei"); DocKind.DOC -> tr("Als Word-Datei"); DocKind.MARKDOWN -> tr("Als .md-Datei") } + tr(" (sonst als Text)"))
                 }
                 Surface(onClick = { send(null) }, shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), modifier = Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Neuer Chat")
+                        Text(tr("Neuer Chat"))
                     }
                 }
                 LazyColumn(Modifier.height(280.dp)) {
@@ -930,7 +930,7 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -939,22 +939,22 @@ private fun SendToChatDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Uni
 private fun StyleDialog(current: String?, onDismiss: () -> Unit, onPick: (String?) -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Design des Dokuments") },
+        title = { Text(tr("Design des Dokuments")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                HintText("Gilt für die Seite im Editor und für PDF und Word beim Export.")
+                HintText(tr("Gilt für die Seite im Editor und für PDF und Word beim Export."))
                 (listOf<DocStyle?>(null) + DocStyle.entries).forEach { st ->
                     Row(Modifier.fillMaxWidth().clickable { onPick(st?.name) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = DocStyle.parse(current) == st, onClick = { onPick(st?.name) })
                         Column(Modifier.weight(1f)) {
-                            Text(st?.label ?: "Wie in den Einstellungen", style = MaterialTheme.typography.bodyLarge)
-                            HintText(st?.description ?: "Einstellungen › Dokumente & Darstellung")
+                            Text(st?.label ?: tr("Wie in den Einstellungen"), style = MaterialTheme.typography.bodyLarge)
+                            HintText(st?.description ?: tr("Einstellungen › Dokumente & Darstellung"))
                         }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
@@ -965,13 +965,13 @@ private fun VaultDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Unit) {
     var choice by remember { mutableStateOf(doc.vault) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ablageort") },
+        title = { Text(tr("Ablageort")) },
         text = {
             Column {
-                HintText("In einem Ablageort liegt „${doc.title}“ als lesbare Datei im Ordner – in Google Drive oder OneDrive auch auf deinen anderen Rechnern.")
+                HintText(tr("In einem Ablageort liegt „{0}“ als lesbare Datei im Ordner – in Google Drive oder OneDrive auch auf deinen anderen Rechnern.", doc.title))
                 Row(Modifier.fillMaxWidth().clickable { choice = null }, verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(choice == null, { choice = null })
-                    Text("In der App")
+                    Text(tr("In der App"))
                 }
                 vaults.forEach { v ->
                     Row(Modifier.fillMaxWidth().clickable { choice = v.id }, verticalAlignment = Alignment.CenterVertically) {
@@ -982,16 +982,16 @@ private fun VaultDialog(c: AppContainer, doc: LiveDoc, onDismiss: () -> Unit) {
                         }
                     }
                 }
-                if (vaults.isEmpty()) HintText("Noch keine Ablageorte – unter Einstellungen › Speicherorte einen Ordner hinzufügen.")
+                if (vaults.isEmpty()) HintText(tr("Noch keine Ablageorte – unter Einstellungen › Speicherorte einen Ordner hinzufügen."))
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 c.docs.move(doc.id, choice)
                 onDismiss()
-            }) { Text("Verschieben") }
+            }) { Text(tr("Verschieben")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -1002,7 +1002,7 @@ fun WritingCaret() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(width = 3.dp, height = 18.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha)))
         Spacer(Modifier.width(8.dp))
-        Text("KI schreibt …", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        Text(tr("KI schreibt …"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -1014,7 +1014,7 @@ fun TextPrompt(title: String, initial: String, onDismiss: () -> Unit, onDone: (S
         title = { Text(title) },
         text = { OutlinedTextField(text, { text = it }, singleLine = true, modifier = Modifier.fillMaxWidth()) },
         confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onDone(text.trim()) }) { Text("OK") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -1024,24 +1024,24 @@ private fun NewCommentDialog(doc: LiveDoc, quote: String, onDismiss: () -> Unit,
     var toAi by remember { mutableStateOf(doc.sendToAi) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Kommentar") },
+        title = { Text(tr("Kommentar")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (quote.isNotBlank()) Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(8.dp)) {
                     Text("„${quote.take(200)}“", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
                 }
-                OutlinedTextField(text, { text = it }, placeholder = { Text("z.B. Kürzer und förmlicher formulieren") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(text, { text = it }, placeholder = { Text(tr("z.B. Kürzer und förmlicher formulieren")) }, minLines = 3, modifier = Modifier.fillMaxWidth())
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { toAi = !toAi }) {
                     Checkbox(toAi, { toAi = it })
                     Column {
-                        Text("An KI senden")
-                        HintText("Die KI ändert die Stelle und antwortet im Kommentar.")
+                        Text(tr("An KI senden"))
+                        HintText(tr("Die KI ändert die Stelle und antwortet im Kommentar."))
                     }
                 }
             }
         },
-        confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onSave(text.trim(), toAi) }) { Text("Kommentieren") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onSave(text.trim(), toAi) }) { Text(tr("Kommentieren")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -1051,11 +1051,11 @@ private fun CommentsPanel(c: AppContainer, doc: LiveDoc, tabId: String?, onAdd: 
     val list = doc.comments.filter { showResolved || !it.resolved }.sortedByDescending { it.createdAt }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Kommentare", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            FilterChip(showResolved, { showResolved = !showResolved }, label = { Text("Erledigte") })
-            IconButton(onClick = onAdd) { Icon(Icons.Outlined.AddComment, contentDescription = "Kommentar hinzufügen") }
+            Text(tr("Kommentare"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            FilterChip(showResolved, { showResolved = !showResolved }, label = { Text(tr("Erledigte")) })
+            IconButton(onClick = onAdd) { Icon(Icons.Outlined.AddComment, contentDescription = tr("Kommentar hinzufügen")) }
         }
-        if (list.isEmpty()) HintText("Noch keine Kommentare. Absatz antippen und das Sprechblasen-Symbol wählen.", Modifier.padding(12.dp))
+        if (list.isEmpty()) HintText(tr("Noch keine Kommentare. Absatz antippen und das Sprechblasen-Symbol wählen."), Modifier.padding(12.dp))
         LazyColumn(contentPadding = PaddingValues(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(list, key = { it.id }) { cm ->
                 var reply by remember { mutableStateOf("") }
@@ -1063,7 +1063,7 @@ private fun CommentsPanel(c: AppContainer, doc: LiveDoc, tabId: String?, onAdd: 
                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (cm.quote.isNotBlank()) Text("„${cm.quote.take(140)}“", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
                         Text(cm.text, style = MaterialTheme.typography.bodyMedium)
-                        HintText("${cm.author} · ${time(cm.createdAt)}" + (if (doc.tabs.size > 1 && cm.tabId != tabId) " · Tab „${doc.tab(cm.tabId).title}“" else "") + if (cm.toAi) " · an KI" else "")
+                        HintText("${cm.author} · ${time(cm.createdAt)}" + (if (doc.tabs.size > 1 && cm.tabId != tabId) tr(" · Tab „{0}“", doc.tab(cm.tabId).title) else "") + if (cm.toAi) tr(" · an KI") else "")
                         cm.replies.forEach { r ->
                             Surface(color = if (r.ai) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(8.dp)) {
                                 Column(Modifier.padding(8.dp)) {
@@ -1073,20 +1073,20 @@ private fun CommentsPanel(c: AppContainer, doc: LiveDoc, tabId: String?, onAdd: 
                             }
                         }
                         if (!cm.resolved) {
-                            OutlinedTextField(reply, { reply = it }, placeholder = { Text("Antworten") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(reply, { reply = it }, placeholder = { Text(tr("Antworten")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         }
                         Row {
                             if (reply.isNotBlank()) TextButton(onClick = {
                                 c.docs.update(doc.id) { d -> d.copy(comments = d.comments.map { if (it.id == cm.id) it.copy(replies = it.replies + DocReply("Sie", reply.trim())) else it }) }
-                                if (cm.toAi) DocsAi.send(c, doc, "Antwort im Kommentar", reply.trim(), DocsAi.commentInstructions(doc, cm))
+                                if (cm.toAi) DocsAi.send(c, doc, tr("Antwort im Kommentar"), reply.trim(), DocsAi.commentInstructions(doc, cm))
                                 reply = ""
-                            }) { Text("Senden") }
+                            }) { Text(tr("Senden")) }
                             if (!cm.toAi && !cm.resolved) TextButton(onClick = {
                                 c.docs.update(doc.id) { d -> d.copy(comments = d.comments.map { if (it.id == cm.id) it.copy(toAi = true) else it }) }
-                                DocsAi.send(c, doc, "Kommentar im Dokument", "Kommentar zu „${cm.quote.take(120)}“: ${cm.text}", DocsAi.commentInstructions(doc, cm))
-                            }) { Text("An KI") }
+                                DocsAi.send(c, doc, tr("Kommentar im Dokument"), tr("Kommentar zu „{0}“: {1}", cm.quote.take(120), cm.text), DocsAi.commentInstructions(doc, cm))
+                            }) { Text(tr("An KI")) }
                             TextButton(onClick = { c.docs.update(doc.id) { d -> d.copy(comments = d.comments.map { if (it.id == cm.id) it.copy(resolved = !it.resolved) else it }) } }) {
-                                Text(if (cm.resolved) "Wieder öffnen" else "Erledigt")
+                                Text(if (cm.resolved) tr("Wieder öffnen") else tr("Erledigt"))
                             }
                         }
                     }
@@ -1106,7 +1106,7 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
     val saveAs = rememberSaveAs(DocFormat.DOCX.mime)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (selected == null) "Versionsverlauf" else "Version vom ${time(selected!!.createdAt)}") },
+        title = { Text(if (selected == null) tr("Versionsverlauf") else tr("Version vom {0}", time(selected!!.createdAt))) },
         text = {
             val sel = selected
             if (sel == null) {
@@ -1134,7 +1134,7 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
                 val newText = doc.tab(tabId).markdown
                 val pieces = remember(sel.id, newText) { TextDiff.words(oldText, newText) }
                 Column(Modifier.height(420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    HintText("Unterschiede dieser Version zum aktuellen Stand (${TextDiff.summary(pieces)}): grün = seitdem hinzugekommen, rot = seitdem entfernt.")
+                    HintText(tr("Unterschiede dieser Version zum aktuellen Stand ({0}): grün = seitdem hinzugekommen, rot = seitdem entfernt.", TextDiff.summary(pieces)))
                     SelectionContainer {
                         Text(buildAnnotatedString {
                             pieces.forEach { p ->
@@ -1152,7 +1152,7 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
         },
         confirmButton = {
             val sel = selected
-            if (sel == null) TextButton(onClick = onDismiss) { Text("Schließen") }
+            if (sel == null) TextButton(onClick = onDismiss) { Text(tr("Schließen")) }
             else Row {
                 TextButton(onClick = {
                     busy = true
@@ -1170,17 +1170,17 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
                             }
                         }
                         busy = false
-                        file.onSuccess { saveAs(it) }.onFailure { Notices.error("Word-Export fehlgeschlagen: ${it.message}") }
+                        file.onSuccess { saveAs(it) }.onFailure { Notices.error(tr("Word-Export fehlgeschlagen: {0}", it.message)) }
                     }
-                }) { Text("Word mit Änderungen") }
+                }) { Text(tr("Word mit Änderungen")) }
                 TextButton(onClick = {
                     c.docs.save(doc.change("Sie", "Version vom ${time(sel.createdAt)} wiederhergestellt") { it.copy(title = sel.title, tabs = sel.tabs) })
-                    Notices.info("Version wiederhergestellt")
+                    Notices.info(tr("Version wiederhergestellt"))
                     onDismiss()
-                }) { Text("Wiederherstellen") }
+                }) { Text(tr("Wiederherstellen")) }
             }
         },
-        dismissButton = { if (selected != null) TextButton(onClick = { selected = null }) { Text("Zurück") } },
+        dismissButton = { if (selected != null) TextButton(onClick = { selected = null }) { Text(tr("Zurück")) } },
     )
 }
 

@@ -29,7 +29,7 @@ import java.io.File
 /** Where the Lora-Ordner is, in one line (Dateien tab, settings). */
 fun loraFolderLabel(): String {
     val tree = App.container.settings.current.loraTree
-    return if (tree.isBlank()) "In der App (noch kein Ordner gewählt)" else "Kopie in " + LoraMirror.label(tree)
+    return if (tree.isBlank()) tr("In der App (noch kein Ordner gewählt)") else tr("Kopie in ") + LoraMirror.label(tree)
 }
 
 /** Android cannot show a folder of the app in a file manager. */
@@ -54,8 +54,8 @@ fun LoraFolderSettings() {
         scope.launch {
             val r = withContext(Dispatchers.IO) { runCatching { LoraMirror.sync(context, c.drive.root, tree) } }
             busy = false
-            r.onSuccess { Notices.info("Abgeglichen: ${it.up} hin, ${it.down} zurück" + if (it.removed > 0) ", ${it.removed} entfernt" else "") }
-                .onFailure { Notices.error("Abgleich ging nicht: ${it.message}") }
+            r.onSuccess { Notices.info(tr("Abgeglichen: {0} hin, {1} zurück", it.up, it.down) + if (it.removed > 0) tr(", {0} entfernt", it.removed) else "") }
+                .onFailure { Notices.error(tr("Abgleich ging nicht: {0}", it.message)) }
             c.drive.changed()
         }
     }
@@ -68,17 +68,17 @@ fun LoraFolderSettings() {
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            "Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. " +
+            tr("Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. " +
                 "Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. " +
-                "Chats und Einstellungen bleiben in der App.",
+                "Chats und Einstellungen bleiben in der App."),
             style = MaterialTheme.typography.bodySmall,
         )
         Text(loraFolderLabel(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { pick.launch(null) }) { Text(if (settings.loraTree.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …") }
+            OutlinedButton(onClick = { pick.launch(null) }) { Text(if (settings.loraTree.isBlank()) tr("Ordner wählen …") else tr("Anderen Ordner wählen …")) }
             if (settings.loraTree.isNotBlank()) {
-                OutlinedButton(enabled = !busy, onClick = { sync(settings.loraTree) }) { Text(if (busy) "Gleicht ab …" else "Jetzt abgleichen") }
-                TextButton(onClick = { c.settings.update { it.copy(loraTree = "") } }) { Text("Ordner lösen") }
+                OutlinedButton(enabled = !busy, onClick = { sync(settings.loraTree) }) { Text(if (busy) tr("Gleicht ab …") else tr("Jetzt abgleichen")) }
+                TextButton(onClick = { c.settings.update { it.copy(loraTree = "") } }) { Text(tr("Ordner lösen")) }
             }
         }
     }

@@ -321,11 +321,11 @@ fun MemoryIntroDialog(c: AppContainer, onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedTextField(about, { about = it }, label = { Text(tr("Ihre Funktion und Einrichtung")) },
-                    placeholder = { Text("z. B. wiss. Mitarbeiterin, Professur für Allgemeine Didaktik") }, modifier = Modifier.fillMaxWidth())
+                    placeholder = { Text(tr("z. B. wiss. Mitarbeiterin, Professur für Allgemeine Didaktik")) }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(teaching, { teaching = it }, label = { Text(tr("Lehre oder Themen, an denen Sie arbeiten")) },
-                    placeholder = { Text("z. B. Seminar Unterrichtsplanung im Master Lehramt") }, modifier = Modifier.fillMaxWidth())
+                    placeholder = { Text(tr("z. B. Seminar Unterrichtsplanung im Master Lehramt")) }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(style, { style = it }, label = { Text(tr("Wie sollen Texte klingen?")) },
-                    placeholder = { Text("z. B. sachlich, Sie-Form, kurze Absätze") }, modifier = Modifier.fillMaxWidth())
+                    placeholder = { Text(tr("z. B. sachlich, Sie-Form, kurze Absätze")) }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
@@ -391,12 +391,12 @@ fun MemorySection(c: AppContainer) {
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<MemoryEntry?>(null) }
     var intro by remember { mutableStateOf(false) }
-    SettingsCard("Gedächtnis") {
+    SettingsCard(tr("Gedächtnis")) {
         SettingsHint(
-            "Angaben, die das Modell in jedem Chat kennt – z.B. Ihre Funktion, Lehrveranstaltungen oder wie Texte klingen sollen. " +
-                "Sie gehen bei jeder Anfrage automatisch mit (auch im Editor und beim Modellvergleich); über dem Eingabefeld zeigt " +
-                "„Gedächtnis“, wie viele es sind, und schaltet es für einen Chat aus. Die Angaben bleiben auf diesem Gerät und " +
-                "gehen nur als Teil Ihrer Anfragen an den Server – mit Pseudonymisierung ohne echte Namen."
+            tr("Angaben, die das Modell in jedem Chat kennt – z.B. Ihre Funktion, Lehrveranstaltungen oder wie Texte klingen sollen. " +
+                "Sie gehen bei jeder Anfrage automatisch mit (auch im Editor und beim Modellvergleich); über dem Eingabefeld zeigt ") +
+                tr("„Gedächtnis“, wie viele es sind, und schaltet es für einen Chat aus. Die Angaben bleiben auf diesem Gerät und " +
+                "gehen nur als Teil Ihrer Anfragen an den Server – mit Pseudonymisierung ohne echte Namen.")
         )
         MemoryMode.entries.forEach { m ->
             Row(
@@ -412,56 +412,56 @@ fun MemorySection(c: AppContainer) {
         }
     }
     if (mode != MemoryMode.OFF) {
-        SettingsCard("Dazulernen") {
+        SettingsCard(tr("Dazulernen")) {
             SwitchRow(
-                "Nach dem Chat dazulernen",
-                "Ruht ein Chat kurz, sucht ein kleines Modell in Ihren Nachrichten nach dauerhaften Angaben (Funktion, Lehre, Stil, " +
-                    "Kontakte, Vorhaben). " + if (mode == MemoryMode.AUTO) "Sie werden gespeichert; im Chat steht, was dazukam, mit „Rückgängig“."
-                else "Sie erscheinen im Chat als Vorschlag – Sie wählen, was übernommen wird.",
+                tr("Nach dem Chat dazulernen"),
+                tr("Ruht ein Chat kurz, sucht ein kleines Modell in Ihren Nachrichten nach dauerhaften Angaben (Funktion, Lehre, Stil, " +
+                    "Kontakte, Vorhaben). ") + if (mode == MemoryMode.AUTO) tr("Sie werden gespeichert; im Chat steht, was dazukam, mit „Rückgängig“.")
+                else tr("Sie erscheinen im Chat als Vorschlag – Sie wählen, was übernommen wird."),
                 s.memoryLearn,
             ) { v -> c.settings.update { it.copy(memoryLearn = v) } }
             SwitchRow(
-                "Frühere Chats einbeziehen",
-                "Das Modell kennt die Titel Ihrer letzten Chats und durchsucht sie, wenn Sie sich auf Früheres beziehen („wie letztes " +
-                    "Mal“). Chats aus Projekten mit strengerer Datenschutzstufe bleiben außen vor.",
+                tr("Frühere Chats einbeziehen"),
+                tr("Das Modell kennt die Titel Ihrer letzten Chats und durchsucht sie, wenn Sie sich auf Früheres beziehen („wie letztes " +
+                    "Mal“). Chats aus Projekten mit strengerer Datenschutzstufe bleiben außen vor."),
                 s.memoryChats,
             ) { v -> c.settings.update { it.copy(memoryChats = v) } }
         }
     }
-    SettingsCard("Vorschläge in Formularen") {
+    SettingsCard(tr("Vorschläge in Formularen")) {
         SwitchRow(
-            "Vorschläge aus meinem Wissen",
-            "Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, " +
-                "Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.",
+            tr("Vorschläge aus meinem Wissen"),
+            tr("Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, " +
+                "Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben."),
             s.formSuggestions,
         ) { v -> c.settings.update { it.copy(formSuggestions = v) } }
     }
     val general = entries.filter { it.projectId == null }
-    SettingsCard("Gemerkt (${entries.size})") {
-        if (entries.isEmpty()) SettingsHint("Noch nichts. Sagen Sie im Chat z.B. „Ich unterrichte im Master Allgemeine Didaktik.“ – oder richten Sie es mit drei Fragen ein.")
+    SettingsCard(tr("Gemerkt ({0})", entries.size)) {
+        if (entries.isEmpty()) SettingsHint(tr("Noch nichts. Sagen Sie im Chat z.B. „Ich unterrichte im Master Allgemeine Didaktik.“ – oder richten Sie es mit drei Fragen ein."))
         MemoryList(c, general, onEdit = { editing = it })
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { adding = true }) {
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Selbst eintragen")
+                Text(tr("Selbst eintragen"))
             }
-            OutlinedButton(onClick = { intro = true }) { Text("Mit drei Fragen einrichten") }
+            OutlinedButton(onClick = { intro = true }) { Text(tr("Mit drei Fragen einrichten")) }
         }
     }
     // Entries that only apply in one project.
     folders.forEach { folder ->
         val inProject = entries.filter { it.projectId == folder.id }
         if (inProject.isNotEmpty()) {
-            SettingsCard("Projekt „${folder.name}“ (${inProject.size})") {
+            SettingsCard(tr("Projekt „{0}“ ({1})", folder.name, inProject.size)) {
                 MemoryList(c, inProject, onEdit = { editing = it })
             }
         }
     }
     val orphans = entries.filter { e -> e.projectId != null && folders.none { it.id == e.projectId } }
     if (orphans.isNotEmpty()) {
-        SettingsCard("Aus gelöschten Projekten (${orphans.size})") {
-            SettingsHint("Diese Angaben gehören zu Projekten, die es nicht mehr gibt, und gehen nirgends mehr mit.")
+        SettingsCard(tr("Aus gelöschten Projekten ({0})", orphans.size)) {
+            SettingsHint(tr("Diese Angaben gehören zu Projekten, die es nicht mehr gibt, und gehen nirgends mehr mit."))
             MemoryList(c, orphans, onEdit = { editing = it })
         }
     }

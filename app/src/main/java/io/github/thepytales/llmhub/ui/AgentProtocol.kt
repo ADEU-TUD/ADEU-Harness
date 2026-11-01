@@ -34,19 +34,19 @@ fun protocolOf(turn: List<ChatMessage>): Protocol {
     val results = turn.filter { it.role == "tool" }.associateBy { it.toolCallId }
     for (m in turn) {
         if (m.role != "assistant") continue
-        val model = m.model?.let { ModelCatalog.info(it).displayName } ?: "Modell"
-        m.events.forEach { steps += ProtocolStep("Hinweis", it, null) }
+        val model = m.model?.let { ModelCatalog.info(it).displayName } ?: tr("Modell")
+        m.events.forEach { steps += ProtocolStep(tr("Hinweis"), it, null) }
         if (m.durationMs != null) {
-            val tokens = listOfNotNull(m.tokensIn?.let { "$it Tokens rein" }, m.tokensOut?.let { "$it raus" }).joinToString(", ")
-            steps += ProtocolStep("Anfrage an $model", tokens, m.durationMs, m.error)
+            val tokens = listOfNotNull(m.tokensIn?.let { tr("{0} Tokens rein", it) }, m.tokensOut?.let { "$it raus" }).joinToString(", ")
+            steps += ProtocolStep(tr("Anfrage an {0}", model), tokens, m.durationMs, m.error)
         } else if (m.toolCalls.isNotEmpty() && m.model == null) {
-            steps += ProtocolStep("Von der App erstellt", "ohne Modell", null)
+            steps += ProtocolStep(tr("Von der App erstellt"), tr("ohne Modell"), null)
         }
         m.toolCalls.forEach { call ->
             val r = results[call.id]
             val failed = r?.content?.startsWith("FEHLER") == true
             steps += ProtocolStep(
-                "Werkzeug ${call.name}",
+                tr("Werkzeug {0}", call.name),
                 if (failed) r!!.content.take(160) else shortArgs(call.arguments).take(120),
                 r?.durationMs,
                 failed,
@@ -71,14 +71,14 @@ fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit, question
     val p = protocolOf(turn)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Agent-Protokoll") },
+        title = { Text(tr("Agent-Protokoll")) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "${seconds(p.totalMs)} · ${p.requests} Anfrage(n) · ${p.tools} Werkzeug-Aufruf(e) · ${p.tokensIn} Tokens rein, ${p.tokensOut} raus",
+                    tr("{0} · {1} Anfrage(n) · {2} Werkzeug-Aufruf(e) · {3} Tokens rein, {4} raus", seconds(p.totalMs), p.requests, p.tools, p.tokensIn, p.tokensOut),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                SettingsHint("Tokens sind Angaben des Servers, sonst geschätzt. Werkzeuge einer Antwort laufen teilweise gleichzeitig.")
+                SettingsHint(tr("Tokens sind Angaben des Servers, sonst geschätzt. Werkzeuge einer Antwort laufen teilweise gleichzeitig."))
                 HorizontalDivider()
                 // What the pseudonymization replaced in this turn, with one-click corrections (AP-03).
                 val c = io.github.thepytales.llmhub.App.container
@@ -102,7 +102,7 @@ fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit, question
                                 Text(
                                     s.detail,
                                     style = MaterialTheme.typography.bodySmall,
-                                    fontFamily = if (s.label.startsWith("Werkzeug")) FontFamily.Monospace else null,
+                                    fontFamily = if (s.label.startsWith(tr("Werkzeug"))) FontFamily.Monospace else null,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis,
@@ -118,6 +118,6 @@ fun AgentProtocolDialog(turn: List<ChatMessage>, onDismiss: () -> Unit, question
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }

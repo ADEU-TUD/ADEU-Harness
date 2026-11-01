@@ -137,7 +137,7 @@ private fun TemplateCard(c: AppContainer, t: DesignTemplate) {
             }
             TextButton(
                 onClick = {
-                    ChatHandoff.pending.value = ChatHandoff.Content(tr("Gestalte ${t.name.lowercase().let { if (it.startsWith("social")) "einen ${t.name}" else "ein(e) ${t.name}" }} (Vorlage ${t.id}): "), emptyList(), mode = ChatModes.DESIGN.id)
+                    ChatHandoff.pending.value = ChatHandoff.Content(tr("Gestalte {0} (Vorlage {1}): ", t.name.lowercase().let { if (it.startsWith("social")) "einen ${t.name}" else "ein(e) ${t.name}" }, t.id), emptyList(), mode = ChatModes.DESIGN.id)
                     ChatHandoff.open.value = ""
                 },
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),

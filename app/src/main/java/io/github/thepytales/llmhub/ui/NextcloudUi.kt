@@ -196,7 +196,7 @@ fun PhoneSyncSection(c: AppContainer) {
         HintText(tr("Literatur, Wissenssammlung, Transkripte und Einstellungen bleiben auf dem jeweiligen Gerät; API-Schlüssel gehen nie in den Ordner."))
     }
     if (picking) NextcloudBrowser(
-        c, "Lora-Ordner des PCs wählen", start = "/", pickFolder = true, confirm = "Diesen Ordner nehmen",
+        c, tr("Lora-Ordner des PCs wählen"), start = "/", pickFolder = true, confirm = tr("Diesen Ordner nehmen"),
         onDismiss = { picking = false },
         onFolder = { folder ->
             picking = false
@@ -223,7 +223,7 @@ fun NextcloudBrowser(
     start: String = "/",
     pickFolder: Boolean = false,
     multi: Boolean = true,
-    confirm: String = if (pickFolder) "Hier speichern" else "Anhängen",
+    confirm: String = if (pickFolder) tr("Hier speichern") else tr("Anhängen"),
     onDismiss: () -> Unit,
     onFolder: (String) -> Unit = {},
     onFiles: (List<DavEntry>) -> Unit = {},
@@ -304,7 +304,7 @@ fun NextcloudBrowser(
                     val target = WebDavClient.join(path, name.trim())
                     newFolder = null
                     scope.launch {
-                        runCatching { c.nextcloud.client().mkdirs(target) }.onSuccess { path = target }.onFailure { Notices.error(it.message ?: "Ordner nicht angelegt.") }
+                        runCatching { c.nextcloud.client().mkdirs(target) }.onSuccess { path = target }.onFailure { Notices.error(it.message ?: tr("Ordner nicht angelegt.")) }
                     }
                 }) { Text(tr("Anlegen")) }
             },
@@ -322,14 +322,14 @@ fun rememberNextcloudSave(c: AppContainer): ((File) -> Unit)? {
     var file by remember { mutableStateOf<File?>(null) }
     file?.let { f ->
         NextcloudBrowser(
-            c, "In Nextcloud speichern", start = c.nextcloud.resultFolder, pickFolder = true,
+            c, tr("In Nextcloud speichern"), start = c.nextcloud.resultFolder, pickFolder = true,
             onDismiss = { file = null },
             onFolder = { folder ->
                 file = null
                 scope.launch {
                     runCatching { c.nextcloud.save(f, folder) }
                         .onSuccess { Notices.info(tr("In Nextcloud gespeichert:") + " $it") }
-                        .onFailure { Notices.error(it.message ?: "Speichern in Nextcloud fehlgeschlagen.") }
+                        .onFailure { Notices.error(it.message ?: tr("Speichern in Nextcloud fehlgeschlagen.")) }
                 }
             },
         )
@@ -342,7 +342,7 @@ fun rememberNextcloudSave(c: AppContainer): ((File) -> Unit)? {
 fun NextcloudAttachDialog(c: AppContainer, onFile: (FileAttachment) -> Unit, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     NextcloudBrowser(
-        c, "Aus Nextcloud anhängen", onDismiss = onDismiss,
+        c, tr("Aus Nextcloud anhängen"), onDismiss = onDismiss,
         onFiles = { picked ->
             onDismiss()
             scope.launch {
@@ -352,7 +352,7 @@ fun NextcloudAttachDialog(c: AppContainer, onFile: (FileAttachment) -> Unit, onD
                             r.file?.let(onFile)
                             (r.error ?: r.note)?.let { Notices.info(it) }
                         }
-                        .onFailure { Notices.error("„${e.name}“: " + (it.message ?: "nicht geladen")) }
+                        .onFailure { Notices.error("„${e.name}“: " + (it.message ?: tr("nicht geladen"))) }
                 }
             }
         },

@@ -107,12 +107,12 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
     val chats by c.chats.conversations.collectAsStateWithLifecycle()
     val context = LocalContext.current
     Scaffold(
-        topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text("Geplante Aufgaben") }) },
+        topBar = { TopAppBar(navigationIcon = { BackButton(onBack) }, title = { Text(tr("Geplante Aufgaben")) }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onEdit("new") },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Neue Aufgabe") },
+                text = { Text(tr("Neue Aufgabe")) },
             )
         },
     ) { pad ->
@@ -123,9 +123,9 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
         ) {
             item {
                 Text(
-                    "Der Agent erledigt Aufgaben zur geplanten Zeit im Hintergrund – z.B. jeden Morgen die Nachrichten zu einem " +
+                    tr("Der Agent erledigt Aufgaben zur geplanten Zeit im Hintergrund – z.B. jeden Morgen die Nachrichten zu einem " +
                         "Thema zusammenfassen. Ist eine Aufgabe fertig, bekommst du eine Benachrichtigung; das Ergebnis liegt als Chat " +
-                        "im Ordner der Aufgabe und ist im Menü mit einem Punkt markiert, bis du es geöffnet hast.",
+                        "im Ordner der Aufgabe und ist im Menü mit einem Punkt markiert, bis du es geöffnet hast."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -135,23 +135,23 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                 item {
                     Surface(color = LocalChatLook.current.card, shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Beispiel: Morgen-News", style = MaterialTheme.typography.titleSmall)
+                            Text(tr("Beispiel: Morgen-News"), style = MaterialTheme.typography.titleSmall)
                             Text(
-                                "Jeden Tag um 7:00 Uhr die wichtigsten Nachrichten zu „Künstliche Intelligenz“ mit Links zusammenfassen.",
+                                tr("Jeden Tag um 7:00 Uhr die wichtigsten Nachrichten zu „Künstliche Intelligenz“ mit Links zusammenfassen."),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Button(onClick = {
                                 val t = TaskPresets.news(c.settings.current.defaultModel)
                                 c.tasks.upsert(t.copy(nextRunAt = TaskScheduler.schedule(context, t)))
                                 onEdit(t.id)
-                            }) { Text("Als Vorlage übernehmen") }
+                            }) { Text(tr("Als Vorlage übernehmen")) }
                         }
                     }
                 }
             }
             items(tasks, key = { it.id }) { t ->
                 val lastChat = t.lastChatId?.let { id -> chats.firstOrNull { it.id == id } }
-                val failed = t.lastStatus != null && t.lastStatus != "Erfolgreich"
+                val failed = t.lastStatus != null && t.lastStatus != tr("Erfolgreich")
                 // The switch follows the click right away instead of waiting for the list to come back from the store
                 // (on Windows it sometimes only did after leaving the screen); a new stored value takes over again.
                 var enabled by remember(t.id, t.enabled) { mutableStateOf(t.enabled) }
@@ -182,7 +182,7 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                             })
                         }
                         Text(
-                            if (enabled) "Nächste Ausführung: ${formatTime(t.nextRunAt ?: t.nextRun())}" else "Pausiert – läuft nur über „Jetzt ausführen“",
+                            if (enabled) tr("Nächste Ausführung: {0}", formatTime(t.nextRunAt ?: t.nextRun())) else tr("Pausiert – läuft nur über „Jetzt ausführen“"),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
@@ -190,14 +190,14 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                         if (t.lastRunAt != null) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 10.dp, end = 8.dp)) {
                                 Text(
-                                    (if (failed) "Letzter Lauf fehlgeschlagen · " else "Letztes Ergebnis · ") + formatTime(t.lastRunAt),
+                                    (if (failed) tr("Letzter Lauf fehlgeschlagen · ") else tr("Letztes Ergebnis · ")) + formatTime(t.lastRunAt),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = if (failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 if (lastChat?.unread == true) {
                                     Surface(shape = RoundedCornerShape(50), color = LocalChatLook.current.brand, contentColor = Color.White) {
-                                        Text("Neu", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                                        Text(tr("Neu"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
                                     }
                                 }
                             }
@@ -218,17 +218,17 @@ fun TasksScreen(c: AppContainer, onBack: () -> Unit, onEdit: (String) -> Unit, o
                                 FilledTonalButton(onClick = { onOpenChat(lastChat.id) }) {
                                     Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Spacer(Modifier.size(6.dp))
-                                    Text("Ergebnis ansehen")
+                                    Text(tr("Ergebnis ansehen"))
                                 }
                                 Spacer(Modifier.size(4.dp))
                             }
                             TextButton(onClick = {
                                 TaskScheduler.runNow(context, t.id)
-                                Notices.info("„${t.name}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.")
+                                Notices.info(tr("„{0}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.", t.name))
                             }) {
                                 Icon(Icons.Outlined.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.size(4.dp))
-                                Text("Jetzt ausführen")
+                                Text(tr("Jetzt ausführen"))
                             }
                         }
                     }
@@ -267,7 +267,7 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         )
         c.tasks.upsert(merged.copy(nextRunAt = next))
         if (task.notify) askNotifications()
-        Notices.info(if (next != null) "Gespeichert – nächste Ausführung: ${formatTime(next)}" else "Gespeichert (pausiert).")
+        Notices.info(if (next != null) tr("Gespeichert – nächste Ausführung: {0}", formatTime(next)) else tr("Gespeichert (pausiert)."))
         onBack()
     }
 
@@ -275,10 +275,10 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text(if (existing == null) "Neue Aufgabe" else "Aufgabe bearbeiten") },
+                title = { Text(if (existing == null) tr("Neue Aufgabe") else tr("Aufgabe bearbeiten")) },
                 actions = {
-                    if (existing != null) IconButton(onClick = { showDelete = true }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen") }
-                    TextButton(enabled = task.name.isNotBlank() && task.prompt.isNotBlank(), onClick = { save() }) { Text("Speichern") }
+                    if (existing != null) IconButton(onClick = { showDelete = true }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
+                    TextButton(enabled = task.name.isNotBlank() && task.prompt.isNotBlank(), onClick = { save() }) { Text(tr("Speichern")) }
                 },
             )
         },
@@ -293,33 +293,33 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         ) {
             OutlinedTextField(
                 value = task.name, onValueChange = { task = task.copy(name = it) },
-                label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = task.prompt, onValueChange = { task = task.copy(prompt = it) },
-                label = { Text("Aufgabe für den Agenten") },
-                placeholder = { Text("z.B. Fasse die wichtigsten Nachrichten zu „Raumfahrt“ der letzten 24 Stunden mit Links zusammen.") },
+                label = { Text(tr("Aufgabe für den Agenten")) },
+                placeholder = { Text(tr("z.B. Fasse die wichtigsten Nachrichten zu „Raumfahrt“ der letzten 24 Stunden mit Links zusammen.")) },
                 minLines = 4, modifier = Modifier.fillMaxWidth(),
             )
             OutlinedButton(onClick = { showModel = true }, modifier = Modifier.fillMaxWidth()) {
-                Text("Modell: ${ModelCatalog.info(task.model).displayName}")
+                Text(tr("Modell: {0}", ModelCatalog.info(task.model).displayName))
             }
 
-            Text("Zeitplan", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Zeitplan"), style = MaterialTheme.typography.titleSmall)
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = task.repeat == Repeat.DAYS,
                     onClick = { task = task.copy(repeat = Repeat.DAYS) },
                     shape = SegmentedButtonDefaults.itemShape(0, 2),
-                ) { Text("Uhrzeit") }
+                ) { Text(tr("Uhrzeit")) }
                 SegmentedButton(
                     selected = task.repeat == Repeat.INTERVAL,
                     onClick = { task = task.copy(repeat = Repeat.INTERVAL) },
                     shape = SegmentedButtonDefaults.itemShape(1, 2),
-                ) { Text("Intervall") }
+                ) { Text(tr("Intervall")) }
             }
             if (task.repeat == Repeat.DAYS) {
-                OutlinedButton(onClick = { showTime = true }) { Text("Um %02d:%02d Uhr".format(task.hour, task.minute)) }
+                OutlinedButton(onClick = { showTime = true }) { Text(tr("Um %02d:%02d Uhr").format(task.hour, task.minute)) }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (1..7).forEach { d ->
                         FilterChip(
@@ -330,39 +330,39 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TextButton(onClick = { task = task.copy(days = (1..7).toList()) }) { Text("Täglich") }
-                    TextButton(onClick = { task = task.copy(days = (1..5).toList()) }) { Text("Mo–Fr") }
-                    TextButton(onClick = { task = task.copy(days = listOf(6, 7)) }) { Text("Wochenende") }
+                    TextButton(onClick = { task = task.copy(days = (1..7).toList()) }) { Text(tr("Täglich")) }
+                    TextButton(onClick = { task = task.copy(days = (1..5).toList()) }) { Text(tr("Mo–Fr")) }
+                    TextButton(onClick = { task = task.copy(days = listOf(6, 7)) }) { Text(tr("Wochenende")) }
                 }
             } else {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(1, 2, 3, 4, 6, 8, 12, 24).forEach { h ->
-                        FilterChip(selected = task.intervalHours == h, onClick = { task = task.copy(intervalHours = h) }, label = { Text("$h Std.") })
+                        FilterChip(selected = task.intervalHours == h, onClick = { task = task.copy(intervalHours = h) }, label = { Text(tr("{0} Std.", h)) })
                     }
                 }
             }
             Text(task.scheduleLabel(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-            Text("Werkzeuge", style = MaterialTheme.typography.titleSmall)
-            ToggleRow("Websuche & Nachrichten", "Suchen, News finden und Webseiten lesen.", task.webTools) { task = task.copy(webTools = it) }
-            ToggleRow("Dokumente erstellen", "Z.B. das Ergebnis als PDF ablegen.", task.documentTools) { task = task.copy(documentTools = it) }
+            Text(tr("Werkzeuge"), style = MaterialTheme.typography.titleSmall)
+            ToggleRow(tr("Websuche & Nachrichten"), tr("Suchen, News finden und Webseiten lesen."), task.webTools) { task = task.copy(webTools = it) }
+            ToggleRow(tr("Dokumente erstellen"), tr("Z.B. das Ergebnis als PDF ablegen."), task.documentTools) { task = task.copy(documentTools = it) }
             if (settings.hasGitHub) {
-                ToggleRow("GitHub", task.linkedRepos.joinToString(", ").ifEmpty { "Kein festes Repository" }, task.github) { task = task.copy(github = it) }
+                ToggleRow(tr("GitHub"), task.linkedRepos.joinToString(", ").ifEmpty { tr("Kein festes Repository") }, task.github) { task = task.copy(github = it) }
                 if (task.github) {
                     OutlinedButton(onClick = { showRepo = true }) {
-                        Text(task.linkedRepos.let { if (it.size > 1) "${it.size} Repositorys" else it.firstOrNull() ?: "Repositorys wählen" })
+                        Text(task.linkedRepos.let { if (it.size > 1) tr("{0} Repositorys", it.size) else it.firstOrNull() ?: tr("Repositorys wählen") })
                     }
                     ToggleRow(
-                        "Schreibaktionen erlauben",
-                        "Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt.",
+                        tr("Schreibaktionen erlauben"),
+                        tr("Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt."),
                         task.allowWrites,
                     ) { task = task.copy(allowWrites = it) }
                 }
             }
 
-            Text("Umgebung", style = MaterialTheme.typography.titleSmall)
+            Text(tr("Umgebung"), style = MaterialTheme.typography.titleSmall)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(selected = task.envId == null, onClick = { task = task.copy(envId = null) }, label = { Text("Keine") })
+                FilterChip(selected = task.envId == null, onClick = { task = task.copy(envId = null) }, label = { Text(tr("Keine")) })
                 environments.forEach { e ->
                     FilterChip(selected = task.envId == e.id, onClick = { task = task.copy(envId = e.id) }, label = { Text(e.name) })
                 }
@@ -370,10 +370,10 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
 
             OutlinedTextField(
                 value = task.systemPrompt, onValueChange = { task = task.copy(systemPrompt = it) },
-                label = { Text("System-Prompt (optional)") }, minLines = 2, modifier = Modifier.fillMaxWidth(),
+                label = { Text(tr("System-Prompt (optional)")) }, minLines = 2, modifier = Modifier.fillMaxWidth(),
             )
-            ToggleRow("Benachrichtigung", "Kurze Zusammenfassung, wenn die Aufgabe fertig ist.", task.notify) { task = task.copy(notify = it) }
-            ToggleRow("Aktiv", "Pausierte Aufgaben laufen nur über „Jetzt ausführen“.", task.enabled) { task = task.copy(enabled = it) }
+            ToggleRow(tr("Benachrichtigung"), tr("Kurze Zusammenfassung, wenn die Aufgabe fertig ist."), task.notify) { task = task.copy(notify = it) }
+            ToggleRow(tr("Aktiv"), tr("Pausierte Aufgaben laufen nur über „Jetzt ausführen“."), task.enabled) { task = task.copy(enabled = it) }
             Spacer(Modifier.size(40.dp))
         }
     }
@@ -395,14 +395,14 @@ fun TaskEditScreen(c: AppContainer, id: String, onBack: () -> Unit) {
         val state = rememberTimePickerState(initialHour = task.hour, initialMinute = task.minute, is24Hour = true)
         AlertDialog(
             onDismissRequest = { showTime = false },
-            title = { Text("Uhrzeit") },
+            title = { Text(tr("Uhrzeit")) },
             text = { TimePicker(state = state) },
             confirmButton = { TextButton(onClick = { task = task.copy(hour = state.hour, minute = state.minute); showTime = false }) { Text("OK") } },
-            dismissButton = { TextButton(onClick = { showTime = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { showTime = false }) { Text(tr("Abbrechen")) } },
         )
     }
     if (showDelete) {
-        ConfirmDialog("Aufgabe löschen?", "Bisherige Ergebnis-Chats bleiben erhalten.", "Löschen", onConfirm = {
+        ConfirmDialog(tr("Aufgabe löschen?"), tr("Bisherige Ergebnis-Chats bleiben erhalten."), tr("Löschen"), onConfirm = {
             TaskScheduler.cancel(context, id)
             c.tasks.delete(id)
             onBack()

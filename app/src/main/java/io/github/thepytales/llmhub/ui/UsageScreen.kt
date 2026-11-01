@@ -53,7 +53,7 @@ import java.util.Locale
 
 /** Compact number: 950, 12,4k, 1,3 Mio. */
 fun compact(n: Long): String = when {
-    n >= 1_000_000 -> String.format(Locale.GERMANY, "%.1f Mio.", n / 1_000_000.0)
+    n >= 1_000_000 -> String.format(Locale.GERMANY, tr("%.1f Mio."), n / 1_000_000.0)
     n >= 10_000 -> String.format(Locale.GERMANY, "%.0fk", n / 1000.0)
     n >= 1_000 -> String.format(Locale.GERMANY, "%.1fk", n / 1000.0)
     else -> n.toString()
@@ -93,9 +93,9 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Verbrauch") },
+                title = { Text(tr("Verbrauch")) },
                 actions = {
-                    IconButton(onClick = { confirmReset = true }) { Icon(Icons.Outlined.DeleteOutline, contentDescription = "Zurücksetzen") }
+                    IconButton(onClick = { confirmReset = true }) { Icon(Icons.Outlined.DeleteOutline, contentDescription = tr("Zurücksetzen")) }
                 },
             )
         },
@@ -109,18 +109,18 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile("Anfragen heute", todayUsage.requests.toString(), Modifier.weight(1f))
-                StatTile("Tokens heute", compact(todayUsage.tokens), Modifier.weight(1f))
+                StatTile(tr("Anfragen heute"), todayUsage.requests.toString(), Modifier.weight(1f))
+                StatTile(tr("Tokens heute"), compact(todayUsage.tokens), Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile("Anfragen · $range Tage", inRange.sumOf { it.requests }.toString(), Modifier.weight(1f))
-                StatTile("Tokens · $range Tage", compact(inRange.sumOf { it.totalTokens }), Modifier.weight(1f))
+                StatTile(tr("Anfragen · {0} Tage", range), inRange.sumOf { it.requests }.toString(), Modifier.weight(1f))
+                StatTile(tr("Tokens · {0} Tage", range), compact(inRange.sumOf { it.totalTokens }), Modifier.weight(1f))
             }
 
             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = RoundedCornerShape(16.dp)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("${metric.label} pro Tag", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                        Text(tr("{0} pro Tag", metric.label), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         listOf(7, 14, 30).forEach { r ->
                             FilterChip(
                                 selected = range == r,
@@ -138,8 +138,8 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
                     val sel = days.getOrNull(selected)
                     if (sel != null) {
                         Text(
-                            "${sel.date.format(dayFormat)}: ${sel.requests} Anfragen · ${compact(sel.tokens)} Tokens " +
-                                "(Eingabe ${compact(sel.prompt)}, Ausgabe ${compact(sel.completion)})",
+                            tr("{0}: {1} Anfragen · {2} Tokens ", sel.date.format(dayFormat), sel.requests, compact(sel.tokens)) +
+                                tr("(Eingabe {0}, Ausgabe {1})", compact(sel.prompt), compact(sel.completion)),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -151,21 +151,21 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
                     Row {
                         Text(days.first().date.format(shortFormat), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.weight(1f))
-                        Text("Heute", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(tr("Heute"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
 
-            UsageTable("Nach Modell", inRange.groupBy { it.model }.map { (model, list) ->
+            UsageTable(tr("Nach Modell"), inRange.groupBy { it.model }.map { (model, list) ->
                 Triple(ModelCatalog.info(model).displayName, list.sumOf { it.requests }, list.sumOf { it.totalTokens })
             }.sortedByDescending { it.third + it.second })
 
-            val kinds = mapOf("chat" to "Chat", "image" to "Bilder", "tts" to "Vorlesen", "stt" to "Spracheingabe")
-            UsageTable("Nach Art", inRange.groupBy { it.kind }.map { (kind, list) ->
+            val kinds = mapOf("chat" to tr("Chat"), "image" to tr("Bilder"), "tts" to tr("Vorlesen"), "stt" to tr("Spracheingabe"))
+            UsageTable(tr("Nach Art"), inRange.groupBy { it.kind }.map { (kind, list) ->
                 Triple(kinds[kind] ?: kind, list.sumOf { it.requests }, list.sumOf { it.totalTokens })
             }.sortedByDescending { it.second })
 
-            UsageTable("Tage", days.reversed().filter { it.requests > 0 }.map { Triple(it.date.format(dayFormat), it.requests, it.tokens) })
+            UsageTable(tr("Tage"), days.reversed().filter { it.requests > 0 }.map { Triple(it.date.format(dayFormat), it.requests, it.tokens) })
 
             // Ratings of answers (👍/👎 in the chat): which models have proven themselves for this user.
             val chats by c.chats.conversations.collectAsStateWithLifecycle()
@@ -173,7 +173,7 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
             if (rated.isNotEmpty()) {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = RoundedCornerShape(16.dp)) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Bewertungen nach Modell", style = MaterialTheme.typography.titleSmall)
+                        Text(tr("Bewertungen nach Modell"), style = MaterialTheme.typography.titleSmall)
                         rated.groupBy { it.first }.map { (model, list) ->
                             Triple(ModelCatalog.info(model).displayName, list.count { it.second.rating == 1 }, list.count { it.second.rating == -1 })
                         }.sortedByDescending { it.second - it.third }.forEach { (name, up, down) ->
@@ -184,7 +184,7 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
                         }
                         val reasons = rated.mapNotNull { it.second.ratingNote }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.take(4)
                         if (reasons.isNotEmpty()) Text(
-                            "Häufigste Gründe für 👎: " + reasons.joinToString(", ") { "${it.key} (${it.value})" },
+                            tr("Häufigste Gründe für 👎: ") + reasons.joinToString(", ") { "${it.key} (${it.value})" },
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -208,7 +208,7 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
     }
 
     if (confirmReset) {
-        ConfirmDialog("Verbrauch zurücksetzen?", "Alle gezählten Anfragen und Tokens werden gelöscht.", "Zurücksetzen",
+        ConfirmDialog(tr("Verbrauch zurücksetzen?"), tr("Alle gezählten Anfragen und Tokens werden gelöscht."), tr("Zurücksetzen"),
             onConfirm = { c.usage.clear() }, onDismiss = { confirmReset = false })
     }
 }
@@ -230,8 +230,8 @@ private fun UsageTable(title: String, rows: List<Triple<String, Int, Long>>) {
         Column(Modifier.padding(14.dp)) {
             Row {
                 Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                Text("Anfragen", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 16.dp))
-                Text("Tokens", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("Anfragen"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 16.dp))
+                Text(tr("Tokens"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             rows.forEachIndexed { i, (name, requests, tokens) ->
                 if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

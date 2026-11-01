@@ -63,13 +63,13 @@ fun PrivacySection(c: AppContainer) {
 
     val import = rememberDocumentPicker { file ->
         val names = NameList.parse(file.text)
-        if (names.isEmpty()) Notices.error("In „${file.name}“ wurden keine Namen gefunden (eine Spalte Name/Vorname/Nachname oder ein Name je Zeile).")
+        if (names.isEmpty()) Notices.error(tr("In „{0}“ wurden keine Namen gefunden (eine Spalte Name/Vorname/Nachname oder ein Name je Zeile).", file.name))
         else {
             c.settings.update { it.copy(pseudonymTerms = NameList.merge(it.pseudonymTerms, names)) }
-            Notices.info("${names.size} Namen aus „${file.name}“ übernommen.")
+            Notices.info(tr("{0} Namen aus „{1}“ übernommen.", names.size, file.name))
         }
     }
-    val export = rememberFileExport("text/plain", onDone = { ok -> if (ok) Notices.info("Liste gespeichert.") else Notices.error("Speichern fehlgeschlagen.") }) { out ->
+    val export = rememberFileExport("text/plain", onDone = { ok -> if (ok) Notices.info(tr("Liste gespeichert.")) else Notices.error(tr("Speichern fehlgeschlagen.")) }) { out ->
         val text = buildString {
             append(c.settings.current.pseudonymTerms.trim()).append('\n')
             c.settings.current.pseudonymIgnore.trim().takeIf { it.isNotEmpty() }?.let { append("\n# Nie ersetzen\n").append(it).append('\n') }
@@ -77,36 +77,36 @@ fun PrivacySection(c: AppContainer) {
         out.write(text.toByteArray())
     }
 
-    SettingsCard("Pseudonymisierung") {
+    SettingsCard(tr("Pseudonymisierung")) {
         Spot("privacy.pseudonymize") { ToggleRow(
-            "Personenbezogene Daten ersetzen",
-            "Vor jeder Anfrage ersetzt die App Namen, Kontaktdaten, Nummern, Geburtsdaten und Anschriften auf dem Gerät durch " +
+            tr("Personenbezogene Daten ersetzen"),
+            tr("Vor jeder Anfrage ersetzt die App Namen, Kontaktdaten, Nummern, Geburtsdaten und Anschriften auf dem Gerät durch " +
                 "Platzhalter wie [Name 1]. Der Server sieht nur die Platzhalter; in der Antwort, in Dokumenten und E-Mail-Entwürfen " +
-                "setzt die App die echten Angaben wieder ein.",
+                "setzt die App die echten Angaben wieder ein."),
             s.pseudonymize,
         ) { v -> c.settings.update { it.copy(pseudonymize = v) } } }
         ToggleRow(
-            "Namen automatisch erkennen",
-            "Namen nach Anrede oder Titel (Frau, Herr, Dr., Prof.), häufige Vor- und Nachnamen und – mit den Schaltern unten – Namen " +
-                "nach Rollen, in Grußformeln und Tabellen. Ohne diesen Schalter nur die Angaben mit festem Muster und die eigene Liste.",
+            tr("Namen automatisch erkennen"),
+            tr("Namen nach Anrede oder Titel (Frau, Herr, Dr., Prof.), häufige Vor- und Nachnamen und – mit den Schaltern unten – Namen " +
+                "nach Rollen, in Grußformeln und Tabellen. Ohne diesen Schalter nur die Angaben mit festem Muster und die eigene Liste."),
             s.pseudonymAuto,
         ) { v -> c.settings.update { it.copy(pseudonymAuto = v) } }
         ToggleRow(
-            "Öffentliche Quellen nicht ersetzen",
-            "Ergebnisse der Web- und Literatursuche, Bücher und Paper (erkennbar an DOI oder ISBN), die Autor:innen der Literatur-" +
+            tr("Öffentliche Quellen nicht ersetzen"),
+            tr("Ergebnisse der Web- und Literatursuche, Bücher und Paper (erkennbar an DOI oder ISBN), die Autor:innen der Literatur-" +
                 "sammlung und im Text zitierte Autor:innen („Müller (2020)“) bleiben, wie sie sind – sonst entstehen falsche Antworten. " +
-                "Anhänge lassen sich am Anhang selbst als öffentlich oder vertraulich markieren. Die eigene Liste geht immer vor.",
+                "Anhänge lassen sich am Anhang selbst als öffentlich oder vertraulich markieren. Die eigene Liste geht immer vor."),
             s.pseudonymPublic,
         ) { v -> c.settings.update { it.copy(pseudonymPublic = v) } }
         val local = c.localLlm.installedModels().isNotEmpty()
         ToggleRow(
-            "Gründlich: lokales Erkennungsmodell",
-            "Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
-                "die die festen Regeln übersehen. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät." +
-                if (local) "" else " Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden.",
+            tr("Gründlich: lokales Erkennungsmodell"),
+            tr("Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
+                "die die festen Regeln übersehen. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.") +
+                if (local) "" else tr(" Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden."),
             s.pseudonymThorough,
         ) { v -> c.settings.update { it.copy(pseudonymThorough = v) } }
-        if (!s.pseudonymize) SettingsHint("Die Pseudonymisierung ist aus – die Schalter unten wirken erst, wenn sie an ist.")
+        if (!s.pseudonymize) SettingsHint(tr("Die Pseudonymisierung ist aus – die Schalter unten wirken erst, wenn sie an ist."))
     }
 
     PiiFeature.entries.groupBy { it.group }.forEach { (group, features) ->
@@ -115,40 +115,40 @@ fun PrivacySection(c: AppContainer) {
         }
     }
 
-    SettingsCard("Eigene Namen und Begriffe") {
+    SettingsCard(tr("Eigene Namen und Begriffe")) {
         OutlinedTextField(
             value = s.pseudonymTerms,
             onValueChange = { v -> c.settings.update { it.copy(pseudonymTerms = v) } },
-            label = { Text("Werden immer ersetzt") },
-            placeholder = { Text("Je Zeile einer, z.B.\nJonte Vogelsang\nGymnasium Dresden-Plauen") },
+            label = { Text(tr("Werden immer ersetzt")) },
+            placeholder = { Text(tr("Je Zeile einer, z.B.\nJonte Vogelsang\nGymnasium Dresden-Plauen")) },
             supportingText = {
                 Text(
-                    "Klassenlisten, Studierende, Schulen. Bei Personen erkennt die App auch Vor- und Nachnamen einzeln, gebeugt und in " +
-                        "anderer Schreibweise. Nur mit dieser Liste ist die Erkennung von Namen vollständig zuverlässig."
+                    tr("Klassenlisten, Studierende, Schulen. Bei Personen erkennt die App auch Vor- und Nachnamen einzeln, gebeugt und in " +
+                        "anderer Schreibweise. Nur mit dieser Liste ist die Erkennung von Namen vollständig zuverlässig.")
                 )
             },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = import) { Text("Aus Datei übernehmen …") }
-            OutlinedButton(onClick = { export("Namensliste Pseudonymisierung.txt") }, enabled = s.pseudonymTerms.isNotBlank()) { Text("Liste speichern …") }
+            OutlinedButton(onClick = import) { Text(tr("Aus Datei übernehmen …")) }
+            OutlinedButton(onClick = { export("Namensliste Pseudonymisierung.txt") }, enabled = s.pseudonymTerms.isNotBlank()) { Text(tr("Liste speichern …")) }
         }
-        SettingsHint("Übernehmen liest Klassen- und Teilnehmerlisten (Excel, CSV, Word, Text): Spalten Vorname/Nachname oder Name, sonst ein Name je Zeile. Die gespeicherte Liste lässt sich an Kolleg/innen weitergeben.")
+        SettingsHint(tr("Übernehmen liest Klassen- und Teilnehmerlisten (Excel, CSV, Word, Text): Spalten Vorname/Nachname oder Name, sonst ein Name je Zeile. Die gespeicherte Liste lässt sich an Kolleg/innen weitergeben."))
         OutlinedTextField(
             value = s.pseudonymIgnore,
             onValueChange = { v -> c.settings.update { it.copy(pseudonymIgnore = v) } },
-            label = { Text("Nie ersetzen") },
-            placeholder = { Text("Je Zeile eines, z.B.\nFrank\nMartin-Luther-Gymnasium") },
-            supportingText = { Text("Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.") },
+            label = { Text(tr("Nie ersetzen")) },
+            placeholder = { Text(tr("Je Zeile eines, z.B.\nFrank\nMartin-Luther-Gymnasium")) },
+            supportingText = { Text(tr("Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.")) },
             minLines = 2,
             modifier = Modifier.fillMaxWidth(),
         )
     }
 
-    SettingsCard("Ausprobieren") {
-        SettingsHint("So sähe der Server diesen Text. Nichts wird gesendet oder gespeichert.")
-        OutlinedTextField(value = sample, onValueChange = { sample = it }, label = { Text("Beispieltext") }, minLines = 2, modifier = Modifier.fillMaxWidth())
+    SettingsCard(tr("Ausprobieren")) {
+        SettingsHint(tr("So sähe der Server diesen Text. Nichts wird gesendet oder gespeichert."))
+        OutlinedTextField(value = sample, onValueChange = { sample = it }, label = { Text(tr("Beispieltext")) }, minLines = 2, modifier = Modifier.fillMaxWidth())
         Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
             Text(
                 remember(sample, s) { c.privacy.preview(sample) },
@@ -160,15 +160,15 @@ fun PrivacySection(c: AppContainer) {
         PseudonymCorrections(c, listOf(sample))
     }
 
-    SettingsCard("Zuordnungen") {
+    SettingsCard(tr("Zuordnungen")) {
         val entries = remember(version, s) { c.privacy.all().filter { !it.alias } }
         val chats = remember(version, s) { c.privacy.chats() }
         SettingsHint(
-            "${entries.size} Zuordnung(en) auf diesem Gerät" + (if (chats > 0) ", dazu eigene Platzhalter in $chats Chat(s)" else "") +
-                ". Sie bleiben nur hier, damit dieselbe Person denselben Platzhalter behält."
+            tr("{0} Zuordnung(en) auf diesem Gerät", entries.size) + (if (chats > 0) tr(", dazu eigene Platzhalter in {0} Chat(s)", chats) else "") +
+                tr(". Sie bleiben nur hier, damit dieselbe Person denselben Platzhalter behält.")
         )
         if (entries.isNotEmpty()) {
-            OutlinedTextField(value = filter, onValueChange = { filter = it }, label = { Text("Suchen") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = filter, onValueChange = { filter = it }, label = { Text(tr("Suchen")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
             val shown = entries.filter { filter.isBlank() || it.value.contains(filter, true) || it.placeholder.contains(filter, true) }.asReversed()
             Column {
                 shown.take(if (showAll) 500 else 12).forEach { e ->
@@ -179,35 +179,35 @@ fun PrivacySection(c: AppContainer) {
                             c.settings.update { it.copy(pseudonymIgnore = NameList.merge(it.pseudonymIgnore, listOf(e.value))) }
                             c.privacy.remove(e.value)
                             version++
-                            Notices.info("„${e.value}“ wird nicht mehr ersetzt.")
-                        }) { Icon(Icons.Outlined.Block, contentDescription = "Nie ersetzen") }
-                        IconButton(onClick = { c.privacy.remove(e.value); version++ }) { Icon(Icons.Outlined.Delete, contentDescription = "Zuordnung löschen") }
+                            Notices.info(tr("„{0}“ wird nicht mehr ersetzt.", e.value))
+                        }) { Icon(Icons.Outlined.Block, contentDescription = tr("Nie ersetzen")) }
+                        IconButton(onClick = { c.privacy.remove(e.value); version++ }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Zuordnung löschen")) }
                     }
                 }
-                if (shown.size > 12 && !showAll) TextButton(onClick = { showAll = true }) { Text("Alle ${shown.size} zeigen") }
+                if (shown.size > 12 && !showAll) TextButton(onClick = { showAll = true }) { Text(tr("Alle {0} zeigen", shown.size)) }
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Alle Zuordnungen", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            OutlinedButton(onClick = { confirmClear = true }, enabled = entries.isNotEmpty() || chats > 0) { Text("Löschen") }
+            Text(tr("Alle Zuordnungen"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            OutlinedButton(onClick = { confirmClear = true }, enabled = entries.isNotEmpty() || chats > 0) { Text(tr("Löschen")) }
         }
     }
 
-    SettingsCard("Gut zu wissen") {
+    SettingsCard(tr("Gut zu wissen")) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SettingsHint("• Bilder, Scans und Spracheingaben lassen sich nicht pseudonymisieren – mit „Warnung bei Bildern“ fragt die App vor dem Senden nach. Vorlesen mit der KI-Stimme schickt den Antworttext an den Uni-Server.")
-            SettingsHint("• Ohne Pseudonymisierung warnt die App, wenn eine Nachricht mit Namen oder Kontaktdaten an einen Anbieter außerhalb der TU Dresden (z.B. Google Gemini) ginge.")
-            SettingsHint("• Was ersetzt wurde und wie der Server die Nachricht sah, zeigt das Agent-Protokoll unter der Antwort (Verlaufssymbol).")
-            SettingsHint("• Modelle auf diesem Gerät bekommen die echten Angaben – dort verlässt nichts das Gerät.")
+            SettingsHint(tr("• Bilder, Scans und Spracheingaben lassen sich nicht pseudonymisieren – mit „Warnung bei Bildern“ fragt die App vor dem Senden nach. Vorlesen mit der KI-Stimme schickt den Antworttext an den Uni-Server."))
+            SettingsHint(tr("• Ohne Pseudonymisierung warnt die App, wenn eine Nachricht mit Namen oder Kontaktdaten an einen Anbieter außerhalb der TU Dresden (z.B. Google Gemini) ginge."))
+            SettingsHint(tr("• Was ersetzt wurde und wie der Server die Nachricht sah, zeigt das Agent-Protokoll unter der Antwort (Verlaufssymbol)."))
+            SettingsHint(tr("• Modelle auf diesem Gerät bekommen die echten Angaben – dort verlässt nichts das Gerät."))
         }
     }
 
     if (confirmClear) {
         ConfirmDialog(
-            "Zuordnungen löschen?",
-            "Die App vergisst, welcher Platzhalter zu welcher Angabe gehört. Platzhalter in älteren Chats und Protokollen lassen sich " +
-                "danach nicht mehr zurückübersetzen; laufende Antworten können Platzhalter statt Namen enthalten.",
-            "Löschen",
+            tr("Zuordnungen löschen?"),
+            tr("Die App vergisst, welcher Platzhalter zu welcher Angabe gehört. Platzhalter in älteren Chats und Protokollen lassen sich " +
+                "danach nicht mehr zurückübersetzen; laufende Antworten können Platzhalter statt Namen enthalten."),
+            tr("Löschen"),
             onConfirm = {
                 c.privacy.clear()
                 version++
@@ -239,16 +239,16 @@ fun PrivacySuggestions(c: AppContainer, input: String) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Name?", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tr("Name?"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         suspects.forEach { w ->
             Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = {
                         c.settings.update { it.copy(pseudonymTerms = NameList.merge(it.pseudonymTerms, listOf(w))) }
-                        Notices.info("„$w“ wird ab jetzt ersetzt.")
-                    }) { Text("$w ersetzen") }
+                        Notices.info(tr("„{0}“ wird ab jetzt ersetzt.", w))
+                    }) { Text(tr("{0} ersetzen", w)) }
                     IconButton(onClick = { c.settings.update { it.copy(pseudonymIgnore = NameList.merge(it.pseudonymIgnore, listOf(w))) } }) {
-                        Icon(Icons.Outlined.Close, contentDescription = "Kein Name")
+                        Icon(Icons.Outlined.Close, contentDescription = tr("Kein Name"))
                     }
                 }
             }

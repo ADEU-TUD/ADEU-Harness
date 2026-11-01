@@ -27,7 +27,7 @@ import java.util.Locale
 /** Subtitle of „Arbeitsspeicher“ in the settings overview. */
 internal fun memorySummary(): String {
     val m = MemoryMeter.now()
-    return "Java ${formatBytes(m.heapUsed)} von ${formatBytes(m.heapMax)}" + (m.process?.let { " · App gesamt ${formatBytes(it)}" } ?: "")
+    return tr("Java {0} von {1}", formatBytes(m.heapUsed), formatBytes(m.heapMax)) + (m.process?.let { tr(" · App gesamt {0}", formatBytes(it)) } ?: "")
 }
 
 /**

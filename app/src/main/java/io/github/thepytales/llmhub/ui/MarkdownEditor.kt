@@ -92,20 +92,20 @@ fun MarkdownBody(markdown: String, tabId: String?, narrow: Boolean, leading: @Co
             ToolLabel("H2") { linePrefix("## ") }
             ToolLabel("H3") { linePrefix("### ") }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-            ToolIcon(Icons.Outlined.FormatBold, "Fett (Strg+B)") { value = toggleMarks(value, "**") }
-            ToolIcon(Icons.Outlined.FormatItalic, "Kursiv (Strg+I)") { value = toggleMarks(value, "*") }
-            ToolIcon(Icons.Outlined.Code, "Code") { value = toggleMarks(value, "`") }
-            ToolIcon(Icons.Outlined.Link, "Link (Strg+K)") { value = toggleMarks(value, "[", "](https://)") }
+            ToolIcon(Icons.Outlined.FormatBold, tr("Fett (Strg+B)")) { value = toggleMarks(value, "**") }
+            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv (Strg+I)")) { value = toggleMarks(value, "*") }
+            ToolIcon(Icons.Outlined.Code, tr("Code")) { value = toggleMarks(value, "`") }
+            ToolIcon(Icons.Outlined.Link, tr("Link (Strg+K)")) { value = toggleMarks(value, "[", "](https://)") }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-            ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, "Aufzählung") { linePrefix("- ") }
-            ToolIcon(Icons.Outlined.FormatListNumbered, "Nummerierte Liste") { linePrefix("1. ") }
-            ToolIcon(Icons.Outlined.CheckBox, "Checkliste") { linePrefix("- [ ] ") }
-            ToolIcon(Icons.Outlined.FormatQuote, "Zitat") { linePrefix("> ") }
-            ToolIcon(Icons.Outlined.TableChart, "Tabelle") { insert("| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |") }
-            ToolIcon(Icons.Outlined.HorizontalRule, "Trennlinie") { insert("---") }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Aufzählung")) { linePrefix("- ") }
+            ToolIcon(Icons.Outlined.FormatListNumbered, tr("Nummerierte Liste")) { linePrefix("1. ") }
+            ToolIcon(Icons.Outlined.CheckBox, tr("Checkliste")) { linePrefix("- [ ] ") }
+            ToolIcon(Icons.Outlined.FormatQuote, tr("Zitat")) { linePrefix("> ") }
+            ToolIcon(Icons.Outlined.TableChart, tr("Tabelle")) { insert("| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |") }
+            ToolIcon(Icons.Outlined.HorizontalRule, tr("Trennlinie")) { insert("---") }
             ToolLabel("```") { insert("```\n\n```") }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-            listOf("source" to "Quelltext", "split" to (if (narrow) "Quelltext" else "Geteilt"), "preview" to "Vorschau").distinctBy { it.second }.forEach { (k, l) ->
+            listOf("source" to tr("Quelltext"), "split" to (if (narrow) tr("Quelltext") else "Geteilt"), "preview" to "Vorschau").distinctBy { it.second }.forEach { (k, l) ->
                 FilterChip(view == k || (narrow && k == "source" && view == "split"), { view = k }, label = { Text(l) }, modifier = Modifier.padding(horizontal = 2.dp))
             }
         }
@@ -142,7 +142,7 @@ fun MarkdownBody(markdown: String, tabId: String?, narrow: Boolean, leading: @Co
                 if (showSource) VerticalDivider()
                 Box(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(24.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (value.text.isBlank()) HintText("Die Vorschau erscheint, sobald du schreibst.")
+                        if (value.text.isBlank()) HintText(tr("Die Vorschau erscheint, sobald du schreibst."))
                         MarkdownText(value.text)
                     }
                 }

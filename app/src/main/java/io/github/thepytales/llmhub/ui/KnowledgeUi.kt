@@ -63,29 +63,29 @@ fun KnowledgeList(c: AppContainer, collection: String) {
     val docs = all.filter { it.collection == collection }.sortedByDescending { it.addedAt }
     val pick = rememberDocumentPicker { file -> c.assistantTools.add(file.name, file.text, collection) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (docs.isEmpty()) SettingsHint("Noch keine Dokumente.")
+        if (docs.isEmpty()) SettingsHint(tr("Noch keine Dokumente."))
         docs.forEach { d ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Description, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
                 Column(Modifier.weight(1f).padding(start = 10.dp)) {
                     Text(d.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     SettingsHint(
-                        "${d.chunks} Abschnitte · ${(d.chars + 999) / 1000}k Zeichen · " +
-                            if (d.embeddedWith != null) "semantische Suche" else "Stichwortsuche"
+                        tr("{0} Abschnitte · {1}k Zeichen · ", d.chunks, (d.chars + 999) / 1000) +
+                            if (d.embeddedWith != null) tr("semantische Suche") else tr("Stichwortsuche")
                     )
                 }
-                IconButton(onClick = { c.knowledge.remove(d) }) { Icon(Icons.Outlined.Delete, contentDescription = "Entfernen") }
+                IconButton(onClick = { c.knowledge.remove(d) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Entfernen")) }
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(onClick = pick) {
                 Icon(Icons.Outlined.UploadFile, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Dokumente hinzufügen")
+                Text(tr("Dokumente hinzufügen"))
             }
             if (busy > 0) {
                 CircularProgressIndicator(Modifier.padding(start = 12.dp).size(18.dp), strokeWidth = 2.dp)
-                Text(" wird für die Suche aufbereitet …", style = MaterialTheme.typography.bodySmall)
+                Text(tr(" wird für die Suche aufbereitet …"), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -94,11 +94,11 @@ fun KnowledgeList(c: AppContainer, collection: String) {
 /** Einstellungen › Wissen: the general knowledge collection. */
 @Composable
 fun KnowledgeSection(c: AppContainer) {
-    SettingsCard("Wissenssammlung") {
+    SettingsCard(tr("Wissenssammlung")) {
         SettingsHint(
-            "Eigene Dokumente, die das Modell in jedem Chat durchsuchen kann – z.B. Modulhandbuch, Prüfungsordnung, " +
+            tr("Eigene Dokumente, die das Modell in jedem Chat durchsuchen kann – z.B. Modulhandbuch, Prüfungsordnung, " +
                 "Leitfäden oder Literatur (PDF, Word, Text …). Es liest nicht alles auf einmal, sondern sucht die passenden Stellen " +
-                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Projekt bearbeiten)."
+                "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Projekt bearbeiten).")
         )
         KnowledgeList(c, "")
     }
@@ -135,73 +135,73 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
     if (askAccess) {
         AlertDialog(
             onDismissRequest = { access = false; askAccess = false },
-            title = { Text("Ordner als Kontext nutzen?") },
+            title = { Text(tr("Ordner als Kontext nutzen?")) },
             text = {
                 Text(
-                    "Soll die KI die Dateien in diesem Ordner als Kontext nutzen? Was sie liest, geht an das gewählte Modell – siehe " +
-                        "Datenschutzstufe. Was sie erstellt, landet in jedem Fall in „${WorkFolder.OUTPUT}“. Änderbar unter Projekt bearbeiten.",
+                    tr("Soll die KI die Dateien in diesem Ordner als Kontext nutzen? Was sie liest, geht an das gewählte Modell – siehe ") +
+                        tr("Datenschutzstufe. Was sie erstellt, landet in jedem Fall in „{0}“. Änderbar unter Projekt bearbeiten.", WorkFolder.OUTPUT),
                 )
             },
-            confirmButton = { TextButton(onClick = { access = true; askAccess = false }) { Text("Ja, alles lesen") } },
+            confirmButton = { TextButton(onClick = { access = true; askAccess = false }) { Text(tr("Ja, alles lesen")) } },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { access = false; askAccess = false }) { Text("Später entscheiden") }
-                    TextButton(onClick = { access = false; askAccess = false }) { Text("Nur ${WorkFolder.OUTPUT}") }
+                    TextButton(onClick = { access = false; askAccess = false }) { Text(tr("Später entscheiden")) }
+                    TextButton(onClick = { access = false; askAccess = false }) { Text(tr("Nur {0}", WorkFolder.OUTPUT)) }
                 }
             },
         )
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (folder == null) "Neues Projekt" else "Projekt bearbeiten") },
+        title = { Text(if (folder == null) tr("Neues Projekt") else tr("Projekt bearbeiten")) },
         text = {
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
-                    name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("z.B. Seminar Allgemeine Didaktik") },
+                    name, { name = it }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(tr("z.B. Seminar Allgemeine Didaktik")) },
                 )
-                Text("Projektordner", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Projektordner"), style = MaterialTheme.typography.titleSmall)
                 if (!PROJECT_FOLDERS) {
-                    SettingsHint("Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.")
+                    SettingsHint(tr("Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben."))
                 } else {
                     if (workDir.isBlank()) {
                         SettingsHint(
-                            (if (ProjectTree.SUPPORTED) "Ein Ordner auf dem Gerät für das Projekt – auch in Nextcloud oder Google Drive, wenn deren App ihn im Auswahldialog anbietet. "
-                            else "Ein Ordner auf diesem PC für das Projekt – z. B. in Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. ") +
-                                "Alles, was die KI im Projekt erstellt (Briefe, PDF, Word, PowerPoint, Excel …), landet dort im Unterordner „${WorkFolder.OUTPUT}“.",
+                            (if (ProjectTree.SUPPORTED) tr("Ein Ordner auf dem Gerät für das Projekt – auch in Nextcloud oder Google Drive, wenn deren App ihn im Auswahldialog anbietet. ")
+                            else tr("Ein Ordner auf diesem PC für das Projekt – z. B. in Google Drive, OneDrive, Nextcloud oder auf einem Netzlaufwerk. ")) +
+                                tr("Alles, was die KI im Projekt erstellt (Briefe, PDF, Word, PowerPoint, Excel …), landet dort im Unterordner „{0}“.", WorkFolder.OUTPUT),
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.size(8.dp))
                             Text(ProjectTree.label(workDir), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { openProjectFolder(c.appContext, workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Ordner öffnen") }
-                            IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = "Projektordner entfernen") }
+                            IconButton(onClick = { openProjectFolder(c.appContext, workDir) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = tr("Ordner öffnen")) }
+                            IconButton(onClick = { workDir = ""; workProblem = null }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Projektordner entfernen")) }
                         }
-                        SettingsHint("Was die KI erstellt, landet im Unterordner „${WorkFolder.OUTPUT}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.")
+                        SettingsHint(tr("Was die KI erstellt, landet im Unterordner „{0}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.", WorkFolder.OUTPUT))
                         ToggleRow(
-                            "KI darf die Dateien im Ordner lesen",
-                            if (access) "Die KI sieht, welche Dateien im Ordner liegen, und liest die passenden (z. B. Notizen, Vorlagen, frühere Briefe). " +
-                                "Was sie liest, geht an das gewählte Modell – siehe Datenschutzstufe."
-                            else "Die KI sieht nur „${WorkFolder.OUTPUT}“; die übrigen Dateien im Ordner bleiben für sie unsichtbar.",
+                            tr("KI darf die Dateien im Ordner lesen"),
+                            if (access) tr("Die KI sieht, welche Dateien im Ordner liegen, und liest die passenden (z. B. Notizen, Vorlagen, frühere Briefe). " +
+                                "Was sie liest, geht an das gewählte Modell – siehe Datenschutzstufe.")
+                            else tr("Die KI sieht nur „{0}“; die übrigen Dateien im Ordner bleiben für sie unsichtbar.", WorkFolder.OUTPUT),
                             access,
                         ) { access = it }
                     }
                     workProblem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                    OutlinedButton(onClick = { pickFolder("Projektordner für „${name.ifBlank { "Neues Projekt" }}“ wählen") }) {
+                    OutlinedButton(onClick = { pickFolder(tr("Projektordner für „{0}“ wählen", name.ifBlank { tr("Neues Projekt") })) }) {
                         Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text(if (workDir.isBlank()) "Ordner wählen …" else "Anderen Ordner wählen …")
+                        Text(if (workDir.isBlank()) tr("Ordner wählen …") else tr("Anderen Ordner wählen …"))
                     }
                 }
                 OutlinedTextField(
                     instructions, { instructions = it },
-                    label = { Text("Anweisungen für alle Chats im Projekt") },
-                    supportingText = { Text("z.B. „Es geht um das Seminar Classroom Management im WS 2026/27, Zielgruppe Lehramt Gymnasium. Antworte knapp.“") },
+                    label = { Text(tr("Anweisungen für alle Chats im Projekt")) },
+                    supportingText = { Text(tr("z.B. „Es geht um das Seminar Classroom Management im WS 2026/27, Zielgruppe Lehramt Gymnasium. Antworte knapp.“")) },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("Datenschutzstufe", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Datenschutzstufe"), style = MaterialTheme.typography.titleSmall)
                 PrivacyLevel.entries.forEach { level ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -211,11 +211,11 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
                         TitleBlock(level.label, level.description, Modifier.weight(1f))
                     }
                 }
-                Text("Dokumente zum Durchsuchen", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Dokumente zum Durchsuchen"), style = MaterialTheme.typography.titleSmall)
                 if (folder == null) {
-                    SettingsHint("PDF, Word & Co., die nur die Chats in diesem Projekt durchsuchen, lassen sich nach dem Erstellen hinzufügen (⋮ › Projekt bearbeiten).")
+                    SettingsHint(tr("PDF, Word & Co., die nur die Chats in diesem Projekt durchsuchen, lassen sich nach dem Erstellen hinzufügen (⋮ › Projekt bearbeiten)."))
                 } else {
-                    SettingsHint("Nur die Chats in diesem Projekt durchsuchen diese Dokumente – sie liegen in der App, nicht im Projektordner.")
+                    SettingsHint(tr("Nur die Chats in diesem Projekt durchsuchen diese Dokumente – sie liegen in der App, nicht im Projektordner."))
                     KnowledgeList(c, folder.id)
                 }
             }
@@ -232,9 +232,9 @@ fun ProjectDialog(c: AppContainer, folder: Folder?, onDismiss: () -> Unit, onCre
                     }
                 }
                 onDismiss()
-            }) { Text(if (folder == null) "Erstellen" else "Speichern") }
+            }) { Text(if (folder == null) tr("Erstellen") else tr("Speichern")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 

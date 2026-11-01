@@ -308,7 +308,7 @@ internal fun sourceList(text: String): Map<Int, SourceTarget> {
         val rest = m.groupValues[4]
         val url = URL_IN.find(rest)?.value ?: DOI_IN.find(rest)?.value?.let { "https://doi.org/$it" }
         val label = rest.replace(Regex("\\[([^\\]]+)]\\(([^)]+)\\)"), "$1").replace(URL_IN, "").trim().trimEnd('–', '-', ':', ',').trim()
-        if (n !in out) out[n] = SourceTarget(label.ifBlank { url ?: "Quelle $n" }, url = url)
+        if (n !in out) out[n] = SourceTarget(label.ifBlank { url ?: tr("Quelle {0}", n) }, url = url)
     }
     return out
 }
@@ -542,10 +542,10 @@ private fun TableBlock(rows: List<List<String>>, sources: Map<Int, SourceTarget>
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 border = androidx.compose.foundation.BorderStroke(1.dp, line),
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp).size(28.dp)
-                    .clickable(onClickLabel = "Weitere Spalten") { scope.launch { scroll.animateScrollTo(scroll.value + 360) } },
+                    .clickable(onClickLabel = tr("Weitere Spalten")) { scope.launch { scroll.animateScrollTo(scroll.value + 360) } },
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "Weitere Spalten", modifier = Modifier.size(16.dp))
+                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weitere Spalten"), modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -573,7 +573,7 @@ fun CodeBlock(lang: String, code: String) {
                 )
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { clipboard.setText(AnnotatedString(code)) }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Outlined.ContentCopy, contentDescription = "Kopieren", modifier = Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Outlined.ContentCopy, contentDescription = tr("Kopieren"), modifier = Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))

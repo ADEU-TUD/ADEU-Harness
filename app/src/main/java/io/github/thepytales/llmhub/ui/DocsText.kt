@@ -231,7 +231,7 @@ fun TextToolbar(
     fun landscape() {
         val list = current()
         val at = ((i ?: list.lastIndex) + 1).coerceIn(0, list.size)
-        list.addAll(at, listOf(DocMarkup.LANDSCAPE_START, "Inhalt im Querformat, z. B. eine breite Tabelle", DocMarkup.LANDSCAPE_END))
+        list.addAll(at, listOf(DocMarkup.LANDSCAPE_START, tr("Inhalt im Querformat, z. B. eine breite Tabelle"), DocMarkup.LANDSCAPE_END))
         onBlocks(list, at + 1)
     }
 
@@ -242,7 +242,7 @@ fun TextToolbar(
         leading()
         var kinds by remember { mutableStateOf(false) }
         Box {
-            ToolLabel((if (i != null) DocBlocks.kindOf(editing.value.text).label else "Einfügen") + " ▾") { kinds = true }
+            ToolLabel((if (i != null) DocBlocks.kindOf(editing.value.text).label else tr("Einfügen")) + " ▾") { kinds = true }
             DropdownMenu(expanded = kinds, onDismissRequest = { kinds = false }) {
                 DocBlocks.Kind.entries.forEach { k ->
                     DropdownMenuItem(text = { Text(k.label, style = kindStyle(k)) }, onClick = { kinds = false; setKind(k) })
@@ -251,23 +251,23 @@ fun TextToolbar(
         }
         VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
         val text = i != null
-        ToolIcon(Icons.Outlined.FormatBold, "Fett (Strg+B)", enabled = text) { wrap("**") }
-        ToolIcon(Icons.Outlined.FormatItalic, "Kursiv (Strg+I)", enabled = text) { wrap("*") }
-        ToolIcon(Icons.Outlined.FormatStrikethrough, "Durchgestrichen", enabled = text) { wrap("~~") }
-        ToolIcon(Icons.Outlined.Code, "Code", enabled = text) { wrap("`") }
+        ToolIcon(Icons.Outlined.FormatBold, tr("Fett (Strg+B)"), enabled = text) { wrap("**") }
+        ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv (Strg+I)"), enabled = text) { wrap("*") }
+        ToolIcon(Icons.Outlined.FormatStrikethrough, tr("Durchgestrichen"), enabled = text) { wrap("~~") }
+        ToolIcon(Icons.Outlined.Code, tr("Code"), enabled = text) { wrap("`") }
         var link by remember { mutableStateOf(false) }
-        ToolIcon(Icons.Outlined.Link, "Link (Strg+K)", enabled = text) { link = true }
-        if (link) TextPrompt("Link einfügen (Adresse)", "https://", onDismiss = { link = false }) { url ->
+        ToolIcon(Icons.Outlined.Link, tr("Link (Strg+K)"), enabled = text) { link = true }
+        if (link) TextPrompt(tr("Link einfügen (Adresse)"), "https://", onDismiss = { link = false }) { url ->
             link = false
             wrap("[", "]($url)")
         }
         VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, "Aufzählung") { setKind(DocBlocks.Kind.BULLETS) }
-        ToolIcon(Icons.Outlined.FormatListNumbered, "Nummerierte Liste") { setKind(DocBlocks.Kind.NUMBERS) }
-        ToolIcon(Icons.Outlined.CheckBox, "Checkliste") { setKind(DocBlocks.Kind.TASKS) }
-        ToolIcon(Icons.Outlined.FormatQuote, "Zitat") { setKind(DocBlocks.Kind.QUOTE) }
-        ToolIcon(Icons.Outlined.TableChart, "Tabelle einfügen") { insert("| Spalte 1 | Spalte 2 | Spalte 3 |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |") }
-        ToolIcon(Icons.Outlined.HorizontalRule, "Trennlinie") { insert("---") }
+        ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Aufzählung")) { setKind(DocBlocks.Kind.BULLETS) }
+        ToolIcon(Icons.Outlined.FormatListNumbered, tr("Nummerierte Liste")) { setKind(DocBlocks.Kind.NUMBERS) }
+        ToolIcon(Icons.Outlined.CheckBox, tr("Checkliste")) { setKind(DocBlocks.Kind.TASKS) }
+        ToolIcon(Icons.Outlined.FormatQuote, tr("Zitat")) { setKind(DocBlocks.Kind.QUOTE) }
+        ToolIcon(Icons.Outlined.TableChart, tr("Tabelle einfügen")) { insert("| Spalte 1 | Spalte 2 | Spalte 3 |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |") }
+        ToolIcon(Icons.Outlined.HorizontalRule, tr("Trennlinie")) { insert("---") }
         var more by remember { mutableStateOf(false) }
         var formula by remember { mutableStateOf(false) }
         if (formula) FormulaDialog(onDismiss = { formula = false }) { tex, display ->
@@ -280,18 +280,18 @@ fun TextToolbar(
             }
         }
         Box {
-            ToolLabel("Einfügen ▾") { more = true }
+            ToolLabel(tr("Einfügen ▾")) { more = true }
             DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
-                if (onImage != null) DropdownMenuItem(text = { Text("Bild …") }, onClick = { more = false; onImage() })
-                DropdownMenuItem(text = { Text("Fußnote") }, onClick = { more = false; footnote() })
-                if (onCitation != null) DropdownMenuItem(text = { Text("Literatur (Beleg) …") }, onClick = { more = false; onCitation() })
-                DropdownMenuItem(text = { Text("Seitenumbruch") }, onClick = { more = false; insert(DocMarkup.PAGE_BREAK) })
-                DropdownMenuItem(text = { Text("Inhaltsverzeichnis") }, onClick = { more = false; insert(DocMarkup.TOC) })
-                DropdownMenuItem(text = { Text("Formel (LaTeX) …") }, onClick = { more = false; formula = true })
-                DropdownMenuItem(text = { Text("Querformat-Seiten") }, onClick = { more = false; landscape() })
+                if (onImage != null) DropdownMenuItem(text = { Text(tr("Bild …")) }, onClick = { more = false; onImage() })
+                DropdownMenuItem(text = { Text(tr("Fußnote")) }, onClick = { more = false; footnote() })
+                if (onCitation != null) DropdownMenuItem(text = { Text(tr("Literatur (Beleg) …")) }, onClick = { more = false; onCitation() })
+                DropdownMenuItem(text = { Text(tr("Seitenumbruch")) }, onClick = { more = false; insert(DocMarkup.PAGE_BREAK) })
+                DropdownMenuItem(text = { Text(tr("Inhaltsverzeichnis")) }, onClick = { more = false; insert(DocMarkup.TOC) })
+                DropdownMenuItem(text = { Text(tr("Formel (LaTeX) …")) }, onClick = { more = false; formula = true })
+                DropdownMenuItem(text = { Text(tr("Querformat-Seiten")) }, onClick = { more = false; landscape() })
             }
         }
-        ToolIcon(Icons.Outlined.Today, "Heutiges Datum") {
+        ToolIcon(Icons.Outlined.Today, tr("Heutiges Datum")) {
             val date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
             if (i != null) {
                 val v = editing.value
@@ -299,9 +299,9 @@ fun TextToolbar(
             } else insert(date)
         }
         VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
-        ToolIcon(Icons.Outlined.AutoAwesome, "KI für diese Stelle", enabled = text, onClick = onAi)
-        ToolIcon(Icons.Outlined.AddComment, "Kommentieren (Strg+Alt+M)", onClick = onComment)
-        if (text) ToolIcon(Icons.Outlined.KeyboardHide, "Fertig (Esc)", onClick = onDoneEditing)
+        ToolIcon(Icons.Outlined.AutoAwesome, tr("KI für diese Stelle"), enabled = text, onClick = onAi)
+        ToolIcon(Icons.Outlined.AddComment, tr("Kommentieren (Strg+Alt+M)"), onClick = onComment)
+        if (text) ToolIcon(Icons.Outlined.KeyboardHide, tr("Fertig (Esc)"), onClick = onDoneEditing)
     }
 }
 
@@ -316,9 +316,9 @@ private fun kindStyle(k: DocBlocks.Kind): TextStyle = when (k) {
 
 /** Slash commands: "/" at the start of an empty block offers block types (like Notion and Obsidian). */
 private val SLASH = listOf(
-    "Überschrift 1" to "# ", "Überschrift 2" to "## ", "Überschrift 3" to "### ", "Aufzählung" to "- ", "Nummerierte Liste" to "1. ",
-    "Checkliste" to "- [ ] ", "Zitat" to "> ", "Hinweisbox" to "> [!NOTE]\n> ", "Tabelle" to "| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |",
-    "Code" to "```\n\n```", "Trennlinie" to "---", "Datum" to "",
+    trLater("Überschrift 1") to "# ", trLater("Überschrift 2") to "## ", trLater("Überschrift 3") to "### ", trLater("Aufzählung") to "- ", trLater("Nummerierte Liste") to "1. ",
+    trLater("Checkliste") to "- [ ] ", trLater("Zitat") to "> ", trLater("Hinweisbox") to "> [!NOTE]\n> ", trLater("Tabelle") to "| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |",
+    trLater("Code") to "```\n\n```", trLater("Trennlinie") to "---", trLater("Datum") to "",
 )
 
 /**
@@ -508,11 +508,11 @@ fun TextPage(
                         ) {
                             Icon(Icons.Outlined.Add, contentDescription = null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Hier weiterschreiben – „/“ für Formate", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+                            Text(tr("Hier weiterschreiben – „/“ für Formate"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                         }
                     }
                     if (setup.footer.isNotBlank() || setup.pageNumbers) Text(
-                        listOfNotNull(setup.footer.ifBlank { null }, if (setup.pageNumbers) "Seite 1 von …" else null).joinToString("   ·   "),
+                        listOfNotNull(setup.footer.ifBlank { null }, if (setup.pageNumbers) tr("Seite 1 von …") else null).joinToString("   ·   "),
                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
@@ -540,7 +540,7 @@ private fun TudPageHead(unit: String, pad: androidx.compose.ui.unit.Dp, card: Co
         lines.forEachIndexed { i, l ->
             Text(l, style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (i == lines.lastIndex) FontWeight.SemiBold else FontWeight.Normal), color = Color(0xFF00008C))
         }
-        if (lines.isEmpty()) HintText("Einrichtung für den Kopf: Einstellungen › Dokumente & Darstellung")
+        if (lines.isEmpty()) HintText(tr("Einrichtung für den Kopf: Einstellungen › Dokumente & Darstellung"))
     }
 }
 
@@ -550,19 +550,19 @@ private fun TudPageHead(unit: String, pad: androidx.compose.ui.unit.Dp, card: Co
 private fun EmptyDocStart(onTemplate: (String) -> Unit, onAi: () -> Unit, onWrite: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth().clickable(onClick = onWrite).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Einfach lostippen …", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.outline)
+            Text(tr("Einfach lostippen …"), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.outline)
         }
         Surface(onClick = onAi, shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text("Mit KI entwerfen", style = MaterialTheme.typography.titleSmall)
-                    Text("Beschreibe, was entstehen soll – die KI schreibt den ersten Entwurf direkt hier hinein.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr("Mit KI entwerfen"), style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Beschreibe, was entstehen soll – die KI schreibt den ersten Entwurf direkt hier hinein."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
-        Text("Oder mit einer Vorlage beginnen:", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tr("Oder mit einer Vorlage beginnen:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             DOC_STARTERS.forEach { (label, md) -> OutlinedButton(onClick = { onTemplate(md) }) { Text(label) } }
         }
@@ -607,12 +607,12 @@ private fun BlockView(
                     }
                 }
                 DocMarkup.image(block) != null -> DocImageView(DocMarkup.image(block)!!)
-                DocMarkup.isPageBreak(block) -> MarkerLine("Seitenumbruch")
+                DocMarkup.isPageBreak(block) -> MarkerLine(tr("Seitenumbruch"))
                 // Inhaltsverzeichnis (AP-16): the headings of the document, always up to date.
                 DocMarkup.isToc(block) -> Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(6.dp)).padding(10.dp)) {
-                    Text("Inhaltsverzeichnis", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Inhaltsverzeichnis"), style = MaterialTheme.typography.titleSmall)
                     val entries = DocMarkup.tocEntries(doc?.markdown(tabId).orEmpty())
-                    if (entries.isEmpty()) HintText("Erscheint, sobald das Dokument Überschriften hat.")
+                    if (entries.isEmpty()) HintText(tr("Erscheint, sobald das Dokument Überschriften hat."))
                     entries.forEach { (level, text) -> Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = ((level - 2).coerceAtLeast(0) * 16).dp, top = 2.dp)) }
                 }
                 // Display formula (AP-16): readable in the editor, a real formula in Word.
@@ -636,7 +636,7 @@ private fun BlockView(
         }
         if (commented) {
             Icon(
-                Icons.Outlined.AddComment, contentDescription = "Kommentiert", tint = MaterialTheme.colorScheme.primary,
+                Icons.Outlined.AddComment, contentDescription = tr("Kommentiert"), tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 6.dp, top = 4.dp).size(16.dp).clickable(onClick = onShowComments),
             )
         }
@@ -752,7 +752,7 @@ private fun BlockField(
                         }
                     },
                     decorationBox = { inner ->
-                        if (v.text.isEmpty()) Text("Schreiben … („/“ für Formate)", style = style.copy(color = MaterialTheme.colorScheme.outline))
+                        if (v.text.isEmpty()) Text(tr("Schreiben … („/“ für Formate)"), style = style.copy(color = MaterialTheme.colorScheme.outline))
                         inner()
                     },
                 )
@@ -785,14 +785,14 @@ private fun BlockField(
             }
             DropdownMenu(expanded = slash, onDismissRequest = { editing.value = TextFieldValue("") }) {
                 val q = v.text.removePrefix("/").lowercase()
-                SLASH.filter { q.isEmpty() || it.first.lowercase().contains(q) }.forEach { (label, md) ->
-                    DropdownMenuItem(text = { Text(label) }, onClick = {
+                SLASH.filter { q.isEmpty() || tr(it.first).lowercase().contains(q) }.forEach { (label, md) ->
+                    DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
                         val t = if (label == "Datum") LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) else md
                         editing.value = TextFieldValue(t, TextRange(if (t.startsWith("```")) 4 else t.length))
                     })
                 }
                 DropdownMenuItem(
-                    text = { Text("KI schreiben lassen …") },
+                    text = { Text(tr("KI schreiben lassen …")) },
                     leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) },
                     onClick = { editing.value = TextFieldValue(""); onAi() },
                 )
@@ -802,20 +802,20 @@ private fun BlockField(
             if (!v.selection.collapsed && askFor == null) TextButton(onClick = { askFor = v.selection; askActive = true }) {
                 Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("KI fragen")
+                Text(tr("KI fragen"))
             }
             HintText(
                 when (kind) {
-                    DocBlocks.Kind.TABLE -> "Zellen direkt bearbeiten · Esc: fertig"
-                    DocBlocks.Kind.BULLETS, DocBlocks.Kind.NUMBERS, DocBlocks.Kind.TASKS -> "Enter: neuer Punkt · Tab: einrücken"
-                    else -> if (DESKTOP) "Enter: neuer Absatz · Text markieren: KI fragen" else "Enter: neuer Absatz · Text markieren: KI fragen"
+                    DocBlocks.Kind.TABLE -> tr("Zellen direkt bearbeiten · Esc: fertig")
+                    DocBlocks.Kind.BULLETS, DocBlocks.Kind.NUMBERS, DocBlocks.Kind.TASKS -> tr("Enter: neuer Punkt · Tab: einrücken")
+                    else -> if (DESKTOP) tr("Enter: neuer Absatz · Text markieren: KI fragen") else tr("Enter: neuer Absatz · Text markieren: KI fragen")
                 },
                 Modifier.weight(1f),
             )
-            IconButton(onClick = { onMove(-1) }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "Nach oben", modifier = Modifier.size(16.dp)) }
-            IconButton(onClick = { onMove(1) }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.ArrowDownward, contentDescription = "Nach unten", modifier = Modifier.size(16.dp)) }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Delete, contentDescription = "Block löschen", modifier = Modifier.size(16.dp)) }
-            TextButton(onClick = onDone) { Text("Fertig") }
+            IconButton(onClick = { onMove(-1) }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.ArrowUpward, contentDescription = tr("Nach oben"), modifier = Modifier.size(16.dp)) }
+            IconButton(onClick = { onMove(1) }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.ArrowDownward, contentDescription = tr("Nach unten"), modifier = Modifier.size(16.dp)) }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Block löschen"), modifier = Modifier.size(16.dp)) }
+            TextButton(onClick = onDone) { Text(tr("Fertig")) }
         }
     }
 }
@@ -861,16 +861,16 @@ fun OutlinePanel(c: AppContainer, doc: LiveDoc, blocks: List<String>, onJump: (I
     val backlinks = all.filter { d -> d.id != doc.id && d.tabs.any { it.markdown.contains("[[${doc.title}", ignoreCase = true) } }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Gliederung", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Schließen") }
+            Text(tr("Gliederung"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = tr("Schließen")) }
         }
         HorizontalDivider()
         LazyColumn(contentPadding = PaddingValues(10.dp)) {
-            if (headings.isEmpty()) item { HintText("Noch keine Überschriften. Überschriften gliedern das Dokument und erscheinen hier zum Springen.") }
+            if (headings.isEmpty()) item { HintText(tr("Noch keine Überschriften. Überschriften gliedern das Dokument und erscheinen hier zum Springen.")) }
             headings.forEach { (i, level, text) ->
                 item {
                     Text(
-                        text.ifBlank { "(ohne Text)" },
+                        text.ifBlank { tr("(ohne Text)") },
                         style = if (level == 0) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
                         maxLines = 2,
                         modifier = Modifier.fillMaxWidth().clickable { onJump(i) }.padding(start = (level * 14).dp, top = 6.dp, bottom = 6.dp),
@@ -879,10 +879,10 @@ fun OutlinePanel(c: AppContainer, doc: LiveDoc, blocks: List<String>, onJump: (I
             }
             item {
                 Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Verknüpfungen", style = MaterialTheme.typography.titleSmall)
-                    HintText("Mit [[Titel]] verlinkst du andere Dokumente.")
+                    Text(tr("Verknüpfungen"), style = MaterialTheme.typography.titleSmall)
+                    HintText(tr("Mit [[Titel]] verlinkst du andere Dokumente."))
                     linksTo.forEach { d -> TextButton(onClick = { onOpenDoc(d.id) }) { Text("→ ${d.title}") } }
-                    if (backlinks.isNotEmpty()) Text("Verlinkt von", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 6.dp))
+                    if (backlinks.isNotEmpty()) Text(tr("Verlinkt von"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 6.dp))
                     backlinks.forEach { d -> TextButton(onClick = { onOpenDoc(d.id) }) { Text("← ${d.title}") } }
                 }
             }
@@ -905,13 +905,13 @@ internal fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) 
                         textStyle = if (r == 0) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
                     )
                 }
-                if (r > 0) IconButton(onClick = { onChange(rows.filterIndexed { i, _ -> i != r }) }) { Icon(Icons.Outlined.Close, contentDescription = "Zeile löschen", modifier = Modifier.size(16.dp)) }
+                if (r > 0) IconButton(onClick = { onChange(rows.filterIndexed { i, _ -> i != r }) }) { Icon(Icons.Outlined.Close, contentDescription = tr("Zeile löschen"), modifier = Modifier.size(16.dp)) }
             }
         }
         Row {
-            TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text("+ Zeile") }
-            TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text("+ Spalte") }
-            if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text("− Spalte") }
+            TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text(tr("+ Zeile")) }
+            TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text(tr("+ Spalte")) }
+            if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text(tr("− Spalte")) }
         }
     }
 }
@@ -926,11 +926,11 @@ else DocMarkup.NOTE_REF.replace(text) { m -> notes[m.groupValues[1]]?.let(DocMar
 private fun markerLabel(block: String): String {
     val t = block.trim()
     return when {
-        DocMarkup.orientation(t) == true -> "Ab hier Querformat"
-        DocMarkup.orientation(t) == false -> "Ab hier wieder Hochformat"
-        t.contains("literatur:", true) -> "Literaturverzeichnis – wird über „Einfügen › Literatur“ automatisch gepflegt"
+        DocMarkup.orientation(t) == true -> tr("Ab hier Querformat")
+        DocMarkup.orientation(t) == false -> tr("Ab hier wieder Hochformat")
+        t.contains("literatur:", true) -> tr("Literaturverzeichnis – wird über „Einfügen › Literatur“ automatisch gepflegt")
         t.contains("seitenzahlen", true) || t.contains("kopfzeile", true) || t.contains("datum:", true) ->
-            "Seiteneinrichtung: " + t.removePrefix("<!--").removeSuffix("-->").trim()
+            tr("Seiteneinrichtung: ") + t.removePrefix("<!--").removeSuffix("-->").trim()
         else -> "Notiz: " + t.removePrefix("<!--").removeSuffix("-->").trim()
     }
 }
@@ -953,10 +953,10 @@ private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit,
         // Änderungen nachverfolgen: what changed, word by word (red struck through: removed, green: inserted).
         if (tracking && change.before != null) WordDiff(DocBlocks.plainOf(change.before), DocBlocks.plainOf(now))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(if (tracking) (if (change.before == null) "Eingefügt" else "Geändert") else if (change.before == null) "Von der KI eingefügt" else "Von der KI geändert", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-            if (!tracking && change.before != null) TextButton(onClick = { before = !before }) { Text(if (before) "Vorher ausblenden" else "Vorher") }
-            TextButton(onClick = { onReview(ReviewAction.Accept(change)) }) { Text(if (tracking) "Annehmen" else "Übernehmen") }
-            TextButton(onClick = { onReview(ReviewAction.Reject(change)) }) { Text(if (change.before == null) "Entfernen" else "Ablehnen") }
+            Text(if (tracking) (if (change.before == null) tr("Eingefügt") else tr("Geändert")) else if (change.before == null) tr("Von der KI eingefügt") else tr("Von der KI geändert"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+            if (!tracking && change.before != null) TextButton(onClick = { before = !before }) { Text(if (before) tr("Vorher ausblenden") else tr("Vorher")) }
+            TextButton(onClick = { onReview(ReviewAction.Accept(change)) }) { Text(if (tracking) tr("Annehmen") else tr("Übernehmen")) }
+            TextButton(onClick = { onReview(ReviewAction.Reject(change)) }) { Text(if (change.before == null) tr("Entfernen") else tr("Ablehnen")) }
         }
         if (before && change.before != null) Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), shape = RoundedCornerShape(6.dp)) {
             Box(Modifier.fillMaxWidth().padding(8.dp)) { MarkdownText(change.before) }
@@ -969,11 +969,11 @@ private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit,
 private fun RemovedCard(r: AiReview.Removed, onReview: (ReviewAction) -> Unit, tracking: Boolean = false) {
     Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f), shape = RoundedCornerShape(6.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Column(Modifier.padding(8.dp)) {
-            Text(if (tracking) "Gelöscht" else "Von der KI entfernt", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+            Text(if (tracking) tr("Gelöscht") else tr("Von der KI entfernt"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
             Text(DocBlocks.plainOf(r.text).take(300), style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.LineThrough), color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row {
-                TextButton(onClick = { onReview(ReviewAction.Restore(r)) }) { Text(if (tracking) "Ablehnen" else "Wiederherstellen") }
-                TextButton(onClick = { onReview(ReviewAction.Drop(r)) }) { Text(if (tracking) "Annehmen" else "Entfernt lassen") }
+                TextButton(onClick = { onReview(ReviewAction.Restore(r)) }) { Text(if (tracking) tr("Ablehnen") else tr("Wiederherstellen")) }
+                TextButton(onClick = { onReview(ReviewAction.Drop(r)) }) { Text(if (tracking) tr("Annehmen") else tr("Entfernt lassen")) }
             }
         }
     }
@@ -986,7 +986,7 @@ private fun ImageBlockEditor(img: DocMarkup.Image, onChange: (DocMarkup.Image) -
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         DocImageView(img)
         androidx.compose.material3.OutlinedTextField(
-            img.alt, { onChange(img.copy(alt = it.replace("\n", " "))) }, label = { Text("Bildunterschrift (auch Alternativtext)") },
+            img.alt, { onChange(img.copy(alt = it.replace("\n", " "))) }, label = { Text(tr("Bildunterschrift (auch Alternativtext)")) },
             singleLine = true, modifier = Modifier.fillMaxWidth(),
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1023,7 +1023,7 @@ private fun FormulaDialog(onDismiss: () -> Unit, onInsert: (String, Boolean) -> 
     var display by remember { mutableStateOf(true) }
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Formel einfügen") },
+        title = { Text(tr("Formel einfügen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 androidx.compose.material3.OutlinedTextField(tex, { tex = it }, label = { Text("LaTeX") }, modifier = Modifier.fillMaxWidth())
@@ -1032,16 +1032,16 @@ private fun FormulaDialog(onDismiss: () -> Unit, onInsert: (String, Boolean) -> 
                         androidx.compose.material3.AssistChip(onClick = { tex = if (tex.isBlank()) s else "$tex $s" }, label = { Text(io.github.thepytales.llmhub.docs.MathText.inText("$$s$")) })
                     }
                 }
-                Text("Vorschau", style = MaterialTheme.typography.labelMedium)
+                Text(tr("Vorschau"), style = MaterialTheme.typography.labelMedium)
                 Text(io.github.thepytales.llmhub.docs.MathText.inText("$$tex$"), style = MaterialTheme.typography.titleMedium)
                 Row(Modifier.clickable { display = !display }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(display, { display = it })
-                    Text("Eigene Zeile (sonst im Text an der Cursorposition)")
+                    Text(tr("Eigene Zeile (sonst im Text an der Cursorposition)"))
                 }
-                HintText("In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt.")
+                HintText(tr("In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt."))
             }
         },
-        confirmButton = { TextButton(enabled = tex.isNotBlank(), onClick = { onInsert(tex.trim(), display) }) { Text("Einfügen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(enabled = tex.isNotBlank(), onClick = { onInsert(tex.trim(), display) }) { Text(tr("Einfügen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }

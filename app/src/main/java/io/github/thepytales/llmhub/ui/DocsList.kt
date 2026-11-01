@@ -167,7 +167,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
         val bytes = withContext(Dispatchers.IO) { input.use { it.readBytes() } }
         val imported = OfficeImport.read(name, bytes)
         if (imported == null) {
-            Notices.error("„$name“ lässt sich nicht im Editor öffnen (Word, PowerPoint, Excel, CSV, Markdown und Text gehen).")
+            Notices.error(tr("„{0}“ lässt sich nicht im Editor öffnen (Word, PowerPoint, Excel, CSV, Markdown und Text gehen).", name))
         } else {
             val doc = OfficeImport.toLiveDoc(imported).copy(vault = c.docs.defaultVault)
             withContext(Dispatchers.IO) { DocsHandoff.saveMedia(c, doc, imported) }
@@ -185,12 +185,12 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = { BackButton(onBack) }, title = { Text("Dokumente") },
+                navigationIcon = { BackButton(onBack) }, title = { Text(tr("Dokumente")) },
                 actions = {
                     TextButton(onClick = importFile) {
                         Icon(Icons.Outlined.FileOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Datei öffnen")
+                        Text(tr("Datei öffnen"))
                     }
                 },
             )
@@ -199,7 +199,7 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
         Box(Modifier.padding(pad).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(Modifier.widthIn(max = 900.dp).fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
-                    Text("Neu erstellen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 4.dp))
+                    Text(tr("Neu erstellen"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 4.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         DocKind.entries.forEach { k ->
                             NewTile(k, onBlank = { onOpen(newLiveDoc(c, k).id) }, onAi = { aiCreate = k }, onTemplate = { title, md, style -> onOpen(newLiveDoc(c, k, md, title, style).id) })
@@ -208,23 +208,23 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
                 }
                 item {
                     OutlinedTextField(
-                        query, { query = it }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text("Dokumente durchsuchen") },
+                        query, { query = it }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text(tr("Dokumente durchsuchen")) },
                         singleLine = true, shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     )
                 }
                 item {
                     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        FilterChip(kindFilter == null && !starredOnly, { kindFilter = null; starredOnly = false }, label = { Text("Alle  ${docs.size}") })
-                        FilterChip(starredOnly, { starredOnly = !starredOnly }, label = { Text("Angeheftet") }, leadingIcon = { Icon(Icons.Outlined.Star, null, Modifier.size(16.dp)) })
+                        FilterChip(kindFilter == null && !starredOnly, { kindFilter = null; starredOnly = false }, label = { Text(tr("Alle  {0}", docs.size)) })
+                        FilterChip(starredOnly, { starredOnly = !starredOnly }, label = { Text(tr("Angeheftet")) }, leadingIcon = { Icon(Icons.Outlined.Star, null, Modifier.size(16.dp)) })
                         DocKind.entries.forEach { k ->
                             FilterChip(
                                 kindFilter == k, { kindFilter = if (kindFilter == k) null else k },
-                                label = { Text(when (k) { DocKind.DOC -> "Dokumente"; DocKind.SLIDES -> "Präsentationen"; DocKind.SHEET -> "Tabellen"; DocKind.MARKDOWN -> "Markdown" } + "  ${docs.count { it.docKind == k }}") },
+                                label = { Text(when (k) { DocKind.DOC -> tr("Dokumente"); DocKind.SLIDES -> tr("Präsentationen"); DocKind.SHEET -> tr("Tabellen"); DocKind.MARKDOWN -> tr("Markdown") } + "  ${docs.count { it.docKind == k }}") },
                                 leadingIcon = { Icon(kindIcon(k), null, Modifier.size(16.dp), tint = kindColor(k)) },
                             )
                         }
                         if (vaults.isNotEmpty()) {
-                            FilterChip(vaultFilter == "app", { vaultFilter = if (vaultFilter == "app") null else "app" }, label = { Text("In der App") })
+                            FilterChip(vaultFilter == "app", { vaultFilter = if (vaultFilter == "app") null else "app" }, label = { Text(tr("In der App")) })
                             vaults.forEach { v ->
                                 FilterChip(vaultFilter == v.id, { vaultFilter = if (vaultFilter == v.id) null else v.id }, label = { Text(v.name) }, leadingIcon = { Icon(Icons.Outlined.Folder, null, Modifier.size(16.dp)) })
                             }
@@ -233,10 +233,10 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
                 }
                 if (shown.isEmpty()) item {
                     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(if (docs.isEmpty()) "Noch keine Dokumente" else "Nichts gefunden", style = MaterialTheme.typography.titleSmall)
+                        Text(if (docs.isEmpty()) tr("Noch keine Dokumente") else tr("Nichts gefunden"), style = MaterialTheme.typography.titleSmall)
                         HintText(
-                            "Dokumente entstehen hier über „Neu erstellen“, beim Öffnen einer Word-, PowerPoint- oder Excel-Datei, wenn die KI im Chat " +
-                                "ein Dokument schreibt, oder über „Im Editor öffnen“ an Antworten und Anhängen.",
+                            tr("Dokumente entstehen hier über „Neu erstellen“, beim Öffnen einer Word-, PowerPoint- oder Excel-Datei, wenn die KI im Chat " +
+                                "ein Dokument schreibt, oder über „Im Editor öffnen“ an Antworten und Anhängen."),
                         )
                     }
                 }
@@ -255,19 +255,19 @@ internal fun AiCreateDialog(c: AppContainer, k: DocKind, folder: String?, onDism
         var text by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { onDismiss() },
-            title = { Text("${k.label} mit KI erstellen") },
+            title = { Text(tr("{0} mit KI erstellen", k.label)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HintText("Beschreibe, was entstehen soll. Die KI schreibt den Entwurf direkt in den Editor – danach bearbeitet ihr ihn gemeinsam weiter.")
+                    HintText(tr("Beschreibe, was entstehen soll. Die KI schreibt den Entwurf direkt in den Editor – danach bearbeitet ihr ihn gemeinsam weiter."))
                     OutlinedTextField(
                         text, { text = it }, minLines = 3, modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(
                                 when (k) {
-                                    DocKind.DOC -> "z. B. Seminarplan für „Einführung in die Didaktik“, 14 Sitzungen, mit Lektüre"
-                                    DocKind.SLIDES -> "z. B. 10 Folien zur Einführung in formatives Assessment für Lehramtsstudierende"
-                                    DocKind.SHEET -> "z. B. Bewertungstabelle für 25 Hausarbeiten mit 4 gewichteten Kriterien und Endnote"
-                                    DocKind.MARKDOWN -> "z. B. README für ein Forschungsrepositorium mit Installation und Datenstruktur"
+                                    DocKind.DOC -> tr("z. B. Seminarplan für „Einführung in die Didaktik“, 14 Sitzungen, mit Lektüre")
+                                    DocKind.SLIDES -> tr("z. B. 10 Folien zur Einführung in formatives Assessment für Lehramtsstudierende")
+                                    DocKind.SHEET -> tr("z. B. Bewertungstabelle für 25 Hausarbeiten mit 4 gewichteten Kriterien und Endnote")
+                                    DocKind.MARKDOWN -> tr("z. B. README für ein Forschungsrepositorium mit Installation und Datenstruktur")
                                 },
                             )
                         },
@@ -278,11 +278,11 @@ internal fun AiCreateDialog(c: AppContainer, k: DocKind, folder: String?, onDism
                 TextButton(enabled = text.isNotBlank(), onClick = {
                     onDismiss()
                     val doc = newLiveDoc(c, k, title = k.newTitle, folder = folder)
-                    DocsAi.send(c, doc, "Neu mit KI", text.trim(), DocsAi.instructions(doc) + " Das ${k.label} ist noch leer: Schreib einen vollständigen ersten Entwurf und gib ihm mit edit_document (title) einen passenden Titel.")
+                    DocsAi.send(c, doc, tr("Neu mit KI"), text.trim(), DocsAi.instructions(doc) + tr(" Das {0} ist noch leer: Schreib einen vollständigen ersten Entwurf und gib ihm mit edit_document (title) einen passenden Titel.", k.label))
                     onOpen(doc.id)
-                }) { Text("Erstellen") }
+                }) { Text(tr("Erstellen")) }
             },
-            dismissButton = { TextButton(onClick = { onDismiss() }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { onDismiss() }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -306,27 +306,27 @@ private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemp
                     Text(kind.label, style = MaterialTheme.typography.titleSmall)
                     Text(
                         when (kind) {
-                            DocKind.DOC -> "wie Word / Google Docs, auch im TUD-Design"
-                            DocKind.SLIDES -> "wie PowerPoint, im TUD-Design"
-                            DocKind.SHEET -> "wie Excel, mit Formeln"
-                            DocKind.MARKDOWN -> "Quelltext mit Vorschau, wie Obsidian"
+                            DocKind.DOC -> tr("wie Word / Google Docs, auch im TUD-Design")
+                            DocKind.SLIDES -> tr("wie PowerPoint, im TUD-Design")
+                            DocKind.SHEET -> tr("wie Excel, mit Formeln")
+                            DocKind.MARKDOWN -> tr("Quelltext mit Vorschau, wie Obsidian")
                         },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(onClick = onAi) { Icon(Icons.Outlined.AutoAwesome, contentDescription = "${kind.label} mit KI erstellen", tint = MaterialTheme.colorScheme.primary) }
-                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Vorlagen") }
+                IconButton(onClick = onAi) { Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("{0} mit KI erstellen", kind.label), tint = MaterialTheme.colorScheme.primary) }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Vorlagen")) }
             }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text("Leer") }, onClick = { menu = false; onBlank() })
-            DropdownMenuItem(text = { Text("Mit KI erstellen …") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = { menu = false; onAi() })
+            DropdownMenuItem(text = { Text(tr("Leer")) }, onClick = { menu = false; onBlank() })
+            DropdownMenuItem(text = { Text(tr("Mit KI erstellen …")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = { menu = false; onAi() })
             val starters = when (kind) { DocKind.DOC -> DOC_STARTERS; DocKind.SLIDES -> SLIDE_STARTERS; DocKind.SHEET -> SHEET_STARTERS; DocKind.MARKDOWN -> MARKDOWN_STARTERS }
-            starters.forEach { (label, md) -> DropdownMenuItem(text = { Text("Vorlage: $label") }, onClick = { menu = false; onTemplate(label, md, null) }) }
+            starters.forEach { (label, md) -> DropdownMenuItem(text = { Text(tr("Vorlage: {0}", label)) }, onClick = { menu = false; onTemplate(label, md, null) }) }
             if (kind == DocKind.DOC) {
                 HorizontalDivider()
-                Text("Im TUD-Design", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
-                DropdownMenuItem(text = { Text("Leeres TUD-Dokument") }, onClick = { menu = false; onTemplate(DocKind.DOC.newTitle, "# ${DocKind.DOC.newTitle}\n\n", DocStyle.TUD.name) })
+                Text(tr("Im TUD-Design"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                DropdownMenuItem(text = { Text(tr("Leeres TUD-Dokument")) }, onClick = { menu = false; onTemplate(DocKind.DOC.newTitle, "# ${DocKind.DOC.newTitle}\n\n", DocStyle.TUD.name) })
                 TUD_STARTERS.forEach { (label, md) -> DropdownMenuItem(text = { Text("TUD: $label") }, onClick = { menu = false; onTemplate(label, md, DocStyle.TUD.name) }) }
             }
         }
@@ -347,31 +347,31 @@ private fun DocRow(c: AppContainer, d: LiveDoc, onOpen: (String) -> Unit) {
                     DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(d.updatedAt)),
                     d.lastAuthor,
                     when (d.docKind) {
-                        DocKind.DOC, DocKind.MARKDOWN -> "${d.words} Wörter"
-                        DocKind.SLIDES -> "${SlideDeck.parse(d.tabs.first().markdown).size} Folien"
-                        DocKind.SHEET -> "${d.tabs.size} Blatt"
+                        DocKind.DOC, DocKind.MARKDOWN -> tr("{0} Wörter", d.words)
+                        DocKind.SLIDES -> tr("{0} Folien", SlideDeck.parse(d.tabs.first().markdown).size)
+                        DocKind.SHEET -> tr("{0} Blatt", d.tabs.size)
                     },
-                    d.tabs.size.takeIf { it > 1 && d.docKind == DocKind.DOC }?.let { "$it Tabs" },
-                    d.openComments.takeIf { it > 0 }?.let { "$it Kommentare" },
+                    d.tabs.size.takeIf { it > 1 && d.docKind == DocKind.DOC }?.let { tr("{0} Tabs", it) },
+                    d.openComments.takeIf { it > 0 }?.let { tr("{0} Kommentare", it) },
                     d.vault?.let { v -> c.docs.vault(v)?.name?.let { "📁 $it" } },
                 )
                 HintText(meta.joinToString(" · "))
             }
             IconButton(onClick = { c.docs.update(d.id) { it.copy(starred = !it.starred) } }) {
-                Icon(if (d.starred) Icons.Outlined.Star else Icons.Outlined.StarBorder, contentDescription = if (d.starred) "Nicht mehr anheften" else "Anheften", tint = if (d.starred) Color(0xFFF2B01E) else MaterialTheme.colorScheme.outline)
+                Icon(if (d.starred) Icons.Outlined.Star else Icons.Outlined.StarBorder, contentDescription = if (d.starred) tr("Nicht mehr anheften") else tr("Anheften"), tint = if (d.starred) Color(0xFFF2B01E) else MaterialTheme.colorScheme.outline)
             }
             var menu by remember { mutableStateOf(false) }
             Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = "Mehr") }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Duplizieren") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Duplizieren")) }, onClick = {
                         menu = false
                         c.docs.save(LiveDoc.create(d.title + " (Kopie)", d.markdown(), "Sie", kind = d.docKind).copy(tabs = d.tabs.map { it.copy(id = java.util.UUID.randomUUID().toString()) }, vault = d.vault))
                     })
-                    DropdownMenuItem(text = { Text("Löschen") }, onClick = {
+                    DropdownMenuItem(text = { Text(tr("Löschen")) }, onClick = {
                         menu = false
                         c.docs.delete(d.id)
-                        Notices.undo("${d.docKind.label} gelöscht", restore = { c.docs.save(d) })
+                        Notices.undo(tr("{0} gelöscht", d.docKind.label), restore = { c.docs.save(d) })
                     })
                 }
             }

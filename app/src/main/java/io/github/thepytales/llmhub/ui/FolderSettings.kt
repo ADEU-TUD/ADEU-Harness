@@ -35,15 +35,15 @@ import java.io.File
 internal fun LocalFoldersSection(c: AppContainer) {
     val folders by c.localFolders.items.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    Section("Ordner für den Assistenten") {
+    Section(tr("Ordner für den Assistenten")) {
         SettingsHint(
-            "Der Assistent kann in diesen Ordnern Dateien auflisten, lesen (auch Word, PowerPoint, Excel und PDF), durchsuchen, " +
+            tr("Der Assistent kann in diesen Ordnern Dateien auflisten, lesen (auch Word, PowerPoint, Excel und PDF), durchsuchen, " +
                 "neue Dateien und Dokumente anlegen und vorhandene ändern – in jedem Chat. Außerhalb dieser Ordner erreicht er nichts. " +
                 "Gelöschte Dateien landen im Unterordner „.adeu-papierkorb“. Vor Änderungen fragt er je nach " +
-                "Einstellung unter Chat & Werkzeuge › Freigaben nach.",
+                "Einstellung unter Chat & Werkzeuge › Freigaben nach."),
         )
         if (!FolderAccess.SUPPORTED) {
-            SettingsHint("Nur in der Windows-Version verfügbar: Android gibt Apps keinen direkten Zugriff auf Ordner.")
+            SettingsHint(tr("Nur in der Windows-Version verfügbar: Android gibt Apps keinen direkten Zugriff auf Ordner."))
             return@Section
         }
         folders.forEach { f ->
@@ -53,23 +53,23 @@ internal fun LocalFoldersSection(c: AppContainer) {
                 Column(Modifier.weight(1f)) {
                     Text(f.name, style = MaterialTheme.typography.titleSmall)
                     Text(f.path, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    if (!File(f.path).isDirectory) Text("Ordner nicht erreichbar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    if (!File(f.path).isDirectory) Text(tr("Ordner nicht erreichbar"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Switch(f.write, { v -> c.localFolders.upsert(f.copy(write = v)) })
-                    Text(if (f.write) "Ändern" else "Nur lesen", style = MaterialTheme.typography.labelSmall)
+                    Text(if (f.write) tr("Ändern") else tr("Nur lesen"), style = MaterialTheme.typography.labelSmall)
                 }
-                IconButton(onClick = { FolderAccess.open(f.path) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
+                IconButton(onClick = { FolderAccess.open(f.path) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = tr("Im Explorer öffnen")) }
                 IconButton(onClick = {
                     c.localFolders.delete(f.id)
-                    Notices.undo("Freigabe entfernt (der Ordner selbst bleibt)", restore = { c.localFolders.upsert(f) })
-                }) { Icon(Icons.Outlined.Delete, contentDescription = "Freigabe entfernen") }
+                    Notices.undo(tr("Freigabe entfernt (der Ordner selbst bleibt)"), restore = { c.localFolders.upsert(f) })
+                }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Freigabe entfernen")) }
             }
         }
         OutlinedButton(onClick = {
             scope.launch {
-                val path = FolderAccess.pick("Ordner für den Assistenten freigeben") ?: return@launch
-                if (folders.any { File(it.path).absoluteFile == File(path).absoluteFile }) return@launch Notices.info("Dieser Ordner ist schon freigegeben.")
+                val path = FolderAccess.pick(tr("Ordner für den Assistenten freigeben")) ?: return@launch
+                if (folders.any { File(it.path).absoluteFile == File(path).absoluteFile }) return@launch Notices.info(tr("Dieser Ordner ist schon freigegeben."))
                 val base = File(path).name.ifBlank { path }
                 var name = base
                 var n = 2
@@ -79,9 +79,9 @@ internal fun LocalFoldersSection(c: AppContainer) {
         }) {
             Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
-            Text("Ordner freigeben …")
+            Text(tr("Ordner freigeben …"))
         }
-        if (folders.isNotEmpty()) SettingsHint("Im Chat z. B.: „Fasse alle Protokolle im Ordner ${folders.first().name} zusammen und speichere das Ergebnis dort als Word-Datei.“")
+        if (folders.isNotEmpty()) SettingsHint(tr("Im Chat z. B.: „Fasse alle Protokolle im Ordner {0} zusammen und speichere das Ergebnis dort als Word-Datei.“", folders.first().name))
     }
 }
 
@@ -95,22 +95,22 @@ internal fun StorageSection(c: AppContainer) {
     val docs by c.docs.items.collectAsStateWithLifecycle()
     val defaultVault by c.docs.defaultVaultId.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    Section("Ablageorte für Dokumente") {
+    Section(tr("Ablageorte für Dokumente")) {
         SettingsHint(
-            "Wie Tresore in Obsidian: Jeder Ablageort ist ein Ordner, in dem Dokumente, Präsentationen und Tabellen als lesbare " +
-                "Markdown-Dateien liegen (Versionen und Kommentare im Unterordner „.adeu“). Liegt der Ordner in Google Drive, " +
-                "OneDrive oder Nextcloud, synchronisiert deren Programm alles automatisch auf andere Rechner. Änderungen von dort " +
-                "und neue .md-Dateien erscheinen nach wenigen Sekunden in der App.",
+            tr("Wie Tresore in Obsidian: Jeder Ablageort ist ein Ordner, in dem Dokumente, Präsentationen und Tabellen als lesbare " +
+                "Markdown-Dateien liegen (Versionen und Kommentare im Unterordner „.adeu“). Liegt der Ordner in Google Drive, ") +
+                tr("OneDrive oder Nextcloud, synchronisiert deren Programm alles automatisch auf andere Rechner. Änderungen von dort " +
+                "und neue .md-Dateien erscheinen nach wenigen Sekunden in der App."),
         )
         if (!FolderAccess.SUPPORTED) {
-            SettingsHint("Eigene Ablageorte gibt es in der Windows-Version. Auf Android liegen Dokumente in der App.")
+            SettingsHint(tr("Eigene Ablageorte gibt es in der Windows-Version. Auf Android liegen Dokumente in der App."))
             return@Section
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(defaultVault == null || vaults.none { it.id == defaultVault }, { c.docs.setDefaultVault(null) })
             Column(Modifier.weight(1f)) {
-                Text("In der App")
-                Text("${docs.count { it.vault == null }} Dokument(e) · nur auf diesem Gerät (mit Sicherung & Umzug übertragbar)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("In der App"))
+                Text(tr("{0} Dokument(e) · nur auf diesem Gerät (mit Sicherung & Umzug übertragbar)", docs.count { it.vault == null }), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         vaults.forEach { v ->
@@ -120,32 +120,32 @@ internal fun StorageSection(c: AppContainer) {
                     Text(v.name)
                     Text(v.path, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        if (File(v.path).isDirectory) "${docs.count { it.vault == v.id }} Dokument(e)" else "Ordner nicht erreichbar",
+                        if (File(v.path).isDirectory) tr("{0} Dokument(e)", docs.count { it.vault == v.id }) else tr("Ordner nicht erreichbar"),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (File(v.path).isDirectory) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
                     )
                 }
-                IconButton(onClick = { FolderAccess.open(v.path) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = "Im Explorer öffnen") }
+                IconButton(onClick = { FolderAccess.open(v.path) }) { Icon(Icons.Outlined.FolderOpen, contentDescription = tr("Im Explorer öffnen")) }
                 IconButton(onClick = {
                     c.docs.removeVault(v.id)
-                    Notices.info("Ablageort entfernt – die Dateien bleiben im Ordner und lassen sich wieder einbinden.")
-                }) { Icon(Icons.Outlined.Delete, contentDescription = "Ablageort entfernen") }
+                    Notices.info(tr("Ablageort entfernt – die Dateien bleiben im Ordner und lassen sich wieder einbinden."))
+                }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Ablageort entfernen")) }
             }
         }
-        SettingsHint("Der markierte Ort gilt für neue Dokumente. Vorhandene Dokumente verschiebst du im Editor über ⋮ › Ablageort.")
+        SettingsHint(tr("Der markierte Ort gilt für neue Dokumente. Vorhandene Dokumente verschiebst du im Editor über ⋮ › Ablageort."))
         OutlinedButton(onClick = {
             scope.launch {
-                val path = FolderAccess.pick("Ordner als Ablageort wählen (z. B. in Google Drive)") ?: return@launch
+                val path = FolderAccess.pick(tr("Ordner als Ablageort wählen (z. B. in Google Drive)")) ?: return@launch
                 val v = c.docs.addVault(File(path).name, path, makeDefault = vaults.isEmpty())
-                Notices.info("Ablageort „${v.name}“ eingebunden.")
+                Notices.info(tr("Ablageort „{0}“ eingebunden.", v.name))
             }
         }) {
             Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(6.dp))
-            Text("Ordner als Ablageort hinzufügen …")
+            Text(tr("Ordner als Ablageort hinzufügen …"))
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SettingsHint("Tipp für Google Drive: „Google Drive für Desktop“ installieren, dort einen Ordner wie „Meine Ablage/ADEU“ anlegen und ihn hier wählen. Auf dem zweiten Rechner denselben Ordner einbinden.")
+        SettingsHint(tr("Tipp für Google Drive: „Google Drive für Desktop“ installieren, dort einen Ordner wie „Meine Ablage/ADEU“ anlegen und ihn hier wählen. Auf dem zweiten Rechner denselben Ordner einbinden."))
     }
 }

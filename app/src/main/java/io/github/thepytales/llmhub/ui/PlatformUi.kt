@@ -21,7 +21,7 @@ fun Modifier.secondaryClick(action: () -> Unit): Modifier = this
 const val IS_ANDROID = true
 
 /** How a context menu is opened – for hints in the interface. */
-const val CONTEXT_GESTURE = "Lange drücken"
+val CONTEXT_GESTURE: String get() = tr("Lange drücken")
 
 /** System back (gesture or button) handled by the screen itself, e.g. to close a search first. */
 @Composable
@@ -34,11 +34,11 @@ fun decodeImage(bytes: ByteArray): ImageBitmap? = BitmapFactory.decodeByteArray(
 fun shareText(context: Context, text: String, subject: String? = null) {
     val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
     subject?.let { intent.putExtra(Intent.EXTRA_SUBJECT, it) }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Teilen")) }
+    runCatching { context.startActivity(Intent.createChooser(intent, tr("Teilen"))) }
 }
 
 /** Verb for touching something, in hints ("tippen" / "klicken"). */
-const val TAP = "tippen"
+val TAP: String get() = tr("tippen")
 
 /** Windows (mouse and keyboard first): selecting text in a document opens the „KI fragen“ window right away. */
 const val DESKTOP = false
@@ -49,10 +49,10 @@ const val ENTER_SENDS = false
 /** First tile of the attach sheet: the camera on Android, pasting from the clipboard on Windows. */
 object CameraTile {
     val icon: ImageVector get() = Icons.Outlined.CameraAlt
-    const val label = "Kamera"
+    val label: String get() = tr("Kamera")
 }
 
-const val PHOTOS_LABEL = "Fotos"
+val PHOTOS_LABEL: String get() = tr("Fotos")
 
 /** Extra sentence for the attach sheet. */
 const val ATTACH_HINT = ""

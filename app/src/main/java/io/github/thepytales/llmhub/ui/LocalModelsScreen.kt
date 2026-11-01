@@ -68,7 +68,7 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
     val import = rememberMediaImport(anyFile = true) { name, _, input ->
         runCatching { local.importFile(name, input) }
             .onSuccess { Notices.info(it) }
-            .onFailure { Notices.error(it.message ?: "Fehler") }
+            .onFailure { Notices.error(it.message ?: tr("Fehler")) }
     }
 
     Scaffold(
@@ -77,15 +77,15 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 navigationIcon = { BackButton(onBack) },
-                title = { Text("Modelle auf diesem Gerät") },
+                title = { Text(tr("Modelle auf diesem Gerät")) },
             )
         },
     ) { pad ->
         ReadableColumn(pad) {
             HintText(
-                "Sprachmodelle, die komplett auf diesem Gerät laufen – ohne Internet und ohne dass Daten das Gerät verlassen. " +
+                tr("Sprachmodelle, die komplett auf diesem Gerät laufen – ohne Internet und ohne dass Daten das Gerät verlassen. " +
                     "Ideal für vertrauliche Inhalte (Projekte mit der Datenschutzstufe „Nur auf diesem Gerät“). Sie sind kleiner als " +
-                    "die Modelle des Uni-Servers: gut für Zusammenfassen, Umformulieren, Briefe und Feedback, weniger für lange Agenten-Aufgaben.",
+                    "die Modelle des Uni-Servers: gut für Zusammenfassen, Umformulieren, Briefe und Feedback, weniger für lange Agenten-Aufgaben."),
             )
             HardwareCard(hw, state)
             state.message?.let { HintText(it) }
@@ -95,12 +95,12 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(10.dp))
-                    HintText("Gerät wird geprüft …")
+                    HintText(tr("Gerät wird geprüft …"))
                 }
                 return@ReadableColumn
             }
             val recommended = LocalCatalog.recommended(h)
-            GroupLabel("Empfohlen für dieses Gerät")
+            GroupLabel(tr("Empfohlen für dieses Gerät"))
             AppCard {
                 Column {
                     recommended.forEachIndexed { i, m ->
@@ -109,7 +109,7 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                     }
                 }
             }
-            TextButton(onClick = { others = !others }) { Text(if (others) "Weitere Modelle ausblenden" else "Weitere Modelle anzeigen") }
+            TextButton(onClick = { others = !others }) { Text(if (others) tr("Weitere Modelle ausblenden") else tr("Weitere Modelle anzeigen")) }
             if (others) {
                 AppCard {
                     Column {
@@ -121,26 +121,26 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                 }
             }
 
-            GroupLabel("Download im Firmennetz gesperrt?")
+            GroupLabel(tr("Download im Firmennetz gesperrt?"))
             AppCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     HintText(
-                        "Modelldateien (.gguf) lassen sich auch im Browser oder an einem anderen Rechner laden (Adresse unten kopieren) und hier " +
-                            "einspielen; jede Datei wird mit ihrer Prüfsumme kontrolliert." +
-                            if (state.runtime == RuntimeStatus.MISSING) " Unter Windows gilt das auch für das Programm: llama.cpp-Paket „bin-win-cpu-x64“ als ZIP." else "",
+                        tr("Modelldateien (.gguf) lassen sich auch im Browser oder an einem anderen Rechner laden (Adresse unten kopieren) und hier " +
+                            "einspielen; jede Datei wird mit ihrer Prüfsumme kontrolliert.") +
+                            if (state.runtime == RuntimeStatus.MISSING) tr(" Unter Windows gilt das auch für das Programm: llama.cpp-Paket „bin-win-cpu-x64“ als ZIP.") else "",
                     )
-                    OutlinedButton(onClick = import) { Text("Datei einspielen …") }
+                    OutlinedButton(onClick = import) { Text(tr("Datei einspielen …")) }
                     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
                     recommended.forEach { m ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(m.file, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                            TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(m.url)) }) { Text("Adresse kopieren") }
+                            TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(m.url)) }) { Text(tr("Adresse kopieren")) }
                         }
                     }
                 }
             }
             if (state.running != null) {
-                TextButton(onClick = { scope.launch { local.stop() } }) { Text("Laufendes Modell beenden (Speicher freigeben)") }
+                TextButton(onClick = { scope.launch { local.stop() } }) { Text(tr("Laufendes Modell beenden (Speicher freigeben)")) }
             }
         }
     }
@@ -155,32 +155,32 @@ private fun HardwareCard(hw: Hardware?, state: LocalState) {
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
-                Text("Dieses Gerät", style = MaterialTheme.typography.titleSmall)
-                HintText(hw?.describe() ?: "wird geprüft …")
+                Text(tr("Dieses Gerät"), style = MaterialTheme.typography.titleSmall)
+                HintText(hw?.describe() ?: tr("wird geprüft …"))
                 HintText(
                     when {
-                        state.starting != null -> "${state.starting} wird geladen …"
-                        state.running != null -> "Läuft gerade: ${LocalCatalog.get(state.running)?.name}"
-                        hw?.vramGb ?: 0.0 >= 4 -> "Die Grafikkarte rechnet mit – auch größere Modelle laufen flüssig."
-                        hw?.phone == true -> "Das Handy rechnet mit dem Prozessor; kleine Modelle laufen flüssig."
-                        else -> "Ohne Grafikkarte rechnet der Prozessor – kleine und mittlere Modelle laufen gut."
+                        state.starting != null -> tr("{0} wird geladen …", state.starting)
+                        state.running != null -> tr("Läuft gerade: {0}", LocalCatalog.get(state.running)?.name)
+                        hw?.vramGb ?: 0.0 >= 4 -> tr("Die Grafikkarte rechnet mit – auch größere Modelle laufen flüssig.")
+                        hw?.phone == true -> tr("Das Handy rechnet mit dem Prozessor; kleine Modelle laufen flüssig.")
+                        else -> tr("Ohne Grafikkarte rechnet der Prozessor – kleine und mittlere Modelle laufen gut.")
                     },
                 )
             }
         }
         if (hw?.limited == true) {
             HintText(
-                "Die genaue Prüfung (Grafikkarte, Arbeitsspeicher) ist auf diesem PC gesperrt – vermutlich durch IT-Richtlinien. " +
-                    "Die Empfehlungen beruhen deshalb auf den Grundangaben und sind eher vorsichtig; installieren lassen sich alle Modelle trotzdem.",
+                tr("Die genaue Prüfung (Grafikkarte, Arbeitsspeicher) ist auf diesem PC gesperrt – vermutlich durch IT-Richtlinien. " +
+                    "Die Empfehlungen beruhen deshalb auf den Grundangaben und sind eher vorsichtig; installieren lassen sich alle Modelle trotzdem."),
                 Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
             )
         }
         if (state.runtime == RuntimeStatus.UNSUPPORTED) {
-            HintText("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM und Windows-PCs).", Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
+            HintText(tr("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM und Windows-PCs)."), Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
         }
         state.runtimeProgress?.let { p ->
             Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
-                HintText("Programm für lokale Modelle wird eingerichtet … ${(p * 100).toInt()} %")
+                HintText(tr("Programm für lokale Modelle wird eingerichtet … {0} %", (p * 100).toInt()))
                 LinearProgressIndicator(progress = { p.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
             }
         }
@@ -198,38 +198,38 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(m.name, style = MaterialTheme.typography.titleSmall)
                     when {
-                        installed -> StatusPill("installiert", PillTone.SUCCESS)
+                        installed -> StatusPill(tr("installiert"), PillTone.SUCCESS)
                         fit == Fit.RECOMMENDED -> StatusPill(fit.label)
                         fit == Fit.TOO_BIG -> StatusPill(fit.label, PillTone.DANGER)
                         fit == Fit.SLOW -> StatusPill(fit.label, PillTone.WARNING)
                         else -> StatusPill(fit.label, PillTone.NEUTRAL)
                     }
                 }
-                HintText(m.description + " · " + formatBytes(m.size) + " · braucht ca. ${m.needGb.toInt()} GB Speicher")
+                HintText(m.description + " · " + formatBytes(m.size) + tr(" · braucht ca. {0} GB Speicher", m.needGb.toInt()))
             }
             when {
                 installed -> {
-                    IconButton(onClick = { onTry(m.modelId) }) { Icon(Icons.Outlined.PlayArrow, contentDescription = "Im Chat ausprobieren", tint = MaterialTheme.colorScheme.primary) }
-                    IconButton(onClick = { local.delete(m.id) }) { Icon(Icons.Outlined.Delete, contentDescription = "Löschen", tint = MaterialTheme.colorScheme.error) }
+                    IconButton(onClick = { onTry(m.modelId) }) { Icon(Icons.Outlined.PlayArrow, contentDescription = tr("Im Chat ausprobieren"), tint = MaterialTheme.colorScheme.primary) }
+                    IconButton(onClick = { local.delete(m.id) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), tint = MaterialTheme.colorScheme.error) }
                 }
-                progress != null -> TextButton(onClick = { local.cancelInstall(m.id) }) { Text("Stopp") }
+                progress != null -> TextButton(onClick = { local.cancelInstall(m.id) }) { Text(tr("Stopp")) }
                 else -> {
                     val enabled = fit != Fit.TOO_BIG && state.runtime != RuntimeStatus.UNSUPPORTED
                     if (fit == Fit.RECOMMENDED) {
                         Button(enabled = enabled, onClick = { local.install(m.id) }) {
                             Icon(Icons.Outlined.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Installieren")
+                            Text(tr("Installieren"))
                         }
                     } else {
-                        OutlinedButton(enabled = enabled, onClick = { local.install(m.id) }) { Text("Installieren") }
+                        OutlinedButton(enabled = enabled, onClick = { local.install(m.id) }) { Text(tr("Installieren")) }
                     }
                 }
             }
         }
         progress?.let { p ->
             LinearProgressIndicator(progress = { p.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
-            HintText("${(p * 100).toInt()} % von ${formatBytes(m.size)}")
+            HintText(tr("{0} % von {1}", (p * 100).toInt(), formatBytes(m.size)))
         }
     }
 }

@@ -160,9 +160,9 @@ object PdfWork {
 }
 
 private enum class PdfMode(val label: String) {
-    VIEW("Ansehen"), PAGES("Seiten"), MARK("Markieren"), SIGN("Unterschreiben"), FORM("Formular"), CONVERT("Umwandeln"), AI("KI"),
+    VIEW(trLater("Ansehen")), PAGES(trLater("Seiten")), MARK(trLater("Markieren")), SIGN(trLater("Unterschreiben")), FORM(trLater("Formular")), CONVERT(trLater("Umwandeln")), AI("KI"),
     // AP-26: Schwärzen, ändern, verkleinern, PDF/A, Passwort, Metadaten, PDF/UA, vergleichen.
-    EDIT("Schwärzen & mehr"),
+    EDIT(trLater("Schwärzen & mehr")),
 }
 
 /** Runs a change of the PDF: the result becomes a new version, the old one stays for „Rückgängig“. */
@@ -666,10 +666,10 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
     HintText(
         tr(
             when (tool) {
-                PdfMarkKind.INK -> "Mit dem Finger oder der Maus zeichnen."
-                PdfMarkKind.NOTE -> "Auf die Stelle tippen, an der die Notiz stehen soll."
-                PdfMarkKind.STAMP -> "Auf die Stelle tippen, an der der Stempel stehen soll."
-                else -> "Über den Text ziehen, der markiert werden soll."
+                PdfMarkKind.INK -> tr("Mit dem Finger oder der Maus zeichnen.")
+                PdfMarkKind.NOTE -> tr("Auf die Stelle tippen, an der die Notiz stehen soll.")
+                PdfMarkKind.STAMP -> tr("Auf die Stelle tippen, an der der Stempel stehen soll.")
+                else -> tr("Über den Text ziehen, der markiert werden soll.")
             },
         ),
         Modifier.padding(horizontal = 16.dp, vertical = 4.dp),

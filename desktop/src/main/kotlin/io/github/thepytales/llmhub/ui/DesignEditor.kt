@@ -231,15 +231,15 @@ private fun EditorTopBar(c: AppContainer, state: DesignEditorState, onClose: () 
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
         )
-        IconButton(onClick = state::undo, enabled = state.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig") + " (Strg+Z)") }
-        IconButton(onClick = state::redo, enabled = state.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen") + " (Strg+Y)") }
+        IconButton(onClick = state::undo, enabled = state.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig" + " (Strg+Z)")) }
+        IconButton(onClick = state::redo, enabled = state.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen" + " (Strg+Y)")) }
         IconButton(onClick = { state.zoom = (state.zoom / 1.25f).coerceAtLeast(0.25f) }) { Icon(Icons.Outlined.ZoomOut, contentDescription = tr("Verkleinern")) }
         TextButton(onClick = { state.zoom = 1f; state.pan = Offset.Zero }) { Text("${(state.zoom * 100).toInt()} %") }
         IconButton(onClick = { state.zoom = (state.zoom * 1.25f).coerceAtMost(8f) }) { Icon(Icons.Outlined.ZoomIn, contentDescription = tr("Vergrößern")) }
         Spacer(Modifier.size(8.dp))
         OutlinedButton(onClick = {
             ChatHandoff.pending.value = ChatHandoff.Content(
-                tr("Ändere das Design „${d.title}“ (${DesignTools.ID_LABEL} ${d.id}): "), emptyList(),
+                tr("Ändere das Design „{0}“ ({1} {2}): ", d.title, DesignTools.ID_LABEL, d.id), emptyList(),
                 mode = ChatModes.DESIGN.id.takeIf { d.chatId == null || c.chats.conversations.value.none { it.id == d.chatId } },
                 chatId = d.chatId?.takeIf { cid -> c.chats.conversations.value.any { it.id == cid } },
             )
@@ -256,11 +256,11 @@ private fun EditorTopBar(c: AppContainer, state: DesignEditorState, onClose: () 
             DropdownMenu(expanded = exportMenu, onDismissRequest = { exportMenu = false }) {
                 val many = d.pages.size > 1
                 DropdownMenuItem(
-                    text = { Text(if (d.screen) "PNG (${DesignFormat.byId(d.format)?.sizeLabel})" else "PNG (150 dpi)") },
+                    text = { Text(if (d.screen) tr("PNG ({0})", DesignFormat.byId(d.format)?.sizeLabel) else tr("PNG (150 dpi)")) },
                     onClick = { export("PNG …", if (many) "zip" else "png") { f -> DesignExport.writePng(state.design, f, DesignExport.pngScale(state.design)) } },
                 )
                 DropdownMenuItem(
-                    text = { Text(if (d.screen) tr("PNG doppelte Auflösung") else "PNG (300 dpi)") },
+                    text = { Text(if (d.screen) tr("PNG doppelte Auflösung") else tr("PNG (300 dpi)")) },
                     onClick = { export("PNG …", if (many) "zip" else "png") { f -> DesignExport.writePng(state.design, f, DesignExport.pngScale(state.design, dpi = 300, factor = 2)) } },
                 )
                 DropdownMenuItem(text = { Text(tr("PDF (Druck)")) }, onClick = { export("PDF …", "pdf") { f -> DesignExport.writePdf(state.design, f); f } })
@@ -772,7 +772,7 @@ private fun PropertiesPanel(c: AppContainer, state: DesignEditorState) {
         when {
             sel.isEmpty() -> PageProperties(state)
             e == null -> {
-                Text(tr("${sel.size} Elemente ausgewählt"), style = MaterialTheme.typography.titleSmall)
+                Text(tr("{0} Elemente ausgewählt", sel.size), style = MaterialTheme.typography.titleSmall)
                 AlignButtons(state, many = true)
                 LayerButtons(state)
             }
@@ -1075,7 +1075,7 @@ private fun ColorField(label: String, value: String, allowNone: Boolean, onPick:
         OutlinedTextField(
             value = own,
             onValueChange = { t -> own = t; DesignBrand.color(t)?.let(onPick) },
-            placeholder = { Text("#RRGGBB") }, singleLine = true, modifier = Modifier.width(140.dp),
+            placeholder = { Text(tr("#RRGGBB")) }, singleLine = true, modifier = Modifier.width(140.dp),
             textStyle = MaterialTheme.typography.bodySmall,
         )
     }

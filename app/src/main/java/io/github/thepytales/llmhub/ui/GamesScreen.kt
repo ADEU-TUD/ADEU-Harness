@@ -133,7 +133,7 @@ private fun GameRow(c: AppContainer, g: LearningGame) {
                 Column(Modifier.weight(1f)) {
                     Text(g.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(
-                        listOfNotNull(g.kind.ifBlank { null }, "Version ${g.versions}", DATE.format(Date(g.updatedAt))).joinToString(" · "),
+                        listOfNotNull(g.kind.ifBlank { null }, tr("Version {0}", g.versions), DATE.format(Date(g.updatedAt))).joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -143,7 +143,7 @@ private fun GameRow(c: AppContainer, g: LearningGame) {
                 Button(onClick = { play = g.versions }) { Icon(Icons.Outlined.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Spielen")) }
                 GameExportButtons(c, g)
                 OutlinedButton(onClick = {
-                    newGameChat(tr("Ändere das Lernspiel „${g.title}“ (${GameTools.ID_LABEL} ${g.id}): "), g.chatId?.takeIf { id -> c.chats.conversations.value.any { it.id == id } })
+                    newGameChat(tr("Ändere das Lernspiel „{0}“ ({1} {2}): ", g.title, GameTools.ID_LABEL, g.id), g.chatId?.takeIf { id -> c.chats.conversations.value.any { it.id == id } })
                 }) { Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Im Chat ändern")) }
                 if (g.versions > 1) Box {
                     TextButton(onClick = { versions = true }) { Icon(Icons.Outlined.History, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Versionen")) }
@@ -169,7 +169,7 @@ private fun GameRow(c: AppContainer, g: LearningGame) {
     }
     play?.let { v -> GamePlayer(c, g, v) { play = null } }
     if (confirmDelete) {
-        ConfirmDialog("Lernspiel löschen?", "„${g.title}“ mit allen Versionen wird gelöscht.", "Löschen", onConfirm = { c.games.delete(g.id) }, onDismiss = { confirmDelete = false })
+        ConfirmDialog(tr("Lernspiel löschen?"), tr("„{0}“ mit allen Versionen wird gelöscht.", g.title), tr("Löschen"), onConfirm = { c.games.delete(g.id) }, onDismiss = { confirmDelete = false })
     }
 }
 
@@ -208,7 +208,7 @@ internal fun GameCard(id: String) {
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(g.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(listOfNotNull(g.kind.ifBlank { null }, "Version ${g.versions}", tr("in der Sammlung Lernspiele")).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(listOfNotNull(g.kind.ifBlank { null }, tr("Version {0}", g.versions), tr("in der Sammlung Lernspiele")).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -267,11 +267,11 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
 private data class MailStart(val label: String, val text: String, val send: Boolean, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 private val MAIL_STARTS = listOf(
-    MailStart("Was ist seit gestern wichtig?", "Was ist seit gestern im Posteingang wichtig?", true, Icons.Outlined.Inbox),
-    MailStart("Posteingang sortieren", "Schau dir die letzten 100 Mails im Posteingang an und schlag mir Ordner und feste Regeln zum Sortieren vor. Noch nichts verschieben.", true, Icons.Outlined.DriveFileMove),
-    MailStart("Fristen und Termine aus Mails", "Finde in den Mails der letzten 7 Tage Fristen und Termine und schlag vor, was ich als Termin oder Aufgabe übernehmen soll.", true, Icons.Outlined.TaskAlt),
-    MailStart("Antwort entwerfen …", "Entwirf eine Antwort auf die Mail von ", false, Icons.Outlined.EditNote),
-    MailStart("Freie Zeit finden …", "Finde einen gemeinsamen Termin (60 Minuten) in den nächsten zwei Wochen mit ", false, Icons.Outlined.EventAvailable),
+    MailStart(trLater("Was ist seit gestern wichtig?"), trLater("Was ist seit gestern im Posteingang wichtig?"), true, Icons.Outlined.Inbox),
+    MailStart(trLater("Posteingang sortieren"), trLater("Schau dir die letzten 100 Mails im Posteingang an und schlag mir Ordner und feste Regeln zum Sortieren vor. Noch nichts verschieben."), true, Icons.Outlined.DriveFileMove),
+    MailStart(trLater("Fristen und Termine aus Mails"), trLater("Finde in den Mails der letzten 7 Tage Fristen und Termine und schlag vor, was ich als Termin oder Aufgabe übernehmen soll."), true, Icons.Outlined.TaskAlt),
+    MailStart(trLater("Antwort entwerfen …"), trLater("Entwirf eine Antwort auf die Mail von "), false, Icons.Outlined.EditNote),
+    MailStart(trLater("Freie Zeit finden …"), trLater("Finde einen gemeinsamen Termin (60 Minuten) in den nächsten zwei Wochen mit "), false, Icons.Outlined.EventAvailable),
 )
 
 @Composable

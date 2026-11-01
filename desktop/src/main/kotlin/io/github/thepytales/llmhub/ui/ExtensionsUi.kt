@@ -114,7 +114,7 @@ fun ExtensionSetupCard(c: AppContainer, def: Extensions.Def, onContinue: () -> U
     LaunchedEffect(state) { if (state is Extensions.State.Installed) onContinue() }
     Surface(shape = MaterialTheme.shapes.large, color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.widthIn(max = 560.dp)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(def.name + " " + tr("einrichten") + " · " + tr("ca.") + " ${def.estimateMb} MB", style = MaterialTheme.typography.titleMedium)
+            Text(def.name + " " + tr("einrichten") + " · " + tr("ca.") + tr(" {0} MB", def.estimateMb), style = MaterialTheme.typography.titleMedium)
             HintText(def.description)
             HintText(tr("Einmalig, aus derselben Quelle wie die Updates; später unter Einstellungen › Werkzeuge › Erweiterungen wieder zu entfernen."))
             when (state) {

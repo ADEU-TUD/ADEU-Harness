@@ -60,10 +60,10 @@ fun ConnectionsSettings(c: AppContainer) {
 /** Subtitle of „Verbindungen“ in the settings overview. */
 internal fun connectionsSummary(c: AppContainer): String {
     val parts = listOfNotNull(
-        if (c.settings.current.hasNextcloud) "Nextcloud verbunden" else null,
-        c.mcpServers.current.count { it.enabled }.takeIf { it > 0 }?.let { "$it MCP-Server" },
+        if (c.settings.current.hasNextcloud) tr("Nextcloud verbunden") else null,
+        c.mcpServers.current.count { it.enabled }.takeIf { it > 0 }?.let { tr("{0} MCP-Server", it) },
     )
-    return parts.joinToString(" · ").ifEmpty { "Nextcloud, MCP-Server (fremde Werkzeuge)" }
+    return parts.joinToString(" · ").ifEmpty { tr("Nextcloud, MCP-Server (fremde Werkzeuge)") }
 }
 
 /**
@@ -86,7 +86,7 @@ private fun MailServerSection(c: AppContainer) {
             tr("Für Mail & Kalender ohne das klassische Outlook – mit dem neuen Outlook, einem anderen Mailprogramm oder auf dem Handy: Lora liest Postfach und Ordner über IMAP, sortiert und speichert Antworten als Entwurf in „Entwürfe“. Sie löscht nie und sendet nie; Kalender und Aufgaben gehen auf diesem Weg nicht (dafür braucht es Exchange mit Freigabe der IT).") +
                 " " + tr("Die Zugangsdaten der TU Dresden stehen in der Anleitung des ZIH zu Exchange/IMAP.")
         )
-        OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text("z. B. imap.example.org") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text(tr("z. B. imap.example.org")) }, modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = port, onValueChange = { v -> port = v.filter(Char::isDigit).take(5) }, singleLine = true, label = { Text(tr("Port")) },
                 supportingText = { Text(tr("993 = TLS, 143 = STARTTLS")) }, modifier = Modifier.weight(1f))
@@ -278,7 +278,7 @@ private fun McpServerDialog(c: AppContainer, existing: McpServer?, onDismiss: ()
                 if (local) {
                     OutlinedTextField(
                         value = command, onValueChange = { command = it }, label = { Text(tr("Befehl")) },
-                        supportingText = { Text(tr("z. B.") + " npx -y @modelcontextprotocol/server-filesystem \"C:\\Daten\"") },
+                        supportingText = { Text(tr("z. B." + " npx -y @modelcontextprotocol/server-filesystem \"C:\\Daten\"")) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     OutlinedTextField(

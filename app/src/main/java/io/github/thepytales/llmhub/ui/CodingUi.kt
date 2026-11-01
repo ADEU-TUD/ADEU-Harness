@@ -96,11 +96,11 @@ fun CodePickerDialog(segment: Segment, coding: TranscriptCoding, codebook: Codeb
     val mine = coding.at(segment, coder).map { it.codeId }.toSet()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Codieren") },
+        title = { Text(tr("Codieren")) },
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("„${segment.text.trim().take(220)}“", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                HintText("Codierer:in: $coder")
+                HintText(tr("Codierer:in: {0}", coder))
                 codebook.codes.forEach { code ->
                     Row(
                         Modifier.fillMaxWidth().clickable { onToggle(code.id) }.padding(start = if (code.parentId != null) 20.dp else 0.dp),
@@ -117,7 +117,7 @@ fun CodePickerDialog(segment: Segment, coding: TranscriptCoding, codebook: Codeb
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Fertig") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Fertig")) } },
     )
 }
 
@@ -146,42 +146,42 @@ fun CodingSheet(
     var retrieval by remember { mutableStateOf<Code?>(null) }
     var compare by remember { mutableStateOf<Intercoder.Result?>(null) }
     var exportKind by remember { mutableStateOf("qdpx") }
-    val export = rememberFileExport(if (exportKind == "qdpx") "application/zip" else "text/csv", onDone = { ok -> if (ok) Notices.info("Exportiert") else Notices.error("Export fehlgeschlagen") }) { out ->
+    val export = rememberFileExport(if (exportKind == "qdpx") "application/zip" else "text/csv", onDone = { ok -> if (ok) Notices.info(tr("Exportiert")) else Notices.error(tr("Export fehlgeschlagen")) }) { out ->
         if (exportKind == "qdpx") RefiQda.write(out, t, coding, book) else out.write(("﻿" + RefiQda.csv(t, coding, book)).toByteArray(Charsets.UTF_8))
     }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Column(Modifier.padding(horizontal = 20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Codieren", style = MaterialTheme.typography.titleLarge)
-            HintText("Manuelles Codieren nach einem Kategoriensystem (z.B. inhaltlich-strukturierende Inhaltsanalyse). Die Codierungen bleiben im Transkript gespeichert.")
+            Text(tr("Codieren"), style = MaterialTheme.typography.titleLarge)
+            HintText(tr("Manuelles Codieren nach einem Kategoriensystem (z.B. inhaltlich-strukturierende Inhaltsanalyse). Die Codierungen bleiben im Transkript gespeichert."))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                     ChoiceField(
-                        "Kategoriensystem", listOf<Pair<String?, String>>(null to "– keins –") + books.map { it.id to "${it.name} (${it.codes.size} Codes)" },
+                        tr("Kategoriensystem"), listOf<Pair<String?, String>>(null to "– keins –") + books.map { it.id to tr("{0} ({1} Codes)", it.name, it.codes.size) },
                         coding.codebookId, { id -> onUpdate(t.withCoding(coding.copy(codebookId = id))) },
                     )
                 }
-                IconButton(onClick = { newBook = true }) { Icon(Icons.Outlined.Add, contentDescription = "Neues Kategoriensystem") }
-                if (book != null) IconButton(onClick = { editBook = book }) { Icon(Icons.Outlined.Edit, contentDescription = "Kategoriensystem bearbeiten") }
+                IconButton(onClick = { newBook = true }) { Icon(Icons.Outlined.Add, contentDescription = tr("Neues Kategoriensystem")) }
+                if (book != null) IconButton(onClick = { editBook = book }) { Icon(Icons.Outlined.Edit, contentDescription = tr("Kategoriensystem bearbeiten")) }
             }
             OutlinedTextField(
                 settings.coderName, { v -> c.settings.update { it.copy(coderName = v) } }, singleLine = true,
-                label = { Text("Codierer:in (Name oder Kürzel)") }, modifier = Modifier.fillMaxWidth(),
+                label = { Text(tr("Codierer:in (Name oder Kürzel)")) }, modifier = Modifier.fillMaxWidth(),
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Codiermodus")
-                    HintText("Tippen auf einen Abschnitt öffnet die Codes statt abzuspielen.")
+                    Text(tr("Codiermodus"))
+                    HintText(tr("Tippen auf einen Abschnitt öffnet die Codes statt abzuspielen."))
                 }
                 Switch(codingMode, { on ->
-                    if (on && book == null) Notices.info("Bitte zuerst ein Kategoriensystem wählen oder anlegen.")
-                    else if (on && settings.coderName.isBlank()) Notices.info("Bitte zuerst den Namen oder das Kürzel der Codierer:in eintragen.")
+                    if (on && book == null) Notices.info(tr("Bitte zuerst ein Kategoriensystem wählen oder anlegen."))
+                    else if (on && settings.coderName.isBlank()) Notices.info(tr("Bitte zuerst den Namen oder das Kürzel der Codierer:in eintragen."))
                     else { onCodingMode(on); if (on) onDismiss() }
                 })
             }
             if (book != null) {
                 HorizontalDivider()
-                Text("Häufigkeiten (${coding.codings.size} Codierungen)", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Häufigkeiten ({0} Codierungen)", coding.codings.size), style = MaterialTheme.typography.titleSmall)
                 book.codes.forEach { code ->
                     val n = coding.codings.count { it.codeId == code.id }
                     Row(Modifier.fillMaxWidth().clickable { retrieval = code }.padding(vertical = 4.dp, horizontal = if (code.parentId != null) 16.dp else 0.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -194,31 +194,31 @@ fun CodingSheet(
                 val coders = coding.coders()
                 if (coders.size >= 2) {
                     HorizontalDivider()
-                    Text("Intercoder-Übereinstimmung", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Intercoder-Übereinstimmung"), style = MaterialTheme.typography.titleSmall)
                     var a by remember { mutableStateOf(coders[0]) }
                     var b by remember { mutableStateOf(coders[1]) }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { coders.forEach { n -> FilterChip(a == n, { a = n }, label = { Text("A: $n") }) } }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { coders.forEach { n -> FilterChip(b == n, { b = n }, label = { Text("B: $n") }) } }
-                    OutlinedButton(enabled = a != b, onClick = { compare = Intercoder.compare(t, coding, book, a, b) }) { Text("Vergleichen") }
+                    OutlinedButton(enabled = a != b, onClick = { compare = Intercoder.compare(t, coding, book, a, b) }) { Text(tr("Vergleichen")) }
                     compare?.let { r ->
                         Text(
-                            "${r.passages} Abschnitte, identisch codiert: ${"%.0f".format(r.exactAgreement * 100)} %" +
-                                (r.meanKappa?.let { " · mittleres Kappa ${"%.2f".format(it)} (${Intercoder.interpret(it)})" } ?: ""),
+                            tr("{0} Abschnitte, identisch codiert: {1} %", r.passages, "%.0f".format(r.exactAgreement * 100)) +
+                                (r.meanKappa?.let { tr(" · mittleres Kappa {0} ({1})", "%.2f".format(it), Intercoder.interpret(it)) } ?: ""),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         r.perCode.forEach { pc ->
-                            HintText("${pc.code.name}: beide ${pc.both}, nur ${r.coderA} ${pc.onlyA}, nur ${r.coderB} ${pc.onlyB} · κ = ${pc.kappa?.let { "%.2f".format(it) } ?: "–"}")
+                            HintText(tr("{0}: beide {1}, nur {2} {3}, nur {4} {5} · κ = {6}", pc.code.name, pc.both, r.coderA, pc.onlyA, r.coderB, pc.onlyB, pc.kappa?.let { "%.2f".format(it) } ?: "–"))
                         }
-                        TextButton(onClick = { clipboard.setText(AnnotatedString(Intercoder.report(r))); Notices.info("Tabelle kopiert") }) { Text("Als Tabelle kopieren") }
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(Intercoder.report(r))); Notices.info(tr("Tabelle kopiert")) }) { Text(tr("Als Tabelle kopieren")) }
                     }
                 }
                 HorizontalDivider()
-                Text("Export", style = MaterialTheme.typography.titleSmall)
+                Text(tr("Export"), style = MaterialTheme.typography.titleSmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { exportKind = "qdpx"; export(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(t.title) + ".qdpx") }) { Text("REFI-QDA (.qdpx)") }
-                    OutlinedButton(onClick = { exportKind = "csv"; export(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(t.title) + " – Codierungen.csv") }) { Text("Tabelle (CSV)") }
+                    OutlinedButton(onClick = { exportKind = "qdpx"; export(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(t.title) + ".qdpx") }) { Text(tr("REFI-QDA (.qdpx)")) }
+                    OutlinedButton(onClick = { exportKind = "csv"; export(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(t.title) + " – Codierungen.csv") }) { Text(tr("Tabelle (CSV)")) }
                 }
-                HintText("REFI-QDA öffnen MAXQDA, ATLAS.ti, NVivo und QDA Miner – mit Kategoriensystem, Codierungen je Codierer:in und Kommentaren.")
+                HintText(tr("REFI-QDA öffnen MAXQDA, ATLAS.ti, NVivo und QDA Miner – mit Kategoriensystem, Codierungen je Codierer:in und Kommentaren."))
             }
             Spacer(Modifier.size(24.dp))
         }
@@ -228,14 +228,14 @@ fun CodingSheet(
         var text by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { newBook = false },
-            title = { Text("Neues Kategoriensystem") },
+            title = { Text(tr("Neues Kategoriensystem")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(name, { name = it }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(
                         text, { text = it }, minLines = 6, maxLines = 14, modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Codes") },
-                        placeholder = { Text("Je Zeile ein Code, optional „Code: Definition“.\nEingerückte Zeilen sind Subcodes.\nAuch die Tabelle der Vorlage „Kategoriensystem“ lässt sich einfügen.") },
+                        label = { Text(tr("Codes")) },
+                        placeholder = { Text(tr("Je Zeile ein Code, optional „Code: Definition“.\nEingerückte Zeilen sind Subcodes.\nAuch die Tabelle der Vorlage „Kategoriensystem“ lässt sich einfügen.")) },
                     )
                 }
             },
@@ -245,23 +245,23 @@ fun CodingSheet(
                     c.codebooks.upsert(cb)
                     onUpdate(t.withCoding(coding.copy(codebookId = cb.id)))
                     newBook = false
-                }) { Text("Anlegen") }
+                }) { Text(tr("Anlegen")) }
             },
-            dismissButton = { TextButton(onClick = { newBook = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { newBook = false }) { Text(tr("Abbrechen")) } },
         )
     }
     editBook?.let { b -> CodebookEditor(b, onSave = { c.codebooks.upsert(it); editBook = null }, onDelete = {
         c.codebooks.delete(b.id); editBook = null
-        Notices.undo("Kategoriensystem gelöscht", restore = { c.codebooks.upsert(b) })
+        Notices.undo(tr("Kategoriensystem gelöscht"), restore = { c.codebooks.upsert(b) })
     }, onDismiss = { editBook = null }) }
     retrieval?.let { code ->
         val segs = t.segments.filter { s -> coding.at(s).any { it.codeId == code.id } }
         AlertDialog(
             onDismissRequest = { retrieval = null },
-            title = { Text("Code „${code.name}“ · ${segs.size} Stellen") },
+            title = { Text(tr("Code „{0}“ · {1} Stellen", code.name, segs.size)) },
             text = {
                 Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (code.description.isNotBlank()) HintText("Definition: ${code.description}")
+                    if (code.description.isNotBlank()) HintText(tr("Definition: {0}", code.description))
                     segs.forEach { s ->
                         Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth().clickable { retrieval = null; onDismiss(); onJump(s) }) {
                             Column(Modifier.padding(10.dp)) {
@@ -275,10 +275,10 @@ fun CodingSheet(
             confirmButton = {
                 TextButton(onClick = {
                     clipboard.setText(AnnotatedString(segs.joinToString("\n\n") { s -> "(${TranscriptExport.clock(s.start)}) " + (if (t.diarized) t.speakerName(s.speaker) + ": " else "") + s.text.trim() }))
-                    Notices.info("Stellen kopiert")
-                }) { Text("Kopieren") }
+                    Notices.info(tr("Stellen kopiert"))
+                }) { Text(tr("Kopieren")) }
             },
-            dismissButton = { TextButton(onClick = { retrieval = null }) { Text("Schließen") } },
+            dismissButton = { TextButton(onClick = { retrieval = null }) { Text(tr("Schließen")) } },
         )
     }
 }
@@ -290,28 +290,28 @@ private fun CodebookEditor(initial: Codebook, onSave: (Codebook) -> Unit, onDele
     var editing by remember { mutableStateOf<Code?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Kategoriensystem") },
+        title = { Text(tr("Kategoriensystem")) },
         text = {
             Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                OutlinedTextField(book.name, { book = book.copy(name = it) }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(book.name, { book = book.copy(name = it) }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 book.codes.forEach { code ->
                     Row(Modifier.fillMaxWidth().clickable { editing = code }.padding(start = if (code.parentId != null) 16.dp else 0.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(12.dp).clip(CircleShape).background(codeColor(code.color)))
                         Spacer(Modifier.width(8.dp))
                         Text(code.name, modifier = Modifier.weight(1f))
                         IconButton(onClick = { book = book.copy(codes = book.codes.filterNot { it.id == code.id || it.parentId == code.id }) }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = "Code löschen")
+                            Icon(Icons.Outlined.Delete, contentDescription = tr("Code löschen"))
                         }
                     }
                 }
-                TextButton(onClick = { editing = Code(name = "", color = Codebook.COLORS[book.codes.size % Codebook.COLORS.size]) }) { Text("+ Code") }
+                TextButton(onClick = { editing = Code(name = "", color = Codebook.COLORS[book.codes.size % Codebook.COLORS.size]) }) { Text(tr("+ Code")) }
             }
         },
-        confirmButton = { TextButton(enabled = book.name.isNotBlank(), onClick = { onSave(book) }) { Text("Speichern") } },
+        confirmButton = { TextButton(enabled = book.name.isNotBlank(), onClick = { onSave(book) }) { Text(tr("Speichern")) } },
         dismissButton = {
             Row {
-                TextButton(onClick = onDelete) { Text("Löschen", color = MaterialTheme.colorScheme.error) }
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                TextButton(onClick = onDelete) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
             }
         },
     )
@@ -319,13 +319,13 @@ private fun CodebookEditor(initial: Codebook, onSave: (Codebook) -> Unit, onDele
         var c by remember(code.id) { mutableStateOf(code) }
         AlertDialog(
             onDismissRequest = { editing = null },
-            title = { Text(if (code.name.isBlank()) "Neuer Code" else "Code bearbeiten") },
+            title = { Text(if (code.name.isBlank()) tr("Neuer Code") else tr("Code bearbeiten")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(c.name, { c = c.copy(name = it) }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(c.description, { c = c.copy(description = it) }, label = { Text("Definition") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(c.example, { c = c.copy(example = it) }, label = { Text("Ankerbeispiel") }, modifier = Modifier.fillMaxWidth())
-                    ChoiceField("Hauptkategorie", listOf<Pair<String?, String>>(null to "– keine (Hauptcode) –") + book.codes.filter { it.id != c.id && it.parentId == null }.map { it.id to it.name }, c.parentId, { c = c.copy(parentId = it) })
+                    OutlinedTextField(c.name, { c = c.copy(name = it) }, label = { Text(tr("Name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(c.description, { c = c.copy(description = it) }, label = { Text(tr("Definition")) }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(c.example, { c = c.copy(example = it) }, label = { Text(tr("Ankerbeispiel")) }, modifier = Modifier.fillMaxWidth())
+                    ChoiceField(tr("Hauptkategorie"), listOf<Pair<String?, String>>(null to tr("– keine (Hauptcode) –")) + book.codes.filter { it.id != c.id && it.parentId == null }.map { it.id to it.name }, c.parentId, { c = c.copy(parentId = it) })
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Codebook.COLORS.forEach { hex ->
                             Box(
@@ -340,9 +340,9 @@ private fun CodebookEditor(initial: Codebook, onSave: (Codebook) -> Unit, onDele
                 TextButton(enabled = c.name.isNotBlank(), onClick = {
                     book = book.copy(codes = if (book.codes.any { it.id == c.id }) book.codes.map { if (it.id == c.id) c else it } else book.codes + c)
                     editing = null
-                }) { Text("Übernehmen") }
+                }) { Text(tr("Übernehmen")) }
             },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -355,14 +355,14 @@ fun TranslateDialog(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     AlertDialog(
         onDismissRequest = { if (progress == null) onDismiss() },
-        title = { Text("Transkript übersetzen") },
+        title = { Text(tr("Transkript übersetzen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                HintText("Ergibt ein neues Transkript mit denselben Zeiten und Sprechern – z.B. für Untertitel (SRT/WebVTT) in einer anderen Sprache. Das Original bleibt.")
-                ChoiceField("Zielsprache", io.github.thepytales.llmhub.transcribe.TranscriptTranslate.LANGUAGES.map { it to it }, language, { language = it }, enabled = progress == null)
+                HintText(tr("Ergibt ein neues Transkript mit denselben Zeiten und Sprechern – z.B. für Untertitel (SRT/WebVTT) in einer anderen Sprache. Das Original bleibt."))
+                ChoiceField(tr("Zielsprache"), io.github.thepytales.llmhub.transcribe.TranscriptTranslate.LANGUAGES.map { it to it }, language, { language = it }, enabled = progress == null)
                 progress?.let { (d, n) ->
                     androidx.compose.material3.LinearProgressIndicator(progress = { if (n == 0) 0f else d.toFloat() / n }, modifier = Modifier.fillMaxWidth())
-                    HintText("$d von $n Abschnitten …")
+                    HintText(tr("{0} von {1} Abschnitten …", d, n))
                 }
             }
         },
@@ -374,11 +374,11 @@ fun TranslateDialog(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
                         val translated = io.github.thepytales.llmhub.transcribe.TranscriptTranslate.translate(c, t, language) { d, n -> progress = d to n }
                         c.transcription.save(translated)
                         translated
-                    }.onSuccess { Notices.info("Übersetzung gespeichert: „${it.title}“ (in der Transkript-Liste)"); onDismiss() }
-                        .onFailure { Notices.error("Übersetzung fehlgeschlagen: ${it.message}"); progress = null }
+                    }.onSuccess { Notices.info(tr("Übersetzung gespeichert: „{0}“ (in der Transkript-Liste)", it.title)); onDismiss() }
+                        .onFailure { Notices.error(tr("Übersetzung fehlgeschlagen: {0}", it.message)); progress = null }
                 }
-            }) { Text("Übersetzen") }
+            }) { Text(tr("Übersetzen")) }
         },
-        dismissButton = { TextButton(enabled = progress == null, onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(enabled = progress == null, onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }

@@ -88,10 +88,10 @@ import java.util.zip.ZipOutputStream
 
 /** Ready-made Aufträge for a plain batch (the text can be changed). */
 private val TASK_PRESETS = listOf(
-    "Zusammenfassen" to "Fasse die Datei in 5–8 Sätzen zusammen: Thema, Ziel, Vorgehen, wichtigste Ergebnisse. Danach drei Stichworte.",
-    "Exzerpt" to "Exzerpiere den Text für eine Literaturarbeit: Fragestellung, theoretischer Rahmen, Methode (Stichprobe, Design), zentrale Ergebnisse, Grenzen, Bedeutung für die Praxis – jeweils mit Seitenangabe (S. x) und 2–4 wörtlichen Kernzitaten.",
-    "Steckbrief" to "Erstelle einen kurzen Steckbrief der Datei als Liste: Titel, Art des Dokuments, Autor:innen bzw. Absender, Datum, Inhalt in einem Satz, offene Punkte oder Fristen.",
-    "Übersetzen" to "Übersetze den Text vollständig ins Englische. Behalte Gliederung, Überschriften und Fachbegriffe bei.",
+    trLater("Zusammenfassen") to trLater("Fasse die Datei in 5–8 Sätzen zusammen: Thema, Ziel, Vorgehen, wichtigste Ergebnisse. Danach drei Stichworte."),
+    trLater("Exzerpt") to trLater("Exzerpiere den Text für eine Literaturarbeit: Fragestellung, theoretischer Rahmen, Methode (Stichprobe, Design), zentrale Ergebnisse, Grenzen, Bedeutung für die Praxis – jeweils mit Seitenangabe (S. x) und 2–4 wörtlichen Kernzitaten."),
+    trLater("Steckbrief") to trLater("Erstelle einen kurzen Steckbrief der Datei als Liste: Titel, Art des Dokuments, Autor:innen bzw. Absender, Datum, Inhalt in einem Satz, offene Punkte oder Fristen."),
+    trLater("Übersetzen") to trLater("Übersetze den Text vollständig ins Englische. Behalte Gliederung, Überschriften und Fachbegriffe bei."),
 )
 
 /**
@@ -146,7 +146,7 @@ fun BatchScreen(c: AppContainer, onBack: () -> Unit) {
 }
 
 private fun stateLabel(j: BatchJob) = when (j.state) {
-    BatchJob.RUNNING -> "läuft"
+    BatchJob.RUNNING -> tr("läuft")
     BatchJob.PAUSED -> "pausiert"
     BatchJob.DONE -> "fertig"
     else -> "bereit"
@@ -498,7 +498,7 @@ private fun SourcesPicker(c: AppContainer, sources: MutableList<BatchStore.Sourc
         Spacer(Modifier.size(8.dp))
         Text(tr("Dateien werden gelesen …"), style = MaterialTheme.typography.bodySmall)
     }
-    if (nextcloud) NextcloudBrowser(c, "Dateien aus Nextcloud", confirm = "Übernehmen", onDismiss = { nextcloud = false }, onFiles = { picked ->
+    if (nextcloud) NextcloudBrowser(c, tr("Dateien aus Nextcloud"), confirm = tr("Übernehmen"), onDismiss = { nextcloud = false }, onFiles = { picked ->
         nextcloud = false
         scope.launch {
             busy++
@@ -612,7 +612,7 @@ private fun NewBatchDialog(c: AppContainer, startKind: String, onDismiss: () -> 
     val models by c.models.state.collectAsStateWithLifecycle()
     var kind by remember { mutableStateOf(startKind) }
     var title by remember { mutableStateOf("") }
-    var instruction by remember { mutableStateOf(TASK_PRESETS.first().second) }
+    var instruction by remember { mutableStateOf(tr(TASK_PRESETS.first().second)) }
     var hints by remember { mutableStateOf("") }
     var rubricText by remember { mutableStateOf(BatchGrading.DEFAULT_RUBRIC.joinToString("\n") { "${it.name}; ${BatchGrading.fmt(it.max)}; ${it.description}" }) }
     var model by remember { mutableStateOf(s.defaultModel) }
@@ -641,7 +641,7 @@ private fun NewBatchDialog(c: AppContainer, startKind: String, onDismiss: () -> 
                 if (!grading) {
                     GroupLabel(tr("Auftrag für jede Datei"))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        TASK_PRESETS.forEach { (label, text) -> FilterChip(selected = instruction == text, onClick = { instruction = text }, label = { Text(tr(label)) }) }
+                        TASK_PRESETS.forEach { (label, text) -> FilterChip(selected = instruction == tr(text), onClick = { instruction = tr(text) }, label = { Text(tr(label)) }) }
                     }
                     OutlinedTextField(value = instruction, onValueChange = { instruction = it }, minLines = 3, modifier = Modifier.fillMaxWidth())
                 } else {
@@ -671,7 +671,7 @@ private fun NewBatchDialog(c: AppContainer, startKind: String, onDismiss: () -> 
             Button(enabled = sources.isNotEmpty() && (if (grading) rubric.isNotEmpty() else instruction.isNotBlank()), onClick = {
                 val job = c.batches.create(
                     BatchJob(
-                        title = title.ifBlank { (if (grading) "Massenkontrolle " else "Stapel ") + java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date()) },
+                        title = title.ifBlank { (if (grading) tr("Massenkontrolle ") else tr("Stapel ")) + java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date()) },
                         kind = kind, instruction = if (grading) hints else instruction, model = model,
                         pseudonymize = pseudonymize, uniOnly = uniOnly, night = night, rubric = if (grading) rubric else emptyList(),
                     ),

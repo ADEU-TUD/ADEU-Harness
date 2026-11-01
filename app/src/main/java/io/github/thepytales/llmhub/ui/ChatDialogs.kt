@@ -76,7 +76,7 @@ fun TextInputDialog(
             OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(label) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         },
         confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = { onConfirm(text.trim()); onDismiss() }) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -87,7 +87,7 @@ fun ConfirmDialog(title: String, text: String?, confirm: String, onConfirm: () -
         title = { Text(title) },
         text = text?.let { { Text(it) } },
         confirmButton = { TextButton(onClick = { onConfirm(); onDismiss() }) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -98,14 +98,14 @@ fun FolderPickerDialog(c: AppContainer, current: String?, onPick: (String?) -> U
     var creating by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("In Projekt verschieben") },
+        title = { Text(tr("In Projekt verschieben")) },
         text = {
             Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
                 ListItem(
                     colors = transparentItem(),
                     modifier = Modifier.clickable { onPick(null); onDismiss() },
                     leadingContent = { Icon(Icons.Outlined.FolderOff, contentDescription = null) },
-                    headlineContent = { Text("Kein Projekt") },
+                    headlineContent = { Text(tr("Kein Projekt")) },
                     trailingContent = { if (current == null) Icon(Icons.Outlined.Check, contentDescription = null) },
                 )
                 folders.sortedBy { it.name.lowercase() }.forEach { f ->
@@ -121,11 +121,11 @@ fun FolderPickerDialog(c: AppContainer, current: String?, onPick: (String?) -> U
                     colors = transparentItem(),
                     modifier = Modifier.clickable { creating = true },
                     leadingContent = { Icon(Icons.Outlined.CreateNewFolder, contentDescription = null) },
-                    headlineContent = { Text("Neues Projekt …") },
+                    headlineContent = { Text(tr("Neues Projekt …")) },
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
     if (creating) {
         ProjectDialog(c, null, onDismiss = { creating = false }, onCreated = { folder ->
@@ -150,7 +150,7 @@ fun SystemPromptDialog(
     var persona by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Persona / System-Prompt") },
+        title = { Text(tr("Persona / System-Prompt")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val personas = templates.filter { it.kind == TemplateKind.PERSONA }
@@ -170,16 +170,16 @@ fun SystemPromptDialog(
                     onValueChange = { text = it; persona = null },
                     minLines = 4,
                     maxLines = 10,
-                    placeholder = { Text("z.B. Antworte immer kurz und auf Deutsch.") },
+                    placeholder = { Text(tr("z.B. Antworte immer kurz und auf Deutsch.")) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(text, persona ?: templates.firstOrNull { it.content == text }?.name); onDismiss() }) { Text("Speichern") } },
+        confirmButton = { TextButton(onClick = { onSave(text, persona ?: templates.firstOrNull { it.content == text }?.name); onDismiss() }) { Text(tr("Speichern")) } },
         dismissButton = {
             Row {
-                if (!current.isNullOrBlank()) TextButton(onClick = { onSave("", null); onDismiss() }) { Text("Entfernen") }
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                if (!current.isNullOrBlank()) TextButton(onClick = { onSave("", null); onDismiss() }) { Text(tr("Entfernen")) }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
             }
         },
     )
@@ -191,18 +191,18 @@ fun EnvironmentPickerDialog(c: AppContainer, current: String?, onPick: (String?)
     val envs by c.environments.items.collectAsStateWithLifecycle()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Umgebung") },
+        title = { Text(tr("Umgebung")) },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 Text(
-                    "Umgebungen enthalten Variablen (z.B. API-Keys) und Regeln für den Internetzugriff des Agenten.",
+                    tr("Umgebungen enthalten Variablen (z.B. API-Keys) und Regeln für den Internetzugriff des Agenten."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 ListItem(
                     colors = transparentItem(),
                     modifier = Modifier.clickable { onPick(null); onDismiss() },
-                    headlineContent = { Text("Keine") },
+                    headlineContent = { Text(tr("Keine")) },
                     trailingContent = { if (current == null) Icon(Icons.Outlined.Check, contentDescription = null) },
                 )
                 envs.forEach { e ->
@@ -216,14 +216,14 @@ fun EnvironmentPickerDialog(c: AppContainer, current: String?, onPick: (String?)
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onDismiss(); onManage() }) { Text("Verwalten") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = { onDismiss(); onManage() }) { Text(tr("Verwalten")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
     )
 }
 
 fun envSummary(e: AgentEnvironment): String = listOf(
-    "Internet: ${e.network.label}",
-    if (e.variables.isEmpty()) "keine Variablen" else "${e.variables.size} Variable${if (e.variables.size == 1) "" else "n"}",
+    tr("Internet: {0}", tr(e.network.label)),
+    when (e.variables.size) { 0 -> tr("keine Variablen"); 1 -> tr("1 Variable"); else -> tr("{0} Variablen", e.variables.size) },
 ).joinToString(" · ")
 
 /** Picks a template: prompts are filled in and go into the input field, personas become the system prompt. */
@@ -234,7 +234,7 @@ fun TemplatePickerSheet(c: AppContainer, onPick: (Template) -> Unit, onManage: (
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(tr("TU Vorlagen"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            TextButton(onClick = { onDismiss(); onManage() }) { Text("Verwalten") }
+            TextButton(onClick = { onDismiss(); onManage() }) { Text(tr("Verwalten")) }
         }
         TemplateBrowser(
             c,

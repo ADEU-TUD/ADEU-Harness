@@ -255,7 +255,7 @@ private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope,
             val reply = runCatching { agent.ask(wish, history, LoraHelper.folderId, IS_ANDROID) { LoraHelper.partial = it } }
                 .getOrElse { e ->
                     if (e is kotlinx.coroutines.CancellationException) throw e
-                    LoraReply("Das hat nicht geklappt – versuch es bitte noch einmal.")
+                    LoraReply(tr("Das hat nicht geklappt – versuch es bitte noch einmal."))
                 }
             turn.reply = reply
             LoraHelper.mood = moodFor(reply)
@@ -267,7 +267,7 @@ private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope,
                 if (first !is LoraStep.Navigate || !LoraLayout.docked) LoraHelper.close()
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
-            if (turn.reply == null) turn.reply = LoraReply("Gut, ich höre auf.")
+            if (turn.reply == null) turn.reply = LoraReply(tr("Gut, ich höre auf."))
         } finally {
             LoraHelper.busy = false
             LoraHelper.partial = ""
@@ -456,7 +456,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
         // A fixed place: Lora answers at once, without searching.
         val step = if (target.kind == MapKind.MODE || target.kind == MapKind.TEMPLATE) LoraStep.OpenMode(target) else LoraStep.Navigate(target)
         val turn = LoraTurn(sg.label).apply {
-            reply = LoraReply(if (step is LoraStep.OpenMode) "Ich öffne „${target.title}“." else "Hier ist es: ${target.path}.", listOf(step))
+            reply = LoraReply(if (step is LoraStep.OpenMode) tr("Ich öffne „{0}“.", target.title) else tr("Hier ist es: {0}.", target.path), listOf(step))
             state[0] = "done"
         }
         LoraHelper.turns += turn
@@ -1048,7 +1048,7 @@ private fun LoraIntroDialog(c: AppContainer) {
 }
 
 /** Where Lora appears (Einstellungen › Lora, first start). */
-val LORA_MODES = listOf("EVERYWHERE" to "Überall", "CHAT" to "Nur im Chat", "OFF" to "Aus")
+val LORA_MODES = listOf("EVERYWHERE" to trLater("Überall"), "CHAT" to trLater("Nur im Chat"), "OFF" to trLater("Aus"))
 
 /**
  * Einstellungen › Lora (AP-07, AP-33–35): where Lora appears, her model, how she hands over and helps in the chat,

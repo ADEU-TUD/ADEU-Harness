@@ -1,0 +1,307 @@
+# English texts of the interface (AP-29). One line per text: German source text, a tab, the English text.
+# Line breaks are written as \n, tabs as \t, backslashes as \\. {0}, {1} … are placeholders filled by tr(text, args).
+# Sorted alphabetically; UiChecksTest checks that every tr("…") in the code has a line here.
+1 Arbeitsschritt	1 step
+1 neue Angabe für das Gedächtnis	1 new detail for the memory
+Abbrechen	Cancel
+Abgabe-Check	Submission check
+abgelaufen am	expired on
+Achtung	Caution
+Aktionen	Actions
+Aktuelle Literatur zu einem Thema	Recent literature on a topic
+Alle TU Vorlagen ansehen	Browse all TU templates
+Alle verwalten	Manage all
+Alle Vorlagen ansehen	Browse all templates
+Alle Vorlagen ›	All templates ›
+Alles Gesagte steht danach auch im Chat.	Everything said also appears in the chat.
+Andere Idee	Another idea
+Anderes Modell verwenden?	Use another model?
+Angeheftet	Pinned
+Animierte Figur: der Agent arbeitet	Animated figure: the agent is working
+Ansehen	View
+Antrags-Werkstatt	Proposal workshop
+Anträge	Proposals
+Antwort nur mit Belegen (Quellenmodus)	Answer with evidence only (sources mode)
+Antwort wird vorgelesen …	Reading the answer aloud …
+Antworten	Answer
+Antworten …	Reply …
+Anzeigen	Show
+API-Zugang	API access
+Arbeitet an der Antwort	Working on the answer
+Arbeitet an der Antwort …	Working on the answer …
+Arbeitspakete	Work packages
+Arbeitsschritte	steps
+Arbeitsspeicher	Memory usage
+Archiv	Archive
+Assistent	Assistant
+auch ersetzen	replace too
+Aus	Off
+Aus Nextcloud anhängen	Attach from Nextcloud
+Aus Nextcloud holen …	Get from Nextcloud …
+Ausblenden	Hide
+Aussagen ohne Beleg	Statements without evidence
+Automatisch	Automatic
+Bearbeiten	Edit
+Beenden	End
+Befehle im Eingabefeld	Commands in the input field
+Befehlspalette: Bereiche, Einstellungen, Chats	Command palette: areas, settings, chats
+Beispiel zum Antippen	Example to tap
+Belegprotokoll	Evidence log
+Belegprotokoll exportieren	Export evidence log
+Bereich	Area
+Bereich, Einstellung oder Chat suchen …	Search areas, settings or chats …
+Bereiche	Areas
+Bereitet die Antwort vor …	Preparing the answer …
+besser	fits better
+Bilder erzeugen	Create images
+Budget	Budget
+Chat & Werkzeuge	Chat & tools
+Chats	Chats
+Checkliste	Checklist
+Damit die KI Sie kennt	So the AI knows you
+Darstellung	Appearance
+Dateien	Files
+Dateien auswerten	Analyse files
+Dateien, Literatur und Dokumente erwähnen	Mention files, literature and documents
+Daten	Data
+Daten:	Data:
+Datenschutz	Privacy
+dazugelernt	learned
+Denkt nach …	Thinking …
+Diagramm aus Daten	Chart from data
+Die App schlägt je Anfrage das passende Modell vor und fragt vorher nach.	The app suggests the fitting model for each request and asks first.
+Diese Übersicht	This overview
+Dokument entwerfen	Draft a document
+Dokument erstellen	Create a document
+Dokumente	Documents
+Dokumente & Darstellung	Documents & appearance
+Dokumente & Logos	Documents & logos
+Dokumente vergleichen	Compare documents
+Drehen	Rotate
+Drei kurze Angaben genügen – das Modell kennt sie dann in jedem Chat. Alles lässt sich später ändern.	Three short answers are enough – the model then knows them in every chat. You can change everything later.
+Drei kurze Fragen – dann müssen Sie nichts mehr dazuschreiben.	Three short questions – then you never have to explain again.
+E-Mail formulieren	Draft an email
+Eingestellt ist gerade	Currently selected:
+Einklappen	Collapse
+Einschalten	Switch on
+Einstellungen	Settings
+Einstellungen durchsuchen	Search settings
+Eintrag hinzufügen	Add entry
+Eintrag ändern	Edit entry
+Entscheidung speichern	Save decision
+Entsperren	Unlock
+Erlauben	Allow
+Erstellen	Create
+Erweiterungen	Extensions
+Exportieren	Export
+Extrahieren	Extract
+Exzerpt	Excerpt
+Exzerpt erstellen	Create excerpt
+Exzerpt öffnen	Open excerpt
+Exzerpte als Tabelle	Excerpts as table
+Farbton	Accent colour
+Favoriten	Favourites
+Felder erkennen	Detect fields
+Fertig	Done
+Formular	Form
+Fortsetzen	Resume
+Frag Lora	Ask Lora
+Frag Lora …	Ask Lora …
+Frage zur Seite	Ask about the page
+Fragen	Ask
+Fragen & schreiben	Ask & write
+Fragen zu den Dateien stellen	Ask about the files
+Fristen	Deadlines
+Frühere Chats durchsuchen	Search earlier chats
+Für alle Chats	For all chats
+Für diese Anfrage passt	For this request,
+Gedankengang	Reasoning
+Gedächtnis	Memory
+Gedächtnis aus	Memory off
+Gedächtnis einrichten	Set up memory
+Gedächtnis in diesem Chat	Memory in this chat
+Gedächtnis nutzen	Use memory
+Geht bei jeder Anfrage automatisch mit; Sie müssen nichts dazuschreiben.	Goes along with every request automatically; you don't have to mention it.
+Gemerkt.	Remembered.
+Geplant	Planned
+geplant	planned
+Geplante Aufgaben	Scheduled tasks
+Gestalten	Design
+gilt bis	valid until
+Gilt bis (optional, TT.MM.JJJJ)	Valid until (optional, DD.MM.YYYY)
+GitHub	GitHub
+Gliederung	Outline
+Große Werkzeuge	Big tools
+Guten Abend	Good evening
+Guten Morgen	Good morning
+Guten Tag	Good afternoon
+Hallo	Hello
+Handout oder Merkblatt	Handout or fact sheet
+Helligkeit	Brightness
+Hinweis	Note
+Ich höre zu …	Listening …
+Idee	Idea
+Ideen sammeln	Brainstorm ideas
+Ihre Funktion und Einrichtung	Your role and institution
+Im Browser anmelden	Sign in in the browser
+In die Literatur	Add to literature
+In die Wissenssammlung	Add to knowledge
+In diesem Chat aus – das Modell kennt die Angaben nicht und lernt nichts dazu.	Off in this chat – the model does not know these details and learns nothing.
+In Nextcloud speichern	Save to Nextcloud
+Ins Englische übersetzen	Translate into English
+Ins Gedächtnis übernommen	Added to the memory
+Interview transkribieren	Transcribe an interview
+Ja,	Yes,
+Keine passende Einstellung.	No matching setting.
+KI kann Fehler machen. Wichtiges bitte prüfen.	AI can make mistakes. Please check important information.
+Kommentarliste	Comment list
+Kurze Rückfrage	Quick question
+Leeres Design	Blank design
+Lehre oder Themen, an denen Sie arbeiten	Teaching or topics you work on
+Lehre, Forschung, Betreuung, TUD-Dokumente	Teaching, research, supervision, TUD documents
+Lieber mit Lora Schritt für Schritt	Step by step with Lora instead
+Links neben dem Chat öffnen	Open links beside the chat
+Literatur	Literature
+Literatur & Zotero	Literature & Zotero
+Literatur finden	Find literature
+Literatur suchen	Search literature
+Literatur zu einem Thema finden	Find literature on a topic
+Literatursuche	Literature search
+Literaturverzeichnis ordnen	Tidy up a bibliography
+Lokale Ordner	Local folders
+Lora	Lora
+Lora antippen	Tap Lora
+Lora ausblenden	Hide Lora
+Lora bei der Arbeit	Lora at work
+Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben.	Lora appears nowhere – not on the start page, in the chat or in voice mode; the app's symbol is shown there instead. The ideas on the start page stay.
+Lora fragen	Ask Lora
+Lora fragen: Wo finde ich …?	Ask Lora: where do I find …?
+Lora ist dran	Lora is on it
+Lora ist dran …	Lora is on it …
+Lora machen lassen	Let Lora do it
+Lora, das Maskottchen der App	Lora, the app's mascot
+Löschen	Delete
+Markieren	Mark up
+Massenkontrolle	Bulk grading
+MCP-Server	MCP servers
+Mehr	More
+Mehrere Antworten möglich	Several answers possible
+Meine Designs	My designs
+Menü schließen bzw. zurück	Close menu or go back
+Merken	Remember
+Merken …	Remember …
+Messpunkt setzen	Take a measurement
+Messpunkte	Measurements
+Modelle	Models
+Modelle auf diesem Gerät	Models on this device
+Modelle vergleichen	Compare models
+Modellübersicht	Model overview
+Modus verlassen	Leave mode
+Nach oben holen	Move to the top
+Nein,	No,
+Nein, danke	No, thanks
+neue Angaben für das Gedächtnis	new details for the memory
+Neuer Antrag	New proposal
+Neuer Chat	New chat
+Neuer Stapel	New batch
+Neuer Tresor-Chat	New vault chat
+nicht ersetzen	don't replace
+Nicht jetzt	Not now
+Nichts gefunden.	Nothing found.
+Noch nichts gemerkt. Erzählen Sie im Chat etwas über sich oder tragen Sie es hier ein.	Nothing remembered yet. Tell the chat something about yourself or add it here.
+Nur im Chat	Only in the chat
+Nur im Projekt	Only in the project
+Nur Projekt	Project only
+Oder eigene Antwort …	Or your own answer …
+OK	OK
+Papierkorb	Trash
+Pausiert – tippen Sie auf „Weiter“	Paused – tap “Resume”
+PDF im Werkzeugkasten	Open PDF in the toolbox
+PDF öffnen	Open PDF
+PDF-Werkzeugkasten	PDF toolbox
+PIN vergessen?	Forgot PIN?
+Planungsmodus	Planning mode
+Poster aus einem Paper	Poster from a paper
+Projekte	Projects
+Protokoll aus Notizen	Minutes from notes
+Präsentation	Presentation
+Quellenangaben eines Textes prüfen	Check the references of a text
+Quellenmodus	Source mode
+Rechnen	Calculate
+Rückfrage beantwortet	Question answered
+Rückgängig	Undo
+Schließen	Close
+Schreiben	Write
+Schriftgröße	Text size
+Schritte	Steps
+Schritte anzeigen	Show steps
+Schritte ausblenden	Hide steps
+Seiten	Pages
+Seitenleiste	Side menu
+Seitenleiste ein/aus	Show/hide side menu
+Seitenzahlen	Page numbers
+Selbst gestalten	Design it yourself
+Senden (Umschalt+Enter: neue Zeile)	Send (Shift+Enter: new line)
+Server hinzufügen	Add server
+Sicherung & Umzug	Backup & transfer
+Speicher freigeben	Free memory
+Speichern	Save
+Speicherorte	Storage locations
+Sperren	Lock
+Sprache der Oberfläche	Interface language
+Sprachmodus	Voice mode
+Sprachmodus: freihändig sprechen	Voice mode: talk hands-free
+Sprechen Sie einfach los.	Just start speaking.
+Später	Later
+Stapel	Batches
+Stapel & Massenkontrolle	Batches & bulk grading
+Starten	Start
+Stil	Style
+Synchronisation	Sync
+Tabelle auswerten	Analyse a table
+Tastenkürzel	Keyboard shortcuts
+Text kürzen und verständlicher machen	Shorten and simplify a text
+Tipp	Tip
+Transkription	Transcription
+Treffer	Results
+Tresor	Vault
+Tresor einrichten	Set up vault
+TU Vorlagen	TU templates
+Umgebungen	Environments
+und	and
+Unter „Mehr“ verschieben	Move to “More”
+Unterbrechen	Interrupt
+Updates	Updates
+Verbindungen	Connections
+Verbrauch	Usage
+Verstehe …	Understanding …
+Videoeditor	Video editor
+Von Hand bewerten	Grade by hand
+Vorlage	Template
+Vorlagen	Templates
+Vorlesen & Spracheingabe	Read aloud & voice input
+Vorschlag wird formuliert …	Writing a suggestion …
+Vorschlag übernehmen	Accept suggestion
+Was möchtest du erstellen?	What would you like to create?
+Was möchtest du machen oder einstellen?	What would you like to do or change?
+Was soll das Modell wissen?	What should the model know?
+Webseite lesen	Read web page
+Websuche	Web search
+Weiter	Resume
+Werkzeug ausschalten	Switch tool off
+Werkzeuge	Tools
+Werkzeuge genutzt	tools used
+Wichtig	Important
+Wie kann ich helfen?	How can I help?
+Wie sollen Texte klingen?	How should texts sound?
+Wiederherstellungsschlüssel	Recovery key
+Wissenssammlung	Knowledge base
+Wo Lora erscheint	Where Lora appears
+Zugang	Access
+Zuletzt	Recent
+Zusammenfassen	Summarize
+Zusammenfügen	Merge
+Überall	Everywhere
+Übernehmen	Apply
+Übersicht	Overview
+Überspringen	Skip

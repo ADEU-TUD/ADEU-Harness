@@ -19,13 +19,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 /** Opens [file] with the program Windows uses for it (PDF viewer, Word …). */
 fun openDocument(context: Context, file: File) {
-    if (!DesktopActions.open(file)) Notices.error("Kein Programm zum Öffnen von ${file.extension.uppercase()}-Dateien gefunden.")
+    if (!DesktopActions.open(file)) Notices.error(tr("Kein Programm zum Öffnen von {0}-Dateien gefunden.", file.extension.uppercase()))
 }
 
 fun openPrimary(context: Context, file: File) = openDocument(context, file)
 
 @Suppress("UNUSED_PARAMETER")
-fun primaryLabel(file: File) = "Öffnen"
+fun primaryLabel(file: File) = tr("Öffnen")
 
 /** Shows the file in Explorer – from there it can be dragged into an e-mail, Teams … */
 @Suppress("UNUSED_PARAMETER")
@@ -35,11 +35,11 @@ fun shareDocument(context: Context, file: File) {
 
 object ShareDoc {
     val icon: ImageVector get() = Icons.Outlined.FolderOpen
-    const val label = "Im Ordner zeigen"
+    val label: String get() = tr("Im Ordner zeigen")
     const val inExport = false
 }
 
-const val SAVE_AS_LABEL = "Speichern unter …"
+val SAVE_AS_LABEL: String get() = tr("Speichern unter …")
 
 /** "Speichern unter": copies the file to a place the user picks (Documents\Lora by default). */
 @Suppress("UNUSED_PARAMETER")
@@ -48,9 +48,9 @@ fun rememberSaveAs(mime: String): (File) -> Unit {
     val scope = rememberCoroutineScope()
     return { file ->
         scope.launch {
-            val target = withContext(Dispatchers.IO) { DesktopActions.pickSaveFile("Speichern unter", file.name, file.extension) } ?: return@launch
+            val target = withContext(Dispatchers.IO) { DesktopActions.pickSaveFile(tr("Speichern unter"), file.name, file.extension) } ?: return@launch
             val ok = withContext(Dispatchers.IO) { runCatching { file.copyTo(target, overwrite = true) }.isSuccess }
-            if (ok) Notices.info("Gespeichert: ${target.absolutePath}") else Notices.error("Speichern fehlgeschlagen.")
+            if (ok) Notices.info(tr("Gespeichert: {0}", target.absolutePath)) else Notices.error(tr("Speichern fehlgeschlagen."))
         }
     }
 }

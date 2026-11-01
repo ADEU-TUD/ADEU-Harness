@@ -83,14 +83,14 @@ import java.util.Locale
 
 /** Day groups of the transcript list. */
 private fun group(created: String, today: LocalDate): String {
-    val day = runCatching { LocalDateTime.parse(created.take(19)).toLocalDate() }.getOrNull() ?: return "Älter"
+    val day = runCatching { LocalDateTime.parse(created.take(19)).toLocalDate() }.getOrNull() ?: return tr("Älter")
     val days = ChronoUnit.DAYS.between(day, today)
     return when {
-        days <= 0 -> "Heute"
-        days == 1L -> "Gestern"
-        days < 7 -> "Letzte 7 Tage"
-        day.month == today.month && day.year == today.year -> "Diesen Monat"
-        else -> "Älter"
+        days <= 0 -> tr("Heute")
+        days == 1L -> tr("Gestern")
+        days < 7 -> tr("Letzte 7 Tage")
+        day.month == today.month && day.year == today.year -> tr("Diesen Monat")
+        else -> tr("Älter")
     }
 }
 
@@ -100,8 +100,8 @@ fun transcriptDate(created: String): String {
     val days = ChronoUnit.DAYS.between(dt.toLocalDate(), LocalDate.now())
     val time = dt.format(DateTimeFormatter.ofPattern("HH:mm"))
     return when (days) {
-        0L -> "Heute, $time"
-        1L -> "Gestern, $time"
+        0L -> tr("Heute, {0}", time)
+        1L -> tr("Gestern, {0}", time)
         else -> dt.format(DateTimeFormatter.ofPattern("d. MMM yyyy", Locale.GERMAN))
     }
 }
@@ -137,11 +137,11 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
     LaunchedEffect(Unit) { t.messages.collect { Notices.info(it) } }
 
     val pickFile = rememberMediaImport { name, size, input ->
-        runCatching { t.import(name, size, input) }.onFailure { Notices.error(it.message ?: "Fehler beim Einlesen") }
+        runCatching { t.import(name, size, input) }.onFailure { Notices.error(it.message ?: tr("Fehler beim Einlesen")) }
     }
     val record = rememberMicPermission {
         runCatching { t.startRecording(t.defaultOptions(folder)); showRecording = true }
-            .onFailure { Notices.error("Aufnahme nicht möglich: ${it.message}") }
+            .onFailure { Notices.error(tr("Aufnahme nicht möglich: {0}", it.message)) }
     }
 
     val hits by produceState(emptyList<Pair<String, String>>(), query, list) { value = if (query.isBlank()) emptyList() else t.search(query) }
@@ -168,14 +168,14 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                             Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(20.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("Datei öffnen", style = MaterialTheme.typography.titleSmall)
+                                Text(tr("Datei öffnen"), style = MaterialTheme.typography.titleSmall)
                             }
                         }
                         Box(Modifier.weight(1.3f)) {
                             if (state.recording.active) {
-                                RecordPill("Läuft · ${TranscriptExport.clock(state.recording.seconds)}") { showRecording = true }
+                                RecordPill(tr("Läuft · {0}", TranscriptExport.clock(state.recording.seconds))) { showRecording = true }
                             } else {
-                                RecordPill("Aufnehmen", enabled = available != false, onClick = record)
+                                RecordPill(tr("Aufnehmen"), enabled = available != false, onClick = record)
                             }
                         }
                     }
@@ -189,16 +189,16 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                 title = {
                     if (searching) {
                         OutlinedTextField(
-                            query, { query = it }, placeholder = { Text("Transkripte durchsuchen") }, singleLine = true,
+                            query, { query = it }, placeholder = { Text(tr("Transkripte durchsuchen")) }, singleLine = true,
                             shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
                         )
-                    } else Text("Transkription")
+                    } else Text(tr("Transkription"))
                 },
                 actions = {
                     IconButton(onClick = { searching = !searching; if (!searching) query = "" }) {
-                        Icon(if (searching) Icons.Outlined.Close else Icons.Outlined.Search, contentDescription = if (searching) "Suche schließen" else "Suchen")
+                        Icon(if (searching) Icons.Outlined.Close else Icons.Outlined.Search, contentDescription = if (searching) tr("Suche schließen") else tr("Suchen"))
                     }
-                    if (!searching) IconButton(onClick = { onNavigate("settings/transcription") }) { Icon(Icons.Outlined.Settings, contentDescription = "Einstellungen der Transkription") }
+                    if (!searching) IconButton(onClick = { onNavigate("settings/transcription") }) { Icon(Icons.Outlined.Settings, contentDescription = tr("Einstellungen der Transkription")) }
                 },
             )
         },
@@ -212,12 +212,12 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
             ) {
                 val wide = Modifier.widthIn(max = 760.dp).fillMaxWidth()
                 if (searching && query.isNotBlank()) {
-                    if (hits.isEmpty()) item { HintText("Keine Treffer.", wide.padding(8.dp)) }
+                    if (hits.isEmpty()) item { HintText(tr("Keine Treffer."), wide.padding(8.dp)) }
                     items(hits, key = { "s" + it.first }) { (id, snippet) ->
                         val s = list.firstOrNull { it.id == id }
                         AppCard(wide, onClick = { onOpen(id) }) {
                             Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                                Text(s?.title ?: "Transkript", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(s?.title ?: tr("Transkript"), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 HintText(snippet)
                             }
                         }
@@ -229,7 +229,7 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             Spacer(Modifier.width(12.dp))
-                            TitleBlock("Transkription auf diesem Gerät nicht verfügbar", t.unavailableReason)
+                            TitleBlock(tr("Transkription auf diesem Gerät nicht verfügbar"), t.unavailableReason)
                         }
                     }
                 }
@@ -241,7 +241,7 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            TitleBlock(f.name, "Wartet auf den Start – tippen zum Einstellen", Modifier.weight(1f))
+                            TitleBlock(f.name, tr("Wartet auf den Start – tippen zum Einstellen"), Modifier.weight(1f))
                         }
                     }
                 }
@@ -251,7 +251,7 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
 
                 if (list.isNotEmpty() && folders.any { f -> list.any { it.folder == f.id } }) item {
                     Row(wide.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = folder == null, onClick = { folder = null }, label = { Text("Alle  ${list.size}") })
+                        FilterChip(selected = folder == null, onClick = { folder = null }, label = { Text(tr("Alle  {0}", list.size)) })
                         folders.filter { f -> list.any { it.folder == f.id } }.sortedBy { it.name.lowercase() }.forEach { f ->
                             FilterChip(
                                 selected = folder == f.id, onClick = { folder = if (folder == f.id) null else f.id },
@@ -267,8 +267,8 @@ fun TranscriptsScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> U
                         Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.11f), modifier = Modifier.size(72.dp)) {
                             Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.GraphicEq, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(34.dp)) }
                         }
-                        Text("Noch keine Transkripte", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 14.dp))
-                        HintText("Nimm ein Gespräch auf oder öffne eine Audio- oder Videodatei – Interviews, Sitzungen, Vorlesungen, Sprachnachrichten.", Modifier.padding(top = 4.dp).widthIn(max = 360.dp))
+                        Text(tr("Noch keine Transkripte"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 14.dp))
+                        HintText(tr("Nimm ein Gespräch auf oder öffne eine Audio- oder Videodatei – Interviews, Sitzungen, Vorlesungen, Sprachnachrichten."), Modifier.padding(top = 4.dp).widthIn(max = 360.dp))
                     }
                 }
                 val today = LocalDate.now()
@@ -315,14 +315,14 @@ private fun Onboarding(c: AppContainer, modifier: Modifier, onNavigate: (String)
     val t = c.transcription
     AppCard(modifier) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("So geht's los", style = MaterialTheme.typography.titleLarge)
+            Text(tr("So geht's los"), style = MaterialTheme.typography.titleLarge)
             HintText(
-                "Für die Transkription auf diesem Gerät wird einmalig ein Erkennungsmodell geladen. Danach bleibt alles " +
-                    "offline – auch vertrauliche Interviews. Alternativ übernimmt der Uni-Server der TU Dresden.",
+                tr("Für die Transkription auf diesem Gerät wird einmalig ein Erkennungsmodell geladen. Danach bleibt alles " +
+                    "offline – auch vertrauliche Interviews. Alternativ übernimmt der Uni-Server der TU Dresden."),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { t.download("parakeet"); onNavigate("settings/transcription") }) { Text("Modell laden (670 MB)") }
-                if (c.settings.current.hasApiKey) OutlinedButton(onClick = { t.updateSettings { it.copy(mode = TranscriptionMode.SERVER.name) } }) { Text("Uni-Server nutzen") }
+                Button(onClick = { t.download("parakeet"); onNavigate("settings/transcription") }) { Text(tr("Modell laden (670 MB)")) }
+                if (c.settings.current.hasApiKey) OutlinedButton(onClick = { t.updateSettings { it.copy(mode = TranscriptionMode.SERVER.name) } }) { Text(tr("Uni-Server nutzen")) }
             }
         }
     }
@@ -361,9 +361,9 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
                     val pct = (j.progress * 100).toInt()
                     Text(
                         when (j.status) {
-                            "running" -> j.stage + (if (pct > 0) " · $pct %" else "") + (eta?.let { " · noch ca. ${etaText(it)}" } ?: "")
-                            "done" -> "Fertig – tippen zum Öffnen"
-                            "error" -> j.error ?: "Fehler"
+                            "running" -> j.stage + (if (pct > 0) " · $pct %" else "") + (eta?.let { tr(" · noch ca. {0}", etaText(it)) } ?: "")
+                            "done" -> tr("Fertig – tippen zum Öffnen")
+                            "error" -> j.error ?: tr("Fehler")
                             else -> j.stage
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -371,13 +371,13 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
                     )
                 }
                 IconButton(onClick = { if (j.status == "running") confirmCancel = true else if (j.active) t.cancel(j.id) else t.dismiss(j.id) }) {
-                    Icon(Icons.Outlined.Close, contentDescription = if (j.active) "Abbrechen" else "Ausblenden", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Outlined.Close, contentDescription = if (j.active) tr("Abbrechen") else tr("Ausblenden"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             j.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = look.warning, modifier = Modifier.padding(top = 6.dp, end = 10.dp)) }
             if (confirmCancel) ConfirmDialog(
-                "Transkription abbrechen?", "„${j.name}“ ist zu ${(j.progress * 100).toInt()} % fertig. Der bisherige Fortschritt geht verloren.",
-                "Abbrechen", onConfirm = { t.cancel(j.id) }, onDismiss = { confirmCancel = false },
+                tr("Transkription abbrechen?"), tr("„{0}“ ist zu {1} % fertig. Der bisherige Fortschritt geht verloren.", j.name, (j.progress * 100).toInt()),
+                tr("Abbrechen"), onConfirm = { t.cancel(j.id) }, onDismiss = { confirmCancel = false },
             )
             if (j.status == "running") {
                 LinearProgressIndicator(
@@ -411,10 +411,10 @@ private fun DoneJobs(c: AppContainer, done: List<SpeechJob>, modifier: Modifier,
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text(j.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("Fertig – tippen zum Öffnen", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr("Fertig – tippen zum Öffnen"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = { c.transcription.dismiss(j.id) }) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Ausblenden", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Outlined.Close, contentDescription = tr("Ausblenden"), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -440,7 +440,7 @@ private fun TranscriptRow(c: AppContainer, s: TranscriptSummary, onClick: () -> 
                 MetaText(Icons.Outlined.Schedule, TranscriptExport.clock(s.duration))
                 if (s.speakers > 1) MetaText(Icons.Outlined.People, s.speakers.toString())
                 s.folder?.let { id -> folders.firstOrNull { it.id == id } }?.let { MetaText(Icons.Outlined.Folder, it.name) }
-                if (s.wordTimes) MetaText(Icons.Outlined.Timer, "Wortzeiten")
+                if (s.wordTimes) MetaText(Icons.Outlined.Timer, tr("Wortzeiten"))
             }
             if (s.preview.isNotBlank()) {
                 Text(s.preview, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))

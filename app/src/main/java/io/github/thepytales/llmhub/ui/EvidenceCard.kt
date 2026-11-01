@@ -153,9 +153,9 @@ private fun CitationRow(c: CheckedCitation) {
 
 /** Kind of source as a word for the protocol. */
 internal fun EvidenceSource.Kind.label(): String = when (this) {
-    EvidenceSource.Kind.FILE -> "Datei"
-    EvidenceSource.Kind.WEB -> "Web"
-    EvidenceSource.Kind.KNOWLEDGE -> "Wissenssammlung"
-    EvidenceSource.Kind.TRANSCRIPT -> "Transkript"
-    EvidenceSource.Kind.LITERATURE -> "Literatur"
+    EvidenceSource.Kind.FILE -> tr("Datei")
+    EvidenceSource.Kind.WEB -> tr("Web")
+    EvidenceSource.Kind.KNOWLEDGE -> tr("Wissenssammlung")
+    EvidenceSource.Kind.TRANSCRIPT -> tr("Transkript")
+    EvidenceSource.Kind.LITERATURE -> tr("Literatur")
 }

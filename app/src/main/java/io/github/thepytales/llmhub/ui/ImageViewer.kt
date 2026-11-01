@@ -96,16 +96,16 @@ internal fun GalleryGrid(vm: ImagesViewModel, images: List<GalleryImage>, pad: P
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = !favoritesOnly, onClick = { favoritesOnly = false }, label = { Text("Alle  ${images.size}") })
+                FilterChip(selected = !favoritesOnly, onClick = { favoritesOnly = false }, label = { Text(tr("Alle  {0}", images.size)) })
                 FilterChip(
                     selected = favoritesOnly, onClick = { favoritesOnly = true },
                     leadingIcon = { Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                    label = { Text("Favoriten  ${images.count { it.favorite }}") },
+                    label = { Text(tr("Favoriten  {0}", images.count { it.favorite })) },
                 )
             }
         }
         if (shown.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
-            HintText(if (favoritesOnly) "Noch keine Favoriten – ☆ auf einem Bild antippen." else "Noch keine Bilder.")
+            HintText(if (favoritesOnly) tr("Noch keine Favoriten – ☆ auf einem Bild antippen.") else tr("Noch keine Bilder."))
         }
         items(shown, key = { it.id }) { img -> Thumb(vm, img, Modifier.fillMaxWidth(), onOpen = { onOpen(img) }) }
     }
@@ -139,7 +139,7 @@ internal fun Thumb(vm: ImagesViewModel, img: GalleryImage, modifier: Modifier, o
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     if (img.favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (img.favorite) "Aus Favoriten entfernen" else "Zu Favoriten",
+                    contentDescription = if (img.favorite) tr("Aus Favoriten entfernen") else tr("Zu Favoriten"),
                     tint = if (img.favorite) Color(0xFFFFC94D) else Color.White,
                     modifier = Modifier.size(18.dp),
                 )
@@ -175,7 +175,7 @@ internal fun Viewer(
         Surface(color = Color(0xFF101114), contentColor = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, contentDescription = "Schließen", tint = Color.White) }
+                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, contentDescription = tr("Schließen"), tint = Color.White) }
                     Text(
                         "$date · ${ModelCatalog.info(img.model).displayName}",
                         style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.7f), modifier = Modifier.weight(1f),
@@ -183,7 +183,7 @@ internal fun Viewer(
                     IconButton(onClick = { vm.toggleFavorite(img) }) {
                         Icon(
                             if (img.favorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                            contentDescription = if (img.favorite) "Aus Favoriten entfernen" else "Zu Favoriten",
+                            contentDescription = if (img.favorite) tr("Aus Favoriten entfernen") else tr("Zu Favoriten"),
                             tint = if (img.favorite) Color(0xFFFFC94D) else Color.White,
                         )
                     }
@@ -210,13 +210,13 @@ internal fun Viewer(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    ViewerAction(Icons.Outlined.Brush, "Überarbeiten", onEdit)
+                    ViewerAction(Icons.Outlined.Brush, tr("Überarbeiten"), onEdit)
                     ViewerAction(Icons.Outlined.FileDownload, SAVE_IMAGE_LABEL) { saveImageToDevice(context, vm.gallery.file(img)) }
-                    ViewerAction(Icons.Outlined.Share, "Teilen") { shareImage(context, vm.gallery.file(img)) }
-                    ViewerAction(Icons.AutoMirrored.Outlined.Chat, "Im Chat") {
+                    ViewerAction(Icons.Outlined.Share, tr("Teilen")) { shareImage(context, vm.gallery.file(img)) }
+                    ViewerAction(Icons.AutoMirrored.Outlined.Chat, tr("Im Chat")) {
                         scope.launch {
                             val url = imageDataUrl(context, vm.gallery.file(img))
-                            if (url == null) Notices.error("Das Bild ließ sich nicht anhängen.")
+                            if (url == null) Notices.error(tr("Das Bild ließ sich nicht anhängen."))
                             else {
                                 ChatHandoff.pending.value = ChatHandoff.Content("", emptyList(), images = listOf(url))
                                 onDismiss()
@@ -224,9 +224,9 @@ internal fun Viewer(
                             }
                         }
                     }
-                    ViewerAction(Icons.Outlined.Refresh, "Noch eins") { vm.again(img); onDismiss() }
-                    ViewerAction(Icons.Outlined.TextFields, "Beschreibung") { onUsePrompt() }
-                    ViewerAction(Icons.Outlined.Delete, "Löschen") { vm.delete(img); onDismiss() }
+                    ViewerAction(Icons.Outlined.Refresh, tr("Noch eins")) { vm.again(img); onDismiss() }
+                    ViewerAction(Icons.Outlined.TextFields, tr("Beschreibung")) { onUsePrompt() }
+                    ViewerAction(Icons.Outlined.Delete, tr("Löschen")) { vm.delete(img); onDismiss() }
                 }
             }
         }
