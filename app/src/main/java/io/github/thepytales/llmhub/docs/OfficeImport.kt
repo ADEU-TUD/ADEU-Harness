@@ -155,6 +155,14 @@ object OfficeImport {
                     val styleId = pPr?.child("pStyle")?.attr("val").orEmpty()
                     val style = (styles[styleId] ?: styleId).lowercase().replace(" ", "")
                     val num = pPr?.child("numPr")
+                    // An Inhaltsverzeichnis (AP-16) comes back as its marker line, not as a copy of the headings.
+                    if (Regex("^(toc|verzeichnis)\\d").containsMatchIn(style) || styleId.lowercase().startsWith("toc")) {
+                        if (blocks.lastOrNull() != DocMarkup.TOC) {
+                            if (blocks.lastOrNull()?.replace("*", "")?.trim()?.lowercase() in setOf("inhaltsverzeichnis", "inhalt", "contents", "table of contents")) blocks.removeAt(blocks.lastIndex)
+                            blocks += DocMarkup.TOC
+                        }
+                        continue
+                    }
                     if (text.isEmpty()) continue
                     // Bullets typed as characters ("• Punkt") are list items too.
                     val typed = Regex("^[•◦▪–·]\\s+").find(text)
@@ -260,6 +268,9 @@ object OfficeImport {
             when (e.localName) {
                 "r" -> run(e)
                 "hyperlink", "ins", "smartTag", "fldSimple" -> e.children().filter { it.localName == "r" }.forEach(::run)
+                // Word formulas (AP-16) as LaTeX.
+                "oMath" -> append("$" + LatexOmml.toLatex(e) + "$")
+                "oMathPara" -> e.children().filter { it.localName == "oMath" }.forEach { append("$$" + LatexOmml.toLatex(it) + "$$") }
             }
         }
     }.replace("****", "").replace(Regex("\\*\\*\\s*\\*\\*"), " ")

@@ -234,6 +234,12 @@ class ChatViewModel(
         val conv = _conversation.value ?: return
         if (isRunning || (text.isBlank() && images.isEmpty() && files.isEmpty())) return
         val isFirst = conv.messages.none { it.role == "user" }
+        // Lora-Ordner (AP-16): attachments move into „Hochgeladen“ – not those of a Tresor chat.
+        @Suppress("NAME_SHADOWING") val files = files.map { f ->
+            if (!c.drive.isStaged(f.stored)) f
+            else if (conv.vault) f.copy(stored = null).also { runCatching { File(f.stored!!).delete() } }
+            else f.copy(stored = runCatching { c.drive.adopt(f.stored!!, conv.id)?.absolutePath }.getOrNull())
+        }
         val message = ChatMessage(
             role = "user", content = text.trim(), images = images, files = files,
             template = template?.name, instructions = template?.instructions?.ifBlank { null } ?: instructions, voice = voice,
@@ -245,6 +251,8 @@ class ChatViewModel(
             )
         }
         persist()
+        // Lora-Ordner (AP-16): the pictures of the message go into „Hochgeladen“ (with their chat).
+        if (images.isNotEmpty() && !conv.vault) viewModelScope.launch(Dispatchers.IO) { images.forEach { url -> runCatching { c.drive.keepImage(url, conv.id) } } }
         connectMentionedRepo(text)
         startAgent()
     }

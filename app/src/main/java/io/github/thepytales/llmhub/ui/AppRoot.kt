@@ -328,7 +328,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 LiteratureScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) }, onSettings = { nav.go(back, "settings/literature") })
             }
             composable("docs") { back ->
-                DocsListScreen(c, onBack = { nav.back(back) }, onOpen = { id -> nav.go(back, "doc/$id") })
+                // „Dokumente“ became the Dateien tab (AP-16).
+                DriveScreen(c, onBack = { nav.back(back) }, onOpenDoc = { id -> nav.go(back, "doc/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) }, onNavigate = { nav.go(back, it) })
             }
             composable("pdf") { back ->
                 PdfToolScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) })
@@ -340,7 +341,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 MailScreen(c, onBack = { nav.back(back) })
             }
             composable("files") { back ->
-                FilesScreen(c, onBack = { nav.back(back) }, onOpenDoc = { id -> nav.go(back, "doc/$id") }, onNavigate = { nav.go(back, it) })
+                DriveScreen(c, onBack = { nav.back(back) }, onOpenDoc = { id -> nav.go(back, "doc/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) }, onNavigate = { nav.go(back, it) })
             }
             composable("vault") { back ->
                 VaultScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })

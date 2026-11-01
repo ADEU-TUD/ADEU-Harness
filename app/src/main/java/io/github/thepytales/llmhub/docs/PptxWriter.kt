@@ -72,7 +72,8 @@ object PptxWriter {
     }
 
     private fun slide(text: String, first: Boolean): Slide {
-        var lines = text.lines()
+        // Elements and Masterfolie of free design (AP-16) are added after the layout (SlideExtras).
+        var lines = text.lines().filterNot { SlideDeck.isDesignLine(it) }
         val marked = lines.firstNotNullOfOrNull { l -> LAYOUT_MARK.find(l)?.groupValues?.get(1)?.let(SlideDeck::layoutOf) }
         lines = lines.filterNot { LAYOUT_MARK.matches(it) }
         val imageAt = lines.indexOfFirst { DocMarkup.image(it) != null }
@@ -112,6 +113,7 @@ object PptxWriter {
                 agenda = rest.flatMap { b -> if (b is Block.Item) listOf(b.text) else if (b is Block.Paragraph) b.text.lines() else emptyList() }.map { it.trim() }.filter { it.isNotEmpty() },
             )
             SlideDeck.Layout.END -> return Slide(Kind.END, title, blocks = rest, notes = notes)
+            SlideDeck.Layout.FREE -> return Slide(Kind.CONTENT, title, blocks = rest + right, notes = notes)
             else -> {}
         }
         if (img != null) {
@@ -130,7 +132,13 @@ object PptxWriter {
      * Writes the presentation. [unit] is the organizational unit (one level per line), shown on the title slide;
      * its last line also appears in the footer.
      */
-    fun write(file: File, title: String, markdown: String, unit: String, footer: String = "") {
+    fun write(file: File, title: String, markdown: String, unit: String, footer: String = "", base: File? = null) {
+        writeLayouts(file, title, markdown, unit, SlideDeck.masterOf(markdown)?.footer?.takeIf { it.isNotBlank() } ?: footer)
+        // Frei gestalten (AP-16): freely placed elements and the Masterfolie on top.
+        runCatching { SlideExtras.apply(file, markdown, base) }
+    }
+
+    private fun writeLayouts(file: File, title: String, markdown: String, unit: String, footer: String) {
         val slides = parse(markdown).ifEmpty { listOf(Slide(Kind.TITLE, title)) }
         val deckTitle = slides.first().title.ifBlank { title }
         val unitLines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }

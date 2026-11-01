@@ -17,10 +17,13 @@ class ToolsAndDrawerTest {
     @Test
     fun defaultMenuHasAtMostFiveEntriesOnTop() {
         val (top, more) = drawerLayout(AppSettings.DEFAULT_DRAWER_TOP, emptySet())
-        assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.LITERATURE, DrawerArea.TRANSCRIPTS), top)
+        // AP-16: „Dokumente“ became „Dateien“ and sits on top.
+        assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.LITERATURE, DrawerArea.TRANSCRIPTS, DrawerArea.FILES), top)
         assertTrue(top.size + 1 <= 5, "mit „Neuer Chat“ höchstens fünf Einträge")
-        // AP-18: „Dateien“ is an area of its own (not a tool), right after the documents.
-        assertEquals(listOf(DrawerArea.DOCS, DrawerArea.FILES, DrawerArea.IMAGES, DrawerArea.TASKS), more, "Rest unter „Mehr“, Werkzeuge nur eingeschaltet")
+        assertEquals(listOf(DrawerArea.IMAGES, DrawerArea.TASKS), more, "Rest unter „Mehr“, Werkzeuge nur eingeschaltet")
+        assertEquals("Dateien", DrawerArea.FILES.label)
+        // A stored order with the old „docs“ shows „Dateien“.
+        assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.FILES), drawerLayout("templates\ndocs", emptySet()).first)
         assertEquals("TU Vorlagen", DrawerArea.TEMPLATES.label)
     }
 
@@ -33,13 +36,13 @@ class ToolsAndDrawerTest {
 
     @Test
     fun areasMoveUpAndDownButTheTopStaysSmall() {
-        var top = AppSettings.DEFAULT_DRAWER_TOP
-        top = moveDrawerArea(top, DrawerArea.DOCS, toTop = true)!!
+        var top = "templates\nliterature\ntranscripts"
+        top = moveDrawerArea(top, DrawerArea.FILES, toTop = true)!!
         assertEquals(MAX_TOP_AREAS, drawerLayout(top, emptySet()).first.size)
         assertNull(moveDrawerArea(top, DrawerArea.TASKS, toTop = true), "oben voll")
         top = moveDrawerArea(top, DrawerArea.LITERATURE, toTop = false)!!
         val (upper, more) = drawerLayout(top, emptySet())
-        assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.TRANSCRIPTS, DrawerArea.DOCS), upper)
+        assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.TRANSCRIPTS, DrawerArea.FILES), upper)
         assertTrue(DrawerArea.LITERATURE in more)
         // Unknown or switched-off entries in the stored order are skipped.
         assertEquals(listOf(DrawerArea.TEMPLATES), drawerLayout("templates\npdf\nunbekannt", emptySet()).first)

@@ -119,7 +119,7 @@ fun inputSuggestions(
         io.github.thepytales.llmhub.agent.ChatModes.matching(query).forEach { m ->
             out += InputSuggestion(m.iconVector(), "/" + m.command, m.explain) { replace(before); startMode(m) }
         }
-        if (matches("Dokumente")) out += InputSuggestion(Icons.Outlined.Description, "/Dokumente", "Dokument-Editor öffnen") { replace(before); openDocs() }
+        if (matches("Dateien") || matches("Dokumente")) out += InputSuggestion(Icons.Outlined.Description, "/Dateien", "Dateien und Dokumente öffnen") { replace(before); openDocs() }
         snippets.filter { matches(it.name) }.take(5).forEach { s ->
             out += InputSuggestion(Icons.Outlined.ShortText, "/" + s.name, s.text.take(60).replace('\n', ' ')) { replace(before + s.text) }
         }

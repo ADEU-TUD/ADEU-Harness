@@ -430,14 +430,15 @@ fun DocAssistantPanel(c: AppContainer, doc: LiveDoc, tabTitle: String?, selectio
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 6.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            // Lora as assistant beside the document (AP-16, like the side panel of Google Docs).
+            LoraFaceStill(Modifier.size(26.dp))
             Spacer(Modifier.size(8.dp))
             Column(Modifier.weight(1f)) {
-                Text("KI-Assistent", style = MaterialTheme.typography.titleSmall)
+                Text("Lora", style = MaterialTheme.typography.titleSmall)
                 Text(ModelCatalog.info(conv?.model ?: c.settings.current.defaultModel).displayName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (doc.chatId != null && onOpenChat != null) TextButton(onClick = { onOpenChat(doc.chatId) }) { Text("Im Chat") }
-            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Assistent schließen") }
+            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Lora schließen") }
         }
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

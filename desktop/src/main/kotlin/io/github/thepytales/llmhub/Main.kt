@@ -82,6 +82,8 @@ fun main(args: Array<String>) {
     Network.setup()
     val showRequests = MutableStateFlow(0)
     if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
+    // Lora-Ordner (AP-16): moved in the Explorer or its drive is missing – ask where it is now, before anything is loaded.
+    if (selfTest == null) io.github.thepytales.llmhub.desktop.Paths.missingRoot()?.let { missing -> if (!locateLoraFolder(missing)) exitProcess(0) }
     // Einfacher Sync (AP-12): before anything is loaded, make sure the synced data folder is not open on another PC and
     // that PC's changes have arrived; then this PC keeps its note there.
     if (selfTest == null && io.github.thepytales.llmhub.desktop.SyncSession.active) {
@@ -309,9 +311,54 @@ private fun shortcut(e: KeyEvent): Boolean {
         Key.K -> "palette"
         Key.Slash, Key.NumPadDivide -> "shortcuts"
         Key.L -> if (e.isShiftPressed) "literature" else "lora"
-        Key.D -> "docs"
+        Key.D -> "files"
         Key.T -> "transcripts"
         else -> return false
     }
     return true
+}
+
+
+/**
+ * The Lora-Ordner is not where it was (moved, renamed, drive not connected): the user shows its new place, creates it
+ * anew at the old one, or ends the app. Plain Swing – nothing of the app is loaded yet.
+ */
+private fun locateLoraFolder(missing: File): Boolean {
+    val paths = io.github.thepytales.llmhub.desktop.Paths
+    runCatching { javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName()) }
+    while (true) {
+        val choice = javax.swing.JOptionPane.showOptionDialog(
+            null,
+            "Der Lora-Ordner ist nicht mehr an seinem Platz:\n${missing.absolutePath}\n\n" +
+                "Wurde er verschoben oder umbenannt? Dann zeig Lora, wo er jetzt liegt.\n" +
+                "Liegt er auf einem Netz- oder USB-Laufwerk, das gerade fehlt: Laufwerk verbinden und „Erneut versuchen“.",
+            "Lora-Ordner nicht gefunden", javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null,
+            arrayOf("Neuen Ort zeigen …", "Erneut versuchen", "Neu anlegen", "Beenden"), "Neuen Ort zeigen …",
+        )
+        when (choice) {
+            0 -> {
+                val chooser = javax.swing.JFileChooser(missing.parentFile?.takeIf { it.isDirectory } ?: paths.documents).apply {
+                    fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
+                    dialogTitle = "Wo liegt der Lora-Ordner jetzt?"
+                }
+                if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                    val dir = chooser.selectedFile
+                    if (paths.hasData(dir) || javax.swing.JOptionPane.showConfirmDialog(
+                            null, "In „${dir.absolutePath}“ liegt kein Lora-Ordner. Trotzdem dort neu anfangen?", "Lora-Ordner",
+                            javax.swing.JOptionPane.YES_NO_OPTION,
+                        ) == javax.swing.JOptionPane.YES_OPTION
+                    ) {
+                        paths.useRoot(dir)
+                        return true
+                    }
+                }
+            }
+            1 -> if (missing.isDirectory) return true
+            2 -> {
+                paths.useRoot(missing)
+                return true
+            }
+            else -> return false
+        }
+    }
 }

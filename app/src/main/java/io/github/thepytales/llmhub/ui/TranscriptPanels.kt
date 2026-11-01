@@ -530,7 +530,7 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
                     // The mapping goes into a separate file (to be kept apart from the anonymized transcript).
                     if (anon != null && anon.mapping.isNotEmpty()) mappingFile = runCatching {
                         DocumentWriter.create(
-                            context, File(context.filesDir, "documents/Transkripte"), "Zuordnungsliste – ${t.title}",
+                            context, File(io.github.thepytales.llmhub.data.LoraRoot.dir(context), "Erstellt/Transkripte"), "Zuordnungsliste – ${t.title}",
                             io.github.thepytales.llmhub.transcribe.TranscriptAnon.mappingTable(t.title, anon.mapping), DocFormat.PDF,
                             fileName = DocumentWriter.safeName(t.title) + " (Zuordnungsliste)", overwrite = true,
                         ).file
@@ -550,7 +550,7 @@ fun ExportSheet(c: AppContainer, t: Transcript, onDismiss: () -> Unit) {
 
 /** Writes the export into the documents folder of the app and returns the file. */
 private suspend fun exportFile(context: android.content.Context, t: Transcript, f: TranscriptFormat, opts: ExportOptions): File {
-    val folder = File(context.filesDir, "documents/Transkripte")
+    val folder = File(io.github.thepytales.llmhub.data.LoraRoot.dir(context), "Erstellt/Transkripte")
     val name = DocumentWriter.safeName(t.title) + when (f) {
         TranscriptFormat.DRESING_PEHL -> " (Dresing-Pehl)"
         TranscriptFormat.MAXQDA -> " (MAXQDA)"

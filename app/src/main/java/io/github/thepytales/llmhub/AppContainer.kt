@@ -103,6 +103,8 @@ class AppContainer(context: Context) {
     val outlookTools = io.github.thepytales.llmhub.agent.OutlookTools(this)
     /** Dateiverwaltung (AP-18): folders, Schlagwörter and the full-text search over documents, storage locations and knowledge. */
     val fileLibrary by lazy { io.github.thepytales.llmhub.data.FileLibrary(this, appContext) }
+    /** Der Lora-Ordner (AP-16): Hochgeladen, Erstellt, own folders, the Papierkorb. */
+    val drive by lazy { io.github.thepytales.llmhub.data.LoraDrive(this, appContext) }
     /** Unterschriften for PDFs (AP-15): drawn or from a picture, kept for the next form. */
     val signatures = ListStore<io.github.thepytales.llmhub.docs.Signature>(FileBackend(File(files, "signatures.json")), io.github.thepytales.llmhub.docs.Signature.serializer(), { it.id })
     val webTools = WebTools(llm.http)
@@ -172,6 +174,18 @@ class AppContainer(context: Context) {
         }
     }
 
+    /** Android (AP-16): the copy of the Lora-Ordner in the chosen folder should be brought up to date. */
+    @Volatile
+    private var mirrorDue = false
+
+    private fun mirrorNow() {
+        mirrorDue = false
+        val tree = settings.current.loraTree.takeIf { it.isNotBlank() } ?: return
+        runCatching { io.github.thepytales.llmhub.files.LoraMirror.sync(appContext, drive.root, tree) }
+            .onSuccess { r -> if (r.down > 0 || r.removed > 0) drive.changed() }
+            .onFailure { io.github.thepytales.llmhub.ErrorLog.record("Lora-Ordner abgleichen", it) }
+    }
+
     /** Background work of the container itself (memory care, AP-04). */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -185,6 +199,31 @@ class AppContainer(context: Context) {
             while (true) {
                 kotlinx.coroutines.delay(20_000)
                 vault.lockIfIdle()
+            }
+        }
+        // Lora-Ordner (AP-16): documents are real files there, uploads are kept, the files of before come over once.
+        docs.root = drive.root
+        docs.createdFolder = io.github.thepytales.llmhub.data.LoraDrive.CREATED
+        docs.files = io.github.thepytales.llmhub.docs.DocFiles(docs, files, context.cacheDir) { d ->
+            documentTools.settingsTheme(io.github.thepytales.llmhub.docs.DocStyle.parse(d.style))
+        }
+        docs.trashFile = { f -> drive.delete(listOf(f)) }
+        docs.keepInApp = { d -> drive.isVaultChat(d.chatId) }
+        if (io.github.thepytales.llmhub.files.LoraMirror.SUPPORTED) drive.onChanged = { mirrorDue = true }
+        io.github.thepytales.llmhub.data.UploadSink.keep = { name, bytes -> drive.stage(name, bytes).absolutePath }
+        scope.launch(Dispatchers.IO) {
+            runCatching { chats.awaitLoaded() }
+            runCatching { drive.migrate() }
+            runCatching { docs.migrateToFiles { d -> fileLibrary.meta.get("doc:${d.id}")?.folder.orEmpty() } }
+            runCatching { drive.purgeTrash() }
+            runCatching { drive.purgeStaged() }
+            // Files changed in Word or Excel (or on another PC) come back into the editor; Android keeps its copy in the
+            // chosen folder up to date (every two minutes and shortly after changes).
+            var tick = 0
+            while (true) {
+                kotlinx.coroutines.delay(4000)
+                runCatching { docs.refreshFiles() }
+                if (++tick % 30 == 0 || mirrorDue) mirrorNow()
             }
         }
     }

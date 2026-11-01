@@ -194,7 +194,7 @@ fun SyncNewcomerDialog(visible: Boolean, idle: Boolean, onQuit: (String?) -> Uni
 /** Entry of Einstellungen › Synchronisation in the overview. */
 fun syncSettingsItemDesktop(): SettingsItem = SettingsItem(
     "settings/sync", Icons.Outlined.CloudSync, "Synchronisation",
-    if (SyncSession.active) "An · " + (CloudFolders.serviceOf(Paths.data) ?: Paths.data.name) else "Datenordner in OneDrive, Google Drive oder Nextcloud legen",
+    if (SyncSession.active) "An · " + (CloudFolders.serviceOf(Paths.root) ?: Paths.root.name) else "Lora-Ordner in OneDrive, Google Drive oder Nextcloud legen",
 )
 
 /**
@@ -211,7 +211,7 @@ fun SyncSettings(c: AppContainer) {
     val kept by SyncSession.kept.collectAsState()
     Section("So funktioniert es") {
         Text(
-            "Wie bei Obsidian: Der Datenordner liegt in einem Cloud-Ordner (Nextcloud, Google Drive für Desktop oder OneDrive), der auf " +
+            "Wie bei Obsidian: Der Lora-Ordner (Dateien, Chats und Einstellungen) liegt in einem Cloud-Ordner (Nextcloud, Google Drive für Desktop oder OneDrive), der auf " +
                 "deinen PCs eingerichtet ist. Deren Programm hält ihn überall gleich – am Büro-PC beginnen, am Laptop weiterarbeiten, ohne Umzug.",
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -227,7 +227,7 @@ fun SyncSettings(c: AppContainer) {
     }
     if (active) {
         Section("Synchronisation ist an") {
-            Text(Paths.data.absolutePath + (CloudFolders.serviceOf(Paths.data)?.let { " ($it)" } ?: ""), style = MaterialTheme.typography.bodySmall)
+            Text(Paths.root.absolutePath + (CloudFolders.serviceOf(Paths.root)?.let { " ($it)" } ?: ""), style = MaterialTheme.typography.bodySmall)
             val notes = remember { SyncGuard.sessions(Paths.data).sortedByDescending { it.lastSeen } }
             notes.forEach { n ->
                 val me = n.id == SyncSession.me.id
@@ -241,14 +241,14 @@ fun SyncSettings(c: AppContainer) {
                 )
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { DesktopActions.open(Paths.data) }) {
+                OutlinedButton(onClick = { DesktopActions.open(Paths.root) }) {
                     Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(6.dp))
-                    Text("Datenordner öffnen")
+                    Text("Lora-Ordner öffnen")
                 }
                 val conflictDir = File(File(Paths.data, SyncGuard.FOLDER), SyncGuard.CONFLICTS)
                 if (conflictDir.isDirectory) OutlinedButton(onClick = { DesktopActions.open(conflictDir) }) { Text("Beiseitegelegte Konfliktkopien") }
-                TextButton(onClick = { target = Paths.data.parentFile ?: Paths.data; endSync = true }) { Text("Synchronisation beenden …") }
+                TextButton(onClick = { target = Paths.defaultRoot; endSync = true }) { Text("Synchronisation beenden …") }
             }
             kept?.let { k ->
                 HintText(
@@ -260,8 +260,8 @@ fun SyncSettings(c: AppContainer) {
             }
         }
     } else {
-        Section("Datenordner in einen Cloud-Ordner legen") {
-            Text("Erster PC: Deine Daten werden in den Cloud-Ordner kopiert, danach startet Lora neu und arbeitet dort.", style = MaterialTheme.typography.bodySmall)
+        Section("Lora-Ordner in einen Cloud-Ordner legen") {
+            Text("Erster PC: Dein Lora-Ordner wird in den Cloud-Ordner kopiert, danach startet Lora neu und arbeitet dort.", style = MaterialTheme.typography.bodySmall)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 places.forEach { p -> Button(onClick = { target = p.target }) { Text("In ${p.name} legen") } }
                 OutlinedButton(onClick = { scope.launch { FolderAccess.pick("Ordner in deinem Cloud-Ordner wählen")?.let { target = File(it) } } }) {
@@ -294,15 +294,15 @@ private fun SyncSwitchDialog(dir: File, ending: Boolean, onDismiss: () -> Unit) 
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (ending) "Synchronisation beenden" else if (hasData) "Vorhandenen Ordner nutzen" else "Datenordner verlegen") },
+        title = { Text(if (ending) "Synchronisation beenden" else if (hasData) "Vorhandenen Ordner nutzen" else "Lora-Ordner verlegen") },
         text = {
             Text(
                 when {
-                    ending -> "Deine aktuellen Daten werden zurück in den Standardordner dieses PCs kopiert (neuere Dateien ersetzen ältere), dann " +
+                    ending -> "Dein Lora-Ordner wird zurück nach „${Paths.defaultRoot.absolutePath}“ kopiert (neuere Dateien ersetzen ältere), dann " +
                         "startet Lora neu. Der Cloud-Ordner bleibt unverändert – auf anderen PCs geht die Synchronisation weiter."
                     hasData -> "In „${dir.absolutePath}“ liegen schon Lora-Daten (z. B. vom anderen PC). Lora startet neu und nutzt sie. " +
                         "„Meine Daten dazukopieren“ ergänzt nur Dateien, die dort noch fehlen."
-                    else -> "Deine Daten werden nach „${dir.absolutePath}“ kopiert, danach startet Lora neu und arbeitet dort weiter. " +
+                    else -> "Dein Lora-Ordner wird nach „${dir.absolutePath}“ kopiert, danach startet Lora neu und arbeitet dort weiter. " +
                         "Der bisherige Ordner bleibt als Sicherung erhalten."
                 },
             )
@@ -310,15 +310,15 @@ private fun SyncSwitchDialog(dir: File, ending: Boolean, onDismiss: () -> Unit) 
         confirmButton = {
             TextButton(onClick = {
                 when {
-                    ending -> run { Paths.relocate(null, copy = true, overwriteOlder = true) }
-                    hasData -> run { Paths.relocate(dir, copy = false) }
-                    else -> run { dir.mkdirs(); Paths.relocate(dir, copy = true) }
+                    ending -> run { Paths.relocate(null, copy = true, overwriteOlder = true, sync = false) }
+                    hasData -> run { Paths.relocate(dir, copy = false, sync = true) }
+                    else -> run { dir.mkdirs(); Paths.relocate(dir, copy = true, sync = true) }
                 }
             }) { Text(if (ending) "Zurückkopieren und neu starten" else if (hasData) "Nutzen und neu starten" else "Kopieren und neu starten") }
         },
         dismissButton = {
             Row {
-                if (hasData) TextButton(onClick = { run { Paths.relocate(dir, copy = true) } }) { Text("Meine Daten dazukopieren") }
+                if (hasData) TextButton(onClick = { run { Paths.relocate(dir, copy = true, sync = true) } }) { Text("Meine Daten dazukopieren") }
                 TextButton(onClick = onDismiss) { Text("Abbrechen") }
             }
         },

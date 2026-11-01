@@ -460,6 +460,9 @@ fun ChatScreen(
                                 if (!current.archived) { Notices.undo("Chat archiviert", restore = { vm.setArchived(false) }); onNewChat() }
                             },
                             onAiNote = { showAiNote = true },
+                            onFiles = conv?.takeIf { cv -> !cv.vault && cv.messages.any { m -> m.file != null || m.files.isNotEmpty() || m.images.isNotEmpty() } }?.let { cv ->
+                                { FilesHandoff.chat.value = cv.id; onNavigate("files") }
+                            },
                             onExportJson = { exportJson(io.github.thepytales.llmhub.docs.DocumentWriter.safeName(current.title) + ".json") },
                         )
                     }
@@ -529,7 +532,7 @@ fun ChatScreen(
                                 useTemplate = { useTemplate(it) },
                                 attach = { f -> files.add(f) },
                                 startMode = { m -> startMode(m) },
-                                openDocs = { onNavigate("docs") },
+                                openDocs = { onNavigate("files") },
                             )
                         }
                     )

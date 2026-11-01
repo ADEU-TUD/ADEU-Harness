@@ -20,7 +20,6 @@ enum class DrawerArea(val id: String, val label: String, val route: String, val 
     TEMPLATES("templates", "TU Vorlagen", "templates"),
     LITERATURE("literature", "Literatur", "literature"),
     TRANSCRIPTS("transcripts", "Transkription", "transcripts"),
-    DOCS("docs", "Dokumente", "docs"),
     FILES("files", "Dateien", "files"),
     IMAGES("images", "Bilder erzeugen", "images"),
     TASKS("tasks", "Geplante Aufgaben", "tasks"),
@@ -31,7 +30,8 @@ enum class DrawerArea(val id: String, val label: String, val route: String, val 
     ;
 
     companion object {
-        fun byId(id: String): DrawerArea? = entries.firstOrNull { it.id == id }
+        /** „docs“ (Dokumente) became „files“ (Dateien) with AP-16. */
+        fun byId(id: String): DrawerArea? = entries.firstOrNull { it.id == (if (id == "docs") "files" else id) }
     }
 }
 

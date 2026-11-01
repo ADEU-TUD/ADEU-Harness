@@ -1,5 +1,10 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -379,9 +384,13 @@ private fun SlideWork(
     }
     val live = s.copy(title = title.text, body = bodyText(), right = right.text, notes = notes.text)
     Column(Modifier.then(modifier).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        var picked by remember(doc.id, sel) { mutableStateOf<Int?>(null) }
         Box(Modifier.widthIn(max = 820.dp).fillMaxWidth().aspectRatio(16f / 9f).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))) {
             SlideCanvas(live, Modifier.fillMaxSize(), sel + 1, slides.size, frame, slides)
+            // Frei gestalten (AP-16): elements can be moved and resized right on the slide.
+            if (!writing && live.elements.isNotEmpty()) FreeOverlay(live.elements, picked, onPick = { picked = it }) { list -> update(sel, live.copy(elements = list)) }
         }
+        if (!writing) FreeDesignBar(c, doc, slides, sel, live, picked, onPick = { picked = it }, updateAt = update) { next -> update(sel, next) }
         if (frame.unit.isEmpty()) UnitHint(c)
         inlineAi.state?.takeIf { it.first == "s$sel" }?.second?.let { sug ->
             Box(Modifier.widthIn(max = 820.dp)) {
@@ -445,6 +454,10 @@ private fun SlideWork(
                     HintText("Automatisch: " + SlideDeck.agenda(slides.mapIndexed { k, x -> if (k == sel) live else x }, sel).joinToString(" · ").ifBlank { "noch keine Abschnitte" })
                 }
                 SlideDeck.Layout.END -> RichField(body, { body = it }, "Text und Kontakt (je Zeile eine Angabe)", minLines = 2, enabled = !writing, toolbar = false)
+                SlideDeck.Layout.FREE -> {
+                    RichField(body, { body = it }, "Text unter dem Titel (optional)", minLines = 1, enabled = !writing)
+                    HintText("Freie Folie: Textfelder, Bilder und Formen über die Leiste unter der Folie einfügen, auf der Folie verschieben, an der Ecke unten rechts in der Größe ändern.")
+                }
             }
             OutlinedTextField(
                 notes, { notes = it }, label = { Text("Sprechernotizen") }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
@@ -551,7 +564,10 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
     val logoWhite = remember { runCatching { decodeImage(TudBrand.logoWhite) }.getOrNull() }
     val density = LocalDensity.current
     val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END
-    BoxWithConstraints(modifier.background(if (dark) TUD_BLUE else Color.White, RoundedCornerShape(4.dp))) {
+    // Masterfolie (AP-16): background of the light slides.
+    val master = deck.firstOrNull()?.master ?: s.master
+    val light = master?.background?.let { parseHexColor(it) } ?: Color.White
+    BoxWithConstraints(modifier.background(if (dark) TUD_BLUE else light, RoundedCornerShape(4.dp))) {
         val cm: Dp = maxWidth / SLIDE_W_CM
         fun at(v: Double): Dp = cm * v.toFloat()
         fun pt(v: Number): TextUnit = with(density) { (cm * (v.toFloat() * 0.03528f)).toSp() }
@@ -686,6 +702,52 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                     Column { s.body.lines().map { it.trim().removePrefix("- ") }.filter { it.isNotEmpty() }.take(5).forEach { Text(plainInline(it), style = style(18, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
                 }
             }
+            SlideDeck.Layout.FREE -> {
+                if (s.title.isNotBlank()) heading(s.title)
+                if (s.body.isNotBlank()) area(1.6, 4.0, 30.6, 13.0) { SlideContent(s.body, half = false, ::pt, ::style) }
+                if (master?.logo != false) chrome()
+            }
+        }
+        // Frei gestalten (AP-16): the freely placed elements on top.
+        s.elements.forEach { el -> area(el.x, el.y, el.w, el.h) { SlideElementView(el, master, ::pt) } }
+    }
+}
+
+/** A colour from „#RRGGBB“, null if it is not one. */
+internal fun parseHexColor(hex: String): Color? = hex.trim().removePrefix("#").takeIf { it.length == 6 }?.toLongOrNull(16)?.let { Color(0xFF000000 or it) }
+
+/** One freely placed element of a slide: text box, picture or shape (the export writes the same as PowerPoint shapes). */
+@Composable
+internal fun SlideElementView(el: io.github.thepytales.llmhub.docs.SlideElement, master: io.github.thepytales.llmhub.docs.SlideMaster?, pt: (Number) -> TextUnit) {
+    val accent = master?.accent?.let { parseHexColor(it) } ?: TUD_BLUE
+    val color = parseHexColor(el.color) ?: if (el.kind == "form") Color.White else TUD_BLUE
+    val align = when (el.align) { "mitte" -> TextAlign.Center; "rechts" -> TextAlign.End; else -> TextAlign.Start }
+    val textStyle = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = pt(el.size), lineHeight = pt(el.size * 1.2f), color = color, fontWeight = if (el.bold) FontWeight.SemiBold else FontWeight.Normal, textAlign = align)
+    when (el.kind) {
+        "bild" -> SlidePicture(el.src, el.text)
+        "form" -> {
+            val fill = parseHexColor(el.fill) ?: accent
+            when (el.shape) {
+                "linie" -> androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    drawLine(parseHexColor(el.color) ?: accent, androidx.compose.ui.geometry.Offset(0f, size.height / 2), androidx.compose.ui.geometry.Offset(size.width, size.height / 2), strokeWidth = 3.dp.toPx())
+                }
+                "pfeil" -> androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val head = minOf(w * 0.35f, h)
+                    val path = androidx.compose.ui.graphics.Path().apply {
+                        moveTo(0f, h * 0.25f); lineTo(w - head, h * 0.25f); lineTo(w - head, 0f); lineTo(w, h / 2); lineTo(w - head, h); lineTo(w - head, h * 0.75f); lineTo(0f, h * 0.75f); close()
+                    }
+                    drawPath(path, fill)
+                }
+                else -> Box(
+                    Modifier.fillMaxSize().background(fill, when (el.shape) { "ellipse" -> androidx.compose.foundation.shape.CircleShape; "abgerundet" -> RoundedCornerShape(18); else -> RoundedCornerShape(0.dp) }),
+                    contentAlignment = Alignment.Center,
+                ) { if (el.text.isNotBlank()) Text(el.text, style = textStyle, modifier = Modifier.fillMaxWidth().padding(4.dp)) }
+            }
+        }
+        else -> Box(Modifier.fillMaxSize().then(parseHexColor(el.fill)?.let { Modifier.background(it) } ?: Modifier).padding(2.dp)) {
+            Text(el.text.ifBlank { " " }, style = textStyle, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -915,4 +977,192 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
             }
         }
     }
+}
+
+
+private val FREE_COLORS = listOf("#00008C", "#2F57B2", "#97C6FF", "#566371", "#000000", "#FFFFFF", "#1B7F3B", "#B3261E", "#E37222", "#F2B01E")
+
+/** The elements over the slide preview: tap to select, drag to move, the corner handle to resize (in cm, AP-16). */
+@Composable
+private fun FreeOverlay(elements: List<io.github.thepytales.llmhub.docs.SlideElement>, picked: Int?, onPick: (Int?) -> Unit, onChange: (List<io.github.thepytales.llmhub.docs.SlideElement>) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val pxPerCm = with(density) { maxWidth.toPx() } / SLIDE_W_CM
+        val cm: Dp = maxWidth / SLIDE_W_CM
+        elements.forEachIndexed { i, el ->
+            var dx by remember(el) { mutableStateOf(0f) }
+            var dy by remember(el) { mutableStateOf(0f) }
+            var dw by remember(el) { mutableStateOf(0f) }
+            var dh by remember(el) { mutableStateOf(0f) }
+            val x = el.x + dx / pxPerCm
+            val y = el.y + dy / pxPerCm
+            val w = (el.w + dw / pxPerCm).coerceAtLeast(0.5)
+            val h = (el.h + dh / pxPerCm).coerceAtLeast(0.3)
+            fun commit() {
+                if (dx != 0f || dy != 0f || dw != 0f || dh != 0f) {
+                    val r = { v: Double -> Math.round(v * 10) / 10.0 }
+                    onChange(elements.toMutableList().apply { set(i, el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))) })
+                }
+            }
+            Box(
+                Modifier.offset(cm * x.toFloat(), cm * y.toFloat()).size(cm * w.toFloat(), cm * h.toFloat())
+                    .border(if (picked == i) 2.dp else 1.dp, if (picked == i) Color(0xFF2F57B2) else Color(0x332F57B2))
+                    .clickable { onPick(i) }
+                    .pointerInput(el) {
+                        detectDragGestures(
+                            onDragStart = { onPick(i) },
+                            onDrag = { change, d -> change.consume(); dx += d.x; dy += d.y },
+                            onDragEnd = { commit() },
+                            onDragCancel = { commit() },
+                        )
+                    },
+            ) {
+                if (picked == i) Box(
+                    Modifier.align(Alignment.BottomEnd).size(14.dp).background(Color(0xFF2F57B2)).pointerInput(el) {
+                        detectDragGestures(
+                            onDrag = { change, d -> change.consume(); dw += d.x; dh += d.y },
+                            onDragEnd = { commit() },
+                            onDragCancel = { commit() },
+                        )
+                    },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Frei gestalten (AP-16 Stufe 3): insert text boxes, pictures and shapes on any slide, change the selected one (text,
+ * colours, size, order) and the Masterfolie of the deck (background, accent, footer, logo).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FreeDesignBar(
+    c: AppContainer, doc: LiveDoc, slides: List<SlideDeck.Slide>, sel: Int, s: SlideDeck.Slide, picked: Int?,
+    onPick: (Int?) -> Unit, updateAt: (Int, SlideDeck.Slide) -> Unit, onChange: (SlideDeck.Slide) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val base = LocalDocBase.current
+    var shapes by remember { mutableStateOf(false) }
+    var masterOpen by remember { mutableStateOf(false) }
+    fun add(el: io.github.thepytales.llmhub.docs.SlideElement) {
+        onChange(s.copy(elements = s.elements + el))
+        onPick(s.elements.size)
+    }
+    val pickImage = rememberImageBytesPicker { bytes ->
+        if (bytes == null || DocMarkup.imageType(bytes) == null) return@rememberImageBytesPicker
+        scope.launch {
+            val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(base ?: c.docs.baseDir(doc), bytes) }.getOrNull() } ?: return@launch
+            val ratio = DocMarkup.imageSize(bytes)?.let { (w, h) -> h.toDouble() / w.coerceAtLeast(1) } ?: 0.75
+            add(io.github.thepytales.llmhub.docs.SlideElement(kind = "bild", x = 8.0, y = 4.0, w = 12.0, h = (12.0 * ratio).coerceIn(2.0, 14.0), src = path))
+        }
+    }
+    Column(Modifier.widthIn(max = 820.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            AssistChip(onClick = { add(io.github.thepytales.llmhub.docs.SlideElement(kind = "text", text = "Text")) }, label = { Text("Textfeld") })
+            AssistChip(onClick = pickImage, label = { Text("Bild …") })
+            Box {
+                AssistChip(onClick = { shapes = true }, label = { Text("Form ▾") })
+                DropdownMenu(shapes, { shapes = false }) {
+                    listOf("rechteck" to "Rechteck", "abgerundet" to "Abgerundetes Rechteck", "ellipse" to "Ellipse", "pfeil" to "Pfeil", "linie" to "Linie").forEach { (k, label) ->
+                        DropdownMenuItem(text = { Text(label) }, onClick = {
+                            shapes = false
+                            add(io.github.thepytales.llmhub.docs.SlideElement(kind = "form", shape = k, w = if (k == "linie") 10.0 else 8.0, h = if (k == "linie") 0.6 else 4.0, color = if (k == "linie") "#00008C" else "#FFFFFF"))
+                        })
+                    }
+                }
+            }
+            AssistChip(onClick = { masterOpen = true }, label = { Text("Masterfolie …") })
+            if (s.layout != SlideDeck.Layout.FREE && sel > 0) AssistChip(onClick = { onChange(s.copy(layout = SlideDeck.Layout.FREE)) }, label = { Text("Leere Folie (frei)") })
+        }
+        val el = picked?.let { s.elements.getOrNull(it) }
+        if (el != null) {
+            fun set(next: io.github.thepytales.llmhub.docs.SlideElement) = onChange(s.copy(elements = s.elements.toMutableList().apply { set(picked, next) }))
+            Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(when (el.kind) { "bild" -> "Bild"; "form" -> "Form"; else -> "Textfeld" } + " ${picked + 1}", style = MaterialTheme.typography.labelLarge)
+                    if (el.kind != "bild" && el.shape != "linie") {
+                        var text by remember(el) { mutableStateOf(el.text) }
+                        LaunchedEffect(text) { delay(500); if (text != el.text) set(el.copy(text = text)) }
+                        OutlinedTextField(text, { text = it }, label = { Text("Text") }, modifier = Modifier.fillMaxWidth(), minLines = 1)
+                    } else if (el.kind == "bild") {
+                        var alt by remember(el) { mutableStateOf(el.text) }
+                        LaunchedEffect(alt) { delay(500); if (alt != el.text) set(el.copy(text = alt)) }
+                        OutlinedTextField(alt, { alt = it }, label = { Text("Bildbeschreibung (Alternativtext)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    }
+                    if (el.kind != "bild") {
+                        HintText(if (el.kind == "form" && el.shape != "linie") "Füllung" else "Hintergrund")
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            if (el.kind == "text") ColorDot(null, el.fill.isBlank()) { set(el.copy(fill = "")) }
+                            if (el.shape != "linie") FREE_COLORS.forEach { col -> ColorDot(col, el.fill.equals(col, true)) { set(el.copy(fill = col)) } }
+                        }
+                        HintText(if (el.shape == "linie") "Linienfarbe" else "Schriftfarbe")
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { FREE_COLORS.forEach { col -> ColorDot(col, el.color.equals(col, true)) { set(el.copy(color = col)) } } }
+                        if (el.shape != "linie") Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { set(el.copy(size = (el.size - 2).coerceAtLeast(8))) }) { Text("A−") }
+                            Text("${el.size} pt", style = MaterialTheme.typography.bodySmall)
+                            TextButton(onClick = { set(el.copy(size = (el.size + 2).coerceAtMost(96))) }) { Text("A+") }
+                            FilterChip(el.bold, { set(el.copy(bold = !el.bold)) }, label = { Text("Fett") })
+                            listOf("links" to "◧", "mitte" to "▣", "rechts" to "◨").forEach { (k, sym) -> FilterChip(el.align == k, { set(el.copy(align = k)) }, label = { Text(sym) }) }
+                        }
+                    }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(removeAt(picked)) })); onPick(s.elements.lastIndex) }) { Text("Nach vorn") }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(0, removeAt(picked)) })); onPick(0) }) { Text("Nach hinten") }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text("Duplizieren") }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text("Löschen", color = MaterialTheme.colorScheme.error) }
+                    }
+                }
+            }
+        }
+    }
+    if (masterOpen) {
+        val first = slides.firstOrNull() ?: return
+        val m = first.master ?: io.github.thepytales.llmhub.docs.SlideMaster()
+        var bg by remember { mutableStateOf(m.background) }
+        var accent by remember { mutableStateOf(m.accent) }
+        var footer by remember { mutableStateOf(m.footer) }
+        var logo by remember { mutableStateOf(m.logo) }
+        AlertDialog(
+            onDismissRequest = { masterOpen = false },
+            title = { Text("Masterfolie") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HintText("Gilt für alle Folien der Präsentation (Titel- und Abschlussfolie bleiben im TUD-Blau).")
+                    Text("Hintergrund", style = MaterialTheme.typography.labelLarge)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ColorDot("#FFFFFF", bg.isBlank() || bg.equals("#FFFFFF", true)) { bg = "" }
+                        listOf("#F5F7FA", "#E5F1FF", "#FFF8E1", "#EEF7EE", "#F3F0FA").forEach { col -> ColorDot(col, bg.equals(col, true)) { bg = col } }
+                    }
+                    Text("Akzentfarbe (Formen)", style = MaterialTheme.typography.labelLarge)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { FREE_COLORS.filter { it != "#FFFFFF" }.forEach { col -> ColorDot(col, accent.equals(col, true)) { accent = col } } }
+                    OutlinedTextField(footer, { footer = it }, label = { Text("Fußzeile (leer: TU Dresden · Einrichtung · Titel)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    Row(Modifier.clickable { logo = !logo }, verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(logo, { logo = it })
+                        Text("Logo und Fußzeile auf freien Folien")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    masterOpen = false
+                    val next = io.github.thepytales.llmhub.docs.SlideMaster(bg, accent, footer.trim(), logo)
+                    if (sel == 0) onChange(s.copy(master = next)) else updateAt(0, first.copy(master = next))
+                }) { Text("Übernehmen") }
+            },
+            dismissButton = { TextButton(onClick = { masterOpen = false }) { Text("Abbrechen") } },
+        )
+    }
+}
+
+@Composable
+private fun ColorDot(hex: String?, selected: Boolean, onClick: () -> Unit) {
+    val color = hex?.let { parseHexColor(it) }
+    Box(
+        Modifier.size(26.dp).clip(androidx.compose.foundation.shape.CircleShape)
+            .background(color ?: Color.Transparent)
+            .border(if (selected) 3.dp else 1.dp, if (selected) Color(0xFF2F57B2) else Color(0xFFBBC1C6), androidx.compose.foundation.shape.CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { if (color == null) Text("∅", style = MaterialTheme.typography.labelSmall) }
 }

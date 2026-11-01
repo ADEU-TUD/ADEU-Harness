@@ -472,7 +472,7 @@ class AgentRunner(private val c: AppContainer) {
 
     /** Files the tools created in a project with a project folder land in its "Ausgabe" (see [WorkFolder.place]). */
     private suspend fun toWorkFolder(output: ToolOutput, ctx: RepoContext): ToolOutput =
-        withContext(Dispatchers.IO) { WorkFolder.place(c, ctx.folderId, output) }
+        withContext(Dispatchers.IO) { c.drive.keepVaultFile(ctx.chatId, WorkFolder.place(c, ctx.folderId, output)) }
 
     /** Instructions of the chat's project (folder) – also without tools. */
     private fun projectPrompt(conv: Conversation): String? {

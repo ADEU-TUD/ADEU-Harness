@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.width
@@ -379,6 +380,8 @@ internal fun ChatMenu(
     onArchive: () -> Unit = {},
     onExportJson: () -> Unit = {},
     onAiNote: () -> Unit = {},
+    /** „Dateien dieses Chats“ (AP-16): the Dateien tab with what was uploaded and made here; null when it has none. */
+    onFiles: (() -> Unit)? = null,
 ) {
     fun pick(action: () -> Unit): () -> Unit = {
         onDismiss()
@@ -405,6 +408,7 @@ internal fun ChatMenu(
         MenuEntry(Icons.Outlined.DataObject, "Als JSON exportieren", hasMessages, onClick = pick(onExportJson))
         MenuEntry(Icons.Outlined.Search, "Im Chat suchen", hasMessages, onClick = pick(onSearch))
         MenuEntry(Icons.Outlined.VerifiedUser, "KI-Nutzungsnachweis", hasMessages, onClick = pick(onAiNote))
+        onFiles?.let { MenuEntry(Icons.Outlined.Folder, "Dateien dieses Chats", hasMessages, onClick = pick(it)) }
         MenuGroup(null)
         MenuEntry(Icons.Outlined.Edit, "Umbenennen", hasMessages, onClick = pick(onRename))
         MenuEntry(Icons.Outlined.PushPin, if (pinned) "Lösen" else "Anheften", hasMessages, onClick = pick(onPin))

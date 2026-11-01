@@ -52,7 +52,7 @@ data class Command(val title: String, val route: String, val group: String, val 
 val APP_COMMANDS: List<Command> get() = listOf(
     Command("Neuer Chat", "chat", "Aktionen", "neu chat gespräch"),
     Command("Literatur", "literature", "Bereiche", "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
-    Command("Dokumente", "docs", "Bereiche", "editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word"),
+    Command("Dateien", "files", "Bereiche", "dokumente editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word ordner hochgeladen erstellt papierkorb lora-ordner"),
     Command("Transkription", "transcripts", "Bereiche", "audio interview aufnahme diktat codieren"),
     Command("TU Vorlagen", "templates", "Bereiche", "vorlagen prompt vorlage lehre forschung"),
     Command("Bilder erzeugen", "images", "Bereiche", "bild grafik galerie"),
@@ -194,7 +194,7 @@ fun ShortcutsDialog(onDismiss: () -> Unit) {
         "Strg+B" to "Seitenleiste ein/aus",
         "Strg+L" to "Lora öffnen und schließen",
         "Strg+Umschalt+L" to "Literatur",
-        "Strg+D" to "Dokumente",
+        "Strg+D" to "Dateien",
         "Strg+T" to "Transkription",
         "Strg+," to "Einstellungen",
         "Strg+/" to "Diese Übersicht",

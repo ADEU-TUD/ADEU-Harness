@@ -50,7 +50,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Abschnitt | Pakete |
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
-| **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · AP-16 Office-Ausbau · ~~AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – offen nur noch AP-16 |
+| **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
 | **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
@@ -414,9 +414,9 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   Textebene, Unterschrift und die Texterkennung von Windows. Grenzen: Unterschrift als Bild bzw. Vektor (keine digitale
   Signatur), OCR von Windows liest keine Handschrift.
 
-### AP-16 ☐ Office-Ausbau · XL (bisher W8-01)
+### AP-16 ☑ Office-Ausbau · XL (bisher W8-01)
 Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau im Alltagsumfang. Stufen:
-0. **Dateien wie bei Google Drive, mit einem Lora-Ordner** (baut auf AP-18 auf; entschieden am 01.11.2026):
+0. **Dateien wie bei Google Drive, mit einem Lora-Ordner** (baut auf AP-18 auf; entschieden am 01.11.2026, ☑):
    - Der Tab *Dokumente* und *Mehr › Dateien* werden zum Tab **Dateien** (oben in der Seitenleiste; Strg+D,
      Befehlspalette und Lora-Landkarte ziehen mit).
    - **Ein Lora-Ordner für alles, wie ein Obsidian-Vault**: Dateien, Chats und Einstellungen liegen in einem frei
@@ -426,7 +426,7 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
      Die App-Daten liegen versteckt in einem Unterordner, sichtbar sind nur die Dateien.
    - **Echte Dateien** im Ordner (.docx, .xlsx, .pptx, .md, .pdf), die sich mit Word & Co. öffnen lassen; Kommentare,
      Versionen und die Verbindung zum Chat liegen daneben im versteckten Ordner `.lora/`. Braucht Stufe 1
-     (Speichern ohne Verlust); bis dahin bleibt das App-Format daneben bestehen.
+     (Speichern ohne Verlust).
    - **Feste Ordner**: *Hochgeladen* (jeder Upload als Kopie, gleiche Dateien nur einmal; frühere PDFs und Bilder aus
      alten Chats werden übernommen, von Word, Excel und anderen gibt es nur noch den Text) und *Erstellt* (alles, was im
      Chat entstanden ist; flach mit Spalte und Filter „aus Chat …“/Projekt). Beide lassen sich nicht umbenennen oder
@@ -438,7 +438,7 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
      Markiert · Hochgeladen · Erstellt · Meine Ordner · Orte · Papierkorb*. Keine Leiste unten und kein „Freigegeben“
      wie bei Drive.
    - **Papierkorb** statt sofort löschen. Bisherige Ablageorte und Projektordner bleiben als **Orte** verknüpft (kein
-     Umzug); ihre Dateien lassen sich jetzt auch umbenennen, verschieben und löschen (Windows-Papierkorb, Rückgängig).
+     Umzug); ihre Dateien lassen sich jetzt auch umbenennen, verschieben und löschen (Papierkorb von Lora, Rückgängig).
    - **Tresor** bleibt draußen: seine Dokumente landen nie unverschlüsselt im Lora-Ordner.
    - **Suche**: die Volltextsuche aus AP-18 im Tab *Dateien*. Chats bekommen eine eigene Suche mit Filtern in der
      Chatliste (Zeitraum, Projekt, Modell, mit Anhängen, mit erstellten Dateien); Dateien zeigen „aus Chat …“, Chats ihre
@@ -452,6 +452,25 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
 3. **Folien frei gestalten**: Elemente frei platzieren, Bilder und Formen, Masterfolien.
 - Android: ansehen, kleine Änderungen, KI-Assistent.
 - Code aus WordCraft und DeckCraft ggf. ansehen (*Anhang: Craft-Apps*).
+- Auf Wunsch dazu: Bearbeiten wie in Google Docs mit **Lora rechts als Assistentin** und einem **Lora-Popup** über
+  markiertem Text.
+- **Ergebnis (01.11.2026)**: Stufe 0: Tab *Dateien* (statt *Dokumente* und *Mehr › Dateien*, oben in der Seitenleiste)
+  mit Raster/Liste, Vorschaubildern, Sortierung, Pfadleiste, großem „+“, Ziehen auf Ordner (Windows), *Verschieben
+  nach …*, Mehrfachauswahl, Sternen, Papierkorb (`data/LoraDrive.kt`, `ui/DriveScreen.kt`). Lora-Ordner: Windows
+  `Paths.root` mit Daten in `.lora` (`desktop/LoraLayout.kt` zieht `%APPDATA%` bzw. einen gewählten Datenordner einmal
+  um), Verschieben/Wechseln mit Neustart, Abfrage beim Start, wenn er fehlt; Android: Kopie in einen Ordner des
+  Systemdialogs (`files/LoraMirror.kt`, in beide Richtungen nach Änderungszeit). Uploads werden beim Lesen beiseitegelegt
+  und erst beim Senden übernommen (Tresor-Chats nie), Bilder beim Senden; alte PDFs/Bilder und `documents/` einmal
+  übernommen; Chats finden verschobene Dateien über `dateien.json` (`resolve`). Editor-Dokumente sind echte Dateien
+  (`docs/DocFiles.kt`), Rückweg aus Word alle 4 s. Stufe 1: Änderungen nachverfolgen (`trackBase`, `Tracking`), Word-
+  Überarbeitungen und Kommentare hin und zurück (`docs/DocxExtras.kt`), Schreiben ins Original (`OfficeEdit`) für docx,
+  pptx, xlsx. Stufe 2: Fußzeile, Seitenränder, Seitenansicht, Inhaltsverzeichnis, Formeln als OMML (`docs/LatexOmml.kt`),
+  Rechtschreibung auf dem Gerät (`docs/LocalSpelling.kt`: Windows ISpellChecker, Android Rechtschreibdienst); Zitieren
+  war schon da. Stufe 3: freie Elemente und Masterfolie (`SlideElement`, `SlideMaster`, `docs/SlideExtras.kt`). Dazu
+  Lora-Panel rechts und Lora-Popup, Chatsuche mit Filtern (`data/ChatFilter.kt`), *Dateien dieses Chats*. Tests:
+  `LoraFilesTest`. Grenzen: Papierkorb ist der von Lora (nicht der von Windows); offene Überarbeitungen werden aus dem
+  Editor geschrieben (nicht ins Original); Seitenansicht ohne echten Seitenumbruch; Android-Kopie erkennt
+  Umbenennungen dort als neue Datei.
 
 ### AP-17 ☑ Lernspiele-Baukasten · L (bisher W6-03, neu gedacht)
 - Die KI baut **eigenständige Browserspiele aus HTML, JavaScript und CSS** (Quiz, Zuordnen, Memory, Escape-Room …) aus
@@ -632,7 +651,8 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-14 Browser neben dem Chat (W) | JCEF-Panel mit Tabs, Frage zur Seite (Quellenmodus), Zusammenfassen, Literatur, Wissenssammlung, PDF | Android (WebView); Dialoge über dem Browser |
 | ☑ AP-13 Mail und Kalender (W) | COM über JNA, Modus *Postfach*, 12 Werkzeuge, Regeln mit Vorschau, Protokoll, nie löschen/senden | echte Outlook-Regeln; Server-Weg mit AP-27 |
 | ☑ AP-15 PDF Stufe 2 | Texterkennung von Windows bzw. Bildmodell, Umwandeln (Office über COM), Unterschreiben, Frag das PDF, Tabellen | digitale Signatur; Handschrift-OCR auf dem PC |
-| ☑ AP-18 Dateiverwaltung | *Dateien*: Orte und Ordner, Schlagwörter, Volltextsuche mit Cache, Vergleich, `search_files` | SQLite-Index nur bei Bedarf; Dateien verschieben |
+| ☑ AP-18 Dateiverwaltung | *Dateien*: Orte und Ordner, Schlagwörter, Volltextsuche mit Cache, Vergleich, `search_files` | SQLite-Index nur bei Bedarf; Dateien verschieben (mit AP-16 erledigt) |
+| ☑ AP-16 Office-Ausbau | Tab *Dateien* wie Google Drive, Lora-Ordner (`.lora`), echte docx/pptx/xlsx, ins Original schreiben, Änderungen nachverfolgen, Word-Kommentare, Fußzeile/Ränder/Inhaltsverzeichnis/Formeln, Rechtschreibung auf dem Gerät, freie Folien mit Masterfolie, Lora-Panel und -Popup, Chatfilter | echter Seitenumbruch in der Seitenansicht; Windows-Papierkorb; Scannen (Ideen) |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
 ---
@@ -664,7 +684,7 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☑ (Outlook) |
 | Dateiverwaltung (AP-18) | ☑ (Dokumente, Wissenssammlung) | ☑ (dazu Ablageorte und Projektordner) |
 | Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
-| Office (AP-16) | ansehen, kleine Änderungen | voll |
+| Office (AP-16) | ☑ ansehen, bearbeiten, Lora; Dateien in der App mit Kopie in einen gewählten Ordner | ☑ voll, Lora-Ordner |
 | Lernspiele (AP-17) | ansehen, spielen | voll |
 | Kreativbereich (AP-24) | – (nicht geplant) | ☐ |
 | Videoeditor (AP-25) | – (nicht geplant) | ☐ |

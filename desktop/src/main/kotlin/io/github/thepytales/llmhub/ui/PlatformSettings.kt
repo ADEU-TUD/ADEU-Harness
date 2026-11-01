@@ -80,24 +80,5 @@ private fun WindowsSection(c: AppContainer) {
             s.browserPanel,
         ) { v -> c.settings.update { it.copy(browserPanel = v) } }
     }
-    Section("Datenordner") {
-        Text(
-            "Chats, Einstellungen, Dokumente und Transkripte liegen in diesem Ordner. Auf mehreren PCs arbeiten: unter Einstellungen › " +
-                "Synchronisation den Datenordner in OneDrive, Google Drive oder Nextcloud legen.",
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Text(Paths.data.absolutePath + if (Paths.chosen != null) " (selbst gewählt)" else " (Standard)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { DesktopActions.open(Paths.data) }) {
-                Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.size(6.dp))
-                Text("Datenordner öffnen")
-            }
-            OutlinedButton(onClick = { Navigation.openRoute.value = "settings/sync" }) { Text("Synchronisation …") }
-        }
-        Text(
-            "Nur Dokumente in einen Sync-Ordner legen? Dafür gibt es unter Einstellungen › Speicherorte eigene Ablageorte.",
-            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    Section("Lora-Ordner") { LoraFolderSettings() }
 }

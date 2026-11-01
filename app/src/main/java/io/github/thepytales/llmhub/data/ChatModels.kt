@@ -30,6 +30,8 @@ data class FileAttachment(
      * public, see data/Pseudonymizer.isPublic). The user can switch it at the attachment (AP-03).
      */
     val public: Boolean? = null,
+    /** Copy of the uploaded file in the Lora-Ordner („Hochgeladen“, AP-16). */
+    val stored: String? = null,
 )
 
 @Serializable

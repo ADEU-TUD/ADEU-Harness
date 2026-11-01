@@ -104,18 +104,18 @@ val TUD_STARTERS = listOf(
 )
 
 /** Templates for Markdown files. */
-private val MARKDOWN_STARTERS = listOf(
+internal val MARKDOWN_STARTERS = listOf(
     "README" to "# Projektname\n\nKurze Beschreibung in einem Satz.\n\n## Installation\n\n```bash\n\n```\n\n## Verwendung\n\n\n\n## Lizenz\n\n",
     "Notiz" to "# Notiz\n\nTags: #\n\n## Gedanken\n\n- \n\n## Verknüpfungen\n\n- [[ ]]\n",
 )
 
 /** Templates for new presentations and tables. */
-private val SLIDE_STARTERS = listOf(
+internal val SLIDE_STARTERS = listOf(
     "Seminarsitzung" to "# Thema der Sitzung\n\n## Seminar · Datum\n\n---\n\n## Ablauf\n\n- Einstieg\n- Input\n- Arbeitsphase\n- Sicherung\n\n---\n\n## Lernziele\n\n- Die Teilnehmenden können …\n\n---\n\n## Arbeitsauftrag\n\n- \n\nNotizen: Zeit: 20 Minuten\n\n---\n\n## Zusammenfassung\n\n- \n",
     "Vortrag" to "# Titel des Vortrags\n\n## Name · Anlass\n\n---\n\n## Ausgangslage\n\n- \n\n---\n\n## Fragestellung\n\n> „Leitfrage des Vortrags“\n\n---\n\n## Ergebnisse\n\n- \n\n---\n\n## Fazit\n\n- \n\n---\n\n## Vielen Dank!\n\nFragen und Diskussion\n",
 )
 
-private val SHEET_STARTERS = listOf(
+internal val SHEET_STARTERS = listOf(
     "Notenliste" to SheetEngine.markdown(
         listOf(listOf("Name", "Punkte", "Note", "Bestanden")) +
             (2..6).map { r -> listOf("", "", "=WENN(B$r>=90;1;WENN(B$r>=75;2;WENN(B$r>=60;3;WENN(B$r>=50;4;5))))", "=WENN(B$r>=50;\"ja\";\"nein\")") } +
@@ -128,8 +128,8 @@ private val SHEET_STARTERS = listOf(
     "Zeitplan" to SheetEngine.markdown(listOf(listOf("Aufgabe", "Verantwortlich", "Beginn", "Ende", "Status")) + List(6) { List(5) { "" } }),
 ) + io.github.thepytales.llmhub.docs.SheetTemplates.ALL
 
-/** Creates a new document of [kind] (in the default storage folder) and returns it. */
-fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: String? = null, style: String? = null): LiveDoc {
+/** Creates a new document of [kind] (in [folder] of the Lora-Ordner, else the default storage folder) and returns it. */
+fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: String? = null, style: String? = null, folder: String? = null): LiveDoc {
     val t = title ?: kind.newTitle
     val md = markdown ?: when (kind) {
         DocKind.DOC, DocKind.MARKDOWN -> "# $t\n\n"
@@ -137,8 +137,8 @@ fun newLiveDoc(c: AppContainer, kind: DocKind, markdown: String? = null, title: 
         DocKind.SHEET -> SheetEngine.blank()
     }
     val doc = LiveDoc.create(DocBlocks.titleOf(md)?.takeIf { it.isNotBlank() } ?: t, md, "Sie", kind = kind, style = style).copy(vault = c.docs.defaultVault)
-    c.docs.save(doc)
-    return doc
+    if (folder != null) c.docs.saveIn(doc, folder) else c.docs.save(doc)
+    return c.docs.get(doc.id) ?: doc
 }
 
 /**
@@ -245,10 +245,16 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
         }
     }
 
-    aiCreate?.let { k ->
+    aiCreate?.let { k -> AiCreateDialog(c, k, folder = null, onDismiss = { aiCreate = null }, onOpen = onOpen) }
+}
+
+/** „Mit KI erstellen“: the AI writes the first draft of a new document directly into the editor. */
+@Composable
+internal fun AiCreateDialog(c: AppContainer, k: DocKind, folder: String?, onDismiss: () -> Unit, onOpen: (String) -> Unit) {
+    run {
         var text by remember { mutableStateOf("") }
         AlertDialog(
-            onDismissRequest = { aiCreate = null },
+            onDismissRequest = { onDismiss() },
             title = { Text("${k.label} mit KI erstellen") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -270,16 +276,17 @@ fun DocsListScreen(c: AppContainer, onBack: () -> Unit, onOpen: (String) -> Unit
             },
             confirmButton = {
                 TextButton(enabled = text.isNotBlank(), onClick = {
-                    aiCreate = null
-                    val doc = newLiveDoc(c, k, title = k.newTitle)
+                    onDismiss()
+                    val doc = newLiveDoc(c, k, title = k.newTitle, folder = folder)
                     DocsAi.send(c, doc, "Neu mit KI", text.trim(), DocsAi.instructions(doc) + " Das ${k.label} ist noch leer: Schreib einen vollständigen ersten Entwurf und gib ihm mit edit_document (title) einen passenden Titel.")
                     onOpen(doc.id)
                 }) { Text("Erstellen") }
             },
-            dismissButton = { TextButton(onClick = { aiCreate = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { onDismiss() }) { Text("Abbrechen") } },
         )
     }
 }
+
 
 @Composable
 private fun NewTile(kind: DocKind, onBlank: () -> Unit, onAi: () -> Unit, onTemplate: (String, String, String?) -> Unit) {

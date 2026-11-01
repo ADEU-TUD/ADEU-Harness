@@ -99,6 +99,8 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
     var numbers by remember { mutableStateOf(setup.pageNumbers) }
     var date by remember { mutableStateOf(setup.date) }
     var header by remember { mutableStateOf(setup.header) }
+    var footer by remember { mutableStateOf(setup.footer) }
+    var margins by remember { mutableStateOf(setup.margins) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Seite einrichten") },
@@ -114,9 +116,17 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
                     Text("Datum in der Kopfzeile")
                 }
                 OutlinedTextField(header, { header = it }, label = { Text("Kopfzeile (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(footer, { footer = it }, label = { Text("Fußzeile (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Text("Seitenränder", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("schmal" to "Schmal (1,27 cm)", "normal" to "Normal (2 cm)", "breit" to "Breit (2,54 cm)").forEach { (k, label) ->
+                        androidx.compose.material3.FilterChip(margins == k, { margins = k }, label = { Text(label) })
+                    }
+                }
+                HintText("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen.")
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim())) }) { Text("Übernehmen") } },
+        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim(), footer.trim(), margins)) }) { Text("Übernehmen") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
     )
 }
@@ -274,5 +284,86 @@ fun HandoutDialog(c: AppContainer, doc: LiveDoc, markdown: String, onDismiss: ()
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+    )
+}
+
+/**
+ * Rechtschreibprüfung on the device (AP-16): the dictionaries of Windows or Android check the text block by block;
+ * each word shows its suggestions – tap one to replace it, or ignore it / add it to the dictionary.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onDismiss: () -> Unit, onAskAi: () -> Unit) {
+    var lang by remember { mutableStateOf("de-DE") }
+    var reload by remember { mutableStateOf(0) }
+    val ignored = remember { androidx.compose.runtime.mutableStateListOf<String>() }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val found by androidx.compose.runtime.produceState<List<Pair<Int, io.github.thepytales.llmhub.docs.LocalSpelling.Error>>?>(null, lang, reload) {
+        value = null
+        if (!io.github.thepytales.llmhub.docs.LocalSpelling.available(lang)) { value = emptyList(); return@produceState }
+        val out = mutableListOf<Pair<Int, io.github.thepytales.llmhub.docs.LocalSpelling.Error>>()
+        blocks.forEachIndexed { i, b ->
+            if (b.trimStart().startsWith("```") || b.trimStart().startsWith("<!--") || io.github.thepytales.llmhub.docs.DocMarkup.image(b) != null) return@forEachIndexed
+            val plain = io.github.thepytales.llmhub.docs.DocBlocks.plainOf(b)
+            runCatching { io.github.thepytales.llmhub.docs.LocalSpelling.check(plain, lang) }.getOrDefault(emptyList()).forEach { out += i to it }
+        }
+        value = out
+    }
+    var none by remember { mutableStateOf(false) }
+    LaunchedEffect(lang) { none = !io.github.thepytales.llmhub.docs.LocalSpelling.available(lang) }
+    val shown = found?.filter { (_, e) -> e.word !in ignored }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Rechtschreibung") },
+        text = {
+            Column(Modifier.heightIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.material3.FilterChip(lang == "de-DE", { lang = "de-DE" }, label = { Text("Deutsch") })
+                    androidx.compose.material3.FilterChip(lang == "en-US", { lang = "en-US" }, label = { Text("Englisch") })
+                }
+                when {
+                    none -> HintText("Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem.")
+                    shown == null -> HintText("Prüfe …")
+                    shown.isEmpty() -> HintText("Keine Fehler gefunden.")
+                    else -> androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(shown.size) { k ->
+                            val (i, e) = shown[k]
+                            val plain = io.github.thepytales.llmhub.docs.DocBlocks.plainOf(blocks.getOrNull(i).orEmpty())
+                            val from = (e.start - 30).coerceAtLeast(0)
+                            val to = (e.start + e.length + 30).coerceAtMost(plain.length)
+                            Column {
+                                Text(
+                                    androidx.compose.ui.text.buildAnnotatedString {
+                                        append(if (from > 0) "…" else "")
+                                        append(plain.substring(from, e.start))
+                                        pushStyle(androidx.compose.ui.text.SpanStyle(color = androidx.compose.ui.graphics.Color(0xFFB3261E), textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline))
+                                        append(e.word)
+                                        pop()
+                                        append(plain.substring((e.start + e.length).coerceAtMost(plain.length), to))
+                                        append(if (to < plain.length) "…" else "")
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    e.suggestions.take(5).forEach { sug ->
+                                        androidx.compose.material3.AssistChip(onClick = {
+                                            val block = blocks.getOrNull(i) ?: return@AssistChip
+                                            val re = Regex("(?<![\\p{L}\\d])" + Regex.escape(e.word) + "(?![\\p{L}\\d])")
+                                            val next = re.find(block)?.let { m -> block.replaceRange(m.range, sug) } ?: block
+                                            if (next != block) onReplace(i, next)
+                                            ignored += e.word
+                                        }, label = { Text(sug.ifEmpty { "löschen" }) })
+                                    }
+                                    TextButton(onClick = { ignored += e.word }) { Text("Ignorieren") }
+                                    TextButton(onClick = { ignored += e.word; scope.launch { io.github.thepytales.llmhub.docs.LocalSpelling.learn(e.word, lang) } }) { Text("Ins Wörterbuch") }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Fertig") } },
+        dismissButton = { TextButton(onClick = { onDismiss(); onAskAi() }) { Text("Mit KI prüfen") } },
     )
 }

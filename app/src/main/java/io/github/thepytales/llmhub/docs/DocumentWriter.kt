@@ -104,7 +104,8 @@ object DocumentWriter {
             f
         }
         // Formulas ($…$) as readable text in every format (no formula renderer in PDF, Word or slides).
-        @Suppress("NAME_SHADOWING") val content = if (isHtml(content)) content else DocMarkup.resolveImages(MathText.inText(content), imageBase)
+        // Word gets real formulas (LatexOmml, AP-16).
+        @Suppress("NAME_SHADOWING") val content = if (isHtml(content)) content else DocMarkup.resolveImages(if (format == DocFormat.DOCX) content else MathText.inText(content), imageBase)
         val html = isHtml(content)
         // Word, Markdown and text cannot keep an HTML design; they get its text structure.
         val markdown = when {

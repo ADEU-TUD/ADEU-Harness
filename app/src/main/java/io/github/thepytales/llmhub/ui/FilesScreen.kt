@@ -101,7 +101,7 @@ import java.text.DateFormat
 import java.util.Date
 
 /** Icon of an entry of the Dateiverwaltung. */
-private fun FileKind.icon(): ImageVector = when (this) {
+internal fun FileKind.icon(): ImageVector = when (this) {
     FileKind.DOC, FileKind.WORD -> Icons.Outlined.Description
     FileKind.SLIDES, FileKind.POWERPOINT -> Icons.Outlined.Slideshow
     FileKind.SHEET, FileKind.EXCEL -> Icons.Outlined.TableChart
@@ -113,7 +113,7 @@ private fun FileKind.icon(): ImageVector = when (this) {
     FileKind.OTHER -> Icons.Outlined.InsertDriveFile
 }
 
-private fun FileKind.color(): Color = when (this) {
+internal fun FileKind.color(): Color = when (this) {
     FileKind.DOC, FileKind.WORD -> Color(0xFF2B579A)
     FileKind.SLIDES, FileKind.POWERPOINT -> Color(0xFFC43E1C)
     FileKind.SHEET, FileKind.EXCEL -> Color(0xFF217346)
@@ -127,7 +127,7 @@ private fun count(n: Int) = "$n " + tr(if (n == 1) "Datei" else "Dateien")
 
 private val WHEN = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
 
-private fun size(bytes: Long): String = when {
+internal fun fileSizeLabel(bytes: Long): String = when {
     bytes <= 0 -> ""
     bytes < 1024 -> "$bytes B"
     bytes < 1024 * 1024 -> "${bytes / 1024} KB"
@@ -393,7 +393,7 @@ private fun FileRow(item: FileItem, actions: FileActions, hit: FileHit? = null, 
                 HintText(
                     listOfNotNull(
                         WHEN.format(Date(item.modified)), item.kind.label, item.where + if (item.folder.isNotEmpty() && item.source != FileSource.KNOWLEDGE) " › " + item.folder else "",
-                        size(item.size).takeIf { item.source == FileSource.DISK && it.isNotEmpty() },
+                        fileSizeLabel(item.size).takeIf { item.source == FileSource.DISK && it.isNotEmpty() },
                         item.versions.takeIf { it > 1 }?.let { "$it " + tr("Versionen") },
                         hit?.page?.let { tr("Seite") + " $it" },
                     ).joinToString(" · "),
@@ -446,7 +446,7 @@ private fun FileRow(item: FileItem, actions: FileActions, hit: FileHit? = null, 
 /** Schlagwörter of a file: remove (✕), add (Enter or „Hinzufügen“), or pick one already in use. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TagsDialog(item: FileItem, known: List<String>, onDismiss: () -> Unit, onSave: (List<String>) -> Unit) {
+internal fun TagsDialog(item: FileItem, known: List<String>, onDismiss: () -> Unit, onSave: (List<String>) -> Unit) {
     val tags = remember { mutableStateListOf<String>().apply { addAll(item.tags) } }
     var text by remember { mutableStateOf("") }
     fun add(t: String) {
@@ -537,7 +537,7 @@ private fun VersionPicker(title: String, choices: List<Int>, selected: Int, labe
 
 /** Differences of two texts word by word: green = only in the right one, red and struck through = only in the left one. */
 @Composable
-private fun CompareDialog(
+internal fun CompareDialog(
     title: String,
     left: String,
     right: String,

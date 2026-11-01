@@ -395,13 +395,12 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "environment" -> EnvironmentEditScreen(c, args["id"] ?: "new", onBack = back)
         "settings" -> SettingsScreen(c, section = args["section"], onBack = back, onNavigate = { nav.navigate(it) })
         "literature" -> LiteratureScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) }, onSettings = { nav.navigate("settings/literature") })
-        "docs" -> DocsListScreen(c, onBack = back, onOpen = { id -> nav.navigate("doc/$id") })
+        "docs", "files" -> DriveScreen(c, onBack = back, onOpenDoc = { id -> nav.navigate("doc/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) }, onNavigate = { nav.navigate(it) })
         "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "games" -> GamesScreen(c, onBack = back)
         "mail" -> MailScreen(c, onBack = back)
-        "files" -> FilesScreen(c, onBack = back, onOpenDoc = { id -> nav.navigate("doc/$id") }, onNavigate = { nav.navigate(it) })
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

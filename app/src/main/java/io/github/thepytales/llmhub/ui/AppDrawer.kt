@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -96,23 +97,6 @@ import java.time.temporal.ChronoUnit
 
 private data class SearchHit(val conv: Conversation, val snippet: String?)
 
-/** Finds chats whose title or messages contain [query]; with a short excerpt around the match. */
-private fun search(list: List<Conversation>, query: String): List<SearchHit> {
-    val q = query.trim()
-    if (q.isEmpty()) return emptyList()
-    return list.mapNotNull { conv ->
-        val inTitle = conv.title.contains(q, ignoreCase = true)
-        val msg = conv.messages.firstOrNull { (it.role == "user" || it.role == "assistant") && it.content.contains(q, ignoreCase = true) }
-        if (!inTitle && msg == null) return@mapNotNull null
-        val snippet = msg?.content?.let { text ->
-            val i = text.indexOf(q, ignoreCase = true)
-            val start = (i - 40).coerceAtLeast(0)
-            (if (start > 0) "…" else "") + text.substring(start, minOf(text.length, i + q.length + 80)).replace(Regex("\\s+"), " ")
-        }
-        SearchHit(conv, snippet)
-    }
-}
-
 /** Day groups of the chat list, like in the ChatGPT and Claude apps. */
 private fun dayGroup(time: Long, today: LocalDate): String {
     val day = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -164,8 +148,12 @@ fun AppDrawer(
     var renameFolder by remember { mutableStateOf<Folder?>(null) }
     var deleteFolder by remember { mutableStateOf<Folder?>(null) }
 
-    val hits by produceState(emptyList<SearchHit>(), query, conversations) {
-        value = withContext(Dispatchers.Default) { search(allConversations, query) }
+    // Chat search with filters (AP-16): period, project, model, attachments, files of the AI, archive.
+    var filter by remember { mutableStateOf(io.github.thepytales.llmhub.data.ChatFilter()) }
+    val hits by produceState(emptyList<SearchHit>(), query, conversations, filter) {
+        value = withContext(Dispatchers.Default) {
+            io.github.thepytales.llmhub.data.ChatFilter.search(allConversations, query, filter).map { (conv, snippet) -> SearchHit(conv, snippet) }
+        }
     }
 
     ModalDrawerSheet(
@@ -229,11 +217,13 @@ fun AppDrawer(
                 }
             }
 
+            if (searching) ChatFilterRow(filter, folders, allConversations) { filter = it }
             LazyColumn(Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)) {
                 if (searching) {
-                    if (query.isNotBlank() && hits.isEmpty()) {
+                    if ((query.isNotBlank() || filter.active) && hits.isEmpty()) {
                         item { Hint("Keine Chats gefunden.") }
                     }
+                    if (query.isBlank() && !filter.active) item { Hint("Suchwort eingeben oder oben filtern – nach Zeitraum, Projekt, Modell, Anhängen oder erstellten Dateien.") }
                     items(hits, key = { "s_" + it.conv.id }) { hit ->
                         Column(
                             Modifier
@@ -244,6 +234,14 @@ fun AppDrawer(
                                 .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
                             Text(hit.conv.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                listOfNotNull(
+                                    java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(hit.conv.updatedAt)),
+                                    hit.conv.folderId?.let { id -> folders.firstOrNull { it.id == id }?.name },
+                                    if (hit.conv.archived) "Archiv" else null,
+                                ).joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline,
+                            )
                             hit.snippet?.let {
                                 Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -516,7 +514,6 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
     DrawerArea.TEMPLATES -> Icons.Outlined.Bookmarks
     DrawerArea.LITERATURE -> Icons.Outlined.MenuBook
     DrawerArea.TRANSCRIPTS -> Icons.Outlined.GraphicEq
-    DrawerArea.DOCS -> Icons.Outlined.Description
     DrawerArea.FILES -> Icons.Outlined.FolderOpen
     DrawerArea.IMAGES -> Icons.Outlined.Image
     DrawerArea.TASKS -> Icons.Outlined.Schedule
@@ -675,5 +672,51 @@ private fun ChatRow(
             DropdownMenuItem(text = { Text("Auswählen") }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }, onClick = { menu = false; onSelect() })
             DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
+    }
+}
+
+
+/** Filters of the chat search (AP-16) as a row of chips with menus. */
+@Composable
+private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, folders: List<Folder>, chats: List<Conversation>, onChange: (io.github.thepytales.llmhub.data.ChatFilter) -> Unit) {
+    var period by remember { mutableStateOf(false) }
+    var project by remember { mutableStateOf(false) }
+    var model by remember { mutableStateOf(false) }
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+    ) {
+        Box {
+            androidx.compose.material3.FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> "7 Tage"; 30 -> "30 Tage"; 365 -> "1 Jahr"; else -> "Zeitraum" }) })
+            androidx.compose.material3.DropdownMenu(period, { period = false }) {
+                listOf(0 to "Immer", 7 to "Letzte 7 Tage", 30 to "Letzte 30 Tage", 365 to "Letztes Jahr").forEach { (d, label) ->
+                    androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = { period = false; onChange(filter.copy(days = d)) })
+                }
+            }
+        }
+        Box {
+            androidx.compose.material3.FilterChip(filter.project != null, { project = true }, label = {
+                Text(filter.project?.let { id -> if (id.isEmpty()) "Ohne Projekt" else folders.firstOrNull { it.id == id }?.name ?: "Projekt" } ?: "Projekt", maxLines = 1)
+            })
+            androidx.compose.material3.DropdownMenu(project, { project = false }) {
+                androidx.compose.material3.DropdownMenuItem(text = { Text("Alle") }, onClick = { project = false; onChange(filter.copy(project = null)) })
+                androidx.compose.material3.DropdownMenuItem(text = { Text("Ohne Projekt") }, onClick = { project = false; onChange(filter.copy(project = "")) })
+                folders.forEach { f -> androidx.compose.material3.DropdownMenuItem(text = { Text(f.name) }, onClick = { project = false; onChange(filter.copy(project = f.id)) }) }
+            }
+        }
+        Box {
+            val models = remember(chats) { chats.map { it.model }.filter { it.isNotBlank() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }.take(15) }
+            androidx.compose.material3.FilterChip(filter.model != null, { model = true }, label = {
+                Text(filter.model?.let { io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: "Modell", maxLines = 1)
+            })
+            androidx.compose.material3.DropdownMenu(model, { model = false }) {
+                androidx.compose.material3.DropdownMenuItem(text = { Text("Alle") }, onClick = { model = false; onChange(filter.copy(model = null)) })
+                models.forEach { m -> androidx.compose.material3.DropdownMenuItem(text = { Text(io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) }, onClick = { model = false; onChange(filter.copy(model = m)) }) }
+            }
+        }
+        androidx.compose.material3.FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text("Mit Anhängen") })
+        androidx.compose.material3.FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text("Mit erstellten Dateien") })
+        androidx.compose.material3.FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text("Archiv") })
+        if (filter.active) androidx.compose.material3.TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text("Zurücksetzen") }
     }
 }
