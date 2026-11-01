@@ -34,8 +34,11 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           mkdir -p dist
+          # macOS and Linux (AP-31) only where the release has them; gh fails only if no pattern matches at all.
           gh release download "v${VERSION}" --repo "$GITHUB_REPOSITORY" --dir dist \
-            --pattern "ADEU-LLM-${VERSION}.apk" --pattern "ADEU-LLM-${VERSION}-Windows.zip" --pattern "ADEU-LLM-${VERSION}-Windows.exe"
+            --pattern "ADEU-LLM-${VERSION}.apk" --pattern "ADEU-LLM-${VERSION}-Windows.zip" --pattern "ADEU-LLM-${VERSION}-Windows.exe" \
+            --pattern "ADEU-LLM-${VERSION}-macOS.dmg" --pattern "ADEU-LLM-${VERSION}-macOS.tar.gz" \
+            --pattern "ADEU-LLM-${VERSION}-Linux.tar.gz" --pattern "ADEU-LLM-${VERSION}-Linux.deb"
           ls -l dist
 
       - name: Veröffentlichen

@@ -1,8 +1,9 @@
 name: PR-Check
 
 # Fast check for every pull request (about 6–8 minutes): the Android app compiles (without the local language
-# models, whose llama-server build takes long) and the unit tests of the shared code and the speech engine pass.
-# The full build with emulator and Windows test stays in "Build & Release" (started by hand).
+# models, whose llama-server build takes long), the unit tests of the shared code and the speech engine pass, and the
+# Linux app folder can be packed. The full build with emulator and Windows/macOS/Linux start tests stays in
+# "Build & Release" (started by hand).
 on:
   pull_request:
   workflow_dispatch:
@@ -28,10 +29,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # "desktop" in the key since the Linux app is packed below (its speech libraries are part of the cache then).
       - uses: actions/cache@v4
         with:
           path: build/speech-downloads
-          key: speech-${{ hashFiles('speech/natives.gradle.kts') }}
+          key: speech-desktop-${{ hashFiles('speech/natives.gradle.kts') }}
 
       - name: Android-App kompilieren
         run: ./gradlew --no-daemon :app:compileDebugKotlin -PskipLlama
@@ -41,6 +43,11 @@ jobs:
 
       - name: Tests (gemeinsamer Code, Windows-Version)
         run: ./gradlew --no-daemon -p desktop test
+
+      # AP-31: the Linux app folder as in the release (under a minute on top of the tests, which compiled everything)
+      # – finds mistakes in the packaging (desktop/build.gradle.kts: Java modules, icons, jpackage options) before a release.
+      - name: Linux-App packen
+        run: ./gradlew --no-daemon -p desktop createDistributable
 
       - name: Testberichte
         if: failure()
