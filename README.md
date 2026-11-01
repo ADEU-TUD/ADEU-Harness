@@ -1194,7 +1194,9 @@ Windows-Version (JDK 17+; die Pakete für Windows entstehen auf Windows):
 
 macOS und Linux (AP-31) bauen auf dem jeweiligen System: `./gradlew -p desktop createDistributable packageDmg` (Mac) bzw.
 `createDistributable packageDeb` (Linux). Der Workflow *Build & Release* macht daraus DMG und tar.gz (macOS) bzw.
-tar.gz und .deb (Linux) und testet beide mit `--selftest`.
+tar.gz und .deb (Linux) und testet beide mit `--selftest`. Linux baut bewusst mit dem OpenJDK von Ubuntu
+(`apt install openjdk-21-jdk`), nicht mit Temurin: Mit der Temurin-Laufzeit stürzt die Spracherkennung (sherpa-onnx)
+beim Laden ab.
 
 ### Englisch (Texte übersetzen)
 
