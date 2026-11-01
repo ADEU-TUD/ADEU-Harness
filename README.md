@@ -134,20 +134,28 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Sprechstunde“, „Protokoll aus meinen Notizen“), darunter unter Windows **Gestalten** und **Meine Designs**, dann die
   **TU Vorlagen**.
 - **Gestalten** (Windows, AP-24, Vorbild Canva, Schwerpunkt Corporate Design): Vorlagen *Tagungsposter* (A1),
-  *Flyer* (A5), *Aushang* (A4), *Einladungskarte* (A5 quer), *Social Media: Beitrag* und *Story*, *OPAL-Kursbanner*,
-  *Titelbild für Lehrvideos* – jede zum **Selbst gestalten** oder **Lora machen lassen**; dazu *Poster aus einem Paper*
-  und *Leeres Design* in 17 Formaten (A0–A6, DIN lang, Bildschirmformate in Pixeln). Briefe, Protokolle und
+  *Digitales Poster* (16:9 für Bildschirme, nach dem Layout „3 Spalten“ des CD-Pakets), *Flyer* (A5), *Aushang* (A4),
+  *Einladungskarte* (A5 quer), *Social Media: Beitrag* und *Story*, *OPAL-Kursbanner*, *Titelbild für Lehrvideos* – jede
+  zum **Selbst gestalten** oder **Lora machen lassen**; dazu *Poster aus einem Paper* und *Leeres Design* in 18 Formaten
+  (A0–A6, DIN lang, Bildschirmformate in Pixeln). Alle Vorlagen folgen dem **CD 2025**: Logo oben links (A4 wie in
+  Briefen und Urkunden 25/18 mm), Überschriften in Noto Sans Medium (Brillantblau auf Weiß, Weiß auf Brillantblau),
+  Fließtext Schwarz, nur TUD Farben, die **Shape** als Bildmotiv (randabfallend, gern mit Foto darin) und TUD-Icons. Briefe, Protokolle und
   Bescheinigungen bleiben TU Vorlagen (die Teilnahmebescheinigung gibt es dort nach der TUD-Vorlage).
   - **Editor**: Leinwand mit Seiten und Ebenen, Auswählen (auch mehrere, mit Rahmen), Verschieben mit **Einrasten** an
     Seitenrand, Seitenmitte und anderen Elementen, Größe und **Drehung** über Griffe, Ausrichten und Verteilen, nach
     vorne/hinten, Sperren, **Rückgängig/Wiederholen** (Strg+Z/Y), Pfeiltasten, Strg+D, Strg+C/V (auch Bilder und Text aus
     anderen Programmen), Zoom mit Strg+Mausrad. Seiten hinzufügen, verdoppeln, verschieben; Format ändern passt alles an.
-  - **Elemente**: Text (Noto Sans in vier Schnitten, wächst beim Tippen mit oder wird mit *An die Box anpassen* kleiner),
-    Formen (Rechteck, abgerundet, Kreis, Dreieck, Stern, Linie, Pfeil), 37 **Symbole**, **Bilder** mit Zuschnitt,
-    Füllen/Ganz zeigen, Eckenradius und Alternativtext, **Bild erzeugen** mit dem Bildmodell direkt auf die Leinwand,
-    **QR-Codes**, TUD-Logo (blau/weiß) und eigene Logos aus *Einstellungen › Dokumente & Logos*.
-  - **Brand-Kit** aus dem CD-Paket 2025: die Farben des Office-Themes „TUD_2025“ (Dunkelblau, Mittelblau, Hellblau,
-    Nachtblau, Blau hell, Grau, Grün, Orange), Noto Sans und die Logos; eigene Farben als #RRGGBB.
+  - **Elemente**: Text (Noto Sans Normal, **Medium** für Überschriften und Fett, je kursiv; wächst beim Tippen mit oder
+    wird mit *An die Box anpassen* kleiner), die **TUD-Shape** (Farbe, Spiegeln, Drehen in 45°-Schritten, nie verzerrt
+    oder als Umriss), Formen (Rechteck, abgerundet, Kreis, Dreieck, Stern, Linie, Pfeil), **Symbole** – die rund 530
+    **TUD-Icons** in 19 Themensets und 37 weitere –, **Bilder** mit Zuschnitt, Füllen/Ganz zeigen, Eckenradius,
+    Alternativtext und *In die TUD-Shape setzen*, **Bild erzeugen** mit dem Bildmodell direkt auf die Leinwand,
+    **QR-Codes**, alle **offiziellen Logos** (horizontal und vertikal, deutsch und englisch, Kurzform „TUD“, Bildmarke –
+    je blau, weiß, schwarz; als Vektor gezeichnet) und eigene Logos aus *Einstellungen › Dokumente & Logos*.
+  - **Brand-Kit** aus dem CD-Paket 2025: die 23 **TUD Farben** (Brillantblau, Dunkelblau, Schwarz, Grau, Weiß und die
+    Sekundärfarben Blau, Violett, Magenta, Rot, Orange, Gelb, Oliv, Grün, Türkis in den Stufen 1 und 2), Noto Sans und
+    Noto Sans Medium, Logos, Shape und Icons; eigene Farben als #RRGGBB. Die Logos und Icons bereitet
+    `desktop/tools/tud_cd_assets.py` aus dem entpackten CD-Paket auf (`resources/tud/`).
   - **Export**: **PNG** (Bildschirmformate in ihrer Pixelgröße, Druckformate mit 150 oder 300 dpi; mehrere Seiten als ZIP),
     **PDF für den Druck** (vektoriell, Noto Sans eingebettet; auf Wunsch mit 3 mm Beschnitt und Schnittmarken für die
     Druckerei) und **PowerPoint** mit echten, bearbeitbaren Textfeldern und Formen.
@@ -182,8 +190,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Dokumente nachträglich ändern**: Das Modell ändert erstellte Dokumente gezielt (`edit_document`) statt alles neu zu
   schreiben; ältere Versionen bleiben erhalten. Lässt es Lücken wie „[Datum]“, zeigt das Dokument „2 Angaben offen“ –
   „Ausfüllen“ trägt sie ohne Modell ein. Fehlen wesentliche Angaben, fragt das Modell vorher nach.
-- **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
-  Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
+- **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) nach der offiziellen Präsentationsvorlage des CD 2025 –
+  Titelfolie in Brillantblau (weißes Logo, Untertitel über dem Titel, Einrichtung unten), Abschnitts- und Schlussfolien
+  mit der Shape, Inhalts-, Tabellen-, Zweispalten- und Zitatfolien mit Titeln in Noto Sans Medium (32 pt), Fußzeile mit
+  Kurzlogo „TUD“ und „Titel • Vortragende • Seite N“, Farbschema „TUD_2025“ sowie Sprechernotizen. Vorlagen
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
 - **Projekte**: Ein Projekt bündelt Chats zu einem Thema. Beim Anlegen (📁+ in der Seitenleiste) und unter ⋮ › *Projekt
   bearbeiten* gibt es Name, Projektordner, Anweisungen, Datenschutzstufe und Dokumente zum Durchsuchen; sie gelten für
@@ -610,9 +620,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Absenden (am Handy über den Knopf *KI fragen*); der Vorschlag erscheint unter der Stelle. **TUD-Dokumente**: *Neu ›
     ⋮ › Im TUD-Design* (Ergebnisprotokoll, Aktennotiz, Einladung, Handout, Stellungnahme, Merkblatt, Projektskizze) –
     die Seite zeigt Logo und Einrichtung, PDF und Word entstehen im Corporate Design; *⋮ › Design* wechselt es je Dokument.
-  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß – **genau so, wie die PowerPoint-Datei sie zeigt** (TUD-Logo,
-    Titelfolie in TUD-Blau mit Untertitel, Angaben und Einrichtung, Fußzeile „TU Dresden · Professur · Titel“ mit
-    Foliennummer, Schriftgröße je Textmenge, Tabellen). Layouts (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat),
+  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß – **genau so, wie die PowerPoint-Datei sie zeigt** (Layout der
+    CD-Präsentationsvorlage 2025: Titelfolie in Brillantblau mit Untertitel über dem Titel und Einrichtung, Abschnitte mit
+    der Shape, Fußzeile mit Kurzlogo „TUD“ und „Titel • Vortragende • Seite N“, Schriftgröße je Textmenge, Tabellen). Layouts (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat),
     Felder ohne Markdown-Zeichen mit Leiste für fett, kursiv, Stichpunkte, Einrücken; Sprechernotizen, **Folienübersicht**,
     Folien duplizieren/verschieben (Strg+M, Strg+D, Strg+Umschalt+↑/↓), **Vorführen** (F5) mit **Referentenansicht**
     (nächste Folie, Notizen, Timer), Export als PowerPoint im TUD-Design. Fehlt die Einrichtung, fragt der Editor danach.
@@ -1168,7 +1178,7 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
 | `data/LoraDrive.kt`, `data/LoraRoot.kt` (beide), `desktop/Paths.kt`, `desktop/LoraLayout.kt`, `files/LoraMirror.kt` (beide), `ui/DriveScreen.kt`, `ui/LoraFolderUi.kt` (beide), `ui/DrivePlatform.kt` (beide) | Lora-Ordner und Tab *Dateien* (AP-16): Hochgeladen, Erstellt, Ordner, Papierkorb, Umzug der Daten, Kopie auf Android |
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
-| `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `resources/fonts/` (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
+| `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |

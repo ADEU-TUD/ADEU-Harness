@@ -95,6 +95,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -317,11 +318,12 @@ private fun ToolRail(c: AppContainer, state: DesignEditorState) {
             DropdownMenu(expanded = shapes, onDismissRequest = { shapes = false }) {
                 val s = unit * 0.25f
                 listOf(
+                    tr("TUD-Shape") to DesignElement(kind = ElementKind.TUD_SHAPE, w = s * 1.6f, h = s * 1.6f, fill = TudBrand.BLUE),
                     tr("Rechteck") to DesignElement(kind = ElementKind.RECT, w = s * 1.4f, h = s, fill = TudBrand.BLUE),
-                    tr("Abgerundetes Rechteck") to DesignElement(kind = ElementKind.RECT, w = s * 1.4f, h = s, fill = "#E5F1FF", radius = s * 0.12f),
+                    tr("Abgerundetes Rechteck") to DesignElement(kind = ElementKind.RECT, w = s * 1.4f, h = s, fill = TudBrand.LIGHT_BLUE, radius = s * 0.12f),
                     tr("Kreis") to DesignElement(kind = ElementKind.ELLIPSE, w = s, h = s, fill = TudBrand.MID_BLUE),
                     tr("Dreieck") to DesignElement(kind = ElementKind.TRIANGLE, w = s, h = s, fill = TudBrand.LIGHT_BLUE),
-                    tr("Stern") to DesignElement(kind = ElementKind.STAR, w = s, h = s, fill = "#EE7F00"),
+                    tr("Stern") to DesignElement(kind = ElementKind.STAR, w = s, h = s, fill = "#FFC700"),
                     tr("Linie") to DesignElement(kind = ElementKind.LINE, w = s * 1.6f, h = 0f, stroke = TudBrand.BLUE, strokeWidth = unit * 0.004f),
                     tr("Pfeil") to DesignElement(kind = ElementKind.ARROW, w = s * 1.6f, h = 0f, stroke = TudBrand.BLUE, strokeWidth = unit * 0.005f),
                 ).forEach { (label, e) -> DropdownMenuItem(text = { Text(label) }, onClick = { shapes = false; state.add(e) }) }
@@ -338,8 +340,15 @@ private fun ToolRail(c: AppContainer, state: DesignEditorState) {
             DropdownMenu(expanded = logos, onDismissRequest = { logos = false }) {
                 val w = unit * 0.3f
                 fun logo(src: String, ratio: Float) = DesignElement(kind = ElementKind.IMAGE, src = src, w = w, h = w / ratio, fitMode = "contain", alt = "Logo")
-                DropdownMenuItem(text = { Text(tr("TU Dresden (blau)")) }, onClick = { logos = false; state.add(logo(DesignBrand.LOGO_BLUE, DesignBrand.LOGO_RATIO).copy(alt = "Logo der TU Dresden")) })
-                DropdownMenuItem(text = { Text(tr("TU Dresden (weiß, für blaue Flächen)")) }, onClick = { logos = false; state.add(logo(DesignBrand.LOGO_WHITE, DesignBrand.LOGO_RATIO).copy(alt = "Logo der TU Dresden")) })
+                // The logos of the CD package: horizontal, vertical, short and the mark, in blue, white (for coloured areas) and black.
+                DesignBrand.LOGOS.forEach { l ->
+                    DropdownMenuItem(text = { Text(tr(l.label)) }, onClick = {
+                        logos = false
+                        val lw = if (l.ratio < 1.5f) unit * 0.18f else unit * 0.3f
+                        state.add(logo(l.src, l.ratio).copy(w = lw, h = lw / l.ratio, alt = "Logo der TU Dresden"))
+                    })
+                }
+                HorizontalDivider()
                 c.logos.current.forEach { l ->
                     DropdownMenuItem(text = { Text(l.name) }, onClick = {
                         logos = false
@@ -390,22 +399,49 @@ private fun RailButton(icon: ImageVector, label: String, onClick: () -> Unit) {
     }
 }
 
+/** Symbols: the TUD icon sets of the CD package (by theme) and further Material symbols. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SymbolPicker(onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val sets = io.github.thepytales.llmhub.creative.TudIcons.sets
+    var set by remember { mutableStateOf(sets.firstOrNull()?.name ?: "") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Symbol einfügen")) },
         text = {
-            LazyVerticalGrid(GridCells.Adaptive(76.dp), Modifier.width(520.dp).height(360.dp)) {
-                items(DesignIcons.ALL) { (name, label, icon) ->
-                    Column(
-                        Modifier.padding(4.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(name) }.padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(icon, contentDescription = label, tint = Color(0xFF00008C), modifier = Modifier.size(32.dp))
-                        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(Modifier.width(640.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    sets.forEach { s -> FilterChip(selected = set == s.name, onClick = { set = s.name }, label = { Text(tr(s.name), style = MaterialTheme.typography.labelSmall) }) }
+                    FilterChip(selected = set == "", onClick = { set = "" }, label = { Text(tr("Weitere Symbole"), style = MaterialTheme.typography.labelSmall) })
+                }
+                Spacer(Modifier.size(6.dp))
+                val tud = sets.firstOrNull { it.name == set }
+                LazyVerticalGrid(GridCells.Adaptive(64.dp), Modifier.fillMaxWidth().height(340.dp)) {
+                    if (tud != null) {
+                        items(tud.icons) { ic ->
+                            Box(Modifier.padding(4.dp).size(56.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(ic.id) }.padding(8.dp)) {
+                                Canvas(Modifier.fillMaxSize()) {
+                                    val p = io.github.thepytales.llmhub.creative.TudIcons.path(ic)
+                                    val k = min(size.width / ic.box.width, size.height / ic.box.height)
+                                    translate((size.width - ic.box.width * k) / 2, (size.height - ic.box.height * k) / 2) {
+                                        scale(k, k, Offset.Zero) { drawPath(p, Color(0xFF00008C)) }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        items(DesignIcons.ALL) { (name, label, icon) ->
+                            Column(
+                                Modifier.padding(4.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(name) }.padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Icon(icon, contentDescription = label, tint = Color(0xFF00008C), modifier = Modifier.size(32.dp))
+                                Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
                     }
                 }
+                HintText(tr("Die TUD-Icons stammen aus dem Corporate Design der TU Dresden (Icon-Themensets)."))
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
@@ -751,6 +787,7 @@ private fun PropertiesPanel(c: AppContainer, state: DesignEditorState) {
                     ElementKind.TEXT -> TextProperties(state, e)
                     ElementKind.IMAGE -> ImageProperties(state, e, ::pickImage)
                     ElementKind.ICON -> IconProperties(state, e)
+                    ElementKind.TUD_SHAPE -> TudShapeProperties(state, e)
                     ElementKind.QR -> QrProperties(state, e)
                     ElementKind.LINE, ElementKind.ARROW -> {
                         ColorField(tr("Farbe"), e.stroke.ifBlank { e.color }, allowNone = false) { col -> state.updateSelected("stroke") { it.copy(stroke = col) } }
@@ -803,8 +840,13 @@ private fun TextProperties(state: DesignEditorState, e: DesignElement) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         NumberField(tr("Größe (pt)"), e.fontSize, "fs-${e.id}", Modifier.width(110.dp)) { v -> state.updateSelected("fs-${e.id}") { grow(it.copy(fontSize = v.coerceIn(2f, 1000f))) } }
         Spacer(Modifier.size(6.dp))
-        ToggleIcon(Icons.Outlined.FormatBold, tr("Fett"), e.bold) { state.updateSelected { it.copy(bold = !it.bold) } }
         ToggleIcon(Icons.Outlined.FormatItalic, tr("Kursiv"), e.italic) { state.updateSelected { it.copy(italic = !it.italic) } }
+    }
+    // Schnitt: Medium is the weight of headings in the CD of TU Dresden.
+    Row {
+        listOf(Triple(tr("Normal"), false, false), Triple(tr("Medium"), true, false), Triple(tr("Fett"), false, true)).forEach { (label, medium, bold) ->
+            FilterChip(selected = e.bold == bold && (bold || e.medium == medium), onClick = { state.updateSelected { grow(it.copy(medium = medium, bold = bold)) } }, label = { Text(label) }, modifier = Modifier.padding(end = 6.dp))
+        }
     }
     Row {
         ToggleIcon(Icons.Outlined.FormatAlignLeft, tr("Links"), e.align == "left") { state.updateSelected { it.copy(align = "left") } }
@@ -837,6 +879,21 @@ private fun TextProperties(state: DesignEditorState, e: DesignElement) {
 private fun grow(e: DesignElement): DesignElement =
     if (e.fit || e.text.isEmpty()) e else e.copy(h = maxOf(e.h, DesignText.neededHeight(e)))
 
+/** The TUD-Shape: one colour, mirrored, turned in 45° steps (rules of the CD package). */
+@Composable
+private fun TudShapeProperties(state: DesignEditorState, e: DesignElement) {
+    ColorField(tr("Farbe"), e.fill.ifBlank { e.color }, allowNone = false) { col -> state.updateSelected("fill") { it.copy(fill = col) } }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(tr("Gespiegelt"), modifier = Modifier.weight(1f))
+        Switch(checked = e.flipX, onCheckedChange = { on -> state.updateSelected { it.copy(flipX = on) } })
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        OutlinedButton(onClick = { state.updateSelected { it.copy(rotation = ((it.rotation - 45f) % 360f + 360f) % 360f) } }) { Text("↺ 45°") }
+        OutlinedButton(onClick = { state.updateSelected { it.copy(rotation = (it.rotation + 45f) % 360f) } }) { Text("↻ 45°") }
+    }
+    HintText(tr("Regeln des CD: die Shape nur vollflächig in TUD-Farben, in 45°-Schritten drehen, gern im Anschnitt über den Rand; mehrere Shapes auf einem Format gleich groß und ohne Überschneidung. Fotos lassen sich in die Shape setzen (Bild › In die TUD-Shape)."))
+}
+
 @Composable
 private fun ShapeProperties(state: DesignEditorState, e: DesignElement) {
     ColorField(tr("Füllung"), e.fill, allowNone = true) { col -> state.updateSelected("fill") { it.copy(fill = col) } }
@@ -862,6 +919,16 @@ private fun ImageProperties(state: DesignEditorState, e: DesignElement, pick: ()
         CropSlider(tr("Oben"), e.cropY) { v -> state.updateSelected("crop-t") { it.copy(cropY = v.coerceAtMost(it.cropY + it.cropH - 0.05f), cropH = (it.cropY + it.cropH - v).coerceAtLeast(0.05f)) } }
         CropSlider(tr("Unten"), 1f - e.cropY - e.cropH) { v -> state.updateSelected("crop-b") { it.copy(cropH = (1f - v - it.cropY).coerceAtLeast(0.05f)) } }
         NumberField(tr("Eckenradius (mm)"), e.radius, "r-${e.id}") { v -> state.updateSelected("r-${e.id}") { it.copy(radius = v.coerceAtLeast(0f)) } }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(tr("In die TUD-Shape setzen"), modifier = Modifier.weight(1f))
+            Switch(checked = e.mask == "shape", onCheckedChange = { on ->
+                state.updateSelected { if (on) it.copy(mask = "shape", w = maxOf(it.w, it.h), h = maxOf(it.w, it.h)) else it.copy(mask = "") }
+            })
+        }
+        if (e.mask == "shape") Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(tr("Gespiegelt"), modifier = Modifier.weight(1f))
+            Switch(checked = e.flipX, onCheckedChange = { on -> state.updateSelected { it.copy(flipX = on) } })
+        }
     }
     OutlinedTextField(
         value = e.alt, onValueChange = { t -> state.updateSelected("alt-${e.id}") { it.copy(alt = t) } },

@@ -21,9 +21,11 @@ object ElementKind {
     const val IMAGE = "image"
     const val ICON = "icon"
     const val QR = "qr"
+    /** The Shape of the CD 2025: the two components of the logo (rotated in 45° steps, mirrored, cut off at the edge). */
+    const val TUD_SHAPE = "tudshape"
 
     val SHAPES = listOf(RECT, ELLIPSE, TRIANGLE, LINE, ARROW, STAR)
-    val ALL = listOf(TEXT) + SHAPES + listOf(IMAGE, ICON, QR)
+    val ALL = listOf(TEXT) + SHAPES + listOf(TUD_SHAPE, IMAGE, ICON, QR)
 
     fun label(kind: String) = when (kind) {
         TEXT -> "Text"
@@ -36,6 +38,7 @@ object ElementKind {
         IMAGE -> "Bild"
         ICON -> "Symbol"
         QR -> "QR-Code"
+        TUD_SHAPE -> "TUD-Shape"
         else -> kind
     }
 }
@@ -67,6 +70,8 @@ data class DesignElement(
     /** Font size in pt (1 pt = 0.3528 mm). */
     val fontSize: Float = 24f,
     val bold: Boolean = false,
+    /** Noto Sans Medium – the weight of headings in the CD (ignored when [bold]). */
+    val medium: Boolean = false,
     val italic: Boolean = false,
     /** Text, symbol and QR colour. */
     val color: String = "#000000",
@@ -88,8 +93,12 @@ data class DesignElement(
     val cropH: Float = 1f,
     /** Pictures: "cover" fills the box (cuts off what sticks out), "contain" shows everything (logos). */
     val fitMode: String = "cover",
-    /** Symbol name (see the symbol list of the editor). */
+    /** Symbol name: a Material symbol („School“) or a TUD icon („tud:Forschung/3“). */
     val icon: String = "",
+    /** Mirrored left–right (the TUD-Shape may be mirrored). */
+    val flipX: Boolean = false,
+    /** Pictures: "shape" shows the picture inside the TUD-Shape („Fotos dürfen in die Shape gesetzt werden“). */
+    val mask: String = "",
     /** Name of a placeholder of a template ("titel", "text1", "bild" …) that the AI fills. */
     val slot: String = "",
     val locked: Boolean = false,
@@ -173,6 +182,7 @@ data class DesignFormat(val id: String, val label: String, val width: Float, val
             px("story", "Social Media: Story", 1080, 1920),
             px("banner", "OPAL-Kursbanner", 1500, 300),
             px("video", "Titelbild für Lehrvideos", 1920, 1080),
+            px("poster-16-9", "Digitales Poster 16:9 (Bildschirm)", 1920, 1080),
             DesignFormat("folie", "Folie 16:9", 338.67f, 190.5f),
         )
 
@@ -180,46 +190,63 @@ data class DesignFormat(val id: String, val label: String, val width: Float, val
     }
 }
 
-/** Brand-Kit (AP-24): the colours of the TUD corporate design, the house font and the logos. */
+/**
+ * Brand-Kit (AP-24) from the CD package 2025 of TU Dresden: the „TUD Farben“ (primary and secondary colours), the house
+ * font Noto Sans (headings Medium), the logos in every official variant and the Shape.
+ */
 object DesignBrand {
-    /** Name and colour, in the order of the colour field. */
-    val COLORS = listOf(
-        "TUD-Dunkelblau" to TudBrand.BLUE,
-        "Mittelblau" to TudBrand.MID_BLUE,
-        "Hellblau" to TudBrand.LIGHT_BLUE,
-        "Nachtblau" to TudBrand.NIGHT_BLUE,
-        "Blau hell (Fläche)" to "#E5F1FF",
-        "Grau" to TudBrand.GREY,
-        "Grün" to "#65B32E",
-        "Orange" to "#EE7F00",
-        "Weiß" to "#FFFFFF",
-        "Schwarz" to "#000000",
-    )
+    /** Name and colour, in the order of the colour field (the palette of the official presentation template). */
+    val COLORS: List<Pair<String, String>> = TudBrand.PALETTE
 
     /** The house font of TU Dresden; the Windows app brings it along (resources/fonts). */
     const val FONT = "Noto Sans"
     const val LOGO_BLUE = "logo:tud"
     const val LOGO_WHITE = "logo:tud-weiss"
 
-    /** Width / height of the TUD logo (1190 × 400 px). */
-    const val LOGO_RATIO = 1190f / 400f
+    /** Width / height of the horizontal TUD logo without its protection zone (official SVG). */
+    const val LOGO_RATIO = 2.9739f
+
+    /** An official logo: [src] for [DesignElement.src], file name of the SVG and width / height without protection zone. */
+    data class Logo(val src: String, val label: String, val variant: String, val ratio: Float)
+
+    /** The logos of the CD package: horizontal, vertical, short („TUD“) and the mark alone, in blue, white and black. */
+    val LOGOS: List<Logo> = buildList {
+        for ((farbe, name) in listOf("blau" to "blau", "weiss" to "weiß", "schwarz" to "schwarz")) {
+            add(Logo(if (farbe == "blau") LOGO_BLUE else if (farbe == "weiss") LOGO_WHITE else "logo:tud-horizontal-schwarz-de", "Horizontal, $name", "horizontal-$farbe-de", LOGO_RATIO))
+            add(Logo("logo:tud-horizontal-$farbe-en", "Horizontal englisch, $name", "horizontal-$farbe-en", 3.0024f))
+            add(Logo("logo:tud-vertikal-$farbe-de", "Vertikal, $name", "vertikal-$farbe-de", 0.8199f))
+            add(Logo("logo:tud-vertikal-$farbe-en", "Vertikal englisch, $name", "vertikal-$farbe-en", 0.9100f))
+            add(Logo("logo:tud-kurz-$farbe", "Kurz (TUD), $name", "kurz-$farbe", 3.1179f))
+            add(Logo("logo:tud-bildmarke-$farbe", "Bildmarke, $name", "bildmarke-$farbe", 1f))
+        }
+    }
+
+    /** The official logo behind [src] (also the older ids "logo:tud" and "logo:tud-weiss"), or null for own logos. */
+    fun logo(src: String): Logo? = LOGOS.firstOrNull { it.src == src }
 
     fun isHex(s: String) = Regex("#[0-9a-fA-F]{6}").matches(s.trim())
 
-    /** "#abc", "abcdef", a name of [COLORS] („Dunkelblau“) → "#RRGGBB"; null if unknown. */
+    /** "#abc", "abcdef", a name of [COLORS] („Brillantblau“, „Türkis 1“) → "#RRGGBB"; null if unknown. */
     fun color(value: String?): String? {
         val v = value?.trim().orEmpty()
         if (v.isEmpty()) return null
         if (isHex(v)) return v.uppercase()
         if (Regex("[0-9a-fA-F]{6}").matches(v)) return "#" + v.uppercase()
         if (Regex("#?[0-9a-fA-F]{3}").matches(v)) return "#" + v.removePrefix("#").map { "$it$it" }.joinToString("").uppercase()
-        val n = v.lowercase()
-        COLORS.firstOrNull { it.first.lowercase() == n || it.first.lowercase().contains(n) }?.let { return it.second }
+        val n = v.lowercase().replace("ß", "ss").replace("tud-", "").replace("tud ", "").trim()
+        fun norm(x: String) = x.lowercase().replace("ß", "ss")
+        COLORS.firstOrNull { norm(it.first) == n }?.let { return it.second }
+        // Without a step: the strong one („Türkis“ → Türkis 1); „hellblau“ → Blau 2.
+        COLORS.firstOrNull { norm(it.first) == "$n 1" }?.let { return it.second }
         return when (n) {
-            "blau", "tud", "tud-blau" -> TudBrand.BLUE
+            "blau", "tud", "tud-blau", "brillant", "primärblau" -> TudBrand.BLUE
+            "hellblau" -> TudBrand.LIGHT_BLUE
+            "mittelblau" -> TudBrand.MID_BLUE
+            "nachtblau" -> TudBrand.NIGHT_BLUE
             "weiss", "white" -> "#FFFFFF"
             "black" -> "#000000"
-            else -> null
+            "grey", "gray" -> TudBrand.GREY_100
+            else -> COLORS.firstOrNull { norm(it.first).startsWith(n) }?.second
         }
     }
 }

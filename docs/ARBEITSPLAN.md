@@ -578,6 +578,16 @@ Alltagsumfang nach dem Vorbild Canva, Schwerpunkt Corporate Design. Nur Windows 
   Bildfilter, Vorlagen und Icon-Schrift aus dem CD-Portal (wenn jemand sie hochlädt), PowerPoint-Vorlagen importieren.
   Betrifft: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`, `ui/TemplatesScreen.kt`,
   Windows: `creative/*`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt`, `resources/fonts/`.
+- **Nachtrag CD-Paket (01.11.2026)**: Das vollständige CD-Paket 2025 (Logos, Shape mit Regeln, Icon-Themensets,
+  Präsentationsvorlage, digitales Poster, Urkunden, Office-Themes) liegt jetzt vor und ist eingearbeitet: 23 **TUD Farben**,
+  **Noto Sans Medium** für Überschriften (statt fett), alle **offiziellen Logos** als Vektor (horizontal/vertikal, de/en,
+  „TUD“, Bildmarke; blau/weiß/schwarz), die **TUD-Shape** als Element (45°-Schritte, spiegeln, Foto in der Shape) und
+  rund 530 **TUD-Icons** (aufbereitet mit `desktop/tools/tud_cd_assets.py`). Alle neun Vorlagen neu nach den Regeln
+  (weiß mit Logo oben links oder Brillantblau mit weißem Logo, Shape als Bildmotiv, TUD-Icons), neu **Digitales Poster
+  16:9**. Die TU Vorlage *Präsentation* (PowerPoint, Handout, Folien-Editor) folgt der offiziellen Präsentationsvorlage
+  (Titelfolie, Abschnitt mit Shape, schwarze Titel 32 pt Medium, Fußzeile mit Kurzlogo „Titel • Vortragende • Seite N“),
+  Urkunden setzen Name und Veranstaltung in Medium, Videotitel nutzen Medium und die Shape. Hinweis: Logos, Icons und
+  Shape stecken damit in der Windows-App, die über das öffentliche Updater-Repo verteilt wird.
 
 ### AP-25 ☑ Videoeditor und nachladbare Erweiterungen (D) · XL (bisher W8-07, Teil von W8-00)
 Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
@@ -700,7 +710,7 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-13 Mail und Kalender (W) | COM über JNA, Modus *Postfach*, 12 Werkzeuge, Regeln mit Vorschau, Protokoll, nie löschen/senden | echte Outlook-Regeln; Server-Weg mit AP-27 |
 | ☑ AP-15 PDF Stufe 2 | Texterkennung von Windows bzw. Bildmodell, Umwandeln (Office über COM), Unterschreiben, Frag das PDF, Tabellen | digitale Signatur; Handschrift-OCR auf dem PC |
 | ☑ AP-18 Dateiverwaltung | *Dateien*: Orte und Ordner, Schlagwörter, Volltextsuche mit Cache, Vergleich, `search_files` | SQLite-Index nur bei Bedarf; Dateien verschieben (mit AP-16 erledigt) |
-| ☑ AP-24 Kreativbereich → „Erstellen“ | Erstellen mit Lora-Feld, Gestalten (8 Vorlagen im TUD-Design, Editor mit Ebenen, Einrasten, Drehen, Rückgängig), Meine Designs, Export PNG/PDF (Druck mit Beschnitt)/PowerPoint, KI in jedem Chat | Text auf der Leinwand tippen, CD-Portal-Vorlagen, PowerPoint-Import |
+| ☑ AP-24 Kreativbereich → „Erstellen“ | Erstellen mit Lora-Feld, Gestalten (9 Vorlagen nach dem CD-Paket 2025 mit Shape, TUD-Icons und allen Logos, Editor mit Ebenen, Einrasten, Drehen, Rückgängig), Meine Designs, Export PNG/PDF (Druck mit Beschnitt)/PowerPoint, KI in jedem Chat | Text auf der Leinwand tippen, PowerPoint-Import |
 | ☑ AP-25 Videoeditor und Erweiterungen | Erweiterungen über den Updater (Videoeditor-Paket, Browser-Engine entfernbar), Zeitleiste, TUD-Titel, Ton, Untertitel aus der Transkription, Rohschnitt, Mit Lora kürzen, MP4 für OPAL/YouTube | Musik und Übergänge in der Vorschau, zweite Videospur, Farbkorrektur |
 | ☑ Seitenleiste ausblendbar (Nachtrag AP-02) | jeder Bereich außer Erstellen und Dateien per Rechtsklick oder in den Einstellungen ausblendbar, über Strg+K und Lora erreichbar | – |
 | ☑ AP-16 Office-Ausbau | Tab *Dateien* wie Google Drive, Lora-Ordner (`.lora`), echte docx/pptx/xlsx, ins Original schreiben, Änderungen nachverfolgen, Word-Kommentare, Fußzeile/Ränder/Inhaltsverzeichnis/Formeln, Rechtschreibung auf dem Gerät, freie Folien mit Masterfolie, Lora-Panel und -Popup, Chatfilter | echter Seitenumbruch in der Seitenansicht; Windows-Papierkorb; Scannen (Ideen) |

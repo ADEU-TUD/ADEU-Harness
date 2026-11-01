@@ -74,8 +74,8 @@ object DesignExport {
         val marks = if (bleed) 8f else 0f
         PDDocument().use { doc ->
             val fonts = HashMap<Int, PDType0Font>()
-            fun font(bold: Boolean, italic: Boolean): PDType0Font = fonts.getOrPut((if (bold) 1 else 0) + (if (italic) 2 else 0)) {
-                PDType0Font.load(doc, ByteArrayInputStream(DesignFonts.bytes(bold, italic)), true)
+            fun font(e: DesignElement): PDType0Font = fonts.getOrPut((if (e.bold) 1 else 0) + (if (e.italic) 2 else 0) + (if (e.medium && !e.bold) 4 else 0)) {
+                PDType0Font.load(doc, ByteArrayInputStream(DesignFonts.bytes(e.bold, e.italic, e.medium)), true)
             }
             val images = HashMap<String, PDImageXObject?>()
             doc.documentInformation.title = d.title
@@ -172,7 +172,7 @@ object DesignExport {
 
     private fun element(
         doc: PDDocument, cs: PDPageContentStream, d: Design, e: DesignElement,
-        font: (Boolean, Boolean) -> PDType0Font, images: HashMap<String, PDImageXObject?>,
+        font: (DesignElement) -> PDType0Font, images: HashMap<String, PDImageXObject?>,
     ) {
         cs.saveGraphicsState()
         try {
@@ -208,7 +208,21 @@ object DesignExport {
                         when { fill && stroke -> cs.fillAndStroke(); fill -> cs.fill(); else -> cs.stroke() }
                     }
                 }
-                ElementKind.IMAGE -> image(doc, cs, d, e, images)
+                ElementKind.TUD_SHAPE -> if (cs.fillColor(e.fill.ifBlank { e.color })) {
+                    if (e.flipX) cs.transform(Matrix(-1f, 0f, 0f, 1f, e.w, 0f))
+                    cs.path(TudShape.inBox(e.w, e.h)); cs.fill()
+                }
+                ElementKind.IMAGE -> {
+                    val logo = io.github.thepytales.llmhub.data.DesignBrand.logo(e.src)?.let { TudLogos.vector(it.variant)?.let { v -> it to v } }
+                    if (logo != null) {
+                        // The official logo as vector paths (sharp in print).
+                        val (l, v) = logo
+                        cs.fillColor(when { "weiss" in l.variant -> "#FFFFFF"; "schwarz" in l.variant -> "#000000"; else -> io.github.thepytales.llmhub.docs.TudBrand.BLUE })
+                        val k = min(e.w / v.size.width, e.h / v.size.height)
+                        cs.transform(Matrix(k, 0f, 0f, k, (e.w - v.size.width * k) / 2, (e.h - v.size.height * k) / 2))
+                        v.paths.forEach { p -> cs.path(p); cs.fill() }
+                    } else image(doc, cs, d, e, images)
+                }
                 ElementKind.ICON -> if (cs.fillColor(e.color)) {
                     val vp = DesignIcons.viewport(e.icon)
                     val k = min(e.w / vp.width, e.h / vp.height)
@@ -238,7 +252,7 @@ object DesignExport {
         return sb.toString()
     }
 
-    private fun text(cs: PDPageContentStream, e: DesignElement, font: (Boolean, Boolean) -> PDType0Font) {
+    private fun text(cs: PDPageContentStream, e: DesignElement, font: (DesignElement) -> PDType0Font) {
         val r = e.radius.coerceAtMost(min(e.w, e.h) / 2)
         val box = Path().apply {
             if (r > 0f) addRoundRect(androidx.compose.ui.geometry.RoundRect(0f, 0f, e.w, e.h, androidx.compose.ui.geometry.CornerRadius(r)))
@@ -249,7 +263,7 @@ object DesignExport {
         if (e.text.isBlank()) return
         val laid = DesignText.layout(e)
         val layout = laid.layout
-        val f = font(e.bold, e.italic)
+        val f = font(e)
         val sizeMm = laid.fontSize * DesignFormat.MM_PER_PT
         val innerW = e.w - 2 * e.padding
         cs.fillColor(e.color.ifBlank { "#000000" })
@@ -274,7 +288,12 @@ object DesignExport {
     }
 
     private fun image(doc: PDDocument, cs: PDPageContentStream, d: Design, e: DesignElement, images: HashMap<String, PDImageXObject?>) {
-        val bytes = DesignImages.bytes(d.id, e.src) ?: return
+        val bytes = DesignImages.bytes(d.id, e.src)
+        if (bytes == null) {
+            // A Shape waiting for its photo stays a solid Shape in its colour.
+            if (e.mask == "shape" && cs.fillColor(e.fill)) { cs.path(scaledShape(e)); cs.fill() }
+            return
+        }
         val x = images.getOrPut(e.src) {
             runCatching {
                 if (DocMarkup.imageType(bytes) == "jpg" || DocMarkup.imageType(bytes) == "jpeg") JPEGFactory.createFromByteArray(doc, bytes)
@@ -293,7 +312,7 @@ object DesignExport {
         val top = place.dst.top - place.src.top * ky
         cs.saveGraphicsState()
         val r = e.radius.coerceAtMost(min(e.w, e.h) / 2)
-        cs.path(Path().apply {
+        cs.path(if (e.mask == "shape") scaledShape(e) else Path().apply {
             if (r > 0f) addRoundRect(androidx.compose.ui.geometry.RoundRect(0f, 0f, e.w, e.h, androidx.compose.ui.geometry.CornerRadius(r)))
             else addRect(androidx.compose.ui.geometry.Rect(0f, 0f, e.w, e.h))
         })
@@ -370,8 +389,9 @@ object DesignExport {
                         val algn = when (e.align) { "center" -> "ctr"; "right" -> "r"; else -> "l" }
                         val anchor = when (e.valign) { "middle" -> "ctr"; "bottom" -> "b"; else -> "t" }
                         val pad = emu(e.padding * k)
+                        val face = if (e.medium && !e.bold) "Noto Sans Medium" else "Noto Sans"
                         val runProps = "<a:rPr lang=\"de-DE\" sz=\"$size\"${if (e.bold) " b=\"1\"" else ""}${if (e.italic) " i=\"1\"" else ""} dirty=\"0\">" +
-                            solid(e.color.ifBlank { "#000000" }, e.opacity) + "<a:latin typeface=\"Noto Sans\"/><a:cs typeface=\"Noto Sans\"/></a:rPr>"
+                            solid(e.color.ifBlank { "#000000" }, e.opacity) + "<a:latin typeface=\"$face\"/><a:cs typeface=\"$face\"/></a:rPr>"
                         val paras = e.text.split('\n').joinToString("") { line ->
                             "<a:p><a:pPr algn=\"$algn\"><a:lnSpc><a:spcPts val=\"$spacing\"/></a:lnSpc><a:spcBef><a:spcPts val=\"0\"/></a:spcBef><a:spcAft><a:spcPts val=\"0\"/></a:spcAft></a:pPr>" +
                                 (if (line.isEmpty()) "" else "<a:r>$runProps<a:t>${esc(line)}</a:t></a:r>") +
@@ -401,6 +421,23 @@ object DesignExport {
                                 "</p:spPr></p:sp>",
                         )
                     }
+                    ElementKind.TUD_SHAPE -> {
+                        // The Shape as PowerPoint's own geometry: movable, recolourable, never distorted.
+                        val wE = emu(e.w * k)
+                        val hE = emu(e.h * k)
+                        val paths = TudShape.polygons(e.w, e.h).joinToString("") { poly ->
+                            "<a:path w=\"$wE\" h=\"$hE\">" + poly.mapIndexed { idx, (px, py) ->
+                                val pt = "<a:pt x=\"${Math.round(px * wE)}\" y=\"${Math.round(py * hE)}\"/>"
+                                if (idx == 0) "<a:moveTo>$pt</a:moveTo>" else "<a:lnTo>$pt</a:lnTo>"
+                            }.joinToString("") + "<a:close/></a:path>"
+                        }
+                        val frame = xfrm(e, k).replace("<a:xfrm", "<a:xfrm" + if (e.flipX) " flipH=\"1\"" else "")
+                        shapes.append(
+                            "<p:sp><p:nvSpPr><p:cNvPr id=\"$n\" name=\"TUD-Shape $n\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
+                                "<p:spPr>$frame<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l=\"0\" t=\"0\" r=\"r\" b=\"b\"/><a:pathLst>$paths</a:pathLst></a:custGeom>" +
+                                solid(e.fill.ifBlank { e.color }, e.opacity) + "<a:ln><a:noFill/></a:ln></p:spPr></p:sp>",
+                        )
+                    }
                     ElementKind.LINE, ElementKind.ARROW -> {
                         val col = e.stroke.ifBlank { e.color }
                         val head = if (e.kind == ElementKind.ARROW) "<a:tailEnd type=\"triangle\" w=\"med\" len=\"med\"/>" else ""
@@ -413,7 +450,10 @@ object DesignExport {
                     ElementKind.IMAGE, ElementKind.ICON, ElementKind.QR -> {
                         val bytes: ByteArray
                         var crop = ""
-                        if (e.kind == ElementKind.IMAGE) {
+                        if (e.kind == ElementKind.IMAGE && (io.github.thepytales.llmhub.data.DesignBrand.logo(e.src) != null || e.mask == "shape")) {
+                            // Official logos and pictures in the Shape: drawn by the app (sharp, with transparency).
+                            bytes = renderElement(d, e.copy(opacity = 1f), maxOf(24f, 3000f / maxOf(e.w, e.h))).pngBytes()
+                        } else if (e.kind == ElementKind.IMAGE) {
                             bytes = DesignImages.bytes(d.id, e.src) ?: return@forEach
                             val img = DesignImages.image(d.id, e.src) ?: return@forEach
                             val place = placePicture(e, img.width, img.height)

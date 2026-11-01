@@ -77,10 +77,15 @@ object DesignFonts {
     val bold: ByteArray by lazy { bytes("NotoSans-Bold.ttf") }
     val italic: ByteArray by lazy { bytes("NotoSans-Italic.ttf") }
     val boldItalic: ByteArray by lazy { bytes("NotoSans-BoldItalic.ttf") }
+    /** Noto Sans Medium: headings in the CD of TU Dresden. */
+    val medium: ByteArray by lazy { bytes("NotoSans-Medium.ttf") }
+    val mediumItalic: ByteArray by lazy { bytes("NotoSans-MediumItalic.ttf") }
 
-    fun bytes(bold: Boolean, italic: Boolean): ByteArray = when {
+    fun bytes(bold: Boolean, italic: Boolean, medium: Boolean = false): ByteArray = when {
         bold && italic -> boldItalic
         bold -> this.bold
+        medium && italic -> mediumItalic
+        medium -> this.medium
         italic -> this.italic
         else -> regular
     }
@@ -93,6 +98,8 @@ object DesignFonts {
                 Font("NotoSans-Bold", bold, FontWeight.Bold, FontStyle.Normal),
                 Font("NotoSans-Italic", italic, FontWeight.Normal, FontStyle.Italic),
                 Font("NotoSans-BoldItalic", boldItalic, FontWeight.Bold, FontStyle.Italic),
+                Font("NotoSans-Medium", medium, FontWeight.Medium, FontStyle.Normal),
+                Font("NotoSans-MediumItalic", mediumItalic, FontWeight.Medium, FontStyle.Italic),
             )
         }.getOrDefault(FontFamily.SansSerif)
     }
@@ -108,7 +115,7 @@ object DesignText {
     /** A laid-out text box: [layout] in REF pixels, [fontSize] the size actually used (pt), [top] the offset in mm. */
     class Laid(val layout: TextLayoutResult, val fontSize: Float, val top: Float, val lineHeightMm: Float)
 
-    private data class Key(val text: String, val size: Float, val bold: Boolean, val italic: Boolean, val w: Float, val h: Float, val lh: Float, val align: String, val valign: String, val fit: Boolean, val pad: Float)
+    private data class Key(val text: String, val size: Float, val bold: Boolean, val medium: Boolean, val italic: Boolean, val w: Float, val h: Float, val lh: Float, val align: String, val valign: String, val fit: Boolean, val pad: Float)
 
     private val cache = object : LinkedHashMap<Key, Laid>(64, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Laid>?) = size > 300
@@ -121,7 +128,7 @@ object DesignText {
             fontSize = px.sp,
             lineHeight = (px * e.lineHeight).sp,
             lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
-            fontWeight = if (e.bold) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (e.bold) FontWeight.Bold else if (e.medium) FontWeight.Medium else FontWeight.Normal,
             fontStyle = if (e.italic) FontStyle.Italic else FontStyle.Normal,
             textAlign = when (e.align) { "center" -> TextAlign.Center; "right" -> TextAlign.End; else -> TextAlign.Start },
         )
@@ -142,7 +149,7 @@ object DesignText {
 
     @Synchronized
     fun layout(e: DesignElement): Laid {
-        val key = Key(e.text, e.fontSize, e.bold, e.italic, e.w, e.h, e.lineHeight, e.align, e.valign, e.fit, e.padding)
+        val key = Key(e.text, e.fontSize, e.bold, e.medium, e.italic, e.w, e.h, e.lineHeight, e.align, e.valign, e.fit, e.padding)
         cache[key]?.let { return it }
         val text = e.text.ifEmpty { " " }
         val innerW = (e.w - 2 * e.padding).coerceAtLeast(1f)
@@ -220,9 +227,10 @@ object DesignIcons {
 
     private val paths = HashMap<String, List<Path>>()
 
-    /** The icon's paths in its viewport (24 × 24). */
+    /** The icon's paths in its viewport (24 × 24 for Material symbols, the icon's own box for TUD icons). */
     @Synchronized
     fun paths(name: String): List<Path> = paths.getOrPut(name) {
+        TudIcons.byId(name)?.let { return@getOrPut listOf(TudIcons.path(it)) }
         val v = vector(name) ?: return@getOrPut emptyList()
         val out = mutableListOf<Path>()
         fun walk(g: VectorGroup) {
@@ -235,7 +243,7 @@ object DesignIcons {
         out
     }
 
-    fun viewport(name: String): Size = vector(name)?.let { Size(it.viewportWidth, it.viewportHeight) } ?: Size(24f, 24f)
+    fun viewport(name: String): Size = TudIcons.byId(name)?.box?.size ?: vector(name)?.let { Size(it.viewportWidth, it.viewportHeight) } ?: Size(24f, 24f)
 }
 
 /** Pictures of designs, decoded once (logos of the app, own logos, pictures in the design's folder). */
@@ -354,6 +362,15 @@ object DesignShapes {
     }
 }
 
+/** The TUD-Shape for a picture placed into it (mirrored with [DesignElement.flipX]). */
+internal fun scaledShape(e: DesignElement): Path {
+    val p = TudShape.inBox(e.w, e.h)
+    if (!e.flipX) return p
+    val m = androidx.compose.ui.graphics.Matrix().apply { translate(e.w, 0f); scale(-1f, 1f) }
+    p.transform(m)
+    return p
+}
+
 /** Source rectangle (image pixels) and target rectangle (mm in the element's box) of a picture. */
 data class PicturePlacement(val src: Rect, val dst: Rect)
 
@@ -442,12 +459,34 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
             designColor(e.fill, alpha)?.let { drawPath(p, it, style = Fill) }
             designColor(e.stroke, alpha)?.takeIf { e.strokeWidth > 0f }?.let { drawPath(p, it, style = Stroke(e.strokeWidth, join = StrokeJoin.Round)) }
         }
+        ElementKind.TUD_SHAPE -> {
+            // Always solid (the CD forbids outlines), mirrored left–right on request.
+            val c = designColor(e.fill.ifBlank { e.color }, alpha) ?: return
+            scale(if (e.flipX) -1f else 1f, 1f, Offset(e.w / 2, e.h / 2)) { drawPath(TudShape.inBox(e.w, e.h), c) }
+        }
         ElementKind.IMAGE -> {
+            // Official TUD logos: vector paths of the CD package.
+            DesignBrand.logo(e.src)?.let { logo ->
+                TudLogos.vector(logo.variant)?.let { v ->
+                    val k = min(e.w / v.size.width, e.h / v.size.height)
+                    translate((e.w - v.size.width * k) / 2, (e.h - v.size.height * k) / 2) {
+                        scale(k, k, Offset.Zero) {
+                            val c = when { "weiss" in logo.variant -> Color.White; "schwarz" in logo.variant -> Color.Black; else -> designColor(TudBrand.BLUE)!! }.copy(alpha = alpha)
+                            v.paths.forEach { drawPath(it, c) }
+                        }
+                    }
+                    return
+                }
+            }
             val img = DesignImages.image(design.id, e.src)
-            val clip = Path().apply {
-                if (e.radius > 0f) addRoundRect(RoundRect(0f, 0f, e.w, e.h, CornerRadius(min(e.radius, min(e.w, e.h) / 2)))) else addRect(Rect(0f, 0f, e.w, e.h))
+            val clip = when {
+                e.mask == "shape" -> scaledShape(e)
+                e.radius > 0f -> Path().apply { addRoundRect(RoundRect(0f, 0f, e.w, e.h, CornerRadius(min(e.radius, min(e.w, e.h) / 2)))) }
+                else -> Path().apply { addRect(Rect(0f, 0f, e.w, e.h)) }
             }
             if (img == null) {
+                // A Shape waiting for its photo stays a solid Shape in its colour (also in the export).
+                if (e.mask == "shape" && !editing) designColor(e.fill, alpha)?.let { drawPath(clip, it) }
                 if (editing) {
                     drawPath(clip, designColor(e.fill.ifBlank { "#E5F1FF" }) ?: Color.LightGray)
                     val s = min(e.w, e.h) * 0.3f
@@ -495,7 +534,7 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
 private const val IMG_REF = 100f
 
 /** Renders page [index] of [design] into a bitmap [widthPx] wide (previews, PNG export, PowerPoint pictures). */
-fun renderDesignPage(design: Design, index: Int, widthPx: Int, transparent: Boolean = false, only: DesignElement? = null): ImageBitmap {
+fun renderDesignPage(design: Design, index: Int, widthPx: Int, transparent: Boolean = false, only: DesignElement? = null, placeholders: Boolean = false): ImageBitmap {
     val scale = widthPx / design.width
     val w = widthPx.coerceAtLeast(1)
     val h = (design.height * scale).toInt().coerceAtLeast(1)
@@ -505,7 +544,7 @@ fun renderDesignPage(design: Design, index: Int, widthPx: Int, transparent: Bool
         if (only != null) drawDesignElement(design, only, scale)
         else {
             val page = design.page(index)
-            if (transparent) page.elements.forEach { drawDesignElement(design, it, scale) } else drawDesignPage(design, page, scale)
+            if (transparent) page.elements.forEach { drawDesignElement(design, it, scale) } else drawDesignPage(design, page, scale, editing = placeholders)
         }
     }
     return bmp

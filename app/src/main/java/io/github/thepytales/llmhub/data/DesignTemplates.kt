@@ -3,10 +3,13 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.docs.TudBrand
 
 /**
- * Gestaltungsvorlagen unter „Erstellen“ (AP-24) für den Uni-Alltag, alle im TUD-Design: Tagungsposter, Flyer, Aushang,
- * Einladungskarte, Social Media, OPAL-Kursbanner, Titelbild für Lehrvideos (Briefe, Protokolle und Bescheinigungen sind
- * TU Vorlagen). Texte, Bilder und QR-Codes, die die
- * KI füllt, haben einen [DesignElement.slot]; Texte mit [DesignElement.fit] werden kleiner, wenn sie nicht passen.
+ * Gestaltungsvorlagen unter „Erstellen“ (AP-24) für den Uni-Alltag nach dem Corporate Design 2025 der TU Dresden:
+ * Tagungsposter, digitales Poster, Flyer, Aushang, Einladungskarte, Social Media, OPAL-Kursbanner, Titelbild für
+ * Lehrvideos (Briefe, Protokolle und Bescheinigungen sind TU Vorlagen). Regeln aus dem CD-Paket: Logo oben links mit
+ * Schutzraum, Überschriften in Noto Sans Medium (Brillantblau auf Weiß, Weiß auf Brillantblau), Fließtext Schwarz,
+ * nur TUD Farben, die Shape als Bildmotiv (randabfallend, in 45°-Schritten, gern mit Foto) und die TUD-Icons.
+ * Texte, Bilder und QR-Codes, die die KI füllt, haben einen [DesignElement.slot]; Texte mit [DesignElement.fit]
+ * werden kleiner, wenn sie nicht passen.
  */
 data class DesignTemplate(
     val id: String,
@@ -26,32 +29,55 @@ data class DesignTemplate(
 }
 
 object DesignTemplates {
+    // Only colours of the CD (TUD Farben): Brillantblau, Blau 1/2, Dunkelblau, Grau, Schwarz, Weiß.
     private const val BLUE = TudBrand.BLUE
     private const val MID = TudBrand.MID_BLUE
     private const val LIGHT = TudBrand.LIGHT_BLUE
-    private const val GREY = TudBrand.GREY
-    private const val TINT = "#E5F1FF"
+    private const val GREY = TudBrand.GREY_100
     private const val WHITE = "#FFFFFF"
-    private const val INK = "#1A1A1A"
+    private const val INK = "#000000"
+
+    // TUD icons of the CD package (Icon-Themensets).
+    private const val ICON_DATE = "tud:Kommunikation & Organisation/16"
+    private const val ICON_PLACE = "tud:Mobilität/15"
+    private const val ICON_PERSON = "tud:Symbole/40"
 
     private fun text(
-        slot: String, x: Float, y: Float, w: Float, h: Float, text: String, size: Float, bold: Boolean = false,
+        slot: String, x: Float, y: Float, w: Float, h: Float, text: String, size: Float, medium: Boolean = false,
         color: String = INK, align: String = "left", valign: String = "top", lineHeight: Float = 1.25f, fit: Boolean = true, italic: Boolean = false,
     ) = DesignElement(
-        kind = ElementKind.TEXT, slot = slot, x = x, y = y, w = w, h = h, text = text, fontSize = size, bold = bold, italic = italic,
+        kind = ElementKind.TEXT, slot = slot, x = x, y = y, w = w, h = h, text = text, fontSize = size, medium = medium, italic = italic,
         color = color, align = align, valign = valign, lineHeight = lineHeight, fit = fit,
     )
 
-    private fun rect(x: Float, y: Float, w: Float, h: Float, fill: String, radius: Float = 0f, stroke: String = "", strokeWidth: Float = 0f, locked: Boolean = false) =
-        DesignElement(kind = ElementKind.RECT, x = x, y = y, w = w, h = h, fill = fill, radius = radius, stroke = stroke, strokeWidth = strokeWidth, locked = locked)
+    /** A heading of the CD: Noto Sans Medium (never bold). */
+    private fun heading(
+        slot: String, x: Float, y: Float, w: Float, h: Float, text: String, size: Float, color: String = BLUE,
+        valign: String = "top", lineHeight: Float = 1.1f,
+    ) = text(slot, x, y, w, h, text, size, medium = true, color = color, valign = valign, lineHeight = lineHeight)
 
+    private fun rect(x: Float, y: Float, w: Float, h: Float, fill: String, locked: Boolean = false) =
+        DesignElement(kind = ElementKind.RECT, x = x, y = y, w = w, h = h, fill = fill, locked = locked)
+
+    /** The official horizontal logo (without its protection zone, which the layouts keep free). */
     private fun logo(x: Float, y: Float, w: Float, white: Boolean) = DesignElement(
         kind = ElementKind.IMAGE, slot = "logo", x = x, y = y, w = w, h = w / DesignBrand.LOGO_RATIO, src = if (white) DesignBrand.LOGO_WHITE else DesignBrand.LOGO_BLUE,
         fitMode = "contain", alt = "Logo der TU Dresden",
     )
 
-    private fun picture(slot: String, x: Float, y: Float, w: Float, h: Float, radius: Float = 0f) =
-        DesignElement(kind = ElementKind.IMAGE, slot = slot, x = x, y = y, w = w, h = h, radius = radius, fill = TINT)
+    /**
+     * The Shape as key visual: always the same size within a layout, rotated in 45° steps, cut off at the edge of
+     * the page – never as an outline and never distorted (Shape-Regeln of the CD).
+     */
+    private fun shape(x: Float, y: Float, side: Float, color: String, rotation: Float = 0f, flip: Boolean = false) =
+        DesignElement(kind = ElementKind.TUD_SHAPE, x = x, y = y, w = side, h = side, fill = color, rotation = rotation, flipX = flip)
+
+    private fun picture(slot: String, x: Float, y: Float, w: Float, h: Float) =
+        DesignElement(kind = ElementKind.IMAGE, slot = slot, x = x, y = y, w = w, h = h)
+
+    /** A photo inside the Shape („Fotos dürfen in die Shape gesetzt werden“); Blau 2 until a picture is chosen. */
+    private fun shapePicture(slot: String, x: Float, y: Float, side: Float, rotation: Float = 0f, flip: Boolean = false) =
+        DesignElement(kind = ElementKind.IMAGE, slot = slot, x = x, y = y, w = side, h = side, mask = "shape", fill = LIGHT, rotation = rotation, flipX = flip)
 
     private fun qr(slot: String, x: Float, y: Float, size: Float, color: String = BLUE, text: String = "https://tu-dresden.de") =
         DesignElement(kind = ElementKind.QR, slot = slot, x = x, y = y, w = size, h = size, text = text, color = color, fill = WHITE)
@@ -59,7 +85,7 @@ object DesignTemplates {
     private fun icon(name: String, x: Float, y: Float, size: Float, color: String = BLUE) =
         DesignElement(kind = ElementKind.ICON, icon = name, x = x, y = y, w = size, h = size, color = color)
 
-    private fun line(x: Float, y: Float, w: Float, color: String = GREY, width: Float = 0.4f) =
+    private fun line(x: Float, y: Float, w: Float, color: String = LIGHT, width: Float = 0.4f) =
         DesignElement(kind = ElementKind.LINE, x = x, y = y, w = w, h = 0f, stroke = color, strokeWidth = width)
 
     /** Pixels of a screen format in mm. */
@@ -70,158 +96,191 @@ object DesignTemplates {
 
     private fun format(id: String) = DesignFormat.byId(id) ?: DesignFormat.A4
 
-    val POSTER = DesignTemplate("poster", "Tagungsposter", "A1 hoch mit Kopfband, vier Abschnitten in zwei Spalten, Bild und QR-Code.", format("a1")) {
-        val c1 = 30f
-        val c2 = 339f
-        val cw = 255f
+    val POSTER = DesignTemplate("poster", "Tagungsposter", "A1 hoch, weiß mit Logo, Shape und vier Abschnitten in zwei Spalten, Bild und QR-Code.", format("a1")) {
+        val c1 = 40f
+        val c2 = 317f
+        val cw = 237f
         listOf(
             DesignPage(
                 elements = listOf(
-                    rect(0f, 0f, 594f, 196f, BLUE, locked = true),
-                    logo(30f, 24f, 140f, white = true),
-                    text("titel", 30f, 84f, 534f, 62f, "Titel des Beitrags", 80f, bold = true, color = WHITE, lineHeight = 1.1f, valign = "bottom"),
-                    text("autoren", 30f, 152f, 534f, 16f, "Vorname Nachname, Vorname Nachname", 32f, color = WHITE),
-                    text("einrichtung", 30f, 172f, 534f, 14f, "Professur … · Fakultät … · TU Dresden", 24f, color = LIGHT),
-                    text("abschnitt1_titel", c1, 222f, cw, 16f, "Einleitung", 40f, bold = true, color = BLUE),
-                    text("abschnitt1_text", c1, 242f, cw, 238f, "Worum geht es? Fragestellung und Hintergrund in wenigen Sätzen.", 25f, lineHeight = 1.35f),
-                    text("abschnitt2_titel", c1, 498f, cw, 16f, "Methode", 40f, bold = true, color = BLUE),
-                    text("abschnitt2_text", c1, 518f, cw, 236f, "Stichprobe, Vorgehen, Instrumente.", 25f, lineHeight = 1.35f),
-                    text("abschnitt3_titel", c2, 222f, cw, 16f, "Ergebnisse", 40f, bold = true, color = BLUE),
-                    picture("bild", c2, 242f, cw, 176f, radius = 2f),
-                    text("abschnitt3_text", c2, 426f, cw, 150f, "Die wichtigsten Befunde.", 25f, lineHeight = 1.35f),
-                    text("abschnitt4_titel", c2, 594f, cw, 16f, "Fazit", 40f, bold = true, color = BLUE),
-                    text("abschnitt4_text", c2, 614f, cw, 140f, "Was folgt daraus? Ausblick.", 25f, lineHeight = 1.35f),
-                    rect(0f, 776f, 594f, 65f, TINT, locked = true),
-                    text("kontakt", 30f, 788f, 440f, 42f, "Kontakt: vorname.nachname@tu-dresden.de", 24f, color = GREY, valign = "middle", lineHeight = 1.35f),
-                    qr("qr", 516f, 783f, 50f),
+                    shape(404f, -70f, 260f, BLUE),
+                    logo(40f, 40f, 150f, white = false),
+                    heading("titel", 40f, 112f, 344f, 72f, "Titel des Beitrags", 76f, valign = "bottom"),
+                    text("autoren", 40f, 190f, 344f, 14f, "Vorname Nachname, Vorname Nachname", 30f),
+                    text("einrichtung", 40f, 206f, 344f, 12f, "Professur … · Fakultät … · TU Dresden", 24f, color = GREY),
+                    heading("abschnitt1_titel", c1, 246f, cw, 16f, "Einleitung", 40f),
+                    text("abschnitt1_text", c1, 268f, cw, 214f, "Worum geht es? Fragestellung und Hintergrund in wenigen Sätzen.", 25f, lineHeight = 1.35f),
+                    heading("abschnitt2_titel", c1, 500f, cw, 16f, "Methode", 40f),
+                    text("abschnitt2_text", c1, 522f, cw, 214f, "Stichprobe, Vorgehen, Instrumente.", 25f, lineHeight = 1.35f),
+                    heading("abschnitt3_titel", c2, 246f, cw, 16f, "Ergebnisse", 40f),
+                    picture("bild", c2, 268f, cw, 160f),
+                    text("abschnitt3_text", c2, 436f, cw, 146f, "Die wichtigsten Befunde.", 25f, lineHeight = 1.35f),
+                    heading("abschnitt4_titel", c2, 600f, cw, 16f, "Fazit", 40f),
+                    text("abschnitt4_text", c2, 622f, cw, 114f, "Was folgt daraus? Ausblick.", 25f, lineHeight = 1.35f),
+                    line(40f, 756f, 514f, LIGHT, 0.6f),
+                    text("kontakt", 40f, 768f, 420f, 50f, "Kontakt: vorname.nachname@tu-dresden.de", 24f, color = GREY, valign = "middle", lineHeight = 1.35f),
+                    qr("qr", 498f, 766f, 56f),
                 ),
             ),
         )
     }
 
-    val FLYER = DesignTemplate("flyer", "Flyer", "A5 hoch mit großem Bild, Titel, Text und Fußband mit Logo.", format("a5")) {
+    val DIGITAL_POSTER = DesignTemplate(
+        "digital", "Digitales Poster", "1920 × 1080 px für Bildschirme: Logo, Headline und Subline, Bild oben rechts, drei Spalten, Link und QR-Code.",
+        format("poster-16-9"),
+    ) {
+        // Layout „3 Spalten“ of the CD's digital poster (55″ monitor, 5 m distance): text 32 px, headings Medium.
+        val cols = listOf(p(48), p(670), p(1290))
+        val cw = p(581)
         listOf(
             DesignPage(
                 elements = listOf(
-                    picture("bild", 0f, 0f, 148f, 80f),
-                    rect(0f, 80f, 148f, 2.5f, MID),
-                    text("titel", 12f, 92f, 124f, 26f, "Titel der Veranstaltung", 26f, bold = true, color = BLUE, lineHeight = 1.1f),
-                    text("untertitel", 12f, 120f, 124f, 10f, "Untertitel oder Datum", 13f, color = GREY),
-                    text("text", 12f, 134f, 124f, 46f, "Beschreibung in wenigen Sätzen: Worum geht es, für wen ist es, was nehmen die Teilnehmenden mit?", 10.5f, lineHeight = 1.4f),
-                    rect(0f, 186f, 148f, 24f, BLUE, locked = true),
-                    logo(10f, 191.3f, 40f, white = true),
-                    text("kontakt", 56f, 189f, 82f, 18f, "tu-dresden.de", 8f, color = WHITE, align = "right", valign = "middle", lineHeight = 1.3f),
+                    picture("bild", p(876), 0f, p(1044), p(328)),
+                    logo(p(48), p(48), p(294), white = false),
+                    heading("titel", p(48), p(170), p(800), p(124), "Headline des Posters", px(60), valign = "bottom"),
+                    text("untertitel", p(48), p(299), p(800), p(49), "Subline mit einer kurzen Einordnung", px(32), color = BLUE),
+                ) + cols.flatMapIndexed { i, x ->
+                    listOf(
+                        heading("abschnitt${i + 1}_titel", x, p(395), cw, p(64), listOf("Hintergrund", "Vorgehen", "Ergebnis")[i], px(40), valign = "bottom"),
+                        text(
+                            "abschnitt${i + 1}_text", x, p(467), cw, if (i == 2) p(360) else p(560),
+                            listOf("Worum geht es, und warum ist es wichtig?", "Wie sind wir vorgegangen?", "Was kam heraus?")[i], px(32), lineHeight = 1.3f,
+                        ),
+                    )
+                } + listOf(
+                    text("link", p(1290), p(862), p(410), p(150), "Mehr erfahren:\ntu-dresden.de", px(28), color = BLUE, valign = "bottom", lineHeight = 1.3f),
+                    qr("qr", p(1722), p(862), p(150)),
                 ),
             ),
         )
     }
 
-    val NOTICE = DesignTemplate("aushang", "Aushang", "A4 hoch für das Schwarze Brett: große Überschrift, Wann/Wo/Wer und QR-Code.", format("a4")) {
+    val FLYER = DesignTemplate("flyer", "Flyer", "A5 hoch, weiß mit Logo, Foto in der Shape, Titel, Text, Kontakt und QR-Code.", format("a5")) {
         listOf(
             DesignPage(
                 elements = listOf(
-                    rect(0f, 0f, 210f, 10f, BLUE, locked = true),
-                    logo(15f, 20f, 62f, white = false),
-                    text("kategorie", 15f, 52f, 180f, 10f, "Vortrag", 15f, bold = true, color = MID),
-                    text("titel", 15f, 64f, 180f, 60f, "Überschrift des Aushangs", 46f, bold = true, color = BLUE, lineHeight = 1.08f),
-                    text("text", 15f, 130f, 180f, 70f, "Kurzer Text: worum es geht und für wen es gedacht ist.", 14f, lineHeight = 1.4f),
-                    rect(15f, 207f, 180f, 50f, TINT, radius = 3f),
-                    icon("Event", 22f, 214f, 8f),
-                    text("wann", 34f, 213.5f, 118f, 10f, "Mittwoch, 12. November, 16:40 Uhr", 14f, bold = true, valign = "middle"),
-                    icon("Place", 22f, 228f, 8f),
-                    text("wo", 34f, 227.5f, 118f, 10f, "Hörsaalzentrum, Raum 101", 14f, valign = "middle"),
-                    icon("Person", 22f, 242f, 8f),
-                    text("wer", 34f, 241.5f, 118f, 10f, "Anmeldung nicht nötig", 14f, valign = "middle"),
-                    qr("qr", 159f, 212f, 31f),
-                    text("kontakt", 15f, 266f, 180f, 12f, "Kontakt: vorname.nachname@tu-dresden.de", 10f, color = GREY, valign = "middle"),
-                    rect(0f, 287f, 210f, 10f, BLUE, locked = true),
+                    shapePicture("bild", 50f, -24f, 122f),
+                    logo(12f, 12f, 44f, white = false),
+                    heading("titel", 12f, 104f, 124f, 30f, "Titel der Veranstaltung", 24f),
+                    text("untertitel", 12f, 136f, 124f, 10f, "Untertitel oder Datum", 12f, color = BLUE),
+                    text("text", 12f, 150f, 124f, 32f, "Beschreibung in wenigen Sätzen: Worum geht es, für wen ist es, was nehmen die Teilnehmenden mit?", 10f, lineHeight = 1.4f),
+                    line(12f, 186f, 124f),
+                    text("kontakt", 12f, 189f, 98f, 14f, "tu-dresden.de", 8f, color = GREY, valign = "middle", lineHeight = 1.3f),
+                    qr("qr", 120f, 189f, 16f),
                 ),
             ),
         )
     }
 
-    val INVITATION = DesignTemplate("einladung", "Einladungskarte", "A5 quer mit blauem Seitenband, Programm und Anmeldung.", format("a5-quer")) {
+    val NOTICE = DesignTemplate("aushang", "Aushang", "A4 hoch für das Schwarze Brett: Logo, Shape, große Überschrift, Wann/Wo/Wer mit TUD-Icons und QR-Code.", format("a4")) {
         listOf(
             DesignPage(
                 elements = listOf(
-                    rect(0f, 0f, 70f, 148f, BLUE, locked = true),
-                    logo(10f, 12f, 50f, white = true),
-                    text("anlass", 10f, 108f, 55f, 26f, "Einladung", 22f, bold = true, color = WHITE, valign = "bottom"),
-                    text("titel", 82f, 16f, 116f, 34f, "Titel der Veranstaltung", 26f, bold = true, color = BLUE, lineHeight = 1.1f),
-                    text("text", 82f, 54f, 116f, 40f, "Wir laden Sie herzlich ein … Programm in wenigen Zeilen.", 11f, lineHeight = 1.4f),
-                    line(82f, 97f, 116f, LIGHT, 0.5f),
-                    text("details", 82f, 100f, 116f, 22f, "Donnerstag, 4. Dezember 2026, 18 Uhr\nFestsaal, Rektorat", 11f, bold = true, lineHeight = 1.4f),
-                    text("anmeldung", 82f, 126f, 116f, 12f, "Um Anmeldung wird gebeten bis …", 9f, color = GREY),
+                    shape(126f, -34f, 118f, BLUE),
+                    // Position and size of the logo on A4 as in the letters and certificates of the CD.
+                    logo(25f, 18f, 50.9f, white = false),
+                    text("kategorie", 25f, 96f, 160f, 9f, "Vortrag", 14f, medium = true, color = MID),
+                    heading("titel", 25f, 107f, 160f, 54f, "Überschrift des Aushangs", 40f),
+                    text("text", 25f, 166f, 160f, 40f, "Kurzer Text: worum es geht und für wen es gedacht ist.", 13f, lineHeight = 1.4f),
+                    icon(ICON_DATE, 25f, 215f, 9f),
+                    text("wann", 38f, 214.5f, 108f, 10f, "Mittwoch, 12. November, 16:40 Uhr", 13f, medium = true, valign = "middle"),
+                    icon(ICON_PLACE, 25f, 230f, 9f),
+                    text("wo", 38f, 229.5f, 108f, 10f, "Hörsaalzentrum, Raum 101", 13f, valign = "middle"),
+                    icon(ICON_PERSON, 25f, 245f, 9f),
+                    text("wer", 38f, 244.5f, 108f, 10f, "Anmeldung nicht nötig", 13f, valign = "middle"),
+                    qr("qr", 155f, 214f, 30f),
+                    line(25f, 266f, 160f),
+                    text("kontakt", 25f, 269f, 160f, 10f, "Kontakt: vorname.nachname@tu-dresden.de", 10f, color = GREY, valign = "middle"),
                 ),
             ),
         )
     }
 
-    val POST = DesignTemplate("post", "Social Media: Beitrag", "1080 × 1080 px auf TUD-Blau mit großer Aussage und Logo.", format("post")) {
+    val INVITATION = DesignTemplate("einladung", "Einladungskarte", "A5 quer: Brillantblau mit Logo und Shape links, Programm und Anmeldung rechts.", format("a5-quer")) {
+        listOf(
+            DesignPage(
+                elements = listOf(
+                    rect(0f, 0f, 80f, 148f, BLUE, locked = true),
+                    shape(-14f, 46f, 66f, LIGHT),
+                    logo(10f, 10f, 46f, white = true),
+                    heading("anlass", 10f, 118f, 62f, 20f, "Einladung", 22f, color = WHITE, valign = "bottom"),
+                    heading("titel", 92f, 14f, 106f, 34f, "Titel der Veranstaltung", 24f),
+                    text("text", 92f, 52f, 106f, 40f, "Wir laden Sie herzlich ein … Programm in wenigen Zeilen.", 11f, lineHeight = 1.4f),
+                    line(92f, 96f, 106f),
+                    icon(ICON_DATE, 92f, 101f, 7f),
+                    text("details", 102f, 99.5f, 96f, 22f, "Donnerstag, 4. Dezember 2026, 18 Uhr\nFestsaal, Rektorat", 11f, medium = true, lineHeight = 1.4f),
+                    text("anmeldung", 92f, 126f, 106f, 12f, "Um Anmeldung wird gebeten bis …", 9f, color = GREY),
+                ),
+            ),
+        )
+    }
+
+    val POST = DesignTemplate("post", "Social Media: Beitrag", "1080 × 1080 px auf Brillantblau mit Logo, großer Aussage und Shape.", format("post")) {
         listOf(
             DesignPage(
                 background = BLUE,
                 elements = listOf(
-                    rect(p(80), p(80), p(120), p(12), LIGHT),
-                    text("titel", p(80), p(140), p(920), p(520), "Eine klare Aussage in wenigen Worten", px(96), bold = true, color = WHITE, lineHeight = 1.1f, valign = "bottom"),
-                    text("text", p(80), p(690), p(920), p(180), "Ein, zwei Sätze dazu – oder Datum und Ort.", px(40), color = WHITE, lineHeight = 1.3f),
-                    logo(p(80), p(930), p(240), white = true),
-                    text("handle", p(560), p(950), p(440), p(50), "#TUDresden", px(30), color = LIGHT, align = "right", valign = "middle"),
+                    shape(p(660), p(660), p(540), LIGHT),
+                    logo(p(80), p(80), p(280), white = true),
+                    heading("titel", p(80), p(230), p(920), p(380), "Eine klare Aussage in wenigen Worten", px(88), color = WHITE, valign = "bottom"),
+                    text("text", p(80), p(650), p(540), p(220), "Ein, zwei Sätze dazu – oder Datum und Ort.", px(40), color = WHITE, lineHeight = 1.3f),
+                    text("handle", p(80), p(950), p(540), p(50), "#TUDresden", px(30), color = LIGHT, valign = "middle"),
                 ),
             ),
         )
     }
 
-    val STORY = DesignTemplate("story", "Social Media: Story", "1080 × 1920 px mit Bild oben und Text auf TUD-Blau.", format("story")) {
+    val STORY = DesignTemplate("story", "Social Media: Story", "1080 × 1920 px auf Brillantblau: Logo, Foto in der Shape, Überschrift und Text.", format("story")) {
         listOf(
             DesignPage(
                 background = BLUE,
                 elements = listOf(
-                    picture("bild", 0f, 0f, p(1080), p(900)),
-                    text("titel", p(80), p(980), p(920), p(420), "Überschrift der Story", px(104), bold = true, color = WHITE, lineHeight = 1.1f),
-                    text("text", p(80), p(1420), p(920), p(220), "Kurzer Text, Datum oder Aufruf.", px(44), color = WHITE, lineHeight = 1.3f),
-                    logo(p(80), p(1730), p(260), white = true),
+                    shapePicture("bild", p(300), p(250), p(920)),
+                    logo(p(80), p(100), p(300), white = true),
+                    heading("titel", p(80), p(1220), p(920), p(400), "Überschrift der Story", px(100), color = WHITE),
+                    text("text", p(80), p(1640), p(920), p(200), "Kurzer Text, Datum oder Aufruf.", px(44), color = WHITE, lineHeight = 1.3f),
                 ),
             ),
         )
     }
 
-    val BANNER = DesignTemplate("banner", "OPAL-Kursbanner", "1500 × 300 px: Kurstitel, Semester und ein Bild rechts.", format("banner")) {
+    val BANNER = DesignTemplate("banner", "OPAL-Kursbanner", "1500 × 300 px auf Brillantblau: Logo, Kurstitel, Semester und ein Foto in der Shape.", format("banner")) {
         listOf(
             DesignPage(
                 background = BLUE,
                 elements = listOf(
-                    picture("bild", p(1000), 0f, p(500), p(300)),
-                    logo(p(60), p(30), p(130), white = true),
-                    text("titel", p(60), p(96), p(900), p(110), "Titel des Kurses", px(64), bold = true, color = WHITE, lineHeight = 1.05f, valign = "middle"),
-                    text("untertitel", p(60), p(214), p(900), p(56), "Wintersemester 2026/27 · Professur …", px(30), color = LIGHT, valign = "middle"),
+                    shapePicture("bild", p(1070), p(-60), p(420)),
+                    logo(p(60), p(36), p(150), white = true),
+                    heading("titel", p(60), p(100), p(940), p(110), "Titel des Kurses", px(64), color = WHITE, valign = "middle", lineHeight = 1.05f),
+                    text("untertitel", p(60), p(214), p(940), p(56), "Wintersemester 2026/27 · Professur …", px(30), color = LIGHT, valign = "middle"),
                 ),
             ),
         )
     }
 
-    val VIDEO_TITLE = DesignTemplate("video", "Titelbild für Lehrvideos", "1920 × 1080 px: Reihe, Titel und Person auf TUD-Blau, Bild rechts.", format("video")) {
+    val VIDEO_TITLE = DesignTemplate("video", "Titelbild für Lehrvideos", "1920 × 1080 px auf Brillantblau: Reihe, Titel und Person, Foto in der Shape rechts.", format("video")) {
         listOf(
             DesignPage(
+                background = BLUE,
                 elements = listOf(
-                    picture("bild", p(960), 0f, p(960), p(1080)),
-                    rect(0f, 0f, p(960), p(1080), BLUE, locked = true),
-                    logo(p(90), p(90), p(300), white = true),
-                    text("reihe", p(90), p(380), p(780), p(60), "Vorlesung · Teil 3", px(40), color = LIGHT, valign = "middle"),
-                    text("titel", p(90), p(450), p(780), p(330), "Titel des Lehrvideos", px(88), bold = true, color = WHITE, lineHeight = 1.08f),
-                    text("person", p(90), p(860), p(780), p(110), "Prof. Dr. Vorname Nachname\nProfessur …", px(34), color = WHITE, lineHeight = 1.3f, valign = "bottom"),
+                    shapePicture("bild", p(900), p(40), p(1000)),
+                    logo(p(96), p(96), p(330), white = true),
+                    text("reihe", p(96), p(390), p(780), p(60), "Vorlesung · Teil 3", px(40), color = LIGHT, valign = "middle"),
+                    heading("titel", p(96), p(460), p(780), p(330), "Titel des Lehrvideos", px(88), color = WHITE),
+                    text("person", p(96), p(860), p(780), p(120), "Prof. Dr. Vorname Nachname\nProfessur …", px(34), color = WHITE, lineHeight = 1.3f, valign = "bottom"),
                 ),
             ),
         )
     }
 
     /** All templates, in the order of the picker. */
-    val all: List<DesignTemplate> = listOf(POSTER, FLYER, NOTICE, INVITATION, POST, STORY, BANNER, VIDEO_TITLE)
+    val all: List<DesignTemplate> = listOf(POSTER, DIGITAL_POSTER, FLYER, NOTICE, INVITATION, POST, STORY, BANNER, VIDEO_TITLE)
 
     fun byId(id: String?): DesignTemplate? {
         val n = id?.trim()?.lowercase().orEmpty()
         return all.firstOrNull { it.id == n } ?: all.firstOrNull { it.name.lowercase() == n } ?: when {
             n.isEmpty() -> null
+            "digital" in n || "bildschirm" in n || "monitor" in n || "16:9" in n -> DIGITAL_POSTER
             "poster" in n -> POSTER
             "flyer" in n -> FLYER
             "aushang" in n || "plakat" in n -> NOTICE
@@ -241,7 +300,7 @@ object DesignTemplates {
     fun fits(text: String): Boolean {
         val t = text.lowercase()
         return listOf("poster", "flyer", "aushang", "plakat", "einladungskarte", "postkarte", "social media", "instagram", "linkedin", "mastodon",
-            "story", "kursbanner", "banner", "titelbild", "thumbnail", "grafik", "gestalt", "design", "qr-code").any { it in t }
+            "story", "kursbanner", "banner", "titelbild", "thumbnail", "grafik", "gestalt", "design", "qr-code", "digitales poster", "infoscreen").any { it in t }
     }
 
     /** An empty design of [format]. */

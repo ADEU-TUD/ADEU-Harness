@@ -99,8 +99,9 @@ object AccessibilityCheck {
         val core = zipText(file) { it == "docProps/core.xml" }.values.firstOrNull().orEmpty()
         val withoutTitle = slides.filterValues { !Regex("<p:ph type=\"(title|ctrTitle)\"").containsMatchIn(it) }.keys
             .map { it.substringAfterLast("slide").substringBefore(".xml").toIntOrNull() ?: 0 }.sorted()
-        val pics = slides.values.flatMap { Regex("<p:nvPicPr><p:cNvPr\\b[^>]*>").findAll(it).map { m -> m.value }.toList() }
-        val noAlt = pics.count { !Regex("descr=\"[^\"]+\"").containsMatchIn(it) }
+        // Pictures marked as decorative (logo in the footer) need no alternative text, as in PowerPoint's own check.
+        val pics = slides.values.flatMap { Regex("<p:nvPicPr><p:cNvPr\\b[^>]*?(/>|>.*?</p:cNvPr>)").findAll(it).map { m -> m.value }.toList() }
+        val noAlt = pics.count { !Regex("descr=\"[^\"]+\"").containsMatchIn(it) && "decorative" !in it }
         val title = Regex("<dc:title>([^<]+)</dc:title>").find(core)?.groupValues?.get(1)
         return buildList {
             add(if (withoutTitle.isEmpty()) Finding(true, "Alle ${slides.size} Folien haben einen Folientitel.") else Finding(false, "Folien ohne Titel: ${withoutTitle.joinToString(", ")}.", "Jeder Folie einen (ggf. ausgeblendeten) Titel geben."))

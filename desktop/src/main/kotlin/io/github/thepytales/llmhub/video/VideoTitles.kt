@@ -25,8 +25,9 @@ object VideoTitles {
     /** Font size in pt for [px] pixels at 1080 lines. */
     private fun pt(px: Float, scale: Float) = px * scale * 0.75f
 
-    private fun text(x: Float, y: Float, w: Float, h: Float, text: String, size: Float, color: String, bold: Boolean = false, align: String = "left", valign: String = "top", fill: String = "", padding: Float = 0f, radius: Float = 0f, lineHeight: Float = 1.2f) =
-        DesignElement(kind = ElementKind.TEXT, x = x, y = y, w = w, h = h, text = text, fontSize = size, color = color, bold = bold, align = align, valign = valign, fit = true, fill = fill, padding = padding, radius = radius, lineHeight = lineHeight)
+    /** [medium]: Noto Sans Medium, the weight of headings in the CD. */
+    private fun text(x: Float, y: Float, w: Float, h: Float, text: String, size: Float, color: String, medium: Boolean = false, align: String = "left", valign: String = "top", fill: String = "", padding: Float = 0f, radius: Float = 0f, lineHeight: Float = 1.2f) =
+        DesignElement(kind = ElementKind.TEXT, x = x, y = y, w = w, h = h, text = text, fontSize = size, color = color, medium = medium, align = align, valign = valign, fit = true, fill = fill, padding = padding, radius = radius, lineHeight = lineHeight)
 
     /** The overlay as a one-page design of the project's size. */
     fun design(o: TextOverlay, width: Int, height: Int): Design {
@@ -37,17 +38,18 @@ object VideoTitles {
             "titel", "abspann" -> listOfNotNull(
                 DesignElement(kind = ElementKind.RECT, x = 0f, y = 0f, w = w, h = h, fill = TudBrand.BLUE),
                 DesignElement(kind = ElementKind.IMAGE, src = DesignBrand.LOGO_WHITE, fitMode = "contain", x = px(110f, s), y = px(90f, s), w = px(330f, s), h = px(330f, s) / DesignBrand.LOGO_RATIO),
-                text(px(110f, s), px(if (o.style == "titel") 400f else 340f, s), w - px(220f, s), px(360f, s), o.text, pt(96f, s), "#FFFFFF", bold = true, valign = "bottom", lineHeight = 1.08f),
-                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(110f, s), px(790f, s), w - px(220f, s), px(200f, s), it, pt(44f, s), TudBrand.LIGHT_BLUE, lineHeight = 1.3f) },
-                DesignElement(kind = ElementKind.RECT, x = px(110f, s), y = px(770f, s), w = px(140f, s), h = px(8f, s), fill = TudBrand.LIGHT_BLUE),
+                // The Shape of the CD in Blau 2, cut off at the top right; the text stays left of it.
+                DesignElement(kind = ElementKind.TUD_SHAPE, x = w - px(620f, s), y = -px(140f, s), w = px(760f, s), h = px(760f, s), fill = TudBrand.LIGHT_BLUE),
+                text(px(110f, s), px(if (o.style == "titel") 400f else 340f, s), px(1150f, s), px(360f, s), o.text, pt(96f, s), "#FFFFFF", medium = true, valign = "bottom", lineHeight = 1.08f),
+                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(110f, s), px(790f, s), px(1150f, s), px(200f, s), it, pt(44f, s), TudBrand.LIGHT_BLUE, lineHeight = 1.3f) },
             )
             "einblendung" -> listOf(
                 text(px(160f, s), h - px(300f, s), w - px(320f, s), px(170f, s), o.text + if (o.subtext.isNotBlank()) "\n" + o.subtext else "", pt(46f, s), "#FFFFFF",
-                    bold = false, align = "center", valign = "middle", fill = TudBrand.BLUE, padding = px(24f, s), radius = px(10f, s), lineHeight = 1.25f),
+                    align = "center", valign = "middle", fill = TudBrand.BLUE, padding = px(24f, s), radius = px(10f, s), lineHeight = 1.25f),
             )
             else -> listOfNotNull( // bauchbinde
                 DesignElement(kind = ElementKind.RECT, x = px(90f, s), y = h - px(270f, s), w = px(12f, s), h = px(160f, s), fill = TudBrand.LIGHT_BLUE),
-                text(px(102f, s), h - px(270f, s), px(900f, s), px(92f, s), o.text, pt(50f, s), "#FFFFFF", bold = true, valign = "middle", fill = TudBrand.BLUE, padding = px(22f, s)),
+                text(px(102f, s), h - px(270f, s), px(900f, s), px(92f, s), o.text, pt(50f, s), "#FFFFFF", medium = true, valign = "middle", fill = TudBrand.BLUE, padding = px(22f, s)),
                 o.subtext.takeIf { it.isNotBlank() }?.let { text(px(102f, s), h - px(178f, s), px(900f, s), px(68f, s), it, pt(34f, s), TudBrand.BLUE, valign = "middle", fill = "#FFFFFF", padding = px(22f, s)) },
             )
         }

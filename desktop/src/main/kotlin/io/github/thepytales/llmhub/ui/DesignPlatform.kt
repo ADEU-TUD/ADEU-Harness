@@ -45,9 +45,9 @@ object DesignHandoff {
 
 /** Preview of the first (or [page]) page of [design], rendered in the background. */
 @Composable
-fun DesignThumbnail(design: Design, modifier: Modifier = Modifier, page: Int = 0, widthPx: Int = 360) {
+fun DesignThumbnail(design: Design, modifier: Modifier = Modifier, page: Int = 0, widthPx: Int = 360, placeholders: Boolean = false) {
     val bmp by produceState<ImageBitmap?>(null, design.id, design.updatedAt, page, widthPx) {
-        value = withContext(Dispatchers.Default) { runCatching { renderDesignPage(design, page, widthPx) }.getOrNull() }
+        value = withContext(Dispatchers.Default) { runCatching { renderDesignPage(design, page, widthPx, placeholders = placeholders) }.getOrNull() }
     }
     Box(
         modifier.aspectRatio(design.width / design.height.coerceAtLeast(1f)).background(Color(0xFFF2F4F7)).border(0.5.dp, Color(0x22000000)),

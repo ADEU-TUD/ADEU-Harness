@@ -11,6 +11,11 @@ import androidx.compose.ui.test.SkikoComposeUiTest
 import androidx.compose.ui.test.runSkikoComposeUiTest
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.aspectRatio
 import io.github.thepytales.llmhub.data.AppSettings
 import io.github.thepytales.llmhub.data.DesignTemplates
 import io.github.thepytales.llmhub.ui.DesignEditor
@@ -25,7 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /** „Erstellen“ (AP-24) shows Lora's field, the design templates and the TU Vorlagen; a design opens in the editor (pictures in build/creative-look). */
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 class CreativeScreenTest {
     @Test
     fun galleryAndEditor() = runSkikoComposeUiTest(Size(1500f, 950f), Density(1f)) {
@@ -75,5 +80,31 @@ class CreativeScreenTest {
         onNodeWithText("Überschrift").performClick()
         shot("bildschirm-editor-text")
         base.deleteRecursively()
+    }
+
+    /** The slide preview of the presentation editor draws the slides like the PowerPoint export (CD 2025). */
+    @Test
+    fun slidePreviewFollowsTheCorporateDesign() = runSkikoComposeUiTest(Size(1240f, 480f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val md = "# Feedback im Unterricht\nDr. Erika Muster\n\n---\n\n# Grundlagen\n\nWas wir wissen\n\n---\n\n## Befunde\n\n- Erstens\n- Zweitens\n\n---\n\n" +
+            "## Stimmen\n\n> Feedback wirkt, wenn es ankommt.\n> — John Hattie\n\n---\n\n<!-- layout: ende -->\n# Vielen Dank!\n\nerika.muster@tu-dresden.de"
+        val slides = io.github.thepytales.llmhub.docs.SlideDeck.parse(md)
+        val frame = io.github.thepytales.llmhub.ui.DeckFrame.of("Fakultät Erziehungswissenschaften", "", slides.first().title, "Dr. Erika Muster")
+        setContent {
+            androidx.compose.foundation.layout.FlowRow(
+                androidx.compose.ui.Modifier.background(androidx.compose.ui.graphics.Color.Gray).padding(5.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp),
+            ) {
+                slides.forEachIndexed { i, sl ->
+                    io.github.thepytales.llmhub.ui.SlideCanvas(sl, androidx.compose.ui.Modifier.width(400.dp).aspectRatio(16f / 9f), i + 1, slides.size, frame, slides)
+                }
+            }
+        }
+        repeat(4) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        assertTrue(onAllNodesWithText("Feedback im Unterricht • Dr. Erika Muster • Seite 3").fetchSemanticsNodes().isNotEmpty(), "Fußzeile der CD")
+        val out = File("build/creative-look").apply { mkdirs() }
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "folien-vorschau.png"))
     }
 }

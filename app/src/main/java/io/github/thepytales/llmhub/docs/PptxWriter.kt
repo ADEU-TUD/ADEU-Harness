@@ -48,8 +48,16 @@ object PptxWriter {
     private val LIGHT = TudBrand.LIGHT_BLUE.removePrefix("#")
     private val GREY = TudBrand.GREY.removePrefix("#")
     private const val LINE = "BBC1C6"
+    /** Blau 2 at 25 % (table heads, column heads). */
     private const val TINT = "E5F1FF"
-    private const val FONT = "Noto Sans"
+    private const val FONT = TudBrand.BODY_FONT
+    /** Headings of the CD: Noto Sans Medium (the theme's major font). */
+    private const val HEAD_FONT = TudBrand.HEAD_FONT
+    private const val INK = "000000"
+    private fun c(v: Double) = cm(v)
+    /** Two columns of the content area (gap 0.88 cm). */
+    private const val COL_W = 14.8
+    private const val COL2_X = TudSlide.X + TudSlide.CONTENT_W - COL_W
 
     /** Splits the Markdown into slides (outside of code blocks at "---"). */
     internal fun parse(markdown: String): List<Slide> {
@@ -142,7 +150,9 @@ object PptxWriter {
         val slides = parse(markdown).ifEmpty { listOf(Slide(Kind.TITLE, title)) }
         val deckTitle = slides.first().title.ifBlank { title }
         val unitLines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
-        val foot = footer.ifBlank { listOfNotNull("TU Dresden", unitLines.lastOrNull(), deckTitle.takeIf { it.isNotBlank() }).joinToString(" · ") }
+        // „Titel der Präsentation • Vortragende“ (the first line under the title, if there is one) as in the CD.
+        val presenter = slides.first().takeIf { it.kind == Kind.TITLE }?.let { t -> (listOf(t.subtitle) + t.blocks.flatMap { blockLines(it) }).firstOrNull { it.isNotBlank() } }
+        val foot = footer.ifBlank { listOfNotNull(deckTitle.takeIf { it.isNotBlank() }, presenter).joinToString(" • ").ifBlank { "TU Dresden" } }
         // Pictures of the slides (unreadable ones are left out, the slide keeps its text).
         val pictures = slides.map { s -> s.image.takeIf { it.isNotBlank() }?.let { DocMarkup.imageBytes(it) } }
         val media = pictures.mapIndexed { i, b -> b?.let { "bild${i + 1}.${DocMarkup.imageType(it) ?: "png"}" } }
@@ -172,6 +182,8 @@ object PptxWriter {
             entry("ppt/notesMasters/_rels/notesMaster1.xml.rels", NOTES_MASTER_RELS)
             bytes("ppt/media/logo-blau.png", TudBrand.logoBlue)
             bytes("ppt/media/logo-weiss.png", TudBrand.logoWhite)
+            bytes("ppt/media/logo-kurz-blau.png", TudBrand.logoShortBlue)
+            bytes("ppt/media/logo-kurz-weiss.png", TudBrand.logoShortWhite)
             slides.forEachIndexed { i, s ->
                 val n = i + 1
                 val picture = pictures[i]
@@ -196,108 +208,115 @@ object PptxWriter {
 
     private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String, picture: Pair<Int, Int>? = null): String {
         val sh = Shapes()
-        val dark = s.kind == Kind.TITLE || s.kind == Kind.END
+        val dark = s.kind == Kind.TITLE || s.kind == Kind.END || s.kind == Kind.SECTION
         when (s.kind) {
             Kind.TITLE -> {
-                text(sh, "Titel", cm(1.6), cm(5.6), cm(29.5), cm(4.8), listOf(para(s.title, size = if (s.title.length > 60) 34 else 40, color = "FFFFFF")), anchor = "b", placeholder = "ctrTitle")
-                if (s.subtitle.isNotBlank()) text(sh, "Untertitel", cm(1.6), cm(10.7), cm(29.5), cm(2.2), listOf(para(s.subtitle, size = 22, color = LIGHT)))
-                val meta = s.blocks.flatMap { blockLines(it) }
-                if (meta.isNotEmpty()) text(sh, "Angaben", cm(1.6), cm(13.2), cm(29.5), cm(2.4), meta.map { para(it, size = 16, color = "FFFFFF") })
-                if (unit.isNotEmpty()) {
-                    text(
-                        sh, "Einrichtung", cm(1.6), cm(15.9), cm(29.5), cm(2.4),
-                        unit.mapIndexed { i, l -> para(l, size = 11, color = "FFFFFF", bold = i == unit.lastIndex) }, anchor = "b",
-                    )
+                // „Titelfolie_Blau“ of the CD: white logo top left, subtitle above the title, unit at the bottom.
+                picture(sh, "rIdLogoW", c(TudSlide.X), c(TudSlide.LOGO_Y), c(TudSlide.LOGO_H))
+                val above = listOf(s.subtitle).filter { it.isNotBlank() } + s.blocks.flatMap { blockLines(it) }.filter { it.isNotBlank() }
+                if (above.isNotEmpty()) {
+                    val size = if (above.size > 3) 16 else 20
+                    text(sh, "Untertitel", c(TudSlide.X), c(TudSlide.SUBTITLE_Y), c(TudSlide.CONTENT_W), c(TudSlide.SUBTITLE_H), above.take(5).map { para(it, size = size, color = "FFFFFF") }, anchor = "b")
                 }
-                picture(sh, "rIdLogoW", cm(1.6), cm(1.4), cm(1.7))
+                text(
+                    sh, "Titel", c(TudSlide.X), c(TudSlide.COVER_TITLE_Y), c(TudSlide.CONTENT_W), c(TudSlide.COVER_TITLE_H),
+                    listOf(para(s.title, size = if (s.title.length > 60) 36 else TudSlide.COVER_TITLE_PT, color = "FFFFFF", medium = true)), placeholder = "ctrTitle",
+                )
+                if (unit.isNotEmpty()) text(sh, "Einrichtung", c(TudSlide.X), c(TudSlide.COVER_FOOT_Y), c(21.76), c(0.71), listOf(para(unit.joinToString(" · "), size = 12, color = "FFFFFF")))
             }
             Kind.SECTION -> {
-                text(sh, "Abschnitt", cm(2.5), cm(6.2), cm(28.0), cm(3.4), listOf(para(s.title, size = 36, color = BLUE)), anchor = "b", placeholder = "title")
-                if (s.subtitle.isNotBlank()) text(sh, "Beschreibung", cm(2.5), cm(9.8), cm(28.0), cm(2.0), listOf(para(s.subtitle, size = 18, color = GREY)))
-                rect(sh, cm(1.6), cm(6.4), cm(0.25), cm(5.2), BLUE)
-                chrome(sh, n, footer)
+                // „Abschnittsbeginn_blau“: Brillantblau with a Shape in Blau 2, title and description in white.
+                tudShape(sh, c(TudSlide.SHAPE_X), c(TudSlide.SHAPE_Y), c(TudSlide.SHAPE_SIDE), LIGHT)
+                text(sh, "Abschnitt", c(TudSlide.X), c(7.9), c(TudSlide.CONTENT_W), c(5.0), listOf(para(s.title, size = 36, color = "FFFFFF", medium = true)), anchor = "b", placeholder = "title")
+                if (s.subtitle.isNotBlank()) text(sh, "Beschreibung", c(TudSlide.X), c(13.8), c(TudSlide.CONTENT_W), c(2.43), listOf(para(s.subtitle, size = 20, color = "FFFFFF")))
+                chrome(sh, n, footer, dark = true)
             }
             Kind.QUOTE -> {
+                // „Zitat_Weiß“: the quote large and left-aligned, the source below it.
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Zitat")
                 val q = (s.blocks.first() as Block.Quote).text.lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val source = q.lastOrNull()?.takeIf { q.size > 1 && (it.startsWith("—") || it.startsWith("–") || it.startsWith("-")) }
                 val quote = (if (source != null) q.dropLast(1) else q).joinToString(" ")
+                val top = if (s.title.isNotBlank()) TudSlide.BODY_TOP else 2.43
+                // The source right below the quote.
                 text(
-                    sh, "Zitat", cm(3.5), cm(5.0), cm(26.8), cm(9.0),
-                    listOf(para("„$quote“", size = if (quote.length > 220) 24 else 30, color = BLUE, italic = true, align = "ctr")), anchor = "ctr",
+                    sh, "Zitat", c(TudSlide.X), c(top), c(TudSlide.CONTENT_W), c(TudSlide.BODY_BOTTOM - top),
+                    listOf(para("„$quote“", size = if (quote.length > 220) 24 else 32, color = INK, italic = true)) +
+                        listOfNotNull(source?.let { para(it, size = 14, color = INK, spaceBefore = 14) }),
                 )
-                if (source != null) text(sh, "Quelle", cm(3.5), cm(14.2), cm(26.8), cm(1.2), listOf(para(source, size = 16, color = GREY, align = "ctr")))
                 chrome(sh, n, footer)
             }
             Kind.CONTENT -> {
                 if (s.title.isNotBlank()) title(sh, s.title)
                 else hiddenTitle(sh, s.blocks.flatMap { blockLines(it) }.firstOrNull()?.take(60) ?: "Folie $n")
-                val top = cm(4.0)
-                val bottom = cm(17.0)
-                if (s.right.isEmpty()) content(sh, s.blocks, cm(1.6), top, cm(30.6), bottom - top, half = false)
+                val top = c(TudSlide.BODY_TOP)
+                val bottom = c(TudSlide.BODY_BOTTOM)
+                if (s.right.isEmpty()) content(sh, s.blocks, c(TudSlide.X), top, c(TudSlide.CONTENT_W), bottom - top, half = false)
                 else {
-                    content(sh, s.blocks, cm(1.6), top, cm(14.8), bottom - top, half = true)
-                    content(sh, s.right, cm(17.4), top, cm(14.8), bottom - top, half = true)
+                    content(sh, s.blocks, c(TudSlide.X), top, c(COL_W), bottom - top, half = true)
+                    content(sh, s.right, c(COL2_X), top, c(COL_W), bottom - top, half = true)
                 }
                 chrome(sh, n, footer)
             }
             Kind.IMAGE_TEXT -> {
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, s.imageAlt.ifBlank { "Folie $n" })
-                val top = cm(4.0)
-                val h = cm(13.0)
-                val imgX = if (s.imageLeft) cm(1.6) else cm(17.4)
-                val textX = if (s.imageLeft) cm(17.4) else cm(1.6)
-                if (picture != null) image(sh, picture, s.imageAlt, imgX, top, cm(14.8), h)
-                content(sh, s.blocks, textX, top, cm(14.8), h, half = true)
+                val top = c(TudSlide.BODY_TOP)
+                val h = c(TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP)
+                val imgX = if (s.imageLeft) c(TudSlide.X) else c(COL2_X)
+                val textX = if (s.imageLeft) c(COL2_X) else c(TudSlide.X)
+                if (picture != null) image(sh, picture, s.imageAlt, imgX, top, c(COL_W), h)
+                content(sh, s.blocks, textX, top, c(COL_W), h, half = true)
                 chrome(sh, n, footer)
             }
             Kind.IMAGE -> {
                 val withTitle = s.title.isNotBlank()
                 if (withTitle) title(sh, s.title) else hiddenTitle(sh, s.imageAlt.ifBlank { "Bild" })
                 val caption = s.imageAlt.isNotBlank() && s.imageAlt != s.title
-                val top = if (withTitle) cm(4.0) else cm(1.0)
-                val bottom = if (caption) cm(16.2) else cm(17.2)
-                if (picture != null) image(sh, picture, s.imageAlt, cm(1.6), top, W - cm(3.2), bottom - top)
-                if (caption) text(sh, "Bildunterschrift", cm(1.6), cm(16.3), W - cm(3.2), cm(1.0), listOf(para(s.imageAlt, size = 12, color = GREY, align = "ctr")))
+                val top = if (withTitle) c(TudSlide.BODY_TOP) else c(1.12)
+                val bottom = if (caption) c(15.4) else c(TudSlide.BODY_BOTTOM)
+                if (picture != null) image(sh, picture, s.imageAlt, c(TudSlide.X), top, c(TudSlide.CONTENT_W), bottom - top)
+                if (caption) text(sh, "Bildunterschrift", c(TudSlide.X), c(15.5), c(TudSlide.CONTENT_W), c(0.7), listOf(para(s.imageAlt, size = 12, color = GREY)))
                 chrome(sh, n, footer)
             }
             Kind.COMPARISON -> {
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Vergleich")
-                val top = cm(4.0)
-                listOf(Triple(cm(1.6), s.leftHead, s.blocks), Triple(cm(17.4), s.rightHead, s.right)).forEach { (x, head, blocks) ->
+                val top = c(TudSlide.BODY_TOP)
+                listOf(Triple(c(TudSlide.X), s.leftHead, s.blocks), Triple(c(COL2_X), s.rightHead, s.right)).forEach { (x, head, blocks) ->
                     var y = top
                     if (head.isNotBlank()) {
-                        rect(sh, x, y, cm(14.8), cm(1.3), TINT)
-                        text(sh, "Spaltenkopf", x + cm(0.4), y, cm(14.0), cm(1.3), listOf(para(head, size = 20, color = BLUE, bold = true)), anchor = "ctr")
+                        rect(sh, x, y, c(COL_W), cm(1.3), TINT)
+                        text(sh, "Spaltenkopf", x + cm(0.4), y, c(COL_W - 0.8), cm(1.3), listOf(para(head, size = 20, color = BLUE, medium = true)), anchor = "ctr")
                         y += cm(1.7)
                     }
-                    content(sh, blocks, x, y, cm(14.8), cm(17.0) - y, half = true)
+                    content(sh, blocks, x, y, c(COL_W), c(TudSlide.BODY_BOTTOM) - y, half = true)
                 }
                 chrome(sh, n, footer)
             }
             Kind.TABLE -> {
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, "Tabelle")
-                content(sh, s.blocks, cm(1.6), cm(4.0), cm(30.6), cm(13.0), half = false)
+                content(sh, s.blocks, c(TudSlide.X), c(TudSlide.BODY_TOP), c(TudSlide.CONTENT_W), c(TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP), half = false)
                 chrome(sh, n, footer)
             }
             Kind.CHART -> {
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, s.chart?.title?.ifBlank { null } ?: "Diagramm")
                 val withText = s.blocks.isNotEmpty()
-                if (s.chart != null) chart(sh, s.chart, cm(1.6), cm(4.0), if (withText) cm(20.0) else cm(30.6), cm(13.0))
-                if (withText) content(sh, s.blocks, cm(22.4), cm(4.0), cm(9.8), cm(13.0), half = true)
+                val h = c(TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP)
+                if (s.chart != null) chart(sh, s.chart, c(TudSlide.X), c(TudSlide.BODY_TOP), if (withText) cm(20.0) else c(TudSlide.CONTENT_W), h)
+                if (withText) content(sh, s.blocks, c(22.37), c(TudSlide.BODY_TOP), c(9.8), h, half = true)
                 chrome(sh, n, footer)
             }
             Kind.AGENDA -> {
                 title(sh, s.title.ifBlank { "Agenda" })
                 val size = if (s.agenda.size > 7) 20 else 24
-                text(sh, "Agenda", cm(1.6), cm(4.2), cm(30.6), cm(12.8), s.agenda.map { para(it, size = size, bullet = "num", spaceBefore = 10) })
+                text(sh, "Agenda", c(TudSlide.X), c(TudSlide.BODY_TOP), c(TudSlide.CONTENT_W), c(TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP), s.agenda.map { para(it, size = size, bullet = "num", spaceBefore = 10) })
                 chrome(sh, n, footer)
             }
             Kind.END -> {
-                text(sh, "Titel", cm(1.6), cm(5.0), cm(29.5), cm(4.4), listOf(para(s.title.ifBlank { "Vielen Dank!" }, size = 40, color = "FFFFFF")), anchor = "b", placeholder = "title")
+                picture(sh, "rIdLogoW", c(TudSlide.X), c(TudSlide.LOGO_Y), c(TudSlide.LOGO_H))
+                tudShape(sh, c(TudSlide.SHAPE_X), c(TudSlide.SHAPE_Y), c(TudSlide.SHAPE_SIDE), LIGHT)
+                text(sh, "Titel", c(TudSlide.X), c(4.82), c(TudSlide.CONTENT_W), c(4.5), listOf(para(s.title.ifBlank { "Vielen Dank!" }, size = TudSlide.COVER_TITLE_PT, color = "FFFFFF", medium = true)), anchor = "b", placeholder = "title")
                 val lines = s.blocks.flatMap { blockLines(it) }.filter { it.isNotBlank() }
-                if (lines.isNotEmpty()) text(sh, "Kontakt", cm(1.6), cm(10.4), cm(29.5), cm(5.6), lines.map { para(it, size = 18, color = "FFFFFF", spaceBefore = 4) })
-                picture(sh, "rIdLogoW", cm(1.6), cm(1.4), cm(1.7))
+                if (lines.isNotEmpty()) text(sh, "Kontakt", c(TudSlide.X), c(TudSlide.COVER_TITLE_Y), c(TudSlide.CONTENT_W), c(TudSlide.COVER_TITLE_H), lines.map { para(it, size = 20, color = "FFFFFF", spaceBefore = 4) })
             }
         }
         val bg = if (dark) "<p:bg><p:bgPr><a:solidFill><a:srgbClr val=\"$BLUE\"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>" else ""
@@ -305,18 +324,21 @@ object PptxWriter {
             "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
     }
 
-    /** Logo at the top right, footer line with the unit and the slide number. */
-    private fun chrome(sh: Shapes, n: Int, footer: String) {
-        val h = cm(1.1)
-        val w = h * 1190 / 400
-        picture(sh, "rIdLogo", W - cm(1.4) - w, cm(1.0), h)
-        rect(sh, cm(1.6), cm(17.6), W - cm(3.2), cm(0.03), LINE)
-        text(sh, "Fußzeile", cm(1.6), cm(17.8), cm(26.0), cm(0.7), listOf(para(footer, size = 9, color = GREY)))
-        text(sh, "Foliennummer", W - cm(5.6), cm(17.8), cm(4.0), cm(0.7), listOf(para("$n", size = 9, color = GREY, align = "r")))
+    /** Footer of the CD: the short logo „TUD“ at the bottom left, then „Titel • Vortragende • Seite N“. */
+    private fun chrome(sh: Shapes, n: Int, footer: String, dark: Boolean = false) {
+        // The short logo repeats on every slide: decorative for screen readers.
+        picture(sh, if (dark) "rIdLogoKW" else "rIdLogoK", c(TudSlide.X), c(TudSlide.FOOT_Y), c(TudSlide.FOOT_LOGO_H), TudBrand.LOGO_SHORT_RATIO, decorative = true)
+        text(
+            sh, "Fußzeile", c(TudSlide.FOOT_TEXT_X), c(TudSlide.FOOT_Y - 0.05), c(TudSlide.FOOT_TEXT_W), c(0.6),
+            listOf(para(TudSlide.footer(footer, n), size = TudSlide.FOOT_PT, color = if (dark) "FFFFFF" else BLUE)), anchor = "ctr",
+        )
     }
 
     private fun title(sh: Shapes, title: String) {
-        text(sh, "Titel", cm(1.6), cm(1.0), cm(26.0), cm(2.6), listOf(para(title, size = if (title.length > 55) 24 else 28, color = BLUE)), anchor = "b", placeholder = "title")
+        text(
+            sh, "Titel", c(TudSlide.X), c(TudSlide.TITLE_Y), c(TudSlide.CONTENT_W), c(TudSlide.TITLE_H),
+            listOf(para(title, size = if (title.length > 55) TudSlide.TITLE_LONG_PT else TudSlide.TITLE_PT, color = INK, medium = true)), placeholder = "title",
+        )
     }
 
     /** Slides without a visible title get one above the slide: screen readers announce it, the audience does not see it. */
@@ -365,7 +387,7 @@ object PptxWriter {
 
     private fun paragraphs(b: Block, size: Int): List<String> = when (b) {
         is Block.Paragraph -> b.text.lines().map { para(it, size = size, spaceBefore = 6) }
-        is Block.Heading -> listOf(para(b.text, size = size, color = BLUE, bold = true, spaceBefore = 10))
+        is Block.Heading -> listOf(para(b.text, size = size, color = BLUE, medium = true, spaceBefore = 10))
         is Block.Item -> {
             val numbered = b.marker.first().isDigit()
             val box = Regex("^\\[([ xX])]\\s+").find(b.text)
@@ -392,6 +414,7 @@ object PptxWriter {
         bullet: String? = null,
         spaceBefore: Int = 0,
         mono: Boolean = false,
+        medium: Boolean = false,
     ): String {
         val pPr = buildString {
             append("<a:pPr algn=\"$align\"")
@@ -416,7 +439,7 @@ object PptxWriter {
             "<a:r><a:rPr lang=\"de-DE\" sz=\"${size * 100}\"" + (if (b) " b=\"1\"" else "") + (if (i) " i=\"1\"" else "") +
                 (if (seg.strike) " strike=\"sngStrike\"" else "") + " dirty=\"0\">" +
                 "<a:solidFill><a:srgbClr val=\"${if (seg.link != null) TudBrand.MID_BLUE.removePrefix("#") else color}\"/></a:solidFill>" +
-                "<a:latin typeface=\"${if (mono || seg.code) "Consolas" else FONT}\"/><a:cs typeface=\"${if (mono || seg.code) "Consolas" else FONT}\"/>" +
+                "<a:latin typeface=\"${if (mono || seg.code) "Consolas" else if (medium) HEAD_FONT else FONT}\"/><a:cs typeface=\"${if (mono || seg.code) "Consolas" else if (medium) HEAD_FONT else FONT}\"/>" +
                 "</a:rPr><a:t>${esc(seg.text)}</a:t></a:r>"
         }
         return "<a:p>$pPr$runs<a:endParaRPr lang=\"de-DE\" sz=\"${size * 100}\" dirty=\"0\"/></a:p>"
@@ -448,12 +471,29 @@ object PptxWriter {
         )
     }
 
-    /** Logo with the aspect ratio of the bundled image (1190 × 400 px). */
-    private fun picture(sh: Shapes, rel: String, x: Long, y: Long, h: Long) {
+    /** The Shape of the CD (both components) as PowerPoint's own geometry, decorative for screen readers. */
+    private fun tudShape(sh: Shapes, x: Long, y: Long, side: Long, color: String) {
         val id = sh.next()
-        val w = h * 1190 / 400
+        val paths = TudBrand.SHAPE.joinToString("") { poly ->
+            "<a:path w=\"600\" h=\"600\"><a:moveTo><a:pt x=\"${poly[0].toInt()}\" y=\"${poly[1].toInt()}\"/></a:moveTo>" +
+                (2 until poly.size step 2).joinToString("") { i -> "<a:lnTo><a:pt x=\"${poly[i].toInt()}\" y=\"${poly[i + 1].toInt()}\"/></a:lnTo>" } +
+                "<a:close/></a:path>"
+        }
         sh.xml.append(
-            "<p:pic><p:nvPicPr><p:cNvPr id=\"$id\" name=\"Logo $id\" descr=\"Technische Universität Dresden\"/>" +
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"$id\" name=\"Shape $id\">$DECORATIVE</p:cNvPr><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
+                "<p:spPr><a:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"$side\" cy=\"$side\"/></a:xfrm>" +
+                "<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l=\"0\" t=\"0\" r=\"r\" b=\"b\"/><a:pathLst>$paths</a:pathLst></a:custGeom>" +
+                "<a:solidFill><a:srgbClr val=\"$color\"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr></p:sp>"
+        )
+    }
+
+    /** Logo with the aspect ratio of the bundled image (1190 × 400 px, the short logo [TudBrand.LOGO_SHORT_RATIO]). */
+    private fun picture(sh: Shapes, rel: String, x: Long, y: Long, h: Long, ratio: Double = 1190.0 / 400.0, decorative: Boolean = false) {
+        val id = sh.next()
+        val w = (h * ratio).toLong()
+        sh.xml.append(
+            "<p:pic><p:nvPicPr>" +
+                (if (decorative) "<p:cNvPr id=\"$id\" name=\"Logo $id\" descr=\"TUD\">$DECORATIVE</p:cNvPr>" else "<p:cNvPr id=\"$id\" name=\"Logo $id\" descr=\"Technische Universität Dresden\"/>") +
                 "<p:cNvPicPr><a:picLocks noChangeAspect=\"1\"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>" +
                 "<p:blipFill><a:blip r:embed=\"$rel\"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>" +
                 "<p:spPr><a:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"$w\" cy=\"$h\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr></p:pic>"
@@ -657,6 +697,8 @@ object PptxWriter {
         "<Relationship Id=\"rIdLayout\" Type=\"$REL/slideLayout\" Target=\"../slideLayouts/slideLayout1.xml\"/>" +
         "<Relationship Id=\"rIdLogo\" Type=\"$REL/image\" Target=\"../media/logo-blau.png\"/>" +
         "<Relationship Id=\"rIdLogoW\" Type=\"$REL/image\" Target=\"../media/logo-weiss.png\"/>" +
+        "<Relationship Id=\"rIdLogoK\" Type=\"$REL/image\" Target=\"../media/logo-kurz-blau.png\"/>" +
+        "<Relationship Id=\"rIdLogoKW\" Type=\"$REL/image\" Target=\"../media/logo-kurz-weiss.png\"/>" +
         (if (notes) "<Relationship Id=\"rIdNotes\" Type=\"$REL/notesSlide\" Target=\"../notesSlides/notesSlide$n.xml\"/>" else "") +
         "</Relationships>"
 
@@ -711,16 +753,9 @@ object PptxWriter {
         "<Relationship Id=\"rIdTheme\" Type=\"$REL/theme\" Target=\"../theme/theme2.xml\"/>" +
         "</Relationships>"
 
-    /** Office theme with the colours of „TUD_2025“ and Noto Sans as heading and body font. */
+    /** Office theme of the CD: colours „TUD_2025_Blau-Türkis“, Noto Sans Medium for headings and Noto Sans for text. */
     private fun theme(name: String) = XML + "<a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" name=\"$name\"><a:themeElements>" +
-        "<a:clrScheme name=\"TUD_2025\"><a:dk1><a:srgbClr val=\"000000\"/></a:dk1><a:lt1><a:srgbClr val=\"FFFFFF\"/></a:lt1>" +
-        "<a:dk2><a:srgbClr val=\"$GREY\"/></a:dk2><a:lt2><a:srgbClr val=\"$TINT\"/></a:lt2>" +
-        "<a:accent1><a:srgbClr val=\"$BLUE\"/></a:accent1><a:accent2><a:srgbClr val=\"${TudBrand.MID_BLUE.removePrefix("#")}\"/></a:accent2>" +
-        "<a:accent3><a:srgbClr val=\"$LIGHT\"/></a:accent3><a:accent4><a:srgbClr val=\"${TudBrand.NIGHT_BLUE.removePrefix("#")}\"/></a:accent4>" +
-        "<a:accent5><a:srgbClr val=\"65B32E\"/></a:accent5><a:accent6><a:srgbClr val=\"EE7F00\"/></a:accent6>" +
-        "<a:hlink><a:srgbClr val=\"${TudBrand.MID_BLUE.removePrefix("#")}\"/></a:hlink><a:folHlink><a:srgbClr val=\"$GREY\"/></a:folHlink></a:clrScheme>" +
-        "<a:fontScheme name=\"TUD\"><a:majorFont><a:latin typeface=\"$FONT\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont>" +
-        "<a:minorFont><a:latin typeface=\"$FONT\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont></a:fontScheme>" +
+        TudBrand.OFFICE_COLOR_SCHEME + TudBrand.OFFICE_FONT_SCHEME +
         "<a:fmtScheme name=\"Office\"><a:fillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill>" +
         "<a:solidFill><a:schemeClr val=\"phClr\"><a:tint val=\"50000\"/></a:schemeClr></a:solidFill>" +
         "<a:solidFill><a:schemeClr val=\"phClr\"><a:shade val=\"80000\"/></a:schemeClr></a:solidFill></a:fillStyleLst>" +

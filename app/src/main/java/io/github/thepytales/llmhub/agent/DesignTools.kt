@@ -175,18 +175,23 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
                 "picture", "bild", "logo" -> ElementKind.IMAGE
                 "symbol" -> ElementKind.ICON
                 "qrcode", "qr-code" -> ElementKind.QR
+                "shape", "tud-shape", "tud_shape" -> ElementKind.TUD_SHAPE
                 else -> k
             }
         }?.takeIf { it in ElementKind.ALL } ?: return null
         val w = (o.num("w") ?: o.num("width") ?: if (kind == ElementKind.TEXT) d.width * 0.6f else 30f).coerceIn(0f, d.width * 2)
         val h = (o.num("h") ?: o.num("height") ?: if (kind == ElementKind.LINE) 0f else 20f).coerceIn(0f, d.height * 2)
         val src = o.str("src")?.trim().orEmpty().let { s ->
+            val l = s.lowercase().replace("ß", "ss").replace("white", "weiss").replace("black", "schwarz")
             when {
                 s.isEmpty() && o.str("kind")?.lowercase() == "logo" -> DesignBrand.LOGO_BLUE
-                s.lowercase().startsWith("logo") -> if ("weiss" in s.lowercase() || "weiß" in s.lowercase() || "white" in s.lowercase()) DesignBrand.LOGO_WHITE else DesignBrand.LOGO_BLUE
+                // An official variant („logo:tud-kurz-weiss“) or the horizontal logo in blue or white.
+                DesignBrand.logo(l) != null -> l
+                l.startsWith("logo") -> if ("weiss" in l) DesignBrand.LOGO_WHITE else DesignBrand.LOGO_BLUE
                 else -> ""
             }
         }
+        val logo = DesignBrand.logo(src)
         return DesignElement(
             kind = kind,
             x = o.num("x") ?: 10f, y = o.num("y") ?: 10f, w = w, h = h,
@@ -199,16 +204,26 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
             text = o.str("text")?.replace("\\n", "\n").orEmpty(),
             fontSize = (o.num("size") ?: o.num("font_size") ?: 24f).coerceIn(4f, 400f),
             bold = o.bool("bold") ?: false,
+            medium = o.bool("medium") ?: false,
             italic = o.bool("italic") ?: false,
-            color = DesignBrand.color(o.str("color")) ?: "#1A1A1A",
+            color = DesignBrand.color(o.str("color")) ?: "#000000",
             align = o.str("align")?.takeIf { it in setOf("left", "center", "right") } ?: "left",
             valign = o.str("valign")?.takeIf { it in setOf("top", "middle", "bottom") } ?: "top",
             fit = o.bool("fit") ?: (kind == ElementKind.TEXT),
             src = src,
             fitMode = if (src.startsWith("logo:")) "contain" else "cover",
             icon = o.str("icon").orEmpty(),
+            flipX = o.bool("flip") ?: o.bool("mirror") ?: false,
+            mask = if (kind == ElementKind.IMAGE && (o.str("mask")?.lowercase()?.contains("shape") == true)) "shape" else "",
             slot = o.str("slot").orEmpty(),
-        ).let { e -> if (e.src.startsWith("logo:") && o.num("h") == null) e.copy(h = e.w / DesignBrand.LOGO_RATIO) else e }
+        ).let { e ->
+            when {
+                // Logos keep their proportions, the Shape is never distorted and turns in 45° steps.
+                logo != null && o.num("h") == null -> e.copy(h = e.w / logo.ratio)
+                e.kind == ElementKind.TUD_SHAPE || e.mask == "shape" -> minOf(e.w, e.h).let { side -> e.copy(w = side, h = side, rotation = Math.round(e.rotation / 45f) * 45f) }
+                else -> e
+            }
+        }
     }
 
     /** Generates a picture for the picture placeholder (or the largest empty picture) of the first page that has one. */
@@ -248,9 +263,12 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
 
         fun idIn(result: String): String? = Regex(Regex.escape(ID_LABEL) + "\\s*([0-9a-f-]{8,})").find(result)?.groupValues?.get(1)
 
-        private const val ELEMENTS_HELP = "Zusätzliche Elemente (Liste): kind (text, rect, ellipse, triangle, line, arrow, star, image, icon, qr, logo), " +
-            "page (1 = erste Seite), x, y, w, h in mm ab oben links, text, size (pt), bold, color/fill (#RRGGBB oder TUD-Dunkelblau, Hellblau, Grau …), " +
-            "align (left/center/right), icon (z. B. School, Event, Place, Science), src (logo:tud oder logo:tud-weiss)"
+        private const val ELEMENTS_HELP = "Zusätzliche Elemente (Liste): kind (text, shape = TUD-Shape, rect, ellipse, line, arrow, image, icon, qr, logo), " +
+            "page (1 = erste Seite), x, y, w, h in mm ab oben links, text, size (pt), medium (Überschriften in Noto Sans Medium, nicht bold), " +
+            "color/fill (TUD Farben: Brillantblau, Dunkelblau, Blau 1, Blau 2, Türkis 1, Grün 2 … oder #RRGGBB), align (left/center/right), " +
+            "rotation (Shape nur in 45°-Schritten), flip (Shape spiegeln), mask: \"shape\" (Foto in der Shape), " +
+            "icon (TUD-Icon wie tud:Kommunikation & Organisation/16 = Kalender, tud:Mobilität/15 = Ort, tud:Symbole/40 = Person, oder ein Material-Symbol), " +
+            "src (logo:tud, logo:tud-weiss, logo:tud-kurz-blau, logo:tud-vertikal-blau-de …)"
 
         private val TEXTS_SCHEMA: JsonObject = buildJsonObject {
             put("type", "object")
@@ -303,10 +321,11 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
                     if (e.slot.isNotBlank()) append(" [${e.slot}]")
                     append(" x=${e.x.toInt()} y=${e.y.toInt()} w=${e.w.toInt()} h=${e.h.toInt()}")
                     when (e.kind) {
-                        ElementKind.TEXT -> append(" ${e.fontSize.toInt()} pt${if (e.bold) " fett" else ""}: „${e.text.replace("\n", "\\n").take(400)}“")
+                        ElementKind.TEXT -> append(" ${e.fontSize.toInt()} pt${if (e.bold) " fett" else if (e.medium) " Medium" else ""}: „${e.text.replace("\n", "\\n").take(400)}“")
                         ElementKind.QR -> append(": ${e.text}")
                         ElementKind.IMAGE -> append(if (e.src.isBlank()) " (leer)" else if (e.src.startsWith("logo:")) " ${e.src}" else " Bild")
                         ElementKind.ICON -> append(" ${e.icon}")
+                        ElementKind.TUD_SHAPE -> append(" ${e.fill}${if (e.rotation != 0f) " ${e.rotation.toInt()}°" else ""}${if (e.flipX) " gespiegelt" else ""}")
                         else -> if (e.fill.isNotBlank()) append(" ${e.fill}")
                     }
                     append('\n')
@@ -316,9 +335,14 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
 
         /** Gestalten mode: how a good design is made. */
         val MODE_PROMPT: String
-            get() = "GESTALTEN-MODUS (AP-24): Du gestaltest im Corporate Design der TU Dresden (TUD-Blau, Noto Sans, Logo) Poster, Flyer, " +
+            get() = "GESTALTEN-MODUS (AP-24): Du gestaltest im Corporate Design 2025 der TU Dresden Poster, digitale Poster, Flyer, " +
                 "Aushänge, Einladungskarten, Social-Media-Beiträge, OPAL-Kursbanner und Titelbilder für Lehrvideos. Briefe, Protokolle und " +
                 "Teilnahmebescheinigungen sind Dokumente (create_document, TU Vorlagen), keine Designs.\n" +
+                "Regeln der CD: Logo oben links mit Schutzraum, nie verzerrt; Überschriften in Noto Sans Medium (medium, nicht bold), " +
+                "Brillantblau auf Weiß oder Weiß auf Brillantblau, Fließtext Schwarz; nur TUD Farben; die Shape (kind shape) ist das Bildmotiv – " +
+                "randabfallend, nur in 45°-Schritten gedreht, gespiegelt erlaubt, nie als Umriss, mehrere Shapes gleich groß und ohne Überlappung, " +
+                "Fotos dürfen in die Shape (mask shape); Symbole bevorzugt als TUD-Icons. Die Vorlagen halten diese Regeln schon ein – ändere am " +
+                "Aufbau nur, was nötig ist.\n" +
                 "1. Wähle die passende Vorlage (${DesignTemplates.all.joinToString(", ") { "${it.id} = ${it.name}" }}) und erstelle das Design mit $CREATE. " +
                 "Fehlt Wesentliches (Anlass, Datum, Ort), frage höchstens einmal mit ask_user.\n" +
                 "2. Inhalte aus angehängten Dateien (z. B. einem Paper für ein Poster) knapp und fachlich korrekt übernehmen: Titel kurz, " +

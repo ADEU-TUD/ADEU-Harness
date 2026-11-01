@@ -5,6 +5,8 @@ import io.github.thepytales.llmhub.agent.DesignTools
 import io.github.thepytales.llmhub.agent.RepoContext
 import io.github.thepytales.llmhub.creative.DesignExport
 import io.github.thepytales.llmhub.creative.DesignText
+import io.github.thepytales.llmhub.creative.TudIcons
+import io.github.thepytales.llmhub.creative.TudLogos
 import io.github.thepytales.llmhub.creative.pngBytes
 import io.github.thepytales.llmhub.creative.renderDesignPage
 import io.github.thepytales.llmhub.data.AppTool
@@ -13,6 +15,7 @@ import io.github.thepytales.llmhub.data.DesignElement
 import io.github.thepytales.llmhub.data.DesignFormat
 import io.github.thepytales.llmhub.data.DesignTemplates
 import io.github.thepytales.llmhub.data.ElementKind
+import io.github.thepytales.llmhub.docs.PptxWriter
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -162,7 +165,55 @@ class CreativeTest {
         assertEquals(1, c.designs.items.value.size)
         assertTrue(AppTool.entries.none { it.id == "creative" }, "kein einschaltbares Werkzeug mehr, sondern Teil von „Erstellen“")
         assertTrue(DesignTemplates.fits("Mach mir ein Tagungsposter für die DGfE") && !DesignTemplates.fits("Schreib ein Protokoll der Sitzung"))
-        assertEquals("#00008C", DesignBrand.color("tud-dunkelblau"))
+        // Colour names of the CD 2025.
+        assertEquals("#00008C", DesignBrand.color("Brillantblau"))
+        assertEquals("#001450", DesignBrand.color("tud-dunkelblau"))
+        assertEquals("#0A777F", DesignBrand.color("Türkis"))
         assertEquals("#AABBCC", DesignBrand.color("abc"))
+    }
+
+    @Test
+    fun templatesFollowTheCorporateDesign() {
+        val palette = DesignBrand.COLORS.map { it.second }.toSet()
+        DesignTemplates.all.forEach { t ->
+            val els = t.create().pages.flatMap { it.elements }
+            // The official logo, never bold headings (Noto Sans Medium), only TUD colours.
+            assertTrue(els.any { it.kind == ElementKind.IMAGE && DesignBrand.logo(it.src) != null }, "${t.id}: offizielles Logo")
+            assertTrue(els.none { it.bold }, "${t.id}: Überschriften Medium statt fett")
+            assertTrue(els.first { it.slot == "titel" }.medium, "${t.id}: Titel in Noto Sans Medium")
+            val colours = els.flatMap { listOf(it.fill, it.stroke, it.color) }.filter { it.isNotBlank() } + t.create().pages.map { it.background }
+            colours.forEach { assertTrue(it.uppercase() in palette, "${t.id}: $it ist keine TUD Farbe") }
+            // The Shape as key visual (only the digital poster follows the official layout without it).
+            if (t.id != "digital") assertTrue(els.any { it.kind == ElementKind.TUD_SHAPE || it.mask == "shape" }, "${t.id}: Shape")
+            els.filter { it.kind == ElementKind.TUD_SHAPE || it.mask == "shape" }.forEach {
+                assertEquals(it.w, it.h, "${t.id}: Shape nicht verzerrt")
+                assertEquals(0f, it.rotation % 45f, "${t.id}: Shape in 45°-Schritten")
+            }
+            els.filter { it.kind == ElementKind.ICON }.forEach { assertTrue(it.icon.startsWith("tud:") && TudIcons.byId(it.icon) != null, "${t.id}: TUD-Icon ${it.icon}") }
+        }
+        assertEquals(DesignTemplates.DIGITAL_POSTER, DesignTemplates.byId("digitales Poster für den Bildschirm"))
+        assertTrue(TudLogos.vector("kurz-blau") != null && TudLogos.vector("horizontal-weiss-de") != null, "Logos aus dem CD-Paket")
+        assertTrue(TudIcons.sets.sumOf { it.icons.size } > 500, "TUD-Icons")
+    }
+
+    @Test
+    fun presentationFollowsTheOfficialTemplate() {
+        val file = File(out, "praesentation.pptx")
+        val md = "# Feedback im Unterricht\n## Dr. Erika Muster\n\n---\n\n# Grundlagen\n\nWas wir wissen\n\n---\n\n## Befunde\n\n- Erstens\n- Zweitens" +
+            "\n\n---\n\n## Stimmen\n\n> Feedback wirkt, wenn es ankommt.\n> — John Hattie\n\n---\n\n<!-- layout: ende -->\n# Vielen Dank!\n\nerika.muster@tu-dresden.de"
+        PptxWriter.write(file, "Feedback", md, "Fakultät Erziehungswissenschaften")
+        ZipFile(file).use { z ->
+            fun entry(name: String) = z.getInputStream(z.getEntry(name)).readBytes().decodeToString()
+            val cover = entry("ppt/slides/slide1.xml")
+            assertTrue("logo-weiss" in entry("ppt/slides/_rels/slide1.xml.rels") || "rIdLogoW" in cover, "weißes Logo auf der Titelfolie")
+            assertTrue(cover.indexOf("Dr. Erika Muster") < cover.indexOf("Feedback im Unterricht"), "Untertitel über dem Titel")
+            val content = entry("ppt/slides/slide3.xml")
+            assertTrue("Feedback im Unterricht • Dr. Erika Muster • Seite 3" in content, "Fußzeile wie in der CD-Vorlage")
+            assertTrue("rIdLogoK" in content && z.getEntry("ppt/media/logo-kurz-blau.png") != null, "Kurzlogo „TUD“ unten links")
+            assertTrue("Noto Sans Medium" in content, "Titel in Noto Sans Medium")
+            val section = entry("ppt/slides/slide2.xml")
+            assertTrue("custGeom" in section && "97C6FF" in section, "Abschnittsfolie mit der Shape in Blau 2")
+            assertTrue("TUD_2025" in entry("ppt/theme/theme1.xml"), "Farbschema der CD")
+        }
     }
 }

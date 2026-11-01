@@ -129,7 +129,7 @@ private fun TemplateCard(c: AppContainer, t: DesignTemplate) {
             Box(
                 Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(6.dp)).clickable { openDesign(c.designs.save(t.create()).id) },
                 contentAlignment = Alignment.Center,
-            ) { DesignThumbnail(preview, Modifier.height(120.dp), widthPx = 260) }
+            ) { DesignThumbnail(preview, Modifier.height(120.dp), widthPx = 260, placeholders = true) }
             Text(t.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(t.format.sizeLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick = { openDesign(c.designs.save(t.create()).id) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {

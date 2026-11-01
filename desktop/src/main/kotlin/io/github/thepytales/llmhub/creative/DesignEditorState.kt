@@ -94,7 +94,7 @@ object Handle {
     }
 
     /** Elements whose proportions stay when resized at a corner. */
-    fun keepsRatio(e: DesignElement) = e.kind == ElementKind.IMAGE || e.kind == ElementKind.ICON || e.kind == ElementKind.QR
+    fun keepsRatio(e: DesignElement) = e.kind == ElementKind.IMAGE || e.kind == ElementKind.ICON || e.kind == ElementKind.QR || e.kind == ElementKind.TUD_SHAPE
 }
 
 /** A guide line shown while moving: vertical at [x] or horizontal at [y] (mm). */
@@ -374,7 +374,8 @@ class DesignEditorState(initial: Design) {
 
     /** Turns [start] so that its top points to [p]; snaps to 45° (within 3°) or, with [steps], to 15° steps. */
     fun dragRotate(start: DesignElement, p: Offset, steps: Boolean) {
-        val angle = rotationTowards(start, p, steps)
+        // The TUD-Shape turns in 45° steps only (rules of the CD).
+        val angle = if (start.kind == ElementKind.TUD_SHAPE) Math.round(rotationTowards(start, p, false) / 45f) * 45f % 360f else rotationTowards(start, p, steps)
         updateElements(setOf(start.id), record = false) { it.copy(rotation = angle) }
     }
 

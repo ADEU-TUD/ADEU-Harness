@@ -118,6 +118,7 @@ import io.github.thepytales.llmhub.docs.DocMarkup
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.SlideDeck
 import io.github.thepytales.llmhub.docs.TudBrand
+import io.github.thepytales.llmhub.docs.TudSlide
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -152,9 +153,10 @@ private val SLIDE_AI = listOf(
  */
 data class DeckFrame(val unit: List<String>, val footer: String) {
     companion object {
-        fun of(unit: String, footer: String, deckTitle: String): DeckFrame {
+        /** The footer of the CD: „Titel der Präsentation • Vortragende“ (the slide number follows). */
+        fun of(unit: String, footer: String, deckTitle: String, presenter: String? = null): DeckFrame {
             val lines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
-            val foot = footer.ifBlank { listOfNotNull("TU Dresden", lines.lastOrNull(), deckTitle.takeIf { it.isNotBlank() }).joinToString(" · ") }
+            val foot = footer.ifBlank { listOfNotNull(deckTitle.takeIf { it.isNotBlank() }, presenter?.let { plainInline(it) }?.takeIf { it.isNotBlank() }).joinToString(" • ").ifBlank { "TU Dresden" } }
             return DeckFrame(lines, foot)
         }
     }
@@ -180,7 +182,10 @@ fun SlidesBody(
 ) {
     val settings by c.settings.settings.collectAsState()
     val slides = remember(markdown) { SlideDeck.parse(markdown).ifEmpty { listOf(SlideDeck.Slide("Titel", layout = SlideDeck.Layout.TITLE)) } }
-    val frame = DeckFrame.of(settings.tudUnit, settings.docFooter, slides.first().title.ifBlank { doc.title })
+    val frame = DeckFrame.of(
+        settings.tudUnit, settings.docFooter, slides.first().title.ifBlank { doc.title },
+        slides.first().takeIf { it.layout == SlideDeck.Layout.TITLE }?.body?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() },
+    )
     var selected by remember(doc.id) { mutableIntStateOf(0) }
     val sel = selected.coerceIn(0, slides.lastIndex)
     var presenting by remember { mutableStateOf<Int?>(null) }
@@ -554,26 +559,29 @@ fun smartEdit(old: TextFieldValue, new: TextFieldValue): TextFieldValue {
 private const val SLIDE_W_CM = 33.867f
 
 /**
- * A slide drawn like the exported PowerPoint in the corporate design of TU Dresden: same positions, font sizes and
- * colours, the logo (white on the blue title slide, blue at the top right of the others), the organizational unit on
- * the title slide and the footer line with the slide number.
+ * A slide drawn like the exported PowerPoint in the corporate design 2025 of TU Dresden ([TudSlide]): same positions,
+ * font sizes and colours – title slide in Brillantblau with the white logo and the subtitle above the title, section
+ * and closing slides with the Shape, content slides with a black title in Noto Sans Medium and the footer „TUD“ ·
+ * „Titel • Vortragende • Seite N“.
  */
 @Composable
 fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: Int = 1, frame: DeckFrame = DeckFrame(emptyList(), "TU Dresden"), deck: List<SlideDeck.Slide> = emptyList()) {
-    val logoBlue = remember { runCatching { decodeImage(TudBrand.logoBlue) }.getOrNull() }
     val logoWhite = remember { runCatching { decodeImage(TudBrand.logoWhite) }.getOrNull() }
+    val shortBlue = remember { runCatching { decodeImage(TudBrand.logoShortBlue) }.getOrNull() }
+    val shortWhite = remember { runCatching { decodeImage(TudBrand.logoShortWhite) }.getOrNull() }
     val density = LocalDensity.current
-    val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END
+    val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END || s.layout == SlideDeck.Layout.SECTION
     // Masterfolie (AP-16): background of the light slides.
     val master = deck.firstOrNull()?.master ?: s.master
     val light = master?.background?.let { parseHexColor(it) } ?: Color.White
-    BoxWithConstraints(modifier.background(if (dark) TUD_BLUE else light, RoundedCornerShape(4.dp))) {
+    BoxWithConstraints(modifier.clip(RoundedCornerShape(4.dp)).background(if (dark) TUD_BLUE else light)) {
         val cm: Dp = maxWidth / SLIDE_W_CM
         fun at(v: Double): Dp = cm * v.toFloat()
         fun pt(v: Number): TextUnit = with(density) { (cm * (v.toFloat() * 0.03528f)).toSp() }
-        fun style(size: Number, color: Color, bold: Boolean = false, italic: Boolean = false, align: TextAlign = TextAlign.Start) = TextStyle(
+        fun style(size: Number, color: Color, bold: Boolean = false, italic: Boolean = false, align: TextAlign = TextAlign.Start, medium: Boolean = false) = TextStyle(
             fontFamily = FontFamily.SansSerif, fontSize = pt(size), lineHeight = pt(size.toFloat() * 1.2f), color = color,
-            fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal, fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal, textAlign = align,
+            fontWeight = if (bold) FontWeight.SemiBold else if (medium) FontWeight.Medium else FontWeight.Normal,
+            fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal, textAlign = align,
         )
 
         @Composable
@@ -581,39 +589,70 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
             Box(Modifier.offset(at(x), at(y)).size(at(w), at(h)), contentAlignment = align) { content() }
         }
 
+        /** The Shape in Blau 2, cut off at the top right. */
+        @Composable
+        fun shape() {
+            Canvas(Modifier.matchParentSize()) {
+                val k = size.width / SLIDE_W_CM.toFloat()
+                val ox = TudSlide.SHAPE_X.toFloat() * k
+                val oy = TudSlide.SHAPE_Y.toFloat() * k
+                val side = TudSlide.SHAPE_SIDE.toFloat() * k
+                val path = androidx.compose.ui.graphics.Path()
+                TudBrand.SHAPE.forEach { poly ->
+                    path.moveTo(ox + poly[0] * side / 600f, oy + poly[1] * side / 600f)
+                    for (i in 2 until poly.size step 2) path.lineTo(ox + poly[i] * side / 600f, oy + poly[i + 1] * side / 600f)
+                    path.close()
+                }
+                drawPath(path, TUD_LIGHT_BLUE)
+            }
+        }
+
         @Composable
         fun chrome() {
-            logoBlue?.let { area(SLIDE_W_CM - 1.4 - 1.1 * 1190 / 400, 1.0, 1.1 * 1190 / 400, 1.1) { Image(it, contentDescription = "TU Dresden", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) } }
-            area(1.6, 17.6, SLIDE_W_CM - 3.2, 0.03) { Box(Modifier.fillMaxSize().background(TUD_LINE)) }
-            area(1.6, 17.8, 26.0, 0.7) { Text(frame.footer, style = style(9, TUD_GREY), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            area(SLIDE_W_CM - 5.6, 17.8, 4.0, 0.7, Alignment.TopEnd) { Text("$number", style = style(9, TUD_GREY, align = TextAlign.End)) }
+            (if (dark) shortWhite else shortBlue)?.let {
+                area(TudSlide.X, TudSlide.FOOT_Y, TudSlide.FOOT_LOGO_H * TudBrand.LOGO_SHORT_RATIO, TudSlide.FOOT_LOGO_H) {
+                    Image(it, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                }
+            }
+            area(TudSlide.FOOT_TEXT_X, TudSlide.FOOT_Y - 0.05, TudSlide.FOOT_TEXT_W, 0.6, Alignment.CenterStart) {
+                Text(TudSlide.footer(frame.footer, number), style = style(TudSlide.FOOT_PT, if (dark) Color.White else TUD_BLUE), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
 
         @Composable
         fun heading(title: String) {
-            val size = if (title.length > 55) 24 else 28
-            area(1.6, 1.0, 26.0, 2.6, Alignment.BottomStart) { Text(title.ifBlank { "Folientitel" }, style = style(size, TUD_BLUE, bold = true), maxLines = 2, overflow = TextOverflow.Ellipsis) }
+            val size = if (title.length > 55) TudSlide.TITLE_LONG_PT else TudSlide.TITLE_PT
+            area(TudSlide.X, TudSlide.TITLE_Y, TudSlide.CONTENT_W, TudSlide.TITLE_H) {
+                Text(title.ifBlank { "Folientitel" }, style = style(size, Color.Black, medium = true), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
 
+        val top = TudSlide.BODY_TOP
+        val bodyH = TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP
+        val colW = 14.8
+        val col2 = TudSlide.X + TudSlide.CONTENT_W - colW
+        @Composable
+        fun whiteLogo() = logoWhite?.let {
+            area(TudSlide.X, TudSlide.LOGO_Y, TudSlide.LOGO_H * 1190 / 400, TudSlide.LOGO_H) { Image(it, contentDescription = "TU Dresden", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
+        }
         when (s.layout) {
             SlideDeck.Layout.TITLE -> {
                 val lines = s.body.lines().map { it.trim() }.filter { it.isNotEmpty() }
-                logoWhite?.let { area(1.6, 1.4, 1.7 * 1190 / 400, 1.7) { Image(it, contentDescription = "TU Dresden", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) } }
-                area(1.6, 5.6, 29.5, 4.8, Alignment.BottomStart) {
-                    Text(s.title.ifBlank { "Titel" }, style = style(if (s.title.length > 60) 34 else 40, Color.White, bold = true), maxLines = 3, overflow = TextOverflow.Ellipsis)
+                whiteLogo()
+                if (lines.isNotEmpty()) area(TudSlide.X, TudSlide.SUBTITLE_Y, TudSlide.CONTENT_W, TudSlide.SUBTITLE_H, Alignment.BottomStart) {
+                    Column { lines.take(5).forEach { Text(plainInline(it), style = style(if (lines.size > 3) 16 else 20, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
                 }
-                lines.firstOrNull()?.let { sub -> area(1.6, 10.7, 29.5, 2.2) { Text(plainInline(sub), style = style(22, TUD_LIGHT_BLUE), maxLines = 2, overflow = TextOverflow.Ellipsis) } }
-                if (lines.size > 1) area(1.6, 13.2, 29.5, 2.4) {
-                    Column { lines.drop(1).take(3).forEach { Text(plainInline(it), style = style(16, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
+                area(TudSlide.X, TudSlide.COVER_TITLE_Y, TudSlide.CONTENT_W, TudSlide.COVER_TITLE_H) {
+                    Text(s.title.ifBlank { "Titel" }, style = style(if (s.title.length > 60) 36 else TudSlide.COVER_TITLE_PT, Color.White, medium = true), maxLines = 3, overflow = TextOverflow.Ellipsis)
                 }
-                if (frame.unit.isNotEmpty()) area(1.6, 15.9, 29.5, 2.4, Alignment.BottomStart) {
-                    Column { frame.unit.forEachIndexed { i, l -> Text(l, style = style(11, Color.White, bold = i == frame.unit.lastIndex), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
+                if (frame.unit.isNotEmpty()) area(TudSlide.X, TudSlide.COVER_FOOT_Y, 21.76, 0.71) {
+                    Text(frame.unit.joinToString(" · "), style = style(12, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             SlideDeck.Layout.SECTION -> {
-                area(2.5, 6.2, 28.0, 3.4, Alignment.BottomStart) { Text(s.title.ifBlank { "Abschnitt" }, style = style(36, TUD_BLUE, bold = true), maxLines = 2, overflow = TextOverflow.Ellipsis) }
-                if (s.body.isNotBlank()) area(2.5, 9.8, 28.0, 2.0) { Text(plainInline(s.body.lines().joinToString(" ")), style = style(18, TUD_GREY), maxLines = 2, overflow = TextOverflow.Ellipsis) }
-                area(1.6, 6.4, 0.25, 5.2) { Box(Modifier.fillMaxSize().background(TUD_BLUE)) }
+                shape()
+                area(TudSlide.X, 7.9, TudSlide.CONTENT_W, 5.0, Alignment.BottomStart) { Text(s.title.ifBlank { "Abschnitt" }, style = style(36, Color.White, medium = true), maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                if (s.body.isNotBlank()) area(TudSlide.X, 13.8, TudSlide.CONTENT_W, 2.43) { Text(plainInline(s.body.lines().joinToString(" ")), style = style(20, Color.White), maxLines = 2, overflow = TextOverflow.Ellipsis) }
                 chrome()
             }
             SlideDeck.Layout.QUOTE -> {
@@ -621,57 +660,60 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 val q = s.body.lines().map { it.trim().removePrefix(">").trim() }.filter { it.isNotEmpty() }
                 val source = q.lastOrNull()?.takeIf { q.size > 1 && (it.startsWith("—") || it.startsWith("–") || it.startsWith("-")) }
                 val quote = (if (source != null) q.dropLast(1) else q).joinToString(" ").trim().trim('„', '“', '"')
-                area(3.5, 5.0, 26.8, 9.0, Alignment.Center) {
-                    Text("„$quote“", style = style(if (quote.length > 220) 24 else 30, TUD_BLUE, italic = true, align = TextAlign.Center), maxLines = 7, overflow = TextOverflow.Ellipsis)
+                val qTop = if (s.title.isNotBlank()) top else 2.43
+                area(TudSlide.X, qTop, TudSlide.CONTENT_W, TudSlide.BODY_BOTTOM - qTop) {
+                    Column {
+                        Text("„$quote“", style = style(if (quote.length > 220) 24 else 32, Color.Black, italic = true), maxLines = 7, overflow = TextOverflow.Ellipsis)
+                        if (source != null) Text(source, style = style(14, Color.Black), modifier = Modifier.padding(top = with(LocalDensity.current) { pt(14).toDp() }))
+                    }
                 }
-                if (source != null) area(3.5, 14.2, 26.8, 1.2, Alignment.TopCenter) { Text(source, style = style(16, TUD_GREY, align = TextAlign.Center)) }
                 chrome()
             }
             SlideDeck.Layout.CONTENT, SlideDeck.Layout.TWO_COLUMNS, SlideDeck.Layout.TABLE -> {
                 heading(s.title)
                 if (s.layout == SlideDeck.Layout.TWO_COLUMNS) {
-                    area(1.6, 4.0, 14.8, 13.0) { SlideContent(s.body, half = true, ::pt, ::style) }
-                    area(17.4, 4.0, 14.8, 13.0) { SlideContent(s.right, half = true, ::pt, ::style) }
-                } else area(1.6, 4.0, 30.6, 13.0) { SlideContent(s.body, half = false, ::pt, ::style) }
+                    area(TudSlide.X, top, colW, bodyH) { SlideContent(s.body, half = true, ::pt, ::style) }
+                    area(col2, top, colW, bodyH) { SlideContent(s.right, half = true, ::pt, ::style) }
+                } else area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH) { SlideContent(s.body, half = false, ::pt, ::style) }
                 chrome()
             }
             SlideDeck.Layout.IMAGE_TEXT -> {
                 heading(s.title)
-                val (ix, tx) = if (s.imageLeft) 1.6 to 17.4 else 17.4 to 1.6
-                area(ix, 4.0, 14.8, 13.0) { SlidePicture(s.image, s.imageAlt) }
-                area(tx, 4.0, 14.8, 13.0) { SlideContent(s.body, half = true, ::pt, ::style) }
+                val (ix, tx) = if (s.imageLeft) TudSlide.X to col2 else col2 to TudSlide.X
+                area(ix, top, colW, bodyH) { SlidePicture(s.image, s.imageAlt) }
+                area(tx, top, colW, bodyH) { SlideContent(s.body, half = true, ::pt, ::style) }
                 chrome()
             }
             SlideDeck.Layout.IMAGE -> {
                 val withTitle = s.title.isNotBlank()
                 if (withTitle) heading(s.title)
                 val caption = s.imageAlt.isNotBlank() && s.imageAlt != s.title
-                val top = if (withTitle) 4.0 else 1.0
-                area(1.6, top, SLIDE_W_CM - 3.2, (if (caption) 16.2 else 17.2) - top) { SlidePicture(s.image, s.imageAlt) }
-                if (caption) area(1.6, 16.3, SLIDE_W_CM - 3.2, 1.0, Alignment.TopCenter) { Text(s.imageAlt, style = style(12, TUD_GREY, align = TextAlign.Center), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                val pTop = if (withTitle) top else 1.12
+                area(TudSlide.X, pTop, TudSlide.CONTENT_W, (if (caption) 15.4 else TudSlide.BODY_BOTTOM) - pTop) { SlidePicture(s.image, s.imageAlt) }
+                if (caption) area(TudSlide.X, 15.5, TudSlide.CONTENT_W, 0.7) { Text(s.imageAlt, style = style(12, TUD_GREY), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 chrome()
             }
             SlideDeck.Layout.COMPARISON -> {
                 heading(s.title)
-                listOf(1.6 to s.body, 17.4 to s.right).forEach { (x, col) ->
+                listOf(TudSlide.X to s.body, col2 to s.right).forEach { (x, col) ->
                     val (head, rest) = SlideDeck.columnHead(col)
-                    var y = 4.0
+                    var y = top
                     if (head.isNotBlank()) {
-                        area(x, y, 14.8, 1.3, Alignment.CenterStart) {
+                        area(x, y, colW, 1.3, Alignment.CenterStart) {
                             Box(Modifier.fillMaxSize().background(TUD_TINT).padding(start = at(0.4)), contentAlignment = Alignment.CenterStart) {
-                                Text(plainInline(head), style = style(20, TUD_BLUE, bold = true), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(plainInline(head), style = style(20, TUD_BLUE, medium = true), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                         y += 1.7
                     }
-                    area(x, y, 14.8, 17.0 - y) { SlideContent(rest, half = true, ::pt, ::style) }
+                    area(x, y, colW, TudSlide.BODY_BOTTOM - y) { SlideContent(rest, half = true, ::pt, ::style) }
                 }
                 chrome()
             }
             SlideDeck.Layout.CHART -> {
                 heading(s.title)
                 val spec = remember(s.body) { SlideDeck.chartOf(s.body) }
-                area(1.6, 4.0, 30.6, 13.0, Alignment.Center) {
+                area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH, Alignment.Center) {
                     if (spec != null) Box(Modifier.fillMaxHeight().aspectRatio(io.github.thepytales.llmhub.docs.ChartLayout.W / io.github.thepytales.llmhub.docs.ChartLayout.H)) { ChartCanvas(spec, Modifier.fillMaxSize()) }
                     else Text("Diagramm", style = style(18, TUD_GREY))
                 }
@@ -681,12 +723,12 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 heading(s.title.ifBlank { "Agenda" })
                 val items = if (deck.isNotEmpty()) SlideDeck.agenda(deck.mapIndexed { k, x -> if (k == number - 1) s else x }, number - 1) else SlideDeck.agenda(listOf(s), 0)
                 val size = if (items.size > 7) 20 else 24
-                area(1.6, 4.2, 30.6, 12.8) {
+                area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH) {
                     Column {
                         items.forEachIndexed { k, item ->
                             Row(Modifier.padding(top = with(LocalDensity.current) { pt(10).toDp() })) {
                                 Text("${k + 1}.", style = style(size, TUD_BLUE), modifier = Modifier.width(with(LocalDensity.current) { pt(size * 1.6f).toDp() }))
-                                Text(plainInline(item), style = style(size, Color(0xFF1A1A1A)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(plainInline(item), style = style(size, Color.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -694,17 +736,18 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 chrome()
             }
             SlideDeck.Layout.END -> {
-                logoWhite?.let { area(1.6, 1.4, 1.7 * 1190 / 400, 1.7) { Image(it, contentDescription = "TU Dresden", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) } }
-                area(1.6, 5.0, 29.5, 4.4, Alignment.BottomStart) {
-                    Text(s.title.ifBlank { "Vielen Dank!" }, style = style(40, Color.White, bold = true), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                shape()
+                whiteLogo()
+                area(TudSlide.X, 4.82, TudSlide.CONTENT_W, 4.5, Alignment.BottomStart) {
+                    Text(s.title.ifBlank { "Vielen Dank!" }, style = style(TudSlide.COVER_TITLE_PT, Color.White, medium = true), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                area(1.6, 10.4, 29.5, 5.6) {
-                    Column { s.body.lines().map { it.trim().removePrefix("- ") }.filter { it.isNotEmpty() }.take(5).forEach { Text(plainInline(it), style = style(18, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
+                area(TudSlide.X, TudSlide.COVER_TITLE_Y, TudSlide.CONTENT_W, TudSlide.COVER_TITLE_H) {
+                    Column { s.body.lines().map { it.trim().removePrefix("- ") }.filter { it.isNotEmpty() }.take(5).forEach { Text(plainInline(it), style = style(20, Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis) } }
                 }
             }
             SlideDeck.Layout.FREE -> {
                 if (s.title.isNotBlank()) heading(s.title)
-                if (s.body.isNotBlank()) area(1.6, 4.0, 30.6, 13.0) { SlideContent(s.body, half = false, ::pt, ::style) }
+                if (s.body.isNotBlank()) area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH) { SlideContent(s.body, half = false, ::pt, ::style) }
                 if (master?.logo != false) chrome()
             }
         }
@@ -819,7 +862,7 @@ private fun SlideContent(
         blocks.forEach { b ->
             when (b) {
                 is Block.Paragraph -> b.text.lines().forEach { l -> Text(inlineMarkdown(l, TUD_TINT, TUD_MID_BLUE), style = style(size, dark, false, false, TextAlign.Start), modifier = Modifier.padding(top = with(LocalDensity.current) { pt(6).toDp() })) }
-                is Block.Heading -> Text(plainInline(b.text), style = style(size, TUD_BLUE, true, false, TextAlign.Start), modifier = Modifier.padding(top = with(LocalDensity.current) { pt(10).toDp() }))
+                is Block.Heading -> Text(plainInline(b.text), style = style(size, TUD_BLUE, false, false, TextAlign.Start).copy(fontWeight = FontWeight.Medium), modifier = Modifier.padding(top = with(LocalDensity.current) { pt(10).toDp() }))
                 is Block.Item -> {
                     val numbered = b.marker.first().isDigit()
                     if (numbered) number++ else number = 0
