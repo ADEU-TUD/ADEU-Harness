@@ -146,7 +146,7 @@ internal object LlamaHost {
         for (a in wanted) {
             val zip = File(root, a.name)
             download(a.url, zip) { got -> progress(((done + got) / total).coerceAtMost(0.99)) }
-            a.sha256?.let { expected -> if (sha256(zip) != expected) { zip.delete(); error("Prüfsumme von ${a.name} stimmt nicht.") } }
+            a.sha256?.let { expected -> if (sha256(zip) != expected) { zip.delete(); error(tr("Prüfsumme von {0} stimmt nicht.", a.name)) } }
             zip.inputStream().use { unzip(it, tmp) }
             done += a.size
             zip.delete()
@@ -154,7 +154,7 @@ internal object LlamaHost {
         if (!File(tmp, serverName).isFile) error(tr("{0} fehlt im Paket.", serverName))
         executable(tmp)
         dir.deleteRecursively()
-        if (!tmp.renameTo(dir)) error("Programm konnte nicht gespeichert werden.")
+        if (!tmp.renameTo(dir)) error(tr("Programm konnte nicht gespeichert werden."))
         progress(1.0)
     }
 

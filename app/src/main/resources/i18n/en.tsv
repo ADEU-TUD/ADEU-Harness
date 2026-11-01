@@ -2,8 +2,6 @@
 # Line breaks are written as \n, tabs as \t, backslashes as \\, a leading # as \#. {0}, {1} … are placeholders filled
 # by tr(text, args). Sorted alphabetically; I18nCoverageTest checks that every tr("…"), trLater("…") and Text("…") in the
 # code has a line here (generated lists: see README › Englisch).
-\n\nAPI-Key und Tokens wurden nicht übernommen.	\n\nAPI key and tokens were not taken over.
-\nDie App wurde während einer Aufnahme beendet. Die Aufnahme ist repariert.	\nThe app was closed during a recording. The recording has been repaired.
   Die KI prüft den Text …	  The AI is checking the text …
  (Abzweigung)	 (branch)
  (Anfrage zu groß – Anhang verkleinern oder weniger Bilder schicken)	 (Request too large – make the attachment smaller or send fewer images)
@@ -63,7 +61,6 @@
  · {0} Sprecherwechsel	 · {0} speaker changes
  – die Vorschläge warten auf deine Entscheidung.	 – the suggestions are waiting for your decision.
  – {0} Ersetzungen.	 – {0} replacements.
-\#RRGGBB	\#RRGGBB
 %.0f Tok/s	%.0f tok/s
 %.1f Mio.	%.1f M
 %.1f s bis zur Antwort	%.1f s until the answer
@@ -108,6 +105,9 @@
 <title> ergänzen.	Add a <title>.
 @-Namen in sozialen Netzwerken	@ names on social networks
 [Schüler/in 2] statt [Name 2], wenn die Rolle erkennbar ist – das Modell antwortet passender	[Pupil 2] instead of [Name 2] when the role is recognizable – the model answers more fittingly
+\#RRGGBB	\#RRGGBB
+\n\nAPI-Key und Tokens wurden nicht übernommen.	\n\nAPI key and tokens were not taken over.
+\nDie App wurde während einer Aufnahme beendet. Die Aufnahme ist repariert.	\nThe app was closed during a recording. The recording has been repaired.
 _(Dateien: {0})_	_(Files: {0})_
 _({0} Bild(er) angehängt)_	_({0} image(s) attached)_
 A+	A+
@@ -444,6 +444,8 @@ Auch fremde öffentliche Repositories	Also other people's public repositories
 auch in Projekten „Nur TU Dresden“	also in “TU Dresden only” projects
 Auch Titel, Autor und versteckte Metadaten entfernen	Also remove title, author and hidden metadata
 Audio und Interviews verschriften, Sprecher erkennen, codieren.	Transcribe audio and interviews, recognize speakers, code.
+Audio wird gelesen …	Reading audio …
+Audio wird komprimiert …	Compressing audio …
 Audio- oder Videodatei öffnen	Open audio or video file
 Auf Android ist das Programm schon in der App enthalten.	On Android, the program is already part of the app.
 Auf dem Update-Server ist noch keine Version veröffentlicht ({0}).	No version has been published on the update server yet ({0}).
@@ -457,7 +459,7 @@ Auf diesem Gerät	On this device
 Auf diesem Gerät gibt es keine eingebaute Texterkennung.	There is no built-in text recognition on this device.
 Auf diesem Gerät ist keine Sprachausgabe verfügbar.	No speech output is available on this device.
 Auf diesem Gerät nicht verfügbar.	Not available on this device.
-Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM und Windows-PCs).	Local models are not available on this device (only Android phones with 64-bit ARM and Windows PCs).
+Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs mit Apple-Chip und Linux-PCs mit x64).	Local models are not available on this device (only Android phones with 64-bit ARM, Windows PCs, Macs with Apple chips and Linux PCs with x64).
 Auf diesem Gerät – vertraulich und offline	On this device – confidential and offline
 Auf diesem PC erkennen	Recognize on this PC
 Auf diesem PC: mit der Texterkennung von Windows, nichts verlässt den PC. Mit KI-Modell: besser bei Handschrift und schlechten Scans, die Seitenbilder gehen an den Server.	On this PC: with Windows text recognition, nothing leaves the PC. With an AI model: better for handwriting and poor scans, the page images go to the server.
@@ -1142,6 +1144,8 @@ Dokumentstil, Logos, Absender.	Document style, logos, sender.
 done	done
 Dort läuft Lora nur im Hintergrund (Infobereich) und hat nichts zu tun. Sie beendet sich von selbst, sobald du hier öffnest.	There Lora only runs in the background (notification area) and has nothing to do. She closes by herself as soon as you open her here.
 Download abgebrochen – beim nächsten Mal wird fortgesetzt.	Download cancelled – it continues next time.
+Download abgebrochen.	Download cancelled.
+Download fehlgeschlagen	Download failed
 Download gesperrt? Dateien selbst laden und einspielen	Download blocked? Download and import the files yourself
 Download im Firmennetz gesperrt?	Download blocked on the company network?
 Download von {0} fehlgeschlagen: {1}. Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.	Download of {0} failed: {1}. Blocked in the company network? Load the file in the browser and take it over with “Import file”.
@@ -1614,6 +1618,7 @@ Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Ei
 Für diesen Abschnitt gibt es keine gemessenen Wortzeiten. 	There are no measured word times for this section. 
 Für diesen Chat	For this chat
 Für dieses System gibt es kein fertiges Programm für lokale Modelle.	There is no ready-made program for local models on this system.
+Für dieses Transkript ist kein Audio gespeichert.	No audio is saved for this transcript.
 Für Eltern, Schüler:innen oder barrierearme Informationen	For parents, pupils or low-barrier information
 Für fast alles: Fragen, Texte, Bilder, Websuche und Dokumente	For almost everything: questions, texts, images, web search and documents
 Für Fragen, Tabellen und Erklärungen braucht die KI den Text: erst die Texterkennung laufen lassen.	For questions, tables and explanations the AI needs the text: run text recognition first.
@@ -2306,6 +2311,7 @@ Lesen	Read
 Lesezeichen zur Navigation vorhanden.	Bookmarks for navigation present.
 Letzte 30 Tage	Last 30 days
 Letzte 7 Tage	Last 7 days
+Letzte Sätze werden transkribiert …	Transcribing the last sentences …
 Letzten Strich zurücknehmen	Undo last stroke
 Letzter Lauf fehlgeschlagen · 	Last run failed · 
 letzter Versuch:	last attempt:
@@ -2627,6 +2633,7 @@ Mündliche Prüfung vorbereiten	Prepare an oral exam
 Nach Art	By type
 Nach dem Chat dazulernen	Learn after the chat
 Nach dem Stoppen wird transkribiert.	It is transcribed after stopping.
+Nach einem Neustart der App wird von vorne begonnen.	After a restart of the app it starts from the beginning.
 Nach hinten	Send backward
 Nach hinten (Strg+Umschalt+↓)	Move back (Ctrl+Shift+↓)
 Nach Modell	By model
@@ -2752,6 +2759,7 @@ nicht gefunden, bitte prüfen	not found, please check
 nicht geladen	not loaded
 Nicht gelesener Text: {0}	Text not read: {0}
 Nicht gemessene Wörter unterstreichen	Underline words not measured
+Nicht genug Arbeitsspeicher. Versuche ein kleineres Modell oder eine kürzere Datei.	Not enough memory. Try a smaller model or a shorter file.
 Nicht genug Speicherplatz: frei sind {0}, gebraucht werden etwa {1}. Bitte Platz schaffen (z. B. alte Transkripte mit Aufnahme löschen und den Papierkorb leeren).	Not enough storage space: {0} are free, about {1} are needed. Please make room (e.g. delete old transcripts with recording and empty the trash).
 nicht geprüft	not checked
 Nicht getaggt: Screenreader kennen weder Überschriften noch Lesereihenfolge.	Not tagged: screen readers know neither headings nor reading order.
@@ -2957,6 +2965,7 @@ Papierkorb	Trash
 Papierkorb leeren	Empty trash
 Papierkorb leeren?	Empty trash?
 Parakeet erkennt die Sprache selbst (25 europäische Sprachen).	Parakeet detects the language itself (25 European languages).
+Parakeet v3 ist nicht mehr geladen.	Parakeet v3 is no longer loaded.
 Passt	Fits
 Passwort	Password
 Passwort der Sicherung	Password of the backup
@@ -3054,6 +3063,7 @@ Profil-Links und Webadressen mit Namen	Profile links and web addresses with name
 Profil-Links, IP-Adressen, @-Namen	Profile links, IP addresses, @ names
 Programm für lokale Modelle eingespielt.	Program for local models imported.
 Programm für lokale Modelle wird eingerichtet … {0} %	Setting up the program for local models … {0} %
+Programm konnte nicht gespeichert werden.	The program could not be saved.
 Programmieren und GitHub-Aufgaben – zuverlässig mit Werkzeugen	Programming and GitHub tasks – reliable with tools
 Projekt	Project
 Projekt bearbeiten	Edit project
@@ -3093,6 +3103,7 @@ Prüfe {0} von {1} …	Checking {0} of {1} …
 Prüfe …	Checking …
 Prüfen	Check
 Prüfsumme stimmt nicht – die Datei ist beschädigt	Checksum does not match – the file is damaged
+Prüfsumme von {0} stimmt nicht.	Checksum of {0} does not match.
 Prüft Code auf Fehler, Sicherheit und Lesbarkeit	Checks code for errors, security and readability
 Prüft die Punkte von PDF/UA, die sich ohne Menschen prüfen lassen: Tags, Sprache, Titel, Schriften, Text statt Scan, Alternativtexte, Formularfelder, Lesezeichen, Tab-Reihenfolge.	Checks the PDF/UA points that can be checked without a human: tags, language, title, fonts, text instead of scans, alternative texts, form fields, bookmarks, tab order.
 Prüft die Quellen …	Checking the sources …
@@ -3424,8 +3435,12 @@ Sprecher entfernen	Remove speaker
 Sprecher entfernen?	Remove speakers?
 Sprecher erkennen	Recognize speakers
 Sprecher hinzufügen	Add speaker
+Sprecher werden erkannt …	Recognizing speakers …
 Sprecher …	Speakers …
 Sprecher-Automatik neu einrichten	Set up the speaker detection again
+Sprecher-Automatik wird eingerichtet (nur beim ersten Mal) …	Setting up speaker detection (only the first time) …
+Sprechererkennung fehlgeschlagen. Das Transkript enthält keine Sprecher.	Speaker recognition failed. The transcript contains no speakers.
+Sprechermodell wird geladen (einmalig, 26 MB) …	Loading the speaker model (once, 26 MB) …
 Sprechernotizen	Speaker notes
 Sprechernotizen drucken	Print speaker notes
 Sprechernotizen für alle Folien	Speaker notes for all slides
@@ -3760,6 +3775,7 @@ und seine Werkzeuge verschwinden aus der App.	and its tools disappear from the a
 und trage es hier ein. Die App zeigt die Repositories aller Tokens zusammen und nimmt bei jeder Aktion automatisch das passende.	and enter it here. The app shows the repositories of all tokens together and automatically uses the right one for each action.
 Unerwartete Begrüßung des Mailservers: {0}	Unexpected greeting from the mail server: {0}
 ungelesen im Posteingang	unread in the inbox
+Ungültiger Pfad im Paket: {0}	Invalid path in the package: {0}
 Uni-Server	University server
 Uni-Server der TU Dresden und weitere eingetragene Anbieter (z. B. Gemini), Websuche und GitHub.	University server of TU Dresden and other registered providers (e.g. Gemini), web search and GitHub.
 Uni-Server nutzen	Use the university server
@@ -3851,6 +3867,7 @@ Version {0} ist wieder die aktuelle (als neue Version gespeichert).	Version {0} 
 Version {0} wiederherstellen	Restore version {0}
 Version {0} wird geladen ({1} %).	Downloading version {0} ({1} %).
 Version, nach Updates suchen, automatische Suche.	Version, check for updates, automatic check.
+version.json enthält keine Versionsnummer.	version.json contains no version number.
 Versionen	Versions
 Versionen vergleichen	Compare versions
 Versionen vergleichen …	Compare versions …
@@ -3950,6 +3967,7 @@ Wann der Agent vor Änderungen fragt.	When the agent asks before making changes.
 Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App.	Warm, calm tones, white cards and black buttons – like the Claude app.
 Warnung bei Bildern	Warning for images
 wartet	waiting
+Wartet auf das Ende der Aufnahme …	Waiting for the recording to end …
 Wartet auf den Start – tippen zum Einstellen	Waiting to start – tap to set up
 Wartet, bis der Stapel davor fertig ist.	Waiting until the batch before it is finished.
 Was	What
@@ -4044,6 +4062,7 @@ Werte die angehängte Tabelle aus: 	Analyse the attached table:
 Werte die Daten aus: wichtigste Kennwerte (Mittelwert, Min, Max, Anzahl) und Auffälligkeiten – rechne exakt mit run_javascript und schreib das Ergebnis in den Chat.	Analyse the data: key figures (mean, min, max, count) and anything striking – calculate exactly with run_javascript and write the result into the chat.
 Wertet die Ergebnisse aus …	Evaluating the results …
 Wertschätzend und konkret – Arbeit als Datei anhängen	Appreciative and specific – attach the work as a file
+Whisper auf dem Server	Whisper on the server
 Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten Rechnern. Sprecher und Pausen werden trotzdem auf dem Gerät erkannt.	Whisper Large v3 Turbo on the TU Dresden server – fast even on old computers. Speakers and pauses are still recognized on the device.
 Whisper Large v3 Turbo – schnelle, mehrsprachige Spracherkennung.	Whisper Large v3 Turbo – fast, multilingual speech recognition.
 Whisper und der Uni-Server liefern keine verlässlichen Zeiten pro Wort. Deshalb erkennt Parakeet v3 jeden Abschnitt noch einmal auf diesem Gerät; seine Wortzeiten werden mit dem Text abgeglichen. Geprüft an LibriSpeech (958 Wörter mit Wortgrenzen aus Forced Alignment): Wortanfang im Median 50 ms genau, 0,3 % über 250 ms. Whispers eigene Zeiten lagen bei 8,8 % über 250 ms, Schätzungen bei 37 %.	Whisper and the university server do not deliver reliable times per word. That's why Parakeet v3 recognizes every section once more on this device; its word times are aligned with the text. Tested on LibriSpeech (958 words with word boundaries from forced alignment): word start accurate to 50 ms in the median, 0.3 % over 250 ms. Whisper's own times were over 250 ms in 8.8 %, estimates in 37 %.
@@ -4080,6 +4099,7 @@ Willkommen! So geht es los:	Welcome! Here's how to get started:
 Windows hat keine Texterkennung für Deutsch oder Englisch (Einstellungen › Zeit und Sprache › Sprache: Sprachpaket mit „Optische Zeichenerkennung“ hinzufügen).	Windows has no text recognition for German or English (Settings › Time & language › Language: add a language pack with “Optical character recognition”).
 Windows-Stimme	Windows voice
 wird ab jetzt ersetzt.	will be replaced from now on.
+Wird abgebrochen …	Cancelling …
 Wird abgeschlossen …	Finishing …
 Wird angezeigt, solange eine Antwort im Hintergrund entsteht	Shown while an answer is being written in the background
 wird bearbeitet …	being processed …
@@ -4091,6 +4111,7 @@ wird gelöscht.	will be deleted.
 Wird gemalt …	Painting …
 Wird geprüft …	Checking …
 wird geprüft …	checking …
+Wird gespeichert …	Saving …
 Wird geöffnet …	Opening …
 Wird heruntergeladen …	Downloading …
 wird nicht mehr ersetzt.	is no longer replaced.
@@ -4121,7 +4142,9 @@ Wortzeiten	Word times
 Wortzeiten gemessen · {0} %	Word times measured · {0} %
 Wortzeiten messen	Measure word times
 Wortzeiten nicht gemessen	Word times not measured
+Wortzeiten nicht gemessen: Dafür Parakeet v3 laden (Einstellungen › Transkription), dann im Transkript ⋮ › Wortzeiten messen.	Word times not measured: load Parakeet v3 for this (Settings › Transcription), then in the transcript ⋮ › Measure word times.
 Wortzeiten werden gemessen – das Transkript aktualisiert sich danach.	Word times are being measured – the transcript updates afterwards.
+Wortzeiten werden gemessen …	Measuring word times …
 Wortzeiten …	Word times …
 Wortzeiten: {0} von {1} Wörtern gemessen; geänderte Wörter behalten ihre Zeit, neue liegen dazwischen. 	Word times: {0} of {1} words measured; changed words keep their time, new ones lie in between. 
 Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem 	Choose how answers are read aloud. Both ways are privacy-friendly: the AI voice runs on the 

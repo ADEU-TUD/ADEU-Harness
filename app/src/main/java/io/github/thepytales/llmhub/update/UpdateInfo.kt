@@ -40,7 +40,7 @@ data class UpdateInfo(
         fun parse(text: String): UpdateInfo {
             val o = json.parseToJsonElement(text).jsonObject
             fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-            val version = o.str("version") ?: error("version.json enthält keine Versionsnummer.")
+            val version = o.str("version") ?: error(io.github.thepytales.llmhub.ui.tr("version.json enthält keine Versionsnummer."))
             val files = listOf("windows", "android", "macos", "linux").mapNotNull { key ->
                 val f = (o[key] as? JsonObject) ?: return@mapNotNull null
                 val name = f.str("file") ?: return@mapNotNull null

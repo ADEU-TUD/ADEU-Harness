@@ -155,7 +155,7 @@ object Extensions {
             var entry = z.nextEntry
             while (entry != null) {
                 val out = File(fresh, entry.name).canonicalFile
-                if (!out.path.startsWith(fresh.canonicalPath + File.separator)) throw IllegalStateException("Ungültiger Pfad im Paket: ${entry.name}")
+                if (!out.path.startsWith(fresh.canonicalPath + File.separator)) throw IllegalStateException(tr("Ungültiger Pfad im Paket: {0}", entry.name))
                 if (entry.isDirectory) out.mkdirs() else {
                     out.parentFile.mkdirs()
                     out.outputStream().use { z.copyTo(it) }
@@ -171,7 +171,7 @@ object Extensions {
             fresh.renameTo(File(root, "$id.wartet").apply { deleteRecursively() })
             return
         }
-        if (!fresh.renameTo(target)) throw IllegalStateException("Ordner ließ sich nicht anlegen: ${target.path}")
+        if (!fresh.renameTo(target)) throw IllegalStateException(tr("Ordner ließ sich nicht anlegen: {0}", target.path))
         old.deleteRecursively()
     }
 

@@ -175,7 +175,7 @@ private fun HardwareCard(hw: Hardware?, state: LocalState) {
             )
         }
         if (state.runtime == RuntimeStatus.UNSUPPORTED) {
-            HintText(tr("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM und Windows-PCs)."), Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
+            HintText(tr("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs mit Apple-Chip und Linux-PCs mit x64)."), Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
         }
         state.runtimeProgress?.let { p ->
             Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
