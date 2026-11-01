@@ -105,8 +105,14 @@ internal class ComObj : COMLateBindingObject {
     companion object {
         /** Objects of the running call on this thread (see [ComThread.run]). */
         val arena = ThreadLocal<ArrayList<ComObj>>()
+    }
+}
 
-        /** The HRESULT of a COM error, if it is one. */
-        fun hresult(e: Throwable): Int? = (e as? COMException)?.hresult?.toInt()
+/** Reading COM errors – kept apart from [ComObj], whose class needs Windows' libraries as soon as it is loaded. */
+internal object ComErrors {
+    /** The HRESULT of a COM error, if it is one (also from the message „…(HRESULT: 800401f3)“ when JNA kept only that). */
+    fun hresult(e: Throwable): Int? {
+        if (e !is COMException) return null
+        return e.hresult?.toInt() ?: Regex("HRESULT: ?(?:0x)?([0-9a-fA-F]{8})").find(e.message.orEmpty())?.groupValues?.get(1)?.toLong(16)?.toInt()
     }
 }
