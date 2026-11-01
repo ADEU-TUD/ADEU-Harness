@@ -221,7 +221,7 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = withContext(Dispatchers.IO) {
         val b = Outlook.bridge
-            ?: return@withContext ToolOutput("FEHLER: Mail & Kalender gibt es nur in der Windows-App mit dem klassischen Outlook.")
+            ?: return@withContext ToolOutput("FEHLER: Kein Postfach verbunden: unter Windows das klassische Outlook, sonst Einstellungen › Verbindungen › Mail über den Server.")
         try {
             runTool(b, name, args, ctx)
         } catch (e: IllegalArgumentException) {

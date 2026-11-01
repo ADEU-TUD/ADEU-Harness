@@ -340,6 +340,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             composable("mail") { back ->
                 MailScreen(c, onBack = { nav.back(back) })
             }
+            composable("batches") { back ->
+                BatchScreen(c, onBack = { nav.back(back) })
+            }
+            composable("proposals") { back ->
+                ProposalScreen(c, onBack = { nav.back(back) })
+            }
             composable("files") { back ->
                 DriveScreen(c, onBack = { nav.back(back) }, onOpenDoc = { id -> nav.go(back, "doc/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) }, onNavigate = { nav.go(back, it) })
             }

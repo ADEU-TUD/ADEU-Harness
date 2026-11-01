@@ -72,6 +72,21 @@ class ChatRepository(context: Context) {
         }
     }
 
+    /**
+     * Reads the chats [ids] again from their files (they came from another device, AP-28): new ones appear, changed ones
+     * are updated, chats whose file is gone disappear. Chats that are being saved right now are left alone.
+     */
+    fun rescan(ids: Collection<String>) {
+        if (ids.isEmpty()) return
+        val read = ids.associateWith { id -> File(dir, "$id.json").takeIf { it.isFile }?.let(::readFile) }
+        synchronized(full) { ids.forEach { full.remove(it) } }
+        val busy = synchronized(pending) { pending.keys.toSet() }
+        _conversations.update { current ->
+            val kept = current.filter { it.id !in ids || it.id in busy }
+            (kept + read.filterKeys { it !in busy }.values.filterNotNull().map { it.light() }).sortedByDescending { it.updatedAt }
+        }
+    }
+
     /** Reads a chat file; a broken one is set aside (folder "defekt") instead of being ignored for good. */
     private fun readFile(f: File): Conversation? {
         val text = runCatching { AtomicFiles.read(f) }.logFailure("Chat lesen").getOrNull() ?: return null

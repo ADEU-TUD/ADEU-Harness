@@ -88,6 +88,7 @@ val SETTINGS_INDEX = listOf(
     Command("Synchronisation", "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
     Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
     Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
+    Command("Verbindungen", "settings/connections", "Einstellungen", "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */

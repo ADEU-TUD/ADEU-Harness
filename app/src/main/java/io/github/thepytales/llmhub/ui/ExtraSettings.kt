@@ -75,5 +75,16 @@ fun ReliabilitySection(c: AppContainer) {
             "Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die " +
                 "Grenze aus den Antworten des Servers" + (if (s.requestsPerMinute <= 0 && learned != null) " (zurzeit $learned pro Minute)." else ".")
         )
+        // Stapel (AP-20): how much of the limit a batch may take, so chats stay quick.
+        DropdownField(
+            label = "Stapel: Anfragen pro Minute",
+            value = if (s.batchPerMinute <= 0) "Automatisch" else s.batchPerMinute.toString(),
+            options = listOf("Automatisch", "2", "4", "6", "10", "20"),
+            onSelect = { v -> c.settings.update { it.copy(batchPerMinute = v.toIntOrNull() ?: 0) } },
+        )
+        SettingsHint(
+            "Stapel und Massenkontrolle warten, solange ein Chat antwortet. „Automatisch“ lässt zwei Anfragen pro Minute für " +
+                "Chats frei, wenn das Limit bekannt ist."
+        )
     }
 }

@@ -410,6 +410,8 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "games" -> GamesScreen(c, onBack = back)
         "mail" -> MailScreen(c, onBack = back)
+        "batches" -> BatchScreen(c, onBack = back)
+        "proposals" -> ProposalScreen(c, onBack = back)
         // The Kreativbereich became part of „Erstellen“ (AP-24).
         "creative" -> TemplatesScreen(c, onBack = back, onUse = { t -> nav.openChat(chatRoute(persona = t.id)) })
         "design" -> DesignEditor(c, args["id"] ?: "", onClose = back)

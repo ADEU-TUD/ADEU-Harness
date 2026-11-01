@@ -165,11 +165,18 @@ object Outlook {
     @Volatile
     var testBridge: OutlookBridge? = null
 
-    /** The Outlook of this platform (null on Android and outside Windows). */
-    val bridge: OutlookBridge? get() = testBridge ?: OutlookPlatform.bridge
+    /** Mail über den Server (AP-27): set by the app; null while it is not set up or not chosen. */
+    @Volatile
+    var serverBridge: () -> OutlookBridge? = { null }
 
-    /** Whether this platform can talk to the classic Outlook at all. */
-    val supported: Boolean get() = testBridge != null || OutlookPlatform.supported
+    /** The mailbox of this platform: the server if it is chosen (always on Android), else the classic Outlook of the PC. */
+    val bridge: OutlookBridge? get() = testBridge ?: serverBridge() ?: OutlookPlatform.bridge
+
+    /** Whether the app can reach a mailbox at all (classic Outlook or the mail server). */
+    val supported: Boolean get() = testBridge != null || serverBridge() != null || OutlookPlatform.supported
+
+    /** The mailbox is the server's (no calendar, no Outlook to show things in). */
+    val viaServer: Boolean get() = testBridge == null && serverBridge() != null
 
     private fun norm(s: String) = Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").replace("ß", "ss").trim()
 

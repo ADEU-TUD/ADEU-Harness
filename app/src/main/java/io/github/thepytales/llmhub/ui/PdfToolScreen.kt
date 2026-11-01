@@ -161,6 +161,8 @@ object PdfWork {
 
 private enum class PdfMode(val label: String) {
     VIEW("Ansehen"), PAGES("Seiten"), MARK("Markieren"), SIGN("Unterschreiben"), FORM("Formular"), CONVERT("Umwandeln"), AI("KI"),
+    // AP-26: Schwärzen, ändern, verkleinern, PDF/A, Passwort, Metadaten, PDF/UA, vergleichen.
+    EDIT("Schwärzen & mehr"),
 }
 
 /** Runs a change of the PDF: the result becomes a new version, the old one stays for „Rückgängig“. */
@@ -310,6 +312,7 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
                 PdfMode.SIGN -> PdfSigner(c, current, onRun = ::run)
                 PdfMode.CONVERT -> PdfConverter(c, current, onRun = ::run, onPickFile = pick)
                 PdfMode.AI -> PdfAi(c, current, onConvert = { mode = PdfMode.CONVERT })
+                PdfMode.EDIT -> PdfStage3Tools(c, current, onRun = ::run)
             }
         }
     }

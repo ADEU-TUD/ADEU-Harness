@@ -3,7 +3,7 @@ package io.github.thepytales.llmhub.agent
 import java.text.Normalizer
 
 /** Tool groups a mode needs in addition to the chat's (see AgentRunner.providers). */
-enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL, DESIGN }
+enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL, DESIGN, PROPOSAL }
 
 /**
  * A special way of working in a chat (AP-05). Every mode looks the same: a chip above the input with ✕, below it one
@@ -138,6 +138,21 @@ object ChatModes {
         tool = "mail",
     )
 
+    /** Antrags-Werkstatt (AP-21): only while the tool is switched on. */
+    val PROPOSAL = ChatMode(
+        id = "proposal",
+        name = "Antrag",
+        icon = "plan",
+        explain = "Lora liest die Ausschreibung, legt Checkliste, Fristen und Gliederung in der Antrags-Werkstatt an, plant Arbeitspakete und Budget, schreibt Abschnitte im Umfang und macht auf Wunsch einen Probelauf als Gutachter:in.",
+        data = "Ausschreibung und Antrag gehen an das gewählte Modell, Namen pseudonymisiert.",
+        example = "Hier ist die Ausschreibung (PDF). Lege den Antrag an und sag mir, was ich bis wann brauche.",
+        command = "Antrag",
+        tools = setOf(ModeTool.PROPOSAL, ModeTool.DOCUMENTS, ModeTool.WEB),
+        prompt = ProposalTools.MODE_PROMPT,
+        keywords = "antrag drittmittel förderantrag ausschreibung dfg bmbf eu horizon sab projektskizze sachbeihilfe gutachter probelauf",
+        tool = "proposals",
+    )
+
     val VOICE = ChatMode(
         id = "voice",
         name = "Sprachmodus",
@@ -151,7 +166,7 @@ object ChatModes {
     )
 
     /** All modes, in the order of the menus (some only while their tool is on, see [visible]). */
-    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, DESIGN, MAIL, VOICE)
+    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, PROPOSAL, GAMES, DESIGN, MAIL, VOICE)
 
     /** The switched-on big tools (set by the app from its settings); modes of other tools stay hidden. */
     @Volatile

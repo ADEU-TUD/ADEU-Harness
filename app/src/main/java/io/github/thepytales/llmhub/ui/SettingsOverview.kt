@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Handyman
+import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -92,6 +93,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "storage" -> "Speicherorte"
     "windows" -> "Windows"
     "sync" -> "Synchronisation"
+    "connections" -> "Verbindungen"
     "memory" -> "Gedächtnis"
     "knowledge" -> "Wissenssammlung"
     "literature" -> "Literatur & Zotero"
@@ -165,6 +167,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             SettingsItem("settings/api", Icons.Outlined.VpnKey, "API-Zugang", apiSummary(c)),
             SettingsItem("settings/github", Icons.Outlined.Code, "GitHub", gitHubSummary(c)),
             SettingsItem("environments", Icons.Outlined.Tune, "Umgebungen", if (envs.isEmpty()) "Variablen & Netzwerkzugriff für Agenten" else "${envs.size} Umgebung(en)"),
+            SettingsItem("settings/connections", Icons.Outlined.Hub, "Verbindungen", connectionsSummary(c)),
         ),
         onNavigate,
     )

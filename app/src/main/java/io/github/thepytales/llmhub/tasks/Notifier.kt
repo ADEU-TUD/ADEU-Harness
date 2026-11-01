@@ -106,6 +106,11 @@ object Notifier {
         post(context, task.id.hashCode(), task.name, error ?: preview(answer) ?: "Fertig – tippen, um das Ergebnis zu sehen.", chatId)
     }
 
+    /** A batch (AP-20) is finished; tapping opens the app. */
+    fun batchFinished(context: Context, title: String, text: String) {
+        post(context, ("batch:" + title).hashCode(), title, text, null)
+    }
+
     /** An answer that was generated in the background is ready. */
     fun chatFinished(context: Context, title: String, chatId: String, answer: String?, error: String?) {
         post(context, chatId.hashCode(), title, error?.let { "Fehler: $it" } ?: preview(answer) ?: "Antwort fertig.", chatId)

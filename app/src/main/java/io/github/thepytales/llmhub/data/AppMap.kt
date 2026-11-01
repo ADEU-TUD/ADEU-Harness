@@ -59,6 +59,8 @@ object AppMap {
     private val SETTINGS = listOf(
         settings("api", "API-Zugang", "API-Schlüssel des Uni-Servers und weiterer Anbieter.", "api schlüssel key zugang anmelden konto server token"),
         settings("github", "GitHub", "GitHub-Token für die Arbeit in Repositorys.", "github repository token code programmieren"),
+        settings("connections", "Verbindungen", "Nextcloud (TU-Cloudstore) verbinden und MCP-Server mit fremden Werkzeugen hinzufügen, je Werkzeug erlauben, fragen oder sperren.",
+            "verbindungen verbindung nextcloud cloudstore cloud webdav mcp model context protocol server werkzeuge anbinden integration schnittstelle connector"),
         settings("chat", "Chat & Werkzeuge", "Standardmodell, Denkstufe, Werkzeuge, Freigaben und Agent.", "chat werkzeuge standardmodell freigaben agent websuche"),
         settings("tools", "Werkzeuge", "Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen.", "werkzeuge einschalten ausschalten seitenleiste mehr reihenfolge"),
         settings("lora", "Lora", "Wo Lora erscheint, Modell, ruhigere Bewegungen, Hinweise.", "lora maskottchen helfer navigator assistentin"),

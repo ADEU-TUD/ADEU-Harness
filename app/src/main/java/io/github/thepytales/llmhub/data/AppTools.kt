@@ -39,9 +39,24 @@ enum class AppTool(
     ),
     MAIL(
         "mail", "Mail & Kalender",
-        "Postfach im klassischen Outlook zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, Termine und Aufgaben aus Mails, freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
+        "Postfach im klassischen Outlook (Windows) oder über den Mailserver (IMAP, auch auf dem Handy) zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, mit Outlook auch Termine und Aufgaben aus Mails und freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
-        android = false,
+    ),
+    BATCH(
+        "batch", "Stapel & Massenkontrolle",
+        "Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person.",
+        "batches", listOf(
+            "stapel", "massenkontrolle", "alle dateien", "viele dateien", "alle pdfs", "jede datei", "abgaben", "hausarbeiten", "korrigieren", "korrektur",
+            "bewerten", "bewertungsraster", "punkte vergeben", "notenvorschlag", "opal-abgaben", "ordner mit",
+        ),
+    ),
+    PROPOSALS(
+        "proposals", "Antrags-Werkstatt",
+        "Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check.",
+        "proposals", listOf(
+            "antrag", "drittmittel", "forderantrag", "projektantrag", "ausschreibung", "dfg", "bmbf", "horizon", "erc", "sab", "foerderung", "forderung",
+            "projektskizze", "sachbeihilfe", "gantt", "budgetplan", "finanzplan", "gutachter",
+        ),
     ),
     VIDEO(
         "video", "Videoeditor",

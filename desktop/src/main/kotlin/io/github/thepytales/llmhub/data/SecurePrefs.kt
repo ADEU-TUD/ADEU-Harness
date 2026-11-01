@@ -25,7 +25,7 @@ fun createSecurePrefs(context: Context): SharedPreferences {
 }
 
 /** Settings that never leave this PC: they hold keys, tokens or secrets of environments. */
-val SECRET_KEYS = setOf("apiKey", "githubToken", "githubAccounts", "providers", "environments")
+val SECRET_KEYS = setOf("apiKey", "githubToken", "githubAccounts", "providers", "environments", "nextcloudPassword", "mcpServers", "mailPassword")
 
 /** The encrypted keys of this PC (in [Paths.machine]). */
 const val SECRET_FILE = "schluessel.dat"

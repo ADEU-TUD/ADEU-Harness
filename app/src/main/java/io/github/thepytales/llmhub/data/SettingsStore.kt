@@ -159,7 +159,29 @@ data class AppSettings(
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
     val pseudonymThorough: Boolean = false,
+    /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
+    val nextcloudServer: String = "",
+    val nextcloudUser: String = "",
+    val nextcloudPassword: String = "",
+    val nextcloudFolder: String = "/Lora",
+    /** Sync für Android (AP-28): the Lora-Ordner of the PC in the Nextcloud („/Lora“); empty = off. */
+    val phoneSyncRoot: String = "",
+    /** Mail über den Server (AP-27): IMAP server, port, login, password (secret), own address; on Windows by choice. */
+    val mailHost: String = "",
+    val mailPort: Int = 993,
+    val mailUser: String = "",
+    val mailPassword: String = "",
+    val mailAddress: String = "",
+    /** Windows: use the server instead of the classic Outlook (Android always uses the server). */
+    val mailUseServer: Boolean = false,
+    /** Stapel (AP-20): how many requests per minute a batch may use at most, so chats stay quick (0 = no own limit). */
+    val batchPerMinute: Int = 0,
 ) {
+    val mailServer: MailServerConfig get() = MailServerConfig(mailHost.trim(), mailPort, mailUser.trim(), mailPassword, mailAddress.trim())
+
+    /** Nextcloud is set up (Einstellungen › Verbindungen). */
+    val hasNextcloud get() = nextcloudServer.isNotBlank() && nextcloudUser.isNotBlank() && nextcloudPassword.isNotBlank()
+
     /** Tools switched on (see data/AppTool). */
     val enabledToolIds: Set<String> get() = enabledTools.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
@@ -293,6 +315,18 @@ class SettingsStore(context: Context) {
             .putBoolean("autoModelAsk", next.autoModelAsk)
             .putBoolean("autoModel", next.autoModel)
             .putString("enabledTools", next.enabledTools)
+            .putString("nextcloudServer", next.nextcloudServer.trim())
+            .putString("nextcloudUser", next.nextcloudUser.trim())
+            .putString("nextcloudPassword", next.nextcloudPassword.trim())
+            .putString("nextcloudFolder", next.nextcloudFolder.trim())
+            .putString("phoneSyncRoot", next.phoneSyncRoot.trim())
+            .putString("mailHost", next.mailHost.trim())
+            .putInt("mailPort", next.mailPort)
+            .putString("mailUser", next.mailUser.trim())
+            .putString("mailPassword", next.mailPassword)
+            .putString("mailAddress", next.mailAddress.trim())
+            .putBoolean("mailUseServer", next.mailUseServer)
+            .putInt("batchPerMinute", next.batchPerMinute)
             .putString("drawerTop", next.drawerTop)
             .putBoolean("drawerFilesOnce", true)
             .putBoolean("drawerMoreOpen", next.drawerMoreOpen)
@@ -411,6 +445,18 @@ class SettingsStore(context: Context) {
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
+            nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
+            nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
+            nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,
+            nextcloudFolder = prefs.getString("nextcloudFolder", d.nextcloudFolder) ?: d.nextcloudFolder,
+            phoneSyncRoot = prefs.getString("phoneSyncRoot", d.phoneSyncRoot) ?: d.phoneSyncRoot,
+            mailHost = prefs.getString("mailHost", d.mailHost) ?: d.mailHost,
+            mailPort = prefs.getInt("mailPort", d.mailPort),
+            mailUser = prefs.getString("mailUser", d.mailUser) ?: d.mailUser,
+            mailPassword = prefs.getString("mailPassword", d.mailPassword) ?: d.mailPassword,
+            mailAddress = prefs.getString("mailAddress", d.mailAddress) ?: d.mailAddress,
+            mailUseServer = prefs.getBoolean("mailUseServer", d.mailUseServer),
+            batchPerMinute = prefs.getInt("batchPerMinute", d.batchPerMinute),
         )
     }
 
