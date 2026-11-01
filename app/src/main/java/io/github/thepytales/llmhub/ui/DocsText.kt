@@ -56,7 +56,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -104,7 +103,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /** How the text of a document is shown: editable blocks, the Markdown source (like Obsidian) or for reading. */
-enum class TextMode(val label: String) { EDIT("Bearbeiten"), SOURCE("Markdown-Quelltext"), READ("Lesen") }
+enum class TextMode(val label: String) { EDIT(trLater("Bearbeiten")), SOURCE("Markdown-Quelltext"), READ(trLater("Lesen")) }
 
 /**
  * The block being edited, hoisted so the formatting bar above the page works on it. Edits are saved after a short

@@ -16,6 +16,8 @@ import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.net.s
 import io.github.thepytales.llmhub.ui.splitThinking
 import kotlinx.serialization.json.JsonObject
+import io.github.thepytales.llmhub.ui.trLater
+import io.github.thepytales.llmhub.ui.tr
 
 /** One thing Lora does or offers after a wish (AP-07); the screen carries it out. */
 sealed interface LoraStep {
@@ -91,7 +93,7 @@ class LoraAgent(private val c: AppContainer) {
         local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
         localChats(wish)?.let { return it }
         val model = modelFor(folderId)
-            ?: return fallback(wish, targets, if (!settings.hasAnyApiKey) "Ohne API-Schlüssel suche ich nur in der App." else "In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App.")
+            ?: return fallback(wish, targets, if (!settings.hasAnyApiKey) tr("Ohne API-Schlüssel suche ich nur in der App.") else tr("In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App."))
         return runCatching { remote(wish, history, model, targets, android, onText) }
             .getOrElse { e ->
                 if (e is kotlinx.coroutines.CancellationException) throw e
@@ -107,8 +109,8 @@ class LoraAgent(private val c: AppContainer) {
         if (!recent && !find) return null
         val query = if (recent) "" else FIND_CHAT.replace(n, " ").trim()
         val chats = searchChats(query)
-        if (chats.isEmpty()) return LoraReply(if (recent) "Es gibt noch keine Chats." else "Dazu habe ich keinen Chat gefunden – versuch ein anderes Stichwort.")
-        return LoraReply(if (recent) "Deine letzten Chats:" else if (chats.size == 1) "Das könnte er sein:" else "Diese Chats passen:", chats)
+        if (chats.isEmpty()) return LoraReply(if (recent) tr("Es gibt noch keine Chats.") else tr("Dazu habe ich keinen Chat gefunden – versuch ein anderes Stichwort."))
+        return LoraReply(if (recent) tr("Deine letzten Chats:") else if (chats.size == 1) tr("Das könnte er sein:") else tr("Diese Chats passen:"), chats)
     }
 
     /** Chats whose title or text fits [query] (all words), newest first; an empty query gives the latest chats. */
@@ -135,17 +137,17 @@ class LoraAgent(private val c: AppContainer) {
     /** A short, kind sentence instead of a raw exception. */
     private fun friendlyError(e: Throwable): String {
         val reason = when (e) {
-            is java.net.UnknownHostException, is java.net.ConnectException, is java.net.NoRouteToHostException -> "ohne Internetverbindung"
-            is java.net.SocketTimeoutException -> "der Server antwortet gerade zu langsam"
+            is java.net.UnknownHostException, is java.net.ConnectException, is java.net.NoRouteToHostException -> tr("ohne Internetverbindung")
+            is java.net.SocketTimeoutException -> tr("der Server antwortet gerade zu langsam")
             is io.github.thepytales.llmhub.net.ApiException -> when (e.code) {
-                401, 403 -> "der API-Schlüssel wird nicht angenommen"
-                429 -> "gerade sind zu viele Anfragen unterwegs"
-                in 500..599 -> "der Uni-Server hat eine Störung"
-                else -> "der Server meldet einen Fehler (${e.code})"
+                401, 403 -> tr("der API-Schlüssel wird nicht angenommen")
+                429 -> tr("gerade sind zu viele Anfragen unterwegs")
+                in 500..599 -> tr("der Uni-Server hat eine Störung")
+                else -> tr("der Server meldet einen Fehler ({0})", e.code)
             }
             else -> null
         }
-        return "Ich erreiche gerade kein Modell" + (reason?.let { " – $it" } ?: "") + ". In der App habe ich das gefunden:"
+        return tr("Ich erreiche gerade kein Modell") + (reason?.let { " – $it" } ?: "") + tr(". In der App habe ich das gefunden:")
     }
 
     /** The model Lora may use here, or null (no key, or the project keeps everything on the device without a local model). */
@@ -160,7 +162,7 @@ class LoraAgent(private val c: AppContainer) {
 
     private fun fallback(wish: String, targets: List<AppTarget>, note: String): LoraReply {
         val hits = AppMap.search(wish, targets, 5).map { it.target }
-        val text = if (hits.isEmpty()) "$note Dazu habe ich nichts gefunden – versuch es mit anderen Worten." else note
+        val text = if (hits.isEmpty()) tr("{0} Dazu habe ich nichts gefunden – versuch es mit anderen Worten.", note) else note
         return LoraReply(text, hits = hits)
     }
 
@@ -180,7 +182,7 @@ class LoraAgent(private val c: AppContainer) {
                 splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
             }
             text = splitThinking(result.content).second.trim()
-            if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { "Wie kann ich helfen?" }, steps, local = false)
+            if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { tr("Wie kann ich helfen?") }, steps, local = false)
             messages += ChatMessage(role = "assistant", content = result.content, toolCalls = result.toolCalls)
             var needsAnswer = false
             for (call in result.toolCalls) {
@@ -278,16 +280,16 @@ class LoraAgent(private val c: AppContainer) {
         /** Settings Lora may change (always after asking). */
         val SETTINGS = listOf(
             LoraSetting(
-                "theme", "Helligkeit",
+                "theme", trLater("Helligkeit"),
                 listOf("SYSTEM" to "Wie das System", "LIGHT" to "Hell", "DARK" to "Dunkel"),
                 { it.themeMode }, { s, v -> s.copy(themeMode = v) },
             ),
             LoraSetting(
-                "text_size", "Schriftgröße",
+                "text_size", trLater("Schriftgröße"),
                 listOf("0.9" to "Klein", "1.0" to "Normal", "1.15" to "Groß", "1.3" to "Sehr groß"),
                 { it.textScale.toString() }, { s, v -> s.copy(textScale = v.toFloat()) },
             ),
-            LoraSetting("language", "Sprache der Oberfläche", listOf("de" to "Deutsch", "en" to "Englisch"), { it.uiLanguage }, { s, v -> s.copy(uiLanguage = v) }),
+            LoraSetting("language", trLater("Sprache der Oberfläche"), listOf("de" to "Deutsch", "en" to "Englisch"), { it.uiLanguage }, { s, v -> s.copy(uiLanguage = v) }),
             LoraSetting(
                 "lora", "Lora",
                 listOf("EVERYWHERE" to "Überall", "CHAT" to "Nur im Chat", "OFF" to "Aus"),
@@ -367,15 +369,15 @@ class LoraAgent(private val c: AppContainer) {
         }
 
         private fun defaultText(steps: List<LoraStep>): String = when (val s = steps.firstOrNull()) {
-            is LoraStep.Navigate -> "Hier ist es: ${s.target.path}."
-            is LoraStep.OpenMode -> "Ich öffne „${s.target.title}“."
-            is LoraStep.ChangeSetting -> "Soll ich „${s.setting.label}“ auf „${s.setting.labelOf(s.value)}“ stellen?"
-            is LoraStep.EnableTool -> "Dafür gibt es „${s.tool.label}“ – einschalten?"
-            is LoraStep.Handoff -> "Das klärt am besten ein Chat – ich gebe es weiter."
-            is LoraStep.Ask -> "Kurz nachgefragt:"
-            is LoraStep.OpenChat -> "Das habe ich gefunden:"
-            is LoraStep.Reminder -> "Soll ich „${s.title}“ in den Kalender eintragen?"
-            null -> "Wie kann ich helfen?"
+            is LoraStep.Navigate -> tr("Hier ist es: {0}.", s.target.path)
+            is LoraStep.OpenMode -> tr("Ich öffne „{0}“.", tr(s.target.title))
+            is LoraStep.ChangeSetting -> tr("Soll ich „{0}“ auf „{1}“ stellen?", tr(s.setting.label), tr(s.setting.labelOf(s.value)))
+            is LoraStep.EnableTool -> tr("Dafür gibt es „{0}“ – einschalten?", tr(s.tool.label))
+            is LoraStep.Handoff -> tr("Das klärt am besten ein Chat – ich gebe es weiter.")
+            is LoraStep.Ask -> tr("Kurz nachgefragt:")
+            is LoraStep.OpenChat -> tr("Das habe ich gefunden:")
+            is LoraStep.Reminder -> tr("Soll ich „{0}“ in den Kalender eintragen?", s.title)
+            null -> tr("Wie kann ich helfen?")
         }
 
         private val EXPLAIN_START = Regex("^(erklar|erklaer|was (ist|sind|bedeutet|heisst|meint)|wer (ist|war)|warum|wieso|weshalb|schreib|formulier|ubersetz|uebersetz|fass|gib mir|nenne|hilf mir beim)")
@@ -395,9 +397,9 @@ class LoraAgent(private val c: AppContainer) {
          */
         fun handoffModel(setting: String, request: String, chosen: String?, why: String? = null): Pair<String, String> {
             val standard = setting.ifBlank { ModelCatalog.DEFAULT_CHAT }
-            if (chosen != null && chosen != standard) return chosen to (why?.takeIf { it.isNotBlank() } ?: "von Lora gewählt")
+            if (chosen != null && chosen != standard) return chosen to (why?.takeIf { it.isNotBlank() } ?: tr("von Lora gewählt"))
             val route = ModelRouter.suggest(request, 0, emptyList(), false, standard)
-            return if (route.model != standard) route.model to route.reason else standard to "Standard für Übergaben"
+            return if (route.model != standard) route.model to route.reason else standard to tr("Standard für Übergaben")
         }
 
         fun local(
@@ -427,7 +429,7 @@ class LoraAgent(private val c: AppContainer) {
             hit ?: return null
             return when (hit.kind) {
                 MapKind.MODE, MapKind.TEMPLATE -> LoraReply("Ich öffne „${hit.title}“.", listOf(LoraStep.OpenMode(hit)))
-                else -> LoraReply("Hier ist es: ${hit.path}.", listOf(LoraStep.Navigate(hit)))
+                else -> LoraReply(tr("Hier ist es: {0}.", hit.path), listOf(LoraStep.Navigate(hit)))
             }
         }
     }

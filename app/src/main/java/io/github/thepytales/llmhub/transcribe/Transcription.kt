@@ -37,11 +37,12 @@ import org.json.JSONObject
 import java.io.File
 import java.io.InputStream
 import java.io.RandomAccessFile
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Where speech is turned into text. */
 enum class TranscriptionMode(val label: String, val description: String) {
-    LOCAL("Auf diesem Gerät", "Nichts verlässt das Gerät. Braucht ein geladenes Erkennungsmodell; dauert auf schwachen Rechnern länger."),
-    SERVER("Uni-Server", "Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten Rechnern. Sprecher und Pausen werden trotzdem auf dem Gerät erkannt."),
+    LOCAL(trLater("Auf diesem Gerät"), trLater("Nichts verlässt das Gerät. Braucht ein geladenes Erkennungsmodell; dauert auf schwachen Rechnern länger.")),
+    SERVER("Uni-Server", trLater("Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten Rechnern. Sprecher und Pausen werden trotzdem auf dem Gerät erkannt.")),
 }
 
 @Serializable

@@ -34,7 +34,7 @@ enum class ThemeMode(val label: String) {
  */
 enum class AppStyle(val label: String, val description: String, val recommended: Boolean = false) {
     ADEU("ADEU", trLater("Klar und aufgeräumt: helle Flächen, weiße Karten, Violett als Akzent. Standard."), true),
-    TUD("TU Dresden", trLater("Farben des Corporate Designs der TU Dresden: Dunkelblau, sachliches Grau, ruhige Formen."), true),
+    TUD(trLater("TU Dresden"), trLater("Farben des Corporate Designs der TU Dresden: Dunkelblau, sachliches Grau, ruhige Formen."), true),
     OFFICE("Office", trLater("Nüchtern wie Microsoft 365: Weiß, neutrales Grau, Blau, kleine Ecken, keine Schatten."), true),
     CONTRAST(trLater("Hoher Kontrast"), trLater("Barrierearm: Schwarz auf Weiß, deutliche Rahmen und kräftige Akzente (WCAG AAA)."), true),
     CLAUDE("Claude", trLater("Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App.")),
@@ -54,7 +54,7 @@ enum class Accent(val label: String, val color: Color?) {
     AMBER(trLater("Gelb"), Color(0xFFD97706)),
     GREEN(trLater("Grün"), Color(0xFF16A34A)),
     TEAL(trLater("Türkis"), Color(0xFF0D9488)),
-    GRAY("Grau", Color(0xFF64748B)),
+    GRAY(trLater("Grau"), Color(0xFF64748B)),
 }
 
 inline fun <reified T : Enum<T>> enumOr(name: String, default: T): T =

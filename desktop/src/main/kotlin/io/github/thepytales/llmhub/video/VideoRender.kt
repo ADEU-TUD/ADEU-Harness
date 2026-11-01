@@ -8,6 +8,7 @@ import java.io.File
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Export of the video editor (AP-25): one ffmpeg run builds the whole film – the clips cut and joined (with
@@ -19,9 +20,9 @@ object VideoRender {
     data class Preset(val id: String, val label: String, val height: Int, val crf: Int, val audioKbps: Int, val speed: String, val hint: String)
 
     val PRESETS = listOf(
-        Preset("opal", "OPAL (kleine Datei, 720p)", 720, 26, 128, "medium", "Gut für die Lernplattform: etwa 5–10 MB pro Minute."),
-        Preset("youtube", "YouTube (Full HD, 1080p)", 1080, 20, 192, "medium", "Hohe Qualität zum Hochladen; YouTube rechnet selbst noch einmal um."),
-        Preset("projekt", "Wie das Projekt (beste Qualität)", 0, 18, 192, "slow", "Auflösung des Projekts, große Datei – z. B. zum Archivieren."),
+        Preset("opal", trLater("OPAL (kleine Datei, 720p)"), 720, 26, 128, "medium", trLater("Gut für die Lernplattform: etwa 5–10 MB pro Minute.")),
+        Preset("youtube", trLater("YouTube (Full HD, 1080p)"), 1080, 20, 192, "medium", trLater("Hohe Qualität zum Hochladen; YouTube rechnet selbst noch einmal um.")),
+        Preset("projekt", trLater("Wie das Projekt (beste Qualität)"), 0, 18, 192, "slow", trLater("Auflösung des Projekts, große Datei – z. B. zum Archivieren.")),
     )
 
     fun preset(id: String?) = PRESETS.firstOrNull { it.id == id } ?: PRESETS.first()

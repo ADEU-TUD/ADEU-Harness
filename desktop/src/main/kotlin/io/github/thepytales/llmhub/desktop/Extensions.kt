@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.util.zip.ZipInputStream
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Nachladbare Erweiterungen (AP-25): large parts that not everybody needs are not in every update but set up on first
@@ -30,8 +31,8 @@ object Extensions {
     /** The Videoeditor-Paket: ffprobe for exact details of videos and the speech model for the noise reduction. */
     val VIDEO = Def(
         "videoeditor", "Videoeditor-Paket",
-        "ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren) und das Sprachmodell der Rauschminderung (RNNoise). " +
-            "Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher.",
+        trLater("ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren) und das Sprachmodell der Rauschminderung (RNNoise). " +
+            "Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher."),
         40,
     )
 

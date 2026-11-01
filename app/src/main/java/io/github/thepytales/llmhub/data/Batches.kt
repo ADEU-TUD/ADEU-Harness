@@ -11,6 +11,7 @@ import kotlinx.serialization.json.contentOrNull
 import java.io.File
 import java.util.UUID
 import kotlin.math.sqrt
+import io.github.thepytales.llmhub.ui.trLater
 
 /** One criterion of a Bewertungsraster: name, highest number of points and what it means. */
 @Serializable
@@ -376,10 +377,10 @@ object BatchGrading {
 
     /** The raster of the TU Vorlage „Bewertungsraster“ as a starting point (adjustable). */
     val DEFAULT_RUBRIC = listOf(
-        BatchCriterion("Fragestellung und Aufbau", 10.0, "Klare Fragestellung, roter Faden, sinnvolle Gliederung"),
-        BatchCriterion("Theorie und Forschungsstand", 10.0, "Einschlägige Literatur, korrekt wiedergegeben und verknüpft"),
-        BatchCriterion("Methode und Argumentation", 10.0, "Begründetes Vorgehen, schlüssige Argumentation"),
-        BatchCriterion("Ergebnisse und Reflexion", 10.0, "Ergebnisse beantworten die Frage, kritische Reflexion"),
-        BatchCriterion("Form und Sprache", 10.0, "Zitierweise, Sprache, Formalia"),
+        BatchCriterion(trLater("Fragestellung und Aufbau"), 10.0, trLater("Klare Fragestellung, roter Faden, sinnvolle Gliederung")),
+        BatchCriterion(trLater("Theorie und Forschungsstand"), 10.0, trLater("Einschlägige Literatur, korrekt wiedergegeben und verknüpft")),
+        BatchCriterion(trLater("Methode und Argumentation"), 10.0, trLater("Begründetes Vorgehen, schlüssige Argumentation")),
+        BatchCriterion(trLater("Ergebnisse und Reflexion"), 10.0, trLater("Ergebnisse beantworten die Frage, kritische Reflexion")),
+        BatchCriterion(trLater("Form und Sprache"), 10.0, trLater("Zitierweise, Sprache, Formalia")),
     )
 }

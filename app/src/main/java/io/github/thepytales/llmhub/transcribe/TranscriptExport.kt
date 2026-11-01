@@ -2,17 +2,18 @@ package io.github.thepytales.llmhub.transcribe
 
 import java.util.Locale
 import kotlin.math.roundToLong
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Export formats of a transcript. */
 enum class TranscriptFormat(val label: String, val ext: String, val description: String) {
-    DOCX("Word", "docx", "Mit Sprechern, Zeitmarken und Kommentaren, zum Weiterbearbeiten."),
-    PDF("PDF", "pdf", "Zum Lesen, Drucken und Weitergeben."),
-    DRESING_PEHL("Transkript nach Dresing/Pehl", "docx", "Einfache Transkriptionsregeln: ein Absatz pro Beitrag, Kürzel (I, B1 …), Pausen (...) und Zeitmarke am Absatzende."),
-    MAXQDA("MAXQDA / f4 (Text mit Zeitmarken)", "txt", "Zeitmarken #00:01:23-4# – MAXQDA verknüpft sie beim Import mit der Audiodatei."),
-    SRT("Untertitel SRT", "srt", "Für Lehrvideos (OPAL, YouTube, Videoplayer): höchstens zwei Zeilen mit je 42 Zeichen."),
-    VTT("Untertitel WebVTT", "vtt", "Untertitel für Webseiten und Videoplattformen, mit Sprechernamen."),
-    TXT("Nur Text", "txt", "Reiner Text; Zeitmarken und Kommentare wie oben gewählt."),
-    MARKDOWN("Markdown", "md", "Für Notizen und Wikis."),
+    DOCX("Word", "docx", trLater("Mit Sprechern, Zeitmarken und Kommentaren, zum Weiterbearbeiten.")),
+    PDF("PDF", "pdf", trLater("Zum Lesen, Drucken und Weitergeben.")),
+    DRESING_PEHL(trLater("Transkript nach Dresing/Pehl"), "docx", trLater("Einfache Transkriptionsregeln: ein Absatz pro Beitrag, Kürzel (I, B1 …), Pausen (...) und Zeitmarke am Absatzende.")),
+    MAXQDA(trLater("MAXQDA / f4 (Text mit Zeitmarken)"), "txt", trLater("Zeitmarken #00:01:23-4# – MAXQDA verknüpft sie beim Import mit der Audiodatei.")),
+    SRT(trLater("Untertitel SRT"), "srt", trLater("Für Lehrvideos (OPAL, YouTube, Videoplayer): höchstens zwei Zeilen mit je 42 Zeichen.")),
+    VTT(trLater("Untertitel WebVTT"), "vtt", trLater("Untertitel für Webseiten und Videoplattformen, mit Sprechernamen.")),
+    TXT(trLater("Nur Text"), "txt", trLater("Reiner Text; Zeitmarken und Kommentare wie oben gewählt.")),
+    MARKDOWN("Markdown", "md", trLater("Für Notizen und Wikis.")),
 }
 
 /** What goes into Word, PDF, Markdown and text: time stamps (as in the view) and comments. */

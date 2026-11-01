@@ -6,30 +6,31 @@ import io.github.thepytales.llmhub.data.Template
 import io.github.thepytales.llmhub.data.TemplateField
 import io.github.thepytales.llmhub.net.ThinkingLevel
 import io.github.thepytales.llmhub.ui.splitThinking
+import io.github.thepytales.llmhub.ui.trLater
 
 /** What the ✨ button of a template field does with its text. */
 enum class AssistMode(val label: String, val instruction: String) {
     SMOOTH(
-        "Glätten",
+        trLater("Glätten"),
         "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung und glätte holprige Formulierungen. Inhalt, Aussagen, " +
             "Reihenfolge und ungefähre Länge bleiben gleich.",
     ),
     EXPAND(
-        "Ausformulieren",
+        trLater("Ausformulieren"),
         "Formuliere aus den Stichpunkten bzw. dem kurzen Text einen vollständigen, gut lesbaren Text. Nutze nur die " +
             "vorhandenen Angaben und den Zusammenhang der anderen Felder. Erfinde keine Fakten; fehlt eine konkrete Angabe " +
             "(Datum, Betrag, Name, Anzahl), setze einen kurzen Platzhalter in eckigen Klammern, z.B. [Datum].",
     ),
-    SHORTEN("Kürzen", "Kürze den Text deutlich auf das Wesentliche; wichtige Inhalte, Zahlen und Termine bleiben erhalten."),
-    FORMAL("Förmlicher", "Formuliere förmlicher und sachlicher, wie in einem amtlichen Schreiben der Universität (Sie-Form)."),
-    FRIENDLY("Freundlicher", "Formuliere freundlicher und verbindlicher, ohne an Sachlichkeit zu verlieren."),
+    SHORTEN(trLater("Kürzen"), "Kürze den Text deutlich auf das Wesentliche; wichtige Inhalte, Zahlen und Termine bleiben erhalten."),
+    FORMAL(trLater("Förmlicher"), "Formuliere förmlicher und sachlicher, wie in einem amtlichen Schreiben der Universität (Sie-Form)."),
+    FRIENDLY(trLater("Freundlicher"), "Formuliere freundlicher und verbindlicher, ohne an Sachlichkeit zu verlieren."),
     TIDY(
-        "Ordnen",
+        trLater("Ordnen"),
         "Bringe die Angaben in die übliche Form: je Zeile genau eine Angabe, in der üblichen Reihenfolge (bei Anschriften: " +
             "Anrede mit Titel und Name, Einrichtung, Straße und Hausnummer, Postleitzahl und Ort; bei Absendern: Name mit Titel, " +
             "Funktion, Telefon, E-Mail, Raum). Korrigiere offensichtliche Tippfehler. Ergänze nichts, was nicht dasteht.",
     ),
-    CUSTOM("Eigene Anweisung …", ""),
+    CUSTOM(trLater("Eigene Anweisung …"), ""),
     ;
 
     companion object {

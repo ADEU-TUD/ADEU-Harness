@@ -2,10 +2,11 @@ package io.github.thepytales.llmhub.data
 
 import io.github.thepytales.llmhub.agent.ChatModes
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /** What a place of the [AppMap] is. */
 enum class MapKind(val label: String) {
-    AREA("Bereich"), SETTINGS("Einstellungen"), OPTION("Einstellung"), MODE("Modus"), TEMPLATE("TU Vorlage"), TOOL("Werkzeug")
+    AREA(trLater("Bereich")), SETTINGS(trLater("Einstellungen")), OPTION(trLater("Einstellung")), MODE(trLater("Modus")), TEMPLATE(trLater("TU Vorlage")), TOOL(trLater("Werkzeug"))
 }
 
 /**
@@ -37,23 +38,23 @@ object AppMap {
     data class Hit(val target: AppTarget, val score: Int)
 
     private val AREAS = listOf(
-        AppTarget("area.chat", MapKind.AREA, "Neuer Chat", "Seitenleiste › Neuer Chat", "Ein neues Gespräch mit dem gewählten Modell.", "neu chat gespräch frage stellen", "chat"),
+        AppTarget("area.chat", MapKind.AREA, trLater("Neuer Chat"), "Seitenleiste › Neuer Chat", trLater("Ein neues Gespräch mit dem gewählten Modell."), "neu chat gespräch frage stellen", "chat"),
         AppTarget(
-            "area.templates", MapKind.AREA, "Erstellen", "Seitenleiste › Erstellen",
-            "Neues erstellen: TU Vorlagen für Briefe, Mails, Protokolle, Bescheinigungen, Lehre und Forschung; unter Windows außerdem Gestalten (Poster, Flyer, Aushänge, Social Media, Kursbanner, Titelbilder) und Meine Designs. Oder Lora sagen, was entstehen soll.",
+            "area.templates", MapKind.AREA, trLater("Erstellen"), "Seitenleiste › Erstellen",
+            trLater("Neues erstellen: TU Vorlagen für Briefe, Mails, Protokolle, Bescheinigungen, Lehre und Forschung; unter Windows außerdem Gestalten (Poster, Flyer, Aushänge, Social Media, Kursbanner, Titelbilder) und Meine Designs. Oder Lora sagen, was entstehen soll."),
             "erstellen tu vorlagen vorlagen vorlage prompt brief formular lehre forschung verwaltung gestalten design poster tagungsposter flyer aushang plakat einladungskarte social media instagram kursbanner titelbild kreativ kreativbereich canva meine designs", "templates",
         ),
-        AppTarget("area.literature", MapKind.AREA, "Literatur", "Seitenleiste › Literatur", "Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte.", "literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt", "literature"),
-        AppTarget("area.transcripts", MapKind.AREA, "Transkription", "Seitenleiste › Transkription", "Audio und Interviews verschriften, Sprecher erkennen, codieren.", "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
-        AppTarget("area.files", MapKind.AREA, "Dateien", "Seitenleiste › Dateien", "Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner.",
+        AppTarget("area.literature", MapKind.AREA, trLater("Literatur"), "Seitenleiste › Literatur", trLater("Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte."), "literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt", "literature"),
+        AppTarget("area.transcripts", MapKind.AREA, trLater("Transkription"), "Seitenleiste › Transkription", trLater("Audio und Interviews verschriften, Sprecher erkennen, codieren."), "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
+        AppTarget("area.files", MapKind.AREA, trLater("Dateien"), "Seitenleiste › Dateien", trLater("Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner."),
             "dateien dokumente dokument editor entwurf word tabelle excel präsentation folien powerpoint dateiverwaltung datei finden ordner hochgeladen erstellt papierkorb verschieben schlagwort schlagwörter tag tags volltextsuche suchen durchsuchen zuletzt bearbeitet versionen vergleichen wo ist lora-ordner speicherort", "files"),
-        AppTarget("area.images", MapKind.AREA, "Bilder erzeugen", "Seitenleiste › Mehr › Bilder erzeugen", "Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten.", "bild bilder grafik erzeugen malen zeichnen illustration galerie", "images"),
-        AppTarget("area.tasks", MapKind.AREA, "Geplante Aufgaben", "Seitenleiste › Mehr › Geplante Aufgaben", "Aufgaben, die der Agent zu festen Zeiten ausführt.", "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
-        AppTarget("area.models", MapKind.AREA, "Modellübersicht", "Einstellungen › Modellübersicht", "Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck.", "modelle modell liste welches modell", "models"),
-        AppTarget("area.compare", MapKind.AREA, "Modelle vergleichen", "Einstellungen › Modelle vergleichen", "Zwei Modelle beantworten dieselbe Frage nebeneinander.", "vergleichen vergleich nebeneinander zwei modelle", "compare"),
-        AppTarget("area.local", MapKind.AREA, "Modelle auf diesem Gerät", "Einstellungen › Modelle auf diesem Gerät", "Sprachmodelle offline auf dem Gerät – für vertrauliche Daten.", "lokal offline gerät herunterladen lokales modell", "local-models"),
-        AppTarget("area.usage", MapKind.AREA, "Verbrauch", "Einstellungen › Verbrauch", "Anfragen und Tokens pro Tag, Bewertungen.", "verbrauch kosten token statistik anfragen", "usage"),
-        AppTarget("area.environments", MapKind.AREA, "Umgebungen", "Einstellungen › Umgebungen", "Variablen und Netzwerkzugriff für Agenten.", "umgebung variablen netzwerk agent", "environments"),
+        AppTarget("area.images", MapKind.AREA, trLater("Bilder erzeugen"), "Seitenleiste › Mehr › Bilder erzeugen", trLater("Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten."), "bild bilder grafik erzeugen malen zeichnen illustration galerie", "images"),
+        AppTarget("area.tasks", MapKind.AREA, trLater("Geplante Aufgaben"), "Seitenleiste › Mehr › Geplante Aufgaben", trLater("Aufgaben, die der Agent zu festen Zeiten ausführt."), "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
+        AppTarget("area.models", MapKind.AREA, trLater("Modellübersicht"), "Einstellungen › Modellübersicht", trLater("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck."), "modelle modell liste welches modell", "models"),
+        AppTarget("area.compare", MapKind.AREA, trLater("Modelle vergleichen"), "Einstellungen › Modelle vergleichen", trLater("Zwei Modelle beantworten dieselbe Frage nebeneinander."), "vergleichen vergleich nebeneinander zwei modelle", "compare"),
+        AppTarget("area.local", MapKind.AREA, trLater("Modelle auf diesem Gerät"), "Einstellungen › Modelle auf diesem Gerät", trLater("Sprachmodelle offline auf dem Gerät – für vertrauliche Daten."), "lokal offline gerät herunterladen lokales modell", "local-models"),
+        AppTarget("area.usage", MapKind.AREA, trLater("Verbrauch"), "Einstellungen › Verbrauch", trLater("Anfragen und Tokens pro Tag, Bewertungen."), "verbrauch kosten token statistik anfragen", "usage"),
+        AppTarget("area.environments", MapKind.AREA, trLater("Umgebungen"), "Einstellungen › Umgebungen", trLater("Variablen und Netzwerkzugriff für Agenten."), "umgebung variablen netzwerk agent", "environments"),
     )
 
     private val SETTINGS = listOf(

@@ -10,6 +10,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.tr
 
 /** How to reach the mail server (Einstellungen › Verbindungen › Mail über den Server). */
 data class MailServerConfig(val host: String, val port: Int, val user: String, val password: String, val address: String) {
@@ -28,11 +29,11 @@ class ImapBridge(
     private val open: (MailServerConfig) -> ImapConnection = { c -> ImapConnection.open(c.host, c.port) },
 ) : OutlookBridge {
     private fun <T> session(block: (ImapConnection) -> T): T {
-        if (!config.complete) throw OutlookException("Mail über den Server ist noch nicht eingerichtet (Einstellungen › Verbindungen).")
+        if (!config.complete) throw OutlookException(tr("Mail über den Server ist noch nicht eingerichtet (Einstellungen › Verbindungen)."))
         val c = try {
             open(config)
         } catch (e: IOException) {
-            throw OutlookException("Der Mailserver ${config.host} ist nicht erreichbar: ${e.message}")
+            throw OutlookException(tr("Der Mailserver {0} ist nicht erreichbar: {1}", config.host, e.message))
         }
         return c.use { conn ->
             try {
@@ -79,7 +80,7 @@ class ImapBridge(
 
     private fun id(uid: Long, folder: String) = "$uid@$folder"
     private fun parseId(id: String): Pair<Long, String> {
-        val uid = id.substringBefore('@').toLongOrNull() ?: throw OutlookException("Unbekannte Mail-ID $id")
+        val uid = id.substringBefore('@').toLongOrNull() ?: throw OutlookException(tr("Unbekannte Mail-ID {0}", id))
         return uid to id.substringAfter('@')
     }
 
@@ -140,7 +141,7 @@ class ImapBridge(
                     c.ok("UID STORE $set +FLAGS.SILENT (\\Deleted)", what = "Verschieben")
                     c.ok("UID EXPUNGE $set", what = "Verschieben")
                 }
-                else -> throw OutlookException("Dieser Mailserver kann nicht verschieben, ohne dabei andere gelöschte Mails endgültig zu entfernen – deshalb lässt die App das.")
+                else -> throw OutlookException(tr("Dieser Mailserver kann nicht verschieben, ohne dabei andere gelöschte Mails endgültig zu entfernen – deshalb lässt die App das."))
             }
             moved += list.size
         }
@@ -180,20 +181,20 @@ class ImapBridge(
         val drafts = boxes(c).let { all ->
             all.firstOrNull { "\\DRAFTS" in it.flags }
                 ?: all.firstOrNull { b -> ImapParser.decodeFolder(b.raw).substringAfterLast(b.delimiter ?: "/").lowercase() in setOf("entwürfe", "drafts", "entwurf") }
-        }?.raw ?: throw OutlookException("Der Ordner „Entwürfe“ wurde auf dem Mailserver nicht gefunden.")
+        }?.raw ?: throw OutlookException(tr("Der Ordner „Entwürfe“ wurde auf dem Mailserver nicht gefunden."))
         val message = mime(config.address.ifBlank { config.user }, to, cc, subject, body, extra)
         val r = c.ok("APPEND ${ImapParser.quote(drafts)} (\\Draft \\Seen)", literal = message, what = "Entwurf speichern")
         val uid = Regex("APPENDUID \\d+ (\\d+)", RegexOption.IGNORE_CASE).find(r.text)?.groupValues?.get(1)?.toLongOrNull()
         if (uid != null) id(uid, drafts) else "entwurf@$drafts"
     }
 
-    private val noCalendar = "Kalender, Termine und Aufgaben gibt es über den Mailserver (IMAP) nicht – dafür braucht es Exchange (EWS oder Microsoft Graph mit Freigabe der IT) oder das klassische Outlook unter Windows. Termine lassen sich als Kalenderdatei (.ics) anlegen."
+    private val noCalendar = tr("Kalender, Termine und Aufgaben gibt es über den Mailserver (IMAP) nicht – dafür braucht es Exchange (EWS oder Microsoft Graph mit Freigabe der IT) oder das klassische Outlook unter Windows. Termine lassen sich als Kalenderdatei (.ics) anlegen.")
 
     override fun events(from: Long, to: Long): List<CalendarEntry> = throw OutlookException(noCalendar)
     override fun createEvent(event: NewEvent): String = throw OutlookException(noCalendar)
     override fun createTask(task: NewTask): String = throw OutlookException(noCalendar)
     override fun freeBusy(people: List<String>, day: Long, slotMinutes: Int): List<BusyTimes> = throw OutlookException(noCalendar)
-    override fun show(id: String) = throw OutlookException("Über den Mailserver gibt es kein Outlook zum Öffnen – die Mail bzw. der Entwurf liegt im Postfach (z. B. in Outlook im Web).")
+    override fun show(id: String) = throw OutlookException(tr("Über den Mailserver gibt es kein Outlook zum Öffnen – die Mail bzw. der Entwurf liegt im Postfach (z. B. in Outlook im Web)."))
 
     companion object {
         private val SEARCH_DATE = ThreadLocal.withInitial { SimpleDateFormat("dd-MMM-yyyy", Locale.US) }

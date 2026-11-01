@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.docs
 
 import kotlinx.serialization.Serializable
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Shared types of the PDF-Werkzeugkasten (AP-11). Positions are fractions of the page (0..1, from the top left
@@ -16,7 +17,7 @@ data class PdfBox(val x: Float, val y: Float, val w: Float, val h: Float) {
 data class PdfPoint(val x: Float, val y: Float)
 
 enum class PdfMarkKind(val label: String) {
-    HIGHLIGHT("Hervorheben"), UNDERLINE("Unterstreichen"), STRIKE("Durchstreichen"), INK("Freihand"), NOTE("Notiz"), STAMP("Stempel")
+    HIGHLIGHT(trLater("Hervorheben")), UNDERLINE(trLater("Unterstreichen")), STRIKE(trLater("Durchstreichen")), INK(trLater("Freihand")), NOTE(trLater("Notiz")), STAMP(trLater("Stempel"))
 }
 
 /** An annotation to add: highlight/underline/strike over [boxes], freehand [strokes], a note or stamp at [boxes].first. */
@@ -45,7 +46,7 @@ data class PdfOutlineEntry(val title: String, val page: Int, val level: Int)
 /** A search hit: page (1-based) and the text around it. */
 data class PdfSearchHit(val page: Int, val snippet: String)
 
-enum class PdfFieldType(val label: String) { TEXT("Textfeld"), MULTILINE("Mehrzeilig"), CHECKBOX("Ankreuzfeld"), DATE("Datum"), SIGNATURE("Unterschrift") }
+enum class PdfFieldType(val label: String) { TEXT(trLater("Textfeld")), MULTILINE(trLater("Mehrzeilig")), CHECKBOX(trLater("Ankreuzfeld")), DATE(trLater("Datum")), SIGNATURE(trLater("Unterschrift")) }
 
 /** A form field to create (or one that exists), with its place on the page. */
 @Serializable
@@ -150,7 +151,7 @@ object PdfFormDetect {
 
 /** Page numbers to write: format with {n} (page) and {N} (pages), position and first number. */
 data class PdfNumbering(val format: String = "Seite {n} von {N}", val position: Position = Position.BOTTOM_CENTER, val start: Int = 1, val size: Float = 10f) {
-    enum class Position(val label: String) { BOTTOM_CENTER("Unten Mitte"), BOTTOM_RIGHT("Unten rechts"), TOP_RIGHT("Oben rechts") }
+    enum class Position(val label: String) { BOTTOM_CENTER(trLater("Unten Mitte")), BOTTOM_RIGHT(trLater("Unten rechts")), TOP_RIGHT(trLater("Oben rechts")) }
 
     fun text(n: Int, total: Int) = format.replace("{n}", (n + start - 1).toString()).replace("{N}", (total + start - 1).toString())
 }

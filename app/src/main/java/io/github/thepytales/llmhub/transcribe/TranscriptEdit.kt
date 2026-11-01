@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.transcribe
 
 import de.lokal.whisper.Speech
 import de.lokal.whisper.WordAlign
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A word of a segment: its place in the text and its measured time (null if it has none). */
 data class TextWord(val from: Int, val to: Int, val word: Word?)
@@ -37,12 +38,12 @@ object TranscriptEdit {
 
     /** Time stamp modes of the view and the export. */
     enum class Stamps(val key: String, val label: String, val seconds: Int = 0) {
-        OFF("off", "Aus"),
-        PARAGRAPH("paragraph", "Je Absatz"),
-        SENTENCE("sentence", "Je Satz"),
-        EVERY_10("10", "Alle 10 s", 10),
-        EVERY_30("30", "Alle 30 s", 30),
-        EVERY_60("60", "Alle 60 s", 60),
+        OFF("off", trLater("Aus")),
+        PARAGRAPH("paragraph", trLater("Je Absatz")),
+        SENTENCE("sentence", trLater("Je Satz")),
+        EVERY_10("10", trLater("Alle 10 s"), 10),
+        EVERY_30("30", trLater("Alle 30 s"), 30),
+        EVERY_60("60", trLater("Alle 60 s"), 60),
         ;
 
         companion object {

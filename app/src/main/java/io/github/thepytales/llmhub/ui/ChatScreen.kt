@@ -52,7 +52,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -561,7 +560,7 @@ fun ChatScreen(
                 }
                 if (env != null) ContextChip(Icons.Outlined.Tune, env.name, { showEnvPicker = true }, highlighted = env.id != settings.defaultEnvId)
                 activeTemplate?.let { t ->
-                    ContextChip(Icons.Outlined.Bookmarks, tr("Vorlage: {0}  ✕", t.name), { templateId = null })
+                    ContextChip(Icons.Outlined.Bookmarks, tr("Vorlage: {0}  ✕", tr(t.name)), { templateId = null })
                 }
                 if (current.autoApprove) {
                     ContextChip(Icons.Outlined.DoneAll, tr("Ohne Rückfrage"), {
@@ -1037,7 +1036,7 @@ internal fun startActions(
     ),
     StartAction(
         tr("TU Vorlagen"), Icons.Outlined.Bookmarks,
-        templates.take(3).map { t -> StartExample(t.name) { onTemplate(t) } } + StartExample(tr("Alle TU Vorlagen ansehen")) { onNavigate("templates") },
+        templates.take(3).map { t -> StartExample(tr(t.name)) { onTemplate(t) } } + StartExample(tr("Alle TU Vorlagen ansehen")) { onNavigate("templates") },
     ),
 )
 

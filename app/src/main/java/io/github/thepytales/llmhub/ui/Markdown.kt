@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -434,7 +433,7 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier, color: Color = Col
 }
 
 /** Kind of a highlighted note in an answer ("> [!NOTE]", "> **Hinweis:** …"). */
-internal enum class CalloutKind(val title: String) { NOTE("Hinweis"), TIP("Tipp"), IMPORTANT("Wichtig"), WARNING("Achtung") }
+internal enum class CalloutKind(val title: String) { NOTE(trLater("Hinweis")), TIP(trLater("Tipp")), IMPORTANT(trLater("Wichtig")), WARNING(trLater("Achtung")) }
 
 private val CALLOUT_TAG = Regex("^\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)]\\s*", RegexOption.IGNORE_CASE)
 private val CALLOUT_WORD = Regex("^\\*\\*(Hinweis|Tipp|Wichtig|Achtung|Warnung|Note|Tip|Important|Warning)\\s*:?\\*\\*\\s*:?\\s*", RegexOption.IGNORE_CASE)

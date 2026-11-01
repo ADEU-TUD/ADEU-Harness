@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.data
 
 import kotlinx.serialization.Serializable
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A folder of chats; with instructions or files it is a project whose chats share them. */
 @Serializable
@@ -30,16 +31,16 @@ data class Folder(
 enum class PrivacyLevel(val label: String, val short: String, val description: String) {
     OPEN(
         "Standard", "Standard",
-        "Uni-Server der TU Dresden und weitere eingetragene Anbieter (z. B. Gemini), Websuche und GitHub.",
+        trLater("Uni-Server der TU Dresden und weitere eingetragene Anbieter (z. B. Gemini), Websuche und GitHub."),
     ),
     TU(
-        "Nur TU Dresden", "Nur TU-Server",
-        "Nur der Uni-Server (ScaDS.AI) und Modelle auf diesem Gerät. Externe KI-Anbieter sind gesperrt.",
+        trLater("Nur TU Dresden"), trLater("Nur TU-Server"),
+        trLater("Nur der Uni-Server (ScaDS.AI) und Modelle auf diesem Gerät. Externe KI-Anbieter sind gesperrt."),
     ),
     LOCAL(
-        "Nur auf diesem Gerät", "Nur lokal",
-        "Nichts verlässt das Gerät: Sprachmodelle und Transkription laufen lokal. Uni-Server, externe Anbieter, " +
-            "Websuche, GitHub und Web-Abrufe sind gesperrt.",
+        trLater("Nur auf diesem Gerät"), trLater("Nur lokal"),
+        trLater("Nichts verlässt das Gerät: Sprachmodelle und Transkription laufen lokal. Uni-Server, externe Anbieter, " +
+            "Websuche, GitHub und Web-Abrufe sind gesperrt."),
     );
 
     /** The Uni server may be used (chat, speech, embeddings). */
@@ -53,21 +54,21 @@ enum class PrivacyLevel(val label: String, val short: String, val description: S
 @Serializable
 enum class TemplateKind(val label: String) {
     /** Becomes the system prompt of a chat ("Übersetzer", "Code-Reviewer" …). */
-    PERSONA("Persona (System-Prompt)"),
+    PERSONA(trLater("Persona (System-Prompt)")),
     /** Text that is inserted into the input field. */
     PROMPT("Prompt-Vorlage"),
 }
 
 /** Sections of the template library, in the order they are shown. */
 enum class TemplateCategory(val label: String, val description: String) {
-    TUD("TUD-Dokumente", "Briefe, Protokolle, Formulare und Bescheinigungen als PDF im Corporate Design der TU Dresden"),
-    TEACHING("Lehre", "Seminare und Sitzungen planen, Lernziele, Prüfungsaufgaben, Feedback"),
-    THESES("Betreuung & Prüfung", "Abschlussarbeiten, Exposés, Gutachten, mündliche Prüfungen"),
-    RESEARCH("Forschung", "Fragestellung, Instrumente, Auswertung, Publikation und Anträge"),
-    COMMUNICATION("Kommunikation", "E-Mails, Antworten an Studierende, Ankündigungen"),
-    GENERAL("Allgemein", "Zusammenfassen, überarbeiten, übersetzen, erklären"),
-    PERSONA("Personas", "Legen fest, wie sich das Modell im ganzen Chat verhält"),
-    OWN("Eigene", "Selbst angelegte oder importierte Vorlagen"),
+    TUD("TUD-Dokumente", trLater("Briefe, Protokolle, Formulare und Bescheinigungen als PDF im Corporate Design der TU Dresden")),
+    TEACHING(trLater("Lehre"), trLater("Seminare und Sitzungen planen, Lernziele, Prüfungsaufgaben, Feedback")),
+    THESES(trLater("Betreuung & Prüfung"), trLater("Abschlussarbeiten, Exposés, Gutachten, mündliche Prüfungen")),
+    RESEARCH(trLater("Forschung"), trLater("Fragestellung, Instrumente, Auswertung, Publikation und Anträge")),
+    COMMUNICATION(trLater("Kommunikation"), trLater("E-Mails, Antworten an Studierende, Ankündigungen")),
+    GENERAL(trLater("Allgemein"), trLater("Zusammenfassen, überarbeiten, übersetzen, erklären")),
+    PERSONA("Personas", trLater("Legen fest, wie sich das Modell im ganzen Chat verhält")),
+    OWN(trLater("Eigene"), trLater("Selbst angelegte oder importierte Vorlagen")),
     ;
 
     companion object {
@@ -180,9 +181,9 @@ object TemplateFields {
 
 @Serializable
 enum class NetworkAccess(val label: String, val description: String) {
-    FULL("Vollständig", "Die Web-Werkzeuge dürfen alle Webseiten aufrufen."),
-    CUSTOM("Benutzerdefiniert", "Nur die unten eingetragenen Domains sind erlaubt."),
-    NONE("Keine", "Keine Web-Werkzeuge – das Modell kann nichts aus dem Internet abrufen."),
+    FULL(trLater("Vollständig"), trLater("Die Web-Werkzeuge dürfen alle Webseiten aufrufen.")),
+    CUSTOM(trLater("Benutzerdefiniert"), trLater("Nur die unten eingetragenen Domains sind erlaubt.")),
+    NONE(trLater("Keine"), trLater("Keine Web-Werkzeuge – das Modell kann nichts aus dem Internet abrufen.")),
 }
 
 @Serializable

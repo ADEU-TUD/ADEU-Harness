@@ -1,10 +1,11 @@
 package io.github.thepytales.llmhub.data
+import io.github.thepytales.llmhub.ui.trLater
 
 enum class ModelSort(val label: String) {
     DEFAULT("Standard"),
-    POWER("Leistung"),
-    SPEED("Tempo"),
-    CONTEXT("Kontext"),
+    POWER(trLater("Leistung")),
+    SPEED(trLater("Tempo")),
+    CONTEXT(trLater("Kontext")),
     NAME("Name"),
 }
 

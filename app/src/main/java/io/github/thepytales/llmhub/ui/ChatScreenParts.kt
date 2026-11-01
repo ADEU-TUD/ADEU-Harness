@@ -45,7 +45,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -137,7 +136,7 @@ internal fun EmptyChat(
     // Templates and examples take turns, the whole library comes last.
     val ideas = buildList {
         // Favourites have their own row below; Lora's bubble offers the other suggestions and the examples, one at a time.
-        val templates = suggestions.filter { t -> favorites.none { it.id == t.id } }.map { t -> LoraIdea(t.name, tr("Vorlage"), template = true) { onTemplate(t) } }
+        val templates = suggestions.filter { t -> favorites.none { it.id == t.id } }.map { t -> LoraIdea(tr(t.name), tr("Vorlage"), template = true) { onTemplate(t) } }
         val examples = CHAT_EXAMPLES.map { e -> LoraIdea(tr(e.label), tr("Idee"), template = false) { onExample(e) } }
         for (i in 0 until maxOf(templates.size, examples.size)) {
             templates.getOrNull(i)?.let(::add)
@@ -319,7 +318,7 @@ private fun RecentAndFavorites(
                     ) {
                         Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp), tint = LocalChatLook.current.brand)
                         Spacer(Modifier.size(8.dp))
-                        Text(t.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(tr(t.name), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

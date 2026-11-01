@@ -8,6 +8,7 @@ import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 @Serializable
 enum class Repeat { DAYS, INTERVAL }
@@ -87,7 +88,7 @@ data class ScheduledTask(
 
 object TaskPresets {
     fun news(model: String) = ScheduledTask(
-        name = "Morgen-News",
+        name = trLater("Morgen-News"),
         model = model,
         prompt = "Recherchiere mit news_search die wichtigsten Nachrichten der letzten 24 Stunden zum Thema " +
             "„Künstliche Intelligenz“. Fasse die 5 relevantesten Meldungen jeweils in 2–3 Sätzen zusammen, " +

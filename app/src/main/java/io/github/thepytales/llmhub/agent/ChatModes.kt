@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Tool groups a mode needs in addition to the chat's (see AgentRunner.providers). */
 enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL, DESIGN, PROPOSAL }
@@ -39,11 +40,11 @@ data class ChatMode(
 object ChatModes {
     val LITERATURE = ChatMode(
         id = "literature",
-        name = "Literatursuche",
+        name = trLater("Literatursuche"),
         icon = "search",
-        explain = "Der Agent sucht systematisch in Literaturdatenbanken, prüft die Treffer und legt eine Literaturliste an.",
-        data = "Suchbegriffe gehen an OpenAlex, Crossref, ERIC, DNB und SLUB, der Chat an das gewählte Modell.",
-        example = "Finde aktuelle empirische Studien zu Feedback im Mathematikunterricht der Grundschule (2015–2025, Deutsch und Englisch).",
+        explain = trLater("Der Agent sucht systematisch in Literaturdatenbanken, prüft die Treffer und legt eine Literaturliste an."),
+        data = trLater("Suchbegriffe gehen an OpenAlex, Crossref, ERIC, DNB und SLUB, der Chat an das gewählte Modell."),
+        example = trLater("Finde aktuelle empirische Studien zu Feedback im Mathematikunterricht der Grundschule (2015–2025, Deutsch und Englisch)."),
         command = "Literatursuche",
         tools = setOf(ModeTool.RESEARCH),
         prompt = ResearchTools.MODE_PROMPT,
@@ -52,11 +53,11 @@ object ChatModes {
 
     val PLANNING = ChatMode(
         id = "planning",
-        name = "Planungsmodus",
+        name = trLater("Planungsmodus"),
         icon = "plan",
-        explain = "Lora klärt dein Vorhaben in kurzen Fragerunden mit Antwortknöpfen und schreibt daraus einen Plan als Dokument.",
-        data = "Wie im normalen Chat: an das gewählte Modell, Namen pseudonymisiert.",
-        example = "Ich möchte ein Seminar „Digitale Medien im Sachunterricht“ für das Sommersemester planen.",
+        explain = trLater("Lora klärt dein Vorhaben in kurzen Fragerunden mit Antwortknöpfen und schreibt daraus einen Plan als Dokument."),
+        data = trLater("Wie im normalen Chat: an das gewählte Modell, Namen pseudonymisiert."),
+        example = trLater("Ich möchte ein Seminar „Digitale Medien im Sachunterricht“ für das Sommersemester planen."),
         command = "Planen",
         tools = setOf(ModeTool.DOCUMENTS),
         prompt = PLANNING_PROMPT,
@@ -65,11 +66,11 @@ object ChatModes {
 
     val SOURCES = ChatMode(
         id = "sources",
-        name = "Quellenmodus",
+        name = trLater("Quellenmodus"),
         icon = "sources",
-        explain = "Belegpflicht: Jede Aussage bekommt eine Fundstelle (Datei und Seite, DOI, URL, Transkriptzeit); die App prüft danach jedes Zitat gegen die Quelle.",
-        data = "Wie im normalen Chat; Suchbegriffe gehen an Websuche und Literaturdatenbanken, die Prüfung der Zitate läuft auf dem Gerät.",
-        example = "Was sagen die angehängten Texte über Feedback im Unterricht? Belege jede Aussage mit Seite und Zitat.",
+        explain = trLater("Belegpflicht: Jede Aussage bekommt eine Fundstelle (Datei und Seite, DOI, URL, Transkriptzeit); die App prüft danach jedes Zitat gegen die Quelle."),
+        data = trLater("Wie im normalen Chat; Suchbegriffe gehen an Websuche und Literaturdatenbanken, die Prüfung der Zitate läuft auf dem Gerät."),
+        example = trLater("Was sagen die angehängten Texte über Feedback im Unterricht? Belege jede Aussage mit Seite und Zitat."),
         command = "Quellen",
         tools = setOf(ModeTool.RESEARCH, ModeTool.WEB),
         prompt = Evidence.PROMPT,
@@ -79,11 +80,11 @@ object ChatModes {
     /** Exzerpt-Agent (AP-09): an excerpt of a text with checked page numbers, attached to the literature entry. */
     val EXCERPT = ChatMode(
         id = "excerpt",
-        name = "Exzerpt",
+        name = trLater("Exzerpt"),
         icon = "excerpt",
-        explain = "Der Agent exzerpiert einen Text nach einem Schema (empirisch, theoretisch, Review, Buchkapitel) mit Zitaten und geprüften Seitenangaben und hängt das Exzerpt an den Literatureintrag.",
-        data = "Der Text geht an das gewählte Modell, Namen pseudonymisiert; die Prüfung der Seitenangaben läuft auf dem Gerät.",
-        example = "Exzerpiere den angehängten Artikel für meine Literaturarbeit.",
+        explain = trLater("Der Agent exzerpiert einen Text nach einem Schema (empirisch, theoretisch, Review, Buchkapitel) mit Zitaten und geprüften Seitenangaben und hängt das Exzerpt an den Literatureintrag."),
+        data = trLater("Der Text geht an das gewählte Modell, Namen pseudonymisiert; die Prüfung der Seitenangaben läuft auf dem Gerät."),
+        example = trLater("Exzerpiere den angehängten Artikel für meine Literaturarbeit."),
         command = "Exzerpt",
         tools = setOf(ModeTool.RESEARCH, ModeTool.DOCUMENTS),
         prompt = io.github.thepytales.llmhub.research.Excerpts.MODE_PROMPT,
@@ -93,11 +94,11 @@ object ChatModes {
     /** Lernspiele (AP-17): only while the tool „Lernspiele“ is switched on. */
     val GAMES = ChatMode(
         id = "games",
-        name = "Lernspiel",
+        name = trLater("Lernspiel"),
         icon = "games",
-        explain = "Der Agent baut aus Skript, Folien oder Beschreibung ein eigenständiges Browserspiel (Quiz, Zuordnen, Memory, Escape-Room) – zum Testen in der App und als HTML/ZIP für OPAL.",
-        data = "Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; das Spiel läuft abgeschottet ohne Internet.",
-        example = "Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts: Begriffe und Definitionen, für Studierende im 1. Semester.",
+        explain = trLater("Der Agent baut aus Skript, Folien oder Beschreibung ein eigenständiges Browserspiel (Quiz, Zuordnen, Memory, Escape-Room) – zum Testen in der App und als HTML/ZIP für OPAL."),
+        data = trLater("Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; das Spiel läuft abgeschottet ohne Internet."),
+        example = trLater("Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts: Begriffe und Definitionen, für Studierende im 1. Semester."),
         command = "Lernspiel",
         tools = setOf(ModeTool.GAMES),
         prompt = GameTools.MODE_PROMPT,
@@ -111,11 +112,11 @@ object ChatModes {
     /** Erstellen › Gestalten (AP-24): Windows only (see data/DesignSupport). */
     val DESIGN = ChatMode(
         id = "design",
-        name = "Gestalten",
+        name = trLater("Gestalten"),
         icon = "design",
-        explain = "Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungskarten, Social-Media-Beiträge, Kursbanner und Titelbilder – z. B. ein Tagungsposter aus dem angehängten Paper. Danach unter „Erstellen“ bearbeiten und als PNG, PDF oder PowerPoint exportieren.",
-        data = "Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; Bildbeschreibungen an das Bildmodell des Uni-Servers.",
-        example = "Mach aus dem angehängten Paper ein Tagungsposter (A1) mit Einleitung, Methode, Ergebnissen und Fazit.",
+        explain = trLater("Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungskarten, Social-Media-Beiträge, Kursbanner und Titelbilder – z. B. ein Tagungsposter aus dem angehängten Paper. Danach unter „Erstellen“ bearbeiten und als PNG, PDF oder PowerPoint exportieren."),
+        data = trLater("Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; Bildbeschreibungen an das Bildmodell des Uni-Servers."),
+        example = trLater("Mach aus dem angehängten Paper ein Tagungsposter (A1) mit Einleitung, Methode, Ergebnissen und Fazit."),
         command = "Gestalten",
         tools = setOf(ModeTool.DESIGN),
         prompt = DesignTools.MODE_PROMPT,
@@ -126,11 +127,11 @@ object ChatModes {
     /** Mail & Kalender (AP-13): only while the tool is switched on (Windows with the classic Outlook). */
     val MAIL = ChatMode(
         id = "mail",
-        name = "Postfach",
+        name = trLater("Postfach"),
         icon = "mail",
-        explain = "Lora arbeitet mit deinem klassischen Outlook: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden.",
-        data = "Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert.",
-        example = "Was ist seit gestern im Posteingang wichtig?",
+        explain = trLater("Lora arbeitet mit deinem klassischen Outlook: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden."),
+        data = trLater("Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert."),
+        example = trLater("Was ist seit gestern im Posteingang wichtig?"),
         command = "Postfach",
         tools = setOf(ModeTool.MAIL),
         prompt = OutlookTools.MODE_PROMPT,
@@ -141,11 +142,11 @@ object ChatModes {
     /** Antrags-Werkstatt (AP-21): only while the tool is switched on. */
     val PROPOSAL = ChatMode(
         id = "proposal",
-        name = "Antrag",
+        name = trLater("Antrag"),
         icon = "plan",
-        explain = "Lora liest die Ausschreibung, legt Checkliste, Fristen und Gliederung in der Antrags-Werkstatt an, plant Arbeitspakete und Budget, schreibt Abschnitte im Umfang und macht auf Wunsch einen Probelauf als Gutachter:in.",
-        data = "Ausschreibung und Antrag gehen an das gewählte Modell, Namen pseudonymisiert.",
-        example = "Hier ist die Ausschreibung (PDF). Lege den Antrag an und sag mir, was ich bis wann brauche.",
+        explain = trLater("Lora liest die Ausschreibung, legt Checkliste, Fristen und Gliederung in der Antrags-Werkstatt an, plant Arbeitspakete und Budget, schreibt Abschnitte im Umfang und macht auf Wunsch einen Probelauf als Gutachter:in."),
+        data = trLater("Ausschreibung und Antrag gehen an das gewählte Modell, Namen pseudonymisiert."),
+        example = trLater("Hier ist die Ausschreibung (PDF). Lege den Antrag an und sag mir, was ich bis wann brauche."),
         command = "Antrag",
         tools = setOf(ModeTool.PROPOSAL, ModeTool.DOCUMENTS, ModeTool.WEB),
         prompt = ProposalTools.MODE_PROMPT,
@@ -155,11 +156,11 @@ object ChatModes {
 
     val VOICE = ChatMode(
         id = "voice",
-        name = "Sprachmodus",
+        name = trLater("Sprachmodus"),
         icon = "voice",
-        explain = "Freihändig sprechen: Die App hört bis zur Sprechpause zu, antwortet und liest die Antwort vor.",
-        data = "Sprache wird auf dem Uni-Server oder dem Gerät erkannt, die Antwort vom schnellen Sprachmodell geschrieben.",
-        example = "Erklär mir in zwei Minuten, was formatives Assessment ist.",
+        explain = trLater("Freihändig sprechen: Die App hört bis zur Sprechpause zu, antwortet und liest die Antwort vor."),
+        data = trLater("Sprache wird auf dem Uni-Server oder dem Gerät erkannt, die Antwort vom schnellen Sprachmodell geschrieben."),
+        example = trLater("Erklär mir in zwei Minuten, was formatives Assessment ist."),
         command = "Sprachmodus",
         action = true,
         keywords = "sprechen stimme vorlesen freihändig gespräch",

@@ -16,6 +16,7 @@ import okhttp3.Request
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
+import io.github.thepytales.llmhub.ui.trLater
 
 /** Search filters shared by all sources. */
 data class SearchFilter(
@@ -32,14 +33,14 @@ data class SearchFilter(
 
 /** Databases the literature search and the completion of reference lists use. */
 enum class LitSource(val label: String, val description: String) {
-    OPENALEX("OpenAlex", "Über 250 Mio. wissenschaftliche Arbeiten aller Fächer, mit Abstracts und Zitationen"),
-    CROSSREF("Crossref", "Alle Werke mit DOI: Zeitschriften, Sammelbände, Tagungsbände"),
-    ERIC("ERIC", "Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur"),
-    DNB("Deutsche Nationalbibliothek", "Deutschsprachige Bücher, Sammelbände und Hochschulschriften"),
-    SLUB("SLUB Dresden", "Katalog der Sächsischen Landes- und Universitätsbibliothek: Bestand vor Ort, E-Books und lizenzierte Artikel der TU Dresden"),
-    EUROPEPMC("PubMed / Europe PMC", "Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts"),
-    ARXIV("arXiv", "Preprints aus Informatik, Mathematik, Physik und Statistik"),
-    DOAJ("DOAJ", "Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer"),
+    OPENALEX("OpenAlex", trLater("Über 250 Mio. wissenschaftliche Arbeiten aller Fächer, mit Abstracts und Zitationen")),
+    CROSSREF(trLater("Crossref"), trLater("Alle Werke mit DOI: Zeitschriften, Sammelbände, Tagungsbände")),
+    ERIC("ERIC", trLater("Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur")),
+    DNB(trLater("Deutsche Nationalbibliothek"), trLater("Deutschsprachige Bücher, Sammelbände und Hochschulschriften")),
+    SLUB(trLater("SLUB Dresden"), trLater("Katalog der Sächsischen Landes- und Universitätsbibliothek: Bestand vor Ort, E-Books und lizenzierte Artikel der TU Dresden")),
+    EUROPEPMC(trLater("PubMed / Europe PMC"), trLater("Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts")),
+    ARXIV("arXiv", trLater("Preprints aus Informatik, Mathematik, Physik und Statistik")),
+    DOAJ("DOAJ", trLater("Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer")),
     ;
 
     companion object {

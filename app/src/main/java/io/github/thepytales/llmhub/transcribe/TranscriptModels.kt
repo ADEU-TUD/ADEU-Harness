@@ -17,6 +17,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
+import io.github.thepytales.llmhub.ui.trLater
 
 /*
  * Transcripts as the speech engine writes them (transcript.json, version 3) and the state it reports. Unknown fields
@@ -59,9 +60,9 @@ data class Chapter(val time: Double, val title: String)
 
 /** How far a transcript has been checked. */
 enum class TranscriptStatus(val key: String, val label: String) {
-    RAW("", "Rohfassung"),
-    CORRECTED("corrected", "Korrigiert"),
-    CHECKED("checked", "Geprüft"),
+    RAW("", trLater("Rohfassung")),
+    CORRECTED("corrected", trLater("Korrigiert")),
+    CHECKED("checked", trLater("Geprüft")),
     ;
 
     companion object {

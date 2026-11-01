@@ -11,6 +11,7 @@ import java.io.File
 import java.util.UUID
 import kotlin.math.ln
 import kotlin.math.sqrt
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A document in the knowledge collection: global ([collection] empty) or of one project (folder id). */
 @Serializable
@@ -212,9 +213,9 @@ class KnowledgeStore(root: File) {
 
 /** What the model may note about the user (Einstellungen › Gedächtnis). */
 enum class MemoryMode(val label: String, val description: String) {
-    OFF("Aus", "Das Modell merkt sich nichts über Chats hinweg."),
-    ASK("Vorher fragen", "Das Modell schlägt vor, sich etwas zu merken – Sie bestätigen jeden Eintrag."),
-    AUTO("Automatisch", "Das Modell merkt sich wichtige Angaben selbst; Sie sehen und löschen sie hier."),
+    OFF(trLater("Aus"), trLater("Das Modell merkt sich nichts über Chats hinweg.")),
+    ASK(trLater("Vorher fragen"), trLater("Das Modell schlägt vor, sich etwas zu merken – Sie bestätigen jeden Eintrag.")),
+    AUTO(trLater("Automatisch"), trLater("Das Modell merkt sich wichtige Angaben selbst; Sie sehen und löschen sie hier.")),
     ;
 
     companion object {
@@ -224,12 +225,12 @@ enum class MemoryMode(val label: String, val description: String) {
 
 /** Groups of the memory (Einstellungen › Gedächtnis); the model files each entry under one of them. */
 enum class MemoryCategory(val label: String, val hint: String) {
-    ABOUT("Über mich", "Funktion, Einrichtung, Fachgebiet"),
-    TEACHING("Lehre", "Lehrveranstaltungen, Module, Studiengänge"),
-    STYLE("Schreibstil", "Ton, Anrede, Format, Sprache"),
-    CONTACTS("Kontakte", "Kolleg:innen, Ansprechpersonen, Rollen"),
-    PROJECTS("Laufende Vorhaben", "Projekte, Anträge, Abschlussarbeiten, Fristen"),
-    OTHER("Sonstiges", "Was sonst dauerhaft hilft"),
+    ABOUT(trLater("Über mich"), trLater("Funktion, Einrichtung, Fachgebiet")),
+    TEACHING(trLater("Lehre"), trLater("Lehrveranstaltungen, Module, Studiengänge")),
+    STYLE(trLater("Schreibstil"), trLater("Ton, Anrede, Format, Sprache")),
+    CONTACTS(trLater("Kontakte"), trLater("Kolleg:innen, Ansprechpersonen, Rollen")),
+    PROJECTS(trLater("Laufende Vorhaben"), trLater("Projekte, Anträge, Abschlussarbeiten, Fristen")),
+    OTHER(trLater("Sonstiges"), trLater("Was sonst dauerhaft hilft")),
     ;
 
     companion object {

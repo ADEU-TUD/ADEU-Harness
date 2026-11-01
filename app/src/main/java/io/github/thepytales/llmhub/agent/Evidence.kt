@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.data.ChatMessage
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A text the answer may cite: an attached file, a web page, a passage of the knowledge collection, a transcript. */
 data class EvidenceSource(
@@ -30,11 +31,11 @@ data class Citation(
 )
 
 enum class CitationStatus(val label: String) {
-    VERIFIED("Zitat in der Quelle gefunden"),
-    PAGE_MISMATCH("Zitat gefunden, aber auf einer anderen Seite"),
-    NOT_FOUND("Zitat steht nicht in der Quelle"),
-    NO_QUOTE("Ohne wörtliches Zitat – nicht prüfbar"),
-    UNCHECKABLE("Quelle liegt im Chat nicht vor – nicht prüfbar"),
+    VERIFIED(trLater("Zitat in der Quelle gefunden")),
+    PAGE_MISMATCH(trLater("Zitat gefunden, aber auf einer anderen Seite")),
+    NOT_FOUND(trLater("Zitat steht nicht in der Quelle")),
+    NO_QUOTE(trLater("Ohne wörtliches Zitat – nicht prüfbar")),
+    UNCHECKABLE(trLater("Quelle liegt im Chat nicht vor – nicht prüfbar")),
 }
 
 data class CheckedCitation(

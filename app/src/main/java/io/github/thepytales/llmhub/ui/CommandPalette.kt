@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -85,10 +84,10 @@ val SETTINGS_INDEX = listOf(
     Command(trLater("Papierkorb"), "settings/trash", trLater("Einstellungen"), "gelöscht wiederherstellen"),
     Command(trLater("Arbeitsspeicher"), "settings/ram", trLater("Einstellungen"), "speicher ram arbeitsspeicher langsam messen freigeben"),
     Command(trLater("Lokale Ordner"), "settings/folders", trLater("Einstellungen"), "ordner pc dateien agent explorer freigeben windows"),
-    Command("Synchronisation", "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
-    Command("Speicherorte", "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
+    Command(trLater("Synchronisation"), "settings/sync", "Einstellungen", "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
+    Command(trLater("Speicherorte"), "settings/storage", "Einstellungen", "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
     Command("Updates", "settings/updates", "Einstellungen", "update aktualisieren neue version installieren netzlaufwerk"),
-    Command("Verbindungen", "settings/connections", "Einstellungen", "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
+    Command(trLater("Verbindungen"), "settings/connections", "Einstellungen", "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
 )
 
 /** All words of the query must occur in title, group or keywords; title matches come first. */

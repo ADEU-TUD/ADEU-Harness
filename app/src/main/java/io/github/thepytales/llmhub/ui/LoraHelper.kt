@@ -76,7 +76,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -277,9 +276,9 @@ private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope,
 
 /** Lora's reaction to an answer: she points the way, nods, shrugs when she found nothing, scratches her head on trouble. */
 internal fun moodFor(reply: LoraReply): LoraAction = when {
-    reply.text.startsWith("Ich erreiche gerade kein Modell") || reply.text.startsWith("Das hat nicht geklappt") -> LoraAction.SCRATCH
+    listOf("Ich erreiche gerade kein Modell", "Das hat nicht geklappt").any { reply.text.startsWith(it) || reply.text.startsWith(tr(it)) } -> LoraAction.SCRATCH
     reply.steps.any { it is LoraStep.Navigate || it is LoraStep.OpenMode || it is LoraStep.OpenChat || it is LoraStep.Handoff } -> LoraAction.POINT
-    reply.steps.isEmpty() && reply.hits.isEmpty() && (reply.text.contains("nichts gefunden") || reply.text.contains("keinen Chat")) -> LoraAction.SHRUG
+    reply.steps.isEmpty() && reply.hits.isEmpty() && listOf("nichts gefunden", "keinen Chat").any { reply.text.contains(it) || reply.text.contains(tr(it)) } -> LoraAction.SHRUG
     reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder } -> LoraAction.EUREKA
     else -> LoraAction.NOD
 }

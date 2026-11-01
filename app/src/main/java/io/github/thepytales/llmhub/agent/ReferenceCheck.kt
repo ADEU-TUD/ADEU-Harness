@@ -18,6 +18,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.text.Normalizer
+import io.github.thepytales.llmhub.ui.trLater
 
 /**
  * Checks literature references against Crossref (journal articles, books and chapters with DOI), OpenAlex and
@@ -26,10 +27,10 @@ import java.text.Normalizer
  */
 object ReferenceCheck {
     enum class Status(val symbol: String, val label: String) {
-        VERIFIED("✓", "bestätigt"),
-        DIFFERS("≈", "gefunden, Angaben weichen ab"),
-        NOT_FOUND("✗", "nicht gefunden"),
-        UNCHECKED("?", "nicht prüfbar"),
+        VERIFIED("✓", trLater("bestätigt")),
+        DIFFERS("≈", trLater("gefunden, Angaben weichen ab")),
+        NOT_FOUND("✗", trLater("nicht gefunden")),
+        UNCHECKED("?", trLater("nicht prüfbar")),
     }
 
     data class Work(

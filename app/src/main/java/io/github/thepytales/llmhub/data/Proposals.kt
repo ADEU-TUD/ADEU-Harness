@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import io.github.thepytales.llmhub.ui.trLater
 
 /** A point of the checklist from the call („Lebenslauf beifügen“, „Englisch, höchstens 15 Seiten“). */
 @Serializable
@@ -135,7 +136,7 @@ object Funders {
         ),
         budgetCategories = listOf("Personal", "Sachmittel", "Reisen", "Investitionen", "Publikationen", "Sonstiges"),
         overheadPercent = 22.0, overheadLabel = "Programmpauschale (22 %, zahlt die DFG zusätzlich)",
-        note = "Seitenzahlen und Gliederung immer mit dem aktuellen DFG-Vordruck abgleichen.",
+        note = trLater("Seitenzahlen und Gliederung immer mit dem aktuellen DFG-Vordruck abgleichen."),
     )
 
     val BMBF = Funder(
@@ -176,7 +177,7 @@ object Funders {
         ),
         budgetCategories = listOf("Personnel", "Subcontracting", "Travel", "Equipment", "Other goods and services", "Other"),
         overheadPercent = 25.0, overheadLabel = "Indirect costs (25 % flat rate)", pageLimit = 45.0,
-        note = "Englisch; Bewertung nach Excellence, Impact, Implementation.",
+        note = trLater("Englisch; Bewertung nach Excellence, Impact, Implementation."),
     )
 
     val SAB = Funder(
@@ -195,7 +196,7 @@ object Funders {
     )
 
     val TUD = Funder(
-        "tud", "TUD-intern", "Interne Förderung der TU Dresden",
+        "tud", trLater("TUD-intern"), "Interne Förderung der TU Dresden",
         outline = listOf(
             s("Ausgangslage und Bedarf"), s("Ziele"), s("Maßnahmen und Zeitplan"), s("Beitrag zu Lehre bzw. Forschung an der TU Dresden"),
             s("Kosten"), s("Nachhaltigkeit"),
@@ -205,7 +206,7 @@ object Funders {
     )
 
     val OTHER = Funder(
-        "other", "Andere", "",
+        "other", trLater("Andere"), "",
         outline = listOf(s("Zusammenfassung"), s("Ausgangslage"), s("Ziele"), s("Arbeitsplan"), s("Ergebnisse und Verwertung"), s("Finanzierung")),
         checklist = listOf("Ausschreibung vollständig lesen: Fristen, Umfang, Formalien, Bewertungskriterien"),
         budgetCategories = listOf("Personal", "Sachmittel", "Reisen", "Sonstiges"),

@@ -47,7 +47,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -121,7 +120,7 @@ fun TemplateBrowser(
     val all = remember(own) { TemplateLibrary.all(own) }
     val q = query.trim()
     val shown = all.filter { t ->
-        (q.isEmpty() || listOf(t.name, t.description, t.content).any { it.contains(q, ignoreCase = true) }) && when (filter) {
+        (q.isEmpty() || listOf(t.name, tr(t.name), t.description, tr(t.description), t.content).any { it.contains(q, ignoreCase = true) }) && when (filter) {
             null -> true
             FAVORITES -> t.id in s.favoriteTemplates
             TemplateCategory.OWN.name -> !t.builtIn
@@ -163,7 +162,7 @@ fun TemplateBrowser(
                     if (count > 0) FilterChip(
                         selected = filter == cat.name,
                         onClick = { filter = if (filter == cat.name) null else cat.name },
-                        label = { Text(cat.label) },
+                        label = { Text(tr(cat.label)) },
                     )
                 }
             }
@@ -173,8 +172,8 @@ fun TemplateBrowser(
             if (list.isEmpty()) return@forEach
             item(key = "h_$cat") {
                 Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 2.dp)) {
-                    Text(cat.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                    Text(cat.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr(cat.label), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(tr(cat.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             items(list, key = { it.id }) { t ->
@@ -183,8 +182,8 @@ fun TemplateBrowser(
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable { onOpen(t) },
                     leadingContent = { Icon(categoryIcon(cat), contentDescription = null) },
-                    headlineContent = { Text(if (t.builtIn) t.name else tr("{0} · eigene", t.name)) },
-                    supportingContent = { Text(t.description.ifBlank { t.content }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+                    headlineContent = { Text(if (t.builtIn) tr(t.name) else tr("{0} · eigene", t.name)) },
+                    supportingContent = { Text(tr(t.description).ifBlank { t.content }, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                     trailingContent = {
                         IconButton(onClick = { toggleFavorite(c, t.id) }) {
                             Icon(
@@ -307,11 +306,11 @@ fun TemplateFillDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(categoryIcon(template.section), contentDescription = null) },
-        title = { Text(template.name) },
+        title = { Text(tr(template.name)) },
         text = {
             Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (template.description.isNotBlank()) {
-                    Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr(template.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (onInterview != null && io.github.thepytales.llmhub.agent.TemplateInterview.offered(template)) {
                     androidx.compose.material3.AssistChip(
@@ -435,10 +434,10 @@ private fun TemplateFieldInput(
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            label = { Text(field.label) },
+            label = { Text(tr(field.label)) },
             enabled = !working,
             isError = error != null,
-            supportingText = (error ?: field.hint.ifBlank { null })?.let { t -> { Text(t) } },
+            supportingText = (error ?: field.hint.ifBlank { null }?.let { tr(it) })?.let { t -> { Text(t) } },
             minLines = if (field.multiline) 3 else 1,
             maxLines = 14,
             trailingIcon = {
@@ -548,7 +547,7 @@ fun TemplateDetailsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(categoryIcon(template.section), contentDescription = null) },
-        title = { Text(template.name) },
+        title = { Text(tr(template.name)) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -556,7 +555,7 @@ fun TemplateDetailsDialog(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                if (template.description.isNotBlank()) Text(template.description, style = MaterialTheme.typography.bodyMedium)
+                if (template.description.isNotBlank()) Text(tr(template.description), style = MaterialTheme.typography.bodyMedium)
                 val fields = template.fields
                 Text(
                     when {
