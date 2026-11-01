@@ -130,6 +130,41 @@ object AiReview {
 }
 
 /**
+ * Änderungen nachverfolgen (AP-16): the changes since the document's base ([LiveDoc.trackBase]) are suggestions. Accepting
+ * one moves it into the base, rejecting takes it back in the text – every other suggestion stays.
+ */
+object Tracking {
+    private const val EMPTY = "\u200B"
+
+    fun review(base: String, current: String): AiReview.Result = AiReview.compare(base.replace(EMPTY, ""), current.replace(EMPTY, ""))
+
+    /** The base after accepting [accepted] or letting the removal [dropped] go. */
+    fun baseAfter(base: String, current: String, accepted: AiReview.Change? = null, dropped: AiReview.Removed? = null): String {
+        val r = review(base, current)
+        val cur = DocBlocks.split(current.replace(EMPTY, ""))
+        val out = mutableListOf<String>()
+        for (i in 0..cur.size) {
+            r.removed.filter { it.at == i && it != dropped }.forEach { out += it.text }
+            if (i == cur.size) break
+            val ch = r.changes.firstOrNull { it.index == i }
+            when {
+                ch == null || ch == accepted -> out += cur[i]
+                ch.before != null -> out += ch.before
+            }
+        }
+        return DocBlocks.join(out)
+    }
+
+    /** All suggestions taken back: the text of the base. */
+    fun rejectAll(base: String): String = base
+
+    /** Whether [doc] has open suggestions in any tab. */
+    fun pending(doc: LiveDoc): Int = doc.trackBase?.let { bases ->
+        doc.tabs.sumOf { t -> bases[t.id]?.let { b -> review(b, t.markdown).let { it.changes.size + it.removed.size } } ?: 0 }
+    } ?: 0
+}
+
+/**
  * Citations from the literature collection in a document: the in-text citation in the chosen style and an automatic
  * "## Literatur" at the end. The cited works are remembered in a comment line below that heading
  * (`<!-- literatur: APA7_DE; id1, id2 -->`), which the exports leave out.

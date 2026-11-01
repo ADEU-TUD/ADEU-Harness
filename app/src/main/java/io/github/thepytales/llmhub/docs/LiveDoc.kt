@@ -31,6 +31,8 @@ data class DocComment(
     val resolved: Boolean = false,
     val replies: List<DocReply> = emptyList(),
     val createdAt: Long = System.currentTimeMillis(),
+    /** Id of the Word comment it came from or was written as (AP-16), so it is not written twice. */
+    val wordId: String? = null,
 )
 
 /** A saved state of the whole document; every change is attributed to the person or the model that made it. */
@@ -55,6 +57,9 @@ enum class DocKind(val label: String, val newTitle: String, val ext: String) {
     /** Plain Markdown with its marks visible (like Obsidian or a README), with a preview beside it. */
     MARKDOWN("Markdown-Datei", "Unbenannte Markdown-Datei", "md"),
     ;
+
+    /** Format of its real file in the Lora-Ordner (AP-16). */
+    val fileExt: String get() = when (this) { DOC -> "docx"; SLIDES -> "pptx"; SHEET -> "xlsx"; MARKDOWN -> "md" }
 
     companion object {
         fun of(name: String?) = entries.firstOrNull { it.name == name } ?: DOC
@@ -101,6 +106,13 @@ data class LiveDoc(
     val starred: Boolean = false,
     /** File name of the Markdown copy in the vault. */
     val mirror: String? = null,
+    /** Lora-Ordner (AP-16): path of the real file (.docx, .pptx, .xlsx, .md) inside it, with „/“. */
+    val path: String? = null,
+    /**
+     * Änderungen nachverfolgen (AP-16): the text of each tab (by id) when tracking began or a change was last accepted –
+     * everything since is shown as suggestion to accept or reject (and written as Word revisions). null: off.
+     */
+    val trackBase: Map<String, String>? = null,
 ) {
     val docKind: DocKind get() = DocKind.of(kind)
 
@@ -218,8 +230,196 @@ class DocsStore(dir: File) {
 
     private fun mirror(v: DocVault, d: LiveDoc): File? = d.mirror?.let { File(v.path, it) }
 
+    // ── Lora-Ordner (AP-16): documents without a storage location are real files there ──
+
+    /** The visible Lora-Ordner; null: documents stay inside the app (tests, before the container set it). */
+    @Volatile
+    var root: File? = null
+
+    /** Writes the real files (set by the container). */
+    @Volatile
+    var files: DocFiles? = null
+
+    /** Moves a real file into the Papierkorb of the Lora-Ordner (set by the container). */
+    @Volatile
+    var trashFile: ((File) -> Unit)? = null
+
+    /** Documents that stay inside the app – those of Tresor chats (AP-10); set by the container. */
+    @Volatile
+    var keepInApp: (LiveDoc) -> Boolean = { false }
+
+    /** Folder for documents made in a chat („Erstellt“). */
+    var createdFolder = "Erstellt"
+
+    /** The real file of [doc] in the Lora-Ordner, if it has one. */
+    fun realFile(doc: LiveDoc): File? = doc.path?.let { p -> root?.let { File(it, p) } }
+
+    /** The document whose real file is [f]. */
+    fun forRealFile(f: File): LiveDoc? {
+        val target = f.absoluteFile.normalize()
+        return _items.value.firstOrNull { d -> realFile(d)?.absoluteFile?.normalize() == target }
+    }
+
+    /** The written file is the app's own: not read back as change from outside. */
+    fun markWritten(f: File) {
+        known[f.absolutePath] = f.lastModified()
+    }
+
+    private fun relPath(f: File): String? {
+        val r = root?.absoluteFile?.normalize()?.path ?: return null
+        val p = f.absoluteFile.normalize().path
+        return if (p.startsWith(r + File.separator)) p.substring(r.length + 1).replace(File.separatorChar, '/') else null
+    }
+
+    /** File name of a document: its title and the format of its kind. */
+    fun fileName(doc: LiveDoc): String {
+        val base = doc.title.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), " ").replace(Regex("\\s+"), " ").trim().trim('.').take(80).ifBlank { doc.docKind.newTitle }
+        return "$base.${doc.docKind.fileExt}"
+    }
+
+    /** A free path for [doc] in [folder] (relative, „“ = top level). */
+    private fun freePath(doc: LiveDoc, folder: String): String {
+        val r = root ?: return fileName(doc)
+        val dir = if (folder.isEmpty()) r else File(r, folder)
+        val name = fileName(doc)
+        var f = File(dir, name)
+        var n = 2
+        val taken = { file: File -> file.exists() || _items.value.any { it.id != doc.id && realFile(it)?.absoluteFile == file.absoluteFile } }
+        while (taken(f)) f = File(dir, name.substringBeforeLast('.') + " ($n)." + doc.docKind.fileExt).also { n++ }
+        return relPath(f) ?: name
+    }
+
+    /**
+     * The path of [doc]: a new document gets one (made in a chat: „Erstellt“, otherwise [folder] or the top level); a
+     * changed title renames the file, like in Google Drive.
+     */
+    private fun withPath(doc: LiveDoc, folder: String? = null): LiveDoc {
+        val r = root ?: return doc
+        if (doc.vault != null) return doc.copy(path = null)
+        if (doc.path == null && keepInApp(doc)) return doc
+        val current = doc.path
+        if (current == null) {
+            val dir = folder ?: if (doc.chatId != null) createdFolder else ""
+            return doc.copy(path = freePath(doc, dir))
+        }
+        val file = File(r, current)
+        val wanted = fileName(doc)
+        if (file.name == wanted || file.nameWithoutExtension.replace(Regex(" \\(\\d+\\)$"), "") == wanted.substringBeforeLast('.')) return doc
+        val dir = current.substringBeforeLast('/', "")
+        val next = freePath(doc, dir)
+        if (file.isFile) runCatching { java.nio.file.Files.move(file.toPath(), File(r, next).toPath()) }.onFailure { return doc }
+        return doc.copy(path = next)
+    }
+
+    /** Saves a new document into [folder] of the Lora-Ordner (the Dateien tab's „+“ in an open folder). */
+    fun saveIn(doc: LiveDoc, folder: String) = save(withPath(doc.copy(path = null, vault = null), folder))
+
+    /** A file or folder of the Lora-Ordner moved from [oldAbs] to [newAbs] (Dateien tab): the documents follow. */
     @Synchronized
-    fun save(doc: LiveDoc) {
+    fun relocated(oldAbs: String, newAbs: String) {
+        val old = File(oldAbs).absoluteFile.normalize().path
+        val now = File(newAbs)
+        _items.value.filter { d -> realFile(d)?.absoluteFile?.normalize()?.path?.let { it == old || it.startsWith(old + File.separator) } == true }.forEach { d ->
+            val abs = realFile(d)!!.absoluteFile.normalize().path
+            val moved = if (abs == old) now else File(now, abs.removePrefix(old + File.separator))
+            val rel = relPath(moved) ?: return@forEach
+            // A file renamed in the Dateien tab gives the document its name.
+            val title = if (abs == old && moved.nameWithoutExtension != File(abs).nameWithoutExtension) moved.nameWithoutExtension else d.title
+            val next = d.copy(path = rel, title = title)
+            known[moved.absolutePath] = moved.lastModified()
+            _items.update { list -> list.map { if (it.id == d.id) next else it } }
+            persistOwn(next)
+        }
+    }
+
+    /** Removes [id] from the list and its data (the file itself went to the Papierkorb). */
+    @Synchronized
+    fun forget(id: String) {
+        _items.update { list -> list.filterNot { it.id == id } }
+        File(folder, "$id.json").delete()
+    }
+
+    /** Takes [doc] back (restored from the Papierkorb) with its file [f]. */
+    fun adopt(doc: LiveDoc, f: File) {
+        val rel = relPath(f)
+        val d = doc.copy(path = rel, vault = null)
+        known[f.absolutePath] = f.lastModified()
+        _items.update { list -> (listOf(d) + list.filterNot { it.id == d.id }).sortedByDescending { it.updatedAt } }
+        persistOwn(d)
+    }
+
+    /** Stores [d] without a new version and without writing its file again (ids of Word comments). */
+    @Synchronized
+    fun saveQuietly(d: LiveDoc) {
+        _items.update { list -> list.map { if (it.id == d.id) d else it } }
+        if (d.vault == null) persistOwn(d) else vault(d.vault)?.let { persist(it, d) }
+    }
+
+    fun encode(d: LiveDoc): String = json.encodeToString(LiveDoc.serializer(), d)
+
+    fun decode(text: String): LiveDoc? = runCatching { json.decodeFromString(LiveDoc.serializer(), text) }.getOrNull()
+
+    private fun persistOwn(d: LiveDoc) {
+        runCatching { AtomicFiles.write(File(folder, "${d.id}.json"), json.encodeToString(LiveDoc.serializer(), d)) }.logFailure("Dokument speichern")
+    }
+
+    /** Documents of before AP-16 (inside the app) become files in the Lora-Ordner: AP-18 folders become real folders. */
+    fun migrateToFiles(folderOf: (LiveDoc) -> String) {
+        val r = root ?: return
+        _items.value.filter { it.vault == null && it.path == null && !keepInApp(it) }.forEach { d ->
+            val dir = folderOf(d).ifBlank { if (d.chatId != null) createdFolder else "" }
+            val next = d.copy(path = freePath(d, dir))
+            File(r, dir).mkdirs()
+            _items.update { list -> list.map { if (it.id == d.id) next else it } }
+            persistOwn(next)
+            files?.let { f -> runCatching { f.write(next) }.logFailure("Dokument als Datei ablegen") }
+        }
+    }
+
+    /** Opens [f] of the Lora-Ordner in the editor: the document it already is, or a new one that writes into it. */
+    fun openReal(f: File, imported: OfficeImport.Imported): LiveDoc {
+        forRealFile(f)?.let { return it }
+        val bytes = f.readBytes()
+        val plain = OfficeImport.toLiveDoc(imported).copy(path = relPath(f), title = f.nameWithoutExtension, updatedAt = f.lastModified())
+        // Word comments and revisions come along (AP-16).
+        val doc = if (f.extension.equals("docx", true)) DocxExtras.adopt(plain, bytes) else plain
+        files?.keepOriginal(doc.id, f.extension.lowercase(), bytes, doc.tabs)
+        known[f.absolutePath] = f.lastModified()
+        _items.update { list -> (listOf(doc) + list).sortedByDescending { it.updatedAt } }
+        persistOwn(doc)
+        return doc
+    }
+
+    /** Picks up real files changed outside the app (Word, Excel, another PC); files removed there end their document. */
+    @Synchronized
+    fun refreshFiles() {
+        val r = root ?: return
+        if (!r.isDirectory) return
+        val f = files ?: return
+        for (d in _items.value.filter { it.path != null && it.vault == null }) {
+            val file = realFile(d) ?: continue
+            if (!file.exists()) {
+                // Removed or moved in the Explorer (only when its folder is there – not a missing drive).
+                if (file.parentFile?.isDirectory == true && known.containsKey(file.absolutePath)) forget(d.id)
+                continue
+            }
+            val stamp = file.lastModified()
+            val seen = known[file.absolutePath]
+            if (seen == null) {
+                known[file.absolutePath] = stamp
+                continue
+            }
+            if (seen == stamp) continue
+            known[file.absolutePath] = stamp
+            val next = f.reload(d, file) ?: continue
+            _items.update { list -> (listOf(next) + list.filterNot { it.id == d.id }).sortedByDescending { it.updatedAt } }
+            persistOwn(next)
+        }
+    }
+
+    @Synchronized
+    fun save(doc0: LiveDoc) {
+        val doc = withPath(doc0)
         val v = vault(doc.vault)
         val stored = if (v == null) doc.copy(vault = null, mirror = null) else writeMirror(v, doc)
         _items.update { list -> (listOf(stored) + list.filterNot { it.id == stored.id }).sortedByDescending { it.updatedAt } }
@@ -228,6 +428,7 @@ class DocsStore(dir: File) {
             AtomicFiles.write(f, json.encodeToString(LiveDoc.serializer(), stored))
             known[f.path] = f.lastModified()
         }.logFailure("Dokument speichern")
+        if (stored.path != null && stored.vault == null) files?.schedule(stored)
     }
 
     /** Writes the readable copy "<Titel>.md" (renamed with the title); returns the document with its name. */
@@ -256,6 +457,20 @@ class DocsStore(dir: File) {
     @Synchronized
     fun delete(id: String) {
         val doc = get(id)
+        // A real file of the Lora-Ordner goes into its Papierkorb (with the document, restorable there).
+        doc?.let { realFile(it) }?.takeIf { it.isFile && trashFile != null }?.let { f ->
+            trashFile?.invoke(f)
+            _items.update { list -> list.filterNot { it.id == id } }
+            File(folder, "$id.json").delete()
+            return
+        }
+        deleteData(id)
+    }
+
+    /** Removes the document's data (not its real file). */
+    @Synchronized
+    private fun deleteData(id: String) {
+        val doc = get(id)
         _items.update { list -> list.filterNot { it.id == id } }
         File(folder, "$id.json").delete()
         vault(doc?.vault)?.let { v ->
@@ -270,8 +485,10 @@ class DocsStore(dir: File) {
         val doc = get(id) ?: return
         if (doc.vault == vaultId) return
         val from = baseDir(doc)
-        delete(id)
-        val moved = doc.copy(vault = vaultId, mirror = null)
+        val real = realFile(doc)
+        deleteData(id)
+        real?.delete()
+        val moved = doc.copy(vault = vaultId, mirror = null, path = null)
         // The pictures go along, so the relative paths stay valid.
         val to = baseDir(moved)
         if (from.absoluteFile != to.absoluteFile) DocMarkup.imagePaths(doc.markdown()).forEach { rel ->

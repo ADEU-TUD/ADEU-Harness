@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.desktop
 
+import io.github.thepytales.llmhub.AppLog
 import java.io.File
 
 /**
@@ -10,69 +11,150 @@ object Paths {
     val windows = System.getProperty("os.name").orEmpty().startsWith("Windows")
     private val home = File(System.getProperty("user.home"))
 
-    /** Where the data lives without a chosen folder: %APPDATA%\ADEU LLM. It also holds the pointer to a chosen one. */
+    /** Where the data lived before the Lora-Ordner (AP-16): %APPDATA%\\ADEU LLM. It keeps the files of this PC and the pointer. */
     private val standard: File by lazy {
         val dir = if (windows) File(System.getenv("APPDATA")?.takeIf { it.isNotBlank() } ?: File(home, "AppData/Roaming").path, "ADEU LLM")
         else File(home, ".adeu-llm")
         dir.apply { mkdirs() }
     }
 
-    /** Text file in [standard] with the path of a data folder the user chose (e.g. in Google Drive). */
-    private val pointer: File get() = File(standard, "speicherort.txt")
+    /** Text file in [standard] with the path of the Lora-Ordner. */
+    private val rootPointer: File get() = File(standard, "lora-ordner.txt")
 
-    /** The data folder the user chose, if any (Einstellungen › Windows › Speicherort). */
-    val chosen: File? get() = runCatching { pointer.readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }?.let(::File)
+    /** Before AP-16: text file with the path of a data folder the user chose (Einstellungen › Speicherort, Sync). */
+    private val legacyPointer: File get() = File(standard, "speicherort.txt")
+
+    /** Marks that the user put the Lora-Ordner into a cloud folder on purpose (Einstellungen › Synchronisation). */
+    private val syncFlag: File get() = File(standard, "sync-an.txt")
+
+    private val testData: String? get() = System.getProperty("adeu.data")?.takeIf { it.isNotBlank() }
+
+    /** The Documents folder of Windows (also when it was moved into OneDrive), else ~/Documents. */
+    val documents: File by lazy {
+        val known = if (windows) runCatching {
+            com.sun.jna.platform.win32.Shell32Util.getKnownFolderPath(com.sun.jna.platform.win32.KnownFolders.FOLDERID_Documents)
+        }.getOrNull()?.let(::File)?.takeIf { it.isDirectory } else null
+        known ?: File(home, "Documents").takeIf { it.isDirectory } ?: home
+    }
+
+    /** Where a new Lora-Ordner goes: Dokumente\\Lora. */
+    val defaultRoot: File get() = File(documents, "Lora")
+
+    /** The pointer's folder, read fresh (null: none yet). */
+    private fun pointed(): File? = runCatching { rootPointer.readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }?.let(::File)
+
+    /** The data folder the user chose before AP-16 (now the Lora-Ordner, with the data moved into its .lora). */
+    val chosen: File? get() = pointed() ?: runCatching { legacyPointer.readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }?.let(::File)
 
     /**
-     * Chats, settings, documents … (Android: filesDir). Can be changed with -Dadeu.data=… for tests, or in the
-     * settings: then a folder the user chose, like an Obsidian vault – put into Google Drive or OneDrive, the data
-     * is synced to other computers.
+     * The Lora-Ordner was set but is gone (moved in the Explorer, drive not connected): its old path. Checked by main()
+     * before anything is loaded, so the user can show where it is now ([useRoot]).
      */
-    val data: File by lazy {
-        val custom = System.getProperty("adeu.data")?.takeIf { it.isNotBlank() }
-        val dir = when {
-            custom != null -> File(custom)
-            else -> chosen?.takeIf { it.isDirectory || it.mkdirs() } ?: standard
-        }
-        dir.apply { mkdirs() }
+    fun missingRoot(): File? = if (testData != null) null else pointed()?.takeIf { !it.isDirectory }
+
+    /** Points to [dir] as the Lora-Ordner (before the app loads anything). */
+    fun useRoot(dir: File) {
+        dir.mkdirs()
+        rootPointer.writeText(dir.absolutePath)
+        layout = null
     }
+
+    private class Layout(val root: File, val data: File)
+
+    @Volatile
+    private var layout: Layout? = null
+
+    private fun layout(): Layout = layout ?: synchronized(this) { layout ?: resolve().also { layout = it } }
+
+    /**
+     * Lora-Ordner (AP-16): one folder for everything, like an Obsidian vault – the files the user sees (Hochgeladen,
+     * Erstellt, own folders, documents of the editor as .docx/.xlsx/.pptx/.md) and the app's data hidden in „.lora“.
+     * The user puts it where it is needed (also into a cloud folder, AP-12) and can move it. Takes over the data of
+     * earlier versions once: from %APPDATA%\\ADEU LLM into Dokumente\\Lora\\.lora, from a chosen data folder into its .lora.
+     */
+    private fun resolve(): Layout {
+        testData?.let { return Layout(File(it, "Lora").apply { mkdirs() }, File(it).apply { mkdirs() }) }
+        pointed()?.let { root ->
+            val data = File(root, LoraLayout.DATA)
+            root.mkdirs()
+            runCatching { LoraLayout.moveLegacy(root, data) }.onFailure { AppLog.e("Lora-Ordner: alte Daten übernehmen", it) }
+            LoraLayout.hide(data)
+            return Layout(root, data.apply { mkdirs() })
+        }
+        // A data folder chosen before AP-16 (e.g. in the cloud folder for the sync): it becomes the Lora-Ordner.
+        runCatching { legacyPointer.readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }?.let(::File)?.takeIf { it.isDirectory }?.let { root ->
+            val data = File(root, LoraLayout.DATA)
+            return runCatching {
+                LoraLayout.moveLegacy(root, data)
+                LoraLayout.hide(data)
+                rootPointer.writeText(root.absolutePath)
+                runCatching { syncFlag.writeText("1") }
+                legacyPointer.delete()
+                Layout(root, data)
+            }.getOrElse { e -> AppLog.e("Lora-Ordner einrichten", e); Layout(File(root, "Dateien"), root) }
+        }
+        // First start with AP-16: the data of %APPDATA% moves into Dokumente\\Lora\\.lora.
+        val root = defaultRoot
+        val data = File(root, LoraLayout.DATA)
+        return runCatching {
+            data.mkdirs()
+            LoraLayout.moveStandard(standard, data, PER_PC)
+            LoraLayout.hide(data)
+            rootPointer.writeText(root.absolutePath)
+            Layout(root, data)
+        }.getOrElse { e -> AppLog.e("Lora-Ordner einrichten", e); Layout(File(standard, "Dateien").apply { mkdirs() }, standard) }
+    }
+
+    /** The Lora-Ordner: the files the user sees (Hochgeladen, Erstellt, own folders). */
+    val root: File get() = layout().root
+
+    /**
+     * Chats, settings, documents … (Android: filesDir), hidden in the Lora-Ordner („.lora“). -Dadeu.data=… for tests.
+     */
+    val data: File get() = layout().data
+
+    /** Whether the Lora-Ordner lies in a cloud folder (sync on, AP-12): only then is there something to guard. */
+    val synced: Boolean
+        get() = testData == null && (syncFlag.isFile || CloudFolders.serviceOf(root) != null)
 
     /**
      * Files that belong to this PC and never roam with a synced data folder (AP-12): the API keys and tokens, the
      * window position, the update state. The standard folder (or the data folder in tests).
      */
     val machine: File
-        get() = if (!System.getProperty("adeu.data").isNullOrBlank()) data else standard
+        get() = if (testData != null) data else standard
 
     /** Files of this PC in [machine] that are never copied into another data folder. */
-    private val PER_PC = setOf("speicherort.txt", "secure_settings.dat", "schluessel.dat", "key.bin", "pc-id.txt", "ui_state.prefs.json", "updates.prefs.json")
+    private val PER_PC = setOf(
+        "speicherort.txt", "lora-ordner.txt", "sync-an.txt", "secure_settings.dat", "schluessel.dat", "key.bin", "pc-id.txt",
+        "ui_state.prefs.json", "updates.prefs.json", "log.txt", "log.old.txt",
+    )
 
-    /** Whether [dir] already holds Lora's data (e.g. of another PC, synced by the cloud service). */
-    fun hasData(dir: File): Boolean =
-        listOf("einstellungen.json", "secure_settings.dat").any { File(dir, it).isFile } ||
-            listOf("conversations", "documents", "livedocs").any { File(dir, it).isDirectory }
+    /** Whether [dir] already holds a Lora-Ordner (e.g. of another PC, synced by the cloud service), also one of before AP-16. */
+    fun hasData(dir: File): Boolean = LoraLayout.isData(File(dir, LoraLayout.DATA)) || LoraLayout.isData(dir)
 
     /**
-     * Uses [target] as data folder from the next start. With [copy] the current data is copied there first
-     * (files that already exist there are kept, so data of another computer is not overwritten – unless
-     * [overwriteOlder] and the existing file is older). null = back to the standard folder.
+     * Uses [target] as Lora-Ordner from the next start. With [copy] the whole current Lora-Ordner (files and data) is
+     * copied there first (files that already exist there are kept, so data of another computer is not overwritten –
+     * unless [overwriteOlder] and the existing file is older). null = back to Dokumente\\Lora. [sync]: the user puts it into
+     * a cloud folder (Einstellungen › Synchronisation).
      */
-    fun relocate(target: File?, copy: Boolean, overwriteOlder: Boolean = false) {
-        val dest0 = target ?: standard
-        if (copy && dest0.canonicalFile != data.canonicalFile) {
-            val from = data.canonicalFile
-            from.walkTopDown().onEnter { it == from || it.parentFile != from || it.name != "cache" }.filter { it.isFile }.forEach { f ->
-                val rel = f.canonicalFile.path.removePrefix(from.path).trimStart(File.separatorChar)
-                if (rel.startsWith("instance.") || rel.endsWith(".tmp") || rel in PER_PC) return@forEach
-                val dest = File(dest0, rel)
-                if (!dest.exists() || (overwriteOlder && dest.lastModified() < f.lastModified())) {
-                    dest.parentFile?.mkdirs()
-                    f.copyTo(dest, overwrite = true)
-                    dest.setLastModified(f.lastModified())
-                }
-            }
+    fun relocate(target: File?, copy: Boolean, overwriteOlder: Boolean = false, sync: Boolean? = null) {
+        val dest = (target ?: defaultRoot).absoluteFile
+        if (copy && dest.canonicalPath != root.canonicalPath) {
+            dest.mkdirs()
+            LoraLayout.copyTree(root, dest, overwriteOlder, skip = { rel -> rel.substringAfterLast('/') in PER_PC })
+            // Before AP-16 the data could lie outside the visible folder (fallback): copy it into .lora.
+            if (!data.canonicalPath.startsWith(root.canonicalPath)) LoraLayout.copyTree(data, File(dest, LoraLayout.DATA), overwriteOlder, skip = { rel -> rel in PER_PC })
         }
-        if (target == null) pointer.delete() else pointer.writeText(target.absolutePath)
+        // An existing folder of before AP-16 (another PC not updated yet): its data moves into .lora at the next start.
+        rootPointer.writeText(dest.path)
+        legacyPointer.delete()
+        when (sync) {
+            true -> runCatching { syncFlag.writeText("1") }
+            false -> syncFlag.delete()
+            null -> {}
+        }
     }
 
     /** Starts the app again (Windows) and ends this instance, e.g. after choosing another data folder. */
@@ -102,6 +184,6 @@ object Paths {
     /** Temporary files (Android: cacheDir). */
     val cache: File by lazy { File(data, "cache").apply { mkdirs() } }
 
-    /** Default folder for saving files the user exports (Documents\Lora, created on demand). */
-    val exports: File get() = File(File(home, "Documents").takeIf { it.isDirectory } ?: home, "Lora")
+    /** Default folder for saving files the user exports: the Lora-Ordner. */
+    val exports: File get() = root
 }

@@ -32,6 +32,10 @@ object MarkdownDocx {
         val media = mutableListOf<Media>()
         var landscape = false
         var drawingId = 10
+        /** Headings for an Inhaltsverzeichnis (AP-16). */
+        var headings: List<Pair<Int, String>> = emptyList()
+        /** Page margins in twips (AP-16). */
+        var margin = 1134
         val width: Int get() = if (landscape) TEXT_WIDTH_LANDSCAPE else TEXT_WIDTH
         val height: Int get() = if (landscape) TEXT_HEIGHT_LANDSCAPE else TEXT_HEIGHT
     }
@@ -133,7 +137,9 @@ object MarkdownDocx {
     private fun writeWith(file: File, title: String, markdown: String, notes: List<DocMarkup.Note>, theme: DocTheme, body: (Boolean) -> String) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
         val setup = DocMarkup.pageSetup(markdown)
-        val c = Ctx(notes, header = setup.hasHeader, footer = setup.pageNumbers || theme.footer.isNotBlank())
+        val c = Ctx(notes, header = setup.hasHeader, footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank())
+        c.margin = setup.marginTwips
+        c.headings = DocMarkup.tocEntries(markdown)
         current.set(c)
         try {
             // The body first: it collects the pictures that the package lists.
@@ -196,7 +202,8 @@ object MarkdownDocx {
         val rPr = "<w:rPr><w:color w:val=\"888888\"/><w:sz w:val=\"16\"/></w:rPr>"
         fun t(s: String) = "<w:r>$rPr<w:t xml:space=\"preserve\">${esc(s)}</w:t></w:r>"
         val content = buildString {
-            if (theme.footer.isNotBlank()) append(t(theme.footer + if (setup.pageNumbers) "   ·   " else ""))
+            val line = listOf(setup.footer, theme.footer).filter { it.isNotBlank() }.joinToString("   ·   ")
+            if (line.isNotBlank()) append(t(line + if (setup.pageNumbers) "   ·   " else ""))
             if (setup.pageNumbers) {
                 append(t("Seite "))
                 append(field("PAGE", "1", rPr))
@@ -331,7 +338,11 @@ object MarkdownDocx {
     /** A footnote mark in the text; Word numbers it and puts the note at the bottom of the page. */
     private fun noteRef(n: Int) = "<w:r><w:rPr><w:rStyle w:val=\"FootnoteReference\"/></w:rPr><w:footnoteReference w:id=\"$n\"/></w:r>"
 
-    private fun runs(text: String, base: RunStyle = RunStyle()): String {
+    private fun runs(text: String, base: RunStyle = RunStyle()): String =
+        // Formulas (AP-16) as Word formulas, the text around them as runs.
+        LatexOmml.split(text).joinToString("") { (t, math) -> if (math) LatexOmml.inline(t) else textRuns(t, base) }
+
+    private fun textRuns(text: String, base: RunStyle): String {
         val numbers = ctx.numbers
         return inlineSegments(text).joinToString("") { seg ->
             if (seg.code || numbers.isEmpty()) segRun(seg, base)
@@ -356,7 +367,7 @@ object MarkdownDocx {
     private fun StringBuilder.head(theme: DocTheme, withLogo: Boolean) {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
         append("<w:document xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\" ")
-        append("xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\"><w:body>")
+        append("xmlns:m=\"${LatexOmml.NS}\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\"><w:body>")
         if (withLogo) append(logoParagraph(theme))
         if (theme.style == DocStyle.TUD && theme.unit.isNotBlank()) {
             val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
@@ -376,7 +387,8 @@ object MarkdownDocx {
         if (c.header) append("<w:headerReference w:type=\"default\" r:id=\"rIdHeader\"/>")
         if (c.footer) append("<w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/>")
         append(if (landscape) "<w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\"/>" else "<w:pgSz w:w=\"11906\" w:h=\"16838\"/>")
-        append("<w:pgMar w:top=\"1134\" w:right=\"1134\" w:bottom=\"1134\" w:left=\"1134\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
+        val m = c.margin
+        append("<w:pgMar w:top=\"$m\" w:right=\"$m\" w:bottom=\"$m\" w:left=\"$m\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
         append("</w:sectPr>")
     }
 
@@ -484,11 +496,33 @@ object MarkdownDocx {
         }
         when {
             DocMarkup.isPageBreak(text) -> append("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>")
+            DocMarkup.isToc(text) -> toc()
+            LatexOmml.display(text) != null -> append(LatexOmml.paragraph(LatexOmml.display(text)!!))
             DocMarkup.isComment(text) -> {}
             else -> {
                 val img = DocMarkup.image(text)
                 if (img != null) append(imageParagraph(img)) else append(para(runs(text), SPACING))
             }
+        }
+    }
+
+    /**
+     * Inhaltsverzeichnis (AP-16) as Word field (TOC, levels 1–3, linked): it lists the headings at once; Word fills in
+     * the page numbers with „Felder aktualisieren“ (F9).
+     */
+    private fun StringBuilder.toc() {
+        val entries = ctx.headings
+        val rPr = ""
+        append(para(run("Inhaltsverzeichnis", RunStyle(bold = true, size = 28)), "<w:spacing w:before=\"120\" w:after=\"120\"/>"))
+        val begin = "<w:r>$rPr<w:fldChar w:fldCharType=\"begin\" w:dirty=\"true\"/></w:r><w:r>$rPr<w:instrText xml:space=\"preserve\"> TOC \\o \"1-3\" \\h \\z \\u </w:instrText></w:r><w:r>$rPr<w:fldChar w:fldCharType=\"separate\"/></w:r>"
+        val end = "<w:r>$rPr<w:fldChar w:fldCharType=\"end\"/></w:r>"
+        if (entries.isEmpty()) {
+            append(para(begin + run("(Überschriften erscheinen hier)") + end))
+            return
+        }
+        entries.forEachIndexed { i, (level, text) ->
+            val pPr = "<w:pStyle w:val=\"TOC$level\"/><w:ind w:left=\"${(level - 1) * 360}\"/><w:spacing w:after=\"40\"/>"
+            append(para((if (i == 0) begin else "") + run(text) + (if (i == entries.lastIndex) end else ""), pPr))
         }
     }
 

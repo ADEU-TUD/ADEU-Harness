@@ -31,6 +31,8 @@ data class FileMeta(
     /** Folder inside the app, e.g. „Lehre/WiSe 2026“ (documents and knowledge; files on disk keep their real folder). */
     val folder: String = "",
     val tags: List<String> = emptyList(),
+    /** Marked with a star („Markiert“ in the Dateien tab, AP-16). */
+    val starred: Boolean = false,
 )
 
 enum class FileSource(val label: String) { APP("In der App"), DISK("Ablageort"), KNOWLEDGE("Wissenssammlung") }
@@ -97,7 +99,7 @@ class FileLibrary(private val c: AppContainer, context: Context) {
 
     /** Roots of files on disk: storage locations of the editor and project folders (name, directory). */
     fun roots(): List<Pair<String, File>> {
-        val vaults = c.docs.vaults.value.map { it.name to File(it.path) }
+        val vaults = listOf(LORA to c.drive.root) + c.docs.vaults.value.map { it.name to File(it.path) }
         val projects = c.folders.current.mapNotNull { f -> io.github.thepytales.llmhub.agent.WorkFolder.of(c, f.id)?.let { (folder, dir) -> "Projekt ${folder.name}" to dir } }
         return (vaults + projects).filter { (_, d) -> d.isDirectory }.distinctBy { it.second.absolutePath }
     }
@@ -108,17 +110,21 @@ class FileLibrary(private val c: AppContainer, context: Context) {
         val docs = c.docs.current.map { d ->
             val key = "doc:${d.id}"
             val m = metas[key]
+            val real = c.docs.realFile(d)
+            val folder = real?.parentFile?.let { c.drive.rel(it) } ?: m?.folder.orEmpty()
             FileItem(
-                key, d.title, FileKind.ofDoc(d.docKind), FileSource.APP, DOCUMENTS, m?.folder.orEmpty(), c.docs.vault(d.vault)?.name ?: FileSource.APP.label,
-                d.updatedAt, d.tabs.sumOf { it.markdown.length }.toLong(), m?.tags.orEmpty(), docId = d.id, versions = d.versions.size,
+                key, d.title, FileKind.ofDoc(d.docKind), FileSource.APP, if (real != null) LORA else DOCUMENTS, folder,
+                if (real != null) LORA else c.docs.vault(d.vault)?.name ?: FileSource.APP.label,
+                d.updatedAt, d.tabs.sumOf { it.markdown.length }.toLong(), (m?.tags.orEmpty() + (real?.let { metas[c.drive.metaKey(it)]?.tags }.orEmpty())).distinct(),
+                path = real?.absolutePath, docId = d.id, versions = d.versions.size,
             )
         }
         // Mirrors of editor documents in a storage location are the documents themselves.
         val mirrors = c.docs.current.mapNotNull { d -> d.mirror?.let { m -> c.docs.vault(d.vault)?.let { File(it.path, m).absolutePath } } }.toSet() +
-            c.docs.current.mapNotNull { it.file }.toSet()
+            c.docs.current.mapNotNull { it.file }.toSet() + c.docs.current.mapNotNull { d -> c.docs.realFile(d)?.absolutePath }.toSet()
         val disk = roots().flatMap { (name, root) ->
             walk(root).filter { it.absolutePath !in mirrors }.map { f ->
-                val key = "file:${f.absolutePath}"
+                val key = c.drive.metaKey(f)
                 FileItem(
                     key, f.name, FileKind.ofName(f.name), FileSource.DISK, name, f.parentFile?.relativeTo(root)?.path?.replace('\\', '/').orEmpty(), name,
                     f.lastModified(), f.length(), metas[key]?.tags.orEmpty(), path = f.absolutePath,
@@ -213,6 +219,9 @@ class FileLibrary(private val c: AppContainer, context: Context) {
 
     private fun stamp(f: File) = "${f.lastModified()} ${f.length()}"
 
+    /** The text of a file on disk (read once, then from the cache) – for previews in the Dateien tab. */
+    fun textOf(f: File): String? = runCatching { cachedText(f) }.getOrNull()
+
     private fun cachedText(f: File): String? {
         val key = f.absolutePath + "|" + stamp(f)
         remembered(key)?.let { return it.ifEmpty { null } }
@@ -268,6 +277,8 @@ class FileLibrary(private val c: AppContainer, context: Context) {
     companion object {
         /** The place of the editor's documents in the folder tree. */
         const val DOCUMENTS = "Dokumente"
+        /** The Lora-Ordner in the folder tree (AP-16). */
+        const val LORA = "Lora-Ordner"
         const val MAX_FILES = 5000
         private const val MEMORY_CHARS = 25_000_000L
         private const val MAX_BYTES = 40L * 1024 * 1024

@@ -32,7 +32,8 @@ object LoraSense {
             r == "templates" -> "TU Vorlagen"
             r == "literature" -> "Literatur"
             r == "transcripts" || r.startsWith("transcript") -> "Transkription"
-            r == "docs" || r.startsWith("doc/") -> "Dokumente"
+            r == "docs" || r == "files" -> "Dateien"
+            r.startsWith("doc/") -> "Dokument"
             r == "images" -> "Bilder erzeugen"
             r == "tasks" -> "Geplante Aufgaben"
             r == "pdf" -> "PDF-Werkzeugkasten"
@@ -89,7 +90,12 @@ object LoraSense {
                 Suggestion("Wie sicher ist der Tresor?", "Wie funktioniert der Tresor?"),
                 Suggestion("Lokale Modelle", "Modelle auf diesem Gerät", "area.local"),
             )
-            r == "docs" || r.startsWith("doc/") -> listOf(
+            r == "docs" || r == "files" -> listOf(
+                Suggestion("Wo liegen meine Dateien?", "Erklär mir den Lora-Ordner und wie ich ihn verschiebe"),
+                Suggestion("Datei finden", "Wie finde ich eine Datei über ihren Inhalt?"),
+            )
+            r.startsWith("doc/") -> listOf(
+                Suggestion("Änderungen nachverfolgen", "Wie verfolge ich Änderungen im Dokument nach?"),
                 Suggestion("Dokumente & Logos", "Dokumente & Logos", "settings.documents"),
                 Suggestion("Absender ändern", "Absender", "option.documents.sender"),
             )

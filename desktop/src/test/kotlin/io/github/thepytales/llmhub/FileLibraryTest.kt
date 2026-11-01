@@ -59,13 +59,13 @@ class FileLibraryTest {
         assertEquals("Vertraege", contract.folder)
         assertEquals(FileKind.WORD, contract.kind)
         val seminar = items.first { it.docId == doc.id }
-        assertEquals(FileLibrary.DOCUMENTS, seminar.place)
+        // AP-16: documents are files in the Lora-Ordner, their folder is the real one.
+        assertEquals(FileLibrary.LORA, seminar.place)
+        assertEquals("", seminar.folder)
         assertEquals(FileKind.KNOWLEDGE, items.first { it.name == "Modulhandbuch" }.kind)
-        // Folders and Schlagwörter of documents stay in the app.
-        c.fileLibrary.setFolder(seminar.key, " Lehre / WiSe 2026 ")
+        // Schlagwörter of documents stay in the app.
         c.fileLibrary.setTags(seminar.key, listOf("#Lehre", "lehre", " Didaktik "))
         val again = c.fileLibrary.items().first { it.docId == doc.id }
-        assertEquals("Lehre/WiSe 2026", again.folder)
         assertEquals(listOf("Lehre", "Didaktik"), again.tags)
         assertEquals(listOf("Lehre", "Didaktik"), c.fileLibrary.allTags(c.fileLibrary.items()))
         // „Zuletzt bearbeitet“: newest first.

@@ -23,9 +23,9 @@ object SyncSession {
         SyncGuard.Me(pc = computerName(), id = id, user = System.getProperty("user.name").orEmpty(), app = BuildConfig.VERSION_NAME)
     }
 
-    /** The data folder is a chosen one (and no test runs): only then is there something to guard. */
+    /** The Lora-Ordner lies in a cloud folder (and no test runs): only then is there something to guard. */
     val active: Boolean
-        get() = Paths.chosen != null && System.getProperty("adeu.data").isNullOrBlank()
+        get() = Paths.synced
 
     /** When this PC opened the folder (0 = not yet). */
     @Volatile

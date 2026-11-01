@@ -11,6 +11,8 @@ object SlideDeck {
         TITLE("Titelfolie"), SECTION("Abschnitt"), CONTENT("Inhalt"), TWO_COLUMNS("Zwei Spalten"), QUOTE("Zitat"),
         IMAGE_TEXT("Bild + Text", "bild-text"), IMAGE("Vollbild-Bild", "bild"), COMPARISON("Vergleich", "vergleich"),
         TABLE("Tabelle", "tabelle"), CHART("Diagramm", "diagramm"), AGENDA("Agenda", "agenda"), END("Abschluss", "abschluss"),
+        /** Frei gestalten (AP-16): only the title (optional) and freely placed elements. */
+        FREE("Frei", "frei"),
         ;
 
         /** Whether the layout shows the picture of the slide. */
@@ -30,7 +32,34 @@ object SlideDeck {
         val imageAlt: String = "",
         /** Picture on the left of the text (Bild + Text); otherwise on the right. */
         val imageLeft: Boolean = false,
+        /** Freely placed text boxes, pictures and shapes (AP-16), drawn over the layout. */
+        val elements: List<SlideElement> = emptyList(),
+        /** Masterfolie of the deck (kept on the first slide). */
+        val master: SlideMaster? = null,
     )
+
+    private val ELEMENT = Regex("^\\s*<!--\\s*element\\s*:\\s*(\\{.*\\})\\s*-->\\s*$")
+    private val MASTER_LINE = Regex("^\\s*<!--\\s*master\\s*:\\s*(\\{.*\\})\\s*-->\\s*$")
+    private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = false }
+
+    /** Whether [line] is an element or master line of free design (left out of the slide's text). */
+    fun isDesignLine(line: String) = ELEMENT.matches(line) || MASTER_LINE.matches(line)
+
+    /** The elements of a slide's Markdown. */
+    fun elementsOf(text: String): List<SlideElement> = text.lines().mapNotNull { l ->
+        ELEMENT.find(l)?.groupValues?.get(1)?.let { runCatching { json.decodeFromString(SlideElement.serializer(), it) }.getOrNull() }
+    }
+
+    /** The Masterfolie of a deck's Markdown, if one is set. */
+    fun masterOf(markdown: String): SlideMaster? = markdown.lineSequence().firstNotNullOfOrNull { l ->
+        MASTER_LINE.find(l)?.groupValues?.get(1)?.let { runCatching { json.decodeFromString(SlideMaster.serializer(), it) }.getOrNull() }
+    }
+
+    private fun safeJson(s: String) = s.replace("-->", "--\\u003e")
+
+    internal fun elementLine(e: SlideElement) = "<!-- element: " + safeJson(json.encodeToString(SlideElement.serializer(), e)) + " -->"
+
+    internal fun masterLine(m: SlideMaster) = "<!-- master: " + safeJson(json.encodeToString(SlideMaster.serializer(), m)) + " -->"
 
     private val SEPARATOR = Regex("^\\s*-{3,}\\s*$")
     private val NOTES = Regex("^\\s*(Notizen|Notiz|Sprechernotizen|Sprechertext|Notes)\\s*:\\s*", RegexOption.IGNORE_CASE)
@@ -48,13 +77,14 @@ object SlideDeck {
         "diagramm", "chart" -> Layout.CHART to false
         "agenda", "gliederung" -> Layout.AGENDA to false
         "abschluss", "ende", "danke", "end" -> Layout.END to false
+        "frei", "free", "blank" -> Layout.FREE to false
         else -> null
     }
 
     /** The layout marker line of a slide, or null for layouts recognized from their content. */
     internal fun marker(layout: Layout, imageLeft: Boolean): String? = when (layout) {
         Layout.IMAGE_TEXT -> if (imageLeft) "<!-- layout: bild-links -->" else "<!-- layout: bild-text -->"
-        Layout.IMAGE, Layout.COMPARISON, Layout.TABLE, Layout.CHART, Layout.AGENDA, Layout.END -> "<!-- layout: ${layout.key} -->"
+        Layout.IMAGE, Layout.COMPARISON, Layout.TABLE, Layout.CHART, Layout.AGENDA, Layout.END, Layout.FREE -> "<!-- layout: ${layout.key} -->"
         else -> null
     }
 
@@ -68,7 +98,24 @@ object SlideDeck {
         return chunks.map { it.toString().trim() }.filter { it.isNotEmpty() }.mapIndexed { i, t -> slide(t, i == 0) }
     }
 
+    /** The Markdown of each slide (between the "---" lines), unchanged. */
+    fun split(markdown: String): List<String> {
+        val chunks = mutableListOf(StringBuilder())
+        var inCode = false
+        for (line in markdown.replace("\r\n", "\n").lines()) {
+            if (line.trimStart().startsWith("```")) inCode = !inCode
+            if (!inCode && SEPARATOR.matches(line)) chunks += StringBuilder() else chunks.last().append(line).append('\n')
+        }
+        return chunks.map { it.toString().trim() }.filter { it.isNotEmpty() }
+    }
+
     private fun slide(text: String, first: Boolean): Slide {
+        val elements = elementsOf(text)
+        val master = if (first) masterOf(text) else null
+        return slideText(text.lines().filterNot { isDesignLine(it) }.joinToString("\n"), first).copy(elements = elements, master = master)
+    }
+
+    private fun slideText(text: String, first: Boolean): Slide {
         var lines = text.lines()
         // Layout marker and the (first) picture line.
         val marked = lines.firstNotNullOfOrNull { l -> LAYOUT.find(l)?.groupValues?.get(1)?.let(::layoutOf) }
@@ -123,6 +170,8 @@ object SlideDeck {
             if (body.isNotBlank()) append("\n\n").append(body)
             if (s.layout == Layout.TWO_COLUMNS || s.layout == Layout.COMPARISON) append("\n\n|||\n\n").append(s.right.trim().ifBlank { "-" })
         }
+        if (first) s.master?.let { append("\n\n").append(masterLine(it)) }
+        s.elements.forEach { append("\n\n").append(elementLine(it)) }
         if (s.notes.isNotBlank()) append("\n\nNotizen: ").append(s.notes.trim())
     }
 
@@ -152,6 +201,7 @@ object SlideDeck {
         )
         Layout.AGENDA -> Slide("Agenda", "", layout = layout)
         Layout.END -> Slide("Vielen Dank!", "Fragen und Anmerkungen gern an:\nName · E-Mail", layout = layout)
+        Layout.FREE -> Slide("", "", layout = layout, elements = listOf(SlideElement(kind = "text", x = 3.0, y = 3.0, w = 20.0, h = 3.0, text = "Textfeld", size = 32, bold = true)))
     }
 
     /** Heading of a column ("### Vorher" in the first line) and the rest of it. */
@@ -266,3 +316,40 @@ object SlideDeck {
         return splitFull(slides).first + Slide("Vielen Dank!", "Fragen und Diskussion", layout = Layout.END)
     }
 }
+
+/**
+ * A freely placed element of a slide (AP-16 Stufe 3): text box, picture or shape, in centimetres on the 33,87 × 19,05 cm
+ * slide (like PowerPoint). Colours as #RRGGBB.
+ */
+@kotlinx.serialization.Serializable
+data class SlideElement(
+    /** „text“, „bild“ or „form“. */
+    val kind: String = "text",
+    val x: Double = 4.0,
+    val y: Double = 5.0,
+    val w: Double = 12.0,
+    val h: Double = 3.0,
+    val text: String = "",
+    /** Picture: path relative to the document („Bilder/…“), absolute or data URL. */
+    val src: String = "",
+    /** Shape: „rechteck“, „abgerundet“, „ellipse“, „pfeil“, „linie“. */
+    val shape: String = "rechteck",
+    /** Fill (shapes, text boxes); "" = none. */
+    val fill: String = "",
+    /** Text or line colour. */
+    val color: String = "#00008C",
+    /** Font size in pt. */
+    val size: Int = 20,
+    val bold: Boolean = false,
+    /** „links“, „mitte“, „rechts“. */
+    val align: String = "links",
+)
+
+/** Masterfolie (AP-16 Stufe 3): background, accent and footer of every slide of the deck; logo on or off. */
+@kotlinx.serialization.Serializable
+data class SlideMaster(
+    val background: String = "",
+    val accent: String = "",
+    val footer: String = "",
+    val logo: Boolean = true,
+)

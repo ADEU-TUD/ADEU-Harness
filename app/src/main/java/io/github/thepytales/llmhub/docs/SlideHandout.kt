@@ -193,6 +193,25 @@ object SlideHandout {
                 body(s.body, false, 1.6, 4.0, 30.6, 13.0)
                 chrome()
             }
+            SlideDeck.Layout.FREE -> {
+                if (s.title.isNotBlank()) heading(s.title)
+                if (s.body.isNotBlank()) body(s.body, false, 1.6, 4.0, 30.6, 13.0)
+                chrome()
+            }
+        }
+        // Frei gestalten (AP-16): elements over the layout.
+        s.elements.forEach { el ->
+            val color = el.color.ifBlank { "#00305D" }
+            when (el.kind) {
+                "bild" -> picture(el.src, el.text, el.x, el.y, el.w, el.h)
+                "form" -> {
+                    val fill = el.fill.ifBlank { "#00305D" }
+                    val radius = when (el.shape) { "ellipse" -> "border-radius:50%;"; "abgerundet" -> "border-radius:12%;"; else -> "" }
+                    val styleCss = if (el.shape == "linie") "border-top:2px solid $color;" else "background:$fill;$radius"
+                    box(el.x, el.y, el.w, el.h, styleCss + text(el.size, if (el.color.isBlank()) "#fff" else color, bold = el.bold), inline(el.text))
+                }
+                else -> box(el.x, el.y, el.w, el.h, (if (el.fill.isNotBlank()) "background:${el.fill};" else "") + text(el.size, color, bold = el.bold), el.text.lines().joinToString("<br>") { inline(it) })
+            }
         }
         val bg = if (dark) BLUE else "#fff"
         return "<div class=\"slide\" style=\"width:${widthMm}mm;height:${"%.2f".format(java.util.Locale.ROOT, widthMm * SLIDE_H / SLIDE_W)}mm;background:$bg\">$sb</div>"

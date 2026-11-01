@@ -51,7 +51,8 @@ class DocumentTools(
     /** Living documents (editor with versions and comments) the Markdown documents are kept in. */
     val docs: DocsStore,
 ) : ToolProvider {
-    val folder = File(context.filesDir, "documents")
+    /** „Erstellt“ in the Lora-Ordner (AP-16): everything made in a chat. */
+    val folder = File(io.github.thepytales.llmhub.data.LoraRoot.dir(context), io.github.thepytales.llmhub.data.LoraDrive.CREATED)
 
     /** Storage location (vault id) for editor documents made in a chat of this project – its working folder, if it has one. */
     var projectVault: (folderId: String?) -> String? = { null }

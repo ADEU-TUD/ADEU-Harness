@@ -21,12 +21,21 @@ import java.util.Locale
 object DocMarkup {
     // ── Page setup ─────────────────────────────────────────────────────────────────────────────────────────
 
-    /** Header and footer: "Seite X von Y" ([pageNumbers]), today's date and a header line. */
-    data class PageSetup(val pageNumbers: Boolean = true, val date: Boolean = false, val header: String = "") {
+    /**
+     * Page of a document: page numbers, date and header line, footer line and margins (AP-16: „normal“ 2 cm, „schmal“
+     * 1,27 cm, „breit“ 2,54 cm).
+     */
+    data class PageSetup(val pageNumbers: Boolean = true, val date: Boolean = false, val header: String = "", val footer: String = "", val margins: String = "normal") {
         val hasHeader: Boolean get() = date || header.isNotBlank()
+
+        /** Margins in twentieths of a point (Word). */
+        val marginTwips: Int get() = when (margins) { "schmal" -> 720; "breit" -> 1440; else -> 1134 }
+
+        /** Margins in millimetres (PDF, page view). */
+        val marginMm: Int get() = when (margins) { "schmal" -> 13; "breit" -> 25; else -> 20 }
     }
 
-    private val SETTING = Regex("^\\s*<!--\\s*(seitenzahlen|datum|kopfzeile)\\s*:\\s*(.*?)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
+    private val SETTING = Regex("^\\s*<!--\\s*(seitenzahlen|datum|kopfzeile|fusszeile|fußzeile|raender|ränder)\\s*:\\s*(.*?)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
 
     private fun on(v: String) = v.trim().lowercase() !in setOf("aus", "nein", "off", "false", "0", "no")
 
@@ -38,6 +47,8 @@ object DocMarkup {
             s = when (m.groupValues[1].lowercase()) {
                 "seitenzahlen" -> s.copy(pageNumbers = on(v))
                 "datum" -> s.copy(date = on(v))
+                "fusszeile", "fußzeile" -> s.copy(footer = v.trim())
+                "raender", "ränder" -> s.copy(margins = v.trim().lowercase().takeIf { it in setOf("normal", "schmal", "breit") } ?: "normal")
                 else -> s.copy(header = v.trim())
             }
         }
@@ -51,6 +62,8 @@ object DocMarkup {
             if (!setup.pageNumbers) add("<!-- seitenzahlen: aus -->")
             if (setup.date) add("<!-- datum: an -->")
             if (setup.header.isNotBlank()) add("<!-- kopfzeile: ${setup.header.replace("-->", "").replace("\n", " ").trim()} -->")
+            if (setup.footer.isNotBlank()) add("<!-- fusszeile: ${setup.footer.replace("-->", "").replace("\n", " ").trim()} -->")
+            if (setup.margins != "normal") add("<!-- raender: ${setup.margins} -->")
         }
         return if (lines.isEmpty()) "$body\n" else body + "\n\n" + lines.joinToString("\n\n") + "\n"
     }
@@ -66,6 +79,27 @@ object DocMarkup {
 
     /** A line (or block) that is only an HTML comment: never shown in exported documents. */
     fun isComment(text: String): Boolean = text.isNotBlank() && text.lines().all { it.isBlank() || COMMENT.matches(it) }
+
+    /** Inhaltsverzeichnis (AP-16): a line „[Inhaltsverzeichnis]“ (also „[TOC]“) – the headings, filled in by the exports. */
+    const val TOC = "[Inhaltsverzeichnis]"
+
+    fun isToc(text: String): Boolean = text.trim().lowercase() in setOf("[inhaltsverzeichnis]", "[toc]", "[[_toc_]]", "[[toc]]")
+
+    /** The headings (level 1–3, without the document title) an Inhaltsverzeichnis lists. */
+    fun tocEntries(markdown: String): List<Pair<Int, String>> {
+        var inCode = false
+        val out = mutableListOf<Pair<Int, String>>()
+        var titleSeen = false
+        for (line in markdown.lineSequence()) {
+            if (line.trimStart().startsWith("```")) inCode = !inCode
+            if (inCode) continue
+            val m = Regex("^(#{1,3})\\s+(.+)$").find(line.trim()) ?: continue
+            val level = m.groupValues[1].length
+            if (level == 1 && !titleSeen) { titleSeen = true; continue }
+            out += level to m.groupValues[2].trim().replace(Regex("\\*\\*|__|\\*|`"), "")
+        }
+        return out
+    }
 
     fun isPageBreak(text: String): Boolean = text.trim().let { it == "\\newpage" || it == "\\pagebreak" || it.equals("<!-- seitenumbruch -->", true) }
 

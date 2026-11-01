@@ -234,6 +234,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     var tabId by rememberSaveable(doc?.id) { mutableStateOf(doc?.tabs?.firstOrNull()?.id) }
     var mode by rememberSaveable(doc?.id) { mutableStateOf(TextMode.EDIT) }
     var panel by rememberSaveable { mutableStateOf(DocPanel.NONE) }
+    var loraShown by rememberSaveable { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
     var commentOn by remember { mutableStateOf<String?>(null) }
     var renaming by remember { mutableStateOf(false) }
@@ -248,6 +249,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     /** ✨ menu open for this passage. */
     var aiMenuFor by remember { mutableStateOf<String?>(null) }
     var pageSetup by remember { mutableStateOf(false) }
+    var stopTracking by remember { mutableStateOf(false) }
+    var spellLocal by remember { mutableStateOf(false) }
     var citing by remember { mutableStateOf(false) }
     var spellFor by remember { mutableStateOf<String?>(null) }
     var deckFromDoc by remember { mutableStateOf(false) }
@@ -289,7 +292,9 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     val versions = doc?.versions.orEmpty()
     val aiAt = versions.indexOfLast { it.byAi }
     val lastVersion = versions.getOrNull(aiAt)
-    val review = remember(versions.size, tabId, tab?.markdown) {
+    val trackBase = tab?.let { t -> doc?.trackBase?.get(t.id) }
+    val review = if (trackBase != null) remember(trackBase, tab?.markdown) { io.github.thepytales.llmhub.docs.Tracking.review(trackBase, tab!!.markdown) }
+    else remember(versions.size, tabId, tab?.markdown) {
         if (aiAt >= 1 && tab != null && versions.drop(aiAt + 1).all { it.note.startsWith("KI-Änderung") }) {
             val before = versions[aiAt - 1].tabs.firstOrNull { it.id == tab.id }?.markdown.orEmpty()
             AiReview.compare(before.replace(EMPTY_BLOCK, ""), tab.markdown.replace(EMPTY_BLOCK, ""))
@@ -319,6 +324,17 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         val t = tab ?: return
         fun set(list: List<String>, note: String) = save(note = note) { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = DocBlocks.join(list)) else it }) }
         editing.index = null
+        // Änderungen nachverfolgen: accepting moves the change into the base.
+        if (trackBase != null) {
+            fun base(next: String, note: String) = save(note = note) { d -> d.copy(trackBase = d.trackBase.orEmpty() + (t.id to next)) }
+            when (action) {
+                is ReviewAction.Accept -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, accepted = action.change), "Änderung angenommen")
+                is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), "Änderung abgelehnt")
+                is ReviewAction.Restore -> set(AiReview.restore(blocks, action.removed), "Löschung abgelehnt")
+                is ReviewAction.Drop -> base(io.github.thepytales.llmhub.docs.Tracking.baseAfter(trackBase, t.markdown, dropped = action.removed), "Löschung angenommen")
+            }
+            return
+        }
         when (action) {
             is ReviewAction.Accept -> blocks.getOrNull(action.change.index)?.let { acceptedAi += it }
             is ReviewAction.Reject -> set(AiReview.reject(blocks, action.change), "KI-Änderung abgelehnt")
@@ -395,6 +411,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
         val narrow = maxWidth < 600.dp
         val wide = maxWidth > 980.dp
+        // Lora sits beside the document on wide screens from the start (AP-16, like Google Docs); closable.
+        LaunchedEffect(doc?.id, wide) { if (wide && doc != null && !loraShown && panel == DocPanel.NONE && (kind == DocKind.DOC || kind == DocKind.MARKDOWN || kind == DocKind.SLIDES)) { panel = DocPanel.AI; loraShown = true } }
         val undoRedo: @Composable () -> Unit = {
             if (doc != null && narrow) {
                 ToolIcon(Icons.AutoMirrored.Outlined.Undo, "Rückgängig (Strg+Z)", enabled = undo.isNotEmpty()) { undoOnce() }
@@ -481,6 +499,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             if (kind == DocKind.DOC) {
                                 DropdownMenuItem(text = { Text("Seite einrichten …") }, onClick = { more = false; pageSetup = true })
                                 DropdownMenuItem(text = { Text("Literatur einfügen …") }, onClick = { more = false; citing = true })
+                                DropdownMenuItem(text = { Text("Rechtschreibung prüfen") }, onClick = { more = false; editing.index = null; spellLocal = true })
                                 DropdownMenuItem(text = { Text("Rechtschreibung prüfen (KI)") }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null) }, onClick = {
                                     more = false
                                     spellFor = selection()?.takeIf { it.isNotBlank() && editing.selection != null } ?: markdown.replace(EMPTY_BLOCK, "")
@@ -489,6 +508,15 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             }
                             DropdownMenuItem(text = { Text("Suchen & Ersetzen") }, leadingIcon = { Icon(Icons.Outlined.FindReplace, null) }, onClick = { more = false; findOpen = true })
                             DropdownMenuItem(text = { Text("Versionsverlauf") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { more = false; showHistory = true })
+                            if (kind == DocKind.DOC || kind == DocKind.MARKDOWN) DropdownMenuItem(
+                                text = { Text(if (doc.trackBase != null) "Änderungen nicht mehr nachverfolgen" else "Änderungen nachverfolgen") },
+                                leadingIcon = { Icon(Icons.Outlined.History, null) },
+                                onClick = {
+                                    more = false
+                                    if (doc.trackBase == null) save(note = "Änderungen nachverfolgen an") { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
+                                    else stopTracking = true
+                                },
+                            )
                             if (kind == DocKind.DOC) DropdownMenuItem(text = { Text("Word mit Änderungsverfolgung …") }, onClick = { more = false; showHistory = true })
                             HorizontalDivider()
                             DropdownMenuItem(
@@ -562,7 +590,13 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         editing.index = null
                         tabId = new.id
                     }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = if (kind == DocKind.SHEET) "Tabellenblatt hinzufügen" else "Tab hinzufügen", modifier = Modifier.size(18.dp)) }
-                    if (aiChanged.isNotEmpty()) {
+                    if (doc?.trackBase != null) {
+                        Spacer(Modifier.width(8.dp))
+                        val open = io.github.thepytales.llmhub.docs.Tracking.pending(doc)
+                        StatusPill(if (open == 0) "Änderungen werden nachverfolgt" else "$open Änderungen offen · alle annehmen", PillTone.ACCENT, Modifier.clickable(enabled = open > 0) {
+                            save(note = "Alle Änderungen angenommen") { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) }
+                        })
+                    } else if (aiChanged.isNotEmpty()) {
                         Spacer(Modifier.width(8.dp))
                         StatusPill("${aiChanged.size} Änderungen der KI markiert ✕", PillTone.ACCENT, Modifier.clickable { dismissedAi = lastVersion?.id })
                     }
@@ -636,7 +670,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 onAskAi = { text -> if (text.isBlank() || editing.index == null) panel = DocPanel.AI else aiMenuFor = text },
                                 footer = if (doc == null) "" else "${doc.words} Wörter · ca. ${(doc.words / 200).coerceAtLeast(1)} Min. Lesezeit · ${doc.versions.size} Versionen" +
                                     if (mode == TextMode.EDIT) " · Tippen zum Bearbeiten · „/“ für Formate · Strg+E: KI" else "",
-                                review = review, onReview = ::reviewAction,
+                                review = review, onReview = ::reviewAction, tracking = trackBase != null,
                             )
                         }
                     }
@@ -693,6 +727,26 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
             }
         }
     }
+    if (spellLocal && doc != null) SpellCheckDialog(
+        blocks,
+        onReplace = { i, b -> setBlocks(blocks.toMutableList().apply { if (i in indices) set(i, b) }) },
+        onDismiss = { spellLocal = false },
+        onAskAi = { spellFor = markdown.replace(EMPTY_BLOCK, "") },
+    )
+    if (stopTracking && doc != null) AlertDialog(
+        onDismissRequest = { stopTracking = false },
+        title = { Text("Änderungen nicht mehr nachverfolgen") },
+        text = { Text(if (io.github.thepytales.llmhub.docs.Tracking.pending(doc) == 0) "Es sind keine Änderungen offen." else "Was soll mit den offenen Änderungen passieren?") },
+        confirmButton = {
+            TextButton(onClick = { stopTracking = false; save(note = "Alle Änderungen angenommen") { d -> d.copy(trackBase = null) } }) { Text("Alle annehmen") }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                stopTracking = false
+                save(note = "Alle Änderungen abgelehnt") { d -> d.copy(tabs = d.tabs.map { t -> d.trackBase?.get(t.id)?.let { b -> t.copy(markdown = b) } ?: t }, trackBase = null) }
+            }) { Text("Alle ablehnen") }
+        },
+    )
     if (pageSetup && tab != null) PageSetupDialog(DocMarkup.pageSetup(tab.markdown), onDismiss = { pageSetup = false }) { setup ->
         pageSetup = false
         editing.index = null

@@ -490,10 +490,33 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     *Mehr › Mail & Kalender* (dort auch Verbindung, Termine von heute und morgen, Starts für Lora, Regeln). Mails gehen
     pseudonymisiert an das Modell, wenn die Pseudonymisierung an ist. Modus *Postfach* (`/Postfach`).
   - Je nach Virenscanner fragt Outlook einmal „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“ – dort zulassen.
-- **Dateien** (AP-18, *Mehr › Dateien*): alles, was die App als Datei kennt, an einem Ort – Dokumente des Editors,
-  Dateien in **Ablageorten** und **Projektordnern** (alle Formate) und die **Wissenssammlung**.
-  - **Zuletzt bearbeitet** oben, darunter die **Orte** mit ihren Ordnern (Dokumente bekommen Ordner wie „Lehre/WiSe
-    2026“ über *In Ordner …*, Dateien auf der Platte behalten ihre echten Ordner).
+- **Dateien** (AP-16 Stufe 0, Tab *Dateien* oben in der Seitenleiste, Strg+D) – wie Google Drive: der **Lora-Ordner**
+  mit den festen Ordnern **Hochgeladen** (eine Kopie jeder Datei, die in einen Chat kommt – dieselbe Datei nur einmal,
+  nie aus Tresor-Chats) und **Erstellt** (alles, was die KI im Chat macht) und eigenen Ordnern.
+  - **Raster mit Vorschaubild** (erste Seite, Folie, Tabelle, PDF-Seite, Foto) oder **Liste**, sortiert nach Name,
+    Geändert, Typ oder Größe; Pfadleiste; links (Handy: oben) *Zuletzt · Markiert · Meine Dateien · Hochgeladen ·
+    Erstellt · Orte · Papierkorb*.
+  - **Großes „+“** unten rechts: Ordner, Hochladen, Dokument, Präsentation, Tabelle, Markdown, aus Vorlage, mit KI – neue
+    Dateien landen im geöffneten Ordner.
+  - **Umbenennen, Verschieben** (Windows: auf einen Ordner, die Pfadleiste oder links ziehen; überall *Verschieben nach …*),
+    Kopie, **Markieren** (Stern), Schlagwörter, Mehrfachauswahl (lange drücken), **Papierkorb** (30 Tage, Wiederherstellen).
+    Aus dem Explorer auf das Fenster gezogene Dateien landen im geöffneten Ordner.
+  - **Aus dem Chat**: Dateien zeigen „aus „Chat““ (Klick öffnet ihn), *Chat-Menü › Dateien dieses Chats* zeigt alles, was
+    dort hochgeladen und erstellt wurde – auch nach dem Verschieben (die Chats behalten den alten Pfad, Lora findet die Datei).
+  - **Orte**: Ablageorte und Projektordner bleiben verknüpft; ihre Dateien lassen sich hier jetzt auch umbenennen,
+    verschieben und löschen.
+  - **Lora-Ordner** (Windows): **ein Ordner für alles wie ein Obsidian-Vault** – standardmäßig `Dokumente\Lora`, versteckt
+    darin `.lora` mit Chats und Einstellungen. *⋮ › Lora-Ordner …* oder *Einstellungen › Windows*: **Verschieben …**
+    (alles wird kopiert, Lora startet dort neu) oder **Anderen Lora-Ordner wählen …**; selbst im Explorer verschoben, fragt
+    Lora beim Start, wo er jetzt liegt. API- und Tresor-Schlüssel bleiben am PC. Beim ersten Start mit 1.0.x zieht Lora
+    die Daten aus `%APPDATA%\ADEU LLM` dorthin um (ein selbst gewählter Datenordner wird selbst zum Lora-Ordner);
+    erstellte Dateien kommen nach *Erstellt*, gemerkte PDFs und Bilder alter Chats nach *Hochgeladen* (Word, Excel und
+    andere alte Uploads gab es nur als Text).
+  - **Android**: Die Dateien liegen in der App; ein einmal im Systemdialog gewählter Ordner (z. B. `Dokumente/Lora`)
+    bekommt eine Kopie und gibt Änderungen zurück (alle zwei Minuten und nach Änderungen). Chats bleiben in der App.
+- **Dateiverwaltung** (AP-18): dazu alles, was die App als Datei kennt – Dateien in **Ablageorten** und
+  **Projektordnern** (alle Formate) und die **Wissenssammlung**.
+  - Die Suche im Tab *Dateien* findet alles davon.
   - **Schlagwörter** für jede Datei (`#Lehre`), als Filter oben; sie werden mit durchsucht.
   - **Volltextsuche über alle Formate**: PDF (mit Seite), Word, Excel, PowerPoint, OpenDocument, RTF, Mails, Text und
     Code – Name, Schlagwörter und Inhalt, Groß-/Kleinschreibung und Akzente egal, die Textstelle mit den Wörtern fett.
@@ -501,6 +524,30 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Im Chat findet `search_files` dieselben Dateien („Wo hatte ich den Kooperationsvertrag?“).
   - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
     verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
+- **Office-Ausbau** (AP-16): Dokumente fühlen sich an wie Google Docs, mit **Lora rechts als Assistentin** (auf breiten
+  Bildschirmen gleich offen) und dem **Lora-Popup** über markiertem Text („Was soll Lora mit der Markierung machen?“,
+  dazu Verbessern, Kürzen, Einfacher, Rechtschreibung …).
+  - **Echte Dateien**: Dokumente sind `.docx`, Präsentationen `.pptx`, Tabellen `.xlsx`, Markdown `.md` im Lora-Ordner –
+    sie öffnen in Word, PowerPoint und Excel. Der Titel ist der Dateiname. In Word geänderte Dateien kommen als neue
+    Version zurück. **Verlustfrei**: Kommt eine Datei von außen (oder wurde in Word geändert), schreibt der Editor reine
+    Textänderungen Absatz für Absatz, Zelle für Zelle **in das Original** – Formatvorlagen, Kopfzeilen, alles Unbekannte
+    bleibt. Ändert sich die Struktur (neue Absätze, andere Formatierung), wird die Datei neu geschrieben, das Original
+    bleibt in `.lora/originale`.
+  - **Änderungen nachverfolgen** (⋮): Änderungen erscheinen Wort für Wort (rot gestrichen, grün neu) zum Annehmen oder
+    Ablehnen, einzeln oder alle; in Word als echte Überarbeitungen. **Kommentare** werden Word-Kommentare und kommen aus
+    Word zurück, ebenso Überarbeitungen aus Word.
+  - **Seite einrichten**: Seitenzahlen, Datum, Kopf- und **Fußzeile**, **Seitenränder** (schmal, normal, breit) – im
+    Editor als Seitenansicht. **Einfügen › Inhaltsverzeichnis** (live im Editor, in Word als Verzeichnisfeld) und
+    **Formel (LaTeX)** mit Vorschau – in Word echte Formeln, die beim Zurücklesen wieder LaTeX werden.
+  - **Rechtschreibung prüfen** auf dem Gerät (Wörterbücher von Windows bzw. Android, Deutsch und Englisch): Vorschläge
+    antippen, Ignorieren, ins Wörterbuch; die KI-Prüfung bleibt daneben. **Zitieren** aus der Literatur mit automatischem
+    Literaturverzeichnis gab es schon.
+  - **Folien frei gestalten**: auf jeder Folie Textfelder, Bilder und Formen (Rechteck, abgerundet, Ellipse, Pfeil, Linie)
+    einfügen, auf der Folie verschieben, an der Ecke in der Größe ändern, Farben, Schriftgröße, nach vorn/hinten;
+    Layout *Frei* für leere Folien; **Masterfolie** mit Hintergrund, Akzentfarbe, Fußzeile und Logo. In PowerPoint sind
+    es echte, bearbeitbare Formen.
+- **Chatsuche mit Filtern** (Lupe in der Seitenleiste): Zeitraum, Projekt, Modell, *Mit Anhängen*, *Mit erstellten
+  Dateien*, *Archiv* – auch ohne Suchwort; gefunden werden auch Namen von Anhängen.
 - **Literatursuchmodus**: Thema und Kontext angeben (`/Literatursuche`, Kachel *Literatur finden* oder Strg+K) – der Agent sucht
   systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB, **SLUB-Katalog** (was an der TU Dresden ausleihbar
   oder lizenziert ist), **PubMed/Europe PMC**, **arXiv**, **DOAJ** und Google Books, verfolgt Zitationen in beide
@@ -792,7 +839,8 @@ Java-Laufzeit ist eingebaut. Nichts muss installiert werden, Admin-Rechte sind n
 
 Unterschiede zu Android:
 
-- **Daten** liegen pro Windows-Benutzer in `%APPDATA%\ADEU LLM` und bleiben bei neuen Versionen erhalten. API-Key,
+- **Daten** liegen im **Lora-Ordner** (Standard `Dokumente\Lora`, Daten versteckt in `.lora`, siehe *Dateien*) und
+  bleiben bei neuen Versionen erhalten; `%APPDATA%\ADEU LLM` behält nur, was zu diesem PC gehört. API-Key,
   GitHub-Token und Umgebungen sind mit Windows (DPAPI) verschlüsselt – nur das eigene Windows-Konto kann sie lesen.
 - **Im Hintergrund**: Schließt man das Fenster, läuft die App im Infobereich (unten rechts) weiter, Antworten werden
   fertig geschrieben und geplante Aufgaben laufen. Benachrichtigungen kommen als Windows-Benachrichtigung; ein Klick
@@ -1065,6 +1113,8 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `desktop/Com.kt`, `desktop/ComOutlook.kt`, `data/OutlookPlatform.kt` (gemeinsam: `data/Outlook.kt`, `agent/OutlookTools.kt`, `ui/MailScreen.kt`) | Mail & Kalender (AP-13): COM über JNA, Outlook ohne Löschen und Senden, Agent-Werkzeuge, Regeln, Protokoll |
 | `desktop/WindowsOcr.kt`, `desktop/OfficePdf.kt`, `docs/PdfPlatform.kt`, `docs/PdfExtras.kt` (beide; gemeinsam: `docs/PdfStage2.kt`, `docs/PdfConvert.kt`, `ui/PdfToolsMore.kt`) | PDF Stufe 2 (AP-15): Texterkennung von Windows, Office → PDF, Textebene, Unterschrift, PDF → Markdown/Word/Excel, Tabellen |
 | `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
+| `data/LoraDrive.kt`, `data/LoraRoot.kt` (beide), `desktop/Paths.kt`, `desktop/LoraLayout.kt`, `files/LoraMirror.kt` (beide), `ui/DriveScreen.kt`, `ui/LoraFolderUi.kt` (beide), `ui/DrivePlatform.kt` (beide) | Lora-Ordner und Tab *Dateien* (AP-16): Hochgeladen, Erstellt, Ordner, Papierkorb, Umzug der Daten, Kopie auf Android |
+| `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
 | `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
 | `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |

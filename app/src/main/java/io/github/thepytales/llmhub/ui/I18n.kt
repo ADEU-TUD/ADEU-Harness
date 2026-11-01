@@ -117,6 +117,7 @@ object I18n {
         "Vorlagen" to "Templates",
         "Literatur" to "Literature",
         "Dokumente" to "Documents",
+        "Dateien" to "Files",
         "Geplante Aufgaben" to "Scheduled tasks",
         "Bilder erzeugen" to "Create images",
         "Transkription" to "Transcription",

@@ -60,6 +60,8 @@ private val ASK_QUICK = listOf(
     "Erklären" to "Erkläre kurz, was hier gemeint ist (als Antwort, nicht als Ersatz).",
     "Förmlicher" to "Formuliere förmlicher, wie in einem Schreiben der Universität.",
     "Englisch" to "Übersetze ins Englische.",
+    "Einfacher" to "Formuliere einfacher und leichter verständlich.",
+    "Rechtschreibung" to "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung – sonst nichts ändern.",
 )
 
 /** What the model gets for a request from the „KI fragen“ window. */
@@ -110,9 +112,9 @@ fun AskAiPopup(target: IntRect, active: Boolean = false, onSend: (String) -> Uni
         ) {
             Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    LoraFaceStill(Modifier.size(22.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("KI fragen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text("Lora fragen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                     IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Close, contentDescription = "Schließen (Esc)", modifier = Modifier.size(16.dp)) }
                 }
                 Row(Modifier.padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -133,7 +135,7 @@ fun AskAiPopup(target: IntRect, active: Boolean = false, onSend: (String) -> Uni
                                     }
                                 },
                                 decorationBox = { inner ->
-                                    if (text.isEmpty()) Text("Was soll die KI mit der Markierung tun?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+                                    if (text.isEmpty()) Text("Was soll Lora mit der Markierung machen?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                                     inner()
                                 },
                             )

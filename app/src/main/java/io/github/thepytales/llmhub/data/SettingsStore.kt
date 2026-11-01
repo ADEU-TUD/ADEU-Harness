@@ -144,6 +144,13 @@ data class AppSettings(
     val loraTyping: Boolean = true,
     /** Windows (AP-14): links open as tabs in the browser beside the chat instead of the system browser. */
     val browserPanel: Boolean = true,
+    /** Android (AP-16): folder from the system dialog that gets a copy of the Lora-Ordner (content:// tree), "" = none. */
+    val loraTree: String = "",
+    /** Dateien tab (AP-16): grid instead of list. */
+    val filesGrid: Boolean = false,
+    /** Dateien tab: sorting („name“, „modified“, „kind“, „size“) and direction. */
+    val filesSort: String = "name",
+    val filesSortDown: Boolean = false,
     /** KI-Nutzungsnachweis (AP-19): offer the declaration once a chat about a work has text written by the AI. */
     val aiUseHint: Boolean = true,
     /** Texts from public sources (web search, books and papers with ISBN/DOI, the literature collection) stay as they are. */
@@ -175,7 +182,7 @@ data class AppSettings(
 
     companion object {
         const val DEFAULT_BASE_URL = "https://llm.scads.ai/v1"
-        const val DEFAULT_DRAWER_TOP = "templates\nliterature\ntranscripts"
+        const val DEFAULT_DRAWER_TOP = "templates\nliterature\ntranscripts\nfiles"
         const val DEFAULT_TUD_UNIT = "Fakultät Erziehungswissenschaften\nInstitut für Erziehungswissenschaft\n" +
             "Professur für Allgemeine Didaktik und Empirische Unterrichtsforschung"
     }
@@ -283,6 +290,7 @@ class SettingsStore(context: Context) {
             .putBoolean("autoModel", next.autoModel)
             .putString("enabledTools", next.enabledTools)
             .putString("drawerTop", next.drawerTop)
+            .putBoolean("drawerFilesOnce", true)
             .putBoolean("drawerMoreOpen", next.drawerMoreOpen)
             .putString("loraMode", next.loraMode)
             .putString("loraModel", next.loraModel)
@@ -293,6 +301,10 @@ class SettingsStore(context: Context) {
             .putBoolean("loraNextSteps", next.loraNextSteps)
             .putBoolean("loraTyping", next.loraTyping)
             .putBoolean("browserPanel", next.browserPanel)
+            .putString("loraTree", next.loraTree)
+            .putBoolean("filesGrid", next.filesGrid)
+            .putString("filesSort", next.filesSort)
+            .putBoolean("filesSortDown", next.filesSortDown)
             .putBoolean("aiUseHint", next.aiUseHint)
             .putBoolean("loraIntroDone", next.loraIntroDone)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
@@ -368,7 +380,12 @@ class SettingsStore(context: Context) {
             autoModelAsk = prefs.getBoolean("autoModelAsk", d.autoModelAsk),
             autoModel = prefs.getBoolean("autoModel", d.autoModel),
             enabledTools = prefs.getString("enabledTools", d.enabledTools) ?: d.enabledTools,
-            drawerTop = prefs.getString("drawerTop", d.drawerTop) ?: d.drawerTop,
+            drawerTop = (prefs.getString("drawerTop", d.drawerTop) ?: d.drawerTop).let { top ->
+                // AP-16: „Dokumente“ became „Dateien“ – once on top of the side menu where there is room.
+                val lines = top.lines().map { it.trim() }.filter { it.isNotEmpty() }.map { if (it == "docs") "files" else it }.distinct()
+                if (!prefs.getBoolean("drawerFilesOnce", false) && "files" !in lines && lines.size < 4) (lines + "files").joinToString("\n")
+                else lines.joinToString("\n")
+            },
             drawerMoreOpen = prefs.getBoolean("drawerMoreOpen", d.drawerMoreOpen),
             // „Lora ausblenden“ became Lora: aus.
             loraMode = prefs.getString("loraMode", null) ?: if (prefs.getBoolean("hideLora", false)) "OFF" else d.loraMode,
@@ -380,6 +397,10 @@ class SettingsStore(context: Context) {
             loraNextSteps = prefs.getBoolean("loraNextSteps", d.loraNextSteps),
             loraTyping = prefs.getBoolean("loraTyping", d.loraTyping),
             browserPanel = prefs.getBoolean("browserPanel", d.browserPanel),
+            loraTree = prefs.getString("loraTree", d.loraTree) ?: d.loraTree,
+            filesGrid = prefs.getBoolean("filesGrid", d.filesGrid),
+            filesSort = prefs.getString("filesSort", d.filesSort) ?: d.filesSort,
+            filesSortDown = prefs.getBoolean("filesSortDown", d.filesSortDown),
             aiUseHint = prefs.getBoolean("aiUseHint", d.aiUseHint),
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),

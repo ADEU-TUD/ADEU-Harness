@@ -91,6 +91,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
@@ -268,6 +269,16 @@ fun TextToolbar(
         ToolIcon(Icons.Outlined.TableChart, "Tabelle einfügen") { insert("| Spalte 1 | Spalte 2 | Spalte 3 |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |") }
         ToolIcon(Icons.Outlined.HorizontalRule, "Trennlinie") { insert("---") }
         var more by remember { mutableStateOf(false) }
+        var formula by remember { mutableStateOf(false) }
+        if (formula) FormulaDialog(onDismiss = { formula = false }) { tex, display ->
+            formula = false
+            if (display || i == null) insert("$$$tex$$")
+            else {
+                val v = editing.value
+                val piece = "$$tex$"
+                editing.value = TextFieldValue(v.text.substring(0, v.selection.min) + piece + v.text.substring(v.selection.max), TextRange(v.selection.min + piece.length))
+            }
+        }
         Box {
             ToolLabel("Einfügen ▾") { more = true }
             DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
@@ -275,6 +286,8 @@ fun TextToolbar(
                 DropdownMenuItem(text = { Text("Fußnote") }, onClick = { more = false; footnote() })
                 if (onCitation != null) DropdownMenuItem(text = { Text("Literatur (Beleg) …") }, onClick = { more = false; onCitation() })
                 DropdownMenuItem(text = { Text("Seitenumbruch") }, onClick = { more = false; insert(DocMarkup.PAGE_BREAK) })
+                DropdownMenuItem(text = { Text("Inhaltsverzeichnis") }, onClick = { more = false; insert(DocMarkup.TOC) })
+                DropdownMenuItem(text = { Text("Formel (LaTeX) …") }, onClick = { more = false; formula = true })
                 DropdownMenuItem(text = { Text("Querformat-Seiten") }, onClick = { more = false; landscape() })
             }
         }
@@ -342,6 +355,8 @@ fun TextPage(
     /** What the model changed last, to accept or reject block by block. */
     review: AiReview.Result? = null,
     onReview: (ReviewAction) -> Unit = {},
+    /** Änderungen nachverfolgen (AP-16): the review shows the suggestions since the base, not the model's last change. */
+    tracking: Boolean = false,
 ) {
     val editable = doc != null && !writing && mode == TextMode.EDIT
     val notes = remember(blocks) { DocMarkup.noteNumbers(blocks.joinToString("\n\n")) }
@@ -390,7 +405,9 @@ fun TextPage(
         list.getOrNull(target)?.let { editing.start(target, it.replace(EMPTY_BLOCK, "")) }
     }
 
-    val pad = if (narrow) 20.dp else 56.dp
+    // Seitenansicht (AP-16): the page with the margins, header and footer of „Seite einrichten“.
+    val setup = remember(blocks) { DocMarkup.pageSetup(blocks.joinToString("\n\n")) }
+    val pad = if (narrow) 20.dp else (setup.marginMm * 2.8f).dp
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             state = listState,
@@ -400,10 +417,14 @@ fun TextPage(
             item(key = "top") {
                 if (tud) TudPageHead(unit, pad, look.card)
                 else Box(Modifier.fillMaxWidth().height(if (narrow) 20.dp else 48.dp).background(look.card, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)))
+                if (setup.hasHeader) Row(Modifier.fillMaxWidth().background(look.card).padding(horizontal = pad).padding(bottom = 8.dp)) {
+                    Text(setup.header, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline, modifier = Modifier.weight(1f))
+                    if (setup.date) Text(DocMarkup.today(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                }
             }
             itemsIndexed(blocks, key = { i, _ -> "b$i" }) { i, block ->
                 Column(Modifier.fillMaxWidth().background(look.card).padding(horizontal = pad)) {
-                    if (editable) review?.removed?.filter { it.at == i }?.forEach { r -> RemovedCard(r, onReview) }
+                    if (editable) review?.removed?.filter { it.at == i }?.forEach { r -> RemovedCard(r, onReview, tracking) }
                     if (editing.index == i && editable) {
                         BlockField(
                             editing = editing,
@@ -447,7 +468,7 @@ fun TextPage(
                             onShowComments = onShowComments,
                             notes = notes,
                         )
-                        if (editable && i in aiChanged) review?.changes?.firstOrNull { it.index == i }?.let { ch -> ChangeBar(ch, onReview) }
+                        if (editable && i in aiChanged) review?.changes?.firstOrNull { it.index == i }?.let { ch -> ChangeBar(ch, onReview, tracking, block.replace(EMPTY_BLOCK, "")) }
                     }
                     inlineAi.state?.takeIf { it.first == "b$i" }?.second?.let { s ->
                         AiSuggestionCard(
@@ -473,7 +494,7 @@ fun TextPage(
                 Column(
                     Modifier.fillMaxWidth().background(look.card, RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)).padding(horizontal = pad, vertical = 12.dp),
                 ) {
-                    if (editable) review?.removed?.filter { it.at >= blocks.size }?.forEach { r -> RemovedCard(r, onReview) }
+                    if (editable) review?.removed?.filter { it.at >= blocks.size }?.forEach { r -> RemovedCard(r, onReview, tracking) }
                     when {
                         writing -> WritingCaret()
                         doc != null && mode == TextMode.EDIT && editing.index == null && DocBlocks.plainOf(blocks.drop(1).joinToString("").replace(EMPTY_BLOCK, "")).isBlank() -> EmptyDocStart(
@@ -490,6 +511,11 @@ fun TextPage(
                             Text("Hier weiterschreiben – „/“ für Formate", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                         }
                     }
+                    if (setup.footer.isNotBlank() || setup.pageNumbers) Text(
+                        listOfNotNull(setup.footer.ifBlank { null }, if (setup.pageNumbers) "Seite 1 von …" else null).joinToString("   ·   "),
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 }
             }
             item(key = "footer") { HintText(footer, Modifier.padding(top = 10.dp, start = 4.dp)) }
@@ -582,6 +608,17 @@ private fun BlockView(
                 }
                 DocMarkup.image(block) != null -> DocImageView(DocMarkup.image(block)!!)
                 DocMarkup.isPageBreak(block) -> MarkerLine("Seitenumbruch")
+                // Inhaltsverzeichnis (AP-16): the headings of the document, always up to date.
+                DocMarkup.isToc(block) -> Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(6.dp)).padding(10.dp)) {
+                    Text("Inhaltsverzeichnis", style = MaterialTheme.typography.titleSmall)
+                    val entries = DocMarkup.tocEntries(doc?.markdown(tabId).orEmpty())
+                    if (entries.isEmpty()) HintText("Erscheint, sobald das Dokument Überschriften hat.")
+                    entries.forEach { (level, text) -> Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = ((level - 2).coerceAtLeast(0) * 16).dp, top = 2.dp)) }
+                }
+                // Display formula (AP-16): readable in the editor, a real formula in Word.
+                io.github.thepytales.llmhub.docs.LatexOmml.display(block) != null -> Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) {
+                    Text(io.github.thepytales.llmhub.docs.MathText.inText(block.trim()), style = MaterialTheme.typography.titleMedium.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic))
+                }
                 DocMarkup.isComment(block) -> MarkerLine(markerLabel(block))
                 NOTE_DEF_BLOCK.containsMatchIn(block) -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     block.lines().filter { it.isNotBlank() }.forEach { line ->
@@ -910,13 +947,15 @@ private fun MarkerLine(label: String) {
 
 /** Below a block the model changed: take it or go back to what stood there before. */
 @Composable
-private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit) {
+private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit, tracking: Boolean = false, now: String = "") {
     var before by remember { mutableStateOf(false) }
     Column {
+        // Änderungen nachverfolgen: what changed, word by word (red struck through: removed, green: inserted).
+        if (tracking && change.before != null) WordDiff(DocBlocks.plainOf(change.before), DocBlocks.plainOf(now))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(if (change.before == null) "Von der KI eingefügt" else "Von der KI geändert", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-            if (change.before != null) TextButton(onClick = { before = !before }) { Text(if (before) "Vorher ausblenden" else "Vorher") }
-            TextButton(onClick = { onReview(ReviewAction.Accept(change)) }) { Text("Übernehmen") }
+            Text(if (tracking) (if (change.before == null) "Eingefügt" else "Geändert") else if (change.before == null) "Von der KI eingefügt" else "Von der KI geändert", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+            if (!tracking && change.before != null) TextButton(onClick = { before = !before }) { Text(if (before) "Vorher ausblenden" else "Vorher") }
+            TextButton(onClick = { onReview(ReviewAction.Accept(change)) }) { Text(if (tracking) "Annehmen" else "Übernehmen") }
             TextButton(onClick = { onReview(ReviewAction.Reject(change)) }) { Text(if (change.before == null) "Entfernen" else "Ablehnen") }
         }
         if (before && change.before != null) Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), shape = RoundedCornerShape(6.dp)) {
@@ -927,14 +966,14 @@ private fun ChangeBar(change: AiReview.Change, onReview: (ReviewAction) -> Unit)
 
 /** A block the model removed: restore it or let it go. */
 @Composable
-private fun RemovedCard(r: AiReview.Removed, onReview: (ReviewAction) -> Unit) {
+private fun RemovedCard(r: AiReview.Removed, onReview: (ReviewAction) -> Unit, tracking: Boolean = false) {
     Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f), shape = RoundedCornerShape(6.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Column(Modifier.padding(8.dp)) {
-            Text("Von der KI entfernt", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+            Text(if (tracking) "Gelöscht" else "Von der KI entfernt", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
             Text(DocBlocks.plainOf(r.text).take(300), style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.LineThrough), color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row {
-                TextButton(onClick = { onReview(ReviewAction.Restore(r)) }) { Text("Wiederherstellen") }
-                TextButton(onClick = { onReview(ReviewAction.Drop(r)) }) { Text("Entfernt lassen") }
+                TextButton(onClick = { onReview(ReviewAction.Restore(r)) }) { Text(if (tracking) "Ablehnen" else "Wiederherstellen") }
+                TextButton(onClick = { onReview(ReviewAction.Drop(r)) }) { Text(if (tracking) "Annehmen" else "Entfernt lassen") }
             }
         }
     }
@@ -956,4 +995,53 @@ private fun ImageBlockEditor(img: DocMarkup.Image, onChange: (DocMarkup.Image) -
             }
         }
     }
+}
+
+
+/** Word-level differences in one text: removed words red and struck through, inserted ones green (AP-16). */
+@Composable
+internal fun WordDiff(old: String, new: String) {
+    val pieces = remember(old, new) { io.github.thepytales.llmhub.docs.TextDiff.words(old, new) }
+    val text = androidx.compose.ui.text.buildAnnotatedString {
+        pieces.forEach { p ->
+            when (p.op) {
+                io.github.thepytales.llmhub.docs.TextDiff.Op.SAME -> append(p.text)
+                io.github.thepytales.llmhub.docs.TextDiff.Op.REMOVED -> withStyle(androidx.compose.ui.text.SpanStyle(color = Color(0xFFB3261E), textDecoration = TextDecoration.LineThrough)) { append(p.text) }
+                io.github.thepytales.llmhub.docs.TextDiff.Op.ADDED -> withStyle(androidx.compose.ui.text.SpanStyle(color = Color(0xFF1B7F3B), background = Color(0x221B7F3B))) { append(p.text) }
+            }
+        }
+    }
+    Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 4.dp))
+}
+
+
+/** „Formel (LaTeX)“ (AP-16): typed in LaTeX with a preview; in Word it becomes a real formula. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun FormulaDialog(onDismiss: () -> Unit, onInsert: (String, Boolean) -> Unit) {
+    var tex by remember { mutableStateOf("\\frac{a}{b}") }
+    var display by remember { mutableStateOf(true) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Formel einfügen") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.OutlinedTextField(tex, { tex = it }, label = { Text("LaTeX") }, modifier = Modifier.fillMaxWidth())
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("\\frac{a}{b}", "x^{2}", "x_{i}", "\\sqrt{x}", "\\sum_{i=1}^{n} x_i", "\\int_{a}^{b} f(x)\\,dx", "\\bar{x}", "\\alpha", "\\leq", "\\cdot").forEach { s ->
+                        androidx.compose.material3.AssistChip(onClick = { tex = if (tex.isBlank()) s else "$tex $s" }, label = { Text(io.github.thepytales.llmhub.docs.MathText.inText("$$s$")) })
+                    }
+                }
+                Text("Vorschau", style = MaterialTheme.typography.labelMedium)
+                Text(io.github.thepytales.llmhub.docs.MathText.inText("$$tex$"), style = MaterialTheme.typography.titleMedium)
+                Row(Modifier.clickable { display = !display }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(display, { display = it })
+                    Text("Eigene Zeile (sonst im Text an der Cursorposition)")
+                }
+                HintText("In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt.")
+            }
+        },
+        confirmButton = { TextButton(enabled = tex.isNotBlank(), onClick = { onInsert(tex.trim(), display) }) { Text("Einfügen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
 }
