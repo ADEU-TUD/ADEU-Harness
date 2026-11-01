@@ -54,7 +54,7 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command("Literatur", "literature", "Bereiche", "literatursuche quellen literaturverzeichnis zitieren bibtex ris zotero"),
     Command("Dateien", "files", "Bereiche", "dokumente editor entwurf dokument bearbeiten kommentare versionen präsentation folien tabelle excel powerpoint word ordner hochgeladen erstellt papierkorb lora-ordner"),
     Command("Transkription", "transcripts", "Bereiche", "audio interview aufnahme diktat codieren"),
-    Command("TU Vorlagen", "templates", "Bereiche", "vorlagen prompt vorlage lehre forschung"),
+    Command("Erstellen", "templates", "Bereiche", "tu vorlagen vorlagen prompt vorlage lehre forschung gestalten design poster flyer aushang social media kreativ"),
     Command("Bilder erzeugen", "images", "Bereiche", "bild grafik galerie"),
     Command("Geplante Aufgaben", "tasks", "Bereiche", "aufgabe zeitplan"),
     Command("Modelle vergleichen", "compare", "Bereiche", "vergleich antwort"),

@@ -38,7 +38,11 @@ object AppMap {
 
     private val AREAS = listOf(
         AppTarget("area.chat", MapKind.AREA, "Neuer Chat", "Seitenleiste › Neuer Chat", "Ein neues Gespräch mit dem gewählten Modell.", "neu chat gespräch frage stellen", "chat"),
-        AppTarget("area.templates", MapKind.AREA, "TU Vorlagen", "Seitenleiste › TU Vorlagen", "Fertige Vorlagen für Lehre, Forschung und Verwaltung, z. B. Briefe, Mails, Anträge.", "vorlagen vorlage prompt brief formular lehre forschung verwaltung", "templates"),
+        AppTarget(
+            "area.templates", MapKind.AREA, "Erstellen", "Seitenleiste › Erstellen",
+            "Neues erstellen: TU Vorlagen für Briefe, Mails, Protokolle, Bescheinigungen, Lehre und Forschung; unter Windows außerdem Gestalten (Poster, Flyer, Aushänge, Social Media, Kursbanner, Titelbilder) und Meine Designs. Oder Lora sagen, was entstehen soll.",
+            "erstellen tu vorlagen vorlagen vorlage prompt brief formular lehre forschung verwaltung gestalten design poster tagungsposter flyer aushang plakat einladungskarte social media instagram kursbanner titelbild kreativ kreativbereich canva meine designs", "templates",
+        ),
         AppTarget("area.literature", MapKind.AREA, "Literatur", "Seitenleiste › Literatur", "Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte.", "literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt", "literature"),
         AppTarget("area.transcripts", MapKind.AREA, "Transkription", "Seitenleiste › Transkription", "Audio und Interviews verschriften, Sprecher erkennen, codieren.", "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
         AppTarget("area.files", MapKind.AREA, "Dateien", "Seitenleiste › Dateien", "Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner.",
@@ -123,7 +127,7 @@ object AppMap {
             AppTarget("tool.${t.id}", MapKind.TOOL, t.label, "Seitenleiste › Mehr › ${t.label}", t.description, t.keywords.joinToString(" "), t.route, android = t.android)
         }
         val tpl = templates.map { t ->
-            AppTarget("template.${t.id}", MapKind.TEMPLATE, t.name, "TU Vorlagen › ${t.section.label} › ${t.name}", t.description, t.name.lowercase(), "template:${t.id}")
+            AppTarget("template.${t.id}", MapKind.TEMPLATE, t.name, "Erstellen › TU Vorlagen › ${t.section.label} › ${t.name}", t.description, t.name.lowercase(), "template:${t.id}")
         }
         return (AREAS + SETTINGS + OPTIONS + modes + tools + tpl).filter { if (android) it.android else it.desktop }
     }

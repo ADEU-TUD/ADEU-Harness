@@ -23,9 +23,9 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 
 /**
- * Kreativbereich (AP-24): the agent makes a design from a template of the TUD corporate design and fills its
+ * Erstellen › Gestalten (AP-24): the agent makes a design from a template of the TUD corporate design and fills its
  * placeholders („Poster aus diesem Paper“), changes it later and reads it back. Pictures for the picture placeholder
- * come from the image model (FLUX) when the agent describes one. Offered while the tool „Kreativbereich“ is on.
+ * come from the image model (FLUX) when the agent describes one. Offered in every chat of the Windows app.
  */
 class DesignTools(private val c: AppContainer) : ToolProvider {
     private val templateList: String
@@ -37,7 +37,8 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
                 CREATE,
                 "Gestaltet ein neues Design im Corporate Design der TU Dresden aus einer Vorlage und füllt deren Platzhalter. " +
                     "Vorlagen und ihre Platzhalter: $templateList; leer (leere Seite, Format mit format). Texte passen sich der Box an " +
-                    "(werden kleiner). Absätze mit \\n, Stichpunkte mit „• “. Danach lässt es sich im Kreativbereich bearbeiten und als PNG, PDF oder PowerPoint exportieren.",
+                    "(werden kleiner). Absätze mit \\n, Stichpunkte mit „• “. Danach lässt es sich unter „Erstellen“ bearbeiten und als PNG, PDF oder PowerPoint exportieren. " +
+                    "Nicht für Briefe, Protokolle oder Bescheinigungen (dafür create_document).",
                 listOf(
                     Param("template", "Vorlage, z. B. poster, flyer, aushang, einladung, urkunde, post, story, banner, video oder leer"),
                     Param("title", "Name des Designs, z. B. „Poster DGfE 2026“"),
@@ -233,7 +234,7 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
             append(" · ").append(DesignFormat.byId(d.format)?.label ?: d.format).append(" · ").append(d.pages.size).append(if (d.pages.size == 1) " Seite" else " Seiten")
             if (open.isNotEmpty()) append("\nNoch mit Beispieltext bzw. ohne Bild: ").append(open.joinToString(", ")).append(" (mit $UPDATE füllen oder mit leerem Text entfernen).")
             notes.forEach { append("\n").append(it) }
-            append("\nDas Design lässt sich im Kreativbereich weiter bearbeiten und als PNG, PDF (Druck) oder PowerPoint exportieren.")
+            append("\nDas Design lässt sich unter „Erstellen“ › Meine Designs weiter bearbeiten und als PNG, PDF (Druck) oder PowerPoint exportieren.")
         }
     }
 
@@ -242,7 +243,7 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
         const val UPDATE = "update_design"
         const val READ = "read_design"
 
-        /** Marks the id in a tool result (the chat shows a card with „Im Kreativbereich öffnen“). */
+        /** Marks the id in a tool result (the chat shows a card with „Bearbeiten“). */
         const val ID_LABEL = "Design-ID:"
 
         fun idIn(result: String): String? = Regex(Regex.escape(ID_LABEL) + "\\s*([0-9a-f-]{8,})").find(result)?.groupValues?.get(1)
@@ -316,7 +317,8 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
         /** Gestalten mode: how a good design is made. */
         val MODE_PROMPT: String
             get() = "GESTALTEN-MODUS (AP-24): Du gestaltest im Corporate Design der TU Dresden (TUD-Blau, Noto Sans, Logo) Poster, Flyer, " +
-                "Aushänge, Einladungen, Teilnahmebescheinigungen, Social-Media-Beiträge, OPAL-Kursbanner und Titelbilder für Lehrvideos.\n" +
+                "Aushänge, Einladungskarten, Social-Media-Beiträge, OPAL-Kursbanner und Titelbilder für Lehrvideos. Briefe, Protokolle und " +
+                "Teilnahmebescheinigungen sind Dokumente (create_document, TU Vorlagen), keine Designs.\n" +
                 "1. Wähle die passende Vorlage (${DesignTemplates.all.joinToString(", ") { "${it.id} = ${it.name}" }}) und erstelle das Design mit $CREATE. " +
                 "Fehlt Wesentliches (Anlass, Datum, Ort), frage höchstens einmal mit ask_user.\n" +
                 "2. Inhalte aus angehängten Dateien (z. B. einem Paper für ein Poster) knapp und fachlich korrekt übernehmen: Titel kurz, " +
@@ -325,7 +327,7 @@ class DesignTools(private val c: AppContainer) : ToolProvider {
                 "3. Bild nur, wenn es passt: image_prompt (Englisch, ohne Text im Bild); für Diagramme aus dem Paper bleibt der Bildplatz frei. " +
                 "QR-Code: DOI oder Link, sonst \"qr\": \"\".\n" +
                 "4. Änderungen („kürzer“, „anderes Bild“, „Datum ergänzen“): $READ, dann $UPDATE.\n" +
-                "5. Antworte danach kurz, was entstanden ist und was noch fehlt; das Design lässt sich im Kreativbereich weiter bearbeiten und als " +
+                "5. Antworte danach kurz, was entstanden ist und was noch fehlt; das Design lässt sich unter „Erstellen“ weiter bearbeiten und als " +
                 "PNG, PDF (Druck) oder PowerPoint exportieren."
     }
 }

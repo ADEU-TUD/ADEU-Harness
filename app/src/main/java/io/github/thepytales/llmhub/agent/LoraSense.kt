@@ -29,7 +29,8 @@ object LoraSense {
             r.isEmpty() || r == "chat" -> "Chat"
             r == "settings" || r.startsWith("settings/{") -> "Einstellungen"
             section.isNotEmpty() -> "Einstellungen › " + (AppMap.byId("settings.$section")?.title ?: section)
-            r == "templates" -> "TU Vorlagen"
+            r == "templates" || r == "creative" -> "Erstellen"
+            r.startsWith("design/") -> "Design"
             r == "literature" -> "Literatur"
             r == "transcripts" || r.startsWith("transcript") -> "Transkription"
             r == "docs" || r == "files" -> "Dateien"

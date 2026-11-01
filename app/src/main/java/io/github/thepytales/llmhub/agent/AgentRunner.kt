@@ -82,8 +82,8 @@ class AgentRunner(private val c: AppContainer) {
             excerptTools.takeIf { conv.mode == ChatModes.EXCERPT.id },
             // Lernspiele (AP-17): while the tool is switched on (and always in the Lernspiel mode).
             c.gameTools.takeIf { ModeTool.GAMES in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.GAMES.id) },
-            // Kreativbereich (AP-24): while the tool is switched on (and always in the Gestalten mode).
-            c.designTools.takeIf { ModeTool.DESIGN in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.CREATIVE.id) },
+            // Erstellen › Gestalten (AP-24): on Windows in every chat – „Lora, mach mir ein Poster“ works anywhere.
+            c.designTools.takeIf { io.github.thepytales.llmhub.data.DesignSupport.EDITOR },
             // Mail & Kalender (AP-13): the classic Outlook of this PC, while the tool is on (not in the vault).
             c.outlookTools.takeIf {
                 io.github.thepytales.llmhub.data.Outlook.supported && !conv.vault &&

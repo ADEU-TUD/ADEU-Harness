@@ -130,6 +130,8 @@ object Updates {
         if (manual || busy !is State.Ready) _state.value = State.Checking
         val result = try {
             val info = UpdateInfo.parse(readText(context, source(context)))
+            // Reloadable extensions (AP-25) come with the same version.json and are kept up to date here.
+            onInfo?.let { hook -> runCatching { hook(context, info) }.onFailure { ErrorLog.record("Erweiterungen prüfen", it) } }
             when {
                 !Versions.newer(info.version, installed) -> State.UpToDate
                 info.files[UpdatePlatform.KEY] == null -> State.Failed(info, "Version ${info.version} enthält keine Datei für dieses Gerät.")
@@ -181,7 +183,7 @@ object Updates {
                 if (!(target.isFile && target.length() == file.size && sha256(target) == file.sha256)) {
                     val tmp = File(dir, file.name + ".part")
                     _state.value = State.Downloading(info, 0f, "Wird heruntergeladen …")
-                    fetch(context, file, tmp) { got ->
+                    fetch(context, file, tmp, { stopDownload }) { got ->
                         val total = file.size.takeIf { it > 0 } ?: got
                         _state.value = State.Downloading(info, (got.toFloat() / total).coerceIn(0f, 1f), "Wird heruntergeladen …")
                     }
@@ -206,6 +208,34 @@ object Updates {
                 ErrorLog.record("Update herunterladen", e)
                 _state.value = State.Failed(info, explain(e))
             }
+        }
+    }
+
+    /**
+     * Called with every version.json read by [check] (Windows: brings installed extensions up to date, AP-25). Runs on
+     * the IO thread of the check.
+     */
+    @Volatile
+    var onInfo: ((Context, UpdateInfo) -> Unit)? = null
+
+    /** version.json of the update source right now (GitHub or the folder of Einstellungen › Updates). */
+    fun readInfo(context: Context): UpdateInfo = UpdateInfo.parse(readText(context, source(context)))
+
+    /**
+     * Downloads [file] of the update source into [dest] (an extension, AP-25) and checks its SHA-256; [cancelled] stops
+     * it. Throws with a readable message.
+     */
+    fun downloadFile(context: Context, file: UpdateFile, dest: File, cancelled: () -> Boolean = { false }, progress: (Long) -> Unit) {
+        val tmp = File(dest.path + ".part")
+        try {
+            fetch(context, file, tmp, cancelled, progress)
+            if (sha256(tmp) != file.sha256) throw UpdateProblem("Die heruntergeladene Datei ist unvollständig oder verändert (Prüfsumme stimmt nicht). Bitte noch einmal versuchen.")
+            dest.delete()
+            if (!tmp.renameTo(dest)) throw IOException("Datei konnte nicht umbenannt werden: ${tmp.path}")
+        } catch (e: Exception) {
+            tmp.delete()
+            if (e is CancellationException) throw e
+            throw IOException(explain(e), e)
         }
     }
 
@@ -254,26 +284,26 @@ object Updates {
         return bytes.toString(Charsets.UTF_8.name())
     }
 
-    private fun fetch(context: Context, file: UpdateFile, dest: File, progress: (Long) -> Unit) {
+    private fun fetch(context: Context, file: UpdateFile, dest: File, cancelled: () -> Boolean, progress: (Long) -> Unit) {
         val source = source(context)
         if (isFolder(source)) {
             val dir = File(source).let { if (it.isDirectory) it else it.parentFile }
             val from = File(dir, file.name)
             if (!from.isFile) throw UpdateProblem("„${file.name}“ fehlt in „${dir.path}“.")
-            from.inputStream().use { copy(it, dest, progress) }
+            from.inputStream().use { copy(it, dest, cancelled, progress) }
             return
         }
         val url = file.url ?: (source.ifBlank { DEFAULT_SOURCE }.substringBeforeLast('/') + "/" + file.name)
-        open(url, 30_000) { input, _ -> copy(input, dest, progress) }
+        open(url, 30_000) { input, _ -> copy(input, dest, cancelled, progress) }
     }
 
-    private fun copy(input: java.io.InputStream, dest: File, progress: (Long) -> Unit) {
+    private fun copy(input: java.io.InputStream, dest: File, cancelled: () -> Boolean, progress: (Long) -> Unit) {
         dest.outputStream().use { out ->
             val buf = ByteArray(1 shl 16)
             var got = 0L
             var shown = 0L
             while (true) {
-                if (stopDownload) throw CancellationException("Abgebrochen")
+                if (cancelled()) throw CancellationException("Abgebrochen")
                 val n = input.read(buf)
                 if (n <= 0) break
                 out.write(buf, 0, n)

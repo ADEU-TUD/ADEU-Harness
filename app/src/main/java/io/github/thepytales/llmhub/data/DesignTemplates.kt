@@ -3,8 +3,9 @@ package io.github.thepytales.llmhub.data
 import io.github.thepytales.llmhub.docs.TudBrand
 
 /**
- * Vorlagen des Kreativbereichs (AP-24) für den Uni-Alltag, alle im TUD-Design: Tagungsposter, Flyer, Aushang, Einladung,
- * Teilnahmebescheinigung, Social Media, OPAL-Kursbanner, Titelbild für Lehrvideos. Texte, Bilder und QR-Codes, die die
+ * Gestaltungsvorlagen unter „Erstellen“ (AP-24) für den Uni-Alltag, alle im TUD-Design: Tagungsposter, Flyer, Aushang,
+ * Einladungskarte, Social Media, OPAL-Kursbanner, Titelbild für Lehrvideos (Briefe, Protokolle und Bescheinigungen sind
+ * TU Vorlagen). Texte, Bilder und QR-Codes, die die
  * KI füllt, haben einen [DesignElement.slot]; Texte mit [DesignElement.fit] werden kleiner, wenn sie nicht passen.
  */
 data class DesignTemplate(
@@ -139,7 +140,7 @@ object DesignTemplates {
         )
     }
 
-    val INVITATION = DesignTemplate("einladung", "Einladung", "A5 quer mit blauem Seitenband, Programm und Anmeldung.", format("a5-quer")) {
+    val INVITATION = DesignTemplate("einladung", "Einladungskarte", "A5 quer mit blauem Seitenband, Programm und Anmeldung.", format("a5-quer")) {
         listOf(
             DesignPage(
                 elements = listOf(
@@ -151,27 +152,6 @@ object DesignTemplates {
                     line(82f, 97f, 116f, LIGHT, 0.5f),
                     text("details", 82f, 100f, 116f, 22f, "Donnerstag, 4. Dezember 2026, 18 Uhr\nFestsaal, Rektorat", 11f, bold = true, lineHeight = 1.4f),
                     text("anmeldung", 82f, 126f, 116f, 12f, "Um Anmeldung wird gebeten bis …", 9f, color = GREY),
-                ),
-            ),
-        )
-    }
-
-    val CERTIFICATE = DesignTemplate("urkunde", "Teilnahmebescheinigung", "A4 hoch mit Rahmen, Name, Veranstaltung und zwei Unterschriftszeilen.", format("a4")) {
-        listOf(
-            DesignPage(
-                elements = listOf(
-                    rect(10f, 10f, 190f, 277f, "", stroke = BLUE, strokeWidth = 0.8f, locked = true),
-                    rect(13f, 13f, 184f, 271f, "", stroke = LIGHT, strokeWidth = 0.4f, locked = true),
-                    logo(74f, 28f, 62f, white = false),
-                    text("titel", 20f, 72f, 170f, 18f, "Teilnahmebescheinigung", 32f, bold = true, color = BLUE, align = "center"),
-                    text("vortext", 20f, 102f, 170f, 10f, "Hiermit wird bestätigt, dass", 13f, align = "center", color = GREY),
-                    text("name", 20f, 115f, 170f, 18f, "Vorname Nachname", 28f, bold = true, align = "center"),
-                    text("text", 20f, 140f, 170f, 40f, "an der Veranstaltung „Titel der Veranstaltung“ teilgenommen hat.", 14f, align = "center", lineHeight = 1.4f),
-                    text("details", 20f, 186f, 170f, 22f, "Umfang: 8 Stunden · Datum: 12.11.2026", 11f, align = "center", color = GREY, lineHeight = 1.4f),
-                    line(30f, 250f, 65f, INK, 0.3f),
-                    text("ort_datum", 30f, 252f, 65f, 8f, "Dresden, den …", 9f, color = GREY),
-                    line(115f, 250f, 65f, INK, 0.3f),
-                    text("unterzeichner", 115f, 252f, 65f, 12f, "Prof. Dr. … (Leitung)", 9f, color = GREY),
                 ),
             ),
         )
@@ -236,7 +216,7 @@ object DesignTemplates {
     }
 
     /** All templates, in the order of the picker. */
-    val all: List<DesignTemplate> = listOf(POSTER, FLYER, NOTICE, INVITATION, CERTIFICATE, POST, STORY, BANNER, VIDEO_TITLE)
+    val all: List<DesignTemplate> = listOf(POSTER, FLYER, NOTICE, INVITATION, POST, STORY, BANNER, VIDEO_TITLE)
 
     fun byId(id: String?): DesignTemplate? {
         val n = id?.trim()?.lowercase().orEmpty()
@@ -246,13 +226,22 @@ object DesignTemplates {
             "flyer" in n -> FLYER
             "aushang" in n || "plakat" in n -> NOTICE
             "einladung" in n -> INVITATION
-            "urkunde" in n || "bescheinigung" in n || "zertifikat" in n -> CERTIFICATE
             "story" in n -> STORY
             "social" in n || "instagram" in n || "beitrag" in n || "post" in n -> POST
             "banner" in n || "opal" in n -> BANNER
             "video" in n || "titelbild" in n -> VIDEO_TITLE
             else -> null
         }
+    }
+
+    /**
+     * Whether a wish („Mach mir einen Aushang für …“) is about a design rather than a text document – then „Erstellen“
+     * hands it to Lora in the Gestalten mode. Letters, minutes and certificates stay TU Vorlagen.
+     */
+    fun fits(text: String): Boolean {
+        val t = text.lowercase()
+        return listOf("poster", "flyer", "aushang", "plakat", "einladungskarte", "postkarte", "social media", "instagram", "linkedin", "mastodon",
+            "story", "kursbanner", "banner", "titelbild", "thumbnail", "grafik", "gestalt", "design", "qr-code").any { it in t }
     }
 
     /** An empty design of [format]. */

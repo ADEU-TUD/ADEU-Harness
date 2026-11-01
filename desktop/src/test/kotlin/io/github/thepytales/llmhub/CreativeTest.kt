@@ -44,7 +44,7 @@ class CreativeTest {
         val c = container()
         DesignTemplates.all.forEach { t ->
             val d = c.designs.save(t.create())
-            assertTrue(t.slots.any { it.first == "titel" || it.first == "name" || it.first == "anlass" }, "${t.id} hat einen Titel-Platzhalter")
+            assertTrue(t.slots.any { it.first == "titel" }, "${t.id} hat einen Titel-Platzhalter")
             val png = renderDesignPage(d, 0, 600).pngBytes()
             assertTrue(png.size > 1000, "${t.id}: PNG")
             File(out, "${t.id}.png").writeBytes(png)
@@ -53,7 +53,7 @@ class CreativeTest {
             Loader.loadPDF(pdf).use { doc ->
                 assertEquals(1, doc.numberOfPages)
                 val text = PDFTextStripper().getText(doc).replace(Regex("\\s+"), " ")
-                val title = d.pages[0].elements.first { it.slot in setOf("titel", "name") }.text.replace(Regex("\\s+"), " ")
+                val title = d.pages[0].elements.first { it.slot == "titel" }.text.replace(Regex("\\s+"), " ")
                 assertTrue(title.split(' ').first() in text, "${t.id}: Text im PDF ($text)")
                 // Page size in mm (1 pt = 25.4/72 mm).
                 assertEquals(d.width, doc.getPage(0).mediaBox.width * 25.4f / 72f, 0.5f)
@@ -160,8 +160,8 @@ class CreativeTest {
         c.designs.delete(d.id)
         assertNull(c.designs.get(d.id))
         assertEquals(1, c.designs.items.value.size)
-        assertTrue(AppTool.CREATIVE in AppTool.available(android = false) && AppTool.CREATIVE !in AppTool.available(android = true))
-        assertEquals(AppTool.CREATIVE, AppTool.suggestFor("Ich brauche ein Tagungsposter für die DGfE", emptySet(), android = false))
+        assertTrue(AppTool.entries.none { it.id == "creative" }, "kein einschaltbares Werkzeug mehr, sondern Teil von „Erstellen“")
+        assertTrue(DesignTemplates.fits("Mach mir ein Tagungsposter für die DGfE") && !DesignTemplates.fits("Schreib ein Protokoll der Sitzung"))
         assertEquals("#00008C", DesignBrand.color("tud-dunkelblau"))
         assertEquals("#AABBCC", DesignBrand.color("abc"))
     }

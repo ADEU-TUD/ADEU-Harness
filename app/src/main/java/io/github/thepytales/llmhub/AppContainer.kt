@@ -97,7 +97,7 @@ class AppContainer(context: Context) {
     /** Lernspiele (AP-17): the collection and the agent's tools for it (offered while the tool is switched on). */
     val games = io.github.thepytales.llmhub.data.LearningGameStore(files)
     val gameTools = io.github.thepytales.llmhub.agent.GameTools(this)
-    /** Kreativbereich (AP-24): the designs and the agent's tools for them (offered while the tool is switched on). */
+    /** Erstellen › Gestalten (AP-24): the designs and the agent's tools for them (Windows). */
     val designs = io.github.thepytales.llmhub.data.DesignStore(files)
     val designTools = io.github.thepytales.llmhub.agent.DesignTools(this)
     /** Mail & Kalender (AP-13): fixed sorting rules, the protocol of every change in Outlook, the agent's tools. */
@@ -121,7 +121,9 @@ class AppContainer(context: Context) {
 
     init {
         // Modes of big tools (AP-17 Lernspiel) appear only while their tool is switched on.
-        io.github.thepytales.llmhub.agent.ChatModes.enabledTools = { settings.current.enabledToolIds }
+        io.github.thepytales.llmhub.agent.ChatModes.enabledTools = {
+            settings.current.enabledToolIds + if (io.github.thepytales.llmhub.data.DesignSupport.EDITOR) setOf(io.github.thepytales.llmhub.agent.ChatModes.DESIGN_TOOL) else emptySet()
+        }
     }
 
     init {

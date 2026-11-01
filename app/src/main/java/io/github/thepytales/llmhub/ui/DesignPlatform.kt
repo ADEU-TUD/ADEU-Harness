@@ -28,3 +28,7 @@ internal fun DesignCard(id: String) {
         }
     }
 }
+
+/** Android has no design editor (AP-24): „Erstellen“ shows the TU Vorlagen only. */
+@Suppress("UNUSED_PARAMETER")
+internal fun androidx.compose.foundation.lazy.LazyListScope.designSection(c: io.github.thepytales.llmhub.AppContainer) = Unit

@@ -105,19 +105,22 @@ object ChatModes {
         tool = "games",
     )
 
-    /** Kreativbereich (AP-24): only while the tool „Kreativbereich“ is switched on (Windows). */
+    /** Not a switchable tool but the platform's design editor: the Gestalten mode is there on Windows only. */
+    const val DESIGN_TOOL = "design-editor"
+
+    /** Erstellen › Gestalten (AP-24): Windows only (see data/DesignSupport). */
     val DESIGN = ChatMode(
         id = "design",
         name = "Gestalten",
         icon = "design",
-        explain = "Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungen, Bescheinigungen und Social-Media-Beiträge – z. B. ein Tagungsposter aus dem angehängten Paper. Danach im Kreativbereich bearbeiten und als PNG, PDF oder PowerPoint exportieren.",
+        explain = "Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungskarten, Social-Media-Beiträge, Kursbanner und Titelbilder – z. B. ein Tagungsposter aus dem angehängten Paper. Danach unter „Erstellen“ bearbeiten und als PNG, PDF oder PowerPoint exportieren.",
         data = "Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; Bildbeschreibungen an das Bildmodell des Uni-Servers.",
         example = "Mach aus dem angehängten Paper ein Tagungsposter (A1) mit Einleitung, Methode, Ergebnissen und Fazit.",
         command = "Gestalten",
         tools = setOf(ModeTool.DESIGN),
         prompt = DesignTools.MODE_PROMPT,
         keywords = "gestalten design poster tagungsposter flyer aushang plakat einladung urkunde teilnahmebescheinigung social media instagram banner canva",
-        tool = "creative",
+        tool = DESIGN_TOOL,
     )
 
     /** Mail & Kalender (AP-13): only while the tool is switched on (Windows with the classic Outlook). */

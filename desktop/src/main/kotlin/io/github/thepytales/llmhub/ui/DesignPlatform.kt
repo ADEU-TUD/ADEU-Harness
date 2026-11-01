@@ -38,7 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
-/** A design to open in the Kreativbereich (from a chat card); the app root navigates there. */
+/** A design to open in the editor (from „Erstellen“ or a chat card); the app root navigates there. */
 object DesignHandoff {
     val request = MutableStateFlow<String?>(null)
 }
@@ -57,7 +57,7 @@ fun DesignThumbnail(design: Design, modifier: Modifier = Modifier, page: Int = 0
     }
 }
 
-/** The card under a chat answer that made or changed a design (AP-24): preview and „Im Kreativbereich öffnen“. */
+/** The card under a chat answer that made or changed a design (AP-24): preview and „Bearbeiten“. */
 @Composable
 internal fun DesignCard(id: String) {
     val c = io.github.thepytales.llmhub.App.container
@@ -70,11 +70,11 @@ internal fun DesignCard(id: String) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(d.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
-                    listOfNotNull(DesignFormat.byId(d.format)?.label, if (d.pages.size > 1) "${d.pages.size} " + tr("Seiten") else null, tr("im Kreativbereich")).joinToString(" · "),
+                    listOfNotNull(DesignFormat.byId(d.format)?.label, if (d.pages.size > 1) "${d.pages.size} " + tr("Seiten") else null, tr("unter „Erstellen“")).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Button(onClick = { DesignHandoff.request.value = d.id }) {
-                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Im Kreativbereich öffnen"))
+                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Bearbeiten"))
                 }
             }
         }

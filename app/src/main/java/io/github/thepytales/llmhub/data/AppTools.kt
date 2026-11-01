@@ -43,15 +43,6 @@ enum class AppTool(
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
         android = false,
     ),
-    CREATIVE(
-        "creative", "Kreativbereich",
-        "Poster, Flyer, Aushänge, Einladungen, Teilnahmebescheinigungen, Social-Media-Beiträge, OPAL-Kursbanner und Titelbilder im TUD-Design gestalten: Leinwand mit Ebenen, Vorlagen, Brand-Kit, Symbole, QR-Codes, Bilder (auch vom Bildmodell), Poster aus einem Paper; Export als PNG, PDF (Druck) und PowerPoint.",
-        "creative", listOf(
-            "poster", "tagungsposter", "flyer", "aushang", "plakat", "einladung gestalten", "urkunde", "teilnahmebescheinigung", "social media", "instagram",
-            "kursbanner", "titelbild", "canva", "qr-code", "qr code",
-        ),
-        android = false,
-    ),
     VIDEO(
         "video", "Videoeditor",
         "Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube.",

@@ -24,7 +24,7 @@ class ToolsAndDrawerTest {
         assertEquals("Dateien", DrawerArea.FILES.label)
         // A stored order with the old „docs“ shows „Dateien“.
         assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.FILES), drawerLayout("templates\ndocs", emptySet()).first)
-        assertEquals("TU Vorlagen", DrawerArea.TEMPLATES.label)
+        assertEquals("Erstellen", DrawerArea.TEMPLATES.label)
     }
 
     @Test

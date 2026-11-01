@@ -124,6 +124,8 @@ data class AppSettings(
     val drawerTop: String = DEFAULT_DRAWER_TOP,
     /** „Mehr“ in the side menu is unfolded. */
     val drawerMoreOpen: Boolean = false,
+    /** Areas hidden from the side menu (ids of ui/DrawerArea, one per line); still reachable with Strg+K and Lora. */
+    val drawerHidden: String = "",
     /** Where Lora appears: EVERYWHERE (start page, chat, settings …), CHAT (only in the chat) or OFF. */
     val loraMode: String = "EVERYWHERE",
     /** Model of Lora, the navigator (short answers, thinking off). */
@@ -162,6 +164,8 @@ data class AppSettings(
     val enabledToolIds: Set<String> get() = enabledTools.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
     fun toolOn(id: String) = id in enabledToolIds
+
+    val drawerHiddenIds: Set<String> get() = drawerHidden.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
     /** Parts of the pseudonymization that are switched off (Einstellungen › Datenschutz). */
     val pseudonymOffFeatures: Set<PiiFeature>
@@ -292,6 +296,7 @@ class SettingsStore(context: Context) {
             .putString("drawerTop", next.drawerTop)
             .putBoolean("drawerFilesOnce", true)
             .putBoolean("drawerMoreOpen", next.drawerMoreOpen)
+            .putString("drawerHidden", next.drawerHidden)
             .putString("loraMode", next.loraMode)
             .putString("loraModel", next.loraModel)
             .putBoolean("loraCalm", next.loraCalm)
@@ -387,6 +392,7 @@ class SettingsStore(context: Context) {
                 else lines.joinToString("\n")
             },
             drawerMoreOpen = prefs.getBoolean("drawerMoreOpen", d.drawerMoreOpen),
+            drawerHidden = prefs.getString("drawerHidden", d.drawerHidden) ?: d.drawerHidden,
             // „Lora ausblenden“ became Lora: aus.
             loraMode = prefs.getString("loraMode", null) ?: if (prefs.getBoolean("hideLora", false)) "OFF" else d.loraMode,
             loraModel = prefs.getString("loraModel", d.loraModel) ?: d.loraModel,

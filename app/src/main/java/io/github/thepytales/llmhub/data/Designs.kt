@@ -109,7 +109,7 @@ data class DesignPage(
 )
 
 /**
- * A design of the Kreativbereich (AP-24): poster, flyer, notice, invitation, certificate, social media post … with one
+ * A design of „Erstellen“ › Gestalten (AP-24): poster, flyer, notice, invitation card, social media post … with one
  * or more pages of the same size. Sizes are millimetres; screen formats (social media, banners, video titles) are
  * pixels at 96 dpi converted to mm, so a 1080 px post exports as 1080 px again.
  */
@@ -138,7 +138,7 @@ data class Design(
     fun mapElements(transform: (DesignElement) -> DesignElement): Design = copy(pages = pages.map { p -> p.copy(elements = p.elements.map(transform)) })
 }
 
-/** Page formats of the Kreativbereich. */
+/** Page formats of the designs. */
 data class DesignFormat(val id: String, val label: String, val width: Float, val height: Float, val screen: Boolean = false) {
     /** Pixels of screen formats (96 dpi). */
     val pxWidth: Int get() = Math.round(width / MM_PER_PX)
@@ -227,7 +227,7 @@ object DesignBrand {
 fun newDesignId(): String = UUID.randomUUID().toString().substring(0, 8)
 
 /**
- * The designs of the Kreativbereich: `designs/<id>/design.json` plus the pictures of the design in the same folder.
+ * The designs (Erstellen › Meine Designs): `designs/<id>/design.json` plus the pictures of the design in the same folder.
  * Kept in memory as a list (a few dozen designs), saved at once on every change.
  */
 class DesignStore(files: File) {
