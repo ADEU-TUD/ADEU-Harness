@@ -521,9 +521,32 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     öffnet die Stelle), *Zusammenfassen*, *Formular erklären* (Feld für Feld, Nachweise, Fristen – ohne auszufüllen),
     *Tabellen mit KI* und **Tabellen herausziehen auf dem Gerät** (Spalten aus den Textpositionen, ohne KI) als Excel
     oder als Tabelle im Editor.
-- **Mail & Kalender** (Windows, AP-13, Werkzeug *Mail & Kalender*, anfangs aus): Lora arbeitet mit dem **klassischen
-  Outlook** dieses PCs – lokal über COM (JNA, ohne PowerShell, ohne Admin-Rechte, ohne Freigabe der IT; Outlook startet
-  bei Bedarf im Hintergrund). Das neue Outlook hat keine solche Schnittstelle; dafür kommt später der Server-Weg (AP-27).
+  **Stufe 3** (AP-26) im Bereich *Schwärzen & mehr* (Windows; *Vergleichen* auch auf Android):
+  - **Echtes Schwärzen**: Begriffe eingeben oder **Personenbezogenes vorschlagen** lassen (Namen, Kontaktdaten,
+    eigene Begriffe der Pseudonymisierung), *Stellen suchen* zeigt die Treffer je Seite. Seiten mit Balken werden als
+    Bild neu gezeichnet – der Text darunter ist aus der Datei **verschwunden**, nicht nur verdeckt; auf Wunsch gehen auch
+    Titel, Autor und die versteckten XMP-Daten. Danach lässt sich der Rest mit der Texterkennung wieder durchsuchbar machen.
+  - **Text ändern** (weiß überdecken, neuer Text in Helvetica darüber – der alte bleibt in der Datei) und **Bilder**:
+    Vorschau, *Ersetzen …* durch ein eigenes Bild oder *Entfernen*.
+  - **Verkleinern**: große Bilder kleiner rechnen und als JPEG speichern (*Mittel* bis 1.600 px, *Stark* bis 1.000 px),
+    Datei komprimiert – mit Größe vorher/nachher.
+  - **PDF/A-2b** für die Archivierung: XMP mit PDF/A-Kennung, sRGB-Farbprofil, Sprache, ohne Verschlüsselung, JavaScript
+    und eingebettete Dateien; nennt, was noch fehlt (nicht eingebettete Schriften). Streng prüfen: veraPDF.
+  - **Passwort** (AES-256): zum Öffnen und/oder für die Rechte (Drucken, Kopieren; Screenreader dürfen immer lesen),
+    **Schutz entfernen** mit dem Passwort. **Metadaten** ansehen, ändern oder alle entfernen.
+  - **Barrierefreiheit nach PDF/UA**: Tags, Sprache, Titel und Titelanzeige, eingebettete Schriften, Text statt Scan,
+    Alternativtexte der Abbildungen, Formularfelder mit Beschreibung, Lesezeichen, Tab-Reihenfolge; *Einfache Mängel
+    beheben* setzt Sprache, Titel, Titelanzeige und Tab-Reihenfolge.
+  - **Zwei PDFs vergleichen** (zwei offene Tabs): Seite für Seite, Wort für Wort, was entfernt und was neu ist – auch
+    als Word-Dokument.
+- **Mail & Kalender** (AP-13, AP-27, Werkzeug *Mail & Kalender*, anfangs aus): Lora arbeitet unter Windows mit dem
+  **klassischen Outlook** dieses PCs – lokal über COM (JNA, ohne PowerShell, ohne Admin-Rechte, ohne Freigabe der IT;
+  Outlook startet bei Bedarf im Hintergrund). Für das neue Outlook, andere Mailprogramme und **das Handy** gibt es den
+  **Weg über den Mailserver** (AP-27, *Einstellungen › Verbindungen › Mail über den Server*): IMAP mit TLS (993) oder
+  STARTTLS (143), dieselben Funktionen ohne Kalender – Postfach zusammenfassen, Ordner, sortieren (nur mit MOVE oder
+  UIDPLUS des Servers, damit keine andere Mail angefasst wird), Ordner anlegen, Antworten als **Entwurf** in „Entwürfe“
+  (mit zitiertem Verlauf). Unter Windows wählbar statt des klassischen Outlook. Termine, Aufgaben und Frei/Gebucht
+  brauchen Exchange (EWS/Graph mit Freigabe der IT) und gibt es auf diesem Weg noch nicht.
   - **Was ist wichtig?** Postfach zusammenfassen (z. B. seit gestern): *Handeln*, *Termine*, *Zur Kenntnis*.
   - **Sortieren**: Lora schlägt Ordner und feste **Sortierregeln** vor (Absender/Betreff enthält … → Ordner);
     Verschieben fragt vorher, Regeln wirken nur über *Regeln anwenden …*, das zuerst zeigt, was wohin käme.
@@ -655,6 +678,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   **Google Drive**, OneDrive oder Nextcloud, synchronisiert deren Programm alles auf andere Rechner; Änderungen von dort und
   neue `.md`-Dateien erscheinen nach wenigen Sekunden. Den ganzen **Datenordner** synchronisiert *Einstellungen ›
   Synchronisation* (siehe unten).
+- **Sync für Android** (AP-28, *Einstellungen › Verbindungen › Mit dem PC synchronisieren*): Liegt der Lora-Ordner des
+  PCs in der Nextcloud (AP-12), holt sich das Handy über WebDAV **Chats, Projekte, Gedächtnis, Kurztexte, eigene TU
+  Vorlagen, Kontakte und die Dateien** des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle
+  fünf Minuten und beim Wechsel in den Hintergrund. Es gelten die Regeln von AP-12: Das Handy legt eine Notiz wie ein PC
+  an; ist der Ordner am PC geöffnet oder sind dessen Änderungen noch unterwegs, wartet es. Haben beide Seiten etwas
+  geändert, bleiben beide Fassungen (ein Chat wird zur „zweiten Fassung“, andere Dateien nach `sync/konflikte`).
+  Löschungen gehen in beide Richtungen, ungewöhnlich viele halten den Sync an. Literatur, Wissenssammlung, Transkripte
+  und Einstellungen bleiben je Gerät, API-Schlüssel nie im Ordner.
 - **Einfacher Sync zwischen PCs** (Windows, *Einstellungen › Synchronisation*, AP-12): wie bei Obsidian liegt der
   Datenordner in einem Cloud-Ordner, der auf allen PCs eingerichtet ist – **Nextcloud**, **Google Drive für Desktop** oder
   **OneDrive** (gefundene Cloud-Ordner stehen als Knopf da: *In OneDrive legen* …). Erster PC: Daten werden kopiert, Lora
@@ -1085,7 +1116,8 @@ baut ohne Spracherkennung und lokale Modelle.
 ./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI,
                             # Transkript-Exporte, Interrater-Reliabilität, Geräteempfehlungen, Gestalten (Bilder in
                             # desktop/build/creative-look), Videoeditor mit echtem ffmpeg-Export (desktop/build/video-look),
-                            # Stapel (80 Dateien, Pause, Neustart), Anträge, Nextcloud/MCP gegen lokale Testserver …
+                            # Stapel (80 Dateien, Pause, Neustart), Anträge, Nextcloud/MCP/IMAP/Handy-Sync gegen lokale
+                            # Testserver, PDF Stufe 3 (Schwärzen, PDF/A, Passwort, PDF/UA) …
 ./gradlew :speech:test      # Spracherkennung: Warteschlange, Abschnitte, Ersetzungen, WAV …
 ```
 
@@ -1217,6 +1249,9 @@ Chats und Einstellungen erhalten bleiben).
 | `data/Proposals.kt`, `agent/ProposalTools.kt`, `ui/ProposalScreen.kt` | Antrags-Werkstatt (AP-21): Förderer-Vorlagen, Checkliste, Fristen (Kalender), Gliederung mit Zeichen-/Seitenwächter, Gantt, Budget, Abgabe-Check, Probelauf |
 | `net/WebDav.kt`, `data/Nextcloud.kt`, `agent/NextcloudTools.kt`, `ui/NextcloudUi.kt`, `files/FileText.kt` (beide) | Nextcloud (AP-22): WebDAV, Login Flow v2, Datei-Browser, Anhängen/Holen/Speichern, Agent-Werkzeuge |
 | `net/Mcp.kt`, `net/McpOAuth.kt`, `net/McpStdio.kt` (beide), `data/McpServers.kt`, `agent/McpTools.kt`, `ui/ConnectionsSettings.kt` | MCP-Client (AP-23): Streamable HTTP, OAuth mit PKCE, lokale Server (Windows), Werkzeuge je Server mit Erlauben/Fragen/Sperren, *Einstellungen › Verbindungen* |
+| `docs/PdfStage3.kt` (beide), `docs/PdfCompare.kt`, `ui/PdfStage3Ui.kt` | PDF Stufe 3 (AP-26): Schwärzen, Text/Bilder ändern, Verkleinern, PDF/A-2b, Passwort, Metadaten, PDF/UA-Prüfung, Vergleichen |
+| `net/Imap.kt`, `data/MailServer.kt` | Mail über den Server (AP-27): IMAP-Client und ImapBridge mit der Schnittstelle des klassischen Outlook |
+| `data/PhoneSync.kt` | Sync für Android (AP-28): Lora-Ordner des PCs über WebDAV spiegeln, Notiz, Konflikte, Schutz vor Massenlöschung |
 
 ### Windows-Version (`desktop/`)
 

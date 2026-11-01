@@ -52,7 +52,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
-| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor~~ (☑) · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
+| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android~~ (☑) · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
 zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 vor AP-28 · AP-20 vor großen Exzerpt-Stapeln.
@@ -680,16 +680,58 @@ Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
   Betrifft: Windows `video/*`, `ui/VideoScreen.kt`, `desktop/Extensions.kt`, `ui/ExtensionsUi.kt`, gemeinsam
   `update/UpdateInfo.kt`, `update/Updates.kt`, `.github/scripts/extension-videoeditor.sh`, `publish-update.sh`.
 
-### AP-26 ☐ PDF-Werkzeugkasten Stufe 3 · M (bisher W8-02, Stufen 4, 8, 9)
+### AP-26 ☑ PDF-Werkzeugkasten Stufe 3 · M (bisher W8-02, Stufen 4, 8, 9)
 - Echtes Schwärzen, Text/Bilder ändern, verkleinern, PDF/A, Passwort, Metadaten; zwei PDFs vergleichen, Barrierefreiheit
   nach PDF/UA.
+- **Entscheidungen (01.11.2026)**: (a) **Schwärzen** zeichnet die betroffenen Seiten als Bild neu (wie die einfache
+  Schwärzung von pdf24) – sicher, weil der Text darunter weg ist; andere Seiten bleiben Text. (b) **Text ändern** überdeckt
+  und schreibt neu, statt den Inhaltsstrom umzuschreiben; der alte Text bleibt (Hinweis im Werkzeug). (c) PDF/A als
+  **PDF/A-2b-Vorbereitung** mit klarer Liste, was fehlt; strenge Prüfung bleibt bei veraPDF. (d) Stufe 3 nur unter Windows
+  (wie *Formular*); *Vergleichen* ist gemeinsamer Code und läuft auch auf Android.
+- **Ergebnis (01.11.2026)**: Bereich *Schwärzen & mehr*: Schwärzen mit Suche und Vorschlägen aus der Pseudonymisierung
+  (Namen, Kontaktdaten, eigene Begriffe), optional ohne Metadaten; Text ersetzen; Bilder mit Vorschau ersetzen oder
+  entfernen; Verkleinern (Mittel/Stark); PDF/A-2b (XMP, sRGB, Sprache, ohne JavaScript/Anhänge/Verschlüsselung);
+  Passwort AES-256 mit Rechten und Entfernen; Metadaten bearbeiten oder entfernen; PDF/UA-Prüfung (Tags, Sprache, Titel,
+  Schriften, Text, Alternativtexte, Felder, Lesezeichen, Tab-Reihenfolge) mit *Einfache Mängel beheben*; Vergleichen
+  Wort für Wort mit Word-Export. Tests: `PdfStage3Test`. Rest: echtes Bearbeiten im Inhaltsstrom, Schwärzen mit der Maus
+  auf der Seite, Tags erzeugen, digitale Signatur.
+  Betrifft: `docs/PdfStage3.kt` (beide), `docs/PdfCompare.kt`, `ui/PdfStage3Ui.kt`, `ui/PdfToolScreen.kt`.
 
-### AP-27 ☐ Mail über den Server · L (bisher W7-01, Server-Weg)
+### AP-27 ☑ Mail über den Server · L (bisher W7-01, Server-Weg)
 - Wenn jemand das neue Outlook nutzt (oder für Android): Exchange (EWS bzw. Microsoft Graph mit Freigabe der IT) oder
   IMAP/SMTP; Funktionen wie AP-13. Vorher klären, wie die TU Exchange betreibt (Offene Fragen).
+- **Entscheidungen (01.11.2026)**: (a) **IMAP zuerst** – geht ohne Freigabe der IT; EWS/Graph bleibt offen (Offene Fragen 3).
+  (b) **Kein SMTP**: Antworten landen als Entwurf (APPEND in „Entwürfe“), gesendet wird nie. (c) Verschieben nur mit MOVE
+  oder UIDPLUS (UID EXPUNGE der eigenen Mails) – nie EXPUNGE, das andere gelöschte Mails endgültig entfernen würde.
+  (d) Eigener kleiner IMAP-Client statt Jakarta Mail (läuft unverändert auf Android und Windows). (e) Dieselbe
+  Schnittstelle wie das klassische Outlook (`OutlookBridge`), damit Werkzeuge, Regeln, Protokoll und *Mehr › Mail &
+  Kalender* gleich bleiben.
+- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Mail über den Server* (Server, Port 993/143, Benutzer,
+  Passwort verschlüsselt, eigene Adresse, unter Windows „statt des klassischen Outlook“, Testen); Werkzeug *Mail &
+  Kalender* jetzt auch auf Android. Ordner (Modified UTF-7, Zähler), Mails mit Vorschau, eine Mail ganz (MIME über
+  `MailText`), Verschieben, Ordner anlegen, Entwürfe mit Antwort-Kopfzeilen und zitiertem Verlauf. Kalender, Aufgaben und
+  Frei/Gebucht melden verständlich, dass es sie auf diesem Weg nicht gibt. Tests: `MailServerTest` gegen einen
+  IMAP-Testserver (auch: nie EXPUNGE/STORE ohne UIDPLUS, falsches Passwort). Rest: Exchange über EWS/Graph mit Kalender,
+  OAuth-Anmeldung für Exchange Online, Zugangsdaten der TU im Formular vorbelegen (sobald geklärt).
+  Betrifft: `net/Imap.kt`, `data/MailServer.kt`, `data/Outlook.kt`, `ui/ConnectionsSettings.kt`, `ui/MailScreen.kt`.
 
-### AP-28 ☐ Sync für Android · M (bisher W4-02, Stufe d)
+### AP-28 ☑ Sync für Android · M (bisher W4-02, Stufe d)
 - Den Cloud-Ordner aus AP-12 auf Android über Nextcloud/WebDAV oder den Systemdialog nutzen. Nice to have.
+- **Entscheidungen (01.11.2026)**: (a) Über **Nextcloud/WebDAV** (AP-22) statt des Systemdialogs: Android hat keinen
+  Cloud-Client für den App-Ordner, der Systemdialog bleibt für die Kopie des Lora-Ordners (AP-16). (b) Das Handy ist ein
+  „Gerät“ wie ein PC: Notiz in `.lora/sync/`, wartet, solange ein PC den Ordner offen hat oder dessen Änderungen
+  unterwegs sind. (c) **Nur, was die App im Betrieb neu lesen kann**: Chats (je Datei), Projekte, Gedächtnis,
+  Kurztexte, eigene TU Vorlagen, Kontakte und die sichtbaren Dateien – Literatur, Wissen, Transkripte und Einstellungen
+  bleiben je Gerät (sonst könnte ein Speicher im Speicher alte Daten über neue schreiben). (d) Konflikte wie AP-12
+  (zweite Fassung bzw. `sync/konflikte`), Schutz vor Massenlöschung.
+- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Mit dem PC synchronisieren* (Android): Lora-Ordner in der
+  Nextcloud wählen (prüft `.lora`), *Jetzt synchronisieren*, Stand; automatisch beim Öffnen, alle fünf Minuten und beim
+  Wechsel in den Hintergrund (Notiz dann „geschlossen“). Zweiwege-Abgleich über ETags mit Zustandsdatei, Löschungen in
+  beide Richtungen, Chats und Listen werden danach neu gelesen. Tests: `PhoneSyncTest` (holen, hochladen, Konflikt,
+  Löschen, wartet auf den PC, Massenlöschung). Rest: weitere Speicher (Literatur, Wissen) mit Neuladen; Sync im
+  Hintergrund ohne geöffnete App.
+  Betrifft: `data/PhoneSync.kt`, `net/WebDav.kt`, `data/Stores.kt` (`reload`), `data/ChatRepository.kt` (`rescan`),
+  `ui/NextcloudUi.kt`.
 
 ### AP-29 ☐ Englisch vervollständigen · M (bisher W9-07)
 - Alle Texte in `I18n` überführen, englische Fassung vollständig (Einstellungen, Editoren, TU Vorlagen, Fehlermeldungen,
@@ -776,6 +818,9 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-20 Stapel und Massenkontrolle | Warteschlange im Hintergrund (Ordner, ZIP, Mehrfachauswahl, Nextcloud) mit Pause/Fortsetzen über Neustarts, Vorrang für Chats, nachts; Massenkontrolle mit Raster, Kalibrierung, Belegprüfung, Ausreißern, Entscheidung mit Protokoll, Excel/Word-Exporten | Exzerpt-Stapel an Literatureinträge; OPAL-Format klären |
 | ☑ AP-21 Antrags-Werkstatt | Modus *Antrag*, Förderer-Vorlagen (DFG, BMBF, EU, SAB, TUD), Checkliste, Fristen als Kalenderdatei, Gliederung mit Zeichen-/Seitenwächter, Gantt, Budget mit Pauschale, DMP, Ethik, Probelauf, Abgabe-Check, Word-Export | Förderer-Vorlagen befüllen, Personalmittelsätze |
 | ☑ AP-22 Nextcloud | WebDAV auf beiden Plattformen, Anmeldung im Browser (Login Flow v2), Datei-Browser, Anhängen, Holen, Speichern, Agent-Werkzeuge | Android-Sync (AP-28), Freigabelinks |
+| ☑ AP-26 PDF Stufe 3 | Schwärzen (Seiten als Bild), Text/Bilder ändern, Verkleinern, PDF/A-2b, Passwort, Metadaten, PDF/UA-Prüfung mit Behebung, Vergleichen | Inhaltsstrom bearbeiten, Tags erzeugen |
+| ☑ AP-27 Mail über den Server | IMAP mit derselben Schnittstelle wie Outlook, Entwürfe statt Senden, Verschieben nur sicher, Android | Exchange mit Kalender (EWS/Graph) |
+| ☑ AP-28 Sync für Android | Handy spiegelt den Lora-Ordner des PCs über Nextcloud/WebDAV mit den Regeln von AP-12 | Literatur/Wissen, Hintergrund-Sync |
 | ☑ AP-23 MCP-Client | Streamable HTTP mit Token/OAuth (PKCE), stdio unter Windows, *Einstellungen › Verbindungen*, Erlauben/Fragen/Sperren je Werkzeug, Datenschutzstufe | Ressourcen, Prompts, Elicitation |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
@@ -786,8 +831,9 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 1. **Startseite** (AP-02, AP-37): Wortlaut der Chips und ihrer Starts final abstimmen (umgesetzt ist der Vorschlag aus AP-37).
 2. ~~**Outlook über COM** (AP-13)~~: entschieden – COM über JNA (schon in der App), ohne PowerShell und ohne
    Admin-Rechte. Offen nur: Läuft es auf den Dienst-PCs ohne Rückfrage von Outlook (Virenscanner aktuell)?
-3. **Exchange der TU** (nur für AP-27): selbst betrieben (EWS) oder Exchange Online (Graph mit Freigabe der IT)? Wann
-   stellt die TU auf das neue Outlook um?
+3. **Exchange der TU** (Rest von AP-27): selbst betrieben (EWS) oder Exchange Online (Graph mit Freigabe der IT)? Wann
+   stellt die TU auf das neue Outlook um? Mail über IMAP ist seit AP-27 da; offen sind Kalender und Aufgaben über den
+   Server sowie die Zugangsdaten der TU zum Vorbelegen.
 4. **OPAL** (AP-17, AP-20): Lassen sich HTML-Dateien/ZIP-Pakete als Lernelement einbinden? In welchem Format kommen
    Abgaben aus OPAL?
 
@@ -803,9 +849,9 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Lora-Navigator (AP-07) | ☐ | ☐ |
 | Pseudonymisierung (AP-03) | ☑ | ☑ |
 | Tresor (AP-10) | ☐ | ☐ |
-| PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren, Unterschreiben, KI, OCR per Bildmodell | voll |
-| Sync (AP-12, AP-28) | später (AP-28) | ☑ |
-| Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☑ (Outlook) |
+| PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren, Unterschreiben, KI, OCR per Bildmodell, Vergleichen | voll |
+| Sync (AP-12, AP-28) | ☑ (über Nextcloud) | ☑ |
+| Mail und Kalender (AP-13, AP-27) | ☑ Mail über den Server (ohne Kalender) | ☑ (Outlook oder Server) |
 | Dateiverwaltung (AP-18) | ☑ (Dokumente, Wissenssammlung) | ☑ (dazu Ablageorte und Projektordner) |
 | Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
 | Office (AP-16) | ☑ ansehen, bearbeiten, Lora; Dateien in der App mit Kopie in einen gewählten Ordner | ☑ voll, Lora-Ordner |
