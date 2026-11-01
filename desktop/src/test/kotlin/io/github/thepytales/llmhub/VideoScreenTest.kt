@@ -32,7 +32,8 @@ import kotlin.test.assertTrue
 class VideoScreenTest {
     @Test
     fun editorShowsTimelinePreviewAndProperties() {
-        val exe = Media.ffmpeg() ?: return
+        // Linux returns "ffmpeg" from the system even if it is not installed (CI): run only where it really starts, as VideoTest.
+        val exe = Media.ffmpeg()?.takeIf { runCatching { ProcessBuilder(it, "-version").start().waitFor(10, TimeUnit.SECONDS) }.getOrNull() == true } ?: return
         val base = Files.createTempDirectory("adeu-video-ui").toFile()
         val src = File(base, "vorlesung.mp4")
         ProcessBuilder(exe, "-nostdin", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=640x360:rate=25:duration=12",
