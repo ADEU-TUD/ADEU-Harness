@@ -148,7 +148,7 @@ import kotlin.math.min
 
 private val EditorAccent = Color(0xFF2F57B2)
 
-/** The editor of the Kreativbereich (AP-24) for design [id]. Changes are saved after a short pause and when leaving. */
+/** The design editor of „Erstellen“ (AP-24) for design [id]. Changes are saved after a short pause and when leaving. */
 @Composable
 fun DesignEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     val initial = remember(id) { c.designs.get(id) }

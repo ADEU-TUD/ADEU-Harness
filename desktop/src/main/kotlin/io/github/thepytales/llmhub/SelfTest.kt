@@ -36,6 +36,8 @@ object SelfTest {
         "mail",
         // AP-18: the Dateiverwaltung.
         "files",
+        // AP-24, AP-25: „Erstellen“ with the design templates (the route of the former Kreativbereich) and the video editor.
+        "creative", "video",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

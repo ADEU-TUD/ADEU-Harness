@@ -55,6 +55,7 @@ Ein Release enthält:
 | `ADEU-LLM-x.y.z-Windows.zip` | App-Ordner für Windows; daraus aktualisiert sich die Windows-App |
 | `ADEU-LLM-x.y.z-Windows.exe` | dasselbe als Ein-Datei-Programm zum ersten Installieren |
 | `ADEU-LLM-x.y.z.apk` | Android-App (immer mit demselben Schlüssel signiert, sonst ist kein Update möglich) |
+| `Lora-Videoeditor-n.zip` | Nachladbare Erweiterung für Windows: richtet die App beim ersten Öffnen des Videoeditors ein (ffprobe, Sprachmodell der Rauschminderung) |
 
 Die Apps lesen `https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest/download/version.json` –
 also immer das neueste Release, das **nicht** als Vorabversion markiert ist. Damit das ohne Konto funktioniert, muss
@@ -66,9 +67,13 @@ dieses Repository **öffentlich** bleiben.
   "published": "2026-10-27",
   "notes": "Was ist neu – erscheint im Update-Hinweis",
   "windows": { "file": "ADEU-LLM-1.0.37-Windows.zip", "url": "https://github.com/…/ADEU-LLM-1.0.37-Windows.zip", "sha256": "…", "size": 190000000 },
-  "android": { "file": "ADEU-LLM-1.0.37.apk", "url": "https://github.com/…/ADEU-LLM-1.0.37.apk", "sha256": "…", "size": 41000000 }
+  "android": { "file": "ADEU-LLM-1.0.37.apk", "url": "https://github.com/…/ADEU-LLM-1.0.37.apk", "sha256": "…", "size": 41000000 },
+  "extensions": [{ "id": "videoeditor", "name": "Videoeditor-Paket", "version": "1", "file": "Lora-Videoeditor-1.zip", "url": "https://github.com/…/Lora-Videoeditor-1.zip", "sha256": "…", "size": 39000000 }]
 }
 ```
+
+Erweiterungen (`extensions`) richtet die Windows-App unter `%LOCALAPPDATA%\ADEU LLM\tools\<id>` ein, sobald sie
+gebraucht werden; eine höhere `version` aktualisiert sie mit der nächsten Update-Prüfung.
 
 **Version zurückziehen:** Das fehlerhafte Release löschen (oder als Vorabversion markieren) – dann gilt wieder das
 vorherige als neuestes. Bereits installierte Geräte gehen dadurch nicht zurück; dafür eine neue, höhere Version mit der

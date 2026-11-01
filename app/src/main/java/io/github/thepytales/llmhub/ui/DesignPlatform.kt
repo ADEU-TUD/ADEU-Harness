@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
- * The card under a chat answer that made or changed a design (AP-24). The Kreativbereich is part of the Windows app
+ * The card under a chat answer that made or changed a design (AP-24). The design editor is part of the Windows app
  * only; Android shows where to find the design. Windows has its own version of this file (preview and „Öffnen“).
  */
 @Composable
@@ -24,7 +24,7 @@ internal fun DesignCard(id: String) {
     Surface(shape = MaterialTheme.shapes.medium, color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text(d.title, style = MaterialTheme.typography.titleSmall)
-            Text(tr("Im Kreativbereich der Windows-App bearbeiten und exportieren."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(tr("Unter „Erstellen“ in der Windows-App bearbeiten und exportieren."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

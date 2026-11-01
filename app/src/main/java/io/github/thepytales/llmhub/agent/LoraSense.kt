@@ -67,10 +67,12 @@ object LoraSense {
                 Suggestion("Schriftgröße", "Schriftgröße", "option.appearance.textsize"),
                 Suggestion("Namen schützen", "Wie funktioniert die Pseudonymisierung?"),
             )
-            r == "templates" -> listOf(
+            r == "templates" || r == "creative" -> listOfNotNull(
+                // Erstellen (AP-24): on Windows Lora also designs.
+                Suggestion("Poster gestalten lassen", "Gestalten", "mode.design").takeIf { !android && ChatModes.visible().any { it.id == ChatModes.DESIGN.id } },
                 Suggestion("Antwort an Studierende", "Mail an Studierende", "template.b_mail_student"),
                 Suggestion("Vorlage Schritt für Schritt", "Wie geht eine Vorlage mit Lora?"),
-                Suggestion("Eigene Vorlage", "Wie lege ich eine eigene Vorlage an?"),
+                Suggestion("Eigene Vorlage", "Wie lege ich eine eigene Vorlage an?").takeIf { android || ChatModes.visible().none { it.id == ChatModes.DESIGN.id } },
             )
             r == "literature" -> listOf(
                 Suggestion("Exzerpt erstellen", "Exzerpt", "mode.excerpt"),

@@ -27,7 +27,7 @@ import javax.imageio.ImageIO
 import kotlin.math.min
 
 /**
- * Exports of the Kreativbereich (AP-24): PNG (one file per page, as ZIP for several pages), PDF for printing (vector
+ * Exports of the designs (Erstellen › Gestalten, AP-24): PNG (one file per page, as ZIP for several pages), PDF for printing (vector
  * shapes and text with embedded Noto Sans, optionally 3 mm bleed and crop marks) and PowerPoint (real, editable
  * shapes and text boxes; QR codes and symbols as pictures). All three take position, size and line breaks from the
  * same model and text layout as the editor.

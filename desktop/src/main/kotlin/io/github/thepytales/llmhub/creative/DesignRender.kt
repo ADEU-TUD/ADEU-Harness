@@ -64,7 +64,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 /**
- * Drawing of the Kreativbereich (AP-24): one function draws a page of a [Design] into a [DrawScope] – the editor's
+ * Drawing of the designs (Erstellen › Gestalten, AP-24): one function draws a page of a [Design] into a [DrawScope] – the editor's
  * canvas, the previews and the PNG export use it, so everything looks the same. Text is laid out once at a fixed
  * resolution ([REF] px per mm, independent of the zoom) with the house font Noto Sans; the PDF and PowerPoint exports
  * take the same line breaks from [DesignText.layout].

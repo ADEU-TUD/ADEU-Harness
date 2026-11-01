@@ -547,7 +547,7 @@ fun AssistantMessage(
             if ((call.name == io.github.thepytales.llmhub.agent.GameTools.CREATE || call.name == io.github.thepytales.llmhub.agent.GameTools.UPDATE) &&
                 result != null && !result.content.startsWith("FEHLER")
             ) io.github.thepytales.llmhub.agent.GameTools.idIn(result.content)?.let { GameCard(it) }
-            // A design was made or changed (AP-24): preview and „Im Kreativbereich öffnen“.
+            // A design was made or changed (AP-24): preview and „Bearbeiten“ (Erstellen › Meine Designs).
             if ((call.name == io.github.thepytales.llmhub.agent.DesignTools.CREATE || call.name == io.github.thepytales.llmhub.agent.DesignTools.UPDATE) &&
                 result != null && !result.content.startsWith("FEHLER")
             ) io.github.thepytales.llmhub.agent.DesignTools.idIn(result.content)?.let { DesignCard(it) }
