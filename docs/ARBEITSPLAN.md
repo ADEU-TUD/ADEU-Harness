@@ -416,8 +416,39 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
 
 ### AP-16 ☐ Office-Ausbau · XL (bisher W8-01)
 Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau im Alltagsumfang. Stufen:
-1. **Kommentare und Änderungen nachverfolgen**, verlustfreies Öffnen und Speichern von .docx und .xlsx.
-2. **Seitenlayout** im Dokument: Seitenansicht mit Rändern, Abschnitte, Kopf-/Fußzeilen, Inhaltsverzeichnis, Formeln (LaTeX).
+0. **Dateien wie bei Google Drive, mit einem Lora-Ordner** (baut auf AP-18 auf; entschieden am 01.11.2026):
+   - Der Tab *Dokumente* und *Mehr › Dateien* werden zum Tab **Dateien** (oben in der Seitenleiste; Strg+D,
+     Befehlspalette und Lora-Landkarte ziehen mit).
+   - **Ein Lora-Ordner für alles, wie ein Obsidian-Vault**: Dateien, Chats und Einstellungen liegen in einem frei
+     wählbaren Ordner (Standard `Dokumente\Lora`; ist der Sync aus AP-12 an, schlägt die App einen Ordner im Cloud-Ordner
+     vor). **Ordner wechseln**: Inhalt in einen anderen Ordner verschieben, dort in der App auswählen, weiterarbeiten.
+     API- und Tresor-Schlüssel bleiben am Gerät (DPAPI/Keystore); auf einem neuen Gerät gibt man sie einmal neu ein.
+     Die App-Daten liegen versteckt in einem Unterordner, sichtbar sind nur die Dateien.
+   - **Echte Dateien** im Ordner (.docx, .xlsx, .pptx, .md, .pdf), die sich mit Word & Co. öffnen lassen; Kommentare,
+     Versionen und die Verbindung zum Chat liegen daneben im versteckten Ordner `.lora/`. Braucht Stufe 1
+     (Speichern ohne Verlust); bis dahin bleibt das App-Format daneben bestehen.
+   - **Feste Ordner**: *Hochgeladen* (jeder Upload als Kopie, gleiche Dateien nur einmal; frühere PDFs und Bilder aus
+     alten Chats werden übernommen, von Word, Excel und anderen gibt es nur noch den Text) und *Erstellt* (alles, was im
+     Chat entstanden ist; flach mit Spalte und Filter „aus Chat …“/Projekt). Beide lassen sich nicht umbenennen oder
+     löschen, ihre Dateien lassen sich aber verschieben – die Verbindung zum Chat bleibt.
+   - **Bedienung wie Google Drive**: Ordner anlegen, umbenennen, verschieben (Ziehen und Ablegen, auch mehrere, und
+     *Verschieben nach …*), Mehrfachauswahl, Pfadleiste, **Raster mit Vorschaubild** (erste Seite/Folie, im Cache) und
+     **Liste**, Sortieren nach Name, Geändert, Typ, Größe. **Großes Plus** unten rechts: Ordner, Dokument, Präsentation,
+     Tabelle, Markdown, Hochladen; neue Dateien landen im geöffneten Ordner. Seitenspalte (Android oben): *Zuletzt ·
+     Markiert · Hochgeladen · Erstellt · Meine Ordner · Orte · Papierkorb*. Keine Leiste unten und kein „Freigegeben“
+     wie bei Drive.
+   - **Papierkorb** statt sofort löschen. Bisherige Ablageorte und Projektordner bleiben als **Orte** verknüpft (kein
+     Umzug); ihre Dateien lassen sich jetzt auch umbenennen, verschieben und löschen (Windows-Papierkorb, Rückgängig).
+   - **Tresor** bleibt draußen: seine Dokumente landen nie unverschlüsselt im Lora-Ordner.
+   - **Suche**: die Volltextsuche aus AP-18 im Tab *Dateien*. Chats bekommen eine eigene Suche mit Filtern in der
+     Chatliste (Zeitraum, Projekt, Modell, mit Anhängen, mit erstellten Dateien); Dateien zeigen „aus Chat …“, Chats ihre
+     Dateien.
+   - **Android**: Ordner einmal über den Systemdialog wählen (z. B. `Dokumente/Lora`); dort liegen nur die Dateien,
+     Chats und Einstellungen bleiben intern (alles in einem Ordner kommt mit AP-28). Scannen mit der Kamera → Ideen.
+1. **Kommentare und Änderungen nachverfolgen**, verlustfreies Öffnen und Speichern von .docx, .xlsx und .pptx.
+2. **Seitenlayout** im Dokument: Seitenansicht mit Rändern, Abschnitte, Kopf-/Fußzeilen, Inhaltsverzeichnis, Formeln
+   (LaTeX). Dazu **Rechtschreibprüfung** (Deutsch und Englisch, auf dem Gerät) und **Zitieren** aus der Literatur mit
+   automatischem Literaturverzeichnis (bisher Ideen).
 3. **Folien frei gestalten**: Elemente frei platzieren, Bilder und Formen, Masterfolien.
 - Android: ansehen, kleine Änderungen, KI-Assistent.
 - Code aus WordCraft und DeckCraft ggf. ansehen (*Anhang: Craft-Apps*).
@@ -553,7 +584,7 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
   Forschungsdaten veröffentlichen über OPARA/Zenodo (W5-06), Profilpflege mit ORCID/FIS/Publikationsliste/Lebenslauf (W5-08).
 - **Lehre & Verwaltung**: Klausuren nachträglich analysieren (W6-02), Live-Untertitel im Hörsaal (W6-04, eher Spielerei),
   Podcast aus Dokumenten (W7-02), Assistent für Bewerbungsverfahren (W7-03), Lernspiele als SCORM/H5P.
-- **Werkzeuge**: Diagramme und Whiteboard (W8-04), mehr Dateiformate (W8-05), Zitieren beim Schreiben im Dokument-Editor,
+- **Werkzeuge**: Diagramme und Whiteboard (W8-04), mehr Dateiformate (W8-05),
   Browser-Automatisierung für Portale ohne Schnittstelle.
 - **Anbindungen**: Zotero, Obsidian, Moodle, LimeSurvey und weitere aus dem alten Katalog (W9-03); ADEU als MCP-Server
   (W9-04); Plugins (W9-05).
