@@ -110,7 +110,7 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
 
     LaunchedEffect(attempt) {
         if (bridge == null) {
-            state = OutlookState.Problem(tr("Mail & Kalender gibt es in der Windows-App mit dem klassischen Outlook. Auf Android kommt später der Weg über den Mailserver."))
+            state = OutlookState.Problem(tr("Noch kein Postfach verbunden. Unter Windows arbeitet Lora mit dem klassischen Outlook; sonst – und auf dem Handy – unter Einstellungen › Verbindungen › „Mail über den Server“ den Mailserver eintragen."))
             return@LaunchedEffect
         }
         state = OutlookState.Connecting

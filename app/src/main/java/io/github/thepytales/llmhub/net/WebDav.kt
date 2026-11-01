@@ -23,6 +23,8 @@ data class DavEntry(
     val size: Long = 0,
     val modified: Long = 0,
     val mime: String? = null,
+    /** Version tag of the server (changes with every change of the file). */
+    val etag: String? = null,
 )
 
 /**
@@ -79,6 +81,11 @@ class WebDavClient(
         http.newCall(request(path).put(bytes.toRequestBody(mime.toMediaType())).build()).execute().use { check(it) }
     }
 
+    /** Uploads [bytes] to [path] whose folder exists already (see [mkdirs]). */
+    suspend fun put(path: String, bytes: ByteArray, mime: String = "application/octet-stream") = withContext(Dispatchers.IO) {
+        http.newCall(request(path).put(bytes.toRequestBody(mime.toMediaType())).build()).execute().use { check(it) }
+    }
+
     /** Creates [path] and the folders above it (existing ones are fine). */
     suspend fun mkdirs(path: String) = withContext(Dispatchers.IO) {
         val parts = normalize(path).trim('/').split('/').filter { it.isNotEmpty() }
@@ -90,6 +97,33 @@ class WebDavClient(
                 if (!resp.isSuccessful && resp.code != 405) check(resp)
             }
         }
+    }
+
+    /** Deletes [path] (Nextcloud keeps it in its trash bin). A missing file is fine. */
+    suspend fun delete(path: String) = withContext(Dispatchers.IO) {
+        http.newCall(request(path).delete().build()).execute().use { if (!it.isSuccessful && it.code != 404) check(it) }
+    }
+
+    /**
+     * All files below [path] (folders are walked one level at a time – Nextcloud does not allow „Depth: infinity“),
+     * without the folders whose name is in [skip]. At most [max] files.
+     */
+    suspend fun walk(path: String, skip: (DavEntry) -> Boolean = { false }, max: Int = 20_000): List<DavEntry> {
+        val out = mutableListOf<DavEntry>()
+        val todo = ArrayDeque(listOf(normalize(path)))
+        while (todo.isNotEmpty() && out.size < max) {
+            val dir = todo.removeFirst()
+            val entries = try {
+                list(dir)
+            } catch (e: IOException) {
+                if (dir == normalize(path) && e.message.orEmpty().contains("existiert")) return emptyList() else throw e
+            }
+            for (e in entries) {
+                if (skip(e)) continue
+                if (e.folder) todo.addLast(e.path) else out += e
+            }
+        }
+        return out
     }
 
     suspend fun exists(path: String): Boolean = withContext(Dispatchers.IO) {
@@ -117,7 +151,7 @@ class WebDavClient(
         const val MAX_DOWNLOAD = 200L * 1024 * 1024
 
         private const val PROPFIND_BODY = """<?xml version="1.0" encoding="UTF-8"?>
-<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:getcontenttype/></d:prop></d:propfind>"""
+<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:getcontenttype/><d:getetag/></d:prop></d:propfind>"""
 
         /** Root of the user's files from the server address or a copied WebDAV address. */
         fun davRoot(server: String, user: String): String {
@@ -177,6 +211,7 @@ class WebDavClient(
             val length = tag("getcontentlength")
             val modified = tag("getlastmodified")
             val type = tag("getcontenttype")
+            val etag = tag("getetag")
             val collection = Regex("<(?:[A-Za-z0-9_-]+:)?collection\\s*/?>", RegexOption.IGNORE_CASE)
             val root = URLDecoder.decode(rootPath.replace("+", "%2B"), "UTF-8").trimEnd('/')
             return response.findAll(xml).mapNotNull { m ->
@@ -195,6 +230,7 @@ class WebDavClient(
                     size = length.find(block)?.groupValues?.get(1)?.trim()?.toLongOrNull() ?: 0,
                     modified = modified.find(block)?.groupValues?.get(1)?.trim()?.let { d -> runCatching { HTTP_DATE.get()!!.parse(d)?.time }.getOrNull() } ?: 0,
                     mime = type.find(block)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() },
+                    etag = etag.find(block)?.groupValues?.get(1)?.let(::xmlText)?.trim()?.trim('"')?.takeIf { it.isNotEmpty() },
                 )
             }.toList()
         }

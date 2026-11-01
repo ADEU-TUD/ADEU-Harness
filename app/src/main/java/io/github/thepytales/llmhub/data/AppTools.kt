@@ -39,9 +39,8 @@ enum class AppTool(
     ),
     MAIL(
         "mail", "Mail & Kalender",
-        "Postfach im klassischen Outlook zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, Termine und Aufgaben aus Mails, freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
+        "Postfach im klassischen Outlook (Windows) oder über den Mailserver (IMAP, auch auf dem Handy) zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, mit Outlook auch Termine und Aufgaben aus Mails und freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
-        android = false,
     ),
     BATCH(
         "batch", "Stapel & Massenkontrolle",

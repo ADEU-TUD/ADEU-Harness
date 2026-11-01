@@ -52,6 +52,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ConnectionsSettings(c: AppContainer) {
     NextcloudSection(c)
+    PhoneSyncSection(c)
+    MailServerSection(c)
     McpSection(c)
 }
 
@@ -62,6 +64,71 @@ internal fun connectionsSummary(c: AppContainer): String {
         c.mcpServers.current.count { it.enabled }.takeIf { it > 0 }?.let { "$it MCP-Server" },
     )
     return parts.joinToString(" · ").ifEmpty { "Nextcloud, MCP-Server (fremde Werkzeuge)" }
+}
+
+/**
+ * Mail über den Server (AP-27): IMAP for the new Outlook, other mail programs and the phone – the functions of
+ * Mail & Kalender without calendar. Never deletes, never sends.
+ */
+@Composable
+private fun MailServerSection(c: AppContainer) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    var host by remember { mutableStateOf(s.mailHost) }
+    var port by remember { mutableStateOf(s.mailPort.toString()) }
+    var user by remember { mutableStateOf(s.mailUser) }
+    var password by remember { mutableStateOf(s.mailPassword) }
+    var address by remember { mutableStateOf(s.mailAddress) }
+    var status by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    Section(tr("Mail über den Server")) {
+        SettingsHint(
+            tr("Für Mail & Kalender ohne das klassische Outlook – mit dem neuen Outlook, einem anderen Mailprogramm oder auf dem Handy: Lora liest Postfach und Ordner über IMAP, sortiert und speichert Antworten als Entwurf in „Entwürfe“. Sie löscht nie und sendet nie; Kalender und Aufgaben gehen auf diesem Weg nicht (dafür braucht es Exchange mit Freigabe der IT).") +
+                " " + tr("Die Zugangsdaten der TU Dresden stehen in der Anleitung des ZIH zu Exchange/IMAP.")
+        )
+        OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text("z. B. imap.example.org") }, modifier = Modifier.fillMaxWidth())
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(value = port, onValueChange = { v -> port = v.filter(Char::isDigit).take(5) }, singleLine = true, label = { Text(tr("Port")) },
+                supportingText = { Text(tr("993 = TLS, 143 = STARTTLS")) }, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = address, onValueChange = { address = it.trim() }, singleLine = true, label = { Text(tr("Eigene Adresse")) }, modifier = Modifier.weight(2f))
+        }
+        OutlinedTextField(value = user, onValueChange = { user = it.trim() }, singleLine = true, label = { Text(tr("Benutzername")) }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = password, onValueChange = { password = it }, singleLine = true, label = { Text(tr("Passwort")) },
+            supportingText = { Text(KEY_STORAGE_HINT) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(),
+        )
+        if (io.github.thepytales.llmhub.data.OutlookPlatform.supported) SwitchRow(
+            tr("Statt des klassischen Outlook verwenden"),
+            tr("Aus: Lora arbeitet mit dem Outlook auf diesem PC (mit Kalender). An: mit dem Mailserver."),
+            s.mailUseServer,
+        ) { on -> c.settings.update { it.copy(mailUseServer = on) } }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Button(enabled = !busy && host.isNotBlank() && user.isNotBlank() && password.isNotBlank(), onClick = {
+                busy = true
+                status = null
+                val config = io.github.thepytales.llmhub.data.MailServerConfig(host, port.toIntOrNull() ?: 993, user, password, address)
+                scope.launch {
+                    status = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        runCatching {
+                            val bridge = io.github.thepytales.llmhub.data.ImapBridge(config)
+                            bridge.connect()
+                            val folders = bridge.folders()
+                            tr("Verbunden") + " · ${folders.size} " + tr("Ordner") + folders.firstOrNull { it.name == "Posteingang" }?.let { " · ${it.unread} " + tr("ungelesen im Posteingang") }.orEmpty()
+                        }.getOrElse { it.message ?: it.javaClass.simpleName }
+                    }
+                    c.settings.update { it.copy(mailHost = config.host, mailPort = config.port, mailUser = config.user, mailPassword = config.password, mailAddress = config.address) }
+                    busy = false
+                }
+            }) { Text(tr("Speichern und testen")) }
+            if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+            if (s.mailServer.complete) TextButton(onClick = {
+                c.settings.update { it.copy(mailPassword = "") }
+                password = ""
+                status = tr("Passwort entfernt – Mail über den Server ist aus.")
+            }) { Text(tr("Trennen")) }
+        }
+        status?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

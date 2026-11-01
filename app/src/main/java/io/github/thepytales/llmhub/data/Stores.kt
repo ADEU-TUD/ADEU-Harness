@@ -60,6 +60,13 @@ open class ListStore<T>(
 
     fun get(key: String): T? = _items.value.firstOrNull { keyOf(it) == key }
 
+    /** Reads the stored list again (its file came from another device, AP-28). */
+    @Synchronized
+    fun reload() {
+        val text = runCatching { backend.read() }.getOrNull() ?: return
+        runCatching { storeJson.decodeFromString(ListSerializer(serializer), text) }.onSuccess { _items.value = it }
+    }
+
     fun upsert(item: T) = change { list ->
         if (list.any { keyOf(it) == keyOf(item) }) list.map { if (keyOf(it) == keyOf(item)) item else it } else list + item
     }

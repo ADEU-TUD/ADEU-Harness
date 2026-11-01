@@ -165,6 +165,54 @@ fun NextcloudSection(c: AppContainer) {
 }
 
 /**
+ * Sync für Android (AP-28): the phone mirrors the PC's Lora-Ordner in the Nextcloud – chats, projects, memory, Kurztexte,
+ * own TU Vorlagen and the visible files. Shown on Android once Nextcloud is connected.
+ */
+@Composable
+fun PhoneSyncSection(c: AppContainer) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    if (!IS_ANDROID || !s.hasNextcloud) return
+    val scope = rememberCoroutineScope()
+    val status by c.phoneSync.status.collectAsStateWithLifecycle()
+    val running by c.phoneSync.running.collectAsStateWithLifecycle()
+    var picking by remember { mutableStateOf(false) }
+    var hint by remember { mutableStateOf<String?>(null) }
+    Section(tr("Mit dem PC synchronisieren")) {
+        SettingsHint(
+            tr("Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten und beim Wechsel in den Hintergrund.") +
+                " " + tr("Wie zwischen zwei PCs gilt: immer nur ein Gerät zur Zeit. Ist der Ordner am PC geöffnet, wartet das Handy; Änderungen auf beiden Seiten bleiben beide erhalten.")
+        )
+        if (s.phoneSyncRoot.isBlank()) {
+            Button(onClick = { picking = true }) { Text(tr("Lora-Ordner in der Nextcloud wählen")) }
+        } else {
+            StatusLine(true, tr("Synchronisiert mit") + " ${s.phoneSyncRoot}")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(enabled = !running, onClick = { scope.launch { hint = c.phoneSync.syncNow() } }) { Text(tr("Jetzt synchronisieren")) }
+                if (running) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                TextButton(onClick = { c.settings.update { it.copy(phoneSyncRoot = "") }; hint = tr("Sync beendet. Die Daten auf dem Handy bleiben.") }) { Text(tr("Beenden")) }
+            }
+        }
+        (hint ?: status)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        HintText(tr("Literatur, Wissenssammlung, Transkripte und Einstellungen bleiben auf dem jeweiligen Gerät; API-Schlüssel gehen nie in den Ordner."))
+    }
+    if (picking) NextcloudBrowser(
+        c, "Lora-Ordner des PCs wählen", start = "/", pickFolder = true, confirm = "Diesen Ordner nehmen",
+        onDismiss = { picking = false },
+        onFolder = { folder ->
+            picking = false
+            scope.launch {
+                if (!c.phoneSync.looksLikeLoraFolder(folder)) {
+                    hint = tr("In") + " $folder " + tr("liegt kein Lora-Ordner (es fehlt „.lora“). Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.")
+                } else {
+                    c.settings.update { it.copy(phoneSyncRoot = folder) }
+                    hint = c.phoneSync.syncNow()
+                }
+            }
+        },
+    )
+}
+
+/**
  * Browses the Nextcloud: folders open with a tap, files can be ticked ([multi]) or picked. With [pickFolder] the dialog
  * chooses a folder („Hier speichern“) instead of files; [confirm] is the label of that button.
  */

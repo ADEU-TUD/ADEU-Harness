@@ -121,6 +121,16 @@ class AppContainer(context: Context) {
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
 
     init {
+        // Mail über den Server (AP-27): on Android always, on Windows when chosen instead of the classic Outlook.
+        io.github.thepytales.llmhub.data.Outlook.serverBridge = {
+            val s = settings.current
+            if (s.mailServer.complete && (io.github.thepytales.llmhub.ui.IS_ANDROID || s.mailUseServer || !io.github.thepytales.llmhub.data.OutlookPlatform.supported)) {
+                io.github.thepytales.llmhub.data.ImapBridge(s.mailServer)
+            } else null
+        }
+    }
+
+    init {
         // Modes of big tools (AP-17 Lernspiel) appear only while their tool is switched on.
         io.github.thepytales.llmhub.agent.ChatModes.enabledTools = {
             settings.current.enabledToolIds + if (io.github.thepytales.llmhub.data.DesignSupport.EDITOR) setOf(io.github.thepytales.llmhub.agent.ChatModes.DESIGN_TOOL) else emptySet()
@@ -153,6 +163,8 @@ class AppContainer(context: Context) {
         PrefsBackend(settings.prefs, "mcpServers"), io.github.thepytales.llmhub.data.McpServer.serializer(), { it.id },
     )
     val mcp = io.github.thepytales.llmhub.agent.McpHub(this)
+    /** Sync für Android (AP-28): the phone mirrors the PC's Lora-Ordner in the Nextcloud. */
+    val phoneSync = io.github.thepytales.llmhub.data.PhoneSyncService(this)
     val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
     /** Folders on this PC the agent may work in (Windows). */
     val localFolders = ListStore<io.github.thepytales.llmhub.data.LocalFolder>(
@@ -247,6 +259,8 @@ class AppContainer(context: Context) {
         scope.launch {
             batchRunner.active.collect { on -> if (on) io.github.thepytales.llmhub.agent.AgentService.start(appContext) }
         }
+        // AP-28: only on Android – Windows syncs with the cloud service's own client (AP-12).
+        if (io.github.thepytales.llmhub.ui.IS_ANDROID) phoneSync.start(scope)
         // AP-04: measuring points and release of speech models that nobody used for a few minutes.
         io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
         scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }
