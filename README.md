@@ -1028,7 +1028,8 @@ Unterschiede zu Android:
 
 ## macOS und Linux (AP-31)
 
-Dieselbe App gibt es für **Macs mit Apple-Chip** (M1 und neuer) und **Linux (x64)** – gleicher Code wie unter Windows,
+Dieselbe App gibt es für **Macs mit Apple-Chip** (M1 und neuer) und **Linux (x64, Ubuntu 24.04 / Debian 13 und neuer)** –
+gleicher Code wie unter Windows,
 Java-Laufzeit eingebaut, ohne Admin-Rechte.
 
 - **macOS**: `ADEU-LLM-x.y.z-macOS.dmg` öffnen und *ADEU LLM* in *Programme* ziehen. Die App ist (noch) nicht bei Apple

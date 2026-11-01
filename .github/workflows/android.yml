@@ -319,12 +319,13 @@ jobs:
 
   # Linux version (AP-31, x64): tar.gz with the folder "ADEU LLM" (start without installing, automatic update) and the
   # Debian package "adeu-llm". Started once without a screen (Xvfb) like the Windows version.
-  # Ubuntu 22.04 on purpose: jpackage takes the package dependencies from the build machine, and 24.04 would write the
-  # "t64" names (libasound2t64 …) that Ubuntu 22.04 and Debian 12 lack; 24.04 accepts the old names (Provides).
+  # Ubuntu 24.04: on 22.04 the speech library (sherpa-onnx) crashed in the start test while loading the voice activity
+  # detection (release 1.0.48); on 24.04 it runs. jpackage takes the package dependencies from the build machine, so
+  # the .deb is for Ubuntu 24.04 / Debian 13 and newer ("t64" names).
   linux:
     needs: prepare
     if: inputs.macos_linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -384,15 +385,22 @@ jobs:
 
   # Builds of main and tags become normal releases; builds of other branches appear as pre-releases.
   # Normal releases also go to the public update repository, from where the apps update themselves.
-  # macOS and Linux are skipped when started with macos_linux = false; a failed build or start test stops the release.
+  # macOS and Linux are skipped when started with macos_linux = false. A failed Linux build or start test stops the
+  # release; macOS is optional: if its job does not run (no macOS runners for the account) or fails, the release
+  # appears without the Mac files and says so.
   release:
     needs: [smoke-test, windows, macos, linux]
     if: >-
       !cancelled() && needs.smoke-test.result == 'success' && needs.windows.result == 'success'
-      && (needs.macos.result == 'success' || needs.macos.result == 'skipped')
       && (needs.linux.result == 'success' || needs.linux.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
+      - name: macOS fehlt?
+        if: needs.macos.result != 'success' && needs.macos.result != 'skipped'
+        run: |
+          echo "::warning title=Ohne macOS::Der macOS-Job endete mit „${{ needs.macos.result }}“ – dieses Release erscheint ohne Mac-Version."
+          echo "### Ohne macOS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Der macOS-Job endete mit **${{ needs.macos.result }}** – das Release erscheint ohne Mac-Dateien." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@v4
         with:
           path: src

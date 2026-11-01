@@ -49,7 +49,7 @@ Programm ffmpeg. Am einfachsten über [Homebrew](https://brew.sh): im Terminal `
 
 ### Linux
 
-Für 64-Bit-Linux (x86-64), getestet unter Ubuntu. Zwei Wege:
+Für 64-Bit-Linux (x86-64), getestet unter Ubuntu 24.04 (ältere Systeme wie Ubuntu 22.04 werden nicht unterstützt). Zwei Wege:
 
 - **Ohne Installation (empfohlen, aktualisiert sich selbst):** `ADEU-LLM-x.y.z-Linux.tar.gz` herunterladen und
   entpacken (z. B. nach `~/Programme`), dann im Ordner `ADEU LLM/bin` die Datei **ADEU LLM** starten. Im Terminal:
@@ -111,7 +111,7 @@ Ein Release enthält:
 | `ADEU-LLM-x.y.z-macOS.tar.gz` | `ADEU LLM.app` für Macs mit Apple-Chip; daraus aktualisiert sich die macOS-App |
 | `ADEU-LLM-x.y.z-macOS.dmg` | dasselbe als Disk-Image zum ersten Installieren (in „Programme“ ziehen) |
 | `ADEU-LLM-x.y.z-Linux.tar.gz` | App-Ordner `ADEU LLM` für Linux (x86-64); daraus aktualisiert sich die Linux-App |
-| `ADEU-LLM-x.y.z-Linux.deb` | Paket `adeu-llm` für Debian/Ubuntu (`/opt/adeu-llm`), Updates von Hand |
+| `ADEU-LLM-x.y.z-Linux.deb` | Paket `adeu-llm` für Ubuntu 24.04 / Debian 13 und neuer (`/opt/adeu-llm`), Updates von Hand |
 | `ADEU-LLM-x.y.z.apk` | Android-App (immer mit demselben Schlüssel signiert, sonst ist kein Update möglich) |
 | `Lora-Videoeditor-n.zip` | Nachladbare Erweiterung für Windows: richtet die App beim ersten Öffnen des Videoeditors ein (ffprobe, Sprachmodell der Rauschminderung) |
 
