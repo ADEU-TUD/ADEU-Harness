@@ -34,7 +34,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   später Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
   „Mehr“, zugehörige Modi (z. B. *Lernspiel*) erst dann in `/`, Strg+K und Loras Landkarte. Passt eine Anfrage zu einem
   ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor („Quiz“ → *Lernspiele*). Einschaltbar sind der
-  *PDF-Werkzeugkasten*, der *Tresor* und *Lernspiele*; die übrigen sind als „geplant“ zu sehen. Der Browser neben dem
+  *PDF-Werkzeugkasten*, der *Tresor*, *Lernspiele* und (Windows) *Mail & Kalender*; die übrigen sind als „geplant“ zu sehen. Der Browser neben dem
   Chat ist kein eigenes Werkzeug, sondern ein Schalter unter *Einstellungen › Windows*.
 - **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
   - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
@@ -458,6 +458,49 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Datum, Unterschrift), die Felder lassen sich verschieben, in der Größe ändern, umbenennen und umtypisieren; oder der
   Agent macht es im Chat (`make_pdf_fillable`). Danach füllt man das PDF am PC aus (auch der Agent mit `fill_pdf`).
   Android: Betrachter, Seiten und Markieren. Lora schneidet, heftet und stempelt dazu.
+  **Stufe 2** (AP-15) mit den Bereichen *Unterschreiben*, *Umwandeln* und *KI*:
+  - **Texterkennung (OCR)**: Scans werden durchsuchbar – auf Windows mit der **Texterkennung von Windows** (Deutsch,
+    sonst Englisch; nichts verlässt den PC, nichts zu installieren; über Windows PowerShell 5.1 als `-EncodedCommand`,
+    das die Ausführungsrichtlinie nicht sperrt), sonst bzw. auf Wunsch nach Rückfrage mit einem **Bildmodell**, das die
+    Datenschutzstufe erlaubt (besser bei Handschrift; die Seitenbilder gehen an den Server). Der Text liegt danach
+    **unsichtbar** über den Seiten (auch gedrehten): Suchen, Kopieren, *Frag das PDF* und Anhänge im Chat finden ihn.
+  - **Umwandeln**: Word, Excel, PowerPoint, Bilder, HTML und Text öffnen sich über *PDF öffnen* direkt als PDF – mit
+    installiertem **Microsoft Office** exakt wie gedruckt (über COM, ein offenes Office bleibt unberührt), sonst mit dem
+    Leser der App (vereinfachtes Layout). Ein PDF wird zu **Word**, **Markdown**, **Text** (Überschriften nach
+    Schriftgröße, Absätze, Listen, Tabellen; Seitenzahlen und Kopfzeilen fallen weg), **Excel** (seine Tabellen) oder
+    **Bildern** (PNG je Seite als ZIP).
+  - **Unterschreiben**: mit Maus, Stift oder Finger zeichnen oder ein Bild (PNG mit durchsichtigem Hintergrund) wählen,
+    Größe und *Ort, Datum darunter* einstellen, auf die Stelle tippen. Unterschriften bleiben für das nächste Formular
+    (`signatures.json`), *Rückgängig* nimmt sie wieder weg. Auch auf Android.
+  - **KI**: *Frag das PDF* (neuer Chat im **Quellenmodus**: jede Aussage mit Seite und Zitat, geprüft gegen das PDF, Klick
+    öffnet die Stelle), *Zusammenfassen*, *Formular erklären* (Feld für Feld, Nachweise, Fristen – ohne auszufüllen),
+    *Tabellen mit KI* und **Tabellen herausziehen auf dem Gerät** (Spalten aus den Textpositionen, ohne KI) als Excel
+    oder als Tabelle im Editor.
+- **Mail & Kalender** (Windows, AP-13, Werkzeug *Mail & Kalender*, anfangs aus): Lora arbeitet mit dem **klassischen
+  Outlook** dieses PCs – lokal über COM (JNA, ohne PowerShell, ohne Admin-Rechte, ohne Freigabe der IT; Outlook startet
+  bei Bedarf im Hintergrund). Das neue Outlook hat keine solche Schnittstelle; dafür kommt später der Server-Weg (AP-27).
+  - **Was ist wichtig?** Postfach zusammenfassen (z. B. seit gestern): *Handeln*, *Termine*, *Zur Kenntnis*.
+  - **Sortieren**: Lora schlägt Ordner und feste **Sortierregeln** vor (Absender/Betreff enthält … → Ordner);
+    Verschieben fragt vorher, Regeln wirken nur über *Regeln anwenden …*, das zuerst zeigt, was wohin käme.
+  - **Antworten im eigenen Stil** (Gedächtnis, gesendete Mails) landen als **Entwurf** in Outlook – mit zitiertem Verlauf.
+  - **Fristen und Termine** aus Mails als Termin (Fristen ganztägig mit Erinnerung) oder **Aufgabe**; **freie Zeiten**
+    mit Kolleg:innen aus Frei/Gebucht (Mo–Fr, 8–18 Uhr, einstellbar) und **Einladungen**, die vorbereitet in Outlook
+    aufgehen – senden tut die Person selbst.
+  - **Harte Regeln**: Die Brücke zu Outlook hat weder Löschen noch Senden. Jede Änderung steht im **Protokoll** unter
+    *Mehr › Mail & Kalender* (dort auch Verbindung, Termine von heute und morgen, Starts für Lora, Regeln). Mails gehen
+    pseudonymisiert an das Modell, wenn die Pseudonymisierung an ist. Modus *Postfach* (`/Postfach`).
+  - Je nach Virenscanner fragt Outlook einmal „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“ – dort zulassen.
+- **Dateien** (AP-18, *Mehr › Dateien*): alles, was die App als Datei kennt, an einem Ort – Dokumente des Editors,
+  Dateien in **Ablageorten** und **Projektordnern** (alle Formate) und die **Wissenssammlung**.
+  - **Zuletzt bearbeitet** oben, darunter die **Orte** mit ihren Ordnern (Dokumente bekommen Ordner wie „Lehre/WiSe
+    2026“ über *In Ordner …*, Dateien auf der Platte behalten ihre echten Ordner).
+  - **Schlagwörter** für jede Datei (`#Lehre`), als Filter oben; sie werden mit durchsucht.
+  - **Volltextsuche über alle Formate**: PDF (mit Seite), Word, Excel, PowerPoint, OpenDocument, RTF, Mails, Text und
+    Code – Name, Schlagwörter und Inhalt, Groß-/Kleinschreibung und Akzente egal, die Textstelle mit den Wörtern fett.
+    Der Text jeder Datei wird einmal gelesen und im Cache (`volltext/`) gehalten, bis sie sich ändert; ohne Datenbank.
+    Im Chat findet `search_files` dieselben Dateien („Wo hatte ich den Kooperationsvertrag?“).
+  - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
+    verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
 - **Literatursuchmodus**: Thema und Kontext angeben (`/Literatursuche`, Kachel *Literatur finden* oder Strg+K) – der Agent sucht
   systematisch in Crossref, OpenAlex, ERIC (Bildungsforschung), DNB, **SLUB-Katalog** (was an der TU Dresden ausleihbar
   oder lizenziert ist), **PubMed/Europe PMC**, **arXiv**, **DOAJ** und Google Books, verfolgt Zitationen in beide
@@ -1019,6 +1062,9 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `data/LearningGames.kt`, `agent/GameTools.kt`, `ui/GamesScreen.kt`, `ui/GamePlatform.kt` (beide) | Lernspiele (AP-17): Sammlung mit Versionen, Abschottung (CSP), Export als HTML/ZIP, Agent-Werkzeuge, Spielen |
 | `agent/AiUseNote.kt`, `ui/AiUseNoteUi.kt` | KI-Nutzungsnachweis (AP-19): Erkennung „Text für eine Arbeit“, Nachweis in drei Formaten, Pop-up-Vorschlag |
 | `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt` | Browser neben dem Chat (AP-14): Chromium über JCEF (einmalig eingerichtet), Tabs, Seitenaktionen, Meta-Tags → Literatur |
+| `desktop/Com.kt`, `desktop/ComOutlook.kt`, `data/OutlookPlatform.kt` (gemeinsam: `data/Outlook.kt`, `agent/OutlookTools.kt`, `ui/MailScreen.kt`) | Mail & Kalender (AP-13): COM über JNA, Outlook ohne Löschen und Senden, Agent-Werkzeuge, Regeln, Protokoll |
+| `desktop/WindowsOcr.kt`, `desktop/OfficePdf.kt`, `docs/PdfPlatform.kt`, `docs/PdfExtras.kt` (beide; gemeinsam: `docs/PdfStage2.kt`, `docs/PdfConvert.kt`, `ui/PdfToolsMore.kt`) | PDF Stufe 2 (AP-15): Texterkennung von Windows, Office → PDF, Textebene, Unterschrift, PDF → Markdown/Word/Excel, Tabellen |
+| `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
 | `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
 | `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |

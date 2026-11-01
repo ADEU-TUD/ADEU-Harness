@@ -934,7 +934,8 @@ fun LoraHelperButton(c: AppContainer, modifier: Modifier = Modifier) {
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            LoraFace(Modifier.padding(top = 2.dp).size(LORA_BUTTON_SIZE - 12.dp), label = tr("Lora schläft – antippen zum Fragen"), director = director, fps = 20)
+            // Centred with room on every side: the head stays clear of the round edge, the z's rise inside it.
+            LoraFace(Modifier.size(LORA_BUTTON_FACE), label = tr("Lora schläft – antippen zum Fragen"), director = director, fps = 20)
         }
     }
 }
@@ -942,8 +943,15 @@ fun LoraHelperButton(c: AppContainer, modifier: Modifier = Modifier) {
 /** Size of the sleeping Lora in the corner: a round button as big as a floating action button, with her close-up. */
 private val LORA_BUTTON_SIZE = 62.dp
 
+/** Her close-up in that button: about three quarters of it, so a ring of the button's colour stays around her. */
+private val LORA_BUTTON_FACE = 46.dp
+
 /** Room screens leave at the end of their lists for the sleeping Lora (so she covers no entry). */
 val LORA_BUTTON_ROOM = 96.dp
+
+/** Height of the „Frag Lora“ pill and of Lora's face in it. */
+private val LORA_PILL_HEIGHT = 42.dp
+private val LORA_PILL_FACE = 34.dp
 
 /**
  * Lora in the chat's top bar (Strg+L opens and closes her panel): her close-up in a tinted pill with „Frag Lora“, so
@@ -963,10 +971,15 @@ fun LoraTopBarButton(c: AppContainer, folderId: String? = null, compact: Boolean
         shape = RoundedCornerShape(50),
         color = look.brand.copy(alpha = if (open) 0.22f else 0.10f),
         border = BorderStroke(1.dp, look.brand.copy(alpha = if (open) 0.6f else 0.3f)),
-        modifier = Modifier.padding(horizontal = 4.dp).height(42.dp).semantics { contentDescription = label },
+        modifier = Modifier.padding(horizontal = 4.dp).height(LORA_PILL_HEIGHT).semantics { contentDescription = label },
     ) {
-        Row(Modifier.padding(start = 3.dp, end = if (compact) 3.dp else 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            LoraFace(Modifier.size(36.dp), label = label, director = director, fps = 20)
+        // The face sits in the pill's round end with the same gap above, below and to the left (not on the edge);
+        // compact: a circle with the face in the middle.
+        Row(
+            Modifier.padding(start = 5.dp, end = if (compact) 5.dp else 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LoraFace(Modifier.size(LORA_PILL_FACE), label = label, director = director, fps = 20)
             if (!compact) {
                 Spacer(Modifier.width(6.dp))
                 Text(tr("Frag Lora"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)

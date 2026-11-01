@@ -3,7 +3,7 @@ package io.github.thepytales.llmhub.agent
 import java.text.Normalizer
 
 /** Tool groups a mode needs in addition to the chat's (see AgentRunner.providers). */
-enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES }
+enum class ModeTool { RESEARCH, WEB, DOCUMENTS, GAMES, MAIL }
 
 /**
  * A special way of working in a chat (AP-05). Every mode looks the same: a chip above the input with ✕, below it one
@@ -105,6 +105,21 @@ object ChatModes {
         tool = "games",
     )
 
+    /** Mail & Kalender (AP-13): only while the tool is switched on (Windows with the classic Outlook). */
+    val MAIL = ChatMode(
+        id = "mail",
+        name = "Postfach",
+        icon = "mail",
+        explain = "Lora arbeitet mit deinem klassischen Outlook: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden.",
+        data = "Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert.",
+        example = "Was ist seit gestern im Posteingang wichtig?",
+        command = "Postfach",
+        tools = setOf(ModeTool.MAIL),
+        prompt = OutlookTools.MODE_PROMPT,
+        keywords = "mail mails postfach posteingang outlook email kalender termin antwort entwurf sortieren",
+        tool = "mail",
+    )
+
     val VOICE = ChatMode(
         id = "voice",
         name = "Sprachmodus",
@@ -118,7 +133,7 @@ object ChatModes {
     )
 
     /** All modes, in the order of the menus (some only while their tool is on, see [visible]). */
-    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, VOICE)
+    val all: List<ChatMode> = listOf(LITERATURE, SOURCES, EXCERPT, PLANNING, GAMES, MAIL, VOICE)
 
     /** The switched-on big tools (set by the app from its settings); modes of other tools stay hidden. */
     @Volatile

@@ -19,7 +19,8 @@ class ToolsAndDrawerTest {
         val (top, more) = drawerLayout(AppSettings.DEFAULT_DRAWER_TOP, emptySet())
         assertEquals(listOf(DrawerArea.TEMPLATES, DrawerArea.LITERATURE, DrawerArea.TRANSCRIPTS), top)
         assertTrue(top.size + 1 <= 5, "mit „Neuer Chat“ höchstens fünf Einträge")
-        assertEquals(listOf(DrawerArea.DOCS, DrawerArea.IMAGES, DrawerArea.TASKS), more, "Rest unter „Mehr“, Werkzeuge nur eingeschaltet")
+        // AP-18: „Dateien“ is an area of its own (not a tool), right after the documents.
+        assertEquals(listOf(DrawerArea.DOCS, DrawerArea.FILES, DrawerArea.IMAGES, DrawerArea.TASKS), more, "Rest unter „Mehr“, Werkzeuge nur eingeschaltet")
         assertEquals("TU Vorlagen", DrawerArea.TEMPLATES.label)
     }
 

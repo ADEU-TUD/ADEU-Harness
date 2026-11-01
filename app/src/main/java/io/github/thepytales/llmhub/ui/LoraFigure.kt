@@ -191,6 +191,11 @@ internal fun loraHint(tool: String?, thinking: Boolean): List<LoraAction> = when
     tool == "fill_pdf" -> listOf(LoraAction.STAMP, LoraAction.STAPLER)
     tool == "read_pdf_form" -> listOf(LoraAction.HIGHLIGHT, LoraAction.STAMP)
     tool == "create_email_draft" || tool == "create_series" -> listOf(LoraAction.MAIL, LoraAction.PLANE)
+    // Mail & Kalender (AP-13): sorting letters into folders, leafing through the mailbox, the calendar.
+    tool == "outlook_move_mails" || tool == "outlook_apply_rules" || tool == "outlook_create_folder" || tool == "outlook_save_rule" -> listOf(LoraAction.FOLDER, LoraAction.MAIL)
+    tool == "outlook_list_mails" || tool == "outlook_read_mail" || tool == "outlook_list_folders" -> listOf(LoraAction.MAIL, LoraAction.READ)
+    tool == "outlook_save_draft" -> listOf(LoraAction.TYPE, LoraAction.MAIL)
+    tool.startsWith("outlook_") -> listOf(LoraAction.CALENDAR)
     tool == "create_calendar_event" || tool == "create_semester_plan" -> listOf(LoraAction.CALENDAR)
     tool == "set_excel_cells" || tool == "edit_office_file" -> listOf(LoraAction.SHEET, LoraAction.TYPE)
     tool == "copy_document_to_folder" || tool == "move_local_file" || tool == "add_to_knowledge" -> listOf(LoraAction.FOLDER)
@@ -2488,10 +2493,18 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
 private const val FACE_SPACE = 30f
 
 /**
+ * Lower edge of the head in the close-up's space. With the star of the antenna about 27 units above it, the face is
+ * centred in [FACE_SPACE] (earlier the chin lay at 30.5 – just outside the square, so round buttons cut it off).
+ */
+private const val FACE_CHIN = 28.6f
+
+/**
  * Lora as a close-up (the head with antenna and face, no legs, arms or scene) in a square: for small places like the
  * button in the top bar or the sleeping Lora in a corner, where the whole figure would be tiny. Eyes and mouth follow
  * the activity of [frame] (happy while waving, closed while sleeping), she breathes, blinks and tilts her head a little;
- * while waving a hand waves at the side, while sleeping small z's rise. Everything stays inside the canvas.
+ * while waving a hand waves at the side, while sleeping small z's rise. Everything stays inside the canvas: the face from
+ * the antenna's star to the chin is centred in the square ([FACE_CHIN]), so in round buttons and pills she sits in the
+ * middle instead of on the lower edge.
  */
 internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColors, gaze: Offset? = null) {
     val s = timeMs / 1000f
@@ -2507,7 +2520,7 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
     val squash = 1 + (pose.squash - 1) * 0.5f + 0.012f * wave(s, 0.3f)
     val bw = 23 * u
     val bh = 20 * u * squash
-    val bottom = oy + 30.5f * u
+    val bottom = oy + FACE_CHIN * u
     val top = bottom - bh
     // A gentle tilt of the head: half of the figure's, at most six degrees.
     val tilt = (pose.tilt * 0.5f).coerceIn(-6f, 6f)
@@ -2529,7 +2542,7 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
         LoraAction.WAVE -> {
             // A hand waving at the lower right, with two small lines.
             val swing = wave(s, 1.8f)
-            val hand = Offset(ox + 25.6f * u + swing * 0.8f * u, oy + 21f * u - abs(swing) * 0.6f * u)
+            val hand = Offset(ox + 25.6f * u + swing * 0.8f * u, oy + (FACE_CHIN - 9.5f) * u - abs(swing) * 0.6f * u)
             drawCircle(c.visor.copy(alpha = 0.55f), 2.3f * u, hand)
             drawCircle(c.body, 1.85f * u, hand)
             for (i in 0..1) {
@@ -2543,8 +2556,9 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
         LoraAction.SLEEP -> {
             for (i in 0..2) {
                 val k = (s * 0.35f + i / 3f) % 1f
-                val z = (0.9f + k * 0.8f) * u
-                val center = Offset(ox + 21.5f * u + k * 4.5f * u, oy + 8.5f * u - k * 6f * u)
+                // They rise beside the antenna and stay inside a round button (not out over its edge).
+                val z = (0.8f + k * 0.6f) * u
+                val center = Offset(ox + 21.5f * u + k * 3.5f * u, oy + 7.5f * u - k * 4.5f * u)
                 val path = Path().apply {
                     moveTo(center.x - z, center.y - z); lineTo(center.x + z, center.y - z)
                     lineTo(center.x - z, center.y + z); lineTo(center.x + z, center.y + z)

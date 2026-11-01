@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“)
 
-Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 
 **So ist der Plan aufgebaut**
 
@@ -50,7 +50,7 @@ Stand: 31.10.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Abschnitt | Pakete |
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
-| **Danach** | ~~AP-12 Einfacher Sync~~ (☑) · AP-13 Mail und Kalender über Outlook · ~~AP-14 Browser neben dem Chat~~ (☑) · AP-15 PDF Stufe 2 · AP-16 Office-Ausbau · ~~AP-17 Lernspiele~~ (☑) · AP-18 Dateiverwaltung · ~~AP-19 KI-Nutzungsnachweis~~ (☑) |
+| **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · AP-16 Office-Ausbau · ~~AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – offen nur noch AP-16 |
 | **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
@@ -347,7 +347,7 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   Tests: `SyncAndBrowserTest`. Betrifft: `data/SyncGuard.kt`, `desktop/SyncSession.kt`, `ui/SyncUi.kt`,
   `data/SecurePrefs.kt` (Windows), `desktop/Paths.kt`, `Main.kt`.
 
-### AP-13 ☐ Mail und Kalender über das klassische Outlook (W) · L (bisher W7-01)
+### AP-13 ☑ Mail und Kalender über das klassische Outlook (W) · L (bisher W7-01)
 - **Anbindung**: lokal über COM an das klassische Outlook (Mails, Ordner, Kalender, Frei/Gebucht) – ohne Server-Zugang
   und ohne IT-Freigabe. Technik prüfen (z. B. JACOB/com4j oder kleine PowerShell-Brücke).
 - Funktionen:
@@ -361,6 +361,20 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
 - Lora-Animation zum Werkzeug: Briefe sortieren, Seiten umblättern.
 - **Fertig, wenn**: Zusammenfassung des Posteingangs, ein sortierter Ordner, ein Antwortentwurf und ein Kalendereintrag
   aus einer Mail – ohne dass etwas gesendet oder gelöscht wurde.
+- **Ergebnis (01.11.2026)**: Werkzeug *Mail & Kalender* (nur Windows, Standard aus) mit Modus *Postfach*. **Brücke:
+  COM über JNA** (`desktop/Com.kt`, `desktop/ComOutlook.kt`; Late Binding, eigener COM-Thread, alle Objekte werden
+  freigegeben) – keine PowerShell, keine Zusatzbibliothek, keine Admin-Rechte (beantwortet Offene Frage 2). Agent:
+  `outlook_list_folders`, `outlook_list_mails` (seit N Stunden, ungelesen, Suche; Kürzel M1 … statt langer IDs),
+  `outlook_read_mail`, `outlook_move_mails` (fragt immer), `outlook_create_folder`, `outlook_save_draft` (Antwort über
+  dem zitierten Verlauf), `outlook_list_events`, `outlook_create_event` (Fristen ganztägig mit Erinnerung; mit
+  Teilnehmenden eine **vorbereitete** Einladung, die sich in Outlook öffnet), `outlook_create_task`,
+  `outlook_find_free_times` (Frei/Gebucht, Mo–Fr 8–18 Uhr), `outlook_save_rule`, `outlook_apply_rules`. **Kein Löschen,
+  kein Senden** – die Brücke hat dafür keine Funktionen (Test prüft das). Bereich *Mehr › Mail & Kalender*: Verbindung,
+  Starts für Lora, Termine heute/morgen, Sortierregeln mit Vorschau vor dem Anwenden, Protokoll jeder Änderung
+  (`outlook_log.json`). Lora sortiert Briefe, blättert, trägt Termine ein. Datumsfilter im Format der
+  Windows-Regionseinstellung. Tests: `OutlookTest` (mit nachgebautem Outlook); Selbsttest meldet den Stand als Info.
+  Grenzen: nur klassisches Outlook; je nach Virenscanner einmalige Rückfrage von Outlook beim Lesen von Adressen;
+  echte Outlook-Regeln (serverseitig) legt die App nicht an, ihre Regeln wirken beim Anwenden.
 
 ### AP-14 ☑ Browser neben dem Chat (W) · L (bisher W9-08)
 - Wie bei Google Antigravity: Links aus Chat, Literatur und Dokumenten öffnen sich **in Tabs neben dem Chatfenster**.
@@ -382,11 +396,23 @@ Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02)
   (`ADEU_BROWSER_TEST=1`, `xvfb-run`). Betrifft: `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt`,
   `ui/AppRoot.kt` (Windows), `desktop/build.gradle.kts`, `release-local.sh`.
 
-### AP-15 ☐ PDF-Werkzeugkasten Stufe 2 · L (bisher W8-02, Stufen 5–7)
+### AP-15 ☑ PDF-Werkzeugkasten Stufe 2 · L (bisher W8-02, Stufen 5–7)
 - **OCR**: Scans durchsuchbar machen (lokal Tesseract, alternativ Vision-Modell je Datenschutzstufe).
 - **Umwandeln**: Word/Excel/PowerPoint/Bilder/HTML ↔ PDF, PDF → Text/Markdown.
 - **Unterschreiben**: gezeichnet oder als Bild einfügen.
 - **KI**: „Frag das PDF“ mit Belegpflicht, Tabellen herausziehen, Formulare erklären.
+- **Ergebnis (01.11.2026)**: Neue Bereiche *Unterschreiben*, *Umwandeln*, *KI* im Werkzeugkasten. **OCR**: statt
+  Tesseract (müsste mitgeliefert werden) die **Texterkennung von Windows** (`Windows.Media.Ocr`, über PowerShell 5.1 mit
+  `-EncodedCommand`; Wortpositionen) – nichts verlässt den PC; alternativ nach Rückfrage ein Bildmodell, das die
+  Datenschutzstufe erlaubt (Android immer so). Unsichtbare Textebene je Wort, auch auf gedrehten Seiten. **Umwandeln**:
+  Office → PDF mit installiertem Office über COM (exakt; ein offenes Office bleibt unberührt), sonst mit dem Leser der
+  App; Bilder, HTML, Text → PDF; PDF → Word/Markdown/Text (`PdfMarkdown`: Überschriften nach Schriftgröße, Absätze über
+  den üblichen Zeilenabstand, Listen auch ohne Aufzählungszeichen, Kopf-/Fußzeilen weg), Tabellen → Excel
+  (`PdfTables`), Seiten → PNG-ZIP. **Unterschreiben**: zeichnen oder Bild, Größe, „Ort, Datum“, antippen; gespeichert in
+  `signatures.json`, auch auf Android. **KI**: Frag das PDF (Quellenmodus mit Seitenbelegen), Zusammenfassen, Formular
+  erklären, Tabellen mit KI oder auf dem Gerät. Tests: `PdfStage2Test`, Bilder `NewToolsLookTest`; Selbsttest prüft
+  Textebene, Unterschrift und die Texterkennung von Windows. Grenzen: Unterschrift als Bild bzw. Vektor (keine digitale
+  Signatur), OCR von Windows liest keine Handschrift.
 
 ### AP-16 ☐ Office-Ausbau · XL (bisher W8-01)
 Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau im Alltagsumfang. Stufen:
@@ -414,10 +440,20 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
   Content-Security-Policy (keine Anfragen, keine Frames), externe Skripte/Stylesheets werden beim Speichern abgelehnt.
   Tests: `GamesAndAiNoteTest`. Rest: SCORM/H5P (Ideen), Klärung OPAL-Einbindung (Offene Fragen).
 
-### AP-18 ☐ Dateiverwaltung · L (bisher W8-06, mit W4-01)
+### AP-18 ☑ Dateiverwaltung · L (bisher W8-06, mit W4-01)
 - Ordner, Schlagwörter, Volltextsuche über alle Formate, Versionsvergleich, „Zuletzt bearbeitet“.
 - Für die Volltextsuche bei Bedarf eine lokale Index-Datenbank (SQLite mit Volltextindex; bisher W4-01) – nur, wenn die
   Suche ohne Index zu langsam ist. Sanfte Migration, Sicherung & Umzug bleiben kompatibel.
+- **Ergebnis (01.11.2026)**: Bereich *Mehr › Dateien* über alle Quellen: Dokumente des Editors, Dateien in Ablageorten
+  und Projektordnern, Wissenssammlung. *Zuletzt bearbeitet*, *Orte* mit Ordnern (Dokumente: Ordner der App wie
+  „Lehre/WiSe 2026“; Dateien: echte Ordner), **Schlagwörter** für alles (`file_meta.json`, wird synchronisiert),
+  **Volltextsuche** über PDF (mit Seite), Word, Excel, PowerPoint, OpenDocument, RTF, Mails, Text – Akzente und
+  Groß-/Kleinschreibung egal, Textstelle hervorgehoben. **Entscheidung**: keine Datenbank – der Text jeder Datei wird
+  einmal gelesen und im Cache (`volltext/`, je Datei mit Änderungszeit) gehalten, die Suche läuft darüber; SQLite bleibt
+  für später, falls es zu langsam wird. **Vergleich**: zwei beliebige Versionen eines Dokuments, zwei Dateien (auch
+  verschiedener Formate). Agent: `search_files` („Wo hatte ich …?“, nutzt nur schon gelesene Texte und liest den Rest im
+  Hintergrund). Tests: `FileLibraryTest`. Grenzen: Dateien auf der Platte lassen sich hier nicht verschieben oder
+  umbenennen (dafür der Agent in lokalen Ordnern); Bilder nur über den Namen.
 
 ### AP-19 ☑ KI-Nutzungsnachweis · M (bisher W5-07)
 - Aus dem Agent-Protokoll eines Chats/Projekts: Modelle, Zweck, Zeitraum, betroffene Textteile, Werkzeuge.
@@ -563,14 +599,18 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-17 Lernspiele | Werkzeug (Standard aus) mit Modus, Agent-Werkzeugen, Sammlung, Versionen, Spielen, Export HTML/ZIP, CSP-Abschottung | SCORM/H5P; OPAL-Einbindung klären |
 | ☑ AP-19 KI-Nutzungsnachweis | Pop-up nur bei Text für eine Arbeit, drei Formate, Chat oder Projekt, Chat-Menü | offizielle TUD-Vorlage einpflegen, sobald vorhanden |
 | ☑ AP-14 Browser neben dem Chat (W) | JCEF-Panel mit Tabs, Frage zur Seite (Quellenmodus), Zusammenfassen, Literatur, Wissenssammlung, PDF | Android (WebView); Dialoge über dem Browser |
+| ☑ AP-13 Mail und Kalender (W) | COM über JNA, Modus *Postfach*, 12 Werkzeuge, Regeln mit Vorschau, Protokoll, nie löschen/senden | echte Outlook-Regeln; Server-Weg mit AP-27 |
+| ☑ AP-15 PDF Stufe 2 | Texterkennung von Windows bzw. Bildmodell, Umwandeln (Office über COM), Unterschreiben, Frag das PDF, Tabellen | digitale Signatur; Handschrift-OCR auf dem PC |
+| ☑ AP-18 Dateiverwaltung | *Dateien*: Orte und Ordner, Schlagwörter, Volltextsuche mit Cache, Vergleich, `search_files` | SQLite-Index nur bei Bedarf; Dateien verschieben |
+| ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
 ---
 
 ## Offene Fragen
 
 1. **Startseite** (AP-02, AP-37): Wortlaut der Chips und ihrer Starts final abstimmen (umgesetzt ist der Vorschlag aus AP-37).
-2. **Outlook über COM** (AP-13): Welche Brücke aus Kotlin/JVM (JACOB, com4j, PowerShell)? Läuft sie auf den Dienst-PCs
-   ohne Admin-Rechte?
+2. ~~**Outlook über COM** (AP-13)~~: entschieden – COM über JNA (schon in der App), ohne PowerShell und ohne
+   Admin-Rechte. Offen nur: Läuft es auf den Dienst-PCs ohne Rückfrage von Outlook (Virenscanner aktuell)?
 3. **Exchange der TU** (nur für AP-27): selbst betrieben (EWS) oder Exchange Online (Graph mit Freigabe der IT)? Wann
    stellt die TU auf das neue Outlook um?
 4. **OPAL** (AP-17, AP-20): Lassen sich HTML-Dateien/ZIP-Pakete als Lernelement einbinden? In welchem Format kommen
@@ -588,9 +628,10 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Lora-Navigator (AP-07) | ☐ | ☐ |
 | Pseudonymisierung (AP-03) | ☑ | ☑ |
 | Tresor (AP-10) | ☐ | ☐ |
-| PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren | voll |
+| PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren, Unterschreiben, KI, OCR per Bildmodell | voll |
 | Sync (AP-12, AP-28) | später (AP-28) | ☑ |
-| Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☐ (Outlook) |
+| Mail und Kalender (AP-13, AP-27) | erst über den Server (AP-27) | ☑ (Outlook) |
+| Dateiverwaltung (AP-18) | ☑ (Dokumente, Wissenssammlung) | ☑ (dazu Ablageorte und Projektordner) |
 | Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
 | Office (AP-16) | ansehen, kleine Änderungen | voll |
 | Lernspiele (AP-17) | ansehen, spielen | voll |

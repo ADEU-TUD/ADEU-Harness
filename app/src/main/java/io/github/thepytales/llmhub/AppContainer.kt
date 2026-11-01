@@ -97,6 +97,14 @@ class AppContainer(context: Context) {
     /** Lernspiele (AP-17): the collection and the agent's tools for it (offered while the tool is switched on). */
     val games = io.github.thepytales.llmhub.data.LearningGameStore(files)
     val gameTools = io.github.thepytales.llmhub.agent.GameTools(this)
+    /** Mail & Kalender (AP-13): fixed sorting rules, the protocol of every change in Outlook, the agent's tools. */
+    val mailRules = ListStore<io.github.thepytales.llmhub.data.MailRule>(FileBackend(File(files, "mail_rules.json")), io.github.thepytales.llmhub.data.MailRule.serializer(), { it.id })
+    val outlookLog = ListStore<io.github.thepytales.llmhub.data.OutlookAction>(FileBackend(File(files, "outlook_log.json")), io.github.thepytales.llmhub.data.OutlookAction.serializer(), { it.id })
+    val outlookTools = io.github.thepytales.llmhub.agent.OutlookTools(this)
+    /** Dateiverwaltung (AP-18): folders, Schlagwörter and the full-text search over documents, storage locations and knowledge. */
+    val fileLibrary by lazy { io.github.thepytales.llmhub.data.FileLibrary(this, appContext) }
+    /** Unterschriften for PDFs (AP-15): drawn or from a picture, kept for the next form. */
+    val signatures = ListStore<io.github.thepytales.llmhub.docs.Signature>(FileBackend(File(files, "signatures.json")), io.github.thepytales.llmhub.docs.Signature.serializer(), { it.id })
     val webTools = WebTools(llm.http)
     val assistantTools = AssistantTools(this)
     val chats = ChatRepository(context)

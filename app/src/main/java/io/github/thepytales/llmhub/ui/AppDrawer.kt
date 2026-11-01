@@ -50,6 +50,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import io.github.thepytales.llmhub.data.withTool
@@ -516,11 +517,13 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
     DrawerArea.LITERATURE -> Icons.Outlined.MenuBook
     DrawerArea.TRANSCRIPTS -> Icons.Outlined.GraphicEq
     DrawerArea.DOCS -> Icons.Outlined.Description
+    DrawerArea.FILES -> Icons.Outlined.FolderOpen
     DrawerArea.IMAGES -> Icons.Outlined.Image
     DrawerArea.TASKS -> Icons.Outlined.Schedule
     DrawerArea.PDF -> Icons.Outlined.PictureAsPdf
     DrawerArea.VAULT -> Icons.Outlined.Lock
     DrawerArea.GAMES -> Icons.Outlined.SportsEsports
+    DrawerArea.MAIL -> Icons.Outlined.Mail
 }
 
 /** An area of the side menu; right click or long press: move it on top or under „Mehr“ (tools: also switch off). */

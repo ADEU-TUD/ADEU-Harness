@@ -336,6 +336,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             composable("games") { back ->
                 GamesScreen(c, onBack = { nav.back(back) })
             }
+            composable("mail") { back ->
+                MailScreen(c, onBack = { nav.back(back) })
+            }
+            composable("files") { back ->
+                FilesScreen(c, onBack = { nav.back(back) }, onOpenDoc = { id -> nav.go(back, "doc/$id") }, onNavigate = { nav.go(back, it) })
+            }
             composable("vault") { back ->
                 VaultScreen(c, onBack = { nav.back(back) }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
             }
