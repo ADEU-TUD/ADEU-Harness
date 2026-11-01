@@ -924,9 +924,15 @@ weitergeben.
      [Updater-Releases](https://github.com/ADEU-TUD/ADEU-Harness-Updater/releases/latest), z. B. `38` für 1.0.38. Nie leer
      lassen: Dann nimmt der Workflow die Laufnummer, die kleiner ist, und Android installiert die APK nicht als Update.
    - **notes**: „Was ist neu“ in 1–3 kurzen Sätzen für Nutzer:innen ohne Technikkenntnisse (steht im Update-Popup).
+   - **macos_linux** (Standard an): auch macOS und Linux bauen und testen (AP-31). Aus, wenn nur Windows/Android
+     erscheinen sollen – macOS-Minuten zählen in privaten Repositorys zehnfach.
 
    KI-Assistenten: GitHub-MCP `actions_run_trigger`, Methode `run_workflow`, `workflow_id: android.yml`, `ref: main`,
    `inputs: {"version": "38", "notes": "…"}`; Lauf mit `actions_list`/`actions_get` verfolgen.
+
+   macOS signieren und notarisieren (optional, sobald ein Apple-Entwicklerkonto da ist): Secrets `MAC_CERT_P12_BASE64`,
+   `MAC_CERT_PASSWORD`, `MAC_SIGN_IDENTITY` (Signieren) und `MAC_NOTARY_APPLE_ID`, `MAC_NOTARY_PASSWORD`,
+   `MAC_NOTARY_TEAM_ID` (Notarisieren). Ohne sie ist die Mac-App nur ad hoc signiert (Hinweis beim ersten Start).
 3. Der Workflow (ca. 15–20 Min.) baut, testet (Emulator, Selbsttest unter Windows, macOS und Linux), legt hier ein Release
    an und veröffentlicht APK, Windows-ZIP/-EXE, macOS-DMG/-tar.gz, Linux-tar.gz/-deb und `version.json` im öffentlichen
    Repo `ADEU-TUD/ADEU-Harness-Updater` (Schritt „Für automatische Updates veröffentlichen“, Secret `UPDATER_TOKEN`).
@@ -1203,7 +1209,8 @@ deutsche Eingaben erkennt, bleiben deutsch.
 Das Logo wird in `ui/Logo.kt` gezeichnet (Lora aus `ui/LoraFigure.kt`, eigene Farben in `LogoColors`). Die App-Symbole
 erzeugt `./gradlew -p desktop test --tests '*LogoTest*'` nach `desktop/build/icons`: `app.ico` und `app.png` gehören nach
 `desktop/icons/`, `app.png` als `icon.png` und `tray.png` nach `desktop/src/main/resources/`, die Ordner unter `android/`
-nach `app/src/main/res/`. `ChatLookTest` rendert den Chat in allen Stilen nach `desktop/build/chat-look` (für
+nach `app/src/main/res/`. Das Mac-Symbol `desktop/icons/app.icns` erzeugt `python3 .github/scripts/make-icns.py` aus
+`app.png`. `ChatLookTest` rendert den Chat in allen Stilen nach `desktop/build/chat-look` (für
 Vorher/Nachher-Bilder).
 
 ### Signaturschlüssel
