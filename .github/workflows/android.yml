@@ -330,10 +330,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
+      # The bundled Java runtime comes from Ubuntu's OpenJDK, not Temurin: Temurin's JVM for Linux carries its own
+      # copy of the C++ library, and next to the system copy that sherpa-onnx uses, formatting numbers in native code
+      # crashed (SIGSEGV in Vad_newFromFile when transcription starts; reproduced with Temurin 21.0.12 and 21.0.13,
+      # not with Ubuntu's 21.0.12). jpackage takes the runtime from the JDK that runs Gradle.
+      - name: Java 21 (OpenJDK von Ubuntu)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q openjdk-21-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64" >> "$GITHUB_ENV"
+          echo "/usr/lib/jvm/java-21-openjdk-amd64/bin" >> "$GITHUB_PATH"
 
       - uses: gradle/actions/setup-gradle@v4
 
