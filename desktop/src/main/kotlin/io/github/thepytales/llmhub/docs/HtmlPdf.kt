@@ -130,8 +130,17 @@ object Browser {
                     add("$base\\Microsoft\\Edge\\Application\\msedge.exe")
                     add("$base\\Google\\Chrome\\Application\\chrome.exe")
                 }
+            } else if (io.github.thepytales.llmhub.desktop.Os.mac) {
+                // AP-31: browsers of macOS; without one the built-in renderer takes over.
+                val home = System.getProperty("user.home")
+                for (base in listOf("/Applications", "$home/Applications")) {
+                    add("$base/Google Chrome.app/Contents/MacOS/Google Chrome")
+                    add("$base/Microsoft Edge.app/Contents/MacOS/Microsoft Edge")
+                    add("$base/Chromium.app/Contents/MacOS/Chromium")
+                    add("$base/Brave Browser.app/Contents/MacOS/Brave Browser")
+                }
             } else {
-                addAll(listOf("/usr/bin/microsoft-edge", "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"))
+                addAll(listOf("/usr/bin/microsoft-edge", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser", "/snap/bin/chromium"))
                 File("/opt/pw-browsers").listFiles()?.sortedDescending()?.forEach { dir ->
                     add("${dir.path}/chrome-linux/chrome")
                     add("${dir.path}/chrome-linux64/chrome")
@@ -160,6 +169,15 @@ object Fonts {
         Face("dejavu/DejaVuSansMono.ttf", "monospace", 400, false),
     )
 
+    /** macOS (AP-31): the fonts that come with every Mac. */
+    private val macFaces = listOf(
+        Face("Arial.ttf", "sans-serif", 400, false), Face("Arial Bold.ttf", "sans-serif", 700, false),
+        Face("Arial Italic.ttf", "sans-serif", 400, true), Face("Arial Bold Italic.ttf", "sans-serif", 700, true),
+        Face("Georgia.ttf", "serif", 400, false), Face("Georgia Bold.ttf", "serif", 700, false),
+        Face("Georgia Italic.ttf", "serif", 400, true), Face("Georgia Bold Italic.ttf", "serif", 700, true),
+        Face("Courier New.ttf", "monospace", 400, false), Face("Courier New Bold.ttf", "monospace", 700, false),
+    )
+
     /** Families the app's CSS uses, mapped to the generic ones. */
     private val aliases = mapOf(
         "sans-serif" to listOf("sans-serif", "Roboto", "Arial", "Helvetica", "Helvetica Neue", "system-ui", "Segoe UI", "Inter"),
@@ -168,9 +186,11 @@ object Fonts {
     )
 
     fun register(builder: PdfRendererBuilder) {
-        val (dir, faces) = if (Paths.windows) {
-            File(System.getenv("WINDIR") ?: "C:\\Windows", "Fonts") to windowsFaces
-        } else File("/usr/share/fonts/truetype") to linuxFaces
+        val (dir, faces) = when {
+            Paths.windows -> File(System.getenv("WINDIR") ?: "C:\\Windows", "Fonts") to windowsFaces
+            io.github.thepytales.llmhub.desktop.Os.mac -> File("/System/Library/Fonts/Supplemental") to macFaces
+            else -> File("/usr/share/fonts/truetype") to linuxFaces
+        }
         for (face in faces) {
             val file = File(dir, face.file)
             if (!file.isFile) continue
