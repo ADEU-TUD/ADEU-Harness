@@ -136,6 +136,10 @@ object DesignText {
         return words.maxOfOrNull { w -> measurer.measure(w, style(sizePt, e).copy(textAlign = TextAlign.Start), softWrap = false).size.width.toFloat() } ?: 0f
     }
 
+    /** Height (mm) the box needs for its text at its own font size (text boxes grow downwards while typing). */
+    fun neededHeight(e: DesignElement): Float =
+        layout(e.copy(fit = false, h = 100_000f, valign = "top")).layout.size.height / REF + 2 * e.padding
+
     @Synchronized
     fun layout(e: DesignElement): Laid {
         val key = Key(e.text, e.fontSize, e.bold, e.italic, e.w, e.h, e.lineHeight, e.align, e.valign, e.fit, e.padding)

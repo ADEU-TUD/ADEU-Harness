@@ -188,6 +188,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         if (pdfRequest != null && nav.current.base != "pdf") nav.navigate("pdf")
     }
 
+    // A design to open in the Kreativbereich (card under a chat answer, AP-24); the screen takes it.
+    val designRequest by DesignHandoff.request.collectAsStateWithLifecycle()
+    LaunchedEffect(designRequest) {
+        if (designRequest != null && nav.current.base != "creative") nav.navigate("creative")
+    }
+
     // "In Chat senden" from the document editor, the browser beside the chat (AP-14) …: open that chat (or a new one).
     val chatRequest by ChatHandoff.open.collectAsStateWithLifecycle()
     LaunchedEffect(chatRequest) {
@@ -401,6 +407,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "games" -> GamesScreen(c, onBack = back)
         "mail" -> MailScreen(c, onBack = back)
+        "creative" -> CreativeScreen(c, onBack = back)
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }
