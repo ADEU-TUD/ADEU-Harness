@@ -33,6 +33,8 @@ internal class ComThread(name: String) {
      * the block come back as they are.
      */
     fun <T> run(timeoutS: Long, onTimeout: () -> Exception, block: () -> T): T {
+        // macOS and Linux (AP-31): no COM – answer at once instead of loading Windows libraries on the thread.
+        if (!Os.windows) throw UnsupportedOperationException(io.github.thepytales.llmhub.ui.tr("Outlook und Office über COM gibt es nur unter Windows."))
         val future = executor.submit(Callable {
             val objects = ArrayList<ComObj>()
             ComObj.arena.set(objects)

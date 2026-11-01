@@ -12,7 +12,8 @@ import kotlin.test.assertTrue
  */
 class I18nCoverageTest {
     private val roots = listOf(File("../app/src/main/java"), File("src/main/kotlin"))
-    private val call = Regex("""(?<![\w.])(tr|trLater|Text)\(""")
+    /** Also fully qualified calls (`io.github.thepytales.llmhub.ui.tr(…)` in files of other packages). */
+    private val call = Regex("""(?<![\w.])(?:io\.github\.thepytales\.llmhub\.ui\.)?(tr|trLater|Text)\(""")
 
     data class Found(val text: String, val where: String, val template: Boolean)
 
@@ -52,11 +53,12 @@ class I18nCoverageTest {
                 "Drei")
             Text(tr(if (x) "Vier" else "Fünf"))
             val c = tr("Sechs {0}", name)
+            val e = io.github.thepytales.llmhub.ui.tr("Sieben")
             val d = tr("Bitte ${'$'}name")
         """.trimIndent()
         val texts = scan(src, "x.kt", ui = true).map { it.text to it.template }
         assertTrue(("Eins" to false) in texts && ("Zwei Drei" to false) in texts, texts.toString())
-        assertTrue(("Vier" to false) in texts && ("Fünf" to false) in texts && ("Sechs {0}" to false) in texts, texts.toString())
+        assertTrue(("Vier" to false) in texts && ("Fünf" to false) in texts && ("Sechs {0}" to false) in texts && ("Sieben" to false) in texts, texts.toString())
         assertTrue(texts.any { it.second }, texts.toString())
     }
 
