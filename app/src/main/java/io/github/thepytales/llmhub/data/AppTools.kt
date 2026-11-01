@@ -34,6 +34,12 @@ enum class AppTool(
         "Quiz, Zuordnen, Memory und Escape-Rooms als eigenständige Browserspiele bauen lassen, in der App testen und als HTML/ZIP für OPAL oder Moodle exportieren.",
         "games", listOf("lernspiel", "quiz", "memory", "escape", "zuordnungsspiel", "spiel fur", "gamification"),
     ),
+    MAIL(
+        "mail", "Mail & Kalender",
+        "Postfach im klassischen Outlook zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, Termine und Aufgaben aus Mails, freie Zeiten mit Kolleg:innen – nie löschen, nie senden.",
+        "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
+        android = false,
+    ),
     CREATIVE(
         "creative", "Kreativbereich", "Poster, Flyer und Aushänge im Corporate Design gestalten.", "creative",
         listOf("poster", "flyer", "aushang", "canva"), android = false, planned = true,

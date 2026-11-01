@@ -32,6 +32,8 @@ object SelfTest {
         "settings/lora", "settings/tools", "vault", "pdf",
         // AP-12, AP-17.
         "settings/sync", "games",
+        // AP-13: without Outlook on the runner the screen must explain that instead of failing.
+        "mail",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
     )

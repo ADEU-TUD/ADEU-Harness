@@ -400,6 +400,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
         "games" -> GamesScreen(c, onBack = back)
+        "mail" -> MailScreen(c, onBack = back)
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

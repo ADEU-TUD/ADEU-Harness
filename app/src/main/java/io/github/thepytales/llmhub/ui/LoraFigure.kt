@@ -191,6 +191,11 @@ internal fun loraHint(tool: String?, thinking: Boolean): List<LoraAction> = when
     tool == "fill_pdf" -> listOf(LoraAction.STAMP, LoraAction.STAPLER)
     tool == "read_pdf_form" -> listOf(LoraAction.HIGHLIGHT, LoraAction.STAMP)
     tool == "create_email_draft" || tool == "create_series" -> listOf(LoraAction.MAIL, LoraAction.PLANE)
+    // Mail & Kalender (AP-13): sorting letters into folders, leafing through the mailbox, the calendar.
+    tool == "outlook_move_mails" || tool == "outlook_apply_rules" || tool == "outlook_create_folder" || tool == "outlook_save_rule" -> listOf(LoraAction.FOLDER, LoraAction.MAIL)
+    tool == "outlook_list_mails" || tool == "outlook_read_mail" || tool == "outlook_list_folders" -> listOf(LoraAction.MAIL, LoraAction.READ)
+    tool == "outlook_save_draft" -> listOf(LoraAction.TYPE, LoraAction.MAIL)
+    tool.startsWith("outlook_") -> listOf(LoraAction.CALENDAR)
     tool == "create_calendar_event" || tool == "create_semester_plan" -> listOf(LoraAction.CALENDAR)
     tool == "set_excel_cells" || tool == "edit_office_file" -> listOf(LoraAction.SHEET, LoraAction.TYPE)
     tool == "copy_document_to_folder" || tool == "move_local_file" || tool == "add_to_knowledge" -> listOf(LoraAction.FOLDER)
