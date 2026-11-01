@@ -83,16 +83,19 @@ object Extensions {
      */
     fun catalog(context: Context, id: String): ExtensionFile? = forThisSystem(Updates.readInfo(context).extensions, id)
 
+    /** The system whose packages count ("windows", "macos", "linux"; tests set it). */
+    internal var system: String = Os.updateKey
+
     private fun forThisSystem(all: List<ExtensionFile>, id: String): ExtensionFile? =
-        all.firstOrNull { it.id == "$id-${Os.updateKey}" } ?: all.firstOrNull { it.id == id }?.takeIf { Os.windows }
+        all.firstOrNull { it.id == "$id-$system" } ?: all.firstOrNull { it.id == id }?.takeIf { system == "windows" }
 
     /** The id an entry of version.json is installed under on this system, or null if it is for another system. */
     private fun baseId(e: ExtensionFile): String? {
-        val suffix = "-${Os.updateKey}"
+        val suffix = "-$system"
         return when {
             e.id.endsWith(suffix) -> e.id.removeSuffix(suffix)
             listOf("-windows", "-macos", "-linux").any { e.id.endsWith(it) } -> null
-            Os.windows -> e.id
+            system == "windows" -> e.id
             else -> null
         }
     }
@@ -115,7 +118,7 @@ object Extensions {
             step(tr("Sucht das Paket …"), -1f)
             val e = entry ?: catalog(context, id)
                 ?: throw IllegalStateException(
-                    if (Os.windows) tr("Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.")
+                    if (system == "windows") tr("Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.")
                     else tr("Das Paket gibt es für {0} noch nicht. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg des Systems.", Os.label),
                 )
             val downloads = File(root, ".download").apply { mkdirs() }
