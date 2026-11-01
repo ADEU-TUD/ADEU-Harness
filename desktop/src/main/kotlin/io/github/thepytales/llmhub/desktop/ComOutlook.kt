@@ -68,16 +68,19 @@ object ComOutlook : OutlookBridge {
         throw OutlookException(problem(e))
     }
 
-    private fun hresult(e: Throwable): Int? = ComObj.hresult(e)
+    private fun hresult(e: Throwable): Int? = ComErrors.hresult(e)
+
+    /** „Class not registered“ and „Invalid class string“ (no Outlook.Application at all): the classic Outlook is missing. */
+    private val NOT_INSTALLED = setOf(0x80040154.toInt(), 0x800401F3.toInt())
 
     private fun startProblem(e: COMException): String = when (hresult(e)) {
-        0x80040154.toInt() -> "Das klassische Outlook ist auf diesem PC nicht installiert. Das neue Outlook (und Outlook im Browser) bieten keine Schnittstelle für Programme – dafür kommt später der Weg über den Mailserver."
+        in NOT_INSTALLED -> "Das klassische Outlook ist auf diesem PC nicht installiert. Das neue Outlook (und Outlook im Browser) bieten keine Schnittstelle für Programme – dafür kommt später der Weg über den Mailserver."
         0x80080005.toInt() -> "Outlook ließ sich nicht ansprechen. Läuft Outlook mit anderen Rechten als Lora (z. B. „Als Administrator ausführen“)? Dann beide normal starten."
         else -> "Outlook ließ sich nicht starten: ${e.message ?: "unbekannter Fehler"}"
     }
 
     private fun problem(e: Throwable): String = when (hresult(e)) {
-        0x80040154.toInt() -> "Das klassische Outlook ist auf diesem PC nicht installiert."
+        in NOT_INSTALLED -> "Das klassische Outlook ist auf diesem PC nicht installiert."
         0x80004004.toInt() -> "Der Zugriff wurde in Outlook abgelehnt (Rückfrage „Ein Programm versucht …“ mit „Nein“ beantwortet?)."
         else -> "Outlook meldet einen Fehler: ${e.message ?: e.javaClass.simpleName}"
     }
