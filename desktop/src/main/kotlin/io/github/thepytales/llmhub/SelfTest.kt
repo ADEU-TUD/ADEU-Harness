@@ -173,6 +173,49 @@ object SelfTest {
                 c().settings.update { it.copy(apiKey = before) }
                 ok
             }.getOrDefault(false))
+            // AP-15: a scan gets a text layer, a PDF a signature; Windows' text recognition reads a picture of text
+            // (only information where the runner has no OCR language), Office → PDF only as information.
+            val scan = withContext(Dispatchers.IO) {
+                runCatching {
+                    val img = java.awt.image.BufferedImage(1240, 400, java.awt.image.BufferedImage.TYPE_INT_RGB)
+                    img.createGraphics().apply {
+                        color = java.awt.Color.WHITE
+                        fillRect(0, 0, img.width, img.height)
+                        color = java.awt.Color.BLACK
+                        font = java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 64)
+                        drawString("Selbsttest Texterkennung", 60, 200)
+                        dispose()
+                    }
+                    val png = File(folder, "ocr.png").also { javax.imageio.ImageIO.write(img, "png", it) }
+                    val scanPdf = File(folder, "scan.pdf")
+                    io.github.thepytales.llmhub.docs.PdfExtras.imagesToPdf(LlmHubApp.context, listOf("ocr.png" to png.readBytes()), scanPdf)
+                    val layer = io.github.thepytales.llmhub.docs.OcrPage(0, listOf(io.github.thepytales.llmhub.docs.OcrLine(listOf(
+                        io.github.thepytales.llmhub.docs.OcrWord("Selbsttest", io.github.thepytales.llmhub.docs.PdfBox(0.1f, 0.4f, 0.3f, 0.05f)),
+                    ))))
+                    val searchable = File(folder, "scan-ocr.pdf")
+                    io.github.thepytales.llmhub.docs.PdfExtras.addTextLayer(LlmHubApp.context, scanPdf, listOf(layer), searchable)
+                    val signed = File(folder, "unterschrieben.pdf")
+                    val sig = io.github.thepytales.llmhub.docs.Signature.fromPad(listOf(listOf(0f to 0f, 40f to 20f, 80f to 0f)))!!
+                    io.github.thepytales.llmhub.docs.PdfExtras.sign(LlmHubApp.context, searchable, 0, io.github.thepytales.llmhub.docs.PdfBox(0.6f, 0.8f, 0.3f, 0.1f), sig, "Dresden", signed)
+                    png to io.github.thepytales.llmhub.docs.PdfExtras.pageTexts(LlmHubApp.context, signed).first()
+                }
+            }
+            check("PDF: Textebene und Unterschrift", scan.getOrNull()?.second?.let { "Selbsttest" in it && "Dresden" in it } == true, scan.exceptionOrNull()?.toString().orEmpty())
+            scan.getOrNull()?.first?.let { png ->
+                val ocr = withContext(Dispatchers.IO) { runCatching { io.github.thepytales.llmhub.desktop.WindowsOcr.recognize(listOf(png)).firstOrNull() } }
+                ocr.fold(
+                    { page -> check("Texterkennung von Windows", page?.text?.contains("Selbsttest", ignoreCase = true) == true, (page?.text?.take(80) ?: "nichts erkannt") + " · ${io.github.thepytales.llmhub.desktop.WindowsOcr.language}") },
+                    { line("Info: Texterkennung von Windows nicht verfügbar: ${it.message}") },
+                )
+            }
+            File(folder, "Bericht.docx").takeIf { it.exists() }?.let { docx ->
+                val office = withContext(Dispatchers.IO) { runCatching { io.github.thepytales.llmhub.desktop.OfficePdf.convert(docx, File(folder, "Bericht-office.pdf")) }.getOrDefault(false) }
+                line("Info: Microsoft Office für Word → PDF: ${if (office) "ja" else "nein (eigener Leser der App)"}")
+            }
+            // AP-13: Outlook only as information (the runner has none) – it must answer quickly with a clear reason.
+            val outlook = withContext(Dispatchers.IO) { runCatching { io.github.thepytales.llmhub.desktop.ComOutlook.connect() } }
+            line("Info: Outlook: " + outlook.fold({ "verbunden ($it)" }, { it.message.orEmpty() }))
+
             // Information only: depends on the PC, not on the app.
             val https = withContext(Dispatchers.IO) {
                 runCatching {

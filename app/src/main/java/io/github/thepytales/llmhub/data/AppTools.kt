@@ -21,8 +21,11 @@ enum class AppTool(
 ) {
     PDF(
         "pdf", "PDF-Werkzeugkasten",
-        "PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, Formulare ausfüllbar machen.",
-        "pdf", listOf("pdf", "zusammenfugen", "zusammenfuehren", "seiten drehen", "seiten loschen", "seitenzahlen", "markieren", "formular", "ausfullbar", "heften"),
+        "PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, unterschreiben, Formulare ausfüllbar machen, Scans durchsuchbar machen (OCR), Word/Excel/PowerPoint/Bilder ↔ PDF umwandeln, Fragen an das PDF, Tabellen herausziehen.",
+        "pdf", listOf(
+            "pdf", "zusammenfugen", "zusammenfuehren", "seiten drehen", "seiten loschen", "seitenzahlen", "markieren", "formular", "ausfullbar", "heften",
+            "unterschreiben", "unterschrift", "signieren", "ocr", "texterkennung", "scan durchsuchbar", "in pdf umwandeln", "als pdf speichern", "pdf in word", "frag das pdf",
+        ),
     ),
     VAULT(
         "vault", "Tresor",

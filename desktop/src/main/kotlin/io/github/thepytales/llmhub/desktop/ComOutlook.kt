@@ -1,15 +1,8 @@
 package io.github.thepytales.llmhub.desktop
 
-import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.jna.platform.win32.COM.COMException
-import com.sun.jna.platform.win32.COM.COMLateBindingObject
-import com.sun.jna.platform.win32.COM.IDispatch
-import com.sun.jna.platform.win32.OaIdl
-import com.sun.jna.platform.win32.Ole32
-import com.sun.jna.platform.win32.OleAuto
 import com.sun.jna.platform.win32.Variant.VARIANT
-import com.sun.jna.platform.win32.WTypes
 import com.sun.jna.platform.win32.WinReg
 import io.github.thepytales.llmhub.data.BusyTimes
 import io.github.thepytales.llmhub.data.CalendarEntry
@@ -26,11 +19,9 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+
+/** Short name inside this file. */
+private typealias Com = ComObj
 
 /**
  * The classic Outlook over COM (AP-13): late binding through JNA, which the app has anyway – no PowerShell, no extra
@@ -52,94 +43,32 @@ object ComOutlook : OutlookBridge {
     private const val TASK_ITEM = 3
     private const val CLASS_MAIL = 43L
 
-    private val thread = Executors.newSingleThreadExecutor { r ->
-        Thread({
-            Ole32.INSTANCE.CoInitializeEx(Pointer.NULL, Ole32.COINIT_APARTMENTTHREADED)
-            r.run()
-        }, "outlook-com").apply { isDaemon = true }
-    }
-
-    /** COM objects of the running call, released together at its end. */
-    private val arena = ArrayList<Com>()
-
-    /** A COM object of Outlook: members by name (late binding). */
-    private class Com : COMLateBindingObject {
-        constructor(d: IDispatch) : super(d)
-
-        /** A new object of [progId] (CoCreateInstance). */
-        constructor(progId: String) : super(progId, false)
-
-        init {
-            arena += this
-        }
-
-        private fun raw(type: Int, name: String, args: Array<out VARIANT>): VARIANT.ByReference {
-            val r = VARIANT.ByReference()
-            if (args.isEmpty()) oleMethod(type, r, name) else oleMethod(type, r, name, arrayOf(*args))
-            return r
-        }
-
-        /** A property or method (both flags, like Visual Basic): strings, numbers, booleans, dates or objects. */
-        fun get(name: String, vararg args: VARIANT): Any? {
-            val r = raw(OleAuto.DISPATCH_METHOD or OleAuto.DISPATCH_PROPERTYGET, name, args)
-            return when (val v = r.value) {
-                null -> null
-                is IDispatch -> Com(v)
-                is WTypes.BSTR -> v.value.also { OleAuto.INSTANCE.VariantClear(r) }
-                is OaIdl.DATE -> v.asJavaDate
-                is OaIdl.VARIANT_BOOL -> v.booleanValue()
-                is Number -> v.toLong()
-                else -> v.toString()
-            }
-        }
-
-        fun obj(name: String, vararg args: VARIANT): Com = get(name, *args) as? Com ?: throw OutlookException("Outlook lieferte kein Objekt für „$name“.")
-        fun objOrNull(name: String, vararg args: VARIANT): Com? = runCatching { get(name, *args) as? Com }.getOrNull()
-        fun str(name: String): String = runCatching { get(name) as? String }.getOrNull().orEmpty()
-        fun num(name: String): Long = runCatching { get(name) as? Long }.getOrNull() ?: 0L
-        fun bool(name: String): Boolean = runCatching { get(name) as? Boolean }.getOrNull() ?: false
-        fun date(name: String): Long? = runCatching { (get(name) as? Date)?.time }.getOrNull()?.takeIf { it > 0 }
-
-        /** Calls a method without using its result. */
-        fun run(name: String, vararg args: VARIANT) {
-            raw(OleAuto.DISPATCH_METHOD, name, args)
-        }
-
-        fun put(name: String, value: VARIANT) = setProperty(name, value)
-        fun put(name: String, value: String) = setProperty(name, value)
-        fun put(name: String, value: Boolean) = setProperty(name, value)
-        fun put(name: String, value: Int) = setProperty(name, value)
-        fun put(name: String, value: Date) = setProperty(name, value)
-    }
+    private val thread = ComThread("outlook-com")
 
     /** Runs [block] on the COM thread with Outlook's application and MAPI namespace; maps errors to plain words. */
-    private fun <T> session(block: (app: Com, ns: Com) -> T): T {
-        val future = thread.submit(Callable {
-            try {
-                val app = try {
-                    // CoCreateInstance attaches to a running Outlook (one instance per user) or starts it in the background.
-                    Com("Outlook.Application")
-                } catch (e: COMException) {
-                    throw OutlookException(startProblem(e))
-                }
-                val ns = app.obj("GetNamespace", VARIANT("MAPI"))
-                block(app, ns)
-            } finally {
-                arena.asReversed().forEach { runCatching { it.release() } }
-                arena.clear()
+    private fun <T> session(block: (app: Com, ns: Com) -> T): T = try {
+        thread.run(
+            TIMEOUT_S,
+            onTimeout = {
+                OutlookException("Outlook antwortet nicht. Ist in Outlook gerade ein Fenster oder eine Rückfrage offen (z. B. „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“)? Bitte dort antworten und es noch einmal versuchen.")
+            },
+        ) {
+            val app = try {
+                // CoCreateInstance attaches to a running Outlook (one instance per user) or starts it in the background.
+                Com("Outlook.Application")
+            } catch (e: COMException) {
+                throw OutlookException(startProblem(e))
             }
-        })
-        return try {
-            future.get(TIMEOUT_S, TimeUnit.SECONDS)
-        } catch (e: TimeoutException) {
-            throw OutlookException("Outlook antwortet nicht. Ist in Outlook gerade ein Fenster oder eine Rückfrage offen (z. B. „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“)? Bitte dort antworten und es noch einmal versuchen.")
-        } catch (e: ExecutionException) {
-            val cause = e.cause ?: e
-            throw cause as? OutlookException ?: OutlookException(problem(cause))
+            val ns = app.obj("GetNamespace", VARIANT("MAPI"))
+            block(app, ns)
         }
+    } catch (e: OutlookException) {
+        throw e
+    } catch (e: Exception) {
+        throw OutlookException(problem(e))
     }
 
-    private fun hresult(e: Throwable): Int? = (e as? COMException)?.hresult?.toInt()
+    private fun hresult(e: Throwable): Int? = ComObj.hresult(e)
 
     private fun startProblem(e: COMException): String = when (hresult(e)) {
         0x80040154.toInt() -> "Das klassische Outlook ist auf diesem PC nicht installiert. Das neue Outlook (und Outlook im Browser) bieten keine Schnittstelle für Programme – dafür kommt später der Weg über den Mailserver."

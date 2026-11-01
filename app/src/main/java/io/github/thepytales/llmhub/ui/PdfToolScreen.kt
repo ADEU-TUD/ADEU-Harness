@@ -159,7 +159,9 @@ object PdfWork {
     }
 }
 
-private enum class PdfMode(val label: String) { VIEW("Ansehen"), PAGES("Seiten"), MARK("Markieren"), FORM("Formular") }
+private enum class PdfMode(val label: String) {
+    VIEW("Ansehen"), PAGES("Seiten"), MARK("Markieren"), SIGN("Unterschreiben"), FORM("Formular"), CONVERT("Umwandeln"), AI("KI"),
+}
 
 /** Runs a change of the PDF: the result becomes a new version, the old one stays for „Rückgängig“. */
 private suspend fun PdfTab.change(context: android.content.Context, op: (src: File, out: File) -> Unit): Boolean {
@@ -197,13 +199,26 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
     var busy by remember { mutableStateOf(false) }
     val tab = PdfWork.tabs.getOrNull(PdfWork.selected)
     val pick = rememberMediaImport(anyFile = true) { name, _, input ->
-        if (!name.endsWith(".pdf", ignoreCase = true)) {
-            Notices.error("„$name“ " + tr("ist kein PDF."))
+        // AP-15: Word, Excel, PowerPoint, pictures, HTML and text open as a PDF.
+        val kind = io.github.thepytales.llmhub.docs.ToPdfKind.of(name)
+        if (kind == io.github.thepytales.llmhub.docs.ToPdfKind.UNSUPPORTED) {
+            Notices.error("„$name“ " + tr("lässt sich nicht als PDF öffnen (PDF, Word, Excel, PowerPoint, Bilder, HTML und Text gehen)."))
             return@rememberMediaImport
         }
-        val tmp = File(PdfWork.dir(context), "import-${System.nanoTime()}.pdf")
+        val tmp = File(PdfWork.dir(context), "import-${System.nanoTime()}." + name.substringAfterLast('.', "pdf"))
         withContext(Dispatchers.IO) { input.use { i -> tmp.outputStream().use { o -> i.copyTo(o) } } }
-        PdfWork.open(context, tmp, name, keepOriginal = false)
+        if (kind == io.github.thepytales.llmhub.docs.ToPdfKind.PDF) {
+            PdfWork.open(context, tmp, name, keepOriginal = false)
+        } else {
+            busy = true
+            val converted = runCatching { io.github.thepytales.llmhub.docs.PdfConvert.toPdf(context, tmp, name, File(PdfWork.dir(context), "umgewandelt")) }
+            busy = false
+            converted.onSuccess { r ->
+                PdfWork.open(context, r.file, name.substringBeforeLast('.') + ".pdf", keepOriginal = false)
+                r.file.delete()
+                Notices.info("„$name“ " + tr("in PDF umgewandelt") + if (r.how.isNotEmpty()) " (" + tr(r.how) + ")" else "")
+            }.onFailure { Notices.error(it.message ?: tr("Das hat nicht geklappt")) }
+        }
         tmp.delete()
     }
     val saveAs = rememberSaveAs("application/pdf")
@@ -292,6 +307,9 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
                 PdfMode.PAGES -> PdfPages(current, onRun = ::run, onBusy = { busy = it })
                 PdfMode.MARK -> PdfMarker(current, onRun = ::run)
                 PdfMode.FORM -> PdfFormEditor(current, onRun = ::run, onOpenChat = onOpenChat)
+                PdfMode.SIGN -> PdfSigner(c, current, onRun = ::run)
+                PdfMode.CONVERT -> PdfConverter(c, current, onRun = ::run, onPickFile = pick)
+                PdfMode.AI -> PdfAi(c, current, onConvert = { mode = PdfMode.CONVERT })
             }
         }
     }
@@ -306,8 +324,9 @@ private fun PdfEmpty(onOpen: () -> Unit) {
         Text(tr("PDF-Werkzeugkasten"), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.size(6.dp))
         Text(
-            tr("PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen setzen, markieren und kommentieren") +
-                if (DESKTOP) tr(", Papierformulare ausfüllbar machen.") else ".",
+            tr("PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen setzen, markieren und kommentieren, unterschreiben") +
+                (if (DESKTOP) tr(", Papierformulare ausfüllbar machen") else "") +
+                tr(". Scans durchsuchbar machen, umwandeln (Word, Excel, PowerPoint, Bilder ↔ PDF) und mit KI fragen, zusammenfassen, Tabellen herausziehen und Formulare erklären lassen."),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.widthIn(max = 520.dp),
@@ -708,7 +727,7 @@ private fun CommentsDialog(tab: PdfTab, onDismiss: () -> Unit) {
 
 /** All pages, each with a [layer] on top (marking or the field editor) that knows the page and its size in px. */
 @Composable
-private fun PageCanvasList(tab: PdfTab, info: PdfInfo, layer: @Composable (page: Int, w: Float, h: Float) -> Unit) {
+internal fun PageCanvasList(tab: PdfTab, info: PdfInfo, layer: @Composable (page: Int, w: Float, h: Float) -> Unit) {
     val list = rememberLazyListState()
     LaunchedEffect(tab.goTo) { tab.goTo?.let { list.scrollToItem(it.coerceIn(0, info.pages - 1)); tab.goTo = null } }
     val density = LocalDensity.current

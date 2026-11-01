@@ -41,13 +41,13 @@ data class PdfInfo(val pages: Int, val sizes: List<Pair<Float, Float>>, val rota
  * the same code with PDFBox 3; only loading the file and the standard fonts differ.
  */
 object PdfTools {
-    private fun init(context: Context?) {
+    internal fun init(context: Context?) {
         context?.let { PDFBoxResourceLoader.init(it.applicationContext) }
     }
 
-    private fun load(file: File): PDDocument = PDDocument.load(file)
+    internal fun load(file: File): PDDocument = PDDocument.load(file)
 
-    private fun font(bold: Boolean = false): PDFont = if (bold) PDType1Font.HELVETICA_BOLD else PDType1Font.HELVETICA
+    internal fun font(bold: Boolean = false): PDFont = if (bold) PDType1Font.HELVETICA_BOLD else PDType1Font.HELVETICA
 
     // ---- Pages -------------------------------------------------------------------------------------------------
 
@@ -508,16 +508,16 @@ object PdfTools {
 
     // ---- Geometry ----------------------------------------------------------------------------------------------
 
-    private fun norm(deg: Int) = ((deg % 360) + 360) % 360
+    internal fun norm(deg: Int) = ((deg % 360) + 360) % 360
 
     /** Width and height as the page is shown (rotation applied). */
-    private fun displayed(page: PDPage): Pair<Float, Float> {
+    internal fun displayed(page: PDPage): Pair<Float, Float> {
         val box = page.cropBox
         return if (norm(page.rotation) % 180 == 90) box.height to box.width else box.width to box.height
     }
 
     /** A point given as fractions of the displayed page → PDF user space. */
-    private fun toUser(page: PDPage, fx: Float, fy: Float): Pair<Float, Float> {
+    internal fun toUser(page: PDPage, fx: Float, fy: Float): Pair<Float, Float> {
         val b = page.cropBox
         val (w, h) = b.width to b.height
         return when (norm(page.rotation)) {

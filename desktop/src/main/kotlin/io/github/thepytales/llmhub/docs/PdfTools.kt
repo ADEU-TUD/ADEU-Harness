@@ -42,11 +42,11 @@ data class PdfInfo(val pages: Int, val sizes: List<Pair<Float, Float>>, val rota
  */
 @Suppress("UNUSED_PARAMETER")
 object PdfTools {
-    private fun init(context: Context?) = Unit
+    internal fun init(context: Context?) = Unit
 
-    private fun load(file: File): PDDocument = Loader.loadPDF(file)
+    internal fun load(file: File): PDDocument = Loader.loadPDF(file)
 
-    private fun font(bold: Boolean = false): PDFont =
+    internal fun font(bold: Boolean = false): PDFont =
         PDType1Font(if (bold) Standard14Fonts.FontName.HELVETICA_BOLD else Standard14Fonts.FontName.HELVETICA)
 
     // ---- Pages -------------------------------------------------------------------------------------------------
@@ -508,16 +508,16 @@ object PdfTools {
 
     // ---- Geometry ----------------------------------------------------------------------------------------------
 
-    private fun norm(deg: Int) = ((deg % 360) + 360) % 360
+    internal fun norm(deg: Int) = ((deg % 360) + 360) % 360
 
     /** Width and height as the page is shown (rotation applied). */
-    private fun displayed(page: PDPage): Pair<Float, Float> {
+    internal fun displayed(page: PDPage): Pair<Float, Float> {
         val box = page.cropBox
         return if (norm(page.rotation) % 180 == 90) box.height to box.width else box.width to box.height
     }
 
     /** A point given as fractions of the displayed page → PDF user space. */
-    private fun toUser(page: PDPage, fx: Float, fy: Float): Pair<Float, Float> {
+    internal fun toUser(page: PDPage, fx: Float, fy: Float): Pair<Float, Float> {
         val b = page.cropBox
         val (w, h) = b.width to b.height
         return when (norm(page.rotation)) {
