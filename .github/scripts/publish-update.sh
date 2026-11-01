@@ -5,7 +5,10 @@
 # (a plain download: no GitHub account, no API limit) and then download their file and check its SHA-256.
 #
 # Usage: .github/scripts/publish-update.sh <version, e.g. 1.0.37> <folder with the files> ["Was ist neu"]
-#   The folder holds ADEU-LLM-<version>-Windows.zip and/or ADEU-LLM-<version>.apk (optional also the -Windows.exe).
+#   The folder holds ADEU-LLM-<version>-Windows.zip and/or ADEU-LLM-<version>.apk (optional also the -Windows.exe),
+#   and since AP-31 optionally ADEU-LLM-<version>-macOS.tar.gz (+ .dmg) and ADEU-LLM-<version>-Linux.tar.gz (+ .deb).
+#   Each platform whose file is there gets its key in version.json ("windows", "android", "macos", "linux"); the
+#   update of the apps uses the ZIP/APK/tar.gz, the EXE/DMG/DEB are only uploaded for first installations.
 #   The reloadable extensions (AP-25, Videoeditor-Paket) are built here with extension-videoeditor.sh and listed under
 #   "extensions" in version.json.
 #   The text "Was ist neu" appears in the update popup; without it UPDATE_NOTES or a general sentence.
@@ -24,7 +27,12 @@ tag="v$version"
 zip="$dist/ADEU-LLM-$version-Windows.zip"
 apk="$dist/ADEU-LLM-$version.apk"
 exe="$dist/ADEU-LLM-$version-Windows.exe"
-[ -f "$zip" ] || [ -f "$apk" ] || { echo "Weder $zip noch $apk gefunden." >&2; exit 1; }
+mac="$dist/ADEU-LLM-$version-macOS.tar.gz"
+dmg="$dist/ADEU-LLM-$version-macOS.dmg"
+linux="$dist/ADEU-LLM-$version-Linux.tar.gz"
+deb="$dist/ADEU-LLM-$version-Linux.deb"
+[ -f "$zip" ] || [ -f "$apk" ] || [ -f "$mac" ] || [ -f "$linux" ] \
+  || { echo "Weder $zip noch $apk (noch die tar.gz für macOS/Linux) gefunden." >&2; exit 1; }
 
 # Nachladbare Erweiterungen (AP-25): the Videoeditor-Paket comes with every release (NO_EXTENSIONS=1 leaves it out).
 # A failed download only warns – the release itself must not fail because of it.
@@ -32,9 +40,11 @@ if [ "${NO_EXTENSIONS:-}" != "1" ] && [ ! -f "$dist/erweiterungen.json" ]; then
   bash "$(dirname "$0")/extension-videoeditor.sh" "$dist" || { echo "Warnung: Videoeditor-Paket nicht gebaut." >&2; rm -f "$dist/erweiterungen.json"; }
 fi
 
-python3 - "$version" "$repo" "$tag" "$notes" "$dist/version.json" "$zip" "$apk" "$dist/erweiterungen.json" <<'PY'
+python3 - "$version" "$repo" "$tag" "$notes" "$dist/version.json" "$dist/erweiterungen.json" \
+  "windows=$zip" "android=$apk" "macos=$mac" "linux=$linux" <<'PY'
 import hashlib, json, os, sys, datetime
-version, repo, tag, notes, out, zip_path, apk_path, ext_path = sys.argv[1:9]
+version, repo, tag, notes, out, ext_path = sys.argv[1:7]
+platforms = [arg.split("=", 1) for arg in sys.argv[7:]]
 def entry(path):
     if not os.path.isfile(path):
         return None
@@ -46,7 +56,7 @@ def entry(path):
     return {"file": name, "url": f"https://github.com/{repo}/releases/download/{tag}/{name}",
             "sha256": h.hexdigest(), "size": os.path.getsize(path)}
 data = {"version": version, "published": datetime.date.today().isoformat(), "notes": notes}
-for key, path in (("windows", zip_path), ("android", apk_path)):
+for key, path in platforms:
     e = entry(path)
     if e:
         data[key] = e
@@ -85,12 +95,20 @@ if [ -f "$readme" ]; then
 fi
 
 files=("$dist/version.json")
-for f in "$zip" "$apk" "$exe" "$dist"/Lora-*.zip; do [ -f "$f" ] && files+=("$f"); done
+for f in "$zip" "$apk" "$exe" "$mac" "$dmg" "$linux" "$deb" "$dist"/Lora-*.zip; do [ -f "$f" ] && files+=("$f"); done
 body="$notes
 
 **Installation:** Die App aktualisiert sich selbst (Popup beim Start). Zum ersten Installieren:
 - Windows: \`ADEU-LLM-$version-Windows.exe\` herunterladen und starten – keine Installation, keine Admin-Rechte. Alternativ die ZIP entpacken und \`ADEU LLM.exe\` starten.
 - Android: \`ADEU-LLM-$version.apk\` herunterladen und öffnen."
+if [ -f "$dmg" ]; then
+  body+="
+- macOS (Mac mit Apple-Chip, M1 oder neuer): \`ADEU-LLM-$version-macOS.dmg\` öffnen und die App in den Ordner Programme ziehen. Zeigt macOS beim ersten Start eine Warnung, steht in der README dieses Repositorys, was zu tun ist."
+fi
+if [ -f "$linux" ]; then
+  body+="
+- Linux (64 Bit): \`ADEU-LLM-$version-Linux.tar.gz\` entpacken und \`ADEU LLM/bin/ADEU LLM\` starten (aktualisiert sich selbst) – oder \`ADEU-LLM-$version-Linux.deb\` mit \`sudo apt install ./ADEU-LLM-$version-Linux.deb\` installieren (Updates dann über die neue .deb)."
+fi
 if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
   gh release upload "$tag" "${files[@]}" --repo "$repo" --clobber
   gh release edit "$tag" --repo "$repo" --notes "$body" --latest
