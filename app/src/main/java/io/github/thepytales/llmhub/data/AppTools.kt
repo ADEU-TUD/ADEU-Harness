@@ -43,13 +43,11 @@ enum class AppTool(
         "mail", listOf("outlook", "postfach", "posteingang", "e-mail", "email", "mails", "mail sortieren", "antwortentwurf", "kalender", "termin finden", "freie zeit", "besprechung"),
         android = false,
     ),
-    CREATIVE(
-        "creative", "Kreativbereich", "Poster, Flyer und Aushänge im Corporate Design gestalten.", "creative",
-        listOf("poster", "flyer", "aushang", "canva"), android = false, planned = true,
-    ),
     VIDEO(
-        "video", "Videoeditor", "Lehrvideos schneiden, Untertitel einbrennen, für OPAL und YouTube exportieren.", "video",
-        listOf("video schneiden", "videoschnitt", "untertitel einbrennen"), android = false, planned = true,
+        "video", "Videoeditor",
+        "Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube.",
+        "video", listOf("video schneiden", "videoschnitt", "videoeditor", "lehrvideo", "untertitel einbrennen", "bauchbinde", "screencast", "video kurzen"),
+        android = false,
     );
 
     companion object {

@@ -28,7 +28,8 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Für wen | Ich bin Hauptnutzer und entscheide über die Funktionen. Das Team ist gleichberechtigt, bekommt die App kostenlos und gibt Feedback (über *Problem melden*). Keine Umfragen, keine Usability-Tests, keine Teamverwaltung. |
 | Priorität | **Täglicher Nutzen** entscheidet. |
 | Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. |
-| Übersichtlichkeit | Die App darf durch neue Funktionen nicht unübersichtlich werden: große Werkzeuge sind **einschaltbar** (anfangs aus, Lora schlägt sie passend vor), eingeschaltete Fortgeschrittene stehen in der Seitenleiste unter **„Mehr“**. Jedes neue Werkzeug fügt sich in AP-02 ein. Keine Einfach-/Expertenansicht. |
+| Übersichtlichkeit | Die App darf durch neue Funktionen nicht unübersichtlich werden: große Werkzeuge sind **einschaltbar** (anfangs aus, Lora schlägt sie passend vor), eingeschaltete Fortgeschrittene stehen in der Seitenleiste unter **„Mehr“**. Jedes neue Werkzeug fügt sich in AP-02 ein. Keine Einfach-/Expertenansicht. „Mehr“ bleibt eine flache Liste; **jeder Bereich lässt sich ausblenden** (außer *Erstellen* und *Dateien*), erreichbar bleibt er über Strg+K und Lora (seit AP-24). |
+| Inhalte | Zwei feste Orte für Inhalte: **Dateien** (was es gibt) und **Erstellen** (was neu entsteht: TU Vorlagen und Gestalten mit „Meine Designs“). Jederzeit kann man stattdessen Lora sagen, was entstehen soll (seit AP-24). |
 | Plattformen | **Windows-PC ist die Hauptplattform.** Android zieht nur Funktionen nach, die dort sinnvoll sind – **kein** Videoeditor, **kein** Kreativbereich. Website, macOS und Linux erst ganz am Ende. |
 | Lora | **Kern der App** und Namensgeberin (seit 1.0.44 heißt die App „Lora“, Slogan: *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden*; technische Namen wie `ADEU LLM.exe` und die Datenordner bleiben). Navigator und Helfer: findet Einstellungen, öffnet Modi und Vorlagen, übergibt an Chat-Modelle – **Standard für Übergaben ist DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora selbst entscheidet und begründet. Lora antwortet selbst mit GLM-5.3 Flash. Lora reagiert, unterbricht nicht. Animationen dürfen auch ohne neues Werkzeug kommen, wenn sie Lora lebendiger machen (AP-36); sie bleiben seriös und respektieren *Ruhigere Bewegungen*. |
 | Modus-Konzept | Einheitlich: Chip über dem Eingabefeld, eine Zeile „was passiert hier“, Datenhinweis, ✕ zum Verlassen. |
@@ -39,7 +40,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Gemeinsame Daten | Keine Professur-Datenbank. Höchstens irgendwann ein gemeinsamer Ordner für TU Vorlagen (Ideen). |
 | Anbindungen | Wichtige Dienste **fest eingebaut** (zuerst Nextcloud) statt zuerst allgemeines MCP. |
 | Eigene Werkzeuge statt Fremd-Apps | Selbst bauen, gehört vollständig uns. Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden; je Werkzeug wird geprüft, ob Code übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
-| Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); **nachladbare Erweiterungen** erst mit dem Videoeditor (AP-25). |
+| Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); große Teile, die nicht alle brauchen, sind **nachladbare Erweiterungen** über den Updater (seit AP-25: Videoeditor-Paket; die Browser-Engine wird mit aufgeführt). |
 | Sprachen | Englisch vervollständigen (eigenes Paket, später), keine weiteren Sprachen. |
 | Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen. (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
 
@@ -51,7 +52,7 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | --- | --- |
 | **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
 | **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
-| **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
+| **Später** | AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · ~~AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor~~ (☑) · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · *ganz am Ende:* AP-31 macOS und Linux · AP-32 Website |
 
 Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
 zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 vor AP-28 · AP-20 vor großen Exzerpt-Stapeln.
@@ -544,7 +545,7 @@ Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau 
 - *Einstellungen › Verbindungen*: Server hinzufügen, Werkzeuge ansehen, je Werkzeug erlauben/fragen/sperren; fremde
   Werkzeuge laufen über die *Freigaben* und halten die Datenschutzstufe ein.
 
-### AP-24 ☐ Kreativbereich (D) · XL (bisher W8-03)
+### AP-24 ☑ Kreativbereich → „Erstellen“ › Gestalten (D) · XL (bisher W8-03)
 Alltagsumfang nach dem Vorbild Canva, Schwerpunkt Corporate Design. Nur Windows (kein Android).
 1. Leinwand mit Ebenen, Ausrichten, Rückgängig, mehrseitige Designs; Brand-Kit (TUD-Farben, Schriften, Logos – vorhanden).
 2. Vorlagen Uni-Kontext: Tagungsposter, Flyer, Aushang, Einladung, Urkunde/Teilnahmebescheinigung, Social Media,
@@ -552,8 +553,43 @@ Alltagsumfang nach dem Vorbild Canva, Schwerpunkt Corporate Design. Nur Windows 
 3. Text, Formen, Icons, QR-Codes, Bilder (zuschneiden, FLUX-Bilder direkt auf die Leinwand), KI: „Poster aus diesem Paper“.
 4. Export PNG, PDF (Druck), PowerPoint.
 - Lora-Animation: Pinsel, Farbpalette. Code aus DesignCraft/VectorCraft/PhotoCraft prüfen (*Anhang: Craft-Apps*).
+- **Entscheidungen (01.11.2026)**: (a) **Kein eigener Bereich und kein Werkzeug**: TU Vorlagen und Gestalten sind ein Ort,
+  **„Erstellen“** (statt „TU Vorlagen“; erwogen: Gestalten, Werkstatt, Studio – „Erstellen“ passt neben „Dateien“ und
+  trägt Brief wie Poster, wie *Erstellen* in Microsoft 365). Oben „Was möchtest du erstellen?“ für Lora, darunter
+  Gestalten, Meine Designs, TU Vorlagen. (b) Die Teilnahmebescheinigung bleibt TU Vorlage (nach der TUD-Vorlage gebaut),
+  keine zweite als Design; „Einladung“ heißt „Einladungskarte“. (c) Brand-Kit aus dem, was vom **CD-Paket 2025** im Repo
+  liegt (Logos, Farben des Office-Themes „TUD_2025“, Noto Sans); Vorlagen, Paletten und die Icon-Schrift des CD-Portals
+  liegen hinter dem ZIH-Login und sind nicht eingebaut. (d) Noto Sans als TTF (OFL) in der Windows-App, damit Editor, PDF
+  und Videotitel dieselbe Schrift zeichnen (Skia liest das WOFF2 der App nicht). (e) Craft-Code nicht übernommen – alles
+  selbst geschrieben.
+- **Ergebnis (01.11.2026)**: *Erstellen* mit Lora-Feld (Wunsch, auch mit Datei; Design-Wünsche starten den Modus
+  *Gestalten*), **Gestalten** mit acht Vorlagen (Tagungsposter A1, Flyer A5, Aushang A4, Einladungskarte A5 quer, Social
+  Media Beitrag und Story, OPAL-Kursbanner, Titelbild für Lehrvideos) je *Selbst gestalten* oder *Lora machen lassen*,
+  *Poster aus einem Paper*, *Leeres Design* in 17 Formaten, **Meine Designs**. **Editor**: Seiten, Ebenen, Mehrfachauswahl
+  mit Rahmen, Verschieben mit Einrasten (Seite und Elemente), Griffe für Größe und Drehung, Ausrichten/Verteilen,
+  Sperren, Rückgängig/Wiederholen, Tastenkürzel, Zwischenablage (auch Bilder/Text aus anderen Programmen), Format ändern.
+  **Elemente**: Text (wächst mit oder passt sich an), sieben Formen, 37 Symbole, Bilder mit Zuschnitt/Eckenradius/
+  Alternativtext, Bild vom Bildmodell, QR-Codes (`io.nayuki:qrcodegen`, MIT), TUD-Logo und eigene Logos. **Export**: PNG
+  (Bildschirm in Pixeln, Druck 150/300 dpi), PDF vektoriell mit eingebetteter Schrift (auf Wunsch 3 mm Beschnitt und
+  Schnittmarken), PowerPoint mit echten Formen und Textfeldern (A0 wird auf die PowerPoint-Höchstgröße verkleinert).
+  **KI**: `create_design`, `update_design`, `read_design` in jedem Chat unter Windows, Modus *Gestalten*, Karte unter der
+  Antwort, offene Designs laden Änderungen aus dem Chat nach; Lora malt dabei (PAINT). Tests: `CreativeTest`,
+  `CreativeScreenTest` (Bilder in `desktop/build/creative-look`). Rest: Text direkt auf der Leinwand tippen, Verläufe,
+  Bildfilter, Vorlagen und Icon-Schrift aus dem CD-Portal (wenn jemand sie hochlädt), PowerPoint-Vorlagen importieren.
+  Betrifft: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`, `ui/TemplatesScreen.kt`,
+  Windows: `creative/*`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt`, `resources/fonts/`.
+- **Nachtrag CD-Paket (01.11.2026)**: Das vollständige CD-Paket 2025 (Logos, Shape mit Regeln, Icon-Themensets,
+  Präsentationsvorlage, digitales Poster, Urkunden, Office-Themes) liegt jetzt vor und ist eingearbeitet: 23 **TUD Farben**,
+  **Noto Sans Medium** für Überschriften (statt fett), alle **offiziellen Logos** als Vektor (horizontal/vertikal, de/en,
+  „TUD“, Bildmarke; blau/weiß/schwarz), die **TUD-Shape** als Element (45°-Schritte, spiegeln, Foto in der Shape) und
+  rund 530 **TUD-Icons** (aufbereitet mit `desktop/tools/tud_cd_assets.py`). Alle neun Vorlagen neu nach den Regeln
+  (weiß mit Logo oben links oder Brillantblau mit weißem Logo, Shape als Bildmotiv, TUD-Icons), neu **Digitales Poster
+  16:9**. Die TU Vorlage *Präsentation* (PowerPoint, Handout, Folien-Editor) folgt der offiziellen Präsentationsvorlage
+  (Titelfolie, Abschnitt mit Shape, schwarze Titel 32 pt Medium, Fußzeile mit Kurzlogo „Titel • Vortragende • Seite N“),
+  Urkunden setzen Name und Veranstaltung in Medium, Videotitel nutzen Medium und die Shape. Hinweis: Logos, Icons und
+  Shape stecken damit in der Windows-App, die über das öffentliche Updater-Repo verteilt wird.
 
-### AP-25 ☐ Videoeditor und nachladbare Erweiterungen (D) · XL (bisher W8-07, Teil von W8-00)
+### AP-25 ☑ Videoeditor und nachladbare Erweiterungen (D) · XL (bisher W8-07, Teil von W8-00)
 Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
 1. **Nachladbare Erweiterungen** einführen: der Videoeditor (und danach ggf. Browser-Engine, OCR-Daten) wird beim ersten
    Öffnen geladen („Videoeditor einrichten · ca. 200 MB“), liegt unter `%LOCALAPPDATA%\ADEU LLM\tools\…`, kommt über
@@ -562,6 +598,28 @@ Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
 3. **Ton und Untertitel**: Pegel, Rauschminderung, Untertitel aus der vorhandenen Transkription einbrennen oder als SRT/VTT.
 4. **Export** MP4 mit Vorgaben für OPAL und YouTube; KI: Rohschnitt aus dem Transkript (Füllwörter, Pausen).
 - Technik: ffmpeg (in der Windows-Version enthalten), Proxy-Dateien für flüssigen Schnitt; Lizenz des ffmpeg-Builds prüfen.
+- **Entscheidungen (01.11.2026)**: Da ffmpeg schon in der App steckt, ist das **Videoeditor-Paket** klein (ca. 40 MB
+  Download statt 200 MB): ffprobe aus demselben ffmpeg-Build und das Sprachmodell RNNoise („somnolent-hogwash“, laut
+  Projekt nicht urheberrechtlich geschützt) für die Rauschminderung. Der Editor bietet es beim ersten Öffnen an und
+  arbeitet ohne Paket mit dem ffmpeg der App weiter. Titel und Untertitel zeichnet die App selbst (Renderer von
+  *Erstellen*) – ffmpeg braucht weder libass noch Schriften. Lizenz: der ffmpeg-Build ist GPL v3, seine LICENSE liegt bei
+  App und Paket.
+- **Ergebnis (01.11.2026)**: **Erweiterungen**: `version.json` listet sie unter `extensions`, die App richtet sie unter
+  `%LOCALAPPDATA%\ADEU LLM\tools\<id>` ein (Prüfsumme, Entpacken ohne Pfade nach außen, Tausch beim nächsten Start, wenn
+  Dateien belegt sind), aktualisiert sie mit der Update-Prüfung und entfernt sie unter *Einstellungen › Werkzeuge ›
+  Erweiterungen*; dort steht auch die Browser-Engine (entfernbar). `publish-update.sh` baut das Paket mit
+  `extension-videoeditor.sh` bei jedem Release. **Videoeditor** (Werkzeug, anfangs aus): Projekte, Zeitleiste mit
+  Video-, Titel-, Ton- und Untertitelspur, Teilen (S), Trimmen an den Rändern, Verschieben, Übergänge Überblenden/über
+  Schwarz, Lautstärke/stumm, Rückgängig; Vorschau aus Proxys (360 Zeilen) mit Ton als Uhr, Titel und Untertitel darüber.
+  Titel, Bauchbinde, Einblendung, Abspann im TUD-Design; Musik/Sprecherton; Rauschminderung (RNNoise oder FFT), Lautheit
+  −16 LUFS, Pegel; Untertitel aus der Transkription (folgen dem Schnitt, *Jetzt transkribieren*) oder SRT/VTT, einbrennen
+  oder als Datei; **Rohschnitt** (Pausen und Füllwörter) und **Mit Lora kürzen**; Export MP4 für OPAL (720p), YouTube
+  (1080p) oder Projektqualität. Lora mit der Schere (SCISSORS) auf der leeren Projektseite. Tests: `VideoTest` (echter Export mit ffmpeg),
+  `VideoScreenTest`, `ExtensionsTest`. Rest: Vorschau zeigt Übergänge als Schnitt und spielt die Musikspur nicht mit;
+  Bild-in-Bild und zweite Videospur, Farbkorrektur, Wellenform der Tonspur, Hardware-Encoder; Browser-Engine und
+  OCR-Daten über denselben Weg ausliefern.
+  Betrifft: Windows `video/*`, `ui/VideoScreen.kt`, `desktop/Extensions.kt`, `ui/ExtensionsUi.kt`, gemeinsam
+  `update/UpdateInfo.kt`, `update/Updates.kt`, `.github/scripts/extension-videoeditor.sh`, `publish-update.sh`.
 
 ### AP-26 ☐ PDF-Werkzeugkasten Stufe 3 · M (bisher W8-02, Stufen 4, 8, 9)
 - Echtes Schwärzen, Text/Bilder ändern, verkleinern, PDF/A, Passwort, Metadaten; zwei PDFs vergleichen, Barrierefreiheit
@@ -652,6 +710,9 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
 | ☑ AP-13 Mail und Kalender (W) | COM über JNA, Modus *Postfach*, 12 Werkzeuge, Regeln mit Vorschau, Protokoll, nie löschen/senden | echte Outlook-Regeln; Server-Weg mit AP-27 |
 | ☑ AP-15 PDF Stufe 2 | Texterkennung von Windows bzw. Bildmodell, Umwandeln (Office über COM), Unterschreiben, Frag das PDF, Tabellen | digitale Signatur; Handschrift-OCR auf dem PC |
 | ☑ AP-18 Dateiverwaltung | *Dateien*: Orte und Ordner, Schlagwörter, Volltextsuche mit Cache, Vergleich, `search_files` | SQLite-Index nur bei Bedarf; Dateien verschieben (mit AP-16 erledigt) |
+| ☑ AP-24 Kreativbereich → „Erstellen“ | Erstellen mit Lora-Feld, Gestalten (9 Vorlagen nach dem CD-Paket 2025 mit Shape, TUD-Icons und allen Logos, Editor mit Ebenen, Einrasten, Drehen, Rückgängig), Meine Designs, Export PNG/PDF (Druck mit Beschnitt)/PowerPoint, KI in jedem Chat | Text auf der Leinwand tippen, PowerPoint-Import |
+| ☑ AP-25 Videoeditor und Erweiterungen | Erweiterungen über den Updater (Videoeditor-Paket, Browser-Engine entfernbar), Zeitleiste, TUD-Titel, Ton, Untertitel aus der Transkription, Rohschnitt, Mit Lora kürzen, MP4 für OPAL/YouTube | Musik und Übergänge in der Vorschau, zweite Videospur, Farbkorrektur |
+| ☑ Seitenleiste ausblendbar (Nachtrag AP-02) | jeder Bereich außer Erstellen und Dateien per Rechtsklick oder in den Einstellungen ausblendbar, über Strg+K und Lora erreichbar | – |
 | ☑ AP-16 Office-Ausbau | Tab *Dateien* wie Google Drive, Lora-Ordner (`.lora`), echte docx/pptx/xlsx, ins Original schreiben, Änderungen nachverfolgen, Word-Kommentare, Fußzeile/Ränder/Inhaltsverzeichnis/Formeln, Rechtschreibung auf dem Gerät, freie Folien mit Masterfolie, Lora-Panel und -Popup, Chatfilter | echter Seitenumbruch in der Seitenansicht; Windows-Papierkorb; Scannen (Ideen) |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
 
@@ -686,8 +747,9 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
 | Office (AP-16) | ☑ ansehen, bearbeiten, Lora; Dateien in der App mit Kopie in einen gewählten Ordner | ☑ voll, Lora-Ordner |
 | Lernspiele (AP-17) | ansehen, spielen | voll |
-| Kreativbereich (AP-24) | – (nicht geplant) | ☐ |
-| Videoeditor (AP-25) | – (nicht geplant) | ☐ |
+| Erstellen (AP-24) | TU Vorlagen; Gestalten nicht geplant | ☑ (mit Gestalten) |
+| Videoeditor (AP-25) | – (nicht geplant) | ☑ |
+| Nachladbare Erweiterungen (AP-25) | – | ☑ |
 | Agent in lokalen Ordnern | – (nur Lesen im Projektordner) | ☑ |
 
 ---
@@ -712,6 +774,6 @@ Regeln bei Übernahme:
 | Dokument (AP-16) | WordCraft | In Entwicklung | Selbst schreiben (Editor vorhanden); Seitenumbruch- und Layoutlogik ggf. ansehen |
 | Tabelle (AP-16) | GridCraft | In Entwicklung | Selbst schreiben (`SheetEngine` vorhanden); Formelfunktionen ggf. abgleichen |
 | Präsentation (AP-16) | DeckCraft | In Entwicklung | Selbst schreiben (Editor vorhanden) |
-| Kreativbereich (AP-24) | DesignCraft, VectorCraft, PhotoCraft | In Entwicklung / Early alpha | Bester Kandidat für Übernahme: Leinwand-Datenmodell, Vektorpfade (Bézier, boolesche Operationen), Bildfilter und Mischmodi; Bedienung selbst |
-| Videoeditor (AP-25) | FilmCraft, EffectCraft | In Entwicklung | Zeitleisten-Modell und Effekt-Graph ansehen; Grundlage bleibt ffmpeg |
+| Kreativbereich (AP-24) | DesignCraft, VectorCraft, PhotoCraft | In Entwicklung / Early alpha | **Entschieden: selbst geschrieben** (Leinwand-Modell, Renderer, Export); für boolesche Operationen und Bildfilter später ansehen |
+| Videoeditor (AP-25) | FilmCraft, EffectCraft | In Entwicklung | **Entschieden: selbst geschrieben** auf ffmpeg (ein Filtergraph je Export) |
 | Nicht übernommen | LightCraft, SoundCraft, CADCraft, FigCraft | – | kein Bedarf an der Professur |

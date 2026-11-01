@@ -25,17 +25,26 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Marke, bloße Adressen erscheinen nur als Marke, Quellen wie `[1]` werden zu nummerierten Marken, die auf die
   Quellenliste am Ende der Antwort verlinken. Anhänge, Dokumentkarten, die Literaturliste und Fehler sehen einheitlich
   aus; Lora signiert jede Antwort klein neben dem Modellnamen. Gilt für alle Stile, Hoher Kontrast bleibt WCAG AAA.
-- **Aufgeräumte Seitenleiste**: oben *Neuer Chat* und bis zu vier Bereiche (Standard: *TU Vorlagen*, *Literatur*,
-  *Transkription*), darunter ausklappbar **„Mehr“** mit *Dokumente*, *Bilder erzeugen*, *Geplante Aufgaben* und allen
+- **Aufgeräumte Seitenleiste**: oben *Neuer Chat* und bis zu vier Bereiche (Standard: *Erstellen*, *Literatur*,
+  *Transkription*, *Dateien*), darunter ausklappbar **„Mehr“** mit *Bilder erzeugen*, *Geplante Aufgaben* und allen
   eingeschalteten Werkzeugen (auf-/zugeklappt bleibt gespeichert). Rechtsklick bzw. langes Drücken holt einen Bereich
-  nach oben oder schiebt ihn unter „Mehr“. Darunter Projekte, angeheftete Chats und die Chats nach Tagen. Modellübersicht,
-  Modellvergleich, Verbrauch und die lokalen Modelle stehen in den Einstellungen unter *Modelle* bzw. *Daten*.
-- **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge (PDF-Werkzeugkasten, Tresor, Lernspiele,
-  später Kreativbereich, Videoeditor) haben je einen Schalter und sind anfangs aus; eingeschaltete erscheinen unter
-  „Mehr“, zugehörige Modi (z. B. *Lernspiel*) erst dann in `/`, Strg+K und Loras Landkarte. Passt eine Anfrage zu einem
-  ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor („Quiz“ → *Lernspiele*). Einschaltbar sind der
-  *PDF-Werkzeugkasten*, der *Tresor*, *Lernspiele* und (Windows) *Mail & Kalender*; die übrigen sind als „geplant“ zu sehen. Der Browser neben dem
-  Chat ist kein eigenes Werkzeug, sondern ein Schalter unter *Einstellungen › Windows*.
+  nach oben, schiebt ihn unter „Mehr“ oder **blendet ihn aus** (alle außer *Erstellen* und *Dateien*; auch unter
+  *Einstellungen › Werkzeuge › Seitenleiste*) – Ausgeblendetes bleibt über Strg+K und Lora erreichbar. Darunter Projekte,
+  angeheftete Chats und die Chats nach Tagen. Modellübersicht, Modellvergleich, Verbrauch und die lokalen Modelle stehen
+  in den Einstellungen unter *Modelle* bzw. *Daten*.
+- **Einschaltbare Werkzeuge** (*Einstellungen › Werkzeuge*): große Werkzeuge haben je einen Schalter und sind anfangs
+  aus; eingeschaltete erscheinen unter „Mehr“, zugehörige Modi (z. B. *Lernspiel*) erst dann in `/`, Strg+K und Loras
+  Landkarte. Passt eine Anfrage zu einem ausgeschalteten Werkzeug, schlägt Lora es über dem Eingabefeld vor („Quiz“ →
+  *Lernspiele*). Einschaltbar sind der *PDF-Werkzeugkasten*, der *Tresor*, *Lernspiele* und (Windows) *Mail & Kalender*
+  und der *Videoeditor*. Gestalten (Poster, Flyer …) ist kein Werkzeug mehr, sondern Teil von *Erstellen*. Der Browser
+  neben dem Chat ist ein Schalter unter *Einstellungen › Windows*.
+- **Nachladbare Erweiterungen** (Windows, AP-25, *Einstellungen › Werkzeuge › Erweiterungen*): große Teile, die nicht
+  alle brauchen, kommen nicht mit jedem Update, sondern werden beim ersten Gebrauch einmalig eingerichtet – aus derselben
+  Quelle wie die Updates (GitHub oder der Ordner auf dem Netzlaufwerk), mit Prüfsumme, nach
+  `%LOCALAPPDATA%\ADEU LLM\tools\<id>`. Eine neuere Fassung im Release aktualisiert sie mit der Update-Prüfung; *Entfernen*
+  gibt den Platz wieder frei. Erste Erweiterung ist das **Videoeditor-Paket** (ca. 40 MB: ffprobe für genaue Angaben zu
+  Videos, Sprachmodell RNNoise für die Rauschminderung); der Videoeditor bietet es beim ersten Öffnen an und funktioniert
+  auch ohne. Die **Browser-Engine** (Chromium, AP-14) steht daneben und lässt sich ebenso entfernen.
 - **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
   - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
     App wird schmaler statt verdeckt –, auf dem Handy ein Blatt von unten. Das Gespräch bleibt bis *Neu beginnen*,
@@ -120,7 +129,41 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Text- und Code-Dateien werden gelesen und mitgeschickt, z.B. zum Zusammenfassen. Word und PowerPoint kommen mit
   Überschriften, Listen und Tabellen beim Modell an – „Mach daraus ein Dokument im TUD-Design“ funktioniert so direkt.
   Beliebig viele Dateien (je bis 25 MB, Text bis 120 000 Zeichen) und bis zu 10 Bilder auf einmal.
-- **TU Vorlagen – die Vorlagen-Bibliothek für die Professur**: rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
+- **Erstellen** (Seitenleiste, AP-24) – neben *Dateien* der zweite Ort für Inhalte: oben das Feld **„Was möchtest du
+  erstellen?“** (Lora erledigt es im Chat, auch mit angehängter Datei – „Tagungsposter aus meinem Paper“, „Aushang für die
+  Sprechstunde“, „Protokoll aus meinen Notizen“), darunter unter Windows **Gestalten** und **Meine Designs**, dann die
+  **TU Vorlagen**.
+- **Gestalten** (Windows, AP-24, Vorbild Canva, Schwerpunkt Corporate Design): Vorlagen *Tagungsposter* (A1),
+  *Digitales Poster* (16:9 für Bildschirme, nach dem Layout „3 Spalten“ des CD-Pakets), *Flyer* (A5), *Aushang* (A4),
+  *Einladungskarte* (A5 quer), *Social Media: Beitrag* und *Story*, *OPAL-Kursbanner*, *Titelbild für Lehrvideos* – jede
+  zum **Selbst gestalten** oder **Lora machen lassen**; dazu *Poster aus einem Paper* und *Leeres Design* in 18 Formaten
+  (A0–A6, DIN lang, Bildschirmformate in Pixeln). Alle Vorlagen folgen dem **CD 2025**: Logo oben links (A4 wie in
+  Briefen und Urkunden 25/18 mm), Überschriften in Noto Sans Medium (Brillantblau auf Weiß, Weiß auf Brillantblau),
+  Fließtext Schwarz, nur TUD Farben, die **Shape** als Bildmotiv (randabfallend, gern mit Foto darin) und TUD-Icons. Briefe, Protokolle und
+  Bescheinigungen bleiben TU Vorlagen (die Teilnahmebescheinigung gibt es dort nach der TUD-Vorlage).
+  - **Editor**: Leinwand mit Seiten und Ebenen, Auswählen (auch mehrere, mit Rahmen), Verschieben mit **Einrasten** an
+    Seitenrand, Seitenmitte und anderen Elementen, Größe und **Drehung** über Griffe, Ausrichten und Verteilen, nach
+    vorne/hinten, Sperren, **Rückgängig/Wiederholen** (Strg+Z/Y), Pfeiltasten, Strg+D, Strg+C/V (auch Bilder und Text aus
+    anderen Programmen), Zoom mit Strg+Mausrad. Seiten hinzufügen, verdoppeln, verschieben; Format ändern passt alles an.
+  - **Elemente**: Text (Noto Sans Normal, **Medium** für Überschriften und Fett, je kursiv; wächst beim Tippen mit oder
+    wird mit *An die Box anpassen* kleiner), die **TUD-Shape** (Farbe, Spiegeln, Drehen in 45°-Schritten, nie verzerrt
+    oder als Umriss), Formen (Rechteck, abgerundet, Kreis, Dreieck, Stern, Linie, Pfeil), **Symbole** – die rund 530
+    **TUD-Icons** in 19 Themensets und 37 weitere –, **Bilder** mit Zuschnitt, Füllen/Ganz zeigen, Eckenradius,
+    Alternativtext und *In die TUD-Shape setzen*, **Bild erzeugen** mit dem Bildmodell direkt auf die Leinwand,
+    **QR-Codes**, alle **offiziellen Logos** (horizontal und vertikal, deutsch und englisch, Kurzform „TUD“, Bildmarke –
+    je blau, weiß, schwarz; als Vektor gezeichnet) und eigene Logos aus *Einstellungen › Dokumente & Logos*.
+  - **Brand-Kit** aus dem CD-Paket 2025: die 23 **TUD Farben** (Brillantblau, Dunkelblau, Schwarz, Grau, Weiß und die
+    Sekundärfarben Blau, Violett, Magenta, Rot, Orange, Gelb, Oliv, Grün, Türkis in den Stufen 1 und 2), Noto Sans und
+    Noto Sans Medium, Logos, Shape und Icons; eigene Farben als #RRGGBB. Die Logos und Icons bereitet
+    `desktop/tools/tud_cd_assets.py` aus dem entpackten CD-Paket auf (`resources/tud/`).
+  - **Export**: **PNG** (Bildschirmformate in ihrer Pixelgröße, Druckformate mit 150 oder 300 dpi; mehrere Seiten als ZIP),
+    **PDF für den Druck** (vektoriell, Noto Sans eingebettet; auf Wunsch mit 3 mm Beschnitt und Schnittmarken für die
+    Druckerei) und **PowerPoint** mit echten, bearbeitbaren Textfeldern und Formen.
+  - **Lora gestaltet in jedem Chat** (Windows): `create_design`, `update_design`, `read_design` füllen die Platzhalter einer
+    Vorlage (Texte passen sich der Box an), setzen QR-Codes und erzeugen auf Wunsch ein Bild für den Bildplatz; Modus
+    *Gestalten* (`/Gestalten`) mit Vorgaben (knapp, nichts erfinden). Unter der Antwort eine Karte mit Vorschau und
+    *Bearbeiten*; ist der Editor offen, lädt er eine im Chat geänderte Fassung nach.
+- **TU Vorlagen – die Vorlagen-Bibliothek für die Professur** (unter *Erstellen*): rund 55 fertige Vorlagen, gegliedert in *TUD-Dokumente*, *Lehre*
   (Seminarplan, Sitzung planen, Lernziele, Prüfungsaufgaben, Bewertungsraster, Feedback, Unterrichtsentwurf,
   Unterrichtsvignette), *Betreuung & Prüfung* (Exposé-Feedback, Gutachten, Themen für Abschlussarbeiten, mündliche Prüfung),
   *Forschung* (Forschungsfrage, Fragebogen-Items, Interviewleitfaden, Kategoriensystem, Ergebnisse nach APA 7, Abstract,
@@ -147,8 +190,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Dokumente nachträglich ändern**: Das Modell ändert erstellte Dokumente gezielt (`edit_document`) statt alles neu zu
   schreiben; ältere Versionen bleiben erhalten. Lässt es Lücken wie „[Datum]“, zeigt das Dokument „2 Angaben offen“ –
   „Ausfüllen“ trägt sie ohne Modell ein. Fehlen wesentliche Angaben, fragt das Modell vorher nach.
-- **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) mit Titelfolie in TUD-Blau, Abschnitts-, Inhalts-,
-  Tabellen-, Zweispalten- und Zitatfolien, Logo, Fußzeile mit Einrichtung und Foliennummer sowie Sprechernotizen. Vorlagen
+- **PowerPoint im TUD-Design**: Präsentationen (.pptx, 16:9) nach der offiziellen Präsentationsvorlage des CD 2025 –
+  Titelfolie in Brillantblau (weißes Logo, Untertitel über dem Titel, Einrichtung unten), Abschnitts- und Schlussfolien
+  mit der Shape, Inhalts-, Tabellen-, Zweispalten- und Zitatfolien mit Titeln in Noto Sans Medium (32 pt), Fußzeile mit
+  Kurzlogo „TUD“ und „Titel • Vortragende • Seite N“, Farbschema „TUD_2025“ sowie Sprechernotizen. Vorlagen
   *Präsentation (PowerPoint)* und *Lehre › Seminarsitzung als Folien* – Stichpunkte eingeben oder Dateien anhängen.
 - **Projekte**: Ein Projekt bündelt Chats zu einem Thema. Beim Anlegen (📁+ in der Seitenleiste) und unter ⋮ › *Projekt
   bearbeiten* gibt es Name, Projektordner, Anweisungen, Datenschutzstufe und Dokumente zum Durchsuchen; sie gelten für
@@ -575,9 +620,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Absenden (am Handy über den Knopf *KI fragen*); der Vorschlag erscheint unter der Stelle. **TUD-Dokumente**: *Neu ›
     ⋮ › Im TUD-Design* (Ergebnisprotokoll, Aktennotiz, Einladung, Handout, Stellungnahme, Merkblatt, Projektskizze) –
     die Seite zeigt Logo und Einrichtung, PDF und Word entstehen im Corporate Design; *⋮ › Design* wechselt es je Dokument.
-  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß – **genau so, wie die PowerPoint-Datei sie zeigt** (TUD-Logo,
-    Titelfolie in TUD-Blau mit Untertitel, Angaben und Einrichtung, Fußzeile „TU Dresden · Professur · Titel“ mit
-    Foliennummer, Schriftgröße je Textmenge, Tabellen). Layouts (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat),
+  - **Präsentation** (wie PowerPoint): Folienleiste, Folie groß – **genau so, wie die PowerPoint-Datei sie zeigt** (Layout der
+    CD-Präsentationsvorlage 2025: Titelfolie in Brillantblau mit Untertitel über dem Titel und Einrichtung, Abschnitte mit
+    der Shape, Fußzeile mit Kurzlogo „TUD“ und „Titel • Vortragende • Seite N“, Schriftgröße je Textmenge, Tabellen). Layouts (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat),
     Felder ohne Markdown-Zeichen mit Leiste für fett, kursiv, Stichpunkte, Einrücken; Sprechernotizen, **Folienübersicht**,
     Folien duplizieren/verschieben (Strg+M, Strg+D, Strg+Umschalt+↑/↓), **Vorführen** (F5) mit **Referentenansicht**
     (nächste Folie, Notizen, Timer), Export als PowerPoint im TUD-Design. Fehlt die Einrichtung, fragt der Editor danach.
@@ -654,6 +699,23 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     von selbst, sondern bietet *Erneut versuchen* oder den normalen Browser an.
   - Test mit echtem Chromium (für Windows gedacht; in Linux-Containern kann CEF beim Initialisieren hängen):
     `ADEU_BROWSER_TEST=1 ./gradlew -p desktop test --tests '*BrowserLiveTest*'`.
+- **Videoeditor** (Windows, AP-25, Werkzeug *Videoeditor*, anfangs aus; Vorbild DaVinci Resolve im Alltagsumfang):
+  Projekte aus Videos (auch Bildern), die bleiben, wo sie sind. **Zeitleiste** mit Video-, Titel-, Ton- und
+  Untertitelspur: Clips verschieben, an den Rändern kürzen, am Abspielkopf **teilen** (S), Übergänge *Überblenden* und
+  *Über Schwarz*, Lautstärke und stumm je Clip; Leertaste spielt, Pfeiltasten gehen bildweise. **Vorschau** aus kleinen
+  Proxy-Dateien (360 Zeilen, im Hintergrund erstellt) mit Ton; Titel und Untertitel liegen genau so darüber wie im Export.
+  - **Titel, Bauchbinde, Einblendung, Abspann** im TUD-Design (Noto Sans, TUD-Blau, weißes Logo), mit sanftem Ein- und
+    Ausblenden – gezeichnet mit dem Renderer von *Erstellen*, ffmpeg legt sie nur noch darüber.
+  - **Ton**: Musik oder Sprecherton unterlegen (Lautstärke, Ein-/Ausblenden), **Rauschminderung** leicht/stark (mit dem
+    Videoeditor-Paket über das Sprachmodell RNNoise, sonst mit dem FFT-Filter von ffmpeg), **Lautheit angleichen**
+    (−16 LUFS), Pegel.
+  - **Untertitel** aus der vorhandenen **Transkription** (Transkript je Video zuordnen oder *Jetzt transkribieren*; die
+    Untertitel folgen dem Schnitt) oder aus SRT/VTT; **einbrennen** oder als SRT/VTT neben dem Video speichern.
+  - **Rohschnitt aus dem Transkript**: *Pausen und Füllwörter herausschneiden* (lange Pausen kurz, „äh“/„ähm“ heraus, wo
+    Wortzeiten gemessen sind) und **Mit Lora kürzen** („nur die Erklärung des Versuchsaufbaus, höchstens 5 Minuten“ –
+    Lora wählt die Abschnitte). Alles mit Strg+Z rückgängig.
+  - **Export** als MP4 (H.264/AAC, für das Web optimiert) mit Vorgaben *OPAL* (720p, kleine Datei), *YouTube* (1080p) und
+    *Wie das Projekt*; mit Fortschritt und Abbrechen. Ein einziger ffmpeg-Lauf (das ffmpeg der App) baut den Film.
 - **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
   **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
   JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei
@@ -963,7 +1025,8 @@ baut ohne Spracherkennung und lokale Modelle.
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
 ./gradlew -p desktop test   # Brief, Vorlagen, Freigaben, PDF-Formulare, PowerPoint, Agent-Schleife, Wissen, Sandbox, Datenschutz, QTI,
-                            # Transkript-Exporte, Interrater-Reliabilität, Geräteempfehlungen …
+                            # Transkript-Exporte, Interrater-Reliabilität, Geräteempfehlungen, Gestalten (Bilder in
+                            # desktop/build/creative-look), Videoeditor mit echtem ffmpeg-Export (desktop/build/video-look) …
 ./gradlew :speech:test      # Spracherkennung: Warteschlange, Abschnitte, Ersetzungen, WAV …
 ```
 
@@ -1115,6 +1178,9 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
 | `data/LoraDrive.kt`, `data/LoraRoot.kt` (beide), `desktop/Paths.kt`, `desktop/LoraLayout.kt`, `files/LoraMirror.kt` (beide), `ui/DriveScreen.kt`, `ui/LoraFolderUi.kt` (beide), `ui/DrivePlatform.kt` (beide) | Lora-Ordner und Tab *Dateien* (AP-16): Hochgeladen, Erstellt, Ordner, Papierkorb, Umzug der Daten, Kopie auf Android |
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
+| `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
+| `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
+| `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“, nur eine laufende App |
 | `docs/HtmlPdf.kt` | HTML → PDF mit Edge/Chrome (headless), sonst openhtmltopdf |
 | `launcher/Launcher.cs` | Ein-Datei-Starter: entpackt die App nach `%LOCALAPPDATA%` und startet sie |

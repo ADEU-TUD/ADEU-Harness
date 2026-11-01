@@ -199,7 +199,7 @@ internal fun loraHint(tool: String?, thinking: Boolean): List<LoraAction> = when
     tool == "create_calendar_event" || tool == "create_semester_plan" -> listOf(LoraAction.CALENDAR)
     tool == "set_excel_cells" || tool == "edit_office_file" -> listOf(LoraAction.SHEET, LoraAction.TYPE)
     tool == "copy_document_to_folder" || tool == "move_local_file" || tool == "add_to_knowledge" -> listOf(LoraAction.FOLDER)
-    tool == "save_logo" -> listOf(LoraAction.PAINT)
+    tool == "save_logo" || tool == "create_design" || tool == "update_design" -> listOf(LoraAction.PAINT)
     tool == "read_document" || tool == "reply_to_comment" -> listOf(LoraAction.HIGHLIGHT, LoraAction.READ)
     tool.startsWith("read_") || tool == "fetch_url" -> listOf(LoraAction.READ, LoraAction.MICROSCOPE)
     tool.startsWith("search_") || tool.startsWith("list_") -> listOf(LoraAction.DIG, LoraAction.NET, LoraAction.SEARCH)

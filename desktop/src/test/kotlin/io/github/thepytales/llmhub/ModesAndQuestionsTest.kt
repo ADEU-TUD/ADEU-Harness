@@ -37,7 +37,8 @@ class ModesAndQuestionsTest {
         } finally {
             ChatModes.enabledTools = before
         }
-        assertTrue(ChatModes.all.filter { it.tool == null }.containsAll(ChatModes.visible()), "Werkzeug-Modi standardmäßig ausgeblendet")
+        // The Gestalten mode belongs to the platform's design editor (AP-24), not to a switchable tool.
+        assertTrue(ChatModes.all.filter { it.tool == null || it.tool == ChatModes.DESIGN_TOOL }.containsAll(ChatModes.visible()), "Werkzeug-Modi standardmäßig ausgeblendet")
     }
 
     private fun checkModes() {

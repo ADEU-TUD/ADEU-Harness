@@ -364,14 +364,15 @@ object DocumentWriter {
                     append("th{border-bottom:1px solid #333;font-weight:600}td{border-bottom:1px solid #e5e7eb}")
                 }
                 DocStyle.TUD -> {
-                    // Corporate design 2025: Noto Sans (headings Medium), Dunkelblau for title and headings, light
-                    // Hellblau for table heads and boxes, the grey of the theme for secondary text, thin grey lines.
+                    // Corporate design 2025: Noto Sans (headings Medium), Brillantblau for title and headings, Blau 2 at
+                    // 25 % for table heads and boxes, the grey of the theme for secondary text, thin grey lines.
                     val line = "#BBC1C6"
                     val muted = TudBrand.GREY
                     val tint = "#E5F1FF"
                     val soft = "#F3F8FF"
                     append("body{font-size:10.5pt;line-height:1.5;color:#000}body.letter{font-size:11pt}")
-                    append("h1,h2,h3,h4,.title,.cert-kind{font-weight:500}")
+                    // Name and event of certificates in Medium as in the CD's certificate templates.
+                    append("h1,h2,h3,h4,.title,.cert-kind,.cert-big{font-weight:500}")
                     // Logo 17 mm high at the top left (25 mm / 18 mm from the edges, as in the official templates),
                     // the organizational unit in small type below it.
                     append(".tud-head{margin-bottom:10mm}")

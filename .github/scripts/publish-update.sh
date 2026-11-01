@@ -6,6 +6,8 @@
 #
 # Usage: .github/scripts/publish-update.sh <version, e.g. 1.0.37> <folder with the files> ["Was ist neu"]
 #   The folder holds ADEU-LLM-<version>-Windows.zip and/or ADEU-LLM-<version>.apk (optional also the -Windows.exe).
+#   The reloadable extensions (AP-25, Videoeditor-Paket) are built here with extension-videoeditor.sh and listed under
+#   "extensions" in version.json.
 #   The text "Was ist neu" appears in the update popup; without it UPDATE_NOTES or a general sentence.
 #
 # Needs python3 and the GitHub CLI "gh" with write access to the updater repository: locally "gh auth login",
@@ -24,9 +26,15 @@ apk="$dist/ADEU-LLM-$version.apk"
 exe="$dist/ADEU-LLM-$version-Windows.exe"
 [ -f "$zip" ] || [ -f "$apk" ] || { echo "Weder $zip noch $apk gefunden." >&2; exit 1; }
 
-python3 - "$version" "$repo" "$tag" "$notes" "$dist/version.json" "$zip" "$apk" <<'PY'
+# Nachladbare Erweiterungen (AP-25): the Videoeditor-Paket comes with every release (NO_EXTENSIONS=1 leaves it out).
+# A failed download only warns – the release itself must not fail because of it.
+if [ "${NO_EXTENSIONS:-}" != "1" ] && [ ! -f "$dist/erweiterungen.json" ]; then
+  bash "$(dirname "$0")/extension-videoeditor.sh" "$dist" || { echo "Warnung: Videoeditor-Paket nicht gebaut." >&2; rm -f "$dist/erweiterungen.json"; }
+fi
+
+python3 - "$version" "$repo" "$tag" "$notes" "$dist/version.json" "$zip" "$apk" "$dist/erweiterungen.json" <<'PY'
 import hashlib, json, os, sys, datetime
-version, repo, tag, notes, out, zip_path, apk_path = sys.argv[1:8]
+version, repo, tag, notes, out, zip_path, apk_path, ext_path = sys.argv[1:9]
 def entry(path):
     if not os.path.isfile(path):
         return None
@@ -42,6 +50,14 @@ for key, path in (("windows", zip_path), ("android", apk_path)):
     e = entry(path)
     if e:
         data[key] = e
+if os.path.isfile(ext_path):
+    exts = []
+    for x in json.load(open(ext_path, encoding="utf-8")):
+        e = entry(os.path.join(os.path.dirname(out), x["file"]))
+        if e:
+            exts.append({k: x[k] for k in ("id", "name", "version", "description")} | e)
+    if exts:
+        data["extensions"] = exts
 with open(out, "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 print(json.dumps(data, ensure_ascii=False, indent=2))
@@ -69,7 +85,7 @@ if [ -f "$readme" ]; then
 fi
 
 files=("$dist/version.json")
-for f in "$zip" "$apk" "$exe"; do [ -f "$f" ] && files+=("$f"); done
+for f in "$zip" "$apk" "$exe" "$dist"/Lora-*.zip; do [ -f "$f" ] && files+=("$f"); done
 body="$notes
 
 **Installation:** Die App aktualisiert sich selbst (Popup beim Start). Zum ersten Installieren:

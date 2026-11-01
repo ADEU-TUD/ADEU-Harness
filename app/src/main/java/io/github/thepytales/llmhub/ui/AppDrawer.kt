@@ -51,7 +51,9 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.AutoAwesomeMosaic
 import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import io.github.thepytales.llmhub.data.withTool
@@ -253,11 +255,22 @@ fun AppDrawer(
                 // AP-02: „Neuer Chat“ and up to four areas on top, everything else (and switched-on tools) under „Mehr“.
                 // Right click or long press moves an area up or down; the folded state of „Mehr“ is kept.
                 val newResults = conversations.count { it.unread && it.taskId != null }
-                val (topAreas, moreAreas) = drawerLayout(settings.drawerTop, settings.enabledToolIds)
+                val (topAreas, moreAreas) = drawerLayout(settings.drawerTop, settings.enabledToolIds, settings.drawerHiddenIds)
                 fun badgeOf(a: DrawerArea) = when (a) {
                     DrawerArea.TASKS -> newResults
                     DrawerArea.TRANSCRIPTS -> transcribing
                     else -> 0
+                }
+                /** Tools are switched off, other areas hidden („Erstellen“ and „Dateien“ always stay). */
+                fun hideAction(a: DrawerArea): (() -> Unit)? = when {
+                    a.tool != null -> { { c.settings.update { it.withTool(a.tool, false) } } }
+                    a in DrawerArea.ALWAYS -> null
+                    else -> { {
+                        c.settings.update { it.copy(drawerHidden = hideDrawerArea(it.drawerHidden, a, true)) }
+                        Notices.undo("„${tr(a.label)}“ " + tr("ausgeblendet – über Strg+K und Lora weiter erreichbar"), restore = {
+                            c.settings.update { it.copy(drawerHidden = hideDrawerArea(it.drawerHidden, a, false)) }
+                        })
+                    } }
                 }
                 fun move(a: DrawerArea, toTop: Boolean) {
                     val next = moveDrawerArea(settings.drawerTop, a, toTop)
@@ -267,7 +280,7 @@ fun AppDrawer(
                 item(key = "nav_new") { NavRow(Icons.Outlined.EditNote, "Neuer Chat", accent = true, onClick = onNewChat) }
                 items(topAreas, key = { "nav_" + it.id }) { a ->
                     AreaRow(a, onTop = true, badge = badgeOf(a), onOpen = { onNavigate(a.route) }, onMove = { move(a, false) },
-                        onToolOff = a.tool?.let { t -> { c.settings.update { it.withTool(t, false) } } })
+                        onHide = hideAction(a))
                 }
                 if (moreAreas.isNotEmpty()) {
                     item(key = "nav_more") {
@@ -280,7 +293,7 @@ fun AppDrawer(
                     if (settings.drawerMoreOpen) {
                         items(moreAreas, key = { "nav_" + it.id }) { a ->
                             AreaRow(a, onTop = false, badge = badgeOf(a), onOpen = { onNavigate(a.route) }, onMove = { move(a, true) },
-                                onToolOff = a.tool?.let { t -> { c.settings.update { it.withTool(t, false) } } })
+                                onHide = hideAction(a))
                         }
                     }
                 }
@@ -511,7 +524,7 @@ private fun NavRow(
 
 /** Icon of an area of the side menu. */
 internal fun DrawerArea.icon(): ImageVector = when (this) {
-    DrawerArea.TEMPLATES -> Icons.Outlined.Bookmarks
+    DrawerArea.TEMPLATES -> Icons.Outlined.AutoAwesomeMosaic
     DrawerArea.LITERATURE -> Icons.Outlined.MenuBook
     DrawerArea.TRANSCRIPTS -> Icons.Outlined.GraphicEq
     DrawerArea.FILES -> Icons.Outlined.FolderOpen
@@ -521,11 +534,12 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
     DrawerArea.VAULT -> Icons.Outlined.Lock
     DrawerArea.GAMES -> Icons.Outlined.SportsEsports
     DrawerArea.MAIL -> Icons.Outlined.Mail
+    DrawerArea.VIDEO -> Icons.Outlined.Movie
 }
 
 /** An area of the side menu; right click or long press: move it on top or under „Mehr“ (tools: also switch off). */
 @Composable
-private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> Unit, onMove: () -> Unit, onToolOff: (() -> Unit)?) {
+private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> Unit, onMove: () -> Unit, onHide: (() -> Unit)?) {
     var menu by remember { mutableStateOf(false) }
     Box {
         // Lora flies here and lets the entry glow when she leads to this area (AP-36).
@@ -541,11 +555,11 @@ private fun AreaRow(area: DrawerArea, onTop: Boolean, badge: Int, onOpen: () -> 
                 leadingIcon = { Icon(if (onTop) Icons.Outlined.ExpandMore else Icons.Outlined.ExpandLess, null) },
                 onClick = { menu = false; onMove() },
             )
-            if (onToolOff != null) {
+            if (onHide != null) {
                 DropdownMenuItem(
-                    text = { Text(tr("Werkzeug ausschalten")) },
+                    text = { Text(tr(if (area.tool != null) "Werkzeug ausschalten" else "Ausblenden")) },
                     leadingIcon = { Icon(Icons.Outlined.Close, null) },
-                    onClick = { menu = false; onToolOff() },
+                    onClick = { menu = false; onHide() },
                 )
             }
         }

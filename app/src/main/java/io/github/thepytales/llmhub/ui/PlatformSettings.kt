@@ -10,6 +10,11 @@ fun PlatformSettingsSection(c: AppContainer, section: String?): Boolean = false
 
 fun platformSettingsItem(): SettingsItem? = null
 
+/** Reloadable extensions (AP-25) exist on Windows only. */
+@Suppress("UNUSED_PARAMETER")
+@Composable
+fun ExtensionsSettings(c: AppContainer) = Unit
+
 /** Einstellungen › Synchronisation (AP-12) is Windows-only for now (Android: AP-28). */
 fun syncSettingsItem(): SettingsItem? = null
 

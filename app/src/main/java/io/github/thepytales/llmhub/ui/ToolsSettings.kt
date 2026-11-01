@@ -40,6 +40,8 @@ fun ToolsSection(c: AppContainer) {
             SwitchRow(tool.label, tool.description, s.toolOn(tool.id)) { on -> c.settings.update { it.withTool(tool, on) } }
         }
     }
+    // Nachladbare Erweiterungen (AP-25, Windows): Videoeditor-Paket, Browser-Engine.
+    ExtensionsSettings(c)
     val planned = AppTool.planned(IS_ANDROID)
     if (planned.isNotEmpty()) {
         Section(tr("Geplant")) {
@@ -60,11 +62,17 @@ fun ToolsSection(c: AppContainer) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             HintText(
                 tr("Oben stehen „Neuer Chat“ und bis zu vier Bereiche, alles andere unter „Mehr“.") + " " +
-                    tr("Mit") + " " + CONTEXT_GESTURE + " " + tr("auf einen Bereich holst du ihn nach oben oder schiebst ihn unter „Mehr“."),
+                    tr("Mit") + " " + CONTEXT_GESTURE + " " + tr("auf einen Bereich holst du ihn nach oben, schiebst ihn unter „Mehr“ oder blendest ihn aus."),
             )
+            // Bereiche ausblenden, damit die Liste kurz bleibt (Werkzeuge oben ausschalten); „Erstellen“ und „Dateien“ bleiben.
+            DrawerArea.entries.filter { it.tool == null && it !in DrawerArea.ALWAYS }.forEach { area ->
+                SwitchRow(tr(area.label), tr("In der Seitenleiste zeigen – sonst über Strg+K und Lora erreichbar."), area.id !in s.drawerHiddenIds) { on ->
+                    c.settings.update { it.copy(drawerHidden = hideDrawerArea(it.drawerHidden, area, !on)) }
+                }
+            }
             OutlinedButton(
-                onClick = { c.settings.update { it.copy(drawerTop = AppSettings.DEFAULT_DRAWER_TOP) } },
-                enabled = s.drawerTop != AppSettings.DEFAULT_DRAWER_TOP,
+                onClick = { c.settings.update { it.copy(drawerTop = AppSettings.DEFAULT_DRAWER_TOP, drawerHidden = "") } },
+                enabled = s.drawerTop != AppSettings.DEFAULT_DRAWER_TOP || s.drawerHidden.isNotBlank(),
             ) { Text(tr("Ursprüngliche Reihenfolge")) }
         }
     }

@@ -56,6 +56,8 @@ dependencies {
     // Browser beside the chat (AP-14): Chromium through JCEF. Only the Java part is in the app; Chromium itself
     // (about 170 MB) is set up once on first use into %LOCALAPPDATA%\ADEU LLM\browser (see desktop/WebEngine.kt).
     implementation("me.friwi:jcefmaven:152.0.6")
+    // QR codes in the Kreativbereich (AP-24), MIT licence, one small class without further dependencies.
+    implementation("io.nayuki:qrcodegen:1.8.0")
 
     testImplementation(kotlin("test"))
     // Compose UI tests without a window (chat scrolling).

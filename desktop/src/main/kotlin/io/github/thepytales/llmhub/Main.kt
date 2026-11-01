@@ -96,6 +96,9 @@ fun main(args: Array<String>) {
         io.github.thepytales.llmhub.data.MemoryMeter.processBytes = { io.github.thepytales.llmhub.desktop.ProcessMemory.workingSet() }
     }
     LlmHubApp.start()
+    // Nachladbare Erweiterungen (AP-25): finish swaps and removals, then keep them up to date with the update check.
+    io.github.thepytales.llmhub.desktop.Extensions.startUp()
+    Updates.onInfo = { ctx, info -> io.github.thepytales.llmhub.desktop.Extensions.onUpdateInfo(ctx, info) }
     Autostart.refresh()
     AppLog.i("Lora ${BuildConfig.VERSION_NAME} gestartet (${System.getProperty("os.name")}, Java ${System.getProperty("java.version")})")
     val minimized = Autostart.FLAG in args && isTraySupported

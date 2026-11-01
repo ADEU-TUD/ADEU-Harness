@@ -16,6 +16,7 @@ object SlideHandout {
     private val BLUE = TudBrand.BLUE
     private val LIGHT = TudBrand.LIGHT_BLUE
     private val GREY = TudBrand.GREY
+    /** Blau 2 at 25 %. */
     private const val TINT = "#E5F1FF"
     private const val LINE = "#BBC1C6"
 
@@ -39,7 +40,9 @@ object SlideHandout {
         val slides = SlideDeck.parse(markdown).ifEmpty { listOf(SlideDeck.Slide(title, layout = SlideDeck.Layout.TITLE)) }
         val deckTitle = slides.first().title.ifBlank { title }
         val unitLines = unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
-        val foot = footer.ifBlank { listOfNotNull("TU Dresden", unitLines.lastOrNull(), deckTitle.takeIf { it.isNotBlank() }).joinToString(" · ") }
+        // „Titel der Präsentation • Vortragende“ as in the CD (the first line under the title, if there is one).
+        val presenter = slides.first().takeIf { it.layout == SlideDeck.Layout.TITLE }?.body?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }
+        val foot = footer.ifBlank { listOfNotNull(deckTitle.takeIf { it.isNotBlank() }, presenter).joinToString(" • ").ifBlank { "TU Dresden" } }
         val six = perPage >= 6
         val pages = slides.indices.chunked(if (six) 6 else 3)
         val slideW = if (six) 86.0 else 98.0
@@ -48,6 +51,7 @@ object SlideHandout {
             append(TudBrand.fontFaces)
             append("@page{size:A4;margin:14mm 14mm 16mm 14mm;@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:8pt sans-serif;color:#777}}")
             append("body{margin:0;font-family:'Noto Sans',Arial,sans-serif;color:#1a1a1a}")
+            append(".slide .m{font-weight:500}")
             append(".page{page-break-after:always;break-after:page}.page:last-child{page-break-after:auto;break-after:auto}")
             append(".head{font-size:9pt;color:$GREY;border-bottom:0.5pt solid $LINE;padding-bottom:2mm;margin-bottom:4mm}")
             append(".slide{position:relative;overflow:hidden;border:0.4pt solid $LINE;background:#fff}")
@@ -91,47 +95,67 @@ object SlideHandout {
         val f = widthMm / (SLIDE_W * 10)
         fun mm(cm: Double) = "%.2fmm".format(java.util.Locale.ROOT, cm * 10 * f)
         fun pt(v: Number) = "%.2fpt".format(java.util.Locale.ROOT, v.toDouble() * f)
-        val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END
+        val dark = s.layout == SlideDeck.Layout.TITLE || s.layout == SlideDeck.Layout.END || s.layout == SlideDeck.Layout.SECTION
         val sb = StringBuilder()
         fun box(x: Double, y: Double, w: Double, h: Double, style: String = "", content: String) {
             sb.append("<div style=\"left:${mm(x)};top:${mm(y)};width:${mm(w)};height:${mm(h)};$style\">$content</div>")
         }
-        fun text(size: Number, color: String, bold: Boolean = false, italic: Boolean = false, align: String = "left") =
-            "font-size:${pt(size)};line-height:1.2;color:$color;${if (bold) "font-weight:600;" else ""}${if (italic) "font-style:italic;" else ""}text-align:$align;"
+        fun text(size: Number, color: String, medium: Boolean = false, italic: Boolean = false, align: String = "left", bold: Boolean = false) =
+            "font-size:${pt(size)};line-height:1.2;color:$color;${if (bold) "font-weight:600;" else if (medium) "font-weight:500;" else ""}${if (italic) "font-style:italic;" else ""}text-align:$align;"
         fun logo(white: Boolean, x: Double, y: Double, h: Double) {
             val bytes = if (white) TudBrand.logoWhite else TudBrand.logoBlue
             box(x, y, h * 1190 / 400, h, content = "<img src=\"${DocMarkup.dataUrl(bytes)}\" alt=\"TU Dresden\" style=\"width:100%;height:100%\">")
         }
-        fun chrome() {
-            logo(false, SLIDE_W - 1.4 - 1.1 * 1190 / 400, 1.0, 1.1)
-            box(1.6, 17.6, SLIDE_W - 3.2, 0.03, "background:$LINE", "")
-            box(1.6, 17.8, 26.0, 0.7, text(9, GREY) + "white-space:nowrap", esc(footer))
-            box(SLIDE_W - 5.6, 17.8, 4.0, 0.7, text(9, GREY, align = "right"), "${i + 1}")
+        // The Shape in Blau 2, cut off at the top right (section and closing slides).
+        fun shape() {
+            val k = 10 * f
+            sb.append(
+                "<svg style=\"position:absolute;left:0;top:0\" width=\"${mm(TudSlide.W)}\" height=\"${mm(TudSlide.H)}\" viewBox=\"0 0 ${TudSlide.W * k} ${TudSlide.H * k}\" aria-hidden=\"true\">" +
+                    TudBrand.shapeSvgPolygons(TudSlide.SHAPE_X * k, TudSlide.SHAPE_Y * k, TudSlide.SHAPE_SIDE * k, LIGHT) + "</svg>",
+            )
         }
-        fun heading(t: String) = box(1.6, 1.0, 26.0, 2.6, text(if (t.length > 55) 24 else 28, BLUE, bold = true) + "display:flex;align-items:flex-end", "<span>${inline(t)}</span>")
+        // Footer of the CD: short logo „TUD“ at the bottom left, then „Titel • Vortragende • Seite N“ in Brillantblau.
+        fun chrome() {
+            val bytes = if (dark) TudBrand.logoShortWhite else TudBrand.logoShortBlue
+            box(TudSlide.X, TudSlide.FOOT_Y, TudSlide.FOOT_LOGO_H * TudBrand.LOGO_SHORT_RATIO, TudSlide.FOOT_LOGO_H, content = "<img src=\"${DocMarkup.dataUrl(bytes)}\" alt=\"\" style=\"width:100%;height:100%;display:block\">")
+            box(TudSlide.FOOT_TEXT_X, TudSlide.FOOT_Y - 0.05, TudSlide.FOOT_TEXT_W, 0.6, text(TudSlide.FOOT_PT, if (dark) "#fff" else BLUE) + "white-space:nowrap;display:flex;align-items:center", esc(TudSlide.footer(footer, i + 1)))
+        }
+        fun heading(t: String) = box(
+            TudSlide.X, TudSlide.TITLE_Y, TudSlide.CONTENT_W, TudSlide.TITLE_H,
+            text(if (t.length > 55) TudSlide.TITLE_LONG_PT else TudSlide.TITLE_PT, "#000", medium = true), "<span>${inline(t)}</span>",
+        )
         fun picture(src: String, alt: String, x: Double, y: Double, w: Double, h: Double) {
             val bytes = DocMarkup.imageBytes(src, base) ?: return
             box(x, y, w, h, "text-align:center", "<img src=\"${DocMarkup.dataUrl(bytes)}\" alt=\"${esc(alt)}\" style=\"max-width:100%;max-height:100%\">")
         }
         fun body(md: String, half: Boolean, x: Double, y: Double, w: Double, h: Double) = box(x, y, w, h, content = content(md, half, ::pt))
+        val top = TudSlide.BODY_TOP
+        val bodyH = TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP
+        val colW = 14.8
+        val col2 = TudSlide.X + TudSlide.CONTENT_W - colW
         when (s.layout) {
             SlideDeck.Layout.TITLE, SlideDeck.Layout.END -> {
-                logo(true, 1.6, 1.4, 1.7)
+                logo(true, TudSlide.X, TudSlide.LOGO_Y, TudSlide.LOGO_H)
                 val lines = s.body.lines().map { it.trim() }.filter { it.isNotEmpty() }
                 if (s.layout == SlideDeck.Layout.TITLE) {
-                    box(1.6, 5.6, 29.5, 4.8, text(if (s.title.length > 60) 34 else 40, "#fff", bold = true), inline(s.title))
-                    lines.firstOrNull()?.let { box(1.6, 10.7, 29.5, 2.2, text(22, LIGHT), inline(it)) }
-                    if (lines.size > 1) box(1.6, 13.2, 29.5, 2.4, text(16, "#fff"), lines.drop(1).take(3).joinToString("<br>") { inline(it) })
-                    if (unit.isNotEmpty()) box(1.6, 15.9, 29.5, 2.4, text(11, "#fff"), unit.mapIndexed { k, l -> if (k == unit.lastIndex) "<b>${esc(l)}</b>" else esc(l) }.joinToString("<br>"))
+                    // Subtitle above the title, unit at the bottom (Titelfolie_Blau of the CD).
+                    if (lines.isNotEmpty()) box(
+                        TudSlide.X, TudSlide.SUBTITLE_Y, TudSlide.CONTENT_W, TudSlide.SUBTITLE_H,
+                        text(if (lines.size > 3) 16 else 20, "#fff") + "display:flex;flex-direction:column;justify-content:flex-end",
+                        "<span>" + lines.take(5).joinToString("<br>") { inline(it) } + "</span>",
+                    )
+                    box(TudSlide.X, TudSlide.COVER_TITLE_Y, TudSlide.CONTENT_W, TudSlide.COVER_TITLE_H, text(if (s.title.length > 60) 36 else TudSlide.COVER_TITLE_PT, "#fff", medium = true), inline(s.title))
+                    if (unit.isNotEmpty()) box(TudSlide.X, TudSlide.COVER_FOOT_Y, 21.76, 0.71, text(12, "#fff") + "white-space:nowrap", esc(unit.joinToString(" · ")))
                 } else {
-                    box(1.6, 5.0, 29.5, 4.4, text(40, "#fff", bold = true), inline(s.title.ifBlank { "Vielen Dank!" }))
-                    box(1.6, 10.4, 29.5, 5.6, text(18, "#fff"), lines.joinToString("<br>") { inline(it.removePrefix("- ")) })
+                    shape()
+                    box(TudSlide.X, 4.82, TudSlide.CONTENT_W, 4.5, text(TudSlide.COVER_TITLE_PT, "#fff", medium = true) + "display:flex;align-items:flex-end", "<span>${inline(s.title.ifBlank { "Vielen Dank!" })}</span>")
+                    box(TudSlide.X, TudSlide.COVER_TITLE_Y, TudSlide.CONTENT_W, TudSlide.COVER_TITLE_H, text(20, "#fff"), lines.joinToString("<br>") { inline(it.removePrefix("- ")) })
                 }
             }
             SlideDeck.Layout.SECTION -> {
-                box(2.5, 6.2, 28.0, 3.4, text(36, BLUE, bold = true), inline(s.title))
-                if (s.body.isNotBlank()) box(2.5, 9.8, 28.0, 2.0, text(18, GREY), inline(s.body.lines().joinToString(" ")))
-                box(1.6, 6.4, 0.25, 5.2, "background:$BLUE", "")
+                shape()
+                box(TudSlide.X, 7.9, TudSlide.CONTENT_W, 5.0, text(36, "#fff", medium = true) + "display:flex;align-items:flex-end", "<span>${inline(s.title)}</span>")
+                if (s.body.isNotBlank()) box(TudSlide.X, 13.8, TudSlide.CONTENT_W, 2.43, text(20, "#fff"), inline(s.body.lines().joinToString(" ")))
                 chrome()
             }
             SlideDeck.Layout.QUOTE -> {
@@ -139,63 +163,68 @@ object SlideHandout {
                 val q = s.body.lines().map { it.trim().removePrefix(">").trim() }.filter { it.isNotEmpty() }
                 val source = q.lastOrNull()?.takeIf { q.size > 1 && (it.startsWith("—") || it.startsWith("–") || it.startsWith("-")) }
                 val quote = (if (source != null) q.dropLast(1) else q).joinToString(" ").trim().trim('„', '“', '"')
-                box(3.5, 5.0, 26.8, 9.0, text(if (quote.length > 220) 24 else 30, BLUE, italic = true, align = "center"), "„${inline(quote)}“")
-                if (source != null) box(3.5, 14.2, 26.8, 1.2, text(16, GREY, align = "center"), inline(source))
+                val qTop = if (s.title.isNotBlank()) top else 2.43
+                box(
+                    TudSlide.X, qTop, TudSlide.CONTENT_W, TudSlide.BODY_BOTTOM - qTop, text(if (quote.length > 220) 24 else 32, "#000", italic = true),
+                    "„${inline(quote)}“" + (source?.let { "<p style=\"" + text(14, "#000") + "font-style:normal;margin-top:${pt(14)}\">${inline(it)}</p>" } ?: ""),
+                )
                 chrome()
             }
             SlideDeck.Layout.IMAGE_TEXT -> {
                 heading(s.title)
-                val (ix, tx) = if (s.imageLeft) 1.6 to 17.4 else 17.4 to 1.6
-                picture(s.image, s.imageAlt, ix, 4.0, 14.8, 13.0)
-                body(s.body, true, tx, 4.0, 14.8, 13.0)
+                val (ix, tx) = if (s.imageLeft) TudSlide.X to col2 else col2 to TudSlide.X
+                picture(s.image, s.imageAlt, ix, top, colW, bodyH)
+                body(s.body, true, tx, top, colW, bodyH)
                 chrome()
             }
             SlideDeck.Layout.IMAGE -> {
                 val withTitle = s.title.isNotBlank()
                 if (withTitle) heading(s.title)
-                picture(s.image, s.imageAlt, 1.6, if (withTitle) 4.0 else 1.0, SLIDE_W - 3.2, if (withTitle) 12.2 else 15.2)
-                if (s.imageAlt.isNotBlank() && s.imageAlt != s.title) box(1.6, 16.3, SLIDE_W - 3.2, 1.0, text(12, GREY, align = "center"), inline(s.imageAlt))
+                val caption = s.imageAlt.isNotBlank() && s.imageAlt != s.title
+                val pTop = if (withTitle) top else 1.12
+                picture(s.image, s.imageAlt, TudSlide.X, pTop, TudSlide.CONTENT_W, (if (caption) 15.4 else TudSlide.BODY_BOTTOM) - pTop)
+                if (caption) box(TudSlide.X, 15.5, TudSlide.CONTENT_W, 0.7, text(12, GREY), inline(s.imageAlt))
                 chrome()
             }
             SlideDeck.Layout.COMPARISON -> {
                 heading(s.title)
-                listOf(1.6 to s.body, 17.4 to s.right).forEach { (x, col) ->
+                listOf(TudSlide.X to s.body, col2 to s.right).forEach { (x, col) ->
                     val (head, rest) = SlideDeck.columnHead(col)
-                    var y = 4.0
+                    var y = top
                     if (head.isNotBlank()) {
-                        box(x, y, 14.8, 1.3, "background:$TINT;" + text(20, BLUE, bold = true) + "padding-left:${mm(0.4)}", inline(head))
+                        box(x, y, colW, 1.3, "background:$TINT;" + text(20, BLUE, medium = true) + "padding-left:${mm(0.4)};display:flex;align-items:center", inline(head))
                         y += 1.7
                     }
-                    body(rest, true, x, y, 14.8, 17.0 - y)
+                    body(rest, true, x, y, colW, TudSlide.BODY_BOTTOM - y)
                 }
                 chrome()
             }
             SlideDeck.Layout.CHART -> {
                 heading(s.title)
                 val spec = SlideDeck.chartOf(s.body)
-                if (spec != null) box(1.6, 4.0, 30.6, 13.0, "text-align:center", ChartLayout.svg(spec).replace("width=\"100%\"", "width=\"100%\" height=\"100%\""))
+                if (spec != null) box(TudSlide.X, top, TudSlide.CONTENT_W, bodyH, "text-align:center", ChartLayout.svg(spec).replace("width=\"100%\"", "width=\"100%\" height=\"100%\""))
                 chrome()
             }
             SlideDeck.Layout.AGENDA -> {
                 heading(s.title.ifBlank { "Agenda" })
                 val items = SlideDeck.agenda(slides, i)
-                box(1.6, 4.2, 30.6, 12.8, text(if (items.size > 7) 20 else 24, "#1a1a1a"), "<ol>" + items.joinToString("") { "<li style=\"margin-top:${pt(10)}\">${inline(it)}</li>" } + "</ol>")
+                box(TudSlide.X, top, TudSlide.CONTENT_W, bodyH, text(if (items.size > 7) 20 else 24, "#000"), "<ol>" + items.joinToString("") { "<li style=\"margin-top:${pt(10)}\">${inline(it)}</li>" } + "</ol>")
                 chrome()
             }
             SlideDeck.Layout.TWO_COLUMNS -> {
                 heading(s.title)
-                body(s.body, true, 1.6, 4.0, 14.8, 13.0)
-                body(s.right, true, 17.4, 4.0, 14.8, 13.0)
+                body(s.body, true, TudSlide.X, top, colW, bodyH)
+                body(s.right, true, col2, top, colW, bodyH)
                 chrome()
             }
             SlideDeck.Layout.CONTENT, SlideDeck.Layout.TABLE -> {
                 heading(s.title)
-                body(s.body, false, 1.6, 4.0, 30.6, 13.0)
+                body(s.body, false, TudSlide.X, top, TudSlide.CONTENT_W, bodyH)
                 chrome()
             }
             SlideDeck.Layout.FREE -> {
                 if (s.title.isNotBlank()) heading(s.title)
-                if (s.body.isNotBlank()) body(s.body, false, 1.6, 4.0, 30.6, 13.0)
+                if (s.body.isNotBlank()) body(s.body, false, TudSlide.X, top, TudSlide.CONTENT_W, bodyH)
                 chrome()
             }
         }
@@ -246,7 +275,7 @@ object SlideHandout {
                 if (b !is Block.Item) close()
                 when (b) {
                     is Block.Paragraph -> if (DocMarkup.image(b.text) == null) append("<p style=\"margin-top:${pt(6)}\">${b.text.lines().joinToString("<br>") { inline(it) }}</p>")
-                    is Block.Heading -> append("<p style=\"margin-top:${pt(10)};color:$BLUE;font-weight:600\">${inline(b.text)}</p>")
+                    is Block.Heading -> append("<p style=\"margin-top:${pt(10)};color:$BLUE;font-weight:500\">${inline(b.text)}</p>")
                     is Block.Item -> {
                         val tag = if (b.marker.first().isDigit()) "ol" else "ul"
                         if (list != tag) { close(); append("<$tag>"); list = tag }

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material3.Icon
@@ -42,6 +43,7 @@ fun ChatMode.iconVector(): ImageVector = when (icon) {
     "excerpt" -> Icons.Outlined.MenuBook
     "games" -> Icons.Outlined.SportsEsports
     "mail" -> Icons.Outlined.Mail
+    "design" -> Icons.Outlined.Palette
     else -> Icons.Outlined.TipsAndUpdates
 }
 

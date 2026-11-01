@@ -63,7 +63,7 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
-                title = { Text(tr("TU Vorlagen")) },
+                title = { Text(tr("Erstellen")) },
                 actions = {
                     IconButton(onClick = { importing = true }) { Icon(Icons.Outlined.ContentPaste, contentDescription = "TU Vorlagen importieren") }
                     IconButton(enabled = own.isNotEmpty(), onClick = {
@@ -91,14 +91,18 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = pad.calculateTopPadding(), bottom = pad.calculateBottomPadding() + 88.dp),
             header = {
+                // „Erstellen“ (AP-24): one wish for Lora, then the designs (Windows), then the TU Vorlagen.
+                item(key = "lora") { CreateWithLora(c, Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
+                designSection(c)
                 item(key = "intro") {
-                    Text(
-                        "Vorlage antippen, Formular ausfüllen, senden. ★ zeigt eine Vorlage auf dem Startbildschirm; " +
-                            "Personas gelten für den ganzen Chat.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Text(tr("TU Vorlagen"), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            tr("Briefe, Protokolle, Bescheinigungen und mehr im Corporate Design der TU Dresden: Vorlage antippen, Formular ausfüllen, senden. ★ zeigt eine Vorlage auf dem Startbildschirm; Personas gelten für den ganzen Chat."),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             },
         )
