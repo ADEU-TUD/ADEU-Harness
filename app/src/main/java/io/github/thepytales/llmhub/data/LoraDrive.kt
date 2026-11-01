@@ -4,6 +4,7 @@ import android.content.Context
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.logFailure
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -307,9 +308,9 @@ class LoraDrive(private val c: AppContainer, context: Context) {
 
     /** Renames [f]; returns the new file (or throws with a message for the user). */
     fun rename(f: File, newName: String): File {
-        require(!isFixed(f)) { "„${f.name}“ ist ein fester Ordner und lässt sich nicht umbenennen." }
+        require(!isFixed(f)) { tr("„{0}“ ist ein fester Ordner und lässt sich nicht umbenennen.", f.name) }
         val clean = safe(newName).trim()
-        require(clean.isNotEmpty()) { "Der Name ist leer." }
+        require(clean.isNotEmpty()) { tr("Der Name ist leer.") }
         val name = if (f.isFile && !clean.contains('.') && f.extension.isNotEmpty()) "$clean.${f.extension}" else clean
         if (name == f.name) return f
         val target = File(f.parentFile, name)

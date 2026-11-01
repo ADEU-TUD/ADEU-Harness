@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.PiiDetector
 import io.github.thepytales.llmhub.data.PiiKind
 import io.github.thepytales.llmhub.net.ThinkingLevel
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.util.UUID
@@ -117,7 +118,7 @@ object TranscriptTranslate {
             language = null,
             audio = null,
             raw = JsonObject(t.raw - "original" - "coding" - "word_timing" + ("translated_from" to JsonPrimitive(t.id))),
-            notice = if (missing > 0) "$missing Abschnitte blieben unübersetzt (Originaltext)." else "Maschinell übersetzt – bitte prüfen.",
+            notice = if (missing > 0) tr("{0} Abschnitte blieben unübersetzt (Originaltext).", missing) else tr("Maschinell übersetzt – bitte prüfen."),
             status = TranscriptStatus.RAW,
         )
     }

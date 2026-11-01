@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.docs
 
 import android.content.Context
+import io.github.thepytales.llmhub.ui.tr
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.cos.COSArray
 import org.apache.pdfbox.cos.COSDictionary
@@ -62,7 +63,7 @@ object PdfTools {
     /** All [files] one after another in [out]. */
     fun merge(context: Context?, files: List<File>, out: File) {
         init(context)
-        require(files.isNotEmpty()) { "Keine PDFs zum Zusammenfügen." }
+        require(files.isNotEmpty()) { tr("Keine PDFs zum Zusammenfügen.") }
         val docs = files.map { load(it) }
         try {
             val target = PDDocument()
@@ -82,7 +83,7 @@ object PdfTools {
      */
     fun rearrange(context: Context?, file: File, order: List<Int>, rotate: Map<Int, Int> = emptyMap(), out: File) {
         init(context)
-        require(order.isNotEmpty()) { "Mindestens eine Seite muss bleiben." }
+        require(order.isNotEmpty()) { tr("Mindestens eine Seite muss bleiben.") }
         load(file).use { doc ->
             val pages = doc.pages.toList()
             rotate.forEach { (i, deg) -> pages.getOrNull(i)?.let { it.rotation = norm(it.rotation + deg) } }
@@ -95,7 +96,7 @@ object PdfTools {
     /** The pages [pages] (0-based) as a new PDF. */
     fun extract(context: Context?, file: File, pages: List<Int>, out: File) {
         init(context)
-        require(pages.isNotEmpty()) { "Keine Seiten gewählt." }
+        require(pages.isNotEmpty()) { tr("Keine Seiten gewählt.") }
         load(file).use { src ->
             PDDocument().use { t ->
                 pages.forEach { i -> src.pages.toList().getOrNull(i)?.let { t.importPage(it) } }

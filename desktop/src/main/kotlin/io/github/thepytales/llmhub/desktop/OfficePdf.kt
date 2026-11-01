@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.desktop
 
 import com.sun.jna.Platform
 import com.sun.jna.platform.win32.Variant.VARIANT
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /**
@@ -28,7 +29,7 @@ object OfficePdf {
         val progId = app(input.extension.lowercase()) ?: return false
         out.delete()
         val ok = runCatching {
-            thread.run(240, onTimeout = { IllegalStateException("Office antwortet nicht.") }) {
+            thread.run(240, onTimeout = { IllegalStateException(tr("Office antwortet nicht.")) }) {
                 val app = ComObj(progId)
                 // Started here (invisible, no documents of the user)? Then it is closed at the end.
                 val own = !app.bool("Visible")

@@ -18,6 +18,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -90,7 +91,7 @@ class GitHubClient(private val settings: SettingsStore, private val http: OkHttp
     suspend fun call(method: String, url: HttpUrl, body: JsonElement? = null): JsonElement? {
         val owner = ownerOf(url)
         val tokens = candidates(owner)
-        if (tokens.isEmpty()) throw ApiException(401, "Kein GitHub-Token hinterlegt (Einstellungen).")
+        if (tokens.isEmpty()) throw ApiException(401, tr("Kein GitHub-Token hinterlegt (Einstellungen)."))
         var first: ApiException? = null
         for (token in tokens) {
             try {
@@ -179,7 +180,7 @@ class GitHubClient(private val settings: SettingsStore, private val http: OkHttp
     /** Repositories of all tokens, most recently changed first. */
     suspend fun listRepos(): List<RepoSummary> = coroutineScope {
         val tokens = credentials().map { it.token }
-        if (tokens.isEmpty()) throw ApiException(401, "Kein GitHub-Token hinterlegt (Einstellungen).")
+        if (tokens.isEmpty()) throw ApiException(401, tr("Kein GitHub-Token hinterlegt (Einstellungen)."))
         val results = tokens.map { t -> async { t to runCatching { reposOf(t) } } }.awaitAll()
         if (results.all { it.second.isFailure }) throw results.first().second.exceptionOrNull()!!
         val all = linkedMapOf<String, RepoSummary>()

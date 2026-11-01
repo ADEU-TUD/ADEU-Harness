@@ -9,6 +9,7 @@ import com.sun.jna.platform.win32.Ole32
 import com.sun.jna.platform.win32.OleAuto
 import com.sun.jna.platform.win32.Variant.VARIANT
 import com.sun.jna.platform.win32.WTypes
+import io.github.thepytales.llmhub.ui.tr
 import java.util.Date
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
@@ -84,7 +85,7 @@ internal class ComObj : COMLateBindingObject {
         }
     }
 
-    fun obj(name: String, vararg args: VARIANT): ComObj = get(name, *args) as? ComObj ?: throw COMException("Kein Objekt für „$name“.")
+    fun obj(name: String, vararg args: VARIANT): ComObj = get(name, *args) as? ComObj ?: throw COMException(tr("Kein Objekt für „{0}“.", name))
     fun objOrNull(name: String, vararg args: VARIANT): ComObj? = runCatching { get(name, *args) as? ComObj }.getOrNull()
     fun str(name: String): String = runCatching { get(name) as? String }.getOrNull().orEmpty()
     fun num(name: String): Long = runCatching { get(name) as? Long }.getOrNull() ?: 0L

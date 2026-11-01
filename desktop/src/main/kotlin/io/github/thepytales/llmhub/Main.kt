@@ -54,6 +54,7 @@ import io.github.thepytales.llmhub.ui.AppRoot
 import io.github.thepytales.llmhub.ui.LlmHubTheme
 import io.github.thepytales.llmhub.ui.StartAnimation
 import io.github.thepytales.llmhub.ui.Navigation
+import io.github.thepytales.llmhub.ui.tr
 import io.github.thepytales.llmhub.update.UpdateApply
 import io.github.thepytales.llmhub.update.Updates
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -188,8 +189,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     SideEffect { io.github.thepytales.llmhub.desktop.SyncSession.background = { !visible && idle } }
     LaunchedEffect(Unit) {
         io.github.thepytales.llmhub.desktop.SyncSession.kept.value?.let { k ->
-            if (k.chats.isNotEmpty()) Notices.info("${k.chats.size} Chat(s) gab es nach der Synchronisation in zwei Fassungen – beide sind da („zweite Fassung“).")
-            else if (k.setAside.isNotEmpty()) Notices.info("${k.setAside.size} Konfliktkopie(n) des Cloud-Dienstes beiseitegelegt (Einstellungen › Synchronisation).")
+            if (k.chats.isNotEmpty()) Notices.info(tr("{0} Chat(s) gab es nach der Synchronisation in zwei Fassungen – beide sind da („zweite Fassung“).", k.chats.size))
+            else if (k.setAside.isNotEmpty()) Notices.info(tr("{0} Konfliktkopie(n) des Cloud-Dienstes beiseitegelegt (Einstellungen › Synchronisation).", k.setAside.size))
         }
     }
 
@@ -206,13 +207,13 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 recent?.takeIf { it.startsWith("route:") }?.let { Navigation.openRoute.value = it.removePrefix("route:") }
             },
             menu = {
-                Item("Lora öffnen", onClick = { show() })
-                Item("Neuer Chat", onClick = {
+                Item(tr("Lora öffnen"), onClick = { show() })
+                Item(tr("Neuer Chat"), onClick = {
                     show()
                     Navigation.openRoute.value = "chat"
                 })
                 Separator()
-                Item("Beenden", onClick = ::quit)
+                Item(tr("Beenden"), onClick = ::quit)
             },
         )
     }
@@ -226,8 +227,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                     toldAboutTray = true
                     trayState.sendNotification(
                         Notification(
-                            "Lora läuft weiter",
-                            "Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich.",
+                            tr("Lora läuft weiter"),
+                            tr("Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich."),
                             Notification.Type.Info,
                         )
                     )

@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.files
 
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -18,7 +19,7 @@ object Notebook {
     private const val OUTPUT_LINES = 8
 
     private fun parse(json: String): JsonObject = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull()
-        ?.takeIf { it["cells"] is JsonArray } ?: throw IllegalArgumentException("Kein gültiges Jupyter-Notebook (JSON mit „cells“).")
+        ?.takeIf { it["cells"] is JsonArray } ?: throw IllegalArgumentException(tr("Kein gültiges Jupyter-Notebook (JSON mit „cells“)."))
 
     private fun source(el: JsonElement?): String = when (el) {
         is JsonArray -> el.joinToString("") { (it as? JsonPrimitive)?.contentOrNull.orEmpty() }
@@ -93,7 +94,7 @@ object Notebook {
         val nb = parse(json)
         val cells = (nb["cells"] as JsonArray).toMutableList()
         val max = if (mode == Mode.INSERT_BEFORE || mode == Mode.INSERT_AFTER) cells.size + 1 else cells.size
-        if (number < 1 || number > max) throw IllegalArgumentException("Zelle $number gibt es nicht – das Notebook hat ${cells.size} Zellen.")
+        if (number < 1 || number > max) throw IllegalArgumentException(tr("Zelle {0} gibt es nicht – das Notebook hat {1} Zellen.", number, cells.size))
         val sourceJson = JsonArray(splitLines(source).map(::JsonPrimitive))
         val withIds = cells.any { (it as? JsonObject)?.containsKey("id") == true }
         when (mode) {

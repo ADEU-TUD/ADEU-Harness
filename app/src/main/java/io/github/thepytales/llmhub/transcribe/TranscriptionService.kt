@@ -20,6 +20,7 @@ import de.lokal.whisper.Engine
 import io.github.thepytales.llmhub.LlmHubApp
 import io.github.thepytales.llmhub.MainActivity
 import io.github.thepytales.llmhub.R
+import io.github.thepytales.llmhub.ui.tr
 import java.util.Locale
 
 /**
@@ -105,23 +106,23 @@ class TranscriptionService : Service() {
         when {
             r != null -> {
                 val s = r.seconds().toInt()
-                title = if (r.isPaused) "Aufnahme pausiert" else "Aufnahme läuft"
+                title = if (r.isPaused) tr("Aufnahme pausiert") else tr("Aufnahme läuft")
                 text = String.format(Locale.GERMANY, "%d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60)
-                b.addAction(0, if (r.isPaused) "Weiter" else "Pause", service(ACTION_PAUSE, null, 1))
-                b.addAction(0, "Stopp & transkribieren", service(ACTION_STOP, null, 2))
+                b.addAction(0, if (r.isPaused) tr("Weiter") else tr("Pause"), service(ACTION_PAUSE, null, 1))
+                b.addAction(0, tr("Stopp & transkribieren"), service(ACTION_STOP, null, 2))
             }
             j != null -> {
-                title = "Transkribiere: " + j.name.substringBeforeLast('.')
+                title = tr("Transkribiere: {0}", j.name.substringBeforeLast('.'))
                 pct = Math.round(j.progress * 100).toInt()
                 text = j.stage + if (pct > 0) " · $pct %" else ""
-                b.addAction(0, "Abbrechen", service(ACTION_CANCEL, j.id, 3))
+                b.addAction(0, tr("Abbrechen"), service(ACTION_CANCEL, j.id, 3))
             }
             e.downloadsSnapshot().isNotEmpty() -> {
-                title = "Erkennungsmodell wird geladen"
+                title = tr("Erkennungsmodell wird geladen")
                 e.downloadsSnapshot().values.forEach { pct = Math.round(it * 100).toInt() }
                 text = if (pct >= 0) "$pct %" else ""
             }
-            e.hasActiveJobs() -> title = "Transkription wartet"
+            e.hasActiveJobs() -> title = tr("Transkription wartet")
         }
         b.setContentTitle(title)
             .setContentText(text)
@@ -187,9 +188,9 @@ class TranscriptionService : Service() {
 
         fun channels(c: Context) {
             val nm = c.getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(NotificationChannel(CHANNEL, "Transkription & Aufnahme (läuft)", NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) })
-            nm.createNotificationChannel(NotificationChannel(CHANNEL_DONE, "Transkription fertig", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Meldet, wenn ein Transkript fertig ist – auch wenn die App im Hintergrund war."
+            nm.createNotificationChannel(NotificationChannel(CHANNEL, tr("Transkription & Aufnahme (läuft)"), NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) })
+            nm.createNotificationChannel(NotificationChannel(CHANNEL_DONE, tr("Transkription fertig"), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = tr("Meldet, wenn ein Transkript fertig ist – auch wenn die App im Hintergrund war.")
             })
         }
 
@@ -211,7 +212,7 @@ class TranscriptionService : Service() {
                 val route = if (ok && j.transcriptId != null) "transcript/${j.transcriptId}" else "transcripts"
                 val n = NotificationCompat.Builder(ctx, CHANNEL_DONE)
                     .setSmallIcon(R.drawable.ic_notification)
-                    .setContentTitle(if (ok) "Transkription fertig – tippen zum Öffnen" else "Transkription fehlgeschlagen")
+                    .setContentTitle(if (ok) tr("Transkription fertig – tippen zum Öffnen") else tr("Transkription fehlgeschlagen"))
                     .setContentText(if (ok) name else "$name: ${j.error}")
                     .setStyle(NotificationCompat.BigTextStyle().bigText(if (ok) name else "$name: ${j.error}"))
                     .setContentIntent(open(ctx, route, id))

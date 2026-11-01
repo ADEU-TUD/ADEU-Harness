@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.tasks
 
 import android.content.Context
 import io.github.thepytales.llmhub.data.ScheduledTask
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import java.awt.SystemTray
@@ -33,19 +34,19 @@ object Notifier {
 
     @Suppress("UNUSED_PARAMETER")
     fun taskFinished(context: Context, task: ScheduledTask, chatId: String, answer: String?, error: String?) {
-        post(task.name, error ?: preview(answer) ?: "Fertig – klicken, um das Ergebnis zu sehen.", chatId)
+        post(task.name, error ?: preview(answer) ?: tr("Fertig – klicken, um das Ergebnis zu sehen."), chatId)
     }
 
     /** An answer that was generated in the background is ready. */
     @Suppress("UNUSED_PARAMETER")
     fun chatFinished(context: Context, title: String, chatId: String, answer: String?, error: String?) {
-        post(title, error?.let { "Fehler: $it" } ?: preview(answer) ?: "Antwort fertig.", chatId)
+        post(title, error?.let { tr("Fehler: {0}", it) } ?: preview(answer) ?: tr("Antwort fertig."), chatId)
     }
 
     /** The agent waits for permission to run a write action. */
     @Suppress("UNUSED_PARAMETER")
     fun confirmationNeeded(context: Context, title: String, chatId: String, action: String) {
-        post(title, "Der Agent wartet auf deine Bestätigung für „$action“. Klicken zum Öffnen.", chatId)
+        post(title, tr("Der Agent wartet auf deine Bestätigung für „{0}“. Klicken zum Öffnen.", action), chatId)
     }
 
     /** A batch (AP-20) is finished; clicking opens the Stapel. */
@@ -66,6 +67,6 @@ object Notifier {
     /** Shows a sample notification so the user can check that results will reach them. */
     @Suppress("UNUSED_PARAMETER")
     fun test(context: Context) {
-        post("Lora", "So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.", null)
+        post("Lora", tr("So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren."), null)
     }
 }

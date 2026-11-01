@@ -514,7 +514,7 @@ private suspend fun downloadPdf(c: AppContainer, url: String, title: String): Fi
     val request = Request.Builder().url(url).apply { if (!cookies.isNullOrBlank()) header("Cookie", cookies) }.build()
     c.llm.http.newCall(request).execute().use { r ->
         if (!r.isSuccessful) error(tr("PDF nicht erreichbar (HTTP {0})", r.code))
-        val bytes = r.body?.bytes() ?: error("PDF leer")
+        val bytes = r.body?.bytes() ?: error(tr("PDF leer"))
         if (!(bytes.size > 4 && String(bytes, 0, 4) == "%PDF")) error(tr("Unter der Adresse liegt kein PDF (vielleicht erst anmelden)."))
         val name = (title.ifBlank { url.substringAfterLast('/').substringBefore('?') }).replace(Regex("[\\\\/:*?\"<>|]"), "_").take(80).removeSuffix(".pdf") + ".pdf"
         File(File(Paths.cache, "browser").apply { mkdirs() }, name).apply { writeBytes(bytes) }

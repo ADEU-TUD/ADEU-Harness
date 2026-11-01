@@ -24,6 +24,7 @@ import io.github.thepytales.llmhub.data.ToolCall
 import io.github.thepytales.llmhub.data.appendToThread
 import io.github.thepytales.llmhub.data.thread
 import io.github.thepytales.llmhub.ui.splitThinking
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.CancellationException
 import java.text.DateFormat
 import java.util.Date
@@ -132,16 +133,16 @@ object TaskRunner {
             override fun notice(message: String) {}
             override suspend fun confirm(call: ToolCall, risk: Risk) = task.allowWrites
         }
-        var status = "Erfolgreich"
+        var status = ScheduledTask.SUCCESS
         try {
             c.agent.run(host, maxSteps = 15, tools = ToolSelection(task.github, task.documentTools, task.webTools))
             val last = conv.thread().lastOrNull { it.role == "assistant" }
-            status = if (last == null || last.error) "Fehler: ${last?.content?.take(120) ?: "keine Antwort"}" else "Erfolgreich"
+            status = if (last == null || last.error) ScheduledTask.ERROR_PREFIX + (last?.content?.take(120) ?: tr("keine Antwort")) else ScheduledTask.SUCCESS
         } catch (e: CancellationException) {
-            status = "Abgebrochen"
+            status = ScheduledTask.CANCELLED
             throw e
         } catch (e: Exception) {
-            status = "Fehler: ${e.message}"
+            status = ScheduledTask.ERROR_PREFIX + e.message
             conv = conv.appendToThread(ChatMessage(role = "assistant", content = e.message ?: e.toString(), error = true))
         } finally {
             // Marked as new until the user opens it (dot in the side menu).
@@ -151,8 +152,8 @@ object TaskRunner {
         c.tasks.update(task.id) { it.copy(lastRunAt = System.currentTimeMillis(), lastStatus = status, lastChatId = conv.id) }
         if (task.notify) {
             val answer = conv.thread().lastOrNull { it.role == "assistant" && !it.error }?.let { splitThinking(it.content).second }
-            Notifier.taskFinished(context, task, conv.id, answer, status.takeIf { it != "Erfolgreich" })
+            Notifier.taskFinished(context, task, conv.id, answer, status.takeIf { it != ScheduledTask.SUCCESS }?.let(ScheduledTask::statusText))
         }
-        if (AppState.foreground) c.events.tryEmit(ResultEvent(task.name, conv.id, if (status == "Erfolgreich") "Ergebnis ist da" else status))
+        if (AppState.foreground) c.events.tryEmit(ResultEvent(task.name, conv.id, if (status == ScheduledTask.SUCCESS) tr("Ergebnis ist da") else ScheduledTask.statusText(status)))
     }
 }

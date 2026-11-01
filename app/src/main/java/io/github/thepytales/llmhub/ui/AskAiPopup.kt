@@ -60,7 +60,7 @@ private val ASK_QUICK = listOf(
     trLater("Förmlicher") to "Formuliere förmlicher, wie in einem Schreiben der Universität.",
     trLater("Englisch") to "Übersetze ins Englische.",
     trLater("Einfacher") to "Formuliere einfacher und leichter verständlich.",
-    "Rechtschreibung" to "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung – sonst nichts ändern.",
+    trLater("Rechtschreibung") to "Korrigiere Rechtschreibung, Grammatik und Zeichensetzung – sonst nichts ändern.",
 )
 
 /** What the model gets for a request from the „KI fragen“ window. */

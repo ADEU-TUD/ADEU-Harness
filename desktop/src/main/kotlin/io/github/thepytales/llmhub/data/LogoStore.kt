@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.data
 
 import android.util.Base64
 import io.github.thepytales.llmhub.desktop.Images
+import io.github.thepytales.llmhub.ui.tr
 import java.io.File
 
 /** Logos for documents, stored as PNG files in the app's private storage. */
@@ -16,7 +17,7 @@ class LogoStore(filesDir: File) : ListStore<Logo>(
 
     /** Saves an image (PNG, JPEG, GIF, BMP) as logo; the first logo becomes the default. */
     fun add(name: String, bytes: ByteArray): Logo {
-        val src = Images.decode(bytes) ?: throw IllegalArgumentException("Bild konnte nicht gelesen werden.")
+        val src = Images.decode(bytes) ?: throw IllegalArgumentException(tr("Bild konnte nicht gelesen werden."))
         val logo = Logo(name = name.trim().ifBlank { "Logo" }, path = "", isDefault = current.isEmpty())
         val file = File(dir, "${logo.id}.png")
         file.writeBytes(Images.png(Images.fit(src, 1024)))

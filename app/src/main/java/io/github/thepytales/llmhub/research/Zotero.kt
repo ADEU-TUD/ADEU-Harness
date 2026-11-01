@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -29,7 +30,7 @@ class ZoteroClient(private val http: OkHttpClient, private val userId: () -> Str
     private fun base() = "https://api.zotero.org/users/${userId().trim()}/"
 
     private suspend fun call(path: String, body: String? = null, query: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
-        check(configured) { "Zotero ist nicht eingerichtet (Einstellungen › Literatur & Zotero)." }
+        check(configured) { tr("Zotero ist nicht eingerichtet (Einstellungen › Literatur & Zotero).") }
         val url = (base() + path).toHttpUrl().newBuilder().apply { query.forEach { (k, v) -> addQueryParameter(k, v) } }.build()
         val b = Request.Builder().url(url).header("Zotero-API-Key", apiKey().trim()).header("Zotero-API-Version", "3")
         if (body != null) b.post(body.toRequestBody("application/json".toMediaType()))
@@ -37,10 +38,10 @@ class ZoteroClient(private val http: OkHttpClient, private val userId: () -> Str
             val text = resp.body?.string().orEmpty()
             when (resp.code) {
                 in 200..299 -> text
-                403 -> throw IllegalStateException("Zotero lehnt den Schlüssel ab (HTTP 403) – stimmt die User-ID, und hat der Schlüssel Schreibrechte?")
-                404 -> throw IllegalStateException("Zotero kennt die User-ID ${userId()} nicht (HTTP 404).")
-                429 -> throw IllegalStateException("Zotero: zu viele Anfragen, bitte kurz warten.")
-                else -> throw IllegalStateException("Zotero antwortet mit HTTP ${resp.code}: ${text.take(200)}")
+                403 -> throw IllegalStateException(tr("Zotero lehnt den Schlüssel ab (HTTP 403) – stimmt die User-ID, und hat der Schlüssel Schreibrechte?"))
+                404 -> throw IllegalStateException(tr("Zotero kennt die User-ID {0} nicht (HTTP 404).", userId()))
+                429 -> throw IllegalStateException(tr("Zotero: zu viele Anfragen, bitte kurz warten."))
+                else -> throw IllegalStateException(tr("Zotero antwortet mit HTTP {0}: {1}", resp.code, text.take(200)))
             }
         }
     }
@@ -59,7 +60,7 @@ class ZoteroClient(private val http: OkHttpClient, private val userId: () -> Str
         val body = buildJsonArray { add(buildJsonObject { put("name", name.trim()) }) }.toString()
         val resp = JSON.parseToJsonElement(call("collections", body)) as? JsonObject
         val key = ((resp?.get("successful") as? JsonObject)?.get("0") as? JsonObject)?.get("key") as? JsonPrimitive
-        return key?.contentOrNull ?: throw IllegalStateException("Zotero hat die Sammlung „$name“ nicht angelegt.")
+        return key?.contentOrNull ?: throw IllegalStateException(tr("Zotero hat die Sammlung „{0}“ nicht angelegt.", name))
     }
 
     /** Adds [refs] (in steps of 50, the API's limit); returns how many were saved and the errors. */

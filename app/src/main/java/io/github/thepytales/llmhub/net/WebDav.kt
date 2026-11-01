@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import io.github.thepytales.llmhub.ui.tr
 import okhttp3.Credentials
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -56,7 +57,7 @@ class WebDavClient(
             .method("PROPFIND", PROPFIND_BODY.toRequestBody(XML))
             .build()
         http.newCall(req).execute().use { resp ->
-            if (resp.code == 404) throw IOException("Der Ordner „$folder“ existiert in Nextcloud nicht.")
+            if (resp.code == 404) throw IOException(tr("Der Ordner „{0}“ existiert in Nextcloud nicht.", folder))
             check(resp)
             parse(resp.body?.string().orEmpty(), rootPath()).filter { normalize(it.path).trimEnd('/') != folder.trimEnd('/') }
                 .sortedWith(compareBy<DavEntry>({ !it.folder }, { it.name.lowercase() }))
@@ -70,7 +71,7 @@ class WebDavClient(
         http.newCall(request(path).get().build()).execute().use { resp ->
             check(resp)
             val body = resp.body ?: throw IOException("Leere Antwort von Nextcloud.")
-            if (body.contentLength() > maxBytes) throw IOException("Die Datei ist größer als ${maxBytes / 1_000_000} MB.")
+            if (body.contentLength() > maxBytes) throw IOException(tr("Die Datei ist größer als {0} MB.", maxBytes / 1_000_000))
             body.bytes()
         }
     }
@@ -268,7 +269,7 @@ object NextcloudLogin {
             .post(okhttp3.FormBody.Builder().add("token", start.token).build()).build()
         http.newCall(req).execute().use { resp ->
             if (resp.code == 404) return@withContext null
-            if (!resp.isSuccessful) throw IOException("Nextcloud antwortet mit HTTP ${resp.code}.")
+            if (!resp.isSuccessful) throw IOException(tr("Nextcloud antwortet mit HTTP {0}.", resp.code))
             val o: JsonObject = JSON.parseToJsonElement(resp.body?.string().orEmpty()).jsonObject
             Done(o.s("server") ?: return@withContext null, o.s("loginName") ?: return@withContext null, o.s("appPassword") ?: return@withContext null)
         }

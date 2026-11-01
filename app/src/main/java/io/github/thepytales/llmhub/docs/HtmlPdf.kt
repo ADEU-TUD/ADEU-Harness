@@ -9,6 +9,7 @@ import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.github.thepytales.llmhub.ui.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -62,14 +63,14 @@ object HtmlPdf {
                             }
                         }
                     }
-                } ?: throw IllegalStateException("Die Seite wurde nicht rechtzeitig als PDF gedruckt.")
+                } ?: throw IllegalStateException(tr("Die Seite wurde nicht rechtzeitig als PDF gedruckt."))
             } finally {
                 web.stopLoading()
                 web.destroy()
             }
         }
         val pages = withContext(Dispatchers.IO) { pageCount(file) }
-        if (pages <= 0) throw IllegalStateException("Die PDF-Datei ist leer.")
+        if (pages <= 0) throw IllegalStateException(tr("Die PDF-Datei ist leer."))
         pages
     }
 

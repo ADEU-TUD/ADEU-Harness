@@ -145,7 +145,7 @@ private val SLIDE_AI = listOf(
     trLater("Als Tabelle") to "Stelle den Inhalt der Folie als übersichtliche Markdown-Tabelle dar (höchstens 5 Zeilen). Gleiches Format.",
     trLater("In zwei Spalten") to "Teile den Inhalt sinnvoll auf zwei Spalten auf (z. B. Vorher/Nachher, Pro/Contra); die rechte Spalte beginnt nach einer Zeile „|||“. Gleiches Format.",
     trLater("Sprechernotizen schreiben") to "Schreibe ausführliche Sprechernotizen zu dieser Folie (Notizen: …): was ich dazu sagen kann und die Überleitung. Die Folie selbst bleibt unverändert. Gleiches Format.",
-    "Ins Englische" to "Übersetze die Folie samt Notizen ins Englische. Gleiches Format.",
+    trLater("Ins Englische") to "Übersetze die Folie samt Notizen ins Englische. Gleiches Format.",
 )
 
 /**
