@@ -278,11 +278,14 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             }
             Box(
                 Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop)
-                    // Strg+Mausrad zooms; seen before any scrollable list gets the wheel.
+                    // Strg+Mausrad zooms; seen before any scrollable list gets the wheel. Areas with their own zoom
+                    // (design editor) keep the wheel; touchpad deltas are added up to whole steps (CtrlWheel).
                     .onPointerEvent(PointerEventType.Scroll, PointerEventPass.Initial) { e ->
                         if (!e.keyboardModifiers.isCmd) return@onPointerEvent
-                        val dy = e.changes.firstOrNull()?.scrollDelta?.y ?: 0f
-                        if (dy != 0f) zoom(if (dy < 0) 1 else -1)
+                        val change = e.changes.firstOrNull() ?: return@onPointerEvent
+                        if (io.github.thepytales.llmhub.ui.CtrlWheel.ownedAt(change.position)) return@onPointerEvent
+                        val step = wheelSteps.add(change.scrollDelta.y)
+                        if (step != 0) zoom(step)
                         e.changes.forEach { it.consume() }
                     }
             ) {
@@ -294,12 +297,19 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     }
 }
 
-/** Steps the interface zoom by 10 % (0 resets it) and briefly shows the new level. */
+private val wheelSteps = io.github.thepytales.llmhub.ui.CtrlWheel.Steps()
+
+/**
+ * Steps the interface zoom by 10 % (0 resets it) and briefly shows the new level – as a short message that replaces the
+ * previous one (Toasts), not as a Notice: those queue up, and a zoom gesture showed „Zoom … %“ dozens of times in a row.
+ */
 private fun zoom(step: Int) {
     val store = LlmHubApp.container.settings
-    val tenths = if (step == 0) 10 else (Math.round(store.settings.value.uiZoom * 10) + step).coerceIn(8, 20)
+    val old = Math.round(store.settings.value.uiZoom * 10)
+    val tenths = if (step == 0) 10 else (old + step).coerceIn(8, 20)
+    if (tenths == old && step != 0) return
     store.update { it.copy(uiZoom = tenths / 10f) }
-    Notices.info("Zoom ${tenths * 10} %")
+    io.github.thepytales.llmhub.desktop.Toasts.show("Zoom ${tenths * 10} %")
 }
 
 /**
