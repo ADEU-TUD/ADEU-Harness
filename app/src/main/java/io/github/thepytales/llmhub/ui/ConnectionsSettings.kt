@@ -87,10 +87,20 @@ private fun MailServerSection(c: AppContainer) {
         )
         OutlinedTextField(value = host, onValueChange = { host = it.trim() }, singleLine = true, label = { Text(tr("IMAP-Server")) }, placeholder = { Text(tr("z. B. imap.example.org")) }, modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = port, onValueChange = { v -> port = v.filter(Char::isDigit).take(5) }, singleLine = true, label = { Text(tr("Port")) },
-                supportingText = { Text(tr("993 = TLS, 143 = STARTTLS")) }, modifier = Modifier.weight(1f))
-            OutlinedTextField(value = address, onValueChange = { address = it.trim() }, singleLine = true, label = { Text(tr("Eigene Adresse")) }, modifier = Modifier.weight(2f))
+            OutlinedTextField(value = port, onValueChange = { v -> port = v.filter(Char::isDigit).take(5) }, singleLine = true, label = { Text(tr("Port")) }, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = address, onValueChange = { address = it.trim() }, singleLine = true, label = { Text(tr("Eigene Adresse")) },
+                placeholder = { Text(tr("z. B. vorname.nachname@example.org")) }, modifier = Modifier.weight(2f))
         }
+        // The hint under the row, not under the narrow port field (it wrapped into three lines there).
+        val warning = when {
+            port == "443" || port == "80" -> tr("Port {0} ist der Web-Zugang (Outlook im Web), dort antwortet kein IMAP. Für IMAP meist 993 eintragen.", port)
+            address.isNotEmpty() && '@' !in address -> tr("Bei „Eigene Adresse“ gehört die Mailadresse hinein, kein Servername.")
+            else -> null
+        }
+        Text(
+            warning ?: tr("Port: 993 = TLS, 143 = STARTTLS"), style = MaterialTheme.typography.bodySmall,
+            color = if (warning != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         OutlinedTextField(value = user, onValueChange = { user = it.trim() }, singleLine = true, label = { Text(tr("Benutzername")) }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(
             value = password, onValueChange = { password = it }, singleLine = true, label = { Text(tr("Passwort")) },

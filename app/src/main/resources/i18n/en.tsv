@@ -100,7 +100,6 @@
 30 Tage	30 days
 6 Folien pro Seite	6 slides per page
 7 Tage	7 days
-993 = TLS, 143 = STARTTLS	993 = TLS, 143 = STARTTLS
 <html lang="de"> setzen.	Set <html lang="en">.
 <title> ergänzen.	Add a <title>.
 @-Namen in sozialen Netzwerken	@ names on social networks
@@ -588,6 +587,7 @@ Begründung (optional)	Justification (optional)
 Begründung / Notiz (für Protokoll und Rückmeldung)	Reason / note (for the log and the feedback)
 Bei Sprecherwechsel und Pausen	At speaker changes and pauses
 Bei {0} Anfragen hat der Server keine Token-Zahlen geliefert; diese sind geschätzt (≈ 4 Zeichen pro Token).	For {0} requests the server did not deliver token counts; these are estimated (≈ 4 characters per token).
+Bei „Eigene Adresse“ gehört die Mailadresse hinein, kein Servername.	“Own address” takes your e-mail address, not a server name.
 Beide PCs nutzen denselben Datenordner. Damit keiner die Änderungen des anderen überschreibt, sollte Lora nur auf einem PC offen sein. Am besten hier beenden, wenn du dort weiterarbeitest.	Both PCs use the same data folder. So that neither overwrites the other's changes, Lora should only be open on one PC. Best close it here if you continue working there.
 Beim Abspielen scrollt der Text mit.	During playback the text scrolls along.
 Beim Abspielen wird das gerade gesprochene Wort hervorgehoben (nur gemessene Wortzeiten).	During playback the word currently spoken is highlighted (measured word times only).
@@ -3037,6 +3037,8 @@ PNG ({0})	PNG ({0})
 PNG doppelte Auflösung	PNG double resolution
 Polnisch	Polish
 Port	Port
+Port {0} ist der Web-Zugang (Outlook im Web), dort antwortet kein IMAP. Für IMAP meist 993 eintragen.	Port {0} is the web access (Outlook on the web); IMAP does not answer there. For IMAP, usually enter 993.
+Port: 993 = TLS, 143 = STARTTLS	Port: 993 = TLS, 143 = STARTTLS
 Portugiesisch	Portuguese
 Position und Größe (mm)	Position and size (mm)
 Posteingang sortieren	Sort inbox
@@ -4172,6 +4174,7 @@ z. B. sachlich, Sie-Form, kurze Absätze	e.g. factual, formal address, short par
 z. B. Seminar Unterrichtsplanung im Master Lehramt	e.g. seminar on lesson planning in the master's teacher training programme
 z. B. Seminarplan für „Einführung in die Didaktik“, 14 Sitzungen, mit Lektüre	e.g. seminar plan for “Introduction to Didactics”, 14 sessions, with reading
 z. B. Studierende arbeiten im Hörsaal an Laptops, warmes Licht	e.g. students working on laptops in a lecture hall, warm light
+z. B. vorname.nachname@example.org	e.g. firstname.lastname@example.org
 z. B. Welche Fristen nennt die Ausschreibung? Wie hoch ist die Förderung?	e.g. Which deadlines does the call mention? How much funding is there?
 z. B. wiss. Mitarbeiterin, Professur für Allgemeine Didaktik	e.g. research associate, Chair of General Didactics
 z. B. „Einladung zur Sitzung am Montag“ oder „Protokoll aus meinen Notizen“	e.g. “Invitation to Monday's meeting” or “Minutes from my notes”

@@ -165,8 +165,11 @@ compose.desktop {
             // AppImage: the portable app folder of createDistributable (Windows: ADEU LLM.exe + runtime, see
             // .github/scripts/windows-portable.ps1; macOS: ADEU LLM.app; Linux: ADEU LLM/bin/ADEU LLM) – the technical
             // name stays, the app is called Lora (Brand.kt). Dmg and Deb only exist on their own OS (packageDmg on
-            // macOS, packageDeb on Linux with dpkg-deb and fakeroot); Windows ignores them.
-            targetFormats(TargetFormat.AppImage, TargetFormat.Dmg, TargetFormat.Deb)
+            // macOS, packageDeb on Linux with dpkg-deb and fakeroot). On macOS Compose rejects AppImage while
+            // configuring („Unexpected target format for MacOS: AppImage“, release 1.0.48), so only Dmg there –
+            // createDistributable builds ADEU LLM.app without it.
+            if (System.getProperty("os.name").startsWith("Mac")) targetFormats(TargetFormat.Dmg)
+            else targetFormats(TargetFormat.AppImage, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "ADEU LLM"
             packageVersion = appVersion
             description = "Lora – Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden"

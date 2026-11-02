@@ -16,6 +16,12 @@ import kotlin.test.assertTrue
  * and compiles it with the ICU library of the system. Skipped where no ICU library is installed.
  */
 class AndroidRegexTest {
+    private companion object {
+        /** `Regex(…)`/`Pattern.compile(…)` whose first argument is literal: group 1 = raw string, group 2 = "…" + "…" chain. */
+        val LITERAL = Regex("(?:Regex|Pattern\\.compile)\\(\\s*(?:\"\"\"(.*?)\"\"\"|((?:\"(?:[^\"\\\\\\n]|\\\\.)*\"(?:\\s*\\+\\s*)?)+)\\s*(?=[,)]))", RegexOption.DOT_MATCHES_ALL)
+        val PIECE = Regex("\"((?:[^\"\\\\\\n]|\\\\.)*)\"")
+    }
+
     @Structure.FieldOrder("line", "offset", "preContext", "postContext")
     class ParseError : Structure() {
         @JvmField var line = 0
@@ -62,16 +68,65 @@ class AndroidRegexTest {
                 }
             }
         }
-        val failures = patterns.mapNotNull { (p, where) ->
-            val units = p.map { it.code.toShort() }.toShortArray()
-            val error = IntByReference(0)
-            val handle = open.invokePointer(arrayOf(units, units.size, 0, ParseError(), error))
-            if (handle != null) close.invokeVoid(arrayOf(handle))
-            if (error.value > 0) "$where (ICU-Fehler ${error.value}): $p" else null
-        }
+        val failures = patterns.mapNotNull { (p, where) -> icuError(open, close, p)?.let { "$where (ICU-Fehler $it): $p" } }
         println("${patterns.size} reguläre Ausdrücke mit ICU geprüft")
         assertTrue(patterns.size > 100, "zu wenige Ausdrücke gefunden: ${patterns.size}")
         assertTrue(failures.isEmpty(), "Auf Android ungültig:\n" + failures.joinToString("\n"))
+    }
+
+    private fun icuError(open: com.sun.jna.Function, close: com.sun.jna.Function, pattern: String): Int? {
+        val units = pattern.map { it.code.toShort() }.toShortArray()
+        val error = IntByReference(0)
+        val handle = open.invokePointer(arrayOf(units, units.size, 0, ParseError(), error))
+        if (handle != null) close.invokeVoid(arrayOf(handle))
+        return error.value.takeIf { it > 0 }
+    }
+
+    /**
+     * Expressions built inside functions (`Regex("…")` in a function body) are in no field, so the test above does not
+     * see them – the IMAP client failed on the phone that way („Syntax error in regexp pattern near index 11“). This
+     * test reads the literals from the Kotlin sources instead; literals with `$`-templates are left out.
+     */
+    @Test
+    fun allRegexLiteralsInTheSourcesCompileWithIcu() {
+        val (lib, suffix) = icu() ?: return println("ICU nicht gefunden – Test übersprungen")
+        val open = lib.getFunction("uregex_open$suffix")
+        val close = lib.getFunction("uregex_close$suffix")
+        val literals = LinkedHashMap<String, String>()
+        for (root in listOf(File("../app/src/main/java"), File("src/main/kotlin"))) {
+            root.walkTopDown().filter { it.isFile && it.extension == "kt" }.forEach { f ->
+                val src = f.readText()
+                for (m in LITERAL.findAll(src)) {
+                    val pattern = (if (m.groups[1] != null) m.groupValues[1].takeIf { "\${" !in it } else PIECE.findAll(m.groupValues[2]).map { unescape(it.groupValues[1]) }.toList().takeIf { null !in it }?.joinToString("")) ?: continue
+                    val line = src.substring(0, m.range.first).count { it == '\n' } + 1
+                    literals.putIfAbsent(pattern, "${f.path}:$line")
+                }
+            }
+        }
+        val failures = literals.mapNotNull { (p, where) -> icuError(open, close, p)?.let { "$where (ICU-Fehler $it): $p" } }
+        println("${literals.size} Regex-Literale aus den Quellen mit ICU geprüft")
+        assertTrue(literals.size > 300, "zu wenige Literale gefunden: ${literals.size}")
+        assertTrue(failures.isEmpty(), "Auf Android ungültig:\n" + failures.joinToString("\n"))
+    }
+
+    /** The value of a Kotlin "…" literal, or null if it contains a `$` template. */
+    private fun unescape(body: String): String? {
+        val out = StringBuilder()
+        var i = 0
+        while (i < body.length) {
+            val c = body[i]
+            if (c == '$' && i + 1 < body.length && (body[i + 1] == '{' || body[i + 1].isLetter())) return null
+            if (c != '\\' || i + 1 >= body.length) { out.append(c); i++; continue }
+            when (val e = body[i + 1]) {
+                'n' -> out.append('\n')
+                't' -> out.append('\t')
+                'r' -> out.append('\r')
+                'u' -> { out.append(body.substring(i + 2, i + 6).toInt(16).toChar()); i += 4 }
+                else -> out.append(e)
+            }
+            i += 2
+        }
+        return out.toString()
     }
 
     @Test
