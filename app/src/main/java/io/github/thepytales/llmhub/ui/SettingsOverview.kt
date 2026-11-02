@@ -245,6 +245,11 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    Text(
+        tr("Entwickler: Dominik Töpper, Professur für Allgemeine Didaktik und Empirische Unterrichtsforschung"),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /** Version and what the last update check found, for the settings overview. */
