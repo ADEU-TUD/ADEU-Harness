@@ -53,7 +53,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
         val literals = mutableListOf<ByteArray>()
         while (true) {
             val part = String(readRawLine(), Charsets.UTF_8)
-            val m = Regex("\\{(\\d+)\\+?}$").find(part)
+            val m = LITERAL.find(part)
             if (m == null) {
                 text.append(part)
                 break
@@ -79,7 +79,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
     }
 
     private fun capabilityFrom(text: String) {
-        Regex("\\[CAPABILITY ([^]]+)]", RegexOption.IGNORE_CASE).find(text)?.let { capabilities = it.groupValues[1].uppercase().split(' ').toSet() }
+        CAPABILITY.find(text)?.let { capabilities = it.groupValues[1].uppercase().split(' ').toSet() }
     }
 
     private fun send(bytes: ByteArray) {
@@ -139,6 +139,11 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
     }
 
     companion object {
+        // Every brace and bracket meant literally is escaped: Android's regex engine (ICU) rejects a bare „}“ after a
+        // quantifier (\{(\d+)\+?}$ failed with „Syntax error in regexp pattern near index 11“), the desktop JVM accepts it.
+        private val LITERAL = Regex("\\{(\\d+)\\+?\\}$")
+        private val CAPABILITY = Regex("\\[CAPABILITY ([^\\]]+)\\]", RegexOption.IGNORE_CASE)
+
         /** Opens a TLS connection (port 993) or, with [startTls], a plain one that switches to TLS (port 143). */
         fun open(host: String, port: Int, startTls: Boolean = port == 143, timeoutMs: Int = 20_000): ImapConnection {
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
