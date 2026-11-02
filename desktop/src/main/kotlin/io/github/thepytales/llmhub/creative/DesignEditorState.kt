@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import io.github.thepytales.llmhub.data.Design
 import io.github.thepytales.llmhub.data.DesignElement
 import io.github.thepytales.llmhub.data.DesignPage
@@ -111,6 +112,27 @@ class DesignEditorState(initial: Design) {
     var selection by mutableStateOf<Set<String>>(emptySet())
     var zoom by mutableFloatStateOf(1f)
     var pan by mutableStateOf(Offset.Zero)
+    /** Size of the canvas in pixels, set by the canvas; needed to zoom around the middle and keep the page in view. */
+    var viewSize = Size.Zero
+
+    private val pageSize get() = Size(design.width, design.height)
+
+    /** Zooms by [factor] around [anchor] (canvas pixels; null = middle of the canvas), see [DesignViewport]. */
+    fun zoomBy(factor: Float, anchor: Offset? = null) {
+        val (z, p) = DesignViewport.zoomAt(viewSize, pageSize, zoom, pan, factor, anchor)
+        zoom = z
+        pan = p
+    }
+
+    /** Moves the page to [to] (shift from the centred position), keeping part of it in view. */
+    fun panTo(to: Offset) {
+        pan = DesignViewport.clampPan(viewSize, pageSize, zoom, to)
+    }
+
+    fun resetView() {
+        zoom = 1f
+        pan = Offset.Zero
+    }
     var guides by mutableStateOf<List<Guide>>(emptyList())
     /** Increased to put the cursor into the text field of the panel (double click on a text). */
     var focusText by mutableIntStateOf(0)

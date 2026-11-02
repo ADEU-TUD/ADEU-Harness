@@ -240,9 +240,13 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     // Short hints (Android: Toast) at the bottom.
     val toasts = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
+        // A new hint replaces the previous one, also one still waiting: cancelling its showSnackbar takes it out of
+        // the queue (before, quick hints such as the zoom level queued up and were shown one after another).
+        var last: kotlinx.coroutines.Job? = null
         Toasts.messages.collect { text ->
+            last?.cancel()
             toasts.currentSnackbarData?.dismiss()
-            launch { toasts.showSnackbar(text, duration = SnackbarDuration.Short) }
+            last = launch { toasts.showSnackbar(text, duration = SnackbarDuration.Short) }
         }
     }
     // Errors with "Erneut versuchen" and deletions with "Rückgängig" (see Notices); they queue up.

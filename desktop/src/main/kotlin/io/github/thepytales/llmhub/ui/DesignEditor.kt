@@ -127,6 +127,7 @@ import io.github.thepytales.llmhub.creative.DesignGeometry
 import io.github.thepytales.llmhub.creative.DesignIcons
 import io.github.thepytales.llmhub.creative.DesignImages
 import io.github.thepytales.llmhub.creative.DesignText
+import io.github.thepytales.llmhub.creative.DesignViewport
 import io.github.thepytales.llmhub.creative.Handle
 import io.github.thepytales.llmhub.creative.designColor
 import io.github.thepytales.llmhub.creative.drawDesignPage
@@ -234,9 +235,9 @@ private fun EditorTopBar(c: AppContainer, state: DesignEditorState, onClose: () 
         )
         IconButton(onClick = state::undo, enabled = state.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig" + " (Strg+Z)")) }
         IconButton(onClick = state::redo, enabled = state.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen" + " (Strg+Y)")) }
-        IconButton(onClick = { state.zoom = (state.zoom / 1.25f).coerceAtLeast(0.25f) }) { Icon(Icons.Outlined.ZoomOut, contentDescription = tr("Verkleinern")) }
-        TextButton(onClick = { state.zoom = 1f; state.pan = Offset.Zero }) { Text("${(state.zoom * 100).toInt()} %") }
-        IconButton(onClick = { state.zoom = (state.zoom * 1.25f).coerceAtMost(8f) }) { Icon(Icons.Outlined.ZoomIn, contentDescription = tr("Vergrößern")) }
+        IconButton(onClick = { state.zoomBy(1 / 1.25f) }) { Icon(Icons.Outlined.ZoomOut, contentDescription = tr("Verkleinern")) }
+        TextButton(onClick = state::resetView) { Text("${(state.zoom * 100).toInt()} %") }
+        IconButton(onClick = { state.zoomBy(1.25f) }) { Icon(Icons.Outlined.ZoomIn, contentDescription = tr("Vergrößern")) }
         Spacer(Modifier.size(8.dp))
         OutlinedButton(onClick = {
             ChatHandoff.pending.value = ChatHandoff.Content(
@@ -544,9 +545,9 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
         val d = state.design
         val viewW = constraints.maxWidth.toFloat()
         val viewH = constraints.maxHeight.toFloat()
-        val fit = min((viewW - 64f) / d.width, (viewH - 64f) / d.height).coerceAtLeast(0.05f)
-        val scale = fit * state.zoom
-        val origin = Offset((viewW - d.width * scale) / 2, (viewH - d.height * scale) / 2) + state.pan
+        state.viewSize = Size(viewW, viewH)
+        val scale = DesignViewport.fit(state.viewSize, Size(d.width, d.height)) * state.zoom
+        val origin = DesignViewport.origin(state.viewSize, Size(d.width, d.height), state.zoom, state.pan)
         geo[0] = scale; geo[1] = origin.x; geo[2] = origin.y
         fun toMm(p: Offset) = (p - Offset(geo[1], geo[2])) / geo[0]
         val handlePx = 10f
@@ -565,23 +566,17 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
         Canvas(
             Modifier
                 .fillMaxSize()
+                // Strg+wheel zooms the page here, not the whole interface (see ownsCtrlWheel in Main.kt).
+                .ownsCtrlWheel()
                 .onPointerEvent(PointerEventType.Scroll) { ev ->
                     val change = ev.changes.firstOrNull() ?: return@onPointerEvent
                     val delta = change.scrollDelta
                     if (ev.keyboardModifiers.isCmd) {
-                        val old = state.zoom
-                        val next = (old * if (delta.y < 0) 1.12f else 1 / 1.12f).coerceIn(0.25f, 8f)
-                        // Zoom around the pointer.
-                        val p = change.position
-                        val mm = toMm(p)
-                        val newScale = fit * next
-                        val newOrigin = p - mm * newScale
-                        val baseOrigin = Offset((viewW - d.width * newScale) / 2, (viewH - d.height * newScale) / 2)
-                        state.zoom = next
-                        state.pan = newOrigin - baseOrigin
+                        // Around the pointer, by the scroll amount (a touchpad sends many small steps).
+                        if (delta.y != 0f) state.zoomBy(DesignViewport.wheelFactor(delta.y), change.position)
                     } else {
                         val px = 48f
-                        state.pan = if (ev.keyboardModifiers.isShiftPressed) state.pan + Offset(-delta.y * px, 0f) else state.pan + Offset(-delta.x * px, -delta.y * px)
+                        state.panTo(if (ev.keyboardModifiers.isShiftPressed) state.pan + Offset(-delta.y * px, 0f) else state.pan + Offset(-delta.x * px, -delta.y * px))
                     }
                     change.consume()
                 }
@@ -638,7 +633,7 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
                                 is Drag.Resize -> state.dragResize(g.start, g.handle, pos, Handle.keepsRatio(g.start) != ev.keyboardModifiers.isShiftPressed)
                                 is Drag.Rotate -> state.dragRotate(g.start, pos, ev.keyboardModifiers.isShiftPressed)
                                 is Drag.Marquee -> drag = g.copy(to = pos)
-                                is Drag.Pan -> state.pan = g.pan + (ch.position - g.from)
+                                is Drag.Pan -> state.panTo(g.pan + (ch.position - g.from))
                                 null -> Unit
                             }
                             ch.consume()
