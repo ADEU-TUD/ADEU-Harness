@@ -82,6 +82,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.material.icons.outlined.PictureAsPdf
+import io.github.thepytales.llmhub.data.withTool
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -331,7 +335,19 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         folderPath = rel
     }
 
+    /** Opens a PDF in the werkzeugkasten; switches it on first when it is off (the menu entry „Im PDF-Werkzeugkasten bearbeiten“). */
+    fun editPdf(it: DriveItem, page: Int? = null) {
+        io.github.thepytales.llmhub.agent.LoraFocus.files = listOf(it.file)
+        if (!c.settings.current.toolOn(io.github.thepytales.llmhub.data.AppTool.PDF.id)) {
+            c.settings.update { s -> s.withTool(io.github.thepytales.llmhub.data.AppTool.PDF, true) }
+            Notices.info(tr("PDF-Werkzeugkasten eingeschaltet"))
+        }
+        PdfHandoff.open(it.file.absolutePath, page ?: 1, it.name)
+        onNavigate("pdf")
+    }
+
     fun open(it: DriveItem, page: Int? = null) {
+        if (!it.dir) io.github.thepytales.llmhub.agent.LoraFocus.files = listOf(it.file)
         when {
             it.dir -> openFolder(it.file)
             it.doc != null -> onOpenDoc(it.doc.id)
@@ -379,8 +395,22 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
     }
 
+    // Lora handelt in Dateien (AP-38): she knows the open folder and what is chosen.
+    SideEffect {
+        io.github.thepytales.llmhub.agent.LoraFocus.folder = currentDir
+        if (selection.isNotEmpty()) io.github.thepytales.llmhub.agent.LoraFocus.files = selection.values.map { it.file }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            io.github.thepytales.llmhub.agent.LoraFocus.folder = null
+            io.github.thepytales.llmhub.agent.LoraFocus.files = emptyList()
+        }
+    }
+
     val actions = DriveActions(
         open = { open(it) },
+        editPdf = { editPdf(it) },
+        focus = { io.github.thepytales.llmhub.agent.LoraFocus.files = listOf(it.file) },
         rename = { renaming = it },
         move = { moving = listOf(it) },
         copy = { scope.launch(Dispatchers.IO) { drive.copy(listOf(it.file), it.file.parentFile ?: drive.root) } },
@@ -612,6 +642,10 @@ internal fun sortItems(items: List<DriveItem>, sort: String, down: Boolean, keep
 
 private class DriveActions(
     val open: (DriveItem) -> Unit,
+    /** Opens a PDF in the PDF-Werkzeugkasten (switched on if needed). */
+    val editPdf: (DriveItem) -> Unit,
+    /** The item the user works with (its menu opened): Lora's actions use it when no file is named (AP-38). */
+    val focus: (DriveItem) -> Unit,
     val rename: (DriveItem) -> Unit,
     val move: (DriveItem) -> Unit,
     val copy: (DriveItem) -> Unit,
@@ -903,6 +937,14 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
     DropdownMenu(open, onDismiss) {
         fun act(a: () -> Unit) { onDismiss(); a() }
         DropdownMenuItem(text = { Text(tr("Öffnen")) }, onClick = { act { actions.open(item) } })
+        if (open) LaunchedEffect(item.key) { actions.focus(item) }
+        if (!item.dir && item.kind == FileKind.PDF) {
+            DropdownMenuItem(
+                text = { Text(tr("Im PDF-Werkzeugkasten bearbeiten")) },
+                leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) },
+                onClick = { act { actions.editPdf(item) } },
+            )
+        }
         if (item.fixed) {
             if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { openLoraFolder(item.file) } })
             return@DropdownMenu

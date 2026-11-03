@@ -132,6 +132,32 @@ object PdfWork {
     val tabs = mutableStateListOf<PdfTab>()
     var selected by mutableStateOf(0)
 
+    init {
+        // Lora handelt im Werkzeugkasten (AP-38): she sees the open PDFs and changes the active one like a tool of the
+        // screen does – with the same Rückgängig.
+        io.github.thepytales.llmhub.agent.LoraFocus.pdfSource = {
+            val list = tabs.toList()
+            val active = list.getOrNull(selected)
+            (listOfNotNull(active) + list.filter { it !== active }).map { Triple(it.name, it.file, it.original) }
+        }
+        io.github.thepytales.llmhub.agent.ActionHosts.changeOpenPdf = { _, op ->
+            val tab = tabs.getOrNull(selected)
+            tab != null && tab.change(io.github.thepytales.llmhub.App.container.appContext, op)
+        }
+        io.github.thepytales.llmhub.agent.ActionHosts.undoOpenPdf = {
+            tabs.getOrNull(selected)?.let { t ->
+                val previous = t.history.removeLastOrNull()
+                if (previous != null) {
+                    val current = t.file
+                    t.file = previous
+                    runCatching { t.info = PdfTools.info(io.github.thepytales.llmhub.App.container.appContext, previous) }
+                    PdfRender.close(current)
+                    current.delete()
+                }
+            }
+        }
+    }
+
     fun dir(context: android.content.Context) = File(context.cacheDir, "pdf-work").apply { mkdirs() }
 
     /** Opens [source] in a new tab (a working copy; the original is only changed by „Speichern“). */

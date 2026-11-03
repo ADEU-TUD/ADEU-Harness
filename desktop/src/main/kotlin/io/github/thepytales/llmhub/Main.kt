@@ -10,6 +10,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -115,6 +116,8 @@ fun main(args: Array<String>) {
             AppLog.i("Speicher beim Start: Java ${m.heapUsed / 1_000_000} MB von ${m.heapMax / 1_000_000} MB, Prozess ${m.process?.let { "${it / 1_000_000} MB" } ?: "?"}")
         }
     }.apply { isDaemon = true }.start()
+    // macOS: clicks that only worked the second time (see MacClickFix).
+    io.github.thepytales.llmhub.desktop.MacClickFix.install()
     application {
         App(startHidden = minimized, selfTest = selfTest, showRequests = showRequests)
     }
@@ -272,6 +275,8 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             }
         }
         LlmHubTheme(settings) {
+            // Lora-Dateidialog (AP-42) for Öffnen, Speichern unter and Ordnerwahl everywhere in the app.
+            io.github.thepytales.llmhub.ui.LoraFileDialogHost(c)
             io.github.thepytales.llmhub.ui.SyncNewcomerDialog(visible = visible, idle = idle) { note ->
                 if (note != null && tray) trayState.sendNotification(Notification("Lora", note, Notification.Type.Info))
                 quit()
@@ -340,44 +345,76 @@ private fun shortcut(e: KeyEvent): Boolean {
 
 /**
  * The Lora-Ordner is not where it was (moved, renamed, drive not connected): the user shows its new place, creates it
- * anew at the old one, or ends the app. Plain Swing – nothing of the app is loaded yet.
+ * anew at the old one, or ends the app. A small window of its own in the Lora style (AP-42) – nothing of the app is
+ * loaded yet, so it touches neither the settings nor the data.
  */
 private fun locateLoraFolder(missing: File): Boolean {
     val paths = io.github.thepytales.llmhub.desktop.Paths
-    runCatching { javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName()) }
-    while (true) {
-        val choice = javax.swing.JOptionPane.showOptionDialog(
-            null,
-            "Der Lora-Ordner ist nicht mehr an seinem Platz:\n${missing.absolutePath}\n\n" +
-                "Wurde er verschoben oder umbenannt? Dann zeig Lora, wo er jetzt liegt.\n" +
-                "Liegt er auf einem Netz- oder USB-Laufwerk, das gerade fehlt: Laufwerk verbinden und „Erneut versuchen“.",
-            "Lora-Ordner nicht gefunden", javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null,
-            arrayOf("Neuen Ort zeigen …", "Erneut versuchen", "Neu anlegen", "Beenden"), "Neuen Ort zeigen …",
-        )
-        when (choice) {
-            0 -> {
-                val chooser = javax.swing.JFileChooser(missing.parentFile?.takeIf { it.isDirectory } ?: paths.documents).apply {
-                    fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
-                    dialogTitle = "Wo liegt der Lora-Ordner jetzt?"
-                }
-                if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
-                    val dir = chooser.selectedFile
-                    if (paths.hasData(dir) || javax.swing.JOptionPane.showConfirmDialog(
-                            null, "In „${dir.absolutePath}“ liegt kein Lora-Ordner. Trotzdem dort neu anfangen?", "Lora-Ordner",
-                            javax.swing.JOptionPane.YES_NO_OPTION,
-                        ) == javax.swing.JOptionPane.YES_OPTION
-                    ) {
-                        paths.useRoot(dir)
-                        return true
+    io.github.thepytales.llmhub.ui.LoraFileDialog.appLoaded = false
+    var outcome = false
+    application(exitProcessOnExit = false) {
+        var picking by remember { mutableStateOf(false) }
+        var unknown by remember { mutableStateOf<File?>(null) }
+        var notThere by remember { mutableStateOf(false) }
+        fun done(ok: Boolean) {
+            outcome = ok
+            exitApplication()
+        }
+        Window(
+            onCloseRequest = { done(false) },
+            title = "Lora-Ordner nicht gefunden",
+            icon = painterResource("icon.png"),
+            state = rememberWindowState(size = DpSize(if (picking) 940.dp else 620.dp, if (picking) 620.dp else 400.dp), position = WindowPosition.Aligned(androidx.compose.ui.Alignment.Center)),
+        ) {
+            androidx.compose.material3.MaterialTheme(colorScheme = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.material3.darkColorScheme() else androidx.compose.material3.lightColorScheme()) {
+                androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
+                    if (picking) {
+                        io.github.thepytales.llmhub.ui.LoraFileBrowser(
+                            null,
+                            io.github.thepytales.llmhub.ui.LoraFileDialog.Request(
+                                io.github.thepytales.llmhub.ui.LoraFileDialog.Mode.FOLDER, "Wo liegt der Lora-Ordner jetzt?",
+                                start = missing.parentFile?.takeIf { it.isDirectory } ?: paths.documents,
+                            ),
+                        ) { files ->
+                            val dir = files?.firstOrNull()
+                            picking = false
+                            when {
+                                dir == null -> Unit
+                                paths.hasData(dir) -> { paths.useRoot(dir); done(true) }
+                                else -> unknown = dir
+                            }
+                        }
+                    } else {
+                        androidx.compose.foundation.layout.Column(Modifier.padding(28.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)) {
+                            androidx.compose.material3.Text("Der Lora-Ordner ist nicht mehr an seinem Platz", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                            androidx.compose.material3.Text(missing.absolutePath, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+                            androidx.compose.material3.Text(
+                                "Wurde er verschoben oder umbenannt? Dann zeig Lora, wo er jetzt liegt.\n" +
+                                    "Liegt er auf einem Netz- oder USB-Laufwerk, das gerade fehlt: Laufwerk verbinden und „Erneut versuchen“.",
+                                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                            )
+                            if (notThere) androidx.compose.material3.Text("Noch nicht da – ist das Laufwerk verbunden?", color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                            androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                androidx.compose.material3.Button(onClick = { picking = true }) { androidx.compose.material3.Text("Neuen Ort zeigen …") }
+                                androidx.compose.material3.OutlinedButton(onClick = { if (missing.isDirectory) done(true) else notThere = true }) { androidx.compose.material3.Text("Erneut versuchen") }
+                                androidx.compose.material3.OutlinedButton(onClick = { paths.useRoot(missing); done(true) }) { androidx.compose.material3.Text("Neu anlegen") }
+                                androidx.compose.material3.TextButton(onClick = { done(false) }) { androidx.compose.material3.Text("Beenden") }
+                            }
+                        }
+                    }
+                    unknown?.let { dir ->
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { unknown = null },
+                            title = { androidx.compose.material3.Text("Lora-Ordner") },
+                            text = { androidx.compose.material3.Text("In „${dir.absolutePath}“ liegt kein Lora-Ordner. Trotzdem dort neu anfangen?") },
+                            confirmButton = { androidx.compose.material3.TextButton(onClick = { paths.useRoot(dir); done(true) }) { androidx.compose.material3.Text("Ja, dort anfangen") } },
+                            dismissButton = { androidx.compose.material3.TextButton(onClick = { unknown = null }) { androidx.compose.material3.Text("Abbrechen") } },
+                        )
                     }
                 }
             }
-            1 -> if (missing.isDirectory) return true
-            2 -> {
-                paths.useRoot(missing)
-                return true
-            }
-            else -> return false
         }
     }
+    io.github.thepytales.llmhub.ui.LoraFileDialog.appLoaded = true
+    return outcome
 }
