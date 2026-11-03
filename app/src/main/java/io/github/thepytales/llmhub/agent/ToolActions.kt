@@ -1,7 +1,6 @@
 package io.github.thepytales.llmhub.agent
 
 import io.github.thepytales.llmhub.AppContainer
-import io.github.thepytales.llmhub.AppLog
 import io.github.thepytales.llmhub.data.LoraDrive
 import io.github.thepytales.llmhub.data.TrashEntry
 import io.github.thepytales.llmhub.docs.DocFormat
@@ -178,7 +177,7 @@ object ToolActions {
     fun byId(id: String): ToolAction? = all.firstOrNull { it.id == id }
 
     /** Writes into the log what Lora did (with „Problem melden“ it reaches the developer). */
-    fun log(text: String) = AppLog.i("Lora-Aktion: $text")
+    fun log(text: String) { android.util.Log.i("Lora", "Lora-Aktion: $text") }
 
     private val PDF_IN_FILES = setOf("pdf.open", "pdf.merge", "pdf.compress", "pdf.convert", "pdf.split")
 
