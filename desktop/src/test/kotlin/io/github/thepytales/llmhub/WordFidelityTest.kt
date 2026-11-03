@@ -32,7 +32,7 @@ class WordFidelityTest {
 
     /** A Word file with things the editor does not know: a content control, a bookmark and a custom part. */
     private fun original(): ByteArray {
-        val f = File.createTempFile("wt", ".docx")
+        val f = File.createTempFile("wordtreue", ".docx")
         MarkdownDocx.write(f, "Bericht", "# Bericht\n\nErster Absatz bleibt.\n\n## Teil A\n\nZweiter Absatz wird geändert.\n\nDritter Absatz wird gelöscht.\n\n- Punkt eins\n- Punkt zwei\n")
         val files = unzip(f.readBytes())
         f.delete()
@@ -77,7 +77,7 @@ class WordFidelityTest {
 
     @Test
     fun formattingIsReadFromWord() {
-        val f = File.createTempFile("wt", ".docx")
+        val f = File.createTempFile("wordtreue", ".docx")
         MarkdownDocx.write(f, "T", "# T\n\n<!--a:c-->Mitte mit <span style=\"color:#C00000\">rot</span>, <mark>markiert</mark> und x<sup>2</sup>.\n")
         val md = OfficeImport.docx(f.readBytes())
         f.delete()

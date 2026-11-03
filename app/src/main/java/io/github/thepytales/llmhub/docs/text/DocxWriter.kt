@@ -33,7 +33,8 @@ object DocxWriter {
         val all = topLevel(docXml.substring(open.range.last + 1, close)) ?: return null
         val sect = all.lastOrNull()?.takeIf { it.startsWith("<w:sectPr") }
         val els = if (sect != null) all.dropLast(1) else all
-        val texts = els.map { norm(plainXml(it)) }
+        // List marks typed as text (• , 1. , ☐ – how the app and many templates write lists) are not part of the item.
+        val texts = els.map { norm(plainXml(it).replace(LIST_MARK, "")) }
 
         val oldBlocks = DocBlocks.split(baseMarkdown).map { it.trim() }.filter { it.isNotBlank() }
         val newBlocks = DocBlocks.split(newMarkdown).map { it.trim() }.filter { it.isNotBlank() }
@@ -142,6 +143,8 @@ object DocxWriter {
         }
         return null
     }
+
+    private val LIST_MARK = Regex("^\\s*([•◦▪–·☐☒]|\\d+[.)])\\s+")
 
     private val T = Regex("<w:t(?:\\s[^>]*)?>([^<]*)</w:t>|<w:tab/>|<w:delText[^>]*>[^<]*</w:delText>")
 
