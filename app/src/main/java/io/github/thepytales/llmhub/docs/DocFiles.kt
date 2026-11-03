@@ -18,7 +18,9 @@ import java.util.concurrent.TimeUnit
  * Verlustfrei: a file that came from outside (or was changed in Word) is kept as original. Changes of the text in the
  * editor are then written *into* that original – paragraph by paragraph, cell by cell – so its formatting, styles,
  * headers and everything the editor does not know stay. Only when the structure changes (new or removed blocks, other
- * formatting) the file is written anew from the editor (the original stays in .lora/originale as backup).
+ * formatting) the editor's blocks are merged into the original (Word-Treue, AP-45: DocxWriter keeps every unchanged
+ * paragraph, styles, headers and unknown parts); only when that is not safe, the file is written anew (the original
+ * stays in .lora/originale as backup).
  */
 class DocFiles(private val store: DocsStore, dataDir: File, private val cache: File, private val theme: (LiveDoc) -> DocTheme) {
     private val originals = File(dataDir, "originale")
@@ -56,7 +58,13 @@ class DocFiles(private val store: DocsStore, dataDir: File, private val cache: F
         val ext = file.extension.lowercase()
         // Open suggestions of „Änderungen nachverfolgen“ are written as Word revisions: from the editor, not into the original.
         val original = original(doc)?.takeIf { !(ext == "docx" && DocxExtras.hasRevisions(doc)) }
-        var patched = original?.let { (bytes, base) -> runCatching { patch(doc, ext, bytes, base) }.getOrNull() }
+        var patched = original?.let { (bytes, base) ->
+            runCatching { patch(doc, ext, bytes, base) }.getOrNull()
+                // Word-Treue (AP-45): new or removed paragraphs, other formatting – merged into the original instead of a new file.
+                ?: if (ext == "docx" && doc.tabs.size == 1 && base.size == 1) runCatching {
+                    io.github.thepytales.llmhub.docs.text.DocxWriter.merge(bytes, base[0].markdown, doc.tabs[0].markdown, theme(doc))
+                }.getOrNull() else null
+        }
         // Comments written in the editor since go into the original as Word comments.
         if (patched != null && ext == "docx") {
             val fresh = doc.comments.filter { !it.resolved && it.wordId == null }
@@ -231,9 +239,10 @@ class DocFiles(private val store: DocsStore, dataDir: File, private val cache: F
         private val PREFIX = Regex("^\\s*(#{1,6}\\s+|>\\s*(\\[![A-Z]+]\\s*)?|[-*+]\\s+(\\[[ xX]]\\s+)?|\\d+[.)]\\s+)")
 
         /** The formatting marks of a line (to tell a text change from a formatting change). */
-        private fun marks(line: String): String = PREFIX.find(line)?.value?.replace(Regex("\\w"), "").orEmpty() + line.filter { it in "*_`~[]()" }
+        private fun marks(line: String): String = PREFIX.find(line)?.value?.replace(Regex("\\w"), "").orEmpty() + line.filter { it in "*_`~[]()<>=" }
 
-        private fun plainLine(line: String): String = line.replace(PREFIX, "").replace(Regex("\\*\\*|__|\\*|_|`|~~"), "")
+        private fun plainLine(line: String): String = line.replace(PREFIX, "").replace(io.github.thepytales.llmhub.ui.ALIGN_MARK, "")
+            .replace(Regex("</?(u|mark|sup|sub|span)(\\s+[a-z-]+=\"[^\"]*\")*\\s*>"), "").replace(Regex("\\*\\*|__|\\*|_|`|~~"), "")
             .replace(Regex("\\[([^]]*)]\\([^)]*\\)"), "$1").trim()
     }
 }

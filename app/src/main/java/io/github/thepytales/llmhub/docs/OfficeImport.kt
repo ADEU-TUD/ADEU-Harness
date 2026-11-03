@@ -139,7 +139,10 @@ object OfficeImport {
         val noteTexts = xml(files["word/footnotes.xml"])?.children()?.filter { it.localName == "footnote" && it.attr("type").isEmpty() }
             ?.associate { n -> n.attr("id") to n.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.trim() }.orEmpty()
         val noteNumbers = LinkedHashMap<String, Int>()
-        val ctx = DocxRefs(noteTexts, noteNumbers, docRels, files, media)
+        val allRuns = body.all("rPr")
+        val usualSize = allRuns.mapNotNull { it.child("sz")?.attr("val")?.ifBlank { null } }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+        val usualFont = allRuns.mapNotNull { it.child("rFonts")?.attr("ascii")?.ifBlank { null } }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+        val ctx = DocxRefs(noteTexts, noteNumbers, docRels, files, media, usualSize, usualFont)
         val bullets = numberingFormats(xml(files["word/numbering.xml"]))
         val styles = styleNames(xml(files["word/styles.xml"]))
         val blocks = mutableListOf<String>()
@@ -187,7 +190,13 @@ object OfficeImport {
                             } else blocks += line
                         }
                         style.contains("quote") || style.contains("zitat") -> blocks += "> $text"
-                        else -> blocks += text
+                        // Word-Treue (AP-45): centred, right-aligned and justified paragraphs keep their alignment.
+                        else -> blocks += when (pPr?.child("jc")?.attr("val")) {
+                            "center" -> "<!--a:c-->"
+                            "right", "end" -> "<!--a:r-->"
+                            "both", "distribute" -> "<!--a:j-->"
+                            else -> ""
+                        } + text
                     }
                 }
                 "tbl" -> {
@@ -213,6 +222,9 @@ object OfficeImport {
         val rels: Map<String, String>,
         val files: Map<String, ByteArray>,
         val media: MutableMap<String, ByteArray>,
+        /** Word-Treue (AP-45): the usual size (half points) and font of the body; only different ones are kept. */
+        val usualSize: String? = null,
+        val usualFont: String? = null,
     )
 
     /** Pictures (w:drawing with a:blip) of a paragraph as Markdown image lines; the caption is the alternative text. */
@@ -235,7 +247,8 @@ object OfficeImport {
 
     /** Text of a paragraph with **bold** and *italic* (and footnote marks [^n] when [ctx] knows the notes). */
     private fun runs(p: Element, ctx: DocxRefs? = null): String = buildString {
-        fun run(r: Element) {
+        val heading = p.child("pPr")?.child("pStyle")?.attr("val").orEmpty().lowercase().let { Regex("(heading|berschrift|title|titel)").containsMatchIn(it) }
+        fun run(r: Element, inLink: Boolean = false) {
             r.children().firstOrNull { it.localName == "footnoteReference" }?.let { ref ->
                 val id = ref.attr("id")
                 if (ctx != null && id in ctx.notes) {
@@ -261,19 +274,54 @@ object OfficeImport {
             val trail = text.takeLastWhile { it == ' ' }
             val core = text.trim()
             append(lead)
-            append(when { bold && italic -> "***$core***"; bold -> "**$core**"; italic -> "*$core*"; else -> core })
+            // Word-Treue (AP-45): what the Fließtext-Editor knows comes along (not in headings, whose look is the style's).
+            val extra = if (ctx == null || heading || rPr == null) null else runFormat(rPr, ctx, inLink)
+            if (extra != null && extra != io.github.thepytales.llmhub.docs.text.CharFormat.PLAIN) {
+                val f = extra.copy(bold = bold, italic = italic)
+                append(io.github.thepytales.llmhub.docs.text.RichText.inline(core, List(core.length) { f }))
+            } else append(when { bold && italic -> "***$core***"; bold -> "**$core**"; italic -> "*$core*"; else -> core })
             append(trail)
         }
         p.children().forEach { e ->
             when (e.localName) {
                 "r" -> run(e)
-                "hyperlink", "ins", "smartTag", "fldSimple" -> e.children().filter { it.localName == "r" }.forEach(::run)
+                "hyperlink" -> e.children().filter { it.localName == "r" }.forEach { run(it, inLink = true) }
+                "ins", "smartTag", "fldSimple" -> e.children().filter { it.localName == "r" }.forEach { run(it) }
                 // Word formulas (AP-16) as LaTeX.
                 "oMath" -> append("$" + LatexOmml.toLatex(e) + "$")
                 "oMathPara" -> e.children().filter { it.localName == "oMath" }.forEach { append("$$" + LatexOmml.toLatex(it) + "$$") }
             }
         }
     }.replace("****", "").replace(Regex("\\*\\*\\s*\\*\\*"), " ")
+
+    private val HIGHLIGHT = mapOf(
+        "yellow" to "FFFF00", "green" to "00FF00", "cyan" to "00FFFF", "magenta" to "FF00FF", "blue" to "0000FF", "red" to "FF0000",
+        "darkBlue" to "000080", "darkCyan" to "008080", "darkGreen" to "008000", "darkMagenta" to "800080", "darkRed" to "800000",
+        "darkYellow" to "808000", "darkGray" to "808080", "lightGray" to "C0C0C0", "black" to "000000",
+    )
+
+    /** Underline, strike-through, colour, highlight, raised/lowered, a different size or font of a Word run (AP-45). */
+    private fun runFormat(rPr: Element, ctx: DocxRefs, inLink: Boolean): io.github.thepytales.llmhub.docs.text.CharFormat {
+        fun on(name: String) = rPr.child(name)?.let { it.attr("val") !in setOf("0", "false", "none") } == true
+        val font = rPr.child("rFonts")?.attr("ascii")?.ifBlank { null }
+        val mono = font != null && Regex("(?i)courier|consolas|mono").containsMatchIn(font)
+        val color = rPr.child("color")?.attr("val")?.uppercase()?.takeIf { Regex("^[0-9A-F]{6}$").matches(it) && it != "000000" }
+        val shade = rPr.child("shd")?.attr("fill")?.uppercase()?.takeIf { Regex("^[0-9A-F]{6}$").matches(it) && it != "FFFFFF" }
+        val highlight = rPr.child("highlight")?.attr("val")?.let { HIGHLIGHT[it] } ?: shade
+        val vert = rPr.child("vertAlign")?.attr("val")
+        val size = rPr.child("sz")?.attr("val")?.takeIf { it != ctx.usualSize }?.toIntOrNull()?.let { it / 2 }
+        return io.github.thepytales.llmhub.docs.text.CharFormat(
+            underline = !inLink && on("u"),
+            strike = on("strike") || on("dstrike"),
+            code = mono,
+            color = if (inLink || color == "1D4ED8" || color == "0563C1") null else color,
+            highlight = if (mono && highlight == "F1F3F5") null else highlight,
+            sup = vert == "superscript",
+            sub = vert == "subscript",
+            size = if (mono) null else size,
+            font = font?.takeIf { !mono && it != ctx.usualFont },
+        )
+    }
 
     /** "numId:level" → true for bullets, false for numbered lists. */
     private fun numberingFormats(root: Element?): Map<String, Boolean> {

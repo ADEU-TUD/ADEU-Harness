@@ -570,7 +570,7 @@ private fun EmptyDocStart(onTemplate: (String) -> Unit, onAi: () -> Unit, onWrit
 
 /** A block as it will look in the document; checklists can be ticked right here. */
 @Composable
-private fun BlockView(
+internal fun BlockView(
     doc: LiveDoc?,
     tabId: String?,
     block: String,

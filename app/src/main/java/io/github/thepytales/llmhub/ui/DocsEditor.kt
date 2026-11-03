@@ -261,6 +261,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     val inlineAi = rememberInlineAi(c)
     val listState = rememberLazyListState()
     val docBase = remember(doc?.id, doc?.vault) { c.docs.baseDir(doc) }
+    /** The Fließtext-Editor (AP-44) – the editor of text documents unless changes wait for review. */
+    var flowHost by remember(doc?.id, tabId) { mutableStateOf(FlowHost()) }
 
     // Documents in a storage folder: pick up what changed there (another computer, another editor).
     LaunchedEffect(doc?.vault) {
@@ -344,6 +346,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
 
     /** Inserts [block] after the edited block (or at the end) and opens it. */
     fun insertBlock(block: String) {
+        // Fließtext-Editor (AP-44): at its cursor.
+        flowHost.insertBlock?.let { it(block); return }
         val list = blocks.toMutableList()
         val i = editing.index
         if (i != null && i in list.indices) list[i] = editing.value.text.ifBlank { EMPTY_BLOCK }
@@ -356,6 +360,16 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     /** A citation at the cursor and the work in the generated literature list at the end. */
     fun cite(ref: io.github.thepytales.llmhub.research.Reference, style: CitationStyle) {
         val t = tab ?: return
+        // Fließtext-Editor (AP-44): the citation at its cursor, the literature list at the end.
+        flowHost.markdown?.let { current ->
+            val refs0 = (DocCitations.cited(current()).ids.mapNotNull { c.literature.get(it) } + ref).distinctBy { it.id }
+            val citation = DocCitations.inText(ref, style, DocCitations.number(refs0, ref, style))
+            flowHost.insertText?.invoke(" $citation")
+            val md = DocCitations.withBibliography(current(), refs0, style)
+            save(note = tr("Beleg eingefügt")) { d -> d.copy(tabs = d.tabs.map { if (it.id == t.id) it.copy(markdown = md) else it }) }
+            Notices.info(tr("Beleg eingefügt: {0}", citation))
+            return
+        }
         val list = blocks.toMutableList()
         val i = editing.index
         val md0 = DocBlocks.join(list.mapIndexed { k, b -> if (k == i) editing.value.text else b })
@@ -616,8 +630,11 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                     IconButton(onClick = { findOpen = false; find = ""; replace = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) }
                 }
             }
+            // Fließtext-Editor (AP-44) for text documents; the block view stays for reviewing changes of the model.
+            val flow = kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !writing && trackBase == null &&
+                (review == null || review.changes.isEmpty() && review.removed.isEmpty())
             // ── Toolbar of text documents (slides and tables bring their own) ──
-            if (kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft) {
+            if (kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !flow) {
                 TextToolbar(
                     editing, blocks, leading = undoRedo,
                     onBlocks = { list, at ->
@@ -637,7 +654,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 )
             }
             // Statistics of the text (of the selection, if there is one).
-            if ((kind == DocKind.DOC || kind == DocKind.MARKDOWN) && doc != null && !showingDraft) {
+            if ((kind == DocKind.DOC || kind == DocKind.MARKDOWN) && doc != null && !showingDraft && !flow) {
                 val sel = editing.selection
                 val stats = remember(markdown, sel) { DocStats.of(sel ?: markdown) }
                 HintText((if (sel != null) "Auswahl: " else "") + stats.label(), Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 1.dp))
@@ -658,6 +675,26 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         )
                         kind == DocKind.MARKDOWN && doc != null && !showingDraft -> MarkdownBody(markdown, tab?.id, narrow, leading = undoRedo, onChange = ::setMarkdown)
                         mode == TextMode.SOURCE && doc != null -> SourceEditor(markdown, tab?.id, ::setMarkdown)
+                        flow && doc != null -> {
+                            val host = remember(doc.id, tab?.id) {
+                                FlowHost(
+                                    onComment = { commentOn = it },
+                                    onImage = pickImage,
+                                    onCitation = { citing = true },
+                                    onFind = { findOpen = true },
+                                    onExport = { export = doc.title to DocMarkup.resolveImages(exportMarkdown(doc, null), docBase) },
+                                    onPageSetup = { pageSetup = true },
+                                    onHistory = { showHistory = true },
+                                    onOutline = { panel = DocPanel.OUTLINE },
+                                    onSource = { mode = TextMode.SOURCE },
+                                    onRead = { mode = TextMode.READ },
+                                    onSpell = { spellLocal = true },
+                                    onTrack = { if (doc.trackBase == null) save(note = tr("Änderungen nachverfolgen an")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) } else stopTracking = true },
+                                    onAskAi = { panel = DocPanel.AI },
+                                ).also { flowHost = it }
+                            }
+                            FlowEditor(c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown)
+                        }
                         else -> {
                             LaunchedEffect(blocks.size, showingDraft) { if (showingDraft && blocks.isNotEmpty()) listState.animateScrollToItem(blocks.size) }
                             TextPage(
