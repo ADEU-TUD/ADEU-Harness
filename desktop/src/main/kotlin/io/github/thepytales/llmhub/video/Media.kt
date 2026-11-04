@@ -44,6 +44,16 @@ object Media {
     @Volatile
     var forceNoProbe = false
 
+    /** Picture files: on the timeline they stand as long as the clip is set (export and preview loop the one picture). */
+    val STILLS = setOf("png", "jpg", "jpeg", "gif", "bmp", "webp")
+
+    /** Whether [file] is a single picture (by its extension, or a video stream without length). */
+    fun isStill(file: File, info: MediaInfo? = null): Boolean {
+        if (file.extension.lowercase() in STILLS) return true
+        val i = info ?: probe(file)
+        return i?.hasVideo == true && i.duration <= 0.05
+    }
+
     /** Speech model of the noise reduction (Videoeditor-Paket), or null. */
     fun rnnoiseModel(): File? = Extensions.file(Extensions.VIDEO.id, "rnnoise/sh.rnnn")
 
@@ -141,7 +151,8 @@ object Media {
     /** Makes the proxy of [file] (blocking; returns it, or null when ffmpeg fails). */
     fun makeProxy(file: File, info: MediaInfo? = probe(file)): File? {
         proxy(file)?.let { return it }
-        if (info?.hasVideo != true) return null
+        // A picture needs none – and a one-frame MP4 of it could not be looped by the preview.
+        if (info?.hasVideo != true || isStill(file, info)) return null
         val exe = ffmpeg() ?: return null
         val target = File(cacheDir, "proxy-${hash(file)}.mp4")
         if (!making.add(target.path)) return null
@@ -164,10 +175,13 @@ object Media {
     /** One picture of [file] at [sec] (from the proxy if there is one), [height] pixels high. */
     fun frame(file: File, sec: Double, height: Int = 360): ImageBitmap? {
         val exe = ffmpeg() ?: return null
-        val src = proxy(file) ?: file
+        // A picture has its one frame at 0: seeking further gave nothing (black preview, no thumbnail).
+        val still = isStill(file)
+        val src = if (still) file else proxy(file) ?: file
+        val at = if (still) 0.0 else sec.coerceAtLeast(0.0)
         return runCatching {
             val p = ProcessBuilder(
-                exe, "-nostdin", "-hide_banner", "-loglevel", "error", "-ss", String.format(Locale.ROOT, "%.3f", sec.coerceAtLeast(0.0)),
+                exe, "-nostdin", "-hide_banner", "-loglevel", "error", "-ss", String.format(Locale.ROOT, "%.3f", at),
                 "-i", src.absolutePath, "-frames:v", "1", "-vf", "scale=-2:$height", "-f", "image2pipe", "-vcodec", "png", "pipe:1",
             ).redirectError(ProcessBuilder.Redirect.DISCARD).start()
             val bytes = p.inputStream.readBytes()

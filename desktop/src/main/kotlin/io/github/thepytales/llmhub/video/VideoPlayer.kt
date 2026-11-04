@@ -97,14 +97,19 @@ class VideoPlayer {
 
     /** Plays [length] seconds of [file] from [from] (seconds of the file), placed at [timelineAt]. */
     private fun playPiece(exe: String, file: File, from: Double, length: Double, timelineAt: Double, clip: VideoClip, gen: Int) {
-        val src = Media.proxy(file) ?: file
+        val still = Media.isStill(file)
+        val src = if (still) file else Media.proxy(file) ?: file
         val info = Media.probe(src)
         val h = 360
         val w = info?.takeIf { it.height > 0 }?.let { ((it.width.toDouble() * h / it.height).toInt() / 2) * 2 } ?: 640
         val fps = 25.0
+        // A picture is looped for the length of its clip (as in the export); without -loop ffmpeg gave one frame and
+        // the preview jumped over the picture at once.
+        val source = if (still) listOf("-loop", "1", "-framerate", "25", "-t", fmt(length), "-i", src.absolutePath)
+        else listOf("-ss", fmt(from), "-t", fmt(length), "-i", src.absolutePath)
         val video = if (info?.hasVideo != false) ProcessBuilder(
-            exe, "-nostdin", "-hide_banner", "-loglevel", "error", "-ss", fmt(from), "-t", fmt(length), "-i", src.absolutePath,
-            "-vf", "scale=$w:$h,fps=25", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1",
+            listOf(exe, "-nostdin", "-hide_banner", "-loglevel", "error") + source +
+                listOf("-vf", "scale=$w:$h,fps=25", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"),
         ).redirectError(ProcessBuilder.Redirect.DISCARD).start() else null
         val rate = 44100f
         val audio = if (info?.hasAudio == true && !clip.muted) ProcessBuilder(

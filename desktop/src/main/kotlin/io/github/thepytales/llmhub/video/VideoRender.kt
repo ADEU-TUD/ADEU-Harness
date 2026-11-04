@@ -63,13 +63,17 @@ object VideoRender {
         p.clips.forEachIndexed { i, c ->
             val src = File(c.path)
             val mi = info(src)
-            val still = mi?.hasVideo == true && (mi.duration <= 0.05 || src.extension.lowercase() in setOf("png", "jpg", "jpeg", "gif", "bmp", "webp"))
+            val still = Media.isStill(src, mi)
             if (still) args += listOf("-loop", "1", "-framerate", fps.toString())
             if (!still) args += listOf("-ss", f(c.inSec))
             args += listOf("-t", f(c.length), "-i", src.absolutePath)
             val k = input++
             graph += if (mi?.hasVideo == false) "color=c=black:s=${w}x$h:r=$fps:d=${f(c.length)},format=yuv420p,setsar=1[v$i]"
-            else "[$k:v]scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=$fps,format=yuv420p,setpts=PTS-STARTPTS[v$i]"
+            // tpad + trim: the picture is exactly as long as the clip, like its sound (apad + atrim below) – a clip
+            // set longer than its file (or a file whose last frames are missing) used to end early, and every clip
+            // after it ran ahead of its sound at a cross-dissolve.
+            else "[$k:v]scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=$fps,format=yuv420p,setpts=PTS-STARTPTS," +
+                "tpad=stop_mode=clone:stop_duration=${f(c.length)},trim=duration=${f(c.length)},setpts=PTS-STARTPTS[v$i]"
             graph += if (mi?.hasAudio == true && !c.muted) {
                 "[$k:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume=${f(c.volume.toDouble())},asetpts=PTS-STARTPTS,apad,atrim=0:${f(c.length)}[a$i]"
             } else "anullsrc=channel_layout=stereo:sample_rate=48000,atrim=0:${f(c.length)}[a$i]"
@@ -116,8 +120,10 @@ object VideoRender {
         if (p.burnSubtitles && cues.isNotEmpty()) {
             val blank = File(work, "leer.png").apply { writeBytes(VideoTitles.blank(w, h)) }
             val list = StringBuilder("ffconcat version 1.0\n")
+            // Quoted for the concat demuxer: a ' in the path (a user folder like „O'Neil“) is written as '\''.
+            fun quoted(file: File) = "file '" + file.absolutePath.replace('\\', '/').replace("'", "'\\''") + "'\n"
             fun entry(file: File, dur: Double) {
-                list.append("file '").append(file.absolutePath.replace('\\', '/').replace("'", "'\\''")).append("'\n")
+                list.append(quoted(file))
                 list.append("duration ").append(f(dur.coerceAtLeast(0.04))).append('\n')
             }
             var t = 0.0
@@ -126,12 +132,12 @@ object VideoRender {
                 val end = minOf(cue.endSec, len)
                 if (end <= start) return@forEachIndexed
                 if (start - t > 0.02) entry(blank, start - t)
-                val png = File(work, "untertitel-$k.png").apply { writeBytes(VideoTitles.png(VideoTitles.subtitleDesign(cue.text, w, h), w)) }
+                val png = File(work, "untertitel-$k.png").apply { writeBytes(VideoTitles.png(VideoTitles.subtitleDesign(cue.text, w, h, p.subtitleRaised(cue)), w)) }
                 entry(png, end - start)
                 t = end
             }
             entry(blank, maxOf(len - t, 0.1))
-            list.append("file '").append(blank.absolutePath.replace('\\', '/')).append("'\n")
+            list.append(quoted(blank))
             val listFile = File(work, "untertitel.ffconcat").apply { writeText(list.toString()) }
             args += listOf("-f", "concat", "-safe", "0", "-i", listFile.absolutePath)
             val idx = input++
