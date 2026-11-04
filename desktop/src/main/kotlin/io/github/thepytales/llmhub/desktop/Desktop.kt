@@ -8,6 +8,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.image.BufferedImage
+import io.github.thepytales.llmhub.ui.LoraFileDialog
 import java.io.File
 import java.net.URI
 
@@ -82,8 +83,12 @@ object DesktopActions {
         (clip.getData(DataFlavor.javaFileListFlavor) as List<File>)
     }.getOrDefault(emptyList())
 
-    /** Native Windows dialog to pick files; [extensions] like "pdf" (empty = all). */
+    /**
+     * Picks files; [extensions] like "pdf" (empty = all). Lora-Dateidialog (AP-42); the system dialog only when no
+     * window of the app can show it (called on the event thread or before the window exists).
+     */
     fun pickFiles(title: String, multiple: Boolean = true, extensions: List<String> = emptyList()): List<File> {
+        LoraFileDialog.show(LoraFileDialog.Request(LoraFileDialog.Mode.OPEN, title, multiple, extensions, purpose = purposeOf(title)))?.let { return it }
         val dialog = FileDialog(window, title, FileDialog.LOAD)
         dialog.isMultipleMode = multiple
         if (extensions.isNotEmpty()) {
@@ -97,44 +102,47 @@ object DesktopActions {
 
     /** Dialog to choose a folder (e.g. a storage folder in Google Drive); null if cancelled. */
     fun pickFolder(title: String, start: File? = null): File? {
-        // Swing dialogs belong on the event thread.
-        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
-            var result: File? = null
-            javax.swing.SwingUtilities.invokeAndWait { result = pickFolder(title, start) }
-            return result
+        LoraFileDialog.show(LoraFileDialog.Request(LoraFileDialog.Mode.FOLDER, title, start = start, purpose = purposeOf(title)))?.let { return it.firstOrNull() }
+        // Fallback on the event thread: the system's folder dialog.
+        System.setProperty("apple.awt.fileDialogForDirectories", "true")
+        try {
+            val dialog = FileDialog(window, title, FileDialog.LOAD)
+            start?.let { dialog.directory = it.absolutePath }
+            dialog.isVisible = true
+            val name = dialog.file ?: return null
+            return File(dialog.directory ?: "", name)
+        } finally {
+            System.setProperty("apple.awt.fileDialogForDirectories", "false")
         }
-        if (Os.mac) {
-            // The Finder's own dialog instead of Swing's (AP-31).
-            System.setProperty("apple.awt.fileDialogForDirectories", "true")
-            try {
-                val dialog = FileDialog(window, title, FileDialog.LOAD)
-                start?.let { dialog.directory = it.absolutePath }
-                dialog.isVisible = true
-                val name = dialog.file ?: return null
-                return File(dialog.directory ?: "", name)
-            } finally {
-                System.setProperty("apple.awt.fileDialogForDirectories", "false")
-            }
-        }
-        val chooser = javax.swing.JFileChooser(start ?: File(System.getProperty("user.home")))
-        chooser.dialogTitle = title
-        chooser.fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
-        chooser.isAcceptAllFileFilterUsed = false
-        return if (chooser.showOpenDialog(window) == javax.swing.JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
     }
 
-    /** Native "Speichern unter" dialog; returns the chosen file (with [extension]) or null. */
+    /** "Speichern unter"; returns the chosen file (with [extension]) or null. */
     fun pickSaveFile(title: String, suggested: String, extension: String? = null): File? {
-        val dialog = FileDialog(window, title, FileDialog.SAVE)
-        val folder = Paths.exports.apply { mkdirs() }
-        dialog.directory = folder.absolutePath
-        dialog.file = suggested
-        dialog.isVisible = true
-        val name = dialog.file ?: return null
-        var file = File(dialog.directory ?: folder.absolutePath, name)
+        val chosen = LoraFileDialog.show(
+            LoraFileDialog.Request(LoraFileDialog.Mode.SAVE, title, suggested = suggested, extensions = listOfNotNull(extension), purpose = "save." + (extension ?: "any")),
+        )?.let { it.firstOrNull() ?: return null } ?: run {
+            val dialog = FileDialog(window, title, FileDialog.SAVE)
+            val folder = Paths.exports.apply { mkdirs() }
+            dialog.directory = folder.absolutePath
+            dialog.file = suggested
+            dialog.isVisible = true
+            val name = dialog.file ?: return null
+            File(dialog.directory ?: folder.absolutePath, name)
+        }
+        var file = chosen
         if (extension != null && !file.name.lowercase().endsWith(".${extension.lowercase()}")) {
             file = File(file.parentFile, "${file.name}.$extension")
         }
         return file
+    }
+
+    /** Remembers the last place per kind of dialog (pictures, videos, documents …). */
+    private fun purposeOf(title: String): String = title.lowercase().let { t ->
+        when {
+            "bild" in t -> "images"
+            "video" in t || "musik" in t || "audio" in t -> "media"
+            "ordner" in t -> "folder"
+            else -> "files"
+        }
     }
 }

@@ -164,10 +164,16 @@ class LoraFilesTest {
         val changed = doc.copy(tabs = listOf(tab.copy(markdown = tab.markdown.replace("1000 Euro", "2500 Euro"))))
         assertTrue(c.docs.files!!.write(changed), "in das Original geschrieben")
         assertTrue("2500 Euro" in OfficeImport.docx(file.readBytes()))
-        // A structural change writes the file anew.
-        val restructured = changed.copy(tabs = listOf(tab.copy(markdown = tab.markdown + "\n\n## Neuer Abschnitt\n\nText")))
-        assertFalse(c.docs.files!!.write(restructured))
+        // A structural change is merged into the original too (Word-Treue, AP-45): the unchanged paragraphs stay as they were.
+        val before = file.readBytes()
+        val now = changed.tabs.first()
+        val restructured = changed.copy(tabs = listOf(now.copy(markdown = now.markdown + "\n\n## Neuer Abschnitt\n\nText")))
+        assertTrue(c.docs.files!!.write(restructured), "ins Original zusammengeführt")
         assertTrue("Neuer Abschnitt" in OfficeImport.docx(file.readBytes()))
+        val oldXml = java.util.zip.ZipInputStream(before.inputStream()).use { z -> generateSequence { z.nextEntry }.first { it.name == "word/document.xml" }; z.readBytes().toString(Charsets.UTF_8) }
+        val newXml = java.util.zip.ZipInputStream(file.readBytes().inputStream()).use { z -> generateSequence { z.nextEntry }.first { it.name == "word/document.xml" }; z.readBytes().toString(Charsets.UTF_8) }
+        val para = Regex("<w:p>(?:(?!</w:p>).)*2500 Euro.*?</w:p>").find(oldXml)!!.value
+        assertTrue(para in newXml, "Absatz unverändert übernommen")
     }
 
     @Test

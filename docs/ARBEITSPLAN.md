@@ -1,13 +1,14 @@
-# Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“)
+# Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 03.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
 
 - **Jetzt** – die nächsten Wochen, in fester Reihenfolge. Ein Paket nach dem anderen; ist eines fertig, rückt das nächste
   nach.
 - **Danach** – rückt nach „Jetzt“ auf, sobald dort Platz ist.
-- **Später** – gewollt, aber erst, wenn „Jetzt“ und „Danach“ erledigt sind. *Ganz am Ende* kommen Website, macOS und Linux.
+- **Später** – gewollt, aber erst, wenn „Jetzt“ und „Danach“ erledigt sind.
 - **Ideen** – ohne Auftrag, je eine Zeile. Bei Bedarf wieder aufnehmen (Details der alten Fassung stehen in der
   Git-Historie dieser Datei).
 
@@ -27,11 +28,11 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | --- | --- |
 | Für wen | Ich bin Hauptnutzer und entscheide über die Funktionen. Das Team ist gleichberechtigt, bekommt die App kostenlos und gibt Feedback (über *Problem melden*). Keine Umfragen, keine Usability-Tests, keine Teamverwaltung. |
 | Priorität | **Täglicher Nutzen** entscheidet. |
-| Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. |
+| Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. **Ausnahme seit Runde 2**: Dokumente, Tabellen und Folien sollen so nah wie möglich an Google Docs/Sheets/Slides (und Word-/PowerPoint-/Excel-Treue) heranreichen, der Videoeditor so nah wie möglich an DaVinci Resolve für den Alltag – ohne Fusion, Color Grading und Fairlight, eigenständig im Lora-Stil in **einer** Ansicht. Dokument, Folien und Gestalten teilen sich einen Editor-Kern (Text-Kern AP-43, Leinwand AP-50). |
 | Übersichtlichkeit | Die App darf durch neue Funktionen nicht unübersichtlich werden: große Werkzeuge sind **einschaltbar** (anfangs aus, Lora schlägt sie passend vor), eingeschaltete Fortgeschrittene stehen in der Seitenleiste unter **„Mehr“**. Jedes neue Werkzeug fügt sich in AP-02 ein. Keine Einfach-/Expertenansicht. „Mehr“ bleibt eine flache Liste; **jeder Bereich lässt sich ausblenden** (außer *Erstellen* und *Dateien*), erreichbar bleibt er über Strg+K und Lora (seit AP-24). |
 | Inhalte | Zwei feste Orte für Inhalte: **Dateien** (was es gibt) und **Erstellen** (was neu entsteht: TU Vorlagen und Gestalten mit „Meine Designs“). Jederzeit kann man stattdessen Lora sagen, was entstehen soll (seit AP-24). |
-| Plattformen | **Windows-PC ist die Hauptplattform.** Android zieht nur Funktionen nach, die dort sinnvoll sind – **kein** Videoeditor, **kein** Kreativbereich. Website, macOS und Linux erst ganz am Ende. |
-| Lora | **Kern der App** und Namensgeberin (seit 1.0.44 heißt die App „Lora“, Slogan: *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden*; technische Namen wie `ADEU LLM.exe` und die Datenordner bleiben). Navigator und Helfer: findet Einstellungen, öffnet Modi und Vorlagen, übergibt an Chat-Modelle – **Standard für Übergaben ist DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora selbst entscheidet und begründet. Lora antwortet selbst mit GLM-5.3 Flash. Lora reagiert, unterbricht nicht. Animationen dürfen auch ohne neues Werkzeug kommen, wenn sie Lora lebendiger machen (AP-36); sie bleiben seriös und respektieren *Ruhigere Bewegungen*. |
+| Plattformen | **Windows-PC ist die Hauptplattform.** Android zieht nur Funktionen nach, die dort sinnvoll sind – **kein** Videoeditor, **kein** Kreativbereich. macOS und Linux sind da (AP-31); die Website steht in den Ideen. |
+| Lora | **Kern der App** und Namensgeberin (seit 1.0.44 heißt die App „Lora“, Slogan: *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU Dresden*; technische Namen wie `ADEU LLM.exe` und die Datenordner bleiben). Navigator und Helfer: findet Einstellungen, öffnet Modi und Vorlagen, übergibt an Chat-Modelle – **Standard für Übergaben ist DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora selbst entscheidet und begründet. Lora antwortet selbst mit GLM-5.3 Flash. Lora reagiert, unterbricht nicht (darum **kein Tagesbriefing**). Seit Runde 2 **handelt Lora selbst in den Werkzeugen** (AP-38) – sichtbar im Panel rechts, mit Vorschau und Rückgängig, ohne eigenen Cursor im Werkzeug – und merkt sich Vorlieben nur nach Rückfrage (AP-39). Animationen dürfen auch ohne neues Werkzeug kommen, wenn sie Lora lebendiger machen (AP-36); sie bleiben seriös und respektieren *Ruhigere Bewegungen*. |
 | Modus-Konzept | Einheitlich: Chip über dem Eingabefeld, eine Zeile „was passiert hier“, Datenhinweis, ✕ zum Verlassen. |
 | Datenschutz | Pseudonymisierung wird treffsicherer (weniger Fehlalarme, weniger Übersehenes). Für sensible Forschung gibt es den **Tresor** statt einer allgemeinen App-Sperre. |
 | KI entscheidet nicht | Die KI schlägt vor, ein Mensch entscheidet (Bewertungen, Mails). Mails werden **nie gelöscht und nie ohne Aufforderung gesendet**. KI-Verordnung: Prüfungsbewertung ist Hochrisiko → nur Assistenz, Protokoll, Hinweis in der App. Datenschutzhinweise und Löschfristen für Mails und Abgaben laufend mitpflegen (bisher Q-04). |
@@ -41,777 +42,475 @@ Stand: 01.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete ab
 | Anbindungen | Wichtige Dienste **fest eingebaut** (zuerst Nextcloud) statt zuerst allgemeines MCP. |
 | Eigene Werkzeuge statt Fremd-Apps | Selbst bauen, gehört vollständig uns. Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden; je Werkzeug wird geprüft, ob Code übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
 | Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); große Teile, die nicht alle brauchen, sind **nachladbare Erweiterungen** über den Updater (seit AP-25: Videoeditor-Paket; die Browser-Engine wird mit aufgeführt). |
-| Sprachen | Englisch vervollständigen (eigenes Paket, später), keine weiteren Sprachen. |
-| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen. (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
+| Sprachen | Englisch ist vollständig (AP-29), keine weiteren Sprachen. |
+| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen, Tagesbriefing (Runde 2), Sprachbefehle für die App (Chat-Sprachmodus und Diktat reichen). (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
 
 ---
 
 ## Übersicht
 
+Runde 2 (ab 02.11.2026). Die erste Runde (AP-01 bis AP-37) ist erledigt; ihre ausführlichen Beschreibungen stehen in
+[`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md), die Kurzfassung unter *Erledigt*. AP-32 Website ist in die *Ideen*
+gewandert.
+
+Schwerpunkte: **Lora** (handelt selbst in den Werkzeugen), **Dokumente, Tabellen, Folien** (so nah wie möglich an Google
+Docs/Sheets/Slides, gemeinsamer Editor-Kern) und **Video** (DaVinci Resolve für den Alltag, ohne Fusion, Color und
+Fairlight).
+
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** | ~~AP-01 Chat-Design und Logo · AP-02 Übersicht und einschaltbare Werkzeuge · AP-03 Pseudonymisierung · AP-04 Weniger Arbeitsspeicher · AP-05 Modus-Rahmen · AP-06 Rückfragen mit Antwortknöpfen · AP-07 Lora-Navigator · AP-08 Belegpflicht und Quellenmodus · AP-09 Exzerpt-Agent · AP-10 Tresor · AP-11 PDF Stufe 1 · AP-33 Umbenennung in Lora · AP-34 Lora-Panel · AP-35 Lora hilft im Chat · AP-36 Animationen · AP-37 Lora leichter finden, Startseite mit Chips~~ (☑) – als Nächstes rücken die Pakete aus *Danach* auf |
-| **Danach** | ~~AP-12 Einfacher Sync · AP-13 Mail und Kalender über Outlook · AP-14 Browser neben dem Chat · AP-15 PDF Stufe 2~~ (☑) · ~~AP-16 Office-Ausbau · AP-17 Lernspiele · AP-18 Dateiverwaltung · AP-19 KI-Nutzungsnachweis~~ (☑) – alles erledigt, als Nächstes rückt *Später* auf |
-| **Später** | ~~AP-20 Stapel und Massenkontrolle · AP-21 Antrags-Werkstatt · AP-22 Nextcloud · AP-23 MCP-Client · AP-24 Kreativbereich (jetzt „Erstellen“ › Gestalten) · AP-25 Videoeditor · AP-26 PDF Stufe 3 · AP-27 Mail über den Server · AP-28 Sync für Android · AP-29 Englisch · AP-30 Barrierefreiheit · AP-31 macOS und Linux~~ (☑) · *ganz am Ende:* AP-32 Website |
+| **Jetzt** – Lora zuerst | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog |
+| **Danach** – Editor-Kern und Office | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument · AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
+| **Danach** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge · AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
+| **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
+| **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
 
-Abhängigkeiten: AP-05 vor AP-06 (Planungsmodus), AP-07 und AP-08 · AP-06 vor AP-07 · AP-08 vor AP-09 und AP-14 (Fragen
-zur Seite mit Belegen) · AP-03 vor AP-10 · AP-11 vor AP-15 vor AP-26 · AP-12 vor AP-28 · AP-20 vor großen Exzerpt-Stapeln.
+Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
+Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
+(Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
+AP-52 vor AP-57 · AP-42 vor AP-59.
+
+Reihenfolge in *Danach*: erst Editor-Kern und Dokument (AP-43 bis AP-47), dann Video (AP-52, AP-53), dann Tabellen und
+Folien, dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
+abwechseln, wenn ein Strang wartet.
 
 ---
 
 ## Jetzt
 
-### AP-01 ☑ Chat-Design und Logo · M
-- **Eigener ADEU-Stil statt grauer Kästen mit runden Ecken**: Antworten als ruhiger Text, Kästen (Code, Tabellen,
-  Hinweise, Dokumentkarten) mit feinem Rand und TUD-Farbakzent statt grauer Fläche, klare Abstände und Typografie.
-  Erkennbar eigenständig, Lora eingebunden.
-- **Links, Quellen, Anhänge** schöner gestalten: Links als Marken mit Domain, Quellenangaben als nummerierte Marken (werden
-  in AP-08 wiederverwendet), Dateikarten und Dokument-Vorschauen einheitlich.
-- **Lora-Arbeitskarte** (das Kästchen, in dem Lora während der Antwort arbeitet) neu gestalten.
-- **Logo**: Lora in lesender Pose ersetzt das bisherige Logo; Startanimation und App-Symbole (Android, Windows `.ico`)
-  passend dazu.
-- Werkzeugschritte des Agenten bleiben, wie sie sind.
-- Gilt für alle Stile (ADEU, TU Dresden, Office, Hoher Kontrast …); Hoher Kontrast bleibt WCAG AAA.
-- **Fertig, wenn**: Chat ohne graue Kästen, Links/Quellen/Anhänge und Lora-Karte im neuen Stil, neues Logo mit
-  Startanimation auf beiden Plattformen; Screenshots vorher/nachher im Pull Request.
-- Betrifft: `ui/ChatMessages.kt`, `ui/Markdown.kt`, `ui/ChatExtras.kt`, `ui/Design.kt`, `ui/Theme.kt`, `ui/Logo.kt`,
-  `ui/LoraFigure.kt`, `ui/LoraUi.kt`, `desktop/icons/`.
-- **Ergebnis (31.10.2026)**: umgesetzt; Logo = Lora liest (violett, weißes Gesicht, helle Kachel). Bilder aller Stile
-  erzeugt `ChatLookTest` (`desktop/build/chat-look`), Symbole `LogoTest`. Rest: Vorher-Bilder für den Pull Request.
+### AP-38 ◐ Lora handelt in Werkzeugen · XL (neu, in Stufen)
+Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
+PDFs zusammen“, „Räum meinen Hochgeladen-Ordner auf“, „Schneide die Pausen raus“, „Mach Abschnitt 2 zur Tabelle“.
+1. **Grundlage: Werkzeug-Aktionen** (`ToolActions`): Jedes Werkzeug meldet seine Aktionen (Name, Beschreibung,
+   Parameter, Risiko, Plattform) in einem Register, wie die Landkarte der App (`AppMap`). Lora bekommt daraus Werkzeuge
+   nur für den Bereich, der gerade offen ist (kurze Prompts, wenige Werkzeuge).
+2. **Sichtbar und umkehrbar**: Jede Aktion erscheint als Schrittzeile im Lora-Panel („Fügt 2 PDFs zusammen …“), das
+   Ergebnis als Karte mit **Rückgängig**. Alles, was etwas verschiebt, löscht (Papierkorb) oder überschreibt, fragt
+   vorher mit einer Vorschau (vorher → nachher). Lora bleibt im **Panel rechts**; kein eigener Lora-Cursor im Werkzeug.
+3. **Stufe a – Dateien**: aufräumen (Vorschlag einer Ordnerstruktur), nach Inhalt umbenennen, verschieben, Schlagwörter
+   vergeben, Duplikate finden; immer mit Vorschau und Rückgängig.
+4. **Stufe b – PDF-Werkzeugkasten**: zusammenfügen, teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern,
+   schwärzen (nur mit Vorschau), umwandeln.
+5. **Stufe c – Dokument, Tabelle, Folien**: formatieren, umstrukturieren, Tabellen einfügen, Folien anlegen – zuerst auf
+   den heutigen Editoren über ihre Datenmodelle; die neuen Editoren (AP-44, AP-48, AP-51) erfüllen dieselbe Schnittstelle.
+6. **Stufe d – Video**: schneiden, Titel/Bauchbinde setzen, Untertitel erzeugen, Rohschnitt, Export – auf dem heutigen
+   Projektmodell; AP-52 ff. übernehmen die Aktionen.
+- Datenschutz wie bisher: Datenschutzstufe, Tresor und „Nur auf diesem Gerät“ gelten auch für Aktionen; jede Aktion steht
+  im Agent-Protokoll.
+- **Fertig, wenn**: In jedem der vier Bereiche erledigt Lora einen Auftrag in natürlicher Sprache mit sichtbaren
+  Schritten, Vorschau bei riskanten Aktionen und funktionierendem Rückgängig.
+- Betrifft: neu `agent/ToolActions.kt`; `agent/LoraAgent.kt`, `data/AppMap.kt`, `ui/LoraHelper.kt`, `data/LoraDrive.kt`,
+  `ui/DriveScreen.kt`, `ui/PdfToolScreen.kt`, `docs/LiveDoc.kt`, `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, Windows
+  `video/VideoProject.kt`, `ui/VideoScreen.kt`.
+- **Umsetzung (03.11.2026, ◐)**: Register `agent/ToolActions.kt` (Aktion mit Bereich, Parametern, Risiko, Plattform;
+  `LoraFocus` meldet Auswahl, offenen Ordner, offene PDFs und das offene Dokument; `ActionHosts` verbindet die Bildschirme).
+  Lora bekommt die Aktionen des offenen Bereichs als Werkzeuge (`act_…`), klare Wünsche erkennt sie auf dem Gerät
+  (`LoraAgent.localAction`). Panel: Schrittzeile, Vorschau vorher → nachher mit *Ausführen* bei Riskantem, Ergebnis mit
+  *Rückgängig* und *Öffnen*; jede Aktion steht im App-Protokoll. **Stufe a (Dateien) ☑**: aufräumen (Typ/Semester/Monat),
+  nach Inhalt umbenennen, umbenennen, verschieben, Schlagwörter, Duplikate. **Stufe b (PDF) ☑**: öffnen, zusammenfügen,
+  teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern, schwärzen, umwandeln. **Stufe c (Dokument) ◐**: schreiben,
+  überarbeiten, Tabelle einfügen, Überschrift setzen im Fließtext-Editor; Tabellen und Folien fehlen noch (mit AP-48/AP-51).
+  **Rest**: Stufe d (Video) mit AP-52 ff.; Tabellen/Folien-Aktionen; Datenschutzstufe/Tresor für Aktionen prüfen.
 
-### AP-02 ☑ Übersicht: Seitenleiste, Startseite, einschaltbare Werkzeuge · M (bisher W2-01, W2-02, Teil von W8-00)
-- **Seitenleiste**: oben die Grundfunktionen *Neuer Chat*, *TU Vorlagen* (umbenannt aus *Vorlagen*), *Literatur*,
-  *Transkription*. Darunter ausklappbar **„Mehr“**: *Dokumente*, *Bilder erzeugen*, *Geplante Aufgaben* und alle
-  eingeschalteten Werkzeuge. Auf-/Zugeklappt wird gespeichert; Bereiche lassen sich per Rechtsklick/langem Drücken nach
-  oben holen.
-- **Einstellungen › Werkzeuge**: Schalter je großem Werkzeug (PDF, Kreativ, Video, Browser, Lernspiele …). Neue Werkzeuge
-  sind anfangs aus; Seitenleiste und Startseite zeigen nur Eingeschaltetes. Lora schlägt passende Werkzeuge vor („Für
-  PDFs gibt es den PDF-Werkzeugkasten – einschalten?“).
-- **Startseite**: oben eine Zeile Kacheln nach Tätigkeiten (Vorschlag: *Fragen & schreiben* · *TU Vorlagen* · *Dokument
-  erstellen* · *Dateien auswerten* · *Literatur finden*; Wortlaut vor Umsetzung abstimmen), darunter *Zuletzt* und
-  *Favoriten*. Lora bleibt, aber ruhiger (eine Idee statt Liste).
-- Umbenennung *Vorlagen → TU Vorlagen* überall (Seitenleiste, Befehlspalette, Startseite, README, Lora-Texte).
-- **Fertig, wenn**: Seitenleiste zeigt oben höchstens 5 Einträge, „Mehr“ enthält den Rest, Werkzeuge lassen sich aus- und
-  einschalten, Tastenkürzel funktionieren weiter.
-- Betrifft: `ui/AppDrawer.kt`, `ui/CommandPalette.kt`, `ui/TemplatesScreen.kt`, `ui/LoraUi.kt`, `ui/ChatScreenParts.kt`,
-  `ui/SettingsOverview.kt`, `ui/I18n.kt`.
-- **Ergebnis (31.10.2026)**: umgesetzt (`data/AppTools.kt`, `ui/ToolsSettings.kt`, `ui/NavRules.kt`). Kacheln mit dem
-  Vorschlags-Wortlaut. PDF-Werkzeugkasten und Tresor stehen als „geplant“ im Register und werden mit AP-10/AP-11
-  einschaltbar; Loras Vorschlag über dem Eingabefeld ist dafür schon da.
+### AP-39 ☐ Ein Gedächtnis für Lora · M (neu)
+- Das vorhandene Gedächtnis (`agent/Memory.kt`) wird zu **„Was Lora über dich weiß“**: neben Inhalten auch
+  **Vorlieben je Werkzeug** („Handouts zweispaltig“, „Videos für OPAL in 720p“, „Literaturverzeichnis in APA 7“,
+  „Hochgeladenes nach Semester ordnen“).
+- **Lora fragt vor dem Merken** („Soll ich mir merken, dass …?“ mit Antwortknöpfen aus AP-06); nichts wird still gemerkt.
+- Sichtbar und bearbeitbar unter *Einstellungen › Lora › Gedächtnis*: gruppiert nach Werkzeug, jeder Eintrag änderbar und
+  löschbar, *Alles vergessen*. Tresor-Inhalte landen nie im Gedächtnis.
+- Lora und die Aktionen aus AP-38 nutzen die Vorlieben als Standardwerte (z. B. Export-Vorgabe, Ordnerstruktur).
+- Wird mit dem Sync wie bisher übertragen.
+- **Fertig, wenn**: Eine bestätigte Vorliebe wirkt beim nächsten passenden Auftrag ohne Nachfrage und lässt sich in den
+  Einstellungen sehen und löschen.
+- Betrifft: `agent/Memory.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, Einstellungen › Lora.
 
-### AP-03 ☑ Pseudonymisierung: treffsicherer · M
-Heute rutschen Namen durch, und gleichzeitig werden Namen ersetzt, die nicht ersetzt werden sollen (Autor:innen in
-Büchern, Namen in Ergebnissen der Websuche) – das führt zu falschen Antworten.
-1. **Öffentliche Quellen ausnehmen**: Ergebnisse der Websuche, Bücher und Paper (erkennbar an ISBN/DOI) und
-   Literatureinträge gelten als öffentlich und werden nicht pseudonymisiert. Anhänge lassen sich als *öffentlich* oder
-   *vertraulich* markieren (Vorschlag der App, änderbar).
-2. **Erlaubt-Liste automatisch**: Autor:innen aus *Literatur* und aus Literaturangaben im Text, bekannte öffentliche
-   Personen und eine eigene „Nie ersetzen“-Liste werden nie ersetzt.
-3. **Ein-Klick-Korrektur**: In der Vorschau und im Agent-Protokoll „nicht ersetzen“ bzw. „auch ersetzen“ antippen; die App
-   merkt sich das für künftige Chats.
-4. **Mehr Treffer**: Namen ohne Anrede/Titel und seltene Namen, zusätzlich Orte, Schulen, Institutionen und indirekte
-   Merkmale („die Schulleiterin in X“).
-5. **Anhänge und Dateien** (PDF, Word, Projektordner) genauso gründlich wie der Chattext.
-6. **Lokales Erkennungsmodell** als Angebot, nicht als Pflicht: findet mehr, kostet Rechenzeit. Einstellung mit klarer
-   Abwägung „schneller ↔ gründlicher“; im Tresor (AP-10) standardmäßig an.
-- Testsammlung mit Beispieltexten (bekannte Namen, öffentliche Autor:innen, Literaturangaben) als Unit-Tests, damit
-  Verbesserungen messbar sind.
-- **Fertig, wenn**: Zusammenfassen eines Buchs und Websuche ersetzen keine Autor:innen mehr; die Testsammlung findet
-  deutlich mehr private Namen als heute; Korrekturen wirken im nächsten Chat.
-- Betrifft: `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `data/Privacy.kt`, `ui/PrivacySettings.kt`, `ui/AgentProtocol.kt`.
-- **Ergebnis (31.10.2026)**: umgesetzt, Testsammlung `PseudonymCorpusTest` (12/12 private Namen ersetzt, 7/7 öffentliche
-  erhalten). Gründliche Erkennung nutzt ein installiertes lokales Sprachmodell; „im Tresor standardmäßig an“ kommt mit AP-10.
+### AP-40 ☐ Abläufe über Werkzeuge · L (neu)
+- Mehrschrittige Aufträge: „Aus dieser Aufnahme: transkribieren, Untertitel, Video auf 10 Minuten kürzen, Handout als
+  Word“ oder „Alle Abgaben zusammenfügen, schwärzen, als ein PDF in die Nextcloud“.
+- Lora **plant zuerst** und zeigt den Plan als Karte (Schritte, Werkzeuge, geschätzte Dauer, Datenschutzhinweis);
+  *Los*, *Ändern*, *Abbrechen*. Danach führt sie die Schritte mit den Aktionen aus AP-38 aus.
+- Fortschritt im Panel, Pause/Fortsetzen; lange Schritte (Transkription, Export, Stapel) laufen im Hintergrund weiter und
+  melden sich (Benachrichtigung wie beim Stapel).
+- Zwischenergebnisse landen in *Erstellt*, verknüpft mit dem Ablauf; ein fehlgeschlagener Schritt lässt sich wiederholen.
+- Eigene gespeicherte Abläufe („Wochenprotokoll“) bleiben in den Ideen (*Eigene Lora-Befehle*).
+- **Fertig, wenn**: Der Beispielauftrag mit der Aufnahme läuft vom Plan bis zum Handout durch, auch über einen Neustart
+  der App hinweg.
+- Betrifft: neu `agent/LoraPlan.kt`; `agent/LoraAgent.kt`, `agent/BatchRunner.kt` (Hintergrund), `ui/LoraHelper.kt`.
 
-### AP-04 ☑ Weniger Arbeitsspeicher (W) · S–M (bisher Teil von Q-05)
-Die Windows-App braucht ohne lokale Modelle ca. 500 MB bis 1 GB. Hauptursache: Der Java-Speicher hat keine Obergrenze
-(Standard: ein Viertel des Arbeitsspeichers) und gibt freien Speicher kaum an Windows zurück. Maßnahmen nach Wirkung:
-1. **Messen**: Anzeige unter *Einstellungen › Daten* (Java-Speicher, gesamt) und Messpunkte für Start, eine Stunde Chat,
-   großer PDF-Anhang, Transkription – vorher und nachher.
-2. **Speicher begrenzen und zurückgeben**: Obergrenze (`-Xmx`, mit großen PDFs testen), freien Speicher im Leerlauf
-   zurückgeben (`-XX:G1PeriodicGCInterval`, `MinHeapFreeRatio`/`MaxHeapFreeRatio`), `-XX:+UseStringDeduplication`;
-   in `desktop/build.gradle.kts` und `ADEU LLM.cfg` (`release-local.sh`).
-3. **Chats nicht alle im Speicher**: Heute liegen alle Chats mit allen Nachrichten (auch angehängte Texte bis 120 000
-   Zeichen) im Speicher. Für die Liste reichen Titel, Datum und Projekt; die Volltextsuche liest von der Platte bzw.
-   aus einem Index.
-4. **Schwere Teile erst bei Bedarf** laden und danach wieder freigeben: Spracherkennung (sherpa-onnx), PDFBox,
-   openhtmltopdf, Rhino.
-5. **Bilder**: Vorschaubilder verkleinert halten, Zwischenspeicher begrenzen.
-- **Fertig, wenn**: Messwerte vorher/nachher im Pull Request; im Leerlauf deutlich weniger als heute, und nach großen
-  Aufgaben sinkt der Verbrauch wieder.
-- Betrifft: `desktop/build.gradle.kts`, `.github/scripts/release-local.sh`, `data/ChatRepository.kt`, `desktop/…/Main.kt`.
-- **Ergebnis (31.10.2026)**: umgesetzt (Obergrenze 1,5 GB und Rückgabe im Leerlauf, schlanke Chat-Liste, Entladen der
-  Spracherkennung, kleine Vorschaubilder, *Einstellungen › Arbeitsspeicher* mit Messpunkten). Rest: Messwerte
-  vorher/nachher auf einem Windows-PC eintragen (Messpunkte stehen in der App und im Log).
+### AP-41 ☐ Leuchtrahmen überall und Touren · M (Rest von AP-07, neu)
+- **Leuchtrahmen für alle Optionen**: Jede Einstellung und jeder wichtige Knopf in den Werkzeugen lässt sich von Lora
+  hervorheben (heute nur die wichtigsten). Ein Test prüft, dass jedes Ziel der Landkarte einen Rahmen hat.
+- **Touren**: Beim ersten Öffnen eines Werkzeugs (PDF, Dateien, Erstellen, Video, später die neuen Editoren) bietet Lora
+  eine kurze Tour an (3–6 Schritte, Leuchtrahmen + eine Zeile Text, *Weiter*/*Überspringen*). Abschaltbar unter
+  *Einstellungen › Lora*, jederzeit über Strg+K bzw. „Zeig mir, wie das geht“ wiederholbar.
+- Touren werden als Daten beschrieben (Ziel, Text), nicht je Bildschirm programmiert; englische Texte über `en.tsv`.
+- Respektiert *Ruhigere Bewegungen*; Lora fliegt (AP-36) nur, wenn Bewegungen erlaubt sind.
+- **Fertig, wenn**: Jede Option der Landkarte leuchtet beim Navigieren auf; das erste Öffnen des PDF-Werkzeugkastens bietet
+  eine Tour an, die sich überspringen und später wieder aufrufen lässt.
+- Betrifft: `ui/Spotlight.kt`, `data/AppMap.kt`, neu `ui/LoraTour.kt`, Einstellungen › Lora.
 
-### AP-05 ☑ Einheitlicher Modus-Rahmen · M (bisher W2-03)
-- Gemeinsames Modell `ChatMode` (Name, Symbol, Erklärzeile, Beispielanfrage, Datenhinweis, Werkzeuge, Prompt-Zusatz,
-  Standardmodell). Bestehende Modi (Literatursuche, Sprachmodus …) darauf umstellen.
-- Anzeige: Chip über dem Eingabefeld mit ✕, darunter eine Zeile „Was passiert hier · Daten: …“, im leeren Chat ein
-  Beispiel zum Antippen.
-- Modi über `/`-Befehl, Befehlspalette, Startseite und Lora aufrufbar.
-- **Fertig, wenn**: Jeder Modus sieht gleich aus und lässt sich mit ✕ verlassen; neue Modi brauchen nur eine Definition.
-- Betrifft: neu `agent/ChatModes.kt`, `ui/ChatComposer.kt`, `ui/ChatViewModel.kt`.
-- **Ergebnis (31.10.2026)**: umgesetzt (`agent/ChatModes.kt`, `ui/ModeUi.kt`): Literatursuche, Planungsmodus, Sprachmodus;
-  `/`, Strg+K, Startseite und Loras Ideen. Aufruf über Lora kommt mit AP-07.
-
-### AP-06 ☑ Rückfragen mit Antwortknöpfen · M (neu)
-Wie die Fragerunden, mit denen dieser Plan entstanden ist: Statt zu raten, stellt die KI 1–4 kurze Fragen mit
-Antwortknöpfen (Einfach- oder Mehrfachauswahl, immer auch freie Antwort).
-1. **Werkzeug für den Chat** (`ask_user`): alle Chat-Modelle können vor großen Aufgaben (Dokument, Antrag, Stapel)
-   strukturiert nachfragen. Die Fragen erscheinen als Karte im Chat, die Antworten gehen als eine Nachricht zurück.
-2. **Lora fragt bei Unklarem**: mehrdeutige Wünsche klärt Lora mit einer Fragekarte, bevor sie navigiert oder übergibt
-   (nutzt AP-07).
-3. **Planungsmodus** (Modus nach AP-05): Lora führt Fragerunden zu einem Vorhaben (Seminar, Antrag, Projekt, Paper,
-   Arbeitsplan) und erstellt daraus einen Plan als Dokument.
-4. **TU Vorlagen als Fragerunde**: Vorlagen mit vielen Feldern wahlweise Schritt für Schritt mit Lora statt im Formular
-   ausfüllen.
-- **Fertig, wenn**: Ein Modell stellt eine Rückfrage mit Knöpfen, die Antwort fließt in die Aufgabe ein; Planungsmodus
-  erzeugt aus mehreren Runden ein Plan-Dokument; eine TU Vorlage lässt sich als Fragerunde ausfüllen.
-- Betrifft: neu `agent/AskUserTool.kt`, `ui/ChatMessages.kt`, `ui/TemplateUi.kt`, `agent/AgentRunner.kt`.
-- **Ergebnis (31.10.2026)**: Punkte 1, 3 und 4 umgesetzt (`ask_user`, `ui/QuestionCard.kt`, Planungsmodus,
-  „Lieber mit Lora Schritt für Schritt“ in TU Vorlagen ab drei Feldern). Punkt 2 (Lora fragt bei Unklarem) kommt mit AP-07.
-
-### AP-07 ☑ Lora als Navigator · L (bisher W2-04, W2-05, W2-06)
-- Eigene, schlanke Agent-Schleife **LoraAgent** mit **GLM-5.3 Flash**, Denkphase aus, kurzer System-Prompt.
-- **Landkarte der App** (`AppMap`): alle Bereiche, Einstellungen, Modi, TU Vorlagen und Werkzeuge mit ID, Pfad,
-  Beschreibung, Synonymen und Plattform. Wird aus vorhandenen Registern erzeugt (Einstellungssuche, Vorlagen, Modi),
-  nicht doppelt gepflegt.
-- Werkzeuge für Lora:
-  - `navigate(ziel)` – öffnet Bereich/Einstellung und **hebt die Option mit Leuchtrahmen hervor** (Spotlight).
-  - `open_mode(modus, felder)` – öffnet einen Modus/eine Vorlage vorausgefüllt.
-  - `change_setting(id, wert)` – nur nach Bestätigung.
-  - `enable_tool(werkzeug)` – schlägt ein ausgeschaltetes Werkzeug vor (AP-02), einschalten nach Bestätigung.
-  - `handoff_chat(modell, anfrage, zusammenfassung)` – übergibt an ein Chat-Modell (Auswahl über `ModelRouter`).
-  - `explain(thema)` – beantwortet „Wie geht …?“ aus der eingebauten Hilfe (README-Abschnitte).
-  - Rückfragen mit Antwortknöpfen aus AP-06.
-- **Lokal zuerst**: einfache Wünsche („Wo stelle ich die Stimme um?“) löst die lokale Suche sofort ohne Anfrage; das
-  Modell nur bei echten Gesprächen.
-- **Einstiege**: schlafend unten rechts in den Einstellungen und weiteren passenden Bereichen (Klick weckt Lora: „Was
-  möchtest du machen oder einstellen?“, Text oder Sprache), Startseite, Befehlspalette (Strg+K → „Lora fragen“), langes
-  Drücken auf Lora im Chat. Lora reagiert, unterbricht nicht – höchstens ein einmaliger Hinweis je Bereich.
-- **Erster Start, kurz**: höchstens zwei Fragen – Lora *überall / nur im Chat / aus* und welche Werkzeuge sichtbar sein
-  sollen. *Einstellungen › Lora*: Modus, Modell, reduzierte Animationen, Hinweise erlaubt; der Schalter *Lora
-  ausblenden* geht darin auf.
-- Datenschutz: in Projekten „Nur auf diesem Gerät“ nur lokale Suche bzw. lokales Modell; Lora-Anfragen erscheinen im
-  Agent-Protokoll und im Verbrauch. Lora läuft nur auf Abruf, nie im Hintergrund mitlesend.
-- **Fertig, wenn**: „Dunkles Design“ → Lora springt zu *Darstellung* und hebt den Schalter hervor; „Ich will ein PDF
-  zusammenfügen“ → Lora schlägt den PDF-Werkzeugkasten vor; „Erklär mir Exzerpte“ → Übergabe an einen Chat.
-- Betrifft: neu `agent/LoraAgent.kt`, `data/AppMap.kt`, `ui/LoraHelper.kt`; `ui/AppRoot.kt`, `ui/NavRules.kt`,
-  `ui/SettingsOverview.kt`, `ui/Welcome.kt`, `agent/ModelRouter.kt`.
-- **Ergebnis (31.10.2026)**: umgesetzt wie beschrieben (`data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`,
-  `ui/Spotlight.kt`). Leuchtrahmen an den wichtigsten Optionen (Darstellung, Chat, Lora, Datenschutz, Stimme); weitere
-  Optionen öffnen ihre Seite ohne Rahmen. Damit ist auch AP-06 Punkt 2 erledigt (Lora fragt mit Antwortknöpfen nach).
-
-### AP-08 ☑ Belegpflicht und Quellenmodus · M (bisher W3-03, W5-02)
-- **Belegpflicht**: Antworten enthalten zu jeder Aussage eine Fundstelle (Datei + Seite, DOI, URL, Transkriptzeit).
-- Prüfschritt nach der Antwort: Belege gegen die Quelle abgleichen (Zitat vorhanden?), unbelegte Sätze markieren oder
-  entfernen; Belegprotokoll am Ende, exportierbar.
-- Klick auf einen Beleg öffnet die Stelle (PDF-Seite, Wissenssammlung, Webseite); Darstellung mit den Quellenmarken aus AP-01.
-- **Quellenmodus** (nach AP-05) für jeden Chat; Quellen: Wissenssammlung, Projektordner, Anhänge, Web, Literatur.
-- **Fertig, wenn**: Im Quellenmodus hat jede Aussage einen Beleg, falsche Zitate werden markiert, ein Klick öffnet die Stelle.
-- Betrifft: neu `agent/Evidence.kt`; `ui/ChatMessages.kt`, `data/Knowledge.kt`.
-- **Ergebnis (31.10.2026)**: `agent/Evidence.kt` (Prüfung auf dem Gerät, Seiten über die Seitenmarken der PDFs),
-  `ui/EvidenceCard.kt`. Klick öffnet PDF-Seite (PDF-Werkzeugkasten) oder Webseite; Stellen in der Wissenssammlung werden
-  geprüft, aber noch nicht in einer eigenen Ansicht geöffnet.
-
-### AP-09 ☑ Exzerpt-Agent · M (bisher W5-01)
-- Standardfelder: Bibliografie, Fragestellung, Theorie, Methode, Stichprobe, zentrale Befunde, wörtliche Zitate mit Seite,
-  Begriffe, eigene Bewertung, Anschlussfragen.
-- Schemata je Texttyp (empirisch, theoretisch, Review, Buchkapitel); eigene Schemata als TU Vorlage.
-- Mit Belegpflicht (AP-08); Ergebnis am Literatureintrag und als Dokument/Tabelle. Mehrere Texte nacheinander zunächst
-  einfach, große Stapel mit Pause/Fortsetzen über AP-20.
-- Baut auf der vorhandenen Vorlage *Forschung › Exzerpt* auf.
-- **Fertig, wenn**: Ein PDF ergibt ein Exzerpt mit geprüften Seitenangaben, das am Literatureintrag hängt.
-- **Ergebnis (31.10.2026)**: `research/Excerpts.kt`, `agent/ExcerptTools.kt` (`save_excerpt` nimmt das Exzerpt erst
-  mit stimmenden Seiten an), Exzerpt-Modus, Knopf am Literatureintrag, *Exzerpte als Tabelle*. Große Stapel folgen mit AP-20.
-
-### AP-10 ☑ Tresor für sensible Forschung · M (neu, ersetzt W4-04)
-- Eigener Bereich für sensible Chats und Projekte, z. B. Interviews oder Daten von Studierenden.
-- **App-interne PIN**, festgelegt beim ersten Öffnen des Tresors; sperrt nach Inaktivität. Beim Einrichten wird ein
-  **Wiederherstellungsschlüssel** zum Ausdrucken/Aufbewahren angezeigt, mit dem sich die PIN neu setzen lässt.
-- **Verschlüsselt gespeichert** (Schlüssel aus PIN; Android Keystore bzw. Windows DPAPI zusätzlich); Tresor-Inhalte
-  erscheinen nicht in Suche, Gedächtnis und Vorschlägen außerhalb des Tresors.
-- **Strenge Pseudonymisierung** (aus AP-03, im Zweifel ersetzen; lokales Erkennungsmodell an) und **nur Uni-Server oder
-  lokale Modelle** (Datenschutzstufe mindestens „Nur TU Dresden“).
-- **Sync wählbar je Tresor-Chat** (sobald AP-12 da ist): „nur dieses Gerät“ oder „verschlüsselt synchronisieren“.
-- **Fertig, wenn**: Tresor-Chat ist ohne PIN nicht lesbar (auch nicht als Datei), PIN lässt sich mit dem
-  Wiederherstellungsschlüssel zurücksetzen, externe Modelle sind gesperrt.
-- Betrifft: `data/SecretBox.kt`, `data/SecureStorage.kt`, `data/Privacy.kt`, `data/ChatRepository.kt`, `ui/PrivacySettings.kt`.
-- **Ergebnis (31.10.2026)**: `data/Vault.kt`, `data/DeviceKey.kt` (Keystore/DPAPI), `ui/VaultScreen.kt`; strenge
-  Pseudonymisierung über `Pseudonymizer.STRICT`. Tresor-Projekte (Ordner im Tresor) und Sync je Tresor-Chat kommen mit
-  AP-12.
-
-### AP-11 ☑ PDF-Werkzeugkasten Stufe 1 · L (bisher W8-02, Stufen 1–3 und Teil von 5)
-Alltagsumfang nach dem Vorbild pdf24 + Xodo; als einschaltbares Werkzeug (AP-02).
-1. **Betrachter**: mehrere PDFs in Tabs, Miniaturen, Gliederung/Lesezeichen, Suche, Nachtmodus.
-2. **Seiten**: zusammenführen, teilen, extrahieren, löschen, drehen, sortieren (Ziehen in der Miniaturansicht),
-   Seitenzahlen.
-3. **Markieren & Notizen**: hervorheben, unterstreichen, durchstreichen, Freihand, Notizen, Stempel; Kommentarliste exportieren.
-4. **PDF ausfüllbar machen**: Der Agent erkennt, wo Eingaben hingehören (Linien, Kästchen, „Name: ____“), und setzt die
-  Formularfelder selbst; der Nutzer korrigiert bei Bedarf (verschieben, Größe, Feldtyp). Ausfüllen gibt es schon.
-- Lora-Animation zum Werkzeug: Schere, Hefter, Stempel.
-- Plattform: Windows voll; Android Betrachter, Seiten und Markieren.
-- Technik: PDFBox (Android: pdfbox-android, Windows: PDFBox 3 – vorhanden), Rendering über PdfRenderer bzw. PDFBox.
-  PdfCraft nur für Abläufe und Bedienung ansehen (*Anhang: Craft-Apps*).
-- **Fertig, wenn**: Zwei PDFs in Tabs öffnen, zusammenfügen, Seiten umsortieren, markieren und speichern; ein
-  Papierformular wird per Agent ausfüllbar und lässt sich danach am PC ausfüllen.
-- **Ergebnis (31.10.2026)**: `docs/PdfTools.kt` (je Plattform), `docs/PdfToolModel.kt` (Felderkennung),
-  `ui/PdfRender.kt`, `ui/PdfToolScreen.kt`, Agent-Werkzeug `make_pdf_fillable`; Lora schneidet, heftet und stempelt.
-  Markieren per Rechteck (noch ohne Einrasten am Text).
-
-### AP-33 ☑ Umbenennung in Lora und sichtbare Fehler · S–M (neu, 31.10.2026)
-- App-Name **Lora** mit Slogan *Der freundliche Helfer für alle Wünsche in Forschung, Lehre und Verwaltung an der TU
-  Dresden*: Fenstertitel, Infobereich, Android-App-Name, Startanimation, Seitenleiste, Über/Hilfe, Update-Dialoge,
-  Benachrichtigungen, Dokument-Metadaten, Loras Prompts, Release-Titel, README und Updater-README.
-- **Technische Namen bleiben** (`ADEU LLM.exe`, `%APPDATA%\ADEU LLM`, `%LOCALAPPDATA%\ADEU LLM`, `ADEU-LLM-…`-Dateien,
-  Autostart): ältere Versionen suchen beim Update genau diese Namen. Umzug später nur mit Migration (Ideen).
-- **Übergabe an den Chat**: Karte *Von Lora übergeben · Modell · Grund* über der Frage; Loras Zusammenfassung geht als
-  versteckte Anweisung mit statt sichtbar im Text; das gewählte Modell bleibt (vorher sprang die automatische Wahl auf
-  das Standardmodell bzw. ein Förderprogramm landete wegen „programm“ beim Programmiermodell); Standard für Übergaben
-  **DeepSeek V4.1 Flash**, andere nur in Sonderfällen, die Lora entscheidet und begründet; *Übergaben erst zeigen*.
-- Schlafende Lora verdeckt keine Einträge mehr; kurze Chat-Titel aus der ersten Nachricht (`data/ChatTitles.kt`);
-  breite Tabellen zeigen, dass sie seitlich weitergehen.
-- Betrifft: `Brand.kt`, `ui/Logo.kt`, `ui/AppDrawer.kt`, `desktop/…/Main.kt`, `desktop/launcher/Launcher.cs`,
-  `agent/LoraAgent.kt`, `agent/ModelRouter.kt`, `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `ui/Markdown.kt`.
-
-### AP-34 ☑ Lora-Panel mit Kontext · M (neu, 31.10.2026)
-- Panel statt Popup: Seitenleiste rechts bei breiten Fenstern (bleibt beim Navigieren offen), Blatt von unten auf dem
-  Handy; Gespräch bleibt bis *Neu beginnen*; Antworten schrittweise und formatiert; *Abbrechen*; freundliche Fehler.
-- **Kontext**: Lora kennt den Bereich und zeigt passende Vorschläge („Das passt hier“), feste Ziele öffnen ohne Anfrage,
-  Wünsche zum offenen Chat landen in diesem Chat.
-- **Ergebnis-Karten** für Orte, Einstellungen (Vorher → Nachher, *Rückgängig*), Werkzeuge, Fristen und frühere Chats.
-- Einstiege: **Strg+L** (Literatur: Strg+Umschalt+L), Lora-Knopf im Chat, *Frag Lora …* auf der Startseite, Android-
-  Verknüpfung am App-Symbol, Strg+K, schlafende Lora.
-- Betrifft: `ui/LoraHelper.kt`, `ui/AppRoot.kt` (beide), `ui/ChatScreenParts.kt`, `res/xml/shortcuts.xml`.
-
-### AP-35 ☑ Lora hilft im Chat · M (neu, 31.10.2026)
-- **Nächste Schritte** unter der letzten Antwort, auf dem Gerät erkannt: Fristen in den Kalender (.ics mit Erinnerung),
-  Tabelle als Excel, DOIs in die Literatur, langer Text als Word.
-- Neue Fähigkeiten: `search_chats` (frühere Chats, auch lokal „Wo hatte ich …?“), `add_reminder` (Frist/Erinnerung).
-- **Hinweis beim Tippen**: klarer App-Wunsch im Chatfeld → Lora zeigt den Ort darüber (nie bei echten Fragen).
-- **Arbeitskarte**: verständliche Schrittzeilen („Sucht im Web: „…““, „Liest dfg.de“), „Schreibt die Antwort …“.
-- Betrifft: `agent/LoraSense.kt`, `ui/LoraChat.kt`, `ui/ChatScreen.kt`, `ui/ChatMessages.kt`, `data/SettingsStore.kt`.
-
-### AP-36 ☑ Animationen · M (neu, 31.10.2026, auf Wunsch statt „nur mit dem Werkzeug“)
-- **Korrigiert**: Schere schneidet das Blatt entlang der Linie (vorher schnitt sie in die Luft), Stempel trifft das Blatt
-  auf einem Beistelltisch und zeigt das Siegel (vorher landete er unter dem Blatt, das mitsprang), Tacker steht auf dem
-  Tisch (vorher hing er vor Loras Bauch). Grundlage: Hände können gezielt nach einem Punkt greifen (`reachL/reachR`).
-- **Neu**: Brief, Kalender, Staffelei, Schloss, Präsentation, Tabelle, Übersetzen, Textmarker, Ordner; Stimmungen Nicken,
-  Jubel mit Konfetti, Schulterzucken, Kopfkratzen, Zeigen, Fliegen, Ruhe; Augen folgen dem Zeiger; Startseite nach
-  Tageszeit; im Sprachmodus nickt Lora beim Zuhören.
-- **Vom Wunsch zum Ort**: Lora fliegt aus dem Panel zum Ziel (Chat-Eingabe, Seitenleiste, Einstellung) und landet mit
-  einem Ring; der Ort leuchtet.
-- Kontaktbogen aller 51 Aktionen: `LoraFigureTest` (`desktop/build/lora.png`), Bilder des Panels: `LoraPanelLookTest`.
-- Betrifft: `ui/LoraFigure.kt`, `ui/LoraFlight.kt`, `ui/LoraUi.kt`, `ui/VoiceMode.kt`, `ui/Spotlight.kt`.
-
-### AP-37 ☑ Lora leichter finden, Startseite mit Chips · S–M (neu, 31.10.2026, auf Wunsch)
-- **Anlass**: Das Lora-Symbol oben im Chat war winzig (die ganze Figur in 30 × 21 dp), das Panel dadurch schwer zu
-  entdecken; die Kacheln der Startseite wirkten unschön; das zweite Eingabefeld *Frag Lora …* in der Mitte war überflüssig;
-  die schlafende Lora unten rechts (Android) war klein.
-- **Nahaufnahme**: Loras Gesicht (Kopf mit Antenne und Visier) als eigene Zeichnung (`drawLoraFace`), mit Mimik aus
-  derselben Steuerung, Blinzeln, Atmen, Blick zum Zeiger, winkender Hand oder „z“ im Schlaf. Überall, wo wenig Platz
-  ist: Kopfleiste, schlafende Lora, Karten und Chips.
-- **Kopfleiste**: Pille **„Frag Lora“** mit Loras Gesicht (36 dp) und Markenfarbe, aktiv hervorgehoben; auf schmalen
-  Fenstern mit Chat-Titel nur das runde Gesicht. **Schlafende Lora**: runder Knopf (62 dp) mit dem schlafenden Gesicht,
-  wacht unter der Maus auf und winkt.
-- **Startseite**: Chips statt Kacheln (*Schreiben*, *Dokument erstellen*, *Dateien auswerten*, *Literatur finden*,
-  *TU Vorlagen*); ein Chip öffnet an seiner Stelle konkrete Starts, die das Eingabefeld füllen oder den Ort öffnen.
-  *Frag Lora …* auf der Startseite entfällt; ein Tipp auf Lora öffnet ihr Panel.
-- Bilder: `LoraPanelLookTest` (`desktop/build/lora-entries.png`), `LoraUiTest` (`lora-home-*.png`, `lora-home-starts.png`).
-- Betrifft: `ui/LoraFigure.kt`, `ui/LoraUi.kt`, `ui/LoraHelper.kt`, `ui/ChatScreenParts.kt`, `ui/ChatScreen.kt`,
-  `ui/LoraChat.kt`, `ui/TemplateUi.kt`, `ui/ToolsSettings.kt`.
+### AP-42 ☑ Lora-Dateidialog · M (neu, Wunsch)
+Heute öffnet *Hochladen* den einfachen AWT-Dialog und die Ordnerwahl einen alten Java-Dialog (Swing) – beides wirkt
+veraltet und passt nicht zu Windows 11.
+- **Eigener Dialog im Lora-Design** für Öffnen, Speichern unter und Ordnerwahl, überall in der App (`Desktop.pickFiles`,
+  `pickFolder`, `pickSaveFile`, Ordnerabfrage beim Start in `Main.kt`, Android-Auswahl wo sinnvoll).
+- Seitenspalte wie im Tab *Dateien*: *Zuletzt · Markiert · Lora-Ordner · Hochgeladen · Erstellt · Nextcloud ·
+  Dieser PC* (Laufwerke, Desktop, Downloads, Dokumente, OneDrive/Cloud-Ordner).
+- Raster/Liste mit Vorschaubildern, Pfadleiste, Suche, Filter nach Dateityp, Mehrfachauswahl, neuer Ordner, Ziehen von
+  Dateien aus dem Explorer in den Dialog; zuletzt benutzter Ort je Zweck wird gemerkt.
+- Tastatur vollständig (Pfeile, Enter, Rücktaste, Strg+A, Tippen springt), Screenreader-Beschriftungen (AP-30), alle
+  Stile inklusive Hoher Kontrast.
+- **Fertig, wenn**: Kein Swing-/AWT-Dialog mehr in der App; Hochladen, Speichern unter und Ordnerwahl laufen über den
+  Lora-Dialog und erreichen Lora-Ordner, Nextcloud und beliebige Ordner des PCs.
+- Betrifft: `desktop/Desktop.kt`, `Main.kt`, `ui/FilePicker.kt` (beide), neu `ui/LoraFileDialog.kt`, `ui/DriveScreen.kt`
+  (gemeinsame Bausteine).
+- **Umsetzung (03.11.2026, ☑)**: `desktop/…/ui/LoraFileDialog.kt` – ein Fenster der App (liegt auch über dem Browser),
+  in das `DesktopActions.pickFiles/pickFolder/pickSaveFile` warten; alle Aufrufer laufen unverändert darüber. Seitenspalte,
+  Pfadleiste mit Eingabe, Suche, Typfilter, Liste/Raster mit Vorschaubildern (Bilder, PDF-Seite 1), Mehrfachauswahl,
+  neuer Ordner, Ziehen aus dem Explorer, Ersetzen-Rückfrage, letzter Ort je Zweck, Tastatur und Screenreader. Nextcloud:
+  Öffnen lädt, *Speichern unter* lädt nach dem Schreiben hoch. Die Lora-Ordner-Frage beim Start ist ein eigenes kleines
+  Compose-Fenster (berührt keine App-Daten). Der Systemdialog bleibt nur als Rückfall, falls kein Fenster der App da ist.
+  Android behält die Systemauswahl (Speicherzugriff nur über sie). Rest: Ordner und Dateien im Dialog umbenennen/löschen.
 
 ---
 
 ## Danach
 
-### AP-12 ☑ Einfacher Sync zwischen PCs (W) · M (bisher W4-02, stark vereinfacht)
-- *Einstellungen › Synchronisation*: „**Datenordner in Cloud-Ordner legen**“ – Nextcloud, Google Drive für Desktop oder
-  OneDrive, der auf beiden PCs eingerichtet ist (wie ein Obsidian-Tresor). Auf dem zweiten PC „Vorhandenen Ordner
-  öffnen“ → alles ist da.
-- Synchronisiert wird alles (Chats, Projekte, Dokumente, Literatur, TU Vorlagen, Gedächtnis, Einstellungen), **API-Schlüssel
-  nie**.
-- Gleichzeitiges Arbeiten verhindern statt Konflikte auflösen: Sperrdatei „geöffnet auf PC X seit …“, Hinweis beim
-  Start; Konfliktdateien des Cloud-Dienstes erkennen und beide Fassungen behalten.
-- Speicherorte (Windows) und Datenordner-Verlegung gehen darin auf.
-- **Fertig, wenn**: Chat am Büro-PC beginnen, am Laptop weiterführen, ohne ZIP-Umzug; nichts geht verloren, wenn beide
-  PCs kurz nacheinander offen waren.
-- **Ergebnis (31.10.2026)**: *Einstellungen › Synchronisation* mit Knöpfen für gefundene Cloud-Ordner (OneDrive,
-  Google Drive für Desktop, Nextcloud, Dropbox), *Vorhandenen Ordner öffnen*, Liste der PCs, *Synchronisation beenden*.
-  Je PC eine Notiz in `sync/` (offen seit, lebt noch, geschlossen, geänderte Dateien mit Größe); **vor dem Laden** wartet
-  ein kleines Fenster, solange Lora anderswo offen ist oder dessen Änderungen fehlen, und geht von selbst weiter. Ein PC,
-  der nur im Infobereich wartet, beendet sich, wenn ein anderer öffnet. Konfliktkopien (OneDrive, Google Drive,
-  Nextcloud, Dropbox, Syncthing): Chats als „zweite Fassung“, Rest in `sync/konflikte/`. **Wichtiger Fund**: Bis 1.0.44
-  lagen alle Einstellungen DPAPI-verschlüsselt im Datenordner – ein zweiter PC konnte sie nicht lesen und überschrieb
-  sie. Jetzt liegen Schlüssel/Tokens/Konten/Umgebungen verschlüsselt auf dem PC (`schluessel.dat`), der Rest lesbar in
-  `einstellungen.json` (einmalige Aufteilung beim Start). Fensterposition, Update-Stand und Protokoll bleiben auf dem PC.
-  Tests: `SyncAndBrowserTest`. Betrifft: `data/SyncGuard.kt`, `desktop/SyncSession.kt`, `ui/SyncUi.kt`,
-  `data/SecurePrefs.kt` (Windows), `desktop/Paths.kt`, `Main.kt`.
+### AP-43 ◐ Gemeinsamer Text-Kern · XL (neu, Grundlage)
+Der Dokument-Editor arbeitet heute **blockweise** (ein Eingabefeld je Absatz, Markdown darunter): Markieren über Absätze
+hinweg geht nicht, der Cursor springt, Formatierung ist begrenzt. Grundlage für alle neuen Editoren:
+- **Eigenes Dokumentmodell**: Absätze mit Formatvorlage, Läufe mit Zeichenformat (Schrift, Größe, fett/kursiv/
+  unterstrichen, Farbe, Hervorhebung, hoch/tief), Absatzformat (Ausrichtung, Einzüge, Abstände, Zeilenabstand, Listen),
+  Tabellen (verbundene Zellen, Rahmen, Schattierung), Bilder (im Text, umflossen), Abschnitte (Seitenformat, Ränder,
+  Kopf-/Fußzeile, Spalten), Fußnoten, Felder (Seitenzahl, Inhaltsverzeichnis, Zitat), Formeln, Kommentare,
+  Änderungsverfolgung.
+- **Layout-Engine**: Zeilenumbruch, Silbentrennung (Deutsch/Englisch), **echter Seitenumbruch** mit Witwen/Waisen,
+  Tabellen über Seiten, Kopf-/Fußzeilen je Abschnitt; dieselbe Engine zeichnet Bildschirm, PDF-Export und Vorschaubilder.
+- **Bearbeiten**: ein durchgehender Cursor, Markieren über beliebige Grenzen (Maus, Umschalt+Pfeile, Doppel-/Dreifachklick),
+  Kopieren/Einfügen mit Formatierung (aus Word und Browser: HTML/RTF), Rückgängig als Transaktionen, Eingabemethoden
+  (IME, Akzente), große Dokumente (200+ Seiten) flüssig.
+- Markdown bleibt als **Import/Export** erhalten (für Chat und `.md`-Dateien), nicht mehr als Speicherformat für Dokumente.
+- Wird von Dokument (AP-44), Tabellenzellen (AP-48) und Textfeldern in Folien und Gestalten (AP-50) benutzt.
+- Stufen: (a) Modell + Layout + Anzeige, (b) Bearbeiten und Rückgängig, (c) Zwischenablage, (d) Leistung bei großen
+  Dokumenten.
+- **Fertig, wenn**: Ein 100-seitiges Dokument mit Tabellen und Bildern lässt sich flüssig durchgehend bearbeiten,
+  Seitenumbrüche entsprechen dem PDF-Export.
+- Betrifft: neu `docs/text/*` (Modell, Layout, Bearbeiten); `docs/DocMarkup.kt`, `docs/LiveDoc.kt`.
+- **Umsetzung (03.11.2026, ◐, für AP-44 vorgezogen)**: `docs/text/RichText.kt` – Fließtext mit Zeichenformat je Zeichen
+  (fett, kursiv, unterstrichen, durchgestrichen, Code, hoch/tief, Farbe, Hervorhebung, Größe, Schrift, Link) und
+  Absatzformat (Formatvorlage, Ausrichtung, Listenebene, Checkliste, weiche Zeilen); Bearbeiten (Diff, Formate wandern mit,
+  Absätze teilen/verbinden), Markdown hin und zurück (Erweiterungen als HTML-Marken, die alle Exporte lesen), Vorschläge
+  (Wortdiff) und Loras Schreibmarken. Markdown bleibt vorerst Speicherformat (Chat, Exporte, Word laufen unverändert).
+  **Rest**: eigene Layout-Engine mit echtem Seitenumbruch (Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt) für Bildschirm und
+  PDF, Tabellen/Bilder im Modell statt als Blöcke, Zwischenablage mit Formatierung (HTML/RTF), Leistung bei 200+ Seiten.
 
-### AP-13 ☑ Mail und Kalender über das klassische Outlook (W) · L (bisher W7-01)
-- **Anbindung**: lokal über COM an das klassische Outlook (Mails, Ordner, Kalender, Frei/Gebucht) – ohne Server-Zugang
-  und ohne IT-Freigabe. Technik prüfen (z. B. JACOB/com4j oder kleine PowerShell-Brücke).
-- Funktionen:
-  - Postfach zusammenfassen („Was ist seit gestern wichtig?“).
-  - **Mails in Ordner sortieren** (Regeln vorschlagen, Verschieben nach Bestätigung oder als feste Regel).
-  - Antworten im eigenen Stil als **Entwurf** in Outlook (Gedächtnis).
-  - Fristen und Termine aus Mails erkennen → Kalender/Aufgaben.
-  - Freie Zeiten mit Kolleg:innen finden (Frei/Gebucht), Einladungen vorbereiten.
-- **Harte Regeln**: nie löschen, nie ohne ausdrückliche Aufforderung senden; jede Aktion im Agent-Protokoll.
-- Pseudonymisierung vor Modellanfragen (AP-03).
-- Lora-Animation zum Werkzeug: Briefe sortieren, Seiten umblättern.
-- **Fertig, wenn**: Zusammenfassung des Posteingangs, ein sortierter Ordner, ein Antwortentwurf und ein Kalendereintrag
-  aus einer Mail – ohne dass etwas gesendet oder gelöscht wurde.
-- **Ergebnis (01.11.2026)**: Werkzeug *Mail & Kalender* (nur Windows, Standard aus) mit Modus *Postfach*. **Brücke:
-  COM über JNA** (`desktop/Com.kt`, `desktop/ComOutlook.kt`; Late Binding, eigener COM-Thread, alle Objekte werden
-  freigegeben) – keine PowerShell, keine Zusatzbibliothek, keine Admin-Rechte (beantwortet Offene Frage 2). Agent:
-  `outlook_list_folders`, `outlook_list_mails` (seit N Stunden, ungelesen, Suche; Kürzel M1 … statt langer IDs),
-  `outlook_read_mail`, `outlook_move_mails` (fragt immer), `outlook_create_folder`, `outlook_save_draft` (Antwort über
-  dem zitierten Verlauf), `outlook_list_events`, `outlook_create_event` (Fristen ganztägig mit Erinnerung; mit
-  Teilnehmenden eine **vorbereitete** Einladung, die sich in Outlook öffnet), `outlook_create_task`,
-  `outlook_find_free_times` (Frei/Gebucht, Mo–Fr 8–18 Uhr), `outlook_save_rule`, `outlook_apply_rules`. **Kein Löschen,
-  kein Senden** – die Brücke hat dafür keine Funktionen (Test prüft das). Bereich *Mehr › Mail & Kalender*: Verbindung,
-  Starts für Lora, Termine heute/morgen, Sortierregeln mit Vorschau vor dem Anwenden, Protokoll jeder Änderung
-  (`outlook_log.json`). Lora sortiert Briefe, blättert, trägt Termine ein. Datumsfilter im Format der
-  Windows-Regionseinstellung. Tests: `OutlookTest` (mit nachgebautem Outlook); Selbsttest meldet den Stand als Info.
-  Grenzen: nur klassisches Outlook; je nach Virenscanner einmalige Rückfrage von Outlook beim Lesen von Adressen;
-  echte Outlook-Regeln (serverseitig) legt die App nicht an, ihre Regeln wirken beim Anwenden.
+### AP-44 ◐ Fließtext-Editor für Dokumente · XL (neu, ersetzt den Block-Editor)
+So nah wie möglich an **Google Docs**:
+- **Seitenansicht** mit echten Seiten (Standard) und *Ohne Seiten* (fortlaufend); **Lineal** mit Einzügen und Tabstopps;
+  Zoom; Ränder per Ziehen.
+- **Symbolleiste** wie Docs: Rückgängig, Formatvorlage, Schrift, Größe, fett/kursiv/unterstrichen, Farbe, Hervorhebung,
+  Link, Kommentar, Bild, Ausrichtung, Zeilenabstand, Listen (Aufzählung, nummeriert, Checkliste), Einzug,
+  Formatierung entfernen; Menüs *Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras*.
+- **Einfügen**: Tabelle (Raster-Auswahl, Zeilen/Spalten per Rechtsklick, verbinden), Bild (auch vom Bildmodell),
+  Seitenumbruch/Abschnittsumbruch, Fußnote, Inhaltsverzeichnis, Formel, Sonderzeichen, Datum, Zitat aus der Literatur.
+- **Suchen und Ersetzen** (auch Formatierung), Wortzahl, Rechtschreibung auf dem Gerät (aus AP-16), Kommentare am Rand,
+  Änderungen nachverfolgen – übernommen in das neue Modell.
+- Bestehende Dokumente werden beim ersten Öffnen umgestellt (Markdown → Modell); Versionen bleiben.
+- **Fertig, wenn**: Der alte Block-Editor ist ersetzt; ein Hausarbeits-Dokument (Deckblatt, Inhaltsverzeichnis,
+  Fußnoten, Tabellen, Literaturverzeichnis) lässt sich ohne Umweg über Word erstellen.
+- Betrifft: `ui/DocsEditor.kt`, `ui/DocsText.kt` (ersetzt), `ui/DocsAssistant.kt`, `docs/LiveDoc.kt`.
+- **Umsetzung (03.11.2026, ◐)**: `ui/FlowEditor.kt` ist der Editor für Text-Dokumente: durchgehender Text mit Cursor und
+  Markieren über Absätze, Symbolleiste und Menüs wie Docs (Formatvorlage, Schrift, Größe, B/I/U/S, Farbe, Hervorhebung,
+  Link, Kommentar, Bild, Ausrichtung, Listen, Einzug, Formatierung entfernen, ✨), Tastenkürzel, Markdown-Kürzel,
+  Checkboxen zum Anklicken, eigenes Rückgängig, Seitenansicht (A4-Breite, Ränder aus *Seite einrichten*, Linien an den
+  Seitenenden) oder *Ohne Seiten*, Zoom. Einfügen: Tabelle (Raster), Bild, Link, Kommentar, Zitat, Seitenumbruch,
+  Inhaltsverzeichnis, Fußnote, Formel, Linie, Datum, Sonderzeichen; Tabellen werden an Ort und Stelle bearbeitet. Bestehende
+  Dokumente öffnen ohne Umstellung (Markdown bleibt). Der Block-Editor bleibt nur für die Prüfung von KI-Änderungen und
+  *Änderungen nachverfolgen*. **Rest**: Lineal mit Einzügen/Tabstopps, Ränder per Ziehen, Zeilenabstand wählbar, Kommentare
+  am Rand im Text, Änderungen nachverfolgen im Fließtext, Suchen/Ersetzen mit Formatierung, Markieren über Tabellen hinweg.
 
-### AP-14 ☑ Browser neben dem Chat (W) · L (bisher W9-08)
-- Wie bei Google Antigravity: Links aus Chat, Literatur und Dokumenten öffnen sich **in Tabs neben dem Chatfenster**.
-- Kleine Zusatzfunktionen: Fragen zur Seite (mit Belegen, AP-08), Seite zusammenfassen, in Literatur oder
-  Wissenssammlung übernehmen, Paper-PDFs im PDF-Werkzeugkasten öffnen.
-- Technik: keine eigene Engine. Windows: Chromium über JCEF, fest in der App (nachladbar erst ab AP-25); Android später
-  einfache Fassung mit System-WebView. Anmeldung über die TU (Shibboleth) bleibt erhalten.
-- Browser-Automatisierung (Agent füllt Formulare aus) → Ideen.
-- **Fertig, wenn**: Link im Chat öffnet sich als Tab daneben, eine Frage zur Seite wird mit Beleg beantwortet.
-- **Ergebnis (31.10.2026)**: Panel rechts neben der App (ziehbar; auf schmalen Fenstern darüber) mit Tabs, Zurück/Vor,
-  Adresszeile; alle Web-Links der App (Chat, Literatur, Dokumente) gehen dorthin, Download-Seiten der App extern. Unter der
-  Seite: *Frage zur Seite* (Seite als Anhang, neuer Chat im Quellenmodus), *Zusammenfassen*, *In die Literatur* (DOI →
-  Crossref, sonst `citation_*`-Meta-Tags, sonst Webquelle), *In die Wissenssammlung*, *PDF im Werkzeugkasten* (mit den
-  Cookies des Browsers, also auch hinter der TU-Anmeldung). Profil mit Cookies in `%LOCALAPPDATA%`, Anmeldung bleibt.
-  **Entscheidung (Abweichung)**: Chromium (~170 MB) steckt **nicht fest in der App**, sondern wird beim ersten Link nach
-  Rückfrage einmalig eingerichtet (`jcefmaven`) – sonst wäre jedes Update 170 MB größer. Das ist kein allgemeines
-  Erweiterungssystem (das bleibt bei AP-25). Bekannte Grenze: App-Dialoge über dem Browser werden von der Chromium-Fläche
-  teilweise verdeckt. Android später (WebView). Tests: `SyncAndBrowserTest`, mit echtem Chromium `BrowserLiveTest`
-  (`ADEU_BROWSER_TEST=1`, `xvfb-run`). Betrifft: `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt`,
-  `ui/AppRoot.kt` (Windows), `desktop/build.gradle.kts`, `release-local.sh`.
+### AP-45 ◐ Word-Treue · L (neu, ersetzt „Schreiben ins Original“ für Dokumente)
+- **.docx direkt in das neue Modell lesen und zurückschreiben**: Formatvorlagen (auch eigene), Abschnitte,
+  Kopf-/Fußzeilen (erste Seite, gerade/ungerade), Fußnoten, Felder, Nummerierungen, Tabellen, Bilder mit Umfluss,
+  Textfelder (lesen), Kommentare, Überarbeitungen.
+- **Unbekanntes bleibt erhalten**: Was das Modell nicht kennt, wird als Rohdaten mitgeführt und unverändert
+  zurückgeschrieben (kein Umweg über `.lora/originale` mehr nötig).
+- **Prüfsammlung** mit echten Dokumenten (TUD-Briefvorlage, Abschlussarbeit-Vorlage, Antrag, Protokoll): öffnen →
+  speichern → in Word vergleichen; Bildvergleich der Seiten als Test.
+- Export PDF über die eigene Layout-Engine (gleich wie am Bildschirm), ODT bleibt.
+- **Fertig, wenn**: Die Prüfsammlung öffnet ohne sichtbare Abweichung und kommt nach dem Bearbeiten ohne Verlust in Word an.
+- Betrifft: neu `docs/text/DocxReader.kt`, `docs/text/DocxWriter.kt`; `docs/DocxExtras.kt`, `files/OfficeEdit.kt`,
+  `docs/MarkdownDocx.kt`.
+- **Umsetzung (03.11.2026, ◐)**: Lesen (`docs/OfficeImport.kt`): Unterstreichung, Farbe, Hervorhebung/Schattierung,
+  hoch/tief, abweichende Größe und Schrift (gegenüber der üblichen des Dokuments) und Ausrichtung. Schreiben
+  (`docs/text/DocxWriter.kt`, von `DocFiles` genutzt, wenn das Ersetzen im Text nicht reicht): unveränderte Absätze und
+  Tabellen werden als Original-XML übernommen, Unbekanntes ohne Text bleibt an seinem Platz, nur neue/geänderte Blöcke
+  entstehen neu (mit den Überschriften-Formatvorlagen des Originals); alle anderen Teile der Datei bleiben unberührt. Ist
+  das nicht sicher, wird wie bisher neu geschrieben. Test `WordFidelityTest`. Export Word schreibt Farbe, Hervorhebung,
+  hoch/tief, Größe, Schrift und Ausrichtung. **Rest**: Prüfsammlung mit echten TUD-Dokumenten und Bildvergleich, Kopf-/
+  Fußzeilen und Abschnitte im Modell, Textfelder, PDF über eigene Layout-Engine.
 
-### AP-15 ☑ PDF-Werkzeugkasten Stufe 2 · L (bisher W8-02, Stufen 5–7)
-- **OCR**: Scans durchsuchbar machen (lokal Tesseract, alternativ Vision-Modell je Datenschutzstufe).
-- **Umwandeln**: Word/Excel/PowerPoint/Bilder/HTML ↔ PDF, PDF → Text/Markdown.
-- **Unterschreiben**: gezeichnet oder als Bild einfügen.
-- **KI**: „Frag das PDF“ mit Belegpflicht, Tabellen herausziehen, Formulare erklären.
-- **Ergebnis (01.11.2026)**: Neue Bereiche *Unterschreiben*, *Umwandeln*, *KI* im Werkzeugkasten. **OCR**: statt
-  Tesseract (müsste mitgeliefert werden) die **Texterkennung von Windows** (`Windows.Media.Ocr`, über PowerShell 5.1 mit
-  `-EncodedCommand`; Wortpositionen) – nichts verlässt den PC; alternativ nach Rückfrage ein Bildmodell, das die
-  Datenschutzstufe erlaubt (Android immer so). Unsichtbare Textebene je Wort, auch auf gedrehten Seiten. **Umwandeln**:
-  Office → PDF mit installiertem Office über COM (exakt; ein offenes Office bleibt unberührt), sonst mit dem Leser der
-  App; Bilder, HTML, Text → PDF; PDF → Word/Markdown/Text (`PdfMarkdown`: Überschriften nach Schriftgröße, Absätze über
-  den üblichen Zeilenabstand, Listen auch ohne Aufzählungszeichen, Kopf-/Fußzeilen weg), Tabellen → Excel
-  (`PdfTables`), Seiten → PNG-ZIP. **Unterschreiben**: zeichnen oder Bild, Größe, „Ort, Datum“, antippen; gespeichert in
-  `signatures.json`, auch auf Android. **KI**: Frag das PDF (Quellenmodus mit Seitenbelegen), Zusammenfassen, Formular
-  erklären, Tabellen mit KI oder auf dem Gerät. Tests: `PdfStage2Test`, Bilder `NewToolsLookTest`; Selbsttest prüft
-  Textebene, Unterschrift und die Texterkennung von Windows. Grenzen: Unterschrift als Bild bzw. Vektor (keine digitale
-  Signatur), OCR von Windows liest keine Handschrift.
+### AP-46 ☐ Gliederung und Formatvorlagen · M (neu)
+- **Gliederung links** (wie in Docs): Überschriften als Baum, Klick springt, Ziehen verschiebt ganze Abschnitte,
+  ein-/ausklappbar.
+- **Formatvorlagen**: Standard, Titel, Untertitel, Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; ändern
+  („Überschrift 1 an Markierung anpassen“), als Standard speichern.
+- **TUD-Stil** als Vorlagensatz (Noto Sans, Farben aus dem CD-Paket 2025), dazu *Wissenschaftlich* (Times-artig,
+  1,5 Zeilen) und *Schlicht*; Wechsel des Satzes formatiert das ganze Dokument um.
+- **Format übertragen** (Pinsel), Strg+Alt+1…4 für Überschriften, Markdown-Kürzel beim Tippen (`#`, `-`, `1.`, `**`).
+- **Fertig, wenn**: Ein Dokument lässt sich über die Gliederung umstellen und per Klick vom TUD-Stil in den
+  wissenschaftlichen Stil umschalten.
+- Betrifft: `ui/DocsEditor.kt`, neu `docs/text/Styles.kt`, `docs/DocTheme.kt`, `docs/TudBrand.kt`.
 
-### AP-16 ☑ Office-Ausbau · XL (bisher W8-01)
-Die Editoren (Dokument, Präsentation, Tabelle, Markdown) gibt es schon; Ausbau im Alltagsumfang. Stufen:
-0. **Dateien wie bei Google Drive, mit einem Lora-Ordner** (baut auf AP-18 auf; entschieden am 01.11.2026, ☑):
-   - Der Tab *Dokumente* und *Mehr › Dateien* werden zum Tab **Dateien** (oben in der Seitenleiste; Strg+D,
-     Befehlspalette und Lora-Landkarte ziehen mit).
-   - **Ein Lora-Ordner für alles, wie ein Obsidian-Vault**: Dateien, Chats und Einstellungen liegen in einem frei
-     wählbaren Ordner (Standard `Dokumente\Lora`; ist der Sync aus AP-12 an, schlägt die App einen Ordner im Cloud-Ordner
-     vor). **Ordner wechseln**: Inhalt in einen anderen Ordner verschieben, dort in der App auswählen, weiterarbeiten.
-     API- und Tresor-Schlüssel bleiben am Gerät (DPAPI/Keystore); auf einem neuen Gerät gibt man sie einmal neu ein.
-     Die App-Daten liegen versteckt in einem Unterordner, sichtbar sind nur die Dateien.
-   - **Echte Dateien** im Ordner (.docx, .xlsx, .pptx, .md, .pdf), die sich mit Word & Co. öffnen lassen; Kommentare,
-     Versionen und die Verbindung zum Chat liegen daneben im versteckten Ordner `.lora/`. Braucht Stufe 1
-     (Speichern ohne Verlust).
-   - **Feste Ordner**: *Hochgeladen* (jeder Upload als Kopie, gleiche Dateien nur einmal; frühere PDFs und Bilder aus
-     alten Chats werden übernommen, von Word, Excel und anderen gibt es nur noch den Text) und *Erstellt* (alles, was im
-     Chat entstanden ist; flach mit Spalte und Filter „aus Chat …“/Projekt). Beide lassen sich nicht umbenennen oder
-     löschen, ihre Dateien lassen sich aber verschieben – die Verbindung zum Chat bleibt.
-   - **Bedienung wie Google Drive**: Ordner anlegen, umbenennen, verschieben (Ziehen und Ablegen, auch mehrere, und
-     *Verschieben nach …*), Mehrfachauswahl, Pfadleiste, **Raster mit Vorschaubild** (erste Seite/Folie, im Cache) und
-     **Liste**, Sortieren nach Name, Geändert, Typ, Größe. **Großes Plus** unten rechts: Ordner, Dokument, Präsentation,
-     Tabelle, Markdown, Hochladen; neue Dateien landen im geöffneten Ordner. Seitenspalte (Android oben): *Zuletzt ·
-     Markiert · Hochgeladen · Erstellt · Meine Ordner · Orte · Papierkorb*. Keine Leiste unten und kein „Freigegeben“
-     wie bei Drive.
-   - **Papierkorb** statt sofort löschen. Bisherige Ablageorte und Projektordner bleiben als **Orte** verknüpft (kein
-     Umzug); ihre Dateien lassen sich jetzt auch umbenennen, verschieben und löschen (Papierkorb von Lora, Rückgängig).
-   - **Tresor** bleibt draußen: seine Dokumente landen nie unverschlüsselt im Lora-Ordner.
-   - **Suche**: die Volltextsuche aus AP-18 im Tab *Dateien*. Chats bekommen eine eigene Suche mit Filtern in der
-     Chatliste (Zeitraum, Projekt, Modell, mit Anhängen, mit erstellten Dateien); Dateien zeigen „aus Chat …“, Chats ihre
-     Dateien.
-   - **Android**: Ordner einmal über den Systemdialog wählen (z. B. `Dokumente/Lora`); dort liegen nur die Dateien,
-     Chats und Einstellungen bleiben intern (alles in einem Ordner kommt mit AP-28). Scannen mit der Kamera → Ideen.
-1. **Kommentare und Änderungen nachverfolgen**, verlustfreies Öffnen und Speichern von .docx, .xlsx und .pptx.
-2. **Seitenlayout** im Dokument: Seitenansicht mit Rändern, Abschnitte, Kopf-/Fußzeilen, Inhaltsverzeichnis, Formeln
-   (LaTeX). Dazu **Rechtschreibprüfung** (Deutsch und Englisch, auf dem Gerät) und **Zitieren** aus der Literatur mit
-   automatischem Literaturverzeichnis (bisher Ideen).
-3. **Folien frei gestalten**: Elemente frei platzieren, Bilder und Formen, Masterfolien.
-- Android: ansehen, kleine Änderungen, KI-Assistent.
-- Code aus WordCraft und DeckCraft ggf. ansehen (*Anhang: Craft-Apps*).
-- Auf Wunsch dazu: Bearbeiten wie in Google Docs mit **Lora rechts als Assistentin** und einem **Lora-Popup** über
-  markiertem Text.
-- **Ergebnis (01.11.2026)**: Stufe 0: Tab *Dateien* (statt *Dokumente* und *Mehr › Dateien*, oben in der Seitenleiste)
-  mit Raster/Liste, Vorschaubildern, Sortierung, Pfadleiste, großem „+“, Ziehen auf Ordner (Windows), *Verschieben
-  nach …*, Mehrfachauswahl, Sternen, Papierkorb (`data/LoraDrive.kt`, `ui/DriveScreen.kt`). Lora-Ordner: Windows
-  `Paths.root` mit Daten in `.lora` (`desktop/LoraLayout.kt` zieht `%APPDATA%` bzw. einen gewählten Datenordner einmal
-  um), Verschieben/Wechseln mit Neustart, Abfrage beim Start, wenn er fehlt; Android: Kopie in einen Ordner des
-  Systemdialogs (`files/LoraMirror.kt`, in beide Richtungen nach Änderungszeit). Uploads werden beim Lesen beiseitegelegt
-  und erst beim Senden übernommen (Tresor-Chats nie), Bilder beim Senden; alte PDFs/Bilder und `documents/` einmal
-  übernommen; Chats finden verschobene Dateien über `dateien.json` (`resolve`). Editor-Dokumente sind echte Dateien
-  (`docs/DocFiles.kt`), Rückweg aus Word alle 4 s. Stufe 1: Änderungen nachverfolgen (`trackBase`, `Tracking`), Word-
-  Überarbeitungen und Kommentare hin und zurück (`docs/DocxExtras.kt`), Schreiben ins Original (`OfficeEdit`) für docx,
-  pptx, xlsx. Stufe 2: Fußzeile, Seitenränder, Seitenansicht, Inhaltsverzeichnis, Formeln als OMML (`docs/LatexOmml.kt`),
-  Rechtschreibung auf dem Gerät (`docs/LocalSpelling.kt`: Windows ISpellChecker, Android Rechtschreibdienst); Zitieren
-  war schon da. Stufe 3: freie Elemente und Masterfolie (`SlideElement`, `SlideMaster`, `docs/SlideExtras.kt`). Dazu
-  Lora-Panel rechts und Lora-Popup, Chatsuche mit Filtern (`data/ChatFilter.kt`), *Dateien dieses Chats*. Tests:
-  `LoraFilesTest`. Grenzen: Papierkorb ist der von Lora (nicht der von Windows); offene Überarbeitungen werden aus dem
-  Editor geschrieben (nicht ins Original); Seitenansicht ohne echten Seitenumbruch; Android-Kopie erkennt
-  Umbenennungen dort als neue Datei.
+### AP-47 ☑ Lora schreibt im Dokument · M (neu)
+- **„Hilf mir schreiben“** (wie Gemini in Docs): Feld an der Cursorstelle bzw. über leeren Absätzen – „Schreib eine
+  Einleitung zu …“, „Fasse Abschnitt 3 zusammen“. Lora schreibt **sichtbar an der Cursorstelle** (Text erscheint
+  schrittweise, farbig markiert), danach *Übernehmen · Neu · Verwerfen*.
+- **Abschnitte überarbeiten als Vorschlag**: Lora ändert nicht direkt, sondern über die Änderungsverfolgung (rot/grün),
+  jede Änderung einzeln annehmbar; Kommentare von Lora am Rand mit Begründung.
+- Lora-Popup über Markierung und Lora-Panel rechts bleiben (AP-16); beide schreiben jetzt in das neue Modell und behalten
+  Formatierung.
+- Nutzt Gliederung und Formatvorlagen (Lora setzt Überschriften als Vorlagen, nicht als fette Zeilen), Zitieren aus der
+  Literatur und die Belegpflicht (AP-08) auf Wunsch.
+- **Fertig, wenn**: Lora schreibt eine Einleitung an der Cursorstelle und überarbeitet einen Abschnitt als einzeln
+  annehmbare Vorschläge, ohne Formatierung zu zerstören.
+- Betrifft: `ui/DocsAssistant.kt`, `ui/LoraHelper.kt`, `docs/text/*`, `agent/ToolActions.kt`.
+- **Umsetzung (03.11.2026, ☑)**: Im Fließtext-Editor: *Hilf mir schreiben* (Strg+J, ✨, *Extras*, leeres Dokument, Lora
+  „schreib eine Einleitung …“) schreibt schrittweise und hinterlegt an der Cursorstelle, Markdown-Überschriften werden
+  Formatvorlagen; *Übernehmen · Neu · Verwerfen*. *Markierung mit Lora überarbeiten* bzw. Lora „Überarbeite Abschnitt …“:
+  Wortdiff als Vorschläge (rot/grün), Leiste mit *Annehmen/Ablehnen/Alle*, Begründung als Kommentar von Lora. Das
+  Lora-Panel rechts schreibt weiter über den Chat; der Editor lädt das Ergebnis mit Formatierung. Rest: das kleine
+  KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
 
-### AP-17 ☑ Lernspiele-Baukasten · L (bisher W6-03, neu gedacht)
-- Die KI baut **eigenständige Browserspiele aus HTML, JavaScript und CSS** (Quiz, Zuordnen, Memory, Escape-Room …) aus
-  Skript, Folien oder Beschreibung.
-- **Direkt in der App testen** (Vorschau im eingebetteten Browser), ändern per Chat („mach Level 2 schwerer“), Versionen.
-- **Sammlung in der App** mit Vorschau und Suche.
-- **Export als HTML-Datei/ZIP für OPAL** (und Moodle). SCORM/H5P → Ideen.
-- Sicherheit: Spiele laufen abgeschottet (kein Zugriff auf App-Daten, keine Netzwerkanfragen ohne Freigabe).
-- **Fertig, wenn**: „Mach ein Zuordnungsspiel zu Kapitel 3“ ergibt ein spielbares Spiel in der App, das sich als
-  HTML-Datei in OPAL nutzen lässt.
-- **Ergebnis (31.10.2026)**: Werkzeug *Lernspiele* (auf Wunsch **standardmäßig aus**, unter *Einstellungen › Werkzeuge*
-  einschaltbar; Lora schlägt es bei „Quiz“, „Memory“ … vor). Erst eingeschaltet erscheinen *Mehr › Lernspiele* und der
-  Modus *Lernspiel* (`ChatMode.tool`, `ChatModes.visible()`), und der Agent bekommt `create_learning_game`,
-  `read_learning_game`, `update_learning_game`. Karte unter der Antwort mit *Spielen* (Windows: Tab im Browser neben dem
-  Chat, sonst normaler Browser; Android: WebView im Vollbild ohne Netz) und *Exportieren* (ZIP mit index.html oder
-  HTML-Datei). Sammlung mit Suche, Versionen (spielen, wiederherstellen), *Im Chat ändern*. Abschottung über eine
-  Content-Security-Policy (keine Anfragen, keine Frames), externe Skripte/Stylesheets werden beim Speichern abgelehnt.
-  Tests: `GamesAndAiNoteTest`. Rest: SCORM/H5P (Ideen), Klärung OPAL-Einbindung (Offene Fragen).
+### AP-48 ☐ Tabellen wie Excel · XL (neu, in Stufen)
+So nah wie möglich an **Google Sheets/Excel**:
+1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
+   WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
+   wie in Excel.
+2. **Bedienung**: mehrere Blätter (Tabs unten), Zellen verbinden, Zahlenformate, bedingte Formatierung, Filter und
+   Sortieren, Zeilen/Spalten fixieren, Ausfüllen durch Ziehen, Suchen/Ersetzen, Datenüberprüfung (Auswahllisten).
+3. **Große Daten**: CSV/Excel mit 100 000 Zeilen flüssig (virtuelles Raster, Berechnung nur für Sichtbares/Abhängiges,
+   Lesen im Hintergrund).
+4. **xlsx-Treue**: Formeln, Formate, Blätter, verbundene Zellen, bedingte Formatierung lesen und schreiben.
+- Zelltext nutzt den Text-Kern (AP-43) für Formatierung innerhalb von Zellen.
+- **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
+  verlustfrei als .xlsx speichern.
+- Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
 
-### AP-18 ☑ Dateiverwaltung · L (bisher W8-06, mit W4-01)
-- Ordner, Schlagwörter, Volltextsuche über alle Formate, Versionsvergleich, „Zuletzt bearbeitet“.
-- Für die Volltextsuche bei Bedarf eine lokale Index-Datenbank (SQLite mit Volltextindex; bisher W4-01) – nur, wenn die
-  Suche ohne Index zu langsam ist. Sanfte Migration, Sicherung & Umzug bleiben kompatibel.
-- **Ergebnis (01.11.2026)**: Bereich *Mehr › Dateien* über alle Quellen: Dokumente des Editors, Dateien in Ablageorten
-  und Projektordnern, Wissenssammlung. *Zuletzt bearbeitet*, *Orte* mit Ordnern (Dokumente: Ordner der App wie
-  „Lehre/WiSe 2026“; Dateien: echte Ordner), **Schlagwörter** für alles (`file_meta.json`, wird synchronisiert),
-  **Volltextsuche** über PDF (mit Seite), Word, Excel, PowerPoint, OpenDocument, RTF, Mails, Text – Akzente und
-  Groß-/Kleinschreibung egal, Textstelle hervorgehoben. **Entscheidung**: keine Datenbank – der Text jeder Datei wird
-  einmal gelesen und im Cache (`volltext/`, je Datei mit Änderungszeit) gehalten, die Suche läuft darüber; SQLite bleibt
-  für später, falls es zu langsam wird. **Vergleich**: zwei beliebige Versionen eines Dokuments, zwei Dateien (auch
-  verschiedener Formate). Agent: `search_files` („Wo hatte ich …?“, nutzt nur schon gelesene Texte und liest den Rest im
-  Hintergrund). Tests: `FileLibraryTest`. Grenzen: Dateien auf der Platte lassen sich hier nicht verschieben oder
-  umbenennen (dafür der Agent in lokalen Ordnern); Bilder nur über den Namen.
+### AP-49 ☐ Diagramme und Lora rechnet · M–L (neu)
+- **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
+  Farben im TUD-Design; als Bild exportieren.
+- **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
+  Docs); in .docx/.pptx als echte Office-Diagramme, wo möglich.
+- **Lora rechnet**: „Berechne die Notenverteilung“, „Mittelwert je Gruppe“, Pivot-Zusammenfassung, Daten bereinigen
+  (Leerzeichen, Datumsformate, Dubletten), Formeln erklären – Ergebnisse als neue Spalten/Blätter mit Rückgängig, Erklärung
+  in Worten im Panel.
+- Rechnen passiert auf dem Gerät in der Tabellen-Engine; das Modell sieht nur Spaltennamen und Stichproben, außer man
+  erlaubt mehr.
+- **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
+  verknüpft steht und sich bei geänderten Noten aktualisiert.
+- Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
 
-### AP-19 ☑ KI-Nutzungsnachweis · M (bisher W5-07)
-- Aus dem Agent-Protokoll eines Chats/Projekts: Modelle, Zweck, Zeitraum, betroffene Textteile, Werkzeuge.
-- Formate: TUD-Vorgaben/Prüfungsordnung (für Studierende), Verlags-Policies, kurze Fußnote; als Dokument oder Text.
-- **Ergebnis (31.10.2026)**: Auf Wunsch nur dann als **Pop-up-Vorschlag** über dem Eingabefeld, wenn ein Chat um eine
-  Arbeit geht (Hausarbeit, Abschlussarbeit, Dissertation, Paper, Förderantrag, Abstract …) **und** die KI dafür Text
-  geschrieben hat (Dokument oder längere Antwort auf „formuliere/überarbeite/kürze …“) – einmal je Chat, abschaltbar
-  unter *Einstellungen › Lora*; immer im Chat-Menü. Nachweis auf dem Gerät aus dem Chat bzw. allen Chats des Projekts:
-  Modelle, Zweck, Zeitraum, Funktionen, Entwürfe; betroffene Teile als Platzhalter. Formate: Prüfungsleistung (Tabelle),
-  Verlag/Zeitschrift (EN + DE), kurze Fußnote; kopieren oder als Dokument. Kein offizieller TUD-Wortlaut – der Dialog
-  erinnert an den Abgleich mit Prüfungsordnung bzw. Verlag. Tests: `GamesAndAiNoteTest`. Betrifft: `agent/AiUseNote.kt`,
-  `ui/AiUseNoteUi.kt`, `ui/ChatScreen.kt`, `ui/ChatScreenParts.kt`, `ui/LoraHelper.kt`.
+### AP-50 ☐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
+- Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
+  Gruppieren, TUD-Shape, TUD-Icons, Logos, QR-Codes) – ein Kern für beide; die Leinwand kommt dafür in den gemeinsamen
+  Code (Android zeigt sie an).
+- **Text direkt auf der Leinwand tippen** mit dem Text-Kern (AP-43): Formatierung innerhalb eines Textfelds, Listen,
+  automatische Größe.
+- **Gestalten-Reste**: Farbverläufe, einfache Bildfilter (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen),
+  Gruppieren, Tabellen auf der Leinwand.
+- Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
+- **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
+- Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
+
+### AP-51 ☐ Folien wie PowerPoint · L (neu)
+So nah wie möglich an **Google Slides/PowerPoint**:
+- **PowerPoint-Treue**: fremde .pptx (auch die TUD-Präsentationsvorlage) mit Masterfolien, Layouts, Platzhaltern,
+  Designfarben, Gruppen, Tabellen und Diagrammen originalgetreu anzeigen und bearbeiten; Unbekanntes bleibt erhalten.
+  Dazu der Gestalten-Rest *PowerPoint-Vorlagen importieren*.
+- **Animationen und Präsentieren**: Folienübergänge (Überblenden, Schieben), Aufzählungen nacheinander einblenden,
+  Elemente ein-/ausblenden; Referentenansicht mit nächster Folie, Notizen, Timer; Laserpointer und Zeichnen beim
+  Präsentieren; zweiter Bildschirm.
+- **Lora baut Folien**: aus Dokument, Paper (PDF) oder Gliederung ein ganzes Deck im TUD-Design (Titel, Abschnitte,
+  Inhalt, Bilder/Icons, Sprechertexte); einzelne Folie „schöner machen“ (Vorschläge zum Antippen); Folien kürzen,
+  Sprechertexte schreiben.
+- **Fertig, wenn**: Die TUD-Präsentationsvorlage öffnet originalgetreu, ein Deck aus einem Paper entsteht per Auftrag und
+  lässt sich mit Animationen präsentieren.
+- Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
+  `docs/PptxReader.kt`.
+
+### AP-52 ☐ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
+So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
+- **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
+  Deckkraft, Position/Größe/Zuschnitt je Clip; altes Projektformat wird übernommen.
+- **Echte Vorschau**: flüssige Wiedergabe mit Ton aller Spuren, Musik, Übergängen und Titeln **genau wie im Export**
+  (eigene Wiedergabe-Engine: ffmpeg decodiert, die App mischt Bild und Ton, Proxys bei Bedarf); Wellenformen auf den
+  Tonspuren; J/K/L, Einzelbild vor/zurück, Schleife In–Out.
+- **Bild-in-Bild** als Standardfall (Webcam-Ecke über dem Screencast), mit Vorlagen für die Ecke.
+- Export bleibt ein ffmpeg-Filtergraph, jetzt für mehrere Spuren.
+- **Fertig, wenn**: Screencast + Webcam als Bild-in-Bild + Musik + Titel laufen in der Vorschau flüssig mit Ton und
+  sehen im Export genauso aus.
+- Betrifft: Windows `video/VideoProject.kt`, `video/VideoPlayer.kt`, `video/VideoRender.kt`, `video/Media.kt`,
+  `ui/VideoScreen.kt`.
+
+### AP-53 ☐ Video: Schnittwerkzeuge (D) · L (neu)
+- **Medienpool** mit Ordnern (Bins), Vorschaubildern, Dauer, Suche; **Quellmonitor** mit In/Out-Punkten, *Einfügen* und
+  *Überschreiben* (wie Resolve), Ziehen in die Zeitleiste.
+- **Schnitt**: Klinge (B), Auswahl (A), Ripple-, Roll- und Slip-Trimmen, Magnet-Zeitleiste (Lücken schließen sich auf
+  Wunsch), Verknüpfen von Bild und Ton, Spuren sperren/stumm/ausblenden, Marker mit Notiz (auch als Kapitel nutzbar).
+- **Mehrere Tonquellen** synchronisieren (über die Wellenform), z. B. Kamera + Ansteckmikrofon bei Vorträgen/Interviews.
+- Tastenkürzel nah an Resolve, Übersicht unter `?`.
+- **Fertig, wenn**: Ein Vortrag mit zwei Tonquellen lässt sich über Quellmonitor und Ripple-Trimmen schneiden, ohne Lücken
+  von Hand zu schließen.
+- Betrifft: Windows `ui/VideoScreen.kt`, `video/*`.
+
+### AP-54 ☐ Video: einfache Effekte (D) · M–L (neu)
+- **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
+  kurze Clips.
+- **Verpixeln/Weichzeichnen** von Bereichen, die dem Objekt folgen; für Forschungsmaterial **Gesichter automatisch
+  finden** (lokal) und verpixeln, Stimme verfremden – Ergebnis im Agent-Protokoll.
+- **Geschwindigkeit** (0,25×–4×, Ton mit Tonhöhenkorrektur), **Standbild**, Rückwärts.
+- **Einfache Bildkorrektur**: Helligkeit, Kontrast, Sättigung, Weißabgleich automatisch – kein Color Grading.
+- **Fertig, wenn**: In einem Beobachtungsvideo werden Gesichter automatisch verpixelt; ein Screencast zoomt per Keyframes
+  auf einen Bereich.
+- Betrifft: Windows `video/*`, `ui/VideoScreen.kt`; lokales Erkennungsmodell im Videoeditor-Paket (AP-25).
+
+### AP-55 ☐ Video: textbasierter Schnitt (D) · M (neu)
+- Das **Transkript** liegt als Text neben der Zeitleiste; Wörter sind mit der Zeit verknüpft (Klick springt).
+- **Text löschen = Video schneiden** (wie Descript), Absätze verschieben = Clips verschieben, Füllwörter und Pausen
+  markiert zum Entfernen; Rückgängig wie überall.
+- **Lora als Schnitt-Assistentin**: „Kürze auf 10 Minuten, behalte die Beispiele“, „Entferne den Teil über die
+  Organisation“ – Vorschlag als markierte Stellen im Transkript, annehmen/ablehnen.
+- Baut auf dem Rohschnitt aus AP-25 und den Aktionen aus AP-38 auf; Sprecher:innen unterscheidbar, wenn die Transkription
+  das liefert.
+- **Fertig, wenn**: Ein Lehrvideo wird nur über das Transkript geschnitten, und die Zeitleiste folgt.
+- Betrifft: Windows `video/RoughCut.kt`, `ui/VideoScreen.kt`, Transkription.
+
+### AP-56 ☐ Bildschirmaufnahme (D) · M (neu)
+- **Aufnahme in der App**: ganzer Bildschirm, Fenster oder Bereich + Webcam + Mikrofon (+ Systemton), Countdown,
+  Pause, Stopp über Infobereich/Tastenkürzel; Mauszeiger und Klicks hervorheben.
+- Ergebnis landet als **Projekt im Videoeditor** mit getrennten Spuren (Bildschirm, Webcam als Bild-in-Bild, Ton) und
+  optional sofortiger Transkription.
+- Technik: ffmpeg (gdigrab/ddagrab, dshow/WASAPI) unter Windows; Folienaufnahme direkt aus der Referentenansicht (AP-51).
+- **Fertig, wenn**: Ein Screencast mit Webcam-Ecke ist nach Stopp sofort als Projekt mit getrennten Spuren schnittbereit.
+- Betrifft: neu Windows `video/ScreenRecorder.kt`, `ui/VideoScreen.kt`.
+
+### AP-57 ☐ Video: Export mit GPU und Warteschlange (D) · M (neu)
+- **Hardware-Encoder** (NVIDIA NVENC, Intel Quick Sync, AMD AMF) automatisch erkannt, Software als Rückfall.
+- **Export-Warteschlange im Hintergrund** (weiterarbeiten während des Exports), mehrere Vorgaben auf einmal (OPAL 720p,
+  YouTube 1080p, nur Ton, Untertitel-Datei).
+- **Kapitelmarken** aus den Markern (MP4-Kapitel, YouTube-Beschreibung), Ziel direkt **Nextcloud** oder Lora-Ordner.
+- Musik und Übergänge in der Vorschau (Rest aus AP-25) sind mit AP-52 erledigt.
+- **Fertig, wenn**: Ein 60-Minuten-Video exportiert auf einem PC mit GPU deutlich schneller als heute, im Hintergrund,
+  mit Kapiteln.
+- Betrifft: Windows `video/VideoRender.kt`, `ui/VideoScreen.kt`, `data/Nextcloud.kt`.
+
+### AP-58 ☐ Frag diesen Ordner · S–M (neu)
+- Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
+  im **Quellenmodus** (AP-08) über alle Dateien darin, mit Belegen (Datei + Seite).
+- Nutzt den Volltext-Cache aus AP-18; große Ordner werden im Hintergrund gelesen, Fortschritt sichtbar.
+- Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
+- **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
+- Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
+
+### AP-59 ☐ Windows-Integration (W) · M (neu)
+- **Ziehen aus dem Explorer** in *Dateien* (kopieren in den geöffneten Ordner) und **aus Lora in den Explorer**, in Mails
+  und andere Programme.
+- **Windows-Papierkorb** als Option statt des Lora-Papierkorbs (Rest aus AP-16).
+- **„Mit Lora öffnen“ / „Lora fragen“** im Kontextmenü des Explorers (ohne Admin-Rechte, je Benutzer), öffnet die Datei
+  in Lora bzw. einen Chat mit der Datei.
+- **In Word/Excel/PowerPoint öffnen und zurück**: sichtbarer Zustand „in Word geöffnet“, Änderungen kommen beim Speichern
+  zurück (heute alle 4 s geprüft).
+- **Fertig, wenn**: Eine Datei aus dem Explorer lässt sich per Kontextmenü in Lora fragen und per Ziehen in den Lora-Ordner
+  legen.
+- Betrifft: Windows `ui/AppRoot.kt`, `desktop/Desktop.kt`, `data/LoraDrive.kt`, Installer/`desktop/launcher/`.
 
 ---
 
 ## Später
 
-### AP-20 ☑ Stapel und Massenkontrolle · L (bisher W3-01, W6-01, Q-02)
-- **Stapel**: Warteschlange für viele Dateien (Ordner, ZIP, Mehrfachauswahl) mit demselben Auftrag/Raster; Fortschritt
-  mit Lora-Karte („23 von 80“, Animation: Akten abarbeiten), Pause/Fortsetzen, übersteht Neustart, läuft im Hintergrund,
-  optional nachts über *Geplante Aufgaben*; Drosselung über `RateLimiter`, interaktive Anfragen haben Vorrang.
-- **Massenkontrolle** (typisch 30–100 Abgaben je Semester): Ordner/ZIP (z. B. OPAL-Abgaben) + Raster (Tabelle oder TU
-  Vorlage *Bewertungsraster*), Kalibrierung mit 2–3 von Hand bewerteten Arbeiten; je Arbeit Punkte je Kriterium,
-  Begründung, Belegstellen; Ergebnistabelle mit Ausreißern, Feedback je Person (Serienbriefe vorhanden).
-- **Die KI schlägt nur vor, ein Mensch entscheidet**; Protokoll der Entscheidung. Standard: pseudonymisiert, „Nur TU Dresden“.
-- **Fertig, wenn**: 80 PDFs laufen ohne Eingriff durch, Abbruch und Fortsetzen verlieren nichts.
-- **Entscheidungen (01.11.2026)**: (a) **Eigenes Werkzeug** *Stapel & Massenkontrolle* (anfangs aus) mit einem Bildschirm
-  für beides; die Massenkontrolle ist ein Stapel mit Raster. (b) Je Datei **eine Anfrage ohne Werkzeuge** (gleicher
-  Systemprompt für alle Dateien, gut für den Cache des Servers) statt eines Agent-Laufs – berechenbar, schnell, ohne
-  Rückfragen. (c) „Nachts“ ist ein Schalter am Stapel (22–6 Uhr) statt einer Geplanten Aufgabe: Der Stapel kennt seinen
-  Stand selbst. (d) Pseudonymisiert und „Nur TU Dresden“ gelten für den Stapel auch dann, wenn sie für Chats aus sind.
-  (e) Die Animation nutzt die vorhandenen Aktionen Ordner, Stempel, Tacker statt einer neuen Zeichnung.
-- **Ergebnis (01.11.2026)**: Dateien aus Mehrfachauswahl, ZIP (auch ZIP je Person, ohne `__MACOSX`), Ordner (Windows) und
-  Nextcloud, Texte auf dem Gerät gelesen. Vorlagen für den Auftrag (Zusammenfassen, Exzerpt, Steckbrief, Übersetzen).
-  **Runner** im Hintergrund: eine Datei nach der anderen, jedes Ergebnis sofort gespeichert (`batches/<id>/job.json`),
-  Pause bricht die laufende Anfrage ab und legt die Datei zurück, nach dem Start geht es weiter; drei Versuche je Datei;
-  wartet, solange ein Chat antwortet; lässt bei bekanntem Limit zwei Anfragen pro Minute frei (eigene Grenze unter
-  *Chat & Werkzeuge › Zuverlässigkeit*); Android hält die App mit dem Vordergrunddienst wach; Benachrichtigung am Ende.
-  **Massenkontrolle**: Raster als Tabelle (*Kriterium; Punkte; Beschreibung*, auch aus Markdown/Excel), Kalibrierung mit
-  von Hand bewerteten Arbeiten im Systemprompt, Antwort als JSON (Punkte je Kriterium, Begründung, Belege mit Seite,
-  Rückmeldung), Belegprüfung auf dem Gerät (✓/✗), Ausreißer (|z| ≥ 1,8, nicht bewertbar, große Abweichung zur
-  Entscheidung), Entscheidung je Arbeit mit Protokoll, Exporte Excel, Word-Rückmeldungen je Person (ZIP), Protokoll.
-  Agent: `create_batch`, `batch_status`, `read_batch_results`. Tests: `BatchTest` (80 Dateien ohne Eingriff, Pause und
-  Neustart ohne Verlust, Wiederholungen, Vorrang der Chats, Raster, Ausreißer, ZIP). Rest: große Exzerpt-Stapel direkt an
-  die Literatureinträge hängen; OPAL-Exportformat prüfen (Offene Fragen 4); Bewertungsraster aus Excel per Datei laden.
-  Betrifft: `data/Batches.kt`, `agent/BatchRunner.kt`, `agent/BatchTools.kt`, `ui/BatchScreen.kt`, `agent/AgentService.kt`
-  (Android), `tasks/Notifier.kt` (beide).
+### AP-60 ☐ PDF-Reste · M (Reste von AP-11, AP-15, AP-26)
+- Markieren mit **Einrasten am Text** (Zeilen statt Rechtecke).
+- **Schwärzen mit der Maus** auf der Seite (Bereich ziehen, Wort anklicken).
+- **Digitale Signatur** (Zertifikat aus dem Windows-Zertifikatsspeicher bzw. Datei, sichtbares Feld, Prüfung vorhandener
+  Signaturen).
+- **Tags erzeugen** für PDF/UA (Überschriften, Absätze, Listen, Tabellen, Bilder mit Alternativtext).
+- **Fertig, wenn**: Ein PDF lässt sich am Text markieren, per Maus schwärzen, digital signieren und mit Tags versehen.
+- Betrifft: `docs/PdfStage3.kt`, `docs/PdfAccessibility.kt`, `ui/PdfToolScreen.kt`.
 
-### AP-21 ☑ Antrags-Werkstatt · L (bisher W5-05)
-- Ausschreibung einlesen (PDF/URL: DFG, BMBF, EU, SAB, TUD-intern) → Checkliste, Fristen in den Kalender.
-- Gliederung nach Förderer-Vorgabe, Arbeitspakete mit Gantt, Budgettabelle, Zeichen-/Seitenwächter, DMP (Vorlage
-  vorhanden), Ethik; Probelauf mit einer Gutachter-Rolle, Abgabe-Check. Gut geeignet für den Planungsmodus (AP-06).
-- **Entscheidungen (01.11.2026)**: (a) Werkzeug *Antrags-Werkstatt* (anfangs aus) mit Modus *Antrag*; der Antrag ist ein
-  eigener Eintrag (nicht ein Dokument), die Texte der Abschnitte liegen am Antrag, damit der Wächter sie zählt; Export als
-  Word. (b) Förderer-Vorlagen sind nur ein Start (Gliederung, Checkliste, Kategorien, Pauschale: DFG 22 %, BMBF 20 %,
-  EU 25 %); Seiten- und Zeichengrenzen kommen aus der Ausschreibung, die Lora liest – erfunden wird nichts. (c) Fristen
-  gehen als Kalenderdatei (.ics, Erinnerung eine Woche vorher) an Outlook bzw. die Kalender-App statt direkt über COM.
-- **Ergebnis (01.11.2026)**: Tabs *Übersicht* (Ausschreibung, Fristen, Checkliste, DMP und Ethik), *Gliederung* (Text je
-  Abschnitt, Grenzen in Zeichen/Wörtern/Seiten, Balken, Zeichen je Seite einstellbar), *Arbeitspakete* (Gantt über die
-  Laufzeit), *Budget* (je Projektjahr, Kategorien des Förderers, Pauschale), *Abgabe-Check* (Checkliste, Fristen, leere und
-  zu lange Abschnitte, Seitenlimit, Arbeitspakete außerhalb der Laufzeit, Budget, DMP, Ethik, Probelauf) und die
-  Probeläufe. Agent: `save_proposal`, `write_proposal_section`, `read_proposal`, `save_proposal_review`; *Probelauf:
-  Gutachter:in* startet den Chat mit der Rolle. Tests: `ProposalTest`. Rest: Vorlagen der Förderer (Word) direkt
-  befüllen; Personalmittelsätze der DFG hinterlegen; Gantt als Bild in den Word-Export.
-  Betrifft: `data/Proposals.kt`, `agent/ProposalTools.kt`, `ui/ProposalScreen.kt`, `agent/ChatModes.kt`.
+### AP-61 ☐ Diagramme und Whiteboard · L (bisher Ideen, W8-04)
+- Flussdiagramme, Mindmaps, Organigramme, Zeitstrahlen auf der gemeinsamen Leinwand (AP-50): Verbinder, die an Formen
+  haften, automatische Anordnung.
+- **Lora zeichnet**: „Mach ein Flussdiagramm aus diesem Ablauf“, Mermaid-Text ↔ Diagramm.
+- Whiteboard: unendliche Fläche, Freihand, Notizzettel; einfügbar in Dokument und Folien.
+- **Fertig, wenn**: Aus einer Beschreibung entsteht ein bearbeitbares Flussdiagramm, das in einem Dokument steht.
 
-### AP-22 ☑ Nextcloud fest eingebaut · M (bisher Teil von W9-03)
-- Dateien aus Nextcloud direkt öffnen/anhängen und Ergebnisse dort speichern; auf Android per WebDAV (Grundlage für AP-28).
-- **Entscheidungen (01.11.2026)**: WebDAV auf **beiden** Plattformen (nicht nur Android), Anmeldung über den
-  **Login Flow v2** im Browser (funktioniert mit TU-Login und zweitem Faktor, die App bekommt ein eigenes App-Passwort),
-  manuell mit App-Passwort als Ausweg; vorbelegt `cloudstore.zih.tu-dresden.de`. Das App-Passwort liegt verschlüsselt und
-  unter Windows nur auf dem PC (nicht im Sync).
-- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Nextcloud* (Anmelden, Testen, Ordner für Ergebnisse,
-  Abmelden), Datei-Browser (Ordner, Pfadleiste, Mehrfachauswahl, neuer Ordner), *Aus Nextcloud* im „+“ des Chats,
-  *Aus Nextcloud holen* in den Lora-Ordner, *In Nextcloud speichern* an Dokumentkarten, Dateien, Stapel-Ergebnissen und
-  Anträgen (gleichnamige Dateien bleiben, die neue bekommt „ (2)“), Agent: `nextcloud_list`, `nextcloud_read`,
-  `nextcloud_save` (nicht im Tresor, nicht „Nur auf diesem Gerät“). Tests: `ConnectionsTest` gegen einen lokalen
-  WebDAV-Testserver. Rest: Sync für Android darauf aufbauen (AP-28); Freigabelinks erzeugen.
-  Betrifft: `net/WebDav.kt`, `data/Nextcloud.kt`, `agent/NextcloudTools.kt`, `ui/NextcloudUi.kt`, `files/FileText.kt` (beide).
+### AP-62 ☐ Dokumenten-Scanner · M (bisher Ideen)
+- **Android**: Kamera mit Kantenerkennung, Zuschneiden, Entzerren, Kontrast (Schwarz-Weiß/Farbe), mehrere Seiten → PDF
+  mit OCR in den Lora-Ordner (und per Sync an den PC).
+- **Windows**: Scanner über WIA bzw. Handy als Scanner.
+- **Fertig, wenn**: Drei fotografierte Seiten ergeben ein durchsuchbares PDF im Lora-Ordner.
 
-### AP-23 ☑ MCP-Client · L (bisher W9-01, W9-02)
-- Fern-Server (Streamable HTTP mit OAuth/Token) auf beiden Plattformen, lokale Server (stdio) unter Windows.
-- *Einstellungen › Verbindungen*: Server hinzufügen, Werkzeuge ansehen, je Werkzeug erlauben/fragen/sperren; fremde
-  Werkzeuge laufen über die *Freigaben* und halten die Datenschutzstufe ein.
-- **Entscheidungen (01.11.2026)**: (a) Eigener schlanker Client (JSON-RPC über OkHttp, Protokoll 2025-06-18) statt einer
-  SDK-Bibliothek. (b) Standard je Werkzeug **Fragen** (= Freigaben, Risiko „nach außen“); *Erlauben* ohne Rückfrage,
-  *Sperren* versteckt es. (c) **Datenschutzstufe**: nie im Tresor, nie „Nur auf diesem Gerät“; „Nur TU Dresden“ nur für
-  Server, die als *an der TU Dresden oder auf diesem PC* markiert sind. (d) OAuth mit PKCE und dynamischer Registrierung,
-  Rückkehr aus dem Browser über 127.0.0.1 (Windows und Android); feste Tokens auch in eigenem Header.
-- **Ergebnis (01.11.2026)**: Streamable HTTP (JSON- und SSE-Antworten, Sitzungs-ID, Protokoll-Header), stdio unter Windows
-  (`npx`/`uvx` über `cmd /c`, Umgebungsvariablen, Fehlermeldung des Programms), Werkzeugliste mit Seiten, Ergebnisse als
-  Text (Bilder und Ressourcen benannt, Fehler als „FEHLER:“), Werkzeuge im Chat als `mcp_<server>_<werkzeug>`, abgelaufene
-  Anmeldungen werden erneuert. *Einstellungen › Verbindungen › MCP-Server*: hinzufügen, bearbeiten, ein/aus, Verbinden,
-  Anmelden im Browser, Werkzeuge mit Erlauben/Fragen/Sperren (einzeln und für alle). Tests: `ConnectionsTest` (Sitzung,
-  SSE, 401, OAuth mit PKCE gegen einen lokalen Testserver, Regeln, Datenschutzstufe). Rest: Ressourcen und Prompts der
-  Server; Rückfragen des Servers (Elicitation); lokale Server unter Android gibt es nicht.
-  Betrifft: `net/Mcp.kt`, `net/McpOAuth.kt`, `net/McpStdio.kt` (beide), `data/McpServers.kt`, `agent/McpTools.kt`,
-  `ui/ConnectionsSettings.kt`, `data/SecurePrefs.kt` (Windows).
+### AP-63 ☐ Sync- und Android-Reste · M (Reste von AP-12, AP-14, AP-28)
+- Literatur und Wissenssammlung auf Android synchronisieren (mit Neuladen im Betrieb).
+- Sync im Hintergrund ohne geöffnete App (Android WorkManager).
+- Browser neben dem Chat auf Android als einfache Fassung (WebView).
+- Tresor-Projekte im Sync prüfen.
+- **Fertig, wenn**: Ein am PC angelegter Literatureintrag erscheint ohne Öffnen der App auf dem Handy.
 
-### AP-24 ☑ Kreativbereich → „Erstellen“ › Gestalten (D) · XL (bisher W8-03)
-Alltagsumfang nach dem Vorbild Canva, Schwerpunkt Corporate Design. Nur Windows (kein Android).
-1. Leinwand mit Ebenen, Ausrichten, Rückgängig, mehrseitige Designs; Brand-Kit (TUD-Farben, Schriften, Logos – vorhanden).
-2. Vorlagen Uni-Kontext: Tagungsposter, Flyer, Aushang, Einladung, Urkunde/Teilnahmebescheinigung, Social Media,
-   OPAL-Kursbanner, Titelbild für Lehrvideos.
-3. Text, Formen, Icons, QR-Codes, Bilder (zuschneiden, FLUX-Bilder direkt auf die Leinwand), KI: „Poster aus diesem Paper“.
-4. Export PNG, PDF (Druck), PowerPoint.
-- Lora-Animation: Pinsel, Farbpalette. Code aus DesignCraft/VectorCraft/PhotoCraft prüfen (*Anhang: Craft-Apps*).
-- **Entscheidungen (01.11.2026)**: (a) **Kein eigener Bereich und kein Werkzeug**: TU Vorlagen und Gestalten sind ein Ort,
-  **„Erstellen“** (statt „TU Vorlagen“; erwogen: Gestalten, Werkstatt, Studio – „Erstellen“ passt neben „Dateien“ und
-  trägt Brief wie Poster, wie *Erstellen* in Microsoft 365). Oben „Was möchtest du erstellen?“ für Lora, darunter
-  Gestalten, Meine Designs, TU Vorlagen. (b) Die Teilnahmebescheinigung bleibt TU Vorlage (nach der TUD-Vorlage gebaut),
-  keine zweite als Design; „Einladung“ heißt „Einladungskarte“. (c) Brand-Kit aus dem, was vom **CD-Paket 2025** im Repo
-  liegt (Logos, Farben des Office-Themes „TUD_2025“, Noto Sans); Vorlagen, Paletten und die Icon-Schrift des CD-Portals
-  liegen hinter dem ZIH-Login und sind nicht eingebaut. (d) Noto Sans als TTF (OFL) in der Windows-App, damit Editor, PDF
-  und Videotitel dieselbe Schrift zeichnen (Skia liest das WOFF2 der App nicht). (e) Craft-Code nicht übernommen – alles
-  selbst geschrieben.
-- **Ergebnis (01.11.2026)**: *Erstellen* mit Lora-Feld (Wunsch, auch mit Datei; Design-Wünsche starten den Modus
-  *Gestalten*), **Gestalten** mit acht Vorlagen (Tagungsposter A1, Flyer A5, Aushang A4, Einladungskarte A5 quer, Social
-  Media Beitrag und Story, OPAL-Kursbanner, Titelbild für Lehrvideos) je *Selbst gestalten* oder *Lora machen lassen*,
-  *Poster aus einem Paper*, *Leeres Design* in 17 Formaten, **Meine Designs**. **Editor**: Seiten, Ebenen, Mehrfachauswahl
-  mit Rahmen, Verschieben mit Einrasten (Seite und Elemente), Griffe für Größe und Drehung, Ausrichten/Verteilen,
-  Sperren, Rückgängig/Wiederholen, Tastenkürzel, Zwischenablage (auch Bilder/Text aus anderen Programmen), Format ändern.
-  **Elemente**: Text (wächst mit oder passt sich an), sieben Formen, 37 Symbole, Bilder mit Zuschnitt/Eckenradius/
-  Alternativtext, Bild vom Bildmodell, QR-Codes (`io.nayuki:qrcodegen`, MIT), TUD-Logo und eigene Logos. **Export**: PNG
-  (Bildschirm in Pixeln, Druck 150/300 dpi), PDF vektoriell mit eingebetteter Schrift (auf Wunsch 3 mm Beschnitt und
-  Schnittmarken), PowerPoint mit echten Formen und Textfeldern (A0 wird auf die PowerPoint-Höchstgröße verkleinert).
-  **KI**: `create_design`, `update_design`, `read_design` in jedem Chat unter Windows, Modus *Gestalten*, Karte unter der
-  Antwort, offene Designs laden Änderungen aus dem Chat nach; Lora malt dabei (PAINT). Tests: `CreativeTest`,
-  `CreativeScreenTest` (Bilder in `desktop/build/creative-look`). Rest: Text direkt auf der Leinwand tippen, Verläufe,
-  Bildfilter, Vorlagen und Icon-Schrift aus dem CD-Portal (wenn jemand sie hochlädt), PowerPoint-Vorlagen importieren.
-  Betrifft: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`, `ui/TemplatesScreen.kt`,
-  Windows: `creative/*`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt`, `resources/fonts/`.
-- **Nachtrag CD-Paket (01.11.2026)**: Das vollständige CD-Paket 2025 (Logos, Shape mit Regeln, Icon-Themensets,
-  Präsentationsvorlage, digitales Poster, Urkunden, Office-Themes) liegt jetzt vor und ist eingearbeitet: 23 **TUD Farben**,
-  **Noto Sans Medium** für Überschriften (statt fett), alle **offiziellen Logos** als Vektor (horizontal/vertikal, de/en,
-  „TUD“, Bildmarke; blau/weiß/schwarz), die **TUD-Shape** als Element (45°-Schritte, spiegeln, Foto in der Shape) und
-  rund 530 **TUD-Icons** (aufbereitet mit `desktop/tools/tud_cd_assets.py`). Alle neun Vorlagen neu nach den Regeln
-  (weiß mit Logo oben links oder Brillantblau mit weißem Logo, Shape als Bildmotiv, TUD-Icons), neu **Digitales Poster
-  16:9**. Die TU Vorlage *Präsentation* (PowerPoint, Handout, Folien-Editor) folgt der offiziellen Präsentationsvorlage
-  (Titelfolie, Abschnitt mit Shape, schwarze Titel 32 pt Medium, Fußzeile mit Kurzlogo „Titel • Vortragende • Seite N“),
-  Urkunden setzen Name und Veranstaltung in Medium, Videotitel nutzen Medium und die Shape. Hinweis: Logos, Icons und
-  Shape stecken damit in der Windows-App, die über das öffentliche Updater-Repo verteilt wird.
+### AP-64 ☐ Android zieht nach · M–L (neu)
+Wie bisher nur, was dort sinnvoll ist:
+- Neuer Fließtext-Editor (AP-43–AP-47): ansehen, bearbeiten, Lora schreibt; Tabellen (AP-48) ansehen und einfach
+  bearbeiten; Folien (AP-51) ansehen und präsentieren.
+- Lora-Aktionen (AP-38) für Dateien und PDF, Gedächtnis (AP-39), Touren (AP-41), Lora-Dateidialog (AP-42), wo der
+  Systemdialog nicht reicht.
+- Kein Videoeditor, kein Gestalten (unverändert).
 
-### AP-25 ☑ Videoeditor und nachladbare Erweiterungen (D) · XL (bisher W8-07, Teil von W8-00)
-Alltagsumfang nach dem Vorbild DaVinci Resolve, nur Desktop.
-1. **Nachladbare Erweiterungen** einführen: der Videoeditor (und danach ggf. Browser-Engine, OCR-Daten) wird beim ersten
-   Öffnen geladen („Videoeditor einrichten · ca. 200 MB“), liegt unter `%LOCALAPPDATA%\ADEU LLM\tools\…`, kommt über
-   denselben Updater, lässt sich entfernen.
-2. **Schnitt**: Zeitleiste mit Video- und Tonspuren, schneiden, trimmen, Übergänge, Titel und Bauchbinden im TUD-Design.
-3. **Ton und Untertitel**: Pegel, Rauschminderung, Untertitel aus der vorhandenen Transkription einbrennen oder als SRT/VTT.
-4. **Export** MP4 mit Vorgaben für OPAL und YouTube; KI: Rohschnitt aus dem Transkript (Füllwörter, Pausen).
-- Technik: ffmpeg (in der Windows-Version enthalten), Proxy-Dateien für flüssigen Schnitt; Lizenz des ffmpeg-Builds prüfen.
-- **Entscheidungen (01.11.2026)**: Da ffmpeg schon in der App steckt, ist das **Videoeditor-Paket** klein (ca. 40 MB
-  Download statt 200 MB): ffprobe aus demselben ffmpeg-Build und das Sprachmodell RNNoise („somnolent-hogwash“, laut
-  Projekt nicht urheberrechtlich geschützt) für die Rauschminderung. Der Editor bietet es beim ersten Öffnen an und
-  arbeitet ohne Paket mit dem ffmpeg der App weiter. Titel und Untertitel zeichnet die App selbst (Renderer von
-  *Erstellen*) – ffmpeg braucht weder libass noch Schriften. Lizenz: der ffmpeg-Build ist GPL v3, seine LICENSE liegt bei
-  App und Paket.
-- **Ergebnis (01.11.2026)**: **Erweiterungen**: `version.json` listet sie unter `extensions`, die App richtet sie unter
-  `%LOCALAPPDATA%\ADEU LLM\tools\<id>` ein (Prüfsumme, Entpacken ohne Pfade nach außen, Tausch beim nächsten Start, wenn
-  Dateien belegt sind), aktualisiert sie mit der Update-Prüfung und entfernt sie unter *Einstellungen › Werkzeuge ›
-  Erweiterungen*; dort steht auch die Browser-Engine (entfernbar). `publish-update.sh` baut das Paket mit
-  `extension-videoeditor.sh` bei jedem Release. **Videoeditor** (Werkzeug, anfangs aus): Projekte, Zeitleiste mit
-  Video-, Titel-, Ton- und Untertitelspur, Teilen (S), Trimmen an den Rändern, Verschieben, Übergänge Überblenden/über
-  Schwarz, Lautstärke/stumm, Rückgängig; Vorschau aus Proxys (360 Zeilen) mit Ton als Uhr, Titel und Untertitel darüber.
-  Titel, Bauchbinde, Einblendung, Abspann im TUD-Design; Musik/Sprecherton; Rauschminderung (RNNoise oder FFT), Lautheit
-  −16 LUFS, Pegel; Untertitel aus der Transkription (folgen dem Schnitt, *Jetzt transkribieren*) oder SRT/VTT, einbrennen
-  oder als Datei; **Rohschnitt** (Pausen und Füllwörter) und **Mit Lora kürzen**; Export MP4 für OPAL (720p), YouTube
-  (1080p) oder Projektqualität. Lora mit der Schere (SCISSORS) auf der leeren Projektseite. Tests: `VideoTest` (echter Export mit ffmpeg),
-  `VideoScreenTest`, `ExtensionsTest`. Rest: Vorschau zeigt Übergänge als Schnitt und spielt die Musikspur nicht mit;
-  Bild-in-Bild und zweite Videospur, Farbkorrektur, Wellenform der Tonspur, Hardware-Encoder; Browser-Engine und
-  OCR-Daten über denselben Weg ausliefern.
-  Betrifft: Windows `video/*`, `ui/VideoScreen.kt`, `desktop/Extensions.kt`, `ui/ExtensionsUi.kt`, gemeinsam
-  `update/UpdateInfo.kt`, `update/Updates.kt`, `.github/scripts/extension-videoeditor.sh`, `publish-update.sh`.
-
-### AP-26 ☑ PDF-Werkzeugkasten Stufe 3 · M (bisher W8-02, Stufen 4, 8, 9)
-- Echtes Schwärzen, Text/Bilder ändern, verkleinern, PDF/A, Passwort, Metadaten; zwei PDFs vergleichen, Barrierefreiheit
-  nach PDF/UA.
-- **Entscheidungen (01.11.2026)**: (a) **Schwärzen** zeichnet die betroffenen Seiten als Bild neu (wie die einfache
-  Schwärzung von pdf24) – sicher, weil der Text darunter weg ist; andere Seiten bleiben Text. (b) **Text ändern** überdeckt
-  und schreibt neu, statt den Inhaltsstrom umzuschreiben; der alte Text bleibt (Hinweis im Werkzeug). (c) PDF/A als
-  **PDF/A-2b-Vorbereitung** mit klarer Liste, was fehlt; strenge Prüfung bleibt bei veraPDF. (d) Stufe 3 nur unter Windows
-  (wie *Formular*); *Vergleichen* ist gemeinsamer Code und läuft auch auf Android.
-- **Ergebnis (01.11.2026)**: Bereich *Schwärzen & mehr*: Schwärzen mit Suche und Vorschlägen aus der Pseudonymisierung
-  (Namen, Kontaktdaten, eigene Begriffe), optional ohne Metadaten; Text ersetzen; Bilder mit Vorschau ersetzen oder
-  entfernen; Verkleinern (Mittel/Stark); PDF/A-2b (XMP, sRGB, Sprache, ohne JavaScript/Anhänge/Verschlüsselung);
-  Passwort AES-256 mit Rechten und Entfernen; Metadaten bearbeiten oder entfernen; PDF/UA-Prüfung (Tags, Sprache, Titel,
-  Schriften, Text, Alternativtexte, Felder, Lesezeichen, Tab-Reihenfolge) mit *Einfache Mängel beheben*; Vergleichen
-  Wort für Wort mit Word-Export. Tests: `PdfStage3Test`. Rest: echtes Bearbeiten im Inhaltsstrom, Schwärzen mit der Maus
-  auf der Seite, Tags erzeugen, digitale Signatur.
-  Betrifft: `docs/PdfStage3.kt` (beide), `docs/PdfCompare.kt`, `ui/PdfStage3Ui.kt`, `ui/PdfToolScreen.kt`.
-
-### AP-27 ☑ Mail über den Server · L (bisher W7-01, Server-Weg)
-- Wenn jemand das neue Outlook nutzt (oder für Android): Exchange (EWS bzw. Microsoft Graph mit Freigabe der IT) oder
-  IMAP/SMTP; Funktionen wie AP-13. Vorher klären, wie die TU Exchange betreibt (Offene Fragen).
-- **Entscheidungen (01.11.2026)**: (a) **IMAP zuerst** – geht ohne Freigabe der IT; EWS/Graph bleibt offen (Offene Fragen 3).
-  (b) **Kein SMTP**: Antworten landen als Entwurf (APPEND in „Entwürfe“), gesendet wird nie. (c) Verschieben nur mit MOVE
-  oder UIDPLUS (UID EXPUNGE der eigenen Mails) – nie EXPUNGE, das andere gelöschte Mails endgültig entfernen würde.
-  (d) Eigener kleiner IMAP-Client statt Jakarta Mail (läuft unverändert auf Android und Windows). (e) Dieselbe
-  Schnittstelle wie das klassische Outlook (`OutlookBridge`), damit Werkzeuge, Regeln, Protokoll und *Mehr › Mail &
-  Kalender* gleich bleiben.
-- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Mail über den Server* (Server, Port 993/143, Benutzer,
-  Passwort verschlüsselt, eigene Adresse, unter Windows „statt des klassischen Outlook“, Testen); Werkzeug *Mail &
-  Kalender* jetzt auch auf Android. Ordner (Modified UTF-7, Zähler), Mails mit Vorschau, eine Mail ganz (MIME über
-  `MailText`), Verschieben, Ordner anlegen, Entwürfe mit Antwort-Kopfzeilen und zitiertem Verlauf. Kalender, Aufgaben und
-  Frei/Gebucht melden verständlich, dass es sie auf diesem Weg nicht gibt. Tests: `MailServerTest` gegen einen
-  IMAP-Testserver (auch: nie EXPUNGE/STORE ohne UIDPLUS, falsches Passwort). Rest: Exchange über EWS/Graph mit Kalender,
-  OAuth-Anmeldung für Exchange Online, Zugangsdaten der TU im Formular vorbelegen (sobald geklärt).
-  Betrifft: `net/Imap.kt`, `data/MailServer.kt`, `data/Outlook.kt`, `ui/ConnectionsSettings.kt`, `ui/MailScreen.kt`.
-
-### AP-28 ☑ Sync für Android · M (bisher W4-02, Stufe d)
-- Den Cloud-Ordner aus AP-12 auf Android über Nextcloud/WebDAV oder den Systemdialog nutzen. Nice to have.
-- **Entscheidungen (01.11.2026)**: (a) Über **Nextcloud/WebDAV** (AP-22) statt des Systemdialogs: Android hat keinen
-  Cloud-Client für den App-Ordner, der Systemdialog bleibt für die Kopie des Lora-Ordners (AP-16). (b) Das Handy ist ein
-  „Gerät“ wie ein PC: Notiz in `.lora/sync/`, wartet, solange ein PC den Ordner offen hat oder dessen Änderungen
-  unterwegs sind. (c) **Nur, was die App im Betrieb neu lesen kann**: Chats (je Datei), Projekte, Gedächtnis,
-  Kurztexte, eigene TU Vorlagen, Kontakte und die sichtbaren Dateien – Literatur, Wissen, Transkripte und Einstellungen
-  bleiben je Gerät (sonst könnte ein Speicher im Speicher alte Daten über neue schreiben). (d) Konflikte wie AP-12
-  (zweite Fassung bzw. `sync/konflikte`), Schutz vor Massenlöschung.
-- **Ergebnis (01.11.2026)**: *Einstellungen › Verbindungen › Mit dem PC synchronisieren* (Android): Lora-Ordner in der
-  Nextcloud wählen (prüft `.lora`), *Jetzt synchronisieren*, Stand; automatisch beim Öffnen, alle fünf Minuten und beim
-  Wechsel in den Hintergrund (Notiz dann „geschlossen“). Zweiwege-Abgleich über ETags mit Zustandsdatei, Löschungen in
-  beide Richtungen, Chats und Listen werden danach neu gelesen. Tests: `PhoneSyncTest` (holen, hochladen, Konflikt,
-  Löschen, wartet auf den PC, Massenlöschung). Rest: weitere Speicher (Literatur, Wissen) mit Neuladen; Sync im
-  Hintergrund ohne geöffnete App.
-  Betrifft: `data/PhoneSync.kt`, `net/WebDav.kt`, `data/Stores.kt` (`reload`), `data/ChatRepository.kt` (`rescan`),
-  `ui/NextcloudUi.kt`.
-
-### AP-29 ☑ Englisch vervollständigen · M (bisher W9-07)
-- Alle Texte in `I18n` überführen, englische Fassung vollständig (Einstellungen, Editoren, TU Vorlagen, Fehlermeldungen,
-  Lora). Keine weiteren Sprachen.
-- **Entscheidungen (01.11.2026)**: (a) Deutsch bleibt die Quellsprache im Code; `tr("…")` mit Platzhaltern `{0}`,
-  `trLater("…")` für Listen/Aufzählungen, ein eigenes `Text()` im Paket `ui` übersetzt Angezeigtes von selbst.
-  (b) Die englischen Texte stehen in einer Datei (`i18n/en.tsv`), nicht im Code. (c) Prompts an die Modelle, Wörter zum
-  Erkennen deutscher Eingaben, Dokumentvorlagen (Inhalt) und Protokolle bleiben deutsch; Antworten folgen der Sprache.
-- **Ergebnis (01.11.2026)**: rund 4 300 Texte auf Englisch – Einstellungen, alle Editoren, TU Vorlagen und Personas,
-  Modelle, Modi, Datenschutzstufen, Designs, Literatur, Transkription, Fehlermeldungen von Server, Updates und Anhängen,
-  Loras Antworten; Pfade wie „Einstellungen › Darstellung“ Teil für Teil; Loras Suche versteht englische Wörter.
-  Tests: `I18nCoverageTest` (jeder markierte Text hat eine englische Zeile, Platzhalter passen, `$`-Vorlagen in `tr()`
-  verboten). Rest: Inhalte der Dokumentvorlagen (Protokoll, Seminarplan …) bleiben deutsch.
-  Betrifft: `ui/I18n.kt`, `ui/TextI18n.kt`, `resources/i18n/en.tsv`, fast alle Bildschirme.
-
-### AP-30 ☑ Barrierefreiheit der App · M (bisher W2-11)
-- Screenreader (TalkBack/Narrator): Beschriftungen aller Knöpfe, sinnvolle Reihenfolge; große Schrift ohne
-  abgeschnittene Texte; komplette Bedienung per Tastatur unter Windows.
-- **Entscheidungen (01.11.2026)**: (a) Windows: Compose Desktop spricht über die **Java Access Bridge** – die App schaltet
-  sie für sich selbst ein (ohne `jabswitch`, ohne Admin-Rechte), wenn die mitgelieferte Java-Laufzeit sie enthält.
-  Damit lesen **NVDA** und JAWS; Narrator kennt diese Schnittstelle nicht. (b) Gemeinsame Bausteine statt jeder Bildschirm
-  einzeln: Abschnitte und Gruppen sind Überschriften, Schalterzeilen ein Schalter, Umschalter eine Auswahl.
-  (c) Fokus deutlich sichtbar über den Ripple-Zustand (26 % statt 10 %).
-- **Ergebnis (01.11.2026)**: Beschriftungen für alle Knöpfe mit Symbol und Schalter ohne eigene Zeile, Farbfelder mit
-  Namen und Auswahlzustand, Überschriften in den Einstellungen, große Schrift bricht um (Umschalter, feste Höhen
-  entfernt), sichtbarer Tastaturfokus, Access Bridge. Tests: `AccessibilityTest` (Schalterzeile, Überschriften,
-  Umschalter bei 200 % Schrift ohne Abschneiden, jeder Symbolknopf beschriftet). Rest: Test mit NVDA auf einem Dienst-PC.
-  Betrifft: `ui/Design.kt`, `ui/SettingsScreen.kt`, `ui/Theme.kt`, `desktop/Accessibility.kt` u. a.
-
-**Ganz am Ende** – erst, wenn alles andere fertig ist:
-
-### AP-31 ☑ macOS und Linux · L (bisher W9-06)
-- Compose Desktop baut bereits plattformunabhängig; zu tun: Pakete (DMG signiert/notarisiert, AppImage/DEB),
-  PDF-Rendering ohne Edge, Pfade, Autostart, Updater, Tastenkürzel (⌘), nachladbare Erweiterungen je Plattform.
-- **Entscheidungen (01.11.2026)**: (a) macOS nur Apple Silicon (arm64), Linux x64. (b) Pakete: DMG für die Erstinstallation,
-  tar.gz für automatische Updates (behält Rechte und Links), Linux tar.gz und .deb. Signieren/Notarisieren erst, wenn ein
-  Apple-Entwicklerkonto da ist (Workflow nutzt es dann über Secrets). (c) ffmpeg vom System statt mitgeliefert
-  (Homebrew/apt). (d) Schlüssel im Keychain bzw. Secret Service. (e) Erweiterungen je System (`videoeditor-macos` …),
-  das Windows-Paket wird dort nicht angeboten.
-- **Ergebnis (01.11.2026)**: Ordner nach Systemstandard, Keychain/Secret Service, Autostart (LaunchAgent, XDG),
-  Updater für .app-Bündel und App-Ordner, ⌘-Kürzel und angepasste Texte (⌘, Finder, Menüleiste), Öffnen/Zeigen mit
-  `open`/`xdg-open`, Ordnerwahl im Finder-Dialog, PDF über Chrome/Edge des Systems oder den eingebauten Renderer mit den
-  Mac-Schriften, llama.cpp für Apple Silicon/Linux, sherpa-onnx für macOS, Build & Release mit macOS- und Linux-Job und
-  Selbsttest. Tests: `UpdatesTest` (tar.gz mit Rechten und Links). Rest: Notarisierung (Apple-Konto), Intel-Macs,
-  Videoeditor-Paket für macOS/Linux, Outlook-Ersatz für den Kalender.
-  Betrifft: `desktop/Os.kt`, `desktop/Paths.kt`, `desktop/Secrets.kt`, `desktop/Autostart.kt`, `desktop/Desktop.kt`,
-  `update/*`, `local/LlamaHost.kt`, `docs/HtmlPdf.kt`, `desktop/build.gradle.kts`, `.github/workflows/android.yml`.
-
-### AP-32 ☐ Website · XL (bisher W9-09)
-- Möglichst viele Funktionen im Browser: Chat, TU Vorlagen, Lora, Literatur, Office-Editoren, PDF-Werkzeuge.
-- Nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser.
-- Technik (zu prüfen): Compose Multiplatform für Web (Wasm); API-Schlüssel nicht im Klartext im Browser; CORS der Uni-API.
+### AP-65 ☐ Diktat · S–M (neu, optional)
+- Diktieren in Dokumente und Textfelder mit der vorhandenen lokalen Spracherkennung (sherpa-onnx), Satzzeichen per
+  Sprache („Punkt“, „neuer Absatz“); keine Sprachbefehle für die App (Chat-Sprachmodus reicht).
+- **Fertig, wenn**: Ein Absatz lässt sich im neuen Dokument-Editor auf dem Gerät diktieren.
 
 ---
 
 ## Ideen
 
-Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Datei (Fassung vom 30.10.2026).
+Ohne Auftrag; Details der bisherigen Pakete stehen in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md) bzw. in der
+Git-Historie (Fassung vom 30.10.2026).
 
+- **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
+  nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
+  Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
+- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K), Fehlermeldungen in Klartext mit Lösungsknopf
+  (W2-09), globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
+  (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
+- **Dateien**: große Vorschau ohne Öffnen (Leertaste) mit Details-Spalte.
+- **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
+  Korrektur hinaus.
 - **Forschung**: Gutachter-Panel mit Mehr-Agenten-Engine (W3-02, W5-03), Systematic Review nach PRISMA (W5-04),
   Forschungsdaten veröffentlichen über OPARA/Zenodo (W5-06), Profilpflege mit ORCID/FIS/Publikationsliste/Lebenslauf (W5-08).
 - **Lehre & Verwaltung**: Klausuren nachträglich analysieren (W6-02), Live-Untertitel im Hörsaal (W6-04, eher Spielerei),
   Podcast aus Dokumenten (W7-02), Assistent für Bewerbungsverfahren (W7-03), Lernspiele als SCORM/H5P.
-- **Werkzeuge**: Diagramme und Whiteboard (W8-04), mehr Dateiformate (W8-05),
-  Browser-Automatisierung für Portale ohne Schnittstelle.
+- **Werkzeuge**: mehr Dateiformate (W8-05), Browser-Automatisierung für Portale ohne Schnittstelle.
 - **Anbindungen**: Zotero, Obsidian, Moodle, LimeSurvey und weitere aus dem alten Katalog (W9-03); ADEU als MCP-Server
-  (W9-04); Plugins (W9-05).
-- **Lora**: technische Namen (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
-- **Bedienung**: Rollenauswahl beim ersten Start (W2-08), Fehlermeldungen in Klartext mit Lösungsknopf (W2-09),
-  Einfügen über die Gboard-Leiste/langes Drücken auf Android (Rest von W1-01).
+  (W9-04); Plugins (W9-05); MCP-Ressourcen, -Prompts und Elicitation (Rest AP-23); Exchange über EWS/Graph (Rest AP-27).
+- **Bedienung**: Rollenauswahl beim ersten Start (W2-08), Einfügen über die Gboard-Leiste/langes Drücken auf Android
+  (Rest von W1-01).
 - **Team**: gemeinsamer Ordner für TU Vorlagen der Professur (abgespeckte W4-03, sehr niedrige Priorität).
+- **Prüfen auf Dienst-PCs**: Arbeitsspeicher vorher/nachher (AP-04), NVDA-Test (AP-30), Outlook-Rückfrage (AP-13),
+  Vorher-Bilder (AP-01) – bei Gelegenheit, ohne eigenes Paket.
 - **Ältere Ideen**: Literatur-Radar, Statistik-Werkstatt, Zettelkasten/Wissensgraph, Förder-/Call-Radar,
   Fragebogen-Auswertung, KI als zweite Coder:in, Lehrveranstaltungs-Cockpit, Kurs-Assistent für Studierende, Folien zu
   Lernvideo, Feedback-Werkstatt, Prüfungsorganisation, Barrierefreiheits-Check für Lehrmaterial, Sitzungs-/
-  Gremienassistent, zentrale Aufgaben und Fristen, Synopse-Werkzeug, Dokumenten-Scanner, Workflow-Baukasten,
-  Schnellzugriff (Widget/globales Kürzel), Stift und Handschrift, Hausstil-Prüfung.
+  Gremienassistent, zentrale Aufgaben und Fristen, Synopse-Werkzeug, Workflow-Baukasten, Schnellzugriff (Widget),
+  Stift und Handschrift, Hausstil-Prüfung.
 
 ---
 
 ## Erledigt
+
+Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 | Paket | Ergebnis | Rest |
 | --- | --- | --- |
@@ -872,6 +571,10 @@ Ohne Auftrag; Details der bisherigen Pakete stehen in der Git-Historie dieser Da
    Server sowie die Zugangsdaten der TU zum Vorbelegen.
 4. **OPAL** (AP-17, AP-20): Lassen sich HTML-Dateien/ZIP-Pakete als Lernelement einbinden? In welchem Format kommen
    Abgaben aus OPAL?
+5. **Word-Prüfsammlung** (AP-45): Welche echten Dokumente (TUD-Briefvorlage, Vorlage Abschlussarbeit, Antrag, Protokoll)
+   dürfen als Testdateien ins Repo, oder nur anonymisiert?
+6. **Gesichter verpixeln** (AP-54): Welches lokale Erkennungsmodell (Lizenz, Größe im Videoeditor-Paket)?
+7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt?
 
 ---
 

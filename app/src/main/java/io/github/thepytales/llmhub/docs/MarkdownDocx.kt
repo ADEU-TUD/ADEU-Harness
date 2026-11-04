@@ -134,6 +134,23 @@ object MarkdownDocx {
         writeWith(file, title, newMarkdown, notes.notes, theme) { withLogo -> trackedDocument(old, notes.body, theme, withLogo, author) }
     }
 
+    /**
+     * The body XML of [markdown] – paragraphs and tables, without section properties – to put into an existing Word file
+     * (Word-Treue, AP-45). Null when the piece needs parts of the package (pictures, footnotes, landscape sections).
+     */
+    internal fun fragment(markdown: String, theme: DocTheme = DocTheme()): String? {
+        if ("![" in markdown || Regex("\\[\\^[^\\]]+]").containsMatchIn(markdown) || markdown.lineSequence().any { DocMarkup.orientation(it) != null }) return null
+        val c = Ctx(emptyList(), header = false, footer = false)
+        c.headings = DocMarkup.tocEntries(markdown)
+        current.set(c)
+        try {
+            val xml = buildString { for (b in parseBlocks(markdown)) block(b, theme) }
+            return if (c.media.isNotEmpty()) null else xml
+        } finally {
+            current.remove()
+        }
+    }
+
     private fun writeWith(file: File, title: String, markdown: String, notes: List<DocMarkup.Note>, theme: DocTheme, body: (Boolean) -> String) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
         val setup = DocMarkup.pageSetup(markdown)
@@ -301,17 +318,23 @@ object MarkdownDocx {
         val underline: Boolean = false,
         val shade: Boolean = false,
         val font: String? = null,
+        /** Highlight colour (RRGGBB) of the Fließtext-Editor, written as shading so every colour works. */
+        val highlight: String? = null,
+        val sup: Boolean = false,
+        val sub: Boolean = false,
     ) {
         fun xml() = buildString {
             if (mono) append("<w:rFonts w:ascii=\"Courier New\" w:hAnsi=\"Courier New\" w:cs=\"Courier New\"/>")
-            else if (font != null) append("<w:rFonts w:ascii=\"$font\" w:hAnsi=\"$font\" w:cs=\"$font\"/>")
+            else if (font != null) append("<w:rFonts w:ascii=\"${attr(font)}\" w:hAnsi=\"${attr(font)}\" w:cs=\"${attr(font)}\"/>")
             if (bold) append("<w:b/>")
             if (italic) append("<w:i/>")
             if (strike) append("<w:strike/>")
             if (color != null) append("<w:color w:val=\"$color\"/>")
             if (size != null) append("<w:sz w:val=\"$size\"/>")
             if (underline) append("<w:u w:val=\"single\"/>")
-            if (shade) append("<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"F1F3F5\"/>")
+            if (highlight != null) append("<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"$highlight\"/>")
+            else if (shade) append("<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"F1F3F5\"/>")
+            if (sup) append("<w:vertAlign w:val=\"superscript\"/>") else if (sub) append("<w:vertAlign w:val=\"subscript\"/>")
         }
     }
 
@@ -329,9 +352,14 @@ object MarkdownDocx {
             bold = base.bold || seg.bold,
             italic = base.italic || seg.italic,
             strike = base.strike || seg.strike,
-            color = if (seg.link != null) "1D4ED8" else base.color,
-            underline = base.underline || seg.link != null,
+            color = if (seg.link != null) "1D4ED8" else seg.color ?: base.color,
+            underline = base.underline || seg.link != null || seg.underline,
             shade = base.shade || seg.code,
+            size = seg.size?.let { it * 2 } ?: base.size,
+            font = seg.font ?: base.font,
+            highlight = seg.highlight ?: base.highlight,
+            sup = seg.sup || base.sup,
+            sub = seg.sub || base.sub,
         ),
     )
 
@@ -348,6 +376,14 @@ object MarkdownDocx {
             if (seg.code || numbers.isEmpty()) segRun(seg, base)
             else DocMarkup.splitNotes(seg.text, numbers).joinToString("") { (t, n) -> if (n != null) noteRef(n) else segRun(seg.copy(text = t), base) }
         }
+    }
+
+    /** Alignment of a paragraph of the Fließtext-Editor (marker `<!--a:c-->` at its start, AP-44). */
+    private fun jc(text: String): String = when (io.github.thepytales.llmhub.ui.ALIGN_MARK.find(text.trimStart())?.groupValues?.get(1)) {
+        "c" -> "<w:jc w:val=\"center\"/>"
+        "r" -> "<w:jc w:val=\"right\"/>"
+        "j" -> "<w:jc w:val=\"both\"/>"
+        else -> ""
     }
 
     private fun para(content: String, pPr: String = "") =
@@ -501,7 +537,7 @@ object MarkdownDocx {
             DocMarkup.isComment(text) -> {}
             else -> {
                 val img = DocMarkup.image(text)
-                if (img != null) append(imageParagraph(img)) else append(para(runs(text), SPACING))
+                if (img != null) append(imageParagraph(img)) else append(para(runs(text), SPACING + jc(text)))
             }
         }
     }
@@ -536,7 +572,7 @@ object MarkdownDocx {
                     val lineColor = accent ?: "BBBBBB"
                     val border = if (b.level == 1) "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"8\" w:space=\"4\" w:color=\"$lineColor\"/></w:pBdr>" else ""
                     val style = RunStyle(bold = true, size = size, color = if (b.level <= 2) accent else null, font = headFont)
-                    val align = if (b.level == 1 && theme.style == DocStyle.CLASSIC) "<w:jc w:val=\"center\"/>" else ""
+                    val align = jc(b.text).ifEmpty { if (b.level == 1 && theme.style == DocStyle.CLASSIC) "<w:jc w:val=\"center\"/>" else "" }
                     val level = b.level.coerceIn(1, 4)
                     append(para(runs(b.text, style), "<w:pStyle w:val=\"Heading$level\"/><w:keepNext/>$border<w:spacing w:before=\"240\" w:after=\"120\"/>$align"))
                 }

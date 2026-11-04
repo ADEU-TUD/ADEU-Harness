@@ -79,6 +79,54 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   - **Wege mit Animation**: Führt Lora irgendwohin, fliegt sie aus ihrem Panel dorthin – ins Eingabefeld des Chats, zum
     Eintrag der Seitenleiste oder zur Einstellung, die dann leuchtet – mit einer Spur kleiner Sterne und einem Ring bei
     der Landung.
+- **Lora handelt in Werkzeugen** (AP-38, Runde 2): Lora führt nicht nur hin, sie **bedient die Werkzeuge selbst** –
+  im Lora-Panel, mit sichtbaren Schritten („Fügt 2 PDFs zusammen …“), einer Ergebniskarte mit **Rückgängig** und *Öffnen*.
+  Alles, was verschiebt, löscht (Papierkorb) oder überschreibt, zeigt vorher eine **Vorschau vorher → nachher** und wartet
+  auf *Ausführen*. Jedes Werkzeug meldet seine Aktionen in einem Register (`agent/ToolActions.kt`); Lora bekommt nur die
+  des offenen Bereichs und weiß, was ausgewählt ist. Jede Aktion steht im Protokoll (*Problem melden*).
+  - **Dateien**: aufräumen (Unterordner nach Dateiart, Semester „WiSe 2026-27“ oder Monat), nach Inhalt umbenennen,
+    umbenennen, verschieben, Schlagwörter vergeben, Duplikate finden und in den Papierkorb legen.
+  - **PDF-Werkzeugkasten**: öffnen, zusammenfügen, teilen, Seiten löschen/drehen/sortieren, Texterkennung, verkleinern,
+    schwärzen (immer mit Vorschau) und umwandeln (Word, Markdown, Text) – Änderungen am offenen PDF mit dessen eigenem
+    *Rückgängig*.
+  - **Dokument**: schreiben an der Cursorstelle, Abschnitte als Vorschläge überarbeiten, Tabelle einfügen, Absatz als
+    Überschrift (siehe AP-47). Video folgt mit den neuen Videopaketen (AP-52 ff.).
+  - Klare Wünsche erkennt Lora **auf dem Gerät** ohne Modell: „PDF bearbeiten“ (öffnet die ausgewählte PDF im
+    Werkzeugkasten), „Füge die offenen PDFs zusammen“, „Finde Duplikate“, „Räum diesen Ordner auf“, „verkleinern“,
+    „Texterkennung“. In *Dateien* hat jede PDF zudem *⋮ › Im PDF-Werkzeugkasten bearbeiten*.
+- **Lora-Dateidialog** (AP-42, PC): Öffnen, Speichern unter und Ordnerwahl laufen überall über einen eigenen Dialog im
+  Lora-Stil statt der alten Windows-/Java-Dialoge – Seitenspalte wie im Tab *Dateien* (*Zuletzt · Markiert · Lora-Ordner ·
+  Hochgeladen · Erstellt · Nextcloud · Ablageorte*, darunter *Dieser PC* mit Laufwerken, Desktop, Dokumente, Downloads,
+  Bilder und Cloud-Ordnern wie OneDrive), Pfadleiste (auch zum Eintippen), Suche, Filter nach Dateityp, Liste oder Raster
+  mit Vorschaubildern (Bilder, erste PDF-Seite), Mehrfachauswahl mit Strg, neuer Ordner, Dateien aus dem Explorer
+  hineinziehen. Der zuletzt benutzte Ort je Zweck (Bilder, Videos, Dokumente, Speichern je Dateityp) wird gemerkt.
+  Tastatur: Pfeile, Enter, Rücktaste, Strg+A, Tippen springt; Screenreader-Beschriftungen. Aus der Nextcloud geöffnete
+  Dateien werden geladen, *Speichern unter* in die Nextcloud lädt die Datei nach dem Schreiben hoch. Auch die Frage nach
+  einem verschobenen Lora-Ordner beim Start ist jetzt ein Fenster im Lora-Stil.
+- **Fließtext-Editor für Dokumente** (AP-44, mit dem Text-Kern aus AP-43): Text-Dokumente bearbeitest du wie in Google
+  Docs als **durchgehenden Text** – ein Cursor, Markieren über Absätze hinweg, Formatieren mit Symbolleiste, Menüs
+  (*Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras*) und Tastenkürzeln (Strg+B/I/U, Strg+Alt+0…4 für Normaltext
+  und Überschriften, Strg+Umschalt+7/8/9 für Listen, Tab/Umschalt+Tab für Einzüge, Strg+\ entfernt Formatierung).
+  Formatvorlagen (Normaler Text, Überschrift 1–4, Zitat, Listen, Checkliste), Schriftart und -größe, fett, kursiv,
+  unterstrichen, durchgestrichen, hoch-/tiefgestellt, **Textfarbe, Hervorhebung**, Links, **Ausrichtung** (links,
+  zentriert, rechts, Blocksatz). Markdown-Kürzel beim Tippen (`# `, `- `, `1. `, `[] `, `> `). *Seitenansicht* auf A4-Breite
+  mit Seitenumbruch-Linien oder *Ohne Seiten*, Zoom 75–150 %. Tabellen, Bilder, Formeln, Inhaltsverzeichnis, Fußnoten und
+  Seitenumbrüche stehen als eigene Blöcke zwischen dem Text (*Einfügen*-Menü, Tabelle über ein Raster). Gespeichert wird
+  weiter Markdown – was Markdown nicht kann, als kleine HTML-Marken (`<u>`, `<mark>`, `<span style="color:…">`,
+  `<!--a:c-->`), die alle Exporte (Word, PDF, Chat) verstehen. Solange Änderungen der KI oder *Änderungen nachverfolgen*
+  zur Prüfung anstehen, zeigt der Editor die bisherige Blockansicht mit Annehmen/Ablehnen.
+- **Word-Treue** (AP-45): Beim Öffnen einer .docx kommen jetzt auch Unterstreichung, Textfarbe, Hervorhebung,
+  hoch-/tiefgestellt, abweichende Schriftart und -größe und die Ausrichtung mit. Beim Speichern schreibt die App neue,
+  geänderte oder gelöschte Absätze **in das Original** (`docs/text/DocxWriter.kt`): Unveränderte Absätze und Tabellen
+  bleiben Zeichen für Zeichen erhalten – mit Formatvorlagen, Lesezeichen, Feldern, Inhaltssteuerelementen –, ebenso
+  Kopf- und Fußzeilen, Nummerierungen, Bilder und alle anderen Teile der Datei; neue Überschriften nehmen die
+  Formatvorlagen des Originals. Nur wenn das nicht sicher geht (z. B. ein neues Bild), entsteht die Datei wie bisher neu.
+- **Lora schreibt im Dokument** (AP-47): **„Hilf mir schreiben“** (Strg+J, ✨ in der Symbolleiste, *Extras* oder im
+  leeren Dokument) – Lora schreibt sichtbar an der Cursorstelle, farbig hinterlegt, mit Überschriften als Formatvorlagen;
+  danach *Übernehmen · Neu · Verwerfen*. **Überarbeiten als Vorschlag** (*Extras › Markierung mit Lora überarbeiten* oder
+  Lora: „Überarbeite Abschnitt Methode kürzer“): die Änderungen erscheinen wie bei *Änderungen nachverfolgen* rot/grün im
+  Text, eine Leiste führt von Vorschlag zu Vorschlag mit *Annehmen*, *Ablehnen* und *Alle …*; Loras Begründung steht als
+  Kommentar am Rand. Die Formatierung des übrigen Textes bleibt.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

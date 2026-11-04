@@ -132,6 +132,14 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 "drawer" -> if (!wide) drawer.open()
                 "lora" -> LoraHelper.open()
                 "chat" -> nav.openChat(chatRoute())
+                // Shared from another app: an empty new chat on screen takes it right away (ChatPlatform); if it is
+                // still waiting after a moment, a new chat is opened for it. Before, a new chat was always opened –
+                // and when the start chat had already taken the files, they disappeared with it.
+                // (Its own coroutine: resetting openRoute restarts this effect, which would cancel the wait.)
+                "share" -> scope.launch {
+                    kotlinx.coroutines.delay(400)
+                    if (io.github.thepytales.llmhub.MainActivity.shared.value != null) runCatching { nav.openChat(chatRoute()) }
+                }
                 else -> runCatching { nav.navigate(r) { launchSingleTop = true } }
             }
             openRoute.value = null

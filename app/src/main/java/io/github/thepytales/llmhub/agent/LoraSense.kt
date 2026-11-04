@@ -87,7 +87,7 @@ object LoraSense {
                 Suggestion(trLater("Namen schützen"), "Pseudonymisierung", "option.privacy.pseudonymize"),
             )
             r == "pdf" -> listOf(
-                Suggestion(trLater("Wie geht zusammenfügen?"), "Wie füge ich PDFs zusammen?"),
+                Suggestion(trLater("Offene PDFs zusammenfügen"), "Füge die offenen PDFs zusammen"),
                 Suggestion(trLater("PDF zusammenfassen"), "Erklär mir, wie ich ein PDF im Chat zusammenfassen lasse"),
                 Suggestion(trLater("Formular ausfüllen"), "Wie fülle ich ein PDF-Formular aus?"),
             )
@@ -95,10 +95,13 @@ object LoraSense {
                 Suggestion(trLater("Wie sicher ist der Tresor?"), "Wie funktioniert der Tresor?"),
                 Suggestion(trLater("Lokale Modelle"), "Modelle auf diesem Gerät", "area.local"),
             )
-            r == "docs" || r == "files" -> listOf(
+            // Lora handelt in Dateien (AP-38): with a PDF chosen she opens it in the werkzeugkasten.
+            r == "docs" || r == "files" -> listOfNotNull(
+                Suggestion(trLater("PDF bearbeiten"), "PDF bearbeiten").takeIf { LoraFocus.files.any { it.extension.equals("pdf", true) } },
+                Suggestion(trLater("Ordner aufräumen"), "Räum diesen Ordner auf"),
+                Suggestion(trLater("Duplikate finden"), "Finde Duplikate"),
                 Suggestion(trLater("Wo liegen meine Dateien?"), "Erklär mir den Lora-Ordner und wie ich ihn verschiebe"),
-                Suggestion(trLater("Datei finden"), "Wie finde ich eine Datei über ihren Inhalt?"),
-            )
+            ).take(3)
             r.startsWith("doc/") -> listOf(
                 Suggestion(trLater("Änderungen nachverfolgen"), "Wie verfolge ich Änderungen im Dokument nach?"),
                 Suggestion(trLater("Dokumente & Logos"), "Dokumente & Logos", "settings.documents"),

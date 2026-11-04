@@ -102,7 +102,8 @@ class MainActivity : ComponentActivity() {
             return
         }
         shared.value = Shared(text, uris)
-        openRoute.value = "chat"
+        // An empty new chat that is already open takes it; otherwise AppRoot opens a new chat for it.
+        openRoute.value = "share"
     }
 
     /** "foreground" or "background" (waits a few seconds so the test can leave the app first). */

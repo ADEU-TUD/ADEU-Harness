@@ -208,6 +208,43 @@ object LoraHelper {
 internal class LoraTurn(val wish: String) {
     var reply by mutableStateOf<LoraReply?>(null)
     val state = mutableStateMapOf<Int, String>()
+
+    /** Results of Lora's actions (AP-38) by step, with their Rückgängig. */
+    val results = mutableStateMapOf<Int, io.github.thepytales.llmhub.agent.ActionResult>()
+}
+
+/**
+ * Carries out the action of step [i] (AP-38): „läuft“ while it works, then its result with Rückgängig; a file it made
+ * opens (a PDF in the werkzeugkasten). Errors appear in the card instead of the result.
+ */
+internal fun runLoraAction(scope: CoroutineScope, turn: LoraTurn, i: Int, step: LoraStep.Action, go: (String) -> Unit) {
+    if (turn.state[i] == "running" || turn.state[i] == "done") return
+    turn.state[i] = "running"
+    scope.launch {
+        try {
+            val r = step.plan.run()
+            io.github.thepytales.llmhub.agent.ToolActions.log("${step.plan.actionId} ausgeführt: ${r.text}")
+            turn.results[i] = r
+            turn.state[i] = "done"
+            r.open?.let { f -> openActionFile(f, go) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            turn.state[i] = "failed:" + tr("Abgebrochen.")
+            throw e
+        } catch (e: Exception) {
+            io.github.thepytales.llmhub.agent.ToolActions.log("${step.plan.actionId} fehlgeschlagen: ${e.message}")
+            turn.state[i] = "failed:" + (e.message ?: e.javaClass.simpleName)
+        }
+    }
+}
+
+/** Opens a file an action made or named: PDFs in the werkzeugkasten, documents in the editor, other files outside. */
+internal fun openActionFile(f: java.io.File, go: (String) -> Unit) {
+    if (f.extension.equals("pdf", true)) {
+        io.github.thepytales.llmhub.agent.ActionHosts.openPdf?.invoke(f) ?: run {
+            PdfHandoff.open(f.absolutePath, 1, f.name)
+            go("pdf")
+        }
+    }
 }
 
 /**
@@ -259,6 +296,8 @@ private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope,
             turn.reply = reply
             LoraHelper.mood = moodFor(reply)
             LoraHelper.moodTick++
+            // Lora's safe actions run at once (AP-38); risky ones wait for „Ausführen“ in their card.
+            reply.steps.forEachIndexed { i, st -> if (st is LoraStep.Action && !st.plan.risky) runLoraAction(scope, turn, i, st, go) }
             // Leading somewhere, opening and handing over happen right away; settings, tools and the calendar wait for „Ja“.
             val first = reply.steps.singleOrNull()
             if (first != null && runLoraStep(first, go)) {
@@ -751,6 +790,7 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                         }
                     }
                 }
+                is LoraStep.Action -> ActionCard(turn, i, step, go)
                 is LoraStep.Ask -> QuestionCard(step.questions, onAnswer = if (state != null) null else ({ a -> turn.state[i] = "done"; onAnswer(a) }))
                 is LoraStep.Navigate -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; if (!LoraLayout.docked) LoraHelper.close() }
                 is LoraStep.OpenMode -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; LoraHelper.close() }
@@ -770,6 +810,65 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
         if (reply.hits.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 reply.hits.forEach { t -> PlaceCard(t, opened = false, compact = true) { openTarget(t, go); if (!LoraLayout.docked || t.kind == MapKind.MODE || t.kind == MapKind.TEMPLATE) LoraHelper.close() } }
+            }
+        }
+    }
+}
+
+/**
+ * An action of Lora in a tool (AP-38): the step line while it runs, the preview (vorher → nachher) with „Ausführen“
+ * for risky ones, then the result with „Rückgängig“ and „Öffnen“.
+ */
+@Composable
+private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val state = turn.state[i]
+    val result = turn.results[i]
+    val plan = step.plan
+    ResultCard(icon = Icons.Outlined.Construction, title = plan.title.removeSuffix(" …").removeSuffix("…"), subtitle = null) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (plan.preview.isNotEmpty() && (state == null || state == "running")) {
+                Column(Modifier.semantics { contentDescription = tr("Vorschau") }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    plan.preview.take(12).forEach { (before, after) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(before, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("wird zu"), modifier = Modifier.padding(horizontal = 6.dp).size(14.dp))
+                            Text(after, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        }
+                    }
+                    if (plan.preview.size > 12) HintText(tr("… und {0} weitere", plan.preview.size - 12))
+                }
+            }
+            when {
+                state == "running" -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                    HintText(plan.title)
+                }
+                state == "done" && result != null -> {
+                    DoneRow(result.text) {
+                        result.undo?.let { undo ->
+                            TextButton(onClick = {
+                                turn.state[i] = "undoing"
+                                scope.launch {
+                                    val text = runCatching { undo() }.getOrElse { tr("Rückgängig ging nicht: {0}", it.message.orEmpty()) }
+                                    io.github.thepytales.llmhub.agent.ToolActions.log("${plan.actionId} rückgängig: $text")
+                                    turn.state[i] = "undone:$text"
+                                }
+                            }) { Text(tr("Rückgängig")) }
+                        }
+                    }
+                    val first = result.open ?: result.files.firstOrNull()?.takeIf { it.extension.equals("pdf", true) }
+                    if (first != null && result.open == null) TextButton(onClick = { openActionFile(first, go) }) { Text(tr("Öffnen")) }
+                }
+                state == "undoing" -> HintText(tr("Wird zurückgenommen …"))
+                state?.startsWith("undone:") == true -> HintText(state.removePrefix("undone:"))
+                state?.startsWith("failed:") == true -> Text(state.removePrefix("failed:"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                state == "no" -> HintText(tr("Nichts geändert."))
+                else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilledTonalButton(onClick = { runLoraAction(scope, turn, i, step, go) }) { Text(tr("Ausführen")) }
+                    TextButton(onClick = { turn.state[i] = "no" }) { Text(tr("Abbrechen")) }
+                }
             }
         }
     }

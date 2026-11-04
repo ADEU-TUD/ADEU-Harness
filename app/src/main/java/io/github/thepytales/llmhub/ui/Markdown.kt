@@ -147,7 +147,12 @@ internal fun parseBlocks(src: String): List<Block> {
     return out
 }
 
-/** A run of inline text with its formatting, used by the document writers. */
+/**
+ * A run of inline text with its formatting, used by the document writers. Since the Fließtext-Editor (AP-44) the
+ * document Markdown also carries what Markdown itself cannot say, as small HTML tags that every Markdown viewer
+ * understands: `<u>…</u>` underline, `<mark>…</mark>` (or `<mark style="background:#FFEB3B">`) highlight,
+ * `<sup>`/`<sub>`, and `<span style="color:#C00000; font-size:14pt; font-family:Georgia">…</span>`.
+ */
 internal data class Segment(
     val text: String,
     val bold: Boolean = false,
@@ -155,9 +160,72 @@ internal data class Segment(
     val code: Boolean = false,
     val strike: Boolean = false,
     val link: String? = null,
+    val underline: Boolean = false,
+    /** Text colour as RRGGBB. */
+    val color: String? = null,
+    /** Highlight colour as RRGGBB. */
+    val highlight: String? = null,
+    val sup: Boolean = false,
+    val sub: Boolean = false,
+    /** Size in points. */
+    val size: Int? = null,
+    val font: String? = null,
 )
 
+/** The inline HTML tags of the document Markdown (see [Segment]); group 1 tag, 2 attributes, 3 content. */
+internal val INLINE_TAGS = Regex("<(u|mark|sup|sub|span)((?:\\s+[a-z-]+=\"[^\"]*\")*)\\s*>(.*?)</\\1>", RegexOption.DOT_MATCHES_ALL)
+
+/** Paragraph alignment marker at the start of a paragraph: `<!--a:c-->` centre, `a:r` right, `a:j` justified. */
+internal val ALIGN_MARK = Regex("^<!--a:([crj])-->")
+
+/** The CSS colour value as RRGGBB, or null. */
+internal fun cssColor(v: String?): String? {
+    val t = v?.trim()?.lowercase() ?: return null
+    Regex("^#?([0-9a-f]{6})$").find(t)?.let { return it.groupValues[1].uppercase() }
+    Regex("^#?([0-9a-f])([0-9a-f])([0-9a-f])$").find(t)?.let { m -> return m.groupValues.drop(1).joinToString("") { it + it }.uppercase() }
+    return when (t) { "yellow" -> "FFFF00"; "red" -> "FF0000"; "green" -> "00B050"; "blue" -> "0070C0"; "black" -> "000000"; else -> null }
+}
+
+/** The value of [key] in a style attribute such as `color:#C00000; font-size:14pt`. */
+internal fun cssValue(style: String, key: String): String? =
+    style.split(';').map { it.trim() }.firstOrNull { it.substringBefore(':').trim().equals(key, true) }?.substringAfter(':')?.trim()?.trim('\'', '"')
+
+/** [base] with the formatting of one inline tag. */
+internal fun Segment.withTag(tag: String, attrs: String): Segment {
+    val style = Regex("style=\"([^\"]*)\"").find(attrs)?.groupValues?.get(1).orEmpty()
+    return when (tag) {
+        "u" -> copy(underline = true)
+        "sup" -> copy(sup = true, sub = false)
+        "sub" -> copy(sub = true, sup = false)
+        "mark" -> copy(highlight = cssColor(cssValue(style, "background") ?: cssValue(style, "background-color")) ?: "FFF59D")
+        else -> copy(
+            color = cssColor(cssValue(style, "color")) ?: color,
+            highlight = cssColor(cssValue(style, "background") ?: cssValue(style, "background-color")) ?: highlight,
+            size = cssValue(style, "font-size")?.removeSuffix("pt")?.removeSuffix("px")?.trim()?.toFloatOrNull()?.toInt() ?: size,
+            font = cssValue(style, "font-family")?.substringBefore(',')?.trim()?.trim('\'', '"')?.takeIf { it.isNotEmpty() } ?: font,
+            underline = underline || cssValue(style, "text-decoration")?.contains("underline") == true,
+        )
+    }
+}
+
 internal fun inlineSegments(text: String, base: Segment = Segment("")): List<Segment> {
+    // The tags of the Fließtext-Editor first (they may hold Markdown), then the Markdown marks inside.
+    val clean = ALIGN_MARK.replace(text, "")
+    if ('<' in clean && INLINE_TAGS.containsMatchIn(clean)) {
+        val out = mutableListOf<Segment>()
+        var last = 0
+        for (m in INLINE_TAGS.findAll(clean)) {
+            if (m.range.first > last) out += markdownSegments(clean.substring(last, m.range.first), base)
+            out += inlineSegments(m.groupValues[3], base.withTag(m.groupValues[1], m.groupValues[2]))
+            last = m.range.last + 1
+        }
+        if (last < clean.length) out += markdownSegments(clean.substring(last), base)
+        return out
+    }
+    return markdownSegments(clean, base)
+}
+
+private fun markdownSegments(text: String, base: Segment): List<Segment> {
     val out = mutableListOf<Segment>()
     fun plain(t: String) {
         if (t.isNotEmpty()) out += base.copy(text = t)
@@ -200,6 +268,38 @@ class SourceTarget(val label: String, val url: String? = null, val open: (() -> 
  * [sources] when the number is known there.
  */
 fun inlineMarkdown(
+    text: String,
+    codeBackground: Color,
+    linkColor: Color,
+    sources: Map<Int, SourceTarget> = emptyMap(),
+    chips: MutableList<InlineChip>? = null,
+): AnnotatedString {
+    // The tags of the Fließtext-Editor (AP-44, see Segment) are shown as formatting, never as text.
+    val clean = ALIGN_MARK.replace(text, "")
+    if ('<' !in clean || !INLINE_TAGS.containsMatchIn(clean)) return inlineMarkdownCore(clean, codeBackground, linkColor, sources, chips)
+    return buildAnnotatedString {
+        var last = 0
+        for (m in INLINE_TAGS.findAll(clean)) {
+            if (m.range.first > last) append(inlineMarkdownCore(clean.substring(last, m.range.first), codeBackground, linkColor, sources, chips))
+            withStyle(tagStyle(Segment("").withTag(m.groupValues[1], m.groupValues[2]))) {
+                append(inlineMarkdown(m.groupValues[3], codeBackground, linkColor, sources, chips))
+            }
+            last = m.range.last + 1
+        }
+        if (last < clean.length) append(inlineMarkdownCore(clean.substring(last), codeBackground, linkColor, sources, chips))
+    }
+}
+
+/** How the formatting of an inline tag looks on screen. */
+internal fun tagStyle(s: Segment): SpanStyle = SpanStyle(
+    color = s.color?.let { Color(("FF" + it).toLong(16)) } ?: Color.Unspecified,
+    background = s.highlight?.let { Color(("FF" + it).toLong(16)) } ?: Color.Unspecified,
+    textDecoration = if (s.underline) TextDecoration.Underline else null,
+    baselineShift = if (s.sup) BaselineShift.Superscript else if (s.sub) BaselineShift.Subscript else null,
+    fontSize = if (s.sup || s.sub) androidx.compose.ui.unit.TextUnit(0.75f, androidx.compose.ui.unit.TextUnitType.Em) else androidx.compose.ui.unit.TextUnit.Unspecified,
+)
+
+private fun inlineMarkdownCore(
     text: String,
     codeBackground: Color,
     linkColor: Color,

@@ -85,15 +85,18 @@ fun rememberChatPlatform(
     }
 
     LaunchedEffect(Unit) {
-        // Shared from another app: a new chat gets the text in the input field and the files as attachments.
-        if (isNewChat()) {
-            MainActivity.shared.value?.let { shared ->
-                MainActivity.shared.value = null
-                if (shared.text.isNotBlank()) onText(shared.text)
-                shared.uris.forEach { uri ->
-                    val mime = context.contentResolver.getType(uri).orEmpty()
+        // Shared from another app: a new chat gets the text in the input field and the files as attachments. Watched
+        // the whole time the chat is on screen – a share while the app is open (or a new chat that is reused instead of
+        // recreated) arrived after the first composition and was never picked up.
+        MainActivity.shared.collect { shared ->
+            if (shared == null || !isNewChat()) return@collect
+            MainActivity.shared.value = null
+            if (shared.text.isNotBlank()) onText(shared.text)
+            shared.uris.forEach { uri ->
+                val mime = runCatching { context.contentResolver.getType(uri) }.getOrNull().orEmpty()
+                runCatching {
                     if (mime.startsWith("image/")) encodeImage(context, uri)?.let { images.add(it) } else read(uri)
-                }
+                }.onFailure { Notices.error(tr("Die geteilte Datei konnte nicht gelesen werden: {0}", it.message.orEmpty())) }
             }
         }
     }

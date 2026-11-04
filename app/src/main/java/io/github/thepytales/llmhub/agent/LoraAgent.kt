@@ -44,6 +44,12 @@ sealed interface LoraStep {
 
     /** Questions with answer buttons when the wish is unclear (AP-06). */
     data class Ask(val questions: List<UserQuestion>) : LoraStep
+
+    /**
+     * Lora handelt im Werkzeug (AP-38): a planned action. Safe ones run at once (step line, then the result with
+     * Rückgängig); risky ones show their preview and wait for „Ausführen“.
+     */
+    data class Action(val plan: ActionPlan) : LoraStep
 }
 
 /** Lora's answer: a short [text] and what to do; [local] = found on the device without a request. */
@@ -90,11 +96,14 @@ class LoraAgent(private val c: AppContainer) {
     ): LoraReply {
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
+        val area = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)
+        // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
+        localAction(wish, area, android)?.let { return it }
         local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
         localChats(wish)?.let { return it }
         val model = modelFor(folderId)
             ?: return fallback(wish, targets, if (!settings.hasAnyApiKey) tr("Ohne API-Schlüssel suche ich nur in der App.") else tr("In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App."))
-        return runCatching { remote(wish, history, model, targets, android, onText) }
+        return runCatching { remote(wish, history, model, targets, android, onText, area) }
             .getOrElse { e ->
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 fallback(wish, targets, friendlyError(e))
@@ -166,10 +175,41 @@ class LoraAgent(private val c: AppContainer) {
         return LoraReply(text, hits = hits)
     }
 
+    /**
+     * Wishes for the open tool that are clear without a model (AP-38): „PDF bearbeiten“ with a PDF chosen in Dateien,
+     * „zusammenfügen“, „Duplikate“, „aufräumen“, „verkleinern“, „Texterkennung“. Null for other wishes.
+     */
+    internal suspend fun localAction(wish: String, area: ActionArea?, android: Boolean): LoraReply? {
+        area ?: return null
+        val n = AppMap.norm(wish)
+        val pdfs = (LoraFocus.files.filter { it.extension.equals("pdf", true) } + listOfNotNull(LoraFocus.pdf)).distinct()
+        val (id, args) = when {
+            area == ActionArea.FILES && pdfs.isNotEmpty() && Regex("(bearbeit|werkzeugkasten|offne|oeffne|aufmach|ansehen|zeig)").containsMatchIn(n) && !Regex("(zusammen|merge|duplikat|aufraum)").containsMatchIn(n) -> "pdf.open" to emptyMap()
+            Regex("(zusammenfu|zusammen ?fu|fug\\w* .*zusammen|fuhr\\w* .*zusammen|merge|vereinig)").containsMatchIn(n) && (area == ActionArea.PDF || pdfs.size >= 2) -> "pdf.merge" to emptyMap()
+            area == ActionArea.FILES && Regex("(duplikat|doppelt)").containsMatchIn(n) -> "files.duplicates" to emptyMap()
+            area == ActionArea.FILES && Regex("(aufraum|raum\\w* .*auf\\b|ordne|sortier)").containsMatchIn(n) ->
+                "files.tidy" to mapOf("nach" to if ("semester" in n) "semester" else if ("monat" in n) "monat" else "typ")
+            Regex("(verkleiner|komprimier|kleiner machen)").containsMatchIn(n) && (area == ActionArea.PDF || pdfs.isNotEmpty()) && !android -> "pdf.compress" to emptyMap()
+            area == ActionArea.PDF && Regex("(texterkennung|\\bocr\\b|text erkennen)").containsMatchIn(n) -> "pdf.ocr" to emptyMap()
+            else -> return null
+        }
+        val action = ToolActions.byId(id)?.takeIf { !android || it.android } ?: return null
+        val json = kotlinx.serialization.json.JsonObject(args.mapValues { kotlinx.serialization.json.JsonPrimitive(it.value) })
+        return try {
+            val plan = action.plan(c, json)
+            LoraReply(if (plan.risky) tr("Das würde ich so machen – passt es?") else plan.title, listOf(LoraStep.Action(plan)))
+        } catch (e: ActionFailed) {
+            LoraReply(e.message.orEmpty())
+        }
+    }
+
     private suspend fun remote(
         wish: String, history: List<Pair<String, String>>, model: String, targets: List<AppTarget>, android: Boolean, onText: (String) -> Unit,
+        area: ActionArea? = null,
     ): LoraReply {
-        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android)))
+        val actions = ToolActions.forArea(area, android)
+        val tools = TOOLS + actions.map { it.toolDef() }
+        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions)))
         history.takeLast(4).forEach { (q, a) ->
             messages += ChatMessage(role = "user", content = q)
             messages += ChatMessage(role = "assistant", content = a)
@@ -178,7 +218,7 @@ class LoraAgent(private val c: AppContainer) {
         val steps = mutableListOf<LoraStep>()
         var text = ""
         repeat(MAX_ROUNDS) { round ->
-            val result = c.llm.streamChat(model, messages, TOOLS.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
+            val result = c.llm.streamChat(model, messages, tools.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
                 splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
             }
             text = splitThinking(result.content).second.trim()
@@ -187,7 +227,22 @@ class LoraAgent(private val c: AppContainer) {
             var needsAnswer = false
             for (call in result.toolCalls) {
                 val args = parseArgs(call.arguments)
-                val (output, step) = runTool(call.name, args, targets)
+                val action = ToolActions.byToolName(call.name)
+                val (output, step) = if (action != null) {
+                    // An action of the open tool (AP-38): planned here, carried out by the panel.
+                    try {
+                        val plan = action.plan(c, args)
+                        ToolActions.log("${action.id} geplant: ${plan.title}")
+                        (if (plan.risky) "Vorschau wird gezeigt, der Nutzer bestätigt: ${plan.title}" else "Wird ausgeführt: ${plan.title}") to LoraStep.Action(plan)
+                    } catch (e: ActionFailed) {
+                        needsAnswer = true
+                        "FEHLER: ${e.message}" to null
+                    } catch (e: Exception) {
+                        if (e is kotlinx.coroutines.CancellationException) throw e
+                        needsAnswer = true
+                        "FEHLER: ${e.message ?: e.javaClass.simpleName}" to null
+                    }
+                } else runTool(call.name, args, targets)
                 step?.let(steps::add)
                 if (call.name == "search_chats") steps += searchChats(args.s("suche").orEmpty())
                 if (call.name == "explain" || call.name == "search_chats") needsAnswer = true
@@ -251,6 +306,17 @@ class LoraAgent(private val c: AppContainer) {
             if (questions.isEmpty()) "FEHLER: Keine Frage erkannt." to null else "Die Fragen werden angezeigt." to LoraStep.Ask(questions)
         }
         else -> "FEHLER: Unbekanntes Werkzeug." to null
+    }
+
+    /** What Lora can do in the open tool (AP-38) and what the user has in front of them. */
+    private fun actionPrompt(area: ActionArea?, actions: List<ToolAction>): String = if (area == null || actions.isEmpty()) "" else buildString {
+        append("\nOffen ist: ").append(area.label).append(". Du kannst hier selbst handeln: ")
+        append(actions.joinToString { it.toolName })
+        append(". Handle, wenn der Wunsch klar ist; Riskantes (verschieben, löschen, überschreiben) zeigt der App vorher eine Vorschau. ")
+        append("Erfinde keine Dateinamen – nimm die Auswahl, wenn nichts genannt ist.\n")
+        if (LoraFocus.files.isNotEmpty()) append("Ausgewählt: ").append(LoraFocus.files.take(12).joinToString { it.name }).append('\n')
+        LoraFocus.folder?.let { append("Offener Ordner: ").append(c.drive.rel(it)?.ifEmpty { "Lora-Ordner" } ?: it.name).append(" (").append(it.listFiles()?.count { f -> f.isFile } ?: 0).append(" Dateien)\n") }
+        if (LoraFocus.pdfTabs.isNotEmpty()) append("Offene PDFs: ").append(LoraFocus.pdfTabs.joinToString { it.first }).append(" (das erste ist das aktive)\n")
     }
 
     private fun systemPrompt(wish: String, targets: List<AppTarget>, android: Boolean): String = buildString {
@@ -377,6 +443,7 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.Ask -> tr("Kurz nachgefragt:")
             is LoraStep.OpenChat -> tr("Das habe ich gefunden:")
             is LoraStep.Reminder -> tr("Soll ich „{0}“ in den Kalender eintragen?", s.title)
+            is LoraStep.Action -> if (s.plan.risky) tr("Das würde ich so machen – passt es?") else s.plan.title
             null -> tr("Wie kann ich helfen?")
         }
 
