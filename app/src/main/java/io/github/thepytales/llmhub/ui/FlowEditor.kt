@@ -1467,8 +1467,10 @@ private fun FlowPages(
     val look = LocalChatLook.current
     val outline = MaterialTheme.colorScheme.outline
     val pageLabel = rememberTextMeasurer()
-    val showComments = !narrow && state.comments.isNotEmpty()
     val topPad = if (narrow) 8.dp else 24.dp
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+    // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
+    val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
     Box(Modifier.fillMaxSize().verticalScroll(scroll), contentAlignment = Alignment.TopCenter) {
         Row(Modifier.onGloballyPositioned { state.contentCoords = it }, verticalAlignment = Alignment.Top) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = if (pages) Modifier else Modifier.weight(1f, fill = false)) {
@@ -1524,6 +1526,7 @@ private fun FlowPages(
                 FlowMarginComments(c, doc, state, offset, onOpen = { host.onShowComments() }, modifier = Modifier.padding(top = 0.dp))
             }
         }
+    }
     }
 }
 

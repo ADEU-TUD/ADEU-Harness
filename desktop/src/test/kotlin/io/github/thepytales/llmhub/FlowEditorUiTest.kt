@@ -78,7 +78,7 @@ class FlowEditorUiTest {
      * everything shows, and a search marks the hits.
      */
     @Test
-    fun outlineStylesCommentsAndSearch() = runSkikoComposeUiTest(Size(1500f, 1000f), Density(1f)) {
+    fun outlineStylesCommentsAndSearch() = runSkikoComposeUiTest(Size(1900f, 1000f), Density(1f)) {
         mainClock.autoAdvance = false
         val base = Files.createTempDirectory("adeu-flow-extras").toFile()
         val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
@@ -101,7 +101,7 @@ class FlowEditorUiTest {
         assertTrue(onAllNodesWithText("Gliederung").fetchSemanticsNodes().isNotEmpty(), "Gliederung links")
         assertTrue(onAllNodesWithText("Methode").fetchSemanticsNodes().isNotEmpty(), "Überschrift in der Gliederung")
         assertTrue(onAllNodesWithText("Wie viele Personen?").fetchSemanticsNodes().isNotEmpty(), "Kommentar am Rand")
-        assertTrue(onAllNodesWithText("Seitenumbruch").fetchSemanticsNodes().isNotEmpty(), "Seitenumbruch")
+        assertTrue(onAllNodesWithContentDescription("Löschen").fetchSemanticsNodes().isNotEmpty(), "Seitenumbruch mit Löschen")
         // Suchen und Ersetzen über das Menü.
         onAllNodesWithText("Bearbeiten")[0].performClick()
         settle()
@@ -110,7 +110,7 @@ class FlowEditorUiTest {
         onAllNodesWithText("Suchen")[0].performTextInput("Frage")
         settle()
         ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-search.png"))
-        assertTrue(onAllNodesWithText("1 von 2").fetchSemanticsNodes().isNotEmpty(), "zwei Treffer")
+        assertTrue(onAllNodesWithText("1 von 3").fetchSemanticsNodes().isNotEmpty(), "drei Treffer (auch in „Umfrage“)")
         // The setting line of the style set stays in the document and is not drawn.
         assertTrue(onAllNodesWithText("vorlagen", substring = true).fetchSemanticsNodes().isEmpty())
         assertTrue("<!-- vorlagen: wissenschaftlich -->" in c.docs.get(doc.id)!!.tabs.first().markdown)
