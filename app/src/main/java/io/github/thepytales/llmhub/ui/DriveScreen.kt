@@ -487,7 +487,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         BoxWithConstraints(Modifier.padding(pad).fillMaxSize()) {
             val wide = maxWidth >= 840.dp
             Row(Modifier.fillMaxSize()) {
-                if (wide) {
+                if (wide) Spot("files.places") {
                     Column(Modifier.width(232.dp).fillMaxHeight().padding(horizontal = 8.dp, vertical = 4.dp)) {
                         DriveSection.entries.filter { it != DriveSection.CHAT || chatFilter != null }.forEach { s ->
                             val target = when (s) {
@@ -510,13 +510,15 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                     }
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
-                    OutlinedTextField(
-                        query, { query = it }, singleLine = true, shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp).widthIn(max = 900.dp),
-                        leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, tr("Leeren")) } },
-                        placeholder = { Text(tr("In Dateien suchen – Namen, Schlagwörter und Inhalt")) },
-                    )
+                    Spot("files.search") {
+                        OutlinedTextField(
+                            query, { query = it }, singleLine = true, shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp).widthIn(max = 900.dp),
+                            leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                            trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, tr("Leeren")) } },
+                            placeholder = { Text(tr("In Dateien suchen – Namen, Schlagwörter und Inhalt")) },
+                        )
+                    }
                     if (!wide) {
                         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             DriveSection.entries.filter { it != DriveSection.CHAT || chatFilter != null }.forEach { s ->
@@ -1039,7 +1041,7 @@ private fun Breadcrumbs(
 private fun SortMenu(sort: String, down: Boolean, onChange: (String, Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = tr("Sortieren")) }
+        Spot("files.sort") { IconButton(onClick = { open = true }) { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = tr("Sortieren")) } }
         DropdownMenu(open, { open = false }) {
             listOf("name" to tr("Name"), "modified" to tr("Geändert"), "kind" to tr("Typ"), "size" to tr("Größe")).forEach { (k, label) ->
                 DropdownMenuItem(
@@ -1056,10 +1058,12 @@ private fun SortMenu(sort: String, down: Boolean, onChange: (String, Boolean) ->
 private fun NewMenuButton(onFolder: () -> Unit, onDoc: (DocKind) -> Unit, onTemplate: () -> Unit, onAi: (DocKind) -> Unit, onUpload: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        FloatingActionButton(
-            onClick = { open = true }, shape = RoundedCornerShape(20.dp), containerColor = Color(0xFF00305D), contentColor = Color.White,
-            modifier = Modifier.padding(bottom = LORA_BUTTON_ROOM - 24.dp).size(72.dp),
-        ) { Icon(Icons.Outlined.Add, contentDescription = tr("Neu"), modifier = Modifier.size(34.dp)) }
+        Spot("files.new") {
+            FloatingActionButton(
+                onClick = { open = true }, shape = RoundedCornerShape(20.dp), containerColor = Color(0xFF00305D), contentColor = Color.White,
+                modifier = Modifier.padding(bottom = LORA_BUTTON_ROOM - 24.dp).size(72.dp),
+            ) { Icon(Icons.Outlined.Add, contentDescription = tr("Neu"), modifier = Modifier.size(34.dp)) }
+        }
         DropdownMenu(open, { open = false }) {
             DropdownMenuItem(text = { Text(tr("Ordner")) }, leadingIcon = { Icon(Icons.Outlined.CreateNewFolder, null) }, onClick = { open = false; onFolder() })
             DropdownMenuItem(text = { Text(tr("Hochladen …")) }, leadingIcon = { Icon(Icons.Outlined.CloudUpload, null) }, onClick = { open = false; onUpload() })

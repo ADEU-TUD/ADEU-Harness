@@ -29,20 +29,30 @@ import java.time.ZoneId
  * interface ([register]).
  */
 enum class ActionArea(val label: String) {
-    FILES(trLater("Dateien")), PDF(trLater("PDF-Werkzeugkasten")), DOC(trLater("Dokument")), VIDEO(trLater("Video"));
+    FILES(trLater("Dateien")), PDF(trLater("PDF-Werkzeugkasten")), DOC(trLater("Dokument")), SHEET(trLater("Tabelle")),
+    SLIDES(trLater("Präsentation")), VIDEO(trLater("Video"));
+
+    /** Key of the area for Lora's memory (AP-39: preferences per tool). */
+    val key: String get() = name.lowercase()
 
     companion object {
-        /** The area of a screen route, or null (Lora then only navigates). */
+        /** The area of a screen route, or null (Lora then only navigates). An open document is text, table or slides. */
         fun of(route: String?): ActionArea? {
             val r = route.orEmpty().substringBefore('?')
             return when {
                 r == "files" || r == "docs" -> FILES
                 r == "pdf" -> PDF
-                r.startsWith("doc/") -> DOC
+                r.startsWith("doc/") -> when {
+                    ActionHosts.sheet != null -> SHEET
+                    ActionHosts.slides != null -> SLIDES
+                    else -> DOC
+                }
                 r == "video" -> VIDEO
                 else -> null
             }
         }
+
+        fun byKey(key: String?): ActionArea? = entries.firstOrNull { it.key == key?.lowercase() }
     }
 }
 
@@ -88,6 +98,14 @@ object ActionHosts {
     /** The document editor (AP-47): writes at the cursor, revises a section as suggestions, inserts a table. */
     @Volatile
     var doc: DocActions? = null
+
+    /** The open table (AP-38 Stufe c; the editor of AP-48 fulfils the same interface). */
+    @Volatile
+    var sheet: EditorDocHost? = null
+
+    /** The open presentation (the editor of AP-51 fulfils the same interface). */
+    @Volatile
+    var slides: EditorDocHost? = null
 }
 
 /** What the open document offers Lora (AP-38 Stufe c, AP-47). */
@@ -141,6 +159,10 @@ class ToolAction(
     val params: List<ActionParam>,
     val risky: Boolean,
     val android: Boolean = true,
+    /** Sends content to a model (names after content, writing): the data protection level of the project counts. */
+    val usesModel: Boolean = false,
+    /** Parameters whose choice Lora may offer to remember as a preference (AP-39), e.g. „nach“ of files.tidy. */
+    val remember: List<String> = emptyList(),
     val plan: suspend (AppContainer, JsonObject) -> ActionPlan,
 ) {
     /** The tool for function calling: „act_“ + the id with „_“. */
@@ -152,6 +174,37 @@ class ToolAction(
     )
 }
 
+/**
+ * Protokoll der Lora-Aktionen (AP-38): every planned, carried out, failed and undone action with time, shown under
+ * Einstellungen › Lora; the last 400 lines stay in „lora-aktionen.log“ of the data folder.
+ */
+object ActionLog {
+    private const val MAX = 400
+    private val lines = ArrayDeque<String>()
+    private var loaded = false
+
+    private fun file(): File? = runCatching { File(io.github.thepytales.llmhub.App.container.appContext.filesDir, "lora-aktionen.log") }.getOrNull()
+
+    private fun load() {
+        if (loaded) return
+        loaded = true
+        file()?.takeIf { it.isFile }?.let { f -> runCatching { f.readLines().takeLast(MAX).forEach { lines.addLast(it) } } }
+    }
+
+    fun add(text: String) = synchronized(lines) {
+        load()
+        val stamp = java.time.LocalDateTime.now().withNano(0).toString().replace('T', ' ')
+        lines.addLast("$stamp  $text")
+        while (lines.size > MAX) lines.removeFirst()
+        file()?.let { f -> runCatching { f.writeText(lines.joinToString("\n") + "\n") } }
+    }
+
+    /** Newest first. */
+    fun recent(limit: Int = 60): List<String> = synchronized(lines) { load(); lines.toList().takeLast(limit).reversed() }
+
+    fun clear() = synchronized(lines) { lines.clear(); file()?.delete() }
+}
+
 object ToolActions {
     private val extra = mutableListOf<ToolAction>()
 
@@ -160,7 +213,7 @@ object ToolActions {
         synchronized(extra) { actions.forEach { a -> extra.removeAll { it.id == a.id }; extra += a } }
     }
 
-    val all: List<ToolAction> get() = BUILT_IN + synchronized(extra) { extra.toList() }
+    val all: List<ToolAction> get() = BUILT_IN + OfficeActions.ALL + MoreActions.ALL + synchronized(extra) { extra.toList() }
 
     /** The actions Lora gets in [area] (PDF actions also in the Dateien tab, for chosen PDFs). */
     fun forArea(area: ActionArea?, android: Boolean): List<ToolAction> {
@@ -177,9 +230,40 @@ object ToolActions {
     fun byId(id: String): ToolAction? = all.firstOrNull { it.id == id }
 
     /** Writes into the log what Lora did (with „Problem melden“ it reaches the developer). */
-    fun log(text: String) { android.util.Log.i("Lora", "Lora-Aktion: $text") }
+    fun log(text: String) {
+        android.util.Log.i("Lora", "Lora-Aktion: $text")
+        ActionLog.add(text)
+    }
 
-    private val PDF_IN_FILES = setOf("pdf.open", "pdf.merge", "pdf.compress", "pdf.convert", "pdf.split")
+    // ── Datenschutz (AP-38): the level of the project Lora was called from, the vault, „Nur auf diesem Gerät“ ──
+
+    /** The level that counts for Lora's actions now: the project's, at least „Nur TU Dresden“ from a Tresor chat. */
+    fun privacy(c: AppContainer): io.github.thepytales.llmhub.data.PrivacyLevel {
+        val project = io.github.thepytales.llmhub.data.Privacy.level(c, io.github.thepytales.llmhub.ui.LoraHelper.folderId)
+        val vault = c.drive.isVaultChat(io.github.thepytales.llmhub.ui.LoraHelper.chatId)
+        return if (vault && project == io.github.thepytales.llmhub.data.PrivacyLevel.OPEN) io.github.thepytales.llmhub.data.PrivacyLevel.TU else project
+    }
+
+    /** A model for [wanted] that the level allows, or null (no key, or „Nur auf diesem Gerät“ without a local model). */
+    fun model(c: AppContainer, wanted: String = io.github.thepytales.llmhub.data.ModelCatalog.FAST_CHAT): String? {
+        val level = privacy(c)
+        if (level == io.github.thepytales.llmhub.data.PrivacyLevel.LOCAL) return c.localLlm.preferredModel()
+        if (!c.settings.current.hasAnyApiKey) return null
+        if (io.github.thepytales.llmhub.data.Privacy.allows(c, level, wanted)) return wanted
+        return c.settings.current.defaultModel.takeIf { io.github.thepytales.llmhub.data.Privacy.allows(c, level, it) } ?: io.github.thepytales.llmhub.data.ModelCatalog.DEFAULT_CHAT
+    }
+
+    /** A line for the plan card and the preview: where the content of an action that uses a model goes. */
+    fun privacyNote(c: AppContainer): String = when (privacy(c)) {
+        io.github.thepytales.llmhub.data.PrivacyLevel.LOCAL -> tr("Bleibt auf diesem Gerät.")
+        io.github.thepytales.llmhub.data.PrivacyLevel.TU -> tr("Inhalte gehen nur an den Uni-Server.")
+        io.github.thepytales.llmhub.data.PrivacyLevel.OPEN -> tr("Inhalte gehen an das gewählte Modell.")
+    }
+
+    /** Files of the Tresor never reach Lora's actions. */
+    internal fun allowed(c: AppContainer, f: File): Boolean = !f.absolutePath.replace('\\', '/').contains("/tresor-dateien/")
+
+    private val PDF_IN_FILES = setOf("pdf.open", "pdf.merge", "pdf.compress", "pdf.convert", "pdf.split", "pdf.redact")
 
     // ── Finding the files an action is about ─────────────────────────────────────────────────────────────
 
@@ -188,7 +272,7 @@ object ToolActions {
      * focus, the open folder and the Lora-Ordner. [ext] limits to a type ("pdf").
      */
     internal fun files(c: AppContainer, names: String?, ext: String? = null): List<File> {
-        fun ok(f: File) = f.isFile && (ext == null || f.extension.equals(ext, true))
+        fun ok(f: File) = f.isFile && (ext == null || f.extension.equals(ext, true)) && allowed(c, f)
         val wanted = names.orEmpty().split(',', ';', '\n').map { it.trim().trim('"', '„', '“') }.filter { it.isNotEmpty() && it.lowercase() !in FOCUS_WORDS }
         val focus = (LoraFocus.files + listOfNotNull(LoraFocus.pdf)).filter(::ok)
         if (wanted.isEmpty()) return focus.ifEmpty { if (ext == "pdf") LoraFocus.pdfTabs.map { it.second }.filter(::ok) else emptyList() }
@@ -224,7 +308,7 @@ object ToolActions {
     }
 
     /** Rückgängig for files an action made: into the Papierkorb (Lora-Ordner) or deleted. */
-    private fun removeMade(c: AppContainer, files: List<File>): String {
+    internal fun removeMade(c: AppContainer, files: List<File>): String {
         val inside = files.filter { c.drive.inside(it) }
         if (inside.isNotEmpty()) c.drive.delete(inside)
         files.filter { !c.drive.inside(it) }.forEach { it.delete() }
@@ -262,7 +346,7 @@ object ToolActions {
             "files.rename_by_content", ActionArea.FILES, trLater("Nach Inhalt umbenennen"),
             "Schlägt für Dateien Namen nach ihrem Inhalt vor (z. B. „2026-10-12 Protokoll Institutsrat.pdf“) und benennt sie um.",
             listOf(ActionParam("dateien", "Namen, kommagetrennt (leer: die ausgewählten oder der offene Ordner)", required = false)),
-            risky = true,
+            risky = true, usesModel = true,
         ) { c, a ->
             val fs = files(c, a.s("dateien")).ifEmpty { LoraFocus.folder?.listFiles()?.filter { it.isFile && c.drive.visible(it) }.orEmpty() }.take(20)
             if (fs.isEmpty()) throw ActionFailed(tr("Welche Dateien? Bitte auswählen oder einen Ordner öffnen."))
@@ -347,7 +431,7 @@ object ToolActions {
                 ActionParam("ordner", "Ordner (leer: der offene, sonst Hochgeladen)", required = false),
                 ActionParam("nach", "typ, semester oder monat (Standard: typ)", required = false),
             ),
-            risky = true,
+            risky = true, remember = listOf("nach"),
         ) { c, a ->
             val dir = a.s("ordner")?.let { folder(c, it, false) } ?: LoraFocus.folder ?: c.drive.uploads
             val by = a.s("nach")?.lowercase().orEmpty().let { if ("sem" in it) "semester" else if ("mon" in it) "monat" else "typ" }
@@ -467,7 +551,7 @@ object ToolActions {
         },
         ToolAction(
             "pdf.ocr", ActionArea.PDF, trLater("Texterkennung"), "Erkennt Text auf gescannten Seiten des offenen PDFs (danach durchsuchbar und kopierbar).",
-            emptyList(), risky = false,
+            emptyList(), risky = false, usesModel = true,
         ) { c, _ ->
             val f = openOrNamedPdf(c, null)
             ActionPlan("pdf.ocr", tr("Erkennt Text in „{0}“ …", displayName(f)), false) {
@@ -475,7 +559,9 @@ object ToolActions {
                 val texts = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.PdfExtras.pageTexts(ctx, f) }
                 val scanned = io.github.thepytales.llmhub.docs.PdfOcr.scanned(texts)
                 if (scanned.isEmpty()) return@ActionPlan ActionResult(tr("Alle Seiten haben schon Text."))
-                val model = if (io.github.thepytales.llmhub.docs.PdfPlatform.localOcr != null) null else io.github.thepytales.llmhub.docs.PdfOcr.visionModel(c)
+                val model = if (io.github.thepytales.llmhub.docs.PdfPlatform.localOcr != null) null
+                else if (privacy(c) == io.github.thepytales.llmhub.data.PrivacyLevel.LOCAL) throw ActionFailed(tr("Hier bleibt alles auf dem Gerät – die Texterkennung bräuchte ein Bildmodell auf dem Server."))
+                else io.github.thepytales.llmhub.docs.PdfOcr.visionModel(c)
                 val work = File(ctx.cacheDir, "pdf-work/ocr-lora-${System.nanoTime()}").apply { mkdirs() }
                 val r = io.github.thepytales.llmhub.docs.PdfOcr.recognize(c, ctx, f, scanned, model, work) { _, _ -> }
                 val found = r.pages.filter { it.lines.isNotEmpty() }
@@ -489,18 +575,27 @@ object ToolActions {
         ToolAction(
             "pdf.redact", ActionArea.PDF, trLater("Schwärzen"),
             "Schwärzt Begriffe (Namen, Matrikelnummern …) im offenen PDF dauerhaft: der Text darunter wird entfernt. Immer mit Vorschau.",
-            listOf(ActionParam("begriffe", "Begriffe, kommagetrennt")), risky = true, android = false,
+            listOf(ActionParam("begriffe", "Begriffe, kommagetrennt"), ActionParam("datei", "PDF (leer: das offene)", required = false)), risky = true, android = false,
         ) { c, a ->
-            val f = openOrNamedPdf(c, null)
+            val f = openOrNamedPdf(c, a.s("datei"))
             val terms = a.s("begriffe").orEmpty().split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }
             if (terms.isEmpty()) throw ActionFailed(tr("Was soll geschwärzt werden?"))
             val hits = withContext(Dispatchers.IO) { PdfStage3.find(f, terms) }
             if (hits.isEmpty()) throw ActionFailed(tr("Die Begriffe kommen im PDF nicht vor."))
             val preview = hits.groupBy { it.text.ifBlank { "?" } }.map { (t, hs) -> "„$t“" to tr("{0}× geschwärzt (Seite {1})", hs.size, hs.map { it.page + 1 }.distinct().joinToString(", ")) }
             ActionPlan("pdf.redact", tr("Schwärzt {0} Stellen in „{1}“ …", hits.size, displayName(f)), true, preview) {
-                val change = ActionHosts.changeOpenPdf ?: throw ActionFailed(tr("Bitte das PDF im PDF-Werkzeugkasten öffnen."))
-                if (!change(tr("Schwärzen")) { src, out -> PdfStage3.redact(src, PdfStage3.find(src, terms), out) }) throw ActionFailed(tr("Das hat nicht geklappt"))
-                ActionResult(tr("{0} Stellen geschwärzt – erst „Speichern“ im Werkzeugkasten ändert das Original.", hits.size), undo = { ActionHosts.undoOpenPdf?.invoke(); tr("Schwärzung zurückgenommen.") })
+                val change = ActionHosts.changeOpenPdf
+                val isOpen = LoraFocus.pdfTabs.firstOrNull()?.second == f
+                if (change != null && isOpen) {
+                    if (!change(tr("Schwärzen")) { src, out -> PdfStage3.redact(src, PdfStage3.find(src, terms), out) }) throw ActionFailed(tr("Das hat nicht geklappt"))
+                    ActionResult(tr("{0} Stellen geschwärzt – erst „Speichern“ im Werkzeugkasten ändert das Original.", hits.size), undo = { ActionHosts.undoOpenPdf?.invoke(); tr("Schwärzung zurückgenommen.") })
+                } else {
+                    // Not open in the werkzeugkasten (e.g. a step of a Lora-Ablauf): a new, redacted copy beside it.
+                    val out = beside(c, f, f.nameWithoutExtension + " " + tr("(geschwärzt)") + ".pdf")
+                    withContext(Dispatchers.IO) { PdfStage3.redact(f, PdfStage3.find(f, terms), out) }
+                    c.drive.changed()
+                    ActionResult(tr("„{0}“: {1} Stellen geschwärzt, das Original bleibt.", out.name, hits.size), listOf(out), undo = { removeMade(c, listOf(out)) })
+                }
             }
         },
         ToolAction(
@@ -523,7 +618,7 @@ object ToolActions {
         // Stufe c – Dokument (über den Editor, AP-47)
         ToolAction(
             "doc.write", ActionArea.DOC, trLater("Hilf mir schreiben"), "Schreibt an der Cursorstelle des offenen Dokuments (z. B. eine Einleitung zu …); der Nutzer übernimmt oder verwirft.",
-            listOf(ActionParam("auftrag", "Was geschrieben werden soll")), risky = false,
+            listOf(ActionParam("auftrag", "Was geschrieben werden soll")), risky = false, usesModel = true,
         ) { _, a ->
             val host = ActionHosts.doc ?: throw ActionFailed(tr("Bitte ein Dokument öffnen."))
             val prompt = a.s("auftrag")?.takeIf { it.isNotBlank() } ?: throw ActionFailed(tr("Was soll ich schreiben?"))
@@ -535,7 +630,7 @@ object ToolActions {
         ToolAction(
             "doc.revise", ActionArea.DOC, trLater("Abschnitt überarbeiten"),
             "Überarbeitet einen Abschnitt (Überschrift) oder die Markierung als Vorschläge, die einzeln angenommen werden (Änderungen nachverfolgen).",
-            listOf(ActionParam("abschnitt", "Überschrift des Abschnitts oder „markierung“"), ActionParam("anweisung", "Wie überarbeiten, z. B. kürzer, sachlicher")), risky = false,
+            listOf(ActionParam("abschnitt", "Überschrift des Abschnitts oder „markierung“"), ActionParam("anweisung", "Wie überarbeiten, z. B. kürzer, sachlicher")), risky = false, usesModel = true,
         ) { _, a ->
             val host = ActionHosts.doc ?: throw ActionFailed(tr("Bitte ein Dokument öffnen."))
             val section = a.s("abschnitt").orEmpty().ifBlank { "markierung" }
@@ -637,7 +732,7 @@ object ToolActions {
         val texts = withContext(Dispatchers.IO) {
             files.map { f -> runCatching { if (f.length() > 30_000_000) "" else io.github.thepytales.llmhub.files.FileText.read(f.name, f.readBytes()).file?.text.orEmpty() }.getOrDefault("").take(1200) }
         }
-        val model = if (c.settings.current.hasAnyApiKey) io.github.thepytales.llmhub.data.Privacy.suitableModel(c, null, io.github.thepytales.llmhub.data.ModelCatalog.FAST_CHAT) else null
+        val model = model(c)
         val fromModel = model?.let { m ->
             runCatching {
                 val prompt = buildString {

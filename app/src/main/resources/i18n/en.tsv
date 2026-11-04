@@ -68,12 +68,14 @@
 (Alle auswählen)	(Select all)
 (dieser PC)	(this PC)
 (Eingabe {0}, Ausgabe {1})	(input {0}, output {1})
+(geschwärzt)	(redacted)
 (geteilt)	(split)
 (keine Beschreibung)	(no description)
 (klein)	(small)
 (leer)	(empty)
 (ohne Text)	(no text)
 (ohne Titel)	(untitled)
+(wie gemerkt)	(as remembered)
 (zusammengefügt)	(merged)
 + Code	+ Code
 + Neue Folie ▾	+ New slide ▾
@@ -106,6 +108,7 @@
 <html lang="de"> setzen.	Set <html lang="en">.
 <title> ergänzen.	Add a <title>.
 @-Namen in sozialen Netzwerken	@ names on social networks
+Ablauf: {0}	Workflow: {0}
 [Schüler/in 2] statt [Name 2], wenn die Rolle erkennbar ist – das Modell antwortet passender	[Pupil 2] instead of [Name 2] when the role is recognizable – the model answers more fittingly
 \#RRGGBB	\#RRGGBB
 \n\nAPI-Key und Tokens wurden nicht übernommen.	\n\nAPI key and tokens were not taken over.
@@ -266,6 +269,8 @@ Alles exportieren und auf einem anderen Gerät importieren.	Export everything an
 Alles Gesagte steht danach auch im Chat.	Everything said also appears in the chat.
 Alles liegt in einem Ordner, wie bei Obsidian: deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) und versteckt im Unterordner „.lora“ Chats und Einstellungen. API-Schlüssel bleiben auf diesem PC.	Everything is in one folder, as with Obsidian: your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) and, hidden in the subfolder “.lora”, chats and settings. API keys stay on this PC.
 Alles lässt sich später unter Einstellungen › Lora und › Werkzeuge ändern.	Everything can be changed later under Settings › Lora and › Tools.
+Alles vergessen	Forget everything
+Alles vergessen?	Forget everything?
 Alles wieder wie vorher.	Everything is back as before.
 Alles wird nach „{0}“ kopiert, dann startet Lora neu und arbeitet dort. Der bisherige Ordner bleibt als Sicherung – 	Everything is copied to “{0}”, then Lora restarts and works there. The previous folder stays as a backup – 
 Alles, was die App in Outlook geändert hat – gelöscht oder gesendet wird nie etwas.	Everything the app has changed in Outlook – nothing is ever deleted or sent.
@@ -383,6 +388,7 @@ Anpassen	Customize
 Anschließend von der KI überarbeiten lassen	Then have the AI revise it
 Anschriften	Addresses
 Ansehen	View
+Ansehen, Seiten, Markieren, Formular, Unterschreiben, Umwandeln, KI, Bearbeiten.	View, Pages, Highlight, Form, Sign, Convert, AI, Edit.
 Ansicht	View
 Ansicht & Zeitstempel	View & timestamps
 Ansicht & Zeitstempel …	View & timestamps …
@@ -405,6 +411,7 @@ Antwort nur mit Belegen (Quellenmodus)	Answer with evidence only (sources mode)
 Antwort wird geschrieben …	Writing answer …
 Antwort wird vorgelesen …	Reading the answer aloud …
 Antworten	Answer
+Antworten und Aufgaben laufen weiter, wenn das Fenster zu ist.	Answers and tasks keep running when the window is closed.
 Antworten und geplante Aufgaben laufen im Hintergrund. Öffnen oder beenden über das Symbol im Infobereich.	Answers and scheduled tasks keep running in the background. Open or quit via the icon in the notification area.
 Antworten werden fertig geschrieben und geplante Aufgaben laufen weiter, auch wenn das Fenster zu ist. Öffnen und Beenden über das Symbol unten rechts in der Taskleiste.	Answers are finished and scheduled tasks keep running even when the window is closed. Open and quit via the icon at the bottom right of the taskbar.
 Antworten …	Reply …
@@ -429,6 +436,7 @@ API-Key, GitHub-Token und geheime Umgebungsvariablen mitnehmen	Include API key, 
 API-Schlüssel	API key
 API-Schlüssel des Uni-Servers und weiterer Anbieter.	API keys of the university server and other providers.
 API-Zugang	API access
+Auch Dateien anlegen, ändern und verschieben; Gelöschtes landet in „.adeu-papierkorb“. Vor Änderungen fragt Lora je nach Freigaben nach.	Also create, change and move files; deleted files go to “.adeu-papierkorb”. Lora asks before changes depending on the approvals.
 api.example.com\nbing.com\nduckduckgo.com	api.example.com\nbing.com\nduckduckgo.com
 API_KEY=hunter2	API_KEY=hunter2
 App	App
@@ -537,6 +545,7 @@ Aus Nextcloud holen	Get from Nextcloud
 Aus Nextcloud holen …	Get from Nextcloud …
 Aus Vorlage	From template
 Aus Vorlage …	From template …
+Aus der Gliederung entstehen keine Folien – bitte Titel mit # beginnen.	No slides come from the outline – please start titles with #.
 Aus Überschriften, Listen, Tabellen und Bildern entstehen Folien im TUD-Design; lange Absätze wandern in die Sprechernotizen.	Headings, lists, tables and images become slides in the TUD design; long paragraphs move into the speaker notes.
 Aus – das Modell greift nicht auf GitHub zu	Off – the model doesn't access GitHub
 aus „{0}“	from “{0}”
@@ -579,6 +588,7 @@ Automatisch ({0})	Automatic ({0})
 Automatisch (ähnliches Modell)	Automatic (similar model)
 Automatisch erkennen	Detect automatically
 Automatisch nach Updates suchen	Check for updates automatically
+Automatisch weitermachen	Continue automatically
 Automatisch: 	Automatic: 
 Automatische Updates gibt es in der installierten Windows-Version („ADEU LLM.exe“) und in der Android-App. 	Automatic updates are available in the installed Windows version (“ADEU LLM.exe”) and in the Android app. 
 Automatische Updates gibt es nur in der installierten App.	Automatic updates are only available in the installed app.
@@ -606,21 +616,27 @@ Beginn (s)	Start (s)
 Begründetes Vorgehen, schlüssige Argumentation	Justified approach, coherent argumentation
 Begründung (optional)	Justification (optional)
 Begründung / Notiz (für Protokoll und Rückmeldung)	Reason / note (for the log and the feedback)
+Bei Arbeiten einen KI-Nutzungsnachweis anbieten.	Offer an AI use statement for academic work.
 Bei Sprecherwechsel und Pausen	At speaker changes and pauses
 Bei {0} Anfragen hat der Server keine Token-Zahlen geliefert; diese sind geschätzt (≈ 4 Zeichen pro Token).	For {0} requests the server did not deliver token counts; these are estimated (≈ 4 characters per token).
+Bei {0} geschnitten.	Cut at {0}.
+Bei {0} ist schon ein Schnitt.	There is already a cut at {0}.
 Bei „Eigene Adresse“ gehört die Mailadresse hinein, kein Servername.	“Own address” takes your e-mail address, not a server name.
 Beide PCs nutzen denselben Datenordner. Damit keiner die Änderungen des anderen überschreibt, sollte Lora nur auf einem PC offen sein. Am besten hier beenden, wenn du dort weiterarbeitest.	Both PCs use the same data folder. So that neither overwrites the other's changes, Lora should only be open on one PC. Best close it here if you continue working there.
 Beim Abspielen scrollt der Text mit.	During playback the text scrolls along.
 Beim Abspielen wird das gerade gesprochene Wort hervorgehoben (nur gemessene Wortzeiten).	During playback the word currently spoken is highlighted (measured word times only).
 Beim Anhalten zurückspringen	Jump back when pausing
+Beim Tippen im Chat den passenden Ort zeigen.	Show the matching place while typing in the chat.
 Beim ersten Mal wird ein kleines Sprechermodell geladen (26 MB).	The first time, a small speaker model is loaded (26 MB).
 Beim Export „Lesezeichen aus Überschriften erstellen“ wählen.	Choose “Create bookmarks from headings” when exporting.
+Beim ersten Öffnen eines Werkzeugs eine kurze Tour anbieten.	Offer a short tour when a tool is opened for the first time.
 Beim letzten Mal ist der Browser nicht fertig gestartet.	The browser did not finish starting last time.
 Beim letzten Mal ist die App abgestürzt. Schick den Bericht gern an den Entwickler, damit der Fehler behoben werden kann.	The app crashed last time. Feel free to send the report to the developer so the error can be fixed.
 Beim Schließen im Infobereich weiterlaufen	Keep running in the notification area when closing
 Beim Start nach neuen Versionen suchen.	Check for new versions at startup.
 Beim Start nach Updates suchen	Check for updates at startup
 Beim Verwenden fragt die App: 	When used, the app asks for: 
+Beim ersten Öffnen eines Werkzeugs bietet Lora eine kurze Tour an (Leuchtrahmen und eine Zeile Text).	When a tool is opened for the first time, Lora offers a short tour (glowing frame and one line of text).
 Beiseitegelegte Konfliktkopien	Conflict copies set aside
 Beispiel ergänzen	Add an example
 Beispiel zum Antippen	Example to tap
@@ -654,6 +670,8 @@ Bereiche markieren	Mark areas
 Bereiche – zuerst einen unter „Mehr“ schieben.	areas – first move one under “More”.
 Bereinige die Tabelle: einheitliche Schreibweisen, Zahlen als Zahlen, leere Zeilen entfernen, sinnvolle Spaltenköpfe.	Clean up the table: consistent spellings, numbers as numbers, remove empty rows, sensible column headers.
 Bereinigen	Clean up
+Bereinigt die Tabelle …	Cleaning up the spreadsheet …
+Bereinigt: {0}.	Cleaned up: {0}.
 bereit	ready
 Bereit. Läuft im Hintergrund weiter, auch wenn du die App schließt (Windows: im Infobereich).	Ready. Keeps running in the background even if you close the app (Windows: in the notification area).
 Bereitet die Antwort vor …	Preparing the answer …
@@ -737,12 +755,17 @@ Bitte das PDF im PDF-Werkzeugkasten öffnen.	Please open the PDF in the PDF tool
 Bitte den Text eingeben – oder Stichpunkte schreiben und mit ✨ ausformulieren lassen.	Please enter the text – or write bullet points and let ✨ write them out.
 Bitte die Sprecher zuerst benennen.	Please name the speakers first.
 Bitte ein Dokument öffnen.	Please open a document.
+Bitte ein Videoprojekt öffnen – oder sag „Mach aus der Aufnahme ein Videoprojekt“.	Please open a video project – or say “Make a video project from the recording”.
+Bitte eine Präsentation öffnen.	Please open a presentation.
+Bitte eine Tabelle öffnen.	Please open a spreadsheet.
 Bitte eine https://-Adresse.	Please use an https:// address.
 Bitte einen Dateinamen eingeben.	Please enter a file name.
+Bitte einen Namen eingeben.	Please enter a name.
 Bitte zuerst den Namen oder das Kürzel der Codierer:in eintragen.	Please enter the coder's name or initials first.
 Bitte zuerst ein Kategoriensystem wählen oder anlegen.	Please choose or create a category system first.
 Bitte zuerst Text markieren.	Please select some text first.
 Blau	Blue
+Bleibt auf diesem Gerät.	Stays on this device.
 Bleibt auf diesem Gerät. Unter Einstellungen › Verbrauch sehen Sie, welche Modelle sich bewährt haben.	Stays on this device. Under Settings › Usage you can see which models have proven themselves.
 Block bearbeiten (Markdown)	Edit block (Markdown)
 Block löschen	Delete block
@@ -756,6 +779,7 @@ Brief	Letter
 Brief schreiben	Write a letter
 Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.	Letter, presentation, seminar plan and other templates suggest suitable details below every field – from memory, your sender details, the general knowledge base and what you previously wrote into fields of the same name.
 Brief, Seminarplan, Gutachten, OPAL-Test … mit Formular	Letter, seminar plan, assessment, OPAL test … with a form
+Briefe, Protokolle, Bescheinigungen im Corporate Design.	Letters, minutes, certificates in the corporate design.
 Briefe, Protokolle, Bescheinigungen und mehr im Corporate Design der TU Dresden: Vorlage antippen, Formular ausfüllen, senden. ★ zeigt eine Vorlage auf dem Startbildschirm; Personas gelten für den ganzen Chat.	Letters, minutes, certificates and more in the corporate design of TU Dresden: tap a template, fill in the form, send. ★ shows a template on the start screen; personas apply to the whole chat.
 Briefe, Protokolle, Formulare und Bescheinigungen als PDF im Corporate Design der TU Dresden	Letters, minutes, forms and certificates as PDF in the corporate design of TU Dresden
 Browser einrichten	Set up browser
@@ -767,6 +791,7 @@ Buch (Monografie)	Book (monograph)
 Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
+Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
 Chat	Chat
 Chat & Werkzeuge	Chat & tools
@@ -789,7 +814,10 @@ Chatten	Chatting
 Checkliste	Checklist
 Client-ID für OAuth (optional)	Client ID for OAuth (optional)
 Clip	Clip
+Clip entfernen	Remove clip
 Clip hinzufügen	Add clip
+Clip {0} entfernt.	Clip {0} removed.
+Clip {0}: {1} ({2})	Clip {0}: {1} ({2})
 Clips	Clips
 Cloud-Ordner wählen …	Choose cloud folder …
 Code	Code
@@ -813,6 +841,7 @@ Computer	Computer
 Corporate Design der TU Dresden: TUD-Blau, Logo im Kopf, Briefe mit Anschriftfeld.	Corporate design of TU Dresden: TUD blue, logo in the header, letters with address field.
 Crossref	Crossref
 CSV (Tabellen)	CSV (tables)
+Da gibt es nichts zu ändern.	There is nothing to change.
 Dafür braucht ein Clip ein Transkript: unter Rohschnitt › Pausen und Füllwörter oder Untertitel › Aus der Transkription eines zuordnen.	For this, a clip needs a transcript: assign one under Rough cut › Pauses and filler words or Subtitles › From the transcription.
 Dafür braucht es die gespeicherte Aufnahme.	This needs the saved recording.
 Dafür gibt es	There is
@@ -827,6 +856,7 @@ Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen �
 Dann auch in Projekten mit „Nur TU Dresden“ nutzbar.	Then also usable in projects with “TU Dresden only”.
 Darstellung	Appearance
 Darunter einfügen	Insert below
+Darunter stehen die TU Vorlagen: Briefe, Protokolle, Bescheinigungen im Corporate Design.	Below are the TU templates: letters, minutes, certificates in the corporate design.
 Das Bild der Unterschrift ist nicht lesbar.	The image of the signature is not readable.
 Das Bild kommt als neues Element auf die Seite.	The image goes onto the page as a new element.
 Das Bild kommt in den ausgewählten Bildplatz.	The image goes into the selected image placeholder.
@@ -841,6 +871,8 @@ Das Design wurde im Chat geändert – die neue Fassung ist geladen.	The design 
 Das Dokument entsteht gerade	The document is being created
 Das Dresdner Elbufer bei Sonnenuntergang im Stil eines Aquarells	The Elbe riverbank in Dresden at sunset in watercolour style
 Das E-Book ist entpackt zu groß.	The e-book is too large when unpacked.
+Das Gedächtnis ist ausgeschaltet (Einstellungen › Gedächtnis).	The memory is switched off (Settings › Memory).
+Das Modell durchsucht frühere Chats, wenn du dich darauf beziehst.	The model searches earlier chats when you refer to them.
 Das ging nicht: {0}	That didn't work: {0}
 Das habe ich gefunden:	Here is what I found:
 Das Handy rechnet mit dem Prozessor; kleine Modelle laufen flüssig.	The phone computes with the processor; small models run smoothly.
@@ -856,6 +888,8 @@ Das Modell entscheidet selbst (wie bisher).	The model decides itself (as before)
 Das Modell hat keine brauchbare Gliederung geliefert. Bitte noch einmal versuchen.	The model did not deliver a usable structure. Please try again.
 Das Modell hat keinen Text geliefert.	The model returned no text.
 Das Modell hat nicht geantwortet.	The model did not answer.
+Das Modell hat nichts geschrieben.	The model wrote nothing.
+Das Modell kann sofort auf GitHub zugreifen.	The model can access GitHub right away.
 Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer.	The model can access GitHub right away. A GitHub link in a message always activates the tools.
 Das Modell kennt die Titel Ihrer letzten Chats und durchsucht sie, wenn Sie sich auf Früheres beziehen („wie letztes Mal“). Chats aus Projekten mit strengerer Datenschutzstufe bleiben außen vor.	The model knows the titles of your latest chats and searches them when you refer to earlier ones (“like last time”). Chats from projects with a stricter privacy level are left out.
 Das Modell lädt zu lange.	The model takes too long to load.
@@ -882,8 +916,11 @@ Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats
 Das Update-Paket ist unvollständig (keine vollständige App darin).	The update package is incomplete (no complete app inside).
 Das Video liegt unter Transkription bereit – dort starten, danach hier das Transkript wählen.	The video is ready under Transcription – start it there, then choose the transcript here.
 Das Video ließ sich nicht übernehmen.	The video could not be taken over.
+Das bearbeitete PDF speichern oder teilen.	Save or share the edited PDF.
 Das würde ich so machen – passt es?	This is what I would do – is that right?
 Das ZIP-Archiv kann nicht gelesen werden.	The ZIP archive cannot be read.
+Das lässt sich nicht mehr zurücknehmen.	This can no longer be undone.
+Das weiß ich schon.	I know that already.
 Datei	File
 Datei anhängen	Attach file
 Datei auf dem PC speichern	Save file on the PC
@@ -899,6 +936,7 @@ Datei nicht lesbar	File not readable
 Datei nicht mehr vorhanden	File no longer exists
 Datei schreiben	Write file
 Datei transkribieren	Transcribe file
+Datei umbenennen	Rename file
 Datei umwandeln …	Convert file …
 Datei unvollständig ({0} statt {1} Bytes)	File incomplete ({0} instead of {1} bytes)
 Datei verschieben	Move file
@@ -1166,6 +1204,30 @@ DIN lang (Flyer)	DL (flyer)
 Direkte Kosten:	Direct costs:
 DMP nach den Vorgaben von DFG, BMBF oder EU – als Word-Dokument	DMP following the requirements of DFG, BMBF or EU – as a Word document
 DOI	DOI
+Dateiart	file type
+Dateien beim Aufräumen nach {0} ordnen	Sort files by {0} when tidying up
+Dateien sortieren	Sort files
+Dateien › +	Files › +
+Dateien › Seitenspalte	Files › Side column
+Dateien › Suchfeld	Files › Search field
+Daten bereinigen	Clean up data
+Dauerhafte Angaben aus Chats vorschlagen oder merken.	Suggest or remember lasting details from chats.
+Der Agent arbeitet nach dem Schrittlimit selbst weiter.	The agent carries on by itself after the step limit.
+Der Name darf nicht mit Punkt oder Leerzeichen enden.	The name must not end with a dot or a space.
+Der Rohschnitt schneidet Pausen und Füllwörter heraus – oder ich kürze mit dir.	The rough cut removes pauses and filler words – or I shorten it with you.
+Die Aufnahme ist für den Uni-Server zu groß und auf diesem Gerät ist kein Erkennungsmodell geladen (Einstellungen › Transkription).	The recording is too large for the university server and no recognition model is loaded on this device (Settings › Transcription).
+Die Datei ist vielleicht noch in einem anderen Programm geöffnet.	The file may still be open in another program.
+Die Ergebnisse liegen in Erstellt bzw. neben den Dateien.	The results are in Created or next to the files.
+Die Nextcloud ist noch nicht verbunden (Einstellungen › Verbindungen).	Nextcloud is not connected yet (Settings › Connections).
+Die Spalte „{0}“ finde ich nicht.	I can't find the column “{0}”.
+Die Suche findet Dateien nach Namen, Schlagwörtern und Inhalt.	The search finds files by name, tags and content.
+Die Tabelle ist schon sauber.	The spreadsheet is already clean.
+Diese Aktion gibt es hier nicht.	This action does not exist here.
+Diese Folie finde ich nicht.	I can't find this slide.
+Diese Zeichen gehen nicht: \\ / : * ? " < > |	These characters are not allowed: \\ / : * ? " < > |
+Diesen Namen gibt es hier schon.	This name already exists here.
+Dieser Ablauf ist nicht mehr da.	This workflow is no longer there.
+Dieser Ordner hängt schon am Chat.	This folder is already attached to the chat.
 Dokument	Document
 Dokument entwerfen	Draft a document
 Dokument erstellen	Create a document
@@ -1209,6 +1271,7 @@ Dreieck	Triangle
 Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check.	Prepare third-party funding proposals: read in the call (DFG, BMBF, EU, SAB, TUD-internal) → checklist and deadlines in the calendar, outline according to the funder's requirements with character and page watch, work packages with Gantt, budget, DMP and ethics, test run with a reviewer role, submission check.
 Drucken erlauben	Allow printing
 Du hast die neueste Version.	You have the latest version.
+Du kannst mir auch sagen: „Mach Untertitel und exportiere für OPAL“.	You can also tell me: “Make subtitles and export for OPAL”.
 Dunkel	Dark
 Duplikate entfernen	Remove duplicates
 Duplikate finden	Find duplicates
@@ -1251,6 +1314,9 @@ Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI arb
 Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI macht daraus Folien oder überträgt sie ins TUD-Design.	Attach your own PDFs, presentations or Word files with 📎 – the AI turns them into slides or transfers them to the TUD design.
 Eigene Textbausteine einfügen – auch mit /Name	Insert your own text snippets – also with /name
 Eigene Vorlage	Own template
+Eigene Vorlagen legst du hier an und teilst sie mit Kolleg:innen.	You create your own templates here and share them with colleagues.
+Ein PDF zum Bearbeiten öffnen.	Open a PDF for editing.
+Ein Schritt ist fehlgeschlagen	A step failed
 eigene Vorlage	own template
 Eigene Vorlagen teilen	Share own templates
 Eigene Zeile (sonst im Text an der Cursorposition)	On its own line (otherwise inline at the cursor)
@@ -1272,11 +1338,14 @@ Ein Projekt bündelt Chats zu einem Thema – mit gemeinsamen Anweisungen und Da
 Ein Satz je Abschnitt	One sentence per section
 Ein Stapel bearbeitet viele Dateien mit demselben Auftrag – nacheinander im Hintergrund, mit Pause und Fortsetzen, auch nach einem Neustart. Die Massenkontrolle bewertet Abgaben nach deinem Raster vor: Die KI schlägt vor, du entscheidest.	A batch processes many files with the same instruction – one after the other in the background, with pause and resume, even after a restart. Bulk grading pre-grades submissions according to your rubric: the AI suggests, you decide.
 Ein Vorhaben planen (Planungsmodus)	Plan a project (planning mode)
+Ein neues Projekt beginnt mit einer Aufnahme oder einem Screencast.	A new project starts with a recording or a screencast.
+Ein neues Videoprojekt anlegen.	Create a new video project.
 Ein- und Ausblenden (s)	Fade in and out (s)
 Einarbeiten	Work in
 Eine Datei fehlt	One file is missing
 Eine je Zeile: NAME=Wert	One per line: NAME=value
 Eine Umgebung gibt dem Agenten Variablen (z.B. API-Keys für Web-APIs), Hinweise und Regeln für den Internetzugriff. Geheime Werte sieht das Modell nie – es nutzt sie nur als ${NAME} in Web-Anfragen. Alles wird verschlüsselt auf dem Gerät gespeichert. Wähle die Umgebung im Chat über „+“ › Umgebung.	An environment gives the agent variables (e.g. API keys for web APIs), notes and rules for internet access. The model never sees secret values – it only uses them as ${NAME} in web requests. Everything is stored encrypted on the device. Choose the environment in the chat via “+” › Environment.
+Eine eigene Vorlage anlegen.	Create your own template.
 einem PC offen sein. Schließe sie dort (Symbol im Infobereich › Beenden) – dann geht es hier von selbst weiter.	one PC. Close her there (icon in the notification area › Quit) – then it continues here by itself.
 Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.	A project folder on the computer is available in the Windows version. On Android, the files stay in the app and can be passed on via Share or Save as.
 Eines der leistungsstärksten Modelle im Angebot: komplexes Schlussfolgern, lange Dokumente, agentisches Programmieren. Kein Bildverständnis, etwas langsamer.	One of the most powerful models on offer: complex reasoning, long documents, agentic programming. No image understanding, somewhat slower.
@@ -1354,6 +1423,7 @@ Enter	Enter
 Enter: neuer Absatz · Text markieren: KI fragen	Enter: new paragraph · Select text: ask the AI
 Enter: neuer Punkt · Tab: einrücken	Enter: new item · Tab: indent
 Entfernen	Remove
+Entfernt Clip {0} …	Removing clip {0} …
 Entfernt lassen	Keep removed
 enthält „{0}“	contains “{0}”
 Entpackt …	Unpacking …
@@ -1434,6 +1504,7 @@ Erstelle ein Protokoll aus diesen Notizen:\n	Create minutes from these notes:\n
 Erstelle eine Präsentation zum Thema 	Create a presentation on 
 Erstelle einen kurzen Steckbrief der Datei als Liste: Titel, Art des Dokuments, Autor:innen bzw. Absender, Datum, Inhalt in einem Satz, offene Punkte oder Fristen.	Create a short profile of the file as a list: title, type of document, authors or sender, date, content in one sentence, open points or deadlines.
 Erstellen	Create
+Erstellen › Feld oben	Create › Field at the top
 Erstellt	Created
 Erstellt mit	Created with
 Erster PC: Dein Lora-Ordner wird in den Cloud-Ordner kopiert, danach startet Lora neu und arbeitet dort.	First PC: your Lora folder is copied into the cloud folder, then Lora restarts and works there.
@@ -1441,6 +1512,7 @@ Erweitert	Advanced
 Erweiterungen	Extensions
 Erzeugen	Generate
 Erzeugt Bilder aus Text – im Tab „Bilder“.	Creates images from text – in the “Images” tab.
+Erzeugt Untertitel …	Creating subtitles …
 Erzeugt Vektoren für semantische Suche/RAG – nur über die API nutzbar.	Creates vectors for semantic search/RAG – only usable via the API.
 Erzeugte Bilder	Generated images
 Es gibt noch keine Chats.	There are no chats yet.
@@ -1463,6 +1535,7 @@ Exportiere die Tabelle mit create_document als Excel-Datei (format=xlsx).	Export
 Exportieren	Export
 Exportieren …	Export …
 Exportiert	Exported
+Exportiert „{0}“ ({1}) …	Exporting “{0}” ({1}) …
 Exposé-Feedback	Proposal feedback
 Extrahieren	Extract
 Extrahieren fehlgeschlagen.	Extracting failed.
@@ -1531,6 +1604,7 @@ Fertig – klicken, um das Ergebnis zu sehen.	Done – click to see the result.
 Fertig – tippen zum Öffnen	Done – tap to open
 Fertig – tippen, um das Ergebnis zu sehen.	Done – tap to see the result.
 Fertig.	Done.
+Fertig? „Speichern unter“ legt eine Kopie ab – das Original bleibt, bis du es überschreibst.	Done? “Save as” stores a copy – the original stays until you overwrite it.
 Fertige Antworten, Ergebnisse geplanter Aufgaben und Rückfragen des Agenten	Finished answers, results of scheduled tasks and questions from the agent
 Fett	Bold
 Fett (Strg+B)	Bold (Ctrl+B)
@@ -1556,11 +1630,19 @@ FLUX.2 dev – hochwertige Bildgenerierung von Black Forest Labs.	FLUX.2 dev –
 FLUX.2 klein (4 Mrd. Parameter) – kleine, schnelle Variante.	FLUX.2 klein (4 billion parameters) – small, fast variant.
 Folie	Slide
 Folie 16:9	Slide 16:9
+Folie anlegen	Add slide
 Folie duplizieren (Strg+D)	Duplicate slide (Ctrl+D)
 Folie gelöscht	Slide deleted
 Folie hinzufügen (Strg+M)	Add slide (Ctrl+M)
 Folie löschen	Delete slide
+Folie {0} gelöscht.	Slide {0} deleted.
+Folie {0} geändert.	Slide {0} changed.
 Folie {0} von {1} · Enter: neuer Stichpunkt, Tab: einrücken, Strg+B: fett · Strg+M: neue Folie, F5: vorführen · 	Slide {0} of {1} · Enter: new bullet point, Tab: indent, Ctrl+B: bold · Ctrl+M: new slide, F5: present · 
+Folie {0}: {1}	Slide {0}: {1}
+Folie ändern	Change slide
+Folie „{0}“ angelegt.	Slide “{0}” added.
+Folien	Slides
+Folien aus Gliederung	Slides from outline
 Folien aus den Dateien	Slides from the files
 Folien aus Skript	Slides from a script
 Folien entwerfen	Draft slides
@@ -1568,6 +1650,7 @@ Folien ergänzen	Add slides
 Folien für die TUD-Präsentationsvorlage mit Sprechernotizen	Slides for the TUD presentation template with speaker notes
 Folien im TUD-Design – aus Ihren Stichpunkten oder angehängten Dokumenten	Slides in the TUD design – from your bullet points or attached documents
 Folien mit KI erstellen …	Create slides with AI …
+Folien wie vorher.	Slides as before.
 Folien {0}	Slides {0}
 Folientitel	Slide title
 Folienübersicht	Slide overview
@@ -1613,6 +1696,7 @@ Fragebogen-Items	Questionnaire items
 Fragen	Ask
 Fragen & schreiben	Ask & write
 Fragen zu den Dateien stellen	Ask about the files
+Fragen, bevor ein anderes Modell genommen wird.	Ask before another model is used.
 Fragen, die Lora an einen Chat gibt, landen zuerst im Eingabefeld – du sendest selbst.	Questions Lora passes to a chat first land in the input field – you send them yourself.
 Fragestellung und Aufbau	Research question and structure
 Fragestellung, Instrumente, Auswertung, Publikation und Anträge	Research question, instruments, analysis, publication and proposals
@@ -1635,6 +1719,7 @@ Frist hinzufügen	Add deadline
 Frist {0} in den Kalender	Deadline {0} to the calendar
 Fristen	Deadlines
 Fristen und Termine aus Mails	Deadlines and appointments from mails
+Fristen, Excel, Literatur unter der letzten Antwort anbieten.	Offer deadlines, Excel, literature under the last answer.
 Frühere Chats durchsuchen	Search earlier chats
 Frühere Chats einbeziehen	Include earlier chats
 Funktion / Einrichtung	Role / institution
@@ -1652,12 +1737,14 @@ Füge direkt unter dem Titel eine kurze Zusammenfassung (3–5 Sätze) ein.	Inse
 Füge unter dem Titel ein Inhaltsverzeichnis mit Links auf die Überschriften ein.	Insert a table of contents with links to the headings below the title.
 Füge unter jeder Zahlenspalte eine Zeile mit Summe und Mittelwert als Formeln hinzu.	Add a row with sum and mean as formulas below every number column.
 Fügt den Text ins Eingabefeld ein.	Inserts the text into the input field.
+Fügt die Spalte „{0}“ an …	Adding the column “{0}” …
 Fügt eine Tabelle ein …	Inserts a table …
 Fügt {0} PDFs zusammen …	Merges {0} PDFs …
 Führt mit Fragen zum eigenen Verständnis statt mit fertigen Lösungen	Guides with questions towards your own understanding instead of ready-made solutions
 Füllen	Fill
 Füllfarbe	Fill colour
 Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.	Fills in the “Sender” field in letter and e-mail templates automatically.
+Füllt {0} Zellen …	Filling {0} cells …
 Füllung	Fill
 Für alle Chats	For all chats
 Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben.	For all chats: Settings › Chat & tools › Approvals.
@@ -1665,8 +1752,10 @@ Für alle Präsentationen übernehmen	Use for all presentations
 Für das TUD-Design fehlt die Einrichtung	The institution for the TUD design is missing
 Für deine	For your
 Für den Browser neben dem Chat, eingerichtet	For the browser beside the chat, set up
+Für den Rohschnitt braucht es ein Transkript – zuerst „Untertitel erzeugen“ oder transkribieren.	The rough cut needs a transcript – first “Create subtitles” or transcribe.
 Für den Uni-Server fehlt der API-Key (Einstellungen › API-Zugang).	The API key for the university server is missing (Settings › API access).
 Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen.	To access GitHub repositories, please enter a valid GitHub token in the settings.
+Für die Aufnahmen gibt es kein Transkript, und die Transkription ist nicht bereit (Einstellungen › Transkription).	There is no transcript for the recordings, and transcription is not ready (Settings › Transcription).
 Für die Begrüßung und das Profil in der Seitenleiste.	For the greeting and the profile in the side menu.
 Für die Langzeitarchivierung (z. B. Abschlussarbeiten, Akten): PDF/A-2b mit Metadaten und Farbprofil, ohne Verschlüsselung, JavaScript und eingebettete Dateien.	For long-term archiving (e.g. theses, files): PDF/A-2b with metadata and colour profile, without encryption, JavaScript and embedded files.
 Für die qualitative Inhaltsanalyse – Material gern anhängen	For qualitative content analysis – feel free to attach material
@@ -1689,6 +1778,7 @@ Für Lehrvideos (OPAL, YouTube, Videoplayer): höchstens zwei Zeilen mit je 42 Z
 Für Mail & Kalender ohne das klassische Outlook – mit dem neuen Outlook, einem anderen Mailprogramm oder auf dem Handy: Lora liest Postfach und Ordner über IMAP, sortiert und speichert Antworten als Entwurf in „Entwürfe“. Sie löscht nie und sendet nie; Kalender und Aufgaben gehen auf diesem Weg nicht (dafür braucht es Exchange mit Freigabe der IT).	For mail & calendar without the classic Outlook – with the new Outlook, another mail program or on the phone: Lora reads the mailbox and folders via IMAP, sorts and saves replies as drafts in “Drafts”. It never deletes and never sends; calendar and tasks are not available this way (that needs Exchange with IT approval).
 Für Notizen und Wikis.	For notes and wikis.
 Für Spracherkennung (empfohlen)	For speech recognition (recommended)
+Für ein Handout braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	A handout needs a model – none is allowed here or there is no API key.
 Für {0} fehlt der API-Key von {1} (Einstellungen › API-Zugang › Weitere Anbieter).	The API key of {1} is missing for {0} (Settings › API access › Other providers).
 Galerie	Gallery
 Ganz nach hinten	Send to back
@@ -1696,6 +1786,9 @@ Ganz nach vorne	Bring to front
 Ganz zeigen	Show whole
 Ganze Folie	Whole slide
 Ganze Präsentation	Whole presentation
+Ganzen Ordner anhängen – Lora darf darin lesen oder auch schreiben	Attach a whole folder – Lora may read in it or also write
+Gedächtnis – was Lora über dich weiß	Memory – what Lora knows about you
+Gekürzt auf {0}.	Shortened to {0}.
 ganze Spalten wie Name, Vorname, Schüler/in, Geburtsdatum, Anschrift in Tabellen, CSV und Excel	whole columns such as name, first name, pupil, date of birth, address in tables, CSV and Excel
 Gebeugte Namen	Inflected names
 Geburtsdaten	Dates of birth
@@ -1728,6 +1821,7 @@ Gelöschte Chats und Transkripte wiederherstellen.	Restore deleted chats and tra
 Gelöschtes bleibt {0} Tage hier und lässt sich wiederherstellen.	Deleted items stay here for {0} days and can be restored.
 Gemerkt ({0})	Remembered ({0})
 Gemerkt – jetzt bei der zweiten Datei „Vergleichen mit …“ wählen.	Remembered – now choose “Compare with …” on the second file.
+Gemerkt – zu sehen unter Einstellungen › Lora › Gedächtnis	Remembered – see Settings › Lora › Memory
 Gemerkt.	Remembered.
 Gemessen mit {0}.	Measured with {0}.
 Gemessen: {0} von {1} Wörtern ({2})	Measured: {0} of {1} words ({2})
@@ -1770,6 +1864,7 @@ Gestalte {0} (Vorlage {1}): 	Design {0} (template {1}):
 Gestalten	Design
 Gestaltung	Design
 Gestern	Yesterday
+GitHub in neuen Chats aktiv	GitHub active in new chats
 gestern	yesterday
 Gestern, {0}	Yesterday, {0}
 Gestört laut Statusseite ({0})	Disrupted according to the status page ({0})
@@ -1793,6 +1888,7 @@ Gilt für die Seite im Editor und für PDF und Word beim Export.	Applies to the 
 Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest.	Applies to this chat. Which model new chats start with is set in the settings under “Chat & tools”.
 Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein.	Applies to PDF and Word. Page breaks (\\newpage) and landscape pages are added via “Insert”.
 Gilt in jedem Chat zusätzlich zu Persona und Projekt-Anweisungen.	Applies in every chat in addition to the persona and project instructions.
+Gilt nur für diesen Chat und lässt sich jederzeit über den Ordner-Chip über dem Eingabefeld ändern.	Applies only to this chat and can be changed at any time with the folder chip above the input field.
 GitHub	GitHub
 GitHub · Hauptkonto	GitHub · main account
 GitHub · Repo wählen	GitHub · choose repo
@@ -1858,12 +1954,14 @@ Hallo! So klinge ich, wenn ich dir Antworten vorlese. Viel Spaß mit Lora.	Hello
 Hallo, ich bin Lora!	Hello, I'm Lora!
 Handout (PDF)	Handout (PDF)
 Handout als PDF	Handout as PDF
+Handout als Word	Handout as Word
 Handout fehlgeschlagen: {0}	Handout failed: {0}
 Handout oder Merkblatt	Handout or fact sheet
 Hat eine Rückfrage …	Has a question …
 Hauptkategorie	Main category
 Header für den Token (optional)	Header for the token (optional)
 HEIC-Fotos (iPhone) kann die Windows-App nicht lesen – bitte als JPEG speichern, z. B. in der Fotos-App über „Speichern unter“ oder am iPhone unter Einstellungen › Kamera › Formate › „Maximale Kompatibilität“.	The desktop app cannot read HEIC photos (iPhone) – please save them as JPEG, e.g. in the Photos app via “Save as” or on the iPhone under Settings › Camera › Formats › “Most Compatible”.
+Handout „{0}“ in Erstellt.	Handout “{0}” in Created.
 Hell	Light
 Hell oder dunkel	Light or dark
 Hell, dunkel oder wie das System.	Light, dark or like the system.
@@ -1872,21 +1970,25 @@ Helligkeit (hell oder dunkel)	Brightness (light or dark)
 Herausgeber:innen	Editors
 Hervorheben	Highlight
 Heute	Today
+Hier bleibt Sprache auf dem Gerät – bitte unter Einstellungen › Transkription ein Erkennungsmodell laden.	Speech stays on the device here – please load a recognition model under Settings › Transcription.
 heute	today
 Heute und morgen	Today and tomorrow
 Heute, {0}	Today, {0}
 Heutiges Datum	Today's date
 Hier beenden	Close here
+Hier bleibt alles auf dem Gerät – die Texterkennung bräuchte ein Bildmodell auf dem Server.	Everything stays on the device here – text recognition would need an image model on the server.
 Hier ist die Ausschreibung (PDF). Lege den Antrag an und sag mir, was ich bis wann brauche.	Here is the call (PDF). Set up the proposal and tell me what I need by when.
 Hier ist die Ausschreibung: 	Here is the call: 
 Hier ist es – leuchtend markiert	Here it is – highlighted
 Hier ist es: {0}.	Here it is: {0}.
 Hier schreiben – oder	Write here – or
+Hier sortierst du nach Name, Datum oder Größe.	Here you sort by name, date or size.
 Hier speichern	Save here
 Hier speichert „In Nextcloud speichern“, wenn du keinen anderen Ordner wählst.	“Save in Nextcloud” saves here if you don't choose another folder.
 Hier weiterarbeiten	Continue working here
 Hier weiterschreiben – „/“ für Formate	Continue writing here – “/” for formats
 Hier öffnen	Open here
+Hier öffnest du PDFs – mehrere gleichzeitig, jedes in einem eigenen Tab.	This is where you open PDFs – several at once, each in its own tab.
 Hierhin verschieben	Move here
 Hilf mir schreiben	Help me write
 Hilfreich	Helpful
@@ -1932,9 +2034,12 @@ Ich finde Einstellungen, öffne TU Vorlagen und Modi, schlage Werkzeuge vor, suc
 Ich habe den Schlüssel sicher aufbewahrt.	I have stored the key safely.
 Ich höre zu …	Listening …
 Ich möchte ein Seminar „Digitale Medien im Sachunterricht“ für das Sommersemester planen.	I would like to plan a seminar “Digital media in primary science and social studies” for the summer semester.
+Ich räume auch für dich auf: „Ordne Hochgeladen nach Semester“ oder „Finde Duplikate“ – immer mit Vorschau und Rückgängig.	I also tidy up for you: “Sort Uploaded by semester” or “Find duplicates” – always with a preview and undo.
 Ich schaue nach …	Let me look …
 Ich schreibe an der Cursorstelle – danach Übernehmen, Neu oder Verwerfen.	I am writing at the cursor – then Keep, New or Discard.
 Ich schreibe es in den Chat.	I'll write it in the chat.
+Ich zeige dir „{0}“.	I'll show you “{0}”.
+Ich zeige es dir.	I'll show you.
 Ich öffne „{0}“.	I'm opening “{0}”.
 Idee	Idea
 Ideen sammeln	Brainstorm ideas
@@ -1976,6 +2081,7 @@ Im Quellenmodus: Jede Aussage bekommt die Seite und ein Zitat, die App prüft je
 Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“).	Create a key in the self-service portal of TU Dresden under “ScaDS.AI LLM” (starts with “sk-”).
 Im Transkript passt nichts zu den Clips.	Nothing in the transcript matches the clips.
 Im Transkript suchen	Search in the transcript
+Im Tresor merke ich mir nichts.	In the vault I remember nothing.
 Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen.	Only the university server and models on this device are allowed in the vault – {0} runs at an external provider. Please choose a model of the university server.
 Im TUD-Design	In the TUD design
 im Web	on the web
@@ -2042,6 +2148,8 @@ In PDF umwandeln	Convert to PDF
 In Projekt verschieben	Move to project
 In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt.	In Word this becomes a real equation that can be edited further there.
 In Word/PowerPoint mit „Barrierefreies PDF“ bzw. „Dokumentstrukturtags“ exportieren.	Export from Word/PowerPoint with “Accessible PDF” or “Document structure tags”.
+In die Nextcloud	To Nextcloud
+In diesem Projekt bleibt alles auf dem Gerät – nichts geht in die Nextcloud.	In this project everything stays on the device – nothing goes to Nextcloud.
 In zwei Spalten	In two columns
 in {0}	in {0}
 In {0} legen	Put into {0}
@@ -2051,6 +2159,8 @@ In „{0}“ liegen keine losen Dateien.	There are no loose files in “{0}”.
 In „{0}“ liegen schon Lora-Daten (z. B. vom anderen PC). Lora startet neu und nutzt sie. 	There is already Lora data in “{0}” (e.g. from the other PC). Lora restarts and uses it. 
 In „{0}“ liegt keine version.json – ist das Netzlaufwerk verbunden?	There is no version.json in “{0}” – is the network drive connected?
 In „{0}“ liegt schon ein Lora-Ordner. Lora startet neu und arbeitet dort weiter.	There is already a Lora folder in “{0}”. Lora restarts and continues working there.
+In „{0}“ steht kein lesbarer Text.	There is no readable text in “{0}”.
+In „{0}“ wurde keine Sprache erkannt.	No speech was recognized in “{0}”.
 In „{0}“ wurden keine Namen gefunden (eine Spalte Name/Vorname/Nachname oder ein Name je Zeile).	No names were found in “{0}” (a name/first name/last name column or one name per line).
 Indigo	Indigo
 Infobereich, Autostart, Datenordner	Notification area, autostart, data folder
@@ -2062,6 +2172,8 @@ Inhalt	Content
 Inhalt im Querformat, z. B. eine breite Tabelle	Content in landscape, e.g. a wide table
 Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; Bildbeschreibungen an das Bildmodell des Uni-Servers.	Content goes to the selected model, names pseudonymized; image descriptions go to the image model of the university server.
 Inhalte gehen an das gewählte Modell, Namen pseudonymisiert; das Spiel läuft abgeschottet ohne Internet.	Content goes to the selected model, names pseudonymized; the game runs sealed off without internet.
+Inhalte gehen an das gewählte Modell.	Content goes to the chosen model.
+Inhalte gehen nur an den Uni-Server.	Content only goes to the university server.
 Inhaltsverzeichnis	Table of contents
 Innenabstand (mm)	Padding (mm)
 Ins Bild einbrennen	Burn into the picture
@@ -2083,6 +2195,14 @@ Interview transkribieren	Transcribe an interview
 Interviewleitfaden	Interview guide
 Issue erstellen	Create issue
 Ist das Dokument für Screenreader nutzbar? – PDF anhängen	Can screen readers use the document? – attach the PDF
+Je Werkzeug: Ordnung, Formate, Export, Zitierstil	Per tool: order, formats, export, citation style
+Wieder vergessen.	Forgotten again.
+Windows › Links neben dem Chat öffnen	Windows › Open links beside the chat
+Wird endgültig gelöscht – das lässt sich nicht rückgängig machen.	Is deleted for good – this cannot be undone.
+Zum Kürzen braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	Shortening needs a model – none is allowed here or there is no API key.
+Zum Schluss exportierst du als MP4 für OPAL oder YouTube.	Finally you export as MP4 for OPAL or YouTube.
+auf diesem Gerät	on this device
+entfernt	removed
 ist eingeschaltet – in der Seitenleiste unter „Mehr“.	is turned on – in the side menu under “More”.
 ist kein PNG- oder JPEG-Bild.	is not a PNG or JPEG image.
 Italienisch	Italian
@@ -2268,6 +2388,8 @@ Kommentarliste	Comment list
 Kommentieren	Comment
 Kommentieren (Strg+Alt+M)	Comment (Ctrl+Alt+M)
 Kommentiert	Commented
+Kommt in den Papierkorb von Lora und lässt sich 30 Tage lang wiederherstellen.	Goes into Lora's bin and can be restored for 30 days.
+Kommt in den Papierkorb von Windows.	Goes into the Windows recycle bin.
 Kommunikation	Communication
 Kompakt und vielseitig: strukturiert gut, nutzt Werkzeuge (Dokumente, Rechnen). Für Laptops mit 16 GB.	Compact and versatile: structures well, uses tools (documents, calculation). For laptops with 16 GB.
 Kompaktes Allround-Modell von Alibaba mit Denkmodus, Bildverständnis und Werkzeugnutzung.	Compact all-round model from Alibaba with thinking mode, image understanding and tool use.
@@ -2317,6 +2439,7 @@ Kurztexte	Snippets
 Kühles Blau, helle Flächen und runde Formen.	Cool blue, light surfaces and round shapes.
 Kürze das Dokument um etwa ein Drittel, ohne wichtige Inhalte zu verlieren.	Shorten the document by about a third without losing important content.
 Kürzen	Shorten
+Kürzt das Video: {0} …	Shortening the video: {0} …
 kürzer. Mit Strg+Z rückgängig.	shorter. Undo with Ctrl+Z.
 Laden	Load
 Lange Agenten-Aufgaben mit vielen Werkzeugschritten	Long agent tasks with many tool steps
@@ -2325,6 +2448,7 @@ Langsam	Slow
 Laserpointer (L)	Laser pointer (L)
 Laserpointer aus (L)	Laser pointer off (L)
 LaTeX	LaTeX
+Laufende Abläufe	Running workflows
 Laufende Antworten	Running answers
 Laufende Vorhaben	Ongoing projects
 Laufendes Modell beenden (Speicher freigeben)	Stop the running model (free memory)
@@ -2348,8 +2472,11 @@ Leeres Design – Format wählen	Blank design – choose format
 Leeres TUD-Dokument	Empty TUD document
 Lege zuerst eine Unterschrift an: mit Maus oder Finger zeichnen oder ein Bild (PNG mit durchsichtigem Hintergrund) wählen.	First create a signature: draw it with the mouse or your finger or choose an image (PNG with a transparent background).
 Legen fest, wie sich das Modell im ganzen Chat verhält	Define how the model behaves throughout the chat
+Legt die Folie „{0}“ an …	Adding the slide “{0}” …
+Legt ein Videoprojekt aus {0} Datei(en) an …	Creating a video project from {0} file(s) …
 Legt einen Termin an …	Creating an appointment …
 Legt {0} Dateien in den Papierkorb …	Moves {0} files to the trash …
+Legt {0} Folien an …	Adding {0} slides …
 Legt {0} doppelte Dateien in den Papierkorb …	Moves {0} duplicate files to the trash …
 Lehre	Teaching
 Lehre oder Themen, an denen Sie arbeiten	Teaching or topics you work on
@@ -2382,12 +2509,14 @@ Lernziele formulieren	Formulate learning objectives
 Lese Dateien für die Volltextsuche	Reading files for the full-text search
 Lesemodus	Reading mode
 Lesen	Read
+Lesen und schreiben	Read and write
 Lesezeichen zur Navigation vorhanden.	Bookmarks for navigation present.
 Letzte 30 Tage	Last 30 days
 Letzte 7 Tage	Last 7 days
 Letzte Sätze werden transkribiert …	Transcribing the last sentences …
 Letzten Strich zurücknehmen	Undo last stroke
 Letzter Lauf fehlgeschlagen · 	Last run failed · 
+Woraus soll das Handout entstehen? Bitte eine Datei auswählen.	What should the handout be made from? Please choose a file.
 letzter Versuch:	last attempt:
 Letztes Ergebnis · 	Last result · 
 Letztes Jahr	Last year
@@ -2398,6 +2527,7 @@ Liest eine Webseite …	Reading a web page …
 liest nur	read only
 Liest Texte vor; in der App über den Lautsprecher-Knopf an Antworten nutzbar.	Reads texts aloud; in the app via the speaker button on answers.
 Liest {0}	Reading {0}
+Ordner „{0}“	Folder “{0}”
 ließ sich nicht lesen.	could not be read.
 Lila	Purple
 LimeSurvey-Fragebogen	LimeSurvey questionnaire
@@ -2418,7 +2548,9 @@ Linke Spalte (erste Zeile „### Überschrift“)	Left column (first line “###
 Links	Left
 Links aus Chat, Literatur und Dokumenten öffnen sich als Tabs rechts neben der App – mit Fragen zur Seite, Zusammenfassung und Übernahme in die Literatur. Beim ersten Mal richtet Lora dafür einmalig Chromium ein (ca. 170 MB). Aus: im normalen Browser.	Links from chat, literature and documents open as tabs to the right of the app – with questions about the page, a summary and taking it over into the literature. The first time, Lora sets up Chromium once (approx. 170 MB). Off: in the normal browser.
 Links immer im normalen Browser öffnen	Always open links in the normal browser
+Links liegen deine Orte: Lora-Ordner, Hochgeladen, Erstellt, Markiert und der Papierkorb.	On the left are your places: Lora folder, Uploaded, Created, Starred and the bin.
 Links neben dem Chat öffnen	Open links beside the chat
+Links öffnen als Tabs rechts neben der App.	Links open as tabs to the right of the app.
 Linksbündig	Align left
 Liste	List
 Liste gespeichert.	List saved.
@@ -2478,6 +2610,7 @@ Lora bei der Arbeit	Lora at work
 Lora bewegt sich weniger.	Lora moves less.
 Lora bietet unter der letzten Antwort an, Fristen in den Kalender zu übernehmen, Tabellen als Excel zu speichern oder Literatur zu übernehmen – erkannt auf dem Gerät.	Below the last answer, Lora offers to add deadlines to the calendar, save tables as Excel or take over literature – recognized on the device.
 Lora darf einmal je Bereich auf etwas hinweisen, z. B. dass es für PDFs ein Werkzeug gibt. Sie unterbricht nie.	Lora may point something out once per area, e.g. that there is a tool for PDFs. She never interrupts.
+Lora darf einmal je Bereich auf etwas hinweisen.	Lora may point something out once per area.
 Lora ein- oder ausblenden	Show or hide Lora
 Lora erledigt es im Chat – oder unten eine Vorlage wählen.	Lora does it in the chat – or choose a template below.
 Lora erscheint nirgends – weder auf der Startseite noch im Chat oder im Sprachmodus; dort steht dann das Symbol der App. Die Ideen auf der Startseite bleiben.	Lora appears nowhere – not on the start page, in the chat or in voice mode; the app's symbol is shown there instead. The ideas on the start page stay.
@@ -2490,6 +2623,7 @@ Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungskarten, Social-
 Lora hat geschrieben	Lora has written
 Lora hat keine Abschnitte ausgewählt.	Lora did not select any sections.
 Lora hat nichts zu ändern gefunden.	Lora found nothing to change.
+Lora hat nichts zum Kürzen gefunden.	Lora found nothing to shorten.
 Lora hilft beim Finden: In den Einstellungen unten rechts antippen, auf der Startseite „Lora fragen“ oder Strg+K › Lora fragen. Einstellungen › Lora legt fest, wo sie erscheint.	Lora helps you find things: tap her at the bottom right in the settings, “Ask Lora” on the start screen, or Ctrl+K › Ask Lora. Settings › Lora decides where she appears.
 Lora hört zu	Lora is listening
 Lora ist abgestürzt	Lora crashed
@@ -2512,14 +2646,18 @@ Lora machen lassen	Let Lora do it
 Lora mit Schere, Hefter und Stempel	Lora with scissors, stapler and stamp
 Lora prüft alle paar Sekunden neu. „Trotzdem öffnen“ kann Änderungen des anderen PCs überschreiben.	Lora checks again every few seconds. “Open anyway” can overwrite changes from the other PC.
 Lora richtet dafür einmalig einen Browser ein (Chromium, ca. 170 MB, ohne Admin-Rechte). Danach öffnen sich Links aus Chat, Literatur und Dokumenten hier als Tabs – mit Fragen zur Seite, Zusammenfassung und Übernahme in die Literatur. Anmeldungen (z. B. über die TU) bleiben erhalten.	For this, Lora sets up a browser once (Chromium, approx. 170 MB, no admin rights). After that, links from chat, literature and documents open here as tabs – with questions about the page, a summary and taking it over into the literature. Sign-ins (e.g. via the TU) are kept.
+Lora sagen, was entstehen soll.	Tell Lora what to create.
 Lora schließen	Close Lora
 Lora schläft – antippen zum Fragen	Lora is asleep – tap to ask
 Lora schreibt …	Lora is writing …
 Lora sortiert Briefe	Lora sorts letters
 Lora startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast.	Lora starts with Windows – tasks also run when you haven't opened the app.
+Lora startet nach der Anmeldung im Infobereich.	Lora starts in the notification area after sign-in.
+Lora vergisst alle {0} Vorlieben. Die übrigen Einträge unter Einstellungen › Gedächtnis bleiben.	Lora forgets all {0} preferences. The other entries under Settings › Memory stay.
 Lora winkt	Lora waves
 Lora wurde auf Version {0} aktualisiert.	Lora has been updated to version {0}.
 Lora wurde auf „{0}“ geöffnet – hier beendet, damit nichts überschrieben wird.	Lora was opened on “{0}” – closed here so that nothing is overwritten.
+Lora zeigt es	Lora shows it
 Lora {0} ist da (installiert: {1}).	Lora {0} is here (installed: {1}).
 Lora {0} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.	Lora {0} has been downloaded. Android will ask in a moment whether the app should be updated – just tap “Update”.
 Lora {0} ist heruntergeladen. Zum Installieren startet die App kurz neu – Chats und Einstellungen bleiben erhalten.	Lora {0} has been downloaded. To install, the app restarts briefly – chats and settings are kept.
@@ -2528,6 +2666,7 @@ Lora {0} · Inoffizielle App, nicht mit der Universität verbunden.	Lora {0} · 
 Lora öffnen	Open Lora
 Lora öffnen und schließen	Open and close Lora
 Lora – Wiederherstellungsschlüssel des Tresors: {0}	Lora – recovery key of the vault: {0}
+Lora › Touren anbieten	Lora › Offer tours
 Lora, das Maskottchen der App	Lora, the app's mascot
 Lora-Ordner	Lora folder
 Lora-Ordner des PCs wählen	Choose the PC's Lora folder
@@ -2539,11 +2678,14 @@ Lora-Ordner verschieben	Move Lora folder
 Lora-Ordner wechseln	Change Lora folder
 Lora-Ordner öffnen	Open Lora folder
 Lora-Ordner …	Lora folder …
+Lora-Ordner, Hochgeladen, Erstellt, Markiert, Papierkorb.	Lora folder, Uploaded, Created, Starred, bin.
+Lora: Ablauf fertig	Lora: workflow finished
 Lora: Meinst du	Lora: Do you mean
 Los	Go
 Loslegen	Get going
 Lädt Chromium herunter (einmalig, ca. 170 MB) …	Downloading Chromium (once, approx. 170 MB) …
 Lädt herunter ({0} von {1} MB) …	Downloading ({0} of {1} MB) …
+Lädt {0} Dateien in die Nextcloud ({1}) …	Uploading {0} files to Nextcloud ({1}) …
 Länge	Length
 Länge (s)	Length (s)
 längster {0} · {1} Wörter/min	longest {0} · {1} words/min
@@ -2553,13 +2695,22 @@ läuft	running
 Läuft an der TU Dresden oder auf diesem PC	Runs at TU Dresden or on this PC
 Läuft gerade: {0}	Currently running: {0}
 Läuft · {0}	Running · {0}
+Läuft – unten im Fenster geht es weiter	Running – it continues at the bottom of the window
+Läuft … {0} von {1}	Running … {0} of {1}
 Löschen	Delete
+Löschen (Entf)	Delete (Del)
+Löschen ging nicht: {0}	Deleting failed: {0}
+Löscht Folie {0} …	Deleting slide {0} …
+Neu planen	Plan again
+Neues Videoprojekt	New video project
+Noch keine Aktionen.	No actions yet.
 löschen	delete
 löschen, sobald alles da ist.	delete it as soon as everything is there.
 Löscht Seite(n) {0} …	Deletes page(s) {0} …
 Löschung abgelehnt	Deletion rejected
 Löschung angenommen	Deletion accepted
 Lösen	Unpin
+MP4 für OPAL oder YouTube.	MP4 for OPAL or YouTube.
 Mach aus dem angehängten Paper ein Tagungsposter (A1 hoch) mit Einleitung, Methode, Ergebnissen und Fazit. QR-Code zur DOI, falls vorhanden.	Turn the attached paper into a conference poster (A1 portrait) with introduction, method, results and conclusion. QR code to the DOI if available.
 Mach aus dem angehängten Paper ein Tagungsposter (A1) mit Einleitung, Methode, Ergebnissen und Fazit.	Turn the attached paper into a conference poster (A1) with introduction, method, results and conclusion.
 Mach diesen Text kürzer und verständlicher:\n	Make this text shorter and easier to understand:\n
@@ -2572,6 +2723,7 @@ Mail über den Server ist noch nicht eingerichtet (Einstellungen › Verbindunge
 Mail-Ordner anlegen	Create mail folder
 Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert.	Mails and appointments are read on the PC and go to the selected model, names pseudonymized.
 Mails verschieben	Move mails
+Mailserver statt Outlook	Mail server instead of Outlook
 Manuelles Codieren nach einem Kategoriensystem (z.B. inhaltlich-strukturierende Inhaltsanalyse). Die Codierungen bleiben im Transkript gespeichert.	Manual coding with a category system (e.g. content-structuring content analysis). The codings are saved in the transcript.
 Markdown	Markdown
 Markdown-Datei	Markdown file
@@ -2604,6 +2756,7 @@ Mehr	More
 Mehr anzeigen	Show more
 Mehr Sprecher	More speakers
 Mehrere Antworten möglich	Several answers possible
+Mehrere PDFs zu einem zusammenfügen.	Merge several PDFs into one.
 Mehrsprachiges Embedding-Modell von Qwen (4 Mrd. Parameter).	Multilingual embedding model from Qwen (4 billion parameters).
 Mehrzeilig	Multi-line
 Meine Absenderangaben	My sender details
@@ -2667,15 +2820,18 @@ Mit KI …	With AI …
 Mit KI-Modell erkennen	Recognize with an AI model
 Mit KI-Modell erkennen?	Recognize with an AI model?
 Mit Lora	With Lora
+Mit Lora erstellen	Create with Lora
 Mit Lora kürzen	Shorten with Lora
 Mit Lora kürzen …	Shorten with Lora …
 Mit Lora weiterarbeiten	Continue with Lora
 Mit Lora ändern	Change with Lora
 Mit Lora überarbeiten	Revise with Lora
+Mit dem Plus legst du Ordner, Dokumente, Tabellen und Präsentationen an oder lädst Dateien hoch.	With the plus you create folders, documents, spreadsheets and presentations or upload files.
 Mit nächstem verbinden	Join with next
 Mit Sprechern, Zeitmarken und Kommentaren, zum Weiterbearbeiten.	With speakers, timestamps and comments, for further editing.
 Mit Strg+Z rückgängig.	Undo with Ctrl+Z.
 Mit Texterkennung (OCR) neu erzeugen oder aus der Quelldatei exportieren.	Create it again with text recognition (OCR) or export it from the source file.
+Mit dem Mailserver statt mit Outlook arbeiten.	Work with the mail server instead of Outlook.
 Mit vorigem verbinden	Join with previous
 Mit Windows starten	Start with Windows
 mit XMP-Daten	with XMP data
@@ -2684,6 +2840,7 @@ Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne
 Mitte	Centre
 Mittel	Medium
 Mittel (Bildschirm und Druck)	Medium (screen and print)
+Mittelwert	Mean
 Mittig	Centre
 Modell	Model
 Modell automatisch wählen	Choose model automatically
@@ -2707,8 +2864,10 @@ Modellstandard	Model default
 Modellübersicht	Model overview
 Modi	Modes
 Modi (Literatursuche, Planungsmodus, Quellenmodus, Exzerpt, Sprachmodus) startest du mit „/“ im Eingabefeld, über Strg+K oder die Startseite. Der Chip über dem Eingabefeld zeigt den Modus, ✕ verlässt ihn.	You start modes (literature search, planning mode, source mode, excerpt, voice mode) with “/” in the input field, via Ctrl+K or the start screen. The chip above the input field shows the mode, ✕ leaves it.
+Modi des PDF-Werkzeugkastens	Modes of the PDF toolbox
 Modus	Mode
 Modus verlassen	Leave mode
+Monat	Month
 Monate	Months
 Moodle-Test (GIFT)	Moodle test (GIFT)
 Moodle-Test (Moodle-XML)	Moodle test (Moodle XML)
@@ -2719,6 +2878,7 @@ Musik oder Sprecherton auswählen	Choose music or voice-over
 MÜLLER, müller, Mueller zu „Müller“ aus der eigenen Liste; Mueller auch bei erkannten Namen	MÜLLER, müller, Mueller for “Müller” from your own list; Mueller also for recognized names
 Mündliche Prüfung vorbereiten	Prepare an oral exam
 Nach Art	By type
+Nach Name, Datum oder Größe sortieren.	Sort by name, date or size.
 Nach dem Chat dazulernen	Learn after the chat
 Nach dem Stoppen wird transkribiert.	It is transcribed after stopping.
 Nach einem Neustart der App wird von vorne begonnen.	After a restart of the app it starts from the beginning.
@@ -2738,6 +2898,7 @@ Nach Whisper oder dem Uni-Server misst Parakeet v3 auf dem Gerät, wann jedes Wo
 Nach Zotero	To Zotero
 Nach Zotero übertragen	Transfer to Zotero
 Nach {0}	By {0}
+Nach „{0}“ sortiert.	Sorted by “{0}”.
 nach „geb.“, „Geburtsdatum“ oder „*“, auch mit Monatsnamen	after “geb.”, “Geburtsdatum” or “*”, also with month names
 Nachrichtensuche	News search
 Nachtmodus	Night mode
@@ -2763,6 +2924,7 @@ Namen und persönliche Angaben vor dem Senden ersetzen.	Replace names and person
 Namen und persönliche Angaben werden streng ersetzt – im Zweifel lieber einmal zu viel.	Names and personal details are replaced strictly – when in doubt, once too often.
 Namen und persönliche Angaben werden vor dem Senden ersetzt.	Names and personal details are replaced before sending.
 Namen übernehmen	Take over names
+Namen, Schlagwörter und Inhalt durchsuchen.	Search names, tags and content.
 Namen, die nie ersetzt werden.	Names that are never replaced.
 Namen, Kontaktdaten, Anschriften und die eigene Liste (Einstellungen › Datenschutz) werden durchgehend ersetzt, Sprecher mit echtem Namen heißen „Person A“ … Das Transkript selbst bleibt unverändert.	Names, contact details, addresses and your own list (Settings › Privacy) are replaced throughout, speakers with a real name are called “Person A” … The transcript itself stays unchanged.
 Namensvorschläge beim Schreiben	Name suggestions while writing
@@ -2781,6 +2943,7 @@ Neu erstellen	Create new
 Neu exzerpieren	Excerpt again
 Neu generieren	Regenerate
 Neu generieren mit …	Regenerate with …
+Neu in Dateien	New in Files
 Neu laden	Reload
 Neu messen	Measure again
 Neu mit KI	New with AI
@@ -2811,6 +2974,7 @@ Neuer Chat im Projekt	New chat in project
 Neuer Chat oben in der Seitenleiste. Das Modell wechselst du über den Namen über dem Eingabefeld; „Automatisch“ schlägt je Anfrage das passende vor. Dateien und Bilder hängst du mit + an oder ziehst sie hinein.	New chat at the top of the side menu. You switch the model via the name above the input field; “Automatic” suggests the right one for each request. Attach files and images with + or drag them in.
 Neuer Code	New code
 Neuer Kurztext	New snippet
+Neuer Name	New name
 Neuer Ordner	New folder
 Neuer Ordner hier	New folder here
 Neuer Posten	New item
@@ -2840,6 +3004,7 @@ nicht eingerichtet	not set up
 Nicht eingerichtet – das passiert beim ersten Link, der sich neben dem Chat öffnet (ca. 170 MB).	Not set up – this happens with the first link that opens beside the chat (approx. 170 MB).
 Nicht eingeschaltet.	Not turned on.
 Nicht eingetragen.	Not added.
+Nicht gemerkt.	Not remembered.
 nicht erkannt	not recognized
 nicht ersetzen	don't replace
 Nicht ersetzt – vielleicht ein Name?	Not replaced – maybe a name?
@@ -2913,6 +3078,7 @@ Noch keine Stapel	No batches yet
 Noch keine Transkripte	No transcripts yet
 Noch keine Umgebungen.	No environments yet.
 Noch keine Videoprojekte	No video projects yet
+Noch keine Vorlieben. Sag Lora zum Beispiel: „Merk dir, dass ich Handouts zweispaltig möchte.“	No preferences yet. Tell Lora for example: “Remember that I want handouts in two columns.”
 Noch keine Wortzeiten – es gibt nur die Zeiten der Abschnitte (aus der Spracherkennung der Pausen).	No word times yet – there are only the times of the sections (from the speech detection of the pauses).
 Noch keine Überschriften. Überschriften gliedern das Dokument und erscheinen hier zum Springen.	No headings yet. Headings structure the document and appear here for jumping.
 Noch keine – Ablageorte unter Einstellungen › Speicherorte, Projektordner am Projekt.	None yet – storage locations under Settings › Storage locations, project folders on the project.
@@ -2974,13 +3140,19 @@ Oben	Top
 Oben ist Platz für	There is room at the top for
 Oben rechts	Top right
 Oben stehen „Neuer Chat“ und bis zu vier Bereiche, alles andere unter „Mehr“.	At the top are “New chat” and up to four areas, everything else is under “More”.
+Oben wählst du, was du tun willst: ansehen, Seiten ordnen, markieren, unterschreiben, umwandeln oder die KI fragen.	At the top you choose what to do: view, arrange pages, highlight, sign, convert or ask the AI.
+PDF, Word, PowerPoint, Briefe und Termine im Chat erstellen.	Create PDF, Word, PowerPoint, letters and appointments in the chat.
+PDFs zusammenfügen	Merge PDFs
+Pausen herausschneiden	Cut out pauses
 oder	or
 Oder als .env einfügen	Or paste as .env
 Oder eigene Antwort …	Or your own answer …
 Oder mit einer Vorlage beginnen:	Or start with a template:
+Oder sag mir einfach, was ich tun soll – zum Beispiel „Füge die beiden PDFs zusammen“ oder „Schwärze alle Namen“.	Or just tell me what to do – for example “Merge the two PDFs” or “Redact all names”.
 oder nach Bereichen, je Bereich ein PDF:	or by ranges, one PDF per range:
 Offen	Open
 Offene PDFs zusammenfügen	Merge open PDFs
+Orte in Dateien	Places in Files
 offene Punkte	open points
 Offenes Reasoning-Modell von OpenAI (120 Mrd. Parameter, MoE).	Open reasoning model from OpenAI (120 billion parameters, MoE).
 Office antwortet nicht.	Office does not answer.
@@ -3023,6 +3195,7 @@ Ordner	Folder
 Ordner als Ablageort hinzufügen …	Add a folder as storage location …
 Ordner als Ablageort wählen (z. B. in Google Drive)	Choose a folder as storage location (e.g. in Google Drive)
 Ordner als Kontext nutzen?	Use the folder as context?
+Ordner an den Chat anhängen	Attach folder to the chat
 Ordner ansehen	View folder
 Ordner aufräumen	Tidy up folder
 Ordner außerhalb des Lora-Ordners, die Lora kennt: Ablageorte und Projektordner. Ihre Dateien lassen sich hier öffnen, umbenennen, verschieben und löschen.	Folders outside the Lora folder that Lora knows: storage locations and project folders. Their files can be opened, renamed, moved and deleted here.
@@ -3041,11 +3214,14 @@ Ordner nicht angelegt.	Folder not created.
 Ordner nicht erreichbar	Folder not reachable
 Ordner nicht lesbar	Folder not readable
 Ordner oder Adresse (optional)	Folder or address (optional)
+Ordner umbenennen	Rename folder
 Ordner werden geladen …	Loading folders …
 Ordner wählen	Choose folder
 Ordner wählen …	Choose folder …
 Ordner öffnen	Open folder
 Ordner übernehmen	Use folder
+Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)	Folder “{0}” detached from the chat (the folder itself stays)
+Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen.	Folder, document, spreadsheet, presentation, from a template or upload.
 Ordnet {0} Dateien in „{1}“ in Unterordner …	Sorts {0} files in “{1}” into subfolders …
 Ort, Datum darunter	Place, date below
 Orte	Places
@@ -3056,6 +3232,8 @@ Outlook ließ sich nicht starten: {0}	Outlook could not be started: {0}
 Outlook meldet einen Fehler: {0}	Outlook reports an error: {0}
 Outlook und Office über COM gibt es nur unter Windows.	Outlook and Office via COM are only available on Windows.
 Outlook-Ordner ansehen	View Outlook folders
+PDF speichern unter	Save PDF as
+PDF-Werkzeugkasten › Ansehen, Seiten, Markieren …	PDF toolbox › View, Pages, Highlight …
 Paper auswählen (PDF, Word …)	Choose paper (PDF, Word …)
 Papierkorb	Trash
 Papierkorb leeren	Empty trash
@@ -3105,6 +3283,7 @@ PDF/A (Archiv)	PDF/A (archive)
 PDFs bearbeiten	Edit PDFs
 PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, unterschreiben, Formulare ausfüllbar machen, Scans durchsuchbar machen (OCR), Word/Excel/PowerPoint/Bilder ↔ PDF umwandeln, Fragen an das PDF, Tabellen herausziehen.	View PDFs in tabs, merge, split, rotate and sort pages, highlight and comment, sign, make forms fillable, make scans searchable (OCR), convert Word/Excel/PowerPoint/images ↔ PDF, ask questions about the PDF, extract tables.
 PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen setzen, markieren und kommentieren, unterschreiben	View PDFs in tabs, merge, split, rotate, delete and reorder pages, add page numbers, highlight and comment, sign
+Pausen und Füllwörter herausschneiden, mit Lora kürzen.	Remove pauses and filler words, shorten with Lora.
 Peer Review	Peer review
 Pegel	Level
 Per E-Mail senden …	Send by e-mail …
@@ -3130,6 +3309,8 @@ PIN wiederholen	Repeat PIN
 PIN ändern	Change PIN
 Pink	Pink
 Pinsel	Brush
+Plan · {0} Schritte · {1}	Plan · {0} steps · {1}
+Plane den Ablauf neu: {0} – Änderung: {1}	Plan the workflow again: {0} – change: {1}
 Plant Unterricht und Lehre theoriegeleitet mit	Helps plan teaching on a theoretical basis
 Planungsmodus	Planning mode
 Platzhalter bei Suchen im Netz	Placeholders in web searches
@@ -3174,8 +3355,11 @@ Projekt	Project
 Projekt bearbeiten	Edit project
 Projekt bearbeiten …	Edit project …
 Projekt löschen?	Delete project?
+Projekt wie vorher.	Project as before.
+Projekt wieder entfernt.	Project removed again.
 Projekt zuordnen	Assign project
 Projekt „{0}“ ({1})	Project “{0}” ({1})
+Projekt „{0}“ angelegt ({1}).	Project “{0}” created ({1}).
 Projekt-, Tätigkeits- oder Abschlussbericht	Project, activity or final report
 Projekt-Menü	Project menu
 Projekte	Projects
@@ -3193,7 +3377,9 @@ Prompt	Prompt
 Protokoll	Log
 Protokoll aus Notizen	Minutes from notes
 Protokoll der Entscheidungen (Word)	Log of decisions (Word)
+Protokoll der Lora-Aktionen	Log of Lora's actions
 Protokoll erstellen	Create minutes
+Protokoll leeren	Clear log
 Präsentation	Presentation
 Präsentation (PowerPoint)	Presentation (PowerPoint)
 Präsentation aus Dokument	Presentation from document
@@ -3260,6 +3446,7 @@ Rate-Limit des API-Keys erreicht	Rate limit of the API key reached
 Rauschminderung	Noise reduction
 Rechenkerne	CPU cores
 Rechnen	Calculate
+Rechnet Summe und Mittelwert …	Calculating sum and mean …
 Rechnet nach …	Calculating …
 Rechte Spalte	Right column
 Rechte Spalte (erste Zeile „### Überschrift“)	Right column (first line “### Heading”)
@@ -3301,9 +3488,11 @@ Review / Metaanalyse	Review / meta-analysis
 Richtet ein …	Setting up …
 Richtig	Correct
 RIS speichern	Save RIS
+Riskante Schritte zeigen vorher eine Vorschau.	Risky steps show a preview first.
 Rohfassung	Draft
 Rohschnitt	Rough cut
 Rohschnitt fertig:	Rough cut done:
+Rohschnitt fertig: {0} kürzer.	Rough cut done: {0} shorter.
 Rot	Red
 Rot → Grün	Red → green
 Ruhigere Bewegungen	Calmer movements
@@ -3322,6 +3511,7 @@ Rückmeldung zu Fragestellung, Theorie, Methode und Zeitplan	Feedback on researc
 Rückmeldungen je Person (Word, ZIP)	Feedback per person (Word, ZIP)
 S.	p.
 Sachlich falsch	Factually wrong
+Sag mir oben, was entstehen soll – ich suche die passende Vorlage oder lege los.	Tell me at the top what you want to create – I find the right template or get started.
 Sammelband (Herausgeberwerk)	Edited volume
 Sammle Ideen für 	Collect ideas for 
 Sammlung	Collection
@@ -3344,6 +3534,9 @@ Schlüssel bei Zotero anlegen	Create a key at Zotero
 Schlüssel eintragen	Enter key
 Schmal (1,27 cm)	Narrow (1.27 cm)
 Schneeballsuche	Snowball search
+Schneiden	Cut
+Schneidet Pausen und Füllwörter heraus …	Cutting out pauses and filler words …
+Schneidet bei {0} …	Cutting at {0} …
 Schnell, versteht Bilder und nutzt Werkzeuge. Eigenes Kontingent im kostenlosen API-Plan.	Fast, understands images and uses tools. Its own quota on the free API plan.
 Schnell, versteht Bilder, nutzt Werkzeuge und denkt bei Bedarf nach; 1 Mio. Token Kontext. Im kostenlosen API-Plan mit Anfragen pro Minute und Tag begrenzt.	Fast, understands images, uses tools and thinks when needed; 1 million tokens of context. Limited in requests per minute and per day on the free API plan.
 Schnell: {0} (empfohlen)	Fast: {0} (recommended)
@@ -3370,6 +3563,7 @@ Schreiben … („/“ für Formate)	Write … (“/” for formats)
 Schreibstil	Writing style
 Schreibt die Antwort …	Writing the answer …
 Schreibt ein Dokument …	Writing a document …
+Schreibt ein Handout aus „{0}“ …	Writing a handout from “{0}” …
 Schreibt im Dokument …	Writes in the document …
 Schreibt {0}	Writing {0}
 Schriften beim Export einbetten.	Embed the fonts when exporting.
@@ -3436,6 +3630,7 @@ Selbst eintragen	Enter it yourself
 Selbst gestalten	Design it yourself
 Selbst verschieben geht auch: Lora beenden, den Ordner im Explorer verschieben, Lora starten – sie fragt dann, wo er jetzt liegt.	You can also move it yourself: close Lora, move the folder in the file manager, start Lora – she then asks where it is now.
 Semantic Scholar	Semantic Scholar
+Semester	Semester
 semantische Suche	semantic search
 Semesterplan	Semester plan
 Semesterplan mit Lernzielen, Sitzungen und Leistungen	Semester plan with learning objectives, sessions and assessments
@@ -3473,16 +3668,20 @@ Sitzung planen	Plan a session
 Skizze	Sketch
 SLUB	SLUB
 SLUB Dresden	SLUB Dresden
+Setzt „{0}“ als {1} …	Setting “{0}” as {1} …
 So funktioniert es	How it works
 So geht's los	Getting started
 So sehen PDFs und Word-Dateien aus, die das Modell erstellt oder die du exportierst. Das Modell kann für besondere Wünsche (Flyer, Rechnung, Lebenslauf …) auch ein eigenes Design mit Farben, Formen und Schriften verwenden.	This is what PDFs and Word files look like that the model creates or that you export. For special wishes (flyer, invoice, CV …) the model can also use its own design with colours, shapes and fonts.
 So sieht es aus, wenn eine Aufgabe fertig ist – Benachrichtigungen funktionieren.	This is what it looks like when a task is done – notifications work.
 So sähe der Server diesen Text. Nichts wird gesendet oder gespeichert.	This is how the server would see this text. Nothing is sent or saved.
+So würde ich vorgehen – passt der Plan?	This is how I would go about it – does the plan fit?
 So, wie es die Erkennung geliefert hat.	As delivered by the recognition.
 Social Media: Beitrag	Social media: post
 Social Media: Story	Social media: story
 Solides Schlussfolgern und zuverlässige Werkzeugaufrufe. Kein Bildverständnis, 128k Kontext.	Solid reasoning and reliable tool calls. No image understanding, 128k context.
 Soll die KI die Dateien in diesem Ordner als Kontext nutzen? Was sie liest, geht an das gewählte Modell – siehe 	Should the AI use the files in this folder as context? What it reads goes to the selected model – see 
+Soll ich dir „{0}“ kurz zeigen?	Shall I quickly show you “{0}”?
+Soll ich mir das merken?	Shall I remember this?
 Soll ich „{0}“ auf „{1}“ stellen?	Shall I set “{0}” to “{1}”?
 Soll ich „{0}“ in den Kalender eintragen?	Shall I add “{0}” to the calendar?
 Sonderzeichen	Special characters
@@ -3497,14 +3696,17 @@ Sortierregeln anwenden	Apply sorting rules
 Sortiert die Seiten neu ({0}) …	Reorders the pages ({0}) …
 Sortiert Dokumente nach Relevanz – nur über die API nutzbar.	Sorts documents by relevance – only usable via the API.
 Sortiert Suchergebnisse nach Relevanz zu einer Anfrage.	Sorts search results by relevance to a query.
+Sortiert nach „{0}“ …	Sorting by “{0}” …
 Spalte ergänzen	Add column
 Spalte füllen	Fill column
 Spalte links einfügen	Insert column left
+Spalte mit Formel	Column with formula
 Spalte rechts einfügen	Insert column right
 Spalte {0}	Column {0}
 Spalte {0} filtern …	Filter column {0} …
 Spalte {0} löschen	Delete column {0}
 Spalte {0} mit KI ausfüllen …	Fill column {0} with AI …
+Spalte „{0}“ angefügt.	Column “{0}” added.
 Spalten in Tabellen	Columns in tables
 Spalten {0}–{1} löschen	Delete columns {0}–{1}
 Spanisch	Spanish
@@ -3574,6 +3776,7 @@ SRT/VTT importieren …	Import SRT/VTT …
 Standard	Default
 Standard (Windows)	Default (Windows)
 Standard (~20)	Standard (~20)
+Standard für Lora: {0}	Default for Lora: {0}
 Standard für neue Chats	Default for new chats
 Standard für Übergaben	Default for handovers
 Standard, etwa 20 Werke	Standard, about 20 works
@@ -3681,6 +3884,9 @@ Sucht Literatur: {0}	Searching literature: {0}
 Sucht Nachrichten …	Searching the news …
 Sucht Nachrichten: {0}	Searching the news: {0}
 Suchwort eingeben oder oben filtern – nach Zeitraum, Projekt, Modell, Anhängen oder erstellten Dateien.	Enter a search term or filter above – by period, project, model, attachments or created files.
+Summe	Sum
+Summe und Mittelwert	Sum and mean
+Summe und Mittelwert stehen unten.	Sum and mean are at the bottom.
 Summenzeile	Totals row
 Symbol	Icon
 Symbol einfügen	Insert icon
@@ -3711,6 +3917,7 @@ Tabelle entfernt.	Table removed.
 Tabelle kopiert	Table copied
 Tabelle kopiert (für Excel, SPSS, R).	Table copied (for Excel, SPSS, R).
 Tabelle mit {0} Spalten eingefügt.	Table with {0} columns inserted.
+Tabelle wie vorher.	Spreadsheet as before.
 Tabelle {0}	Spreadsheet {0}
 Tabelle …	Table …
 Tabellen	Spreadsheets
@@ -3736,6 +3943,7 @@ Teilen	Share
 Teilen fehlgeschlagen.	Splitting failed.
 Teilnahmebescheinigung	Certificate of attendance
 Teilt Abschnitte an Satzenden – genau an der gemessenen Zeit des ersten Worts – und verbindet dann Sätze desselben Sprechers bis zur gewählten Länge.	Splits sections at sentence ends – exactly at the measured time of the first word – and then joins sentences of the same speaker up to the chosen length.
+Teilt volle Folien …	Splitting full slides …
 Teilt „{0}“ in {1} PDFs …	Splits “{0}” into {1} PDFs …
 Telefonnummern	Phone numbers
 Tempo	Speed
@@ -3810,8 +4018,12 @@ Titel des Sammelbands	Title of the edited volume
 Titel in den Dokumenteigenschaften eintragen.	Enter a title in the document properties.
 Titel in der Literatur gespeichert.	titles saved in Literature.
 Titel oder Akronym	Title or acronym
+Titel oder Bauchbinde	Title or lower third
+Titel und Bauchbinde	Title and lower third
+Titel und Bauchbinden im TUD-Design setzt du hier.	You set titles and lower thirds in the TUD design here.
 Titel vorhanden, aber das Fenster zeigt den Dateinamen.	Title present, but the window shows the file name.
 Titel „{0}“ wird im Fenster angezeigt.	Title “{0}” is shown in the window.
+Titel, Bauchbinde, Einblendung, Abspann im TUD-Design.	Title, lower third, caption, credits in the TUD design.
 Titel: „{0}“.	Title: “{0}”.
 Titelbild für Lehrvideos	Cover image for teaching videos
 Titelfolie	Title slide
@@ -3828,8 +4040,16 @@ Tokens · {0} Tage	Tokens · {0} days
 Ton	Audio
 Ton aus	Audio off
 Ton, Anrede, Format, Sprache	Tone, form of address, format, language
+Tour starten	Start tour
+Tour: {0}	Tour: {0}
+Tour: {0} · {1} von {2}	Tour: {0} · {1} of {2}
+Touren	Tours
+Touren anbieten	Offer tours
+Touren gibt es für Dateien, Erstellen, den PDF-Werkzeugkasten und den Videoeditor – öffne einen davon oder nenne ihn.	There are tours for Files, Create, the PDF toolbox and the video editor – open one of them or name it.
+Touren wieder anbieten	Offer tours again
 Transkribiere: {0}	Transcribing: {0}
 Transkribieren	Transcribe
+Transkribiert „{0}“ …	Transcribing “{0}” …
 Transkript	Transcript
 Transkript auswählen	Choose transcript
 Transkript links auswählen.	Select a transcript on the left.
@@ -3875,6 +4095,7 @@ TU Vorlagen importieren	Import TU templates
 TUD-Design	TUD design
 TUD-intern	TUD internal
 TUD-Shape	TUD shape
+Transkript „{0}“ ({1} Wörter, {2}).	Transcript “{0}” ({1} words, {2}).
 Typ	Type
 Täglich	Daily
 Türkis	Turquoise
@@ -3884,7 +4105,9 @@ Ukrainisch	Ukrainian
 Um %02d:%02d Uhr	At %02d:%02d
 Umbenannt in „{0}“.	Renamed to “{0}”.
 Umbenennen	Rename
+Umbenennen (F2)	Rename (F2)
 Umbenennen ging nicht.	Renaming didn't work.
+Umbenennen ging nicht: {0}	Renaming failed: {0}
 Umbenennen oder zusammenführen	Rename or merge
 Umfang	Scope
 Umgang mit Forschungsdaten (DMP)	Handling of research data (DMP)
@@ -3923,6 +4146,7 @@ unter „Erstellen“	under “Create”
 Unter „Erstellen“ in der Seitenleiste: TU Vorlagen (Briefe, Mails, Lehre, Forschung) und unter Windows Gestalten (Poster, Flyer, Social Media) mit Meine Designs. Vorlagen mit vielen Feldern lassen sich auch Schritt für Schritt mit Lora ausfüllen. Mit dem Stern landen sie unter Favoriten auf der Startseite.	Under “Create” in the side menu: TU templates (letters, mails, teaching, research) and, on Windows, Design (posters, flyers, social media) with My designs. Templates with many fields can also be filled in step by step with Lora. With the star they appear under Favourites on the start screen.
 Unter „Erstellen“ in der Windows-App bearbeiten und exportieren.	Edit and export under “Create” in the Windows app.
 Unter „Mehr“ verschieben	Move to “More”
+Unter „Seiten“ fügst du PDFs zusammen, teilst sie, drehst und löschst Seiten.	Under “Pages” you merge PDFs, split them, rotate and delete pages.
 Unterbrechen	Interrupt
 Unterrichtsentwurf (Stundenentwurf)	Lesson plan (detailed)
 Unterrichtsentwurf besprechen	Discuss a lesson plan
@@ -3941,6 +4165,9 @@ Untertitel aus der Transkription.	Subtitles from the transcription.
 Untertitel für Webseiten und Videoplattformen, mit Sprechernamen.	Subtitles for web pages and video platforms, with speaker names.
 Untertitel SRT	Subtitles SRT
 Untertitel WebVTT	Subtitles WebVTT
+Untertitel aus der Transkription oder SRT.	Subtitles from the transcription or SRT.
+Untertitel erzeugen	Create subtitles
+Untertitel kommen aus der Transkription oder einer SRT-Datei.	Subtitles come from the transcription or an SRT file.
 Untertitel zusätzlich als SRT und VTT speichern	Also save subtitles as SRT and VTT
 Untertitel übernommen.	Subtitles taken over.
 Update hat nicht geklappt	The update didn't work
@@ -3970,6 +4197,7 @@ Verbunden als	Connected as
 Verbunden.	Connected.
 Verdoppeln	Duplicate
 Vergessen	Forget
+Vergessen: {0}	Forgotten: {0}
 Vergibt Schlagwörter an {0} Dateien …	Tags {0} files …
 Vergleich	Comparison
 Vergleiche die angehängten Dokumente: 	Compare the attached documents: 
@@ -4023,15 +4251,20 @@ Video exportieren	Export video
 Video gespeichert:	Video saved:
 Video speichern	Save video
 Videoeditor	Video editor
+Videoprojekt anlegen	Create video project
 Videos auswählen	Choose videos
+Videos mit der Vorgabe „{0}“ exportieren	Export videos with the preset “{0}”
 Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person.	Process many files with the same instruction one after the other in the background (folder, ZIP, multiple selection) – with pause and resume. As bulk grading: have submissions pre-graded according to a rubric with calibration; the AI suggests, you decide; result table with outliers, feedback for each person.
 Vielen Dank	Thank you
 Vielen Dank!	Thank you!
 Violett	Violet
 Vollbild-Bild	Full-screen image
+Volle Folien geteilt.	Full slides split.
+Volle Folien teilen	Split full slides
 Volle Folien teilen (ohne KI)	Split full slides (without AI)
 Vollständig	Full
 Volltext	Full text
+Vom Chat lösen	Detach from the chat
 Vom System belegt:	Reserved by the system:
 von	of
 Von der App erstellt	Created by the app
@@ -4049,6 +4282,7 @@ Von Lora vorbereitet – ihr Wissen geht mit	Prepared by Lora – her knowledge 
 Von Lora übergeben	Handed over by Lora
 Vor	Forward
 Vor dem Druck mit dem Handy testen. Mindestgröße etwa 2 × 2 cm.	Test with your phone before printing. Minimum size about 2 × 2 cm.
+Vor dem Modellwechsel fragen	Ask before changing the model
 Vor dem Wechsel fragen	Ask before switching
 Vor jedem Commit, Branch, Pull Request, Kommentar oder schreibenden Web-Aufruf nachfragen.	Ask before every commit, branch, pull request, comment or writing web request.
 Vor jeder Anfrage ersetzt die App Namen, Kontaktdaten, Nummern, Geburtsdaten und Anschriften auf dem Gerät durch Platzhalter wie [Name 1]. Der Server sieht nur die Platzhalter; in der Antwort, in Dokumenten und E-Mail-Entwürfen setzt die App die echten Angaben wieder ein.	Before every request the app replaces names, contact details, numbers, dates of birth and addresses on the device with placeholders such as [Name 1]. The server only sees the placeholders; in the answer, in documents and e-mail drafts the app puts the real details back in.
@@ -4076,9 +4310,16 @@ Vorlage Schritt für Schritt	Template step by step
 Vorlage: {0}	Template: {0}
 Vorlage: {0}  ✕	Template: {0}  ✕
 Vorlagen	Templates
+Vorlagen schlagen unter jedem Feld passende Angaben vor.	Templates suggest matching details under every field.
 Vorlesen	Read aloud
 Vorlesen & Spracheingabe	Read aloud & voice input
 Vorlesen fehlgeschlagen: {0}	Reading aloud failed: {0}
+Vorliebe hinzufügen	Add preference
+Vorliebe · {0}	Preference · {0}
+Vorliebe ändern	Change preference
+Vorlieben	Preferences
+Vorlieben je Werkzeug ansehen, ändern, löschen.	View, change, delete preferences per tool.
+Vorlieben je Werkzeug, z. B. „Hochgeladenes nach Semester ordnen“ oder „Videos für OPAL in 720p“. Lora fragt immer, bevor sie sich etwas merkt, und nutzt es danach als Standard. Aus dem Tresor merkt sie sich nichts.	Preferences per tool, e.g. “Sort uploads by semester” or “Videos for OPAL in 720p”. Lora always asks before she remembers anything and then uses it as the default. She remembers nothing from the vault.
 Vorname (optional)	First name (optional)
 Vorname Nachname	First name Last name
 Vorschau	Preview
@@ -4105,11 +4346,18 @@ Wann der Agent nachfragt, bevor er etwas verändert. Gilt für alle Chats; einze
 Wann der Agent vor Änderungen fragt.	When the agent asks before making changes.
 Warme, ruhige Töne, weiße Karten und schwarze Knöpfe – wie die Claude-App.	Warm, calm tones, white cards and black buttons – like the Claude app.
 Warnung bei Bildern	Warning for images
+Was Lora in den Werkzeugen getan hat.	What Lora did in the tools.
+Was soll Lora wissen?	What should Lora know?
+Was soll anders sein? (optional)	What should be different? (optional)
 wartet	waiting
 Wartet auf das Ende der Aufnahme …	Waiting for the recording to end …
 Wartet auf den Start – tippen zum Einstellen	Waiting to start – tap to set up
+Wartet auf dich	Waiting for you
 Wartet, bis der Stapel davor fertig ist.	Waiting until the batch before it is finished.
 Was	What
+Was Lora in den Werkzeugen geplant, ausgeführt und zurückgenommen hat – auf diesem Gerät gespeichert.	What Lora planned, carried out and undid in the tools – stored on this device.
+Was Lora über dich weiß	What Lora knows about you
+Was darf Lora in diesem Ordner?	What may Lora do in this folder?
 Was der Tresor schützt	What the vault protects
 Was die KI erstellt, landet im Unterordner „{0}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.	What the AI creates ends up in the subfolder “{0}” – without asking; it never overwrites your own files.
 Was die KI im Chat erstellt – Dokumente, PDFs, Tabellen –, landet hier.	What the AI creates in the chat – documents, PDFs, spreadsheets – ends up here.
@@ -4153,6 +4401,7 @@ Websuche, Seitenabrufe, Literatursuche, Zotero und GitHub bekommen die Platzhalt
 Websuche, Webseiten & Quellen-Check	Web search, web pages & source check
 Wechseln und neu starten	Switch and restart
 Weder Crossref noch OpenAlex noch Google Books kennen das Werk.	Neither Crossref nor OpenAlex nor Google Books know this work.
+Weggelassen, weil es das hier nicht gibt: {0}	Left out because it does not exist here: {0}
 Weiter	Resume
 Weiter am Antrag	Continue with the proposal
 Weitere Anbieter	Other providers
@@ -4170,12 +4419,19 @@ Weiteres Gemini-Modell	Another Gemini model
 Weiterschreiben	Continue writing
 Weiterschreiben – die Antwort wurde abgeschnitten	Continue writing – the answer was cut off
 Weiß → Blau	White → blue
+Welche Aufnahme? Bitte ein Video auswählen oder nennen.	Which recording? Please choose or name a video.
+Welche Aufnahme? Bitte eine Audio- oder Videodatei auswählen oder nennen.	Which recording? Please choose or name an audio or video file.
 Welche Datei? Bitte eine auswählen oder den Namen nennen.	Which file? Please choose one or name it.
 Welche Dateien? Bitte auswählen oder die Namen nennen.	Which files? Please choose them or name them.
 Welche Dateien? Bitte auswählen oder einen Ordner öffnen.	Which files? Please choose them or open a folder.
+Welche Dateien? Bitte auswählen oder nennen.	Which files? Please choose or name them.
 Welche Schlagwörter?	Which tags?
 Welche Werkzeuge sollen sichtbar sein?	Which tools should be visible?
+Welche Zellen? Zum Beispiel A1=Name; B2=5	Which cells? For example A1=Name; B2=5
+Welchen Titel soll die Folie bekommen?	What title should the slide get?
 Welcher Absatz?	Which paragraph?
+Welcher Clip? Nummer 1 bis {0}.	Which clip? Number 1 to {0}.
+Welcher Text?	Which text?
 Welches PDF? Bitte eines auswählen oder den Namen nennen.	Which PDF? Please choose one or name it.
 Welches PDF? Bitte eines öffnen, auswählen oder den Namen nennen.	Which PDF? Please open one, choose one or name it.
 Weniger	Less
@@ -4220,14 +4476,19 @@ Wichtig	Important
 Wichtiger Hinweis	Important note
 Wie bei Obsidian: Der Lora-Ordner (Dateien, Chats und Einstellungen) liegt in einem Cloud-Ordner (Nextcloud, Google Drive für Desktop oder OneDrive), der auf deinen PCs eingerichtet ist. Deren Programm hält ihn überall gleich – am Büro-PC beginnen, am Laptop weiterarbeiten, ohne Umzug.	As with Obsidian: the Lora folder (files, chats and settings) is in a cloud folder (Nextcloud, Google Drive for desktop or OneDrive) that is set up on your PCs. Their program keeps it the same everywhere – start on the office PC, continue on the laptop, without moving anything.
 Wie das Projekt (beste Qualität)	As the project (best quality)
+Windows › Beim Schließen im Infobereich weiterlaufen	Windows › Keep running in the notification area when closed
+Windows › Mit Windows starten	Windows › Start with Windows
+Wo soll geschnitten werden?	Where should it be cut?
 wie Excel, mit Formeln	like Excel, with formulas
 Wie für Einsteiger, mit Beispiel	As for beginners, with an example
 Wie geht eine Aufgabe?	How does a task work?
 Wie geht zusammenfügen?	How do I merge?
 Wie gründlich Modelle nachdenken.	How thoroughly models think.
+Wie heißt die neue Spalte?	What should the new column be called?
 Wie im normalen Chat: an das gewählte Modell, Namen pseudonymisiert.	As in the normal chat: to the selected model, names pseudonymized.
 Wie im normalen Chat; Suchbegriffe gehen an Websuche und Literaturdatenbanken, die Prüfung der Zitate läuft auf dem Gerät.	As in the normal chat; search terms go to web search and literature databases, the quotes are checked on the device.
 Wie in den Einstellungen	As in the settings
+Wie soll ich kürzen?	How should I shorten it?
 wie in den Einstellungen	as in the settings
 Wie kann ich helfen?	How can I help?
 wie PowerPoint, im TUD-Design	like PowerPoint, in the TUD design
@@ -4308,6 +4569,8 @@ Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: 
 Wörter	words
 Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.	Words that look like names but aren't. Your own list above takes priority.
 Wörtliche Zitate	Verbatim quotes
+liest und schreibt	reads and writes
+nur lesen	read only
 xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m	xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m
 YouTube (Full HD, 1080p)	YouTube (Full HD, 1080p)
 z. B. 1-3; 4-6; 7-	e.g. 1-3; 4-6; 7-
@@ -4385,6 +4648,7 @@ Zielordner wählen	Choose target folder
 Zielsprache	Target language
 ZIP (z. B. OPAL-Abgaben)	ZIP (e.g. OPAL submissions)
 ZIP für OPAL/Moodle	ZIP for OPAL/Moodle
+Zellen füllen	Fill cells
 Zitat	Quote
 Zitat (letzte Zeile mit „– Quelle“)	Quote (last line with “– Source”)
 Zitat aus der Literatur …	Citation from the literature …
@@ -4434,6 +4698,7 @@ Zum Chat	To the chat
 Zum Chatten, Programmieren und für die Werkzeuge. „Empfohlen“ = oben in der Modellauswahl; Modelle „nicht in der Auswahl“ sind veraltet oder nur ein anderer Name (Alias) für ein Modell.	For chatting, programming and the tools. “Recommended” = at the top of the model picker; models “not in the picker” are outdated or just another name (alias) for a model.
 Zum Ende	To the end
 Zum Kalender	To the calendar
+Zum Kürzen braucht es ein Transkript – zuerst „Untertitel erzeugen“ oder transkribieren.	Shortening needs a transcript – first “Create subtitles” or transcribe.
 Zum Lesen, Drucken und Weitergeben.	For reading, printing and passing on.
 Zum Startbildschirm hinzufügen	Add to home screen
 Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang.	To split, put the cursor before the word with which the new section begins. Without a measured word time, bring the playback exactly to this point – the playback position then becomes the new start.
@@ -4466,6 +4731,9 @@ Zwei Modelle beantworten dieselbe Frage nebeneinander	Two models answer the same
 Zwei Modelle beantworten dieselbe Frage nebeneinander.	Two models answer the same question side by side.
 Zwei PDFs vergleichen	Compare two PDFs
 Zwei Spalten	Two columns
+auch in der Transkription	also in Transcription
+ca. {0} Min.	about {0} min.
+unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
 Zweite Zeile	Second line
 Zweiter PC: vorhandenen Ordner öffnen	Second PC: open the existing folder
@@ -4480,9 +4748,19 @@ Zwischenüberschrift	Subheading
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
 {0} Abschnitte · {1}k Zeichen · 	{0} sections · {1}k characters · 
 {0} Abschnitte, identisch codiert: {1} %	{0} sections, coded identically: {1} %
+{0} Zellen ohne überzählige Leerzeichen	{0} cells without extra spaces
 {0} abweichend	{0} differing
 {0} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …	Searching {0} reference(s) at Crossref, OpenAlex and Google Books …
 {0} Angaben	{0} details
+{0} Dateien in der Nextcloud unter {1}.	{0} files in Nextcloud under {1}.
+{0} Einträge löschen?	Delete {0} entries?
+{0} Folien angelegt.	{0} slides added.
+{0} Schritte	{0} steps
+{0} Schritte erledigt – die Ergebnisse liegen in Erstellt.	{0} steps done – the results are in Created.
+{0} Schritte, jederzeit wieder über Strg+K oder „Zeig mir, wie das geht“.	{0} steps, available again at any time via Ctrl+K or “Show me how this works”.
+{0} Untertitel aus der Transkription.	{0} subtitles from the transcription.
+{0} Zeilen	{0} rows
+{0} Zellen gesetzt.	{0} cells set.
 {0} antwortet mit HTTP {1}	{0} answers with HTTP {1}
 {0} aus {1}	{0} from {1}
 {0} ausgewählt	{0} selected
@@ -4510,6 +4788,7 @@ Zwischenüberschrift	Subheading
 {0} Dazu habe ich nichts gefunden – versuch es mit anderen Worten.	{0} I found nothing for that – try other words.
 {0} Dokument(e)	{0} document(s)
 {0} Dokument(e) · nur auf diesem Gerät (mit Sicherung & Umzug übertragbar)	{0} document(s) · only on this device (transferable with Backup & transfer)
+{0} Vorlieben vergessen	{0} preferences forgotten
 {0} doppelte Zeile(n) entfernt	{0} duplicate row(s) removed
 {0} Duplikate im Papierkorb (30 Tage wiederherstellbar).	{0} duplicates in the trash (restorable for 30 days).
 {0} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.	{0} own template(s) copied – e.g. send them to colleagues by mail.
@@ -4519,6 +4798,7 @@ Zwischenüberschrift	Subheading
 {0} Einträge werden endgültig gelöscht.	{0} items will be deleted permanently.
 {0} Einträge übernommen	{0} entries taken over
 {0} Elemente ausgewählt	{0} elements selected
+{0} doppelte Zeilen entfernt	{0} duplicate rows removed
 {0} ergänzt	{0} completed
 {0} ersetzen	Replace {0}
 {0} fehlt im Paket.	{0} is missing in the package.
@@ -4600,6 +4880,7 @@ Zwischenüberschrift	Subheading
 {0} Zelle(n) kopiert	{0} cell(s) copied
 {0} Zitationen	{0} citations
 {0} Zuordnung(en) auf diesem Gerät	{0} assignment(s) on this device
+{0} leere Zeilen entfernt	{0} empty rows removed
 {0} · automatisch beim Start	{0} · automatically at startup
 {0} · eigene	{0} · own
 {0} · Neue Version {1} verfügbar	{0} · New version {1} available
@@ -4615,6 +4896,7 @@ Zwischenüberschrift	Subheading
 {0} – neuer Versuch in {1} s.	{0} – trying again in {1} s.
 {0} – Rückmeldungen.zip	{0} – feedback.zip
 {0} – {1} s gewartet	{0} – waited {1} s
+{0} „{1}“ bei {2}.	{0} “{1}” at {2}.
 {0} → {1} (Ähnlichkeit {2})	{0} → {1} (similarity {2})
 {0}: beide {1}, nur {2} {3}, nur {4} {5} · κ = {6}	{0}: both {1}, only {2} {3}, only {4} {5} · κ = {6}
 {0}: {1} Anfragen · {2} Tokens 	{0}: {1} requests · {2} tokens 
@@ -4629,6 +4911,8 @@ Zwischenüberschrift	Subheading
 Ändere das Design „{0}“ ({1} {2}): 	Change the design “{0}” ({1} {2}): 
 Ändere das Lernspiel „{0}“ ({1} {2}): 	Change the learning game “{0}” ({1} {2}): 
 Ändern	Change
+Ändert Folie {0} …	Changing slide {0} …
+Ändert sich der Text, bleibt der Standardwert für Lora „{0}“ – zum Ändern löschen und neu wählen.	If the text changes, Lora's default stays “{0}” – to change it, delete it and choose again.
 Änderung abgelehnt	Change rejected
 Änderung angenommen	Change accepted
 Änderungen auf	changes on
@@ -4668,6 +4952,7 @@ Zwischenüberschrift	Subheading
 Überblick, etwa 10 Werke	Overview, about 10 works
 Übergaben erst zeigen	Show handovers first
 Übergang vom vorigen Clip	Transition from the previous clip
+Übergebene Fragen landen zuerst im Eingabefeld.	Handed-over questions land in the input field first.
 Übergeordneter Ordner	Parent folder
 Übernehmen	Apply
 Übernehmen liest Klassen- und Teilnehmerlisten (Excel, CSV, Word, Text): Spalten Vorname/Nachname oder Name, sonst ein Name je Zeile. Die gespeicherte Liste lässt sich an Kolleg/innen weitergeben.	Taking over reads class and participant lists (Excel, CSV, Word, text): columns first name/last name or name, otherwise one name per line. The saved list can be passed on to colleagues.
@@ -4713,6 +4998,7 @@ Zwischenüberschrift	Subheading
 „{0}“ gelöscht	“{0}” deleted
 „{0}“ gibt es dort schon. Soll sie ersetzt werden?	“{0}” already exists there. Replace it?
 „{0}“ im Papierkorb	“{0}” in the trash
+„{0}“ in Erstellt ({1}).	“{0}” in Created ({1}).
 „{0}“ ist ein fester Ordner und lässt sich nicht umbenennen.	“{0}” is a fixed folder and cannot be renamed.
 „{0}“ ist eine Audio- oder Videodatei – bitte über „Transkription“ in Text umwandeln und das Transkript anhängen.	“{0}” is an audio or video file – please convert it to text via “Transcription” and attach the transcript.
 „{0}“ ist entpackt zu groß (max. 25 MB).	“{0}” is too large when unpacked (max. 25 MB).
@@ -4737,6 +5023,7 @@ Zwischenüberschrift	Subheading
 „{0}“ lässt sich nicht in ein PDF umwandeln (Word, Excel, PowerPoint, Bilder, HTML und Text gehen).	“{0}” cannot be converted to PDF (Word, Excel, PowerPoint, images, HTML and text work).
 „{0}“ lässt sich ohne Microsoft Office nicht umwandeln.	“{0}” cannot be converted without Microsoft Office.
 „{0}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.	“{0}” is running – you'll get a notification as soon as the result is ready.
+„{0}“ löschen?	Delete “{0}”?
 „{0}“ mit allen Versionen wird gelöscht.	“{0}” will be deleted with all versions.
 „{0}“ verknüpfen	Link “{0}”
 „{0}“ verschieben	Move “{0}”
@@ -4747,6 +5034,7 @@ Zwischenüberschrift	Subheading
 „{0}“: Aus dieser alten {1}-Datei ließ sich kein Text gewinnen.	“{0}”: no text could be extracted from this old {1} file.
 „{0}“: Dieser Dateityp wird nicht unterstützt (PDF, Word, PowerPoint, Excel, Text und Code gehen).	“{0}”: this file type is not supported (PDF, Word, PowerPoint, Excel, text and code work).
 „{0}“: Dieses Bildformat kann das Gerät nicht lesen – bitte als JPEG oder PNG speichern.	“{0}”: the device cannot read this image format – please save it as JPEG or PNG.
+„{0}“: {1} Stellen geschwärzt, das Original bleibt.	“{0}”: {1} places redacted, the original stays.
 „{0}“: {1} statt {2}.	“{0}”: {1} instead of {2}.
 • Bilder, Scans und Spracheingaben lassen sich nicht pseudonymisieren – mit „Warnung bei Bildern“ fragt die App vor dem Senden nach. Vorlesen mit der KI-Stimme schickt den Antworttext an den Uni-Server.	• Images, scans and voice input cannot be pseudonymized – with “Warning for images” the app asks before sending. Reading aloud with the AI voice sends the answer text to the university server.
 • Modelle auf diesem Gerät bekommen die echten Angaben – dort verlässt nichts das Gerät.	• Models on this device get the real details – nothing leaves the device there.

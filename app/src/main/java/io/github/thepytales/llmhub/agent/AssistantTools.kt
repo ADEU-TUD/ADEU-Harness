@@ -174,7 +174,7 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
             if (guide == null) ToolOutput("FEHLER: Anleitung „$wanted“ gibt es nicht. Verfügbar: ${Guides.all.joinToString(", ") { it.name }}.")
             else ToolOutput(guide.text(c))
         }
-        "remember" -> {
+        "remember" -> if (c.drive.isVaultChat(ctx.chatId)) ToolOutput("FEHLER: Im Tresor wird nichts ins Gedächtnis übernommen (AP-39). Sag dem Nutzer, dass Tresor-Inhalte nie im Gedächtnis landen.") else {
             val text = args.req("text").trim().take(300)
             val project = ctx.folderId.takeIf { args.s("scope")?.trim()?.lowercase()?.startsWith("proj") == true }
             val category = MemoryCategory.of(args.s("category"))

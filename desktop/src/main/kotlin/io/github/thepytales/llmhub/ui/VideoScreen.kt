@@ -160,6 +160,9 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
     val prefs = remember { c.appContext.getSharedPreferences("ui_state", 0) }
     var setupSeen by remember { mutableStateOf(prefs.getBoolean("videoSetupSeen", false) || Extensions.installed(Extensions.VIDEO.id)) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
+    // Lora made a project (AP-38): it opens here.
+    val loraOpen by io.github.thepytales.llmhub.video.VideoLora.openRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(loraOpen) { loraOpen?.let { open = it; io.github.thepytales.llmhub.video.VideoLora.openRequest.value = null } }
     open?.let { id ->
         VideoEditor(c, id, onClose = { open = null })
         return
@@ -177,7 +180,7 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Videoeditor")) },
-                actions = { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } },
+                actions = { Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } } },
             )
         },
     ) { pad ->
@@ -312,6 +315,13 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     val playing by player.playing.collectAsStateWithLifecycle()
     var sel by remember { mutableStateOf<Sel>(Sel.None) }
     LaunchedEffect(id) { player.seek(p, 0.0) }
+    // Lora's actions (AP-38 Stufe d) change this project through its history, so Strg+Z takes them back as well.
+    DisposableEffect(id) {
+        val host = io.github.thepytales.llmhub.video.VideoLora.Host(id, { h.project }, { f -> h.edit(record = true, f = f) }, { player.position.value })
+        io.github.thepytales.llmhub.video.VideoLora.host = host
+        io.github.thepytales.llmhub.video.VideoLora.lastId = id
+        onDispose { if (io.github.thepytales.llmhub.video.VideoLora.host === host) io.github.thepytales.llmhub.video.VideoLora.host = null }
+    }
     // A pause in editing shows the picture at the playhead again (the clip under it may have changed).
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }
     var export by remember { mutableStateOf(false) }
@@ -358,7 +368,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
             IconButton(onClick = h::redo, enabled = h.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
             Spacer(Modifier.size(8.dp))
-            Button(onClick = { player.stop(); export = true }, enabled = p.clips.isNotEmpty()) { Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Exportieren")) }
+            Spot("video.export") { Button(onClick = { player.stop(); export = true }, enabled = p.clips.isNotEmpty()) { Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Exportieren")) } }
         }
         HorizontalDivider()
         Row(Modifier.weight(1f).fillMaxWidth()) {
@@ -465,7 +475,7 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         TextButton(onClick = { addClips() }) { Icon(Icons.Outlined.Movie, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Clip hinzufügen")) }
         Box {
-            TextButton(onClick = { titles = true }) { Icon(Icons.Outlined.Title, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Titel & Bauchbinde")) }
+            Spot("video.titles") { TextButton(onClick = { titles = true }) { Icon(Icons.Outlined.Title, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Titel & Bauchbinde")) } }
             DropdownMenu(expanded = titles, onDismissRequest = { titles = false }) {
                 TextOverlay.STYLES.forEach { (style, label) ->
                     DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
@@ -484,7 +494,7 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
         }
         TextButton(onClick = { addAudio() }) { Icon(Icons.Outlined.MusicNote, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Musik / Ton")) }
         Box {
-            TextButton(onClick = { subs = true }) { Icon(Icons.Outlined.Subtitles, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Untertitel")) }
+            Spot("video.subtitles") { TextButton(onClick = { subs = true }) { Icon(Icons.Outlined.Subtitles, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Untertitel")) } }
             DropdownMenu(expanded = subs, onDismissRequest = { subs = false }) {
                 DropdownMenuItem(text = { Text(tr("Aus der Transkription …")) }, onClick = { subs = false; pickTranscript = "subs" })
                 DropdownMenuItem(text = { Text(tr("SRT/VTT importieren …")) }, onClick = { subs = false; importSubs() })
@@ -492,7 +502,7 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
             }
         }
         Box {
-            TextButton(onClick = { cut = true }) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Rohschnitt")) }
+            Spot("video.roughcut") { TextButton(onClick = { cut = true }) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Rohschnitt")) } }
             DropdownMenu(expanded = cut, onDismissRequest = { cut = false }) {
                 DropdownMenuItem(text = { Text(tr("Pausen und Füllwörter herausschneiden …")) }, onClick = { cut = false; pickTranscript = "cut" })
                 DropdownMenuItem(text = { Text(tr("Mit Lora kürzen …")) }, onClick = { cut = false; loraCut = true })
@@ -955,7 +965,8 @@ private fun SecondsField(label: String, value: Double, key: String, modifier: Mo
 
 @Composable
 private fun ExportDialog(p: VideoProject, onDismiss: () -> Unit) {
-    var preset by remember { mutableStateOf(VideoRender.PRESETS.first().id) }
+    // A remembered preset (AP-39, „Videos für OPAL in 720p“) is the default.
+    var preset by remember { mutableStateOf(io.github.thepytales.llmhub.agent.LoraPrefs.default(io.github.thepytales.llmhub.App.container, "video.export", "vorgabe")?.let { v -> VideoRender.PRESETS.firstOrNull { it.id == v }?.id } ?: VideoRender.PRESETS.first().id) }
     var subtitleFiles by remember { mutableStateOf(p.subtitles.isNotEmpty() && !p.burnSubtitles) }
     var progress by remember { mutableStateOf<Float?>(null) }
     var job by remember { mutableStateOf<Job?>(null) }

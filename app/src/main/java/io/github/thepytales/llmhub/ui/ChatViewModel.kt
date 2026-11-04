@@ -191,6 +191,9 @@ class ChatViewModel(
     /** Write actions in this chat run without asking (or ask again). */
     fun setAutoApprove(on: Boolean) = edit { it.copy(autoApprove = on) }
 
+    /** Folders attached to this chat with their right (read / read and write); changeable while chatting. */
+    fun setChatFolders(list: List<io.github.thepytales.llmhub.data.LocalFolder>) = edit { it.copy(folders = list) }
+
     /** Memory off (or on again) for this chat only. */
     fun setMemoryOff(off: Boolean) = edit { it.copy(memoryOff = off) }
 

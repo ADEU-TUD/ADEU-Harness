@@ -268,7 +268,7 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("PDF-Werkzeugkasten")) },
                 actions = {
-                    IconButton(onClick = pick) { Icon(Icons.Outlined.FolderOpen, contentDescription = tr("PDF öffnen")) }
+                    Spot("pdf.open") { IconButton(onClick = pick) { Icon(Icons.Outlined.FolderOpen, contentDescription = tr("PDF öffnen")) } }
                     if (tab != null) {
                         IconButton(onClick = { tab.undo(context, scope) }, enabled = tab.history.isNotEmpty()) {
                             Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig"))
@@ -281,13 +281,15 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
                                 }
                             }) { Icon(Icons.Outlined.Save, contentDescription = tr("Speichern")) }
                         }
-                        IconButton(onClick = {
-                            val named = File(PdfWork.dir(context), tab.name.removeSuffix(".pdf").removeSuffix(".PDF") + ".pdf")
-                            scope.launch {
-                                withContext(Dispatchers.IO) { tab.file.copyTo(named, overwrite = true) }
-                                saveAs(named)
-                            }
-                        }) { Icon(Icons.Outlined.IosShare, contentDescription = tr("Speichern unter / Teilen")) }
+                        Spot("pdf.save") {
+                            IconButton(onClick = {
+                                val named = File(PdfWork.dir(context), tab.name.removeSuffix(".pdf").removeSuffix(".PDF") + ".pdf")
+                                scope.launch {
+                                    withContext(Dispatchers.IO) { tab.file.copyTo(named, overwrite = true) }
+                                    saveAs(named)
+                                }
+                            }) { Icon(Icons.Outlined.IosShare, contentDescription = tr("Speichern unter / Teilen")) }
+                        }
                     }
                 },
             )
@@ -317,8 +319,12 @@ fun PdfToolScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = 
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Android: viewer, pages and marking; making forms fillable is for the PC (AP-11).
-                PdfMode.entries.filter { it != PdfMode.FORM || !IS_ANDROID }.forEach { m ->
-                    FilterChip(selected = mode == m, onClick = { mode = m }, label = { Text(tr(m.label)) })
+                Spot("pdf.modes") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        PdfMode.entries.filter { it != PdfMode.FORM || !IS_ANDROID }.forEach { m ->
+                            FilterChip(selected = mode == m, onClick = { mode = m }, label = { Text(tr(m.label)) })
+                        }
+                    }
                 }
                 Spacer(Modifier.size(8.dp))
                 current.info?.let { HintText("${it.pages} " + tr(if (it.pages == 1) "Seite" else "Seiten")) }
@@ -362,10 +368,12 @@ private fun PdfEmpty(onOpen: () -> Unit) {
             modifier = Modifier.widthIn(max = 520.dp),
         )
         Spacer(Modifier.size(16.dp))
-        Button(onClick = onOpen) {
-            Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.size(8.dp))
-            Text(tr("PDF öffnen"))
+        Spot("pdf.empty") {
+            Button(onClick = onOpen) {
+                Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(8.dp))
+                Text(tr("PDF öffnen"))
+            }
         }
     }
 }
@@ -497,7 +505,7 @@ private fun PdfPages(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit, onBusy:
                 if (ok) PdfWork.open(context, out, out.name, keepOriginal = false) else Notices.error(tr("Extrahieren fehlgeschlagen."))
             }
         }) { Text(tr("Extrahieren")) }
-        OutlinedButton(onClick = { mergeOpen = true }) { Text(tr("Zusammenfügen")) }
+        Spot("pdf.merge") { OutlinedButton(onClick = { mergeOpen = true }) { Text(tr("Zusammenfügen")) } }
         OutlinedButton(onClick = { splitOpen = true }) { Text(tr("Teilen")) }
         OutlinedButton(onClick = { numbersOpen = true }) { Text(tr("Seitenzahlen")) }
         TextButton(onClick = { if (selected.size == info.pages) selected.clear() else { selected.clear(); selected.addAll(0 until info.pages) } }) {

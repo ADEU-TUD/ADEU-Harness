@@ -73,7 +73,7 @@ class AgentRunner(private val c: AppContainer) {
             c.webTools.takeIf { (sel.web || ModeTool.WEB in mode) && env?.network != NetworkAccess.NONE && network },
             c.researchTools.takeIf { sel.web || ModeTool.RESEARCH in mode },
             c.localFolderTools.takeIf {
-                io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
+                io.github.thepytales.llmhub.files.LocalText.SUPPORTED && (c.localFolders.current.isNotEmpty() || conv.folders.isNotEmpty() || WorkFolder.of(c, conv.folderId) != null)
             },
             c.projectFolderTools.takeIf { it.active(conv.folderId) },
             c.assistantTools,
@@ -443,7 +443,7 @@ class AgentRunner(private val c: AppContainer) {
                     "Lies vor dem ersten Dokument die Anleitung mit read_guide(\"dokumente\")."
             },
             if (c.webTools in providers) WebTools.PROMPT else null,
-            if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId) else null,
+            if (c.localFolderTools in providers) c.localFolderTools.prompt(conv.folderId, conv.folders) else null,
             if (c.projectFolderTools in providers) c.projectFolderTools.prompt(conv.folderId) else null,
             if (c.researchTools in providers) c.researchTools.prompt() else null,
             ChatModes.byId(conv.mode)?.prompt?.ifBlank { null },

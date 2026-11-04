@@ -194,6 +194,18 @@ fun SlidesBody(
     var handout by remember { mutableStateOf(false) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun set(list: List<SlideDeck.Slide>) = onMarkdown(SlideDeck.markdown(list))
+    // Lora in der Präsentation (AP-38 Stufe c): her actions read and replace the slides.
+    val latestMarkdown = androidx.compose.runtime.rememberUpdatedState(markdown)
+    val latestSet = androidx.compose.runtime.rememberUpdatedState(onMarkdown)
+    androidx.compose.runtime.DisposableEffect(doc.id) {
+        val host = object : io.github.thepytales.llmhub.agent.EditorDocHost {
+            override fun markdown(): String = latestMarkdown.value
+            override fun replace(markdown: String) = latestSet.value(markdown)
+            override fun selected(): Int = selected
+        }
+        io.github.thepytales.llmhub.agent.ActionHosts.slides = host
+        onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.slides === host) io.github.thepytales.llmhub.agent.ActionHosts.slides = null }
+    }
     fun update(i: Int, s: SlideDeck.Slide) = set(slides.toMutableList().apply { set(i, s) })
     fun addSlide(layout: SlideDeck.Layout) {
         set(slides.toMutableList().apply { add(sel + 1, SlideDeck.template(layout)) })

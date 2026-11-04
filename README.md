@@ -83,17 +83,58 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   im Lora-Panel, mit sichtbaren Schritten („Fügt 2 PDFs zusammen …“), einer Ergebniskarte mit **Rückgängig** und *Öffnen*.
   Alles, was verschiebt, löscht (Papierkorb) oder überschreibt, zeigt vorher eine **Vorschau vorher → nachher** und wartet
   auf *Ausführen*. Jedes Werkzeug meldet seine Aktionen in einem Register (`agent/ToolActions.kt`); Lora bekommt nur die
-  des offenen Bereichs und weiß, was ausgewählt ist. Jede Aktion steht im Protokoll (*Problem melden*).
+  des offenen Bereichs und weiß, was ausgewählt ist. Jede Aktion steht im **Protokoll der Lora-Aktionen**
+  (*Einstellungen › Lora*, Datei `lora-aktionen.log`). **Datenschutz** gilt auch für Aktionen: Was Inhalte an ein Modell
+  gibt (nach Inhalt umbenennen, Handout, schreiben, kürzen), nimmt nur ein Modell, das die Datenschutzstufe des Projekts
+  erlaubt – im Tresor nur den Uni-Server, bei *Nur auf diesem Gerät* nur ein lokales Modell (sonst ohne Modell bzw. gar
+  nicht); Dateien des Tresors erreichen keine Aktion, und *Nur auf diesem Gerät* lädt nichts in die Nextcloud.
   - **Dateien**: aufräumen (Unterordner nach Dateiart, Semester „WiSe 2026-27“ oder Monat), nach Inhalt umbenennen,
     umbenennen, verschieben, Schlagwörter vergeben, Duplikate finden und in den Papierkorb legen.
   - **PDF-Werkzeugkasten**: öffnen, zusammenfügen, teilen, Seiten löschen/drehen/sortieren, Texterkennung, verkleinern,
     schwärzen (immer mit Vorschau) und umwandeln (Word, Markdown, Text) – Änderungen am offenen PDF mit dessen eigenem
     *Rückgängig*.
   - **Dokument**: schreiben an der Cursorstelle, Abschnitte als Vorschläge überarbeiten, Tabelle einfügen, Absatz als
-    Überschrift (siehe AP-47). Video folgt mit den neuen Videopaketen (AP-52 ff.).
+    Überschrift (siehe AP-47).
+  - **Tabelle**: Zellen füllen (Werte und Formeln), Spalte mit Formel für jede Zeile (`=B{r}*0,5+C{r}*0,5`), nach einer
+    Spalte sortieren, Daten bereinigen (Leerzeichen, leere und doppelte Zeilen – mit Vorschau), Summe und Mittelwert
+    unter die Zahlenspalten. „Sortiere nach Klausur absteigend“ erkennt Lora ohne Modell.
+  - **Präsentation**: Folie anlegen (Titel, Stichpunkte, Layout), Folie ändern (auch Sprechernotizen), Folie löschen
+    (mit Vorschau), Folien aus einer Gliederung, volle Folien teilen.
+  - **Video** (PC): Videoprojekt aus einer Aufnahme anlegen, schneiden (an einer Zeit oder der Abspielposition), Clip
+    entfernen, Titel/Bauchbinde/Einblendung/Abspann im TUD-Design, Untertitel aus der Transkription (transkribiert vorher,
+    wenn nötig), Pausen und Füllwörter herausschneiden, *Mit Lora kürzen* („auf 10 Minuten, Beispiele behalten“, mit
+    Vorschau der neuen Länge) und Export als MP4 in *Erstellt* (OPAL, YouTube, wie das Projekt). Bei offenem Editor
+    laufen die Aktionen über dessen Verlauf – Strg+Z nimmt sie ebenfalls zurück.
+  - **Werkzeugübergreifend**: Aufnahme transkribieren (mit Zeitmarken wie in *Transkription*, das Transkript steht dort
+    und als Textdatei daneben), Handout als Word aus einer Datei, Dateien in die Nextcloud.
   - Klare Wünsche erkennt Lora **auf dem Gerät** ohne Modell: „PDF bearbeiten“ (öffnet die ausgewählte PDF im
     Werkzeugkasten), „Füge die offenen PDFs zusammen“, „Finde Duplikate“, „Räum diesen Ordner auf“, „verkleinern“,
     „Texterkennung“. In *Dateien* hat jede PDF zudem *⋮ › Im PDF-Werkzeugkasten bearbeiten*.
+- **Ein Gedächtnis für Lora** (AP-39): *Einstellungen › Lora › Gedächtnis – was Lora über dich weiß* zeigt **Vorlieben je
+  Werkzeug** (Dateien, PDF, Dokumente, Tabellen, Folien, Video, Literatur, Chat) – jede änderbar und löschbar, dazu
+  *Alles vergessen* (mit Rückgängig). Lora **fragt immer vorher**: Hat man selbst „nach Semester“ aufgeräumt oder „für
+  OPAL“ exportiert, erscheint *Soll ich mir merken, dass …? · Merken · Nein*; „Merk dir, dass ich Handouts zweispaltig
+  möchte“ geht genauso. Gemerktes ist danach der **Standard ihrer Aktionen** (aufräumen ohne Angabe → nach Semester,
+  „(wie gemerkt)“; Export-Dialog mit der gemerkten Vorgabe) und steht in Loras Anweisungen und – als Kategorie
+  *Vorlieben* – in jedem Chat. Aus dem Tresor wird nie etwas gemerkt (auch das Dazulernen nach dem Chat und *remember*
+  bleiben dort aus). Die Einträge liegen im normalen Gedächtnis und gehen mit dem Sync mit.
+- **Abläufe über Werkzeuge** (AP-40): Mehrschrittige Aufträge – „Aus dieser Aufnahme: transkribieren, Untertitel, auf 10
+  Minuten kürzen, Handout als Word“ oder „Alle Abgaben zusammenfügen, schwärzen, in die Nextcloud“ – **plant Lora zuerst**
+  (`agent/LoraPlan.kt`): Die Karte zeigt die Schritte mit Werkzeug, geschätzter Dauer und Datenschutzhinweis, darunter
+  *Los · Ändern · Abbrechen* (*Ändern*: Schritte abwählen oder in Worten sagen, was anders sein soll). Danach laufen die
+  Schritte nacheinander mit den Aktionen von AP-38; jeder Schritt arbeitet mit den Dateien des vorigen weiter.
+  Fortschritt im Panel, *Pause/Fortsetzen*; riskante Schritte warten mit ihrer Vorschau auf *Ausführen*, ein
+  fehlgeschlagener lässt sich *wiederholen* oder *überspringen*. Lange Schritte laufen im Hintergrund weiter (auch bei
+  geschlossenem Panel) und melden sich am Ende per Benachrichtigung; Zwischenergebnisse stehen verknüpft an ihrem
+  Schritt. Abläufe liegen in `lora-ablaeufe.json` – ein laufender **setzt nach einem Neustart der App fort**.
+- **Leuchtrahmen überall und Touren** (AP-41): Jede Einstellung mit Schalter und die wichtigen Knöpfe der Werkzeuge (Suche,
+  „+“, Orte und Sortieren in *Dateien*; Öffnen, Modi, Zusammenfügen, Speichern im PDF-Werkzeugkasten; Lora-Feld,
+  TU Vorlagen und *Neue Vorlage* in *Erstellen*; Projekt, Titel, Untertitel, Rohschnitt und Export im Videoeditor) haben
+  einen Leuchtrahmen, zu dem Lora führen kann; ein Test prüft, dass jedes Ziel der Landkarte seinen Rahmen hat. Beim
+  ersten Öffnen von *Dateien*, *Erstellen*, PDF-Werkzeugkasten und Videoeditor bietet Lora eine **kurze Tour** an (3–6
+  Schritte: Leuchtrahmen + eine Zeile, *Zurück · Überspringen · Weiter*). Touren sind Daten (`ui/LoraTour.kt`), englisch
+  über `en.tsv`; abschaltbar unter *Einstellungen › Lora › Touren*, wieder aufrufbar über Strg+K („Tour“) oder „Zeig mir,
+  wie das geht“. Bei *Ruhigere Bewegungen* fliegt Lora nicht mit.
 - **Lora-Dateidialog** (AP-42, PC): Öffnen, Speichern unter und Ordnerwahl laufen überall über einen eigenen Dialog im
   Lora-Stil statt der alten Windows-/Java-Dialoge – Seitenspalte wie im Tab *Dateien* (*Zuletzt · Markiert · Lora-Ordner ·
   Hochgeladen · Erstellt · Nextcloud · Ablageorte*, darunter *Dieser PC* mit Laufwerken, Desktop, Dokumente, Downloads,
@@ -102,7 +143,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   hineinziehen. Der zuletzt benutzte Ort je Zweck (Bilder, Videos, Dokumente, Speichern je Dateityp) wird gemerkt.
   Tastatur: Pfeile, Enter, Rücktaste, Strg+A, Tippen springt; Screenreader-Beschriftungen. Aus der Nextcloud geöffnete
   Dateien werden geladen, *Speichern unter* in die Nextcloud lädt die Datei nach dem Schreiben hoch. Auch die Frage nach
-  einem verschobenen Lora-Ordner beim Start ist jetzt ein Fenster im Lora-Stil.
+  einem verschobenen Lora-Ordner beim Start ist jetzt ein Fenster im Lora-Stil. Dateien und Ordner lassen sich im Dialog
+  **umbenennen** (F2, Rechtsklick, Knopf) und **löschen** (Entf, Rechtsklick, Knopf; im Lora-Ordner in dessen Papierkorb,
+  sonst in den Windows-Papierkorb).
 - **Fließtext-Editor für Dokumente** (AP-44, mit dem Text-Kern aus AP-43): Text-Dokumente bearbeitest du wie in Google
   Docs als **durchgehenden Text** – ein Cursor, Markieren über Absätze hinweg, Formatieren mit Symbolleiste, Menüs
   (*Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras*) und Tastenkürzeln (Strg+B/I/U, Strg+Alt+0…4 für Normaltext
@@ -881,6 +924,11 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   .docx/.pdf/.pptx/.xlsx dort speichern (z. B. im TUD-Design), verschieben und löschen (in den Unterordner
   `.adeu-papierkorb`). Ordner lassen sich auf „nur lesen“ stellen; außerhalb kommt er nicht. Rückfragen vor Änderungen
   richten sich nach *Chat & Werkzeuge › Freigaben*.
+- **Ordner an einen Chat anhängen** (Windows): *„+“ › Ordner* hängt einen ganzen Ordner an den laufenden Chat – vorher wählst
+  du, ob Lora dort **nur lesen** oder **lesen und schreiben** darf. Ein Chip über dem Eingabefeld zeigt Ordner und Recht
+  („Seminar · nur lesen“); ein Klick ändert das Recht im laufenden Chat, öffnet den Ordner im Explorer oder löst ihn vom
+  Chat. Das Recht gilt nur für diesen Chat und geht vor einer gleichnamigen Freigabe unter *Lokale Ordner*; angehängte
+  Ordner sind der Standard für die Ordner-Werkzeuge (lesen, durchsuchen, schreiben, Dokumente speichern). Nicht im Tresor.
 - **Chat**: `/`-Befehle und `@`-Erwähnungen (Dateien, Literaturlisten, Dokumente, Kurztexte), *Anfrage verbessern*,
   gespeicherte Kurztexte, Entwürfe pro Chat, Zitieren eines Antwortteils, Antworten bewerten (👍/👎 mit Notiz;
   Auswertung je Modell unter *Verbrauch*), *Weiterschreiben* bei abgeschnittenen Antworten, *Abzweigen* in einen neuen
@@ -1344,6 +1392,8 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/AskUserTool.kt`, `ui/QuestionCard.kt` | Rückfragen mit Antwortknöpfen (`ask_user`), TU Vorlagen als Fragerunde |
 | `data/MemoryMeter.kt`, `ui/MemoryUsage.kt` | Arbeitsspeicher messen und anzeigen, Modelle im Leerlauf entladen |
 | `data/AppMap.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, `ui/Spotlight.kt` | Lora als Navigatorin: Landkarte der App, lokale Suche, Agent-Schleife, Panel (Seitenleiste/Blatt) mit Ergebnis-Karten, Leuchtrahmen |
+| `agent/ToolActions.kt`, `agent/OfficeActions.kt`, `agent/MoreActions.kt`, Windows `video/VideoLora.kt` | Lora handelt in Werkzeugen (AP-38): Register der Aktionen mit Vorschau und Rückgängig, Datenschutz, Protokoll; Dateien, PDF, Dokument, Tabelle, Folien, Video, Transkript/Handout/Nextcloud |
+| `agent/LoraPrefs.kt`, `agent/LoraPlan.kt`, `ui/LoraCards.kt`, `ui/LoraTour.kt` | Vorlieben mit Rückfrage (AP-39), Abläufe mit Plan-Karte und Fortsetzen nach Neustart (AP-40), Touren mit Leuchtrahmen (AP-41), *Einstellungen › Lora › Gedächtnis* |
 | `agent/LoraSense.kt`, `ui/LoraChat.kt`, `ui/LoraFlight.kt` | Was Lora auf dem Gerät erkennt (Vorschläge je Bereich, Fristen, Tabellen, DOIs, Ort beim Tippen, Schrittzeilen), Übergabe-Karte und nächste Schritte im Chat, Flug zum Ziel und Augen, die dem Zeiger folgen |
 | `Brand.kt`, `data/ChatTitles.kt` | Name und Slogan der App; kurze Chat-Titel aus der ersten Nachricht |
 | `agent/Evidence.kt`, `ui/EvidenceCard.kt` | Quellenmodus: Belege lesen, gegen die Quellen prüfen, Belegprotokoll |

@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 03.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 04.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -59,8 +59,9 @@ Fairlight).
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** – Lora zuerst | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog |
-| **Danach** – Editor-Kern und Office | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument · AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
+| ~~Lora zuerst~~ ☑ | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog (erledigt, siehe *Erledigt*) |
+| **Jetzt** – Editor-Kern und Dokument | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument |
+| **Danach** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
 | **Danach** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge · AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
 | **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
@@ -70,7 +71,7 @@ Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-4
 (Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
-Reihenfolge in *Danach*: erst Editor-Kern und Dokument (AP-43 bis AP-47), dann Video (AP-52, AP-53), dann Tabellen und
+Reihenfolge: jetzt Editor-Kern und Dokument (AP-43 bis AP-47), in *Danach* dann Video (AP-52, AP-53), dann Tabellen und
 Folien, dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
 abwechseln, wenn ein Strang wartet.
 
@@ -78,104 +79,7 @@ abwechseln, wenn ein Strang wartet.
 
 ## Jetzt
 
-### AP-38 ◐ Lora handelt in Werkzeugen · XL (neu, in Stufen)
-Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
-PDFs zusammen“, „Räum meinen Hochgeladen-Ordner auf“, „Schneide die Pausen raus“, „Mach Abschnitt 2 zur Tabelle“.
-1. **Grundlage: Werkzeug-Aktionen** (`ToolActions`): Jedes Werkzeug meldet seine Aktionen (Name, Beschreibung,
-   Parameter, Risiko, Plattform) in einem Register, wie die Landkarte der App (`AppMap`). Lora bekommt daraus Werkzeuge
-   nur für den Bereich, der gerade offen ist (kurze Prompts, wenige Werkzeuge).
-2. **Sichtbar und umkehrbar**: Jede Aktion erscheint als Schrittzeile im Lora-Panel („Fügt 2 PDFs zusammen …“), das
-   Ergebnis als Karte mit **Rückgängig**. Alles, was etwas verschiebt, löscht (Papierkorb) oder überschreibt, fragt
-   vorher mit einer Vorschau (vorher → nachher). Lora bleibt im **Panel rechts**; kein eigener Lora-Cursor im Werkzeug.
-3. **Stufe a – Dateien**: aufräumen (Vorschlag einer Ordnerstruktur), nach Inhalt umbenennen, verschieben, Schlagwörter
-   vergeben, Duplikate finden; immer mit Vorschau und Rückgängig.
-4. **Stufe b – PDF-Werkzeugkasten**: zusammenfügen, teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern,
-   schwärzen (nur mit Vorschau), umwandeln.
-5. **Stufe c – Dokument, Tabelle, Folien**: formatieren, umstrukturieren, Tabellen einfügen, Folien anlegen – zuerst auf
-   den heutigen Editoren über ihre Datenmodelle; die neuen Editoren (AP-44, AP-48, AP-51) erfüllen dieselbe Schnittstelle.
-6. **Stufe d – Video**: schneiden, Titel/Bauchbinde setzen, Untertitel erzeugen, Rohschnitt, Export – auf dem heutigen
-   Projektmodell; AP-52 ff. übernehmen die Aktionen.
-- Datenschutz wie bisher: Datenschutzstufe, Tresor und „Nur auf diesem Gerät“ gelten auch für Aktionen; jede Aktion steht
-  im Agent-Protokoll.
-- **Fertig, wenn**: In jedem der vier Bereiche erledigt Lora einen Auftrag in natürlicher Sprache mit sichtbaren
-  Schritten, Vorschau bei riskanten Aktionen und funktionierendem Rückgängig.
-- Betrifft: neu `agent/ToolActions.kt`; `agent/LoraAgent.kt`, `data/AppMap.kt`, `ui/LoraHelper.kt`, `data/LoraDrive.kt`,
-  `ui/DriveScreen.kt`, `ui/PdfToolScreen.kt`, `docs/LiveDoc.kt`, `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, Windows
-  `video/VideoProject.kt`, `ui/VideoScreen.kt`.
-- **Umsetzung (03.11.2026, ◐)**: Register `agent/ToolActions.kt` (Aktion mit Bereich, Parametern, Risiko, Plattform;
-  `LoraFocus` meldet Auswahl, offenen Ordner, offene PDFs und das offene Dokument; `ActionHosts` verbindet die Bildschirme).
-  Lora bekommt die Aktionen des offenen Bereichs als Werkzeuge (`act_…`), klare Wünsche erkennt sie auf dem Gerät
-  (`LoraAgent.localAction`). Panel: Schrittzeile, Vorschau vorher → nachher mit *Ausführen* bei Riskantem, Ergebnis mit
-  *Rückgängig* und *Öffnen*; jede Aktion steht im App-Protokoll. **Stufe a (Dateien) ☑**: aufräumen (Typ/Semester/Monat),
-  nach Inhalt umbenennen, umbenennen, verschieben, Schlagwörter, Duplikate. **Stufe b (PDF) ☑**: öffnen, zusammenfügen,
-  teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern, schwärzen, umwandeln. **Stufe c (Dokument) ◐**: schreiben,
-  überarbeiten, Tabelle einfügen, Überschrift setzen im Fließtext-Editor; Tabellen und Folien fehlen noch (mit AP-48/AP-51).
-  **Rest**: Stufe d (Video) mit AP-52 ff.; Tabellen/Folien-Aktionen; Datenschutzstufe/Tresor für Aktionen prüfen.
-
-### AP-39 ☐ Ein Gedächtnis für Lora · M (neu)
-- Das vorhandene Gedächtnis (`agent/Memory.kt`) wird zu **„Was Lora über dich weiß“**: neben Inhalten auch
-  **Vorlieben je Werkzeug** („Handouts zweispaltig“, „Videos für OPAL in 720p“, „Literaturverzeichnis in APA 7“,
-  „Hochgeladenes nach Semester ordnen“).
-- **Lora fragt vor dem Merken** („Soll ich mir merken, dass …?“ mit Antwortknöpfen aus AP-06); nichts wird still gemerkt.
-- Sichtbar und bearbeitbar unter *Einstellungen › Lora › Gedächtnis*: gruppiert nach Werkzeug, jeder Eintrag änderbar und
-  löschbar, *Alles vergessen*. Tresor-Inhalte landen nie im Gedächtnis.
-- Lora und die Aktionen aus AP-38 nutzen die Vorlieben als Standardwerte (z. B. Export-Vorgabe, Ordnerstruktur).
-- Wird mit dem Sync wie bisher übertragen.
-- **Fertig, wenn**: Eine bestätigte Vorliebe wirkt beim nächsten passenden Auftrag ohne Nachfrage und lässt sich in den
-  Einstellungen sehen und löschen.
-- Betrifft: `agent/Memory.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, Einstellungen › Lora.
-
-### AP-40 ☐ Abläufe über Werkzeuge · L (neu)
-- Mehrschrittige Aufträge: „Aus dieser Aufnahme: transkribieren, Untertitel, Video auf 10 Minuten kürzen, Handout als
-  Word“ oder „Alle Abgaben zusammenfügen, schwärzen, als ein PDF in die Nextcloud“.
-- Lora **plant zuerst** und zeigt den Plan als Karte (Schritte, Werkzeuge, geschätzte Dauer, Datenschutzhinweis);
-  *Los*, *Ändern*, *Abbrechen*. Danach führt sie die Schritte mit den Aktionen aus AP-38 aus.
-- Fortschritt im Panel, Pause/Fortsetzen; lange Schritte (Transkription, Export, Stapel) laufen im Hintergrund weiter und
-  melden sich (Benachrichtigung wie beim Stapel).
-- Zwischenergebnisse landen in *Erstellt*, verknüpft mit dem Ablauf; ein fehlgeschlagener Schritt lässt sich wiederholen.
-- Eigene gespeicherte Abläufe („Wochenprotokoll“) bleiben in den Ideen (*Eigene Lora-Befehle*).
-- **Fertig, wenn**: Der Beispielauftrag mit der Aufnahme läuft vom Plan bis zum Handout durch, auch über einen Neustart
-  der App hinweg.
-- Betrifft: neu `agent/LoraPlan.kt`; `agent/LoraAgent.kt`, `agent/BatchRunner.kt` (Hintergrund), `ui/LoraHelper.kt`.
-
-### AP-41 ☐ Leuchtrahmen überall und Touren · M (Rest von AP-07, neu)
-- **Leuchtrahmen für alle Optionen**: Jede Einstellung und jeder wichtige Knopf in den Werkzeugen lässt sich von Lora
-  hervorheben (heute nur die wichtigsten). Ein Test prüft, dass jedes Ziel der Landkarte einen Rahmen hat.
-- **Touren**: Beim ersten Öffnen eines Werkzeugs (PDF, Dateien, Erstellen, Video, später die neuen Editoren) bietet Lora
-  eine kurze Tour an (3–6 Schritte, Leuchtrahmen + eine Zeile Text, *Weiter*/*Überspringen*). Abschaltbar unter
-  *Einstellungen › Lora*, jederzeit über Strg+K bzw. „Zeig mir, wie das geht“ wiederholbar.
-- Touren werden als Daten beschrieben (Ziel, Text), nicht je Bildschirm programmiert; englische Texte über `en.tsv`.
-- Respektiert *Ruhigere Bewegungen*; Lora fliegt (AP-36) nur, wenn Bewegungen erlaubt sind.
-- **Fertig, wenn**: Jede Option der Landkarte leuchtet beim Navigieren auf; das erste Öffnen des PDF-Werkzeugkastens bietet
-  eine Tour an, die sich überspringen und später wieder aufrufen lässt.
-- Betrifft: `ui/Spotlight.kt`, `data/AppMap.kt`, neu `ui/LoraTour.kt`, Einstellungen › Lora.
-
-### AP-42 ☑ Lora-Dateidialog · M (neu, Wunsch)
-Heute öffnet *Hochladen* den einfachen AWT-Dialog und die Ordnerwahl einen alten Java-Dialog (Swing) – beides wirkt
-veraltet und passt nicht zu Windows 11.
-- **Eigener Dialog im Lora-Design** für Öffnen, Speichern unter und Ordnerwahl, überall in der App (`Desktop.pickFiles`,
-  `pickFolder`, `pickSaveFile`, Ordnerabfrage beim Start in `Main.kt`, Android-Auswahl wo sinnvoll).
-- Seitenspalte wie im Tab *Dateien*: *Zuletzt · Markiert · Lora-Ordner · Hochgeladen · Erstellt · Nextcloud ·
-  Dieser PC* (Laufwerke, Desktop, Downloads, Dokumente, OneDrive/Cloud-Ordner).
-- Raster/Liste mit Vorschaubildern, Pfadleiste, Suche, Filter nach Dateityp, Mehrfachauswahl, neuer Ordner, Ziehen von
-  Dateien aus dem Explorer in den Dialog; zuletzt benutzter Ort je Zweck wird gemerkt.
-- Tastatur vollständig (Pfeile, Enter, Rücktaste, Strg+A, Tippen springt), Screenreader-Beschriftungen (AP-30), alle
-  Stile inklusive Hoher Kontrast.
-- **Fertig, wenn**: Kein Swing-/AWT-Dialog mehr in der App; Hochladen, Speichern unter und Ordnerwahl laufen über den
-  Lora-Dialog und erreichen Lora-Ordner, Nextcloud und beliebige Ordner des PCs.
-- Betrifft: `desktop/Desktop.kt`, `Main.kt`, `ui/FilePicker.kt` (beide), neu `ui/LoraFileDialog.kt`, `ui/DriveScreen.kt`
-  (gemeinsame Bausteine).
-- **Umsetzung (03.11.2026, ☑)**: `desktop/…/ui/LoraFileDialog.kt` – ein Fenster der App (liegt auch über dem Browser),
-  in das `DesktopActions.pickFiles/pickFolder/pickSaveFile` warten; alle Aufrufer laufen unverändert darüber. Seitenspalte,
-  Pfadleiste mit Eingabe, Suche, Typfilter, Liste/Raster mit Vorschaubildern (Bilder, PDF-Seite 1), Mehrfachauswahl,
-  neuer Ordner, Ziehen aus dem Explorer, Ersetzen-Rückfrage, letzter Ort je Zweck, Tastatur und Screenreader. Nextcloud:
-  Öffnen lädt, *Speichern unter* lädt nach dem Schreiben hoch. Die Lora-Ordner-Frage beim Start ist ein eigenes kleines
-  Compose-Fenster (berührt keine App-Daten). Der Systemdialog bleibt nur als Rückfall, falls kein Fenster der App da ist.
-  Android behält die Systemauswahl (Speicherzugriff nur über sie). Rest: Ordner und Dateien im Dialog umbenennen/löschen.
-
----
-
-## Danach
+Editor-Kern und Dokument (aus *Danach* nachgerückt, nachdem AP-38 bis AP-42 erledigt sind).
 
 ### AP-43 ◐ Gemeinsamer Text-Kern · XL (neu, Grundlage)
 Der Dokument-Editor arbeitet heute **blockweise** (ein Eingabefeld je Absatz, Markdown darunter): Markieren über Absätze
@@ -282,6 +186,10 @@ So nah wie möglich an **Google Docs**:
   Wortdiff als Vorschläge (rot/grün), Leiste mit *Annehmen/Ablehnen/Alle*, Begründung als Kommentar von Lora. Das
   Lora-Panel rechts schreibt weiter über den Chat; der Editor lädt das Ergebnis mit Formatierung. Rest: das kleine
   KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
+
+---
+
+## Danach
 
 ### AP-48 ☐ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
@@ -558,6 +466,151 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-30 Barrierefreiheit | Beschriftungen, Überschriften, Schalter/Auswahl für Screenreader, sichtbarer Fokus, große Schrift, Access Bridge (NVDA/JAWS) | Test mit NVDA |
 | ☑ AP-31 macOS und Linux | DMG/tar.gz (Apple Silicon), tar.gz/.deb (Linux), Updater, Keychain, Autostart, ⌘, ffmpeg vom System | Notarisierung, Intel-Macs |
 | ☑ Lora-Knöpfe (Nachtrag AP-37) | Gesicht in „Frag Lora“ und der schlafenden Lora mittig statt am Rand, nichts abgeschnitten | – |
+
+---
+
+### Runde 2 – erledigt
+
+| Paket | Ergebnis | Rest |
+| --- | --- | --- |
+| ☑ AP-38 Lora handelt in Werkzeugen | Register der Aktionen mit Vorschau und Rückgängig in Dateien, PDF, Dokument, Tabelle, Folien und Video, Datenschutz, Protokoll | neue Editoren (AP-44, AP-48, AP-51, AP-52) liefern ihre Aktionen über dieselbe Schnittstelle |
+| ☑ AP-39 Ein Gedächtnis für Lora | Vorlieben je Werkzeug nur nach Rückfrage, als Standard der Aktionen, *Einstellungen › Lora › Gedächtnis* | – |
+| ☑ AP-40 Abläufe über Werkzeuge | Plan-Karte, Ausführung im Hintergrund, Pause/Wiederholen, Fortsetzen nach Neustart | eigene gespeicherte Abläufe (Ideen) |
+| ☑ AP-41 Leuchtrahmen überall und Touren | Rahmen für alle Schalter und wichtigen Knöpfe, Touren als Daten mit Angebot beim ersten Öffnen | Touren für die neuen Editoren mit ihnen |
+| ☑ AP-42 Lora-Dateidialog | eigener Dialog für Öffnen/Speichern/Ordner, Umbenennen und Löschen | Android behält die Systemauswahl |
+
+Die ausführlichen Beschreibungen von AP-38 bis AP-42 stehen unten.
+
+### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
+Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
+PDFs zusammen“, „Räum meinen Hochgeladen-Ordner auf“, „Schneide die Pausen raus“, „Mach Abschnitt 2 zur Tabelle“.
+1. **Grundlage: Werkzeug-Aktionen** (`ToolActions`): Jedes Werkzeug meldet seine Aktionen (Name, Beschreibung,
+   Parameter, Risiko, Plattform) in einem Register, wie die Landkarte der App (`AppMap`). Lora bekommt daraus Werkzeuge
+   nur für den Bereich, der gerade offen ist (kurze Prompts, wenige Werkzeuge).
+2. **Sichtbar und umkehrbar**: Jede Aktion erscheint als Schrittzeile im Lora-Panel („Fügt 2 PDFs zusammen …“), das
+   Ergebnis als Karte mit **Rückgängig**. Alles, was etwas verschiebt, löscht (Papierkorb) oder überschreibt, fragt
+   vorher mit einer Vorschau (vorher → nachher). Lora bleibt im **Panel rechts**; kein eigener Lora-Cursor im Werkzeug.
+3. **Stufe a – Dateien**: aufräumen (Vorschlag einer Ordnerstruktur), nach Inhalt umbenennen, verschieben, Schlagwörter
+   vergeben, Duplikate finden; immer mit Vorschau und Rückgängig.
+4. **Stufe b – PDF-Werkzeugkasten**: zusammenfügen, teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern,
+   schwärzen (nur mit Vorschau), umwandeln.
+5. **Stufe c – Dokument, Tabelle, Folien**: formatieren, umstrukturieren, Tabellen einfügen, Folien anlegen – zuerst auf
+   den heutigen Editoren über ihre Datenmodelle; die neuen Editoren (AP-44, AP-48, AP-51) erfüllen dieselbe Schnittstelle.
+6. **Stufe d – Video**: schneiden, Titel/Bauchbinde setzen, Untertitel erzeugen, Rohschnitt, Export – auf dem heutigen
+   Projektmodell; AP-52 ff. übernehmen die Aktionen.
+- Datenschutz wie bisher: Datenschutzstufe, Tresor und „Nur auf diesem Gerät“ gelten auch für Aktionen; jede Aktion steht
+  im Agent-Protokoll.
+- **Fertig, wenn**: In jedem der vier Bereiche erledigt Lora einen Auftrag in natürlicher Sprache mit sichtbaren
+  Schritten, Vorschau bei riskanten Aktionen und funktionierendem Rückgängig.
+- Betrifft: neu `agent/ToolActions.kt`; `agent/LoraAgent.kt`, `data/AppMap.kt`, `ui/LoraHelper.kt`, `data/LoraDrive.kt`,
+  `ui/DriveScreen.kt`, `ui/PdfToolScreen.kt`, `docs/LiveDoc.kt`, `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, Windows
+  `video/VideoProject.kt`, `ui/VideoScreen.kt`.
+- **Umsetzung (03.11.2026, ◐)**: Register `agent/ToolActions.kt` (Aktion mit Bereich, Parametern, Risiko, Plattform;
+  `LoraFocus` meldet Auswahl, offenen Ordner, offene PDFs und das offene Dokument; `ActionHosts` verbindet die Bildschirme).
+  Lora bekommt die Aktionen des offenen Bereichs als Werkzeuge (`act_…`), klare Wünsche erkennt sie auf dem Gerät
+  (`LoraAgent.localAction`). Panel: Schrittzeile, Vorschau vorher → nachher mit *Ausführen* bei Riskantem, Ergebnis mit
+  *Rückgängig* und *Öffnen*; jede Aktion steht im App-Protokoll. **Stufe a (Dateien) ☑**: aufräumen (Typ/Semester/Monat),
+  nach Inhalt umbenennen, umbenennen, verschieben, Schlagwörter, Duplikate. **Stufe b (PDF) ☑**: öffnen, zusammenfügen,
+  teilen, Seiten löschen/drehen/sortieren, OCR, verkleinern, schwärzen, umwandeln. **Stufe c (Dokument) ◐**: schreiben,
+  überarbeiten, Tabelle einfügen, Überschrift setzen im Fließtext-Editor; Tabellen und Folien fehlen noch (mit AP-48/AP-51).
+  **Nachtrag (04.11.2026, ☑)**: **Stufe c** ergänzt um Tabellen (`agent/OfficeActions.kt`: Zellen füllen, Spalte mit
+  Formel, sortieren, bereinigen mit Vorschau, Summe/Mittelwert) und Folien (anlegen, ändern inkl. Notizen, löschen mit
+  Vorschau, aus Gliederung, volle Folien teilen) über `EditorDocHost` (`ActionHosts.sheet/slides`, Bereiche SHEET/SLIDES);
+  **Stufe d (Video) ☑** auf dem heutigen Projektmodell (Windows `video/VideoLora.kt`: Projekt aus Aufnahme, schneiden,
+  Clip entfernen, Titel/Bauchbinde, Untertitel aus der Transkription, Pausen herausschneiden, mit Lora kürzen, Export in
+  *Erstellt*; bei offenem Editor über dessen Verlauf). Werkzeugübergreifend (`agent/MoreActions.kt`): transkribieren (mit
+  Zeitmarken über die Transkription), Handout als Word, in die Nextcloud. **Datenschutz**: `ToolActions.privacy/model`
+  – Aktionen mit Modell nur mit einem Modell, das die Stufe des Projekts erlaubt (Tresor-Chat ⇒ mindestens „Nur TU
+  Dresden“, „Nur auf diesem Gerät“ ⇒ lokal), Tresor-Dateien erreichen keine Aktion, kein Nextcloud-Upload bei „Nur auf
+  diesem Gerät“. **Protokoll der Lora-Aktionen** unter *Einstellungen › Lora* (`ActionLog`, `lora-aktionen.log`). Schwärzen
+  geht auch ohne offenen Werkzeugkasten (neue Datei „(geschwärzt)“). Test `LoraRound2Test`. AP-44/48/51/52 übernehmen
+  die Aktionen über dieselbe Schnittstelle.
+
+### AP-39 ☑ Ein Gedächtnis für Lora · M (neu)
+- Das vorhandene Gedächtnis (`agent/Memory.kt`) wird zu **„Was Lora über dich weiß“**: neben Inhalten auch
+  **Vorlieben je Werkzeug** („Handouts zweispaltig“, „Videos für OPAL in 720p“, „Literaturverzeichnis in APA 7“,
+  „Hochgeladenes nach Semester ordnen“).
+- **Lora fragt vor dem Merken** („Soll ich mir merken, dass …?“ mit Antwortknöpfen aus AP-06); nichts wird still gemerkt.
+- Sichtbar und bearbeitbar unter *Einstellungen › Lora › Gedächtnis*: gruppiert nach Werkzeug, jeder Eintrag änderbar und
+  löschbar, *Alles vergessen*. Tresor-Inhalte landen nie im Gedächtnis.
+- Lora und die Aktionen aus AP-38 nutzen die Vorlieben als Standardwerte (z. B. Export-Vorgabe, Ordnerstruktur).
+- Wird mit dem Sync wie bisher übertragen.
+- **Fertig, wenn**: Eine bestätigte Vorliebe wirkt beim nächsten passenden Auftrag ohne Nachfrage und lässt sich in den
+  Einstellungen sehen und löschen.
+- Betrifft: `agent/Memory.kt`, `agent/LoraAgent.kt`, `ui/LoraHelper.kt`, Einstellungen › Lora.
+- **Umsetzung (04.11.2026, ☑)**: `agent/LoraPrefs.kt` – Vorlieben sind Gedächtnis-Einträge der neuen Kategorie
+  *Vorlieben* mit Werkzeug (`tool`) und optional einem Standardwert einer Aktion (`pref` = „files.tidy:nach“, `value`).
+  Lora fragt mit einer Karte *Merken · Nein* (`LoraStep.Remember`): nach Aktionen mit eigener Wahl (Parameter in
+  `ToolAction.remember`, z. B. aufräumen nach, Export-Vorgabe, Titelstil), bei „Merk dir, dass …“ und über das Werkzeug
+  `remember_preference`. Gemerkte Werte füllen offene Parameter („(wie gemerkt)“), gehen in Loras Prompt und als Kategorie
+  in jeden Chat; der Export-Dialog des Videos startet mit der gemerkten Vorgabe. *Einstellungen › Lora › Gedächtnis*:
+  gruppiert nach Werkzeug, ändern, löschen (mit Rückgängig), hinzufügen, *Alles vergessen*. Tresor: keine Rückfrage, kein
+  Dazulernen (`MemoryLearner`), kein `remember`. Sync wie das übrige Gedächtnis (`memory.json`).
+
+### AP-40 ☑ Abläufe über Werkzeuge · L (neu)
+- Mehrschrittige Aufträge: „Aus dieser Aufnahme: transkribieren, Untertitel, Video auf 10 Minuten kürzen, Handout als
+  Word“ oder „Alle Abgaben zusammenfügen, schwärzen, als ein PDF in die Nextcloud“.
+- Lora **plant zuerst** und zeigt den Plan als Karte (Schritte, Werkzeuge, geschätzte Dauer, Datenschutzhinweis);
+  *Los*, *Ändern*, *Abbrechen*. Danach führt sie die Schritte mit den Aktionen aus AP-38 aus.
+- Fortschritt im Panel, Pause/Fortsetzen; lange Schritte (Transkription, Export, Stapel) laufen im Hintergrund weiter und
+  melden sich (Benachrichtigung wie beim Stapel).
+- Zwischenergebnisse landen in *Erstellt*, verknüpft mit dem Ablauf; ein fehlgeschlagener Schritt lässt sich wiederholen.
+- Eigene gespeicherte Abläufe („Wochenprotokoll“) bleiben in den Ideen (*Eigene Lora-Befehle*).
+- **Fertig, wenn**: Der Beispielauftrag mit der Aufnahme läuft vom Plan bis zum Handout durch, auch über einen Neustart
+  der App hinweg.
+- Betrifft: neu `agent/LoraPlan.kt`; `agent/LoraAgent.kt`, `agent/BatchRunner.kt` (Hintergrund), `ui/LoraHelper.kt`.
+- **Umsetzung (04.11.2026, ☑)**: `agent/LoraPlan.kt` (`LoraFlow`, `FlowStep`, `LoraFlows`). Bei mehrschrittigen Wünschen
+  bekommt Lora das Werkzeug `plan_workflow` und den Katalog aller Aktionen; der Plan erscheint als Karte (`ui/LoraCards.kt`,
+  `FlowCard`) mit Schritten, Dauer und Datenschutzhinweis, *Los · Ändern · Abbrechen* (Ändern: Schritte abwählen oder neu
+  planen lassen). Ausführung im Hintergrund unabhängig vom Panel, Schritt für Schritt mit den Dateien des vorigen; riskante
+  Schritte warten mit Vorschau auf *Ausführen*, Fehler mit *Wiederholen/Überspringen*, *Pause/Fortsetzen*, Rückgängig je
+  Schritt (in derselben Sitzung), Benachrichtigung am Ende. Gespeichert in `lora-ablaeufe.json`; laufende Abläufe setzen
+  nach dem Start fort (`AppContainer` → `LoraFlows.resume`), offene stehen oben im Panel. Statt `BatchRunner` ein eigener
+  Hintergrund-Lauf (Aktionen statt Modellanfragen je Datei).
+
+### AP-41 ☑ Leuchtrahmen überall und Touren · M (Rest von AP-07, neu)
+- **Leuchtrahmen für alle Optionen**: Jede Einstellung und jeder wichtige Knopf in den Werkzeugen lässt sich von Lora
+  hervorheben (heute nur die wichtigsten). Ein Test prüft, dass jedes Ziel der Landkarte einen Rahmen hat.
+- **Touren**: Beim ersten Öffnen eines Werkzeugs (PDF, Dateien, Erstellen, Video, später die neuen Editoren) bietet Lora
+  eine kurze Tour an (3–6 Schritte, Leuchtrahmen + eine Zeile Text, *Weiter*/*Überspringen*). Abschaltbar unter
+  *Einstellungen › Lora*, jederzeit über Strg+K bzw. „Zeig mir, wie das geht“ wiederholbar.
+- Touren werden als Daten beschrieben (Ziel, Text), nicht je Bildschirm programmiert; englische Texte über `en.tsv`.
+- Respektiert *Ruhigere Bewegungen*; Lora fliegt (AP-36) nur, wenn Bewegungen erlaubt sind.
+- **Fertig, wenn**: Jede Option der Landkarte leuchtet beim Navigieren auf; das erste Öffnen des PDF-Werkzeugkastens bietet
+  eine Tour an, die sich überspringen und später wieder aufrufen lässt.
+- Betrifft: `ui/Spotlight.kt`, `data/AppMap.kt`, neu `ui/LoraTour.kt`, Einstellungen › Lora.
+- **Umsetzung (04.11.2026, ☑)**: Alle Schalter der Einstellungen und die wichtigen Knöpfe in Dateien, PDF-Werkzeugkasten,
+  Erstellen und Videoeditor haben `Spot`-Rahmen und stehen auf der Landkarte (`AppMap.PLACES`, 40+ Ziele, `spotIds`);
+  Test: jedes Ziel hat seinen Rahmen. Orte eines ausgeschalteten Werkzeugs schlagen erst das Einschalten vor. Touren als
+  Daten in `ui/LoraTour.kt` (Dateien, Erstellen, PDF, Video; 3–6 Schritte), Angebot beim ersten Öffnen (je Tour einmal,
+  `loraToursSeen`), Karte unten mit *Zurück · Überspringen · Weiter*, der Rahmen bleibt je Schritt stehen (`Spotlight.hold`).
+  *Einstellungen › Lora › Touren* (an/aus, starten, wieder anbieten), Strg+K „Tour …“, Lora „Zeig mir, wie das geht“
+  bzw. `start_tour`. Lora fliegt nur ohne *Ruhigere Bewegungen*.
+
+### AP-42 ☑ Lora-Dateidialog · M (neu, Wunsch)
+Heute öffnet *Hochladen* den einfachen AWT-Dialog und die Ordnerwahl einen alten Java-Dialog (Swing) – beides wirkt
+veraltet und passt nicht zu Windows 11.
+- **Eigener Dialog im Lora-Design** für Öffnen, Speichern unter und Ordnerwahl, überall in der App (`Desktop.pickFiles`,
+  `pickFolder`, `pickSaveFile`, Ordnerabfrage beim Start in `Main.kt`, Android-Auswahl wo sinnvoll).
+- Seitenspalte wie im Tab *Dateien*: *Zuletzt · Markiert · Lora-Ordner · Hochgeladen · Erstellt · Nextcloud ·
+  Dieser PC* (Laufwerke, Desktop, Downloads, Dokumente, OneDrive/Cloud-Ordner).
+- Raster/Liste mit Vorschaubildern, Pfadleiste, Suche, Filter nach Dateityp, Mehrfachauswahl, neuer Ordner, Ziehen von
+  Dateien aus dem Explorer in den Dialog; zuletzt benutzter Ort je Zweck wird gemerkt.
+- Tastatur vollständig (Pfeile, Enter, Rücktaste, Strg+A, Tippen springt), Screenreader-Beschriftungen (AP-30), alle
+  Stile inklusive Hoher Kontrast.
+- **Fertig, wenn**: Kein Swing-/AWT-Dialog mehr in der App; Hochladen, Speichern unter und Ordnerwahl laufen über den
+  Lora-Dialog und erreichen Lora-Ordner, Nextcloud und beliebige Ordner des PCs.
+- Betrifft: `desktop/Desktop.kt`, `Main.kt`, `ui/FilePicker.kt` (beide), neu `ui/LoraFileDialog.kt`, `ui/DriveScreen.kt`
+  (gemeinsame Bausteine).
+- **Umsetzung (03.11.2026, ☑)**: `desktop/…/ui/LoraFileDialog.kt` – ein Fenster der App (liegt auch über dem Browser),
+  in das `DesktopActions.pickFiles/pickFolder/pickSaveFile` warten; alle Aufrufer laufen unverändert darüber. Seitenspalte,
+  Pfadleiste mit Eingabe, Suche, Typfilter, Liste/Raster mit Vorschaubildern (Bilder, PDF-Seite 1), Mehrfachauswahl,
+  neuer Ordner, Ziehen aus dem Explorer, Ersetzen-Rückfrage, letzter Ort je Zweck, Tastatur und Screenreader. Nextcloud:
+  Öffnen lädt, *Speichern unter* lädt nach dem Schreiben hoch. Die Lora-Ordner-Frage beim Start ist ein eigenes kleines
+  Compose-Fenster (berührt keine App-Daten). Der Systemdialog bleibt nur als Rückfall, falls kein Fenster der App da ist.
+  Android behält die Systemauswahl (Speicherzugriff nur über sie). **Nachtrag (04.11.2026)**: Ordner und Dateien im Dialog
+  umbenennen (F2, Rechtsklick, Knopf; Prüfung auf verbotene Zeichen und vorhandene Namen) und löschen (Entf, Rechtsklick,
+  Knopf; im Lora-Ordner in dessen Papierkorb, sonst in den Windows-Papierkorb, mit Rückfrage).
 
 ---
 

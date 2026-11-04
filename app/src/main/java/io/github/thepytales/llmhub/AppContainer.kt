@@ -260,6 +260,11 @@ class AppContainer(context: Context) {
         scope.launch {
             batchRunner.active.collect { on -> if (on) io.github.thepytales.llmhub.agent.AgentService.start(appContext) }
         }
+        // Lora-Abläufe (AP-40): plans that were running carry on after the start.
+        scope.launch {
+            kotlinx.coroutines.delay(4000)
+            runCatching { io.github.thepytales.llmhub.agent.LoraFlows.resume(this@AppContainer) }.logFailure("Lora-Abläufe fortsetzen")
+        }
         // AP-28: only on Android – Windows syncs with the cloud service's own client (AP-12).
         if (io.github.thepytales.llmhub.ui.IS_ANDROID) phoneSync.start(scope)
         // AP-04: measuring points and release of speech models that nobody used for a few minutes.

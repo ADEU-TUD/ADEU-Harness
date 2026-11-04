@@ -136,6 +136,10 @@ data class AppSettings(
     val loraHints: Boolean = true,
     /** The two questions of the first start (Lora, visible tools) were answered or skipped. */
     val loraIntroDone: Boolean = false,
+    /** AP-41: Lora offers a short tour on the first visit of a tool. */
+    val loraTours: Boolean = true,
+    /** AP-41: tours offered already (ids, one per line) – each is offered once. */
+    val loraToursSeen: String = "",
     /** Model of the chats Lora hands questions to (AP-33): DeepSeek by default, "auto" = chosen per question. */
     val loraHandoffModel: String = ModelCatalog.DEFAULT_CHAT,
     /** A question Lora hands to a chat lands in the input field first instead of being sent right away (AP-33). */
@@ -346,6 +350,8 @@ class SettingsStore(context: Context) {
             .putBoolean("filesSortDown", next.filesSortDown)
             .putBoolean("aiUseHint", next.aiUseHint)
             .putBoolean("loraIntroDone", next.loraIntroDone)
+            .putBoolean("loraTours", next.loraTours)
+            .putString("loraToursSeen", next.loraToursSeen)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
             .apply()
@@ -432,6 +438,8 @@ class SettingsStore(context: Context) {
             loraModel = prefs.getString("loraModel", d.loraModel) ?: d.loraModel,
             loraCalm = prefs.getBoolean("loraCalm", d.loraCalm),
             loraHints = prefs.getBoolean("loraHints", d.loraHints),
+            loraTours = prefs.getBoolean("loraTours", d.loraTours),
+            loraToursSeen = prefs.getString("loraToursSeen", d.loraToursSeen) ?: d.loraToursSeen,
             loraHandoffModel = prefs.getString("loraHandoffModel", d.loraHandoffModel) ?: d.loraHandoffModel,
             loraHandoffReview = prefs.getBoolean("loraHandoffReview", d.loraHandoffReview),
             loraNextSteps = prefs.getBoolean("loraNextSteps", d.loraNextSteps),

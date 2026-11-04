@@ -230,6 +230,8 @@ enum class MemoryCategory(val label: String, val hint: String) {
     STYLE(trLater("Schreibstil"), trLater("Ton, Anrede, Format, Sprache")),
     CONTACTS(trLater("Kontakte"), trLater("Kolleg:innen, Ansprechpersonen, Rollen")),
     PROJECTS(trLater("Laufende Vorhaben"), trLater("Projekte, Anträge, Abschlussarbeiten, Fristen")),
+    /** AP-39: how the user wants things done in a tool („Handouts zweispaltig“, „Videos für OPAL in 720p“). */
+    PREFERENCES(trLater("Vorlieben"), trLater("Je Werkzeug: Ordnung, Formate, Export, Zitierstil")),
     OTHER(trLater("Sonstiges"), trLater("Was sonst dauerhaft hilft")),
     ;
 
@@ -250,8 +252,13 @@ data class MemoryEntry(
     val projectId: String? = null,
     /** After this moment the entry no longer goes to the model ("bis Semesterende"); null = no end. */
     val expiresAt: Long? = null,
-    /** Where it came from: "chat" (remember), "learned" (suggested after a chat), "user" (typed in) or "intro". */
+    /** Where it came from: "chat" (remember), "learned" (suggested after a chat), "user" (typed in), "intro" or "lora". */
     val source: String = "user",
+    /** AP-39: the tool a preference belongs to (files, pdf, doc, sheet, slides, video, literature, chat); null = general. */
+    val tool: String? = null,
+    /** AP-39: the default of an action it sets, „action:parameter“ (e.g. files.tidy:nach), with [value]. */
+    val pref: String? = null,
+    val value: String? = null,
 ) {
     fun expired(now: Long = System.currentTimeMillis()) = expiresAt != null && expiresAt < now
 }

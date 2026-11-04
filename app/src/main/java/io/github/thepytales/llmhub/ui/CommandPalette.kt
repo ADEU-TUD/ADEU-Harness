@@ -142,6 +142,17 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                             "Lora",
                         ) { LoraHelper.open(query.trim()); onDismiss() }
                     }
+                    // Touren (AP-41): „Tour …“, „Zeig mir, wie …“ – or the whole list when nothing is typed yet.
+                    val tours = LoraTours.available(IS_ANDROID).filter { t ->
+                        val q = io.github.thepytales.llmhub.data.AppMap.norm(query)
+                        q.isBlank() || "tour".startsWith(q.take(4)) || q.contains("zeig") || io.github.thepytales.llmhub.data.AppMap.norm(tr(t.title)).contains(q) && q.length >= 3
+                    }.takeIf { query.isNotBlank() }.orEmpty()
+                    if (tours.isNotEmpty()) {
+                        item(key = "g_tours") { PaletteHeading(tr("Touren")) }
+                        tours.forEach { t ->
+                            item(key = "tour_" + t.id) { PaletteRow(tr("Tour: {0}", tr(t.title)), tr("Lora zeigt es")) { onDismiss(); LoraTours.start(t, onNavigate) } }
+                        }
+                    }
                     var lastGroup: String? = null
                     commands.forEach { cmd ->
                         if (cmd.group != lastGroup) {

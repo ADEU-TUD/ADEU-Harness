@@ -110,6 +110,7 @@ private fun MailServerSection(c: AppContainer) {
             tr("Statt des klassischen Outlook verwenden"),
             tr("Aus: Lora arbeitet mit dem Outlook auf diesem PC (mit Kalender). An: mit dem Mailserver."),
             s.mailUseServer,
+            spot = "connections.mailServer",
         ) { on -> c.settings.update { it.copy(mailUseServer = on) } }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             Button(enabled = !busy && host.isNotBlank() && user.isNotBlank() && password.isNotBlank(), onClick = {

@@ -418,12 +418,14 @@ fun MemorySection(c: AppContainer) {
                     "Kontakte, Vorhaben). ") + if (mode == MemoryMode.AUTO) tr("Sie werden gespeichert; im Chat steht, was dazukam, mit „Rückgängig“.")
                 else tr("Sie erscheinen im Chat als Vorschlag – Sie wählen, was übernommen wird."),
                 s.memoryLearn,
+                spot = "memory.learn",
             ) { v -> c.settings.update { it.copy(memoryLearn = v) } }
             SwitchRow(
                 tr("Frühere Chats einbeziehen"),
                 tr("Das Modell kennt die Titel Ihrer letzten Chats und durchsucht sie, wenn Sie sich auf Früheres beziehen („wie letztes " +
                     "Mal“). Chats aus Projekten mit strengerer Datenschutzstufe bleiben außen vor."),
                 s.memoryChats,
+                spot = "memory.chats",
             ) { v -> c.settings.update { it.copy(memoryChats = v) } }
         }
     }
@@ -433,6 +435,7 @@ fun MemorySection(c: AppContainer) {
             tr("Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, " +
                 "Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben."),
             s.formSuggestions,
+            spot = "memory.suggestions",
         ) { v -> c.settings.update { it.copy(formSuggestions = v) } }
     }
     val general = entries.filter { it.projectId == null }

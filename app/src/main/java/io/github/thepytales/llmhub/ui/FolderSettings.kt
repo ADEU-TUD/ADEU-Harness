@@ -28,6 +28,13 @@ import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.LocalFolder
 import kotlinx.coroutines.launch
 import java.io.File
+import androidx.compose.ui.semantics.Role
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 
 /** Einstellungen › Lokale Ordner: folders on this PC the agent may read and change. */
 @Composable
@@ -147,4 +154,59 @@ internal fun StorageSection(c: AppContainer) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SettingsHint(tr("Tipp für Google Drive: „Google Drive für Desktop“ installieren, dort einen Ordner wie „Meine Ablage/ADEU“ anlegen und ihn hier wählen. Auf dem zweiten Rechner denselben Ordner einbinden."))
     }
+}
+
+/** A short, unique name for a folder attached to a chat (its folder name, numbered if taken). */
+internal fun chatFolderName(existing: List<LocalFolder>, path: String): String {
+    val base = File(path).name.ifBlank { path }
+    var name = base
+    var n = 2
+    while (existing.any { it.name.equals(name, true) }) name = "$base ${n++}"
+    return name
+}
+
+/**
+ * Attach a folder to the chat or change its right: Lora may only read there, or also write (create, change, move;
+ * deleted files go to „.adeu-papierkorb“). The right can be changed at any time during the chat.
+ */
+@Composable
+internal fun ChatFolderDialog(folder: LocalFolder, isNew: Boolean, onDismiss: () -> Unit, onRemove: () -> Unit, onSave: (LocalFolder) -> Unit) {
+    var write by remember(folder.id) { mutableStateOf(folder.write) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.FolderOpen, contentDescription = null) },
+        title = { Text(if (isNew) tr("Ordner an den Chat anhängen") else tr("Ordner „{0}“", folder.name)) },
+        text = {
+            Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+                Text(folder.path, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("Was darf Lora in diesem Ordner?"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 6.dp))
+                listOf(false to (tr("Nur lesen") to tr("Dateien auflisten, lesen und durchsuchen – nichts wird verändert.")),
+                    true to (tr("Lesen und schreiben") to tr("Auch Dateien anlegen, ändern und verschieben; Gelöschtes landet in „.adeu-papierkorb“. Vor Änderungen fragt Lora je nach Freigaben nach.")))
+                    .forEach { (value, texts) ->
+                        Row(
+                            Modifier.fillMaxWidth().selectable(selected = write == value, role = Role.RadioButton) { write = value }.padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            androidx.compose.material3.RadioButton(selected = write == value, onClick = null)
+                            Spacer(Modifier.size(8.dp))
+                            Column {
+                                Text(texts.first)
+                                Text(texts.second, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                Text(tr("Gilt nur für diesen Chat und lässt sich jederzeit über den Ordner-Chip über dem Eingabefeld ändern."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(folder.copy(write = write)) }) { Text(tr(if (isNew) "Anhängen" else "Übernehmen")) } },
+        dismissButton = {
+            Row {
+                if (!isNew) {
+                    androidx.compose.material3.TextButton(onClick = { FolderAccess.open(folder.path) }) { Text(tr("Im Explorer öffnen")) }
+                    androidx.compose.material3.TextButton(onClick = { onRemove(); onDismiss() }) { Text(tr("Vom Chat lösen")) }
+                }
+                androidx.compose.material3.TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
+            }
+        },
+    )
 }

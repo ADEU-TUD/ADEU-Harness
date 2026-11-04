@@ -207,6 +207,22 @@ fun SheetBody(
         onMarkdown(SheetMeta.compose(next, nextMeta))
     }
 
+    // Lora in der Tabelle (AP-38 Stufe c): her actions read and replace the rows and formats of this tab.
+    val latestMarkdown = androidx.compose.runtime.rememberUpdatedState(onMarkdown)
+    androidx.compose.runtime.DisposableEffect(doc.id, tabId) {
+        val host = object : io.github.thepytales.llmhub.agent.EditorDocHost {
+            override fun markdown(): String = SheetMeta.compose(rows, meta)
+            override fun replace(markdown: String) {
+                rows = SheetEngine.grid(markdown)
+                meta = SheetMeta.parse(markdown)
+                latestMarkdown.value(markdown)
+            }
+            override fun selected(): Int = sel.first
+        }
+        io.github.thepytales.llmhub.agent.ActionHosts.sheet = host
+        onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.sheet === host) io.github.thepytales.llmhub.agent.ActionHosts.sheet = null }
+    }
+
     fun setCell(r: Int, col: Int, v: String) {
         if (rows.getOrNull(r)?.getOrNull(col).orEmpty() == v) return
         val width = maxOf(cols, col + 1)

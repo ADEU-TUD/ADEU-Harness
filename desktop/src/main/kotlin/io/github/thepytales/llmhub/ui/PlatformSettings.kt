@@ -58,12 +58,14 @@ private fun WindowsSection(c: AppContainer) {
             tr("Antworten werden fertig geschrieben und geplante Aufgaben laufen weiter, auch wenn das Fenster zu ist. " +
                 "Öffnen und Beenden über das Symbol unten rechts in der Taskleiste."),
             s.closeToTray,
+            spot = "desktop.tray",
         ) { v -> c.settings.update { it.copy(closeToTray = v) } }
         SwitchRow(
             tr("Mit Windows starten"),
             if (Autostart.supported) tr("Startet Lora nach der Anmeldung unsichtbar im Infobereich – für geplante Aufgaben. Keine Admin-Rechte nötig.")
             else tr("Nur in der Windows-Version verfügbar."),
             autostart,
+            spot = "desktop.autostart",
         ) { v ->
             if (Autostart.supported) {
                 Autostart.set(v)
@@ -77,6 +79,7 @@ private fun WindowsSection(c: AppContainer) {
             tr("Links aus Chat, Literatur und Dokumenten öffnen sich als Tabs rechts neben der App – mit Fragen zur Seite, Zusammenfassung " +
                 "und Übernahme in die Literatur. Beim ersten Mal richtet Lora dafür einmalig Chromium ein (ca. 170 MB). Aus: im normalen Browser."),
             s.browserPanel,
+            spot = "desktop.browser",
         ) { v -> c.settings.update { it.copy(browserPanel = v) } }
     }
     Section(tr("Lora-Ordner")) { LoraFolderSettings() }

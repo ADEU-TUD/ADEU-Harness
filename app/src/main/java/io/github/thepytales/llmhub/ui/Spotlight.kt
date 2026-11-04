@@ -41,6 +41,10 @@ object Spotlight {
     /** How long the frame stays. */
     const val DURATION_MS = 4500L
 
+    /** While a tour (AP-41) shows a step, its frame stays until the next step. */
+    @Volatile
+    var hold: Boolean = false
+
     /** Where each spot is on screen (root coordinates), so Lora can fly there (ui/LoraFlight). */
     val bounds: MutableMap<String, androidx.compose.ui.geometry.Rect> = java.util.concurrent.ConcurrentHashMap()
 }
@@ -58,6 +62,7 @@ fun Spot(id: String, modifier: Modifier = Modifier, content: @Composable () -> U
             delay(250)
             runCatching { requester.bringIntoView() }
             delay(Spotlight.DURATION_MS)
+            while (Spotlight.hold && Spotlight.target.value == id) delay(300)
             if (Spotlight.target.value == id) Spotlight.target.value = null
         }
     }

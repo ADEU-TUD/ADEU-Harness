@@ -318,7 +318,7 @@ internal fun moodFor(reply: LoraReply): LoraAction = when {
     listOf("Ich erreiche gerade kein Modell", "Das hat nicht geklappt").any { reply.text.startsWith(it) || reply.text.startsWith(tr(it)) } -> LoraAction.SCRATCH
     reply.steps.any { it is LoraStep.Navigate || it is LoraStep.OpenMode || it is LoraStep.OpenChat || it is LoraStep.Handoff } -> LoraAction.POINT
     reply.steps.isEmpty() && reply.hits.isEmpty() && listOf("nichts gefunden", "keinen Chat").any { reply.text.contains(it) || reply.text.contains(tr(it)) } -> LoraAction.SHRUG
-    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder } -> LoraAction.EUREKA
+    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder || it is LoraStep.Remember || it is LoraStep.Plan } -> LoraAction.EUREKA
     else -> LoraAction.NOD
 }
 
@@ -347,6 +347,7 @@ internal fun runLoraStep(step: LoraStep, go: (String) -> Unit): Boolean = when (
         go(chatRoute(step.id))
         true
     }
+    is LoraStep.Tour -> LoraTours.byId(step.tourId)?.let { LoraTours.start(it, go); true } ?: false
     else -> false
 }
 
@@ -528,6 +529,11 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            // Abläufe (AP-40) that run without a card in this conversation, e.g. after a restart.
+            item(key = "flows") {
+                val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.Plan>().map { it.flowId } }.toSet()
+                OpenFlows(c, shown, LoraHost.go)
+            }
             if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, LoraSense.place(route), suggestions, onSuggest = ::suggest) }
             turns.forEachIndexed { i, turn ->
                 item(key = "wish$i") { WishBubble(turn.wish) }
@@ -791,6 +797,12 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                     }
                 }
                 is LoraStep.Action -> ActionCard(turn, i, step, go)
+                is LoraStep.Remember -> RememberCard(c, turn, i, step)
+                is LoraStep.Plan -> {
+                    FlowCard(c, step.flowId, go)
+                    if (step.dropped.isNotEmpty()) HintText(tr("Weggelassen, weil es das hier nicht gibt: {0}", step.dropped.joinToString()))
+                }
+                is LoraStep.Tour -> TourCard(turn, i, step, go)
                 is LoraStep.Ask -> QuestionCard(step.questions, onAnswer = if (state != null) null else ({ a -> turn.state[i] = "done"; onAnswer(a) }))
                 is LoraStep.Navigate -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; if (!LoraLayout.docked) LoraHelper.close() }
                 is LoraStep.OpenMode -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; LoraHelper.close() }
@@ -943,7 +955,7 @@ private fun kindIcon(kind: MapKind): ImageVector = when (kind) {
 
 /** The frame of Lora's result cards: hairline border, icon in a tinted circle, title and line, then [actions]. */
 @Composable
-private fun ResultCard(
+internal fun ResultCard(
     icon: ImageVector, title: String, subtitle: String?, onClick: (() -> Unit)? = null, dense: Boolean = false,
     actions: @Composable () -> Unit,
 ) {
@@ -973,7 +985,7 @@ private fun ResultCard(
 }
 
 @Composable
-private fun DoneRow(text: String, trailing: @Composable () -> Unit = {}) {
+internal fun DoneRow(text: String, trailing: @Composable () -> Unit = {}) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
         Icon(Icons.Outlined.Check, contentDescription = null, tint = LocalChatLook.current.brand, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
@@ -1190,16 +1202,16 @@ fun LoraSettings(c: AppContainer) {
             onSelect = { label -> handoffOptions.firstOrNull { handoffLabel(it) == label }?.let { id -> c.settings.update { it.copy(loraHandoffModel = id) } } },
         )
         HintText(tr("Empfohlen: DeepSeek V4.1 Flash. Fragen, die Lora an einen Chat gibt, beantwortet dieses Modell. Nur in Sonderfällen – Programmieren, sehr schwierige Analysen, riesige Textmengen – wählt Lora selbst ein anderes und nennt den Grund auf der Karte im Chat. In Projekten mit strenger Datenschutzstufe gilt ein dort erlaubtes Modell."))
-        SwitchRow(tr("Übergaben erst zeigen"), tr("Fragen, die Lora an einen Chat gibt, landen zuerst im Eingabefeld – du sendest selbst."), s.loraHandoffReview) { v ->
+        SwitchRow(tr("Übergaben erst zeigen"), tr("Fragen, die Lora an einen Chat gibt, landen zuerst im Eingabefeld – du sendest selbst."), s.loraHandoffReview, spot = "lora.handoffReview") { v ->
             c.settings.update { it.copy(loraHandoffReview = v) }
         }
-        SwitchRow(tr("Nächste Schritte unter Antworten"), tr("Lora bietet unter der letzten Antwort an, Fristen in den Kalender zu übernehmen, Tabellen als Excel zu speichern oder Literatur zu übernehmen – erkannt auf dem Gerät."), s.loraNextSteps) { v ->
+        SwitchRow(tr("Nächste Schritte unter Antworten"), tr("Lora bietet unter der letzten Antwort an, Fristen in den Kalender zu übernehmen, Tabellen als Excel zu speichern oder Literatur zu übernehmen – erkannt auf dem Gerät."), s.loraNextSteps, spot = "lora.nextSteps") { v ->
             c.settings.update { it.copy(loraNextSteps = v) }
         }
-        SwitchRow(tr("KI-Nutzungsnachweis vorschlagen"), tr("Geht es in einem Chat um eine Arbeit (Hausarbeit, Masterarbeit, Paper, Antrag …) und hat die KI dafür Text geschrieben, bietet Lora einmal an, einen KI-Nutzungsnachweis zu erstellen. Im Chat-Menü ist er immer erreichbar."), s.aiUseHint) { v ->
+        SwitchRow(tr("KI-Nutzungsnachweis vorschlagen"), tr("Geht es in einem Chat um eine Arbeit (Hausarbeit, Masterarbeit, Paper, Antrag …) und hat die KI dafür Text geschrieben, bietet Lora einmal an, einen KI-Nutzungsnachweis zu erstellen. Im Chat-Menü ist er immer erreichbar."), s.aiUseHint, spot = "lora.aiUse") { v ->
             c.settings.update { it.copy(aiUseHint = v) }
         }
-        SwitchRow(tr("Hinweise beim Tippen"), tr("Tippst du im Chat etwas wie „dunkles Design“, zeigt Lora darüber den passenden Ort der App."), s.loraTyping) { v ->
+        SwitchRow(tr("Hinweise beim Tippen"), tr("Tippst du im Chat etwas wie „dunkles Design“, zeigt Lora darüber den passenden Ort der App."), s.loraTyping, spot = "lora.typing") { v ->
             c.settings.update { it.copy(loraTyping = v) }
         }
         OutlinedButton(onClick = { LoraHelper.open() }) { Text(tr("Lora jetzt fragen")) }
@@ -1208,9 +1220,11 @@ fun LoraSettings(c: AppContainer) {
         SwitchRow(tr("Ruhigere Bewegungen"), tr("Lora läuft, tanzt, fliegt und dreht sich nicht – sie liest, schreibt und denkt nur."), s.loraCalm, spot = "lora.calm") { v ->
             c.settings.update { it.copy(loraCalm = v) }
         }
-        SwitchRow(tr("Hinweise erlaubt"), tr("Lora darf einmal je Bereich auf etwas hinweisen, z. B. dass es für PDFs ein Werkzeug gibt. Sie unterbricht nie."), s.loraHints) { v ->
+        SwitchRow(tr("Hinweise erlaubt"), tr("Lora darf einmal je Bereich auf etwas hinweisen, z. B. dass es für PDFs ein Werkzeug gibt. Sie unterbricht nie."), s.loraHints, spot = "lora.hints") { v ->
             c.settings.update { it.copy(loraHints = v) }
         }
         TextButton(onClick = { c.settings.update { it.copy(loraIntroDone = false) } }) { Text(tr("Die zwei Fragen vom ersten Start erneut stellen")) }
     }
+    // AP-39, AP-41, AP-38: what Lora knows, tours, the protocol of her actions.
+    LoraMemorySection(c)
 }

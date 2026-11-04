@@ -28,6 +28,8 @@ data class AppTarget(
     val spot: String? = null,
     val android: Boolean = true,
     val desktop: Boolean = true,
+    /** A tool that must be switched on for the place to exist (pdf, video); null = always there. */
+    val tool: String? = null,
 )
 
 /**
@@ -114,13 +116,59 @@ object AppMap {
         option("documents.sender", "documents", trLater("Absender"), trLater("Dokumente & Logos › Absender"), trLater("Name und Anschrift für Briefe."), "absender anschrift adresse briefkopf"),
         option("documents.logo", "documents", trLater("Logos"), trLater("Dokumente & Logos › Logos"), trLater("Eigene Logos für Dokumente."), "logo logos hochladen"),
         option("updates.auto", "updates", trLater("Automatisch nach Updates suchen"), trLater("Updates"), trLater("Beim Start nach neuen Versionen suchen."), "update automatisch suchen"),
+        // AP-41: every switch of the settings has its glowing frame.
+        option("github.auto", "github", trLater("GitHub in neuen Chats aktiv"), trLater("GitHub › In neuen Chats automatisch aktiv"), trLater("Das Modell kann sofort auf GitHub zugreifen."), "github automatisch aktiv werkzeuge"),
+        option("chat.autoModelAsk", "chat", trLater("Vor dem Modellwechsel fragen"), trLater("Chat & Werkzeuge › Vor dem Wechsel fragen"), trLater("Fragen, bevor ein anderes Modell genommen wird."), "modellwechsel fragen wechsel nachfragen"),
+        option("chat.documents", "chat", trLater("Dokumente erstellen"), trLater("Chat & Werkzeuge › Dokumente erstellen"), trLater("PDF, Word, PowerPoint, Briefe und Termine im Chat erstellen."), "dokumente erstellen pdf word powerpoint werkzeug"),
+        option("chat.autoContinue", "chat", trLater("Automatisch weitermachen"), trLater("Chat & Werkzeuge › Danach automatisch weitermachen"), trLater("Der Agent arbeitet nach dem Schrittlimit selbst weiter."), "weitermachen limit schritte automatisch fortsetzen"),
+        option("memory.learn", "memory", trLater("Nach dem Chat dazulernen"), trLater("Gedächtnis › Nach dem Chat dazulernen"), trLater("Dauerhafte Angaben aus Chats vorschlagen oder merken."), "dazulernen lernen gedächtnis automatisch merken"),
+        option("memory.chats", "memory", trLater("Frühere Chats einbeziehen"), trLater("Gedächtnis › Frühere Chats einbeziehen"), trLater("Das Modell durchsucht frühere Chats, wenn du dich darauf beziehst."), "frühere chats einbeziehen letztes mal verlauf"),
+        option("memory.suggestions", "memory", trLater("Vorschläge aus meinem Wissen"), trLater("Gedächtnis › Vorschläge aus meinem Wissen"), trLater("Vorlagen schlagen unter jedem Feld passende Angaben vor."), "vorschläge felder ausfüllen vorlagen wissen"),
+        option("lora.handoffReview", "lora", trLater("Übergaben erst zeigen"), trLater("Lora › Übergaben erst zeigen"), trLater("Übergebene Fragen landen zuerst im Eingabefeld."), "übergabe zeigen selbst senden"),
+        option("lora.nextSteps", "lora", trLater("Nächste Schritte unter Antworten"), trLater("Lora › Nächste Schritte unter Antworten"), trLater("Fristen, Excel, Literatur unter der letzten Antwort anbieten."), "nächste schritte vorschläge antwort"),
+        option("lora.aiUse", "lora", trLater("KI-Nutzungsnachweis vorschlagen"), trLater("Lora › KI-Nutzungsnachweis vorschlagen"), trLater("Bei Arbeiten einen KI-Nutzungsnachweis anbieten."), "ki nutzungsnachweis erklärung hausarbeit"),
+        option("lora.typing", "lora", trLater("Hinweise beim Tippen"), trLater("Lora › Hinweise beim Tippen"), trLater("Beim Tippen im Chat den passenden Ort zeigen."), "hinweise tippen eingabe"),
+        option("lora.hints", "lora", trLater("Hinweise erlaubt"), trLater("Lora › Hinweise erlaubt"), trLater("Lora darf einmal je Bereich auf etwas hinweisen."), "hinweise tipps lora"),
+        option("lora.tours", "lora", trLater("Touren anbieten"), trLater("Lora › Touren anbieten"), trLater("Beim ersten Öffnen eines Werkzeugs eine kurze Tour anbieten."), "tour touren rundgang einführung zeig mir wie das geht erklärung"),
+        option("lora.memory", "lora", trLater("Was Lora über dich weiß"), trLater("Lora › Gedächtnis"), trLater("Vorlieben je Werkzeug ansehen, ändern, löschen."), "vorlieben gedächtnis lora merken vergessen was weißt du"),
+        option("lora.log", "lora", trLater("Protokoll der Lora-Aktionen"), trLater("Lora › Protokoll"), trLater("Was Lora in den Werkzeugen getan hat."), "protokoll aktionen verlauf was hat lora gemacht"),
+        option("connections.mailServer", "connections", trLater("Mailserver statt Outlook"), trLater("Verbindungen › Statt des klassischen Outlook verwenden"), trLater("Mit dem Mailserver statt mit Outlook arbeiten."), "mailserver imap outlook mail", android = false),
+        option("desktop.tray", "windows", trLater("Im Infobereich weiterlaufen"), trLater("Windows › Beim Schließen im Infobereich weiterlaufen"), trLater("Antworten und Aufgaben laufen weiter, wenn das Fenster zu ist."), "infobereich tray hintergrund schließen weiterlaufen", android = false),
+        option("desktop.autostart", "windows", trLater("Mit Windows starten"), trLater("Windows › Mit Windows starten"), trLater("Lora startet nach der Anmeldung im Infobereich."), "autostart windows starten anmeldung", android = false),
+        option("desktop.browser", "windows", trLater("Links neben dem Chat öffnen"), trLater("Windows › Links neben dem Chat öffnen"), trLater("Links öffnen als Tabs rechts neben der App."), "browser links tabs neben chat", android = false),
     )
+
+    /** AP-41: important buttons in the tools (also the steps of the tours, ui/LoraTour). */
+    private val PLACES = listOf(
+        place("files.search", "files", trLater("Dateien durchsuchen"), trLater("Dateien › Suchfeld"), trLater("Namen, Schlagwörter und Inhalt durchsuchen."), "suchen durchsuchen volltext datei finden"),
+        place("files.new", "files", trLater("Neu in Dateien"), trLater("Dateien › +"), trLater("Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen."), "neu neuer ordner neues dokument hochladen upload plus"),
+        place("files.places", "files", trLater("Orte in Dateien"), trLater("Dateien › Seitenspalte"), trLater("Lora-Ordner, Hochgeladen, Erstellt, Markiert, Papierkorb."), "orte hochgeladen erstellt papierkorb markiert"),
+        place("files.sort", "files", trLater("Dateien sortieren"), trLater("Dateien › Sortieren"), trLater("Nach Name, Datum oder Größe sortieren."), "sortieren reihenfolge name datum größe"),
+        place("pdf.open", "pdf", trLater("PDF öffnen"), trLater("PDF-Werkzeugkasten › Öffnen"), trLater("Ein PDF zum Bearbeiten öffnen."), "pdf öffnen laden", tool = "pdf"),
+        place("pdf.modes", "pdf", trLater("Modi des PDF-Werkzeugkastens"), trLater("PDF-Werkzeugkasten › Ansehen, Seiten, Markieren …"), trLater("Ansehen, Seiten, Markieren, Formular, Unterschreiben, Umwandeln, KI, Bearbeiten."), "seiten markieren unterschreiben umwandeln formular modus", tool = "pdf"),
+        place("pdf.merge", "pdf", trLater("PDFs zusammenfügen"), trLater("PDF-Werkzeugkasten › Seiten › Zusammenfügen"), trLater("Mehrere PDFs zu einem zusammenfügen."), "zusammenfügen zusammenführen merge pdfs verbinden", tool = "pdf"),
+        place("pdf.save", "pdf", trLater("PDF speichern unter"), trLater("PDF-Werkzeugkasten › Speichern unter / Teilen"), trLater("Das bearbeitete PDF speichern oder teilen."), "speichern unter teilen exportieren", tool = "pdf"),
+        place("create.lora", "templates", trLater("Mit Lora erstellen"), trLater("Erstellen › Feld oben"), trLater("Lora sagen, was entstehen soll."), "erstellen lora wunsch neu entstehen"),
+        place("create.templates", "templates", trLater("TU Vorlagen"), trLater("Erstellen › TU Vorlagen"), trLater("Briefe, Protokolle, Bescheinigungen im Corporate Design."), "vorlagen tu vorlagen brief protokoll"),
+        place("create.new", "templates", trLater("Neue Vorlage"), trLater("Erstellen › Neue Vorlage"), trLater("Eine eigene Vorlage anlegen."), "neue vorlage eigene vorlage anlegen"),
+        place("video.new", "video", trLater("Neues Videoprojekt"), trLater("Video › Neues Projekt"), trLater("Ein neues Videoprojekt anlegen."), "neues projekt video anlegen", android = false, tool = "video"),
+        place("video.titles", "video", trLater("Titel und Bauchbinde"), trLater("Video › Titel & Bauchbinde"), trLater("Titel, Bauchbinde, Einblendung, Abspann im TUD-Design."), "titel bauchbinde einblendung abspann", android = false, tool = "video"),
+        place("video.subtitles", "video", trLater("Untertitel"), trLater("Video › Untertitel"), trLater("Untertitel aus der Transkription oder SRT."), "untertitel srt vtt", android = false, tool = "video"),
+        place("video.roughcut", "video", trLater("Rohschnitt"), trLater("Video › Rohschnitt"), trLater("Pausen und Füllwörter herausschneiden, mit Lora kürzen."), "rohschnitt kürzen pausen füllwörter", android = false, tool = "video"),
+        place("video.export", "video", trLater("Video exportieren"), trLater("Video › Exportieren"), trLater("MP4 für OPAL oder YouTube."), "exportieren mp4 opal youtube rendern", android = false, tool = "video"),
+    )
+
+    private fun place(id: String, route: String, title: String, path: String, description: String, synonyms: String, android: Boolean = true, tool: String? = null) =
+        AppTarget("place.$id", MapKind.OPTION, title, path, description, synonyms, route, spot = id, android = android, tool = tool)
 
     private fun settings(section: String, title: String, description: String, synonyms: String, android: Boolean = true) =
         AppTarget("settings.$section", MapKind.SETTINGS, title, "Einstellungen › $title", description, synonyms, "settings/$section", android = android)
 
     private fun option(id: String, section: String, title: String, path: String, description: String, synonyms: String, android: Boolean = true) =
         AppTarget("option.$id", MapKind.OPTION, title, "Einstellungen › $path", description, synonyms, "settings/$section", spot = id, android = android)
+
+    /** Every spot id the map leads to (a test checks that each has its frame, AP-41). */
+    val spotIds: Set<String> get() = (OPTIONS + PLACES).mapNotNull { it.spot }.toSet()
 
     /** All places of this platform; [templates] are the built-in and own TU Vorlagen. */
     fun build(templates: List<Template> = TemplateLibrary.builtIn, android: Boolean = false): List<AppTarget> {
@@ -133,7 +181,7 @@ object AppMap {
         val tpl = templates.map { t ->
             AppTarget("template.${t.id}", MapKind.TEMPLATE, t.name, "Erstellen › TU Vorlagen › ${t.section.label} › ${t.name}", t.description, t.name.lowercase(), "template:${t.id}")
         }
-        return (AREAS + SETTINGS + OPTIONS + modes + tools + tpl).filter { if (android) it.android else it.desktop }
+        return (AREAS + SETTINGS + OPTIONS + PLACES + modes + tools + tpl).filter { if (android) it.android else it.desktop }
     }
 
     fun byId(id: String, targets: List<AppTarget> = build()): AppTarget? =
