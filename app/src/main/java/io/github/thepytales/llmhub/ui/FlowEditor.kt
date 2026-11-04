@@ -1171,11 +1171,16 @@ private fun FlowPages(c: AppContainer, doc: LiveDoc, tabId: String?, state: Flow
                 .drawWithContent {
                     drawContent()
                     if (view == FlowView.PAGES && pageHeightPx > 100f) {
+                        val labelStyle = TextStyle(fontSize = 10.sp, color = outline)
                         var y = pageHeightPx
                         var page = 2
                         while (y < size.height - 8f) {
                             drawLine(outline.copy(alpha = 0.6f), Offset(-margin.toPx() + 4f, y), Offset(size.width + margin.toPx() - 4f, y), strokeWidth = 1f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)))
-                            drawText(pageLabel, tr("Seite {0}", page), Offset(size.width + margin.toPx() - 60.dp.toPx(), y + 2f), style = TextStyle(fontSize = 10.sp, color = outline))
+                            // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
+                            // width left of topLeft inside this box, and the label sits in the right page margin – with a
+                            // margin over 60 dp (20 mm at 100 %) that width was negative and the app crashed.
+                            val label = pageLabel.measure(tr("Seite {0}", page), labelStyle)
+                            drawText(label, topLeft = Offset(size.width + margin.toPx() - label.size.width - 8.dp.toPx(), y + 2f))
                             y += pageHeightPx
                             page++
                         }

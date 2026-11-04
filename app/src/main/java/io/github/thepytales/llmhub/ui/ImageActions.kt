@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.MediaStore
-import androidx.core.content.FileProvider
-import io.github.thepytales.llmhub.BuildConfig
 import java.io.File
 
 /** Android parts of "Bilder erzeugen" (Windows has its own version of this file). */
@@ -31,7 +29,7 @@ fun saveImageToDevice(context: Context, file: File) {
 
 /** Share sheet for a generated picture (mail, messenger, other apps). */
 fun shareImage(context: Context, file: File) {
-    val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file)
+    val uri = shareableUri(context, file) ?: return
     val intent = Intent(Intent.ACTION_SEND).setType("image/png")
         .putExtra(Intent.EXTRA_STREAM, uri)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

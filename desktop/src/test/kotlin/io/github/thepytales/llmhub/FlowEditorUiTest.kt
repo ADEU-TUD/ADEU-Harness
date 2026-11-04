@@ -68,6 +68,31 @@ class FlowEditorUiTest {
         assertTrue("<u>unterstrichener</u>" in md && "<!--a:c-->" in md && "- [x] erledigt" in md, md)
     }
 
+    /**
+     * Seitenansicht of a document longer than one page at Windows scale 100 %: the label „Seite 2“ sits in the right
+     * margin (20 mm = 75.6 px, wider than the 60 px it used to be measured into) – that crashed with
+     * „maxWidth(-15) must be >= than minWidth(0)“ while Lora wrote a long document.
+     */
+    @Test
+    fun pageBreakLabelInWideMarginDoesNotCrash() = runSkikoComposeUiTest(Size(1300f, 1400f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-pages").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val long = (1..60).joinToString("\n\n") { "Absatz $it: " + "Ein Satz, der die Seite füllt. ".repeat(6) }
+        val doc = DocsHandoff.open(c, "Lang", "# Lang\n\n$long\n")
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(6) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-pages.png"))
+        assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Editor da")
+    }
+
     @Test
     fun fileDialogShowsPlaces() = runSkikoComposeUiTest(Size(940f, 620f), Density(1f)) {
         mainClock.autoAdvance = false

@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Folders whose files other apps may open or receive (only with an explicit grant per file, the provider is not
+    exported). A file outside of them is copied to the cache first (DocumentActions.shareableUri), so nothing crashes.
+-->
 <paths>
-    <!-- Documents created by the model (create_document) -->
+    <!-- The Lora-Ordner (AP-16): created documents (Erstellt/), uploads (Hochgeladen/) and the user's own folders -->
+    <files-path name="lora" path="Lora/" />
+    <!-- Documents created before AP-16 (create_document) -->
     <files-path name="documents" path="documents/" />
+    <!-- Kept originals of chat attachments (PDFs) -->
+    <files-path name="attachments" path="attachments/" />
+    <!-- Generated pictures (Bilder erzeugen) -->
+    <files-path name="images" path="images/" />
     <!-- Manual exports of answers and chats -->
     <cache-path name="exports" path="exports/" />
     <!-- Photos taken with the camera for attachments -->
     <cache-path name="camera" path="camera/" />
-    <!-- Generated pictures (Bilder erzeugen) -->
-    <files-path name="images" path="images/" />
     <!-- Downloaded updates (APK for the system installer) -->
     <cache-path name="updates" path="updates/" />
+    <!-- Everything else the app writes to its cache to open it (Anträge, Stapel, Vergleich, Nextcloud, …) -->
+    <cache-path name="cache" path="." />
 </paths>
