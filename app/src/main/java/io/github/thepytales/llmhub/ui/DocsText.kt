@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -618,6 +619,11 @@ internal fun BlockView(
                 io.github.thepytales.llmhub.docs.LatexOmml.display(block) != null -> Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) {
                     Text(io.github.thepytales.llmhub.docs.MathText.inText(block.trim()), style = MaterialTheme.typography.titleMedium.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic))
                 }
+                // Textfeld from Word (AP-45, read only): its text in a frame.
+                DocMarkup.isTextBox(block) -> Column(Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(4.dp)).padding(8.dp)) {
+                    Text(tr("Textfeld aus Word (nur lesen)"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    MarkdownText(block.trimStart().removePrefix(DocMarkup.TEXTBOX).trim())
+                }
                 DocMarkup.isComment(block) -> MarkerLine(markerLabel(block))
                 NOTE_DEF_BLOCK.containsMatchIn(block) -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     block.lines().filter { it.isNotBlank() }.forEach { line ->
@@ -936,7 +942,7 @@ private fun markerLabel(block: String): String {
 
 /** A thin line with a label (page break, landscape pages, notes that are not printed). */
 @Composable
-private fun MarkerLine(label: String) {
+internal fun MarkerLine(label: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
         Text(" $label ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)

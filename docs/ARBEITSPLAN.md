@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 04.11.2026 · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 04.11.2026 (1.0.54) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -108,6 +108,14 @@ hinweg geht nicht, der Cursor springt, Formatierung ist begrenzt. Grundlage für
   (Wortdiff) und Loras Schreibmarken. Markdown bleibt vorerst Speicherformat (Chat, Exporte, Word laufen unverändert).
   **Rest**: eigene Layout-Engine mit echtem Seitenumbruch (Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt) für Bildschirm und
   PDF, Tabellen/Bilder im Modell statt als Blöcke, Zwischenablage mit Formatierung (HTML/RTF), Leistung bei 200+ Seiten.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Absatzformat um Zeilenabstand, linken und Erstzeilen-Einzug (hängend)
+  erweitert, Formatvorlagen Titel/Untertitel/Bildunterschrift/Code/Literatur (Absatzmarke `<!--a:…;s=…;z=…;l=…;f=…-->`,
+  alle Exporte lesen sie); **Zwischenablage mit Formatierung** (`docs/text/RichHtml.kt`, `ui/RichClipboard.kt` je
+  Plattform: HTML hin und zurück, Word-HTML mit Mso-Klassen und getippten Aufzählungszeichen, Google Docs); ein
+  **Seitenumbruch** füllt in der Seitenansicht den Rest der Seite; Silbentrennung im Blocksatz; Enter am Ende einer
+  Überschrift vor einer Überschrift verschiebt die Formate nicht mehr. Test `EditorCoreTest`. **Rest**: eigene
+  Layout-Engine (echter Seitenumbruch mit Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt, PDF aus derselben Engine),
+  Tabellen/Bilder im Modell, RTF, Leistung bei 200+ Seiten.
 
 ### AP-44 ◐ Fließtext-Editor für Dokumente · XL (neu, ersetzt den Block-Editor)
 So nah wie möglich an **Google Docs**:
@@ -133,6 +141,11 @@ So nah wie möglich an **Google Docs**:
   Dokumente öffnen ohne Umstellung (Markdown bleibt). Der Block-Editor bleibt nur für die Prüfung von KI-Änderungen und
   *Änderungen nachverfolgen*. **Rest**: Lineal mit Einzügen/Tabstopps, Ränder per Ziehen, Zeilenabstand wählbar, Kommentare
   am Rand im Text, Änderungen nachverfolgen im Fließtext, Suchen/Ersetzen mit Formatierung, Markieren über Tabellen hinweg.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: **Lineal** mit Seitenrändern zum Ziehen (beliebige Breite in mm, auch im
+  Dialog *Seite einrichten*) und Erstzeilen-/linkem Einzug, **Zeilenabstand** (Symbolleiste, *Format*), **Suchen und
+  Ersetzen im Fließtext** (Strg+F/H, Treffer markiert, einzeln/alle, Groß-/Kleinschreibung, ganze Wörter, alle Treffer
+  formatieren), **Kommentare am Rand** neben der Textstelle (Text markiert, Klick springt, ✓ erledigt). **Rest**:
+  Tabstopps, Änderungen nachverfolgen im Fließtext (bleibt in der Blockansicht), Markieren über Tabellen hinweg.
 
 ### AP-45 ◐ Word-Treue · L (neu, ersetzt „Schreiben ins Original“ für Dokumente)
 - **.docx direkt in das neue Modell lesen und zurückschreiben**: Formatvorlagen (auch eigene), Abschnitte,
@@ -154,8 +167,15 @@ So nah wie möglich an **Google Docs**:
   das nicht sicher, wird wie bisher neu geschrieben. Test `WordFidelityTest`. Export Word schreibt Farbe, Hervorhebung,
   hoch/tief, Größe, Schrift und Ausrichtung. **Rest**: Prüfsammlung mit echten TUD-Dokumenten und Bildvergleich, Kopf-/
   Fußzeilen und Abschnitte im Modell, Textfelder, PDF über eigene Layout-Engine.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Lesen von **Kopf-/Fußzeile** (Text ohne Seitenzahlen, nicht aus Loras
+  eigenen Dateien), **Seitenrändern**, **Textfeldern** (nur lesen, Block `<!-- textfeld -->`; beim Zurückschreiben bleiben
+  sie unverändert, auch die Kopie für altes Word), **Inhaltssteuerelementen** (w:sdt, bisher verloren), Untertitel,
+  Bildunterschrift, Literatur, Code, Zeilenabstand und Einzügen. Export Word schreibt die Formatvorlagen des Dokuments als
+  echte Word-Formatvorlagen (Titel, Untertitel, Überschrift 1–4, Literatur) samt Zeilenabstand und Einzügen. Prüfsammlung
+  als Test mit einer nachgebauten Vorlage (`EditorCoreTest`). **Rest**: Prüfsammlung mit echten TUD-Dokumenten und
+  Bildvergleich (Offene Frage 5), Kopf-/Fußzeilen erste/gerade Seite und Abschnitte im Modell, PDF über eigene Layout-Engine.
 
-### AP-46 ☐ Gliederung und Formatvorlagen · M (neu)
+### AP-46 ☑ Gliederung und Formatvorlagen · M (neu)
 - **Gliederung links** (wie in Docs): Überschriften als Baum, Klick springt, Ziehen verschiebt ganze Abschnitte,
   ein-/ausklappbar.
 - **Formatvorlagen**: Standard, Titel, Untertitel, Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; ändern
@@ -166,6 +186,14 @@ So nah wie möglich an **Google Docs**:
 - **Fertig, wenn**: Ein Dokument lässt sich über die Gliederung umstellen und per Klick vom TUD-Stil in den
   wissenschaftlichen Stil umschalten.
 - Betrifft: `ui/DocsEditor.kt`, neu `docs/text/Styles.kt`, `docs/DocTheme.kt`, `docs/TudBrand.kt`.
+- **Umsetzung (04.11.2026, 1.0.54, ☑)**: **Gliederung links** im Fließtext-Editor (`ui/FlowExtras.kt`, Logik
+  `docs/text/Outline.kt`): Baum der Überschriften, Klick springt, Ziehen am Griff ⠿ verschiebt den ganzen Abschnitt (auch
+  ⋮ › nach oben/unten), Ebenen einklappbar. **Formatvorlagen** (`docs/text/Styles.kt`): Normaler Text, Titel, Untertitel,
+  Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; „… an Markierung anpassen“, zurücksetzen, *Als Standard für
+  neue Dokumente speichern* (Einstellung `docStyleLines`). **Vorlagensätze** TU Dresden, Wissenschaftlich, Schlicht,
+  Standard; der Wechsel formatiert das ganze Dokument um und setzt den Export-Stil. Gespeichert als Kommentarzeilen
+  (`<!-- vorlagen: … -->`, `<!-- vorlage h1: … -->`). **Format übertragen** (Pinsel), Strg+Alt+0…4, Markdown-Kürzel inkl.
+  `**fett**` und `*kursiv*`. Test `EditorCoreTest`.
 
 ### AP-47 ☑ Lora schreibt im Dokument · M (neu)
 - **„Hilf mir schreiben“** (wie Gemini in Docs): Feld an der Cursorstelle bzw. über leeren Absätzen – „Schreib eine
@@ -186,6 +214,8 @@ So nah wie möglich an **Google Docs**:
   Wortdiff als Vorschläge (rot/grün), Leiste mit *Annehmen/Ablehnen/Alle*, Begründung als Kommentar von Lora. Das
   Lora-Panel rechts schreibt weiter über den Chat; der Editor lädt das Ergebnis mit Formatierung. Rest: das kleine
   KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
+- **Nachtrag (04.11.2026, 1.0.54)**: Der Rest ist erledigt – über einer Markierung im Fließtext erscheint Loras kleines Menü
+  (*Überarbeiten …*, *Kürzer*, *Formeller*, *Einfacher* als einzeln annehmbare Vorschläge, *Kommentar*).
 
 ---
 

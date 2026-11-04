@@ -691,6 +691,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                     onSpell = { spellLocal = true },
                                     onTrack = { if (doc.trackBase == null) save(note = tr("Änderungen nachverfolgen an")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) } else stopTracking = true },
                                     onAskAi = { panel = DocPanel.AI },
+                                    onShowComments = { panel = DocPanel.COMMENTS },
                                 ).also { flowHost = it }
                             }
                             FlowEditor(c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown)

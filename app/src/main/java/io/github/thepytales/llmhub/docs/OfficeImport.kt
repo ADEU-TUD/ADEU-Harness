@@ -278,11 +278,13 @@ object OfficeImport {
                 buildString { pp.all("t").filter { t -> t.parentNode?.localName == "r" }.forEach { append(it.textContent) } }.trim()
             }.split(" · ").filter { it.isNotBlank() }.joinToString(" · ")
                 // „Seite 1 von 3“ is the page number of the export, not text.
-                .replace(Regex("(?i)(seite|page)?\\s*\\d+\\s*(von|/|of)\\s*\\d+"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
+                .replace(Regex("(?i)\\b(seite|page)\\b\\s*\\d*\\s*((von|of|/)\\s*\\d*)?|^\\s*\\d+\\s*(von|of|/)\\s*\\d+\\s*$"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
                 .take(160)
         }
-        val header = part("headerReference")
-        val footer = part("footerReference")
+        // Lora's own files carry date, footer line and page numbers there from the page setup and the settings: not again.
+        val own = files["docProps/core.xml"]?.toString(Charsets.UTF_8)?.contains("<dc:creator>Lora</dc:creator>") == true
+        val header = if (own) "" else part("headerReference")
+        val footer = if (own) "" else part("footerReference")
         val mar = sect.child("pgMar")?.attr("left")?.toIntOrNull()?.let { (it / 56.693f).roundToIntSafe() }
         val margins = mar?.let { DocMarkup.marginsFor(it.coerceIn(5, 60)) } ?: "normal"
         val setup = DocMarkup.PageSetup(header = header, footer = footer, margins = margins)

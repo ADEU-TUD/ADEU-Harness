@@ -140,6 +140,13 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
 
     fun paraText(i: Int): String = text.substring(paraRange(i).first, paraRange(i).last + 1)
 
+    /** The piece from [from] until [to] with its formats (for the clipboard). */
+    fun slice(from: Int, to: Int): RichText {
+        val a = from.coerceIn(0, text.length)
+        val b = to.coerceIn(a, text.length)
+        return RichText(text.substring(a, b), chars.subList(a, b), paras.subList(paraAt(a), paraAt(b) + 1))
+    }
+
     /** The same text with other paragraph formats. */
     fun withParas(p: List<ParaFormat>) = RichText(text, chars, p)
 
@@ -154,8 +161,15 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
         while (pre < max && text[pre] == newText[pre]) pre++
         var suf = 0
         while (suf < max - pre && text[text.length - 1 - suf] == newText[newText.length - 1 - suf]) suf++
-        val removedEnd = text.length - suf
-        val inserted = newText.substring(pre, newText.length - suf)
+        var removedEnd = text.length - suf
+        var inserted = newText.substring(pre, newText.length - suf)
+        // Enter at the end of a paragraph and at the start of the next one give the same texts; the line break
+        // belongs to the end of the paragraph before (so a heading followed by a heading keeps both formats).
+        while (removedEnd == pre && pre > 0 && inserted.isNotEmpty() && inserted.last() == '\n' && text[pre - 1] == '\n') {
+            inserted = "\n" + inserted.dropLast(1)
+            pre--
+            removedEnd = pre
+        }
         val fmt = typing ?: chars.getOrNull(pre - 1)?.takeIf { pre > 0 && text[pre - 1] != '\n' } ?: chars.getOrNull(pre)?.takeIf { pre < text.length && text[pre] != '\n' } ?: CharFormat.PLAIN
         // Links do not grow at their end; Lora's marks never pass on to what the user types.
         val typed = (if (typing == null && fmt.link != null && (pre >= text.length || chars.getOrNull(pre)?.link != fmt.link)) fmt.copy(link = null) else fmt)
