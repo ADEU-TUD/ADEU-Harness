@@ -25,16 +25,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /** Android actions for created documents (Windows has its own version of this file). */
 
-private fun uriFor(context: Context, file: File): Uri =
-    FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file)
+/**
+ * content:// URI of [file] for other apps. The shared folders are in res/xml/file_paths.xml; a file outside of them is
+ * copied to the cache first (exports/), so opening or sharing never crashes. Null (with a notice) if even that fails.
+ */
+fun shareableUri(context: Context, file: File): Uri? {
+    val authority = "${BuildConfig.APPLICATION_ID}.files"
+    runCatching { return FileProvider.getUriForFile(context, authority, file) }
+    runCatching {
+        val copy = File(File(context.cacheDir, "exports/" + UUID.randomUUID().toString().take(8)), file.name)
+        copy.parentFile?.mkdirs()
+        file.copyTo(copy, overwrite = true)
+        return FileProvider.getUriForFile(context, authority, copy)
+    }
+    Notices.error(tr("{0} lässt sich nicht an andere Apps weitergeben.", file.name))
+    return null
+}
 
 fun openDocument(context: Context, file: File) {
+    val uri = shareableUri(context, file) ?: return
     val intent = Intent(Intent.ACTION_VIEW)
-        .setDataAndType(uriFor(context, file), DocFormat.ofFile(file).mime)
+        .setDataAndType(uri, DocFormat.ofFile(file).mime)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
         context.startActivity(intent)
@@ -79,9 +95,10 @@ fun addToCalendar(context: Context, file: File) {
 }
 
 fun shareDocument(context: Context, file: File) {
+    val uri = shareableUri(context, file) ?: return
     val intent = Intent(Intent.ACTION_SEND)
         .setType(DocFormat.ofFile(file).mime)
-        .putExtra(Intent.EXTRA_STREAM, uriFor(context, file))
+        .putExtra(Intent.EXTRA_STREAM, uri)
         .putExtra(Intent.EXTRA_SUBJECT, file.nameWithoutExtension)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(Intent.createChooser(intent, tr("Teilen")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
