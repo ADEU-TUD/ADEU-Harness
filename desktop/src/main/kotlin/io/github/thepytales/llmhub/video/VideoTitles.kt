@@ -29,19 +29,30 @@ object VideoTitles {
     private fun text(x: Float, y: Float, w: Float, h: Float, text: String, size: Float, color: String, medium: Boolean = false, align: String = "left", valign: String = "top", fill: String = "", padding: Float = 0f, radius: Float = 0f, lineHeight: Float = 1.2f) =
         DesignElement(kind = ElementKind.TEXT, x = x, y = y, w = w, h = h, text = text, fontSize = size, color = color, medium = medium, align = align, valign = valign, fit = true, fill = fill, padding = padding, radius = radius, lineHeight = lineHeight)
 
+    /**
+     * Scale of the 1080-line layout: the shorter side counts, so a portrait (9:16) or square frame gets the sizes of a
+     * 1080-line picture instead of 1.8 times them (titles and lower thirds used to run out of the picture there).
+     */
+    private fun scale(width: Int, height: Int) = minOf(width, height) / 1080f
+
     /** The overlay as a one-page design of the project's size. */
     fun design(o: TextOverlay, width: Int, height: Int): Design {
-        val s = height / 1080f
+        val s = scale(width, height)
         val w = width * MM
         val h = height * MM
+        // Text never wider than the picture minus the margins (1:1 and 9:16 are narrower than the 1920 of the layout).
+        fun wide(x: Float, want: Float) = minOf(px(want, s), w - x - px(60f, s))
+        // Portrait: the title block moves down out of the Shape in the upper right corner.
+        val dy = ((h - px(1080f, s)) / 2).coerceAtLeast(0f)
         val els = when (o.style) {
             "titel", "abspann" -> listOfNotNull(
                 DesignElement(kind = ElementKind.RECT, x = 0f, y = 0f, w = w, h = h, fill = TudBrand.BLUE),
                 DesignElement(kind = ElementKind.IMAGE, src = DesignBrand.LOGO_WHITE, fitMode = "contain", x = px(110f, s), y = px(90f, s), w = px(330f, s), h = px(330f, s) / DesignBrand.LOGO_RATIO),
-                // The Shape of the CD in Blau 2, cut off at the top right; the text stays left of it.
-                DesignElement(kind = ElementKind.TUD_SHAPE, x = w - px(620f, s), y = -px(140f, s), w = px(760f, s), h = px(760f, s), fill = TudBrand.LIGHT_BLUE),
-                text(px(110f, s), px(if (o.style == "titel") 400f else 340f, s), px(1150f, s), px(360f, s), o.text, pt(96f, s), "#FFFFFF", medium = true, valign = "bottom", lineHeight = 1.08f),
-                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(110f, s), px(790f, s), px(1150f, s), px(200f, s), it, pt(44f, s), TudBrand.LIGHT_BLUE, lineHeight = 1.3f) },
+                // The Shape of the CD in Blau 2, cut off at the top right; the text stays left of it. In a square frame
+                // the title takes two lines and reaches higher: the Shape goes further up out of the picture.
+                DesignElement(kind = ElementKind.TUD_SHAPE, x = w - px(620f, s), y = -px(if (dy == 0f && width < height * 1.5f) 400f else 140f, s), w = px(760f, s), h = px(760f, s), fill = TudBrand.LIGHT_BLUE),
+                text(px(110f, s), dy + px(if (o.style == "titel") 400f else 340f, s), wide(px(110f, s), 1150f), px(360f, s), o.text, pt(96f, s), "#FFFFFF", medium = true, valign = "bottom", lineHeight = 1.08f),
+                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(110f, s), dy + px(790f, s), wide(px(110f, s), 1150f), px(200f, s), it, pt(44f, s), TudBrand.LIGHT_BLUE, lineHeight = 1.3f) },
             )
             "einblendung" -> listOf(
                 text(px(160f, s), h - px(300f, s), w - px(320f, s), px(170f, s), o.text + if (o.subtext.isNotBlank()) "\n" + o.subtext else "", pt(46f, s), "#FFFFFF",
@@ -49,19 +60,23 @@ object VideoTitles {
             )
             else -> listOfNotNull( // bauchbinde
                 DesignElement(kind = ElementKind.RECT, x = px(90f, s), y = h - px(270f, s), w = px(12f, s), h = px(160f, s), fill = TudBrand.LIGHT_BLUE),
-                text(px(102f, s), h - px(270f, s), px(900f, s), px(92f, s), o.text, pt(50f, s), "#FFFFFF", medium = true, valign = "middle", fill = TudBrand.BLUE, padding = px(22f, s)),
-                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(102f, s), h - px(178f, s), px(900f, s), px(68f, s), it, pt(34f, s), TudBrand.BLUE, valign = "middle", fill = "#FFFFFF", padding = px(22f, s)) },
+                text(px(102f, s), h - px(270f, s), wide(px(102f, s), 900f), px(92f, s), o.text, pt(50f, s), "#FFFFFF", medium = true, valign = "middle", fill = TudBrand.BLUE, padding = px(22f, s)),
+                o.subtext.takeIf { it.isNotBlank() }?.let { text(px(102f, s), h - px(178f, s), wide(px(102f, s), 900f), px(68f, s), it, pt(34f, s), TudBrand.BLUE, valign = "middle", fill = "#FFFFFF", padding = px(22f, s)) },
             )
         }
         return Design(id = "video-${o.id}", title = o.text, format = "video", width = w, height = h, pages = listOf(DesignPage(background = "", elements = els)))
     }
 
-    /** A subtitle: white text on a dark half-transparent box at the bottom centre. */
-    fun subtitleDesign(text: String, width: Int, height: Int): Design {
-        val s = height / 1080f
+    /**
+     * A subtitle: white text on a dark half-transparent box at the bottom centre; [raised] above a lower third or a
+     * sentence at the bottom that is on at the same time (see [VideoProject.subtitleRaised]).
+     */
+    fun subtitleDesign(text: String, width: Int, height: Int, raised: Boolean = false): Design {
+        val s = scale(width, height)
         val w = width * MM
         val h = height * MM
-        val e = text(px(240f, s), h - px(250f, s), w - px(480f, s), px(170f, s), text, pt(46f, s), "#FFFFFF", align = "center", valign = "bottom", lineHeight = 1.25f)
+        val side = minOf(px(240f, s), w / 8)
+        val e = text(side, h - px(if (raised) 490f else 250f, s), w - 2 * side, px(170f, s), text, pt(46f, s), "#FFFFFF", align = "center", valign = "bottom", lineHeight = 1.25f)
         // The box only as big as the text: lay out, then put a background behind exactly those lines.
         val laid = io.github.thepytales.llmhub.creative.DesignText.layout(e)
         val lineW = (0 until laid.layout.lineCount).maxOfOrNull { laid.layout.getLineRight(it) - laid.layout.getLineLeft(it) }?.div(io.github.thepytales.llmhub.creative.DesignText.REF) ?: 0f

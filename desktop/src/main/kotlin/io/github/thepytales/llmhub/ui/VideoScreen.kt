@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.horizontalScroll
@@ -326,6 +327,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }
     var export by remember { mutableStateOf(false) }
     val focus = remember { androidx.compose.ui.focus.FocusRequester() }
+    val typing = remember { TypingState() }
     fun split() {
         val (i, src) = p.at(pos) ?: return
         val clip = p.clips[i]
@@ -344,9 +346,13 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         }
         sel = Sel.None
     }
+    androidx.compose.runtime.CompositionLocalProvider(LocalTyping provides typing) {
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).focusRequester(focus).focusable().onPreviewKeyEvent { ev ->
             if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            // In a text field S, Leertaste, Entf and the arrows are typing: before, they also split the clip, started
+            // the playback or deleted the selected title while its text was being edited.
+            if (typing.fields > 0 && !ev.isCmd) return@onPreviewKeyEvent false
             when {
                 ev.isCmd && ev.key == Key.Z -> { h.undo(); true }
                 ev.isCmd && ev.key == Key.Y -> { h.redo(); true }
@@ -362,7 +368,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück")) }
             var title by remember(id) { mutableStateOf(p.title) }
-            OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(320.dp), textStyle = MaterialTheme.typography.titleSmall)
+            OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(320.dp).typing(), textStyle = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(8.dp))
             Text(tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
             IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
@@ -390,6 +396,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         TimelineBar(c, h, player, onSelect = { sel = it })
         Timeline(h, player, pos, sel, onSelect = { sel = it; runCatching { focus.requestFocus() } }, modifier = Modifier.fillMaxWidth().height(250.dp))
     }
+    }
     LaunchedEffect(id) { runCatching { focus.requestFocus() } }
     if (export) ExportDialog(p, onDismiss = { export = false })
 }
@@ -409,7 +416,7 @@ private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier:
                 img?.let { Image(it, null, modifier = Modifier.fillMaxSize()) }
             }
             p.subtitles.firstOrNull { pos >= it.startSec && pos < it.endSec }?.let { cue ->
-                val img = rememberSubtitle(cue.text, p, px)
+                val img = rememberSubtitle(cue.text, p, px, p.subtitleRaised(cue))
                 img?.let { Image(it, null, modifier = Modifier.fillMaxSize()) }
             }
             if (p.clips.isEmpty()) Text(tr("Noch keine Clips – unten „Clip hinzufügen“."), color = Color.White, modifier = Modifier.align(Alignment.Center))
@@ -431,10 +438,10 @@ private fun rememberTitle(o: TextOverlay, p: VideoProject, px: Int): ImageBitmap
 }
 
 @Composable
-private fun rememberSubtitle(text: String, p: VideoProject, px: Int): ImageBitmap? {
-    val key = "sub|$text|${p.width}x${p.height}|$px"
+private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boolean): ImageBitmap? {
+    val key = "sub|$text|${p.width}x${p.height}|$px|$raised"
     val img by produceState(synchronized(titleCache) { titleCache[key] }, key) {
-        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
+        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height, raised), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
     }
     return img
 }
@@ -450,7 +457,9 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
     var pickTranscript by remember { mutableStateOf<String?>(null) }
     var loraCut by remember { mutableStateOf(false) }
     val p = h.project
-    val pos = player.position.value
+    // The playhead when a button is used: read then, not at the last composition of this bar (which does not follow
+    // the playback – music was put where the playhead had been before).
+    fun pos() = player.position.value
     fun addClips() = scope.launch {
         val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
         val clips = withContext(Dispatchers.IO) { files.mapNotNull { f -> Media.probe(f)?.let { i -> VideoClip(path = f.absolutePath, inSec = 0.0, outSec = if (i.duration > 0.05) i.duration else 5.0) } } }
@@ -460,7 +469,8 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
         val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Musik oder Sprecherton auswählen"), multiple = false, extensions = AUDIO_MEDIA).firstOrNull() } ?: return@launch
         val info = withContext(Dispatchers.IO) { Media.probe(f) }
         if (info?.hasAudio != true) { Notices.error(tr("In der Datei ist kein Ton.")); return@launch }
-        val a = AudioClip(path = f.absolutePath, startSec = pos, outSec = minOf(info.duration, maxOf(1.0, p.duration - pos)))
+        val at = pos()
+        val a = AudioClip(path = f.absolutePath, startSec = at, outSec = minOf(info.duration, maxOf(1.0, h.project.duration - at)))
         h.edit { it.copy(audio = it.audio + a) }
         onSelect(Sel.Sound(a.id))
     }
@@ -480,7 +490,7 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
                 TextOverlay.STYLES.forEach { (style, label) ->
                     DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
                         titles = false
-                        val start = when (style) { "titel" -> 0.0; "abspann" -> maxOf(0.0, p.duration - 5.0); else -> pos }
+                        val start = when (style) { "titel" -> 0.0; "abspann" -> maxOf(0.0, p.duration - 5.0); else -> pos() }
                         val o = TextOverlay(
                             style = style, startSec = start, durationSec = if (style == "bauchbinde") 6.0 else 4.0,
                             text = when (style) { "titel" -> p.title; "abspann" -> tr("Vielen Dank"); "bauchbinde" -> tr("Vorname Nachname"); else -> tr("Wichtiger Hinweis") },
@@ -614,7 +624,7 @@ private fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
                 if (withTranscript < 0) HintText(tr("Dafür braucht ein Clip ein Transkript: unter Rohschnitt › Pausen und Füllwörter oder Untertitel › Aus der Transkription eines zuordnen."))
                 else {
                     HintText(tr("Lora liest das Transkript des Clips „{0}“ und wählt die Abschnitte, die bleiben. Der Text geht an das Standardmodell, Namen pseudonymisiert.", File(h.project.clips[withTranscript].path).name))
-                    OutlinedTextField(wish, { wish = it }, minLines = 2, modifier = Modifier.fillMaxWidth(), placeholder = { Text(tr("z. B. „Nur die Erklärung des Versuchsaufbaus, höchstens 5 Minuten“")) })
+                    OutlinedTextField(wish, { wish = it }, minLines = 2, modifier = Modifier.fillMaxWidth().typing(), placeholder = { Text(tr("z. B. „Nur die Erklärung des Versuchsaufbaus, höchstens 5 Minuten“")) })
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
@@ -776,7 +786,10 @@ private fun Timeline(h: History, player: VideoPlayer, pos: Double, sel: Sel, onS
                     label(name, Offset(8f, lane.top + lane.height / 2 - 8f), small)
                 }
                 // Ruler.
-                val step = listOf(1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0, 300.0).first { it * pxPerSec >= 70 }
+                // Up to an hour between the marks: a 90-minute lecture at zoom 1 has less than 70 px per 5 minutes, and
+                // first {} without a match threw while the timeline was drawn.
+                val step = listOf(1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0, 300.0, 600.0, 900.0, 1800.0, 3600.0).firstOrNull { it * pxPerSec >= 70 }
+                    ?: (kotlin.math.ceil(70.0 / maxOf(pxPerSec, 1e-6f) / 3600.0) * 3600.0)
                 var s = (t(left) / step).toInt() * step
                 while (x(s) < size.width) {
                     if (x(s) >= left) {
@@ -842,10 +855,12 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
             is Sel.Clip -> {
                 val clip = p.clips.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
                 val i = p.clips.indexOf(clip)
+                // Length of the source: the end cannot go past it (a picture has none and may stand as long as wanted).
+                val srcLen = sourceLength(clip.path)
                 Text(tr("Clip") + " ${i + 1}: ${clip.name}", style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     SecondsField(tr("Anfang (s)"), clip.inSec, "in-${clip.id}", Modifier.weight(1f)) { v -> h.edit("in-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) else it }) } }
-                    SecondsField(tr("Ende (s)"), clip.outSec, "out-${clip.id}", Modifier.weight(1f)) { v -> h.edit("out-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(outSec = maxOf(v, it.inSec + 0.2)) else it }) } }
+                    SecondsField(tr("Ende (s)"), clip.outSec, "out-${clip.id}", Modifier.weight(1f)) { v -> h.edit("out-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(outSec = maxOf(srcLen?.let { m -> minOf(v, m) } ?: v, it.inSec + 0.2)) else it }) } }
                 }
                 Text(tr("Länge") + " ${clock(clip.length, true)}", style = MaterialTheme.typography.bodySmall)
                 Text(tr("Lautstärke") + " ${(clip.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
@@ -877,8 +892,8 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TextOverlay.STYLES.forEach { (k, l) -> FilterChip(selected = o.style == k, onClick = { h.edit { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(style = k) else it }) } }, label = { Text(tr(l)) }) }
                 }
-                OutlinedTextField(o.text, { t -> h.edit("ot-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(text = t) else it }) } }, label = { Text(tr(if (o.style == "bauchbinde") "Name" else "Text")) }, modifier = Modifier.fillMaxWidth(), maxLines = 3)
-                OutlinedTextField(o.subtext, { t -> h.edit("os-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(subtext = t) else it }) } }, label = { Text(tr(if (o.style == "bauchbinde") "Funktion / Einrichtung" else "Zweite Zeile")) }, modifier = Modifier.fillMaxWidth(), maxLines = 3)
+                OutlinedTextField(o.text, { t -> h.edit("ot-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(text = t) else it }) } }, label = { Text(tr(if (o.style == "bauchbinde") "Name" else "Text")) }, modifier = Modifier.fillMaxWidth().typing(), maxLines = 3)
+                OutlinedTextField(o.subtext, { t -> h.edit("os-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(subtext = t) else it }) } }, label = { Text(tr(if (o.style == "bauchbinde") "Funktion / Einrichtung" else "Zweite Zeile")) }, modifier = Modifier.fillMaxWidth().typing(), maxLines = 3)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     SecondsField(tr("Beginn (s)"), o.startSec, "ost-${o.id}", Modifier.weight(1f)) { v -> h.edit("ost-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(startSec = v.coerceAtLeast(0.0)) else it }) } }
                     SecondsField(tr("Dauer (s)"), o.durationSec, "od-${o.id}", Modifier.weight(1f)) { v -> h.edit("od-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(durationSec = v.coerceAtLeast(0.5)) else it }) } }
@@ -888,12 +903,13 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
             }
             is Sel.Sound -> {
                 val a = p.audio.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
+                val srcLen = sourceLength(a.path)
                 Text(a.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(tr("Lautstärke") + " ${(a.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
                 Slider(value = a.volume, onValueChange = { v -> h.edit("avol-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(volume = v) else it }) } }, valueRange = 0f..1.5f)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     SecondsField(tr("Beginn (s)"), a.startSec, "ast-${a.id}", Modifier.weight(1f)) { v -> h.edit("ast-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(startSec = v.coerceAtLeast(0.0)) else it }) } }
-                    SecondsField(tr("Länge (s)"), a.length, "al-${a.id}", Modifier.weight(1f)) { v -> h.edit("al-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(outSec = it.inSec + v.coerceAtLeast(0.5)) else it }) } }
+                    SecondsField(tr("Länge (s)"), a.length, "al-${a.id}", Modifier.weight(1f)) { v -> h.edit("al-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(outSec = (it.inSec + v.coerceAtLeast(0.5)).let { o -> srcLen?.let { m -> minOf(o, maxOf(m, it.inSec + 0.5)) } ?: o }) else it }) } }
                 }
                 SecondsField(tr("Ein- und Ausblenden (s)"), a.fadeSec, "af-${a.id}") { v -> h.edit("af-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(fadeSec = v.coerceIn(0.0, 10.0)) else it }) } }
                 OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
@@ -926,7 +942,8 @@ private fun ProjectSettings(h: History) {
     Text(tr("Ton"), style = MaterialTheme.typography.titleSmall)
     Text(tr("Rauschminderung"), style = MaterialTheme.typography.labelLarge)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(tr("aus") to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
+        // The stored value stays German ("aus"); before, tr("aus") stored "off" in English and no chip was selected.
+        listOf("aus" to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
             FilterChip(selected = p.sound.denoise == k, onClick = { h.edit { it.copy(sound = it.sound.copy(denoise = k)) } }, label = { Text(l) })
         }
     }
@@ -952,13 +969,46 @@ private fun ProjectSettings(h: History) {
     }
 }
 
-/** Seconds with a decimal comma or point. */
+/**
+ * Seconds with a decimal comma or point. While the field has the focus the typed text stays: a value the project
+ * corrects on the way („4“ on the way to „45“ is before the clip's start) used to replace the text after the first
+ * digit. Leaving the field shows the value that counts.
+ */
 @Composable
 private fun SecondsField(label: String, value: Double, key: String, modifier: Modifier = Modifier.fillMaxWidth(), onChange: (Double) -> Unit) {
     fun show(v: Double) = String.format(Locale.GERMANY, "%.2f", v)
     var text by remember(key) { mutableStateOf(show(value)) }
-    LaunchedEffect(value) { if (text.replace(',', '.').toDoubleOrNull()?.let { abs(it - value) > 0.005 } != false) text = show(value) }
-    OutlinedTextField(text, { t -> text = t; t.replace(',', '.').toDoubleOrNull()?.let(onChange) }, label = { Text(label, maxLines = 1) }, singleLine = true, modifier = modifier, textStyle = MaterialTheme.typography.bodySmall)
+    var focused by remember(key) { mutableStateOf(false) }
+    LaunchedEffect(value, focused) { if (!focused && text.replace(',', '.').toDoubleOrNull()?.let { abs(it - value) > 0.005 } != false) text = show(value) }
+    OutlinedTextField(
+        text, { t -> text = t; t.replace(',', '.').toDoubleOrNull()?.let(onChange) }, label = { Text(label, maxLines = 1) }, singleLine = true,
+        modifier = modifier.onFocusChanged { focused = it.isFocused }.typing(), textStyle = MaterialTheme.typography.bodySmall,
+    )
+}
+
+/** Length of the source file at [path] in seconds (null while unknown, and for a picture). */
+@Composable
+private fun sourceLength(path: String): Double? {
+    val len by produceState<Double?>(null, path) {
+        value = withContext(Dispatchers.IO) { File(path).takeUnless { Media.isStill(it) }?.let { Media.probe(it)?.duration?.takeIf { d -> d > 0.05 } } }
+    }
+    return len
+}
+
+/** How many text fields of the editor have the focus: then the keys belong to the text, not to the editor's shortcuts. */
+private class TypingState {
+    var fields by mutableIntStateOf(0)
+}
+
+private val LocalTyping = androidx.compose.runtime.staticCompositionLocalOf<TypingState?> { null }
+
+/** Marks a text field of the editor (see [TypingState]). */
+@Composable
+private fun Modifier.typing(): Modifier {
+    val t = LocalTyping.current ?: return this
+    val on = remember { BooleanArray(1) }
+    DisposableEffect(t) { onDispose { if (on[0]) { on[0] = false; t.fields-- } } }
+    return onFocusChanged { f -> if (f.isFocused != on[0]) { on[0] = f.isFocused; t.fields += if (on[0]) 1 else -1 } }
 }
 
 // ── Export ──────────────────────────────────────────────────────────────────────────────────────────

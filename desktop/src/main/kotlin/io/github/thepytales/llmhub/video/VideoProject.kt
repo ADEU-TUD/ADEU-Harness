@@ -125,8 +125,19 @@ data class VideoProject(
         if (i <= 0 || i >= clips.size) return 0.0
         val c = clips[i]
         if (c.transition == "none") return 0.0
-        return c.transitionSec.coerceIn(0.1, minOf(c.length, clips[i - 1].length) / 2)
+        // Clips under 0.2 s (a short picture, a cut from the transcript) leave less than the usual 0.1 s minimum –
+        // coerceIn(0.1, smaller) used to throw, and with it every drawing of the timeline.
+        val limit = minOf(c.length, clips[i - 1].length) / 2
+        if (limit <= 0.0) return 0.0
+        return c.transitionSec.coerceIn(minOf(0.1, limit), limit)
     }
+
+    /**
+     * Whether subtitle [cue] goes higher up: a lower third or a sentence at the bottom is on at the same time, and the
+     * subtitle would cover it.
+     */
+    fun subtitleRaised(cue: SubtitleCue): Boolean =
+        overlays.any { (it.style == "bauchbinde" || it.style == "einblendung") && it.startSec < cue.endSec && it.endSec > cue.startSec }
 
     val duration: Double
         get() = if (clips.isEmpty()) maxOf(audio.maxOfOrNull { it.endSec } ?: 0.0, overlays.maxOfOrNull { it.endSec } ?: 0.0)
