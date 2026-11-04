@@ -211,6 +211,7 @@ fun UpdateSection(c: AppContainer) {
     }
     if (UpdatePlatform.supported) {
         Section(tr("Automatisch")) {
+Spot("updates.auto") {
             ToggleRow(
                 tr("Beim Start nach Updates suchen"),
                 tr("Gibt es eine neue Version, fragt die App beim Start, ob sie installiert werden soll. Kein GitHub-Konto nötig."),
@@ -218,6 +219,7 @@ fun UpdateSection(c: AppContainer) {
             ) {
                 auto = it
                 Updates.setAutoCheck(context, it)
+            }
             }
         }
         Section(tr("Update-Quelle")) {

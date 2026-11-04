@@ -349,6 +349,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
         // Lora flying from her panel to the place she leads to.
         LoraFlightLayer()
+        // Touren (AP-41): the offer on the first visit of a tool and the step card.
+        LoraTourLayer(c)
         SnackbarHost(
             snackbar,
             modifier = Modifier

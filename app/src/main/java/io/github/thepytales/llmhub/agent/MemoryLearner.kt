@@ -55,7 +55,7 @@ class MemoryLearner(private val c: AppContainer) {
 
     private fun active(conv: Conversation): Boolean {
         val s = c.settings.current
-        return s.memoryLearn && MemoryMode.of(s.memoryMode) != MemoryMode.OFF && !conv.memoryOff && !conv.temporary && conv.taskId == null
+        return s.memoryLearn && MemoryMode.of(s.memoryMode) != MemoryMode.OFF && !conv.memoryOff && !conv.temporary && conv.taskId == null && !conv.vault
     }
 
     /** Called when an answer in [conv] is finished; learning starts once the chat has been quiet for [QUIET_MS]. */

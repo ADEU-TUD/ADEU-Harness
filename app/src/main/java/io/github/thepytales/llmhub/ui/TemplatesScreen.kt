@@ -76,11 +76,13 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 LoraHelperButton(c)
                 androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
-                ExtendedFloatingActionButton(
-                    onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = { Text(tr("Neue Vorlage")) },
-                )
+                Spot("create.new") {
+                    ExtendedFloatingActionButton(
+                        onClick = { editing = Template(name = "", kind = TemplateKind.PROMPT, content = "") },
+                        icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                        text = { Text(tr("Neue Vorlage")) },
+                    )
+                }
             }
         },
     ) { pad ->
@@ -91,17 +93,17 @@ fun TemplatesScreen(c: AppContainer, onBack: () -> Unit, onUse: (Template) -> Un
             contentPadding = PaddingValues(top = pad.calculateTopPadding(), bottom = pad.calculateBottomPadding() + 88.dp),
             header = {
                 // „Erstellen“ (AP-24): one wish for Lora, then the designs (Windows), then the TU Vorlagen.
-                item(key = "lora") { CreateWithLora(c, Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
+                item(key = "lora") { Spot("create.lora") { CreateWithLora(c, Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) } }
                 designSection(c)
                 item(key = "intro") {
-                    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Spot("create.templates") { Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Text(tr("TU Vorlagen"), style = MaterialTheme.typography.titleMedium)
                         Text(
                             tr("Briefe, Protokolle, Bescheinigungen und mehr im Corporate Design der TU Dresden: Vorlage antippen, Formular ausfüllen, senden. ★ zeigt eine Vorlage auf dem Startbildschirm; Personas gelten für den ganzen Chat."),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    } }
                 }
             },
         )

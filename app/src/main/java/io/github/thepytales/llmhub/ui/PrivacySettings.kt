@@ -134,7 +134,7 @@ fun PrivacySection(c: AppContainer) {
             OutlinedButton(onClick = { export("Namensliste Pseudonymisierung.txt") }, enabled = s.pseudonymTerms.isNotBlank()) { Text(tr("Liste speichern …")) }
         }
         SettingsHint(tr("Übernehmen liest Klassen- und Teilnehmerlisten (Excel, CSV, Word, Text): Spalten Vorname/Nachname oder Name, sonst ein Name je Zeile. Die gespeicherte Liste lässt sich an Kolleg/innen weitergeben."))
-        OutlinedTextField(
+        Spot("privacy.never") { OutlinedTextField(
             value = s.pseudonymIgnore,
             onValueChange = { v -> c.settings.update { it.copy(pseudonymIgnore = v) } },
             label = { Text(tr("Nie ersetzen")) },
@@ -142,7 +142,7 @@ fun PrivacySection(c: AppContainer) {
             supportingText = { Text(tr("Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.")) },
             minLines = 2,
             modifier = Modifier.fillMaxWidth(),
-        )
+        ) }
     }
 
     SettingsCard(tr("Ausprobieren")) {

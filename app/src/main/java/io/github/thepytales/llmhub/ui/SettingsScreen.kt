@@ -251,6 +251,7 @@ private fun GitHubSection(c: AppContainer) {
                 tr("In neuen Chats automatisch aktiv"),
                 tr("Das Modell kann sofort auf GitHub zugreifen. Ein GitHub-Link in einer Nachricht aktiviert die Werkzeuge immer."),
                 s.githubAutoTools,
+                spot = "github.auto",
             ) { v -> c.settings.update { it.copy(githubAutoTools = v) } }
         }
     }
@@ -284,6 +285,7 @@ private fun ChatSection(c: AppContainer) {
                 tr("Vor dem Wechsel fragen"),
                 tr("Die App fragt jedes Mal, bevor sie ein anderes Modell nimmt. Aus: Sie wechselt selbst und sagt kurz, warum."),
                 s.autoModelAsk,
+                spot = "chat.autoModelAsk",
             ) { v -> c.settings.update { it.copy(autoModelAsk = v) } }
         }
         val thinking = ThinkingLevel.parse(s.thinkingLevel)
@@ -306,6 +308,7 @@ private fun ChatSection(c: AppContainer) {
             tr("Dokumente erstellen"),
             tr("PDF, Word, PowerPoint, OPAL-Tests, Briefe, E-Mail-Entwürfe und Termine – mit Gestaltung, Logo und Barrierefreiheit."),
             s.documentTools,
+            spot = "chat.documents",
         ) { v -> c.settings.update { it.copy(documentTools = v) } }
         SwitchRow(
             spot = "chat.web",
@@ -327,6 +330,7 @@ private fun ChatSection(c: AppContainer) {
             tr("Der Agent arbeitet nach dem Limit ohne „weiter“ fort (höchstens {0} Schritte). ", AgentRunner.HARD_STEP_LIMIT) +
                 tr("Wiederholt er immer dieselbe Aktion, hält er an."),
             s.autoContinue,
+            spot = "chat.autoContinue",
         ) { v -> c.settings.update { it.copy(autoContinue = v) } }
         SwitchRow(
             spot = "chat.collapse",
@@ -524,7 +528,7 @@ private fun DocumentsSection(c: AppContainer) {
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        Spot("documents.sender") { OutlinedTextField(
             value = s.senderInfo,
             onValueChange = { v -> c.settings.update { it.copy(senderInfo = v) } },
             label = { Text(tr("Meine Absenderangaben")) },
@@ -532,7 +536,7 @@ private fun DocumentsSection(c: AppContainer) {
             supportingText = { Text(tr("Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.")) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
-        )
+        ) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(enabled = !previewBusy, onClick = {
                 previewBusy = true
@@ -558,7 +562,7 @@ private fun DocumentsSection(c: AppContainer) {
                 "Standardlogo (★) wird verwendet, wenn kein Name genannt wird."),
             style = MaterialTheme.typography.bodySmall,
         )
-        SwitchRow(tr("Standardlogo automatisch einfügen"), tr("In jedes erstellte oder exportierte Dokument."), s.autoLogo) { v ->
+        SwitchRow(tr("Standardlogo automatisch einfügen"), tr("In jedes erstellte oder exportierte Dokument."), s.autoLogo, spot = "documents.logo") { v ->
             c.settings.update { it.copy(autoLogo = v) }
         }
         logos.forEach { logo ->

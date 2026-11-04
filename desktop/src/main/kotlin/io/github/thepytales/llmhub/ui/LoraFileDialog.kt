@@ -39,6 +39,8 @@ import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
@@ -366,6 +368,9 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var newFolder by remember { mutableStateOf(false) }
+    // AP-42: rename (F2, right click) and delete (Entf) right in the dialog.
+    var renaming by remember { mutableStateOf<DialogEntry?>(null) }
+    var deleting by remember { mutableStateOf<List<DialogEntry>?>(null) }
     var pathEdit by remember { mutableStateOf<String?>(null) }
     val selected = remember { mutableStateMapOf<String, DialogEntry>() }
     var cursor by remember { mutableStateOf(0) }
@@ -527,7 +532,7 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
                 val cmd = e.isCtrlPressed || e.isMetaPressed
                 when {
                     e.key == Key.Escape -> { onDone(null); true }
-                    pathEdit != null || newFolder -> false
+                    pathEdit != null || newFolder || renaming != null || deleting != null -> false
                     else -> false
                 }
             },
@@ -621,6 +626,15 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
                 if (place == null && r.mode != LoraFileDialog.Mode.OPEN || place == null && dir.canWrite()) {
                     IconButton(onClick = { newFolder = true }) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = tr("Neuer Ordner")) }
                 }
+                val focusedLocal = (selected.values.singleOrNull() ?: shown.getOrNull(cursor))?.takeIf { it.file != null && place != DialogPlace.Cloud }
+                IconButton(onClick = { renaming = focusedLocal }, enabled = focusedLocal != null) {
+                    Icon(Icons.Outlined.DriveFileRenameOutline, contentDescription = tr("Umbenennen (F2)"))
+                }
+                IconButton(onClick = {
+                    deleting = selected.values.filter { it.file != null }.ifEmpty { listOfNotNull(focusedLocal) }
+                }, enabled = focusedLocal != null || selected.values.any { it.file != null }) {
+                    Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen (Entf)"))
+                }
             }
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth()) else HorizontalDivider()
             error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) }
@@ -637,6 +651,12 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
                     e.key == Key.Spacebar -> { shown.getOrNull(cursor)?.let { toggle(it, true) }; true }
                     e.key == Key.Enter || e.key == Key.NumPadEnter -> { shown.getOrNull(cursor)?.let(::activate) ?: confirm(); true }
                     e.key == Key.Backspace -> { parent(); true }
+                    e.key == Key.F2 -> { shown.getOrNull(cursor)?.takeIf { it.file != null }?.let { renaming = it }; true }
+                    e.key == Key.Delete -> {
+                        val list = selected.values.filter { it.file != null }.ifEmpty { listOfNotNull(shown.getOrNull(cursor)?.takeIf { it.file != null }) }
+                        if (list.isNotEmpty()) deleting = list
+                        true
+                    }
                     cmd && e.key == Key.A && r.multiple -> { shown.filter { !it.dir }.forEach { selected[keyOf(it)] = it }; true }
                     !cmd && e.utf16CodePoint in 33..0xFFFF && Character.isLetterOrDigit(e.utf16CodePoint) -> {
                         // Typing jumps to the first entry with that beginning.
@@ -663,7 +683,8 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
                     LazyVerticalGrid(GridCells.Adaptive(132.dp), Modifier.fillMaxSize(), state = gridState, contentPadding = androidx.compose.foundation.layout.PaddingValues(10.dp)) {
                         itemsIndexed(shown, key = { _, e -> keyOf(e) }) { i, e ->
                             EntryTile(e, selected.containsKey(keyOf(e)), i == cursor, grid = true,
-                                onClick = { add -> cursor = i; toggle(e, add) }, onOpen = { cursor = i; activate(e) })
+                                onClick = { add -> cursor = i; toggle(e, add) }, onOpen = { cursor = i; activate(e) },
+                                onRename = { cursor = i; renaming = e }, onDelete = { cursor = i; deleting = listOf(e) })
                         }
                     }
                 } else {
@@ -672,7 +693,8 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
                     LazyColumn(Modifier.fillMaxSize(), state = listState) {
                         itemsIndexed(shown, key = { _, e -> keyOf(e) }) { i, e ->
                             EntryTile(e, selected.containsKey(keyOf(e)), i == cursor, grid = false,
-                                onClick = { add -> cursor = i; toggle(e, add) }, onOpen = { cursor = i; activate(e) })
+                                onClick = { add -> cursor = i; toggle(e, add) }, onOpen = { cursor = i; activate(e) },
+                                onRename = { cursor = i; renaming = e }, onDelete = { cursor = i; deleting = listOf(e) })
                         }
                     }
                 }
@@ -722,6 +744,56 @@ internal fun LoraFileBrowser(c: AppContainer?, r: LoraFileDialog.Request, onDone
         }
     }
 
+    renaming?.let { e ->
+        val f = e.file ?: return@let
+        var name by remember(e) { mutableStateOf(e.name) }
+        val problem = renameProblem(f, name)
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text(tr(if (e.dir) "Ordner umbenennen" else "Datei umbenennen")) },
+            text = {
+                OutlinedTextField(
+                    name, { name = it }, singleLine = true, label = { Text(tr("Neuer Name")) }, isError = problem != null && name != e.name,
+                    supportingText = { if (problem != null && name != e.name) Text(problem) },
+                )
+            },
+            confirmButton = {
+                TextButton(enabled = problem == null, onClick = {
+                    val done = runCatching { renameEntry(c, f, name.trim()) }
+                    renaming = null
+                    done.onSuccess { reload++ }.onFailure { error = tr("Umbenennen ging nicht: {0}", it.message.orEmpty()) }
+                }) { Text(tr("Umbenennen")) }
+            },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text(tr("Abbrechen")) } },
+        )
+    }
+    deleting?.let { list ->
+        val files = list.mapNotNull { it.file }
+        val inLora = c != null && files.all { c.drive.inside(it) }
+        val bin = !inLora && java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.MOVE_TO_TRASH)
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text(if (files.size == 1) tr("„{0}“ löschen?", files[0].name) else tr("{0} Einträge löschen?", files.size)) },
+            text = {
+                Text(
+                    when {
+                        inLora -> tr("Kommt in den Papierkorb von Lora und lässt sich 30 Tage lang wiederherstellen.")
+                        bin -> tr("Kommt in den Papierkorb von Windows.")
+                        else -> tr("Wird endgültig gelöscht – das lässt sich nicht rückgängig machen.")
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val ok = runCatching { deleteEntries(c, files, inLora, bin) }
+                    deleting = null
+                    selected.clear()
+                    ok.onSuccess { reload++ }.onFailure { error = tr("Löschen ging nicht: {0}", it.message.orEmpty()) }
+                }) { Text(tr("Löschen")) }
+            },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(tr("Abbrechen")) } },
+        )
+    }
     if (newFolder) {
         var name by remember { mutableStateOf(tr("Neuer Ordner")) }
         AlertDialog(
@@ -835,7 +907,24 @@ private fun Breadcrumb(place: DialogPlace?, dir: File, davPath: String, onDir: (
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-private fun EntryTile(e: DialogEntry, chosen: Boolean, focused: Boolean, grid: Boolean, onClick: (add: Boolean) -> Unit, onOpen: () -> Unit) {
+private fun EntryTile(
+    e: DialogEntry, chosen: Boolean, focused: Boolean, grid: Boolean, onClick: (add: Boolean) -> Unit, onOpen: () -> Unit,
+    onRename: () -> Unit = {}, onDelete: () -> Unit = {},
+) {
+    // Right click: rename and delete (AP-42), only for files on this PC.
+    if (e.file != null) {
+        androidx.compose.foundation.ContextMenuArea(items = {
+            listOf(
+                androidx.compose.foundation.ContextMenuItem(tr("Umbenennen"), onRename),
+                androidx.compose.foundation.ContextMenuItem(tr("Löschen"), onDelete),
+            )
+        }) { EntryTileBody(e, chosen, focused, grid, onClick, onOpen) }
+    } else EntryTileBody(e, chosen, focused, grid, onClick, onOpen)
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun EntryTileBody(e: DialogEntry, chosen: Boolean, focused: Boolean, grid: Boolean, onClick: (add: Boolean) -> Unit, onOpen: () -> Unit) {
     val info = androidx.compose.ui.platform.LocalWindowInfo.current
     val bg = when {
         chosen -> MaterialTheme.colorScheme.secondaryContainer
@@ -871,5 +960,37 @@ private fun EntryTile(e: DialogEntry, chosen: Boolean, focused: Boolean, grid: B
             if (e.modified > 0) Text(DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(e.modified)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(if (e.dir) "" else sizeText(e.size), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(72.dp))
         }
+    }
+}
+
+/** Why [name] cannot be the new name of [f] (empty, forbidden characters, taken), or null. */
+internal fun renameProblem(f: File, name: String): String? {
+    val n = name.trim()
+    return when {
+        n.isEmpty() -> tr("Bitte einen Namen eingeben.")
+        n == f.name -> null
+        Regex("[\\\\/:*?\"<>|]").containsMatchIn(n) -> tr("Diese Zeichen gehen nicht: \\ / : * ? \" < > |")
+        n == "." || n == ".." || n.endsWith(".") || n.endsWith(" ") -> tr("Der Name darf nicht mit Punkt oder Leerzeichen enden.")
+        File(f.parentFile, n).exists() && !n.equals(f.name, ignoreCase = true) -> tr("Diesen Namen gibt es hier schon.")
+        else -> null
+    }
+}
+
+/** Renames [f]: in the Lora-Ordner through the drive (tags and stars move along), elsewhere on the disk. */
+internal fun renameEntry(c: AppContainer?, f: File, name: String): File {
+    if (name == f.name) return f
+    renameProblem(f, name)?.let { throw IllegalArgumentException(it) }
+    if (c != null && c.drive.inside(f)) return c.drive.rename(f, name).also { c.drive.changed() }
+    val target = File(f.parentFile, name)
+    if (!f.renameTo(target)) throw java.io.IOException(tr("Die Datei ist vielleicht noch in einem anderen Programm geöffnet."))
+    return target
+}
+
+/** Deletes [files]: Lora's Papierkorb inside the Lora-Ordner, else the Windows one, else for good (after asking). */
+internal fun deleteEntries(c: AppContainer?, files: List<File>, inLora: Boolean, bin: Boolean) {
+    when {
+        inLora && c != null -> { c.drive.delete(files); c.drive.changed() }
+        bin -> files.forEach { if (!java.awt.Desktop.getDesktop().moveToTrash(it)) throw java.io.IOException(it.name) }
+        else -> files.forEach { if (!it.deleteRecursively()) throw java.io.IOException(it.name) }
     }
 }

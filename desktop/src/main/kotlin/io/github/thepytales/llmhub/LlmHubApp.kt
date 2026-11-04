@@ -82,6 +82,8 @@ object LlmHubApp {
 
     fun start() {
         CrashLog.install(context)
+        // Lora im Videoeditor (AP-38 Stufe d): her actions are there before an Ablauf carries on after the start.
+        io.github.thepytales.llmhub.video.VideoLora.register()
         container = AppContainer(context)
         runCatching { TaskScheduler.scheduleAll(context) }.onFailure { AppLog.e("Aufgaben planen", it) }
         // Re-checks the GitHub tokens, so revoked ones hide the GitHub options again.

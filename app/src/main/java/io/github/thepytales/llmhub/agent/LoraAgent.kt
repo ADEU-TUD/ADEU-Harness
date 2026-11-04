@@ -50,6 +50,18 @@ sealed interface LoraStep {
      * Rückgängig); risky ones show their preview and wait for „Ausführen“.
      */
     data class Action(val plan: ActionPlan) : LoraStep
+
+    /**
+     * „Soll ich mir merken, dass …?“ (AP-39): saved only after „Merken“. [pref]/[value] make it the default of an
+     * action („files.tidy:nach“ = „semester“).
+     */
+    data class Remember(val text: String, val tool: String = "", val pref: String? = null, val value: String? = null) : LoraStep
+
+    /** A planned Ablauf over several tools (AP-40); the card shows it with Los · Ändern · Abbrechen. */
+    data class Plan(val flowId: String, val dropped: List<String> = emptyList()) : LoraStep
+
+    /** A tour through a tool (AP-41). */
+    data class Tour(val tourId: String) : LoraStep
 }
 
 /** Lora's answer: a short [text] and what to do; [local] = found on the device without a request. */
@@ -97,8 +109,12 @@ class LoraAgent(private val c: AppContainer) {
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
         val area = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)
+        // AP-39: „Merk dir, dass …“ – Lora asks before she remembers.
+        LoraPrefs.fromWish(c, wish)?.let { return it }
+        // AP-41: „Zeig mir, wie das geht“ starts the tour of the open tool.
+        localTour(wish, android)?.let { return it }
         // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
-        localAction(wish, area, android)?.let { return it }
+        if (!LoraFlows.looksMultiStep(wish)) localAction(wish, area, android)?.let { return it }
         local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
         localChats(wish)?.let { return it }
         val model = modelFor(folderId)
@@ -175,6 +191,15 @@ class LoraAgent(private val c: AppContainer) {
         return LoraReply(text, hits = hits)
     }
 
+    /** „Zeig mir, wie das geht“, „Tour durch den PDF-Werkzeugkasten“: the tour (AP-41), or null. */
+    internal fun localTour(wish: String, android: Boolean): LoraReply? {
+        val n = AppMap.norm(wish)
+        if (!TOUR.containsMatchIn(n)) return null
+        val tour = io.github.thepytales.llmhub.ui.LoraTours.find(wish, io.github.thepytales.llmhub.ui.LoraHelper.route.value)?.takeIf { !android || it.android }
+            ?: return LoraReply(tr("Touren gibt es für Dateien, Erstellen, den PDF-Werkzeugkasten und den Videoeditor – öffne einen davon oder nenne ihn."))
+        return LoraReply(tr("Ich zeige dir „{0}“.", tr(tour.title)), listOf(LoraStep.Tour(tour.id)))
+    }
+
     /**
      * Wishes for the open tool that are clear without a model (AP-38): „PDF bearbeiten“ with a PDF chosen in Dateien,
      * „zusammenfügen“, „Duplikate“, „aufräumen“, „verkleinern“, „Texterkennung“. Null for other wishes.
@@ -188,16 +213,35 @@ class LoraAgent(private val c: AppContainer) {
             Regex("(zusammenfu|zusammen ?fu|fug\\w* .*zusammen|fuhr\\w* .*zusammen|merge|vereinig)").containsMatchIn(n) && (area == ActionArea.PDF || pdfs.size >= 2) -> "pdf.merge" to emptyMap()
             area == ActionArea.FILES && Regex("(duplikat|doppelt)").containsMatchIn(n) -> "files.duplicates" to emptyMap()
             area == ActionArea.FILES && Regex("(aufraum|raum\\w* .*auf\\b|ordne|sortier)").containsMatchIn(n) ->
-                "files.tidy" to mapOf("nach" to if ("semester" in n) "semester" else if ("monat" in n) "monat" else "typ")
+                // Without a word for the order the remembered one counts (AP-39), else by type.
+                "files.tidy" to listOfNotNull(
+                    when {
+                        "semester" in n -> "semester"
+                        "monat" in n -> "monat"
+                        Regex("\\b(typ|art|dateiart|dateityp)").containsMatchIn(n) -> "typ"
+                        else -> null
+                    }?.let { "nach" to it },
+                ).toMap()
+            area == ActionArea.SHEET && Regex("^(sortier\\w*|ordne)\\s+(nach|die tabelle nach)\\s+").containsMatchIn(n) ->
+                "sheet.sort" to mapOf("spalte" to wish.trim().replace(Regex("^(?i)(sortier\\w*|ordne)\\s+(die tabelle\\s+)?nach\\s+"), "").replace(Regex("(?i)\\s+(absteigend|aufsteigend)$"), "").trim(), "absteigend" to if ("absteigend" in n) "ja" else "")
+            area == ActionArea.SHEET && Regex("(bereinig|aufraum|dubletten|doppelte zeilen)").containsMatchIn(n) -> "sheet.clean" to emptyMap()
+            area == ActionArea.SHEET && Regex("(summe|mittelwert|durchschnitt)").containsMatchIn(n) && !Regex("(spalte|je |pro )").containsMatchIn(n) -> "sheet.summary" to emptyMap()
+            area == ActionArea.VIDEO && Regex("(exportier|export|rendern|als mp4)").containsMatchIn(n) && !android ->
+                "video.export" to listOfNotNull(when { "opal" in n || "720" in n -> "opal"; "youtube" in n || "1080" in n -> "youtube"; else -> null }?.let { "vorgabe" to it }).toMap()
+            area == ActionArea.VIDEO && Regex("untertitel").containsMatchIn(n) && !android -> "video.subtitles" to emptyMap()
             Regex("(verkleiner|komprimier|kleiner machen)").containsMatchIn(n) && (area == ActionArea.PDF || pdfs.isNotEmpty()) && !android -> "pdf.compress" to emptyMap()
             area == ActionArea.PDF && Regex("(texterkennung|\\bocr\\b|text erkennen)").containsMatchIn(n) -> "pdf.ocr" to emptyMap()
             else -> return null
         }
         val action = ToolActions.byId(id)?.takeIf { !android || it.android } ?: return null
-        val json = kotlinx.serialization.json.JsonObject(args.mapValues { kotlinx.serialization.json.JsonPrimitive(it.value) })
+        val json = kotlinx.serialization.json.JsonObject(args.filterValues { it.isNotBlank() }.mapValues { kotlinx.serialization.json.JsonPrimitive(it.value) })
         return try {
-            val plan = action.plan(c, json)
-            LoraReply(if (plan.risky) tr("Das würde ich so machen – passt es?") else plan.title, listOf(LoraStep.Action(plan)))
+            val (withPrefs, used) = LoraPrefs.withDefaults(c, action, json)
+            val plan = action.plan(c, withPrefs)
+            ToolActions.log("${action.id} geplant (auf dem Gerät): ${plan.title}")
+            val remembered = if (used.isNotEmpty()) " " + tr("(wie gemerkt)") else ""
+            val steps = listOfNotNull(LoraStep.Action(plan), LoraPrefs.offerFor(c, action, json))
+            LoraReply((if (plan.risky) tr("Das würde ich so machen – passt es?") else plan.title) + remembered, steps)
         } catch (e: ActionFailed) {
             LoraReply(e.message.orEmpty())
         }
@@ -208,21 +252,26 @@ class LoraAgent(private val c: AppContainer) {
         area: ActionArea? = null,
     ): LoraReply {
         val actions = ToolActions.forArea(area, android)
-        val tools = TOOLS + actions.map { it.toolDef() }
-        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions)))
+        val multi = LoraFlows.looksMultiStep(wish)
+        val tools = TOOLS + actions.map { it.toolDef() } + if (multi) listOf(LoraFlows.TOOL) else emptyList()
+        val flowPrompt = if (!multi) "" else "\nMehrschrittige Aufträge planst du mit plan_workflow (der Nutzer startet den Plan selbst). Aktionen (id (Bereich): was | Parameter, ? = optional):\n" +
+            LoraFlows.catalog(android) + "\nJeder Schritt arbeitet mit den Dateien des vorigen weiter; lass Dateiparameter dann leer.\n"
+        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions) + flowPrompt))
         history.takeLast(4).forEach { (q, a) ->
             messages += ChatMessage(role = "user", content = q)
             messages += ChatMessage(role = "assistant", content = a)
         }
         messages += ChatMessage(role = "user", content = wish)
         val steps = mutableListOf<LoraStep>()
+        // „Soll ich mir merken …?“ after actions with a choice of the user (AP-39), shown below them.
+        val offers = mutableListOf<LoraStep>()
         var text = ""
         repeat(MAX_ROUNDS) { round ->
             val result = c.llm.streamChat(model, messages, tools.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
                 splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
             }
             text = splitThinking(result.content).second.trim()
-            if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { tr("Wie kann ich helfen?") }, steps, local = false)
+            if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { if (steps.isEmpty()) tr("Wie kann ich helfen?") else defaultText(steps) }, steps + offers, local = false)
             messages += ChatMessage(role = "assistant", content = result.content, toolCalls = result.toolCalls)
             var needsAnswer = false
             for (call in result.toolCalls) {
@@ -231,8 +280,9 @@ class LoraAgent(private val c: AppContainer) {
                 val (output, step) = if (action != null) {
                     // An action of the open tool (AP-38): planned here, carried out by the panel.
                     try {
-                        val plan = action.plan(c, args)
+                        val plan = action.plan(c, LoraPrefs.withDefaults(c, action, args).first)
                         ToolActions.log("${action.id} geplant: ${plan.title}")
+                        LoraPrefs.offerFor(c, action, args)?.let { offers += it }
                         (if (plan.risky) "Vorschau wird gezeigt, der Nutzer bestätigt: ${plan.title}" else "Wird ausgeführt: ${plan.title}") to LoraStep.Action(plan)
                     } catch (e: ActionFailed) {
                         needsAnswer = true
@@ -242,24 +292,26 @@ class LoraAgent(private val c: AppContainer) {
                         needsAnswer = true
                         "FEHLER: ${e.message ?: e.javaClass.simpleName}" to null
                     }
-                } else runTool(call.name, args, targets)
+                } else runTool(call.name, args, targets, wish, android)
                 step?.let(steps::add)
                 if (call.name == "search_chats") steps += searchChats(args.s("suche").orEmpty())
                 if (call.name == "explain" || call.name == "search_chats") needsAnswer = true
                 messages += ChatMessage(role = "tool", content = output, toolCallId = call.id, toolName = call.name)
             }
             // Actions are carried out by the screen; only an explanation needs the model once more for the answer.
-            if (!needsAnswer && steps.isNotEmpty()) return LoraReply(text.ifBlank { defaultText(steps) }, steps, local = false)
-            if (round == MAX_ROUNDS - 1) return LoraReply(text.ifBlank { defaultText(steps) }, steps, local = false)
+            if (!needsAnswer && steps.isNotEmpty()) return LoraReply(text.ifBlank { defaultText(steps) }, steps + offers, local = false)
+            if (round == MAX_ROUNDS - 1) return LoraReply(text.ifBlank { defaultText(steps) }, steps + offers, local = false)
         }
-        return LoraReply(text.ifBlank { defaultText(steps) }, steps, local = false)
+        return LoraReply(text.ifBlank { defaultText(steps) }, steps + offers, local = false)
     }
 
     /** Runs one of Lora's tools: the text for the model and the step for the screen. */
-    internal fun runTool(name: String, args: JsonObject, targets: List<AppTarget>): Pair<String, LoraStep?> = when (name) {
+    internal fun runTool(name: String, args: JsonObject, targets: List<AppTarget>, wish: String = "", android: Boolean = false): Pair<String, LoraStep?> = when (name) {
         "navigate" -> {
             val t = args.s("ziel")?.let { AppMap.byId(it, targets) ?: AppMap.clearHit(it, targets) }
+            val off = t?.tool?.let { AppTool.byId(it) }?.takeIf { it.id !in c.settings.current.enabledToolIds }
             if (t == null) "FEHLER: Ziel unbekannt. Nimm eine id aus der Liste." to null
+            else if (off != null) "Das Werkzeug „${off.label}“ ist aus; der Nutzer wird gefragt, ob es eingeschaltet werden soll." to LoraStep.EnableTool(off)
             else if (t.kind == MapKind.MODE || t.kind == MapKind.TEMPLATE) "Geöffnet: ${t.title}." to LoraStep.OpenMode(t)
             else "Geöffnet: ${t.path}${if (t.spot != null) " (Option hervorgehoben)" else ""}." to LoraStep.Navigate(t)
         }
@@ -301,6 +353,27 @@ class LoraAgent(private val c: AppContainer) {
             else "Der Nutzer wird gefragt, ob „$title“ am $date in den Kalender soll." to LoraStep.Reminder(title.take(80), date, args.s("tage_vorher")?.toIntOrNull()?.coerceIn(0, 30) ?: 3)
         }
         "explain" -> explain(args.s("thema").orEmpty()) to null
+        "remember_preference" -> {
+            val text = args.s("text")?.trim().orEmpty()
+            when {
+                text.length < 4 -> "FEHLER: Was soll ich mir merken?" to null
+                c.drive.isVaultChat(io.github.thepytales.llmhub.ui.LoraHelper.chatId) -> "FEHLER: Im Tresor merkt sich Lora nichts. Sag das dem Nutzer." to null
+                Memory.known(c, text) -> "Steht schon im Gedächtnis." to null
+                else -> "Der Nutzer wird gefragt, ob du dir „$text“ merken sollst." to LoraStep.Remember(text, args.s("werkzeug")?.lowercase()?.takeIf { w -> LoraPrefs.TOOLS.any { it.first == w } } ?: LoraPrefs.guessTool(text))
+            }
+        }
+        "start_tour" -> {
+            val tour = io.github.thepytales.llmhub.ui.LoraTours.find(args.s("werkzeug").orEmpty(), io.github.thepytales.llmhub.ui.LoraHelper.route.value)?.takeIf { !android || it.android }
+            if (tour == null) "FEHLER: Touren gibt es für: ${io.github.thepytales.llmhub.ui.LoraTours.available(android).joinToString { it.id }}." to null
+            else "Die Tour „${tour.title}“ startet." to LoraStep.Tour(tour.id)
+        }
+        "plan_workflow" -> {
+            val steps = LoraFlows.parse(args)
+            val made = if (steps.isEmpty()) null else LoraFlows.draft(c, wish, steps, android)
+            if (made == null) "FEHLER: Keine gültigen Schritte. Nimm ids aus der Liste der Aktionen." to null
+            else "Der Plan wird als Karte gezeigt (${made.first.steps.size} Schritte); der Nutzer startet ihn." + (if (made.second.isNotEmpty()) " Unbekannt und weggelassen: ${made.second.joinToString()}." else "") to
+                LoraStep.Plan(made.first.id, made.second)
+        }
         AskUserTool.NAME -> {
             val questions = AskUserTool.parse(args)
             if (questions.isEmpty()) "FEHLER: Keine Frage erkannt." to null else "Die Fragen werden angezeigt." to LoraStep.Ask(questions)
@@ -333,8 +406,11 @@ class LoraAgent(private val c: AppContainer) {
         append(", sehr schwierige, mehrstufige Analysen ").append(ModelCatalog.HARD_CHAT)
         append(", riesige Textmengen ").append(ModelCatalog.FAST_CHAT).append("; explain(thema) liest die Hilfe der App für ")
         append("„Wie geht …?“; search_chats(suche) findet frühere Chats („Wo hatte ich …?“); add_reminder(titel, datum) legt eine Frist ")
-        append("oder Erinnerung im Kalender an (der Nutzer bestätigt); ask_user nur bei echt mehrdeutigen Wünschen. Heute ist ")
+        append("oder Erinnerung im Kalender an (der Nutzer bestätigt); remember_preference(text, werkzeug) nur, wenn der Nutzer eine ")
+        append("dauerhafte Vorliebe äußert („immer“, „künftig“) – er bestätigt, nichts wird still gemerkt; start_tour(werkzeug) zeigt eine ")
+        append("kurze Tour („Zeig mir, wie das geht“); ask_user nur bei echt mehrdeutigen Wünschen. Heute ist ")
         append(java.time.LocalDate.now()).append(".\n")
+        LoraPrefs.promptLine(c)?.let { append(it).append('\n') }
         append("Änderbare Einstellungen: ").append(SETTINGS.joinToString { "${it.id} (${it.values.joinToString("/") { v -> v.first }})" }).append('\n')
         append("Werkzeuge der App: ").append(AppTool.entries.filter { !it.planned && (!android || it.android) }.joinToString { "${it.id} (${it.label})" }).append('\n')
         append("Orte (id | Art | Pfad | Beschreibung):\n").append(AppMap.candidatesText(wish, targets))
@@ -402,6 +478,10 @@ class LoraAgent(private val c: AppContainer) {
                 listOf(Param("suche", "Stichworte, leer für die letzten Chats"))),
             ToolDef("add_reminder", "Legt eine Frist oder Erinnerung als ganztägigen Kalendereintrag mit Erinnerung an (öffnet in Outlook bzw. dem Kalender); der Nutzer bestätigt.",
                 listOf(Param("titel", "Wofür, z. B. Skizzenfrist BMFTR"), Param("datum", "Tag, z. B. 2026-11-30"), Param("tage_vorher", "Erinnerung so viele Tage vorher (Standard 3)", required = false))),
+            ToolDef("remember_preference", "Fragt den Nutzer, ob Lora sich eine dauerhafte Vorliebe merken soll (z. B. „Handouts zweispaltig“); gespeichert wird erst nach seinem Ja.",
+                listOf(Param("text", "Die Vorliebe als kurzer Satz"), Param("werkzeug", "files, pdf, doc, sheet, slides, video, literature oder chat", required = false))),
+            ToolDef("start_tour", "Startet eine kurze Tour mit Leuchtrahmen durch ein Werkzeug (pdf, files, templates, video).",
+                listOf(Param("werkzeug", "id der Tour, leer: das offene Werkzeug", required = false))),
         ) + AskUserTool().defs
 
         /** Built-in help (short sections of the README) for explain and the local answer to „Wie geht …?“. */
@@ -444,9 +524,13 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.OpenChat -> tr("Das habe ich gefunden:")
             is LoraStep.Reminder -> tr("Soll ich „{0}“ in den Kalender eintragen?", s.title)
             is LoraStep.Action -> if (s.plan.risky) tr("Das würde ich so machen – passt es?") else s.plan.title
+            is LoraStep.Remember -> tr("Soll ich mir das merken?")
+            is LoraStep.Plan -> tr("So würde ich vorgehen – passt der Plan?")
+            is LoraStep.Tour -> tr("Ich zeige es dir.")
             null -> tr("Wie kann ich helfen?")
         }
 
+        private val TOUR = Regex("(zeig mir,? wie (das|es|man) (geht|funktioniert)|\\btour\\b|rundgang|fuhr mich herum|fuehr mich herum|einfuhrung in|erklar mir diesen bereich|wie funktioniert (das|dieses werkzeug) hier)")
         private val EXPLAIN_START = Regex("^(erklar|erklaer|was (ist|sind|bedeutet|heisst|meint)|wer (ist|war)|warum|wieso|weshalb|schreib|formulier|ubersetz|uebersetz|fass|gib mir|nenne|hilf mir beim)")
         private val RECENT = Regex("(letzte[nrm]? chats?|zuletzt|mein(en)? letzte[nrm]? (chat|gesprach)|letzte gesprach)")
         private val FIND_CHAT = Regex("^(wo hatte ich|wo war (das|der chat)|finde? (den |meinen )?chat|such(e)? (den |meinen )?chat|welcher chat)( (das|den|die|der|uber|mit|zu|zum|zur))*")
@@ -494,6 +578,9 @@ class LoraAgent(private val c: AppContainer) {
                 if (!help.startsWith("Dazu steht nichts")) return LoraReply(help, hits = AppMap.search(wish, targets, 3).map { it.target })
             }
             hit ?: return null
+            hit.tool?.let { AppTool.byId(it) }?.takeIf { it.id !in enabledTools && !it.planned }?.let { tool ->
+                return LoraReply(tr("Dafür gibt es „{0}“ – {1} Einschalten?", tr(tool.label), tr(tool.description)), listOf(LoraStep.EnableTool(tool)))
+            }
             return when (hit.kind) {
                 MapKind.MODE, MapKind.TEMPLATE -> LoraReply(tr("Ich öffne „{0}“.", tr(hit.title)), listOf(LoraStep.OpenMode(hit)))
                 else -> LoraReply(tr("Hier ist es: {0}.", tr(hit.path)), listOf(LoraStep.Navigate(hit)))
