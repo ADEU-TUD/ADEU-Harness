@@ -73,6 +73,49 @@ class FlowEditorUiTest {
      * margin (20 mm = 75.6 px, wider than the 60 px it used to be measured into) – that crashed with
      * „maxWidth(-15) must be >= than minWidth(0)“ while Lora wrote a long document.
      */
+    /**
+     * Gliederung, Formatvorlagen-Satz, Kommentare am Rand, Suchen und Ersetzen und ein Seitenumbruch (AP-43 bis AP-46):
+     * everything shows, and a search marks the hits.
+     */
+    @Test
+    fun outlineStylesCommentsAndSearch() = runSkikoComposeUiTest(Size(1900f, 1000f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-extras").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val src = "# Hausarbeit\n\n<!--a:c;s=subtitle-->Ein Untertitel\n\n## Einleitung\n\nDie Einleitung nennt die Frage.\n\n\\newpage\n\n" +
+            "## Methode\n\n<!--a:j;z=1.5-->Die Methode ist eine Umfrage mit Frage und Antwort.\n\n<!--a:;s=lit-->Müller, A. (2020): Buch. Dresden.\n\n" +
+            "<!-- vorlagen: wissenschaftlich -->\n"
+        val doc = DocsHandoff.open(c, "Hausarbeit", src)
+        val tab = c.docs.get(doc.id)!!.tabs.first().id
+        c.docs.update(doc.id) { d -> d.copy(comments = listOf(io.github.thepytales.llmhub.docs.DocComment(tabId = tab, quote = "Umfrage", text = "Wie viele Personen?"))) }
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        fun settle() { repeat(6) { Thread.sleep(100); mainClock.advanceTimeBy(300) }; waitForIdle() }
+        settle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-outline.png"))
+        assertTrue(onAllNodesWithText("Gliederung").fetchSemanticsNodes().isNotEmpty(), "Gliederung links")
+        assertTrue(onAllNodesWithText("Methode").fetchSemanticsNodes().isNotEmpty(), "Überschrift in der Gliederung")
+        assertTrue(onAllNodesWithText("Wie viele Personen?").fetchSemanticsNodes().isNotEmpty(), "Kommentar am Rand")
+        assertTrue(onAllNodesWithContentDescription("Löschen").fetchSemanticsNodes().isNotEmpty(), "Seitenumbruch mit Löschen")
+        // Suchen und Ersetzen über das Menü.
+        onAllNodesWithText("Bearbeiten")[0].performClick()
+        settle()
+        onAllNodesWithText("Suchen und ersetzen")[0].performClick()
+        settle()
+        onAllNodesWithText("Suchen")[0].performTextInput("Frage")
+        settle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-search.png"))
+        assertTrue(onAllNodesWithText("1 von 3").fetchSemanticsNodes().isNotEmpty(), "drei Treffer (auch in „Umfrage“)")
+        // The setting line of the style set stays in the document and is not drawn.
+        assertTrue(onAllNodesWithText("vorlagen", substring = true).fetchSemanticsNodes().isEmpty())
+        assertTrue("<!-- vorlagen: wissenschaftlich -->" in c.docs.get(doc.id)!!.tabs.first().markdown)
+    }
+
     @Test
     fun pageBreakLabelInWideMarginDoesNotCrash() = runSkikoComposeUiTest(Size(1300f, 1400f), Density(1f)) {
         mainClock.autoAdvance = false

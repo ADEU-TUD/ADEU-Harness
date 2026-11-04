@@ -170,6 +170,30 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Lora: „Überarbeite Abschnitt Methode kürzer“): die Änderungen erscheinen wie bei *Änderungen nachverfolgen* rot/grün im
   Text, eine Leiste führt von Vorschlag zu Vorschlag mit *Annehmen*, *Ablehnen* und *Alle …*; Loras Begründung steht als
   Kommentar am Rand. Die Formatierung des übrigen Textes bleibt.
+- **Gliederung und Formatvorlagen** (AP-46, seit 1.0.54): Links im Editor steht die **Gliederung** (wie in Docs,
+  *Ansicht › Gliederung*): Klick springt zur Überschrift, der Griff ⠿ verschiebt per Ziehen den **ganzen Abschnitt** samt
+  Unterabschnitten (oder ⋮ › *nach oben/unten*), Pfeile klappen Ebenen ein. Neue **Formatvorlagen**: Titel, Untertitel,
+  Bildunterschrift, Code und Literatur (hängender Einzug) zu Normaltext, Überschrift 1–4 und Zitat. **Vorlagensätze**
+  *TU Dresden* (Noto Sans, TUD-Blau), *Wissenschaftlich* (Times New Roman, 1,5 Zeilen), *Schlicht* und *Standard*
+  (Formatvorlagen-Menü oder *Format*): der Wechsel formatiert das ganze Dokument um, Word- und PDF-Export folgen.
+  „*Überschrift 1* an Markierung anpassen“ übernimmt Schrift, Größe und Farbe des markierten Textes in die Formatvorlage,
+  *Als Standard für neue Dokumente speichern* merkt sich den Satz. **Format übertragen** (Pinsel) und `**fett**`/`*kursiv*`
+  beim Tippen. Gespeichert wird als Kommentarzeilen (`<!-- vorlagen: wissenschaftlich -->`, `<!-- vorlage h1: … -->`); Word
+  bekommt echte Formatvorlagen (Titel, Untertitel, Überschrift 1–4, Literatur).
+- **Mehr Docs im Fließtext-Editor** (AP-43/44, seit 1.0.54): **Zeilenabstand** (einfach, 1,15, 1,5, doppelt),
+  **Lineal** über der Seite – Seitenränder per Ziehen (beliebige Breite in mm), Erstzeilen- und linker Einzug des Absatzes –,
+  **Suchen und Ersetzen im Text** (Strg+F/Strg+H: Treffer markiert, einzeln oder alle ersetzen, Groß-/Kleinschreibung, ganze
+  Wörter, alle Treffer formatieren), **Kommentare am Rand** neben der Textstelle (Klick markiert sie, ✓ erledigt), ein
+  **Seitenumbruch** beginnt in der Seitenansicht wirklich eine neue Seite, Silbentrennung im Blocksatz, und die
+  **Zwischenablage mit Formatierung**: Kopieren gibt Word, Browser und Mail formatierten Text (HTML), Einfügen aus Word,
+  Google Docs und Webseiten übernimmt Überschriften, Listen, Ausrichtung, fett/kursiv/unterstrichen, Farben und Links
+  (`docs/text/RichHtml.kt`). Über einer Markierung erscheint **Loras kleines Menü** (AP-47): *Überarbeiten …*, *Kürzer*,
+  *Formeller*, *Einfacher* (als einzeln annehmbare Vorschläge) und *Kommentar*.
+- **Word-Treue, Teil 2** (AP-45, seit 1.0.54): Aus .docx kommen jetzt auch **Kopf- und Fußzeile** (Text ohne Seitenzahlen;
+  nicht bei Dateien, die Lora selbst geschrieben hat), die **Seitenränder**, **Textfelder** (nur lesen, beim Zurückschreiben
+  bleiben sie unverändert), der Inhalt von **Inhaltssteuerelementen** (Felder in Vorlagen, bisher verloren), Untertitel,
+  Bildunterschrift und Literatur sowie **Zeilenabstand und Einzüge**. Test `EditorCoreTest` (Vorlage mit Kopf-/Fußzeile,
+  Textfeld, Feldern; öffnen → bearbeiten → ins Original zurückschreiben).
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

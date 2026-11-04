@@ -5053,3 +5053,53 @@ Zwischenüberschrift	Subheading
 ✓ Verbunden – {0} Sammlungen	✓ Connected – {0} collections
 ✨ fehlgeschlagen: {0}	✨ failed: {0}
 ✨ überarbeitet ein Feld mit KI. Ihre Eingaben bleiben gespeichert, bis Sie senden.	✨ revises a field with AI. Your entries stay saved until you send.
+Gliederung schließen	Close outline
+Überschriften erscheinen hier. Mit „Überschrift 1–4“ (Strg+Alt+1…4) entsteht die Gliederung.	Headings appear here. “Heading 1–4” (Ctrl+Alt+1…4) builds the outline.
+Klicken springt hin, ⠿ ziehen verschiebt den ganzen Abschnitt.	Click to jump there, drag ⠿ to move the whole section.
+Abschnitt verschieben	Move section
+Abschnitt nach oben	Move section up
+Abschnitt nach unten	Move section down
+0 Treffer	0 matches
+Optionen …	Options …
+Groß-/Kleinschreibung beachten	Match case
+Nur ganze Wörter	Whole words only
+Alle Treffer formatieren	Format all matches
+{0} Stelle(n) formatiert	{0} place(s) formatted
+Lineal: Seitenränder {0} mm	Ruler: page margins {0} mm
+Sie	You
+{0} Antworten	{0} replies
+Überarbeiten …	Revise …
+Textfeld aus Word (nur lesen)	Text box from Word (read only)
+Zeilenabstand {0}	Line spacing {0}
+Zeilenabstand der Formatvorlage	Line spacing of the style
+„{0}“ an Markierung anpassen	Update “{0}” to match selection
+Vorlagen: {0}	Styles: {0}
+Gespeichert: Dokumente ohne eigene Formatvorlagen sehen jetzt so aus.	Saved: documents without their own styles now look like this.
+„{0}“ angepasst – alle Absätze mit dieser Formatvorlage sehen jetzt so aus.	“{0}” updated – all paragraphs with this style now look like this.
+Vorlagensatz	Style set
+Wie Formatvorlage	As in the style
+Format übertragen (Pinsel)	Paint format
+Jetzt den Text markieren, der dieses Format bekommen soll.	Now select the text that should get this format.
+Eigene ({0} mm)	Custom ({0} mm)
+Bildunterschrift	Caption
+Wissenschaftlich	Academic
+Einfach	Single
+Doppelt	Double
+1,15	1.15
+1,5	1.5
+Lineal	Ruler
+✓ Lineal	✓ Ruler
+✓ Gliederung	✓ Outline
+Formatvorlagen zurücksetzen	Reset styles
+Als Standard für neue Dokumente speichern	Save as default for new documents
+Format übertragen	Paint format
+Gelb hervorheben	Highlight yellow
+Kürzer	Shorter
+Formeller	More formal
+Kürzer fassen, ohne Inhalt zu verlieren	Make it shorter without losing content
+Formeller und sachlicher formulieren	Phrase it more formally and objectively
+Einfacher und verständlicher formulieren	Phrase it more simply and clearly
+Serifenlose Schrift, Überschriften fett	Sans-serif font, bold headings
+Noto Sans, Überschriften in TUD-Blau (CD 2025)	Noto Sans, headings in TUD blue (CD 2025)
+Times-artige Schrift, 1,5 Zeilen, schwarz	Times-like font, 1.5 lines, black
+Arial, schwarz auf weiß, ohne Schmuck	Arial, black on white, no decoration

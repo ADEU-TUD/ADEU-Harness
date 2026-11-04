@@ -61,6 +61,8 @@ data class AppSettings(
     val docFooter: String = "",
     /** Unit below the TU Dresden logo (style TU Dresden), one level per line. */
     val tudUnit: String = DEFAULT_TUD_UNIT,
+    /** Formatvorlagen for documents without their own (AP-46 „Als Standard speichern“): their setting lines. */
+    val docStyleLines: String = "",
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
     /** Own details for letters and e-mails (name, function, phone, e-mail, room); prefills the "Absender" fields of templates. */
@@ -289,6 +291,7 @@ class SettingsStore(context: Context) {
             .putString("docAccent", next.docAccent)
             .putString("docFooter", next.docFooter)
             .putString("tudUnit", next.tudUnit)
+            .putString("docStyleLines", next.docStyleLines)
             .putBoolean("autoLogo", next.autoLogo)
             .putString("senderInfo", next.senderInfo)
             .putString("favoriteTemplates", next.favoriteTemplates.joinToString("\n"))
@@ -395,6 +398,7 @@ class SettingsStore(context: Context) {
             docAccent = prefs.getString("docAccent", d.docAccent) ?: d.docAccent,
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
             tudUnit = prefs.getString("tudUnit", d.tudUnit) ?: d.tudUnit,
+            docStyleLines = prefs.getString("docStyleLines", d.docStyleLines) ?: d.docStyleLines,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
             senderInfo = prefs.getString("senderInfo", d.senderInfo) ?: d.senderInfo,
             favoriteTemplates = prefs.getString("favoriteTemplates", "").orEmpty().lines().filter { it.isNotBlank() },

@@ -121,6 +121,8 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
                     listOf("schmal" to tr("Schmal (1,27 cm)"), "normal" to tr("Normal (2 cm)"), "breit" to tr("Breit (2,54 cm)")).forEach { (k, label) ->
                         androidx.compose.material3.FilterChip(margins == k, { margins = k }, label = { Text(label) })
                     }
+                    // A width set by dragging the ruler (AP-44).
+                    DocMarkup.customMm(margins)?.let { mm -> androidx.compose.material3.FilterChip(true, {}, label = { Text(tr("Eigene ({0} mm)", mm)) }) }
                 }
                 HintText(tr("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen."))
             }

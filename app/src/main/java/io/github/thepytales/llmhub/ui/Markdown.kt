@@ -175,8 +175,12 @@ internal data class Segment(
 /** The inline HTML tags of the document Markdown (see [Segment]); group 1 tag, 2 attributes, 3 content. */
 internal val INLINE_TAGS = Regex("<(u|mark|sup|sub|span)((?:\\s+[a-z-]+=\"[^\"]*\")*)\\s*>(.*?)</\\1>", RegexOption.DOT_MATCHES_ALL)
 
-/** Paragraph alignment marker at the start of a paragraph: `<!--a:c-->` centre, `a:r` right, `a:j` justified. */
-internal val ALIGN_MARK = Regex("^<!--a:([crj])-->")
+/**
+ * Paragraph marker at the start of a paragraph: `<!--a:c-->` centre, `a:r` right, `a:j` justified; since AP-46 also
+ * with paragraph settings after it (`<!--a:;s=title;z=1.5;l=10;f=-10-->`: Formatvorlage, line spacing, left and first
+ * line indent in mm). Group 1 is the alignment (may be empty), group 2 the settings.
+ */
+internal val ALIGN_MARK = Regex("^<!--a:([crj]?)((?:;[a-z]+=[0-9a-z.\\-]+)*)-->")
 
 /** The CSS colour value as RRGGBB, or null. */
 internal fun cssColor(v: String?): String? {

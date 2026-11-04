@@ -36,6 +36,8 @@ object MarkdownDocx {
         var headings: List<Pair<Int, String>> = emptyList()
         /** Page margins in twips (AP-16). */
         var margin = 1134
+        /** Formatvorlagen the document chose (AP-46); null: the look of the export style. */
+        var sheet: io.github.thepytales.llmhub.docs.text.StyleSheet? = null
         val width: Int get() = if (landscape) TEXT_WIDTH_LANDSCAPE else TEXT_WIDTH
         val height: Int get() = if (landscape) TEXT_HEIGHT_LANDSCAPE else TEXT_HEIGHT
     }
@@ -89,17 +91,46 @@ object MarkdownDocx {
      * Accessibility: German as document language (spell check, screen readers) and real heading styles, so the
      * structure shows in the navigation pane and screen readers can jump between headings.
      */
-    private fun styles(font: String) = buildString {
+    private fun styles(themeFont: String) = buildString {
+        // Formatvorlagen of the document (AP-46) as Word styles, so „Überschrift 1 ändern“ in Word works on them too.
+        val sheet = ctx.sheet
+        val body = sheet?.of(io.github.thepytales.llmhub.docs.text.ParaKind.NORMAL)
+        val font = body?.font ?: themeFont
+        val bodySize = body?.let { (it.size * 2).toInt() } ?: 21
+        val line = body?.let { (it.spacing * 240).toInt() } ?: 276
+        val after = body?.let { it.after * 20 } ?: 120
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:styles xmlns:w=\"$W_NS\">")
         append("<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii=\"$font\" w:hAnsi=\"$font\" w:cs=\"$font\"/>")
-        append("<w:sz w:val=\"21\"/><w:lang w:val=\"de-DE\" w:eastAsia=\"de-DE\" w:bidi=\"ar-SA\"/></w:rPr></w:rPrDefault>")
-        append("<w:pPrDefault><w:pPr><w:spacing w:after=\"120\" w:line=\"276\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>")
+        append("<w:sz w:val=\"$bodySize\"/><w:lang w:val=\"de-DE\" w:eastAsia=\"de-DE\" w:bidi=\"ar-SA\"/></w:rPr></w:rPrDefault>")
+        append("<w:pPrDefault><w:pPr><w:spacing w:after=\"$after\" w:line=\"$line\" w:lineRule=\"auto\"/></w:pPr></w:pPrDefault></w:docDefaults>")
         append("<w:style w:type=\"paragraph\" w:default=\"1\" w:styleId=\"Standard\"><w:name w:val=\"Normal\"/><w:qFormat/></w:style>")
+        fun rPr(kind: io.github.thepytales.llmhub.docs.text.ParaKind, fallback: String): String {
+            val d = sheet?.of(kind) ?: return fallback
+            return buildString {
+                d.font?.let { append("<w:rFonts w:ascii=\"${esc(it)}\" w:hAnsi=\"${esc(it)}\" w:cs=\"${esc(it)}\"/>") }
+                if (d.bold) append("<w:b/>")
+                if (d.italic) append("<w:i/>")
+                d.color?.let { append("<w:color w:val=\"$it\"/>") }
+                append("<w:sz w:val=\"${(d.size * 2).toInt()}\"/>")
+            }
+        }
+        fun spacing(kind: io.github.thepytales.llmhub.docs.text.ParaKind): String {
+            val d = sheet?.of(kind) ?: return ""
+            return "<w:spacing w:before=\"${d.before * 20}\" w:after=\"${d.after * 20}\" w:line=\"${(d.spacing * 240).toInt()}\" w:lineRule=\"auto\"/>"
+        }
         for (level in 1..4) {
+            val kind = io.github.thepytales.llmhub.docs.text.ParaKind.heading(level)
             append("<w:style w:type=\"paragraph\" w:styleId=\"Heading$level\"><w:name w:val=\"heading $level\"/>")
             append("<w:basedOn w:val=\"Standard\"/><w:next w:val=\"Standard\"/><w:uiPriority w:val=\"9\"/><w:qFormat/>")
-            append("<w:pPr><w:keepNext/><w:outlineLvl w:val=\"${level - 1}\"/></w:pPr><w:rPr><w:b/></w:rPr></w:style>")
+            append("<w:pPr><w:keepNext/>${spacing(kind)}<w:outlineLvl w:val=\"${level - 1}\"/></w:pPr><w:rPr>${rPr(kind, "<w:b/>")}</w:rPr></w:style>")
         }
+        // Titel, Untertitel and Literatur (AP-46).
+        append("<w:style w:type=\"paragraph\" w:styleId=\"Title\"><w:name w:val=\"Title\"/><w:basedOn w:val=\"Standard\"/><w:next w:val=\"Standard\"/><w:qFormat/>")
+        append("<w:pPr>${spacing(io.github.thepytales.llmhub.docs.text.ParaKind.TITLE)}</w:pPr><w:rPr>${rPr(io.github.thepytales.llmhub.docs.text.ParaKind.TITLE, "<w:sz w:val=\"52\"/>")}</w:rPr></w:style>")
+        append("<w:style w:type=\"paragraph\" w:styleId=\"Subtitle\"><w:name w:val=\"Subtitle\"/><w:basedOn w:val=\"Standard\"/><w:next w:val=\"Standard\"/><w:qFormat/>")
+        append("<w:pPr>${spacing(io.github.thepytales.llmhub.docs.text.ParaKind.SUBTITLE)}</w:pPr><w:rPr>${rPr(io.github.thepytales.llmhub.docs.text.ParaKind.SUBTITLE, "<w:color w:val=\"666666\"/><w:sz w:val=\"30\"/>")}</w:rPr></w:style>")
+        append("<w:style w:type=\"paragraph\" w:styleId=\"Bibliography\"><w:name w:val=\"Bibliography\"/><w:basedOn w:val=\"Standard\"/><w:qFormat/>")
+        append("<w:pPr>${spacing(io.github.thepytales.llmhub.docs.text.ParaKind.LITERATURE)}<w:ind w:left=\"567\" w:hanging=\"567\"/></w:pPr><w:rPr>${rPr(io.github.thepytales.llmhub.docs.text.ParaKind.LITERATURE, "")}</w:rPr></w:style>")
         append("<w:style w:type=\"paragraph\" w:styleId=\"FootnoteText\"><w:name w:val=\"footnote text\"/><w:basedOn w:val=\"Standard\"/>")
         append("<w:pPr><w:spacing w:after=\"40\" w:line=\"240\" w:lineRule=\"auto\"/></w:pPr><w:rPr><w:sz w:val=\"18\"/></w:rPr></w:style>")
         append("<w:style w:type=\"character\" w:styleId=\"FootnoteReference\"><w:name w:val=\"footnote reference\"/><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr></w:style>")
@@ -157,6 +188,7 @@ object MarkdownDocx {
         val c = Ctx(notes, header = setup.hasHeader, footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank())
         c.margin = setup.marginTwips
         c.headings = DocMarkup.tocEntries(markdown)
+        c.sheet = io.github.thepytales.llmhub.docs.text.Styles.read(markdown).takeIf { it.explicit || it.changed.isNotEmpty() }
         current.set(c)
         try {
             // The body first: it collects the pictures that the package lists.
@@ -378,6 +410,39 @@ object MarkdownDocx {
         }
     }
 
+    /**
+     * A paragraph of the Fließtext-Editor with its marker (AP-44/46): Formatvorlage (Titel, Untertitel,
+     * Bildunterschrift, Code, Literatur), alignment, line spacing and indents.
+     */
+    private fun markedParagraph(text: String): String {
+        val m = io.github.thepytales.llmhub.ui.ALIGN_MARK.find(text.trimStart()) ?: return para(runs(text), SPACING)
+        val p = io.github.thepytales.llmhub.docs.text.ParaFormat.fromMarker(io.github.thepytales.llmhub.docs.text.ParaFormat(), m)
+        val sheet = ctx.sheet
+        val style = when (p.kind) {
+            io.github.thepytales.llmhub.docs.text.ParaKind.TITLE -> "Title"
+            io.github.thepytales.llmhub.docs.text.ParaKind.SUBTITLE -> "Subtitle"
+            io.github.thepytales.llmhub.docs.text.ParaKind.CAPTION -> "Caption"
+            io.github.thepytales.llmhub.docs.text.ParaKind.LITERATURE -> "Bibliography"
+            else -> null
+        }
+        val pPr = buildString {
+            style?.let { append("<w:pStyle w:val=\"$it\"/>") }
+            when {
+                p.spacing != null -> append("<w:spacing w:after=\"120\" w:line=\"${(p.spacing * 240).toInt()}\" w:lineRule=\"auto\"/>")
+                style == null && p.kind != io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append(if (sheet != null) "" else SPACING)
+                p.kind == io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append("<w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/>")
+            }
+            if (p.left != 0 || p.first != 0) {
+                val left = (p.left * 56.693f).toInt()
+                val first = (p.first * 56.693f).toInt()
+                append("<w:ind w:left=\"$left\"" + (if (first >= 0) " w:firstLine=\"$first\"" else " w:hanging=\"${-first}\"") + "/>")
+            }
+            append(jc(text))
+        }
+        val base = if (p.kind == io.github.thepytales.llmhub.docs.text.ParaKind.CODE) RunStyle(mono = true, size = 20) else null
+        return para(if (base != null) runs(text, base) else runs(text), pPr)
+    }
+
     /** Alignment of a paragraph of the Fließtext-Editor (marker `<!--a:c-->` at its start, AP-44). */
     private fun jc(text: String): String = when (io.github.thepytales.llmhub.ui.ALIGN_MARK.find(text.trimStart())?.groupValues?.get(1)) {
         "c" -> "<w:jc w:val=\"center\"/>"
@@ -537,7 +602,7 @@ object MarkdownDocx {
             DocMarkup.isComment(text) -> {}
             else -> {
                 val img = DocMarkup.image(text)
-                if (img != null) append(imageParagraph(img)) else append(para(runs(text), SPACING + jc(text)))
+                if (img != null) append(imageParagraph(img)) else append(markedParagraph(text))
             }
         }
     }
@@ -571,7 +636,9 @@ object MarkdownDocx {
                     val size = when (b.level) { 1 -> 40; 2 -> 32; 3 -> 27; else -> 24 }
                     val lineColor = accent ?: "BBBBBB"
                     val border = if (b.level == 1) "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"8\" w:space=\"4\" w:color=\"$lineColor\"/></w:pBdr>" else ""
-                    val style = RunStyle(bold = true, size = size, color = if (b.level <= 2) accent else null, font = headFont)
+                    val def = ctx.sheet?.of(io.github.thepytales.llmhub.docs.text.ParaKind.heading(b.level.coerceIn(1, 4)))
+                    // With Formatvorlagen (AP-46) the heading looks as its Word style says.
+                    val style = if (def != null) RunStyle() else RunStyle(bold = true, size = size, color = if (b.level <= 2) accent else null, font = headFont)
                     val align = jc(b.text).ifEmpty { if (b.level == 1 && theme.style == DocStyle.CLASSIC) "<w:jc w:val=\"center\"/>" else "" }
                     val level = b.level.coerceIn(1, 4)
                     append(para(runs(b.text, style), "<w:pStyle w:val=\"Heading$level\"/><w:keepNext/>$border<w:spacing w:before=\"240\" w:after=\"120\"/>$align"))

@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,7 +53,9 @@ import androidx.compose.material.icons.outlined.FormatClear
 import androidx.compose.material.icons.outlined.FormatColorFill
 import androidx.compose.material.icons.outlined.FormatColorText
 import androidx.compose.material.icons.outlined.FormatItalic
+import androidx.compose.material.icons.outlined.FormatLineSpacing
 import androidx.compose.material.icons.outlined.FormatListNumbered
+import androidx.compose.material.icons.outlined.FormatPaint
 import androidx.compose.material.icons.outlined.FormatStrikethrough
 import androidx.compose.material.icons.outlined.FormatUnderlined
 import androidx.compose.material.icons.outlined.Image
@@ -73,7 +77,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,6 +108,8 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -119,6 +127,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextIndent
@@ -129,12 +138,18 @@ import androidx.compose.ui.unit.sp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.docs.DocBlocks
 import io.github.thepytales.llmhub.docs.DocMarkup
+import io.github.thepytales.llmhub.docs.DocComment
+import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.text.Align
 import io.github.thepytales.llmhub.docs.text.CharFormat
 import io.github.thepytales.llmhub.docs.text.ParaFormat
 import io.github.thepytales.llmhub.docs.text.ParaKind
+import io.github.thepytales.llmhub.docs.text.RichHtml
 import io.github.thepytales.llmhub.docs.text.RichText
+import io.github.thepytales.llmhub.docs.text.StyleSet
+import io.github.thepytales.llmhub.docs.text.StyleSheet
+import io.github.thepytales.llmhub.docs.text.Styles
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -194,6 +209,29 @@ class FlowState(markdown: String) {
     var reviewAt by mutableIntStateOf(0)
     var revising by mutableStateOf(false)
     var nextSuggestion = 1
+
+    /** Formatvorlagen of the document (AP-46), set by the editor from its setting lines. */
+    var sheet by mutableStateOf(StyleSheet())
+    /** Format übertragen (Pinsel, AP-46): the format the next selection takes. */
+    var painter by mutableStateOf<Pair<CharFormat, ParaFormat>?>(null)
+
+    // Suchen und Ersetzen (AP-44).
+    var findOpen by mutableStateOf(false)
+    var find by mutableStateOf("")
+    var replaceWith by mutableStateOf("")
+    var matchCase by mutableStateOf(false)
+    var wholeWord by mutableStateOf(false)
+    var findAt by mutableIntStateOf(0)
+
+    /** Open comments of the tab: at the margin and marked in the text (AP-44). */
+    var comments by mutableStateOf<List<DocComment>>(emptyList())
+    /** Top of each piece of running text on the page (px from the top of the text area), for jumps and comments. */
+    val segTop = mutableStateMapOf<Long, Float>()
+    /** The text area of the page and the scrolled content, to turn places on the page into scroll positions. */
+    var pageCoords: LayoutCoordinates? = null
+    var contentCoords: LayoutCoordinates? = null
+    /** Set by the editor: scrolls so that a place on the page ([segTop] coordinates) is visible. */
+    var scrollTo: ((Float) -> Unit)? = null
 
     init {
         load(markdown)
@@ -270,6 +308,126 @@ class FlowState(markdown: String) {
 
     fun changed() {
         version++
+    }
+
+    /** Takes a changed Markdown of the whole document (outline moves, margins, Formatvorlagen) as one step. */
+    fun applyMarkdown(md: String) {
+        if (md == markdown()) return
+        checkpoint()
+        load(md)
+        changed()
+    }
+
+    fun setMargins(mm: Int) {
+        val md = markdown()
+        applyMarkdown(DocMarkup.withPageSetup(md, DocMarkup.pageSetup(md).copy(margins = DocMarkup.marginsFor(mm))))
+    }
+
+    fun applySheet(s: StyleSheet) = applyMarkdown(Styles.write(markdown(), s))
+
+    // ── Suchen und Ersetzen (AP-44) ──────────────────────────────────────────────────────────────
+
+    private fun pattern(): Regex? {
+        if (find.isEmpty()) return null
+        val esc = Regex.escape(find)
+        val p = if (wholeWord) "(?<![\\p{L}\\p{N}])$esc(?![\\p{L}\\p{N}])" else esc
+        return Regex(p, if (matchCase) emptySet() else setOf(RegexOption.IGNORE_CASE))
+    }
+
+    fun hitsIn(r: RichText): List<IntRange> = if (!findOpen) emptyList() else pattern()?.findAll(r.text)?.map { it.range }?.filter { !it.isEmpty() }?.toList().orEmpty()
+
+    fun hits(): List<Pair<FlowSeg.Text, IntRange>> = segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> hitsIn(t.rich).map { t to it } }
+
+    /** Replaces hit [i] (the replacement takes the format of the hit's first character). */
+    fun replaceHit(i: Int) {
+        val (t, r) = hits().getOrNull(i) ?: return
+        checkpoint()
+        t.rich = t.rich.replace(r, replaceWith, t.rich.chars[r.first].stored)
+        t.selection = TextRange(r.first + replaceWith.length)
+        changed()
+    }
+
+    fun replaceAll(): Int {
+        val all = hits()
+        if (all.isEmpty()) return 0
+        checkpoint()
+        all.groupBy { it.first }.forEach { (t, list) ->
+            list.map { it.second }.sortedByDescending { it.first }.forEach { r -> t.rich = t.rich.replace(r, replaceWith, t.rich.chars[r.first].stored) }
+            t.selection = TextRange(t.selection.start.coerceAtMost(t.rich.text.length))
+        }
+        changed()
+        return all.size
+    }
+
+    /** Formats every hit (Suchen und Ersetzen „auch Formatierung“). */
+    fun formatHits(change: (CharFormat) -> CharFormat): Int {
+        val all = hits()
+        if (all.isEmpty()) return 0
+        checkpoint()
+        all.forEach { (t, r) -> t.rich = t.rich.format(r, change) }
+        changed()
+        return all.size
+    }
+
+    // ── Places in the text ───────────────────────────────────────────────────────────────────────
+
+    /** Where [quote] (of a comment) is in the running text. */
+    fun findQuote(quote: String): Pair<FlowSeg.Text, IntRange>? {
+        val q = quote.trim()
+        if (q.isEmpty()) return null
+        val head = q.take(80)
+        for (t in segs.filterIsInstance<FlowSeg.Text>()) {
+            val i = t.rich.text.indexOf(head)
+            if (i >= 0) return t to (i until (i + q.length).coerceAtMost(t.rich.text.length))
+        }
+        return null
+    }
+
+    /** Top of the line of [quote] on the page (px), or null. */
+    fun quoteY(quote: String): Float? {
+        val (t, r) = findQuote(quote) ?: return null
+        return lineTop(t, r.first)
+    }
+
+    private fun lineTop(t: FlowSeg.Text, offset: Int): Float? {
+        val top = segTop[t.id] ?: return null
+        val layout = t.layout ?: return top
+        return top + layout.getLineTop(layout.getLineForOffset(offset.coerceIn(0, layout.layoutInput.text.length)))
+    }
+
+    fun showQuote(quote: String) {
+        val (t, r) = findQuote(quote) ?: return
+        show(t, r)
+    }
+
+    /** Marks [r] in [t] and scrolls there. */
+    fun show(t: FlowSeg.Text, r: IntRange) {
+        active = t
+        t.selection = TextRange(r.first, (r.last + 1).coerceAtLeast(r.first))
+        runCatching { t.focus.requestFocus() }
+        lineTop(t, r.first)?.let { scrollTo?.invoke(it) }
+    }
+
+    /** Jumps to heading number [k] of the document (Gliederung). */
+    fun jumpToHeading(k: Int) {
+        var n = 0
+        for (t in segs.filterIsInstance<FlowSeg.Text>()) for (i in t.rich.paras.indices) if (t.rich.paras[i].kind.heading) {
+            if (n == k) {
+                val s0 = t.rich.starts[i]
+                show(t, s0 until s0)
+                return
+            }
+            n++
+        }
+    }
+
+    /** Puts [piece] (from the clipboard) at the cursor, replacing the selection. */
+    fun paste(t: FlowSeg.Text, piece: RichText) {
+        checkpoint()
+        val sel = t.selection
+        t.rich = t.rich.cut(sel.min, sel.max).insert(sel.min, piece)
+        t.selection = TextRange(sel.min + piece.text.length)
+        changed()
     }
 
     // ── Formatting of the active text ───────────────────────────────────────────────────────────────
@@ -421,6 +579,7 @@ class FlowHost(
     val onSpell: () -> Unit = {},
     val onTrack: (() -> Unit)? = null,
     val onAskAi: () -> Unit = {},
+    val onShowComments: () -> Unit = {},
 ) {
     /** Set by the editor while it is shown: puts a block (picture …) or text (a citation) at the cursor. */
     var insertBlock: ((String) -> Unit)? = null
@@ -445,37 +604,73 @@ private fun familyOf(name: String?): FontFamily? = when {
     else -> FontFamily.SansSerif
 }
 
-/** The look of the running text: paragraph styles, character formats, Lora's marks. */
-internal fun flowAnnotated(r: RichText, base: TextStyle, accent: Color, muted: Color, codeBg: Color, density: Float): AnnotatedString = buildAnnotatedString {
+/** Points of a Formatvorlage on the screen: A4 is 794 dp wide at 100 %, so 1 pt is 4/3 dp. */
+internal fun ptSp(pt: Float, zoom: Float) = (pt * 4f / 3f * zoom).sp
+
+/** Millimetres on the page as text units (indents). */
+private fun mmSp(mm: Int, zoom: Float) = (mm * 3.7795f * zoom).sp
+
+/** The Formatvorlagen of a document: its own setting lines, else the saved default, else those of its export style. */
+internal fun sheetFor(markdown: String, docStyle: String?, defaults: String): StyleSheet {
+    val own = Styles.read(markdown)
+    if (own.explicit || own.changed.isNotEmpty()) return own
+    if (defaults.isNotBlank()) Styles.read(defaults).let { if (it.explicit || it.changed.isNotEmpty()) return it }
+    return StyleSheet(StyleSet.of(DocStyle.parse(docStyle)))
+}
+
+/**
+ * The look of the running text: Formatvorlagen of the paragraphs ([sheet]), their line spacing and indents, character
+ * formats, Lora's marks and [marks] (hits of the search, commented text) as backgrounds.
+ */
+internal fun flowAnnotated(
+    r: RichText, base: TextStyle, accent: Color, muted: Color, codeBg: Color, density: Float,
+    sheet: StyleSheet = StyleSheet(), zoom: Float = 1f, marks: List<Pair<IntRange, Color>> = emptyList(),
+): AnnotatedString = buildAnnotatedString {
     append(r.text)
-    val listIndent = 28f
+    val listIndent = 28f * zoom
     r.paras.forEachIndexed { i, p ->
         val range = r.paraRange(i)
         val end = if (i + 1 < r.paras.size) range.last + 2 else r.text.length
         if (end <= range.first && r.text.isNotEmpty() && range.first >= r.text.length) return@forEachIndexed
-        val indent = when {
-            p.kind.list -> (listIndent * (p.indent + 1)).sp
-            p.kind == ParaKind.QUOTE -> 18.sp
-            else -> 0.sp
+        val def = sheet.of(p.kind)
+        // Literatur hangs by 1 cm unless the paragraph says otherwise.
+        val left = if (p.kind == ParaKind.LITERATURE && p.left == 0 && p.first == 0) 10 else p.left
+        val first = if (p.kind == ParaKind.LITERATURE && p.left == 0 && p.first == 0) -10 else p.first
+        val listSp = when {
+            p.kind.list -> listIndent * (p.indent + 1)
+            p.kind == ParaKind.QUOTE -> 18f * zoom
+            else -> 0f
         }
+        val rest = listSp + mmSp(left, zoom).value
+        val firstLine = (rest + mmSp(first, zoom).value).coerceAtLeast(0f)
         addStyle(
             ParagraphStyle(
                 textAlign = when (p.align) { Align.CENTER -> TextAlign.Center; Align.RIGHT -> TextAlign.End; Align.JUSTIFY -> TextAlign.Justify; Align.LEFT -> TextAlign.Start },
-                textIndent = if (indent.value > 0f) TextIndent(indent, indent) else null,
-                lineHeight = if (p.kind.heading) 1.3.em else 1.5.em,
+                textIndent = if (rest > 0f || firstLine > 0f) TextIndent(firstLine.sp, rest.sp) else null,
+                lineHeight = ((p.spacing ?: def.spacing) * 1.2f).em,
+                // Silbentrennung (AP-43) where it matters: in justified text.
+                hyphens = if (p.align == Align.JUSTIFY) Hyphens.Auto else Hyphens.None,
             ),
             range.first, end.coerceAtLeast(range.first),
         )
-        val headStyle = when (p.kind) {
-            ParaKind.H1 -> SpanStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            ParaKind.H2 -> SpanStyle(fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            ParaKind.H3 -> SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            ParaKind.H4 -> SpanStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            ParaKind.QUOTE -> SpanStyle(fontStyle = FontStyle.Italic, color = muted)
-            ParaKind.CHECK -> if (p.checked) SpanStyle(color = muted, textDecoration = TextDecoration.LineThrough) else null
-            else -> null
+        if (range.last >= range.first) {
+            addStyle(
+                SpanStyle(
+                    fontSize = ptSp(def.size, zoom),
+                    fontWeight = if (def.bold) FontWeight.Bold else null,
+                    fontStyle = if (def.italic) FontStyle.Italic else null,
+                    fontFamily = if (p.kind == ParaKind.CODE) FontFamily.Monospace else familyOf(def.font),
+                    color = when {
+                        p.kind == ParaKind.CHECK && p.checked -> muted
+                        def.color != null -> hex(def.color)
+                        else -> Color.Unspecified
+                    },
+                    background = if (p.kind == ParaKind.CODE) codeBg else Color.Unspecified,
+                    textDecoration = if (p.kind == ParaKind.CHECK && p.checked) TextDecoration.LineThrough else null,
+                ),
+                range.first, range.last + 1,
+            )
         }
-        if (headStyle != null && range.last >= range.first) addStyle(headStyle, range.first, range.last + 1)
     }
     var i = 0
     while (i < r.text.length) {
@@ -495,7 +690,7 @@ internal fun flowAnnotated(r: RichText, base: TextStyle, accent: Color, muted: C
                     fontFamily = if (f.code) FontFamily.Monospace else familyOf(f.font),
                     fontSize = when {
                         f.sup || f.sub -> 0.75.em
-                        f.size != null -> f.size.sp
+                        f.size != null -> ptSp(f.size.toFloat(), zoom)
                         else -> androidx.compose.ui.unit.TextUnit.Unspecified
                     },
                     baselineShift = if (f.sup) BaselineShift.Superscript else if (f.sub) BaselineShift.Subscript else null,
@@ -518,6 +713,11 @@ internal fun flowAnnotated(r: RichText, base: TextStyle, accent: Color, muted: C
             )
         }
         i = j
+    }
+    for ((range, color) in marks) {
+        val a = range.first.coerceIn(0, r.text.length)
+        val b = (range.last + 1).coerceIn(a, r.text.length)
+        if (b > a) addStyle(SpanStyle(background = color), a, b)
     }
 }
 
@@ -561,6 +761,24 @@ fun FlowEditor(
     val scope = rememberCoroutineScope()
     var view by remember { mutableStateOf(FlowView.PAGES) }
     var zoom by remember { mutableStateOf(1f) }
+    // Gliederung on the left (AP-46) and the Lineal (AP-44), like in Docs: on on wide screens.
+    var outline by remember { mutableStateOf(!narrow) }
+    var ruler by remember { mutableStateOf(true) }
+    val defaults = c.settings.current.docStyleLines
+    val sheet = remember(state.version, doc.style, defaults) { sheetFor(state.markdown(), doc.style, defaults) }
+    if (state.sheet != sheet) state.sheet = sheet
+    val comments = remember(doc.comments, tabId) { openComments(doc, tabId) }
+    if (state.comments != comments) state.comments = comments
+    val scroll = androidx.compose.foundation.rememberScrollState()
+    DisposableEffect(state, scroll) {
+        state.scrollTo = { y ->
+            val page = state.pageCoords
+            val content = state.contentCoords
+            val inContent = if (page != null && content != null && page.isAttached && content.isAttached) content.localPositionOf(page, Offset(0f, y)).y else y
+            scope.launch { scroll.animateScrollTo((inContent - 120f).roundToInt().coerceAtLeast(0)) }
+        }
+        onDispose { state.scrollTo = null }
+    }
     // Changes from outside (the model, Lora's chat, another PC) are loaded; the editor's own saves are not.
     LaunchedEffect(markdown) {
         if (markdown != state.lastMarkdown && state.writing == null && state.suggestions().isEmpty()) state.load(markdown)
@@ -630,19 +848,40 @@ fun FlowEditor(
     var askRevise by remember { mutableStateOf(false) }
     var linkFor by remember { mutableStateOf<IntRange?>(null) }
 
+    fun quickRevise(instruction: String?) {
+        if (instruction == null) { askRevise = true; return }
+        if (!startRevising(c, doc, state, "markierung", instruction)) Notices.error(tr("Bitte zuerst Text markieren."))
+    }
+    fun openFind() {
+        state.active?.let { t -> if (!t.selection.collapsed) t.rich.text.substring(t.selection.min, t.selection.max).takeIf { '\n' !in it }?.let { state.find = it } }
+        state.findOpen = true
+    }
+
     Column(Modifier.fillMaxSize()) {
-        FlowMenus(state, view, onView = { view = it }, zoom = zoom, onZoom = { zoom = it }, host = host, onWrite = { askWrite = true }, onRevise = { askRevise = true }, onLink = {
-            state.active?.selection?.takeIf { !it.collapsed }?.let { linkFor = it.min until it.max }
-        })
-        FlowToolbar(state, host, onWrite = { askWrite = true }, onLink = {
+        FlowMenus(
+            c, doc, state, view, onView = { view = it }, zoom = zoom, onZoom = { zoom = it }, host = host, onWrite = { askWrite = true }, onRevise = { askRevise = true },
+            onLink = { state.active?.selection?.takeIf { !it.collapsed }?.let { linkFor = it.min until it.max } },
+            outline = outline, onOutline = { outline = !outline }, ruler = ruler, onRuler = { ruler = !ruler }, onFind = ::openFind,
+        )
+        FlowToolbar(c, doc, state, host, onWrite = { askWrite = true }, onLink = {
             state.active?.selection?.let { linkFor = it.min until it.max }
         })
         HorizontalDivider()
+        if (state.findOpen) FlowFindBar(state) { seg, range -> state.show(seg, range) }
         // Lora writes (AP-47): her request, then Übernehmen · Neu · Verwerfen.
         LoraWriteBar(c, doc, state)
         ReviewBar(state)
-        Box(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
-            FlowPages(c, doc, tabId, state, view, zoom, narrow, host, onWrite = { askWrite = true })
+        Row(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
+            if (outline && !narrow) {
+                FlowOutline(state, onJump = { state.jumpToHeading(it) }, onClose = { outline = false }, modifier = Modifier.width(240.dp))
+                androidx.compose.material3.VerticalDivider()
+            }
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                FlowPages(
+                    c, doc, tabId, state, view, zoom, narrow, host, scroll, ruler = ruler, onWrite = { askWrite = true },
+                    onRevise = ::quickRevise, onFind = ::openFind,
+                )
+            }
         }
     }
 
@@ -888,8 +1127,9 @@ private fun ReviewBar(state: FlowState) {
 /** The menus like in Docs: Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras. */
 @Composable
 private fun FlowMenus(
-    state: FlowState, view: FlowView, onView: (FlowView) -> Unit, zoom: Float, onZoom: (Float) -> Unit, host: FlowHost,
+    c: AppContainer, doc: LiveDoc, state: FlowState, view: FlowView, onView: (FlowView) -> Unit, zoom: Float, onZoom: (Float) -> Unit, host: FlowHost,
     onWrite: () -> Unit, onRevise: () -> Unit, onLink: () -> Unit,
+    outline: Boolean, onOutline: () -> Unit, ruler: Boolean, onRuler: () -> Unit, onFind: () -> Unit,
 ) {
     var open by remember { mutableStateOf<String?>(null) }
     var tablePick by remember { mutableStateOf(false) }
@@ -916,7 +1156,7 @@ private fun FlowMenus(
             item("Rückgängig", "Strg+Z", state.canUndo, { state.undo() }, close)
             item("Wiederholen", "Strg+Y", state.canRedo, { state.redo() }, close)
             item("Alles auswählen", "Strg+A", onClick = { state.active?.let { it.selection = TextRange(0, it.rich.text.length) } }, close = close)
-            item("Suchen und ersetzen", "Strg+H", onClick = host.onFind, close = close)
+            item("Suchen und ersetzen", "Strg+F", onClick = onFind, close = close)
         }
         menu("Ansicht") { close ->
             item(if (view == FlowView.PAGES) "✓ Seitenansicht" else "Seitenansicht", onClick = { onView(FlowView.PAGES) }, close = close)
@@ -924,7 +1164,8 @@ private fun FlowMenus(
             HorizontalDivider()
             listOf(0.75f, 0.9f, 1f, 1.25f, 1.5f).forEach { z -> item((if (zoom == z) "✓ " else "") + "Zoom ${(z * 100).roundToInt()} %", onClick = { onZoom(z) }, close = close) }
             HorizontalDivider()
-            item("Gliederung", onClick = host.onOutline, close = close)
+            item(if (outline) "✓ Gliederung" else "Gliederung", onClick = onOutline, close = close)
+            item(if (ruler) "✓ Lineal" else "Lineal", onClick = onRuler, close = close)
             item("Markdown-Quelltext", onClick = host.onSource, close = close)
             item("Lesemodus", onClick = host.onRead, close = close)
         }
@@ -956,6 +1197,23 @@ private fun FlowMenus(
                 item(k.label, when (k.level) { 0 -> if (k == ParaKind.NORMAL) "Strg+Alt+0" else ""; else -> "Strg+Alt+${k.level}" }, onClick = { state.kind(k) }, close = close)
             }
             HorizontalDivider()
+            // Zeilenabstand (AP-44).
+            val p = state.paraHere()
+            LINE_SPACINGS.forEach { (z, label) -> item((if (p.spacing == z) "✓ " else "") + tr("Zeilenabstand {0}", tr(label)), onClick = { state.paragraph { it.copy(spacing = z) } }, close = close) }
+            item((if (p.spacing == null) "✓ " else "") + tr("Zeilenabstand der Formatvorlage"), onClick = { state.paragraph { it.copy(spacing = null) } }, close = close)
+            HorizontalDivider()
+            // Formatvorlagen (AP-46).
+            item(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label)), onClick = { adaptStyle(state) }, close = close)
+            StyleSet.entries.forEach { set ->
+                item((if (state.sheet.set == set) "✓ " else "") + tr("Vorlagen: {0}", tr(set.label)), onClick = { switchStyleSet(c, doc, state, set) }, close = close)
+            }
+            item("Formatvorlagen zurücksetzen", enabled = state.sheet.changed.isNotEmpty(), onClick = { state.applySheet(state.sheet.copy(changed = emptyMap(), explicit = true)) }, close = close)
+            item("Als Standard für neue Dokumente speichern", onClick = {
+                c.settings.update { it.copy(docStyleLines = Styles.defaultLines(state.sheet)) }
+                Notices.info(tr("Gespeichert: Dokumente ohne eigene Formatvorlagen sehen jetzt so aus."))
+            }, close = close)
+            HorizontalDivider()
+            item("Format übertragen", onClick = { state.painter = state.formatHere() to state.paraHere() }, close = close)
             item("Formatierung entfernen", "Strg+\\", onClick = { state.clearFormat() }, close = close)
         }
         menu("Extras") { close ->
@@ -975,6 +1233,24 @@ private fun FlowMenus(
         state.insertBlock(DocBlocks.table(listOf(List(cols) { tr("Spalte {0}", it + 1) }) + List(rows - 1) { List(cols) { "" } }))
     }
     if (special) SpecialCharsDialog(onDismiss = { special = false }) { ch -> special = false; state.insertText(ch) }
+}
+
+/** Line spacings to choose (AP-44). */
+private val LINE_SPACINGS = listOf(1.0f to "Einfach", 1.15f to "1,15", 1.5f to "1,5", 2.0f to "Doppelt")
+
+/** „Überschrift 1 an Markierung anpassen“ (AP-46): the Formatvorlage of the paragraph at the cursor takes its look. */
+internal fun adaptStyle(state: FlowState) {
+    val p = state.paraHere()
+    val kind = Styles.base(p.kind)
+    val def = Styles.adapt(state.sheet.of(kind), state.formatHere(), p)
+    state.applySheet(state.sheet.copy(changed = state.sheet.changed + (kind to def), explicit = true))
+    Notices.info(tr("„{0}“ angepasst – alle Absätze mit dieser Formatvorlage sehen jetzt so aus.", tr(kind.label)))
+}
+
+/** Another set of Formatvorlagen (AP-46): the whole document changes its look; exports follow (its style). */
+internal fun switchStyleSet(c: AppContainer, doc: LiveDoc, state: FlowState, set: StyleSet) {
+    state.applySheet(StyleSheet(set, emptyMap(), explicit = true))
+    c.docs.update(doc.id) { it.copy(style = set.docStyle?.name) }
 }
 
 private fun selectedText(state: FlowState): String = state.active?.let { t ->
@@ -1043,7 +1319,7 @@ private fun SpecialCharsDialog(onDismiss: () -> Unit, onPick: (String) -> Unit) 
 /** The toolbar like in Docs. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FlowToolbar(state: FlowState, host: FlowHost, onWrite: () -> Unit, onLink: () -> Unit) {
+private fun FlowToolbar(c: AppContainer, doc: LiveDoc, state: FlowState, host: FlowHost, onWrite: () -> Unit, onLink: () -> Unit) {
     @Suppress("UNUSED_VARIABLE") val v = state.version
     val f = state.formatHere()
     val p = state.paraHere()
@@ -1055,23 +1331,37 @@ private fun FlowToolbar(state: FlowState, host: FlowHost, onWrite: () -> Unit, o
         ToolIcon(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen"), enabled = state.canRedo) { state.redo() }
         Sep()
         var styleMenu by remember { mutableStateOf(false) }
+
         Box {
             TextButton(onClick = { styleMenu = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(tr(p.kind.label) + " ▾", style = MaterialTheme.typography.bodySmall, maxLines = 1) }
             DropdownMenu(styleMenu, { styleMenu = false }) {
-                ParaKind.entries.forEach { k ->
+                // The Formatvorlagen as they look in this document (AP-46); lists are the buttons further right.
+                Styles.KINDS.forEach { k ->
+                    val d = state.sheet.of(k)
                     DropdownMenuItem(
                         text = {
                             Text(
                                 tr(k.label),
-                                style = when (k) {
-                                    ParaKind.H1 -> MaterialTheme.typography.titleLarge
-                                    ParaKind.H2 -> MaterialTheme.typography.titleMedium
-                                    ParaKind.H3, ParaKind.H4 -> MaterialTheme.typography.titleSmall
-                                    else -> MaterialTheme.typography.bodyMedium
-                                },
+                                fontSize = ptSp(d.size.coerceIn(9f, 20f), 0.9f),
+                                fontWeight = if (d.bold) FontWeight.Bold else null,
+                                fontStyle = if (d.italic) FontStyle.Italic else null,
+                                fontFamily = if (k == ParaKind.CODE) FontFamily.Monospace else familyOf(d.font),
+                                color = d.color?.let(::hex) ?: Color.Unspecified,
+                                maxLines = 1,
                             )
                         },
+                        trailingIcon = { if (Styles.base(p.kind) == k) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
                         onClick = { styleMenu = false; state.kind(k) },
+                    )
+                }
+                HorizontalDivider()
+                DropdownMenuItem(text = { Text(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label))) }, onClick = { styleMenu = false; adaptStyle(state) })
+                Text(tr("Vorlagensatz"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                StyleSet.entries.forEach { set ->
+                    DropdownMenuItem(
+                        text = { Column { Text(tr(set.label)); Text(tr(set.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
+                        trailingIcon = { if (state.sheet.set == set) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
+                        onClick = { styleMenu = false; switchStyleSet(c, doc, state, set) },
                     )
                 }
             }
@@ -1085,7 +1375,7 @@ private fun FlowToolbar(state: FlowState, host: FlowHost, onWrite: () -> Unit, o
         }
         var sizeMenu by remember { mutableStateOf(false) }
         Box {
-            TextButton(onClick = { sizeMenu = true }, contentPadding = PaddingValues(horizontal = 6.dp)) { Text("${f.size ?: 11} ▾", style = MaterialTheme.typography.bodySmall) }
+            TextButton(onClick = { sizeMenu = true }, contentPadding = PaddingValues(horizontal = 6.dp)) { Text("${f.size ?: state.sheet.of(p.kind).size.let { if (it == it.toInt().toFloat()) it.toInt().toString() else it.toString().replace('.', ',') }} ▾", style = MaterialTheme.typography.bodySmall) }
             DropdownMenu(sizeMenu, { sizeMenu = false }) {
                 DropdownMenuItem(text = { Text(tr("Standard")) }, onClick = { sizeMenu = false; state.format { it.copy(size = null) } })
                 SIZES.forEach { s -> DropdownMenuItem(text = { Text("$s") }, onClick = { sizeMenu = false; state.format { it.copy(size = s) } }) }
@@ -1108,11 +1398,26 @@ private fun FlowToolbar(state: FlowState, host: FlowHost, onWrite: () -> Unit, o
         ToolIcon(Icons.AutoMirrored.Outlined.FormatAlignRight, tr("Rechtsbündig"), active = p.align == Align.RIGHT) { state.paragraph { it.copy(align = Align.RIGHT) } }
         ToolIcon(Icons.Outlined.FormatAlignJustify, tr("Blocksatz"), active = p.align == Align.JUSTIFY) { state.paragraph { it.copy(align = Align.JUSTIFY) } }
         Sep()
+        var spacingMenu by remember { mutableStateOf(false) }
+        Box {
+            ToolIcon(Icons.Outlined.FormatLineSpacing, tr("Zeilenabstand")) { spacingMenu = true }
+            DropdownMenu(spacingMenu, { spacingMenu = false }) {
+                LINE_SPACINGS.forEach { (z, label) ->
+                    DropdownMenuItem(text = { Text(tr(label)) }, trailingIcon = { if (p.spacing == z) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = z) } })
+                }
+                DropdownMenuItem(text = { Text(tr("Wie Formatvorlage")) }, trailingIcon = { if (p.spacing == null) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = null) } })
+            }
+        }
+        Sep()
         ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Aufzählung"), active = p.kind == ParaKind.BULLET) { state.kind(ParaKind.BULLET) }
         ToolIcon(Icons.Outlined.FormatListNumbered, tr("Nummerierte Liste"), active = p.kind == ParaKind.NUMBERED) { state.kind(ParaKind.NUMBERED) }
         ToolIcon(Icons.Outlined.CheckBox, tr("Checkliste"), active = p.kind == ParaKind.CHECK) { state.kind(ParaKind.CHECK) }
         ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentDecrease, tr("Einzug verkleinern"), enabled = p.kind.list && p.indent > 0) { state.indent(-1) }
         ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentIncrease, tr("Einzug vergrößern"), enabled = p.kind.list) { state.indent(1) }
+        ToolIcon(Icons.Outlined.FormatPaint, tr("Format übertragen (Pinsel)"), active = state.painter != null) {
+            state.painter = if (state.painter != null) null else state.formatHere() to state.paraHere()
+            if (state.painter != null) Notices.info(tr("Jetzt den Text markieren, der dieses Format bekommen soll."))
+        }
         ToolIcon(Icons.Outlined.FormatClear, tr("Formatierung entfernen")) { state.clearFormat() }
         Sep()
         ToolIcon(Icons.Outlined.AutoAwesome, tr("Hilf mir schreiben") + " (Strg+J)") { onWrite() }
@@ -1148,65 +1453,100 @@ private fun ColorButton(icon: androidx.compose.ui.graphics.vector.ImageVector, l
 
 /** The pages: the document's pieces one below the other on a page of A4 width (or one running page). */
 @Composable
-private fun FlowPages(c: AppContainer, doc: LiveDoc, tabId: String?, state: FlowState, view: FlowView, zoom: Float, narrow: Boolean, host: FlowHost, onWrite: () -> Unit) {
+private fun FlowPages(
+    c: AppContainer, doc: LiveDoc, tabId: String?, state: FlowState, view: FlowView, zoom: Float, narrow: Boolean, host: FlowHost,
+    scroll: ScrollState, ruler: Boolean, onWrite: () -> Unit, onRevise: (String?) -> Unit, onFind: () -> Unit,
+) {
     val density = LocalDensity.current
     val setup = remember(state.version) { DocMarkup.pageSetup(state.markdown()) }
-    val margin = if (narrow) 20.dp else (setup.marginMm * 3.78f).dp * zoom
-    val pageWidth = if (view == FlowView.PAGES && !narrow) 794.dp * zoom else androidx.compose.ui.unit.Dp.Unspecified
+    val margin = if (narrow) 20.dp else (setup.marginMm * 3.7795f).dp * zoom
+    val pages = view == FlowView.PAGES && !narrow
+    val pageWidth = if (pages) 794.dp * zoom else androidx.compose.ui.unit.Dp.Unspecified
     // A4 is 297 mm high; the text area between the margins makes one page.
     val pageHeightPx = with(density) { ((1123.dp * zoom) - margin * 2).toPx() }
     val look = LocalChatLook.current
     val outline = MaterialTheme.colorScheme.outline
     val pageLabel = rememberTextMeasurer()
-    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(
-            Modifier
-                .padding(vertical = if (narrow) 8.dp else 24.dp)
-                .then(if (pageWidth != androidx.compose.ui.unit.Dp.Unspecified) Modifier.width(pageWidth) else Modifier.fillMaxWidth().widthIn(max = 900.dp))
-                .background(look.card, RoundedCornerShape(4.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                .padding(horizontal = margin, vertical = if (narrow) 20.dp else margin)
-                .heightIn(min = if (view == FlowView.PAGES) with(density) { pageHeightPx.toDp() } else 300.dp)
-                // Seitenansicht: where one A4 page ends, a dashed line with the next page's number.
-                .drawWithContent {
-                    drawContent()
-                    if (view == FlowView.PAGES && pageHeightPx > 100f) {
-                        val labelStyle = TextStyle(fontSize = 10.sp, color = outline)
-                        var y = pageHeightPx
-                        var page = 2
-                        while (y < size.height - 8f) {
-                            drawLine(outline.copy(alpha = 0.6f), Offset(-margin.toPx() + 4f, y), Offset(size.width + margin.toPx() - 4f, y), strokeWidth = 1f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)))
-                            // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
-                            // width left of topLeft inside this box, and the label sits in the right page margin – with a
-                            // margin over 60 dp (20 mm at 100 %) that width was negative and the app crashed.
-                            val label = pageLabel.measure(tr("Seite {0}", page), labelStyle)
-                            drawText(label, topLeft = Offset(size.width + margin.toPx() - label.size.width - 8.dp.toPx(), y + 2f))
-                            y += pageHeightPx
-                            page++
+    val topPad = if (narrow) 8.dp else 24.dp
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+    // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
+    val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
+    Box(Modifier.fillMaxSize().verticalScroll(scroll), contentAlignment = Alignment.TopCenter) {
+        Row(Modifier.onGloballyPositioned { state.contentCoords = it }, verticalAlignment = Alignment.Top) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = if (pages) Modifier else Modifier.weight(1f, fill = false)) {
+                if (ruler && pages) {
+                    Spacer(Modifier.height(8.dp))
+                    FlowRuler(state, pageWidth, setup.marginMm, zoom)
+                }
+                Column(
+                    Modifier
+                        .padding(vertical = if (ruler && pages) 8.dp else topPad)
+                        .then(if (pageWidth != androidx.compose.ui.unit.Dp.Unspecified) Modifier.width(pageWidth) else Modifier.fillMaxWidth().widthIn(max = 900.dp))
+                        .background(look.card, RoundedCornerShape(4.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = margin, vertical = if (narrow) 20.dp else margin)
+                        .onGloballyPositioned { state.pageCoords = it }
+                        .heightIn(min = if (view == FlowView.PAGES) with(density) { pageHeightPx.toDp() } else 300.dp)
+                        // Seitenansicht: where one A4 page ends, a dashed line with the next page's number.
+                        .drawWithContent {
+                            drawContent()
+                            if (view == FlowView.PAGES && pageHeightPx > 100f) {
+                                val labelStyle = TextStyle(fontSize = 10.sp, color = outline)
+                                var y = pageHeightPx
+                                var page = 2
+                                while (y < size.height - 8f) {
+                                    drawLine(outline.copy(alpha = 0.6f), Offset(-margin.toPx() + 4f, y), Offset(size.width + margin.toPx() - 4f, y), strokeWidth = 1f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)))
+                                    // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
+                                    // width left of topLeft inside this box, and the label sits in the right page margin – with a
+                                    // margin over 60 dp (20 mm at 100 %) that width was negative and the app crashed.
+                                    val label = pageLabel.measure(tr("Seite {0}", page), labelStyle)
+                                    drawText(label, topLeft = Offset(size.width + margin.toPx() - label.size.width - 8.dp.toPx(), y + 2f))
+                                    y += pageHeightPx
+                                    page++
+                                }
+                            }
+                        },
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (setup.hasHeader) Text(listOfNotNull(setup.header.takeIf { it.isNotBlank() }, DocMarkup.today().takeIf { setup.date }).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = outline)
+                    state.segs.forEach { seg ->
+                        androidx.compose.runtime.key(seg.id) {
+                            when (seg) {
+                                is FlowSeg.Text -> FlowField(c, state, seg, zoom, host, onWrite, onRevise, onFind)
+                                // Setting lines of the Formatvorlagen are not drawn (the look shows them).
+                                is FlowSeg.Raw -> if (!isHiddenSetting(seg.markdown)) RawBlock(doc, tabId, state, seg, if (view == FlowView.PAGES) pageHeightPx else 0f)
+                            }
                         }
                     }
-                },
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            if (setup.hasHeader) Text(listOfNotNull(setup.header.takeIf { it.isNotBlank() }, DocMarkup.today().takeIf { setup.date }).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = outline)
-            state.segs.forEach { seg ->
-                androidx.compose.runtime.key(seg.id) {
-                    when (seg) {
-                        is FlowSeg.Text -> FlowField(state, seg, zoom, onWrite)
-                        is FlowSeg.Raw -> RawBlock(doc, tabId, state, seg)
-                    }
+                    if (setup.footer.isNotBlank()) Text(setup.footer, style = MaterialTheme.typography.labelSmall, color = outline)
                 }
             }
-            if (setup.footer.isNotBlank()) Text(setup.footer, style = MaterialTheme.typography.labelSmall, color = outline)
+            if (showComments) {
+                val offset = with(density) { ((if (ruler && pages) 8.dp + 22.dp + 8.dp else topPad) + margin).toPx() }
+                FlowMarginComments(c, doc, state, offset, onOpen = { host.onShowComments() }, modifier = Modifier.padding(top = 0.dp))
+            }
         }
+    }
     }
 }
 
 /** A block of its own between the running text: shown as it looks; tables edit in place, others via ✎. */
 @Composable
-private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw) {
+private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw, pageHeightPx: Float) {
     var editing by remember { mutableStateOf(false) }
-    var hover by remember { mutableStateOf(false) }
+    // Seitenumbruch (AP-43): in the Seitenansicht the rest of the page stays empty.
+    if (pageHeightPx > 100f && DocMarkup.isPageBreak(seg.markdown)) {
+        var y by remember { mutableFloatStateOf(-1f) }
+        Row(Modifier.fillMaxWidth().onGloballyPositioned { co ->
+            val page = state.pageCoords
+            val v = if (page != null && page.isAttached && co.isAttached) page.localPositionOf(co, Offset.Zero).y else -1f
+            if (kotlin.math.abs(v - y) > 0.5f) y = v
+        }, verticalAlignment = Alignment.Top) {
+            Box(Modifier.weight(1f)) { PageBreakFill(if (y < 0f) 0f else pageHeightPx - (y % pageHeightPx) - 6f) }
+            IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
+        }
+        return
+    }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Box(Modifier.weight(1f)) {
             if (seg.markdown.trim().startsWith("|")) {
@@ -1223,26 +1563,70 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     if (editing) TextPrompt(tr("Block bearbeiten (Markdown)"), seg.markdown, onDismiss = { editing = false }) { md -> editing = false; state.setRaw(seg, md) }
 }
 
+/** `**fett**` and `*kursiv*` typed in the running text become formatting (AP-46), like in Docs. */
+private val TYPED_BOLD = Regex("(?<![*\\\\])\\*\\*([^*\\n]*[^*\\s])\\*\\*$")
+private val TYPED_ITALIC = Regex("(?<![*\\w\\\\])\\*([^*\\s][^*\\n]*?)\\*$")
+
+/** The piece of [r] in the selection as HTML and plain text (Zwischenablage mit Formatierung, AP-43). */
+private fun copySelection(c: AppContainer, seg: FlowSeg.Text): Boolean {
+    val sel = seg.selection
+    if (sel.collapsed) return false
+    val piece = seg.rich.slice(sel.min, sel.max)
+    val plain = piece.text.filterIndexed { i, _ -> piece.chars[i].ins == 0 }
+    return RichClipboard.copy(c, RichHtml.fromRich(piece), plain)
+}
+
 /** One stretch of running text: the text field with list marks in the gutter and the keys of a word processor. */
 @Composable
-private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite: () -> Unit) {
+private fun FlowField(
+    c: AppContainer, state: FlowState, seg: FlowSeg.Text, zoom: Float, host: FlowHost,
+    onWrite: () -> Unit, onRevise: (String?) -> Unit, onFind: () -> Unit,
+) {
     val density = LocalDensity.current
     val look = LocalChatLook.current
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val codeBg = MaterialTheme.colorScheme.surfaceVariant
-    val base = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp * zoom)
+    val sheet = state.sheet
+    val bodyDef = sheet.of(ParaKind.NORMAL)
+    val base = MaterialTheme.typography.bodyLarge.copy(
+        color = MaterialTheme.colorScheme.onSurface, fontSize = ptSp(bodyDef.size, zoom), fontFamily = familyOf(bodyDef.font),
+        lineHeight = (bodyDef.spacing * 1.2f).em,
+    )
     val rich = seg.rich
-    val annotated = remember(rich, look.brand, zoom) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density) }
+    // Hits of the search (the current one stronger) and commented text as backgrounds.
+    val hitColor = Color(0x66FFD54F)
+    val currentHit = Color(0xFFFFA726)
+    val commentColor = Color(0x40F9A825)
+    val hits = state.hitsIn(rich)
+    val current = state.hits().getOrNull(state.findAt)?.takeIf { it.first === seg }?.second
+    val quoted = state.comments.mapNotNull { cm -> state.findQuote(cm.quote)?.takeIf { it.first === seg }?.second }
+    val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
+    val annotated = remember(rich, look.brand, zoom, sheet, marks) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks) }
     val value = TextFieldValue(annotated, seg.selection, seg.composition)
     val measurer = rememberTextMeasurer()
-    val marks = remember(rich) { listMarks(rich) }
+    val marksList = remember(rich) { listMarks(rich) }
     val onSurface = MaterialTheme.colorScheme.onSurface
+
+    // Format übertragen (AP-46): the next selection takes the format, once the selection rests.
+    LaunchedEffect(seg.selection, state.painter) {
+        val paint = state.painter ?: return@LaunchedEffect
+        if (seg.selection.collapsed || state.active !== seg) return@LaunchedEffect
+        delay(450)
+        val sel = seg.selection
+        if (sel.collapsed) return@LaunchedEffect
+        state.checkpoint()
+        seg.rich = seg.rich.format(sel.min until sel.max) { paint.first.stored }
+            .formatParas(sel.min, sel.max) { q -> q.copy(align = paint.second.align, spacing = paint.second.spacing, left = paint.second.left, first = paint.second.first) }
+        state.painter = null
+        state.changed()
+    }
 
     fun onValue(v: TextFieldValue) {
         val old = seg.rich
         if (v.text != old.text) {
             var r = old.edited(v.text, seg.typing)
             var sel = v.selection
+            var typing: CharFormat? = null
             // Enter in an empty list item ends the list (like Docs).
             if (v.text.length == old.text.length + 1 && sel.collapsed && sel.start > 0 && v.text[sel.start - 1] == '\n') {
                 val p = old.paraAt(sel.start - 1)
@@ -1265,10 +1649,30 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
                     sel = TextRange(r.starts[p])
                 }
             }
+            // „**fett**“ and „*kursiv*“: the marks go, the text between them is formatted.
+            if (v.text.length == old.text.length + 1 && sel.collapsed && sel.start > 1 && v.text[sel.start - 1] == '*' && r.text.length == v.text.length) {
+                val p = r.paraAt(sel.start - 1)
+                val ps = r.starts[p]
+                val before = r.text.substring(ps, sel.start)
+                val bold = TYPED_BOLD.find(before)
+                val italic = if (bold == null) TYPED_ITALIC.find(before) else null
+                val m = bold ?: italic
+                if (m != null && r.paras[p].kind != ParaKind.CODE) {
+                    val w = if (bold != null) 2 else 1
+                    val a = ps + m.range.first
+                    val e = sel.start
+                    r = r.cut(e - w, e).cut(a, a + w)
+                    val inner = a until e - 2 * w
+                    r = r.format(inner) { if (bold != null) it.copy(bold = true) else it.copy(italic = true) }
+                    sel = TextRange(e - 2 * w)
+                    typing = r.chars.getOrNull(inner.last)?.let { if (bold != null) it.copy(bold = false) else it.copy(italic = false) }
+                }
+            }
             state.checkpoint(group = true)
             seg.rich = r
             seg.selection = sel
             seg.composition = v.composition
+            seg.typing = typing
             state.changed()
         } else {
             if (v.selection != seg.selection) seg.typing = null
@@ -1277,7 +1681,14 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
         }
     }
 
-    Box(Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().onGloballyPositioned { co ->
+        // Where this text is on the page (jumps of the Gliederung, comments at the margin).
+        val page = state.pageCoords
+        if (page != null && page.isAttached && co.isAttached) {
+            val y = page.localPositionOf(co, Offset.Zero).y
+            if (state.segTop[seg.id]?.let { kotlin.math.abs(it - y) < 0.5f } != true) state.segTop[seg.id] = y
+        }
+    }) {
         BasicTextField(
             value = value,
             onValueChange = ::onValue,
@@ -1293,7 +1704,7 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
                 .drawBehind {
                     // List marks (•, 1., a.) in the gutter before the indented text.
                     val layout = seg.layout ?: return@drawBehind
-                    marks.forEach { (pi, mark) ->
+                    marksList.forEach { (pi, mark) ->
                         if (mark == "check") return@forEach
                         val off = rich.starts[pi].coerceAtMost(layout.layoutInput.text.length)
                         val line = layout.getLineForOffset(off)
@@ -1312,7 +1723,24 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
                         cmd && !e.isAltPressed && e.key == Key.I -> { state.toggle({ it.italic }) { f, on -> f.copy(italic = on) }; true }
                         cmd && !e.isAltPressed && e.key == Key.U -> { state.toggle({ it.underline }) { f, on -> f.copy(underline = on) }; true }
                         cmd && e.key == Key.J -> { onWrite(); true }
+                        cmd && (e.key == Key.F || e.key == Key.H) -> { onFind(); true }
                         cmd && e.key == Key.Backslash -> { state.clearFormat(); true }
+                        // Zwischenablage mit Formatierung (AP-43): HTML for Word and the browser, HTML from them.
+                        cmd && !e.isShiftPressed && e.key == Key.C -> copySelection(c, seg)
+                        cmd && !e.isShiftPressed && e.key == Key.X -> {
+                            if (!copySelection(c, seg)) false else {
+                                val sel = seg.selection
+                                state.checkpoint()
+                                seg.rich = seg.rich.cut(sel.min, sel.max)
+                                seg.selection = TextRange(sel.min)
+                                state.changed()
+                                true
+                            }
+                        }
+                        cmd && !e.isShiftPressed && e.key == Key.V -> {
+                            val piece = RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }?.takeIf { it.text.isNotEmpty() }
+                            if (piece == null) false else { state.paste(seg, piece); true }
+                        }
                         cmd && e.isAltPressed && e.key == Key.Zero -> { state.kind(ParaKind.NORMAL); true }
                         cmd && e.isAltPressed && e.key == Key.One -> { state.kind(ParaKind.H1); true }
                         cmd && e.isAltPressed && e.key == Key.Two -> { state.kind(ParaKind.H2); true }
@@ -1321,6 +1749,7 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
                         cmd && e.isShiftPressed && e.key == Key.Seven -> { state.kind(ParaKind.NUMBERED); true }
                         cmd && e.isShiftPressed && e.key == Key.Eight -> { state.kind(ParaKind.BULLET); true }
                         cmd && e.isShiftPressed && e.key == Key.Nine -> { state.kind(ParaKind.CHECK); true }
+                        e.key == Key.Escape && state.painter != null -> { state.painter = null; true }
                         e.key == Key.Tab && state.paraHere().kind.list -> { state.indent(if (e.isShiftPressed) -1 else 1); true }
                         // Backspace at the start of a heading or list item first makes it normal text.
                         e.key == Key.Backspace && seg.selection.collapsed && seg.rich.starts.contains(seg.selection.start) && seg.rich.paras[seg.rich.paraAt(seg.selection.start)].let { it.kind != ParaKind.NORMAL } -> {
@@ -1333,7 +1762,7 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
         )
         // Checkboxes of the checklist: real buttons in the gutter.
         val layout = seg.layout
-        if (layout != null) marks.filter { it.second == "check" }.forEach { (pi, _) ->
+        if (layout != null) marksList.filter { it.second == "check" }.forEach { (pi, _) ->
             val off = rich.starts[pi].coerceAtMost(layout.layoutInput.text.length)
             val line = layout.getLineForOffset(off)
             val p = rich.paras[pi]
@@ -1355,8 +1784,21 @@ private fun FlowField(state: FlowState, seg: FlowSeg.Text, zoom: Float, onWrite:
                     },
             )
         }
+        // Lora over the selection (AP-47): quick revisions as suggestions, or a comment.
+        val sel = seg.selection
+        if (layout != null && state.active === seg && !sel.collapsed && state.writing == null && !state.revising && state.painter == null && state.suggestions().isEmpty()) {
+            val n = layout.layoutInput.text.length
+            val box = layout.getBoundingBox(sel.min.coerceIn(0, (n - 1).coerceAtLeast(0)))
+            val above = with(density) { 44.dp.toPx() }
+            val y = if (box.top >= above) box.top - above else layout.getBoundingBox((sel.max - 1).coerceIn(0, (n - 1).coerceAtLeast(0))).bottom + with(density) { 4.dp.toPx() }
+            FlowSelectionMenu(
+                onRevise = onRevise,
+                onComment = { host.onComment(rich.text.substring(sel.min.coerceAtMost(rich.text.length), sel.max.coerceAtMost(rich.text.length))) },
+                modifier = Modifier.offset { IntOffset(box.left.roundToInt().coerceAtLeast(0), y.roundToInt()) },
+            )
+        }
         // An empty document: an invitation to write or to let Lora write.
-        if (rich.text.isEmpty() && state.segs.size == 1) {
+        if (rich.text.isEmpty() && state.segs.count { it is FlowSeg.Text || it is FlowSeg.Raw && !isHiddenSetting(it.markdown) } == 1) {
             Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(tr("Hier schreiben – oder"), style = base, color = muted)
                 TextButton(onClick = onWrite) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text(tr("Hilf mir schreiben")) }
