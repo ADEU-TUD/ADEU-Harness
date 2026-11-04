@@ -190,7 +190,7 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
 
     /** Where [name] would write if that is inside the project's "Ausgabe", else null. */
     private fun outputTarget(name: String, args: JsonObject, ctx: RepoContext): File? {
-        val folder = folder(args.s("folder"), ctx.folderId)
+        val folder = folder(args.s("folder"), ctx.folderId, chatFolders(ctx.chatId))
         if (!folder.id.startsWith(PROJECT_ID)) return null
         val root = File(folder.path).canonicalFile
         val out = (if (folder.name == PROJECT_OUTPUT) root else WorkFolder.output(root)).canonicalFile
@@ -211,15 +211,21 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
      * Shared folders plus the project folder of the chat: all of it if the model may read the files there, otherwise only
      * its "Ausgabe".
      */
-    private fun available(folderId: String?): List<LocalFolder> {
+    private fun available(folderId: String?, chat: List<LocalFolder> = emptyList()): List<LocalFolder> {
         val project = WorkFolder.of(c, folderId)?.let { (f, dir) ->
             if (f.workDirAccess) LocalFolder(id = PROJECT_ID + f.id, name = PROJECT, path = dir.path)
             else LocalFolder(id = PROJECT_ID + f.id, name = PROJECT_OUTPUT, path = WorkFolder.output(dir).apply { mkdirs() }.path)
         }
-        return listOfNotNull(project) + c.localFolders.current.filter { project == null || File(it.path).absoluteFile != File(project.path).absoluteFile }
+        // Folders attached to the chat count before the shared ones with the same path (their right wins in this chat).
+        val first = listOfNotNull(project) + chat.filter { ch -> project == null || File(ch.path).absoluteFile != File(project.path).absoluteFile }
+        return first + c.localFolders.current.filter { g -> first.none { File(it.path).absoluteFile == File(g.path).absoluteFile } }
     }
 
-    fun prompt(folderId: String? = null): String = buildString {
+    /** The folders attached to the chat [chatId] („+“ › Ordner). */
+    private fun chatFolders(chatId: String?): List<LocalFolder> =
+        chatId?.let { id -> (c.runs.get(id)?.conversation?.value ?: c.chats.get(id))?.folders }.orEmpty()
+
+    fun prompt(folderId: String? = null, chat: List<LocalFolder> = emptyList()): String = buildString {
         append("Du kannst in Ordnern auf diesem PC arbeiten: mit list_local_files, read_local_file und search_local_files ")
         append("lesen, mit write_local_file, edit_local_file, move_local_file, delete_local_file und copy_document_to_folder schreiben. ")
         append("Verschaffe dir zuerst einen Überblick, bevor du etwas änderst, und nenne am Ende, welche Dateien du angelegt oder geändert hast. ")
@@ -228,7 +234,16 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
         append("edit_office_file bzw. set_excel_cells (Formatierung bleibt), Notebook-Zellen mit edit_notebook_cell, Textdateien mit edit_local_file ")
         append("(mehrere Stellen auf einmal mit edits; Kodierung und Zeilenenden bleiben). Audio und Video: transcribe_local_file. ")
         append("Ordner:\n")
-        available(folderId).forEach { f -> append("- „${f.name}“ (${f.path})").append(if (f.write) "" else " – nur lesen").append('\n') }
+        available(folderId, chat).forEach { f ->
+            append("- „${f.name}“ (${f.path})").append(if (f.write) "" else " – nur lesen")
+            if (chat.any { it.id == f.id }) append(" – an diesen Chat angehängt")
+            append('\n')
+        }
+        if (chat.isNotEmpty()) {
+            append("An diesen Chat angehängte Ordner sind der Standard, wenn der Nutzer keinen anderen nennt; bei Fragen zu ihrem Inhalt ")
+            append("verschaffe dir zuerst mit list_local_files einen Überblick. In „nur lesen“-Ordnern schreibst du nichts – der Nutzer kann ")
+            append("das Recht über den Ordner-Chip über dem Eingabefeld ändern.\n")
+        }
         WorkFolder.of(c, folderId)?.let { (f, dir) ->
             val out = WorkFolder.OUTPUT
             if (f.workDirAccess) {
@@ -261,7 +276,7 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
     }.getOrNull()
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = withContext(Dispatchers.IO) {
-        val folder = folder(args.s("folder"), ctx.folderId)
+        val folder = folder(args.s("folder"), ctx.folderId, chatFolders(ctx.chatId))
         val root = File(folder.path).canonicalFile
         if (!root.isDirectory) throw IllegalArgumentException("Der Ordner „${folder.name}“ (${folder.path}) ist nicht erreichbar.")
         if (defs.first { it.name == name }.writes && !folder.write) throw IllegalArgumentException("Der Ordner „${folder.name}“ ist nur zum Lesen freigegeben.")
@@ -322,8 +337,8 @@ class LocalFolderTools(private val c: AppContainer) : ToolProvider {
             ?: throw IllegalArgumentException("Dokument „$name“ nicht gefunden.")
     }
 
-    private fun folder(name: String?, folderId: String?): LocalFolder {
-        val all = available(folderId)
+    private fun folder(name: String?, folderId: String?, chat: List<LocalFolder> = emptyList()): LocalFolder {
+        val all = available(folderId, chat)
         if (all.isEmpty()) throw IllegalArgumentException("Es ist kein Ordner freigegeben (Einstellungen › Lokale Ordner oder Projektordner des Projekts).")
         val wanted = name?.trim()?.takeIf { it.isNotEmpty() } ?: return all.first()
         return all.firstOrNull { it.name.equals(wanted, true) } ?: all.firstOrNull { it.path.equals(wanted, true) || File(it.path).name.equals(wanted, true) }

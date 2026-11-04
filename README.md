@@ -924,6 +924,11 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   .docx/.pdf/.pptx/.xlsx dort speichern (z. B. im TUD-Design), verschieben und löschen (in den Unterordner
   `.adeu-papierkorb`). Ordner lassen sich auf „nur lesen“ stellen; außerhalb kommt er nicht. Rückfragen vor Änderungen
   richten sich nach *Chat & Werkzeuge › Freigaben*.
+- **Ordner an einen Chat anhängen** (Windows): *„+“ › Ordner* hängt einen ganzen Ordner an den laufenden Chat – vorher wählst
+  du, ob Lora dort **nur lesen** oder **lesen und schreiben** darf. Ein Chip über dem Eingabefeld zeigt Ordner und Recht
+  („Seminar · nur lesen“); ein Klick ändert das Recht im laufenden Chat, öffnet den Ordner im Explorer oder löst ihn vom
+  Chat. Das Recht gilt nur für diesen Chat und geht vor einer gleichnamigen Freigabe unter *Lokale Ordner*; angehängte
+  Ordner sind der Standard für die Ordner-Werkzeuge (lesen, durchsuchen, schreiben, Dokumente speichern). Nicht im Tresor.
 - **Chat**: `/`-Befehle und `@`-Erwähnungen (Dateien, Literaturlisten, Dokumente, Kurztexte), *Anfrage verbessern*,
   gespeicherte Kurztexte, Entwürfe pro Chat, Zitieren eines Antwortteils, Antworten bewerten (👍/👎 mit Notiz;
   Auswertung je Modell unter *Verbrauch*), *Weiterschreiben* bei abgeschnittenen Antworten, *Abzweigen* in einen neuen

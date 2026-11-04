@@ -159,6 +159,8 @@ fun ChatScreen(
     var showSnippets by remember { mutableStateOf(false) }
     var showFromApp by remember { mutableStateOf(false) }
     var showNextcloud by remember { mutableStateOf(false) }
+    // „+“ › Ordner: the folder being attached or changed (its right) – null while no dialog is open.
+    var folderDialog by remember { mutableStateOf<io.github.thepytales.llmhub.data.LocalFolder?>(null) }
     var quoteFrom by remember { mutableStateOf<String?>(null) }
     var ratingFor by remember { mutableStateOf<ChatMessage?>(null) }
     var searchOpen by remember { mutableStateOf(false) }
@@ -571,6 +573,10 @@ fun ChatScreen(
                 if (!current.systemPrompt.isNullOrBlank()) {
                     ContextChip(Icons.Outlined.Person, current.persona ?: tr("System-Prompt"), { showSystemPrompt = true })
                 }
+                // Folders attached to the chat: their right at a glance, a tap changes it or removes the folder.
+                current.folders.forEach { f ->
+                    ContextChip(Icons.Outlined.FolderOpen, f.name + " · " + tr(if (f.write) "liest und schreibt" else "nur lesen"), { folderDialog = f }, highlighted = f.write)
+                }
                 // The memory goes along automatically; the chip shows how much and switches it off for this chat.
                 MemoryChip(c, current) { showMemory = true }
                 // Shows that names and contact details leave the device only as placeholders.
@@ -819,11 +825,27 @@ fun ChatScreen(
             onFromApp = { showFromApp = true },
             onSnippets = { showSnippets = true },
             onNextcloud = if (settings.hasNextcloud && !current.vault) ({ showNextcloud = true }) else null,
+            onFolder = if (FolderAccess.SUPPORTED && !current.vault) ({
+                scope.launch {
+                    val path = FolderAccess.pick(tr("Ordner an den Chat anhängen")) ?: return@launch
+                    if (current.folders.any { java.io.File(it.path).absoluteFile == java.io.File(path).absoluteFile }) Notices.info(tr("Dieser Ordner hängt schon am Chat."))
+                    else folderDialog = io.github.thepytales.llmhub.data.LocalFolder(id = "chat-" + java.util.UUID.randomUUID().toString().take(6), name = chatFolderName(current.folders, path), path = path, write = false)
+                }
+            }) else null,
             onClipboard = {
                 if (!platform.paste()) Notices.info(tr("In der Zwischenablage ist kein Bild."))
                 else if (modelInfo.vision == false) Notices.info(tr("Hinweis: {0} versteht keine Bilder.", modelInfo.displayName))
             },
         )
+    }
+    folderDialog?.let { f ->
+        ChatFolderDialog(f, isNew = current.folders.none { it.id == f.id }, onDismiss = { folderDialog = null }, onRemove = {
+            vm.setChatFolders(current.folders.filter { it.id != f.id })
+            Notices.undo(tr("Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)", f.name), restore = { vm.setChatFolders(current.folders + f) })
+        }) { changed ->
+            vm.setChatFolders(if (current.folders.any { it.id == changed.id }) current.folders.map { if (it.id == changed.id) changed else it } else current.folders + changed)
+            folderDialog = null
+        }
     }
     if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
     if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })

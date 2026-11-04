@@ -131,6 +131,11 @@ data class Conversation(
     val learnedUpTo: String? = null,
     /** Chat of the vault (AP-10): stored encrypted, only Uni server or local models, strict pseudonymization. */
     val vault: Boolean = false,
+    /**
+     * Folders on this PC attached to this chat („+“ › Ordner, Windows): the agent may read them, with [LocalFolder.write]
+     * also change them. Changeable during the chat (chip above the input field); counts before the shared folders.
+     */
+    val folders: List<LocalFolder> = emptyList(),
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     /** The linked repositories, also for chats that only stored [repo]. */

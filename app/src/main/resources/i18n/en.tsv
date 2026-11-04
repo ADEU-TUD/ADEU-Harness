@@ -436,6 +436,7 @@ API-Key, GitHub-Token und geheime Umgebungsvariablen mitnehmen	Include API key, 
 API-Schlüssel	API key
 API-Schlüssel des Uni-Servers und weiterer Anbieter.	API keys of the university server and other providers.
 API-Zugang	API access
+Auch Dateien anlegen, ändern und verschieben; Gelöschtes landet in „.adeu-papierkorb“. Vor Änderungen fragt Lora je nach Freigaben nach.	Also create, change and move files; deleted files go to “.adeu-papierkorb”. Lora asks before changes depending on the approvals.
 api.example.com\nbing.com\nduckduckgo.com	api.example.com\nbing.com\nduckduckgo.com
 API_KEY=hunter2	API_KEY=hunter2
 App	App
@@ -790,6 +791,7 @@ Buch (Monografie)	Book (monograph)
 Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
+Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
 Chat	Chat
 Chat & Werkzeuge	Chat & tools
@@ -1225,6 +1227,7 @@ Diese Folie finde ich nicht.	I can't find this slide.
 Diese Zeichen gehen nicht: \\ / : * ? " < > |	These characters are not allowed: \\ / : * ? " < > |
 Diesen Namen gibt es hier schon.	This name already exists here.
 Dieser Ablauf ist nicht mehr da.	This workflow is no longer there.
+Dieser Ordner hängt schon am Chat.	This folder is already attached to the chat.
 Dokument	Document
 Dokument entwerfen	Draft a document
 Dokument erstellen	Create a document
@@ -1783,6 +1786,7 @@ Ganz nach vorne	Bring to front
 Ganz zeigen	Show whole
 Ganze Folie	Whole slide
 Ganze Präsentation	Whole presentation
+Ganzen Ordner anhängen – Lora darf darin lesen oder auch schreiben	Attach a whole folder – Lora may read in it or also write
 Gedächtnis – was Lora über dich weiß	Memory – what Lora knows about you
 Gekürzt auf {0}.	Shortened to {0}.
 ganze Spalten wie Name, Vorname, Schüler/in, Geburtsdatum, Anschrift in Tabellen, CSV und Excel	whole columns such as name, first name, pupil, date of birth, address in tables, CSV and Excel
@@ -1884,6 +1888,7 @@ Gilt für die Seite im Editor und für PDF und Word beim Export.	Applies to the 
 Gilt für diesen Chat. Mit welchem Modell neue Chats starten, legst du in den Einstellungen unter „Chat & Werkzeuge“ fest.	Applies to this chat. Which model new chats start with is set in the settings under “Chat & tools”.
 Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein.	Applies to PDF and Word. Page breaks (\\newpage) and landscape pages are added via “Insert”.
 Gilt in jedem Chat zusätzlich zu Persona und Projekt-Anweisungen.	Applies in every chat in addition to the persona and project instructions.
+Gilt nur für diesen Chat und lässt sich jederzeit über den Ordner-Chip über dem Eingabefeld ändern.	Applies only to this chat and can be changed at any time with the folder chip above the input field.
 GitHub	GitHub
 GitHub · Hauptkonto	GitHub · main account
 GitHub · Repo wählen	GitHub · choose repo
@@ -2504,6 +2509,7 @@ Lernziele formulieren	Formulate learning objectives
 Lese Dateien für die Volltextsuche	Reading files for the full-text search
 Lesemodus	Reading mode
 Lesen	Read
+Lesen und schreiben	Read and write
 Lesezeichen zur Navigation vorhanden.	Bookmarks for navigation present.
 Letzte 30 Tage	Last 30 days
 Letzte 7 Tage	Last 7 days
@@ -2521,6 +2527,7 @@ Liest eine Webseite …	Reading a web page …
 liest nur	read only
 Liest Texte vor; in der App über den Lautsprecher-Knopf an Antworten nutzbar.	Reads texts aloud; in the app via the speaker button on answers.
 Liest {0}	Reading {0}
+Ordner „{0}“	Folder “{0}”
 ließ sich nicht lesen.	could not be read.
 Lila	Purple
 LimeSurvey-Fragebogen	LimeSurvey questionnaire
@@ -3188,6 +3195,7 @@ Ordner	Folder
 Ordner als Ablageort hinzufügen …	Add a folder as storage location …
 Ordner als Ablageort wählen (z. B. in Google Drive)	Choose a folder as storage location (e.g. in Google Drive)
 Ordner als Kontext nutzen?	Use the folder as context?
+Ordner an den Chat anhängen	Attach folder to the chat
 Ordner ansehen	View folder
 Ordner aufräumen	Tidy up folder
 Ordner außerhalb des Lora-Ordners, die Lora kennt: Ablageorte und Projektordner. Ihre Dateien lassen sich hier öffnen, umbenennen, verschieben und löschen.	Folders outside the Lora folder that Lora knows: storage locations and project folders. Their files can be opened, renamed, moved and deleted here.
@@ -3212,6 +3220,7 @@ Ordner wählen	Choose folder
 Ordner wählen …	Choose folder …
 Ordner öffnen	Open folder
 Ordner übernehmen	Use folder
+Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)	Folder “{0}” detached from the chat (the folder itself stays)
 Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen.	Folder, document, spreadsheet, presentation, from a template or upload.
 Ordnet {0} Dateien in „{1}“ in Unterordner …	Sorts {0} files in “{1}” into subfolders …
 Ort, Datum darunter	Place, date below
@@ -4255,6 +4264,7 @@ Volle Folien teilen	Split full slides
 Volle Folien teilen (ohne KI)	Split full slides (without AI)
 Vollständig	Full
 Volltext	Full text
+Vom Chat lösen	Detach from the chat
 Vom System belegt:	Reserved by the system:
 von	of
 Von der App erstellt	Created by the app
@@ -4347,6 +4357,7 @@ Wartet, bis der Stapel davor fertig ist.	Waiting until the batch before it is fi
 Was	What
 Was Lora in den Werkzeugen geplant, ausgeführt und zurückgenommen hat – auf diesem Gerät gespeichert.	What Lora planned, carried out and undid in the tools – stored on this device.
 Was Lora über dich weiß	What Lora knows about you
+Was darf Lora in diesem Ordner?	What may Lora do in this folder?
 Was der Tresor schützt	What the vault protects
 Was die KI erstellt, landet im Unterordner „{0}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.	What the AI creates ends up in the subfolder “{0}” – without asking; it never overwrites your own files.
 Was die KI im Chat erstellt – Dokumente, PDFs, Tabellen –, landet hier.	What the AI creates in the chat – documents, PDFs, spreadsheets – ends up here.
@@ -4558,6 +4569,8 @@ Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: 
 Wörter	words
 Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.	Words that look like names but aren't. Your own list above takes priority.
 Wörtliche Zitate	Verbatim quotes
+liest und schreibt	reads and writes
+nur lesen	read only
 xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m	xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m
 YouTube (Full HD, 1080p)	YouTube (Full HD, 1080p)
 z. B. 1-3; 4-6; 7-	e.g. 1-3; 4-6; 7-
