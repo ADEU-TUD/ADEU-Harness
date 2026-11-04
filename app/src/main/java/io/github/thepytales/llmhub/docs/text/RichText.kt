@@ -45,16 +45,25 @@ data class CharFormat(
     }
 }
 
-/** Formatvorlagen of a paragraph (AP-46 adds more). */
-enum class ParaKind(val label: String, val level: Int = 0) {
-    NORMAL("Normaler Text"), H1("Überschrift 1", 1), H2("Überschrift 2", 2), H3("Überschrift 3", 3), H4("Überschrift 4", 4),
-    QUOTE("Zitat"), BULLET("Aufzählung"), NUMBERED("Nummerierte Liste"), CHECK("Checkliste");
+/**
+ * Formatvorlagen of a paragraph (AP-46). Headings, quotes and lists are Markdown; the others ([mark]) are normal
+ * paragraphs with the setting `s=…` in their paragraph marker (see ALIGN_MARK), so every export still reads them as text.
+ */
+enum class ParaKind(val label: String, val level: Int = 0, val mark: String? = null) {
+    NORMAL("Normaler Text"), TITLE("Titel", mark = "title"), SUBTITLE("Untertitel", mark = "subtitle"),
+    H1("Überschrift 1", 1), H2("Überschrift 2", 2), H3("Überschrift 3", 3), H4("Überschrift 4", 4),
+    QUOTE("Zitat"), CAPTION("Bildunterschrift", mark = "caption"), CODE("Code", mark = "code"), LITERATURE("Literatur", mark = "lit"),
+    BULLET("Aufzählung"), NUMBERED("Nummerierte Liste"), CHECK("Checkliste");
 
     val heading: Boolean get() = level > 0
     val list: Boolean get() = this == BULLET || this == NUMBERED || this == CHECK
 
+    /** After Enter at the end of a paragraph of this kind, the new one is normal text (titles, headings, captions). */
+    val endsAtEnter: Boolean get() = heading || this == TITLE || this == SUBTITLE || this == CAPTION
+
     companion object {
         fun heading(level: Int) = when (level) { 1 -> H1; 2 -> H2; 3 -> H3; else -> H4 }
+        fun ofMark(mark: String?): ParaKind? = entries.firstOrNull { it.mark != null && it.mark == mark }
     }
 }
 
@@ -62,7 +71,8 @@ enum class Align(val mark: String?) { LEFT(null), CENTER("c"), RIGHT("r"), JUSTI
 
 /**
  * Format of one paragraph. [indent] is the list level (0…5); [soft]: this paragraph is the next line of the one before
- * (a line break inside a Markdown paragraph, e.g. an address).
+ * (a line break inside a Markdown paragraph, e.g. an address). [spacing]: line spacing (1.0, 1.15, 1.5, 2.0; null = that
+ * of the Formatvorlage); [left] and [first]: left indent and first-line indent in mm (negative [first]: hanging).
  */
 data class ParaFormat(
     val kind: ParaKind = ParaKind.NORMAL,
@@ -70,7 +80,40 @@ data class ParaFormat(
     val indent: Int = 0,
     val checked: Boolean = false,
     val soft: Boolean = false,
-)
+    val spacing: Float? = null,
+    val left: Int = 0,
+    val first: Int = 0,
+) {
+    /** The paragraph marker (`<!--a:c;s=title-->`) or "" when it has nothing to say. */
+    fun marker(): String {
+        val parts = buildList {
+            kind.mark?.let { add("s=$it") }
+            spacing?.let { add("z=" + (if (it == it.toInt().toFloat()) it.toInt().toString() else it.toString())) }
+            if (left != 0) add("l=$left")
+            if (first != 0) add("f=$first")
+        }
+        if (align == Align.LEFT && parts.isEmpty()) return ""
+        return "<!--a:" + (align.mark ?: "") + parts.joinToString("") { ";$it" } + "-->"
+    }
+
+    companion object {
+        /** [base] with what the paragraph marker [m] (a match of ALIGN_MARK) says. */
+        fun fromMarker(base: ParaFormat, m: MatchResult): ParaFormat {
+            var p = base.copy(align = Align.entries.firstOrNull { it.mark != null && it.mark == m.groupValues[1] } ?: Align.LEFT)
+            for (kv in m.groupValues[2].split(';')) {
+                val k = kv.substringBefore('=', "")
+                val v = kv.substringAfter('=', "")
+                when (k) {
+                    "s" -> ParaKind.ofMark(v)?.let { if (!p.kind.heading && !p.kind.list && p.kind != ParaKind.QUOTE) p = p.copy(kind = it) }
+                    "z" -> v.toFloatOrNull()?.takeIf { it in 0.5f..4f }?.let { p = p.copy(spacing = it) }
+                    "l" -> v.toIntOrNull()?.let { p = p.copy(left = it.coerceIn(0, 150)) }
+                    "f" -> v.toIntOrNull()?.let { p = p.copy(first = it.coerceIn(-80, 80)) }
+                }
+            }
+            return p
+        }
+    }
+}
 
 /** Running text: [text] with one [CharFormat] per character and one [ParaFormat] per paragraph. */
 class RichText(val text: String, val chars: List<CharFormat>, val paras: List<ParaFormat>) {
@@ -127,7 +170,7 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
         val last = paraAt(removedEnd)
         val newLines = inserted.count { it == '\n' }
         val head = paras[first]
-        val next = if (head.kind.heading || head.kind == ParaKind.QUOTE && false) ParaFormat(align = head.align) else head.copy(checked = false, soft = false)
+        val next = if (head.kind.endsAtEnter) ParaFormat(align = head.align) else head.copy(checked = false, soft = false)
         val newParas = ArrayList<ParaFormat>(paras.size - (last - first) + newLines)
         newParas.addAll(paras.subList(0, first))
         newParas += head
@@ -324,12 +367,12 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
             fun para(fmt: ParaFormat, inline: String) {
                 if (paras.isNotEmpty()) { text.append('\n'); chars += CharFormat.PLAIN }
                 var body = inline
-                var align = fmt.align
+                var f = fmt
                 ALIGN_MARK.find(body)?.let { m ->
-                    align = Align.entries.firstOrNull { it.mark == m.groupValues[1] } ?: Align.LEFT
+                    f = ParaFormat.fromMarker(fmt, m)
                     body = body.substring(m.range.last + 1)
                 }
-                paras += fmt.copy(align = align)
+                paras += f
                 inlineSegments(body).forEach { seg ->
                     val f = CharFormat.of(seg)
                     // Line breaks inside one run cannot happen here (paragraph lines are split before).
@@ -434,7 +477,7 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
                 val p = r.paras[i]
                 val range = r.paraRange(i)
                 val body = inline(r.text.substring(range.first, range.last + 1), r.chars.subList(range.first, range.last + 1))
-                val align = p.align.mark?.let { "<!--a:$it-->" }.orEmpty()
+                val align = p.marker()
                 val listLike = p.kind.list
                 when {
                     p.kind.heading -> {

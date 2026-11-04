@@ -46,6 +46,8 @@ object DocxWriter {
         for ((bi, b) in oldBlocks.withIndex()) {
             val image = DocMarkup.image(b) != null
             val pageBreak = DocMarkup.isPageBreak(b)
+            // Setting lines (page setup, Formatvorlagen) and Word text boxes (read only) have no paragraph of their own.
+            if (DocMarkup.isComment(b) || DocMarkup.isTextBox(b)) continue
             val want = norm(plainBlock(b))
             val found = when {
                 image -> (from until els.size).firstOrNull { "<w:drawing" in els[it] || "<w:pict" in els[it] }?.let { it..it }
@@ -85,6 +87,8 @@ object DocxWriter {
                 }
                 // Unchanged blocks without an element of their own (footnotes, Inhaltsverzeichnis marker): already in the file.
                 oi != null -> oldUsed[oi] = true
+                // Text boxes stay in the paragraph they are anchored in (AP-45: read only); setting lines are no text.
+                DocMarkup.isTextBox(nb) || DocMarkup.isComment(nb) -> {}
                 else -> {
                     val xml = MarkdownDocx.fragment(nb, theme) ?: return null
                     out.append(restyle(xml, styleIds))
@@ -148,8 +152,13 @@ object DocxWriter {
 
     private val T = Regex("<w:t(?:\\s[^>]*)?>([^<]*)</w:t>|<w:tab/>|<w:delText[^>]*>[^<]*</w:delText>")
 
-    /** The visible text of an element (Word's text runs, tabs as spaces; deleted text of revisions left out). */
-    internal fun plainXml(xml: String): String = T.findAll(xml).joinToString("") { m ->
+    private val BOXES = Regex("<w:txbxContent\\b.*?</w:txbxContent>|<mc:Fallback\\b.*?</mc:Fallback>", RegexOption.DOT_MATCHES_ALL)
+
+    /**
+     * The visible text of an element (Word's text runs, tabs as spaces; deleted text of revisions left out). Text boxes
+     * do not count: the reader makes blocks of their own of them.
+     */
+    internal fun plainXml(xml: String): String = T.findAll(if ("<w:txbxContent" in xml || "<mc:Fallback" in xml) BOXES.replace(xml, "") else xml).joinToString("") { m ->
         when {
             m.value.startsWith("<w:tab") -> " "
             m.value.startsWith("<w:delText") -> ""

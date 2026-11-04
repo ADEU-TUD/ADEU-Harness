@@ -23,17 +23,25 @@ object DocMarkup {
 
     /**
      * Page of a document: page numbers, date and header line, footer line and margins (AP-16: „normal“ 2 cm, „schmal“
-     * 1,27 cm, „breit“ 2,54 cm).
+     * 1,27 cm, „breit“ 2,54 cm; since AP-44 also any width as „18 mm“, set by dragging the ruler).
      */
     data class PageSetup(val pageNumbers: Boolean = true, val date: Boolean = false, val header: String = "", val footer: String = "", val margins: String = "normal") {
         val hasHeader: Boolean get() = date || header.isNotBlank()
 
         /** Margins in twentieths of a point (Word). */
-        val marginTwips: Int get() = when (margins) { "schmal" -> 720; "breit" -> 1440; else -> 1134 }
+        val marginTwips: Int get() = when (margins) { "schmal" -> 720; "breit" -> 1440; "normal" -> 1134; else -> (marginMm * 56.693f).toInt() }
 
         /** Margins in millimetres (PDF, page view). */
-        val marginMm: Int get() = when (margins) { "schmal" -> 13; "breit" -> 25; else -> 20 }
+        val marginMm: Int get() = when (margins) { "schmal" -> 13; "breit" -> 25; "normal" -> 20; else -> customMm(margins) ?: 20 }
     }
+
+    private val MM = Regex("^(\\d{1,2})\\s*mm$")
+
+    /** „18 mm“ → 18 (5 to 60 mm). */
+    fun customMm(v: String): Int? = MM.find(v.trim().lowercase())?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it in 5..60 }
+
+    /** The margins setting for [mm] millimetres: one of the named ones when it is that width. */
+    fun marginsFor(mm: Int): String = when (mm) { 13 -> "schmal"; 25 -> "breit"; 20 -> "normal"; else -> "${mm.coerceIn(5, 60)} mm" }
 
     private val SETTING = Regex("^\\s*<!--\\s*(seitenzahlen|datum|kopfzeile|fusszeile|fußzeile|raender|ränder)\\s*:\\s*(.*?)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
 
@@ -48,7 +56,7 @@ object DocMarkup {
                 "seitenzahlen" -> s.copy(pageNumbers = on(v))
                 "datum" -> s.copy(date = on(v))
                 "fusszeile", "fußzeile" -> s.copy(footer = v.trim())
-                "raender", "ränder" -> s.copy(margins = v.trim().lowercase().takeIf { it in setOf("normal", "schmal", "breit") } ?: "normal")
+                "raender", "ränder" -> s.copy(margins = v.trim().lowercase().let { m -> if (m in setOf("normal", "schmal", "breit")) m else customMm(m)?.let { "$it mm" } ?: "normal" })
                 else -> s.copy(header = v.trim())
             }
         }
@@ -111,6 +119,14 @@ object DocMarkup {
     }
 
     const val PAGE_BREAK = "\\newpage"
+
+    /**
+     * Textfeld from Word (AP-45, read only): a block starting with this line holds its text. It is shown and exported
+     * like a paragraph; writing back into the original leaves the Word text box as it was.
+     */
+    const val TEXTBOX = "<!-- textfeld -->"
+
+    fun isTextBox(block: String): Boolean = block.trimStart().startsWith(TEXTBOX)
     const val LANDSCAPE_START = "<!-- quer -->"
     const val LANDSCAPE_END = "<!-- hoch -->"
 

@@ -147,11 +147,13 @@ object OfficeImport {
         val styles = styleNames(xml(files["word/styles.xml"]))
         val blocks = mutableListOf<String>()
         val counters = HashMap<String, Int>()
-        for (el in body.children()) {
+        for (el in flatBody(body)) {
             when (el.localName) {
                 "p" -> {
                     // Pictures of the paragraph become blocks of their own.
                     pictures(el, ctx).forEach { blocks += it }
+                    // Textfelder (AP-45, read only): their paragraphs after the one they are anchored in.
+                    val boxes = textBoxes(el, ctx)
                     if (el.all("br").any { it.attr("type") == "page" } && blocks.isNotEmpty()) blocks += DocMarkup.PAGE_BREAK
                     val text = runs(el, ctx).trim()
                     val pPr = el.child("pPr")
@@ -166,7 +168,7 @@ object OfficeImport {
                         }
                         continue
                     }
-                    if (text.isEmpty()) continue
+                    if (text.isEmpty()) { blocks += boxes; continue }
                     // Bullets typed as characters ("• Punkt") are list items too.
                     val typed = Regex("^[•◦▪–·]\\s+").find(text)
                     if (typed != null && num == null) {
@@ -176,6 +178,14 @@ object OfficeImport {
                         continue
                     }
                     val heading = Regex("(heading|überschrift|berschrift)(\\d)").find(style)?.groupValues?.get(2)?.toIntOrNull()
+                    // Formatvorlagen of the Fließtext-Editor (AP-46) and the paragraph settings it knows.
+                    val kind = when {
+                        style == "subtitle" || style == "untertitel" -> io.github.thepytales.llmhub.docs.text.ParaKind.SUBTITLE
+                        style == "caption" || style.startsWith("beschriftung") -> io.github.thepytales.llmhub.docs.text.ParaKind.CAPTION
+                        style == "bibliography" || style.startsWith("literatur") -> io.github.thepytales.llmhub.docs.text.ParaKind.LITERATURE
+                        style.contains("code") || style == "htmlpreformatted" || style == "htmlvorformatiert" -> io.github.thepytales.llmhub.docs.text.ParaKind.CODE
+                        else -> io.github.thepytales.llmhub.docs.text.ParaKind.NORMAL
+                    }
                     when {
                         style == "title" || style == "titel" -> blocks += "# " + text.replace("**", "")
                         heading != null -> blocks += "#".repeat((heading + 1).coerceAtMost(6)) + " " + text.replace("**", "")
@@ -190,14 +200,10 @@ object OfficeImport {
                             } else blocks += line
                         }
                         style.contains("quote") || style.contains("zitat") -> blocks += "> $text"
-                        // Word-Treue (AP-45): centred, right-aligned and justified paragraphs keep their alignment.
-                        else -> blocks += when (pPr?.child("jc")?.attr("val")) {
-                            "center" -> "<!--a:c-->"
-                            "right", "end" -> "<!--a:r-->"
-                            "both", "distribute" -> "<!--a:j-->"
-                            else -> ""
-                        } + text
+                        // Word-Treue (AP-45): alignment, line spacing and indents of the paragraph stay.
+                        else -> blocks += paraFormat(pPr, kind).marker() + text
                     }
+                    blocks += boxes
                 }
                 "tbl" -> {
                     val rows = el.children().filter { it.localName == "tr" }.map { tr ->
@@ -212,8 +218,78 @@ object OfficeImport {
         }
         noteNumbers.forEach { (id, n) -> blocks += "[^$n]: " + noteTexts[id].orEmpty().ifBlank { " " } }
         // A document without a heading-styled title starts with its first short line as title.
-        return DocBlocks.join(fixTitle(blocks))
+        val md = DocBlocks.join(fixTitle(blocks))
+        // Kopf-/Fußzeile and margins of the (last) section (AP-45) as the page setup.
+        val setup = pageSetup(body, files, docRels) ?: return md
+        return DocMarkup.withPageSetup(md, setup)
     }
+
+    /** The body's paragraphs and tables, with content controls (w:sdt, used a lot in templates) opened up. */
+    private fun flatBody(container: Element): List<Element> = container.children().flatMap { e ->
+        when (e.localName) {
+            "sdt" -> e.child("sdtContent")?.let { flatBody(it) }.orEmpty()
+            "customXml", "smartTag" -> flatBody(e)
+            else -> listOf(e)
+        }
+    }
+
+    /** Whether [e] lies inside the fallback of an mc:AlternateContent (the same content once more, for old Word). */
+    private fun inFallback(e: Element): Boolean {
+        var n: Node? = e.parentNode
+        while (n != null) {
+            if (n.localName == "Fallback") return true
+            n = n.parentNode
+        }
+        return false
+    }
+
+    /** The text of the Textfelder anchored in paragraph [p], one block per box (marked, so the writer leaves them). */
+    private fun textBoxes(p: Element, ctx: DocxRefs): List<String> = p.all("txbxContent").filter { !inFallback(it) }.mapNotNull { box ->
+        val lines = box.all("p").map { runs(it, ctx).trim() }.filter { it.isNotEmpty() }
+        if (lines.isEmpty()) null else DocMarkup.TEXTBOX + "\n" + lines.joinToString("  \n")
+    }
+
+    /** Alignment, line spacing (from 1,4 lines on) and indents of a Word paragraph. */
+    private fun paraFormat(pPr: Element?, kind: io.github.thepytales.llmhub.docs.text.ParaKind): io.github.thepytales.llmhub.docs.text.ParaFormat {
+        val align = when (pPr?.child("jc")?.attr("val")) {
+            "center" -> io.github.thepytales.llmhub.docs.text.Align.CENTER
+            "right", "end" -> io.github.thepytales.llmhub.docs.text.Align.RIGHT
+            "both", "distribute" -> io.github.thepytales.llmhub.docs.text.Align.JUSTIFY
+            else -> io.github.thepytales.llmhub.docs.text.Align.LEFT
+        }
+        val sp = pPr?.child("spacing")
+        val spacing = sp?.takeIf { it.attr("lineRule").let { r -> r.isEmpty() || r == "auto" } }?.attr("line")?.toIntOrNull()
+            ?.let { (it / 240f * 20).toInt() / 20f }?.takeIf { it >= 1.4f && it <= 3f }
+        val ind = pPr?.child("ind")
+        fun mm(v: String) = v.toIntOrNull()?.let { (it / 56.693f).toInt() } ?: 0
+        val left = mm(ind?.attr("left")?.ifBlank { ind.attr("start") }.orEmpty()).coerceIn(0, 150)
+        val first = (mm(ind?.attr("firstLine").orEmpty()) - mm(ind?.attr("hanging").orEmpty())).coerceIn(-80, 80)
+        return io.github.thepytales.llmhub.docs.text.ParaFormat(kind = kind, align = align, spacing = spacing, left = if (left >= 2) left else 0, first = if (kotlin.math.abs(first) >= 2) first else 0)
+    }
+
+    /** Header, footer and margins of the document's last section; null if it has none worth keeping. */
+    private fun pageSetup(body: Element, files: Map<String, ByteArray>, rels: Map<String, String>): DocMarkup.PageSetup? {
+        val sect = body.children().lastOrNull { it.localName == "sectPr" } ?: return null
+        fun part(kind: String): String {
+            val refs = sect.children().filter { it.localName == kind }
+            val ref = refs.firstOrNull { it.attr("type") == "default" } ?: refs.firstOrNull() ?: return ""
+            val root = xml(files[rels[ref.attr("id")]]) ?: return ""
+            return root.all("p").filter { !inFallback(it) }.joinToString(" · ") { pp ->
+                buildString { pp.all("t").filter { t -> t.parentNode?.localName == "r" }.forEach { append(it.textContent) } }.trim()
+            }.split(" · ").filter { it.isNotBlank() }.joinToString(" · ")
+                // „Seite 1 von 3“ is the page number of the export, not text.
+                .replace(Regex("(?i)(seite|page)?\\s*\\d+\\s*(von|/|of)\\s*\\d+"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
+                .take(160)
+        }
+        val header = part("headerReference")
+        val footer = part("footerReference")
+        val mar = sect.child("pgMar")?.attr("left")?.toIntOrNull()?.let { (it / 56.693f).roundToIntSafe() }
+        val margins = mar?.let { DocMarkup.marginsFor(it.coerceIn(5, 60)) } ?: "normal"
+        val setup = DocMarkup.PageSetup(header = header, footer = footer, margins = margins)
+        return setup.takeIf { it != DocMarkup.PageSetup() }
+    }
+
+    private fun Float.roundToIntSafe(): Int = kotlin.math.round(this).toInt()
 
     /** What reading the runs of a .docx needs to resolve footnotes and pictures. */
     private class DocxRefs(
@@ -287,6 +363,8 @@ object OfficeImport {
                 "r" -> run(e)
                 "hyperlink" -> e.children().filter { it.localName == "r" }.forEach { run(it, inLink = true) }
                 "ins", "smartTag", "fldSimple" -> e.children().filter { it.localName == "r" }.forEach { run(it) }
+                // Content controls inside the paragraph (fields of templates: name, date …).
+                "sdt" -> e.child("sdtContent")?.children()?.forEach { c -> if (c.localName == "r") run(c) else if (c.localName == "hyperlink") c.children().filter { it.localName == "r" }.forEach { run(it, inLink = true) } }
                 // Word formulas (AP-16) as LaTeX.
                 "oMath" -> append("$" + LatexOmml.toLatex(e) + "$")
                 "oMathPara" -> e.children().filter { it.localName == "oMath" }.forEach { append("$$" + LatexOmml.toLatex(it) + "$$") }
