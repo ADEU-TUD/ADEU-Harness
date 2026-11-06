@@ -186,7 +186,7 @@ compose.desktop {
                 // Without console window; errors go to log.txt in the data folder.
                 console = false
             }
-            // AP-31: Apple Silicon (macos-14 runner). ADEU LLM.app keeps the technical name, menu bar and Dock say Lora.
+            // AP-31: Apple Silicon (macos-15 runner). ADEU LLM.app keeps the technical name, menu bar and Dock say Lora.
             macOS {
                 iconFile.set(project.file("icons/app.icns"))
                 bundleID = "de.tu-dresden.adeu.lora"
