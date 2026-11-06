@@ -976,8 +976,11 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Zeiten (für Untertitel), **Stimmprofile**, die bekannte Sprecher:innen in neuen Aufnahmen wiedererkennen, und
   *Protokoll erstellen* aus dem Transkript.
 - **Bedienung**: **Strg+K** Befehlspalette (Bereiche, Einstellungen, Chats), **Strg+/** Übersicht der Tastenkürzel,
-  **Strg+L** Lora, Strg+Umschalt+L Literatur, Strg+D/T Dokumente, Transkription; die Seitenleiste unter Windows lässt sich durch Ziehen breiter
-  oder schmaler machen. Suche in den Einstellungen. **Sprache der Oberfläche** Deutsch oder Englisch
+  **Strg+L** Lora, Strg+Umschalt+L Literatur, Strg+D/T Dokumente, Transkription. **Breiten ziehen**: Die Linie neben der
+  Seitenleiste (links) und neben Loras Bereich und dem Browser (rechts) hat einen kleinen Griff; Ziehen macht die Leiste
+  breiter oder schmaler, Doppelklick stellt die Standardbreite wieder her. Die Breiten bleiben über Neustarts erhalten
+  und werden in kleinen Fenstern begrenzt, damit der Chat Platz behält (PC und Tablet, `ui/PanelResizer.kt`). Suche in
+  den Einstellungen. **Sprache der Oberfläche** Deutsch oder Englisch
   (*Einstellungen › Darstellung*): seit AP-29 ist die ganze Oberfläche übersetzt – Einstellungen, Editoren, TU Vorlagen,
   Modelle, Modi, Fehlermeldungen und Loras eigene Antworten; Antworten der Modelle folgen der gewählten Sprache. Loras
   Suche findet Bereiche auch mit englischen Wörtern. Ein automatischer Test prüft den Textkontrast aller Stile nach WCAG.

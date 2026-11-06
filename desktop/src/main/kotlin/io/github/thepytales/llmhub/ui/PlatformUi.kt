@@ -14,6 +14,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import io.github.thepytales.llmhub.desktop.DesktopActions
 import org.jetbrains.skia.Image as SkiaImage
 import androidx.compose.ui.Modifier
@@ -27,6 +28,10 @@ fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action)
     if (menuKey && e.type == KeyEventType.KeyUp) action()
     menuKey
 }
+
+/** The resize cursor ⇔ over the line between side menu, screen and panels (PanelResizer). */
+fun Modifier.resizeCursor(): Modifier =
+    pointerHoverIcon(androidx.compose.ui.input.pointer.PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR)))
 
 /** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
 const val IS_ANDROID = false

@@ -19,13 +19,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -33,7 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -278,12 +271,11 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     LoraHelperHost(c) { r -> if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) }
     LaunchedEffect(entry.route) { LoraHelper.route.value = entry.route }
 
-    /** Width of the side menu; the line beside it can be dragged. */
-    var menuWidth by remember { mutableStateOf(318.dp) }
-    val density = LocalDensity.current
+    /** Widths of the side menu and the panels at the right; the lines beside them can be dragged (PanelResizer). */
+    val widths = remember { PanelWidths.of(c) }
     val menu: @Composable () -> Unit = {
         AppDrawer(
-            width = menuWidth,
+            width = widths.menu.value,
             c = c,
             currentChatId = currentChatId,
             onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
@@ -314,27 +306,15 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     BoxWithConstraints(Modifier.fillMaxSize().trackLoraGaze()) {
         val wide = maxWidth >= 1000.dp
         layout.wide = wide
+        val windowWidth = maxWidth
+        SideEffect { widths.fitTo(windowWidth) }
         if (wide) {
             Row(Modifier.fillMaxSize()) {
                 AnimatedVisibility(sidebar, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                     Row(Modifier.fillMaxHeight()) {
                         menu()
-                        // Drag handle: makes the side menu wider or narrower (240–520 dp).
-                        Box(
-                            Modifier
-                                .fillMaxHeight()
-                                .width(6.dp)
-                                .pointerHoverIcon(PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR)))
-                                .draggable(
-                                    orientation = Orientation.Horizontal,
-                                    state = rememberDraggableState { delta ->
-                                        menuWidth = (menuWidth + with(density) { delta.toDp() }).coerceIn(240.dp, 520.dp)
-                                    },
-                                ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        }
+                        // The line beside the side menu: drag for wider or narrower (240–520 dp), double-click resets.
+                        PanelResizer(widths.menu, panelLeft = true, label = tr("Breite der Seitenleiste ändern"))
                     }
                 }
                 Box(Modifier.weight(1f)) { screen() }

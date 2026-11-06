@@ -77,7 +77,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -392,18 +391,19 @@ internal fun openTarget(t: AppTarget, go: (String) -> Unit, text: String = "") {
 
 // ── The panel ────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** Width of the docked panel. */
-private val PANEL_WIDTH = 384.dp
-
-/** Lora's panel beside the app (wide windows): slides in from the right, the app gets narrower instead of covered. */
+/**
+ * Lora's panel beside the app (wide windows): slides in from the right, the app gets narrower instead of covered. Its
+ * width can be dragged at the line on its left (320–640 dp, remembered; double-click resets).
+ */
 @Composable
 fun LoraSidePanel(c: AppContainer) {
     val open by LoraHelper.isOpen.collectAsStateWithLifecycle()
+    val width = remember { PanelWidths.of(c).lora }
     LoraLayout.docked = true
     AnimatedVisibility(open, enter = expandHorizontally(tween(260)) + fadeIn(tween(260)), exit = shrinkHorizontally(tween(220)) + fadeOut(tween(180))) {
         Row(Modifier.fillMaxHeight()) {
-            VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.width(PANEL_WIDTH).fillMaxHeight()) {
+            PanelResizer(width, panelLeft = false, label = tr("Breite von Loras Bereich ändern"))
+            Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.width(width.value).fillMaxHeight()) {
                 LoraPanel(c, compact = false)
             }
         }
