@@ -43,7 +43,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$TRANSFER" --draft --title "Zwischenablage für Lauf ${{ github.run_id }}" --notes "Wird vom Workflow wieder gelöscht."
+        run: |
+          # Drafts of earlier runs that were cancelled before their release job removed them (older than 3 hours, so a
+          # run on another branch keeps its own).
+          gh release list --limit 100 --json tagName,isDraft,createdAt \
+            --jq '.[] | select(.isDraft and (.tagName | startswith("ci-")) and (now - (.createdAt | fromdateiso8601) > 10800)) | .tagName' |
+            while read -r tag; do gh release delete "$tag" --yes || true; done || true
+          gh release create "$TRANSFER" --draft --title "Zwischenablage für Lauf ${{ github.run_id }}" --notes "Wird vom Workflow wieder gelöscht."
 
   build:
     needs: prepare
@@ -213,7 +219,8 @@ jobs:
   macos:
     needs: prepare
     if: inputs.macos_linux
-    runs-on: macos-14
+    # macos-14 was retired by GitHub on 2026-11-02 (jobs were cancelled before they started); macos-15 is Apple Silicon too.
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
