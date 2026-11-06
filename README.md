@@ -1166,6 +1166,14 @@ Java-Laufzeit eingebaut, ohne Admin-Rechte.
 - **Bedienung**: Kürzel mit **⌘** statt Strg (Strg geht auch), Hinweise in der App zeigen ⌘, Finder statt Explorer,
   Menüleiste statt Infobereich. *Einstellungen › macOS/Linux* hat „Beim Anmelden starten“ (LaunchAgent bzw.
   `~/.config/autostart`).
+- **Klicks auf dem Mac** (`desktop/MacClickFix.kt`): Compose bricht einen Klick ab, wenn zwischen Drücken und Loslassen
+  ein Scroll-Ereignis kommt und eine Liste darunter es nimmt – das passiert auf dem Mac ständig mit Magic Mouse, aufgelegtem
+  Daumen auf dem Trackpad, Schwung nach dem Wischen oder Logitech-Rädern; man musste dann 2–4-mal klicken. Solange eine
+  Taste gedrückt ist und der Zeiger stehen bleibt (höchstens 1,5 s), hält die App Scrollen zurück; Ziehen und Scrollen
+  zugleich geht weiter. Den Tastenzustand setzt sie aus den Ereignisarten statt aus der verspäteten Abfrage von macOS.
+  *Problem melden* schickt auf dem Mac mit, wie oft das griff, Modell, Bildwiederholrate, Tippen zum Klicken,
+  Zeigegeräte und bekannte Maus-Programme (nur feste Bezeichnungen) sowie die Ereignisse vor einem erneuten Klick an
+  derselben Stelle.
 - **ffmpeg** (Audio/Video öffnen, Transkription von Dateien, Videoeditor) kommt vom System: `brew install ffmpeg` bzw.
   `sudo apt install ffmpeg`; die App findet es auch ohne PATH (Homebrew, MacPorts, Snap). Aufnahmen gehen ohne.
 - **Was es dort nicht gibt**: Outlook über COM (dafür *Mail über den Server*), Office → PDF über Microsoft Office,
