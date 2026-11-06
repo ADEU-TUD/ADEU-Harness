@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.PermanentNavigationDrawer
+import androidx.compose.runtime.SideEffect
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.key
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -242,8 +242,11 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    /** Widths of the side menu and Lora's panel on tablets; the lines beside them can be dragged (PanelResizer). */
+    val widths = remember { PanelWidths.of(c) }
     val menu: @Composable () -> Unit = {
         AppDrawer(
+            width = if (wide) widths.menu.value else 318.dp,
             c = c,
             currentChatId = currentChatId,
             onOpenChat = { id -> nav.openChat(chatRoute(id)); closeDrawer() },
@@ -367,8 +370,13 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).trackLoraGaze()) {
         if (wide) {
+            val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+            SideEffect { widths.fitTo(screenWidth) }
             androidx.compose.foundation.layout.Row(Modifier.fillMaxSize()) {
-                PermanentNavigationDrawer(drawerContent = menu, modifier = Modifier.weight(1f)) { screens() }
+                menu()
+                // The line beside the side menu: drag for wider or narrower, double tap resets.
+                PanelResizer(widths.menu, panelLeft = true, label = tr("Breite der Seitenleiste ändern"))
+                Box(Modifier.weight(1f).fillMaxHeight()) { screens() }
                 // Lora's panel beside the app on tablets.
                 LoraSidePanel(c)
             }

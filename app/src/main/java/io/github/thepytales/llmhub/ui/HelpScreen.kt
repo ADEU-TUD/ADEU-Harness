@@ -31,9 +31,12 @@ fun HelpSection() {
     val uri = LocalUriHandler.current
     var text by rememberSaveable { mutableStateOf("") }
     val log = remember { ErrorLog.anonymizedText() }
+    // Notes of the platform, e.g. how mouse clicks arrived on a Mac (only the app's own counters and fixed labels).
+    val notes = remember { runCatching { ErrorLog.diagnostics() }.getOrDefault("").trim() }
     fun report() = buildString {
         append(text.trim().ifBlank { tr("(keine Beschreibung)") })
         append("\n\n---\nLora ${BuildConfig.VERSION_NAME} · ${UpdatePlatform.KEY} · ${System.getProperty("os.name").orEmpty()}")
+        if (notes.isNotEmpty()) append("\n").append(notes)
         append("\n\nFehlerprotokoll (anonymisiert):\n").append(log.ifBlank { "(leer)" })
     }
     Section(tr("Was ist passiert?")) {
@@ -42,7 +45,10 @@ fun HelpSection() {
             placeholder = { Text(tr("Was hast du gemacht, was ist passiert, was hättest du erwartet?")) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
         )
-        SettingsHint(tr("Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen."))
+        SettingsHint(
+            if (notes.isEmpty()) tr("Mitgeschickt werden nur Version, System und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen.")
+            else tr("Mitgeschickt werden nur Version, System, Angaben zu Maus und Trackpad und die letzten Fehlermeldungen – ohne Chat-Inhalte, Schlüssel, Namen, Pfade und Adressen.")
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { shareText(context, report(), tr("Problem mit Lora {0}", BuildConfig.VERSION_NAME)) }) { Text(tr("Per E-Mail senden …")) }
             OutlinedButton(onClick = {
@@ -53,6 +59,7 @@ fun HelpSection() {
         }
     }
     Section(tr("Fehlerprotokoll")) {
+        if (notes.isNotEmpty()) Text(notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(log.ifBlank { tr("Keine Fehler seit dem Start.") }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

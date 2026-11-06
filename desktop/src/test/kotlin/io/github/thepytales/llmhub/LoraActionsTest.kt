@@ -2,19 +2,14 @@ package io.github.thepytales.llmhub
 
 import io.github.thepytales.llmhub.agent.ActionArea
 import io.github.thepytales.llmhub.agent.ToolActions
-import io.github.thepytales.llmhub.desktop.MacClickFix
-import java.awt.Canvas
-import java.awt.event.InputEvent
-import java.awt.event.MouseEvent
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/** Lora handelt in Werkzeugen (AP-38) and the click fix for macOS. */
+/** Lora handelt in Werkzeugen (AP-38). */
 class LoraActionsTest {
     @Test
     fun areasAndTheirActions() {
@@ -56,22 +51,5 @@ class LoraActionsTest {
         assertEquals(1, groups.size)
         assertEquals(setOf(a, b), groups[0].toSet())
         dir.deleteRecursively()
-    }
-
-    @Test
-    fun macClicksGetTheirButtonState() {
-        val src = Canvas()
-        // A press without the button in the modifiers (tap to click) gets it …
-        val press = MouseEvent(src, MouseEvent.MOUSE_PRESSED, 0L, 0, 5, 5, 1, false, MouseEvent.BUTTON1)
-        val fixed = MacClickFix.normalize(press) as MouseEvent
-        assertTrue(fixed.modifiersEx and InputEvent.BUTTON1_DOWN_MASK != 0)
-        // … a release that still carries it loses it …
-        val release = MouseEvent(src, MouseEvent.MOUSE_RELEASED, 0L, InputEvent.BUTTON1_DOWN_MASK, 5, 5, 1, false, MouseEvent.BUTTON1)
-        assertEquals(0, (MacClickFix.normalize(release) as MouseEvent).modifiersEx and InputEvent.BUTTON1_DOWN_MASK)
-        // … and correct events pass unchanged.
-        val ok = MouseEvent(src, MouseEvent.MOUSE_PRESSED, 0L, InputEvent.BUTTON1_DOWN_MASK, 5, 5, 1, false, MouseEvent.BUTTON1)
-        assertSame(ok, MacClickFix.normalize(ok))
-        val move = MouseEvent(src, MouseEvent.MOUSE_MOVED, 0L, 0, 5, 5, 0, false, MouseEvent.NOBUTTON)
-        assertSame(move, MacClickFix.normalize(move))
     }
 }

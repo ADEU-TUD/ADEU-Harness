@@ -116,7 +116,7 @@ fun main(args: Array<String>) {
             AppLog.i("Speicher beim Start: Java ${m.heapUsed / 1_000_000} MB von ${m.heapMax / 1_000_000} MB, Prozess ${m.process?.let { "${it / 1_000_000} MB" } ?: "?"}")
         }
     }.apply { isDaemon = true }.start()
-    // macOS: clicks that only worked the second time (see MacClickFix).
+    // macOS: clicks that only worked the second time – scrolling during the click, button state (see MacClickFix).
     io.github.thepytales.llmhub.desktop.MacClickFix.install()
     application {
         App(startHidden = minimized, selfTest = selfTest, showRequests = showRequests)

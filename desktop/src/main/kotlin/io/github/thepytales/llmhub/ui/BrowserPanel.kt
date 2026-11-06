@@ -6,11 +6,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,7 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -74,9 +69,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -177,29 +169,17 @@ class PanelUriHandler(private val fallback: UriHandler, private val enabled: () 
     }
 }
 
-private val DEFAULT_WIDTH = 560.dp
-
-/** The panel at the right of the app (wide windows); the app gets narrower instead of covered. */
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * The panel at the right of the app (wide windows); the app gets narrower instead of covered. Its width can be dragged
+ * at the line on its left (380–1100 dp, remembered; double-click resets).
+ */
 @Composable
 fun BrowserSidePanel(c: AppContainer) {
-    var width by remember { mutableStateOf(DEFAULT_WIDTH) }
-    val density = LocalDensity.current
+    val width = remember { PanelWidths.of(c).browser }
     AnimatedVisibility(Browser.open, enter = expandHorizontally(tween(240)) + fadeIn(tween(240)), exit = shrinkHorizontally(tween(200)) + fadeOut(tween(160))) {
         Row(Modifier.fillMaxHeight()) {
-            // Drag handle: the panel gets wider or narrower (380–1100 dp).
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .width(6.dp)
-                    .pointerHoverIcon(PointerIcon(java.awt.Cursor(java.awt.Cursor.W_RESIZE_CURSOR)))
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta -> width = (width - with(density) { delta.toDp() }).coerceIn(380.dp, 1100.dp) },
-                    ),
-                contentAlignment = Alignment.Center,
-            ) { VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)) }
-            Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.width(width).fillMaxHeight()) {
+            PanelResizer(width, panelLeft = false, label = tr("Breite des Browsers ändern"))
+            Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.width(width.value).fillMaxHeight()) {
                 BrowserPane(c)
             }
         }
