@@ -251,6 +251,32 @@ object DocumentWriter {
         }
     }
 
+    /**
+     * A line with tabs (AP-44). Without own Tabstopps the tab stands as it is, every 12,5 mm (tab-size). With them the
+     * i-th piece after a tab goes to the i-th stop – starting there, centred on it or ending there –, like in Word as
+     * long as the text before a stop does not reach it.
+     */
+    private fun tabbed(line: String, stops: List<io.github.thepytales.llmhub.docs.text.TabStop>, inl: (String) -> String): String {
+        val clean = io.github.thepytales.llmhub.ui.ALIGN_MARK.replace(line, "")
+        val pieces = clean.split('\t')
+        if (stops.isEmpty()) return pieces.joinToString("<span class=\"tab\">\t</span>") { inl(it) }
+        return buildString {
+            append(inl(pieces[0]))
+            var last = 0f
+            for (i in 1 until pieces.size) {
+                val stop = stops.getOrNull(i - 1)
+                val mm = stop?.mm?.toFloat() ?: (kotlin.math.floor(last / io.github.thepytales.llmhub.docs.text.TabStop.DEFAULT_MM).toInt() + 1) * io.github.thepytales.llmhub.docs.text.TabStop.DEFAULT_MM
+                last = mm
+                val shift = when (stop?.kind) {
+                    io.github.thepytales.llmhub.docs.text.TabKind.RIGHT -> ";transform:translateX(-100%)"
+                    io.github.thepytales.llmhub.docs.text.TabKind.CENTER -> ";transform:translateX(-50%)"
+                    else -> ""
+                }
+                append("<span class=\"tabstop\" style=\"left:${"%.1f".format(java.util.Locale.ROOT, mm)}mm$shift\">${inl(pieces[i])}</span>")
+            }
+        }
+    }
+
     /** A picture of the document: embedded as data URL (local files) or linked (web addresses). */
     private fun figure(img: DocMarkup.Image): String {
         val bytes = DocMarkup.imageBytes(img.src)
@@ -312,6 +338,8 @@ object DocumentWriter {
             if (print) append("@page quer{size:A4 landscape}section.quer{page:quer;break-before:page;page-break-before:always;break-after:page;page-break-after:always}")
             append(".pagebreak{break-after:page;page-break-after:always;height:0}")
             append(".abschnitt{break-before:page;page-break-before:always}")
+            // Tabs and Tabstopps (AP-44).
+            append("span.tab{white-space:pre;tab-size:12.5mm}p.tabs{position:relative;min-height:1.3em}p.tabs .tabstop{position:absolute;top:0;white-space:nowrap}")
             // Witwen und Waisen (AP-43): as in the Seitenansicht, two lines at least at a page end and start.
             if (print) append("p,li,blockquote{orphans:2;widows:2}")
             append("figure.img{margin:10pt 0 12pt;text-align:center;break-inside:avoid;page-break-inside:avoid}figure.img img{max-width:100%;height:auto}")
@@ -605,6 +633,12 @@ object DocumentWriter {
                         // "Mit freundlichen Grüßen" directly followed by the name: keep room for the signature in between.
                         i == closingAt && lines.size > 1 ->
                             append("<p>${inl(lines.first())}</p>\n<p>${lines.drop(1).joinToString("<br>\n") { inl(it) }}</p>\n")
+                        // Tabs (AP-44): the pieces after them at the paragraph's Tabstopps.
+                        '\t' in b.text -> {
+                            val stops = io.github.thepytales.llmhub.ui.ALIGN_MARK.find(b.text.trimStart())
+                                ?.let { io.github.thepytales.llmhub.docs.text.ParaFormat.fromMarker(io.github.thepytales.llmhub.docs.text.ParaFormat(), it).tabs }.orEmpty()
+                            append(lines.joinToString("") { "<p class=\"tabs\">${tabbed(it, stops, ::inl)}</p>\n" })
+                        }
                         else -> append("<p>${lines.joinToString("<br>\n") { inl(it) }}</p>\n")
                     }
                 }

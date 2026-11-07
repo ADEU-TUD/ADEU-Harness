@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -244,6 +245,10 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
     var dragMargin by remember { mutableStateOf<Float?>(null) }
     var dragLeft by remember { mutableStateOf<Float?>(null) }
     var dragFirst by remember { mutableStateOf<Float?>(null) }
+    // Tabstopps (AP-44): the kind a click sets (button in the margin, like Word), the stop being dragged.
+    var tabKind by remember { mutableStateOf(io.github.thepytales.llmhub.docs.text.TabKind.LEFT) }
+    var dragTab by remember { mutableStateOf<Pair<Int, Float>?>(null) }
+    var tabOff by remember { mutableStateOf(false) }
     val p = state.paraHere()
     val margin = dragMargin ?: marginMm.toFloat()
     val left = dragLeft ?: p.left.toFloat()
@@ -285,6 +290,38 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
                 }
                 tri(m + first * pxPerMm, down = true)
                 tri(m + left * pxPerMm, down = false)
+                // Tabstopps of the paragraph: └ left, ┴ centred, ┘ right.
+                fun tab(x: Float, kind: io.github.thepytales.llmhub.docs.text.TabKind, faint: Boolean) {
+                    val c = if (faint) accent.copy(alpha = 0.35f) else accent
+                    val y0 = size.height - 9f
+                    val y1 = size.height - 2f
+                    drawLine(c, Offset(x, y0), Offset(x, y1), strokeWidth = 2f)
+                    when (kind) {
+                        io.github.thepytales.llmhub.docs.text.TabKind.LEFT -> drawLine(c, Offset(x, y1), Offset(x + 6f, y1), strokeWidth = 2f)
+                        io.github.thepytales.llmhub.docs.text.TabKind.RIGHT -> drawLine(c, Offset(x - 6f, y1), Offset(x, y1), strokeWidth = 2f)
+                        io.github.thepytales.llmhub.docs.text.TabKind.CENTER -> drawLine(c, Offset(x - 5f, y1), Offset(x + 5f, y1), strokeWidth = 2f)
+                    }
+                }
+                p.tabs.forEachIndexed { i, t ->
+                    val mm = dragTab?.takeIf { it.first == i }?.second ?: t.mm.toFloat()
+                    tab(m + mm * pxPerMm, t.kind, faint = dragTab?.first == i && tabOff)
+                }
+                // The kind a click sets, in the top left corner of the margin.
+                tab(9f, tabKind, faint = false)
+            }
+            .pointerInput(marginMm, p, pxPerMm, tabKind) {
+                detectTapGestures { pos ->
+                    val m = marginMm * pxPerMm
+                    if (pos.x < 20f && m > 22f) {
+                        tabKind = io.github.thepytales.llmhub.docs.text.TabKind.entries[(tabKind.ordinal + 1) % 3]
+                        return@detectTapGestures
+                    }
+                    // A click into the text area sets a Tabstopp there (whole millimetres).
+                    if (pos.x <= m || pos.x >= size.width - m || pos.y < size.height / 3) return@detectTapGestures
+                    val mm = ((pos.x - m) / pxPerMm).roundToInt()
+                    if (p.tabs.any { kotlin.math.abs(it.mm - mm) < 2 }) return@detectTapGestures
+                    state.paragraph { q -> q.copy(tabs = (q.tabs + io.github.thepytales.llmhub.docs.text.TabStop(mm, tabKind)).sortedBy { it.mm }) }
+                }
             }
             .pointerInput(marginMm, p, pxPerMm) {
                 var mode = 0
@@ -293,7 +330,9 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
                         val m = marginMm * pxPerMm
                         val xFirst = m + (p.left + p.first) * pxPerMm
                         val xLeft = m + p.left * pxPerMm
+                        val tabAt = p.tabs.indexOfFirst { kotlin.math.abs(pos.x - (m + it.mm * pxPerMm)) < 7f }
                         mode = when {
+                            tabAt >= 0 && pos.y >= size.height / 2 -> 4
                             kotlin.math.abs(pos.x - xFirst) < 10f && pos.y < size.height / 2 -> 2
                             kotlin.math.abs(pos.x - xLeft) < 10f -> 1
                             kotlin.math.abs(pos.x - m) < 10f || kotlin.math.abs(pos.x - (size.width - m)) < 10f -> 3
@@ -303,6 +342,7 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
                             1 -> dragLeft = p.left.toFloat()
                             2 -> dragFirst = (p.left + p.first).toFloat()
                             3 -> dragMargin = marginMm.toFloat()
+                            4 -> { dragTab = tabAt to p.tabs[tabAt].mm.toFloat(); tabOff = false }
                         }
                     },
                     onDragEnd = {
@@ -310,10 +350,17 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
                             1 -> dragLeft?.let { l -> state.paragraph { q -> q.copy(left = l.roundToInt().coerceIn(0, 150), first = (q.left + q.first - l.roundToInt()).coerceIn(-80, 80)) } }
                             2 -> dragFirst?.let { f -> state.paragraph { q -> q.copy(first = (f.roundToInt() - q.left).coerceIn(-80, 80)) } }
                             3 -> dragMargin?.let { mm -> state.setMargins(mm.roundToInt()) }
+                            // A Tabstopp moves, or goes when it was dragged off the ruler (like in Word).
+                            4 -> dragTab?.let { (i, mm) ->
+                                state.paragraph { q ->
+                                    val rest = q.tabs.filterIndexed { k, _ -> k != i }
+                                    q.copy(tabs = if (tabOff) rest else (rest + q.tabs[i].copy(mm = mm.roundToInt().coerceAtLeast(0))).distinctBy { it.mm }.sortedBy { it.mm })
+                                }
+                            }
                         }
-                        dragLeft = null; dragFirst = null; dragMargin = null; mode = 0
+                        dragLeft = null; dragFirst = null; dragMargin = null; dragTab = null; tabOff = false; mode = 0
                     },
-                    onDragCancel = { dragLeft = null; dragFirst = null; dragMargin = null; mode = 0 },
+                    onDragCancel = { dragLeft = null; dragFirst = null; dragMargin = null; dragTab = null; tabOff = false; mode = 0 },
                 ) { change, dx ->
                     change.consume()
                     when (mode) {
@@ -321,6 +368,10 @@ internal fun FlowRuler(state: FlowState, pageWidth: Dp, marginMm: Int, zoom: Flo
                         2 -> dragFirst = ((dragFirst ?: 0f) + dx / pxPerMm).coerceIn(-80f, 150f)
                         // The left edge drags to the right, the right edge to the left: both make the margins wider.
                         3 -> dragMargin = ((dragMargin ?: 20f) + (if (change.position.x > size.width / 2) -dx else dx) / pxPerMm).coerceIn(5f, 60f)
+                        4 -> {
+                            dragTab = dragTab?.let { (i, mm) -> i to (mm + dx / pxPerMm).coerceIn(0f, 400f) }
+                            tabOff = change.position.y > size.height + 24f || change.position.y < -24f
+                        }
                     }
                 }
             },

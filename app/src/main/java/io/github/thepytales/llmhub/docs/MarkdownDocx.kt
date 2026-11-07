@@ -408,8 +408,11 @@ object MarkdownDocx {
 
     private fun run(text: String, style: RunStyle = RunStyle()): String {
         val props = style.xml().let { if (it.isEmpty()) "" else "<w:rPr>$it</w:rPr>" }
+        // Tabs (AP-44) as Word tabs: they go to the paragraph's Tabstopps.
         return text.split('\n').joinToString("<w:r><w:br/></w:r>") { line ->
-            "<w:r>$props<w:t xml:space=\"preserve\">${esc(line)}</w:t></w:r>"
+            line.split('\t').joinToString("<w:r>$props<w:tab/></w:r>") { piece ->
+                if (piece.isEmpty()) "" else "<w:r>$props<w:t xml:space=\"preserve\">${esc(piece)}</w:t></w:r>"
+            }
         }
     }
 
@@ -467,6 +470,14 @@ object MarkdownDocx {
                 p.spacing != null -> append("<w:spacing w:after=\"120\" w:line=\"${(p.spacing * 240).toInt()}\" w:lineRule=\"auto\"/>")
                 style == null && p.kind != io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append(if (sheet != null) "" else SPACING)
                 p.kind == io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append("<w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/>")
+            }
+            if (p.tabs.isNotEmpty()) {
+                append("<w:tabs>")
+                p.tabs.forEach { t ->
+                    val v = when (t.kind) { io.github.thepytales.llmhub.docs.text.TabKind.LEFT -> "left"; io.github.thepytales.llmhub.docs.text.TabKind.CENTER -> "center"; io.github.thepytales.llmhub.docs.text.TabKind.RIGHT -> "right" }
+                    append("<w:tab w:val=\"$v\" w:pos=\"${(t.mm * 56.693f).toInt()}\"/>")
+                }
+                append("</w:tabs>")
             }
             if (p.left != 0 || p.first != 0) {
                 val left = (p.left * 56.693f).toInt()

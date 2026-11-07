@@ -5,6 +5,10 @@ import io.github.thepytales.llmhub.docs.DocumentWriter
 import io.github.thepytales.llmhub.docs.MarkdownDocx
 import io.github.thepytales.llmhub.docs.OfficeImport
 import io.github.thepytales.llmhub.docs.text.PageLayout
+import io.github.thepytales.llmhub.docs.text.ParaFormat
+import io.github.thepytales.llmhub.docs.text.RichText
+import io.github.thepytales.llmhub.docs.text.TabKind
+import io.github.thepytales.llmhub.docs.text.TabStop
 import io.github.thepytales.llmhub.ui.pageMargins
 import io.github.thepytales.llmhub.ui.sectionOf
 import java.io.ByteArrayInputStream
@@ -153,5 +157,55 @@ class EditorRestTest {
         assertTrue(back[0].footer!!.startsWith("Entwurf"), back[0].footer)
         assertEquals("Hausarbeit", DocMarkup.pageSetup(md).header, "die Kopfzeile des ersten Abschnitts ist die des Dokuments")
         assertTrue(md.indexOf("abschnitt") in md.indexOf("Einleitung") until md.indexOf("Methoden"), md)
+    }
+
+    // ── Tabstopps ───────────────────────────────────────────────────────────────────────────────────────────
+
+    private val stops = listOf(TabStop(40), TabStop(90, TabKind.CENTER), TabStop(160, TabKind.RIGHT))
+
+    @Test
+    fun tabStopsLiveInTheParagraphMarker() {
+        val p = ParaFormat(tabs = stops)
+        assertEquals("<!--a:;t=40l90c160r-->", p.marker())
+        val m = io.github.thepytales.llmhub.ui.ALIGN_MARK.find(p.marker())!!
+        assertEquals(stops, ParaFormat.fromMarker(ParaFormat(), m).tabs)
+        assertEquals(listOf(TabStop(5), TabStop(30, TabKind.RIGHT)), TabStop.parse("30r5l5c"), "sortiert, je Stelle einer")
+        // Through Markdown and back: tabs and stops stay, a tab at the start is no code block.
+        val r = RichText.fromBlocks(listOf("${p.marker()}Name\tDatum\tOrt", "<!--a:-->\tEingerückt"))
+        val back = RichText.fromBlocks(RichText.toBlocks(r))
+        assertEquals("Name\tDatum\tOrt\n\tEingerückt", back.text)
+        assertEquals(stops, back.paras[0].tabs)
+        val lead = RichText.toBlocks(RichText.fromBlocks(listOf("x")).let { RichText("\tEinzug", List(7) { io.github.thepytales.llmhub.docs.text.CharFormat.PLAIN }, listOf(ParaFormat())) })
+        assertTrue(lead.single().startsWith("<!--a:-->\t"), lead.single())
+    }
+
+    @Test
+    fun tabsGoToTheNextStop() {
+        assertEquals(40f to TabKind.LEFT, io.github.thepytales.llmhub.ui.FlowTabs.nextStop(stops, 10f))
+        assertEquals(90f to TabKind.CENTER, io.github.thepytales.llmhub.ui.FlowTabs.nextStop(stops, 40f))
+        assertEquals(162.5f to TabKind.LEFT, io.github.thepytales.llmhub.ui.FlowTabs.nextStop(stops, 161f), "danach die üblichen 12,5 mm")
+        assertEquals(25f to TabKind.LEFT, io.github.thepytales.llmhub.ui.FlowTabs.nextStop(emptyList(), 13f))
+    }
+
+    @Test
+    fun wordAndPdfKeepTabs() {
+        val md = "# Brief\n\n${ParaFormat(tabs = stops).marker()}Dresden\tden 7.11.2026\tSeite 1\n\nOhne\tStopps\n"
+        val f = File.createTempFile("tabs", ".docx")
+        MarkdownDocx.write(f, "Brief", md)
+        val files = zipOf(f)
+        f.delete()
+        val doc = files["word/document.xml"]!!.toString(Charsets.UTF_8)
+        assertTrue("<w:tabs><w:tab w:val=\"left\" w:pos=\"2267\"/><w:tab w:val=\"center\" w:pos=\"5102\"/><w:tab w:val=\"right\" w:pos=\"9070\"/></w:tabs>" in doc, doc)
+        assertTrue(Regex("<w:tab/>").findAll(doc).count() >= 3, "Tabs als w:tab")
+        files["docProps/core.xml"] = files["docProps/core.xml"]!!.toString(Charsets.UTF_8).replace("<dc:creator>Lora</dc:creator>", "<dc:creator>Word</dc:creator>").toByteArray()
+        val out = ByteArrayOutputStream()
+        ZipOutputStream(out).use { z -> files.forEach { (n, b) -> z.putNextEntry(ZipEntry(n)); z.write(b); z.closeEntry() } }
+        val back = OfficeImport.docx(out.toByteArray())
+        assertTrue("Dresden\tden 7.11.2026\tSeite 1" in back, back)
+        val line = back.lines().first { "Dresden" in it }
+        assertEquals(stops, ParaFormat.fromMarker(ParaFormat(), io.github.thepytales.llmhub.ui.ALIGN_MARK.find(line)!!).tabs)
+        val html = DocumentWriter.toHtml("Brief", md, print = true)
+        assertTrue("<span class=\"tabstop\" style=\"left:90.0mm;transform:translateX(-50%)\">Seite 1</span>" in html, html.takeLast(1500))
+        assertTrue("Ohne<span class=\"tab\">\t</span>Stopps" in html)
     }
 }

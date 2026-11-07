@@ -137,7 +137,7 @@ object OfficeImport {
         val docRels = rels(files, "word/_rels/document.xml.rels", "word/")
         // Footnotes (without the separators) in the order they are used.
         val noteTexts = xml(files["word/footnotes.xml"])?.children()?.filter { it.localName == "footnote" && it.attr("type").isEmpty() }
-            ?.associate { n -> n.attr("id") to n.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.trim() }.orEmpty()
+            ?.associate { n -> n.attr("id") to n.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.replace('\t', ' ').trim() }.orEmpty()
         val noteNumbers = LinkedHashMap<String, Int>()
         val allRuns = body.all("rPr")
         val usualSize = allRuns.mapNotNull { it.child("sz")?.attr("val")?.ifBlank { null } }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
@@ -220,7 +220,7 @@ object OfficeImport {
                 "tbl" -> {
                     val rows = el.children().filter { it.localName == "tr" }.map { tr ->
                         tr.children().filter { it.localName == "tc" }.map { tc ->
-                            tc.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.trim()
+                            tc.children().filter { it.localName == "p" }.joinToString(" ") { runs(it).trim() }.replace('\t', ' ').trim()
                                 .let { cell -> if (cell.length > 4 && cell.startsWith("**") && cell.endsWith("**")) cell.substring(2, cell.length - 2) else cell }
                         }
                     }.filter { it.isNotEmpty() }
@@ -276,7 +276,17 @@ object OfficeImport {
         fun mm(v: String) = v.toIntOrNull()?.let { (it / 56.693f).toInt() } ?: 0
         val left = mm(ind?.attr("left")?.ifBlank { ind.attr("start") }.orEmpty()).coerceIn(0, 150)
         val first = (mm(ind?.attr("firstLine").orEmpty()) - mm(ind?.attr("hanging").orEmpty())).coerceIn(-80, 80)
-        return io.github.thepytales.llmhub.docs.text.ParaFormat(kind = kind, align = align, spacing = spacing, left = if (left >= 2) left else 0, first = if (kotlin.math.abs(first) >= 2) first else 0)
+        // Tabstopps (AP-44): left, centred and right ones (decimal ones as left, bar and cleared ones not).
+        val tabs = pPr?.child("tabs")?.children()?.filter { it.localName == "tab" }?.mapNotNull { t ->
+            val kind = when (t.attr("val")) {
+                "left", "start", "decimal", "num" -> io.github.thepytales.llmhub.docs.text.TabKind.LEFT
+                "center" -> io.github.thepytales.llmhub.docs.text.TabKind.CENTER
+                "right", "end" -> io.github.thepytales.llmhub.docs.text.TabKind.RIGHT
+                else -> return@mapNotNull null
+            }
+            t.attr("pos").toIntOrNull()?.takeIf { it >= 0 }?.let { io.github.thepytales.llmhub.docs.text.TabStop(kotlin.math.round(it / 56.693f).toInt().coerceIn(0, 400), kind) }
+        }?.distinctBy { it.mm }?.sortedBy { it.mm }.orEmpty()
+        return io.github.thepytales.llmhub.docs.text.ParaFormat(kind = kind, align = align, spacing = spacing, left = if (left >= 2) left else 0, first = if (kotlin.math.abs(first) >= 2) first else 0, tabs = tabs)
     }
 
     /** Lora's own Word files (their header and footer come from the page setup, with date and page numbers). */
@@ -385,7 +395,7 @@ object OfficeImport {
                 r.children().forEach { e ->
                     when (e.localName) {
                         "t" -> append(e.textContent)
-                        "tab" -> append(' ')
+                        "tab" -> append('\t')
                         "br", "cr" -> append(' ')
                     }
                 }

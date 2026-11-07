@@ -188,6 +188,10 @@ sealed class FlowSeg {
         /** Page breaks inside this text (Seitenansicht, AP-43) and room above it when it starts a page. */
         var breaks by mutableStateOf<List<PageBreakAt>>(emptyList())
         var push by mutableFloatStateOf(0f)
+        /** Tabstopps (AP-44): room after each tab character (offset → px), from the last layout. */
+        var tabExtra by mutableStateOf<Map<Int, Float>>(emptyMap())
+        internal var tabFor: Any? = null
+        internal var tabRounds = 0
 
         /**
          * Änderungen nachverfolgen (AP-44): this text when tracking began (null: not tracked) and the changes since –
@@ -1420,6 +1424,8 @@ private fun FlowMenus(
             val p = state.paraHere()
             LINE_SPACINGS.forEach { (z, label) -> item((if (p.spacing == z) "✓ " else "") + tr("Zeilenabstand {0}", tr(label)), onClick = { state.paragraph { it.copy(spacing = z) } }, close = close) }
             item((if (p.spacing == null) "✓ " else "") + tr("Zeilenabstand der Formatvorlage"), onClick = { state.paragraph { it.copy(spacing = null) } }, close = close)
+            // Tabstopps (AP-44): set by a click into the ruler, moved by dragging, removed here or by dragging off.
+            item("Tabstopps entfernen", enabled = p.tabs.isNotEmpty(), onClick = { state.paragraph { it.copy(tabs = emptyList()) } }, close = close)
             HorizontalDivider()
             // Formatvorlagen (AP-46).
             item(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label)), onClick = { adaptStyle(state) }, close = close)
@@ -1932,7 +1938,9 @@ private fun FlowField(
     val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
     val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
     val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
-    val value = TextFieldValue(annotated, seg.selection, seg.composition)
+    val tabbed = remember(annotated, seg.tabExtra, density) { FlowTabs.annotate(annotated, seg.tabExtra, density.density, density.fontScale) }
+    val value = TextFieldValue(tabbed, seg.selection, seg.composition)
+    val pxPerMm = with(density) { (3.7795f * zoom).dp.toPx() }
     val measurer = rememberTextMeasurer()
     val marksList = remember(rich) { listMarks(rich) }
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -2030,7 +2038,15 @@ private fun FlowField(
                 if (seg.breaks.isEmpty() && seg.deleted.isEmpty()) VisualTransformation.None
                 else PageSpacers(seg.breaks, density.density, density.fontScale, seg.deleted, SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough))
             },
-            onTextLayout = { seg.layout = it },
+            onTextLayout = { l ->
+                seg.layout = l
+                // Tabstopps: the room after each tab follows the new layout (a few rounds at most per text).
+                if (seg.tabFor !== seg.rich) { seg.tabFor = seg.rich; seg.tabRounds = 0 }
+                if ('\t' in seg.rich.text || seg.tabExtra.isNotEmpty()) {
+                    val next = FlowTabs.extras(l, seg.rich, seg::shown, seg.tabExtra, pxPerMm)
+                    if (FlowTabs.differ(next, seg.tabExtra) && seg.tabRounds++ < 6) seg.tabExtra = next
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 28.dp)
@@ -2088,6 +2104,8 @@ private fun FlowField(
                         cmd && e.isShiftPressed && e.key == Key.Nine -> { state.kind(ParaKind.CHECK); true }
                         e.key == Key.Escape && state.painter != null -> { state.painter = null; true }
                         e.key == Key.Tab && state.paraHere().kind.list -> { state.indent(if (e.isShiftPressed) -1 else 1); true }
+                        // A tab in the text (AP-44): it goes to the next Tabstopp of the paragraph.
+                        e.key == Key.Tab && !cmd && !e.isShiftPressed && !e.isAltPressed -> { state.insertText("\t"); true }
                         // Backspace at the start of a heading or list item first makes it normal text.
                         e.key == Key.Backspace && seg.selection.collapsed && seg.rich.starts.contains(seg.selection.start) && seg.rich.paras[seg.rich.paraAt(seg.selection.start)].let { it.kind != ParaKind.NORMAL } -> {
                             state.paragraph { p -> if (p.kind.list && p.indent > 0) p.copy(indent = p.indent - 1) else p.copy(kind = ParaKind.NORMAL, indent = 0) }

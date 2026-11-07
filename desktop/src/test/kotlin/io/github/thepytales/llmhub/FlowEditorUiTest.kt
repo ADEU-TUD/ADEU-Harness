@@ -222,6 +222,37 @@ class FlowEditorUiTest {
         assertTrue(state.sectionPages[0].first in 2..state.pageCount, "Seite ${state.sectionPages[0].first} von ${state.pageCount}")
     }
 
+    /** Tabstopps (AP-44): a tab reaches its stop – left ones start there, right ones end there. */
+    @Test
+    fun tabsReachTheirStops() = runSkikoComposeUiTest(Size(1900f, 900f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-tabs").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val md = "# Tabs\n\n<!--a:;t=40l120r-->Name\tVorname\tDresden\n\nA\tB"
+        val doc = DocsHandoff.open(c, "Tabs", md)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(10) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-tabs.png"))
+        val state = io.github.thepytales.llmhub.ui.FlowState.shown?.get()!!
+        val seg = state.segs.filterIsInstance<io.github.thepytales.llmhub.ui.FlowSeg.Text>().first { "Vorname" in it.rich.text }
+        val layout = seg.layout!!
+        val t = seg.rich.text
+        val mm = 3.7795f
+        fun x(o: Int) = layout.getHorizontalPosition(seg.shown(o), true)
+        assertEquals(40f * mm, x(t.indexOf("Vorname")), 3f, "linker Tabstopp bei 40 mm")
+        assertEquals(120f * mm, x(t.indexOf("Dresden") + "Dresden".length), 3f, "rechter Tabstopp bei 120 mm")
+        // Without own stops: the next multiple of 12,5 mm.
+        assertEquals(12.5f * mm, x(t.indexOf("B")), 3f, "Standard-Tabstopp")
+        assertTrue("Name\tVorname\tDresden" in state.markdown(), state.markdown())
+    }
+
     /** Änderungen nachverfolgen im Fließtext (AP-44): inserted green, removed struck through, the bar to accept them. */
     @Test
     fun trackedChangesShowInTheRunningText() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
