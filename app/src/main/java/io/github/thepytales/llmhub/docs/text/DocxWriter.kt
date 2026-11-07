@@ -67,6 +67,10 @@ object DocxWriter {
             from = found.last + 1
         }
 
+        // Footnotes (AP-45): the reader numbered them in the order of use; a changed paragraph with a mark refers to the
+        // same note of the original by its id.
+        val noteIds = Regex("<w:footnoteReference w:id=\"(\\d+)\"").findAll(docXml).map { it.groupValues[1].toInt() }.distinct().toList()
+
         // Old and new blocks: the longest common sequence stays as it was.
         val keep = lcs(oldBlocks, newBlocks)
         val styleIds = headingStyles(files["word/styles.xml"]?.toString(Charsets.UTF_8))
@@ -92,7 +96,7 @@ object DocxWriter {
                 // Text boxes stay in the paragraph they are anchored in (AP-45: read only); setting lines are no text.
                 DocMarkup.isTextBox(nb) || DocMarkup.isComment(nb) -> {}
                 else -> {
-                    val xml = MarkdownDocx.fragment(nb, theme) ?: return null
+                    val xml = MarkdownDocx.fragment(nb, theme, noteIds) ?: return null
                     out.append(restyle(xml, styleIds))
                 }
             }
@@ -174,7 +178,8 @@ object DocxWriter {
             var t = l.trim()
             if (t.startsWith("|")) return@map t.trim('|').split('|').filter { !it.trim().matches(Regex(":?-{2,}:?")) }.joinToString("") { inlinePlain(it.trim()) }
             t = t.replace(Regex("^#{1,6}\\s+"), "").replace(Regex("^>\\s?"), "").replace(Regex("^([-*+]|\\d+[.)])\\s+(\\[[ xX]]\\s+)?"), "")
-            inlinePlain(t)
+            // Marks typed as text (☒ , • ) are left out on both sides, as for the elements of the original.
+            LIST_MARK.replace(inlinePlain(t), "")
         }
         return lines.joinToString("")
     }

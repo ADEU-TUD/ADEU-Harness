@@ -179,9 +179,12 @@ object MarkdownDocx {
      * The body XML of [markdown] – paragraphs and tables, without section properties – to put into an existing Word file
      * (Word-Treue, AP-45). Null when the piece needs parts of the package (pictures, footnotes, landscape sections).
      */
-    internal fun fragment(markdown: String, theme: DocTheme = DocTheme()): String? {
-        if ("![" in markdown || Regex("\\[\\^[^\\]]+]").containsMatchIn(markdown) || markdown.lineSequence().any { DocMarkup.orientation(it) != null || DocMarkup.section(it) != null }) return null
-        val c = Ctx(emptyList(), header = false, footer = false)
+    internal fun fragment(markdown: String, theme: DocTheme = DocTheme(), noteIds: List<Int> = emptyList()): String? {
+        if ("![" in markdown || markdown.lineSequence().any { DocMarkup.orientation(it) != null || DocMarkup.section(it) != null }) return null
+        // Footnote marks: only those of notes the file already has ([noteIds]: the ids of note 1, 2 … in the original).
+        val labels = Regex("\\[\\^([^\\]]+)]").findAll(markdown).map { it.groupValues[1] }.toSet()
+        val notes = labels.map { l -> DocMarkup.Note(l, l.toIntOrNull()?.let { noteIds.getOrNull(it - 1) } ?: return null, "") }
+        val c = Ctx(notes, header = false, footer = false)
         c.headings = DocMarkup.tocEntries(markdown)
         current.set(c)
         try {
