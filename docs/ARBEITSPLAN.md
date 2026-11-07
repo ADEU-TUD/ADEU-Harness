@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 04.11.2026 (1.0.54) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 07.11.2026 (1.0.56) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -116,6 +116,16 @@ hinweg geht nicht, der Cursor springt, Formatierung ist begrenzt. Grundlage für
   Überschrift vor einer Überschrift verschiebt die Formate nicht mehr. Test `EditorCoreTest`. **Rest**: eigene
   Layout-Engine (echter Seitenumbruch mit Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt, PDF aus derselben Engine),
   Tabellen/Bilder im Modell, RTF, Leistung bei 200+ Seiten.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Eigene Seitenaufteilung** `docs/text/PageLayout.kt` (Witwen/Waisen mit
+  zwei Zeilen, Überschriften/Titel mit dem nächsten Absatz, Blöcke als Ganzes, erzwungene Umbrüche, überhohe Blöcke);
+  die Seitenansicht zeigt damit **echte Blätter**: der Editor misst die Zeilen, die Aufteilung setzt unsichtbare Zeilen
+  passender Höhe in den Text (`ui/FlowPaging.kt`, nicht Teil des Dokuments) bzw. Abstand vor Blöcken; Kopf-/Fußzeile mit
+  Seitenzahl auf jedem Blatt. **RTF** in der Zwischenablage (`docs/text/RichRtf.kt`: schreiben und lesen). `paraAt` als
+  binäre Suche; Seitenplan für 100 Seiten im Test unter 0,5 s. Tests `PageLayoutTest`, `EditorCoreTest`,
+  `FlowEditorUiTest` (keine Zeile über einem Seitenende). **Rest**: PDF nicht aus derselben Engine, sondern mit denselben
+  Regeln (CSS: Witwen/Waisen, erste/gerade Seiten) – Seitenumbrüche können je nach Schrift um Zeilen abweichen;
+  Abschnitte mit eigener Kopfzeile; Tabellen/Bilder im Modell (Tabellen brechen nicht zeilenweise über Seiten);
+  Leistung bei 200+ Seiten im Editor messen (ein Textfeld je Fließtextstück).
 
 ### AP-44 ◐ Fließtext-Editor für Dokumente · XL (neu, ersetzt den Block-Editor)
 So nah wie möglich an **Google Docs**:
@@ -146,6 +156,11 @@ So nah wie möglich an **Google Docs**:
   Ersetzen im Fließtext** (Strg+F/H, Treffer markiert, einzeln/alle, Groß-/Kleinschreibung, ganze Wörter, alle Treffer
   formatieren), **Kommentare am Rand** neben der Textstelle (Text markiert, Klick springt, ✓ erledigt). **Rest**:
   Tabstopps, Änderungen nachverfolgen im Fließtext (bleibt in der Blockansicht), Markieren über Tabellen hinweg.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Seitenansicht mit echten Seiten** (siehe AP-43 Teil 3) samt Kopf-/Fußzeile
+  je Blatt; **Änderungen nachverfolgen im Fließtext** (Wortvergleich `docs/text/TrackDiff.kt`, Myers): Gelöschtes rot
+  durchgestrichen an seiner Stelle, Neues grün, Leiste *Änderung x von y* mit Annehmen/Ablehnen/Alle; die Blockansicht
+  bleibt nur, wenn sich Tabellen, Bilder oder Formeln geändert haben. Test `FlowTrackingTest`. **Rest**: Tabstopps
+  (Compose kennt keine eigenen Tabstopps), Markieren über Tabellen hinweg.
 
 ### AP-45 ◐ Word-Treue · L (neu, ersetzt „Schreiben ins Original“ für Dokumente)
 - **.docx direkt in das neue Modell lesen und zurückschreiben**: Formatvorlagen (auch eigene), Abschnitte,
@@ -174,6 +189,12 @@ So nah wie möglich an **Google Docs**:
   echte Word-Formatvorlagen (Titel, Untertitel, Überschrift 1–4, Literatur) samt Zeilenabstand und Einzügen. Prüfsammlung
   als Test mit einer nachgebauten Vorlage (`EditorCoreTest`). **Rest**: Prüfsammlung mit echten TUD-Dokumenten und
   Bildvergleich (Offene Frage 5), Kopf-/Fußzeilen erste/gerade Seite und Abschnitte im Modell, PDF über eigene Layout-Engine.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Erste Seite anders** und **gerade Seiten anders** im Modell
+  (`<!-- erste seite anders: an -->`, `<!-- kopfzeile erste seite: … -->`, `<!-- fusszeile gerade seiten: … -->`), Felder
+  `{seite}`/`{seiten}`; Word lesen (`w:titlePg`, `w:evenAndOddHeaders`, Kopf-/Fußzeilen `first`/`even`) und schreiben
+  (eigene Kopf-/Fußzeilen-Teile mit PAGE/NUMPAGES-Feldern), PDF (`@page:first`, `@page:left`, eigene Ränder, Witwen/Waisen).
+  „Seite“ in Kopf-/Fußzeilen wird beim Lesen nur noch mit Zahl als Seitenzahl entfernt. **Rest**: Prüfsammlung mit echten
+  TUD-Dokumenten (Offene Frage 5), Abschnitte mit eigener Kopfzeile.
 
 ### AP-46 ☑ Gliederung und Formatvorlagen · M (neu)
 - **Gliederung links** (wie in Docs): Überschriften als Baum, Klick springt, Ziehen verschiebt ganze Abschnitte,

@@ -631,8 +631,10 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 }
             }
             // Fließtext-Editor (AP-44) for text documents; the block view stays for reviewing changes of the model.
-            val flow = kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !writing && trackBase == null &&
-                (review == null || review.changes.isEmpty() && review.removed.isEmpty())
+            // Änderungen nachverfolgen shows in the running text too (AP-44), unless tables, pictures or formulas changed.
+            val trackInFlow = trackBase != null && remember(trackBase, tab?.markdown) { FlowState.trackable(trackBase, tab?.markdown.orEmpty()) }
+            val flow = kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !writing &&
+                (if (trackBase != null) trackInFlow else review == null || review.changes.isEmpty() && review.removed.isEmpty())
             // ── Toolbar of text documents (slides and tables bring their own) ──
             if (kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !flow) {
                 TextToolbar(
@@ -694,7 +696,11 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                     onShowComments = { panel = DocPanel.COMMENTS },
                                 ).also { flowHost = it }
                             }
-                            FlowEditor(c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown)
+                            FlowEditor(
+                                c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown,
+                                trackBase = trackBase,
+                                onTrackBase = { next -> tab?.id?.let { id -> save(note = trLater("Änderung angenommen")) { d -> d.copy(trackBase = d.trackBase.orEmpty() + (id to next)) } } },
+                            )
                         }
                         else -> {
                             LaunchedEffect(blocks.size, showingDraft) { if (showingDraft && blocks.isNotEmpty()) listState.animateScrollToItem(blocks.size) }

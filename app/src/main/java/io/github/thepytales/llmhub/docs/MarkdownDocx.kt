@@ -38,6 +38,12 @@ object MarkdownDocx {
         var margin = 1134
         /** Formatvorlagen the document chose (AP-46); null: the look of the export style. */
         var sheet: io.github.thepytales.llmhub.docs.text.StyleSheet? = null
+        /** Erste Seite anders / gerade Seiten anders (AP-45): their own header and footer parts. */
+        var first = false
+        var even = false
+        /** Sections written so far (only the first one has the Deckblatt). */
+        var sections = 0
+        val settings: Boolean get() = notes.isNotEmpty() || even
         val width: Int get() = if (landscape) TEXT_WIDTH_LANDSCAPE else TEXT_WIDTH
         val height: Int get() = if (landscape) TEXT_HEIGHT_LANDSCAPE else TEXT_HEIGHT
     }
@@ -55,12 +61,12 @@ object MarkdownDocx {
             append("<Default Extension=\"$ext\" ContentType=\"image/$ext\"/>")
         }
         append("<Override PartName=\"/word/document.xml\" ContentType=\"$CT.document.main+xml\"/>")
-        if (c.footer) append("<Override PartName=\"/word/footer1.xml\" ContentType=\"$CT.footer+xml\"/>")
-        if (c.header) append("<Override PartName=\"/word/header1.xml\" ContentType=\"$CT.header+xml\"/>")
-        if (c.notes.isNotEmpty()) {
-            append("<Override PartName=\"/word/footnotes.xml\" ContentType=\"$CT.footnotes+xml\"/>")
-            append("<Override PartName=\"/word/settings.xml\" ContentType=\"$CT.settings+xml\"/>")
+        for (n in parts(c)) {
+            if (c.footer) append("<Override PartName=\"/word/footer$n.xml\" ContentType=\"$CT.footer+xml\"/>")
+            if (c.header) append("<Override PartName=\"/word/header$n.xml\" ContentType=\"$CT.header+xml\"/>")
         }
+        if (c.notes.isNotEmpty()) append("<Override PartName=\"/word/footnotes.xml\" ContentType=\"$CT.footnotes+xml\"/>")
+        if (c.settings) append("<Override PartName=\"/word/settings.xml\" ContentType=\"$CT.settings+xml\"/>")
         append("<Override PartName=\"/word/styles.xml\" ContentType=\"$CT.styles+xml\"/>")
         append("<Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/>")
         append("</Types>")
@@ -69,12 +75,13 @@ object MarkdownDocx {
     private fun docRels(withLogo: Boolean, c: Ctx) = buildString {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
         append("<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">")
-        if (c.footer) append("<Relationship Id=\"rIdFooter\" Type=\"$R_NS/footer\" Target=\"footer1.xml\"/>")
-        if (c.header) append("<Relationship Id=\"rIdHeader\" Type=\"$R_NS/header\" Target=\"header1.xml\"/>")
-        if (c.notes.isNotEmpty()) {
-            append("<Relationship Id=\"rIdFootnotes\" Type=\"$R_NS/footnotes\" Target=\"footnotes.xml\"/>")
-            append("<Relationship Id=\"rIdSettings\" Type=\"$R_NS/settings\" Target=\"settings.xml\"/>")
+        for (n in parts(c)) {
+            val id = if (n == 1) "" else n.toString()
+            if (c.footer) append("<Relationship Id=\"rIdFooter$id\" Type=\"$R_NS/footer\" Target=\"footer$n.xml\"/>")
+            if (c.header) append("<Relationship Id=\"rIdHeader$id\" Type=\"$R_NS/header\" Target=\"header$n.xml\"/>")
         }
+        if (c.notes.isNotEmpty()) append("<Relationship Id=\"rIdFootnotes\" Type=\"$R_NS/footnotes\" Target=\"footnotes.xml\"/>")
+        if (c.settings) append("<Relationship Id=\"rIdSettings\" Type=\"$R_NS/settings\" Target=\"settings.xml\"/>")
         append("<Relationship Id=\"rIdStyles\" Type=\"$R_NS/styles\" Target=\"styles.xml\"/>")
         if (withLogo) append("<Relationship Id=\"rIdLogo\" Type=\"$R_NS/image\" Target=\"media/logo.png\"/>")
         c.media.forEach { append("<Relationship Id=\"${it.rel}\" Type=\"$R_NS/image\" Target=\"${it.name}\"/>") }
@@ -185,8 +192,14 @@ object MarkdownDocx {
     private fun writeWith(file: File, title: String, markdown: String, notes: List<DocMarkup.Note>, theme: DocTheme, body: (Boolean) -> String) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
         val setup = DocMarkup.pageSetup(markdown)
-        val c = Ctx(notes, header = setup.hasHeader, footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank())
+        val c = Ctx(
+            notes,
+            header = setup.hasHeader || setup.headerEven.isNotBlank() || setup.titlePage && setup.headerFirst.isNotBlank(),
+            footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank() || setup.footerEven.isNotBlank() || setup.titlePage && setup.footerFirst.isNotBlank(),
+        )
         c.margin = setup.marginTwips
+        c.first = setup.titlePage
+        c.even = setup.hasEven
         c.headings = DocMarkup.tocEntries(markdown)
         c.sheet = io.github.thepytales.llmhub.docs.text.Styles.read(markdown).takeIf { it.explicit || it.changed.isNotEmpty() }
         current.set(c)
@@ -204,12 +217,15 @@ object MarkdownDocx {
                 entry("[Content_Types].xml", contentTypes(c))
                 entry("_rels/.rels", RELS)
                 entry("word/_rels/document.xml.rels", docRels(logo != null, c))
-                if (c.footer) entry("word/footer1.xml", footer(theme, setup))
-                if (c.header) entry("word/header1.xml", header(setup))
-                if (footnotes != null) {
-                    entry("word/footnotes.xml", footnotes)
-                    entry("word/settings.xml", SETTINGS)
-                }
+                if (c.footer) entry("word/footer1.xml", footer(setup.footer, theme.footer, setup.pageNumbers))
+                if (c.header) entry("word/header1.xml", header(setup.header, setup.date))
+                // Deckblatt: own header and footer of the first page (no page number); even pages: theirs.
+                if (c.first && c.footer) entry("word/footer2.xml", footer(setup.footerFirst, "", false))
+                if (c.first && c.header) entry("word/header2.xml", header(setup.headerFirst, false))
+                if (c.even && c.footer) entry("word/footer3.xml", footer(setup.footerEven, theme.footer, setup.pageNumbers))
+                if (c.even && c.header) entry("word/header3.xml", header(setup.headerEven, setup.date))
+                if (footnotes != null) entry("word/footnotes.xml", footnotes)
+                if (c.settings) entry("word/settings.xml", settings(c))
                 entry("word/styles.xml", styles(if (theme.style == DocStyle.TUD) "Noto Sans" else if (theme.style == DocStyle.CLASSIC) "Georgia" else "Calibri"))
                 entry("docProps/core.xml", core(title.ifBlank { markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim() ?: "Dokument" }))
                 if (logo != null) bytes("word/media/logo.png", logo)
@@ -221,9 +237,13 @@ object MarkdownDocx {
         }
     }
 
-    /** Word links the separator lines of the footnote area from the settings. */
-    private const val SETTINGS = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
-        "<w:settings xmlns:w=\"$W_NS\"><w:footnotePr><w:footnote w:id=\"-1\"/><w:footnote w:id=\"0\"/></w:footnotePr></w:settings>"
+    /** Numbers of the header/footer parts: 1 for all pages, 2 for the first, 3 for even pages. */
+    private fun parts(c: Ctx) = listOfNotNull(1, 2.takeIf { c.first }, 3.takeIf { c.even })
+
+    /** Word links the separator lines of the footnote area from the settings; even pages get their own headers there. */
+    private fun settings(c: Ctx) = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+        "<w:settings xmlns:w=\"$W_NS\">" + (if (c.even) "<w:evenAndOddHeaders/>" else "") +
+        (if (c.notes.isNotEmpty()) "<w:footnotePr><w:footnote w:id=\"-1\"/><w:footnote w:id=\"0\"/></w:footnotePr>" else "") + "</w:settings>"
 
     private fun footnotesXml(notes: List<DocMarkup.Note>) = buildString {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<w:footnotes xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\">")
@@ -246,14 +266,19 @@ object MarkdownDocx {
             "<w:r>$rPr<w:t>$shown</w:t></w:r>" +
             "<w:r>$rPr<w:fldChar w:fldCharType=\"end\"/></w:r>"
 
-    /** Footer line of the theme and "Seite X von Y" (PAGE / NUMPAGES fields, updated by Word). */
-    private fun footer(theme: DocTheme, setup: DocMarkup.PageSetup): String {
+    /** Text of a header or footer with its fields `{seite}`/`{seiten}` as PAGE / NUMPAGES fields. */
+    private fun fieldRuns(text: String, rPr: String): String = DocMarkup.fieldPieces(text).joinToString("") { (isField, t) ->
+        if (isField) field(if (t == "seite") "PAGE" else "NUMPAGES", "1", rPr) else "<w:r>$rPr<w:t xml:space=\"preserve\">${esc(t)}</w:t></w:r>"
+    }
+
+    /** Footer line ([own] and the theme's [org] line) and "Seite X von Y" (PAGE / NUMPAGES fields, updated by Word). */
+    private fun footer(own: String, org: String, numbers: Boolean): String {
         val rPr = "<w:rPr><w:color w:val=\"888888\"/><w:sz w:val=\"16\"/></w:rPr>"
         fun t(s: String) = "<w:r>$rPr<w:t xml:space=\"preserve\">${esc(s)}</w:t></w:r>"
         val content = buildString {
-            val line = listOf(setup.footer, theme.footer).filter { it.isNotBlank() }.joinToString("   ·   ")
-            if (line.isNotBlank()) append(t(line + if (setup.pageNumbers) "   ·   " else ""))
-            if (setup.pageNumbers) {
+            val line = listOf(own, org).filter { it.isNotBlank() }.joinToString("   ·   ")
+            if (line.isNotBlank()) append(fieldRuns(line + if (numbers) "   ·   " else "", rPr))
+            if (numbers) {
                 append(t("Seite "))
                 append(field("PAGE", "1", rPr))
                 append(t(" von "))
@@ -265,10 +290,10 @@ object MarkdownDocx {
     }
 
     /** Header line on the left, today's date on the right (at a right tab). */
-    private fun header(setup: DocMarkup.PageSetup): String {
+    private fun header(text: String, date: Boolean): String {
         val rPr = "<w:rPr><w:color w:val=\"888888\"/><w:sz w:val=\"16\"/></w:rPr>"
-        val left = if (setup.header.isBlank()) "" else "<w:r>$rPr<w:t xml:space=\"preserve\">${esc(setup.header)}</w:t></w:r>"
-        val right = if (!setup.date) "" else "<w:r>$rPr<w:tab/></w:r><w:r>$rPr<w:t>${esc(DocMarkup.today())}</w:t></w:r>"
+        val left = if (text.isBlank()) "" else fieldRuns(text, rPr)
+        val right = if (!date) "" else "<w:r>$rPr<w:tab/></w:r><w:r>$rPr<w:t>${esc(DocMarkup.today())}</w:t></w:r>"
         return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
             "<w:hdr xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\"><w:p><w:pPr><w:tabs><w:tab w:val=\"right\" w:pos=\"$TEXT_WIDTH\"/></w:tabs></w:pPr>" +
             "$left$right</w:p></w:hdr>"
@@ -486,10 +511,16 @@ object MarkdownDocx {
         val c = ctx
         append("<w:sectPr>")
         if (c.header) append("<w:headerReference w:type=\"default\" r:id=\"rIdHeader\"/>")
+        if (c.header && c.first) append("<w:headerReference w:type=\"first\" r:id=\"rIdHeader2\"/>")
+        if (c.header && c.even) append("<w:headerReference w:type=\"even\" r:id=\"rIdHeader3\"/>")
         if (c.footer) append("<w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/>")
+        if (c.footer && c.first) append("<w:footerReference w:type=\"first\" r:id=\"rIdFooter2\"/>")
+        if (c.footer && c.even) append("<w:footerReference w:type=\"even\" r:id=\"rIdFooter3\"/>")
         append(if (landscape) "<w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\"/>" else "<w:pgSz w:w=\"11906\" w:h=\"16838\"/>")
         val m = c.margin
         append("<w:pgMar w:top=\"$m\" w:right=\"$m\" w:bottom=\"$m\" w:left=\"$m\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
+        if (c.first && c.sections == 0) append("<w:titlePg/>")
+        c.sections++
         append("</w:sectPr>")
     }
 

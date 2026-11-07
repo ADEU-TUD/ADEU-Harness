@@ -136,6 +136,82 @@ class FlowEditorUiTest {
         assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Editor da")
     }
 
+    /**
+     * Echte Seiten (AP-43): a long document in the Seitenansicht breaks into sheets with header, footer and page numbers;
+     * no line is cut by a page end (picture in build/flow-look/editor-real-pages.png).
+     */
+    @Test
+    fun realPagesWithHeaderAndFooter() = runSkikoComposeUiTest(Size(1300f, 2600f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-real-pages").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val long = (1..40).joinToString("\n\n") { k -> (if (k % 7 == 0) "## Abschnitt $k\n\n" else "") + "Absatz $k: " + "Ein Satz, der die Seite füllt und umbricht. ".repeat(5) }
+        val md = io.github.thepytales.llmhub.docs.DocMarkup.withPageSetup(
+            "# Lang\n\n$long\n\n\\newpage\n\nNach dem Umbruch.",
+            io.github.thepytales.llmhub.docs.DocMarkup.PageSetup(header = "Hausarbeit", footer = "TU Dresden", titlePage = true),
+        )
+        val doc = DocsHandoff.open(c, "Lang", md)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(14) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-real-pages.png"))
+        // No line of the running text crosses the end of a page's text area.
+        val state = io.github.thepytales.llmhub.ui.FlowState.shown?.get()!!
+        assertTrue(state.pageCount >= 5, "Seiten: ${state.pageCount}")
+        val stride = state.pageText + state.pageBetween
+        var checked = 0
+        for (seg in state.segs.filterIsInstance<io.github.thepytales.llmhub.ui.FlowSeg.Text>()) {
+            val layout = seg.layout!!
+            val top = state.segTop[seg.id]!!
+            val shown = layout.layoutInput.text.text
+            for (l in 0 until layout.lineCount) {
+                val start = layout.getLineStart(l)
+                if (shown.getOrNull(start) == '\u2060' || shown.getOrNull(start) == '\n' || layout.getLineEnd(l) - start <= 1) continue
+                val a = top + layout.getLineTop(l)
+                val b = top + layout.getLineBottom(l)
+                val page = (a / stride).toInt()
+                val inPage = a - page * stride
+                assertTrue(inPage >= -1f && inPage + (b - a) <= state.pageText + 1f, "Zeile ${shown.substring(start, minOf(start + 20, shown.length))} über dem Seitenende: y=$inPage")
+                checked++
+            }
+        }
+        assertTrue(checked > 100, "geprüfte Zeilen: $checked")
+        assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Editor da")
+    }
+
+    /** Änderungen nachverfolgen im Fließtext (AP-44): inserted green, removed struck through, the bar to accept them. */
+    @Test
+    fun trackedChangesShowInTheRunningText() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-track").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val doc = DocsHandoff.open(c, "Bericht", "# Bericht\n\nDer Antrag wurde heute gestellt und genehmigt.\n\nEin zweiter Absatz mit neuem Satz.\n")
+        c.docs.update(doc.id) { d -> d.copy(trackBase = mapOf(d.tabs.first().id to "# Bericht\n\nDer Antrag wurde gestern gestellt.\n\nEin zweiter Absatz.\n")) }
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(8) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-tracking.png"))
+        assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Fließtext statt Blockansicht")
+        assertTrue(onAllNodesWithText("Änderung 1 von", substring = true).fetchSemanticsNodes().isNotEmpty(), "Leiste der Änderungen")
+        onAllNodesWithText("Annehmen")[0].performClick()
+        repeat(6) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        val tracked = c.docs.get(doc.id)!!.trackBase!!.values.single()
+        assertTrue("heute" in tracked && "gestern" !in tracked, tracked)
+    }
+
     @Test
     fun fileDialogShowsPlaces() = runSkikoComposeUiTest(Size(940f, 620f), Density(1f)) {
         mainClock.autoAdvance = false

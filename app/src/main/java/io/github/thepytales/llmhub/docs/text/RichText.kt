@@ -130,10 +130,16 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
         out
     }
 
+    /** The paragraph [offset] is in (binary search: large documents stay quick while typing, AP-43 d). */
     fun paraAt(offset: Int): Int {
-        var i = 0
-        while (i + 1 < starts.size && starts[i + 1] <= offset) i++
-        return i
+        val s = starts
+        var lo = 0
+        var hi = s.size - 1
+        while (lo < hi) {
+            val mid = (lo + hi + 1) ushr 1
+            if (s[mid] <= offset) lo = mid else hi = mid - 1
+        }
+        return lo
     }
 
     fun paraRange(i: Int): IntRange = starts[i] until (if (i + 1 < starts.size) starts[i + 1] - 1 else text.length)

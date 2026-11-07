@@ -12,7 +12,7 @@ import io.github.thepytales.llmhub.AppContainer
 internal object RichClipboard {
     private fun manager(c: AppContainer) = c.appContext.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
 
-    fun copy(c: AppContainer, html: String, plain: String): Boolean = runCatching {
+    fun copy(c: AppContainer, html: String, plain: String, @Suppress("UNUSED_PARAMETER") rtf: String? = null): Boolean = runCatching {
         manager(c)?.setPrimaryClip(ClipData.newHtmlText("Lora", plain, html)) ?: return false
         true
     }.getOrDefault(false)
@@ -21,4 +21,7 @@ internal object RichClipboard {
     fun html(c: AppContainer): String? = runCatching {
         manager(c)?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.htmlText?.takeIf { it.isNotBlank() }
     }.getOrNull()
+
+    /** RTF is not passed between Android apps. */
+    fun rtf(@Suppress("UNUSED_PARAMETER") c: AppContainer): String? = null
 }

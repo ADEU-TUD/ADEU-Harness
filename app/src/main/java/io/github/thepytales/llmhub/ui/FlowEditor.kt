@@ -110,6 +110,10 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -117,6 +121,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -142,6 +148,7 @@ import io.github.thepytales.llmhub.docs.DocComment
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.text.Align
+import io.github.thepytales.llmhub.docs.text.PageLayout
 import io.github.thepytales.llmhub.docs.text.CharFormat
 import io.github.thepytales.llmhub.docs.text.ParaFormat
 import io.github.thepytales.llmhub.docs.text.ParaKind
@@ -178,9 +185,43 @@ sealed class FlowSeg {
         var typing by mutableStateOf<CharFormat?>(null)
         var layout by mutableStateOf<TextLayoutResult?>(null)
         val focus = FocusRequester()
+        /** Page breaks inside this text (Seitenansicht, AP-43) and room above it when it starts a page. */
+        var breaks by mutableStateOf<List<PageBreakAt>>(emptyList())
+        var push by mutableFloatStateOf(0f)
+
+        /**
+         * Änderungen nachverfolgen (AP-44): this text when tracking began (null: not tracked) and the changes since –
+         * inserted ranges of [rich], removed text of [base] at its place.
+         */
+        var base by mutableStateOf<RichText?>(null)
+        private var cacheKey: Pair<RichText?, RichText>? = null
+        private var cache: Pair<List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>, List<Pair<Int, String>>> = emptyList<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>() to emptyList()
+
+        /** Changes and removed text (offset → text), computed once per pair of texts. */
+        private fun tracking(): Pair<List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>, List<Pair<Int, String>>> {
+            val b = base
+            val r = rich
+            val key = cacheKey
+            if (key == null || key.first !== b || key.second !== r) {
+                val h = b?.let { io.github.thepytales.llmhub.docs.text.TrackDiff.hunks(it.text, r.text) }.orEmpty()
+                cache = h to if (b == null) emptyList() else h.filter { !it.del.isEmpty() }.map { it.at to b.text.substring(it.del.first, it.del.last + 1) }
+                cacheKey = b to r
+            }
+            return cache
+        }
+
+        val hunks: List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk> get() = tracking().first
+        val deleted: List<Pair<Int, String>> get() = tracking().second
+
+        /** Where [offset] of the text is in the shown text (with the room of the page breaks and removed text). */
+        fun shown(offset: Int): Int = shownOffset(breaks, deleted, offset)
     }
 
-    class Raw(override val id: Long, val markdown: String) : FlowSeg()
+    class Raw(override val id: Long, val markdown: String) : FlowSeg() {
+        /** Measured height without [push] (−1 until measured) and room above it when it starts a page. */
+        var height by mutableFloatStateOf(-1f)
+        var push by mutableFloatStateOf(0f)
+    }
 }
 
 /** How the pages look: real pages with page breaks (Seitenansicht) or one running page (Ohne Seiten). */
@@ -232,6 +273,12 @@ class FlowState(markdown: String) {
     var contentCoords: LayoutCoordinates? = null
     /** Set by the editor: scrolls so that a place on the page ([segTop] coordinates) is visible. */
     var scrollTo: ((Float) -> Unit)? = null
+    /** Pages of the Seitenansicht (from [io.github.thepytales.llmhub.docs.text.PageLayout]). */
+    var pageCount by mutableIntStateOf(1)
+    /** Text area height and room between two text areas of the Seitenansicht (px), as the page plan used them. */
+    var pageText = 0f
+    var pageBetween = 0f
+
 
     init {
         load(markdown)
@@ -325,6 +372,90 @@ class FlowState(markdown: String) {
 
     fun applySheet(s: StyleSheet) = applyMarkdown(Styles.write(markdown(), s))
 
+    // ── Änderungen nachverfolgen (AP-44) ─────────────────────────────────────────────────────────
+
+    /** The document when tracking began, in pieces like this one (null: not tracking). */
+    private var trackState: FlowState? = null
+    private var trackMarkdown: String? = null
+    /** The tracked change the review bar points at. */
+    var trackAt by mutableIntStateOf(0)
+
+    /**
+     * Pairs the running text with [base] (the tab's Markdown when tracking began, null: not tracking): each piece of
+     * running text gets its text of then. False when tables, pictures or formulas differ – then the changes are shown
+     * in the block view.
+     */
+    fun track(base: String?): Boolean {
+        val texts = segs.filterIsInstance<FlowSeg.Text>()
+        if (base == null) {
+            trackState = null
+            trackMarkdown = null
+            texts.forEach { if (it.base != null) it.base = null }
+            return true
+        }
+        if (base != trackMarkdown || trackState == null) {
+            trackState = FlowState(base)
+            trackMarkdown = base
+        }
+        val b = shape(trackState!!.segs)
+        val c = shape(segs)
+        val ok = sameShape(b, c)
+        c.forEachIndexed { i, y -> if (y is FlowSeg.Text) { val r = if (ok) (b[i] as FlowSeg.Text).rich else null; if (y.base !== r) y.base = r } }
+        return ok
+    }
+
+    /** The open tracked changes in text order. */
+    fun tracked(): List<Pair<FlowSeg.Text, io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>> =
+        segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> t.hunks.map { t to it } }
+
+    /** Accepts change [h] of [t]: it moves into the text of then; returns that text as the new base Markdown. */
+    fun acceptTracked(t: FlowSeg.Text, h: io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk): String? {
+        val bs = trackState ?: return null
+        val c = shape(segs)
+        val bt = shape(bs.segs).getOrNull(c.indexOf(t)) as? FlowSeg.Text ?: return null
+        var r = bt.rich
+        if (!h.del.isEmpty()) r = r.cut(h.del.first, h.del.last + 1)
+        if (!h.ins.isEmpty()) r = r.insert(h.del.first, t.rich.slice(h.ins.first, h.ins.last + 1))
+        bt.rich = r
+        return bs.markdown().also { trackMarkdown = it }
+    }
+
+    /** Rejects change [h] of [t]: the text of then comes back in its place. */
+    fun rejectTracked(t: FlowSeg.Text, h: io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk) {
+        val base = t.base ?: return
+        checkpoint()
+        var r = t.rich
+        if (!h.ins.isEmpty()) r = r.cut(h.ins.first, h.ins.last + 1)
+        if (!h.del.isEmpty()) r = r.insert(h.ins.first, base.slice(h.del.first, h.del.last + 1))
+        t.rich = r
+        t.selection = TextRange(h.ins.first.coerceAtMost(r.text.length))
+        changed()
+    }
+
+    /** All changes taken back: every piece of running text as it was. */
+    fun rejectAllTracked() {
+        checkpoint()
+        segs.filterIsInstance<FlowSeg.Text>().forEach { t -> t.base?.let { b -> t.rich = b; t.selection = TextRange(0) } }
+        changed()
+    }
+
+    companion object {
+        /** The editor shown last (for the checks of the Seitenansicht in the tests). */
+        internal var shown: java.lang.ref.WeakReference<FlowState>? = null
+
+        /** Pieces that must be alike for tracking in the running text: running text and blocks other than settings. */
+        private fun shape(list: List<FlowSeg>) = list.filter { it is FlowSeg.Text || it is FlowSeg.Raw && !DocMarkup.isComment(it.markdown) }
+
+        private fun sameShape(b: List<FlowSeg>, c: List<FlowSeg>) = b.size == c.size && b.indices.all { i ->
+            val x = b[i]
+            val y = c[i]
+            x is FlowSeg.Text && y is FlowSeg.Text || x is FlowSeg.Raw && y is FlowSeg.Raw && x.markdown.trim() == y.markdown.trim()
+        }
+
+        /** Whether the changes from [base] to [current] can be shown in the running text (blocks unchanged). */
+        fun trackable(base: String, current: String): Boolean = sameShape(shape(FlowState(base).segs), shape(FlowState(current).segs))
+    }
+
     // ── Suchen und Ersetzen (AP-44) ──────────────────────────────────────────────────────────────
 
     private fun pattern(): Regex? {
@@ -392,7 +523,7 @@ class FlowState(markdown: String) {
     private fun lineTop(t: FlowSeg.Text, offset: Int): Float? {
         val top = segTop[t.id] ?: return null
         val layout = t.layout ?: return top
-        return top + layout.getLineTop(layout.getLineForOffset(offset.coerceIn(0, layout.layoutInput.text.length)))
+        return top + layout.getLineTop(layout.getLineForOffset(t.shown(offset).coerceIn(0, layout.layoutInput.text.length)))
     }
 
     fun showQuote(quote: String) {
@@ -625,6 +756,7 @@ internal fun sheetFor(markdown: String, docStyle: String?, defaults: String): St
 internal fun flowAnnotated(
     r: RichText, base: TextStyle, accent: Color, muted: Color, codeBg: Color, density: Float,
     sheet: StyleSheet = StyleSheet(), zoom: Float = 1f, marks: List<Pair<IntRange, Color>> = emptyList(),
+    inserted: List<IntRange> = emptyList(),
 ): AnnotatedString = buildAnnotatedString {
     append(r.text)
     val listIndent = 28f * zoom
@@ -648,6 +780,9 @@ internal fun flowAnnotated(
                 textAlign = when (p.align) { Align.CENTER -> TextAlign.Center; Align.RIGHT -> TextAlign.End; Align.JUSTIFY -> TextAlign.Justify; Align.LEFT -> TextAlign.Start },
                 textIndent = if (rest > 0f || firstLine > 0f) TextIndent(firstLine.sp, rest.sp) else null,
                 lineHeight = ((p.spacing ?: def.spacing) * 1.2f).em,
+                // Every line as high as the next (also the first and last of a paragraph): the page plan stays the same
+                // when a page break splits a paragraph.
+                lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Proportional, LineHeightStyle.Trim.None),
                 // Silbentrennung (AP-43) where it matters: in justified text.
                 hyphens = if (p.align == Align.JUSTIFY) Hyphens.Auto else Hyphens.None,
             ),
@@ -714,6 +849,12 @@ internal fun flowAnnotated(
         }
         i = j
     }
+    // Änderungen nachverfolgen: inserted text green and underlined.
+    for (range in inserted) {
+        val a = range.first.coerceIn(0, r.text.length)
+        val b = (range.last + 1).coerceIn(a, r.text.length)
+        if (b > a) addStyle(SpanStyle(color = Color(0xFF1B7F3B), textDecoration = TextDecoration.Underline, background = Color(0x161B7F3B)), a, b)
+    }
     for ((range, color) in marks) {
         val a = range.first.coerceIn(0, r.text.length)
         val b = (range.last + 1).coerceIn(a, r.text.length)
@@ -756,8 +897,11 @@ fun FlowEditor(
     narrow: Boolean,
     host: FlowHost,
     onChange: (String) -> Unit,
+    /** Änderungen nachverfolgen (AP-44): the tab's Markdown when tracking began; accepted changes move into it. */
+    trackBase: String? = null,
+    onTrackBase: (String) -> Unit = {},
 ) {
-    val state = remember(doc.id, tabId) { FlowState(markdown) }
+    val state = remember(doc.id, tabId) { FlowState(markdown).also { FlowState.shown = java.lang.ref.WeakReference(it) } }
     val scope = rememberCoroutineScope()
     var view by remember { mutableStateOf(FlowView.PAGES) }
     var zoom by remember { mutableStateOf(1f) }
@@ -783,6 +927,8 @@ fun FlowEditor(
     LaunchedEffect(markdown) {
         if (markdown != state.lastMarkdown && state.writing == null && state.suggestions().isEmpty()) state.load(markdown)
     }
+    // Änderungen nachverfolgen: each piece of running text knows its text of then (the changes show in the text).
+    LaunchedEffect(trackBase, markdown, state.version) { state.track(trackBase) }
     val onChangeLatest by rememberUpdatedState(onChange)
     fun save() {
         // While Lora writes or suggestions are open, only the stored form (without them) counts.
@@ -871,6 +1017,7 @@ fun FlowEditor(
         // Lora writes (AP-47): her request, then Übernehmen · Neu · Verwerfen.
         LoraWriteBar(c, doc, state)
         ReviewBar(state)
+        if (trackBase != null) TrackBar(state, onBase = onTrackBase, onStop = { host.onTrack?.invoke() })
         Row(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
             if (outline && !narrow) {
                 FlowOutline(state, onJump = { state.jumpToHeading(it) }, onClose = { outline = false }, modifier = Modifier.width(240.dp))
@@ -1118,6 +1265,56 @@ private fun ReviewBar(state: FlowState) {
                 DropdownMenu(more, { more = false }) {
                     DropdownMenuItem(text = { Text(tr("Alle annehmen")) }, onClick = { more = false; state.settleAll(true) })
                     DropdownMenuItem(text = { Text(tr("Alle ablehnen")) }, onClick = { more = false; state.settleAll(false) })
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Änderungen nachverfolgen im Fließtext (AP-44): the changes since tracking began, one by one – Annehmen moves one into
+ * the text of then ([onBase]), Ablehnen takes it back in the text.
+ */
+@Composable
+private fun TrackBar(state: FlowState, onBase: (String) -> Unit, onStop: () -> Unit) {
+    val list = state.tracked()
+    Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Outlined.Edit, null, Modifier.size(16.dp))
+            if (list.isEmpty()) {
+                Text(tr("Änderungen werden nachverfolgt – noch keine Änderungen."), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                TextButton(onClick = onStop) { Text(tr("Beenden")) }
+                return@Row
+            }
+            val at = state.trackAt.coerceIn(0, list.lastIndex)
+            val (seg, h) = list[at]
+            val removed = seg.base?.text?.let { b -> if (h.del.isEmpty()) "" else b.substring(h.del.first, h.del.last + 1) }.orEmpty().replace('\n', ' ').trim()
+            val added = if (h.ins.isEmpty()) "" else seg.rich.text.substring(h.ins.first, h.ins.last + 1).replace('\n', ' ').trim()
+            Column(Modifier.weight(1f)) {
+                Text(tr("Änderung {0} von {1}", at + 1, list.size), style = MaterialTheme.typography.labelLarge)
+                Text(
+                    buildAnnotatedString {
+                        if (removed.isNotEmpty()) { pushStyle(SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough)); append(removed.take(80)); pop(); append("  ") }
+                        if (added.isNotEmpty()) { pushStyle(SpanStyle(color = Color(0xFF1B7F3B))); append(added.take(80)); pop() }
+                    },
+                    style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                )
+            }
+            fun go(i: Int) {
+                state.trackAt = i
+                list.getOrNull(i)?.let { (t, x) -> state.show(t, x.at until x.at) }
+            }
+            TextButton(onClick = { go((at - 1).coerceAtLeast(0)) }, enabled = at > 0) { Text("‹") }
+            TextButton(onClick = { go((at + 1).coerceAtMost(list.lastIndex)) }, enabled = at < list.lastIndex) { Text("›") }
+            FilledTonalButton(onClick = { state.acceptTracked(seg, h)?.let(onBase) }) { Text(tr("Annehmen")) }
+            TextButton(onClick = { state.rejectTracked(seg, h) }) { Text(tr("Ablehnen")) }
+            var more by remember { mutableStateOf(false) }
+            Box {
+                TextButton(onClick = { more = true }) { Text(tr("Alle …")) }
+                DropdownMenu(more, { more = false }) {
+                    DropdownMenuItem(text = { Text(tr("Alle annehmen")) }, onClick = { more = false; onBase(state.markdown()) })
+                    DropdownMenuItem(text = { Text(tr("Alle ablehnen")) }, onClick = { more = false; state.rejectAllTracked() })
+                    DropdownMenuItem(text = { Text(tr("Nachverfolgen beenden")) }, onClick = { more = false; onStop() })
                 }
             }
         }
@@ -1451,7 +1648,7 @@ private fun ColorButton(icon: androidx.compose.ui.graphics.vector.ImageVector, l
     }
 }
 
-/** The pages: the document's pieces one below the other on a page of A4 width (or one running page). */
+/** The pages: the document's pieces one below the other on A4 pages (Seitenansicht) or on one running page. */
 @Composable
 private fun FlowPages(
     c: AppContainer, doc: LiveDoc, tabId: String?, state: FlowState, view: FlowView, zoom: Float, narrow: Boolean, host: FlowHost,
@@ -1462,12 +1659,41 @@ private fun FlowPages(
     val margin = if (narrow) 20.dp else (setup.marginMm * 3.7795f).dp * zoom
     val pages = view == FlowView.PAGES && !narrow
     val pageWidth = if (pages) 794.dp * zoom else androidx.compose.ui.unit.Dp.Unspecified
-    // A4 is 297 mm high; the text area between the margins makes one page.
-    val pageHeightPx = with(density) { ((1123.dp * zoom) - margin * 2).toPx() }
+    // A4 is 297 mm high; the text area between the margins makes one page, pages lie 16 dp apart.
+    val pageFull = 1123.dp * zoom
+    val pageGap = 16.dp
+    val spacing = 6.dp
+    val textHeightPx = with(density) { (pageFull - margin * 2).toPx() }
+    val betweenPx = with(density) { (margin * 2 + pageGap).toPx() }
+    val spacingPx = with(density) { spacing.toPx() }
+    val minFieldPx = with(density) { 28.dp.toPx() }
+    // Echte Seiten (AP-43): the page plan follows the measured lines and blocks; the room it adds does not change them.
+    LaunchedEffect(state, pages, textHeightPx, betweenPx) {
+        if (!pages) {
+            clearPlan(state)
+            return@LaunchedEffect
+        }
+        var version = -1
+        var applied = 0
+        snapshotFlow { pageItems(state, spacingPx, minFieldPx) }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .collect { (items, owners) ->
+                // Never more than a few plans for one text (rounding of the measured lines must not make it swing).
+                if (state.version != version) { version = state.version; applied = 0 }
+                if (++applied > 8) return@collect
+                state.pageText = textHeightPx
+                state.pageBetween = betweenPx
+                applyPlan(PageLayout.plan(items, textHeightPx, betweenPx), owners, state)
+            }
+    }
     val look = LocalChatLook.current
     val outline = MaterialTheme.colorScheme.outline
-    val pageLabel = rememberTextMeasurer()
+    val sheetBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val marginText = rememberTextMeasurer()
     val topPad = if (narrow) 8.dp else 24.dp
+    val count = state.pageCount.coerceAtLeast(1)
+    val today = remember { DocMarkup.today() }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
     val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
@@ -1482,43 +1708,56 @@ private fun FlowPages(
                     Modifier
                         .padding(vertical = if (ruler && pages) 8.dp else topPad)
                         .then(if (pageWidth != androidx.compose.ui.unit.Dp.Unspecified) Modifier.width(pageWidth) else Modifier.fillMaxWidth().widthIn(max = 900.dp))
-                        .background(look.card, RoundedCornerShape(4.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                        .then(
+                            if (!pages) {
+                                Modifier
+                                    .background(look.card, RoundedCornerShape(4.dp))
+                                    .border(1.dp, sheetBorder, RoundedCornerShape(4.dp))
+                            } else {
+                                // Seitenansicht: one sheet per page with its header and footer (page numbers, date).
+                                Modifier.drawBehind {
+                                    val full = pageFull.toPx()
+                                    val gap = pageGap.toPx()
+                                    val m = margin.toPx()
+                                    val style = TextStyle(fontSize = (9f * zoom).coerceAtLeast(7f).sp, color = outline)
+                                    val half = ((size.width - 2 * m) / 2f).coerceAtLeast(10f).toInt()
+                                    for (p in 0 until count) {
+                                        val top = p * (full + gap)
+                                        drawRoundRect(look.card, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
+                                        drawRoundRect(sheetBorder, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+                                        val pm = pageMargins(setup, p + 1, count, today)
+                                        // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
+                                        // width left of topLeft inside this box (a negative width crashed the app before).
+                                        fun put(text: String, right: Boolean, footer: Boolean) {
+                                            if (text.isBlank()) return
+                                            val l = marginText.measure(text, style, maxLines = 1, constraints = androidx.compose.ui.unit.Constraints(maxWidth = half))
+                                            val yy = if (footer) top + full - m / 2f - l.size.height / 2f else top + m / 2f - l.size.height / 2f
+                                            drawText(l, topLeft = Offset(if (right) size.width - m - l.size.width else m, yy))
+                                        }
+                                        put(pm.headerLeft, right = false, footer = false)
+                                        put(pm.headerRight, right = true, footer = false)
+                                        put(pm.footerLeft, right = false, footer = true)
+                                        put(pm.footerRight, right = true, footer = true)
+                                    }
+                                }
+                            },
+                        )
                         .padding(horizontal = margin, vertical = if (narrow) 20.dp else margin)
                         .onGloballyPositioned { state.pageCoords = it }
-                        .heightIn(min = if (view == FlowView.PAGES) with(density) { pageHeightPx.toDp() } else 300.dp)
-                        // Seitenansicht: where one A4 page ends, a dashed line with the next page's number.
-                        .drawWithContent {
-                            drawContent()
-                            if (view == FlowView.PAGES && pageHeightPx > 100f) {
-                                val labelStyle = TextStyle(fontSize = 10.sp, color = outline)
-                                var y = pageHeightPx
-                                var page = 2
-                                while (y < size.height - 8f) {
-                                    drawLine(outline.copy(alpha = 0.6f), Offset(-margin.toPx() + 4f, y), Offset(size.width + margin.toPx() - 4f, y), strokeWidth = 1f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)))
-                                    // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
-                                    // width left of topLeft inside this box, and the label sits in the right page margin – with a
-                                    // margin over 60 dp (20 mm at 100 %) that width was negative and the app crashed.
-                                    val label = pageLabel.measure(tr("Seite {0}", page), labelStyle)
-                                    drawText(label, topLeft = Offset(size.width + margin.toPx() - label.size.width - 8.dp.toPx(), y + 2f))
-                                    y += pageHeightPx
-                                    page++
-                                }
-                            }
-                        },
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                        .heightIn(min = if (pages) with(density) { (textHeightPx * count + betweenPx * (count - 1)).toDp() } else 300.dp),
+                    verticalArrangement = Arrangement.spacedBy(spacing),
                 ) {
-                    if (setup.hasHeader) Text(listOfNotNull(setup.header.takeIf { it.isNotBlank() }, DocMarkup.today().takeIf { setup.date }).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = outline)
+                    if (!pages && setup.hasHeader) Text(listOfNotNull(setup.header.takeIf { it.isNotBlank() }, DocMarkup.today().takeIf { setup.date }).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = outline)
                     state.segs.forEach { seg ->
                         androidx.compose.runtime.key(seg.id) {
                             when (seg) {
                                 is FlowSeg.Text -> FlowField(c, state, seg, zoom, host, onWrite, onRevise, onFind)
                                 // Setting lines of the Formatvorlagen are not drawn (the look shows them).
-                                is FlowSeg.Raw -> if (!isHiddenSetting(seg.markdown)) RawBlock(doc, tabId, state, seg, if (view == FlowView.PAGES) pageHeightPx else 0f)
+                                is FlowSeg.Raw -> if (!isHiddenSetting(seg.markdown)) RawBlock(doc, tabId, state, seg, pages)
                             }
                         }
                     }
-                    if (setup.footer.isNotBlank()) Text(setup.footer, style = MaterialTheme.typography.labelSmall, color = outline)
+                    if (!pages && setup.footer.isNotBlank()) Text(setup.footer, style = MaterialTheme.typography.labelSmall, color = outline)
                 }
             }
             if (showComments) {
@@ -1532,22 +1771,21 @@ private fun FlowPages(
 
 /** A block of its own between the running text: shown as it looks; tables edit in place, others via ✎. */
 @Composable
-private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw, pageHeightPx: Float) {
+private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw, pages: Boolean) {
     var editing by remember { mutableStateOf(false) }
-    // Seitenumbruch (AP-43): in the Seitenansicht the rest of the page stays empty.
-    if (pageHeightPx > 100f && DocMarkup.isPageBreak(seg.markdown)) {
-        var y by remember { mutableFloatStateOf(-1f) }
-        Row(Modifier.fillMaxWidth().onGloballyPositioned { co ->
-            val page = state.pageCoords
-            val v = if (page != null && page.isAttached && co.isAttached) page.localPositionOf(co, Offset.Zero).y else -1f
-            if (kotlin.math.abs(v - y) > 0.5f) y = v
-        }, verticalAlignment = Alignment.Top) {
-            Box(Modifier.weight(1f)) { PageBreakFill(if (y < 0f) 0f else pageHeightPx - (y % pageHeightPx) - 6f) }
+    val density = LocalDensity.current
+    // Room above it when it starts a page (Seitenansicht); its own height is measured without that room.
+    val outer = Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() })
+    val measure = Modifier.onSizeChanged { if (kotlin.math.abs(seg.height - it.height) > 0.5f) seg.height = it.height.toFloat() }
+    // Seitenumbruch (AP-43): in the Seitenansicht the text goes on on the next page.
+    if (DocMarkup.isPageBreak(seg.markdown)) {
+        Row(outer.then(measure), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { PageBreakFill(0f) }
             IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
         }
         return
     }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+    Row(outer.then(measure), verticalAlignment = Alignment.Top) {
         Box(Modifier.weight(1f)) {
             if (seg.markdown.trim().startsWith("|")) {
                 TableGrid(DocBlocks.tableRows(seg.markdown)) { rows -> state.setRaw(seg, DocBlocks.table(rows)) }
@@ -1573,7 +1811,7 @@ private fun copySelection(c: AppContainer, seg: FlowSeg.Text): Boolean {
     if (sel.collapsed) return false
     val piece = seg.rich.slice(sel.min, sel.max)
     val plain = piece.text.filterIndexed { i, _ -> piece.chars[i].ins == 0 }
-    return RichClipboard.copy(c, RichHtml.fromRich(piece), plain)
+    return RichClipboard.copy(c, RichHtml.fromRich(piece), plain, runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.fromRich(piece) }.getOrNull())
 }
 
 /** One stretch of running text: the text field with list marks in the gutter and the keys of a word processor. */
@@ -1601,7 +1839,8 @@ private fun FlowField(
     val current = state.hits().getOrNull(state.findAt)?.takeIf { it.first === seg }?.second
     val quoted = state.comments.mapNotNull { cm -> state.findQuote(cm.quote)?.takeIf { it.first === seg }?.second }
     val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
-    val annotated = remember(rich, look.brand, zoom, sheet, marks) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks) }
+    val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
+    val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
     val value = TextFieldValue(annotated, seg.selection, seg.composition)
     val measurer = rememberTextMeasurer()
     val marksList = remember(rich) { listMarks(rich) }
@@ -1681,7 +1920,8 @@ private fun FlowField(
         }
     }
 
-    Box(Modifier.fillMaxWidth().onGloballyPositioned { co ->
+    // Room above the text when it starts a page (Seitenansicht, AP-43).
+    Box(Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() }).onGloballyPositioned { co ->
         // Where this text is on the page (jumps of the Gliederung, comments at the margin).
         val page = state.pageCoords
         if (page != null && page.isAttached && co.isAttached) {
@@ -1694,6 +1934,11 @@ private fun FlowField(
             onValueChange = ::onValue,
             textStyle = base,
             cursorBrush = SolidColor(look.brand),
+            // Page breaks inside the text: room shown in the text, not part of it.
+            visualTransformation = remember(seg.breaks, seg.deleted, density) {
+                if (seg.breaks.isEmpty() && seg.deleted.isEmpty()) VisualTransformation.None
+                else PageSpacers(seg.breaks, density.density, density.fontScale, seg.deleted, SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough))
+            },
             onTextLayout = { seg.layout = it },
             modifier = Modifier
                 .fillMaxWidth()
@@ -1706,7 +1951,7 @@ private fun FlowField(
                     val layout = seg.layout ?: return@drawBehind
                     marksList.forEach { (pi, mark) ->
                         if (mark == "check") return@forEach
-                        val off = rich.starts[pi].coerceAtMost(layout.layoutInput.text.length)
+                        val off = seg.shown(rich.starts[pi]).coerceAtMost(layout.layoutInput.text.length)
                         val line = layout.getLineForOffset(off)
                         val indent = (28f * (rich.paras[pi].indent + 1)).sp.toPx() * zoom
                         val m = measurer.measure(mark, base.copy(fontWeight = FontWeight.Normal))
@@ -1738,7 +1983,8 @@ private fun FlowField(
                             }
                         }
                         cmd && !e.isShiftPressed && e.key == Key.V -> {
-                            val piece = RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }?.takeIf { it.text.isNotEmpty() }
+                            val piece = (RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }
+                                ?: RichClipboard.rtf(c)?.let { runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.toRich(it) }.getOrNull() })?.takeIf { it.text.isNotEmpty() }
                             if (piece == null) false else { state.paste(seg, piece); true }
                         }
                         cmd && e.isAltPressed && e.key == Key.Zero -> { state.kind(ParaKind.NORMAL); true }
@@ -1763,7 +2009,7 @@ private fun FlowField(
         // Checkboxes of the checklist: real buttons in the gutter.
         val layout = seg.layout
         if (layout != null) marksList.filter { it.second == "check" }.forEach { (pi, _) ->
-            val off = rich.starts[pi].coerceAtMost(layout.layoutInput.text.length)
+            val off = seg.shown(rich.starts[pi]).coerceAtMost(layout.layoutInput.text.length)
             val line = layout.getLineForOffset(off)
             val p = rich.paras[pi]
             val indentPx = with(density) { (28f * (p.indent + 1)).sp.toPx() } * zoom
@@ -1788,9 +2034,9 @@ private fun FlowField(
         val sel = seg.selection
         if (layout != null && state.active === seg && !sel.collapsed && state.writing == null && !state.revising && state.painter == null && state.suggestions().isEmpty()) {
             val n = layout.layoutInput.text.length
-            val box = layout.getBoundingBox(sel.min.coerceIn(0, (n - 1).coerceAtLeast(0)))
+            val box = layout.getBoundingBox(seg.shown(sel.min).coerceIn(0, (n - 1).coerceAtLeast(0)))
             val above = with(density) { 44.dp.toPx() }
-            val y = if (box.top >= above) box.top - above else layout.getBoundingBox((sel.max - 1).coerceIn(0, (n - 1).coerceAtLeast(0))).bottom + with(density) { 4.dp.toPx() }
+            val y = if (box.top >= above) box.top - above else layout.getBoundingBox(seg.shown(sel.max - 1).coerceIn(0, (n - 1).coerceAtLeast(0))).bottom + with(density) { 4.dp.toPx() }
             FlowSelectionMenu(
                 onRevise = onRevise,
                 onComment = { host.onComment(rich.text.substring(sel.min.coerceAtMost(rich.text.length), sel.max.coerceAtMost(rich.text.length))) },
