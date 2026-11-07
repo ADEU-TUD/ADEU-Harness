@@ -208,6 +208,36 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Änderung zu Änderung mit *Annehmen*, *Ablehnen* und *Alle …* (Wortvergleich `docs/text/TrackDiff.kt`). Die
   **Zwischenablage** gibt zusätzlich **RTF** mit und liest RTF, wenn ein Programm kein HTML liefert
   (`docs/text/RichRtf.kt`). Tests `PageLayoutTest`, `FlowTrackingTest`, `EditorCoreTest`, `FlowEditorUiTest`.
+- **Tabellen über Seiten, Abschnitte, Tabstopps, große Dokumente** (AP-43 bis AP-45 abgeschlossen, seit 1.0.57):
+  - **Tabellen brechen zeilenweise** über Seiten um; die **Kopfzeile wiederholt sich** oben auf jeder weiteren Seite
+    (nur zur Ansicht – bearbeitet wird sie an ihrem Platz). Eine Kopfzeile bleibt nie allein am Seitenende. Im
+    PDF steht die Kopfzeile in `<thead>` und wird ebenfalls wiederholt, Word bekommt sie als „Überschriftenzeile
+    wiederholen“.
+  - **Abschnittsumbruch** (*Einfügen › Abschnittsumbruch …*): ab hier eine neue Seite, wahlweise mit **eigener Kopf- und
+    Fußzeile** (leer = keine, nicht gesetzt = wie davor; Felder `{seite}`/`{seiten}`). Gespeichert als
+    `<!-- abschnitt: kopfzeile=Kapitel 2; fusszeile=Entwurf -->`. Die Seitenansicht zeigt je Blatt die Kopf-/Fußzeile
+    seines Abschnitts, das PDF setzt jeden Abschnitt als eigene Seitenart, Word bekommt echte Abschnitte mit eigenen
+    Kopf-/Fußzeilen – und Abschnitte aus Word kommen so zurück (der erste Abschnitt ist der des Dokuments).
+  - **Tabstopps** wie in Word: Klick ins **Lineal** setzt einen Tabstopp (Art über das Zeichen links im Lineal wählen:
+    links └, zentriert ┴, rechts ┘), Ziehen verschiebt ihn, Wegziehen nach unten entfernt ihn; *Format › Tabstopps
+    entfernen*. Die Tab-Taste fügt einen Tab ein (in Listen rückt sie weiter ein). Ohne eigene Tabstopps gilt alle 12,5 mm.
+    Word liest und schreibt Tabs und Tabstopps, im PDF stehen die Stücke an ihren Stopps. Gespeichert im Absatzmarker
+    (`<!--a:;t=40l120r-->`).
+  - **Markieren über Tabellen hinweg**: Strg+A, Umschalt+Pfeile und Umschalt+Klick markieren über Textfelder, Tabellen,
+    Bilder und Formeln hinweg; Kopieren (mit Tabellen als HTML), Ausschneiden, Löschen, Überschreiben und Formatieren
+    (fett, Farbe, Ausrichtung …) wirken auf alles Markierte. Die Pfeiltasten gehen am Rand eines Feldes ins nächste.
+  - **Große Dokumente**: Fließtext ab etwa 12 Seiten wird intern in Stücke je Kapitel geteilt (unsichtbar: Cursor,
+    Backspace/Entf, Markieren und Speichern gehen über die Stücke hinweg), und der Seitenplan kommt zur Ruhe statt bei
+    jedem Tastendruck alle Seiten neu zu setzen. Gemessen mit 205 Seiten: **Tippen ~80 ms je Zeichen** (vorher 2,7–3,5 s),
+    Öffnen bis zum fertigen Seitenplan ~3 s (Test `bigDocumentStaysResponsive`, Werte in `build/flow-look/big-document.txt`).
+  - **Prüfsammlung** (`PruefsammlungTest`): nachgebaute TUD-Brief-, Abschlussarbeits-, Antrags- und Protokoll-Vorlagen,
+    wie Word sie schreibt (Formatvorlagen, Abschnitte, Tabstopps, Fußnoten, Inhaltssteuerelemente, Listen, Tabellen). Jede
+    wird geöffnet, im Editor angezeigt, an einer Stelle bearbeitet und **ins Original zurückgeschrieben** – alle anderen
+    Teile der Datei bleiben byteweise gleich. Dabei behoben: Absätze mit ☒/☐ am Anfang werden wiedergefunden, und ein
+    bearbeiteter Absatz mit Fußnote verweist auf die Fußnote des Originals, statt die ganze Datei neu zu schreiben.
+  - Das **PDF** folgt denselben Umbruchregeln wie die Seitenansicht, wird aber weiter über HTML gesetzt (Offene Frage 8:
+    so belassen) – Seitenumbrüche können je nach Schrift um einige Zeilen abweichen.
+  Tests `EditorRestTest`, `PruefsammlungTest`, `FlowEditorUiTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

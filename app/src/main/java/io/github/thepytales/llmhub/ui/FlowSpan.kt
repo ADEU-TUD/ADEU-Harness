@@ -199,21 +199,20 @@ fun FlowState.pieceKey(c: io.github.thepytales.llmhub.AppContainer, t: FlowSeg.T
     val shownSel = t.shown(sel.end)
     val line = layout?.takeIf { shownSel <= it.layoutInput.text.length }?.getLineForOffset(shownSel)
     val x = layout?.takeIf { shownSel <= it.layoutInput.text.length }?.getHorizontalPosition(shownSel, true) ?: 0f
-    val forward: Boolean
     val target: FlowSeg.Text
     val offset: Int
     when {
         e.key == Key.DirectionDown && line != null && line == layout.lineCount - 1 -> {
-            target = textBeside(t, true) ?: return false; forward = true; offset = offsetAtX(target, x, lastLine = false)
+            target = textBeside(t, true) ?: return false; offset = offsetAtX(target, x, lastLine = false)
         }
         e.key == Key.DirectionUp && line == 0 -> {
-            target = textBeside(t, false) ?: return false; forward = false; offset = offsetAtX(target, x, lastLine = true)
+            target = textBeside(t, false) ?: return false; offset = offsetAtX(target, x, lastLine = true)
         }
         e.key == Key.DirectionRight && sel.end == len && (sel.collapsed || e.isShiftPressed) -> {
-            target = textBeside(t, true) ?: return false; forward = true; offset = 0
+            target = textBeside(t, true) ?: return false; offset = 0
         }
         e.key == Key.DirectionLeft && sel.end == 0 && (sel.collapsed || e.isShiftPressed) -> {
-            target = textBeside(t, false) ?: return false; forward = false; offset = target.rich.text.length
+            target = textBeside(t, false) ?: return false; offset = target.rich.text.length
         }
         // Backspace/Entf at the edge of a piece joins it with the piece right beside it.
         // (A heading or list item at the start first becomes normal text, as in the field itself.)
@@ -235,7 +234,6 @@ fun FlowState.pieceKey(c: io.github.thepytales.llmhub.AppContainer, t: FlowSeg.T
     spanAnchor = anchor
     val edge = if (segs.indexOf(anchor.first) < segs.indexOf(target)) 0 else target.rich.text.length
     focusPiece(target, TextRange(edge, offset), keepSpan = true)
-    @Suppress("UNUSED_VARIABLE") val dir = forward
     return true
 }
 
