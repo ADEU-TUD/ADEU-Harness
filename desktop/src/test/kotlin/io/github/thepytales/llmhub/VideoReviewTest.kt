@@ -268,11 +268,11 @@ class VideoReviewTest {
     fun secondsCanBeTypedDigitByDigit() = runSkikoComposeUiTest(Size(1500f, 950f), Density(1f)) {
         val p = VideoProject(title = "Sekunden", clips = listOf(VideoClip(path = File(base, "fehlt.mp4").absolutePath, inSec = 12.5, outSec = 30.0)))
         editor(p)
-        // The clip in the timeline: right below the row with the zoom slider (1–12), in the video lane (ruler 22 px,
-        // lane 60 px).
-        val zoom = SemanticsMatcher("Zoom-Regler") { it.config.getOrNull(SemanticsProperties.ProgressBarRangeInfo)?.range == 1f..12f }
+        // The clip in the timeline: right below the row with the zoom slider (1–24), in V1 (ruler 22 px, titles 26 px
+        // and 3 px gap above it, V1 56 px high – AP-52).
+        val zoom = SemanticsMatcher("Zoom-Regler") { it.config.getOrNull(SemanticsProperties.ProgressBarRangeInfo)?.range == 1f..24f }
         val rowBottom = onAllNodes(zoom)[0].fetchSemanticsNode().boundsInRoot.bottom
-        onRoot().performTouchInput { click(Offset(400f, rowBottom + 22f + 30f)) }
+        onRoot().performTouchInput { click(Offset(400f, rowBottom + 22f + 29f + 28f)) }
         settle(4)
         val end = fixed("30,00")
         end.performClick()

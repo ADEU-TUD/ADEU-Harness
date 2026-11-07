@@ -907,6 +907,42 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Lora wählt die Abschnitte). Alles mit Strg+Z rückgängig.
   - **Export** als MP4 (H.264/AAC, für das Web optimiert) mit Vorgaben *OPAL* (720p, kleine Datei), *YouTube* (1080p) und
     *Wie das Projekt*; mit Fortschritt und Abbrechen. Ein einziger ffmpeg-Lauf (das ffmpeg der App) baut den Film.
+- **Videoeditor: mehrere Spuren und echte Vorschau** (AP-52, seit 1.0.57):
+  - **Beliebig viele Video- und Tonspuren**: über V1 liegen V2, V3 … (oben liegt vorn), darunter A1, A2 … (Musik,
+    Sprecherton, zweites Mikrofon). Jeder Clip hat **Position, Größe, Zuschnitt und Deckkraft** (*Position und Größe …*
+    in den Eigenschaften). Alte Projekte öffnen unverändert: ihre Tonspur ist A1.
+  - **Bild-in-Bild** als Standardfall: *Bild-in-Bild* in der Leiste über der Zeitleiste legt eine Webcam (oder ein Bild,
+    ein Logo) an den Abspielkopf auf die nächste freie Spur, mit Vorlagen für die Ecke (unten rechts, unten links, oben …,
+    ganzes Bild) und sanftem Ein- und Ausblenden.
+  - **Echte Vorschau**: Sie läuft durch **denselben ffmpeg-Filtergraphen wie der Export** (`VideoRender.graph`), nur in
+    360 Zeilen aus den Proxys – mit allen Spuren, Bild-in-Bild, Übergängen, Ton aller Spuren und Musik; Titel und
+    Untertitel zeichnet der Editor mit derselben Zeichnung wie der Export darüber (jetzt auch mit Ein- und Ausblenden).
+    Nur das Angleichen der Lautheit (braucht Sekunden Vorlauf) bleibt dem Export. **J/K/L** (mehrmals: 2×, 4×),
+    Einzelbild ←/→, **Schleife In–Out** (I, O, *Schleife*). Standbilder mit mehreren Spuren oder in einer Überblendung
+    kommen ebenfalls aus dem Graphen. **Wellenformen** auf den Tonspuren und unter den Clips von V1.
+  - Export: ein Filtergraph für alle Spuren; gesperrte, stumme und ausgeblendete Spuren werden beachtet.
+  Tests `VideoTracksTest` (Vorschau und Export bei Bild-in-Bild und mitten in einer Überblendung Bild für Bild verglichen,
+  Bilder in `desktop/build/video-tracks`).
+- **Videoeditor: Schnittwerkzeuge** (AP-53, seit 1.0.57; Tasten nah an DaVinci Resolve, Übersicht mit `?` oder F1):
+  - **Medienpool** links mit Ordnern, Vorschaubildern, Dauer und Suche; ein Klick öffnet die Datei im **Quellmonitor**
+    (Q wechselt zwischen Quelle und Zeitleiste) mit eigenem Abspielkopf und In/Out, dann **Einfügen** (F9),
+    **Überschreiben** (F10) oder **Bild-in-Bild** (F12) am Abspielkopf – oder die Datei aus dem Pool in die Zeitleiste
+    **ziehen** (V1 fügt am nächsten Schnitt ein, V2 … als Bild-in-Bild, A … als Ton).
+  - **Werkzeuge**: Auswahl (A), **Klinge** (B, schneidet jeden Clip und Ton), **Trimmen** (T: am Schnitt *Roll*, in der
+    Mitte *Slip*); in der Auswahl kürzt Ziehen an den Rändern als **Ripple**. **Magnet-Zeitleiste** (N): Schnitte auf V1
+    ziehen alle Spuren mit, Löschen schließt die Lücke (Umschalt+Entf immer), Ziehen rastet an Kanten, Markern und dem
+    Abspielkopf ein.
+  - **Bild und Ton verknüpfen**: *Ton auf eine Tonspur legen* (oder Strg+Alt+L) legt den Ton eines Clips verknüpft auf
+    eine Tonspur – er bewegt, teilt und kürzt sich mit dem Clip.
+  - **Mehrere Tonquellen synchronisieren**: Ansteckmikrofon oder Rekorder auf eine Tonspur, dann *Mit dem Bild
+    synchronisieren › Über die Wellenform* – die App vergleicht, wann es lauter wird (Kreuzkorrelation, auf etwa 10 ms
+    genau), verknüpft den Ton mit dem Kameraclip und schaltet den Kameraton auf Wunsch stumm.
+  - **Spuren sperren, stumm, ausblenden** über die Köpfe links in der Zeitleiste; *+ Videospur*, *+ Tonspur* in den
+    Projekteinstellungen.
+  - **Marker mit Notiz** (M): in der Leiste über der Zeitleiste, verschiebbar; als **Kapitel** im MP4 und als Liste für
+    die YouTube-Beschreibung (*Für YouTube kopieren*).
+  Tests `VideoCutTest` (u. a. ein Vortrag mit Kamera und Ansteckmikrofon: synchronisieren, schneiden, Ripple-Trimmen,
+  eine Folie aus dem Quellmonitor einfügen – ohne Lücken, im Export lippensynchron).
 - **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
   **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
   JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei
@@ -1513,6 +1549,7 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
+| `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“ (macOS: LaunchAgent, Linux: `~/.config/autostart`), nur eine laufende App |
 | `desktop/Os.kt`, `update/AppLayout.kt`, `ui/Keys.kt` (gemeinsam) | macOS und Linux (AP-31): System, App-Ordner je System, tar.gz mit Rechten und Links, ⌘/Strg, Texte (⌘, Finder) |

@@ -155,6 +155,7 @@ object AppMap {
         place("video.titles", "video", trLater("Titel und Bauchbinde"), trLater("Video › Titel & Bauchbinde"), trLater("Titel, Bauchbinde, Einblendung, Abspann im TUD-Design."), "titel bauchbinde einblendung abspann", android = false, tool = "video"),
         place("video.subtitles", "video", trLater("Untertitel"), trLater("Video › Untertitel"), trLater("Untertitel aus der Transkription oder SRT."), "untertitel srt vtt", android = false, tool = "video"),
         place("video.roughcut", "video", trLater("Rohschnitt"), trLater("Video › Rohschnitt"), trLater("Pausen und Füllwörter herausschneiden, mit Lora kürzen."), "rohschnitt kürzen pausen füllwörter", android = false, tool = "video"),
+        place("video.pip", "video", trLater("Bild-in-Bild"), trLater("Video › Bild-in-Bild"), trLater("Webcam oder zweites Video als Ecke über das Bild legen, auf eigenen Videospuren."), "bild in bild webcam ecke overlay spur ebene", android = false, tool = "video"),
         place("video.export", "video", trLater("Video exportieren"), trLater("Video › Exportieren"), trLater("MP4 für OPAL oder YouTube."), "exportieren mp4 opal youtube rendern", android = false, tool = "video"),
     )
 

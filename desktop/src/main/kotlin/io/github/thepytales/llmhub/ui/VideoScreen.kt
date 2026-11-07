@@ -38,6 +38,12 @@ import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.FastForward
+import androidx.compose.material.icons.outlined.FastRewind
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.PictureInPicture
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileDownload
@@ -85,6 +91,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -94,7 +101,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
@@ -117,6 +127,7 @@ import io.github.thepytales.llmhub.video.Media
 import io.github.thepytales.llmhub.video.RoughCut
 import io.github.thepytales.llmhub.video.TextOverlay
 import io.github.thepytales.llmhub.video.VideoClip
+import io.github.thepytales.llmhub.video.VideoEdit
 import io.github.thepytales.llmhub.video.VideoPlayer
 import io.github.thepytales.llmhub.video.VideoProject
 import io.github.thepytales.llmhub.video.VideoRender
@@ -252,15 +263,19 @@ private fun ProjectRow(p: VideoProject, onOpen: () -> Unit, onDelete: () -> Unit
 
 // ── Editor ─────────────────────────────────────────────────────────────────────────────────────────
 
-private sealed interface Sel {
+internal sealed interface Sel {
     data object None : Sel
     data class Clip(val id: String) : Sel
     data class Title(val id: String) : Sel
     data class Sound(val id: String) : Sel
+    /** A picture on V2 … (AP-52). */
+    data class Layer(val id: String) : Sel
+    /** A marker (AP-53). */
+    data class Mark(val id: String) : Sel
 }
 
-/** History of a project for undo/redo; repeated changes of one field within 1.5 s are one step. */
-private class History(initial: VideoProject) {
+/** History of a project for undo/redo; repeated changes of one field within 1.5 s are one step. Linked sound follows its clip. */
+internal class History(initial: VideoProject) {
     var project by mutableStateOf(initial)
         private set
     var version by mutableIntStateOf(0)
@@ -273,7 +288,7 @@ private class History(initial: VideoProject) {
     var canRedo by mutableStateOf(false)
 
     fun edit(key: String? = null, record: Boolean = true, f: (VideoProject) -> VideoProject) {
-        val next = f(project)
+        val next = f(project).linked()
         if (next == project) return
         val now = System.currentTimeMillis()
         if (record && !(key != null && key == lastKey && now - lastAt < 1500)) {
@@ -295,11 +310,13 @@ private class History(initial: VideoProject) {
 
 @Composable
 private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
-    val initial = remember(id) { VideoHub.store.get(id) }
+    // Projects from before AP-53 get their files into the media pool.
+    val initial = remember(id) { VideoHub.store.get(id)?.let { VideoEdit.withPool(it) } }
     if (initial == null) { LaunchedEffect(id) { onClose() }; return }
     val h = remember(id) { History(initial) }
     val player = remember(id) { VideoPlayer() }
-    DisposableEffect(id) { onDispose { player.dispose(); VideoHub.store.save(h.project) } }
+    val source = remember(id) { VideoPlayer() }
+    DisposableEffect(id) { onDispose { player.dispose(); source.dispose(); VideoHub.store.save(h.project) } }
     var saved by remember { mutableIntStateOf(0) }
     LaunchedEffect(h.version) {
         if (h.version == saved) return@LaunchedEffect
@@ -308,13 +325,32 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         saved = h.version
     }
     // Proxy files for a smooth preview, one after another in the background.
-    LaunchedEffect(h.project.clips.map { it.path }.toSet()) {
-        withContext(Dispatchers.IO) { h.project.clips.map { File(it.path) }.distinct().forEach { runCatching { Media.makeProxy(it) } } }
+    LaunchedEffect((h.project.clips.map { it.path } + h.project.layers.map { it.path } + h.project.media.map { it.path }).toSet()) {
+        withContext(Dispatchers.IO) {
+            (h.project.clips.map { it.path } + h.project.layers.map { it.path } + h.project.media.map { it.path }).distinct().map { File(it) }.filter { it.isFile }.forEach { runCatching { Media.makeProxy(it) } }
+        }
     }
     val p = h.project
     val pos by player.position.collectAsStateWithLifecycle()
     val playing by player.playing.collectAsStateWithLifecycle()
+    val speed by player.speed.collectAsStateWithLifecycle()
     var sel by remember { mutableStateOf<Sel>(Sel.None) }
+    var tool by remember { mutableStateOf(CutTool.SELECT) }
+    var sourceView by remember { mutableStateOf(false) }
+    var sourceId by remember { mutableStateOf<String?>(null) }
+    var loop by remember { mutableStateOf(false) }
+    var keys by remember { mutableStateOf(false) }
+    val drag = remember { PoolDrag() }
+    val sourceItem = p.media.firstOrNull { it.id == sourceId }
+    val sourceInfo by produceState<io.github.thepytales.llmhub.video.MediaInfo?>(null, sourceItem?.path) { value = sourceItem?.let { withContext(Dispatchers.IO) { Media.probe(File(it.path)) } } }
+    val sourceLen = sourceItem?.let { if (Media.isStill(File(it.path), sourceInfo)) 5.0 else sourceInfo?.duration?.takeIf { d -> d > 0.05 } }
+    val sourceProject = remember(sourceItem?.path, sourceLen) {
+        if (sourceItem == null || sourceLen == null) null
+        else VideoProject(title = sourceItem.name, fadeEnds = false, width = p.width, height = p.height, clips = listOf(VideoClip(path = sourceItem.path, inSec = 0.0, outSec = sourceLen)), sound = io.github.thepytales.llmhub.video.AudioSettings(normalize = false))
+    }
+    val srcPos by source.position.collectAsStateWithLifecycle()
+    val srcPlaying by source.playing.collectAsStateWithLifecycle()
+    LaunchedEffect(sourceProject) { sourceProject?.let { source.seek(it, sourceItem?.inSec ?: 0.0) } }
     LaunchedEffect(id) { player.seek(p, 0.0) }
     // Lora's actions (AP-38 Stufe d) change this project through its history, so Strg+Z takes them back as well.
     DisposableEffect(id) {
@@ -326,25 +362,99 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     // A pause in editing shows the picture at the playhead again (the clip under it may have changed).
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }
     var export by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val focus = remember { androidx.compose.ui.focus.FocusRequester() }
     val typing = remember { TypingState() }
-    fun split() {
-        val (i, src) = p.at(pos) ?: return
-        val clip = p.clips[i]
-        if (src - clip.inSec < 0.2 || clip.outSec - src < 0.2) return
-        val a = clip.copy(outSec = src)
-        val b = clip.copy(id = newVideoId(), inSec = src, transition = "none")
-        h.edit { it.copy(clips = it.clips.toMutableList().apply { set(i, a); add(i + 1, b) }) }
-        sel = Sel.Clip(b.id)
+    val showSource = sourceView && sourceProject != null
+
+    fun loopRange(): Pair<Double, Double>? = if (loop) (p.markIn ?: 0.0) to (p.markOut ?: p.duration) else null
+    /** The marked piece of a pool file as a clip (In/Out of the source monitor, otherwise all of it). */
+    fun clipOf(item: io.github.thepytales.llmhub.video.PoolItem): VideoClip? {
+        val f = File(item.path)
+        val info = Media.probe(f) ?: return null
+        val len = if (Media.isStill(f, info)) 5.0 else info.duration.takeIf { it > 0.05 } ?: return null
+        val a = (item.inSec ?: 0.0).coerceIn(0.0, len)
+        val b = (item.outSec ?: len).coerceIn(a + 0.2, maxOf(len, a + 0.2))
+        return VideoClip(path = item.path, inSec = a, outSec = b)
     }
-    fun deleteSelected() {
+    fun use(item: io.github.thepytales.llmhub.video.PoolItem, how: PoolUse, at: Double = player.position.value, lane: String? = null) {
+        val clip = clipOf(item) ?: run { Notices.error(tr("Die Datei ließ sich nicht lesen.")); return }
+        when (how) {
+            PoolUse.INSERT -> { h.edit { VideoEdit.insert(it, clip, at) }; sel = Sel.Clip(clip.id) }
+            PoolUse.OVERWRITE -> { h.edit { VideoEdit.overwrite(it, clip, at) }; sel = Sel.Clip(clip.id) }
+            PoolUse.PIP -> {
+                var made: String? = null
+                h.edit { pp ->
+                    val (q, lid) = VideoEdit.addLayer(pp, item.path, at, clip.length, still = Media.isStill(File(item.path)))
+                    made = lid
+                    val wanted = lane?.drop(1)?.toIntOrNull()?.takeIf { it >= 2 }
+                    val placed = q.copy(layers = q.layers.map { if (it.id == lid) it.copy(inSec = clip.inSec, outSec = clip.outSec) else it })
+                    if (wanted != null && placed.layers.none { it.id != lid && it.track == wanted && it.startSec < at + clip.length && it.endSec > at }) VideoEdit.moveLayer(placed, lid, at, wanted) else placed
+                }
+                made?.let { sel = Sel.Layer(it) }
+            }
+            PoolUse.SOUND -> {
+                if (Media.probe(File(item.path))?.hasAudio != true) { Notices.error(tr("In der Datei ist kein Ton.")); return }
+                val wanted = lane?.drop(1)?.toIntOrNull()
+                val a = AudioClip(path = item.path, startSec = at, inSec = clip.inSec, outSec = clip.outSec, volume = 1f, fadeSec = 0.3, track = 1)
+                h.edit { pp ->
+                    val free = wanted?.takeIf { n -> pp.audio.none { it.track == n && it.startSec < at + a.length && it.endSec > at } } ?: VideoEdit.freeAudioTrack(pp, at, at + a.length)
+                    pp.copy(audio = pp.audio + a.copy(track = free), audioTracks = maxOf(pp.audioTracks, free))
+                }
+                sel = Sel.Sound(a.id)
+            }
+        }
+    }
+    fun importToPool() = scope.launch {
+        val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Dateien in den Medienpool"), multiple = true, extensions = (VIDEO_MEDIA + AUDIO_MEDIA).distinct()) }
+        if (files.isNotEmpty()) h.edit { VideoEdit.addToPool(it, files.map { f -> f.absolutePath }) }
+    }
+    fun split() {
+        val t = player.position.value
+        val target: VideoEdit.Item? = when (val s = sel) {
+            is Sel.Layer -> VideoEdit.Layer(s.id).takeIf { p.layers.any { it.id == s.id && t > it.startSec && t < it.endSec } }
+            is Sel.Sound -> VideoEdit.Sound(s.id).takeIf { p.audio.any { it.id == s.id && t > it.startSec && t < it.endSec } }
+            else -> null
+        }
+        val result = if (target != null) VideoEdit.split(p, target, t) else VideoEdit.splitV1(p, t)
+        result?.let { (q, nid) ->
+            h.edit { q }
+            sel = when (target) { is VideoEdit.Layer -> Sel.Layer(nid); is VideoEdit.Sound -> Sel.Sound(nid); else -> Sel.Clip(nid) }
+        }
+    }
+    fun deleteSelected(closeGap: Boolean = false) {
+        fun magnet(f: (VideoProject) -> VideoProject): (VideoProject) -> VideoProject = { pp -> if (closeGap && !pp.magnet) f(pp.copy(magnet = true)).copy(magnet = false) else f(pp) }
         when (val s = sel) {
-            is Sel.Clip -> h.edit { pp -> pp.copy(clips = pp.clips.filter { it.id != s.id }) }
+            is Sel.Clip -> h.edit(f = magnet { VideoEdit.delete(it, VideoEdit.Clip(s.id)) })
+            is Sel.Layer -> h.edit(f = magnet { VideoEdit.delete(it, VideoEdit.Layer(s.id)) })
+            is Sel.Sound -> h.edit(f = magnet { VideoEdit.delete(it, VideoEdit.Sound(s.id)) })
             is Sel.Title -> h.edit { pp -> pp.copy(overlays = pp.overlays.filter { it.id != s.id }) }
-            is Sel.Sound -> h.edit { pp -> pp.copy(audio = pp.audio.filter { it.id != s.id }) }
+            is Sel.Mark -> h.edit { pp -> pp.copy(markers = pp.markers.filter { it.id != s.id }) }
             Sel.None -> return
         }
         sel = Sel.None
+    }
+    fun toggleLink() {
+        when (val s = sel) {
+            is Sel.Sound -> {
+                val a = p.audio.firstOrNull { it.id == s.id } ?: return
+                if (a.linkedTo != null) { h.edit { VideoEdit.unlink(it, a.id) }; Notices.info(tr("Verknüpfung gelöst.")) }
+                else {
+                    val i = p.at(a.startSec + 0.01)?.first ?: return
+                    h.edit { VideoEdit.link(it, p.clips[i].id, a.id) }
+                    Notices.info(tr("Mit Clip {0} verknüpft.", i + 1))
+                }
+            }
+            is Sel.Clip -> if (p.audio.any { it.linkedTo == s.id }) {
+                h.edit { pp -> pp.copy(audio = pp.audio.map { if (it.linkedTo == s.id) it.copy(linkedTo = null) else it }) }
+                Notices.info(tr("Verknüpfung gelöst."))
+            } else VideoEdit.detachSound(p, s.id)?.let { (q, _) -> h.edit { q }; Notices.info(tr("Ton auf eine Tonspur gelegt und verknüpft.")) }
+            else -> {}
+        }
+    }
+    fun cuts(): List<Double> {
+        val s = p.starts()
+        return (s + p.clips.indices.map { s[it] + p.clips[it].length } + p.layers.flatMap { listOf(it.startSec, it.endSec) } + p.markers.map { it.sec }).distinct().sorted()
     }
     androidx.compose.runtime.CompositionLocalProvider(LocalTyping provides typing) {
     Column(
@@ -353,14 +463,52 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             // In a text field S, Leertaste, Entf and the arrows are typing: before, they also split the clip, started
             // the playback or deleted the selected title while its text was being edited.
             if (typing.fields > 0 && !ev.isCmd) return@onPreviewKeyEvent false
+            // The source monitor takes the transport keys while it is shown (Q switches).
+            val (pl, pr) = if (showSource) source to sourceProject!! else player to p
+            val at = pl.position.value
             when {
+                ev.utf16CodePoint == '?'.code || ev.key == Key.F1 -> { keys = true; true }
+                ev.isCmd && ev.isAltPressed && ev.key == Key.L -> { toggleLink(); true }
                 ev.isCmd && ev.key == Key.Z -> { h.undo(); true }
                 ev.isCmd && ev.key == Key.Y -> { h.redo(); true }
-                ev.key == Key.Spacebar -> { player.toggle(p); true }
-                ev.key == Key.S && !ev.isCmd -> { split(); true }
-                ev.key == Key.Delete -> { deleteSelected(); true }
-                ev.key == Key.DirectionLeft -> { player.seek(p, pos - 1.0 / p.fps); true }
-                ev.key == Key.DirectionRight -> { player.seek(p, pos + 1.0 / p.fps); true }
+                ev.isCmd && ev.key == Key.B -> { split(); true }
+                ev.isAltPressed && ev.key == Key.X -> {
+                    if (showSource) h.edit { pp -> pp.copy(media = pp.media.map { if (it.id == sourceId) it.copy(inSec = null, outSec = null) else it }) }
+                    else h.edit { it.copy(markIn = null, markOut = null) }
+                    true
+                }
+                ev.isCmd || ev.isAltPressed -> false
+                ev.key == Key.Spacebar -> { if (showSource) source.toggle(pr) else player.toggle(p, loopRange()); true }
+                ev.key == Key.K -> { pl.stop(); true }
+                ev.key == Key.L -> { pl.forward(pr, if (showSource) null else loopRange()); true }
+                ev.key == Key.J -> { pl.backward(pr); true }
+                ev.key == Key.I -> {
+                    if (showSource) h.edit { pp -> pp.copy(media = pp.media.map { if (it.id == sourceId) it.copy(inSec = at, outSec = it.outSec?.takeIf { o -> o > at + 0.2 }) else it }) }
+                    else h.edit { it.copy(markIn = at, markOut = it.markOut?.takeIf { o -> o > at + 0.2 }) }
+                    true
+                }
+                ev.key == Key.O -> {
+                    if (showSource) h.edit { pp -> pp.copy(media = pp.media.map { if (it.id == sourceId) it.copy(outSec = at, inSec = it.inSec?.takeIf { i -> i < at - 0.2 }) else it }) }
+                    else h.edit { it.copy(markOut = at, markIn = it.markIn?.takeIf { i -> i < at - 0.2 }) }
+                    true
+                }
+                ev.key == Key.Q -> { if (sourceProject != null) sourceView = !sourceView; true }
+                ev.key == Key.F9 -> { sourceItem?.let { use(it, PoolUse.INSERT) }; true }
+                ev.key == Key.F10 -> { sourceItem?.let { use(it, PoolUse.OVERWRITE) }; true }
+                ev.key == Key.F12 -> { sourceItem?.let { use(it, PoolUse.PIP) }; true }
+                ev.key == Key.A -> { tool = CutTool.SELECT; true }
+                ev.key == Key.B -> { tool = CutTool.BLADE; true }
+                ev.key == Key.T -> { tool = CutTool.TRIM; true }
+                ev.key == Key.N -> { h.edit { it.copy(magnet = !it.magnet) }; Notices.info(tr(if (!p.magnet) "Magnet an: Spuren ziehen mit, Lücken schließen sich." else "Magnet aus.")); true }
+                ev.key == Key.M -> { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid); true }
+                ev.key == Key.S -> { split(); true }
+                ev.key == Key.Delete || ev.key == Key.Backspace -> { deleteSelected(closeGap = ev.isShiftPressed); true }
+                ev.key == Key.DirectionLeft -> { pl.seek(pr, at - 1.0 / pr.fps); true }
+                ev.key == Key.DirectionRight -> { pl.seek(pr, at + 1.0 / pr.fps); true }
+                ev.key == Key.DirectionUp && !showSource -> { player.seek(p, cuts().lastOrNull { it < at - 1e-3 } ?: 0.0); true }
+                ev.key == Key.DirectionDown && !showSource -> { player.seek(p, cuts().firstOrNull { it > at + 1e-3 } ?: p.duration); true }
+                ev.key == Key.MoveHome -> { pl.seek(pr, 0.0); true }
+                ev.key == Key.MoveEnd -> { pl.seek(pr, pr.duration); true }
                 else -> false
             }
         },
@@ -368,9 +516,14 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück")) }
             var title by remember(id) { mutableStateOf(p.title) }
-            OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(320.dp).typing(), textStyle = MaterialTheme.typography.titleSmall)
+            OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(280.dp).typing(), textStyle = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(8.dp))
             Text(tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+            CutTool.entries.forEach { t ->
+                FilterChip(selected = tool == t, onClick = { tool = t; runCatching { focus.requestFocus() } }, label = { Text(tr(t.label) + " (" + t.key + ")") }, modifier = Modifier.padding(end = 4.dp))
+            }
+            FilterChip(selected = p.magnet, onClick = { h.edit { it.copy(magnet = !it.magnet) } }, label = { Text(tr("Magnet") + " (N)") })
+            IconButton(onClick = { keys = true }) { Icon(Icons.Outlined.Keyboard, contentDescription = tr("Tastenkürzel") + " (?)") }
             IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
             IconButton(onClick = h::redo, enabled = h.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
             Spacer(Modifier.size(8.dp))
@@ -378,27 +531,114 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         }
         HorizontalDivider()
         Row(Modifier.weight(1f).fillMaxWidth()) {
-            Column(Modifier.weight(1f).fillMaxHeight().padding(12.dp)) {
-                Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.width(250.dp).fillMaxHeight())
+            VerticalDivider()
+            Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(selected = showSource, enabled = sourceProject != null, onClick = { sourceView = true; player.stop() }, label = { Text(tr("Quelle") + (sourceItem?.let { ": " + it.name } ?: "")) })
+                    FilterChip(selected = !showSource, onClick = { sourceView = false; source.stop() }, label = { Text(tr("Zeitleiste")) })
+                    HintText(tr("Q wechselt"))
+                }
+                if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.weight(1f).fillMaxWidth())
+                else Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
+                if (showSource) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    IconButton(onClick = { source.toggle(sourceProject!!) }) { Icon(if (srcPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (srcPlaying) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
+                    Text("${clock(srcPos, true)} / ${clock(sourceProject!!.duration, true)}", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.size(8.dp))
+                    val item = sourceItem!!
+                    Text(tr("In {0} · Out {1}", clock(item.inSec ?: 0.0, true), clock(item.outSec ?: sourceProject!!.duration, true)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.weight(1f))
+                    OutlinedButton(onClick = { use(item, PoolUse.INSERT) }) { Text(tr("Einfügen") + " (F9)") }
+                    Spacer(Modifier.size(4.dp))
+                    OutlinedButton(onClick = { use(item, PoolUse.OVERWRITE) }) { Text(tr("Überschreiben") + " (F10)") }
+                    Spacer(Modifier.size(4.dp))
+                    OutlinedButton(onClick = { use(item, PoolUse.PIP) }) { Text(tr("Bild-in-Bild") + " (F12)") }
+                } else Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     IconButton(onClick = { player.seek(p, 0.0) }) { Icon(Icons.Outlined.SkipPrevious, contentDescription = tr("Zum Anfang")) }
-                    IconButton(onClick = { player.toggle(p) }) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (playing) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
+                    IconButton(onClick = { player.backward(p) }) { Icon(Icons.Outlined.FastRewind, contentDescription = tr("Rückwärts") + " (J)") }
+                    IconButton(onClick = { player.toggle(p, loopRange()) }) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (playing) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
+                    IconButton(onClick = { player.forward(p, loopRange()) }) { Icon(Icons.Outlined.FastForward, contentDescription = tr("Vorwärts") + " (L)") }
                     IconButton(onClick = { player.seek(p, p.duration) }) { Icon(Icons.Outlined.SkipNext, contentDescription = tr("Zum Ende")) }
                     Text("${clock(pos, true)} / ${clock(p.duration, true)}", style = MaterialTheme.typography.labelLarge)
+                    if (playing && speed != 1.0 && speed != 0.0) Text("  " + (if (speed < 0) "◀ " else "▶ ") + "${kotlin.math.abs(speed).toInt()}×", style = MaterialTheme.typography.labelLarge, color = LocalChatLook.current.brand)
+                    Spacer(Modifier.size(8.dp))
+                    FilterChip(selected = loop, onClick = { loop = !loop }, label = { Text(tr("Schleife")) }, leadingIcon = { Icon(Icons.Outlined.Repeat, null, Modifier.size(16.dp)) })
+                    if (p.markIn != null || p.markOut != null) Text("  " + tr("In {0} · Out {1}", clock(p.markIn ?: 0.0, true), clock(p.markOut ?: p.duration, true)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.weight(1f))
+                    OutlinedButton(onClick = { val (q, mid) = VideoEdit.addMarker(p, pos); h.edit { q }; sel = Sel.Mark(mid) }) { Icon(Icons.Outlined.BookmarkAdd, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Marker") + " (M)") }
+                    Spacer(Modifier.size(4.dp))
                     OutlinedButton(onClick = ::split) { Icon(Icons.Outlined.ContentCut, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Teilen") + " (S)") }
                 }
             }
             VerticalDivider()
-            Box(Modifier.width(320.dp).fillMaxHeight()) { Properties(c, h, sel, pos, onSelect = { sel = it }, onSplit = ::split, onDelete = ::deleteSelected) }
+            Box(Modifier.width(320.dp).fillMaxHeight()) { Properties(c, h, sel, pos, onSelect = { sel = it }, onSplit = ::split, onDelete = { deleteSelected() }, onSeek = { player.seek(h.project, it) }) }
         }
         HorizontalDivider()
         TimelineBar(c, h, player, onSelect = { sel = it })
-        Timeline(h, player, pos, sel, onSelect = { sel = it; runCatching { focus.requestFocus() } }, modifier = Modifier.fillMaxWidth().height(250.dp))
+        VideoTimelineView(
+            h, player, pos, sel, tool, drag,
+            onSelect = { sel = it; runCatching { focus.requestFocus() } },
+            onDropItem = { item, lane, t ->
+                when {
+                    lane == "V1" -> use(item, PoolUse.INSERT, nearestCut(p, t))
+                    lane.startsWith("V") -> use(item, PoolUse.PIP, t, lane)
+                    else -> use(item, PoolUse.SOUND, t, lane)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
     }
     LaunchedEffect(id) { runCatching { focus.requestFocus() } }
     if (export) ExportDialog(p, onDismiss = { export = false })
+    if (keys) VideoShortcutsDialog { keys = false; runCatching { focus.requestFocus() } }
+}
+
+/** Dropping on V1 inserts at the nearest cut (or the end), not in the middle of a clip. */
+private fun nearestCut(p: VideoProject, t: Double): Double {
+    val s = p.starts()
+    val cuts = s + listOf(p.duration)
+    return cuts.minByOrNull { abs(it - t) } ?: 0.0
+}
+
+/** Source monitor (AP-53): the file with its own playhead and the In–Out piece marked under the picture. */
+@Composable
+private fun SourceViewer(sp: VideoProject, item: io.github.thepytales.llmhub.video.PoolItem, player: VideoPlayer, pos: Double, modifier: Modifier) {
+    val frame by player.frame.collectAsStateWithLifecycle()
+    val brand = LocalChatLook.current.brand
+    Column(modifier) {
+        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF111111)), contentAlignment = Alignment.Center) {
+            val ratio = sp.width.toFloat() / sp.height
+            val w = min(maxWidth.value, maxHeight.value * ratio)
+            Box(Modifier.size(w.dp, (w / ratio).dp).background(Color.Black)) {
+                frame?.let { Image(it, null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
+                Text(tr("Quelle"), color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.align(Alignment.TopStart).padding(6.dp).background(Color(0x88000000), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
+            }
+        }
+        val total = maxOf(sp.duration, 0.1)
+        Canvas(
+            Modifier.fillMaxWidth().height(18.dp).pointerInput(sp) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    player.seek(sp, (down.position.x / size.width * total).coerceIn(0.0, total))
+                    while (true) {
+                        val ev = awaitPointerEvent()
+                        val ch = ev.changes.firstOrNull { it.id == down.id } ?: break
+                        if (!ch.pressed) break
+                        player.seek(sp, (ch.position.x / size.width * total).coerceIn(0.0, total))
+                        ch.consume()
+                    }
+                }
+            },
+        ) {
+            drawRect(Color(0x22000000), Offset(0f, 4f), Size(size.width, size.height - 8f))
+            val a = ((item.inSec ?: 0.0) / total * size.width).toFloat()
+            val b = ((item.outSec ?: total) / total * size.width).toFloat()
+            drawRect(brand.copy(alpha = 0.45f), Offset(a, 4f), Size(maxOf(1f, b - a), size.height - 8f))
+            val px = (pos / total * size.width).toFloat()
+            drawLine(brand, Offset(px, 0f), Offset(px, size.height), 2f)
+        }
+    }
 }
 
 /** The picture at the playhead, with the titles and subtitles that are on at that time. */
@@ -413,7 +653,10 @@ private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier:
             val px = with(LocalDensity.current) { w.dp.roundToPx() }.coerceAtLeast(64)
             p.overlays.filter { pos >= it.startSec && pos < it.endSec }.forEach { o ->
                 val img = rememberTitle(o, p, px)
-                img?.let { Image(it, null, modifier = Modifier.fillMaxSize()) }
+                // Faded in and out as in the export.
+                val fade = minOf(0.4, o.durationSec / 4)
+                val alpha = if (fade <= 0) 1f else minOf(1.0, (pos - o.startSec) / fade, (o.endSec - pos) / fade).toFloat().coerceIn(0f, 1f)
+                img?.let { Image(it, null, modifier = Modifier.fillMaxSize().alpha(alpha)) }
             }
             p.subtitles.firstOrNull { pos >= it.startSec && pos < it.endSec }?.let { cue ->
                 val img = rememberSubtitle(cue.text, p, px, p.subtitleRaised(cue))
@@ -463,7 +706,17 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
     fun addClips() = scope.launch {
         val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
         val clips = withContext(Dispatchers.IO) { files.mapNotNull { f -> Media.probe(f)?.let { i -> VideoClip(path = f.absolutePath, inSec = 0.0, outSec = if (i.duration > 0.05) i.duration else 5.0) } } }
-        if (clips.isNotEmpty()) h.edit { it.copy(clips = it.clips + clips) }
+        if (clips.isNotEmpty()) h.edit { VideoEdit.addToPool(it.copy(clips = it.clips + clips), clips.map { c -> c.path }) }
+    }
+    fun addPicture() = scope.launch {
+        val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Bild-in-Bild: Video oder Bild auswählen"), multiple = false, extensions = VIDEO_MEDIA).firstOrNull() } ?: return@launch
+        val info = withContext(Dispatchers.IO) { Media.probe(f) } ?: run { Notices.error(tr("Die Datei ließ sich nicht lesen.")); return@launch }
+        val still = Media.isStill(f, info)
+        val at = pos()
+        val len = if (still) 5.0 else info.duration.takeIf { it > 0.05 } ?: 5.0
+        var made: String? = null
+        h.edit { pp -> VideoEdit.addLayer(VideoEdit.addToPool(pp, listOf(f.absolutePath)), f.absolutePath, at, len, still = still).let { (q, lid) -> made = lid; q } }
+        made?.let { onSelect(Sel.Layer(it)) }
     }
     fun addAudio() = scope.launch {
         val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Musik oder Sprecherton auswählen"), multiple = false, extensions = AUDIO_MEDIA).firstOrNull() } ?: return@launch
@@ -471,7 +724,10 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
         if (info?.hasAudio != true) { Notices.error(tr("In der Datei ist kein Ton.")); return@launch }
         val at = pos()
         val a = AudioClip(path = f.absolutePath, startSec = at, outSec = minOf(info.duration, maxOf(1.0, h.project.duration - at)))
-        h.edit { it.copy(audio = it.audio + a) }
+        h.edit { pp ->
+            val tr0 = VideoEdit.freeAudioTrack(pp, a.startSec, a.endSec)
+            VideoEdit.addToPool(pp.copy(audio = pp.audio + a.copy(track = tr0), audioTracks = maxOf(pp.audioTracks, tr0)), listOf(a.path))
+        }
         onSelect(Sel.Sound(a.id))
     }
     fun importSubs() = scope.launch {
@@ -502,6 +758,7 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
                 }
             }
         }
+        Spot("video.pip") { TextButton(onClick = { addPicture() }) { Icon(Icons.Outlined.PictureInPicture, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Bild-in-Bild")) } }
         TextButton(onClick = { addAudio() }) { Icon(Icons.Outlined.MusicNote, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Musik / Ton")) }
         Box {
             Spot("video.subtitles") { TextButton(onClick = { subs = true }) { Icon(Icons.Outlined.Subtitles, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Untertitel")) } }
@@ -652,206 +909,17 @@ private fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
     )
 }
 
-// ── Timeline ────────────────────────────────────────────────────────────────────────────────────────
-
-private const val RULER = 22f
-private const val VIDEO_H = 60f
-private const val LANE_H = 32f
-private const val SUB_H = 22f
-
-private data class Lane(val top: Float, val height: Float)
-
-@Composable
-private fun Timeline(h: History, player: VideoPlayer, pos: Double, sel: Sel, onSelect: (Sel) -> Unit, modifier: Modifier) {
-    val p = h.project
-    val measurer = rememberTextMeasurer()
-    var zoom by remember { mutableStateOf(1f) }
-    var scroll by remember { mutableStateOf(0f) }
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val brand = LocalChatLook.current.brand
-    Column(modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
-            Text(tr("Zoom"), style = MaterialTheme.typography.labelSmall)
-            Slider(value = zoom, onValueChange = { zoom = it }, valueRange = 1f..12f, modifier = Modifier.width(180.dp))
-            Spacer(Modifier.weight(1f))
-            HintText(tr("Klick in die Leiste: springen · Clips ziehen: verschieben · Ränder ziehen: kürzen · S teilt, Entf löscht, Leertaste spielt."))
-        }
-        BoxWithConstraints(Modifier.fillMaxSize().background(Color(0x0F000000))) {
-            val width = constraints.maxWidth.toFloat()
-            val left = 70f
-            val total = maxOf(p.duration, 1.0)
-            val pxPerSec = ((width - left - 20f) / total * zoom).toFloat()
-            val maxScroll = maxOf(0f, (total * pxPerSec).toFloat() - (width - left - 20f))
-            val sc = scroll.coerceIn(0f, maxScroll)
-            fun x(t: Double) = left + (t * pxPerSec).toFloat() - sc
-            fun t(x: Float) = ((x - left + sc) / pxPerSec).toDouble()
-            // The gesture handler lives longer than one composition (dragging changes the project): it reads these.
-            val now = remember { arrayOfNulls<Any>(3) }
-            now[0] = pxPerSec; now[1] = sc; now[2] = maxScroll
-            val video = Lane(RULER, VIDEO_H)
-            val titles = Lane(RULER + VIDEO_H + 4, LANE_H)
-            val sound = Lane(titles.top + LANE_H + 4, LANE_H)
-            val subs = Lane(sound.top + LANE_H + 4, SUB_H)
-            val starts = p.starts()
-            Canvas(
-                Modifier.fillMaxSize()
-                    .pointerInput(Unit) {
-                        awaitEachGesture {
-                            val down = awaitFirstDown()
-                            val p = h.project
-                            val starts = p.starts()
-                            val pxPerSec = now[0] as Float
-                            val sc = now[1] as Float
-                            fun x(t: Double) = left + (t * pxPerSec).toFloat() - sc
-                            fun t(x: Float) = ((x - left + sc) / pxPerSec).toDouble()
-                            val at = down.position
-                            val time = t(at.x)
-                            var action: ((Float) -> Unit)? = null
-                            when {
-                                at.y < RULER || at.x < left -> { player.seek(h.project, time); action = { dx -> player.seek(h.project, t(at.x + dx)) } }
-                                at.y in video.top..(video.top + video.height) -> {
-                                    val i = starts.indices.lastOrNull { k -> time >= starts[k] && time <= starts[k] + p.clips[k].length } ?: -1
-                                    if (i >= 0) {
-                                        val c = p.clips[i]
-                                        onSelect(Sel.Clip(c.id))
-                                        val x0 = x(starts[i]); val x1 = x(starts[i] + c.length)
-                                        h.mark()
-                                        action = when {
-                                            abs(at.x - x0) < 8 -> { dx -> h.edit(record = false) { pp -> pp.copy(clips = pp.clips.map { if (it.id == c.id) it.copy(inSec = (c.inSec + dx / pxPerSec).coerceIn(0.0, c.outSec - 0.2)) else it }) } }
-                                            abs(at.x - x1) < 8 -> { dx ->
-                                                val max = Media.probe(File(c.path))?.duration?.takeIf { it > 0.05 } ?: Double.MAX_VALUE
-                                                h.edit(record = false) { pp -> pp.copy(clips = pp.clips.map { if (it.id == c.id) it.copy(outSec = (c.outSec + dx / pxPerSec).coerceIn(c.inSec + 0.2, max)) else it }) }
-                                            }
-                                            else -> { dx ->
-                                                // Reorder: the clip goes where its middle is dropped.
-                                                val mid = starts[i] + c.length / 2 + dx / pxPerSec
-                                                val target = starts.indices.count { k -> k != i && starts[k] + p.clips[k].length / 2 < mid }
-                                                if (target != i) h.edit(record = false) { pp -> pp.copy(clips = h.project.clips.toMutableList().apply { removeAt(indexOfFirst { it.id == c.id }); add(target.coerceIn(0, size), c) }) }
-                                            }
-                                        }
-                                    }
-                                }
-                                at.y in titles.top..(titles.top + titles.height) -> {
-                                    val o = p.overlays.lastOrNull { time >= it.startSec && time <= it.endSec }
-                                    if (o != null) {
-                                        onSelect(Sel.Title(o.id)); h.mark()
-                                        val atEnd = abs(at.x - x(o.endSec)) < 8
-                                        action = { dx ->
-                                            h.edit(record = false) { pp -> pp.copy(overlays = pp.overlays.map {
-                                                if (it.id != o.id) it else if (atEnd) it.copy(durationSec = (o.durationSec + dx / pxPerSec).coerceAtLeast(0.5)) else it.copy(startSec = (o.startSec + dx / pxPerSec).coerceAtLeast(0.0))
-                                            }) }
-                                        }
-                                    } else onSelect(Sel.None)
-                                }
-                                at.y in sound.top..(sound.top + sound.height) -> {
-                                    val a = p.audio.lastOrNull { time >= it.startSec && time <= it.endSec }
-                                    if (a != null) {
-                                        onSelect(Sel.Sound(a.id)); h.mark()
-                                        action = { dx -> h.edit(record = false) { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(startSec = (a.startSec + dx / pxPerSec).coerceAtLeast(0.0)) else it }) } }
-                                    } else onSelect(Sel.None)
-                                }
-                                else -> { onSelect(Sel.None); player.seek(h.project, time) }
-                            }
-                            while (true) {
-                                val ev = awaitPointerEvent()
-                                val ch = ev.changes.firstOrNull { it.id == down.id } ?: break
-                                if (!ch.pressed) break
-                                action?.invoke(ch.position.x - at.x)
-                                ch.consume()
-                            }
-                        }
-                    }
-                    .pointerInput(Unit) {
-                        awaitPointerEventScope {
-                            while (true) {
-                                val ev = awaitPointerEvent()
-                                if (ev.type == androidx.compose.ui.input.pointer.PointerEventType.Scroll) {
-                                    val d = ev.changes.first().scrollDelta
-                                    scroll = (scroll + (d.y + d.x) * 60f).coerceIn(0f, now[2] as Float)
-                                    ev.changes.forEach { it.consume() }
-                                }
-                            }
-                        }
-                    },
-            ) {
-                /** Text only where it fits (drawText fails for places outside the canvas). */
-                fun label(text: String, at: Offset, style: TextStyle, width: Float? = null) {
-                    if (at.y > size.height - 12f || at.x > size.width - 12f || (width != null && width < 8f)) return
-                    if (width == null) drawText(measurer, text, at, style = style, maxLines = 1)
-                    else drawText(measurer, text, at, style = style, maxLines = 1, overflow = TextOverflow.Ellipsis, size = Size(minOf(width, size.width - at.x), minOf(16f, size.height - at.y)))
-                }
-                // Lane names.
-                val small = TextStyle(fontSize = 11.sp, color = labelColor)
-                listOf(tr("Video") to video, tr("Titel") to titles, tr("Ton") to sound, tr("Untertitel") to subs).forEach { (name, lane) ->
-                    label(name, Offset(8f, lane.top + lane.height / 2 - 8f), small)
-                }
-                // Ruler.
-                // Up to an hour between the marks: a 90-minute lecture at zoom 1 has less than 70 px per 5 minutes, and
-                // first {} without a match threw while the timeline was drawn.
-                val step = listOf(1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0, 300.0, 600.0, 900.0, 1800.0, 3600.0).firstOrNull { it * pxPerSec >= 70 }
-                    ?: (kotlin.math.ceil(70.0 / maxOf(pxPerSec, 1e-6f) / 3600.0) * 3600.0)
-                var s = (t(left) / step).toInt() * step
-                while (x(s) < size.width) {
-                    if (x(s) >= left) {
-                        drawLine(labelColor.copy(alpha = 0.5f), Offset(x(s), 0f), Offset(x(s), RULER), 1f)
-                        label(clock(s), Offset(x(s) + 3f, 2f), TextStyle(fontSize = 10.sp, color = labelColor))
-                    }
-                    s += step
-                }
-                // Clips.
-                p.clips.forEachIndexed { i, c ->
-                    val x0 = maxOf(left, x(starts[i])); val x1 = x(starts[i] + c.length)
-                    if (x1 < left) return@forEachIndexed
-                    val selected = sel is Sel.Clip && (sel as Sel.Clip).id == c.id
-                    drawRoundRect(if (i % 2 == 0) Color(0xFF2F57B2) else Color(0xFF00008C), Offset(x0, video.top), Size(maxOf(2f, x1 - x0 - 1f), video.height), CornerRadius(5f))
-                    if (selected) drawRoundRect(Color(0xFFEE7F00), Offset(x0, video.top), Size(maxOf(2f, x1 - x0 - 1f), video.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 40) label(c.name, Offset(x0 + 6f, video.top + 6f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
-                    if (x1 - x0 > 40) label(clock(c.length, true) + if (c.muted) " · " + tr("stumm") else "", Offset(x0 + 6f, video.top + 24f), TextStyle(fontSize = 10.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 10f)
-                    if (p.transitionOf(i) > 0) {
-                        val tx = x(starts[i]); val tw = (p.transitionOf(i) * pxPerSec).toFloat()
-                        drawRect(Color(0x66FFFFFF), Offset(tx, video.top + video.height - 10f), Size(tw, 8f))
-                    }
-                }
-                // Titles, sound, subtitles.
-                p.overlays.forEach { o ->
-                    val x0 = maxOf(left, x(o.startSec)); val x1 = x(o.endSec)
-                    if (x1 < left) return@forEach
-                    val selected = sel is Sel.Title && (sel as Sel.Title).id == o.id
-                    drawRoundRect(Color(0xFF97C6FF), Offset(x0, titles.top), Size(maxOf(2f, x1 - x0), titles.height), CornerRadius(5f))
-                    if (selected) drawRoundRect(Color(0xFFEE7F00), Offset(x0, titles.top), Size(maxOf(2f, x1 - x0), titles.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 30) label(TextOverlay.label(o.style) + ": " + o.text, Offset(x0 + 5f, titles.top + 8f), TextStyle(fontSize = 10.sp, color = Color(0xFF001450)), x1 - x0 - 8f)
-                }
-                p.audio.forEach { a ->
-                    val x0 = maxOf(left, x(a.startSec)); val x1 = x(a.endSec)
-                    if (x1 < left) return@forEach
-                    val selected = sel is Sel.Sound && (sel as Sel.Sound).id == a.id
-                    drawRoundRect(Color(0xFF65B32E), Offset(x0, sound.top), Size(maxOf(2f, x1 - x0), sound.height), CornerRadius(5f))
-                    if (selected) drawRoundRect(Color(0xFFEE7F00), Offset(x0, sound.top), Size(maxOf(2f, x1 - x0), sound.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 30) label(a.name, Offset(x0 + 5f, sound.top + 8f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
-                }
-                p.subtitles.forEach { cue ->
-                    val x0 = maxOf(left, x(cue.startSec)); val x1 = x(cue.endSec)
-                    if (x1 >= left) drawRect(if (p.burnSubtitles) Color(0xFF566371) else Color(0x66566371), Offset(x0, subs.top), Size(maxOf(1f, x1 - x0 - 1f), subs.height))
-                }
-                // Playhead.
-                val px = x(pos)
-                if (px >= left) {
-                    drawLine(brand, Offset(px, 0f), Offset(px, size.height), 2f)
-                    drawCircle(brand, 5f, Offset(px, 6f))
-                }
-            }
-        }
-    }
-}
-
 // ── Properties ──────────────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSelect: (Sel) -> Unit, onSplit: () -> Unit, onDelete: () -> Unit) {
+private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSelect: (Sel) -> Unit, onSplit: () -> Unit, onDelete: () -> Unit, onSeek: (Double) -> Unit) {
     val p = h.project
+    val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         when (sel) {
+            is Sel.Layer -> LayerProperties(h, sel.id, pos, onDelete, onGone = { onSelect(Sel.None) })
+            is Sel.Mark -> MarkerProperties(h, sel.id, onSeek, onDelete, onGone = { onSelect(Sel.None) })
             is Sel.Clip -> {
                 val clip = p.clips.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
                 val i = p.clips.indexOf(clip)
@@ -884,6 +952,16 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                     OutlinedButton(onClick = onSplit) { Text(tr("Am Abspielkopf teilen")) }
                     OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
                 }
+                // Picture and sound (AP-53): the clip's sound onto an audio track, linked.
+                val linked = p.audio.filter { it.linkedTo == clip.id }
+                if (linked.isNotEmpty()) {
+                    HintText(tr("Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.", linked.joinToString(", ") { "A${it.track}" }))
+                    TextButton(onClick = { h.edit { pp -> pp.copy(audio = pp.audio.map { if (it.linkedTo == clip.id) it.copy(linkedTo = null) else it }) } }) { Text(tr("Verknüpfung lösen")) }
+                }
+                if (!clip.muted) OutlinedButton(onClick = { VideoEdit.detachSound(p, clip.id)?.let { (q, aid) -> h.edit { q }; onSelect(Sel.Sound(aid)) } }) { Text(tr("Ton auf eine Tonspur legen")) }
+                var place by remember(clip.id) { mutableStateOf(!clip.frame.isFull) }
+                if (!place) TextButton(onClick = { place = true }) { Text(tr("Position und Größe …")) }
+                else FrameEditor(clip.frame, "cf-${clip.id}") { k, f -> h.edit(k) { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(frame = f) else it }) } }
                 p.transcripts[clip.path]?.let { HintText(tr("Transkript zugeordnet – Untertitel und Rohschnitt kommen daraus.")) }
             }
             is Sel.Title -> {
@@ -904,7 +982,51 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
             is Sel.Sound -> {
                 val a = p.audio.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
                 val srcLen = sourceLength(a.path)
-                Text(a.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text("A${a.track}: " + a.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                val owner = a.linkedTo?.let { l -> p.clips.indexOfFirst { it.id == l } }?.takeIf { it >= 0 }
+                if (owner != null) {
+                    HintText(tr("Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s", owner + 1, String.format(Locale.GERMANY, "%+.2f", a.linkOffset)))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { h.edit { VideoEdit.unlink(it, a.id) } }) { Text(tr("Verknüpfung lösen")) }
+                        OutlinedButton(onClick = { onSelect(Sel.Clip(p.clips[owner].id)) }) { Text(tr("Zum Clip")) }
+                    }
+                } else {
+                    // A second sound source (lapel microphone, recorder): synchronise over the waveform with a clip.
+                    val candidates = p.clips.indices.filter { i -> val s0 = p.starts()[i]; s0 < a.endSec && s0 + p.clips[i].length > a.startSec }.ifEmpty { p.clips.indices.toList() }
+                    var target by remember(a.id) { mutableStateOf(candidates.firstOrNull()) }
+                    var mute by remember(a.id) { mutableStateOf(true) }
+                    var busy by remember(a.id) { mutableStateOf(false) }
+                    var menu by remember(a.id) { mutableStateOf(false) }
+                    if (target != null && p.clips.isNotEmpty()) {
+                        Text(tr("Mit dem Bild synchronisieren"), style = MaterialTheme.typography.labelLarge)
+                        Box {
+                            OutlinedButton(onClick = { menu = true }) { Text(tr("Clip {0}: {1}", target!! + 1, p.clips.getOrNull(target!!)?.name ?: ""), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                p.clips.forEachIndexed { i, cc -> DropdownMenuItem(text = { Text(tr("Clip {0}: {1}", i + 1, cc.name)) }, onClick = { target = i; menu = false }) }
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(mute, { mute = it })
+                            Text(tr("Kameraton stumm schalten"), style = MaterialTheme.typography.bodySmall)
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(enabled = !busy, onClick = {
+                                val clip = p.clips.getOrNull(target!!) ?: return@Button
+                                busy = true
+                                scope.launch {
+                                    val off = withContext(Dispatchers.IO) { runCatching { io.github.thepytales.llmhub.video.AudioSync.offsetOf(File(clip.path), File(a.path)) }.getOrNull() }
+                                    busy = false
+                                    if (off == null) Notices.error(tr("Die Tonspuren passen nicht zusammen – ist es dieselbe Aufnahme?"))
+                                    else {
+                                        h.edit { VideoEdit.link(it, clip.id, a.id, off, mute) }
+                                        Notices.info(tr("Synchronisiert: der Ton liegt {0} s versetzt und ist jetzt mit dem Clip verknüpft.", String.format(Locale.GERMANY, "%+.2f", off)))
+                                    }
+                                }
+                            }) { if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary) else Text(tr("Über die Wellenform")) }
+                            OutlinedButton(onClick = { h.edit { VideoEdit.link(it, p.clips[target!!].id, a.id, null, false) } }) { Text(tr("Verknüpfen, wie es liegt")) }
+                        }
+                    }
+                }
                 Text(tr("Lautstärke") + " ${(a.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
                 Slider(value = a.volume, onValueChange = { v -> h.edit("avol-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(volume = v) else it }) } }, valueRange = 0f..1.5f)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -938,6 +1060,20 @@ private fun ProjectSettings(h: History) {
         Text(tr("Am Anfang und Ende aus Schwarz blenden"), modifier = Modifier.weight(1f))
         Switch(p.fadeEnds, { v -> h.edit { it.copy(fadeEnds = v) } })
     }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(tr("Magnet-Zeitleiste"))
+            HintText(tr("Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N)."))
+        }
+        Switch(p.magnet, { v -> h.edit { it.copy(magnet = v) } })
+    }
+    Text(tr("Spuren"), style = MaterialTheme.typography.labelLarge)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = true) } }) { Text(tr("+ Videospur")) }
+        OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = false) } }) { Text(tr("+ Tonspur")) }
+    }
+    HintText(tr("{0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.", p.videoTrackCount, p.audioTrackCount))
+    ChapterList(h)
     HorizontalDivider()
     Text(tr("Ton"), style = MaterialTheme.typography.titleSmall)
     Text(tr("Rauschminderung"), style = MaterialTheme.typography.labelLarge)
@@ -975,7 +1111,7 @@ private fun ProjectSettings(h: History) {
  * digit. Leaving the field shows the value that counts.
  */
 @Composable
-private fun SecondsField(label: String, value: Double, key: String, modifier: Modifier = Modifier.fillMaxWidth(), onChange: (Double) -> Unit) {
+internal fun SecondsField(label: String, value: Double, key: String, modifier: Modifier = Modifier.fillMaxWidth(), onChange: (Double) -> Unit) {
     fun show(v: Double) = String.format(Locale.GERMANY, "%.2f", v)
     var text by remember(key) { mutableStateOf(show(value)) }
     var focused by remember(key) { mutableStateOf(false) }
@@ -988,7 +1124,7 @@ private fun SecondsField(label: String, value: Double, key: String, modifier: Mo
 
 /** Length of the source file at [path] in seconds (null while unknown, and for a picture). */
 @Composable
-private fun sourceLength(path: String): Double? {
+internal fun sourceLength(path: String): Double? {
     val len by produceState<Double?>(null, path) {
         value = withContext(Dispatchers.IO) { File(path).takeUnless { Media.isStill(it) }?.let { Media.probe(it)?.duration?.takeIf { d -> d > 0.05 } } }
     }
@@ -996,15 +1132,15 @@ private fun sourceLength(path: String): Double? {
 }
 
 /** How many text fields of the editor have the focus: then the keys belong to the text, not to the editor's shortcuts. */
-private class TypingState {
+internal class TypingState {
     var fields by mutableIntStateOf(0)
 }
 
-private val LocalTyping = androidx.compose.runtime.staticCompositionLocalOf<TypingState?> { null }
+internal val LocalTyping = androidx.compose.runtime.staticCompositionLocalOf<TypingState?> { null }
 
 /** Marks a text field of the editor (see [TypingState]). */
 @Composable
-private fun Modifier.typing(): Modifier {
+internal fun Modifier.typing(): Modifier {
     val t = LocalTyping.current ?: return this
     val on = remember { BooleanArray(1) }
     DisposableEffect(t) { onDispose { if (on[0]) { on[0] = false; t.fields-- } } }
