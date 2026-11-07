@@ -61,8 +61,8 @@ Fairlight).
 | --- | --- |
 | ~~Lora zuerst~~ ☑ | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog (erledigt, siehe *Erledigt*) |
 | ~~Editor-Kern und Dokument~~ ☑ | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument (erledigt, siehe *Erledigt*) |
-| **Jetzt** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge |
-| **Danach** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
+| ~~Video-Grundlage~~ ☑ | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge (erledigt, siehe *Erledigt*) |
+| **Jetzt** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
 | **Danach** – Video | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
 | **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
@@ -72,45 +72,16 @@ Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-4
 (Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
-Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47) sind erledigt; jetzt Video (AP-52, AP-53), dann Tabellen und
-Folien, dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
+Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47) und die Video-Grundlage (AP-52, AP-53) sind erledigt; jetzt
+Tabellen und Folien (AP-48 bis AP-51), dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
 abwechseln, wenn ein Strang wartet.
 
 ---
 
 ## Jetzt
 
-Video (aus *Danach* nachgerückt, nachdem Editor-Kern und Dokument – AP-43 bis AP-47 – am 07.11.2026 mit 1.0.57 erledigt
-sind; siehe *Erledigt*). Erst AP-52 (Grundlage: mehrere Spuren, echte Vorschau), dann AP-53.
-
-### AP-52 ☐ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
-So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
-- **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
-  Deckkraft, Position/Größe/Zuschnitt je Clip; altes Projektformat wird übernommen.
-- **Echte Vorschau**: flüssige Wiedergabe mit Ton aller Spuren, Musik, Übergängen und Titeln **genau wie im Export**
-  (eigene Wiedergabe-Engine: ffmpeg decodiert, die App mischt Bild und Ton, Proxys bei Bedarf); Wellenformen auf den
-  Tonspuren; J/K/L, Einzelbild vor/zurück, Schleife In–Out.
-- **Bild-in-Bild** als Standardfall (Webcam-Ecke über dem Screencast), mit Vorlagen für die Ecke.
-- Export bleibt ein ffmpeg-Filtergraph, jetzt für mehrere Spuren.
-- **Fertig, wenn**: Screencast + Webcam als Bild-in-Bild + Musik + Titel laufen in der Vorschau flüssig mit Ton und
-  sehen im Export genauso aus.
-- Betrifft: Windows `video/VideoProject.kt`, `video/VideoPlayer.kt`, `video/VideoRender.kt`, `video/Media.kt`,
-  `ui/VideoScreen.kt`.
-
-### AP-53 ☐ Video: Schnittwerkzeuge (D) · L (neu)
-- **Medienpool** mit Ordnern (Bins), Vorschaubildern, Dauer, Suche; **Quellmonitor** mit In/Out-Punkten, *Einfügen* und
-  *Überschreiben* (wie Resolve), Ziehen in die Zeitleiste.
-- **Schnitt**: Klinge (B), Auswahl (A), Ripple-, Roll- und Slip-Trimmen, Magnet-Zeitleiste (Lücken schließen sich auf
-  Wunsch), Verknüpfen von Bild und Ton, Spuren sperren/stumm/ausblenden, Marker mit Notiz (auch als Kapitel nutzbar).
-- **Mehrere Tonquellen** synchronisieren (über die Wellenform), z. B. Kamera + Ansteckmikrofon bei Vorträgen/Interviews.
-- Tastenkürzel nah an Resolve, Übersicht unter `?`.
-- **Fertig, wenn**: Ein Vortrag mit zwei Tonquellen lässt sich über Quellmonitor und Ripple-Trimmen schneiden, ohne Lücken
-  von Hand zu schließen.
-- Betrifft: Windows `ui/VideoScreen.kt`, `video/*`.
-
----
-
-## Danach
+Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
+ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51.
 
 ### AP-48 ☐ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
@@ -168,6 +139,10 @@ So nah wie möglich an **Google Slides/PowerPoint**:
   lässt sich mit Animationen präsentieren.
 - Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
   `docs/PptxReader.kt`.
+
+---
+
+## Danach
 
 ### AP-54 ☐ Video: einfache Effekte (D) · M–L (neu)
 - **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
@@ -379,8 +354,10 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-45 Word-Treue | Lesen/Schreiben von Formaten, Formatvorlagen, Kopf-/Fußzeilen (erste/gerade Seite, Abschnitte), Tabstopps; ins Original schreiben; Prüfsammlung mit nachgebauten TUD-Dokumenten | Bildvergleich der Seiten mit Word |
 | ☑ AP-46 Gliederung und Formatvorlagen | Gliederung zum Ziehen, Formatvorlagen und Vorlagensätze, Format übertragen | – |
 | ☑ AP-47 Lora schreibt im Dokument | Hilf mir schreiben, Überarbeiten als Vorschläge, Menü über der Markierung | – |
+| ☑ AP-52 Video: mehrere Spuren und echte Vorschau | Video- und Tonspuren beliebig viele, Position/Größe/Zuschnitt/Deckkraft je Clip, Bild-in-Bild mit Ecken, Vorschau durch denselben ffmpeg-Graphen wie der Export (J/K/L, Schleife In–Out), Wellenformen, Lora-Aktion *Bild-in-Bild* | Lautheit angleichen nur im Export; Flüssigkeit auf den Dienst-PCs messen |
+| ☑ AP-53 Video: Schnittwerkzeuge | Medienpool mit Ordnern und Suche, Quellmonitor mit In/Out, Einfügen/Überschreiben/Ziehen, Klinge, Ripple/Roll/Slip, Magnet, verknüpfter Ton, Synchronisieren über die Wellenform, Spuren sperren/stumm/ausblenden, Marker als Kapitel, Tasten wie Resolve | J spielt rückwärts ohne Ton; Synchronisieren vergleicht die ersten 15 Minuten |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-47 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52 und AP-53 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -698,6 +675,56 @@ So nah wie möglich an **Google Docs**:
   KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
 - **Nachtrag (04.11.2026, 1.0.54)**: Der Rest ist erledigt – über einer Markierung im Fließtext erscheint Loras kleines Menü
   (*Überarbeiten …*, *Kürzer*, *Formeller*, *Einfacher* als einzeln annehmbare Vorschläge, *Kommentar*).
+
+### AP-52 ☑ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
+So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
+- **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
+  Deckkraft, Position/Größe/Zuschnitt je Clip; altes Projektformat wird übernommen.
+- **Echte Vorschau**: flüssige Wiedergabe mit Ton aller Spuren, Musik, Übergängen und Titeln **genau wie im Export**
+  (eigene Wiedergabe-Engine: ffmpeg decodiert, die App mischt Bild und Ton, Proxys bei Bedarf); Wellenformen auf den
+  Tonspuren; J/K/L, Einzelbild vor/zurück, Schleife In–Out.
+- **Bild-in-Bild** als Standardfall (Webcam-Ecke über dem Screencast), mit Vorlagen für die Ecke.
+- Export bleibt ein ffmpeg-Filtergraph, jetzt für mehrere Spuren.
+- **Fertig, wenn**: Screencast + Webcam als Bild-in-Bild + Musik + Titel laufen in der Vorschau flüssig mit Ton und
+  sehen im Export genauso aus.
+- Betrifft: Windows `video/VideoProject.kt`, `video/VideoPlayer.kt`, `video/VideoRender.kt`, `video/Media.kt`,
+  `ui/VideoScreen.kt`.
+- **Umsetzung (07.11.2026, 1.0.57, ☑)**: Projektmodell mit **Spuren** (`VideoProject.layers` auf V2 …, `AudioClip.track`
+  für A1 …, `trackStates` für sperren/stumm/ausblenden) und **`Frame`** je Clip (Position, Größe, Zuschnitt, Deckkraft);
+  alte Projekte laden unverändert (ihre Tonspur ist A1). **Ein Graph für Export und Vorschau** (`VideoRender.graph`): V1
+  geschnitten und überblendet, jeder Clip nach seinem `Frame` platziert, die Bilder der höheren Spuren der Reihe nach
+  darüber (Zuschnitt, Deckkraft, Ein-/Ausblenden), Ton aller Spuren gemischt; ein **Fenster** davon (`Window`) ist die
+  Vorschau – zwei ffmpeg-Läufe mit demselben Graphen (Bild/Ton) aus den Proxys, Java Sound als Uhr, Titel und Untertitel
+  zeichnet der Editor wie bisher darüber. Beginnt ein Fenster in einer Überblendung, fängt der Graph davor an und schneidet
+  den Vorlauf ab. **J/K/L** (2×/4× über `setpts`/`atempo`, rückwärts als Bildfolge), **Schleife In–Out**, Standbilder mit
+  mehreren Spuren aus dem Graphen. **Wellenformen** aus `AudioSync.envelope` (10 ms, im Cache). **Bild-in-Bild** über
+  *Bild-in-Bild* (Leiste), F12 aus der Quelle oder Ziehen auf V2 …; Lora-Aktion `video.pip`. Test `VideoTracksTest`:
+  Vorschau und Export bei 2 s (Webcam-Ecke) und 7,5 s (mitten in der Überblendung) Bild für Bild verglichen (mittlere
+  Abweichung unter 18 von 255), Vorschau läuft mit 25 Bildern/s, Kapitel im MP4. **Nicht umgesetzt**: Lautheit angleichen
+  in der Vorschau (braucht Vorlauf), Messung der Flüssigkeit auf den Dienst-PCs.
+
+### AP-53 ☑ Video: Schnittwerkzeuge (D) · L (neu)
+- **Medienpool** mit Ordnern (Bins), Vorschaubildern, Dauer, Suche; **Quellmonitor** mit In/Out-Punkten, *Einfügen* und
+  *Überschreiben* (wie Resolve), Ziehen in die Zeitleiste.
+- **Schnitt**: Klinge (B), Auswahl (A), Ripple-, Roll- und Slip-Trimmen, Magnet-Zeitleiste (Lücken schließen sich auf
+  Wunsch), Verknüpfen von Bild und Ton, Spuren sperren/stumm/ausblenden, Marker mit Notiz (auch als Kapitel nutzbar).
+- **Mehrere Tonquellen** synchronisieren (über die Wellenform), z. B. Kamera + Ansteckmikrofon bei Vorträgen/Interviews.
+- Tastenkürzel nah an Resolve, Übersicht unter `?`.
+- **Fertig, wenn**: Ein Vortrag mit zwei Tonquellen lässt sich über Quellmonitor und Ripple-Trimmen schneiden, ohne Lücken
+  von Hand zu schließen.
+- Betrifft: Windows `ui/VideoScreen.kt`, `video/*`.
+- **Umsetzung (07.11.2026, 1.0.57, ☑)**: Schnitt als reine Funktionen in `video/VideoEdit.kt` (Editor, Lora und Tests
+  nutzen dieselben): `split` (Klinge auf V1, V2 …, A …; verknüpfter Ton teilt sich mit), `insert`/`overwrite` (F9/F10),
+  `rippleTrim`, `roll`, `slip`, `delete` und `closeGaps`, Magnet (`rippleAfter` schiebt Bilder, Ton, Titel, Untertitel,
+  Marker und In/Out; gesperrte Spuren bleiben), Einrasten (`snapPoints`), `detachSound`/`link`/`unlink` (verknüpfter Ton
+  leitet Start, In und Out aus seinem Clip ab: `VideoProject.linked()`), Marker und Kapitel (`chapters`,
+  `youtubeChapters`, im MP4 über FFMETADATA). **Synchronisieren** (`video/AudioSync.kt`): Einsätze der Lautstärke beider
+  Aufnahmen, Kreuzkorrelation per FFT, Spitze per Parabel verfeinert. Oberfläche: Medienpool (`ui/VideoPanels.kt`),
+  Quellmonitor mit In/Out (Q), Zeitleiste mit Spurköpfen und Werkzeugen (`ui/VideoTimeline.kt`), Tastenübersicht (`?`,
+  F1); Lora-Aktion `video.marker`. Test `VideoCutTest`: u. a. Vortrag mit Kamera und Ansteckmikrofon (1,7 s versetzt) –
+  synchronisiert, zweimal geschnitten, Mitte gelöscht, Ripple-Trim, Folie aus dem Quellmonitor eingefügt, ohne Lücke; im
+  Export liegt der Mikrofonton auf den Ereignissen der Kamera (±60 ms). **Nicht umgesetzt**: Rückwärtslauf mit Ton;
+  Synchronisieren vergleicht die ersten 15 Minuten jeder Aufnahme (reicht für übliche Versätze).
 
 ---
 

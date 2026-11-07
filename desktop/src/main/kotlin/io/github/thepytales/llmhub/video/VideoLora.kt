@@ -26,8 +26,8 @@ import java.io.File
 /**
  * Lora im Videoeditor (AP-38 Stufe d): her actions work on the project model of today – cut, titles and lower thirds,
  * subtitles from the transcription, rough cut, shorten with Lora, export. With the editor open they go through its
- * history (Strg+Z works as well); in an Ablauf (AP-40) without the editor, on the stored project. AP-52 ff. take the
- * actions over.
+ * history (Strg+Z works as well); in an Ablauf (AP-40) without the editor, on the stored project. Since AP-52/53
+ * also picture-in-picture and markers.
  */
 object VideoLora {
     /** The editor of the open project: its id, the project as it is now, and a change through its history. */
@@ -146,6 +146,45 @@ object VideoLora {
             ActionPlan("video.title", tr("Setzt „{0}“ als {1} …", text.take(40), tr(TextOverlay.label(style))), false) {
                 change(p, tr("{0} „{1}“ bei {2}.", tr(TextOverlay.label(style)), text.take(40), clock(start))) { pp ->
                     pp.copy(overlays = pp.overlays + TextOverlay(style = style, text = text, subtext = a.s("untertext").orEmpty(), startSec = start, durationSec = dur))
+                }
+            }
+        },
+        ToolAction(
+            "video.pip", ActionArea.VIDEO, trLater("Bild-in-Bild"),
+            "Legt ein Video oder Bild (z. B. die Webcam) als Bild-in-Bild über das Video, auf die nächste freie Videospur (AP-52).",
+            listOf(
+                ActionParam("datei", "Video oder Bild (leer: das ausgewählte)", required = false),
+                ActionParam("ecke", "unten-rechts, unten-links, oben-rechts, oben-links oder voll (Standard unten-rechts)", required = false),
+                ActionParam("zeit", "Start auf der Zeitleiste, z. B. 0:05 (leer: Abspielposition)", required = false),
+            ), risky = false, android = false, remember = listOf("ecke"),
+        ) { c, a ->
+            val p = need()
+            val f = ToolActions.files(c, a.s("datei")).firstOrNull { it.extension.lowercase() in TextFormats.MEDIA || Media.isStill(it) }
+                ?: throw ActionFailed(tr("Welches Video oder Bild? Bitte eine Datei auswählen oder nennen."))
+            val corner = a.s("ecke")?.lowercase()?.replace(' ', '-')?.takeIf { e -> Frame.CORNERS.any { it.first == e } } ?: "unten-rechts"
+            val at = seconds(a.s("zeit")) ?: host?.takeIf { it.id == p.id }?.playhead?.invoke() ?: 0.0
+            ActionPlan("video.pip", tr("Legt „{0}“ als Bild-in-Bild bei {1} …", f.name, clock(at)), false) {
+                val info = withContext(Dispatchers.IO) { Media.probe(f) } ?: throw ActionFailed(tr("Die Datei ließ sich nicht lesen."))
+                val still = Media.isStill(f, info)
+                val len = if (still) 5.0 else info.duration.takeIf { it > 0.05 } ?: 5.0
+                change(p, tr("„{0}“ als Bild-in-Bild bei {1}.", f.name, clock(at))) { pp ->
+                    VideoEdit.addLayer(VideoEdit.addToPool(pp, listOf(f.absolutePath)), f.absolutePath, at, len, corner, still).first
+                }
+            }
+        },
+        ToolAction(
+            "video.marker", ActionArea.VIDEO, trLater("Marker setzen"),
+            "Setzt einen Marker mit Notiz auf die Zeitleiste; Marker werden zu Kapiteln im MP4 und für YouTube (AP-53).",
+            listOf(ActionParam("notiz", "Notiz, z. B. Kapitelname"), ActionParam("zeit", "Zeit, z. B. 1:30 (leer: Abspielposition)", required = false)),
+            risky = false, android = false,
+        ) { _, a ->
+            val p = need()
+            val note = a.s("notiz").orEmpty().trim()
+            val at = seconds(a.s("zeit")) ?: host?.takeIf { it.id == p.id }?.playhead?.invoke() ?: throw ActionFailed(tr("Wo soll der Marker hin?"))
+            ActionPlan("video.marker", tr("Setzt einen Marker bei {0} …", clock(at)), false) {
+                change(p, tr("Marker „{0}“ bei {1}.", note.ifBlank { tr("ohne Notiz") }, clock(at))) { pp ->
+                    val (q, mid) = VideoEdit.addMarker(pp, at, note)
+                    if (note.isBlank()) q else q.copy(markers = q.markers.map { if (it.id == mid) it.copy(note = note) else it })
                 }
             }
         },

@@ -8,13 +8,18 @@
  (API-Key ungültig oder abgelaufen? Einstellungen › API-Zugang – im TU-Self-Service lässt sich ein neuer erzeugen)	 (API key invalid or expired? Settings › API access – a new one can be created in the TU self-service)
  (Der Chat ist zu lang für das Modell – einen neuen Chat beginnen oder ein Modell mit mehr Kontext wählen)	 (The chat is too long for the model – start a new chat or choose a model with more context)
  (Der Uni-Server erreicht das Modell gerade nicht – es ist überlastet, startet neu oder wird gewartet. Später erneut versuchen oder ein anderes Modell wählen)	 (The university server cannot reach the model right now – it is overloaded, restarting or under maintenance. Try again later or choose another model)
+ (F10)	 (F10)
+ (F12)	 (F12)
+ (F9)	 (F9)
  (gekürzt)	 (shortened)
  (im Hintergrund)	 (in the background)
  (importiert)	 (imported)
  (Kein Zugriff auf dieses Modell mit diesem API-Key)	 (No access to this model with this API key)
  (Kopie)	 (copy)
  (Leertaste)	 (space)
+ (M)	 (M)
  (Modell oder Adresse nicht gefunden – das Modell wurde vielleicht abgeschaltet, bitte ein anderes wählen)	 (Model or address not found – the model may have been switched off, please choose another one)
+ (N)	 (N)
  (normal)	 (normal)
  (Rate-Limit des API-Keys erreicht – zu viele Anfragen pro Minute, bitte kurz warten)	 (Rate limit of the API key reached – too many requests per minute, please wait a moment)
  (S)	 (S)
@@ -80,6 +85,8 @@
 + Code	+ Code
 + Neue Folie ▾	+ New slide ▾
 + Spalte	+ Column
++ Tonspur	+ Audio track
++ Videospur	+ Video track
 + Zeile	+ Row
 , dazu eigene Platzhalter in {0} Chat(s)	, plus own placeholders in {0} chat(s)
 , Papierformulare ausfüllbar machen	, make paper forms fillable
@@ -108,6 +115,7 @@
 <html lang="de"> setzen.	Set <html lang="en">.
 <title> ergänzen.	Add a <title>.
 @-Namen in sozialen Netzwerken	@ names on social networks
+A · B · T	A · B · T
 Ablauf: {0}	Workflow: {0}
 [Schüler/in 2] statt [Name 2], wenn die Rolle erkennbar ist – das Modell antwortet passender	[Pupil 2] instead of [Name 2] when the role is recognizable – the model answers more fittingly
 \#RRGGBB	\#RRGGBB
@@ -170,6 +178,7 @@ Absender enthält	Sender contains
 Absender ändern	Change sender
 Abspielen	Play
 Abspielen (F4)	Play (F4)
+Abspielen / anhalten (mit Schleife: zwischen In und Out)	Play / pause (with loop: between In and Out)
 Abspielen zum Korrigieren	Playback for correcting
 Abstract	Abstract
 Absturzbericht teilen	Share crash report
@@ -281,6 +290,7 @@ Alphabetisch sortiert, im gewählten Stil. Fehlende Angaben (DOI, Seiten, Heft, 
 Als .md-Datei	As an .md file
 Als [Kommentar: …] hinter dem Abschnitt. Dresing/Pehl, MAXQDA und Untertitel bleiben ohne.	As [Comment: …] after the section. Dresing/Pehl, MAXQDA and subtitles stay without.
 Als BibTeX exportieren	Export as BibTeX
+Als Bild-in-Bild (F12)	As picture-in-picture (F12)
 Als Chat fortsetzen	Continue as a chat
 Als CSL-JSON exportieren (Zotero)	Export as CSL-JSON (Zotero)
 Als Dokument	As a document
@@ -291,6 +301,7 @@ Als Excel-Datei	As an Excel file
 Als Fließtext	As continuous text
 Als GitHub-Issue	As a GitHub issue
 Als JSON exportieren	Export as JSON
+Als Kapitel	As chapter
 Als Liste	As list
 Als Markdown kopieren	Copy as Markdown
 Als PDF/A-2b vorbereiten	Prepare as PDF/A-2b
@@ -306,6 +317,7 @@ Als Stichpunkte	As bullet points
 Als Tabelle	As a table
 Als Tabelle kopieren	Copy as table
 Als Text teilen	Share as text
+Als Ton auf eine Tonspur	As sound on an audio track
 Als Verlauf zeigen	Show as history
 Als Vorlage übernehmen	Use as template
 Als Word	As Word
@@ -313,6 +325,7 @@ Als Word speichern	Save as Word
 Als Word-Datei	As a Word file
 Als Word-Dokument	As a Word document
 Als Überschrift	As heading
+Alt+X	Alt+X
 alt="…" ergänzen (bei Schmuckbildern alt="").	Add alt="…" (alt="" for decorative images).
 Alte Namen wiederhergestellt.	Old names restored.
 Alternativtext (Barrierefreiheit)	Alternative text (accessibility)
@@ -349,6 +362,7 @@ Anderes Symbol	Other icon
 Android darf Aufgaben im Energiesparmodus verzögern oder abbrechen, wenn die App geschlossen ist.	Android may delay or cancel tasks in power-saving mode when the app is closed.
 Android-Sprachausgabe, nur Offline-Stimmen – nichts verlässt das Handy.	Android text-to-speech, offline voices only – nothing leaves the phone.
 Anfang (s)	Start (s)
+Anfang in der Datei (s)	Start in the file (s)
 Anfrage an {0}	Request to {0}
 Anfrage einfügen, Antwort in Stichpunkten	Paste the request, answer in bullet points
 Anfrage verbessern	Improve request
@@ -526,10 +540,14 @@ Aus dem Adressbuch löschen	Delete from the address book
 Aus dem Archiv holen	Take out of the archive
 Aus dem Chat	From the chat
 Aus dem Gedächtnis löschen	Delete from memory
+Aus dem Medienpool entfernen	Remove from the media pool
+Aus dem Ordner nehmen	Take out of the folder
 Aus den Dateien schreiben	Write from the files
 Aus den Favoriten entfernen	Remove from favourites
 Aus der App	From the app
 Aus der Datei ließ sich kein Text lesen.	No text could be read from the file.
+Aus der Quelle als Bild-in-Bild	From the source as picture-in-picture
+Aus der Quelle einfügen · überschreiben	Insert · overwrite from the source
 Aus der Transkription …	From the transcription …
 Aus der Zwischenablage	From the clipboard
 Aus diesem Chat auf dem Gerät erstellt. Betroffene Teile ergänzen und mit den Vorgaben deiner Prüfungsordnung, deines Lehrstuhls bzw. des Verlags abgleichen.	Created on the device from this chat. Add the affected parts and check against the requirements of your examination regulations, your chair or the publisher.
@@ -574,8 +592,11 @@ Aussagen ohne Beleg	Statements without evidence
 Ausschreibung	Call
 Ausschreibung einlesen	Read in a call
 Ausschreibung und Antrag gehen an das gewählte Modell, Namen pseudonymisiert.	Call and proposal go to the selected model, names pseudonymized.
+Auswahl	Selection
+Auswahl (A): Clips ziehen verschiebt, Ränder ziehen kürzt (Ripple) · Klick in die Leiste springt · ? zeigt alle Tasten.	Selection (A): drag clips to move, drag edges to trim (ripple) · click the ruler to jump · ? shows all keys.
 Auswahl aufheben	Clear selection
 Auswahl beenden	End selection
+Auswahl · Klinge · Trimmen	Selection · Blade · Trim
 Ausweiche, wenn das Tageslimit von 3.8 Flash erreicht ist	Fallback when the daily limit of 3.8 Flash is reached
 Ausweichmodell	Fallback model
 Ausweis-, Steuer- und andere Nummern	ID, tax and other numbers
@@ -722,11 +743,15 @@ Bild nicht gefunden	Image not found
 Bild nicht gefunden: {0}	Image not found: {0}
 Bild rechts	Image right
 Bild teilen	Share image
+Bild und Ton verknüpfen / lösen	Link / unlink picture and sound
 Bild wählen	Choose image
 Bild zum Überarbeiten	Image to revise
 Bild „{0}“ nicht gefunden.	Image “{0}” not found.
 Bild …	Image …
 Bild-Chat	Image chat
+Bild-in-Bild	Picture-in-picture
+Bild-in-Bild auf V{0}	Picture-in-picture on V{0}
+Bild-in-Bild: Video oder Bild auswählen	Picture-in-picture: choose a video or picture
 Bild-Modell	Image model
 Bildbeschreibung (Alternativtext)	Image description (alternative text)
 Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)	Image description (alternative text, for full-screen also the caption)
@@ -791,6 +816,7 @@ Buch (Monografie)	Book (monograph)
 Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
+Clip {0}: {1}	Clip {0}: {1}
 Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
 Chat	Chat
@@ -960,6 +986,7 @@ Dateien durchsuchen	Search files
 Dateien hinzufügen	Add files
 Dateien hinzugefügt.	Files added.
 Dateien im ZIP ließen sich nicht lesen und wurden übersprungen.	files in the ZIP could not be read and were skipped.
+Dateien in den Medienpool	Files into the media pool
 Dateien ließen sich nicht lesen und wurden übersprungen.	files could not be read and were skipped.
 Dateien und Dokumente öffnen	Open files and documents
 Dateien werden gelesen …	Reading files …
@@ -1115,6 +1142,7 @@ Die Datei ist größer als {0} MB.	The file is larger than {0} MB.
 Die Datei konnte nicht geöffnet werden: {0}	The file could not be opened: {0}
 Die Datei konnte nicht übernommen werden.	The file could not be taken over.
 Die Datei ließ sich nicht anlegen.	The file could not be created.
+Die Datei ließ sich nicht lesen.	The file could not be read.
 Die Datei ließ sich nicht schreiben.	The file could not be written.
 Die Dateien im Browser (oder an einem anderen Rechner) herunterladen und dann mit „Einspielen“ übernehmen. Jede Datei wird mit ihrer Prüfsumme kontrolliert.	Download the files in the browser (or on another computer) and then take them over with “Import”. Every file is checked against its checksum.
 Die Dateien ließen sich nicht lesen – sind es Videos?	The files could not be read – are they videos?
@@ -1163,6 +1191,7 @@ Die Spracherkennung ist für diesen Prozessor nicht enthalten (nur 64-Bit-ARM-Ha
 Die Spracherkennung konnte nicht gestartet werden: {0}	Speech recognition could not be started: {0}
 Die Texterkennung von Windows ist hier nicht erreichbar (PowerShell eingeschränkt?): {0}	Windows text recognition cannot be reached here (PowerShell restricted?): {0}
 Die Token-Zahlen stammen vom Server.	The token counts come from the server.
+Die Tonspuren passen nicht zusammen – ist es dieselbe Aufnahme?	The sound tracks do not match – is it the same recording?
 Die TUD-Icons stammen aus dem Corporate Design der TU Dresden (Icon-Themensets).	The TUD icons come from the corporate design of TU Dresden (icon theme sets).
 Die Unterschrift bleibt in den Daten der App und lässt sich unter „Unterschreiben“ wieder löschen.	The signature stays in the app's data and can be deleted again under “Sign”.
 Die Update-Quelle bietet das Paket (noch) nicht an. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg der App.	The update source does not offer the package (yet). The video editor still works – with the app's ffmpeg.
@@ -1315,6 +1344,7 @@ Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI mac
 Eigene Textbausteine einfügen – auch mit /Name	Insert your own text snippets – also with /name
 Eigene Vorlage	Own template
 Eigene Vorlagen legst du hier an und teilst sie mit Kolleg:innen.	You create your own templates here and share them with colleagues.
+Ein Bild zurück · vor	One frame back · forward
 Ein PDF zum Bearbeiten öffnen.	Open a PDF for editing.
 Ein Schritt ist fehlgeschlagen	A step failed
 eigene Vorlage	own template
@@ -1357,6 +1387,7 @@ Einfache Transkriptionsregeln: ein Absatz pro Beitrag, Kürzel (I, B1 …), Paus
 Einfacher	Simpler
 Einfügen	Insert
 Einfügen (aus Excel, Word oder dem Web)	Paste (from Excel, Word or the web)
+Einfügen am Abspielkopf (F9)	Insert at the playhead (F9)
 Einfügen ▾	Insert ▾
 Eingebauter Katalog – mit API-Key wird die aktuelle Liste vom Server geladen.	Built-in catalogue – with an API key the current list is loaded from the server.
 Eingefügt	Inserted
@@ -1422,6 +1453,7 @@ Englisch; Bewertung nach Excellence, Impact, Implementation.	English; assessment
 Enter	Enter
 Enter: neuer Absatz · Text markieren: KI fragen	Enter: new paragraph · Select text: ask the AI
 Enter: neuer Punkt · Tab: einrücken	Enter: new item · Tab: indent
+Entf	Del
 Entfernen	Remove
 Entfernt Clip {0} …	Removing clip {0} …
 Entfernt lassen	Keep removed
@@ -1547,7 +1579,9 @@ Exzerpt erstellen	Create excerpt
 Exzerpt öffnen	Open excerpt
 Exzerpt-Modus (/Exzerpt) oder Literatur › Eintrag › Exzerpt: PDF anhängen, der Agent füllt Bibliografie, Fragestellung, Theorie, Methode, Befunde und Zitate mit Seitenangaben aus, prüft die Zitate gegen das PDF und hängt das Exzerpt an den Literatureintrag.	Excerpt mode (/Excerpt) or Literature › entry › Excerpt: attach a PDF, the agent fills in bibliography, research question, theory, method, findings and quotes with page numbers, checks the quotes against the PDF and attaches the excerpt to the literature entry.
 Exzerpte als Tabelle	Excerpts as table
+F12	F12
 F4 Abspielen/Anhalten, F3/F5 zurück/vor, F6 wiederholen – auch beim Tippen.	F4 play/pause, F3/F5 back/forward, F6 repeat – also while typing.
+F9 · F10	F9 · F10
 Fachgerecht, mit Liste der Fachbegriffe	Technically accurate, with a list of technical terms
 Fakultät …\nInstitut …\nProfessur …	Faculty …\nInstitute …\nChair …
 Fallbeispiel aus dem Unterricht für die Analyse im Seminar	Case example from teaching for analysis in the seminar
@@ -1584,6 +1618,7 @@ Fehler erneut versuchen	Retry errors
 Fehler:	Error:
 Fehler: {0}	Error: {0}
 Fehlerprotokoll	Error log
+fehlt	missing
 Fehlt noch: {0}	Still missing: {0}
 Feld	Field
 Feld aufziehen …	Draw field …
@@ -1779,6 +1814,7 @@ Für Mail & Kalender ohne das klassische Outlook – mit dem neuen Outlook, eine
 Für Notizen und Wikis.	For notes and wikis.
 Für Spracherkennung (empfohlen)	For speech recognition (recommended)
 Für ein Handout braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	A handout needs a model – none is allowed here or there is no API key.
+Für YouTube kopieren	Copy for YouTube
 Für {0} fehlt der API-Key von {1} (Einstellungen › API-Zugang › Weitere Anbieter).	The API key of {1} is missing for {0} (Settings › API access › Other providers).
 Galerie	Gallery
 Ganz nach hinten	Send to back
@@ -1787,6 +1823,7 @@ Ganz zeigen	Show whole
 Ganze Folie	Whole slide
 Ganze Präsentation	Whole presentation
 Ganzen Ordner anhängen – Lora darf darin lesen oder auch schreiben	Attach a whole folder – Lora may read in it or also write
+Ganzes Bild	Full picture
 Gedächtnis – was Lora über dich weiß	Memory – what Lora knows about you
 Gekürzt auf {0}.	Shortened to {0}.
 ganze Spalten wie Name, Vorname, Schüler/in, Geburtsdatum, Anschrift in Tabellen, CSV und Excel	whole columns such as name, first name, pupil, date of birth, address in tables, CSV and Excel
@@ -1981,6 +2018,7 @@ Hier ist die Ausschreibung (PDF). Lege den Antrag an und sag mir, was ich bis wa
 Hier ist die Ausschreibung: 	Here is the call: 
 Hier ist es – leuchtend markiert	Here it is – highlighted
 Hier ist es: {0}.	Here it is: {0}.
+Hier liegen die Dateien des Projekts. „+“ holt neue dazu; ziehen legt sie in die Zeitleiste, ein Klick zeigt sie im Quellmonitor.	The project's files live here. "+" adds new ones; drag them onto the timeline, a click shows them in the source monitor.
 Hier schreiben – oder	Write here – or
 Hier sortierst du nach Name, Datum oder Größe.	Here you sort by name, date or size.
 Hier speichern	Save here
@@ -1992,6 +2030,7 @@ Hier öffnest du PDFs – mehrere gleichzeitig, jedes in einem eigenen Tab.	This
 Hierhin verschieben	Move here
 Hilf mir schreiben	Help me write
 Hilfreich	Helpful
+Hinspringen	Go there
 Hintergrund	Background
 Hintergrund der Box	Box background
 Hintergrund für eine Präsentationsfolie zum Thema Digitalisierung in der Schule	Background for a presentation slide on digitalization in schools
@@ -2027,6 +2066,7 @@ Höchstens Seiten	Maximum pages
 Höchstens Wörter	Maximum words
 Höchstens Zeichen (mit Leerzeichen)	Maximum characters (with spaces)
 Höhe	Height
+I · O	I · O
 IBAN, BIC und Kreditkartennummern (mit Prüfziffer)	IBAN, BIC and credit card numbers (with check digit)
 Ich bin Lora.	I'm Lora.
 Ich erreiche gerade kein Modell	I can't reach a model right now
@@ -2142,10 +2182,12 @@ In Nextcloud gespeichert:	Saved in Nextcloud:
 In Nextcloud speichern	Save to Nextcloud
 In Nextcloud unter Einstellungen › Sicherheit › „Neues App-Passwort erstellen“.	In Nextcloud under Settings › Security › “Create new app password”.
 In Ordner	In folder
+In Ordner „{0}“	Into folder "{0}"
 In Ordner …	In folder …
 in PDF umgewandelt	converted to PDF
 In PDF umwandeln	Convert to PDF
 In Projekt verschieben	Move to project
+In und Out löschen	Clear In and Out
 In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt.	In Word this becomes a real equation that can be edited further there.
 In Word/PowerPoint mit „Barrierefreies PDF“ bzw. „Dokumentstrukturtags“ exportieren.	Export from Word/PowerPoint with “Accessible PDF” or “Document structure tags”.
 In die Nextcloud	To Nextcloud
@@ -2154,6 +2196,7 @@ In zwei Spalten	In two columns
 in {0}	in {0}
 In {0} legen	Put into {0}
 In {0} liegt kein Lora-Ordner (es fehlt „.lora“).	There is no Lora folder in {0} (“.lora” is missing).
+In {0} · Out {1}	In {0} · Out {1}
 In „Hochgeladen“ holen	Get into “Uploaded”
 In „{0}“ liegen keine losen Dateien.	There are no loose files in “{0}”.
 In „{0}“ liegen schon Lora-Daten (z. B. vom anderen PC). Lora startet neu und nutzt sie. 	There is already Lora data in “{0}” (e.g. from the other PC). Lora restarts and uses it. 
@@ -2162,6 +2205,7 @@ In „{0}“ liegt schon ein Lora-Ordner. Lora startet neu und arbeitet dort wei
 In „{0}“ steht kein lesbarer Text.	There is no readable text in “{0}”.
 In „{0}“ wurde keine Sprache erkannt.	No speech was recognized in “{0}”.
 In „{0}“ wurden keine Namen gefunden (eine Spalte Name/Vorname/Nachname oder ein Name je Zeile).	No names were found in “{0}” (a name/first name/last name column or one name per line).
+In- · Out-Punkt setzen (Quelle oder Zeitleiste)	Set In · Out point (source or timeline)
 Indigo	Indigo
 Infobereich, Autostart, Datenordner	Notification area, autostart, data folder
 Information an Eltern: Wandertag, Klassenfahrt, Elternabend – mit Rückmeldeabschnitt	Information for parents: hiking day, class trip, parents' evening – with reply slip
@@ -2195,10 +2239,83 @@ Interview transkribieren	Transcribe an interview
 Interviewleitfaden	Interview guide
 Issue erstellen	Create issue
 Ist das Dokument für Screenreader nutzbar? – PDF anhängen	Can screen readers use the document? – attach the PDF
+J · K · L	J · K · L
 Je Werkzeug: Ordnung, Formate, Export, Zitierstil	Per tool: order, formats, export, citation style
+Kameraton stumm schalten	Mute the camera sound
+Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters copied – paste them into the description of the YouTube video.
+Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
+Klinge	Blade
+Klinge (B): Klick auf einen Clip schneidet ihn dort.	Blade (B): a click on a clip cuts it there.
+Leertaste	Space
+Legt „{0}“ als Bild-in-Bild bei {1} …	Puts "{0}" as picture-in-picture at {1} …
+Löschen (mit Magnet: Lücke schließen)	Delete (with the magnet: close the gap)
+Löschen und Lücke immer schließen	Delete and always close the gap
+M	M
+Magnet	Magnet
+Magnet an: Spuren ziehen mit, Lücken schließen sich.	Magnet on: tracks follow, gaps close.
+Magnet aus.	Magnet off.
+Magnet ein/aus	Magnet on/off
+Magnet-Zeitleiste	Magnetic timeline
+Marker	Marker
+Marker bei {0}	Marker at {0}
+Marker setzen	Set a marker
+Marker „{0}“ bei {1}.	Marker "{0}" at {1}.
+Medienpool	Media pool
+Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s	Linked with clip {0} – moves and is trimmed with it. Offset to the source: {1} s
+Mit Clip {0} verknüpft.	Linked with clip {0}.
+Mit dem Bild synchronisieren	Synchronise with the picture
+N	N
+Nah an DaVinci Resolve, damit Umsteigen leichtfällt.	Close to DaVinci Resolve, so switching is easy.
+Oben links	Top left
+ohne Notiz	without a note
+Ohne Ordner	No folder
+platziert	placed
+Pos1 · Ende	Home · End
+Position und Größe	Position and size
+Position und Größe …	Position and size …
+Q	Q
+Q wechselt	Q switches
+Quelle	Source
+Quellmonitor ⇄ Zeitleiste	Source monitor ⇄ timeline
+Rückgängig · Wiederholen	Undo · Redo
+Rückwärts	Backward
+Rückwärts · Halt · Vorwärts (mehrmals: schneller)	Backward · Stop · Forward (repeat: faster)
+S · Strg+B	S · Ctrl+B
+Schleife	Loop
+Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N).	Edits on V1 move all tracks along, deleting closes the gap, dragging snaps to edges (N).
+Senkrecht	Vertical
+Setzt einen Marker bei {0} …	Sets a marker at {0} …
+Spur {0} ausblenden	Hide track {0}
+Spur {0} sperren	Lock track {0}
+Spur {0} stumm	Mute track {0}
+Spuren	Tracks
+Strg+Alt+L	Ctrl+Alt+L
+Strg+Z · Strg+Y	Ctrl+Z · Ctrl+Y
+Synchronisiert: der Ton liegt {0} s versetzt und ist jetzt mit dem Clip verknüpft.	Synchronised: the sound is offset by {0} s and is now linked with the clip.
+Tastenkürzel im Videoeditor	Keyboard shortcuts of the video editor
+Ton auf eine Tonspur gelegt und verknüpft.	Sound laid onto an audio track and linked.
+Ton auf eine Tonspur legen	Lay the sound onto an audio track
+Trimmen	Trim
+Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte ziehen verschiebt den Inhalt (Slip).	Trim (T): drag at a cut to move it (roll), drag in the middle to move the content (slip).
+Umschalt+Entf	Shift+Del
+Unten links	Bottom left
+Verknüpfen, wie es liegt	Link as it lies
+Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.	Linked sound on {0} – it moves and is trimmed with the clip.
+Verknüpfung gelöst.	Unlinked.
+Verknüpfung lösen	Unlink
+Video › Bild-in-Bild	Video › Picture-in-picture
+Vorwärts	Forward
+Waagrecht	Horizontal
+Webcam oder zweites Video als Ecke über das Bild legen, auf eigenen Videospuren.	Lay a webcam or a second video over the picture as a corner, on separate video tracks.
+Welches Video oder Bild? Bitte eine Datei auswählen oder nennen.	Which video or picture? Please select or name a file.
 Wieder vergessen.	Forgotten again.
 Windows › Links neben dem Chat öffnen	Windows › Open links beside the chat
 Wird endgültig gelöscht – das lässt sich nicht rückgängig machen.	Is deleted for good – this cannot be undone.
+Wo soll der Marker hin?	Where should the marker go?
+Zeit (s)	Time (s)
+Zeitleiste	Timeline
+Zum Anfang · Ende	To the start · end
+Zum Clip	To the clip
 Zum Kürzen braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	Shortening needs a model – none is allowed here or there is no API key.
 Zum Schluss exportierst du als MP4 für OPAL oder YouTube.	Finally you export as MP4 for OPAL or YouTube.
 auf diesem Gerät	on this device
@@ -4704,6 +4821,7 @@ Zum Lesen, Drucken und Weitergeben.	For reading, printing and passing on.
 Zum Startbildschirm hinzufügen	Add to home screen
 Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang.	To split, put the cursor before the word with which the new section begins. Without a measured word time, bring the playback exactly to this point – the playback position then becomes the new start.
 Zum Vergleichen merken	Remember for comparing
+Zum vorigen · nächsten Schnitt	To the previous · next cut
 Zum Zusammenfügen braucht es mindestens zwei PDFs – bitte auswählen oder nennen.	Merging needs at least two PDFs – please choose or name them.
 Zuordnung löschen	Delete assignment
 Zuordnungen	Assignments
@@ -4749,6 +4867,7 @@ Zwischenüberschrift	Subheading
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
 {0} Abschnitte · {1}k Zeichen · 	{0} sections · {1}k characters · 
 {0} Abschnitte, identisch codiert: {1} %	{0} sections, coded identically: {1} %
+{0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.	{0} video and {1} audio tracks. On the left of the timeline: lock, mute, hide.
 {0} Zellen ohne überzählige Leerzeichen	{0} cells without extra spaces
 {0} abweichend	{0} differing
 {0} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …	Searching {0} reference(s) at Crossref, OpenAlex and Google Books …
@@ -4936,6 +5055,7 @@ Zwischenüberschrift	Subheading
 Über den Mailserver gibt es kein Outlook zum Öffnen – die Mail bzw. der Entwurf liegt im Postfach (z. B. in Outlook im Web).	Via the mail server there is no Outlook to open – the mail or draft is in the mailbox (e.g. in Outlook on the web).
 Über den Text ziehen, der markiert werden soll.	Drag over the text that should be highlighted.
 über die Freigaben	via the approvals
+Über die Wellenform	By the waveform
 Über mich	About me
 Über Schwarz	Through black
 Über ⋮ › Markieren erscheinen Dateien und Ordner hier.	Files and folders appear here via ⋮ › Star.
@@ -4960,6 +5080,8 @@ Zwischenüberschrift	Subheading
 Übernehmen liest Klassen- und Teilnehmerlisten (Excel, CSV, Word, Text): Spalten Vorname/Nachname oder Name, sonst ein Name je Zeile. Die gespeicherte Liste lässt sich an Kolleg/innen weitergeben.	Taking over reads class and participant lists (Excel, CSV, Word, text): columns first name/last name or name, otherwise one name per line. The saved list can be passed on to colleagues.
 Übernimm die Tabellen und Zahlen aus den angehängten Dateien in diese Tabelle (ein Tab je Tabelle).	Take over the tables and figures from the attached files into this spreadsheet (one tab per table).
 Überprüfen › Sprache › Sprache für die Korrekturhilfen festlegen.	Review › Language › Set proofing language.
+Überschreiben	Overwrite
+Überschreiben am Abspielkopf (F10)	Overwrite at the playhead (F10)
 Überschrift	Heading
 Überschrift 1	Heading 1
 Überschrift 2	Heading 2
@@ -4989,6 +5111,7 @@ Zwischenüberschrift	Subheading
 „Grundschule am Park“, „Goethe-Gymnasium“, „Kita Sonnenschein“ und der Ort in „die Schulleiterin in Pirna“	“Grundschule am Park”, “Goethe-Gymnasium”, “Kita Sonnenschein” and the place in “die Schulleiterin in Pirna”
 „Je Satz“ und „Alle … s“ setzen die Zeit vor das Wort, bei dem sie gemessen wurde. Ohne gemessene Wortzeiten gibt es nur die Zeiten der Abschnittsanfänge – geschätzt wird nichts. Der Export übernimmt diese Einstellung.	“Per sentence” and “Every … s” put the time before the word at which it was measured. Without measured word times there are only the times of the section starts – nothing is estimated. The export takes over this setting.
 „Meine Daten dazukopieren“ ergänzt nur Dateien, die dort noch fehlen.	“Copy my data in” only adds files that are still missing there.
+„{0}“ als Bild-in-Bild bei {1}.	"{0}" as picture-in-picture at {1}.
 „{0}“ enthält keinen lesbaren Text.	“{0}” contains no readable text.
 „{0}“ enthält keinen Text (Scan) – die ersten {1} Seiten werden als Bilder angehängt.	“{0}” contains no text (scan) – the first {1} pages are attached as images.
 „{0}“ enthält keinen Text und konnte nicht gerendert werden.	“{0}” contains no text and could not be rendered.
