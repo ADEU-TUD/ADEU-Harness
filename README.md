@@ -152,8 +152,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   und Überschriften, Strg+Umschalt+7/8/9 für Listen, Tab/Umschalt+Tab für Einzüge, Strg+\ entfernt Formatierung).
   Formatvorlagen (Normaler Text, Überschrift 1–4, Zitat, Listen, Checkliste), Schriftart und -größe, fett, kursiv,
   unterstrichen, durchgestrichen, hoch-/tiefgestellt, **Textfarbe, Hervorhebung**, Links, **Ausrichtung** (links,
-  zentriert, rechts, Blocksatz). Markdown-Kürzel beim Tippen (`# `, `- `, `1. `, `[] `, `> `). *Seitenansicht* auf A4-Breite
-  mit Seitenumbruch-Linien oder *Ohne Seiten*, Zoom 75–150 %. Tabellen, Bilder, Formeln, Inhaltsverzeichnis, Fußnoten und
+  zentriert, rechts, Blocksatz). Markdown-Kürzel beim Tippen (`# `, `- `, `1. `, `[] `, `> `). *Seitenansicht* mit echten
+  A4-Seiten (seit 1.0.56, Kopf-/Fußzeile und Seitenzahl je Blatt) oder *Ohne Seiten*, Zoom 75–150 %. Tabellen, Bilder, Formeln, Inhaltsverzeichnis, Fußnoten und
   Seitenumbrüche stehen als eigene Blöcke zwischen dem Text (*Einfügen*-Menü, Tabelle über ein Raster). Gespeichert wird
   weiter Markdown – was Markdown nicht kann, als kleine HTML-Marken (`<u>`, `<mark>`, `<span style="color:…">`,
   `<!--a:c-->`), die alle Exporte (Word, PDF, Chat) verstehen. *Änderungen nachverfolgen* zeigt der Fließtext selbst
@@ -731,10 +731,11 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     bleibt. Ändert sich die Struktur (neue Absätze, andere Formatierung), wird die Datei neu geschrieben, das Original
     bleibt in `.lora/originale`.
   - **Änderungen nachverfolgen** (⋮): Änderungen erscheinen Wort für Wort (rot gestrichen, grün neu) zum Annehmen oder
-    Ablehnen, einzeln oder alle; in Word als echte Überarbeitungen. **Kommentare** werden Word-Kommentare und kommen aus
+    Ablehnen, einzeln oder alle – seit 1.0.56 direkt im Fließtext; in Word als echte Überarbeitungen. **Kommentare** werden Word-Kommentare und kommen aus
     Word zurück, ebenso Überarbeitungen aus Word.
-  - **Seite einrichten**: Seitenzahlen, Datum, Kopf- und **Fußzeile**, **Seitenränder** (schmal, normal, breit) – im
-    Editor als Seitenansicht. **Einfügen › Inhaltsverzeichnis** (live im Editor, in Word als Verzeichnisfeld) und
+  - **Seite einrichten**: Seitenzahlen, Datum, Kopf- und **Fußzeile**, **Seitenränder** (schmal, normal, breit, eigene
+    per Lineal), seit 1.0.56 **Erste Seite anders** (Deckblatt), **Gerade Seiten anders** und die Felder `{seite}`/`{seiten}`
+    – im Editor als echte Seiten, in PDF und Word ebenso. **Einfügen › Inhaltsverzeichnis** (live im Editor, in Word als Verzeichnisfeld) und
     **Formel (LaTeX)** mit Vorschau – in Word echte Formeln, die beim Zurücklesen wieder LaTeX werden.
   - **Rechtschreibung prüfen** auf dem Gerät (Wörterbücher von Windows bzw. Android, Deutsch und Englisch): Vorschläge
     antippen, Ignorieren, ins Wörterbuch; die KI-Prüfung bleibt daneben. **Zitieren** aus der Literatur mit automatischem
