@@ -221,6 +221,24 @@ sealed class FlowSeg {
         /** Measured height without [push] (−1 until measured) and room above it when it starts a page. */
         var height by mutableFloatStateOf(-1f)
         var push by mutableFloatStateOf(0f)
+
+        /** A table (Markdown rows `| … |`). */
+        val isTable: Boolean = markdown.trim().startsWith("|")
+
+        /**
+         * Tabellen über Seiten (AP-43): measured height of each row with the room after it and of the bar below the
+         * rows (−1 until measured); room before rows (row → px) and the rows above which the header row is repeated.
+         */
+        var rowHeights by mutableStateOf<List<Float>>(emptyList())
+        var barHeight by mutableFloatStateOf(-1f)
+        var rowPush by mutableStateOf<Map<Int, Float>>(emptyMap())
+        var repeatAt by mutableStateOf<Set<Int>>(emptySet())
+
+        /** Takes the measurements of [old] (the same block before an edit), so the page plan does not wait for them. */
+        fun measuredLike(old: Raw): Raw = also {
+            height = old.height
+            if (isTable && old.isTable) { rowHeights = old.rowHeights; barHeight = old.barHeight }
+        }
     }
 }
 
@@ -275,6 +293,8 @@ class FlowState(markdown: String) {
     var scrollTo: ((Float) -> Unit)? = null
     /** Pages of the Seitenansicht (from [io.github.thepytales.llmhub.docs.text.PageLayout]). */
     var pageCount by mutableIntStateOf(1)
+    /** Abschnitte (AP-43/45): first page (1-based) of each section after the first, with its header and footer. */
+    var sectionPages by mutableStateOf<List<Pair<Int, DocMarkup.Section>>>(emptyList())
     /** Text area height and room between two text areas of the Seitenansicht (px), as the page plan used them. */
     var pageText = 0f
     var pageBetween = 0f
@@ -659,7 +679,7 @@ class FlowState(markdown: String) {
                 segs.remove(b)
                 if (active === b) active = a
             }
-        } else segs[i] = FlowSeg.Raw(seg.id, markdown)
+        } else segs[i] = FlowSeg.Raw(seg.id, markdown).measuredLike(seg)
         changed()
     }
 
@@ -1330,6 +1350,7 @@ private fun FlowMenus(
 ) {
     var open by remember { mutableStateOf<String?>(null) }
     var tablePick by remember { mutableStateOf(false) }
+    var sectionFor by remember { mutableStateOf<DocMarkup.Section?>(null) }
     var special by remember { mutableStateOf(false) }
     @Composable
     fun menu(name: String, items: @Composable (close: () -> Unit) -> Unit) {
@@ -1374,6 +1395,7 @@ private fun FlowMenus(
             item("Zitat aus der Literatur …", onClick = host.onCitation, close = close)
             HorizontalDivider()
             item("Seitenumbruch", onClick = { state.insertBlock("\\newpage") }, close = close)
+            item("Abschnittsumbruch …", onClick = { sectionFor = DocMarkup.Section() }, close = close)
             item("Inhaltsverzeichnis", onClick = { state.insertBlock(DocMarkup.TOC) }, close = close)
             item("Fußnote", onClick = { insertFootnote(state) }, close = close)
             item("Formel", onClick = { state.insertBlock("$$\nE = mc^2\n$$") }, close = close)
@@ -1424,6 +1446,9 @@ private fun FlowMenus(
                 Notices.info(tr("{0} Wörter", words))
             }, close = close)
         }
+    }
+    sectionFor?.let { sec ->
+        SectionDialog(sec, onDismiss = { sectionFor = null }) { s2 -> sectionFor = null; state.insertBlock(DocMarkup.sectionMarker(s2)) }
     }
     if (tablePick) TablePickDialog(onDismiss = { tablePick = false }) { rows, cols ->
         tablePick = false
@@ -1725,7 +1750,7 @@ private fun FlowPages(
                                         val top = p * (full + gap)
                                         drawRoundRect(look.card, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
                                         drawRoundRect(sheetBorder, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
-                                        val pm = pageMargins(setup, p + 1, count, today)
+                                        val pm = pageMargins(setup, p + 1, count, today, sectionOf(state.sectionPages, setup, p + 1))
                                         // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
                                         // width left of topLeft inside this box (a negative width crashed the app before).
                                         fun put(text: String, right: Boolean, footer: Boolean) {
@@ -1777,6 +1802,18 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     // Room above it when it starts a page (Seitenansicht); its own height is measured without that room.
     val outer = Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() })
     val measure = Modifier.onSizeChanged { if (kotlin.math.abs(seg.height - it.height) > 0.5f) seg.height = it.height.toFloat() }
+    // Abschnittsumbruch (AP-43/45): a new page with the section's own header and footer.
+    val section = DocMarkup.section(seg.markdown)
+    if (section != null) {
+        var edit by remember { mutableStateOf(false) }
+        Row(outer.then(measure), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { MarkerLine(sectionLabel(section)) }
+            IconButton(onClick = { edit = true }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Edit, contentDescription = tr("Abschnitt bearbeiten"), modifier = Modifier.size(16.dp)) }
+            IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
+        }
+        if (edit) SectionDialog(section, onDismiss = { edit = false }) { s2 -> edit = false; state.setRaw(seg, DocMarkup.sectionMarker(s2)) }
+        return
+    }
     // Seitenumbruch (AP-43): in the Seitenansicht the text goes on on the next page.
     if (DocMarkup.isPageBreak(seg.markdown)) {
         Row(outer.then(measure), verticalAlignment = Alignment.CenterVertically) {
@@ -1788,7 +1825,9 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     Row(outer.then(measure), verticalAlignment = Alignment.Top) {
         Box(Modifier.weight(1f)) {
             if (seg.markdown.trim().startsWith("|")) {
-                TableGrid(DocBlocks.tableRows(seg.markdown)) { rows -> state.setRaw(seg, DocBlocks.table(rows)) }
+                val rows = remember(seg.markdown) { DocBlocks.tableRows(seg.markdown) }
+                val paging = remember(seg) { rawPaging(seg) }
+                TableGrid(rows, paging = if (pages) paging else null) { r -> state.setRaw(seg, DocBlocks.table(r)) }
             } else {
                 BlockView(doc, tabId, seg.markdown, highlight = false, editable = true, onClick = { editing = true }, onToggleTask = {}, onShowComments = {})
             }
@@ -1799,6 +1838,58 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
         }
     }
     if (editing) TextPrompt(tr("Block bearbeiten (Markdown)"), seg.markdown, onDismiss = { editing = false }) { md -> editing = false; state.setRaw(seg, md) }
+}
+
+/** Tabellen über Seiten (AP-43): the room of the page plan for the rows of [seg], and where its rows are measured. */
+private fun rawPaging(seg: FlowSeg.Raw) = object : TablePaging {
+    override fun push(row: Int) = seg.rowPush[row] ?: 0f
+    override fun repeats(row: Int) = row in seg.repeatAt
+    override fun headerHeight() = seg.rowHeights.firstOrNull()?.coerceAtLeast(0f) ?: 0f
+    override fun measuredRow(row: Int, rows: Int, height: Float) {
+        val old = seg.rowHeights
+        if (old.size == rows && kotlin.math.abs(old[row] - height) <= 0.5f) return
+        seg.rowHeights = List(rows) { i -> if (i == row) height else old.getOrElse(i) { -1f } }
+    }
+    override fun measuredBar(height: Float) {
+        if (kotlin.math.abs(seg.barHeight - height) > 0.5f) seg.barHeight = height
+    }
+}
+
+/** What a section break says in the editor: „Abschnittsumbruch · Kopfzeile: … · Fußzeile: …“. */
+internal fun sectionLabel(s: DocMarkup.Section): String = listOfNotNull(
+    tr("Abschnittsumbruch"),
+    s.header?.let { if (it.isBlank()) tr("ohne Kopfzeile") else tr("Kopfzeile: {0}", it) },
+    s.footer?.let { if (it.isBlank()) tr("ohne Fußzeile") else tr("Fußzeile: {0}", it) },
+).joinToString(" · ")
+
+/** Header and footer of a section: take over the ones before, none, or own text (fields {seite}, {seiten}). */
+@Composable
+private fun SectionDialog(initial: DocMarkup.Section, onDismiss: () -> Unit, onDone: (DocMarkup.Section) -> Unit) {
+    var ownHeader by remember { mutableStateOf(initial.header != null) }
+    var header by remember { mutableStateOf(initial.header.orEmpty()) }
+    var ownFooter by remember { mutableStateOf(initial.footer != null) }
+    var footer by remember { mutableStateOf(initial.footer.orEmpty()) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Abschnittsumbruch")) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(tr("Ab hier beginnt eine neue Seite. Der Abschnitt kann eine eigene Kopf- und Fußzeile haben (Felder: {seite}, {seiten})."), style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(ownHeader, { ownHeader = it })
+                    Text(tr("Eigene Kopfzeile"))
+                }
+                if (ownHeader) androidx.compose.material3.OutlinedTextField(header, { header = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Kopfzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(ownFooter, { ownFooter = it })
+                    Text(tr("Eigene Fußzeile"))
+                }
+                if (ownFooter) androidx.compose.material3.OutlinedTextField(footer, { footer = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Fußzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = { TextButton(onClick = { onDone(DocMarkup.Section(header.takeIf { ownHeader }, footer.takeIf { ownFooter })) }) { Text(tr("Übernehmen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
+    )
 }
 
 /** `**fett**` and `*kursiv*` typed in the running text become formatting (AP-46), like in Docs. */

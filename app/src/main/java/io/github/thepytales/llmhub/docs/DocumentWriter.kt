@@ -218,7 +218,7 @@ object DocumentWriter {
      * footer (left) and „Seite x von y“ (right) at the bottom – and, when the page setup says so, other ones on the
      * first page (Deckblatt) and on even pages. [orgFooter]: the line of the style (TUD unit) after the own footer.
      */
-    private fun StringBuilder.pageBoxes(setup: DocMarkup.PageSetup, orgFooter: String, font: String, color: String, footerPad: String) {
+    private fun StringBuilder.pageBoxes(setup: DocMarkup.PageSetup, orgFooter: String, font: String, color: String, footerPad: String, sections: List<DocMarkup.Section> = emptyList()) {
         fun boxes(header: String, date: Boolean, footer: String, numbers: Boolean, org: Boolean = true) {
             val top = ";font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm"
             val bottom = ";font:$font;color:$color$footerPad"
@@ -235,6 +235,13 @@ object DocumentWriter {
         if (setup.hasEven) {
             append("@page:left{")
             boxes(setup.headerEven, setup.date, setup.footerEven, setup.pageNumbers)
+            append("}")
+        }
+        // Abschnitte (AP-43/45): each further section is a named page with its own header and footer (on odd and even
+        // pages; a named page wins over :left). The Deckblatt (:first) stays page 1.
+        DocMarkup.sectionMargins(setup, sections).forEachIndexed { k, (header, footer) ->
+            append("@page abs${k + 1}{")
+            boxes(header, setup.date, footer, setup.pageNumbers)
             append("}")
         }
         if (setup.titlePage) {
@@ -262,7 +269,7 @@ object DocumentWriter {
     }
 
     /** Stylesheet for a document style; [a] is the accent color. Certificates have no footer. */
-    private fun css(theme: DocTheme, print: Boolean, certificate: Boolean = false, setup: DocMarkup.PageSetup = DocMarkup.PageSetup()): String {
+    private fun css(theme: DocTheme, print: Boolean, certificate: Boolean = false, setup: DocMarkup.PageSetup = DocMarkup.PageSetup(), sections: List<DocMarkup.Section> = emptyList()): String {
         val a = theme.accent
         val tint = a + "14"
         val serif = "'Noto Serif', Georgia, 'Times New Roman', serif"
@@ -294,16 +301,17 @@ object DocumentWriter {
                     listOfNotNull("Technische Universität Dresden", theme.unit.lines().lastOrNull { it.isNotBlank() }?.trim()).joinToString(" · ")
                 }
                 append("@page{size:A4;margin:18mm 20mm 22mm 25mm}")
-                pageBoxes(setup, footer, "7pt $tudFont", TudBrand.GREY, ";vertical-align:top;padding-top:6mm")
+                pageBoxes(setup, footer, "7pt $tudFont", TudBrand.GREY, ";vertical-align:top;padding-top:6mm", sections)
             } else if (print) {
                 append("@page{size:A4;margin:18mm 17mm 20mm 17mm}")
-                pageBoxes(setup, theme.footer, "8pt $sans", "#8a8f98", "")
+                pageBoxes(setup, theme.footer, "8pt $sans", "#8a8f98", "", sections)
             } else {
                 append("body{max-width:800px;margin:2rem auto;padding:0 1.2rem}")
             }
             // Landscape pages (<!-- quer -->), page breaks, pictures and footnotes of the editor.
             if (print) append("@page quer{size:A4 landscape}section.quer{page:quer;break-before:page;page-break-before:always;break-after:page;page-break-after:always}")
             append(".pagebreak{break-after:page;page-break-after:always;height:0}")
+            append(".abschnitt{break-before:page;page-break-before:always}")
             // Witwen und Waisen (AP-43): as in the Seitenansicht, two lines at least at a page end and start.
             if (print) append("p,li,blockquote{orphans:2;widows:2}")
             append("figure.img{margin:10pt 0 12pt;text-align:center;break-inside:avoid;page-break-inside:avoid}figure.img img{max-width:100%;height:auto}")
@@ -324,6 +332,7 @@ object DocumentWriter {
             append("pre{background:#f6f8fa;border:1px solid #e5e7eb;border-radius:6pt;padding:8pt 10pt;white-space:pre-wrap;font-size:8.5pt;break-inside:avoid}")
             append("pre code{background:none;padding:0}")
             append("table{border-collapse:collapse;width:100%;margin:8pt 0 12pt;font-size:9.5pt;break-inside:auto}")
+            append("thead{display:table-header-group}")
             append("tr{break-inside:avoid}th,td{padding:5pt 7pt;text-align:left;vertical-align:top}")
             append("hr{border:none;border-top:1px solid #d9dde3;margin:14pt 0}")
             append("blockquote{margin:8pt 0;padding:6pt 12pt;border-left:3pt solid ${if (s == DocStyle.MINIMAL || s == DocStyle.CLASSIC) "#999" else a};background:${if (s == DocStyle.MINIMAL) "transparent" else tint};color:#374151}")
@@ -546,7 +555,7 @@ object DocumentWriter {
         append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n")
         append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
         append("<title>${esc(docTitle.ifBlank { "Dokument" })}</title>\n<style>\n")
-        append(css(theme, print, certificate, DocMarkup.pageSetup(markdown)))
+        append(css(theme, print, certificate, DocMarkup.pageSetup(markdown), DocMarkup.sections(markdown)))
         append("\n</style>\n</head>\n<body${if (letter != null) " class=\"letter\"" else ""}>\n")
         if (certificate) {
             append(certificateHtml(docTitle, body, theme, print))
@@ -558,6 +567,7 @@ object DocumentWriter {
         val numbers = footnotes.numbers
         fun inl(text: String) = noteRefs(htmlInline(text), numbers)
         var landscape = false
+        var section = 0
         val blocks = parseBlocks(footnotes.body)
         var openList: String? = null
         fun closeList() {
@@ -575,7 +585,16 @@ object DocumentWriter {
                     val lines = b.text.lines()
                     val turn = DocMarkup.orientation(b.text)
                     val img = DocMarkup.image(b.text)
+                    val sec = DocMarkup.section(b.text)
                     when {
+                        // Abschnittsumbruch: the pages from here on are the named page of the section (header, footer).
+                        sec != null -> {
+                            if (landscape) append("</section>\n")
+                            if (section > 0) append("</div>\n")
+                            section++
+                            append("<div class=\"abschnitt\" style=\"page:abs$section\">\n")
+                            if (landscape) append("<section class=\"quer\">\n")
+                        }
                         turn != null -> if (turn != landscape) {
                             append(if (turn) "<section class=\"quer\">\n" else "</section>\n")
                             landscape = turn
@@ -626,14 +645,19 @@ object DocumentWriter {
                     } else append("<pre><code>${esc(b.code)}</code></pre>\n")
                 }
                 is Block.Table -> {
+                    // The header row in <thead>: printed again at the top of every page the table goes on (AP-43).
                     append("<table>\n")
                     b.rows.forEachIndexed { r, row ->
                         val cell = if (r == 0) "th scope=\"col\"" else "td"
                         val close = if (r == 0) "th" else "td"
+                        if (r == 0) append("<thead>") else if (r == 1) append("<tbody>")
                         append("<tr>")
                         row.forEach { append("<$cell>${inl(it)}</$close>") }
-                        append("</tr>\n")
+                        append("</tr>")
+                        if (r == 0) append("</thead>")
+                        append("\n")
                     }
+                    if (b.rows.size > 1) append("</tbody>")
                     append("</table>\n")
                 }
                 Block.Rule -> append("<hr>\n")
@@ -642,6 +666,7 @@ object DocumentWriter {
         closeList()
         if (closingAt >= 0) append("</div>\n")
         if (landscape) append("</section>\n")
+        if (section > 0) append("</div>\n")
         if (footnotes.notes.isNotEmpty()) {
             append("<section class=\"footnotes\" aria-label=\"Fußnoten\"><hr><ol>\n")
             footnotes.notes.forEach { n -> append("<li id=\"fn-${n.number}\">${htmlInline(n.text)}</li>\n") }

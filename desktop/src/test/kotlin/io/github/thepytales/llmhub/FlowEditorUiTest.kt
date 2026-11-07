@@ -21,6 +21,7 @@ import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /** The Fließtext-Editor (AP-44) and the Lora-Dateidialog (AP-42) render and react (pictures in build/flow-look). */
@@ -183,6 +184,42 @@ class FlowEditorUiTest {
         }
         assertTrue(checked > 100, "geprüfte Zeilen: $checked")
         assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Editor da")
+    }
+
+    /** Tabellen über Seiten und Abschnitte (AP-43/45): a long table breaks row by row, its header repeats; sections. */
+    @Test
+    fun tablesBreakOverPagesAndSectionsHaveTheirHeader() = runSkikoComposeUiTest(Size(1300f, 3200f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-table-pages").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val rows = listOf(listOf("Nr.", "Messung", "Wert")) + (1..45).map { listOf("$it", "Probe $it", "${it * 3} mg") }
+        val intro = (1..6).joinToString("\n\n") { "Absatz $it: " + "Text vor der Tabelle, der etwas Platz braucht. ".repeat(4) }
+        val md = io.github.thepytales.llmhub.docs.DocMarkup.withPageSetup(
+            "# Messreihe\n\n$intro\n\n" + io.github.thepytales.llmhub.docs.DocBlocks.table(rows) + "\n\nNach der Tabelle.\n\n" +
+                io.github.thepytales.llmhub.docs.DocMarkup.sectionMarker(io.github.thepytales.llmhub.docs.DocMarkup.Section(header = "Anhang")) + "\n\nAnhang A.",
+            io.github.thepytales.llmhub.docs.DocMarkup.PageSetup(header = "Bericht"),
+        )
+        val doc = DocsHandoff.open(c, "Messreihe", md)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(16) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-table-pages.png"))
+        val state = io.github.thepytales.llmhub.ui.FlowState.shown?.get()!!
+        val table = state.segs.filterIsInstance<io.github.thepytales.llmhub.ui.FlowSeg.Raw>().first { it.isTable }
+        assertEquals(rows.size, table.rowHeights.size, "alle Zeilen gemessen")
+        assertTrue(table.rowPush.isNotEmpty(), "die Tabelle bricht zwischen Zeilen um: ${table.rowPush}")
+        assertTrue(table.repeatAt.isNotEmpty() && table.repeatAt.all { it in table.rowPush.keys }, "Kopfzeile wiederholt: ${table.repeatAt}")
+        assertTrue(onAllNodesWithContentDescription("Wiederholte Kopfzeile").fetchSemanticsNodes().isNotEmpty())
+        // The section starts on its own page and shows its header there.
+        assertEquals(1, state.sectionPages.size, "Abschnitt")
+        assertEquals("Anhang", state.sectionPages[0].second.header)
+        assertTrue(state.sectionPages[0].first in 2..state.pageCount, "Seite ${state.sectionPages[0].first} von ${state.pageCount}")
     }
 
     /** Änderungen nachverfolgen im Fließtext (AP-44): inserted green, removed struck through, the bar to accept them. */

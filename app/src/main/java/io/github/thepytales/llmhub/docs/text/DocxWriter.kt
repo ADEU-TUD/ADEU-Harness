@@ -26,6 +26,8 @@ import java.util.zip.ZipOutputStream
  */
 object DocxWriter {
     fun merge(original: ByteArray, baseMarkdown: String, newMarkdown: String, theme: DocTheme = DocTheme()): ByteArray? {
+        // Abschnitte live in the paragraphs of the original (w:sectPr): changed section breaks need a file written anew.
+        if (DocMarkup.sections(baseMarkdown) != DocMarkup.sections(newMarkdown)) return null
         val files = unzip(original) ?: return null
         val docXml = files["word/document.xml"]?.toString(Charsets.UTF_8) ?: return null
         val open = Regex("<w:body(\\s[^>]*)?>").find(docXml) ?: return null

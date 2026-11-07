@@ -147,9 +147,21 @@ object OfficeImport {
         val styles = styleNames(xml(files["word/styles.xml"]))
         val blocks = mutableListOf<String>()
         val counters = HashMap<String, Int>()
-        for (el in flatBody(body)) {
+        // Abschnitte (AP-43/45): a paragraph with w:sectPr ends a section; the next one may have its own header/footer.
+        val elements = flatBody(body)
+        val sects = elements.filter { it.localName == "p" }.mapNotNull { it.child("pPr")?.child("sectPr") } +
+            listOfNotNull(body.children().lastOrNull { it.localName == "sectPr" })
+        val own = isOwn(files)
+        var ended = 0
+        var pending = false
+        for (el in elements) {
+            if (pending) {
+                pending = false
+                sectionBreak(sects.getOrNull(++ended), files, docRels, own)?.let { if (blocks.isNotEmpty()) blocks += it }
+            }
             when (el.localName) {
                 "p" -> {
+                    if (el.child("pPr")?.child("sectPr") != null) pending = true
                     // Pictures of the paragraph become blocks of their own.
                     pictures(el, ctx).forEach { blocks += it }
                     // Textfelder (AP-45, read only): their paragraphs after the one they are anchored in.
@@ -219,8 +231,8 @@ object OfficeImport {
         noteNumbers.forEach { (id, n) -> blocks += "[^$n]: " + noteTexts[id].orEmpty().ifBlank { " " } }
         // A document without a heading-styled title starts with its first short line as title.
         val md = DocBlocks.join(fixTitle(blocks))
-        // Kopf-/Fußzeile and margins of the (last) section (AP-45) as the page setup.
-        val setup = pageSetup(body, files, docRels) ?: return md
+        // Kopf-/Fußzeile and margins of the first section (AP-45; the only one in most files) as the page setup.
+        val setup = sects.firstOrNull()?.let { pageSetup(it, files, docRels) } ?: return md
         return DocMarkup.withPageSetup(md, setup)
     }
 
@@ -267,22 +279,43 @@ object OfficeImport {
         return io.github.thepytales.llmhub.docs.text.ParaFormat(kind = kind, align = align, spacing = spacing, left = if (left >= 2) left else 0, first = if (kotlin.math.abs(first) >= 2) first else 0)
     }
 
-    /** Header, footer and margins of the document's last section; null if it has none worth keeping. */
-    private fun pageSetup(body: Element, files: Map<String, ByteArray>, rels: Map<String, String>): DocMarkup.PageSetup? {
-        val sect = body.children().lastOrNull { it.localName == "sectPr" } ?: return null
-        fun part(kind: String, type: String = "default"): String {
-            val refs = sect.children().filter { it.localName == kind }
-            val ref = refs.firstOrNull { it.attr("type") == type } ?: (if (type == "default") refs.firstOrNull { it.attr("type").isBlank() } ?: refs.firstOrNull() else null) ?: return ""
-            val root = xml(files[rels[ref.attr("id")]]) ?: return ""
-            return root.all("p").filter { !inFallback(it) }.joinToString(" · ") { pp ->
-                buildString { pp.all("t").filter { t -> t.parentNode?.localName == "r" }.forEach { append(it.textContent) } }.trim()
-            }.split(" · ").filter { it.isNotBlank() }.joinToString(" · ")
-                // „Seite 1 von 3“ is the page number of the export, not text.
-                .replace(Regex("(?i)\\b(seite|page)\\b\\s*\\d+\\s*((von|of|/)\\s*\\d+)?|^\\s*\\d+\\s*(von|of|/)\\s*\\d+\\s*$"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
-                .take(160)
-        }
+    /** Lora's own Word files (their header and footer come from the page setup, with date and page numbers). */
+    private fun isOwn(files: Map<String, ByteArray>) = files["docProps/core.xml"]?.toString(Charsets.UTF_8)?.contains("<dc:creator>Lora</dc:creator>") == true
+
+    /**
+     * The marker of a section break before section [next]: its own header and footer when it has references to them
+     * (else it takes over those before), null for a continuous section without them (no new page, nothing to keep).
+     */
+    private fun sectionBreak(next: Element?, files: Map<String, ByteArray>, rels: Map<String, String>, own: Boolean): String? {
+        next ?: return null
+        val hasHeader = next.children().any { it.localName == "headerReference" }
+        val hasFooter = next.children().any { it.localName == "footerReference" }
+        val continuous = next.child("type")?.attr("val") == "continuous"
+        if (continuous && !hasHeader && !hasFooter) return null
+        // Lora's own files: header and footer parts also hold date, footer line and page numbers – not read back.
+        val header = if (hasHeader && !own) headerText(next, "headerReference", "default", files, rels) else null
+        val footer = if (hasFooter && !own) headerText(next, "footerReference", "default", files, rels) else null
+        return DocMarkup.sectionMarker(DocMarkup.Section(header, footer))
+    }
+
+    /** The text of the header or footer part of [sect] ([kind] reference of [type]), without page numbers. */
+    private fun headerText(sect: Element, kind: String, type: String, files: Map<String, ByteArray>, rels: Map<String, String>): String {
+        val refs = sect.children().filter { it.localName == kind }
+        val ref = refs.firstOrNull { it.attr("type") == type } ?: (if (type == "default") refs.firstOrNull { it.attr("type").isBlank() } ?: refs.firstOrNull() else null) ?: return ""
+        val root = xml(files[rels[ref.attr("id")]]) ?: return ""
+        return root.all("p").filter { !inFallback(it) }.joinToString(" · ") { pp ->
+            buildString { pp.all("t").filter { t -> t.parentNode?.localName == "r" }.forEach { append(it.textContent) } }.trim()
+        }.split(" · ").filter { it.isNotBlank() }.joinToString(" · ")
+            // „Seite 1 von 3“ is the page number of the export, not text.
+            .replace(Regex("(?i)\\b(seite|page)\\b\\s*\\d+\\s*((von|of|/)\\s*\\d+)?|^\\s*\\d+\\s*(von|of|/)\\s*\\d+\\s*$"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
+            .take(160)
+    }
+
+    /** Header, footer and margins of section [sect]; null if it has none worth keeping. */
+    private fun pageSetup(sect: Element, files: Map<String, ByteArray>, rels: Map<String, String>): DocMarkup.PageSetup? {
+        fun part(kind: String, type: String = "default"): String = headerText(sect, kind, type, files, rels)
         // Lora's own files carry date, footer line and page numbers there from the page setup and the settings: not again.
-        val own = files["docProps/core.xml"]?.toString(Charsets.UTF_8)?.contains("<dc:creator>Lora</dc:creator>") == true
+        val own = isOwn(files)
         val header = if (own) "" else part("headerReference")
         val footer = if (own) "" else part("footerReference")
         val mar = sect.child("pgMar")?.attr("left")?.toIntOrNull()?.let { (it / 56.693f).roundToIntSafe() }

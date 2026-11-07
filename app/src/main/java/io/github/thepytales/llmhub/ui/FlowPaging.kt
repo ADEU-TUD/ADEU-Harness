@@ -245,6 +245,7 @@ internal fun pageItems(state: FlowState, gap: Float, minField: Float): Pair<List
     val owners = ArrayList<Pair<FlowSeg, Int>>()
     var first = true
     var paraBase = 0
+    var tables = 0
     for (seg in state.segs) {
         if (seg is FlowSeg.Raw && isHiddenSetting(seg.markdown)) continue
         if (!first) { items += PageLayout.Space(gap); owners += seg to -2 }
@@ -280,9 +281,21 @@ internal fun pageItems(state: FlowState, gap: Float, minField: Float): Pair<List
                 if (total < minField) { items += PageLayout.Space(minField - total); owners += seg to -2 }
                 paraBase += rich.paras.size
             }
-            is FlowSeg.Raw -> {
+            is FlowSeg.Raw -> if (seg.isTable) {
+                // Tabellen über Seiten: row by row (the header row repeats on the next page), then the bar below.
+                val hs = seg.rowHeights
+                if (hs.isEmpty() || hs.any { it < 0f } || seg.barHeight < 0f) return null
+                val header = if (hs.size > 1) hs[0] else 0f
+                hs.forEachIndexed { r, h ->
+                    items += PageLayout.Row(h, tables, r, hs.size, header)
+                    owners += seg to r
+                }
+                tables++
+                items += PageLayout.Block(seg.barHeight)
+                owners += seg to hs.size
+            } else {
                 val h = seg.height.takeIf { it >= 0f } ?: return null
-                items += if (DocMarkup.isPageBreak(seg.markdown)) PageLayout.Break(h) else PageLayout.Block(h)
+                items += if (DocMarkup.isPageBreak(seg.markdown) || DocMarkup.section(seg.markdown) != null) PageLayout.Break(h) else PageLayout.Block(h)
                 owners += seg to -1
             }
         }
@@ -295,12 +308,18 @@ internal fun applyPlan(plan: PageLayout.Plan, owners: List<Pair<FlowSeg, Int>>, 
     val breaks = HashMap<Long, MutableList<PageBreakAt>>()
     val tops = HashMap<Long, Float>()
     val firstLine = HashMap<Long, Int>()
+    val rowPush = HashMap<Long, MutableMap<Int, Float>>()
+    val repeat = HashMap<Long, MutableSet<Int>>()
     owners.forEachIndexed { k, (seg, off) ->
         if (seg is FlowSeg.Text && off >= 0 && seg.id !in firstLine) firstLine[seg.id] = k
         val push = plan.push[k]
         if (push <= 0f) return@forEachIndexed
         when (seg) {
-            is FlowSeg.Raw -> tops[seg.id] = push
+            // A table: room above it (first row) or above a further row (and the header row repeated there).
+            is FlowSeg.Raw -> if (off <= 0) tops[seg.id] = push else {
+                rowPush.getOrPut(seg.id) { mutableMapOf() }[off] = push
+                if (plan.repeat[k]) repeat.getOrPut(seg.id) { mutableSetOf() } += off
+            }
             is FlowSeg.Text -> if (off >= 0) {
                 if (firstLine[seg.id] == k) tops[seg.id] = push
                 else breaks.getOrPut(seg.id) { mutableListOf() } += PageBreakAt.at(seg.rich.text, off, push)
@@ -315,31 +334,60 @@ internal fun applyPlan(plan: PageLayout.Plan, owners: List<Pair<FlowSeg, Int>>, 
                 if (seg.breaks != b) seg.breaks = b
                 if (seg.push != top) seg.push = top
             }
-            is FlowSeg.Raw -> if (seg.push != top) seg.push = top
+            is FlowSeg.Raw -> {
+                if (seg.push != top) seg.push = top
+                val rp = rowPush[seg.id].orEmpty()
+                if (seg.rowPush != rp) seg.rowPush = rp
+                val rr = repeat[seg.id].orEmpty()
+                if (seg.repeatAt != rr) seg.repeatAt = rr
+            }
         }
     }
     if (state.pageCount != plan.pages) state.pageCount = plan.pages
+    // Abschnitte: a section starts on the page after its break.
+    val sections = owners.withIndex().mapNotNull { (k, o) ->
+        val seg = o.first as? FlowSeg.Raw ?: return@mapNotNull null
+        if (o.second != -1) return@mapNotNull null
+        DocMarkup.section(seg.markdown)?.let { plan.page[k] + 2 to it }
+    }
+    if (state.sectionPages != sections) state.sectionPages = sections
 }
 
 /** No pages (Ohne Seiten, narrow window): all room goes. */
 internal fun clearPlan(state: FlowState) {
     for (seg in state.segs) when (seg) {
         is FlowSeg.Text -> { if (seg.breaks.isNotEmpty()) seg.breaks = emptyList(); if (seg.push != 0f) seg.push = 0f }
-        is FlowSeg.Raw -> if (seg.push != 0f) seg.push = 0f
+        is FlowSeg.Raw -> {
+            if (seg.push != 0f) seg.push = 0f
+            if (seg.rowPush.isNotEmpty()) seg.rowPush = emptyMap()
+            if (seg.repeatAt.isNotEmpty()) seg.repeatAt = emptySet()
+        }
     }
     state.pageCount = 1
+    state.sectionPages = emptyList()
 }
 
 /** What the header and footer of page [page] (1-based) of [pages] show: left and right text. */
 internal data class PageMargins(val headerLeft: String, val headerRight: String, val footerLeft: String, val footerRight: String)
 
-internal fun pageMargins(setup: DocMarkup.PageSetup, page: Int, pages: Int, today: String = DocMarkup.today()): PageMargins {
+/**
+ * Header and footer of the section page [page] (1-based) is in – null in the first section (the document's own). [starts]:
+ * first page of each further section with its break ([FlowState.sectionPages]).
+ */
+internal fun sectionOf(starts: List<Pair<Int, DocMarkup.Section>>, setup: DocMarkup.PageSetup, page: Int): Pair<String, String>? {
+    val k = starts.indexOfLast { it.first <= page }
+    if (k < 0) return null
+    return DocMarkup.sectionMargins(setup, starts.map { it.second })[k]
+}
+
+/** [section]: header and footer of the section the page is in (they stand on its odd and even pages). */
+internal fun pageMargins(setup: DocMarkup.PageSetup, page: Int, pages: Int, today: String = DocMarkup.today(), section: Pair<String, String>? = null): PageMargins {
     if (page == 1 && setup.titlePage) {
         return PageMargins(setup.headerFirst, "", setup.footerFirst, "")
     }
     val even = page % 2 == 0 && setup.hasEven
-    val header = if (even) setup.headerEven else setup.header
-    val footer = if (even) setup.footerEven else setup.footer
+    val header = section?.first ?: if (even) setup.headerEven else setup.header
+    val footer = section?.second ?: if (even) setup.footerEven else setup.footer
     return PageMargins(
         DocMarkup.fields(header, page, pages),
         if (setup.date) today else "",
