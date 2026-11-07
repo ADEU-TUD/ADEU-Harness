@@ -1811,7 +1811,7 @@ private fun copySelection(c: AppContainer, seg: FlowSeg.Text): Boolean {
     if (sel.collapsed) return false
     val piece = seg.rich.slice(sel.min, sel.max)
     val plain = piece.text.filterIndexed { i, _ -> piece.chars[i].ins == 0 }
-    return RichClipboard.copy(c, RichHtml.fromRich(piece), plain)
+    return RichClipboard.copy(c, RichHtml.fromRich(piece), plain, runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.fromRich(piece) }.getOrNull())
 }
 
 /** One stretch of running text: the text field with list marks in the gutter and the keys of a word processor. */
@@ -1983,7 +1983,8 @@ private fun FlowField(
                             }
                         }
                         cmd && !e.isShiftPressed && e.key == Key.V -> {
-                            val piece = RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }?.takeIf { it.text.isNotEmpty() }
+                            val piece = (RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }
+                                ?: RichClipboard.rtf(c)?.let { runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.toRich(it) }.getOrNull() })?.takeIf { it.text.isNotEmpty() }
                             if (piece == null) false else { state.paste(seg, piece); true }
                         }
                         cmd && e.isAltPressed && e.key == Key.Zero -> { state.kind(ParaKind.NORMAL); true }

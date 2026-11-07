@@ -10,6 +10,7 @@ import io.github.thepytales.llmhub.docs.text.DocOutline
 import io.github.thepytales.llmhub.docs.text.DocxWriter
 import io.github.thepytales.llmhub.docs.text.ParaKind
 import io.github.thepytales.llmhub.docs.text.RichHtml
+import io.github.thepytales.llmhub.docs.text.RichRtf
 import io.github.thepytales.llmhub.docs.text.RichText
 import io.github.thepytales.llmhub.docs.text.StyleSet
 import io.github.thepytales.llmhub.docs.text.StyleSheet
@@ -258,5 +259,34 @@ class EditorCoreTest {
         assertTrue("<w:pStyle w:val=\"Title\"/>" in doc && "<w:pStyle w:val=\"Subtitle\"/>" in doc && "<w:pStyle w:val=\"Bibliography\"/>" in doc, doc)
         assertTrue("w:line=\"480\"" in doc, "Zeilenabstand doppelt")
         assertFalse("vorlagen" in doc || "s=title" in doc, doc)
+    }
+
+    /** Zwischenablage als RTF (AP-43 c): own RTF comes back with its formats; Word's RTF is read. */
+    @Test
+    fun rtfClipboardRoundTripAndWord() {
+        val r = rich("# Überschrift\n\nEin **fetter**, *kursiver* und <u>unterstrichener</u> Text mit <span style=\"color:#C00000\">Farbe</span> und ä/ß/€.\n\n<!--a:c-->Zentriert.\n")
+        val rtf = RichRtf.fromRich(r)
+        assertTrue(rtf.startsWith("{\\rtf1") && "\\u8364?" in rtf, rtf)
+        val back = RichRtf.toRich(rtf)
+        assertTrue("Überschrift" in back.text && "ä/ß/€" in back.text, back.text)
+        val bold = back.text.indexOf("fetter")
+        assertTrue(back.chars[bold].bold && back.chars[back.text.indexOf("kursiver")].italic && back.chars[back.text.indexOf("unterstrichener")].underline)
+        assertEquals("C00000", back.chars[back.text.indexOf("Farbe")].color)
+        assertEquals(Align.CENTER, back.paras[back.paraAt(back.text.indexOf("Zentriert"))].align)
+        assertEquals(3, back.paras.size, back.text)
+        // RTF as Word writes it: font and colour tables, \'xx bytes, \u with a replacement, list text and a field.
+        val word = "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\froman Times New Roman;}{\\f1\\fswiss Arial;}}" +
+            "{\\colortbl;\\red255\\green0\\blue0;\\red255\\green255\\blue0;}{\\*\\generator Word;}" +
+            "\\pard\\qj\\f0\\fs24 Gr\\'fc\\'dfe {\\b fett} und {\\cf1 rot} {\\highlight2 gelb}\\par" +
+            "\\pard{\\listtext\\'b7\\tab}{\\f1\\fs28 Arial gro\\u223?} {\\field{\\*\\fldinst HYPERLINK x}{\\fldrslt Link}}\\par}"
+        val w = RichRtf.toRich(word)
+        assertEquals("Grüße fett und rot gelb\nArial groß Link", w.text)
+        assertTrue(w.chars[w.text.indexOf("fett")].bold)
+        assertEquals("FF0000", w.chars[w.text.indexOf("rot")].color)
+        assertEquals("FFFF00", w.chars[w.text.indexOf("gelb")].highlight)
+        assertEquals(Align.JUSTIFY, w.paras[0].align)
+        val big = w.chars[w.text.indexOf("Arial")]
+        assertEquals("Arial", big.font)
+        assertEquals(14, big.size)
     }
 }
