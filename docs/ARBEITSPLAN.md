@@ -60,7 +60,7 @@ Fairlight).
 | Abschnitt | Pakete |
 | --- | --- |
 | ~~Lora zuerst~~ ☑ | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog (erledigt, siehe *Erledigt*) |
-| **Jetzt** – Editor-Kern und Dokument | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument |
+| **Jetzt** – Editor-Kern und Dokument | AP-43 Gemeinsamer Text-Kern ◐ · AP-44 Fließtext-Editor ◐ · AP-45 Word-Treue ◐ · ~~AP-46 Gliederung und Formatvorlagen~~ ☑ · ~~AP-47 Lora schreibt im Dokument~~ ☑ |
 | **Danach** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
 | **Danach** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge · AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
 | **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
@@ -80,6 +80,19 @@ abwechseln, wenn ein Strang wartet.
 ## Jetzt
 
 Editor-Kern und Dokument (aus *Danach* nachgerückt, nachdem AP-38 bis AP-42 erledigt sind).
+
+**Stand nach 1.0.56 (07.11.2026)**: AP-46 und AP-47 sind erledigt. AP-43 bis AP-45 sind weit, es fehlen nur noch Reste
+(Einzelheiten jeweils unter *Rest* im Paket). Vorschlag für die nächste Runde, in dieser Reihenfolge:
+
+1. **Tabellen über Seiten** (AP-43): Tabellen brechen in der Seitenansicht zeilenweise um, die Kopfzeile wiederholt sich
+   (heute wandert eine Tabelle als Ganzes). Danach Markieren über Tabellen hinweg (AP-44).
+2. **Leistung bei 200+ Seiten** (AP-43 d): im Editor messen (Tippen, Scrollen, Seitenplan) und wo nötig den Fließtext in
+   Stücke je Abschnitt teilen.
+3. **Abschnitte mit eigener Kopf-/Fußzeile** (AP-43/45), in Editor, Word und PDF.
+4. **Tabstopps** im Lineal (AP-44) – die Textfelder kennen keine eigenen Tabstopps, braucht eine eigene Lösung.
+5. **Prüfsammlung mit echten TUD-Dokumenten** (AP-45), sobald Offene Frage 5 geklärt ist.
+
+Danach (oder wenn Offene Frage 8 so entschieden wird) AP-43 bis AP-45 abhaken und mit *Danach* – Video (AP-52) weitermachen.
 
 ### AP-43 ◐ Gemeinsamer Text-Kern · XL (neu, Grundlage)
 Der Dokument-Editor arbeitet heute **blockweise** (ein Eingabefeld je Absatz, Markdown darunter): Markieren über Absätze
@@ -679,6 +692,10 @@ veraltet und passt nicht zu Windows 11.
    dürfen als Testdateien ins Repo, oder nur anonymisiert?
 6. **Gesichter verpixeln** (AP-54): Welches lokale Erkennungsmodell (Lizenz, Größe im Videoeditor-Paket)?
 7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt?
+8. **PDF aus derselben Seitenaufteilung** (AP-43/45): Seit 1.0.56 folgt der PDF-Export denselben Regeln wie die
+   Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten), wird aber weiter über HTML gesetzt –
+   Seitenumbrüche können je nach Schrift um einige Zeilen abweichen. Reicht das, oder soll das PDF Zeile für Zeile aus
+   dem Editor kommen (großer Umbau: eigener Textsatz für PDF)?
 
 ---
 
