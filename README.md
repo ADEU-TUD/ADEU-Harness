@@ -156,8 +156,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   mit Seitenumbruch-Linien oder *Ohne Seiten*, Zoom 75–150 %. Tabellen, Bilder, Formeln, Inhaltsverzeichnis, Fußnoten und
   Seitenumbrüche stehen als eigene Blöcke zwischen dem Text (*Einfügen*-Menü, Tabelle über ein Raster). Gespeichert wird
   weiter Markdown – was Markdown nicht kann, als kleine HTML-Marken (`<u>`, `<mark>`, `<span style="color:…">`,
-  `<!--a:c-->`), die alle Exporte (Word, PDF, Chat) verstehen. Solange Änderungen der KI oder *Änderungen nachverfolgen*
-  zur Prüfung anstehen, zeigt der Editor die bisherige Blockansicht mit Annehmen/Ablehnen.
+  `<!--a:c-->`), die alle Exporte (Word, PDF, Chat) verstehen. *Änderungen nachverfolgen* zeigt der Fließtext selbst
+  (seit 1.0.56); nur wenn sich dabei Tabellen, Bilder oder Formeln geändert haben, oder solange Änderungen der KI zur
+  Prüfung anstehen, erscheint die bisherige Blockansicht mit Annehmen/Ablehnen.
 - **Word-Treue** (AP-45): Beim Öffnen einer .docx kommen jetzt auch Unterstreichung, Textfarbe, Hervorhebung,
   hoch-/tiefgestellt, abweichende Schriftart und -größe und die Ausrichtung mit. Beim Speichern schreibt die App neue,
   geänderte oder gelöschte Absätze **in das Original** (`docs/text/DocxWriter.kt`): Unveränderte Absätze und Tabellen
@@ -194,6 +195,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   bleiben sie unverändert), der Inhalt von **Inhaltssteuerelementen** (Felder in Vorlagen, bisher verloren), Untertitel,
   Bildunterschrift und Literatur sowie **Zeilenabstand und Einzüge**. Test `EditorCoreTest` (Vorlage mit Kopf-/Fußzeile,
   Textfeld, Feldern; öffnen → bearbeiten → ins Original zurückschreiben).
+- **Echte Seiten, Kopf- und Fußzeilen, Änderungen im Text** (AP-43 bis AP-45, seit 1.0.56): Die **Seitenansicht** zeigt
+  das Dokument als einzelne A4-Blätter. Eine eigene Seitenaufteilung (`docs/text/PageLayout.kt`) bricht den Text wie Word
+  und Google Docs um: **keine einzelne Zeile** eines Absatzes am Seitenende oder -anfang (Witwen und Waisen),
+  **Überschriften bleiben beim folgenden Absatz**, Tabellen und Bilder wandern als Ganzes, ein Seitenumbruch beginnt eine
+  neue Seite. Jedes Blatt zeigt **Kopf- und Fußzeile** mit Datum und „Seite x von y“. In *Seite einrichten* gibt es
+  **Erste Seite anders** (Deckblatt ohne Kopf-/Fußzeile und Seitenzahl, oder mit eigenen) und **Gerade Seiten anders**;
+  `{seite}` und `{seiten}` in Kopf- oder Fußzeile werden zur Seitenzahl. PDF-Export (dieselben Regeln: Witwen/Waisen,
+  erste und gerade Seiten, eigene Ränder) und Word-Export (echte Kopf-/Fußzeilen für erste und gerade Seiten mit
+  Seitenfeldern) folgen; aus Word kommen erste und gerade Kopf-/Fußzeilen zurück. **Änderungen nachverfolgen** läuft jetzt
+  im Fließtext: Gelöschtes steht rot durchgestrichen, Neues grün unterstrichen an seiner Stelle, eine Leiste führt von
+  Änderung zu Änderung mit *Annehmen*, *Ablehnen* und *Alle …* (Wortvergleich `docs/text/TrackDiff.kt`). Die
+  **Zwischenablage** gibt zusätzlich **RTF** mit und liest RTF, wenn ein Programm kein HTML liefert
+  (`docs/text/RichRtf.kt`). Tests `PageLayoutTest`, `FlowTrackingTest`, `EditorCoreTest`, `FlowEditorUiTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
