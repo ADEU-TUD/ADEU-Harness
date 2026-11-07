@@ -85,8 +85,14 @@ import kotlin.math.roundToInt
 @Composable
 internal fun FlowOutline(state: FlowState, onJump: (Int) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
     @Suppress("UNUSED_VARIABLE") val v = state.version
-    val md = remember(state.version) { state.markdown() }
-    val heads = remember(md) { DocOutline.headings(md) }
+    // The headings are read anew only when one of them changed (not on every key in a long document).
+    val sig = remember(state.version) {
+        state.segs.map { s ->
+            if (s is FlowSeg.Text) s.rich.paras.indices.filter { s.rich.paras[it].kind.heading || s.rich.paras[it].kind == io.github.thepytales.llmhub.docs.text.ParaKind.TITLE }
+                .map { s.rich.paras[it].kind to s.rich.paraText(it) } else (s as FlowSeg.Raw).markdown.take(0)
+        }
+    }
+    val heads = remember(sig) { DocOutline.headings(state.markdown()) }
     var folded by remember(heads.size) { mutableStateOf(setOf<Int>()) }
     val density = LocalDensity.current
     val rowPx = with(density) { 30.dp.toPx() }

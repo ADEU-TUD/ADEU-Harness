@@ -301,7 +301,7 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
     }
 
     /** Numbers of the open suggestions (AP-47), in text order. */
-    val suggestions: List<Int> get() = chars.flatMap { listOf(it.ins, it.del) }.filter { it > 0 }.distinct()
+    val suggestions: List<Int> by lazy { chars.flatMap { listOf(it.ins, it.del) }.filter { it > 0 }.distinct() }
 
     /** Accepts ([accept] true) or rejects suggestion [n]. */
     fun settle(n: Int, accept: Boolean): RichText {

@@ -254,7 +254,11 @@ internal fun pageItems(state: FlowState, gap: Float, minField: Float): Pair<List
             is FlowSeg.Text -> {
                 val layout = seg.layout ?: return null
                 val rich = seg.rich
-                val lines = naturalLines(layout, rich, seg.breaks, seg.deleted) ?: return null
+                // Once per layout of each field (große Dokumente: the other fields keep theirs).
+                val key = listOf(layout, rich, seg.breaks, seg.deleted)
+                val lines = (if (seg.linesFor == key) seg.linesCache else null)
+                    ?: naturalLines(layout, rich, seg.breaks, seg.deleted)?.also { seg.linesFor = key; seg.linesCache = it }
+                    ?: return null
                 val paraOf = lines.map { rich.paraAt(it.offset) }
                 // The empty line Compose adds after a paragraph (its line break) is the room between paragraphs: a
                 // space, not a line of the paragraph (Witwen/Waisen count only real lines).
@@ -329,15 +333,16 @@ internal fun applyPlan(plan: PageLayout.Plan, owners: List<Pair<FlowSeg, Int>>, 
     for (seg in state.segs) {
         val top = tops[seg.id] ?: 0f
         when (seg) {
+            // Room that differs by a pixel or two stays as it is (see ROOM_SLACK): the plan must come to rest.
             is FlowSeg.Text -> {
                 val b = breaks[seg.id].orEmpty()
-                if (seg.breaks != b) seg.breaks = b
-                if (seg.push != top) seg.push = top
+                if (!sameBreaks(seg.breaks, b)) seg.breaks = b
+                if (kotlin.math.abs(seg.push - top) > ROOM_SLACK) seg.push = top
             }
             is FlowSeg.Raw -> {
-                if (seg.push != top) seg.push = top
+                if (kotlin.math.abs(seg.push - top) > ROOM_SLACK) seg.push = top
                 val rp = rowPush[seg.id].orEmpty()
-                if (seg.rowPush != rp) seg.rowPush = rp
+                if (rp.keys != seg.rowPush.keys || rp.any { (k, v) -> kotlin.math.abs(v - (seg.rowPush[k] ?: 0f)) > ROOM_SLACK }) seg.rowPush = rp
                 val rr = repeat[seg.id].orEmpty()
                 if (seg.repeatAt != rr) seg.repeatAt = rr
             }
@@ -352,6 +357,17 @@ internal fun applyPlan(plan: PageLayout.Plan, owners: List<Pair<FlowSeg, Int>>, 
     }
     if (state.sectionPages != sections) state.sectionPages = sections
 }
+
+/**
+ * Room may differ by this much (px) before a field is laid out again: the invisible lines round their height to whole
+ * pixels, so the measured lines move by a pixel or so and the next plan asks for a pixel more or less – without this
+ * slack the plan would swing back and forth and lay out every field after the cursor on each key.
+ */
+internal const val ROOM_SLACK = 2.5f
+
+/** The same page breaks: at the same places, with room that differs by at most [ROOM_SLACK]. */
+internal fun sameBreaks(a: List<PageBreakAt>, b: List<PageBreakAt>): Boolean =
+    a.size == b.size && a.indices.all { a[it].offset == b[it].offset && a[it].ins == b[it].ins && kotlin.math.abs(a[it].height - b[it].height) <= ROOM_SLACK }
 
 /** No pages (Ohne Seiten, narrow window): all room goes. */
 internal fun clearPlan(state: FlowState) {

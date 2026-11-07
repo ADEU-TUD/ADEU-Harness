@@ -219,6 +219,19 @@ sealed class FlowSeg {
 
         /** Where [offset] of the text is in the shown text (with the room of the page breaks and removed text). */
         fun shown(offset: Int): Int = shownOffset(breaks, deleted, offset)
+
+        /** This text as Markdown blocks, made once per text (große Dokumente: only the piece typed in is made anew). */
+        fun blocks(): List<String> {
+            val r = rich
+            if (blocksFor !== r) { blocksCache = RichText.toBlocks(r); blocksFor = r }
+            return blocksCache
+        }
+        private var blocksFor: RichText? = null
+        private var blocksCache: List<String> = emptyList()
+
+        /** The measured lines of the last layout (see naturalLines), made once per layout. */
+        internal var linesFor: Any? = null
+        internal var linesCache: List<NaturalLine>? = null
     }
 
     class Raw(override val id: Long, val markdown: String) : FlowSeg() {
@@ -254,6 +267,17 @@ class FlowState(markdown: String) {
     private var nextId = 1L
     val segs = mutableStateListOf<FlowSeg>()
     var active by mutableStateOf<FlowSeg.Text?>(null)
+    /**
+     * Markieren über Grenzen (AP-44): where a selection over several text fields (and the blocks between) began; its
+     * other end is the cursor of [active]. Null: only the selection inside the active field (see FlowSpan).
+     */
+    var spanAnchor by mutableStateOf<Pair<FlowSeg.Text, Int>?>(null)
+    /** Umschalt is held (a click then extends the selection into another field). */
+    var shiftDown = false
+    /** The field a Umschalt+Klick went into (its click becomes the end of the selection over several fields). */
+    internal var shiftClick: FlowSeg.Text? = null
+    /** The next focus change comes from the editor itself (it keeps a selection over several fields). */
+    internal var focusByEditor = false
     /** The Markdown last loaded or saved; a different one from outside (the model, another PC) is loaded anew. */
     var lastMarkdown: String = markdown
     /** Counts the changes; the editor saves a moment after the last one. */
@@ -313,7 +337,10 @@ class FlowState(markdown: String) {
         segs.clear()
         var pending = mutableListOf<String>()
         fun flushText() {
-            segs += FlowSeg.Text(nextId++, if (pending.isEmpty()) RichText.empty() else RichText.fromBlocks(pending))
+            // Große Dokumente (AP-43 d): long running text in pieces at its chapters (see [pieces]), one text field each.
+            val groups = pieces(pending)
+            if (groups.isEmpty()) segs += FlowSeg.Text(nextId++, RichText.empty())
+            for (g in groups) segs += FlowSeg.Text(nextId++, RichText.fromBlocks(g))
             pending = mutableListOf()
         }
         val blocks = DocBlocks.split(markdown).map { it.replace(EMPTY_BLOCK, "") }.filter { it.isNotBlank() }
@@ -328,12 +355,49 @@ class FlowState(markdown: String) {
         active = segs.filterIsInstance<FlowSeg.Text>().firstOrNull { it.id == active?.id } ?: segs.filterIsInstance<FlowSeg.Text>().first()
     }
 
-    fun markdown(): String = DocBlocks.join(segs.flatMap { s ->
-        when (s) {
-            is FlowSeg.Text -> RichText.toBlocks(s.rich)
-            is FlowSeg.Raw -> listOf(s.markdown)
+    /**
+     * Running text of more than [PIECES_FROM] characters in pieces: a new piece starts at a heading of level 1 or 2 once
+     * the piece has [PIECE_MIN] characters, and at any paragraph once it has [PIECE_MAX] (a long text without
+     * chapters). Compose lays out a whole text field on every key; pieces keep that short. Cursor, deleting and
+     * selecting go on across the pieces (see FlowSpan).
+     */
+    private fun pieces(blocks: List<String>): List<List<String>> {
+        if (blocks.isEmpty()) return emptyList()
+        if (blocks.sumOf { it.length } <= PIECES_FROM) return listOf(blocks)
+        val out = mutableListOf<MutableList<String>>(mutableListOf())
+        var size = 0
+        for (b in blocks) {
+            val chapter = b.startsWith("# ") || b.startsWith("## ")
+            if (out.last().isNotEmpty() && (chapter && size >= PIECE_MIN || size >= PIECE_MAX)) { out += mutableListOf<String>(); size = 0 }
+            out.last() += b
+            size += b.length
         }
-    })
+        return out
+    }
+
+    fun markdown(): String {
+        // The same pieces as last time: the same Markdown (several parts of the editor ask for it per change).
+        val key = segs.map { if (it is FlowSeg.Text) it.rich else (it as FlowSeg.Raw).markdown }
+        val last = mdKey
+        if (last != null && last.size == key.size && key.indices.all { last[it] === key[it] }) return mdCache
+        val md = DocBlocks.join(segs.flatMap { s ->
+            when (s) {
+                is FlowSeg.Text -> s.blocks()
+                is FlowSeg.Raw -> listOf(s.markdown)
+            }
+        })
+        mdKey = key
+        mdCache = md
+        return md
+    }
+    private var mdKey: List<Any>? = null
+    private var mdCache = ""
+
+    /**
+     * The blocks of their own (settings, tables …) as Markdown: page setup, sections and Formatvorlagen live there, so
+     * they need not be read from the whole text on every key.
+     */
+    fun rawMarkdown(): String = segs.filterIsInstance<FlowSeg.Raw>().joinToString("\n\n") { it.markdown }
 
     private fun snapshot(): List<Pair<Long, Any>> = segs.map { s -> s.id to (if (s is FlowSeg.Text) s.rich else (s as FlowSeg.Raw).markdown) }
 
@@ -464,6 +528,11 @@ class FlowState(markdown: String) {
     }
 
     companion object {
+        /** Große Dokumente: running text is split into pieces from this length on (about 12 pages). */
+        const val PIECES_FROM = 30_000
+        const val PIECE_MIN = 3_000
+        const val PIECE_MAX = 15_000
+
         /** The editor shown last (for the checks of the Seitenansicht in the tests). */
         internal var shown: java.lang.ref.WeakReference<FlowState>? = null
 
@@ -491,7 +560,7 @@ class FlowState(markdown: String) {
 
     fun hitsIn(r: RichText): List<IntRange> = if (!findOpen) emptyList() else pattern()?.findAll(r.text)?.map { it.range }?.filter { !it.isEmpty() }?.toList().orEmpty()
 
-    fun hits(): List<Pair<FlowSeg.Text, IntRange>> = segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> hitsIn(t.rich).map { t to it } }
+    fun hits(): List<Pair<FlowSeg.Text, IntRange>> = if (!findOpen) emptyList() else segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> hitsIn(t.rich).map { t to it } }
 
     /** Replaces hit [i] (the replacement takes the format of the hit's first character). */
     fun replaceHit(i: Int) {
@@ -604,6 +673,12 @@ class FlowState(markdown: String) {
     /** Changes the character format of the selection, or of the next typed characters. */
     fun format(change: (CharFormat) -> CharFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            checkpoint()
+            parts.forEach { (seg, r) -> if (seg is FlowSeg.Text && r != null && !r.isEmpty()) seg.rich = seg.rich.format(r, change) }
+            changed()
+            return
+        }
         val sel = t.selection
         if (sel.collapsed) {
             t.typing = change(formatHere())
@@ -617,6 +692,11 @@ class FlowState(markdown: String) {
     /** Toggles a flag of the character format (bold, italic …) like Docs: on unless the whole selection has it. */
     fun toggle(get: (CharFormat) -> Boolean, set: (CharFormat, Boolean) -> CharFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            val on = !parts.all { (seg, r) -> seg !is FlowSeg.Text || r == null || r.all { i -> seg.rich.text[i] == '\n' || get(seg.rich.chars[i]) } }
+            format { set(it, on) }
+            return
+        }
         val sel = t.selection
         val on = if (sel.collapsed) !get(formatHere()) else !(sel.min until sel.max).all { i -> t.rich.text[i] == '\n' || get(t.rich.chars[i]) }
         format { set(it, on) }
@@ -624,6 +704,12 @@ class FlowState(markdown: String) {
 
     fun paragraph(change: (ParaFormat) -> ParaFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            checkpoint()
+            parts.forEach { (seg, r) -> if (seg is FlowSeg.Text && r != null) seg.rich = seg.rich.formatParas(r.first, (r.last + 1).coerceAtLeast(r.first), change) }
+            changed()
+            return
+        }
         checkpoint()
         t.rich = t.rich.formatParas(t.selection.min, t.selection.max, change)
         changed()
@@ -642,6 +728,7 @@ class FlowState(markdown: String) {
 
     /** Inserts plain [text] (or [rich]) at the cursor of the active text, replacing the selection. */
     fun insertText(text: String) {
+        if (spanParts() != null) deleteSpan()
         val t = active ?: return
         checkpoint()
         val sel = t.selection
@@ -933,7 +1020,8 @@ fun FlowEditor(
     var outline by remember { mutableStateOf(!narrow) }
     var ruler by remember { mutableStateOf(true) }
     val defaults = c.settings.current.docStyleLines
-    val sheet = remember(state.version, doc.style, defaults) { sheetFor(state.markdown(), doc.style, defaults) }
+    val raws = remember(state.version) { state.rawMarkdown() }
+    val sheet = remember(raws, doc.style, defaults) { sheetFor(raws, doc.style, defaults) }
     if (state.sheet != sheet) state.sheet = sheet
     val comments = remember(doc.comments, tabId) { openComments(doc, tabId) }
     if (state.comments != comments) state.comments = comments
@@ -1686,7 +1774,8 @@ private fun FlowPages(
     scroll: ScrollState, ruler: Boolean, onWrite: () -> Unit, onRevise: (String?) -> Unit, onFind: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val setup = remember(state.version) { DocMarkup.pageSetup(state.markdown()) }
+    val raws = remember(state.version) { state.rawMarkdown() }
+    val setup = remember(raws) { DocMarkup.pageSetup(raws) }
     val margin = if (narrow) 20.dp else (setup.marginMm * 3.7795f).dp * zoom
     val pages = view == FlowView.PAGES && !narrow
     val pageWidth = if (pages) 794.dp * zoom else androidx.compose.ui.unit.Dp.Unspecified
@@ -1726,6 +1815,7 @@ private fun FlowPages(
     val count = state.pageCount.coerceAtLeast(1)
     val today = remember { DocMarkup.today() }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+    val viewHeight = with(density) { maxHeight.toPx() }.takeIf { it.isFinite() } ?: 4000f
     // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
     val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
     Box(Modifier.fillMaxSize().verticalScroll(scroll), contentAlignment = Alignment.TopCenter) {
@@ -1752,8 +1842,12 @@ private fun FlowPages(
                                     val m = margin.toPx()
                                     val style = TextStyle(fontSize = (9f * zoom).coerceAtLeast(7f).sp, color = outline)
                                     val half = ((size.width - 2 * m) / 2f).coerceAtLeast(10f).toInt()
+                                    // Only the sheets around the visible part are drawn (große Dokumente: 200+ pages).
+                                    val viewTop = scroll.value.toFloat() - full
+                                    val viewBottom = scroll.value.toFloat() + viewHeight + full
                                     for (p in 0 until count) {
                                         val top = p * (full + gap)
+                                        if (top + full < viewTop || top > viewBottom) continue
                                         drawRoundRect(look.card, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
                                         drawRoundRect(sheetBorder, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
                                         val pm = pageMargins(setup, p + 1, count, today, sectionOf(state.sectionPages, setup, p + 1))
@@ -1806,7 +1900,10 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     var editing by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     // Room above it when it starts a page (Seitenansicht); its own height is measured without that room.
+    // Inside a selection over several fields the block is marked as a whole.
+    val inSpan = state.spanIn(seg) != null
     val outer = Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() })
+        .then(if (inSpan) Modifier.background(LocalChatLook.current.brand.copy(alpha = 0.18f), RoundedCornerShape(4.dp)) else Modifier)
     val measure = Modifier.onSizeChanged { if (kotlin.math.abs(seg.height - it.height) > 0.5f) seg.height = it.height.toFloat() }
     // Abschnittsumbruch (AP-43/45): a new page with the section's own header and footer.
     val section = DocMarkup.section(seg.markdown)
@@ -1935,7 +2032,10 @@ private fun FlowField(
     val hits = state.hitsIn(rich)
     val current = state.hits().getOrNull(state.findAt)?.takeIf { it.first === seg }?.second
     val quoted = state.comments.mapNotNull { cm -> state.findQuote(cm.quote)?.takeIf { it.first === seg }?.second }
-    val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
+    // The part of a selection over several fields that lies in this one (the active field shows its own selection).
+    val spanHere = if (state.active !== seg) state.spanIn(seg)?.second?.takeIf { !it.isEmpty() } else null
+    val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) } +
+        listOfNotNull(spanHere?.let { it to look.brand.copy(alpha = 0.28f) })
     val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
     val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
     val tabbed = remember(annotated, seg.tabExtra, density) { FlowTabs.annotate(annotated, seg.tabExtra, density.density, density.fontScale) }
@@ -2014,7 +2114,17 @@ private fun FlowField(
             state.changed()
         } else {
             if (v.selection != seg.selection) seg.typing = null
-            seg.selection = v.selection
+            var sel = v.selection
+            val anchor = state.spanAnchor
+            if (state.shiftClick === seg && anchor != null) {
+                state.shiftClick = null
+                val edge = if (state.segs.indexOf(anchor.first) < state.segs.indexOf(seg)) 0 else seg.rich.text.length
+                sel = TextRange(edge, sel.end)
+            } else if (anchor != null && v.selection != seg.selection && !state.shiftDown && state.active === seg) {
+                // A click or a key without Umschalt ends the selection over several fields.
+                state.spanAnchor = null
+            }
+            seg.selection = sel
             seg.composition = v.composition
         }
     }
@@ -2051,7 +2161,17 @@ private fun FlowField(
                 .fillMaxWidth()
                 .heightIn(min = 28.dp)
                 .focusRequester(seg.focus)
-                .onFocusChanged { if (it.isFocused) state.active = seg }
+                .onFocusChanged {
+                    if (!it.isFocused || state.active === seg) return@onFocusChanged
+                    val before = state.active
+                    // Umschalt+Klick into another field: the selection reaches from the cursor before to the click.
+                    if (!state.focusByEditor && state.shiftDown && before != null) {
+                        if (state.spanAnchor == null) state.spanAnchor = before to before.selection.start
+                        state.shiftClick = seg
+                    } else if (!state.focusByEditor) state.spanAnchor = null
+                    state.focusByEditor = false
+                    state.active = seg
+                }
                 .semantics { contentDescription = tr("Dokumenttext") }
                 .drawBehind {
                     // List marks (•, 1., a.) in the gutter before the indented text.
@@ -2066,7 +2186,10 @@ private fun FlowField(
                     }
                 }
                 .onPreviewKeyEvent { e ->
+                    state.shiftDown = e.isShiftPressed
                     if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    // Over the edges of this field: other pieces, the selection over several of them (FlowSpan).
+                    if (state.pieceKey(c, seg, e)) return@onPreviewKeyEvent true
                     val cmd = e.isCtrlPressed || e.isMetaPressed
                     when {
                         cmd && !e.isShiftPressed && e.key == Key.Z -> { state.undo(); true }
