@@ -188,6 +188,10 @@ sealed class FlowSeg {
         /** Page breaks inside this text (Seitenansicht, AP-43) and room above it when it starts a page. */
         var breaks by mutableStateOf<List<PageBreakAt>>(emptyList())
         var push by mutableFloatStateOf(0f)
+        /** Tabstopps (AP-44): room after each tab character (offset → px), from the last layout. */
+        var tabExtra by mutableStateOf<Map<Int, Float>>(emptyMap())
+        internal var tabFor: Any? = null
+        internal var tabRounds = 0
 
         /**
          * Änderungen nachverfolgen (AP-44): this text when tracking began (null: not tracked) and the changes since –
@@ -215,12 +219,43 @@ sealed class FlowSeg {
 
         /** Where [offset] of the text is in the shown text (with the room of the page breaks and removed text). */
         fun shown(offset: Int): Int = shownOffset(breaks, deleted, offset)
+
+        /** This text as Markdown blocks, made once per text (große Dokumente: only the piece typed in is made anew). */
+        fun blocks(): List<String> {
+            val r = rich
+            if (blocksFor !== r) { blocksCache = RichText.toBlocks(r); blocksFor = r }
+            return blocksCache
+        }
+        private var blocksFor: RichText? = null
+        private var blocksCache: List<String> = emptyList()
+
+        /** The measured lines of the last layout (see naturalLines), made once per layout. */
+        internal var linesFor: Any? = null
+        internal var linesCache: List<NaturalLine>? = null
     }
 
     class Raw(override val id: Long, val markdown: String) : FlowSeg() {
         /** Measured height without [push] (−1 until measured) and room above it when it starts a page. */
         var height by mutableFloatStateOf(-1f)
         var push by mutableFloatStateOf(0f)
+
+        /** A table (Markdown rows `| … |`). */
+        val isTable: Boolean = markdown.trim().startsWith("|")
+
+        /**
+         * Tabellen über Seiten (AP-43): measured height of each row with the room after it and of the bar below the
+         * rows (−1 until measured); room before rows (row → px) and the rows above which the header row is repeated.
+         */
+        var rowHeights by mutableStateOf<List<Float>>(emptyList())
+        var barHeight by mutableFloatStateOf(-1f)
+        var rowPush by mutableStateOf<Map<Int, Float>>(emptyMap())
+        var repeatAt by mutableStateOf<Set<Int>>(emptySet())
+
+        /** Takes the measurements of [old] (the same block before an edit), so the page plan does not wait for them. */
+        fun measuredLike(old: Raw): Raw = also {
+            height = old.height
+            if (isTable && old.isTable) { rowHeights = old.rowHeights; barHeight = old.barHeight }
+        }
     }
 }
 
@@ -232,6 +267,17 @@ class FlowState(markdown: String) {
     private var nextId = 1L
     val segs = mutableStateListOf<FlowSeg>()
     var active by mutableStateOf<FlowSeg.Text?>(null)
+    /**
+     * Markieren über Grenzen (AP-44): where a selection over several text fields (and the blocks between) began; its
+     * other end is the cursor of [active]. Null: only the selection inside the active field (see FlowSpan).
+     */
+    var spanAnchor by mutableStateOf<Pair<FlowSeg.Text, Int>?>(null)
+    /** Umschalt is held (a click then extends the selection into another field). */
+    var shiftDown = false
+    /** The field a Umschalt+Klick went into (its click becomes the end of the selection over several fields). */
+    internal var shiftClick: FlowSeg.Text? = null
+    /** The next focus change comes from the editor itself (it keeps a selection over several fields). */
+    internal var focusByEditor = false
     /** The Markdown last loaded or saved; a different one from outside (the model, another PC) is loaded anew. */
     var lastMarkdown: String = markdown
     /** Counts the changes; the editor saves a moment after the last one. */
@@ -275,6 +321,8 @@ class FlowState(markdown: String) {
     var scrollTo: ((Float) -> Unit)? = null
     /** Pages of the Seitenansicht (from [io.github.thepytales.llmhub.docs.text.PageLayout]). */
     var pageCount by mutableIntStateOf(1)
+    /** Abschnitte (AP-43/45): first page (1-based) of each section after the first, with its header and footer. */
+    var sectionPages by mutableStateOf<List<Pair<Int, DocMarkup.Section>>>(emptyList())
     /** Text area height and room between two text areas of the Seitenansicht (px), as the page plan used them. */
     var pageText = 0f
     var pageBetween = 0f
@@ -289,7 +337,10 @@ class FlowState(markdown: String) {
         segs.clear()
         var pending = mutableListOf<String>()
         fun flushText() {
-            segs += FlowSeg.Text(nextId++, if (pending.isEmpty()) RichText.empty() else RichText.fromBlocks(pending))
+            // Große Dokumente (AP-43 d): long running text in pieces at its chapters (see [pieces]), one text field each.
+            val groups = pieces(pending)
+            if (groups.isEmpty()) segs += FlowSeg.Text(nextId++, RichText.empty())
+            for (g in groups) segs += FlowSeg.Text(nextId++, RichText.fromBlocks(g))
             pending = mutableListOf()
         }
         val blocks = DocBlocks.split(markdown).map { it.replace(EMPTY_BLOCK, "") }.filter { it.isNotBlank() }
@@ -304,12 +355,49 @@ class FlowState(markdown: String) {
         active = segs.filterIsInstance<FlowSeg.Text>().firstOrNull { it.id == active?.id } ?: segs.filterIsInstance<FlowSeg.Text>().first()
     }
 
-    fun markdown(): String = DocBlocks.join(segs.flatMap { s ->
-        when (s) {
-            is FlowSeg.Text -> RichText.toBlocks(s.rich)
-            is FlowSeg.Raw -> listOf(s.markdown)
+    /**
+     * Running text of more than [PIECES_FROM] characters in pieces: a new piece starts at a heading of level 1 or 2 once
+     * the piece has [PIECE_MIN] characters, and at any paragraph once it has [PIECE_MAX] (a long text without
+     * chapters). Compose lays out a whole text field on every key; pieces keep that short. Cursor, deleting and
+     * selecting go on across the pieces (see FlowSpan).
+     */
+    private fun pieces(blocks: List<String>): List<List<String>> {
+        if (blocks.isEmpty()) return emptyList()
+        if (blocks.sumOf { it.length } <= PIECES_FROM) return listOf(blocks)
+        val out = mutableListOf<MutableList<String>>(mutableListOf())
+        var size = 0
+        for (b in blocks) {
+            val chapter = b.startsWith("# ") || b.startsWith("## ")
+            if (out.last().isNotEmpty() && (chapter && size >= PIECE_MIN || size >= PIECE_MAX)) { out += mutableListOf<String>(); size = 0 }
+            out.last() += b
+            size += b.length
         }
-    })
+        return out
+    }
+
+    fun markdown(): String {
+        // The same pieces as last time: the same Markdown (several parts of the editor ask for it per change).
+        val key = segs.map { if (it is FlowSeg.Text) it.rich else (it as FlowSeg.Raw).markdown }
+        val last = mdKey
+        if (last != null && last.size == key.size && key.indices.all { last[it] === key[it] }) return mdCache
+        val md = DocBlocks.join(segs.flatMap { s ->
+            when (s) {
+                is FlowSeg.Text -> s.blocks()
+                is FlowSeg.Raw -> listOf(s.markdown)
+            }
+        })
+        mdKey = key
+        mdCache = md
+        return md
+    }
+    private var mdKey: List<Any>? = null
+    private var mdCache = ""
+
+    /**
+     * The blocks of their own (settings, tables …) as Markdown: page setup, sections and Formatvorlagen live there, so
+     * they need not be read from the whole text on every key.
+     */
+    fun rawMarkdown(): String = segs.filterIsInstance<FlowSeg.Raw>().joinToString("\n\n") { it.markdown }
 
     private fun snapshot(): List<Pair<Long, Any>> = segs.map { s -> s.id to (if (s is FlowSeg.Text) s.rich else (s as FlowSeg.Raw).markdown) }
 
@@ -440,6 +528,11 @@ class FlowState(markdown: String) {
     }
 
     companion object {
+        /** Große Dokumente: running text is split into pieces from this length on (about 12 pages). */
+        const val PIECES_FROM = 30_000
+        const val PIECE_MIN = 3_000
+        const val PIECE_MAX = 15_000
+
         /** The editor shown last (for the checks of the Seitenansicht in the tests). */
         internal var shown: java.lang.ref.WeakReference<FlowState>? = null
 
@@ -467,7 +560,7 @@ class FlowState(markdown: String) {
 
     fun hitsIn(r: RichText): List<IntRange> = if (!findOpen) emptyList() else pattern()?.findAll(r.text)?.map { it.range }?.filter { !it.isEmpty() }?.toList().orEmpty()
 
-    fun hits(): List<Pair<FlowSeg.Text, IntRange>> = segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> hitsIn(t.rich).map { t to it } }
+    fun hits(): List<Pair<FlowSeg.Text, IntRange>> = if (!findOpen) emptyList() else segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> hitsIn(t.rich).map { t to it } }
 
     /** Replaces hit [i] (the replacement takes the format of the hit's first character). */
     fun replaceHit(i: Int) {
@@ -580,6 +673,12 @@ class FlowState(markdown: String) {
     /** Changes the character format of the selection, or of the next typed characters. */
     fun format(change: (CharFormat) -> CharFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            checkpoint()
+            parts.forEach { (seg, r) -> if (seg is FlowSeg.Text && r != null && !r.isEmpty()) seg.rich = seg.rich.format(r, change) }
+            changed()
+            return
+        }
         val sel = t.selection
         if (sel.collapsed) {
             t.typing = change(formatHere())
@@ -593,6 +692,11 @@ class FlowState(markdown: String) {
     /** Toggles a flag of the character format (bold, italic …) like Docs: on unless the whole selection has it. */
     fun toggle(get: (CharFormat) -> Boolean, set: (CharFormat, Boolean) -> CharFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            val on = !parts.all { (seg, r) -> seg !is FlowSeg.Text || r == null || r.all { i -> seg.rich.text[i] == '\n' || get(seg.rich.chars[i]) } }
+            format { set(it, on) }
+            return
+        }
         val sel = t.selection
         val on = if (sel.collapsed) !get(formatHere()) else !(sel.min until sel.max).all { i -> t.rich.text[i] == '\n' || get(t.rich.chars[i]) }
         format { set(it, on) }
@@ -600,6 +704,12 @@ class FlowState(markdown: String) {
 
     fun paragraph(change: (ParaFormat) -> ParaFormat) {
         val t = active ?: return
+        spanParts()?.let { parts ->
+            checkpoint()
+            parts.forEach { (seg, r) -> if (seg is FlowSeg.Text && r != null) seg.rich = seg.rich.formatParas(r.first, (r.last + 1).coerceAtLeast(r.first), change) }
+            changed()
+            return
+        }
         checkpoint()
         t.rich = t.rich.formatParas(t.selection.min, t.selection.max, change)
         changed()
@@ -618,6 +728,7 @@ class FlowState(markdown: String) {
 
     /** Inserts plain [text] (or [rich]) at the cursor of the active text, replacing the selection. */
     fun insertText(text: String) {
+        if (spanParts() != null) deleteSpan()
         val t = active ?: return
         checkpoint()
         val sel = t.selection
@@ -659,7 +770,7 @@ class FlowState(markdown: String) {
                 segs.remove(b)
                 if (active === b) active = a
             }
-        } else segs[i] = FlowSeg.Raw(seg.id, markdown)
+        } else segs[i] = FlowSeg.Raw(seg.id, markdown).measuredLike(seg)
         changed()
     }
 
@@ -909,7 +1020,8 @@ fun FlowEditor(
     var outline by remember { mutableStateOf(!narrow) }
     var ruler by remember { mutableStateOf(true) }
     val defaults = c.settings.current.docStyleLines
-    val sheet = remember(state.version, doc.style, defaults) { sheetFor(state.markdown(), doc.style, defaults) }
+    val raws = remember(state.version) { state.rawMarkdown() }
+    val sheet = remember(raws, doc.style, defaults) { sheetFor(raws, doc.style, defaults) }
     if (state.sheet != sheet) state.sheet = sheet
     val comments = remember(doc.comments, tabId) { openComments(doc, tabId) }
     if (state.comments != comments) state.comments = comments
@@ -1330,6 +1442,7 @@ private fun FlowMenus(
 ) {
     var open by remember { mutableStateOf<String?>(null) }
     var tablePick by remember { mutableStateOf(false) }
+    var sectionFor by remember { mutableStateOf<DocMarkup.Section?>(null) }
     var special by remember { mutableStateOf(false) }
     @Composable
     fun menu(name: String, items: @Composable (close: () -> Unit) -> Unit) {
@@ -1374,6 +1487,7 @@ private fun FlowMenus(
             item("Zitat aus der Literatur …", onClick = host.onCitation, close = close)
             HorizontalDivider()
             item("Seitenumbruch", onClick = { state.insertBlock("\\newpage") }, close = close)
+            item("Abschnittsumbruch …", onClick = { sectionFor = DocMarkup.Section() }, close = close)
             item("Inhaltsverzeichnis", onClick = { state.insertBlock(DocMarkup.TOC) }, close = close)
             item("Fußnote", onClick = { insertFootnote(state) }, close = close)
             item("Formel", onClick = { state.insertBlock("$$\nE = mc^2\n$$") }, close = close)
@@ -1398,6 +1512,8 @@ private fun FlowMenus(
             val p = state.paraHere()
             LINE_SPACINGS.forEach { (z, label) -> item((if (p.spacing == z) "✓ " else "") + tr("Zeilenabstand {0}", tr(label)), onClick = { state.paragraph { it.copy(spacing = z) } }, close = close) }
             item((if (p.spacing == null) "✓ " else "") + tr("Zeilenabstand der Formatvorlage"), onClick = { state.paragraph { it.copy(spacing = null) } }, close = close)
+            // Tabstopps (AP-44): set by a click into the ruler, moved by dragging, removed here or by dragging off.
+            item("Tabstopps entfernen", enabled = p.tabs.isNotEmpty(), onClick = { state.paragraph { it.copy(tabs = emptyList()) } }, close = close)
             HorizontalDivider()
             // Formatvorlagen (AP-46).
             item(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label)), onClick = { adaptStyle(state) }, close = close)
@@ -1424,6 +1540,9 @@ private fun FlowMenus(
                 Notices.info(tr("{0} Wörter", words))
             }, close = close)
         }
+    }
+    sectionFor?.let { sec ->
+        SectionDialog(sec, onDismiss = { sectionFor = null }) { s2 -> sectionFor = null; state.insertBlock(DocMarkup.sectionMarker(s2)) }
     }
     if (tablePick) TablePickDialog(onDismiss = { tablePick = false }) { rows, cols ->
         tablePick = false
@@ -1655,7 +1774,8 @@ private fun FlowPages(
     scroll: ScrollState, ruler: Boolean, onWrite: () -> Unit, onRevise: (String?) -> Unit, onFind: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val setup = remember(state.version) { DocMarkup.pageSetup(state.markdown()) }
+    val raws = remember(state.version) { state.rawMarkdown() }
+    val setup = remember(raws) { DocMarkup.pageSetup(raws) }
     val margin = if (narrow) 20.dp else (setup.marginMm * 3.7795f).dp * zoom
     val pages = view == FlowView.PAGES && !narrow
     val pageWidth = if (pages) 794.dp * zoom else androidx.compose.ui.unit.Dp.Unspecified
@@ -1695,6 +1815,7 @@ private fun FlowPages(
     val count = state.pageCount.coerceAtLeast(1)
     val today = remember { DocMarkup.today() }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+    val viewHeight = with(density) { maxHeight.toPx() }.takeIf { it.isFinite() } ?: 4000f
     // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
     val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
     Box(Modifier.fillMaxSize().verticalScroll(scroll), contentAlignment = Alignment.TopCenter) {
@@ -1721,11 +1842,15 @@ private fun FlowPages(
                                     val m = margin.toPx()
                                     val style = TextStyle(fontSize = (9f * zoom).coerceAtLeast(7f).sp, color = outline)
                                     val half = ((size.width - 2 * m) / 2f).coerceAtLeast(10f).toInt()
+                                    // Only the sheets around the visible part are drawn (große Dokumente: 200+ pages).
+                                    val viewTop = scroll.value.toFloat() - full
+                                    val viewBottom = scroll.value.toFloat() + viewHeight + full
                                     for (p in 0 until count) {
                                         val top = p * (full + gap)
+                                        if (top + full < viewTop || top > viewBottom) continue
                                         drawRoundRect(look.card, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
                                         drawRoundRect(sheetBorder, Offset(0f, top), androidx.compose.ui.geometry.Size(size.width, full), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
-                                        val pm = pageMargins(setup, p + 1, count, today)
+                                        val pm = pageMargins(setup, p + 1, count, today, sectionOf(state.sectionPages, setup, p + 1))
                                         // Measured first and drawn as a layout: drawText(measurer, text, topLeft) only allows the
                                         // width left of topLeft inside this box (a negative width crashed the app before).
                                         fun put(text: String, right: Boolean, footer: Boolean) {
@@ -1775,8 +1900,23 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     var editing by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     // Room above it when it starts a page (Seitenansicht); its own height is measured without that room.
+    // Inside a selection over several fields the block is marked as a whole.
+    val inSpan = state.spanIn(seg) != null
     val outer = Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() })
+        .then(if (inSpan) Modifier.background(LocalChatLook.current.brand.copy(alpha = 0.18f), RoundedCornerShape(4.dp)) else Modifier)
     val measure = Modifier.onSizeChanged { if (kotlin.math.abs(seg.height - it.height) > 0.5f) seg.height = it.height.toFloat() }
+    // Abschnittsumbruch (AP-43/45): a new page with the section's own header and footer.
+    val section = DocMarkup.section(seg.markdown)
+    if (section != null) {
+        var edit by remember { mutableStateOf(false) }
+        Row(outer.then(measure), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { MarkerLine(sectionLabel(section)) }
+            IconButton(onClick = { edit = true }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Edit, contentDescription = tr("Abschnitt bearbeiten"), modifier = Modifier.size(16.dp)) }
+            IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
+        }
+        if (edit) SectionDialog(section, onDismiss = { edit = false }) { s2 -> edit = false; state.setRaw(seg, DocMarkup.sectionMarker(s2)) }
+        return
+    }
     // Seitenumbruch (AP-43): in the Seitenansicht the text goes on on the next page.
     if (DocMarkup.isPageBreak(seg.markdown)) {
         Row(outer.then(measure), verticalAlignment = Alignment.CenterVertically) {
@@ -1788,7 +1928,9 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     Row(outer.then(measure), verticalAlignment = Alignment.Top) {
         Box(Modifier.weight(1f)) {
             if (seg.markdown.trim().startsWith("|")) {
-                TableGrid(DocBlocks.tableRows(seg.markdown)) { rows -> state.setRaw(seg, DocBlocks.table(rows)) }
+                val rows = remember(seg.markdown) { DocBlocks.tableRows(seg.markdown) }
+                val paging = remember(seg) { rawPaging(seg) }
+                TableGrid(rows, paging = if (pages) paging else null) { r -> state.setRaw(seg, DocBlocks.table(r)) }
             } else {
                 BlockView(doc, tabId, seg.markdown, highlight = false, editable = true, onClick = { editing = true }, onToggleTask = {}, onShowComments = {})
             }
@@ -1799,6 +1941,58 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
         }
     }
     if (editing) TextPrompt(tr("Block bearbeiten (Markdown)"), seg.markdown, onDismiss = { editing = false }) { md -> editing = false; state.setRaw(seg, md) }
+}
+
+/** Tabellen über Seiten (AP-43): the room of the page plan for the rows of [seg], and where its rows are measured. */
+private fun rawPaging(seg: FlowSeg.Raw) = object : TablePaging {
+    override fun push(row: Int) = seg.rowPush[row] ?: 0f
+    override fun repeats(row: Int) = row in seg.repeatAt
+    override fun headerHeight() = seg.rowHeights.firstOrNull()?.coerceAtLeast(0f) ?: 0f
+    override fun measuredRow(row: Int, rows: Int, height: Float) {
+        val old = seg.rowHeights
+        if (old.size == rows && kotlin.math.abs(old[row] - height) <= 0.5f) return
+        seg.rowHeights = List(rows) { i -> if (i == row) height else old.getOrElse(i) { -1f } }
+    }
+    override fun measuredBar(height: Float) {
+        if (kotlin.math.abs(seg.barHeight - height) > 0.5f) seg.barHeight = height
+    }
+}
+
+/** What a section break says in the editor: „Abschnittsumbruch · Kopfzeile: … · Fußzeile: …“. */
+internal fun sectionLabel(s: DocMarkup.Section): String = listOfNotNull(
+    tr("Abschnittsumbruch"),
+    s.header?.let { if (it.isBlank()) tr("ohne Kopfzeile") else tr("Kopfzeile: {0}", it) },
+    s.footer?.let { if (it.isBlank()) tr("ohne Fußzeile") else tr("Fußzeile: {0}", it) },
+).joinToString(" · ")
+
+/** Header and footer of a section: take over the ones before, none, or own text (fields {seite}, {seiten}). */
+@Composable
+private fun SectionDialog(initial: DocMarkup.Section, onDismiss: () -> Unit, onDone: (DocMarkup.Section) -> Unit) {
+    var ownHeader by remember { mutableStateOf(initial.header != null) }
+    var header by remember { mutableStateOf(initial.header.orEmpty()) }
+    var ownFooter by remember { mutableStateOf(initial.footer != null) }
+    var footer by remember { mutableStateOf(initial.footer.orEmpty()) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Abschnittsumbruch")) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(tr("Ab hier beginnt eine neue Seite. Der Abschnitt kann eine eigene Kopf- und Fußzeile haben (Felder: {seite}, {seiten})."), style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(ownHeader, { ownHeader = it })
+                    Text(tr("Eigene Kopfzeile"))
+                }
+                if (ownHeader) androidx.compose.material3.OutlinedTextField(header, { header = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Kopfzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(ownFooter, { ownFooter = it })
+                    Text(tr("Eigene Fußzeile"))
+                }
+                if (ownFooter) androidx.compose.material3.OutlinedTextField(footer, { footer = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Fußzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = { TextButton(onClick = { onDone(DocMarkup.Section(header.takeIf { ownHeader }, footer.takeIf { ownFooter })) }) { Text(tr("Übernehmen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
+    )
 }
 
 /** `**fett**` and `*kursiv*` typed in the running text become formatting (AP-46), like in Docs. */
@@ -1838,10 +2032,15 @@ private fun FlowField(
     val hits = state.hitsIn(rich)
     val current = state.hits().getOrNull(state.findAt)?.takeIf { it.first === seg }?.second
     val quoted = state.comments.mapNotNull { cm -> state.findQuote(cm.quote)?.takeIf { it.first === seg }?.second }
-    val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
+    // The part of a selection over several fields that lies in this one (the active field shows its own selection).
+    val spanHere = if (state.active !== seg) state.spanIn(seg)?.second?.takeIf { !it.isEmpty() } else null
+    val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) } +
+        listOfNotNull(spanHere?.let { it to look.brand.copy(alpha = 0.28f) })
     val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
     val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
-    val value = TextFieldValue(annotated, seg.selection, seg.composition)
+    val tabbed = remember(annotated, seg.tabExtra, density) { FlowTabs.annotate(annotated, seg.tabExtra, density.density, density.fontScale) }
+    val value = TextFieldValue(tabbed, seg.selection, seg.composition)
+    val pxPerMm = with(density) { (3.7795f * zoom).dp.toPx() }
     val measurer = rememberTextMeasurer()
     val marksList = remember(rich) { listMarks(rich) }
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -1915,7 +2114,17 @@ private fun FlowField(
             state.changed()
         } else {
             if (v.selection != seg.selection) seg.typing = null
-            seg.selection = v.selection
+            var sel = v.selection
+            val anchor = state.spanAnchor
+            if (state.shiftClick === seg && anchor != null) {
+                state.shiftClick = null
+                val edge = if (state.segs.indexOf(anchor.first) < state.segs.indexOf(seg)) 0 else seg.rich.text.length
+                sel = TextRange(edge, sel.end)
+            } else if (anchor != null && v.selection != seg.selection && !state.shiftDown && state.active === seg) {
+                // A click or a key without Umschalt ends the selection over several fields.
+                state.spanAnchor = null
+            }
+            seg.selection = sel
             seg.composition = v.composition
         }
     }
@@ -1939,12 +2148,30 @@ private fun FlowField(
                 if (seg.breaks.isEmpty() && seg.deleted.isEmpty()) VisualTransformation.None
                 else PageSpacers(seg.breaks, density.density, density.fontScale, seg.deleted, SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough))
             },
-            onTextLayout = { seg.layout = it },
+            onTextLayout = { l ->
+                seg.layout = l
+                // Tabstopps: the room after each tab follows the new layout (a few rounds at most per text).
+                if (seg.tabFor !== seg.rich) { seg.tabFor = seg.rich; seg.tabRounds = 0 }
+                if ('\t' in seg.rich.text || seg.tabExtra.isNotEmpty()) {
+                    val next = FlowTabs.extras(l, seg.rich, seg::shown, seg.tabExtra, pxPerMm)
+                    if (FlowTabs.differ(next, seg.tabExtra) && seg.tabRounds++ < 6) seg.tabExtra = next
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 28.dp)
                 .focusRequester(seg.focus)
-                .onFocusChanged { if (it.isFocused) state.active = seg }
+                .onFocusChanged {
+                    if (!it.isFocused || state.active === seg) return@onFocusChanged
+                    val before = state.active
+                    // Umschalt+Klick into another field: the selection reaches from the cursor before to the click.
+                    if (!state.focusByEditor && state.shiftDown && before != null) {
+                        if (state.spanAnchor == null) state.spanAnchor = before to before.selection.start
+                        state.shiftClick = seg
+                    } else if (!state.focusByEditor) state.spanAnchor = null
+                    state.focusByEditor = false
+                    state.active = seg
+                }
                 .semantics { contentDescription = tr("Dokumenttext") }
                 .drawBehind {
                     // List marks (•, 1., a.) in the gutter before the indented text.
@@ -1959,7 +2186,10 @@ private fun FlowField(
                     }
                 }
                 .onPreviewKeyEvent { e ->
+                    state.shiftDown = e.isShiftPressed
                     if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    // Over the edges of this field: other pieces, the selection over several of them (FlowSpan).
+                    if (state.pieceKey(c, seg, e)) return@onPreviewKeyEvent true
                     val cmd = e.isCtrlPressed || e.isMetaPressed
                     when {
                         cmd && !e.isShiftPressed && e.key == Key.Z -> { state.undo(); true }
@@ -1997,6 +2227,8 @@ private fun FlowField(
                         cmd && e.isShiftPressed && e.key == Key.Nine -> { state.kind(ParaKind.CHECK); true }
                         e.key == Key.Escape && state.painter != null -> { state.painter = null; true }
                         e.key == Key.Tab && state.paraHere().kind.list -> { state.indent(if (e.isShiftPressed) -1 else 1); true }
+                        // A tab in the text (AP-44): it goes to the next Tabstopp of the paragraph.
+                        e.key == Key.Tab && !cmd && !e.isShiftPressed && !e.isAltPressed -> { state.insertText("\t"); true }
                         // Backspace at the start of a heading or list item first makes it normal text.
                         e.key == Key.Backspace && seg.selection.collapsed && seg.rich.starts.contains(seg.selection.start) && seg.rich.paras[seg.rich.paraAt(seg.selection.start)].let { it.kind != ParaKind.NORMAL } -> {
                             state.paragraph { p -> if (p.kind.list && p.indent > 0) p.copy(indent = p.indent - 1) else p.copy(kind = ParaKind.NORMAL, indent = 0) }

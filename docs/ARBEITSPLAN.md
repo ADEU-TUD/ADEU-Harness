@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 07.11.2026 (1.0.56) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 07.11.2026 (1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -60,9 +60,10 @@ Fairlight).
 | Abschnitt | Pakete |
 | --- | --- |
 | ~~Lora zuerst~~ ☑ | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog (erledigt, siehe *Erledigt*) |
-| **Jetzt** – Editor-Kern und Dokument | AP-43 Gemeinsamer Text-Kern ◐ · AP-44 Fließtext-Editor ◐ · AP-45 Word-Treue ◐ · ~~AP-46 Gliederung und Formatvorlagen~~ ☑ · ~~AP-47 Lora schreibt im Dokument~~ ☑ |
+| ~~Editor-Kern und Dokument~~ ☑ | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument (erledigt, siehe *Erledigt*) |
+| **Jetzt** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge |
 | **Danach** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
-| **Danach** – Video | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge · AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
+| **Danach** – Video | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
 | **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
 
@@ -71,7 +72,7 @@ Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-4
 (Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
-Reihenfolge: jetzt Editor-Kern und Dokument (AP-43 bis AP-47), in *Danach* dann Video (AP-52, AP-53), dann Tabellen und
+Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47) sind erledigt; jetzt Video (AP-52, AP-53), dann Tabellen und
 Folien, dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
 abwechseln, wenn ein Strang wartet.
 
@@ -79,177 +80,33 @@ abwechseln, wenn ein Strang wartet.
 
 ## Jetzt
 
-Editor-Kern und Dokument (aus *Danach* nachgerückt, nachdem AP-38 bis AP-42 erledigt sind).
+Video (aus *Danach* nachgerückt, nachdem Editor-Kern und Dokument – AP-43 bis AP-47 – am 07.11.2026 mit 1.0.57 erledigt
+sind; siehe *Erledigt*). Erst AP-52 (Grundlage: mehrere Spuren, echte Vorschau), dann AP-53.
 
-**Stand nach 1.0.56 (07.11.2026)**: AP-46 und AP-47 sind erledigt. AP-43 bis AP-45 sind weit, es fehlen nur noch Reste
-(Einzelheiten jeweils unter *Rest* im Paket). Vorschlag für die nächste Runde, in dieser Reihenfolge:
+### AP-52 ☐ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
+So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
+- **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
+  Deckkraft, Position/Größe/Zuschnitt je Clip; altes Projektformat wird übernommen.
+- **Echte Vorschau**: flüssige Wiedergabe mit Ton aller Spuren, Musik, Übergängen und Titeln **genau wie im Export**
+  (eigene Wiedergabe-Engine: ffmpeg decodiert, die App mischt Bild und Ton, Proxys bei Bedarf); Wellenformen auf den
+  Tonspuren; J/K/L, Einzelbild vor/zurück, Schleife In–Out.
+- **Bild-in-Bild** als Standardfall (Webcam-Ecke über dem Screencast), mit Vorlagen für die Ecke.
+- Export bleibt ein ffmpeg-Filtergraph, jetzt für mehrere Spuren.
+- **Fertig, wenn**: Screencast + Webcam als Bild-in-Bild + Musik + Titel laufen in der Vorschau flüssig mit Ton und
+  sehen im Export genauso aus.
+- Betrifft: Windows `video/VideoProject.kt`, `video/VideoPlayer.kt`, `video/VideoRender.kt`, `video/Media.kt`,
+  `ui/VideoScreen.kt`.
 
-1. **Tabellen über Seiten** (AP-43): Tabellen brechen in der Seitenansicht zeilenweise um, die Kopfzeile wiederholt sich
-   (heute wandert eine Tabelle als Ganzes). Danach Markieren über Tabellen hinweg (AP-44).
-2. **Leistung bei 200+ Seiten** (AP-43 d): im Editor messen (Tippen, Scrollen, Seitenplan) und wo nötig den Fließtext in
-   Stücke je Abschnitt teilen.
-3. **Abschnitte mit eigener Kopf-/Fußzeile** (AP-43/45), in Editor, Word und PDF.
-4. **Tabstopps** im Lineal (AP-44) – die Textfelder kennen keine eigenen Tabstopps, braucht eine eigene Lösung.
-5. **Prüfsammlung mit echten TUD-Dokumenten** (AP-45), sobald Offene Frage 5 geklärt ist.
-
-Danach (oder wenn Offene Frage 8 so entschieden wird) AP-43 bis AP-45 abhaken und mit *Danach* – Video (AP-52) weitermachen.
-
-### AP-43 ◐ Gemeinsamer Text-Kern · XL (neu, Grundlage)
-Der Dokument-Editor arbeitet heute **blockweise** (ein Eingabefeld je Absatz, Markdown darunter): Markieren über Absätze
-hinweg geht nicht, der Cursor springt, Formatierung ist begrenzt. Grundlage für alle neuen Editoren:
-- **Eigenes Dokumentmodell**: Absätze mit Formatvorlage, Läufe mit Zeichenformat (Schrift, Größe, fett/kursiv/
-  unterstrichen, Farbe, Hervorhebung, hoch/tief), Absatzformat (Ausrichtung, Einzüge, Abstände, Zeilenabstand, Listen),
-  Tabellen (verbundene Zellen, Rahmen, Schattierung), Bilder (im Text, umflossen), Abschnitte (Seitenformat, Ränder,
-  Kopf-/Fußzeile, Spalten), Fußnoten, Felder (Seitenzahl, Inhaltsverzeichnis, Zitat), Formeln, Kommentare,
-  Änderungsverfolgung.
-- **Layout-Engine**: Zeilenumbruch, Silbentrennung (Deutsch/Englisch), **echter Seitenumbruch** mit Witwen/Waisen,
-  Tabellen über Seiten, Kopf-/Fußzeilen je Abschnitt; dieselbe Engine zeichnet Bildschirm, PDF-Export und Vorschaubilder.
-- **Bearbeiten**: ein durchgehender Cursor, Markieren über beliebige Grenzen (Maus, Umschalt+Pfeile, Doppel-/Dreifachklick),
-  Kopieren/Einfügen mit Formatierung (aus Word und Browser: HTML/RTF), Rückgängig als Transaktionen, Eingabemethoden
-  (IME, Akzente), große Dokumente (200+ Seiten) flüssig.
-- Markdown bleibt als **Import/Export** erhalten (für Chat und `.md`-Dateien), nicht mehr als Speicherformat für Dokumente.
-- Wird von Dokument (AP-44), Tabellenzellen (AP-48) und Textfeldern in Folien und Gestalten (AP-50) benutzt.
-- Stufen: (a) Modell + Layout + Anzeige, (b) Bearbeiten und Rückgängig, (c) Zwischenablage, (d) Leistung bei großen
-  Dokumenten.
-- **Fertig, wenn**: Ein 100-seitiges Dokument mit Tabellen und Bildern lässt sich flüssig durchgehend bearbeiten,
-  Seitenumbrüche entsprechen dem PDF-Export.
-- Betrifft: neu `docs/text/*` (Modell, Layout, Bearbeiten); `docs/DocMarkup.kt`, `docs/LiveDoc.kt`.
-- **Umsetzung (03.11.2026, ◐, für AP-44 vorgezogen)**: `docs/text/RichText.kt` – Fließtext mit Zeichenformat je Zeichen
-  (fett, kursiv, unterstrichen, durchgestrichen, Code, hoch/tief, Farbe, Hervorhebung, Größe, Schrift, Link) und
-  Absatzformat (Formatvorlage, Ausrichtung, Listenebene, Checkliste, weiche Zeilen); Bearbeiten (Diff, Formate wandern mit,
-  Absätze teilen/verbinden), Markdown hin und zurück (Erweiterungen als HTML-Marken, die alle Exporte lesen), Vorschläge
-  (Wortdiff) und Loras Schreibmarken. Markdown bleibt vorerst Speicherformat (Chat, Exporte, Word laufen unverändert).
-  **Rest**: eigene Layout-Engine mit echtem Seitenumbruch (Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt) für Bildschirm und
-  PDF, Tabellen/Bilder im Modell statt als Blöcke, Zwischenablage mit Formatierung (HTML/RTF), Leistung bei 200+ Seiten.
-- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Absatzformat um Zeilenabstand, linken und Erstzeilen-Einzug (hängend)
-  erweitert, Formatvorlagen Titel/Untertitel/Bildunterschrift/Code/Literatur (Absatzmarke `<!--a:…;s=…;z=…;l=…;f=…-->`,
-  alle Exporte lesen sie); **Zwischenablage mit Formatierung** (`docs/text/RichHtml.kt`, `ui/RichClipboard.kt` je
-  Plattform: HTML hin und zurück, Word-HTML mit Mso-Klassen und getippten Aufzählungszeichen, Google Docs); ein
-  **Seitenumbruch** füllt in der Seitenansicht den Rest der Seite; Silbentrennung im Blocksatz; Enter am Ende einer
-  Überschrift vor einer Überschrift verschiebt die Formate nicht mehr. Test `EditorCoreTest`. **Rest**: eigene
-  Layout-Engine (echter Seitenumbruch mit Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt, PDF aus derselben Engine),
-  Tabellen/Bilder im Modell, RTF, Leistung bei 200+ Seiten.
-- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Eigene Seitenaufteilung** `docs/text/PageLayout.kt` (Witwen/Waisen mit
-  zwei Zeilen, Überschriften/Titel mit dem nächsten Absatz, Blöcke als Ganzes, erzwungene Umbrüche, überhohe Blöcke);
-  die Seitenansicht zeigt damit **echte Blätter**: der Editor misst die Zeilen, die Aufteilung setzt unsichtbare Zeilen
-  passender Höhe in den Text (`ui/FlowPaging.kt`, nicht Teil des Dokuments) bzw. Abstand vor Blöcken; Kopf-/Fußzeile mit
-  Seitenzahl auf jedem Blatt. **RTF** in der Zwischenablage (`docs/text/RichRtf.kt`: schreiben und lesen). `paraAt` als
-  binäre Suche; Seitenplan für 100 Seiten im Test unter 0,5 s. Tests `PageLayoutTest`, `EditorCoreTest`,
-  `FlowEditorUiTest` (keine Zeile über einem Seitenende). **Rest**: PDF nicht aus derselben Engine, sondern mit denselben
-  Regeln (CSS: Witwen/Waisen, erste/gerade Seiten) – Seitenumbrüche können je nach Schrift um Zeilen abweichen;
-  Abschnitte mit eigener Kopfzeile; Tabellen/Bilder im Modell (Tabellen brechen nicht zeilenweise über Seiten);
-  Leistung bei 200+ Seiten im Editor messen (ein Textfeld je Fließtextstück).
-
-### AP-44 ◐ Fließtext-Editor für Dokumente · XL (neu, ersetzt den Block-Editor)
-So nah wie möglich an **Google Docs**:
-- **Seitenansicht** mit echten Seiten (Standard) und *Ohne Seiten* (fortlaufend); **Lineal** mit Einzügen und Tabstopps;
-  Zoom; Ränder per Ziehen.
-- **Symbolleiste** wie Docs: Rückgängig, Formatvorlage, Schrift, Größe, fett/kursiv/unterstrichen, Farbe, Hervorhebung,
-  Link, Kommentar, Bild, Ausrichtung, Zeilenabstand, Listen (Aufzählung, nummeriert, Checkliste), Einzug,
-  Formatierung entfernen; Menüs *Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras*.
-- **Einfügen**: Tabelle (Raster-Auswahl, Zeilen/Spalten per Rechtsklick, verbinden), Bild (auch vom Bildmodell),
-  Seitenumbruch/Abschnittsumbruch, Fußnote, Inhaltsverzeichnis, Formel, Sonderzeichen, Datum, Zitat aus der Literatur.
-- **Suchen und Ersetzen** (auch Formatierung), Wortzahl, Rechtschreibung auf dem Gerät (aus AP-16), Kommentare am Rand,
-  Änderungen nachverfolgen – übernommen in das neue Modell.
-- Bestehende Dokumente werden beim ersten Öffnen umgestellt (Markdown → Modell); Versionen bleiben.
-- **Fertig, wenn**: Der alte Block-Editor ist ersetzt; ein Hausarbeits-Dokument (Deckblatt, Inhaltsverzeichnis,
-  Fußnoten, Tabellen, Literaturverzeichnis) lässt sich ohne Umweg über Word erstellen.
-- Betrifft: `ui/DocsEditor.kt`, `ui/DocsText.kt` (ersetzt), `ui/DocsAssistant.kt`, `docs/LiveDoc.kt`.
-- **Umsetzung (03.11.2026, ◐)**: `ui/FlowEditor.kt` ist der Editor für Text-Dokumente: durchgehender Text mit Cursor und
-  Markieren über Absätze, Symbolleiste und Menüs wie Docs (Formatvorlage, Schrift, Größe, B/I/U/S, Farbe, Hervorhebung,
-  Link, Kommentar, Bild, Ausrichtung, Listen, Einzug, Formatierung entfernen, ✨), Tastenkürzel, Markdown-Kürzel,
-  Checkboxen zum Anklicken, eigenes Rückgängig, Seitenansicht (A4-Breite, Ränder aus *Seite einrichten*, Linien an den
-  Seitenenden) oder *Ohne Seiten*, Zoom. Einfügen: Tabelle (Raster), Bild, Link, Kommentar, Zitat, Seitenumbruch,
-  Inhaltsverzeichnis, Fußnote, Formel, Linie, Datum, Sonderzeichen; Tabellen werden an Ort und Stelle bearbeitet. Bestehende
-  Dokumente öffnen ohne Umstellung (Markdown bleibt). Der Block-Editor bleibt nur für die Prüfung von KI-Änderungen und
-  *Änderungen nachverfolgen*. **Rest**: Lineal mit Einzügen/Tabstopps, Ränder per Ziehen, Zeilenabstand wählbar, Kommentare
-  am Rand im Text, Änderungen nachverfolgen im Fließtext, Suchen/Ersetzen mit Formatierung, Markieren über Tabellen hinweg.
-- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: **Lineal** mit Seitenrändern zum Ziehen (beliebige Breite in mm, auch im
-  Dialog *Seite einrichten*) und Erstzeilen-/linkem Einzug, **Zeilenabstand** (Symbolleiste, *Format*), **Suchen und
-  Ersetzen im Fließtext** (Strg+F/H, Treffer markiert, einzeln/alle, Groß-/Kleinschreibung, ganze Wörter, alle Treffer
-  formatieren), **Kommentare am Rand** neben der Textstelle (Text markiert, Klick springt, ✓ erledigt). **Rest**:
-  Tabstopps, Änderungen nachverfolgen im Fließtext (bleibt in der Blockansicht), Markieren über Tabellen hinweg.
-- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Seitenansicht mit echten Seiten** (siehe AP-43 Teil 3) samt Kopf-/Fußzeile
-  je Blatt; **Änderungen nachverfolgen im Fließtext** (Wortvergleich `docs/text/TrackDiff.kt`, Myers): Gelöschtes rot
-  durchgestrichen an seiner Stelle, Neues grün, Leiste *Änderung x von y* mit Annehmen/Ablehnen/Alle; die Blockansicht
-  bleibt nur, wenn sich Tabellen, Bilder oder Formeln geändert haben. Test `FlowTrackingTest`. **Rest**: Tabstopps
-  (Compose kennt keine eigenen Tabstopps), Markieren über Tabellen hinweg.
-
-### AP-45 ◐ Word-Treue · L (neu, ersetzt „Schreiben ins Original“ für Dokumente)
-- **.docx direkt in das neue Modell lesen und zurückschreiben**: Formatvorlagen (auch eigene), Abschnitte,
-  Kopf-/Fußzeilen (erste Seite, gerade/ungerade), Fußnoten, Felder, Nummerierungen, Tabellen, Bilder mit Umfluss,
-  Textfelder (lesen), Kommentare, Überarbeitungen.
-- **Unbekanntes bleibt erhalten**: Was das Modell nicht kennt, wird als Rohdaten mitgeführt und unverändert
-  zurückgeschrieben (kein Umweg über `.lora/originale` mehr nötig).
-- **Prüfsammlung** mit echten Dokumenten (TUD-Briefvorlage, Abschlussarbeit-Vorlage, Antrag, Protokoll): öffnen →
-  speichern → in Word vergleichen; Bildvergleich der Seiten als Test.
-- Export PDF über die eigene Layout-Engine (gleich wie am Bildschirm), ODT bleibt.
-- **Fertig, wenn**: Die Prüfsammlung öffnet ohne sichtbare Abweichung und kommt nach dem Bearbeiten ohne Verlust in Word an.
-- Betrifft: neu `docs/text/DocxReader.kt`, `docs/text/DocxWriter.kt`; `docs/DocxExtras.kt`, `files/OfficeEdit.kt`,
-  `docs/MarkdownDocx.kt`.
-- **Umsetzung (03.11.2026, ◐)**: Lesen (`docs/OfficeImport.kt`): Unterstreichung, Farbe, Hervorhebung/Schattierung,
-  hoch/tief, abweichende Größe und Schrift (gegenüber der üblichen des Dokuments) und Ausrichtung. Schreiben
-  (`docs/text/DocxWriter.kt`, von `DocFiles` genutzt, wenn das Ersetzen im Text nicht reicht): unveränderte Absätze und
-  Tabellen werden als Original-XML übernommen, Unbekanntes ohne Text bleibt an seinem Platz, nur neue/geänderte Blöcke
-  entstehen neu (mit den Überschriften-Formatvorlagen des Originals); alle anderen Teile der Datei bleiben unberührt. Ist
-  das nicht sicher, wird wie bisher neu geschrieben. Test `WordFidelityTest`. Export Word schreibt Farbe, Hervorhebung,
-  hoch/tief, Größe, Schrift und Ausrichtung. **Rest**: Prüfsammlung mit echten TUD-Dokumenten und Bildvergleich, Kopf-/
-  Fußzeilen und Abschnitte im Modell, Textfelder, PDF über eigene Layout-Engine.
-- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Lesen von **Kopf-/Fußzeile** (Text ohne Seitenzahlen, nicht aus Loras
-  eigenen Dateien), **Seitenrändern**, **Textfeldern** (nur lesen, Block `<!-- textfeld -->`; beim Zurückschreiben bleiben
-  sie unverändert, auch die Kopie für altes Word), **Inhaltssteuerelementen** (w:sdt, bisher verloren), Untertitel,
-  Bildunterschrift, Literatur, Code, Zeilenabstand und Einzügen. Export Word schreibt die Formatvorlagen des Dokuments als
-  echte Word-Formatvorlagen (Titel, Untertitel, Überschrift 1–4, Literatur) samt Zeilenabstand und Einzügen. Prüfsammlung
-  als Test mit einer nachgebauten Vorlage (`EditorCoreTest`). **Rest**: Prüfsammlung mit echten TUD-Dokumenten und
-  Bildvergleich (Offene Frage 5), Kopf-/Fußzeilen erste/gerade Seite und Abschnitte im Modell, PDF über eigene Layout-Engine.
-- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Erste Seite anders** und **gerade Seiten anders** im Modell
-  (`<!-- erste seite anders: an -->`, `<!-- kopfzeile erste seite: … -->`, `<!-- fusszeile gerade seiten: … -->`), Felder
-  `{seite}`/`{seiten}`; Word lesen (`w:titlePg`, `w:evenAndOddHeaders`, Kopf-/Fußzeilen `first`/`even`) und schreiben
-  (eigene Kopf-/Fußzeilen-Teile mit PAGE/NUMPAGES-Feldern), PDF (`@page:first`, `@page:left`, eigene Ränder, Witwen/Waisen).
-  „Seite“ in Kopf-/Fußzeilen wird beim Lesen nur noch mit Zahl als Seitenzahl entfernt. **Rest**: Prüfsammlung mit echten
-  TUD-Dokumenten (Offene Frage 5), Abschnitte mit eigener Kopfzeile.
-
-### AP-46 ☑ Gliederung und Formatvorlagen · M (neu)
-- **Gliederung links** (wie in Docs): Überschriften als Baum, Klick springt, Ziehen verschiebt ganze Abschnitte,
-  ein-/ausklappbar.
-- **Formatvorlagen**: Standard, Titel, Untertitel, Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; ändern
-  („Überschrift 1 an Markierung anpassen“), als Standard speichern.
-- **TUD-Stil** als Vorlagensatz (Noto Sans, Farben aus dem CD-Paket 2025), dazu *Wissenschaftlich* (Times-artig,
-  1,5 Zeilen) und *Schlicht*; Wechsel des Satzes formatiert das ganze Dokument um.
-- **Format übertragen** (Pinsel), Strg+Alt+1…4 für Überschriften, Markdown-Kürzel beim Tippen (`#`, `-`, `1.`, `**`).
-- **Fertig, wenn**: Ein Dokument lässt sich über die Gliederung umstellen und per Klick vom TUD-Stil in den
-  wissenschaftlichen Stil umschalten.
-- Betrifft: `ui/DocsEditor.kt`, neu `docs/text/Styles.kt`, `docs/DocTheme.kt`, `docs/TudBrand.kt`.
-- **Umsetzung (04.11.2026, 1.0.54, ☑)**: **Gliederung links** im Fließtext-Editor (`ui/FlowExtras.kt`, Logik
-  `docs/text/Outline.kt`): Baum der Überschriften, Klick springt, Ziehen am Griff ⠿ verschiebt den ganzen Abschnitt (auch
-  ⋮ › nach oben/unten), Ebenen einklappbar. **Formatvorlagen** (`docs/text/Styles.kt`): Normaler Text, Titel, Untertitel,
-  Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; „… an Markierung anpassen“, zurücksetzen, *Als Standard für
-  neue Dokumente speichern* (Einstellung `docStyleLines`). **Vorlagensätze** TU Dresden, Wissenschaftlich, Schlicht,
-  Standard; der Wechsel formatiert das ganze Dokument um und setzt den Export-Stil. Gespeichert als Kommentarzeilen
-  (`<!-- vorlagen: … -->`, `<!-- vorlage h1: … -->`). **Format übertragen** (Pinsel), Strg+Alt+0…4, Markdown-Kürzel inkl.
-  `**fett**` und `*kursiv*`. Test `EditorCoreTest`.
-
-### AP-47 ☑ Lora schreibt im Dokument · M (neu)
-- **„Hilf mir schreiben“** (wie Gemini in Docs): Feld an der Cursorstelle bzw. über leeren Absätzen – „Schreib eine
-  Einleitung zu …“, „Fasse Abschnitt 3 zusammen“. Lora schreibt **sichtbar an der Cursorstelle** (Text erscheint
-  schrittweise, farbig markiert), danach *Übernehmen · Neu · Verwerfen*.
-- **Abschnitte überarbeiten als Vorschlag**: Lora ändert nicht direkt, sondern über die Änderungsverfolgung (rot/grün),
-  jede Änderung einzeln annehmbar; Kommentare von Lora am Rand mit Begründung.
-- Lora-Popup über Markierung und Lora-Panel rechts bleiben (AP-16); beide schreiben jetzt in das neue Modell und behalten
-  Formatierung.
-- Nutzt Gliederung und Formatvorlagen (Lora setzt Überschriften als Vorlagen, nicht als fette Zeilen), Zitieren aus der
-  Literatur und die Belegpflicht (AP-08) auf Wunsch.
-- **Fertig, wenn**: Lora schreibt eine Einleitung an der Cursorstelle und überarbeitet einen Abschnitt als einzeln
-  annehmbare Vorschläge, ohne Formatierung zu zerstören.
-- Betrifft: `ui/DocsAssistant.kt`, `ui/LoraHelper.kt`, `docs/text/*`, `agent/ToolActions.kt`.
-- **Umsetzung (03.11.2026, ☑)**: Im Fließtext-Editor: *Hilf mir schreiben* (Strg+J, ✨, *Extras*, leeres Dokument, Lora
-  „schreib eine Einleitung …“) schreibt schrittweise und hinterlegt an der Cursorstelle, Markdown-Überschriften werden
-  Formatvorlagen; *Übernehmen · Neu · Verwerfen*. *Markierung mit Lora überarbeiten* bzw. Lora „Überarbeite Abschnitt …“:
-  Wortdiff als Vorschläge (rot/grün), Leiste mit *Annehmen/Ablehnen/Alle*, Begründung als Kommentar von Lora. Das
-  Lora-Panel rechts schreibt weiter über den Chat; der Editor lädt das Ergebnis mit Formatierung. Rest: das kleine
-  KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
-- **Nachtrag (04.11.2026, 1.0.54)**: Der Rest ist erledigt – über einer Markierung im Fließtext erscheint Loras kleines Menü
-  (*Überarbeiten …*, *Kürzer*, *Formeller*, *Einfacher* als einzeln annehmbare Vorschläge, *Kommentar*).
+### AP-53 ☐ Video: Schnittwerkzeuge (D) · L (neu)
+- **Medienpool** mit Ordnern (Bins), Vorschaubildern, Dauer, Suche; **Quellmonitor** mit In/Out-Punkten, *Einfügen* und
+  *Überschreiben* (wie Resolve), Ziehen in die Zeitleiste.
+- **Schnitt**: Klinge (B), Auswahl (A), Ripple-, Roll- und Slip-Trimmen, Magnet-Zeitleiste (Lücken schließen sich auf
+  Wunsch), Verknüpfen von Bild und Ton, Spuren sperren/stumm/ausblenden, Marker mit Notiz (auch als Kapitel nutzbar).
+- **Mehrere Tonquellen** synchronisieren (über die Wellenform), z. B. Kamera + Ansteckmikrofon bei Vorträgen/Interviews.
+- Tastenkürzel nah an Resolve, Übersicht unter `?`.
+- **Fertig, wenn**: Ein Vortrag mit zwei Tonquellen lässt sich über Quellmonitor und Ripple-Trimmen schneiden, ohne Lücken
+  von Hand zu schließen.
+- Betrifft: Windows `ui/VideoScreen.kt`, `video/*`.
 
 ---
 
@@ -311,31 +168,6 @@ So nah wie möglich an **Google Slides/PowerPoint**:
   lässt sich mit Animationen präsentieren.
 - Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
   `docs/PptxReader.kt`.
-
-### AP-52 ☐ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
-So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
-- **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
-  Deckkraft, Position/Größe/Zuschnitt je Clip; altes Projektformat wird übernommen.
-- **Echte Vorschau**: flüssige Wiedergabe mit Ton aller Spuren, Musik, Übergängen und Titeln **genau wie im Export**
-  (eigene Wiedergabe-Engine: ffmpeg decodiert, die App mischt Bild und Ton, Proxys bei Bedarf); Wellenformen auf den
-  Tonspuren; J/K/L, Einzelbild vor/zurück, Schleife In–Out.
-- **Bild-in-Bild** als Standardfall (Webcam-Ecke über dem Screencast), mit Vorlagen für die Ecke.
-- Export bleibt ein ffmpeg-Filtergraph, jetzt für mehrere Spuren.
-- **Fertig, wenn**: Screencast + Webcam als Bild-in-Bild + Musik + Titel laufen in der Vorschau flüssig mit Ton und
-  sehen im Export genauso aus.
-- Betrifft: Windows `video/VideoProject.kt`, `video/VideoPlayer.kt`, `video/VideoRender.kt`, `video/Media.kt`,
-  `ui/VideoScreen.kt`.
-
-### AP-53 ☐ Video: Schnittwerkzeuge (D) · L (neu)
-- **Medienpool** mit Ordnern (Bins), Vorschaubildern, Dauer, Suche; **Quellmonitor** mit In/Out-Punkten, *Einfügen* und
-  *Überschreiben* (wie Resolve), Ziehen in die Zeitleiste.
-- **Schnitt**: Klinge (B), Auswahl (A), Ripple-, Roll- und Slip-Trimmen, Magnet-Zeitleiste (Lücken schließen sich auf
-  Wunsch), Verknüpfen von Bild und Ton, Spuren sperren/stumm/ausblenden, Marker mit Notiz (auch als Kapitel nutzbar).
-- **Mehrere Tonquellen** synchronisieren (über die Wellenform), z. B. Kamera + Ansteckmikrofon bei Vorträgen/Interviews.
-- Tastenkürzel nah an Resolve, Übersicht unter `?`.
-- **Fertig, wenn**: Ein Vortrag mit zwei Tonquellen lässt sich über Quellmonitor und Ripple-Trimmen schneiden, ohne Lücken
-  von Hand zu schließen.
-- Betrifft: Windows `ui/VideoScreen.kt`, `video/*`.
 
 ### AP-54 ☐ Video: einfache Effekte (D) · M–L (neu)
 - **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
@@ -542,8 +374,13 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-40 Abläufe über Werkzeuge | Plan-Karte, Ausführung im Hintergrund, Pause/Wiederholen, Fortsetzen nach Neustart | eigene gespeicherte Abläufe (Ideen) |
 | ☑ AP-41 Leuchtrahmen überall und Touren | Rahmen für alle Schalter und wichtigen Knöpfe, Touren als Daten mit Angebot beim ersten Öffnen | Touren für die neuen Editoren mit ihnen |
 | ☑ AP-42 Lora-Dateidialog | eigener Dialog für Öffnen/Speichern/Ordner, Umbenennen und Löschen | Android behält die Systemauswahl |
+| ☑ AP-43 Gemeinsamer Text-Kern | Fließtext mit Zeichen-/Absatzformat, eigene Seitenaufteilung (Witwen/Waisen, Tabellen zeilenweise mit wiederholter Kopfzeile, Abschnitte), Zwischenablage HTML/RTF, 200+ Seiten flüssig | Bilder umflossen; PDF über HTML statt aus derselben Engine (Offene Frage 8: so belassen) |
+| ☑ AP-44 Fließtext-Editor | Editor wie Docs mit Lineal (Ränder, Einzüge, Tabstopps), Suchen/Ersetzen, Kommentare am Rand, Änderungen im Text, Markieren über Tabellen hinweg | – |
+| ☑ AP-45 Word-Treue | Lesen/Schreiben von Formaten, Formatvorlagen, Kopf-/Fußzeilen (erste/gerade Seite, Abschnitte), Tabstopps; ins Original schreiben; Prüfsammlung mit nachgebauten TUD-Dokumenten | Bildvergleich der Seiten mit Word |
+| ☑ AP-46 Gliederung und Formatvorlagen | Gliederung zum Ziehen, Formatvorlagen und Vorlagensätze, Format übertragen | – |
+| ☑ AP-47 Lora schreibt im Dokument | Hilf mir schreiben, Überarbeiten als Vorschläge, Menü über der Markierung | – |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-42 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-47 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -676,6 +513,192 @@ veraltet und passt nicht zu Windows 11.
   umbenennen (F2, Rechtsklick, Knopf; Prüfung auf verbotene Zeichen und vorhandene Namen) und löschen (Entf, Rechtsklick,
   Knopf; im Lora-Ordner in dessen Papierkorb, sonst in den Windows-Papierkorb, mit Rückfrage).
 
+### AP-43 ☑ Gemeinsamer Text-Kern · XL (neu, Grundlage)
+Der Dokument-Editor arbeitet heute **blockweise** (ein Eingabefeld je Absatz, Markdown darunter): Markieren über Absätze
+hinweg geht nicht, der Cursor springt, Formatierung ist begrenzt. Grundlage für alle neuen Editoren:
+- **Eigenes Dokumentmodell**: Absätze mit Formatvorlage, Läufe mit Zeichenformat (Schrift, Größe, fett/kursiv/
+  unterstrichen, Farbe, Hervorhebung, hoch/tief), Absatzformat (Ausrichtung, Einzüge, Abstände, Zeilenabstand, Listen),
+  Tabellen (verbundene Zellen, Rahmen, Schattierung), Bilder (im Text, umflossen), Abschnitte (Seitenformat, Ränder,
+  Kopf-/Fußzeile, Spalten), Fußnoten, Felder (Seitenzahl, Inhaltsverzeichnis, Zitat), Formeln, Kommentare,
+  Änderungsverfolgung.
+- **Layout-Engine**: Zeilenumbruch, Silbentrennung (Deutsch/Englisch), **echter Seitenumbruch** mit Witwen/Waisen,
+  Tabellen über Seiten, Kopf-/Fußzeilen je Abschnitt; dieselbe Engine zeichnet Bildschirm, PDF-Export und Vorschaubilder.
+- **Bearbeiten**: ein durchgehender Cursor, Markieren über beliebige Grenzen (Maus, Umschalt+Pfeile, Doppel-/Dreifachklick),
+  Kopieren/Einfügen mit Formatierung (aus Word und Browser: HTML/RTF), Rückgängig als Transaktionen, Eingabemethoden
+  (IME, Akzente), große Dokumente (200+ Seiten) flüssig.
+- Markdown bleibt als **Import/Export** erhalten (für Chat und `.md`-Dateien), nicht mehr als Speicherformat für Dokumente.
+- Wird von Dokument (AP-44), Tabellenzellen (AP-48) und Textfeldern in Folien und Gestalten (AP-50) benutzt.
+- Stufen: (a) Modell + Layout + Anzeige, (b) Bearbeiten und Rückgängig, (c) Zwischenablage, (d) Leistung bei großen
+  Dokumenten.
+- **Fertig, wenn**: Ein 100-seitiges Dokument mit Tabellen und Bildern lässt sich flüssig durchgehend bearbeiten,
+  Seitenumbrüche entsprechen dem PDF-Export.
+- Betrifft: neu `docs/text/*` (Modell, Layout, Bearbeiten); `docs/DocMarkup.kt`, `docs/LiveDoc.kt`.
+- **Umsetzung (03.11.2026, ◐, für AP-44 vorgezogen)**: `docs/text/RichText.kt` – Fließtext mit Zeichenformat je Zeichen
+  (fett, kursiv, unterstrichen, durchgestrichen, Code, hoch/tief, Farbe, Hervorhebung, Größe, Schrift, Link) und
+  Absatzformat (Formatvorlage, Ausrichtung, Listenebene, Checkliste, weiche Zeilen); Bearbeiten (Diff, Formate wandern mit,
+  Absätze teilen/verbinden), Markdown hin und zurück (Erweiterungen als HTML-Marken, die alle Exporte lesen), Vorschläge
+  (Wortdiff) und Loras Schreibmarken. Markdown bleibt vorerst Speicherformat (Chat, Exporte, Word laufen unverändert).
+  **Rest**: eigene Layout-Engine mit echtem Seitenumbruch (Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt) für Bildschirm und
+  PDF, Tabellen/Bilder im Modell statt als Blöcke, Zwischenablage mit Formatierung (HTML/RTF), Leistung bei 200+ Seiten.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Absatzformat um Zeilenabstand, linken und Erstzeilen-Einzug (hängend)
+  erweitert, Formatvorlagen Titel/Untertitel/Bildunterschrift/Code/Literatur (Absatzmarke `<!--a:…;s=…;z=…;l=…;f=…-->`,
+  alle Exporte lesen sie); **Zwischenablage mit Formatierung** (`docs/text/RichHtml.kt`, `ui/RichClipboard.kt` je
+  Plattform: HTML hin und zurück, Word-HTML mit Mso-Klassen und getippten Aufzählungszeichen, Google Docs); ein
+  **Seitenumbruch** füllt in der Seitenansicht den Rest der Seite; Silbentrennung im Blocksatz; Enter am Ende einer
+  Überschrift vor einer Überschrift verschiebt die Formate nicht mehr. Test `EditorCoreTest`. **Rest**: eigene
+  Layout-Engine (echter Seitenumbruch mit Witwen/Waisen, Kopf-/Fußzeilen je Abschnitt, PDF aus derselben Engine),
+  Tabellen/Bilder im Modell, RTF, Leistung bei 200+ Seiten.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Eigene Seitenaufteilung** `docs/text/PageLayout.kt` (Witwen/Waisen mit
+  zwei Zeilen, Überschriften/Titel mit dem nächsten Absatz, Blöcke als Ganzes, erzwungene Umbrüche, überhohe Blöcke);
+  die Seitenansicht zeigt damit **echte Blätter**: der Editor misst die Zeilen, die Aufteilung setzt unsichtbare Zeilen
+  passender Höhe in den Text (`ui/FlowPaging.kt`, nicht Teil des Dokuments) bzw. Abstand vor Blöcken; Kopf-/Fußzeile mit
+  Seitenzahl auf jedem Blatt. **RTF** in der Zwischenablage (`docs/text/RichRtf.kt`: schreiben und lesen). `paraAt` als
+  binäre Suche; Seitenplan für 100 Seiten im Test unter 0,5 s. Tests `PageLayoutTest`, `EditorCoreTest`,
+  `FlowEditorUiTest` (keine Zeile über einem Seitenende). **Rest**: PDF nicht aus derselben Engine, sondern mit denselben
+  Regeln (CSS: Witwen/Waisen, erste/gerade Seiten) – Seitenumbrüche können je nach Schrift um Zeilen abweichen;
+  Abschnitte mit eigener Kopfzeile; Tabellen/Bilder im Modell (Tabellen brechen nicht zeilenweise über Seiten);
+  Leistung bei 200+ Seiten im Editor messen (ein Textfeld je Fließtextstück).
+- **Umsetzung Teil 4 (07.11.2026, 1.0.57, ☑)**: **Tabellen über Seiten**: `PageLayout.Row` – Tabellen brechen zwischen
+  Zeilen um, die Kopfzeile bleibt bei der ersten Zeile und wird auf jeder weiteren Seite wiederholt (`Plan.repeat`; Editor
+  `TableGrid` mit `TablePaging`, PDF `<thead>`). **Abschnitte** mit eigener Kopf-/Fußzeile (`DocMarkup.Section`, Marker
+  `<!-- abschnitt: kopfzeile=…; fusszeile=… -->`): Editor (je Blatt), PDF (benannte Seiten `@page absN`), Word (siehe AP-45).
+  **Große Dokumente (Stufe d)** gemessen: 205 Seiten in einem Feld kosteten 2,7 s je Tastendruck. Ursachen: der Seitenplan
+  kam nicht zur Ruhe (Abstände pendelten um einen Pixel, jedes Feld wurde je Taste mehrmals neu gesetzt) und vieles lief
+  über den ganzen Text. Jetzt: Fließtext ab 30 000 Zeichen in Stücken je Kapitel (unsichtbar, siehe AP-44), 2,5 px
+  Spielraum für Abstände, Zeilen je Feld, Markdown je Stück und Kopf-/Fußzeilen nur für sichtbare Blätter gemerkt bzw.
+  gezeichnet – **~80 ms je Zeichen** bei 205 Seiten, Öffnen ~3 s. Tests `EditorRestTest`, `FlowEditorUiTest`
+  (`bigDocumentStaysResponsive`). **Entscheidung (Offene Frage 8)**: Das PDF bleibt beim Satz über HTML mit denselben
+  Regeln; kein eigener PDF-Textsatz.
+
+### AP-44 ☑ Fließtext-Editor für Dokumente · XL (neu, ersetzt den Block-Editor)
+So nah wie möglich an **Google Docs**:
+- **Seitenansicht** mit echten Seiten (Standard) und *Ohne Seiten* (fortlaufend); **Lineal** mit Einzügen und Tabstopps;
+  Zoom; Ränder per Ziehen.
+- **Symbolleiste** wie Docs: Rückgängig, Formatvorlage, Schrift, Größe, fett/kursiv/unterstrichen, Farbe, Hervorhebung,
+  Link, Kommentar, Bild, Ausrichtung, Zeilenabstand, Listen (Aufzählung, nummeriert, Checkliste), Einzug,
+  Formatierung entfernen; Menüs *Datei · Bearbeiten · Ansicht · Einfügen · Format · Extras*.
+- **Einfügen**: Tabelle (Raster-Auswahl, Zeilen/Spalten per Rechtsklick, verbinden), Bild (auch vom Bildmodell),
+  Seitenumbruch/Abschnittsumbruch, Fußnote, Inhaltsverzeichnis, Formel, Sonderzeichen, Datum, Zitat aus der Literatur.
+- **Suchen und Ersetzen** (auch Formatierung), Wortzahl, Rechtschreibung auf dem Gerät (aus AP-16), Kommentare am Rand,
+  Änderungen nachverfolgen – übernommen in das neue Modell.
+- Bestehende Dokumente werden beim ersten Öffnen umgestellt (Markdown → Modell); Versionen bleiben.
+- **Fertig, wenn**: Der alte Block-Editor ist ersetzt; ein Hausarbeits-Dokument (Deckblatt, Inhaltsverzeichnis,
+  Fußnoten, Tabellen, Literaturverzeichnis) lässt sich ohne Umweg über Word erstellen.
+- Betrifft: `ui/DocsEditor.kt`, `ui/DocsText.kt` (ersetzt), `ui/DocsAssistant.kt`, `docs/LiveDoc.kt`.
+- **Umsetzung (03.11.2026, ◐)**: `ui/FlowEditor.kt` ist der Editor für Text-Dokumente: durchgehender Text mit Cursor und
+  Markieren über Absätze, Symbolleiste und Menüs wie Docs (Formatvorlage, Schrift, Größe, B/I/U/S, Farbe, Hervorhebung,
+  Link, Kommentar, Bild, Ausrichtung, Listen, Einzug, Formatierung entfernen, ✨), Tastenkürzel, Markdown-Kürzel,
+  Checkboxen zum Anklicken, eigenes Rückgängig, Seitenansicht (A4-Breite, Ränder aus *Seite einrichten*, Linien an den
+  Seitenenden) oder *Ohne Seiten*, Zoom. Einfügen: Tabelle (Raster), Bild, Link, Kommentar, Zitat, Seitenumbruch,
+  Inhaltsverzeichnis, Fußnote, Formel, Linie, Datum, Sonderzeichen; Tabellen werden an Ort und Stelle bearbeitet. Bestehende
+  Dokumente öffnen ohne Umstellung (Markdown bleibt). Der Block-Editor bleibt nur für die Prüfung von KI-Änderungen und
+  *Änderungen nachverfolgen*. **Rest**: Lineal mit Einzügen/Tabstopps, Ränder per Ziehen, Zeilenabstand wählbar, Kommentare
+  am Rand im Text, Änderungen nachverfolgen im Fließtext, Suchen/Ersetzen mit Formatierung, Markieren über Tabellen hinweg.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: **Lineal** mit Seitenrändern zum Ziehen (beliebige Breite in mm, auch im
+  Dialog *Seite einrichten*) und Erstzeilen-/linkem Einzug, **Zeilenabstand** (Symbolleiste, *Format*), **Suchen und
+  Ersetzen im Fließtext** (Strg+F/H, Treffer markiert, einzeln/alle, Groß-/Kleinschreibung, ganze Wörter, alle Treffer
+  formatieren), **Kommentare am Rand** neben der Textstelle (Text markiert, Klick springt, ✓ erledigt). **Rest**:
+  Tabstopps, Änderungen nachverfolgen im Fließtext (bleibt in der Blockansicht), Markieren über Tabellen hinweg.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Seitenansicht mit echten Seiten** (siehe AP-43 Teil 3) samt Kopf-/Fußzeile
+  je Blatt; **Änderungen nachverfolgen im Fließtext** (Wortvergleich `docs/text/TrackDiff.kt`, Myers): Gelöschtes rot
+  durchgestrichen an seiner Stelle, Neues grün, Leiste *Änderung x von y* mit Annehmen/Ablehnen/Alle; die Blockansicht
+  bleibt nur, wenn sich Tabellen, Bilder oder Formeln geändert haben. Test `FlowTrackingTest`. **Rest**: Tabstopps
+  (Compose kennt keine eigenen Tabstopps), Markieren über Tabellen hinweg.
+- **Umsetzung Teil 4 (07.11.2026, 1.0.57, ☑)**: **Tabstopps** (`TabStop` im Absatzformat, Marker `t=40l90c160r`):
+  Klick ins Lineal setzt einen (Art links/zentriert/rechts über das Zeichen links im Lineal), Ziehen verschiebt, Wegziehen
+  entfernt, *Format › Tabstopps entfernen*; die Tab-Taste fügt einen Tab ein. Compose kennt keine Tabstopps: der Editor
+  misst jeden Tab und gibt ihm Buchstabenabstand bis zu seinem Stopp (`ui/FlowTabs.kt`), sonst alle 12,5 mm. **Markieren
+  über Grenzen** (`ui/FlowSpan.kt`): eine Auswahl über mehrere Textfelder samt Tabellen/Bildern dazwischen (Strg+A,
+  Umschalt+Pfeile, Umschalt+Klick), Kopieren mit Tabellen als HTML, Ausschneiden, Löschen, Überschreiben, Formatieren;
+  Pfeile, Backspace und Entf gehen über die Feldgrenzen. Tests `FlowEditorUiTest` (`tabsReachTheirStops`,
+  `selectionReachesOverTablesAndPieces`, `piecesOfALongTextJoinAndSplitInvisibly`), `EditorRestTest`.
+
+### AP-45 ☑ Word-Treue · L (neu, ersetzt „Schreiben ins Original“ für Dokumente)
+- **.docx direkt in das neue Modell lesen und zurückschreiben**: Formatvorlagen (auch eigene), Abschnitte,
+  Kopf-/Fußzeilen (erste Seite, gerade/ungerade), Fußnoten, Felder, Nummerierungen, Tabellen, Bilder mit Umfluss,
+  Textfelder (lesen), Kommentare, Überarbeitungen.
+- **Unbekanntes bleibt erhalten**: Was das Modell nicht kennt, wird als Rohdaten mitgeführt und unverändert
+  zurückgeschrieben (kein Umweg über `.lora/originale` mehr nötig).
+- **Prüfsammlung** mit echten Dokumenten (TUD-Briefvorlage, Abschlussarbeit-Vorlage, Antrag, Protokoll): öffnen →
+  speichern → in Word vergleichen; Bildvergleich der Seiten als Test.
+- Export PDF über die eigene Layout-Engine (gleich wie am Bildschirm), ODT bleibt.
+- **Fertig, wenn**: Die Prüfsammlung öffnet ohne sichtbare Abweichung und kommt nach dem Bearbeiten ohne Verlust in Word an.
+- Betrifft: neu `docs/text/DocxReader.kt`, `docs/text/DocxWriter.kt`; `docs/DocxExtras.kt`, `files/OfficeEdit.kt`,
+  `docs/MarkdownDocx.kt`.
+- **Umsetzung (03.11.2026, ◐)**: Lesen (`docs/OfficeImport.kt`): Unterstreichung, Farbe, Hervorhebung/Schattierung,
+  hoch/tief, abweichende Größe und Schrift (gegenüber der üblichen des Dokuments) und Ausrichtung. Schreiben
+  (`docs/text/DocxWriter.kt`, von `DocFiles` genutzt, wenn das Ersetzen im Text nicht reicht): unveränderte Absätze und
+  Tabellen werden als Original-XML übernommen, Unbekanntes ohne Text bleibt an seinem Platz, nur neue/geänderte Blöcke
+  entstehen neu (mit den Überschriften-Formatvorlagen des Originals); alle anderen Teile der Datei bleiben unberührt. Ist
+  das nicht sicher, wird wie bisher neu geschrieben. Test `WordFidelityTest`. Export Word schreibt Farbe, Hervorhebung,
+  hoch/tief, Größe, Schrift und Ausrichtung. **Rest**: Prüfsammlung mit echten TUD-Dokumenten und Bildvergleich, Kopf-/
+  Fußzeilen und Abschnitte im Modell, Textfelder, PDF über eigene Layout-Engine.
+- **Umsetzung Teil 2 (04.11.2026, 1.0.54, ◐)**: Lesen von **Kopf-/Fußzeile** (Text ohne Seitenzahlen, nicht aus Loras
+  eigenen Dateien), **Seitenrändern**, **Textfeldern** (nur lesen, Block `<!-- textfeld -->`; beim Zurückschreiben bleiben
+  sie unverändert, auch die Kopie für altes Word), **Inhaltssteuerelementen** (w:sdt, bisher verloren), Untertitel,
+  Bildunterschrift, Literatur, Code, Zeilenabstand und Einzügen. Export Word schreibt die Formatvorlagen des Dokuments als
+  echte Word-Formatvorlagen (Titel, Untertitel, Überschrift 1–4, Literatur) samt Zeilenabstand und Einzügen. Prüfsammlung
+  als Test mit einer nachgebauten Vorlage (`EditorCoreTest`). **Rest**: Prüfsammlung mit echten TUD-Dokumenten und
+  Bildvergleich (Offene Frage 5), Kopf-/Fußzeilen erste/gerade Seite und Abschnitte im Modell, PDF über eigene Layout-Engine.
+- **Umsetzung Teil 3 (07.11.2026, 1.0.56, ◐)**: **Erste Seite anders** und **gerade Seiten anders** im Modell
+  (`<!-- erste seite anders: an -->`, `<!-- kopfzeile erste seite: … -->`, `<!-- fusszeile gerade seiten: … -->`), Felder
+  `{seite}`/`{seiten}`; Word lesen (`w:titlePg`, `w:evenAndOddHeaders`, Kopf-/Fußzeilen `first`/`even`) und schreiben
+  (eigene Kopf-/Fußzeilen-Teile mit PAGE/NUMPAGES-Feldern), PDF (`@page:first`, `@page:left`, eigene Ränder, Witwen/Waisen).
+  „Seite“ in Kopf-/Fußzeilen wird beim Lesen nur noch mit Zahl als Seitenzahl entfernt. **Rest**: Prüfsammlung mit echten
+  TUD-Dokumenten (Offene Frage 5), Abschnitte mit eigener Kopfzeile.
+- **Umsetzung Teil 4 (07.11.2026, 1.0.57, ☑)**: **Abschnitte** aus Word lesen (`w:sectPr` im Absatz beendet einen
+  Abschnitt; Kopf-/Fußzeile des nächsten Abschnitts als Marker, der erste Abschnitt ist der des Dokuments) und schreiben
+  (eigene Kopf-/Fußzeilen-Teile ab `header4.xml`); geänderte Abschnittsumbrüche schreiben die Datei neu. **Tabs und
+  Tabstopps** lesen/schreiben (`w:tab`, `w:tabs`). **Prüfsammlung** (Offene Frage 5 entschieden: nachgebaute Dateien,
+  `PruefsammlungTest`): TUD-Brief (erste Seite anders, Bezugszeichen an Tabstopps), Abschlussarbeit (Titelblatt, drei
+  Abschnitte, Fußnote, Tabelle mit 41 Zeilen, Literatur), Antrag (Inhaltssteuerelemente, Ankreuzfelder, Aufzählung),
+  Protokoll (Tabstopps, Teilnehmertabelle, nummerierte Tagesordnung) – öffnen, im Editor zeigen, eine Stelle ändern, ins
+  Original schreiben: alle anderen Teile byteweise gleich. Dabei behoben: Absätze mit ☒/☐ am Anfang werden im Original
+  wiedergefunden; ein geänderter Absatz mit Fußnote verweist auf die Fußnote des Originals (vorher: ganze Datei neu).
+  **Nicht umgesetzt**: Bildvergleich der Seiten (kein Word im Test; die Prüfsammlung vergleicht Text und Struktur).
+
+### AP-46 ☑ Gliederung und Formatvorlagen · M (neu)
+- **Gliederung links** (wie in Docs): Überschriften als Baum, Klick springt, Ziehen verschiebt ganze Abschnitte,
+  ein-/ausklappbar.
+- **Formatvorlagen**: Standard, Titel, Untertitel, Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; ändern
+  („Überschrift 1 an Markierung anpassen“), als Standard speichern.
+- **TUD-Stil** als Vorlagensatz (Noto Sans, Farben aus dem CD-Paket 2025), dazu *Wissenschaftlich* (Times-artig,
+  1,5 Zeilen) und *Schlicht*; Wechsel des Satzes formatiert das ganze Dokument um.
+- **Format übertragen** (Pinsel), Strg+Alt+1…4 für Überschriften, Markdown-Kürzel beim Tippen (`#`, `-`, `1.`, `**`).
+- **Fertig, wenn**: Ein Dokument lässt sich über die Gliederung umstellen und per Klick vom TUD-Stil in den
+  wissenschaftlichen Stil umschalten.
+- Betrifft: `ui/DocsEditor.kt`, neu `docs/text/Styles.kt`, `docs/DocTheme.kt`, `docs/TudBrand.kt`.
+- **Umsetzung (04.11.2026, 1.0.54, ☑)**: **Gliederung links** im Fließtext-Editor (`ui/FlowExtras.kt`, Logik
+  `docs/text/Outline.kt`): Baum der Überschriften, Klick springt, Ziehen am Griff ⠿ verschiebt den ganzen Abschnitt (auch
+  ⋮ › nach oben/unten), Ebenen einklappbar. **Formatvorlagen** (`docs/text/Styles.kt`): Normaler Text, Titel, Untertitel,
+  Überschrift 1–4, Zitat, Bildunterschrift, Code, Literatur; „… an Markierung anpassen“, zurücksetzen, *Als Standard für
+  neue Dokumente speichern* (Einstellung `docStyleLines`). **Vorlagensätze** TU Dresden, Wissenschaftlich, Schlicht,
+  Standard; der Wechsel formatiert das ganze Dokument um und setzt den Export-Stil. Gespeichert als Kommentarzeilen
+  (`<!-- vorlagen: … -->`, `<!-- vorlage h1: … -->`). **Format übertragen** (Pinsel), Strg+Alt+0…4, Markdown-Kürzel inkl.
+  `**fett**` und `*kursiv*`. Test `EditorCoreTest`.
+
+### AP-47 ☑ Lora schreibt im Dokument · M (neu)
+- **„Hilf mir schreiben“** (wie Gemini in Docs): Feld an der Cursorstelle bzw. über leeren Absätzen – „Schreib eine
+  Einleitung zu …“, „Fasse Abschnitt 3 zusammen“. Lora schreibt **sichtbar an der Cursorstelle** (Text erscheint
+  schrittweise, farbig markiert), danach *Übernehmen · Neu · Verwerfen*.
+- **Abschnitte überarbeiten als Vorschlag**: Lora ändert nicht direkt, sondern über die Änderungsverfolgung (rot/grün),
+  jede Änderung einzeln annehmbar; Kommentare von Lora am Rand mit Begründung.
+- Lora-Popup über Markierung und Lora-Panel rechts bleiben (AP-16); beide schreiben jetzt in das neue Modell und behalten
+  Formatierung.
+- Nutzt Gliederung und Formatvorlagen (Lora setzt Überschriften als Vorlagen, nicht als fette Zeilen), Zitieren aus der
+  Literatur und die Belegpflicht (AP-08) auf Wunsch.
+- **Fertig, wenn**: Lora schreibt eine Einleitung an der Cursorstelle und überarbeitet einen Abschnitt als einzeln
+  annehmbare Vorschläge, ohne Formatierung zu zerstören.
+- Betrifft: `ui/DocsAssistant.kt`, `ui/LoraHelper.kt`, `docs/text/*`, `agent/ToolActions.kt`.
+- **Umsetzung (03.11.2026, ☑)**: Im Fließtext-Editor: *Hilf mir schreiben* (Strg+J, ✨, *Extras*, leeres Dokument, Lora
+  „schreib eine Einleitung …“) schreibt schrittweise und hinterlegt an der Cursorstelle, Markdown-Überschriften werden
+  Formatvorlagen; *Übernehmen · Neu · Verwerfen*. *Markierung mit Lora überarbeiten* bzw. Lora „Überarbeite Abschnitt …“:
+  Wortdiff als Vorschläge (rot/grün), Leiste mit *Annehmen/Ablehnen/Alle*, Begründung als Kommentar von Lora. Das
+  Lora-Panel rechts schreibt weiter über den Chat; der Editor lädt das Ergebnis mit Formatierung. Rest: das kleine
+  KI-Popup direkt über einer Markierung gibt es nur im Block-Editor (im Fließtext über Strg+J / *Extras*).
+- **Nachtrag (04.11.2026, 1.0.54)**: Der Rest ist erledigt – über einer Markierung im Fließtext erscheint Loras kleines Menü
+  (*Überarbeiten …*, *Kürzer*, *Formeller*, *Einfacher* als einzeln annehmbare Vorschläge, *Kommentar*).
+
 ---
 
 ## Offene Fragen
@@ -688,14 +711,13 @@ veraltet und passt nicht zu Windows 11.
    Server sowie die Zugangsdaten der TU zum Vorbelegen.
 4. **OPAL** (AP-17, AP-20): Lassen sich HTML-Dateien/ZIP-Pakete als Lernelement einbinden? In welchem Format kommen
    Abgaben aus OPAL?
-5. **Word-Prüfsammlung** (AP-45): Welche echten Dokumente (TUD-Briefvorlage, Vorlage Abschlussarbeit, Antrag, Protokoll)
-   dürfen als Testdateien ins Repo, oder nur anonymisiert?
+5. ~~**Word-Prüfsammlung** (AP-45)~~: entschieden (07.11.2026) – nachgebaute Dokumente reichen (`PruefsammlungTest`),
+   echte Dateien kommen nicht ins Repo.
 6. **Gesichter verpixeln** (AP-54): Welches lokale Erkennungsmodell (Lizenz, Größe im Videoeditor-Paket)?
 7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt?
-8. **PDF aus derselben Seitenaufteilung** (AP-43/45): Seit 1.0.56 folgt der PDF-Export denselben Regeln wie die
-   Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten), wird aber weiter über HTML gesetzt –
-   Seitenumbrüche können je nach Schrift um einige Zeilen abweichen. Reicht das, oder soll das PDF Zeile für Zeile aus
-   dem Editor kommen (großer Umbau: eigener Textsatz für PDF)?
+8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
+   Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
+   wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
 
 ---
 

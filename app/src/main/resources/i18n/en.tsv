@@ -5118,3 +5118,16 @@ Fußzeile gerader Seiten	Footer of even pages
 Änderungen werden nachverfolgt – noch keine Änderungen.	Changes are being tracked – no changes yet.
 Änderung {0} von {1}	Change {0} of {1}
 Nachverfolgen beenden	Stop tracking
+Wiederholte Kopfzeile	Repeated header row
+Abschnittsumbruch	Section break
+Abschnittsumbruch …	Section break …
+ohne Kopfzeile	no header
+Kopfzeile: {0}	Header: {0}
+ohne Fußzeile	no footer
+Fußzeile: {0}	Footer: {0}
+Ab hier beginnt eine neue Seite. Der Abschnitt kann eine eigene Kopf- und Fußzeile haben (Felder: {seite}, {seiten}).	A new page starts here. The section can have its own header and footer (fields: {seite}, {seiten}).
+Eigene Kopfzeile	Own header
+Kopfzeile (leer: keine)	Header (empty: none)
+Eigene Fußzeile	Own footer
+Fußzeile (leer: keine)	Footer (empty: none)
+Tabstopps entfernen	Clear tab stops

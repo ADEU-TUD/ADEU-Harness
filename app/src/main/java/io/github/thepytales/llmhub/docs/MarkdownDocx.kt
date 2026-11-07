@@ -43,6 +43,9 @@ object MarkdownDocx {
         var even = false
         /** Sections written so far (only the first one has the Deckblatt). */
         var sections = 0
+        /** Abschnitte (AP-43/45): header and footer of each section break of the document, and the current one (0: none yet). */
+        var breaks: List<Pair<String, String>> = emptyList()
+        var section = 0
         val settings: Boolean get() = notes.isNotEmpty() || even
         val width: Int get() = if (landscape) TEXT_WIDTH_LANDSCAPE else TEXT_WIDTH
         val height: Int get() = if (landscape) TEXT_HEIGHT_LANDSCAPE else TEXT_HEIGHT
@@ -176,9 +179,12 @@ object MarkdownDocx {
      * The body XML of [markdown] – paragraphs and tables, without section properties – to put into an existing Word file
      * (Word-Treue, AP-45). Null when the piece needs parts of the package (pictures, footnotes, landscape sections).
      */
-    internal fun fragment(markdown: String, theme: DocTheme = DocTheme()): String? {
-        if ("![" in markdown || Regex("\\[\\^[^\\]]+]").containsMatchIn(markdown) || markdown.lineSequence().any { DocMarkup.orientation(it) != null }) return null
-        val c = Ctx(emptyList(), header = false, footer = false)
+    internal fun fragment(markdown: String, theme: DocTheme = DocTheme(), noteIds: List<Int> = emptyList()): String? {
+        if ("![" in markdown || markdown.lineSequence().any { DocMarkup.orientation(it) != null || DocMarkup.section(it) != null }) return null
+        // Footnote marks: only those of notes the file already has ([noteIds]: the ids of note 1, 2 … in the original).
+        val labels = Regex("\\[\\^([^\\]]+)]").findAll(markdown).map { it.groupValues[1] }.toSet()
+        val notes = labels.map { l -> DocMarkup.Note(l, l.toIntOrNull()?.let { noteIds.getOrNull(it - 1) } ?: return null, "") }
+        val c = Ctx(notes, header = false, footer = false)
         c.headings = DocMarkup.tocEntries(markdown)
         current.set(c)
         try {
@@ -192,11 +198,14 @@ object MarkdownDocx {
     private fun writeWith(file: File, title: String, markdown: String, notes: List<DocMarkup.Note>, theme: DocTheme, body: (Boolean) -> String) {
         val logo = theme.logo?.takeIf { theme.logoSize != null }
         val setup = DocMarkup.pageSetup(markdown)
+        val breaks = DocMarkup.sectionMargins(setup, DocMarkup.sections(markdown))
         val c = Ctx(
             notes,
-            header = setup.hasHeader || setup.headerEven.isNotBlank() || setup.titlePage && setup.headerFirst.isNotBlank(),
-            footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank() || setup.footerEven.isNotBlank() || setup.titlePage && setup.footerFirst.isNotBlank(),
+            header = setup.hasHeader || setup.headerEven.isNotBlank() || setup.titlePage && setup.headerFirst.isNotBlank() || breaks.any { it.first.isNotBlank() },
+            footer = setup.pageNumbers || theme.footer.isNotBlank() || setup.footer.isNotBlank() || setup.footerEven.isNotBlank() || setup.titlePage && setup.footerFirst.isNotBlank() ||
+                breaks.any { it.second.isNotBlank() },
         )
+        c.breaks = breaks
         c.margin = setup.marginTwips
         c.first = setup.titlePage
         c.even = setup.hasEven
@@ -224,6 +233,11 @@ object MarkdownDocx {
                 if (c.first && c.header) entry("word/header2.xml", header(setup.headerFirst, false))
                 if (c.even && c.footer) entry("word/footer3.xml", footer(setup.footerEven, theme.footer, setup.pageNumbers))
                 if (c.even && c.header) entry("word/header3.xml", header(setup.headerEven, setup.date))
+                // Abschnitte: header and footer of each further section.
+                c.breaks.forEachIndexed { k, (h, f) ->
+                    if (c.footer) entry("word/footer${4 + k}.xml", footer(f, theme.footer, setup.pageNumbers))
+                    if (c.header) entry("word/header${4 + k}.xml", header(h, setup.date))
+                }
                 if (footnotes != null) entry("word/footnotes.xml", footnotes)
                 if (c.settings) entry("word/settings.xml", settings(c))
                 entry("word/styles.xml", styles(if (theme.style == DocStyle.TUD) "Noto Sans" else if (theme.style == DocStyle.CLASSIC) "Georgia" else "Calibri"))
@@ -238,7 +252,7 @@ object MarkdownDocx {
     }
 
     /** Numbers of the header/footer parts: 1 for all pages, 2 for the first, 3 for even pages. */
-    private fun parts(c: Ctx) = listOfNotNull(1, 2.takeIf { c.first }, 3.takeIf { c.even })
+    private fun parts(c: Ctx) = listOfNotNull(1, 2.takeIf { c.first }, 3.takeIf { c.even }) + c.breaks.indices.map { 4 + it }
 
     /** Word links the separator lines of the footnote area from the settings; even pages get their own headers there. */
     private fun settings(c: Ctx) = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
@@ -397,8 +411,11 @@ object MarkdownDocx {
 
     private fun run(text: String, style: RunStyle = RunStyle()): String {
         val props = style.xml().let { if (it.isEmpty()) "" else "<w:rPr>$it</w:rPr>" }
+        // Tabs (AP-44) as Word tabs: they go to the paragraph's Tabstopps.
         return text.split('\n').joinToString("<w:r><w:br/></w:r>") { line ->
-            "<w:r>$props<w:t xml:space=\"preserve\">${esc(line)}</w:t></w:r>"
+            line.split('\t').joinToString("<w:r>$props<w:tab/></w:r>") { piece ->
+                if (piece.isEmpty()) "" else "<w:r>$props<w:t xml:space=\"preserve\">${esc(piece)}</w:t></w:r>"
+            }
         }
     }
 
@@ -457,6 +474,14 @@ object MarkdownDocx {
                 style == null && p.kind != io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append(if (sheet != null) "" else SPACING)
                 p.kind == io.github.thepytales.llmhub.docs.text.ParaKind.CODE -> append("<w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\"/>")
             }
+            if (p.tabs.isNotEmpty()) {
+                append("<w:tabs>")
+                p.tabs.forEach { t ->
+                    val v = when (t.kind) { io.github.thepytales.llmhub.docs.text.TabKind.LEFT -> "left"; io.github.thepytales.llmhub.docs.text.TabKind.CENTER -> "center"; io.github.thepytales.llmhub.docs.text.TabKind.RIGHT -> "right" }
+                    append("<w:tab w:val=\"$v\" w:pos=\"${(t.mm * 56.693f).toInt()}\"/>")
+                }
+                append("</w:tabs>")
+            }
             if (p.left != 0 || p.first != 0) {
                 val left = (p.left * 56.693f).toInt()
                 val first = (p.first * 56.693f).toInt()
@@ -510,12 +535,21 @@ object MarkdownDocx {
     private fun sectPr(landscape: Boolean): String = buildString {
         val c = ctx
         append("<w:sectPr>")
-        if (c.header) append("<w:headerReference w:type=\"default\" r:id=\"rIdHeader\"/>")
-        if (c.header && c.first) append("<w:headerReference w:type=\"first\" r:id=\"rIdHeader2\"/>")
-        if (c.header && c.even) append("<w:headerReference w:type=\"even\" r:id=\"rIdHeader3\"/>")
-        if (c.footer) append("<w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/>")
-        if (c.footer && c.first) append("<w:footerReference w:type=\"first\" r:id=\"rIdFooter2\"/>")
-        if (c.footer && c.even) append("<w:footerReference w:type=\"even\" r:id=\"rIdFooter3\"/>")
+        if (c.section > 0) {
+            // A section of its own: its header and footer on odd and even pages (parts 4, 5 …).
+            val n = 3 + c.section
+            if (c.header) append("<w:headerReference w:type=\"default\" r:id=\"rIdHeader$n\"/>")
+            if (c.header && c.even) append("<w:headerReference w:type=\"even\" r:id=\"rIdHeader$n\"/>")
+            if (c.footer) append("<w:footerReference w:type=\"default\" r:id=\"rIdFooter$n\"/>")
+            if (c.footer && c.even) append("<w:footerReference w:type=\"even\" r:id=\"rIdFooter$n\"/>")
+        } else {
+            if (c.header) append("<w:headerReference w:type=\"default\" r:id=\"rIdHeader\"/>")
+            if (c.header && c.first) append("<w:headerReference w:type=\"first\" r:id=\"rIdHeader2\"/>")
+            if (c.header && c.even) append("<w:headerReference w:type=\"even\" r:id=\"rIdHeader3\"/>")
+            if (c.footer) append("<w:footerReference w:type=\"default\" r:id=\"rIdFooter\"/>")
+            if (c.footer && c.first) append("<w:footerReference w:type=\"first\" r:id=\"rIdFooter2\"/>")
+            if (c.footer && c.even) append("<w:footerReference w:type=\"even\" r:id=\"rIdFooter3\"/>")
+        }
         append(if (landscape) "<w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\"/>" else "<w:pgSz w:w=\"11906\" w:h=\"16838\"/>")
         val m = c.margin
         append("<w:pgMar w:top=\"$m\" w:right=\"$m\" w:bottom=\"$m\" w:left=\"$m\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>")
@@ -623,6 +657,14 @@ object MarkdownDocx {
                 // The section so far ends here (its properties sit in the last paragraph); the next one turns.
                 append(para("", sectPr(c.landscape)))
                 c.landscape = landscape
+            }
+            return
+        }
+        // Abschnittsumbruch: the section so far ends here; the next one starts on a new page with its own header/footer.
+        if (DocMarkup.section(text) != null) {
+            if (c.section < c.breaks.size) {
+                append(para("", sectPr(c.landscape)))
+                c.section++
             }
             return
         }

@@ -83,6 +83,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
@@ -897,28 +899,80 @@ fun OutlinePanel(c: AppContainer, doc: LiveDoc, blocks: List<String>, onJump: (I
 
 /** Table cells as fields, with rows and columns to add or remove. */
 @Composable
-internal fun TableGrid(rows: List<List<String>>, onChange: (List<List<String>>) -> Unit) {
+internal fun TableGrid(
+    rows: List<List<String>>,
+    paging: TablePaging? = null,
+    onChange: (List<List<String>>) -> Unit,
+) {
     val cols = (rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
-    Column(Modifier.horizontalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        rows.forEachIndexed { r, row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                (0 until cols).forEach { col ->
-                    androidx.compose.material3.OutlinedTextField(
-                        row.getOrElse(col) { "" },
-                        { v -> onChange(rows.mapIndexed { i, rr -> if (i == r) (0 until cols).map { k -> if (k == col) v else rr.getOrElse(k) { "" } } else rr }) },
-                        modifier = Modifier.width(150.dp),
-                        textStyle = if (r == 0) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                if (r > 0) IconButton(onClick = { onChange(rows.filterIndexed { i, _ -> i != r }) }) { Icon(Icons.Outlined.Close, contentDescription = tr("Zeile löschen"), modifier = Modifier.size(16.dp)) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val gap = 4.dp
+    val gapPx = with(density) { gap.toPx() }
+
+    @Composable
+    fun cells(r: Int, row: List<String>, readOnly: Boolean) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            (0 until cols).forEach { col ->
+                androidx.compose.material3.OutlinedTextField(
+                    row.getOrElse(col) { "" },
+                    { v -> onChange(rows.mapIndexed { i, rr -> if (i == r) (0 until cols).map { k -> if (k == col) v else rr.getOrElse(k) { "" } } else rr }) },
+                    modifier = Modifier.width(150.dp),
+                    readOnly = readOnly,
+                    textStyle = if (r == 0) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
+                )
             }
-        }
-        Row {
-            TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text(tr("+ Zeile")) }
-            TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text(tr("+ Spalte")) }
-            if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text(tr("− Spalte")) }
+            if (r > 0 && !readOnly) IconButton(onClick = { onChange(rows.filterIndexed { i, _ -> i != r }) }) { Icon(Icons.Outlined.Close, contentDescription = tr("Zeile löschen"), modifier = Modifier.size(16.dp)) }
         }
     }
+
+    /** Room before row [r] on a new page (Seitenansicht), with the header row repeated at its end when asked. */
+    @Composable
+    fun room(r: Int) {
+        val p = paging ?: return
+        val push = p.push(r)
+        if (push <= 0f) return
+        val header = if (p.repeats(r)) p.headerHeight() else 0f
+        Spacer(Modifier.height(with(density) { (push - header).coerceAtLeast(0f).toDp() }))
+        if (header > 0f) {
+            // Wiederholte Kopfzeile: the header row again, not editable (it is edited in its own place).
+            Box(Modifier.height(with(density) { header.toDp() }).semantics { contentDescription = tr("Wiederholte Kopfzeile") }) {
+                cells(0, rows[0], readOnly = true)
+            }
+        }
+    }
+
+    Column(Modifier.horizontalScroll(rememberScrollState())) {
+        rows.forEachIndexed { r, row ->
+            Column {
+                room(r)
+                Box(
+                    Modifier
+                        .padding(bottom = gap)
+                        .then(if (paging != null) Modifier.onGloballyPositioned { paging.measuredRow(r, rows.size, it.size.height + gapPx) } else Modifier),
+                ) { cells(r, row, readOnly = false) }
+            }
+        }
+        Column {
+            room(rows.size)
+            Row(if (paging != null) Modifier.onGloballyPositioned { paging.measuredBar(it.size.height.toFloat()) } else Modifier) {
+                TextButton(onClick = { onChange(rows + listOf(List(cols) { "" })) }) { Text(tr("+ Zeile")) }
+                TextButton(onClick = { onChange(rows.map { it + "" }) }) { Text(tr("+ Spalte")) }
+                if (cols > 1) TextButton(onClick = { onChange(rows.map { it.dropLast(1) }) }) { Text(tr("− Spalte")) }
+            }
+        }
+    }
+}
+
+/**
+ * Tabellen über Seiten (AP-43): how the Seitenansicht breaks a table – room before a row ([push], px; the bar below the
+ * rows is row `rows.size`), whether the header row repeats there, and where the grid reports its measured rows.
+ */
+internal interface TablePaging {
+    fun push(row: Int): Float
+    fun repeats(row: Int): Boolean
+    fun headerHeight(): Float
+    fun measuredRow(row: Int, rows: Int, height: Float)
+    fun measuredBar(height: Float)
 }
 
 private val NOTE_DEF_BLOCK = Regex("^\\s{0,3}\\[\\^([^\\]\\s]+)]:\\s?")

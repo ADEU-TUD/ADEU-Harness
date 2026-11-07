@@ -190,9 +190,66 @@ object DocMarkup {
         return out.toString().replace(Regex("\n{3,}"), "\n\n")
     }
 
-    /** The Markdown without editor notes (comment lines); markers for page breaks and orientation stay. */
+    /** The Markdown without editor notes (comment lines); markers for page breaks, orientation and sections stay. */
     fun stripComments(markdown: String): String = markdown.lines()
-        .filter { !COMMENT.matches(it) || orientation(it) != null || isPageBreak(it) }.joinToString("\n")
+        .filter { !COMMENT.matches(it) || orientation(it) != null || isPageBreak(it) || section(it) != null }.joinToString("\n")
+
+    // ── Abschnitte (AP-43/45) ──────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Abschnittsumbruch: from here on a new page and, when set, an own header and footer for the pages of this section
+     * (null: the one of the section before; "" none). In the Markdown: `<!-- abschnitt -->` or
+     * `<!-- abschnitt: kopfzeile=Kapitel 2; fusszeile=Entwurf -->`. The first section is the document's own
+     * ([PageSetup]); a section's header and footer stand on all of its pages (odd and even), the Deckblatt stays page 1.
+     */
+    data class Section(val header: String? = null, val footer: String? = null)
+
+    private val SECTION = Regex("^\\s*<!--\\s*abschnitt(?:sumbruch)?(?:\\s*:\\s*(.*?))?\\s*-->\\s*$", RegexOption.IGNORE_CASE)
+
+    /** The section that starts at [text] (one marker line), or null. */
+    fun section(text: String): Section? {
+        val m = SECTION.find(text.trim()) ?: return null
+        var s = Section()
+        for (part in m.groupValues[1].split(';')) {
+            if ('=' !in part) continue
+            val v = part.substringAfter('=').trim()
+            when (part.substringBefore('=').trim().lowercase().replace("ß", "ss")) {
+                "kopfzeile", "header" -> s = s.copy(header = v)
+                "fusszeile", "footer" -> s = s.copy(footer = v)
+            }
+        }
+        return s
+    }
+
+    /** The marker line of [s]. */
+    fun sectionMarker(s: Section): String {
+        fun clean(v: String) = v.replace("-->", "").replace(";", ",").replace("\n", " ").trim()
+        val parts = listOfNotNull(s.header?.let { "kopfzeile=${clean(it)}" }, s.footer?.let { "fusszeile=${clean(it)}" })
+        return if (parts.isEmpty()) "<!-- abschnitt -->" else "<!-- abschnitt: ${parts.joinToString("; ")} -->"
+    }
+
+    /** The section breaks of [markdown] in order (outside code). */
+    fun sections(markdown: String): List<Section> {
+        var code = false
+        return markdown.lineSequence().mapNotNull { line ->
+            if (FENCE.containsMatchIn(line)) code = !code
+            if (code) null else section(line)
+        }.toList()
+    }
+
+    /**
+     * Header and footer of every section of [markdown] after the first one, with what they take over from the section
+     * before them resolved (the first section has those of [setup]).
+     */
+    fun sectionMargins(setup: PageSetup, sections: List<Section>): List<Pair<String, String>> {
+        var header = setup.header
+        var footer = setup.footer
+        return sections.map { s ->
+            header = s.header ?: header
+            footer = s.footer ?: footer
+            header to footer
+        }
+    }
 
     // ── Footnotes ──────────────────────────────────────────────────────────────────────────────────────────
 

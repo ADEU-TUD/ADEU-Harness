@@ -12,6 +12,8 @@ package io.github.thepytales.llmhub.docs.text
  * - **Mit nächstem zusammenhalten**: headings (and the title) stay on the page of the paragraph after them.
  * - A piece taller than a page starts on a page of its own and runs on (the rules give way when nothing else fits).
  * - Spaces never start a page; a forced page break starts the next piece on a new page.
+ * - **Tabellen über Seiten**: a table breaks between its rows (a row is not split); its header row stays with the first
+ *   row after it and is repeated at the top of each page the table goes on to ([Plan.repeat]).
  */
 object PageLayout {
     sealed class Item {
@@ -24,6 +26,12 @@ object PageLayout {
     /** A piece that is not split: picture, formula, table, Inhaltsverzeichnis. */
     data class Block(override val height: Float, val keepWithNext: Boolean = false) : Item()
 
+    /**
+     * Row [row] of [rows] of table [table] (unique in the document); the page may break before it. [header]: height of
+     * the header row (row 0), repeated at the top of every further page the table goes on (0: no header row).
+     */
+    data class Row(override val height: Float, val table: Int, val row: Int, val rows: Int, val header: Float = 0f) : Item()
+
     /** Room between two pieces (the editor's spacing); never starts a page. */
     data class Space(override val height: Float) : Item()
 
@@ -32,9 +40,11 @@ object PageLayout {
 
     /**
      * [page] and [y] (from the top of the page's text area) of every item; [push]: room to add before an item so that
-     * it lands there (0 for most); [pages] in all; [rest]: free room at the end of the last page.
+     * it lands there (0 for most); [pages] in all; [rest]: free room at the end of the last page; [repeat]: before these
+     * items (table rows starting a page) the header row of their table is repeated – the last [Row.header] px of their
+     * [push] are its room.
      */
-    class Plan(val page: IntArray, val y: FloatArray, val push: FloatArray, val pages: Int, val rest: Float) {
+    class Plan(val page: IntArray, val y: FloatArray, val push: FloatArray, val pages: Int, val rest: Float, val repeat: BooleanArray = BooleanArray(page.size)) {
         /** Indexes of the items that start a page (after the first one). */
         val pageStarts: List<Int> get() = page.indices.filter { it > 0 && page[it] != page[it - 1] && push[it] > 0f }
     }
@@ -80,7 +90,15 @@ object PageLayout {
                 continue
             }
             val k = breakBefore(items, i, pageStart)
-            p++; cy = 0f; pageStart = k; i = k
+            p++; cy = headerAt(items, k, h); pageStart = k; i = k
+        }
+        // Table rows that start a page after the first one of their table get the header row above them.
+        val repeat = BooleanArray(n)
+        for (k in 0 until n) {
+            val r = items[k] as? Row ?: continue
+            if (r.row == 0 || r.header <= 0f) continue
+            val prev = previousSolid(items, k)
+            if (prev >= 0 && page[prev] != page[k] && y[k] >= r.header - eps) repeat[k] = true
         }
         // Room before the items so that each lands at its place (absolute: page × (page + between) + y).
         val push = FloatArray(n)
@@ -96,7 +114,13 @@ object PageLayout {
             natural += items[k].height
         }
         val pages = if (n == 0) 1 else page.last() + 1 + (if (newPage) 1 else 0)
-        return Plan(page, y, push, pages, if (newPage) h else (h - cy).coerceAtLeast(0f))
+        return Plan(page, y, push, pages, if (newPage) h else (h - cy).coerceAtLeast(0f), repeat)
+    }
+
+    /** Where the first piece of a new page starts: below the repeated header row when it is a further row of a table. */
+    private fun headerAt(items: List<Item>, k: Int, h: Float): Float {
+        val r = items.getOrNull(k) as? Row ?: return 0f
+        return if (r.row > 0 && r.header > 0f && r.header + r.height <= h) r.header else 0f
     }
 
     /** After a piece ran [cy] beyond the top of page [p]: the page and place where the next piece goes on. */
@@ -152,5 +176,7 @@ object PageLayout {
         return j
     }
 
-    private fun keeps(it: Item) = it is Line && it.keepWithNext || it is Block && it.keepWithNext
+    /** Headings, and the header row of a table (it never stays alone at the end of a page). */
+    private fun keeps(it: Item) = it is Line && it.keepWithNext || it is Block && it.keepWithNext ||
+        it is Row && it.row == 0 && it.header > 0f && it.rows > 1
 }

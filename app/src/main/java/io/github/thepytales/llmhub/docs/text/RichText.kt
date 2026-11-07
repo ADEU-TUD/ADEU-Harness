@@ -69,6 +69,26 @@ enum class ParaKind(val label: String, val level: Int = 0, val mark: String? = n
 
 enum class Align(val mark: String?) { LEFT(null), CENTER("c"), RIGHT("r"), JUSTIFY("j") }
 
+/** How the text after a tab stands at its Tabstopp: starting there, centred on it, or ending there. */
+enum class TabKind(val mark: Char) { LEFT('l'), CENTER('c'), RIGHT('r') }
+
+/** Tabstopp (AP-44): [mm] from the left margin (as in Word). */
+data class TabStop(val mm: Int, val kind: TabKind = TabKind.LEFT) {
+    companion object {
+        /** Without own stops a tab goes to the next multiple of 12,5 mm (Word's default). */
+        const val DEFAULT_MM = 12.5f
+
+        private val STOP = Regex("(\\d{1,3})([lcr])")
+
+        /** `40l120r` → stops at 40 mm (left) and 120 mm (right), sorted. */
+        fun parse(v: String): List<TabStop> = STOP.findAll(v).map { m ->
+            TabStop(m.groupValues[1].toInt().coerceIn(0, 400), TabKind.entries.first { it.mark == m.groupValues[2][0] })
+        }.distinctBy { it.mm }.sortedBy { it.mm }.toList()
+
+        fun write(stops: List<TabStop>): String = stops.sortedBy { it.mm }.joinToString("") { "${it.mm}${it.kind.mark}" }
+    }
+}
+
 /**
  * Format of one paragraph. [indent] is the list level (0…5); [soft]: this paragraph is the next line of the one before
  * (a line break inside a Markdown paragraph, e.g. an address). [spacing]: line spacing (1.0, 1.15, 1.5, 2.0; null = that
@@ -83,6 +103,8 @@ data class ParaFormat(
     val spacing: Float? = null,
     val left: Int = 0,
     val first: Int = 0,
+    /** Tabstopps of the paragraph (AP-44), sorted; empty: every 12,5 mm. */
+    val tabs: List<TabStop> = emptyList(),
 ) {
     /** The paragraph marker (`<!--a:c;s=title-->`) or "" when it has nothing to say. */
     fun marker(): String {
@@ -91,6 +113,7 @@ data class ParaFormat(
             spacing?.let { add("z=" + (if (it == it.toInt().toFloat()) it.toInt().toString() else it.toString())) }
             if (left != 0) add("l=$left")
             if (first != 0) add("f=$first")
+            if (tabs.isNotEmpty()) add("t=" + TabStop.write(tabs))
         }
         if (align == Align.LEFT && parts.isEmpty()) return ""
         return "<!--a:" + (align.mark ?: "") + parts.joinToString("") { ";$it" } + "-->"
@@ -108,6 +131,7 @@ data class ParaFormat(
                     "z" -> v.toFloatOrNull()?.takeIf { it in 0.5f..4f }?.let { p = p.copy(spacing = it) }
                     "l" -> v.toIntOrNull()?.let { p = p.copy(left = it.coerceIn(0, 150)) }
                     "f" -> v.toIntOrNull()?.let { p = p.copy(first = it.coerceIn(-80, 80)) }
+                    "t" -> p = p.copy(tabs = TabStop.parse(v))
                 }
             }
             return p
@@ -277,7 +301,7 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
     }
 
     /** Numbers of the open suggestions (AP-47), in text order. */
-    val suggestions: List<Int> get() = chars.flatMap { listOf(it.ins, it.del) }.filter { it > 0 }.distinct()
+    val suggestions: List<Int> by lazy { chars.flatMap { listOf(it.ins, it.del) }.filter { it > 0 }.distinct() }
 
     /** Accepts ([accept] true) or rejects suggestion [n]. */
     fun settle(n: Int, accept: Boolean): RichText {
@@ -497,7 +521,8 @@ class RichText(val text: String, val chars: List<CharFormat>, val paras: List<Pa
                 val p = r.paras[i]
                 val range = r.paraRange(i)
                 val body = inline(r.text.substring(range.first, range.last + 1), r.chars.subList(range.first, range.last + 1))
-                val align = p.marker()
+                // A paragraph starting with a tab or space gets an (empty) marker, so Markdown does not take it for code.
+                val align = p.marker().ifEmpty { if (body.startsWith('\t') || body.startsWith("    ")) "<!--a:-->" else "" }
                 val listLike = p.kind.list
                 when {
                     p.kind.heading -> {
