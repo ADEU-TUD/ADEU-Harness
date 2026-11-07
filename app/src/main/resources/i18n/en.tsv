@@ -5107,3 +5107,11 @@ Arial, schwarz auf weiß, ohne Schmuck	Arial, black on white, no decoration
 Breite der Seitenleiste ändern	Change the width of the side menu
 Breite von Loras Bereich ändern	Change the width of Lora’s panel
 Breite des Browsers ändern	Change the width of the browser
+Seite {0} von {1}	Page {0} of {1}
+{seite} und {seiten} in Kopf- oder Fußzeile werden zur Seitenzahl und zur Zahl der Seiten.	{seite} and {seiten} in the header or footer become the page number and the number of pages.
+Erste Seite anders (Deckblatt ohne Kopf-/Fußzeile und Seitenzahl)	Different first page (cover page without header, footer and page number)
+Kopfzeile der ersten Seite (optional)	Header of the first page (optional)
+Fußzeile der ersten Seite (optional)	Footer of the first page (optional)
+Gerade Seiten anders	Different even pages
+Kopfzeile gerader Seiten	Header of even pages
+Fußzeile gerader Seiten	Footer of even pages

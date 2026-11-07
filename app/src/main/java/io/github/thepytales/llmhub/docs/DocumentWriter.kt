@@ -208,10 +208,40 @@ object DocumentWriter {
 
     private fun cssString(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 
-    /** Header line (left) and date (right) in the top margin of every printed page. */
-    private fun StringBuilder.headerBoxes(setup: DocMarkup.PageSetup, font: String, color: String) {
-        if (setup.header.isNotBlank()) append("@top-left{content:${cssString(setup.header)};font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm}")
-        if (setup.date) append("@top-right{content:${cssString(DocMarkup.today())};font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm}")
+    /** CSS content of a header or footer text: its fields `{seite}`/`{seiten}` become the page counters. */
+    private fun cssContent(text: String): String = DocMarkup.fieldPieces(text).joinToString(" ") { (field, t) ->
+        if (!field) cssString(t) else if (t == "seite") "counter(page)" else "counter(pages)"
+    }
+
+    /**
+     * The margin boxes of the printed pages (AP-45, like the Seitenansicht): header (left) and date (right) at the top,
+     * footer (left) and „Seite x von y“ (right) at the bottom – and, when the page setup says so, other ones on the
+     * first page (Deckblatt) and on even pages. [orgFooter]: the line of the style (TUD unit) after the own footer.
+     */
+    private fun StringBuilder.pageBoxes(setup: DocMarkup.PageSetup, orgFooter: String, font: String, color: String, footerPad: String) {
+        fun boxes(header: String, date: Boolean, footer: String, numbers: Boolean, org: Boolean = true) {
+            val top = ";font:$font;color:$color;vertical-align:bottom;padding-bottom:4mm"
+            val bottom = ";font:$font;color:$color$footerPad"
+            val foot = listOf(footer, if (org) orgFooter else "").filter { it.isNotBlank() }.joinToString(" · ")
+            append("@top-left{content:${if (header.isBlank()) "none" else cssContent(header)}$top}")
+            append("@top-right{content:${if (date) cssString(DocMarkup.today()) else "none"}$top}")
+            append("@bottom-left{content:${if (foot.isBlank()) "none" else cssContent(foot)}$bottom}")
+            append("@bottom-right{content:${if (numbers) "\"Seite \" counter(page) \" von \" counter(pages)" else "none"}$bottom}")
+        }
+        val margin = if (setup.margins == "normal") "" else "margin:${setup.marginMm}mm;"
+        append("@page{$margin")
+        boxes(setup.header, setup.date, setup.footer, setup.pageNumbers)
+        append("}")
+        if (setup.hasEven) {
+            append("@page:left{")
+            boxes(setup.headerEven, setup.date, setup.footerEven, setup.pageNumbers)
+            append("}")
+        }
+        if (setup.titlePage) {
+            append("@page:first{")
+            boxes(setup.headerFirst, false, setup.footerFirst, false, org = false)
+            append("}")
+        }
     }
 
     /** A picture of the document: embedded as data URL (local files) or linked (web addresses). */
@@ -263,23 +293,19 @@ object DocumentWriter {
                 val footer = theme.footer.ifBlank {
                     listOfNotNull("Technische Universität Dresden", theme.unit.lines().lastOrNull { it.isNotBlank() }?.trim()).joinToString(" · ")
                 }
-                append("@page{size:A4;margin:18mm 20mm 22mm 25mm;")
-                append("@bottom-left{content:${cssString(footer)};font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
-                if (setup.pageNumbers) append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:7pt $tudFont;color:${TudBrand.GREY};vertical-align:top;padding-top:6mm}")
-                headerBoxes(setup, "7pt $tudFont", TudBrand.GREY)
-                append("}")
+                append("@page{size:A4;margin:18mm 20mm 22mm 25mm}")
+                pageBoxes(setup, footer, "7pt $tudFont", TudBrand.GREY, ";vertical-align:top;padding-top:6mm")
             } else if (print) {
-                append("@page{size:A4;margin:18mm 17mm 20mm 17mm;")
-                if (setup.pageNumbers) append("@bottom-right{content:\"Seite \" counter(page) \" von \" counter(pages);font:8pt $sans;color:#8a8f98}")
-                if (theme.footer.isNotBlank()) append("@bottom-left{content:${cssString(theme.footer)};font:8pt $sans;color:#8a8f98}")
-                headerBoxes(setup, "8pt $sans", "#8a8f98")
-                append("}")
+                append("@page{size:A4;margin:18mm 17mm 20mm 17mm}")
+                pageBoxes(setup, theme.footer, "8pt $sans", "#8a8f98", "")
             } else {
                 append("body{max-width:800px;margin:2rem auto;padding:0 1.2rem}")
             }
             // Landscape pages (<!-- quer -->), page breaks, pictures and footnotes of the editor.
             if (print) append("@page quer{size:A4 landscape}section.quer{page:quer;break-before:page;page-break-before:always;break-after:page;page-break-after:always}")
             append(".pagebreak{break-after:page;page-break-after:always;height:0}")
+            // Witwen und Waisen (AP-43): as in the Seitenansicht, two lines at least at a page end and start.
+            if (print) append("p,li,blockquote{orphans:2;widows:2}")
             append("figure.img{margin:10pt 0 12pt;text-align:center;break-inside:avoid;page-break-inside:avoid}figure.img img{max-width:100%;height:auto}")
             append("figure.img figcaption{font-size:9pt;color:#555;font-style:italic;margin-top:4pt}")
             append("sup.fnref{font-size:.7em;line-height:0}sup.fnref a{text-decoration:none}")

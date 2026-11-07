@@ -270,15 +270,15 @@ object OfficeImport {
     /** Header, footer and margins of the document's last section; null if it has none worth keeping. */
     private fun pageSetup(body: Element, files: Map<String, ByteArray>, rels: Map<String, String>): DocMarkup.PageSetup? {
         val sect = body.children().lastOrNull { it.localName == "sectPr" } ?: return null
-        fun part(kind: String): String {
+        fun part(kind: String, type: String = "default"): String {
             val refs = sect.children().filter { it.localName == kind }
-            val ref = refs.firstOrNull { it.attr("type") == "default" } ?: refs.firstOrNull() ?: return ""
+            val ref = refs.firstOrNull { it.attr("type") == type } ?: (if (type == "default") refs.firstOrNull { it.attr("type").isBlank() } ?: refs.firstOrNull() else null) ?: return ""
             val root = xml(files[rels[ref.attr("id")]]) ?: return ""
             return root.all("p").filter { !inFallback(it) }.joinToString(" · ") { pp ->
                 buildString { pp.all("t").filter { t -> t.parentNode?.localName == "r" }.forEach { append(it.textContent) } }.trim()
             }.split(" · ").filter { it.isNotBlank() }.joinToString(" · ")
                 // „Seite 1 von 3“ is the page number of the export, not text.
-                .replace(Regex("(?i)\\b(seite|page)\\b\\s*\\d*\\s*((von|of|/)\\s*\\d*)?|^\\s*\\d+\\s*(von|of|/)\\s*\\d+\\s*$"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
+                .replace(Regex("(?i)\\b(seite|page)\\b\\s*\\d+\\s*((von|of|/)\\s*\\d+)?|^\\s*\\d+\\s*(von|of|/)\\s*\\d+\\s*$"), "").replace(Regex("^\\s*·\\s*|\\s*·\\s*$"), "").trim()
                 .take(160)
         }
         // Lora's own files carry date, footer line and page numbers there from the page setup and the settings: not again.
@@ -287,7 +287,17 @@ object OfficeImport {
         val footer = if (own) "" else part("footerReference")
         val mar = sect.child("pgMar")?.attr("left")?.toIntOrNull()?.let { (it / 56.693f).roundToIntSafe() }
         val margins = mar?.let { DocMarkup.marginsFor(it.coerceIn(5, 60)) } ?: "normal"
-        val setup = DocMarkup.PageSetup(header = header, footer = footer, margins = margins)
+        // Erste Seite anders (w:titlePg) and gerade Seiten anders (w:evenAndOddHeaders in the settings), AP-45.
+        val titlePg = sect.child("titlePg")?.let { it.attr("val") !in setOf("0", "false", "off") } == true
+        val evenOdd = files["word/settings.xml"]?.toString(Charsets.UTF_8)?.let { Regex("<w:evenAndOddHeaders(?![^>]*w:val=\"(0|false|off)\")").containsMatchIn(it) } == true
+        val setup = DocMarkup.PageSetup(
+            header = header, footer = footer, margins = margins,
+            titlePage = titlePg,
+            headerFirst = if (titlePg && !own) part("headerReference", "first") else "",
+            footerFirst = if (titlePg && !own) part("footerReference", "first") else "",
+            headerEven = if (evenOdd && !own) part("headerReference", "even") else "",
+            footerEven = if (evenOdd && !own) part("footerReference", "even") else "",
+        )
         return setup.takeIf { it != DocMarkup.PageSetup() }
     }
 

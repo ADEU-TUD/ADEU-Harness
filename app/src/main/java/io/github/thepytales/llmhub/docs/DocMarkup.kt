@@ -25,8 +25,17 @@ object DocMarkup {
      * Page of a document: page numbers, date and header line, footer line and margins (AP-16: „normal“ 2 cm, „schmal“
      * 1,27 cm, „breit“ 2,54 cm; since AP-44 also any width as „18 mm“, set by dragging the ruler).
      */
-    data class PageSetup(val pageNumbers: Boolean = true, val date: Boolean = false, val header: String = "", val footer: String = "", val margins: String = "normal") {
+    data class PageSetup(
+        val pageNumbers: Boolean = true, val date: Boolean = false, val header: String = "", val footer: String = "", val margins: String = "normal",
+        /** Erste Seite anders (Deckblatt, AP-45): page 1 shows [headerFirst]/[footerFirst] instead (often nothing, no page number). */
+        val titlePage: Boolean = false, val headerFirst: String = "", val footerFirst: String = "",
+        /** Gerade Seiten anders: pages 2, 4 … show these when one of them is set. */
+        val headerEven: String = "", val footerEven: String = "",
+    ) {
         val hasHeader: Boolean get() = date || header.isNotBlank()
+
+        /** Even pages have their own header or footer. */
+        val hasEven: Boolean get() = headerEven.isNotBlank() || footerEven.isNotBlank()
 
         /** Margins in twentieths of a point (Word). */
         val marginTwips: Int get() = when (margins) { "schmal" -> 720; "breit" -> 1440; "normal" -> 1134; else -> (marginMm * 56.693f).toInt() }
@@ -43,7 +52,30 @@ object DocMarkup {
     /** The margins setting for [mm] millimetres: one of the named ones when it is that width. */
     fun marginsFor(mm: Int): String = when (mm) { 13 -> "schmal"; 25 -> "breit"; 20 -> "normal"; else -> "${mm.coerceIn(5, 60)} mm" }
 
-    private val SETTING = Regex("^\\s*<!--\\s*(seitenzahlen|datum|kopfzeile|fusszeile|fußzeile|raender|ränder)\\s*:\\s*(.*?)\\s*-->\\s*$", RegexOption.IGNORE_CASE)
+    private val SETTING = Regex(
+        "^\\s*<!--\\s*(seitenzahlen|datum|erste seite anders|(?:kopfzeile|fusszeile|fußzeile)(?: erste seite| gerade seiten)?|raender|ränder)\\s*:\\s*(.*?)\\s*-->\\s*$",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Fields in header and footer texts: `{seite}` (page number) and `{seiten}` (pages in all). */
+    private val FIELD = Regex("\\{(seite|seiten|page|pages)}", RegexOption.IGNORE_CASE)
+
+    /** [text] with its fields filled in for page [page] of [pages]. */
+    fun fields(text: String, page: Int, pages: Int): String =
+        FIELD.replace(text) { if (it.groupValues[1].lowercase() in setOf("seite", "page")) page.toString() else pages.toString() }
+
+    /** [text] in pieces: plain text and fields („seite“ / „seiten“) – for the exports (CSS counters, Word fields). */
+    fun fieldPieces(text: String): List<Pair<Boolean, String>> {
+        val out = mutableListOf<Pair<Boolean, String>>()
+        var last = 0
+        for (m in FIELD.findAll(text)) {
+            if (m.range.first > last) out += false to text.substring(last, m.range.first)
+            out += true to (if (m.groupValues[1].lowercase() in setOf("seite", "page")) "seite" else "seiten")
+            last = m.range.last + 1
+        }
+        if (last < text.length) out += false to text.substring(last)
+        return out
+    }
 
     private fun on(v: String) = v.trim().lowercase() !in setOf("aus", "nein", "off", "false", "0", "no")
 
@@ -52,10 +84,15 @@ object DocMarkup {
         for (line in markdown.lineSequence()) {
             val m = SETTING.find(line) ?: continue
             val v = m.groupValues[2]
-            s = when (m.groupValues[1].lowercase()) {
+            s = when (m.groupValues[1].lowercase().replace("ß", "ss")) {
                 "seitenzahlen" -> s.copy(pageNumbers = on(v))
                 "datum" -> s.copy(date = on(v))
-                "fusszeile", "fußzeile" -> s.copy(footer = v.trim())
+                "erste seite anders" -> s.copy(titlePage = on(v))
+                "kopfzeile erste seite" -> s.copy(headerFirst = v.trim())
+                "fusszeile erste seite" -> s.copy(footerFirst = v.trim())
+                "kopfzeile gerade seiten" -> s.copy(headerEven = v.trim())
+                "fusszeile gerade seiten" -> s.copy(footerEven = v.trim())
+                "fusszeile" -> s.copy(footer = v.trim())
                 "raender", "ränder" -> s.copy(margins = v.trim().lowercase().let { m -> if (m in setOf("normal", "schmal", "breit")) m else customMm(m)?.let { "$it mm" } ?: "normal" })
                 else -> s.copy(header = v.trim())
             }
@@ -72,6 +109,12 @@ object DocMarkup {
             if (setup.header.isNotBlank()) add("<!-- kopfzeile: ${setup.header.replace("-->", "").replace("\n", " ").trim()} -->")
             if (setup.footer.isNotBlank()) add("<!-- fusszeile: ${setup.footer.replace("-->", "").replace("\n", " ").trim()} -->")
             if (setup.margins != "normal") add("<!-- raender: ${setup.margins} -->")
+            fun line(key: String, v: String) { if (v.isNotBlank()) add("<!-- $key: ${v.replace("-->", "").replace("\n", " ").trim()} -->") }
+            if (setup.titlePage) add("<!-- erste seite anders: an -->")
+            if (setup.titlePage) line("kopfzeile erste seite", setup.headerFirst)
+            if (setup.titlePage) line("fusszeile erste seite", setup.footerFirst)
+            line("kopfzeile gerade seiten", setup.headerEven)
+            line("fusszeile gerade seiten", setup.footerEven)
         }
         return if (lines.isEmpty()) "$body\n" else body + "\n\n" + lines.joinToString("\n\n") + "\n"
     }

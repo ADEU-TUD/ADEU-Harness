@@ -2,6 +2,7 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,11 +101,17 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
     var header by remember { mutableStateOf(setup.header) }
     var footer by remember { mutableStateOf(setup.footer) }
     var margins by remember { mutableStateOf(setup.margins) }
+    var titlePage by remember { mutableStateOf(setup.titlePage) }
+    var headerFirst by remember { mutableStateOf(setup.headerFirst) }
+    var footerFirst by remember { mutableStateOf(setup.footerFirst) }
+    var evenPages by remember { mutableStateOf(setup.hasEven) }
+    var headerEven by remember { mutableStateOf(setup.headerEven) }
+    var footerEven by remember { mutableStateOf(setup.footerEven) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Seite einrichten")) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 HintText(tr("Gilt für PDF und Word. Seitenumbrüche (\\newpage) und Querformat-Seiten fügst du über „Einfügen“ ein."))
                 Row(Modifier.fillMaxWidth().clickable { numbers = !numbers }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(numbers, { numbers = it })
@@ -116,6 +123,24 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
                 }
                 OutlinedTextField(header, { header = it }, label = { Text(tr("Kopfzeile (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(footer, { footer = it }, label = { Text(tr("Fußzeile (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                HintText(tr("{seite} und {seiten} in Kopf- oder Fußzeile werden zur Seitenzahl und zur Zahl der Seiten."))
+                // Erste Seite anders (Deckblatt) and gerade Seiten anders, like Word (AP-45).
+                Row(Modifier.fillMaxWidth().clickable { titlePage = !titlePage }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(titlePage, { titlePage = it })
+                    Text(tr("Erste Seite anders (Deckblatt ohne Kopf-/Fußzeile und Seitenzahl)"))
+                }
+                if (titlePage) {
+                    OutlinedTextField(headerFirst, { headerFirst = it }, label = { Text(tr("Kopfzeile der ersten Seite (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(footerFirst, { footerFirst = it }, label = { Text(tr("Fußzeile der ersten Seite (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                }
+                Row(Modifier.fillMaxWidth().clickable { evenPages = !evenPages }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(evenPages, { evenPages = it })
+                    Text(tr("Gerade Seiten anders"))
+                }
+                if (evenPages) {
+                    OutlinedTextField(headerEven, { headerEven = it }, label = { Text(tr("Kopfzeile gerader Seiten")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(footerEven, { footerEven = it }, label = { Text(tr("Fußzeile gerader Seiten")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                }
                 Text(tr("Seitenränder"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("schmal" to tr("Schmal (1,27 cm)"), "normal" to tr("Normal (2 cm)"), "breit" to tr("Breit (2,54 cm)")).forEach { (k, label) ->
@@ -127,7 +152,13 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
                 HintText(tr("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen."))
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(DocMarkup.PageSetup(numbers, date, header.trim(), footer.trim(), margins)) }) { Text(tr("Übernehmen")) } },
+        confirmButton = { TextButton(onClick = { onSave(
+                    DocMarkup.PageSetup(
+                        numbers, date, header.trim(), footer.trim(), margins,
+                        titlePage = titlePage, headerFirst = if (titlePage) headerFirst.trim() else "", footerFirst = if (titlePage) footerFirst.trim() else "",
+                        headerEven = if (evenPages) headerEven.trim() else "", footerEven = if (evenPages) footerEven.trim() else "",
+                    ),
+                ) }) { Text(tr("Übernehmen")) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
