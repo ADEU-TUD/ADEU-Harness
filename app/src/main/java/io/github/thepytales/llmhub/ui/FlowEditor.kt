@@ -189,8 +189,32 @@ sealed class FlowSeg {
         var breaks by mutableStateOf<List<PageBreakAt>>(emptyList())
         var push by mutableFloatStateOf(0f)
 
-        /** Where [offset] of the text is in the shown text (with the room of the page breaks). */
-        fun shown(offset: Int): Int = shownOffset(breaks, offset)
+        /**
+         * Änderungen nachverfolgen (AP-44): this text when tracking began (null: not tracked) and the changes since –
+         * inserted ranges of [rich], removed text of [base] at its place.
+         */
+        var base by mutableStateOf<RichText?>(null)
+        private var cacheKey: Pair<RichText?, RichText>? = null
+        private var cache: Pair<List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>, List<Pair<Int, String>>> = emptyList<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>() to emptyList()
+
+        /** Changes and removed text (offset → text), computed once per pair of texts. */
+        private fun tracking(): Pair<List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>, List<Pair<Int, String>>> {
+            val b = base
+            val r = rich
+            val key = cacheKey
+            if (key == null || key.first !== b || key.second !== r) {
+                val h = b?.let { io.github.thepytales.llmhub.docs.text.TrackDiff.hunks(it.text, r.text) }.orEmpty()
+                cache = h to if (b == null) emptyList() else h.filter { !it.del.isEmpty() }.map { it.at to b.text.substring(it.del.first, it.del.last + 1) }
+                cacheKey = b to r
+            }
+            return cache
+        }
+
+        val hunks: List<io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk> get() = tracking().first
+        val deleted: List<Pair<Int, String>> get() = tracking().second
+
+        /** Where [offset] of the text is in the shown text (with the room of the page breaks and removed text). */
+        fun shown(offset: Int): Int = shownOffset(breaks, deleted, offset)
     }
 
     class Raw(override val id: Long, val markdown: String) : FlowSeg() {
@@ -255,10 +279,6 @@ class FlowState(markdown: String) {
     var pageText = 0f
     var pageBetween = 0f
 
-    companion object {
-        /** The editor shown last (for the checks of the Seitenansicht in the tests). */
-        internal var shown: java.lang.ref.WeakReference<FlowState>? = null
-    }
 
     init {
         load(markdown)
@@ -351,6 +371,90 @@ class FlowState(markdown: String) {
     }
 
     fun applySheet(s: StyleSheet) = applyMarkdown(Styles.write(markdown(), s))
+
+    // ── Änderungen nachverfolgen (AP-44) ─────────────────────────────────────────────────────────
+
+    /** The document when tracking began, in pieces like this one (null: not tracking). */
+    private var trackState: FlowState? = null
+    private var trackMarkdown: String? = null
+    /** The tracked change the review bar points at. */
+    var trackAt by mutableIntStateOf(0)
+
+    /**
+     * Pairs the running text with [base] (the tab's Markdown when tracking began, null: not tracking): each piece of
+     * running text gets its text of then. False when tables, pictures or formulas differ – then the changes are shown
+     * in the block view.
+     */
+    fun track(base: String?): Boolean {
+        val texts = segs.filterIsInstance<FlowSeg.Text>()
+        if (base == null) {
+            trackState = null
+            trackMarkdown = null
+            texts.forEach { if (it.base != null) it.base = null }
+            return true
+        }
+        if (base != trackMarkdown || trackState == null) {
+            trackState = FlowState(base)
+            trackMarkdown = base
+        }
+        val b = shape(trackState!!.segs)
+        val c = shape(segs)
+        val ok = sameShape(b, c)
+        c.forEachIndexed { i, y -> if (y is FlowSeg.Text) { val r = if (ok) (b[i] as FlowSeg.Text).rich else null; if (y.base !== r) y.base = r } }
+        return ok
+    }
+
+    /** The open tracked changes in text order. */
+    fun tracked(): List<Pair<FlowSeg.Text, io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk>> =
+        segs.filterIsInstance<FlowSeg.Text>().flatMap { t -> t.hunks.map { t to it } }
+
+    /** Accepts change [h] of [t]: it moves into the text of then; returns that text as the new base Markdown. */
+    fun acceptTracked(t: FlowSeg.Text, h: io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk): String? {
+        val bs = trackState ?: return null
+        val c = shape(segs)
+        val bt = shape(bs.segs).getOrNull(c.indexOf(t)) as? FlowSeg.Text ?: return null
+        var r = bt.rich
+        if (!h.del.isEmpty()) r = r.cut(h.del.first, h.del.last + 1)
+        if (!h.ins.isEmpty()) r = r.insert(h.del.first, t.rich.slice(h.ins.first, h.ins.last + 1))
+        bt.rich = r
+        return bs.markdown().also { trackMarkdown = it }
+    }
+
+    /** Rejects change [h] of [t]: the text of then comes back in its place. */
+    fun rejectTracked(t: FlowSeg.Text, h: io.github.thepytales.llmhub.docs.text.TrackDiff.Hunk) {
+        val base = t.base ?: return
+        checkpoint()
+        var r = t.rich
+        if (!h.ins.isEmpty()) r = r.cut(h.ins.first, h.ins.last + 1)
+        if (!h.del.isEmpty()) r = r.insert(h.ins.first, base.slice(h.del.first, h.del.last + 1))
+        t.rich = r
+        t.selection = TextRange(h.ins.first.coerceAtMost(r.text.length))
+        changed()
+    }
+
+    /** All changes taken back: every piece of running text as it was. */
+    fun rejectAllTracked() {
+        checkpoint()
+        segs.filterIsInstance<FlowSeg.Text>().forEach { t -> t.base?.let { b -> t.rich = b; t.selection = TextRange(0) } }
+        changed()
+    }
+
+    companion object {
+        /** The editor shown last (for the checks of the Seitenansicht in the tests). */
+        internal var shown: java.lang.ref.WeakReference<FlowState>? = null
+
+        /** Pieces that must be alike for tracking in the running text: running text and blocks other than settings. */
+        private fun shape(list: List<FlowSeg>) = list.filter { it is FlowSeg.Text || it is FlowSeg.Raw && !DocMarkup.isComment(it.markdown) }
+
+        private fun sameShape(b: List<FlowSeg>, c: List<FlowSeg>) = b.size == c.size && b.indices.all { i ->
+            val x = b[i]
+            val y = c[i]
+            x is FlowSeg.Text && y is FlowSeg.Text || x is FlowSeg.Raw && y is FlowSeg.Raw && x.markdown.trim() == y.markdown.trim()
+        }
+
+        /** Whether the changes from [base] to [current] can be shown in the running text (blocks unchanged). */
+        fun trackable(base: String, current: String): Boolean = sameShape(shape(FlowState(base).segs), shape(FlowState(current).segs))
+    }
 
     // ── Suchen und Ersetzen (AP-44) ──────────────────────────────────────────────────────────────
 
@@ -652,6 +756,7 @@ internal fun sheetFor(markdown: String, docStyle: String?, defaults: String): St
 internal fun flowAnnotated(
     r: RichText, base: TextStyle, accent: Color, muted: Color, codeBg: Color, density: Float,
     sheet: StyleSheet = StyleSheet(), zoom: Float = 1f, marks: List<Pair<IntRange, Color>> = emptyList(),
+    inserted: List<IntRange> = emptyList(),
 ): AnnotatedString = buildAnnotatedString {
     append(r.text)
     val listIndent = 28f * zoom
@@ -744,6 +849,12 @@ internal fun flowAnnotated(
         }
         i = j
     }
+    // Änderungen nachverfolgen: inserted text green and underlined.
+    for (range in inserted) {
+        val a = range.first.coerceIn(0, r.text.length)
+        val b = (range.last + 1).coerceIn(a, r.text.length)
+        if (b > a) addStyle(SpanStyle(color = Color(0xFF1B7F3B), textDecoration = TextDecoration.Underline, background = Color(0x161B7F3B)), a, b)
+    }
     for ((range, color) in marks) {
         val a = range.first.coerceIn(0, r.text.length)
         val b = (range.last + 1).coerceIn(a, r.text.length)
@@ -786,6 +897,9 @@ fun FlowEditor(
     narrow: Boolean,
     host: FlowHost,
     onChange: (String) -> Unit,
+    /** Änderungen nachverfolgen (AP-44): the tab's Markdown when tracking began; accepted changes move into it. */
+    trackBase: String? = null,
+    onTrackBase: (String) -> Unit = {},
 ) {
     val state = remember(doc.id, tabId) { FlowState(markdown).also { FlowState.shown = java.lang.ref.WeakReference(it) } }
     val scope = rememberCoroutineScope()
@@ -813,6 +927,8 @@ fun FlowEditor(
     LaunchedEffect(markdown) {
         if (markdown != state.lastMarkdown && state.writing == null && state.suggestions().isEmpty()) state.load(markdown)
     }
+    // Änderungen nachverfolgen: each piece of running text knows its text of then (the changes show in the text).
+    LaunchedEffect(trackBase, markdown, state.version) { state.track(trackBase) }
     val onChangeLatest by rememberUpdatedState(onChange)
     fun save() {
         // While Lora writes or suggestions are open, only the stored form (without them) counts.
@@ -901,6 +1017,7 @@ fun FlowEditor(
         // Lora writes (AP-47): her request, then Übernehmen · Neu · Verwerfen.
         LoraWriteBar(c, doc, state)
         ReviewBar(state)
+        if (trackBase != null) TrackBar(state, onBase = onTrackBase, onStop = { host.onTrack?.invoke() })
         Row(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
             if (outline && !narrow) {
                 FlowOutline(state, onJump = { state.jumpToHeading(it) }, onClose = { outline = false }, modifier = Modifier.width(240.dp))
@@ -1148,6 +1265,56 @@ private fun ReviewBar(state: FlowState) {
                 DropdownMenu(more, { more = false }) {
                     DropdownMenuItem(text = { Text(tr("Alle annehmen")) }, onClick = { more = false; state.settleAll(true) })
                     DropdownMenuItem(text = { Text(tr("Alle ablehnen")) }, onClick = { more = false; state.settleAll(false) })
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Änderungen nachverfolgen im Fließtext (AP-44): the changes since tracking began, one by one – Annehmen moves one into
+ * the text of then ([onBase]), Ablehnen takes it back in the text.
+ */
+@Composable
+private fun TrackBar(state: FlowState, onBase: (String) -> Unit, onStop: () -> Unit) {
+    val list = state.tracked()
+    Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Outlined.Edit, null, Modifier.size(16.dp))
+            if (list.isEmpty()) {
+                Text(tr("Änderungen werden nachverfolgt – noch keine Änderungen."), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                TextButton(onClick = onStop) { Text(tr("Beenden")) }
+                return@Row
+            }
+            val at = state.trackAt.coerceIn(0, list.lastIndex)
+            val (seg, h) = list[at]
+            val removed = seg.base?.text?.let { b -> if (h.del.isEmpty()) "" else b.substring(h.del.first, h.del.last + 1) }.orEmpty().replace('\n', ' ').trim()
+            val added = if (h.ins.isEmpty()) "" else seg.rich.text.substring(h.ins.first, h.ins.last + 1).replace('\n', ' ').trim()
+            Column(Modifier.weight(1f)) {
+                Text(tr("Änderung {0} von {1}", at + 1, list.size), style = MaterialTheme.typography.labelLarge)
+                Text(
+                    buildAnnotatedString {
+                        if (removed.isNotEmpty()) { pushStyle(SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough)); append(removed.take(80)); pop(); append("  ") }
+                        if (added.isNotEmpty()) { pushStyle(SpanStyle(color = Color(0xFF1B7F3B))); append(added.take(80)); pop() }
+                    },
+                    style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                )
+            }
+            fun go(i: Int) {
+                state.trackAt = i
+                list.getOrNull(i)?.let { (t, x) -> state.show(t, x.at until x.at) }
+            }
+            TextButton(onClick = { go((at - 1).coerceAtLeast(0)) }, enabled = at > 0) { Text("‹") }
+            TextButton(onClick = { go((at + 1).coerceAtMost(list.lastIndex)) }, enabled = at < list.lastIndex) { Text("›") }
+            FilledTonalButton(onClick = { state.acceptTracked(seg, h)?.let(onBase) }) { Text(tr("Annehmen")) }
+            TextButton(onClick = { state.rejectTracked(seg, h) }) { Text(tr("Ablehnen")) }
+            var more by remember { mutableStateOf(false) }
+            Box {
+                TextButton(onClick = { more = true }) { Text(tr("Alle …")) }
+                DropdownMenu(more, { more = false }) {
+                    DropdownMenuItem(text = { Text(tr("Alle annehmen")) }, onClick = { more = false; onBase(state.markdown()) })
+                    DropdownMenuItem(text = { Text(tr("Alle ablehnen")) }, onClick = { more = false; state.rejectAllTracked() })
+                    DropdownMenuItem(text = { Text(tr("Nachverfolgen beenden")) }, onClick = { more = false; onStop() })
                 }
             }
         }
@@ -1672,7 +1839,8 @@ private fun FlowField(
     val current = state.hits().getOrNull(state.findAt)?.takeIf { it.first === seg }?.second
     val quoted = state.comments.mapNotNull { cm -> state.findQuote(cm.quote)?.takeIf { it.first === seg }?.second }
     val marks = quoted.map { it to commentColor } + hits.map { it to (if (it == current) currentHit else hitColor) }
-    val annotated = remember(rich, look.brand, zoom, sheet, marks) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks) }
+    val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
+    val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
     val value = TextFieldValue(annotated, seg.selection, seg.composition)
     val measurer = rememberTextMeasurer()
     val marksList = remember(rich) { listMarks(rich) }
@@ -1767,7 +1935,10 @@ private fun FlowField(
             textStyle = base,
             cursorBrush = SolidColor(look.brand),
             // Page breaks inside the text: room shown in the text, not part of it.
-            visualTransformation = remember(seg.breaks, density) { if (seg.breaks.isEmpty()) VisualTransformation.None else PageSpacers(seg.breaks, density.density, density.fontScale) },
+            visualTransformation = remember(seg.breaks, seg.deleted, density) {
+                if (seg.breaks.isEmpty() && seg.deleted.isEmpty()) VisualTransformation.None
+                else PageSpacers(seg.breaks, density.density, density.fontScale, seg.deleted, SpanStyle(color = Color(0xFFC62828), textDecoration = TextDecoration.LineThrough))
+            },
             onTextLayout = { seg.layout = it },
             modifier = Modifier
                 .fillMaxWidth()

@@ -5115,3 +5115,6 @@ Fußzeile der ersten Seite (optional)	Footer of the first page (optional)
 Gerade Seiten anders	Different even pages
 Kopfzeile gerader Seiten	Header of even pages
 Fußzeile gerader Seiten	Footer of even pages
+Änderungen werden nachverfolgt – noch keine Änderungen.	Changes are being tracked – no changes yet.
+Änderung {0} von {1}	Change {0} of {1}
+Nachverfolgen beenden	Stop tracking

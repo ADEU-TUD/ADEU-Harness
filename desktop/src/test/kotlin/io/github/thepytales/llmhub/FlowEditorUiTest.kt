@@ -185,6 +185,33 @@ class FlowEditorUiTest {
         assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Editor da")
     }
 
+    /** Änderungen nachverfolgen im Fließtext (AP-44): inserted green, removed struck through, the bar to accept them. */
+    @Test
+    fun trackedChangesShowInTheRunningText() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        mainClock.autoAdvance = false
+        val base = Files.createTempDirectory("adeu-flow-track").toFile()
+        val c = AppContainer(android.content.Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() }))
+        val doc = DocsHandoff.open(c, "Bericht", "# Bericht\n\nDer Antrag wurde heute gestellt und genehmigt.\n\nEin zweiter Absatz mit neuem Satz.\n")
+        c.docs.update(doc.id) { d -> d.copy(trackBase = mapOf(d.tabs.first().id to "# Bericht\n\nDer Antrag wurde gestern gestellt.\n\nEin zweiter Absatz.\n")) }
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) {
+                    androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) }
+                }
+            }
+        }
+        repeat(8) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-tracking.png"))
+        assertTrue(onAllNodesWithContentDescription("Dokumenttext").fetchSemanticsNodes().isNotEmpty(), "Fließtext statt Blockansicht")
+        assertTrue(onAllNodesWithText("Änderung 1 von", substring = true).fetchSemanticsNodes().isNotEmpty(), "Leiste der Änderungen")
+        onAllNodesWithText("Annehmen")[0].performClick()
+        repeat(6) { Thread.sleep(100); mainClock.advanceTimeBy(300) }
+        waitForIdle()
+        val tracked = c.docs.get(doc.id)!!.trackBase!!.values.single()
+        assertTrue("heute" in tracked && "gestern" !in tracked, tracked)
+    }
+
     @Test
     fun fileDialogShowsPlaces() = runSkikoComposeUiTest(Size(940f, 620f), Density(1f)) {
         mainClock.autoAdvance = false
