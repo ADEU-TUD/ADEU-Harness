@@ -58,7 +58,7 @@ object DocMarkup {
     )
 
     /** Fields in header and footer texts: `{seite}` (page number) and `{seiten}` (pages in all). */
-    private val FIELD = Regex("\\{(seite|seiten|page|pages)}", RegexOption.IGNORE_CASE)
+    private val FIELD = Regex("\\{(seite|seiten|page|pages)\\}", RegexOption.IGNORE_CASE)
 
     /** [text] with its fields filled in for page [page] of [pages]. */
     fun fields(text: String, page: Int, pages: Int): String =
