@@ -85,7 +85,9 @@ object Faces {
 
     /**
      * Frames of [file] from [from] to [to] seconds every [step] seconds (one ffmpeg run, raw BGR, at most 640 pixels
-     * wide or high) with the faces [detector] finds in them; [progress] 0..1.
+     * wide or high) with the faces [detector] finds in them; [progress] 0..1. The first frame of every [step]-long slot
+     * is taken (select), not ffmpeg's fps filter: that one hands out frames up to half a step late, and the pixelation
+     * then ran ahead of a moving face.
      */
     suspend fun scan(file: File, from: Double, to: Double, detector: FaceDetector, step: Double = 0.4, progress: (Float) -> Unit = {}): List<Pair<Double, List<Face>>> = withContext(Dispatchers.IO) {
         val exe = Media.ffmpeg() ?: throw IllegalStateException(tr("ffmpeg fehlt in der App."))
@@ -94,7 +96,8 @@ object Faces {
         val len = (to - from).coerceAtLeast(0.1)
         val proc = ProcessBuilder(
             exe, "-nostdin", "-hide_banner", "-loglevel", "error", "-ss", String.format(Locale.ROOT, "%.3f", from), "-t", String.format(Locale.ROOT, "%.3f", len),
-            "-i", file.absolutePath, "-an", "-vf", String.format(Locale.ROOT, "fps=1/%.4f,scale=%d:%d", step, sw, sh), "-f", "rawvideo", "-pix_fmt", "bgr24", "pipe:1",
+            "-i", file.absolutePath, "-an", "-vf", String.format(Locale.ROOT, "select='isnan(prev_selected_t)+gte(floor(t/%.4f+0.001)-floor(prev_selected_t/%.4f+0.001),1)',scale=%d:%d", step, step, sw, sh),
+            "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", "bgr24", "pipe:1",
         ).redirectError(ProcessBuilder.Redirect.DISCARD).start()
         val out = mutableListOf<Pair<Double, List<Face>>>()
         try {

@@ -306,8 +306,8 @@ class VideoEffectsTest {
                 val before = frameAt(video, t)
                 val after = frameAt(film, t)
                 if (t == 2.0) ImageIO.write(after, "png", File(out, "beobachtung-2s.png"))
-                val cx = (40 + 120 * t + 32) / 640
-                val box = doubleArrayOf(cx - 0.04, 0.42, cx + 0.04, 0.55)
+                // The whole face (64 px wide, moving 120 px/s) – no edge of it may peek out of the pixelation.
+                val box = doubleArrayOf((40 + 120 * t + 2) / 640, 0.42, (40 + 120 * t + 62) / 640, 0.55)
                 val d0 = detail(before, box[0], box[1], box[2], box[3])
                 val d1 = detail(after, box[0], box[1], box[2], box[3])
                 assertTrue(d1 < d0 * 0.5, "Gesicht bei $t s verpixelt: $d1 gegen $d0")
