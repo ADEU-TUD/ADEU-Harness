@@ -132,7 +132,7 @@ object DocumentWriter {
                 val docTitle = title.ifBlank { Regex("^#\\s+(.+)", RegexOption.MULTILINE).find(markdown)?.groupValues?.get(1)?.trim().orEmpty() }
                 withContext(Dispatchers.IO) { runCatching { PdfAccessibility.finish(context, file, docTitle) } }
             }
-            DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, ChartBlocks.asTables(markdown), theme) }
+            DocFormat.DOCX -> withContext(Dispatchers.IO) { MarkdownDocx.write(file, title, markdown, theme) }
             DocFormat.PPTX -> withContext(Dispatchers.IO) { PptxWriter.write(file, title, markdown, theme.unit, theme.footer) }
             DocFormat.QTI -> withContext(Dispatchers.IO) { QtiWriter.write(file, title, markdown) }
             DocFormat.HTML -> withContext(Dispatchers.IO) {

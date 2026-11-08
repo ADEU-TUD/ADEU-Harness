@@ -18,9 +18,12 @@ object DocxExtras {
     private const val COMMENTS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"
     private const val COMMENTS_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
 
-    /** The Markdown Word gets: title on top, pictures resolved, charts as tables (formulas as Word formulas, see LatexOmml). */
-    fun markdown(doc: LiveDoc, base: File?, text: String = doc.markdown()): String =
-        ChartBlocks.asTables(DocMarkup.resolveImages(DocumentWriter.withTitle(doc.title, text.replace(EMPTY, "")), base))
+    /**
+     * The Markdown Word gets: title on top, pictures resolved, charts as real Word charts (AP-49) – as tables only with
+     * „Änderungen nachverfolgen“, whose revisions compare text (formulas as Word formulas, see LatexOmml).
+     */
+    fun markdown(doc: LiveDoc, base: File?, text: String = doc.markdown(), tables: Boolean = false): String =
+        DocMarkup.resolveImages(DocumentWriter.withTitle(doc.title, text.replace(EMPTY, "")), base).let { if (tables) ChartBlocks.asTables(it) else it }
 
     /** The text of the base of „Änderungen nachverfolgen“ (all tabs like [LiveDoc.markdown]). */
     private fun baseText(doc: LiveDoc): String? {
@@ -36,7 +39,7 @@ object DocxExtras {
     fun write(file: File, doc: LiveDoc, theme: DocTheme, base: File?): Map<String, String> {
         val now = markdown(doc, base)
         val old = baseText(doc)?.let { markdown(doc, base, it) }
-        if (old != null && old != now) MarkdownDocx.writeTracked(file, doc.title, old, now, theme, author = "Lora")
+        if (old != null && old != now) MarkdownDocx.writeTracked(file, doc.title, markdown(doc, base, baseText(doc)!!, tables = true), markdown(doc, base, tables = true), theme, author = "Lora")
         else MarkdownDocx.write(file, doc.title, now, theme)
         val open = doc.comments.filter { !it.resolved }
         if (open.isEmpty()) return emptyMap()

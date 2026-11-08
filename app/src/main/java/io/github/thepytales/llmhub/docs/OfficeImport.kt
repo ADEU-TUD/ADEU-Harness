@@ -360,6 +360,12 @@ object OfficeImport {
 
     /** Pictures (w:drawing with a:blip) of a paragraph as Markdown image lines; the caption is the alternative text. */
     private fun pictures(p: Element, ctx: DocxRefs): List<String> = p.all("drawing").mapNotNull { d ->
+        // A Word chart (AP-49) comes back as ```chart block with the values Word cached.
+        d.all("chart").firstOrNull { it.namespaceURI == OfficeCharts.NS_C }?.let { c ->
+            val rid = (0 until c.attributes.length).map { c.attributes.item(it) }.firstOrNull { it.localName == "id" }?.nodeValue
+            val spec = OfficeCharts.read(ctx.files[ctx.rels[rid]])?.spec()
+            return@mapNotNull spec?.let { "```chart\n" + it.toJson() + "\n```" }
+        }
         val embed = d.all("blip").firstOrNull()?.attributes?.let { a -> (0 until a.length).map { a.item(it) }.firstOrNull { it.localName == "embed" }?.nodeValue } ?: return@mapNotNull null
         val path = keepImage(ctx.files[ctx.rels[embed]], ctx.media) ?: return@mapNotNull null
         val alt = d.all("docPr").firstOrNull()?.let { it.attr("descr").ifBlank { it.attr("title") } }.orEmpty()

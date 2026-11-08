@@ -26,10 +26,14 @@ object MarkdownDocx {
     /** A picture of the document in word/media. */
     private class Media(val name: String, val rel: String, val bytes: ByteArray)
 
+    /** A real Word chart (AP-49): part number, relationship id and the chart with its embedded workbook. */
+    private class ChartPart(val n: Int, val rel: String, val embedded: OfficeCharts.Embedded)
+
     /** What one export collects while writing the body: footnote numbers, pictures, the current page orientation. */
     private class Ctx(val notes: List<DocMarkup.Note>, val header: Boolean, val footer: Boolean) {
         val numbers = notes.associate { it.label to it.number }
         val media = mutableListOf<Media>()
+        val charts = mutableListOf<ChartPart>()
         var landscape = false
         var drawingId = 10
         /** Headings for an Inhaltsverzeichnis (AP-16). */
@@ -63,6 +67,8 @@ object MarkdownDocx {
         c.media.map { it.name.substringAfterLast('.') }.filter { it != "png" }.distinct().forEach { ext ->
             append("<Default Extension=\"$ext\" ContentType=\"image/$ext\"/>")
         }
+        if (c.charts.isNotEmpty()) append("<Default Extension=\"xlsx\" ContentType=\"${OfficeCharts.XLSX_TYPE}\"/>")
+        c.charts.forEach { append("<Override PartName=\"/word/charts/chart${it.n}.xml\" ContentType=\"${OfficeCharts.CONTENT_TYPE}\"/>") }
         append("<Override PartName=\"/word/document.xml\" ContentType=\"$CT.document.main+xml\"/>")
         for (n in parts(c)) {
             if (c.footer) append("<Override PartName=\"/word/footer$n.xml\" ContentType=\"$CT.footer+xml\"/>")
@@ -88,6 +94,7 @@ object MarkdownDocx {
         append("<Relationship Id=\"rIdStyles\" Type=\"$R_NS/styles\" Target=\"styles.xml\"/>")
         if (withLogo) append("<Relationship Id=\"rIdLogo\" Type=\"$R_NS/image\" Target=\"media/logo.png\"/>")
         c.media.forEach { append("<Relationship Id=\"${it.rel}\" Type=\"$R_NS/image\" Target=\"${it.name}\"/>") }
+        c.charts.forEach { append("<Relationship Id=\"${it.rel}\" Type=\"${OfficeCharts.REL_CHART}\" Target=\"charts/chart${it.n}.xml\"/>") }
         append("</Relationships>")
     }
 
@@ -189,7 +196,7 @@ object MarkdownDocx {
         current.set(c)
         try {
             val xml = buildString { for (b in parseBlocks(markdown)) block(b, theme) }
-            return if (c.media.isNotEmpty()) null else xml
+            return if (c.media.isNotEmpty() || c.charts.isNotEmpty()) null else xml
         } finally {
             current.remove()
         }
@@ -244,6 +251,11 @@ object MarkdownDocx {
                 entry("docProps/core.xml", core(title.ifBlank { markdown.lineSequence().firstOrNull { it.startsWith("# ") }?.removePrefix("# ")?.trim() ?: "Dokument" }))
                 if (logo != null) bytes("word/media/logo.png", logo)
                 c.media.forEach { bytes("word/${it.name}", it.bytes) }
+                c.charts.forEach { ch ->
+                    entry("word/charts/chart${ch.n}.xml", ch.embedded.chartXml)
+                    entry("word/charts/_rels/chart${ch.n}.xml.rels", ch.embedded.relsXml)
+                    bytes("word/embeddings/Microsoft_Excel_Worksheet${ch.n}.xlsx", ch.embedded.workbook)
+                }
                 entry("word/document.xml", document)
             }
         } finally {
@@ -344,6 +356,27 @@ object MarkdownDocx {
             "<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"$cx\" cy=\"$cy\"/></a:xfrm>" +
             "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic>" +
             "</wp:inline></w:drawing>"
+
+    /**
+     * A ```chart block as real Word chart (AP-49): with its data in an embedded workbook, so „Daten bearbeiten“ works
+     * in Word. Null for charts Word has no classic form for (box plots) – they keep
+     * their data table.
+     */
+    private fun chartParagraph(code: String): String? {
+        val spec = ChartSpec.parse(code)?.takeIf { it.type != ChartSpec.Type.BOX } ?: return null
+        val c = ctx
+        val n = c.charts.size + 1
+        val embedded = runCatching { OfficeCharts.embedded(spec, "../embeddings/Microsoft_Excel_Worksheet$n.xlsx") }.getOrNull() ?: return null
+        val part = ChartPart(n, "rIdChart$n", embedded)
+        c.charts += part
+        val cx = c.width * 635L
+        val cy = cx * 380 / 640
+        val id = c.drawingId++
+        val chart = "<w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"$cx\" cy=\"$cy\"/><wp:effectExtent l=\"0\" t=\"0\" r=\"0\" b=\"0\"/>" +
+            "<wp:docPr id=\"$id\" name=\"Diagramm $n\" descr=\"${attr(OfficeCharts.altText(spec))}\"/><wp:cNvGraphicFramePr/>" + OfficeCharts.graphic(part.rel) + "</wp:inline></w:drawing></w:r>"
+        // The title is part of the chart (no caption below, so a file edited in Word comes back without doubling it).
+        return para(chart, "<w:spacing w:before=\"120\" w:after=\"160\"/><w:jc w:val=\"center\"/>")
+    }
 
     /** A picture of the document as inline drawing (width in percent of the text width), caption below it. */
     private fun imageParagraph(img: DocMarkup.Image): String {
@@ -730,12 +763,19 @@ object MarkdownDocx {
                         "<w:pBdr><w:left w:val=\"single\" w:sz=\"12\" w:space=\"8\" w:color=\"BBBBBB\"/></w:pBdr>$SPACING<w:ind w:left=\"240\"/>",
                     )
                 )
-                is Block.Code -> append(
-                    para(
-                        run(b.code, RunStyle(mono = true, size = 18)),
-                        "<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"F1F3F5\"/><w:spacing w:after=\"160\"/>",
-                    )
-                )
+                is Block.Code -> {
+                    val chart = if (b.lang.equals("chart", ignoreCase = true)) chartParagraph(b.code) else null
+                    when {
+                        chart != null -> append(chart)
+                        b.lang.equals("chart", ignoreCase = true) -> parseBlocks(ChartBlocks.asTables("```chart\n${b.code}\n```")).forEach { block(it, theme) }
+                        else -> append(
+                            para(
+                                run(b.code, RunStyle(mono = true, size = 18)),
+                                "<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"F1F3F5\"/><w:spacing w:after=\"160\"/>",
+                            )
+                        )
+                    }
+                }
                 is Block.Table -> table(b.rows, accent)
                 Block.Rule -> append(para("", "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"1\" w:color=\"BBBBBB\"/></w:pBdr>"))
             }
