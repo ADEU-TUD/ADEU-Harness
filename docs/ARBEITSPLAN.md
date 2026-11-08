@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 07.11.2026 (1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (nach 1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -64,7 +64,7 @@ Fairlight).
 | ~~Video-Grundlage~~ ☑ | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge (erledigt, siehe *Erledigt*) |
 | **Jetzt** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
 | **Danach** – Video | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
-| **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
+| **Danach** – Dateien | ~~AP-58 Frag diesen Ordner~~ ☑ · AP-59 Windows-Integration |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -81,7 +81,8 @@ abwechseln, wenn ein Strang wartet.
 ## Jetzt
 
 Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
-ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51.
+ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026: alle vier begonnen (◐) –
+das „Fertig, wenn“ von AP-48 und AP-49 ist erfüllt, die Reste stehen je Paket unter *Offen*; AP-58 aus *Danach* ist erledigt.
 
 ### AP-48 ◐ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
@@ -244,14 +245,6 @@ So nah wie möglich an **Google Slides/PowerPoint**:
 - **Fertig, wenn**: Ein 60-Minuten-Video exportiert auf einem PC mit GPU deutlich schneller als heute, im Hintergrund,
   mit Kapiteln.
 - Betrifft: Windows `video/VideoRender.kt`, `ui/VideoScreen.kt`, `data/Nextcloud.kt`.
-
-### AP-58 ☐ Frag diesen Ordner · S–M (neu)
-- Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
-  im **Quellenmodus** (AP-08) über alle Dateien darin, mit Belegen (Datei + Seite).
-- Nutzt den Volltext-Cache aus AP-18; große Ordner werden im Hintergrund gelesen, Fortschritt sichtbar.
-- Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
-- **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
-- Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
 
 ### AP-59 ☐ Windows-Integration (W) · M (neu)
 - **Ziehen aus dem Explorer** in *Dateien* (kopieren in den geöffneten Ordner) und **aus Lora in den Explorer**, in Mails
@@ -416,8 +409,9 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-47 Lora schreibt im Dokument | Hilf mir schreiben, Überarbeiten als Vorschläge, Menü über der Markierung | – |
 | ☑ AP-52 Video: mehrere Spuren und echte Vorschau | Video- und Tonspuren beliebig viele, Position/Größe/Zuschnitt/Deckkraft je Clip, Bild-in-Bild mit Ecken, Vorschau durch denselben ffmpeg-Graphen wie der Export (J/K/L, Schleife In–Out), Wellenformen, Lora-Aktion *Bild-in-Bild* | Lautheit angleichen nur im Export; Flüssigkeit auf den Dienst-PCs messen |
 | ☑ AP-53 Video: Schnittwerkzeuge | Medienpool mit Ordnern und Suche, Quellmonitor mit In/Out, Einfügen/Überschreiben/Ziehen, Klinge, Ripple/Roll/Slip, Magnet, verknüpfter Ton, Synchronisieren über die Wellenform, Spuren sperren/stumm/ausblenden, Marker als Kapitel, Tasten wie Resolve | J spielt rückwärts ohne Ton; Synchronisieren vergleicht die ersten 15 Minuten |
+| ☑ AP-58 Frag diesen Ordner | Ordnermenü in *Dateien*, Lesen mit Fortschritt aus dem Volltext-Cache, Chat im Quellenmodus mit `search_folder` (Datei + Seite), Belegprüfung je Datei, Datenschutz-Empfehlung | Nextcloud- und Projektordner direkt |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52 und AP-53 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52, AP-53 und AP-58 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -785,6 +779,25 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
   synchronisiert, zweimal geschnitten, Mitte gelöscht, Ripple-Trim, Folie aus dem Quellmonitor eingefügt, ohne Lücke; im
   Export liegt der Mikrofonton auf den Ereignissen der Kamera (±60 ms). **Nicht umgesetzt**: Rückwärtslauf mit Ton;
   Synchronisieren vergleicht die ersten 15 Minuten jeder Aufnahme (reicht für übliche Versätze).
+
+### AP-58 ☑ Frag diesen Ordner · S–M (neu)
+- Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
+  im **Quellenmodus** (AP-08) über alle Dateien darin, mit Belegen (Datei + Seite).
+- Nutzt den Volltext-Cache aus AP-18; große Ordner werden im Hintergrund gelesen, Fortschritt sichtbar.
+- Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
+- **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
+- Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
+- **Umsetzung (08.11.2026, ☑)**: *Dateien* › ⋮ an einem Ordner (Lora-Ordner, Orte, auch feste Ordner) › **„Frag diesen
+  Ordner“**: liest die Texte aller lesbaren Dateien (PDF, Office, OpenDocument, Markdown, Text, Mails …, auch in
+  Unterordnern, bis 400) über den Volltext-Cache von AP-18 im Hintergrund mit Fortschritt und öffnet einen neuen Chat im
+  **Quellenmodus**; der Auftrag an das Modell nennt Ordner und Dateien. Neues Werkzeug **`search_folder`**
+  (`agent/FolderAsk.kt`): die passendsten Stellen nur aus diesem Ordner (Seiten aus den `[Seite N]`-Marken, Wörter
+  gewichtet nach Seltenheit im Ordner, höchstens drei Stellen je Datei) mit Datei, Pfad und Seite. Die **Belegprüfung**
+  nimmt jede Datei der Treffer als eigene Quelle (mit Pfad, Klick öffnet das PDF an der Seite). **Datenschutz**: wirkt
+  ein Ordner vertraulich (Gutachten, Noten, Bewerbung, personenbezogen …), empfiehlt die App „Nur TU Dresden“. Test
+  `FolderAskTest`: 50 PDFs, Frage mit Belegen aus drei Dateien, alle Zitate geprüft, falsche Seite erkannt. **Rest**:
+  Nextcloud- und Projektordner direkt (heute über den synchronisierten Ordner), Datenschutzstufe automatisch setzen statt
+  empfehlen.
 
 ---
 

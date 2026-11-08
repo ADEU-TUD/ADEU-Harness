@@ -334,6 +334,8 @@ object Evidence {
                 }
                 "web_search", "news_search" -> out += EvidenceSource("Websuche", m.content, EvidenceSource.Kind.WEB)
                 "search_knowledge" -> out += EvidenceSource("Wissenssammlung", m.content, EvidenceSource.Kind.KNOWLEDGE)
+                // Frag diesen Ordner (AP-58): each file of the passages is a source of its own (with its path for the click).
+                "search_folder" -> out += FolderAsk.sources(m.content)
                 "read_transcript", "search_transcripts" -> out += EvidenceSource("Transkript", m.content, EvidenceSource.Kind.TRANSCRIPT)
                 "read_local_file", "read_project_file", "read_file", "read_attachment", "read_document" -> {
                     val name = args?.get("path")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }?.substringAfterLast('/')?.substringAfterLast('\\')

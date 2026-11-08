@@ -98,6 +98,19 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
                     ),
                 )
             )
+            // Frag diesen Ordner (AP-58): passages of one folder's files with file and page.
+            add(
+                ToolDef(
+                    "search_folder",
+                    "Durchsucht die Dateien EINES Ordners (mit Unterordnern) im Volltext und liefert die passendsten Textstellen mit " +
+                        "Datei und Seite ([Seite N]). Für Chats „Frag diesen Ordner“: vor jeder Antwort nutzen und jede Aussage mit Datei und Seite belegen.",
+                    listOf(
+                        Param("folder", "Pfad des Ordners (steht am Anfang des Chats)"),
+                        Param("query", "Suchwörter oder die Frage in eigenen Worten"),
+                        Param("max_results", "Anzahl Textstellen (Standard 8)", required = false, type = "integer"),
+                    ),
+                )
+            )
             if (c.knowledge.docs.value.isNotEmpty()) {
                 add(
                     ToolDef(
@@ -146,7 +159,7 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     override fun risk(name: String, args: JsonObject): Risk? =
         if (name in setOf("remember", "forget") && memoryMode == MemoryMode.ASK) Risk.PUBLIC else null
 
-    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript", "search_chats", "search_files")
+    override fun parallelSafe(name: String) = name in setOf("read_guide", "search_knowledge", "run_javascript", "search_chats", "search_files", "search_folder")
 
     /**
      * The existence of knowledge and of earlier chats, for the system prompt (changes rarely, so the server cache holds).
@@ -210,6 +223,9 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
             // Files whose text was never read: read them in the background for the next search.
             scope.launch { runCatching { lib.index(items) } }
             ToolOutput(io.github.thepytales.llmhub.data.FileLibrary.describe(hits))
+        }
+        "search_folder" -> withContext(Dispatchers.IO) {
+            ToolOutput(FolderAsk.search(c, java.io.File(args.req("folder")), args.req("query"), (args.int("max_results") ?: 8).coerceIn(1, 20)))
         }
         "add_to_knowledge" -> addFromChat(args, ctx)
         "run_javascript" -> {

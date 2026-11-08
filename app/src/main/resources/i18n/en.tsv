@@ -5346,3 +5346,10 @@ Präsentation entfernt.	Presentation removed.
 Animationen	Animations
 Setzt Animationen …	Setting animations …
 Animationen gesetzt.	Animations set.
+Frag diesen Ordner	Ask this folder
+Im Ordner „{0}“ gibt es keine lesbaren Dateien.	The folder “{0}” has no readable files.
+Der Ordner enthält vertraulich wirkende Dateien – Datenschutzstufe „{0}“ empfohlen.	The folder seems to contain confidential files – privacy level “{0}” recommended.
+Frag diesen Ordner: {0} ({1} Dateien)	Ask this folder: {0} ({1} files)
+Suche Dateien in „{0}“ …	Looking for files in “{0}” …
+Lese {0} von {1} Dateien aus „{2}“ …	Reading {0} of {1} files from “{2}” …
+Einmal gelesene Dateien kommen danach aus dem Volltext-Cache.	Files read once come from the full-text cache afterwards.

@@ -752,6 +752,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Code – Name, Schlagwörter und Inhalt, Groß-/Kleinschreibung und Akzente egal, die Textstelle mit den Wörtern fett.
     Der Text jeder Datei wird einmal gelesen und im Cache (`volltext/`) gehalten, bis sie sich ändert; ohne Datenbank.
     Im Chat findet `search_files` dieselben Dateien („Wo hatte ich den Kooperationsvertrag?“).
+  - **Frag diesen Ordner** (AP-58, ⋮ an einem Ordner): liest alle Dateien des Ordners (mit Unterordnern) mit Fortschritt
+    und öffnet einen Chat im **Quellenmodus** über genau diese Dateien – das Werkzeug `search_folder` liefert die Stellen
+    mit Datei und Seite, die Belegprüfung prüft jedes Zitat, ein Klick öffnet das PDF an der Seite. Wirkt der Ordner
+    vertraulich, empfiehlt die App „Nur TU Dresden“.
   - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
     verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
 - **Office-Ausbau** (AP-16): Dokumente fühlen sich an wie Google Docs, mit **Lora rechts als Assistentin** (auf breiten
@@ -1494,6 +1498,8 @@ Chats und Einstellungen erhalten bleiben).
 | `docs/LiveDoc.kt` | Dokumente des Editors (Art, Tabs, Versionen, Kommentare), Speicherorte mit Markdown-Kopie und Abgleich |
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
 | `docs/SheetHelp.kt`, `docs/XlsxReader.kt` | Hilfe beim Tippen von Formeln; schnelles, treues Lesen von .xlsx (AP-48) |
+| `docs/ChartLinks.kt` | Verknüpfte Diagramme in Dokumenten und Folien, „Lora rechnet“ (`SheetCalc`, AP-49) |
+| `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
