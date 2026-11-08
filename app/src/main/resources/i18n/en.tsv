@@ -162,6 +162,9 @@ Ablauf, Leitfragen, Erwartungshorizont und Protokollbogen	Procedure, guiding que
 Ablehnen	Decline
 Abmelden	Sign out
 Absatz	Paragraph
+Absatz herausschneiden	Cut out paragraph
+Absatz nach oben	Paragraph up
+Absatz nach unten	Paragraph down
 Abschluss	Closing
 Abschlussarbeiten, Exposés, Gutachten, mündliche Prüfungen	Theses, proposals, assessments, oral exams
 Abschlussfolie	Closing slide
@@ -382,6 +385,7 @@ Angemeldet	Signed in
 Angemeldet als {0}	Signed in as {0}
 Angemeldet als {0} · {1} Tokens	Signed in as {0} · {1} tokens
 Angemeldet. Die App hat ein eigenes App-Passwort bekommen.	Signed in. The app received its own app password.
+Angenommene übernehmen	Apply accepted
 angepasst	adjusted
 Anhalten	Stop
 Anheften	Pin
@@ -842,6 +846,7 @@ Client-ID für OAuth (optional)	Client ID for OAuth (optional)
 Clip	Clip
 Clip entfernen	Remove clip
 Clip hinzufügen	Add clip
+Clip {0}	Clip {0}
 Clip {0} entfernt.	Clip {0} removed.
 Clip {0}: {1} ({2})	Clip {0}: {1} ({2})
 Clips	Clips
@@ -870,6 +875,8 @@ CSV (Tabellen)	CSV (tables)
 Da gibt es nichts zu ändern.	There is nothing to change.
 Dafür braucht ein Clip ein Transkript: unter Rohschnitt › Pausen und Füllwörter oder Untertitel › Aus der Transkription eines zuordnen.	For this, a clip needs a transcript: assign one under Rough cut › Pauses and filler words or Subtitles › From the transcription.
 Dafür braucht es die gespeicherte Aufnahme.	This needs the saved recording.
+Dafür braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	This needs a model – none is allowed here or there is no API key.
+Dafür braucht es ein Transkript – zuerst „Untertitel erzeugen“ oder transkribieren.	This needs a transcript – first “Create subtitles” or transcribe.
 Dafür gibt es	There is
 Dafür gibt es „{0}“ – einschalten?	There is “{0}” for that – turn it on?
 Dafür gibt es „{0}“ – {1} Einschalten?	There is “{0}” for that – {1} Switch it on?
@@ -942,6 +949,7 @@ Das Update dauert etwa eine Minute. Danach startet Lora von selbst neu – Chats
 Das Update-Paket ist unvollständig (keine vollständige App darin).	The update package is incomplete (no complete app inside).
 Das Video liegt unter Transkription bereit – dort starten, danach hier das Transkript wählen.	The video is ready under Transcription – start it there, then choose the transcript here.
 Das Video ließ sich nicht übernehmen.	The video could not be taken over.
+Das Video über den Text schneiden: Wörter löschen schneidet, Absätze verschieben verschiebt Clips, Lora schlägt Schnitte vor.	Cut the video through its text: deleting words cuts, moving paragraphs moves clips, Lora proposes cuts.
 Das bearbeitete PDF speichern oder teilen.	Save or share the edited PDF.
 Das würde ich so machen – passt es?	This is what I would do – is that right?
 Das ZIP-Archiv kann nicht gelesen werden.	The ZIP archive cannot be read.
@@ -1781,6 +1789,7 @@ Füllfarbe	Fill colour
 Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.	Fills in the “Sender” field in letter and e-mail templates automatically.
 Füllt {0} Zellen …	Filling {0} cells …
 Füllung	Fill
+Füllwörter entfernen ({0})	Remove filler words ({0})
 Für alle Chats	For all chats
 Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben.	For all chats: Settings › Chat & tools › Approvals.
 Für alle Präsentationen übernehmen	Use for all presentations
@@ -1838,6 +1847,7 @@ Gedächtnis in diesem Chat	Memory in this chat
 Gedächtnis nutzen	Use memory
 Gefiltert nach Spalte {0} · {1} von {2} Zeilen	Filtered by column {0} · {1} of {2} rows
 Gefunden ({0}): {1}	Found ({0}): {1}
+Herausschneiden	Cut out
 gefunden und ergänzt	found and completed
 gefunden, Angaben abweichend	found, details differ
 gefunden, Angaben stimmen	found, details match
@@ -2120,10 +2130,12 @@ Im PDF-Werkzeugkasten öffnen	Open in the PDF toolbox
 Im Quellenmodus: Jede Aussage bekommt die Seite und ein Zitat, die App prüft jedes Zitat gegen das PDF; ein Klick öffnet die Stelle hier.	In source mode: every statement gets the page and a quote, the app checks every quote against the PDF; a click opens the passage here.
 Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“).	Create a key in the self-service portal of TU Dresden under “ScaDS.AI LLM” (starts with “sk-”).
 Im Transkript passt nichts zu den Clips.	Nothing in the transcript matches the clips.
+Im Transkript schneiden	Cut in the transcript
 Im Transkript suchen	Search in the transcript
 Im Tresor merke ich mir nichts.	In the vault I remember nothing.
 Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen.	Only the university server and models on this device are allowed in the vault – {0} runs at an external provider. Please choose a model of the university server.
 Im TUD-Design	In the TUD design
+Im Video ist nichts gesprochen – oder den Clips fehlt ein Transkript.	Nothing is spoken in the video – or the clips have no transcript.
 im Web	on the web
 Im Web suchen und Links lesen.	Search the web and read links.
 Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.	Search the web and the news, read links and check references at Crossref.
@@ -2487,6 +2499,7 @@ Klein	Small
 kleiner als	less than
 Kleines Modell von Google mit gutem Deutsch – Handys und Laptops ohne Grafikkarte.	Small model from Google with good German – phones and laptops without a graphics card.
 Klick in die Leiste: springen · Clips ziehen: verschieben · Ränder ziehen: kürzen · S teilt, Entf löscht, Leertaste spielt.	Click in the bar: jump · drag clips: move · drag edges: trim · S splits, Del deletes, space plays.
+Klick springt, Umschalt+Klick oder Ziehen markiert, Entf schneidet heraus.	Click jumps, Shift+click or dragging selects, Del cuts out.
 klicken	click
 Kolleg:innen, Ansprechpersonen, Rollen	Colleagues, contact persons, roles
 Kommentar	Comment
@@ -2740,6 +2753,7 @@ Lora gestaltet im TUD-Design Poster, Flyer, Aushänge, Einladungskarten, Social-
 Lora hat geschrieben	Lora has written
 Lora hat keine Abschnitte ausgewählt.	Lora did not select any sections.
 Lora hat nichts zu ändern gefunden.	Lora found nothing to change.
+Lora hat nichts zum Herausschneiden gefunden.	Lora found nothing to cut out.
 Lora hat nichts zum Kürzen gefunden.	Lora found nothing to shorten.
 Lora hilft beim Finden: In den Einstellungen unten rechts antippen, auf der Startseite „Lora fragen“ oder Strg+K › Lora fragen. Einstellungen › Lora legt fest, wo sie erscheint.	Lora helps you find things: tap her at the bottom right in the settings, “Ask Lora” on the start screen, or Ctrl+K › Ask Lora. Settings › Lora decides where she appears.
 Lora hört zu	Lora is listening
@@ -2766,6 +2780,9 @@ Lora richtet dafür einmalig einen Browser ein (Chromium, ca. 170 MB, ohne Admin
 Lora sagen, was entstehen soll.	Tell Lora what to create.
 Lora schließen	Close Lora
 Lora schläft – antippen zum Fragen	Lora is asleep – tap to ask
+Lora schlägt Schnitte vor	Lora proposes cuts
+Lora schlägt nichts zum Schneiden vor.	Lora proposes nothing to cut.
+Lora schlägt {0} Schnitt(e) vor – spart {1}	Lora proposes {0} cut(s) – saves {1}
 Lora schreibt …	Lora is writing …
 Lora sortiert Briefe	Lora sorts letters
 Lora startet mit Windows – Aufgaben laufen auch, wenn du die App nicht geöffnet hast.	Lora starts with Windows – tasks also run when you haven't opened the app.
@@ -2868,6 +2885,7 @@ MAXQDA / f4 (Text mit Zeitmarken)	MAXQDA / f4 (text with timestamps)
 MCP-Server	MCP servers
 MCP-Server bearbeiten	Edit MCP server
 MCP-Server hinzufügen	Add MCP server
+Medien	Media
 Medium	Medium
 Mehr	More
 Mehr anzeigen	Show more
@@ -3286,6 +3304,7 @@ ohne Internetverbindung	without an internet connection
 Ohne Loras Wissen senden	Send without Lora's knowledge
 Ohne Markierung: das ganze Bild nach der Beschreibung überarbeiten	Without markings: revise the whole image according to the description
 Ohne Mikrofon-Berechtigung ist keine Aufnahme möglich.	Without microphone permission, recording is not possible.
+Ordne den Clips ein Transkript zu (oder transkribiere sie) – dann steht hier der Text: Wörter löschen schneidet das Video, Absätze verschieben verschiebt Clips.	Assign a transcript to the clips (or transcribe them) – then their text appears here: deleting words cuts the video, moving paragraphs moves clips.
 ohne Modell	without a model
 Ohne Paket weiter	Continue without the package
 Ohne Projekt	Without a project
@@ -3369,6 +3388,7 @@ Passwort zum Öffnen (optional)	Password to open (optional)
 Pauschale in %	Overhead in %
 Pause	Pause
 Pause (F4)	Pause (F4)
+Pausen kürzen ({0})	Shorten pauses ({0})
 Pausen und Füllwörter herausschneiden …	Cut out pauses and filler words …
 Pausen überspringen	Skip pauses
 Pausiert	Paused
@@ -3655,6 +3675,7 @@ Schneeballsuche	Snowball search
 Schneiden	Cut
 Schneidet Pausen und Füllwörter heraus …	Cutting out pauses and filler words …
 Schneidet bei {0} …	Cutting at {0} …
+Schneidet {0} Stelle(n) aus dem Transkript …	Cutting {0} passage(s) out of the transcript …
 Schnell, versteht Bilder und nutzt Werkzeuge. Eigenes Kontingent im kostenlosen API-Plan.	Fast, understands images and uses tools. Its own quota on the free API plan.
 Schnell, versteht Bilder, nutzt Werkzeuge und denkt bei Bedarf nach; 1 Mio. Token Kontext. Im kostenlosen API-Plan mit Anfragen pro Minute und Tag begrenzt.	Fast, understands images, uses tools and thinks when needed; 1 million tokens of context. Limited in requests per minute and per day on the free API plan.
 Schnell: {0} (empfohlen)	Fast: {0} (recommended)
@@ -4176,6 +4197,7 @@ Transkript nach Dresing/Pehl	Transcript following Dresing/Pehl
 Transkript wird geladen …	Loading transcript …
 Transkript wählen	Choose transcript
 Transkript zugeordnet – Untertitel und Rohschnitt kommen daraus.	Transcript assigned – subtitles and rough cut come from it.
+Transkript zuordnen …	Assign transcript …
 Transkript · {0} Wörter	Transcript · {0} words
 Transkript übersetzen	Translate transcript
 Transkript, Dokument, Literaturliste oder erzeugtes Bild	Transcript, document, reference list or generated image
@@ -4501,6 +4523,7 @@ Was soll ich schreiben?	What should I write?
 Was soll in {0} berechnet werden?	What should be calculated in {0}?
 Was soll Lora an der Cursorstelle schreiben? Zum Beispiel: Schreib eine Einleitung zu …	What should Lora write at the cursor? For example: Write an introduction to …
 Was soll Lora mit der Markierung machen?	What should Lora do with the selection?
+Was soll herausgeschnitten werden?	What should be cut out?
 Was soll mit dem Text passieren?	What should happen to the text?
 Was soll mit den offenen Änderungen passieren?	What should happen to the open changes?
 Was soll mit der Markierung passieren?	What should happen to the selection?
@@ -4683,6 +4706,7 @@ Wortzeiten werden gemessen – das Transkript aktualisiert sich danach.	Word tim
 Wortzeiten werden gemessen …	Measuring word times …
 Wortzeiten …	Word times …
 Wortzeiten: {0} von {1} Wörtern gemessen; geänderte Wörter behalten ihre Zeit, neue liegen dazwischen. 	Word times: {0} of {1} words measured; changed words keep their time, new ones lie in between. 
+Wunsch an Lora, z. B. „Kürze auf 10 Minuten“	Ask Lora, e.g. “Shorten to 10 minutes”
 Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem 	Choose how answers are read aloud. Both ways are privacy-friendly: the AI voice runs on the 
 Wörter	words
 Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.	Words that look like names but aren't. Your own list above takes priority.
@@ -4856,6 +4880,7 @@ unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
 Zweite Zeile	Second line
 Zweiter PC: vorhandenen Ordner öffnen	Second PC: open the existing folder
+herausschneiden	cut out
 zwischen {0} und {1}	between {0} and {1}
 Zwischenüberschrift	Subheading
 {0} % von {1}	{0} % of {1}
@@ -4898,6 +4923,7 @@ Zwischenüberschrift	Subheading
 {0} Chats aus dem Archiv geholt	{0} chats taken out of the archive
 {0} Chats gelöscht	{0} chats deleted
 {0} Chats: 	{0} chats: 
+{0} Clip(s) ohne Transkript (oder mit Standbild/rückwärts) fehlen im Text.	{0} clip(s) without a transcript (or frozen/reversed) are missing from the text.
 {0} Datei(en) nach „{1}“ kopiert	{0} file(s) copied to “{1}”
 {0} Dateien fehlen	{0} files are missing
 {0} Dateien im Papierkorb.	{0} files in the trash.
@@ -4908,6 +4934,7 @@ Zwischenüberschrift	Subheading
 {0} Dazu habe ich nichts gefunden – versuch es mit anderen Worten.	{0} I found nothing for that – try other words.
 {0} Dokument(e)	{0} document(s)
 {0} Dokument(e) · nur auf diesem Gerät (mit Sicherung & Umzug übertragbar)	{0} document(s) · only on this device (transferable with Backup & transfer)
+{0} Pausen gekürzt. Mit Strg+Z rückgängig.	{0} pauses shortened. Undo with Ctrl+Z.
 {0} Vorlieben vergessen	{0} preferences forgotten
 {0} doppelte Zeile(n) entfernt	{0} duplicate row(s) removed
 {0} Duplikate im Papierkorb (30 Tage wiederherstellbar).	{0} duplicates in the trash (restorable for 30 days).
@@ -4918,6 +4945,7 @@ Zwischenüberschrift	Subheading
 {0} Einträge werden endgültig gelöscht.	{0} items will be deleted permanently.
 {0} Einträge übernommen	{0} entries taken over
 {0} Elemente ausgewählt	{0} elements selected
+{0} Füllwörter entfernt. Mit Strg+Z rückgängig.	{0} filler words removed. Undo with Ctrl+Z.
 {0} doppelte Zeilen entfernt	{0} duplicate rows removed
 {0} ergänzt	{0} completed
 {0} ersetzen	Replace {0}
@@ -4925,8 +4953,10 @@ Zwischenüberschrift	Subheading
 {0} Folie(n) aufgeteilt	{0} slide(s) split
 {0} Folien	{0} slides
 {0} Fristen in den Kalender	{0} deadlines to the calendar
+{0} Schnitt(e) übernommen. Mit Strg+Z rückgängig.	{0} cut(s) applied. Undo with Ctrl+Z.
 {0} gelöscht	{0} deleted
 {0} gespeichert, Fehler: {1}	{0} saved, errors: {1}
+{0} herausgeschnitten. Mit Strg+Z rückgängig.	{0} cut out. Undo with Ctrl+Z.
 {0} importieren	Import {0}
 {0} ist bereit.	{0} is ready.
 {0} ist gerade nicht erreichbar – {1} antwortet.	{0} cannot be reached right now – {1} answers.
@@ -4962,6 +4992,7 @@ Zwischenüberschrift	Subheading
 {0} Sekunden zurück (F3)	{0} seconds back (F3)
 {0} Std.	{0} h
 {0} Stelle(n) ersetzt	{0} occurrence(s) replaced
+{0} Stelle(n) herausgeschnitten, jetzt {1}.	{0} passage(s) cut out, now {1}.
 {0} Stellen geschwärzt – erst „Speichern“ im Werkzeugkasten ändert das Original.	{0} places redacted – only “Save” in the toolbox changes the original.
 {0} Stimmprofil(e) gespeichert.	{0} voice profile(s) saved.
 {0} Tabelle(n) ohne markierte Kopfzeile.	{0} table(s) without a marked header row.

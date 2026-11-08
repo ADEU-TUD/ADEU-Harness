@@ -341,6 +341,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     var loop by remember { mutableStateOf(false) }
     var keys by remember { mutableStateOf(false) }
     val drag = remember { PoolDrag() }
+    // Left panel: media pool or the transcript (textbasierter Schnitt, AP-55).
+    var leftTab by remember { mutableStateOf("media") }
+    val textCut = remember(id) { TextCutState() }
+    var assignTranscript by remember { mutableStateOf(false) }
     val sourceItem = p.media.firstOrNull { it.id == sourceId }
     val sourceInfo by produceState<io.github.thepytales.llmhub.video.MediaInfo?>(null, sourceItem?.path) { value = sourceItem?.let { withContext(Dispatchers.IO) { Media.probe(File(it.path)) } } }
     val sourceLen = sourceItem?.let { if (Media.isStill(File(it.path), sourceInfo)) 5.0 else sourceInfo?.duration?.takeIf { d -> d > 0.05 } }
@@ -502,7 +506,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                 ev.key == Key.N -> { h.edit { it.copy(magnet = !it.magnet) }; Notices.info(tr(if (!p.magnet) "Magnet an: Spuren ziehen mit, Lücken schließen sich." else "Magnet aus.")); true }
                 ev.key == Key.M -> { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid); true }
                 ev.key == Key.S -> { split(); true }
-                ev.key == Key.Delete || ev.key == Key.Backspace -> { deleteSelected(closeGap = ev.isShiftPressed); true }
+                ev.key == Key.Delete || ev.key == Key.Backspace -> {
+                    if (leftTab == "text" && textCut.hasSelection) textCut.deleteSelection(h) else deleteSelected(closeGap = ev.isShiftPressed)
+                    true
+                }
                 ev.key == Key.DirectionLeft -> { pl.seek(pr, at - 1.0 / pr.fps); true }
                 ev.key == Key.DirectionRight -> { pl.seek(pr, at + 1.0 / pr.fps); true }
                 ev.key == Key.DirectionUp && !showSource -> { player.seek(p, cuts().lastOrNull { it < at - 1e-3 } ?: 0.0); true }
@@ -531,7 +538,14 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         }
         HorizontalDivider()
         Row(Modifier.weight(1f).fillMaxWidth()) {
-            MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.width(250.dp).fillMaxHeight())
+            Column(Modifier.width(if (leftTab == "text") 380.dp else 250.dp).fillMaxHeight()) {
+                Row(Modifier.padding(start = 8.dp, top = 6.dp, end = 8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FilterChip(selected = leftTab == "media", onClick = { leftTab = "media"; runCatching { focus.requestFocus() } }, label = { Text(tr("Medien")) })
+                    Spot("video.transcript") { FilterChip(selected = leftTab == "text", onClick = { leftTab = "text"; runCatching { focus.requestFocus() } }, label = { Text(tr("Transkript")) }) }
+                }
+                if (leftTab == "text") TranscriptCutPanel(c, h, player, pos, textCut, onAssign = { assignTranscript = true }, modifier = Modifier.weight(1f).fillMaxWidth())
+                else MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.weight(1f).fillMaxWidth())
+            }
             VerticalDivider()
             Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -590,6 +604,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     }
     }
     LaunchedEffect(id) { runCatching { focus.requestFocus() } }
+    if (assignTranscript) TranscriptPicker(c, p, onDismiss = { assignTranscript = false }) { map ->
+        assignTranscript = false
+        h.edit { it.copy(transcripts = it.transcripts + map.mapValues { e -> e.value.id }) }
+    }
     if (export) ExportDialog(p, onDismiss = { export = false })
     if (keys) VideoShortcutsDialog { keys = false; runCatching { focus.requestFocus() } }
 }

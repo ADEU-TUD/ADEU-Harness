@@ -108,7 +108,7 @@ object LoraFlows {
         "files.transcribe" -> 180
         "files.handout", "doc.write" -> 45
         "video.export" -> 300
-        "video.subtitles", "video.rough_cut", "video.shorten" -> 60
+        "video.subtitles", "video.rough_cut", "video.shorten", "video.text_cut" -> 60
         "pdf.ocr" -> 60
         "files.rename_by_content" -> 30
         "pdf.compress", "pdf.convert", "files.to_nextcloud" -> 15
