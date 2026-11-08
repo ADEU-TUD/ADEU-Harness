@@ -190,6 +190,21 @@ object Media {
         }.getOrNull()
     }
 
+    /** One picture of [file] at [sec] at its own size (from the file, not the proxy) – for white balance and faces (AP-54). */
+    fun frameAwt(file: File, sec: Double, height: Int = 0): java.awt.image.BufferedImage? {
+        val exe = ffmpeg() ?: return null
+        val at = if (isStill(file)) 0.0 else sec.coerceAtLeast(0.0)
+        return runCatching {
+            val p = ProcessBuilder(
+                listOf(exe, "-nostdin", "-hide_banner", "-loglevel", "error", "-ss", String.format(Locale.ROOT, "%.3f", at), "-i", file.absolutePath, "-frames:v", "1") +
+                    (if (height > 0) listOf("-vf", "scale=-2:$height") else emptyList()) + listOf("-f", "image2pipe", "-vcodec", "png", "pipe:1"),
+            ).redirectError(ProcessBuilder.Redirect.DISCARD).start()
+            val bytes = p.inputStream.readBytes()
+            p.waitFor(20, TimeUnit.SECONDS)
+            if (bytes.isEmpty()) null else javax.imageio.ImageIO.read(bytes.inputStream())
+        }.getOrNull()
+    }
+
     /** Small pictures for the timeline: one per clip, cached. */
     private val thumbs = ConcurrentHashMap<String, ImageBitmap>()
 
