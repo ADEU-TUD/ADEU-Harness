@@ -378,6 +378,27 @@ object MarkdownDocx {
         return para(chart, "<w:spacing w:before=\"120\" w:after=\"160\"/><w:jc w:val=\"center\"/>")
     }
 
+    /**
+     * A diagram block (AP-61) as a picture with its connections as alternative text; null without a renderer (Android),
+     * then the block stays text.
+     */
+    private fun diagramParagraph(lang: String, code: String): String? {
+        val d = Diagrams.ofBlock(lang, code) ?: return null
+        val bytes = runCatching { Diagrams.raster?.invoke(d) }.getOrNull() ?: return null
+        val c = ctx
+        val n = c.media.size + 1
+        c.media += Media("media/diagramm$n.png", "rIdImg$n", bytes)
+        val (pw, ph) = DocMarkup.imageSize(bytes) ?: (800 to 600)
+        val maxW = c.width * 635L
+        // The picture is drawn at twice the size: at most the text width, else its own size.
+        var cx = minOf(pw * 9525L / 2, maxW)
+        var cy = cx * ph / pw
+        val maxH = c.height * 635L * 85 / 100
+        if (cy > maxH) { cy = maxH; cx = cy * pw / ph }
+        val id = c.drawingId++
+        return para("<w:r>" + drawing("rIdImg$n", id, "Diagramm $n", Diagrams.altText(d), cx, cy) + "</w:r>", "<w:spacing w:before=\"120\" w:after=\"160\"/><w:jc w:val=\"center\"/>")
+    }
+
     /** A picture of the document as inline drawing (width in percent of the text width), caption below it. */
     private fun imageParagraph(img: DocMarkup.Image): String {
         val c = ctx
@@ -765,8 +786,10 @@ object MarkdownDocx {
                 )
                 is Block.Code -> {
                     val chart = if (b.lang.equals("chart", ignoreCase = true)) chartParagraph(b.code) else null
+                    val diagram = if (chart == null && Diagrams.isDiagramLang(b.lang)) diagramParagraph(b.lang, b.code) else null
                     when {
                         chart != null -> append(chart)
+                        diagram != null -> append(diagram)
                         b.lang.equals("chart", ignoreCase = true) -> parseBlocks(ChartBlocks.asTables("```chart\n${b.code}\n```")).forEach { block(it, theme) }
                         else -> append(
                             para(

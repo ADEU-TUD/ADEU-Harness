@@ -64,6 +64,7 @@ private val DATE = SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY)
 internal fun LazyListScope.designSection(c: AppContainer) {
     item(key = "design-templates") { DesignTemplatesRow(c) }
     item(key = "my-designs") { MyDesignsRow(c) }
+    diagramSection(c)
 }
 
 /** Opens design [id] in the editor (the app root navigates there). */

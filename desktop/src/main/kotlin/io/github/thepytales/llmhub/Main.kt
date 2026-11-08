@@ -116,6 +116,8 @@ fun main(args: Array<String>) {
     io.github.thepytales.llmhub.ui.ExternalOffice.opener = { f -> io.github.thepytales.llmhub.desktop.OfficeHandoff.open(f) }
     io.github.thepytales.llmhub.desktop.OfficeHandoff.onSaved = { runCatching { LlmHubApp.container.docs.refreshFiles() } }
     io.github.thepytales.llmhub.data.LoraDrive.systemTrash = { f -> io.github.thepytales.llmhub.desktop.FileTransfer.moveToSystemTrash(f) }
+    // Diagramme in Word und PowerPoint als Bild (AP-61).
+    io.github.thepytales.llmhub.docs.Diagrams.raster = { d -> runCatching { io.github.thepytales.llmhub.docs.DiagramRaster.png(d) }.getOrNull() }
     Thread { runCatching { io.github.thepytales.llmhub.desktop.ExplorerMenu.refresh() } }.apply { isDaemon = true }.start()
     // Nachladbare Erweiterungen (AP-25): finish swaps and removals, then keep them up to date with the update check.
     io.github.thepytales.llmhub.desktop.Extensions.startUp()

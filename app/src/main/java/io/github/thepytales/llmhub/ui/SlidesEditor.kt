@@ -75,6 +75,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
@@ -486,7 +487,14 @@ private fun SlideWork(
                         body, { body = it }, label = { Text(tr("Diagramm (```chart-Block mit JSON)")) }, minLines = 4, enabled = !writing,
                         textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), modifier = Modifier.fillMaxWidth(),
                     )
-                    if (SlideDeck.chartOf(body.text) == null) HintText(tr("Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram."))
+                    // Diagramme (AP-61): a flowchart, mind map … instead of a chart.
+                    var drawDiagram by remember { mutableStateOf(false) }
+                    OutlinedButton(onClick = { drawDiagram = true }, enabled = !writing) { Text(if (SlideDeck.diagramOf(body.text) != null) tr("Diagramm bearbeiten …") else tr("Flussdiagramm oder Mindmap zeichnen …")) }
+                    if (drawDiagram) DiagramEditorDialog(SlideDeck.diagramOf(body.text) ?: starterDiagram(), onDismiss = { drawDiagram = false }) { d ->
+                        drawDiagram = false
+                        body = TextFieldValue(io.github.thepytales.llmhub.docs.Diagrams.block(d))
+                    }
+                    if (SlideDeck.chartOf(body.text) == null && SlideDeck.diagramOf(body.text) == null) HintText(tr("Kein gültiges Diagramm – Typen: bar, line, pie, hbar, stacked, scatter, box, histogram."))
                 }
                 SlideDeck.Layout.AGENDA -> {
                     RichField(body, { body = it }, tr("Punkte (leer = automatisch aus den Abschnittsfolien)"), minLines = 2, enabled = !writing)
@@ -748,7 +756,9 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 heading(s.title)
                 val spec = remember(s.body) { SlideDeck.chartOf(s.body) }
                 area(TudSlide.X, top, TudSlide.CONTENT_W, bodyH, Alignment.Center) {
+                    val diagram = if (spec == null) remember(s.body) { SlideDeck.diagramOf(s.body) } else null
                     if (spec != null) Box(Modifier.fillMaxHeight().aspectRatio(io.github.thepytales.llmhub.docs.ChartLayout.W / io.github.thepytales.llmhub.docs.ChartLayout.H)) { ChartCanvas(spec, Modifier.fillMaxSize()) }
+                    else if (diagram != null) DiagramCanvas(diagram, Modifier.fillMaxHeight())
                     else Text(tr("Diagramm"), style = style(18, TUD_GREY))
                 }
                 chrome()

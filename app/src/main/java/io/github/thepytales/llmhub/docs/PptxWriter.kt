@@ -118,7 +118,15 @@ object PptxWriter {
                 return Slide(Kind.COMPARISON, title, blocks = body(rest), right = body(right), notes = notes, leftHead = head(rest), rightHead = head(right))
             }
             SlideDeck.Layout.TABLE -> return Slide(Kind.TABLE, title, blocks = rest + right, notes = notes)
-            SlideDeck.Layout.CHART -> return Slide(Kind.CHART, title, blocks = rest.filter { it !is Block.Code }, notes = notes, chart = chart)
+            SlideDeck.Layout.CHART -> {
+                // A diagram (AP-61) goes in as a picture where the app can draw one, with its connections as alternative text.
+                val diagram = if (chart == null) SlideDeck.diagramOf(text) else null
+                val png = diagram?.let { d -> runCatching { Diagrams.raster?.invoke(d) }.getOrNull() }
+                if (diagram != null && png != null) {
+                    return Slide(Kind.IMAGE, title, blocks = rest.filter { it !is Block.Code }, notes = notes, image = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(png), imageAlt = Diagrams.altText(diagram))
+                }
+                return Slide(Kind.CHART, title, blocks = rest.filter { it !is Block.Code }, notes = notes, chart = chart)
+            }
             SlideDeck.Layout.AGENDA -> return Slide(
                 Kind.AGENDA, title.ifBlank { "Agenda" }, notes = notes,
                 agenda = rest.flatMap { b -> if (b is Block.Item) listOf(b.text) else if (b is Block.Paragraph) b.text.lines() else emptyList() }.map { it.trim() }.filter { it.isNotEmpty() },

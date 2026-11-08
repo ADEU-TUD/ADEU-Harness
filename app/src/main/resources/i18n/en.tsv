@@ -151,6 +151,7 @@ Abgeglichen: {0} hin, {1} zurück	Synced: {0} there, {1} back
 abgelaufen am	expired on
 Abgemeldet. Das App-Passwort kannst du in Nextcloud unter Einstellungen › Sicherheit widerrufen.	Signed out. You can revoke the app password in Nextcloud under Settings › Security.
 Abgerufen am (JJJJ-MM-TT)	Retrieved on (YYYY-MM-DD)
+Abgerundet	Rounded
 Abgerundetes Rechteck	Rounded rectangle
 Abgleich ging nicht: {0}	Syncing didn't work: {0}
 Ablageort	Storage location
@@ -294,6 +295,7 @@ Alphabetisch sortiert, im gewählten Stil. Fehlende Angaben (DOI, Seiten, Heft, 
 Als .md-Datei	As an .md file
 Als [Kommentar: …] hinter dem Abschnitt. Dresing/Pehl, MAXQDA und Untertitel bleiben ohne.	As [Comment: …] after the section. Dresing/Pehl, MAXQDA and subtitles stay without.
 Als BibTeX exportieren	Export as BibTeX
+Als Bild speichern	Save as picture
 Als Bild-in-Bild (F12)	As picture-in-picture (F12)
 Als Chat fortsetzen	Continue as a chat
 Als CSL-JSON exportieren (Zotero)	Export as CSL-JSON (Zotero)
@@ -311,6 +313,7 @@ Als Liste	As list
 Als Markdown kopieren	Copy as Markdown
 Als PDF/A-2b vorbereiten	Prepare as PDF/A-2b
 Als PDF/Word exportieren	Export as PDF/Word
+Als PNG	As PNG
 Als PowerPoint	As PowerPoint
 Als PowerPoint-Datei	As a PowerPoint file
 Als Profile merken	Remember as profiles
@@ -501,6 +504,7 @@ Auf dem Update-Server ist noch keine Version veröffentlicht ({0}).	No version h
 Auf dem zweiten PC wählst du denselben Ordner (z. B. „Lora“ in deinem Cloud-Ordner). Lora nutzt die Daten dort – alles ist da.	On the second PC you choose the same folder (e.g. “Lora” in your cloud folder). Lora uses the data there – everything is there.
 Auf den Seiten wurde kein Text erkannt.	No text was recognized on the pages.
 Auf der Seite ausrichten	Align on the page
+Auf die Fläche klicken: ein Notizzettel.	Click on the area: a sticky note.
 Auf die Stelle tippen, an der der Stempel stehen soll.	Tap the place where the stamp should go.
 Auf die Stelle tippen, an der die Notiz stehen soll.	Tap the place where the note should go.
 Auf die Stelle tippen, an der die Unterschrift stehen soll. Rückgängig nimmt sie wieder weg.	Tap the place where the signature should go. Undo removes it again.
@@ -619,6 +623,7 @@ Automatisch	Automatic
 Automatisch (beste deutsche Stimme)	Automatic (best German voice)
 Automatisch ({0})	Automatic ({0})
 Automatisch (ähnliches Modell)	Automatic (similar model)
+Automatisch anordnen	Arrange automatically
 Automatisch erkennen	Detect automatically
 Automatisch nach Updates suchen	Check for updates automatically
 Automatisch weitermachen	Continue automatically
@@ -1055,6 +1060,11 @@ Dein Startbildschirm unterstützt keine Verknüpfungen.	Your home screen does no
 Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. Chats und Einstellungen bleiben in der App.	Your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) are kept in the app. Choose a folder on the phone, e.g. “Documents/Lora” – then a copy is kept there, and changes made there come back. Chats and settings stay in the app.
 Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
+Diagramm bearbeiten …	Edit diagram …
+Diagramm entfernt.	Diagram removed.
+Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Editor.	Diagram with {0} boxes inserted – a click on it opens the diagram editor.
+Diagramm zeichnen	Draw diagram
+Diagramm-Fläche	Diagram area
 Die Signatur passt nicht – das Dokument wurde nach dem Signieren verändert.	The signature does not match – the document was changed after signing.
 Dieses PDF ist nicht digital signiert.	This PDF is not digitally signed.
 den Abschnitt	write the section
@@ -1144,7 +1154,9 @@ Diagramm (```chart-Block mit JSON)	Chart (```chart block with JSON)
 Diagramm aus Auswahl	Chart from selection
 Diagramm aus Daten	Chart from data
 Diagramm entfernen	Remove chart
+Diagramm …	Diagram …
 Diagramm: {0}. Daten: 	Chart: {0}. Data: 
+Diagramme & Whiteboard	Diagrams & whiteboard
 Didaktik-Beratung	Didactics advice
 Die Abspielposition liegt nicht zwischen dem vorigen Abschnitt und dem Ende dieses Abschnitts.	The playback position is not between the previous section and the end of this section.
 Die Anmeldung ist abgelaufen. Bitte noch einmal versuchen.	The sign-in has expired. Please try again.
@@ -1302,6 +1314,7 @@ Dokument nicht gefunden	Document not found
 Dokument wird erstellt …	Creating document …
 Dokument · {0} Wörter	Document · {0} words
 Dokument ändern	Change document
+Dokument „{0}“ mit dem Diagramm angelegt.	Document “{0}” created with the diagram.
 Dokumente	Documents
 Dokumente & Darstellung	Documents & appearance
 Dokumente & Logos	Documents & logos
@@ -1316,6 +1329,7 @@ Dokumente, Briefe, Präsentationen, PDF-Formulare und Logos	Documents, letters, 
 Dokumentsprache: {0}.	Document language: {0}.
 Dokumentstil, Logos, Absender.	Document style, logos, sender.
 Dokumenttext	Document text
+Doppelklick: neuer Kasten bzw. Text ändern · Ziehen: verschieben · auf leerer Fläche ziehen: Ansicht verschieben · Mausrad: Zoom	Double-click: new box or change text · Drag: move · drag on empty space: pan · mouse wheel: zoom
 done	done
 Dort läuft Lora nur im Hintergrund (Infobereich) und hat nichts zu tun. Sie beendet sich von selbst, sobald du hier öffnest.	There Lora only runs in the background (notification area) and has nothing to do. She closes by herself as soon as you open her here.
 Download abgebrochen – beim nächsten Mal wird fortgesetzt.	Download cancelled – it continues next time.
@@ -1393,6 +1407,7 @@ Ein anderes Format passt alle Elemente an die neue Größe an.	Another format ad
 Ein Begriff je Zeile oder durch Komma getrennt, z. B. Namen, Matrikelnummern, Adressen.	One term per line or separated by commas, e.g. names, student ID numbers, addresses.
 ein Chat	a chat
 Ein Chat lässt sich über ⋮ › „Als JSON exportieren“ vollständig speichern (mit allen Versionen) und hier wieder einlesen – auch auf einem anderen Gerät.	A chat can be saved completely (with all versions) via ⋮ › “Export as JSON” and read in again here – also on another device.
+Ein Whiteboard hat keinen Mermaid-Text (Notizzettel und Freihand).	A whiteboard has no Mermaid text (sticky notes and freehand).
 ein Dokument	a document
 Ein Fine-grained Token gilt immer nur für einen Besitzer – dein Konto oder eine Organisation. Lege für jede Organisation ein eigenes Token an (beim Erstellen unter „Resource owner“ die Organisation wählen) 	A fine-grained token always applies to one owner only – your account or an organization. Create a separate token for each organization (when creating it, choose the organization under “Resource owner”) 
 Ein geschützter Bereich für sensible Forschung, z. B. Interviews oder Daten von Studierenden.	A protected area for sensitive research, e.g. interviews or student data.
@@ -1574,6 +1589,7 @@ Erstelle ein Protokoll aus diesen Notizen:\n	Create minutes from these notes:\n
 Erstelle eine Präsentation zum Thema 	Create a presentation on 
 Erstelle einen kurzen Steckbrief der Datei als Liste: Titel, Art des Dokuments, Autor:innen bzw. Absender, Datum, Inhalt in einem Satz, offene Punkte oder Fristen.	Create a short profile of the file as a list: title, type of document, authors or sender, date, content in one sentence, open points or deadlines.
 Erstellen	Create
+Erstellen › Diagramme & Whiteboard	Create › Diagrams & whiteboard
 Erstellen › Feld oben	Create › Field at the top
 Erstellt	Created
 Erstellt mit	Created with
@@ -1688,6 +1704,9 @@ Fertig? „Speichern unter“ legt eine Kopie ab – das Original bleibt, bis du
 Fertige Antworten, Ergebnisse geplanter Aufgaben und Rückfragen des Agenten	Finished answers, results of scheduled tasks and questions from the agent
 Fett	Bold
 Fett (Strg+B)	Bold (Ctrl+B)
+Flussdiagramm	Flowchart
+Flussdiagramm oder Mindmap zeichnen …	Draw a flowchart or mind map …
+Flussdiagramm, Mindmap, Organigramm, Zeitstrahl oder eine freie Tafel – Lora zeichnet aus einer Beschreibung, Mermaid geht hin und zurück.	Flowchart, mind map, org chart, timeline or a free board – Lora draws from a description, Mermaid goes both ways.
 ffmpeg fehlt in der App.	ffmpeg is missing in the app.
 ffmpeg fehlt – die Aufnahme lässt sich nicht abspielen.	ffmpeg is missing – the recording cannot be played.
 ffmpeg konnte das Video nicht schreiben.	ffmpeg could not write the video.
@@ -1708,6 +1727,7 @@ Flash-Modell von Google – über den eigenen Gemini-API-Key.	Flash model from G
 Fließtext	Body text
 FLUX.2 dev – hochwertige Bildgenerierung von Black Forest Labs.	FLUX.2 dev – high-quality image generation from Black Forest Labs.
 FLUX.2 klein (4 Mrd. Parameter) – kleine, schnelle Variante.	FLUX.2 klein (4 billion parameters) – small, fast variant.
+Flussdiagramme, Mindmaps, Organigramme und Zeitstrahlen – Verbinder haften an den Formen, Lora zeichnet aus einer Beschreibung; dazu eine freie Tafel für Notizzettel und Freihand.	Flowcharts, mind maps, org charts and timelines – connectors stick to the shapes, Lora draws from a description; plus a free board for sticky notes and freehand.
 Folie	Slide
 Folie 16:9	Slide 16:9
 Folie anlegen	Add slide
@@ -1793,6 +1813,7 @@ Freigabe entfernen	Remove access
 Freigabe entfernt (der Ordner selbst bleibt)	Access removed (the folder itself stays)
 Freigaben	Approvals
 Freihand	Freehand
+Freihand zeichnen.	Draw freehand.
 Freihändig sprechen: Die App hört bis zur Sprechpause zu, antwortet und liest die Antwort vor.	Talk hands-free: the app listens until you pause, answers and reads the answer aloud.
 Freundlicher	Friendlier
 Frist bearbeiten	Edit deadline
@@ -2064,6 +2085,7 @@ Herausgeber:innen	Editors
 Hervorheben	Highlight
 Heute	Today
 Hier bleibt Sprache auf dem Gerät – bitte unter Einstellungen › Transkription ein Erkennungsmodell laden.	Speech stays on the device here – please load a recognition model under Settings › Transcription.
+Hier lässt sich kein Diagramm einfügen – bitte ein Dokument im Editor öffnen.	A diagram cannot be inserted here – please open a document in the editor.
 heute	today
 Heute und morgen	Today and tomorrow
 Heute, {0}	Today, {0}
@@ -2231,6 +2253,7 @@ In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App.	In t
 In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.	In this project speech stays on the device – load a recognition model under Settings › Transcription.
 In diesem Transkript sind keine Sprecher erkannt. Legen Sie sie von Hand an: Alle Abschnitte gehören zuerst zu „Sprecher 1“, einzelne Abschnitte ordnen Sie per langem Drücken zu.	No speakers were recognized in this transcript. Create them by hand: all sections first belong to “Speaker 1”, assign individual sections with a long press.
 In dieser Antwort stehen keine vollständigen Literaturangaben (Autor:in, Jahr, Titel). Bitte das Modell um ein Literaturverzeichnis oder nutze die Vorlage „Literaturangaben prüfen“.	This answer contains no complete references (author, year, title). Ask the model for a reference list or use the template “Check references”.
+In ein neues Dokument	Into a new document
 In einem Ablageort liegt „{0}“ als lesbare Datei im Ordner – in Google Drive oder OneDrive auch auf deinen anderen Rechnern.	In a storage location, “{0}” is a readable file in the folder – in Google Drive or OneDrive also on your other computers.
 In jedes erstellte oder exportierte Dokument.	In every created or exported document.
 In Liste aufnehmen	Add to list
@@ -2461,6 +2484,7 @@ Kein Text erkennbar – vermutlich ein Scan.	No text found – probably a scan.
 Kein Token	No token
 Kein Vorschlag erhalten.	No suggestion received.
 Kein Vorschlag mehr – der Nachweis bleibt im Chat-Menü.	No more suggestions – the statement stays in the chat menu.
+Kein gültiges Mermaid (flowchart, graph, mindmap oder timeline).	No valid Mermaid (flowchart, graph, mindmap or timeline).
 Keine	None
 Keine Abbildungen.	No figures.
 keine Abschnitte	no sections
@@ -2825,6 +2849,7 @@ Lora ist immer nur auf einem PC offen: Beim Start prüft sie, ob sie anderswo l�
 Lora ist jetzt auch auf „{0}“ geöffnet	Lora is now also open on “{0}”
 Lora jetzt fragen	Ask Lora now
 Lora klärt dein Vorhaben in kurzen Fragerunden mit Antwortknöpfen und schreibt daraus einen Plan als Dokument.	Lora clarifies your plan in short rounds of questions with answer buttons and turns it into a plan as a document.
+Lora konnte daraus kein Diagramm machen – bitte den Ablauf genauer beschreiben.	Lora could not make a diagram of this – please describe the process in more detail.
 Lora konnte nicht schreiben: {0}	Lora could not write: {0}
 Lora konnte nicht überarbeiten: {0}	Lora could not revise: {0}
 Lora liest das Transkript des Clips „{0}“ und wählt die Abschnitte, die bleiben. Der Text geht an das Standardmodell, Namen pseudonymisiert.	Lora reads the transcript of the clip “{0}” and chooses the sections that stay. The text goes to the default model, names pseudonymized.
@@ -2851,6 +2876,7 @@ Lora vergisst alle {0} Vorlieben. Die übrigen Einträge unter Einstellungen ›
 Lora winkt	Lora waves
 Lora wurde auf Version {0} aktualisiert.	Lora has been updated to version {0}.
 Lora wurde auf „{0}“ geöffnet – hier beendet, damit nichts überschrieben wird.	Lora was opened on “{0}” – closed here so that nothing is overwritten.
+Lora zeichnet: Ablauf oder Thema beschreiben, z. B. „Antrag stellen, prüfen, bei Fehlern zurück, sonst genehmigen“	Lora draws: describe a process or topic, e.g. “submit the application, check it, back if incomplete, otherwise approve”
 Lora zeigt es	Lora shows it
 Lora {0} ist da (installiert: {1}).	Lora {0} is here (installed: {1}).
 Lora {0} ist heruntergeladen. Android fragt gleich, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.	Lora {0} has been downloaded. Android will ask in a moment whether the app should be updated – just tap “Update”.
@@ -2885,6 +2911,8 @@ Lädt nach Nextcloud …	Uploading to Nextcloud …
 Lädt {0} Dateien in die Nextcloud ({1}) …	Uploading {0} files to Nextcloud ({1}) …
 Länge	Length
 Länge (s)	Length (s)
+Mermaid ausblenden	Hide Mermaid
+Mermaid-Text	Mermaid text
 längster {0} · {1} Wörter/min	longest {0} · {1} words/min
 lässt sich nicht als PDF öffnen (PDF, Word, Excel, PowerPoint, Bilder, HTML und Text gehen).	cannot be opened as a PDF (PDF, Word, Excel, PowerPoint, images, HTML and text work).
 Läuft	Running
@@ -2970,6 +2998,8 @@ Merkblatt / Aushang	Information sheet / notice
 Merken	Remember
 Merken …	Remember …
 Merkt sich etwas …	Remembering something …
+Mermaid kopieren	Copy Mermaid
+Mermaid-Text kopiert.	Mermaid text copied.
 Messpunkt setzen	Take a measurement
 Messpunkte	Measurements
 Metadaten	Metadata
@@ -2984,6 +3014,7 @@ Mikrofon-Modus	Microphone mode
 mind. 	min. 
 Mindestens eine Seite muss bleiben.	At least one page must remain.
 Mindestens {0} Zeichen.	At least {0} characters.
+Mindmap	Mind map
 Minimieren	Minimize
 Minuten	Minutes
 Mit	With
@@ -3186,6 +3217,7 @@ Neuer Ordner	New folder
 Neuer Ordner hier	New folder here
 Neuer Posten	New item
 Neuer Punkt	New item
+Neuer Schritt	New step
 Neuer Stapel	New batch
 Neuer Tab	New tab
 Neuer Tresor-Chat	New vault chat
@@ -3307,6 +3339,7 @@ Notiz	Note
 Notiz (optional)	Note (optional)
 Notizen	Notes
 Notizen (N)	Notes (N)
+Notizzettel	Sticky note
 Nummerierte Liste	Numbered list
 Nur Ton (M4A)	Sound only (M4A)
 Nur Ton (M4A) – z. B. als Podcast	Sound only (M4A) – e.g. as a podcast
@@ -3343,6 +3376,7 @@ Nächste Ausführung: {0}	Next run: {0}
 Nächste Folie	Next slide
 Nächste Schritte unter Antworten	Next steps below answers
 Nächste Version	Next version
+Nächster Schritt	Next step
 Nächster Treffer	Next match
 Nächster Versuch in	Next attempt in
 Nüchtern wie Microsoft 365: Weiß, neutrales Grau, Blau, kleine Ecken, keine Schatten.	Plain like Microsoft 365: white, neutral grey, blue, small corners, no shadows.
@@ -3435,6 +3469,7 @@ Ordner übernehmen	Use folder
 Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)	Folder “{0}” detached from the chat (the folder itself stays)
 Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen.	Folder, document, spreadsheet, presentation, from a template or upload.
 Ordnet {0} Dateien in „{1}“ in Unterordner …	Sorts {0} files in “{1}” into subfolders …
+Organigramm	Org chart
 Ort	Place
 Ort, Datum darunter	Place, date below
 Orte	Places
@@ -3661,6 +3696,7 @@ Raster	Grid
 Raster:	Rubric:
 Rate-Limit des API-Keys erreicht	Rate limit of the API key reached
 Rauschminderung	Noise reduction
+Raute	Diamond
 Rechenkerne	CPU cores
 Rechnen	Calculate
 Rechnet Summe und Mittelwert …	Calculating sum and mean …
@@ -4025,6 +4061,7 @@ Stapel: Anfragen pro Minute	Batches: requests per minute
 Stark	Strong
 Stark (Bildschirm)	Strong (screen)
 Stark bei Programmierung, Mathematik und Logik; unterstützt Denkmodus, Bilder und Werkzeuge.	Strong at programming, maths and logic; supports thinking mode, images and tools.
+Start	Start
 Start = {0}	Start = {0}
 Startanimation	Start animation
 Starten	Start
@@ -4054,6 +4091,7 @@ Stichpunkte ausformulieren	Write out bullet points
 Stichpunkte je Folie, passende Folientypen (Abschnitt, Vergleich, Tabelle, Bild), Sprechernotizen zu jeder Folie. Bilder und Tabellen bleiben erhalten. Das Dokument zur Orientierung:\n\n	bullet points per slide, suitable slide types (section, comparison, table, image), speaker notes for every slide. Images and tables stay. The document for orientation:\n\n
 Stichwortsuche	keyword search
 Stichwörter	Keywords
+Stift	Pen
 Stil	Style
 Stil der App	Style of the app
 Stil vereinheitlichen	Unify style
@@ -4198,6 +4236,7 @@ Text auf {0} Seiten erkannt ({1}).	Text recognized on {0} pages ({1}).
 Text ausblenden	Hide text
 Text der Datei zeigen	Show the file's text
 Text der Fußnote	Text of the footnote
+Text des Kastens	Text of the box
 Text einfügen, den eine Kollegin oder ein Kollege über „Teilen“ kopiert hat.	Paste text that a colleague copied via “Share”.
 Text enthält	Text contains
 Text für das Eingabefeld	Text for the input field
@@ -4210,6 +4249,7 @@ Text und Kontakt (je Zeile eine Angabe)	Text and contact (one detail per line)
 Text unter dem Titel (optional)	Text below the title (optional)
 Text ändern	Change text
 Text überarbeiten	Revise a text
+Text …	Text …
 Text, Abschnitte und Sprecher werden auf die Fassung direkt nach dem Transkribieren zurückgesetzt. Titel, Projekt, Kapitel und Status bleiben. Gleich danach geht es mit „Rückgängig“ noch zurück.	Text, sections and speakers are reset to the version right after transcribing. Title, project, chapters and status stay. Right afterwards you can still go back with “Undo”.
 Text-zu-Sprache in hoher Qualität (OpenAI-kompatible Schnittstelle).	High-quality text-to-speech (OpenAI-compatible interface).
 Text-zu-Sprache-Modell.	Text-to-speech model.
@@ -4474,6 +4514,9 @@ Versionen vergleichen …	Compare versions …
 Versionen …	Versions …
 Versionsverlauf	Version history
 Verstehe …	Understanding …
+Von einem Kasten zum anderen ziehen (oder erst einen, dann den zweiten anklicken) – der Verbinder bleibt an beiden haften.	Drag from one box to another (or click one, then the second) – the connector sticks to both.
+Von links nach rechts	Left to right
+Von oben nach unten	Top to bottom
 versteht Bilder	understands images
 vertraulich · pseudonymisiert	confidential · pseudonymized
 Vertrauliche Daten, offline	Confidential data, offline
@@ -4622,6 +4665,7 @@ Was soll in {0} berechnet werden?	What should be calculated in {0}?
 Was soll Lora an der Cursorstelle schreiben? Zum Beispiel: Schreib eine Einleitung zu …	What should Lora write at the cursor? For example: Write an introduction to …
 Was soll Lora mit der Markierung machen?	What should Lora do with the selection?
 Was soll herausgeschnitten werden?	What should be cut out?
+Was soll ich zeichnen?	What should I draw?
 Was soll mit dem Text passieren?	What should happen to the text?
 Was soll mit den offenen Änderungen passieren?	What should happen to the open changes?
 Was soll mit der Markierung passieren?	What should happen to the selection?
@@ -4713,6 +4757,8 @@ Whisper Large v3 Turbo auf dem Server der TU Dresden – schnell auch auf alten 
 Whisper Large v3 Turbo – schnelle, mehrsprachige Spracherkennung.	Whisper Large v3 Turbo – fast, multilingual speech recognition.
 Whisper und der Uni-Server liefern keine verlässlichen Zeiten pro Wort. Deshalb erkennt Parakeet v3 jeden Abschnitt noch einmal auf diesem Gerät; seine Wortzeiten werden mit dem Text abgeglichen. Geprüft an LibriSpeech (958 Wörter mit Wortgrenzen aus Forced Alignment): Wortanfang im Median 50 ms genau, 0,3 % über 250 ms. Whispers eigene Zeiten lagen bei 8,8 % über 250 ms, Schätzungen bei 37 %.	Whisper and the university server do not deliver reliable times per word. That's why Parakeet v3 recognizes every section once more on this device; its word times are aligned with the text. Tested on LibriSpeech (958 words with word boundaries from forced alignment): word start accurate to 50 ms in the median, 0.3 % over 250 ms. Whisper's own times were over 250 ms in 8.8 %, estimates in 37 %.
 Whisper übersetzt direkt beim Erkennen.	Whisper translates directly while recognizing.
+Whiteboard	Whiteboard
+Whiteboard …	Whiteboard …
 Wichtig	Important
 Wichtiger Hinweis	Important note
 Wie bei Obsidian: Der Lora-Ordner (Dateien, Chats und Einstellungen) liegt in einem Cloud-Ordner (Nextcloud, Google Drive für Desktop oder OneDrive), der auf deinen PCs eingerichtet ist. Deren Programm hält ihn überall gleich – am Büro-PC beginnen, am Laptop weiterarbeiten, ohne Umzug.	As with Obsidian: the Lora folder (files, chats and settings) is in a cloud folder (Nextcloud, Google Drive for desktop or OneDrive) that is set up on your PCs. Their program keeps it the same everywhere – start on the office PC, continue on the laptop, without moving anything.
@@ -4816,6 +4862,7 @@ Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: 
 Wörter	words
 Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.	Words that look like names but aren't. Your own list above takes priority.
 Wörtliche Zitate	Verbatim quotes
+Zeitstrahl	Timeline
 liest und schreibt	reads and writes
 nur lesen	read only
 xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m	xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m

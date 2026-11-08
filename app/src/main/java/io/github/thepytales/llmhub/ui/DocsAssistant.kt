@@ -332,7 +332,8 @@ private fun materialActions(kind: DocKind): List<Pair<String, String>> = when (k
 /** Extras of the text documents the model may use (see docs/DocMarkup). */
 const val DOC_MARKUP_HELP = "Fußnoten: [^1] im Text und eine Zeile „[^1]: Text“ am Ende. Bilder: eigene Zeile „![Bildunterschrift](Pfad){width=50%}“ " +
     "(vorhandene Bildzeilen unverändert lassen). Seitenumbruch: eine Zeile \\newpage. Querformat-Seiten zwischen den Zeilen " +
-    "„<!-- quer -->“ und „<!-- hoch -->“. Zeilen mit <!-- … --> (Seiteneinrichtung, Literaturliste) nicht ändern. "
+    "„<!-- quer -->“ und „<!-- hoch -->“. Zeilen mit <!-- … --> (Seiteneinrichtung, Literaturliste) nicht ändern. " +
+    "Flussdiagramme, Mindmaps, Organigramme und Zeitstrahlen als ```mermaid-Block (flowchart TD, mindmap, timeline) – sie werden gezeichnet; ```diagram-Blöcke unverändert lassen. "
 
 /** Slide layouts beyond the ones recognized from their content (see docs/SlideDeck). */
 const val SLIDE_LAYOUT_HELP = "Weitere Folientypen über eine Zeile direkt unter dem Folientitel: „<!-- layout: bild-text -->“ " +
