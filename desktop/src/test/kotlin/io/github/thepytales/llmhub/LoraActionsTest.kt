@@ -21,7 +21,8 @@ class LoraActionsTest {
         assertTrue("files.tidy" in files && "files.duplicates" in files && "pdf.open" in files && "pdf.merge" in files, files.toString())
         assertTrue("pdf.delete_pages" !in files, "Seiten löschen nur im Werkzeugkasten")
         val pdf = ToolActions.forArea(ActionArea.PDF, android = true).map { it.id }
-        assertTrue("pdf.compress" !in pdf && "pdf.redact" !in pdf, "Nur Windows: $pdf")
+        // Verkleinern kam mit AP-64 auf Android; Schwärzen bleibt am PC.
+        assertTrue("pdf.compress" in pdf && "pdf.redact" !in pdf, "Android: $pdf")
         // Every action is a tool the model can call.
         ToolActions.all.forEach { a -> assertTrue(a.toolName.matches(Regex("^act_[a-z_]+$")), a.toolName); assertEquals(a, ToolActions.byToolName(a.toolName)) }
     }

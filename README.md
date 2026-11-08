@@ -622,6 +622,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Spracheingabe** (Whisper) und **Vorlesen**: wahlweise mit der KI-Stimme des Uni-Servers (der die Antwort ohnehin
   geschrieben hat – keine Daten an Dritte) oder komplett offline mit einer Stimme des Geräts; lange Antworten werden in
   Abschnitten gelesen, Code und Links übersprungen.
+- **Diktat** (AP-65, seit 1.0.61): 🎤 in der Symbolleiste des Dokument-Editors (und an den Sprechernotizen der Folien) –
+  antippen, sprechen, wieder antippen: der Text steht am Cursor, mit Leerzeichen davor und Großbuchstaben am Satzanfang.
+  Erkannt wird **auf dem Gerät** mit der Spracherkennung der Transkription (sherpa-onnx; Modell unter *Einstellungen ›
+  Transkription* laden), den Uni-Server nimmt das Diktat nur, wenn kein Modell geladen ist und der Datenschutz es
+  erlaubt. **Satzzeichen per Sprache**: „Punkt“, „Komma“, „Fragezeichen“, „Ausrufezeichen“, „Doppelpunkt“, „Strichpunkt“,
+  „Bindestrich“, „Gedankenstrich“, „Anführungszeichen auf/zu“, „Klammer auf/zu“, „neuer Absatz“/„neue Zeile“ (englisch
+  „period“, „comma“, „new paragraph“ …); die eigenen Satzzeichen des Modells daneben fallen weg, „der wichtigste Punkt“
+  bleibt ein Wort. Keine Sprachbefehle für die App (dafür gibt es den Sprachmodus). Test `DictationTest`.
 
 - **Literaturverzeichnis in 8 Zitierstilen**: APA 7 (deutsch und englisch), Zeitschrift für Pädagogik, DIN ISO 690,
   Harvard, Chicago (Autor-Jahr), MLA 9 und IEEE. Quellen als BibTeX, RIS, CSL-JSON oder einfach als Text einfügen
@@ -659,6 +667,11 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Suche, Gedächtnis, Vorschlägen oder Benachrichtigungstexten. Im Tresor gelten **nur Uni-Server oder lokale Modelle**,
   keine Websuche/GitHub und eine **strenge Pseudonymisierung** (gründliche Erkennung, keine Ausnahmen). Nach fünf falschen
   PINs wartet jeder weitere Versuch länger; der Tresor sperrt sich nach einstellbarer Inaktivität.
+  **Auf mehreren Geräten** (AP-63, seit 1.0.61): Synchronisiert (PCs über den Cloud-Ordner, das Handy über den Handy-Sync)
+  bekommt jedes Gerät seine **eigene PIN-Kiste**, versiegelt mit seinem Geräteschlüssel – einmal mit dem
+  Wiederherstellungsschlüssel eine PIN für dieses Gerät setzen, die PIN der anderen Geräte bleibt; eine neue PIN ändert nur
+  die Kiste des eigenen Geräts. Ein Tresor-Chat, der auf zwei Geräten geändert wurde, wird beim nächsten Öffnen zur
+  verschlüsselten „zweiten Fassung“ (die Konfliktkopie bleibt bis dahin verschlüsselt im Tresor). Test `SyncRestsTest`.
 - **PDF-Werkzeugkasten** (Werkzeug, Vorbild pdf24 + Xodo): mehrere PDFs in **Tabs** mit Miniaturen, Gliederung, Suche,
   Zoom und Nachtmodus; **Seiten** zusammenführen, teilen (alle n Seiten oder nach Bereichen), extrahieren, löschen, drehen,
   **sortieren durch Ziehen** der Miniaturen und **Seitenzahlen** setzen; **Markieren**: hervorheben, unterstreichen,
@@ -778,6 +791,23 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     `WindowsIntegrationTest`.
   - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
     verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
+  - **Schnellansicht und Details-Spalte** (AP-66, seit 1.0.61): **Leertaste** zeigt die Datei unter der Maus (oder die
+    ausgewählte) groß, ohne sie zu öffnen – PDF-Seiten, Bilder, Dokumente, Word- und Textdateien, Tabellen, Folien, den
+    Inhalt eines Ordners; ←/→ blättert durch die Dateien des Ordners, Enter öffnet, Leertaste/Esc schließt. Auf Android
+    über ⋮ › *Vorschau*. Das ⓘ oben blendet rechts die **Details** ein: Art, Größe, geändert, erstellt, Ort, je nach Datei
+    Seiten, Wörter, Folien, Abmessungen, Versionen, offene Kommentare, Schlagwörter und der Chat, aus dem sie stammt.
+    Test `QuickLookTest`, Bild `build/files-details.png` (`Round2EndLookTest`).
+- **Dokumenten-Scanner** (AP-62, seit 1.0.61; *Dateien › + › Scannen*, Strg+K „Scannen“): Papier wird ein
+  **durchsuchbares PDF**. Auf dem Handy die Seite von oben **fotografieren** (Kamera-App) oder aus den Fotos holen, unter
+  Windows **vom Scanner** (Scan-Dialog von Windows über WIA, ohne Treiber oder Admin-Rechte) oder Bilder öffnen. Lora findet
+  die **Kanten des Papiers** (größte helle Fläche, Viereck größter Fläche in ihrer Hülle – auch schräg fotografiert), die
+  Ecken lassen sich mit Finger oder Maus verschieben; die Seite wird **entzerrt** (fast A4 wird genau A4) und aufbereitet:
+  *Farbe* (Weißabgleich am Papier), *Graustufen* und *Schwarz-Weiß* (Schatten von Hand und Lampe werden ausgeglichen),
+  *Original*. Mehrere Seiten drehen, umsortieren, entfernen, dann *Als PDF speichern*: eine A4-Seite je Scan in
+  **Dateien › Scans**, mit **Texterkennung** (Windows: die eingebaute Texterkennung; Android: ein Bildmodell, das der
+  Datenschutz erlaubt) als unsichtbare Textebene – suchen, kopieren, „Frag das PDF“. Über den Sync landet das PDF auch auf
+  dem PC (**Handy als Scanner**). Tour *Scannen*. Tests `DocScannerTest` (drei schräg fotografierte Seiten → ein
+  durchsuchbares PDF im Lora-Ordner), Bild `build/scan-screen.png`.
 - **Office-Ausbau** (AP-16): Dokumente fühlen sich an wie Google Docs, mit **Lora rechts als Assistentin** (auf breiten
   Bildschirmen gleich offen) und dem **Lora-Popup** über markiertem Text („Was soll Lora mit der Markierung machen?“,
   dazu Verbessern, Kürzen, Einfacher, Rechtschreibung …).
@@ -905,8 +935,13 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   fünf Minuten und beim Wechsel in den Hintergrund. Es gelten die Regeln von AP-12: Das Handy legt eine Notiz wie ein PC
   an; ist der Ordner am PC geöffnet oder sind dessen Änderungen noch unterwegs, wartet es. Haben beide Seiten etwas
   geändert, bleiben beide Fassungen (ein Chat wird zur „zweiten Fassung“, andere Dateien nach `sync/konflikte`).
-  Löschungen gehen in beide Richtungen, ungewöhnlich viele halten den Sync an. Literatur, Wissenssammlung, Transkripte
-  und Einstellungen bleiben je Gerät, API-Schlüssel nie im Ordner.
+  Löschungen gehen in beide Richtungen, ungewöhnlich viele halten den Sync an. Transkripte und Einstellungen bleiben je
+  Gerät, API-Schlüssel nie im Ordner.
+  **Seit AP-63** (1.0.61): auch **Literatur** (mit Exzerpten), die **Wissenssammlung** und der **Tresor** (verschlüsselt,
+  eigene PIN je Gerät) – alles wird im Betrieb neu gelesen. **Sync im Hintergrund** ohne geöffnete App (Android
+  WorkManager, etwa alle 30 Minuten, nur mit Netz und nicht bei schwachem Akku, auf Wunsch nur im WLAN): ein am PC
+  angelegter Literatureintrag ist schon auf dem Handy, bevor die App geöffnet wird. Die Notiz des Handys sagt dann „im
+  Hintergrund“, ein PC darf den Ordner öffnen. Test `SyncRestsTest`.
 - **Einfacher Sync zwischen PCs** (Windows, *Einstellungen › Synchronisation*, AP-12): wie bei Obsidian liegt der
   Datenordner in einem Cloud-Ordner, der auf allen PCs eingerichtet ist – **Nextcloud**, **Google Drive für Desktop** oder
   **OneDrive** (gefundene Cloud-Ordner stehen als Knopf da: *In OneDrive legen* …). Erster PC: Daten werden kopiert, Lora
@@ -929,6 +964,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     „conflicted copy“, Syncthing „sync-conflict“) erkennt Lora beim Start und **behält beide Fassungen**: ein Chat
     erscheint als zweiter Chat „… (zweite Fassung)“, alles andere liegt unter `sync/konflikte/<Datum>/`. Nichts wird
     gelöscht. *Synchronisation beenden* kopiert die aktuellen Daten zurück in den Standardordner.
+- **Browser neben dem Chat auf Android** (AP-63, seit 1.0.61; Schalter *Einstellungen › Chat & Werkzeuge › Links in Lora
+  öffnen*): die einfache Fassung des PC-Browsers – Links öffnen sich in einem Browser in der App (WebView; auf dem Handy
+  über der App, auf Tablets rechts daneben), mit Zurück/Vor, Adresszeile und ↗ in den normalen Browser. Unter der Seite
+  *Frage zur Seite*, *Zusammenfassen*, *In die Literatur* (Zitierangaben aus den Meta-Tags der Zeitschrift oder über die
+  DOI), *In die Wissenssammlung* und bei PDFs *PDF im Werkzeugkasten* (mit den Anmelde-Cookies des Browsers).
+- **Android zieht nach** (AP-64, seit 1.0.61): **Folien auf dem zweiten Bildschirm** – ein Beamer an HDMI/USB-C oder eine
+  drahtlose Übertragung (Miracast) bekommt die Folien, die Referentenansicht mit Notizen, nächster Folie und Zeit bleibt
+  auf Handy oder Tablet (Android-`Presentation`; ein später angesteckter Beamer wird erkannt); **Wischen** blättert, der
+  Bildschirm bleibt beim Vorführen an. **Speichern** fragt zuerst nach einem Ordner im **Lora-Ordner** (der
+  Android-Dialog erreicht ihn nicht – so landen Exporte auch per Sync am PC), *Anderswo …* öffnet den Systemdialog.
+  **PDF verkleinern** jetzt auch auf Android (im Werkzeugkasten und als Lora-Aktion). Fließtext-Editor, Tabellen, Folien,
+  Lora-Aktionen für Dateien und PDF, Gedächtnis und Touren laufen auf Android über den gemeinsamen Code; Videoeditor und
+  Gestalten bleiben am PC. Test `AndroidCatchUpTest`.
 - **Browser neben dem Chat** (Windows, AP-14): Links aus Chat, Literatur und Dokumenten öffnen sich wie bei Google
   Antigravity **als Tabs rechts neben der App** – die App wird schmaler statt verdeckt, die Breite lässt sich ziehen; auf
   schmalen Fenstern liegt der Browser über der App. Oben Tabs, Zurück/Vor/Neu laden und eine Adresszeile (Suchbegriffe
@@ -1664,6 +1712,11 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `desktop/WindowsShell.kt`, `ui/ShellRequests.kt`, `ui/ExternalOffice.kt` (gemeinsam) | Windows-Integration (AP-59): Kontextmenü je Benutzer, Start mit Datei, Dateien nach außen ziehen/kopieren, Windows-Papierkorb, Office mit Rückweg |
 | `docs/PdfSigning.kt` (beide), `docs/PdfAutoTag.kt`, `PdfSnap` in `docs/PdfToolModel.kt` | PDF-Reste (AP-60): digitale Signatur mit Prüfung (Bouncy Castle), Tags für PDF/UA, Markieren und Schwärzen am Text |
 | `docs/Diagrams.kt`, `ui/DiagramView.kt`, `ui/DiagramEditor.kt`, `docs/DiagramRaster.kt`, `ui/WhiteboardScreen.kt` | Diagramme und Whiteboard (AP-61): Modell, Mermaid, Anordnung, Zeichnen (Compose, SVG, PNG), Editor, gespeicherte Tafeln |
+| `docs/DocScanner.kt`, `ui/ScanScreen.kt` (gemeinsam), `docs/ScanImages.kt`, `ui/ScanPlatform.kt` (beide), `desktop/WiaScanner.kt` | Dokumenten-Scanner (AP-62): Kanten, Entzerren, Kontrast, PDF mit Textebene; Kamera/Fotos bzw. WIA/Bilder |
+| `data/PhoneSync.kt`, `data/Vault.kt`, `tasks/BackgroundSync.kt` (beide), `research/WebMeta.kt`, `ui/PhoneBrowser.kt` (nur Android) | Sync- und Android-Reste (AP-63): Literatur, Wissen und Tresor im Handy-Sync, Hintergrund-Sync, PIN-Kiste je Gerät, Browser mit WebView |
+| `ui/PresentScreens.kt` (beide), `ui/LoraFolderPicker.kt`, `docs/PdfStage3.kt` (Android: Verkleinern) | Android zieht nach (AP-64): zweiter Bildschirm über `Presentation`, Speichern in den Lora-Ordner |
+| `audio/Dictation.kt`, `ui/DictationUi.kt` | Diktat (AP-65): Satzzeichen per Sprache, Einfügen am Cursor, Erkennung auf dem Gerät |
+| `files/FileDetails.kt`, `ui/QuickLook.kt` | Schnellansicht und Details-Spalte in Dateien (AP-66) |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“ (macOS: LaunchAgent, Linux: `~/.config/autostart`), nur eine laufende App |
 | `desktop/Os.kt`, `update/AppLayout.kt`, `ui/Keys.kt` (gemeinsam) | macOS und Linux (AP-31): System, App-Ordner je System, tar.gz mit Rechten und Links, ⌘/Strg, Texte (⌘, Finder) |
