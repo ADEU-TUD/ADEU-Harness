@@ -568,6 +568,16 @@ object OfficeImport {
                 layoutType == "secHead" || body.isEmpty() -> SlideDeck.Slide(heading, sorted.flatMap { it.second }.joinToString(" ") { it.trim().removePrefix("- ") }.take(140), notes = notes, layout = SlideDeck.Layout.SECTION)
                 else -> SlideDeck.Slide(heading, body, notes = notes, layout = SlideDeck.Layout.CONTENT)
             }
+        }.mapIndexed { index, s ->
+            // Übergang and build of the points (AP-51): fade/push, „Erscheinen“ by paragraph.
+            val root = xml(files[slideNames[index]]) ?: return@mapIndexed s
+            val kinds = root.all("transition").firstOrNull()?.children()?.map { it.localName }.orEmpty()
+            val transition = when {
+                kinds.any { it == "push" || it == "cover" || it == "pull" || it == "wipe" } -> "push"
+                kinds.isNotEmpty() -> "fade"
+                else -> ""
+            }
+            s.copy(transition = transition, build = root.all("bldP").any { it.attr("build") == "p" })
         }
         return SlideDeck.markdown(slides.ifEmpty { listOf(SlideDeck.Slide("Titel", layout = SlideDeck.Layout.TITLE)) })
     }

@@ -5330,3 +5330,19 @@ Gruppieren (Strg+G)	Group (Ctrl+G)
 Gruppierung aufheben	Ungroup
 Ausrichten auf der Folie	Align on the slide
 Mit dem Element darunter gruppieren	Group with the element below
+←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · D: zeichnen, E: löschen · N: Notizen · Esc: Ende	←/→ page · number + Enter: slide · B/W: black/white · L: laser pointer · D: draw, E: erase · N: notes · Esc: end
+Zeichnen aus (D)	Stop drawing (D)
+Zeichnen (D)	Draw (D)
+Animation: {0}	Animation: {0}
+Schieben	Push
+Punkte nacheinander	Points one by one
+keine	none
+Kein Übergang	No transition
+Stichpunkte nacheinander einblenden	Show bullet points one by one
+Das Dokument „{0}“ finde ich nicht.	I can't find the document “{0}”.
+Baut Folien aus „{0}“ …	Building slides from “{0}” …
+Präsentation „{0}“ mit {1} Folien angelegt.	Presentation “{0}” with {1} slides created.
+Präsentation entfernt.	Presentation removed.
+Animationen	Animations
+Setzt Animationen …	Setting animations …
+Animationen gesetzt.	Animations set.

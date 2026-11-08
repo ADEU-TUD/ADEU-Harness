@@ -812,6 +812,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Felder ohne Markdown-Zeichen mit Leiste für fett, kursiv, Stichpunkte, Einrücken; Sprechernotizen, **Folienübersicht**,
     Folien duplizieren/verschieben (Strg+M, Strg+D, Strg+Umschalt+↑/↓), **Vorführen** (F5) mit **Referentenansicht**
     (nächste Folie, Notizen, Timer), Export als PowerPoint im TUD-Design. Fehlt die Einrichtung, fragt der Editor danach.
+    Seit AP-51: **Übergänge** (Überblenden, Schieben) und **Stichpunkte nacheinander** je Folie – beim Vorführen und in
+    PowerPoint (auch aus fremden .pptx gelesen) –, **Zeichnen** beim Präsentieren (D, E löscht) und Lora baut aus einem
+    Dokument ein ganzes Deck („Mach aus dem Dokument eine Präsentation“).
   - **Tabelle** (wie Excel): Zellraster mit Spalten- und Zeilenköpfen, **Bearbeitungsleiste mit Formeln** in deutscher
     Schreibweise (`=SUMME(B2:B9)`, `=MITTELWERT`, `=WENN(…;…;…)`, `=RUNDEN`, `=ZÄHLENWENN`, `=SUMMEWENN`, `=STABW`, `&` …,
     auch englische Namen), dazu **SVERWEIS, XVERWEIS, INDEX/VERGLEICH, WENNFEHLER, WENNS, ZÄHLENWENNS, SUMMEWENNS,

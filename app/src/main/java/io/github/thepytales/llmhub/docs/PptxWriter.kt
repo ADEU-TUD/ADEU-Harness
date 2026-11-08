@@ -33,6 +33,9 @@ object PptxWriter {
         val rightHead: String = "",
         /** Items of an agenda slide. */
         val agenda: List<String> = emptyList(),
+        /** Übergang ("fade", "push") and paragraph build of the text (AP-51). */
+        val transition: String = "",
+        val build: Boolean = false,
     )
 
     private const val W = 12192000L // 33.867 cm
@@ -68,7 +71,7 @@ object PptxWriter {
             if (!inCode && SEPARATOR.matches(line)) chunks += StringBuilder() else chunks.last().append(line).append('\n')
         }
         val texts = chunks.map { it.toString().trim() }.filter { it.isNotEmpty() }
-        val slides = texts.mapIndexed { i, t -> slide(t, first = i == 0) }
+        val slides = texts.mapIndexed { i, t -> SlideDeck.animationOf(t).let { a -> slide(t, first = i == 0).copy(transition = a.transition, build = a.build) } }
         // Agendas without own items list the section slides (or all titles).
         return slides.mapIndexed { i, s ->
             if (s.kind != Kind.AGENDA || s.agenda.isNotEmpty()) s
@@ -204,10 +207,50 @@ object PptxWriter {
         private var id = 2
         val xml = StringBuilder()
         fun next() = id++
+        /** Text boxes written so far: shape id and number of paragraphs (for the build of the points). */
+        val texts = mutableListOf<Pair<Int, Int>>()
+    }
+
+    /** Übergang of a slide as PowerPoint writes it. */
+    private fun transitionXml(kind: String): String = when (kind) {
+        "fade" -> "<p:transition spd=\"med\"><p:fade/></p:transition>"
+        "push" -> "<p:transition spd=\"med\"><p:push dir=\"l\"/></p:transition>"
+        else -> ""
+    }
+
+    /** Paragraphs of the text boxes [targets] (shape id, paragraphs) appear one per click (PowerPoint's „Erscheinen“, by paragraph). */
+    private fun buildXml(targets: List<Pair<Int, Int>>): String {
+        if (targets.isEmpty()) return ""
+        var id = 2
+        val clicks = StringBuilder()
+        targets.forEach { (spid, paragraphs) ->
+            for (p in 0 until paragraphs) {
+                val a = ++id
+                val b = ++id
+                val c = ++id
+                val d = ++id
+                clicks.append(
+                    "<p:par><p:cTn id=\"$a\" fill=\"hold\"><p:stCondLst><p:cond delay=\"indefinite\"/></p:stCondLst><p:childTnLst>" +
+                        "<p:par><p:cTn id=\"$b\" fill=\"hold\"><p:stCondLst><p:cond delay=\"0\"/></p:stCondLst><p:childTnLst>" +
+                        "<p:par><p:cTn id=\"$c\" presetID=\"1\" presetClass=\"entr\" presetSubtype=\"0\" fill=\"hold\" grpId=\"0\" nodeType=\"clickEffect\">" +
+                        "<p:stCondLst><p:cond delay=\"0\"/></p:stCondLst><p:childTnLst><p:set><p:cBhvr><p:cTn id=\"$d\" dur=\"1\" fill=\"hold\"><p:stCondLst><p:cond delay=\"0\"/></p:stCondLst></p:cTn>" +
+                        "<p:tgtEl><p:spTgt spid=\"$spid\"><p:txEl><p:pRg st=\"$p\" end=\"$p\"/></p:txEl></p:spTgt></p:tgtEl><p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr>" +
+                        "<p:to><p:strVal val=\"visible\"/></p:to></p:set></p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>",
+                )
+            }
+        }
+        return "<p:timing><p:tnLst><p:par><p:cTn id=\"1\" dur=\"indefinite\" restart=\"never\" nodeType=\"tmRoot\"><p:childTnLst>" +
+            "<p:seq concurrent=\"1\" nextAc=\"seek\"><p:cTn id=\"2\" dur=\"indefinite\" nodeType=\"mainSeq\"><p:childTnLst>$clicks</p:childTnLst></p:cTn>" +
+            "<p:prevCondLst><p:cond evt=\"onPrev\" delay=\"0\"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>" +
+            "<p:nextCondLst><p:cond evt=\"onNext\" delay=\"0\"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>" +
+            "</p:childTnLst></p:cTn></p:par></p:tnLst><p:bldLst>" + targets.joinToString("") { "<p:bldP spid=\"${it.first}\" grpId=\"0\" build=\"p\"/>" } + "</p:bldLst></p:timing>"
     }
 
     private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String, picture: Pair<Int, Int>? = null): String {
         val sh = Shapes()
+        // Text boxes of the content (for the build of the points).
+        var bodyFrom = 0
+        var bodyTo = 0
         val dark = s.kind == Kind.TITLE || s.kind == Kind.END || s.kind == Kind.SECTION
         when (s.kind) {
             Kind.TITLE -> {
@@ -249,6 +292,7 @@ object PptxWriter {
             Kind.CONTENT -> {
                 if (s.title.isNotBlank()) title(sh, s.title)
                 else hiddenTitle(sh, s.blocks.flatMap { blockLines(it) }.firstOrNull()?.take(60) ?: "Folie $n")
+                bodyFrom = sh.texts.size
                 val top = c(TudSlide.BODY_TOP)
                 val bottom = c(TudSlide.BODY_BOTTOM)
                 if (s.right.isEmpty()) content(sh, s.blocks, c(TudSlide.X), top, c(TudSlide.CONTENT_W), bottom - top, half = false)
@@ -256,6 +300,7 @@ object PptxWriter {
                     content(sh, s.blocks, c(TudSlide.X), top, c(COL_W), bottom - top, half = true)
                     content(sh, s.right, c(COL2_X), top, c(COL_W), bottom - top, half = true)
                 }
+                bodyTo = sh.texts.size
                 chrome(sh, n, footer)
             }
             Kind.IMAGE_TEXT -> {
@@ -320,8 +365,9 @@ object PptxWriter {
             }
         }
         val bg = if (dark) "<p:bg><p:bgPr><a:solidFill><a:srgbClr val=\"$BLUE\"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>" else ""
+        val build = if (s.build) buildXml(sh.texts.subList(bodyFrom, bodyTo).filter { it.second > 0 }) else ""
         return "$XML<p:sld $NS><p:cSld>$bg<p:spTree>$GROUP${sh.xml}</p:spTree></p:cSld>" +
-            "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
+            "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>" + transitionXml(s.transition) + build + "</p:sld>"
     }
 
     /** Footer of the CD: the short logo „TUD“ at the bottom left, then „Titel • Vortragende • Seite N“. */
@@ -451,6 +497,7 @@ object PptxWriter {
      */
     private fun text(sh: Shapes, name: String, x: Long, y: Long, w: Long, h: Long, paragraphs: List<String>, anchor: String = "t", placeholder: String? = null) {
         val id = sh.next()
+        sh.texts += id to paragraphs.size
         val nv = if (placeholder == null) "<p:cNvSpPr txBox=\"1\"/><p:nvPr/>"
         else "<p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr><p:ph type=\"$placeholder\"/></p:nvPr>"
         sh.xml.append(

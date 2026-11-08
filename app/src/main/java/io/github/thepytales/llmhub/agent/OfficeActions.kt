@@ -383,6 +383,44 @@ internal object OfficeActions {
             if (made.isEmpty()) throw ActionFailed(tr("Aus der Gliederung entstehen keine Folien – bitte Titel mit # beginnen."))
             slidesChange("slides.from_outline", tr("Legt {0} Folien an …", made.size), false, result = tr("{0} Folien angelegt.", made.size)) { list, _ -> list + made }
         },
+        // Lora baut Folien (AP-51): a whole deck in the TUD design from a document, on the device.
+        ToolAction(
+            "slides.from_document", ActionArea.DOC, trLater("Präsentation aus Dokument"),
+            "Baut aus einem Dokument (Titel; leer: das zuletzt bearbeitete) eine Präsentation im TUD-Design: Abschnitte, Inhaltsfolien, Tabellen, Bilder, Diagramme, lange Absätze als Sprechernotizen; Punkte erscheinen nacheinander.",
+            listOf(ActionParam("dokument", "Titel des Dokuments (leer: das zuletzt bearbeitete)", required = false)), risky = false,
+        ) { c, a ->
+            val name = a.s("dokument").orEmpty().trim()
+            val docs = c.docs.items.value.filter { it.docKind == io.github.thepytales.llmhub.docs.DocKind.DOC }
+            val doc = (if (name.isEmpty()) docs.maxByOrNull { it.updatedAt } else docs.firstOrNull { it.title.equals(name, true) } ?: docs.firstOrNull { it.title.contains(name, true) })
+                ?: throw ActionFailed(tr("Das Dokument „{0}“ finde ich nicht.", name))
+            val slides = SlideDeck.fromDocument(doc.markdown(), doc.title).mapIndexed { i, sl -> if (i > 0 && sl.layout == SlideDeck.Layout.CONTENT) sl.copy(build = true, transition = "fade") else sl }
+            ActionPlan("slides.from_document", tr("Baut Folien aus „{0}“ …", doc.title), false, listOf(tr("Folien") to slides.size.toString())) {
+                val deck = io.github.thepytales.llmhub.docs.LiveDoc.create(doc.title, SlideDeck.markdown(slides), "Lora", kind = io.github.thepytales.llmhub.docs.DocKind.SLIDES).copy(vault = doc.vault)
+                c.docs.save(deck)
+                io.github.thepytales.llmhub.ui.DocsHandoff.show(deck.id)
+                ActionResult(tr("Präsentation „{0}“ mit {1} Folien angelegt.", doc.title, slides.size), undo = { c.docs.delete(deck.id); tr("Präsentation entfernt.") })
+            }
+        },
+        ToolAction(
+            "slides.animate", ActionArea.SLIDES, trLater("Animationen"),
+            "Setzt Übergänge und lässt Stichpunkte nacheinander erscheinen – für alle Inhaltsfolien oder eine (Nummer/Titel).",
+            listOf(
+                ActionParam("uebergang", "ueberblenden, schieben oder keiner", required = false),
+                ActionParam("nacheinander", "ja/nein: Stichpunkte nacheinander", required = false),
+                ActionParam("folie", "Nummer oder Titel (leer: alle)", required = false),
+            ), risky = false,
+        ) { _, a ->
+            val t = when (a.s("uebergang").orEmpty().lowercase()) { "schieben", "push" -> "push"; "keiner", "kein", "aus", "none" -> ""; else -> "fade" }
+            val build = !a.s("nacheinander").orEmpty().lowercase().let { it.startsWith("n") || it == "false" }
+            val host = slidesHost()
+            val slides = SlideDeck.parse(host.markdown())
+            val only = a.s("folie")?.takeIf { it.isNotBlank() }?.let { SlidesLora.index(slides, it, host.selected()) ?: throw ActionFailed(tr("Diese Folie finde ich nicht.")) }
+            slidesChange("slides.animate", tr("Setzt Animationen …"), false, result = tr("Animationen gesetzt.")) { list, _ ->
+                list.mapIndexed { i, sl ->
+                    if ((only == null && i > 0) || i == only) sl.copy(transition = t, build = build && sl.body.lines().any { it.trimStart().startsWith("- ") }) else sl
+                }
+            }
+        },
         ToolAction(
             "slides.split_full", ActionArea.SLIDES, trLater("Volle Folien teilen"), "Teilt Folien mit mehr als sechs Stichpunkten auf.",
             emptyList(), risky = false,

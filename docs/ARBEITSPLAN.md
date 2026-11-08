@@ -173,7 +173,7 @@ So nah wie möglich an **Google Sheets/Excel**:
   Einrasten, Mehrfachauswahl, TUD-Shape/Icons/QR auf Folien), Android zeigt die Leinwand (Zeichnen ist noch Windows-Code),
   Text-Kern mit Formatierung innerhalb eines Textfelds, Tabellen auf der Leinwand.
 
-### AP-51 ☐ Folien wie PowerPoint · L (neu)
+### AP-51 ◐ Folien wie PowerPoint · L (neu)
 So nah wie möglich an **Google Slides/PowerPoint**:
 - **PowerPoint-Treue**: fremde .pptx (auch die TUD-Präsentationsvorlage) mit Masterfolien, Layouts, Platzhaltern,
   Designfarben, Gruppen, Tabellen und Diagrammen originalgetreu anzeigen und bearbeiten; Unbekanntes bleibt erhalten.
@@ -188,6 +188,17 @@ So nah wie möglich an **Google Slides/PowerPoint**:
   lässt sich mit Animationen präsentieren.
 - Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
   `docs/PptxReader.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
+  einblenden* (Menü *Animation* an der Folie; als Kommentarzeile der Folie gespeichert, `SlideDeck.Animation`). **Vorführen**:
+  Übergänge laufen beim Blättern, ein Klick/→ zeigt den nächsten Punkt (Unterpunkte mit ihm), zurück zeigt die Folie
+  ganz; **Zeichnen** beim Präsentieren (D, rote Linien je Folie, E löscht) neben Laserpointer, Schwarz/Weiß, Notizen,
+  Timer und Referentenansicht. **PowerPoint**: Übergänge (`p:fade`, `p:push`) und der Aufbau nach Absätzen
+  („Erscheinen“, `p:timing`/`p:bldP`) werden geschrieben und beim Öffnen fremder .pptx gelesen. **Lora baut Folien**:
+  Aktion `slides.from_document` (ganzes Deck im TUD-Design aus einem Dokument – Abschnitte, Inhalt, Tabellen, Bilder,
+  Diagramme, lange Absätze als Sprechernotizen –, auf dem Gerät, mit Rückgängig) und `slides.animate` (Übergänge und
+  Aufbau für alle oder eine Folie). Test `SlidesLikePowerPointTest`. **Offen**: `PptxReader` für fremde .pptx mit
+  Masterfolien, Layouts, Platzhaltern, Designfarben und Gruppen (heute: Text, Bilder, Tabellen, Notizen, Animationen),
+  zweiter Bildschirm, Deck aus einem Paper (PDF) und „Folie schöner machen“/Sprechertexte mit dem Modell.
 
 ---
 
