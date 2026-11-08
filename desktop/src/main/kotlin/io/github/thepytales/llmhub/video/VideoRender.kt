@@ -99,38 +99,49 @@ object VideoRender {
         val starts = p.starts()
         val first = starts.indices.lastOrNull { starts[it] <= from + 1e-6 } ?: 0
         val last = maxOf(first, starts.indices.lastOrNull { starts[it] < to - 1e-6 } ?: first)
-        class Seg(val clip: VideoClip, val inSec: Double, val length: Double, val trans: Double)
+        class Seg(val clip: VideoClip, val head: Double, val inSec: Double, val length: Double, val trans: Double)
         val segs = (first..last).map { k ->
             val c = p.clips[k]
             val head = if (k == first) (from - starts[k]).coerceIn(0.0, maxOf(0.0, c.length - 0.04)) else 0.0
-            Seg(c, c.inSec + head, maxOf(0.04, c.length - head), if (k == first) 0.0 else p.transitionOf(k))
+            Seg(c, head, c.inSec + head, maxOf(0.04, c.length - head), if (k == first) 0.0 else p.transitionOf(k))
         }
         segs.forEachIndexed { i, s ->
             val c = s.clip
             val src = File(c.path)
             val mi = info(src)
             val still = Media.isStill(src, mi)
+            // Effects (AP-54): speed reads more of the source, reverse reads backwards from Out, a frozen frame little.
+            val fx = c.fx.takeIf { !it.isNone }
+            val (ss, dur) = if (fx == null || still) s.inSec to s.length else VideoFx.inputRange(c, s.head, s.length)
             if (still) args += listOf("-loop", "1", "-framerate", fps.toString())
-            if (!still) args += listOf("-ss", f(s.inSec))
-            args += listOf("-t", f(s.length), "-i", (if (still) src else source(src)).absolutePath)
+            if (!still) args += listOf("-ss", f(ss))
+            args += listOf("-t", f(if (still) s.length else dur), "-i", (if (still) src else source(src)).absolutePath)
             val k = input++
+            var vin = "[$k:v]"
+            if (fx != null && fx.picture && mi?.hasVideo != false && !hidden("V1")) {
+                val (bw, bh) = VideoFx.workSize(mi, w, h)
+                graph += VideoFx.pictureLines(vin, "e$i", fx, VideoFx.span(c, s.head, s.length, still), bw, bh, fps, still)
+                vin = "[e$i]"
+            }
             // tpad + trim: the picture is exactly as long as the clip, like its sound (apad + atrim below) – a clip
             // set longer than its file (or a file whose last frames are missing) used to end early, and every clip
             // after it ran ahead of its sound at a cross-dissolve.
             val fit = "setsar=1,fps=$fps,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=${f(s.length)},trim=duration=${f(s.length)},setpts=PTS-STARTPTS"
             graph += when {
                 mi?.hasVideo == false || hidden("V1") -> "color=c=black:s=${w}x$h:r=$fps:d=${f(s.length)},format=yuv420p,setsar=1[v$i]"
-                c.frame.isFull -> "[$k:v]scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black,$fit,format=yuv420p[v$i]"
+                c.frame.isFull -> "${vin}scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black,$fit,format=yuv420p[v$i]"
                 else -> {
                     val (bw, bh) = box(c.frame)
                     val alpha = if (c.frame.opacity < 0.999f) ",colorchannelmixer=aa=${f(c.frame.opacity.coerceIn(0f, 1f).toDouble())}" else ""
-                    "[$k:v]${crop(c.frame)}scale=$bw:$bh:force_original_aspect_ratio=decrease:force_divisible_by=2,format=rgba$alpha,$fit[fg$i];\n" +
+                    "$vin${crop(c.frame)}scale=$bw:$bh:force_original_aspect_ratio=decrease:force_divisible_by=2,format=rgba$alpha,$fit[fg$i];\n" +
                         "color=c=black:s=${w}x$h:r=$fps:d=${f(s.length)}[bg$i];\n" +
                         "[bg$i][fg$i]overlay=${place(c.frame)}:eof_action=pass,format=yuv420p,setsar=1[v$i]"
                 }
             }
-            graph += if (mi?.hasAudio == true && !c.muted && !muted("V1")) {
-                "[$k:a]$audioFormat,volume=${f(c.volume.toDouble())},asetpts=PTS-STARTPTS,apad,atrim=0:${f(s.length)}[a$i]"
+            val tempo = if (still) emptyList() else VideoFx.soundFilters(c.speed, c.fx.reverse, c.fx.voice)
+            graph += if (mi?.hasAudio == true && !c.muted && !muted("V1") && !c.fx.freeze) {
+                val extra = if (tempo.isEmpty()) "" else tempo.joinToString(",", postfix = ",asetpts=PTS-STARTPTS,")
+                "[$k:a]$audioFormat,volume=${f(c.volume.toDouble())},asetpts=PTS-STARTPTS,${extra}apad,atrim=0:${f(s.length)}[a$i]"
             } else "anullsrc=channel_layout=stereo:sample_rate=48000,atrim=0:${f(s.length)}[a$i]"
         }
         // Join: cross-dissolve / through black where a transition is set, otherwise a hard cut.
@@ -253,7 +264,12 @@ object VideoRender {
             val start = (m.startSec - from).coerceAtLeast(0.0)
             val d = minOf(m.length - cut, len - start)
             if (d < 0.05) return@forEachIndexed
-            args += listOf("-ss", f(m.inSec + cut), "-t", f(d), "-i", File(m.path).let { if (Media.isStill(it)) it else source(it) }.absolutePath)
+            // Speed and direction of the sound (AP-54; linked sound has its clip's), voice of the sound or of its clip.
+            val sp = m.speed.coerceIn(0.25, 4.0)
+            val voice = m.linkedTo?.let { l -> p.clips.firstOrNull { it.id == l }?.fx?.voice }?.takeIf { abs(it) > 0.01f } ?: m.voice
+            val tempo = VideoFx.soundFilters(sp, m.reverse, voice)
+            val ss = if (m.reverse) maxOf(0.0, m.outSec - (cut + d) * sp) else m.inSec + cut * sp
+            args += listOf("-ss", f(ss), "-t", f(d * sp), "-i", File(m.path).let { if (Media.isStill(it)) it else source(it) }.absolutePath)
             val idx = input++
             val fade = m.fadeSec.coerceIn(0.0, m.length / 3)
             val fades = buildString {
@@ -262,7 +278,8 @@ object VideoRender {
                 if (fade > 0 && endLocal <= d + 1e-6) append("afade=t=out:st=${f(endLocal - fade)}:d=${f(fade)},")
             }
             val delay = Math.round(start * 1000)
-            graph += "[$idx:a]$audioFormat,volume=${f(m.volume.toDouble())},${fades}asetpts=PTS-STARTPTS,adelay=$delay|$delay[m$k]"
+            graph += if (tempo.isEmpty()) "[$idx:a]$audioFormat,volume=${f(m.volume.toDouble())},${fades}asetpts=PTS-STARTPTS,adelay=$delay|$delay[m$k]"
+            else "[$idx:a]$audioFormat,volume=${f(m.volume.toDouble())},asetpts=PTS-STARTPTS,${tempo.joinToString(",")},asetpts=PTS-STARTPTS,${fades}adelay=$delay|$delay[m$k]"
             mix += "m$k"
         }
         if (mix.isNotEmpty()) {

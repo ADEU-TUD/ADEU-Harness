@@ -119,9 +119,11 @@ object RoughCut {
         p.clips.forEachIndexed { i, c ->
             val t = transcripts[c.path] ?: return@forEachIndexed
             TranscriptExport.cues(t).forEach { cue ->
+                // A frozen or reversed clip (AP-54) has no words in their order; with a speed they come faster or slower.
+                if (c.fx.freeze || c.fx.reverse) return@forEachIndexed
                 val a = maxOf(cue.start, c.inSec)
                 val b = minOf(cue.end, c.outSec)
-                if (b - a >= 0.3) out += SubtitleCue(starts[i] + (a - c.inSec), starts[i] + (b - c.inSec), cue.lines.joinToString("\n"))
+                if (b - a >= 0.3) out += SubtitleCue(starts[i] + (a - c.inSec) / c.speed, starts[i] + (b - c.inSec) / c.speed, cue.lines.joinToString("\n"))
             }
         }
         return out.sortedBy { it.startSec }.let { list ->

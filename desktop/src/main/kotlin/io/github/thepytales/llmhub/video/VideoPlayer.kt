@@ -75,7 +75,7 @@ class VideoPlayer {
         if (p.track("V1").hidden) return true
         if (p.fadeEnds && p.duration > 2.0 && (t < 0.5 || t > p.duration - 0.6)) return true
         val (i, _) = p.at(t) ?: return false
-        if (!p.clips[i].frame.isFull) return true
+        if (!p.clips[i].frame.isFull || p.clips[i].fx.picture) return true
         val s = p.starts()
         if (i + 1 < p.clips.size && t >= s[i + 1] - 1e-6) return true
         return i > 0 && t < s[i] + p.transitionOf(i)

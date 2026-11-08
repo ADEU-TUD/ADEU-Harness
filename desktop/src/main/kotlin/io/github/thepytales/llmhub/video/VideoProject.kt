@@ -52,7 +52,8 @@ data class Frame(
 /**
  * A piece of a source file on the video track V1: [inSec]..[outSec] of [path]. [transition] blends from the previous clip
  * into this one ("none", "fade" = cross-dissolve, "black" = through black), [transitionSec] long. [frame]: position,
- * size, crop and opacity (AP-52).
+ * size, crop and opacity (AP-52). [fx]: speed, reverse, freeze, colour, zoom, regions and voice (AP-54); with a speed
+ * the clip lasts [sourceLength] / speed on the timeline, a frozen clip shows the frame at [inSec] for outSec − inSec.
  */
 @Serializable
 data class VideoClip(
@@ -65,9 +66,27 @@ data class VideoClip(
     val transition: String = "none",
     val transitionSec: Double = 0.6,
     val frame: Frame = Frame(),
+    val fx: ClipFx = ClipFx(),
 ) {
-    val length: Double get() = (outSec - inSec).coerceAtLeast(0.0)
+    /** Seconds of the source it covers (a frozen clip: its length). */
+    val sourceLength: Double get() = (outSec - inSec).coerceAtLeast(0.0)
+
+    /** Source seconds per second of the timeline (1 for a frozen frame). */
+    val speed: Double get() = if (fx.freeze) 1.0 else fx.speed.coerceIn(0.25, 4.0)
+
+    /** Length on the timeline. */
+    val length: Double get() = sourceLength / speed
     val name: String get() = File(path).name
+
+    /** Source time shown [local] seconds of the timeline into the clip. */
+    fun sourceAt(local: Double): Double {
+        val l = local.coerceIn(0.0, length)
+        return when {
+            fx.freeze -> inSec
+            fx.reverse -> outSec - l * speed
+            else -> inSec + l * speed
+        }
+    }
 }
 
 /**
@@ -130,8 +149,13 @@ data class AudioClip(
     val track: Int = 1,
     val linkedTo: String? = null,
     val linkOffset: Double = 0.0,
+    /** Speed and direction (AP-54): linked sound takes them from its clip, so it stays in sync. */
+    val speed: Double = 1.0,
+    val reverse: Boolean = false,
+    /** Voice change in semitones (AP-54, anonymisation); linked sound also follows its clip's. */
+    val voice: Float = 0f,
 ) {
-    val length: Double get() = (outSec - inSec).coerceAtLeast(0.0)
+    val length: Double get() = (outSec - inSec).coerceAtLeast(0.0) / speed.coerceIn(0.25, 4.0)
     val endSec: Double get() = startSec + length
     val name: String get() = File(path).name
 }
@@ -264,9 +288,10 @@ data class VideoProject(
             val c = clips[k]
             var start = s[k]
             var inS = c.inSec + a.linkOffset
-            if (inS < 0) { start -= inS; inS = 0.0 }
-            val outS = maxOf(inS, c.outSec + a.linkOffset)
-            a.copy(startSec = start, inSec = inS, outSec = outS)
+            if (inS < 0) { if (!c.fx.reverse) start -= inS / c.speed; inS = 0.0 }
+            // A frozen frame has no sound of its own: its linked sound gets no length.
+            val outS = if (c.fx.freeze) inS else maxOf(inS, c.outSec + a.linkOffset)
+            a.copy(startSec = start, inSec = inS, outSec = outS, speed = c.speed, reverse = c.fx.reverse)
         }
         return if (next == audio) this else copy(audio = next)
     }
@@ -280,9 +305,9 @@ data class VideoProject(
         if (clips.isEmpty()) return null
         val s = starts()
         for (i in clips.indices.reversed()) {
-            if (t >= s[i] - 1e-6) return i to (clips[i].inSec + (t - s[i]).coerceIn(0.0, clips[i].length))
+            if (t >= s[i] - 1e-6) return i to clips[i].sourceAt(t - s[i])
         }
-        return 0 to clips[0].inSec
+        return 0 to clips[0].sourceAt(0.0)
     }
 }
 

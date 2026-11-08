@@ -29,11 +29,15 @@ import io.github.thepytales.llmhub.ui.trLater
 object Extensions {
     data class Def(val id: String, val name: String, val description: String, val estimateMb: Int)
 
-    /** The Videoeditor-Paket: ffprobe for exact details of videos and the speech model for the noise reduction. */
+    /**
+     * The Videoeditor-Paket: ffprobe for exact details of videos, the speech model for the noise reduction and (since
+     * package version 2, AP-54) the face detection model YuNet for „Gesichter verpixeln“.
+     */
     val VIDEO = Def(
         "videoeditor", "Videoeditor-Paket",
-        trLater("ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren) und das Sprachmodell der Rauschminderung (RNNoise). " +
-            "Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher."),
+        trLater("ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren), das Sprachmodell der Rauschminderung (RNNoise) " +
+            "und die Gesichtserkennung zum Verpixeln (YuNet, läuft nur auf diesem PC). " +
+            "Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher und Gesichter werden von Hand markiert."),
         40,
     )
 
