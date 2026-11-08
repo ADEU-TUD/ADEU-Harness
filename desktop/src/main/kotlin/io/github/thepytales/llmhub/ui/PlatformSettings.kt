@@ -82,5 +82,27 @@ private fun WindowsSection(c: AppContainer) {
             spot = "desktop.browser",
         ) { v -> c.settings.update { it.copy(browserPanel = v) } }
     }
+    // Windows-Integration (AP-59).
+    var menu by remember { mutableStateOf(io.github.thepytales.llmhub.desktop.ExplorerMenu.installed()) }
+    Section(tr("Explorer und Papierkorb")) {
+        SwitchRow(
+            tr("„Mit Lora öffnen“ und „Lora fragen“ im Explorer"),
+            if (io.github.thepytales.llmhub.desktop.ExplorerMenu.supported) tr("Rechtsklick auf eine Datei im Explorer öffnet sie in Lora oder startet einen Chat mit ihr; auf einem Ordner „Frag diesen Ordner“. Nur für dein Windows-Konto, ohne Admin-Rechte (unter Windows 11 bei „Weitere Optionen anzeigen“).")
+            else tr("Nur in der installierten Windows-Version verfügbar."),
+            menu,
+            spot = "desktop.contextmenu",
+        ) { v ->
+            if (v) io.github.thepytales.llmhub.desktop.ExplorerMenu.install() else io.github.thepytales.llmhub.desktop.ExplorerMenu.uninstall()
+            menu = io.github.thepytales.llmhub.desktop.ExplorerMenu.installed()
+            if (v && !menu) Notices.error(tr("Das Kontextmenü ließ sich nicht eintragen (siehe log.txt)."))
+        }
+        SwitchRow(
+            tr("Gelöschte Dateien in den Windows-Papierkorb"),
+            if (io.github.thepytales.llmhub.desktop.FileTransfer.systemTrashSupported) tr("Statt in den Papierkorb von Lora (30 Tage, Wiederherstellen in Dateien) – zurückholen dann über den Papierkorb auf dem Desktop.")
+            else tr("Auf diesem System nicht verfügbar."),
+            s.systemTrash,
+            spot = "desktop.trash",
+        ) { v -> c.settings.update { it.copy(systemTrash = v) } }
+    }
     Section(tr("Lora-Ordner")) { LoraFolderSettings() }
 }

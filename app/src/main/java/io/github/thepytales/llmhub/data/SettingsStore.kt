@@ -91,6 +91,8 @@ data class AppSettings(
     val pseudonymOff: String = "",
     /** Windows: closing the window keeps the app running in the notification area (for answers and tasks). */
     val closeToTray: Boolean = true,
+    /** Windows (AP-59): files deleted in Dateien go into the Windows Papierkorb instead of the Lora-Papierkorb. */
+    val systemTrash: Boolean = false,
     /** Short animation of the logo when the app starts. */
     val startAnimation: Boolean = true,
     /** Citation style of reference lists: enum name of research/CitationStyle. */
@@ -306,6 +308,7 @@ class SettingsStore(context: Context) {
             .putString("pseudonymIgnore", next.pseudonymIgnore)
             .putString("pseudonymOff", next.pseudonymOff)
             .putBoolean("closeToTray", next.closeToTray)
+            .putBoolean("systemTrash", next.systemTrash)
             .putBoolean("startAnimation", next.startAnimation)
             .putString("citationStyle", next.citationStyle)
             .putString("openAlexKey", next.openAlexKey.trim())
@@ -413,6 +416,7 @@ class SettingsStore(context: Context) {
             pseudonymIgnore = prefs.getString("pseudonymIgnore", d.pseudonymIgnore) ?: d.pseudonymIgnore,
             pseudonymOff = prefs.getString("pseudonymOff", d.pseudonymOff) ?: d.pseudonymOff,
             closeToTray = prefs.getBoolean("closeToTray", d.closeToTray),
+            systemTrash = prefs.getBoolean("systemTrash", d.systemTrash),
             startAnimation = prefs.getBoolean("startAnimation", d.startAnimation),
             citationStyle = prefs.getString("citationStyle", d.citationStyle) ?: d.citationStyle,
             openAlexKey = prefs.getString("openAlexKey", d.openAlexKey) ?: d.openAlexKey,

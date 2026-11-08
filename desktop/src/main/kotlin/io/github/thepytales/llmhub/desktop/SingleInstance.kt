@@ -18,8 +18,11 @@ object SingleInstance {
     private var lock: FileLock? = null
     private var server: ServerSocket? = null
 
-    /** Returns true if this is the first instance; [onShow] runs when another start asks to show the window. */
-    fun acquire(onShow: () -> Unit): Boolean {
+    /**
+     * Returns true if this is the first instance; [onShow] runs when another start asks to show the window, [onMessage]
+     * with what it hands over (AP-59: a file from the Explorer's context menu, [message]).
+     */
+    fun acquire(message: String? = null, onMessage: (String) -> Unit = {}, onShow: () -> Unit): Boolean {
         val lockFile = File(Paths.local, "instance.lock")
         val portFile = File(Paths.local, "instance.port")
         val channel = RandomAccessFile(lockFile, "rw").channel
@@ -28,7 +31,7 @@ object SingleInstance {
             // Another instance runs: ask it to show its window.
             runCatching {
                 val port = portFile.readText().trim().toInt()
-                Socket(InetAddress.getLoopbackAddress(), port).use { it.getOutputStream().write("show\n".toByteArray()) }
+                Socket(InetAddress.getLoopbackAddress(), port).use { it.getOutputStream().write(((message?.let { m -> "msg\t$m\n" } ?: "") + "show\n").toByteArray()) }
             }.onFailure { AppLog.e("Laufende Instanz nicht erreichbar", it) }
             channel.close()
             return false
@@ -42,8 +45,12 @@ object SingleInstance {
                 while (!s.isClosed) {
                     runCatching {
                         s.accept().use { client ->
-                            val line = client.getInputStream().bufferedReader().readLine()
-                            if (line == "show") onShow()
+                            client.getInputStream().bufferedReader().lineSequence().take(4).forEach { line ->
+                                when {
+                                    line == "show" -> onShow()
+                                    line.startsWith("msg\t") -> onMessage(line.removePrefix("msg\t"))
+                                }
+                            }
                         }
                     }
                 }

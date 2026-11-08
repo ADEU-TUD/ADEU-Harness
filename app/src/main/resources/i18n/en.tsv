@@ -296,6 +296,7 @@ Als BibTeX exportieren	Export as BibTeX
 Als Bild-in-Bild (F12)	As picture-in-picture (F12)
 Als Chat fortsetzen	Continue as a chat
 Als CSL-JSON exportieren (Zotero)	Export as CSL-JSON (Zotero)
+Als Datei kopieren (für Explorer oder Mail)	Copy as file (for Explorer or mail)
 Als Dokument	As a document
 Als Dokument exportieren	Export as document
 Als Excel	As Excel
@@ -509,6 +510,7 @@ Auf diesem Gerät – vertraulich und offline	On this device – confidential an
 Auf diesem PC erkennen	Recognize on this PC
 Auf diesem PC: mit der Texterkennung von Windows, nichts verlässt den PC. Mit KI-Modell: besser bei Handschrift und schlechten Scans, die Seitenbilder gehen an den Server.	On this PC: with Windows text recognition, nothing leaves the PC. With an AI model: better for handwriting and poor scans, the page images go to the server.
 Auf diesem Rechner gibt es den eingebauten Browser nicht.	The built-in browser is not available on this computer.
+Auf diesem System nicht verfügbar.	Not available on this system.
 auf einen Bereich holst du ihn nach oben, schiebst ihn unter „Mehr“ oder blendest ihn aus.	on an area you move it to the top, push it under “More” or hide it.
 Auf Englisch	In English
 Auf vorhandene anwenden	Apply to existing ones
@@ -917,6 +919,7 @@ Das Modell durchsucht frühere Chats, wenn du dich darauf beziehst.	The model se
 Das ging nicht: {0}	That didn't work: {0}
 Das habe ich gefunden:	Here is what I found:
 Das Handy rechnet mit dem Prozessor; kleine Modelle laufen flüssig.	The phone computes with the processor; small models run smoothly.
+Das Kontextmenü ließ sich nicht eintragen (siehe log.txt).	The context menu could not be added (see log.txt).
 Das hat nicht geklappt	That didn't work
 Das hat nicht geklappt – versuch es bitte noch einmal.	That didn't work – please try again.
 Das hat nicht geklappt:	That didn't work:
@@ -1581,6 +1584,7 @@ Evaluation	Evaluation
 Excel (.xlsx)	Excel (.xlsx)
 Excel-Zellen setzen	Set Excel cells
 Explorer ließ sich nicht öffnen.	Explorer could not be opened.
+Explorer und Papierkorb	Explorer and Recycle Bin
 Export	Export
 Export als PowerPoint im TUD-Design über ⋮ › Exportieren	Export as PowerPoint in the TUD design via ⋮ › Export
 Export fehlgeschlagen	Export failed
@@ -1750,6 +1754,7 @@ Fotos	Photos
 Frag das PDF	Ask the PDF
 Frag Lora	Ask Lora
 Frag Lora …	Ask Lora …
+Frag diesen Ordner (Lora)	Ask this folder (Lora)
 Frage	Question
 Frage an beide Modelle	Question to both models
 Frage stellen, Datei anhängen oder eine Vorlage wählen.	Ask a question, attach a file or choose a template.
@@ -1870,6 +1875,8 @@ Gedächtnis in diesem Chat	Memory in this chat
 Gedächtnis nutzen	Use memory
 Gefiltert nach Spalte {0} · {1} von {2} Zeilen	Filtered by column {0} · {1} of {2} rows
 Gefunden ({0}): {1}	Found ({0}): {1}
+Gelöschte Dateien in den Windows-Papierkorb	Deleted files into the Windows Recycle Bin
+Gelöschte Dateien landen im Papierkorb von Windows statt im Lora-Papierkorb.	Deleted files go into the Windows Recycle Bin instead of Lora's.
 Herausschneiden	Cut out
 gefunden und ergänzt	found and completed
 gefunden, Angaben abweichend	found, details differ
@@ -2227,13 +2234,16 @@ In Projekt verschieben	Move to project
 In und Out löschen	Clear In and Out
 In Word wird daraus eine echte Formel, die sich dort weiter bearbeiten lässt.	In Word this becomes a real equation that can be edited further there.
 In Word/PowerPoint mit „Barrierefreies PDF“ bzw. „Dokumentstrukturtags“ exportieren.	Export from Word/PowerPoint with “Accessible PDF” or “Document structure tags”.
+In den Explorer oder eine Mail ziehen	Drag into Explorer or a mail
 In die Nextcloud	To Nextcloud
 In diesem Projekt bleibt alles auf dem Gerät – nichts geht in die Nextcloud.	In this project everything stays on the device – nothing goes to Nextcloud.
 In zwei Spalten	In two columns
+In {0} geöffnet – was du dort speicherst, kommt hierher zurück. Bitte nicht gleichzeitig hier und dort ändern.	Open in {0} – what you save there comes back here. Please do not edit here and there at the same time.
 in {0}	in {0}
 In {0} legen	Put into {0}
 In {0} liegt kein Lora-Ordner (es fehlt „.lora“).	There is no Lora folder in {0} (“.lora” is missing).
 In {0} · Out {1}	In {0} · Out {1}
+In {0} öffnen	Open in {0}
 In „Hochgeladen“ holen	Get into “Uploaded”
 In „{0}“ liegen keine losen Dateien.	There are no loose files in “{0}”.
 In „{0}“ liegen schon Lora-Daten (z. B. vom anderen PC). Lora startet neu und nutzt sie. 	There is already Lora data in “{0}” (e.g. from the other PC). Lora restarts and uses it. 
@@ -2569,6 +2579,7 @@ Kopieren erlauben	Allow copying
 Kopieren fehlgeschlagen: {0}	Copying failed: {0}
 Kopieren und neu starten	Copy and restart
 Kopiert	Copied
+Kopiert – im Explorer oder in einer Mail mit Strg+V einfügen.	Copied – paste with Ctrl+V in Explorer or a mail.
 Kopiert – zum Ausdrucken einfügen und danach aus der Zwischenablage löschen.	Copied – paste it to print and then delete it from the clipboard.
 Korrigieren, kürzen, verständlicher oder wissenschaftlicher machen	Correct, shorten, make clearer or more academic
 Korrigiert	Corrected
@@ -2787,6 +2798,7 @@ Lora hat nichts zum Herausschneiden gefunden.	Lora found nothing to cut out.
 Lora hat nichts zum Kürzen gefunden.	Lora found nothing to shorten.
 Lora hilft beim Finden: In den Einstellungen unten rechts antippen, auf der Startseite „Lora fragen“ oder Strg+K › Lora fragen. Einstellungen › Lora legt fest, wo sie erscheint.	Lora helps you find things: tap her at the bottom right in the settings, “Ask Lora” on the start screen, or Ctrl+K › Ask Lora. Settings › Lora decides where she appears.
 Lora hört zu	Lora is listening
+Lora im Explorer-Kontextmenü	Lora in the Explorer context menu
 Lora ist abgestürzt	Lora crashed
 Lora ist auf der Startseite, im Chat und schläft unten rechts in den Einstellungen und weiteren Bereichen – ein Tipp weckt sie. Strg+L öffnet ihr Panel überall.	Lora is on the start page, in the chat, and sleeps at the bottom right in the settings and other areas – a tap wakes her. Ctrl+L opens her panel everywhere.
 Lora ist auf „{0}“ geöffnet	Lora is open on “{0}”
@@ -2799,6 +2811,7 @@ Lora klärt dein Vorhaben in kurzen Fragerunden mit Antwortknöpfen und schreibt
 Lora konnte nicht schreiben: {0}	Lora could not write: {0}
 Lora konnte nicht überarbeiten: {0}	Lora could not revise: {0}
 Lora liest das Transkript des Clips „{0}“ und wählt die Abschnitte, die bleiben. Der Text geht an das Standardmodell, Namen pseudonymisiert.	Lora reads the transcript of the clip “{0}” and chooses the sections that stay. The text goes to the default model, names pseudonymized.
+Lora liest den Ordner „{0}“ …	Lora is reading the folder “{0}” …
 Lora liest die Ausschreibung, legt Checkliste, Fristen und Gliederung in der Antrags-Werkstatt an, plant Arbeitspakete und Budget, schreibt Abschnitte im Umfang und macht auf Wunsch einen Probelauf als Gutachter:in.	Lora reads the call, sets up checklist, deadlines and outline in the proposal workshop, plans work packages and budget, writes sections to length and, on request, does a trial run as a reviewer.
 Lora läuft weiter	Lora keeps running
 Lora läuft, tanzt, fliegt und dreht sich nicht – sie liest, schreibt und denkt nur.	Lora doesn't walk, dance, fly or spin – she only reads, writes and thinks.
@@ -2964,6 +2977,7 @@ Mit anderer App öffnen	Open with another app
 Mit Anhängen	With attachments
 Mit App-Passwort	With app password
 Mit Bildern senden	Send with images
+Mit Lora öffnen	Open with Lora
 Mit dem Agenten	With the agent
 Mit dem Finger (oder der Maus) über die Stellen malen, die sich ändern sollen. Für jede Farbe beschreiben, was dort passieren soll.	Paint with your finger (or the mouse) over the places that should change. For each colour, describe what should happen there.
 Mit dem Finger oder der Maus zeichnen.	Draw with your finger or the mouse.
@@ -3288,6 +3302,7 @@ Nur im Chat	Only in the chat
 Nur im Projekt	Only in the project
 Nur in der Windows-Version verfügbar.	Only available in the Windows version.
 Nur in der Windows-Version verfügbar: Android gibt Apps keinen direkten Zugriff auf Ordner.	Only available in the Windows version: Android does not give apps direct access to folders.
+Nur in der installierten Windows-Version verfügbar.	Only available in the installed Windows version.
 Nur lesen	Read only
 Nur lokal	Local only
 Nur nicht entschiedene	Only undecided
@@ -3637,6 +3652,8 @@ Rechtschreibung korrigiert	Spelling corrected
 Rechtschreibung prüfen	Check spelling
 Rechtschreibung prüfen (KI)	Check spelling (AI)
 Rechtsklick	Right-click
+Rechtsklick auf eine Datei im Explorer öffnet sie in Lora oder fragt Lora.	Right-clicking a file in Explorer opens it in Lora or asks Lora.
+Rechtsklick auf eine Datei im Explorer öffnet sie in Lora oder startet einen Chat mit ihr; auf einem Ordner „Frag diesen Ordner“. Nur für dein Windows-Konto, ohne Admin-Rechte (unter Windows 11 bei „Weitere Optionen anzeigen“).	Right-clicking a file in Explorer opens it in Lora or starts a chat with it; on a folder “Ask this folder”. Only for your Windows account, no admin rights (on Windows 11 under “Show more options”).
 Rechtsklick › Alternativtext bearbeiten.	Right-click › Edit alt text.
 Redeanteile & Statistik	Speaking shares & statistics
 Redeanteile & Statistik …	Speaking shares & statistics …
@@ -3990,6 +4007,7 @@ Startet Lora nach der Anmeldung unsichtbar im Infobereich – für geplante Aufg
 startet Lora neu. Der Cloud-Ordner bleibt unverändert – auf anderen PCs geht die Synchronisation weiter.	Lora restarts. The cloud folder stays unchanged – on other PCs the sync continues.
 Statistik-Ausgabe als Ergebnisteil formulieren	Turn statistics output into a results section
 Statt des klassischen Outlook verwenden	Use instead of the classic Outlook
+Statt in den Papierkorb von Lora (30 Tage, Wiederherstellen in Dateien) – zurückholen dann über den Papierkorb auf dem Desktop.	Instead of Lora's recycle bin (30 days, restore in Files) – restore them from the Recycle Bin on the desktop.
 Status: {0} …	Status: {0} …
 Statusseite	Status page
 Statusseite öffnen	Open status page
@@ -4706,6 +4724,9 @@ Wiederholen aus (F6)	Repeat off (F6)
 Wiederholt er immer dieselbe Aktion, hält er an.	If it keeps repeating the same action, it stops.
 Willkommen! So geht es los:	Welcome! Here's how to get started:
 Windows hat keine Texterkennung für Deutsch oder Englisch (Einstellungen › Zeit und Sprache › Sprache: Sprachpaket mit „Optische Zeichenerkennung“ hinzufügen).	Windows has no text recognition for German or English (Settings › Time & language › Language: add a language pack with “Optical character recognition”).
+Windows › Gelöschte Dateien in den Windows-Papierkorb	Windows › Deleted files into the Windows Recycle Bin
+Windows › „Mit Lora öffnen“ und „Lora fragen“ im Explorer	Windows › “Open with Lora” and “Ask Lora” in Explorer
+Windows-Papierkorb	Windows Recycle Bin
 Windows-Stimme	Windows voice
 wird ab jetzt ersetzt.	will be replaced from now on.
 Wird abgebrochen …	Cancelling …
@@ -4932,6 +4953,7 @@ auch in der Transkription	also in Transcription
 bei	at
 ca. {0} Min.	about {0} min.
 fehlgeschlagen	failed
+in {0} geöffnet	open in {0}
 unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
 Zweite Zeile	Second line
@@ -5001,6 +5023,7 @@ noch kein Bereich	no area yet
 {0} eigene Vorlage(n) kopiert – z.B. per Mail an Kolleg:innen schicken.	{0} own template(s) copied – e.g. send them to colleagues by mail.
 {0} Einträge	{0} items
 {0} Einträge im Papierkorb	{0} items in the trash
+{0} Einträge im Windows-Papierkorb	{0} items in the Windows Recycle Bin
 {0} Einträge verschieben	Move {0} items
 {0} Einträge werden endgültig gelöscht.	{0} items will be deleted permanently.
 {0} Einträge übernommen	{0} entries taken over
@@ -5204,6 +5227,7 @@ noch kein Bereich	no area yet
 „Grundschule am Park“, „Goethe-Gymnasium“, „Kita Sonnenschein“ und der Ort in „die Schulleiterin in Pirna“	“Grundschule am Park”, “Goethe-Gymnasium”, “Kita Sonnenschein” and the place in “die Schulleiterin in Pirna”
 „Je Satz“ und „Alle … s“ setzen die Zeit vor das Wort, bei dem sie gemessen wurde. Ohne gemessene Wortzeiten gibt es nur die Zeiten der Abschnittsanfänge – geschätzt wird nichts. Der Export übernimmt diese Einstellung.	“Per sentence” and “Every … s” put the time before the word at which it was measured. Without measured word times there are only the times of the section starts – nothing is estimated. The export takes over this setting.
 „Meine Daten dazukopieren“ ergänzt nur Dateien, die dort noch fehlen.	“Copy my data in” only adds files that are still missing there.
+„Mit Lora öffnen“ und „Lora fragen“ im Explorer	“Open with Lora” and “Ask Lora” in Explorer
 „{0}“ als Bild-in-Bild bei {1}.	"{0}" as picture-in-picture at {1}.
 „{0}“ enthält keinen lesbaren Text.	“{0}” contains no readable text.
 „{0}“ enthält keinen Text (Scan) – die ersten {1} Seiten werden als Bilder angehängt.	“{0}” contains no text (scan) – the first {1} pages are attached as images.
@@ -5553,3 +5577,6 @@ Alle Folien haben schon Notizen – mit „alle“ schreibe ich sie neu.	All sli
 Schreibt Sprechertexte für {0} Folien …	Writing speaker notes for {0} slides …
 Sprechertexte für {0} Folien geschrieben.	Speaker notes written for {0} slides.
 Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Speaker notes for {0} slides written from the points (without a model).
+„{0}“ gibt es nicht (mehr).	“{0}” does not exist (any more).
+„{0}“ im Windows-Papierkorb	“{0}” in the Windows Recycle Bin
+„{0}“ ließ sich nicht öffnen.	“{0}” could not be opened.

@@ -90,7 +90,14 @@ fun main(args: Array<String>) {
     }
     Network.setup()
     val showRequests = MutableStateFlow(0)
-    if (!SingleInstance.acquire { showRequests.update { it + 1 } }) exitProcess(0)
+    // AP-59: started from the Explorer's context menu („Mit Lora öffnen“, „Lora fragen“) – a running app takes the file.
+    val shell = io.github.thepytales.llmhub.desktop.ShellArgs.parse(args.toList())
+    if (!SingleInstance.acquire(
+            message = shell?.let { io.github.thepytales.llmhub.desktop.ShellArgs.line(it) },
+            onMessage = { m -> io.github.thepytales.llmhub.desktop.ShellArgs.fromLine(m)?.let { io.github.thepytales.llmhub.desktop.ShellArgs.emit(it) } },
+        ) { showRequests.update { it + 1 } }
+    ) exitProcess(0)
+    shell?.let { io.github.thepytales.llmhub.desktop.ShellArgs.emit(it) }
     // Lora-Ordner (AP-16): moved in the Explorer or its drive is missing – ask where it is now, before anything is loaded.
     if (selfTest == null) io.github.thepytales.llmhub.desktop.Paths.missingRoot()?.let { missing -> if (!locateLoraFolder(missing)) exitProcess(0) }
     // Einfacher Sync (AP-12): before anything is loaded, make sure the synced data folder is not open on another PC and
@@ -105,6 +112,11 @@ fun main(args: Array<String>) {
         io.github.thepytales.llmhub.data.MemoryMeter.processBytes = { io.github.thepytales.llmhub.desktop.ProcessMemory.workingSet() }
     }
     LlmHubApp.start()
+    // Windows-Integration (AP-59): Office with the way back, the system's Papierkorb, the context menu after an update.
+    io.github.thepytales.llmhub.ui.ExternalOffice.opener = { f -> io.github.thepytales.llmhub.desktop.OfficeHandoff.open(f) }
+    io.github.thepytales.llmhub.desktop.OfficeHandoff.onSaved = { runCatching { LlmHubApp.container.docs.refreshFiles() } }
+    io.github.thepytales.llmhub.data.LoraDrive.systemTrash = { f -> io.github.thepytales.llmhub.desktop.FileTransfer.moveToSystemTrash(f) }
+    Thread { runCatching { io.github.thepytales.llmhub.desktop.ExplorerMenu.refresh() } }.apply { isDaemon = true }.start()
     // Nachladbare Erweiterungen (AP-25): finish swaps and removals, then keep them up to date with the update check.
     io.github.thepytales.llmhub.desktop.Extensions.startUp()
     Updates.onInfo = { ctx, info -> io.github.thepytales.llmhub.desktop.Extensions.onUpdateInfo(ctx, info) }
@@ -200,6 +212,14 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
     }
 
     val recordScope = rememberCoroutineScope()
+    // A file from the Explorer's context menu (AP-59): show the window and open it or ask Lora about it.
+    LaunchedEffect(Unit) {
+        io.github.thepytales.llmhub.desktop.ShellArgs.requests.collect { r ->
+            show()
+            io.github.thepytales.llmhub.ui.handleShellRequest(c, r)
+            io.github.thepytales.llmhub.desktop.ShellArgs.reset()
+        }
+    }
     io.github.thepytales.llmhub.ui.RecordingBar(c, onShowApp = { show() })
 
     if (tray) {

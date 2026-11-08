@@ -135,6 +135,8 @@ object AppMap {
         option("connections.mailServer", "connections", trLater("Mailserver statt Outlook"), trLater("Verbindungen › Statt des klassischen Outlook verwenden"), trLater("Mit dem Mailserver statt mit Outlook arbeiten."), "mailserver imap outlook mail", android = false),
         option("desktop.tray", "windows", trLater("Im Infobereich weiterlaufen"), trLater("Windows › Beim Schließen im Infobereich weiterlaufen"), trLater("Antworten und Aufgaben laufen weiter, wenn das Fenster zu ist."), "infobereich tray hintergrund schließen weiterlaufen", android = false),
         option("desktop.autostart", "windows", trLater("Mit Windows starten"), trLater("Windows › Mit Windows starten"), trLater("Lora startet nach der Anmeldung im Infobereich."), "autostart windows starten anmeldung", android = false),
+        option("desktop.contextmenu", "windows", trLater("Lora im Explorer-Kontextmenü"), trLater("Windows › „Mit Lora öffnen“ und „Lora fragen“ im Explorer"), trLater("Rechtsklick auf eine Datei im Explorer öffnet sie in Lora oder fragt Lora."), "kontextmenü explorer rechtsklick mit lora öffnen lora fragen", android = false),
+        option("desktop.trash", "windows", trLater("Windows-Papierkorb"), trLater("Windows › Gelöschte Dateien in den Windows-Papierkorb"), trLater("Gelöschte Dateien landen im Papierkorb von Windows statt im Lora-Papierkorb."), "papierkorb windows löschen", android = false),
         option("desktop.browser", "windows", trLater("Links neben dem Chat öffnen"), trLater("Windows › Links neben dem Chat öffnen"), trLater("Links öffnen als Tabs rechts neben der App."), "browser links tabs neben chat", android = false),
     )
 
