@@ -167,6 +167,12 @@ class OfficeChartsTest {
         val chartPart = p.keys.single { it.startsWith("ppt/charts/chart") && it.endsWith(".xml") }
         assertTrue("<c:barChart>" in p[chartPart]!! && "<c:externalData r:id=\"rIdData\">" in p[chartPart]!!)
         assertTrue(p.keys.any { it.startsWith("ppt/embeddings/") })
+        // Back from PowerPoint (PptxReader, AP-51): the chart slide is a chart slide with the values again.
+        val deck = io.github.thepytales.llmhub.docs.SlideDeck.parse(OfficeImport.pptx(pptx.readBytes()))
+        val chartSlide = deck.first { it.layout == io.github.thepytales.llmhub.docs.SlideDeck.Layout.CHART }
+        val back = assertNotNull(io.github.thepytales.llmhub.docs.SlideDeck.chartOf(chartSlide.body))
+        assertEquals(listOf(4.0, 7.0, 6.0), back.series.single().values)
+        assertEquals("Notenverteilung", back.title)
         pptx.delete()
     }
 
