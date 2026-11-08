@@ -393,6 +393,8 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "doc" -> DocScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "vault" -> VaultScreen(c, onBack = back, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "pdf" -> PdfToolScreen(c, onBack = back, onOpenChat = { nav.openChat(chatRoute()) })
+        // Dokumenten-Scanner (AP-62).
+        "scan" -> ScanScreen(c, onBack = back, onNavigate = { nav.navigate(it) })
         "games" -> GamesScreen(c, onBack = back)
         "mail" -> MailScreen(c, onBack = back)
         "batches" -> BatchScreen(c, onBack = back)

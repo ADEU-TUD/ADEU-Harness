@@ -344,6 +344,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             composable("pdf") { back ->
                 PdfToolScreen(c, onBack = { nav.back(back) }, onOpenChat = { nav.openChat(chatRoute()) })
             }
+            // Dokumenten-Scanner (AP-62).
+            composable("scan") { back ->
+                ScanScreen(c, onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
             composable("games") { back ->
                 GamesScreen(c, onBack = { nav.back(back) })
             }

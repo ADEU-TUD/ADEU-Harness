@@ -47,6 +47,7 @@ import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
@@ -523,6 +524,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                     onTemplate = { templates = true },
                     onAi = { k -> aiCreate = k },
                     onUpload = importFile,
+                    onScan = { onNavigate("scan") },
                 )
             }
         },
@@ -1116,7 +1118,7 @@ private fun SortMenu(sort: String, down: Boolean, onChange: (String, Boolean) ->
 
 /** The big „+“ at the bottom right: folder, documents, from a template, with AI, upload. */
 @Composable
-private fun NewMenuButton(onFolder: () -> Unit, onDoc: (DocKind) -> Unit, onTemplate: () -> Unit, onAi: (DocKind) -> Unit, onUpload: () -> Unit) {
+private fun NewMenuButton(onFolder: () -> Unit, onDoc: (DocKind) -> Unit, onTemplate: () -> Unit, onAi: (DocKind) -> Unit, onUpload: () -> Unit, onScan: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         Spot("files.new") {
@@ -1128,6 +1130,7 @@ private fun NewMenuButton(onFolder: () -> Unit, onDoc: (DocKind) -> Unit, onTemp
         DropdownMenu(open, { open = false }) {
             DropdownMenuItem(text = { Text(tr("Ordner")) }, leadingIcon = { Icon(Icons.Outlined.CreateNewFolder, null) }, onClick = { open = false; onFolder() })
             DropdownMenuItem(text = { Text(tr("Hochladen …")) }, leadingIcon = { Icon(Icons.Outlined.CloudUpload, null) }, onClick = { open = false; onUpload() })
+            DropdownMenuItem(text = { Text(tr("Scannen …")) }, leadingIcon = { Icon(Icons.Outlined.DocumentScanner, null) }, onClick = { open = false; onScan() })
             HorizontalDivider()
             DocKind.entries.forEach { k ->
                 DropdownMenuItem(text = { Text(k.label) }, leadingIcon = { Icon(kindIcon(k), null, tint = kindColor(k)) }, onClick = { open = false; onDoc(k) })

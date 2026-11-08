@@ -51,6 +51,11 @@ object AppMap {
         AppTarget("area.transcripts", MapKind.AREA, trLater("Transkription"), trLater("Seitenleiste › Transkription"), trLater("Audio und Interviews verschriften, Sprecher erkennen, codieren."), "transkription transkribieren audio interview aufnahme diktat verschriften", "transcripts"),
         AppTarget("area.files", MapKind.AREA, trLater("Dateien"), trLater("Seitenleiste › Dateien"), trLater("Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner."),
             "dateien dokumente dokument editor entwurf word tabelle excel präsentation folien powerpoint dateiverwaltung datei finden ordner hochgeladen erstellt papierkorb verschieben schlagwort schlagwörter tag tags volltextsuche suchen durchsuchen zuletzt bearbeitet versionen vergleichen wo ist lora-ordner speicherort", "files"),
+        AppTarget(
+            "area.scan", MapKind.AREA, trLater("Scannen"), trLater("Dateien › + › Scannen"),
+            trLater("Papier scannen: mehrere Seiten fotografieren (Handy) oder mit dem Scanner einlesen (Windows), Kanten finden, gerade rücken, Kontrast – als durchsuchbares PDF mit Texterkennung in Dateien › Scans."),
+            "scannen scan scanner einscannen dokument scannen foto vom dokument abfotografieren kamera seite pdf aus fotos beleg quittung rechnung kassenbon zettel ocr", "scan",
+        ),
         AppTarget("area.images", MapKind.AREA, trLater("Bilder erzeugen"), trLater("Seitenleiste › Mehr › Bilder erzeugen"), trLater("Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten."), "bild bilder grafik erzeugen malen zeichnen illustration galerie", "images"),
         AppTarget("area.tasks", MapKind.AREA, trLater("Geplante Aufgaben"), trLater("Seitenleiste › Mehr › Geplante Aufgaben"), trLater("Aufgaben, die der Agent zu festen Zeiten ausführt."), "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
         AppTarget("area.models", MapKind.AREA, trLater("Modellübersicht"), trLater("Einstellungen › Modellübersicht"), trLater("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck."), "modelle modell liste welches modell", "models"),
