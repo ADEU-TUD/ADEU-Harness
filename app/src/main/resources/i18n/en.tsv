@@ -1166,6 +1166,7 @@ Die Datei ließ sich nicht schreiben.	The file could not be written.
 Die Dateien im Browser (oder an einem anderen Rechner) herunterladen und dann mit „Einspielen“ übernehmen. Jede Datei wird mit ihrer Prüfsumme kontrolliert.	Download the files in the browser (or on another computer) and then take them over with “Import”. Every file is checked against its checksum.
 Die Dateien ließen sich nicht lesen – sind es Videos?	The files could not be read – are they videos?
 Die DOI {0} ist bei Crossref nicht registriert.	The DOI {0} is not registered with Crossref.
+Die Exporte laufen nacheinander im Hintergrund – du kannst weiterarbeiten. Länge {0}.	The exports run one after another in the background – you can keep working. Length {0}.
 Die Präsentation wird aufgenommen – noch einmal tippen (oder Strg+Umschalt+F10) beendet.	The presentation is being recorded – tap again (or Ctrl+Shift+F10) to stop.
 die Einstellungen	the settings
 Die ganze Oberfläche gibt es auf Deutsch und Englisch; Antworten folgen der gewählten Sprache, solange du nicht in einer anderen schreibst.	The whole interface is available in German and English; answers follow the selected language unless you write in another one.
@@ -1371,6 +1372,7 @@ eigene Vorlage	own template
 Eigene Vorlagen teilen	Share own templates
 Eigene Zeile (sonst im Text an der Cursorposition)	On its own line (otherwise inline at the cursor)
 Eigene: {0}	Custom: {0}
+Eigener Ordner	Folder of my own
 Eigener System-Prompt	Own system prompt
 Ein anderes Format passt alle Elemente an die neue Größe an.	Another format adjusts all elements to the new size.
 Ein Begriff je Zeile oder durch Komma getrennt, z. B. Namen, Matrikelnummern, Adressen.	One term per line or separated by commas, e.g. names, student ID numbers, addresses.
@@ -1536,6 +1538,7 @@ Erledigt	Done
 erledigt	done
 Erledigt – „Speichern“ im Werkzeugkasten schreibt es ins Original.	Done – “Save” in the toolbox writes it to the original.
 Erledigte	Resolved
+Erledigte entfernen	Remove finished
 Erneut	Again
 Erneut versuchen	Try again
 Erreicht der Uni-Server das gewählte Modell auch nach mehreren Versuchen nicht (HTTP 502/503/504), beantwortet dieses Modell die Anfrage – mit Hinweis im Chat und im Agent-Protokoll.	If the university server cannot reach the selected model even after several attempts (HTTP 502/503/504), this model answers the request – with a note in the chat and in the agent log.
@@ -1583,6 +1586,10 @@ Export als PowerPoint im TUD-Design über ⋮ › Exportieren	Export as PowerPoi
 Export fehlgeschlagen	Export failed
 Export fehlgeschlagen:	Export failed:
 Export fehlgeschlagen: {0}	Export failed: {0}
+Export fertig:	Export done:
+Export-Warteschlange	Export queue
+Exporte fertig ({0})	Exports done ({0})
+Exporte {0}/{1}	Exports {0}/{1}
 Exportiere die Präsentation mit create_document als PowerPoint (format=pptx) im TUD-Design.	Export the presentation with create_document as PowerPoint (format=pptx) in the TUD design.
 Exportiere die Tabelle mit create_document als Excel-Datei (format=xlsx).	Export the table with create_document as an Excel file (format=xlsx).
 Exportieren	Export
@@ -1977,6 +1984,7 @@ Glätte Sprache, Stil und Rechtschreibung; Inhalt, Aufbau und Markdown bleiben.	
 Glätten	Smooth
 Google Scholar	Google Scholar
 Googles bestes kostenloses Modell – schnell, mit Bildern und Werkzeugen	Google's best free model – fast, with images and tools
+Grafikkarte: {0} – deutlich schneller als der Prozessor.	Graphics card: {0} – much faster than the processor.
 Grau	Grey
 Grenze	Limit
 Groß	Large
@@ -2169,6 +2177,7 @@ In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – de
 In Chat senden	Send to chat
 In Chat senden …	Send to chat …
 In Dateien suchen – Namen, Schlagwörter und Inhalt	Search files – names, tags and content
+In Nextcloud:	In Nextcloud:
 In den Kalender	To the calendar
 In den Papierkorb	Move to trash
 In den Projektordner ließ er sich nicht speichern – die Datei ist in der App, „Speichern unter …“ legt sie woanders ab.	It could not be saved to the project folder – the file is in the app, “Save as …” puts it somewhere else.
@@ -2270,6 +2279,9 @@ Ist das Dokument für Screenreader nutzbar? – PDF anhängen	Can screen readers
 J · K · L	J · K · L
 Je Werkzeug: Ordnung, Formate, Export, Zitierstil	Per tool: order, formats, export, citation style
 Kameraton stumm schalten	Mute the camera sound
+Kapitel für YouTube	Chapters for YouTube
+Kapitel für die YouTube-Beschreibung ({0} Kapitel, im MP4 sind sie immer)	Chapters for the YouTube description ({0} chapters, always in the MP4)
+Kapitel kopieren	Copy chapters
 Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters copied – paste them into the description of the YouTube video.
 Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
 Klinge	Blade
@@ -2445,6 +2457,7 @@ Keine Fehler seit dem Start.	No errors since startup.
 Keine Folie hat mehr als sechs Stichpunkte.	No slide has more than six bullet points.
 Keine Frist mit lesbarem Datum.	No deadline with a readable date.
 Keine Füllung	No fill
+Keine Grafikkarte zum Rechnen gefunden – der Prozessor rechnet (x264).	No graphics card for encoding found – the processor encodes (x264).
 Keine gelöschten Chats.	No deleted chats.
 Keine gelöschten Transkripte.	No deleted transcripts.
 Keine gespeicherte Stimme erkannt.	No saved voice recognized.
@@ -2824,11 +2837,13 @@ Lora-Ordner des PCs wählen	Choose the PC's Lora folder
 Lora-Ordner in der Nextcloud wählen	Choose the Lora folder in Nextcloud
 Lora-Ordner in einen Cloud-Ordner legen	Put the Lora folder into a cloud folder
 Lora-Ordner in OneDrive, Google Drive oder Nextcloud legen	Put the Lora folder into OneDrive, Google Drive or Nextcloud
+Lora-Ordner und Nextcloud ({0})	Lora folder and Nextcloud ({0})
 Lora-Ordner verlegen	Relocate Lora folder
 Lora-Ordner verschieben	Move Lora folder
 Lora-Ordner wechseln	Change Lora folder
 Lora-Ordner öffnen	Open Lora folder
 Lora-Ordner …	Lora folder …
+Lora-Ordner › Erstellt	Lora folder › Created
 Lora-Ordner, Hochgeladen, Erstellt, Markiert, Papierkorb.	Lora folder, Uploaded, Created, Starred, bin.
 Lora: Ablauf fertig	Lora: workflow finished
 Lora: Meinst du	Lora: Do you mean
@@ -2836,6 +2851,7 @@ Los	Go
 Loslegen	Get going
 Lädt Chromium herunter (einmalig, ca. 170 MB) …	Downloading Chromium (once, approx. 170 MB) …
 Lädt herunter ({0} von {1} MB) …	Downloading ({0} of {1} MB) …
+Lädt nach Nextcloud …	Uploading to Nextcloud …
 Lädt {0} Dateien in die Nextcloud ({1}) …	Uploading {0} files to Nextcloud ({1}) …
 Länge	Length
 Länge (s)	Length (s)
@@ -2880,6 +2896,7 @@ Markdown	Markdown
 Markdown-Datei	Markdown file
 Markdown-Quelltext	Markdown source
 Markdown-Quelltext bearbeiten	Edit Markdown source
+Marker mit Häkchen „Kapitel“ werden zu Kapiteln im MP4 und für YouTube.	Markers ticked “Chapter” become chapters in the MP4 and for YouTube.
 Marker ohne Eintrag in der Liste	Marker without an entry in the list
 Markieren	Mark up
 Markiert	Starred
@@ -3256,6 +3273,8 @@ Notiz (optional)	Note (optional)
 Notizen	Notes
 Notizen (N)	Notes (N)
 Nummerierte Liste	Numbered list
+Nur Ton (M4A)	Sound only (M4A)
+Nur Ton (M4A) – z. B. als Podcast	Sound only (M4A) – e.g. as a podcast
 Nur auf diesem Gerät	Only on this device
 Nur bei Sprecherwechsel	Only at speaker changes
 Nur der Uni-Server (ScaDS.AI) und Modelle auf diesem Gerät. Externe KI-Anbieter sind gesperrt.	Only the university server (ScaDS.AI) and models on this device. External AI providers are blocked.
@@ -3361,6 +3380,7 @@ Ordner für den Assistenten	Folders for the assistant
 Ordner für den Assistenten freigeben	Give the assistant access to a folder
 Ordner für Dokumente entstehen über „In Ordner …“ am Dokument, z. B. „Lehre/WiSe 2026“.	Folders for documents are created via “In folder …” on the document, e.g. “Teaching/Winter 2026”.
 Ordner für Ergebnisse	Folder for results
+Ordner für die Exporte	Folder for the exports
 Ordner in deinem Cloud-Ordner wählen	Choose a folder in your cloud folder
 Ordner ließ sich nicht anlegen	Folder could not be created
 Ordner ließ sich nicht anlegen: {0}	Folder could not be created: {0}
@@ -3537,6 +3557,7 @@ Protokoll der Entscheidungen (Word)	Log of decisions (Word)
 Protokoll der Lora-Aktionen	Log of Lora's actions
 Protokoll erstellen	Create minutes
 Protokoll leeren	Clear log
+Prozessor (x264)	Processor (x264)
 Präsentation	Presentation
 Präsentation (PowerPoint)	Presentation (PowerPoint)
 Präsentation aufnehmen	Record presentation
@@ -4019,6 +4040,7 @@ Strg+Umschalt+L	Ctrl+Shift+L
 Strukturiertes Abstract für Tagung oder Zeitschrift	Structured abstract for a conference or journal
 Studierende	Students
 Suche Kameras und Mikrofone …	Looking for cameras and microphones …
+Suche die Grafikkarte …	Looking for the graphics card …
 stumm	muted
 Stündlich	Hourly
 Subdomains sind eingeschlossen. Für die Websuche duckduckgo.com, für Nachrichten bing.com bzw. news.google.com erlauben.	Subdomains are included. For web search allow duckduckgo.com, for news bing.com or news.google.com.
@@ -4326,6 +4348,8 @@ Unterstreichen	Underline
 Unterstrichen	Underline
 Untertitel	Subtitle
 Untertitel (SRT oder VTT)	Subtitles (SRT or VTT)
+Untertitel (SRT und VTT)	Subtitles (SRT and VTT)
+Untertitel als SRT und VTT	Subtitles as SRT and VTT
 Untertitel aus der Transkription.	Subtitles from the transcription.
 Untertitel für Webseiten und Videoplattformen, mit Sprechernamen.	Subtitles for web pages and video platforms, with speaker names.
 Untertitel SRT	Subtitles SRT
@@ -4557,6 +4581,7 @@ Was soll mit der Markierung passieren?	What should happen to the selection?
 Was soll sich sonst noch ändern? (optional)	What else should change? (optional)
 Was sonst dauerhaft hilft	Anything else that helps permanently
 Was war nicht hilfreich?	What was not helpful?
+Was?	What?
 Web	Web
 Web-Anfrage senden	Send web request
 Webcam (Bild-in-Bild)	Webcam (picture-in-picture)
@@ -4902,13 +4927,16 @@ Zwei Modelle beantworten dieselbe Frage nebeneinander	Two models answer the same
 Zwei Modelle beantworten dieselbe Frage nebeneinander.	Two models answer the same question side by side.
 Zwei PDFs vergleichen	Compare two PDFs
 Zwei Spalten	Two columns
+abgebrochen	cancelled
 auch in der Transkription	also in Transcription
 bei	at
 ca. {0} Min.	about {0} min.
+fehlgeschlagen	failed
 unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
 Zweite Zeile	Second line
 Zweiter PC: vorhandenen Ordner öffnen	Second PC: open the existing folder
+fertig	done
 herausschneiden	cut out
 wählen …	choose …
 zwischen {0} und {1}	between {0} and {1}
@@ -4977,6 +5005,7 @@ noch kein Bereich	no area yet
 {0} Einträge werden endgültig gelöscht.	{0} items will be deleted permanently.
 {0} Einträge übernommen	{0} entries taken over
 {0} Elemente ausgewählt	{0} elements selected
+{0} Export(e) in der Warteschlange – du kannst weiterarbeiten.	{0} export(s) queued – you can keep working.
 {0} Füllwörter entfernt. Mit Strg+Z rückgängig.	{0} filler words removed. Undo with Ctrl+Z.
 {0} doppelte Zeilen entfernt	{0} duplicate rows removed
 {0} ergänzt	{0} completed
@@ -4999,6 +5028,7 @@ noch kein Bereich	no area yet
 {0} Kontext	{0} context
 {0} Markierung(en) · zuletzt „{1}“	{0} marker(s) · last “{1}”
 {0} MCP-Server	{0} MCP servers
+{0} ging nicht – mit dem Prozessor gerechnet.	{0} did not work – encoded with the processor.
 {0} mit KI erstellen	Create {0} with AI
 {0} mit KI …	{0} with AI …
 {0} Modell(e) installiert · offline	{0} model(s) installed · offline

@@ -384,7 +384,9 @@ object VideoLora {
             val preset = VideoRender.preset(a.s("vorgabe")?.lowercase()?.let { v -> VideoRender.PRESETS.firstOrNull { v.contains(it.id) }?.id })
             ActionPlan("video.export", tr("Exportiert „{0}“ ({1}) …", p.title, tr(preset.label)), false) {
                 val out = LoraDrive.unique(c.drive.created, VideoHub.store.fileName(p, "mp4"))
-                VideoRender.render(current()?.takeIf { it.id == p.id } ?: p, preset, out) { }
+                // The graphics card where there is one (AP-57), as the export dialog remembers it.
+                val hardware = c.appContext.getSharedPreferences("ui_state", 0).getBoolean("videoHardware", true)
+                VideoRender.render(current()?.takeIf { it.id == p.id } ?: p, preset, out, Encoders.best(hardware)) { }
                 if (p.subtitles.isNotEmpty()) withContext(Dispatchers.IO) { File(out.parentFile, out.nameWithoutExtension + ".srt").writeText(VideoRender.srt(p)) }
                 c.drive.changed()
                 LoraFocus.files = listOf(out)

@@ -57,6 +57,19 @@ class NextcloudService(private val c: AppContainer) {
     suspend fun save(file: File, folder: String = resultFolder, overwrite: Boolean = false): String =
         saveBytes(file.name, withContext(Dispatchers.IO) { file.readBytes() }, folder, overwrite)
 
+    /** Like [save], but streams the file (a video of several hundred MB, AP-57); returns the path in Nextcloud. */
+    suspend fun saveLarge(file: File, folder: String = resultFolder): String {
+        val dav = client()
+        val clean = FileText.safeName(file.name)
+        var target = WebDavClient.join(folder, clean)
+        var n = 2
+        val base = clean.substringBeforeLast('.', clean)
+        val ext = clean.substringAfterLast('.', "").let { if (it.isEmpty() || it == clean) "" else ".$it" }
+        while (dav.exists(target) && n < 100) target = WebDavClient.join(folder, "$base ($n)$ext").also { n++ }
+        dav.uploadFile(target, file, mimeOf(clean))
+        return target
+    }
+
     suspend fun saveBytes(name: String, bytes: ByteArray, folder: String = resultFolder, overwrite: Boolean = false): String {
         val dav = client()
         val clean = FileText.safeName(name)
