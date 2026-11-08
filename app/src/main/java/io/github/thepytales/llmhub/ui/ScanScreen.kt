@@ -338,7 +338,7 @@ private fun EmptyScan(sources: List<ScanSource>, adding: Boolean) {
             )
             if (adding) CircularProgressIndicator()
             else sources.forEachIndexed { i, s ->
-                if (i == 0) Button(onClick = s.start) { Icon(s.icon, null); Spacer(Modifier.width(8.dp)); Text(s.label) }
+                if (i == 0) Spot("scan.capture") { Button(onClick = s.start) { Icon(s.icon, null); Spacer(Modifier.width(8.dp)); Text(s.label) } }
                 else OutlinedButton(onClick = s.start) { Icon(s.icon, null); Spacer(Modifier.width(8.dp)); Text(s.label) }
             }
             HintText(SCAN_HINT)

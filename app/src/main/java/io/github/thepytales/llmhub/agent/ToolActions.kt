@@ -539,7 +539,7 @@ object ToolActions {
         },
         ToolAction(
             "pdf.compress", ActionArea.PDF, trLater("Verkleinern"), "Verkleinert ein PDF (Bilder neu komprimiert) als neue Datei.",
-            listOf(ActionParam("datei", "PDF (leer: das offene bzw. ausgewählte)", required = false)), risky = false, android = false,
+            listOf(ActionParam("datei", "PDF (leer: das offene bzw. ausgewählte)", required = false)), risky = false, android = PdfStage3.SHRINK,
         ) { c, a ->
             val f = openOrNamedPdf(c, a.s("datei"))
             ActionPlan("pdf.compress", tr("Verkleinert „{0}“ …", displayName(f)), false) {

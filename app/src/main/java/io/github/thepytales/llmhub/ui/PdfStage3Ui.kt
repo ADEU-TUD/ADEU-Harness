@@ -85,7 +85,11 @@ internal fun PdfStage3Tools(c: AppContainer, tab: PdfTab, onRun: ((File, File) -
                 MetaCard(tab, onRun)
                 UaCard(tab, onRun)
                 TagsCard(tab, onRun)
-            } else HintText(tr("Schwärzen, Text und Bilder ändern, Verkleinern, PDF/A, Passwort, Metadaten und die PDF/UA-Prüfung gibt es in der Windows-App."))
+            } else {
+                // AP-64: „Verkleinern“ also on Android (scans as mail attachments).
+                if (PdfStage3.SHRINK) ShrinkCard(tab, onRun)
+                HintText(tr("Schwärzen, Text und Bilder ändern, PDF/A, Passwort, Metadaten und die PDF/UA-Prüfung gibt es in der Windows-App."))
+            }
             CompareCard(c, tab)
         }
     }

@@ -74,6 +74,14 @@ object LoraTours {
             ),
         ),
         LoraTour(
+            "scan", "scan", trLater("Scannen"), listOf(
+                TourStep("scan.capture", trLater("Fotografiere die Seite von oben – oder lies sie am PC mit dem Scanner ein. Ich finde die Kanten des Papiers.")),
+                TourStep(null, trLater("Passen die Ecken nicht, legst du sie unter „Ecken anpassen“ mit dem Finger oder der Maus auf die Ecken des Papiers.")),
+                TourStep(null, trLater("Farbe, Graustufen oder Schwarz-Weiß: Schatten verschwinden, das Papier wird weiß, die Schrift klar.")),
+                TourStep("scan.save", trLater("„Als PDF speichern“ legt alle Seiten mit Texterkennung in Dateien › Scans ab – durchsuchbar und per Sync auch auf den anderen Geräten.")),
+            ),
+        ),
+        LoraTour(
             "video", "video", trLater("Videoeditor"), android = false, steps = listOf(
                 TourStep("video.new", trLater("Ein neues Projekt beginnt mit einer Aufnahme oder einem Screencast.")),
                 TourStep("video.titles", trLater("Titel und Bauchbinden im TUD-Design setzt du hier.")),

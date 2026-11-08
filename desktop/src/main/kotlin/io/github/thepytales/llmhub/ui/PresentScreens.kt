@@ -28,7 +28,8 @@ object PresentScreens {
         if (GraphicsEnvironment.isHeadless()) emptyList() else GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices.toList()
     }.getOrDefault(emptyList())
 
-    fun hasSecond(): Boolean = devices().size > 1
+    @Suppress("UNUSED_PARAMETER")
+    fun hasSecond(context: android.content.Context? = null): Boolean = devices().size > 1
 
     /** Bounds (in the screen coordinates Compose uses) of the screen the slides go to: not the one of the app's window. */
     fun second(): Rectangle? {
@@ -56,3 +57,7 @@ fun AudienceScreen(visible: Boolean, onClose: () -> Unit, content: @Composable (
         Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) { content() }
     }
 }
+
+/** The display stays on while presenting: Windows does not go to sleep while the app is in front (nothing to do). */
+@Composable
+fun KeepScreenOn() {}
