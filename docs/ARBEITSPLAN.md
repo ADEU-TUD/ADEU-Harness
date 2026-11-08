@@ -83,7 +83,7 @@ abwechseln, wenn ein Strang wartet.
 Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
 ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51.
 
-### AP-48 ☐ Tabellen wie Excel · XL (neu, in Stufen)
+### AP-48 ◐ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
 1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
    WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
@@ -97,8 +97,28 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
   verlustfrei als .xlsx speichern.
 - Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
+  ZÄHLENWENN, SUMMEWENNS & Co. und im genauen SVERWEIS/VERGLEICH, ausgelassene Argumente (`=XVERWEIS(70;D:D;A:A;;-1)`),
+  XVERWEIS mit Vergleichs- und Suchmodus, rund 45 neue Funktionen (u. a. MAXWENNS/MINWENNS, XVERGLEICH, VERWEIS, WAHL,
+  INDIREKT, ADRESSE, TEILERGEBNIS, HÄUFIGKEIT, QUARTILE, RANG.MITTELW, TEXTVOR/TEXTNACH/TEXTTEILEN, ERSETZEN, IDENTISCH,
+  ZEIT/STUNDE/DATWERT, KÜRZEN, LOG, ISTNV, FEHLER.TYP, MTRANS, VSTAPELN/HSTAPELN, SPALTENWAHL/ZEILENWAHL; die neuen
+  Matrixfunktionen laufen über), Excel-Namen mit `_xlfn.` im Export. **Hilfe beim Tippen** (`docs/SheetHelp.kt`): unter
+  der Bearbeitungsleiste die Argumente der Funktion am Cursor (aktuelles fett) bzw. passende Funktionen zum Vervollständigen
+  (Tab übernimmt). **Stufe 2 Bedienung**: Suchen/Ersetzen (Strg+F/Strg+H; Groß/klein, ganze Zelle, in Formeln oder Werten),
+  **Zellen verbinden**, **Zeilen 1–n und Spalten A–x fixieren**, **Spaltenbreite** (Rand im Spaltenkopf ziehen, breiter/
+  schmaler, an Inhalt anpassen), **Auswahllisten** (Werte oder Zellen, auch eines anderen Blatts; streng ablehnen oder nur
+  rot markieren; ▾ in der Zelle), **Ausfüllkästchen** zum Ziehen (Reihen, Formeln wandern mit). **Stufe 3 Große Daten**:
+  schneller Weg für Blätter (`SheetEngine.grid` Zeile für Zeile, Formate vom Ende her), Zellen ändern kopiert nur die
+  geänderte Zeile, Berechnung weiter nur für Sichtbares/Abhängiges; Messung im Test: 100 000 Zeilen × 7 Spalten lesen
+  0,4 s, erster Bildschirm 0,14 s, xlsx schreiben 2,8 s, lesen 1,5 s. **Stufe 4 xlsx-Treue** (`docs/XlsxReader.kt`): Zellen
+  mit einem eigenen Scanner statt XML-Baum (bis 200 000 Zeilen, vorher 2 000), **geteilte Formeln** (gingen bisher
+  verloren), verbundene Zellen, bedingte Formatierung (Wert, Text enthält, Farbskala), Auswahllisten, fixierte Zeilen/
+  Spalten, eigene Spaltenbreiten und Zahlenformate wie „0.0“ lesen und schreiben. Test `SheetsLikeExcelTest`: u. a.
+  **OPAL-Export mit 5 000 Zeilen** (geteilte Formeln, Formate) gelesen, mit SVERWEIS auf ein zweites Blatt angereichert,
+  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s). **Offen**: Formatierung innerhalb einer Zelle
+  (Text-Kern), Diagramme aus .xlsx (mit AP-49).
 
-### AP-49 ☐ Diagramme und Lora rechnet · M–L (neu)
+### AP-49 ◐ Diagramme und Lora rechnet · M–L (neu)
 - **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
   Farben im TUD-Design; als Bild exportieren.
 - **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
@@ -111,6 +131,22 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
   verknüpft steht und sich bei geänderten Noten aktualisiert.
 - Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
+  Kreis, Punkt – erste Spalte x –, Histogramm, Boxplot – je Spalte die Rohwerte), in den **Farben des TUD-Designs**
+  (`ChartLayout.TUD`: Brillantblau, Orange, Türkis, Magenta, Grün …), mit Titel, Achsentiteln, Typ und Bereich zum
+  Ändern (⋮ am Diagramm) und **als Bild (SVG)** im Ordner *Diagramme* neben dem Dokument. **Verknüpft einfügen**
+  (`docs/ChartLinks.kt`): ⋮ › *Verknüpft in Dokument oder Folien einfügen* schreibt einen ```chart-Block mit `"link"` (Dokument,
+  Blatt, Diagramm-ID) ans Ende des Dokuments bzw. als Diagrammfolie; beim Öffnen des Dokuments oder der Präsentation
+  kommen die Daten frisch aus der Tabelle. **Lora rechnet** (`SheetCalc`, Aktionen `sheet.distribution`, `sheet.group`,
+  `sheet.chart`, `sheet.explain`, auch ohne Modell erkannt: „Berechne die Notenverteilung“, „Mittelwert der Note je
+  Gruppe“, „Erkläre die Formel in D2“): Verteilung (je Wert oder in Klassen, Anzahl und Anteil als ZÄHLENWENN-Formeln)
+  bzw. Kennzahlen je Gruppe (Mittelwert, Anzahl, Min, Max – wie eine Pivot-Tabelle) rechts neben den Daten, mit
+  Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
+  das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
+  Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
+  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. **Offen**: echte
+  Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben, Daten
+  bereinigen um Datumsformate.
 
 ### AP-50 ☐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
 - Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,

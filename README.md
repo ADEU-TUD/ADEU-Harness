@@ -817,6 +817,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     und löschen, **nach unten/rechts ausfüllen** (relative Bezüge wandern mit, `$`-Bezüge bleiben), Duplikate entfernen,
     Zeilen und Spalten tauschen, **Filter**, fixierte Kopfzeile, Pfeiltasten wie in Excel, Sortieren, Σ, Statuszeile mit
     Summe/Mittelwert/Anzahl. Der Excel-Export behält die Formeln (mit berechneten Werten).
+    Seit AP-48 auch: ganze Spalten (`=SVERWEIS(A2;Tutorien!A:B;2;FALSCH)`), Platzhalter `*`/`?` in Kriterien, XVERWEIS mit
+    Vergleichsmodus, rund 45 weitere Funktionen (MAXWENNS, XVERGLEICH, WAHL, INDIREKT, TEILERGEBNIS, HÄUFIGKEIT, TEXTVOR,
+    TEXTTEILEN, ZEIT, MTRANS, VSTAPELN …), **Hilfe beim Tippen** (Argumente der Funktion am Cursor, Vervollständigen mit
+    Tab), **Suchen und Ersetzen** (Strg+F/Strg+H), **Zellen verbinden**, **Zeilen und Spalten fixieren**, Spaltenbreite
+    ziehen, **Auswahllisten** (▾ in der Zelle), **Ausfüllkästchen** zum Ziehen. Excel-Dateien bis 200 000 Zeilen öffnen
+    zügig; geteilte Formeln, verbundene Zellen, bedingte Formatierung, Auswahllisten, fixierte Bereiche und Spaltenbreiten
+    bleiben beim Öffnen und Speichern erhalten.
+    **Diagramme** (AP-49) aus der Markierung in acht Arten (Säulen, Balken, gestapelt, Linie, Kreis, Punkt, Histogramm,
+    Boxplot) in TUD-Farben, mit Titel und Achsentiteln, als SVG speicherbar und **verknüpft in Dokumente und Folien**
+    einfügbar – dort aktualisieren sie sich beim Öffnen aus der Tabelle. **Lora rechnet** auf dem Gerät: „Berechne die
+    Notenverteilung“, „Mittelwert der Note je Gruppe“ (wie eine Pivot-Tabelle) – als Formeln mit Diagramm neben den
+    Daten – und „Erkläre die Formel in D2“.
   - **Markdown-Datei** (wie Obsidian oder eine README): Quelltext mit allen Zeichen, Werkzeugleiste (H1–H3, fett,
     kursiv, Code, Link, Listen, Checkliste, Zitat, Tabelle, Codeblock), Vorschau daneben (am Handy umschaltbar),
     Export als .md. .md-Dateien öffnen sich als Markdown-Datei.
@@ -1475,6 +1487,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/LocalFolderTools.kt`, `files/LocalText.kt` | Agent in freigegebenen Ordnern auf dem PC (lesen, suchen, schreiben, Papierkorb) |
 | `docs/LiveDoc.kt` | Dokumente des Editors (Art, Tabs, Versionen, Kommentare), Speicherorte mit Markdown-Kopie und Abgleich |
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
+| `docs/SheetHelp.kt`, `docs/XlsxReader.kt` | Hilfe beim Tippen von Formeln; schnelles, treues Lesen von .xlsx (AP-48) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |

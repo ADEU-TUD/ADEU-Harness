@@ -37,9 +37,29 @@ data class CondRule(
     val fill2: String? = null,
 )
 
-/** A chart of a range of the sheet ("bar", "line" or "pie"); the first row and column may hold names. */
+/**
+ * A chart of a range of the sheet: "bar" (Säulen), "hbar" (Balken), "stacked", "line", "pie", "scatter" (Punkt: erste
+ * Spalte x), "histogram" or "box" (Boxplot: je Spalte die Rohwerte); the first row and column may hold names. [id]
+ * stays the same, so documents and slides can show the chart linked (AP-49).
+ */
 @Serializable
-data class SheetChart(val type: String = "bar", val range: String, val title: String = "")
+data class SheetChart(
+    val type: String = "bar",
+    val range: String,
+    val title: String = "",
+    val xLabel: String = "",
+    val yLabel: String = "",
+    val id: String = "",
+    /** The first column holds the names even if they are numbers (grades 1 … 6 of a distribution); null: guessed. */
+    val labels: Boolean? = null,
+)
+
+/**
+ * Data validation of [range] (like Excel's "Datenüberprüfung"): a choice list from [list] or from the cells of
+ * [source] ("E2:E9", "Listen!A2:A20"); [strict] refuses other values, otherwise the cell is only marked.
+ */
+@Serializable
+data class CellCheck(val range: String, val list: List<String> = emptyList(), val source: String? = null, val strict: Boolean = true)
 
 /**
  * What a sheet keeps besides its cells: formats, conditional formatting, charts and whether the head row stays
@@ -53,10 +73,45 @@ data class SheetMeta(
     val charts: List<SheetChart> = emptyList(),
     /** Head row stays at the top while scrolling (and is frozen in Excel). */
     val freeze: Boolean = true,
+    /** Merged cells ("A1:C1"); the first cell shows the text. */
+    val merges: List<String> = emptyList(),
+    /** Rows frozen at the top (null: the head row if [freeze]). */
+    val frozenRows: Int? = null,
+    /** Columns frozen at the left. */
+    val frozenCols: Int = 0,
+    /** Column widths in dp by column letter ("B" to 180); others have the standard width. */
+    val widths: Map<String, Int> = emptyMap(),
+    /** Choice lists and other checks of cell values. */
+    val checks: List<CellCheck> = emptyList(),
 ) {
     val isEmpty: Boolean get() = this == SheetMeta()
 
     fun style(r: Int, c: Int): CellStyle? = cells[SheetEngine.ref(r, c)]
+
+    /** Rows that stay at the top while scrolling. */
+    val topRows: Int get() = frozenRows ?: if (freeze) 1 else 0
+
+    /** Width of column [c] in dp ([default] if it was not set). */
+    fun width(c: Int, default: Int = 118): Int = widths[SheetEngine.colName(c)] ?: default
+
+    /** The merged range (top, left, bottom, right) that contains (r, c), or null. */
+    fun mergeAt(r: Int, c: Int): IntArray? = mergeRanges.firstOrNull { g -> r in g[0]..g[2] && c in g[1]..g[3] }
+
+    val mergeRanges: List<IntArray> get() = merges.mapNotNull { SheetEngine.parseRange(it) }.filter { it[0] != it[2] || it[1] != it[3] }
+
+    /** Merges the rectangle (merged ranges inside or overlapping it are replaced). */
+    fun merge(top: Int, left: Int, bottom: Int, right: Int): SheetMeta {
+        if (top == bottom && left == right) return this
+        val kept = mergeRanges.filter { g -> g[2] < top || g[0] > bottom || g[3] < left || g[1] > right }
+        return copy(merges = kept.map { SheetEngine.rangeRef(it[0], it[1], it[2], it[3]) } + SheetEngine.rangeRef(top, left, bottom, right))
+    }
+
+    /** Removes merged ranges that overlap the rectangle. */
+    fun unmerge(top: Int, left: Int, bottom: Int, right: Int): SheetMeta =
+        copy(merges = mergeRanges.filter { g -> g[2] < top || g[0] > bottom || g[3] < left || g[1] > right }.map { SheetEngine.rangeRef(it[0], it[1], it[2], it[3]) })
+
+    /** The check of cell (r, c) (the last rule that covers it wins, as in Excel). */
+    fun checkAt(r: Int, c: Int): CellCheck? = checks.lastOrNull { k -> SheetEngine.parseRange(k.range)?.let { g -> r in g[0]..g[2] && c in g[1]..g[3] } == true }
 
     /** [transform] applied to the style of every cell of the rectangle. */
     fun restyle(top: Int, left: Int, bottom: Int, right: Int, transform: (CellStyle) -> CellStyle): SheetMeta {
@@ -94,6 +149,9 @@ data class SheetMeta(
             cells = cellsNext,
             rules = rules.mapNotNull { rule -> range(rule.range)?.let { rule.copy(range = it) } },
             charts = charts.mapNotNull { ch -> range(ch.range)?.let { ch.copy(range = it) } },
+            merges = merges.mapNotNull { range(it) }.filter { m -> SheetEngine.parseRange(m)?.let { it[0] != it[2] || it[1] != it[3] } == true },
+            checks = checks.mapNotNull { k -> range(k.range)?.let { k.copy(range = it) } },
+            widths = if (rows) widths else widths.mapNotNull { (k, v) -> SheetEngine.parseRef(k + "1")?.second?.let { newOf[it] }?.let { SheetEngine.colName(it) to v } }.toMap(),
         )
     }
 
@@ -104,6 +162,11 @@ data class SheetMeta(
             cells = cells.mapNotNull { (k, v) -> SheetEngine.parseRef(k)?.let { (r, c) -> SheetEngine.ref(c, r) to v } }.toMap(),
             rules = rules.map { it.copy(range = t(it.range)) },
             charts = charts.map { it.copy(range = t(it.range)) },
+            merges = merges.map(::t),
+            checks = checks.map { it.copy(range = t(it.range)) },
+            widths = emptyMap(),
+            frozenRows = if (frozenCols > 0) frozenCols else frozenRows,
+            frozenCols = frozenRows ?: 0,
         )
     }
 
@@ -112,8 +175,12 @@ data class SheetMeta(
         private val COMMENT = Regex("(?m)^<!--\\s*sheet:\\s*(\\{.*\\})\\s*-->\\s*$")
 
         /** The formats stored in the Markdown of a sheet tab. */
-        fun parse(markdown: String): SheetMeta =
-            COMMENT.find(markdown)?.let { m -> runCatching { json.decodeFromString(serializer(), m.groupValues[1]) }.getOrNull() } ?: SheetMeta()
+        fun parse(markdown: String): SheetMeta {
+            // The comment stands after the table: search from the end (fast for sheets with 100 000 rows).
+            val at = markdown.lastIndexOf("<!-- sheet:").takeIf { it >= 0 } ?: markdown.lastIndexOf("<!--").takeIf { it >= 0 } ?: return SheetMeta()
+            val start = markdown.lastIndexOf('\n', at).let { if (it < 0) 0 else it + 1 }
+            return COMMENT.find(markdown.substring(start))?.let { m -> runCatching { json.decodeFromString(serializer(), m.groupValues[1]) }.getOrNull() } ?: SheetMeta()
+        }
 
         /** Markdown of a sheet tab: the table and, if there are any, its formats. */
         fun compose(rows: List<List<String>>, meta: SheetMeta): String {
@@ -125,7 +192,11 @@ data class SheetMeta(
         }
 
         /** The Markdown without the stored formats. */
-        fun strip(markdown: String): String = markdown.replace(COMMENT, "").trimEnd() + "\n"
+        fun strip(markdown: String): String {
+            val at = markdown.lastIndexOf("<!--").takeIf { it >= 0 } ?: return markdown.trimEnd() + "\n"
+            val start = markdown.lastIndexOf('\n', at).let { if (it < 0) 0 else it + 1 }
+            return (markdown.substring(0, start) + markdown.substring(start).replace(COMMENT, "")).trimEnd() + "\n"
+        }
 
         /** A number in the format [nf] (null if [nf] is not set or [v] is no number). */
         fun formatValue(v: SheetEngine.Value, nf: String?): String? {
@@ -406,10 +477,12 @@ object SheetTools {
      */
     fun chartSpec(chart: SheetChart, sheet: SheetEngine.Sheet): ChartSpec? {
         val g = SheetEngine.parseRange(chart.range) ?: return null
-        if ((g[2] - g[0] + 1).toLong() * (g[3] - g[1] + 1) > 5_000) return null
+        val raw = chart.type == "histogram" || chart.type == "box" || chart.type == "scatter"
+        if ((g[2] - g[0] + 1).toLong() * (g[3] - g[1] + 1) > if (raw) 200_000 else 5_000) return null
         val v = (g[0]..g[2]).map { r -> (g[1]..g[3]).map { c -> sheet.value(r, c) } }
         fun isNum(x: SheetEngine.Value) = x is SheetEngine.Value.Num && !x.date
-        val labelCol = v.size > 0 && v[0].size > 1 && v.drop(1).any { row -> !isNum(row[0]) && SheetEngine.format(row[0]).isNotBlank() }
+        if (raw) return rawChart(chart, v, g)
+        val labelCol = v.size > 0 && v[0].size > 1 && (chart.labels ?: v.drop(1).any { row -> !isNum(row[0]) && SheetEngine.format(row[0]).isNotBlank() })
         val dataCols = if (labelCol) 1 until v[0].size else v[0].indices
         val headRow = v.size > 1 && dataCols.any { j -> !isNum(v[0][j]) && SheetEngine.format(v[0][j]).isNotBlank() }
         val body = if (headRow) v.drop(1) else v
@@ -421,10 +494,48 @@ object SheetTools {
                 body.map { row -> (row[j] as? SheetEngine.Value.Num)?.v ?: 0.0 },
             )
         }
-        val type = when (chart.type) { "line" -> ChartSpec.Type.LINE; "pie" -> ChartSpec.Type.PIE; else -> ChartSpec.Type.BAR }
+        val type = when (chart.type) { "line" -> ChartSpec.Type.LINE; "pie" -> ChartSpec.Type.PIE; "hbar" -> ChartSpec.Type.HBAR; "stacked" -> ChartSpec.Type.STACKED; else -> ChartSpec.Type.BAR }
         val head = if (labelCol && headRow) SheetEngine.format(v[0][0]) else ""
-        return ChartSpec(type, chart.title, xLabel = head, labels = labels, series = if (type == ChartSpec.Type.PIE) series.take(1) else series)
+        return ChartSpec(
+            type, chart.title, xLabel = chart.xLabel.ifBlank { head }, yLabel = chart.yLabel, labels = labels,
+            series = if (type == ChartSpec.Type.PIE || type == ChartSpec.Type.HBAR) series.take(1) else series, colors = ChartLayout.TUD,
+        )
     }
+
+    /** Scatter (first column x, the others y), histogram and box plot (raw values of each column). */
+    private fun rawChart(chart: SheetChart, v: List<List<SheetEngine.Value>>, g: IntArray): ChartSpec? {
+        if (v.isEmpty() || v[0].isEmpty()) return null
+        val headRow = v[0].any { it is SheetEngine.Value.Text && it.v.isNotBlank() }
+        val body = if (headRow) v.drop(1) else v
+        fun name(j: Int) = if (headRow) SheetEngine.format(v[0][j]).ifBlank { SheetEngine.colName(g[1] + j) } else SheetEngine.colName(g[1] + j)
+        fun nums(j: Int) = body.mapNotNull { (it.getOrNull(j) as? SheetEngine.Value.Num)?.v }
+        return when (chart.type) {
+            "scatter" -> {
+                if (v[0].size < 2) return null
+                val series = (1 until v[0].size).map { j ->
+                    val pairs = body.mapNotNull { row -> val x = (row[0] as? SheetEngine.Value.Num)?.v; val y = (row.getOrNull(j) as? SheetEngine.Value.Num)?.v; if (x != null && y != null) x to y else null }
+                    ChartSpec.Series(name(j), pairs.map { it.second }, pairs.map { it.first })
+                }.filter { it.values.isNotEmpty() }
+                if (series.isEmpty()) null
+                else ChartSpec(ChartSpec.Type.SCATTER, chart.title, xLabel = chart.xLabel.ifBlank { name(0) }, yLabel = chart.yLabel.ifBlank { if (series.size == 1) series[0].name else "" }, series = series, colors = ChartLayout.TUD)
+            }
+            else -> {
+                val series = v[0].indices.map { j -> ChartSpec.Series(name(j), nums(j)) }.filter { it.values.isNotEmpty() }
+                if (series.isEmpty()) null
+                else ChartSpec(
+                    if (chart.type == "box") ChartSpec.Type.BOX else ChartSpec.Type.HISTOGRAM, chart.title,
+                    xLabel = chart.xLabel.ifBlank { if (series.size == 1) series[0].name else "" }, yLabel = chart.yLabel,
+                    labels = series.map { it.name }, series = if (chart.type == "box") series else series.take(1), colors = ChartLayout.TUD,
+                )
+            }
+        }
+    }
+
+    /** Types of charts from a range, for menus (key to label). */
+    val CHART_TYPES = listOf(
+        "bar" to "Säulendiagramm", "hbar" to "Balkendiagramm", "stacked" to "Gestapelte Säulen", "line" to "Liniendiagramm",
+        "pie" to "Kreisdiagramm", "scatter" to "Punktdiagramm", "histogram" to "Histogramm", "box" to "Boxplot",
+    )
 
     /** The charts of a sheet as ```chart blocks (for Word, PDF and the documents). */
     fun chartBlocks(meta: SheetMeta, sheet: SheetEngine.Sheet): String = meta.charts.mapNotNull { chartSpec(it, sheet) }
@@ -447,4 +558,72 @@ object SheetTools {
 
     /** Plain number of a cell for comparisons and sorting (dates as serial numbers). */
     fun sortKey(raw: String): Double? = SheetEngine.numberOrDate(raw)
+
+    // ── Find and replace ──
+
+    /** Options of Suchen/Ersetzen: case, whole cell, in formulas (otherwise in what the cells show). */
+    data class Find(val query: String, val matchCase: Boolean = false, val wholeCell: Boolean = false, val inFormulas: Boolean = true)
+
+    private fun hit(text: String, f: Find): Boolean = when {
+        f.query.isEmpty() -> false
+        f.wholeCell -> text.trim().equals(f.query.trim(), ignoreCase = !f.matchCase)
+        else -> text.contains(f.query, ignoreCase = !f.matchCase)
+    }
+
+    /** Cells that contain [f]'s text, row by row ([shown] gives what a cell shows, for values of formulas). */
+    fun find(rows: List<List<String>>, f: Find, shown: ((Int, Int) -> String)? = null): List<Pair<Int, Int>> {
+        if (f.query.isEmpty()) return emptyList()
+        val out = ArrayList<Pair<Int, Int>>()
+        rows.forEachIndexed { r, row ->
+            row.forEachIndexed { c, raw ->
+                val formula = raw.trimStart().startsWith("=")
+                val text = if (formula && !f.inFormulas && shown != null) shown(r, c) else raw
+                if (hit(text, f)) out += r to c
+            }
+        }
+        return out
+    }
+
+    /** [raw] with [f]'s text replaced by [with] (a whole cell is replaced completely). */
+    fun replaceText(raw: String, f: Find, with: String): String = when {
+        f.query.isEmpty() -> raw
+        f.wholeCell -> if (hit(raw, f)) with else raw
+        else -> Regex(Regex.escape(f.query), if (f.matchCase) emptySet() else setOf(RegexOption.IGNORE_CASE)).replace(raw, Regex.escapeReplacement(with))
+    }
+
+    /** All rows with [f] replaced in [cells] (null = everywhere); returns the rows and how many cells changed. */
+    fun replaceAll(rows: List<List<String>>, f: Find, with: String, cells: Collection<Pair<Int, Int>>? = null): Pair<List<List<String>>, Int> {
+        val targets = (cells ?: find(rows, f.copy(inFormulas = true))).toHashSet()
+        var n = 0
+        val next = rows.mapIndexed { r, row ->
+            if (targets.none { it.first == r }) row
+            else row.mapIndexed { c, raw ->
+                if (r to c !in targets) raw else replaceText(raw, f, with).also { if (it != raw) n++ }
+            }
+        }
+        return next to n
+    }
+
+    // ── Choice lists (data validation) ──
+
+    /** The values a [check] offers: its list or the non-empty cells of its source range (also of another sheet). */
+    fun options(check: CellCheck, sheet: SheetEngine.Sheet): List<String> {
+        if (check.list.isNotEmpty()) return check.list
+        val src = check.source?.trim()?.removePrefix("=") ?: return emptyList()
+        val bang = src.lastIndexOf('!')
+        val target = if (bang > 0) sheet.other(src.substring(0, bang).trim('\'').replace("''", "'")) ?: return emptyList() else sheet
+        val g = SheetEngine.parseRange(src.substring(bang + 1).replace("$", "")) ?: return emptyList()
+        if ((g[2] - g[0] + 1).toLong() * (g[3] - g[1] + 1) > 5_000) return emptyList()
+        return (g[0]..g[2]).flatMap { r -> (g[1]..g[3]).map { c -> target.display(r, c) } }.filter { it.isNotBlank() }.distinct()
+    }
+
+    /** Whether [value] is allowed in a cell with [check] (empty is always allowed; case does not matter). */
+    fun allowed(check: CellCheck, value: String, sheet: SheetEngine.Sheet): Boolean {
+        if (value.isBlank() || value.trimStart().startsWith("=")) return true
+        val opts = options(check, sheet)
+        return opts.isEmpty() || opts.any { it.trim().equals(value.trim(), ignoreCase = true) }
+    }
+
+    /** "ja, nein; vielleicht" → ["ja", "nein", "vielleicht"] (a list as typed in the dialog). */
+    fun parseList(text: String): List<String> = text.split(';', ',', '\n').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 }

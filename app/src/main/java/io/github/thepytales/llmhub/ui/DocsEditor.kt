@@ -309,6 +309,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         val d = c.docs.get(doc?.id) ?: return
         undo += d.tabs
         if (undo.size > 80) undo.removeAt(0)
+        // Large tables: keep only as many steps as fit into about 60 million characters.
+        while (undo.size > 1 && undo.sumOf { tabs -> tabs.sumOf { it.markdown.length.toLong() } } > 60_000_000L) undo.removeAt(0)
         redo.clear()
         c.docs.save(d.change(author, note, transform))
     }
@@ -320,6 +322,14 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
 
     fun setBlocks(newBlocks: List<String>) = setMarkdown(DocBlocks.join(newBlocks))
+
+    // Charts linked from a table (AP-49): drawn from the table's current data when the document is opened.
+    LaunchedEffect(doc?.id) {
+        val d = doc ?: return@LaunchedEffect
+        if (d.docKind == DocKind.SHEET) return@LaunchedEffect
+        val fresh = withContext(Dispatchers.Default) { runCatching { io.github.thepytales.llmhub.docs.ChartLinks.refreshDoc(d) { id -> c.docs.get(id) } }.getOrNull() }
+        if (fresh != null) save(note = tr("Verknüpfte Diagramme aktualisiert")) { x -> x.copy(tabs = x.tabs.map { t -> fresh.tabs.firstOrNull { it.id == t.id } ?: t }) }
+    }
 
     fun reviewAction(action: ReviewAction) {
         val t = tab ?: return

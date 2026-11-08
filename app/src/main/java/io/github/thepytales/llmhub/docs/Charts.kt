@@ -24,6 +24,8 @@ data class ChartSpec(
     val yLabel: String = "",
     val labels: List<String> = emptyList(),
     val series: List<Series> = emptyList(),
+    /** Colors of the series ("#RRGGBB"); empty: the standard palette. */
+    val colors: List<String> = emptyList(),
 ) {
     enum class Type { BAR, STACKED, HBAR, LINE, SCATTER, PIE, BOX, HISTOGRAM }
 
@@ -82,7 +84,8 @@ data class ChartSpec(
                 )
             } ?: listOf(ChartSpec.Series(s("name"), nums(o["values"] ?: o["data"] ?: o["y"]), nums(o["x"])))
             if (series.all { it.values.isEmpty() }) return null
-            return ChartSpec(type, s("title"), s("x_label").ifBlank { s("xLabel") }, s("y_label").ifBlank { s("yLabel") }, labels, series)
+            val colors = (o["colors"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.takeIf { c -> c.startsWith("#") } }
+            return ChartSpec(type, s("title"), s("x_label").ifBlank { s("xLabel") }, s("y_label").ifBlank { s("yLabel") }, labels, series, colors)
         }
     }
 }
@@ -123,7 +126,10 @@ object ChartLayout {
     data class Wedge(val cx: Float, val cy: Float, val r: Float, val start: Float, val sweep: Float, val color: String) : Shape
     data class Label(val x: Float, val y: Float, val text: String, val size: Float = 11f, val color: String = "#444444", val anchor: String = "middle", val bold: Boolean = false, val vertical: Boolean = false) : Shape
 
-    private fun color(i: Int) = PALETTE[i % PALETTE.size]
+    /** The colors of the TUD design (CD 2025): Brillantblau, then strong secondary colors that stay apart. */
+    val TUD = listOf("#00008C", "#C85000", "#0A777F", "#BC1589", "#007D4B", "#7369BE", "#2F57B2", "#767A23")
+
+    private fun ChartSpec.color(i: Int) = colors.ifEmpty { PALETTE }.let { it[i % it.size] }
 
     /** "Nice" axis ticks (1, 2, 5 × 10^n). */
     fun ticks(lo: Double, hi: Double, count: Int = 5): List<Double> {
@@ -188,12 +194,12 @@ object ChartLayout {
                     spec.series.forEachIndexed { si, s ->
                         val v = s.values.getOrNull(i) ?: return@forEachIndexed
                         if (spec.type == ChartSpec.Type.STACKED) {
-                            out += Rect(cx - barW / 2, y(stack + v), barW, y(stack) - y(stack + v), color(si))
+                            out += Rect(cx - barW / 2, y(stack + v), barW, y(stack) - y(stack + v), spec.color(si))
                             stack += v
                         } else {
                             val bx = cx - barW * groups / 2 + barW * si
                             val yy = y(max(v, 0.0)); val yb = y(min(v, 0.0).coerceAtLeast(yMin))
-                            out += Rect(bx + 1, yy, barW - 2, yb - yy, color(si))
+                            out += Rect(bx + 1, yy, barW - 2, yb - yy, spec.color(si))
                             if (groups == 1 && n <= 12) out += Label(bx + barW / 2, yy - 4, num(v), 10f, "#1A1A1A")
                         }
                     }
@@ -205,8 +211,8 @@ object ChartLayout {
                 val step = plotW / (n - 1).coerceAtLeast(1)
                 spec.series.forEachIndexed { si, s ->
                     val pts = s.values.mapIndexed { i, v -> (x0 + step * i) to y(v) }
-                    out += Poly(pts, color(si), 2.5f)
-                    pts.forEach { (px, py) -> out += Dot(px, py, 3.5f, color(si)) }
+                    out += Poly(pts, spec.color(si), 2.5f)
+                    pts.forEach { (px, py) -> out += Dot(px, py, 3.5f, spec.color(si)) }
                 }
                 spec.labels.forEachIndexed { i, l -> if (n <= 14 || i % (n / 10 + 1) == 0) out += Label(x0 + step * i, y0 + 16, l.take(10), 10f) }
             }
@@ -217,7 +223,7 @@ object ChartLayout {
                 xt.forEach { v -> out += Label(x(v), y0 + 16, num(v), 10f) }
                 spec.series.forEachIndexed { si, s ->
                     val sx = s.x.ifEmpty { s.values.indices.map { it + 1.0 } }
-                    s.values.forEachIndexed { i, v -> out += Dot(x(sx.getOrElse(i) { i + 1.0 }), y(v), 4f, color(si)) }
+                    s.values.forEachIndexed { i, v -> out += Dot(x(sx.getOrElse(i) { i + 1.0 }), y(v), 4f, spec.color(si)) }
                 }
             }
             ChartSpec.Type.BOX -> {
@@ -235,8 +241,8 @@ object ChartLayout {
                     out += Line(cx, y(st.q3), cx, y(highW), "#374151")
                     out += Line(cx - bw / 4, y(lowW), cx + bw / 4, y(lowW), "#374151")
                     out += Line(cx - bw / 4, y(highW), cx + bw / 4, y(highW), "#374151")
-                    out += Rect(cx - bw / 2, y(st.q3), bw, y(st.q1) - y(st.q3), color(i), 0.35f)
-                    out += Line(cx - bw / 2, y(st.median), cx + bw / 2, y(st.median), color(i), 2.5f)
+                    out += Rect(cx - bw / 2, y(st.q3), bw, y(st.q1) - y(st.q3), spec.color(i), 0.35f)
+                    out += Line(cx - bw / 2, y(st.median), cx + bw / 2, y(st.median), spec.color(i), 2.5f)
                     sorted.filter { it < lowW || it > highW }.forEach { v -> out += Dot(cx, y(v), 3f, "#374151") }
                     out += Label(cx, y0 + 16, (spec.labels.getOrNull(i) ?: s.name).take(16), 10f)
                     out += Label(cx, y0 + 30, "n = ${st.n}", 9f, "#6B7280")
@@ -247,7 +253,7 @@ object ChartLayout {
         if (legend) {
             spec.series.forEachIndexed { si, s ->
                 val ly = top + 10 + si * 18f
-                out += Rect(W - right + 14, ly - 9, 12f, 12f, color(si))
+                out += Rect(W - right + 14, ly - 9, 12f, 12f, spec.color(si))
                 out += Label(W - right + 32, ly + 1, s.name.take(18), 11f, anchor = "start")
             }
         }
@@ -268,7 +274,7 @@ object ChartLayout {
             val v = s.values.getOrElse(i) { 0.0 }
             val cy = top + slot * (i + 0.5f)
             val bh = (slot * 0.7f).coerceAtMost(28f)
-            out += Rect(x(0.0), cy - bh / 2, x(v) - x(0.0), bh, color(0))
+            out += Rect(x(0.0), cy - bh / 2, x(v) - x(0.0), bh, spec.color(0))
             out += Label(left - 6, cy + 4, l.take(24), 10f, anchor = "end")
             out += Label(x(v) + 4, cy + 4, num(v), 10f, "#1A1A1A", anchor = "start")
         }
@@ -310,14 +316,14 @@ object ChartLayout {
         var a = -90f
         vals.forEachIndexed { i, v ->
             val sweep = (v / total * 360).toFloat()
-            out += Wedge(cx, cy, r, a, sweep, color(i))
+            out += Wedge(cx, cy, r, a, sweep, spec.color(i))
             val mid = Math.toRadians((a + sweep / 2).toDouble())
             if (sweep > 18) out += Label((cx + cos(mid) * r * 0.65).toFloat(), (cy + sin(mid) * r * 0.65).toFloat() + 4, "${Math.round(v / total * 100)} %", 11f, "#FFFFFF", bold = true)
             a += sweep
         }
         vals.indices.forEach { i ->
             val ly = top + 20 + i * 20f
-            out += Rect(cx + r + 40, ly - 10, 12f, 12f, color(i))
+            out += Rect(cx + r + 40, ly - 10, 12f, 12f, spec.color(i))
             out += Label(cx + r + 58, ly, "${spec.labels.getOrNull(i) ?: "Teil ${i + 1}"} (${num(vals[i])})", 11f, anchor = "start")
         }
         return out
@@ -366,6 +372,7 @@ fun ChartSpec.toJson(): String {
         if (xLabel.isNotBlank()) append(",\"x_label\":").append(str(xLabel))
         if (yLabel.isNotBlank()) append(",\"y_label\":").append(str(yLabel))
         if (labels.isNotEmpty()) append(",\"labels\":[").append(labels.joinToString(",") { str(it) }).append("]")
+        if (colors.isNotEmpty()) append(",\"colors\":[").append(colors.joinToString(",") { str(it) }).append("]")
         append(",\"series\":[")
         append(series.joinToString(",") { s ->
             "{\"name\":${str(s.name)},\"values\":[${s.values.joinToString(",") { num(it) }}]" + (if (s.x.isNotEmpty()) ",\"x\":[${s.x.joinToString(",") { num(it) }}]" else "") + "}"

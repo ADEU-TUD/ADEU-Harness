@@ -187,12 +187,24 @@ object XlsxWriter {
         val sheetXml = sheets.mapIndexed { si, s ->
             buildString {
                 append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">")
-                // Freeze the head row; columns about as wide as their longest text.
-                if (s.rows.size > 1 && s.meta.freeze) append("<sheetViews><sheetView workbookViewId=\"0\"><pane ySplit=\"1\" topLeftCell=\"A2\" activePane=\"bottomLeft\" state=\"frozen\"/></sheetView></sheetViews>")
-                else append("<sheetViews><sheetView workbookViewId=\"0\"/></sheetViews>")
+                // Frozen rows and columns (the head row by default); columns as wide as set or as their longest text.
+                val ySplit = if (s.rows.size > 1) s.meta.topRows.coerceAtMost(s.rows.size - 1) else 0
+                val xSplit = s.meta.frozenCols
+                if (ySplit > 0 || xSplit > 0) {
+                    val pane = if (ySplit > 0 && xSplit > 0) "bottomRight" else if (ySplit > 0) "bottomLeft" else "topRight"
+                    append("<sheetViews><sheetView workbookViewId=\"0\"><pane")
+                    if (xSplit > 0) append(" xSplit=\"$xSplit\"")
+                    if (ySplit > 0) append(" ySplit=\"$ySplit\"")
+                    append(" topLeftCell=\"${col(xSplit)}${ySplit + 1}\" activePane=\"$pane\" state=\"frozen\"/></sheetView></sheetViews>")
+                } else append("<sheetViews><sheetView workbookViewId=\"0\"/></sheetViews>")
                 val cols = s.rows.maxOfOrNull { it.size }?.coerceAtLeast(1) ?: 1
                 append("<cols>")
-                (0 until cols).forEach { c -> val w = (s.rows.maxOfOrNull { it.getOrElse(c) { "" }.length } ?: 8).coerceIn(8, 60) + 2; append("<col min=\"${c + 1}\" max=\"${c + 1}\" width=\"$w\" customWidth=\"1\"/>") }
+                (0 until cols).forEach { c ->
+                    val set = s.meta.widths[SheetEngine.colName(c)]
+                    val w = if (set != null) Math.round((set - 5) / 7.0 * 100) / 100.0 else ((s.rows.maxOfOrNull { it.getOrElse(c) { "" }.length } ?: 8).coerceIn(8, 60) + 2).toDouble()
+                    // Only widths set in the editor count as custom (so they come back as such, the others stay automatic).
+                    append("<col min=\"${c + 1}\" max=\"${c + 1}\" width=\"${xmlNum(w.coerceAtLeast(1.0))}\"" + (if (set != null) " customWidth=\"1\"" else "") + "/>")
+                }
                 append("</cols><sheetData>")
                 val engine = workbook.sheet(si)
                 val spilled = engine.spilledCells()
@@ -207,6 +219,12 @@ object XlsxWriter {
                 }
                 append("</sheetData>")
                 if (s.rows.size > 1) append("<autoFilter ref=\"A1:${col(cols - 1)}${s.rows.size}\"/>")
+                val merges = s.meta.mergeRanges
+                if (merges.isNotEmpty()) {
+                    append("<mergeCells count=\"${merges.size}\">")
+                    merges.forEach { g -> append("<mergeCell ref=\"${SheetEngine.rangeRef(g[0], g[1], g[2], g[3])}\"/>") }
+                    append("</mergeCells>")
+                }
                 var priority = 1
                 s.meta.rules.forEach { rule ->
                     val g = SheetEngine.parseRange(rule.range) ?: return@forEach
@@ -225,6 +243,17 @@ object XlsxWriter {
                     } ?: return@forEach
                     append("<conditionalFormatting sqref=\"$sqref\">$cf</conditionalFormatting>")
                 }
+                val checks = s.meta.checks.mapNotNull { k ->
+                    val g = SheetEngine.parseRange(k.range) ?: return@mapNotNull null
+                    val f = if (k.list.isNotEmpty()) "\"" + k.list.joinToString(",") { it.replace("\"", "\"\"") }.take(250) + "\""
+                    else k.source?.let { src ->
+                        val bang = src.lastIndexOf('!')
+                        if (bang > 0) SheetEngine.quoteSheet(rename(src.substring(0, bang).trim('\'').replace("''", "'"))) + "!" + src.substring(bang + 1) else src
+                    } ?: return@mapNotNull null
+                    "<dataValidation type=\"list\" allowBlank=\"1\" showInputMessage=\"1\" showErrorMessage=\"${if (k.strict) 1 else 0}\"" +
+                        (if (k.strict) "" else " errorStyle=\"information\"") + " sqref=\"${SheetEngine.rangeRef(g[0], g[1], g[2], g[3])}\"><formula1>${esc(f)}</formula1></dataValidation>"
+                }
+                if (checks.isNotEmpty()) append("<dataValidations count=\"${checks.size}\">").append(checks.joinToString("")).append("</dataValidations>")
                 append("<pageMargins left=\"0.7\" right=\"0.7\" top=\"0.787\" bottom=\"0.787\" header=\"0.3\" footer=\"0.3\"/>")
                 append("</worksheet>")
             }

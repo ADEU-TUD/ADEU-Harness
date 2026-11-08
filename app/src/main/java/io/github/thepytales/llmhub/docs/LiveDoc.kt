@@ -141,12 +141,26 @@ data class LiveDoc(
         val list = if (last != null && last.author == author && !last.byAi && now - last.createdAt < MERGE_MS && note.isBlank()) {
             versions.dropLast(1) + version.copy(id = last.id, createdAt = now)
         } else versions + version
-        return next.copy(versions = list.takeLast(MAX_VERSIONS), updatedAt = now, lastAuthor = author)
+        return next.copy(versions = trimVersions(list.takeLast(MAX_VERSIONS)), updatedAt = now, lastAuthor = author)
     }
 
     companion object {
         const val MERGE_MS = 3 * 60_000L
         const val MAX_VERSIONS = 60
+        /** Versions together hold at most this many characters (a table with 100 000 rows keeps a few, not 60). */
+        const val MAX_VERSION_CHARS = 24_000_000L
+
+        /** The newest versions that fit into [MAX_VERSION_CHARS] (the newest one always stays). */
+        fun trimVersions(list: List<DocVersion>): List<DocVersion> {
+            var total = 0L
+            var keep = 0
+            for (v in list.asReversed()) {
+                total += v.tabs.sumOf { it.markdown.length.toLong() }
+                if (keep > 0 && total > MAX_VERSION_CHARS) break
+                keep++
+            }
+            return if (keep == list.size) list else list.takeLast(keep)
+        }
 
         fun create(title: String, markdown: String, author: String, chatId: String? = null, style: String? = null, kind: DocKind = DocKind.DOC): LiveDoc {
             val tab = DocTab(title = if (kind == DocKind.SHEET) "Tabelle 1" else "Tab 1", markdown = markdown)

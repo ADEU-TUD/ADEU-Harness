@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.docs.SheetCalc
+import io.github.thepytales.llmhub.docs.SheetChart
 import io.github.thepytales.llmhub.docs.SheetEngine
 import io.github.thepytales.llmhub.docs.SheetMeta
 import io.github.thepytales.llmhub.docs.SheetTools
@@ -253,6 +255,71 @@ internal object OfficeActions {
         ) { _, _ ->
             sheetChange("sheet.summary", tr("Rechnet Summe und Mittelwert …"), false, result = tr("Summe und Mittelwert stehen unten.")) { rows, meta ->
                 SheetLora.summary(rows)?.let { it to meta }
+            }
+        },
+        // Lora rechnet (AP-49): on the device, the results are formulas next to the data, with a chart.
+        ToolAction(
+            "sheet.distribution", ActionArea.SHEET, trLater("Verteilung berechnen"),
+            "Zählt, wie oft jeder Wert einer Spalte vorkommt (z. B. Notenverteilung), mit Anteil und Säulendiagramm; rechts neben den Daten, als Formeln.",
+            listOf(ActionParam("spalte", "Buchstabe oder Überschrift der Spalte (leer: die Spalte „Note“)", required = false)), risky = false,
+        ) { _, a ->
+            val rows = SheetEngine.grid(sheetHost().markdown())
+            val col = SheetLora.column(rows, a.s("spalte").orEmpty().ifBlank { "Note" }) ?: SheetLora.column(rows, "Noten")
+                ?: throw ActionFailed(tr("Welche Spalte soll ich auszählen?"))
+            val block = SheetCalc.distribution(rows, col, SheetEngine.Sheet(rows)) ?: throw ActionFailed(tr("In der Spalte stehen keine Werte."))
+            sheetChange("sheet.distribution", tr("Berechnet die Verteilung von „{0}“ …", rows[0].getOrNull(col).orEmpty()), false, result = tr("Verteilung steht ab {0}: {1}.", SheetEngine.ref(block.row, block.col), block.note)) { r, meta ->
+                SheetCalc.apply(r, block) to block.meta(meta)
+            }
+        },
+        ToolAction(
+            "sheet.group", ActionArea.SHEET, trLater("Kennzahlen je Gruppe"),
+            "Fasst eine Zahlenspalte je Gruppe zusammen (Anzahl, Mittelwert, Min, Max – wie eine Pivot-Tabelle), z. B. Mittelwert der Note je Gruppe; mit Diagramm.",
+            listOf(ActionParam("gruppe", "Spalte mit den Gruppen"), ActionParam("wert", "Spalte mit den Zahlen")), risky = false,
+        ) { _, a ->
+            val rows = SheetEngine.grid(sheetHost().markdown())
+            val g = SheetLora.column(rows, a.s("gruppe").orEmpty()) ?: throw ActionFailed(tr("Die Spalte „{0}“ finde ich nicht.", a.s("gruppe").orEmpty()))
+            val v = SheetLora.column(rows, a.s("wert").orEmpty().ifBlank { "Note" }) ?: throw ActionFailed(tr("Die Spalte „{0}“ finde ich nicht.", a.s("wert").orEmpty()))
+            val block = SheetCalc.byGroup(rows, g, v, SheetEngine.Sheet(rows)) ?: throw ActionFailed(tr("Dafür finde ich keine Gruppen."))
+            sheetChange("sheet.group", tr("Rechnet je „{0}“ …", rows[0].getOrNull(g).orEmpty()), false, result = tr("Zusammenfassung steht ab {0}: {1}.", SheetEngine.ref(block.row, block.col), block.note)) { r, meta ->
+                SheetCalc.apply(r, block) to block.meta(meta)
+            }
+        },
+        ToolAction(
+            "sheet.chart", ActionArea.SHEET, trLater("Diagramm anlegen"),
+            "Legt ein Diagramm aus einem Bereich an (Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot) im TUD-Design.",
+            listOf(
+                ActionParam("bereich", "Bereich, z. B. A1:B10 (erste Zeile Namen)"),
+                ActionParam("typ", "saeulen, balken, linie, kreis, punkt, histogramm oder boxplot", required = false),
+                ActionParam("titel", "Titel", required = false),
+            ), risky = false,
+        ) { _, a ->
+            val range = a.s("bereich").orEmpty().trim().uppercase()
+            if (SheetEngine.parseRange(range) == null) throw ActionFailed(tr("Welcher Bereich? Zum Beispiel A1:B10"))
+            val type = when (a.s("typ").orEmpty().lowercase()) {
+                "balken", "hbar" -> "hbar"; "linie", "line" -> "line"; "kreis", "pie", "torte" -> "pie"; "punkt", "streu", "scatter" -> "scatter"
+                "histogramm", "histogram" -> "histogram"; "boxplot", "box" -> "box"; "gestapelt", "stacked" -> "stacked"; else -> "bar"
+            }
+            val chart = SheetChart(type, range, a.s("titel").orEmpty(), id = SheetCalc.newId())
+            sheetChange("sheet.chart", tr("Legt ein Diagramm aus {0} an …", range), false, result = tr("Diagramm aus {0} angelegt.", range)) { rows, meta ->
+                if (SheetTools.chartSpec(chart, SheetEngine.Sheet(rows)) == null) throw ActionFailed(tr("Im Bereich {0} stehen keine Zahlen für ein Diagramm", range))
+                rows to meta.copy(charts = meta.charts + chart)
+            }
+        },
+        ToolAction(
+            "sheet.explain", ActionArea.SHEET, trLater("Formel erklären"),
+            "Erklärt in Worten, was die Formel einer Zelle rechnet (Funktionen und Bezüge mit ihren Spaltennamen), auf dem Gerät.",
+            listOf(ActionParam("zelle", "Zelle, z. B. D2 (leer: die erste Formel der markierten Zeile)", required = false)), risky = false,
+        ) { _, a ->
+            val host = sheetHost()
+            val rows = SheetEngine.grid(host.markdown())
+            val at = a.s("zelle")?.let { SheetEngine.parseRef(it.trim()) }
+                ?: host.selected().let { r -> rows.getOrNull(r)?.indexOfFirst { it.trimStart().startsWith("=") }?.takeIf { it >= 0 }?.let { r to it } }
+                ?: rows.indices.firstNotNullOfOrNull { r -> rows[r].indexOfFirst { it.trimStart().startsWith("=") }.takeIf { it >= 0 }?.let { r to it } }
+                ?: throw ActionFailed(tr("In der Tabelle steht keine Formel."))
+            val formula = rows.getOrNull(at.first)?.getOrNull(at.second).orEmpty()
+            val text = SheetCalc.explain(formula, rows)
+            ActionPlan("sheet.explain", tr("Erklärt {0} …", SheetEngine.ref(at.first, at.second)), false) {
+                ActionResult(SheetEngine.ref(at.first, at.second) + " " + formula + "\n" + text)
             }
         },
         // Folien
