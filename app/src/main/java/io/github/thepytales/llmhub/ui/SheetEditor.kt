@@ -44,6 +44,8 @@ import androidx.compose.material.icons.outlined.FormatBold
 import androidx.compose.material.icons.outlined.FormatColorFill
 import androidx.compose.material.icons.outlined.FormatColorText
 import androidx.compose.material.icons.outlined.FormatItalic
+import androidx.compose.material.icons.outlined.FormatStrikethrough
+import androidx.compose.material.icons.outlined.FormatUnderlined
 import androidx.compose.material.icons.outlined.FormatPaint
 import androidx.compose.material.icons.outlined.Functions
 import androidx.compose.material.icons.outlined.Numbers
@@ -108,6 +110,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.docs.CellCheck
+import io.github.thepytales.llmhub.docs.CellRich
 import io.github.thepytales.llmhub.docs.CellStyle
 import io.github.thepytales.llmhub.docs.SheetHelp
 import io.github.thepytales.llmhub.docs.CondRule
@@ -287,6 +290,17 @@ fun SheetBody(
     LaunchedEffect(sr, sc, saved) {
         val v = rows.getOrNull(sr)?.getOrNull(sc).orEmpty()
         if (v != bar.text) bar = TextFieldValue(v, TextRange(v.length))
+    }
+
+    /**
+     * Formatierung innerhalb der Zelle (AP-48): with a part of a text cell selected in the formula bar, [change] formats
+     * only that part (plain offsets); returns false when nothing is selected there.
+     */
+    fun formatPart(change: (String, Int, Int) -> String): Boolean {
+        val next = SheetRichText.changePart(bar, change) ?: return false
+        bar = next
+        setCell(sr, sc, next.text)
+        return true
     }
 
     /** Applies [transform] to the formats of the selected cells. */
@@ -562,8 +576,22 @@ fun SheetBody(
             ToolIcon(Icons.Outlined.Search, tr("Suchen und ersetzen (Strg+F, Strg+H)"), active = findOpen) { if (findOpen) findOpen = false else openFind(replace = false) }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             // ── Formats of the selected cells ──
-            ToolIcon(Icons.Outlined.FormatBold, tr("Fett"), active = style.b) { restyle { it.copy(b = !style.b) } }
-            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv"), active = style.i) { restyle { it.copy(i = !style.i) } }
+            // With a part of the cell selected in the formula bar, only that part (AP-48); otherwise the whole cells.
+            val barPart = SheetRichText.part(bar)
+            ToolIcon(Icons.Outlined.FormatBold, tr("Fett"), active = barPart?.let { CellRich.has(bar.text, it.first, it.last + 1, CellRich.Mark.BOLD) } ?: style.b) {
+                if (!formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.BOLD) }) restyle { it.copy(b = !style.b) }
+            }
+            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv"), active = barPart?.let { CellRich.has(bar.text, it.first, it.last + 1, CellRich.Mark.ITALIC) } ?: style.i) {
+                if (!formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.ITALIC) }) restyle { it.copy(i = !style.i) }
+            }
+            if (barPart != null) {
+                ToolIcon(Icons.Outlined.FormatUnderlined, tr("Unterstrichen"), active = CellRich.has(bar.text, barPart.first, barPart.last + 1, CellRich.Mark.UNDERLINE)) {
+                    formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.UNDERLINE) }
+                }
+                ToolIcon(Icons.Outlined.FormatStrikethrough, tr("Durchgestrichen"), active = CellRich.has(bar.text, barPart.first, barPart.last + 1, CellRich.Mark.STRIKE)) {
+                    formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.STRIKE) }
+                }
+            }
             var colorMenu by remember { mutableStateOf<String?>(null) }
             Box {
                 Row {
@@ -572,12 +600,18 @@ fun SheetBody(
                 }
                 DropdownMenu(expanded = colorMenu != null, onDismissRequest = { colorMenu = null }) {
                     val fill = colorMenu == "fill"
-                    DropdownMenuItem(text = { Text(if (fill) tr("Keine Füllung") else tr("Automatisch")) }, onClick = { restyle { if (fill) it.copy(fill = null) else it.copy(color = null) }; colorMenu = null })
+                    DropdownMenuItem(text = { Text(if (fill) tr("Keine Füllung") else tr("Automatisch")) }, onClick = {
+                        if (fill || !formatPart { t, a, b -> CellRich.color(t, a, b, null) }) restyle { if (fill) it.copy(fill = null) else it.copy(color = null) }
+                        colorMenu = null
+                    })
                     (if (fill) FILL_COLORS else TEXT_COLORS).forEach { (hex, label) ->
                         DropdownMenuItem(
                             text = { Text(tr(label)) },
                             leadingIcon = { Box(Modifier.size(18.dp).background(hexColor(hex) ?: Color.Gray, CircleShape).border(0.5.dp, MaterialTheme.colorScheme.outline, CircleShape)) },
-                            onClick = { restyle { if (fill) it.copy(fill = hex) else it.copy(color = hex) }; colorMenu = null },
+                            onClick = {
+                                if (fill || !formatPart { t, a, b -> CellRich.color(t, a, b, hex) }) restyle { if (fill) it.copy(fill = hex) else it.copy(color = hex) }
+                                colorMenu = null
+                            },
                         )
                     }
                 }
@@ -738,7 +772,8 @@ fun SheetBody(
             Spacer(Modifier.width(6.dp))
             Surface(shape = RoundedCornerShape(6.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), color = LocalChatLook.current.card, modifier = Modifier.weight(1f)) {
                 BasicTextField(
-                    bar, { bar = it }, singleLine = true, enabled = !writing,
+                    bar, { bar = SheetRichText.fixEdit(bar, it) }, singleLine = true, enabled = !writing,
+                    visualTransformation = SheetRichText.Transformation,
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontFamily = if (bar.text.startsWith("=")) FontFamily.Monospace else FontFamily.Default),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -760,8 +795,9 @@ fun SheetBody(
                             // Ranges are copied and pasted as cells; within one cell the text field does it.
                             ctrl && e.key == Key.C && isRange -> { copy(); true }
                             ctrl && e.key == Key.V && clipboard.getText()?.text.orEmpty().let { '\t' in it || '\n' in it.trimEnd() } -> { paste(); true }
-                            ctrl && e.key == Key.B -> { restyle { it.copy(b = !style.b) }; true }
-                            ctrl && e.key == Key.I -> { restyle { it.copy(i = !style.i) }; true }
+                            ctrl && e.key == Key.B -> { if (!formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.BOLD) }) restyle { it.copy(b = !style.b) }; true }
+                            ctrl && e.key == Key.I -> { if (!formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.ITALIC) }) restyle { it.copy(i = !style.i) }; true }
+                            ctrl && e.key == Key.U -> { formatPart { t, a, b -> CellRich.toggle(t, a, b, CellRich.Mark.UNDERLINE) }; true }
                             e.key == Key.Enter -> { select(if (e.isShiftPressed) sr - 1 else sr + 1, sc); true }
                             e.key == Key.Tab -> { select(sr, if (e.isShiftPressed) (sc - 1).coerceAtLeast(0) else sc + 1); true }
                             e.key == Key.Escape -> { val v = rows.getOrNull(sr)?.getOrNull(sc).orEmpty(); bar = TextFieldValue(v, TextRange(v.length)); anchor = null; true }
@@ -976,7 +1012,8 @@ fun SheetBody(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    shown, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                                    if (!shown.startsWith("=") && CellRich.isRich(shown)) SheetRichText.annotated(shown) else AnnotatedString(shown),
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontWeight = if (r == 0 || st?.b == true) FontWeight.SemiBold else FontWeight.Normal,
                                         fontStyle = if (st?.i == true) FontStyle.Italic else FontStyle.Normal,

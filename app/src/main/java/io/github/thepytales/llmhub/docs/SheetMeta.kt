@@ -482,9 +482,8 @@ object SheetTools {
         val v = (g[0]..g[2]).map { r -> (g[1]..g[3]).map { c -> sheet.value(r, c) } }
         fun isNum(x: SheetEngine.Value) = x is SheetEngine.Value.Num && !x.date
         if (raw) return rawChart(chart, v, g)
-        val labelCol = v.size > 0 && v[0].size > 1 && (chart.labels ?: v.drop(1).any { row -> !isNum(row[0]) && SheetEngine.format(row[0]).isNotBlank() })
+        val (labelCol, headRow) = frame(chart, v)
         val dataCols = if (labelCol) 1 until v[0].size else v[0].indices
-        val headRow = v.size > 1 && dataCols.any { j -> !isNum(v[0][j]) && SheetEngine.format(v[0][j]).isNotBlank() }
         val body = if (headRow) v.drop(1) else v
         if (body.isEmpty() || dataCols.isEmpty()) return null
         val labels = body.mapIndexed { i, row -> if (labelCol) SheetEngine.format(row[0]) else "${i + 1}" }
@@ -500,6 +499,45 @@ object SheetTools {
             type, chart.title, xLabel = chart.xLabel.ifBlank { head }, yLabel = chart.yLabel, labels = labels,
             series = if (type == ChartSpec.Type.PIE || type == ChartSpec.Type.HBAR) series.take(1) else series, colors = ChartLayout.TUD,
         )
+    }
+
+    /** Whether the first column of a chart's cells holds the names (labels) and the first row the series names. */
+    private fun frame(chart: SheetChart, v: List<List<SheetEngine.Value>>): Pair<Boolean, Boolean> {
+        fun isNum(x: SheetEngine.Value) = x is SheetEngine.Value.Num && !x.date
+        val labelCol = v.size > 0 && v[0].size > 1 && (chart.labels ?: v.drop(1).any { row -> !isNum(row[0]) && SheetEngine.format(row[0]).isNotBlank() })
+        val dataCols = if (labelCol) 1 until v[0].size else v[0].indices
+        val headRow = v.size > 1 && dataCols.any { j -> !isNum(v[0][j]) && SheetEngine.format(v[0][j]).isNotBlank() }
+        return labelCol to headRow
+    }
+
+    /**
+     * Where the series of [chart] are in the workbook (sheet [sheetName]), for Excel's own chart that redraws when the
+     * cells change (AP-48): name, categories (x values) and values of each series, as [chartSpec] reads them. Empty
+     * for histograms and box plots (Excel gets their classes or quartiles as values); null if the range is invalid.
+     */
+    fun chartRefs(chart: SheetChart, sheet: SheetEngine.Sheet, sheetName: String): List<OfficeCharts.Refs>? {
+        val g = SheetEngine.parseRange(chart.range) ?: return null
+        if (chart.type == "histogram" || chart.type == "box") return emptyList()
+        val q = SheetEngine.quoteSheet(sheetName)
+        fun abs(r0: Int, c0: Int, r1: Int, c1: Int): String {
+            val a = "\$" + SheetEngine.colName(c0) + "\$" + (r0 + 1)
+            return "$q!" + if (r0 == r1 && c0 == c1) a else a + ":\$" + SheetEngine.colName(c1) + "\$" + (r1 + 1)
+        }
+        if ((g[2] - g[0] + 1).toLong() * (g[3] - g[1] + 1) > 200_000) return null
+        val v = (g[0]..g[2]).map { r -> (g[1]..g[3]).map { c -> sheet.value(r, c) } }
+        if (v.isEmpty() || v[0].isEmpty()) return null
+        if (chart.type == "scatter") {
+            val head = v[0].any { it is SheetEngine.Value.Text && it.v.isNotBlank() }
+            val b0 = g[0] + if (head) 1 else 0
+            if (b0 > g[2]) return null
+            return (g[1] + 1..g[3]).map { c -> OfficeCharts.Refs(if (head) abs(g[0], c, g[0], c) else null, abs(b0, g[1], g[2], g[1]), abs(b0, c, g[2], c)) }
+        }
+        val (labelCol, headRow) = frame(chart, v)
+        val b0 = g[0] + if (headRow) 1 else 0
+        if (b0 > g[2]) return null
+        val cols = (if (labelCol) g[1] + 1 else g[1])..g[3]
+        val refs = cols.map { c -> OfficeCharts.Refs(if (headRow) abs(g[0], c, g[0], c) else null, if (labelCol) abs(b0, g[1], g[2], g[1]) else null, abs(b0, c, g[2], c)) }
+        return if (chart.type == "pie" || chart.type == "hbar") refs.take(1) else refs
     }
 
     /** Scatter (first column x, the others y), histogram and box plot (raw values of each column). */

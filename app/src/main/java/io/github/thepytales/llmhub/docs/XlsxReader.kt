@@ -26,13 +26,14 @@ object XlsxReader {
     fun readAll(bytes: ByteArray): Result {
         val files = entries(bytes)
         fun text(name: String) = files[name]?.toString(Charsets.UTF_8)
-        val shared = text("xl/sharedStrings.xml")?.let(::sharedStrings).orEmpty()
+        val shared = text("xl/sharedStrings.xml")?.let { sharedStrings(it, rich = true) }.orEmpty()
         val rels = xml(files["xl/_rels/workbook.xml.rels"])?.children()?.associate { it.attr("Id") to it.attr("Target") }.orEmpty()
         val sheets = xml(files["xl/workbook.xml"])?.all("sheet").orEmpty()
         val stylesRoot = xml(files["xl/styles.xml"])
         val styles = OfficeImport.xlsxCellStyles(stylesRoot)
         val dxfs = dxfs(stylesRoot)
         val cut = mutableListOf<String>()
+        val charts = mutableListOf<Pair<String, SheetChart>>()
         val tabs = sheets.mapNotNull { s ->
             val target = rels[s.attr("id")] ?: return@mapNotNull null
             val path = if (target.startsWith("/")) target.removePrefix("/") else "xl/" + target.removePrefix("./")
@@ -40,9 +41,66 @@ object XlsxReader {
             val name = s.attr("name")
             val sheet = sheet(x, shared, styles, dxfs)
             if (sheet.cut) cut += name
+            runCatching { charts += charts(files, path, name) }
             name to sheet.markdown
         }
-        return Result(tabs, cut)
+        if (charts.isEmpty()) return Result(tabs, cut)
+        // Each chart goes to the sheet its data is on (the table editor draws a chart from its own sheet's cells).
+        val withCharts = tabs.map { (name, md) ->
+            val mine = charts.filter { it.first.equals(name, ignoreCase = true) }.map { it.second }
+            if (mine.isEmpty()) name to md
+            else {
+                val meta = SheetMeta.parse(md)
+                name to SheetMeta.compose(SheetEngine.grid(md), meta.copy(charts = meta.charts + mine))
+            }
+        }
+        return Result(withCharts, cut)
+    }
+
+    /**
+     * The charts in the drawing of the sheet at [sheetPath] (AP-48), each with the sheet its data is on: Excel's
+     * column, bar, line, pie and scatter charts; histograms and box plots written by Lora come back from their
+     * alternative text. Charts whose series do not point at the cells of one sheet are left out.
+     */
+    private fun charts(files: Map<String, ByteArray>, sheetPath: String, sheetName: String): List<Pair<String, SheetChart>> {
+        fun relsOf(part: String): Map<String, String> {
+            val dir = part.substringBeforeLast('/')
+            val x = xml(files["$dir/_rels/${part.substringAfterLast('/')}.rels"]) ?: return emptyMap()
+            return x.children().associate { r -> r.attr("Id") to resolve(dir, r.attr("Target")) }
+        }
+        val drawing = relsOf(sheetPath).values.firstOrNull { it.contains("/drawings/") } ?: return emptyList()
+        val root = xml(files[drawing]) ?: return emptyList()
+        val drawingRels = relsOf(drawing)
+        return root.all("graphicFrame").mapNotNull { frame ->
+            val pr = frame.all("cNvPr").firstOrNull()
+            val rid = frame.all("chart").firstOrNull()?.let { c ->
+                (0 until c.attributes.length).map { c.attributes.item(it) }.firstOrNull { it.localName == "id" }?.nodeValue
+            } ?: return@mapNotNull null
+            val chartPath = drawingRels[rid] ?: return@mapNotNull null
+            val read = OfficeCharts.read(files[chartPath]) ?: return@mapNotNull null
+            val id = Regex("^Lora-Diagramm (\\S+)$").find(pr?.attr("name").orEmpty())?.groupValues?.get(1)
+                ?: java.util.UUID.randomUUID().toString().take(8)
+            val alt = pr?.attr("descr").orEmpty()
+            Regex("^(Histogramm|Boxplot) von ([A-Z]+[0-9]+:[A-Z]+[0-9]+)$").find(alt)?.let { m ->
+                val type = if (m.groupValues[1] == "Histogramm") "histogram" else "box"
+                return@mapNotNull sheetName to SheetChart(type, m.groupValues[2], read.title, read.xLabel, if (type == "histogram" && read.yLabel == "Anzahl") "" else read.yLabel, id = id)
+            }
+            read.sheetChart(id)
+        }
+    }
+
+    /** [target] of a relationship of a part in [dir] as path in the package ("../charts/chart1.xml" → "xl/charts/chart1.xml"). */
+    private fun resolve(dir: String, target: String): String {
+        if (target.startsWith("/")) return target.removePrefix("/")
+        val parts = dir.split('/').filter { it.isNotEmpty() }.toMutableList()
+        target.split('/').forEach { p ->
+            when (p) {
+                ".." -> if (parts.isNotEmpty()) parts.removeAt(parts.size - 1)
+                ".", "" -> {}
+                else -> parts += p
+            }
+        }
+        return parts.joinToString("/")
     }
 
     private class Sheet(val markdown: String, val cut: Boolean)
@@ -138,7 +196,7 @@ object XlsxReader {
                                 }
                             }
                             child(x, te + 1, close, "v")?.third?.let { value = unescape(it) }
-                            if (t == "inlineStr") inline = texts(x, te + 1, close)
+                            if (t == "inlineStr") inline = richTexts(x, te + 1, close)
                         }
                         if (key(r, c) in spilled && formula == null) continue
                         val cell = when {
@@ -272,8 +330,11 @@ object XlsxReader {
 
     // ── Scanner ──
 
-    /** Shared strings (sharedStrings.xml): the text of each `<si>`, runs joined, phonetic hints left out. */
-    fun sharedStrings(x: String): List<String> {
+    /**
+     * Shared strings (sharedStrings.xml): the text of each `<si>`, runs joined, phonetic hints left out; with [rich]
+     * formatted runs become formatting inside the cell (AP-48).
+     */
+    fun sharedStrings(x: String, rich: Boolean = false): List<String> {
         val out = ArrayList<String>()
         var i = 0
         while (true) {
@@ -283,7 +344,7 @@ object XlsxReader {
             if (te < 0) break
             if (x[te - 1] == '/') { out += ""; i = te + 1; continue }
             val e = x.indexOf("</si>", te).let { if (it < 0) x.length else it }
-            out += texts(x, te + 1, e).replace("\r\n", "\n").replace('\r', '\n')
+            out += (if (rich) richTexts(x, te + 1, e) else texts(x, te + 1, e)).replace("\r\n", "\n").replace('\r', '\n')
             i = e + 5
         }
         return out
@@ -311,6 +372,31 @@ object XlsxReader {
             i = te + 1
         }
         return sb.toString()
+    }
+
+    /** Like [texts], but runs (`<r>`) with their own format become cell text with formatting (see [CellRich]). */
+    private fun richTexts(x: String, from: Int, to: Int): String {
+        val first = x.indexOf("<r>", from)
+        if (first < 0 || first >= to || x.indexOf("<rPr", from).let { it < 0 || it >= to }) return texts(x, from, to)
+        val runs = ArrayList<Pair<String, io.github.thepytales.llmhub.docs.text.CharFormat>>()
+        var i = first
+        while (true) {
+            val s = x.indexOf("<r>", i)
+            if (s < 0 || s >= to) break
+            val e = x.indexOf("</r>", s).let { if (it < 0 || it > to) to else it }
+            val pr = child(x, s + 3, e, "rPr")?.third.orEmpty()
+            fun has(tag: String) = Regex("<$tag(\\s+val=\"(1|true|single|double)\")?\\s*/>").containsMatchIn(pr) || pr.contains("<$tag>")
+            fun v(tag: String) = Regex("<$tag\\s[^>]*val=\"([^\"]*)\"").find(pr)?.groupValues?.get(1)
+            val color = Regex("<color\\s[^>]*rgb=\"([0-9A-Fa-f]{6,8})\"").find(pr)?.groupValues?.get(1)?.takeLast(6)?.uppercase()
+            val f = io.github.thepytales.llmhub.docs.text.CharFormat(
+                bold = has("b"), italic = has("i"), underline = has("u"), strike = has("strike"),
+                sup = v("vertAlign") == "superscript", sub = v("vertAlign") == "subscript",
+                color = color, size = v("sz")?.toDoubleOrNull()?.toInt(), font = v("rFont"),
+            )
+            runs += texts(x, s + 3, e) to f
+            i = e + 4
+        }
+        return CellRich.fromRuns(runs)
     }
 
     /** End of a tag name starting at [from] (before the first space, "/" or ">"). */
