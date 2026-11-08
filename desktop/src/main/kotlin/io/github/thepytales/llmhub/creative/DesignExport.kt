@@ -183,6 +183,11 @@ object DesignExport {
                 cs.transform(Matrix.getRotateInstance(Math.toRadians(e.rotation.toDouble()), 0f, 0f))
                 cs.transform(Matrix.getTranslateInstance(-e.w / 2, -e.h / 2))
             }
+            // Gradients and picture filters (AP-50): drawn by the app as a sharp picture of the element.
+            if (e.hasEffects && e.kind != ElementKind.TEXT) {
+                raster(doc, cs, d, e)
+                return
+            }
             when (e.kind) {
                 ElementKind.TEXT -> text(cs, e, font)
                 ElementKind.LINE -> if (cs.strokeColor(e.stroke.ifBlank { e.color })) {
@@ -237,6 +242,14 @@ object DesignExport {
         } finally {
             cs.restoreGraphicsState()
         }
+    }
+
+    /** [e] drawn by the app as a picture of its own box (gradients, picture filters). */
+    private fun raster(doc: PDDocument, cs: PDPageContentStream, d: Design, e: DesignElement) {
+        val px = (2400f / maxOf(e.w, e.h, 1f)).coerceIn(4f, 24f)
+        val png = renderElement(d, e.copy(opacity = 1f), px).pngBytes()
+        val img = runCatching { LosslessFactory.createFromImage(doc, ImageIO.read(ByteArrayInputStream(png))) }.getOrNull() ?: return
+        cs.drawImage(img, Matrix(e.w, 0f, 0f, -e.h, 0f, e.h))
     }
 
     /** Characters the font can draw (others, e.g. emoji, are left out instead of breaking the export). */
@@ -381,7 +394,7 @@ object DesignExport {
             page.elements.forEach { e ->
                 val n = id++
                 val name = esc(ElementKind.label(e.kind) + " " + n)
-                when (e.kind) {
+                when (if (e.hasEffects && e.kind != ElementKind.TEXT) ElementKind.QR else e.kind) {
                     ElementKind.TEXT -> {
                         val laid = DesignText.layout(e)
                         val size = Math.round(laid.fontSize * k * 100).coerceIn(100, 400000)
@@ -450,7 +463,7 @@ object DesignExport {
                     ElementKind.IMAGE, ElementKind.ICON, ElementKind.QR -> {
                         val bytes: ByteArray
                         var crop = ""
-                        if (e.kind == ElementKind.IMAGE && (io.github.thepytales.llmhub.data.DesignBrand.logo(e.src) != null || e.mask == "shape")) {
+                        if (e.kind == ElementKind.IMAGE && (io.github.thepytales.llmhub.data.DesignBrand.logo(e.src) != null || e.mask == "shape" || e.hasEffects)) {
                             // Official logos and pictures in the Shape: drawn by the app (sharp, with transparency).
                             bytes = renderElement(d, e.copy(opacity = 1f), maxOf(24f, 3000f / maxOf(e.w, e.h))).pngBytes()
                         } else if (e.kind == ElementKind.IMAGE) {

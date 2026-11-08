@@ -4,6 +4,8 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -524,8 +526,11 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
             .focusable()
             .onPreviewKeyEvent { ev ->
                 if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                // Typing right on the canvas: the keys belong to the text.
+                if (state.inlineText != null) return@onPreviewKeyEvent false
                 val step = if (ev.isShiftPressed) 10f else 1f
                 when {
+                    ev.isCmd && ev.key == Key.G -> { if (ev.isShiftPressed) state.ungroup() else state.group(); true }
                     ev.isCmd && ev.key == Key.Z -> { if (ev.isShiftPressed) state.redo() else state.undo(); true }
                     ev.isCmd && ev.key == Key.Y -> { state.redo(); true }
                     ev.isCmd && ev.key == Key.D -> { state.duplicate(); true }
@@ -593,6 +598,7 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
                 .pointerInput(state.design.id) {
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false)
+                        state.inlineText = null
                         runCatching { focus.requestFocus() }
                         val shift = currentEvent.keyboardModifiers.isShiftPressed
                         val p = down.position
@@ -609,9 +615,12 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
                             handle != null -> state.single?.let { state.beginGesture(); Drag.Resize(it, handle) }
                             currentEvent.buttons.isSecondaryPressed || currentEvent.buttons.isTertiaryPressed -> Drag.Pan(p, state.pan)
                             hit != null -> {
-                                if (shift) state.selection = if (hit.id in state.selection) state.selection - hit.id else state.selection + hit.id
-                                else if (hit.id !in state.selection) state.selection = setOf(hit.id)
-                                if (double && hit.kind == ElementKind.TEXT) state.focusText++
+                                // A click on one element of a group takes the whole group (AP-50).
+                                val members = state.withGroups(setOf(hit.id))
+                                if (shift) state.selection = if (hit.id in state.selection) state.selection - members else state.selection + members
+                                else if (hit.id !in state.selection) state.selection = members
+                                // Double click on a text: type right on the canvas.
+                                if (double && hit.kind == ElementKind.TEXT && !hit.locked) { state.selection = setOf(hit.id); state.inlineText = hit.id }
                                 if (double && hit.kind == ElementKind.IMAGE) DesignCanvasActions.replaceImage?.invoke()
                                 val moving = state.selected.filter { !it.locked }
                                 if (moving.isEmpty()) null else { state.beginGesture(); Drag.Move(moving, mm) }
@@ -655,7 +664,7 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
             translate(origin.x, origin.y) {
                 drawRect(Color(0x22000000), Offset(3f, 4f), Size(d.width * scale, d.height * scale))
                 drawRect(Color.White, Offset.Zero, Size(d.width * scale, d.height * scale))
-                drawDesignPage(d, state.current, scale, editing = true)
+                drawDesignPage(d, state.current, scale, editing = true, hidden = setOfNotNull(state.inlineText))
                 // Selection frames and handles.
                 val sel = state.selected
                 sel.forEach { e ->
@@ -695,6 +704,10 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
                 }
             }
         }
+        state.inlineText?.let { id ->
+            val e = state.current.elements.firstOrNull { it.id == id && it.kind == ElementKind.TEXT }
+            if (e == null) LaunchedEffect(id) { state.inlineText = null } else InlineText(state, e, scale, origin) { state.inlineText = null; runCatching { focus.requestFocus() } }
+        }
         if (state.current.elements.isEmpty()) {
             Text(
                 tr("Leere Seite – links Text, Formen, Symbole, Bilder, QR-Codes oder das Logo hinzufügen."),
@@ -703,6 +716,44 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
             )
         }
     }
+}
+
+/**
+ * Text typed right on the canvas (AP-50): a text field over the text box in its font, size, colour and rotation; the
+ * box itself is hidden meanwhile. Esc or a click beside it ends the typing.
+ */
+@Composable
+private fun InlineText(state: DesignEditorState, e: DesignElement, scale: Float, origin: Offset, onDone: () -> Unit) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val fieldFocus = remember { FocusRequester() }
+    var value by remember(e.id) { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(e.text, androidx.compose.ui.text.TextRange(e.text.length))) }
+    LaunchedEffect(e.text) { if (e.text != value.text) value = value.copy(text = e.text) }
+    val fontPx = e.fontSize * DesignFormat.MM_PER_PT * scale
+    with(density) {
+        androidx.compose.foundation.text.BasicTextField(
+            value = value,
+            onValueChange = { v -> value = v; if (v.text != e.text) state.updateSelected("text-${e.id}") { grow(it.copy(text = v.text)) } },
+            textStyle = androidx.compose.ui.text.TextStyle(
+                fontFamily = io.github.thepytales.llmhub.creative.DesignFonts.family,
+                fontSize = fontPx.toSp(), lineHeight = (fontPx * e.lineHeight).toSp(),
+                fontWeight = if (e.bold) androidx.compose.ui.text.font.FontWeight.Bold else if (e.medium) androidx.compose.ui.text.font.FontWeight.Medium else androidx.compose.ui.text.font.FontWeight.Normal,
+                fontStyle = if (e.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
+                color = io.github.thepytales.llmhub.creative.designColor(e.color) ?: Color.Black,
+                textAlign = when (e.align) { "center" -> androidx.compose.ui.text.style.TextAlign.Center; "right" -> androidx.compose.ui.text.style.TextAlign.End; else -> androidx.compose.ui.text.style.TextAlign.Start },
+            ),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(EditorAccent),
+            modifier = Modifier
+                .offset { androidx.compose.ui.unit.IntOffset((origin.x + e.x * scale).toInt(), (origin.y + e.y * scale).toInt()) }
+                .size((e.w * scale).toDp(), (e.h * scale).toDp())
+                .graphicsLayer { rotationZ = e.rotation }
+                .background(io.github.thepytales.llmhub.creative.designColor(e.fill) ?: Color.Transparent)
+                .border(1.dp, EditorAccent)
+                .padding((e.padding * scale).toDp())
+                .focusRequester(fieldFocus)
+                .onPreviewKeyEvent { ev -> if (ev.type == KeyEventType.KeyDown && ev.key == Key.Escape) { onDone(); true } else false },
+        )
+    }
+    LaunchedEffect(e.id) { runCatching { fieldFocus.requestFocus() } }
 }
 
 /** Hooks of the canvas for the panel (double click on a picture opens the file dialog). */
@@ -893,9 +944,46 @@ private fun TudShapeProperties(state: DesignEditorState, e: DesignElement) {
 @Composable
 private fun ShapeProperties(state: DesignEditorState, e: DesignElement) {
     ColorField(tr("Füllung"), e.fill, allowNone = true) { col -> state.updateSelected("fill") { it.copy(fill = col) } }
+    GradientFields(state, e)
     ColorField(tr("Rahmen"), e.stroke, allowNone = true) { col -> state.updateSelected("stroke") { it.copy(stroke = col, strokeWidth = if (col.isNotBlank() && it.strokeWidth == 0f) 0.5f else it.strokeWidth) } }
     if (e.stroke.isNotBlank()) NumberField(tr("Rahmenstärke (mm)"), e.strokeWidth, "sw-${e.id}") { v -> state.updateSelected("sw-${e.id}") { it.copy(strokeWidth = v.coerceIn(0f, 50f)) } }
     if (e.kind == ElementKind.RECT) NumberField(tr("Eckenradius (mm)"), e.radius, "r-${e.id}") { v -> state.updateSelected("r-${e.id}") { it.copy(radius = v.coerceAtLeast(0f)) } }
+}
+
+/** Farbverlauf (AP-50): second colour and direction of the fill. */
+@Composable
+private fun GradientFields(state: DesignEditorState, e: DesignElement) {
+    if (e.fill.isBlank()) return
+    ColorField(tr("Verlauf bis"), e.fill2, allowNone = true) { col -> state.updateSelected("fill2") { it.copy(fill2 = col) } }
+    if (e.fill2.isNotBlank()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(0f to "→", 45f to "↘", 90f to "↓", 135f to "↙").forEach { (a, label) ->
+            FilterChip(selected = e.gradientAngle == a, onClick = { state.updateSelected { it.copy(gradientAngle = a) } }, label = { Text(label) })
+        }
+    }
+}
+
+/** Bildfilter (AP-50): brightness, contrast, saturation, grey scale and blur of a picture. */
+@Composable
+private fun FilterFields(state: DesignEditorState, e: DesignElement) {
+    Text(tr("Bildfilter"), style = MaterialTheme.typography.labelLarge)
+    @Composable
+    fun slider(label: String, value: Float, range: ClosedFloatingPointRange<Float>, key: String, set: (DesignElement, Float) -> DesignElement) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(label, style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(86.dp))
+            Slider(value = value.coerceIn(range.start, range.endInclusive), onValueChange = { v -> state.updateSelected(key) { set(it, v) } }, valueRange = range, modifier = Modifier.weight(1f))
+        }
+    }
+    slider(tr("Helligkeit"), e.brightness, -1f..1f, "fx-b") { x, v -> x.copy(brightness = v) }
+    slider(tr("Kontrast"), e.contrast, -1f..1f, "fx-c") { x, v -> x.copy(contrast = v) }
+    slider(tr("Sättigung"), e.saturation, -1f..1f, "fx-s") { x, v -> x.copy(saturation = v) }
+    slider(tr("Weichzeichnen"), e.blur, 0f..10f, "fx-blur") { x, v -> x.copy(blur = v) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(tr("Graustufen"), modifier = Modifier.weight(1f))
+        Switch(modifier = Modifier.a11yLabel(tr("Graustufen")), checked = e.grayscale, onCheckedChange = { on -> state.updateSelected { it.copy(grayscale = on) } })
+    }
+    if (e.brightness != 0f || e.contrast != 0f || e.saturation != 0f || e.grayscale || e.blur > 0f) {
+        TextButton(onClick = { state.updateSelected { it.copy(brightness = 0f, contrast = 0f, saturation = 0f, grayscale = false, blur = 0f) } }) { Text(tr("Filter zurücksetzen")) }
+    }
 }
 
 @Composable
@@ -925,6 +1013,7 @@ private fun ImageProperties(state: DesignEditorState, e: DesignElement, pick: ()
             Text(tr("Gespiegelt"), modifier = Modifier.weight(1f))
             Switch(modifier = Modifier.a11yLabel(tr("Gespiegelt")), checked = e.flipX, onCheckedChange = { on -> state.updateSelected { it.copy(flipX = on) } })
         }
+        FilterFields(state, e)
     }
     OutlinedTextField(
         value = e.alt, onValueChange = { t -> state.updateSelected("alt-${e.id}") { it.copy(alt = t) } },
@@ -1014,6 +1103,12 @@ private fun LayerButtons(state: DesignEditorState) {
         TextButton(onClick = { state.reorder(up = true, all = false) }) { Text(tr("Nach vorne")) }
         TextButton(onClick = { state.reorder(up = false, all = false) }) { Text(tr("Nach hinten")) }
         IconButton(onClick = { state.reorder(up = false, all = true) }) { Icon(Icons.Outlined.FlipToBack, contentDescription = tr("Ganz nach hinten")) }
+    }
+    // Gruppieren (AP-50): several elements move, align and get selected as one.
+    val grouped = state.selected.any { it.group.isNotEmpty() }
+    if (state.selection.size >= 2 || grouped) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (state.selection.size >= 2 && !(grouped && state.selected.map { it.group }.distinct().size == 1)) OutlinedButton(onClick = { state.group() }) { Text(tr("Gruppieren (Strg+G)")) }
+        if (grouped) OutlinedButton(onClick = { state.ungroup() }) { Text(tr("Gruppierung aufheben")) }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = { state.duplicate() }) { Icon(Icons.Outlined.ContentCopy, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Verdoppeln")) }

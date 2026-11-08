@@ -1057,7 +1057,12 @@ private fun FreeOverlay(elements: List<io.github.thepytales.llmhub.docs.SlideEle
             fun commit() {
                 if (dx != 0f || dy != 0f || dw != 0f || dh != 0f) {
                     val r = { v: Double -> Math.round(v * 10) / 10.0 }
-                    onChange(elements.toMutableList().apply { set(i, el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))) })
+                    val moved = el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))
+                    // A group moves together (shared canvas, AP-50).
+                    val ddx = moved.x - el.x
+                    val ddy = moved.y - el.y
+                    val together = el.group.isNotEmpty() && dw == 0f && dh == 0f
+                    onChange(elements.mapIndexed { j, o -> if (j == i) moved else if (together && o.group == el.group) o.copy(x = r(o.x + ddx), y = r(o.y + ddy)) else o })
                 }
             }
             Box(
@@ -1162,9 +1167,28 @@ private fun FreeDesignBar(
                             listOf("links" to "◧", "mitte" to "▣", "rechts" to "◨").forEach { (k, sym) -> FilterChip(el.align == k, { set(el.copy(align = k)) }, label = { Text(sym) }) }
                         }
                     }
+                    // The same operations as Erstellen › Gestalten (shared canvas, AP-50): align to the slide, layers, groups.
+                    HintText(tr("Ausrichten auf der Folie"))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf("left" to "⇤", "hcenter" to "↔", "right" to "⇥", "top" to "⤒", "vcenter" to "↕", "bottom" to "⤓").forEach { (mode, sym) ->
+                            FilterChip(false, { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.align(s.elements, setOf(picked), mode))) }, label = { Text(sym) })
+                        }
+                    }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(removeAt(picked)) })); onPick(s.elements.lastIndex) }) { Text(tr("Nach vorn")) }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(0, removeAt(picked)) })); onPick(0) }) { Text(tr("Nach hinten")) }
+                        fun layer(up: Boolean) {
+                            val next = io.github.thepytales.llmhub.creative.SlideCanvas.reorder(s.elements, setOf(picked), up, all = true)
+                            onChange(s.copy(elements = next))
+                            onPick(next.indexOfFirst { it == el }.takeIf { it >= 0 })
+                        }
+                        TextButton(onClick = { layer(true) }) { Text(tr("Nach vorn")) }
+                        TextButton(onClick = { layer(false) }) { Text(tr("Nach hinten")) }
+                        // Gruppieren: with the element drawn just below it (on a slide one element is picked at a time).
+                        if (el.group.isNotEmpty()) TextButton(onClick = { onChange(s.copy(elements = s.elements.map { if (it.group == el.group) it.copy(group = "") else it })) }) { Text(tr("Gruppierung aufheben")) }
+                        else if (picked > 0) TextButton(onClick = {
+                            val id = io.github.thepytales.llmhub.data.newDesignId()
+                            val below = s.elements[picked - 1].group.ifEmpty { id }
+                            onChange(s.copy(elements = s.elements.mapIndexed { i, x -> if (i == picked || i == picked - 1 || (x.group.isNotEmpty() && x.group == s.elements[picked - 1].group)) x.copy(group = below) else x }))
+                        }) { Text(tr("Mit dem Element darunter gruppieren")) }
                         TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text(tr("Duplizieren")) }
                         TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
                     }

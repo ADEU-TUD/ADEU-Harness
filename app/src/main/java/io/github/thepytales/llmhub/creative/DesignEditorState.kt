@@ -136,6 +136,8 @@ class DesignEditorState(initial: Design) {
     var guides by mutableStateOf<List<Guide>>(emptyList())
     /** Increased to put the cursor into the text field of the panel (double click on a text). */
     var focusText by mutableIntStateOf(0)
+    /** The text box being typed in right on the canvas (AP-50), or null. */
+    var inlineText by mutableStateOf<String?>(null)
     var canUndo by mutableStateOf(false)
         private set
     var canRedo by mutableStateOf(false)
@@ -261,26 +263,9 @@ class DesignEditorState(initial: Design) {
 
     /** Layer order: [toFront] = to the very top/bottom, otherwise one step. */
     fun reorder(up: Boolean, all: Boolean) {
-        val ids = selection
+        val ids = withGroups(selection)
         if (ids.isEmpty()) return
-        edit { d ->
-            mapPage(d) { p ->
-                val list = p.elements.toMutableList()
-                val moving = list.filter { it.id in ids }
-                if (all) {
-                    list.removeAll(moving)
-                    if (up) list.addAll(moving) else list.addAll(0, moving)
-                } else {
-                    val indices = if (up) list.indices.reversed() else list.indices
-                    for (i in indices) {
-                        if (list[i].id !in ids) continue
-                        val j = if (up) i + 1 else i - 1
-                        if (j in list.indices && list[j].id !in ids) list[i] = list[j].also { list[j] = list[i] }
-                    }
-                }
-                p.copy(elements = list)
-            }
-        }
+        edit { d -> mapPage(d) { p -> p.copy(elements = CanvasOps.reordered(p.elements, ids, up, all)) } }
     }
 
     fun move(dx: Float, dy: Float, key: String = "nudge") =
@@ -291,39 +276,26 @@ class DesignEditorState(initial: Design) {
      * right, top, vcenter, bottom; distributeH/distributeV spread three or more evenly.
      */
     fun align(mode: String) {
-        val els = selected.filter { !it.locked }
-        if (els.isEmpty()) return
-        val area = if (els.size == 1) Rect(0f, 0f, design.width, design.height) else DesignGeometry.bounds(els) ?: return
-        if (mode == "distributeH" || mode == "distributeV") {
-            if (els.size < 3) return
-            val horizontal = mode == "distributeH"
-            val sorted = els.sortedBy { if (horizontal) DesignGeometry.bounds(it).left else DesignGeometry.bounds(it).top }
-            val total = sorted.sumOf { (if (horizontal) DesignGeometry.bounds(it).width else DesignGeometry.bounds(it).height).toDouble() }.toFloat()
-            val span = if (horizontal) area.width else area.height
-            val gap = (span - total) / (sorted.size - 1)
-            var pos = if (horizontal) area.left else area.top
-            val shifts = HashMap<String, Float>()
-            sorted.forEach { e ->
-                val b = DesignGeometry.bounds(e)
-                shifts[e.id] = pos - (if (horizontal) b.left else b.top)
-                pos += (if (horizontal) b.width else b.height) + gap
-            }
-            updateElements(shifts.keys) { e -> if (horizontal) e.copy(x = e.x + shifts.getValue(e.id)) else e.copy(y = e.y + shifts.getValue(e.id)) }
-            return
-        }
-        updateElements(els.map { it.id }.toSet()) { e ->
-            val b = DesignGeometry.bounds(e)
-            when (mode) {
-                "left" -> e.copy(x = e.x + area.left - b.left)
-                "hcenter" -> e.copy(x = e.x + area.center.x - b.center.x)
-                "right" -> e.copy(x = e.x + area.right - b.right)
-                "top" -> e.copy(y = e.y + area.top - b.top)
-                "vcenter" -> e.copy(y = e.y + area.center.y - b.center.y)
-                "bottom" -> e.copy(y = e.y + area.bottom - b.bottom)
-                else -> e
-            }
-        }
+        val ids = selected.filter { !it.locked }.map { it.id }.toSet()
+        if (ids.isEmpty()) return
+        val next = CanvasOps.aligned(current.elements, ids, mode, design.width, design.height)
+        if (next == current.elements) return
+        val byId = next.associateBy { it.id }
+        updateElements(ids) { byId[it.id] ?: it }
     }
+
+    /** Groups the selection (two or more elements): they move, align and get selected together. */
+    fun group() {
+        if (selection.size < 2) return
+        val id = newDesignId()
+        updateElements(selection) { it.copy(group = id) }
+    }
+
+    /** Takes the selected groups apart. */
+    fun ungroup() = updateElements(selection) { it.copy(group = "") }
+
+    /** [ids] with all members of their groups (a click on one element of a group selects the whole group). */
+    fun withGroups(ids: Set<String>): Set<String> = CanvasOps.withGroups(current.elements, ids)
 
     // ── Pages ──────────────────────────────────────────────────────────────────────────────────────────
 

@@ -105,8 +105,21 @@ data class DesignElement(
     val locked: Boolean = false,
     /** Alternative text of pictures (accessibility of the PDF and PowerPoint). */
     val alt: String = "",
+    /** Elements with the same group id move, align and get selected together (Gruppieren, AP-50). */
+    val group: String = "",
+    /** Second colour of a linear gradient from [fill] to [fill2] (empty: solid); [gradientAngle] 0° = left → right, 90° = top → bottom. */
+    val fill2: String = "",
+    val gradientAngle: Float = 90f,
+    /** Picture filters (AP-50): −1 … 1 (0 = unchanged), grey scale and blur in mm. */
+    val brightness: Float = 0f,
+    val contrast: Float = 0f,
+    val saturation: Float = 0f,
+    val grayscale: Boolean = false,
+    val blur: Float = 0f,
 ) {
     val isText get() = kind == ElementKind.TEXT
+    /** A gradient or a picture filter: exports draw such an element as a picture where they cannot do it natively. */
+    val hasEffects get() = fill2.isNotBlank() || brightness != 0f || contrast != 0f || saturation != 0f || grayscale || blur > 0f
     val cx get() = x + w / 2
     val cy get() = y + h / 2
 }

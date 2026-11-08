@@ -5319,3 +5319,14 @@ Welche Spalte soll ich auszählen?	Which column should I count?
 Welcher Bereich? Zum Beispiel A1:B10	Which range? For example A1:B10
 Zusammenfassung steht ab {0}: {1}.	Summary starts at {0}: {1}.
 Ändern sich die Daten, aktualisiert sich das Diagramm im Dokument beim nächsten Öffnen.	When the data changes, the chart in the document updates the next time it is opened.
+Verlauf bis	Gradient to
+Bildfilter	Picture filters
+Kontrast	Contrast
+Sättigung	Saturation
+Weichzeichnen	Blur
+Graustufen	Greyscale
+Filter zurücksetzen	Reset filters
+Gruppieren (Strg+G)	Group (Ctrl+G)
+Gruppierung aufheben	Ungroup
+Ausrichten auf der Folie	Align on the slide
+Mit dem Element darunter gruppieren	Group with the element below

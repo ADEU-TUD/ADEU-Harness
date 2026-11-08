@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asSkiaBitmap
+import androidx.compose.ui.graphics.asSkiaColorFilter
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -430,9 +433,9 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
     val alpha = e.opacity.coerceIn(0f, 1f)
     when (e.kind) {
         ElementKind.TEXT -> {
-            designColor(e.fill, alpha)?.let { bg ->
-                drawRoundRect(bg, Offset.Zero, Size(e.w, e.h), CornerRadius(min(e.radius, min(e.w, e.h) / 2)))
-            }
+            val corner = CornerRadius(min(e.radius, min(e.w, e.h) / 2))
+            gradientOf(e, alpha)?.let { drawRoundRect(it, Offset.Zero, Size(e.w, e.h), corner) }
+                ?: designColor(e.fill, alpha)?.let { bg -> drawRoundRect(bg, Offset.Zero, Size(e.w, e.h), corner) }
             designColor(e.stroke, alpha)?.takeIf { e.strokeWidth > 0f }?.let { s ->
                 drawRoundRect(s, Offset.Zero, Size(e.w, e.h), CornerRadius(min(e.radius, min(e.w, e.h) / 2)), style = Stroke(e.strokeWidth))
             }
@@ -456,7 +459,7 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
         }
         ElementKind.RECT, ElementKind.ELLIPSE, ElementKind.TRIANGLE, ElementKind.STAR -> {
             val p = DesignShapes.path(e)
-            designColor(e.fill, alpha)?.let { drawPath(p, it, style = Fill) }
+            gradientOf(e, alpha)?.let { drawPath(p, it, style = Fill) } ?: designColor(e.fill, alpha)?.let { drawPath(p, it, style = Fill) }
             designColor(e.stroke, alpha)?.takeIf { e.strokeWidth > 0f }?.let { drawPath(p, it, style = Stroke(e.strokeWidth, join = StrokeJoin.Round)) }
         }
         ElementKind.TUD_SHAPE -> {
@@ -500,13 +503,29 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
             clipPath(clip) {
                 // drawImage takes whole units: the target is given in 1/IMG_REF mm under an extra scale.
                 scale(1f / IMG_REF, 1f / IMG_REF, Offset.Zero) {
-                    drawImage(
+                    if (e.blur > 0f) {
+                        // Weichzeichnen: Skia's blur (and the colour filters) on the picture.
+                        drawIntoCanvas { cv ->
+                            val paint = org.jetbrains.skia.Paint().apply {
+                                imageFilter = org.jetbrains.skia.ImageFilter.makeBlur(e.blur * IMG_REF / 2, e.blur * IMG_REF / 2, org.jetbrains.skia.FilterTileMode.CLAMP)
+                                filterOf(e)?.let { colorFilter = it.asSkiaColorFilter() }
+                                this.alpha = (alpha * 255).toInt().coerceIn(0, 255)
+                            }
+                            cv.nativeCanvas.drawImageRect(
+                                Image.makeFromBitmap(img.asSkiaBitmap()),
+                                org.jetbrains.skia.Rect.makeLTRB(place.src.left, place.src.top, place.src.right, place.src.bottom),
+                                org.jetbrains.skia.Rect.makeLTRB(place.dst.left * IMG_REF, place.dst.top * IMG_REF, place.dst.right * IMG_REF, place.dst.bottom * IMG_REF),
+                                paint,
+                            )
+                        }
+                    } else drawImage(
                         img,
                         srcOffset = androidx.compose.ui.unit.IntOffset(place.src.left.toInt(), place.src.top.toInt()),
                         srcSize = IntSize(place.src.width.toInt().coerceAtLeast(1), place.src.height.toInt().coerceAtLeast(1)),
                         dstOffset = androidx.compose.ui.unit.IntOffset((place.dst.left * IMG_REF).toInt(), (place.dst.top * IMG_REF).toInt()),
                         dstSize = IntSize((place.dst.width * IMG_REF).toInt().coerceAtLeast(1), (place.dst.height * IMG_REF).toInt().coerceAtLeast(1)),
                         alpha = alpha,
+                        colorFilter = filterOf(e),
                         filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
                     )
                 }
@@ -528,6 +547,29 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
             drawPath(p, designColor(e.color, alpha) ?: Color.Black)
         }
     }
+}
+
+/** The linear gradient from [DesignElement.fill] to [DesignElement.fill2] across the box (null: solid). */
+fun gradientOf(e: DesignElement, alpha: Float = 1f): androidx.compose.ui.graphics.Brush? {
+    val a = designColor(e.fill, alpha) ?: return null
+    val b = designColor(e.fill2, alpha) ?: return null
+    val rad = Math.toRadians(e.gradientAngle.toDouble())
+    val dx = cos(rad).toFloat()
+    val dy = sin(rad).toFloat()
+    val half = (kotlin.math.abs(e.w * dx) + kotlin.math.abs(e.h * dy)) / 2
+    val c = Offset(e.w / 2, e.h / 2)
+    return androidx.compose.ui.graphics.Brush.linearGradient(listOf(a, b), start = c - Offset(dx * half, dy * half), end = c + Offset(dx * half, dy * half))
+}
+
+/** Brightness, contrast, saturation and grey scale of a picture as colour matrix (null: unchanged). */
+fun filterOf(e: DesignElement): androidx.compose.ui.graphics.ColorFilter? {
+    if (e.brightness == 0f && e.contrast == 0f && e.saturation == 0f && !e.grayscale) return null
+    val sat = androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(if (e.grayscale) 0f else (1f + e.saturation).coerceIn(0f, 3f)) }
+    val k = (1f + e.contrast).coerceIn(0f, 3f)
+    val o = 128f * (1f - k) + 255f * e.brightness.coerceIn(-1f, 1f)
+    val cb = androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(k, 0f, 0f, 0f, o, 0f, k, 0f, 0f, o, 0f, 0f, k, 0f, o, 0f, 0f, 0f, 1f, 0f))
+    cb.timesAssign(sat)
+    return androidx.compose.ui.graphics.ColorFilter.colorMatrix(cb)
 }
 
 /** Pictures are drawn with whole-unit target rectangles, given in 1/[IMG_REF] mm (see [drawElementLocal]). */

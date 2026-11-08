@@ -344,6 +344,12 @@ data class SlideElement(
     val bold: Boolean = false,
     /** „links“, „mitte“, „rechts“. */
     val align: String = "links",
+    /** Degrees clockwise (shared canvas, AP-50). */
+    val rotation: Double = 0.0,
+    /** Elements with the same group id move and align together. */
+    val group: String = "",
+    /** Second colour of a gradient fill (top → bottom). */
+    val fill2: String = "",
 )
 
 /** Masterfolie (AP-16 Stufe 3): background, accent and footer of every slide of the deck; logo on or off. */

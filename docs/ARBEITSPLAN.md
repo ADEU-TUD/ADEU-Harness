@@ -148,7 +148,7 @@ So nah wie möglich an **Google Sheets/Excel**:
   Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben, Daten
   bereinigen um Datumsformate.
 
-### AP-50 ☐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
+### AP-50 ◐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
 - Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
   Gruppieren, TUD-Shape, TUD-Icons, Logos, QR-Codes) – ein Kern für beide; die Leinwand kommt dafür in den gemeinsamen
   Code (Android zeigt sie an).
@@ -159,6 +159,19 @@ So nah wie möglich an **Google Sheets/Excel**:
 - Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
 - **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
 - Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
+- **Umsetzung (08.11.2026, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
+  `creative/DesignViewport.kt` aus Windows verschoben, neu `creative/CanvasOps.kt`): Ausrichten, Verteilen, Ebenen und
+  **Gruppen** als reine Funktionen, die Gestalten und die Folien beide nutzen (`SlideCanvas` übersetzt die freien
+  Folienelemente in cm in Leinwand-Elemente in mm und zurück). **Gestalten**: *Gruppieren* (Strg+G, Strg+Umschalt+G; ein
+  Klick wählt die ganze Gruppe, sie bewegt und richtet sich als ein Block aus), **Text direkt auf der Leinwand tippen**
+  (Doppelklick auf ein Textfeld: Eingabe an Ort und Stelle in Schrift, Größe, Farbe und Drehung des Felds, Esc oder Klick
+  daneben beendet), **Farbverläufe** (zweite Farbe und Richtung für Formen und Text-Hintergründe), **Bildfilter**
+  (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen) – im Editor, PNG, PDF und PowerPoint gleich (PDF und
+  PowerPoint bekommen solche Elemente als scharfes Bild). **Folien**: Ausrichten auf der Folie und Ebenen über dieselben
+  Funktionen, Gruppen (mit dem Element darunter gruppieren, Gruppe zieht sich gemeinsam), Drehung und Verlauf im
+  Folienmodell. Test `SharedCanvasTest`. **Offen**: Folien-Editor ganz auf die Gestalten-Leinwand umstellen (Drehen,
+  Einrasten, Mehrfachauswahl, TUD-Shape/Icons/QR auf Folien), Android zeigt die Leinwand (Zeichnen ist noch Windows-Code),
+  Text-Kern mit Formatierung innerhalb eines Textfelds, Tabellen auf der Leinwand.
 
 ### AP-51 ☐ Folien wie PowerPoint · L (neu)
 So nah wie möglich an **Google Slides/PowerPoint**:
