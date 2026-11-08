@@ -37,6 +37,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.focusable
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -449,10 +460,18 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         )
     }
 
+    // Schnellansicht and Details-Spalte (AP-66): the file under the mouse (Windows) or chosen, the space bar shows it large.
+    var lookAt by remember { mutableStateOf<DriveItem?>(null) }
+    var hoverItem by remember { mutableStateOf<DriveItem?>(null) }
+    var lastItem by remember { mutableStateOf<DriveItem?>(null) }
+    var details by rememberSaveable { mutableStateOf(false) }
+    var searchFocused by remember { mutableStateOf(false) }
+    /** The file the space bar and the Details-Spalte are about. */
+    fun target(): DriveItem? = hoverItem ?: selection.values.singleOrNull() ?: lastItem
     val actions = DriveActions(
         open = { open(it) },
         editPdf = { editPdf(it) },
-        focus = { io.github.thepytales.llmhub.agent.LoraFocus.files = listOf(it.file) },
+        focus = { io.github.thepytales.llmhub.agent.LoraFocus.files = listOf(it.file); lastItem = it },
         rename = { renaming = it },
         move = { moving = listOf(it) },
         copy = { scope.launch(Dispatchers.IO) { drive.copy(listOf(it.file), it.file.parentFile ?: drive.root) } },
@@ -469,6 +488,8 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         toNextcloud = toNextcloud?.let { save -> { item: DriveItem -> save(item.file) } },
         ask = { item -> askFolder(item.file) },
         selectedFiles = { selection.values.map { it.file } },
+        hover = { item -> hoverItem = item; if (item != null) lastItem = item },
+        look = { lookAt = it },
     )
 
     // Dragging onto a folder (Windows): folders note where they are on screen.
@@ -492,12 +513,26 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         register = { key, rect, dir -> if (rect == null) dropTargets.remove(key) else dropTargets[key] = rect to dir },
     )
 
+    val keys = remember { androidx.compose.ui.focus.FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { keys.requestFocus() } }
     Scaffold(
+        // AP-66: Leertaste opens the Schnellansicht of the file under the mouse or chosen – before a focused button or
+        // entry takes it as a click; the search field keeps its spaces.
+        modifier = Modifier.focusRequester(keys).focusable().onPreviewKeyEvent { e ->
+            if (e.key != Key.Spacebar || searchFocused || lookAt != null) return@onPreviewKeyEvent false
+            val t = target() ?: return@onPreviewKeyEvent false
+            if (e.type == KeyEventType.KeyDown) lookAt = t
+            true
+        },
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Dateien")) },
                 actions = {
+                    // Details-Spalte (AP-66), on wide windows.
+                    IconButton(onClick = { details = !details }) {
+                        Icon(Icons.Outlined.Info, contentDescription = if (details) tr("Details ausblenden") else tr("Details einblenden"), tint = if (details) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                    }
                     IconButton(onClick = { c.settings.update { it.copy(filesGrid = !it.filesGrid) } }) {
                         Icon(if (settings.filesGrid) Icons.Outlined.ViewList else Icons.Outlined.GridView, contentDescription = if (settings.filesGrid) tr("Liste") else tr("Raster"))
                     }
@@ -558,7 +593,8 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                     Spot("files.search") {
                         OutlinedTextField(
                             query, { query = it }, singleLine = true, shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp).widthIn(max = 900.dp),
+                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp).widthIn(max = 900.dp)
+                                .onFocusChanged { searchFocused = it.isFocused },
                             leadingIcon = { Icon(Icons.Outlined.Search, null) },
                             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, tr("Leeren")) } },
                             placeholder = { Text(tr("In Dateien suchen – Namen, Schlagwörter und Inhalt")) },
@@ -609,6 +645,14 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                         }
                     }
                 }
+                // Details-Spalte (AP-66).
+                if (wide && details) {
+                    androidx.compose.material3.VerticalDivider()
+                    FileDetailsPane(
+                        c, target(), chatTitle = { id -> chats.firstOrNull { it.id == id }?.title },
+                        onLook = { lookAt = it }, onOpen = { open(it) }, onClose = { details = false },
+                    )
+                }
             }
             // The dragged files follow the pointer.
             dragging?.let { list ->
@@ -631,6 +675,9 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
             renaming = null
             runCatching { drive.rename(it0.file, name) }.onFailure { Notices.error(it.message ?: tr("Umbenennen ging nicht.")) }
         }
+    }
+    lookAt?.let { start ->
+        QuickLookDialog(c, entries.orEmpty().filter { !it.dir || it.key == start.key }.ifEmpty { listOf(start) }, start, onOpen = { lookAt = null; open(it) }, onClose = { lookAt = null })
     }
     moving?.let { list ->
         MoveDialog(drive, list, placeRoot?.let(::File), onDismiss = { moving = null }) { target ->
@@ -712,6 +759,10 @@ private class DriveActions(
     val ask: ((DriveItem) -> Unit)? = null,
     /** The files of the selection (AP-59: dragging out and copying several at once). */
     val selectedFiles: () -> List<File> = { emptyList() },
+    /** The mouse is over this item / left it (AP-66: Leertaste and Details-Spalte). */
+    val hover: (DriveItem?) -> Unit = {},
+    /** Schnellansicht of the item (AP-66). */
+    val look: (DriveItem) -> Unit = {},
 )
 
 /** Dragging items onto folders with the mouse (Windows). */
@@ -734,6 +785,18 @@ private fun Modifier.itemGestures(item: DriveItem, actions: DriveActions, drag: 
     var origin by remember { mutableStateOf(Offset.Zero) }
     val base = this
         .onGloballyPositioned { origin = it.positionInWindow() }
+        // AP-66: which file the mouse is over (the space bar shows it, the Details-Spalte describes it).
+        .pointerInput(item.key, "hover") {
+            awaitPointerEventScope {
+                while (true) {
+                    val e = awaitPointerEvent()
+                    when (e.type) {
+                        androidx.compose.ui.input.pointer.PointerEventType.Enter -> actions.hover(item)
+                        androidx.compose.ui.input.pointer.PointerEventType.Exit -> actions.hover(null)
+                    }
+                }
+            }
+        }
         .combinedClickable(
             onClick = { if (actions.selecting()) actions.select(item) else actions.open(item) },
             onLongClick = { actions.select(item) },
@@ -992,6 +1055,8 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
     DropdownMenu(open, onDismiss) {
         fun act(a: () -> Unit) { onDismiss(); a() }
         DropdownMenuItem(text = { Text(tr("Öffnen")) }, onClick = { act { actions.open(item) } })
+        // Schnellansicht (AP-66): large, without opening (Windows: Leertaste).
+        DropdownMenuItem(text = { Text(tr("Vorschau") + if (DESKTOP) " " + tr("(Leertaste)") else "") }, leadingIcon = { Icon(Icons.Outlined.Visibility, null) }, onClick = { act { actions.look(item) } })
         if (open) LaunchedEffect(item.key) { actions.focus(item) }
         if (!item.dir && item.kind == FileKind.PDF) {
             DropdownMenuItem(
