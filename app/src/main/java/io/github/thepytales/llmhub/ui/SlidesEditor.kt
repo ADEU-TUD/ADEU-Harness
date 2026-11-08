@@ -507,9 +507,16 @@ private fun SlideWork(
                     HintText(tr("Freie Folie: Textfelder, Bilder und Formen über die Leiste unter der Folie einfügen, auf der Folie verschieben, an der Ecke unten rechts in der Größe ändern."))
                 }
             }
+            // Diktat (AP-65): speaker notes spoken instead of typed.
+            val dictateNotes = rememberDictation(c) { text ->
+                val at = notes.selection.min.coerceIn(0, notes.text.length)
+                val piece = io.github.thepytales.llmhub.audio.Dictation.join(notes.text.substring(0, at), text)
+                notes = TextFieldValue(notes.text.substring(0, at) + piece + notes.text.substring(notes.selection.max.coerceIn(at, notes.text.length)), androidx.compose.ui.text.TextRange(at + piece.length))
+            }
             OutlinedTextField(
                 notes, { notes = it }, label = { Text(tr("Sprechernotizen")) }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
                 leadingIcon = { Icon(Icons.Outlined.SpeakerNotes, contentDescription = null) },
+                trailingIcon = { DictateIcon(dictateNotes) },
             )
             HintText(
                 tr("Folie {0} von {1} · Enter: neuer Stichpunkt, Tab: einrücken, Strg+B: fett · Strg+M: neue Folie, F5: vorführen · ", sel + 1, slides.size) +
