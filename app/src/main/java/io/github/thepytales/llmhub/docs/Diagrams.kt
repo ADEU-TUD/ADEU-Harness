@@ -150,7 +150,7 @@ object Diagrams {
             var t = raw.trim()
             if (t.startsWith("::")) continue
             // root((Text)), id[Text] or plain text
-            val m = Regex("""^([A-Za-z0-9_]*)\s*(\(\(.*?\)\)|\(\[.*?]\)|\[.*?]|\(.*?\)|\{\{.*?}}|\)\).*?\(\(|\).*?\()$""").find(t)
+            val m = Regex("""^([A-Za-z0-9_]*)\s*(\(\(.*?\)\)|\(\[.*?]\)|\[.*?]|\(.*?\)|\{\{.*?\}\}|\)\).*?\(\(|\).*?\()$""").find(t)
             var shape = "round"
             if (m != null && m.groupValues[2].isNotEmpty()) {
                 val br = m.groupValues[2]

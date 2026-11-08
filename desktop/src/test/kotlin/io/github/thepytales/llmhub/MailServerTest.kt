@@ -153,7 +153,9 @@ class MailServerTest {
             val draft = fake.appended.single()
             assertTrue("To: \"Prof. Weber\" <weber@tu-dresden.de>" in draft || "To: =?UTF-8?B?" in draft, draft)
             assertTrue("In-Reply-To: <m1@tu>" in draft && "Subject: =?UTF-8?B?" in draft)
-            assertTrue(fake.commands.none { c -> listOf("EXPUNGE", "DELETE", "STORE").any { c.uppercase().startsWith("UID $it") || c.uppercase().startsWith(it) } }, fake.commands.toString())
+            // A copy under the list's lock: the server thread may still be writing (LOGOUT) – iterating it directly raced.
+            val commands = synchronized(fake.commands) { fake.commands.toList() }
+            assertTrue(commands.none { c -> listOf("EXPUNGE", "DELETE", "STORE").any { c.uppercase().startsWith("UID $it") || c.uppercase().startsWith(it) } }, commands.toString())
             assertEquals("Neu", b.createFolder(null, "Neu").name)
             assertFailsWith<OutlookException> { b.events(0, 1) }
         } finally {

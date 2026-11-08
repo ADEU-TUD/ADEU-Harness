@@ -704,6 +704,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     beheben* setzt Sprache, Titel, Titelanzeige und Tab-Reihenfolge.
   - **Zwei PDFs vergleichen** (zwei offene Tabs): Seite für Seite, Wort für Wort, was entfernt und was neu ist – auch
     als Word-Dokument.
+  **Seit AP-60** (Windows): **Markieren am Text** – Hervorheben, Unterstreichen und Durchstreichen rasten an den Zeilen
+  ein (vom ersten bis zum letzten Wort, ein Kasten je Zeile; Schalter *Am Text einrasten*). **Schwärzen mit der Maus**:
+  Rechteck ziehen oder Wort anklicken, dann echt schwärzen. **Digitale Signatur** mit einem Zertifikat aus dem
+  Windows-Zertifikatsspeicher oder einer .p12/.pfx-Datei (der private Schlüssel bleibt dort), optional mit sichtbarem
+  Feld; **Signaturen prüfen** sagt, ob das Dokument unverändert ist, ob danach etwas hinzukam und ob dieser PC dem
+  Zertifikat vertraut (Bouncy Castle). **Tags erzeugen** für PDF/UA: Überschriften nach Schriftgröße, Absätze, Listen,
+  Abbildungen mit eingegebenem Alternativtext, Linien und Seitenzahlen als Dekoration – danach meldet die PDF/UA-Prüfung
+  „Mit Struktur (Tags)“. Tabellen werden noch nicht erkannt. Test `PdfRestTest`.
 - **Mail & Kalender** (AP-13, AP-27, Werkzeug *Mail & Kalender*, anfangs aus): Lora arbeitet unter Windows mit dem
   **klassischen Outlook** dieses PCs – lokal über COM (JNA, ohne PowerShell, ohne Admin-Rechte, ohne Freigabe der IT;
   Outlook startet bei Bedarf im Hintergrund). Für das neue Outlook, andere Mailprogramme und **das Handy** gibt es den
@@ -759,6 +767,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     und öffnet einen Chat im **Quellenmodus** über genau diese Dateien – das Werkzeug `search_folder` liefert die Stellen
     mit Datei und Seite, die Belegprüfung prüft jedes Zitat, ein Klick öffnet das PDF an der Seite. Wirkt der Ordner
     vertraulich, empfiehlt die App „Nur TU Dresden“.
+  - **Windows-Integration** (AP-59): Dateien aus dem Explorer in den offenen Ordner ziehen (Kopie) und **aus Lora hinaus**
+    über den Griff ⋮⋮ an jeder Zeile in den Explorer, eine Outlook-Mail oder ein anderes Programm ziehen (auch mehrere
+    ausgewählte); *Als Datei kopieren* legt Dateien in die Zwischenablage (Strg+V im Explorer oder in einer Mail).
+    **„Mit Lora öffnen“ / „Lora fragen“** im Kontextmenü des Explorers (und „Frag diesen Ordner“ auf Ordnern) – je
+    Benutzer ohne Admin-Rechte, Schalter unter *Einstellungen › Windows › Explorer und Papierkorb*; eine laufende App
+    übernimmt die Datei. Wahlweise landen gelöschte Dateien im **Windows-Papierkorb**. **In Word/Excel/PowerPoint öffnen
+    und zurück**: im Dateimenü und im Dokument-Menü; solange Office die Datei offen hat, steht „in Word geöffnet“ an der
+    Datei und über dem Dokument, und was dort gespeichert wird, kommt binnen einer Sekunde zurück. Test
+    `WindowsIntegrationTest`.
   - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
     verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
 - **Office-Ausbau** (AP-16): Dokumente fühlen sich an wie Google Docs, mit **Lora rechts als Assistentin** (auf breiten
@@ -996,6 +1013,39 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   - **Anonymisieren für Forschungsmaterial**: *Gesichter verpixeln* findet Gesichter auf dem eigenen PC (YuNet im
     Videoeditor-Paket, nichts verlässt den Rechner), die Verpixelung folgt den Personen; dazu Bereiche von Hand verpixeln
     oder weichzeichnen und **Stimmen verfremden** – jede Anonymisierung steht im Protokoll. Test `VideoEffectsTest`.
+- **Videoeditor: textbasierter Schnitt** (AP-55, seit 1.0.60; links im Editor *Transkript* statt *Medien*): das
+  Transkript der Clips auf V1 als Text neben der Zeitleiste – ein Klick auf ein Wort springt dorthin, das gesprochene Wort
+  ist beim Abspielen hervorgehoben. **Wörter markieren und Entf = herausschneiden** (Umschalt+Klick oder Ziehen markiert;
+  der Clip wird geteilt, verknüpfter Ton geht mit, mit dem Magneten rückt alles nach), Absätze mit ↑/↓ verschieben
+  (= Clips verschieben), Sprecher:innen am Absatz, **Füllwörter** (orange) und **lange Pausen** markiert und mit einem Klick
+  entfernt bzw. gekürzt. **Lora als Schnitt-Assistentin**: „Kürze auf 10 Minuten, behalte die Beispiele“ – die Vorschläge
+  stehen durchgestrichen im Text, jeder einzeln annehmen oder ablehnen; auch als Lora-Aktion *Im Transkript schneiden*.
+  Rückgängig wie überall. Test `TextCutTest` (u. a. ein Lehrvideo nur über den Text geschnitten, Export = Zeitleiste).
+- **Bildschirmaufnahme** (AP-56, *Videoeditor › Bildschirm aufnehmen*): ganzer Bildschirm, ein Fenster oder ein
+  gezogener Bereich, dazu **Webcam**, **Mikrofon** und **Systemton** (über ein Aufnahmegerät wie „Stereomix“), Countdown,
+  Mauszeiger und **Klicks als Ringe**. Ein ffmpeg-Prozess nimmt alles mit derselben Uhr auf, jede Quelle in eine eigene
+  Datei (`Lora-Ordner/Aufnahmen/<Datum>`). Während der Aufnahme eine kleine Leiste oben (sie selbst ist nicht im Bild),
+  **Strg+Umschalt+F9** pausiert, **Strg+Umschalt+F10** stoppt – auch in anderen Programmen –, ebenso im Infobereich.
+  Nach dem Stopp liegt sofort ein **Projekt mit getrennten Spuren** im Editor: Bildschirm auf V1, Webcam als Bild-in-Bild
+  auf V2, Klicks auf V3, Mikrofon auf A1, Systemton auf A2; auf Wunsch **sofort transkribiert** (das Transkript wird
+  zugeordnet, sobald es fertig ist). In der Referentenansicht der Folien nimmt ein Knopf die Präsentation mit Mikrofon
+  auf. Test `ScreenRecorderTest`.
+- **Export mit Grafikkarte und Warteschlange** (AP-57): der Export erkennt **NVIDIA NVENC, Intel Quick Sync, AMD AMF** bzw.
+  Apple VideoToolbox (ffmpeg muss den Encoder kennen *und* eine Probe-Kodierung muss gehen) und rechnet damit deutlich
+  schneller; geht die Grafikkarte mitten im Export nicht, rechnet der Prozessor (x264) weiter. **Mehrere Ziele auf einmal**
+  (OPAL 720p, YouTube 1080p, wie das Projekt, **nur Ton** als M4A, **Untertitel** als SRT/VTT, **Kapitel** für die
+  YouTube-Beschreibung; im MP4 sind die Kapitel immer), Ziel Lora-Ordner, eigener Ordner oder zusätzlich **Nextcloud**
+  (gestreamt hochgeladen). Die Exporte laufen nacheinander **im Hintergrund** – weiterarbeiten, Fortschritt als Chip
+  „Exporte 1/3 · 45 %“ in der Kopfzeile, Liste mit Abbrechen, Öffnen, Kapitel kopieren. Test `ExportQueueTest`.
+- **Diagramme und Whiteboard** (AP-61, *Erstellen › Diagramme & Whiteboard*, im Dokument *Einfügen › Diagramm …*):
+  **Flussdiagramme, Mindmaps, Organigramme und Zeitstrahlen**, deren **Verbinder an den Formen haften** (ziehen, die
+  Pfeile gehen mit), **automatisch angeordnet** oder von Hand; Formen Rechteck, abgerundet, Raute, Kreis, Notiz. **Lora
+  zeichnet**: „Mach ein Flussdiagramm aus diesem Ablauf“ – im Editor oder als Lora-Aktion *Diagramm zeichnen* direkt ins
+  offene Dokument. **Mermaid-Text ↔ Diagramm** (flowchart/graph, mindmap, timeline) daneben, live in beide Richtungen.
+  **Whiteboard**: freie Fläche (verschieben, Mausrad zoomt) mit Notizzetteln und Freihand. Im Dokument steht ein Diagramm
+  als ` ```mermaid `- bzw. ` ```diagram `-Block, wird gezeichnet, ein Klick öffnet den Editor; im PDF als Vektorgrafik, in
+  Word und PowerPoint als Bild mit den Verbindungen als Alternativtext; auf Folien mit dem Layout *Diagramm*. Tests
+  `DiagramsTest`.
 - **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
   **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
   JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei
@@ -1608,6 +1658,12 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt` und `creative/CanvasOps.kt` (gemeinsam, AP-50), `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
 | `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |
+| `video/TextCut.kt`, `ui/VideoTranscriptPanel.kt` | Textbasierter Schnitt (AP-55): Wörter auf der Zeitleiste, Löschen = Schneiden, Absätze verschieben, Füllwörter/Pausen, Lora-Vorschläge |
+| `video/ScreenRecorder.kt`, `ui/ScreenRecordUi.kt`, `desktop/GlobalHotkeys.kt` | Bildschirmaufnahme (AP-56): ein ffmpeg-Prozess für Bildschirm, Webcam und Ton, Teile bei Pause, Klicks, Aufnahmeleiste, Tasten in ganz Windows |
+| `video/Encoders.kt`, `video/ExportQueue.kt`, `ui/VideoExportUi.kt` | Export (AP-57): Hardware-Encoder mit Rückfall, Warteschlange im Hintergrund, mehrere Ziele, Kapitel, Nextcloud |
+| `desktop/WindowsShell.kt`, `ui/ShellRequests.kt`, `ui/ExternalOffice.kt` (gemeinsam) | Windows-Integration (AP-59): Kontextmenü je Benutzer, Start mit Datei, Dateien nach außen ziehen/kopieren, Windows-Papierkorb, Office mit Rückweg |
+| `docs/PdfSigning.kt` (beide), `docs/PdfAutoTag.kt`, `PdfSnap` in `docs/PdfToolModel.kt` | PDF-Reste (AP-60): digitale Signatur mit Prüfung (Bouncy Castle), Tags für PDF/UA, Markieren und Schwärzen am Text |
+| `docs/Diagrams.kt`, `ui/DiagramView.kt`, `ui/DiagramEditor.kt`, `docs/DiagramRaster.kt`, `ui/WhiteboardScreen.kt` | Diagramme und Whiteboard (AP-61): Modell, Mermaid, Anordnung, Zeichnen (Compose, SVG, PNG), Editor, gespeicherte Tafeln |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |
 | `desktop/Autostart.kt`, `desktop/SingleInstance.kt` | „Mit Windows starten“ (macOS: LaunchAgent, Linux: `~/.config/autostart`), nur eine laufende App |
 | `desktop/Os.kt`, `update/AppLayout.kt`, `ui/Keys.kt` (gemeinsam) | macOS und Linux (AP-31): System, App-Ordner je System, tar.gz mit Rechten und Links, ⌘/Strg, Texte (⌘, Finder) |

@@ -111,29 +111,30 @@ private fun DiagramsRow(c: AppContainer) {
     val boards by Whiteboards.items.collectAsState()
     fun open(b: Board) { Navigation.openRoute.value = "whiteboard/${b.id}" }
     Column {
-        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        // Compact: title and the kinds in one line; the boards made so far below, only when there are some.
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Spot("create.diagrams") { Text(tr("Diagramme & Whiteboard"), style = MaterialTheme.typography.titleMedium) }
-                Text(tr("Flussdiagramme, Mindmaps, Organigramme und Zeitstrahlen – Verbinder haften an den Formen, Lora zeichnet aus einer Beschreibung; dazu eine freie Tafel für Notizzettel und Freihand."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("Flussdiagramme, Mindmaps, Organigramme und Zeitstrahlen – Verbinder haften an den Formen, Lora zeichnet aus einer Beschreibung; dazu eine freie Tafel für Notizzettel und Freihand."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-        }
-        Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            STARTS.forEach { (kind, label) ->
-                Surface(shape = RoundedCornerShape(12.dp), color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.width(150.dp).height(120.dp).clip(RoundedCornerShape(12.dp)).clickable {
-                    val d = if (kind == "board") Diagram(kind = "board", manual = true) else starterDiagram(kind)
-                    open(Whiteboards.save(Board(title = tr(label), diagram = d)))
-                }) {
-                    Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Icon(Icons.Outlined.AccountTree, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                        Text(tr(label), style = MaterialTheme.typography.titleSmall)
-                        Text(tr("neu"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                STARTS.forEach { (kind, label) ->
+                    androidx.compose.material3.AssistChip(
+                        onClick = {
+                            val d = if (kind == "board") Diagram(kind = "board", manual = true) else starterDiagram(kind)
+                            open(Whiteboards.save(Board(title = tr(label), diagram = d)))
+                        },
+                        label = { Text(tr(label)) },
+                        leadingIcon = { Icon(Icons.Outlined.AccountTree, null, Modifier.size(16.dp)) },
+                    )
                 }
             }
+        }
+        if (boards.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             boards.take(12).forEach { b ->
-                Surface(shape = RoundedCornerShape(12.dp), color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.width(190.dp).height(120.dp).clip(RoundedCornerShape(12.dp)).clickable { open(b) }) {
+                Surface(shape = RoundedCornerShape(12.dp), color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.width(190.dp).height(110.dp).clip(RoundedCornerShape(12.dp)).clickable { open(b) }) {
                     Column(Modifier.padding(8.dp)) {
-                        Box(Modifier.fillMaxWidth().height(70.dp), contentAlignment = Alignment.Center) { if (!b.diagram.isEmpty) DiagramCanvas(b.diagram, Modifier.height(70.dp)) }
+                        Box(Modifier.fillMaxWidth().height(62.dp), contentAlignment = Alignment.Center) { if (!b.diagram.isEmpty) DiagramCanvas(b.diagram, Modifier.height(62.dp)) }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(b.title, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                             IconButton(onClick = {
