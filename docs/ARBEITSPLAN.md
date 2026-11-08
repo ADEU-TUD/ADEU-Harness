@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 08.11.2026 (nach 1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (nach 1.0.59) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -62,9 +62,10 @@ Fairlight).
 | ~~Lora zuerst~~ ☑ | AP-38 Lora handelt in Werkzeugen · AP-39 Ein Gedächtnis für Lora · AP-40 Abläufe über Werkzeuge · AP-41 Leuchtrahmen überall und Touren · AP-42 Lora-Dateidialog (erledigt, siehe *Erledigt*) |
 | ~~Editor-Kern und Dokument~~ ☑ | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument (erledigt, siehe *Erledigt*) |
 | ~~Video-Grundlage~~ ☑ | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge (erledigt, siehe *Erledigt*) |
-| **Jetzt** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
-| **Danach** – Video | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
-| **Danach** – Dateien | ~~AP-58 Frag diesen Ordner~~ ☑ · AP-59 Windows-Integration |
+| ~~Office~~ ☑ | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint (erledigt, siehe *Erledigt*) |
+| **Jetzt** – Video | ~~AP-54 Einfache Effekte~~ ☑ · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
+| **Jetzt** – Dateien | ~~AP-58 Frag diesen Ordner~~ ☑ · AP-59 Windows-Integration |
+| **Danach** | – (zurzeit leer; aus *Später* rückt AP-60 PDF-Reste nach, sobald in *Jetzt* Platz ist) |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -72,187 +73,16 @@ Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-4
 (Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
-Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47) und die Video-Grundlage (AP-52, AP-53) sind erledigt; jetzt
-Tabellen und Folien (AP-48 bis AP-51), dann die übrigen Video- und Dateipakete. Die Video- und Office-Stränge sind unabhängig voneinander und dürfen sich
-abwechseln, wenn ein Strang wartet.
+Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47), die Video-Grundlage (AP-52, AP-53), Office (AP-48 bis AP-51) und
+AP-54 sind erledigt; jetzt die übrigen Video- und Dateipakete (AP-55, AP-56, AP-57, AP-59). Video- und Dateistrang sind
+unabhängig voneinander und dürfen sich abwechseln, wenn ein Strang wartet.
 
 ---
 
 ## Jetzt
 
-Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
-ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026: alle vier begonnen (◐) –
-das „Fertig, wenn“ von AP-48 und AP-49 ist erfüllt, die Reste stehen je Paket unter *Offen*; AP-58 aus *Danach* ist erledigt.
-
-### AP-48 ☑ Tabellen wie Excel · XL (neu, in Stufen)
-So nah wie möglich an **Google Sheets/Excel**:
-1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
-   WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
-   wie in Excel.
-2. **Bedienung**: mehrere Blätter (Tabs unten), Zellen verbinden, Zahlenformate, bedingte Formatierung, Filter und
-   Sortieren, Zeilen/Spalten fixieren, Ausfüllen durch Ziehen, Suchen/Ersetzen, Datenüberprüfung (Auswahllisten).
-3. **Große Daten**: CSV/Excel mit 100 000 Zeilen flüssig (virtuelles Raster, Berechnung nur für Sichtbares/Abhängiges,
-   Lesen im Hintergrund).
-4. **xlsx-Treue**: Formeln, Formate, Blätter, verbundene Zellen, bedingte Formatierung lesen und schreiben.
-- Zelltext nutzt den Text-Kern (AP-43) für Formatierung innerhalb von Zellen.
-- **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
-  verlustfrei als .xlsx speichern.
-- Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
-  ZÄHLENWENN, SUMMEWENNS & Co. und im genauen SVERWEIS/VERGLEICH, ausgelassene Argumente (`=XVERWEIS(70;D:D;A:A;;-1)`),
-  XVERWEIS mit Vergleichs- und Suchmodus, rund 45 neue Funktionen (u. a. MAXWENNS/MINWENNS, XVERGLEICH, VERWEIS, WAHL,
-  INDIREKT, ADRESSE, TEILERGEBNIS, HÄUFIGKEIT, QUARTILE, RANG.MITTELW, TEXTVOR/TEXTNACH/TEXTTEILEN, ERSETZEN, IDENTISCH,
-  ZEIT/STUNDE/DATWERT, KÜRZEN, LOG, ISTNV, FEHLER.TYP, MTRANS, VSTAPELN/HSTAPELN, SPALTENWAHL/ZEILENWAHL; die neuen
-  Matrixfunktionen laufen über), Excel-Namen mit `_xlfn.` im Export. **Hilfe beim Tippen** (`docs/SheetHelp.kt`): unter
-  der Bearbeitungsleiste die Argumente der Funktion am Cursor (aktuelles fett) bzw. passende Funktionen zum Vervollständigen
-  (Tab übernimmt). **Stufe 2 Bedienung**: Suchen/Ersetzen (Strg+F/Strg+H; Groß/klein, ganze Zelle, in Formeln oder Werten),
-  **Zellen verbinden**, **Zeilen 1–n und Spalten A–x fixieren**, **Spaltenbreite** (Rand im Spaltenkopf ziehen, breiter/
-  schmaler, an Inhalt anpassen), **Auswahllisten** (Werte oder Zellen, auch eines anderen Blatts; streng ablehnen oder nur
-  rot markieren; ▾ in der Zelle), **Ausfüllkästchen** zum Ziehen (Reihen, Formeln wandern mit). **Stufe 3 Große Daten**:
-  schneller Weg für Blätter (`SheetEngine.grid` Zeile für Zeile, Formate vom Ende her), Zellen ändern kopiert nur die
-  geänderte Zeile, Berechnung weiter nur für Sichtbares/Abhängiges; Messung im Test: 100 000 Zeilen × 7 Spalten lesen
-  0,4 s, erster Bildschirm 0,14 s, xlsx schreiben 2,8 s, lesen 1,5 s. **Stufe 4 xlsx-Treue** (`docs/XlsxReader.kt`): Zellen
-  mit einem eigenen Scanner statt XML-Baum (bis 200 000 Zeilen, vorher 2 000), **geteilte Formeln** (gingen bisher
-  verloren), verbundene Zellen, bedingte Formatierung (Wert, Text enthält, Farbskala), Auswahllisten, fixierte Zeilen/
-  Spalten, eigene Spaltenbreiten und Zahlenformate wie „0.0“ lesen und schreiben. Test `SheetsLikeExcelTest`: u. a.
-  **OPAL-Export mit 5 000 Zeilen** (geteilte Formeln, Formate) gelesen, mit SVERWEIS auf ein zweites Blatt angereichert,
-  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s).
-- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Formatierung innerhalb einer Zelle** (`docs/CellRich.kt`, `ui/SheetRichText.kt`):
-  der Zelltext trägt das Inline-Markdown des Text-Kerns (`**fett**`, `*kursiv*`, `~~durch~~`, `<u>`, `<span style="color:…">`);
-  ein Teil der Zelle wird in der Bearbeitungsleiste markiert und über die Werkzeugleiste bzw. Strg+B/I/U formatiert
-  (ohne Markierung gilt das Format wie bisher für die ganze Zelle). Die Leiste und die Zelle zeigen die Formatierung statt
-  der Zeichen, Formeln, Filter und Diagramme sehen den reinen Text (ein fettes „12“ bleibt eine Zahl), Excel bekommt
-  echte Rich-Text-Läufe (`<is><r><rPr>…`) und gibt sie beim Lesen zurück (auch aus `sharedStrings.xml`). **Diagramme in
-  .xlsx** (`docs/OfficeCharts.kt`): die Diagramme eines Blatts werden echte Excel-Diagramme (Zeichnung rechts neben den
-  Daten), deren Reihen auf die Zellen zeigen (`'Noten 2026'!$B$2:$B$5`, `SheetTools.chartRefs`); Histogramm und Boxplot
-  als Säulen ihrer Klassen bzw. Quartile mit Alternativtext „Histogramm von A1:A13“. Beim Öffnen werden Säulen-, Balken-,
-  Linien-, Kreis- und Punktdiagramme fremder Dateien zu Diagrammen des Blatts, auf dem ihre Daten stehen (ID bleibt über
-  den Namen „Lora-Diagramm …“). Test `OfficeChartsTest`.
-
-### AP-49 ☑ Diagramme und Lora rechnet · M–L (neu)
-- **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
-  Farben im TUD-Design; als Bild exportieren.
-- **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
-  Docs); in .docx/.pptx als echte Office-Diagramme, wo möglich.
-- **Lora rechnet**: „Berechne die Notenverteilung“, „Mittelwert je Gruppe“, Pivot-Zusammenfassung, Daten bereinigen
-  (Leerzeichen, Datumsformate, Dubletten), Formeln erklären – Ergebnisse als neue Spalten/Blätter mit Rückgängig, Erklärung
-  in Worten im Panel.
-- Rechnen passiert auf dem Gerät in der Tabellen-Engine; das Modell sieht nur Spaltennamen und Stichproben, außer man
-  erlaubt mehr.
-- **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
-  verknüpft steht und sich bei geänderten Noten aktualisiert.
-- Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
-  Kreis, Punkt – erste Spalte x –, Histogramm, Boxplot – je Spalte die Rohwerte), in den **Farben des TUD-Designs**
-  (`ChartLayout.TUD`: Brillantblau, Orange, Türkis, Magenta, Grün …), mit Titel, Achsentiteln, Typ und Bereich zum
-  Ändern (⋮ am Diagramm) und **als Bild (SVG)** im Ordner *Diagramme* neben dem Dokument. **Verknüpft einfügen**
-  (`docs/ChartLinks.kt`): ⋮ › *Verknüpft in Dokument oder Folien einfügen* schreibt einen ```chart-Block mit `"link"` (Dokument,
-  Blatt, Diagramm-ID) ans Ende des Dokuments bzw. als Diagrammfolie; beim Öffnen des Dokuments oder der Präsentation
-  kommen die Daten frisch aus der Tabelle. **Lora rechnet** (`SheetCalc`, Aktionen `sheet.distribution`, `sheet.group`,
-  `sheet.chart`, `sheet.explain`, auch ohne Modell erkannt: „Berechne die Notenverteilung“, „Mittelwert der Note je
-  Gruppe“, „Erkläre die Formel in D2“): Verteilung (je Wert oder in Klassen, Anzahl und Anteil als ZÄHLENWENN-Formeln)
-  bzw. Kennzahlen je Gruppe (Mittelwert, Anzahl, Min, Max – wie eine Pivot-Tabelle) rechts neben den Daten, mit
-  Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
-  das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
-  Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
-  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. Nachtrag:
-  Daten bereinigen vereinheitlicht Datumsformate (TT.MM.JJJJ).
-- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Echte Office-Diagramme** in Word und PowerPoint (`OfficeCharts.embedded`):
-  ```chart-Blöcke im Dokument und Diagrammfolien werden `c:chartSpace`-Teile mit **eingebetteter Arbeitsmappe**
-  (`embeddings/Microsoft_Excel_WorksheetN.xlsx`), sodass „Daten bearbeiten“ in Word/PowerPoint funktioniert; Boxplots
-  bleiben in PowerPoint gezeichnet und in Word Datentabelle, „Änderungen nachverfolgen“ schreibt Diagramme weiter als
-  Tabelle. Word-Diagramme kommen beim Öffnen als ```chart-Block mit den Werten zurück; Diagramme aus .xlsx siehe AP-48.
-  Test `OfficeChartsTest` (Word, PowerPoint, eingebettete Daten).
-
-### AP-50 ◐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
-- Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
-  Gruppieren, TUD-Shape, TUD-Icons, Logos, QR-Codes) – ein Kern für beide; die Leinwand kommt dafür in den gemeinsamen
-  Code (Android zeigt sie an).
-- **Text direkt auf der Leinwand tippen** mit dem Text-Kern (AP-43): Formatierung innerhalb eines Textfelds, Listen,
-  automatische Größe.
-- **Gestalten-Reste**: Farbverläufe, einfache Bildfilter (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen),
-  Gruppieren, Tabellen auf der Leinwand.
-- Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
-- **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
-- Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
-- **Umsetzung (08.11.2026, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
-  `creative/DesignViewport.kt` aus Windows verschoben, neu `creative/CanvasOps.kt`): Ausrichten, Verteilen, Ebenen und
-  **Gruppen** als reine Funktionen, die Gestalten und die Folien beide nutzen (`SlideCanvas` übersetzt die freien
-  Folienelemente in cm in Leinwand-Elemente in mm und zurück). **Gestalten**: *Gruppieren* (Strg+G, Strg+Umschalt+G; ein
-  Klick wählt die ganze Gruppe, sie bewegt und richtet sich als ein Block aus), **Text direkt auf der Leinwand tippen**
-  (Doppelklick auf ein Textfeld: Eingabe an Ort und Stelle in Schrift, Größe, Farbe und Drehung des Felds, Esc oder Klick
-  daneben beendet), **Farbverläufe** (zweite Farbe und Richtung für Formen und Text-Hintergründe), **Bildfilter**
-  (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen) – im Editor, PNG, PDF und PowerPoint gleich (PDF und
-  PowerPoint bekommen solche Elemente als scharfes Bild). **Folien**: Ausrichten auf der Folie und Ebenen über dieselben
-  Funktionen, Gruppen (mit dem Element darunter gruppieren, Gruppe zieht sich gemeinsam), Drehung und Verlauf im
-  Folienmodell. Test `SharedCanvasTest`. **Offen**: Folien-Editor ganz auf die Gestalten-Leinwand umstellen (Drehen,
-  Einrasten, Mehrfachauswahl, TUD-Shape/Icons/QR auf Folien), Android zeigt die Leinwand (Zeichnen ist noch Windows-Code),
-  Text-Kern mit Formatierung innerhalb eines Textfelds, Tabellen auf der Leinwand.
-
-### AP-51 ◐ Folien wie PowerPoint · L (neu)
-So nah wie möglich an **Google Slides/PowerPoint**:
-- **PowerPoint-Treue**: fremde .pptx (auch die TUD-Präsentationsvorlage) mit Masterfolien, Layouts, Platzhaltern,
-  Designfarben, Gruppen, Tabellen und Diagrammen originalgetreu anzeigen und bearbeiten; Unbekanntes bleibt erhalten.
-  Dazu der Gestalten-Rest *PowerPoint-Vorlagen importieren*.
-- **Animationen und Präsentieren**: Folienübergänge (Überblenden, Schieben), Aufzählungen nacheinander einblenden,
-  Elemente ein-/ausblenden; Referentenansicht mit nächster Folie, Notizen, Timer; Laserpointer und Zeichnen beim
-  Präsentieren; zweiter Bildschirm.
-- **Lora baut Folien**: aus Dokument, Paper (PDF) oder Gliederung ein ganzes Deck im TUD-Design (Titel, Abschnitte,
-  Inhalt, Bilder/Icons, Sprechertexte); einzelne Folie „schöner machen“ (Vorschläge zum Antippen); Folien kürzen,
-  Sprechertexte schreiben.
-- **Fertig, wenn**: Die TUD-Präsentationsvorlage öffnet originalgetreu, ein Deck aus einem Paper entsteht per Auftrag und
-  lässt sich mit Animationen präsentieren.
-- Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
-  `docs/PptxReader.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
-  einblenden* (Menü *Animation* an der Folie; als Kommentarzeile der Folie gespeichert, `SlideDeck.Animation`). **Vorführen**:
-  Übergänge laufen beim Blättern, ein Klick/→ zeigt den nächsten Punkt (Unterpunkte mit ihm), zurück zeigt die Folie
-  ganz; **Zeichnen** beim Präsentieren (D, rote Linien je Folie, E löscht) neben Laserpointer, Schwarz/Weiß, Notizen,
-  Timer und Referentenansicht. **PowerPoint**: Übergänge (`p:fade`, `p:push`) und der Aufbau nach Absätzen
-  („Erscheinen“, `p:timing`/`p:bldP`) werden geschrieben und beim Öffnen fremder .pptx gelesen. **Lora baut Folien**:
-  Aktion `slides.from_document` (ganzes Deck im TUD-Design aus einem Dokument – Abschnitte, Inhalt, Tabellen, Bilder,
-  Diagramme, lange Absätze als Sprechernotizen –, auf dem Gerät, mit Rückgängig) und `slides.animate` (Übergänge und
-  Aufbau für alle oder eine Folie). Test `SlidesLikePowerPointTest`. **Offen**: `PptxReader` für fremde .pptx mit
-  Masterfolien, Layouts, Platzhaltern, Designfarben und Gruppen (heute: Text, Bilder, Tabellen, Notizen, Animationen),
-  zweiter Bildschirm, Deck aus einem Paper (PDF) und „Folie schöner machen“/Sprechertexte mit dem Modell.
-
----
-
-## Danach
-
-### AP-54 ☑ Video: einfache Effekte (D) · M–L (neu)
-- **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
-  kurze Clips.
-- **Verpixeln/Weichzeichnen** von Bereichen, die dem Objekt folgen; für Forschungsmaterial **Gesichter automatisch
-  finden** (lokal) und verpixeln, Stimme verfremden – Ergebnis im Agent-Protokoll.
-- **Geschwindigkeit** (0,25×–4×, Ton mit Tonhöhenkorrektur), **Standbild**, Rückwärts.
-- **Einfache Bildkorrektur**: Helligkeit, Kontrast, Sättigung, Weißabgleich automatisch – kein Color Grading.
-- **Fertig, wenn**: In einem Beobachtungsvideo werden Gesichter automatisch verpixelt; ein Screencast zoomt per Keyframes
-  auf einen Bereich.
-- Betrifft: Windows `video/*`, `ui/VideoScreen.kt`; lokales Erkennungsmodell im Videoeditor-Paket (AP-25).
-- **Umsetzung (08.11.2026, ☑)**: Effekte je Clip auf V1 als **`ClipFx`** (`video/VideoEffects.kt`), alle durch **denselben
-  ffmpeg-Graphen** wie Vorschau und Export (`VideoRender.graph`; Clips ohne Effekt ergeben den Graphen wie bisher).
-  **Geschwindigkeit** 0,25×–4× (`setpts`, Ton über `atempo`-Ketten mit gleicher Tonhöhe; verknüpfter Ton übernimmt Tempo
-  und Richtung), **Standbild** (`VideoFx.freeze`: Clip geteilt, das Bild steht n s und behält Bereiche und Farbe),
-  **Rückwärts** (`reverse`/`areverse`, bis 5 s je Clip, sonst klare Meldung); Klinge, Ripple-Trim, Roll und Untertitel aus
-  dem Transkript rechnen mit Tempo und Richtung. **Bildkorrektur**: Helligkeit, Kontrast, Sättigung (`eq`),
-  **Weißabgleich automatisch** (Grauwelt-Schätzung aus dem Bild am Abspielkopf → `colorchannelmixer`). **Zoom und Schwenk
-  mit Keyframes** in Quellzeit (linear oder sanft, als ffmpeg-Ausdruck mit balanciertem Baum; gleitend über `perspective`
-  mit Subpixel, fest über `crop`), **Hochformat 9:16** folgt denselben Keyframes. **Bereiche verpixeln/weichzeichnen** mit
-  Keyframes (`crop` + `boxblur` bzw. Herunter-/Hochskalieren, `overlay` an derselben Stelle). **Gesichter automatisch
-  finden** (`video/Faces.kt`): Bilder alle 0,4 s aus einem ffmpeg-Lauf (`select`, nicht `fps` – der lieferte zu spät),
-  **`FaceDetector`** YuNet je Bild, Spuren über Überlappung (neue Spur bei Lücke > 1,6 s oder Größensprung), daraus Bereiche
-  mit Rand und vereinfachten Keyframes. **Stimme verfremden** (Halbtöne über `asetrate`+`aresample`+`atempo`, Clips und
-  Tonspuren). Oberfläche: Abschnitt *Effekte* in den Clip-Eigenschaften (`ui/VideoEffectsUi.kt`), Zusammenfassung am Clip
-  in der Zeitleiste; ohne Paket erklärt der Editor das und bietet Bereiche von Hand. Lora-Aktionen **`video.speed`**,
-  **`video.freeze`**, **`video.zoom`**, **`video.faces`**, **`video.voice`** (mit Rückgängig); Anonymisierungen stehen mit
-  Projekt, Anzahl und Detektor im Protokoll der Lora-Aktionen. **Videoeditor-Paket 2** mit dem Modell
-  (`extension-videoeditor.sh`). Test **`VideoEffectsTest`**: Modell und Schnitt mit Tempo, Rückwärts und Standbild,
-  Keyframes, Graph-Zeichenketten, echter Export (2× schneller, Zoom per Keyframes auf einen Bildschirmbereich,
-  Weichzeichnen; Vorschau = Export), Beobachtungsvideo mit wandernder Person – das ganze Gesicht zu drei Zeitpunkten
-  verpixelt (Test-Detektor), echte YuNet-Erkennung über JNA, wenn Laufzeit und Modell vorhanden sind. **Offen**: Effekte
-  auf V2 … (Bild-in-Bild), Bereiche und Zoom mit der Maus im Vorschaubild ziehen (heute Schieberegler am Abspielkopf),
-  Gesichtserkennung auf den Dienst-PCs prüfen.
+Video und Dateien (aus *Danach* nachgerückt, nachdem Office – AP-48 bis AP-51 – und AP-54 am 08.11.2026 mit 1.0.59 erledigt
+sind; siehe *Erledigt*). Als Nächstes AP-55 (textbasierter Schnitt); AP-56, AP-57 und AP-59 sind voneinander unabhängig.
 
 ### AP-55 ☐ Video: textbasierter Schnitt (D) · M (neu)
 - Das **Transkript** liegt als Text neben der Zeitleiste; Wörter sind mit der Zeit verknüpft (Klick springt).
@@ -295,6 +125,12 @@ So nah wie möglich an **Google Slides/PowerPoint**:
 - **Fertig, wenn**: Eine Datei aus dem Explorer lässt sich per Kontextmenü in Lora fragen und per Ziehen in den Lora-Ordner
   legen.
 - Betrifft: Windows `ui/AppRoot.kt`, `desktop/Desktop.kt`, `data/LoraDrive.kt`, Installer/`desktop/launcher/`.
+
+---
+
+## Danach
+
+Zurzeit leer – sobald in *Jetzt* Platz ist, rückt das erste Paket aus *Später* nach (AP-60 PDF-Reste).
 
 ---
 
@@ -445,11 +281,16 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-45 Word-Treue | Lesen/Schreiben von Formaten, Formatvorlagen, Kopf-/Fußzeilen (erste/gerade Seite, Abschnitte), Tabstopps; ins Original schreiben; Prüfsammlung mit nachgebauten TUD-Dokumenten | Bildvergleich der Seiten mit Word |
 | ☑ AP-46 Gliederung und Formatvorlagen | Gliederung zum Ziehen, Formatvorlagen und Vorlagensätze, Format übertragen | – |
 | ☑ AP-47 Lora schreibt im Dokument | Hilf mir schreiben, Überarbeiten als Vorschläge, Menü über der Markierung | – |
+| ☑ AP-48 Tabellen wie Excel | rund 45 neue Funktionen, ganze Spalten, Platzhalter, Hilfe beim Tippen, Suchen/Ersetzen, Zellen verbinden, Fixieren, Auswahllisten, Ausfüllkästchen, 100 000 Zeilen flüssig, treues .xlsx (geteilte Formeln, bedingte Formatierung), Formatierung innerhalb einer Zelle, echte Excel-Diagramme | – |
+| ☑ AP-49 Diagramme und Lora rechnet | acht Diagrammarten in TUD-Farben, verknüpft in Dokumenten und Folien, Lora rechnet (Verteilung, Kennzahlen je Gruppe, Formeln erklären, Bereinigen), echte Diagramme mit Daten in Word und PowerPoint | Boxplot in Office nur gezeichnet bzw. als Tabelle |
+| ☑ AP-50 Gemeinsame Leinwand | ein Leinwand-Kern für Folien und Gestalten (Drehen, Einrasten, Mehrfachauswahl, Gruppen, TUD-Shape, Symbole, QR), Text mit Formatierung auf der Leinwand tippen, Tabellen, Verläufe, Bildfilter | Android: Symbole/QR als Platzhalter, kein Gestalten-Editor; Listen in Textfeldern |
+| ☑ AP-51 Folien wie PowerPoint | PptxReader (Master, Layouts, Platzhalter, Designfarben, Gruppen, Diagramme), Unbekanntes bleibt beim Speichern, Übergänge und Aufbau, Zeichnen, zweiter Bildschirm, Deck aus Dokument oder Paper, „Folie schöner machen“, Sprechertexte | Prüfung mit der echten TUD-Vorlage; Folien in fremden Decks im TUD-Design |
 | ☑ AP-52 Video: mehrere Spuren und echte Vorschau | Video- und Tonspuren beliebig viele, Position/Größe/Zuschnitt/Deckkraft je Clip, Bild-in-Bild mit Ecken, Vorschau durch denselben ffmpeg-Graphen wie der Export (J/K/L, Schleife In–Out), Wellenformen, Lora-Aktion *Bild-in-Bild* | Lautheit angleichen nur im Export; Flüssigkeit auf den Dienst-PCs messen |
 | ☑ AP-53 Video: Schnittwerkzeuge | Medienpool mit Ordnern und Suche, Quellmonitor mit In/Out, Einfügen/Überschreiben/Ziehen, Klinge, Ripple/Roll/Slip, Magnet, verknüpfter Ton, Synchronisieren über die Wellenform, Spuren sperren/stumm/ausblenden, Marker als Kapitel, Tasten wie Resolve | J spielt rückwärts ohne Ton; Synchronisieren vergleicht die ersten 15 Minuten |
+| ☑ AP-54 Video: einfache Effekte | Geschwindigkeit, Standbild, Rückwärts, Bildkorrektur mit Weißabgleich, Zoom/Schwenk mit Keyframes, Hochformat, Bereiche verpixeln, Gesichter automatisch (YuNet), Stimme verfremden, Lora-Aktionen | Effekte auf V2 …; Bereiche mit der Maus ziehen; Prüfung auf Dienst-PCs |
 | ☑ AP-58 Frag diesen Ordner | Ordnermenü in *Dateien*, Lesen mit Fortschritt aus dem Volltext-Cache, Chat im Quellenmodus mit `search_folder` (Datei + Seite), Belegprüfung je Datei, Datenschutz-Empfehlung | Nextcloud- und Projektordner direkt |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52, AP-53 und AP-58 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-54 und AP-58 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -768,6 +609,175 @@ So nah wie möglich an **Google Docs**:
 - **Nachtrag (04.11.2026, 1.0.54)**: Der Rest ist erledigt – über einer Markierung im Fließtext erscheint Loras kleines Menü
   (*Überarbeiten …*, *Kürzer*, *Formeller*, *Einfacher* als einzeln annehmbare Vorschläge, *Kommentar*).
 
+### AP-48 ☑ Tabellen wie Excel · XL (neu, in Stufen)
+So nah wie möglich an **Google Sheets/Excel**:
+1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
+   WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
+   wie in Excel.
+2. **Bedienung**: mehrere Blätter (Tabs unten), Zellen verbinden, Zahlenformate, bedingte Formatierung, Filter und
+   Sortieren, Zeilen/Spalten fixieren, Ausfüllen durch Ziehen, Suchen/Ersetzen, Datenüberprüfung (Auswahllisten).
+3. **Große Daten**: CSV/Excel mit 100 000 Zeilen flüssig (virtuelles Raster, Berechnung nur für Sichtbares/Abhängiges,
+   Lesen im Hintergrund).
+4. **xlsx-Treue**: Formeln, Formate, Blätter, verbundene Zellen, bedingte Formatierung lesen und schreiben.
+- Zelltext nutzt den Text-Kern (AP-43) für Formatierung innerhalb von Zellen.
+- **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
+  verlustfrei als .xlsx speichern.
+- Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
+  ZÄHLENWENN, SUMMEWENNS & Co. und im genauen SVERWEIS/VERGLEICH, ausgelassene Argumente (`=XVERWEIS(70;D:D;A:A;;-1)`),
+  XVERWEIS mit Vergleichs- und Suchmodus, rund 45 neue Funktionen (u. a. MAXWENNS/MINWENNS, XVERGLEICH, VERWEIS, WAHL,
+  INDIREKT, ADRESSE, TEILERGEBNIS, HÄUFIGKEIT, QUARTILE, RANG.MITTELW, TEXTVOR/TEXTNACH/TEXTTEILEN, ERSETZEN, IDENTISCH,
+  ZEIT/STUNDE/DATWERT, KÜRZEN, LOG, ISTNV, FEHLER.TYP, MTRANS, VSTAPELN/HSTAPELN, SPALTENWAHL/ZEILENWAHL; die neuen
+  Matrixfunktionen laufen über), Excel-Namen mit `_xlfn.` im Export. **Hilfe beim Tippen** (`docs/SheetHelp.kt`): unter
+  der Bearbeitungsleiste die Argumente der Funktion am Cursor (aktuelles fett) bzw. passende Funktionen zum Vervollständigen
+  (Tab übernimmt). **Stufe 2 Bedienung**: Suchen/Ersetzen (Strg+F/Strg+H; Groß/klein, ganze Zelle, in Formeln oder Werten),
+  **Zellen verbinden**, **Zeilen 1–n und Spalten A–x fixieren**, **Spaltenbreite** (Rand im Spaltenkopf ziehen, breiter/
+  schmaler, an Inhalt anpassen), **Auswahllisten** (Werte oder Zellen, auch eines anderen Blatts; streng ablehnen oder nur
+  rot markieren; ▾ in der Zelle), **Ausfüllkästchen** zum Ziehen (Reihen, Formeln wandern mit). **Stufe 3 Große Daten**:
+  schneller Weg für Blätter (`SheetEngine.grid` Zeile für Zeile, Formate vom Ende her), Zellen ändern kopiert nur die
+  geänderte Zeile, Berechnung weiter nur für Sichtbares/Abhängiges; Messung im Test: 100 000 Zeilen × 7 Spalten lesen
+  0,4 s, erster Bildschirm 0,14 s, xlsx schreiben 2,8 s, lesen 1,5 s. **Stufe 4 xlsx-Treue** (`docs/XlsxReader.kt`): Zellen
+  mit einem eigenen Scanner statt XML-Baum (bis 200 000 Zeilen, vorher 2 000), **geteilte Formeln** (gingen bisher
+  verloren), verbundene Zellen, bedingte Formatierung (Wert, Text enthält, Farbskala), Auswahllisten, fixierte Zeilen/
+  Spalten, eigene Spaltenbreiten und Zahlenformate wie „0.0“ lesen und schreiben. Test `SheetsLikeExcelTest`: u. a.
+  **OPAL-Export mit 5 000 Zeilen** (geteilte Formeln, Formate) gelesen, mit SVERWEIS auf ein zweites Blatt angereichert,
+  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s).
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Formatierung innerhalb einer Zelle** (`docs/CellRich.kt`, `ui/SheetRichText.kt`):
+  der Zelltext trägt das Inline-Markdown des Text-Kerns (`**fett**`, `*kursiv*`, `~~durch~~`, `<u>`, `<span style="color:…">`);
+  ein Teil der Zelle wird in der Bearbeitungsleiste markiert und über die Werkzeugleiste bzw. Strg+B/I/U formatiert
+  (ohne Markierung gilt das Format wie bisher für die ganze Zelle). Die Leiste und die Zelle zeigen die Formatierung statt
+  der Zeichen, Formeln, Filter und Diagramme sehen den reinen Text (ein fettes „12“ bleibt eine Zahl), Excel bekommt
+  echte Rich-Text-Läufe (`<is><r><rPr>…`) und gibt sie beim Lesen zurück (auch aus `sharedStrings.xml`). **Diagramme in
+  .xlsx** (`docs/OfficeCharts.kt`): die Diagramme eines Blatts werden echte Excel-Diagramme (Zeichnung rechts neben den
+  Daten), deren Reihen auf die Zellen zeigen (`'Noten 2026'!$B$2:$B$5`, `SheetTools.chartRefs`); Histogramm und Boxplot
+  als Säulen ihrer Klassen bzw. Quartile mit Alternativtext „Histogramm von A1:A13“. Beim Öffnen werden Säulen-, Balken-,
+  Linien-, Kreis- und Punktdiagramme fremder Dateien zu Diagrammen des Blatts, auf dem ihre Daten stehen (ID bleibt über
+  den Namen „Lora-Diagramm …“). Test `OfficeChartsTest`.
+
+### AP-49 ☑ Diagramme und Lora rechnet · M–L (neu)
+- **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
+  Farben im TUD-Design; als Bild exportieren.
+- **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
+  Docs); in .docx/.pptx als echte Office-Diagramme, wo möglich.
+- **Lora rechnet**: „Berechne die Notenverteilung“, „Mittelwert je Gruppe“, Pivot-Zusammenfassung, Daten bereinigen
+  (Leerzeichen, Datumsformate, Dubletten), Formeln erklären – Ergebnisse als neue Spalten/Blätter mit Rückgängig, Erklärung
+  in Worten im Panel.
+- Rechnen passiert auf dem Gerät in der Tabellen-Engine; das Modell sieht nur Spaltennamen und Stichproben, außer man
+  erlaubt mehr.
+- **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
+  verknüpft steht und sich bei geänderten Noten aktualisiert.
+- Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
+  Kreis, Punkt – erste Spalte x –, Histogramm, Boxplot – je Spalte die Rohwerte), in den **Farben des TUD-Designs**
+  (`ChartLayout.TUD`: Brillantblau, Orange, Türkis, Magenta, Grün …), mit Titel, Achsentiteln, Typ und Bereich zum
+  Ändern (⋮ am Diagramm) und **als Bild (SVG)** im Ordner *Diagramme* neben dem Dokument. **Verknüpft einfügen**
+  (`docs/ChartLinks.kt`): ⋮ › *Verknüpft in Dokument oder Folien einfügen* schreibt einen ```chart-Block mit `"link"` (Dokument,
+  Blatt, Diagramm-ID) ans Ende des Dokuments bzw. als Diagrammfolie; beim Öffnen des Dokuments oder der Präsentation
+  kommen die Daten frisch aus der Tabelle. **Lora rechnet** (`SheetCalc`, Aktionen `sheet.distribution`, `sheet.group`,
+  `sheet.chart`, `sheet.explain`, auch ohne Modell erkannt: „Berechne die Notenverteilung“, „Mittelwert der Note je
+  Gruppe“, „Erkläre die Formel in D2“): Verteilung (je Wert oder in Klassen, Anzahl und Anteil als ZÄHLENWENN-Formeln)
+  bzw. Kennzahlen je Gruppe (Mittelwert, Anzahl, Min, Max – wie eine Pivot-Tabelle) rechts neben den Daten, mit
+  Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
+  das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
+  Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
+  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. Nachtrag:
+  Daten bereinigen vereinheitlicht Datumsformate (TT.MM.JJJJ).
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Echte Office-Diagramme** in Word und PowerPoint (`OfficeCharts.embedded`):
+  ```chart-Blöcke im Dokument und Diagrammfolien werden `c:chartSpace`-Teile mit **eingebetteter Arbeitsmappe**
+  (`embeddings/Microsoft_Excel_WorksheetN.xlsx`), sodass „Daten bearbeiten“ in Word/PowerPoint funktioniert; Boxplots
+  bleiben in PowerPoint gezeichnet und in Word Datentabelle, „Änderungen nachverfolgen“ schreibt Diagramme weiter als
+  Tabelle. Word-Diagramme kommen beim Öffnen als ```chart-Block mit den Werten zurück; Diagramme aus .xlsx siehe AP-48.
+  Test `OfficeChartsTest` (Word, PowerPoint, eingebettete Daten).
+
+### AP-50 ☑ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
+- Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
+  Gruppieren, TUD-Shape, TUD-Icons, Logos, QR-Codes) – ein Kern für beide; die Leinwand kommt dafür in den gemeinsamen
+  Code (Android zeigt sie an).
+- **Text direkt auf der Leinwand tippen** mit dem Text-Kern (AP-43): Formatierung innerhalb eines Textfelds, Listen,
+  automatische Größe.
+- **Gestalten-Reste**: Farbverläufe, einfache Bildfilter (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen),
+  Gruppieren, Tabellen auf der Leinwand.
+- Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
+- **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
+- Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
+- **Umsetzung (08.11.2026, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
+  `creative/DesignViewport.kt` aus Windows verschoben, neu `creative/CanvasOps.kt`): Ausrichten, Verteilen, Ebenen und
+  **Gruppen** als reine Funktionen, die Gestalten und die Folien beide nutzen (`SlideCanvas` übersetzt die freien
+  Folienelemente in cm in Leinwand-Elemente in mm und zurück). **Gestalten**: *Gruppieren* (Strg+G, Strg+Umschalt+G; ein
+  Klick wählt die ganze Gruppe, sie bewegt und richtet sich als ein Block aus), **Text direkt auf der Leinwand tippen**
+  (Doppelklick auf ein Textfeld: Eingabe an Ort und Stelle in Schrift, Größe, Farbe und Drehung des Felds, Esc oder Klick
+  daneben beendet), **Farbverläufe** (zweite Farbe und Richtung für Formen und Text-Hintergründe), **Bildfilter**
+  (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen) – im Editor, PNG, PDF und PowerPoint gleich (PDF und
+  PowerPoint bekommen solche Elemente als scharfes Bild). **Folien**: Ausrichten auf der Folie und Ebenen über dieselben
+  Funktionen, Gruppen (mit dem Element darunter gruppieren, Gruppe zieht sich gemeinsam), Drehung und Verlauf im
+  Folienmodell. Test `SharedCanvasTest`. **Offen**: Folien-Editor ganz auf die Gestalten-Leinwand umstellen (Drehen,
+  Einrasten, Mehrfachauswahl, TUD-Shape/Icons/QR auf Folien), Android zeigt die Leinwand (Zeichnen ist noch Windows-Code),
+  Text-Kern mit Formatierung innerhalb eines Textfelds, Tabellen auf der Leinwand.
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: Der **Folien-Editor läuft auf der Gestalten-Leinwand**: `ui/SlideCanvasEditor.kt`
+  (`SlideCanvasOverlay`) führt die Gesten der freien Folienelemente über `DesignEditorState` aus (`SlideCanvas.design`) –
+  **Einrasten** an Rändern, Mitte und anderen Elementen mit Hilfslinien (Strg: frei), acht Griffe, **Drehgriff** (TUD-Shape in
+  45°-Schritten), **Mehrfachauswahl** mit Umschalt+Klick und Rahmen, Gruppen, Pfeiltasten, Entf, Strg+G; beim Ziehen zeigt die
+  Folie die Elemente live. Neu auf Folien: **TUD-Shape, Symbole, QR-Codes** (gezeichnet vom Renderer von Gestalten über die
+  Plattformdatei `creative/CanvasArt.kt`; Android zeichnet die Shape selbst und Symbole/QR als Platzhalter) und **Tabellen**;
+  Verlauf, Ausrichten/Verteilen mehrerer Elemente im Panel. **Formatierung innerhalb eines Textfelds** mit dem Text-Kern:
+  `creative/CanvasText.kt` (`FieldRich` auf `CellRich`/`RichText.inline`, zeilenweise; Schalter `rich` an `SlideElement` und
+  `DesignElement`, damit ein „*“ in alten Feldern ein Stern bleibt) und `CanvasTextEditor` – Doppelklick tippt auf der Folie
+  und in Gestalten, Zeichen behalten beim Tippen ihr Format, Strg+B/I/U und eine kleine Leiste (fett, kursiv, unterstrichen,
+  Farbe) formatieren die Markierung; gleich im Editor, PNG, PDF (Läufe mit eigener Schrift), PowerPoint (`<a:r>` mit
+  `b`/`i`/`u`/Farbe) und Handout. **Tabellen auf der Leinwand** (`creative/CanvasTable.kt`, `ElementKind.TABLE` bzw.
+  `tabelle`: Kopfzeile in TUD-Blau, Bänder, Zellen mit Inline-Formatierung, Zeilen/Spalten im Panel) als echte `a:tbl` in
+  Folien und Gestalten-PowerPoint (`SlideExtras.tableFrame`); Folien-PowerPoint mit Drehung, Spiegeln, Verlauf und der
+  TUD-Shape als eigener Geometrie. Tests `SharedCanvasTest` (Einrasten, Drehen, Seitenverhältnis, Gruppen, Rundlauf der
+  Formatierung, Folien-Markdown, .pptx, Handout, Gestalten-Renderer, PDF). **Offen**: Android zeichnet Symbole und QR-Codes
+  noch nicht (Platzhalter) und hat keinen Gestalten-Editor; Listen und automatische Größe in Textfeldern; Tabellen im
+  Gestalten-PDF nur als Bild.
+
+### AP-51 ☑ Folien wie PowerPoint · L (neu)
+So nah wie möglich an **Google Slides/PowerPoint**:
+- **PowerPoint-Treue**: fremde .pptx (auch die TUD-Präsentationsvorlage) mit Masterfolien, Layouts, Platzhaltern,
+  Designfarben, Gruppen, Tabellen und Diagrammen originalgetreu anzeigen und bearbeiten; Unbekanntes bleibt erhalten.
+  Dazu der Gestalten-Rest *PowerPoint-Vorlagen importieren*.
+- **Animationen und Präsentieren**: Folienübergänge (Überblenden, Schieben), Aufzählungen nacheinander einblenden,
+  Elemente ein-/ausblenden; Referentenansicht mit nächster Folie, Notizen, Timer; Laserpointer und Zeichnen beim
+  Präsentieren; zweiter Bildschirm.
+- **Lora baut Folien**: aus Dokument, Paper (PDF) oder Gliederung ein ganzes Deck im TUD-Design (Titel, Abschnitte,
+  Inhalt, Bilder/Icons, Sprechertexte); einzelne Folie „schöner machen“ (Vorschläge zum Antippen); Folien kürzen,
+  Sprechertexte schreiben.
+- **Fertig, wenn**: Die TUD-Präsentationsvorlage öffnet originalgetreu, ein Deck aus einem Paper entsteht per Auftrag und
+  lässt sich mit Animationen präsentieren.
+- Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
+  `docs/PptxReader.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
+  einblenden* (Menü *Animation* an der Folie; als Kommentarzeile der Folie gespeichert, `SlideDeck.Animation`). **Vorführen**:
+  Übergänge laufen beim Blättern, ein Klick/→ zeigt den nächsten Punkt (Unterpunkte mit ihm), zurück zeigt die Folie
+  ganz; **Zeichnen** beim Präsentieren (D, rote Linien je Folie, E löscht) neben Laserpointer, Schwarz/Weiß, Notizen,
+  Timer und Referentenansicht. **PowerPoint**: Übergänge (`p:fade`, `p:push`) und der Aufbau nach Absätzen
+  („Erscheinen“, `p:timing`/`p:bldP`) werden geschrieben und beim Öffnen fremder .pptx gelesen. **Lora baut Folien**:
+  Aktion `slides.from_document` (ganzes Deck im TUD-Design aus einem Dokument – Abschnitte, Inhalt, Tabellen, Bilder,
+  Diagramme, lange Absätze als Sprechernotizen –, auf dem Gerät, mit Rückgängig) und `slides.animate` (Übergänge und
+  Aufbau für alle oder eine Folie). Test `SlidesLikePowerPointTest`. **Offen**: `PptxReader` für fremde .pptx mit
+  Masterfolien, Layouts, Platzhaltern, Designfarben und Gruppen (heute: Text, Bilder, Tabellen, Notizen, Animationen),
+  zweiter Bildschirm, Deck aus einem Paper (PDF) und „Folie schöner machen“/Sprechertexte mit dem Modell.
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: **PowerPoint-Treue**: neuer `docs/PptxReader.kt` (`OfficeImport.pptx` gibt ab) liest
+  fremde .pptx wie PowerPoint – **Platzhalter** erben Lage und Textstil von **Layout** und **Masterfolie**, **Designfarben**
+  über Theme und Farbzuordnung (schemeClr mit lumMod/lumOff, tint, shade), **Gruppen** über chOff/chExt; Platzhalter füllen
+  das Folienlayout (auch nach Layoutnamen), alles andere wird **freies Element** an seiner echten Stelle (Formen mit Füllung
+  und Text, Linien, Bilder, Gruppen); **Diagramme** (`c:chart`, auch die echten Diagramme aus AP-49) über `OfficeCharts.read`
+  als ```chart-Block, SmartArt als Stichpunkte, Hintergrund und Akzent des Masters als Masterfolie; eigene Decks behalten
+  ihre freien Elemente. **Unbekanntes bleibt erhalten**: `docs/PptxMerge.kt` schreibt neue oder umgebaute Folien ins
+  Original – unveränderte Folien, Master, Layouts, Theme, Abschnitte und unbekannte Teile bleiben Byte für Byte, reine
+  Textänderungen werden je Folie ersetzt, gelöschte Folien gehen, die Reihenfolge folgt dem Editor (`DocFiles`).
+  **Zweiter Bildschirm** (Windows, `ui/PresentScreens.kt`): Folien randlos auf dem zweiten Bildschirm, Referentenansicht
+  bleibt, Zeichnen und Laserpointer an derselben Stelle, umschaltbar in der Vorführleiste. **Lora baut Folien**:
+  `slides.from_paper` (`docs/PaperDeck.kt`) baut aus einem Paper (PDF) ein TUD-Deck auf dem Gerät – Titel und Autor:innen,
+  „Worum es geht“, Gliederung, Abschnitte und Unterabschnitte mit Kernaussagen und Sprechernotizen, Tabellen, Abbildungen
+  (Windows), Punkte nacheinander; **„Folie schöner machen“** mit Vorschlägen zum Antippen (`docs/SlideLook.kt`,
+  `ui/SlideSuggestions.kt`, mit Modell eigene Varianten, `slides.beautify`) und **Sprechertexte** (`slides.notes`, mit Modell,
+  sonst aus den Stichpunkten). Tests `PptxReaderTest`, `SlidesLikePowerPointTest`, `OfficeChartsTest` (echtes Diagramm
+  zurück). **Offen**: Prüfung mit der echten TUD-Präsentationsvorlage (die Datei liegt nicht im Repo; getestet mit
+  nachgebauten Paketen); neu geschriebene Folien in fremden Decks im TUD-Design statt im fremden Layout; Schriftart, Kursiv,
+  Umrisse und eigene Formen der Elemente; Abbildungen aus PDFs auf Android.
+
 ### AP-52 ☑ Video: mehrere Spuren und echte Vorschau (D) · XL (neu, Grundlage)
 So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lora-Stil, **eine Ansicht** statt Seiten.
 - **Projektmodell mit beliebig vielen Video- und Tonspuren** (heute: eine Videospur), Ebenen von unten nach oben,
@@ -817,6 +827,40 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
   synchronisiert, zweimal geschnitten, Mitte gelöscht, Ripple-Trim, Folie aus dem Quellmonitor eingefügt, ohne Lücke; im
   Export liegt der Mikrofonton auf den Ereignissen der Kamera (±60 ms). **Nicht umgesetzt**: Rückwärtslauf mit Ton;
   Synchronisieren vergleicht die ersten 15 Minuten jeder Aufnahme (reicht für übliche Versätze).
+
+### AP-54 ☑ Video: einfache Effekte (D) · M–L (neu)
+- **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
+  kurze Clips.
+- **Verpixeln/Weichzeichnen** von Bereichen, die dem Objekt folgen; für Forschungsmaterial **Gesichter automatisch
+  finden** (lokal) und verpixeln, Stimme verfremden – Ergebnis im Agent-Protokoll.
+- **Geschwindigkeit** (0,25×–4×, Ton mit Tonhöhenkorrektur), **Standbild**, Rückwärts.
+- **Einfache Bildkorrektur**: Helligkeit, Kontrast, Sättigung, Weißabgleich automatisch – kein Color Grading.
+- **Fertig, wenn**: In einem Beobachtungsvideo werden Gesichter automatisch verpixelt; ein Screencast zoomt per Keyframes
+  auf einen Bereich.
+- Betrifft: Windows `video/*`, `ui/VideoScreen.kt`; lokales Erkennungsmodell im Videoeditor-Paket (AP-25).
+- **Umsetzung (08.11.2026, ☑)**: Effekte je Clip auf V1 als **`ClipFx`** (`video/VideoEffects.kt`), alle durch **denselben
+  ffmpeg-Graphen** wie Vorschau und Export (`VideoRender.graph`; Clips ohne Effekt ergeben den Graphen wie bisher).
+  **Geschwindigkeit** 0,25×–4× (`setpts`, Ton über `atempo`-Ketten mit gleicher Tonhöhe; verknüpfter Ton übernimmt Tempo
+  und Richtung), **Standbild** (`VideoFx.freeze`: Clip geteilt, das Bild steht n s und behält Bereiche und Farbe),
+  **Rückwärts** (`reverse`/`areverse`, bis 5 s je Clip, sonst klare Meldung); Klinge, Ripple-Trim, Roll und Untertitel aus
+  dem Transkript rechnen mit Tempo und Richtung. **Bildkorrektur**: Helligkeit, Kontrast, Sättigung (`eq`),
+  **Weißabgleich automatisch** (Grauwelt-Schätzung aus dem Bild am Abspielkopf → `colorchannelmixer`). **Zoom und Schwenk
+  mit Keyframes** in Quellzeit (linear oder sanft, als ffmpeg-Ausdruck mit balanciertem Baum; gleitend über `perspective`
+  mit Subpixel, fest über `crop`), **Hochformat 9:16** folgt denselben Keyframes. **Bereiche verpixeln/weichzeichnen** mit
+  Keyframes (`crop` + `boxblur` bzw. Herunter-/Hochskalieren, `overlay` an derselben Stelle). **Gesichter automatisch
+  finden** (`video/Faces.kt`): Bilder alle 0,4 s aus einem ffmpeg-Lauf (`select`, nicht `fps` – der lieferte zu spät),
+  **`FaceDetector`** YuNet je Bild, Spuren über Überlappung (neue Spur bei Lücke > 1,6 s oder Größensprung), daraus Bereiche
+  mit Rand und vereinfachten Keyframes. **Stimme verfremden** (Halbtöne über `asetrate`+`aresample`+`atempo`, Clips und
+  Tonspuren). Oberfläche: Abschnitt *Effekte* in den Clip-Eigenschaften (`ui/VideoEffectsUi.kt`), Zusammenfassung am Clip
+  in der Zeitleiste; ohne Paket erklärt der Editor das und bietet Bereiche von Hand. Lora-Aktionen **`video.speed`**,
+  **`video.freeze`**, **`video.zoom`**, **`video.faces`**, **`video.voice`** (mit Rückgängig); Anonymisierungen stehen mit
+  Projekt, Anzahl und Detektor im Protokoll der Lora-Aktionen. **Videoeditor-Paket 2** mit dem Modell
+  (`extension-videoeditor.sh`). Test **`VideoEffectsTest`**: Modell und Schnitt mit Tempo, Rückwärts und Standbild,
+  Keyframes, Graph-Zeichenketten, echter Export (2× schneller, Zoom per Keyframes auf einen Bildschirmbereich,
+  Weichzeichnen; Vorschau = Export), Beobachtungsvideo mit wandernder Person – das ganze Gesicht zu drei Zeitpunkten
+  verpixelt (Test-Detektor), echte YuNet-Erkennung über JNA, wenn Laufzeit und Modell vorhanden sind. **Offen**: Effekte
+  auf V2 … (Bild-in-Bild), Bereiche und Zoom mit der Maus im Vorschaubild ziehen (heute Schieberegler am Abspielkopf),
+  Gesichtserkennung auf den Dienst-PCs prüfen.
 
 ### AP-58 ☑ Frag diesen Ordner · S–M (neu)
 - Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
