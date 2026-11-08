@@ -37,14 +37,45 @@ object SlideDeck {
         val elements: List<SlideElement> = emptyList(),
         /** Masterfolie of the deck (kept on the first slide). */
         val master: SlideMaster? = null,
+        /** Übergang to this slide (AP-51): "" none, "fade" Überblenden, "push" Schieben. */
+        val transition: String = "",
+        /** Stichpunkte nacheinander einblenden (one top-level point per click). */
+        val build: Boolean = false,
     )
 
     private val ELEMENT = Regex("^\\s*<!--\\s*element\\s*:\\s*(\\{.*\\})\\s*-->\\s*$")
     private val MASTER_LINE = Regex("^\\s*<!--\\s*master\\s*:\\s*(\\{.*\\})\\s*-->\\s*$")
+    private val ANIMATION = Regex("^\\s*<!--\\s*animation\\s*:\\s*(\\{.*\\})\\s*-->\\s*$")
+
+    /** Übergang and Aufbau of a slide (AP-51), kept as a comment line of the slide. */
+    @kotlinx.serialization.Serializable
+    data class Animation(val transition: String = "", val build: Boolean = false)
+
+    /** The animation line of a slide's Markdown (none: no transition, no build). */
+    fun animationOf(text: String): Animation = text.lineSequence().firstNotNullOfOrNull { l ->
+        ANIMATION.find(l)?.groupValues?.get(1)?.let { runCatching { json.decodeFromString(Animation.serializer(), it) }.getOrNull() }
+    } ?: Animation()
+
+    /** How many clicks the slide's points need when [Slide.build] is on (its top-level list items). */
+    fun buildCount(s: Slide): Int = if (!s.build) 0 else s.body.lines().count { TOP_ITEM.containsMatchIn(it) }
+
+    /** The slide as shown after [step] clicks of its build: the text before the first point and the first [step] points. */
+    fun buildStep(s: Slide, step: Int): Slide {
+        if (!s.build || step >= buildCount(s)) return s
+        val out = mutableListOf<String>()
+        var seen = 0
+        for (l in s.body.lines()) {
+            if (TOP_ITEM.containsMatchIn(l)) { seen++; if (seen > step) break }
+            out += l
+        }
+        return s.copy(body = out.joinToString("\n").trimEnd())
+    }
+
+    private val TOP_ITEM = Regex("^([-*+]|\\d+[.)])\\s")
     private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = false }
 
     /** Whether [line] is an element or master line of free design (left out of the slide's text). */
-    fun isDesignLine(line: String) = ELEMENT.matches(line) || MASTER_LINE.matches(line)
+    fun isDesignLine(line: String) = ELEMENT.matches(line) || MASTER_LINE.matches(line) || ANIMATION.matches(line)
 
     /** The elements of a slide's Markdown. */
     fun elementsOf(text: String): List<SlideElement> = text.lines().mapNotNull { l ->
@@ -113,7 +144,8 @@ object SlideDeck {
     private fun slide(text: String, first: Boolean): Slide {
         val elements = elementsOf(text)
         val master = if (first) masterOf(text) else null
-        return slideText(text.lines().filterNot { isDesignLine(it) }.joinToString("\n"), first).copy(elements = elements, master = master)
+        val anim = animationOf(text)
+        return slideText(text.lines().filterNot { isDesignLine(it) }.joinToString("\n"), first).copy(elements = elements, master = master, transition = anim.transition, build = anim.build)
     }
 
     private fun slideText(text: String, first: Boolean): Slide {
@@ -173,6 +205,7 @@ object SlideDeck {
         }
         if (first) s.master?.let { append("\n\n").append(masterLine(it)) }
         s.elements.forEach { append("\n\n").append(elementLine(it)) }
+        if (s.transition.isNotBlank() || s.build) append("\n\n<!-- animation: ").append(safeJson(json.encodeToString(Animation.serializer(), Animation(s.transition, s.build)))).append(" -->")
         if (s.notes.isNotBlank()) append("\n\nNotizen: ").append(s.notes.trim())
     }
 
@@ -344,6 +377,12 @@ data class SlideElement(
     val bold: Boolean = false,
     /** „links“, „mitte“, „rechts“. */
     val align: String = "links",
+    /** Degrees clockwise (shared canvas, AP-50). */
+    val rotation: Double = 0.0,
+    /** Elements with the same group id move and align together. */
+    val group: String = "",
+    /** Second colour of a gradient fill (top → bottom). */
+    val fill2: String = "",
 )
 
 /** Masterfolie (AP-16 Stufe 3): background, accent and footer of every slide of the deck; logo on or off. */

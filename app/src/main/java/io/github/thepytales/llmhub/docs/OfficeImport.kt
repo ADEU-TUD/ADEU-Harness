@@ -568,6 +568,16 @@ object OfficeImport {
                 layoutType == "secHead" || body.isEmpty() -> SlideDeck.Slide(heading, sorted.flatMap { it.second }.joinToString(" ") { it.trim().removePrefix("- ") }.take(140), notes = notes, layout = SlideDeck.Layout.SECTION)
                 else -> SlideDeck.Slide(heading, body, notes = notes, layout = SlideDeck.Layout.CONTENT)
             }
+        }.mapIndexed { index, s ->
+            // Übergang and build of the points (AP-51): fade/push, „Erscheinen“ by paragraph.
+            val root = xml(files[slideNames[index]]) ?: return@mapIndexed s
+            val kinds = root.all("transition").firstOrNull()?.children()?.map { it.localName }.orEmpty()
+            val transition = when {
+                kinds.any { it == "push" || it == "cover" || it == "pull" || it == "wipe" } -> "push"
+                kinds.isNotEmpty() -> "fade"
+                else -> ""
+            }
+            s.copy(transition = transition, build = root.all("bldP").any { it.attr("build") == "p" })
         }
         return SlideDeck.markdown(slides.ifEmpty { listOf(SlideDeck.Slide("Titel", layout = SlideDeck.Layout.TITLE)) })
     }
@@ -583,60 +593,11 @@ object OfficeImport {
 
     // ── Excel ──
 
-    fun xlsx(bytes: ByteArray): List<Pair<String, String>> {
-        val files = entries(bytes)
-        val shared = xml(files["xl/sharedStrings.xml"])?.children()?.filter { it.localName == "si" }?.map { si -> si.all("t").joinToString("") { it.textContent } }.orEmpty()
-        val rels = xml(files["xl/_rels/workbook.xml.rels"])?.children()?.associate { it.attr("Id") to it.attr("Target") }.orEmpty()
-        val sheets = xml(files["xl/workbook.xml"])?.all("sheet").orEmpty()
-        val styles = xlsxStyles(xml(files["xl/styles.xml"]))
-        return sheets.mapNotNull { s ->
-            val target = rels[s.attr("id")] ?: return@mapNotNull null
-            val path = if (target.startsWith("/")) target.removePrefix("/") else "xl/" + target.removePrefix("./")
-            val root = xml(files[path]) ?: return@mapNotNull null
-            val cells = HashMap<Pair<Int, Int>, String>()
-            val formats = HashMap<String, CellStyle>()
-            // Cells Excel filled from a spilling formula (dynamic arrays) are computed here again.
-            val spilled = HashSet<Pair<Int, Int>>()
-            root.all("c").forEach { c ->
-                val f = c.child("f") ?: return@forEach
-                val ref = SheetEngine.parseRef(c.attr("r")) ?: return@forEach
-                val area = f.attr("ref")
-                if (f.attr("t") == "array" && Regex("(?i)(UNIQUE|FILTER|SORT|SEQUENCE)\\s*\\(").containsMatchIn(f.textContent)) {
-                    SheetEngine.parseRange(area)?.let { g -> for (r in g[0]..g[2]) for (cc in g[1]..g[3]) if (r to cc != ref) spilled += r to cc }
-                }
-            }
-            root.all("c").forEach { c ->
-                val ref = SheetEngine.parseRef(c.attr("r")) ?: return@forEach
-                if (ref in spilled) return@forEach
-                val f = c.child("f")?.textContent?.takeIf { it.isNotBlank() }
-                val v = c.child("v")?.textContent.orEmpty()
-                val style = styles.getOrNull(c.attr("s").toIntOrNull() ?: -1)
-                val date = style?.nf == "date"
-                cells[ref] = when {
-                    f != null -> "=" + fromExcel(f)
-                    c.attr("t") == "s" -> shared.getOrNull(v.toIntOrNull() ?: -1).orEmpty()
-                    c.attr("t") == "inlineStr" -> c.all("t").joinToString("") { it.textContent }
-                    c.attr("t") == "b" -> if (v == "1") "WAHR" else "FALSCH"
-                    date && v.toDoubleOrNull() != null -> SheetEngine.dateText(v.toDouble())
-                    else -> v.toDoubleOrNull()?.let(SheetEngine::formatNumber) ?: v
-                }
-                // Dates typed as dates need no format; the head row's bold is the editor's own.
-                var st = style ?: return@forEach
-                if (date && f == null) st = st.copy(nf = null)
-                if (ref.first == 0 && st.b) st = st.copy(b = false, fill = st.fill?.takeIf { !it.equals("#DCE6F5", true) })
-                if (!st.isEmpty) formats[SheetEngine.ref(ref.first, ref.second)] = st
-            }
-            if (cells.isEmpty()) return@mapNotNull s.attr("name") to SheetEngine.blank()
-            val rows = (cells.keys.maxOf { it.first } + 1).coerceAtMost(2000)
-            val cols = (cells.keys.maxOf { it.second } + 1).coerceAtMost(200)
-            val grid = (0 until rows).map { r -> (0 until cols).map { c -> cells[r to c].orEmpty() } }
-            val kept = formats.filterKeys { k -> SheetEngine.parseRef(k)?.let { it.first < rows && it.second < cols } == true }
-            s.attr("name") to SheetMeta.compose(grid, SheetMeta(cells = kept))
-        }
-    }
+    /** Sheets of an Excel workbook (title → Markdown with formats); see [XlsxReader]. */
+    fun xlsx(bytes: ByteArray): List<Pair<String, String>> = XlsxReader.read(bytes)
 
     /** Cell formats of styles.xml (by index of cellXfs): bold, italic, colors, number format and alignment. */
-    private fun xlsxStyles(root: Element?): List<CellStyle?> {
+    fun xlsxCellStyles(root: Element?): List<CellStyle?> {
         root ?: return emptyList()
         fun color(e: Element?): String? = e?.attr("rgb")?.takeIf { it.length >= 6 }?.let { "#" + it.takeLast(6).uppercase() }
         val codes = root.child("numFmts")?.children()?.associate { it.attr("numFmtId") to it.attr("formatCode") }.orEmpty()
@@ -666,6 +627,7 @@ object OfficeImport {
                 '€' in code || "EUR" in code -> "eur"
                 '%' in code -> if (Regex("0[.,]0").containsMatchIn(code)) "0.0%" else "0%"
                 Regex("(?i)[dmy]").containsMatchIn(code.replace(Regex("\"[^\"]*\"|\\[[^\\]]*\\]"), "")) -> "date"
+                Regex("^[#0][#0.,]*$").matches(code) -> code
                 code.contains("#,##0.00") -> "#,##0.00"
                 code.contains("0.00") -> "0.00"
                 else -> null

@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.docs.SheetCalc
+import io.github.thepytales.llmhub.docs.SheetChart
 import io.github.thepytales.llmhub.docs.SheetEngine
 import io.github.thepytales.llmhub.docs.SheetMeta
 import io.github.thepytales.llmhub.docs.SheetTools
@@ -89,7 +91,21 @@ object SheetLora {
     /** Like [clean], with the old index of every row kept (for moving the formats along). */
     fun cleanKeep(rows: List<List<String>>): Triple<List<List<String>>, List<String>, List<Int>> {
         var trimmed = 0
-        val tidy = rows.map { row -> row.map { v -> v.trim().replace(Regex("[ \\t]{2,}"), " ").also { if (it != v) trimmed++ } } }
+        val spaced = rows.map { row -> row.map { v -> v.trim().replace(Regex("[ \\t]{2,}"), " ").also { if (it != v) trimmed++ } } }
+        // Dates in mixed formats (2026-04-03, 3.4.26, 03.04.2026) in a date column become 03.04.2026 (AP-49).
+        var dated = 0
+        val width = spaced.maxOfOrNull { it.size } ?: 0
+        val dateCols = (0 until width).filter { c ->
+            val cells = (1 until spaced.size).map { spaced[it].getOrNull(c).orEmpty() }.filter { it.isNotBlank() && !it.startsWith("=") }
+            cells.isNotEmpty() && cells.count { SheetEngine.parseDate(it) != null } * 2 > cells.size
+        }.toSet()
+        val tidy = spaced.mapIndexed { r, row ->
+            if (r == 0 || dateCols.isEmpty()) row
+            else row.mapIndexed { c, v ->
+                if (c !in dateCols || v.startsWith("=")) v
+                else SheetEngine.parseDate(v)?.let(SheetEngine::dateText)?.also { if (it != v) dated++ } ?: v
+            }
+        }
         val seen = HashSet<List<String>>()
         var empty = 0
         var dupes = 0
@@ -105,6 +121,7 @@ object SheetLora {
         val out = kept.map { tidy[it] }
         val notes = buildList {
             if (trimmed > 0) add(tr("{0} Zellen ohne überzählige Leerzeichen", trimmed))
+            if (dated > 0) add(tr("{0} Datumsangaben als TT.MM.JJJJ vereinheitlicht", dated))
             if (empty > 0) add(tr("{0} leere Zeilen entfernt", empty))
             if (dupes > 0) add(tr("{0} doppelte Zeilen entfernt", dupes))
         }
@@ -237,7 +254,7 @@ internal object OfficeActions {
             }
         },
         ToolAction(
-            "sheet.clean", ActionArea.SHEET, trLater("Daten bereinigen"), "Bereinigt die offene Tabelle: Leerzeichen, leere und doppelte Zeilen.",
+            "sheet.clean", ActionArea.SHEET, trLater("Daten bereinigen"), "Bereinigt die offene Tabelle: Leerzeichen, Datumsformate, leere und doppelte Zeilen.",
             emptyList(), risky = true,
         ) { _, _ ->
             val rows = SheetEngine.grid(sheetHost().markdown())
@@ -253,6 +270,71 @@ internal object OfficeActions {
         ) { _, _ ->
             sheetChange("sheet.summary", tr("Rechnet Summe und Mittelwert …"), false, result = tr("Summe und Mittelwert stehen unten.")) { rows, meta ->
                 SheetLora.summary(rows)?.let { it to meta }
+            }
+        },
+        // Lora rechnet (AP-49): on the device, the results are formulas next to the data, with a chart.
+        ToolAction(
+            "sheet.distribution", ActionArea.SHEET, trLater("Verteilung berechnen"),
+            "Zählt, wie oft jeder Wert einer Spalte vorkommt (z. B. Notenverteilung), mit Anteil und Säulendiagramm; rechts neben den Daten, als Formeln.",
+            listOf(ActionParam("spalte", "Buchstabe oder Überschrift der Spalte (leer: die Spalte „Note“)", required = false)), risky = false,
+        ) { _, a ->
+            val rows = SheetEngine.grid(sheetHost().markdown())
+            val col = SheetLora.column(rows, a.s("spalte").orEmpty().ifBlank { "Note" }) ?: SheetLora.column(rows, "Noten")
+                ?: throw ActionFailed(tr("Welche Spalte soll ich auszählen?"))
+            val block = SheetCalc.distribution(rows, col, SheetEngine.Sheet(rows)) ?: throw ActionFailed(tr("In der Spalte stehen keine Werte."))
+            sheetChange("sheet.distribution", tr("Berechnet die Verteilung von „{0}“ …", rows[0].getOrNull(col).orEmpty()), false, result = tr("Verteilung steht ab {0}: {1}.", SheetEngine.ref(block.row, block.col), block.note)) { r, meta ->
+                SheetCalc.apply(r, block) to block.meta(meta)
+            }
+        },
+        ToolAction(
+            "sheet.group", ActionArea.SHEET, trLater("Kennzahlen je Gruppe"),
+            "Fasst eine Zahlenspalte je Gruppe zusammen (Anzahl, Mittelwert, Min, Max – wie eine Pivot-Tabelle), z. B. Mittelwert der Note je Gruppe; mit Diagramm.",
+            listOf(ActionParam("gruppe", "Spalte mit den Gruppen"), ActionParam("wert", "Spalte mit den Zahlen")), risky = false,
+        ) { _, a ->
+            val rows = SheetEngine.grid(sheetHost().markdown())
+            val g = SheetLora.column(rows, a.s("gruppe").orEmpty()) ?: throw ActionFailed(tr("Die Spalte „{0}“ finde ich nicht.", a.s("gruppe").orEmpty()))
+            val v = SheetLora.column(rows, a.s("wert").orEmpty().ifBlank { "Note" }) ?: throw ActionFailed(tr("Die Spalte „{0}“ finde ich nicht.", a.s("wert").orEmpty()))
+            val block = SheetCalc.byGroup(rows, g, v, SheetEngine.Sheet(rows)) ?: throw ActionFailed(tr("Dafür finde ich keine Gruppen."))
+            sheetChange("sheet.group", tr("Rechnet je „{0}“ …", rows[0].getOrNull(g).orEmpty()), false, result = tr("Zusammenfassung steht ab {0}: {1}.", SheetEngine.ref(block.row, block.col), block.note)) { r, meta ->
+                SheetCalc.apply(r, block) to block.meta(meta)
+            }
+        },
+        ToolAction(
+            "sheet.chart", ActionArea.SHEET, trLater("Diagramm anlegen"),
+            "Legt ein Diagramm aus einem Bereich an (Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot) im TUD-Design.",
+            listOf(
+                ActionParam("bereich", "Bereich, z. B. A1:B10 (erste Zeile Namen)"),
+                ActionParam("typ", "saeulen, balken, linie, kreis, punkt, histogramm oder boxplot", required = false),
+                ActionParam("titel", "Titel", required = false),
+            ), risky = false,
+        ) { _, a ->
+            val range = a.s("bereich").orEmpty().trim().uppercase()
+            if (SheetEngine.parseRange(range) == null) throw ActionFailed(tr("Welcher Bereich? Zum Beispiel A1:B10"))
+            val type = when (a.s("typ").orEmpty().lowercase()) {
+                "balken", "hbar" -> "hbar"; "linie", "line" -> "line"; "kreis", "pie", "torte" -> "pie"; "punkt", "streu", "scatter" -> "scatter"
+                "histogramm", "histogram" -> "histogram"; "boxplot", "box" -> "box"; "gestapelt", "stacked" -> "stacked"; else -> "bar"
+            }
+            val chart = SheetChart(type, range, a.s("titel").orEmpty(), id = SheetCalc.newId())
+            sheetChange("sheet.chart", tr("Legt ein Diagramm aus {0} an …", range), false, result = tr("Diagramm aus {0} angelegt.", range)) { rows, meta ->
+                if (SheetTools.chartSpec(chart, SheetEngine.Sheet(rows)) == null) throw ActionFailed(tr("Im Bereich {0} stehen keine Zahlen für ein Diagramm", range))
+                rows to meta.copy(charts = meta.charts + chart)
+            }
+        },
+        ToolAction(
+            "sheet.explain", ActionArea.SHEET, trLater("Formel erklären"),
+            "Erklärt in Worten, was die Formel einer Zelle rechnet (Funktionen und Bezüge mit ihren Spaltennamen), auf dem Gerät.",
+            listOf(ActionParam("zelle", "Zelle, z. B. D2 (leer: die erste Formel der markierten Zeile)", required = false)), risky = false,
+        ) { _, a ->
+            val host = sheetHost()
+            val rows = SheetEngine.grid(host.markdown())
+            val at = a.s("zelle")?.let { SheetEngine.parseRef(it.trim()) }
+                ?: host.selected().let { r -> rows.getOrNull(r)?.indexOfFirst { it.trimStart().startsWith("=") }?.takeIf { it >= 0 }?.let { r to it } }
+                ?: rows.indices.firstNotNullOfOrNull { r -> rows[r].indexOfFirst { it.trimStart().startsWith("=") }.takeIf { it >= 0 }?.let { r to it } }
+                ?: throw ActionFailed(tr("In der Tabelle steht keine Formel."))
+            val formula = rows.getOrNull(at.first)?.getOrNull(at.second).orEmpty()
+            val text = SheetCalc.explain(formula, rows)
+            ActionPlan("sheet.explain", tr("Erklärt {0} …", SheetEngine.ref(at.first, at.second)), false) {
+                ActionResult(SheetEngine.ref(at.first, at.second) + " " + formula + "\n" + text)
             }
         },
         // Folien
@@ -315,6 +397,44 @@ internal object OfficeActions {
             val made = SlidesLora.fromOutline(a.s("gliederung").orEmpty())
             if (made.isEmpty()) throw ActionFailed(tr("Aus der Gliederung entstehen keine Folien – bitte Titel mit # beginnen."))
             slidesChange("slides.from_outline", tr("Legt {0} Folien an …", made.size), false, result = tr("{0} Folien angelegt.", made.size)) { list, _ -> list + made }
+        },
+        // Lora baut Folien (AP-51): a whole deck in the TUD design from a document, on the device.
+        ToolAction(
+            "slides.from_document", ActionArea.DOC, trLater("Präsentation aus Dokument"),
+            "Baut aus einem Dokument (Titel; leer: das zuletzt bearbeitete) eine Präsentation im TUD-Design: Abschnitte, Inhaltsfolien, Tabellen, Bilder, Diagramme, lange Absätze als Sprechernotizen; Punkte erscheinen nacheinander.",
+            listOf(ActionParam("dokument", "Titel des Dokuments (leer: das zuletzt bearbeitete)", required = false)), risky = false,
+        ) { c, a ->
+            val name = a.s("dokument").orEmpty().trim()
+            val docs = c.docs.items.value.filter { it.docKind == io.github.thepytales.llmhub.docs.DocKind.DOC }
+            val doc = (if (name.isEmpty()) docs.maxByOrNull { it.updatedAt } else docs.firstOrNull { it.title.equals(name, true) } ?: docs.firstOrNull { it.title.contains(name, true) })
+                ?: throw ActionFailed(tr("Das Dokument „{0}“ finde ich nicht.", name))
+            val slides = SlideDeck.fromDocument(doc.markdown(), doc.title).mapIndexed { i, sl -> if (i > 0 && sl.layout == SlideDeck.Layout.CONTENT) sl.copy(build = true, transition = "fade") else sl }
+            ActionPlan("slides.from_document", tr("Baut Folien aus „{0}“ …", doc.title), false, listOf(tr("Folien") to slides.size.toString())) {
+                val deck = io.github.thepytales.llmhub.docs.LiveDoc.create(doc.title, SlideDeck.markdown(slides), "Lora", kind = io.github.thepytales.llmhub.docs.DocKind.SLIDES).copy(vault = doc.vault)
+                c.docs.save(deck)
+                io.github.thepytales.llmhub.ui.DocsHandoff.show(deck.id)
+                ActionResult(tr("Präsentation „{0}“ mit {1} Folien angelegt.", doc.title, slides.size), undo = { c.docs.delete(deck.id); tr("Präsentation entfernt.") })
+            }
+        },
+        ToolAction(
+            "slides.animate", ActionArea.SLIDES, trLater("Animationen"),
+            "Setzt Übergänge und lässt Stichpunkte nacheinander erscheinen – für alle Inhaltsfolien oder eine (Nummer/Titel).",
+            listOf(
+                ActionParam("uebergang", "ueberblenden, schieben oder keiner", required = false),
+                ActionParam("nacheinander", "ja/nein: Stichpunkte nacheinander", required = false),
+                ActionParam("folie", "Nummer oder Titel (leer: alle)", required = false),
+            ), risky = false,
+        ) { _, a ->
+            val t = when (a.s("uebergang").orEmpty().lowercase()) { "schieben", "push" -> "push"; "keiner", "kein", "aus", "none" -> ""; else -> "fade" }
+            val build = !a.s("nacheinander").orEmpty().lowercase().let { it.startsWith("n") || it == "false" }
+            val host = slidesHost()
+            val slides = SlideDeck.parse(host.markdown())
+            val only = a.s("folie")?.takeIf { it.isNotBlank() }?.let { SlidesLora.index(slides, it, host.selected()) ?: throw ActionFailed(tr("Diese Folie finde ich nicht.")) }
+            slidesChange("slides.animate", tr("Setzt Animationen …"), false, result = tr("Animationen gesetzt.")) { list, _ ->
+                list.mapIndexed { i, sl ->
+                    if ((only == null && i > 0) || i == only) sl.copy(transition = t, build = build && sl.body.lines().any { it.trimStart().startsWith("- ") }) else sl
+                }
+            }
         },
         ToolAction(
             "slides.split_full", ActionArea.SLIDES, trLater("Volle Folien teilen"), "Teilt Folien mit mehr als sechs Stichpunkten auf.",

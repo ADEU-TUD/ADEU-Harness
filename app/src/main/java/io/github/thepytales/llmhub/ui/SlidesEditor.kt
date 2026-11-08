@@ -65,6 +65,8 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.SpeakerNotes
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.animation.togetherWith
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -930,12 +932,26 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     var blank by remember { mutableStateOf<Color?>(null) }
     var laser by remember { mutableStateOf(false) }
     var pointer by remember { mutableStateOf<Offset?>(null) }
+    // Aufbau (AP-51): how many points of the slide are shown; Zeichnen: strokes per slide.
+    var step by remember { mutableIntStateOf(0) }
+    var pen by remember { mutableStateOf(false) }
+    val ink = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<List<Offset>>>() }
+    var stroke by remember { mutableStateOf<List<Offset>>(emptyList()) }
     /** Digits typed for "number + Enter". */
     var typed by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
     LaunchedEffect(typed) { if (typed.isNotEmpty()) { delay(3000); typed = "" } }
     val focus = remember { FocusRequester() }
-    fun go(to: Int) { i = to.coerceIn(0, slides.lastIndex); blank = null }
+    fun go(to: Int) {
+        val next = to.coerceIn(0, slides.lastIndex)
+        // Going back shows the slide complete, going on starts its build.
+        step = if (next < i) SlideDeck.buildCount(slides[next]) else 0
+        i = next
+        blank = null
+    }
+    /** One click on: the next point of the build, then the next slide. */
+    fun forward() { if (step < SlideDeck.buildCount(slides[i])) step++ else go(i + 1) }
+    fun backward() { if (step > 0) step-- else go(i - 1) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             Modifier.fillMaxSize().background(Color.Black).focusRequester(focus).focusable().onKeyEvent { e ->
@@ -950,16 +966,18 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     Key.Enter, Key.NumPadEnter -> {
                         val n = typed.toIntOrNull()
                         typed = ""
-                        if (n != null) go(n - 1) else go(i + 1)
+                        if (n != null) go(n - 1) else forward()
                         true
                     }
-                    Key.DirectionRight, Key.DirectionDown, Key.Spacebar, Key.PageDown -> { go(i + 1); true }
-                    Key.DirectionLeft, Key.DirectionUp, Key.PageUp, Key.Backspace -> { go(i - 1); true }
+                    Key.DirectionRight, Key.DirectionDown, Key.Spacebar, Key.PageDown -> { forward(); true }
+                    Key.DirectionLeft, Key.DirectionUp, Key.PageUp, Key.Backspace -> { backward(); true }
+                    Key.D -> { pen = !pen; laser = false; true }
+                    Key.E -> { ink.remove(i); true }
                     Key.MoveHome -> { go(0); true }
                     Key.MoveEnd -> { go(slides.lastIndex); true }
                     Key.B, Key.Period -> { blank = if (blank == Color.Black) null else Color.Black; true }
                     Key.W, Key.Comma -> { blank = if (blank == Color.White) null else Color.White; true }
-                    Key.L -> { laser = !laser; pointer = null; true }
+                    Key.L -> { laser = !laser; pen = false; pointer = null; true }
                     Key.N -> { notes = !notes; true }
                     Key.Escape -> { if (blank != null) blank = null else onClose(); true }
                     else -> false
@@ -970,7 +988,16 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 Box(
                     Modifier.weight(if (notes && !narrow) 2.2f else 1f).fillMaxHeight()
-                        .then(if (laser) Modifier else Modifier.clickable { go(i + 1) })
+                        .then(if (laser || pen) Modifier else Modifier.clickable { forward() })
+                        // Zeichnen beim Präsentieren (D): strokes in red over the slide, E erases them.
+                        .pointerInput(pen, i) {
+                            if (!pen) return@pointerInput
+                            detectDragGestures(
+                                onDragStart = { stroke = listOf(it) },
+                                onDragEnd = { if (stroke.size > 1) ink[i] = ink[i].orEmpty() + listOf(stroke); stroke = emptyList() },
+                                onDragCancel = { stroke = emptyList() },
+                            ) { change, _ -> change.consume(); stroke = stroke + change.position }
+                        }
                         .pointerInput(laser) {
                             if (!laser) return@pointerInput
                             awaitPointerEventScope {
@@ -984,7 +1011,26 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     contentAlignment = Alignment.Center,
                 ) {
                     if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
-                    else SlideCanvas(slides[i], Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 1, slides.size, frame, slides)
+                    else androidx.compose.animation.AnimatedContent(
+                        targetState = i,
+                        transitionSpec = {
+                            val forwardMove = targetState > initialState
+                            when (slides.getOrNull(targetState)?.transition) {
+                                "fade" -> androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(450)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(450))
+                                "push" -> androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) w else -w } togetherWith
+                                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) -w else w }
+                                else -> androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                            }
+                        },
+                        label = "folie",
+                    ) { k ->
+                        val shown = if (k == i) SlideDeck.buildStep(slides[k], step) else slides[k]
+                        SlideCanvas(shown, Modifier.fillMaxWidth().aspectRatio(16f / 9f), k + 1, slides.size, frame, slides)
+                    }
+                    val lines = ink[i].orEmpty() + listOf(stroke).filter { it.size > 1 }
+                    if (lines.isNotEmpty()) Canvas(Modifier.fillMaxSize()) {
+                        lines.forEach { pts -> pts.zipWithNext { a, b -> drawLine(Color(0xFFE6001A), a, b, strokeWidth = 4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round) } }
+                    }
                     val dot = pointer
                     if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
                         drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = dot)
@@ -1000,7 +1046,7 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                         Text(tr("Notizen"), color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         Text(slides[i].notes.ifBlank { tr("Keine Notizen zu dieser Folie.") }, color = Color.White, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()))
                         Text(
-                            tr("←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · N: Notizen · Esc: Ende"),
+                            tr("←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · D: zeichnen, E: löschen · N: Notizen · Esc: Ende"),
                             color = Color(0xFF888888), style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -1024,12 +1070,15 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                 IconButton(onClick = { laser = !laser; pointer = null }) {
                     Icon(Icons.Outlined.Circle, contentDescription = if (laser) tr("Laserpointer aus (L)") else tr("Laserpointer (L)"), tint = if (laser) Color(0xFFFF4040) else Color.White)
                 }
+                IconButton(onClick = { pen = !pen; laser = false }) {
+                    Icon(Icons.Outlined.Edit, contentDescription = if (pen) tr("Zeichnen aus (D)") else tr("Zeichnen (D)"), tint = if (pen) Color(0xFFFF4040) else Color.White)
+                }
                 IconButton(onClick = { blank = if (blank == Color.Black) null else Color.Black }) {
                     Icon(Icons.Outlined.DarkMode, contentDescription = tr("Schwarzer Bildschirm (B)"), tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
                 }
                 IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = tr("Notizen (N)"), tint = Color.White) }
-                IconButton(onClick = { go(i - 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück"), tint = Color.White) }
-                IconButton(onClick = { go(i + 1) }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weiter"), tint = Color.White) }
+                IconButton(onClick = { backward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück"), tint = Color.White) }
+                IconButton(onClick = { forward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weiter"), tint = Color.White) }
             }
         }
     }
@@ -1057,7 +1106,12 @@ private fun FreeOverlay(elements: List<io.github.thepytales.llmhub.docs.SlideEle
             fun commit() {
                 if (dx != 0f || dy != 0f || dw != 0f || dh != 0f) {
                     val r = { v: Double -> Math.round(v * 10) / 10.0 }
-                    onChange(elements.toMutableList().apply { set(i, el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))) })
+                    val moved = el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))
+                    // A group moves together (shared canvas, AP-50).
+                    val ddx = moved.x - el.x
+                    val ddy = moved.y - el.y
+                    val together = el.group.isNotEmpty() && dw == 0f && dh == 0f
+                    onChange(elements.mapIndexed { j, o -> if (j == i) moved else if (together && o.group == el.group) o.copy(x = r(o.x + ddx), y = r(o.y + ddy)) else o })
                 }
             }
             Box(
@@ -1129,6 +1183,18 @@ private fun FreeDesignBar(
                 }
             }
             AssistChip(onClick = { masterOpen = true }, label = { Text(tr("Masterfolie …")) })
+            // Übergang und Aufbau (AP-51), beim Vorführen und in PowerPoint.
+            var animMenu by remember { mutableStateOf(false) }
+            Box {
+                AssistChip(onClick = { animMenu = true }, label = { Text(tr("Animation: {0}", listOfNotNull(when (s.transition) { "fade" -> tr("Überblenden"); "push" -> tr("Schieben"); else -> null }, if (s.build) tr("Punkte nacheinander") else null).joinToString(", ").ifBlank { tr("keine") })) })
+                DropdownMenu(expanded = animMenu, onDismissRequest = { animMenu = false }) {
+                    listOf("" to tr("Kein Übergang"), "fade" to tr("Überblenden"), "push" to tr("Schieben")).forEach { (k, label) ->
+                        DropdownMenuItem(text = { Text((if (s.transition == k) "✓ " else "") + label) }, onClick = { animMenu = false; onChange(s.copy(transition = k)) })
+                    }
+                    HorizontalDivider()
+                    DropdownMenuItem(text = { Text((if (s.build) "✓ " else "") + tr("Stichpunkte nacheinander einblenden")) }, onClick = { animMenu = false; onChange(s.copy(build = !s.build)) })
+                }
+            }
             if (s.layout != SlideDeck.Layout.FREE && sel > 0) AssistChip(onClick = { onChange(s.copy(layout = SlideDeck.Layout.FREE)) }, label = { Text(tr("Leere Folie (frei)")) })
         }
         val el = picked?.let { s.elements.getOrNull(it) }
@@ -1162,9 +1228,28 @@ private fun FreeDesignBar(
                             listOf("links" to "◧", "mitte" to "▣", "rechts" to "◨").forEach { (k, sym) -> FilterChip(el.align == k, { set(el.copy(align = k)) }, label = { Text(sym) }) }
                         }
                     }
+                    // The same operations as Erstellen › Gestalten (shared canvas, AP-50): align to the slide, layers, groups.
+                    HintText(tr("Ausrichten auf der Folie"))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf("left" to "⇤", "hcenter" to "↔", "right" to "⇥", "top" to "⤒", "vcenter" to "↕", "bottom" to "⤓").forEach { (mode, sym) ->
+                            FilterChip(false, { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.align(s.elements, setOf(picked), mode))) }, label = { Text(sym) })
+                        }
+                    }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(removeAt(picked)) })); onPick(s.elements.lastIndex) }) { Text(tr("Nach vorn")) }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { add(0, removeAt(picked)) })); onPick(0) }) { Text(tr("Nach hinten")) }
+                        fun layer(up: Boolean) {
+                            val next = io.github.thepytales.llmhub.creative.SlideCanvas.reorder(s.elements, setOf(picked), up, all = true)
+                            onChange(s.copy(elements = next))
+                            onPick(next.indexOfFirst { it == el }.takeIf { it >= 0 })
+                        }
+                        TextButton(onClick = { layer(true) }) { Text(tr("Nach vorn")) }
+                        TextButton(onClick = { layer(false) }) { Text(tr("Nach hinten")) }
+                        // Gruppieren: with the element drawn just below it (on a slide one element is picked at a time).
+                        if (el.group.isNotEmpty()) TextButton(onClick = { onChange(s.copy(elements = s.elements.map { if (it.group == el.group) it.copy(group = "") else it })) }) { Text(tr("Gruppierung aufheben")) }
+                        else if (picked > 0) TextButton(onClick = {
+                            val id = io.github.thepytales.llmhub.data.newDesignId()
+                            val below = s.elements[picked - 1].group.ifEmpty { id }
+                            onChange(s.copy(elements = s.elements.mapIndexed { i, x -> if (i == picked || i == picked - 1 || (x.group.isNotEmpty() && x.group == s.elements[picked - 1].group)) x.copy(group = below) else x }))
+                        }) { Text(tr("Mit dem Element darunter gruppieren")) }
                         TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text(tr("Duplizieren")) }
                         TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
                     }

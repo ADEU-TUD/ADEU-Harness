@@ -5254,3 +5254,103 @@ Kopfzeile (leer: keine)	Header (empty: none)
 Eigene Fußzeile	Own footer
 Fußzeile (leer: keine)	Footer (empty: none)
 Tabstopps entfernen	Clear tab stops
+(leeren)	(clear)
+Andere Werte ablehnen (sonst nur rot markieren)	Reject other values (otherwise only mark them red)
+Aus Zellen	From cells
+Auswahlliste	Dropdown list
+Auswahlliste (Datenüberprüfung) …	Dropdown list (data validation) …
+Bereich, z. B. C2:C200	Range, e.g. C2:C200
+Die Liste ist leer	The list is empty
+Fixierung aufheben	Unfreeze panes
+Ganze Zelle	Whole cell
+Groß/klein beachten	Match case
+Hinweis: „{0}“ steht nicht in der Auswahlliste	Note: “{0}” is not in the dropdown list
+In Formeln	In formulas
+In diesen Zellen zeigt ▾ die erlaubten Werte zum Auswählen.	In these cells, ▾ shows the allowed values to choose from.
+Liste entfernen	Remove list
+Spalte breiter	Wider column
+Spalte schmaler	Narrower column
+Spalten A–{0} fixieren	Freeze columns A–{0}
+Spaltenbreite an Inhalt anpassen	Fit column width to content
+Standardbreite	Standard width
+Suchen und ersetzen (Strg+F, Strg+H)	Find and replace (Ctrl+F, Ctrl+H)
+Tab übernimmt	Tab accepts
+Verbindung aufheben	Unmerge cells
+Verbunden: nur der Wert oben links wird angezeigt ({0} weitere Zellen bleiben erhalten)	Merged: only the top-left value is shown ({0} other cells are kept)
+Werte eingeben	Enter values
+Werte, getrennt mit ; oder Komma	Values, separated by ; or comma
+Zeilen 1–{0} fixieren	Freeze rows 1–{0}
+Zellen {0} verbinden	Merge cells {0}
+Zellen, z. B. E2:E9 oder Listen!A2:A20	Cells, e.g. E2:E9 or Lists!A2:A20
+{0} Zelle(n) ersetzt	{0} cell(s) replaced
+„{0}“ nicht gefunden	“{0}” not found
+„{0}“ steht nicht in der Auswahlliste von {1}	“{0}” is not in the dropdown list of {1}
+Achse x	x axis
+Achse y	y axis
+Als Bild speichern (SVG)	Save as image (SVG)
+Balkendiagramm	Bar chart
+Berechnet die Verteilung von „{0}“ …	Calculating the distribution of “{0}” …
+Boxplot	Box plot
+Dafür finde ich keine Gruppen.	I can't find any groups for that.
+Diagramm anlegen	Create chart
+Diagramm aus {0} angelegt.	Chart created from {0}.
+Diagramm bearbeiten	Edit chart
+Diagramm in „{0}“ eingefügt	Chart inserted into “{0}”
+Diagramm verknüpft einfügen	Insert linked chart
+Diagramm verknüpft eingefügt	Linked chart inserted
+Erklärt {0} …	Explaining {0} …
+Formel erklären	Explain formula
+Gestapelte Säulen	Stacked columns
+Histogramm	Histogram
+In der Spalte stehen keine Werte.	The column has no values.
+In der Tabelle steht keine Formel.	The table has no formula.
+Kennzahlen je Gruppe	Key figures per group
+Legt ein Diagramm aus {0} an …	Creating a chart from {0} …
+Noch kein Dokument und keine Präsentation vorhanden.	No document or presentation yet.
+Punktdiagramm	Scatter chart
+Rechnet je „{0}“ …	Calculating per “{0}” …
+Speichern nicht möglich	Could not save
+Titel, Achsen und Typ …	Title, axes and type …
+Verknüpft in Dokument oder Folien einfügen …	Insert linked into document or slides …
+Verknüpfte Diagramme aktualisiert	Linked charts updated
+Verteilung berechnen	Calculate distribution
+Verteilung steht ab {0}: {1}.	Distribution starts at {0}: {1}.
+Welche Spalte soll ich auszählen?	Which column should I count?
+Welcher Bereich? Zum Beispiel A1:B10	Which range? For example A1:B10
+Zusammenfassung steht ab {0}: {1}.	Summary starts at {0}: {1}.
+Ändern sich die Daten, aktualisiert sich das Diagramm im Dokument beim nächsten Öffnen.	When the data changes, the chart in the document updates the next time it is opened.
+Verlauf bis	Gradient to
+Bildfilter	Picture filters
+Kontrast	Contrast
+Sättigung	Saturation
+Weichzeichnen	Blur
+Graustufen	Greyscale
+Filter zurücksetzen	Reset filters
+Gruppieren (Strg+G)	Group (Ctrl+G)
+Gruppierung aufheben	Ungroup
+Ausrichten auf der Folie	Align on the slide
+Mit dem Element darunter gruppieren	Group with the element below
+←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · D: zeichnen, E: löschen · N: Notizen · Esc: Ende	←/→ page · number + Enter: slide · B/W: black/white · L: laser pointer · D: draw, E: erase · N: notes · Esc: end
+Zeichnen aus (D)	Stop drawing (D)
+Zeichnen (D)	Draw (D)
+Animation: {0}	Animation: {0}
+Schieben	Push
+Punkte nacheinander	Points one by one
+keine	none
+Kein Übergang	No transition
+Stichpunkte nacheinander einblenden	Show bullet points one by one
+Das Dokument „{0}“ finde ich nicht.	I can't find the document “{0}”.
+Baut Folien aus „{0}“ …	Building slides from “{0}” …
+Präsentation „{0}“ mit {1} Folien angelegt.	Presentation “{0}” with {1} slides created.
+Präsentation entfernt.	Presentation removed.
+Animationen	Animations
+Setzt Animationen …	Setting animations …
+Animationen gesetzt.	Animations set.
+Frag diesen Ordner	Ask this folder
+Im Ordner „{0}“ gibt es keine lesbaren Dateien.	The folder “{0}” has no readable files.
+Der Ordner enthält vertraulich wirkende Dateien – Datenschutzstufe „{0}“ empfohlen.	The folder seems to contain confidential files – privacy level “{0}” recommended.
+Frag diesen Ordner: {0} ({1} Dateien)	Ask this folder: {0} ({1} files)
+Suche Dateien in „{0}“ …	Looking for files in “{0}” …
+Lese {0} von {1} Dateien aus „{2}“ …	Reading {0} of {1} files from “{2}” …
+Einmal gelesene Dateien kommen danach aus dem Volltext-Cache.	Files read once come from the full-text cache afterwards.
+{0} Datumsangaben als TT.MM.JJJJ vereinheitlicht	{0} dates unified as DD.MM.YYYY

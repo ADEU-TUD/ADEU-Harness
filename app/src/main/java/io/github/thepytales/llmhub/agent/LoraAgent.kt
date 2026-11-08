@@ -225,7 +225,16 @@ class LoraAgent(private val c: AppContainer) {
             area == ActionArea.SHEET && Regex("^(sortier\\w*|ordne)\\s+(nach|die tabelle nach)\\s+").containsMatchIn(n) ->
                 "sheet.sort" to mapOf("spalte" to wish.trim().replace(Regex("^(?i)(sortier\\w*|ordne)\\s+(die tabelle\\s+)?nach\\s+"), "").replace(Regex("(?i)\\s+(absteigend|aufsteigend)$"), "").trim(), "absteigend" to if ("absteigend" in n) "ja" else "")
             area == ActionArea.SHEET && Regex("(bereinig|aufraum|dubletten|doppelte zeilen)").containsMatchIn(n) -> "sheet.clean" to emptyMap()
-            area == ActionArea.SHEET && Regex("(summe|mittelwert|durchschnitt)").containsMatchIn(n) && !Regex("(spalte|je |pro )").containsMatchIn(n) -> "sheet.summary" to emptyMap()
+            // Lora rechnet (AP-49): „Berechne die Notenverteilung“, „Mittelwert je Gruppe“, „Erkläre die Formel in D2“.
+            area == ActionArea.SHEET && Regex("(verteilung|haufigkeit|wie oft)").containsMatchIn(n) ->
+                "sheet.distribution" to listOfNotNull(Regex("(?i)(?:verteilung|häufigkeit|haeufigkeit)\\s+(?:der|von|in)\\s+(?:spalte\\s+)?[„\"]?([\\p{L}\\d .-]+?)[“\"]?\\s*$").find(wish.trim())?.groupValues?.get(1)?.let { "spalte" to it }).toMap()
+            area == ActionArea.SHEET && Regex("(mittelwert|durchschnitt|schnitt|anzahl)\\b.*\\b(je|pro|nach)\\s+").containsMatchIn(n) -> {
+                val m = Regex("(?i)(?:mittelwert|durchschnitt|schnitt|anzahl)\\s*(?:der|des|von)?\\s*([\\p{L}\\d.-]+)?\\s+(?:je|pro|nach)\\s+[„\"]?([\\p{L}\\d .-]+?)[“\"]?\\s*$").find(wish.trim())
+                "sheet.group" to listOfNotNull(m?.groupValues?.get(2)?.let { "gruppe" to it }, m?.groupValues?.get(1)?.takeIf { it.isNotBlank() }?.let { "wert" to it }).toMap()
+            }
+            area == ActionArea.SHEET && Regex("erklar\\w*.*formel|formel.*erklar").containsMatchIn(n) ->
+                "sheet.explain" to listOfNotNull(Regex("\\b([A-Za-z]{1,3}\\d{1,6})\\b").find(wish)?.groupValues?.get(1)?.let { "zelle" to it.uppercase() }).toMap()
+            area == ActionArea.SHEET && Regex("(summe|mittelwert|durchschnitt)").containsMatchIn(n) && !Regex("(spalte|je |pro |nach )").containsMatchIn(n) -> "sheet.summary" to emptyMap()
             area == ActionArea.VIDEO && Regex("(exportier|export|rendern|als mp4)").containsMatchIn(n) && !android ->
                 "video.export" to listOfNotNull(when { "opal" in n || "720" in n -> "opal"; "youtube" in n || "1080" in n -> "youtube"; else -> null }?.let { "vorgabe" to it }).toMap()
             area == ActionArea.VIDEO && Regex("untertitel").containsMatchIn(n) && !android -> "video.subtitles" to emptyMap()

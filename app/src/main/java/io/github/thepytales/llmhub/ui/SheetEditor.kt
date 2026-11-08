@@ -47,6 +47,10 @@ import androidx.compose.material.icons.outlined.FormatItalic
 import androidx.compose.material.icons.outlined.FormatPaint
 import androidx.compose.material.icons.outlined.Functions
 import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -86,6 +90,13 @@ import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -96,7 +107,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
+import io.github.thepytales.llmhub.docs.CellCheck
 import io.github.thepytales.llmhub.docs.CellStyle
+import io.github.thepytales.llmhub.docs.SheetHelp
 import io.github.thepytales.llmhub.docs.CondRule
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.SheetChart
@@ -104,7 +117,6 @@ import io.github.thepytales.llmhub.docs.SheetEngine
 import io.github.thepytales.llmhub.docs.SheetMeta
 import io.github.thepytales.llmhub.docs.SheetTools
 
-private val CELL_W = 118.dp
 private val CELL_H = 34.dp
 private val HEAD_W = 44.dp
 
@@ -223,10 +235,33 @@ fun SheetBody(
         onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.sheet === host) io.github.thepytales.llmhub.agent.ActionHosts.sheet = null }
     }
 
+    // Choice lists (Datenüberprüfung) by range, for the ▾ in the cells.
+    val checkRanges = remember(meta.checks) { meta.checks.mapNotNull { k -> SheetEngine.parseRange(k.range)?.let { k to it } } }
+    fun checkAt(r: Int, c: Int): CellCheck? = checkRanges.lastOrNull { (_, g) -> r in g[0]..g[2] && c in g[1]..g[3] }?.first
+
     fun setCell(r: Int, col: Int, v: String) {
         if (rows.getOrNull(r)?.getOrNull(col).orEmpty() == v) return
+        checkAt(r, col)?.let { k ->
+            if (!SheetTools.allowed(k, v, engine)) {
+                if (k.strict) {
+                    Notices.info(tr("„{0}“ steht nicht in der Auswahlliste von {1}", v, SheetEngine.ref(r, col)))
+                    return
+                }
+                Notices.info(tr("Hinweis: „{0}“ steht nicht in der Auswahlliste", v))
+            }
+        }
+        // Only the changed row is copied (large sheets stay fast).
         val width = maxOf(cols, col + 1)
-        val next = (0 until maxOf(rows.size, r + 1)).map { i -> (0 until width).map { j -> if (i == r && j == col) v else rows.getOrNull(i)?.getOrNull(j).orEmpty() } }
+        val height = maxOf(rows.size, r + 1)
+        val next = ArrayList<List<String>>(height)
+        for (i in 0 until height) {
+            val row = rows.getOrNull(i)
+            next += when {
+                i == r -> (0 until width).map { j -> if (j == col) v else row?.getOrNull(j).orEmpty() }
+                row != null && row.size >= width -> row
+                else -> (0 until width).map { j -> row?.getOrNull(j).orEmpty() }
+            }
+        }
         write(next)
     }
 
@@ -310,6 +345,68 @@ fun SheetBody(
     fun csvSample(): String = rows.take(25).mapIndexed { r, row -> "${r + 1}: " + row.mapIndexed { j, _ -> engine.display(r, j) }.joinToString(" | ") }.joinToString("\n")
 
     val style = meta.style(sr, sc) ?: CellStyle()
+
+    // ── Suchen und Ersetzen (Strg+F, Strg+H) ──
+    var findOpen by remember(doc.id, tabId) { mutableStateOf(false) }
+    var findReplace by remember { mutableStateOf(false) }
+    var findText by remember { mutableStateOf("") }
+    var replaceWith by remember { mutableStateOf("") }
+    var findCase by remember { mutableStateOf(false) }
+    var findWhole by remember { mutableStateOf(false) }
+    var findFormulas by remember { mutableStateOf(true) }
+    var findAt by remember { mutableStateOf(-1) }
+    val findFocus = remember { FocusRequester() }
+    val findOptions = SheetTools.Find(findText, findCase, findWhole, findFormulas)
+    val hits = remember(rows, findOptions, findOpen, engine) {
+        if (!findOpen || findText.isEmpty()) emptyList() else SheetTools.find(rows, findOptions) { r, c -> engine.display(r, c) }
+    }
+    fun openFind(replace: Boolean) {
+        setCell(sr, sc, bar.text)
+        findOpen = true
+        findReplace = replace
+        if (isRange) findText = engine.display(sr, sc).takeIf { it.length in 1..40 } ?: findText
+    }
+    fun goHit(step: Int) {
+        if (hits.isEmpty()) { Notices.info(tr("„{0}“ nicht gefunden", findText)); return }
+        val current = hits.indexOf(sr to sc)
+        val i = when {
+            current >= 0 -> Math.floorMod(current + step, hits.size)
+            step > 0 -> hits.indexOfFirst { it.first > sr || it.first == sr && it.second > sc }.takeIf { it >= 0 } ?: 0
+            else -> hits.indexOfLast { it.first < sr || it.first == sr && it.second < sc }.takeIf { it >= 0 } ?: hits.lastIndex
+        }
+        findAt = i
+        select(hits[i].first, hits[i].second)
+    }
+
+    // ── Ausfüllkästchen (fill handle): dragging the corner of the selection fills down or to the right ──
+    var fillTarget by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    fun fillTo(target: Pair<Int, Int>) {
+        setCell(sr, sc, bar.text)
+        val (tr, tc) = target
+        val down = tr > bottom
+        if (!down && tc <= right) return
+        // Like Excel, the dragged-over cells are overwritten: they are cleared before the series is filled.
+        val cleared = (0 until maxOf(rows.size, tr + 1)).map { i ->
+            (0 until maxOf(cols, tc + 1)).map { j ->
+                val inNew = if (down) i in (bottom + 1)..tr && j in left..right else j in (right + 1)..tc && i in top..bottom
+                if (inNew) "" else rows.getOrNull(i)?.getOrNull(j).orEmpty()
+            }
+        }
+        write(if (down) SheetTools.fill(cleared, top, left, tr, right, down = true) else SheetTools.fill(cleared, top, left, bottom, tc, down = false))
+        anchor = top to left
+        sel = if (down) tr to right else bottom to tc
+        val v = rows.getOrNull(sel.first)?.getOrNull(sel.second).orEmpty()
+        bar = TextFieldValue(v, TextRange(v.length))
+    }
+    var choiceAt by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var chartEdit by remember { mutableStateOf<Int?>(null) }
+    var chartLink by remember { mutableStateOf<Int?>(null) }
+    var checkDialog by remember { mutableStateOf(false) }
+    // Merged cells by the cells they cover (very large merges are left out).
+    val covered = remember(meta.merges) {
+        HashMap<Pair<Int, Int>, IntArray>().also { m -> meta.mergeRanges.filter { (it[2] - it[0] + 1).toLong() * (it[3] - it[1] + 1) <= 10_000 }.forEach { g -> for (r in g[0]..g[2]) for (c in g[1]..g[3]) m[r to c] = g } }
+    }
+    val density = LocalDensity.current
 
     Column(Modifier.fillMaxSize()) {
         // ── Toolbar ──
@@ -398,14 +495,71 @@ fun SheetBody(
                     })
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text((if (meta.freeze) "✓ " else "") + tr("Kopfzeile fixieren")) },
-                        onClick = { rowsMenu = false; write(rows, meta.copy(freeze = !meta.freeze)) },
+                        text = { Text((if (meta.freeze && meta.frozenRows == null) "✓ " else "") + tr("Kopfzeile fixieren")) },
+                        onClick = { rowsMenu = false; write(rows, meta.copy(freeze = !(meta.freeze && meta.frozenRows == null), frozenRows = null)) },
+                    )
+                    DropdownMenuItem(
+                        text = { Text((if (meta.topRows == sr + 1 && sr > 0) "✓ " else "") + tr("Zeilen 1–{0} fixieren", sr + 1)) }, enabled = sr in 1 until rows.lastIndex,
+                        onClick = { rowsMenu = false; write(rows, meta.copy(freeze = true, frozenRows = sr + 1)) },
+                    )
+                    DropdownMenuItem(
+                        text = { Text((if (meta.frozenCols == sc + 1) "✓ " else "") + tr("Spalten A–{0} fixieren", SheetEngine.colName(sc))) }, enabled = sc < cols - 1,
+                        onClick = { rowsMenu = false; write(rows, meta.copy(frozenCols = sc + 1)) },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(tr("Fixierung aufheben")) }, enabled = meta.topRows > 0 || meta.frozenCols > 0,
+                        onClick = { rowsMenu = false; write(rows, meta.copy(freeze = false, frozenRows = null, frozenCols = 0)) },
+                    )
+                    HorizontalDivider()
+                    val mergedHere = meta.mergeAt(sr, sc)
+                    DropdownMenuItem(
+                        text = { Text(if (mergedHere != null && !isRange) tr("Verbindung aufheben") else tr("Zellen {0} verbinden", rangeName)) },
+                        enabled = isRange || mergedHere != null,
+                        onClick = {
+                            rowsMenu = false
+                            setCell(sr, sc, bar.text)
+                            if (mergedHere != null && !isRange) write(rows, meta.unmerge(sr, sc, sr, sc))
+                            else {
+                                val lost = (top..bottom).flatMap { r -> (left..right).map { j -> r to j } }.count { (r, j) -> (r != top || j != left) && rows.getOrNull(r)?.getOrNull(j).orEmpty().isNotBlank() }
+                                write(rows, meta.merge(top, left, bottom, right))
+                                if (lost > 0) Notices.info(tr("Verbunden: nur der Wert oben links wird angezeigt ({0} weitere Zellen bleiben erhalten)", lost))
+                                anchor = null
+                                sel = top to left
+                            }
+                        },
+                    )
+                    fun widen(delta: Int?) {
+                        rowsMenu = false
+                        val next = meta.widths.toMutableMap()
+                        (left..right).forEach { j ->
+                            val k = SheetEngine.colName(j)
+                            if (delta == null) next.remove(k) else next[k] = (meta.width(j) + delta).coerceIn(40, 600)
+                        }
+                        write(rows, meta.copy(widths = next))
+                    }
+                    DropdownMenuItem(text = { Text(tr("Spalte breiter")) }, onClick = { widen(40) })
+                    DropdownMenuItem(text = { Text(tr("Spalte schmaler")) }, onClick = { widen(-30) })
+                    DropdownMenuItem(text = { Text(tr("Spaltenbreite an Inhalt anpassen")) }, onClick = {
+                        rowsMenu = false
+                        val next = meta.widths.toMutableMap()
+                        (left..right).forEach { j ->
+                            val longest = (0 until minOf(rows.size, 2_000)).maxOfOrNull { r -> SheetMeta.show(engine, r, j, meta.style(r, j)).length } ?: 8
+                            next[SheetEngine.colName(j)] = (longest * 8 + 24).coerceIn(48, 480)
+                        }
+                        write(rows, meta.copy(widths = next))
+                    })
+                    DropdownMenuItem(text = { Text(tr("Standardbreite")) }, enabled = (left..right).any { SheetEngine.colName(it) in meta.widths }, onClick = { widen(null) })
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text((if (checkAt(sr, sc) != null) "✓ " else "") + tr("Auswahlliste (Datenüberprüfung) …")) },
+                        onClick = { rowsMenu = false; setCell(sr, sc, bar.text); checkDialog = true },
                     )
                 }
             }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             ToolIcon(Icons.Outlined.ContentCopy, tr("Kopieren (als Tabelle für Excel und Word)")) { copy() }
             ToolIcon(Icons.Outlined.ContentPaste, tr("Einfügen (aus Excel, Word oder dem Web)")) { paste() }
+            ToolIcon(Icons.Outlined.Search, tr("Suchen und ersetzen (Strg+F, Strg+H)"), active = findOpen) { if (findOpen) findOpen = false else openFind(replace = false) }
             VerticalDivider(Modifier.height(24.dp).padding(horizontal = 2.dp))
             // ── Formats of the selected cells ──
             ToolIcon(Icons.Outlined.FormatBold, tr("Fett"), active = style.b) { restyle { it.copy(b = !style.b) } }
@@ -507,12 +661,12 @@ fun SheetBody(
                         tr("Zuerst einen Bereich markieren (lange tippen oder Umschalt + Klick), z. B. Namen und Werte."),
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).width(260.dp),
                     )
-                    listOf("bar" to tr("Säulendiagramm"), "line" to tr("Liniendiagramm"), "pie" to tr("Kreisdiagramm")).forEach { (type, label) ->
-                        DropdownMenuItem(text = { Text(tr("{0} aus {1}", label, rangeName)) }, enabled = isRange, onClick = {
+                    SheetTools.CHART_TYPES.forEach { (type, label) ->
+                        DropdownMenuItem(text = { Text(tr("{0} aus {1}", tr(label), rangeName)) }, enabled = isRange, onClick = {
                             chartMenu = false
                             setCell(sr, sc, bar.text)
                             val title = rows.getOrNull(top)?.getOrNull(if (right > left) left + 1 else left).orEmpty().takeIf { top == 0 }.orEmpty()
-                            val chart = SheetChart(type, rangeName, title)
+                            val chart = SheetChart(type, rangeName, title, id = io.github.thepytales.llmhub.docs.SheetCalc.newId())
                             if (SheetTools.chartSpec(chart, engine) == null) Notices.info(tr("Im Bereich {0} stehen keine Zahlen für ein Diagramm", rangeName))
                             else write(rows, meta.copy(charts = meta.charts + chart))
                         })
@@ -593,7 +747,16 @@ fun SheetBody(
                         if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                         val ctrl = e.isCmd || e.isMetaPressed
                         val formula = bar.text.startsWith("=")
+                        val suggestion = if (formula) SheetHelp.suggestions(bar.text, bar.selection.start).firstOrNull() else null
                         when {
+                            // Tab completes the function name being typed (like Excel's list of functions).
+                            e.key == Key.Tab && suggestion != null && !e.isShiftPressed -> {
+                                val (t, cur) = SheetHelp.complete(bar.text, bar.selection.start, suggestion.first)
+                                bar = TextFieldValue(t, TextRange(cur))
+                                true
+                            }
+                            ctrl && e.key == Key.F -> { openFind(replace = false); true }
+                            ctrl && e.key == Key.H -> { openFind(replace = true); true }
                             // Ranges are copied and pasted as cells; within one cell the text field does it.
                             ctrl && e.key == Key.C && isRange -> { copy(); true }
                             ctrl && e.key == Key.V && clipboard.getText()?.text.orEmpty().let { '\t' in it || '\n' in it.trimEnd() } -> { paste(); true }
@@ -615,6 +778,100 @@ fun SheetBody(
                         inner()
                     },
                 )
+            }
+        }
+        // ── Help while typing a formula: the arguments of the function at the cursor, or functions to complete ──
+        if (bar.text.startsWith("=")) {
+            val suggestions = remember(bar.text, bar.selection) { SheetHelp.suggestions(bar.text, bar.selection.start) }
+            val call = remember(bar.text, bar.selection) { SheetHelp.at(bar.text, bar.selection.start) }
+            if (suggestions.isNotEmpty()) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    suggestions.forEach { (name, hint) ->
+                        Surface(
+                            shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.clickable {
+                                val (t, cur) = SheetHelp.complete(bar.text, bar.selection.start, name)
+                                bar = TextFieldValue(t, TextRange(cur))
+                                runCatching { barFocus.requestFocus() }
+                            },
+                        ) {
+                            Column(Modifier.padding(horizontal = 8.dp, vertical = 4.dp).width(220.dp)) {
+                                Text(name, style = MaterialTheme.typography.labelLarge, fontFamily = FontFamily.Monospace)
+                                Text(hint, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    Text(tr("Tab übernimmt"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                }
+            } else if (call != null && call.signature.isNotEmpty()) {
+                val parts = call.parts
+                val current = when {
+                    parts.isEmpty() -> -1
+                    call.argument < parts.size && parts[call.argument] != "…" -> call.argument
+                    parts.last() == "…" -> (parts.size - 2).coerceAtLeast(0)
+                    else -> -1
+                }
+                Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp)) {
+                    Text(
+                        buildAnnotatedString {
+                            append(call.name + "(")
+                            parts.forEachIndexed { i, part ->
+                                if (i > 0) append("; ")
+                                if (i == current) withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) { append(part) } else append(part)
+                            }
+                            append(")")
+                        },
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    )
+                    call.hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                }
+            }
+        }
+        if (findOpen) {
+            LaunchedEffect(Unit) { runCatching { findFocus.requestFocus() } }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        findText, { findText = it; findAt = -1 }, singleLine = true,
+                        modifier = Modifier.weight(1f).focusRequester(findFocus).onPreviewKeyEvent { e ->
+                            if (e.type == KeyEventType.KeyDown && e.key == Key.Enter) { goHit(if (e.isShiftPressed) -1 else 1); true }
+                            else if (e.type == KeyEventType.KeyDown && e.key == Key.Escape) { findOpen = false; true } else false
+                        },
+                        placeholder = { Text(tr("Suchen")) }, leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    )
+                    Text(
+                        if (findText.isEmpty()) "" else tr("{0} von {1}", (hits.indexOf(sr to sc) + 1).coerceAtLeast(0), hits.size),
+                        style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 6.dp),
+                    )
+                    IconButton(onClick = { goHit(-1) }, enabled = hits.isNotEmpty()) { Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = tr("Vorheriger Treffer")) }
+                    IconButton(onClick = { goHit(1) }, enabled = hits.isNotEmpty()) { Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Nächster Treffer")) }
+                    IconButton(onClick = { findOpen = false }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) }
+                }
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    FilterChip(findCase, { findCase = !findCase }, label = { Text(tr("Groß/klein beachten")) })
+                    FilterChip(findWhole, { findWhole = !findWhole }, label = { Text(tr("Ganze Zelle")) })
+                    FilterChip(findFormulas, { findFormulas = !findFormulas }, label = { Text(tr("In Formeln")) })
+                    FilterChip(findReplace, { findReplace = !findReplace }, label = { Text(tr("Ersetzen")) })
+                }
+                if (findReplace) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(replaceWith, { replaceWith = it }, singleLine = true, modifier = Modifier.weight(1f), placeholder = { Text(tr("Ersetzen durch")) })
+                        TextButton(enabled = (sr to sc) in hits, onClick = {
+                            val raw = rows.getOrNull(sr)?.getOrNull(sc).orEmpty()
+                            val next = SheetTools.replaceText(raw, findOptions.copy(inFormulas = true), replaceWith)
+                            if (next != raw) { setCell(sr, sc, next); bar = TextFieldValue(next, TextRange(next.length)) }
+                            goHit(1)
+                        }) { Text(tr("Ersetzen")) }
+                        TextButton(enabled = hits.isNotEmpty(), onClick = {
+                            setCell(sr, sc, bar.text)
+                            val (next, n) = SheetTools.replaceAll(rows, findOptions, replaceWith, hits)
+                            write(next)
+                            val v = next.getOrNull(sr)?.getOrNull(sc).orEmpty()
+                            bar = TextFieldValue(v, TextRange(v.length))
+                            Notices.info(tr("{0} Zelle(n) ersetzt", n))
+                        }) { Text(tr("Alle ersetzen")) }
+                    }
+                }
             }
         }
         inlineAi.state?.takeIf { it.first == "sheet" }?.second?.let { s ->
@@ -666,12 +923,24 @@ fun SheetBody(
         val headBg = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
         val cellBg = LocalChatLook.current.card
         val rangeBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-        val rowView: @Composable (Int) -> Unit = { r ->
-            Row(Modifier.horizontalScroll(hScroll)) {
-                HeadCell(if (r < rows.size) "${r + 1}" else "+", HEAD_W, r in top..bottom) { select(r, sc, extend = shiftDown) }
-                if (r < rows.size) (0 until cols).forEach { j ->
+        val frozenCols = meta.frozenCols.coerceIn(0, (cols - 1).coerceAtLeast(0))
+        val cellHpx = with(density) { CELL_H.toPx() }
+        val fillPreview = fillTarget
+        /** One cell (or the first cell of a merged range, as wide as the range). */
+        val cellView: @Composable (Int, Int) -> Unit = { r, j ->
+            val g = covered[r to j]
+            val origin = g == null || (g[0] == r && g[1] == j)
+            val skip = g != null && j != g[1]
+            if (!skip) {
+                val width = (if (g != null) (g[1]..g[3]).sumOf { meta.width(it) } else meta.width(j)).dp
+                if (!origin) {
+                    // Rows below the first one of a merged range: the range's fill, no text and no inner lines.
+                    val st0 = meta.style(g!![0], g[1])
+                    Box(Modifier.width(width).height(CELL_H).background(hexColor(paint[g[0] to g[1]]?.fill ?: st0?.fill) ?: cellBg).clickable(enabled = !writing) { select(g[0], g[1]) })
+                } else {
                     val selected = r == sr && j == sc
                     val inRange = isRange && r in top..bottom && j in left..right
+                    val inFill = fillPreview != null && r in top..fillPreview.first && j in left..fillPreview.second && !(r in top..bottom && j in left..right)
                     val st = meta.style(r, j)
                     val cond = paint[r to j]
                     val value = engine.value(r, j)
@@ -679,46 +948,121 @@ fun SheetBody(
                     val fill = hexColor(cond?.fill ?: st?.fill)
                     val textColor = hexColor(cond?.color ?: st?.color)
                         ?: if (value is SheetEngine.Value.Err) errorText else if (fill != null) Color(0xFF1F1F1F) else defaultText
+                    val check = if (r > 0) checkAt(r, j) else null
+                    val invalid = check != null && !check.strict && !SheetTools.allowed(check, rows.getOrNull(r)?.getOrNull(j).orEmpty(), engine)
                     Box(
-                        Modifier.width(CELL_W).height(CELL_H)
-                            .background(fill ?: if (r == 0) headBg else cellBg)
-                            .then(if (inRange) Modifier.background(rangeBg) else Modifier)
-                            .border(if (selected) 2.dp else 0.5.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
+                        Modifier.width(width).height(CELL_H)
+                            .background(fill ?: if (r < meta.topRows.coerceAtLeast(1) && r == 0) headBg else cellBg)
+                            .then(if (inRange || inFill) Modifier.background(rangeBg) else Modifier)
+                            .border(
+                                if (selected || invalid) 2.dp else 0.5.dp,
+                                when { selected -> MaterialTheme.colorScheme.primary; invalid -> errorText; else -> MaterialTheme.colorScheme.outlineVariant },
+                            )
                             .combinedClickable(
                                 enabled = !writing,
                                 // Long press (or Shift + click) marks the range from the selected cell to this one.
                                 onLongClick = { select(r, j, extend = true) },
                                 onClick = { if (selected && !shiftDown) runCatching { barFocus.requestFocus() } else select(r, j, extend = shiftDown) },
-                            )
-                            .padding(horizontal = 6.dp),
-                        contentAlignment = when (st?.align) {
-                            "l" -> Alignment.CenterStart
-                            "c" -> Alignment.Center
-                            "r" -> Alignment.CenterEnd
-                            else -> if (value is SheetEngine.Value.Num && r > 0) Alignment.CenterEnd else Alignment.CenterStart
-                        },
+                            ),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                shown, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = if (r == 0 || st?.b == true) FontWeight.SemiBold else FontWeight.Normal,
-                                    fontStyle = if (st?.i == true) FontStyle.Italic else FontStyle.Normal,
-                                ),
-                                color = textColor,
-                            )
-                            // Filter button in the head row, like Excel's AutoFilter.
-                            if (r == 0 && rows.size > 1) {
+                        Box(
+                            Modifier.fillMaxSize().padding(horizontal = 6.dp),
+                            contentAlignment = when (st?.align) {
+                                "l" -> Alignment.CenterStart
+                                "c" -> Alignment.Center
+                                "r" -> Alignment.CenterEnd
+                                else -> if (g != null) Alignment.Center else if (value is SheetEngine.Value.Num && r > 0) Alignment.CenterEnd else Alignment.CenterStart
+                            },
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    if (j in colFilters) "▼" else "▾",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (j in colFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(start = 2.dp).clickable { filterDialog = j }.padding(horizontal = 4.dp, vertical = 6.dp),
+                                    shown, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = if (r == 0 || st?.b == true) FontWeight.SemiBold else FontWeight.Normal,
+                                        fontStyle = if (st?.i == true) FontStyle.Italic else FontStyle.Normal,
+                                    ),
+                                    color = textColor,
                                 )
+                                // Filter button in the head row, like Excel's AutoFilter.
+                                if (r == 0 && rows.size > 1) {
+                                    Text(
+                                        if (j in colFilters) "▼" else "▾",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = if (j in colFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 2.dp).clickable { filterDialog = j }.padding(horizontal = 4.dp, vertical = 6.dp),
+                                    )
+                                }
+                                // Choice list (Datenüberprüfung): ▾ opens the values.
+                                if (check != null) {
+                                    Box {
+                                        Text(
+                                            "▾", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(start = 2.dp).clickable(enabled = !writing) { select(r, j); choiceAt = r to j }.padding(horizontal = 4.dp, vertical = 6.dp),
+                                        )
+                                        DropdownMenu(expanded = choiceAt == (r to j), onDismissRequest = { choiceAt = null }) {
+                                            val opts = SheetTools.options(check, engine)
+                                            if (opts.isEmpty()) Text(tr("Die Liste ist leer"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp))
+                                            opts.take(200).forEach { opt ->
+                                                DropdownMenuItem(text = { Text(opt) }, onClick = {
+                                                    choiceAt = null
+                                                    setCell(r, j, opt)
+                                                    if (r == sr && j == sc) bar = TextFieldValue(opt, TextRange(opt.length))
+                                                })
+                                            }
+                                            DropdownMenuItem(text = { Text(tr("(leeren)")) }, onClick = { choiceAt = null; setCell(r, j, ""); if (r == sr && j == sc) bar = TextFieldValue("") })
+                                        }
+                                    }
+                                }
                             }
+                        }
+                        // Ausfüllkästchen: drag the corner down or to the right to fill (series, formulas move along).
+                        if (r == bottom && j == right && !writing && r > 0) {
+                            Box(
+                                Modifier.align(Alignment.BottomEnd).size(10.dp).background(MaterialTheme.colorScheme.primary)
+                                    .border(1.dp, cellBg)
+                                    .pointerInput(top, left, bottom, right, rows) {
+                                        var acc = Offset.Zero
+                                        detectDragGestures(
+                                            onDragStart = { acc = Offset.Zero },
+                                            onDragEnd = { fillTarget?.let(::fillTo); fillTarget = null },
+                                            onDragCancel = { fillTarget = null },
+                                        ) { change, amount ->
+                                            change.consume()
+                                            acc += amount
+                                            val colPx = with(density) { meta.width(right).dp.toPx() }
+                                            fillTarget = if (kotlin.math.abs(acc.y) >= kotlin.math.abs(acc.x)) (bottom + (acc.y / cellHpx).toInt().coerceAtLeast(0)) to right
+                                            else bottom to (right + (acc.x / colPx).toInt().coerceAtLeast(0))
+                                        }
+                                    },
+                            )
                         }
                     }
                 }
+            }
+        }
+        val rowView: @Composable (Int) -> Unit = { r ->
+            Row {
+                HeadCell(if (r < rows.size) "${r + 1}" else "+", HEAD_W, r in top..bottom) { select(r, sc, extend = shiftDown) }
+                // Frozen columns stay at the left while the others scroll.
+                if (r < rows.size) (0 until frozenCols).forEach { j -> cellView(r, j) }
+                Row(Modifier.horizontalScroll(hScroll)) {
+                    if (r < rows.size) (frozenCols until cols).forEach { j -> cellView(r, j) }
+                }
+            }
+        }
+        val headRow: @Composable () -> Unit = {
+            Row {
+                HeadCell("", HEAD_W, false) {}
+                val head: @Composable (Int) -> Unit = { j ->
+                    ColumnHead(
+                        if (j < cols) SheetEngine.colName(j) else "+", (if (j < cols) meta.width(j) else 118).dp, j in left..right,
+                        onClick = { if (j < cols) select(sr, j, extend = shiftDown) else select(sr, cols) },
+                        onResize = if (j < cols) { delta -> meta = meta.copy(widths = meta.widths + (SheetEngine.colName(j) to (meta.width(j) + delta).coerceIn(40, 600))) } else null,
+                        onResized = { write(rows, meta) },
+                    )
+                }
+                (0 until frozenCols).forEach { head(it) }
+                Row(Modifier.horizontalScroll(hScroll)) { (frozenCols until cols + 1).forEach { head(it) } }
             }
         }
         HorizontalDivider()
@@ -734,19 +1078,16 @@ fun SheetBody(
                 }
             },
         ) {
+            val frozen = meta.topRows.coerceIn(0, rows.size)
             LazyColumn(Modifier.fillMaxSize()) {
-                // Column letters (and the head row, if fixed) stay at the top while scrolling (like „Fenster fixieren“ in Excel).
+                // Column letters and the frozen rows stay at the top while scrolling (like „Fenster fixieren“ in Excel).
                 stickyHeader(key = "head") {
                     Column {
-                        Row(Modifier.horizontalScroll(hScroll)) {
-                            HeadCell("", HEAD_W, false) {}
-                            (0 until cols + 1).forEach { j -> HeadCell(if (j < cols) SheetEngine.colName(j) else "+", CELL_W, j in left..right) { if (j < cols) select(sr, j, extend = shiftDown) else select(sr, cols) } }
-                        }
-                        if (meta.freeze) rowView(0)
+                        headRow()
+                        (0 until frozen).forEach { rowView(it) }
                     }
                 }
-                if (!meta.freeze) item(key = "r0") { rowView(0) }
-                items(visibleRows.filter { it != 0 } + rows.size, key = { "r$it" }) { r -> rowView(r) }
+                items(visibleRows.filter { it >= frozen } + rows.size, key = { "r$it" }) { r -> rowView(r) }
             }
         }
         // ── Charts of the sheet ──
@@ -761,8 +1102,24 @@ fun SheetBody(
                                 chart.title.ifBlank { "Diagramm" } + " · " + chart.range, style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f),
                             )
-                            IconButton(onClick = { write(rows, meta.copy(charts = meta.charts.filterIndexed { k, _ -> k != i })) }, modifier = Modifier.size(28.dp)) {
-                                Icon(Icons.Outlined.Close, contentDescription = tr("Diagramm entfernen"), modifier = Modifier.size(16.dp))
+                            var chartMenu by remember { mutableStateOf(false) }
+                            Box {
+                                IconButton(onClick = { chartMenu = true }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Outlined.MoreVert, contentDescription = tr("Diagramm bearbeiten"), modifier = Modifier.size(16.dp))
+                                }
+                                DropdownMenu(expanded = chartMenu, onDismissRequest = { chartMenu = false }) {
+                                    DropdownMenuItem(text = { Text(tr("Titel, Achsen und Typ …")) }, onClick = { chartMenu = false; chartEdit = i })
+                                    DropdownMenuItem(text = { Text(tr("Verknüpft in Dokument oder Folien einfügen …")) }, enabled = spec != null, onClick = { chartMenu = false; chartLink = i })
+                                    DropdownMenuItem(text = { Text(tr("Als Bild speichern (SVG)")) }, enabled = spec != null, onClick = {
+                                        chartMenu = false
+                                        val out = runCatching {
+                                            val name = (chart.title.ifBlank { tr("Diagramm") }).replace(Regex("[\\\\/:*?\"<>|]"), " ").trim().take(60)
+                                            java.io.File(c.docs.baseDir(doc), "Diagramme/$name.svg").apply { parentFile?.mkdirs(); writeText(io.github.thepytales.llmhub.docs.ChartLayout.svg(spec!!)) }
+                                        }.getOrNull()
+                                        Notices.info(if (out != null) tr("Gespeichert: {0}", out.path) else tr("Speichern nicht möglich"))
+                                    })
+                                    DropdownMenuItem(text = { Text(tr("Diagramm entfernen")) }, onClick = { chartMenu = false; write(rows, meta.copy(charts = meta.charts.filterIndexed { k, _ -> k != i })) })
+                                }
                             }
                         }
                         if (spec != null) ChartView(spec, Modifier.width(360.dp)) else Text(tr("Keine Zahlen im Bereich"), style = MaterialTheme.typography.bodySmall)
@@ -790,6 +1147,64 @@ fun SheetBody(
             onApply = { f ->
                 colFilters = if (f == null || f == ColFilter()) colFilters - col else colFilters + (col to f)
                 filterDialog = null
+            },
+        )
+    }
+    chartEdit?.let { i ->
+        meta.charts.getOrNull(i)?.let { chart ->
+            ChartDialog(chart, onDismiss = { chartEdit = null }) { next ->
+                chartEdit = null
+                write(rows, meta.copy(charts = meta.charts.mapIndexed { k, ch -> if (k == i) next else ch }))
+            }
+        }
+    }
+    chartLink?.let { i ->
+        val chart = meta.charts.getOrNull(i)
+        val targets = c.docs.items.value.filter { it.docKind == io.github.thepytales.llmhub.docs.DocKind.DOC || it.docKind == io.github.thepytales.llmhub.docs.DocKind.SLIDES }.take(60)
+        if (chart == null || tabId == null) chartLink = null
+        else AlertDialog(
+            onDismissRequest = { chartLink = null },
+            title = { Text(tr("Diagramm verknüpft einfügen")) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(tr("Ändern sich die Daten, aktualisiert sich das Diagramm im Dokument beim nächsten Öffnen."), style = MaterialTheme.typography.bodySmall)
+                    if (targets.isEmpty()) Text(tr("Noch kein Dokument und keine Präsentation vorhanden."), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                    targets.forEach { d ->
+                        TextButton(onClick = {
+                            chartLink = null
+                            // A chart made before AP-49 gets its id now, so the link stays when charts are added or removed.
+                            val withId = if (chart.id.isEmpty()) chart.copy(id = io.github.thepytales.llmhub.docs.SheetCalc.newId()) else chart
+                            if (withId !== chart) write(rows, meta.copy(charts = meta.charts.mapIndexed { k, ch -> if (k == i) withId else ch }))
+                            val spec = SheetTools.chartSpec(withId, engine) ?: return@TextButton
+                            val block = io.github.thepytales.llmhub.docs.ChartLinks.block(spec, io.github.thepytales.llmhub.docs.ChartLinks.linkTo(doc.id, tabId, withId, i))
+                            c.docs.update(d.id) { old ->
+                                old.change("Sie", tr("Diagramm verknüpft eingefügt")) { x ->
+                                    val first = x.tabs.first()
+                                    val md = if (x.docKind == io.github.thepytales.llmhub.docs.DocKind.SLIDES) {
+                                        val slides = io.github.thepytales.llmhub.docs.SlideDeck.parse(first.markdown)
+                                        io.github.thepytales.llmhub.docs.SlideDeck.markdown(slides + io.github.thepytales.llmhub.docs.SlideDeck.Slide(withId.title.ifBlank { tr("Diagramm") }, block, layout = io.github.thepytales.llmhub.docs.SlideDeck.Layout.CHART))
+                                    } else first.markdown.trimEnd() + "\n\n" + block + "\n"
+                                    x.copy(tabs = listOf(first.copy(markdown = md)) + x.tabs.drop(1))
+                                }
+                            }
+                            Notices.info(tr("Diagramm in „{0}“ eingefügt", d.title))
+                        }) { Text((if (d.docKind == io.github.thepytales.llmhub.docs.DocKind.SLIDES) "▣ " else "▤ ") + d.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { chartLink = null }) { Text(tr("Abbrechen")) } },
+        )
+    }
+    if (checkDialog) {
+        val existing = checkAt(sr, sc)
+        CheckDialog(
+            range = existing?.range ?: if (isRange) rangeName else SheetEngine.rangeRef(sr.coerceAtLeast(1), sc, rows.lastIndex.coerceAtLeast(1), sc),
+            current = existing,
+            onDismiss = { checkDialog = false },
+            onSave = { k ->
+                checkDialog = false
+                val others = meta.checks.filter { it != existing }
+                write(rows, meta.copy(checks = if (k == null) others else others + k))
             },
         )
     }
@@ -901,6 +1316,101 @@ private fun ConditionalDialog(rules: List<CondRule>, range: String, onDismiss: (
             }) { Text(tr("Regel hinzufügen")) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Fertig")) } },
+    )
+}
+
+/** A column letter in the head; dragging its right edge changes the width (like Excel). */
+@Composable
+private fun ColumnHead(text: String, width: androidx.compose.ui.unit.Dp, active: Boolean, onClick: () -> Unit, onResize: ((Int) -> Unit)?, onResized: () -> Unit) {
+    val density = LocalDensity.current
+    Box(Modifier.width(width).height(CELL_H)) {
+        HeadCell(text, width, active, onClick)
+        if (onResize != null) {
+            Box(
+                Modifier.align(Alignment.CenterEnd).width(8.dp).fillMaxSize().pointerInput(Unit) {
+                    var acc = 0f
+                    detectHorizontalDragGestures(onDragEnd = { acc = 0f; onResized() }, onDragCancel = { acc = 0f; onResized() }) { change, amount ->
+                        change.consume()
+                        acc += amount
+                        val dp = with(density) { acc.toDp().value }.toInt()
+                        if (dp != 0) { onResize(dp); acc = 0f }
+                    }
+                },
+            )
+        }
+    }
+}
+
+/** Title, axis titles, type and range of a chart. */
+@Composable
+private fun ChartDialog(chart: SheetChart, onDismiss: () -> Unit, onSave: (SheetChart) -> Unit) {
+    var title by remember { mutableStateOf(chart.title) }
+    var xLabel by remember { mutableStateOf(chart.xLabel) }
+    var yLabel by remember { mutableStateOf(chart.yLabel) }
+    var range by remember { mutableStateOf(chart.range) }
+    var type by remember { mutableStateOf(chart.type) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Diagramm")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                OutlinedTextField(title, { title = it }, singleLine = true, label = { Text(tr("Titel")) }, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(xLabel, { xLabel = it }, singleLine = true, label = { Text(tr("Achse x")) }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(yLabel, { yLabel = it }, singleLine = true, label = { Text(tr("Achse y")) }, modifier = Modifier.weight(1f))
+                }
+                OutlinedTextField(range, { range = it.uppercase() }, singleLine = true, label = { Text(tr("Bereich, z. B. C2:C30")) }, modifier = Modifier.fillMaxWidth())
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SheetTools.CHART_TYPES.forEach { (k, label) -> FilterChip(type == k, { type = k }, label = { Text(tr(label)) }) }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = SheetEngine.parseRange(range) != null, onClick = { onSave(chart.copy(title = title.trim(), xLabel = xLabel.trim(), yLabel = yLabel.trim(), range = range.trim(), type = type)) }) { Text(tr("Speichern")) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
+    )
+}
+
+/** Choice list of a range (Datenüberprüfung): values typed in or taken from cells, and whether other values are refused. */
+@Composable
+private fun CheckDialog(range: String, current: CellCheck?, onDismiss: () -> Unit, onSave: (CellCheck?) -> Unit) {
+    var area by remember { mutableStateOf(range) }
+    var fromCells by remember { mutableStateOf(current?.source != null) }
+    var values by remember { mutableStateOf(current?.list?.joinToString("; ") ?: "") }
+    var source by remember { mutableStateOf(current?.source ?: "") }
+    var strict by remember { mutableStateOf(current?.strict ?: true) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Auswahlliste")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(tr("In diesen Zellen zeigt ▾ die erlaubten Werte zum Auswählen."), style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(area, { area = it.uppercase() }, singleLine = true, label = { Text(tr("Bereich, z. B. C2:C200")) }, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(!fromCells, { fromCells = false }, label = { Text(tr("Werte eingeben")) })
+                    FilterChip(fromCells, { fromCells = true }, label = { Text(tr("Aus Zellen")) })
+                }
+                if (fromCells) OutlinedTextField(source, { source = it }, singleLine = true, label = { Text(tr("Zellen, z. B. E2:E9 oder Listen!A2:A20")) }, modifier = Modifier.fillMaxWidth())
+                else OutlinedTextField(values, { values = it }, label = { Text(tr("Werte, getrennt mit ; oder Komma")) }, modifier = Modifier.fillMaxWidth())
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { strict = !strict }) {
+                    Checkbox(strict, { strict = it })
+                    Text(tr("Andere Werte ablehnen (sonst nur rot markieren)"))
+                }
+            }
+        },
+        confirmButton = {
+            val list = SheetTools.parseList(values)
+            TextButton(enabled = SheetEngine.parseRange(area) != null && (if (fromCells) source.isNotBlank() else list.isNotEmpty()), onClick = {
+                onSave(if (fromCells) CellCheck(area.trim(), source = source.trim(), strict = strict) else CellCheck(area.trim(), list, strict = strict))
+            }) { Text(tr("Speichern")) }
+        },
+        dismissButton = {
+            Row {
+                if (current != null) TextButton(onClick = { onSave(null) }) { Text(tr("Liste entfernen")) }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
+            }
+        },
     )
 }
 

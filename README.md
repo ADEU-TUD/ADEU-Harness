@@ -304,6 +304,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Seitenrand, Seitenmitte und anderen Elementen, Größe und **Drehung** über Griffe, Ausrichten und Verteilen, nach
     vorne/hinten, Sperren, **Rückgängig/Wiederholen** (Strg+Z/Y), Pfeiltasten, Strg+D, Strg+C/V (auch Bilder und Text aus
     anderen Programmen), Zoom mit Strg+Mausrad. Seiten hinzufügen, verdoppeln, verschieben; Format ändern passt alles an.
+    Seit AP-50: **Gruppieren** (Strg+G), **Text direkt auf der Leinwand tippen** (Doppelklick), **Farbverläufe** und
+    **Bildfilter** (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen). Ausrichten, Ebenen und Gruppen sind
+    gemeinsamer Code mit den Folien (`creative/CanvasOps.kt`), dort wirken sie genauso.
   - **Elemente**: Text (Noto Sans Normal, **Medium** für Überschriften und Fett, je kursiv; wächst beim Tippen mit oder
     wird mit *An die Box anpassen* kleiner), die **TUD-Shape** (Farbe, Spiegeln, Drehen in 45°-Schritten, nie verzerrt
     oder als Umriss), Formen (Rechteck, abgerundet, Kreis, Dreieck, Stern, Linie, Pfeil), **Symbole** – die rund 530
@@ -749,6 +752,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Code – Name, Schlagwörter und Inhalt, Groß-/Kleinschreibung und Akzente egal, die Textstelle mit den Wörtern fett.
     Der Text jeder Datei wird einmal gelesen und im Cache (`volltext/`) gehalten, bis sie sich ändert; ohne Datenbank.
     Im Chat findet `search_files` dieselben Dateien („Wo hatte ich den Kooperationsvertrag?“).
+  - **Frag diesen Ordner** (AP-58, ⋮ an einem Ordner): liest alle Dateien des Ordners (mit Unterordnern) mit Fortschritt
+    und öffnet einen Chat im **Quellenmodus** über genau diese Dateien – das Werkzeug `search_folder` liefert die Stellen
+    mit Datei und Seite, die Belegprüfung prüft jedes Zitat, ein Klick öffnet das PDF an der Seite. Wirkt der Ordner
+    vertraulich, empfiehlt die App „Nur TU Dresden“.
   - **Versionen vergleichen**: zwei beliebige Versionen eines Dokuments; **zwei Dateien vergleichen** (auch in
     verschiedenen Formaten, z. B. Word gegen PDF) – grün nur rechts, rot nur links.
 - **Office-Ausbau** (AP-16): Dokumente fühlen sich an wie Google Docs, mit **Lora rechts als Assistentin** (auf breiten
@@ -809,6 +816,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Felder ohne Markdown-Zeichen mit Leiste für fett, kursiv, Stichpunkte, Einrücken; Sprechernotizen, **Folienübersicht**,
     Folien duplizieren/verschieben (Strg+M, Strg+D, Strg+Umschalt+↑/↓), **Vorführen** (F5) mit **Referentenansicht**
     (nächste Folie, Notizen, Timer), Export als PowerPoint im TUD-Design. Fehlt die Einrichtung, fragt der Editor danach.
+    Seit AP-51: **Übergänge** (Überblenden, Schieben) und **Stichpunkte nacheinander** je Folie – beim Vorführen und in
+    PowerPoint (auch aus fremden .pptx gelesen) –, **Zeichnen** beim Präsentieren (D, E löscht) und Lora baut aus einem
+    Dokument ein ganzes Deck („Mach aus dem Dokument eine Präsentation“).
   - **Tabelle** (wie Excel): Zellraster mit Spalten- und Zeilenköpfen, **Bearbeitungsleiste mit Formeln** in deutscher
     Schreibweise (`=SUMME(B2:B9)`, `=MITTELWERT`, `=WENN(…;…;…)`, `=RUNDEN`, `=ZÄHLENWENN`, `=SUMMEWENN`, `=STABW`, `&` …,
     auch englische Namen), dazu **SVERWEIS, XVERWEIS, INDEX/VERGLEICH, WENNFEHLER, WENNS, ZÄHLENWENNS, SUMMEWENNS,
@@ -817,6 +827,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     und löschen, **nach unten/rechts ausfüllen** (relative Bezüge wandern mit, `$`-Bezüge bleiben), Duplikate entfernen,
     Zeilen und Spalten tauschen, **Filter**, fixierte Kopfzeile, Pfeiltasten wie in Excel, Sortieren, Σ, Statuszeile mit
     Summe/Mittelwert/Anzahl. Der Excel-Export behält die Formeln (mit berechneten Werten).
+    Seit AP-48 auch: ganze Spalten (`=SVERWEIS(A2;Tutorien!A:B;2;FALSCH)`), Platzhalter `*`/`?` in Kriterien, XVERWEIS mit
+    Vergleichsmodus, rund 45 weitere Funktionen (MAXWENNS, XVERGLEICH, WAHL, INDIREKT, TEILERGEBNIS, HÄUFIGKEIT, TEXTVOR,
+    TEXTTEILEN, ZEIT, MTRANS, VSTAPELN …), **Hilfe beim Tippen** (Argumente der Funktion am Cursor, Vervollständigen mit
+    Tab), **Suchen und Ersetzen** (Strg+F/Strg+H), **Zellen verbinden**, **Zeilen und Spalten fixieren**, Spaltenbreite
+    ziehen, **Auswahllisten** (▾ in der Zelle), **Ausfüllkästchen** zum Ziehen. Excel-Dateien bis 200 000 Zeilen öffnen
+    zügig; geteilte Formeln, verbundene Zellen, bedingte Formatierung, Auswahllisten, fixierte Bereiche und Spaltenbreiten
+    bleiben beim Öffnen und Speichern erhalten.
+    **Diagramme** (AP-49) aus der Markierung in acht Arten (Säulen, Balken, gestapelt, Linie, Kreis, Punkt, Histogramm,
+    Boxplot) in TUD-Farben, mit Titel und Achsentiteln, als SVG speicherbar und **verknüpft in Dokumente und Folien**
+    einfügbar – dort aktualisieren sie sich beim Öffnen aus der Tabelle. **Lora rechnet** auf dem Gerät: „Berechne die
+    Notenverteilung“, „Mittelwert der Note je Gruppe“ (wie eine Pivot-Tabelle) – als Formeln mit Diagramm neben den
+    Daten – und „Erkläre die Formel in D2“.
   - **Markdown-Datei** (wie Obsidian oder eine README): Quelltext mit allen Zeichen, Werkzeugleiste (H1–H3, fett,
     kursiv, Code, Link, Listen, Checkliste, Zitat, Tabelle, Codeblock), Vorschau daneben (am Handy umschaltbar),
     Export als .md. .md-Dateien öffnen sich als Markdown-Datei.
@@ -1475,6 +1497,9 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/LocalFolderTools.kt`, `files/LocalText.kt` | Agent in freigegebenen Ordnern auf dem PC (lesen, suchen, schreiben, Papierkorb) |
 | `docs/LiveDoc.kt` | Dokumente des Editors (Art, Tabs, Versionen, Kommentare), Speicherorte mit Markdown-Kopie und Abgleich |
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
+| `docs/SheetHelp.kt`, `docs/XlsxReader.kt` | Hilfe beim Tippen von Formeln; schnelles, treues Lesen von .xlsx (AP-48) |
+| `docs/ChartLinks.kt` | Verknüpfte Diagramme in Dokumenten und Folien, „Lora rechnet“ (`SheetCalc`, AP-49) |
+| `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
@@ -1547,7 +1572,7 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
 | `data/LoraDrive.kt`, `data/LoraRoot.kt` (beide), `desktop/Paths.kt`, `desktop/LoraLayout.kt`, `files/LoraMirror.kt` (beide), `ui/DriveScreen.kt`, `ui/LoraFolderUi.kt` (beide), `ui/DrivePlatform.kt` (beide) | Lora-Ordner und Tab *Dateien* (AP-16): Hochgeladen, Erstellt, Ordner, Papierkorb, Umzug der Daten, Kopie auf Android |
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
-| `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt`, `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
+| `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt` und `creative/CanvasOps.kt` (gemeinsam, AP-50), `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
 | `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |
 | `desktop/Extensions.kt`, `ui/ExtensionsUi.kt` (gemeinsam: `update/UpdateInfo.kt`, `update/Updates.kt`), `.github/scripts/extension-videoeditor.sh` | Nachladbare Erweiterungen (AP-25): Katalog in version.json, Einrichten, Aktualisieren, Entfernen; Bau des Videoeditor-Pakets |

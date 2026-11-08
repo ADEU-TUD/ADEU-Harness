@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 07.11.2026 (1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (nach 1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -64,7 +64,7 @@ Fairlight).
 | ~~Video-Grundlage~~ ☑ | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge (erledigt, siehe *Erledigt*) |
 | **Jetzt** – Office | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint |
 | **Danach** – Video | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
-| **Danach** – Dateien | AP-58 Frag diesen Ordner · AP-59 Windows-Integration |
+| **Danach** – Dateien | ~~AP-58 Frag diesen Ordner~~ ☑ · AP-59 Windows-Integration |
 | **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -81,9 +81,10 @@ abwechseln, wenn ein Strang wartet.
 ## Jetzt
 
 Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
-ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51.
+ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026: alle vier begonnen (◐) –
+das „Fertig, wenn“ von AP-48 und AP-49 ist erfüllt, die Reste stehen je Paket unter *Offen*; AP-58 aus *Danach* ist erledigt.
 
-### AP-48 ☐ Tabellen wie Excel · XL (neu, in Stufen)
+### AP-48 ◐ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
 1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
    WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
@@ -97,8 +98,28 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
   verlustfrei als .xlsx speichern.
 - Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
+  ZÄHLENWENN, SUMMEWENNS & Co. und im genauen SVERWEIS/VERGLEICH, ausgelassene Argumente (`=XVERWEIS(70;D:D;A:A;;-1)`),
+  XVERWEIS mit Vergleichs- und Suchmodus, rund 45 neue Funktionen (u. a. MAXWENNS/MINWENNS, XVERGLEICH, VERWEIS, WAHL,
+  INDIREKT, ADRESSE, TEILERGEBNIS, HÄUFIGKEIT, QUARTILE, RANG.MITTELW, TEXTVOR/TEXTNACH/TEXTTEILEN, ERSETZEN, IDENTISCH,
+  ZEIT/STUNDE/DATWERT, KÜRZEN, LOG, ISTNV, FEHLER.TYP, MTRANS, VSTAPELN/HSTAPELN, SPALTENWAHL/ZEILENWAHL; die neuen
+  Matrixfunktionen laufen über), Excel-Namen mit `_xlfn.` im Export. **Hilfe beim Tippen** (`docs/SheetHelp.kt`): unter
+  der Bearbeitungsleiste die Argumente der Funktion am Cursor (aktuelles fett) bzw. passende Funktionen zum Vervollständigen
+  (Tab übernimmt). **Stufe 2 Bedienung**: Suchen/Ersetzen (Strg+F/Strg+H; Groß/klein, ganze Zelle, in Formeln oder Werten),
+  **Zellen verbinden**, **Zeilen 1–n und Spalten A–x fixieren**, **Spaltenbreite** (Rand im Spaltenkopf ziehen, breiter/
+  schmaler, an Inhalt anpassen), **Auswahllisten** (Werte oder Zellen, auch eines anderen Blatts; streng ablehnen oder nur
+  rot markieren; ▾ in der Zelle), **Ausfüllkästchen** zum Ziehen (Reihen, Formeln wandern mit). **Stufe 3 Große Daten**:
+  schneller Weg für Blätter (`SheetEngine.grid` Zeile für Zeile, Formate vom Ende her), Zellen ändern kopiert nur die
+  geänderte Zeile, Berechnung weiter nur für Sichtbares/Abhängiges; Messung im Test: 100 000 Zeilen × 7 Spalten lesen
+  0,4 s, erster Bildschirm 0,14 s, xlsx schreiben 2,8 s, lesen 1,5 s. **Stufe 4 xlsx-Treue** (`docs/XlsxReader.kt`): Zellen
+  mit einem eigenen Scanner statt XML-Baum (bis 200 000 Zeilen, vorher 2 000), **geteilte Formeln** (gingen bisher
+  verloren), verbundene Zellen, bedingte Formatierung (Wert, Text enthält, Farbskala), Auswahllisten, fixierte Zeilen/
+  Spalten, eigene Spaltenbreiten und Zahlenformate wie „0.0“ lesen und schreiben. Test `SheetsLikeExcelTest`: u. a.
+  **OPAL-Export mit 5 000 Zeilen** (geteilte Formeln, Formate) gelesen, mit SVERWEIS auf ein zweites Blatt angereichert,
+  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s). **Offen**: Formatierung innerhalb einer Zelle
+  (Text-Kern), Diagramme aus .xlsx (mit AP-49).
 
-### AP-49 ☐ Diagramme und Lora rechnet · M–L (neu)
+### AP-49 ◐ Diagramme und Lora rechnet · M–L (neu)
 - **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
   Farben im TUD-Design; als Bild exportieren.
 - **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
@@ -111,8 +132,24 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
   verknüpft steht und sich bei geänderten Noten aktualisiert.
 - Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
+  Kreis, Punkt – erste Spalte x –, Histogramm, Boxplot – je Spalte die Rohwerte), in den **Farben des TUD-Designs**
+  (`ChartLayout.TUD`: Brillantblau, Orange, Türkis, Magenta, Grün …), mit Titel, Achsentiteln, Typ und Bereich zum
+  Ändern (⋮ am Diagramm) und **als Bild (SVG)** im Ordner *Diagramme* neben dem Dokument. **Verknüpft einfügen**
+  (`docs/ChartLinks.kt`): ⋮ › *Verknüpft in Dokument oder Folien einfügen* schreibt einen ```chart-Block mit `"link"` (Dokument,
+  Blatt, Diagramm-ID) ans Ende des Dokuments bzw. als Diagrammfolie; beim Öffnen des Dokuments oder der Präsentation
+  kommen die Daten frisch aus der Tabelle. **Lora rechnet** (`SheetCalc`, Aktionen `sheet.distribution`, `sheet.group`,
+  `sheet.chart`, `sheet.explain`, auch ohne Modell erkannt: „Berechne die Notenverteilung“, „Mittelwert der Note je
+  Gruppe“, „Erkläre die Formel in D2“): Verteilung (je Wert oder in Klassen, Anzahl und Anteil als ZÄHLENWENN-Formeln)
+  bzw. Kennzahlen je Gruppe (Mittelwert, Anzahl, Min, Max – wie eine Pivot-Tabelle) rechts neben den Daten, mit
+  Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
+  das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
+  Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
+  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. **Offen**: echte
+  Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben, Daten
+  bereinigen um Datumsformate.
 
-### AP-50 ☐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
+### AP-50 ◐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
 - Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
   Gruppieren, TUD-Shape, TUD-Icons, Logos, QR-Codes) – ein Kern für beide; die Leinwand kommt dafür in den gemeinsamen
   Code (Android zeigt sie an).
@@ -123,8 +160,21 @@ So nah wie möglich an **Google Sheets/Excel**:
 - Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
 - **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
 - Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
+- **Umsetzung (08.11.2026, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
+  `creative/DesignViewport.kt` aus Windows verschoben, neu `creative/CanvasOps.kt`): Ausrichten, Verteilen, Ebenen und
+  **Gruppen** als reine Funktionen, die Gestalten und die Folien beide nutzen (`SlideCanvas` übersetzt die freien
+  Folienelemente in cm in Leinwand-Elemente in mm und zurück). **Gestalten**: *Gruppieren* (Strg+G, Strg+Umschalt+G; ein
+  Klick wählt die ganze Gruppe, sie bewegt und richtet sich als ein Block aus), **Text direkt auf der Leinwand tippen**
+  (Doppelklick auf ein Textfeld: Eingabe an Ort und Stelle in Schrift, Größe, Farbe und Drehung des Felds, Esc oder Klick
+  daneben beendet), **Farbverläufe** (zweite Farbe und Richtung für Formen und Text-Hintergründe), **Bildfilter**
+  (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen) – im Editor, PNG, PDF und PowerPoint gleich (PDF und
+  PowerPoint bekommen solche Elemente als scharfes Bild). **Folien**: Ausrichten auf der Folie und Ebenen über dieselben
+  Funktionen, Gruppen (mit dem Element darunter gruppieren, Gruppe zieht sich gemeinsam), Drehung und Verlauf im
+  Folienmodell. Test `SharedCanvasTest`. **Offen**: Folien-Editor ganz auf die Gestalten-Leinwand umstellen (Drehen,
+  Einrasten, Mehrfachauswahl, TUD-Shape/Icons/QR auf Folien), Android zeigt die Leinwand (Zeichnen ist noch Windows-Code),
+  Text-Kern mit Formatierung innerhalb eines Textfelds, Tabellen auf der Leinwand.
 
-### AP-51 ☐ Folien wie PowerPoint · L (neu)
+### AP-51 ◐ Folien wie PowerPoint · L (neu)
 So nah wie möglich an **Google Slides/PowerPoint**:
 - **PowerPoint-Treue**: fremde .pptx (auch die TUD-Präsentationsvorlage) mit Masterfolien, Layouts, Platzhaltern,
   Designfarben, Gruppen, Tabellen und Diagrammen originalgetreu anzeigen und bearbeiten; Unbekanntes bleibt erhalten.
@@ -139,6 +189,17 @@ So nah wie möglich an **Google Slides/PowerPoint**:
   lässt sich mit Animationen präsentieren.
 - Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
   `docs/PptxReader.kt`.
+- **Umsetzung (08.11.2026, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
+  einblenden* (Menü *Animation* an der Folie; als Kommentarzeile der Folie gespeichert, `SlideDeck.Animation`). **Vorführen**:
+  Übergänge laufen beim Blättern, ein Klick/→ zeigt den nächsten Punkt (Unterpunkte mit ihm), zurück zeigt die Folie
+  ganz; **Zeichnen** beim Präsentieren (D, rote Linien je Folie, E löscht) neben Laserpointer, Schwarz/Weiß, Notizen,
+  Timer und Referentenansicht. **PowerPoint**: Übergänge (`p:fade`, `p:push`) und der Aufbau nach Absätzen
+  („Erscheinen“, `p:timing`/`p:bldP`) werden geschrieben und beim Öffnen fremder .pptx gelesen. **Lora baut Folien**:
+  Aktion `slides.from_document` (ganzes Deck im TUD-Design aus einem Dokument – Abschnitte, Inhalt, Tabellen, Bilder,
+  Diagramme, lange Absätze als Sprechernotizen –, auf dem Gerät, mit Rückgängig) und `slides.animate` (Übergänge und
+  Aufbau für alle oder eine Folie). Test `SlidesLikePowerPointTest`. **Offen**: `PptxReader` für fremde .pptx mit
+  Masterfolien, Layouts, Platzhaltern, Designfarben und Gruppen (heute: Text, Bilder, Tabellen, Notizen, Animationen),
+  zweiter Bildschirm, Deck aus einem Paper (PDF) und „Folie schöner machen“/Sprechertexte mit dem Modell.
 
 ---
 
@@ -184,14 +245,6 @@ So nah wie möglich an **Google Slides/PowerPoint**:
 - **Fertig, wenn**: Ein 60-Minuten-Video exportiert auf einem PC mit GPU deutlich schneller als heute, im Hintergrund,
   mit Kapiteln.
 - Betrifft: Windows `video/VideoRender.kt`, `ui/VideoScreen.kt`, `data/Nextcloud.kt`.
-
-### AP-58 ☐ Frag diesen Ordner · S–M (neu)
-- Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
-  im **Quellenmodus** (AP-08) über alle Dateien darin, mit Belegen (Datei + Seite).
-- Nutzt den Volltext-Cache aus AP-18; große Ordner werden im Hintergrund gelesen, Fortschritt sichtbar.
-- Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
-- **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
-- Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
 
 ### AP-59 ☐ Windows-Integration (W) · M (neu)
 - **Ziehen aus dem Explorer** in *Dateien* (kopieren in den geöffneten Ordner) und **aus Lora in den Explorer**, in Mails
@@ -356,8 +409,9 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-47 Lora schreibt im Dokument | Hilf mir schreiben, Überarbeiten als Vorschläge, Menü über der Markierung | – |
 | ☑ AP-52 Video: mehrere Spuren und echte Vorschau | Video- und Tonspuren beliebig viele, Position/Größe/Zuschnitt/Deckkraft je Clip, Bild-in-Bild mit Ecken, Vorschau durch denselben ffmpeg-Graphen wie der Export (J/K/L, Schleife In–Out), Wellenformen, Lora-Aktion *Bild-in-Bild* | Lautheit angleichen nur im Export; Flüssigkeit auf den Dienst-PCs messen |
 | ☑ AP-53 Video: Schnittwerkzeuge | Medienpool mit Ordnern und Suche, Quellmonitor mit In/Out, Einfügen/Überschreiben/Ziehen, Klinge, Ripple/Roll/Slip, Magnet, verknüpfter Ton, Synchronisieren über die Wellenform, Spuren sperren/stumm/ausblenden, Marker als Kapitel, Tasten wie Resolve | J spielt rückwärts ohne Ton; Synchronisieren vergleicht die ersten 15 Minuten |
+| ☑ AP-58 Frag diesen Ordner | Ordnermenü in *Dateien*, Lesen mit Fortschritt aus dem Volltext-Cache, Chat im Quellenmodus mit `search_folder` (Datei + Seite), Belegprüfung je Datei, Datenschutz-Empfehlung | Nextcloud- und Projektordner direkt |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52 und AP-53 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-47, AP-52, AP-53 und AP-58 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -725,6 +779,25 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
   synchronisiert, zweimal geschnitten, Mitte gelöscht, Ripple-Trim, Folie aus dem Quellmonitor eingefügt, ohne Lücke; im
   Export liegt der Mikrofonton auf den Ereignissen der Kamera (±60 ms). **Nicht umgesetzt**: Rückwärtslauf mit Ton;
   Synchronisieren vergleicht die ersten 15 Minuten jeder Aufnahme (reicht für übliche Versätze).
+
+### AP-58 ☑ Frag diesen Ordner · S–M (neu)
+- Rechtsklick auf einen Ordner (Lora-Ordner, Ort, Projektordner, Nextcloud-Ordner) → **„Frag diesen Ordner“**: neuer Chat
+  im **Quellenmodus** (AP-08) über alle Dateien darin, mit Belegen (Datei + Seite).
+- Nutzt den Volltext-Cache aus AP-18; große Ordner werden im Hintergrund gelesen, Fortschritt sichtbar.
+- Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
+- **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
+- Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
+- **Umsetzung (08.11.2026, ☑)**: *Dateien* › ⋮ an einem Ordner (Lora-Ordner, Orte, auch feste Ordner) › **„Frag diesen
+  Ordner“**: liest die Texte aller lesbaren Dateien (PDF, Office, OpenDocument, Markdown, Text, Mails …, auch in
+  Unterordnern, bis 400) über den Volltext-Cache von AP-18 im Hintergrund mit Fortschritt und öffnet einen neuen Chat im
+  **Quellenmodus**; der Auftrag an das Modell nennt Ordner und Dateien. Neues Werkzeug **`search_folder`**
+  (`agent/FolderAsk.kt`): die passendsten Stellen nur aus diesem Ordner (Seiten aus den `[Seite N]`-Marken, Wörter
+  gewichtet nach Seltenheit im Ordner, höchstens drei Stellen je Datei) mit Datei, Pfad und Seite. Die **Belegprüfung**
+  nimmt jede Datei der Treffer als eigene Quelle (mit Pfad, Klick öffnet das PDF an der Seite). **Datenschutz**: wirkt
+  ein Ordner vertraulich (Gutachten, Noten, Bewerbung, personenbezogen …), empfiehlt die App „Nur TU Dresden“. Test
+  `FolderAskTest`: 50 PDFs, Frage mit Belegen aus drei Dateien, alle Zitate geprüft, falsche Seite erkannt. **Rest**:
+  Nextcloud- und Projektordner direkt (heute über den synchronisierten Ordner), Datenschutzstufe automatisch setzen statt
+  empfehlen.
 
 ---
 

@@ -407,6 +407,43 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
     }
 
+    // Frag diesen Ordner (AP-58): read the folder's texts in the background (progress below), then a new chat.
+    var asking by remember { mutableStateOf<Triple<String, Int, Int>?>(null) }
+    fun askFolder(dir: File) {
+        if (asking != null) return
+        asking = Triple(dir.name, 0, 0)
+        scope.launch {
+            val files = withContext(Dispatchers.IO) {
+                runCatching { io.github.thepytales.llmhub.agent.FolderAsk.prepare(c, dir) { done, total -> asking = Triple(dir.name, done, total) } }.getOrDefault(emptyList())
+            }
+            asking = null
+            if (files.isEmpty()) { Notices.info(tr("Im Ordner „{0}“ gibt es keine lesbaren Dateien.", dir.name)); return@launch }
+            io.github.thepytales.llmhub.agent.FolderAsk.suggestedPrivacy(dir, files)?.let {
+                Notices.info(tr("Der Ordner enthält vertraulich wirkende Dateien – Datenschutzstufe „{0}“ empfohlen.", tr(it.label)))
+            }
+            ChatHandoff.pending.value = ChatHandoff.Content(
+                "", emptyList(), mode = io.github.thepytales.llmhub.agent.ChatModes.SOURCES.id,
+                instructions = io.github.thepytales.llmhub.agent.FolderAsk.instructions(dir, files),
+                handoff = tr("Frag diesen Ordner: {0} ({1} Dateien)", dir.name, files.size),
+            )
+            ChatHandoff.open.value = ""
+        }
+    }
+    asking?.let { (name, done, total) ->
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(tr("Frag diesen Ordner")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (total == 0) tr("Suche Dateien in „{0}“ …", name) else tr("Lese {0} von {1} Dateien aus „{2}“ …", done, total, name))
+                    if (total > 0) androidx.compose.material3.LinearProgressIndicator(progress = { done.toFloat() / total }, modifier = Modifier.fillMaxWidth())
+                    HintText(tr("Einmal gelesene Dateien kommen danach aus dem Volltext-Cache."))
+                }
+            },
+            confirmButton = {},
+        )
+    }
+
     val actions = DriveActions(
         open = { open(it) },
         editPdf = { editPdf(it) },
@@ -425,6 +462,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         selecting = { selection.isNotEmpty() },
         selected = { selection.containsKey(it.key) },
         toNextcloud = toNextcloud?.let { save -> { item: DriveItem -> save(item.file) } },
+        ask = { item -> askFolder(item.file) },
     )
 
     // Dragging onto a folder (Windows): folders note where they are on screen.
@@ -663,6 +701,8 @@ private class DriveActions(
     val selected: (DriveItem) -> Boolean,
     /** Nextcloud (AP-22): save a copy there; null while it is not set up. */
     val toNextcloud: ((DriveItem) -> Unit)? = null,
+    /** „Frag diesen Ordner“ (AP-58): a chat in the Quellenmodus over the folder's files. */
+    val ask: ((DriveItem) -> Unit)? = null,
 )
 
 /** Dragging items onto folders with the mouse (Windows). */
@@ -946,6 +986,9 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
                 leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, null) },
                 onClick = { act { actions.editPdf(item) } },
             )
+        }
+        if (item.dir) actions.ask?.let { ask ->
+            DropdownMenuItem(text = { Text(tr("Frag diesen Ordner")) }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { ask(item) } })
         }
         if (item.fixed) {
             if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { openLoraFolder(item.file) } })
