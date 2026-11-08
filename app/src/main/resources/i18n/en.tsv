@@ -5366,3 +5366,4 @@ Spiegeln	Mirror
 Verlauf nach unten	Gradient downwards
 Drehung {0}° aufheben	Remove {0}° rotation
 Auf der Folie: ziehen verschiebt (rastet an Rändern, Mitte und anderen Elementen ein, Strg: frei), der runde Griff dreht, Umschalt+Klick oder ein Rahmen wählt mehrere.	On the slide: drag to move (snaps to edges, the middle and other elements, Ctrl: freely), the round handle rotates, Shift+click or a frame selects several.
+Formatierung in einer Zelle wie in Tabellen: **fett**, *kursiv*, <u>unterstrichen</u>.	Formatting inside a cell as in sheets: **bold**, *italic*, <u>underlined</u>.
