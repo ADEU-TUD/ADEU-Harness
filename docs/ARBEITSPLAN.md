@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 08.11.2026 (nach 1.0.57) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (1.0.58) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -81,7 +81,7 @@ abwechseln, wenn ein Strang wartet.
 ## Jetzt
 
 Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-53 – am 07.11.2026 mit 1.0.57 erledigt
-ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026: alle vier begonnen (◐) –
+ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026 (1.0.58): alle vier begonnen (◐) –
 das „Fertig, wenn“ von AP-48 und AP-49 ist erfüllt, die Reste stehen je Paket unter *Offen*; AP-58 aus *Danach* ist erledigt.
 
 ### AP-48 ◐ Tabellen wie Excel · XL (neu, in Stufen)
@@ -98,7 +98,7 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Ein Notenexport aus OPAL (mehrere Tausend Zeilen) lässt sich filtern, mit SVERWEIS anreichern und
   verlustfrei als .xlsx speichern.
 - Betrifft: `docs/SheetEngine.kt`, `docs/SheetMeta.kt`, `ui/SheetEditor.kt`, `docs/SheetTemplates.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
+- **Umsetzung (08.11.2026, 1.0.58, ◐)**: **Stufe 1 Rechnen**: ganze Spalten (`A:A`, `Tabelle2!A:B`), Platzhalter `*`/`?`/`~` in
   ZÄHLENWENN, SUMMEWENNS & Co. und im genauen SVERWEIS/VERGLEICH, ausgelassene Argumente (`=XVERWEIS(70;D:D;A:A;;-1)`),
   XVERWEIS mit Vergleichs- und Suchmodus, rund 45 neue Funktionen (u. a. MAXWENNS/MINWENNS, XVERGLEICH, VERWEIS, WAHL,
   INDIREKT, ADRESSE, TEILERGEBNIS, HÄUFIGKEIT, QUARTILE, RANG.MITTELW, TEXTVOR/TEXTNACH/TEXTTEILEN, ERSETZEN, IDENTISCH,
@@ -132,7 +132,7 @@ So nah wie möglich an **Google Sheets/Excel**:
 - **Fertig, wenn**: Aus einer Notentabelle entsteht per Auftrag eine Verteilung mit Diagramm, das in einem Dokument
   verknüpft steht und sich bei geänderten Noten aktualisiert.
 - Betrifft: `docs/Charts.kt`, `ui/SheetEditor.kt`, `agent/ToolActions.kt`, `docs/PptxWriter.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
+- **Umsetzung (08.11.2026, 1.0.58, ◐)**: **Diagramme aus markierten Bereichen** in acht Arten (Säulen, Balken, gestapelt, Linie,
   Kreis, Punkt – erste Spalte x –, Histogramm, Boxplot – je Spalte die Rohwerte), in den **Farben des TUD-Designs**
   (`ChartLayout.TUD`: Brillantblau, Orange, Türkis, Magenta, Grün …), mit Titel, Achsentiteln, Typ und Bereich zum
   Ändern (⋮ am Diagramm) und **als Bild (SVG)** im Ordner *Diagramme* neben dem Dokument. **Verknüpft einfügen**
@@ -143,11 +143,11 @@ So nah wie möglich an **Google Sheets/Excel**:
   Gruppe“, „Erkläre die Formel in D2“): Verteilung (je Wert oder in Klassen, Anzahl und Anteil als ZÄHLENWENN-Formeln)
   bzw. Kennzahlen je Gruppe (Mittelwert, Anzahl, Min, Max – wie eine Pivot-Tabelle) rechts neben den Daten, mit
   Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
-  das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
+  das Modell bekommt nur den Auftrag. *Daten bereinigen* (`sheet.clean`) vereinheitlicht jetzt auch gemischte Datumsformate
+  (2026-04-03, 3.4.26 → 03.04.2026) in Datumsspalten. Dazu begrenzt: Versionsverlauf und
   Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
   Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. **Offen**: echte
-  Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben, Daten
-  bereinigen um Datumsformate.
+  Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben.
 
 ### AP-50 ◐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
 - Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
@@ -160,7 +160,7 @@ So nah wie möglich an **Google Sheets/Excel**:
 - Gestalten behält seine Vorlagen und Exporte; Folien behalten Layouts, Masterfolie und Referentenansicht.
 - **Fertig, wenn**: Ein Element verhält sich in Folien und Gestalten gleich; Text wird auf der Leinwand getippt.
 - Betrifft: Windows `creative/*`, `ui/DesignEditor.kt`, `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/SlideExtras.kt`.
-- **Umsetzung (08.11.2026, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
+- **Umsetzung (08.11.2026, 1.0.58, ◐)**: Der Kern der Leinwand liegt jetzt im **gemeinsamen Code** (`creative/DesignEditorState.kt`,
   `creative/DesignViewport.kt` aus Windows verschoben, neu `creative/CanvasOps.kt`): Ausrichten, Verteilen, Ebenen und
   **Gruppen** als reine Funktionen, die Gestalten und die Folien beide nutzen (`SlideCanvas` übersetzt die freien
   Folienelemente in cm in Leinwand-Elemente in mm und zurück). **Gestalten**: *Gruppieren* (Strg+G, Strg+Umschalt+G; ein
@@ -189,7 +189,7 @@ So nah wie möglich an **Google Slides/PowerPoint**:
   lässt sich mit Animationen präsentieren.
 - Betrifft: `ui/SlidesEditor.kt`, `docs/SlideDeck.kt`, `docs/PptxWriter.kt`, `docs/SlideHandout.kt`, neu
   `docs/PptxReader.kt`.
-- **Umsetzung (08.11.2026, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
+- **Umsetzung (08.11.2026, 1.0.58, ◐)**: **Animationen**: je Folie *Übergang* (Überblenden, Schieben) und *Stichpunkte nacheinander
   einblenden* (Menü *Animation* an der Folie; als Kommentarzeile der Folie gespeichert, `SlideDeck.Animation`). **Vorführen**:
   Übergänge laufen beim Blättern, ein Klick/→ zeigt den nächsten Punkt (Unterpunkte mit ihm), zurück zeigt die Folie
   ganz; **Zeichnen** beim Präsentieren (D, rote Linien je Folie, E löscht) neben Laserpointer, Schwarz/Weiß, Notizen,
@@ -787,7 +787,7 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
 - Datenschutz: Vorschlag der Datenschutzstufe nach Ordner (vertraulich markierte Dateien → „Nur TU Dresden“).
 - **Fertig, wenn**: Eine Frage an einen Ordner mit 50 PDFs wird mit klickbaren Belegen aus mehreren Dateien beantwortet.
 - Betrifft: `ui/DriveScreen.kt`, `data/FileLibrary.kt`, `agent/Evidence.kt`.
-- **Umsetzung (08.11.2026, ☑)**: *Dateien* › ⋮ an einem Ordner (Lora-Ordner, Orte, auch feste Ordner) › **„Frag diesen
+- **Umsetzung (08.11.2026, 1.0.58, ☑)**: *Dateien* › ⋮ an einem Ordner (Lora-Ordner, Orte, auch feste Ordner) › **„Frag diesen
   Ordner“**: liest die Texte aller lesbaren Dateien (PDF, Office, OpenDocument, Markdown, Text, Mails …, auch in
   Unterordnern, bis 400) über den Volltext-Cache von AP-18 im Hintergrund mit Fortschritt und öffnet einen neuen Chat im
   **Quellenmodus**; der Auftrag an das Modell nennt Ordner und Dateien. Neues Werkzeug **`search_folder`**
