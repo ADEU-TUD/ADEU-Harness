@@ -137,6 +137,8 @@ object PptxReader {
         val layoutType = pkg.xml(pkg.related(key, "slideLayout"))?.attr("type").orEmpty()
         var title = ""
         var subtitle = ""
+        /** The title PptxWriter puts above slides without a visible one (for screen readers). */
+        var hidden = ""
         val columns = mutableListOf<Pair<Long, List<String>>>()
         val heads = mutableListOf<Pair<Long, String>>()
         // The largest picture of the slide (logos of the design are left out).
@@ -161,7 +163,7 @@ object PptxReader {
                 lvl to p.all("t").joinToString("") { it.textContent }.trim()
             }.filter { it.second.isNotEmpty() }
             when (type) {
-                "title", "ctrTitle" -> title = paras.joinToString(" ") { it.second }
+                "title", "ctrTitle" -> if (y < 0) hidden = paras.joinToString(" ") { it.second } else title = paras.joinToString(" ") { it.second }
                 "subTitle" -> subtitle = paras.joinToString(" ") { it.second }
                 "sldNum", "dt", "ftr", "sldImg" -> {}
                 else -> if (paras.isNotEmpty()) {
@@ -188,7 +190,7 @@ object PptxReader {
         val sorted = columns.sortedBy { it.first }
         val body = (sorted.flatMap { it.second } + tables.map { "\n$it\n" }).joinToString("\n").trim()
         if (index == 0) return SlideDeck.Slide(title.ifBlank { body.lines().firstOrNull()?.removePrefix("- ").orEmpty() }, subtitle, notes = notes, layout = SlideDeck.Layout.TITLE, elements = elements)
-        val heading = title.ifBlank { "Folie ${index + 1}" }
+        val heading = title.ifBlank { hidden.ifBlank { "Folie ${index + 1}" } }
         return when {
             chart != null -> SlideDeck.Slide(heading, listOf(body, chart).filter { it.isNotBlank() }.joinToString("\n\n"), notes = notes, layout = SlideDeck.Layout.CHART, elements = elements)
             picture != null -> {

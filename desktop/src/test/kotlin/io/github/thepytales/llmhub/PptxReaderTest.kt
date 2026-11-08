@@ -251,6 +251,7 @@ class PptxReaderTest {
                 SlideElement(kind = "form", shape = "ellipse", x = 15.0, y = 5.0, w = 4.0, h = 4.0, fill = "#97C6FF", text = "Kreis", color = "#FFFFFF"),
             )),
             SlideDeck.template(SlideDeck.Layout.CHART).copy(title = "Werte"),
+            SlideDeck.Slide("", "", layout = SlideDeck.Layout.FREE, elements = listOf(SlideElement(kind = "text", text = "Ohne Titel"))),
         )
         val file = Files.createTempFile("own", ".pptx").toFile()
         PptxWriter.write(file, "Vortrag", SlideDeck.markdown(deck), "Professur")
@@ -265,6 +266,10 @@ class PptxReaderTest {
         assertEquals("ellipse", els[1].shape)
         assertEquals("#97C6FF", els[1].fill)
         assertEquals("Werte", back[2].title)
+        // A free slide without a title stays without one (the hidden title for screen readers is no title).
+        assertEquals(SlideDeck.Layout.FREE, back[3].layout, back[3].toString())
+        assertEquals("", back[3].title)
+        assertEquals(listOf("Ohne Titel"), back[3].elements.map { it.text })
     }
 
     @Test
