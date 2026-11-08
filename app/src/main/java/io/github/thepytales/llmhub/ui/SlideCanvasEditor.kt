@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.creative.CanvasTextEditor
 import io.github.thepytales.llmhub.creative.DesignEditorState
 import io.github.thepytales.llmhub.creative.DesignGeometry
@@ -269,7 +271,9 @@ internal fun SlideCanvasOverlay(
                         modifier = Modifier
                             .offset { IntOffset((el.x * cmPx).toInt(), (el.y * cmPx).toInt()) }
                             .size((el.w * cmPx).toFloat().toDp(), (el.h * cmPx).toFloat().toDp())
-                            .graphicsLayer { rotationZ = el.rotation.toFloat() },
+                            .graphicsLayer { rotationZ = el.rotation.toFloat() }
+                            // The same inner margin as the text box on the slide.
+                            .padding(2.dp),
                         onChange = { raw, rich -> pending = Triple(i, raw, rich) },
                         onDone = { flush(); editing = null; runCatching { focus.requestFocus() } },
                         accent = CanvasAccent,

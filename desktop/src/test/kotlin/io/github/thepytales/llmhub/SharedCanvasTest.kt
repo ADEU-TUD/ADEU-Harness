@@ -234,6 +234,10 @@ class SharedCanvasTest {
         assertTrue("<a:gradFill" in slide && "97C6FF" in slide)
         // Symbols and QR codes go in as pictures drawn by the renderer of Gestalten.
         assertNotNull(CanvasArt.png(SlideCanvas.toDesign(SlideElement(kind = "qr", text = "x", w = 3.0, h = 3.0), "q"), 8f))
+        // The handout shows the same: formatted runs, the turn, the table and the Shape.
+        val html = io.github.thepytales.llmhub.docs.SlideHandout.html(md, "Leinwand", 1, notes = false)
+        assertTrue("<b>fetter</b>" in html && "<u>Strich</u>" in html && "color:#C00000" in html && "**" !in html)
+        assertTrue("rotate(30.0deg)" in html && "<table" in html && "<b>Mathe</b>" in html && "<polygon" in html && "linear-gradient" in html)
     }
 
     @Test
