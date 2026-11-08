@@ -43,7 +43,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Quelle wie die Updates (GitHub oder der Ordner auf dem Netzlaufwerk), mit Prüfsumme, nach
   `%LOCALAPPDATA%\ADEU LLM\tools\<id>`. Eine neuere Fassung im Release aktualisiert sie mit der Update-Prüfung; *Entfernen*
   gibt den Platz wieder frei. Erste Erweiterung ist das **Videoeditor-Paket** (ca. 40 MB: ffprobe für genaue Angaben zu
-  Videos, Sprachmodell RNNoise für die Rauschminderung); der Videoeditor bietet es beim ersten Öffnen an und funktioniert
+  Videos, Sprachmodell RNNoise für die Rauschminderung, seit Paket 2 die Gesichtserkennung YuNet); der Videoeditor bietet es beim ersten Öffnen an und funktioniert
   auch ohne. Die **Browser-Engine** (Chromium, AP-14) steht daneben und lässt sich ebenso entfernen.
 - **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
   - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
@@ -972,6 +972,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     die YouTube-Beschreibung (*Für YouTube kopieren*).
   Tests `VideoCutTest` (u. a. ein Vortrag mit Kamera und Ansteckmikrofon: synchronisieren, schneiden, Ripple-Trimmen,
   eine Folie aus dem Quellmonitor einfügen – ohne Lücken, im Export lippensynchron).
+- **Videoeditor: einfache Effekte** (AP-54, seit 1.0.59; Abschnitt *Effekte* in den Clip-Eigenschaften):
+  - **Tempo und Bild**: Clips doppelt so schnell oder in Zeitlupe (0,25×–4×, Ton ohne Mickymaus-Stimme), Standbild,
+    kurze Stücke rückwärts, Helligkeit/Kontrast/Sättigung und **Weißabgleich auf Knopfdruck** – Vorschau und Export sehen
+    gleich aus.
+  - **Zoom und Schwenk mit Keyframes**: im Screencast sanft auf einen Bildschirmbereich zoomen und wieder heraus, auch als
+    **Hochformat 9:16** – oder einfach „Zoome oben rechts hinein“ zu Lora sagen.
+  - **Anonymisieren für Forschungsmaterial**: *Gesichter verpixeln* findet Gesichter auf dem eigenen PC (YuNet im
+    Videoeditor-Paket, nichts verlässt den Rechner), die Verpixelung folgt den Personen; dazu Bereiche von Hand verpixeln
+    oder weichzeichnen und **Stimmen verfremden** – jede Anonymisierung steht im Protokoll. Test `VideoEffectsTest`.
 - **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
   **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
   JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei

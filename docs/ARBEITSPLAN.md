@@ -220,7 +220,7 @@ So nah wie möglich an **Google Slides/PowerPoint**:
 
 ## Danach
 
-### AP-54 ☐ Video: einfache Effekte (D) · M–L (neu)
+### AP-54 ☑ Video: einfache Effekte (D) · M–L (neu)
 - **Zoom und Schwenk mit Keyframes** (z. B. auf einen Bildschirmbereich im Screencast), **Hochformat-Reframe** für
   kurze Clips.
 - **Verpixeln/Weichzeichnen** von Bereichen, die dem Objekt folgen; für Forschungsmaterial **Gesichter automatisch
@@ -230,6 +230,29 @@ So nah wie möglich an **Google Slides/PowerPoint**:
 - **Fertig, wenn**: In einem Beobachtungsvideo werden Gesichter automatisch verpixelt; ein Screencast zoomt per Keyframes
   auf einen Bereich.
 - Betrifft: Windows `video/*`, `ui/VideoScreen.kt`; lokales Erkennungsmodell im Videoeditor-Paket (AP-25).
+- **Umsetzung (08.11.2026, ☑)**: Effekte je Clip auf V1 als **`ClipFx`** (`video/VideoEffects.kt`), alle durch **denselben
+  ffmpeg-Graphen** wie Vorschau und Export (`VideoRender.graph`; Clips ohne Effekt ergeben den Graphen wie bisher).
+  **Geschwindigkeit** 0,25×–4× (`setpts`, Ton über `atempo`-Ketten mit gleicher Tonhöhe; verknüpfter Ton übernimmt Tempo
+  und Richtung), **Standbild** (`VideoFx.freeze`: Clip geteilt, das Bild steht n s und behält Bereiche und Farbe),
+  **Rückwärts** (`reverse`/`areverse`, bis 5 s je Clip, sonst klare Meldung); Klinge, Ripple-Trim, Roll und Untertitel aus
+  dem Transkript rechnen mit Tempo und Richtung. **Bildkorrektur**: Helligkeit, Kontrast, Sättigung (`eq`),
+  **Weißabgleich automatisch** (Grauwelt-Schätzung aus dem Bild am Abspielkopf → `colorchannelmixer`). **Zoom und Schwenk
+  mit Keyframes** in Quellzeit (linear oder sanft, als ffmpeg-Ausdruck mit balanciertem Baum; gleitend über `perspective`
+  mit Subpixel, fest über `crop`), **Hochformat 9:16** folgt denselben Keyframes. **Bereiche verpixeln/weichzeichnen** mit
+  Keyframes (`crop` + `boxblur` bzw. Herunter-/Hochskalieren, `overlay` an derselben Stelle). **Gesichter automatisch
+  finden** (`video/Faces.kt`): Bilder alle 0,4 s aus einem ffmpeg-Lauf (`select`, nicht `fps` – der lieferte zu spät),
+  **`FaceDetector`** YuNet je Bild, Spuren über Überlappung (neue Spur bei Lücke > 1,6 s oder Größensprung), daraus Bereiche
+  mit Rand und vereinfachten Keyframes. **Stimme verfremden** (Halbtöne über `asetrate`+`aresample`+`atempo`, Clips und
+  Tonspuren). Oberfläche: Abschnitt *Effekte* in den Clip-Eigenschaften (`ui/VideoEffectsUi.kt`), Zusammenfassung am Clip
+  in der Zeitleiste; ohne Paket erklärt der Editor das und bietet Bereiche von Hand. Lora-Aktionen **`video.speed`**,
+  **`video.freeze`**, **`video.zoom`**, **`video.faces`**, **`video.voice`** (mit Rückgängig); Anonymisierungen stehen mit
+  Projekt, Anzahl und Detektor im Protokoll der Lora-Aktionen. **Videoeditor-Paket 2** mit dem Modell
+  (`extension-videoeditor.sh`). Test **`VideoEffectsTest`**: Modell und Schnitt mit Tempo, Rückwärts und Standbild,
+  Keyframes, Graph-Zeichenketten, echter Export (2× schneller, Zoom per Keyframes auf einen Bildschirmbereich,
+  Weichzeichnen; Vorschau = Export), Beobachtungsvideo mit wandernder Person – das ganze Gesicht zu drei Zeitpunkten
+  verpixelt (Test-Detektor), echte YuNet-Erkennung über JNA, wenn Laufzeit und Modell vorhanden sind. **Offen**: Effekte
+  auf V2 … (Bild-in-Bild), Bereiche und Zoom mit der Maus im Vorschaubild ziehen (heute Schieberegler am Abspielkopf),
+  Gesichtserkennung auf den Dienst-PCs prüfen.
 
 ### AP-55 ☐ Video: textbasierter Schnitt (D) · M (neu)
 - Das **Transkript** liegt als Text neben der Zeitleiste; Wörter sind mit der Zeit verknüpft (Klick springt).
@@ -828,7 +851,9 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
    Abgaben aus OPAL?
 5. ~~**Word-Prüfsammlung** (AP-45)~~: entschieden (07.11.2026) – nachgebaute Dokumente reichen (`PruefsammlungTest`),
    echte Dateien kommen nicht ins Repo.
-6. **Gesichter verpixeln** (AP-54): Welches lokale Erkennungsmodell (Lizenz, Größe im Videoeditor-Paket)?
+6. ~~**Gesichter verpixeln** (AP-54)~~: entschieden (08.11.2026) – **YuNet** (`face_detection_yunet_2023mar.onnx` aus OpenCV
+   Zoo, MIT-Lizenz, 227 KB) im Videoeditor-Paket; es läuft auf der ONNX Runtime, die die App für die Spracherkennung
+   (sherpa-onnx) schon mitbringt, das Paket wächst also nur um das Modell.
 7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt?
 8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
