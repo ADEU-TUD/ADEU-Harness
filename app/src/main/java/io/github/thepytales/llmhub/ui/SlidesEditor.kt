@@ -102,6 +102,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -195,6 +196,8 @@ fun SlidesBody(
     var presenting by remember { mutableStateOf<Int?>(null) }
     var sorter by remember { mutableStateOf(false) }
     var handout by remember { mutableStateOf(false) }
+    /** „Folie schöner machen“ (AP-51): the slide whose suggestions are shown. */
+    var suggest by remember { mutableStateOf<Int?>(null) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun set(list: List<SlideDeck.Slide>) = onMarkdown(SlideDeck.markdown(list))
     // Lora in der Präsentation (AP-38 Stufe c): her actions read and replace the slides.
@@ -208,6 +211,11 @@ fun SlidesBody(
         }
         io.github.thepytales.llmhub.agent.ActionHosts.slides = host
         onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.slides === host) io.github.thepytales.llmhub.agent.ActionHosts.slides = null }
+    }
+    androidx.compose.runtime.DisposableEffect(doc.id) {
+        val open: (Int) -> Unit = { suggest = it }
+        SlideSuggestionsHost.open = open
+        onDispose { if (SlideSuggestionsHost.open === open) SlideSuggestionsHost.open = null }
     }
     fun update(i: Int, s: SlideDeck.Slide) = set(slides.toMutableList().apply { set(i, s) })
     fun addSlide(layout: SlideDeck.Layout) {
@@ -296,6 +304,7 @@ fun SlidesBody(
                             inlineAi.start("s$sel", doc, SlideDeck.markdown(listOf(SlideDeck.Slide(), slides[sel])).substringAfter("---").trim(), label, instruction)
                         })
                     }
+                    DropdownMenuItem(text = { Text(tr("Folie schöner machen …")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; suggest = sel })
                     HorizontalDivider()
                     Text(tr("Ganze Präsentation"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     DropdownMenuItem(text = { Text(tr("Sprechernotizen für alle Folien")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck(tr("Sprechernotizen"), NOTES_ALL_SLIDES) })
@@ -335,6 +344,9 @@ fun SlidesBody(
         }
     }
     presenting?.let { start -> Presenter(slides, start, frame, narrow) { presenting = null } }
+    suggest?.takeIf { it in slides.indices }?.let { i ->
+        SlideSuggestionsDialog(c, slides, i, frame, onPick = { list -> set(slides.toMutableList().apply { removeAt(i); addAll(i, list) }); suggest = null }, onDismiss = { suggest = null })
+    }
     if (handout) HandoutDialog(c, doc, DocMarkup.resolveImages(markdown, base ?: c.docs.baseDir(doc)), onDismiss = { handout = false })
 }
 
@@ -953,6 +965,10 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     var pen by remember { mutableStateOf(false) }
     val ink = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<List<Offset>>>() }
     var stroke by remember { mutableStateOf<List<Offset>>(emptyList()) }
+    // Zweiter Bildschirm (AP-51): with a second screen the slides go there, the Referentenansicht stays here.
+    val canSecond = remember { PresentScreens.hasSecond() }
+    var second by remember { mutableStateOf(canSecond) }
+    var stageSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     /** Digits typed for "number + Enter". */
     var typed by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
@@ -968,7 +984,42 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     /** One click on: the next point of the build, then the next slide. */
     fun forward() { if (step < SlideDeck.buildCount(slides[i])) step++ else go(i + 1) }
     fun backward() { if (step > 0) step-- else go(i - 1) }
+    /** The slide as the audience sees it (black/white, transition, build, ink, laser); [map] places pointer and ink on it. */
+    val stage: @Composable (map: (Offset) -> Offset) -> Unit = { map ->
+        if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
+        else androidx.compose.animation.AnimatedContent(
+            targetState = i,
+            transitionSpec = {
+                val forwardMove = targetState > initialState
+                when (slides.getOrNull(targetState)?.transition) {
+                    "fade" -> androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(450)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(450))
+                    "push" -> androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) w else -w } togetherWith
+                        androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) -w else w }
+                    else -> androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                }
+            },
+            label = "folie",
+        ) { k ->
+            val shown = if (k == i) SlideDeck.buildStep(slides[k], step) else slides[k]
+            SlideCanvas(shown, Modifier.fillMaxWidth().aspectRatio(16f / 9f), k + 1, slides.size, frame, slides)
+        }
+        val lines = ink[i].orEmpty() + listOf(stroke).filter { it.size > 1 }
+        if (lines.isNotEmpty()) Canvas(Modifier.fillMaxSize()) {
+            lines.forEach { pts -> pts.zipWithNext { a, b -> drawLine(Color(0xFFE6001A), map(a), map(b), strokeWidth = 4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round) } }
+        }
+        val dot = pointer
+        if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
+            drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = map(dot))
+            drawCircle(Color(0xFFFF1A1A), radius = 7.dp.toPx(), center = map(dot))
+        }
+    }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        AudienceScreen(second, onClose = { second = false }) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val size = androidx.compose.ui.unit.IntSize(constraints.maxWidth, constraints.maxHeight)
+                stage { p -> audiencePoint(p, stageSize, size) }
+            }
+        }
         Column(
             Modifier.fillMaxSize().background(Color.Black).focusRequester(focus).focusable().onKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown) return@onKeyEvent false
@@ -1003,7 +1054,8 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
             LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 Box(
-                    Modifier.weight(if (notes && !narrow) 2.2f else 1f).fillMaxHeight()
+                    Modifier.weight(if ((notes || second) && !narrow) 2.2f else 1f).fillMaxHeight()
+                        .onSizeChanged { stageSize = it }
                         .then(if (laser || pen) Modifier else Modifier.clickable { forward() })
                         // Zeichnen beim Präsentieren (D): strokes in red over the slide, E erases them.
                         .pointerInput(pen, i) {
@@ -1026,34 +1078,9 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                         },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
-                    else androidx.compose.animation.AnimatedContent(
-                        targetState = i,
-                        transitionSpec = {
-                            val forwardMove = targetState > initialState
-                            when (slides.getOrNull(targetState)?.transition) {
-                                "fade" -> androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(450)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(450))
-                                "push" -> androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) w else -w } togetherWith
-                                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) -w else w }
-                                else -> androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
-                            }
-                        },
-                        label = "folie",
-                    ) { k ->
-                        val shown = if (k == i) SlideDeck.buildStep(slides[k], step) else slides[k]
-                        SlideCanvas(shown, Modifier.fillMaxWidth().aspectRatio(16f / 9f), k + 1, slides.size, frame, slides)
-                    }
-                    val lines = ink[i].orEmpty() + listOf(stroke).filter { it.size > 1 }
-                    if (lines.isNotEmpty()) Canvas(Modifier.fillMaxSize()) {
-                        lines.forEach { pts -> pts.zipWithNext { a, b -> drawLine(Color(0xFFE6001A), a, b, strokeWidth = 4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round) } }
-                    }
-                    val dot = pointer
-                    if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
-                        drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = dot)
-                        drawCircle(Color(0xFFFF1A1A), radius = 7.dp.toPx(), center = dot)
-                    }
+                    stage { it }
                 }
-                if (notes && !narrow) {
+                if ((notes || second) && !narrow) {
                     Column(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF1C1C1C)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(tr("Nächste Folie"), color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         slides.getOrNull(i + 1)?.let { next ->
@@ -1093,6 +1120,9 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     Icon(Icons.Outlined.DarkMode, contentDescription = tr("Schwarzer Bildschirm (B)"), tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
                 }
                 IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = tr("Notizen (N)"), tint = Color.White) }
+                if (canSecond) IconButton(onClick = { second = !second }) {
+                    Icon(Icons.Outlined.Slideshow, contentDescription = if (second) tr("Folien nur auf diesem Bildschirm") else tr("Folien auf dem zweiten Bildschirm"), tint = if (second) Color(0xFF97C6FF) else Color.White)
+                }
                 IconButton(onClick = { backward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück"), tint = Color.White) }
                 IconButton(onClick = { forward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weiter"), tint = Color.White) }
             }
@@ -1103,6 +1133,23 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
 
 /** Align modes of the shared canvas with their symbols (Ausrichten, AP-50). */
 private val ALIGN_MODES = listOf("left" to "⇤", "hcenter" to "↔", "right" to "⇥", "top" to "⤒", "vcenter" to "↕", "bottom" to "⤓")
+
+/**
+ * Where point [p] of the presenter's slide area ([from]) lies on the audience's screen ([to]): both show the 16:9 slide
+ * centred, so ink and laser land on the same spot of the slide.
+ */
+internal fun audiencePoint(p: Offset, from: androidx.compose.ui.unit.IntSize, to: androidx.compose.ui.unit.IntSize): Offset {
+    fun slide(s: androidx.compose.ui.unit.IntSize): androidx.compose.ui.geometry.Rect {
+        val w = minOf(s.width.toFloat(), s.height * 16f / 9f)
+        val h = w * 9f / 16f
+        return androidx.compose.ui.geometry.Rect(Offset((s.width - w) / 2, (s.height - h) / 2), androidx.compose.ui.geometry.Size(w, h))
+    }
+    val a = slide(from)
+    val b = slide(to)
+    if (a.width <= 0f || a.height <= 0f) return p
+    return Offset(b.left + (p.x - a.left) * b.width / a.width, b.top + (p.y - a.top) * b.height / a.height)
+}
+
 
 private val FREE_COLORS = listOf("#00008C", "#2F57B2", "#97C6FF", "#566371", "#000000", "#FFFFFF", "#1B7F3B", "#B3261E", "#E37222", "#F2B01E")
 

@@ -185,6 +185,75 @@ object SlidesLora {
         flush()
         return out
     }
+
+    /** One slide as the editor's Markdown (for the model). */
+    fun slideMarkdown(s: SlideDeck.Slide): String = SlideDeck.markdown(listOf(SlideDeck.Slide(), s)).substringAfter("---").trim()
+
+    private suspend fun ask(c: io.github.thepytales.llmhub.AppContainer, model: String, prompt: String): String {
+        val r = c.llm.streamChat(model, listOf(io.github.thepytales.llmhub.data.ChatMessage(role = "user", content = prompt)), null, thinking = io.github.thepytales.llmhub.net.ThinkingLevel.OFF) {}
+        return io.github.thepytales.llmhub.ui.splitThinking(r.content).second.trim()
+    }
+
+    /**
+     * „Folie schöner machen“ with the model: up to two variants of slide [s] in the editor's Markdown (layout, shorter
+     * points, notes); its picture and freely placed elements stay.
+     */
+    suspend fun modelSuggestions(c: io.github.thepytales.llmhub.AppContainer, model: String, s: SlideDeck.Slide): List<io.github.thepytales.llmhub.docs.SlideLook.Suggestion> {
+        val prompt = buildString {
+            append("Du gestaltest Folien für einen Vortrag im Design der TU Dresden. Mache diese Folie schöner und verständlicher: prägnanter Titel, ")
+            append("höchstens 5 kurze Stichpunkte, ein Layout, das zum Inhalt passt. Gib genau zwei unterschiedliche Varianten zurück, getrennt durch eine Zeile ---. ")
+            append("Format je Variante: „## Titel“, optional eine Layout-Zeile (<!-- layout: vergleich -->, <!-- layout: tabelle --> mit Markdown-Tabelle, ")
+            append("<!-- layout: diagramm --> mit einem ```chart-Block {\"type\":\"bar\",\"labels\":[…],\"series\":[{\"name\":…,\"values\":[…]}]}), Stichpunkte mit „- “, ")
+            append("zwei Spalten mit einer Zeile „|||“ dazwischen, am Ende „Notizen: …“ mit dem, was nicht auf die Folie passt. Nichts erfinden, was nicht auf der Folie steht; ")
+            append("keine Erklärungen außerhalb der Folien.")
+            LoraPrefs.instructions(c, ActionArea.SLIDES)?.let { append("\nVorlieben des Nutzers: ").append(it) }
+            append("\n\nFolie:\n").append(slideMarkdown(s))
+        }
+        val text = ask(c, model, prompt).replace(Regex("^```(markdown|md)?\\s*\\n|\\n```\\s*$"), "")
+        return SlideDeck.parse("# _\n\n---\n\n$text").drop(1).filter { it.title.isNotBlank() || it.body.isNotBlank() }.take(2).map { v ->
+            val kept = v.copy(
+                image = v.image.ifBlank { s.image }, imageAlt = v.imageAlt.ifBlank { s.imageAlt }, imageLeft = if (v.image.isBlank()) s.imageLeft else v.imageLeft,
+                layout = if (v.image.isBlank() && s.image.isNotBlank() && !v.layout.withImage && v.layout == SlideDeck.Layout.CONTENT) SlideDeck.Layout.IMAGE_TEXT else v.layout,
+                elements = s.elements, notes = v.notes.ifBlank { s.notes }, transition = s.transition, build = s.build,
+            )
+            io.github.thepytales.llmhub.docs.SlideLook.Suggestion(trLater("Vorschlag von Lora"), listOf(kept))
+        }.filter { it.slides.single() != s }
+    }
+
+    /** Sprechertexte with the model for the slides [targets] of [slides] (index → text); the deck is the context. */
+    suspend fun modelNotes(c: io.github.thepytales.llmhub.AppContainer, model: String, slides: List<SlideDeck.Slide>, targets: List<Int>): Map<Int, String> {
+        val prompt = buildString {
+            append("Schreibe Sprechertexte für die genannten Folien eines Vortrags: je 2 bis 4 Sätze in gesprochener Sprache, auf Deutsch, mit einer kurzen ")
+            append("Überleitung zur nächsten Folie. Nichts erfinden, was nicht auf den Folien steht. Antworte nur mit einer Zeile je Folie im Format „Folie N: Text“.")
+            LoraPrefs.instructions(c, ActionArea.SLIDES)?.let { append("\nVorlieben des Nutzers: ").append(it) }
+            append("\n\nDie Präsentation:\n")
+            slides.forEachIndexed { i, s -> append("Folie ${i + 1}: ").append(s.title).append(" – ").append(s.body.replace(Regex("\\s+"), " ").take(500)).append('\n') }
+            append("\nSprechertexte für die Folien: ").append(targets.joinToString(", ") { (it + 1).toString() })
+        }
+        return Regex("(?m)^\\s*\\**Folie\\s+(\\d+)\\**\\s*[:.–-]\\s*(.+)$").findAll(ask(c, model, prompt))
+            .mapNotNull { m -> m.groupValues[1].toIntOrNull()?.let { it - 1 }?.takeIf { it in targets }?.let { it to m.groupValues[2].trim() } }.toMap()
+    }
+
+    /** The structure of a paper (PDF) from its lines with font sizes; from its plain text when that fails. */
+    fun paper(c: io.github.thepytales.llmhub.AppContainer, f: java.io.File): io.github.thepytales.llmhub.docs.PaperDeck.Paper {
+        val lines = runCatching { io.github.thepytales.llmhub.docs.PaperDeck.lines(io.github.thepytales.llmhub.docs.PdfTools.textRuns(c.appContext, f).first) }.getOrNull()?.takeIf { it.isNotEmpty() }
+            ?: io.github.thepytales.llmhub.docs.PaperDeck.lines(io.github.thepytales.llmhub.docs.PdfExtras.pageTexts(c.appContext, f).joinToString("\u000C"))
+        return io.github.thepytales.llmhub.docs.PaperDeck.read(lines, f.nameWithoutExtension)
+    }
+
+    /**
+     * The figures of a paper as pictures next to the deck (Windows; Android reads no pictures out of PDFs): large ones
+     * only, nothing that repeats on several pages (logos of the journal), at most [max].
+     */
+    fun figures(f: java.io.File, base: java.io.File, max: Int = 8): List<io.github.thepytales.llmhub.docs.PaperDeck.Figure> {
+        if (!io.github.thepytales.llmhub.docs.PdfStage3.SUPPORTED) return emptyList()
+        val all = runCatching { io.github.thepytales.llmhub.docs.PdfStage3.images(f) }.getOrDefault(emptyList())
+        val repeated = all.groupBy { Triple(it.width, it.height, it.bytes) }.filter { (_, l) -> l.map { it.page }.distinct().size > 2 }.keys
+        return all.filter { it.width >= 300 && it.height >= 180 && Triple(it.width, it.height, it.bytes) !in repeated }.distinctBy { Triple(it.page, it.width, it.height) }.take(max).mapNotNull { img ->
+            runCatching { io.github.thepytales.llmhub.docs.PdfStage3.imagePreview(f, img.page, img.name, 1600) }.getOrNull()
+                ?.let { b -> io.github.thepytales.llmhub.docs.PaperDeck.Figure(img.page, io.github.thepytales.llmhub.docs.DocMarkup.storeImage(base, b), img.width, img.height) }
+        }
+    }
 }
 
 /** Lora's actions for tables and presentations (AP-38 Stufe c). */
@@ -442,6 +511,90 @@ internal object OfficeActions {
         ) { _, _ ->
             slidesChange("slides.split_full", tr("Teilt volle Folien …"), false, result = tr("Volle Folien geteilt.")) { list, _ ->
                 SlideDeck.splitFull(list).let { (next, n) -> next.takeIf { n > 0 } }
+            }
+        },
+        // Lora baut Folien aus einem Paper (AP-51): structure, figures and tables of a PDF, on the device.
+        ToolAction(
+            "slides.from_paper", ActionArea.PDF, trLater("Präsentation aus Paper"),
+            "Baut aus einem Paper (PDF) eine Präsentation im TUD-Design: Titel und Autor:innen, Worum es geht (Abstract), Gliederung, je Abschnitt (Einleitung, Methode, Ergebnisse, Diskussion, Fazit) eine Folie mit den Kernaussagen, Abbildungen und Tabellen des Papers, Sprechernotizen; Punkte erscheinen nacheinander. Auf dem Gerät.",
+            listOf(ActionParam("datei", "Das Paper als PDF (leer: das ausgewählte bzw. offene)", required = false)), risky = false,
+        ) { c, a ->
+            val f = ToolActions.files(c, a.s("datei"), "pdf").firstOrNull() ?: throw ActionFailed(tr("Aus welchem Paper? Bitte ein PDF auswählen oder den Namen nennen."))
+            val paper = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { SlidesLora.paper(c, f) }
+            if (paper.sections.isEmpty() && paper.abstract.isBlank()) throw ActionFailed(tr("In „{0}“ finde ich keinen lesbaren Text – ist das PDF gescannt? Dann zuerst Texterkennung (OCR).", f.name))
+            val estimate = io.github.thepytales.llmhub.docs.PaperDeck.slides(paper).size
+            ActionPlan("slides.from_paper", tr("Baut Folien aus „{0}“ …", f.name), false, listOf(tr("Abschnitte") to paper.sections.size.toString(), tr("Folien") to estimate.toString())) {
+                val figures = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { SlidesLora.figures(f, c.docs.baseDir(null)) }
+                val slides = io.github.thepytales.llmhub.docs.PaperDeck.slides(paper, figures)
+                val title = paper.title.ifBlank { f.nameWithoutExtension }
+                val deck = io.github.thepytales.llmhub.docs.LiveDoc.create(title, SlideDeck.markdown(slides), "Lora", kind = io.github.thepytales.llmhub.docs.DocKind.SLIDES)
+                c.docs.save(deck)
+                io.github.thepytales.llmhub.ui.DocsHandoff.show(deck.id)
+                ActionResult(
+                    tr("Präsentation „{0}“ mit {1} Folien angelegt ({2} Abbildungen) – Vorführen mit Umschalt+F5.", title, slides.size, slides.count { it.layout == SlideDeck.Layout.IMAGE }),
+                    undo = { c.docs.delete(deck.id); tr("Präsentation entfernt.") },
+                )
+            }
+        },
+        // „Folie schöner machen“ (AP-51): suggestions to tap in the editor; asked by name, Lora takes one of them.
+        ToolAction(
+            "slides.beautify", ActionArea.SLIDES, trLater("Folie schöner machen"),
+            "Macht Vorschläge für ein schöneres Layout einer Folie (zwei Spalten, Vergleich, Tabelle, Diagramm, kürzere Punkte, Bild groß …, mit Modell auch eigene Varianten) zum Antippen im Editor; mit „vorschlag“ wird dieser Vorschlag übernommen.",
+            listOf(
+                ActionParam("folie", "Nummer oder Titel (leer: die ausgewählte)", required = false),
+                ActionParam("vorschlag", "Nummer des Vorschlags, der übernommen wird (leer: Vorschläge zeigen)", required = false),
+            ), risky = false, usesModel = true,
+        ) { c, a ->
+            val host = slidesHost()
+            val before = host.markdown()
+            val slides = SlideDeck.parse(before)
+            val i = SlidesLora.index(slides, a.s("folie"), host.selected()) ?: throw ActionFailed(tr("Diese Folie finde ich nicht."))
+            if (i == 0) throw ActionFailed(tr("Die Titelfolie bleibt im TUD-Design – welche andere Folie?"))
+            val pick = a.s("vorschlag")?.filter { it.isDigit() }?.toIntOrNull()
+            val open = io.github.thepytales.llmhub.ui.SlideSuggestionsHost.open
+            if (pick == null && open != null) return@ToolAction ActionPlan("slides.beautify", tr("Sucht Vorschläge für Folie {0} …", i + 1), false) {
+                open(i)
+                ActionResult(tr("Vorschläge für Folie {0} stehen im Editor zum Antippen bereit.", i + 1))
+            }
+            ActionPlan("slides.beautify", tr("Macht Folie {0} schöner …", i + 1), false) {
+                val model = ToolActions.model(c)
+                val all = (model?.let { m -> runCatching { SlidesLora.modelSuggestions(c, m, slides[i]) }.getOrNull() }.orEmpty()) + io.github.thepytales.llmhub.docs.SlideLook.suggest(slides[i])
+                if (all.isEmpty()) throw ActionFailed(tr("Für Folie {0} habe ich keinen Vorschlag – sie sieht schon gut aus.", i + 1))
+                val k = ((pick ?: 1) - 1).coerceIn(0, all.lastIndex)
+                host.replace(SlideDeck.markdown(slides.toMutableList().apply { removeAt(i); addAll(i, all[k].slides) }))
+                val others = all.indices.filter { it != k }.joinToString(", ") { "${it + 1}) ${tr(all[it].label)}" }
+                ActionResult(
+                    tr("Folie {0}: {1}.", i + 1, tr(all[k].label)) + if (others.isNotEmpty()) " " + tr("Weitere Vorschläge: {0}.", others) else "",
+                    undo = { host.replace(before); tr("Folien wie vorher.") },
+                )
+            }
+        },
+        // Sprechertexte (AP-51): with the model in spoken language, without one from the points of the slide.
+        ToolAction(
+            "slides.notes", ActionArea.SLIDES, trLater("Sprechertexte schreiben"),
+            "Schreibt Sprechertexte (Notizen) für eine Folie oder alle Folien ohne Notizen – mit Modell in gesprochener Sprache, sonst aus den Stichpunkten.",
+            listOf(
+                ActionParam("folie", "Nummer oder Titel (leer: alle Folien ohne Notizen)", required = false),
+                ActionParam("alle", "ja: auch Folien, die schon Notizen haben, neu schreiben", required = false),
+            ), risky = false, usesModel = true,
+        ) { c, a ->
+            val host = slidesHost()
+            val before = host.markdown()
+            val slides = SlideDeck.parse(before)
+            val one = a.s("folie")?.takeIf { it.isNotBlank() }?.let { SlidesLora.index(slides, it, host.selected()) ?: throw ActionFailed(tr("Diese Folie finde ich nicht.")) }
+            val again = a.s("alle").orEmpty().lowercase().let { it.startsWith("j") || it == "true" }
+            val targets = one?.let { listOf(it) } ?: slides.indices.filter { again || slides[it].notes.isBlank() }
+            if (targets.isEmpty()) throw ActionFailed(tr("Alle Folien haben schon Notizen – mit „alle“ schreibe ich sie neu."))
+            val model = ToolActions.model(c)
+            ActionPlan("slides.notes", tr("Schreibt Sprechertexte für {0} Folien …", targets.size), false, listOf(tr("Folien") to targets.joinToString(", ") { (it + 1).toString() }, tr("Datenschutz") to if (model != null) ToolActions.privacyNote(c) else tr("Bleibt auf diesem Gerät."))) {
+                val written = model?.let { m -> runCatching { SlidesLora.modelNotes(c, m, slides, targets) }.getOrNull() }.orEmpty()
+                val next = slides.mapIndexed { k, s -> if (k in targets) s.copy(notes = written[k]?.takeIf { it.isNotBlank() } ?: io.github.thepytales.llmhub.docs.SlideLook.notes(slides, k)) else s }
+                host.replace(SlideDeck.markdown(next))
+                val byModel = targets.count { !written[it].isNullOrBlank() }
+                ActionResult(
+                    if (byModel > 0) tr("Sprechertexte für {0} Folien geschrieben.", targets.size) else tr("Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).", targets.size),
+                    undo = { host.replace(before); tr("Folien wie vorher.") },
+                )
             }
         },
     )
