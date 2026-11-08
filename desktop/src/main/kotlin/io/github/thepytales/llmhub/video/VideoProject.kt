@@ -228,6 +228,11 @@ data class VideoProject(
     val bins: List<String> = emptyList(),
     /** Magnet timeline (AP-53): edits on V1 move everything after them along, deleting closes the gap. */
     val magnet: Boolean = true,
+    /**
+     * Transcripts still being made (AP-56, „sofort transkribieren“): source path → title of the transcript; the editor
+     * assigns each as soon as it is there.
+     */
+    val pendingTranscripts: Map<String, String> = emptyMap(),
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 ) {

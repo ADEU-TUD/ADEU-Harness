@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.PictureInPicture
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FiberManualRecord
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.MusicNote
@@ -181,6 +182,8 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
     }
     val projects by VideoHub.store.items.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    var recordDialog by remember { mutableStateOf(false) }
+    if (recordDialog) ScreenRecordDialog(c, onDismiss = { recordDialog = false })
     fun newProject() = scope.launch {
         val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
         if (files.isEmpty()) return@launch
@@ -192,7 +195,11 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Videoeditor")) },
-                actions = { Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } } },
+                actions = {
+                    // Bildschirmaufnahme (AP-56): the result comes back as a project.
+                    Spot("video.record") { TextButton(onClick = { recordDialog = true }) { Icon(Icons.Outlined.FiberManualRecord, null, tint = androidx.compose.ui.graphics.Color(0xFFE53935)); Spacer(Modifier.size(4.dp)); Text(tr("Bildschirm aufnehmen")) } }
+                    Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } }
+                },
             )
         },
     ) { pad ->
@@ -362,6 +369,13 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         io.github.thepytales.llmhub.video.VideoLora.host = host
         io.github.thepytales.llmhub.video.VideoLora.lastId = id
         onDispose { if (io.github.thepytales.llmhub.video.VideoLora.host === host) io.github.thepytales.llmhub.video.VideoLora.host = null }
+    }
+    // „Sofort transkribieren“ (AP-56): transcripts that were being made are assigned as soon as they are there.
+    val transcriptList by c.transcription.transcripts.collectAsStateWithLifecycle()
+    LaunchedEffect(transcriptList, p.pendingTranscripts) {
+        if (p.pendingTranscripts.isEmpty()) return@LaunchedEffect
+        val found = p.pendingTranscripts.mapNotNull { (path, title) -> transcriptList.firstOrNull { it.title == title }?.let { path to it.id } }.toMap()
+        if (found.isNotEmpty()) h.edit(record = false) { it.copy(transcripts = it.transcripts + found, pendingTranscripts = it.pendingTranscripts - found.keys) }
     }
     // A pause in editing shows the picture at the playhead again (the clip under it may have changed).
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }

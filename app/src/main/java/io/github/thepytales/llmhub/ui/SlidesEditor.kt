@@ -1119,6 +1119,8 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                 IconButton(onClick = { blank = if (blank == Color.Black) null else Color.Black }) {
                     Icon(Icons.Outlined.DarkMode, contentDescription = tr("Schwarzer Bildschirm (B)"), tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
                 }
+                // Bildschirmaufnahme (AP-56): the presentation with the microphone, as a video project (Windows app).
+                PresentationRecordButton(second)
                 IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = tr("Notizen (N)"), tint = Color.White) }
                 if (canSecond) IconButton(onClick = { second = !second }) {
                     Icon(Icons.Outlined.Slideshow, contentDescription = if (second) tr("Folien nur auf diesem Bildschirm") else tr("Folien auf dem zweiten Bildschirm"), tint = if (second) Color(0xFF97C6FF) else Color.White)

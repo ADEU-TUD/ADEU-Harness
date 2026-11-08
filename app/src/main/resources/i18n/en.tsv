@@ -527,9 +527,12 @@ Auflösung	Resolution
 Auflösung des Projekts, große Datei – z. B. zum Archivieren.	Resolution of the project, large file – e.g. for archiving.
 Aufnahme	Recording
 Aufnahme beenden	Stop recording
+Aufnahme fertig ({0}) – als Projekt im Videoeditor.	Recording done ({0}) – as a project in the video editor.
+Aufnahme fortsetzen	Continue recording
 Aufnahme läuft	Recording
 Aufnahme läuft … zum Beenden auf das Mikrofon {0}	Recording … to stop, {0} the microphone
 Aufnahme nicht möglich: {0}	Recording not possible: {0}
+Aufnahme pausieren	Pause recording
 Aufnahme pausiert	Recording paused
 Aufnahme transkribieren	Transcribe recording
 Aufnahme wiederhergestellt	Recording restored
@@ -686,6 +689,8 @@ Benennt „{0}“ um …	Renames “{0}” …
 Benutzerdefiniert	Custom
 Benutzername	User name
 Bereich	Area
+Bereich ziehen · Esc bricht ab	Drag an area · Esc cancels
+Bereich ziehen …	Drag area …
 Bereich {0}	Area {0}
 Bereich {0}: was soll dort hin?	Area {0}: what should go there?
 Bereich, Einstellung oder Chat suchen …	Search areas, settings or chats …
@@ -731,6 +736,8 @@ BibTeX speichern	Save BibTeX
 BibTeX, RIS (Citavi, EndNote), CSL-JSON (Zotero) oder Literaturangaben als Text einfügen – oder eine Datei wählen.	Paste BibTeX, RIS (Citavi, EndNote), CSL-JSON (Zotero) or references as text – or choose a file.
 Bielefeld Academic Search Engine: Open-Access-Dokumente aus Repositorien	Bielefeld Academic Search Engine: open-access documents from repositories
 Bild	Image
+Bildschirm	Screen
+Bildschirm aufnehmen	Record screen
 bild	image
 Bild + Text	Image + text
 Bild aus der Zwischenablage	Image from the clipboard
@@ -770,6 +777,7 @@ Bilder werden nicht pseudonymisiert	Images are not pseudonymized
 Bilder-Chat umbenennen	Rename image chat
 Bilder-Chats	Image chats
 Bildgenerierung	Image generation
+Bildschirm {0}	Screen {0}
 Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur	Educational research (in English), journals and grey literature
 Bildunterschrift (auch Alternativtext)	Caption (also alternative text)
 Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts	Biology, medicine, psychology and life sciences (PubMed and preprints), with abstracts
@@ -940,6 +948,7 @@ Das Projekt hat noch keine Clips.	The project has no clips yet.
 das Rechnen dauert etwa so lange wie das Video, je nach PC auch länger.	computing takes about as long as the video, depending on the PC also longer.
 Das Spiel ließ sich nicht öffnen.	The game could not be opened.
 Das Sprachmodell {0} liest das Transkript und schlägt Kapitel und eine Zusammenfassung vor. 	The language model {0} reads the transcript and suggests chapters and a summary. 
+Das Transkript kommt, sobald es fertig ist.	The transcript follows as soon as it is done.
 Das stärkste Modell für High-End-PCs (24 GB Grafik oder 48 GB RAM) – nah an den Server-Modellen.	The strongest model for high-end PCs (24 GB graphics or 48 GB of RAM) – close to the server models.
 Das Tempo gilt für die {0}.	The speed applies to the {0}.
 Das Transkript fehlt.	The transcript is missing.
@@ -1137,6 +1146,8 @@ Die App schlägt je Anfrage das passende Modell vor und fragt vorher nach.	The a
 Die App schlägt je Anfrage das passende Modell vor.	The app suggests the right model for each request.
 Die App vergisst, welcher Platzhalter zu welcher Angabe gehört. Platzhalter in älteren Chats und Protokollen lassen sich danach nicht mehr zurückübersetzen; laufende Antworten können Platzhalter statt Namen enthalten.	The app forgets which placeholder belongs to which detail. Placeholders in older chats and logs can then no longer be translated back; answers in progress may contain placeholders instead of names.
 Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die Grenze aus den Antworten des Servers	The app spreads requests so that the rate limit of the API key is not reached. “Automatic” learns the limit from the server's answers
+Die Aufnahme ist leer – ffmpeg hat kein Bild geschrieben (Protokoll im Aufnahmeordner).	The recording is empty – ffmpeg wrote no picture (log in the recording folder).
+Die Aufnahme ist leer.	The recording is empty.
 Die Aufnahme wird mit den neuen Einstellungen noch einmal transkribiert; das bisherige Transkript bleibt erhalten.	The recording is transcribed once more with the new settings; the previous transcript is kept.
 Die Begriffe kommen im PDF nicht vor.	The terms do not occur in the PDF.
 Die Beschreibung geht an das Bildmodell des Uni-Servers. Text im Bild gelingt selten – Texte besser auf der Leinwand setzen.	The description goes to the image model of the university server. Text in images rarely works – better set texts on the canvas.
@@ -1155,6 +1166,7 @@ Die Datei ließ sich nicht schreiben.	The file could not be written.
 Die Dateien im Browser (oder an einem anderen Rechner) herunterladen und dann mit „Einspielen“ übernehmen. Jede Datei wird mit ihrer Prüfsumme kontrolliert.	Download the files in the browser (or on another computer) and then take them over with “Import”. Every file is checked against its checksum.
 Die Dateien ließen sich nicht lesen – sind es Videos?	The files could not be read – are they videos?
 Die DOI {0} ist bei Crossref nicht registriert.	The DOI {0} is not registered with Crossref.
+Die Präsentation wird aufgenommen – noch einmal tippen (oder Strg+Umschalt+F10) beendet.	The presentation is being recorded – tap again (or Ctrl+Shift+F10) to stop.
 die Einstellungen	the settings
 Die ganze Oberfläche gibt es auf Deutsch und Englisch; Antworten folgen der gewählten Sprache, solange du nicht in einer anderen schreibst.	The whole interface is available in German and English; answers follow the selected language unless you write in another one.
 Die ganze Oberfläche vergrößern.	Enlarge the whole interface.
@@ -1556,6 +1568,7 @@ Erzeugt Untertitel …	Creating subtitles …
 Erzeugt Vektoren für semantische Suche/RAG – nur über die API nutzbar.	Creates vectors for semantic search/RAG – only usable via the API.
 Erzeugte Bilder	Generated images
 Es gibt noch keine Chats.	There are no chats yet.
+Es läuft schon eine Aufnahme.	A recording is already running.
 Es sind keine Änderungen offen.	There are no open changes.
 Esc	Esc
 Ethikantrag (Kurzfassung)	Ethics application (short version)
@@ -1638,6 +1651,7 @@ Felder erkennen	Detect fields
 Felder leeren	Clear fields
 Felder ziehen zum Verschieben, die Ecke unten rechts ändert die Größe, Antippen wählt ein Feld aus.	Drag fields to move them, the bottom-right corner changes the size, tapping selects a field.
 Felder übernommen – das PDF lässt sich jetzt ausfüllen.	Fields accepted – the PDF can now be filled in.
+Fenster	Window
 Fern-Server (URL)	Remote server (URL)
 Fertig	Done
 Fertig (Esc)	Done (Esc)
@@ -1797,6 +1811,7 @@ Für das TUD-Design fehlt die Einrichtung	The institution for the TUD design is 
 Für deine	For your
 Für den Browser neben dem Chat, eingerichtet	For the browser beside the chat, set up
 Für den Rohschnitt braucht es ein Transkript – zuerst „Untertitel erzeugen“ oder transkribieren.	The rough cut needs a transcript – first “Create subtitles” or transcribe.
+Für den Systemton braucht Windows ein Aufnahmegerät wie „Stereomix“ (Sound › Aufnahme › deaktivierte Geräte anzeigen).	For the system sound Windows needs a recording device such as “Stereo Mix” (Sound › Recording › show disabled devices).
 Für den Uni-Server fehlt der API-Key (Einstellungen › API-Zugang).	The API key for the university server is missing (Settings › API access).
 Für den Zugriff auf GitHub-Repositories bitte ein gültiges GitHub-Token in den Einstellungen eintragen.	To access GitHub repositories, please enter a valid GitHub token in the settings.
 Für die Aufnahmen gibt es kein Transkript, und die Transkription ist nicht bereit (Einstellungen › Transkription).	There is no transcript for the recordings, and transcription is not ready (Settings › Transcription).
@@ -1832,6 +1847,7 @@ Ganz zeigen	Show whole
 Ganze Folie	Whole slide
 Ganze Präsentation	Whole presentation
 Ganzen Ordner anhängen – Lora darf darin lesen oder auch schreiben	Attach a whole folder – Lora may read in it or also write
+Ganzer Bildschirm	Whole screen
 Ganzes Bild	Full picture
 Gedächtnis – was Lora über dich weiß	Memory – what Lora knows about you
 Gekürzt auf {0}.	Shortened to {0}.
@@ -2496,6 +2512,7 @@ Klassisch	Classic
 Klassisches Outlook	Classic Outlook
 Klausur- oder Prüfungsaufgaben mit Erwartungshorizont	Exam or test questions with expected answers
 Klein	Small
+Klicks hervorheben	Highlight clicks
 kleiner als	less than
 Kleines Modell von Google mit gutem Deutsch – Handys und Laptops ohne Grafikkarte.	Small model from Google with good German – phones and laptops without a graphics card.
 Klick in die Leiste: springen · Clips ziehen: verschieben · Ränder ziehen: kürzen · S teilt, Entf löscht, Leertaste spielt.	Click in the bar: jump · drag clips: move · drag edges: trim · S splits, Del deletes, space plays.
@@ -3016,6 +3033,7 @@ Mündliche Prüfung vorbereiten	Prepare an oral exam
 Nach Art	By type
 Nach Name, Datum oder Größe sortieren.	Sort by name, date or size.
 Nach dem Chat dazulernen	Learn after the chat
+Nach dem Stopp sofort transkribieren	Transcribe right after stopping
 Nach dem Stoppen wird transkribiert.	It is transcribed after stopping.
 Nach einem Neustart der App wird von vorne begonnen.	After a restart of the app it starts from the beginning.
 Nach hinten	Send backward
@@ -3026,6 +3044,7 @@ Nach oben	Move up
 Nach oben holen	Move to the top
 Nach Spalte {0} absteigend	By column {0} descending
 Nach Spalte {0} aufsteigend	By column {0} ascending
+Nach dem Stopp liegt die Aufnahme als Projekt im Videoeditor – Bildschirm, Webcam und Ton auf getrennten Spuren. Pause und Stopp auch über Strg+Umschalt+F9 / F10 und den Infobereich.	After stopping, the recording is a project in the video editor – screen, webcam and sound on separate tracks. Pause and stop also with Ctrl+Shift+F9 / F10 and the notification area.
 Nach unten	Move down
 Nach vorn	Bring forward
 Nach vorn (Strg+Umschalt+↑)	Move forward (Ctrl+Shift+↑)
@@ -3520,6 +3539,7 @@ Protokoll erstellen	Create minutes
 Protokoll leeren	Clear log
 Präsentation	Presentation
 Präsentation (PowerPoint)	Presentation (PowerPoint)
+Präsentation aufnehmen	Record presentation
 Präsentation aus Dokument	Presentation from document
 Präsentation aus Dokument …	Presentation from document …
 Präsentation gliedern	Structure a presentation
@@ -3727,6 +3747,7 @@ Schüler/innen	Pupils
 Schülerin Jolina, Kollege Brandt, „Liebe Anna,“, Grußformel mit Namen, Von:/An: in E-Mails	Pupil Jolina, colleague Brandt, “Dear Anna,”, closing with a name, From:/To: in e-mails
 Schützen	Protect
 Schützt die Datei mit AES-256. Mit Öffnen-Passwort lässt sie sich nur mit Passwort öffnen; sonst lassen sich nur Drucken und Kopieren einschränken. Screenreader dürfen immer lesen.	Protects the file with AES-256. With an open password, it can only be opened with the password; otherwise only printing and copying can be restricted. Screen readers may always read.
+Screencast mit Webcam, Mikrofon und Systemton aufnehmen – danach als Projekt mit getrennten Spuren im Videoeditor.	Record a screencast with webcam, microphone and system sound – then a project with separate tracks in the video editor.
 Screenshot oder kopiertes Bild anhängen	Attach a screenshot or copied image
 Segmentierung	Segmentation
 Segmentierung …	Segmentation …
@@ -3997,6 +4018,7 @@ Strg+T	Ctrl+T
 Strg+Umschalt+L	Ctrl+Shift+L
 Strukturiertes Abstract für Tagung oder Zeitschrift	Structured abstract for a conference or journal
 Studierende	Students
+Suche Kameras und Mikrofone …	Looking for cameras and microphones …
 stumm	muted
 Stündlich	Hourly
 Subdomains sind eingeschlossen. Für die Websuche duckduckgo.com, für Nachrichten bing.com bzw. news.google.com erlauben.	Subdomains are included. For web search allow duckduckgo.com, for news bing.com or news.google.com.
@@ -4042,6 +4064,7 @@ Synchronisiert werden Chats, Projekte, Dokumente, Literatur, TU Vorlagen, Gedäc
 System	System
 System-Prompt	System prompt
 System-Prompt (optional)	System prompt (optional)
+Systemton	System sound
 Säulendiagramm	Column chart
 Tab hinzufügen	Add tab
 Tab schließen	Close tab
@@ -4077,6 +4100,7 @@ Tagungsbeitrag	Conference paper
 Tagungsposter	Conference poster
 Tastatur (Windows, Tablet mit Tastatur), auch beim Tippen im Abschnitt: F4 Abspielen/Anhalten · F3 zurück · F5 vor · F6 Abschnitt wiederholen · Strg+F Suchen.	Keyboard (Windows, tablet with keyboard), also while typing in a section: F4 play/pause · F3 back · F5 forward · F6 repeat section · Ctrl+F search.
 Tastenkürzel	Keyboard shortcuts
+Teil {0}	Part {0}
 Teile geöffnet – je Tab speichern.	Parts opened – save each tab.
 Teilen	Share
 Teilen fehlgeschlagen.	Splitting failed.
@@ -4236,6 +4260,7 @@ TUD-Design	TUD design
 TUD-intern	TUD internal
 TUD-Shape	TUD shape
 Transkript „{0}“ ({1} Wörter, {2}).	Transcript “{0}” ({1} words, {2}).
+Transkription nicht gestartet: {0}	Transcription not started: {0}
 Typ	Type
 Täglich	Daily
 Türkis	Turquoise
@@ -4390,6 +4415,7 @@ Video	Video
 Video exportieren	Export video
 Video gespeichert:	Video saved:
 Video speichern	Save video
+Video › Bildschirm aufnehmen	Video › Record screen
 Videoeditor	Video editor
 Videoprojekt anlegen	Create video project
 Videos auswählen	Choose videos
@@ -4497,6 +4523,7 @@ Wartet, bis der Stapel davor fertig ist.	Waiting until the batch before it is fi
 Was	What
 Was Lora in den Werkzeugen geplant, ausgeführt und zurückgenommen hat – auf diesem Gerät gespeichert.	What Lora planned, carried out and undid in the tools – stored on this device.
 Was Lora über dich weiß	What Lora knows about you
+Was aufnehmen?	What to record?
 Was darf Lora in diesem Ordner?	What may Lora do in this folder?
 Was der Tresor schützt	What the vault protects
 Was die KI erstellt, landet im Unterordner „{0}“ – ohne Rückfrage; deine eigenen Dateien überschreibt sie nie.	What the AI creates ends up in the subfolder “{0}” – without asking; it never overwrites your own files.
@@ -4532,6 +4559,7 @@ Was sonst dauerhaft hilft	Anything else that helps permanently
 Was war nicht hilfreich?	What was not helpful?
 Web	Web
 Web-Anfrage senden	Send web request
+Webcam (Bild-in-Bild)	Webcam (picture-in-picture)
 Webseite	Web page
 Webseite lesen	Read web page
 Website	Website
@@ -4875,14 +4903,18 @@ Zwei Modelle beantworten dieselbe Frage nebeneinander.	Two models answer the sam
 Zwei PDFs vergleichen	Compare two PDFs
 Zwei Spalten	Two columns
 auch in der Transkription	also in Transcription
+bei	at
 ca. {0} Min.	about {0} min.
 unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
 Zweite Zeile	Second line
 Zweiter PC: vorhandenen Ordner öffnen	Second PC: open the existing folder
 herausschneiden	cut out
+wählen …	choose …
 zwischen {0} und {1}	between {0} and {1}
 Zwischenüberschrift	Subheading
+keins	none
+noch kein Bereich	no area yet
 {0} % von {1}	{0} % of {1}
 {0} % · {1} Beiträge · {2} Wörter	{0} % · {1} turns · {2} words
 {0} ({1} Codes)	{0} ({1} codes)

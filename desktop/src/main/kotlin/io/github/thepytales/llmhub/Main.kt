@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -197,6 +199,9 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
         }
     }
 
+    val recordScope = rememberCoroutineScope()
+    io.github.thepytales.llmhub.ui.RecordingBar(c, onShowApp = { show() })
+
     if (tray) {
         Tray(
             icon = painterResource("tray.png"),
@@ -210,6 +215,14 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
                 recent?.takeIf { it.startsWith("route:") }?.let { Navigation.openRoute.value = it.removePrefix("route:") }
             },
             menu = {
+                // Bildschirmaufnahme (AP-56): pause and stop from the tray.
+                val rec = io.github.thepytales.llmhub.video.ScreenRecorder.active.collectAsState().value
+                if (rec != null) {
+                    val paused = rec.state.collectAsState().value == io.github.thepytales.llmhub.video.ScreenRecorder.State.PAUSED
+                    Item(if (paused) tr("Aufnahme fortsetzen") else tr("Aufnahme pausieren"), onClick = { rec.toggle() })
+                    Item(tr("Aufnahme beenden"), onClick = { recordScope.launch { io.github.thepytales.llmhub.ui.finishRecording(c, rec); show() } })
+                    Separator()
+                }
                 Item(tr("Lora öffnen"), onClick = { show() })
                 Item(tr("Neuer Chat"), onClick = {
                     show()
