@@ -19,7 +19,8 @@ import java.util.concurrent.TimeUnit
  * editor are then written *into* that original – paragraph by paragraph, cell by cell – so its formatting, styles,
  * headers and everything the editor does not know stay. Only when the structure changes (new or removed blocks, other
  * formatting) the editor's blocks are merged into the original (Word-Treue, AP-45: DocxWriter keeps every unchanged
- * paragraph, styles, headers and unknown parts); only when that is not safe, the file is written anew (the original
+ * paragraph, styles, headers and unknown parts; PowerPoint-Treue, AP-51: PptxMerge keeps every unchanged slide, the
+ * master, layouts and unknown parts and writes only the new or restructured slides); only when that is not safe, the file is written anew (the original
  * stays in .lora/originale as backup).
  */
 class DocFiles(private val store: DocsStore, dataDir: File, private val cache: File, private val theme: (LiveDoc) -> DocTheme) {
@@ -58,11 +59,16 @@ class DocFiles(private val store: DocsStore, dataDir: File, private val cache: F
         val ext = file.extension.lowercase()
         // Open suggestions of „Änderungen nachverfolgen“ are written as Word revisions: from the editor, not into the original.
         val original = original(doc)?.takeIf { !(ext == "docx" && DocxExtras.hasRevisions(doc)) }
+        val fresh by lazy { generate(doc, ext) }
         var patched = original?.let { (bytes, base) ->
             runCatching { patch(doc, ext, bytes, base) }.getOrNull()
                 // Word-Treue (AP-45): new or removed paragraphs, other formatting – merged into the original instead of a new file.
                 ?: if (ext == "docx" && doc.tabs.size == 1 && base.size == 1) runCatching {
                     io.github.thepytales.llmhub.docs.text.DocxWriter.merge(bytes, base[0].markdown, doc.tabs[0].markdown, theme(doc))
+                }.getOrNull()
+                // PowerPoint-Treue (AP-51): slides added, removed, moved or restructured – only those slides are written into the original.
+                else if (ext == "pptx") runCatching {
+                    PptxMerge.merge(bytes, base.joinToString("\n\n---\n\n") { it.markdown }, doc.tabs.joinToString("\n\n---\n\n") { it.markdown }, fresh)
                 }.getOrNull() else null
         }
         // Comments written in the editor since go into the original as Word comments.
@@ -74,7 +80,7 @@ class DocFiles(private val store: DocsStore, dataDir: File, private val cache: F
                 noteWordIds(doc.id, ids)
             }
         }
-        val bytes = patched ?: generate(doc, ext)
+        val bytes = patched ?: fresh
         file.parentFile?.mkdirs()
         AtomicFiles.writeBytes(file, bytes)
         store.markWritten(file)

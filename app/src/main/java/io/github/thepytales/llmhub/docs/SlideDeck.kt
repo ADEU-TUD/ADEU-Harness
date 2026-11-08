@@ -193,7 +193,8 @@ object SlideDeck {
             if (lines.size > 1) append("\n\n").append(lines.drop(1).joinToString("\n\n"))
             if (s.image.isNotBlank()) append("\n\n").append(DocMarkup.Image(s.imageAlt, s.image).markdown())
         } else {
-            append("## ").append(s.title.ifBlank { if (s.layout == Layout.AGENDA) "Agenda" else "Folie" })
+            // A free slide may go without a title ("## " stays empty, so it does not come back as „Folie“).
+            append("## ").append(s.title.ifBlank { when (s.layout) { Layout.AGENDA -> "Agenda"; Layout.FREE -> ""; else -> "Folie" } })
             marker(s.layout, s.imageLeft)?.let { append("\n\n").append(it) }
             if (s.image.isNotBlank()) append("\n\n").append(DocMarkup.Image(s.imageAlt, s.image).markdown())
             val body = when (s.layout) {
