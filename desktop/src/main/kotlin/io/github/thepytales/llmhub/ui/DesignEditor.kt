@@ -406,7 +406,7 @@ private fun RailButton(icon: ImageVector, label: String, onClick: () -> Unit) {
 /** Symbols: the TUD icon sets of the CD package (by theme) and further Material symbols. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SymbolPicker(onDismiss: () -> Unit, onPick: (String) -> Unit) {
+internal fun SymbolPicker(onDismiss: () -> Unit, onPick: (String) -> Unit) {
     val sets = io.github.thepytales.llmhub.creative.TudIcons.sets
     var set by remember { mutableStateOf(sets.firstOrNull()?.name ?: "") }
     AlertDialog(

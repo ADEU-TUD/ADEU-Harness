@@ -95,10 +95,18 @@ object SlideCanvas {
 
     fun toDesign(list: List<SlideElement>): List<DesignElement> = list.mapIndexed { i, s -> toDesign(s, "s$i") }
 
+    /**
+     * [s] as an element of the canvas. Lines and arrows of a slide are drawn inside their box (PowerPoint's horizontal
+     * line and block arrow), so on the canvas they are boxes as well: they move, turn and resize at the frame.
+     */
     fun toDesign(s: SlideElement, id: String): DesignElement {
         val kind = when (s.kind) {
             "bild" -> ElementKind.IMAGE
-            "form" -> when (s.shape) { "ellipse" -> ElementKind.ELLIPSE; "pfeil" -> ElementKind.ARROW; "linie" -> ElementKind.LINE; else -> ElementKind.RECT }
+            "form" -> if (s.shape == "ellipse") ElementKind.ELLIPSE else ElementKind.RECT
+            "tudshape" -> ElementKind.TUD_SHAPE
+            "symbol" -> ElementKind.ICON
+            "qr" -> ElementKind.QR
+            "tabelle" -> ElementKind.TABLE
             else -> ElementKind.TEXT
         }
         return DesignElement(
@@ -106,21 +114,46 @@ object SlideCanvas {
             rotation = s.rotation.toFloat(), fill = s.fill, color = s.color, text = s.text, src = s.src, fontSize = s.size.toFloat(),
             bold = s.bold, align = when (s.align) { "mitte" -> "center"; "rechts" -> "right"; else -> "left" },
             radius = if (s.shape == "abgerundet") 3f else 0f, group = s.group, fill2 = s.fill2,
+            icon = s.icon, flipX = s.flipX, rich = s.rich, rows = s.rows, header = s.header, fitMode = "contain",
         )
     }
 
-    /** [design] (from [toDesign]) back onto the slide elements [old]: position, size, rotation, group, order. */
+    /** The slide's free elements as one page of the canvas (16:9, in mm), for [DesignEditorState]. */
+    fun design(list: List<SlideElement>): io.github.thepytales.llmhub.data.Design = io.github.thepytales.llmhub.data.Design(
+        id = "folie", title = "Folie", format = "folie", width = W, height = H,
+        pages = listOf(io.github.thepytales.llmhub.data.DesignPage(id = "folie", elements = toDesign(list))),
+    )
+
+    /**
+     * [design] (from [toDesign]) back onto the slide elements [old]: position, size, rotation, group, order and the text
+     * typed on the canvas.
+     */
     fun fromDesign(old: List<SlideElement>, design: List<DesignElement>): List<SlideElement> = design.mapNotNull { e ->
         val i = e.id.removePrefix("s").toIntOrNull() ?: return@mapNotNull null
         val s = old.getOrNull(i) ?: return@mapNotNull null
         fun cm(v: Float) = Math.round(v * 10.0) / 100.0
-        s.copy(x = cm(e.x), y = cm(e.y), w = cm(e.w), h = cm(e.h), rotation = e.rotation.toDouble(), group = e.group, fill2 = e.fill2)
+        s.copy(x = cm(e.x), y = cm(e.y), w = cm(e.w), h = cm(e.h), rotation = e.rotation.toDouble(), group = e.group, fill2 = e.fill2, text = e.text, rich = e.rich, rows = e.rows)
     }
 
-    /** The slide elements with [indices] aligned like in Gestalten (to the slide when it is one element or one group). */
+    /** Indices of the canvas ids "s0", "s1" … and back. */
+    fun indices(ids: Set<String>): Set<Int> = ids.mapNotNull { it.removePrefix("s").toIntOrNull() }.toSet()
+
+    fun ids(indices: Set<Int>): Set<String> = indices.map { "s$it" }.toSet()
+
+    /** The slide elements with [indices] (and their groups) grouped under [groupId], or taken apart with [apart]. */
+    fun group(list: List<SlideElement>, indices: Set<Int>, groupId: String, apart: Boolean = false): List<SlideElement> {
+        val d = toDesign(list)
+        val ids = CanvasOps.withGroups(d, ids(indices))
+        return fromDesign(list, if (apart) CanvasOps.ungrouped(d, ids) else CanvasOps.grouped(d, ids, groupId))
+    }
+
+    /**
+     * The slide elements with [indices] aligned like in Gestalten: to the slide when it is one element or one group,
+     * otherwise to their common bounds; distributeH/distributeV spread three or more evenly.
+     */
     fun align(list: List<SlideElement>, indices: Set<Int>, mode: String): List<SlideElement> {
         val d = toDesign(list)
-        val ids = CanvasOps.withGroups(d, indices.map { "s$it" }.toSet())
+        val ids = CanvasOps.withGroups(d, ids(indices))
         return fromDesign(list, CanvasOps.aligned(d, ids, mode, W, H))
     }
 

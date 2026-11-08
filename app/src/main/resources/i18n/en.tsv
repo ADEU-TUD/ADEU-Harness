@@ -5354,3 +5354,15 @@ Suche Dateien in „{0}“ …	Looking for files in “{0}” …
 Lese {0} von {1} Dateien aus „{2}“ …	Reading {0} of {1} files from “{2}” …
 Einmal gelesene Dateien kommen danach aus dem Volltext-Cache.	Files read once come from the full-text cache afterwards.
 {0} Datumsangaben als TT.MM.JJJJ vereinheitlicht	{0} dates unified as DD.MM.YYYY
+Unterstrichen (Strg+U)	Underline (Ctrl+U)
+Farbe des Textfelds	Colour of the text box
+Symbol …	Symbol …
+Aneinander ausrichten und verteilen	Align to each other and distribute
+Inhalt des QR-Codes (Link oder Text)	Content of the QR code (link or text)
+Doppelklick auf das Textfeld: direkt auf der Folie tippen; markierten Text mit Strg+B, Strg+I, Strg+U oder der Leiste darüber formatieren.	Double-click the text box to type right on the slide; format selected text with Ctrl+B, Ctrl+I, Ctrl+U or the bar above it.
+− Zeile	− Row
+Kopfzeile	Header row
+Spiegeln	Mirror
+Verlauf nach unten	Gradient downwards
+Drehung {0}° aufheben	Remove {0}° rotation
+Auf der Folie: ziehen verschiebt (rastet an Rändern, Mitte und anderen Elementen ein, Strg: frei), der runde Griff dreht, Umschalt+Klick oder ein Rahmen wählt mehrere.	On the slide: drag to move (snaps to edges, the middle and other elements, Ctrl: freely), the round handle rotates, Shift+click or a frame selects several.
