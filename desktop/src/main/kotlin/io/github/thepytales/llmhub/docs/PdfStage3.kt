@@ -44,6 +44,7 @@ import javax.imageio.ImageIO
  */
 object PdfStage3 {
     const val SUPPORTED = true
+    const val SHRINK = true
 
     // --- Finding text with its place --------------------------------------------------------------------------------
 

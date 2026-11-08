@@ -737,6 +737,20 @@ class FlowState(markdown: String) {
         changed()
     }
 
+    /**
+     * Diktat (AP-65): puts [dictated] text at the cursor (without one: at the end of the document) with a space before it
+     * and a capital letter at the start of a sentence; „neuer Absatz“ became a new paragraph.
+     */
+    fun dictate(dictated: String) {
+        if (dictated.isBlank()) return
+        val t = active ?: segs.filterIsInstance<FlowSeg.Text>().lastOrNull()?.also { last ->
+            active = last
+            last.selection = TextRange(last.rich.text.length)
+        } ?: return
+        val at = t.selection.min.coerceIn(0, t.rich.text.length)
+        insertText(io.github.thepytales.llmhub.audio.Dictation.join(t.rich.text.substring(maxOf(0, at - 60), at), dictated))
+    }
+
     /** Puts a block of its own (table, picture, page break …) at the cursor: the running text splits around it. */
     fun insertBlock(markdown: String) {
         val t = active ?: segs.filterIsInstance<FlowSeg.Text>().lastOrNull() ?: return
@@ -1752,6 +1766,9 @@ private fun FlowToolbar(c: AppContainer, doc: LiveDoc, state: FlowState, host: F
         ToolIcon(Icons.Outlined.FormatClear, tr("Formatierung entfernen")) { state.clearFormat() }
         Sep()
         ToolIcon(Icons.Outlined.AutoAwesome, tr("Hilf mir schreiben") + " (Strg+J)") { onWrite() }
+        // Diktat (AP-65): speak at the cursor; „Punkt“, „Komma“, „neuer Absatz“ become marks and paragraphs.
+        val dictation = rememberDictation(c) { text -> state.dictate(text) }
+        DictateIcon(dictation)
     }
 }
 

@@ -137,12 +137,31 @@ object ShareDoc {
 
 val SAVE_AS_LABEL: String get() = tr("Speichern")
 
-/** "Speichern": the system dialog to pick a place; the file is copied there. */
+/**
+ * "Speichern": first a folder of the Lora-Ordner (AP-64 – the Android dialog does not reach the app's own folder, which
+ * is synced with the PC), „Anderswo …“ opens the system dialog; the file is copied there.
+ */
 @Composable
 fun rememberSaveAs(mime: String): (File) -> Unit {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var pending by remember { mutableStateOf<File?>(null) }
+    var choosing by remember { mutableStateOf<File?>(null) }
     val launcher = rememberSaveLauncher(mime) { uri -> pending?.let { f -> scope.launch { copyTo(context, f, uri) } } }
-    return { f -> pending = f; launcher.launch(f.name) }
+    val drive = remember { runCatching { (context.applicationContext as io.github.thepytales.llmhub.LlmHubApp).container.drive }.getOrNull() }
+    choosing?.let { f ->
+        if (drive != null) LoraFolderPicker(
+            drive, tr("„{0}“ speichern", f.name), tr("Hier speichern"),
+            onDismiss = { choosing = null },
+            onElsewhere = { choosing = null; pending = f; launcher.launch(f.name) },
+        ) { dir ->
+            choosing = null
+            scope.launch {
+                withContext(Dispatchers.IO) { runCatching { saveIntoLoraFolder(drive, f, dir) } }
+                    .onSuccess { out -> Notices.info(tr("Gespeichert in Dateien › {0}", (drive.rel(out.parentFile).orEmpty().ifBlank { tr("Meine Dateien") }) + " › " + out.name)) }
+                    .onFailure { Notices.error(tr("Speichern fehlgeschlagen.")) }
+            }
+        }
+    }
+    return { f -> if (drive == null) { pending = f; launcher.launch(f.name) } else choosing = f }
 }

@@ -166,6 +166,8 @@ class AppContainer(context: Context) {
     val mcp = io.github.thepytales.llmhub.agent.McpHub(this)
     /** Sync für Android (AP-28): the phone mirrors the PC's Lora-Ordner in the Nextcloud. */
     val phoneSync = io.github.thepytales.llmhub.data.PhoneSyncService(this)
+    /** What the background sync was last planned with (on, Wi-Fi only). */
+    private var plannedSync: Pair<Boolean, Boolean>? = null
     val tasks = ListStore<ScheduledTask>(FileBackend(File(files, "tasks.json")), ScheduledTask.serializer(), { it.id })
     /** Folders on this PC the agent may work in (Windows). */
     val localFolders = ListStore<io.github.thepytales.llmhub.data.LocalFolder>(
@@ -267,6 +269,16 @@ class AppContainer(context: Context) {
         }
         // AP-28: only on Android – Windows syncs with the cloud service's own client (AP-12).
         if (io.github.thepytales.llmhub.ui.IS_ANDROID) phoneSync.start(scope)
+        // AP-63: and in the background without the app open (WorkManager), planned anew when its settings change.
+        if (io.github.thepytales.llmhub.ui.IS_ANDROID) scope.launch {
+            settings.settings.collect { s ->
+                val rule = io.github.thepytales.llmhub.tasks.BackgroundSync.wanted(s) to s.phoneSyncWifiOnly
+                if (rule != plannedSync) {
+                    plannedSync = rule
+                    runCatching { io.github.thepytales.llmhub.tasks.BackgroundSync.schedule(appContext, s) }.logFailure("Hintergrund-Sync einplanen")
+                }
+            }
+        }
         // AP-04: measuring points and release of speech models that nobody used for a few minutes.
         io.github.thepytales.llmhub.data.MemoryMeter.start(scope) { ms -> Speech.evictUnusedFor(ms) }
         scope.launch { transcription.finished.collect { io.github.thepytales.llmhub.data.MemoryMeter.mark("Nach Transkription") } }

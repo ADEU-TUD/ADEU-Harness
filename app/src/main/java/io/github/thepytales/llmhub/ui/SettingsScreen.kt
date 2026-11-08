@@ -280,6 +280,13 @@ private fun ChatSection(c: AppContainer) {
                 "Standardmodell, Programmieren: Qwen, schwierige Analysen: GLM-5.3, sehr lange Dokumente: GLM-5.3 Flash."),
             checked = s.autoModel,
         ) { v -> c.settings.update { it.copy(autoModel = v) } }
+        // Browser neben dem Chat auf Android (AP-63); Windows has the switch under Einstellungen › Windows.
+        if (IS_ANDROID) SwitchRow(
+            tr("Links in Lora öffnen"),
+            tr("Links aus Chat, Literatur und Dokumenten öffnen sich in einem einfachen Browser in der App – mit Frage zur Seite, Zusammenfassung und Übernahme in Literatur oder Wissenssammlung. Aus: im normalen Browser."),
+            s.browserPanel,
+            spot = "chat.browser",
+        ) { v -> c.settings.update { it.copy(browserPanel = v) } }
         if (s.autoModel) {
             SwitchRow(
                 tr("Vor dem Wechsel fragen"),

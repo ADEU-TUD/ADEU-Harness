@@ -73,6 +73,7 @@
 (Alle auswählen)	(Select all)
 (dieser PC)	(this PC)
 (Eingabe {0}, Ausgabe {1})	(input {0}, output {1})
+(Leertaste)	(space bar)
 (geschwärzt)	(redacted)
 (geteilt)	(split)
 (keine Beschreibung)	(no description)
@@ -163,6 +164,7 @@ Ablageorte für Dokumente	Storage locations for documents
 Ablauf, Leitfragen, Erwartungshorizont und Protokollbogen	Procedure, guiding questions, expected answers and record sheet
 Ablehnen	Decline
 Abmelden	Sign out
+Abmessungen	Dimensions
 Absatz	Paragraph
 Absatz herausschneiden	Cut out paragraph
 Absatz nach oben	Paragraph up
@@ -224,6 +226,7 @@ Alias für Reasoning (Denkmodus).	Alias for reasoning (thinking mode).
 Alias für Spracherkennung.	Alias for speech recognition.
 Alias für {0}	Alias for {0}
 Alle	All
+Alle Seiten als durchsuchbares PDF in Dateien › Scans.	All pages as a searchable PDF in Files › Scans.
 alle	all
 Alle  {0}	All  {0}
 Alle ({0})	All ({0})
@@ -311,6 +314,7 @@ Als JSON exportieren	Export as JSON
 Als Kapitel	As chapter
 Als Liste	As list
 Als Markdown kopieren	Copy as Markdown
+Als PDF speichern	Save as PDF
 Als PDF/A-2b vorbereiten	Prepare as PDF/A-2b
 Als PDF/Word exportieren	Export as PDF/Word
 Als PNG	As PNG
@@ -342,6 +346,7 @@ Am Abspielkopf teilen	Split at the playhead
 Am Anfang und Ende aus Schwarz blenden	Fade from black at the start and end
 Am Cursor teilen	Split at cursor
 Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten und beim Wechsel in den Hintergrund.	On the PC, the Lora folder is in Nextcloud (Settings › Sync on the PC). Through it the phone gets chats, projects, memory, snippets, own TU templates and the files of the Lora folder and uploads its own changes – when the app opens, every five minutes and when it goes into the background.
+Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen, Literatur mit Exzerpten, die Wissenssammlung, den Tresor (verschlüsselt) und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten, beim Wechsel in den Hintergrund und auf Wunsch auch bei geschlossener App.	On the PC the Lora folder lies in the Nextcloud (Settings › Synchronization on the PC). Through it the phone fetches chats, projects, memory, snippets, own TU templates, literature with excerpts, the knowledge collection, the vault (encrypted) and the files of the Lora folder and uploads its own changes – when the app opens, every five minutes, when it goes to the background and, if you like, also while the app is closed.
 Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.	On the PC, put the folder into Nextcloud under Settings › Sync and wait until it is uploaded.
 Am PC „{0}“ sind noch {1} Änderung(en) unterwegs – der Sync wartet auf die Nextcloud.	On the PC “{0}”, {1} change(s) are still on their way – sync waits for Nextcloud.
 Am Text einrasten	Snap to text
@@ -369,6 +374,7 @@ Anderen Ordner wählen …	Choose another folder …
 Anderer Anbieter	Other provider
 Anderes Modell verwenden?	Use another model?
 Anderes Symbol	Other icon
+Anderswo …	Elsewhere …
 Android darf Aufgaben im Energiesparmodus verzögern oder abbrechen, wenn die App geschlossen ist.	Android may delay or cancel tasks in power-saving mode when the app is closed.
 Android-Sprachausgabe, nur Offline-Stimmen – nichts verlässt das Handy.	Android text-to-speech, offline voices only – nothing leaves the phone.
 Anfang (s)	Start (s)
@@ -492,6 +498,7 @@ Artikel aus frei zugänglichen Open-Access-Zeitschriften aller Fächer	Articles 
 Assistent	Assistant
 auch ersetzen	replace too
 Auch fremde öffentliche Repositories	Also other people's public repositories
+Auch im Hintergrund synchronisieren	Also sync in the background
 auch in Projekten „Nur TU Dresden“	also in “TU Dresden only” projects
 Auch Titel, Autor und versteckte Metadaten entfernen	Also remove title, author and hidden metadata
 Audio und Interviews verschriften, Sprecher erkennen, codieren.	Transcribe audio and interviews, recognize speakers, code.
@@ -510,6 +517,7 @@ Auf die Stelle tippen, an der die Notiz stehen soll.	Tap the place where the not
 Auf die Stelle tippen, an der die Unterschrift stehen soll. Rückgängig nimmt sie wieder weg.	Tap the place where the signature should go. Undo removes it again.
 Auf diesem Gerät	On this device
 Auf diesem Gerät gibt es keine eingebaute Texterkennung.	There is no built-in text recognition on this device.
+Auf diesem Gerät gibt es noch keine PIN für den Tresor (z. B. nach dem Sync von einem anderen Gerät oder nach einer Neuinstallation). Setze sie einmal mit dem Wiederherstellungsschlüssel – die PIN der anderen Geräte bleibt.	This device has no PIN for the vault yet (e.g. after syncing from another device or after reinstalling). Set it once with the recovery key – the PIN of the other devices stays.
 Auf diesem Gerät ist keine Sprachausgabe verfügbar.	No speech output is available on this device.
 Auf diesem Gerät nicht verfügbar.	Not available on this device.
 Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs mit Apple-Chip und Linux-PCs mit x64).	Local models are not available on this device (only Android phones with 64-bit ARM, Windows PCs, Macs with Apple chips and Linux PCs with x64).
@@ -550,6 +558,7 @@ Aufräumen	Tidy up
 Auftrag für jede Datei	Instruction for every file
 Aufzählung	Bulleted list
 Aus	Off
+Aus Fotos	From photos
 aus	off
 Aus Datei übernehmen …	Take over from file …
 Aus dem Adressbuch löschen	Delete from the address book
@@ -779,14 +788,17 @@ Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)	Image des
 Bilder	Images
 Bilder anzeigen	Show images
 Bilder auswählen	Choose images
+Bilder der Seiten öffnen	Open pictures of the pages
 Bilder erzeugen	Create images
 Bilder in der Quelldatei mit Alternativtext versehen und getaggt exportieren.	Give the images alternative text in the source file and export with tags.
 Bilder pro Sekunde	Frames per second
 Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten.	Create and edit images and graphics with an image model.
 Bilder werden nicht pseudonymisiert	Images are not pseudonymized
+Bilder öffnen …	Open pictures …
 Bilder-Chat umbenennen	Rename image chat
 Bilder-Chats	Image chats
 Bildgenerierung	Image generation
+Bildmodell {0}	Image model {0}
 Bildschirm {0}	Screen {0}
 Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur	Educational research (in English), journals and grey literature
 Bildunterschrift (auch Alternativtext)	Caption (also alternative text)
@@ -817,6 +829,7 @@ Bleibt auf diesem Gerät. Unter Einstellungen › Verbrauch sehen Sie, welche Mo
 Block bearbeiten (Markdown)	Edit block (Markdown)
 Block löschen	Delete block
 Blocksatz	Justify
+Blätter	Sheets
 Branch erstellen	Create branch
 Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeiten nur je Abschnitt.	Needs Parakeet v3 (670 MB, Settings › Transcription). Without it there are times per section only.
 Breit (2,54 cm)	Wide (2.54 cm)
@@ -925,10 +938,12 @@ Das Dresdner Elbufer bei Sonnenuntergang im Stil eines Aquarells	The Elbe riverb
 Das E-Book ist entpackt zu groß.	The e-book is too large when unpacked.
 Das Gedächtnis ist ausgeschaltet (Einstellungen › Gedächtnis).	The memory is switched off (Settings › Memory).
 Das Modell durchsucht frühere Chats, wenn du dich darauf beziehst.	The model searches earlier chats when you refer to them.
+Das PDF ließ sich nicht laden.	The PDF could not be loaded.
 Das ging nicht: {0}	That didn't work: {0}
 Das habe ich gefunden:	Here is what I found:
 Das Handy rechnet mit dem Prozessor; kleine Modelle laufen flüssig.	The phone computes with the processor; small models run smoothly.
 Das Kontextmenü ließ sich nicht eintragen (siehe log.txt).	The context menu could not be added (see log.txt).
+Das PDF ließ sich nicht speichern: {0}	The PDF could not be saved: {0}
 Das hat nicht geklappt	That didn't work
 Das hat nicht geklappt – versuch es bitte noch einmal.	That didn't work – please try again.
 Das hat nicht geklappt:	That didn't work:
@@ -1023,6 +1038,7 @@ Dateien ließen sich nicht lesen und wurden übersprungen.	files could not be re
 Dateien und Dokumente öffnen	Open files and documents
 Dateien werden gelesen …	Reading files …
 Dateien wählen – mit Strg mehrere	Choose files – several with Ctrl
+Dateien › + › Scannen	Files › + › Scan
 Dateien, Literatur und Dokumente erwähnen	Mention files, literature and documents
 Dateiname	File name
 Daten	Data
@@ -1060,6 +1076,11 @@ Dein Startbildschirm unterstützt keine Verknüpfungen.	Your home screen does no
 Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. Chats und Einstellungen bleiben in der App.	Your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) are kept in the app. Choose a folder on the phone, e.g. “Documents/Lora” – then a copy is kept there, and changes made there come back. Chats and settings stay in the app.
 Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
+Der Ordner ist leer.	The folder is empty.
+Der Scanner antwortet nicht.	The scanner does not respond.
+Details	Details
+Details ausblenden	Hide details
+Details einblenden	Show details
 Diagramm bearbeiten …	Edit diagram …
 Diagramm entfernt.	Diagram removed.
 Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Editor.	Diagram with {0} boxes inserted – a click on it opens the diagram editor.
@@ -1172,6 +1193,7 @@ Die App vergisst, welcher Platzhalter zu welcher Angabe gehört. Platzhalter in 
 Die App verteilt Anfragen so, dass das Rate-Limit des API-Keys nicht erreicht wird. „Automatisch“ lernt die Grenze aus den Antworten des Servers	The app spreads requests so that the rate limit of the API key is not reached. “Automatic” learns the limit from the server's answers
 Die Aufnahme ist leer – ffmpeg hat kein Bild geschrieben (Protokoll im Aufnahmeordner).	The recording is empty – ffmpeg wrote no picture (log in the recording folder).
 Die Aufnahme ist leer.	The recording is empty.
+Die Aufnahme war leer.	The recording was empty.
 Die Aufnahme wird mit den neuen Einstellungen noch einmal transkribiert; das bisherige Transkript bleibt erhalten.	The recording is transcribed once more with the new settings; the previous transcript is kept.
 Die Begriffe kommen im PDF nicht vor.	The terms do not occur in the PDF.
 Die Beschreibung geht an das Bildmodell des Uni-Servers. Text im Bild gelingt selten – Texte besser auf der Leinwand setzen.	The description goes to the image model of the university server. Text in images rarely works – better set texts on the canvas.
@@ -1192,6 +1214,7 @@ Die Dateien ließen sich nicht lesen – sind es Videos?	The files could not be 
 Die DOI {0} ist bei Crossref nicht registriert.	The DOI {0} is not registered with Crossref.
 Die Exporte laufen nacheinander im Hintergrund – du kannst weiterarbeiten. Länge {0}.	The exports run one after another in the background – you can keep working. Length {0}.
 Die Präsentation wird aufgenommen – noch einmal tippen (oder Strg+Umschalt+F10) beendet.	The presentation is being recorded – tap again (or Ctrl+Shift+F10) to stop.
+Die Scanner-Funktion von Windows (WIA) ist auf diesem PC nicht verfügbar.	The scanner function of Windows (WIA) is not available on this PC.
 die Einstellungen	the settings
 Die ganze Oberfläche gibt es auf Deutsch und Englisch; Antworten folgen der gewählten Sprache, solange du nicht in einer anderen schreibst.	The whole interface is available in German and English; answers follow the selected language unless you write in another one.
 Die ganze Oberfläche vergrößern.	Enlarge the whole interface.
@@ -1305,12 +1328,16 @@ Dieser Ablauf ist nicht mehr da.	This workflow is no longer there.
 Dieser Ordner hängt schon am Chat.	This folder is already attached to the chat.
 Digital signieren	Sign digitally
 Digital signiert von	Digitally signed by
+Diktat beenden	Stop dictation
+Diktat: {0}	Dictation: {0}
+Diktieren („Punkt“, „Komma“, „neuer Absatz“ sprechen)	Dictate (say “period”, “comma”, “new paragraph”)
 Dokument	Document
 Dokument entwerfen	Draft a document
 Dokument erstellen	Create a document
 Dokument in Ordner speichern	Save document in folder
 Dokument lesen	Read document
 Dokument nicht gefunden	Document not found
+Dokument scannen	Scan a document
 Dokument wird erstellt …	Creating document …
 Dokument · {0} Wörter	Document · {0} words
 Dokument ändern	Change document
@@ -1369,6 +1396,8 @@ E-Mail-Entwurf	E-mail draft
 E-Mails, Antworten an Studierende, Ankündigungen	E-mails, replies to students, announcements
 Ebene	Layer
 Echtes Schwärzen: Seiten mit schwarzen Balken werden als Bild neu gezeichnet – der Text darunter ist aus der Datei verschwunden, nicht nur verdeckt. Andere Seiten bleiben, wie sie sind.	Real redaction: pages with black bars are redrawn as images – the text underneath is gone from the file, not just covered. Other pages stay as they are.
+Ecken anpassen	Adjust corners
+Ecken der Seite – ziehen, um sie auf die Ecken des Papiers zu legen	Corners of the page – drag them onto the corners of the paper
 Eckenradius (mm)	Corner radius (mm)
 Effizientes MoE-Modell von Google (26 Mrd. Parameter, ~4 Mrd. aktiv).	Efficient MoE model from Google (26 billion parameters, ~4 billion active).
 Eigene	Own
@@ -1425,6 +1454,7 @@ Ein neues Videoprojekt anlegen.	Create a new video project.
 Ein- und Ausblenden (s)	Fade in and out (s)
 Einarbeiten	Work in
 Eine Datei fehlt	One file is missing
+Eine Seite fotografieren (Handy) oder mit dem Scanner einlesen (Windows).	Photograph a page (phone) or scan it with the scanner (Windows).
 Eine je Zeile: NAME=Wert	One per line: NAME=value
 Eine Umgebung gibt dem Agenten Variablen (z.B. API-Keys für Web-APIs), Hinweise und Regeln für den Internetzugriff. Geheime Werte sieht das Modell nie – es nutzt sie nur als ${NAME} in Web-Anfragen. Alles wird verschlüsselt auf dem Gerät gespeichert. Wähle die Umgebung im Chat über „+“ › Umgebung.	An environment gives the agent variables (e.g. API keys for web APIs), notes and rules for internet access. The model never sees secret values – it only uses them as ${NAME} in web requests. Everything is stored encrypted on the device. Choose the environment in the chat via “+” › Environment.
 Eine eigene Vorlage anlegen.	Create your own template.
@@ -1608,6 +1638,7 @@ Esc	Esc
 Ethikantrag (Kurzfassung)	Ethics application (short version)
 Ethikvotum, Einwilligungen, Datenschutz, Tierversuche …	Ethics approval, consent, data protection, animal experiments …
 Ethische und rechtliche Aspekte	Ethical and legal aspects
+Etwa alle {0} Minuten, auch wenn Lora geschlossen ist – ein am PC angelegter Literatureintrag ist dann schon da, wenn du die App öffnest.	About every {0} minutes, also while Lora is closed – a literature entry made on the PC is already there when you open the app.
 Evaluation	Evaluation
 Excel (.xlsx)	Excel (.xlsx)
 Excel-Zellen setzen	Set Excel cells
@@ -1649,6 +1680,7 @@ Falsche PIN.	Wrong PIN.
 Falsches Format	Wrong format
 Falsches Passwort.	Wrong password.
 Farbe	Colour
+Farbe, Graustufen oder Schwarz-Weiß: Schatten verschwinden, das Papier wird weiß, die Schrift klar.	Colour, greyscale or black and white: shadows disappear, the paper turns white, the text sharp.
 Farben des Corporate Designs der TU Dresden: Dunkelblau, sachliches Grau, ruhige Formen.	Colours of the corporate design of TU Dresden: dark blue, sober grey, calm shapes.
 Farben passend zum Hintergrundbild (Android 12+).	Colours matching the wallpaper (Android 12+).
 Farbiger Titelblock, farbige Tabellenköpfe und Hinweisboxen.	Coloured title block, coloured table headers and note boxes.
@@ -1722,6 +1754,7 @@ Finde einen gemeinsamen Termin (60 Minuten) in den nächsten zwei Wochen mit 	Fi
 Finde in den Mails der letzten 7 Tage Fristen und Termine und schlag vor, was ich als Termin oder Aufgabe übernehmen soll.	Find deadlines and appointments in the mails of the last 7 days and suggest what I should take over as an appointment or task.
 Findet Tabellen im Text des PDFs – ohne KI, nichts verlässt das Gerät. Für Scans erst die Texterkennung.	Finds tables in the text of the PDF – without AI, nothing leaves the device. For scans, run text recognition first.
 FIS Bildung / Fachportal Pädagogik	FIS Bildung / Fachportal Pädagogik
+Fertig zuschneiden	Done cropping
 Flach	Flat
 Flash-Modell von Google – über den eigenen Gemini-API-Key.	Flash model from Google – via your own Gemini API key.
 Fließtext	Body text
@@ -1782,6 +1815,8 @@ Forschungsdaten und Ethik	Research data and ethics
 Forschungsfrage schärfen	Sharpen the research question
 Fortsetzen	Resume
 Foto	Photo
+Foto aufnehmen	Take a photo
+Fotografiere die Seite von oben – oder lies sie am PC mit dem Scanner ein. Ich finde die Kanten des Papiers.	Photograph the page from above – or scan it on the PC with the scanner. I find the edges of the paper.
 Fotos	Photos
 Frag das PDF	Ask the PDF
 Frag Lora	Ask Lora
@@ -1831,6 +1866,7 @@ Funktion, Einrichtung, Fachgebiet	Role, institution, subject area
 Fußnote	Footnote
 Fußzeile (leer: TU Dresden · Einrichtung · Titel)	Footer (empty: TU Dresden · institution · title)
 Fußzeile (optional)	Footer (optional)
+Für das Diktat auf dem Gerät unter Einstellungen › Transkription ein Erkennungsmodell laden.	For dictation on the device, load a recognition model under Settings › Transcription.
 fx	fx
 Förderer	Funder
 Förmlicher	More formal
@@ -1885,6 +1921,7 @@ Für Notizen und Wikis.	For notes and wikis.
 Für Spracherkennung (empfohlen)	For speech recognition (recommended)
 Für ein Handout braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da.	A handout needs a model – none is allowed here or there is no API key.
 Für YouTube kopieren	Copy for YouTube
+Für diese Datei gibt es keine Vorschau.	There is no preview for this file.
 Für {0} fehlt der API-Key von {1} (Einstellungen › API-Zugang › Weitere Anbieter).	The API key of {1} is missing for {0} (Settings › API access › Other providers).
 Galerie	Gallery
 Ganz nach hinten	Send to back
@@ -1949,6 +1986,7 @@ Gemma 4 E2B	Gemma 4 E2B
 Gemma 4 E4B	Gemma 4 E4B
 Genehmigungsantrag mit Anlass, Zeitraum, Kosten und Begründung	Application for approval with occasion, period, costs and justification
 Geplant	Planned
+Gescannte Seite	Scanned page
 geplant	planned
 Geplante Aufgaben	Scheduled tasks
 Geprüft	Checked
@@ -1965,6 +2003,7 @@ Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Date
 Gespeichert	Saved
 Gespeichert (pausiert).	Saved (paused).
 Gespeichert in Bilder\\Lora.	Saved in Pictures\\Lora.
+Gespeichert in Dateien › {0}	Saved in Files › {0}
 Gespeichert unter Downloads: {0}	Saved in Downloads: {0}
 Gespeichert – nächste Ausführung: {0}	Saved – next run: {0}
 Gespeichert:	Saved:
@@ -2076,6 +2115,7 @@ Hauptkategorie	Main category
 Header für den Token (optional)	Header for the token (optional)
 HEIC-Fotos (iPhone) kann die Windows-App nicht lesen – bitte als JPEG speichern, z. B. in der Fotos-App über „Speichern unter“ oder am iPhone unter Einstellungen › Kamera › Formate › „Maximale Kompatibilität“.	The desktop app cannot read HEIC photos (iPhone) – please save them as JPEG, e.g. in the Photos app via “Save as” or on the iPhone under Settings › Camera › Formats › “Most Compatible”.
 Handout „{0}“ in Erstellt.	Handout “{0}” in Created.
+Handy als Scanner: In Lora auf dem Handy › Dateien › + › Scannen – das PDF kommt über den Sync in den Ordner „Scans“.	Phone as scanner: in Lora on the phone › Files › + › Scan – the PDF arrives in the folder “Scans” through the sync.
 Hell	Light
 Hell oder dunkel	Light or dark
 Hell, dunkel oder wie das System.	Light, dark or like the system.
@@ -2180,6 +2220,7 @@ Im Dokument-Editor öffnen	Open in the document editor
 Im Editor	In the editor
 Im Editor bearbeiten	Edit in the editor
 Im Editor öffnen	Open in the editor
+Im Einzug liegt kein Papier.	There is no paper in the feeder.
 Im Explorer markiert – von dort in Mail oder Teams ziehen.	Selected in Explorer – drag it from there into a mail or Teams.
 Im Explorer zeigen	Show in Explorer
 Im Explorer öffnen	Open in Explorer
@@ -2188,6 +2229,7 @@ Im gewählten Clip ist nichts gesprochen.	Nothing is spoken in the chosen clip.
 Im Hintergrund	In the background
 Im Hintergrund erlauben	Allow in the background
 Im Hintergrund kann niemand bestätigen. Aus: Commits, PRs und Kommentare werden abgelehnt.	Nobody can confirm in the background. Off: commits, PRs and comments are declined.
+Im Hintergrund nur im WLAN	In the background only on Wi-Fi
 Im Infobereich weiterlaufen	Keep running in the notification area
 Im Moment gibt es noch kein einschaltbares Werkzeug – die ersten folgen mit den nächsten Updates.	There is no tool to turn on yet – the first ones follow with the next updates.
 Im normalen Browser öffnen	Open in the normal browser
@@ -2209,6 +2251,7 @@ im Web	on the web
 Im Web suchen und Links lesen.	Search the web and read links.
 Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.	Search the web and the news, read links and check references at Crossref.
 IMAP-Server	IMAP server
+Im Lora-Ordner – über den Sync auch am PC.	In the Lora folder – through the sync also on the PC.
 Immer	Always
 Immer erlauben	Always allow
 Immer fragen	Always ask
@@ -2568,6 +2611,9 @@ KI-Stimme des Uni-Servers oder offline.	AI voice of the university server or off
 KI-Vorschlag · {0}	AI suggestion · {0}
 KI-Änderung abgelehnt	AI change rejected
 KI-Änderung zurückgenommen	AI change undone
+Kein Scanner gefunden. Ist er eingeschaltet und angeschlossen?	No scanner found. Is it switched on and connected?
+Keine Texterkennung verfügbar – unter Android braucht sie ein Bildmodell, das der Datenschutz erlaubt.	No text recognition available – on Android it needs an image model the privacy level allows.
+Keine mobilen Daten für den Sync bei geschlossener App.	No mobile data for the sync while the app is closed.
 Klar und aufgeräumt: helle Flächen, weiße Karten, Violett als Akzent. Standard.	Clear and tidy: light surfaces, white cards, violet as accent. Default.
 Klare Fragestellung, roter Faden, sinnvolle Gliederung	Clear research question, common thread, sensible structure
 Klare, höfliche E-Mail mit Betreff und Signatur	Clear, polite e-mail with subject and signature
@@ -2682,6 +2728,7 @@ Leeren	Clear
 Leeres Design	Blank design
 Leeres Design – Format wählen	Blank design – choose format
 Leeres TUD-Dokument	Empty TUD document
+Leertaste schließt, ←/→ blättert	Space bar closes, ←/→ browses
 Lege zuerst eine Unterschrift an: mit Maus oder Finger zeichnen oder ein Bild (PNG mit durchsichtigem Hintergrund) wählen.	First create a signature: draw it with the mouse or your finger or choose an image (PNG with a transparent background).
 Legen fest, wie sich das Modell im ganzen Chat verhält	Define how the model behaves throughout the chat
 Legt die Folie „{0}“ an …	Adding the slide “{0}” …
@@ -2759,7 +2806,9 @@ Linke Spalte	Left column
 Linke Spalte (erste Zeile „### Überschrift“)	Left column (first line “### Heading”)
 Links	Left
 Links aus Chat, Literatur und Dokumenten öffnen sich als Tabs rechts neben der App – mit Fragen zur Seite, Zusammenfassung und Übernahme in die Literatur. Beim ersten Mal richtet Lora dafür einmalig Chromium ein (ca. 170 MB). Aus: im normalen Browser.	Links from chat, literature and documents open as tabs to the right of the app – with questions about the page, a summary and taking it over into the literature. The first time, Lora sets up Chromium once (approx. 170 MB). Off: in the normal browser.
+Links aus Chat, Literatur und Dokumenten öffnen sich in einem einfachen Browser in der App – mit Frage zur Seite, Zusammenfassung und Übernahme in Literatur oder Wissenssammlung. Aus: im normalen Browser.	Links from chat, literature and documents open in a simple browser in the app – with questions about the page, a summary and taking it into the literature or the knowledge collection. Off: in the normal browser.
 Links immer im normalen Browser öffnen	Always open links in the normal browser
+Links in Lora öffnen	Open links in Lora
 Links liegen deine Orte: Lora-Ordner, Hochgeladen, Erstellt, Markiert und der Papierkorb.	On the left are your places: Lora folder, Uploaded, Created, Starred and the bin.
 Links neben dem Chat öffnen	Open links beside the chat
 Links öffnen als Tabs rechts neben der App.	Links open as tabs to the right of the app.
@@ -2984,6 +3033,7 @@ Mehr anzeigen	Show more
 Mehr Sprecher	More speakers
 Mehrere Antworten möglich	Several answers possible
 Mehrere PDFs zu einem zusammenfügen.	Merge several PDFs into one.
+Mehrere Seiten werden ein PDF mit Texterkennung – gerade gerückt, mit weißem Papier und klarer Schrift.	Several pages become one PDF with text recognition – straightened, with white paper and sharp text.
 Mehrsprachiges Embedding-Modell von Qwen (4 Mrd. Parameter).	Multilingual embedding model from Qwen (4 billion parameters).
 Mehrzeilig	Multi-line
 Meine Absenderangaben	My sender details
@@ -3140,6 +3190,7 @@ Nach „{0}“ sortiert.	Sorted by “{0}”.
 nach „geb.“, „Geburtsdatum“ oder „*“, auch mit Monatsnamen	after “geb.”, “Geburtsdatum” or “*”, also with month names
 Nachrichtensuche	News search
 Nachtmodus	Night mode
+Name des Ordners	Name of the folder
 nachts	at night
 Nachts laufen lassen	Run at night
 Nachweis erstellen	Create statement
@@ -3373,6 +3424,7 @@ Nur {0} – ScaDS.AI-Key fehlt	Only {0} – ScaDS.AI key missing
 Nur „{0}“ exportieren	Export only “{0}”
 Nutzen und neu starten	Use and restart
 Nächste Ausführung: {0}	Next run: {0}
+Nächste Datei	Next file
 Nächste Folie	Next slide
 Nächste Schritte unter Antworten	Next steps below answers
 Nächste Version	Next version
@@ -3385,6 +3437,8 @@ Oben ist Platz für	There is room at the top for
 Oben rechts	Top right
 Oben stehen „Neuer Chat“ und bis zu vier Bereiche, alles andere unter „Mehr“.	At the top are “New chat” and up to four areas, everything else is under “More”.
 Oben wählst du, was du tun willst: ansehen, Seiten ordnen, markieren, unterschreiben, umwandeln oder die KI fragen.	At the top you choose what to do: view, arrange pages, highlight, sign, convert or ask the AI.
+Ohne Texterkennung gespeichert.	Saved without text recognition.
+Ohne Texterkennung: {0}	Without text recognition: {0}
 PDF, Word, PowerPoint, Briefe und Termine im Chat erstellen.	Create PDF, Word, PowerPoint, letters and appointments in the chat.
 PDFs zusammenfügen	Merge PDFs
 Pausen herausschneiden	Cut out pauses
@@ -3393,6 +3447,7 @@ Oder als .env einfügen	Or paste as .env
 Oder eigene Antwort …	Or your own answer …
 Oder mit einer Vorlage beginnen:	Or start with a template:
 Oder sag mir einfach, was ich tun soll – zum Beispiel „Füge die beiden PDFs zusammen“ oder „Schwärze alle Namen“.	Or just tell me what to do – for example “Merge the two PDFs” or “Redact all names”.
+Offene Kommentare	Open comments
 oder nach Bereichen, je Bereich ein PDF:	or by ranges, one PDF per range:
 Offen	Open
 Offene PDFs zusammenfügen	Merge open PDFs
@@ -3470,6 +3525,7 @@ Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)	Folder “{0}” de
 Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen.	Folder, document, spreadsheet, presentation, from a template or upload.
 Ordnet {0} Dateien in „{1}“ in Unterordner …	Sorts {0} files in “{1}” into subfolders …
 Organigramm	Org chart
+Original	Original
 Ort	Place
 Ort, Datum darunter	Place, date below
 Orte	Places
@@ -3483,11 +3539,13 @@ Outlook-Ordner ansehen	View Outlook folders
 PDF speichern unter	Save PDF as
 PDF-Werkzeugkasten › Ansehen, Seiten, Markieren …	PDF toolbox › View, Pages, Highlight …
 Paper auswählen (PDF, Word …)	Choose paper (PDF, Word …)
+Papier scannen: mehrere Seiten fotografieren (Handy) oder mit dem Scanner einlesen (Windows), Kanten finden, gerade rücken, Kontrast – als durchsuchbares PDF mit Texterkennung in Dateien › Scans.	Scan paper: photograph several pages (phone) or read them with the scanner (Windows), find the edges, straighten, contrast – as a searchable PDF with text recognition in Files › Scans.
 Papierkorb	Trash
 Papierkorb leeren	Empty trash
 Papierkorb leeren?	Empty trash?
 Parakeet erkennt die Sprache selbst (25 europäische Sprachen).	Parakeet detects the language itself (25 European languages).
 Parakeet v3 ist nicht mehr geladen.	Parakeet v3 is no longer loaded.
+Passen die Ecken nicht, legst du sie unter „Ecken anpassen“ mit dem Finger oder der Maus auf die Ecken des Papiers.	If the corners are off, put them onto the corners of the paper under “Adjust corners” with your finger or the mouse.
 Passende Dateien	Matching files
 Passt	Fits
 Passwort	Password
@@ -3772,6 +3830,16 @@ Sammelband (Herausgeberwerk)	Edited volume
 Sammle Ideen für 	Collect ideas for 
 Sammlung	Collection
 ScaDS.AI · Standard	ScaDS.AI · default
+Scan als PDF speichern	Save scan as PDF
+Scan gespeichert	Scan saved
+Scannen	Scan
+Scannen hat nicht geklappt	Scanning did not work
+Scannen hat nicht geklappt: {0}	Scanning did not work: {0}
+Scannen · {0} Seite(n)	Scan · {0} page(s)
+Scannen …	Scan …
+Scannen › Als PDF speichern	Scan › Save as PDF
+Scannen › Foto aufnehmen / Vom Scanner	Scan › Take a photo / From the scanner
+Scanner gibt es nur unter Windows (WIA).	The scanner is only available on Windows (WIA).
 Schau dir die letzten 100 Mails im Posteingang an und schlag mir Ordner und feste Regeln zum Sortieren vor. Noch nichts verschieben.	Look at the last 100 mails in the inbox and suggest folders and fixed rules for sorting. Don't move anything yet.
 Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie in die Datei.	Suggest a sensible outline with headings and put it into the file.
 Schlage eine sinnvolle Gliederung mit Überschriften vor und setze sie ins Dokument (vorhandener Text bleibt in den passenden Abschnitten).	Suggest a sensible outline with headings and put it into the document (existing text stays in the matching sections).
@@ -3834,10 +3902,12 @@ Schulen, Einrichtungen und Orte	Schools, institutions and places
 Schutz entfernen	Remove protection
 Schwarz	Black
 Schwarz auf Weiß ohne Schmuck.	Black on white without decoration.
+Schwarz-Weiß	Black and white
 Schwarzer Bildschirm (B)	Black screen (B)
 Schwarzer Hintergrund im dunklen Modus – spart Akku auf OLED-Displays.	Black background in dark mode – saves battery on OLED displays.
 Schwärzen	Redact
 Schwärzen & mehr	Redact & more
+Schwärzen, Text und Bilder ändern, PDF/A, Passwort, Metadaten und die PDF/UA-Prüfung gibt es in der Windows-App.	Redacting, changing text and pictures, PDF/A, password, metadata and the PDF/UA check are in the Windows app.
 Schwärzen, Text und Bilder ändern, Verkleinern, PDF/A, Passwort, Metadaten und die PDF/UA-Prüfung gibt es in der Windows-App.	Redacting, changing text and images, compressing, PDF/A, password, metadata and the PDF/UA check are available in the Windows app.
 Schwärzt {0} Stellen in „{1}“ …	Redacts {0} places in “{1}” …
 Schwärzung zurückgenommen.	Redaction undone.
@@ -3863,6 +3933,10 @@ Seite	Page
 Seite 1 von …	Page 1 of …
 Seite einrichten	Page setup
 Seite einrichten …	Page setup …
+Seite entfernen	Remove page
+Seite entfernt	Page removed
+Seite flach hinlegen, von oben fotografieren – Lora findet die Kanten. Über den Sync landet das PDF auch auf dem PC.	Lay the page flat and photograph it from above – Lora finds the edges. Through the sync the PDF also lands on the PC.
+Seite fotografieren oder einscannen	Photograph or scan a page
 Seite {0}	Page {0}
 Seite {n} von {N}	Page {n} of {N}
 Seiten	Pages
@@ -3872,6 +3946,7 @@ Seiten geschätzt mit	pages estimated at
 Seiten löschen	Delete pages
 Seiten sind Scans ohne Text. Die Texterkennung legt den Text unsichtbar über die Seiten – danach lassen sie sich durchsuchen, kopieren und mit KI auswerten.	pages are scans without text. Text recognition puts the text invisibly over the pages – then they can be searched, copied and analysed with AI.
 Seiten sortieren	Sort pages
+Seiten werden aufbereitet: {0} von {1} …	Preparing pages: {0} of {1} …
 Seitenansicht	Page view
 Seiteneinrichtung: 	Page setup: 
 Seitenleiste	Side menu
@@ -3889,6 +3964,7 @@ Selbst gestalten	Design it yourself
 Selbst verschieben geht auch: Lora beenden, den Ordner im Explorer verschieben, Lora starten – sie fragt dann, wo er jetzt liegt.	You can also move it yourself: close Lora, move the folder in the file manager, start Lora – she then asks where it is now.
 Semantic Scholar	Semantic Scholar
 Semester	Semester
+Text auf {0} Seite(n) erkannt – das PDF ist durchsuchbar.	Text recognized on {0} page(s) – the PDF is searchable.
 semantische Suche	semantic search
 Semesterplan	Semester plan
 Semesterplan mit Lernzielen, Sitzungen und Leistungen	Semester plan with learning objectives, sessions and assessments
@@ -4239,6 +4315,7 @@ Text der Fußnote	Text of the footnote
 Text des Kastens	Text of the box
 Text einfügen, den eine Kollegin oder ein Kollege über „Teilen“ kopiert hat.	Paste text that a colleague copied via “Share”.
 Text enthält	Text contains
+Text erkennen (durchsuchbar)	Recognize text (searchable)
 Text für das Eingabefeld	Text for the input field
 Text ist auswählbar (keine reine Bilddatei).	Text is selectable (not just an image file).
 Text kleiner oder größer.	Smaller or larger text.
@@ -4258,6 +4335,7 @@ Texte sollen so klingen:	Texts should sound like this:
 Texterkennung	Text recognition
 Texterkennung (OCR)	Text recognition (OCR)
 Texterkennung zurückgenommen.	Text recognition undone.
+Texterkennung: Seite {0} von {1} …	Text recognition: page {0} of {1} …
 Textfarbe	Text colour
 Textfeld	Text box
 Thema	Topic
@@ -4337,6 +4415,7 @@ Transkript, Dokument, Literaturliste oder erzeugtes Bild	Transcript, document, r
 Transkripte	Transcripts
 Transkripte durchsuchen	Search transcripts
 Transkripte und Aufnahmen: {0} · Modelle: {1}	Transcripts and recordings: {0} · models: {1}
+Transkripte und Einstellungen bleiben auf dem jeweiligen Gerät; API-Schlüssel gehen nie in den Ordner. Den Tresor öffnet jedes Gerät mit eigener PIN – auf einem neuen Gerät einmal mit dem Wiederherstellungsschlüssel.	Transcripts and settings stay on each device; API keys never go into the folder. Every device opens the vault with its own PIN – on a new device once with the recovery key.
 Transkription	Transcription
 Transkription & Aufnahme (läuft)	Transcription & recording (running)
 Transkription abbrechen?	Cancel transcription?
@@ -4545,7 +4624,9 @@ Volle Folien teilen (ohne KI)	Split full slides (without AI)
 Vollständig	Full
 Volltext	Full text
 Vom Chat lösen	Detach from the chat
+Vom Scanner	From the scanner
 Vom System belegt:	Reserved by the system:
+Vorige Datei	Previous file
 von	of
 Von der App erstellt	Created by the app
 Von der KI eingefügt	Inserted by the AI
@@ -4862,7 +4943,9 @@ Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: 
 Wörter	words
 Wörter, die wie Namen aussehen, aber keine sind. Die eigene Liste oben geht vor.	Words that look like names but aren't. Your own list above takes priority.
 Wörtliche Zitate	Verbatim quotes
+Zeige mit der Maus auf eine Datei oder wähle eine aus – hier stehen dann ihre Details. Leertaste: Schnellansicht.	Point at a file with the mouse or choose one – its details appear here. Space bar: quick look.
 Zeitstrahl	Timeline
+Ziel: Dateien › {0}	Destination: Files › {0}
 liest und schreibt	reads and writes
 nur lesen	read only
 xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m	xing.com/profile/…, linkedin.com/in/…, 192.168.0.12, @anna_m
@@ -5302,6 +5385,7 @@ noch kein Bereich	no area yet
 Übertrage die angehängte Präsentation Folie für Folie in diese Präsentation – gleiche Reihenfolge, gleiche Inhalte, aber in die Folientypen der App (Titel, Abschnitt, Inhalt, zwei Spalten, Zitat); Notizen bleiben Notizen.	Transfer the attached presentation slide by slide into this presentation – same order, same content, but in the app's slide types (title, section, content, two columns, quote); notes stay notes.
 Σ Summe der Spalte darunter einfügen	Σ Insert sum of the column below
 – keine (Hauptcode) –	– none (main code) –
+„Als PDF speichern“ legt alle Seiten mit Texterkennung in Dateien › Scans ab – durchsuchbar und per Sync auch auf den anderen Geräten.	“Save as PDF” puts all pages with text recognition into Files › Scans – searchable and, through the sync, also on the other devices.
 „Automatisch“ verwendet die Farben des gewählten Stils (empfohlen).	“Automatic” uses the colours of the selected style (recommended).
 „Automatisch“: {0}	“Automatic”: {0}
 „Contents“, „Pull requests“ und „Issues“ (Read and write) für die gewünschten Repositories. Für Repositories von Organisationen weiter unten je ein weiteres Token eintragen.	“Contents”, “Pull requests” and “Issues” (read and write) for the desired repositories. For repositories of organizations, enter one more token each further below.
@@ -5620,6 +5704,7 @@ Symbol …	Symbol …
 Aneinander ausrichten und verteilen	Align to each other and distribute
 Inhalt des QR-Codes (Link oder Text)	Content of the QR code (link or text)
 Doppelklick auf das Textfeld: direkt auf der Folie tippen; markierten Text mit Strg+B, Strg+I, Strg+U oder der Leiste darüber formatieren.	Double-click the text box to type right on the slide; format selected text with Ctrl+B, Ctrl+I, Ctrl+U or the bar above it.
+„{0}“ liegt in Dateien › {1} ({2} Seite(n)).	“{0}” is in Files › {1} ({2} page(s)).
 − Zeile	− Row
 Kopfzeile	Header row
 Spiegeln	Mirror
@@ -5662,3 +5747,5 @@ Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Sp
 „{0}“ gibt es nicht (mehr).	“{0}” does not exist (any more).
 „{0}“ im Windows-Papierkorb	“{0}” in the Windows Recycle Bin
 „{0}“ ließ sich nicht öffnen.	“{0}” could not be opened.
+„{0}“ speichern	Save “{0}”
+… und {0} weitere Seiten – zum Lesen öffnen.	… and {0} more pages – open it to read.

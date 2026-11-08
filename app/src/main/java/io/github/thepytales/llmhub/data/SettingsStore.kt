@@ -174,6 +174,10 @@ data class AppSettings(
     val nextcloudFolder: String = "/Lora",
     /** Sync für Android (AP-28): the Lora-Ordner of the PC in the Nextcloud („/Lora“); empty = off. */
     val phoneSyncRoot: String = "",
+    /** Sync für Android also in the background, without the app open (AP-63, WorkManager every 30 minutes). */
+    val phoneSyncBackground: Boolean = true,
+    /** The background sync only on Wi-Fi (no mobile data). */
+    val phoneSyncWifiOnly: Boolean = false,
     /** Mail über den Server (AP-27): IMAP server, port, login, password (secret), own address; on Windows by choice. */
     val mailHost: String = "",
     val mailPort: Int = 993,
@@ -330,6 +334,8 @@ class SettingsStore(context: Context) {
             .putString("nextcloudPassword", next.nextcloudPassword.trim())
             .putString("nextcloudFolder", next.nextcloudFolder.trim())
             .putString("phoneSyncRoot", next.phoneSyncRoot.trim())
+            .putBoolean("phoneSyncBackground", next.phoneSyncBackground)
+            .putBoolean("phoneSyncWifiOnly", next.phoneSyncWifiOnly)
             .putString("mailHost", next.mailHost.trim())
             .putInt("mailPort", next.mailPort)
             .putString("mailUser", next.mailUser.trim())
@@ -466,6 +472,8 @@ class SettingsStore(context: Context) {
             nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,
             nextcloudFolder = prefs.getString("nextcloudFolder", d.nextcloudFolder) ?: d.nextcloudFolder,
             phoneSyncRoot = prefs.getString("phoneSyncRoot", d.phoneSyncRoot) ?: d.phoneSyncRoot,
+            phoneSyncBackground = prefs.getBoolean("phoneSyncBackground", d.phoneSyncBackground),
+            phoneSyncWifiOnly = prefs.getBoolean("phoneSyncWifiOnly", d.phoneSyncWifiOnly),
             mailHost = prefs.getString("mailHost", d.mailHost) ?: d.mailHost,
             mailPort = prefs.getInt("mailPort", d.mailPort),
             mailUser = prefs.getString("mailUser", d.mailUser) ?: d.mailUser,

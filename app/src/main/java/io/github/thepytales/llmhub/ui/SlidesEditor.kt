@@ -3,6 +3,7 @@ package io.github.thepytales.llmhub.ui
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
@@ -506,9 +507,16 @@ private fun SlideWork(
                     HintText(tr("Freie Folie: Textfelder, Bilder und Formen über die Leiste unter der Folie einfügen, auf der Folie verschieben, an der Ecke unten rechts in der Größe ändern."))
                 }
             }
+            // Diktat (AP-65): speaker notes spoken instead of typed.
+            val dictateNotes = rememberDictation(c) { text ->
+                val at = notes.selection.min.coerceIn(0, notes.text.length)
+                val piece = io.github.thepytales.llmhub.audio.Dictation.join(notes.text.substring(0, at), text)
+                notes = TextFieldValue(notes.text.substring(0, at) + piece + notes.text.substring(notes.selection.max.coerceIn(at, notes.text.length)), androidx.compose.ui.text.TextRange(at + piece.length))
+            }
             OutlinedTextField(
                 notes, { notes = it }, label = { Text(tr("Sprechernotizen")) }, minLines = 2, enabled = !writing, modifier = Modifier.fillMaxWidth(),
                 leadingIcon = { Icon(Icons.Outlined.SpeakerNotes, contentDescription = null) },
+                trailingIcon = { DictateIcon(dictateNotes) },
             )
             HintText(
                 tr("Folie {0} von {1} · Enter: neuer Stichpunkt, Tab: einrücken, Strg+B: fett · Strg+M: neue Folie, F5: vorführen · ", sel + 1, slides.size) +
@@ -975,9 +983,18 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     var pen by remember { mutableStateOf(false) }
     val ink = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<List<Offset>>>() }
     var stroke by remember { mutableStateOf<List<Offset>>(emptyList()) }
-    // Zweiter Bildschirm (AP-51): with a second screen the slides go there, the Referentenansicht stays here.
-    val canSecond = remember { PresentScreens.hasSecond() }
+    // Zweiter Bildschirm (AP-51): with a second screen the slides go there, the Referentenansicht stays here. A projector
+    // plugged in (or a wireless display connected, Android) while presenting is noticed within two seconds.
+    val screenContext = androidx.compose.ui.platform.LocalContext.current
+    val canSecond by androidx.compose.runtime.produceState(PresentScreens.hasSecond(screenContext)) {
+        while (true) {
+            delay(2000)
+            value = PresentScreens.hasSecond(screenContext)
+        }
+    }
     var second by remember { mutableStateOf(canSecond) }
+    LaunchedEffect(canSecond) { second = canSecond }
+    KeepScreenOn()
     var stageSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     /** Digits typed for "number + Enter". */
     var typed by remember { mutableStateOf("") }
@@ -1067,6 +1084,15 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     Modifier.weight(if ((notes || second) && !narrow) 2.2f else 1f).fillMaxHeight()
                         .onSizeChanged { stageSize = it }
                         .then(if (laser || pen) Modifier else Modifier.clickable { forward() })
+                        // Wischen zum Blättern (AP-64, phones and tablets): to the left = on, to the right = back.
+                        .pointerInput(pen, laser) {
+                            if (pen || laser) return@pointerInput
+                            var dx = 0f
+                            detectHorizontalDragGestures(
+                                onDragStart = { dx = 0f },
+                                onDragEnd = { if (dx < -64.dp.toPx()) forward() else if (dx > 64.dp.toPx()) backward() },
+                            ) { change, amount -> change.consume(); dx += amount }
+                        }
                         // Zeichnen beim Präsentieren (D): strokes in red over the slide, E erases them.
                         .pointerInput(pen, i) {
                             if (!pen) return@pointerInput

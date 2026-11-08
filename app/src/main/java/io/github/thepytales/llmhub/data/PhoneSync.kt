@@ -23,7 +23,8 @@ import java.io.File
  * client of its own for the app, so it mirrors that folder over WebDAV:
  *
  * - `<Ordner>/.lora/` ↔ the phone's data: chats (`conversations/`), projects, memory, Kurztexte, own TU Vorlagen,
- *   contacts – the stores that can be read again while the app runs ([SYNCED_FILES], [SYNCED_DIRS]);
+ *   contacts, the literature with its excerpts, the knowledge collection and the vault (encrypted, AP-63) – the stores
+ *   that can be read again while the app runs ([SYNCED_FILES], [SYNCED_DIRS]);
  * - `<Ordner>/…` (without `.lora`) ↔ the phone's Lora-Ordner (Hochgeladen, Erstellt, own folders).
  *
  * It keeps the rules of AP-12: one device at a time (the phone writes a note like a PC; while a PC has the folder open,
@@ -87,8 +88,11 @@ class PhoneSync(
         if (visible.isDirectory) visible.walkTopDown().onEnter { d -> d == visible || !d.name.startsWith(".") }
             .filter { it.isFile && wanted(it.name, it.length()) }
             .forEach { f -> out["v:" + f.relativeTo(visible).path.replace(File.separatorChar, '/')] = f }
-        return out
+        return out.filterKeys(::syncs)
     }
+
+    /** Conflict copies the vault keeps for itself stay on the device. */
+    private fun syncs(key: String) = !key.startsWith("d:" + SyncGuard.VAULT_CONFLICTS + "/")
 
     private fun wanted(name: String, size: Long) = !name.startsWith(".") && !name.startsWith("~$") && !name.endsWith(".tmp") && size <= MAX_BYTES &&
         SyncGuard.conflictOriginal(File(name), emptyList()) == null
@@ -107,7 +111,7 @@ class PhoneSync(
         d.walk(root, skip = { it.name.startsWith(".") }).filter { wanted(it.name, it.size) }.forEach { e ->
             out["v:" + e.path.removePrefix(WebDavClient.normalize(root)).trimStart('/')] = e
         }
-        return out
+        return LinkedHashMap(out.filterKeys(::syncs))
     }
 
     /** The other devices' notes in the folder (`.lora/sync/geoeffnet-*.json`). */
@@ -244,9 +248,12 @@ class PhoneSync(
         /** The app's data inside the Lora-Ordner of a PC (desktop/LoraLayout). */
         const val DATA = ".lora"
         /** Stores of single files that the app can read again while it runs. */
-        val SYNCED_FILES = setOf("folders.json", "memory.json", "snippets.json", "templates.json", "contacts.json")
-        /** Folders whose files are synced (one chat per file). */
-        val SYNCED_DIRS = listOf("conversations")
+        val SYNCED_FILES = setOf("folders.json", "memory.json", "snippets.json", "templates.json", "contacts.json", "literature.json")
+        /**
+         * Folders whose files are synced: chats (one per file), the knowledge collection (index and texts, AP-63) and the
+         * vault – its chats stay encrypted, each device opens it with its own PIN box (VaultStore, AP-63).
+         */
+        val SYNCED_DIRS = listOf("conversations", "knowledge", "vault")
         const val MAX_BYTES = 50L * 1024 * 1024
     }
 }
@@ -310,7 +317,20 @@ class PhoneSyncService(private val c: AppContainer) {
         if ("d:snippets.json" in keys) c.snippets.reload()
         if ("d:templates.json" in keys) c.templates.reload()
         if ("d:contacts.json" in keys) c.contacts.reload()
+        if ("d:literature.json" in keys) c.literature.reload()
+        if (keys.any { it.startsWith("d:knowledge/") }) c.knowledge.reload()
+        // Conflict copies of vault chats already wait in the vault (SyncGuard.keepBoth); opened, it makes second chats of them.
+        if (keys.any { it.startsWith("d:vault/") }) c.vault.reload()
         if (keys.any { it.startsWith("v:") }) c.drive.changed()
+    }
+
+    /**
+     * One sync in the background (AP-63, Android WorkManager, also while the app is closed): only when the app is not
+     * in front – then the loop of [start] syncs – and with the note „im Hintergrund“, so a PC may open the folder.
+     */
+    suspend fun background(): String? {
+        if (!enabled || io.github.thepytales.llmhub.AppState.foreground) return null
+        return syncNow(open = false)
     }
 
     /** The loop of the app (started by the container): front, every five minutes, background. */

@@ -70,6 +70,13 @@ class KnowledgeStore(root: File) {
     /** Documents being embedded right now. */
     val busy: StateFlow<Int> = _busy.asStateFlow()
 
+    /** Reads the collection again: its files came from another device (Sync für Android, AP-63). */
+    @Synchronized
+    fun reload() {
+        index.reload()
+        cache.clear()
+    }
+
     fun of(collection: String) = index.current.filter { it.collection == collection }
     fun hasAny(collections: Collection<String>) = index.current.any { it.collection in collections }
 

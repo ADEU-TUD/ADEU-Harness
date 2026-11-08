@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 08.11.2026 (nach 1.0.60) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (nach 1.0.61) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -65,9 +65,10 @@ Fairlight).
 | ~~Office~~ ☑ | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint (erledigt, siehe *Erledigt*) |
 | ~~Video und Dateien~~ ☑ | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU · AP-58 Frag diesen Ordner · AP-59 Windows-Integration (erledigt, siehe *Erledigt*) |
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
-| **Jetzt** | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach |
-| **Danach** | AP-65 Diktat |
-| **Später** | – (zurzeit leer; neue Pakete kommen aus den *Ideen*) |
+| ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
+| **Jetzt** | – (zurzeit leer; die nächsten Pakete kommen aus den *Ideen*, siehe dort) |
+| **Danach** | – |
+| **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -75,46 +76,24 @@ Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-4
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
 Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47), die Video-Grundlage (AP-52, AP-53), Office (AP-48 bis AP-51),
-Video und Dateien (AP-54 bis AP-59) sowie PDF-Reste und Diagramme (AP-60, AP-61) sind erledigt; jetzt Scanner, Sync-Reste
-und Android (AP-62 bis AP-64), danach das Diktat (AP-65). AP-63 und AP-64 betreffen beide Android und dürfen sich
-abwechseln.
+Video und Dateien (AP-54 bis AP-59), PDF-Reste und Diagramme (AP-60, AP-61) sowie Scanner, Sync-Reste, Android, Diktat und
+die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Damit ist Runde 2 abgearbeitet; neue Pakete kommen aus den
+*Ideen* (Vorschläge unter *Jetzt*).
 
 ---
 
 ## Jetzt
 
-Scanner, Sync-Reste und Android (aus *Später* nachgerückt, nachdem Video, Dateien, PDF-Reste und Diagramme – AP-54 bis AP-61
-– am 08.11.2026 mit 1.0.60 erledigt sind; siehe *Erledigt*). Als Nächstes AP-62 (Dokumenten-Scanner).
-
-### AP-62 ☐ Dokumenten-Scanner · M (bisher Ideen)
-- **Android**: Kamera mit Kantenerkennung, Zuschneiden, Entzerren, Kontrast (Schwarz-Weiß/Farbe), mehrere Seiten → PDF
-  mit OCR in den Lora-Ordner (und per Sync an den PC).
-- **Windows**: Scanner über WIA bzw. Handy als Scanner.
-- **Fertig, wenn**: Drei fotografierte Seiten ergeben ein durchsuchbares PDF im Lora-Ordner.
-
-### AP-63 ☐ Sync- und Android-Reste · M (Reste von AP-12, AP-14, AP-28)
-- Literatur und Wissenssammlung auf Android synchronisieren (mit Neuladen im Betrieb).
-- Sync im Hintergrund ohne geöffnete App (Android WorkManager).
-- Browser neben dem Chat auf Android als einfache Fassung (WebView).
-- Tresor-Projekte im Sync prüfen.
-- **Fertig, wenn**: Ein am PC angelegter Literatureintrag erscheint ohne Öffnen der App auf dem Handy.
-
-### AP-64 ☐ Android zieht nach · M–L (neu)
-Wie bisher nur, was dort sinnvoll ist:
-- Neuer Fließtext-Editor (AP-43–AP-47): ansehen, bearbeiten, Lora schreibt; Tabellen (AP-48) ansehen und einfach
-  bearbeiten; Folien (AP-51) ansehen und präsentieren.
-- Lora-Aktionen (AP-38) für Dateien und PDF, Gedächtnis (AP-39), Touren (AP-41), Lora-Dateidialog (AP-42), wo der
-  Systemdialog nicht reicht.
-- Kein Videoeditor, kein Gestalten (unverändert).
+Zurzeit leer – AP-62 bis AP-66 sind am 08.11.2026 mit 1.0.61 erledigt (siehe *Erledigt*). Vorschläge für die nächsten
+Pakete nach täglichem Nutzen (Entscheidung beim Hauptnutzer): **Fehlermeldungen in Klartext mit Lösungsknopf** (W2-09),
+**eigene Lora-Befehle** (gespeicherte Abläufe per Name/Strg+K), **Exchange über EWS/Graph** (sobald Offene Frage 3 geklärt
+ist), **Tabellen beim Taggen und LTV der Signatur** (Rest AP-60).
 
 ---
 
 ## Danach
 
-### AP-65 ☐ Diktat · S–M (neu, optional)
-- Diktieren in Dokumente und Textfelder mit der vorhandenen lokalen Spracherkennung (sherpa-onnx), Satzzeichen per
-  Sprache („Punkt“, „neuer Absatz“); keine Sprachbefehle für die App (Chat-Sprachmodus reicht).
-- **Fertig, wenn**: Ein Absatz lässt sich im neuen Dokument-Editor auf dem Gerät diktieren.
+Zurzeit leer.
 
 ---
 
@@ -135,7 +114,6 @@ Git-Historie (Fassung vom 30.10.2026).
 - **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K), Fehlermeldungen in Klartext mit Lösungsknopf
   (W2-09), globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
   (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
-- **Dateien**: große Vorschau ohne Öffnen (Leertaste) mit Details-Spalte.
 - **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
   Korrektur hinaus.
 - **Forschung**: Gutachter-Panel mit Mehr-Agenten-Engine (W3-02, W5-03), Systematic Review nach PRISMA (W5-04),
@@ -239,8 +217,13 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-59 Windows-Integration | Ziehen nach außen (Griff, Mehrfachauswahl), Als Datei kopieren, Kontextmenü je Benutzer (Datei, Ordner), Start mit Datei an die laufende App, Windows-Papierkorb, Office öffnen und zurück mit „in Word geöffnet“ | Offene Frage 7 (Dienst-PCs); neues Windows-11-Menü nur über „Weitere Optionen“ |
 | ☑ AP-60 PDF-Reste | Markieren am Text, Schwärzen mit der Maus, digitale Signatur (Windows-Speicher, .p12/.pfx, sichtbares Feld) mit Prüfung, Tags für PDF/UA | Tabellen beim Taggen; Zeitstempel/LTV der Signatur; Android |
 | ☑ AP-61 Diagramme und Whiteboard | Flussdiagramm, Mindmap, Organigramm, Zeitstrahl mit haftenden Verbindern und Anordnung, Mermaid hin und zurück, Lora zeichnet, Whiteboard (Notizen, Freihand), in Dokument, PDF, Word, Folien | Verbinder auf der Gestalten-Leinwand; Word-Bild nur unter Windows |
+| ☑ AP-62 Dokumenten-Scanner | Kanten finden, Ecken ziehen, Entzerren (A4), Farbe/Graustufen/Schwarz-Weiß mit Schattenausgleich, mehrere Seiten, PDF mit Textebene in *Dateien › Scans*; Kamera und Fotos (Android), WIA-Scanner und Bilder (Windows), Handy als Scanner über den Sync, Tour | OCR auf Android nur über ein Bildmodell; Einzug (ADF) mehrseitig im WIA-Dialog einzeln |
+| ☑ AP-63 Sync- und Android-Reste | Literatur, Wissenssammlung und Tresor im Handy-Sync mit Neuladen, Hintergrund-Sync (WorkManager, WLAN-Schalter), PIN-Kiste je Gerät im Tresor, Tresor-Konflikte als zweite Fassung, Browser neben dem Chat auf Android (WebView) | Browser ohne Tabs; Tresor-Fehlversuche zählen für alle Geräte gemeinsam |
+| ☑ AP-64 Android zieht nach | Folien auf dem zweiten Bildschirm (Presentation), Wischen, Bildschirm bleibt an, Speichern in den Lora-Ordner, Verkleinern (Werkzeugkasten und Lora-Aktion), Tour für den Scanner | Rest der PDF-Stufe 3 (Schwärzen, PDF/A …) bleibt am PC; Touren für die Editoren selbst |
+| ☑ AP-65 Diktat | 🎤 im Dokument-Editor und an den Sprechernotizen, Erkennung auf dem Gerät (sherpa-onnx), Satzzeichen und Absätze per Sprache (de/en), Abstand und Großschreibung am Cursor | Diktat in weiteren Textfeldern; Sprechen ohne Stopp-Knopf (Pausenerkennung) |
+| ☑ AP-66 Schnellansicht in Dateien | Leertaste über der Datei unter der Maus bzw. der ausgewählten, ←/→ blättert, Enter öffnet; Details-Spalte (Art, Größe, Daten, Ort, Seiten/Wörter/Folien/Abmessungen, Schlagwörter, Chat); Android über ⋮ › Vorschau | Vorschau für Video/Ton; Details auch in den Suchergebnissen |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-61 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-66 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -945,6 +928,89 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
   (`ui/WhiteboardScreen.kt`, gespeichert unter `whiteboards/`), Lora-Aktion `doc.diagram`. Test `DiagramsTest`.
   **Offen**: Verbinder auf der Gestalten-Leinwand (AP-50), Bild für Word auf Android.
 
+### AP-62 ☑ Dokumenten-Scanner · M (bisher Ideen)
+- **Android**: Kamera mit Kantenerkennung, Zuschneiden, Entzerren, Kontrast (Schwarz-Weiß/Farbe), mehrere Seiten → PDF
+  mit OCR in den Lora-Ordner (und per Sync an den PC).
+- **Windows**: Scanner über WIA bzw. Handy als Scanner.
+- **Fertig, wenn**: Drei fotografierte Seiten ergeben ein durchsuchbares PDF im Lora-Ordner.
+- **Umsetzung (08.11.2026, 1.0.61, ☑)**: `docs/DocScanner.kt` (gemeinsam, reines Kotlin auf ARGB-Pixeln): Kanten über die
+  größte helle (sonst dunkle) Fläche nach Otsu, konvexe Hülle, Viereck größter Fläche aus der Hülle (je Diagonale der beste
+  Punkt auf jeder Seite), Prüfung auf Festigkeit; Entzerren über eine Homografie (bilinear), fast A4 wird genau A4, eine
+  Haaresbreite nach innen gegen Tischkanten; *Farbe* (Weißabgleich am hellsten Zehntel, Pegel), *Graustufen* und
+  *Schwarz-Weiß* mit örtlicher Papierhelligkeit (zwei Durchgänge über ein Integralbild, Schrift ausgenommen), *Original*;
+  `save` legt je Scan eine A4-Seite an (`PdfExtras.imagesToPdf`) und die erkannte Schrift unsichtbar darüber
+  (`PdfExtras.addTextLayer`), ohne Erkennung bleibt das PDF. `docs/ScanImages.kt` je Plattform (Android mit EXIF-Drehung
+  und verkleinertem Dekodieren, Windows ImageIO/Skia, Schwarz-Weiß als 1-Bit-PNG). `ui/ScanScreen.kt`: Seiten mit
+  verschiebbaren Ecken, Modi, Drehen, Sortieren, Entfernen, Speichern nach *Dateien › Scans* mit Fortschritt;
+  `ui/ScanPlatform.kt`: Kamera-App und Fotos (Android), WIA-Dialog über COM (`desktop/WiaScanner.kt`) und Bilder (Windows).
+  Einstiege: *Dateien › + › Scannen*, Landkarte, Strg+K, Tour *Scannen*. Tests `DocScannerTest` (drei schräg auf einem
+  Tisch „fotografierte“ Seiten mit Schatten → ein PDF mit drei durchsuchbaren Seiten im Lora-Ordner), `Round2EndLookTest`.
+  **Rest**: Texterkennung auf Android nur über ein Bildmodell (keine eingebaute OCR); mehrere Seiten aus dem Einzug
+  kommen im WIA-Dialog einzeln.
+
+### AP-63 ☑ Sync- und Android-Reste · M (Reste von AP-12, AP-14, AP-28)
+- Literatur und Wissenssammlung auf Android synchronisieren (mit Neuladen im Betrieb).
+- Sync im Hintergrund ohne geöffnete App (Android WorkManager).
+- Browser neben dem Chat auf Android als einfache Fassung (WebView).
+- Tresor-Projekte im Sync prüfen.
+- **Fertig, wenn**: Ein am PC angelegter Literatureintrag erscheint ohne Öffnen der App auf dem Handy.
+- **Umsetzung (08.11.2026, 1.0.61, ☑)**: `PhoneSync` nimmt `literature.json`, `knowledge/` und `vault/` dazu;
+  `PhoneSyncService.apply` liest Literatur (`ListStore.reload`), Wissenssammlung (`KnowledgeStore.reload`) und Tresor
+  (`VaultStore.reload`) neu. `tasks/BackgroundSync.kt`: periodischer WorkManager-Auftrag (30 Min., Netz, Akku nicht
+  schwach, auf Wunsch nur WLAN), neu eingeplant, wenn sich die Einstellungen ändern; er synchronisiert nur, wenn die App
+  nicht vorn ist, mit der Notiz „im Hintergrund“ (ein PC darf öffnen). **Tresor im Sync geprüft**: Die PIN-Kiste war an
+  einen Geräteschlüssel gebunden – ein zweites Gerät hätte mit dem Wiederherstellungsschlüssel die Kiste des ersten
+  überschrieben. Jetzt `VaultMeta.boxes`: je Gerät eine eigene Kiste, eine neue PIN ändert nur die eigene; Konfliktkopien
+  von Tresor-Chats legt `SyncGuard.keepBoth` verschlüsselt nach `vault/konflikte`, `VaultStore.adoptConflicts` macht beim
+  Öffnen „zweite Fassungen“ daraus (der Ordner bleibt vom Handy-Sync ausgenommen). `ui/PhoneBrowser.kt` (nur Android):
+  WebView über bzw. neben der App, Seite lesen per Skript (`research/WebMeta.kt`: Titel, Text, Meta-Tags →
+  Literatureintrag), Frage/Zusammenfassen/Literatur/Wissen, PDFs mit den Cookies in den Werkzeugkasten; Schalter *Links in
+  Lora öffnen*. Test `SyncRestsTest`: Literatureintrag und Wissensdokument vom PC kommen per Hintergrund-Sync aufs Handy
+  und sind nach dem Neuladen da; Tresor auf zwei Geräten mit eigener PIN; Tresor-Konflikt → zweite Fassung; Tresor nur
+  verschlüsselt in der Nextcloud; Meta-Tags → Eintrag. **Rest**: der Browser hat keine Tabs; Fehlversuche am Tresor
+  zählen für alle Geräte gemeinsam.
+
+### AP-64 ☑ Android zieht nach · M–L (neu)
+Wie bisher nur, was dort sinnvoll ist:
+- Neuer Fließtext-Editor (AP-43–AP-47): ansehen, bearbeiten, Lora schreibt; Tabellen (AP-48) ansehen und einfach
+  bearbeiten; Folien (AP-51) ansehen und präsentieren.
+- Lora-Aktionen (AP-38) für Dateien und PDF, Gedächtnis (AP-39), Touren (AP-41), Lora-Dateidialog (AP-42), wo der
+  Systemdialog nicht reicht.
+- Kein Videoeditor, kein Gestalten (unverändert).
+- **Umsetzung (08.11.2026, 1.0.61, ☑)**: Editor, Tabellen, Folien, Lora-Aktionen, Gedächtnis und Touren laufen über den
+  gemeinsamen Code schon auf Android; nachgezogen wurde, was dort fehlte. **Präsentieren**: `ui/PresentScreens.kt` für
+  Android zeigt die Folien über `android.app.Presentation` auf einem Beamer an HDMI/USB-C oder einer drahtlosen Anzeige
+  (ComposeView mit dem Lebenszyklus der Activity), die Referentenansicht bleibt auf dem Gerät; ein später angesteckter
+  Bildschirm wird binnen zwei Sekunden erkannt (auch am PC); Wischen blättert, `KeepScreenOn`. **Lora-Dateidialog, wo der
+  Systemdialog nicht reicht**: Android-*Speichern* fragt zuerst nach einem Ordner im Lora-Ordner (`ui/LoraFolderPicker.kt`),
+  den der Android-Dialog nicht erreicht – so kommen Exporte per Sync an den PC; *Anderswo …* öffnet den Systemdialog.
+  **Verkleinern** (PDF-Stufe 3) mit pdfbox-android im Werkzeugkasten und als Lora-Aktion `pdf.compress`. Tour *Scannen*
+  (auch Android). Test `AndroidCatchUpTest`. **Rest**: Schwärzen, PDF/A, Passwort und PDF/UA bleiben am PC; Touren für die
+  Editoren selbst (Leuchtrahmen in den Editoren fehlen noch).
+
+### AP-65 ☑ Diktat · S–M (neu, optional)
+- Diktieren in Dokumente und Textfelder mit der vorhandenen lokalen Spracherkennung (sherpa-onnx), Satzzeichen per
+  Sprache („Punkt“, „neuer Absatz“); keine Sprachbefehle für die App (Chat-Sprachmodus reicht).
+- **Fertig, wenn**: Ein Absatz lässt sich im neuen Dokument-Editor auf dem Gerät diktieren.
+- **Umsetzung (08.11.2026, 1.0.61, ☑)**: `audio/Dictation.kt`: Aufnahme mit dem vorhandenen `Recorder`, Erkennung über
+  `Transcription.recognizeShort` (sherpa-onnx auf dem Gerät), der Uni-Server nur ohne geladenes Modell und wenn der
+  Datenschutz es erlaubt; `punctuate` macht aus gesprochenen Befehlen Satzzeichen (Zwei-Wort-Befehle zuerst, die eigenen
+  Satzzeichen des Modells daneben fallen weg, nach einem Artikel bleibt „Punkt“ ein Wort), `join` setzt Leerzeichen und
+  Großschreibung am Cursor. `ui/DictationUi.kt` (Mikrofon-Knopf mit Berechtigung), `FlowState.dictate` im
+  Fließtext-Editor, dazu die Sprechernotizen der Folien. Test `DictationTest` (u. a. ein diktierter Absatz im
+  Dokument-Editor). **Rest**: Diktat in weiteren Textfeldern; ohne Stopp-Knopf (Pausenerkennung).
+
+### AP-66 ☑ Schnellansicht in Dateien · S–M (bisher Ideen)
+- Große Vorschau ohne Öffnen (Leertaste) mit Details-Spalte.
+- **Fertig, wenn**: Leertaste über einer Datei zeigt sie groß; die Details-Spalte beschreibt die Datei unter der Maus.
+- **Umsetzung (08.11.2026, 1.0.61, ☑)**: `ui/QuickLook.kt`: Schnellansicht als Dialog (PDF-Seiten, Bilder, Dokumente und
+  Text als Markdown, Tabellen, Folien, Ordnerinhalt), ←/→ blättert durch die Dateien, Enter öffnet, Leertaste/Esc schließt;
+  die Leertaste fängt `DriveScreen` vor fokussierten Knöpfen und Einträgen ab, das Suchfeld behält seine Leerzeichen.
+  Ziel ist die Datei unter der Maus (Pointer-Enter/Exit), sonst die ausgewählte bzw. zuletzt benutzte. Details-Spalte
+  (ⓘ oben, breite Fenster) mit `files/FileDetails.kt`. Android: ⋮ › *Vorschau*. Tests `QuickLookTest`,
+  `Round2EndLookTest` (Maus über einer PDF → Details mit Seiten und Ort, Leertaste → Schnellansicht). **Rest**: Vorschau
+  für Video und Ton; Details auch für Treffer der Suche.
+
 ---
 
 ## Offene Fragen
@@ -979,13 +1045,16 @@ Windows bekommt alles; Android nur, was dort sinnvoll ist.
 | Chat-Design, Übersicht, Modi, Rückfragen (AP-01, 02, 05, 06) | ☑ | ☑ |
 | Lora-Navigator (AP-07) | ☐ | ☐ |
 | Pseudonymisierung (AP-03) | ☑ | ☑ |
-| Tresor (AP-10) | ☐ | ☐ |
+| Tresor (AP-10) | ☑ (eigene PIN je Gerät, AP-63) | ☑ |
 | PDF-Werkzeugkasten (AP-11, 15, 26) | Betrachter, Seiten, Markieren, Unterschreiben, KI, OCR per Bildmodell, Vergleichen | voll |
-| Sync (AP-12, AP-28) | ☑ (über Nextcloud) | ☑ |
+| Sync (AP-12, AP-28) | ☑ (über Nextcloud, mit Literatur, Wissen, Tresor, im Hintergrund – AP-63) | ☑ |
 | Mail und Kalender (AP-13, AP-27) | ☑ Mail über den Server (ohne Kalender) | ☑ (Outlook oder Server) |
 | Dateiverwaltung (AP-18) | ☑ (Dokumente, Wissenssammlung) | ☑ (dazu Ablageorte und Projektordner) |
-| Browser neben dem Chat (AP-14) | später, einfach (WebView) | ☑ |
-| Office (AP-16) | ☑ ansehen, bearbeiten, Lora; Dateien in der App mit Kopie in einen gewählten Ordner | ☑ voll, Lora-Ordner |
+| Browser neben dem Chat (AP-14) | ☑ einfach (WebView, AP-63) | ☑ |
+| Office (AP-16) | ☑ ansehen, bearbeiten, Lora; Dateien in der App mit Kopie in einen gewählten Ordner; Folien auf dem zweiten Bildschirm (AP-64) | ☑ voll, Lora-Ordner |
+| Dokumenten-Scanner (AP-62) | ☑ Kamera, OCR per Bildmodell | ☑ WIA-Scanner, Bilder, OCR von Windows |
+| Diktat (AP-65) | ☑ | ☑ |
+| Schnellansicht (AP-66) | ☑ über ⋮ › Vorschau | ☑ Leertaste, Details-Spalte |
 | Lernspiele (AP-17) | ansehen, spielen | voll |
 | Erstellen (AP-24) | TU Vorlagen; Gestalten nicht geplant | ☑ (mit Gestalten) |
 | Videoeditor (AP-25) | – (nicht geplant) | ☑ |

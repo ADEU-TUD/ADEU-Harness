@@ -178,7 +178,7 @@ fun PhoneSyncSection(c: AppContainer) {
     var hint by remember { mutableStateOf<String?>(null) }
     Section(tr("Mit dem PC synchronisieren")) {
         SettingsHint(
-            tr("Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten und beim Wechsel in den Hintergrund.") +
+            tr("Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen, Literatur mit Exzerpten, die Wissenssammlung, den Tresor (verschlüsselt) und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten, beim Wechsel in den Hintergrund und auf Wunsch auch bei geschlossener App.") +
                 " " + tr("Wie zwischen zwei PCs gilt: immer nur ein Gerät zur Zeit. Ist der Ordner am PC geöffnet, wartet das Handy; Änderungen auf beiden Seiten bleiben beide erhalten.")
         )
         if (s.phoneSyncRoot.isBlank()) {
@@ -190,9 +190,17 @@ fun PhoneSyncSection(c: AppContainer) {
                 if (running) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 TextButton(onClick = { c.settings.update { it.copy(phoneSyncRoot = "") }; hint = tr("Sync beendet. Die Daten auf dem Handy bleiben.") }) { Text(tr("Beenden")) }
             }
+            SwitchRow(
+                tr("Auch im Hintergrund synchronisieren"),
+                tr("Etwa alle {0} Minuten, auch wenn Lora geschlossen ist – ein am PC angelegter Literatureintrag ist dann schon da, wenn du die App öffnest.", io.github.thepytales.llmhub.tasks.BackgroundSync.MINUTES),
+                s.phoneSyncBackground, spot = "sync.background",
+            ) { on -> c.settings.update { it.copy(phoneSyncBackground = on) } }
+            if (s.phoneSyncBackground) SwitchRow(tr("Im Hintergrund nur im WLAN"), tr("Keine mobilen Daten für den Sync bei geschlossener App."), s.phoneSyncWifiOnly) { on ->
+                c.settings.update { it.copy(phoneSyncWifiOnly = on) }
+            }
         }
         (hint ?: status)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        HintText(tr("Literatur, Wissenssammlung, Transkripte und Einstellungen bleiben auf dem jeweiligen Gerät; API-Schlüssel gehen nie in den Ordner."))
+        HintText(tr("Transkripte und Einstellungen bleiben auf dem jeweiligen Gerät; API-Schlüssel gehen nie in den Ordner. Den Tresor öffnet jedes Gerät mit eigener PIN – auf einem neuen Gerät einmal mit dem Wiederherstellungsschlüssel."))
     }
     if (picking) NextcloudBrowser(
         c, tr("Lora-Ordner des PCs wählen"), start = "/", pickFolder = true, confirm = tr("Diesen Ordner nehmen"),
