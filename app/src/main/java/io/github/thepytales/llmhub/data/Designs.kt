@@ -24,9 +24,11 @@ object ElementKind {
     const val QR = "qr"
     /** The Shape of the CD 2025: the two components of the logo (rotated in 45° steps, mirrored, cut off at the edge). */
     const val TUD_SHAPE = "tudshape"
+    /** A simple table (AP-50): [DesignElement.rows], head row in TUD blue with [DesignElement.header]. */
+    const val TABLE = "table"
 
     val SHAPES = listOf(RECT, ELLIPSE, TRIANGLE, LINE, ARROW, STAR)
-    val ALL = listOf(TEXT) + SHAPES + listOf(TUD_SHAPE, IMAGE, ICON, QR)
+    val ALL = listOf(TEXT) + SHAPES + listOf(TUD_SHAPE, IMAGE, ICON, QR, TABLE)
 
     fun label(kind: String) = when (kind) {
         TEXT -> "Text"
@@ -40,6 +42,7 @@ object ElementKind {
         ICON -> "Symbol"
         QR -> "QR-Code"
         TUD_SHAPE -> "TUD-Shape"
+        TABLE -> "Tabelle"
         else -> kind
     }
 }
@@ -116,6 +119,14 @@ data class DesignElement(
     val saturation: Float = 0f,
     val grayscale: Boolean = false,
     val blur: Float = 0f,
+    /**
+     * [text] holds inline Markdown for formatting inside the box (`**fett**`, `*kursiv*`, `<u>…</u>`,
+     * `<span style="color:#C00000">…</span>`, AP-50 with the text core AP-43); off for plain boxes, so a „*“ stays a star.
+     */
+    val rich: Boolean = false,
+    /** Table: the cells row by row (inline Markdown); the first row is the head row with [header]. */
+    val rows: List<List<String>> = emptyList(),
+    val header: Boolean = true,
 ) {
     val isText get() = kind == ElementKind.TEXT
     /** A gradient or a picture filter: exports draw such an element as a picture where they cannot do it natively. */

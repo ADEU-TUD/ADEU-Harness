@@ -5415,3 +5415,16 @@ Gesicht {0} ({1}–{2} s)	Face {0} ({1}–{2} s)
 Verpixeln	Pixelate
 {0} Keyframes – der Bereich folgt dazwischen.	{0} keyframes – the region follows in between.
 ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren), das Sprachmodell der Rauschminderung (RNNoise) und die Gesichtserkennung zum Verpixeln (YuNet, läuft nur auf diesem PC). Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher und Gesichter werden von Hand markiert.	ffprobe for exact details of videos (length, frame rate, rotation, audio tracks), the speech model of the noise reduction (RNNoise) and the face detection for pixelating (YuNet, runs only on this PC). Without the package the video editor cuts with the app's ffmpeg, the noise reduction is simpler then and faces are marked by hand.
+Unterstrichen (Strg+U)	Underline (Ctrl+U)
+Farbe des Textfelds	Colour of the text box
+Symbol …	Symbol …
+Aneinander ausrichten und verteilen	Align to each other and distribute
+Inhalt des QR-Codes (Link oder Text)	Content of the QR code (link or text)
+Doppelklick auf das Textfeld: direkt auf der Folie tippen; markierten Text mit Strg+B, Strg+I, Strg+U oder der Leiste darüber formatieren.	Double-click the text box to type right on the slide; format selected text with Ctrl+B, Ctrl+I, Ctrl+U or the bar above it.
+− Zeile	− Row
+Kopfzeile	Header row
+Spiegeln	Mirror
+Verlauf nach unten	Gradient downwards
+Drehung {0}° aufheben	Remove {0}° rotation
+Auf der Folie: ziehen verschiebt (rastet an Rändern, Mitte und anderen Elementen ein, Strg: frei), der runde Griff dreht, Umschalt+Klick oder ein Rahmen wählt mehrere.	On the slide: drag to move (snaps to edges, the middle and other elements, Ctrl: freely), the round handle rotates, Shift+click or a frame selects several.
+Formatierung in einer Zelle wie in Tabellen: **fett**, *kursiv*, <u>unterstrichen</u>.	Formatting inside a cell as in sheets: **bold**, *italic*, <u>underlined</u>.

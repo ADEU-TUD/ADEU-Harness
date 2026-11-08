@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.vector.VectorGroup
 import androidx.compose.ui.graphics.vector.VectorPath
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -118,7 +120,7 @@ object DesignText {
     /** A laid-out text box: [layout] in REF pixels, [fontSize] the size actually used (pt), [top] the offset in mm. */
     class Laid(val layout: TextLayoutResult, val fontSize: Float, val top: Float, val lineHeightMm: Float)
 
-    private data class Key(val text: String, val size: Float, val bold: Boolean, val medium: Boolean, val italic: Boolean, val w: Float, val h: Float, val lh: Float, val align: String, val valign: String, val fit: Boolean, val pad: Float)
+    private data class Key(val text: String, val size: Float, val bold: Boolean, val medium: Boolean, val italic: Boolean, val w: Float, val h: Float, val lh: Float, val align: String, val valign: String, val fit: Boolean, val pad: Float, val rich: Boolean)
 
     private val cache = object : LinkedHashMap<Key, Laid>(64, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Laid>?) = size > 300
@@ -137,7 +139,8 @@ object DesignText {
         )
     }
 
-    private fun measure(text: String, sizePt: Float, e: DesignElement, widthPx: Int): TextLayoutResult =
+    /** Formatting inside the box (AP-50): bold, italic, underline and colour of parts of the text. */
+    private fun measure(text: AnnotatedString, sizePt: Float, e: DesignElement, widthPx: Int): TextLayoutResult =
         measurer.measure(text, style(sizePt, e), constraints = Constraints(minWidth = widthPx, maxWidth = widthPx))
 
     /** Width of the longest word at [sizePt] in REF px (a word must not be broken across lines). */
@@ -152,23 +155,24 @@ object DesignText {
 
     @Synchronized
     fun layout(e: DesignElement): Laid {
-        val key = Key(e.text, e.fontSize, e.bold, e.medium, e.italic, e.w, e.h, e.lineHeight, e.align, e.valign, e.fit, e.padding)
+        val key = Key(e.text, e.fontSize, e.bold, e.medium, e.italic, e.w, e.h, e.lineHeight, e.align, e.valign, e.fit, e.padding, e.rich)
         cache[key]?.let { return it }
-        val text = e.text.ifEmpty { " " }
+        val rich = FieldRich.annotated(e.text.ifEmpty { " " }, e.rich).let { if (it.text.isEmpty()) AnnotatedString(" ") else it }
+        val text = rich.text
         val innerW = (e.w - 2 * e.padding).coerceAtLeast(1f)
         val innerH = (e.h - 2 * e.padding).coerceAtLeast(1f)
         val widthPx = (innerW * REF).toInt().coerceAtLeast(1)
         var size = e.fontSize.coerceIn(2f, 1000f)
-        var result = measure(text, size, e, widthPx)
+        var result = measure(rich, size, e, widthPx)
         fun fits(r: TextLayoutResult, s: Float) = r.size.height <= innerH * REF + 0.5f && longestWord(text, s, e) <= widthPx + 0.5f
         if (e.fit && !fits(result, size)) {
             // Largest size that fits (bisection down to 2 pt, 0.25 pt steps).
             var lo = 2f
             var hi = size
-            var best = measure(text, lo, e, widthPx) to lo
+            var best = measure(rich, lo, e, widthPx) to lo
             while (hi - lo > 0.25f) {
                 val mid = (lo + hi) / 2
-                val r = measure(text, mid, e, widthPx)
+                val r = measure(rich, mid, e, widthPx)
                 if (fits(r, mid)) { lo = mid; best = r to mid } else hi = mid
             }
             result = best.first
@@ -541,12 +545,46 @@ private fun DrawScope.drawElementLocal(design: Design, e: DesignElement, editing
                 scale(k, k, Offset.Zero) { paths.forEach { drawPath(it, c) } }
             }
         }
+        ElementKind.TABLE -> drawTable(e, alpha)
         ElementKind.QR -> {
             designColor(e.fill.ifBlank { "#FFFFFF" }, alpha)?.let { drawRect(it, Offset.Zero, Size(e.w, e.h)) }
             val p = DesignQr.path(e.text, e.w, e.h).apply { fillType = PathFillType.NonZero }
             drawPath(p, designColor(e.color, alpha) ?: Color.Black)
         }
     }
+}
+
+/**
+ * A table of the canvas (AP-50) in its own box: row backgrounds, the cell texts (inline Markdown, laid out like text
+ * boxes, vertically centred) and the grid lines – see [CanvasTable].
+ */
+private fun DrawScope.drawTable(e: DesignElement, alpha: Float) {
+    val rows = CanvasTable.normalized(e.rows)
+    val cols = CanvasTable.cols(rows)
+    rows.indices.forEach { r ->
+        val first = CanvasTable.cell(e, r, 0)
+        designColor(CanvasTable.fill(e, r), alpha)?.let { drawRect(it, Offset(0f, first.top), Size(e.w, first.height)) }
+        rows[r].forEachIndexed { c, text ->
+            if (text.isBlank()) return@forEachIndexed
+            val box = CanvasTable.cell(e, r, c)
+            val cell = e.copy(
+                kind = ElementKind.TEXT, text = text, rich = true, w = box.width, h = box.height, padding = CanvasTable.PAD,
+                valign = "middle", align = "left", bold = CanvasTable.bold(e, r), fill = "", fill2 = "", lineHeight = 1.15f,
+            )
+            val laid = DesignText.layout(cell)
+            clipRect(box.left, box.top, box.right, box.bottom) {
+                translate(box.left + cell.padding, box.top + laid.top) {
+                    scale(1f / DesignText.REF, 1f / DesignText.REF, Offset.Zero) {
+                        drawText(laid.layout, color = designColor(CanvasTable.textColor(e, r)) ?: Color.Black, alpha = alpha)
+                    }
+                }
+            }
+        }
+    }
+    val line = designColor(CanvasTable.LINE, alpha) ?: return
+    val stroke = (min(e.w, e.h) * 0.004f).coerceIn(0.15f, 0.6f)
+    for (r in 0..rows.size) { val y = e.h * r / rows.size; drawLine(line, Offset(0f, y), Offset(e.w, y), stroke) }
+    for (c in 0..cols) { val x = e.w * c / cols; drawLine(line, Offset(x, 0f), Offset(x, e.h), stroke) }
 }
 
 /** The linear gradient from [DesignElement.fill] to [DesignElement.fill2] across the box (null: solid). */

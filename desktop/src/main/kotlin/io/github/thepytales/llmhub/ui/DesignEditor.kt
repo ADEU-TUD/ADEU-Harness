@@ -57,6 +57,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
@@ -336,6 +337,10 @@ private fun ToolRail(c: AppContainer, state: DesignEditorState) {
         RailButton(Icons.Outlined.EmojiSymbols, tr("Symbol")) { symbols = true }
         RailButton(Icons.Outlined.Image, tr("Bild")) { pickImage() }
         RailButton(Icons.Outlined.AutoAwesome, tr("Bild erzeugen")) { generate = true }
+        // Tables on the canvas (AP-50): the TUD table style, editable in the panel, also on slides.
+        RailButton(Icons.Outlined.TableChart, tr("Tabelle")) {
+            state.add(DesignElement(kind = ElementKind.TABLE, w = d.width * 0.7f, h = unit * 0.25f, rows = io.github.thepytales.llmhub.creative.CanvasTable.blank(), fontSize = unit * 0.016f / DesignFormat.MM_PER_PT, color = "#000000"))
+        }
         RailButton(Icons.Outlined.QrCode2, tr("QR-Code")) {
             state.add(DesignElement(kind = ElementKind.QR, w = unit * 0.2f, h = unit * 0.2f, text = "https://tu-dresden.de", color = TudBrand.BLUE, fill = "#FFFFFF"))
         }
@@ -406,7 +411,7 @@ private fun RailButton(icon: ImageVector, label: String, onClick: () -> Unit) {
 /** Symbols: the TUD icon sets of the CD package (by theme) and further Material symbols. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SymbolPicker(onDismiss: () -> Unit, onPick: (String) -> Unit) {
+internal fun SymbolPicker(onDismiss: () -> Unit, onPick: (String) -> Unit) {
     val sets = io.github.thepytales.llmhub.creative.TudIcons.sets
     var set by remember { mutableStateOf(sets.firstOrNull()?.name ?: "") }
     AlertDialog(
@@ -725,15 +730,12 @@ private fun DesignCanvas(state: DesignEditorState, focus: FocusRequester) {
 @Composable
 private fun InlineText(state: DesignEditorState, e: DesignElement, scale: Float, origin: Offset, onDone: () -> Unit) {
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val fieldFocus = remember { FocusRequester() }
-    var value by remember(e.id) { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(e.text, androidx.compose.ui.text.TextRange(e.text.length))) }
-    LaunchedEffect(e.text) { if (e.text != value.text) value = value.copy(text = e.text) }
     val fontPx = e.fontSize * DesignFormat.MM_PER_PT * scale
     with(density) {
-        androidx.compose.foundation.text.BasicTextField(
-            value = value,
-            onValueChange = { v -> value = v; if (v.text != e.text) state.updateSelected("text-${e.id}") { grow(it.copy(text = v.text)) } },
-            textStyle = androidx.compose.ui.text.TextStyle(
+        // The shared editor of the canvas (also on slides): characters keep their format, Strg+B/I/U and the bar format the selection.
+        io.github.thepytales.llmhub.creative.CanvasTextEditor(
+            raw = e.text, rich = e.rich,
+            style = androidx.compose.ui.text.TextStyle(
                 fontFamily = io.github.thepytales.llmhub.creative.DesignFonts.family,
                 fontSize = fontPx.toSp(), lineHeight = (fontPx * e.lineHeight).toSp(),
                 fontWeight = if (e.bold) androidx.compose.ui.text.font.FontWeight.Bold else if (e.medium) androidx.compose.ui.text.font.FontWeight.Medium else androidx.compose.ui.text.font.FontWeight.Normal,
@@ -741,19 +743,18 @@ private fun InlineText(state: DesignEditorState, e: DesignElement, scale: Float,
                 color = io.github.thepytales.llmhub.creative.designColor(e.color) ?: Color.Black,
                 textAlign = when (e.align) { "center" -> androidx.compose.ui.text.style.TextAlign.Center; "right" -> androidx.compose.ui.text.style.TextAlign.End; else -> androidx.compose.ui.text.style.TextAlign.Start },
             ),
-            cursorBrush = androidx.compose.ui.graphics.SolidColor(EditorAccent),
             modifier = Modifier
                 .offset { androidx.compose.ui.unit.IntOffset((origin.x + e.x * scale).toInt(), (origin.y + e.y * scale).toInt()) }
                 .size((e.w * scale).toDp(), (e.h * scale).toDp())
                 .graphicsLayer { rotationZ = e.rotation }
                 .background(io.github.thepytales.llmhub.creative.designColor(e.fill) ?: Color.Transparent)
                 .border(1.dp, EditorAccent)
-                .padding((e.padding * scale).toDp())
-                .focusRequester(fieldFocus)
-                .onPreviewKeyEvent { ev -> if (ev.type == KeyEventType.KeyDown && ev.key == Key.Escape) { onDone(); true } else false },
+                .padding((e.padding * scale).toDp()),
+            onChange = { raw, rich -> state.updateElements(setOf(e.id), "text-${e.id}") { grow(it.copy(text = raw, rich = rich)) } },
+            onDone = onDone,
+            accent = EditorAccent,
         )
     }
-    LaunchedEffect(e.id) { runCatching { fieldFocus.requestFocus() } }
 }
 
 /** Hooks of the canvas for the panel (double click on a picture opens the file dialog). */
@@ -836,6 +837,7 @@ private fun PropertiesPanel(c: AppContainer, state: DesignEditorState) {
                     ElementKind.ICON -> IconProperties(state, e)
                     ElementKind.TUD_SHAPE -> TudShapeProperties(state, e)
                     ElementKind.QR -> QrProperties(state, e)
+                    ElementKind.TABLE -> TableProperties(state, e)
                     ElementKind.LINE, ElementKind.ARROW -> {
                         ColorField(tr("Farbe"), e.stroke.ifBlank { e.color }, allowNone = false) { col -> state.updateSelected("stroke") { it.copy(stroke = col) } }
                         NumberField(tr("Linienstärke (mm)"), e.strokeWidth, "sw") { v -> state.updateSelected("sw") { it.copy(strokeWidth = v.coerceIn(0.05f, 50f)) } }
@@ -920,6 +922,28 @@ private fun TextProperties(state: DesignEditorState, e: DesignElement) {
         NumberField(tr("Innenabstand (mm)"), e.padding, "pad-${e.id}") { v -> state.updateSelected("pad-${e.id}") { it.copy(padding = v.coerceIn(0f, min(it.w, it.h) / 2)) } }
         NumberField(tr("Eckenradius (mm)"), e.radius, "r-${e.id}") { v -> state.updateSelected("r-${e.id}") { it.copy(radius = v.coerceAtLeast(0f)) } }
     }
+}
+
+/** A table of the canvas (AP-50): its cells, rows and columns, head row, size and colour of the text. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TableProperties(state: DesignEditorState, e: DesignElement) {
+    val t = io.github.thepytales.llmhub.creative.CanvasTable
+    val rows = t.normalized(e.rows)
+    TableGrid(rows) { r -> state.updateSelected("cells-${e.id}") { it.copy(rows = r) } }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        TextButton(onClick = { state.updateSelected { it.copy(rows = t.addRow(rows), h = it.h + it.h / rows.size) } }) { Text(tr("+ Zeile")) }
+        TextButton(onClick = { state.updateSelected { it.copy(rows = t.addColumn(rows)) } }) { Text(tr("+ Spalte")) }
+        TextButton(onClick = { state.updateSelected { it.copy(rows = t.removeRow(rows), h = if (rows.size > 1) it.h - it.h / rows.size else it.h) } }, enabled = rows.size > 1) { Text(tr("− Zeile")) }
+        TextButton(onClick = { state.updateSelected { it.copy(rows = t.removeColumn(rows)) } }, enabled = t.cols(rows) > 1) { Text(tr("− Spalte")) }
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(tr("Kopfzeile"), modifier = Modifier.weight(1f))
+        Switch(modifier = Modifier.a11yLabel(tr("Kopfzeile")), checked = e.header, onCheckedChange = { on -> state.updateSelected { it.copy(header = on) } })
+    }
+    NumberField(tr("Größe (pt)"), e.fontSize, "fs-${e.id}") { v -> state.updateSelected("fs-${e.id}") { it.copy(fontSize = v.coerceIn(2f, 400f)) } }
+    ColorField(tr("Schriftfarbe"), e.color, allowNone = false) { col -> state.updateSelected("color") { it.copy(color = col) } }
+    HintText(tr("Formatierung in einer Zelle wie in Tabellen: **fett**, *kursiv*, <u>unterstrichen</u>."))
 }
 
 /** Text boxes without „An die Box anpassen“ grow downwards when their text gets longer. */
