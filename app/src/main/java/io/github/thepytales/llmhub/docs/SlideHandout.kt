@@ -231,15 +231,51 @@ object SlideHandout {
         // Frei gestalten (AP-16): elements over the layout.
         s.elements.forEach { el ->
             val color = el.color.ifBlank { "#00305D" }
+            // Shared canvas (AP-50): turned around the middle, gradients, formatting inside the box, its own elements.
+            val turn = if (el.rotation != 0.0) "transform:rotate(${"%.1f".format(java.util.Locale.ROOT, el.rotation)}deg);" else ""
+            fun paint(fill: String) = "background:$fill;" + if (el.fill2.isNotBlank()) "background:linear-gradient($fill,${el.fill2});" else ""
+            fun runs(): String = io.github.thepytales.llmhub.creative.FieldRich.lines(el.text, el.rich).joinToString("<br>") { line ->
+                line.joinToString("") { (t, f) ->
+                    var out = esc(t)
+                    if (f.bold) out = "<b>$out</b>"
+                    if (f.italic) out = "<i>$out</i>"
+                    if (f.underline) out = "<u>$out</u>"
+                    if (f.strike) out = "<s>$out</s>"
+                    f.color?.let { out = "<span style=\"color:#$it\">$out</span>" }
+                    out
+                }
+            }
             when (el.kind) {
                 "bild" -> picture(el.src, el.text, el.x, el.y, el.w, el.h)
+                "tudshape" -> {
+                    val side = minOf(el.w, el.h)
+                    val flip = if (el.flipX) " transform=\"translate(${el.w},0) scale(-1,1)\"" else ""
+                    box(el.x, el.y, el.w, el.h, turn, "<svg viewBox=\"0 0 ${el.w} ${el.h}\" style=\"width:100%;height:100%\"><g$flip>" +
+                        TudBrand.shapeSvgPolygons((el.w - side) / 2, (el.h - side) / 2, side, el.fill.ifBlank { TudBrand.LIGHT_BLUE }) + "</g></svg>")
+                }
+                "symbol", "qr" -> {
+                    val d = io.github.thepytales.llmhub.creative.SlideCanvas.toDesign(el, "x")
+                    val png = io.github.thepytales.llmhub.creative.CanvasArt.png(d, 12f) ?: return@forEach
+                    box(el.x, el.y, el.w, el.h, turn, "<img src=\"${DocMarkup.dataUrl(png)}\" alt=\"${esc(if (el.kind == "qr") "QR-Code: " + el.text else "Symbol")}\" style=\"width:100%;height:100%\">")
+                }
+                "tabelle" -> {
+                    val t = io.github.thepytales.llmhub.creative.CanvasTable
+                    val probe = io.github.thepytales.llmhub.creative.SlideCanvas.toDesign(el, "x")
+                    val html = t.normalized(el.rows).mapIndexed { r, row ->
+                        val bg = t.fill(probe, r).takeIf { it.isNotBlank() }?.let { "background:$it;" }.orEmpty()
+                        "<tr style=\"$bg\">" + row.joinToString("") { cell ->
+                            "<td style=\"border:0.2mm solid ${t.LINE};padding:0.6mm 1mm;color:${t.textColor(probe, r)};${if (t.bold(probe, r)) "font-weight:600;" else ""}\">${inline(cell)}</td>"
+                        } + "</tr>"
+                    }.joinToString("")
+                    box(el.x, el.y, el.w, el.h, turn + text(el.size, color), "<table style=\"position:static;width:100%;height:100%;border-collapse:collapse\">$html</table>")
+                }
                 "form" -> {
                     val fill = el.fill.ifBlank { "#00305D" }
                     val radius = when (el.shape) { "ellipse" -> "border-radius:50%;"; "abgerundet" -> "border-radius:12%;"; else -> "" }
-                    val styleCss = if (el.shape == "linie") "border-top:2px solid $color;" else "background:$fill;$radius"
-                    box(el.x, el.y, el.w, el.h, styleCss + text(el.size, if (el.color.isBlank()) "#fff" else color, bold = el.bold), inline(el.text))
+                    val styleCss = if (el.shape == "linie") "border-top:2px solid $color;" else paint(fill) + radius
+                    box(el.x, el.y, el.w, el.h, turn + styleCss + text(el.size, if (el.color.isBlank()) "#fff" else color, bold = el.bold), if (el.rich) runs() else inline(el.text))
                 }
-                else -> box(el.x, el.y, el.w, el.h, (if (el.fill.isNotBlank()) "background:${el.fill};" else "") + text(el.size, color, bold = el.bold), el.text.lines().joinToString("<br>") { inline(it) })
+                else -> box(el.x, el.y, el.w, el.h, turn + (if (el.fill.isNotBlank()) paint(el.fill) else "") + text(el.size, color, bold = el.bold), if (el.rich) runs() else el.text.lines().joinToString("<br>") { inline(it) })
             }
         }
         val bg = if (dark) BLUE else "#fff"

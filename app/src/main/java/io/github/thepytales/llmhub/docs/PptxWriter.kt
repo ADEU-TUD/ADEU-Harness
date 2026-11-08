@@ -159,6 +159,12 @@ object PptxWriter {
         // Pictures of the slides (unreadable ones are left out, the slide keeps its text).
         val pictures = slides.map { s -> s.image.takeIf { it.isNotBlank() }?.let { DocMarkup.imageBytes(it) } }
         val media = pictures.mapIndexed { i, b -> b?.let { "bild${i + 1}.${DocMarkup.imageType(it) ?: "png"}" } }
+        // Echte PowerPoint-Diagramme (AP-49): a chart slide gets a chart part with its data in an embedded workbook
+        // („Daten bearbeiten“ in PowerPoint); box plots, which Office has no classic chart for, stay drawn with shapes.
+        val charts = slides.mapIndexed { i, s ->
+            if (s.kind != Kind.CHART || s.chart == null || s.chart.type == ChartSpec.Type.BOX) null
+            else runCatching { OfficeCharts.embedded(s.chart, "../embeddings/Microsoft_Excel_Worksheet${i + 1}.xlsx") }.getOrNull()
+        }
         ZipOutputStream(file.outputStream()).use { zip ->
             fun bytes(name: String, content: ByteArray) {
                 zip.putNextEntry(ZipEntry(name))
@@ -166,7 +172,7 @@ object PptxWriter {
                 zip.closeEntry()
             }
             fun entry(name: String, content: String) = bytes(name, content.toByteArray(Charsets.UTF_8))
-            entry("[Content_Types].xml", contentTypes(slides, media.filterNotNull().map { it.substringAfterLast('.') }.toSet()))
+            entry("[Content_Types].xml", contentTypes(slides, media.filterNotNull().map { it.substringAfterLast('.') }.toSet(), charts.mapIndexedNotNull { i, c -> if (c != null) i + 1 else null }))
             entry("_rels/.rels", ROOT_RELS)
             entry("docProps/core.xml", core(deckTitle))
             entry("docProps/app.xml", app(slides.size))
@@ -191,8 +197,13 @@ object PptxWriter {
                 val n = i + 1
                 val picture = pictures[i]
                 if (picture != null) bytes("ppt/media/${media[i]}", picture)
-                entry("ppt/slides/slide$n.xml", slideXml(s, n, slides.size, unitLines, foot, picture?.let { DocMarkup.imageSize(it) ?: (4 to 3) }))
-                entry("ppt/slides/_rels/slide$n.xml.rels", slideRels(n, s.notes.isNotBlank(), media[i]))
+                entry("ppt/slides/slide$n.xml", slideXml(s, n, slides.size, unitLines, foot, picture?.let { DocMarkup.imageSize(it) ?: (4 to 3) }, nativeChart = charts[i] != null))
+                entry("ppt/slides/_rels/slide$n.xml.rels", slideRels(n, s.notes.isNotBlank(), media[i], chart = charts[i] != null))
+                charts[i]?.let { c ->
+                    entry("ppt/charts/chart$n.xml", c.chartXml)
+                    entry("ppt/charts/_rels/chart$n.xml.rels", c.relsXml)
+                    bytes("ppt/embeddings/Microsoft_Excel_Worksheet$n.xlsx", c.workbook)
+                }
                 if (s.notes.isNotBlank()) {
                     entry("ppt/notesSlides/notesSlide$n.xml", notesXml(s.notes))
                     entry("ppt/notesSlides/_rels/notesSlide$n.xml.rels", notesRels(n))
@@ -246,7 +257,7 @@ object PptxWriter {
             "</p:childTnLst></p:cTn></p:par></p:tnLst><p:bldLst>" + targets.joinToString("") { "<p:bldP spid=\"${it.first}\" grpId=\"0\" build=\"p\"/>" } + "</p:bldLst></p:timing>"
     }
 
-    private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String, picture: Pair<Int, Int>? = null): String {
+    private fun slideXml(s: Slide, n: Int, total: Int, unit: List<String>, footer: String, picture: Pair<Int, Int>? = null, nativeChart: Boolean = false): String {
         val sh = Shapes()
         // Text boxes of the content (for the build of the points).
         var bodyFrom = 0
@@ -346,7 +357,9 @@ object PptxWriter {
                 if (s.title.isNotBlank()) title(sh, s.title) else hiddenTitle(sh, s.chart?.title?.ifBlank { null } ?: "Diagramm")
                 val withText = s.blocks.isNotEmpty()
                 val h = c(TudSlide.BODY_BOTTOM - TudSlide.BODY_TOP)
-                if (s.chart != null) chart(sh, s.chart, c(TudSlide.X), c(TudSlide.BODY_TOP), if (withText) cm(20.0) else c(TudSlide.CONTENT_W), h)
+                val w = if (withText) cm(20.0) else c(TudSlide.CONTENT_W)
+                if (s.chart != null && nativeChart) chartFrame(sh, OfficeCharts.altText(s.chart), c(TudSlide.X), c(TudSlide.BODY_TOP), w, h)
+                else if (s.chart != null) chart(sh, s.chart, c(TudSlide.X), c(TudSlide.BODY_TOP), w, h)
                 if (withText) content(sh, s.blocks, c(22.37), c(TudSlide.BODY_TOP), c(9.8), h, half = true)
                 chrome(sh, n, footer)
             }
@@ -584,6 +597,16 @@ object PptxWriter {
         )
     }
 
+    /** The frame of a real PowerPoint chart (part `rIdChart` of the slide). */
+    private fun chartFrame(sh: Shapes, alt: String, x: Long, y: Long, w: Long, h: Long) {
+        val id = sh.next()
+        sh.xml.append(
+            "<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id=\"$id\" name=\"Diagramm $id\" descr=\"${esc(alt)}\"/>" +
+                "<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp=\"1\"/></p:cNvGraphicFramePr><p:nvPr/></p:nvGraphicFramePr>" +
+                "<p:xfrm><a:off x=\"$x\" y=\"$y\"/><a:ext cx=\"$w\" cy=\"$h\"/></p:xfrm>" + OfficeCharts.graphic("rIdChart") + "</p:graphicFrame>"
+        )
+    }
+
     /** A chart of the slide drawn with shapes from [ChartLayout] – the same drawing as in the editor and the PDF. */
     private fun chart(sh: Shapes, spec: ChartSpec, x: Long, y: Long, w: Long, h: Long) {
         val scale = minOf(w / ChartLayout.W.toDouble(), h / ChartLayout.H.toDouble())
@@ -673,12 +696,14 @@ object PptxWriter {
     private const val REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
     private const val CT = "application/vnd.openxmlformats-officedocument.presentationml"
 
-    private fun contentTypes(slides: List<Slide>, imageTypes: Set<String> = emptySet()) = buildString {
+    private fun contentTypes(slides: List<Slide>, imageTypes: Set<String> = emptySet(), charts: List<Int> = emptyList()) = buildString {
         append(XML).append("<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">")
         append("<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>")
         append("<Default Extension=\"xml\" ContentType=\"application/xml\"/>")
         append("<Default Extension=\"png\" ContentType=\"image/png\"/>")
         (imageTypes - "png").forEach { append("<Default Extension=\"$it\" ContentType=\"image/$it\"/>") }
+        if (charts.isNotEmpty()) append("<Default Extension=\"xlsx\" ContentType=\"${OfficeCharts.XLSX_TYPE}\"/>")
+        charts.forEach { append("<Override PartName=\"/ppt/charts/chart$it.xml\" ContentType=\"${OfficeCharts.CONTENT_TYPE}\"/>") }
         append("<Override PartName=\"/ppt/presentation.xml\" ContentType=\"$CT.presentation.main+xml\"/>")
         append("<Override PartName=\"/ppt/slideMasters/slideMaster1.xml\" ContentType=\"$CT.slideMaster+xml\"/>")
         append("<Override PartName=\"/ppt/slideLayouts/slideLayout1.xml\" ContentType=\"$CT.slideLayout+xml\"/>")
@@ -739,8 +764,9 @@ object PptxWriter {
         append("</Relationships>")
     }
 
-    private fun slideRels(n: Int, notes: Boolean, image: String? = null) = XML + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+    private fun slideRels(n: Int, notes: Boolean, image: String? = null, chart: Boolean = false) = XML + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
         (if (image != null) "<Relationship Id=\"rIdImg\" Type=\"$REL/image\" Target=\"../media/$image\"/>" else "") +
+        (if (chart) "<Relationship Id=\"rIdChart\" Type=\"${OfficeCharts.REL_CHART}\" Target=\"../charts/chart$n.xml\"/>" else "") +
         "<Relationship Id=\"rIdLayout\" Type=\"$REL/slideLayout\" Target=\"../slideLayouts/slideLayout1.xml\"/>" +
         "<Relationship Id=\"rIdLogo\" Type=\"$REL/image\" Target=\"../media/logo-blau.png\"/>" +
         "<Relationship Id=\"rIdLogoW\" Type=\"$REL/image\" Target=\"../media/logo-weiss.png\"/>" +

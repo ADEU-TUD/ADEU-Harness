@@ -5354,3 +5354,109 @@ Suche Dateien in „{0}“ …	Looking for files in “{0}” …
 Lese {0} von {1} Dateien aus „{2}“ …	Reading {0} of {1} files from “{2}” …
 Einmal gelesene Dateien kommen danach aus dem Volltext-Cache.	Files read once come from the full-text cache afterwards.
 {0} Datumsangaben als TT.MM.JJJJ vereinheitlicht	{0} dates unified as DD.MM.YYYY
+Für die automatische Gesichtserkennung fehlt das Videoeditor-Paket (Einstellungen › Werkzeuge › Erweiterungen) oder es ist zu alt. Bereiche lassen sich von Hand setzen.	Automatic face detection needs the video editor package (Settings › Tools › Extensions), or it is too old. Regions can be set by hand.
+Die Gesichtserkennung braucht die Spracherkennung der App (ONNX Runtime), sie fehlt hier. Bereiche lassen sich von Hand setzen.	Face detection needs the app's speech recognition (ONNX Runtime), which is missing here. Regions can be set by hand.
+Die Gesichtserkennung ließ sich nicht starten.	Face detection could not be started.
+Die ONNX Runtime der App ist zu alt für die Gesichtserkennung.	The app's ONNX Runtime is too old for face detection.
+Ein Standbild läuft nicht rückwärts.	A freeze frame cannot run backwards.
+Rückwärts geht nur für kurze Clips bis {0} s (dieser ist {1} s lang) – bitte vorher mit der Klinge kürzen.	Reverse only works for short clips up to {0} s (this one is {1} s long) – please shorten it with the blade first.
+rückwärts	reversed
+Standbild	Freeze frame
+Hochformat	Portrait
+{0} Bereich(e)	{0} region(s)
+Bild korrigiert	Picture corrected
+Stimme verfremdet	Voice disguised
+Geschwindigkeit	Speed
+Welche Geschwindigkeit? Zwischen 0,25 und 4.	Which speed? Between 0.25 and 4.
+Setzt {0} Clip(s) auf {1} …	Setting {0} clip(s) to {1} …
+{0} Clip(s) laufen mit {1}.	{0} clip(s) now run at {1}.
+Wo soll das Standbild hin?	Where should the freeze frame go?
+Standbild bei {0} …	Freeze frame at {0} …
+Standbild bei {0} für {1} s.	Freeze frame at {0} for {1} s.
+Zoomen	Zoom
+Zoomt auf „{0}“ …	Zooming onto “{0}” …
+Zoom auf „{0}“ in {1} Clip(s) – Keyframes in den Effekten des Clips.	Zoom onto “{0}” in {1} clip(s) – keyframes in the clip's effects.
+Gesichter verpixeln	Pixelate faces
+Sucht Gesichter in {0} Clip(s) …	Looking for faces in {0} clip(s) …
+Die Gesichtserkennung ist fehlgeschlagen.	Face detection failed.
+Anonymisierung im Video „{0}“: {1} Gesicht(er) in {2} Clip(s) verpixelt ({3}).	Anonymisation in video “{0}”: {1} face(s) pixelated in {2} clip(s) ({3}).
+Keine Gesichter gefunden – bitte in der Vorschau prüfen.	No faces found – please check in the preview.
+Bitte in der Vorschau prüfen.	Please check in the preview.
+Stimme verfremden	Disguise voice
+Verfremdet die Stimme ({0} Halbtöne) …	Disguising the voice ({0} semitones) …
+Anonymisierung im Video „{0}“: Stimme um {1} Halbtöne verschoben ({2}).	Anonymisation in video “{0}”: voice shifted by {1} semitones ({2}).
+alle Clips und Tonspuren	all clips and audio tracks
+{0} Clip(s)	{0} clip(s)
+Effekte	Effects
+Der Ton läuft mit, die Tonhöhe bleibt.	The sound follows, its pitch stays.
+Standbild am Abspielkopf (2 s)	Freeze frame at the playhead (2 s)
+Standbild: zeigt das Bild bei {0} s der Datei. Die Länge stellst du über Anfang und Ende ein.	Freeze frame: shows the picture at {0} s of the file. Set its length with start and end.
+Bildkorrektur	Picture correction
+Weißabgleich: Rot {0}, Grün {1}, Blau {2}.	White balance: red {0}, green {1}, blue {2}.
+Weißabgleich automatisch	Automatic white balance
+Zoom und Schwenk	Zoom and pan
+Abspielkopf an eine Stelle setzen und den Ausschnitt einstellen – dort entsteht ein Keyframe; dazwischen gleitet das Bild.	Put the playhead somewhere and set the section – a keyframe is made there; in between the picture glides.
+Ausschnitt	Section
+Sanft beschleunigen	Ease in and out
+Hochformat 9:16 (folgt den Keyframes)	Portrait 9:16 (follows the keyframes)
+{0} Keyframe(s)	{0} keyframe(s)
+Keyframe hier löschen	Delete keyframe here
+Alle löschen	Delete all
+Bereiche unkenntlich machen	Make regions unrecognisable
+Bereich hinzufügen	Add region
+Anonymisierung im Video „{0}“: {1} Gesicht(er) in Clip „{2}“ verpixelt ({3}).	Anonymisation in video “{0}”: {1} face(s) pixelated in clip “{2}” ({3}).
+Keine Gesichter gefunden.	No faces found.
+{0} Gesicht(er) gefunden und verpixelt – bitte in der Vorschau prüfen.	{0} face(s) found and pixelated – please check in the preview.
+Gesichter finden	Find faces
+Tonhöhe	Pitch
+{0} Halbtöne	{0} semitones
+Für echte Anonymität zusätzlich Namen und Orte im Ton prüfen – eine verschobene Stimme lässt sich teilweise zurückrechnen.	For real anonymity also check names and places in the sound – a shifted voice can partly be shifted back.
+Gesicht {0} ({1}–{2} s)	Face {0} ({1}–{2} s)
+Verpixeln	Pixelate
+{0} Keyframes – der Bereich folgt dazwischen.	{0} keyframes – the region follows in between.
+ffprobe für genaue Angaben zu Videos (Länge, Bildrate, Drehung, Tonspuren), das Sprachmodell der Rauschminderung (RNNoise) und die Gesichtserkennung zum Verpixeln (YuNet, läuft nur auf diesem PC). Ohne das Paket schneidet der Videoeditor mit dem ffmpeg der App, die Rauschminderung ist dann einfacher und Gesichter werden von Hand markiert.	ffprobe for exact details of videos (length, frame rate, rotation, audio tracks), the speech model of the noise reduction (RNNoise) and the face detection for pixelating (YuNet, runs only on this PC). Without the package the video editor cuts with the app's ffmpeg, the noise reduction is simpler then and faces are marked by hand.
+Unterstrichen (Strg+U)	Underline (Ctrl+U)
+Farbe des Textfelds	Colour of the text box
+Symbol …	Symbol …
+Aneinander ausrichten und verteilen	Align to each other and distribute
+Inhalt des QR-Codes (Link oder Text)	Content of the QR code (link or text)
+Doppelklick auf das Textfeld: direkt auf der Folie tippen; markierten Text mit Strg+B, Strg+I, Strg+U oder der Leiste darüber formatieren.	Double-click the text box to type right on the slide; format selected text with Ctrl+B, Ctrl+I, Ctrl+U or the bar above it.
+− Zeile	− Row
+Kopfzeile	Header row
+Spiegeln	Mirror
+Verlauf nach unten	Gradient downwards
+Drehung {0}° aufheben	Remove {0}° rotation
+Auf der Folie: ziehen verschiebt (rastet an Rändern, Mitte und anderen Elementen ein, Strg: frei), der runde Griff dreht, Umschalt+Klick oder ein Rahmen wählt mehrere.	On the slide: drag to move (snaps to edges, the middle and other elements, Ctrl: freely), the round handle rotates, Shift+click or a frame selects several.
+Formatierung in einer Zelle wie in Tabellen: **fett**, *kursiv*, <u>unterstrichen</u>.	Formatting inside a cell as in sheets: **bold**, *italic*, <u>underlined</u>.
+Folien nur auf diesem Bildschirm	Slides on this screen only
+Folien auf dem zweiten Bildschirm	Slides on the second screen
+Folie schöner machen …	Make slide nicer …
+Folie schöner machen	Make slide nicer
+Antippen übernimmt den Vorschlag. Ohne Modell kommen die Vorschläge aus festen Regeln.	Tap to apply a suggestion. Without a model the suggestions come from fixed rules.
+Antippen übernimmt den Vorschlag.	Tap to apply a suggestion.
+Lora entwirft eigene Varianten …	Lora is drafting her own variants …
+Für diese Folie habe ich keinen Vorschlag – sie sieht schon gut aus.	I have no suggestion for this slide – it already looks good.
+Als Diagramm	As chart
+Als Vergleich	As comparison
+Kürzere Punkte	Shorter points
+Auf zwei Folien	On two slides
+Unterpunkte in die Notizen	Sub-points into the notes
+Als Zitat	As quote
+Bild groß, Text in die Notizen	Large picture, text into the notes
+Vorschlag von Lora	Suggestion by Lora
+Präsentation aus Paper	Presentation from paper
+Aus welchem Paper? Bitte ein PDF auswählen oder den Namen nennen.	From which paper? Please choose a PDF or name it.
+In „{0}“ finde ich keinen lesbaren Text – ist das PDF gescannt? Dann zuerst Texterkennung (OCR).	I find no readable text in “{0}” – is the PDF scanned? Then run text recognition (OCR) first.
+Präsentation „{0}“ mit {1} Folien angelegt ({2} Abbildungen) – Vorführen mit Umschalt+F5.	Presentation “{0}” with {1} slides created ({2} figures) – present with Shift+F5.
+Die Titelfolie bleibt im TUD-Design – welche andere Folie?	The title slide keeps the TUD design – which other slide?
+Sucht Vorschläge für Folie {0} …	Looking for suggestions for slide {0} …
+Vorschläge für Folie {0} stehen im Editor zum Antippen bereit.	Suggestions for slide {0} are ready to tap in the editor.
+Macht Folie {0} schöner …	Making slide {0} nicer …
+Für Folie {0} habe ich keinen Vorschlag – sie sieht schon gut aus.	I have no suggestion for slide {0} – it already looks good.
+Folie {0}: {1}.	Slide {0}: {1}.
+Weitere Vorschläge: {0}.	More suggestions: {0}.
+Sprechertexte schreiben	Write speaker notes
+Alle Folien haben schon Notizen – mit „alle“ schreibe ich sie neu.	All slides already have notes – with “alle” I rewrite them.
+Schreibt Sprechertexte für {0} Folien …	Writing speaker notes for {0} slides …
+Sprechertexte für {0} Folien geschrieben.	Speaker notes written for {0} slides.
+Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Speaker notes for {0} slides written from the points (without a model).

@@ -962,6 +962,7 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                 var place by remember(clip.id) { mutableStateOf(!clip.frame.isFull) }
                 if (!place) TextButton(onClick = { place = true }) { Text(tr("Position und Größe …")) }
                 else FrameEditor(clip.frame, "cf-${clip.id}") { k, f -> h.edit(k) { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(frame = f) else it }) } }
+                ClipEffectsEditor(h, clip, pos, onSelect)
                 p.transcripts[clip.path]?.let { HintText(tr("Transkript zugeordnet – Untertitel und Rohschnitt kommen daraus.")) }
             }
             is Sel.Title -> {

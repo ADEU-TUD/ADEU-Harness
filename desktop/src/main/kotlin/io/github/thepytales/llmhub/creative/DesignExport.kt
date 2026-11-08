@@ -184,7 +184,8 @@ object DesignExport {
                 cs.transform(Matrix.getTranslateInstance(-e.w / 2, -e.h / 2))
             }
             // Gradients and picture filters (AP-50): drawn by the app as a sharp picture of the element.
-            if (e.hasEffects && e.kind != ElementKind.TEXT) {
+            // Tables (AP-50) as well, with the cell texts laid out like on the canvas.
+            if (e.hasEffects && e.kind != ElementKind.TEXT || e.kind == ElementKind.TABLE) {
                 raster(doc, cs, d, e)
                 return
             }
@@ -276,27 +277,53 @@ object DesignExport {
         if (e.text.isBlank()) return
         val laid = DesignText.layout(e)
         val layout = laid.layout
-        val f = font(e)
         val sizeMm = laid.fontSize * DesignFormat.MM_PER_PT
         val innerW = e.w - 2 * e.padding
-        cs.fillColor(e.color.ifBlank { "#000000" })
+        // The visible text and the format of every character (formatting inside the box, AP-50).
+        val parsed = FieldRich.parse(e.text, e.rich)
+        val plain = parsed.plain.ifEmpty { " " }
+        fun fmt(at: Int) = parsed.chars.getOrElse(at) { io.github.thepytales.llmhub.docs.text.CharFormat.PLAIN }
+        fun fontAt(at: Int) = fmt(at).let { f -> font(e.copy(bold = e.bold || f.bold, italic = e.italic || f.italic)) }
         for (i in 0 until layout.lineCount) {
-            val raw = e.text.ifEmpty { " " }.substring(layout.getLineStart(i), layout.getLineEnd(i, visibleEnd = true))
-            val line = printable(f, raw.trimEnd('\n', '\r').trimEnd())
-            if (line.isEmpty()) continue
-            val width = f.getStringWidth(line) / 1000f * sizeMm
-            val x = e.padding + when (e.align) {
+            val start = layout.getLineStart(i)
+            val raw = plain.substring(start, layout.getLineEnd(i, visibleEnd = true).coerceAtMost(plain.length))
+            val trimmed = raw.trimEnd('\n', '\r').trimEnd()
+            if (trimmed.isEmpty()) continue
+            // Runs of equal format: each with its own font, colour and underline, one after the other.
+            val runs = ArrayList<Triple<String, io.github.thepytales.llmhub.docs.text.CharFormat, PDType0Font>>()
+            var a = 0
+            while (a < trimmed.length) {
+                var b = a + 1
+                while (b < trimmed.length && fmt(start + b) == fmt(start + a)) b++
+                val f = fontAt(start + a)
+                runs += Triple(printable(f, trimmed.substring(a, b)), fmt(start + a), f)
+                a = b
+            }
+            val width = runs.sumOf { (t, _, f) -> (f.getStringWidth(t) / 1000f * sizeMm).toDouble() }.toFloat()
+            var x = e.padding + when (e.align) {
                 "center" -> (innerW - width) / 2
                 "right" -> innerW - width
                 else -> 0f
             }
             val baseline = laid.top + layout.getLineBaseline(i) / DesignText.REF
-            cs.beginText()
-            cs.setFont(f, 1f)
-            // Text space: the font size in mm, flipped back upright (the page runs y downwards).
-            cs.setTextMatrix(Matrix(sizeMm, 0f, 0f, -sizeMm, x, baseline))
-            cs.showText(line)
-            cs.endText()
+            runs.forEach { (t, f, pdf) ->
+                if (t.isEmpty()) return@forEach
+                val w = pdf.getStringWidth(t) / 1000f * sizeMm
+                val color = f.color?.let { "#$it" } ?: e.color.ifBlank { "#000000" }
+                cs.fillColor(color)
+                cs.beginText()
+                cs.setFont(pdf, 1f)
+                // Text space: the font size in mm, flipped back upright (the page runs y downwards).
+                cs.setTextMatrix(Matrix(sizeMm, 0f, 0f, -sizeMm, x, baseline))
+                cs.showText(t)
+                cs.endText()
+                if (f.underline || f.strike) {
+                    val y = if (f.underline) baseline + sizeMm * 0.12f else baseline - sizeMm * 0.28f
+                    cs.addRect(x, y, w, sizeMm * 0.06f)
+                    cs.fill()
+                }
+                x += w
+            }
         }
     }
 
@@ -403,11 +430,14 @@ object DesignExport {
                         val anchor = when (e.valign) { "middle" -> "ctr"; "bottom" -> "b"; else -> "t" }
                         val pad = emu(e.padding * k)
                         val face = if (e.medium && !e.bold) "Noto Sans Medium" else "Noto Sans"
-                        val runProps = "<a:rPr lang=\"de-DE\" sz=\"$size\"${if (e.bold) " b=\"1\"" else ""}${if (e.italic) " i=\"1\"" else ""} dirty=\"0\">" +
-                            solid(e.color.ifBlank { "#000000" }, e.opacity) + "<a:latin typeface=\"$face\"/><a:cs typeface=\"$face\"/></a:rPr>"
-                        val paras = e.text.split('\n').joinToString("") { line ->
+                        // One run per part of equal format (formatting inside the box, AP-50).
+                        fun runProps(f: io.github.thepytales.llmhub.docs.text.CharFormat) =
+                            "<a:rPr lang=\"de-DE\" sz=\"$size\"${if (e.bold || f.bold) " b=\"1\"" else ""}${if (e.italic || f.italic) " i=\"1\"" else ""}" +
+                                "${if (f.underline) " u=\"sng\"" else ""}${if (f.strike) " strike=\"sngStrike\"" else ""} dirty=\"0\">" +
+                                solid(f.color?.let { "#$it" } ?: e.color.ifBlank { "#000000" }, e.opacity) + "<a:latin typeface=\"$face\"/><a:cs typeface=\"$face\"/></a:rPr>"
+                        val paras = FieldRich.lines(e.text, e.rich).joinToString("") { line ->
                             "<a:p><a:pPr algn=\"$algn\"><a:lnSpc><a:spcPts val=\"$spacing\"/></a:lnSpc><a:spcBef><a:spcPts val=\"0\"/></a:spcBef><a:spcAft><a:spcPts val=\"0\"/></a:spcAft></a:pPr>" +
-                                (if (line.isEmpty()) "" else "<a:r>$runProps<a:t>${esc(line)}</a:t></a:r>") +
+                                line.joinToString("") { (t, f) -> "<a:r>${runProps(f)}<a:t>${esc(t)}</a:t></a:r>" } +
                                 "<a:endParaRPr lang=\"de-DE\" sz=\"$size\" dirty=\"0\"/></a:p>"
                         }
                         val geom = if (e.radius > 0f && e.fill.isNotBlank()) "roundRect" else "rect"
@@ -449,6 +479,17 @@ object DesignExport {
                             "<p:sp><p:nvSpPr><p:cNvPr id=\"$n\" name=\"TUD-Shape $n\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>" +
                                 "<p:spPr>$frame<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l=\"0\" t=\"0\" r=\"r\" b=\"b\"/><a:pathLst>$paths</a:pathLst></a:custGeom>" +
                                 solid(e.fill.ifBlank { e.color }, e.opacity) + "<a:ln><a:noFill/></a:ln></p:spPr></p:sp>",
+                        )
+                    }
+                    ElementKind.TABLE -> {
+                        // A real PowerPoint table (editable there), in the TUD table style of the canvas.
+                        val x = min(e.x, e.x + e.w)
+                        val y = min(e.y, e.y + e.h)
+                        shapes.append(
+                            io.github.thepytales.llmhub.docs.SlideExtras.tableFrame(
+                                n, name, emu(x * k), emu(y * k), emu(kotlin.math.abs(e.w) * k), emu(kotlin.math.abs(e.h) * k),
+                                e.rows, e.header, Math.round(e.fontSize * k).coerceIn(6, 200), e.color, e.fill, e.bold,
+                            ),
                         )
                     }
                     ElementKind.LINE, ElementKind.ARROW -> {

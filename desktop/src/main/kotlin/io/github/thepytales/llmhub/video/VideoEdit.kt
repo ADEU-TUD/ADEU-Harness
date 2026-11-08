@@ -60,11 +60,12 @@ object VideoEdit {
             is Clip -> {
                 val i = p.clips.indexOfFirst { it.id == item.id }.takeIf { it >= 0 } ?: return null
                 val c = p.clips[i]
-                val src = c.inSec + (t - p.starts()[i])
-                if (src - c.inSec < MIN || c.outSec - src < MIN) return null
-                val b = c.copy(id = newVideoId(), inSec = src, transition = "none")
+                val local = t - p.starts()[i]
+                if (local < MIN || c.length - local < MIN) return null
+                // Speed, reverse and freeze (AP-54) map the cut to the source in their own way.
+                val (a, b) = VideoFx.splitClip(c, local)
                 // Sound linked to the clip goes with the right part where it lies after the cut.
-                val q = p.copy(clips = p.clips.toMutableList().apply { set(i, c.copy(outSec = src)); add(i + 1, b) })
+                val q = p.copy(clips = p.clips.toMutableList().apply { set(i, a); add(i + 1, b) })
                 val withSound = q.copy(audio = q.audio.flatMap { a ->
                     if (a.linkedTo != c.id) listOf(a) else listOf(a, a.copy(id = newVideoId(), linkedTo = b.id))
                 })
@@ -146,15 +147,23 @@ object VideoEdit {
     // ── Trimming ──
 
     /**
-     * Ripple trim of a V1 clip: its [start] edge (true) or end edge moves its In or Out by [delta] seconds of the source;
+     * Ripple trim of a V1 clip: its [start] edge (true) or end edge moves by [delta] seconds of the timeline (its In or
+     * Out by delta × speed in the source; a reversed clip begins at its Out, a frozen frame only changes its length);
      * the clips after it close up and, with the magnet, everything else after it moves along. [sourceLength] limits Out.
      */
     fun rippleTrim(p: VideoProject, id: String, start: Boolean, delta: Double, sourceLength: Double? = null): VideoProject {
         val i = p.clips.indexOfFirst { it.id == id }.takeIf { it >= 0 } ?: return p
         if (p.track("V1").locked) return p
         val c = p.clips[i]
-        val next = if (start) c.copy(inSec = (c.inSec + delta).coerceIn(0.0, c.outSec - MIN))
-        else c.copy(outSec = (c.outSec + delta).coerceIn(c.inSec + MIN, sourceLength?.takeIf { it > 0.05 } ?: Double.MAX_VALUE))
+        val max = sourceLength?.takeIf { it > 0.05 } ?: Double.MAX_VALUE
+        val d = delta * c.speed
+        val next = when {
+            c.fx.freeze -> c.copy(outSec = (c.outSec + if (start) -delta else delta).coerceAtLeast(c.inSec + MIN))
+            c.fx.reverse && start -> c.copy(outSec = (c.outSec - d).coerceIn(c.inSec + MIN, max))
+            c.fx.reverse -> c.copy(inSec = (c.inSec - d).coerceIn(0.0, c.outSec - MIN))
+            start -> c.copy(inSec = (c.inSec + d).coerceIn(0.0, c.outSec - MIN))
+            else -> c.copy(outSec = (c.outSec + d).coerceIn(c.inSec + MIN, max))
+        }
         val change = next.length - c.length
         if (abs(change) < 1e-9) return p
         val oldEnd = nextStart(p, i)
@@ -171,10 +180,12 @@ object VideoEdit {
         if (p.track("V1").locked) return p
         val a = p.clips[i]
         val b = p.clips[i + 1]
-        val maxA = sourceLength?.takeIf { it > 0.05 }?.let { it - a.outSec } ?: Double.MAX_VALUE
-        val d = delta.coerceIn(maxOf(-(a.length - MIN), -b.inSec), minOf(b.length - MIN, maxA))
+        // With effects (AP-54) the cut moves by timeline seconds; a reversed or frozen clip has no plain Out/In to roll.
+        if (a.fx.reverse || a.fx.freeze || b.fx.reverse || b.fx.freeze) return p
+        val maxA = sourceLength?.takeIf { it > 0.05 }?.let { (it - a.outSec) / a.speed } ?: Double.MAX_VALUE
+        val d = delta.coerceIn(maxOf(-(a.length - MIN), -b.inSec / b.speed), minOf(b.length - MIN, maxA))
         if (abs(d) < 1e-9) return p
-        return p.copy(clips = p.clips.toMutableList().apply { set(i, a.copy(outSec = a.outSec + d)); set(i + 1, b.copy(inSec = b.inSec + d)) }).linked()
+        return p.copy(clips = p.clips.toMutableList().apply { set(i, a.copy(outSec = a.outSec + d * a.speed)); set(i + 1, b.copy(inSec = b.inSec + d * b.speed)) }).linked()
     }
 
     /** Slip: the clip keeps its place and length, the piece of the source moves by [delta] (In and Out together). */

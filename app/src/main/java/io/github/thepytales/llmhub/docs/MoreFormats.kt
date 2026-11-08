@@ -184,6 +184,19 @@ object XlsxWriter {
         val workbook = SheetEngine.Workbook(sheets.map { it.title to it.rows })
         val rename: (String) -> String = { n -> sheets.firstOrNull { it.title.trim().equals(n.trim(), true) || it.name.equals(n.trim(), true) }?.name ?: n }
         var dynamic = false
+        // Echte Excel-Diagramme (AP-48): each chart of a sheet as chart part whose series point at the sheet's cells.
+        val placed = mutableListOf<PlacedChart>()
+        sheets.forEachIndexed { si, s ->
+            if (s.meta.charts.isEmpty()) return@forEachIndexed
+            val engine = workbook.sheet(si)
+            s.meta.charts.forEach { ch ->
+                val spec = SheetTools.chartSpec(ch, engine) ?: return@forEach
+                val d = OfficeCharts.drawable(spec) ?: return@forEach
+                val refs = SheetTools.chartRefs(ch, engine, s.name)?.takeIf { it.size == d.series.size }.orEmpty()
+                placed += PlacedChart(si, placed.size + 1, OfficeCharts.xml(d, refs, boxBase = spec.type == ChartSpec.Type.BOX), OfficeCharts.altText(spec, ch.range), ch.id)
+            }
+        }
+        val drawingOf = placed.map { it.sheet }.distinct().withIndex().associate { (k, si) -> si to k + 1 }
         val sheetXml = sheets.mapIndexed { si, s ->
             buildString {
                 append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">")
@@ -255,6 +268,7 @@ object XlsxWriter {
                 }
                 if (checks.isNotEmpty()) append("<dataValidations count=\"${checks.size}\">").append(checks.joinToString("")).append("</dataValidations>")
                 append("<pageMargins left=\"0.7\" right=\"0.7\" top=\"0.787\" bottom=\"0.787\" header=\"0.3\" footer=\"0.3\"/>")
+                if (si in drawingOf) append("<drawing r:id=\"rIdDr\"/>")
                 append("</worksheet>")
             }
         }
@@ -267,6 +281,8 @@ object XlsxWriter {
                 append("<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>")
                 if (dynamic) append("<Override PartName=\"/xl/metadata.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml\"/>")
                 sheets.indices.forEach { append("<Override PartName=\"/xl/worksheets/sheet${it + 1}.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>") }
+                drawingOf.values.forEach { append("<Override PartName=\"/xl/drawings/drawing$it.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.drawing+xml\"/>") }
+                placed.forEach { append("<Override PartName=\"/xl/charts/chart${it.number}.xml\" ContentType=\"${OfficeCharts.CONTENT_TYPE}\"/>") }
                 append("</Types>")
             })
             entry("_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>")
@@ -302,8 +318,32 @@ object XlsxWriter {
                 )
             }
             sheetXml.forEachIndexed { i, x -> entry("xl/worksheets/sheet${i + 1}.xml", x) }
+            val rels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+            drawingOf.forEach { (si, k) ->
+                val charts = placed.filter { it.sheet == si }
+                entry("xl/worksheets/_rels/sheet${si + 1}.xml.rels", rels + "<Relationship Id=\"rIdDr\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing\" Target=\"../drawings/drawing$k.xml\"/></Relationships>")
+                entry("xl/drawings/_rels/drawing$k.xml.rels", rels + charts.joinToString("") { "<Relationship Id=\"rIdC${it.number}\" Type=\"${OfficeCharts.REL_CHART}\" Target=\"../charts/chart${it.number}.xml\"/>" } + "</Relationships>")
+                // Right of the data, one below the other (16 rows high, 8 columns wide).
+                val left = (sheets[si].rows.maxOfOrNull { it.size } ?: 1) + 1
+                entry("xl/drawings/drawing$k.xml", buildString {
+                    append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<xdr:wsDr xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">")
+                    charts.forEachIndexed { i, ch ->
+                        val top = 1 + i * 18
+                        append("<xdr:twoCellAnchor editAs=\"oneCell\"><xdr:from><xdr:col>$left</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>$top</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>")
+                        append("<xdr:to><xdr:col>${left + 8}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${top + 16}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>")
+                        append("<xdr:graphicFrame macro=\"\"><xdr:nvGraphicFramePr><xdr:cNvPr id=\"${i + 2}\" name=\"${esc(if (ch.id.isNotBlank()) "Lora-Diagramm ${ch.id}" else "Diagramm ${i + 1}")}\" descr=\"${esc(ch.alt)}\"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>")
+                        append("<xdr:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/></xdr:xfrm>").append(OfficeCharts.graphic("rIdC${ch.number}"))
+                        append("</xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>")
+                    }
+                    append("</xdr:wsDr>")
+                })
+            }
+            placed.forEach { entry("xl/charts/chart${it.number}.xml", it.xml) }
         }
     }
+
+    /** A chart of a sheet as it goes into the workbook: number of its part, chart XML, alternative text and its id. */
+    private class PlacedChart(val sheet: Int, val number: Int, val xml: String, val alt: String, val id: String)
 
     /** One `<c>` element: formula (dynamic array if it spills), date, number, text or a value spilled into it. */
     private fun cellXml(
@@ -314,7 +354,9 @@ object XlsxWriter {
         val head = r == 0 && s.rows.size > 1
         val style = s.meta.style(r, c) ?: CellStyle()
         fun st(date: Boolean): String = styles.xf(style, head, date).let { if (it == 0) "" else " s=\"$it\"" }
-        fun inline(text: String) = "<c r=\"$ref\" t=\"inlineStr\"${st(false)}><is><t xml:space=\"preserve\">${esc(text)}</t></is></c>"
+        fun inline(text: String) =
+            if (CellRich.isRich(text)) "<c r=\"$ref\" t=\"inlineStr\"${st(false)}><is>${CellRich.xlsxRuns(text, bold = style.b || head, italic = style.i)}</is></c>"
+            else "<c r=\"$ref\" t=\"inlineStr\"${st(false)}><is><t xml:space=\"preserve\">${esc(text)}</t></is></c>"
         fun plain(value: SheetEngine.Value): String = when (value) {
             is SheetEngine.Value.Num -> "<c r=\"$ref\"${st(value.date)}><v>${xmlNum(value.v)}</v></c>"
             is SheetEngine.Value.Bool -> "<c r=\"$ref\" t=\"b\"${st(false)}><v>${if (value.v) 1 else 0}</v></c>"

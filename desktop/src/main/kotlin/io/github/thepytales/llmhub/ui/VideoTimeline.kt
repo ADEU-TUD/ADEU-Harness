@@ -460,7 +460,9 @@ internal fun VideoTimelineView(
                     drawRoundRect((if (i % 2 == 0) V1A else V1B).copy(alpha = if (hidden) 0.35f else 1f), Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f))
                     if (!c.muted && !p.track("V1").muted) wave(c.path, c.inSec + (x0 - x(starts[i])) / pxPerSec, c.length, x0, x1, v1.top + v1.height * 0.55f, v1.height * 0.42f, Color(0x55FFFFFF))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 40) label(c.name, Offset(x0 + 6f, v1.top + 5f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
+                    // Effects of AP-54 after the name („2× · Zoom · 3 Bereiche“).
+                    val fxText = if (c.fx.isNone) "" else io.github.thepytales.llmhub.video.VideoFx.summary(c.fx)
+                    if (x1 - x0 > 40) label(if (fxText.isBlank()) c.name else "${c.name} · $fxText", Offset(x0 + 6f, v1.top + 5f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
                     if (x1 - x0 > 40) label(clock(c.length, true) + (if (c.muted) " · " + tr("stumm") else "") + (if (!c.frame.isFull) " · " + tr("platziert") else ""), Offset(x0 + 6f, v1.top + 21f * u), TextStyle(fontSize = 10.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 10f)
                     if (p.transitionOf(i) > 0) {
                         val tx = x(starts[i]); val tw = (p.transitionOf(i) * pxPerSec).toFloat()

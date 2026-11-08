@@ -158,7 +158,10 @@ object SheetEngine {
         val t = raw.trim()
         if (t.isEmpty()) return Value.Text("")
         parseDate(t)?.let { return Value.Num(it, date = true) }
-        return XlsxWriter.number(t)?.let { Value.Num(it) } ?: Value.Text(raw)
+        XlsxWriter.number(t)?.let { return Value.Num(it) }
+        // Formatierung innerhalb der Zelle (AP-48): formulas see the text without its marks.
+        val plain = CellRich.plain(raw)
+        return if (plain != raw) literal(plain) else Value.Text(raw)
     }
 
     /** Formulas whose result may fill several cells. */

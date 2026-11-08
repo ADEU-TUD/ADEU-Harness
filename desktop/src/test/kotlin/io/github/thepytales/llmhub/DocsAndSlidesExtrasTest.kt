@@ -229,9 +229,11 @@ class DocsAndSlidesExtrasTest {
         assertTrue("rIdImg" in text(p, "ppt/slides/_rels/slide4.xml.rels"))
         assertTrue("r:embed=\"rIdImg\"" in text(p, "ppt/slides/slide4.xml") && "descr=\"Ein Foto\"" in text(p, "ppt/slides/slide4.xml"))
         assertTrue("Teil zwei" in text(p, "ppt/slides/slide2.xml"))
-        // The chart is drawn as shapes (bars and labels), not as a table.
+        // The chart is a real PowerPoint chart with its data (AP-49), not a table.
         val chart = text(p, "ppt/slides/slide9.xml")
-        assertTrue(Regex("name=\"Balken").findAll(chart).count() >= 2 && "Werte" in chart && "<a:tbl>" !in chart)
+        assertTrue("<p:graphicFrame>" in chart && "r:id=\"rIdChart\"" in chart && "<a:tbl>" !in chart, chart)
+        assertTrue("<c:barChart>" in text(p, "ppt/charts/chart9.xml") && "Werte" in text(p, "ppt/charts/chart9.xml"))
+        assertTrue("ppt/embeddings/Microsoft_Excel_Worksheet9.xlsx" in p)
         assertTrue("<a:tbl>" in text(p, "ppt/slides/slide8.xml"))
         assertTrue("anna.muster@tu-dresden.de" in text(p, "ppt/slides/slide10.xml"))
     }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -101,6 +102,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -194,6 +196,8 @@ fun SlidesBody(
     var presenting by remember { mutableStateOf<Int?>(null) }
     var sorter by remember { mutableStateOf(false) }
     var handout by remember { mutableStateOf(false) }
+    /** „Folie schöner machen“ (AP-51): the slide whose suggestions are shown. */
+    var suggest by remember { mutableStateOf<Int?>(null) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun set(list: List<SlideDeck.Slide>) = onMarkdown(SlideDeck.markdown(list))
     // Lora in der Präsentation (AP-38 Stufe c): her actions read and replace the slides.
@@ -207,6 +211,11 @@ fun SlidesBody(
         }
         io.github.thepytales.llmhub.agent.ActionHosts.slides = host
         onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.slides === host) io.github.thepytales.llmhub.agent.ActionHosts.slides = null }
+    }
+    androidx.compose.runtime.DisposableEffect(doc.id) {
+        val open: (Int) -> Unit = { suggest = it }
+        SlideSuggestionsHost.open = open
+        onDispose { if (SlideSuggestionsHost.open === open) SlideSuggestionsHost.open = null }
     }
     fun update(i: Int, s: SlideDeck.Slide) = set(slides.toMutableList().apply { set(i, s) })
     fun addSlide(layout: SlideDeck.Layout) {
@@ -295,6 +304,7 @@ fun SlidesBody(
                             inlineAi.start("s$sel", doc, SlideDeck.markdown(listOf(SlideDeck.Slide(), slides[sel])).substringAfter("---").trim(), label, instruction)
                         })
                     }
+                    DropdownMenuItem(text = { Text(tr("Folie schöner machen …")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; suggest = sel })
                     HorizontalDivider()
                     Text(tr("Ganze Präsentation"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     DropdownMenuItem(text = { Text(tr("Sprechernotizen für alle Folien")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck(tr("Sprechernotizen"), NOTES_ALL_SLIDES) })
@@ -334,6 +344,9 @@ fun SlidesBody(
         }
     }
     presenting?.let { start -> Presenter(slides, start, frame, narrow) { presenting = null } }
+    suggest?.takeIf { it in slides.indices }?.let { i ->
+        SlideSuggestionsDialog(c, slides, i, frame, onPick = { list -> set(slides.toMutableList().apply { removeAt(i); addAll(i, list) }); suggest = null }, onDismiss = { suggest = null })
+    }
     if (handout) HandoutDialog(c, doc, DocMarkup.resolveImages(markdown, base ?: c.docs.baseDir(doc)), onDismiss = { handout = false })
 }
 
@@ -404,11 +417,17 @@ private fun SlideWork(
     }
     val live = s.copy(title = title.text, body = bodyText(), right = right.text, notes = notes.text)
     Column(Modifier.then(modifier).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        var picked by remember(doc.id, sel) { mutableStateOf<Int?>(null) }
+        var picked by remember(doc.id, sel) { mutableStateOf<Set<Int>>(emptySet()) }
+        // While dragging the slide shows the elements where they are now; the box being typed in leaves its text out.
+        var dragged by remember(doc.id, sel) { mutableStateOf<List<io.github.thepytales.llmhub.docs.SlideElement>?>(null) }
+        var typing by remember(doc.id, sel) { mutableStateOf<Int?>(null) }
+        val shown = (dragged ?: live.elements).mapIndexed { i, e -> if (i == typing) e.copy(text = "") else e }
         Box(Modifier.widthIn(max = 820.dp).fillMaxWidth().aspectRatio(16f / 9f).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))) {
-            SlideCanvas(live, Modifier.fillMaxSize(), sel + 1, slides.size, frame, slides)
-            // Frei gestalten (AP-16): elements can be moved and resized right on the slide.
-            if (!writing && live.elements.isNotEmpty()) FreeOverlay(live.elements, picked, onPick = { picked = it }) { list -> update(sel, live.copy(elements = list)) }
+            SlideCanvas(live.copy(elements = shown), Modifier.fillMaxSize(), sel + 1, slides.size, frame, slides)
+            // Frei gestalten on the canvas of Gestalten (AP-50): move with Einrasten, resize, turn, several at once, type.
+            if (!writing && live.elements.isNotEmpty()) SlideCanvasOverlay(
+                live.elements, picked, onSelect = { picked = it }, onLive = { dragged = it }, onEditing = { typing = it },
+            ) { list -> update(sel, live.copy(elements = list)) }
         }
         if (!writing) FreeDesignBar(c, doc, slides, sel, live, picked, onPick = { picked = it }, updateAt = update) { next -> update(sel, next) }
         if (frame.unit.isEmpty()) UnitHint(c)
@@ -766,8 +785,10 @@ fun SlideCanvas(s: SlideDeck.Slide, modifier: Modifier, number: Int = 1, total: 
                 if (master?.logo != false) chrome()
             }
         }
-        // Frei gestalten (AP-16): the freely placed elements on top.
-        s.elements.forEach { el -> area(el.x, el.y, el.w, el.h) { SlideElementView(el, master, ::pt) } }
+        // Frei gestalten (AP-16): the freely placed elements on top, turned around their middle (AP-50).
+        s.elements.forEach { el ->
+            Box(Modifier.offset(at(el.x), at(el.y)).size(at(el.w), at(el.h)).graphicsLayer { rotationZ = el.rotation.toFloat() }) { SlideElementView(el, master, ::pt) }
+        }
     }
 }
 
@@ -781,8 +802,15 @@ internal fun SlideElementView(el: io.github.thepytales.llmhub.docs.SlideElement,
     val color = parseHexColor(el.color) ?: if (el.kind == "form") Color.White else TUD_BLUE
     val align = when (el.align) { "mitte" -> TextAlign.Center; "rechts" -> TextAlign.End; else -> TextAlign.Start }
     val textStyle = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = pt(el.size), lineHeight = pt(el.size * 1.2f), color = color, fontWeight = if (el.bold) FontWeight.SemiBold else FontWeight.Normal, textAlign = align)
+    // Formatting inside the box (AP-50): bold, italic, underlined or coloured parts of the text.
+    val text = io.github.thepytales.llmhub.creative.FieldRich.annotated(el.text, el.rich)
+    // Verlauf (AP-50): from the fill at the top to the second colour at the bottom, as in PowerPoint.
+    fun brush(fill: Color): androidx.compose.ui.graphics.Brush =
+        parseHexColor(el.fill2)?.let { androidx.compose.ui.graphics.Brush.verticalGradient(listOf(fill, it)) } ?: androidx.compose.ui.graphics.SolidColor(fill)
     when (el.kind) {
         "bild" -> SlidePicture(el.src, el.text)
+        // The elements of Gestalten: drawn by its renderer (Windows), so they look the same on slides and in designs.
+        "tudshape", "symbol", "qr", "tabelle" -> io.github.thepytales.llmhub.creative.CanvasArtView(io.github.thepytales.llmhub.creative.SlideCanvas.toDesign(el, "x"), Modifier.fillMaxSize())
         "form" -> {
             val fill = parseHexColor(el.fill) ?: accent
             when (el.shape) {
@@ -796,16 +824,16 @@ internal fun SlideElementView(el: io.github.thepytales.llmhub.docs.SlideElement,
                     val path = androidx.compose.ui.graphics.Path().apply {
                         moveTo(0f, h * 0.25f); lineTo(w - head, h * 0.25f); lineTo(w - head, 0f); lineTo(w, h / 2); lineTo(w - head, h); lineTo(w - head, h * 0.75f); lineTo(0f, h * 0.75f); close()
                     }
-                    drawPath(path, fill)
+                    drawPath(path, brush(fill))
                 }
                 else -> Box(
-                    Modifier.fillMaxSize().background(fill, when (el.shape) { "ellipse" -> androidx.compose.foundation.shape.CircleShape; "abgerundet" -> RoundedCornerShape(18); else -> RoundedCornerShape(0.dp) }),
+                    Modifier.fillMaxSize().background(brush(fill), when (el.shape) { "ellipse" -> androidx.compose.foundation.shape.CircleShape; "abgerundet" -> RoundedCornerShape(18); else -> RoundedCornerShape(0.dp) }),
                     contentAlignment = Alignment.Center,
-                ) { if (el.text.isNotBlank()) Text(el.text, style = textStyle, modifier = Modifier.fillMaxWidth().padding(4.dp)) }
+                ) { if (el.text.isNotBlank()) Text(text, style = textStyle, modifier = Modifier.fillMaxWidth().padding(4.dp)) }
             }
         }
-        else -> Box(Modifier.fillMaxSize().then(parseHexColor(el.fill)?.let { Modifier.background(it) } ?: Modifier).padding(2.dp)) {
-            Text(el.text.ifBlank { " " }, style = textStyle, modifier = Modifier.fillMaxWidth())
+        else -> Box(Modifier.fillMaxSize().then(parseHexColor(el.fill)?.let { Modifier.background(brush(it)) } ?: Modifier).padding(2.dp)) {
+            Text(if (text.isEmpty()) androidx.compose.ui.text.AnnotatedString(" ") else text, style = textStyle, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -937,6 +965,10 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     var pen by remember { mutableStateOf(false) }
     val ink = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<List<Offset>>>() }
     var stroke by remember { mutableStateOf<List<Offset>>(emptyList()) }
+    // Zweiter Bildschirm (AP-51): with a second screen the slides go there, the Referentenansicht stays here.
+    val canSecond = remember { PresentScreens.hasSecond() }
+    var second by remember { mutableStateOf(canSecond) }
+    var stageSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     /** Digits typed for "number + Enter". */
     var typed by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
@@ -952,7 +984,42 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
     /** One click on: the next point of the build, then the next slide. */
     fun forward() { if (step < SlideDeck.buildCount(slides[i])) step++ else go(i + 1) }
     fun backward() { if (step > 0) step-- else go(i - 1) }
+    /** The slide as the audience sees it (black/white, transition, build, ink, laser); [map] places pointer and ink on it. */
+    val stage: @Composable (map: (Offset) -> Offset) -> Unit = { map ->
+        if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
+        else androidx.compose.animation.AnimatedContent(
+            targetState = i,
+            transitionSpec = {
+                val forwardMove = targetState > initialState
+                when (slides.getOrNull(targetState)?.transition) {
+                    "fade" -> androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(450)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(450))
+                    "push" -> androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) w else -w } togetherWith
+                        androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) -w else w }
+                    else -> androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                }
+            },
+            label = "folie",
+        ) { k ->
+            val shown = if (k == i) SlideDeck.buildStep(slides[k], step) else slides[k]
+            SlideCanvas(shown, Modifier.fillMaxWidth().aspectRatio(16f / 9f), k + 1, slides.size, frame, slides)
+        }
+        val lines = ink[i].orEmpty() + listOf(stroke).filter { it.size > 1 }
+        if (lines.isNotEmpty()) Canvas(Modifier.fillMaxSize()) {
+            lines.forEach { pts -> pts.zipWithNext { a, b -> drawLine(Color(0xFFE6001A), map(a), map(b), strokeWidth = 4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round) } }
+        }
+        val dot = pointer
+        if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
+            drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = map(dot))
+            drawCircle(Color(0xFFFF1A1A), radius = 7.dp.toPx(), center = map(dot))
+        }
+    }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        AudienceScreen(second, onClose = { second = false }) {
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val size = androidx.compose.ui.unit.IntSize(constraints.maxWidth, constraints.maxHeight)
+                stage { p -> audiencePoint(p, stageSize, size) }
+            }
+        }
         Column(
             Modifier.fillMaxSize().background(Color.Black).focusRequester(focus).focusable().onKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown) return@onKeyEvent false
@@ -987,7 +1054,8 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
             LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 Box(
-                    Modifier.weight(if (notes && !narrow) 2.2f else 1f).fillMaxHeight()
+                    Modifier.weight(if ((notes || second) && !narrow) 2.2f else 1f).fillMaxHeight()
+                        .onSizeChanged { stageSize = it }
                         .then(if (laser || pen) Modifier else Modifier.clickable { forward() })
                         // Zeichnen beim Präsentieren (D): strokes in red over the slide, E erases them.
                         .pointerInput(pen, i) {
@@ -1010,34 +1078,9 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                         },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (blank != null) Box(Modifier.fillMaxSize().background(blank!!))
-                    else androidx.compose.animation.AnimatedContent(
-                        targetState = i,
-                        transitionSpec = {
-                            val forwardMove = targetState > initialState
-                            when (slides.getOrNull(targetState)?.transition) {
-                                "fade" -> androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(450)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(450))
-                                "push" -> androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) w else -w } togetherWith
-                                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(450)) { w -> if (forwardMove) -w else w }
-                                else -> androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
-                            }
-                        },
-                        label = "folie",
-                    ) { k ->
-                        val shown = if (k == i) SlideDeck.buildStep(slides[k], step) else slides[k]
-                        SlideCanvas(shown, Modifier.fillMaxWidth().aspectRatio(16f / 9f), k + 1, slides.size, frame, slides)
-                    }
-                    val lines = ink[i].orEmpty() + listOf(stroke).filter { it.size > 1 }
-                    if (lines.isNotEmpty()) Canvas(Modifier.fillMaxSize()) {
-                        lines.forEach { pts -> pts.zipWithNext { a, b -> drawLine(Color(0xFFE6001A), a, b, strokeWidth = 4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round) } }
-                    }
-                    val dot = pointer
-                    if (laser && dot != null) Canvas(Modifier.fillMaxSize()) {
-                        drawCircle(Color(0x55FF0000), radius = 18.dp.toPx(), center = dot)
-                        drawCircle(Color(0xFFFF1A1A), radius = 7.dp.toPx(), center = dot)
-                    }
+                    stage { it }
                 }
-                if (notes && !narrow) {
+                if ((notes || second) && !narrow) {
                     Column(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF1C1C1C)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(tr("Nächste Folie"), color = Color(0xFFBBBBBB), style = MaterialTheme.typography.labelMedium)
                         slides.getOrNull(i + 1)?.let { next ->
@@ -1077,6 +1120,9 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
                     Icon(Icons.Outlined.DarkMode, contentDescription = tr("Schwarzer Bildschirm (B)"), tint = if (blank == Color.Black) Color(0xFF97C6FF) else Color.White)
                 }
                 IconButton(onClick = { notes = !notes }) { Icon(Icons.Outlined.SpeakerNotes, contentDescription = tr("Notizen (N)"), tint = Color.White) }
+                if (canSecond) IconButton(onClick = { second = !second }) {
+                    Icon(Icons.Outlined.Slideshow, contentDescription = if (second) tr("Folien nur auf diesem Bildschirm") else tr("Folien auf dem zweiten Bildschirm"), tint = if (second) Color(0xFF97C6FF) else Color.White)
+                }
                 IconButton(onClick = { backward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück"), tint = Color.White) }
                 IconButton(onClick = { forward() }) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = tr("Weiter"), tint = Color.White) }
             }
@@ -1085,61 +1131,27 @@ private fun Presenter(slides: List<SlideDeck.Slide>, start: Int, frame: DeckFram
 }
 
 
-private val FREE_COLORS = listOf("#00008C", "#2F57B2", "#97C6FF", "#566371", "#000000", "#FFFFFF", "#1B7F3B", "#B3261E", "#E37222", "#F2B01E")
+/** Align modes of the shared canvas with their symbols (Ausrichten, AP-50). */
+private val ALIGN_MODES = listOf("left" to "⇤", "hcenter" to "↔", "right" to "⇥", "top" to "⤒", "vcenter" to "↕", "bottom" to "⤓")
 
-/** The elements over the slide preview: tap to select, drag to move, the corner handle to resize (in cm, AP-16). */
-@Composable
-private fun FreeOverlay(elements: List<io.github.thepytales.llmhub.docs.SlideElement>, picked: Int?, onPick: (Int?) -> Unit, onChange: (List<io.github.thepytales.llmhub.docs.SlideElement>) -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val density = LocalDensity.current
-        val pxPerCm = with(density) { maxWidth.toPx() } / SLIDE_W_CM
-        val cm: Dp = maxWidth / SLIDE_W_CM
-        elements.forEachIndexed { i, el ->
-            var dx by remember(el) { mutableStateOf(0f) }
-            var dy by remember(el) { mutableStateOf(0f) }
-            var dw by remember(el) { mutableStateOf(0f) }
-            var dh by remember(el) { mutableStateOf(0f) }
-            val x = el.x + dx / pxPerCm
-            val y = el.y + dy / pxPerCm
-            val w = (el.w + dw / pxPerCm).coerceAtLeast(0.5)
-            val h = (el.h + dh / pxPerCm).coerceAtLeast(0.3)
-            fun commit() {
-                if (dx != 0f || dy != 0f || dw != 0f || dh != 0f) {
-                    val r = { v: Double -> Math.round(v * 10) / 10.0 }
-                    val moved = el.copy(x = r(x.coerceIn(-5.0, SLIDE_W_CM.toDouble())), y = r(y.coerceIn(-5.0, 19.05)), w = r(w), h = r(h))
-                    // A group moves together (shared canvas, AP-50).
-                    val ddx = moved.x - el.x
-                    val ddy = moved.y - el.y
-                    val together = el.group.isNotEmpty() && dw == 0f && dh == 0f
-                    onChange(elements.mapIndexed { j, o -> if (j == i) moved else if (together && o.group == el.group) o.copy(x = r(o.x + ddx), y = r(o.y + ddy)) else o })
-                }
-            }
-            Box(
-                Modifier.offset(cm * x.toFloat(), cm * y.toFloat()).size(cm * w.toFloat(), cm * h.toFloat())
-                    .border(if (picked == i) 2.dp else 1.dp, if (picked == i) Color(0xFF2F57B2) else Color(0x332F57B2))
-                    .clickable { onPick(i) }
-                    .pointerInput(el) {
-                        detectDragGestures(
-                            onDragStart = { onPick(i) },
-                            onDrag = { change, d -> change.consume(); dx += d.x; dy += d.y },
-                            onDragEnd = { commit() },
-                            onDragCancel = { commit() },
-                        )
-                    },
-            ) {
-                if (picked == i) Box(
-                    Modifier.align(Alignment.BottomEnd).size(14.dp).background(Color(0xFF2F57B2)).pointerInput(el) {
-                        detectDragGestures(
-                            onDrag = { change, d -> change.consume(); dw += d.x; dh += d.y },
-                            onDragEnd = { commit() },
-                            onDragCancel = { commit() },
-                        )
-                    },
-                )
-            }
-        }
+/**
+ * Where point [p] of the presenter's slide area ([from]) lies on the audience's screen ([to]): both show the 16:9 slide
+ * centred, so ink and laser land on the same spot of the slide.
+ */
+internal fun audiencePoint(p: Offset, from: androidx.compose.ui.unit.IntSize, to: androidx.compose.ui.unit.IntSize): Offset {
+    fun slide(s: androidx.compose.ui.unit.IntSize): androidx.compose.ui.geometry.Rect {
+        val w = minOf(s.width.toFloat(), s.height * 16f / 9f)
+        val h = w * 9f / 16f
+        return androidx.compose.ui.geometry.Rect(Offset((s.width - w) / 2, (s.height - h) / 2), androidx.compose.ui.geometry.Size(w, h))
     }
+    val a = slide(from)
+    val b = slide(to)
+    if (a.width <= 0f || a.height <= 0f) return p
+    return Offset(b.left + (p.x - a.left) * b.width / a.width, b.top + (p.y - a.top) * b.height / a.height)
 }
+
+
+private val FREE_COLORS = listOf("#00008C", "#2F57B2", "#97C6FF", "#566371", "#000000", "#FFFFFF", "#1B7F3B", "#B3261E", "#E37222", "#F2B01E")
 
 /**
  * Frei gestalten (AP-16 Stufe 3): insert text boxes, pictures and shapes on any slide, change the selected one (text,
@@ -1148,8 +1160,8 @@ private fun FreeOverlay(elements: List<io.github.thepytales.llmhub.docs.SlideEle
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FreeDesignBar(
-    c: AppContainer, doc: LiveDoc, slides: List<SlideDeck.Slide>, sel: Int, s: SlideDeck.Slide, picked: Int?,
-    onPick: (Int?) -> Unit, updateAt: (Int, SlideDeck.Slide) -> Unit, onChange: (SlideDeck.Slide) -> Unit,
+    c: AppContainer, doc: LiveDoc, slides: List<SlideDeck.Slide>, sel: Int, s: SlideDeck.Slide, picked: Set<Int>,
+    onPick: (Set<Int>) -> Unit, updateAt: (Int, SlideDeck.Slide) -> Unit, onChange: (SlideDeck.Slide) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val base = LocalDocBase.current
@@ -1157,7 +1169,12 @@ private fun FreeDesignBar(
     var masterOpen by remember { mutableStateOf(false) }
     fun add(el: io.github.thepytales.llmhub.docs.SlideElement) {
         onChange(s.copy(elements = s.elements + el))
-        onPick(s.elements.size)
+        onPick(setOf(s.elements.size))
+    }
+    var symbols by remember { mutableStateOf(false) }
+    if (symbols) io.github.thepytales.llmhub.creative.CanvasSymbolPicker(onDismiss = { symbols = false }) { name ->
+        symbols = false
+        add(io.github.thepytales.llmhub.docs.SlideElement(kind = "symbol", icon = name, x = 15.0, y = 7.5, w = 3.0, h = 3.0, color = "#00008C"))
     }
     val pickImage = rememberImageBytesPicker { bytes ->
         if (bytes == null || DocMarkup.imageType(bytes) == null) return@rememberImageBytesPicker
@@ -1182,6 +1199,15 @@ private fun FreeDesignBar(
                     }
                 }
             }
+            // The elements of Erstellen › Gestalten on slides (shared canvas, AP-50).
+            AssistChip(onClick = { add(io.github.thepytales.llmhub.docs.SlideElement(kind = "tudshape", x = 24.0, y = 8.0, w = 7.0, h = 7.0, fill = "#97C6FF")) }, label = { Text(tr("TUD-Shape")) })
+            if (io.github.thepytales.llmhub.creative.CanvasArt.FULL) {
+                AssistChip(onClick = { symbols = true }, label = { Text(tr("Symbol …")) })
+                AssistChip(onClick = { add(io.github.thepytales.llmhub.docs.SlideElement(kind = "qr", x = 27.0, y = 11.0, w = 4.5, h = 4.5, text = "https://tu-dresden.de", fill = "#FFFFFF")) }, label = { Text(tr("QR-Code")) })
+            }
+            AssistChip(onClick = {
+                add(io.github.thepytales.llmhub.docs.SlideElement(kind = "tabelle", x = 3.0, y = 5.0, w = 20.0, h = 6.0, size = 16, color = "#000000", rows = io.github.thepytales.llmhub.creative.CanvasTable.blank()))
+            }, label = { Text(tr("Tabelle")) })
             AssistChip(onClick = { masterOpen = true }, label = { Text(tr("Masterfolie …")) })
             // Übergang und Aufbau (AP-51), beim Vorführen und in PowerPoint.
             var animMenu by remember { mutableStateOf(false) }
@@ -1197,26 +1223,90 @@ private fun FreeDesignBar(
             }
             if (s.layout != SlideDeck.Layout.FREE && sel > 0) AssistChip(onClick = { onChange(s.copy(layout = SlideDeck.Layout.FREE)) }, label = { Text(tr("Leere Folie (frei)")) })
         }
-        val el = picked?.let { s.elements.getOrNull(it) }
-        if (el != null) {
-            fun set(next: io.github.thepytales.llmhub.docs.SlideElement) = onChange(s.copy(elements = s.elements.toMutableList().apply { set(picked, next) }))
+        val one = picked.singleOrNull()
+        val el = one?.let { s.elements.getOrNull(it) }
+        // Several elements (Umschalt+click or the drag rectangle): align them to each other, spread, group – as in Gestalten.
+        if (picked.size > 1) Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
+            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(tr("{0} Elemente ausgewählt", picked.size), style = MaterialTheme.typography.labelLarge)
+                HintText(tr("Aneinander ausrichten und verteilen"))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    (ALIGN_MODES + listOf("distributeH" to "⇹", "distributeV" to "⇳")).forEach { (mode, sym) ->
+                        FilterChip(false, { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.align(s.elements, picked, mode))) }, label = { Text(sym) })
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val grouped = picked.map { s.elements.getOrNull(it)?.group.orEmpty() }.let { g -> g.all { it.isNotEmpty() } && g.distinct().size == 1 }
+                    if (grouped) TextButton(onClick = { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.group(s.elements, picked, "", apart = true))) }) { Text(tr("Gruppierung aufheben")) }
+                    else TextButton(onClick = { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.group(s.elements, picked, io.github.thepytales.llmhub.data.newDesignId()))) }) { Text(tr("Gruppieren (Strg+G)")) }
+                    TextButton(onClick = {
+                        val copies = picked.sorted().mapNotNull { s.elements.getOrNull(it)?.let { e -> e.copy(x = e.x + 1, y = e.y + 1, group = "") } }
+                        onChange(s.copy(elements = s.elements + copies)); onPick((s.elements.size until s.elements.size + copies.size).toSet())
+                    }) { Text(tr("Duplizieren")) }
+                    TextButton(onClick = { onChange(s.copy(elements = s.elements.filterIndexed { i, _ -> i !in picked })); onPick(emptySet()) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
+                }
+            }
+        }
+        if (el != null && one != null) {
+            fun set(next: io.github.thepytales.llmhub.docs.SlideElement) = onChange(s.copy(elements = s.elements.toMutableList().apply { set(one, next) }))
+            val label = when (el.kind) {
+                "bild" -> tr("Bild"); "form" -> tr("Form"); "tudshape" -> tr("TUD-Shape"); "symbol" -> tr("Symbol"); "qr" -> tr("QR-Code"); "tabelle" -> tr("Tabelle")
+                else -> tr("Textfeld")
+            }
+            val textual = el.kind == "text" || el.kind == "form" && el.shape != "linie"
             Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
                 Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(when (el.kind) { "bild" -> tr("Bild"); "form" -> tr("Form"); else -> tr("Textfeld") } + " ${picked + 1}", style = MaterialTheme.typography.labelLarge)
-                    if (el.kind != "bild" && el.shape != "linie") {
+                    Text("$label ${one + 1}", style = MaterialTheme.typography.labelLarge)
+                    if (textual || el.kind == "qr") {
                         var text by remember(el) { mutableStateOf(el.text) }
                         LaunchedEffect(text) { delay(500); if (text != el.text) set(el.copy(text = text)) }
-                        OutlinedTextField(text, { text = it }, label = { Text(tr("Text")) }, modifier = Modifier.fillMaxWidth(), minLines = 1)
+                        OutlinedTextField(text, { text = it }, label = { Text(if (el.kind == "qr") tr("Inhalt des QR-Codes (Link oder Text)") else tr("Text")) }, modifier = Modifier.fillMaxWidth(), minLines = 1)
+                        if (el.kind == "text") HintText(tr("Doppelklick auf das Textfeld: direkt auf der Folie tippen; markierten Text mit Strg+B, Strg+I, Strg+U oder der Leiste darüber formatieren."))
                     } else if (el.kind == "bild") {
                         var alt by remember(el) { mutableStateOf(el.text) }
                         LaunchedEffect(alt) { delay(500); if (alt != el.text) set(el.copy(text = alt)) }
                         OutlinedTextField(alt, { alt = it }, label = { Text(tr("Bildbeschreibung (Alternativtext)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     }
-                    if (el.kind != "bild") {
+                    if (el.kind == "tabelle") {
+                        // Tables on the canvas (AP-50): the cells like a table slide, head row in TUD blue.
+                        val rows = io.github.thepytales.llmhub.creative.CanvasTable.normalized(el.rows)
+                        TableGrid(rows) { r -> set(el.copy(rows = r)) }
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            val t = io.github.thepytales.llmhub.creative.CanvasTable
+                            TextButton(onClick = { set(el.copy(rows = t.addRow(rows), h = el.h + el.h / rows.size)) }) { Text(tr("+ Zeile")) }
+                            TextButton(onClick = { set(el.copy(rows = t.addColumn(rows))) }) { Text(tr("+ Spalte")) }
+                            TextButton(onClick = { set(el.copy(rows = t.removeRow(rows), h = if (rows.size > 1) el.h - el.h / rows.size else el.h)) }, enabled = rows.size > 1) { Text(tr("− Zeile")) }
+                            TextButton(onClick = { set(el.copy(rows = t.removeColumn(rows))) }, enabled = t.cols(rows) > 1) { Text(tr("− Spalte")) }
+                            FilterChip(el.header, { set(el.copy(header = !el.header)) }, label = { Text(tr("Kopfzeile")) })
+                        }
+                    }
+                    if (el.kind == "symbol" || el.kind == "qr" || el.kind == "tudshape" || el.kind == "tabelle") {
+                        HintText(if (el.kind == "tudshape") tr("Farbe") else tr("Schriftfarbe"))
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FREE_COLORS.forEach { col ->
+                                if (el.kind == "tudshape") ColorDot(col, el.fill.equals(col, true)) { set(el.copy(fill = col)) }
+                                else ColorDot(col, el.color.equals(col, true)) { set(el.copy(color = col)) }
+                            }
+                        }
+                        if (el.kind == "tudshape") FilterChip(el.flipX, { set(el.copy(flipX = !el.flipX)) }, label = { Text(tr("Spiegeln")) })
+                        if (el.kind == "tabelle") Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { set(el.copy(size = (el.size - 2).coerceAtLeast(8))) }) { Text("A−") }
+                            Text(tr("{0} pt", el.size), style = MaterialTheme.typography.bodySmall)
+                            TextButton(onClick = { set(el.copy(size = (el.size + 2).coerceAtMost(96))) }) { Text("A+") }
+                        }
+                    } else if (el.kind != "bild") {
                         HintText(if (el.kind == "form" && el.shape != "linie") tr("Füllung") else tr("Hintergrund"))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             if (el.kind == "text") ColorDot(null, el.fill.isBlank()) { set(el.copy(fill = "")) }
                             if (el.shape != "linie") FREE_COLORS.forEach { col -> ColorDot(col, el.fill.equals(col, true)) { set(el.copy(fill = col)) } }
+                        }
+                        // Verlauf (AP-50): a second colour from the top to the bottom of the fill.
+                        if (el.shape != "linie" && el.fill.isNotBlank()) {
+                            HintText(tr("Verlauf nach unten"))
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                ColorDot(null, el.fill2.isBlank()) { set(el.copy(fill2 = "")) }
+                                FREE_COLORS.forEach { col -> ColorDot(col, el.fill2.equals(col, true)) { set(el.copy(fill2 = col)) } }
+                            }
                         }
                         HintText(if (el.shape == "linie") tr("Linienfarbe") else tr("Schriftfarbe"))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { FREE_COLORS.forEach { col -> ColorDot(col, el.color.equals(col, true)) { set(el.copy(color = col)) } } }
@@ -1228,31 +1318,28 @@ private fun FreeDesignBar(
                             listOf("links" to "◧", "mitte" to "▣", "rechts" to "◨").forEach { (k, sym) -> FilterChip(el.align == k, { set(el.copy(align = k)) }, label = { Text(sym) }) }
                         }
                     }
-                    // The same operations as Erstellen › Gestalten (shared canvas, AP-50): align to the slide, layers, groups.
+                    // The same operations as Erstellen › Gestalten (shared canvas, AP-50): align to the slide, turn, layers, groups.
                     HintText(tr("Ausrichten auf der Folie"))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        listOf("left" to "⇤", "hcenter" to "↔", "right" to "⇥", "top" to "⤒", "vcenter" to "↕", "bottom" to "⤓").forEach { (mode, sym) ->
-                            FilterChip(false, { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.align(s.elements, setOf(picked), mode))) }, label = { Text(sym) })
+                        ALIGN_MODES.forEach { (mode, sym) ->
+                            FilterChip(false, { onChange(s.copy(elements = io.github.thepytales.llmhub.creative.SlideCanvas.align(s.elements, setOf(one), mode))) }, label = { Text(sym) })
                         }
+                        // Turned at the round handle above the frame; here back to straight.
+                        if (el.rotation != 0.0) FilterChip(false, { set(el.copy(rotation = 0.0)) }, label = { Text(tr("Drehung {0}° aufheben", Math.round(el.rotation))) })
                     }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         fun layer(up: Boolean) {
-                            val next = io.github.thepytales.llmhub.creative.SlideCanvas.reorder(s.elements, setOf(picked), up, all = true)
+                            val next = io.github.thepytales.llmhub.creative.SlideCanvas.reorder(s.elements, setOf(one), up, all = true)
                             onChange(s.copy(elements = next))
-                            onPick(next.indexOfFirst { it == el }.takeIf { it >= 0 })
+                            onPick(next.indexOfFirst { it == el }.takeIf { it >= 0 }?.let { setOf(it) }.orEmpty())
                         }
                         TextButton(onClick = { layer(true) }) { Text(tr("Nach vorn")) }
                         TextButton(onClick = { layer(false) }) { Text(tr("Nach hinten")) }
-                        // Gruppieren: with the element drawn just below it (on a slide one element is picked at a time).
                         if (el.group.isNotEmpty()) TextButton(onClick = { onChange(s.copy(elements = s.elements.map { if (it.group == el.group) it.copy(group = "") else it })) }) { Text(tr("Gruppierung aufheben")) }
-                        else if (picked > 0) TextButton(onClick = {
-                            val id = io.github.thepytales.llmhub.data.newDesignId()
-                            val below = s.elements[picked - 1].group.ifEmpty { id }
-                            onChange(s.copy(elements = s.elements.mapIndexed { i, x -> if (i == picked || i == picked - 1 || (x.group.isNotEmpty() && x.group == s.elements[picked - 1].group)) x.copy(group = below) else x }))
-                        }) { Text(tr("Mit dem Element darunter gruppieren")) }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1))); onPick(s.elements.size) }) { Text(tr("Duplizieren")) }
-                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(picked) })); onPick(null) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements + el.copy(x = el.x + 1, y = el.y + 1, group = ""))); onPick(setOf(s.elements.size)) }) { Text(tr("Duplizieren")) }
+                        TextButton(onClick = { onChange(s.copy(elements = s.elements.toMutableList().apply { removeAt(one) })); onPick(emptySet()) }) { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }
                     }
+                    HintText(tr("Auf der Folie: ziehen verschiebt (rastet an Rändern, Mitte und anderen Elementen ein, Strg: frei), der runde Griff dreht, Umschalt+Klick oder ein Rahmen wählt mehrere."))
                 }
             }
         }

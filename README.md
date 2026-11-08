@@ -43,7 +43,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Quelle wie die Updates (GitHub oder der Ordner auf dem Netzlaufwerk), mit Prüfsumme, nach
   `%LOCALAPPDATA%\ADEU LLM\tools\<id>`. Eine neuere Fassung im Release aktualisiert sie mit der Update-Prüfung; *Entfernen*
   gibt den Platz wieder frei. Erste Erweiterung ist das **Videoeditor-Paket** (ca. 40 MB: ffprobe für genaue Angaben zu
-  Videos, Sprachmodell RNNoise für die Rauschminderung); der Videoeditor bietet es beim ersten Öffnen an und funktioniert
+  Videos, Sprachmodell RNNoise für die Rauschminderung, seit Paket 2 die Gesichtserkennung YuNet); der Videoeditor bietet es beim ersten Öffnen an und funktioniert
   auch ohne. Die **Browser-Engine** (Chromium, AP-14) steht daneben und lässt sich ebenso entfernen.
 - **Lora, die Helferin im Kern der App** (AP-33 bis AP-36):
   - **Lora-Panel** statt Popup: am PC (breite Fenster) eine Seitenleiste rechts, die beim Navigieren offen bleibt – die
@@ -307,6 +307,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Seit AP-50: **Gruppieren** (Strg+G), **Text direkt auf der Leinwand tippen** (Doppelklick), **Farbverläufe** und
     **Bildfilter** (Helligkeit, Kontrast, Sättigung, Graustufen, Weichzeichnen). Ausrichten, Ebenen und Gruppen sind
     gemeinsamer Code mit den Folien (`creative/CanvasOps.kt`), dort wirken sie genauso.
+    Seit 1.0.59: Text im Textfeld **mit Formatierung tippen** – markierten Text mit Strg+B/I/U oder der kleinen Leiste über
+    dem Feld fett, kursiv, unterstrichen oder farbig machen (PNG, PDF und PowerPoint übernehmen das) – und **Tabellen auf
+    der Leinwand** im TUD-Stil (blaue Kopfzeile, Zellen, Zeilen und Spalten im Panel; in PowerPoint eine echte Tabelle).
   - **Elemente**: Text (Noto Sans Normal, **Medium** für Überschriften und Fett, je kursiv; wächst beim Tippen mit oder
     wird mit *An die Box anpassen* kleiner), die **TUD-Shape** (Farbe, Spiegeln, Drehen in 45°-Schritten, nie verzerrt
     oder als Umriss), Formen (Rechteck, abgerundet, Kreis, Dreieck, Stern, Linie, Pfeil), **Symbole** – die rund 530
@@ -819,6 +822,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Seit AP-51: **Übergänge** (Überblenden, Schieben) und **Stichpunkte nacheinander** je Folie – beim Vorführen und in
     PowerPoint (auch aus fremden .pptx gelesen) –, **Zeichnen** beim Präsentieren (D, E löscht) und Lora baut aus einem
     Dokument ein ganzes Deck („Mach aus dem Dokument eine Präsentation“).
+    Seit 1.0.59 (AP-50, AP-51):
+    - **Freie Elemente wie in Gestalten**: am runden Griff drehen, beim Verschieben an Rändern, Mitte und anderen Elementen
+      einrasten (Strg: frei), mit Umschalt+Klick oder einem Rahmen mehrere auswählen, ausrichten, verteilen, gruppieren;
+      neu auf Folien sind TUD-Shape, Symbole, QR-Codes und Tabellen, Text wird direkt auf der Folie getippt und formatiert.
+    - **Fremde PowerPoint-Dateien** (auch die TUD-Vorlage) öffnen mit ihren Layouts, Designfarben, Formen, Gruppen,
+      Tabellen und Diagrammen; beim Speichern bleibt alles, was der Editor nicht kennt, in der Datei – geschrieben werden
+      nur die geänderten Folien.
+    - **Zwei Bildschirme**: beim Vorführen laufen die Folien auf dem Beamer, die Referentenansicht mit nächster Folie,
+      Notizen und Timer bleibt auf dem Laptop (umschaltbar in der Vorführleiste).
+    - **Lora baut Folien aus einem Paper**: „Mach aus diesem Paper eine Präsentation“ baut aus einem PDF ein Deck im
+      TUD-Design mit Abschnitten, Tabellen, Abbildungen und Sprechertexten; ✨ › *Folie schöner machen* zeigt Vorschläge
+      zum Antippen, Lora schreibt auf Wunsch die Sprechertexte.
   - **Tabelle** (wie Excel): Zellraster mit Spalten- und Zeilenköpfen, **Bearbeitungsleiste mit Formeln** in deutscher
     Schreibweise (`=SUMME(B2:B9)`, `=MITTELWERT`, `=WENN(…;…;…)`, `=RUNDEN`, `=ZÄHLENWENN`, `=SUMMEWENN`, `=STABW`, `&` …,
     auch englische Namen), dazu **SVERWEIS, XVERWEIS, INDEX/VERGLEICH, WENNFEHLER, WENNS, ZÄHLENWENNS, SUMMEWENNS,
@@ -834,11 +849,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     ziehen, **Auswahllisten** (▾ in der Zelle), **Ausfüllkästchen** zum Ziehen. Excel-Dateien bis 200 000 Zeilen öffnen
     zügig; geteilte Formeln, verbundene Zellen, bedingte Formatierung, Auswahllisten, fixierte Bereiche und Spaltenbreiten
     bleiben beim Öffnen und Speichern erhalten.
+    **Formatierung innerhalb einer Zelle**: Einen Teil des Zelltexts in der Bearbeitungsleiste markieren und fett,
+    kursiv, unterstrichen, durchgestrichen oder farbig machen (Werkzeugleiste, Strg+B/I/U) – Formeln rechnen mit dem
+    reinen Text, Excel bekommt echten Rich Text (auch beim Öffnen fremder Dateien).
     **Diagramme** (AP-49) aus der Markierung in acht Arten (Säulen, Balken, gestapelt, Linie, Kreis, Punkt, Histogramm,
     Boxplot) in TUD-Farben, mit Titel und Achsentiteln, als SVG speicherbar und **verknüpft in Dokumente und Folien**
     einfügbar – dort aktualisieren sie sich beim Öffnen aus der Tabelle. **Lora rechnet** auf dem Gerät: „Berechne die
     Notenverteilung“, „Mittelwert der Note je Gruppe“ (wie eine Pivot-Tabelle) – als Formeln mit Diagramm neben den
     Daten – und „Erkläre die Formel in D2“.
+    **Echte Office-Diagramme**: In der Excel-Datei sind die Diagramme echte Excel-Diagramme, die auf die Zellen zeigen
+    (ändert man dort Zahlen, zeichnet Excel neu); Diagramme aus fremden Excel-Dateien erscheinen im Editor. In Word und
+    PowerPoint werden Diagramme zu echten Diagrammen mit ihren Daten („Daten bearbeiten“ funktioniert dort);
+    Boxplots bleiben gezeichnet.
   - **Markdown-Datei** (wie Obsidian oder eine README): Quelltext mit allen Zeichen, Werkzeugleiste (H1–H3, fett,
     kursiv, Code, Link, Listen, Checkliste, Zitat, Tabelle, Codeblock), Vorschau daneben (am Handy umschaltbar),
     Export als .md. .md-Dateien öffnen sich als Markdown-Datei.
@@ -965,6 +987,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     die YouTube-Beschreibung (*Für YouTube kopieren*).
   Tests `VideoCutTest` (u. a. ein Vortrag mit Kamera und Ansteckmikrofon: synchronisieren, schneiden, Ripple-Trimmen,
   eine Folie aus dem Quellmonitor einfügen – ohne Lücken, im Export lippensynchron).
+- **Videoeditor: einfache Effekte** (AP-54, seit 1.0.59; Abschnitt *Effekte* in den Clip-Eigenschaften):
+  - **Tempo und Bild**: Clips doppelt so schnell oder in Zeitlupe (0,25×–4×, Ton ohne Mickymaus-Stimme), Standbild,
+    kurze Stücke rückwärts, Helligkeit/Kontrast/Sättigung und **Weißabgleich auf Knopfdruck** – Vorschau und Export sehen
+    gleich aus.
+  - **Zoom und Schwenk mit Keyframes**: im Screencast sanft auf einen Bildschirmbereich zoomen und wieder heraus, auch als
+    **Hochformat 9:16** – oder einfach „Zoome oben rechts hinein“ zu Lora sagen.
+  - **Anonymisieren für Forschungsmaterial**: *Gesichter verpixeln* findet Gesichter auf dem eigenen PC (YuNet im
+    Videoeditor-Paket, nichts verlässt den Rechner), die Verpixelung folgt den Personen; dazu Bereiche von Hand verpixeln
+    oder weichzeichnen und **Stimmen verfremden** – jede Anonymisierung steht im Protokoll. Test `VideoEffectsTest`.
 - **Lernspiele-Baukasten** (AP-17, Werkzeug *Lernspiele*, anfangs aus): Lora baut aus Skript, Folien oder Beschreibung
   **eigenständige Browserspiele** – Quiz, Zuordnen, Memory, Escape-Room, Lückentext … – als *eine* HTML-Datei mit CSS und
   JavaScript („Mach ein Zuordnungsspiel zu Kapitel 3 des angehängten Skripts“). Modus *Lernspiel* (`/Lernspiel`, nur bei
@@ -1499,6 +1530,8 @@ Chats und Einstellungen erhalten bleiben).
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
 | `docs/SheetHelp.kt`, `docs/XlsxReader.kt` | Hilfe beim Tippen von Formeln; schnelles, treues Lesen von .xlsx (AP-48) |
 | `docs/ChartLinks.kt` | Verknüpfte Diagramme in Dokumenten und Folien, „Lora rechnet“ (`SheetCalc`, AP-49) |
+| `docs/PptxReader.kt`, `docs/PptxMerge.kt`, `docs/PaperDeck.kt`, `docs/SlideLook.kt`, `ui/PresentScreens.kt` (beide), `ui/SlideSuggestions.kt`, `ui/SlideCanvasEditor.kt`, `creative/CanvasText.kt`, `creative/CanvasTable.kt`, `creative/CanvasArt.kt` (beide) | Fremde .pptx lesen und ins Original schreiben, zweiter Bildschirm, Deck aus einem Paper, Folien-Vorschläge (AP-51); Folien auf der Gestalten-Leinwand, Text mit Formatierung und Tabellen auf der Leinwand (AP-50) |
+| `docs/OfficeCharts.kt`, `docs/CellRich.kt`, `ui/SheetRichText.kt` | Echte Office-Diagramme (DrawingML) für .xlsx/.docx/.pptx schreiben und lesen; Formatierung innerhalb einer Zelle (AP-48, AP-49) |
 | `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |

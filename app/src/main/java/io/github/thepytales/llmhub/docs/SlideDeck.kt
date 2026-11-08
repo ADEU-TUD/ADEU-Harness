@@ -193,7 +193,8 @@ object SlideDeck {
             if (lines.size > 1) append("\n\n").append(lines.drop(1).joinToString("\n\n"))
             if (s.image.isNotBlank()) append("\n\n").append(DocMarkup.Image(s.imageAlt, s.image).markdown())
         } else {
-            append("## ").append(s.title.ifBlank { if (s.layout == Layout.AGENDA) "Agenda" else "Folie" })
+            // A free slide may go without a title (no heading line, so it does not come back as „Folie“).
+            if (s.layout != Layout.FREE || s.title.isNotBlank()) append("## ").append(s.title.ifBlank { if (s.layout == Layout.AGENDA) "Agenda" else "Folie" })
             marker(s.layout, s.imageLeft)?.let { append("\n\n").append(it) }
             if (s.image.isNotBlank()) append("\n\n").append(DocMarkup.Image(s.imageAlt, s.image).markdown())
             val body = when (s.layout) {
@@ -353,11 +354,12 @@ object SlideDeck {
 
 /**
  * A freely placed element of a slide (AP-16 Stufe 3): text box, picture or shape, in centimetres on the 33,87 × 19,05 cm
- * slide (like PowerPoint). Colours as #RRGGBB.
+ * slide (like PowerPoint). Colours as #RRGGBB. Since the shared canvas (AP-50) also the elements of Gestalten: the
+ * TUD-Shape, symbols, QR codes and tables.
  */
 @kotlinx.serialization.Serializable
 data class SlideElement(
-    /** „text“, „bild“ or „form“. */
+    /** „text“, „bild“, „form“, „tudshape“, „symbol“ ([icon]), „qr“ ([text] is the content) or „tabelle“ ([rows]). */
     val kind: String = "text",
     val x: Double = 4.0,
     val y: Double = 5.0,
@@ -383,6 +385,18 @@ data class SlideElement(
     val group: String = "",
     /** Second colour of a gradient fill (top → bottom). */
     val fill2: String = "",
+    /** Symbol: a Material symbol („School“) or a TUD icon („tud:Forschung/3“), as in Gestalten. */
+    val icon: String = "",
+    /** Mirrored left–right (the TUD-Shape may be mirrored). */
+    val flipX: Boolean = false,
+    /**
+     * [text] holds inline Markdown (`**fett**`, `*kursiv*`, `<u>…</u>`, `<span style="color:#C00000">…</span>`) for
+     * formatting inside the text box (AP-50, text core AP-43). Off for older and plain boxes, so a „*“ stays a star.
+     */
+    val rich: Boolean = false,
+    /** Table: the cells row by row (inline Markdown like the cells of a sheet); the first row is the head row with [header]. */
+    val rows: List<List<String>> = emptyList(),
+    val header: Boolean = true,
 )
 
 /** Masterfolie (AP-16 Stufe 3): background, accent and footer of every slide of the deck; logo on or off. */
