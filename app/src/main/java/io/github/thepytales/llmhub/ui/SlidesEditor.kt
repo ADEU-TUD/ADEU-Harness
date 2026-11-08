@@ -195,6 +195,8 @@ fun SlidesBody(
     var presenting by remember { mutableStateOf<Int?>(null) }
     var sorter by remember { mutableStateOf(false) }
     var handout by remember { mutableStateOf(false) }
+    /** „Folie schöner machen“ (AP-51): the slide whose suggestions are shown. */
+    var suggest by remember { mutableStateOf<Int?>(null) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun set(list: List<SlideDeck.Slide>) = onMarkdown(SlideDeck.markdown(list))
     // Lora in der Präsentation (AP-38 Stufe c): her actions read and replace the slides.
@@ -208,6 +210,11 @@ fun SlidesBody(
         }
         io.github.thepytales.llmhub.agent.ActionHosts.slides = host
         onDispose { if (io.github.thepytales.llmhub.agent.ActionHosts.slides === host) io.github.thepytales.llmhub.agent.ActionHosts.slides = null }
+    }
+    androidx.compose.runtime.DisposableEffect(doc.id) {
+        val open: (Int) -> Unit = { suggest = it }
+        SlideSuggestionsHost.open = open
+        onDispose { if (SlideSuggestionsHost.open === open) SlideSuggestionsHost.open = null }
     }
     fun update(i: Int, s: SlideDeck.Slide) = set(slides.toMutableList().apply { set(i, s) })
     fun addSlide(layout: SlideDeck.Layout) {
@@ -296,6 +303,7 @@ fun SlidesBody(
                             inlineAi.start("s$sel", doc, SlideDeck.markdown(listOf(SlideDeck.Slide(), slides[sel])).substringAfter("---").trim(), label, instruction)
                         })
                     }
+                    DropdownMenuItem(text = { Text(tr("Folie schöner machen …")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; suggest = sel })
                     HorizontalDivider()
                     Text(tr("Ganze Präsentation"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     DropdownMenuItem(text = { Text(tr("Sprechernotizen für alle Folien")) }, leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)) }, onClick = { aiMenu = false; askDeck(tr("Sprechernotizen"), NOTES_ALL_SLIDES) })
@@ -335,6 +343,9 @@ fun SlidesBody(
         }
     }
     presenting?.let { start -> Presenter(slides, start, frame, narrow) { presenting = null } }
+    suggest?.takeIf { it in slides.indices }?.let { i ->
+        SlideSuggestionsDialog(c, slides, i, frame, onPick = { list -> set(slides.toMutableList().apply { removeAt(i); addAll(i, list) }); suggest = null }, onDismiss = { suggest = null })
+    }
     if (handout) HandoutDialog(c, doc, DocMarkup.resolveImages(markdown, base ?: c.docs.baseDir(doc)), onDismiss = { handout = false })
 }
 

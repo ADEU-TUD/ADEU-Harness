@@ -5356,3 +5356,33 @@ Einmal gelesene Dateien kommen danach aus dem Volltext-Cache.	Files read once co
 {0} Datumsangaben als TT.MM.JJJJ vereinheitlicht	{0} dates unified as DD.MM.YYYY
 Folien nur auf diesem Bildschirm	Slides on this screen only
 Folien auf dem zweiten Bildschirm	Slides on the second screen
+Folie schöner machen …	Make slide nicer …
+Folie schöner machen	Make slide nicer
+Antippen übernimmt den Vorschlag. Ohne Modell kommen die Vorschläge aus festen Regeln.	Tap to apply a suggestion. Without a model the suggestions come from fixed rules.
+Antippen übernimmt den Vorschlag.	Tap to apply a suggestion.
+Lora entwirft eigene Varianten …	Lora is drafting her own variants …
+Für diese Folie habe ich keinen Vorschlag – sie sieht schon gut aus.	I have no suggestion for this slide – it already looks good.
+Als Diagramm	As chart
+Als Vergleich	As comparison
+Kürzere Punkte	Shorter points
+Auf zwei Folien	On two slides
+Unterpunkte in die Notizen	Sub-points into the notes
+Als Zitat	As quote
+Bild groß, Text in die Notizen	Large picture, text into the notes
+Vorschlag von Lora	Suggestion by Lora
+Präsentation aus Paper	Presentation from paper
+Aus welchem Paper? Bitte ein PDF auswählen oder den Namen nennen.	From which paper? Please choose a PDF or name it.
+In „{0}“ finde ich keinen lesbaren Text – ist das PDF gescannt? Dann zuerst Texterkennung (OCR).	I find no readable text in “{0}” – is the PDF scanned? Then run text recognition (OCR) first.
+Präsentation „{0}“ mit {1} Folien angelegt ({2} Abbildungen) – Vorführen mit Umschalt+F5.	Presentation “{0}” with {1} slides created ({2} figures) – present with Shift+F5.
+Die Titelfolie bleibt im TUD-Design – welche andere Folie?	The title slide keeps the TUD design – which other slide?
+Sucht Vorschläge für Folie {0} …	Looking for suggestions for slide {0} …
+Vorschläge für Folie {0} stehen im Editor zum Antippen bereit.	Suggestions for slide {0} are ready to tap in the editor.
+Macht Folie {0} schöner …	Making slide {0} nicer …
+Für Folie {0} habe ich keinen Vorschlag – sie sieht schon gut aus.	I have no suggestion for slide {0} – it already looks good.
+Folie {0}: {1}.	Slide {0}: {1}.
+Weitere Vorschläge: {0}.	More suggestions: {0}.
+Sprechertexte schreiben	Write speaker notes
+Alle Folien haben schon Notizen – mit „alle“ schreibe ich sie neu.	All slides already have notes – with “alle” I rewrite them.
+Schreibt Sprechertexte für {0} Folien …	Writing speaker notes for {0} slides …
+Sprechertexte für {0} Folien geschrieben.	Speaker notes written for {0} slides.
+Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Speaker notes for {0} slides written from the points (without a model).

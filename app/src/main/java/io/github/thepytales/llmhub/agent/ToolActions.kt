@@ -263,7 +263,7 @@ object ToolActions {
     /** Files of the Tresor never reach Lora's actions. */
     internal fun allowed(c: AppContainer, f: File): Boolean = !f.absolutePath.replace('\\', '/').contains("/tresor-dateien/")
 
-    private val PDF_IN_FILES = setOf("pdf.open", "pdf.merge", "pdf.compress", "pdf.convert", "pdf.split", "pdf.redact")
+    private val PDF_IN_FILES = setOf("pdf.open", "pdf.merge", "pdf.compress", "pdf.convert", "pdf.split", "pdf.redact", "slides.from_paper")
 
     // ── Finding the files an action is about ─────────────────────────────────────────────────────────────
 
