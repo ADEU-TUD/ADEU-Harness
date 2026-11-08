@@ -91,7 +91,21 @@ object SheetLora {
     /** Like [clean], with the old index of every row kept (for moving the formats along). */
     fun cleanKeep(rows: List<List<String>>): Triple<List<List<String>>, List<String>, List<Int>> {
         var trimmed = 0
-        val tidy = rows.map { row -> row.map { v -> v.trim().replace(Regex("[ \\t]{2,}"), " ").also { if (it != v) trimmed++ } } }
+        val spaced = rows.map { row -> row.map { v -> v.trim().replace(Regex("[ \\t]{2,}"), " ").also { if (it != v) trimmed++ } } }
+        // Dates in mixed formats (2026-04-03, 3.4.26, 03.04.2026) in a date column become 03.04.2026 (AP-49).
+        var dated = 0
+        val width = spaced.maxOfOrNull { it.size } ?: 0
+        val dateCols = (0 until width).filter { c ->
+            val cells = (1 until spaced.size).map { spaced[it].getOrNull(c).orEmpty() }.filter { it.isNotBlank() && !it.startsWith("=") }
+            cells.isNotEmpty() && cells.count { SheetEngine.parseDate(it) != null } * 2 > cells.size
+        }.toSet()
+        val tidy = spaced.mapIndexed { r, row ->
+            if (r == 0 || dateCols.isEmpty()) row
+            else row.mapIndexed { c, v ->
+                if (c !in dateCols || v.startsWith("=")) v
+                else SheetEngine.parseDate(v)?.let(SheetEngine::dateText)?.also { if (it != v) dated++ } ?: v
+            }
+        }
         val seen = HashSet<List<String>>()
         var empty = 0
         var dupes = 0
@@ -107,6 +121,7 @@ object SheetLora {
         val out = kept.map { tidy[it] }
         val notes = buildList {
             if (trimmed > 0) add(tr("{0} Zellen ohne überzählige Leerzeichen", trimmed))
+            if (dated > 0) add(tr("{0} Datumsangaben als TT.MM.JJJJ vereinheitlicht", dated))
             if (empty > 0) add(tr("{0} leere Zeilen entfernt", empty))
             if (dupes > 0) add(tr("{0} doppelte Zeilen entfernt", dupes))
         }
@@ -239,7 +254,7 @@ internal object OfficeActions {
             }
         },
         ToolAction(
-            "sheet.clean", ActionArea.SHEET, trLater("Daten bereinigen"), "Bereinigt die offene Tabelle: Leerzeichen, leere und doppelte Zeilen.",
+            "sheet.clean", ActionArea.SHEET, trLater("Daten bereinigen"), "Bereinigt die offene Tabelle: Leerzeichen, Datumsformate, leere und doppelte Zeilen.",
             emptyList(), risky = true,
         ) { _, _ ->
             val rows = SheetEngine.grid(sheetHost().markdown())

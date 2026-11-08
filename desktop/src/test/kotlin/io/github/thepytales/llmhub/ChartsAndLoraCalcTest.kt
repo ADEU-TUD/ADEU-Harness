@@ -87,6 +87,23 @@ class ChartsAndLoraCalcTest {
     }
 
     @Test
+    fun cleaningUnifiesDates() {
+        val rows = listOf(
+            listOf("Name", "Abgabe", "Note"),
+            listOf(" Anna ", "2026-04-03", "2"),
+            listOf("Ben", "3.4.26", "5"),
+            listOf("Cleo", "03.04.2026", "1"),
+            listOf("Dana", "", "3"),
+        )
+        val (clean, said) = io.github.thepytales.llmhub.agent.SheetLora.clean(rows)
+        assertEquals(listOf("03.04.2026", "03.04.2026", "03.04.2026", ""), clean.drop(1).map { it[1] })
+        // Grades are no dates; the head row stays.
+        assertEquals(listOf("2", "5", "1", "3"), clean.drop(1).map { it[2] })
+        assertEquals("Abgabe", clean[0][1])
+        assertTrue(said.any { "Datumsangaben" in it } && said.any { "Leerzeichen" in it }, said.toString())
+    }
+
+    @Test
     fun linkedChartUpdatesWhenGradesChange() {
         // Fertig, wenn: a distribution with chart from a grade table stands linked in a document and follows changed grades.
         val dist = SheetCalc.distribution(grades, 3, SheetEngine.Sheet(grades))!!
