@@ -31,7 +31,16 @@ data class VaultMeta(
     val failures: Int = 0,
     val blockedUntil: Long = 0,
     val lockMinutes: Int = VaultStore.DEFAULT_LOCK_MINUTES,
+    /**
+     * The PIN boxes of further devices (AP-63): a vault synced to another PC or the phone gets its own box there, sealed
+     * with that device's key – the box of the first device stays, so both keep working with their PIN.
+     */
+    val boxes: List<VaultBox> = emptyList(),
 )
+
+/** The data key encrypted with a PIN (and sealed with the key of one device): one per device that opens the vault. */
+@Serializable
+data class VaultBox(val salt: String, val iterations: Int, val wrapped: String, val sealed: Boolean, val createdAt: Long = 0)
 
 /**
  * Tresor für sensible Forschung (AP-10): chats and projects with interviews or data of students, locked with an app
@@ -41,7 +50,13 @@ data class VaultMeta(
  * chats never appear in the chat list, the search, the memory or suggestions outside the vault. The vault locks itself
  * after [VaultMeta.lockMinutes] without activity.
  */
-class VaultStore(root: File, private val clock: () -> Long = System::currentTimeMillis) {
+class VaultStore(
+    root: File,
+    /** The device key (Android Keystore / Windows DPAPI); tests give each simulated device its own. */
+    private val seal: (ByteArray) -> ByteArray? = DeviceKey::seal,
+    private val unseal: (ByteArray) -> ByteArray? = DeviceKey::open,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
     enum class State { NOT_SET_UP, LOCKED, UNLOCKED }
 
     sealed interface Unlock {
@@ -52,7 +67,12 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
 
     private val dir = File(root, "vault")
     private val chatsDir = File(dir, "chats")
+    /** Conflict copies of vault chats from the sync (SyncGuard puts them here); they become second chats on unlocking. */
+    private val conflictsDir = File(dir, CONFLICTS)
     private val metaFile = File(dir, "vault.json")
+    /** Which PIN box this device opened the vault with (-1: the first one in [VaultMeta]); a new PIN replaces only it. */
+    @Volatile
+    private var myBox = -1
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val random = SecureRandom()
 
@@ -106,7 +126,7 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         val salt = ByteArray(16).also(random::nextBytes)
         val rSalt = ByteArray(16).also(random::nextBytes)
         val pinBox = encrypt(derive(pin, salt, ITERATIONS), data, null)
-        val sealed = DeviceKey.seal(pinBox)
+        val sealed = seal(pinBox)
         return VaultMeta(
             salt = b64(salt),
             iterations = ITERATIONS,
@@ -123,8 +143,16 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         val m = meta() ?: return Unlock.Wrong(0)
         val now = clock()
         if (m.blockedUntil > now) return Unlock.Blocked((m.blockedUntil - now + 999) / 1000)
-        val box = dec(m.pinWrapped).let { if (m.deviceSealed) DeviceKey.open(it) else it }
-        val data = box?.let { decrypt(derive(pin, dec(m.salt), m.iterations), it, null) }
+        // Every box this device can open (its own, sealed with its key, or an unsealed one) is tried with the PIN.
+        var data: ByteArray? = null
+        for ((i, b) in boxesOf(m)) {
+            val box = open(b) ?: continue
+            data = decrypt(derive(pin, dec(b.salt), b.iterations), box, null)
+            if (data != null) {
+                myBox = i
+                break
+            }
+        }
         if (data == null) {
             val failures = m.failures + 1
             val wait = if (failures < FREE_ATTEMPTS) 0L else minOf(3600L, 30L shl (failures - FREE_ATTEMPTS).coerceAtMost(7))
@@ -135,15 +163,39 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         key = data
         touch()
         _state.value = State.UNLOCKED
+        adoptConflicts()
         _chats.value = loadAll()
         return Unlock.Ok
     }
 
-    /** Whether the device key still opens the PIN box (false e.g. after a reinstall: then only the recovery key helps). */
+    /** The first box (fields of [VaultMeta]) as index -1, then the boxes of further devices. */
+    private fun boxesOf(m: VaultMeta): List<Pair<Int, VaultBox>> =
+        listOf(-1 to VaultBox(m.salt, m.iterations, m.pinWrapped, m.deviceSealed)) + m.boxes.mapIndexed { i, b -> i to b }
+
+    private fun open(b: VaultBox): ByteArray? = dec(b.wrapped).let { if (b.sealed) unseal(it) else it }
+
+    /**
+     * Whether this device has a PIN box it can open (false after a reinstall or on another PC or phone the vault was
+     * synced to: then the recovery key sets a PIN for this device, without touching the others').
+     */
     fun deviceKeyWorks(): Boolean {
         val m = meta() ?: return true
-        return !m.deviceSealed || DeviceKey.open(dec(m.pinWrapped)) != null
+        return boxesOf(m).any { (_, b) -> open(b) != null }
     }
+
+    /** [m] with the PIN box of this device ([index] as in [boxesOf], null: a new box for this device) replaced. */
+    private fun withBox(m: VaultMeta, index: Int?, salt: ByteArray, pinBox: ByteArray): VaultMeta {
+        val sealedBox = seal(pinBox)
+        val box = VaultBox(b64(salt), ITERATIONS, b64(sealedBox ?: pinBox), sealedBox != null, clock())
+        return when (index) {
+            -1 -> m.copy(salt = box.salt, iterations = box.iterations, pinWrapped = box.wrapped, deviceSealed = box.sealed)
+            null -> m.copy(boxes = (m.boxes + box).takeLast(MAX_BOXES))
+            else -> m.copy(boxes = m.boxes.mapIndexed { i, b -> if (i == index) box else b })
+        }
+    }
+
+    /** The box this device can open (index as in [boxesOf]); null if it has none. */
+    private fun ownBox(m: VaultMeta): Int? = boxesOf(m).firstOrNull { (_, b) -> b.sealed && open(b) != null }?.first
 
     /** Sets a new PIN with the recovery key; true if the recovery key was right. Also unlocks. */
     @Synchronized
@@ -153,11 +205,16 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         val data = decrypt(derive(normalizeRecovery(recovery), dec(m.recoverySalt), RECOVERY_ITERATIONS), dec(m.recoveryWrapped), null) ?: return false
         val salt = ByteArray(16).also(random::nextBytes)
         val pinBox = encrypt(derive(newPin, salt, ITERATIONS), data, null)
-        val sealed = DeviceKey.seal(pinBox)
-        writeMeta(m.copy(salt = b64(salt), iterations = ITERATIONS, pinWrapped = b64(sealed ?: pinBox), deviceSealed = sealed != null, failures = 0, blockedUntil = 0))
+        // This device's box gets the new PIN; a device without one (synced vault, reinstall) gets a box of its own, and
+        // the boxes of the other devices stay as they are.
+        val index = ownBox(m) ?: boxesOf(m).firstOrNull { (_, b) -> !b.sealed }?.first
+        val next = withBox(m, index, salt, pinBox).copy(failures = 0, blockedUntil = 0)
+        writeMeta(next)
+        myBox = index ?: (next.boxes.size - 1)
         key = data
         touch()
         _state.value = State.UNLOCKED
+        adoptConflicts()
         _chats.value = loadAll()
         return true
     }
@@ -170,8 +227,7 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         val m = meta() ?: return false
         val salt = ByteArray(16).also(random::nextBytes)
         val pinBox = encrypt(derive(newPin, salt, ITERATIONS), data, null)
-        val sealed = DeviceKey.seal(pinBox)
-        writeMeta(m.copy(salt = b64(salt), pinWrapped = b64(sealed ?: pinBox), deviceSealed = sealed != null))
+        writeMeta(withBox(m, myBox.takeIf { it == -1 || it < m.boxes.size } ?: -1, salt, pinBox))
         return true
     }
 
@@ -220,6 +276,45 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         _chats.value = _chats.value.filterNot { it.id == id }
     }
 
+    /**
+     * Reads the vault again after a sync (AP-63): a vault set up on another device appears, the chats of an open vault
+     * are read anew.
+     */
+    @Synchronized
+    fun reload() {
+        when {
+            !metaFile.isFile -> if (_state.value != State.NOT_SET_UP) { lock(); _state.value = State.NOT_SET_UP }
+            _state.value == State.NOT_SET_UP -> _state.value = State.LOCKED
+            unlocked -> {
+                adoptConflicts()
+                _chats.value = loadAll()
+            }
+        }
+    }
+
+    /**
+     * Conflict copies of vault chats (changed on two devices before a sync): each becomes a second vault chat „…
+     * (zweite Fassung)“, encrypted again under its new id – as the sync does with ordinary chats. Only while unlocked.
+     */
+    @Synchronized
+    fun adoptConflicts(): Int {
+        val k = key ?: return 0
+        val files = (conflictsDir.listFiles().orEmpty().toList() + chatsDir.listFiles().orEmpty().filter { SyncGuard.conflictOriginal(it, emptyList()) != null })
+            .filter { it.isFile && it.extension == "bin" }
+        var adopted = 0
+        for (f in files) {
+            // The chat's id is the encryption's associated data: the original name, without the cloud's or the sync's marks.
+            val ids = listOfNotNull(SyncGuard.conflictOriginal(f, emptyList())?.nameWithoutExtension, f.nameWithoutExtension)
+                .flatMap { listOf(it, it.replace(Regex("^\\d+_"), "")) }.distinct()
+            val plain = ids.firstNotNullOfOrNull { id -> decrypt(k, f.readBytes(), id.toByteArray()) } ?: continue
+            val conv = runCatching { json.decodeFromString(Conversation.serializer(), plain.decodeToString()) }.getOrNull() ?: continue
+            save(conv.copy(id = java.util.UUID.randomUUID().toString(), title = conv.title.ifBlank { "Chat" } + " (zweite Fassung)"))
+            f.delete()
+            adopted++
+        }
+        return adopted
+    }
+
     private fun loadAll(): List<Conversation> {
         val k = key ?: return emptyList()
         return chatsDir.listFiles { f -> f.extension == "bin" }.orEmpty().mapNotNull { f ->
@@ -237,12 +332,14 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
         return iv + cipher.doFinal(plain)
     }
 
-    private fun decrypt(k: ByteArray, data: ByteArray, aad: ByteArray?): ByteArray? = try {
+    private fun decrypt(k: ByteArray, data: ByteArray, aad: ByteArray?): ByteArray? = if (data.size < 12 + 16) null else try {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(k, "AES"), GCMParameterSpec(128, data.copyOfRange(0, 12)))
         aad?.let(cipher::updateAAD)
         cipher.doFinal(data.copyOfRange(12, data.size))
     } catch (e: AEADBadTagException) {
+        null
+    } catch (e: java.security.GeneralSecurityException) {
         null
     } catch (e: IllegalArgumentException) {
         null
@@ -277,6 +374,10 @@ class VaultStore(root: File, private val clock: () -> Long = System::currentTime
     private fun dec(s: String) = Base64.getDecoder().decode(s)
 
     companion object {
+        /** Folder of vault conflict copies inside the vault (see [adoptConflicts]). */
+        const val CONFLICTS = "konflikte"
+        /** At most this many boxes of further devices (old ones of reinstalled devices fall out). */
+        private const val MAX_BOXES = 8
         const val DEFAULT_LOCK_MINUTES = 5
         const val FREE_ATTEMPTS = 5
         private const val ITERATIONS = 210_000

@@ -31,6 +31,8 @@ object SyncGuard {
 
     /** Conflict copies set aside, in `sync/konflikte/<date>/<path>`. */
     const val CONFLICTS = "konflikte"
+    /** Conflict copies of vault chats, kept encrypted inside the vault (AP-63). */
+    const val VAULT_CONFLICTS = "vault/konflikte"
 
     /** A PC that has not said it is alive for this long counts as closed (crashed, asleep, switched off). */
     const val STALE_MS = 15 * 60_000L
@@ -206,6 +208,8 @@ object SyncGuard {
             .onEnter { dir -> dir == root || dir.parentFile != root || dir.name !in SKIPPED }
             .filter { it.isFile && !it.name.endsWith(".tmp") }
             .mapNotNull { f -> conflictOriginal(f, pcs)?.let { o -> Conflict(f, o.takeIf { it != f }, relative(root, f)) } }
+            // Already set aside for the vault (it makes second chats of them once it is opened, AP-63).
+            .filter { !it.path.startsWith(VAULT_CONFLICTS + "/") }
             .toList()
     }
 
@@ -226,6 +230,14 @@ object SyncGuard {
         val chats = mutableListOf<String>()
         val moved = mutableListOf<String>()
         for (c in conflicts) {
+            // A vault chat (encrypted): only the vault can read it – it goes to the vault's own conflict folder and
+            // becomes a second vault chat when the vault is opened next (VaultStore.adoptConflicts).
+            if (c.path.startsWith("vault/chats/") && c.file.extension == "bin") {
+                val dest = File(File(data, VAULT_CONFLICTS), c.file.name).let { d -> if (!d.exists()) d else File(d.parentFile, "${now}_${d.name}") }
+                dest.parentFile?.mkdirs()
+                if (c.file.renameTo(dest) || runCatching { c.file.copyTo(dest); c.file.delete() }.getOrDefault(false)) moved += c.path
+                continue
+            }
             val isChat = c.path.startsWith("conversations/") && c.path.count { it == '/' } == 1 && c.file.name.contains(".json")
             if (isChat) secondVersion(c.file)?.let { (title, id, text) ->
                 File(c.file.parentFile, "$id.json").writeText(text)

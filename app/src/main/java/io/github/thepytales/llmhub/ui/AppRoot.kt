@@ -372,6 +372,11 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         }
     }
 
+    // Browser neben dem Chat (AP-63): web links open in the app's WebView instead of leaving the app.
+    val systemUri = androidx.compose.ui.platform.LocalUriHandler.current
+    val uriHandler = remember(systemUri) { PhoneUriHandler(systemUri) { c.settings.current.browserPanel } }
+    SideEffect { PhoneBrowser.chatId = currentChatId?.takeIf { route?.startsWith("chat") == true } }
+    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalUriHandler provides uriHandler) {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).trackLoraGaze()) {
         if (wide) {
             val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -381,7 +386,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 // The line beside the side menu: drag for wider or narrower, double tap resets.
                 PanelResizer(widths.menu, panelLeft = true, label = tr("Breite der Seitenleiste ändern"))
                 Box(Modifier.weight(1f).fillMaxHeight()) { screens() }
-                // Lora's panel beside the app on tablets.
+                // The browser beside the chat (AP-63) and Lora's panel beside the app on tablets.
+                PhoneBrowserPanel(c)
                 LoraSidePanel(c)
             }
         } else {
@@ -391,6 +397,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 drawerContent = menu,
                 content = screens,
             )
+            PhoneBrowserOverlay(c)
             LoraSheet(c)
         }
         // Lora flying from her panel to the place she leads to.
@@ -413,6 +420,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
     }
 }
 

@@ -106,6 +106,8 @@ val androidOnly = setOf(
     "android/print/PdfPrintBridge.kt",
     "io/github/thepytales/llmhub/MainActivity.kt",
     "io/github/thepytales/llmhub/transcribe/TranscriptionService.kt",
+    // Browser neben dem Chat auf Android (AP-63, WebView); the PC has its own with Chromium (ui/BrowserPanel.kt).
+    "io/github/thepytales/llmhub/ui/PhoneBrowser.kt",
 )
 
 val sharedSources by tasks.registering(Sync::class) {

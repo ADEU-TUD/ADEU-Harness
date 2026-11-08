@@ -196,7 +196,7 @@ private fun VaultUnlock(c: AppContainer) {
         Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
         Text(tr("Der Tresor ist gesperrt."), style = MaterialTheme.typography.titleMedium)
     }
-    if (!c.vault.deviceKeyWorks()) HintText(tr("Der Geräteschlüssel passt nicht mehr (z. B. nach einer Neuinstallation). Öffne den Tresor mit dem Wiederherstellungsschlüssel."))
+    if (!c.vault.deviceKeyWorks()) HintText(tr("Auf diesem Gerät gibt es noch keine PIN für den Tresor (z. B. nach dem Sync von einem anderen Gerät oder nach einer Neuinstallation). Setze sie einmal mit dem Wiederherstellungsschlüssel – die PIN der anderen Geräte bleibt."))
     PinField(pin, { pin = it; message = null }, tr("PIN"))
     message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
