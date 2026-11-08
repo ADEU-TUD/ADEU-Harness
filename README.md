@@ -834,11 +834,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     ziehen, **Auswahllisten** (▾ in der Zelle), **Ausfüllkästchen** zum Ziehen. Excel-Dateien bis 200 000 Zeilen öffnen
     zügig; geteilte Formeln, verbundene Zellen, bedingte Formatierung, Auswahllisten, fixierte Bereiche und Spaltenbreiten
     bleiben beim Öffnen und Speichern erhalten.
+    **Formatierung innerhalb einer Zelle**: Einen Teil des Zelltexts in der Bearbeitungsleiste markieren und fett,
+    kursiv, unterstrichen, durchgestrichen oder farbig machen (Werkzeugleiste, Strg+B/I/U) – Formeln rechnen mit dem
+    reinen Text, Excel bekommt echten Rich Text (auch beim Öffnen fremder Dateien).
     **Diagramme** (AP-49) aus der Markierung in acht Arten (Säulen, Balken, gestapelt, Linie, Kreis, Punkt, Histogramm,
     Boxplot) in TUD-Farben, mit Titel und Achsentiteln, als SVG speicherbar und **verknüpft in Dokumente und Folien**
     einfügbar – dort aktualisieren sie sich beim Öffnen aus der Tabelle. **Lora rechnet** auf dem Gerät: „Berechne die
     Notenverteilung“, „Mittelwert der Note je Gruppe“ (wie eine Pivot-Tabelle) – als Formeln mit Diagramm neben den
     Daten – und „Erkläre die Formel in D2“.
+    **Echte Office-Diagramme**: In der Excel-Datei sind die Diagramme echte Excel-Diagramme, die auf die Zellen zeigen
+    (ändert man dort Zahlen, zeichnet Excel neu); Diagramme aus fremden Excel-Dateien erscheinen im Editor. In Word und
+    PowerPoint werden Diagramme zu echten Diagrammen mit ihren Daten („Daten bearbeiten“ funktioniert dort);
+    Boxplots bleiben gezeichnet.
   - **Markdown-Datei** (wie Obsidian oder eine README): Quelltext mit allen Zeichen, Werkzeugleiste (H1–H3, fett,
     kursiv, Code, Link, Listen, Checkliste, Zitat, Tabelle, Codeblock), Vorschau daneben (am Handy umschaltbar),
     Export als .md. .md-Dateien öffnen sich als Markdown-Datei.
@@ -1499,6 +1506,7 @@ Chats und Einstellungen erhalten bleiben).
 | `docs/SheetEngine.kt`, `docs/SlideDeck.kt`, `docs/OfficeImport.kt` | Tabellen mit Formeln, Folienmodell, Import von .docx/.pptx/.xlsx/.csv |
 | `docs/SheetHelp.kt`, `docs/XlsxReader.kt` | Hilfe beim Tippen von Formeln; schnelles, treues Lesen von .xlsx (AP-48) |
 | `docs/ChartLinks.kt` | Verknüpfte Diagramme in Dokumenten und Folien, „Lora rechnet“ (`SheetCalc`, AP-49) |
+| `docs/OfficeCharts.kt`, `docs/CellRich.kt`, `ui/SheetRichText.kt` | Echte Office-Diagramme (DrawingML) für .xlsx/.docx/.pptx schreiben und lesen; Formatierung innerhalb einer Zelle (AP-48, AP-49) |
 | `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |

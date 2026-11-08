@@ -84,7 +84,7 @@ Office (aus *Danach* nachgerückt, nachdem die Video-Grundlage – AP-52 und AP-
 ist; siehe *Erledigt*). Erst AP-48 (Tabellen), dann AP-49; AP-50 vor AP-51. Stand 08.11.2026: alle vier begonnen (◐) –
 das „Fertig, wenn“ von AP-48 und AP-49 ist erfüllt, die Reste stehen je Paket unter *Offen*; AP-58 aus *Danach* ist erledigt.
 
-### AP-48 ◐ Tabellen wie Excel · XL (neu, in Stufen)
+### AP-48 ☑ Tabellen wie Excel · XL (neu, in Stufen)
 So nah wie möglich an **Google Sheets/Excel**:
 1. **Rechnen**: Formelleiste mit Hilfe zu Funktionen, deutlich mehr Funktionen (Text, Datum, Statistik, SVERWEIS/XVERWEIS,
    WENNS, SUMMEWENNS, EINDEUTIG, FILTER, SORTIEREN), absolute/relative Bezüge, Bezüge auf andere Blätter, Fehlerwerte
@@ -116,10 +116,20 @@ So nah wie möglich an **Google Sheets/Excel**:
   verloren), verbundene Zellen, bedingte Formatierung (Wert, Text enthält, Farbskala), Auswahllisten, fixierte Zeilen/
   Spalten, eigene Spaltenbreiten und Zahlenformate wie „0.0“ lesen und schreiben. Test `SheetsLikeExcelTest`: u. a.
   **OPAL-Export mit 5 000 Zeilen** (geteilte Formeln, Formate) gelesen, mit SVERWEIS auf ein zweites Blatt angereichert,
-  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s). **Offen**: Formatierung innerhalb einer Zelle
-  (Text-Kern), Diagramme aus .xlsx (mit AP-49).
+  gefiltert, als .xlsx gespeichert und unverändert wieder gelesen (5 s).
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Formatierung innerhalb einer Zelle** (`docs/CellRich.kt`, `ui/SheetRichText.kt`):
+  der Zelltext trägt das Inline-Markdown des Text-Kerns (`**fett**`, `*kursiv*`, `~~durch~~`, `<u>`, `<span style="color:…">`);
+  ein Teil der Zelle wird in der Bearbeitungsleiste markiert und über die Werkzeugleiste bzw. Strg+B/I/U formatiert
+  (ohne Markierung gilt das Format wie bisher für die ganze Zelle). Die Leiste und die Zelle zeigen die Formatierung statt
+  der Zeichen, Formeln, Filter und Diagramme sehen den reinen Text (ein fettes „12“ bleibt eine Zahl), Excel bekommt
+  echte Rich-Text-Läufe (`<is><r><rPr>…`) und gibt sie beim Lesen zurück (auch aus `sharedStrings.xml`). **Diagramme in
+  .xlsx** (`docs/OfficeCharts.kt`): die Diagramme eines Blatts werden echte Excel-Diagramme (Zeichnung rechts neben den
+  Daten), deren Reihen auf die Zellen zeigen (`'Noten 2026'!$B$2:$B$5`, `SheetTools.chartRefs`); Histogramm und Boxplot
+  als Säulen ihrer Klassen bzw. Quartile mit Alternativtext „Histogramm von A1:A13“. Beim Öffnen werden Säulen-, Balken-,
+  Linien-, Kreis- und Punktdiagramme fremder Dateien zu Diagrammen des Blatts, auf dem ihre Daten stehen (ID bleibt über
+  den Namen „Lora-Diagramm …“). Test `OfficeChartsTest`.
 
-### AP-49 ◐ Diagramme und Lora rechnet · M–L (neu)
+### AP-49 ☑ Diagramme und Lora rechnet · M–L (neu)
 - **Diagramme** aus markierten Bereichen: Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot; Titel, Achsen,
   Farben im TUD-Design; als Bild exportieren.
 - **Verknüpft einfügen** in Dokument und Folien: Ändern sich die Daten, aktualisiert sich das Diagramm (wie Sheets →
@@ -145,9 +155,14 @@ So nah wie möglich an **Google Sheets/Excel**:
   Säulendiagramm und Rückgängig; Formeln erklärt in Worten mit den Spaltennamen der Bezüge. Gerechnet wird auf dem Gerät,
   das Modell bekommt nur den Auftrag. Bereinigen gab es schon (`sheet.clean`). Dazu begrenzt: Versionsverlauf und
   Rückgängig großer Tabellen nach Größe (24 bzw. 60 Mio. Zeichen) statt nur nach Anzahl. Test `ChartsAndLoraCalcTest`:
-  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. **Offen**: echte
-  Office-Diagramme in .docx/.pptx (heute Vektorformen mit Datentabelle), Diagramme aus .xlsx lesen/schreiben, Daten
-  bereinigen um Datumsformate.
+  Notenverteilung mit Diagramm verknüpft in Bericht und Präsentation, nach geänderter Note aktualisiert. Nachtrag:
+  Daten bereinigen vereinheitlicht Datumsformate (TT.MM.JJJJ).
+- **Umsetzung Teil 2 (08.11.2026, ☑)**: **Echte Office-Diagramme** in Word und PowerPoint (`OfficeCharts.embedded`):
+  ```chart-Blöcke im Dokument und Diagrammfolien werden `c:chartSpace`-Teile mit **eingebetteter Arbeitsmappe**
+  (`embeddings/Microsoft_Excel_WorksheetN.xlsx`), sodass „Daten bearbeiten“ in Word/PowerPoint funktioniert; Boxplots
+  bleiben in PowerPoint gezeichnet und in Word Datentabelle, „Änderungen nachverfolgen“ schreibt Diagramme weiter als
+  Tabelle. Word-Diagramme kommen beim Öffnen als ```chart-Block mit den Werten zurück; Diagramme aus .xlsx siehe AP-48.
+  Test `OfficeChartsTest` (Word, PowerPoint, eingebettete Daten).
 
 ### AP-50 ◐ Gemeinsame Leinwand für Folien und Gestalten · L (neu, mit Gestalten-Resten)
 - Der Folien-Editor bekommt die **Leinwand aus Erstellen › Gestalten** (Ebenen, Einrasten, Drehen, Ausrichten/Verteilen,
