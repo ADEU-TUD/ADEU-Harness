@@ -351,6 +351,47 @@ object PdfTools {
         }
     }
 
+    /**
+     * Every word of the PDF with its box (fractions of the displayed page, origin top left) – for marking along the text
+     * and clicking words to black out (AP-60).
+     */
+    fun words(context: Context?, file: File): List<PdfWord> {
+        init(context)
+        return load(file).use { doc ->
+            val out = mutableListOf<PdfWord>()
+            val stripper = object : PDFTextStripper() {
+                override fun writeString(text: String, positions: MutableList<TextPosition>) {
+                    if (positions.isEmpty()) return
+                    val (w, h) = displayed(doc.getPage(currentPageNo - 1))
+                    var start = -1
+                    fun flush(end: Int) {
+                        if (start < 0) return
+                        val part = positions.subList(start, end)
+                        val first = part.first()
+                        val hh = part.maxOf { (it.heightDir.takeIf { v -> v > 0 } ?: it.fontSizeInPt) } * 1.15f
+                        val x0 = part.minOf { it.xDirAdj }
+                        val x1 = part.maxOf { it.xDirAdj + it.widthDirAdj }
+                        val y1 = part.maxOf { it.yDirAdj } + hh * 0.22f
+                        out += PdfWord(currentPageNo - 1, PdfBox(x0 / w, (y1 - hh * 1.22f) / h, (x1 - x0) / w, (hh * 1.22f) / h), part.joinToString("") { it.unicode.orEmpty() })
+                        start = -1
+                    }
+                    for (k in positions.indices) {
+                        val p = positions[k]
+                        if (p.unicode.isNullOrBlank()) { flush(k); continue }
+                        // PDFs without space characters (LaTeX …): a gap of a quarter of the font size ends the word.
+                        val prev = positions.getOrNull(k - 1)
+                        if (start >= 0 && prev != null && p.xDirAdj - (prev.xDirAdj + prev.widthDirAdj) > p.fontSizeInPt * 0.25f) flush(k)
+                        if (start < 0) start = k
+                    }
+                    flush(positions.size)
+                }
+            }
+            stripper.sortByPosition = true
+            stripper.getText(doc)
+            out
+        }
+    }
+
     /** Text of the PDF as lines with their positions (displayed page, points from the top left). */
     fun textRuns(context: Context?, file: File): Pair<List<PdfTextRun>, List<Pair<Float, Float>>> {
         init(context)

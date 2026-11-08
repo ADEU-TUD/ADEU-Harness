@@ -29,4 +29,5 @@ object PdfStage3 {
     fun setMeta(file: File, m: PdfMeta, clean: Boolean, out: File): Unit = pc()
     fun uaCheck(context: android.content.Context, file: File): List<PdfUaFinding> = pc()
     fun uaFix(context: android.content.Context, file: File, title: String, out: File): Unit = pc()
+    fun autoTag(file: File, out: File, title: String, language: String = "de-DE", alt: Map<String, String> = emptyMap()): PdfTagReport = pc()
 }

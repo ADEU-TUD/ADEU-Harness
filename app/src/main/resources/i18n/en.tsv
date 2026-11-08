@@ -141,6 +141,7 @@ Ab hier Querformat	Landscape from here
 Ab hier wieder Hochformat	Portrait again from here
 Ab Jahr	From year
 Ab Monat	From month
+Abbildungen beschreiben …	Describe figures …
 Abbrechen	Cancel
 Abgabe-Check	Submission check
 Abgabe-Check ok	Submission check ok
@@ -330,6 +331,7 @@ Als Word-Datei	As a Word file
 Als Word-Dokument	As a Word document
 Als Überschrift	As heading
 Alt+X	Alt+X
+Alternativtext, Seite {0}	Alternative text, page {0}
 alt="…" ergänzen (bei Schmuckbildern alt="").	Add alt="…" (alt="" for decorative images).
 Alte Namen wiederhergestellt.	Old names restored.
 Alternativtext (Barrierefreiheit)	Alternative text (accessibility)
@@ -339,6 +341,7 @@ Am Cursor teilen	Split at cursor
 Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten und beim Wechsel in den Hintergrund.	On the PC, the Lora folder is in Nextcloud (Settings › Sync on the PC). Through it the phone gets chats, projects, memory, snippets, own TU templates and the files of the Lora folder and uploads its own changes – when the app opens, every five minutes and when it goes into the background.
 Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.	On the PC, put the folder into Nextcloud under Settings › Sync and wait until it is uploaded.
 Am PC „{0}“ sind noch {1} Änderung(en) unterwegs – der Sync wartet auf die Nextcloud.	On the PC “{0}”, {1} change(s) are still on their way – sync waits for Nextcloud.
+Am Text einrasten	Snap to text
 Am schnellsten – auch für sehr lange Dokumente und große Projekte	Fastest – also for very long documents and large projects
 Am Wochenende	On weekends
 am {0}	on {0}
@@ -895,6 +898,7 @@ Danach automatisch weitermachen	Then continue automatically
 Danach fragt Android einmal nach („Aktualisieren“). Chats, Einstellungen und API-Key bleiben erhalten.	Afterwards Android asks once (“Update”). Chats, settings and API key are kept.
 Danach fragt Android, ob die App aktualisiert werden soll – einfach „Aktualisieren“ tippen.	Afterwards Android asks whether the app should be updated – just tap “Update”.
 Danach mit Parakeet v3 Wort für Wort messen (im Median 50 ms genau) – für Zeitstempel, Wortmarkierung und Untertitel. Kostet etwas Rechenzeit.	Then measure word by word with Parakeet v3 (accurate to 50 ms in the median) – for timestamps, word highlighting and subtitles. Costs some computing time.
+Danach nichts mehr am PDF ändern – sonst zeigt die Prüfung, dass nach dem Signieren etwas geändert wurde.	Do not change the PDF afterwards – otherwise the check shows that something was changed after signing.
 Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart.	Afterwards Lora restarts briefly. To keep working, choose “In the background” – the app then asks before restarting.
 Dann auch in Projekten mit „Nur TU Dresden“ nutzbar.	Then also usable in projects with “TU Dresden only”.
 Darstellung	Appearance
@@ -940,6 +944,8 @@ Das Modell lädt zu lange.	The model takes too long to load.
 Das Modell merkt sich nichts über Chats hinweg.	The model does not remember anything across chats.
 Das Modell merkt sich wichtige Angaben selbst; Sie sehen und löschen sie hier.	The model remembers important details by itself; you see and delete them here.
 Das Modell schlägt vor, sich etwas zu merken – Sie bestätigen jeden Eintrag.	The model suggests remembering something – you confirm every entry.
+Das PDF hat schon Tags.	The PDF already has tags.
+Das Zertifikat stammt nicht von einer Stelle, der dieser PC vertraut (z. B. selbst ausgestellt).	The certificate is not from an authority this PC trusts (e.g. self-issued).
 das Modell sieht es nicht	the model doesn't see it
 Das Paket gibt es für {0} noch nicht. Der Videoeditor funktioniert trotzdem – mit dem ffmpeg des Systems.	The package is not available for {0} yet. The video editor still works – with the system's ffmpeg.
 Das passt hier	This fits here
@@ -965,6 +971,7 @@ Das Video über den Text schneiden: Wörter löschen schneidet, Absätze verschi
 Das bearbeitete PDF speichern oder teilen.	Save or share the edited PDF.
 Das würde ich so machen – passt es?	This is what I would do – is that right?
 Das ZIP-Archiv kann nicht gelesen werden.	The ZIP archive cannot be read.
+Das Zertifikat „{0}“ ist abgelaufen oder noch nicht gültig.	The certificate “{0}” has expired or is not valid yet.
 Das lässt sich nicht mehr zurücknehmen.	This can no longer be undone.
 Das weiß ich schon.	I know that already.
 Datei	File
@@ -1048,6 +1055,8 @@ Dein Startbildschirm unterstützt keine Verknüpfungen.	Your home screen does no
 Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. Chats und Einstellungen bleiben in der App.	Your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) are kept in the app. Choose a folder on the phone, e.g. “Documents/Lora” – then a copy is kept there, and changes made there come back. Chats and settings stay in the app.
 Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
+Die Signatur passt nicht – das Dokument wurde nach dem Signieren verändert.	The signature does not match – the document was changed after signing.
+Dieses PDF ist nicht digital signiert.	This PDF is not digitally signed.
 den Abschnitt	write the section
 Den Abschnitt „{0}“ finde ich nicht.	I cannot find the section “{0}”.
 Den Agenten in Ordnern auf diesem PC arbeiten lassen.	Let the agent work in folders on this PC.
@@ -1210,6 +1219,7 @@ Die Seitenbilder gehen an ein KI-Modell, das Bilder versteht – darin lassen si
 Die sichere Verbindung ist fehlgeschlagen. Stimmt die Uhrzeit des Geräts? In WLANs mit Anmeldeseite (Hotel, Bahn) zuerst im Browser anmelden.	The secure connection failed. Is the device's time correct? In Wi-Fi networks with a login page (hotel, train), log in in the browser first.
 Die Sicherung enthält verschlüsselte Schlüssel (API-Key, Tokens). Mit dem Passwort werden sie übernommen.	The backup contains encrypted keys (API key, tokens). With the password they are taken over.
 Die Sicherung konnte nicht gespeichert werden.	The backup could not be saved.
+Die Signatur ließ sich nicht lesen: {0}	The signature could not be read: {0}
 Die Sitzung beim Server ist abgelaufen – bitte noch einmal versuchen.	The session with the server has expired – please try again.
 Die Spracherkennung ist für diesen Prozessor nicht enthalten (nur 64-Bit-ARM-Handys und Windows-PCs).	Speech recognition is not included for this processor (only 64-bit ARM phones and Windows PCs).
 Die Spracherkennung konnte nicht gestartet werden: {0}	Speech recognition could not be started: {0}
@@ -1281,6 +1291,8 @@ Diese Zeichen gehen nicht: \\ / : * ? " < > |	These characters are not allowed: 
 Diesen Namen gibt es hier schon.	This name already exists here.
 Dieser Ablauf ist nicht mehr da.	This workflow is no longer there.
 Dieser Ordner hängt schon am Chat.	This folder is already attached to the chat.
+Digital signieren	Sign digitally
+Digital signiert von	Digitally signed by
 Dokument	Document
 Dokument entwerfen	Draft a document
 Dokument erstellen	Create a document
@@ -1816,6 +1828,7 @@ Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.	Fi
 Füllt {0} Zellen …	Filling {0} cells …
 Füllung	Fill
 Füllwörter entfernen ({0})	Remove filler words ({0})
+Für PDFs ohne Tags: Überschriften (nach Schriftgröße), Absätze, Listen und Abbildungen werden ausgezeichnet, Linien und Seitenzahlen als Dekoration. Tabellen erkennt Lora noch nicht – sie werden zu Absätzen.	For PDFs without tags: headings (by font size), paragraphs, lists and figures are tagged, lines and page numbers as decoration. Lora does not recognise tables yet – they become paragraphs.
 Für alle Chats	For all chats
 Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben.	For all chats: Settings › Chat & tools › Approvals.
 Für alle Präsentationen übernehmen	Use for all presentations
@@ -1877,6 +1890,7 @@ Gefiltert nach Spalte {0} · {1} von {2} Zeilen	Filtered by column {0} · {1} of
 Gefunden ({0}): {1}	Found ({0}): {1}
 Gelöschte Dateien in den Windows-Papierkorb	Deleted files into the Windows Recycle Bin
 Gelöschte Dateien landen im Papierkorb von Windows statt im Lora-Papierkorb.	Deleted files go into the Windows Recycle Bin instead of Lora's.
+Grund: {0}	Reason: {0}
 Herausschneiden	Cut out
 gefunden und ergänzt	found and completed
 gefunden, Angaben abweichend	found, details differ
@@ -2005,6 +2019,7 @@ Große Werkzeuge sind anfangs aus, damit die App übersichtlich bleibt. Eingesch
 Großes Expertenmodell, rechnet aber nur mit 4 Mrd. Parametern – schnell auf Gaming-PCs (16 GB Grafik) oder mit 32 GB RAM.	Large expert model, but computes with only 4 billion parameters – fast on gaming PCs (16 GB graphics) or with 32 GB of RAM.
 Großes Flaggschiff-Modell von Zhipu AI für anspruchsvolle Aufgaben.	Large flagship model from Zhipu AI for demanding tasks.
 Großes Modell von MiniMax, ausgelegt auf Agenten- und Programmieraufgaben.	Large model from MiniMax, designed for agent and programming tasks.
+Grund (optional)	Reason (optional)
 Größe	Size
 Größe (pt)	Size (pt)
 Größe wählen, dann noch einmal klicken.	Choose the size, then click again.
@@ -2167,6 +2182,7 @@ Im Tresor merke ich mir nichts.	In the vault I remember nothing.
 Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen.	Only the university server and models on this device are allowed in the vault – {0} runs at an external provider. Please choose a model of the university server.
 Im TUD-Design	In the TUD design
 Im Video ist nichts gesprochen – oder den Clips fehlt ein Transkript.	Nothing is spoken in the video – or the clips have no transcript.
+Im Zertifikatsspeicher von Windows ist kein Zertifikat mit privatem Schlüssel – eine .p12/.pfx-Datei geht auch.	There is no certificate with a private key in the Windows certificate store – a .p12/.pfx file works too.
 im Web	on the web
 Im Web suchen und Links lesen.	Search the web and read links.
 Im Web und nach Nachrichten suchen, Links lesen und Literaturangaben bei Crossref prüfen.	Search the web and the news, read links and check references at Crossref.
@@ -2446,6 +2462,7 @@ Kein Token	No token
 Kein Vorschlag erhalten.	No suggestion received.
 Kein Vorschlag mehr – der Nachweis bleibt im Chat-Menü.	No more suggestions – the statement stays in the chat menu.
 Keine	None
+Keine Abbildungen.	No figures.
 keine Abschnitte	no sections
 Keine Anmeldung innerhalb von fünf Minuten. Bitte noch einmal versuchen.	No login within five minutes. Please try again.
 keine Antwort	no answer
@@ -2956,6 +2973,7 @@ Merkt sich etwas …	Remembering something …
 Messpunkt setzen	Take a measurement
 Messpunkte	Measurements
 Metadaten	Metadata
+Metadaten werden mit entfernt.	Metadata is removed as well.
 Methode und Argumentation	Method and argumentation
 Methoden- & Statistikberatung	Methods & statistics advice
 Mikrofon	Microphone
@@ -2986,6 +3004,7 @@ Mit dem PC synchronisieren	Sync with the PC
 Mit dem Sprachmodell des Videoeditor-Pakets (RNNoise).	With the language model of the video editor package (RNNoise).
 Mit dem Sprachmodell erstellen	Create with the language model
 Mit der Ausschreibung passt Lora sie an.	With the call, Lora adapts them.
+Mit der Maus schwärzen	Black out with the mouse
 Mit diesem Modell startet jeder neue Chat.	Every new chat starts with this model.
 Mit diesem Modell startet jeder neue Chat. Im Chat lässt es sich jederzeit wechseln.	Every new chat starts with this model. It can be switched in the chat at any time.
 Mit diesem Schlüssel setzt du die PIN neu, wenn du sie vergisst. Er wird nur jetzt angezeigt – drucke ihn aus oder schreibe ihn auf und bewahre ihn sicher auf, getrennt vom Gerät.	With this key you reset the PIN if you forget it. It is only shown now – print it or write it down and keep it safe, separate from the device.
@@ -3015,6 +3034,7 @@ Mit Sprechern, Zeitmarken und Kommentaren, zum Weiterbearbeiten.	With speakers, 
 Mit Strg+Z rückgängig.	Undo with Ctrl+Z.
 Mit Texterkennung (OCR) neu erzeugen oder aus der Quelldatei exportieren.	Create it again with text recognition (OCR) or export it from the source file.
 Mit dem Mailserver statt mit Outlook arbeiten.	Work with the mail server instead of Outlook.
+Mit der Maus schwärzen …	Black out with the mouse …
 Mit vorigem verbinden	Join with previous
 Mit Windows starten	Start with Windows
 mit XMP-Daten	with XMP data
@@ -3064,6 +3084,7 @@ Mündliche Prüfung vorbereiten	Prepare an oral exam
 Nach Art	By type
 Nach Name, Datum oder Größe sortieren.	Sort by name, date or size.
 Nach dem Chat dazulernen	Learn after the chat
+Nach dem Signieren wurde etwas hinzugefügt (z. B. Kommentare oder eine weitere Signatur).	Something was added after signing (e.g. comments or another signature).
 Nach dem Stopp sofort transkribieren	Transcribe right after stopping
 Nach dem Stoppen wird transkribiert.	It is transcribed after stopping.
 Nach einem Neustart der App wird von vorne begonnen.	After a restart of the app it starts from the beginning.
@@ -3414,6 +3435,7 @@ Ordner übernehmen	Use folder
 Ordner „{0}“ vom Chat gelöst (der Ordner selbst bleibt)	Folder “{0}” detached from the chat (the folder itself stays)
 Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen.	Folder, document, spreadsheet, presentation, from a template or upload.
 Ordnet {0} Dateien in „{1}“ in Unterordner …	Sorts {0} files in “{1}” into subfolders …
+Ort	Place
 Ort, Datum darunter	Place, date below
 Orte	Places
 Orte in Personenbeschreibungen	Places in descriptions of people
@@ -3434,6 +3456,7 @@ Parakeet v3 ist nicht mehr geladen.	Parakeet v3 is no longer loaded.
 Passende Dateien	Matching files
 Passt	Fits
 Passwort	Password
+Passwort der Datei	Password of the file
 Passwort der Sicherung	Password of the backup
 Passwort entfernt – Mail über den Server ist aus.	Password removed – mail via the server is off.
 Passwort für die Rechte	Password for permissions
@@ -3645,6 +3668,7 @@ Rechnet nach …	Calculating …
 Rechte Spalte	Right column
 Rechte Spalte (erste Zeile „### Überschrift“)	Right column (first line “### Heading”)
 Rechteck	Rectangle
+Rechteck ziehen oder auf ein Wort klicken. Die Balken werden erst mit „Schwärzen“ eingebrannt – danach ist der Text darunter aus der Datei verschwunden.	Drag a rectangle or click a word. The bars are burnt in only with “Black out” – then the text below is gone from the file.
 Rechts	Right
 Rechtsbündig	Align right
 Rechtschreibung	Spelling
@@ -3856,12 +3880,15 @@ Sicherung erstellen	Create backup
 Sicherung gespeichert.	Backup saved.
 Sicherung importieren	Import backup
 Sichtbar für das Modell	Visible to the model
+Sichtbares Feld unten rechts auf der letzten Seite	Visible field at the bottom right of the last page
 Sie erscheinen im Chat als Vorschlag – Sie wählen, was übernommen wird.	They appear in the chat as a suggestion – you choose what is taken over.
 Sie erscheinen nicht in der Chatliste, der Suche, dem Gedächtnis oder in Vorschlägen.	They don't appear in the chat list, the search, the memory or in suggestions.
 Sie steht auf der Titelfolie unten und in der Fußzeile jeder Folie – eine Ebene pro Zeile (Fakultät, Institut, Professur).	It appears at the bottom of the title slide and in the footer of every slide – one level per line (faculty, institute, chair).
 Sie werden gespeichert; im Chat steht, was dazukam, mit „Rückgängig“.	They are saved; the chat shows what was added, with “Undo”.
 Siehe ai.google.dev für Funktionen und die Grenzen des kostenlosen API-Plans.	See ai.google.dev for features and the limits of the free API plan.
 Siehe Statusseite für die unterstützten Funktionen.	See the status page for the supported features.
+Signaturen prüfen	Check signatures
+Signiert das PDF mit einem Zertifikat (z. B. dem persönlichen Zertifikat der TU) – jede spätere Änderung wird sichtbar. Der private Schlüssel bleibt im Zertifikatsspeicher von Windows bzw. in der Datei.	Signs the PDF with a certificate (e.g. your personal TU certificate) – any later change becomes visible. The private key stays in the Windows certificate store or in the file.
 Sitzung planen	Plan a session
 Skizze	Sketch
 SLUB	SLUB
@@ -4135,6 +4162,8 @@ Tag vorher	day before
 Tage	Days
 Tage vorher	days before
 Tagen	days
+Tags erzeugen	Create tags
+Tags erzeugen (PDF/UA)	Create tags (PDF/UA)
 Tagungsband	Proceedings
 Tagungsbeitrag	Conference paper
 Tagungsposter	Conference poster
@@ -4688,6 +4717,7 @@ Wichtig	Important
 Wichtiger Hinweis	Important note
 Wie bei Obsidian: Der Lora-Ordner (Dateien, Chats und Einstellungen) liegt in einem Cloud-Ordner (Nextcloud, Google Drive für Desktop oder OneDrive), der auf deinen PCs eingerichtet ist. Deren Programm hält ihn überall gleich – am Büro-PC beginnen, am Laptop weiterarbeiten, ohne Umzug.	As with Obsidian: the Lora folder (files, chats and settings) is in a cloud folder (Nextcloud, Google Drive for desktop or OneDrive) that is set up on your PCs. Their program keeps it the same everywhere – start on the office PC, continue on the laptop, without moving anything.
 Wie das Projekt (beste Qualität)	As the project (best quality)
+Windows	Windows
 Windows › Beim Schließen im Infobereich weiterlaufen	Windows › Keep running in the notification area when closed
 Windows › Mit Windows starten	Windows › Start with Windows
 Wo soll geschnitten werden?	Where should it be cut?
@@ -4709,6 +4739,7 @@ Wie soll die Datei heißen?	What should the file be called?
 Wie soll Lora die Markierung überarbeiten? Die Änderungen erscheinen als Vorschläge.	How should Lora revise the selection? The changes appear as suggestions.
 Wie sollen Texte klingen?	How should texts sound?
 Wie Tresore in Obsidian: Jeder Ablageort ist ein Ordner, in dem Dokumente, Präsentationen und Tabellen als lesbare Markdown-Dateien liegen (Versionen und Kommentare im Unterordner „.adeu“). Liegt der Ordner in Google Drive, 	Like vaults in Obsidian: every storage location is a folder in which documents, presentations and spreadsheets are readable Markdown files (versions and comments in the subfolder “.adeu”). If the folder is in Google Drive, 
+Zertifikatsdatei (.p12/.pfx) …	Certificate file (.p12/.pfx) …
 wie Word / Google Docs, auch im TUD-Design	like Word / Google Docs, also in the TUD design
 Wie zwischen zwei PCs gilt: immer nur ein Gerät zur Zeit. Ist der Ordner am PC geöffnet, wartet das Handy; Änderungen auf beiden Seiten bleiben beide erhalten.	As between two PCs: only one device at a time. While the folder is open on the PC, the phone waits; changes on both sides are both kept.
 Wieder ausgeschaltet.	Turned off again.
@@ -4919,6 +4950,7 @@ Zum Lesen, Drucken und Weitergeben.	For reading, printing and passing on.
 Zum Startbildschirm hinzufügen	Add to home screen
 Zum Teilen den Cursor vor das Wort setzen, mit dem der neue Abschnitt beginnt. Ohne gemessene Wortzeit die Wiedergabe genau an diese Stelle bringen – die Abspielposition wird dann der neue Anfang.	To split, put the cursor before the word with which the new section begins. Without a measured word time, bring the playback exactly to this point – the playback position then becomes the new start.
 Zum Vergleichen merken	Remember for comparing
+Zum Zertifikat „{0}“ gibt es keinen privaten Schlüssel.	There is no private key for the certificate “{0}”.
 Zum vorigen · nächsten Schnitt	To the previous · next cut
 Zum Zusammenfügen braucht es mindestens zwei PDFs – bitte auswählen oder nennen.	Merging needs at least two PDFs – please choose or name them.
 Zuordnung löschen	Delete assignment
@@ -4953,6 +4985,7 @@ auch in der Transkription	also in Transcription
 bei	at
 ca. {0} Min.	about {0} min.
 fehlgeschlagen	failed
+gültig, unverändert	valid, unchanged
 in {0} geöffnet	open in {0}
 unter einer Minute	under a minute
 zweite Datei wählen	choose a second file
@@ -4969,6 +5002,7 @@ noch kein Bereich	no area yet
 {0} % · {1} Beiträge · {2} Wörter	{0} % · {1} turns · {2} words
 {0} ({1} Codes)	{0} ({1} codes)
 {0} (Änderungen)	{0} (changes)
+{0} Abbildung(en) ohne Alternativtext – oben beschreiben und neu erzeugen (auf dem Original).	{0} figure(s) without alternative text – describe them above and create again (on the original).
 {0} Ablageort(e)	{0} storage location(s)
 {0} Abschnitte blieben unübersetzt (Originaltext).	{0} passages stayed untranslated (original text).
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
@@ -5130,6 +5164,7 @@ noch kein Bereich	no area yet
 {0} Änderungen der KI markiert ✕	{0} AI changes highlighted ✕
 {0} Änderungen offen · alle annehmen	{0} changes open · accept all
 {0} Überschriften mit Formatvorlage (Navigation möglich).	{0} headings with styles (navigation possible).
+{0} Überschriften, {1} Absätze, {2} Listenpunkte, {3} Abbildungen, {4} Teile als Dekoration.	{0} headings, {1} paragraphs, {2} list items, {3} figures, {4} parts as decoration.
 {0} – neuer Versuch in {1} s.	{0} – trying again in {1} s.
 {0} – Rückmeldungen.zip	{0} – feedback.zip
 {0} – {1} s gewartet	{0} – waited {1} s

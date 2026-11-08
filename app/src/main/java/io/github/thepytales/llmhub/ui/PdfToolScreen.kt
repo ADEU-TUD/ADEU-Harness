@@ -675,6 +675,9 @@ private fun NumbersDialog(onDismiss: () -> Unit, onApply: (PdfNumbering) -> Unit
 private val STAMPS = listOf("GEPRÜFT", "ERLEDIGT", "ENTWURF", "VERTRAULICH", "EINGEGANGEN")
 private val MARK_COLORS = listOf(0xFFE066, 0x80DEEA, 0xA5D6A7, 0xF48FB1, 0x1565C0, 0xC62828)
 
+/** Marks that follow the lines of text (AP-60). */
+private val SNAPPING = setOf(PdfMarkKind.HIGHLIGHT, PdfMarkKind.UNDERLINE, PdfMarkKind.STRIKE)
+
 /** Markieren & Notizen: tools, color, the pages to draw on, and the list of comments. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -686,8 +689,14 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
     var stamp by remember { mutableStateOf(STAMPS.first()) }
     var noteAt by remember { mutableStateOf<Pair<Int, PdfBox>?>(null) }
     var showComments by remember { mutableStateOf(false) }
+    // Einrasten am Text (AP-60): the words of every page with their boxes (Windows; Android marks rectangles).
+    var snap by remember { mutableStateOf(true) }
+    val words by produceState<Map<Int, List<io.github.thepytales.llmhub.docs.PdfWord>>>(emptyMap(), tab.file) {
+        value = withContext(Dispatchers.IO) { runCatching { PdfTools.words(context, tab.file).groupBy { it.page } }.getOrDefault(emptyMap()) }
+    }
     FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         PdfMarkKind.entries.forEach { k -> FilterChip(selected = tool == k, onClick = { tool = k }, label = { Text(tr(k.label)) }) }
+        if (words.isNotEmpty() && tool in SNAPPING) FilterChip(selected = snap, onClick = { snap = !snap }, label = { Text(tr("Am Text einrasten")) })
         if (tool == PdfMarkKind.STAMP) STAMPS.forEach { s -> FilterChip(selected = stamp == s, onClick = { stamp = s }, label = { Text(s) }) }
         if (tool != PdfMarkKind.STAMP && tool != PdfMarkKind.NOTE) MARK_COLORS.forEach { col ->
             Box(
@@ -712,7 +721,7 @@ private fun PdfMarker(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
     )
     fun add(mark: PdfMark) = onRun { src, out -> PdfTools.annotate(context, src, listOf(mark), out) }
     PageCanvasList(tab, info) { page, w, h ->
-        MarkLayer(tool, w, h) { boxes, strokes, tap ->
+        MarkLayer(tool, w, h, if (snap && tool in SNAPPING) words[page].orEmpty() else emptyList()) { boxes, strokes, tap ->
             when (tool) {
                 PdfMarkKind.NOTE -> tap?.let { noteAt = page to PdfBox(it.x, it.y, 0.02f, 0.02f) }
                 PdfMarkKind.STAMP -> tap?.let { add(PdfMark(page, PdfMarkKind.STAMP, listOf(PdfBox(it.x, it.y, 0.1f, 0.03f)), text = stamp)) }
@@ -790,8 +799,10 @@ internal fun PageCanvasList(tab: PdfTab, info: PdfInfo, layer: @Composable (page
  * (note, stamp). [onDone] gets the result as fractions of the page.
  */
 @Composable
-private fun MarkLayer(tool: PdfMarkKind, w: Float, h: Float, onDone: (List<PdfBox>, List<List<PdfPoint>>, PdfPoint?) -> Unit) {
+private fun MarkLayer(tool: PdfMarkKind, w: Float, h: Float, words: List<io.github.thepytales.llmhub.docs.PdfWord> = emptyList(), onDone: (List<PdfBox>, List<List<PdfPoint>>, PdfPoint?) -> Unit) {
     var start by remember { mutableStateOf<Offset?>(null) }
+    // With the words of the page the drag selects text line by line (AP-60) instead of a rectangle.
+    fun snapped(a: Offset, b: Offset): List<PdfBox> = if (words.isEmpty()) emptyList() else io.github.thepytales.llmhub.docs.PdfSnap.boxes(words, PdfPoint(a.x / w, a.y / h), PdfPoint(b.x / w, b.y / h))
     var end by remember { mutableStateOf<Offset?>(null) }
     val path = remember { mutableStateListOf<Offset>() }
     val accent = MaterialTheme.colorScheme.primary
@@ -809,6 +820,7 @@ private fun MarkLayer(tool: PdfMarkKind, w: Float, h: Float, onDone: (List<PdfBo
                             val b = end
                             if (a != null && b != null) {
                                 if (tool == PdfMarkKind.INK) onDone(emptyList(), listOf(path.map { PdfPoint(it.x / w, it.y / h) }), null)
+                                else if (words.isNotEmpty() && snapped(a, b).isNotEmpty()) onDone(snapped(a, b), emptyList(), null)
                                 else {
                                     val x = minOf(a.x, b.x) / w
                                     val y = minOf(a.y, b.y) / h
@@ -831,6 +843,8 @@ private fun MarkLayer(tool: PdfMarkKind, w: Float, h: Float, onDone: (List<PdfBo
             if (tool == PdfMarkKind.INK && path.size > 1) {
                 val p = Path().apply { moveTo(path[0].x, path[0].y); path.drop(1).forEach { lineTo(it.x, it.y) } }
                 drawPath(p, accent, style = Stroke(width = 3f))
+            } else if (words.isNotEmpty()) {
+                snapped(a, b).forEach { r -> drawRect(accent.copy(alpha = 0.3f), topLeft = Offset(r.x * w, r.y * h), size = androidx.compose.ui.geometry.Size(r.w * w, r.h * h)) }
             } else {
                 drawRect(accent.copy(alpha = 0.25f), topLeft = Offset(minOf(a.x, b.x), minOf(a.y, b.y)), size = androidx.compose.ui.geometry.Size(kotlin.math.abs(b.x - a.x), kotlin.math.abs(b.y - a.y)))
             }

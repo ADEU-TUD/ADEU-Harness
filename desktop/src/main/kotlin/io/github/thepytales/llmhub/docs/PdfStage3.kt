@@ -451,6 +451,10 @@ object PdfStage3 {
         return out.sortedBy { if (it.level == PdfUaFinding.Level.ERROR) 0 else 1 }
     }
 
+    /** Tags for PDF/UA (AP-60): headings, paragraphs, lists, figures with [alt] texts, the rest as artifacts; see [PdfAutoTag]. */
+    fun autoTag(file: File, out: File, title: String, language: String = "de-DE", alt: Map<String, String> = emptyMap()): PdfTagReport =
+        PdfAutoTag.tag(file, out, title, language, alt)
+
     /** Fixes what can be fixed without a person: language, title, title in the window, tab order. */
     fun uaFix(context: android.content.Context, file: File, title: String, out: File) {
         file.copyTo(out, overwrite = true)
