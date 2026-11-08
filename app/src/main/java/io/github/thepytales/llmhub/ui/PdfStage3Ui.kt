@@ -1,6 +1,10 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -42,6 +46,13 @@ import io.github.thepytales.llmhub.docs.PdfImageInfo
 import io.github.thepytales.llmhub.docs.PdfMeta
 import io.github.thepytales.llmhub.docs.PdfRedaction
 import io.github.thepytales.llmhub.docs.PdfStage3
+import io.github.thepytales.llmhub.docs.PdfSigning
+import io.github.thepytales.llmhub.docs.PdfBox
+import io.github.thepytales.llmhub.docs.PdfPoint
+import io.github.thepytales.llmhub.docs.PdfSnap
+import io.github.thepytales.llmhub.docs.PdfTools
+import io.github.thepytales.llmhub.docs.PdfTagReport
+import io.github.thepytales.llmhub.docs.PdfSignatureInfo
 import io.github.thepytales.llmhub.docs.PdfUaFinding
 import io.github.thepytales.llmhub.files.FileText
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +76,7 @@ internal fun PdfStage3Tools(c: AppContainer, tab: PdfTab, onRun: ((File, File) -
         Column(Modifier.widthIn(max = 820.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (PdfStage3.SUPPORTED) {
                 RedactCard(c, tab, onRun)
+                if (PdfSigning.SUPPORTED) SignatureCard(tab, onRun)
                 ReplaceTextCard(tab, onRun)
                 ImagesCard(tab, onRun)
                 ShrinkCard(tab, onRun)
@@ -72,6 +84,7 @@ internal fun PdfStage3Tools(c: AppContainer, tab: PdfTab, onRun: ((File, File) -
                 PasswordCard(tab, onRun)
                 MetaCard(tab, onRun)
                 UaCard(tab, onRun)
+                TagsCard(tab, onRun)
             } else HintText(tr("Schwärzen, Text und Bilder ändern, Verkleinern, PDF/A, Passwort, Metadaten und die PDF/UA-Prüfung gibt es in der Windows-App."))
             CompareCard(c, tab)
         }
@@ -90,6 +103,7 @@ private fun RedactCard(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> Uni
     var terms by remember { mutableStateOf("") }
     var hits by remember(tab.file) { mutableStateOf<List<PdfRedaction>?>(null) }
     var clean by remember { mutableStateOf(true) }
+    var mouse by remember { mutableStateOf(false) }
     SettingsCard(tr("Schwärzen")) {
         SettingsHint(tr("Echtes Schwärzen: Seiten mit schwarzen Balken werden als Bild neu gezeichnet – der Text darunter ist aus der Datei verschwunden, nicht nur verdeckt. Andere Seiten bleiben, wie sie sind."))
         OutlinedTextField(
@@ -109,6 +123,12 @@ private fun RedactCard(c: AppContainer, tab: PdfTab, onRun: ((File, File) -> Uni
             OutlinedButton(enabled = terms.isNotBlank(), onClick = {
                 scope.launch { hits = work { PdfStage3.find(tab.file, terms.split(Regex("[\\n,;]"))) } }
             }) { Text(tr("Stellen suchen")) }
+            // AP-60: on the page itself – drag a rectangle or click a word.
+            OutlinedButton(onClick = { mouse = true }) { Text(tr("Mit der Maus schwärzen …")) }
+        }
+        if (mouse) MouseRedactDialog(tab, clean, onDismiss = { mouse = false }) { boxes ->
+            mouse = false
+            onRun { src, out -> PdfStage3.redact(src, boxes, out, cleanMetadata = clean) }
         }
         hits?.let { list ->
             if (list.isEmpty()) HintText(tr("Nichts gefunden – bei Scans erst „Umwandeln › Texterkennung“."))
@@ -315,6 +335,174 @@ private fun CompareCard(c: AppContainer, tab: PdfTab) {
                     }
                 }) { Text(tr("Als Word speichern")) }
             }
+        }
+    }
+}
+
+/**
+ * Schwärzen mit der Maus (AP-60): the pages large, a dragged rectangle or a click on a word becomes a black box; the
+ * boxes are burnt in with „Schwärzen“ (the same echte Schwärzen as above).
+ */
+@Composable
+private fun MouseRedactDialog(tab: PdfTab, clean: Boolean, onDismiss: () -> Unit, onApply: (List<PdfRedaction>) -> Unit) {
+    val context = LocalContext.current
+    val info = tab.info ?: return
+    val boxes = remember { androidx.compose.runtime.mutableStateListOf<PdfRedaction>() }
+    val words by androidx.compose.runtime.produceState<List<io.github.thepytales.llmhub.docs.PdfWord>>(emptyList(), tab.file) {
+        value = withContext(Dispatchers.IO) { runCatching { PdfTools.words(context, tab.file) }.getOrDefault(emptyList()) }
+    }
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        androidx.compose.material3.Surface(Modifier.fillMaxSize(0.94f), shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
+            Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(tr("Mit der Maus schwärzen"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    TextButton(enabled = boxes.isNotEmpty(), onClick = { boxes.removeAt(boxes.lastIndex) }) { Text(tr("Rückgängig")) }
+                    TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
+                    Button(enabled = boxes.isNotEmpty(), onClick = { onApply(boxes.toList()) }) { Text(tr("Schwärzen") + " (${boxes.size})") }
+                }
+                HintText(tr("Rechteck ziehen oder auf ein Wort klicken. Die Balken werden erst mit „Schwärzen“ eingebrannt – danach ist der Text darunter aus der Datei verschwunden.") + if (clean) " " + tr("Metadaten werden mit entfernt.") else "")
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    PageCanvasList(tab, info) { page, w, h ->
+                        var start by remember { mutableStateOf<androidx.compose.ui.geometry.Offset?>(null) }
+                        var end by remember { mutableStateOf<androidx.compose.ui.geometry.Offset?>(null) }
+                        androidx.compose.foundation.Canvas(
+                            Modifier.fillMaxSize()
+                                .pointerInput(page, w, h, words) {
+                                    detectTapGestures { p ->
+                                        val word = PdfSnap.wordAt(words.filter { it.page == page }, PdfPoint(p.x / w, p.y / h))
+                                        if (word != null) boxes += PdfRedaction(page, word.box, word.text)
+                                    }
+                                }
+                                .pointerInput(page, w, h) {
+                                    detectDragGestures(
+                                        onDragStart = { start = it; end = it },
+                                        onDrag = { ch, d -> ch.consume(); end = (end ?: androidx.compose.ui.geometry.Offset.Zero) + d },
+                                        onDragEnd = {
+                                            val a = start; val b = end
+                                            if (a != null && b != null && kotlin.math.abs(a.x - b.x) > 4 && kotlin.math.abs(a.y - b.y) > 4) {
+                                                boxes += PdfRedaction(page, PdfBox(minOf(a.x, b.x) / w, minOf(a.y, b.y) / h, kotlin.math.abs(a.x - b.x) / w, kotlin.math.abs(a.y - b.y) / h))
+                                            }
+                                            start = null; end = null
+                                        },
+                                        onDragCancel = { start = null; end = null },
+                                    )
+                                },
+                        ) {
+                            boxes.filter { it.page == page }.forEach { r ->
+                                drawRect(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.75f), topLeft = androidx.compose.ui.geometry.Offset(r.box.x * w, r.box.y * h), size = androidx.compose.ui.geometry.Size(r.box.w * w, r.box.h * h))
+                            }
+                            val a = start; val b = end
+                            if (a != null && b != null) drawRect(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.4f), topLeft = androidx.compose.ui.geometry.Offset(minOf(a.x, b.x), minOf(a.y, b.y)), size = androidx.compose.ui.geometry.Size(kotlin.math.abs(a.x - b.x), kotlin.math.abs(a.y - b.y)))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Digitale Signatur (AP-60): sign with a certificate of the Windows certificate store or a .p12/.pfx file, optionally
+ * with a visible field, and check the signatures already in the PDF.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SignatureCard(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var checks by remember(tab.file) { mutableStateOf<List<PdfSignatureInfo>?>(null) }
+    val store by androidx.compose.runtime.produceState<List<io.github.thepytales.llmhub.docs.PdfCert>?>(null) { value = withContext(Dispatchers.IO) { runCatching { PdfSigning.storeCertificates() }.getOrDefault(emptyList()) } }
+    var keyBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var password by remember { mutableStateOf("") }
+    var fileCerts by remember { mutableStateOf<List<io.github.thepytales.llmhub.docs.PdfCert>>(emptyList()) }
+    var chosen by remember { mutableStateOf<String?>(null) }
+    var reason by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("Dresden") }
+    var visible by remember { mutableStateOf(true) }
+    val pickKey = rememberFileImport(arrayOf("application/x-pkcs12", "*/*")) { input -> keyBytes = input.readBytes(); fileCerts = emptyList(); chosen = null }
+    SettingsCard(tr("Digital signieren")) {
+        SettingsHint(tr("Signiert das PDF mit einem Zertifikat (z. B. dem persönlichen Zertifikat der TU) – jede spätere Änderung wird sichtbar. Der private Schlüssel bleibt im Zertifikatsspeicher von Windows bzw. in der Datei."))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            OutlinedButton(onClick = { scope.launch { checks = work { PdfSigning.verify(tab.file) } } }) { Text(tr("Signaturen prüfen")) }
+        }
+        checks?.let { list ->
+            if (list.isEmpty()) HintText(tr("Dieses PDF ist nicht digital signiert."))
+            list.forEach { ch ->
+                val ok = ch.valid && ch.coversAll && ch.trusted
+                Text(
+                    (if (ok) "✓ " else if (ch.valid) "⚠ " else "✗ ") + ch.signer + (ch.time?.let { " · " + java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.GERMANY).format(java.util.Date(it)) } ?: "") +
+                        (ch.reason?.let { " · $it" } ?: "") + (ch.problem?.let { " – $it" } ?: " – " + tr("gültig, unverändert")),
+                    style = MaterialTheme.typography.bodySmall, color = if (ch.valid) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+        val certs = store.orEmpty().map { it to true } + fileCerts.map { it to false }
+        if (store != null && store!!.isEmpty()) HintText(tr("Im Zertifikatsspeicher von Windows ist kein Zertifikat mit privatem Schlüssel – eine .p12/.pfx-Datei geht auch."))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            certs.forEach { (cert, fromStore) ->
+                FilterChip(selected = chosen == cert.alias, onClick = { chosen = cert.alias }, label = { Text(cert.subject + " (" + (if (fromStore) tr("Windows") else tr("Datei")) + ")") })
+            }
+            OutlinedButton(onClick = pickKey) { Text(tr("Zertifikatsdatei (.p12/.pfx) …")) }
+        }
+        if (keyBytes != null && fileCerts.isEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(password, { password = it }, singleLine = true, label = { Text(tr("Passwort der Datei")) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.weight(1f))
+            Button(onClick = { scope.launch { fileCerts = work { PdfSigning.fileCertificates(keyBytes!!, password) }.orEmpty(); chosen = fileCerts.firstOrNull()?.alias } }) { Text(tr("Öffnen")) }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(reason, { reason = it }, singleLine = true, label = { Text(tr("Grund (optional)")) }, modifier = Modifier.weight(1f))
+            OutlinedTextField(location, { location = it }, singleLine = true, label = { Text(tr("Ort")) }, modifier = Modifier.weight(1f))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(visible, { visible = it })
+            Text(tr("Sichtbares Feld unten rechts auf der letzten Seite"), style = MaterialTheme.typography.bodySmall)
+        }
+        Button(enabled = chosen != null, onClick = {
+            val alias = chosen ?: return@Button
+            val fromFile = fileCerts.any { it.alias == alias } && store.orEmpty().none { it.alias == alias }
+            val pages = tab.info?.pages ?: 1
+            onRun { src, out -> PdfSigning.sign(src, out, alias, if (fromFile) keyBytes else null, if (fromFile) password else null, reason, location, if (visible) (pages - 1) to PdfBox(0.55f, 0.86f, 0.38f, 0.08f) else null) }
+            checks = null
+        }) { Text(tr("Digital signieren")) }
+        HintText(tr("Danach nichts mehr am PDF ändern – sonst zeigt die Prüfung, dass nach dem Signieren etwas geändert wurde."))
+    }
+}
+
+/**
+ * Tags erzeugen (AP-60): an untagged PDF gets headings, paragraphs, lists and figures (with the alternative texts
+ * entered here), the rest becomes decoration – then screen readers can read it in order.
+ */
+@Composable
+private fun TagsCard(tab: PdfTab, onRun: ((File, File) -> Unit) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var images by remember(tab.file) { mutableStateOf<List<PdfImageInfo>?>(null) }
+    val alts = remember(tab.file) { androidx.compose.runtime.mutableStateMapOf<String, String>() }
+    var language by remember { mutableStateOf("de-DE") }
+    var report by remember(tab.file) { mutableStateOf<PdfTagReport?>(null) }
+    SettingsCard(tr("Tags erzeugen (PDF/UA)")) {
+        SettingsHint(tr("Für PDFs ohne Tags: Überschriften (nach Schriftgröße), Absätze, Listen und Abbildungen werden ausgezeichnet, Linien und Seitenzahlen als Dekoration. Tabellen erkennt Lora noch nicht – sie werden zu Absätzen."))
+        if (images == null) OutlinedButton(onClick = { scope.launch { images = work { PdfStage3.images(tab.file) } } }) { Text(tr("Abbildungen beschreiben …")) }
+        images?.let { list ->
+            if (list.isEmpty()) HintText(tr("Keine Abbildungen."))
+            list.forEach { img ->
+                val key = "${img.page}:${img.name}"
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val preview by androidx.compose.runtime.produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, img) {
+                        value = withContext(Dispatchers.IO) { runCatching { PdfStage3.imagePreview(tab.file, img.page, img.name)?.let { decodeImage(it) } }.getOrNull() }
+                    }
+                    preview?.let { Image(it, null, Modifier.size(56.dp)) }
+                    OutlinedTextField(alts[key].orEmpty(), { alts[key] = it }, singleLine = true, label = { Text(tr("Alternativtext, Seite {0}", img.page + 1)) }, modifier = Modifier.weight(1f))
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(language, { language = it }, singleLine = true, label = { Text(tr("Sprache")) }, modifier = Modifier.widthIn(max = 160.dp))
+            Button(onClick = {
+                val a = alts.toMap()
+                onRun { src, out -> report = PdfStage3.autoTag(src, out, tab.name.substringBeforeLast('.'), language.ifBlank { "de-DE" }, a) }
+            }) { Text(tr("Tags erzeugen")) }
+        }
+        report?.let { r ->
+            Text(tr("{0} Überschriften, {1} Absätze, {2} Listenpunkte, {3} Abbildungen, {4} Teile als Dekoration.", r.headings, r.paragraphs, r.listItems, r.figures, r.artifacts), style = MaterialTheme.typography.bodySmall)
+            if (r.figuresWithoutAlt > 0) Text(tr("{0} Abbildung(en) ohne Alternativtext – oben beschreiben und neu erzeugen (auf dem Original).", r.figuresWithoutAlt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
     }
 }

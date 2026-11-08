@@ -16,3 +16,8 @@ object PresentScreens {
 @Suppress("UNUSED_PARAMETER")
 @Composable
 fun AudienceScreen(visible: Boolean, onClose: () -> Unit, content: @Composable () -> Unit) {}
+
+/** „Aufnehmen“ in the Referentenansicht (AP-56): only in the Windows app (screen recording); nothing on Android. */
+@Suppress("UNUSED_PARAMETER")
+@Composable
+fun PresentationRecordButton(second: Boolean) {}

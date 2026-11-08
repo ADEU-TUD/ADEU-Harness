@@ -356,6 +356,26 @@ object VideoLora {
             }
         },
         ToolAction(
+            "video.text_cut", ActionArea.VIDEO, trLater("Im Transkript schneiden"),
+            "Schlägt nach einem Wunsch Stellen im Transkript zum Herausschneiden vor (z. B. „Entferne den Teil über die Organisation“, „Kürze auf 10 Minuten, behalte die Beispiele“) und schneidet sie nach der Vorschau heraus; die Zeitleiste folgt (AP-55).",
+            listOf(ActionParam("wunsch", "Was herausgeschnitten werden soll")), risky = true, android = false, usesModel = true,
+        ) { c, a ->
+            val p = need()
+            val wish = a.s("wunsch")?.takeIf { it.isNotBlank() } ?: throw ActionFailed(tr("Was soll herausgeschnitten werden?"))
+            if (ToolActions.model(c) == null) throw ActionFailed(tr("Dafür braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da."))
+            val all = transcripts(c, p)
+            if (all.isEmpty()) throw ActionFailed(tr("Dafür braucht es ein Transkript – zuerst „Untertitel erzeugen“ oder transkribieren."))
+            val doc = TextCut.build(p, all)
+            val props = runCatching { TextCut.propose(c, doc, p.duration, wish) }.getOrElse { throw ActionFailed(it.message ?: it.javaClass.simpleName) }
+            if (props.isEmpty()) throw ActionFailed(tr("Lora hat nichts zum Herausschneiden gefunden."))
+            val result = TextCut.accept(p, doc, props)
+            val preview = props.map { pr -> (clock(doc.tokens[pr.from].start) + " „" + doc.text(pr.from, pr.to).take(60) + "…“") to pr.reason.ifBlank { tr("herausschneiden") } } +
+                (clock(p.duration) to clock(result.duration))
+            ActionPlan("video.text_cut", tr("Schneidet {0} Stelle(n) aus dem Transkript …", props.size), true, preview) {
+                change(p, tr("{0} Stelle(n) herausgeschnitten, jetzt {1}.", props.size, clock(result.duration))) { _ -> result }
+            }
+        },
+        ToolAction(
             "video.export", ActionArea.VIDEO, trLater("Exportieren"), "Exportiert das Video als MP4 in Erstellt: Vorgabe opal (720p, klein), youtube (1080p) oder projekt.",
             listOf(ActionParam("vorgabe", "opal, youtube oder projekt", required = false)), risky = false, android = false, remember = listOf("vorgabe"),
         ) { c, a ->
@@ -364,7 +384,9 @@ object VideoLora {
             val preset = VideoRender.preset(a.s("vorgabe")?.lowercase()?.let { v -> VideoRender.PRESETS.firstOrNull { v.contains(it.id) }?.id })
             ActionPlan("video.export", tr("Exportiert „{0}“ ({1}) …", p.title, tr(preset.label)), false) {
                 val out = LoraDrive.unique(c.drive.created, VideoHub.store.fileName(p, "mp4"))
-                VideoRender.render(current()?.takeIf { it.id == p.id } ?: p, preset, out) { }
+                // The graphics card where there is one (AP-57), as the export dialog remembers it.
+                val hardware = c.appContext.getSharedPreferences("ui_state", 0).getBoolean("videoHardware", true)
+                VideoRender.render(current()?.takeIf { it.id == p.id } ?: p, preset, out, Encoders.best(hardware)) { }
                 if (p.subtitles.isNotEmpty()) withContext(Dispatchers.IO) { File(out.parentFile, out.nameWithoutExtension + ".srt").writeText(VideoRender.srt(p)) }
                 c.drive.changed()
                 LoraFocus.files = listOf(out)

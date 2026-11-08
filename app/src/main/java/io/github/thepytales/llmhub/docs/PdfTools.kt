@@ -282,6 +282,10 @@ object PdfTools {
     private fun safe(s: String): String = s.map { ch -> if (ch.code in 32..255 || ch in "€„“‚‘–—…") ch else '?' }.joinToString("")
 
     /** Comments, highlights and notes of the PDF (for the list and the export). */
+    /** Words with their boxes for marking along the text (AP-60): only in the Windows app; Android marks rectangles. */
+    @Suppress("UNUSED_PARAMETER")
+    fun words(context: Context?, file: File): List<PdfWord> = emptyList()
+
     fun comments(context: Context?, file: File): List<PdfComment> {
         init(context)
         val kinds = mapOf(

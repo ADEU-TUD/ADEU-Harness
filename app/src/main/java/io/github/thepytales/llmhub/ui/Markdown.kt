@@ -489,7 +489,9 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier, color: Color = Col
             when (b) {
                 is Block.Code -> {
                     val chart = if (b.lang.equals("chart", ignoreCase = true)) remember(b.code) { io.github.thepytales.llmhub.docs.ChartSpec.parse(b.code) } else null
-                    if (chart != null) ChartView(chart) else CodeBlock(b.lang, b.code)
+                    // Diagramme (AP-61): ```mermaid and ```diagram are drawn.
+                    val diagram = if (chart == null && io.github.thepytales.llmhub.docs.Diagrams.isDiagramLang(b.lang)) remember(b.code) { io.github.thepytales.llmhub.docs.Diagrams.ofBlock(b.lang, b.code) } else null
+                    if (chart != null) ChartView(chart) else if (diagram != null) DiagramView(diagram) else CodeBlock(b.lang, b.code)
                 }
                 is Block.Heading -> RichText(
                     b.text, sources,

@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.PictureInPicture
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FiberManualRecord
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.MusicNote
@@ -181,6 +182,8 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
     }
     val projects by VideoHub.store.items.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    var recordDialog by remember { mutableStateOf(false) }
+    if (recordDialog) ScreenRecordDialog(c, onDismiss = { recordDialog = false })
     fun newProject() = scope.launch {
         val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
         if (files.isEmpty()) return@launch
@@ -192,7 +195,12 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Videoeditor")) },
-                actions = { Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } } },
+                actions = {
+                    // Bildschirmaufnahme (AP-56): the result comes back as a project.
+                    Spot("video.record") { TextButton(onClick = { recordDialog = true }) { Icon(Icons.Outlined.FiberManualRecord, null, tint = androidx.compose.ui.graphics.Color(0xFFE53935)); Spacer(Modifier.size(4.dp)); Text(tr("Bildschirm aufnehmen")) } }
+                    ExportQueueChip()
+                    Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } }
+                },
             )
         },
     ) { pad ->
@@ -341,6 +349,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     var loop by remember { mutableStateOf(false) }
     var keys by remember { mutableStateOf(false) }
     val drag = remember { PoolDrag() }
+    // Left panel: media pool or the transcript (textbasierter Schnitt, AP-55).
+    var leftTab by remember { mutableStateOf("media") }
+    val textCut = remember(id) { TextCutState() }
+    var assignTranscript by remember { mutableStateOf(false) }
     val sourceItem = p.media.firstOrNull { it.id == sourceId }
     val sourceInfo by produceState<io.github.thepytales.llmhub.video.MediaInfo?>(null, sourceItem?.path) { value = sourceItem?.let { withContext(Dispatchers.IO) { Media.probe(File(it.path)) } } }
     val sourceLen = sourceItem?.let { if (Media.isStill(File(it.path), sourceInfo)) 5.0 else sourceInfo?.duration?.takeIf { d -> d > 0.05 } }
@@ -358,6 +370,13 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         io.github.thepytales.llmhub.video.VideoLora.host = host
         io.github.thepytales.llmhub.video.VideoLora.lastId = id
         onDispose { if (io.github.thepytales.llmhub.video.VideoLora.host === host) io.github.thepytales.llmhub.video.VideoLora.host = null }
+    }
+    // „Sofort transkribieren“ (AP-56): transcripts that were being made are assigned as soon as they are there.
+    val transcriptList by c.transcription.transcripts.collectAsStateWithLifecycle()
+    LaunchedEffect(transcriptList, p.pendingTranscripts) {
+        if (p.pendingTranscripts.isEmpty()) return@LaunchedEffect
+        val found = p.pendingTranscripts.mapNotNull { (path, title) -> transcriptList.firstOrNull { it.title == title }?.let { path to it.id } }.toMap()
+        if (found.isNotEmpty()) h.edit(record = false) { it.copy(transcripts = it.transcripts + found, pendingTranscripts = it.pendingTranscripts - found.keys) }
     }
     // A pause in editing shows the picture at the playhead again (the clip under it may have changed).
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }
@@ -502,7 +521,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                 ev.key == Key.N -> { h.edit { it.copy(magnet = !it.magnet) }; Notices.info(tr(if (!p.magnet) "Magnet an: Spuren ziehen mit, Lücken schließen sich." else "Magnet aus.")); true }
                 ev.key == Key.M -> { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid); true }
                 ev.key == Key.S -> { split(); true }
-                ev.key == Key.Delete || ev.key == Key.Backspace -> { deleteSelected(closeGap = ev.isShiftPressed); true }
+                ev.key == Key.Delete || ev.key == Key.Backspace -> {
+                    if (leftTab == "text" && textCut.hasSelection) textCut.deleteSelection(h) else deleteSelected(closeGap = ev.isShiftPressed)
+                    true
+                }
                 ev.key == Key.DirectionLeft -> { pl.seek(pr, at - 1.0 / pr.fps); true }
                 ev.key == Key.DirectionRight -> { pl.seek(pr, at + 1.0 / pr.fps); true }
                 ev.key == Key.DirectionUp && !showSource -> { player.seek(p, cuts().lastOrNull { it < at - 1e-3 } ?: 0.0); true }
@@ -527,11 +549,19 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
             IconButton(onClick = h::redo, enabled = h.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
             Spacer(Modifier.size(8.dp))
+            ExportQueueChip()
             Spot("video.export") { Button(onClick = { player.stop(); export = true }, enabled = p.clips.isNotEmpty()) { Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Exportieren")) } }
         }
         HorizontalDivider()
         Row(Modifier.weight(1f).fillMaxWidth()) {
-            MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.width(250.dp).fillMaxHeight())
+            Column(Modifier.width(if (leftTab == "text") 380.dp else 250.dp).fillMaxHeight()) {
+                Row(Modifier.padding(start = 8.dp, top = 6.dp, end = 8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FilterChip(selected = leftTab == "media", onClick = { leftTab = "media"; runCatching { focus.requestFocus() } }, label = { Text(tr("Medien")) })
+                    Spot("video.transcript") { FilterChip(selected = leftTab == "text", onClick = { leftTab = "text"; runCatching { focus.requestFocus() } }, label = { Text(tr("Transkript")) }) }
+                }
+                if (leftTab == "text") TranscriptCutPanel(c, h, player, pos, textCut, onAssign = { assignTranscript = true }, modifier = Modifier.weight(1f).fillMaxWidth())
+                else MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.weight(1f).fillMaxWidth())
+            }
             VerticalDivider()
             Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -590,7 +620,11 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     }
     }
     LaunchedEffect(id) { runCatching { focus.requestFocus() } }
-    if (export) ExportDialog(p, onDismiss = { export = false })
+    if (assignTranscript) TranscriptPicker(c, p, onDismiss = { assignTranscript = false }) { map ->
+        assignTranscript = false
+        h.edit { it.copy(transcripts = it.transcripts + map.mapValues { e -> e.value.id }) }
+    }
+    if (export) ExportDialog(c, p, onDismiss = { export = false })
     if (keys) VideoShortcutsDialog { keys = false; runCatching { focus.requestFocus() } }
 }
 
@@ -1150,62 +1184,3 @@ internal fun Modifier.typing(): Modifier {
 
 // ── Export ──────────────────────────────────────────────────────────────────────────────────────────
 
-@Composable
-private fun ExportDialog(p: VideoProject, onDismiss: () -> Unit) {
-    // A remembered preset (AP-39, „Videos für OPAL in 720p“) is the default.
-    var preset by remember { mutableStateOf(io.github.thepytales.llmhub.agent.LoraPrefs.default(io.github.thepytales.llmhub.App.container, "video.export", "vorgabe")?.let { v -> VideoRender.PRESETS.firstOrNull { it.id == v }?.id } ?: VideoRender.PRESETS.first().id) }
-    var subtitleFiles by remember { mutableStateOf(p.subtitles.isNotEmpty() && !p.burnSubtitles) }
-    var progress by remember { mutableStateOf<Float?>(null) }
-    var job by remember { mutableStateOf<Job?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
-    AlertDialog(
-        onDismissRequest = { if (progress == null) onDismiss() },
-        title = { Text(tr("Video exportieren")) },
-        text = {
-            Column(Modifier.width(520.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                VideoRender.PRESETS.forEach { pr ->
-                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(enabled = progress == null) { preset = pr.id }, verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = preset == pr.id, onClick = { preset = pr.id }, enabled = progress == null)
-                        Column {
-                            Text(pr.label + " · " + VideoRender.size(p, pr).let { (w, hh) -> "$w × $hh" })
-                            HintText(pr.hint)
-                        }
-                    }
-                }
-                if (p.subtitles.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(subtitleFiles, { subtitleFiles = it }, enabled = progress == null)
-                    Text(tr("Untertitel zusätzlich als SRT und VTT speichern"))
-                }
-                HintText(tr("Länge") + " ${clock(p.duration)} · " + tr("das Rechnen dauert etwa so lange wie das Video, je nach PC auch länger."))
-                progress?.let { LinearProgressIndicator(progress = { it }, modifier = Modifier.fillMaxWidth()); Text("${(it * 100).toInt()} %", style = MaterialTheme.typography.bodySmall) }
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, maxLines = 8) }
-            }
-        },
-        confirmButton = {
-            Button(enabled = progress == null, onClick = {
-                job = scope.launch {
-                    val target = withContext(Dispatchers.IO) { DesktopActions.pickSaveFile(tr("Video speichern"), VideoHub.store.fileName(p, "mp4"), "mp4") } ?: return@launch
-                    progress = 0f; error = null
-                    runCatching {
-                        VideoRender.render(p, VideoRender.preset(preset), target) { v -> progress = v }
-                        if (subtitleFiles) withContext(Dispatchers.IO) {
-                            File(target.parentFile, target.nameWithoutExtension + ".srt").writeText(VideoRender.srt(p))
-                            File(target.parentFile, target.nameWithoutExtension + ".vtt").writeText(VideoRender.vtt(p))
-                        }
-                    }.onSuccess {
-                        progress = null
-                        Notices.show(Notices.Notice(tr("Video gespeichert:") + " " + target.absolutePath, action = tr("Öffnen"), onAction = { DesktopActions.open(target) }))
-                        onDismiss()
-                    }.onFailure { e ->
-                        progress = null
-                        if (e !is kotlinx.coroutines.CancellationException) error = e.message ?: e.javaClass.simpleName
-                    }
-                }
-            }) { Text(tr("Speichern unter …")) }
-        },
-        dismissButton = {
-            TextButton(onClick = { if (progress != null) { job?.cancel(); progress = null } else onDismiss() }) { Text(tr(if (progress != null) "Abbrechen" else "Schließen")) }
-        },
-    )
-}

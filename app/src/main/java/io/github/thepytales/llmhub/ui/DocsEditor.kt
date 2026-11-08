@@ -497,6 +497,14 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                 more = false
                                 export = "${doc.title} – ${tab.title}" to DocMarkup.resolveImages(exportMarkdown(doc, tab.id), docBase)
                             })
+                            // In Word/Excel/PowerPoint öffnen und zurück (AP-59, Windows): the real file in its program.
+                            val real = remember(doc.id, doc.path) { c.docs.realFile(doc)?.takeIf { it.isFile } }
+                            if (real != null && ExternalOffice.opener != null) ExternalOffice.program(real)?.let { prog ->
+                                DropdownMenuItem(text = { Text(tr("In {0} öffnen", prog)) }, onClick = {
+                                    more = false
+                                    if (ExternalOffice.opener?.invoke(real) != true) Notices.error(tr("„{0}“ ließ sich nicht öffnen.", real.name))
+                                })
+                            }
                             DropdownMenuItem(text = { Text(tr("In Chat senden …")) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, null) }, onClick = { more = false; sendToChat = true })
                             DropdownMenuItem(text = { Text(tr("Als Text teilen")) }, leadingIcon = { Icon(Icons.Outlined.IosShare, null) }, onClick = {
                                 more = false
@@ -670,6 +678,17 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 val sel = editing.selection
                 val stats = remember(markdown, sel) { DocStats.of(sel ?: markdown) }
                 HintText((if (sel != null) "Auswahl: " else "") + stats.label(), Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 1.dp))
+            }
+            // Open in Word/Excel/PowerPoint (AP-59): the editor says so; a save there comes back here.
+            val openElsewhere by ExternalOffice.open.collectAsState()
+            val realFile = doc?.let { d -> remember(d.id, d.path) { c.docs.realFile(d) } }
+            if (realFile != null && realFile.absolutePath in openElsewhere) {
+                Surface(color = MaterialTheme.colorScheme.tertiaryContainer, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        tr("In {0} geöffnet – was du dort speicherst, kommt hierher zurück. Bitte nicht gleichzeitig hier und dort ändern.", ExternalOffice.program(realFile) ?: "Office"),
+                        style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    )
+                }
             }
             HorizontalDivider()
             // ── Page and side panel ──

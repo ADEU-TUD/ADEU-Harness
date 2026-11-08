@@ -15,11 +15,17 @@ import java.util.Locale
  * transcript.
  */
 object RoughCut {
-    val FILLERS = setOf("äh", "ähm", "öhm", "öh", "ähh", "äähm", "hm", "hmm", "ehm", "em", "mhm", "uh", "uhm", "um", "er", "erm")
+    val FILLERS = setOf("äh", "ähm", "öhm", "öh", "ähh", "äähm", "hm", "hmm", "ehm", "em", "mhm", "uh", "uhm", "erm")
+
+    /** English fillers that are ordinary German words („um“, „er“): only fillers in an English transcript (AP-55). */
+    private val ENGLISH_ONLY = setOf("um", "er")
 
     private fun norm(w: String) = w.lowercase(Locale.GERMAN).trim().trim(',', '.', '!', '?', '…', ';', ':', '-', '–', '"', '„', '“')
 
-    fun isFiller(w: String) = norm(w) in FILLERS
+    fun isFiller(w: String, language: String? = null): Boolean {
+        val n = norm(w)
+        return n in FILLERS || (n in ENGLISH_ONLY && language?.lowercase()?.startsWith("en") == true)
+    }
 
     /**
      * Parts of the source between [from] and [to] (seconds of the source file) to keep: speech with pauses longer than
@@ -34,11 +40,11 @@ object RoughCut {
             if (s.end <= from || s.start >= to) continue
             val measured = s.words.isNotEmpty() && s.words.all { it.measured }
             if (measured) {
-                s.words.forEach { w -> if (fillers && isFiller(w.text)) dropped += w.start to w.end else units += w.start to w.end }
+                s.words.forEach { w -> if (fillers && isFiller(w.text, t.language)) dropped += w.start to w.end else units += w.start to w.end }
             } else {
                 val words = s.text.split(Regex("\\s+")).filter { it.isNotBlank() }
                 if (words.isEmpty()) continue
-                if (fillers && words.all(::isFiller)) dropped += s.start to s.end else units += s.start to s.end
+                if (fillers && words.all { isFiller(it, t.language) }) dropped += s.start to s.end else units += s.start to s.end
             }
         }
         val sorted = units.map { (a, b) -> a.coerceIn(from, to) to b.coerceIn(from, to) }.filter { it.second > it.first }.sortedBy { it.first }

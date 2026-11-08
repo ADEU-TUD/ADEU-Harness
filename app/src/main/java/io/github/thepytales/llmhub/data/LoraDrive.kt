@@ -58,6 +58,10 @@ data class TrashEntry(
 )
 
 class LoraDrive(private val c: AppContainer, context: Context) {
+    /** Names of the files the last [delete] put into the Papierkorb of the system (AP-59); read and cleared by Dateien. */
+    @Volatile
+    var systemTrashed: List<String> = emptyList()
+
     private val files = context.filesDir
     val root: File = LoraRoot.dir(context).apply { mkdirs() }
     val uploads: File get() = File(root, UPLOADS).apply { mkdirs() }
@@ -390,6 +394,13 @@ class LoraDrive(private val c: AppContainer, context: Context) {
     fun delete(items: List<File>): List<TrashEntry> = items.mapNotNull { f ->
         if (isFixed(f) || !f.exists()) return@mapNotNull null
         val doc = if (f.isFile) c.docs.forRealFile(f) else null
+        // Windows-Papierkorb (AP-59): restored there, not here; the document's entry in the app goes with the file.
+        val system = systemTrash
+        if (c.settings.current.systemTrash && system != null && system(f)) {
+            doc?.let { c.docs.forget(it.id) }
+            systemTrashed = systemTrashed + f.name
+            return@mapNotNull null
+        }
         val entry = TrashEntry(name = f.name, from = f.absolutePath, dir = f.isDirectory, docId = doc?.id)
         val dest = File(File(trashDir, entry.id).apply { mkdirs() }, f.name)
         try {
@@ -498,6 +509,10 @@ class LoraDrive(private val c: AppContainer, context: Context) {
     }
 
     companion object {
+        /** Moves a file into the Papierkorb of the system (Windows app); null on Android. */
+        @Volatile
+        var systemTrash: ((File) -> Boolean)? = null
+
         const val UPLOADS = "Hochgeladen"
         const val CREATED = "Erstellt"
         const val TRASH_DAYS = 30

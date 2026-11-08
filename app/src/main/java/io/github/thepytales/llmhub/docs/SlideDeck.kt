@@ -260,6 +260,9 @@ object SlideDeck {
         return (sections.ifEmpty { rest }).map { it.title }.distinct().take(10)
     }
 
+    /** The diagram (```mermaid / ```diagram, AP-61) of a slide, if it has one. */
+    fun diagramOf(body: String): Diagram? = Regex("```(mermaid|diagram|diagramm|whiteboard)\\s*\\n([\\s\\S]*?)\\n?```").find(body)?.let { Diagrams.ofBlock(it.groupValues[1], it.groupValues[2]) }
+
     /** The ```chart block of a slide, if it has one. */
     fun chartOf(body: String): ChartSpec? = Regex("```chart\\s*\\n([\\s\\S]*?)\\n?```").find(body)?.let { ChartSpec.parse(it.groupValues[1]) }
 

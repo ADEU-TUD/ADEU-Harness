@@ -316,7 +316,10 @@ object VideoRender {
      * Builds the command for [p]. [info] gives the details of each source (has it sound, is it a picture?);
      * the filter graph goes into a file in [work] (long graphs exceed the command line of Windows).
      */
-    fun plan(p: VideoProject, preset: Preset, out: File, work: File, info: (File) -> MediaInfo?, rnnoise: File? = Media.rnnoiseModel(), scriptOption: String = "-filter_complex_script"): Plan {
+    fun plan(
+        p: VideoProject, preset: Preset, out: File, work: File, info: (File) -> MediaInfo?, rnnoise: File? = Media.rnnoiseModel(),
+        scriptOption: String = "-filter_complex_script", encoder: Encoders.Encoder = Encoders.SOFTWARE, audioOnly: Boolean = false,
+    ): Plan {
         require(p.clips.isNotEmpty()) { tr("Das Projekt hat noch keine Clips.") }
         val (w, h) = size(p, preset)
         val fps = p.fps.coerceIn(10, 60)
@@ -324,10 +327,20 @@ object VideoRender {
         val args = mutableListOf("-nostdin", "-hide_banner", "-y")
         args += g.inputs
         val script = File(work, "filter.txt").apply { writeText(g.lines.joinToString(";\n")) }
+        // Only the sound (AP-57, „nur Ton“): the picture is built and thrown away, the sound goes into an M4A.
+        if (audioOnly) {
+            File(work, "filter.txt").appendText(";\n[vout]nullsink")
+            args += listOf(scriptOption, script.absolutePath, "-map", "[aout]")
+            g.chapters?.let { args += listOf("-map_chapters", it.toString()) }
+            args += listOf("-vn", "-c:a", "aac", "-b:a", "${preset.audioKbps}k", "-ar", "48000", "-movflags", "+faststart", "-metadata", "title=${p.title}", "-progress", "pipe:1", "-nostats", out.absolutePath)
+            return Plan(args, g.duration)
+        }
         args += listOf(scriptOption, script.absolutePath, "-map", "[vout]", "-map", "[aout]")
         g.chapters?.let { args += listOf("-map_chapters", it.toString()) }
+        // Hardware encoder (AP-57) or x264, with the preset's quality.
+        args += Encoders.args(encoder, preset.crf, preset.speed)
         args += listOf(
-            "-c:v", "libx264", "-preset", preset.speed, "-crf", preset.crf.toString(), "-pix_fmt", "yuv420p", "-r", fps.toString(),
+            "-r", fps.toString(),
             "-c:a", "aac", "-b:a", "${preset.audioKbps}k", "-ar", "48000", "-movflags", "+faststart",
             "-metadata", "title=${p.title}", "-progress", "pipe:1", "-nostats", out.absolutePath,
         )
@@ -389,12 +402,33 @@ object VideoRender {
      * Renders [p] into [out]; [progress] gets 0..1. Throws with the end of ffmpeg's messages when it fails; a cancelled
      * coroutine stops ffmpeg.
      */
-    suspend fun render(p: VideoProject, preset: Preset, out: File, progress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
+    suspend fun render(
+        p: VideoProject, preset: Preset, out: File, encoder: Encoders.Encoder = Encoders.SOFTWARE, audioOnly: Boolean = false, progress: (Float) -> Unit,
+    ): File {
+        // A hardware encoder that fails (driver, a card busy with something else) falls back to x264 (AP-57).
+        if (encoder.hardware && !audioOnly) {
+            val first = runCatching { renderWith(p, preset, out, encoder, false, progress) }
+            first.exceptionOrNull()?.let { e ->
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                AppLog.i("Export mit ${encoder.id} fehlgeschlagen, weiter mit x264: ${e.message?.take(300)}")
+                lastFallback = encoder.id
+                return renderWith(p, preset, out, Encoders.SOFTWARE, false, progress)
+            }
+            return first.getOrThrow()
+        }
+        return renderWith(p, preset, out, if (audioOnly) Encoders.SOFTWARE else encoder, audioOnly, progress)
+    }
+
+    /** The hardware encoder that last failed and was replaced by x264 (for the queue's note), null if none. */
+    @Volatile
+    var lastFallback: String? = null
+
+    private suspend fun renderWith(p: VideoProject, preset: Preset, out: File, encoder: Encoders.Encoder, audioOnly: Boolean, progress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
         val exe = Media.ffmpeg() ?: throw IllegalStateException(tr("ffmpeg fehlt in der App."))
         val work = File(Media.cacheDir, "export-${System.nanoTime()}")
-        val tmp = File(out.parentFile, out.nameWithoutExtension + ".teil.mp4")
+        val tmp = File(out.parentFile, out.nameWithoutExtension + ".teil." + out.extension.ifBlank { "mp4" })
         try {
-            val plan = plan(p, preset, tmp, work, { Media.probe(it) }, scriptOption = scriptOption(exe))
+            val plan = plan(p, preset, tmp, work, { Media.probe(it) }, scriptOption = scriptOption(exe), encoder = encoder, audioOnly = audioOnly)
             val proc = ProcessBuilder(listOf(exe) + plan.args).redirectError(File(work, "ffmpeg.log")).start()
             try {
                 proc.inputStream.bufferedReader().useLines { lines ->

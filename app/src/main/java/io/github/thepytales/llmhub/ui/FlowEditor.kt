@@ -1084,6 +1084,11 @@ fun FlowEditor(
                 state.load(markdown)
                 state.changed()
             }
+            override fun insertBlock(markdown: String): String? {
+                val before = state.markdown()
+                state.insertBlock(markdown)
+                return before
+            }
         }
         onDispose {
             if (io.github.thepytales.llmhub.agent.LoraFocus.docId == doc.id) io.github.thepytales.llmhub.agent.LoraFocus.docId = null
@@ -1444,6 +1449,8 @@ private fun FlowMenus(
     var tablePick by remember { mutableStateOf(false) }
     var sectionFor by remember { mutableStateOf<DocMarkup.Section?>(null) }
     var special by remember { mutableStateOf(false) }
+    // Diagramme und Whiteboard (AP-61).
+    var newDiagram by remember { mutableStateOf<String?>(null) }
     @Composable
     fun menu(name: String, items: @Composable (close: () -> Unit) -> Unit) {
         Box {
@@ -1491,6 +1498,8 @@ private fun FlowMenus(
             item("Inhaltsverzeichnis", onClick = { state.insertBlock(DocMarkup.TOC) }, close = close)
             item("Fußnote", onClick = { insertFootnote(state) }, close = close)
             item("Formel", onClick = { state.insertBlock("$$\nE = mc^2\n$$") }, close = close)
+            item("Diagramm …", onClick = { newDiagram = "flow" }, close = close)
+            item("Whiteboard …", onClick = { newDiagram = "board" }, close = close)
             item("Trennlinie", onClick = { state.insertBlock("---") }, close = close)
             item("Datum", onClick = { state.insertText(DocMarkup.today()) }, close = close)
             item("Sonderzeichen …", onClick = { special = true }, close = close)
@@ -1549,6 +1558,12 @@ private fun FlowMenus(
         state.insertBlock(DocBlocks.table(listOf(List(cols) { tr("Spalte {0}", it + 1) }) + List(rows - 1) { List(cols) { "" } }))
     }
     if (special) SpecialCharsDialog(onDismiss = { special = false }) { ch -> special = false; state.insertText(ch) }
+    newDiagram?.let { kind ->
+        DiagramEditorDialog(if (kind == "board") io.github.thepytales.llmhub.docs.Diagram(kind = "board", manual = true) else starterDiagram(kind), onDismiss = { newDiagram = null }) { d ->
+            newDiagram = null
+            state.insertBlock(io.github.thepytales.llmhub.docs.Diagrams.block(d))
+        }
+    }
 }
 
 /** Line spacings to choose (AP-44). */
@@ -1940,7 +1955,10 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
             IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
         }
     }
-    if (editing) TextPrompt(tr("Block bearbeiten (Markdown)"), seg.markdown, onDismiss = { editing = false }) { md -> editing = false; state.setRaw(seg, md) }
+    // A diagram (AP-61) opens in the diagram editor; everything else as Markdown.
+    val diagram = remember(seg.markdown) { io.github.thepytales.llmhub.docs.Diagrams.parseBlock(seg.markdown)?.let { (l, c) -> io.github.thepytales.llmhub.docs.Diagrams.ofBlock(l, c) } }
+    if (editing && diagram != null) DiagramEditorDialog(diagram, onDismiss = { editing = false }) { d -> editing = false; state.setRaw(seg, io.github.thepytales.llmhub.docs.Diagrams.block(d)) }
+    else if (editing) TextPrompt(tr("Block bearbeiten (Markdown)"), seg.markdown, onDismiss = { editing = false }) { md -> editing = false; state.setRaw(seg, md) }
 }
 
 /** Tabellen über Seiten (AP-43): the room of the page plan for the rows of [seg], and where its rows are measured. */

@@ -124,6 +124,9 @@ interface DocActions {
 
     /** Restores the Markdown of the open tab (Rückgängig of the two above). */
     fun restore(markdown: String)
+
+    /** Inserts a block (a diagram, AP-61) at the cursor; returns the Markdown before, null where it cannot. */
+    fun insertBlock(markdown: String): String? = null
 }
 
 data class ActionParam(val name: String, val description: String, val required: Boolean = true)
@@ -650,6 +653,25 @@ object ToolActions {
             ActionPlan("doc.insert_table", tr("Fügt eine Tabelle ein …"), false) {
                 val before = host.insertTable(header, rows) ?: throw ActionFailed(tr("Bitte ein Dokument öffnen."))
                 ActionResult(tr("Tabelle mit {0} Spalten eingefügt.", header.size), undo = { host.restore(before); tr("Tabelle entfernt.") })
+            }
+        },
+        ToolAction(
+            "doc.diagram", ActionArea.DOC, trLater("Diagramm zeichnen"),
+            "Zeichnet aus einer Beschreibung ein bearbeitbares Diagramm (Flussdiagramm, Mindmap, Organigramm oder Zeitstrahl) und fügt es an der Cursorstelle des offenen Dokuments ein (AP-61).",
+            listOf(ActionParam("beschreibung", "Der Ablauf oder das Thema, z. B. „Antrag stellen, prüfen, bei Fehlern zurück, sonst genehmigen“"), ActionParam("art", "flussdiagramm, mindmap, organigramm oder zeitstrahl", required = false)),
+            risky = false, usesModel = true,
+        ) { c, a ->
+            val host = ActionHosts.doc ?: throw ActionFailed(tr("Bitte ein Dokument öffnen."))
+            val text = a.s("beschreibung")?.takeIf { it.isNotBlank() } ?: throw ActionFailed(tr("Was soll ich zeichnen?"))
+            if (model(c) == null) throw ActionFailed(tr("Dafür braucht es ein Modell – hier ist keines erlaubt oder kein API-Schlüssel da."))
+            val kind = a.s("art").orEmpty().lowercase().let { k ->
+                when { "mind" in k -> "mind"; "organ" in k || "org" == k -> "org"; "zeit" in k || "time" in k -> "timeline"; else -> "flow" }
+            }
+            ActionPlan("doc.diagram", tr("Zeichnet ein Diagramm …"), false) {
+                val d = runCatching { io.github.thepytales.llmhub.ui.diagramFromDescription(c, kind, text) }.getOrElse { throw ActionFailed(it.message ?: it.javaClass.simpleName) }
+                val before = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { host.insertBlock(io.github.thepytales.llmhub.docs.Diagrams.block(d)) }
+                    ?: throw ActionFailed(tr("Hier lässt sich kein Diagramm einfügen – bitte ein Dokument im Editor öffnen."))
+                ActionResult(tr("Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Editor.", d.nodes.size), undo = { host.restore(before); tr("Diagramm entfernt.") })
             }
         },
         ToolAction(

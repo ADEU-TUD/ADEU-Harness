@@ -9,6 +9,7 @@ import okhttp3.Credentials
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.URLDecoder
@@ -80,6 +81,12 @@ class WebDavClient(
     suspend fun upload(path: String, bytes: ByteArray, mime: String = "application/octet-stream") = withContext(Dispatchers.IO) {
         mkdirs(parent(path))
         http.newCall(request(path).put(bytes.toRequestBody(mime.toMediaType())).build()).execute().use { check(it) }
+    }
+
+    /** Uploads the file [file] to [path] without reading it into memory (large videos, AP-57); folders are created. */
+    suspend fun uploadFile(path: String, file: java.io.File, mime: String = "application/octet-stream") = withContext(Dispatchers.IO) {
+        mkdirs(parent(path))
+        http.newCall(request(path).put(file.asRequestBody(mime.toMediaType())).build()).execute().use { check(it) }
     }
 
     /** Uploads [bytes] to [path] whose folder exists already (see [mkdirs]). */

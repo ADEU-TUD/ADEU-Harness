@@ -369,8 +369,12 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     }
 
     fun delete(items: List<DriveItem>) {
+        drive.systemTrashed = emptyList()
         val removed = drive.delete(items.map { it.file })
         selection.clear()
+        drive.systemTrashed.takeIf { it.isNotEmpty() }?.let { names ->
+            Notices.info(if (names.size == 1) tr("„{0}“ im Windows-Papierkorb", names.first()) else tr("{0} Einträge im Windows-Papierkorb", names.size))
+        }
         if (removed.isNotEmpty()) Notices.undo(
             if (removed.size == 1) tr("„{0}“ im Papierkorb", removed.first().name) else tr("{0} Einträge im Papierkorb", removed.size),
             restore = { removed.forEach { e -> drive.restore(e) } },
@@ -463,6 +467,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         selected = { selection.containsKey(it.key) },
         toNextcloud = toNextcloud?.let { save -> { item: DriveItem -> save(item.file) } },
         ask = { item -> askFolder(item.file) },
+        selectedFiles = { selection.values.map { it.file } },
     )
 
     // Dragging onto a folder (Windows): folders note where they are on screen.
@@ -703,6 +708,8 @@ private class DriveActions(
     val toNextcloud: ((DriveItem) -> Unit)? = null,
     /** „Frag diesen Ordner“ (AP-58): a chat in the Quellenmodus over the folder's files. */
     val ask: ((DriveItem) -> Unit)? = null,
+    /** The files of the selection (AP-59: dragging out and copying several at once). */
+    val selectedFiles: () -> List<File> = { emptyList() },
 )
 
 /** Dragging items onto folders with the mouse (Windows). */
@@ -793,6 +800,10 @@ private fun DriveRow(c: AppContainer, item: DriveItem, actions: DriveActions, dr
                 }
             }
             if (item.starred) Icon(Icons.Outlined.Star, contentDescription = tr("Markiert"), tint = Color(0xFFF2B01E), modifier = Modifier.size(18.dp))
+            // In Word/Excel/PowerPoint geöffnet (AP-59).
+            if (!item.dir && ExternalOffice.isOpen(item.file)) HintText(tr("in {0} geöffnet", ExternalOffice.program(item.file) ?: "Office"))
+            // Out of Lora into the Explorer, a mail or another program (AP-59, Windows).
+            if (!item.fixed) FileDragHandle { if (actions.selected(item)) actions.selectedFiles() else listOf(item.file) }
             IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = tr("Mehr")) }
         }
         ItemMenu(c, item, actions, menu) { menu = false }
@@ -995,6 +1006,13 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
             return@DropdownMenu
         }
         if (!item.dir) DropdownMenuItem(text = { Text(tr("Mit anderer App öffnen")) }, onClick = { act { actions.external(item) } })
+        // AP-59: Word/Excel/PowerPoint with the way back; files onto the clipboard for the Explorer or a mail.
+        if (!item.dir && ExternalOffice.opener != null) ExternalOffice.program(item.file)?.let { prog ->
+            DropdownMenuItem(text = { Text(tr("In {0} öffnen", prog)) }, onClick = { act { ExternalOffice.opener?.invoke(item.file) } })
+        }
+        if (CAN_COPY_FILES) DropdownMenuItem(text = { Text(tr("Als Datei kopieren (für Explorer oder Mail)")) }, onClick = {
+            act { if (copyFilesToClipboard(if (actions.selected(item)) actions.selectedFiles() else listOf(item.file))) Notices.info(tr("Kopiert – im Explorer oder in einer Mail mit Strg+V einfügen.")) }
+        })
         if (!item.dir) actions.toNextcloud?.let { save -> DropdownMenuItem(text = { Text(tr("In Nextcloud speichern")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { act { save(item) } }) }
         item.chatId?.let { id -> DropdownMenuItem(text = { Text(tr("Zum Chat")) }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { actions.chat(id) } }) }
         HorizontalDivider()

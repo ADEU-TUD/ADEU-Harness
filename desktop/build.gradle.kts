@@ -71,6 +71,8 @@ dependencies {
     implementation("org.mozilla:rhino:1.7.15")
     // Reading attached PDFs (text and scanned pages), page count of generated PDFs.
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
+    // Digitale Signatur (AP-60): CMS signatures for PDFs and their check (Bouncy Castle, MIT licence).
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
     // HTML/CSS → PDF when neither Edge nor Chrome is available.
     implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.24")
     implementation("org.jsoup:jsoup:1.18.1")

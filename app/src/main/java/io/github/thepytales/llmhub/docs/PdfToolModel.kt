@@ -1,6 +1,7 @@
 package io.github.thepytales.llmhub.docs
 
 import kotlinx.serialization.Serializable
+import kotlin.math.abs
 import io.github.thepytales.llmhub.ui.trLater
 
 /**
@@ -167,3 +168,79 @@ fun parsePageRanges(text: String, pages: Int): List<Int> {
     }
     return out
 }
+
+/** A word on page [page] with its [box] (fractions of the displayed page) – for marking along the text (AP-60). */
+data class PdfWord(val page: Int, val box: PdfBox, val text: String)
+
+/**
+ * Einrasten am Text (AP-60): a drag over the page selects whole words from the one at the start to the one at the end in
+ * reading order, as in a text program, and gives one box per line – the highlight follows the lines instead of being
+ * a rectangle. A click hits one word (Schwärzen mit der Maus).
+ */
+object PdfSnap {
+    /** [words] of one page as lines (top to bottom), each left to right. */
+    fun lines(words: List<PdfWord>): List<List<PdfWord>> {
+        val out = mutableListOf<MutableList<PdfWord>>()
+        for (w in words.sortedWith(compareBy({ it.box.y + it.box.h / 2 }, { it.box.x }))) {
+            val mid = w.box.y + w.box.h / 2
+            val line = out.lastOrNull()?.takeIf { l -> l.any { abs(it.box.y + it.box.h / 2 - mid) < maxOf(it.box.h, w.box.h) * 0.5f } }
+            if (line != null) line += w else out += mutableListOf(w)
+        }
+        return out.map { l -> l.sortedBy { it.box.x } }
+    }
+
+    /** Index (into the reading order of [ordered]) of the word nearest to [p]: on its line, else the nearest line. */
+    private fun nearest(lines: List<List<PdfWord>>, p: PdfPoint): Pair<Int, Int>? {
+        if (lines.isEmpty()) return null
+        fun dy(l: List<PdfWord>): Float { val top = l.minOf { it.box.y }; val bottom = l.maxOf { it.box.bottom }; return if (p.y < top) top - p.y else if (p.y > bottom) p.y - bottom else 0f }
+        val li = lines.indices.minBy { dy(lines[it]) }
+        val line = lines[li]
+        val wi = line.indices.minBy { k -> val b = line[k].box; if (p.x < b.x) b.x - p.x else if (p.x > b.right) p.x - b.right else 0f }
+        return li to wi
+    }
+
+    /** The words between [a] and [b] (in reading order) as one box per line; empty when the page has no text. */
+    fun boxes(words: List<PdfWord>, a: PdfPoint, b: PdfPoint): List<PdfBox> = selected(words, a, b).map { line ->
+        val x = line.minOf { it.box.x }
+        val y = line.minOf { it.box.y }
+        PdfBox(x, y, line.maxOf { it.box.right } - x, line.maxOf { it.box.bottom } - y)
+    }
+
+    /** The words between [a] and [b], per line. */
+    fun selected(words: List<PdfWord>, a: PdfPoint, b: PdfPoint): List<List<PdfWord>> {
+        val lines = lines(words)
+        val s = nearest(lines, a) ?: return emptyList()
+        val e = nearest(lines, b) ?: return emptyList()
+        val (from, to) = if (s.first < e.first || (s.first == e.first && s.second <= e.second)) s to e else e to s
+        return (from.first..to.first).map { li ->
+            val line = lines[li]
+            val first = if (li == from.first) from.second else 0
+            val last = if (li == to.first) to.second else line.lastIndex
+            line.subList(first, last + 1)
+        }.filter { it.isNotEmpty() }
+    }
+
+    /** The word under [p] (a little slack around it), or null. */
+    fun wordAt(words: List<PdfWord>, p: PdfPoint, slack: Float = 0.004f): PdfWord? =
+        words.firstOrNull { p.x >= it.box.x - slack && p.x <= it.box.right + slack && p.y >= it.box.y - slack && p.y <= it.box.bottom + slack }
+}
+
+/** A certificate to sign with (AP-60): from the Windows certificate store or a PKCS#12 file (.p12/.pfx). */
+data class PdfCert(val alias: String, val subject: String, val issuer: String, val notAfter: Long)
+
+/** A signature found in a PDF and what its check says (AP-60). */
+data class PdfSignatureInfo(
+    val signer: String,
+    val time: Long?,
+    val reason: String?,
+    /** The signature fits the signed bytes (nothing in them was changed). */
+    val valid: Boolean,
+    /** It covers the whole file (nothing was added after signing). */
+    val coversAll: Boolean,
+    /** The certificate leads to a root this PC trusts. */
+    val trusted: Boolean,
+    val problem: String? = null,
+)
+
+/** What „Tags erzeugen“ (AP-60) made: counts of the structure elements, and figures still without a real description. */
+data class PdfTagReport(val headings: Int, val paragraphs: Int, val listItems: Int, val figures: Int, val tables: Int, val artifacts: Int, val figuresWithoutAlt: Int)

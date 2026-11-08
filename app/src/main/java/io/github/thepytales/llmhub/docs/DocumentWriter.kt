@@ -672,9 +672,16 @@ object DocumentWriter {
                 is Block.Code -> {
                     // Charts written as ```chart {…}``` become vector graphics with their data as text alternative.
                     val chart = if (b.lang.equals("chart", ignoreCase = true)) ChartSpec.parse(b.code) else null
+                    val diagram = if (chart == null && Diagrams.isDiagramLang(b.lang)) Diagrams.ofBlock(b.lang, b.code) else null
                     if (chart != null) {
                         append("<figure class=\"chart\" style=\"margin:1em 0;break-inside:avoid\">").append(ChartLayout.svg(chart))
                         if (chart.title.isNotBlank()) append("<figcaption style=\"font-size:0.85em;color:#555\">Abbildung: ${esc(chart.title)}</figcaption>")
+                        append("</figure>\n")
+                    } else if (diagram != null) {
+                        // Diagramme (AP-61): vector graphics, at most the width of the text.
+                        append("<figure class=\"diagram\" style=\"margin:1em 0;break-inside:avoid;text-align:center\">")
+                            .append(Diagrams.svg(diagram).replaceFirst("<svg ", "<svg style=\"max-width:100%;height:auto\" "))
+                        if (diagram.title.isNotBlank()) append("<figcaption style=\"font-size:0.85em;color:#555\">Abbildung: ${esc(diagram.title)}</figcaption>")
                         append("</figure>\n")
                     } else append("<pre><code>${esc(b.code)}</code></pre>\n")
                 }

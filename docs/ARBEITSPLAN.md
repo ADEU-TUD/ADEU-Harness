@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 08.11.2026 (nach 1.0.59) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 08.11.2026 (nach 1.0.60) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -63,94 +63,28 @@ Fairlight).
 | ~~Editor-Kern und Dokument~~ ☑ | AP-43 Gemeinsamer Text-Kern · AP-44 Fließtext-Editor · AP-45 Word-Treue · AP-46 Gliederung und Formatvorlagen · AP-47 Lora schreibt im Dokument (erledigt, siehe *Erledigt*) |
 | ~~Video-Grundlage~~ ☑ | AP-52 Mehrere Spuren und echte Vorschau · AP-53 Schnittwerkzeuge (erledigt, siehe *Erledigt*) |
 | ~~Office~~ ☑ | AP-48 Tabellen wie Excel · AP-49 Diagramme und Lora rechnet · AP-50 Gemeinsame Leinwand für Folien und Gestalten · AP-51 Folien wie PowerPoint (erledigt, siehe *Erledigt*) |
-| **Jetzt** – Video | ~~AP-54 Einfache Effekte~~ ☑ · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU |
-| **Jetzt** – Dateien | ~~AP-58 Frag diesen Ordner~~ ☑ · AP-59 Windows-Integration |
-| **Danach** | – (zurzeit leer; aus *Später* rückt AP-60 PDF-Reste nach, sobald in *Jetzt* Platz ist) |
-| **Später** | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard · AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat |
+| ~~Video und Dateien~~ ☑ | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU · AP-58 Frag diesen Ordner · AP-59 Windows-Integration (erledigt, siehe *Erledigt*) |
+| ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
+| **Jetzt** | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach |
+| **Danach** | AP-65 Diktat |
+| **Später** | – (zurzeit leer; neue Pakete kommen aus den *Ideen*) |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
 (Zelltext) und AP-50 (Textfelder) · AP-48 vor AP-49 · AP-50 vor AP-51 und AP-61 · AP-52 vor AP-53 vor AP-54, AP-55 ·
 AP-52 vor AP-57 · AP-42 vor AP-59.
 
-Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47), die Video-Grundlage (AP-52, AP-53), Office (AP-48 bis AP-51) und
-AP-54 sind erledigt; jetzt die übrigen Video- und Dateipakete (AP-55, AP-56, AP-57, AP-59). Video- und Dateistrang sind
-unabhängig voneinander und dürfen sich abwechseln, wenn ein Strang wartet.
+Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47), die Video-Grundlage (AP-52, AP-53), Office (AP-48 bis AP-51),
+Video und Dateien (AP-54 bis AP-59) sowie PDF-Reste und Diagramme (AP-60, AP-61) sind erledigt; jetzt Scanner, Sync-Reste
+und Android (AP-62 bis AP-64), danach das Diktat (AP-65). AP-63 und AP-64 betreffen beide Android und dürfen sich
+abwechseln.
 
 ---
 
 ## Jetzt
 
-Video und Dateien (aus *Danach* nachgerückt, nachdem Office – AP-48 bis AP-51 – und AP-54 am 08.11.2026 mit 1.0.59 erledigt
-sind; siehe *Erledigt*). Als Nächstes AP-55 (textbasierter Schnitt); AP-56, AP-57 und AP-59 sind voneinander unabhängig.
-
-### AP-55 ☐ Video: textbasierter Schnitt (D) · M (neu)
-- Das **Transkript** liegt als Text neben der Zeitleiste; Wörter sind mit der Zeit verknüpft (Klick springt).
-- **Text löschen = Video schneiden** (wie Descript), Absätze verschieben = Clips verschieben, Füllwörter und Pausen
-  markiert zum Entfernen; Rückgängig wie überall.
-- **Lora als Schnitt-Assistentin**: „Kürze auf 10 Minuten, behalte die Beispiele“, „Entferne den Teil über die
-  Organisation“ – Vorschlag als markierte Stellen im Transkript, annehmen/ablehnen.
-- Baut auf dem Rohschnitt aus AP-25 und den Aktionen aus AP-38 auf; Sprecher:innen unterscheidbar, wenn die Transkription
-  das liefert.
-- **Fertig, wenn**: Ein Lehrvideo wird nur über das Transkript geschnitten, und die Zeitleiste folgt.
-- Betrifft: Windows `video/RoughCut.kt`, `ui/VideoScreen.kt`, Transkription.
-
-### AP-56 ☐ Bildschirmaufnahme (D) · M (neu)
-- **Aufnahme in der App**: ganzer Bildschirm, Fenster oder Bereich + Webcam + Mikrofon (+ Systemton), Countdown,
-  Pause, Stopp über Infobereich/Tastenkürzel; Mauszeiger und Klicks hervorheben.
-- Ergebnis landet als **Projekt im Videoeditor** mit getrennten Spuren (Bildschirm, Webcam als Bild-in-Bild, Ton) und
-  optional sofortiger Transkription.
-- Technik: ffmpeg (gdigrab/ddagrab, dshow/WASAPI) unter Windows; Folienaufnahme direkt aus der Referentenansicht (AP-51).
-- **Fertig, wenn**: Ein Screencast mit Webcam-Ecke ist nach Stopp sofort als Projekt mit getrennten Spuren schnittbereit.
-- Betrifft: neu Windows `video/ScreenRecorder.kt`, `ui/VideoScreen.kt`.
-
-### AP-57 ☐ Video: Export mit GPU und Warteschlange (D) · M (neu)
-- **Hardware-Encoder** (NVIDIA NVENC, Intel Quick Sync, AMD AMF) automatisch erkannt, Software als Rückfall.
-- **Export-Warteschlange im Hintergrund** (weiterarbeiten während des Exports), mehrere Vorgaben auf einmal (OPAL 720p,
-  YouTube 1080p, nur Ton, Untertitel-Datei).
-- **Kapitelmarken** aus den Markern (MP4-Kapitel, YouTube-Beschreibung), Ziel direkt **Nextcloud** oder Lora-Ordner.
-- Musik und Übergänge in der Vorschau (Rest aus AP-25) sind mit AP-52 erledigt.
-- **Fertig, wenn**: Ein 60-Minuten-Video exportiert auf einem PC mit GPU deutlich schneller als heute, im Hintergrund,
-  mit Kapiteln.
-- Betrifft: Windows `video/VideoRender.kt`, `ui/VideoScreen.kt`, `data/Nextcloud.kt`.
-
-### AP-59 ☐ Windows-Integration (W) · M (neu)
-- **Ziehen aus dem Explorer** in *Dateien* (kopieren in den geöffneten Ordner) und **aus Lora in den Explorer**, in Mails
-  und andere Programme.
-- **Windows-Papierkorb** als Option statt des Lora-Papierkorbs (Rest aus AP-16).
-- **„Mit Lora öffnen“ / „Lora fragen“** im Kontextmenü des Explorers (ohne Admin-Rechte, je Benutzer), öffnet die Datei
-  in Lora bzw. einen Chat mit der Datei.
-- **In Word/Excel/PowerPoint öffnen und zurück**: sichtbarer Zustand „in Word geöffnet“, Änderungen kommen beim Speichern
-  zurück (heute alle 4 s geprüft).
-- **Fertig, wenn**: Eine Datei aus dem Explorer lässt sich per Kontextmenü in Lora fragen und per Ziehen in den Lora-Ordner
-  legen.
-- Betrifft: Windows `ui/AppRoot.kt`, `desktop/Desktop.kt`, `data/LoraDrive.kt`, Installer/`desktop/launcher/`.
-
----
-
-## Danach
-
-Zurzeit leer – sobald in *Jetzt* Platz ist, rückt das erste Paket aus *Später* nach (AP-60 PDF-Reste).
-
----
-
-## Später
-
-### AP-60 ☐ PDF-Reste · M (Reste von AP-11, AP-15, AP-26)
-- Markieren mit **Einrasten am Text** (Zeilen statt Rechtecke).
-- **Schwärzen mit der Maus** auf der Seite (Bereich ziehen, Wort anklicken).
-- **Digitale Signatur** (Zertifikat aus dem Windows-Zertifikatsspeicher bzw. Datei, sichtbares Feld, Prüfung vorhandener
-  Signaturen).
-- **Tags erzeugen** für PDF/UA (Überschriften, Absätze, Listen, Tabellen, Bilder mit Alternativtext).
-- **Fertig, wenn**: Ein PDF lässt sich am Text markieren, per Maus schwärzen, digital signieren und mit Tags versehen.
-- Betrifft: `docs/PdfStage3.kt`, `docs/PdfAccessibility.kt`, `ui/PdfToolScreen.kt`.
-
-### AP-61 ☐ Diagramme und Whiteboard · L (bisher Ideen, W8-04)
-- Flussdiagramme, Mindmaps, Organigramme, Zeitstrahlen auf der gemeinsamen Leinwand (AP-50): Verbinder, die an Formen
-  haften, automatische Anordnung.
-- **Lora zeichnet**: „Mach ein Flussdiagramm aus diesem Ablauf“, Mermaid-Text ↔ Diagramm.
-- Whiteboard: unendliche Fläche, Freihand, Notizzettel; einfügbar in Dokument und Folien.
-- **Fertig, wenn**: Aus einer Beschreibung entsteht ein bearbeitbares Flussdiagramm, das in einem Dokument steht.
+Scanner, Sync-Reste und Android (aus *Später* nachgerückt, nachdem Video, Dateien, PDF-Reste und Diagramme – AP-54 bis AP-61
+– am 08.11.2026 mit 1.0.60 erledigt sind; siehe *Erledigt*). Als Nächstes AP-62 (Dokumenten-Scanner).
 
 ### AP-62 ☐ Dokumenten-Scanner · M (bisher Ideen)
 - **Android**: Kamera mit Kantenerkennung, Zuschneiden, Entzerren, Kontrast (Schwarz-Weiß/Farbe), mehrere Seiten → PDF
@@ -173,10 +107,20 @@ Wie bisher nur, was dort sinnvoll ist:
   Systemdialog nicht reicht.
 - Kein Videoeditor, kein Gestalten (unverändert).
 
+---
+
+## Danach
+
 ### AP-65 ☐ Diktat · S–M (neu, optional)
 - Diktieren in Dokumente und Textfelder mit der vorhandenen lokalen Spracherkennung (sherpa-onnx), Satzzeichen per
   Sprache („Punkt“, „neuer Absatz“); keine Sprachbefehle für die App (Chat-Sprachmodus reicht).
 - **Fertig, wenn**: Ein Absatz lässt sich im neuen Dokument-Editor auf dem Gerät diktieren.
+
+---
+
+## Später
+
+Zurzeit leer – neue Pakete kommen bei Bedarf aus den *Ideen*.
 
 ---
 
@@ -289,8 +233,14 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-53 Video: Schnittwerkzeuge | Medienpool mit Ordnern und Suche, Quellmonitor mit In/Out, Einfügen/Überschreiben/Ziehen, Klinge, Ripple/Roll/Slip, Magnet, verknüpfter Ton, Synchronisieren über die Wellenform, Spuren sperren/stumm/ausblenden, Marker als Kapitel, Tasten wie Resolve | J spielt rückwärts ohne Ton; Synchronisieren vergleicht die ersten 15 Minuten |
 | ☑ AP-54 Video: einfache Effekte | Geschwindigkeit, Standbild, Rückwärts, Bildkorrektur mit Weißabgleich, Zoom/Schwenk mit Keyframes, Hochformat, Bereiche verpixeln, Gesichter automatisch (YuNet), Stimme verfremden, Lora-Aktionen | Effekte auf V2 …; Bereiche mit der Maus ziehen; Prüfung auf Dienst-PCs |
 | ☑ AP-58 Frag diesen Ordner | Ordnermenü in *Dateien*, Lesen mit Fortschritt aus dem Volltext-Cache, Chat im Quellenmodus mit `search_folder` (Datei + Seite), Belegprüfung je Datei, Datenschutz-Empfehlung | Nextcloud- und Projektordner direkt |
+| ☑ AP-55 Video: textbasierter Schnitt | Transkript neben der Zeitleiste, Klick springt, Wörter löschen schneidet (Clip geteilt, Ton mit, Magnet), Absätze verschieben, Füllwörter/Pausen, Lora-Vorschläge zum Annehmen/Ablehnen | Lora schlägt absatzweise vor; Ziehen markiert innerhalb eines Absatzes |
+| ☑ AP-56 Bildschirmaufnahme | Bildschirm/Fenster/Bereich + Webcam + Mikrofon + Systemton in einem ffmpeg-Prozess, Pause als Teile, Klicks als Ringe, Leiste außerhalb der Aufnahme, Strg+Umschalt+F9/F10, Projekt mit getrennten Spuren, sofort transkribieren, Knopf in der Referentenansicht | Klicks nur unter Windows; Systemton braucht ein Loopback-Gerät; Prüfung auf Dienst-PCs |
+| ☑ AP-57 Video: Export mit GPU und Warteschlange | NVENC/Quick Sync/AMF/VideoToolbox mit Probe und Rückfall, Warteschlange im Hintergrund, mehrere Ziele (OPAL, YouTube, Projekt, Ton, Untertitel, Kapitel), Nextcloud gestreamt | Zeitmessung mit 60-Minuten-Video auf einem PC mit GPU; Warteschlange übersteht keinen Neustart |
+| ☑ AP-59 Windows-Integration | Ziehen nach außen (Griff, Mehrfachauswahl), Als Datei kopieren, Kontextmenü je Benutzer (Datei, Ordner), Start mit Datei an die laufende App, Windows-Papierkorb, Office öffnen und zurück mit „in Word geöffnet“ | Offene Frage 7 (Dienst-PCs); neues Windows-11-Menü nur über „Weitere Optionen“ |
+| ☑ AP-60 PDF-Reste | Markieren am Text, Schwärzen mit der Maus, digitale Signatur (Windows-Speicher, .p12/.pfx, sichtbares Feld) mit Prüfung, Tags für PDF/UA | Tabellen beim Taggen; Zeitstempel/LTV der Signatur; Android |
+| ☑ AP-61 Diagramme und Whiteboard | Flussdiagramm, Mindmap, Organigramm, Zeitstrahl mit haftenden Verbindern und Anordnung, Mermaid hin und zurück, Lora zeichnet, Whiteboard (Notizen, Freihand), in Dokument, PDF, Word, Folien | Verbinder auf der Gestalten-Leinwand; Word-Bild nur unter Windows |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-54 und AP-58 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-61 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -881,6 +831,120 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
   Nextcloud- und Projektordner direkt (heute über den synchronisierten Ordner), Datenschutzstufe automatisch setzen statt
   empfehlen.
 
+### AP-55 ☑ Video: textbasierter Schnitt (D) · M (neu)
+- Das **Transkript** liegt als Text neben der Zeitleiste; Wörter sind mit der Zeit verknüpft (Klick springt).
+- **Text löschen = Video schneiden** (wie Descript), Absätze verschieben = Clips verschieben, Füllwörter und Pausen
+  markiert zum Entfernen; Rückgängig wie überall.
+- **Lora als Schnitt-Assistentin**: „Kürze auf 10 Minuten, behalte die Beispiele“, „Entferne den Teil über die
+  Organisation“ – Vorschlag als markierte Stellen im Transkript, annehmen/ablehnen.
+- Baut auf dem Rohschnitt aus AP-25 und den Aktionen aus AP-38 auf; Sprecher:innen unterscheidbar, wenn die Transkription
+  das liefert.
+- **Fertig, wenn**: Ein Lehrvideo wird nur über das Transkript geschnitten, und die Zeitleiste folgt.
+- Betrifft: Windows `video/RoughCut.kt`, `ui/VideoScreen.kt`, Transkription.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `video/TextCut.kt` legt die Wörter der Transkripte auf die Zeitleiste (In/Out und
+  Tempo der Clips, Wörter ohne Zeitmessung über ihr Segment verteilt), Pausen über 0,8 s werden eigene Marken am Absatzende,
+  Füllwörter markiert („um“/„er“ nur in englischen Transkripten – vorher schnitt der Rohschnitt sie auch im Deutschen).
+  **Löschen = Schneiden**: Bereiche mit Rand bis zum Nachbarwort (0,15 s), der Clip wird geteilt (rechter Teil mit neuer
+  Id, verknüpfter Ton für beide Teile), mit dem Magneten rücken Titel, Ebenen und Marker nach; Absätze verschieben schneidet
+  an den Pausen und verschiebt den Clip. Panel *Transkript* (`ui/VideoTranscriptPanel.kt`) mit Klick-Sprung, Hervorhebung
+  beim Abspielen, Umschalt+Klick/Ziehen, Entf, ↑/↓, Füllwörter/Pausen mit einem Klick, Lora-Vorschlägen (durchgestrichen,
+  einzeln an/aus, *Angenommene übernehmen*); Lora-Aktion `video.text_cut` mit Vorschau. Test `TextCutTest`. **Offen**:
+  Vorschläge absatzweise statt satzweise; Clips mit Standbild/Rückwärts fehlen im Text.
+
+### AP-56 ☑ Bildschirmaufnahme (D) · M (neu)
+- **Aufnahme in der App**: ganzer Bildschirm, Fenster oder Bereich + Webcam + Mikrofon (+ Systemton), Countdown,
+  Pause, Stopp über Infobereich/Tastenkürzel; Mauszeiger und Klicks hervorheben.
+- Ergebnis landet als **Projekt im Videoeditor** mit getrennten Spuren (Bildschirm, Webcam als Bild-in-Bild, Ton) und
+  optional sofortiger Transkription.
+- Technik: ffmpeg (gdigrab/ddagrab, dshow/WASAPI) unter Windows; Folienaufnahme direkt aus der Referentenansicht (AP-51).
+- **Fertig, wenn**: Ein Screencast mit Webcam-Ecke ist nach Stopp sofort als Projekt mit getrennten Spuren schnittbereit.
+- Betrifft: neu Windows `video/ScreenRecorder.kt`, `ui/VideoScreen.kt`.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `video/ScreenRecorder.kt`: **ein** ffmpeg-Prozess je Teil mit allen Quellen
+  (gdigrab mit Bereich/Fenstertitel und Mauszeiger, DirectShow für Webcam/Mikrofon/Stereomix; Linux x11grab/v4l2/Pulse,
+  macOS AVFoundation), jede Quelle eine eigene Datei (MKV/WAV, „q“ beendet sauber), Pause beendet den Teil. Klicks über
+  `GetAsyncKeyState` (50 Hz) als Ringe auf V3. Projekt: V1 Bildschirm (stumm), V2 Webcam unten rechts, A1 Mikrofon, A2
+  Systemton, alles im Medienpool; „sofort transkribieren“ startet die Transkription je Teil, der Editor ordnet sie zu
+  (`VideoProject.pendingTranscripts`). Dialog mit Geräten (`ui/ScreenRecordUi.kt`), Bereich ziehen, Countdown;
+  Aufnahmeleiste mit `SetWindowDisplayAffinity` aus der Aufnahme genommen, `desktop/GlobalHotkeys.kt`
+  (RegisterHotKey), Infobereich; Knopf in der Referentenansicht. Test `ScreenRecorderTest` (echte Aufnahme mit Testquellen,
+  Pause, Export). **Offen**: Klicks auf macOS/Linux, Systemton ohne Loopback-Gerät (WASAPI-Loopback kann ffmpeg nicht),
+  Prüfung auf den Dienst-PCs.
+
+### AP-57 ☑ Video: Export mit GPU und Warteschlange (D) · M (neu)
+- **Hardware-Encoder** (NVIDIA NVENC, Intel Quick Sync, AMD AMF) automatisch erkannt, Software als Rückfall.
+- **Export-Warteschlange im Hintergrund** (weiterarbeiten während des Exports), mehrere Vorgaben auf einmal (OPAL 720p,
+  YouTube 1080p, nur Ton, Untertitel-Datei).
+- **Kapitelmarken** aus den Markern (MP4-Kapitel, YouTube-Beschreibung), Ziel direkt **Nextcloud** oder Lora-Ordner.
+- Musik und Übergänge in der Vorschau (Rest aus AP-25) sind mit AP-52 erledigt.
+- **Fertig, wenn**: Ein 60-Minuten-Video exportiert auf einem PC mit GPU deutlich schneller als heute, im Hintergrund,
+  mit Kapiteln.
+- Betrifft: Windows `video/VideoRender.kt`, `ui/VideoScreen.kt`, `data/Nextcloud.kt`.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `video/Encoders.kt` liest `ffmpeg -encoders` und macht je Hardware-Encoder eine
+  Probe-Kodierung; Qualität je Encoder (NVENC `-cq`, Quick Sync `-global_quality`, AMF `-qp`, VideoToolbox `-q:v`);
+  `VideoRender.render` fällt bei einem Fehler auf x264 zurück. `video/ExportQueue.kt`: Einträge nacheinander (Mutex) im
+  Hintergrund mit Fortschritt, Abbrechen, Hinweis „mit dem Prozessor gerechnet“; Ziele Video je Vorgabe, nur Ton (M4A aus
+  demselben Graphen), SRT/VTT, Kapiteltext; Upload nach Nextcloud gestreamt (`WebDavClient.uploadFile`,
+  `NextcloudService.saveLarge`). Neuer Exportdialog und Chip „Exporte 1/3“ (`ui/VideoExportUi.kt`); die Lora-Aktion
+  `video.export` nutzt die Grafikkarte. Test `ExportQueueTest`. **Offen**: Zeitmessung mit einem 60-Minuten-Video auf einem
+  PC mit GPU; Warteschlange über Neustarts; VAAPI unter Linux.
+
+### AP-59 ☑ Windows-Integration (W) · M (neu)
+- **Ziehen aus dem Explorer** in *Dateien* (kopieren in den geöffneten Ordner) und **aus Lora in den Explorer**, in Mails
+  und andere Programme.
+- **Windows-Papierkorb** als Option statt des Lora-Papierkorbs (Rest aus AP-16).
+- **„Mit Lora öffnen“ / „Lora fragen“** im Kontextmenü des Explorers (ohne Admin-Rechte, je Benutzer), öffnet die Datei
+  in Lora bzw. einen Chat mit der Datei.
+- **In Word/Excel/PowerPoint öffnen und zurück**: sichtbarer Zustand „in Word geöffnet“, Änderungen kommen beim Speichern
+  zurück (heute alle 4 s geprüft).
+- **Fertig, wenn**: Eine Datei aus dem Explorer lässt sich per Kontextmenü in Lora fragen und per Ziehen in den Lora-Ordner
+  legen.
+- Betrifft: Windows `ui/AppRoot.kt`, `desktop/Desktop.kt`, `data/LoraDrive.kt`, Installer/`desktop/launcher/`.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `desktop/WindowsShell.kt`: Kontextmenü unter `HKCU\Software\Classes`
+  (`*\shell\Lora.Open|Lora.Ask`, `Directory\shell\Lora.Ask`), Schalter unter *Einstellungen › Windows › Explorer und
+  Papierkorb*, nach Updates neu geschrieben, wenn die EXE woanders liegt; Start mit `--open/--ask/--ask-folder`, eine
+  laufende App bekommt die Datei über die Einzelinstanz (`ui/ShellRequests.kt`: PDF → Werkzeugkasten, Office/Markdown →
+  Editor, Video → Projekt, sonst Chat mit Anhang, Ordner → Frag diesen Ordner). Dateien: Griff zum Ziehen
+  (`dragAndDropSource` mit Dateiliste), *Als Datei kopieren*. Windows-Papierkorb über `Desktop.moveToTrash`
+  (`AppSettings.systemTrash`). `OfficeHandoff` beobachtet von Lora geöffnete Dateien und Office-Besitzerdateien
+  (`~$…`), meldet „in Word geöffnet“ (`ui/ExternalOffice.kt`, Dateien und Editor) und lädt Gespeichertes binnen einer
+  Sekunde. Test `WindowsIntegrationTest`. **Offen**: Offene Frage 7; das neue Kontextmenü von Windows 11 braucht eine
+  verpackte App (heute „Weitere Optionen anzeigen“).
+
+### AP-60 ☑ PDF-Reste · M (Reste von AP-11, AP-15, AP-26)
+- Markieren mit **Einrasten am Text** (Zeilen statt Rechtecke).
+- **Schwärzen mit der Maus** auf der Seite (Bereich ziehen, Wort anklicken).
+- **Digitale Signatur** (Zertifikat aus dem Windows-Zertifikatsspeicher bzw. Datei, sichtbares Feld, Prüfung vorhandener
+  Signaturen).
+- **Tags erzeugen** für PDF/UA (Überschriften, Absätze, Listen, Tabellen, Bilder mit Alternativtext).
+- **Fertig, wenn**: Ein PDF lässt sich am Text markieren, per Maus schwärzen, digital signieren und mit Tags versehen.
+- Betrifft: `docs/PdfStage3.kt`, `docs/PdfAccessibility.kt`, `ui/PdfToolScreen.kt`.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `PdfTools.words` und `PdfSnap` (gemeinsam): Wörter mit Kästen, Zeilen, Auswahl
+  vom ersten bis zum letzten Wort, ein Kasten je Zeile – beim Markieren live; *Mit der Maus schwärzen* (Rechteck oder Wort,
+  dann `PdfStage3.redact`). `docs/PdfSigning.kt` (Bouncy Castle, `bcpkix-jdk18on`): CMS (adbe.pkcs7.detached) mit
+  Schlüssel aus `Windows-MY` oder PKCS#12 im Speicher, sichtbares Feld als Vorlage, `saveIncremental`; Prüfung: Signatur,
+  ByteRange bis zum Dateiende, Kette gegen `Windows-ROOT` bzw. Java-cacerts. `docs/PdfAutoTag.kt`: Inhaltsströme mit
+  `BDC`/`EMC` und MCID je Textblock bzw. Bild, Pfade/Formen/Seitenzahlen als `/Artifact`, Strukturbaum (Document, H1–H3,
+  P, L/LI/LBody, Figure mit Alt), ParentTree, MarkInfo, Sprache, Titelanzeige, XMP mit `pdfuaid:part`. Karten *Digital
+  signieren* und *Tags erzeugen* (mit Alternativtexten). Test `PdfRestTest`. **Offen**: Tabellen erkennen, Zeitstempel und
+  Langzeitprüfung (LTV) der Signatur, Android.
+
+### AP-61 ☑ Diagramme und Whiteboard · L (bisher Ideen, W8-04)
+- Flussdiagramme, Mindmaps, Organigramme, Zeitstrahlen auf der gemeinsamen Leinwand (AP-50): Verbinder, die an Formen
+  haften, automatische Anordnung.
+- **Lora zeichnet**: „Mach ein Flussdiagramm aus diesem Ablauf“, Mermaid-Text ↔ Diagramm.
+- Whiteboard: unendliche Fläche, Freihand, Notizzettel; einfügbar in Dokument und Folien.
+- **Fertig, wenn**: Aus einer Beschreibung entsteht ein bearbeitbares Flussdiagramm, das in einem Dokument steht.
+- **Umsetzung (08.11.2026, 1.0.60, ☑)**: `docs/Diagrams.kt` (gemeinsam): Modell mit Knoten, Verbindern nach Id und Freihand;
+  Mermaid flowchart/graph (Ketten, `&`, Beschriftungen, Formen), mindmap, timeline lesen und schreiben; Anordnung in Ebenen
+  (längster Pfad, Rückkanten ignoriert, Reihenfolge nach Eltern), radial und als Zeitstrahl; Verbinder vom Rand zum Rand
+  (Rechteck, Raute, Ellipse); SVG mit Alternativtext. `ui/DiagramEditor.kt` (Editor = Whiteboard: Ziehen, Verbinden, Stift,
+  Notizzettel, Formen, Mermaid daneben, Mausrad-Zoom, Lora zeichnet über `diagramFromDescription`), `ui/DiagramView.kt`.
+  Dokumente: ` ```mermaid ` (automatisch angeordnet) bzw. ` ```diagram ` (JSON mit Positionen), gezeichnet in Markdown und
+  Fließtext-Editor, *Einfügen › Diagramm/Whiteboard*, Klick öffnet den Editor; PDF als SVG, Word als PNG
+  (`docs/DiagramRaster.kt`), Folien mit Layout *Diagramm* (PowerPoint als Bild). *Erstellen › Diagramme & Whiteboard*
+  (`ui/WhiteboardScreen.kt`, gespeichert unter `whiteboards/`), Lora-Aktion `doc.diagram`. Test `DiagramsTest`.
+  **Offen**: Verbinder auf der Gestalten-Leinwand (AP-50), Bild für Word auf Android.
+
 ---
 
 ## Offene Fragen
@@ -898,7 +962,8 @@ So nah wie möglich an **DaVinci Resolve** für den Alltag, eigenständig im Lor
 6. ~~**Gesichter verpixeln** (AP-54)~~: entschieden (08.11.2026) – **YuNet** (`face_detection_yunet_2023mar.onnx` aus OpenCV
    Zoo, MIT-Lizenz, 227 KB) im Videoeditor-Paket; es läuft auf der ONNX Runtime, die die App für die Spracherkennung
    (sherpa-onnx) schon mitbringt, das Paket wächst also nur um das Modell.
-7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt?
+7. **Explorer-Kontextmenü** (AP-59): Ist ein Eintrag je Benutzer (ohne Admin) auf den Dienst-PCs erlaubt? Umgesetzt als
+   Schalter (anfangs aus) unter *Einstellungen › Windows*; offen bleibt nur die Prüfung auf den Dienst-PCs.
 8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
    wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
