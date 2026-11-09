@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 08.11.2026 (nach 1.0.61) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 09.11.2026 (nach 1.0.61) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -66,7 +66,7 @@ Fairlight).
 | ~~Video und Dateien~~ ☑ | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU · AP-58 Frag diesen Ordner · AP-59 Windows-Integration (erledigt, siehe *Erledigt*) |
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
-| **Jetzt** | – (zurzeit leer; die nächsten Pakete kommen aus den *Ideen*, siehe dort) |
+| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung |
 | **Danach** | – |
 | **Später** | – |
 
@@ -77,17 +77,69 @@ AP-52 vor AP-57 · AP-42 vor AP-59.
 
 Reihenfolge: Editor-Kern und Dokument (AP-43 bis AP-47), die Video-Grundlage (AP-52, AP-53), Office (AP-48 bis AP-51),
 Video und Dateien (AP-54 bis AP-59), PDF-Reste und Diagramme (AP-60, AP-61) sowie Scanner, Sync-Reste, Android, Diktat und
-die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Damit ist Runde 2 abgearbeitet; neue Pakete kommen aus den
-*Ideen* (Vorschläge unter *Jetzt*).
+die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erkennungsmodell für die Pseudonymisierung
+(AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
 ---
 
 ## Jetzt
 
-Zurzeit leer – AP-62 bis AP-66 sind am 08.11.2026 mit 1.0.61 erledigt (siehe *Erledigt*). Vorschläge für die nächsten
-Pakete nach täglichem Nutzen (Entscheidung beim Hauptnutzer): **Fehlermeldungen in Klartext mit Lösungsknopf** (W2-09),
-**eigene Lora-Befehle** (gespeicherte Abläufe per Name/Strg+K), **Exchange über EWS/Graph** (sobald Offene Frage 3 geklärt
-ist), **Tabellen beim Taggen und LTV der Signatur** (Rest AP-60).
+Am 09.11.2026 aufgenommen (Wunsch des Hauptnutzers, Weg A der Abwägung „eigenes Modell“). Weitere Vorschläge aus den
+*Ideen*, wenn AP-67 fertig ist: **Fehlermeldungen in Klartext mit Lösungsknopf** (W2-09), **eigene Lora-Befehle**
+(gespeicherte Abläufe per Name/Strg+K), **Exchange über EWS/Graph** (sobald Offene Frage 3 geklärt ist), **Tabellen beim
+Taggen und LTV der Signatur** (Rest AP-60).
+
+### AP-67 ☐ Eigenes Erkennungsmodell für die Pseudonymisierung · M–L (neu, Nachfolger von „Gründlich“ aus AP-03)
+**Ziel**: Ein kleines, eigenes Erkennungsmodell (NER, deutsch, etwa 70–120 MB als ONNX int8) findet private Namen,
+Einrichtungen (Schulen, Kitas, Praxen …) und Orte mit Personenbezug **in Millisekunden auf dem Gerät** – auf Android und
+Windows, **immer an**, ohne installiertes Sprachmodell. Es ersetzt den Schritt „Gründlich“, in dem heute das kleinste
+installierte lokale Sprachmodell (2B/4B, mehrere Sekunden je Text, Namen als JSON statt Fundstellen) nachliest. Die Regeln
+von `PiiDetector` bleiben für feste Muster (Mail, IBAN, Telefon, Matrikelnummer …) und die eigene Liste; die Erlaubt-Liste
+(zitierte Autor:innen, öffentliche Personen, Literatur) hat weiter Vorrang. Die Gewichte gehören uns und werden fest mit der
+App ausgeliefert (Grundsatz „Eigene Werkzeuge statt Fremd-Apps“).
+
+Weg: **Feintuning eines vortrainierten Encoders mit Destillation** – ein großes „Lehrer“-Modell erzeugt und beschriftet
+erfundene Texte, das kleine Modell lernt daraus. Kein eigenes Modell von Grund auf, kein 4B-Sprachmodell (zu groß und zu
+langsam für eine Aufgabe, die Fundstellen im Text braucht).
+
+**Stufen**
+- **a) Messkorpus zuerst** (vor jedem Training): `PseudonymCorpusTest` von 12 auf mindestens 500 Sätze aus dem Alltag der
+  Professur – Interview-Transkripte, Elterngespräch, Gutachten, Mail, Protokoll, Notentabelle, Chat –, je Fundstelle mit Art
+  (Person, Einrichtung, Ort). Dazu Gegenbeispiele, die **nicht** ersetzt werden dürfen: zitierte Autor:innen („Klafki
+  (1996)“, „nach Helmke“), öffentliche Personen, Literaturangaben, Orte ohne Personenbezug, Wörter, die wie Namen aussehen
+  („Rose“, „Winter“, „Becker-Studie“). Kennzahlen je Art: **Trefferquote** privater Angaben und **Fehlalarme** bei
+  öffentlichen Namen; Ausgangswert der heutigen Regeln (mit und ohne „Gründlich“) festhalten. Ein **Prüfteil**
+  (mindestens 150 Sätze) wird nie zum Training benutzt.
+- **b) Trainingsdaten ohne echte Daten**: Generator in `tools/pii/` (Python, nicht Teil der App). Erfundene Texte nach
+  Vorlagen der Textarten aus a), mit erfundenen Namen (Listen aus `Names` und offenen Namenslisten, auch Namen von Familien,
+  die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Ein **Lehrer-Modell** schreibt abwechslungsreiche
+  Texte und beschriftet die Stellen – der Uni-Server (die Texte sind erfunden, also unbedenklich) oder lokal auf der RTX 5080;
+  die Regeln von `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
+  im BIO-Schema (`PER`, `EINR`, `ORT`). **Nie echte Interviews, Abgaben oder Mails** im Training.
+- **c) Training auf dem eigenen PC** (RTX 5080 mit 16 GB Grafikspeicher, 32 GB DDR5): Feintuning eines Encoders mit
+  Hugging Face Transformers in bf16, wenige Epochen – Stunden, nicht Tage. Kandidaten werden auf dem Messkorpus verglichen
+  und nur genommen, wenn ihre Lizenz MIT oder Apache-2.0 ist (vor dem Start einzeln prüfen): ein deutsches BERT (z. B.
+  gbert-base), XLM-RoBERTa-base, GLiNER (multilingual, für personenbezogene Angaben vortrainiert). Hinweis: Grafikkarten der
+  RTX-50-Reihe (Blackwell) brauchen PyTorch mit CUDA 12.8 oder neuer. Reicht das Tempo auf dem Handy nicht, wird das Modell
+  in ein kleineres mit 6 Schichten destilliert.
+- **d) Export**: ONNX, int8-Quantisierung; das quantisierte Modell darf auf dem Prüfteil höchstens 0,5 Prozentpunkte
+  verlieren. Eine **Modellkarte** (Basismodell und Lizenz, Herkunft der Daten, Kennzahlen, Grenzen) kommt mit in die App
+  und in die Drittanbieter-Hinweise.
+- **e) Einbau**: neu `data/PiiModel.kt` (gemeinsam) über die ONNX Runtime, die die App mit sherpa-onnx schon mitbringt;
+  Tokenizer (WordPiece bzw. SentencePiece) in Kotlin, Fenster von 512 Token mit Überlappung, Fundstellen als `PiiHit`.
+  `Pseudonymizer` nimmt Regeln, Modell und eigene Liste zusammen; der Schalter *Gründlich* unter *Einstellungen ›
+  Datenschutz* wird zu *Erkennungsmodell* (Standard an). Das lokale Sprachmodell bleibt nur optional für indirekte Merkmale
+  („die Schulleiterin in Pirna“). Auslieferung fest in APK/Windows-ZIP oder als Download wie die Sprachmodelle (Offene
+  Frage 9).
+- **f) Tests**: der Messkorpus als `PseudonymCorpusTest` mit Schwellen, Laufzeit je Absatz, ein Test, dass Autor:innen und
+  öffentliche Namen bleiben, und dass ohne Modell (Datei fehlt) die Regeln allein weiterlaufen.
+
+**Fertig, wenn**: Auf dem Prüfteil des Messkorpus findet die Kombination aus Regeln und Modell mindestens 98 % der privaten
+Namen und ersetzt höchstens 2 % der öffentlichen; ein Absatz braucht auf einem Dienst-PC ohne Grafikkarte unter 50 ms, auf
+dem Handy unter 150 ms; das Modell liegt mit Lizenz und Modellkarte in der App.
+
+**Betrifft**: `data/PiiDetector.kt`, `data/Pseudonymizer.kt`, `AppContainer` (`thoroughFinder`), `ui/PrivacySettings.kt`,
+neu `data/PiiModel.kt`, `tools/pii/` (Generator, Training, Export – Python, nur auf dem Trainings-PC).
 
 ---
 
@@ -1033,6 +1085,9 @@ Wie bisher nur, was dort sinnvoll ist:
 8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
    wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
+9. **Erkennungsmodell ausliefern** (AP-67): fest in APK und Windows-ZIP (rund 70–120 MB mehr, sofort da, auch offline) oder
+   als Download beim ersten Bedarf wie die Sprachmodelle (kleinere Installation)? Und welches Basismodell – Entscheidung nach
+   dem Vergleich auf dem Messkorpus und der Lizenzprüfung.
 
 ---
 
