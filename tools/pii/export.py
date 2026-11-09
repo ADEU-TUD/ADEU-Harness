@@ -132,6 +132,9 @@ Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % f�
 - Indirekte Merkmale („die Schulleiterin der einzigen Schule im Ort“) erkennt es nicht.
 - Ein Mensch prüft im Zweifel die Vorschau; „nicht ersetzen“/„auch ersetzen“ gehen vor.
 """
+    lic = HERE / "modell" / f"LIZENZ-{base.split('/')[-1]}.txt"
+    if lic.exists():
+        card += f"\n## Lizenz des Basismodells ({base}, {licenses.get(base, '?')})\n\n" + lic.read_text(encoding="utf-8").strip() + "\n"
     (out / "MODELLKARTE.md").write_text(card, encoding="utf-8")
 
 

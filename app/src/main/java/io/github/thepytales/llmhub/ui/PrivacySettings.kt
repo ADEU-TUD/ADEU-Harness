@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,8 @@ import io.github.thepytales.llmhub.data.PiiFeature
 @Composable
 fun PrivacySection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
+    // Opening the settings offers the recognition model once (AP-67), like the first pseudonymized request.
+    LaunchedEffect(Unit) { c.piiModel.offerIfNeeded() }
     var sample by remember {
         mutableStateOf(
             "Frau Dr. Anna Kaltenbach (a.kaltenbach@example.org, Tel. 0351 463-12345) bittet um ein Gutachten für Lukas Schmidt, " +
@@ -84,6 +87,7 @@ fun PrivacySection(c: AppContainer) {
                 "setzt die App die echten Angaben wieder ein."),
             s.pseudonymize,
         ) { v -> c.settings.update { it.copy(pseudonymize = v) } } }
+        PiiModelSettings(c)
         ToggleRow(
             tr("Namen automatisch erkennen"),
             tr("Namen nach Anrede oder Titel (Frau, Herr, Dr., Prof.), häufige Vor- und Nachnamen und – mit den Schaltern unten – Namen " +
@@ -99,9 +103,10 @@ fun PrivacySection(c: AppContainer) {
         ) { v -> c.settings.update { it.copy(pseudonymPublic = v) } }
         val local = c.localLlm.installedModels().isNotEmpty()
         ToggleRow(
-            tr("Gründlich: lokales Erkennungsmodell"),
+            tr("Gründlich: zusätzlich ein lokales Sprachmodell"),
             tr("Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
-                "die die festen Regeln übersehen. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.") +
+                "die Regeln und Erkennungsmodell übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem " +
+                "Text), nichts verlässt dabei das Gerät.") +
                 if (local) "" else tr(" Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden."),
             s.pseudonymThorough,
         ) { v -> c.settings.update { it.copy(pseudonymThorough = v) } }

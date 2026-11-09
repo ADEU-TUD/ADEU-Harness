@@ -8,8 +8,10 @@ Nicht Teil der App; läuft nur in der Cloud-Sitzung bzw. auf dem Trainings-PC. P
 | --- | --- | --- | --- |
 | a | Messkorpus (`messkorpus/`, `corpus.py`, `PseudonymCorpusTest`) | überall | ☑ |
 | b | Trainingsdaten aus Vorlagen, erfundene Namen (`vorlagen/`, `namen.py`, `gen.py`) | überall | ☑ |
-| c | Training (`train.py`, `modell.py`; Probelauf in der Cloud auf CPU) | PC mit RTX 5080 (`pc.ps1`) | ◐ |
-| d | Export ONNX int8 + Modellkarte (`export.py`), Messung (`evaluate.py`) | PC | ◐ |
+| c | Training (`train.py`, `modell.py`) | Cloud (CPU) oder PC mit RTX 5080 (`pc.ps1`) | ☑ |
+| d | Export ONNX int8 + Modellkarte (`export.py`), Messung (`evaluate.py`) | Cloud | ☑ |
+| e | Einbau in die App (`data/PiiModel.kt`, Download-Popup, *Einstellungen › Datenschutz*) | App | ◐ (Android ungetestet) |
+| f | Tests (`PiiModelTest`: Tokenizer, Etiketten, ohne Modell, echtes Modell mit `PII_MODELL`/`PII_ORT`) | PC | ◐ (Ziel 2 % offen) |
 
 ## Stufe a: Messkorpus
 

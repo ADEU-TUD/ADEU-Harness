@@ -111,4 +111,6 @@ dependencies {
     implementation("org.mozilla:rhino:1.7.15")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    // Erkennungsmodell der Pseudonymisierung (AP-67): ONNX Runtime of sherpa-onnx through its C API, as on the PC.
+    implementation("net.java.dev.jna:jna:5.15.0@aar")
 }

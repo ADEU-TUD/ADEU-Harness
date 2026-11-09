@@ -10,6 +10,11 @@
 -keep class de.lokal.whisper.** { *; }
 -keep class com.k2fsa.sherpa.onnx.** { *; }
 
+# JNA (recognition model of the pseudonymization, AP-67): its native part calls back into these classes by name.
+-keep class com.sun.jna.** { *; }
+-keep class * implements com.sun.jna.** { *; }
+-dontwarn java.awt.**
+
 # JavaScript sandbox: Rhino looks up its classes by name.
 -keep class org.mozilla.javascript.** { *; }
 -dontwarn org.mozilla.javascript.**

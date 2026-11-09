@@ -126,11 +126,27 @@ class Pseudonymizer(
     @Volatile
     var nameChains: Boolean = true
 
+    /**
+     * The recognition model (AP-67, [PiiModel.find]): the names, institutions and places it finds in a text, or null while
+     * it is not there (not downloaded, switched off, still loading) – then the rules guess names as before. With the
+     * model the rules keep their clear clues and the fixed patterns, the model replaces their guesses from first names.
+     */
+    @Volatile
+    var model: ((String) -> List<PiiHit>?)? = null
+
+    /** Called whenever messages are pseudonymized – the app offers the download of the model then (once). */
+    @Volatile
+    var onUse: (() -> Unit)? = null
+
     /** What [text] contains, with the switches of the settings; public names (authors, „Nie ersetzen“) are left out. */
     fun detect(text: String): List<PiiHit> {
         val ex = exemptions(text)
         val never = ignored().map { it.lowercase() }.toSet()
-        return PiiDetector.find(text, ownTerms(), settings().pseudonymAuto, off(), ignored() + ex.names, nameChains).filterNot { h ->
+        val auto = settings().pseudonymAuto
+        val found = if (auto) model?.invoke(text)?.filter { it.kind == PiiKind.NAME || on(PiiFeature.INSTITUTIONS) } else null
+        val rules = PiiDetector.find(text, ownTerms(), auto, off(), ignored() + ex.names, nameChains && found == null)
+        val hits = if (found.isNullOrEmpty()) rules else rules + found.filter { m -> rules.none { it.value == m.value } }
+        return hits.filterNot { h ->
             exempt(h.value, ex) ||
                 // "Jolina Kretzschmann" with „Kretzschmann“ on the „Nie ersetzen“ list: only „Jolina“ is replaced.
                 h.kind.person && ' ' in h.value && h.value.lowercase() !in ex.own && h.value.lowercase().split(' ').any { it in never }
@@ -347,6 +363,7 @@ class Pseudonymizer(
 
     /** The messages as they go to the server; the note for the model is added to the first system message. */
     fun maskMessages(messages: List<ChatMessage>, scope: String? = null): List<ChatMessage> {
+        onUse?.invoke()
         val public = settings().pseudonymPublic
         val masked = messages.map { m ->
             // Results of the web and literature search are public (AP-03): authors and people in the news stay as they are.

@@ -280,8 +280,17 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   („die Schulleiterin in Pirna“). Auslieferung als **Download** wie die Sprachmodelle (Offene Frage 9, entschieden):
   ein Popup bietet ihn beim ersten Nutzen der Pseudonymisierung oder beim Öffnen von *Einstellungen › Datenschutz* an
   („Laden“, „Später“, „Nicht mehr fragen“); Quelle ist der Branch `pii-modell` an festem Commit, geprüft mit SHA-256.
+  ◐ *Eingebaut (09.11.2026)*: `data/PiiModel.kt` (WordPiece in Kotlin, ONNX Runtime von sherpa-onnx über ihre C-API mit
+  JNA – auf Android neu `net.java.dev.jna:jna` –, Fenster 512/64, Schwelle 0,9, bekannte Namen der App bleiben),
+  `data/PiiRuntime.kt` je Plattform (Ablage: Android App-Speicher, PC `%LOCALAPPDATA%\ADEU LLM\pii`), Download über das
+  gemeinsame `FileDownload` (auch für die lokalen Sprachmodelle), Popup `PiiModelPrompt` und Schalter *Erkennungsmodell
+  (empfohlen)* unter *Einstellungen › Datenschutz* mit Modellkarte; mit Modell gilt `nameChains = false`. Am PC getestet,
+  **auf Android noch ungetestet** (JNA und der Pfad zur ONNX Runtime von sherpa-onnx).
 - **f) Tests**: der Messkorpus als `PseudonymCorpusTest` mit Schwellen, Laufzeit je Absatz, ein Test, dass Autor:innen und
   öffentliche Namen bleiben, und dass ohne Modell (Datei fehlt) die Regeln allein weiterlaufen.
+  ◐ *Erledigt bis auf das Ziel*: `PiiModelTest` – Tokenizer gleich dem des Trainings (520 Texte), Auswertung der Etiketten,
+  ohne Modell wie bisher, und mit `PII_MODELL`/`PII_ORT` das echte Modell auf dem Messkorpus. In der App gemessen: Prüfteil
+  **99,2 %** gefunden, **7,4 %** fälschlich ersetzt (Ziel ≤ 2 % offen), Entwicklung 97,1 % / 2,2 %, ≈ 11 ms je Absatz.
 
 **Fertig, wenn**: Auf dem Prüfteil des Messkorpus findet die Kombination aus Regeln und Modell mindestens 98 % der privaten
 Namen und ersetzt höchstens 2 % der öffentlichen; ein Absatz braucht auf einem Dienst-PC ohne Grafikkarte unter 50 ms, auf

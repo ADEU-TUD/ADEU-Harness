@@ -167,6 +167,10 @@ data class AppSettings(
     val pseudonymPublic: Boolean = true,
     /** Thorough recognition: a local language model looks for further names (slower; always on in the vault). */
     val pseudonymThorough: Boolean = false,
+    /** Recognition model on this device (AP-67): finds names, institutions and places once it is downloaded. */
+    val pseudonymModel: Boolean = true,
+    /** Offer the download of the recognition model in a popup (off after „Nicht mehr fragen“). */
+    val pseudonymModelAsk: Boolean = true,
     /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
     val nextcloudServer: String = "",
     val nextcloudUser: String = "",
@@ -366,6 +370,8 @@ class SettingsStore(context: Context) {
             .putString("loraToursSeen", next.loraToursSeen)
             .putBoolean("pseudonymPublic", next.pseudonymPublic)
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
+            .putBoolean("pseudonymModel", next.pseudonymModel)
+            .putBoolean("pseudonymModelAsk", next.pseudonymModelAsk)
             .apply()
     }
 
@@ -467,6 +473,8 @@ class SettingsStore(context: Context) {
             loraIntroDone = prefs.getBoolean("loraIntroDone", d.loraIntroDone),
             pseudonymPublic = prefs.getBoolean("pseudonymPublic", d.pseudonymPublic),
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
+            pseudonymModel = prefs.getBoolean("pseudonymModel", d.pseudonymModel),
+            pseudonymModelAsk = prefs.getBoolean("pseudonymModelAsk", d.pseudonymModelAsk),
             nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
             nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
             nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,

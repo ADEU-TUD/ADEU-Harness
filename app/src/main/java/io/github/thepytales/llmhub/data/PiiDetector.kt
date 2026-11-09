@@ -266,6 +266,13 @@ object PiiDetector {
     /** Well-known people (science, education, politics) whose names are no personal data of a third party. */
     fun isFamous(name: String): Boolean = name in FAMOUS
 
+    /** Where well-known people are named in [text] ("Angela Merkels Rede") – the recognition model leaves them (AP-67). */
+    fun famousRanges(text: String): List<IntRange> = FAMOUS_INFLECTED.findAll(text).map { it.range }.toList()
+
+    private val FAMOUS_INFLECTED by lazy {
+        Regex("(?<![$LETTERS-])(?:" + FAMOUS.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) } + ")(?:s|’|')?(?![$LETTERS-])")
+    }
+
     /** Endings of nouns that are no names ("Didaktik", "Schulleitung", "Jugendamt"), unless the word is a known name. */
     private val NOUN_ENDING = Regex(".+(?:ung|heit|keit|schaft|ik|tät|ion|ismus|ium|ur|amt|team|rat|wesen|stelle|leitung|gruppe|ei|ität|ologie|ie)")
 

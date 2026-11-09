@@ -24,7 +24,10 @@ Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln v
 
 Schwelle 0.9 (auf dem Entwicklungsteil gewählt, `schwelle.json`). Zeit je Absatz (CPU, ONNX
 Runtime, 4 Kerne): Median 7.7 ms, 95 % unter 12.2 ms.
-Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % fälschlich ersetzt.
+In der App gemessen (`PiiModelTest`, Regeln + Modell über die ONNX Runtime der App): Prüfteil 99,2 % gefunden,
+7,4 % fälschlich ersetzt; Entwicklung 97,1 % und 2,2 %; etwa 11 ms je Absatz.
+Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % fälschlich ersetzt – das zweite ist noch
+nicht erreicht (vor allem öffentliche Personen, die das Modell nicht kennt).
 
 ## Grenzen
 - Kennt nur, was in den Vorlagen vorkommt: Deutsch, Schul- und Hochschulalltag. Andere Sprachen und Fachgebiete sind
@@ -33,3 +36,13 @@ Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % f�
   öffentliche Namen ohne solchen Zusammenhang werden eher ersetzt (im Zweifel für den Datenschutz).
 - Indirekte Merkmale („die Schulleiterin der einzigen Schule im Ort“) erkennt es nicht.
 - Ein Mensch prüft im Zweifel die Vorschau; „nicht ersetzen“/„auch ersetzen“ gehen vor.
+
+## Lizenz des Basismodells (deepset/gbert-base, MIT)
+
+Copyright 2022 deepset GmbH
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
