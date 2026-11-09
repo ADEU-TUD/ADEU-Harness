@@ -39,7 +39,7 @@ class PseudonymCorpusTest {
     /**
      * Messkorpus (AP-67, Stufe a): the rules alone on the test part and the development part of tools/pii/messkorpus,
      * each sample with a fresh pseudonymizer. The report with everything missed and wrongly replaced goes to
-     * build/pii/regeln.txt. The limits keep the rules from getting worse; the goal of AP-67 (rules + model: at least
+     * build/pii/regeln.txt, the replaced words per sample to build/pii/regeln.jsonl (for tools/pii/evaluate.py). The limits keep the rules from getting worse; the goal of AP-67 (rules + model: at least
      * 98 % of the private details found, at most 2 % of the public ones replaced) is checked once the model is there.
      *
      * With PII_GRUENDLICH_URL (an OpenAI-compatible server with the local model, e.g. llama-server: http://localhost:8080/v1)
@@ -49,13 +49,26 @@ class PseudonymCorpusTest {
     fun corpusOfTheRules() {
         val out = File("build/pii").apply { mkdirs() }
         val report = StringBuilder()
+        // The replaced words per sample, for tools/pii/evaluate.py (rules + model).
+        val perSample = StringBuilder()
         val scores = listOf("pruef", "entwicklung").associateWith { section ->
             PseudonymCorpus.Score().also { score ->
-                for (s in PseudonymCorpus.load(section)) score.add(s, PseudonymCorpus.replacedWords(s.text, pseudonymizer().mask(s.text)))
+                for (s in PseudonymCorpus.load(section)) {
+                    val replaced = PseudonymCorpus.replacedWords(s.text, pseudonymizer().mask(s.text))
+                    score.add(s, replaced)
+                    // For the planned combination with the model: the rules without the first-name guesses and the
+                    // words of the authors cited in the text, which stay.
+                    val patterns = PseudonymCorpus.replacedWords(s.text, pseudonymizer().apply { nameChains = false }.mask(s.text))
+                    val citedWords = PiiDetector.citedAuthors(s.text).flatMap { it.split(' ') }.toSet()
+                    val cited = s.words.indices.filter { i -> s.words[i] in citedWords || s.words[i].removeSuffix("s") in citedWords }
+                    perSample.append("{\"id\": \"${s.id}\", \"ersetzt\": ${replaced.sorted()}, ")
+                    perSample.append("\"muster\": ${patterns.sorted()}, \"zitiert\": $cited}\n")
+                }
             }
         }
         scores.forEach { (section, score) -> report.append(details("Regeln, $section", score)) }
         File(out, "regeln.txt").writeText(report.toString())
+        File(out, "regeln.jsonl").writeText(perSample.toString())
         println(report)
         val test = scores.getValue("pruef")
         val (found, total) = test.recall()

@@ -213,7 +213,7 @@ class Filler:
             v = self.draw(lambda: r.choice(namen.PUBLIC_PERSONS))
             return [(genitive(v) if gen else v, "OEFF")]
         if kind == "OEINR":
-            return [(self.draw(lambda: r.choice(namen.PUBLIC_INSTITUTIONS)), "OEINR")]
+            return [(self.draw(lambda: namen.public_institution(r)), "OEINR")]
         if kind == "OORT":
             return [(self.draw(lambda: r.choice(namen.PUBLIC_PLACES) if r.random() < 0.5 else namen.place(r)), "OORT")]
         if kind == "WERK":

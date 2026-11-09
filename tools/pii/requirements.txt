@@ -1,0 +1,10 @@
+# Python-Pakete für Training, Auswertung und Export (AP-67). PyTorch kommt vorher extra:
+#   Grafikkarte RTX 50xx (Blackwell): pip install torch --index-url https://download.pytorch.org/whl/cu128
+#   ohne Grafikkarte:                 pip install torch --index-url https://download.pytorch.org/whl/cpu
+transformers>=4.50
+huggingface_hub
+sentencepiece
+protobuf
+numpy
+onnx
+onnxruntime

@@ -119,11 +119,18 @@ class Pseudonymizer(
     private fun ownTerms(): List<String> = settings().pseudonymTerms.lines().map { it.trim() }.filter { it.length >= 2 }
     private fun ignored(): List<String> = settings().pseudonymIgnore.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
+    /**
+     * Whether the rules guess names from frequent first names ([PiiDetector.find], chains). Off once the recognition
+     * model (AP-67) finds the names – it tells „Käthe Kollwitz“ in an exhibition from a pupil.
+     */
+    @Volatile
+    var nameChains: Boolean = true
+
     /** What [text] contains, with the switches of the settings; public names (authors, „Nie ersetzen“) are left out. */
     fun detect(text: String): List<PiiHit> {
         val ex = exemptions(text)
         val never = ignored().map { it.lowercase() }.toSet()
-        return PiiDetector.find(text, ownTerms(), settings().pseudonymAuto, off(), ignored() + ex.names).filterNot { h ->
+        return PiiDetector.find(text, ownTerms(), settings().pseudonymAuto, off(), ignored() + ex.names, nameChains).filterNot { h ->
             exempt(h.value, ex) ||
                 // "Jolina Kretzschmann" with „Kretzschmann“ on the „Nie ersetzen“ list: only „Jolina“ is replaced.
                 h.kind.person && ' ' in h.value && h.value.lowercase() !in ex.own && h.value.lowercase().split(' ').any { it in never }

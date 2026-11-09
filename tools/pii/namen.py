@@ -213,6 +213,33 @@ Maria_Montessori Johann_Heinrich_Pestalozzi Friedrich_Fröbel Jan_Amos_Comenius 
 Andreas_Helmke Mareike_Kunter Jürgen_Baumert Olaf_Köller Jutta_Allmendinger Aladin_El-Mafaalani Remo_Largo Jesper_Juul
 """)
 
+#: More public persons: politics in Saxony and Germany, culture, media, research, sport.
+PUBLIC_PERSONS += _words("""
+Martin_Dulig Petra_Köpping Barbara_Klepsch Christian_Piwarz Dirk_Hilbert Burkhard_Jung Sven_Schulze Rainer_Haseloff
+Bodo_Ramelow Manuela_Schwesig Markus_Söder Hendrik_Wüst Winfried_Kretschmann Karl_Lauterbach Bettina_Stark-Watzinger
+Cem_Özdemir Hubertus_Heil Nancy_Faeser Boris_Pistorius Lars_Klingbeil Saskia_Esken Ricarda_Lang Sahra_Wagenknecht
+Gregor_Gysi Wolfgang_Schäuble Norbert_Lammert Bärbel_Bas Julia_Klöckner Ursula_von_der_Leyen Roman_Herzog Horst_Köhler
+Christian_Wulff Richard_von_Weizsäcker Walter_Ulbricht Erich_Honecker Michail_Gorbatschow John_F._Kennedy
+Christa_Wolf Ingo_Schulze Uwe_Tellkamp Durs_Grünbein Erich_Loest Sarah_Kirsch Volker_Braun Christoph_Hein
+Ursula_Poznanski Sebastian_Fitzek Charlotte_Link Nele_Neuhaus Isabel_Abedi
+Max_Kruse Margit_Auer Alice_Pantermüller Rafik_Schami Saša_Stanišić Judith_Kerr Erich_Maria_Remarque Günter_Grass
+Heinrich_Böll Siegfried_Lenz Patrick_Süskind Bernhard_Schlink Mirjam_Pressler Gudrun_Pausewang
+Ernst_Jandl Joachim_Ringelnatz Wilhelm_Busch Heinrich_Hoffmann Ludwig_Bechstein Jacob_Grimm Wilhelm_Grimm
+Gerhard_Richter Neo_Rauch Otto_Dix Max_Pechstein Ernst_Ludwig_Kirchner Paula_Modersohn-Becker Joseph_Beuys
+Peter_Schreier Richard_Strauss Carl_Maria_von_Weber Heinrich_Schütz Georg_Friedrich_Händel Johannes_Brahms
+Jan_Böhmermann Joko_Winterscheidt Klaas_Heufer-Umlauf Anke_Engelke Hape_Kerkeling Thomas_Gottschalk Günther_Jauch
+Markus_Lanz Sandra_Maischberger Anne_Will Marietta_Slomka Claus_Kleber Ingo_Zamperoni Louis_Klamroth
+Christian_Drosten Lothar_Wieler Hendrik_Streeck Alena_Buyx Harald_zur_Hausen Christiane_Nüsslein-Volhard
+Stefan_Hell Reinhard_Genzel Benjamin_List Svante_Pääbo Emmanuelle_Charpentier Klaus_Hasselmann
+Franziska_van_Almsick Magdalena_Neuner Laura_Dahlmeier Fabian_Hambüchen Robert_Harting Alexander_Zverev
+Angelique_Kerber Sebastian_Vettel Joshua_Kimmich Jamal_Musiala Florian_Wirtz Leroy_Sané Ilkay_Gündogan
+Lukas_Podolski Bastian_Schweinsteiger Miroslav_Klose Oliver_Kahn Franz_Beckenbauer Matthias_Sammer
+Klaus_Zierer Ilka_Hoffmann Heinz-Elmar_Tenorth Dietrich_Benner Kai_Maaz Petra_Stanat
+Manfred_Spitzer Gerald_Hüther Richard_David_Precht Bas_Kast Michael_Winterhoff
+Pippi Ronja Krabat Hotzenplotz Petterson Findus Sams Grüffelo Gruffalo Pinocchio Heidi Biene_Maja Heidi_Klum
+Kapitän_Blaubär Käpt'n_Sharky Mama_Muh Die_kleine_Raupe_Nimmersatt Pünktchen_und_Anton
+""")
+
 PUBLIC_INSTITUTIONS = _words("""
 TU_Dresden Universität_Leipzig TU_Chemnitz TU_Bergakademie_Freiberg Humboldt-Universität Freie_Universität_Berlin
 Kultusministerkonferenz KMK Kultusministerium Sächsisches_Staatsministerium_für_Kultus Landesamt_für_Schule_und_Bildung
@@ -268,6 +295,23 @@ SUBJECTS = _words("Deutsch Mathe Mathematik Englisch Sachunterricht Geschichte G
                   "Sport Ethik Religion Informatik Französisch Russisch Latein Spanisch WTH Gemeinschaftskunde Sorbisch")
 
 COLORS = _words("Blau-Weiß Rot-Weiß Grün-Weiß Schwarz-Gelb Lok Einheit Motor Chemie Empor Stahl Fortuna Concordia Germania")
+
+
+#: Public institutions that carry a place ("Universitätsklinikum Dresden", "Stadtbibliothek Pirna").
+_PUBLIC_WITH_PLACE = _words("""
+Universitätsklinikum Klinikum Krankenhaus Stadtbibliothek Volkshochschule Landratsamt Rathaus Hauptbahnhof Zoo
+Staatstheater Stadtmuseum Kunsthalle Stadtwerke Arbeitsagentur Amtsgericht Landgericht Polizeidirektion Universität
+Hochschule Technische_Universität Stadtarchiv Staatsarchiv Landesbühnen Philharmonie Planetarium Tierpark Stadtverwaltung
+Bürgeramt Finanzamt Sparkasse Verkehrsbetriebe Messe Kreisverwaltung Stadtrat Kreistag Landtag Stadthalle Sternwarte
+""")
+
+
+def public_institution(rng: random.Random) -> str:
+    """A public institution – from the list or with a place ("Stadtbibliothek Freital", "Universität Leipzig")."""
+    if rng.random() < 0.5:
+        return rng.choice(PUBLIC_INSTITUTIONS)
+    where = rng.choice(PUBLIC_PLACES) if rng.random() < 0.5 else place(rng)
+    return f"{rng.choice(_PUBLIC_WITH_PLACE)} {where}"
 
 
 def place(rng: random.Random) -> str:
