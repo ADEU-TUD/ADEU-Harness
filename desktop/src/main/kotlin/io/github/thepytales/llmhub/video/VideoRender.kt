@@ -36,6 +36,13 @@ object VideoRender {
 
     private fun even(v: Int) = (v / 2) * 2
 
+    /**
+     * A source fitted into [w]×[h] with black bars (a clip of V1 at full size). The single pictures of the preview take
+     * the same filter ([previewStillArgs]), so they lie exactly where the played pictures lie (AP-70: the bars of a
+     * portrait clip used to differ by a pixel – the pad of the graph rounds to even pixels).
+     */
+    internal fun fitInto(w: Int, h: Int) = "scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black"
+
     /** Size of the export for [preset]: [VideoProject.height] or the preset's height, width from the aspect ratio. */
     fun size(p: VideoProject, preset: Preset): Pair<Int, Int> {
         val h = if (preset.height <= 0) p.height else preset.height
@@ -129,7 +136,7 @@ object VideoRender {
             val fit = "setsar=1,fps=$fps,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=${f(s.length)},trim=duration=${f(s.length)},setpts=PTS-STARTPTS"
             graph += when {
                 mi?.hasVideo == false || hidden("V1") -> "color=c=black:s=${w}x$h:r=$fps:d=${f(s.length)},format=yuv420p,setsar=1[v$i]"
-                c.frame.isFull -> "${vin}scale=$w:$h:force_original_aspect_ratio=decrease,pad=$w:$h:(ow-iw)/2:(oh-ih)/2:color=black,$fit,format=yuv420p[v$i]"
+                c.frame.isFull -> "$vin${fitInto(w, h)},$fit,format=yuv420p[v$i]"
                 else -> {
                     val (bw, bh) = box(c.frame)
                     val alpha = if (c.frame.opacity < 0.999f) ",colorchannelmixer=aa=${f(c.frame.opacity.coerceIn(0f, 1f).toDouble())}" else ""
@@ -347,7 +354,7 @@ object VideoRender {
         return Plan(args, g.duration)
     }
 
-    /** What a preview process gives: the pictures (RGBA), the sound (PCM 16 bit stereo, 44.1 kHz) or one picture (PNG). */
+    /** What a preview process gives: the pictures (RGBA), the sound (PCM 16 bit stereo, 44.1 kHz) or one picture (RGBA). */
     enum class PreviewOut { VIDEO, AUDIO, STILL }
 
     /** Height of the preview pictures and their rate. */
@@ -383,10 +390,21 @@ object VideoRender {
         args += listOf(scriptOption, script.absolutePath)
         args += when (out) {
             PreviewOut.VIDEO -> listOf("-map", "[pv]", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1")
-            PreviewOut.STILL -> listOf("-map", "[pv]", "-frames:v", "1", "-f", "image2pipe", "-vcodec", "png", "pipe:1")
+            PreviewOut.STILL -> listOf("-map", "[pv]", "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1")
             PreviewOut.AUDIO -> listOf("-map", "[pa]", "-ac", "2", "-f", "s16le", "pipe:1")
         }
         return args
+    }
+
+    /**
+     * One picture of [file] at [sec] for the preview of [p], straight from the file (quicker than the graph while
+     * scrubbing) but through the same filters as a full clip of V1 in the graph: preview size, bars, RGBA.
+     */
+    fun previewStillArgs(p: VideoProject, file: File, sec: Double, picture: Boolean, source: (File) -> File = { Media.proxy(it) ?: it }): List<String> {
+        val (w, h) = previewSize(p)
+        val input = if (picture) listOf("-i", file.absolutePath) else listOf("-ss", f(sec.coerceAtLeast(0.0)), "-i", source(file).absolutePath)
+        return listOf("-nostdin", "-hide_banner", "-loglevel", "error") + input +
+            listOf("-frames:v", "1", "-vf", "${fitInto(w, h)},setsar=1,format=yuv420p,format=rgba", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1")
     }
 
     /** `-filter_complex_script` up to ffmpeg 6; newer versions read option values from files with `-/filter_complex`. */

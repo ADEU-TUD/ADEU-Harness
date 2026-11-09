@@ -34,7 +34,6 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Rule
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -212,6 +211,8 @@ private fun MailBoxView(c: AppContainer, model: MailBoxModel, agenda: List<Calen
     val scope = rememberCoroutineScope()
     val listFocus = remember { FocusRequester() }
     val drag = remember { if (DRAG_TO_MOVE) MailDrag() else null }
+    val llm by c.localLlm.state.collectAsStateWithLifecycle()
+    val localModel = remember(llm.installed, llm.running) { io.github.thepytales.llmhub.agent.MailAccess.model(c) }
     var origin by remember { mutableStateOf(Offset.Zero) }
 
     /** Runs a change and shows its notice – with Rückgängig when it has one. */
@@ -316,9 +317,10 @@ private fun MailBoxView(c: AppContainer, model: MailBoxModel, agenda: List<Calen
             }
         }
         MailFilterBar(filter, onChange = { filter = it })
-        // Cards above the list: problems of the mailbox here; AP-68 (local model needed) and AP-69b (sort preview and
-        // progress) add theirs in this column.
+        // Cards above the list: a local model is needed (AP-68), Lora's sort runs (AP-69b), problems of the mailbox.
         MailNotices {
+            if (localModel == null) Box(Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) { MailLocalModelCard(c) }
+            Box(Modifier.padding(horizontal = 10.dp)) { OpenMailSorts(c) }
             s.error?.let { e -> MailNotice(e, error = true, action = tr("Erneut versuchen") to { scope.launch { model.refresh() } }) }
             if (!s.canMove) MailNotice(tr("Dieser Mailserver kann nicht verschieben, ohne dabei andere gelöschte Mails endgültig zu entfernen – deshalb lässt die App das."))
         }
@@ -423,6 +425,8 @@ private fun MailOverview(c: AppContainer, bridge: OutlookBridge?, state: Outlook
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { StatusCard(state, onRetry = onRetry) }
+            // AP-68: only a model on this device reads the mails (data note, model, download offer).
+            item { MailLocalModelCard(c) }
             item {
                 AppCard {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

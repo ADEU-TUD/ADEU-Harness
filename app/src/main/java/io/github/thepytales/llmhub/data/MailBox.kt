@@ -299,20 +299,20 @@ class MailBoxModel(
         val from = mails.associate { it.id to folderIdOf(it, s) }
         val moving = mails.filter { from[it.id] != target.id }
         if (moving.isEmpty()) return MailChange(tr("Die Mails liegen schon in „{0}“.", target.name))
-        val result = call { bridge.moveMails(moving.map { it.id }, target.id) }
-        log("Verschoben", "${result.moved} Mail(s) nach „${MailFolders.shortPath(target)}“ (in der Mailansicht)")
-        val knownGone = if (result.newIds.isNotEmpty()) moving.filter { it.id in result.newIds } else if (result.moved == moving.size) moving else null
-        if (knownGone == null || s.query.allFolders) search(_state.value.query) else dropMoved(knownGone, target, from)
+        // Old id → new id of every mail that moved ("" when the mailbox cannot tell the new one).
+        val result = call { bridge.moveTracked(moving.map { it.id }, target.id) }
+        log("Verschoben", "${result.size} Mail(s) nach „${MailFolders.shortPath(target)}“ (in der Mailansicht)")
+        if (s.query.allFolders) search(_state.value.query) else dropMoved(moving.filter { it.id in result }, target, from)
         // New id → the folder it came from.
-        val back = result.newIds.mapNotNull { (old, new) -> from[old]?.let { new to it } }
+        val back = result.mapNotNull { (old, new) -> if (new.isEmpty()) null else from[old]?.let { new to it } }
         val undo: (suspend () -> String)? = if (back.isEmpty()) null else suspend {
             var n = 0
-            back.groupBy({ it.second }, { it.first }).forEach { (folder, newIds) -> n += call { bridge.moveMails(newIds, folder) }.moved }
+            back.groupBy({ it.second }, { it.first }).forEach { (folder, newIds) -> n += call { bridge.moveTracked(newIds, folder) }.size }
             log("Rückgängig", "$n Mail(s) aus „${MailFolders.shortPath(target)}“ zurückgeschoben")
             refresh()
             tr("{0} Mail(s) zurückgeschoben", n)
         }
-        return MailChange(tr("{0} Mail(s) nach „{1}“ verschoben", result.moved, target.name), undo)
+        return MailChange(tr("{0} Mail(s) nach „{1}“ verschoben", result.size, target.name), undo)
     }
 
     /** Takes moved mails out of the list and moves their counts from their folders to [target]. */

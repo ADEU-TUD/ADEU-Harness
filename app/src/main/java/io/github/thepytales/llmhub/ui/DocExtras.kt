@@ -144,10 +144,10 @@ fun PageSetupDialog(setup: DocMarkup.PageSetup, onDismiss: () -> Unit, onSave: (
                 Text(tr("Seitenränder"), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("schmal" to tr("Schmal (1,27 cm)"), "normal" to tr("Normal (2 cm)"), "breit" to tr("Breit (2,54 cm)")).forEach { (k, label) ->
-                        androidx.compose.material3.FilterChip(margins == k, { margins = k }, label = { Text(label) })
+                        FilterChip(margins == k, { margins = k }, label = { Text(label) })
                     }
                     // A width set by dragging the ruler (AP-44).
-                    DocMarkup.customMm(margins)?.let { mm -> androidx.compose.material3.FilterChip(true, {}, label = { Text(tr("Eigene ({0} mm)", mm)) }) }
+                    DocMarkup.customMm(margins)?.let { mm -> FilterChip(true, {}, label = { Text(tr("Eigene ({0} mm)", mm)) }) }
                 }
                 HintText(tr("Ein Inhaltsverzeichnis fügst du über „Einfügen › Inhaltsverzeichnis“ ein – es listet die Überschriften, Word ergänzt die Seitenzahlen."))
             }
@@ -350,8 +350,8 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
         text = {
             Column(Modifier.heightIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    androidx.compose.material3.FilterChip(lang == "de-DE", { lang = "de-DE" }, label = { Text(tr("Deutsch")) })
-                    androidx.compose.material3.FilterChip(lang == "en-US", { lang = "en-US" }, label = { Text(tr("Englisch")) })
+                    FilterChip(lang == "de-DE", { lang = "de-DE" }, label = { Text(tr("Deutsch")) })
+                    FilterChip(lang == "en-US", { lang = "en-US" }, label = { Text(tr("Englisch")) })
                 }
                 when {
                     none -> HintText(tr("Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem."))
@@ -378,7 +378,7 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
                                 )
                                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     e.suggestions.take(5).forEach { sug ->
-                                        androidx.compose.material3.AssistChip(onClick = {
+                                        AssistChip(onClick = {
                                             val block = blocks.getOrNull(i) ?: return@AssistChip
                                             val re = Regex("(?<![\\p{L}\\d])" + Regex.escape(e.word) + "(?![\\p{L}\\d])")
                                             val next = re.find(block)?.let { m -> block.replaceRange(m.range, sug) } ?: block

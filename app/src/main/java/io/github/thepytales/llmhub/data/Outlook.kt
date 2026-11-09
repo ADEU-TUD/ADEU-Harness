@@ -165,12 +165,6 @@ interface OutlookBridge {
     fun canMove(): Boolean = true
 
     /**
-     * Moves the mails to [folderId] like [move] and tells each moved mail's new id (old → new; Outlook gives a moved
-     * mail a new EntryID, the server a new UID), so the move can be taken back. The default only knows how many moved.
-     */
-    fun moveMails(ids: List<String>, folderId: String): MoveResult = MoveResult(move(ids, folderId), emptyMap())
-
-    /**
      * Creates [path] („Lehre/WS 2026-27“; „/“ or „\“ between the levels) below [parentId] (null: where [createFolder]
      * puts new folders), level by level; folders that exist already are used as they are. Returns the last one.
      */
@@ -189,6 +183,23 @@ interface OutlookBridge {
      * file (a free name, „ (2)“ … when it is taken).
      */
     fun saveAttachment(id: String, index: Int, dir: File): File = throw OutlookException(tr("Anhänge lassen sich in diesem Postfach nicht speichern."))
+
+    // ── AP-69 b/c: Lora sortiert selbst (agent/MailSorter). Defaults, so every bridge has them; Outlook (COM) and the
+    // mail server (IMAP) do it properly. Still nothing that deletes or sends. ──
+
+    /**
+     * Mails of [folderId] (null: Posteingang) received from [from] up to [until] (null: now), newest first, with the
+     * beginning of the text in [MailHeader.preview].
+     */
+    fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> =
+        mails(folderId, from, false, limit).filter { it.received >= from && (until == null || it.received < until) }
+
+    /**
+     * Moves the mails to [folderId] like [move] and returns old id → new id of every mail that moved: Outlook gives a
+     * moved mail a new entry id, the mail server a new UID. "" when the bridge cannot tell the new id.
+     */
+    fun moveTracked(ids: List<String>, folderId: String): Map<String, String> =
+        ids.filter { move(listOf(it), folderId) == 1 }.associateWith { it }
 }
 
 /** Filter and search of the mail view (AP-69): every part is optional; [folderId] null means the Posteingang. */
@@ -243,9 +254,6 @@ data class MailQuery(
 data class MailPage(val mails: List<MailHeader>, val total: Int, val next: Int) {
     val hasMore: Boolean get() = next < total
 }
-
-/** What a move did: how many mails moved and their new ids (old id → new id; fewer when a mailbox cannot tell). */
-data class MoveResult(val moved: Int, val newIds: Map<String, String>)
 
 /** A fixed rule for sorting (made by the user or confirmed from Lora's suggestion); applied only on request. */
 @Serializable

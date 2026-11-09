@@ -171,57 +171,9 @@ class ImapBridge(
         MailBody(header.copy(attachments = attachments.size), cc = MailText.decodeWords(h["cc"].orEmpty()), body = text.substringAfter("\n\n", text), attachmentNames = attachments)
     }
 
-    override fun move(ids: List<String>, folderId: String): Int = session { c -> moveIn(c, ids, folderId).moved }
-
-    override fun moveMails(ids: List<String>, folderId: String): MoveResult = session { c -> moveIn(c, ids, folderId) }
+    override fun move(ids: List<String>, folderId: String): Int = moveTracked(ids, folderId).size
 
     override fun canMove(): Boolean = caps?.let { "MOVE" in it || "UIDPLUS" in it } ?: true
-
-    /**
-     * Moves with the server's MOVE, or with UIDPLUS as copy and then removing exactly these mails from the old folder
-     * (UID EXPUNGE touches no other mail). Without either the app does not move. The new UIDs come from COPYUID
-     * (UIDPLUS); a server without it is asked for each mail's Message-ID in the target folder.
-     */
-    private fun moveIn(c: ImapConnection, ids: List<String>, folderId: String): MoveResult {
-        val target = ImapParser.quote(folderId)
-        var moved = 0
-        val newIds = LinkedHashMap<String, String>()
-        for ((folder, list) in ids.map { parseId(it) }.groupBy({ it.second }, { it.first })) {
-            if (folder == folderId) continue
-            if (!c.has("MOVE") && !c.has("UIDPLUS")) throw OutlookException(tr("Dieser Mailserver kann nicht verschieben, ohne dabei andere gelöschte Mails endgültig zu entfernen – deshalb lässt die App das."))
-            c.ok("SELECT ${ImapParser.quote(folder)}", what = "Ordner öffnen")
-            val set = ImapParser.uidSet(list)
-            val messageIds = if (c.has("UIDPLUS")) emptyMap() else messageIds(c, set)
-            val answers = if (c.has("MOVE")) listOf(c.ok("UID MOVE $set $target", what = "Verschieben"))
-            else listOf(
-                c.ok("UID COPY $set $target", what = "Verschieben"),
-                c.ok("UID STORE $set +FLAGS.SILENT (\\Deleted)", what = "Verschieben"),
-                c.ok("UID EXPUNGE $set", what = "Verschieben"),
-            )
-            moved += list.size
-            val copy = answers.flatMap { r -> listOf(r.text) + r.untagged.map { it.text } }.firstNotNullOfOrNull { COPYUID.find(it) }
-            if (copy != null) {
-                val from = ImapParser.uids(copy.groupValues[1])
-                val to = ImapParser.uids(copy.groupValues[2])
-                from.zip(to).forEach { (old, new) -> newIds[id(old, folder)] = id(new, folderId) }
-            } else if (messageIds.isNotEmpty()) {
-                c.ok("EXAMINE $target", what = "Ordner öffnen")
-                messageIds.forEach { (uid, mid) ->
-                    numbers(c.ok("UID SEARCH HEADER Message-ID ${ImapParser.quote(mid)}", what = "Suchen"), "SEARCH").maxOrNull()?.let { newIds[id(uid, folder)] = id(it, folderId) }
-                }
-            }
-        }
-        forget()
-        return MoveResult(moved, newIds)
-    }
-
-    /** Message-ID of each mail of [set] in the selected folder (UID → id). */
-    private fun messageIds(c: ImapConnection, set: String): Map<Long, String> =
-        c.ok("UID FETCH $set (UID BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])").untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f ->
-            val uid = (f["UID"] as? String)?.toLongOrNull() ?: return@mapNotNull null
-            val head = f.entries.firstOrNull { it.key.startsWith("BODY[HEADER") }?.value?.let { ImapParser.text(it) }.orEmpty()
-            headers(head)["message-id"]?.takeIf { it.isNotBlank() }?.let { uid to it }
-        }.toMap()
 
     /** The numbers of an untagged „* SEARCH 4 7 9“ (or „* SORT …“). */
     private fun numbers(r: ImapConnection.Response, word: String): List<Long> = r.untagged
@@ -392,10 +344,72 @@ class ImapBridge(
     override fun freeBusy(people: List<String>, day: Long, slotMinutes: Int): List<BusyTimes> = throw OutlookException(noCalendar)
     override fun show(id: String) = throw OutlookException(tr("Über den Mailserver gibt es kein Outlook zum Öffnen – die Mail bzw. der Entwurf liegt im Postfach (z. B. in Outlook im Web)."))
 
+    // ── AP-69 b/c: Lora sortiert selbst ──
+
+    /** SEARCH SINCE/BEFORE (whole days on the server), then exactly [from]–[until] by the arrival time. */
+    override fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> = session { c ->
+        val folder = folderId ?: "INBOX"
+        c.ok("EXAMINE ${ImapParser.quote(folder)}", what = "Ordner öffnen")
+        val criteria = "SINCE " + SEARCH_DATE.get()!!.format(Date(from)) + (until?.let { " BEFORE " + SEARCH_DATE.get()!!.format(Date(it + 86_400_000L)) } ?: "")
+        val uids = c.ok("UID SEARCH $criteria").untagged
+            .filter { it.text.startsWith("* SEARCH", ignoreCase = true) }
+            .flatMap { it.text.substring(8).trim().split(' ').mapNotNull(String::toLongOrNull) }
+            .sortedDescending().take(limit.coerceIn(1, 2000))
+        if (uids.isEmpty()) return@session emptyList()
+        uids.chunked(200).flatMap { part ->
+            c.ok("UID FETCH ${part.joinToString(",")} (UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)")
+                .untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f -> header(f, folder) }
+        }.filter { it.received == 0L || (it.received >= from && (until == null || it.received < until)) }.sortedByDescending { it.received }
+    }
+
+    /**
+     * New UIDs from the server's COPYUID answer (UIDPLUS); a server without it is asked by Message-ID in the target
+     * folder afterwards.
+     */
+    override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> = session { c ->
+        val target = ImapParser.quote(folderId)
+        val out = LinkedHashMap<String, String>()
+        for ((folder, list) in ids.map { parseId(it) }.groupBy({ it.second }, { it.first })) {
+            if (folder == folderId) continue
+            c.ok("SELECT ${ImapParser.quote(folder)}", what = "Ordner öffnen")
+            val set = list.joinToString(",")
+            val messageIds = runCatching {
+                c.ok("UID FETCH $set (UID BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])").untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f ->
+                    val uid = (f["UID"] as? String)?.toLongOrNull() ?: return@mapNotNull null
+                    val head = f.entries.firstOrNull { it.key.startsWith("BODY[HEADER") }?.value?.let { ImapParser.text(it) }.orEmpty()
+                    headers(head)["message-id"]?.takeIf { it.isNotBlank() }?.let { uid to it }
+                }.toMap()
+            }.getOrDefault(emptyMap())
+            val answers = when {
+                c.has("MOVE") -> c.ok("UID MOVE $set $target", what = "Verschieben").let { r -> listOf(r.text) + r.untagged.map { it.text } }
+                c.has("UIDPLUS") -> {
+                    val r = c.ok("UID COPY $set $target", what = "Verschieben")
+                    c.ok("UID STORE $set +FLAGS.SILENT (\\Deleted)", what = "Verschieben")
+                    c.ok("UID EXPUNGE $set", what = "Verschieben")
+                    listOf(r.text) + r.untagged.map { it.text }
+                }
+                else -> throw OutlookException(tr("Dieser Mailserver kann nicht verschieben, ohne dabei andere gelöschte Mails endgültig zu entfernen – deshalb lässt die App das."))
+            }
+            val newUids = answers.fold(emptyMap<Long, Long>()) { acc, t -> acc + copyUid(t) }
+            val missing = list.filter { it !in newUids && it in messageIds }
+            val found = if (missing.isEmpty()) emptyMap() else runCatching {
+                c.ok("EXAMINE $target", what = "Ordner öffnen")
+                missing.mapNotNull { uid ->
+                    val mid = messageIds[uid]!!.replace("\"", "")
+                    c.ok("UID SEARCH HEADER Message-ID ${ImapParser.quote(mid)}").untagged
+                        .filter { it.text.startsWith("* SEARCH", ignoreCase = true) }
+                        .flatMap { it.text.substring(8).trim().split(' ').mapNotNull(String::toLongOrNull) }
+                        .maxOrNull()?.let { uid to it }
+                }.toMap()
+            }.getOrDefault(emptyMap())
+            list.forEach { uid -> out[id(uid, folder)] = (newUids[uid] ?: found[uid])?.let { id(it, folderId) }.orEmpty() }
+        }
+        out
+    }
+
     companion object {
         private val SEARCH_DATE = ThreadLocal.withInitial { SimpleDateFormat("dd-MMM-yyyy", Locale.US) }
         private val INTERNAL_DATE = ThreadLocal.withInitial { SimpleDateFormat("d-MMM-yyyy HH:mm:ss Z", Locale.US) }
-        private val COPYUID = Regex("COPYUID \\d+ ([0-9:,]+) ([0-9:,]+)", RegexOption.IGNORE_CASE)
         private val UIDVALIDITY = Regex("\\[UIDVALIDITY (\\d+)\\]", RegexOption.IGNORE_CASE)
         private val UIDNEXT = Regex("\\[UIDNEXT (\\d+)\\]", RegexOption.IGNORE_CASE)
         private val EXISTS = Regex("^\\* (\\d+) EXISTS", RegexOption.IGNORE_CASE)
@@ -444,6 +458,24 @@ class ImapBridge(
             }
             parts += sb.toString()
             return parts to literals
+        }
+
+        /** „[COPYUID 38505 304,319:320 3956:3958]“ (UIDPLUS) → old UID → new UID; empty without one. */
+        fun copyUid(text: String): Map<Long, Long> {
+            val m = Regex("COPYUID\\s+\\d+\\s+([0-9:,]+)\\s+([0-9:,]+)", RegexOption.IGNORE_CASE).find(text) ?: return emptyMap()
+            val from = uidSet(m.groupValues[1])
+            val to = uidSet(m.groupValues[2])
+            return if (from.size == to.size) from.zip(to).toMap() else emptyMap()
+        }
+
+        /** „304,319:320“ → 304, 319, 320 (a range may also be written backwards). */
+        fun uidSet(set: String): List<Long> = set.split(',').flatMap { part ->
+            val ends = part.split(':').mapNotNull { it.trim().toLongOrNull() }
+            when (ends.size) {
+                1 -> ends
+                2 -> if (ends[0] <= ends[1]) (ends[0]..ends[1]).toList() else (ends[0] downTo ends[1]).toList()
+                else -> emptyList()
+            }
         }
 
         /** Header fields (lower-case names, folded lines joined). */

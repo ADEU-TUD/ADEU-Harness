@@ -13,7 +13,6 @@ import io.github.thepytales.llmhub.data.MailHeader
 import io.github.thepytales.llmhub.data.MailPage
 import io.github.thepytales.llmhub.data.MailQuery
 import io.github.thepytales.llmhub.data.MailServerConfig
-import io.github.thepytales.llmhub.data.MoveResult
 import io.github.thepytales.llmhub.data.NewEvent
 import io.github.thepytales.llmhub.data.NewTask
 import io.github.thepytales.llmhub.data.Outlook
@@ -80,12 +79,12 @@ class MailViewTest {
             return MailPage(slice, all.size, offset + slice.size)
         }
         override fun mail(id: String) = mails.firstOrNull { it.id == id }?.let { MailBody(it, body = it.preview) }
-        override fun move(ids: List<String>, folderId: String) = moveMails(ids, folderId).moved
-        override fun moveMails(ids: List<String>, folderId: String): MoveResult {
+        override fun move(ids: List<String>, folderId: String) = moveTracked(ids, folderId).size
+        override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> {
             val target = folders.first { it.id == folderId }
             val out = LinkedHashMap<String, String>()
             mails.replaceAll { m -> if (m.id in ids) m.copy(id = "n${++moves}-" + m.id.substringAfterLast('-'), folder = target.path).also { out[m.id] = it.id } else m }
-            return MoveResult(out.size, out)
+            return out
         }
         override fun markRead(ids: List<String>, read: Boolean): Int {
             var n = 0
@@ -271,14 +270,13 @@ class MailViewTest {
         val b = BigOutlook()
         val plain = object : OutlookBridge by b {
             override fun page(query: MailQuery, offset: Int, limit: Int): MailPage = super.page(query, offset, limit)
-            override fun moveMails(ids: List<String>, folderId: String): MoveResult = super.moveMails(ids, folderId)
+            override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> = super.moveTracked(ids, folderId)
         }
         val p = plain.page(MailQuery("inbox|s", withAttachments = true), 0, 20)
         assertEquals(20, p.mails.size)
         assertTrue(p.mails.all { it.attachments > 0 } && p.hasMore)
-        val moved = plain.moveMails(listOf(b.mails[0].id), "proj|s")
-        assertEquals(1, moved.moved)
-        assertTrue(moved.newIds.isEmpty(), "the default cannot know new ids")
+        val first = b.mails[0].id
+        assertEquals(mapOf(first to first), plain.moveTracked(listOf(first), "proj|s"), "the default keeps the id")
         assertEquals(listOf("Lehre", "WS 2026-27"), MailFolders.levels(" Lehre / WS 2026-27\\"))
     }
 
@@ -434,11 +432,9 @@ class MailViewTest {
             // Marks and moves.
             assertEquals(2, b.markRead(listOf("1@INBOX", "3@INBOX"), true))
             assertTrue(1L in fake.seen && 3L in fake.seen)
-            val moved = b.moveMails(listOf("5@INBOX", "6@INBOX"), "Projekte")
-            assertEquals(2, moved.moved)
-            assertEquals(mapOf("5@INBOX" to "100@Projekte", "6@INBOX" to "101@Projekte"), moved.newIds)
-            val back = b.moveMails(moved.newIds.values.toList(), "INBOX")
-            assertEquals(2, back.moved)
+            val moved = b.moveTracked(listOf("5@INBOX", "6@INBOX"), "Projekte")
+            assertEquals(mapOf("5@INBOX" to "100@Projekte", "6@INBOX" to "101@Projekte"), moved)
+            assertEquals(2, b.moveTracked(moved.values.toList(), "INBOX").size)
             assertTrue(fake.boxes["Projekte"]!!.isEmpty() && fake.boxes["INBOX"]!!.size == 30)
             // Rename keeps the parent; the Posteingang itself is not renamed.
             val lehre = b.renameFolder("INBOX/Lehre", "Lehre 2026")

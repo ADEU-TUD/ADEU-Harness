@@ -609,10 +609,13 @@ fun LlmHubTheme(settings: AppSettings, content: @Composable () -> Unit) {
     }
 }
 
-/** Ripple with a clearly visible focus state (keyboard operation, AP-30); pressing and hovering stay as usual. */
+/**
+ * Ripple with a clearly visible focus state (keyboard operation, AP-30) and a faint hover (AP-70: 6 % instead of 8 %;
+ * the grey box on hovered chips was their shadow, see ui/Chips.kt). Pressing stays as usual.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 private val FOCUS_VISIBLE = RippleConfiguration(
-    rippleAlpha = androidx.compose.material.ripple.RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0.26f, hoveredAlpha = 0.08f, pressedAlpha = 0.12f),
+    rippleAlpha = androidx.compose.material.ripple.RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0.26f, hoveredAlpha = 0.06f, pressedAlpha = 0.12f),
 )
 
 /** Colors and look of a style without applying it (previews under Einstellungen › Darstellung). */

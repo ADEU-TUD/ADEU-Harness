@@ -14,14 +14,19 @@ object Privacy {
     fun level(c: AppContainer, folderId: String?): PrivacyLevel =
         folderId?.let { id -> c.folders.items.value.firstOrNull { it.id == id }?.privacy } ?: PrivacyLevel.OPEN
 
-    /** Level of a chat: in the vault (AP-10) at least „Nur TU Dresden“ – only the Uni server or local models. */
+    /**
+     * Level of a chat: in the vault (AP-10) at least „Nur TU Dresden“ – only the Uni server or local models. A chat the
+     * mailbox went into, or in the Postfach mode, is fixed to „Nur auf diesem Gerät“ (AP-68, see agent/MailAccess).
+     */
     fun level(c: AppContainer, conv: Conversation): PrivacyLevel {
+        if (io.github.thepytales.llmhub.agent.MailAccess.locked(conv)) return PrivacyLevel.LOCAL
         val project = level(c, conv.folderId)
         return if (conv.vault && project == PrivacyLevel.OPEN) PrivacyLevel.TU else project
     }
 
     /** Why [model] may not be used in the chat [conv], null if it may. */
     fun blockReason(c: AppContainer, conv: Conversation, model: String): String? {
+        io.github.thepytales.llmhub.agent.MailAccess.blockReason(conv, model)?.let { return it }
         if (conv.vault && !allows(c, level(c, conv), model)) {
             return tr(
                 "Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei " +

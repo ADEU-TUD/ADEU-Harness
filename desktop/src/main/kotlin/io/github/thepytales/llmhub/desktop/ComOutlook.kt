@@ -9,7 +9,6 @@ import io.github.thepytales.llmhub.data.CalendarEntry
 import io.github.thepytales.llmhub.data.LoraDrive
 import io.github.thepytales.llmhub.data.MailPage
 import io.github.thepytales.llmhub.data.MailQuery
-import io.github.thepytales.llmhub.data.MoveResult
 import io.github.thepytales.llmhub.data.Outlook
 import io.github.thepytales.llmhub.data.MailBody
 import io.github.thepytales.llmhub.data.MailDraft
@@ -205,25 +204,7 @@ object ComOutlook : OutlookBridge {
         MailBody(h, cc = m.str("CC"), body = m.str("Body"), attachmentNames = names)
     }
 
-    override fun move(ids: List<String>, folderId: String): Int = session { _, ns -> moveIn(ns, ids, folderId).moved }
-
-    override fun moveMails(ids: List<String>, folderId: String): MoveResult = session { _, ns -> moveIn(ns, ids, folderId) }
-
-    /** MailItem.Move returns the moved mail – with a NEW EntryID in the target (AP-69: for Rückgängig). */
-    private fun moveIn(ns: Com, ids: List<String>, folderId: String): MoveResult {
-        val target = folderOf(ns, folderId)
-        val store = target.str("StoreID")
-        var moved = 0
-        val newIds = LinkedHashMap<String, String>()
-        ids.forEach { id ->
-            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
-            val result = runCatching { m.get("Move", target.toVariant()) }
-            if (result.isFailure) return@forEach
-            moved++
-            (result.getOrNull() as? Com)?.str("EntryID")?.takeIf { it.isNotEmpty() }?.let { newIds[id] = "$it|$store" }
-        }
-        return MoveResult(moved, newIds)
-    }
+    override fun move(ids: List<String>, folderId: String): Int = moveTracked(ids, folderId).size
 
     override fun createFolder(parentId: String?, name: String): MailFolder = session { _, ns ->
         val parent = folderOf(ns, parentId)
@@ -497,6 +478,47 @@ object ComOutlook : OutlookBridge {
         val file = LoraDrive.unique(dir, LoraDrive.safe(a.str("FileName").ifBlank { a.str("DisplayName") }.ifBlank { "Anhang" }))
         a.run("SaveAsFile", VARIANT(file.absolutePath))
         file
+    }
+
+    // ── AP-69 b/c: Lora sortiert selbst ──
+
+    /** Restricts the folder to the time (Outlook's filter in the short date format of Windows), newest first. */
+    override fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> = session { _, ns ->
+        val folder = folderOf(ns, folderId)
+        val path = folder.str("FolderPath")
+        val store = folder.str("StoreID")
+        val zone = ZoneId.systemDefault()
+        fun fmt(m: Long) = filterFormat.format(Instant.ofEpochMilli(m).atZone(zone))
+        val all = folder.obj("Items")
+        val filter = "[ReceivedTime] >= '${fmt(from)}'" + (until?.let { " AND [ReceivedTime] < '${fmt(it)}'" } ?: "")
+        val items = runCatching { all.obj("Restrict", VARIANT(filter)) }.getOrNull() ?: all
+        items.run("Sort", VARIANT("[ReceivedTime]"), VARIANT(true))
+        val out = mutableListOf<MailHeader>()
+        var m = items.objOrNull("GetFirst")
+        var seen = 0
+        while (m != null && out.size < limit && seen < limit * 4) {
+            seen++
+            val h = header(m, path, store, withPreview = true)
+            if (h != null && h.received > 0) {
+                if (h.received < from) break
+                if (until == null || h.received < until) out += h
+            }
+            m = items.objOrNull("GetNext")
+        }
+        out
+    }
+
+    /** MailItem.Move returns the moved mail – with a new EntryID, which is what Rückgängig needs. */
+    override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> = session { _, ns ->
+        val target = folderOf(ns, folderId)
+        val store = target.str("StoreID")
+        val out = LinkedHashMap<String, String>()
+        ids.forEach { id ->
+            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
+            val moved = runCatching { m.get("Move", target.toVariant()) }
+            if (moved.isSuccess) out[id] = (moved.getOrNull() as? Com)?.let { runCatching { idOf(it, store) }.getOrNull() }.orEmpty()
+        }
+        out
     }
 
     /** Today's date in Outlook's filter format (for the self-test). */

@@ -210,6 +210,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         // termination") while a model restarts or is overloaded – usually gone after a few seconds.
         // With pseudonymization the server only sees placeholders; the answer gets the real details back here,
         // so every caller (chat, tasks, ✨, comparison) works with the real text.
+        // Postfach nur mit lokalem Modell (AP-68): mail tool results and mail tools never go to a server.
+        io.github.thepytales.llmhub.agent.MailAccess.guard(model, messages, tools)
         // A model on this device: nothing leaves it, so no placeholders and no rate limit.
         val onDevice = Privacy.isLocal(model)
         if (onDevice) prepare(model)
