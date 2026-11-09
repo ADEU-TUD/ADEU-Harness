@@ -373,7 +373,7 @@ FORMULA = set("sehr geehrte damen und herren liebe kolleginnen kollegen mit freu
               "beim am vielen dank für ihre nachricht".split())
 
 #: Ordinary words that are also in the test part (e.g. "Lehrer" from "Lehrer Lämpel") and may be written in templates.
-GENERIC_OK = set("lehrer zusammenarbeit zeitung kultusministerium elbe rathaus ende mama".split())
+GENERIC_OK = set("lehrer zusammenarbeit zeitung kultusministerium elbe rathaus ende mama musik".split())
 
 #: Words that are names in the pools but are ordinary words in the templates.
 LITERAL_OK = {w.lower() for w in """

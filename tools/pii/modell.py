@@ -6,6 +6,7 @@ words – the app does the same –, so the measures of ``corpus.py`` (replaced 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -117,15 +118,22 @@ def replaced_words(text: str, spans: list[tuple[int, int, str]]) -> set[int]:
 
 
 class Predictor:
-    """Prediction with a Hugging Face model (torch) or an exported ONNX file, on windows of 512 tokens."""
+    """Prediction with a Hugging Face model (torch) or an exported ONNX file, on windows of 512 tokens.
 
-    def __init__(self, path: Path, device: str | None = None):
+    A token is part of a detail when the model gives "not O" at least the probability [threshold] (the kind is the
+    likeliest of the others). The threshold is chosen on the development part (train.py) and kept in schwelle.json
+    beside the model; without it 0.5 – about the likeliest label.
+    """
+
+    def __init__(self, path: Path, device: str | None = None, threshold: float | None = None):
         from transformers import AutoTokenizer
 
         self.path = Path(path)
         onnx_file = self.path if self.path.suffix == ".onnx" else None
         folder = self.path.parent if onnx_file else self.path
         self.tokenizer = AutoTokenizer.from_pretrained(folder)
+        self.threshold = threshold if threshold is not None else load_threshold(folder)
+        self._cache: dict[str, list] = {}
         if onnx_file:
             import onnxruntime as ort
 
@@ -141,7 +149,19 @@ class Predictor:
             self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
             self.model = AutoModelForTokenClassification.from_pretrained(folder).to(self.device).eval()
 
-    def tokens(self, text: str, max_len: int = 512, stride: int = 64) -> list[tuple[int, int, str]]:
+    @classmethod
+    def of(cls, model, tokenizer, device: str, threshold: float = 0.5) -> "Predictor":
+        """A predictor for a model in training."""
+        p = cls.__new__(cls)
+        p.tokenizer, p.model, p.device, p.threshold, p._cache = tokenizer, model, device, threshold, {}
+        return p
+
+    def probs(self, text: str, max_len: int = 512, stride: int = 64) -> list:
+        """(start, end, probabilities of the labels) per token; overlapping windows: the one surer of a detail."""
+        import numpy as np
+
+        if text in self._cache:
+            return self._cache[text]
         enc = self.tokenizer(text, truncation=True, max_length=max_len, stride=stride, return_overflowing_tokens=True,
                              return_offsets_mapping=True, padding=True, return_tensors="np")
         offsets = enc.pop("offset_mapping")
@@ -155,21 +175,32 @@ class Predictor:
             with torch.no_grad():
                 feed = {k: torch.tensor(v, device=self.device) for k, v in enc.items()}
                 logits = self.model(**feed).logits.float().cpu().numpy()
-        best: dict[tuple[int, int], str] = {}
-        for w in range(logits.shape[0]):
-            ids = logits[w].argmax(-1)
-            for (s, e), i, m in zip(offsets[w], ids, enc["attention_mask"][w]):
+        p = np.exp(logits - logits.max(-1, keepdims=True))
+        p /= p.sum(-1, keepdims=True)
+        best: dict[tuple[int, int], object] = {}
+        for w in range(p.shape[0]):
+            for (s, e), row, m in zip(offsets[w], p[w], enc["attention_mask"][w]):
                 if m == 0 or s == e:
                     continue
-                tag = LABELS[int(i)]
                 key = (int(s), int(e))
-                # Overlapping windows: a token is a detail if one window says so.
-                if best.get(key, "O") == "O":
-                    best[key] = tag
-        return sorted((s, e, t) for (s, e), t in best.items())
+                if key not in best or row[0] < best[key][0]:
+                    best[key] = row
+        out = sorted((s, e, row) for (s, e), row in best.items())
+        if len(self._cache) < 5000:
+            self._cache[text] = out
+        return out
 
-    def spans(self, text: str) -> list[tuple[int, int, str]]:
-        return group_spans(self.tokens(text), text)
+    def tokens(self, text: str, threshold: float | None = None) -> list[tuple[int, int, str]]:
+        t = self.threshold if threshold is None else threshold
+        return [(s, e, LABELS[1 + int(row[1:].argmax())] if 1 - row[0] >= t else "O") for s, e, row in self.probs(text)]
+
+    def spans(self, text: str, threshold: float | None = None) -> list[tuple[int, int, str]]:
+        return group_spans(self.tokens(text, threshold), text)
+
+
+def load_threshold(folder: Path) -> float:
+    f = Path(folder) / "schwelle.json"
+    return float(json.loads(f.read_text(encoding="utf-8"))["schwelle"]) if f.exists() else 0.5
 
 
 def score(predict, section: str, combine=None) -> corpus.Score:
@@ -185,21 +216,40 @@ def score(predict, section: str, combine=None) -> corpus.Score:
 VARIANTS = {
     "modell": "Modell allein",
     "regeln_und_modell": "alle Regeln + Modell",
-    "geplant": "wie geplant: Regeln ohne Vornamen-Raten + Modell, zitierte Autor:innen bleiben",
+    "geplant": "wie geplant: Regeln ohne Vornamen-Raten + Modell, zitierte und bekannte Namen bleiben",
 }
 
 
 def variants(predict, section: str, rules: dict | None) -> dict[str, corpus.Score]:
     """The model alone, with all rules (union), and as planned for the app: the rules without guessing names from
     frequent first names (Pseudonymizer.nameChains = false: patterns, Frau/Herr, roles, greetings, signatures, tables,
-    institutions stay), the model for names, institutions and places, and authors cited in the text
-    (PiiDetector.citedAuthors) are never replaced."""
+    institutions stay), the model for names, institutions and places; authors cited in the text
+    (PiiDetector.citedAuthors) and the well-known names of the app (PiiDetector.FAMOUS) are never replaced."""
     out = {"modell": score(predict, section)}
     if rules:
+        texts = {s.id: s.text for s in corpus.load(section)}
         out["regeln_und_modell"] = score(predict, section, lambda sid, w: w | rules.get(sid, {}).get("ersetzt", set()))
         out["geplant"] = score(predict, section, lambda sid, w: (w | rules.get(sid, {}).get("muster", set()))
-                               - rules.get(sid, {}).get("zitiert", set()))
+                               - rules.get(sid, {}).get("zitiert", set()) - famous_words(texts[sid]))
     return out
+
+
+def _famous() -> list:
+    """The well-known names of the app (FAMOUS in PiiDetector.kt) as patterns, longest first."""
+    src = (HERE.parents[1] / "app/src/main/java/io/github/thepytales/llmhub/data/PiiDetector.kt").read_text(encoding="utf-8")
+    block = src[src.index("private val FAMOUS = setOf("):]
+    block = block[:block.index(")\n")]
+    names = sorted(set(re.findall(r'"([^"]+)"', block)), key=len, reverse=True)
+    return [re.compile(r"(?<![\w-])" + re.escape(n) + r"(?:s|’|')?(?![\w-])") for n in names]
+
+
+FAMOUS = _famous()
+
+
+def famous_words(text: str) -> set[int]:
+    """Words of [text] that belong to a well-known name of the app ("Angela Merkel", "Erich Kästner")."""
+    spans = [m.span() for p in FAMOUS for m in p.finditer(text)]
+    return {i for i, (a, b, _) in enumerate(corpus.split_words(text)) if any(a < e and b > s for s, e in spans)} if spans else set()
 
 
 #: Results of the rules per sample: fresh from PseudonymCorpusTest, else the copy in the repo.

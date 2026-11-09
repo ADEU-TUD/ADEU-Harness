@@ -1,0 +1,123 @@
+# Vorlagen AP-67 · Textart: Stichpunkte, Kalender, To-dos, Zeugnisbemerkungen, Klassenbuch (Lehrer: Claude, erfunden)
+
+To-do: {V} wegen Attest anrufen, Elternbrief an Familie {N}, Kopien für {KLASSE}
+
+Mo {UHR} Gespräch mit Frau {Nw} (Mutter {V})
+
+Di: Hospitation bei {VN}, danach Fachschaft
+
+Termin {DATUM}: Förderplanung {VN} mit Herrn {Nm} und Frau {Nw}
+
+Nicht vergessen: {V:gen} Heft zurückgeben!
+
+Klassenbuch {KLASSE}, {DATUM}: {V} fehlt unentschuldigt; {V} kommt 15 min zu spät.
+
+Klassenbucheintrag: {VN} stört wiederholt, Gespräch nach der Stunde.
+
+Zeugnisbemerkung {V}: {V} arbeitet im Unterricht aufmerksam mit und hilft anderen gern.
+
+Zeugnis {Vw}: Sie zeigte im ersten Halbjahr große Fortschritte im Lesen.
+
+Zeugnis {Vm}: Er sollte seine Hausaufgaben regelmäßiger erledigen.
+
+Notiz Elternabend: Fragen von Herrn {Nm} zur Klassenfahrt, Frau {Nw} bietet Fahrdienst an.
+
+Anruf {N} – zurückrufen bis Freitag!
+
+Mitbringen: Liste für {VN}, Schlüssel für Raum 112, Kuchen für {V:gen} Geburtstag
+
+Vertretung 3. Std. {KLASSE} für {N}
+
+Stichpunkte Konferenz: {V} Nachteilsausgleich, {V} Versetzung gefährdet, {V} Lob
+
+Pausenaufsicht tauschen mit {V}?
+
+{V} hat Schlüssel von der Turnhalle – bis Mittwoch zurück.
+
+Elternsprechtag: 14:00 {N}, 14:15 {N}, 14:30 {N}, 14:45 frei, 15:00 {N}
+
+Krank: {V} (bis Do), {V} (Fr). Nachschreiben Mathe: {V}, {V}.
+
+Projektgruppe Garten: {V}, {V}, {V} – Ansprechpartner Hausmeister {N}
+
+Material bei {VN} bestellen, Rechnung an Sekretariat (Frau {Nw})
+
+Notiz für mich: Mit {V} über den Streit mit {V} reden, ohne Publikum.
+
+Elternbrief an Familie {N} wegen Läusen – diskret!
+
+Fahrdienst zum Fußballturnier: {VN} (4 Plätze), {VN} (3 Plätze)
+
+Besprechung mit der Schulsozialarbeiterin {V}: Thema {V} aus der {KLASSE}
+
+Abholung: {V} heute von Oma {N}, {V} geht allein.
+
+Ideen Projekttag: Besuch bei der Bäckerei {N}, Imker in {ORT}, Feuerwehr
+
+Kalender: {DATUM} Geburtstag {V}, {DATUM} Elternabend, {DATUM} Wandertag nach {OORT}
+
+Für {Vw} (Sekretariat): Bitte Akte {VN} an die {SCHULE} schicken.
+
+Erinnerung: Gutachten für {VN} bis {DATUM}
+
+Telefonliste Elternrat: {VN} {TEL}, {VN} {TEL}
+
+Hausbesuch bei Familie {N} in {ORT} am {DATUM} mit {V} vom Jugendamt
+
+Beobachtung {V}: kann sich nach der Pause schlecht konzentrieren, reibt oft die Augen → Sehtest?
+
+{V} braucht Zusatzmaterial in {FACH} – bei {VN} nachfragen.
+
+Notiz: Die Mutter von {V} arbeitet bei der {PRAXIS} und kann Infomaterial mitbringen.
+
+Kollegin {VNw} fragt nach meinen Folien zu {AUT} – schicken!
+
+Literatur für Seminar: {AUT} {JAHR}, {AUT} {JAHR}, {AUTVN} – im Semesterapparat?
+
+Zitat für die Rede: „{OEFF} hat gesagt, …“ – Quelle prüfen.
+
+Lektüre {KLASSE}: {WERK} – 28 Exemplare bei {OEINR} ausleihen
+
+Ausflug: Treffpunkt {UHR} Bahnhof {OORT}, Begleitung {V} und {V}
+
+Bewerbungsgespräch {DATUM}: {VNw}, Lehramt Grundschule, kommt aus {ORT}
+
+Wer holt {V} ab, wenn die Mutter in {ORT} im Stau steht? → Notfallnummer {TEL}
+
+Vermerk: {N} (Vater) darf das Kind laut Gerichtsbeschluss nicht abholen.
+
+{V} und {V} tauschen Plätze ab Montag.
+
+Rückmeldung an {VN}: Arbeit angenommen, Note folgt.
+
+Telefonnotiz: {VNm} (Schulamt) ruft wegen der Stelle an, Rückruf erbeten.
+
+Mail an {V}: Danke für die Vertretung!
+
+Kopie an: {N}, {N}, Schulleitung
+
+Hausaufgabe {V}: fehlt zum dritten Mal → Eintrag ins Hausaufgabenheft
+
+Gruppen Experiment: A {V}/{V}, B {V}/{V}, C {V}/{V}/{V}
+
+Abschlussfeier: Rede {VN}, Musik {VN}, Moderation {V} und {V}
+
+Brief von {V} aus der {KLASSE} an die Klassenlehrerin: „Liebe Frau {Nw}, ich vermisse Sie.“
+
+Liste Bücherspenden: {VN} 12 Bücher, Familie {N} 5 Bücher, {VN} 8 Bücher
+
+{V} ({KLASSE}) – Förderstunde dienstags bei {N}
+
+Feedback zur Stunde von {VNw}: Einstieg gut, Sicherung zu knapp, Zeitplanung prüfen.
+
+Notiz Mentorengespräch mit {VNm}: wirkt unsicher vor der Klasse, Stimme trainieren.
+
+Merken: {V} Allergie Erdnuss – Klassenfahrt Küche informieren!
+
+Rückruf {DATUM}: {N}, Thema Note in {FACH}
+
+Fundsache: blaue Jacke, gehört vermutlich {V} aus der {KLASSE}
+
+Vertrauenslehrerin {VNw}: Termin für {V} vereinbart (vertraulich).
+
+Planung Schulfest: Tombola {VN}, Grill Herr {N}, Kuchen Elternrat
