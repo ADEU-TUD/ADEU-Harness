@@ -459,6 +459,8 @@ object MailSorter {
     /** The local model for sorting: the one that is loaded, else the strongest installed one that fits this device. */
     fun localModel(c: AppContainer): String? {
         testModel?.let { return it.id }
+        // AP-68: the same choice as every other mail task (the loaded model first); sorting also works without tool calls.
+        MailAccess.model(c)?.let { return it }
         val installed = c.localLlm.installedModels()
         if (installed.isEmpty()) return null
         c.localLlm.state.value.running?.takeIf { r -> installed.any { it.modelId == r } }?.let { return it }
@@ -475,7 +477,7 @@ object MailSorter {
             override val id = id
             override suspend fun answer(system: String, user: String): String {
                 // Only ever a model on this device: the mails never leave the PC.
-                check(Privacy.isLocal(id))
+                MailAccess.check(id)
                 c.localLlm.touch()
                 val r = c.llm.streamChat(id, listOf(ChatMessage(role = "system", content = system), ChatMessage(role = "user", content = user)), null, thinking = ThinkingLevel.OFF) {}
                 return splitThinking(r.content).second

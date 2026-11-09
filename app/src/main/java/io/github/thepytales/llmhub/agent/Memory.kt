@@ -80,7 +80,8 @@ object Memory {
     fun earlierChats(c: AppContainer, conv: Conversation, model: String): List<Conversation> =
         c.chats.conversations.value
             .filter { it.id != conv.id && !it.temporary && it.messages.any { m -> m.role == "user" } && it.taskId == null }
-            .filter { Privacy.allows(c, Privacy.level(c, it.folderId), model) }
+            // Postfach chats (AP-68) count as „Nur auf diesem Gerät“: only a model on this device may search them.
+            .filter { Privacy.allows(c, Privacy.level(c, it), model) }
             .sortedByDescending { started(it) }
 
     /** Titles of the latest chats for the system prompt, so the model knows when search_chats can help. */

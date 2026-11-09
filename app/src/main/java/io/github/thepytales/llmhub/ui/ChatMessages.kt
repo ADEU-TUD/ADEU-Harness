@@ -28,6 +28,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Build
@@ -475,6 +476,8 @@ fun AssistantMessage(
     onQuote: (String) -> Unit = {},
     onFork: () -> Unit = {},
     onRemember: (String) -> Unit = {},
+    /** An Chat übergeben (AP-68, Postfach chats only): the text of this answer, checked on a card first. */
+    onHandoff: ((String) -> Unit)? = null,
     /** Thinking and tool steps folded away (Arbeitsschritte einklappen); results like documents stay visible. */
     fold: Boolean = false,
     /** The line that opens folded steps, on the first message of a turn. */
@@ -562,6 +565,7 @@ fun AssistantMessage(
                     ActionIcon(Icons.Outlined.ContentCopy, tr("Kopieren")) { clipboard.setText(AnnotatedString(text)) }
                     ActionIcon(Icons.Outlined.IosShare, tr("Teilen")) { shareText(context, text) }
                     ActionIcon(if (playing) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.VolumeUp, tr("Vorlesen"), onClick = onSpeak)
+                    onHandoff?.let { handoff -> ActionIcon(Icons.AutoMirrored.Outlined.Send, tr("An Chat übergeben …")) { handoff(text) } }
                 }
                 if (item.question != null) ActionIcon(Icons.Outlined.Refresh, tr("Neu generieren"), enabled = !running, onClick = onRegenerate)
                 // Helpful or not: stays on the device and shows under Verbrauch which models work well.

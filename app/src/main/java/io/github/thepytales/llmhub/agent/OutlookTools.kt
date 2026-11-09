@@ -64,8 +64,9 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
         ),
         ToolDef(
             READ_MAIL,
-            "Liest eine Mail vollständig (Text, Empfänger, Anhänge) – z. B. vor einer Antwort oder um Fristen und Termine zu finden.",
-            listOf(Param("id", "Kürzel aus $LIST_MAILS, z. B. M3")),
+            "Liest eine Mail: Kopf und Anfang (Text ohne zitierten Verlauf), Empfänger, Anhänge – z. B. vor einer Antwort oder um Fristen zu finden. " +
+                "Die ganze Mail nur bei Bedarf mit full=true.",
+            listOf(Param("id", "Kürzel aus $LIST_MAILS, z. B. M3"), Param("full", "Ganze Mail mit Verlauf (nur bei Bedarf)", required = false, type = "boolean")),
         ),
         ToolDef(
             MOVE_MAILS,
@@ -216,10 +217,12 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
             m.kind.takeIf { it != "Mail" }, "${m.attachments} Anhang".takeIf { m.attachments == 1 }, "${m.attachments} Anhänge".takeIf { m.attachments > 1 },
             m.categories.takeIf { it.isNotBlank() }?.let { "Kategorie: $it" },
         ).takeIf { it.isNotEmpty() }?.let { append(" · ").append(it.joinToString(" · ")) }
-        if (m.preview.isNotBlank()) append("\n  ").append(m.preview.take(220))
+        if (m.preview.isNotBlank()) append("\n  ").append(m.preview.take(PREVIEW_CHARS))
     }
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = withContext(Dispatchers.IO) {
+        // AP-68: a model outside the device never gets at the mailbox, even if a tool call should reach here.
+        if (ctx.model != null && !MailAccess.onDevice(ctx.model)) return@withContext ToolOutput("FEHLER: Ins Postfach darf nur ein Modell auf diesem Gerät.")
         val b = Outlook.bridge
             ?: return@withContext ToolOutput("FEHLER: Kein Postfach verbunden: unter Windows das klassische Outlook, sonst Einstellungen › Verbindungen › Mail über den Server.")
         try {
@@ -267,7 +270,7 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
                     if (m.cc.isNotBlank()) append("Cc: ").append(m.cc).append('\n')
                     append("Zeit: ").append(if (h.received > 0) Outlook.show(h.received) else "–").append(" · Ordner: ").append(h.folder.trim('\\')).append('\n')
                     if (m.attachmentNames.isNotEmpty()) append("Anhänge: ").append(m.attachmentNames.joinToString(", ")).append('\n')
-                    append('\n').append(m.body.trim().take(20_000))
+                    append('\n').append(MailAccess.shorten(m.body, full = args.flag("full") == true))
                 },
             )
         }
@@ -396,6 +399,9 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
         /** Entries the Outlook protocol keeps. */
         const val MAX_LOG = 300
 
+        /** Start of a mail in the list – short, the local model reads every character (AP-68). */
+        const val PREVIEW_CHARS = 160
+
         private fun stringArray(description: String) = JsonObject(
             mapOf("type" to JsonPrimitive("array"), "items" to JsonObject(mapOf("type" to JsonPrimitive("string"))), "description" to JsonPrimitive(description)),
         )
@@ -431,20 +437,15 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
             return "Regeln angewendet:\n" + lines.joinToString("\n")
         }
 
-        /** Lernt aus dem Modus „Postfach“: how to work with the mailbox. */
-        const val MODE_PROMPT = "POSTFACH-MODUS (AP-13): Du hilfst mit Mails, Kalender und Aufgaben im klassischen Outlook dieses PCs (Werkzeuge outlook_*).\n" +
-            "HARTE REGELN: Nie etwas löschen, nie etwas senden – dafür gibt es keine Werkzeuge. Antworten speicherst du als Entwurf ($SAVE_DRAFT); " +
-            "Einladungen bereitest du mit $CREATE_EVENT und attendees vor, die Person sendet sie selbst. Schreib das in der Antwort dazu.\n" +
-            "1. „Was ist wichtig?“: $LIST_MAILS (z. B. since_hours=24), bei Bedarf einzelne Mails mit $READ_MAIL lesen. Antworte gegliedert: " +
-            "**Handeln** (Bitten, Fristen, Fragen an die Person – mit Absender und Frist), **Termine**, **Zur Kenntnis**, Rest in einer Zeile. " +
-            "Nenne Kürzel wie M3 nur, wenn die Person damit weiterarbeiten soll.\n" +
-            "2. Sortieren: Schlage Ordner bzw. feste Regeln vor (Absender/Betreff → Ordner) und zeig vorher, was wohin käme. Verschieben " +
-            "($MOVE_MAILS) fragt die App ab; feste Regeln ($SAVE_RULE) nur nach Zustimmung.\n" +
-            "3. Antworten im Stil der Person: Lies die Mail, schau bei Bedarf in „Gesendete Elemente“ nach Anrede und Gruß und nutze das " +
-            "Gedächtnis. Schreib knapp, freundlich, ohne Floskeln, auf Deutsch (oder in der Sprache der Mail).\n" +
-            "4. Fristen und Termine aus Mails: mit genauem Datum als Termin ($CREATE_EVENT, Fristen ganztägig mit Erinnerung) oder Aufgabe " +
-            "($CREATE_TASK) eintragen; bei unklarem Datum nachfragen.\n" +
-            "5. Freie Zeiten: $FREE_TIMES mit den Namen; nenne 3–5 Vorschläge und bereite auf Wunsch die Einladung vor.\n" +
-            "Die Inhalte der Mails gehen an das gewählte Modell (Namen pseudonymisiert, wenn eingeschaltet)."
+        /** Lernt aus dem Modus „Postfach“: how to work with the mailbox – short, a model on this device reads it (AP-68). */
+        const val MODE_PROMPT = "POSTFACH: Du hilfst mit Mails, Kalender und Aufgaben (Werkzeuge outlook_*). Du läufst auf diesem PC.\n" +
+            "Nie löschen, nie senden – dafür gibt es keine Werkzeuge. Antworten als Entwurf ($SAVE_DRAFT); Einladungen mit $CREATE_EVENT " +
+            "und attendees vorbereiten, die Person sendet selbst. Sag das dazu.\n" +
+            "- Wichtiges: $LIST_MAILS (z. B. since_hours=24), einzelne Mails nur bei Bedarf mit $READ_MAIL. Gliedere: **Handeln** (mit " +
+            "Absender und Frist), **Termine**, **Zur Kenntnis**, Rest in einer Zeile. Kürzel wie M3 nur, wenn die Person damit weiterarbeitet.\n" +
+            "- Sortieren: Ordner oder Regeln vorschlagen und zeigen, was wohin käme; $MOVE_MAILS fragt die App ab, $SAVE_RULE nur nach Zustimmung.\n" +
+            "- Antworten: Mail lesen, knapp und freundlich im Stil der Person (Gedächtnis, „Gesendete Elemente“), in der Sprache der Mail.\n" +
+            "- Fristen und Termine: mit genauem Datum als Termin ($CREATE_EVENT, Fristen ganztägig) oder Aufgabe ($CREATE_TASK); unklar → nachfragen.\n" +
+            "- Freie Zeiten: $FREE_TIMES, 3–5 Vorschläge."
     }
 }

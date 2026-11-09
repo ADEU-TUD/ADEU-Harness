@@ -265,6 +265,8 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
             sendToLora(c, agent, scope, w, go)
         }
     }
+    // An Chat übergeben from the Postfach (AP-68): the card to check the text first, for the button and for Lora.
+    MailHandoffHost(c, go)
     // Who switched Lora off before is not asked again.
     val panelOpen by LoraHelper.isOpen.collectAsStateWithLifecycle()
     if (!s.loraIntroDone && s.hasAnyApiKey && !s.hideLora && !panelOpen) LoraIntroDialog(c)
@@ -842,7 +844,9 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
     val state = turn.state[i]
     val result = turn.results[i]
     val plan = step.plan
-    ResultCard(icon = Icons.Outlined.Construction, title = plan.title.removeSuffix(" …").removeSuffix("…"), subtitle = null) {
+    // Mail work runs with the model on this device (AP-68): the step line says so.
+    val onDevice = io.github.thepytales.llmhub.agent.MailAccess.isMailAction(plan.actionId)
+    ResultCard(icon = Icons.Outlined.Construction, title = plan.title.removeSuffix(" …").removeSuffix("…"), subtitle = if (onDevice) tr(io.github.thepytales.llmhub.agent.MailAccess.ON_DEVICE) else null) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (plan.preview.isNotEmpty() && (state == null || state == "running")) {
                 Column(Modifier.semantics { contentDescription = tr("Vorschau") }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -860,7 +864,7 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                 state == "running" -> Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(8.dp))
-                    HintText(plan.title)
+                    HintText(plan.title + if (onDevice) " · " + tr(io.github.thepytales.llmhub.agent.MailAccess.ON_DEVICE) else "")
                 }
                 state == "done" && result != null -> {
                     DoneRow(result.text) {
