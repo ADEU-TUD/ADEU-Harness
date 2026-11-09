@@ -67,7 +67,7 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung |
+| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
 | **Danach** | – |
 | **Später** | – |
 
@@ -82,16 +82,17 @@ die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erk
 (AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
 **Dringend (09.11.2026)**: AP-68 bis AP-70 sind erledigt (09.11.2026). AP-67 läuft weiter (das Training der
-Pseudonymisierung geschieht in einem eigenen Chat).
+Pseudonymisierung geschieht in einem eigenen Chat). Neu am 09.11.2026: **AP-71** (Befehlsmodell und Mischmodus für Lora),
+ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Training.
 
 ---
 
 ## Jetzt
 
-Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt bleibt AP-67; sein
-Training geschieht in einem eigenen Chat.
+Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt laufen AP-67 und AP-71
+nebeneinander, je in einem eigenen Chat.
 
-**Parallel: AP-67**
+**Parallel: AP-67 und AP-71**
 
 Am 09.11.2026 aufgenommen (Wunsch des Hauptnutzers, Weg A der Abwägung „eigenes Modell“). Weitere Vorschläge aus den
 *Ideen*, wenn AP-67 fertig ist: **Fehlermeldungen in Klartext mit Lösungsknopf** (W2-09), **eigene Lora-Befehle**
@@ -178,6 +179,70 @@ dem Handy unter 150 ms; das Modell liegt mit Lizenz und Modellkarte in der App.
 
 **Betrifft**: `data/PiiDetector.kt`, `data/Pseudonymizer.kt`, `AppContainer` (`thoroughFinder`), `ui/PrivacySettings.kt`,
 neu `data/PiiModel.kt`, `tools/pii/` (Generator, Training, Export – Python, nur auf dem Trainings-PC).
+
+### AP-71 ◐ Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus · L (neu)
+**Ziel 1 – eigenes Befehlsmodell**: Ein kleines Modell auf dem Gerät ordnet Eingaben in Lora und Strg+K **in
+Millisekunden und offline** der richtigen Aktion zu – Bereich oder Werkzeug öffnen, Modus starten, Einstellung zeigen
+oder umstellen, TU Vorlage öffnen, Lora-Aktion im offenen Werkzeug, Tour, frühere Chats, Frist – statt dafür jedes Mal
+den Server zu fragen. Dazu die Klassen **„frei“** (einfach bzw. komplex): Solche Anfragen gehen wie heute an ein
+Sprachmodell. Ist die Erkennung unsicher (Schwelle), wird ebenfalls weitergegeben: **Eine falsch ausgeführte Aktion ist
+schlimmer als eine Rückfrage.** Werte (Schriftgröße, an/aus, Dateiname, Seiten, Spalte, Datum) zieht die App mit Regeln
+aus der Eingabe, sobald die Aktion feststeht.
+
+**Ziel 2 – Mischmodus (Standard)**: Lora entscheidet je Anfrage, wo sie läuft. Befehle über das Befehlsmodell sofort
+lokal; einfache, kurze Aufgaben mit einem installierten lokalen Sprachmodell, wenn die Hardware reicht; komplexe Aufgaben
+(lange Dokumente, Analysen, Bilder, Websuche, Werkzeugketten) über den Server wie bisher. Einstellung *Lora: Gemischt
+(empfohlen) / Nur lokal / Nur Server* mit klarer Erklärung, was „Nur lokal“ kostet (Qualität, Kontextlänge, Tempo,
+Funktionen). Unverändert bleiben: Postfach nur lokal (AP-68), Tresor, Pseudonymisierung vor jeder Server-Anfrage,
+Standard für Übergaben DeepSeek V4.1 Flash, Lora selbst GLM-5.3 Flash.
+
+Weg wie bei AP-67 (Feintuning eines vortrainierten Encoders, Claude als Lehrer-Modell, nur erfundene Daten); die
+Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/befehle/`).
+
+**Stufen**
+- **a) Etiketten aus dem Code** ☐: die Aktionen kommen aus den Registern der App (`AppMap`: Bereiche,
+  Einstellungsseiten, Optionen, Orte, Modi, Werkzeuge – deckt auch die Strg+K-Einträge ab; `LoraAgent.SETTINGS`;
+  `ToolActions`/`OfficeActions`/`MoreActions`/Video; Lora-eigene Aktionen), dazu `frei.einfach` und `frei.komplex`. Ein
+  Test hält die Liste des Modells und den Code zusammen (kein Etikett ohne Ziel im Code; neue Ziele ohne Etikett werden
+  gemeldet und gehen bis zum nächsten Training an das Sprachmodell).
+- **b) Messkorpus zuerst** ☐ (vor jedem Training): erfundene, alltagsnahe Wünsche – auch mit Tippfehlern,
+  Umgangssprache und auf Englisch –, je Wunsch die richtige Aktion (wo zwei passen: beide), bei Bedarf der offene
+  Bereich und die erwarteten Werte; mindestens 600 Wünsche, davon ein **Prüfteil** (mindestens 250), der nie zum
+  Training, zur Wahl von Einstellungen oder als Vorbild für Vorlagen dient. Fehlerlisten nur für den Entwicklungsteil.
+  Kennzahlen: **Trefferquote** der Befehle, **Anteil falsch ausgeführter Aktionen**, **Anteil richtig weitergegebener
+  freier Anfragen**, Zeit je Eingabe; Ausgangswert der heutigen Regeln (`LoraAgent.local`) festhalten.
+- **c) Trainingsdaten** ☐: Claude schreibt als Lehrer-Modell Formulierungen und Satzmuster je Etikett (kein Schlüssel
+  des Uni-Servers), ein Generator setzt sie zusammen (Tippfehler, Kleinschreibung, Füllwörter, Englisch); **Sperre**
+  gegen Überschneidung mit dem Messkorpus; keine echten Daten.
+- **d) Ein Modell mit zwei Köpfen oder ein eigenes kleines?** ☐: prüfen, ob das Modell der Pseudonymisierung (AP-67,
+  gbert-base) einen zweiten Kopf für Befehle bekommen kann – dann bliebe es bei einem Download –, oder ob ein kleineres
+  Basismodell (z. B. distilbert-base-german-cased) besser ist. Auf dem Entwicklungsteil messen, begründet entscheiden,
+  hier festhalten. Lizenz nur MIT oder Apache-2.0.
+- **e) Training und Export** ☐: in der Cloud auf CPU in Etappen (`train.py --nur/--fortsetzen`, Hintergrundläufe
+  höchstens 2 h), Schwelle auf dem Entwicklungsteil, Export ONNX int8 mit **Modellkarte**; int8 darf auf dem Prüfteil
+  höchstens 0,5 Prozentpunkte verlieren.
+- **f) Einbau** ☐: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
+  sherpa-onnx über JNA, Download über `data/FileDownload.kt` mit SHA-256, große Datei auf eigenem Branch
+  (`befehle-modell`, wird nicht gemergt), Angebot per Popup. `LoraAgent` fragt zuerst die Regeln, dann das Befehlsmodell,
+  erst dann ein Sprachmodell; Strg+K zeigt den erkannten Befehl als ersten Eintrag. Android wird nach dem Gerätetest des
+  Hauptnutzers bestätigt.
+- **g) Mischmodus** ☐: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
+  Server) aus Befehlsmodell, Länge, Anhängen, Bildern, Websuche/Werkzeugbedarf, installiertem Modell und Hardware
+  (`local/LocalLlm.kt`, `LocalCatalog.kt`); Einstellung unter *Einstellungen › Lora*; Zähler „wie oft und wie schnell
+  lokal statt Server“ auf dem Gerät, sichtbar in den Einstellungen.
+- **h) Tests und Doku** ☐: `CommandModelTest` wie `PiiModelTest` (Tokenizer gleich dem des Trainings, mit und ohne
+  Modell, echtes Modell mit `BEFEHLE_MODELL`/`BEFEHLE_ORT` auf dem Messkorpus), Tests für Werte, Router und Etiketten;
+  README, englische Texte (`i18n/en.tsv`), Release.
+
+**Fertig, wenn**: Auf dem Prüfteil ordnet das Modell mindestens 90 % der Befehle richtig zu, führt höchstens 2 % der
+Eingaben falsch aus und gibt mindestens 95 % der freien Anfragen weiter; eine Eingabe braucht auf einem Dienst-PC ohne
+Grafikkarte unter 30 ms; ohne Modell (Datei fehlt) arbeitet Lora wie bisher; die Einstellung *Gemischt / Nur lokal / Nur
+Server* ist da und erklärt die Folgen; die App zeigt, wie oft und wie schnell lokal geantwortet wurde; das Modell liegt
+mit Lizenz und Modellkarte bei.
+
+**Betrifft**: `agent/LoraAgent.kt`, `agent/ModelRouter.kt`, `ui/LoraHelper.kt`, `ui/CommandPalette.kt`,
+`data/SettingsStore.kt`, `AppContainer`, neu `data/CommandModel.kt`, `agent/LoraCommands.kt`, `tools/befehle/`
+(Messkorpus, Generator, Training, Export – Python, nicht Teil der App).
 
 ---
 
