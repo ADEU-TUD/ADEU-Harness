@@ -132,8 +132,8 @@ class ImapBridge(
             .flatMap { it.text.substring(8).trim().split(' ').mapNotNull(String::toLongOrNull) }
             .sortedDescending().take(limit.coerceIn(1, 500))
         if (uids.isEmpty()) return@session emptyList()
-        val r = c.ok("UID FETCH ${uids.joinToString(",")} (UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)")
-        r.untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f -> header(f, folder) }.sortedByDescending { it.received }
+        c.okEach(uids, "Mails lesen") { "UID FETCH $it $HEADER_ITEMS" }.flatMap { it.untagged }
+            .mapNotNull { ImapParser.fetch(it) }.mapNotNull { f -> header(f, folder) }.sortedByDescending { it.received }
     }
 
     private fun header(f: Map<String, Any?>, folder: String): MailHeader? {
@@ -232,7 +232,8 @@ class ImapBridge(
             val uids = numbers(c.ok(listOf(prefix + keys.first[0]) + keys.first.drop(1), keys.second, what = "Suchen"), "SEARCH")
             if (uids.isEmpty()) emptyList() else {
                 val dates = HashMap<Long, Long>(uids.size * 2)
-                c.ok("UID FETCH ${ImapParser.uidSet(uids)} (UID INTERNALDATE)", what = "Mails lesen").untagged.forEach { l ->
+                // The arrival of every match, in short commands (a big Posteingang at Exchange: „Command Error. 10“).
+                c.okEach(uids, "Mails lesen") { "UID FETCH $it (UID INTERNALDATE)" }.flatMap { it.untagged }.forEach { l ->
                     ImapParser.fetch(l)?.let { f -> (f["UID"] as? String)?.toLongOrNull()?.let { u -> dates[u] = internalDate(f["INTERNALDATE"]) } }
                 }
                 uids.map { Hit(folder, it, dates[it] ?: 0) }
@@ -253,8 +254,8 @@ class ImapBridge(
         val headers = HashMap<String, MailHeader>()
         slice.groupBy { it.folder }.forEach { (folder, list) ->
             c.ok("EXAMINE ${ImapParser.quote(folder)}", what = "Ordner öffnen")
-            c.ok("UID FETCH ${ImapParser.uidSet(list.map { it.uid })} (UID FLAGS INTERNALDATE BODYSTRUCTURE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)", what = "Mails lesen")
-                .untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { header(it, folder) }.forEach { headers[it.id] = it }
+            c.okEach(list.map { it.uid }, "Mails lesen") { "UID FETCH $it $LIST_ITEMS" }
+                .flatMap { it.untagged }.mapNotNull { ImapParser.fetch(it) }.mapNotNull { header(it, folder) }.forEach { headers[it.id] = it }
         }
         // „Mit Anhang“ asks the server for multipart/mixed; the structure tells for sure.
         val mails = slice.mapNotNull { headers[id(it.uid, it.folder)] }.filter { !query.withAttachments || it.attachments > 0 }
@@ -265,7 +266,7 @@ class ImapBridge(
         var n = 0
         for ((folder, uids) in ids.map { parseId(it) }.groupBy({ it.second }, { it.first })) {
             c.ok("SELECT ${ImapParser.quote(folder)}", what = "Ordner öffnen")
-            c.ok("UID STORE ${ImapParser.uidSet(uids)} ${if (read) "+" else "-"}FLAGS.SILENT (\\Seen)", what = "Markieren")
+            c.okEach(uids, "Markieren") { "UID STORE $it ${if (read) "+" else "-"}FLAGS.SILENT (\\Seen)" }
             n += uids.size
         }
         forget()
@@ -356,10 +357,9 @@ class ImapBridge(
             .flatMap { it.text.substring(8).trim().split(' ').mapNotNull(String::toLongOrNull) }
             .sortedDescending().take(limit.coerceIn(1, 2000))
         if (uids.isEmpty()) return@session emptyList()
-        uids.chunked(200).flatMap { part ->
-            c.ok("UID FETCH ${part.joinToString(",")} (UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)")
-                .untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f -> header(f, folder) }
-        }.filter { it.received == 0L || (it.received >= from && (until == null || it.received < until)) }.sortedByDescending { it.received }
+        c.okEach(uids, "Mails lesen") { "UID FETCH $it $HEADER_ITEMS" }.flatMap { it.untagged }
+            .mapNotNull { ImapParser.fetch(it) }.mapNotNull { f -> header(f, folder) }
+            .filter { it.received == 0L || (it.received >= from && (until == null || it.received < until)) }.sortedByDescending { it.received }
     }
 
     /**
@@ -372,17 +372,17 @@ class ImapBridge(
         for ((folder, list) in ids.map { parseId(it) }.groupBy({ it.second }, { it.first })) {
             if (folder == folderId) continue
             c.ok("SELECT ${ImapParser.quote(folder)}", what = "Ordner öffnen")
-            val set = list.joinToString(",")
             val messageIds = runCatching {
-                c.ok("UID FETCH $set (UID BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])").untagged.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f ->
+                c.okEach(list, "Mails lesen") { "UID FETCH $it (UID BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])" }.flatMap { it.untagged }.mapNotNull { ImapParser.fetch(it) }.mapNotNull { f ->
                     val uid = (f["UID"] as? String)?.toLongOrNull() ?: return@mapNotNull null
                     val head = f.entries.firstOrNull { it.key.startsWith("BODY[HEADER") }?.value?.let { ImapParser.text(it) }.orEmpty()
                     headers(head)["message-id"]?.takeIf { it.isNotBlank() }?.let { uid to it }
                 }.toMap()
             }.getOrDefault(emptyMap())
             val answers = when {
-                c.has("MOVE") -> c.ok("UID MOVE $set $target", what = "Verschieben").let { r -> listOf(r.text) + r.untagged.map { it.text } }
-                c.has("UIDPLUS") -> {
+                c.has("MOVE") -> c.okEach(list, "Verschieben") { "UID MOVE $it $target" }.flatMap { r -> listOf(r.text) + r.untagged.map { it.text } }
+                // One set after the other: removed is only what was copied.
+                c.has("UIDPLUS") -> ImapParser.uidSets(list).flatMap { set ->
                     val r = c.ok("UID COPY $set $target", what = "Verschieben")
                     c.ok("UID STORE $set +FLAGS.SILENT (\\Deleted)", what = "Verschieben")
                     c.ok("UID EXPUNGE $set", what = "Verschieben")
@@ -416,6 +416,12 @@ class ImapBridge(
 
         /** Folders the app does not rename (special use, RFC 6154). */
         private val FIXED = setOf("\\DRAFTS", "\\SENT", "\\TRASH", "\\JUNK", "\\ALL")
+
+        /** What a mail list asks for: the head, the start of the text for the preview. */
+        private const val HEADER_ITEMS = "(UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)"
+
+        /** The same for the mail view, with the structure for the attachments. */
+        private const val LIST_ITEMS = "(UID FLAGS INTERNALDATE BODYSTRUCTURE BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE CONTENT-TYPE)] BODY.PEEK[TEXT]<0.2000>)"
 
         /** At most this many folders in the tree. */
         private const val MAX_FOLDERS = 500

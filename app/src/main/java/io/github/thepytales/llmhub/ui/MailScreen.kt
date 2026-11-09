@@ -313,7 +313,9 @@ private fun MailBoxView(c: AppContainer, model: MailBoxModel, agenda: List<Calen
                     if (s.query.allFolders) tr("Alle Ordner") else s.folder?.name ?: tr("Posteingang"),
                     style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
-                HintText(if (s.loading && s.mails.isEmpty()) tr("Wird geladen …") else tr("{0} Mails", s.total) + (s.folder?.unread?.takeIf { it > 0 && !s.query.filtered }?.let { " · " + tr("{0} ungelesen", it) } ?: ""))
+                // When the list could not be read, the folder's own count (not „0 Mails“).
+                val total = if (s.error != null && s.mails.isEmpty() && !s.query.filtered) s.folder?.items ?: s.total else s.total
+                HintText(if (s.loading && s.mails.isEmpty()) tr("Wird geladen …") else tr("{0} Mails", total) + (s.folder?.unread?.takeIf { it > 0 && !s.query.filtered }?.let { " · " + tr("{0} ungelesen", it) } ?: ""))
             }
         }
         MailFilterBar(filter, onChange = { filter = it })

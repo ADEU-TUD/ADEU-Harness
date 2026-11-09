@@ -749,7 +749,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     die Spaltenbreiten lassen sich ziehen. **Suchen und filtern** nach Absender, Betreff, Zeitraum, ungelesen, mit
     Anhang, in einem oder allen Ordnern. Mehrere Mails auswählen, auf einen Ordner ziehen, als gelesen/ungelesen
     markieren, Ordner anlegen und umbenennen – alles mit Rückgängig und im Protokoll. Lora weiß, welche Mails ausgewählt
-    sind. Auf dem Handy erst die Liste, dann die Mail.
+    sind. Auf dem Handy erst die Liste, dann die Mail. Über den Mailserver fragt die App lange Listen in kurzen Befehlen
+    ab, weil Exchange Zeilen über 10 KB ablehnt (in 1.0.62 bei großen Posteingängen „Command Error. 10“).
   - **Lora sortiert selbst** (AP-69): „Geh die Mails der letzten Woche durch und ordne sie in Lehre, Forschung und
     Verwaltung ein“ – fehlende Ordner (auch Unterordner wie „Lehre/WS 2026-27“) legt Lora in Outlook an oder schlägt
     eine Ordnerstruktur vor. Das Modell auf dem Gerät liest Kopf und Anfang jeder Mail. Danach **eine Vorschau** für den
