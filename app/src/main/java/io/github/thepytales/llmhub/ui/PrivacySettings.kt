@@ -276,7 +276,7 @@ fun PseudonymCorrections(c: AppContainer, texts: List<String>, scope: String? = 
             Text(tr("Ersetzt – antippen, wenn es kein privater Name ist:"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 replaced.take(24).forEach { (value, placeholder) ->
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             c.privacy.neverReplace(value) { t -> c.settings.update(t) }
                             version++
@@ -292,7 +292,7 @@ fun PseudonymCorrections(c: AppContainer, texts: List<String>, scope: String? = 
             Text(tr("Nicht ersetzt – vielleicht ein Name?"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 missed.forEach { w ->
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             c.privacy.alwaysReplace(w) { t -> c.settings.update(t) }
                             version++

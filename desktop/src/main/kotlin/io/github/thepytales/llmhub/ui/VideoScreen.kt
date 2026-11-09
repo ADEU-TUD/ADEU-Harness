@@ -63,7 +63,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -696,6 +695,11 @@ private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier:
                 val img = rememberSubtitle(cue.text, p, px, p.subtitleRaised(cue))
                 img?.let { Image(it, null, modifier = Modifier.fillMaxSize()) }
             }
+            // The next subtitle is drawn ahead, so it is there the moment it starts (AP-70).
+            p.subtitles.filter { it.startSec > pos }.minByOrNull { it.startSec }?.let { next ->
+                val key = subtitleKey(next.text, p, px, p.subtitleRaised(next))
+                LaunchedEffect(key) { drawTitle(key) { VideoTitles.render(VideoTitles.subtitleDesign(next.text, p.width, p.height, p.subtitleRaised(next)), px) } }
+            }
             if (p.clips.isEmpty()) Text(tr("Noch keine Clips – unten „Clip hinzufügen“."), color = Color.White, modifier = Modifier.align(Alignment.Center))
         }
     }
@@ -705,23 +709,32 @@ private val titleCache = object : LinkedHashMap<String, ImageBitmap>(16, 0.75f, 
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, ImageBitmap>?) = size > 24
 }
 
+/**
+ * A title or subtitle picture for [key], drawn in the background. While a new one is drawn (another size of the
+ * preview, a title being typed) the last one of the same [slot] stays – before, it vanished for a moment (AP-70).
+ */
 @Composable
-private fun rememberTitle(o: TextOverlay, p: VideoProject, px: Int): ImageBitmap? {
-    val key = "${o.style}|${o.text}|${o.subtext}|${p.width}x${p.height}|$px"
-    val img by produceState(synchronized(titleCache) { titleCache[key] }, key) {
-        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.design(o, p.width, p.height), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
-    }
-    return img
+private fun rememberTitleImage(slot: String, key: String, draw: () -> ImageBitmap): ImageBitmap? {
+    val img = remember(slot) { mutableStateOf(synchronized(titleCache) { titleCache[key] }) }
+    LaunchedEffect(key) { drawTitle(key, draw)?.let { img.value = it } }
+    return img.value
 }
 
+/** The picture for [key] from the cache, or drawn and put there. */
+private suspend fun drawTitle(key: String, draw: () -> ImageBitmap): ImageBitmap? =
+    synchronized(titleCache) { titleCache[key] }
+        ?: withContext(Dispatchers.Default) { runCatching(draw).getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
+
 @Composable
-private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boolean): ImageBitmap? {
-    val key = "sub|$text|${p.width}x${p.height}|$px|$raised"
-    val img by produceState(synchronized(titleCache) { titleCache[key] }, key) {
-        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height, raised), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
-    }
-    return img
-}
+private fun rememberTitle(o: TextOverlay, p: VideoProject, px: Int): ImageBitmap? =
+    rememberTitleImage(o.id, "${o.style}|${o.text}|${o.subtext}|${p.width}x${p.height}|$px") { VideoTitles.render(VideoTitles.design(o, p.width, p.height), px) }
+
+private fun subtitleKey(text: String, p: VideoProject, px: Int, raised: Boolean) = "sub|$text|${p.width}x${p.height}|$px|$raised"
+
+/** A subtitle: its last picture stays only for the same text (a new cue never shows the old words). */
+@Composable
+private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boolean): ImageBitmap? =
+    rememberTitleImage("sub|$text", subtitleKey(text, p, px, raised)) { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height, raised), px) }
 
 // ── Toolbar above the timeline ─────────────────────────────────────────────────────────────────────
 

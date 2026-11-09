@@ -119,7 +119,7 @@ private fun DiagramsRow(c: AppContainer) {
             }
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 STARTS.forEach { (kind, label) ->
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             val d = if (kind == "board") Diagram(kind = "board", manual = true) else starterDiagram(kind)
                             open(Whiteboards.save(Board(title = tr(label), diagram = d)))

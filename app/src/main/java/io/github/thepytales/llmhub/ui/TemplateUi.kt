@@ -38,14 +38,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -313,7 +311,7 @@ fun TemplateFillDialog(
                     Text(tr(template.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (onInterview != null && io.github.thepytales.llmhub.agent.TemplateInterview.offered(template)) {
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             c.drafts.delete(template.id)
                             onInterview(template, values.toMap())
