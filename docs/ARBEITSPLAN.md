@@ -89,7 +89,7 @@ Am 09.11.2026 aufgenommen (Wunsch des Hauptnutzers, Weg A der Abwägung „eigen
 (gespeicherte Abläufe per Name/Strg+K), **Exchange über EWS/Graph** (sobald Offene Frage 3 geklärt ist), **Tabellen beim
 Taggen und LTV der Signatur** (Rest AP-60).
 
-### AP-67 ☐ Eigenes Erkennungsmodell für die Pseudonymisierung · M–L (neu, Nachfolger von „Gründlich“ aus AP-03)
+### AP-67 ◐ Eigenes Erkennungsmodell für die Pseudonymisierung · M–L (neu, Nachfolger von „Gründlich“ aus AP-03)
 **Ziel**: Ein kleines, eigenes Erkennungsmodell (NER, deutsch, etwa 70–120 MB als ONNX int8) findet private Namen,
 Einrichtungen (Schulen, Kitas, Praxen …) und Orte mit Personenbezug **in Millisekunden auf dem Gerät** – auf Android und
 Windows, **immer an**, ohne installiertes Sprachmodell. Es ersetzt den Schritt „Gründlich“, in dem heute das kleinste
@@ -110,11 +110,16 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   („Rose“, „Winter“, „Becker-Studie“). Kennzahlen je Art: **Trefferquote** privater Angaben und **Fehlalarme** bei
   öffentlichen Namen; Ausgangswert der heutigen Regeln (mit und ohne „Gründlich“) festhalten. Ein **Prüfteil**
   (mindestens 150 Sätze) wird nie zum Training benutzt.
+  ☑ *Erledigt (09.11.2026)*: 517 Beispiele in `tools/pii/messkorpus/` (Prüfteil 174 mit 261 privaten und 121
+  öffentlichen Angaben), `PseudonymCorpusTest` misst die Regeln. Ausgangswert der Regeln auf dem Prüfteil: **78,2 %**
+  gefunden (Personen 83,9 %, Einrichtungen 90,3 %, Orte 16 %), **9,9 %** der öffentlichen Angaben fälschlich ersetzt
+  (öffentliche Personen 30 %); Einzelheiten in `tools/pii/README.md`.
 - **b) Trainingsdaten ohne echte Daten**: Generator in `tools/pii/` (Python, nicht Teil der App). Erfundene Texte nach
   Vorlagen der Textarten aus a), mit erfundenen Namen (Listen aus `Names` und offenen Namenslisten, auch Namen von Familien,
-  die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Ein **Lehrer-Modell** schreibt abwechslungsreiche
-  Texte und beschriftet die Stellen – der Uni-Server (die Texte sind erfunden, also unbedenklich) oder lokal auf der RTX 5080;
-  die Regeln von `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
+  die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Das **Lehrer-Modell** ist Claude in der
+  Cloud-Sitzung (Entscheidung 09.11.2026, kein Schlüssel des Uni-Servers): Es schreibt abwechslungsreiche Vorlagen mit
+  Platzhaltern, der Generator setzt erfundene Namen ein – so stimmen die Beschriftungen genau; die Regeln von
+  `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
   im BIO-Schema (`PER`, `EINR`, `ORT`). **Nie echte Interviews, Abgaben oder Mails** im Training.
 - **c) Training auf dem eigenen PC** (RTX 5080 mit 16 GB Grafikspeicher, 32 GB DDR5): Feintuning eines Encoders mit
   Hugging Face Transformers in bf16, wenige Epochen – Stunden, nicht Tage. Kandidaten werden auf dem Messkorpus verglichen
