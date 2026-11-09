@@ -277,8 +277,9 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   Tokenizer (WordPiece bzw. SentencePiece) in Kotlin, Fenster von 512 Token mit Überlappung, Fundstellen als `PiiHit`.
   `Pseudonymizer` nimmt Regeln, Modell und eigene Liste zusammen; der Schalter *Gründlich* unter *Einstellungen ›
   Datenschutz* wird zu *Erkennungsmodell* (Standard an). Das lokale Sprachmodell bleibt nur optional für indirekte Merkmale
-  („die Schulleiterin in Pirna“). Auslieferung fest in APK/Windows-ZIP oder als Download wie die Sprachmodelle (Offene
-  Frage 9).
+  („die Schulleiterin in Pirna“). Auslieferung als **Download** wie die Sprachmodelle (Offene Frage 9, entschieden):
+  ein Popup bietet ihn beim ersten Nutzen der Pseudonymisierung oder beim Öffnen von *Einstellungen › Datenschutz* an
+  („Laden“, „Später“, „Nicht mehr fragen“); Quelle ist der Branch `pii-modell` an festem Commit, geprüft mit SHA-256.
 - **f) Tests**: der Messkorpus als `PseudonymCorpusTest` mit Schwellen, Laufzeit je Absatz, ein Test, dass Autor:innen und
   öffentliche Namen bleiben, und dass ohne Modell (Datei fehlt) die Regeln allein weiterlaufen.
 
@@ -1233,9 +1234,10 @@ Wie bisher nur, was dort sinnvoll ist:
 8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
    wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
-9. **Erkennungsmodell ausliefern** (AP-67): fest in APK und Windows-ZIP (rund 70–120 MB mehr, sofort da, auch offline) oder
-   als Download beim ersten Bedarf wie die Sprachmodelle (kleinere Installation)? Basismodell entschieden (09.11.2026):
-   **gbert-base** (MIT), nach dem Vergleich auf dem Entwicklungsteil.
+9. ~~**Erkennungsmodell ausliefern** (AP-67)~~: entschieden (09.11.2026) – **Download wie die lokalen Sprachmodelle**,
+   angeboten als Popup beim ersten Nutzen der Pseudonymisierung oder beim Öffnen von *Einstellungen › Datenschutz*.
+   Quelle: Branch `pii-modell` dieses (öffentlichen) Repos an festem Commit, gepackt 72 MB, mit SHA-256 geprüft. Ohne
+   Modell laufen die Regeln allein weiter. Basismodell: **gbert-base** (MIT), nach dem Vergleich auf dem Entwicklungsteil.
 
 10. **Lokales Modell fürs Postfach** (AP-68, AP-69): Welches lokale Modell reicht auf den Dienst-PCs ohne Grafikkarte, um
     Mails in vertretbarer Zeit zusammenzufassen und einzuordnen – Qwen 3.5 4B, Gemma 4 E4B oder größer (9B mit
