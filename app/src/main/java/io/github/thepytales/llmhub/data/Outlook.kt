@@ -10,6 +10,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.io.File
+import io.github.thepytales.llmhub.ui.tr
 
 /*
  * Mail und Kalender über das klassische Outlook (AP-13). The app talks to the Outlook on this PC (Windows: COM, see
@@ -128,7 +130,122 @@ interface OutlookBridge {
 
     /** Opens a mail, draft or appointment in Outlook. */
     fun show(id: String)
+
+    // ── Mailansicht (AP-69 Stufe a): paging, marks and folders by hand. The defaults keep every other bridge (and the
+    // fakes of the tests) working; Outlook (COM) and the mail server (IMAP) have their own. Still no delete, no send. ──
+
+    /** Id of the Posteingang, so the view can show it as chosen; null when unknown. */
+    fun inboxId(): String? = null
+
+    /**
+     * One page of [query], newest first: [offset] matching mails skipped, at most [limit]. [MailPage.next] is the offset
+     * of the following page. The default filters [mails] in memory (enough for small mailboxes and tests).
+     */
+    fun page(query: MailQuery, offset: Int, limit: Int): MailPage {
+        val wanted = offset + limit
+        val cap = (wanted * 4).coerceIn(200, 5000)
+        val sources = if (query.allFolders) folders().map { it.id } else listOf(query.folderId)
+        var capped = false
+        val all = sources.flatMap { f ->
+            mails(f, query.since, query.unreadOnly, cap).also { if (it.size >= cap) capped = true }
+        }.filter { Outlook.fits(query, it) }.distinctBy { it.id }.sortedByDescending { it.received }
+        val slice = all.drop(offset).take(limit)
+        // A capped source may hold more: one more than known keeps „load more“ alive.
+        val total = if (capped && all.size <= wanted) wanted + 1 else all.size
+        return MailPage(slice, total, offset + slice.size)
+    }
+
+    /** Marks the mails read ([read] true) or unread; returns how many changed. */
+    fun markRead(ids: List<String>, read: Boolean): Int = throw OutlookException(tr("Dieses Postfach kann Mails nicht als gelesen markieren."))
+
+    /** Gives folder [id] the name [name]; returns the folder as it is now (on a mail server its id changes). */
+    fun renameFolder(id: String, name: String): MailFolder = throw OutlookException(tr("Ordner lassen sich in diesem Postfach nicht umbenennen."))
+
+    /** Whether this mailbox can move mails (a mail server without MOVE and UIDPLUS cannot without touching other mails). */
+    fun canMove(): Boolean = true
+
+    /**
+     * Moves the mails to [folderId] like [move] and tells each moved mail's new id (old → new; Outlook gives a moved
+     * mail a new EntryID, the server a new UID), so the move can be taken back. The default only knows how many moved.
+     */
+    fun moveMails(ids: List<String>, folderId: String): MoveResult = MoveResult(move(ids, folderId), emptyMap())
+
+    /**
+     * Creates [path] („Lehre/WS 2026-27“; „/“ or „\“ between the levels) below [parentId] (null: where [createFolder]
+     * puts new folders), level by level; folders that exist already are used as they are. Returns the last one.
+     */
+    fun createFolderPath(parentId: String?, path: String): MailFolder {
+        var parent = parentId
+        var last: MailFolder? = null
+        for (name in MailFolders.levels(path)) {
+            last = createFolder(parent, name)
+            parent = last.id
+        }
+        return last ?: throw OutlookException(tr("Bitte einen Namen für den Ordner angeben."))
+    }
+
+    /**
+     * Saves attachment [index] (0-based, in the order of [MailBody.attachmentNames]) of mail [id] into [dir]; returns the
+     * file (a free name, „ (2)“ … when it is taken).
+     */
+    fun saveAttachment(id: String, index: Int, dir: File): File = throw OutlookException(tr("Anhänge lassen sich in diesem Postfach nicht speichern."))
 }
+
+/** Filter and search of the mail view (AP-69): every part is optional; [folderId] null means the Posteingang. */
+data class MailQuery(
+    val folderId: String? = null,
+    /** Search every mail folder instead of [folderId]. */
+    val allFolders: Boolean = false,
+    /** Words that sender, subject or text all contain. */
+    val text: String = "",
+    /** Part of the sender's name or address. */
+    val from: String = "",
+    /** Part of the subject. */
+    val subject: String = "",
+    /** Received at or after (epoch millis). */
+    val since: Long? = null,
+    /** Received before (epoch millis). */
+    val until: Long? = null,
+    val unreadOnly: Boolean = false,
+    val withAttachments: Boolean = false,
+) {
+    /** Whether anything narrows the list. */
+    val filtered: Boolean
+        get() = text.isNotBlank() || from.isNotBlank() || subject.isNotBlank() || since != null || until != null || unreadOnly || withAttachments || allFolders
+
+    /** The free words of [text]. */
+    val words: List<String> get() = text.trim().split(Regex("\\s+")).filter { w -> w.any { it.isLetterOrDigit() } }
+
+    companion object {
+        private val TOKEN = Regex("(?i)(?<![\\p{L}\\d])(von|from|absender|betreff|subject):(\"[^\"]*\"|\\S+)")
+
+        /**
+         * A search as typed: „von:weber betreff:"Prüfung Mai" Liste“ fills [from] and [subject], the rest is [text]; the
+         * other parts come from [base].
+         */
+        fun parse(typed: String, base: MailQuery = MailQuery()): MailQuery {
+            var from = ""
+            var subject = ""
+            val rest = TOKEN.replace(typed) { m ->
+                val value = m.groupValues[2].trim('"').trim()
+                when (m.groupValues[1].lowercase()) {
+                    "von", "from", "absender" -> from = value
+                    else -> subject = value
+                }
+                " "
+            }
+            return base.copy(text = rest.replace(Regex("\\s+"), " ").trim(), from = from, subject = subject)
+        }
+    }
+}
+
+/** One page of a [MailQuery]: [mails] newest first, [total] matching mails, [next] the offset of the following page. */
+data class MailPage(val mails: List<MailHeader>, val total: Int, val next: Int) {
+    val hasMore: Boolean get() = next < total
+}
+
+/** What a move did: how many mails moved and their new ids (old id → new id; fewer when a mailbox cannot tell). */
+data class MoveResult(val moved: Int, val newIds: Map<String, String>)
 
 /** A fixed rule for sorting (made by the user or confirmed from Lora's suggestion); applied only on request. */
 @Serializable
@@ -215,6 +332,20 @@ object Outlook {
             val text = norm(listOf(m.from, m.fromAddress, m.subject, m.preview, m.categories).joinToString(" "))
             words.all { text.contains(it) }
         }
+    }
+
+    /** Whether [m] fits [q] (sender, subject, words, time, unread, attachments; ignoring case and accents); the folder is not checked. */
+    fun fits(q: MailQuery, m: MailHeader): Boolean {
+        if (q.unreadOnly && !m.unread) return false
+        if (q.withAttachments && m.attachments <= 0) return false
+        if (q.since != null && m.received < q.since) return false
+        if (q.until != null && m.received >= q.until) return false
+        if (q.from.isNotBlank() && !norm(m.from + " " + m.fromAddress).contains(norm(q.from))) return false
+        if (q.subject.isNotBlank() && !norm(m.subject).contains(norm(q.subject))) return false
+        val words = q.words
+        if (words.isEmpty()) return true
+        val text = norm(listOf(m.from, m.fromAddress, m.subject, m.preview).joinToString(" "))
+        return words.all { text.contains(norm(it)) }
     }
 
     /**

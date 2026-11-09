@@ -124,6 +124,61 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
         return r
     }
 
+    /**
+     * A command with several literals, e.g. a SEARCH for words with umlauts (AP-69): [parts] is the text around them (one
+     * more than [literals]); after each announced literal ({n}) the server's „+“ is awaited. A NO or BAD becomes an
+     * [IOException].
+     */
+    fun ok(parts: List<String>, literals: List<ByteArray>, what: String): Response {
+        require(parts.size == literals.size + 1)
+        val t = "A" + (++tag)
+        val untagged = mutableListOf<Line>()
+        var text = "$t " + parts[0]
+        for ((i, lit) in literals.withIndex()) {
+            send("$text{${lit.size}}\r\n".toByteArray(Charsets.UTF_8))
+            while (true) {
+                val l = readLine()
+                if (l.text.startsWith("+")) break
+                if (l.text.startsWith("$t ")) return finish(t, l, untagged).also { if (!it.ok) throw IOException("Der Mailserver lehnt „$what“ ab: ${it.text.take(200)}") }
+                untagged += l
+            }
+            send(lit)
+            text = parts[i + 1]
+        }
+        send("$text\r\n".toByteArray(Charsets.UTF_8))
+        while (true) {
+            val l = readLine()
+            if (l.text.startsWith("$t ")) {
+                val r = finish(t, l, untagged)
+                if (!r.ok) throw IOException("Der Mailserver lehnt „$what“ ab: ${r.text.take(200)}")
+                return r
+            }
+            untagged += l
+        }
+    }
+
+    /**
+     * Sends [commands] at once and then reads their answers, in the order of [commands] (STATUS of many folders without
+     * a round trip each, AP-69). Untagged lines belong to the answer that ends after them.
+     */
+    fun pipeline(commands: List<String>): List<Response> {
+        if (commands.isEmpty()) return emptyList()
+        val tags = commands.map { "A" + (++tag) }
+        send(commands.indices.joinToString("") { "${tags[it]} ${commands[it]}\r\n" }.toByteArray(Charsets.UTF_8))
+        val done = HashMap<String, Response>()
+        var untagged = mutableListOf<Line>()
+        while (done.size < tags.size) {
+            val l = readLine()
+            val t = tags.firstOrNull { it !in done && l.text.startsWith("$it ") }
+            if (t == null) untagged += l
+            else {
+                done[t] = finish(t, l, untagged)
+                untagged = mutableListOf()
+            }
+        }
+        return tags.map { done.getValue(it) }
+    }
+
     fun login(user: String, password: String) {
         if (capabilities.isEmpty()) ok("CAPABILITY")
         val r = command("LOGIN ${ImapParser.quote(user)} ${ImapParser.quote(password)}")
@@ -238,6 +293,59 @@ object ImapParser {
             k += 2
         }
         return out
+    }
+
+    /** UIDs as a short set: 1, 2, 3, 7 → „1:3,7“ (any order in, ascending ranges out). */
+    fun uidSet(uids: Collection<Long>): String {
+        val sorted = uids.toSortedSet().toList()
+        if (sorted.isEmpty()) return ""
+        val out = StringBuilder()
+        var start = sorted[0]
+        var prev = start
+        fun flush() {
+            if (out.isNotEmpty()) out.append(',')
+            out.append(start)
+            if (prev != start) out.append(':').append(prev)
+        }
+        for (u in sorted.drop(1)) {
+            if (u == prev + 1) prev = u else {
+                flush()
+                start = u
+                prev = u
+            }
+        }
+        flush()
+        return out.toString()
+    }
+
+    /** The UIDs of a set as the server writes it („4:6,9“ → 4, 5, 6, 9), in its order; ranges may run downwards. */
+    fun uids(set: String): List<Long> = set.split(',').filter { it.isNotBlank() }.flatMap { part ->
+        val a = part.substringBefore(':').trim().toLongOrNull() ?: return@flatMap emptyList()
+        val b = part.substringAfter(':', "").trim().toLongOrNull() ?: return@flatMap listOf(a)
+        if (a <= b) (a..b).toList() else (a downTo b).toList()
+    }
+
+    /**
+     * How many attachments a BODYSTRUCTURE shows: parts with disposition „attachment“, other non-text parts with a file
+     * name, and forwarded messages – the same parts the mail's text lists as „Anhänge“ (MailText).
+     */
+    fun attachmentCount(structure: Any?, depth: Int = 0): Int {
+        val l = structure as? List<*> ?: return 0
+        if (depth > 12) return 0
+        // Multipart: its parts (lists) come first, then the subtype.
+        if (l.firstOrNull() is List<*>) return l.takeWhile { it is List<*> }.sumOf { attachmentCount(it, depth + 1) }
+        val type = (l.getOrNull(0) as? String)?.lowercase() ?: return 0
+        val sub = (l.getOrNull(1) as? String)?.lowercase().orEmpty()
+        if (type == "message" && sub == "rfc822") return 1
+        fun named(params: Any?, key: String) = (params as? List<*>)?.chunked(2)?.any { (it.getOrNull(0) as? String)?.lowercase()?.removeSuffix("*") == key } == true
+        // The disposition („attachment“ or „inline“ with its parameters) is in the extension data after the size.
+        val disposition = l.drop(7).filterIsInstance<List<*>>().firstOrNull { (it.firstOrNull() as? String)?.lowercase() in setOf("attachment", "inline") }
+        val kind = (disposition?.firstOrNull() as? String)?.lowercase()
+        return when {
+            kind == "attachment" -> 1
+            type != "text" && (named(l.getOrNull(2), "name") || named(disposition?.getOrNull(1), "filename")) -> 1
+            else -> 0
+        }
     }
 
     // --- Modified UTF-7 of folder names (RFC 3501 5.1.3): „Entw&APw-rfe“ = „Entwürfe“. ---

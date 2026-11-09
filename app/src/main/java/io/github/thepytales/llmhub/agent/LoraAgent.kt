@@ -265,7 +265,7 @@ class LoraAgent(private val c: AppContainer) {
         val tools = TOOLS + actions.map { it.toolDef() } + if (multi) listOf(LoraFlows.TOOL) else emptyList()
         val flowPrompt = if (!multi) "" else "\nMehrschrittige Aufträge planst du mit plan_workflow (der Nutzer startet den Plan selbst). Aktionen (id (Bereich): was | Parameter, ? = optional):\n" +
             LoraFlows.catalog(android) + "\nJeder Schritt arbeitet mit den Dateien des vorigen weiter; lass Dateiparameter dann leer.\n"
-        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions) + flowPrompt))
+        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions) + mailPrompt() + flowPrompt))
         history.takeLast(4).forEach { (q, a) ->
             messages += ChatMessage(role = "user", content = q)
             messages += ChatMessage(role = "assistant", content = a)
@@ -388,6 +388,17 @@ class LoraAgent(private val c: AppContainer) {
             if (questions.isEmpty()) "FEHLER: Keine Frage erkannt." to null else "Die Fragen werden angezeigt." to LoraStep.Ask(questions)
         }
         else -> "FEHLER: Unbekanntes Werkzeug." to null
+    }
+
+    /**
+     * The mails chosen in Mail & Kalender (AP-69), so „diese Mails“ is understood – only how many: subjects, senders and
+     * texts never go to a model off the device (AP-68).
+     */
+    private fun mailPrompt(): String {
+        val chosen = LoraFocus.mails.value?.count ?: 0
+        if (chosen == 0 || !io.github.thepytales.llmhub.ui.LoraHelper.route.value.startsWith("mail")) return ""
+        return "\nIn Mail & Kalender sind $chosen Mails ausgewählt; „diese Mails“ meint diese Auswahl. Was in den Mails steht, " +
+            "bekommst du nicht – Mails liest nur ein Modell auf diesem Gerät.\n"
     }
 
     /** What Lora can do in the open tool (AP-38) and what the user has in front of them. */

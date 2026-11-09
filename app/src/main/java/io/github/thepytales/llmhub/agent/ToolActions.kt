@@ -79,6 +79,12 @@ object LoraFocus {
     /** The document open in the editor. */
     @Volatile
     var docId: String? = null
+
+    /**
+     * The mails chosen in Mail & Kalender (AP-69): ids, how many and subjects, for actions on the device („diese 12
+     * Mails …“). Lora's prompt only gets how many – what is in the mails stays on the device (AP-68).
+     */
+    val mails = kotlinx.coroutines.flow.MutableStateFlow<io.github.thepytales.llmhub.data.MailSelection?>(null)
 }
 
 /** Hooks of the screens for actions that work on what is open there (set by the screens; null when closed). */

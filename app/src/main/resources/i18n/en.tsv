@@ -73,12 +73,14 @@
 (Alle auswählen)	(Select all)
 (dieser PC)	(this PC)
 (Eingabe {0}, Ausgabe {1})	(input {0}, output {1})
+(kein Text)	(no text)
 (Leertaste)	(space bar)
 (geschwärzt)	(redacted)
 (geteilt)	(split)
 (keine Beschreibung)	(no description)
 (klein)	(small)
 (leer)	(empty)
+(ohne Betreff)	(no subject)
 (ohne Text)	(no text)
 (ohne Titel)	(untitled)
 (wie gemerkt)	(as remembered)
@@ -226,6 +228,8 @@ Alias für Reasoning (Denkmodus).	Alias for reasoning (thinking mode).
 Alias für Spracherkennung.	Alias for speech recognition.
 Alias für {0}	Alias for {0}
 Alle	All
+Alle Ordner	All folders
+alle Ordner	all folders
 Alle Seiten als durchsuchbares PDF in Dateien › Scans.	All pages as a searchable PDF in Files › Scans.
 alle	all
 Alle  {0}	All  {0}
@@ -258,6 +262,7 @@ Alle Seiten haben schon Text.	All pages already have text.
 Alle Seiten zu löschen geht nicht.	Deleting all pages is not possible.
 Alle Sitzungen als Kalenderdatei – ohne Feiertage und vorlesungsfreie Zeit	All sessions as a calendar file – without public holidays and lecture-free periods
 Alle Stile sortieren alphabetisch nach Erstautor:in; gleiche Autor:innen und Jahr bekommen a/b. Fehlende Angaben ergänzt die App aus Crossref, der Deutschen Nationalbibliothek, Google Books und OpenAlex.	All styles sort alphabetically by first author; same authors and year get a/b. Missing details are added by the app from Crossref, the German National Library, Google Books and OpenAlex.
+Alle Termine	All appointments
 Alle TU Vorlagen ansehen	Browse all TU templates
 Alle Untertitel entfernen	Remove all subtitles
 Alle Versionen ansehen	View all versions
@@ -309,6 +314,7 @@ Als Excel	As Excel
 Als Excel speichern	Save as Excel
 Als Excel-Datei	As an Excel file
 Als Fließtext	As continuous text
+Als gelesen markieren	Mark as read
 Als GitHub-Issue	As a GitHub issue
 Als JSON exportieren	Export as JSON
 Als Kapitel	As chapter
@@ -330,6 +336,7 @@ Als Tabelle	As a table
 Als Tabelle kopieren	Copy as table
 Als Text teilen	Share as text
 Als Ton auf eine Tonspur	As sound on an audio track
+Als ungelesen markieren	Mark as unread
 Als Verlauf zeigen	Show as history
 Als Vorlage übernehmen	Use as template
 Als Word	As Word
@@ -365,6 +372,7 @@ An – arbeitet in {0}	On – works in {0}
 An – kein festes Repository	On – no fixed repository
 An – ohne festes Repository, das Modell wählt bei Bedarf selbst	On – without a fixed repository, the model chooses itself when needed
 An „{0}“ anhängen, in dieser Reihenfolge:	Append to “{0}”, in this order:
+An: {0}	To: {0}
 Anbieter entfernen	Remove provider
 Andere	Other
 Andere Idee	Another idea
@@ -401,7 +409,9 @@ Angemeldet. Die App hat ein eigenes App-Passwort bekommen.	Signed in. The app re
 Angenommene übernehmen	Apply accepted
 angepasst	adjusted
 Anhalten	Stop
+Anhang	Attachment
 Anheften	Pin
+Anhänge lassen sich in diesem Postfach nicht speichern.	Attachments cannot be saved in this mailbox.
 Anhängen	Attach
 anhängen, in dieser Reihenfolge:	append, in this order:
 Animierte Figur: der Agent arbeitet	Animated figure: the agent is working
@@ -438,6 +448,7 @@ Antwort entwerfen …	Draft a reply …
 Antwort fertig	Answer ready
 Antwort fertig.	Answer ready.
 Antwort im Kommentar	Reply in the comment
+Antwort mit Lora	Reply with Lora
 Antwort nur mit Belegen (Quellenmodus)	Answer with evidence only (sources mode)
 Antwort wird geschrieben …	Writing answer …
 Antwort wird vorgelesen …	Reading the answer aloud …
@@ -741,6 +752,7 @@ besser	fits better
 Bestand der SLUB Dresden mit Ausleihe, E-Books und lizenzierten Zugängen der TU Dresden	Holdings of SLUB Dresden with lending, e-books and licensed access of TU Dresden
 Beste Sprachqualität ohne Grafikkarte: Briefe, Gutachten, Feedback. Für PCs mit 16 GB und neue Handys.	Best language quality without a graphics card: letters, assessments, feedback. For PCs with 16 GB and new phones.
 bestätigt	confirmed
+Betreff	Subject
 Betreff enthält	Subject contains
 Betreuung & Prüfung	Supervision & exams
 Bewertet bzw. klassifiziert Texte; nicht für normale Chats gedacht.	Rates or classifies texts; not meant for normal chats.
@@ -804,6 +816,7 @@ Bildungsforschung (englischsprachig), Zeitschriften und graue Literatur	Educatio
 Bildunterschrift (auch Alternativtext)	Caption (also alternative text)
 Biologie, Medizin, Psychologie und Lebenswissenschaften (PubMed und Preprints), mit Abstracts	Biology, medicine, psychology and life sciences (PubMed and preprints), with abstracts
 bis	to
+bis (TT.MM.JJJJ)	to (DD.MM.YYYY)
 Bis ca. 10 s	Up to approx. 10 s
 Bis ca. 20 s	Up to approx. 20 s
 Bis ca. 45 s	Up to approx. 45 s
@@ -820,6 +833,7 @@ Bitte eine Tabelle öffnen.	Please open a spreadsheet.
 Bitte eine https://-Adresse.	Please use an https:// address.
 Bitte einen Dateinamen eingeben.	Please enter a file name.
 Bitte einen Namen eingeben.	Please enter a name.
+Bitte einen Namen für den Ordner angeben.	Please enter a name for the folder.
 Bitte zuerst den Namen oder das Kürzel der Codierer:in eintragen.	Please enter the coder's name or initials first.
 Bitte zuerst ein Kategoriensystem wählen oder anlegen.	Please choose or create a category system first.
 Bitte zuerst Text markieren.	Please select some text first.
@@ -835,6 +849,8 @@ Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeit
 Breit (2,54 cm)	Wide (2.54 cm)
 Breitbild 16:9	Widescreen 16:9
 Breite	Width
+Breite der Mail-Liste ändern	Change the width of the mail list
+Breite der Ordner ändern	Change the width of the folders
 Brief	Letter
 Brief schreiben	Write a letter
 Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.	Letter, presentation, seminar plan and other templates suggest suitable details below every field – from memory, your sender details, the general knowledge base and what you previously wrote into fields of the same name.
@@ -851,6 +867,7 @@ Buch (Monografie)	Book (monograph)
 Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
+Cc: {0}	Cc: {0}
 Clip {0}: {1}	Clip {0}: {1}
 Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
@@ -1076,6 +1093,10 @@ Dein Startbildschirm unterstützt keine Verknüpfungen.	Your home screen does no
 Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. Chats und Einstellungen bleiben in der App.	Your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) are kept in the app. Choose a folder on the phone, e.g. “Documents/Lora” – then a copy is kept there, and changes made there come back. Chats and settings stay in the app.
 Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
+Den Ordner gibt es auf dem Mailserver nicht mehr.	This folder no longer exists on the mail server.
+Den Posteingang und die festen Ordner (Entwürfe, Gesendet, Papierkorb …) benennt die App nicht um.	The app does not rename the inbox and the fixed folders (Drafts, Sent, Trash …).
+Den Posteingang und die festen Ordner (Entwürfe, Gesendete Elemente, Gelöschte Elemente …) benennt die App nicht um.	The app does not rename the inbox and the fixed folders (Drafts, Sent Items, Deleted Items …).
+Der Ordner heißt schon so.	The folder already has this name.
 Der Ordner ist leer.	The folder is empty.
 Der Scanner antwortet nicht.	The scanner does not respond.
 Details	Details
@@ -1086,7 +1107,15 @@ Diagramm entfernt.	Diagram removed.
 Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Editor.	Diagram with {0} boxes inserted – a click on it opens the diagram editor.
 Diagramm zeichnen	Draw diagram
 Diagramm-Fläche	Diagram area
+Die Mails liegen schon in „{0}“.	The mails are already in “{0}”.
+Die Mails sind schon gelesen.	The mails are already read.
+Die Mails sind schon ungelesen.	The mails are already unread.
 Die Signatur passt nicht – das Dokument wurde nach dem Signieren verändert.	The signature does not match – the document was changed after signing.
+Diese Mail gibt es auf dem Mailserver nicht mehr.	This mail no longer exists on the mail server.
+Diese Mail gibt es nicht mehr (verschoben?).	This mail no longer exists (moved?).
+Diese Woche	This week
+Diesen Anhang gibt es in der Mail nicht.	The mail has no such attachment.
+Dieses Jahr	This year
 Dieses PDF ist nicht digital signiert.	This PDF is not digitally signed.
 den Abschnitt	write the section
 Den Abschnitt „{0}“ finde ich nicht.	I cannot find the section “{0}”.
@@ -1293,6 +1322,7 @@ Dieses Bildformat wird nicht unterstützt (PNG, JPEG, GIF, BMP, TIFF und WebP ge
 Dieses Format (.{0}) kann die App nicht prüfen.	The app cannot check this format (.{0}).
 Dieses Gerät	This device
 Dieses PDF ist ein Scan ohne Text.	This PDF is a scan without text.
+Dieses Postfach kann Mails nicht als gelesen markieren.	This mailbox cannot mark mails as read.
 Dieses Projekt hat die Datenschutzstufe „Nur auf diesem Gerät“. Bitte ein Modell auf diesem Gerät wählen (Einstellungen › Modelle auf diesem Gerät) – {0} läuft auf einem Server.	This project has the privacy level “Only on this device”. Please choose a model on this device (Settings › Models on this device) – {0} runs on a server.
 Dieses Projekt hat die Datenschutzstufe „Nur TU Dresden“. {0} läuft bei einem externen Anbieter – bitte ein Modell des Uni-Servers oder eines auf diesem Gerät wählen.	This project has the privacy level “TU Dresden only”. {0} runs at an external provider – please choose a model of the university server or one on this device.
 Dieses WebP-Bild ließ sich nicht lesen – bitte als PNG oder JPEG speichern (z. B. in Paint über „Speichern unter“).	This WebP image could not be read – please save it as PNG or JPEG (e.g. in Paint via “Save as”).
@@ -1423,7 +1453,10 @@ Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI mac
 Eigene Textbausteine einfügen – auch mit /Name	Insert your own text snippets – also with /name
 Eigene Vorlage	Own template
 Eigene Vorlagen legst du hier an und teilst sie mit Kolleg:innen.	You create your own templates here and share them with colleagues.
+Eigener Zeitraum	Custom period
+Eigener Zeitraum …	Custom period …
 Ein Bild zurück · vor	One frame back · forward
+Ein Ordnername darf kein / und kein \\ enthalten.	A folder name may not contain / or \\.
 Ein PDF zum Bearbeiten öffnen.	Open a PDF for editing.
 Ein Schritt ist fehlgeschlagen	A step failed
 eigene Vorlage	own template
@@ -1459,6 +1492,7 @@ Eine je Zeile: NAME=Wert	One per line: NAME=value
 Eine Umgebung gibt dem Agenten Variablen (z.B. API-Keys für Web-APIs), Hinweise und Regeln für den Internetzugriff. Geheime Werte sieht das Modell nie – es nutzt sie nur als ${NAME} in Web-Anfragen. Alles wird verschlüsselt auf dem Gerät gespeichert. Wähle die Umgebung im Chat über „+“ › Umgebung.	An environment gives the agent variables (e.g. API keys for web APIs), notes and rules for internet access. The model never sees secret values – it only uses them as ${NAME} in web requests. Everything is stored encrypted on the device. Choose the environment in the chat via “+” › Environment.
 Eine eigene Vorlage anlegen.	Create your own template.
 einem PC offen sein. Schließe sie dort (Symbol im Infobereich › Beenden) – dann geht es hier von selbst weiter.	one PC. Close her there (icon in the notification area › Quit) – then it continues here by itself.
+Einen Ordner „{0}“ gibt es dort schon.	There already is a folder “{0}” there.
 Einen Projektordner auf dem Rechner gibt es in der Windows-Version. Auf Android bleiben die Dateien in der App und lassen sich über Teilen oder Speichern unter weitergeben.	A project folder on the computer is available in the Windows version. On Android, the files stay in the app and can be passed on via Share or Save as.
 Eines der leistungsstärksten Modelle im Angebot: komplexes Schlussfolgern, lange Dokumente, agentisches Programmieren. Kein Bildverständnis, etwas langsamer.	One of the most powerful models on offer: complex reasoning, long documents, agentic programming. No image understanding, somewhat slower.
 Einfach erklären	Explain simply
@@ -1548,6 +1582,7 @@ Entwickler: Dominik Töpper, Professur für Allgemeine Didaktik und Empirische U
 Entwirf ein Dokument: 	Draft a document: 
 Entwirf ein Handout zum Thema 	Draft a handout on 
 Entwirf eine Antwort auf die Mail von 	Draft a reply to the mail from 
+Entwirf eine Antwort auf die Mail „{0}“ von {1}.	Draft a reply to the mail “{0}” from {1}.
 Entwirf eine vollständige Präsentation passend zum Titel (8–12 Folien): Titelfolie mit Untertitel und einer Zeile Anlass · Datum, Abschnittsfolien für die Teile, Inhaltsfolien mit höchstens 5 kurzen Stichpunkten, wo es passt auch zwei Spalten, eine Tabelle oder ein Zitat, eine Abschlussfolie; zu jeder Folie Sprechernotizen.	Draft a complete presentation matching the title (8–12 slides): title slide with subtitle and one line occasion · date, section slides for the parts, content slides with at most 5 short bullet points, where it fits also two columns, a table or a quote, a closing slide; speaker notes for every slide.
 Entwirft die Mail {0}	Drafting the mail {0}
 Entwirft eine Mail …	Drafting a mail …
@@ -1857,6 +1892,7 @@ Frist {0} in den Kalender	Deadline {0} to the calendar
 Fristen	Deadlines
 Fristen und Termine aus Mails	Deadlines and appointments from mails
 Fristen, Excel, Literatur unter der letzten Antwort anbieten.	Offer deadlines, Excel, literature under the last answer.
+Früher in diesem Monat	Earlier this month
 Frühere Chats durchsuchen	Search earlier chats
 Frühere Chats einbeziehen	Include earlier chats
 Funktion / Einrichtung	Role / institution
@@ -1932,6 +1968,7 @@ Ganze Präsentation	Whole presentation
 Ganzen Ordner anhängen – Lora darf darin lesen oder auch schreiben	Attach a whole folder – Lora may read in it or also write
 Ganzer Bildschirm	Whole screen
 Ganzes Bild	Full picture
+ganztägig	all day
 Gedächtnis – was Lora über dich weiß	Memory – what Lora knows about you
 Gekürzt auf {0}.	Shortened to {0}.
 ganze Spalten wie Name, Vorname, Schüler/in, Geburtsdatum, Anschrift in Tabellen, CSV und Excel	whole columns such as name, first name, pupil, date of birth, address in tables, CSV and Excel
@@ -2265,6 +2302,7 @@ In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – de
 In Chat senden	Send to chat
 In Chat senden …	Send to chat …
 In Dateien suchen – Namen, Schlagwörter und Inhalt	Search files – names, tags and content
+In den Lora-Ordner speichern	Save to the Lora folder
 In Nextcloud:	In Nextcloud:
 In den Kalender	To the calendar
 In den Papierkorb	Move to trash
@@ -2310,6 +2348,7 @@ In Nextcloud unter Einstellungen › Sicherheit › „Neues App-Passwort erstel
 In Ordner	In folder
 In Ordner „{0}“	Into folder "{0}"
 In Ordner …	In folder …
+In Outlook öffnen	Open in Outlook
 in PDF umgewandelt	converted to PDF
 In PDF umwandeln	Convert to PDF
 In Projekt verschieben	Move to project
@@ -2335,6 +2374,7 @@ In „{0}“ steht kein lesbarer Text.	There is no readable text in “{0}”.
 In „{0}“ wurde keine Sprache erkannt.	No speech was recognized in “{0}”.
 In „{0}“ wurden keine Namen gefunden (eine Spalte Name/Vorname/Nachname oder ein Name je Zeile).	No names were found in “{0}” (a name/first name/last name column or one name per line).
 In- · Out-Punkt setzen (Quelle oder Zeitleiste)	Set In · Out point (source or timeline)
+In: {0}	In: {0}
 Indigo	Indigo
 Infobereich, Autostart, Datenordner	Notification area, autostart, data folder
 Information an Eltern: Wandertag, Klassenfahrt, Elternabend – mit Rückmeldeabschnitt	Information for parents: hiking day, class trip, parents' evening – with reply slip
@@ -2370,16 +2410,23 @@ Issue erstellen	Create issue
 Ist das Dokument für Screenreader nutzbar? – PDF anhängen	Can screen readers use the document? – attach the PDF
 J · K · L	J · K · L
 Je Werkzeug: Ordnung, Formate, Export, Zitierstil	Per tool: order, formats, export, citation style
+Jederzeit	Any time
 Kameraton stumm schalten	Mute the camera sound
 Kapitel für YouTube	Chapters for YouTube
 Kapitel für die YouTube-Beschreibung ({0} Kapitel, im MP4 sind sie immer)	Chapters for the YouTube description ({0} chapters, always in the MP4)
 Kapitel kopieren	Copy chapters
 Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters copied – paste them into the description of the YouTube video.
 Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
+Keine Mails in diesem Ordner.	No mails in this folder.
+Keine Mails passen zur Suche.	No mails match the search.
 Klinge	Blade
 Klinge (B): Klick auf einen Clip schneidet ihn dort.	Blade (B): a click on a clip cuts it there.
+Lange drücken wählt mehrere Mails.	Long press selects several mails.
 Leertaste	Space
 Legt „{0}“ als Bild-in-Bild bei {1} …	Puts "{0}" as picture-in-picture at {1} …
+Letzte Woche	Last week
+Letzter Monat	Last month
+Lora kennt diese Auswahl – im Lora-Panel genügt „diese Mails“. Was in den Mails steht, liest nur ein Modell auf diesem Gerät.	Lora knows this selection – in Lora's panel “these mails” is enough. What the mails say is read only by a model on this device.
 Löschen (mit Magnet: Lücke schließen)	Delete (with the magnet: close the gap)
 Löschen und Lücke immer schließen	Delete and always close the gap
 M	M
@@ -2388,23 +2435,36 @@ Magnet an: Spuren ziehen mit, Lücken schließen sich.	Magnet on: tracks follow,
 Magnet aus.	Magnet off.
 Magnet ein/aus	Magnet on/off
 Magnet-Zeitleiste	Magnetic timeline
+Mail wird geladen …	Loading mail …
+Mails	Mails
+Mails durchsuchen (auch von:… betreff:…)	Search mails (also from:… subject:…)
 Marker	Marker
 Marker bei {0}	Marker at {0}
 Marker setzen	Set a marker
 Marker „{0}“ bei {1}.	Marker "{0}" at {1}.
+Markierung zurückgenommen	Marking undone
 Medienpool	Media pool
+Mit Anhang	With attachment
 Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s	Linked with clip {0} – moves and is trimmed with it. Offset to the source: {1} s
 Mit Clip {0} verknüpft.	Linked with clip {0}.
 Mit dem Bild synchronisieren	Synchronise with the picture
 N	N
 Nah an DaVinci Resolve, damit Umsteigen leichtfällt.	Close to DaVinci Resolve, so switching is easy.
+Neuer Ordner …	New folder …
 Oben links	Top left
+Ohne Datum	Without date
 ohne Notiz	without a note
 Ohne Ordner	No folder
+Ordner lassen sich in diesem Postfach nicht umbenennen.	Folders cannot be renamed in this mailbox.
+Ordner suchen	Search folders
+Ordner „{0}“ angelegt	Folder “{0}” created
+Ordner „{0}“ heißt jetzt „{1}“	Folder “{0}” is now called “{1}”
+Outlook lässt den Ordner nicht umbenennen – gibt es dort schon einen Ordner „{0}“?	Outlook does not let the folder be renamed – is there already a folder “{0}” there?
 platziert	placed
 Pos1 · Ende	Home · End
 Position und Größe	Position and size
 Position und Größe …	Position and size …
+Posteingang	Inbox
 Q	Q
 Q wechselt	Q switches
 Quelle	Source
@@ -2417,33 +2477,46 @@ Schleife	Loop
 Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N).	Edits on V1 move all tracks along, deleting closes the gap, dragging snaps to edges (N).
 Senkrecht	Vertical
 Setzt einen Marker bei {0} …	Sets a marker at {0} …
+Speichern ging nicht.	Saving did not work.
 Spur {0} ausblenden	Hide track {0}
 Spur {0} sperren	Lock track {0}
 Spur {0} stumm	Mute track {0}
 Spuren	Tracks
 Strg+Alt+L	Ctrl+Alt+L
 Strg+Z · Strg+Y	Ctrl+Z · Ctrl+Y
+Strg- oder Umschalt-Klick wählt mehrere; zum Verschieben auf einen Ordner ziehen.	Ctrl or Shift click selects several; drag onto a folder to move.
 Synchronisiert: der Ton liegt {0} s versetzt und ist jetzt mit dem Clip verknüpft.	Synchronised: the sound is offset by {0} s and is now linked with the clip.
 Tastenkürzel im Videoeditor	Keyboard shortcuts of the video editor
 Ton auf eine Tonspur gelegt und verknüpft.	Sound laid onto an audio track and linked.
 Ton auf eine Tonspur legen	Lay the sound onto an audio track
 Trimmen	Trim
 Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte ziehen verschiebt den Inhalt (Slip).	Trim (T): drag at a cut to move it (roll), drag in the middle to move the content (slip).
+Umbenennen …	Rename …
 Umschalt+Entf	Shift+Del
+Ungelesen	Unread
 Unten links	Bottom left
+Unterordner anlegen …	Create subfolder …
+Unterordner ausblenden	Hide subfolders
+Unterordner einblenden	Show subfolders
+Unterordner mit / trennen, z. B. „Lehre/WS 2026-27“. Fehlende Ebenen werden mit angelegt.	Separate subfolders with /, e.g. “Teaching/WS 2026-27”. Missing levels are created too.
 Verknüpfen, wie es liegt	Link as it lies
 Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.	Linked sound on {0} – it moves and is trimmed with the clip.
 Verknüpfung gelöst.	Unlinked.
 Verknüpfung lösen	Unlink
 Video › Bild-in-Bild	Video › Picture-in-picture
+von (TT.MM.JJJJ)	from (DD.MM.YYYY)
 Vorwärts	Forward
 Waagrecht	Horizontal
 Webcam oder zweites Video als Ecke über das Bild legen, auf eigenen Videospuren.	Lay a webcam or a second video over the picture as a corner, on separate video tracks.
+Weitere Filter	More filters
+Weitere Mails laden	Load more mails
 Welches Video oder Bild? Bitte eine Datei auswählen oder nennen.	Which video or picture? Please select or name a file.
 Wieder vergessen.	Forgotten again.
 Windows › Links neben dem Chat öffnen	Windows › Open links beside the chat
 Wird endgültig gelöscht – das lässt sich nicht rückgängig machen.	Is deleted for good – this cannot be undone.
+Wird geladen …	Loading …
 Wo soll der Marker hin?	Where should the marker go?
+Wähle eine Mail aus, um sie hier zu lesen.	Choose a mail to read it here.
 Zeit (s)	Time (s)
 Zeitleiste	Timeline
 Zum Anfang · Ende	To the start · end
@@ -5086,10 +5159,12 @@ Zum Zusammenfügen braucht es mindestens zwei PDFs – bitte auswählen oder nen
 Zuordnung löschen	Delete assignment
 Zuordnungen	Assignments
 Zuordnungen löschen?	Delete assignments?
+Zur Nachverfolgung	Flagged for follow-up
 Zur neuesten Nachricht	To the latest message
 Zur Texterkennung	To text recognition
 Zurück	Back
 Zurück an den alten Ort.	Back in the old place.
+Zurück zur Liste	Back to the list
 Zurückgenommen.	Undone.
 Zurückgesetzt.	Reset.
 Zurückkopieren und neu starten	Copy back and restart
@@ -5138,6 +5213,16 @@ noch kein Bereich	no area yet
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
 {0} Abschnitte · {1}k Zeichen · 	{0} sections · {1}k characters · 
 {0} Abschnitte, identisch codiert: {1} %	{0} sections, coded identically: {1} %
+{0} Mail(s) als gelesen markiert	{0} mail(s) marked as read
+{0} Mail(s) als ungelesen markiert	{0} mail(s) marked as unread
+{0} Mail(s) nach „{1}“	{0} mail(s) to “{1}”
+{0} Mail(s) nach „{1}“ verschoben	{0} mail(s) moved to “{1}”
+{0} Mail(s) verschieben nach …	Move {0} mail(s) to …
+{0} Mail(s) zurückgeschoben	{0} mail(s) moved back
+{0} Mail(s) – auf einen Ordner ziehen	{0} mail(s) – drag onto a folder
+{0} Mails	{0} mails
+{0} Mails ausgewählt	{0} mails selected
+{0} ungelesen	{0} unread
 {0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.	{0} video and {1} audio tracks. On the left of the timeline: lock, mute, hide.
 {0} Zellen ohne überzählige Leerzeichen	{0} cells without extra spaces
 {0} abweichend	{0} differing
@@ -5405,6 +5490,7 @@ noch kein Bereich	no area yet
 „{0}“ gehört zu keinem Modell der Liste.	“{0}” does not belong to any model of the list.
 „{0}“ gelöscht	“{0}” deleted
 „{0}“ gibt es dort schon. Soll sie ersetzt werden?	“{0}” already exists there. Replace it?
+„{0}“ heißt wieder „{1}“	“{0}” is called “{1}” again
 „{0}“ im Papierkorb	“{0}” in the trash
 „{0}“ in Erstellt ({1}).	“{0}” in Created ({1}).
 „{0}“ ist ein fester Ordner und lässt sich nicht umbenennen.	“{0}” is a fixed folder and cannot be renamed.
@@ -5423,9 +5509,12 @@ noch kein Bereich	no area yet
 „{0}“ konnte nicht gelesen werden: {1}	“{0}” could not be read: {1}
 „{0}“ konnte nicht geöffnet werden.	“{0}” could not be opened.
 „{0}“ konnte nicht geöffnet werden: {1}	“{0}” could not be opened: {1}
+„{0}“ liegt jetzt im Lora-Ordner (Hochgeladen).	“{0}” is now in the Lora folder (Uploaded).
 „{0}“ liegt jetzt unter „Hochgeladen“.	“{0}” is now under “Uploaded”.
 „{0}“ ließ sich nicht ablegen: {1}	“{0}” could not be stored: {1}
 „{0}“ ließ sich nicht im Editor öffnen.	“{0}” could not be opened in the editor.
+„{0}“ ließ sich nicht speichern: {1}	“{0}” could not be saved: {1}
+„{0}“ ließ sich nicht öffnen: {1}	“{0}” could not be opened: {1}
 „{0}“ lässt sich danach nicht mehr wiederherstellen.	“{0}” can no longer be restored afterwards.
 „{0}“ lässt sich nicht im Editor öffnen (Word, PowerPoint, Excel, CSV, Markdown und Text gehen).	“{0}” cannot be opened in the editor (Word, PowerPoint, Excel, CSV, Markdown and text work).
 „{0}“ lässt sich nicht in ein PDF umwandeln (Word, Excel, PowerPoint, Bilder, HTML und Text gehen).	“{0}” cannot be converted to PDF (Word, Excel, PowerPoint, images, HTML and text work).
