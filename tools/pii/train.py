@@ -2,6 +2,8 @@
 
     python train.py --basis deepset/gbert-base                  # on the PC (RTX 5080: bf16, some minutes per epoch)
     python train.py --basis deepset/gbert-base --limit 2000     # short trial run (CPU)
+    python train.py --basis deepset/gbert-base --start modelle/gbert-base/best --lr 2e-5 --aus modelle/gbert-base-2
+                                                                # one more round on top of an earlier run
 
 Reads tools/pii/daten/{train,dev}.jsonl (gen.py make). After every epoch the model is measured on the development part
 of the Messkorpus; the best epoch is kept in modelle/<name>/best. At the end it is measured once on the test part,
@@ -72,6 +74,7 @@ def main() -> None:
     ap.add_argument("--max-len", type=int, default=256)
     ap.add_argument("--limit", type=int, default=None, help="nur so viele Trainingsbeispiele (Probelauf)")
     ap.add_argument("--seed", type=int, default=67)
+    ap.add_argument("--start", default=None, help="mit einem schon trainierten Modell weitermachen (Ordner …/best)")
     a = ap.parse_args()
 
     import torch
@@ -87,8 +90,15 @@ def main() -> None:
     print(f"Basismodell {a.basis} auf {device}{' (bf16)' if bf16 else ''}" +
           (f" – {torch.cuda.get_device_name(0)}" if device == "cuda" else ""))
 
-    tok = modell.load_tokenizer(a.basis, a.revision)
-    model = modell.load_model(a.basis, a.revision).to(device)
+    if a.start:  # continue: same base model, weights and tokenizer from the earlier run
+        from transformers import AutoModelForTokenClassification, AutoTokenizer
+
+        tok = AutoTokenizer.from_pretrained(a.start)
+        model = AutoModelForTokenClassification.from_pretrained(a.start).to(device)
+        print(f"weiter mit {a.start}")
+    else:
+        tok = modell.load_tokenizer(a.basis, a.revision)
+        model = modell.load_model(a.basis, a.revision).to(device)
 
     daten = Path(a.daten)
     train = [modell.encode(tok, d["text"], d["spans"], a.max_len) for d in modell.read_jsonl(daten / "train.jsonl", a.limit)]

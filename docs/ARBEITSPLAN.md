@@ -113,7 +113,8 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   ☑ *Erledigt (09.11.2026)*: 517 Beispiele in `tools/pii/messkorpus/` (Prüfteil 174 mit 261 privaten und 121
   öffentlichen Angaben), `PseudonymCorpusTest` misst die Regeln. Ausgangswert der Regeln auf dem Prüfteil: **78,2 %**
   gefunden (Personen 83,9 %, Einrichtungen 90,3 %, Orte 16 %), **9,9 %** der öffentlichen Angaben fälschlich ersetzt
-  (öffentliche Personen 30 %); Einzelheiten in `tools/pii/README.md`.
+  (öffentliche Personen 30 %); Einzelheiten in `tools/pii/README.md`. Offen: der Wert *mit* „Gründlich“ – in der
+  Cloud ließ sich kein lokales Sprachmodell starten; am PC misst ihn der Test mit `PII_GRUENDLICH_URL` (llama-server).
 - **b) Trainingsdaten ohne echte Daten**: Generator in `tools/pii/` (Python, nicht Teil der App). Erfundene Texte nach
   Vorlagen der Textarten aus a), mit erfundenen Namen (Listen aus `Names` und offenen Namenslisten, auch Namen von Familien,
   die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Das **Lehrer-Modell** ist Claude in der
@@ -121,15 +122,25 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   Platzhaltern, der Generator setzt erfundene Namen ein – so stimmen die Beschriftungen genau; die Regeln von
   `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
   im BIO-Schema (`PER`, `EINR`, `ORT`). **Nie echte Interviews, Abgaben oder Mails** im Training.
+  ☑ *Erledigt (09.11.2026)*: 823 Vorlagen in zehn Textarten (`tools/pii/vorlagen/`), `gen.py` erzeugt 30 000 Texte mit
+  zeichengenauen Fundstellen; Wörter aus dem Prüfteil werden nie gezogen, Überschneidungen mit dem Messkorpus meldet
+  `gen.py check`.
 - **c) Training auf dem eigenen PC** (RTX 5080 mit 16 GB Grafikspeicher, 32 GB DDR5): Feintuning eines Encoders mit
   Hugging Face Transformers in bf16, wenige Epochen – Stunden, nicht Tage. Kandidaten werden auf dem Messkorpus verglichen
   und nur genommen, wenn ihre Lizenz MIT oder Apache-2.0 ist (vor dem Start einzeln prüfen): ein deutsches BERT (z. B.
   gbert-base), XLM-RoBERTa-base, GLiNER (multilingual, für personenbezogene Angaben vortrainiert). Hinweis: Grafikkarten der
   RTX-50-Reihe (Blackwell) brauchen PyTorch mit CUDA 12.8 oder neuer. Reicht das Tempo auf dem Handy nicht, wird das Modell
   in ein kleineres mit 6 Schichten destilliert.
+  ◐ *Vorbereitet (09.11.2026)*: `tools/pii/pc.ps1` richtet auf dem PC alles ein und trainiert gbert-base,
+  gelectra-base (beide MIT) und distilbert-base-german-cased (Apache-2.0, 6 Schichten); XLM-RoBERTa fällt wegen der
+  Größe (int8 ≈ 280 MB) heraus, GLiNER wegen des aufwendigen Einbaus. Probelauf in der Cloud auf CPU (gbert-base,
+  1000 Texte, eine Epoche): Prüfteil 96,9 % gefunden (Regeln 78,2 %), 22 ms je Absatz. Für die Kombination gibt es
+  `Pseudonymizer.nameChains`: ohne das Raten von Namen aus häufigen Vornamen, das öffentliche Personen trifft.
 - **d) Export**: ONNX, int8-Quantisierung; das quantisierte Modell darf auf dem Prüfteil höchstens 0,5 Prozentpunkte
   verlieren. Eine **Modellkarte** (Basismodell und Lizenz, Herkunft der Daten, Kennzahlen, Grenzen) kommt mit in die App
   und in die Drittanbieter-Hinweise.
+  ◐ *Vorbereitet*: `tools/pii/export.py` (int8 im Probelauf 110 MB, 0,0 Prozentpunkte Verlust, Modellkarte wird
+  geschrieben).
 - **e) Einbau**: neu `data/PiiModel.kt` (gemeinsam) über die ONNX Runtime, die die App mit sherpa-onnx schon mitbringt;
   Tokenizer (WordPiece bzw. SentencePiece) in Kotlin, Fenster von 512 Token mit Überlappung, Fundstellen als `PiiHit`.
   `Pseudonymizer` nimmt Regeln, Modell und eigene Liste zusammen; der Schalter *Gründlich* unter *Einstellungen ›
