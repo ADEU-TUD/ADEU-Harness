@@ -92,7 +92,7 @@ weiter (das Training der Pseudonymisierung geschieht in einem eigenen Chat). Abh
 **Dringend** – am 09.11.2026 aufgenommen (Rückmeldung des Hauptnutzers zu 1.0.61). AP-68 bis AP-70 kommen vor allem
 anderen, in dieser Reihenfolge; AP-67 (unten) läuft parallel, sein Training geschieht gerade in einem eigenen Chat.
 
-### AP-68 ☐ Postfach nur mit lokalem Modell · M (neu, dringend)
+### AP-68 ◐ Postfach nur mit lokalem Modell · M (neu, dringend)
 **Ziel**: Aus Datenschutzgründen kommt **nur ein Modell auf diesem Gerät** an Mails, Ordner, Termine und Aufgaben – für
 das klassische Outlook (COM) und den Mailserver (IMAP) gleichermaßen. Uni-Server und externe Anbieter (API) sind im
 Postfach **fest gesperrt**, ohne Schalter zum Aufheben. Das lokale Modell darf Ergebnisse an Chats mit API-Modellen
@@ -135,7 +135,7 @@ selbst lesen kann.
 `data/Privacy.kt`, `local/LocalLlm.kt`, `agent/LoraAgent.kt`, `agent/ToolActions.kt`, `agent/LoraPlan.kt`,
 `ui/MailScreen.kt`, Modellwähler, `en.tsv`.
 
-### AP-69 ☐ Postfach: echte Mailansicht und Lora sortiert selbst · L (neu, dringend, nach AP-68)
+### AP-69 ◐ Postfach: echte Mailansicht und Lora sortiert selbst · L (neu, dringend, nach AP-68)
 **Ziel**: Das Postfach zeigt **alle Mails** wie ein Mailprogramm, und Lora **ordnet Mails auf Zuruf selbständig ein** –
 „Geh die Mails der letzten Woche durch und ordne sie in Lehre, Forschung und Verwaltung ein“ – und legt dafür auch **eigene
 Ordner in Outlook** an. Alles mit dem lokalen Modell (AP-68); gelöscht und gesendet wird weiterhin nie.
@@ -176,7 +176,7 @@ eine Vorschau, verschiebt nach einem Klick und lässt sich als Ganzes rückgäng
 `ui/MailScreen.kt` (neu aufgebaut), `agent/OutlookTools.kt`, neu `agent/MailSorter.kt`, `agent/ToolActions.kt`,
 `agent/LoraPlan.kt`.
 
-### AP-70 ☐ Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (D) · L (neu, dringend)
+### AP-70 ◐ Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (D) · L (neu, dringend)
 Rückmeldung zu 1.0.61: Das Bild der Vorschau **zuckt**, die Oberfläche ist **starr** (feste Spaltenbreiten, nichts
 verschieb- oder ausblendbar) und **mäßig übersichtlich**, und beim Überfahren mit der Maus bekommen Knöpfe einen
 **seltsamen Schatten** (grauer Kasten, die Beschriftung von einem hellen Balken verdeckt – gesehen an *Klinge (B)*).
