@@ -265,11 +265,14 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   Größe (int8 ≈ 280 MB) heraus, GLiNER wegen des aufwendigen Einbaus. Probelauf in der Cloud auf CPU (gbert-base,
   1000 Texte, eine Epoche): Prüfteil 96,9 % gefunden (Regeln 78,2 %), 22 ms je Absatz. Für die Kombination gibt es
   `Pseudonymizer.nameChains`: ohne das Raten von Namen aus häufigen Vornamen, das öffentliche Personen trifft.
+  ◐ *Trainiert in der Cloud (09.11.2026, CPU, 3 Epochen)*: **gbert-base** gewählt (Entwicklung 97,4 % / 1,7 %,
+  distilbert 96,8 % / 2,8 %). Prüfteil, wie geplant kombiniert: **99,2 %** der privaten Angaben gefunden, **5,8 %** der
+  öffentlichen fälschlich ersetzt (Ziel ≤ 2 % noch nicht erreicht – vor allem ungesehene öffentliche Personen).
 - **d) Export**: ONNX, int8-Quantisierung; das quantisierte Modell darf auf dem Prüfteil höchstens 0,5 Prozentpunkte
   verlieren. Eine **Modellkarte** (Basismodell und Lizenz, Herkunft der Daten, Kennzahlen, Grenzen) kommt mit in die App
   und in die Drittanbieter-Hinweise.
-  ◐ *Vorbereitet*: `tools/pii/export.py` (int8 im Probelauf 110 MB, 0,0 Prozentpunkte Verlust, Modellkarte wird
-  geschrieben).
+  ◐ *Exportiert*: int8 110 MB, 0,0 Prozentpunkte Verlust, 7,7 ms je Absatz auf der CPU, Modellkarte und Schwelle
+  (`schwelle.json`) liegen bei. Offen: wo die Datei dauerhaft liegt (Offene Frage 9) – im Repo geht es nicht (über 100 MB).
 - **e) Einbau**: neu `data/PiiModel.kt` (gemeinsam) über die ONNX Runtime, die die App mit sherpa-onnx schon mitbringt;
   Tokenizer (WordPiece bzw. SentencePiece) in Kotlin, Fenster von 512 Token mit Überlappung, Fundstellen als `PiiHit`.
   `Pseudonymizer` nimmt Regeln, Modell und eigene Liste zusammen; der Schalter *Gründlich* unter *Einstellungen ›
@@ -1231,8 +1234,8 @@ Wie bisher nur, was dort sinnvoll ist:
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
    wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
 9. **Erkennungsmodell ausliefern** (AP-67): fest in APK und Windows-ZIP (rund 70–120 MB mehr, sofort da, auch offline) oder
-   als Download beim ersten Bedarf wie die Sprachmodelle (kleinere Installation)? Und welches Basismodell – Entscheidung nach
-   dem Vergleich auf dem Messkorpus und der Lizenzprüfung.
+   als Download beim ersten Bedarf wie die Sprachmodelle (kleinere Installation)? Basismodell entschieden (09.11.2026):
+   **gbert-base** (MIT), nach dem Vergleich auf dem Entwicklungsteil.
 
 10. **Lokales Modell fürs Postfach** (AP-68, AP-69): Welches lokale Modell reicht auf den Dienst-PCs ohne Grafikkarte, um
     Mails in vertretbarer Zeit zusammenzufassen und einzuordnen – Qwen 3.5 4B, Gemma 4 E4B oder größer (9B mit

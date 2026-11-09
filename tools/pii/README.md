@@ -134,6 +134,10 @@ aus beiden Teilen des Messkorpus (704), beste Epoche 3, Schwelle 0,9:
 | alle Regeln + Modell (int8) | 99,2 % | 14,9 % | 97,9 % | 9,6 % |
 
 int8: 110 MB, 0,0 Prozentpunkte Verlust gegenüber fp32, **7,7 ms je Absatz** (Median, CPU, 4 Kerne; 95 % unter 12 ms).
+
+**Vergleich auf dem Entwicklungsteil** (wie geplant, nach dem dort die Wahl fällt): `gbert-base` 97,4 % gefunden, 1,7 %
+fälschlich ersetzt; `distilbert-base-german-cased` (3 Epochen, je ≈ 18 min) 96,8 % und 2,8 %. **Gewählt: gbert-base** –
+distilbert wäre halb so groß und doppelt so schnell, aber gbert ist mit 7,7 ms je Absatz schnell genug.
 Das Ziel „98 % gefunden“ ist erreicht, „höchstens 2 % fälschlich ersetzt“ noch nicht: Im Prüfteil sind es vor allem
 öffentliche Personen, die das Modell nie gesehen hat. Ein erster Lauf mit nur einer Epoche und ohne Sperre des
 Entwicklungsteils zeigte, warum die Sperre beider Teile nötig ist: Fehlalarme 2,2 % im Entwicklungsteil, aber 7,4 % im

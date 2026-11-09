@@ -1,0 +1,498 @@
+{
+  "basis": "deepset/gbert-base",
+  "revision": "d50cb1df9660ff2de1af8a5362d322b3d5a1a28a",
+  "daten": 27000,
+  "epochen": [
+    {
+      "epoche": 1,
+      "verlust": 0.1156,
+      "f1_dev": 0.9578,
+      "entwicklung_gefunden": 97.4,
+      "entwicklung_falsch": 2.8,
+      "guete": 91.74,
+      "minuten": 36.1
+    },
+    {
+      "epoche": 2,
+      "verlust": 0.0008,
+      "f1_dev": 0.9743,
+      "entwicklung_gefunden": 97.4,
+      "entwicklung_falsch": 2.8,
+      "guete": 91.74,
+      "minuten": 37.0
+    },
+    {
+      "epoche": 3,
+      "verlust": 0.0002,
+      "f1_dev": 0.9736,
+      "entwicklung_gefunden": 97.7,
+      "entwicklung_falsch": 2.8,
+      "guete": 92.04,
+      "minuten": 74.3
+    }
+  ],
+  "beste_epoche": 3,
+  "schwelle": 0.9,
+  "schwellen_entwicklung": [
+    {
+      "schwelle": 0.3,
+      "gefunden": 97.65,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.4,
+      "gefunden": 97.65,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.5,
+      "gefunden": 97.65,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.6,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.7,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.75,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.8,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.85,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.9,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 1.69
+    },
+    {
+      "schwelle": 0.93,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 1.69
+    },
+    {
+      "schwelle": 0.95,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 1.69
+    },
+    {
+      "schwelle": 0.97,
+      "gefunden": 97.36,
+      "falsch_ersetzt": 1.69
+    }
+  ],
+  "entwicklung_modell": {
+    "gefunden": 97.4,
+    "falsch_ersetzt": 1.1,
+    "je_art_gefunden": {
+      "PER": "287/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "0/7"
+    },
+    "je_art_falsch": {
+      "EINR": "1/33",
+      "OEFF": "0/37",
+      "WORT": "0/32",
+      "AUT": "1/49",
+      "ORT": "0/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "elterngespraech:entwicklung:14",
+        "MUSTER",
+        "0176 23498761"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "mail:entwicklung:8",
+        "MUSTER",
+        "0351 4637 2210"
+      ],
+      [
+        "mail:entwicklung:13",
+        "MUSTER",
+        "pruefungsamt@tu-dresden.de"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "mail:entwicklung:31",
+        "MUSTER",
+        "nadine.schmiedel@gmx.de"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "laura.thiele@mailbox.org"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ],
+      [
+        "tabelle:entwicklung:10",
+        "MUSTER",
+        "0351 8475621"
+      ]
+    ],
+    "falsch": [
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "wissenschaft:entwicklung:12",
+        "AUT",
+        "Fröbel"
+      ]
+    ]
+  },
+  "entwicklung_regeln_und_modell": {
+    "gefunden": 97.9,
+    "falsch_ersetzt": 9.6,
+    "je_art_gefunden": {
+      "PER": "289/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "2/33",
+      "OEFF": "9/37",
+      "WORT": "2/32",
+      "AUT": "4/49",
+      "ORT": "0/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "bericht:entwicklung:5",
+        "AUT",
+        "Paul Maar"
+      ],
+      [
+        "bericht:entwicklung:23",
+        "OEFF",
+        "Frida Kahlo"
+      ],
+      [
+        "bericht:entwicklung:32",
+        "OEFF",
+        "Uwe Steimle"
+      ],
+      [
+        "bericht:entwicklung:38",
+        "OEFF",
+        "Kurt Biedenkopf"
+      ],
+      [
+        "bericht:entwicklung:40",
+        "OEFF",
+        "Hasen Felix"
+      ],
+      [
+        "chat:entwicklung:39",
+        "AUT",
+        "Wolfgang Herrndorf"
+      ],
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "gutachten:entwicklung:33",
+        "AUT",
+        "Thomas Ziehe"
+      ],
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "interview:entwicklung:34",
+        "WORT",
+        "Frank"
+      ],
+      [
+        "wissenschaft:entwicklung:8",
+        "OEFF",
+        "Greta Thunberg"
+      ],
+      [
+        "wissenschaft:entwicklung:10",
+        "OEFF",
+        "Thomas Müller"
+      ],
+      [
+        "wissenschaft:entwicklung:11",
+        "EINR",
+        "Robert Koch-Instituts"
+      ],
+      [
+        "wissenschaft:entwicklung:12",
+        "AUT",
+        "Fröbel"
+      ],
+      [
+        "wissenschaft:entwicklung:16",
+        "OEFF",
+        "Michel aus Lönneberga"
+      ],
+      [
+        "wissenschaft:entwicklung:29",
+        "OEFF",
+        "Hans im Glück"
+      ],
+      [
+        "wissenschaft:entwicklung:45",
+        "OEFF",
+        "Helene Fischer"
+      ]
+    ]
+  },
+  "entwicklung_geplant": {
+    "gefunden": 97.4,
+    "falsch_ersetzt": 1.7,
+    "je_art_gefunden": {
+      "PER": "287/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "1/33",
+      "OEFF": "0/37",
+      "WORT": "1/32",
+      "AUT": "1/49",
+      "ORT": "0/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "wissenschaft:entwicklung:12",
+        "AUT",
+        "Fröbel"
+      ]
+    ]
+  },
+  "pruef_modell": {
+    "gefunden": 99.2,
+    "falsch_ersetzt": 5.0,
+    "je_art_gefunden": {
+      "PER": "205/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "0/4"
+    },
+    "je_art_falsch": {
+      "EINR": "1/19",
+      "ORT": "2/17",
+      "OEFF": "3/23",
+      "AUT": "0/48",
+      "WORT": "0/14"
+    },
+    "sonstige_je_1000": 2.2
+  },
+  "pruef_regeln_und_modell": {
+    "gefunden": 99.2,
+    "falsch_ersetzt": 14.0,
+    "je_art_gefunden": {
+      "PER": "205/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "2/19",
+      "ORT": "3/17",
+      "OEFF": "9/23",
+      "AUT": "2/48",
+      "WORT": "1/14"
+    },
+    "sonstige_je_1000": 3.5
+  },
+  "pruef_geplant": {
+    "gefunden": 99.2,
+    "falsch_ersetzt": 5.8,
+    "je_art_gefunden": {
+      "PER": "205/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "1/19",
+      "ORT": "3/17",
+      "OEFF": "3/23",
+      "AUT": "0/48",
+      "WORT": "0/14"
+    },
+    "sonstige_je_1000": 3.5
+  }
+}

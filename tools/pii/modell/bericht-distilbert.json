@@ -1,0 +1,553 @@
+{
+  "basis": "distilbert/distilbert-base-german-cased",
+  "revision": "6f96562de9886779ce7d48810dff8f5c4afb6d0b",
+  "daten": 27000,
+  "epochen": [
+    {
+      "epoche": 1,
+      "verlust": 0.1536,
+      "f1_dev": 0.9544,
+      "entwicklung_gefunden": 96.8,
+      "entwicklung_falsch": 2.8,
+      "guete": 91.16,
+      "minuten": 17.5
+    },
+    {
+      "epoche": 2,
+      "verlust": 0.0016,
+      "f1_dev": 0.9612,
+      "entwicklung_gefunden": 96.5,
+      "entwicklung_falsch": 3.9,
+      "guete": 88.62,
+      "minuten": 35.1
+    },
+    {
+      "epoche": 3,
+      "verlust": 0.0006,
+      "f1_dev": 0.9623,
+      "entwicklung_gefunden": 95.9,
+      "entwicklung_falsch": 2.8,
+      "guete": 90.28,
+      "minuten": 52.7
+    }
+  ],
+  "beste_epoche": 1,
+  "schwelle": 0.3,
+  "schwellen_entwicklung": [
+    {
+      "schwelle": 0.3,
+      "gefunden": 96.77,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.4,
+      "gefunden": 96.77,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.5,
+      "gefunden": 96.77,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.6,
+      "gefunden": 96.19,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.7,
+      "gefunden": 95.6,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.75,
+      "gefunden": 95.6,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.8,
+      "gefunden": 95.31,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.85,
+      "gefunden": 95.01,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.9,
+      "gefunden": 93.84,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.93,
+      "gefunden": 93.55,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.95,
+      "gefunden": 93.26,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.97,
+      "gefunden": 92.96,
+      "falsch_ersetzt": 2.25
+    }
+  ],
+  "entwicklung_modell": {
+    "gefunden": 96.8,
+    "falsch_ersetzt": 2.8,
+    "je_art_gefunden": {
+      "PER": "285/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "0/7"
+    },
+    "je_art_falsch": {
+      "EINR": "1/33",
+      "OEFF": "1/37",
+      "WORT": "0/32",
+      "AUT": "1/49",
+      "ORT": "2/27"
+    },
+    "sonstige_je_1000": 3.7,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "chat:entwicklung:38",
+        "PER",
+        "Wiktoria Bondarchuk"
+      ],
+      [
+        "elterngespraech:entwicklung:14",
+        "MUSTER",
+        "0176 23498761"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Riesa"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Großenhain"
+      ],
+      [
+        "interview:entwicklung:20",
+        "PER",
+        "Petra Leuschner"
+      ],
+      [
+        "mail:entwicklung:8",
+        "MUSTER",
+        "0351 4637 2210"
+      ],
+      [
+        "mail:entwicklung:13",
+        "MUSTER",
+        "pruefungsamt@tu-dresden.de"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "mail:entwicklung:31",
+        "MUSTER",
+        "nadine.schmiedel@gmx.de"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "laura.thiele@mailbox.org"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ],
+      [
+        "tabelle:entwicklung:10",
+        "MUSTER",
+        "0351 8475621"
+      ]
+    ],
+    "falsch": [
+      [
+        "bericht:entwicklung:32",
+        "OEFF",
+        "Uwe Steimle"
+      ],
+      [
+        "bericht:entwicklung:36",
+        "AUT",
+        "Cornelia Funke"
+      ],
+      [
+        "interview:entwicklung:23",
+        "ORT",
+        "Breslau"
+      ],
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ]
+    ]
+  },
+  "entwicklung_regeln_und_modell": {
+    "gefunden": 97.9,
+    "falsch_ersetzt": 10.7,
+    "je_art_gefunden": {
+      "PER": "289/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "2/33",
+      "OEFF": "9/37",
+      "WORT": "2/32",
+      "AUT": "4/49",
+      "ORT": "2/27"
+    },
+    "sonstige_je_1000": 3.7,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Riesa"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Großenhain"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "bericht:entwicklung:5",
+        "AUT",
+        "Paul Maar"
+      ],
+      [
+        "bericht:entwicklung:23",
+        "OEFF",
+        "Frida Kahlo"
+      ],
+      [
+        "bericht:entwicklung:32",
+        "OEFF",
+        "Uwe Steimle"
+      ],
+      [
+        "bericht:entwicklung:36",
+        "AUT",
+        "Cornelia Funke"
+      ],
+      [
+        "bericht:entwicklung:38",
+        "OEFF",
+        "Kurt Biedenkopf"
+      ],
+      [
+        "bericht:entwicklung:40",
+        "OEFF",
+        "Hasen Felix"
+      ],
+      [
+        "chat:entwicklung:39",
+        "AUT",
+        "Wolfgang Herrndorf"
+      ],
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "gutachten:entwicklung:33",
+        "AUT",
+        "Thomas Ziehe"
+      ],
+      [
+        "interview:entwicklung:23",
+        "ORT",
+        "Breslau"
+      ],
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "interview:entwicklung:34",
+        "WORT",
+        "Frank"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ],
+      [
+        "wissenschaft:entwicklung:8",
+        "OEFF",
+        "Greta Thunberg"
+      ],
+      [
+        "wissenschaft:entwicklung:10",
+        "OEFF",
+        "Thomas Müller"
+      ],
+      [
+        "wissenschaft:entwicklung:11",
+        "EINR",
+        "Robert Koch-Instituts"
+      ],
+      [
+        "wissenschaft:entwicklung:16",
+        "OEFF",
+        "Michel aus Lönneberga"
+      ],
+      [
+        "wissenschaft:entwicklung:29",
+        "OEFF",
+        "Hans im Glück"
+      ],
+      [
+        "wissenschaft:entwicklung:45",
+        "OEFF",
+        "Helene Fischer"
+      ]
+    ]
+  },
+  "entwicklung_geplant": {
+    "gefunden": 96.8,
+    "falsch_ersetzt": 2.8,
+    "je_art_gefunden": {
+      "PER": "285/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "1/33",
+      "OEFF": "1/37",
+      "WORT": "1/32",
+      "AUT": "0/49",
+      "ORT": "2/27"
+    },
+    "sonstige_je_1000": 3.7,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "chat:entwicklung:38",
+        "PER",
+        "Wiktoria Bondarchuk"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Riesa"
+      ],
+      [
+        "gutachten:entwicklung:23",
+        "ORT",
+        "Großenhain"
+      ],
+      [
+        "interview:entwicklung:20",
+        "PER",
+        "Petra Leuschner"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "bericht:entwicklung:32",
+        "OEFF",
+        "Uwe Steimle"
+      ],
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "interview:entwicklung:23",
+        "ORT",
+        "Breslau"
+      ],
+      [
+        "interview:entwicklung:28",
+        "EINR",
+        "Schwimmhalle Freiberger Platz"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ]
+    ]
+  },
+  "pruef_modell": {
+    "gefunden": 97.7,
+    "falsch_ersetzt": 7.4,
+    "je_art_gefunden": {
+      "PER": "200/205",
+      "EINR": "31/31",
+      "ORT": "24/25",
+      "MUSTER": "0/4"
+    },
+    "je_art_falsch": {
+      "EINR": "1/19",
+      "ORT": "2/17",
+      "OEFF": "2/23",
+      "AUT": "2/48",
+      "WORT": "2/14"
+    },
+    "sonstige_je_1000": 2.7
+  },
+  "pruef_regeln_und_modell": {
+    "gefunden": 99.2,
+    "falsch_ersetzt": 16.5,
+    "je_art_gefunden": {
+      "PER": "204/205",
+      "EINR": "31/31",
+      "ORT": "24/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "2/19",
+      "ORT": "3/17",
+      "OEFF": "8/23",
+      "AUT": "4/48",
+      "WORT": "3/14"
+    },
+    "sonstige_je_1000": 3.5
+  },
+  "pruef_geplant": {
+    "gefunden": 97.7,
+    "falsch_ersetzt": 7.4,
+    "je_art_gefunden": {
+      "PER": "200/205",
+      "EINR": "31/31",
+      "ORT": "24/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "1/19",
+      "ORT": "3/17",
+      "OEFF": "2/23",
+      "AUT": "1/48",
+      "WORT": "2/14"
+    },
+    "sonstige_je_1000": 3.5
+  }
+}
