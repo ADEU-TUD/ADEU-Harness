@@ -86,16 +86,21 @@ class MailLocalOnlyTest {
     }
 
     private val base = Files.createTempDirectory("adeu-postfach-lokal").toFile()
-    private val c by lazy {
+    private val toolsBefore = ChatModes.enabledTools
+    private val made = lazy {
         if (System.getProperty("adeu.data").isNullOrBlank()) System.setProperty("adeu.data", File(base, "daten").absolutePath)
         Outlook.testBridge = FakeMailbox()
         AppContainer(Context(File(base, "files").apply { mkdirs() }, File(base, "cache").apply { mkdirs() })).also { c ->
             c.settings.update { it.withTool(AppTool.MAIL, true).withTool(AppTool.BATCH, true) }
         }
     }
+    private val c by made
 
     @AfterTest
     fun cleanUp() {
+        // The switched-on tools must not leak into later tests (the settings and the mode list are shared).
+        if (made.isInitialized()) c.settings.update { it.withTool(AppTool.MAIL, false).withTool(AppTool.BATCH, false) }
+        ChatModes.enabledTools = toolsBefore
         Outlook.testBridge = null
         ChatHandoff.pending.value = null
         MailHandoff.pending.value = null
