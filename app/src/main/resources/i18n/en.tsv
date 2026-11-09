@@ -354,11 +354,15 @@ Am schnellsten – auch für sehr lange Dokumente und große Projekte	Fastest �
 Am Wochenende	On weekends
 am {0}	on {0}
 An	On
+An Chat übergeben	Hand over to chat
+An Chat übergeben – erst prüfen	Hand over to chat – check first
+An Chat übergeben …	Hand over to chat …
 An den Abspielkopf	To the playhead
 An die Box anpassen	Fit to box
 An einen Chat übergeben	Hand over to a chat
 An KI	To AI
 An KI senden	Send to AI
+An {0} übergeben	Hand over to {0}
 An · {0}	On · {0}
 An – arbeitet in allen {0} Repositorys	On – works in all {0} repositories
 An – arbeitet in {0}	On – works in {0}
@@ -368,6 +372,7 @@ An „{0}“ anhängen, in dieser Reihenfolge:	Append to “{0}”, in this orde
 Anbieter entfernen	Remove provider
 Andere	Other
 Andere Idee	Another idea
+Andere Modelle …	Other models …
 Andere Schreibweisen	Other spellings
 Anderen Lora-Ordner wählen …	Choose another Lora folder …
 Anderen Ordner wählen …	Choose another folder …
@@ -519,6 +524,7 @@ Auf diesem Gerät	On this device
 Auf diesem Gerät gibt es keine eingebaute Texterkennung.	There is no built-in text recognition on this device.
 Auf diesem Gerät gibt es noch keine PIN für den Tresor (z. B. nach dem Sync von einem anderen Gerät oder nach einer Neuinstallation). Setze sie einmal mit dem Wiederherstellungsschlüssel – die PIN der anderen Geräte bleibt.	This device has no PIN for the vault yet (e.g. after syncing from another device or after reinstalling). Set it once with the recovery key – the PIN of the other devices stays.
 Auf diesem Gerät ist keine Sprachausgabe verfügbar.	No speech output is available on this device.
+Auf diesem Gerät laufen keine lokalen Modelle – das Postfach bleibt ohne KI; Ansicht, Regeln und Protokoll gehen weiter.	Local models do not run on this device – the mailbox stays without AI; the view, rules and log keep working.
 Auf diesem Gerät nicht verfügbar.	Not available on this device.
 Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs mit Apple-Chip und Linux-PCs mit x64).	Local models are not available on this device (only Android phones with 64-bit ARM, Windows PCs, Macs with Apple chips and Linux PCs with x64).
 Auf diesem Gerät – vertraulich und offline	On this device – confidential and offline
@@ -558,6 +564,8 @@ Aufräumen	Tidy up
 Auftrag für jede Datei	Instruction for every file
 Aufzählung	Bulleted list
 Aus	Off
+Aus Datenschutzgründen liest nur ein Sprachmodell auf diesem Gerät Mails, Ordner, Termine und Aufgaben. Der Uni-Server und externe Anbieter haben keinen Zugriff auf das Postfach – auch nicht auf Wunsch. Ergebnisse des lokalen Modells lassen sich nach Prüfung an einen Chat übergeben.	For data protection reasons, only a language model on this device reads mails, folders, appointments and tasks. The university server and external providers have no access to the mailbox – not even on request. Results of the local model can be handed over to a chat after checking.
+Aus dem Postfach, geprüft	From the mailbox, checked
 Aus Fotos	From photos
 aus	off
 Aus Datei übernehmen …	Take over from file …
@@ -852,6 +860,8 @@ Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
 Clip {0}: {1}	Clip {0}: {1}
+Dafür braucht es ein Modell auf diesem Gerät.	This needs a model on this device.
+Das übernimmt das Modell auf diesem Gerät im Postfach – ich lese keine Mails.	The model on this device takes care of this in the mailbox – I do not read mails.
 Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
 Chat	Chat
@@ -1078,6 +1088,7 @@ Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
 Der Ordner ist leer.	The folder is empty.
 Der Scanner antwortet nicht.	The scanner does not respond.
+Der Uni-Server und externe Anbieter haben keinen Zugriff auf das Postfach – auch nicht auf Wunsch.	The university server and external providers have no access to the mailbox – not even on request.
 Details	Details
 Details ausblenden	Hide details
 Details einblenden	Show details
@@ -1086,6 +1097,7 @@ Diagramm entfernt.	Diagram removed.
 Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Editor.	Diagram with {0} boxes inserted – a click on it opens the diagram editor.
 Diagramm zeichnen	Draw diagram
 Diagramm-Fläche	Diagram area
+Die Karte zum Prüfen ist offen: Nur dieser Text geht an den Chat.	The card for checking is open: only this text goes to the chat.
 Die Signatur passt nicht – das Dokument wurde nach dem Signieren verändert.	The signature does not match – the document was changed after signing.
 Dieses PDF ist nicht digital signiert.	This PDF is not digitally signed.
 den Abschnitt	write the section
@@ -1424,6 +1436,7 @@ Eigene Textbausteine einfügen – auch mit /Name	Insert your own text snippets 
 Eigene Vorlage	Own template
 Eigene Vorlagen legst du hier an und teilst sie mit Kolleg:innen.	You create your own templates here and share them with colleagues.
 Ein Bild zurück · vor	One frame back · forward
+Ein Modell auf diesem Gerät arbeitet mit deinem Postfach: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden.	A model on this device works with your mailbox: summarize what matters, sort, answers as drafts, enter appointments and tasks, find free times – never delete, never send.
 Ein PDF zum Bearbeiten öffnen.	Open a PDF for editing.
 Ein Schritt ist fehlgeschlagen	A step failed
 eigene Vorlage	own template
@@ -1885,6 +1898,7 @@ Füllt das Feld „Absender“ in Brief- und E-Mail-Vorlagen automatisch aus.	Fi
 Füllt {0} Zellen …	Filling {0} cells …
 Füllung	Fill
 Füllwörter entfernen ({0})	Remove filler words ({0})
+Für das Postfach braucht es ein Modell auf diesem Gerät – unter Einstellungen › Modelle auf diesem Gerät eins laden.	The mailbox needs a model on this device – download one under Settings › Models on this device.
 Für PDFs ohne Tags: Überschriften (nach Schriftgröße), Absätze, Listen und Abbildungen werden ausgezeichnet, Linien und Seitenzahlen als Dekoration. Tabellen erkennt Lora noch nicht – sie werden zu Absätzen.	For PDFs without tags: headings (by font size), paragraphs, lists and figures are tagged, lines and page numbers as decoration. Lora does not recognise tables yet – they become paragraphs.
 Für alle Chats	For all chats
 Für alle Chats: Einstellungen › Chat & Werkzeuge › Freigaben.	For all chats: Settings › Chat & tools › Approvals.
@@ -2237,6 +2251,7 @@ Im Ordner zeigen	Show in folder
 Im PDF suchen	Search in the PDF
 Im PDF-Werkzeugkasten bearbeiten	Edit in the PDF toolbox
 Im PDF-Werkzeugkasten öffnen	Open in the PDF toolbox
+Im Postfach arbeitet nur ein Modell auf diesem Gerät – {0} läuft auf einem Server. Bitte ein Modell auf diesem Gerät wählen (Einstellungen › Modelle auf diesem Gerät). Ergebnisse lassen sich danach mit „An Chat übergeben“ weitergeben.	Only a model on this device works in the mailbox – {0} runs on a server. Please choose a model on this device (Settings › Models on this device). Results can then be passed on with “Hand over to chat”.
 Im Quellenmodus: Jede Aussage bekommt die Seite und ein Zitat, die App prüft jedes Zitat gegen das PDF; ein Klick öffnet die Stelle hier.	In source mode: every statement gets the page and a quote, the app checks every quote against the PDF; a click opens the passage here.
 Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“).	Create a key in the self-service portal of TU Dresden under “ScaDS.AI LLM” (starts with “sk-”).
 Im Transkript passt nichts zu den Clips.	Nothing in the transcript matches the clips.
@@ -2265,6 +2280,7 @@ In Bildern, Fotos und gescannten Seiten kann die App keine Namen ersetzen – de
 In Chat senden	Send to chat
 In Chat senden …	Send to chat …
 In Dateien suchen – Namen, Schlagwörter und Inhalt	Search files – names, tags and content
+In diesem Chat gibt es noch keine Antwort des Modells auf diesem Gerät, die ich weitergeben könnte.	This chat has no answer of the model on this device yet that I could pass on.
 In Nextcloud:	In Nextcloud:
 In den Kalender	To the calendar
 In den Papierkorb	Move to trash
@@ -2380,6 +2396,8 @@ Klinge	Blade
 Klinge (B): Klick auf einen Clip schneidet ihn dort.	Blade (B): a click on a clip cuts it there.
 Leertaste	Space
 Legt „{0}“ als Bild-in-Bild bei {1} …	Puts "{0}" as picture-in-picture at {1} …
+läuft auf diesem Gerät	runs on this device
+Läuft im Postfach mit {0}.	Running in the mailbox with {0}.
 Löschen (mit Magnet: Lücke schließen)	Delete (with the magnet: close the gap)
 Löschen und Lücke immer schließen	Delete and always close the gap
 M	M
@@ -2388,6 +2406,11 @@ Magnet an: Spuren ziehen mit, Lücken schließen sich.	Magnet on: tracks follow,
 Magnet aus.	Magnet off.
 Magnet ein/aus	Magnet on/off
 Magnet-Zeitleiste	Magnetic timeline
+Mail & Kalender und der Modus „Postfach“: Mails, Ordner, Termine und Aufgaben liest nur ein Modell auf diesem Gerät – der Uni-Server und externe Anbieter sind dort gesperrt, ohne Schalter. Fehlt ein lokales Modell, bietet das Postfach ein passendes zum Herunterladen an. Ergebnisse gibst du mit „An Chat übergeben“ weiter: erst prüfen, dann geht nur dieser Text hinaus.	Mail & Calendar and the “Mailbox” mode: mails, folders, appointments and tasks are read only by a model on this device – the university server and external providers are blocked there, without a switch. Without a local model, the mailbox offers a suitable one to download. You pass on results with “Hand over to chat”: check first, then only this text goes out.
+Mails liest nur ein Modell auf diesem Gerät – {0} läuft auf einem Server.	Only a model on this device reads mails – {0} runs on a server.
+Mails verlassen den PC nicht – ein Modell auf diesem Gerät liest sie.	Mails do not leave the PC – a model on this device reads them.
+Mails, Ordner, Termine und Aufgaben (klassisches Outlook und Mailserver) liest nur ein Modell auf diesem Gerät. Der Uni-Server und externe Anbieter sind im Postfach fest gesperrt – dafür gibt es keinen Schalter. Ergebnisse des lokalen Modells gehen nur über „An Chat übergeben“ weiter: erst als Karte zum Prüfen, pseudonymisiert, ohne Mails, Anhänge und Mail-Kennungen. Aus Postfach-Chats lernt das Gedächtnis nichts.	Mails, folders, appointments and tasks (classic Outlook and mail server) are read only by a model on this device. The university server and external providers are firmly blocked from the mailbox – there is no switch for this. Results of the local model only go on via “Hand over to chat”: first as a card to check, pseudonymized, without mails, attachments and mail IDs. The memory learns nothing from mailbox chats.
+Mails, Termine und Aufgaben gehen nicht an {0}: Ins Postfach darf nur ein Modell auf diesem Gerät.	Mails, appointments and tasks do not go to {0}: only a model on this device may access the mailbox.
 Marker	Marker
 Marker bei {0}	Marker at {0}
 Marker setzen	Set a marker
@@ -2396,15 +2419,23 @@ Medienpool	Media pool
 Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s	Linked with clip {0} – moves and is trimmed with it. Offset to the source: {1} s
 Mit Clip {0} verknüpft.	Linked with clip {0}.
 Mit dem Bild synchronisieren	Synchronise with the picture
+Modelle auf diesem Gerät …	Models on this device …
 N	N
+Nach einem Schritt im Postfach arbeitet nur ein Modell auf diesem Gerät weiter – dieser Schritt würde Inhalte an einen Server schicken.	After a step in the mailbox only a model on this device carries on – this step would send content to a server.
 Nah an DaVinci Resolve, damit Umsteigen leichtfällt.	Close to DaVinci Resolve, so switching is easy.
+Nur dieser Text geht an {0} – geschrieben vom Modell auf diesem Gerät, Namen pseudonymisiert, ohne Mails, Anhänge und Mail-Kennungen. Der neue Chat kann nicht ins Postfach greifen. Prüfe und ändere ihn vorher.	Only this text goes to {0} – written by the model on this device, names pseudonymized, without mails, attachments and mail IDs. The new chat cannot reach into the mailbox. Check and change it first.
 Oben links	Top left
 ohne Notiz	without a note
 Ohne Ordner	No folder
+Passend für diesen PC mit Grafikkarte: {0} – nutzt Werkzeuge und fasst auch viele Mails zügig zusammen.	Suits this PC with a graphics card: {0} – uses tools and summarizes even many mails quickly.
+Passend für diesen PC ohne Grafikkarte: {0} – läuft auf dem Prozessor und nutzt Werkzeuge.	Suits this PC without a graphics card: {0} – runs on the processor and uses tools.
 platziert	placed
 Pos1 · Ende	Home · End
 Position und Größe	Position and size
 Position und Größe …	Position and size …
+Postfach-Chat: nur Modelle auf diesem Gerät	Mailbox chat: only models on this device
+Postfach: {0}	Mailbox: {0}
+Prüf den Text, dann gebe ich ihn weiter.	Check the text, then I will pass it on.
 Q	Q
 Q wechselt	Q switches
 Quelle	Source
@@ -2425,6 +2456,7 @@ Strg+Alt+L	Ctrl+Alt+L
 Strg+Z · Strg+Y	Ctrl+Z · Ctrl+Y
 Synchronisiert: der Ton liegt {0} s versetzt und ist jetzt mit dem Clip verknüpft.	Synchronised: the sound is offset by {0} s and is now linked with the clip.
 Tastenkürzel im Videoeditor	Keyboard shortcuts of the video editor
+Text für den Chat	Text for the chat
 Ton auf eine Tonspur gelegt und verknüpft.	Sound laid onto an audio track and linked.
 Ton auf eine Tonspur legen	Lay the sound onto an audio track
 Trimmen	Trim
@@ -2864,7 +2896,6 @@ Lokales Programm	Local program
 Lora	Lora
 Lora als Helferin	Lora as a helper
 Lora antippen	Tap Lora
-Lora arbeitet mit deinem klassischen Outlook: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden.	Lora works with your classic Outlook: summarize what matters, sort, draft replies, add appointments and tasks, find free time – never deletes, never sends.
 Lora arbeitet nur im Chat mit. Ihr Panel öffnest du weiter mit Strg+L, über den Knopf oben im Chat oder Strg+K › „Lora fragen“.	Lora only helps in the chat. You can still open her panel with Ctrl+L, via the button at the top of the chat or Ctrl+K › “Ask Lora”.
 Lora ausblenden	Hide Lora
 Lora bei der Arbeit	Lora at work
@@ -2995,7 +3026,6 @@ Mail lesen	Read mail
 Mail über den Server	Mail via the server
 Mail über den Server ist noch nicht eingerichtet (Einstellungen › Verbindungen).	Mail via the server is not set up yet (Settings › Connections).
 Mail-Ordner anlegen	Create mail folder
-Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert.	Mails and appointments are read on the PC and go to the selected model, names pseudonymized.
 Mails verschieben	Move mails
 Mailserver statt Outlook	Mail server instead of Outlook
 Manuelles Codieren nach einem Kategoriensystem (z.B. inhaltlich-strukturierende Inhaltsanalyse). Die Codierungen bleiben im Transkript gespeichert.	Manual coding with a category system (e.g. content-structuring content analysis). The codings are saved in the transcript.
@@ -5099,6 +5129,7 @@ Zusammenfassen	Summarize
 Zusammenfassen, überarbeiten, übersetzen, erklären	Summarize, revise, translate, explain
 Zusammenfassung	Summary
 Zusammenfassung oben	Summary at the top
+Zusammenfassungen und Entwürfe lassen sich danach mit „An Chat übergeben“ an ein anderes Modell weitergeben – erst nach deiner Prüfung, pseudonymisiert und ohne die Mails selbst.	Summaries and drafts can then be passed on to another model with “Hand over to chat” – only after you have checked them, pseudonymized and without the mails themselves.
 Zusammenfügen	Merge
 Zusammenführen mit (falls doppelt erkannt)	Merge with (if recognized twice)
 Zuschneiden	Crop
@@ -5138,7 +5169,11 @@ noch kein Bereich	no area yet
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
 {0} Abschnitte · {1}k Zeichen · 	{0} sections · {1}k characters · 
 {0} Abschnitte, identisch codiert: {1} %	{0} sections, coded identically: {1} %
+{0} ist geladen und liest die Mails	{0} is loaded and reads the mails
+{0} laden ({1})	Download {0} ({1})
+{0} liest die Mails	{0} reads the mails
 {0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.	{0} video and {1} audio tracks. On the left of the timeline: lock, mute, hide.
+{0} wird heruntergeladen … {1} %	Downloading {0} … {1} %
 {0} Zellen ohne überzählige Leerzeichen	{0} cells without extra spaces
 {0} abweichend	{0} differing
 {0} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …	Searching {0} reference(s) at Crossref, OpenAlex and Google Books …

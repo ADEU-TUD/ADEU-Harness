@@ -139,6 +139,8 @@ fun MailScreen(c: AppContainer, onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item { StatusCard(state, onRetry = { attempt++ }) }
+                // AP-68: only a model on this device reads the mails (data note, model, download offer).
+                item { MailLocalModelCard(c) }
                 item {
                     AppCard {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
