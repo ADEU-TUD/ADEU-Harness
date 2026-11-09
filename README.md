@@ -454,9 +454,16 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   schaltet um). Zusätzlich erkannt: seltene Nachnamen nach einem Vornamen, Schulen und Kitas („Grundschule am Park“,
   „Goethe-Gymnasium“) und Orte in Personenbeschreibungen („die Schulleiterin in Pirna“). In der Vorschau und im
   Agent-Protokoll korrigiert ein Tipp – „nicht ersetzen“ bzw. „auch ersetzen“ –, und das gilt ab dem nächsten Chat.
-  Wahlweise liest ein **lokales Erkennungsmodell** jeden Text einmal und findet, was die Regeln übersehen (schneller ↔
-  gründlicher, nichts verlässt das Gerät). Die Testsammlung `PseudonymCorpusTest` misst, wie viele private Namen ersetzt
-  und wie viele öffentliche erhalten bleiben.
+  **Eigenes Erkennungsmodell** (seit 1.0.64, AP-67): Ein kleines deutsches Modell (gbert-base, MIT-Lizenz, auf
+  erfundenen Texten trainiert) findet Namen, Schulen, Kitas und Orte auch ohne Anrede oder bekannte Vornamen, in wenigen
+  Millisekunden je Absatz auf dem Gerät. Es kommt als Download (72 MB) – angeboten in einem Popup beim ersten
+  Pseudonymisieren oder beim Öffnen von *Einstellungen › Datenschutz* („Laden“, „Später“, „Nicht mehr fragen“), dort auch
+  mit Schalter, Fortschritt, Modellkarte und *Löschen*. Mit dem Modell raten die Regeln keine Namen mehr aus häufigen
+  Vornamen (die öffentliche Personen wie „Käthe Kollwitz“ trafen); feste Muster, Anrede, Rollen, Grüße, Tabellen und die
+  eigene Liste bleiben. Auf dem Messkorpus (`tools/pii`, 517 erfundene Beispiele, Prüfteil nie im Training) findet die
+  App so **99,2 %** statt 78,2 % der privaten Angaben und ersetzt 7,4 % statt 9,9 % der öffentlichen. Ohne Modell
+  arbeiten die Regeln wie bisher. Zusätzlich kann wie bisher ein **lokales Sprachmodell** jeden Text einmal lesen
+  (*Gründlich*, langsamer). `PseudonymCorpusTest` und `PiiModelTest` messen beides.
 - **Quellen-Check**: Das Modell prüft Literaturangaben mit `check_references` gegen Crossref, OpenAlex und Google Books,
   bevor es sie nennt (bestätigt, Angaben weichen ab, nicht gefunden). An jeder Antwort steht unter „⋯“ *Quellen prüfen* –
   ohne Modell, direkt bei Crossref. Vorlage *Forschung › Literaturangaben prüfen* für ganze Literaturverzeichnisse.
@@ -1670,6 +1677,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
+| `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Erkennungsmodell der Pseudonymisierung (AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |
 | `docs/AccessibilityCheck.kt`, `docs/PdfAccessibility.kt`, `docs/Contrast.kt` | Barrierefreiheit prüfen, PDF-Metadaten, Farbkontrast |
