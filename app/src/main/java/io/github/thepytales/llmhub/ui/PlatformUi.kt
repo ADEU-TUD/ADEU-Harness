@@ -18,7 +18,8 @@ import androidx.compose.ui.Modifier
 fun Modifier.secondaryClick(action: () -> Unit): Modifier = this
 
 /** Android: no pointer to change; the desktop version shows the resize cursor (PanelResizer). */
-fun Modifier.resizeCursor(): Modifier = this
+@Suppress("UNUSED_PARAMETER")
+fun Modifier.resizeCursor(vertical: Boolean = false): Modifier = this
 
 /** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
 const val IS_ANDROID = true

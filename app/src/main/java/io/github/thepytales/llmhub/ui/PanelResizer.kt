@@ -17,6 +17,8 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,8 +42,9 @@ import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 
 /**
- * A width the user drags (side menu, Lora's panel, browser beside the chat), remembered between starts (ui_state).
- * [limit] is the share of the window the layout allows, so the screen in the middle keeps its room on small windows.
+ * A width the user drags (side menu, Lora's panel, browser beside the chat), remembered between starts (ui_state); also
+ * a height (the timeline of the video editor, AP-70). [limit] is the share of the window the layout allows, so the
+ * screen in the middle keeps its room on small windows.
  */
 class PanelWidth internal constructor(
     private val prefs: SharedPreferences,
@@ -55,6 +58,9 @@ class PanelWidth internal constructor(
 
     /** The width to show. */
     val value: Dp get() = stored.coerceAtMost(limit).coerceAtLeast(min)
+
+    /** The width the user chose, before [limit]. */
+    val wanted: Dp get() = stored
 
     fun drag(delta: Dp) {
         stored = (value + delta).coerceIn(min, max.coerceAtMost(limit).coerceAtLeast(min))
@@ -101,10 +107,11 @@ private val HANDLE_WIDTH = 10.dp
  * small grip in the middle; while the pointer is on it or it is dragged, both turn into the brand colour. Dragging
  * changes [width] – [panelLeft]: the panel lies left of the line (side menu), else right of it (Lora, browser) – and a
  * double click puts the width back. The strip has the background of the app, so there is no light gap between the
- * panels; its line sits at the edge of the panel.
+ * panels; its line sits at the edge of the panel. A [vertical] resizer lies between areas one above the other (the
+ * timeline of the video editor, AP-70): [width] is then a height, and [panelLeft] means the panel lies above the line.
  */
 @Composable
-fun PanelResizer(width: PanelWidth, panelLeft: Boolean, label: String) {
+fun PanelResizer(width: PanelWidth, panelLeft: Boolean, label: String, vertical: Boolean = false) {
     val density = LocalDensity.current
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
@@ -125,10 +132,9 @@ fun PanelResizer(width: PanelWidth, panelLeft: Boolean, label: String) {
     Box(
         Modifier
             .zIndex(1f)
-            .fillMaxHeight()
-            .width(HANDLE_WIDTH)
+            .then(if (vertical) Modifier.fillMaxWidth().height(HANDLE_WIDTH) else Modifier.fillMaxHeight().width(HANDLE_WIDTH))
             .background(MaterialTheme.colorScheme.background)
-            .resizeCursor()
+            .resizeCursor(vertical)
             .hoverable(interaction)
             .pointerInput(width) {
                 // Double-click puts the width back; only watches, so the drag below keeps every event.
@@ -144,18 +150,34 @@ fun PanelResizer(width: PanelWidth, panelLeft: Boolean, label: String) {
                     }
                 }
             }
-            .draggable(draggable, Orientation.Horizontal, interactionSource = interaction, onDragStopped = { width.save() })
+            .draggable(draggable, if (vertical) Orientation.Vertical else Orientation.Horizontal, interactionSource = interaction, onDragStopped = { width.save() })
             .semantics { contentDescription = label },
-        contentAlignment = if (panelLeft) Alignment.CenterStart else Alignment.CenterEnd,
+        contentAlignment = when {
+            vertical && panelLeft -> Alignment.TopCenter
+            vertical -> Alignment.BottomCenter
+            panelLeft -> Alignment.CenterStart
+            else -> Alignment.CenterEnd
+        },
     ) {
-        Box(Modifier.fillMaxHeight().width(line).background(lineColor))
-        Box(
-            Modifier
-                .offset(x = if (panelLeft) -shift else shift)
-                .size(width = GRIP_WIDTH, height = gripHeight)
-                .clip(RoundedCornerShape(50))
-                .background(gripColor),
-        )
+        if (vertical) {
+            Box(Modifier.fillMaxWidth().height(line).background(lineColor))
+            Box(
+                Modifier
+                    .offset(y = if (panelLeft) -shift else shift)
+                    .size(width = gripHeight, height = GRIP_WIDTH)
+                    .clip(RoundedCornerShape(50))
+                    .background(gripColor),
+            )
+        } else {
+            Box(Modifier.fillMaxHeight().width(line).background(lineColor))
+            Box(
+                Modifier
+                    .offset(x = if (panelLeft) -shift else shift)
+                    .size(width = GRIP_WIDTH, height = gripHeight)
+                    .clip(RoundedCornerShape(50))
+                    .background(gripColor),
+            )
+        }
     }
 }
 

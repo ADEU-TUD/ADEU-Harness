@@ -4,6 +4,7 @@
 # code has a line here (generated lists: see README › Englisch).
   Die KI prüft den Text …	  The AI is checking the text …
  (Abzweigung)	 (branch)
+ (Alt+F)	 (Alt+F)
  (Anfrage zu groß – Anhang verkleinern oder weniger Bilder schicken)	 (Request too large – make the attachment smaller or send fewer images)
  (API-Key ungültig oder abgelaufen? Einstellungen › API-Zugang – im TU-Self-Service lässt sich ein neuer erzeugen)	 (API key invalid or expired? Settings › API access – a new one can be created in the TU self-service)
  (Der Chat ist zu lang für das Modell – einen neuen Chat beginnen oder ein Modell mit mehr Kontext wählen)	 (The chat is too long for the model – start a new chat or choose a model with more context)
@@ -11,6 +12,7 @@
  (F10)	 (F10)
  (F12)	 (F12)
  (F9)	 (F9)
+ (Strg+F)	 (Ctrl+F)
  (gekürzt)	 (shortened)
  (im Hintergrund)	 (in the background)
  (importiert)	 (imported)
@@ -233,6 +235,7 @@ Alle ({0})	All ({0})
 Alle 10 s	Every 10 s
 Alle 30 s	Every 30 s
 Alle 60 s	Every 60 s
+Alle Spuren aufklappen	Unfold all tracks
 Alle ablehnen	Reject all
 Alle annehmen	Accept all
 Alle anzeigen	Show all
@@ -337,6 +340,7 @@ Als Word speichern	Save as Word
 Als Word-Datei	As a Word file
 Als Word-Dokument	As a Word document
 Als Überschrift	As heading
+Alt+F	Alt+F
 Alt+X	Alt+X
 Alternativtext, Seite {0}	Alternative text, page {0}
 alt="…" ergänzen (bei Schmuckbildern alt="").	Add alt="…" (alt="" for decorative images).
@@ -349,6 +353,7 @@ Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation 
 Am PC liegt der Lora-Ordner in der Nextcloud (Einstellungen › Synchronisation am PC). Das Handy holt sich darüber Chats, Projekte, Gedächtnis, Kurztexte, eigene TU Vorlagen, Literatur mit Exzerpten, die Wissenssammlung, den Tresor (verschlüsselt) und die Dateien des Lora-Ordners und lädt eigene Änderungen hoch – beim Öffnen der App, alle fünf Minuten, beim Wechsel in den Hintergrund und auf Wunsch auch bei geschlossener App.	On the PC the Lora folder lies in the Nextcloud (Settings › Synchronization on the PC). Through it the phone fetches chats, projects, memory, snippets, own TU templates, literature with excerpts, the knowledge collection, the vault (encrypted) and the files of the Lora folder and uploads its own changes – when the app opens, every five minutes, when it goes to the background and, if you like, also while the app is closed.
 Am PC unter Einstellungen › Synchronisation den Ordner in die Nextcloud legen und warten, bis er hochgeladen ist.	On the PC, put the folder into Nextcloud under Settings › Sync and wait until it is uploaded.
 Am PC „{0}“ sind noch {1} Änderung(en) unterwegs – der Sync wartet auf die Nextcloud.	On the PC “{0}”, {1} change(s) are still on their way – sync waits for Nextcloud.
+Am Schnitt: Roll · Mitte: Slip	At a cut: roll · middle: slip
 Am Text einrasten	Snap to text
 Am schnellsten – auch für sehr lange Dokumente und große Projekte	Fastest – also for very long documents and large projects
 Am Wochenende	On weekends
@@ -415,6 +420,10 @@ Anmeldename	Login name
 Annas, Müllers, Schmidt'sche werden mit ersetzt	Annas, Müllers, Schmidt'sche are replaced too
 Annehmen	Accept
 Anonymisiert exportieren	Export anonymized
+Anordnung	Layout
+Anordnung des Videoeditors	Layout of the video editor
+Anordnung zurückgesetzt.	Layout reset.
+Anordnung zurücksetzen	Reset layout
 Anpassen	Customize
 Anschließend von der KI überarbeiten lassen	Then have the AI revise it
 Anschriften	Addresses
@@ -618,6 +627,8 @@ Ausschreibung	Call
 Ausschreibung einlesen	Read in a call
 Ausschreibung und Antrag gehen an das gewählte Modell, Namen pseudonymisiert.	Call and proposal go to the selected model, names pseudonymized.
 Auswahl	Selection
+Auswahl (A), Klinge (B), Trimmen (T) und Magnet über der Zeitleiste.	Selection (A), blade (B), trim (T) and magnet above the timeline.
+Auswahl (A): Clips ziehen verschiebt, Ränder ziehen kürzt (Ripple)	Selection (A): drag clips to move, drag edges to trim (ripple)
 Auswahl (A): Clips ziehen verschiebt, Ränder ziehen kürzt (Ripple) · Klick in die Leiste springt · ? zeigt alle Tasten.	Selection (A): drag clips to move, drag edges to trim (ripple) · click the ruler to jump · ? shows all keys.
 Auswahl aufheben	Clear selection
 Auswahl beenden	End selection
@@ -716,6 +727,7 @@ Bereich, Einstellung oder Chat suchen …	Search areas, settings or chats …
 Bereich, z. B. C2:C30	Range, e.g. C2:C30
 Bereiche	Areas
 Bereiche markieren	Mark areas
+Bereiche ziehen, Medienpool und Eigenschaften einklappen, Vorschau groß oder im Vollbild, Spurhöhe – und die Anordnung zurücksetzen.	Drag areas, fold the media pool and properties, large or full-screen preview, track height – and reset the layout.
 Bereiche – zuerst einen unter „Mehr“ schieben.	areas – first move one under “More”.
 Bereinige die Tabelle: einheitliche Schreibweisen, Zahlen als Zahlen, leere Zeilen entfernen, sinnvolle Spaltenköpfe.	Clean up the table: consistent spellings, numbers as numbers, remove empty rows, sensible column headers.
 Bereinigen	Clean up
@@ -783,6 +795,7 @@ Bild-in-Bild	Picture-in-picture
 Bild-in-Bild auf V{0}	Picture-in-picture on V{0}
 Bild-in-Bild: Video oder Bild auswählen	Picture-in-picture: choose a video or picture
 Bild-Modell	Image model
+Bild-in-Bild …	Picture-in-picture …
 Bildbeschreibung (Alternativtext)	Image description (alternative text)
 Bildbeschreibung (Alternativtext, beim Vollbild auch Bildunterschrift)	Image description (alternative text, for full-screen also the caption)
 Bilder	Images
@@ -835,6 +848,8 @@ Braucht Parakeet v3 (670 MB, Einstellungen › Transkription). Ohne gibt es Zeit
 Breit (2,54 cm)	Wide (2.54 cm)
 Breitbild 16:9	Widescreen 16:9
 Breite	Width
+Breite der Eigenschaften ändern	Change width of the properties
+Breite des Medienpools ändern	Change width of the media pool
 Brief	Letter
 Brief schreiben	Write a letter
 Brief, Präsentation, Seminarplan und andere Vorlagen schlagen unter jedem Feld passende Angaben vor – aus dem Gedächtnis, Ihren Absenderangaben, der allgemeinen Wissenssammlung und dem, was Sie früher in gleichnamige Felder geschrieben haben.	Letter, presentation, seminar plan and other templates suggest suitable details below every field – from memory, your sender details, the general knowledge base and what you previously wrote into fields of the same name.
@@ -877,6 +892,7 @@ Client-ID für OAuth (optional)	Client ID for OAuth (optional)
 Clip	Clip
 Clip entfernen	Remove clip
 Clip hinzufügen	Add clip
+Clip hinzufügen …	Add clip …
 Clip {0}	Clip {0}
 Clip {0} entfernt.	Clip {0} removed.
 Clip {0}: {1} ({2})	Clip {0}: {1} ({2})
@@ -918,6 +934,7 @@ Danach fragt Android, ob die App aktualisiert werden soll – einfach „Aktuali
 Danach mit Parakeet v3 Wort für Wort messen (im Median 50 ms genau) – für Zeitstempel, Wortmarkierung und Untertitel. Kostet etwas Rechenzeit.	Then measure word by word with Parakeet v3 (accurate to 50 ms in the median) – for timestamps, word highlighting and subtitles. Costs some computing time.
 Danach nichts mehr am PDF ändern – sonst zeigt die Prüfung, dass nach dem Signieren etwas geändert wurde.	Do not change the PDF afterwards – otherwise the check shows that something was changed after signing.
 Danach startet Lora kurz neu. Zum Weiterarbeiten „Im Hintergrund“ wählen – die App fragt dann vor dem Neustart.	Afterwards Lora restarts briefly. To keep working, choose “In the background” – the app then asks before restarting.
+Daneben setzt du Titel und Bauchbinden im TUD-Design, Untertitel aus der Transkription und den Rohschnitt.	Next to them you add titles and lower thirds in the TUD design, subtitles from the transcription and the rough cut.
 Dann auch in Projekten mit „Nur TU Dresden“ nutzbar.	Then also usable in projects with “TU Dresden only”.
 Darstellung	Appearance
 Darunter einfügen	Insert below
@@ -1181,6 +1198,7 @@ Diagramme & Whiteboard	Diagrams & whiteboard
 Didaktik-Beratung	Didactics advice
 Die Abspielposition liegt nicht zwischen dem vorigen Abschnitt und dem Ende dieses Abschnitts.	The playback position is not between the previous section and the end of this section.
 Die Anmeldung ist abgelaufen. Bitte noch einmal versuchen.	The sign-in has expired. Please try again.
+Die Anordnung passt du an: Ränder ziehen, Medienpool und Eigenschaften einklappen – hier setzt du sie zurück.	You adjust the layout: drag the edges, fold the media pool and properties – and reset it here.
 Die Antwort enthielt keine lesbare Bewertung.	The answer contained no readable grading.
 Die Antwort läuft noch – bitte gleich noch einmal.	The answer is still running – please try again in a moment.
 Die Antwort läuft noch – der Text steht im Eingabefeld.	The answer is still running – the text is in the input field.
@@ -1423,6 +1441,9 @@ Eigene PDFs, Präsentationen oder Word-Dateien mit 📎 anhängen – die KI mac
 Eigene Textbausteine einfügen – auch mit /Name	Insert your own text snippets – also with /name
 Eigene Vorlage	Own template
 Eigene Vorlagen legst du hier an und teilst sie mit Kolleg:innen.	You create your own templates here and share them with colleagues.
+Eigenschaften	Properties
+Eigenschaften einklappen	Fold properties
+Eigenschaften zeigen	Show properties
 Ein Bild zurück · vor	One frame back · forward
 Ein PDF zum Bearbeiten öffnen.	Open a PDF for editing.
 Ein Schritt ist fehlgeschlagen	A step failed
@@ -2162,6 +2183,7 @@ Hinweise erlaubt	Hints allowed
 Hinweise für das Modell (optional)	Notes for the model (optional)
 Hinweise zur Bewertung (optional)	Notes on grading (optional)
 Hinzufügen	Add
+Hinzufügen: Clip, Bild-in-Bild, Musik, Spuren	Add: clip, picture-in-picture, music, tracks
 Hoch	High
 Hochformat 2:3	Portrait 2:3
 Hochformat 3:4	Portrait 3:4
@@ -2184,6 +2206,7 @@ Höchstens Seiten	Maximum pages
 Höchstens Wörter	Maximum words
 Höchstens Zeichen (mit Leerzeichen)	Maximum characters (with spaces)
 Höhe	Height
+Höhe der Zeitleiste ändern	Change height of the timeline
 I · O	I · O
 IBAN, BIC und Kreditkartennummern (mit Prüfziffer)	IBAN, BIC and credit card numbers (with check digit)
 Ich bin Lora.	I'm Lora.
@@ -2376,6 +2399,7 @@ Kapitel für die YouTube-Beschreibung ({0} Kapitel, im MP4 sind sie immer)	Chapt
 Kapitel kopieren	Copy chapters
 Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters copied – paste them into the description of the YouTube video.
 Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
+Klick schneidet den Clip	Click cuts the clip
 Klinge	Blade
 Klinge (B): Klick auf einen Clip schneidet ihn dort.	Blade (B): a click on a clip cuts it there.
 Leertaste	Space
@@ -2627,6 +2651,7 @@ kleiner als	less than
 Kleines Modell von Google mit gutem Deutsch – Handys und Laptops ohne Grafikkarte.	Small model from Google with good German – phones and laptops without a graphics card.
 Klick in die Leiste: springen · Clips ziehen: verschieben · Ränder ziehen: kürzen · S teilt, Entf löscht, Leertaste spielt.	Click in the bar: jump · drag clips: move · drag edges: trim · S splits, Del deletes, space plays.
 Klick springt, Umschalt+Klick oder Ziehen markiert, Entf schneidet heraus.	Click jumps, Shift+click or dragging selects, Del cuts out.
+Klinge (B): Klick auf einen Clip schneidet ihn dort	Blade (B): a click on a clip cuts it there
 klicken	click
 Kolleg:innen, Ansprechpersonen, Rollen	Colleagues, contact persons, roles
 Kommentar	Comment
@@ -2975,6 +3000,7 @@ Löschen	Delete
 Löschen (Entf)	Delete (Del)
 Löschen ging nicht: {0}	Deleting failed: {0}
 Löscht Folie {0} …	Deleting slide {0} …
+Magnet (N): Lücken schließen sich, Spuren ziehen mit	Magnet (N): gaps close, tracks follow
 Neu planen	Plan again
 Neues Videoprojekt	New video project
 Noch keine Aktionen.	No actions yet.
@@ -3027,6 +3053,8 @@ MCP-Server	MCP servers
 MCP-Server bearbeiten	Edit MCP server
 MCP-Server hinzufügen	Add MCP server
 Medien	Media
+Medienpool einklappen	Fold media pool
+Medienpool zeigen	Show media pool
 Medium	Medium
 Mehr	More
 Mehr anzeigen	Show more
@@ -3159,6 +3187,7 @@ Moodle-Test (Moodle-XML)	Moodle test (Moodle XML)
 Morgen-News	Morning news
 Mo–Fr	Mon–Fri
 Musik / Ton	Music / audio
+Musik / Ton …	Music / sound …
 Musik oder Sprecherton auswählen	Choose music or voice-over
 MÜLLER, müller, Mueller zu „Müller“ aus der eigenen Liste; Mueller auch bei erkannten Namen	MÜLLER, müller, Mueller for “Müller” from your own list; Mueller also for recognized names
 Mündliche Prüfung vorbereiten	Prepare an oral exam
@@ -3313,6 +3342,7 @@ Nicht jetzt	Not now
 Nicht mehr anheften	Unpin
 Nicht mehr Standard	No longer default
 Nicht mehr vorschlagen	Don't suggest again
+Noch keine Clips – über der Zeitleiste „+“ › „Clip hinzufügen“.	No clips yet – above the timeline “+” › “Add clip”.
 nicht prüfbar	cannot be checked
 nicht schreibbar	not writable
 Nicht zusammenführen	Don't merge
@@ -3725,6 +3755,7 @@ PubMed / Europe PMC	PubMed / Europe PMC
 Pull Request erstellen	Create pull request
 Punkte	Points
 Punkte (leer = automatisch aus den Abschnittsfolien)	Points (empty = automatically from the section slides)
+Q wechselt zwischen Quelle und Zeitleiste	Q switches between source and timeline
 QR-Code	QR code
 Quadrat 1:1	Square 1:1
 Quantitative und qualitative Bildungsforschung	Quantitative and qualitative educational research
@@ -3823,6 +3854,7 @@ Rückmeldung (Vorschlag)	Feedback (suggestion)
 Rückmeldung im Praktikum – Entwurf als Datei anhängen	Feedback during the internship – attach the plan as a file
 Rückmeldung zu Fragestellung, Theorie, Methode und Zeitplan	Feedback on research question, theory, method and schedule
 Rückmeldungen je Person (Word, ZIP)	Feedback per person (Word, ZIP)
+S	S
 S.	p.
 Sachlich falsch	Factually wrong
 Sag mir oben, was entstehen soll – ich suche die passende Vorlage oder lege los.	Tell me at the top what you want to create – I find the right template or get started.
@@ -3849,6 +3881,7 @@ Schlagwörter vergeben	Add tags
 Schlagwörter zurückgesetzt.	Tags reset.
 Schlagwörter {0} vergeben.	Tags {0} added.
 Schlagwörter …	Tags …
+Schleife zwischen In und Out	Loop between In and Out
 Schlicht	Plain
 Schlicht in Schwarz, Weiß und Grau; Antworten ohne Sprechblase.	Simple in black, white and grey; answers without speech bubbles.
 Schließen	Close
@@ -3871,6 +3904,7 @@ Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text 
 Schnelles Mixture-of-Experts-Modell von DeepSeek mit 1 Mio. Token Kontext.	Fast mixture-of-experts model from DeepSeek with 1 million tokens of context.
 Schnelles Standard-Modell für Bilder aus Text.	Fast standard model for images from text.
 Schnitt	Cut
+Schnittwerkzeuge	Editing tools
 Scholar	Scholar
 Schon ohne API-Key: Aufnahmen transkribieren und Modelle direkt auf dem Gerät nutzen.	Even without an API key: transcribe recordings and use models directly on the device.
 Schon während der Aufnahme transkribieren (auf dem Gerät) – nach dem Stoppen ist der Text fast sofort fertig.	Transcribe already during the recording (on the device) – after stopping, the text is ready almost immediately.
@@ -3950,7 +3984,10 @@ Seiten werden aufbereitet: {0} von {1} …	Preparing pages: {0} of {1} …
 Seitenansicht	Page view
 Seiteneinrichtung: 	Page setup: 
 Seitenleiste	Side menu
+Seitenleiste ausblenden	Hide side menu
+Seitenleiste der App zeigen oder ausblenden	Show or hide the app's side menu
 Seitenleiste ein/aus	Show/hide side menu
+Seitenleiste zeigen	Show side menu
 Seitenränder	Margins
 Seitentitel vorhanden.	Page title present.
 Seitenumbruch	Page break
@@ -4107,9 +4144,14 @@ Sprechernotizen drucken	Print speaker notes
 Sprechernotizen für alle Folien	Speaker notes for all slides
 Sprechernotizen schreiben	Write speaker notes
 Sprungweite (Knöpfe, F3/F5)	Jump width (buttons, F3/F5)
+Spur {0} aufklappen	Unfold track {0}
+Spur {0} einklappen	Fold track {0}
+Spuren auf und ab (auch das Mausrad über den Spurköpfen)	Tracks up and down (also the mouse wheel over the track heads)
+Spuren niedriger	Lower tracks
 Später	Later
 Später entscheiden	Decide later
 SRT/VTT importieren …	Import SRT/VTT …
+Spuren höher	Taller tracks
 Standard	Default
 Standard (Windows)	Default (Windows)
 Standard (~20)	Standard (~20)
@@ -4190,6 +4232,7 @@ Strg+,	Ctrl+,
 Strg+/	Ctrl+/
 Strg+B	Ctrl+B
 Strg+D	Ctrl+D
+Strg+F · Esc	Ctrl+F · Esc
 Strg+K	Ctrl+K
 Strg+L	Ctrl+L
 Strg+L öffnet und schließt Lora	Ctrl+L opens and closes Lora
@@ -4449,6 +4492,7 @@ TUD-intern	TUD internal
 TUD-Shape	TUD shape
 Transkript „{0}“ ({1} Wörter, {2}).	Transcript “{0}” ({1} words, {2}).
 Transkription nicht gestartet: {0}	Transcription not started: {0}
+Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte den Inhalt (Slip)	Trim (T): drag at a cut to move it (roll), in the middle to move the content (slip)
 Typ	Type
 Täglich	Daily
 Türkis	Turquoise
@@ -4472,12 +4516,16 @@ Umgebungen enthalten Variablen (z.B. API-Keys) und Regeln für den Internetzugri
 Umgebungsvariablen	Environment variables
 Umgebungsvariablen (optional)	Environment variables (optional)
 Umgestellt	Changed
+Umschalt+Mausrad	Shift+mouse wheel
 Umschalten	Switch
 Umstellen	Change
 Umwandeln	Convert
 Unbekannte Mail-ID {0}	Unknown mail ID {0}
 unbekannter Fehler	unknown error
 Unbekanntes lokales Modell: {0}	Unknown local model: {0}
+Video › Anordnung	Video › Layout
+Vollbild	Full screen
+Vollbild beenden	Leave full screen
 und	and
 und seine Werkzeuge verschwinden aus der App.	and its tools disappear from the app.
 und trage es hier ein. Die App zeigt die Repositories aller Tokens zusammen und nimmt bei jeder Aktion automatisch das passende.	and enter it here. The app shows the repositories of all tokens together and automatically uses the right one for each action.
@@ -4687,6 +4735,10 @@ Vorschau	Preview
 Vorschau (APA 7): 	Preview (APA 7): 
 Vorschau als PDF	Preview as PDF
 Vorschau fehlgeschlagen: {0}	Preview failed: {0}
+Vorschau groß	Large preview
+Vorschau groß (Medienpool und Eigenschaften treten zur Seite)	Large preview (media pool and properties step aside)
+Vorschau im Vollbild · Vollbild beenden	Full-screen preview · leave full screen
+Vorschau wieder normal	Normal preview
 Vorschlag schreiben	Write suggestion
 Vorschlag wird formuliert …	Writing a suggestion …
 Vorschlag {0} von {1}	Suggestion {0} of {1}
@@ -5025,7 +5077,9 @@ Zielordner wählen	Choose target folder
 Zielsprache	Target language
 ZIP (z. B. OPAL-Abgaben)	ZIP (e.g. OPAL submissions)
 ZIP für OPAL/Moodle	ZIP for OPAL/Moodle
+Zeit	Time
 Zellen füllen	Fill cells
+Ziehen verschiebt, Ränder kürzen	Drag to move, edges to trim
 Zitat	Quote
 Zitat (letzte Zeile mit „– Quelle“)	Quote (last line with “– Source”)
 Zitat aus der Literatur …	Citation from the literature …
@@ -5044,6 +5098,7 @@ Zitierstil: 	Citation style:
 Zitierweise, Sprache, Formalia	Citation, language, formalities
 Zoom	Zoom
 Zoom (Strg+0: 100 %, auch Strg+Mausrad)	Zoom (Ctrl+0: 100 %, also Ctrl+mouse wheel)
+Zoom (Strg+Mausrad)	Zoom (Ctrl+mouse wheel)
 Zotero antwortet mit HTTP {0}: {1}	Zotero answers with HTTP {0}: {1}
 Zotero durchsuchen	Search Zotero
 Zotero hat die Sammlung „{0}“ nicht angelegt.	Zotero did not create the collection “{0}”.
@@ -5090,6 +5145,7 @@ Zur neuesten Nachricht	To the latest message
 Zur Texterkennung	To text recognition
 Zurück	Back
 Zurück an den alten Ort.	Back in the old place.
+Zurück zu den Projekten	Back to the projects
 Zurückgenommen.	Undone.
 Zurückgesetzt.	Reset.
 Zurückkopieren und neu starten	Copy back and restart
@@ -5112,6 +5168,7 @@ Zwei PDFs vergleichen	Compare two PDFs
 Zwei Spalten	Two columns
 abgebrochen	cancelled
 auch in der Transkription	also in Transcription
+aufgeklappt	unfolded
 bei	at
 ca. {0} Min.	about {0} min.
 fehlgeschlagen	failed
@@ -5123,11 +5180,13 @@ Zweite Zeile	Second line
 Zweiter PC: vorhandenen Ordner öffnen	Second PC: open the existing folder
 fertig	done
 herausschneiden	cut out
+korrigiert	corrected
 wählen …	choose …
 zwischen {0} und {1}	between {0} and {1}
 Zwischenüberschrift	Subheading
 keins	none
 noch kein Bereich	no area yet
+zugeklappt	folded
 {0} % von {1}	{0} % of {1}
 {0} % · {1} Beiträge · {2} Wörter	{0} % · {1} turns · {2} words
 {0} ({1} Codes)	{0} ({1} codes)
@@ -5181,6 +5240,7 @@ noch kein Bereich	no area yet
 {0} Dokument(e)	{0} document(s)
 {0} Dokument(e) · nur auf diesem Gerät (mit Sicherung & Umzug übertragbar)	{0} document(s) · only on this device (transferable with Backup & transfer)
 {0} Pausen gekürzt. Mit Strg+Z rückgängig.	{0} pauses shortened. Undo with Ctrl+Z.
+{0} Video- und {1} Tonspuren	{0} video and {1} audio tracks
 {0} Vorlieben vergessen	{0} preferences forgotten
 {0} doppelte Zeile(n) entfernt	{0} duplicate row(s) removed
 {0} Duplikate im Papierkorb (30 Tage wiederherstellbar).	{0} duplicates in the trash (restorable for 30 days).
@@ -5335,6 +5395,8 @@ noch kein Bereich	no area yet
 Über das Model Context Protocol (MCP) bekommt Lora Werkzeuge anderer Dienste, z. B. ein Wiki, eine Datenbank oder ein Ticketsystem. Fern-Server laufen über das Internet (mit Token oder Anmeldung), lokale Server sind Programme auf diesem PC.	Through the Model Context Protocol (MCP) Lora gets tools from other services, e.g. a wiki, a database or a ticket system. Remote servers run over the internet (with a token or sign-in), local servers are programs on this PC.
 Über den Mailserver gibt es kein Outlook zum Öffnen – die Mail bzw. der Entwurf liegt im Postfach (z. B. in Outlook im Web).	Via the mail server there is no Outlook to open – the mail or draft is in the mailbox (e.g. in Outlook on the web).
 Über den Text ziehen, der markiert werden soll.	Drag over the text that should be highlighted.
+Über der Zeitleiste liegen die Werkzeuge: Auswahl (A), Klinge (B), Trimmen (T) und der Magnet – die Taste steht im Tooltip.	Above the timeline are the tools: selection (A), blade (B), trim (T) and the magnet – the key is in the tooltip.
+Über der Zeitleiste über „Untertitel“ aus der Transkription holen oder eine SRT-/VTT-Datei laden.	Above the timeline, get them via “Subtitles” from the transcription or load an SRT/VTT file.
 über die Freigaben	via the approvals
 Über die Wellenform	By the waveform
 Über mich	About me
