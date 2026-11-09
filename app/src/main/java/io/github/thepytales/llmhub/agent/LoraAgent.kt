@@ -62,6 +62,9 @@ sealed interface LoraStep {
 
     /** A tour through a tool (AP-41). */
     data class Tour(val tourId: String) : LoraStep
+
+    /** Lora sortiert Mails (AP-69): a run on the model of this device; its card shows progress, preview and Rückgängig. */
+    data class MailSort(val runId: String) : LoraStep
 }
 
 /** Lora's answer: a short [text] and what to do; [local] = found on the device without a request. */
@@ -113,6 +116,11 @@ class LoraAgent(private val c: AppContainer) {
         LoraPrefs.fromWish(c, wish)?.let { return it }
         // AP-41: „Zeig mir, wie das geht“ starts the tour of the open tool.
         localTour(wish, android)?.let { return it }
+        // AP-69: „Ordne die Mails der letzten Woche in Lehre, Forschung und Verwaltung ein“ – the order is read here, the
+        // mails only by the model on this device.
+        MailSorter.fromWish(c, wish)?.let { return it }
+        // AP-68: mail tasks go to the model on this device, the handoff from a Postfach chat to the card – Lora reads no mails.
+        LoraMail.fromWish(c, wish, io.github.thepytales.llmhub.ui.LoraHelper.chatId)?.let { return it }
         // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
         if (!LoraFlows.looksMultiStep(wish)) localAction(wish, area, android)?.let { return it }
         local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
@@ -205,7 +213,7 @@ class LoraAgent(private val c: AppContainer) {
      * „zusammenfügen“, „Duplikate“, „aufräumen“, „verkleinern“, „Texterkennung“. Null for other wishes.
      */
     internal suspend fun localAction(wish: String, area: ActionArea?, android: Boolean): LoraReply? {
-        area ?: return null
+        if (area == null || area == ActionArea.MAIL) return null
         val n = AppMap.norm(wish)
         val pdfs = (LoraFocus.files.filter { it.extension.equals("pdf", true) } + listOfNotNull(LoraFocus.pdf)).distinct()
         val (id, args) = when {
@@ -262,10 +270,12 @@ class LoraAgent(private val c: AppContainer) {
     ): LoraReply {
         val actions = ToolActions.forArea(area, android)
         val multi = LoraFlows.looksMultiStep(wish)
-        val tools = TOOLS + actions.map { it.toolDef() } + if (multi) listOf(LoraFlows.TOOL) else emptyList()
+        val mail = LoraMail.available(c)
+        val tools = TOOLS + (if (mail) listOf(LoraMail.TOOL) else emptyList()) + actions.map { it.toolDef() } + if (multi) listOf(LoraFlows.TOOL) else emptyList()
         val flowPrompt = if (!multi) "" else "\nMehrschrittige Aufträge planst du mit plan_workflow (der Nutzer startet den Plan selbst). Aktionen (id (Bereich): was | Parameter, ? = optional):\n" +
             LoraFlows.catalog(android) + "\nJeder Schritt arbeitet mit den Dateien des vorigen weiter; lass Dateiparameter dann leer.\n"
-        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + actionPrompt(area, actions) + flowPrompt))
+        val mailPrompt = if (mail) "\n" + LoraMail.PROMPT + "\n" else ""
+        val messages = mutableListOf(ChatMessage(role = "system", content = systemPrompt(wish, targets, android) + mailPrompt + actionPrompt(area, actions) + flowPrompt))
         history.takeLast(4).forEach { (q, a) ->
             messages += ChatMessage(role = "user", content = q)
             messages += ChatMessage(role = "assistant", content = a)
@@ -286,13 +296,16 @@ class LoraAgent(private val c: AppContainer) {
             for (call in result.toolCalls) {
                 val args = parseArgs(call.arguments)
                 val action = ToolActions.byToolName(call.name)
-                val (output, step) = if (action != null) {
+                val (output, step) = if (action?.id == MailSorter.ACTION_ID) MailSorter.loraStep(c, args, wish)
+                else if (action != null) {
                     // An action of the open tool (AP-38): planned here, carried out by the panel.
                     try {
                         val plan = action.plan(c, LoraPrefs.withDefaults(c, action, args).first)
                         ToolActions.log("${action.id} geplant: ${plan.title}")
                         LoraPrefs.offerFor(c, action, args)?.let { offers += it }
-                        (if (plan.risky) "Vorschau wird gezeigt, der Nutzer bestätigt: ${plan.title}" else "Wird ausgeführt: ${plan.title}") to LoraStep.Action(plan)
+                        // Mail actions (AP-68) run on this device: Lora's model hears nothing of the mailbox.
+                        if (MailAccess.isMailAction(action.id)) LoraMail.TOOL_OUTPUT to LoraStep.Action(plan)
+                        else (if (plan.risky) "Vorschau wird gezeigt, der Nutzer bestätigt: ${plan.title}" else "Wird ausgeführt: ${plan.title}") to LoraStep.Action(plan)
                     } catch (e: ActionFailed) {
                         needsAnswer = true
                         "FEHLER: ${e.message}" to null
@@ -345,11 +358,21 @@ class LoraAgent(private val c: AppContainer) {
             if (tool == null || tool.planned) "FEHLER: Dieses Werkzeug gibt es (noch) nicht." to null
             else "Der Nutzer wird gefragt, ob „${tool.label}“ eingeschaltet werden soll." to LoraStep.EnableTool(tool)
         }
+        // AP-68: a mail task goes to the model on this device; Lora's model gets no mail content back.
+        "postfach_auftrag" -> LoraMail.TOOL_OUTPUT to LoraMail.task(c, args.s("auftrag").orEmpty().ifBlank { wish })
         "handoff_chat" -> {
             val request = args.s("anfrage").orEmpty().ifBlank { args.s("zusammenfassung").orEmpty() }
-            val chosen = args.s("modell")?.takeIf { it.isNotBlank() && ModelCatalog.info(it).displayName.isNotBlank() }
-            val (model, reason) = handoffModel(request, chosen, args.s("grund"))
-            "Übergeben an einen Chat." to LoraStep.Handoff(model, request, args.s("zusammenfassung").orEmpty(), reason)
+            // From a Postfach chat only what the local model wrote goes on, on the card to check first (AP-68).
+            val chatId = io.github.thepytales.llmhub.ui.LoraHelper.chatId
+            val postfach = chatId?.let { c.chats.get(it) }?.takeIf { MailAccess.locked(it) }
+            if (postfach != null) {
+                LoraMail.handoff(c, postfach.id, request)?.let { "Der Nutzer prüft den Text auf einer Karte und gibt ihn selbst weiter." to it }
+                    ?: ("FEHLER: Im Postfach-Chat gibt es noch keine Antwort des Modells auf diesem Gerät." to null)
+            } else {
+                val chosen = args.s("modell")?.takeIf { it.isNotBlank() && ModelCatalog.info(it).displayName.isNotBlank() }
+                val (model, reason) = handoffModel(request, chosen, args.s("grund"))
+                "Übergeben an einen Chat." to LoraStep.Handoff(model, request, args.s("zusammenfassung").orEmpty(), reason)
+            }
         }
         "search_chats" -> {
             val found = searchChats(args.s("suche").orEmpty())
@@ -504,6 +527,7 @@ class LoraAgent(private val c: AppContainer) {
             trLater("Tresor") to trLater("Der Tresor (Einstellungen › Werkzeuge einschalten) ist ein Bereich mit PIN für sensible Forschung. Inhalte sind verschlüsselt, nur der Uni-Server oder lokale Modelle sind erlaubt, Namen werden streng ersetzt. Der Wiederherstellungsschlüssel setzt eine vergessene PIN zurück."),
             trLater("PDF-Werkzeugkasten") to trLater("Der PDF-Werkzeugkasten (Einstellungen › Werkzeuge einschalten): PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen, löschen und sortieren, Seitenzahlen, markieren, Notizen und Stempel, Formulare ausfüllbar machen."),
             trLater("Datenschutz") to trLater("Einstellungen › Datenschutz: Pseudonymisierung ersetzt Namen vor dem Senden durch Platzhalter und setzt sie in der Antwort zurück. Öffentliche Quellen bleiben, wie sie sind; eine Nie-ersetzen-Liste und ein gründlicher lokaler Modus helfen."),
+            trLater("Postfach") to trLater("Mail & Kalender und der Modus „Postfach“: Mails, Ordner, Termine und Aufgaben liest nur ein Modell auf diesem Gerät – der Uni-Server und externe Anbieter sind dort gesperrt, ohne Schalter. Fehlt ein lokales Modell, bietet das Postfach ein passendes zum Herunterladen an. Ergebnisse gibst du mit „An Chat übergeben“ weiter: erst prüfen, dann geht nur dieser Text hinaus."),
             trLater("Projekte") to trLater("Projekte bündeln Chats, Anweisungen, Dateien und eine Datenschutzstufe (Standard, Nur TU Dresden, Nur auf diesem Gerät)."),
             trLater("Transkription") to trLater("Transkription in der Seitenleiste: Audio wählen, auf dem Uni-Server oder dem Gerät verschriften, Sprecher benennen, codieren und exportieren."),
             trLater("Dokumente") to trLater("Der Agent erstellt PDF, Word, PowerPoint und mehr. Unter Dokumente bearbeitest du Entwürfe mit Versionen und Kommentaren."),
@@ -536,6 +560,7 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.Remember -> tr("Soll ich mir das merken?")
             is LoraStep.Plan -> tr("So würde ich vorgehen – passt der Plan?")
             is LoraStep.Tour -> tr("Ich zeige es dir.")
+            is LoraStep.MailSort -> tr("Ich lese die Mails auf diesem Gerät und zeige dir dann die Vorschau.")
             null -> tr("Wie kann ich helfen?")
         }
 

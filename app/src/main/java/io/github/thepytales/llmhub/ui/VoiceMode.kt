@@ -193,7 +193,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                     .joinToString("\n\n") { splitThinking(it.content).second.trim() }.trim()
             }
             val id = "voice-" + System.nanoTime()
-            val deviceOnly = !Privacy.level(c, vm.state.value?.folderId).allowsUniServer
+            val deviceOnly = !(vm.state.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer
             c.speaker.speakStream(id, deviceOnly, onFirstSound = {
                 firstSoundAt = System.currentTimeMillis()
                 phase = VoicePhase.SPEAKING

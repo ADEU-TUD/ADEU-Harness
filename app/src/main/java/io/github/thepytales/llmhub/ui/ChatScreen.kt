@@ -224,12 +224,17 @@ fun ChatScreen(
         if (vm.state.value?.messages.isNullOrEmpty()) {
             ChatHandoff.take()?.let { h ->
                 h.mode?.let { pendingMode = it }
+                // Postfach (AP-68): the mode and its local model are set before anything is sent.
+                val deviceOnly = io.github.thepytales.llmhub.agent.ChatModes.byId(h.mode)?.onDevice == true
+                if (deviceOnly) vm.enterMode(h.mode)
                 // Lora chose the model: the chat keeps it (no automatic switch afterwards).
                 h.model?.takeIf { m -> vm.state.value?.let { conv -> Privacy.allows(c, Privacy.level(c, conv), m) } != false }?.let { m ->
                     vm.setModel(m)
                     vm.setAutoModel(false)
                 }
-                if (h.send && h.text.isNotBlank()) {
+                // Without a model on this device the Postfach waits: the text stays in the input, the mode line offers a model.
+                val waitForModel = deviceOnly && vm.state.value?.let { io.github.thepytales.llmhub.agent.MailAccess.onDevice(it.model) } != true
+                if (h.send && h.text.isNotBlank() && !waitForModel) {
                     vm.send(h.text, h.images, h.files, instructions = h.instructions, handoff = h.handoff)
                 } else {
                     if (h.text.isNotBlank()) input = if (input.isBlank()) h.text else input + "\n\n" + h.text
@@ -265,7 +270,8 @@ fun ChatScreen(
             if (mode.id == io.github.thepytales.llmhub.agent.ChatModes.VOICE.id) platform.withMicrophone { voiceMode = true }
             return
         }
-        vm.setMode(mode.id)
+        // A mode on this device only (Postfach, AP-68) brings the local model along.
+        vm.enterMode(mode.id)
         mode.defaultModel?.takeIf { conv.messages.isEmpty() && Privacy.allows(c, Privacy.level(c, conv.folderId), it) }?.let { vm.setModel(it) }
     }
     LaunchedEffect(pendingMode) {
@@ -540,6 +546,10 @@ fun ChatScreen(
                     )
                     // The frame of the active mode (AP-05): chip with ✕ and one line „what happens · Daten“.
                     io.github.thepytales.llmhub.agent.ChatModes.byId(current.mode)?.let { m -> ModeBanner(m) { vm.setMode(null) } }
+                    // Postfach nur mit lokalem Modell (AP-68): which model reads the mails, or one to download.
+                    if (io.github.thepytales.llmhub.agent.MailAccess.locked(current)) {
+                        MailModelNotice(c, current.model, onModel = { vm.setModel(it); vm.setAutoModel(false) }, onOpenModels = { onNavigate("local-models") })
+                    }
                     // Prepared by Lora (Übergaben erst zeigen): what goes along, with ✕ to leave it out.
                     loraHandoff?.let { h -> LoraPreparedBanner(h.handoff.orEmpty()) { loraHandoff = null } }
                     // While typing: the place of the app that fits („dunkles Design“ → Darstellung › Helligkeit).
@@ -593,7 +603,8 @@ fun ChatScreen(
                     )
                 }
                 // The project's data protection level (models and tools are restricted accordingly).
-                Privacy.level(c, current.folderId).takeIf { it != PrivacyLevel.OPEN }?.let { level ->
+                // A Postfach chat (AP-68) is fixed to „Nur auf diesem Gerät“.
+                (if (io.github.thepytales.llmhub.agent.MailAccess.locked(current)) PrivacyLevel.LOCAL else Privacy.level(c, current.folderId)).takeIf { it != PrivacyLevel.OPEN }?.let { level ->
                     ContextChip(Icons.Outlined.Lock, level.short, { }, highlighted = true)
                 }
             }
@@ -729,6 +740,10 @@ fun ChatScreen(
                             onQuote = { text -> quoteFrom = text },
                             onFork = { vm.fork(item.head)?.let { id -> onNavigate(chatRoute(id)) } },
                             onRemember = { text -> rememberFrom = text },
+                            // An Chat übergeben (AP-68): what the local model wrote, checked first on a card.
+                            onHandoff = if (io.github.thepytales.llmhub.agent.MailAccess.locked(current)) {
+                                { text -> io.github.thepytales.llmhub.agent.MailHandoff.offer(c, text, current.id) }
+                            } else null,
                             onAnswer = { text -> follow.value = true; vm.send(text, emptyList(), emptyList()) },
                             evidence = evidence[item.m.id],
                             fold = collapse && !stepsOpen(item.head.id),

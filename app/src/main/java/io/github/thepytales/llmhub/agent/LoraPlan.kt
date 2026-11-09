@@ -130,12 +130,15 @@ object LoraFlows {
         val list = steps.mapNotNull { (id, args) ->
             val action = ToolActions.byId(id) ?: ToolActions.byToolName(id)
             if (action == null || (android && !action.android)) { dropped += id; return@mapNotNull null }
-            FlowStep(action.id, args.filterValues { it.isNotBlank() }, title(action, args), estimateSec = estimate(action.id))
+            // Mail work (AP-68) runs with the model on this device – the step line says so.
+            val where = if (MailAccess.isMailAction(action.id)) " · " + tr(MailAccess.ON_DEVICE) else ""
+            FlowStep(action.id, args.filterValues { it.isNotBlank() }, title(action, args) + where, estimateSec = estimate(action.id))
         }
         if (list.isEmpty()) return null
         val actions = list.mapNotNull { ToolActions.byId(it.actionId) }
         val note = buildList {
             add(if (actions.any { it.usesModel } || list.any { it.actionId == "files.transcribe" }) ToolActions.privacyNote(c) else tr("Bleibt auf diesem Gerät."))
+            if (actions.any { MailAccess.isMailAction(it.id) }) add(tr(MailAccess.DATA_NOTE))
             if (actions.any { it.risky }) add(tr("Riskante Schritte zeigen vorher eine Vorschau."))
         }.joinToString(" ")
         val flow = LoraFlow(wish = wish, steps = list, note = note)
@@ -236,6 +239,14 @@ object LoraFlows {
             val action = ToolActions.byId(s.actionId)
             if (action == null) {
                 step(c, id, i) { it.copy(status = FlowStep.FAILED, result = tr("Diese Aktion gibt es hier nicht.")) }
+                update(c, id) { it.copy(state = LoraFlow.FAILED) }
+                return
+            }
+            // AP-68: after a Postfach step, content only goes on to a model on this device.
+            if (action.usesModel && ToolActions.privacy(c) != io.github.thepytales.llmhub.data.PrivacyLevel.LOCAL &&
+                flow.steps.take(i).any { it.status == FlowStep.DONE && MailAccess.isMailAction(it.actionId) }
+            ) {
+                step(c, id, i) { it.copy(status = FlowStep.FAILED, result = tr("Nach einem Schritt im Postfach arbeitet nur ein Modell auf diesem Gerät weiter – dieser Schritt würde Inhalte an einen Server schicken.")) }
                 update(c, id) { it.copy(state = LoraFlow.FAILED) }
                 return
             }

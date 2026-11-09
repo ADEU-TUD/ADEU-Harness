@@ -278,7 +278,7 @@ fun RatingNoteDialog(onDismiss: () -> Unit, onSave: (String) -> Unit) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    reasons.forEach { r -> androidx.compose.material3.FilterChip(note == r, { note = r }, label = { Text(r) }) }
+                    reasons.forEach { r -> FilterChip(note == r, { note = r }, label = { Text(r) }) }
                 }
                 OutlinedTextField(note, { note = it }, placeholder = { Text(tr("Optional")) }, modifier = Modifier.fillMaxWidth())
                 HintText(tr("Bleibt auf diesem Gerät. Unter Einstellungen › Verbrauch sehen Sie, welche Modelle sich bewährt haben."))

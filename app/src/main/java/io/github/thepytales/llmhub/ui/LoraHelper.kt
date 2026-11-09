@@ -66,7 +66,6 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -266,6 +265,8 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
             sendToLora(c, agent, scope, w, go)
         }
     }
+    // An Chat übergeben from the Postfach (AP-68): the card to check the text first, for the button and for Lora.
+    MailHandoffHost(c, go)
     // Who switched Lora off before is not asked again.
     val panelOpen by LoraHelper.isOpen.collectAsStateWithLifecycle()
     if (!s.loraIntroDone && s.hasAnyApiKey && !s.hideLora && !panelOpen) LoraIntroDialog(c)
@@ -317,7 +318,7 @@ internal fun moodFor(reply: LoraReply): LoraAction = when {
     listOf("Ich erreiche gerade kein Modell", "Das hat nicht geklappt").any { reply.text.startsWith(it) || reply.text.startsWith(tr(it)) } -> LoraAction.SCRATCH
     reply.steps.any { it is LoraStep.Navigate || it is LoraStep.OpenMode || it is LoraStep.OpenChat || it is LoraStep.Handoff } -> LoraAction.POINT
     reply.steps.isEmpty() && reply.hits.isEmpty() && listOf("nichts gefunden", "keinen Chat").any { reply.text.contains(it) || reply.text.contains(tr(it)) } -> LoraAction.SHRUG
-    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder || it is LoraStep.Remember || it is LoraStep.Plan } -> LoraAction.EUREKA
+    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder || it is LoraStep.Remember || it is LoraStep.Plan || it is LoraStep.MailSort } -> LoraAction.EUREKA
     else -> LoraAction.NOD
 }
 
@@ -533,6 +534,11 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
             item(key = "flows") {
                 val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.Plan>().map { it.flowId } }.toSet()
                 OpenFlows(c, shown, LoraHost.go)
+            }
+            // Lora's sort runs (AP-69) that wait or work without a card here, e.g. after a restart or from a scheduled task.
+            item(key = "mailsorts") {
+                val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.MailSort>().map { it.runId } }.toSet()
+                OpenMailSorts(c, shown)
             }
             if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, LoraSense.place(route), suggestions, onSuggest = ::suggest) }
             turns.forEachIndexed { i, turn ->
@@ -803,6 +809,7 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                     if (step.dropped.isNotEmpty()) HintText(tr("Weggelassen, weil es das hier nicht gibt: {0}", step.dropped.joinToString()))
                 }
                 is LoraStep.Tour -> TourCard(turn, i, step, go)
+                is LoraStep.MailSort -> MailSortCard(c, step.runId)
                 is LoraStep.Ask -> QuestionCard(step.questions, onAnswer = if (state != null) null else ({ a -> turn.state[i] = "done"; onAnswer(a) }))
                 is LoraStep.Navigate -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; if (!LoraLayout.docked) LoraHelper.close() }
                 is LoraStep.OpenMode -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; LoraHelper.close() }
@@ -837,7 +844,9 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
     val state = turn.state[i]
     val result = turn.results[i]
     val plan = step.plan
-    ResultCard(icon = Icons.Outlined.Construction, title = plan.title.removeSuffix(" …").removeSuffix("…"), subtitle = null) {
+    // Mail work runs with the model on this device (AP-68): the step line says so.
+    val onDevice = io.github.thepytales.llmhub.agent.MailAccess.isMailAction(plan.actionId)
+    ResultCard(icon = Icons.Outlined.Construction, title = plan.title.removeSuffix(" …").removeSuffix("…"), subtitle = if (onDevice) tr(io.github.thepytales.llmhub.agent.MailAccess.ON_DEVICE) else null) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (plan.preview.isNotEmpty() && (state == null || state == "running")) {
                 Column(Modifier.semantics { contentDescription = tr("Vorschau") }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -855,7 +864,7 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                 state == "running" -> Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(8.dp))
-                    HintText(plan.title)
+                    HintText(plan.title + if (onDevice) " · " + tr(io.github.thepytales.llmhub.agent.MailAccess.ON_DEVICE) else "")
                 }
                 state == "done" && result != null -> {
                     DoneRow(result.text) {

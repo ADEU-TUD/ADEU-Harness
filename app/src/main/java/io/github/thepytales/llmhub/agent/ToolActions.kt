@@ -30,7 +30,10 @@ import java.time.ZoneId
  */
 enum class ActionArea(val label: String) {
     FILES(trLater("Dateien")), PDF(trLater("PDF-Werkzeugkasten")), DOC(trLater("Dokument")), SHEET(trLater("Tabelle")),
-    SLIDES(trLater("Präsentation")), VIDEO(trLater("Video"));
+    SLIDES(trLater("Präsentation")), VIDEO(trLater("Video")),
+
+    /** Mail & Kalender (AP-69): sorting with the model on this device. */
+    MAIL(trLater("Mail & Kalender"));
 
     /** Key of the area for Lora's memory (AP-39: preferences per tool). */
     val key: String get() = name.lowercase()
@@ -48,6 +51,7 @@ enum class ActionArea(val label: String) {
                     else -> DOC
                 }
                 r == "video" -> VIDEO
+                r == "mail" -> MAIL
                 else -> null
             }
         }
@@ -216,7 +220,7 @@ object ToolActions {
         synchronized(extra) { actions.forEach { a -> extra.removeAll { it.id == a.id }; extra += a } }
     }
 
-    val all: List<ToolAction> get() = BUILT_IN + OfficeActions.ALL + MoreActions.ALL + synchronized(extra) { extra.toList() }
+    val all: List<ToolAction> get() = BUILT_IN + OfficeActions.ALL + MoreActions.ALL + MailSorter.ACTIONS + synchronized(extra) { extra.toList() }
 
     /** The actions Lora gets in [area] (PDF actions also in the Dateien tab, for chosen PDFs). */
     fun forArea(area: ActionArea?, android: Boolean): List<ToolAction> {

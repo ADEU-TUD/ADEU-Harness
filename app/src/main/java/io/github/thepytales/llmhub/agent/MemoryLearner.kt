@@ -55,7 +55,9 @@ class MemoryLearner(private val c: AppContainer) {
 
     private fun active(conv: Conversation): Boolean {
         val s = c.settings.current
-        return s.memoryLearn && MemoryMode.of(s.memoryMode) != MemoryMode.OFF && !conv.memoryOff && !conv.temporary && conv.taskId == null && !conv.vault
+        // Nothing is learned from Postfach chats (AP-68): the memory goes along to every model, mails must not.
+        return s.memoryLearn && MemoryMode.of(s.memoryMode) != MemoryMode.OFF && !conv.memoryOff && !conv.temporary && conv.taskId == null && !conv.vault &&
+            !MailAccess.locked(conv)
     }
 
     /** Called when an answer in [conv] is finished; learning starts once the chat has been quiet for [QUIET_MS]. */
