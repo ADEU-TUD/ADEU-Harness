@@ -98,7 +98,7 @@ Am 09.11.2026 aufgenommen (Wunsch des Hauptnutzers, Weg A der Abwägung „eigen
 (gespeicherte Abläufe per Name/Strg+K), **Exchange über EWS/Graph** (sobald Offene Frage 3 geklärt ist), **Tabellen beim
 Taggen und LTV der Signatur** (Rest AP-60).
 
-### AP-67 ☐ Eigenes Erkennungsmodell für die Pseudonymisierung · M–L (neu, Nachfolger von „Gründlich“ aus AP-03)
+### AP-67 ◐ Eigenes Erkennungsmodell für die Pseudonymisierung · M–L (neu, Nachfolger von „Gründlich“ aus AP-03)
 **Ziel**: Ein kleines, eigenes Erkennungsmodell (NER, deutsch, etwa 70–120 MB als ONNX int8) findet private Namen,
 Einrichtungen (Schulen, Kitas, Praxen …) und Orte mit Personenbezug **in Millisekunden auf dem Gerät** – auf Android und
 Windows, **immer an**, ohne installiertes Sprachmodell. Es ersetzt den Schritt „Gründlich“, in dem heute das kleinste
@@ -119,29 +119,58 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   („Rose“, „Winter“, „Becker-Studie“). Kennzahlen je Art: **Trefferquote** privater Angaben und **Fehlalarme** bei
   öffentlichen Namen; Ausgangswert der heutigen Regeln (mit und ohne „Gründlich“) festhalten. Ein **Prüfteil**
   (mindestens 150 Sätze) wird nie zum Training benutzt.
+  ☑ *Erledigt (09.11.2026)*: 517 Beispiele in `tools/pii/messkorpus/` (Prüfteil 174 mit 261 privaten und 121
+  öffentlichen Angaben), `PseudonymCorpusTest` misst die Regeln. Ausgangswert der Regeln auf dem Prüfteil: **78,2 %**
+  gefunden (Personen 83,9 %, Einrichtungen 90,3 %, Orte 16 %), **9,9 %** der öffentlichen Angaben fälschlich ersetzt
+  (öffentliche Personen 30 %); Einzelheiten in `tools/pii/README.md`. Offen: der Wert *mit* „Gründlich“ – in der
+  Cloud ließ sich kein lokales Sprachmodell starten; am PC misst ihn der Test mit `PII_GRUENDLICH_URL` (llama-server).
 - **b) Trainingsdaten ohne echte Daten**: Generator in `tools/pii/` (Python, nicht Teil der App). Erfundene Texte nach
   Vorlagen der Textarten aus a), mit erfundenen Namen (Listen aus `Names` und offenen Namenslisten, auch Namen von Familien,
-  die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Ein **Lehrer-Modell** schreibt abwechslungsreiche
-  Texte und beschriftet die Stellen – der Uni-Server (die Texte sind erfunden, also unbedenklich) oder lokal auf der RTX 5080;
-  die Regeln von `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
+  die in Deutschland leben), erfundenen Schulen/Kitas und sächsischen Orten. Das **Lehrer-Modell** ist Claude in der
+  Cloud-Sitzung (Entscheidung 09.11.2026, kein Schlüssel des Uni-Servers): Es schreibt abwechslungsreiche Vorlagen mit
+  Platzhaltern, der Generator setzt erfundene Namen ein – so stimmen die Beschriftungen genau; die Regeln von
+  `PiiDetector` sind die zweite Meinung, Abweichungen werden geprüft. Ziel 20 000–50 000 Sätze, Beschriftung
   im BIO-Schema (`PER`, `EINR`, `ORT`). **Nie echte Interviews, Abgaben oder Mails** im Training.
+  ☑ *Erledigt (09.11.2026)*: 823 Vorlagen in zehn Textarten (`tools/pii/vorlagen/`), `gen.py` erzeugt 30 000 Texte mit
+  zeichengenauen Fundstellen; Wörter aus dem Prüfteil werden nie gezogen, Überschneidungen mit dem Messkorpus meldet
+  `gen.py check`.
 - **c) Training auf dem eigenen PC** (RTX 5080 mit 16 GB Grafikspeicher, 32 GB DDR5): Feintuning eines Encoders mit
   Hugging Face Transformers in bf16, wenige Epochen – Stunden, nicht Tage. Kandidaten werden auf dem Messkorpus verglichen
   und nur genommen, wenn ihre Lizenz MIT oder Apache-2.0 ist (vor dem Start einzeln prüfen): ein deutsches BERT (z. B.
   gbert-base), XLM-RoBERTa-base, GLiNER (multilingual, für personenbezogene Angaben vortrainiert). Hinweis: Grafikkarten der
   RTX-50-Reihe (Blackwell) brauchen PyTorch mit CUDA 12.8 oder neuer. Reicht das Tempo auf dem Handy nicht, wird das Modell
   in ein kleineres mit 6 Schichten destilliert.
+  ◐ *Vorbereitet (09.11.2026)*: `tools/pii/pc.ps1` richtet auf dem PC alles ein und trainiert gbert-base,
+  gelectra-base (beide MIT) und distilbert-base-german-cased (Apache-2.0, 6 Schichten); XLM-RoBERTa fällt wegen der
+  Größe (int8 ≈ 280 MB) heraus, GLiNER wegen des aufwendigen Einbaus. Probelauf in der Cloud auf CPU (gbert-base,
+  1000 Texte, eine Epoche): Prüfteil 96,9 % gefunden (Regeln 78,2 %), 22 ms je Absatz. Für die Kombination gibt es
+  `Pseudonymizer.nameChains`: ohne das Raten von Namen aus häufigen Vornamen, das öffentliche Personen trifft.
+  ◐ *Trainiert in der Cloud (09.11.2026, CPU, 3 Epochen)*: **gbert-base** gewählt (Entwicklung 97,4 % / 1,7 %,
+  distilbert 96,8 % / 2,8 %). Prüfteil, wie geplant kombiniert: **99,2 %** der privaten Angaben gefunden, **5,8 %** der
+  öffentlichen fälschlich ersetzt (Ziel ≤ 2 % noch nicht erreicht – vor allem ungesehene öffentliche Personen).
 - **d) Export**: ONNX, int8-Quantisierung; das quantisierte Modell darf auf dem Prüfteil höchstens 0,5 Prozentpunkte
   verlieren. Eine **Modellkarte** (Basismodell und Lizenz, Herkunft der Daten, Kennzahlen, Grenzen) kommt mit in die App
   und in die Drittanbieter-Hinweise.
+  ◐ *Exportiert*: int8 110 MB, 0,0 Prozentpunkte Verlust, 7,7 ms je Absatz auf der CPU, Modellkarte und Schwelle
+  (`schwelle.json`) liegen bei. Offen: wo die Datei dauerhaft liegt (Offene Frage 9) – im Repo geht es nicht (über 100 MB).
 - **e) Einbau**: neu `data/PiiModel.kt` (gemeinsam) über die ONNX Runtime, die die App mit sherpa-onnx schon mitbringt;
   Tokenizer (WordPiece bzw. SentencePiece) in Kotlin, Fenster von 512 Token mit Überlappung, Fundstellen als `PiiHit`.
   `Pseudonymizer` nimmt Regeln, Modell und eigene Liste zusammen; der Schalter *Gründlich* unter *Einstellungen ›
   Datenschutz* wird zu *Erkennungsmodell* (Standard an). Das lokale Sprachmodell bleibt nur optional für indirekte Merkmale
-  („die Schulleiterin in Pirna“). Auslieferung fest in APK/Windows-ZIP oder als Download wie die Sprachmodelle (Offene
-  Frage 9).
+  („die Schulleiterin in Pirna“). Auslieferung als **Download** wie die Sprachmodelle (Offene Frage 9, entschieden):
+  ein Popup bietet ihn beim ersten Nutzen der Pseudonymisierung oder beim Öffnen von *Einstellungen › Datenschutz* an
+  („Laden“, „Später“, „Nicht mehr fragen“); Quelle ist der Branch `pii-modell` an festem Commit, geprüft mit SHA-256.
+  ◐ *Eingebaut (09.11.2026)*: `data/PiiModel.kt` (WordPiece in Kotlin, ONNX Runtime von sherpa-onnx über ihre C-API mit
+  JNA – auf Android neu `net.java.dev.jna:jna` –, Fenster 512/64, Schwelle 0,9, bekannte Namen der App bleiben),
+  `data/PiiRuntime.kt` je Plattform (Ablage: Android App-Speicher, PC `%LOCALAPPDATA%\ADEU LLM\pii`), Download über das
+  gemeinsame `FileDownload` (auch für die lokalen Sprachmodelle), Popup `PiiModelPrompt` und Schalter *Erkennungsmodell
+  (empfohlen)* unter *Einstellungen › Datenschutz* mit Modellkarte; mit Modell gilt `nameChains = false`. Am PC getestet,
+  **auf Android noch ungetestet** (JNA und der Pfad zur ONNX Runtime von sherpa-onnx).
 - **f) Tests**: der Messkorpus als `PseudonymCorpusTest` mit Schwellen, Laufzeit je Absatz, ein Test, dass Autor:innen und
   öffentliche Namen bleiben, und dass ohne Modell (Datei fehlt) die Regeln allein weiterlaufen.
+  ◐ *Erledigt bis auf das Ziel*: `PiiModelTest` – Tokenizer gleich dem des Trainings (520 Texte), Auswertung der Etiketten,
+  ohne Modell wie bisher, und mit `PII_MODELL`/`PII_ORT` das echte Modell auf dem Messkorpus. In der App gemessen: Prüfteil
+  **99,2 %** gefunden, **7,4 %** fälschlich ersetzt (Ziel ≤ 2 % offen), Entwicklung 97,1 % / 2,2 %, ≈ 11 ms je Absatz.
 
 **Fertig, wenn**: Auf dem Prüfteil des Messkorpus findet die Kombination aus Regeln und Modell mindestens 98 % der privaten
 Namen und ersetzt höchstens 2 % der öffentlichen; ein Absatz braucht auf einem Dienst-PC ohne Grafikkarte unter 50 ms, auf
@@ -1253,9 +1282,10 @@ mehr; Bereiche lassen sich ziehen, ein- und ausklappen, bleiben nach dem Neustar
 8. ~~**PDF aus derselben Seitenaufteilung** (AP-43/45)~~: entschieden (07.11.2026) – reicht so. Das PDF folgt denselben
    Regeln wie die Seitenansicht (Witwen/Waisen, Überschriften beim Folgetext, erste/gerade Seiten, Tabellen mit
    wiederholter Kopfzeile, Abschnitte) und wird weiter über HTML gesetzt; kein eigener PDF-Textsatz.
-9. **Erkennungsmodell ausliefern** (AP-67): fest in APK und Windows-ZIP (rund 70–120 MB mehr, sofort da, auch offline) oder
-   als Download beim ersten Bedarf wie die Sprachmodelle (kleinere Installation)? Und welches Basismodell – Entscheidung nach
-   dem Vergleich auf dem Messkorpus und der Lizenzprüfung.
+9. ~~**Erkennungsmodell ausliefern** (AP-67)~~: entschieden (09.11.2026) – **Download wie die lokalen Sprachmodelle**,
+   angeboten als Popup beim ersten Nutzen der Pseudonymisierung oder beim Öffnen von *Einstellungen › Datenschutz*.
+   Quelle: Branch `pii-modell` dieses (öffentlichen) Repos an festem Commit, gepackt 72 MB, mit SHA-256 geprüft. Ohne
+   Modell laufen die Regeln allein weiter. Basismodell: **gbert-base** (MIT), nach dem Vergleich auf dem Entwicklungsteil.
 
 10. **Lokales Modell fürs Postfach** (AP-68, AP-69): Welches lokale Modell reicht auf den Dienst-PCs ohne Grafikkarte, um
     Mails in vertretbarer Zeit zusammenzufassen und einzuordnen – Qwen 3.5 4B, Gemma 4 E4B oder größer (9B mit

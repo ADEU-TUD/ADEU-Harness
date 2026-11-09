@@ -25,7 +25,6 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.ServerSocket
 import java.net.URL
-import java.security.MessageDigest
 import java.util.UUID
 
 /** Whether the program that runs models (llama.cpp) is there. */
@@ -171,50 +170,12 @@ class LocalLlm(private val c: AppContainer) {
         tr("{0} ist bereit.", m.name)
     }
 
-    private fun download(url: String, part: File, total: Long, cancelled: () -> Boolean, progress: (Double) -> Unit) {
-        var have = if (part.isFile) part.length() else 0L
-        if (have >= total) return
-        var u = url
-        var con: HttpURLConnection
-        var hops = 0
-        while (true) {
-            con = URL(u).openConnection() as HttpURLConnection
-            con.instanceFollowRedirects = false
-            con.connectTimeout = 20_000
-            con.readTimeout = 60_000
-            con.setRequestProperty("User-Agent", "ADEU-LLM")
-            if (have > 0) con.setRequestProperty("Range", "bytes=$have-")
-            val code = con.responseCode
-            if (code in 300..399 && hops++ < 10) { u = URL(URL(u), con.getHeaderField("Location")).toString(); con.disconnect(); continue }
-            if (code == 416) { part.delete(); have = 0; con.disconnect(); continue }
-            if (code != 200 && code != 206) { con.disconnect(); error("HTTP $code") }
-            if (code == 200) have = 0
-            break
-        }
-        con.inputStream.use { input ->
-            java.io.FileOutputStream(part, have > 0).use { out ->
-                val buf = ByteArray(1 shl 16)
-                var got = have
-                var last = 0L
-                while (true) {
-                    val n = input.read(buf)
-                    if (n <= 0) break
-                    out.write(buf, 0, n)
-                    got += n
-                    if (cancelled()) throw InterruptedException()
-                    val now = System.currentTimeMillis()
-                    if (now - last > 400) { last = now; progress((got.toDouble() / total).coerceAtMost(0.999)) }
-                }
-            }
-        }
-    }
+    private fun download(url: String, part: File, total: Long, cancelled: () -> Boolean, progress: (Double) -> Unit) =
+        io.github.thepytales.llmhub.data.FileDownload.fetch(url, part, total, cancelled, progress)
 
     private fun verify(f: File, m: LocalModel) {
         if (f.length() != m.size) error(tr("Datei unvollständig ({0} statt {1} Bytes)", f.length(), m.size))
-        val md = MessageDigest.getInstance("SHA-256")
-        f.inputStream().use { i -> val b = ByteArray(1 shl 20); while (true) { val n = i.read(b); if (n <= 0) break; md.update(b, 0, n) } }
-        val sha = md.digest().joinToString("") { "%02x".format(it) }
-        if (sha != m.sha256) error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
+        if (io.github.thepytales.llmhub.data.FileDownload.sha256(f) != m.sha256) error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
     }
 
     // ------------------------------------------------------------------ server

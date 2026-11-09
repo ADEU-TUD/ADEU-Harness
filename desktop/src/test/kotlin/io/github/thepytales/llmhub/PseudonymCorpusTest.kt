@@ -7,15 +7,26 @@ import io.github.thepytales.llmhub.data.PiiDetector
 import io.github.thepytales.llmhub.data.PiiKind
 import io.github.thepytales.llmhub.data.Pseudonymizer
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.io.File
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Test collection of the pseudonymization (AP-03): private names must be replaced, authors, public persons and
- * public sources must stay. The rates are printed, so improvements are measurable.
+ * Test collection of the pseudonymization (AP-03, AP-67): private names must be replaced, authors, public persons and
+ * public sources must stay. The rates on the Messkorpus (tools/pii/messkorpus) are printed, so improvements are measurable.
  */
 class PseudonymCorpusTest {
     private var settings = AppSettings(pseudonymize = true)
@@ -25,45 +36,96 @@ class PseudonymCorpusTest {
         return Pseudonymizer(file, publicNames = { authors }) { settings }
     }
 
-    /** Texts with private names (must be replaced) and public names (must stay). */
-    private class Sample(val text: String, val private: List<String>, val public: List<String> = emptyList())
-
-    private val corpus = listOf(
-        Sample("Gestern sprach ich mit Jolina Kretzschmann über ihre Noten.", listOf("Kretzschmann")),
-        Sample("Im Elterngespräch war auch Frau Wojciechowski dabei, die Mutter von Ben.", listOf("Wojciechowski", "Ben")),
-        Sample("Schülerin Malina hat gefehlt, ihr Bruder Kjell ebenfalls.", listOf("Malina", "Kjell")),
-        Sample("Lukas Brettschneider kommt aus der 4b.", listOf("Lukas", "Brettschneider")),
-        Sample("Sie besucht die Grundschule am Park und danach den Hort.", listOf("Grundschule am Park")),
-        Sample("Das Interview fand am Goethe-Gymnasium statt.", listOf("Goethe-Gymnasium")),
-        Sample("Laut der Schulleiterin in Pirna ist die Lage angespannt.", listOf("Pirna")),
-        Sample("Viele Grüße\nAnnegret Zschoche", listOf("Annegret", "Zschoche")),
-        Sample("Klafki (1996) beschreibt die kategoriale Bildung, vgl. auch Meyer, H. (2004).", emptyList(), listOf("Klafki", "Meyer")),
-        Sample("Nach Helmke (2017) und Lipowsky & Rzejak (2021) wirkt Klarheit.", emptyList(), listOf("Helmke", "Lipowsky", "Rzejak")),
-        Sample("Das Buch von Wolfgang Klafki prägt die Didaktik bis heute.", emptyList(), listOf("Wolfgang Klafki")),
-        Sample("Hattie et al. (2009) fassen über 800 Metaanalysen zusammen.", emptyList(), listOf("Hattie")),
-    )
-
+    /**
+     * Messkorpus (AP-67, Stufe a): the rules alone on the test part and the development part of tools/pii/messkorpus,
+     * each sample with a fresh pseudonymizer. The report with everything missed and wrongly replaced goes to
+     * build/pii/regeln.txt, the replaced words per sample to build/pii/regeln.jsonl (for tools/pii/evaluate.py). The limits keep the rules from getting worse; the goal of AP-67 (rules + model: at least
+     * 98 % of the private details found, at most 2 % of the public ones replaced) is checked once the model is there.
+     *
+     * With PII_GRUENDLICH_URL (an OpenAI-compatible server with the local model, e.g. llama-server: http://localhost:8080/v1)
+     * and PII_GRUENDLICH_MODELL the same is measured with „Gründlich“ (build/pii/gruendlich.txt).
+     */
     @Test
-    fun corpusFindsPrivateNamesAndKeepsPublicOnes() {
-        val p = pseudonymizer()
-        var privateFound = 0
-        var privateTotal = 0
-        var publicKept = 0
-        var publicTotal = 0
-        for (s in corpus) {
-            val masked = p.mask(s.text)
-            s.private.forEach { name ->
-                privateTotal++
-                if (name !in masked) privateFound++ else println("übersehen: $name in „${s.text}“ → $masked")
-            }
-            s.public.forEach { name ->
-                publicTotal++
-                if (name in masked) publicKept++ else println("fälschlich ersetzt: $name in „${s.text}“ → $masked")
+    fun corpusOfTheRules() {
+        val out = File("build/pii").apply { mkdirs() }
+        val report = StringBuilder()
+        // The replaced words per sample, for tools/pii/evaluate.py (rules + model).
+        val perSample = StringBuilder()
+        val scores = listOf("pruef", "entwicklung").associateWith { section ->
+            PseudonymCorpus.Score().also { score ->
+                for (s in PseudonymCorpus.load(section)) {
+                    val replaced = PseudonymCorpus.replacedWords(s.text, pseudonymizer().mask(s.text))
+                    score.add(s, replaced)
+                    // For the planned combination with the model: the rules without the first-name guesses and the
+                    // words of the authors cited in the text, which stay.
+                    val patterns = PseudonymCorpus.replacedWords(s.text, pseudonymizer().apply { nameChains = false }.mask(s.text))
+                    val citedWords = PiiDetector.citedAuthors(s.text).flatMap { it.split(' ') }.toSet()
+                    val cited = s.words.indices.filter { i -> s.words[i] in citedWords || s.words[i].removeSuffix("s") in citedWords }
+                    perSample.append("{\"id\": \"${s.id}\", \"ersetzt\": ${replaced.sorted()}, ")
+                    perSample.append("\"muster\": ${patterns.sorted()}, \"zitiert\": $cited}\n")
+                }
             }
         }
-        println("Pseudonymisierung: $privateFound/$privateTotal private Namen ersetzt, $publicKept/$publicTotal öffentliche erhalten")
-        assertTrue(privateFound >= privateTotal - 1, "private Namen: $privateFound/$privateTotal")
-        assertEquals(publicTotal, publicKept, "öffentliche Namen bleiben")
+        scores.forEach { (section, score) -> report.append(details("Regeln, $section", score)) }
+        File(out, "regeln.txt").writeText(report.toString())
+        File(out, "regeln.jsonl").writeText(perSample.toString())
+        println(report)
+        val test = scores.getValue("pruef")
+        val (found, total) = test.recall()
+        val (wrong, public) = test.falseRate()
+        assertTrue(found * 100 >= total * RULES_MIN_FOUND, "Regeln finden weniger private Angaben: $found/$total")
+        assertTrue(wrong * 100 <= public * RULES_MAX_WRONG, "Regeln ersetzen mehr öffentliche Angaben: $wrong/$public")
+
+        val url = System.getenv("PII_GRUENDLICH_URL")?.takeIf { it.isNotBlank() } ?: return
+        val model = System.getenv("PII_GRUENDLICH_MODELL").orEmpty()
+        settings = settings.copy(pseudonymThorough = true)
+        val thorough = StringBuilder()
+        for (section in listOf("pruef", "entwicklung")) {
+            val score = PseudonymCorpus.Score()
+            for (s in PseudonymCorpus.load(section)) {
+                val p = pseudonymizer().apply { thoroughFinder = localModel(url, model) }
+                runBlocking { p.prepareThorough(listOf(ChatMessage(role = "user", content = s.text))) }
+                score.add(s, PseudonymCorpus.replacedWords(s.text, p.mask(s.text)))
+            }
+            thorough.append(details("Regeln + Gründlich ($model), $section", score))
+        }
+        settings = settings.copy(pseudonymThorough = false)
+        File(out, "gruendlich.txt").writeText(thorough.toString())
+        println(thorough)
+    }
+
+    private fun details(title: String, score: PseudonymCorpus.Score) = buildString {
+        append(score.report(title))
+        appendLine("  übersehen:")
+        score.missed.forEach { appendLine("    $it") }
+        appendLine("  fälschlich ersetzt:")
+        score.falseAlarms.forEach { appendLine("    $it") }
+        appendLine()
+    }
+
+    /** „Gründlich“ like in the app (AppContainer), but with a model behind an OpenAI-compatible server. */
+    private fun localModel(url: String, model: String): suspend (String) -> List<String> = { text ->
+        val body = buildJsonObject {
+            put("model", model)
+            put("temperature", 0)
+            put("chat_template_kwargs", buildJsonObject { put("enable_thinking", false) })
+            put("messages", buildJsonArray {
+                add(buildJsonObject { put("role", "system"); put("content", Pseudonymizer.THOROUGH_PROMPT) })
+                add(buildJsonObject { put("role", "user"); put("content", text) })
+            })
+        }
+        val request = HttpRequest.newBuilder(URI.create(url.trimEnd('/') + "/chat/completions"))
+            .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString())).build()
+        val answer = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()).body()
+        val content = Json.parseToJsonElement(answer).jsonObject["choices"]!!.jsonArray[0].jsonObject["message"]!!
+            .jsonObject["content"]!!.jsonPrimitive.content
+        Pseudonymizer.parseThorough(content)
+    }
+
+    private companion object {
+        /** Measured on the test part on 09.11.2026 (rules of 1.0.61: 78.2 % found, 9.9 % replaced), with a little room. */
+        const val RULES_MIN_FOUND = 77
+        const val RULES_MAX_WRONG = 11
     }
 
     @Test

@@ -1,0 +1,195 @@
+# Vorlagen AP-67 · Textart: Elterngespräche, Förderpläne, Schulsozialarbeit, Telefonnotizen (Lehrer: Claude, erfunden)
+
+Gesprächsnotiz vom {DATUM}
+Teilnehmende: Frau {N1w} (Mutter), Herr {N2m} (Klassenlehrer)
+Thema: Leistungsabfall von {V3} in {FACH}
+
+Frau {Nw} berichtet, dass {Vm} seit Wochen nicht mehr gern zur Schule geht und morgens Bauchschmerzen hat.
+
+Herr {Nm} (Vater) möchte wissen, warum seine Tochter {Vw} keine Empfehlung für das Gymnasium bekommen hat.
+
+Vereinbarung: {V} führt ein Hausaufgabenheft, das die Eltern täglich unterschreiben. Nächstes Gespräch am {DATUM}.
+
+Die Mutter, Frau {VNw}, arbeitet im Schichtdienst in {ORT} und ist nur vormittags telefonisch erreichbar.
+
+Anwesend: Herr und Frau {N}, Schulsozialarbeiterin {VNw}, Klassenleitung Frau {Nw}
+
+Die Eltern berichten, dass {V} am Wochenende beim Vater in {ORT} ist und dort niemand auf die Hausaufgaben achtet.
+
+Förderplan für {VN}, Klasse {KLASSE}
+Förderschwerpunkt: emotionale und soziale Entwicklung
+Verantwortlich: Frau {Nw}, Herr {Nm}
+
+Telefonnotiz {UHR} Uhr: Frau {Nw} ruft an, {Vm} hat Fieber und bleibt bis Freitag zu Hause.
+
+Herr {N1m} beklagt, dass sein Sohn {Vm2} von {Vm3} und {Vm} in der Pause geschubst wird. Herr {N1m} droht mit Anwalt.
+
+Die Großmutter, Frau {Nw}, kümmert sich unter der Woche um {Vw}, da die Eltern in {ORT} arbeiten.
+
+Laut Mutter war {Vw} in der {KITA} ein fröhliches Kind; seit der Einschulung weint sie oft.
+
+Notiz Schulsozialarbeit: {Vw} ({KLASSE}) möchte über einen Streit mit ihrer Freundin {Vw} sprechen. Termin Mittwoch.
+
+Die Familie lebt erst seit August in {ORT}, vorher in {OORT}; {Vm} spricht noch wenig Deutsch.
+
+Herr {VNm} bittet um ein Gespräch ohne die Klassenlehrerin, da er sich ungerecht behandelt fühlt.
+
+Vereinbart wird eine Diagnostik bei der {PRAXIS}; die Mutter kümmert sich um den Termin.
+
+Die Eltern von {V} wünschen sich, dass ihr Kind in der ersten Reihe sitzt, weil es schlecht sieht.
+
+Frau {Nw} teilt mit, dass {Vm} seit kurzem Medikamente nimmt und deshalb müder sein könnte.
+
+Ergebnis: {V} wechselt zum Halbjahr an die {SCHULE}. Die Akte wird an Frau {Nw} übergeben.
+
+Die Mutter von {Vw} hat Angst, dass ihre Tochter in der neuen Klasse keine Freunde findet.
+
+Gespräch mit Herrn {Nm} und seiner Lebensgefährtin, Frau {Nw}, über das Verhalten von {Vm} im Hort.
+
+Die Eltern lehnen eine Testung ab. Herr {Nm} meint, sein Sohn sei „einfach faul“.
+
+Nach Aussage der Mutter übt {V} jeden Abend eine halbe Stunde Lesen mit dem großen Bruder {Vm}.
+
+Die Familie {N} wohnt seit {JAHR} in {ORT}; der Vater ist Lkw-Fahrer und selten zu Hause.
+
+Die Klassenlehrerin, Frau {VNw}, schlägt eine Lernbegleitung durch den {VEREIN} vor.
+
+Herr {Nm} hat sich beim Schulleiter, Herrn {Nm}, über die Benotung beschwert.
+
+Anlass des Gesprächs: wiederholtes Zuspätkommen von {VN}. Laut Mutter liegt es am Bus aus {ORT}.
+
+Die Mutter möchte, dass {Vw} und {Vw} in unterschiedliche Klassen kommen, weil sie sich gegenseitig ablenken.
+
+Notiz: Kontakt zum Jugendamt hergestellt, zuständig ist Frau {Nw}. Die Eltern sind informiert.
+
+Der Vater berichtet, dass {Vm} zu Hause viel am Computer spielt, oft bis Mitternacht.
+
+Vereinbarung mit Familie {N}: Die Schule informiert sofort, wenn {V} unentschuldigt fehlt.
+
+Die Logopädin, Frau {VNw}, empfiehlt eine Verlängerung der Therapie um sechs Monate.
+
+Frau {Nw} wünscht sich mehr Informationen über den Lernstand, am liebsten per Mail an {MAIL}.
+
+Die Eltern sind getrennt. {Vw} lebt bei der Mutter in {ORT}, der Vater hat das Umgangsrecht am Wochenende.
+
+Die Mutter von {V1} berichtet, dass {V1} wieder bei der {PRAXIS} in Behandlung ist.
+
+Herr {N} (Pflegevater) erscheint allein, die Pflegemutter ist erkrankt.
+
+Gesprächsteilnehmer: Frau {VNw} (Mutter), Herr {VNm} (Schulbegleiter), Frau {VNw} (Klassenleiterin)
+
+Die Eltern freuen sich, dass {Vm} in {FACH} so große Fortschritte gemacht hat.
+
+{Vw} hat in der Vergleichsarbeit sehr gut abgeschnitten; die Eltern überlegen einen Wechsel aufs Gymnasium.
+
+Die Mutter erzählt, dass die Familie vor zwei Jahren aus {OORT} geflohen ist und {Vm} nachts oft Albträume hat.
+
+Notiz Schulsozialarbeit {DATUM}: Gespräch mit {VNm} und seinem Vater. Thema: Konflikt mit dem Mitschüler {Vm}.
+
+Absprache: Die Erzieherin {Vw} aus dem Hort meldet sich, wenn {Vm} nach dem Mittagessen wieder unruhig wird.
+
+Frau {Nw} lässt ausrichten, dass sie den Termin am Donnerstag nicht wahrnehmen kann.
+
+Die Tante, Frau {VNw}, ist bis auf Weiteres abholberechtigt.
+
+Die Eltern berichten von Mobbing im Klassenchat; betroffen sind {Vw} und {Vw}.
+
+Herr {Nm} fragt, ob {Vm} am Schwimmunterricht teilnehmen muss, er habe Angst vor Wasser.
+
+Die Mutter hat {AUT} gelesen und möchte, dass in der Klasse mehr gelobt wird.
+
+Die Eltern fragen nach der Ganztagsbetreuung; sie haben von der {SCHULE} gehört, dass es dort mehr Angebote gibt.
+
+Gespräch mit Frau {Nw} (Mutter von {Vw}) und Frau {Nw} (Mutter von {Vw}) wegen eines Streits auf dem Schulweg.
+
+{Vm} hat sich nach Aussage des Vaters im Fußballverein, dem {VEREIN}, sehr gut eingelebt.
+
+Die Familie besucht regelmäßig die Großeltern in {ORT}; dadurch fehlt {V} oft montags.
+
+Herr {VNm} wird gebeten, die Unterlagen bis zum {DATUM} im Sekretariat bei Frau {Nw} abzugeben.
+
+Elterngespräch Klasse {KLASSE}: anwesend Frau {Nw}, Herr {Nm}; entschuldigt: Herr {Nm}.
+
+Die Mutter berichtet, dass der ältere Sohn {Vm} früher auch an dieser Schule war und gute Erfahrungen gemacht hat.
+
+Notiz: {V} hat einen Brief mit nach Hause bekommen, der laut Mutter nie angekommen ist.
+
+Die Eltern wohnen in {ORT}, der Schulweg dauert mit dem Rad etwa zwanzig Minuten.
+
+Laut Vater liest {Vm} gern Comics, vor allem {WERK}, aber keine „richtigen“ Bücher.
+
+Der Kinderarzt, Dr. {N}, hat ein Attest für den Sportunterricht ausgestellt.
+
+Die Eltern danken Frau {Nw} ausdrücklich für ihre Geduld im vergangenen Schuljahr.
+
+Vereinbart: Wöchentliche Rückmeldung per Schul-App an Frau {VNw}.
+
+Die Mutter von {VNw} berichtet, dass sie die Hausaufgaben selbst nicht erklären kann, weil sie kaum Deutsch spricht.
+
+{V} wurde in der {KITA} schon als hochbegabt eingeschätzt; die Eltern wünschen eine Förderung.
+
+Herr {Nm} ist Elternsprecher der Klasse {KLASSE} und war deshalb beim Gespräch dabei.
+
+Die Eltern haben sich an die {PRAXIS} gewandt, weil {Vm} sich nicht konzentrieren kann.
+
+Besprechung mit der Schulbegleiterin, Frau {VNw}, über die Pausenregelung für {Vm}.
+
+Die Mutter ist dagegen, dass {Vw} mit auf die Klassenfahrt nach {OORT} fährt.
+
+Der Vater, Herr {VNm}, ist selbst Lehrer an der {SCHULE} und hat konkrete Vorschläge.
+
+Notiz Schulsozialarbeit: {Vm} hat auf dem Klo geraucht. Gespräch mit {Vm} und dem Vater, Herrn {Nm}, am Freitag.
+
+Die Mutter sagt, {V1} vermisse die alte Klasse in {ORT} sehr, besonders {V}.
+
+Die Eltern schlagen vor, die Elternabende online abzuhalten. Frau {Nw} prüft das.
+
+Seit dem Tod der Mutter wächst {Vw} bei den Großeltern {N} auf.
+
+Förderplan {VNm}: Ziele bis {DATUM}: 1. Lesen in Silben, 2. Zahlenraum bis 100. Elterngespräch mit Frau {Nw} vereinbart.
+
+Die Mutter berichtet, dass {Vw} wegen einer Allergie kein Mittagessen in der Schule bekommt.
+
+Frau {VNw} hat das Sorgerecht allein; der Vater darf {V} nicht abholen.
+
+{V} soll laut Eltern im nächsten Jahr an die {SCHULE} wechseln, weil die näher an {ORT} liegt.
+
+Gesprächsprotokoll: Die Eltern erscheinen nicht. Telefonisch erreicht: Frau {Nw}, neuer Termin am {DATUM}.
+
+Herr {Nm} bittet, {Vm} zwei Tage zu beurlauben, weil die Familie zu einer Hochzeit nach {OORT} fährt.
+
+Die Mutter lobt die Erzieherinnen der {KITA}, besonders {Vw}.
+
+Der Vater berichtet, dass {Vm} beim Sportfest den ersten Platz gemacht hat und sehr stolz ist.
+
+Die Schulpsychologin, Frau Dr. {Nw}, wird zum nächsten Gespräch hinzugezogen.
+
+Die Eltern beklagen, dass die Klassenfahrt zu teuer ist. Der Förderverein übernimmt einen Teil, Ansprechpartner Herr {Nm}.
+
+{Vw} erzählt zu Hause viel von ihrer neuen Freundin {Vw}, die aus {ORT} hergezogen ist.
+
+Herr {Nm} wünscht, dass sein Sohn {Vm} Arabisch als Herkunftssprache lernen kann.
+
+Notiz: Die Mutter hat im Gespräch geweint. Unterstützung durch die Erziehungsberatung angeboten.
+
+Vereinbarung zwischen {VN} (Schüler), Herrn {Nm} (Vater) und Frau {Nw} (Klassenleiterin): Handy bleibt im Unterricht im Ranzen.
+
+Die Mutter, Frau {N}, und der Stiefvater, Herr {N}, sind gemeinsam erschienen.
+
+{V} hat seit den Herbstferien keinen Kontakt mehr zum Vater, der jetzt in {ORT} lebt.
+
+Die Eltern haben sich bereits an die Schulleiterin, Frau {VNw}, gewandt.
+
+Elterngespräch auf Wunsch der Klassenlehrerin wegen der Fehlzeiten. Es ist alles in Ordnung, die Atteste liegen vor.
+
+Der Vater bittet, dass Mitteilungen auch an {MAIL} gehen, weil er die Schul-App nicht nutzt.
+
+Die Mutter berichtet, dass {Vw} in der Ergotherapie bei Frau {Nw} große Fortschritte macht.
+
+Die Eltern finden, dass {Vm} unterfordert ist, und verweisen auf die Förderung an der {SCHULE}.
+
+Notiz Hort: {Vw} wurde heute von einer unbekannten Frau abgeholt. Rücksprache mit der Mutter, Frau {Nw}: Es war die Tante.
+
+Die Mutter von {Vm} und {Vw} kann nur mittwochs, weil sie in {ORT} als Pflegekraft arbeitet.
+
+Herr {Nm} ist mit der Note in {FACH} nicht einverstanden und will Widerspruch einlegen.

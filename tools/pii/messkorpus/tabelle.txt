@@ -1,0 +1,113 @@
+# Messkorpus AP-67 · Textart: Noten- und Teilnehmertabellen, Listen (Markdown, CSV) (alles erfunden)
+
+== prüfteil ==
+
+| Name | Klasse | Note Deutsch | Note Mathe |
+| --- | --- | --- | --- |
+| [[Jolina Kretzschmann|PER]] | 7b | 2 | 3 |
+| [[Kerem Bozkurt|PER]] | 7b | 3 | 2 |
+| [[Smilla Uhlig|PER]] | 7b | 1 | 1 |
+
+Nachname;Vorname;Fehltage;entschuldigt
+[[Pätzold|PER]];[[Lenja|PER]];4;ja
+[[Okonkwo|PER]];[[Chidi|PER]];11;nein
+[[Haidari|PER]];[[Mursal|PER]];0;–
+
+Gruppe 3: [[Wiktoria|PER]], [[Mats|PER]], [[Ilyas|PER]], [[Thore|PER]] – Thema: {{Martin Luther King|OEFF}}
+
+| Kind | Kita | Sprachstand |
+| --- | --- | --- |
+| [[Juna|PER]] | [[Kita Wiesenwichtel|EINR]] | altersgemäß |
+| [[Mykyta|PER]] | [[Kita Elbpiraten|EINR]] | Förderbedarf |
+
+Teilnehmende Seminar „Heterogenität“ (WiSe):
+1. [[Hänsel, Josefine|PER]]
+2. [[Mensah, Kofi|PER]]
+3. [[Pham, Ngoc Anh|PER]]
+4. [[Zschiesche, Henrike|PER]]
+
+| Referat | Thema | Literatur |
+| --- | --- | --- |
+| [[Emre Ocak|PER]] | Motivation | {{Deci|AUT}} & {{Ryan|AUT}} 2000 |
+| [[Lea Teichmann|PER]] | Klassenführung | {{Kounin|AUT}} 1976 |
+
+Schüler,Geburtsdatum,Wohnort
+[[Quirin Ebermann|PER]],[[14.02.2014|MUSTER]],[[Dippoldiswalde|ORT]]
+[[Defne Yıldız|PER]],[[30.09.2013|MUSTER]],[[Freital|ORT]]
+
+Sitzplan 3a, Reihe 1: [[Ylvi|PER]] – [[Fiete|PER]] – [[Nayeli|PER]] – [[Lio|PER]]
+
+| Praktikumsschule | Mentor/in | Studierende/r |
+| --- | --- | --- |
+| [[Oberschule Heidenau-Nord|EINR]] | Frau [[Lötzsch|PER]] | [[Jarne Lisowski|PER]] |
+| [[Grundschule Bühlau|EINR]] | Herr [[Ranft|PER]] | [[Mareike Zschoche|PER]] |
+
+Bewertung Projektarbeit: [[Taras|PER]] 13 P., [[Sofiia|PER]] 14 P., [[Karim|PER]] 9 P., [[Amira|PER]] 12 P.
+
+== entwicklung ==
+
+| Name | Note |
+| --- | --- |
+| [[Anna Müller|PER]] | 2 |
+| [[Ben Schulz|PER]] | 1 |
+
+Vorname;Nachname;Klasse
+[[Lukas|PER]];[[Weber|PER]];5a
+[[Mia|PER]];[[Becker|PER]];5a
+
+Name,E-Mail,Matrikel
+[[Laura Thiele|PER]],[[laura.thiele@mailbox.org|MUSTER]],[[4876123|MUSTER]]
+
+| Schüler/in | Fehlstunden |
+| --- | --- |
+| [[Kjell|PER]] | 12 |
+| [[Malina|PER]] | 3 |
+
+AG Schach: [[Oskar|PER]], [[Henry|PER]], [[Mattis|PER]], [[Greta|PER]]
+
+| Lehrkraft | Fach | Raum |
+| --- | --- | --- |
+| [[Hentschel|PER]] | Sport | Halle |
+| [[Göpfert|PER]] | Deutsch | 204 |
+
+Teilnahmeliste Fortbildung: [[Ute Pfeiffer|PER]] ([[Grundschule Weißig|EINR]]), [[Mirko Kaden|PER]] ([[Oberschule Wilsdruff|EINR]])
+
+| Woche | Thema | Text |
+| --- | --- | --- |
+| 1 | Bildungstheorie | {{Klafki|AUT}} 1996 |
+| 2 | Unterrichtsqualität | {{Helmke|AUT}} 2017 |
+| 3 | Feedback | {{Hattie|AUT}} & {{Timperley|AUT}} 2007 |
+
+Gruppeneinteilung: Gruppe A ([[Paula|PER]], [[Noah|PER]]), Gruppe B ([[Elif|PER]], [[Jakob|PER]])
+
+Name;Vorname;Telefon
+[[Kretzschmar|PER]];[[Doreen|PER]];[[0351 8475621|MUSTER]]
+
+| Kind | Abholberechtigt |
+| --- | --- |
+| [[Lotta|PER]] | Oma [[Hempel|PER]] |
+| [[Ole|PER]] | Vater |
+
+Rangliste Sportfest: 1. [[Finn|PER]], 2. [[Yusuf|PER]], 3. [[Leonie|PER]]
+
+| Studierende | Thema der Arbeit | Gutachter |
+| --- | --- | --- |
+| [[Paul Ebermann|PER]] | Hausaufgaben | [[Tänzer|PER]] |
+| [[Zeynep Kaya|PER]] | Mehrsprachigkeit | [[Hiekel|PER]] |
+
+Aufsicht Pause: Mo [[Kroll|PER]], Di [[Wenzel|PER]], Mi [[Arnold|PER]], Do [[Stein|PER]], Fr [[Koch|PER]]
+
+| Stadt | Schulen in der Stichprobe |
+| --- | --- |
+| {{Dresden|ORT}} | 12 |
+| {{Leipzig|ORT}} | 9 |
+| {{Chemnitz|ORT}} | 7 |
+
+Geburtstage Klasse 2b: [[Mila|PER]] 3.3., [[Elias|PER]] 17.5., [[Hanna|PER]] 22.8.
+
+| Name | Rolle | Einrichtung |
+| --- | --- | --- |
+| [[Nancy Weichelt|PER]] | Erzieherin | [[Hort Kunterbunt|EINR]] |
+| [[Grit Hentschel|PER]] | Schulsozialarbeit | [[Kinderland e.V.|EINR]] |
+
+Losverfahren Wahlpflicht: [[Amelie|PER]] → Spanisch, [[Pia|PER]] → Informatik, [[Hamza|PER]] → Technik

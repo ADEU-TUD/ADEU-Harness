@@ -1,0 +1,90 @@
+# Vorlagen AP-67 · Textart: Lebenslauf, Herkunft, Wohn- und Arbeitsort – Orte mit Personenbezug (Lehrer: Claude, erfunden)
+# Ergänzt nach Fehlern im Entwicklungsteil: übersehene Orte, an denen eine Person wohnt, arbeitet oder herkommt.
+
+B: Meine erste Stelle hatte ich in {ORT}, an einer kleinen Grundschule mit nur vier Klassen.
+
+B: Aufgewachsen bin ich in {ORT}, zum Studium bin ich dann weggezogen.
+
+B: Ich pendle jeden Tag aus {ORT}, das sind gut dreißig Kilometer.
+
+B: Nach dem Referendariat in {ORT} wollte ich eigentlich zurück nach {ORT}.
+
+B: Wir wohnen in {ORT}, direkt neben der Schule, das ist praktisch.
+
+B3: Ich komme aus {ORT}, aber jetzt wohne ich bei meinem Papa in {ORT}.
+
+B: Die meisten Kinder bei uns kommen aus {ORT1}; aus {ORT2} nur ein paar.
+
+Herr {Nm} stammt aus {ORT} und unterrichtet seit {JAHR} bei uns.
+
+Frau {VNw}, geboren in {ORT}, studierte Lehramt in {OORT}.
+
+Die Familie lebte bis {JAHR} in {ORT} und zog dann wegen der Arbeit des Vaters nach {ORT}.
+
+{V} wohnt mit der Mutter in {ORT}; der Vater lebt in {ORT}.
+
+Der Großvater von {V} hat einen Garten in {ORT}, da verbringt die Familie die Wochenenden.
+
+Die Mutter arbeitet in {ORT} in einem Pflegeheim, der Vater ist zu Hause.
+
+{Vw} ist neu in der Klasse; sie ist mit ihrer Familie aus {ORT} hergezogen.
+
+Laut Akte lebt {V} seit März bei einer Pflegefamilie in {ORT}.
+
+Ich bin {V}, ich bin elf und wohne in {ORT}.
+
+Meine Oma wohnt in {ORT}, da bin ich immer in den Ferien.
+
+Mein Papa arbeitet in {ORT} auf dem Bau, er kommt nur am Wochenende.
+
+Die Lehrerin war vorher zwölf Jahre in {ORT} an einer Oberschule.
+
+Die Schulleiterin kommt aus {ORT}, deshalb kennt sie viele Familien hier persönlich.
+
+Der Kollege ist von {ORT} hierher versetzt worden und kennt noch niemanden.
+
+B: Wir haben damals in {ORT} gewohnt, in so einem Plattenbau, das war eine schöne Zeit.
+
+B: Unsere Tochter geht inzwischen in {ORT} zur Schule, weil es da einen Hort gibt.
+
+Kontakt: {VN}, wohnhaft in {ORT}
+
+Lebenslauf: geboren {JAHR} in {ORT}, Abitur {JAHR} in {ORT}, Studium an der {OEINR}
+
+Die Praktikantin kommt aus {ORT} und fährt jeden Morgen mit dem Bus.
+
+{Vm} lebt bei seiner Tante in {ORT}, seit die Eltern nach {OORT} zurückgegangen sind.
+
+Die Familie {N} ist von {OORT} nach {ORT} gezogen; die Kinder gehen jetzt zur {SCHULE}.
+
+Interview 4: Lehrerin an einer Grundschule in {ORT}, seit {ZAHL} Jahren im Dienst.
+
+Interview 9: Schulleiter aus {ORT}, Schule mit {ZAHL}0 Kindern.
+
+Die befragte Erzieherin arbeitet in einer Kita in {ORT} und lebt auch dort.
+
+Der Schüler wohnt in {ORT} und ist dort im Sportverein.
+
+Herr {N} hat in {ORT} ein Haus gebaut und will nicht mehr wegziehen.
+
+Frau {Nw} ist nach {ORT} gezogen, um näher bei ihrer kranken Mutter zu sein.
+
+{V} verbringt jedes zweite Wochenende beim Vater in {ORT}.
+
+Die Mutter von {V} ist Ärztin in {ORT}.
+
+Die Eltern betreiben einen Imbiss in {ORT}.
+
+Mit 16 ist {Vw} von {OORT} allein nach {ORT} gekommen.
+
+Kollege {N} wohnt in {ORT1}; wer aus {ORT1} kommt, kann bei ihm mitfahren.
+
+Ich habe das Referendariat in {ORT} gemacht und bin danach in {ORT} geblieben.
+
+B: In {ORT}, wo ich vorher unterrichtet habe, gab es kaum Kinder mit Migrationsgeschichte.
+
+B: Ich war lange in {ORT} an der Förderschule, das hat mich geprägt.
+
+Die Familie wohnt am Stadtrand von {ORT}, der Schulweg ist weit.
+
+{V} hat erzählt, dass er in {ORT} geboren ist und dann mit drei Jahren nach {ORT} kam.

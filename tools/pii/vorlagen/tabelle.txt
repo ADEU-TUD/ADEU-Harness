@@ -1,0 +1,187 @@
+# Vorlagen AP-67 · Textart: Tabellen und Listen (Markdown, CSV, Aufzählungen) (Lehrer: Claude, erfunden)
+
+| Name | Klasse | Note |
+| --- | --- | --- |
+| {VN} | {KLASSE} | {NOTE} |
+| {VN} | {KLASSE} | {NOTE} |
+| {VN} | {KLASSE} | {NOTE} |
+
+| Nachname | Vorname | Fehltage |
+| --- | --- | --- |
+| {N1} | {V1} | {ZAHL} |
+| {N2} | {V2} | {ZAHL} |
+
+Name;Vorname;Klasse;Note
+{N1};{V1};{KLASSE};{NOTE}
+{N2};{V2};{KLASSE};{NOTE}
+{N3};{V3};{KLASSE};{NOTE}
+
+Nachname,Vorname,E-Mail
+{N1},{V1},{MAIL1}
+{N2},{V2},{MAIL2}
+
+| Schüler/in | Förderbedarf | Ansprechpartner |
+| --- | --- | --- |
+| {V} | Lesen | Frau {Nw} |
+| {V} | Rechnen | Herr {Nm} |
+
+Teilnehmerliste Fortbildung
+1. {NV} ({SCHULE})
+2. {NV} ({SCHULE})
+3. {NV} ({SCHULE})
+
+| Kind | Gruppe | abholberechtigt |
+| --- | --- | --- |
+| {V} | Igel | Mutter, Oma {N} |
+| {V} | Füchse | Vater |
+| {V} | Igel | {VN} |
+
+Gruppe A: {V}, {V}, {V}
+Gruppe B: {V}, {V}, {V}, {V}
+
+| Referent/in | Thema | Termin |
+| --- | --- | --- |
+| {VN} | Lernen nach {AUT} | {DATUM} |
+| {VN} | Motivation | {DATUM} |
+
+Sitzordnung {KLASSE}: Tisch 1 {V} / {V}, Tisch 2 {V} / {V}, Tisch 3 {V} / {V}
+
+| Lehrkraft | Fächer | Klassenleitung |
+| --- | --- | --- |
+| {VN} | {FACH}, {FACH} | {KLASSE} |
+| {VN} | {FACH} | – |
+| {VN} | {FACH}, {FACH} | {KLASSE} |
+
+Vorname;Nachname;Geburtsdatum;Wohnort
+{V1};{N1};{DATUM}2015;{ORT}
+{V2};{N2};{DATUM}2014;{ORT}
+
+| Studierende | Praktikumsschule | Mentor/in |
+| --- | --- | --- |
+| {VN} | {SCHULE} | {VN} |
+| {VN} | {SCHULE} | {VN} |
+
+Pausenaufsicht: Mo {N}, Di {N}, Mi {N}, Do {N}, Fr {N}
+
+Rangliste Lesewettbewerb: 1. {V} ({KLASSE}), 2. {V} ({KLASSE}), 3. {V} ({KLASSE})
+
+| Woche | Thema | Literatur |
+| --- | --- | --- |
+| 1 | Einführung | {AUT} {JAHR} |
+| 2 | Lernen | {AUT} & {AUT} {JAHR} |
+| 3 | Bildung | {AUTVN} |
+
+Kind,Kita,Eingewöhnung
+{V},{KITA},{DATUM}
+{V},{KITA},{DATUM}
+
+| Name | Telefon | Notfallkontakt |
+| --- | --- | --- |
+| {VN} | {TEL} | {VN} |
+| {VN} | {TEL} | {VN} |
+
+Arbeitsgruppen Projektwoche:
+- Theater: {VN}
+- Garten: {VN}
+- Zeitung: {VN}
+- Sport: {VN}
+
+| Prüfling | Thema | Prüfer/in | Note |
+| --- | --- | --- | --- |
+| {VN} | {OEFF} | {N} | {NOTE} |
+| {VN} | {WERK} | {N} | {NOTE} |
+
+Wahlpflichtkurse: {V} → Spanisch, {V} → Informatik, {V} → Technik, {V} → Kunst
+
+| Name | Rolle | Einrichtung |
+| --- | --- | --- |
+| {VN} | Schulleitung | {SCHULE} |
+| {VN} | Erzieherin | {KITA} |
+| {VN} | Therapeutin | {PRAXIS} |
+
+Klassenliste {KLASSE}
+{NV}
+{NV}
+{NV}
+{NV}
+
+Geburtstage im März: {V} (3.), {V} (11.), {V} (24.)
+
+| Stadt | Anzahl Schulen | Anteil |
+| --- | --- | --- |
+| {OORT} | {ZAHL} | {ZAHL} % |
+| {OORT} | {ZAHL} | {ZAHL} % |
+
+Nachname;Vorname;Schule;Ort
+{N1};{V1};{SCHULE};{ORT}
+{N2};{V2};{SCHULE};{ORT}
+
+| Woche | Vertretung für | durch |
+| --- | --- | --- |
+| {ZAHL} | {VN} | {VN} |
+| {ZAHL} | {VN} | {VN} |
+
+Teilnehmende Seminar:
+{NV} · {NV} · {NV} · {NV} · {NV}
+
+| Autor/in | Jahr | Titel |
+| --- | --- | --- |
+| {AUT} | {JAHR} | Didaktik heute |
+| {AUT} | {JAHR} | Lernen sichtbar machen |
+| {AUT} | {JAHR} | Unterricht verstehen |
+
+Schulweg-Liste (Bus aus {ORT}): {V}, {V}, {V}, {V}
+
+| Kind | Allergie | Info an |
+| --- | --- | --- |
+| {V} | Nüsse | Mutter, {TEL} |
+| {V} | Laktose | Vater |
+
+Kollegium Fachschaft {FACH}: {VN} (Leitung), {VN}, {VN}, {VN}
+
+Anwesenheit {DATUM}: anwesend {V}, {V}, {V}; fehlend {V} (krank), {V} (unentschuldigt)
+
+| Interview | Person | Schule | Dauer |
+| --- | --- | --- | --- |
+| I1 | Frau {N} | {SCHULE} | 45 min |
+| I2 | Herr {N} | {SCHULE} | 38 min |
+
+Name,Matrikelnummer,Punkte
+{VN},{ZAHL}{ZAHL}{ZAHL},{ZAHL}
+{VN},{ZAHL}{ZAHL}{ZAHL},{ZAHL}
+
+| Projekt | Partner | Ort |
+| --- | --- | --- |
+| Lesepaten | {OEINR} | {OORT} |
+| MINT-Tag | {OEINR} | {OORT} |
+
+Fahrgemeinschaft Elternabend: {VN} nimmt {VN} und {VN} aus {ORT} mit.
+
+| Name | Klasse 1. Hj. | Klasse 2. Hj. |
+| --- | --- | --- |
+| {VN} | {NOTE} | {NOTE} |
+| {VN} | {NOTE} | {NOTE} |
+
+Sprechstunden: {N} Mo {UHR}, {N} Mi {UHR}, {N} Fr {UHR}
+
+Losverfahren Schülerpraktikum: {V} – Kita, {V} – Bäckerei, {V} – Arztpraxis
+
+| Datum | Wer | Was |
+| --- | --- | --- |
+| {DATUM} | {V} | Kuchen |
+| {DATUM} | {V} | Getränke |
+| {DATUM} | {V} | Deko |
+
+Verteiler: {VN}; {VN}; {VN}; Sekretariat
+
+| Klasse | Klassenleitung | Stellvertretung |
+| --- | --- | --- |
+| {KLASSE} | {N} | {N} |
+| {KLASSE} | {N} | {N} |
+
+Ergebnisse Bundesjugendspiele {KLASSE}: {VN} Ehrenurkunde, {VN} Siegerurkunde, {VN} Teilnahme
+
+| Monat | Bücher ausgeliehen |
+| --- | --- |
+| Januar | {ZAHL} |
+| Februar | {ZAHL} |

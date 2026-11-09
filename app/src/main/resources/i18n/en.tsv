@@ -6004,3 +6004,21 @@ Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Sp
 „{0}“ ließ sich nicht öffnen.	“{0}” could not be opened.
 „{0}“ speichern	Save “{0}”
 … und {0} weitere Seiten – zum Lesen öffnen.	… and {0} more pages – open it to read.
+# Erkennungsmodell der Pseudonymisierung (AP-67)
+Erkennungsmodell wird geprüft …	Checking the recognition model …
+Erkennungsmodell ist bereit.	The recognition model is ready.
+Download des Erkennungsmodells fehlgeschlagen: {0}. Bis dahin arbeiten die Regeln allein.	Download of the recognition model failed: {0}. Until then the rules work alone.
+Erkennungsmodell gelöscht.	Recognition model deleted.
+Für das Erkennungsmodell fehlt die ONNX Runtime der App (Spracherkennung) – die Regeln arbeiten allein.	The recognition model needs the app's ONNX Runtime (speech recognition), which is missing – the rules work alone.
+Namen besser erkennen	Recognize names better
+Lora kann für die Pseudonymisierung ein Erkennungsmodell laden ({0} MB). Es findet Namen, Schulen, Kitas und Orte auch ohne Anrede oder bekannte Vornamen und lässt zitierte Autor:innen und öffentliche Personen eher stehen – in unseren Tests 99 % statt 78 % der privaten Angaben. Es läuft nur auf diesem Gerät, nichts verlässt es dabei.	Lora can download a recognition model for the pseudonymization ({0} MB). It finds names, schools, day-care centres and places even without a title or a well-known first name and is more likely to leave cited authors and public figures as they are – in our tests 99 % instead of 78 % of the private details. It runs only on this device; nothing leaves it.
+Nicht mehr fragen	Don't ask again
+Erkennungsmodell (empfohlen)	Recognition model (recommended)
+Ein kleines Modell auf diesem Gerät findet Namen, Schulen, Kitas und Orte – auch ohne Anrede oder bekannte Vornamen – und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 99 % statt 78 % der privaten Angaben, wenige Millisekunden je Absatz. Mit dem Modell raten die Regeln keine Namen mehr aus häufigen Vornamen; die eigene Liste und die festen Muster (Mail, Telefon, Nummern …) bleiben.	A small model on this device finds names, schools, day-care centres and places – even without a title or a well-known first name – and is more likely to leave cited authors and public figures as they are. In our tests 99 % instead of 78 % of the private details, a few milliseconds per paragraph. With the model the rules no longer guess names from frequent first names; your own list and the fixed patterns (e-mail, phone, numbers …) stay.
+Wird geladen … {0} %	Downloading … {0} %
+Erkennungsmodell laden ({0} MB)	Download recognition model ({0} MB)
+Geladen und bereit.	Downloaded and ready.
+Geladen.	Downloaded.
+Modellkarte	Model card
+Gründlich: zusätzlich ein lokales Sprachmodell	Thorough: also a local language model
+Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, die Regeln und Erkennungsmodell übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.	Faster ↔ more thorough: a language model on this device reads every text once and finds names, schools and places that the rules and the recognition model miss, also indirect clues. Costs computing time (a few seconds per longer text); nothing leaves the device.

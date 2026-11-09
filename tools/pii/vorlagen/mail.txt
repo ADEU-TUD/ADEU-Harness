@@ -1,0 +1,263 @@
+# Vorlagen AP-67 · Textart: E-Mails (Lehrer: Claude, erfunden)
+
+Sehr geehrte Frau {Nw},
+danke für Ihre Rückmeldung. Ich rufe Sie morgen an.
+Mit freundlichen Grüßen
+{VN}
+
+Hallo {V},
+kannst du mir bitte die Unterlagen für Donnerstag schicken? Danke dir!
+Liebe Grüße
+{V}
+
+Lieber Herr {Nm},
+wie besprochen sende ich Ihnen den Entwurf. {VNw} hat schon drübergeschaut.
+Beste Grüße
+{VNw}
+
+Von: {VN1} <{MAIL1}>
+An: {VN}
+Betreff: Termin Sprechstunde
+
+Liebe Frau Professorin {Nw},
+ich würde gern über meine Bachelorarbeit sprechen. Hätten Sie nächste Woche Zeit?
+Viele Grüße
+{VNw}
+
+Hi {V}, danke fürs Einspringen gestern! Ich revanchiere mich. LG {V}
+
+Sehr geehrter Herr Dr. {Nm},
+anbei erhalten Sie das unterschriebene Formular. Für Rückfragen stehe ich unter {TEL} zur Verfügung.
+Freundliche Grüße
+{VNw}
+
+Liebe Kolleginnen und Kollegen,
+zu Gast im Forschungskolloquium ist am {DATUM} {AUTVN}. Alle sind herzlich eingeladen.
+{VN}
+
+Hallo Frau {Nw},
+{Vm} hatte heute Bauchschmerzen und ist früher nach Hause gegangen. Bitte geben Sie mir Bescheid, wie es ihm geht.
+Gruß
+{VN}
+
+An: {NV}; {NV}; {NV}
+Betreff: Aufsichtsplan
+
+Sehr geehrte Eltern,
+die Klassenfahrt nach {OORT} findet vom {DATUM} bis {DATUM} statt. Begleitet wird die Klasse von Frau {Nw} und Herrn {Nm}.
+Mit freundlichen Grüßen
+{VN}, Klassenleitung {KLASSE}
+
+Lieber {Vm},
+herzlichen Glückwunsch zur bestandenen Prüfung! Wir sind sehr stolz auf dich.
+Deine {V} und {V}
+
+Guten Tag Herr {Nm},
+leider kann {V} morgen nicht am Ausflug teilnehmen. Wir sind bei den Großeltern in {ORT}.
+Freundliche Grüße
+Familie {N}
+
+Hi zusammen,
+ich hab die Präsentation hochgeladen. {Vw} macht die Einleitung, {Vm} den Hauptteil, ich den Schluss.
+{V}
+
+Sehr geehrte Damen und Herren,
+ich möchte mich um einen Praktikumsplatz an der {SCHULE} bewerben. Ich studiere Lehramt an der {OEINR}.
+Mit freundlichen Grüßen
+{VN}
+{MAIL}
+
+Liebe {Vw},
+schön, dass du wieder da bist! Die Kinder haben dich vermisst, vor allem {V}.
+Herzlich
+{Vw}
+
+Von: Sekretariat {SCHULE}
+An: {VN}
+Betreff: Fehlzeiten {V}
+
+Sehr geehrte Frau {Nw}, die Konferenz wurde auf {DATUM} verschoben. Freundliche Grüße, {VN}
+
+Hallo {V}, hast du das Buch von {AUT} noch? Ich bräuchte es für meine Hausarbeit. Danke! {V}
+
+Liebe Studierende,
+die Sprechstunde am Dienstag entfällt. Vertretung: {VNw}, Raum {ZAHL}.
+Beste Grüße
+{VN}
+
+Sehr geehrter Herr {Nm},
+vielen Dank für das freundliche Gespräch. Wie vereinbart melde ich {Vw} für die Hausaufgabenhilfe im {VEREIN} an.
+Viele Grüße
+{VNw}
+
+Moin {V}! Treffen wir uns heute um {UHR} in der Mensa? {V} kommt auch.
+
+Liebe Eltern der Klasse {KLASSE},
+morgen kommt der Fotograf. Bitte denken Sie an das Geld. Danke!
+{VNw}
+
+Betreff: Krankmeldung {VN}
+Sehr geehrte Frau {Nw}, mein Sohn ist krank und kommt bis Mittwoch nicht. Mit freundlichen Grüßen, {VNm}
+
+Hallo Herr {N},
+wir haben uns beim Elternabend kennengelernt. Ich wohne auch in {ORT} – wollen wir eine Fahrgemeinschaft bilden?
+Gruß {V}
+
+Sehr geehrte Frau Dr. {Nw},
+im Namen von Prof. {VNm} lade ich Sie zur Tagung der {OEINR} in {OORT} ein.
+Mit besten Grüßen
+{VNw}
+Sekretariat
+
+Liebe {Vw}, lieber {Vm},
+danke für die schöne Feier! Grüßt bitte auch {V} von mir.
+{V}
+
+Von: {VN} <{MAIL}>
+Gesendet: {DATUM} {UHR}
+An: {VN}
+Betreff: AW: Vertretung
+
+Hallo {V}, kannst du morgen meine 3. Stunde in der {KLASSE} übernehmen? Ich bin mit der {KLASSE} in {OORT}. Danke, {V}
+
+Sehr geehrte Damen und Herren,
+hiermit kündige ich den Betreuungsvertrag für meine Tochter {Vw} in der {KITA} zum Monatsende.
+Mit freundlichen Grüßen
+{VNw}
+
+Lieber Herr Professor {Nm},
+ich habe Ihren Aufsatz zu {AUT} gelesen und hätte eine Frage zur Methodik.
+Viele Grüße aus {ORT}
+{VN}
+
+Hallo {V}, die Fotos vom Sportfest sind online. {V} sieht auf allen müde aus 😄
+
+Sehr geehrte Frau {Nw},
+leider wurde mein Antrag abgelehnt. Könnten Sie mir sagen, an wen ich mich wenden kann?
+Mit freundlichen Grüßen
+{VNm}
+Matrikelnummer {ZAHL}{ZAHL}{ZAHL}
+
+Liebe Frau {N},
+herzlichen Dank für Ihre Unterstützung bei der Einschulung von {V}!
+Familie {N}
+
+An alle Kolleginnen und Kollegen: Frau {VNw} ist ab Montag in Elternzeit. Ihre Klassen übernimmt Herr {Nm}.
+
+Hallo {V},
+ich bin morgen in {OORT} auf der Messe. Können wir das Gespräch auf Freitag legen?
+Viele Grüße
+{V}
+
+Sehr geehrter Herr {Nm},
+Ihr Sohn {Vm} hat heute im Unterricht ein Handy benutzt. Bitte holen Sie es im Sekretariat bei Frau {Nw} ab.
+Mit freundlichen Grüßen
+{VNw}
+
+Liebe {V}, wie geht es dir? Ich habe gehört, ihr seid nach {ORT} gezogen. Meld dich mal! {V}
+
+Betreff: Einladung zum Abschied von {VNm}
+Liebe alle, nach {ZAHL} Jahren verabschiedet sich unser Kollege {Vm} in den Ruhestand.
+
+Hallo Frau {Nw},
+ich kann am Elternabend leider nicht teilnehmen. Mein Mann, Herr {N}, kommt stattdessen.
+Danke und Gruß
+{VN}
+
+Sehr geehrte Mitarbeitende,
+das Rektorat der {OEINR} informiert über die neuen Regeln zur Arbeitszeit.
+
+Hallo {Vw}, kannst du {V} heute vom Hort abholen? Ich schaffe es nicht vor 17 Uhr. Danke!!
+
+Viele Grüße
+{VN}
+Lehrerin für {FACH} und {FACH}
+{SCHULE}
+
+Mit freundlichen Grüßen
+i. A. {VN}
+Studienbüro
+
+Beste Grüße
+{V}
+
+Herzliche Grüße aus {ORT}
+{V} und {V}
+
+Liebe Grüße, {V} :)
+
+LG {V}
+
+Sehr geehrter Herr {N},
+anbei die Liste der Teilnehmenden: {VN}, {VN}, {VN}, {VN}.
+
+Hallo {V},
+danke für den Tipp mit {WERK} – die Kinder lieben das Buch!
+{V}
+
+Sehr geehrte Frau {Nw},
+wie telefonisch besprochen, schicke ich Ihnen die Kontaktdaten der {PRAXIS}.
+Freundlich grüßt
+{VN}
+
+Hey {V}, hilfst du beim Tag der offenen Tür an der {SCHULE} mit? {V} und ich machen den Kuchenstand.
+
+Liebe Eltern, unsere Kollegin {VNw} hat ein Kind bekommen! Wir gratulieren herzlich.
+
+Sehr geehrter Herr {Nm}, bitte entschuldigen Sie das Fehlen meiner Tochter {Vw} am {DATUM}. Mit freundlichen Grüßen {N}
+
+Hallo {V},
+die Klausuren sind korrigiert. {V} hat eine 1, {V} leider eine 5.
+Gruß {V}
+
+Sehr geehrte Frau Prof. {Nw},
+ich möchte mich für die Betreuung meiner Arbeit über {OEFF} bedanken.
+Mit herzlichen Grüßen
+{VN}
+
+Liebe {Vw},
+der Termin mit {VNm} vom Schulamt ist am {DATUM} um {UHR}.
+{V}
+
+Hallo zusammen,
+ich hab beim Bäcker in {ORT} meinen Schlüssel liegen lassen 🙈 Kann mich jemand mitnehmen?
+{V}
+
+Sehr geehrte Frau {Nw}, sehr geehrter Herr {Nm},
+hiermit lade ich Sie zum Elterngespräch über {V} am {DATUM} um {UHR} ein.
+Mit freundlichen Grüßen
+{VN}
+
+Hi {V}, danke für die Folien. Kleine Anmerkung: Das Zitat ist nicht von {AUT}, sondern von {AUT}.
+
+Liebe Frau {N},
+wir freuen uns, dass {V} ab September die {KITA} besucht.
+Viele Grüße
+das Team der {KITA}
+
+Lieber {V}, ich hab mit {VN} gesprochen, das Projekt geht weiter! Details morgen. {V}
+
+Betreff: Abwesenheitsnotiz
+Ich bin bis zum {DATUM} nicht im Büro. In dringenden Fällen wenden Sie sich an {VN} ({MAIL}).
+
+Sehr geehrte Frau {VNw},
+vielen Dank für Ihre Bewerbung an der {SCHULE}. Wir laden Sie zu einem Gespräch ein.
+Mit freundlichen Grüßen
+{VNm}, Schulleiter
+
+Hallo Herr {Nm}, mein Mann und ich trennen uns. {V} wohnt ab sofort bei mir in {ORT}. Bitte ändern Sie die Adresse. Gruß {VNw}
+
+Liebe Kolleg:innen, die Evaluation läuft bis {DATUM}. Danke fürs Mitmachen! {V}
+
+Sehr geehrter Herr Kollege {N},
+ich darf Sie im Auftrag von {VNw} an die Abgabe der Gutachten erinnern.
+Freundliche Grüße
+{VN}
+
+Hallo {V}, wie war's bei {OEFF} im Konzert? Neidisch! {V}
+
+Liebe Familie {N}, danke für die Spende an den Förderverein! Herzlich, {VN}, Vorsitzende
+
+Hallo Mama, ich bin bei {V}, wir machen Hausaufgaben. Komme um sechs.
+
+Sehr geehrte Frau {Nw}, ich bin die neue Schulbegleiterin von {Vm} und würde mich gern vorstellen. Viele Grüße, {VNw}

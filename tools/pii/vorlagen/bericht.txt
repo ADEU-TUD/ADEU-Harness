@@ -1,0 +1,153 @@
+# Vorlagen AP-67 · Textart: Berichte für Homepage und Presse, Projekt- und Exkursionsberichte, Forschungsnotizen (Lehrer: Claude, erfunden)
+
+Am {DATUM} besuchte die Klasse {KLASSE} das Museum in {OORT}. Mit dabei waren Frau {Nw} und Herr {Nm}.
+
+Unsere Schülerin {VNw} hat beim Landeswettbewerb Mathematik den dritten Platz belegt. Herzlichen Glückwunsch!
+
+Zum Schuljahresende verabschieden wir unsere Kollegin {VNw}, die nach {ZAHL} Jahren an der {SCHULE} in den Ruhestand geht.
+
+Die Theater-AG unter Leitung von {VNw} führte {WERK} auf. Die Hauptrolle spielte {VN}.
+
+Beim Sportfest siegten {VN} im Weitsprung und {VN} im 800-Meter-Lauf.
+
+Die {OEINR} hat unsere Schule als Projektschule ausgezeichnet. Die Urkunde nahm Schulleiter {VNm} entgegen.
+
+Forschungsnotiz {ZAHL}: Lehrkraft C (Frau {Nw}) berichtet, dass sie früher in {ORT} unterrichtet hat.
+
+Die Kinder der {KITA} haben die Feuerwehr in {OORT} besucht und durften sogar ins Löschfahrzeug.
+
+Projektbericht: An der Untersuchung nahmen {ZAHL} Schulen aus {OORT} teil. Wir danken besonders Herrn {VNm} von der {SCHULE}.
+
+{OEFF} besuchte unsere Stadt und sprach mit Schülerinnen und Schülern über Demokratie.
+
+Der Förderverein, vertreten durch Frau {VNw}, übergab neue Bälle für den Sportunterricht.
+
+Die Klasse {KLASSE} hat beim Vorlesewettbewerb mitgemacht. {V} las aus {WERK} und kam ins Finale.
+
+Exkursion nach {OORT}: Wir besuchten die Gedenkstätte und sprachen mit einer Zeitzeugin.
+
+Unser Absolvent {VNm} studiert inzwischen Medizin an der {OEINR}.
+
+Die Schülerzeitung „Pausenbrot“ interviewte den Bürgermeister. Die Fragen stellten {V} und {V} aus der {KLASSE}.
+
+Neu im Kollegium: Frau {VNw} ({FACH}, {FACH}) und Herr {VNm} ({FACH}). Herzlich willkommen!
+
+Die Spendenaktion für {V:gen} Familie, die bei einem Brand ihre Wohnung verloren hat, brachte {ZAHL}00 Euro.
+
+Beim Herbstfest halfen viele Eltern mit, besonders Familie {N} und Familie {N}.
+
+Der Chor sang unter Leitung von {VNw} Lieder von {OEFF} in der Kirche.
+
+Forschungsnotiz: Schulleiter S4 (Herr {N}) wirkt im Interview angespannt, er erwähnt mehrfach den Konflikt mit dem Schulträger in {ORT}.
+
+Die Grundschule in {ORT}, die {V} besucht, bekommt einen neuen Schulhof.
+
+Unsere Partnerschule in {OORT} hat uns im Mai besucht. Organisiert wurde der Austausch von {VNw}.
+
+Die Kinder lernten beim Projekttag der {OEINR}, wie Wasser gereinigt wird.
+
+Beim Mathe-Wettbewerb erreichten {V}, {V} und {V} die volle Punktzahl.
+
+Die Klasse {KLASSE} pflanzte mit dem Hausmeister, Herrn {N}, zehn Obstbäume.
+
+Wir gratulieren {VN} zur bestandenen Prüfung als Erzieherin. Sie bleibt der {KITA} erhalten.
+
+Die Lesepaten aus dem Seniorenheim, darunter Frau {VNw} und Herr {VNm}, kommen jeden Dienstag.
+
+Die Ausstellung über {OEFF} im Foyer ist bis Ende des Monats zu sehen.
+
+Am Girls' Day besuchten {V} und {V} die {OEINR}.
+
+Die Schulband spielte beim Stadtfest in {OORT}; am Schlagzeug saß {VN}.
+
+Die Kinder der {KLASSE} schrieben Briefe an Kinder in {OORT}.
+
+Forschungsnotiz {ZAHL}: Die Mutter von S3 ({V}) arbeitet in derselben Kita wie die Interviewerin – Befangenheit prüfen!
+
+Unser Hausmeister {VNm} feiert sein 25-jähriges Dienstjubiläum.
+
+Die Klasse {KLASSE} fuhr ins Schullandheim nach {OORT}. Mit dabei: Frau {Nw}, Herr {Nm} und Praktikantin {Vw}.
+
+Der Elternrat lädt zum Flohmarkt ein. Ansprechpartnerin: {VNw}, {MAIL}.
+
+Bei „Jugend debattiert“ erreichte {VN} das Landesfinale in {OORT}.
+
+Zum Tag der offenen Tür stellten {V} und {V} die Robotik-AG vor.
+
+Die Projektwoche stand unter dem Motto „{OEFF} – ein Leben für die Wissenschaft“.
+
+Die {SCHULE} und die {SCHULE} haben einen Kooperationsvertrag unterzeichnet.
+
+Die Kita-Kinder der {KITA} besuchten die erste Klasse von Frau {Nw}.
+
+Ein Bericht von {VN}, Klasse {KLASSE}: Unser Ausflug in den Zoo war super, am besten waren die Erdmännchen.
+
+Die Gemeinde {ORT} hat der Familie {N} eine Wohnung vermittelt.
+
+Die Stadtbibliothek in {OORT} lädt alle Grundschulklassen zum Lesesommer ein.
+
+Unsere Lehrerin {VNw} wurde für den Deutschen Lehrkräftepreis nominiert.
+
+Forschungsnotiz: Lehrkraft A ({N}) wechselt im Interview oft ins Persönliche, etwa über ihre Kindheit in {ORT}.
+
+Die Kinder sammelten {ZAHL} Kilo Müll im Stadtpark von {OORT}.
+
+Die {OEINR} unterstützt das Projekt mit Material und einer Fortbildung.
+
+{OEFF} schrieb uns einen Brief, nachdem die Klasse ihm ihr Projekt geschickt hatte.
+
+Die Klasse {KLASSE} hat den Wettbewerb „Schule ohne Rassismus“ gewonnen. Betreut wurde das Projekt von {VNm}.
+
+Beim Fußballturnier spielten {V}, {V}, {V} und {V} für unsere Schule.
+
+Zum Abschluss des Schuljahres bedanken wir uns bei der Schulsozialarbeiterin {VNw}, die nach {ORT} wechselt.
+
+Die Klasse {KLASSE} besuchte das Landtagsgebäude in {OORT} und sprach mit Abgeordneten.
+
+Im Herbst beginnt der Umbau der {SCHULE}; der Unterricht findet übergangsweise in Containern statt.
+
+Die Schülerinnen {V} und {V} sammelten Spenden für ein Tierheim in {ORT}.
+
+{OEFF} war Thema eines Workshops, den die {OEINR} für unsere Oberstufe angeboten hat.
+
+Beim Weihnachtskonzert sang {VN} ein Solo.
+
+Die Austauschschülerin {VNw} aus {OORT} verbringt ein halbes Jahr in der Gastfamilie {N}.
+
+Der Wandertag der {KLASSE} führte an die Elbe; Herr {Nm} erklärte unterwegs die Pflanzen.
+
+Unsere Kollegin {VNw} hat ein Buch über ihre Zeit als Lehrerin in {ORT} geschrieben.
+
+Die Projektgruppe ({VN}, {VN}, {VN}) stellte ihre Ergebnisse auf der Tagung in {OORT} vor.
+
+Die Schulleitung dankt allen Eltern, die beim Umzug der {KITA} geholfen haben.
+
+Der Bürgermeister von {OORT} eröffnete die neue Sporthalle.
+
+Bei der Jahreshauptversammlung des {VEREIN} wurde {VNw} zur Vorsitzenden gewählt.
+
+Die Klasse {KLASSE} hat {WERK} gelesen und dazu ein Hörspiel aufgenommen.
+
+Forschungsnotiz {ZAHL}: Die Schule von Interviewpartnerin B ({VNw}) liegt am Rand von {ORT}, nur 98 Kinder.
+
+Die Kinder durften im Atelier des Malers {OEFF} malen – eine Kopie hängt nun im Flur.
+
+Der Sponsorenlauf brachte {ZAHL}00 Euro ein; die meisten Runden lief {VN}.
+
+Ein herzliches Dankeschön an die Bäckerei {N} aus {ORT} für die Brötchen beim Sportfest!
+
+Die Schülervertretung ({VN}, {VN}) organisierte eine Diskussion mit Kandidaten für den Stadtrat.
+
+Die Ausstellung „Kinder malen {OORT}“ ist im Rathaus zu sehen.
+
+Unser Schulhund Bruno, betreut von Frau {Nw}, hat die Prüfung bestanden.
+
+Die Kinder der {KLASSE} besuchten die Bäckerei von Herrn {N} in {ORT} und backten Brot.
+
+Die {OEINR} veröffentlichte eine Studie, an der auch unsere Schule teilnahm.
+
+Besuch aus der Politik: {OEFF} diskutierte mit der Klasse {KLASSE} über Klimaschutz.
+
+Gratulation an {VN} und {VN}, die beim Kunstwettbewerb der {OEINR} ausgezeichnet wurden.
+
+Die Hortkinder der {KITA} gestalteten eine Ausstellung über ihren Stadtteil {ORT}.

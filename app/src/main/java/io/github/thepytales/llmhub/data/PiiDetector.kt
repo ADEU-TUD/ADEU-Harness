@@ -266,6 +266,13 @@ object PiiDetector {
     /** Well-known people (science, education, politics) whose names are no personal data of a third party. */
     fun isFamous(name: String): Boolean = name in FAMOUS
 
+    /** Where well-known people are named in [text] ("Angela Merkels Rede") – the recognition model leaves them (AP-67). */
+    fun famousRanges(text: String): List<IntRange> = FAMOUS_INFLECTED.findAll(text).map { it.range }.toList()
+
+    private val FAMOUS_INFLECTED by lazy {
+        Regex("(?<![$LETTERS-])(?:" + FAMOUS.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) } + ")(?:s|’|')?(?![$LETTERS-])")
+    }
+
     /** Endings of nouns that are no names ("Didaktik", "Schulleitung", "Jugendamt"), unless the word is a known name. */
     private val NOUN_ENDING = Regex(".+(?:ung|heit|keit|schaft|ik|tät|ion|ismus|ium|ur|amt|team|rat|wesen|stelle|leitung|gruppe|ei|ität|ologie|ie)")
 
@@ -373,12 +380,19 @@ object PiiDetector {
     /** Companion columns that make a generic "Name" column a column of persons. */
     private val PERSON_COLUMNS = Regex("(?i)^(?:vor-?name|klasse|geburtsdatum|geb\\.?|e-?mail|telefon|tel\\.?|handy|mobil|note|noten|matrikel.*|anwesend|fehltage|entschuldigt|unterschrift|geschlecht|alter)$")
 
+    /**
+     * The personal details of [text]. With [chains] off (when the recognition model of AP-67 finds the names) the
+     * guesses from frequent first names are left out – "Anna Kaltenbach", a rare surname after a first name –, which
+     * also catch public persons ("Käthe Kollwitz"); the clear clues (Frau/Herr, roles, greetings, signatures, mail
+     * headers, tables) stay.
+     */
     fun find(
         text: String,
         ownTerms: List<String> = emptyList(),
         automatic: Boolean = true,
         off: Set<PiiFeature> = emptySet(),
         ignore: Collection<String> = emptyList(),
+        chains: Boolean = true,
     ): List<PiiHit> {
         if (text.isBlank()) return emptyList()
         fun on(f: PiiFeature) = f !in off
@@ -537,7 +551,7 @@ object PiiDetector {
             }
 
             // A frequent first name, and the names directly after it ("Anna Lena Müller", "Anna Kaltenbach").
-            val words = NAME_WORD.findAll(src).toList()
+            val words = if (chains) NAME_WORD.findAll(src).toList() else emptyList()
             var chain = mutableListOf<String>()
             fun flush() {
                 if (chain.isNotEmpty()) nameWords(chain, PiiKind.NAME)
@@ -577,7 +591,7 @@ object PiiDetector {
 
         // Rare surnames without a title: a known first name, then a capitalized word that is no usual noun and ends the
         // phrase ("Jolina Kretzschmann sagte …", "mit Anna Wojtyła.").
-        if (automatic) RARE_AFTER_FIRST.findAll(src).forEach { m ->
+        if (automatic && chains) RARE_AFTER_FIRST.findAll(src).forEach { m ->
             val first = m.groupValues[1]
             val last = m.groupValues[2]
             if (isFirst(first) && !isFirst(last) && last !in NOT_NAMES && last !in INSTITUTION_WORDS && last !in ROLE_WORDS &&

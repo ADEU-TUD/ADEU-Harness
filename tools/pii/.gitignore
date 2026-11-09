@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+# Erzeugte Trainingsdaten, Modelle und Umgebungen (groß, nicht ins Repo)
+daten/
+modelle/
+.venv/

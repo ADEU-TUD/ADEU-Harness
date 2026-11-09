@@ -226,6 +226,8 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     }
     // A new version: asks at the start whether to install it (see Updates).
     if (crash == null) UpdatePrompt(c)
+    // The recognition model of the pseudonymization, offered once (AP-67).
+    if (crash == null) PiiModelPrompt(c)
 
     // Results that arrive while the app is open appear as a banner at the top.
     val snackbar = remember { SnackbarHostState() }

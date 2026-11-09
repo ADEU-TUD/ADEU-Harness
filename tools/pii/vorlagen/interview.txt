@@ -1,0 +1,251 @@
+# Vorlagen AP-67 · Textart: Interview-Transkripte, Feldnotizen, Unterrichtsbeobachtung (Lehrer: Claude, erfunden)
+
+I: Erzählen Sie doch mal, wie Sie zum Lehrerberuf gekommen sind.
+B: Eigentlich über meine Grundschullehrerin, Frau {Nw}, die hat mich total geprägt.
+
+I: Was war der Grund für den Schulwechsel?
+B: Wir sind nach {ORT} gezogen, und da gab es die {SCHULE} gleich um die Ecke.
+
+B: Mit {Vm1} hatte ich anfangs echt Probleme, aber inzwischen ist er einer der Ruhigsten in der Klasse.
+
+B2: Also {V} und ich sind seit der ersten Klasse befreundet, wir machen alles zusammen.
+
+I: Welche Rolle spielt die Schulleitung?
+B: Eine große. Herr {Nm} steht hinter uns, auch wenn mal Eltern sich beschweren.
+
+B: Ich habe meine Ausbildung in {ORT} gemacht und bin dann an die {SCHULE} gekommen.
+
+B: Die Kollegin {VNw} macht das ganz anders, die lässt die Kinder viel mehr selbst entscheiden.
+
+B1: Mein Papa arbeitet in {ORT} und kommt immer erst abends nach Hause.
+
+Feldnotiz {DATUM}: {Vw} sitzt allein am Fenster. Die Lehrerin, Frau {Nw}, spricht sie nach zehn Minuten an.
+
+Beobachtung, {FACH}, Klasse {KLASSE}: {V1} meldet sich mehrfach, wird aber nicht drangenommen. {V2} ruft rein.
+
+I: Was meinen Sie mit „schwierigen Elternhäusern“?
+B: Zum Beispiel die Familie von {V}, da ist der Vater arbeitslos und die Mutter krank.
+
+B: Wir hatten mal einen Schüler, {VNm}, der hat später sogar Abitur gemacht. Das hätte keiner gedacht.
+
+B: Ich unterrichte seit {ZAHL} Jahren {FACH}, zuerst in {ORT}, jetzt hier.
+
+I: Gibt es Unterstützung von außen?
+B: Ja, von der {PRAXIS}, die kommen einmal im Monat und beraten uns bei einzelnen Kindern.
+
+B3: Ich bin {Vw}, ich bin {ZAHL} Jahre alt und gehe in die {KLASSE}.
+
+B: Das hat mir {Vw1} erzählt, also die Mutter von {Vm2}. Sie war ziemlich aufgelöst.
+
+B: Am meisten gelernt habe ich von meinem Mentor, Herrn {Nm}. Der hat mich einfach machen lassen.
+
+I: Nach welchem Modell planen Sie Ihren Unterricht?
+B: Ehrlich gesagt nach keinem bestimmten. Im Studium hatten wir {AUT}, aber im Alltag fehlt die Zeit.
+
+B: Wenn ich an {AUTVN} denke, dann vor allem an die Idee, dass Bildung mehr ist als Wissen.
+
+Feldnotiz: Die Klasse übt ein Lied. {Vm} singt laut falsch, die anderen lachen. Herr {Nm} unterbricht und lobt den Mut.
+
+B: Seit {JAHR} bin ich an der {SCHULE}, davor war ich an einer Förderschule.
+
+B: Unsere Schule ist ja eher klein, wir haben nur zwei Klassen pro Jahrgang.
+
+I: Was würden Sie sich wünschen?
+B: Mehr Zeit. Und weniger Bürokratie. Und kleinere Klassen, das wäre das Wichtigste.
+
+B: Die Kinder aus {ORT} kommen mit dem Schulbus, die sind morgens oft schon müde.
+
+B4: Meine Oma wohnt in {ORT}, da fahre ich in den Ferien immer hin.
+
+B: Frau {Nw} vom Jugendamt war zweimal bei uns, aber geändert hat sich nichts.
+
+Beobachtung: {V1} und {V2} lösen die Aufgabe gemeinsam. {V1} rechnet, {V2} kontrolliert. Nach fünf Minuten tauschen sie.
+
+B: Ich hab das Referendariat an der {SCHULE} gemacht, bei Frau {VNw}, die war streng, aber fair.
+
+B: Die Idee kam eigentlich von {Vw}, unserer Sozialarbeiterin. Die ist da sehr engagiert.
+
+I: Und wie ist das Klima im Kollegium?
+B: Gut. Wir treffen uns freitags oft noch, {V}, {V} und ich gehen dann ins Café.
+
+B: Der Sohn von Herrn {Nm} war bei mir in der Klasse, das war manchmal schwierig, weil man sich privat kennt.
+
+B2: Ich heiße {V} und wohne in {ORT}. Meine Lieblingsfächer sind {FACH} und Sport.
+
+B: In der {KITA} hat {Vm} noch gar nicht gesprochen, erst bei uns in der Schule ging das los.
+
+B: Ich habe im Studium viel {AUT} gelesen, aber umgesetzt habe ich wenig davon.
+
+I: Wie gehen Sie mit Konflikten um?
+B: Ich hole die Beteiligten an einen Tisch. Letzte Woche zum Beispiel {Vw} und {Vw}, die hatten sich wegen eines Fotos gestritten.
+
+Feldnotiz {DATUM}, {UHR} Uhr: Herr {Nm} betritt den Raum, die Klasse wird sofort still. {Vm} legt das Handy weg.
+
+B: Das Schöne ist, dass wir mit der {SCHULE} zusammenarbeiten, da kennen sich die Kollegen schon lange.
+
+B: Ich komme ursprünglich aus {ORT}, deshalb verstehe ich die Familien hier ganz gut.
+
+I: Welche Fortbildung hat Ihnen am meisten gebracht?
+B: Die zur Klassenführung, mit Bezug auf {AUT} und {AUT}. Die war sehr praktisch.
+
+B: Mein Kollege {VNm} und ich haben zusammen ein Projekt zur Medienbildung aufgebaut.
+
+B3: Wir haben einen Hund, der heißt Bello, und meine Schwester heißt {Vw}.
+
+B: Die Mutter von {V1:gen} Freundin hat sich beschwert, weil die Mädchen nicht nebeneinander sitzen durften.
+
+B: Das Konzept stammt aus {OORT}, das haben wir einfach übernommen und angepasst.
+
+I: Wie lange sind Sie schon Schulleiterin?
+B: Seit {JAHR}. Vorher war ich Stellvertreterin bei Herrn {Nm} an der {SCHULE}.
+
+B: Da war ein Junge, {Vm}, der hat nie Frühstück dabeigehabt. Wir haben dann eine Frühstücksbox eingeführt.
+
+Beobachtung: Die Referendarin {VNw} beginnt mit einer stillen Phase. Danach präsentieren {V} und {V} ihre Ergebnisse.
+
+B: {Vw} hat mal zu mir gesagt: „Sie sind die erste Lehrerin, die mir zuhört.“ Das vergesse ich nie.
+
+B: Ich wohne selbst in {ORT}, deshalb treffe ich die Eltern auch beim Einkaufen.
+
+B1: Unsere Tochter ist in der {KITA} und soll im Sommer eingeschult werden.
+
+I: Was ist Ihnen bei Hausaufgaben wichtig?
+B: Dass sie machbar sind. {AUT} hat ja gezeigt, dass zu viele Hausaufgaben wenig bringen.
+
+B: Mein früherer Schulleiter, Herr {VNm}, hat immer gesagt: Die Kinder kommen zuerst.
+
+Feldnotiz: Pause auf dem Hof. {Vm1} und {Vm2} spielen Fußball, {Vw3} schaut zu. Die Aufsicht hat Frau {Nw}.
+
+B: Seit Jahren gibt es den Austausch mit {OORT}, das ist für die Kinder super.
+
+B: Die Logopädin, Frau {Nw}, kommt dienstags zu uns ins Haus.
+
+B: Von {ORT} bis hierher sind es vierzig Minuten mit dem Auto, das fahre ich jeden Tag.
+
+I: Haben Sie Kinder mit Fluchterfahrung in der Klasse?
+B: Ja, drei. {V}, {V} und {V}. Alle drei sprechen inzwischen gut Deutsch.
+
+B: Es gibt da einen Verein, den {VEREIN}, der übernimmt die Hausaufgabenbetreuung.
+
+B2: Ich bin {Vm}, und mein Bruder {Vm} ist in der fünften Klasse.
+
+B: In der Pandemie hat {Vw} komplett den Anschluss verloren, sie war monatelang nicht erreichbar.
+
+Beobachtung: {Vm} steht zum dritten Mal auf. Frau {Nw} stellt sich neben ihn, ohne etwas zu sagen.
+
+B: Die Kollegen an der {SCHULE} haben mich am Anfang sehr unterstützt, vor allem {VNw}.
+
+B: Ich finde {OEFF} ein gutes Vorbild für die Kinder, deshalb haben wir ein Projekt dazu gemacht.
+
+I: Wie war Ihre eigene Schulzeit?
+B: Ich bin in {ORT} zur Schule gegangen, auf die {SCHULE}. Das war eine ganz andere Zeit.
+
+B: Herr {Nm} aus der Nachbarklasse und ich teilen uns den Raum, das klappt gut.
+
+B: Bei {V} haben wir lange gedacht, es liegt an der Motivation. Dann kam die Diagnose Legasthenie.
+
+B4: Wir wohnen jetzt in {ORT}, vorher haben wir in {ORT} gewohnt.
+
+I: Gibt es eine Person, die Sie besonders unterstützt hat?
+B: Ja, {VNw}. Sie war damals Fachleiterin und hat mich durch das Referendariat begleitet.
+
+Feldnotiz {DATUM}: Elternsprechtag. Herr {Nm1} wartet seit zwanzig Minuten. Seine Tochter {Vw} steht neben ihm.
+
+B: Die Grundschule in {ORT} hatte einen ganz anderen Ansatz, da gab es keine Noten bis Klasse drei.
+
+B: Mit {AUTVN} kann ich wenig anfangen, das ist mir zu theoretisch.
+
+B: Wir lesen gerade {WERK}, und die Kinder diskutieren ganz viel über die Figuren.
+
+B: Mein Vater ist Busfahrer, meine Mutter Erzieherin in der {KITA}.
+
+I: Wie reagieren Kolleginnen auf neue Methoden?
+B: Unterschiedlich. {Vw} probiert alles aus, {Vm} sagt immer, das haben wir schon immer so gemacht.
+
+B: Wir hatten Besuch vom Schulamt, eine Frau {Nw}, die hat sich alles ganz genau angeschaut.
+
+B: Die Kleine heißt {Vw}, die Große {Vw}, und beide gehen auf die {SCHULE}.
+
+Beobachtung {FACH}: Lehrer {VNm} schreibt die Aufgabe an. {Vw} fragt nach der Seitenzahl.
+
+B: Wir sind nach {OORT} gefahren, ins Museum, das war für viele das erste Mal.
+
+B: Ich weiß noch, wie {Vm} am ersten Schultag geweint hat. Heute ist er Klassensprecher.
+
+B: Da muss ich an {N:gen} Methode denken, also wie Frau {N} das damals gemacht hat.
+
+I: Was bedeutet Inklusion für Sie?
+B: Dass alle dazugehören. Bei uns ist {Vm} im Rollstuhl, und die Kinder schieben ihn selbstverständlich mit.
+
+B3: Meine beste Freundin ist {Vw}, aber die ist jetzt auf eine andere Schule gegangen, nach {ORT}.
+
+B: Das hat eine Studentin von der {OEINR} untersucht, ich weiß aber nicht mehr, was rauskam.
+
+B: Mein Mann unterrichtet auch, an der {SCHULE}, deshalb reden wir zu Hause ständig über Schule.
+
+Feldnotiz: Gruppenarbeit. Gruppe 1: {V}, {V}, {V}. Gruppe 2: {V}, {V}. Gruppe 3 fehlt, {V} ist krank.
+
+B: Der Hausmeister, Herr {Nm}, ist eigentlich die wichtigste Person an der Schule.
+
+I: Wie sehen Sie die Digitalisierung?
+B: Kritisch. Wir haben Tablets, aber kein WLAN. Herr {Nm} kümmert sich, aber er ist allein.
+
+B: Mein Praktikum hab ich bei {VNw} gemacht, in einer dritten Klasse in {ORT}.
+
+B: Das habe ich bei {AUT} ({JAHR}) gelesen, dass Lob nicht immer motiviert.
+
+B2: Der {Vm} ist voll nett, der hilft mir immer bei Mathe.
+
+B: Die Familie {N} ist letztes Jahr aus {OORT} gekommen, die Kinder sprechen Arabisch und Englisch.
+
+I: Würden Sie den Beruf noch einmal wählen?
+B: Ja. Trotz allem. Wegen Kindern wie {V}, die einen jeden Tag überraschen.
+
+B: Frau {VNw} aus der Verwaltung hat uns bei den Anträgen geholfen, sonst hätten wir das nicht geschafft.
+
+Beobachtung: Herr {Nm} lobt {Vw} vor der Klasse. Sie wird rot und lächelt.
+
+B: An unserer alten Schule in {ORT} gab es einen Schulhund, das vermisse ich.
+
+B: Ich habe {OEFF} mal bei einer Lesung gesehen, das war für mich ein besonderer Moment.
+
+B4: In der Pause spiele ich meistens mit {Vm} und {Vm} Fangen.
+
+B: Wir haben das nach dem Vorbild der {SCHULE} gemacht, die haben das schon seit Jahren.
+
+I: Wer gehört zum Schulteam?
+B: Neben den Lehrkräften die Sozialarbeiterin {Vw}, zwei Schulbegleiter und unsere Sekretärin, Frau {Nw}.
+
+B: Das Gespräch mit {VNm} hat mir die Augen geöffnet. Er hat erzählt, wie es ist, als einziger Junge in der Klasse zu sein, der kein Deutsch spricht.
+
+B: Ehrlich gesagt sind die meisten Fortbildungen enttäuschend, viel Theorie, wenig Praxis.
+
+B: Morgens bringe ich meine Tochter in die {KITA}, dann fahre ich nach {ORT} zur Arbeit.
+
+Feldnotiz: Der Unterricht beginnt mit fünf Minuten Verspätung, weil der Beamer nicht funktioniert.
+
+B: Ich hatte das Glück, dass {Vw}, eine erfahrene Kollegin, mich unter ihre Fittiche genommen hat.
+
+B: Nach {AUT} kommt es auf die Tiefenstrukturen an, nicht auf die Methode. Das sehe ich auch so.
+
+B1: Wir sind damals wegen der Arbeit meines Mannes von {ORT} nach {ORT} gezogen.
+
+I: Und wie klappt es mit dem Hort?
+B: Prima, vor allem mit {Vw}, die leitet den {KITA} und ist immer ansprechbar.
+
+B: Bei uns im Ort gibt es nur eine Schule, da kennt jeder jeden. Die Lehrerin von meinem Sohn wohnt drei Häuser weiter.
+
+B: In der Fachschaft sind wir zu viert: {VNw}, {VNm}, {VNw} und ich.
+
+Beobachtung: {Vw} liest vor, stockt bei einem langen Wort. {Vm} flüstert es ihr zu. Frau {Nw} nickt.
+
+B: Wir haben an einer Studie der {OEINR} teilgenommen, da wurden alle Lehrkräfte befragt.
+
+B: Die Oma von {V} holt ihn immer ab, die wohnt in {ORT} und nimmt dafür täglich die S-Bahn.
+
+I: Was hat sich seit Ihrem Referendariat verändert?
+B: Alles. Damals in {ORT} hatten wir Kreidetafeln, heute haben wir digitale Tafeln.
+
+B: Herr {N1} hat das Projekt ins Leben gerufen, aber seit {N1} in Rente ist, schläft es ein.
+
+B: Ich erinnere mich an eine Schülerin, {VNw}, die wollte unbedingt Ärztin werden. Heute studiert sie Medizin.

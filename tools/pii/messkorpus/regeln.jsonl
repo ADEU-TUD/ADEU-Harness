@@ -1,0 +1,517 @@
+{"id": "bericht:pruef:1", "ersetzt": [16, 21], "muster": [16, 21], "zitiert": []}
+{"id": "bericht:pruef:2", "ersetzt": [2, 3, 16, 17, 22, 23], "muster": [2], "zitiert": []}
+{"id": "bericht:pruef:3", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:4", "ersetzt": [10, 16, 19, 20], "muster": [10, 16, 19, 20], "zitiert": []}
+{"id": "bericht:pruef:5", "ersetzt": [11, 12], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:7", "ersetzt": [5], "muster": [5], "zitiert": []}
+{"id": "bericht:pruef:8", "ersetzt": [4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "bericht:pruef:9", "ersetzt": [14], "muster": [14], "zitiert": []}
+{"id": "bericht:pruef:10", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:11", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:12", "ersetzt": [11], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:14", "ersetzt": [3, 4], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:16", "ersetzt": [1, 5, 6], "muster": [1, 5, 6], "zitiert": []}
+{"id": "bericht:pruef:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:18", "ersetzt": [3, 4], "muster": [3, 4], "zitiert": []}
+{"id": "bericht:pruef:19", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:21", "ersetzt": [3, 4, 12, 13], "muster": [3, 4], "zitiert": []}
+{"id": "bericht:pruef:22", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:23", "ersetzt": [4, 5, 7], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:24", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:25", "ersetzt": [2, 3], "muster": [2], "zitiert": []}
+{"id": "bericht:pruef:26", "ersetzt": [6, 10], "muster": [10], "zitiert": []}
+{"id": "bericht:pruef:27", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:28", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:pruef:29", "ersetzt": [7, 12], "muster": [12], "zitiert": []}
+{"id": "bericht:pruef:30", "ersetzt": [0, 1, 12], "muster": [], "zitiert": []}
+{"id": "chat:pruef:1", "ersetzt": [6], "muster": [6], "zitiert": []}
+{"id": "chat:pruef:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:3", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:4", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "chat:pruef:5", "ersetzt": [6], "muster": [], "zitiert": []}
+{"id": "chat:pruef:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:8", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:10", "ersetzt": [], "muster": [], "zitiert": [3]}
+{"id": "chat:pruef:11", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "chat:pruef:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:14", "ersetzt": [12, 14], "muster": [], "zitiert": []}
+{"id": "chat:pruef:15", "ersetzt": [3, 4], "muster": [3, 4], "zitiert": []}
+{"id": "chat:pruef:16", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:17", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "chat:pruef:18", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:19", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:pruef:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:1", "ersetzt": [6, 9, 13, 18], "muster": [6, 9, 13], "zitiert": []}
+{"id": "elterngespraech:pruef:2", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:3", "ersetzt": [1, 12], "muster": [1, 12], "zitiert": []}
+{"id": "elterngespraech:pruef:4", "ersetzt": [1, 6], "muster": [6], "zitiert": []}
+{"id": "elterngespraech:pruef:5", "ersetzt": [1, 4], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:pruef:6", "ersetzt": [2, 3, 6, 7, 14], "muster": [6, 7, 14], "zitiert": []}
+{"id": "elterngespraech:pruef:7", "ersetzt": [4, 9], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:8", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "elterngespraech:pruef:9", "ersetzt": [9], "muster": [9], "zitiert": []}
+{"id": "elterngespraech:pruef:10", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "elterngespraech:pruef:11", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:13", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:14", "ersetzt": [3, 12], "muster": [3, 12], "zitiert": []}
+{"id": "elterngespraech:pruef:15", "ersetzt": [2, 17], "muster": [2, 17], "zitiert": []}
+{"id": "elterngespraech:pruef:16", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:17", "ersetzt": [3, 6, 8, 11], "muster": [3, 8, 11], "zitiert": []}
+{"id": "elterngespraech:pruef:18", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:19", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "elterngespraech:pruef:20", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "elterngespraech:pruef:21", "ersetzt": [6, 10], "muster": [6], "zitiert": []}
+{"id": "elterngespraech:pruef:22", "ersetzt": [7], "muster": [7], "zitiert": []}
+{"id": "gutachten:pruef:1", "ersetzt": [4, 5, 12, 13, 16, 17], "muster": [12, 13, 16, 17], "zitiert": []}
+{"id": "gutachten:pruef:2", "ersetzt": [1], "muster": [1], "zitiert": [7, 9, 14, 15, 16]}
+{"id": "gutachten:pruef:3", "ersetzt": [5, 6, 11], "muster": [5, 6, 11], "zitiert": []}
+{"id": "gutachten:pruef:4", "ersetzt": [1, 2, 7, 8], "muster": [1, 2, 7, 8], "zitiert": []}
+{"id": "gutachten:pruef:5", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:pruef:6", "ersetzt": [2, 3, 7], "muster": [3, 7], "zitiert": []}
+{"id": "gutachten:pruef:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:pruef:8", "ersetzt": [], "muster": [], "zitiert": [6, 8, 11]}
+{"id": "gutachten:pruef:9", "ersetzt": [4, 5], "muster": [], "zitiert": []}
+{"id": "gutachten:pruef:10", "ersetzt": [1, 8, 9], "muster": [1, 8, 9], "zitiert": []}
+{"id": "gutachten:pruef:11", "ersetzt": [9, 10], "muster": [9, 10], "zitiert": []}
+{"id": "gutachten:pruef:12", "ersetzt": [6, 7, 8], "muster": [6, 7, 8], "zitiert": []}
+{"id": "gutachten:pruef:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:pruef:14", "ersetzt": [1, 7], "muster": [1, 7], "zitiert": []}
+{"id": "gutachten:pruef:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:pruef:16", "ersetzt": [3, 4], "muster": [3, 4], "zitiert": []}
+{"id": "gutachten:pruef:17", "ersetzt": [3, 4, 5], "muster": [3, 4, 5], "zitiert": []}
+{"id": "gutachten:pruef:18", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "interview:pruef:1", "ersetzt": [8, 9], "muster": [8, 9], "zitiert": []}
+{"id": "interview:pruef:2", "ersetzt": [11, 18, 19], "muster": [11], "zitiert": []}
+{"id": "interview:pruef:3", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:5", "ersetzt": [5, 7, 11, 13, 17], "muster": [17], "zitiert": []}
+{"id": "interview:pruef:6", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "interview:pruef:7", "ersetzt": [17], "muster": [], "zitiert": []}
+{"id": "interview:pruef:8", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:9", "ersetzt": [35], "muster": [35], "zitiert": []}
+{"id": "interview:pruef:10", "ersetzt": [6, 7], "muster": [6, 7], "zitiert": []}
+{"id": "interview:pruef:11", "ersetzt": [12, 13, 18], "muster": [12, 13], "zitiert": []}
+{"id": "interview:pruef:12", "ersetzt": [5, 10], "muster": [5], "zitiert": []}
+{"id": "interview:pruef:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:14", "ersetzt": [9], "muster": [9], "zitiert": []}
+{"id": "interview:pruef:15", "ersetzt": [11, 12], "muster": [11, 12], "zitiert": []}
+{"id": "interview:pruef:16", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:17", "ersetzt": [11, 16, 17], "muster": [11], "zitiert": []}
+{"id": "interview:pruef:18", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:pruef:19", "ersetzt": [3, 4, 14], "muster": [3, 4], "zitiert": []}
+{"id": "interview:pruef:20", "ersetzt": [17, 18], "muster": [17], "zitiert": [10]}
+{"id": "interview:pruef:21", "ersetzt": [2, 3], "muster": [2, 3], "zitiert": []}
+{"id": "interview:pruef:22", "ersetzt": [3, 8, 9, 10], "muster": [3, 8, 9, 10], "zitiert": []}
+{"id": "mail:pruef:1", "ersetzt": [1, 2, 3, 26, 27], "muster": [1, 2, 3, 26, 27], "zitiert": []}
+{"id": "mail:pruef:2", "ersetzt": [1, 19], "muster": [1], "zitiert": []}
+{"id": "mail:pruef:3", "ersetzt": [2, 5], "muster": [2, 5], "zitiert": []}
+{"id": "mail:pruef:4", "ersetzt": [4, 14, 27, 28], "muster": [4, 14, 27, 28], "zitiert": []}
+{"id": "mail:pruef:5", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "mail:pruef:6", "ersetzt": [9, 10, 21, 22], "muster": [9, 10, 21, 22], "zitiert": []}
+{"id": "mail:pruef:7", "ersetzt": [3, 10, 22, 23, 26, 27], "muster": [3, 26, 27], "zitiert": []}
+{"id": "mail:pruef:8", "ersetzt": [1, 2, 3, 4, 6, 7], "muster": [1, 2, 3, 4, 6, 7], "zitiert": []}
+{"id": "mail:pruef:9", "ersetzt": [6, 16, 18], "muster": [], "zitiert": []}
+{"id": "mail:pruef:10", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "mail:pruef:11", "ersetzt": [2, 23], "muster": [2, 23], "zitiert": []}
+{"id": "mail:pruef:12", "ersetzt": [3, 4], "muster": [3], "zitiert": []}
+{"id": "mail:pruef:13", "ersetzt": [1, 12, 14, 19, 20], "muster": [1], "zitiert": []}
+{"id": "mail:pruef:14", "ersetzt": [4, 16, 17, 18, 27, 28], "muster": [4, 16, 17, 18, 27, 28], "zitiert": []}
+{"id": "protokoll:pruef:1", "ersetzt": [8, 11, 13, 15], "muster": [8, 11, 13, 15], "zitiert": []}
+{"id": "protokoll:pruef:2", "ersetzt": [4, 5], "muster": [], "zitiert": []}
+{"id": "protokoll:pruef:3", "ersetzt": [1, 8, 9], "muster": [1, 8, 9], "zitiert": []}
+{"id": "protokoll:pruef:4", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:pruef:5", "ersetzt": [1, 2, 4, 5], "muster": [], "zitiert": []}
+{"id": "protokoll:pruef:6", "ersetzt": [13], "muster": [13], "zitiert": []}
+{"id": "protokoll:pruef:7", "ersetzt": [7, 8], "muster": [7, 8], "zitiert": []}
+{"id": "protokoll:pruef:8", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:pruef:9", "ersetzt": [2, 8, 9], "muster": [2, 8, 9], "zitiert": []}
+{"id": "protokoll:pruef:10", "ersetzt": [2, 3, 4, 5], "muster": [], "zitiert": []}
+{"id": "protokoll:pruef:11", "ersetzt": [4, 19, 20], "muster": [4, 19, 20], "zitiert": []}
+{"id": "protokoll:pruef:12", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "protokoll:pruef:13", "ersetzt": [14], "muster": [14], "zitiert": []}
+{"id": "protokoll:pruef:14", "ersetzt": [10], "muster": [10], "zitiert": []}
+{"id": "protokoll:pruef:15", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:pruef:16", "ersetzt": [4, 5, 13], "muster": [13], "zitiert": []}
+{"id": "protokoll:pruef:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:pruef:18", "ersetzt": [5, 6, 7, 8, 9, 12], "muster": [5, 6, 7, 8, 9, 12], "zitiert": []}
+{"id": "tabelle:pruef:1", "ersetzt": [6, 7, 11, 12, 16, 17], "muster": [6, 7, 11, 12, 16, 17], "zitiert": []}
+{"id": "tabelle:pruef:2", "ersetzt": [4, 5, 8, 9, 12, 13], "muster": [4, 5, 8, 9, 12, 13], "zitiert": []}
+{"id": "tabelle:pruef:3", "ersetzt": [2, 3, 4], "muster": [], "zitiert": []}
+{"id": "tabelle:pruef:4", "ersetzt": [3, 4, 5, 7, 8, 9], "muster": [3, 4, 5, 7, 8, 9], "zitiert": []}
+{"id": "tabelle:pruef:5", "ersetzt": [6, 12, 13], "muster": [], "zitiert": []}
+{"id": "tabelle:pruef:6", "ersetzt": [3, 9, 10], "muster": [], "zitiert": [6, 7, 12]}
+{"id": "tabelle:pruef:7", "ersetzt": [3, 4, 5, 6, 7, 8, 9, 10], "muster": [3, 4, 5, 6, 7, 8, 9, 10], "zitiert": []}
+{"id": "tabelle:pruef:8", "ersetzt": [5, 7], "muster": [], "zitiert": []}
+{"id": "tabelle:pruef:9", "ersetzt": [5, 6, 8, 9, 10, 11, 12, 14, 15], "muster": [5, 6, 8, 11, 12, 14], "zitiert": []}
+{"id": "tabelle:pruef:10", "ersetzt": [2, 8, 11], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:1", "ersetzt": [], "muster": [], "zitiert": [0, 8]}
+{"id": "wissenschaft:pruef:2", "ersetzt": [], "muster": [], "zitiert": [1, 4, 5]}
+{"id": "wissenschaft:pruef:3", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:5", "ersetzt": [], "muster": [], "zitiert": [0, 2]}
+{"id": "wissenschaft:pruef:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:8", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:10", "ersetzt": [], "muster": [], "zitiert": [1]}
+{"id": "wissenschaft:pruef:11", "ersetzt": [3, 4, 6, 7, 15, 16], "muster": [15, 16], "zitiert": []}
+{"id": "wissenschaft:pruef:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:13", "ersetzt": [3, 5], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:14", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:16", "ersetzt": [6, 12, 13], "muster": [6, 12, 13], "zitiert": []}
+{"id": "wissenschaft:pruef:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:18", "ersetzt": [], "muster": [], "zitiert": [1, 2, 3]}
+{"id": "wissenschaft:pruef:19", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:pruef:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:1", "ersetzt": [10], "muster": [10], "zitiert": []}
+{"id": "bericht:entwicklung:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:3", "ersetzt": [2, 3], "muster": [2, 3], "zitiert": []}
+{"id": "bericht:entwicklung:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:5", "ersetzt": [10, 11], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:6", "ersetzt": [7], "muster": [7], "zitiert": []}
+{"id": "bericht:entwicklung:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:8", "ersetzt": [1, 4], "muster": [1, 4], "zitiert": []}
+{"id": "bericht:entwicklung:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:10", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:11", "ersetzt": [6, 7], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:14", "ersetzt": [0, 2], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:16", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "bericht:entwicklung:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:18", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:19", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:21", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "bericht:entwicklung:22", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:23", "ersetzt": [2, 3, 7, 8], "muster": [2, 3], "zitiert": []}
+{"id": "bericht:entwicklung:24", "ersetzt": [4, 5], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:25", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:26", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:27", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:28", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:29", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:30", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:31", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "bericht:entwicklung:32", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:33", "ersetzt": [2, 3, 8, 9], "muster": [8, 9], "zitiert": []}
+{"id": "bericht:entwicklung:34", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:35", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:36", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "bericht:entwicklung:37", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:38", "ersetzt": [0, 1], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:39", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:40", "ersetzt": [6], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:41", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:42", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:43", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:44", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:45", "ersetzt": [2, 3], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:46", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:47", "ersetzt": [6, 7], "muster": [], "zitiert": []}
+{"id": "bericht:entwicklung:48", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:1", "ersetzt": [5], "muster": [5], "zitiert": []}
+{"id": "chat:entwicklung:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:3", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:5", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:6", "ersetzt": [2], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:8", "ersetzt": [5], "muster": [5], "zitiert": []}
+{"id": "chat:entwicklung:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:10", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:11", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "chat:entwicklung:12", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "chat:entwicklung:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:14", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:15", "ersetzt": [0, 2], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:16", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:18", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:19", "ersetzt": [4, 5], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:21", "ersetzt": [7, 8, 10], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:22", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:23", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:24", "ersetzt": [9], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:25", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:26", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:27", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "chat:entwicklung:28", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:29", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "chat:entwicklung:30", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "chat:entwicklung:31", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:32", "ersetzt": [5, 6], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:33", "ersetzt": [6, 7], "muster": [6, 7], "zitiert": []}
+{"id": "chat:entwicklung:34", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:35", "ersetzt": [5], "muster": [5], "zitiert": []}
+{"id": "chat:entwicklung:36", "ersetzt": [2, 5], "muster": [5], "zitiert": []}
+{"id": "chat:entwicklung:37", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:38", "ersetzt": [8, 9], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:39", "ersetzt": [7, 8], "muster": [], "zitiert": []}
+{"id": "chat:entwicklung:40", "ersetzt": [4, 6], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:1", "ersetzt": [3, 7, 8], "muster": [3], "zitiert": []}
+{"id": "elterngespraech:entwicklung:2", "ersetzt": [2, 5], "muster": [2, 5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:3", "ersetzt": [9], "muster": [9], "zitiert": []}
+{"id": "elterngespraech:entwicklung:4", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:5", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:entwicklung:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:7", "ersetzt": [1, 2], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:8", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:9", "ersetzt": [1, 10], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:entwicklung:10", "ersetzt": [1, 7], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:11", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:12", "ersetzt": [3, 6], "muster": [3], "zitiert": []}
+{"id": "elterngespraech:entwicklung:13", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:14", "ersetzt": [2, 4, 5], "muster": [2, 4, 5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:16", "ersetzt": [10], "muster": [10], "zitiert": []}
+{"id": "elterngespraech:entwicklung:17", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:18", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:19", "ersetzt": [5], "muster": [5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:20", "ersetzt": [2], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:21", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:22", "ersetzt": [1, 5], "muster": [1, 5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:23", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "elterngespraech:entwicklung:24", "ersetzt": [0, 4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:25", "ersetzt": [6], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:26", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:entwicklung:27", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:28", "ersetzt": [11], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:29", "ersetzt": [1, 7], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:entwicklung:30", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:31", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:32", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:33", "ersetzt": [6], "muster": [6], "zitiert": []}
+{"id": "elterngespraech:entwicklung:34", "ersetzt": [5, 7], "muster": [5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:35", "ersetzt": [6, 7], "muster": [6, 7], "zitiert": []}
+{"id": "elterngespraech:entwicklung:36", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "elterngespraech:entwicklung:37", "ersetzt": [0, 2], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:38", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "elterngespraech:entwicklung:39", "ersetzt": [5, 12], "muster": [5], "zitiert": []}
+{"id": "elterngespraech:entwicklung:40", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:1", "ersetzt": [4, 5], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:2", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "gutachten:entwicklung:3", "ersetzt": [], "muster": [], "zitiert": [8]}
+{"id": "gutachten:entwicklung:4", "ersetzt": [1, 2, 8, 9], "muster": [1, 2, 8, 9], "zitiert": []}
+{"id": "gutachten:entwicklung:5", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "gutachten:entwicklung:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:7", "ersetzt": [6, 7], "muster": [6, 7], "zitiert": []}
+{"id": "gutachten:entwicklung:8", "ersetzt": [], "muster": [], "zitiert": [3, 5]}
+{"id": "gutachten:entwicklung:9", "ersetzt": [2, 3], "muster": [2, 3], "zitiert": []}
+{"id": "gutachten:entwicklung:10", "ersetzt": [3, 4], "muster": [3, 4], "zitiert": []}
+{"id": "gutachten:entwicklung:11", "ersetzt": [7], "muster": [7], "zitiert": []}
+{"id": "gutachten:entwicklung:12", "ersetzt": [4, 5, 6], "muster": [4, 5, 6], "zitiert": []}
+{"id": "gutachten:entwicklung:13", "ersetzt": [1], "muster": [1], "zitiert": [5]}
+{"id": "gutachten:entwicklung:14", "ersetzt": [3, 6], "muster": [3, 6], "zitiert": []}
+{"id": "gutachten:entwicklung:15", "ersetzt": [1, 2], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:16", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:17", "ersetzt": [], "muster": [], "zitiert": [7]}
+{"id": "gutachten:entwicklung:18", "ersetzt": [6], "muster": [6], "zitiert": []}
+{"id": "gutachten:entwicklung:19", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "gutachten:entwicklung:20", "ersetzt": [1, 2, 3], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:21", "ersetzt": [6, 7, 8], "muster": [6, 7, 8], "zitiert": []}
+{"id": "gutachten:entwicklung:22", "ersetzt": [4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "gutachten:entwicklung:23", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:24", "ersetzt": [], "muster": [], "zitiert": [4, 6]}
+{"id": "gutachten:entwicklung:25", "ersetzt": [1, 2], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:26", "ersetzt": [3, 4], "muster": [3, 4], "zitiert": []}
+{"id": "gutachten:entwicklung:27", "ersetzt": [2, 3], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:28", "ersetzt": [7, 8], "muster": [7, 8], "zitiert": []}
+{"id": "gutachten:entwicklung:29", "ersetzt": [], "muster": [], "zitiert": [4, 5, 6, 8]}
+{"id": "gutachten:entwicklung:30", "ersetzt": [1, 2], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:31", "ersetzt": [2, 3], "muster": [2, 3], "zitiert": []}
+{"id": "gutachten:entwicklung:32", "ersetzt": [1, 2], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:33", "ersetzt": [6, 7], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:34", "ersetzt": [7, 9, 10], "muster": [7, 9, 10], "zitiert": []}
+{"id": "gutachten:entwicklung:35", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "gutachten:entwicklung:36", "ersetzt": [1, 2, 9], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:37", "ersetzt": [1, 2], "muster": [1, 2], "zitiert": []}
+{"id": "gutachten:entwicklung:38", "ersetzt": [2, 3], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:1", "ersetzt": [11, 12, 20, 21], "muster": [20, 21], "zitiert": []}
+{"id": "interview:entwicklung:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:3", "ersetzt": [14], "muster": [14], "zitiert": []}
+{"id": "interview:entwicklung:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:5", "ersetzt": [12], "muster": [12], "zitiert": []}
+{"id": "interview:entwicklung:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:7", "ersetzt": [11], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:8", "ersetzt": [6, 7], "muster": [6, 7], "zitiert": []}
+{"id": "interview:entwicklung:9", "ersetzt": [11], "muster": [11], "zitiert": []}
+{"id": "interview:entwicklung:10", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:11", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:14", "ersetzt": [3, 7, 9], "muster": [3], "zitiert": []}
+{"id": "interview:entwicklung:15", "ersetzt": [3, 4], "muster": [3], "zitiert": []}
+{"id": "interview:entwicklung:16", "ersetzt": [11], "muster": [11], "zitiert": []}
+{"id": "interview:entwicklung:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:18", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:19", "ersetzt": [3, 8], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:20", "ersetzt": [14, 15], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:21", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:22", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:23", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:24", "ersetzt": [7, 14], "muster": [7, 14], "zitiert": []}
+{"id": "interview:entwicklung:25", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:26", "ersetzt": [8], "muster": [8], "zitiert": []}
+{"id": "interview:entwicklung:27", "ersetzt": [4], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:28", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "interview:entwicklung:29", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:30", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:31", "ersetzt": [10], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:32", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:33", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:34", "ersetzt": [1], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:35", "ersetzt": [3, 7, 8], "muster": [3, 7, 8], "zitiert": []}
+{"id": "interview:entwicklung:36", "ersetzt": [2, 7], "muster": [2], "zitiert": []}
+{"id": "interview:entwicklung:37", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:38", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:39", "ersetzt": [4], "muster": [4], "zitiert": []}
+{"id": "interview:entwicklung:40", "ersetzt": [9, 10], "muster": [], "zitiert": []}
+{"id": "interview:entwicklung:41", "ersetzt": [6], "muster": [6], "zitiert": []}
+{"id": "mail:entwicklung:1", "ersetzt": [2, 3], "muster": [2, 3], "zitiert": []}
+{"id": "mail:entwicklung:2", "ersetzt": [2, 10], "muster": [2], "zitiert": []}
+{"id": "mail:entwicklung:3", "ersetzt": [1, 3], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:4", "ersetzt": [1, 2, 4, 5], "muster": [1, 2, 4, 5], "zitiert": []}
+{"id": "mail:entwicklung:5", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "mail:entwicklung:6", "ersetzt": [1, 17], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:7", "ersetzt": [8, 14, 15], "muster": [8], "zitiert": []}
+{"id": "mail:entwicklung:8", "ersetzt": [3, 14, 15, 16], "muster": [3, 14, 15, 16], "zitiert": []}
+{"id": "mail:entwicklung:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:10", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:11", "ersetzt": [13], "muster": [13], "zitiert": []}
+{"id": "mail:entwicklung:12", "ersetzt": [1, 13], "muster": [1, 13], "zitiert": []}
+{"id": "mail:entwicklung:13", "ersetzt": [2, 9], "muster": [2, 9], "zitiert": []}
+{"id": "mail:entwicklung:14", "ersetzt": [9], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:15", "ersetzt": [13, 14], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:16", "ersetzt": [2, 4, 16], "muster": [2], "zitiert": []}
+{"id": "mail:entwicklung:17", "ersetzt": [1, 9], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:18", "ersetzt": [15, 16, 19, 20], "muster": [15, 16], "zitiert": []}
+{"id": "mail:entwicklung:19", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "mail:entwicklung:20", "ersetzt": [2, 9], "muster": [2], "zitiert": []}
+{"id": "mail:entwicklung:21", "ersetzt": [3], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:22", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "mail:entwicklung:23", "ersetzt": [11], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:24", "ersetzt": [5, 6], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:25", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:26", "ersetzt": [3, 10], "muster": [3], "zitiert": []}
+{"id": "mail:entwicklung:27", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "mail:entwicklung:28", "ersetzt": [9], "muster": [], "zitiert": []}
+{"id": "mail:entwicklung:29", "ersetzt": [3, 9], "muster": [3, 9], "zitiert": []}
+{"id": "mail:entwicklung:30", "ersetzt": [1, 3, 10, 11], "muster": [1, 10, 11], "zitiert": []}
+{"id": "mail:entwicklung:31", "ersetzt": [1, 4], "muster": [1], "zitiert": []}
+{"id": "mail:entwicklung:32", "ersetzt": [2, 9], "muster": [2], "zitiert": []}
+{"id": "mail:entwicklung:33", "ersetzt": [3], "muster": [3], "zitiert": []}
+{"id": "protokoll:entwicklung:1", "ersetzt": [2, 4, 6, 9], "muster": [2, 4, 6, 9], "zitiert": []}
+{"id": "protokoll:entwicklung:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:3", "ersetzt": [1, 2], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:4", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:5", "ersetzt": [6, 7], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:6", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:8", "ersetzt": [1, 2], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:10", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:11", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "protokoll:entwicklung:12", "ersetzt": [4, 7, 10], "muster": [4, 7, 10], "zitiert": []}
+{"id": "protokoll:entwicklung:13", "ersetzt": [0, 2], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:14", "ersetzt": [3, 4, 5], "muster": [3, 4, 5], "zitiert": []}
+{"id": "protokoll:entwicklung:15", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:16", "ersetzt": [4, 5, 6], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:17", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:18", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:19", "ersetzt": [1, 7], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:20", "ersetzt": [8, 9], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:21", "ersetzt": [4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "protokoll:entwicklung:22", "ersetzt": [5], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:23", "ersetzt": [2], "muster": [2], "zitiert": []}
+{"id": "protokoll:entwicklung:24", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:25", "ersetzt": [1], "muster": [1], "zitiert": []}
+{"id": "protokoll:entwicklung:26", "ersetzt": [2, 3, 5, 6], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:27", "ersetzt": [3, 4, 5, 6], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:28", "ersetzt": [11], "muster": [11], "zitiert": []}
+{"id": "protokoll:entwicklung:29", "ersetzt": [7, 8], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:30", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:31", "ersetzt": [4, 5, 14], "muster": [4, 5, 14], "zitiert": []}
+{"id": "protokoll:entwicklung:32", "ersetzt": [16], "muster": [16], "zitiert": []}
+{"id": "protokoll:entwicklung:33", "ersetzt": [4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "protokoll:entwicklung:34", "ersetzt": [1, 7, 8], "muster": [1, 7, 8], "zitiert": []}
+{"id": "protokoll:entwicklung:35", "ersetzt": [4, 5], "muster": [4, 5], "zitiert": []}
+{"id": "protokoll:entwicklung:36", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:37", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "protokoll:entwicklung:38", "ersetzt": [1, 4, 10, 11], "muster": [1, 10, 11], "zitiert": []}
+{"id": "tabelle:entwicklung:1", "ersetzt": [2, 3, 5, 6], "muster": [2, 3, 5, 6], "zitiert": []}
+{"id": "tabelle:entwicklung:2", "ersetzt": [3, 4, 6, 7], "muster": [3, 4, 6, 7], "zitiert": []}
+{"id": "tabelle:entwicklung:3", "ersetzt": [3, 4, 5], "muster": [3, 4, 5], "zitiert": []}
+{"id": "tabelle:entwicklung:4", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:5", "ersetzt": [2, 3, 4, 5], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:6", "ersetzt": [3, 6], "muster": [3, 6], "zitiert": []}
+{"id": "tabelle:entwicklung:7", "ersetzt": [2, 3, 4, 5, 6, 8, 9], "muster": [4, 5, 8, 9], "zitiert": []}
+{"id": "tabelle:entwicklung:8", "ersetzt": [], "muster": [], "zitiert": [5, 9]}
+{"id": "tabelle:entwicklung:9", "ersetzt": [3, 4, 7, 8], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:10", "ersetzt": [3, 4, 5, 6], "muster": [3, 4, 5, 6], "zitiert": []}
+{"id": "tabelle:entwicklung:11", "ersetzt": [2, 4, 5], "muster": [2, 4, 5], "zitiert": []}
+{"id": "tabelle:entwicklung:12", "ersetzt": [3, 5, 7], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:13", "ersetzt": [5, 6, 8, 9, 10, 12], "muster": [5, 6, 8, 9, 10, 12], "zitiert": []}
+{"id": "tabelle:entwicklung:14", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:15", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:16", "ersetzt": [3, 5, 7], "muster": [], "zitiert": []}
+{"id": "tabelle:entwicklung:17", "ersetzt": [3, 4, 6, 7, 8, 9], "muster": [3, 4, 6, 7, 8, 9], "zitiert": []}
+{"id": "tabelle:entwicklung:18", "ersetzt": [2, 4, 6], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:1", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:2", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:3", "ersetzt": [], "muster": [], "zitiert": [0]}
+{"id": "wissenschaft:entwicklung:4", "ersetzt": [], "muster": [], "zitiert": [0]}
+{"id": "wissenschaft:entwicklung:5", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:6", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:7", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:8", "ersetzt": [0, 1], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:9", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:10", "ersetzt": [0, 1], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:11", "ersetzt": [3, 4], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:12", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:13", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:14", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:15", "ersetzt": [], "muster": [], "zitiert": [0]}
+{"id": "wissenschaft:entwicklung:16", "ersetzt": [6], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:17", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:18", "ersetzt": [], "muster": [], "zitiert": [0, 2]}
+{"id": "wissenschaft:entwicklung:19", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:20", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:21", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:22", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:23", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:24", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:25", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:26", "ersetzt": [], "muster": [], "zitiert": [0]}
+{"id": "wissenschaft:entwicklung:27", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:28", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:29", "ersetzt": [0], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:30", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:31", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:32", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:33", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:34", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:35", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:36", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:37", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:38", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:39", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:40", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:41", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:42", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:43", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:44", "ersetzt": [], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:45", "ersetzt": [0, 1], "muster": [], "zitiert": []}
+{"id": "wissenschaft:entwicklung:46", "ersetzt": [4, 5], "muster": [4], "zitiert": []}
+{"id": "wissenschaft:entwicklung:47", "ersetzt": [8], "muster": [8], "zitiert": []}

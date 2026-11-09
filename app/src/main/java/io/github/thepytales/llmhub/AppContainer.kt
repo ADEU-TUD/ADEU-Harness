@@ -220,7 +220,12 @@ class AppContainer(context: Context) {
     /** Language models on this device (llama.cpp); the LLM client starts them on demand. */
     val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
 
+    /** Recognition model of the pseudonymization (AP-67): download, loading, hits for [privacy]. */
+    val piiModel = io.github.thepytales.llmhub.data.PiiModel(this)
+
     init {
+        privacy.model = { text -> piiModel.find(text) }
+        privacy.onUse = { piiModel.offerIfNeeded() }
         // Gründliche Erkennung (AP-03): the smallest installed local model lists names the rules missed.
         privacy.thoroughFinder = finder@{ text ->
             val model = localLlm.installedModels().minByOrNull { it.needGb }?.modelId ?: return@finder emptyList()

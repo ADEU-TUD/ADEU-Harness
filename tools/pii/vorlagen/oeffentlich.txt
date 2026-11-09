@@ -1,0 +1,295 @@
+# Vorlagen AP-67 · Textart: Öffentliches neben Privatem – Ämter, Lesungen, Vorträge, Einrichtungen, Ausflüge (Lehrer: Claude, erfunden)
+# Gegenbeispiele nach den Fehlern auf dem Entwicklungsteil (nicht dem Prüfteil): öffentliche Personen mit Amt oder Werk,
+# öffentliche Einrichtungen mit Ortsnamen, Orte von Reisen und Tagungen.
+
+Ministerpräsident {OEFF} hat die neue Grundschule eröffnet; die Schülerin {Vw} überreichte ihm Blumen.
+
+Die Ministerin {OEFF} sprach beim Fachtag über Lehrkräftemangel.
+
+Bürgermeister {OEFF} besuchte die {SCHULE} und ließ sich von {VN} den Schulgarten zeigen.
+
+Bei der Lesung in der {OEINR} las {AUTVN} aus ihrem neuen Jugendbuch.
+
+Die Autorin {AUTVN} signierte nach der Lesung Bücher; {V} hat sich gleich zwei gekauft.
+
+Den Gastvortrag hielt Prof. {AUTVN} von der {OEINR} – Thema: Bildung im digitalen Wandel.
+
+Prof. Dr. {AUTVN} ist Keynote-Speaker der Tagung, moderiert wird von {VN}.
+
+Im Rahmen der Ringvorlesung spricht {AUTVN} über Inklusion.
+
+Der Kabarettist {OEFF} trat beim Stadtfest auf.
+
+Die Moderatorin {OEFF} führte durch den Abend.
+
+Der Schauspieler {OEFF} las Märchen für die Kinder der {KITA}.
+
+{OEFF} hat den Nobelpreis bekommen – unsere Klasse hat dazu ein Plakat gemacht.
+
+Die Biografie von {OEFF} steht im Regal der Schulbibliothek.
+
+Der Roman „Die Mittagsfrau“ von {AUTVN} wurde im Leistungskurs gelesen.
+
+Von {AUTVN} stammt das Kinderbuch, das wir gerade vorlesen.
+
+Wir haben ein Interview mit {OEFF} im Radio gehört.
+
+Die Figur {OEFF} begeistert die Kinder seit Generationen.
+
+In der Geschichte geht es um {OEFF} und seine Freunde.
+
+Das Kind wurde im {OEINR} geboren und lebt heute mit der Mutter in {ORT}.
+
+Die Mutter arbeitet als Pflegerin im {OEINR}.
+
+Herr {Nm} ist beim {OEINR} angestellt und hat deshalb Schichtdienst.
+
+Die Klasse besuchte die {OEINR} und durfte hinter die Kulissen schauen.
+
+Die Schwimmhalle am Stadtpark ist wegen Sanierung geschlossen; der Schwimmunterricht findet in der {OEINR} statt.
+
+Der Unterricht fiel aus, weil die Stadtwerke die Heizung reparieren mussten.
+
+Ausleihe über die {OEINR}: maximal fünf Bücher pro Kind.
+
+Die Skifahrt der Klasse {KLASSE} geht wie jedes Jahr nach {OORT}.
+
+Die Fortbildung „Klassenführung“ findet in {OORT} statt, Anmeldung bis {DATUM}.
+
+Die Tagung der Grundschulpädagogik ist dieses Jahr in {OORT}.
+
+Der Bus nach {OORT} fährt um {UHR} am Haupteingang ab.
+
+Der Lehrerausflug ging nach {OORT} – mit Stadtführung und Kaffeetrinken.
+
+Wir haben in {OORT} das Rathaus und die Burg besichtigt.
+
+Die Wanderung führte von {OORT} nach {OORT}.
+
+Der Austausch mit der Schule aus {OORT} findet im Mai statt.
+
+{OORT} ist Kulturhauptstadt; die Klasse plant einen Besuch.
+
+Der Landkreis {OORT} hat die Schülerbeförderung neu geregelt.
+
+Die Zahl der Grundschulkinder in {OORT} steigt seit Jahren.
+
+In {OORT} schließen zum Sommer zwei Oberschulen.
+
+{OORT} liegt an der Elbe und hat rund {ZAHL}.000 Einwohner.
+
+Die Partnerstadt {OORT} hat eine Delegation geschickt.
+
+Der Kollege {VNm} wohnt in {ORT} und fährt jeden Tag nach {OORT} zur Fortbildung.
+
+Die Schülerin {VNw} aus {ORT} hat beim Wettbewerb in {OORT} gewonnen.
+
+Die Familie {N} ist von {ORT} nach {ORT} gezogen, weil der Vater eine neue Stelle hat.
+
+Laut {OEINR} gibt es in {OORT} zu wenige Kita-Plätze.
+
+Die {OEINR} hat eine Broschüre für Eltern herausgegeben.
+
+Die Studie der {OEINR} wurde von {AUTVN} geleitet.
+
+Unsere Kollegin {VNw} ist jetzt bei der {OEINR} beschäftigt.
+
+{AUT} hat in einem Interview mit der Zeitung gesagt, dass Noten überschätzt werden.
+
+Wie {AUTVN} in seinem Buch schreibt, brauchen Kinder vor allem Zeit.
+
+Das Konzept geht auf {AUTVN} zurück, eine Pädagogin aus {OORT}.
+
+Wer mehr wissen will, liest am besten {AUTVN}, „Lernen und Gedächtnis“.
+
+Die Schulleiterin zitierte in ihrer Rede {OEFF}.
+
+{OEFF} – das ist der Held unserer Klassenlektüre.
+
+Herr {Nm} kam als {OEFF} verkleidet zum Fasching.
+
+{Vw} hat beim Schulfest als {OEFF} verkleidet getanzt.
+
+Die Kinder spielten {WERK} nach; {V} war der Erzähler.
+
+{OEFF} war Thema des Referats von {VN}.
+
+Im Kino lief {WERK}, die ganze Klasse {KLASSE} war dabei.
+
+Unsere Klasse hat einen Brief an {OEFF} geschrieben, eine Antwort kam nie.
+
+Die Bundestagsabgeordnete {OEFF} besuchte unsere Schule.
+
+Landrat {OEFF} übergab den Förderbescheid an die Schulleiterin, Frau {Nw}.
+
+Die Oberbürgermeisterin {OEFF} gratulierte den Abiturientinnen und Abiturienten.
+
+Der Fußballer {OEFF} spendete Trikots an die Schulmannschaft.
+
+Die Olympiasiegerin {OEFF} kam zum Sportfest; {V} durfte mit ihr laufen.
+
+Die Sängerin {OEFF} gab ein Konzert in {OORT}.
+
+Der Physiker {OEFF} erklärte im Video, wie Licht funktioniert.
+
+Die Ausstellung im {OEINR} zeigt Werke von {OEFF}.
+
+Die Straße vor der Schule heißt nach {OEFF}.
+
+Das Denkmal von {OEFF} steht auf dem Marktplatz von {OORT}.
+
+{OEFF} wurde in {OORT} geboren und starb in {OORT}.
+
+Wie schon {OEFF} sagte, ist Bildung die beste Investition.
+
+Laut Lehrplan lernen die Kinder {OEFF} und {OEFF} kennen.
+
+Im Geschichtsunterricht ging es um {OEFF} und die Reformation.
+
+Der Erfinder {OEFF} wird im Physikbuch vorgestellt.
+
+Wir haben {WERK} im Original von {AUTVN} gelesen.
+
+Herausgeberin der Reihe ist {AUTVN}.
+
+Das Vorwort schrieb {AUTVN}.
+
+Der Artikel von {AUTVN} in der Zeitschrift „Grundschule aktuell“ ist lesenswert.
+
+Die Rezension von {AUTVN} fällt kritisch aus.
+
+Die Gruppe hat {AUTVN} zitiert, aber falsch.
+
+In der Literaturliste fehlt {AUTVN} ({JAHR}).
+
+Kennst du das Buch von {AUTVN} über Klassenführung?
+
+Laut einem Bericht der {OEINR} fehlen in {OORT} Sozialarbeiter.
+
+Die Sprechstunde im Bürgeramt {OORT} ist dienstags.
+
+Der Arzt im Universitätsklinikum hat {Vw} nach dem Sportunfall behandelt.
+
+Die Polizei kam zur Verkehrserziehung in die {KLASSE}; Polizeihauptmeister {Nm} erklärte den Fahrradparcours.
+
+Die Feuerwehr {OORT} zeigte den Kindern, wie man einen Notruf absetzt.
+
+Der Förderantrag liegt beim Landratsamt; zuständig ist Frau {Nw}.
+
+Die Bibliothekarin, Frau {Nw}, hat für die Klasse Bücher zusammengestellt.
+
+Die Kinder schrieben an den Bürgermeister von {OORT}, weil der Spielplatz kaputt ist.
+
+Nach {AUTVN} ({JAHR}) ist Klassenführung vor allem Prävention.
+
+Das Standardwerk von {AUTVN} liegt in der dritten Auflage vor.
+
+Im Interview mit dem Deutschlandfunk sagte {AUTVN}, Hausaufgaben seien oft überflüssig.
+
+Die Studie von {AUTVN} und Kollegen wurde breit diskutiert.
+
+{AUTVN}, Professorin für Schulpädagogik in {OORT}, kritisiert den Lehrplan.
+
+Der Erziehungswissenschaftler {AUTVN} warnt vor zu frühen Noten.
+
+Die Psychologin {AUTVN} forscht zu Motivation im Jugendalter.
+
+Bei der Fachtagung sprachen {AUTVN} und {AUTVN} über Inklusion.
+
+Die Keynote von {AUTVN} war der Höhepunkt der Tagung in {OORT}.
+
+Wie {AUTVN} in ihrem Vortrag betonte, braucht Inklusion Zeit und Personal.
+
+Prof. {AUT} von der {OEINR} leitet die Kommission.
+
+Die Kommission unter Vorsitz von Prof. Dr. {AUTVN} legt im Herbst ihren Bericht vor.
+
+Die Autorin {AUTVN} liest am Donnerstag in der Stadtbibliothek; Eintritt frei.
+
+Der Jugendbuchautor {AUTVN} besuchte die Klasse {KLASSE} und erzählte von seiner Arbeit.
+
+Das Hörbuch wird von {OEFF} gesprochen.
+
+Die Verfilmung mit {OEFF} in der Hauptrolle läuft im Kino.
+
+Der Schriftsteller {OEFF} wurde in {OORT} geboren.
+
+Die Rede von {OEFF} zum Tag der Deutschen Einheit wurde im Unterricht besprochen.
+
+Ex-Bundeskanzler {OEFF} bekam die Ehrendoktorwürde der {OEINR}.
+
+Staatssekretär {OEFF} übergab die Urkunden an die Preisträgerinnen.
+
+Der Sachbuchautor {OEFF} sprach in der Aula über künstliche Intelligenz.
+
+Der Wissenschaftsjournalist {OEFF} erklärte im Video den Klimawandel.
+
+Im Musikunterricht hörten wir Stücke von {OEFF}.
+
+Im Kunstunterricht malten die Kinder wie {OEFF}.
+
+Die Kinder kennen {OEFF} aus dem Fernsehen.
+
+Die Biografie über {OEFF} hat {AUTVN} geschrieben.
+
+Laut dem Bericht des {OEINR} sind die Wartezeiten für Diagnostik lang.
+
+Die {OEINR} bietet kostenlose Workshops für Lehrkräfte an.
+
+Das {OEINR} hat seine Öffnungszeiten verlängert.
+
+Die Fortbildung wird vom {OEINR} anerkannt.
+
+Die Statistik stammt vom {OEINR}.
+
+Die Ausstellung im {OEINR} ist für Schulklassen kostenlos.
+
+Die Studierenden machen ein Praktikum beim {OEINR}.
+
+In {OORT} gibt es seit {JAHR} ein Schulzentrum für Gemeinschaftsschulen.
+
+Die Konferenz wechselt jedes Jahr den Ort: {OORT}, {OORT}, {OORT}.
+
+Unsere Partneruniversität liegt in {OORT}.
+
+Die Studienfahrt geht nach {OORT} und {OORT}.
+
+Die Landeshauptstadt {OORT} hat den Schulnetzplan beschlossen.
+
+In {OORT} fand die erste Gesamtschule des Landes statt Unterricht.
+
+Die Messe „Didacta“ findet dieses Jahr in {OORT} statt.
+
+Die Exkursion führte uns in die Altstadt von {OORT}.
+
+Die Fahrt nach {OORT} dauert mit dem Bus etwa drei Stunden.
+
+{OEFF} und {OEFF} waren Thema der Projektwoche „Mutige Frauen“.
+
+In {WERK} geht es um Freundschaft und Mut.
+
+Die Hauptfigur in {WERK} heißt {OEFF}.
+
+Das Theaterstück {WERK} wurde von der Klasse {KLASSE} aufgeführt; Regie: {VNw}.
+
+Der Kinderbuchklassiker {WERK} wurde neu verfilmt.
+
+Die Lehrerin {VNw} las den Kindern {WERK} vor.
+
+Laut Wikipedia wurde {OEFF} {JAHR} geboren.
+
+Das Zitat „Wer kämpft, kann verlieren“ wird oft {OEFF} zugeschrieben.
+
+Wir haben einen Podcast über {OEFF} aufgenommen; gesprochen haben {V} und {V}.
+
+Die Schule trägt seit {JAHR} den Namen von {OEFF}.
+
+Die Straßenbahn fährt bis zur Haltestelle „{OEFF}-Platz“.
+
+Kennt jemand das Lied von {OEFF}, das gerade überall läuft?
+
+Die Rechte am Foto liegen bei {OEINR}.
+
+Grundlage ist die Erhebung der {OEINR} von {JAHR}.
+
+Das Gutachten der {OEINR} empfiehlt kleinere Klassen.
