@@ -169,6 +169,9 @@ Zurzeit leer – neue Pakete kommen bei Bedarf aus den *Ideen*.
 Ohne Auftrag; Details der bisherigen Pakete stehen in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md) bzw. in der
 Git-Historie (Fassung vom 30.10.2026).
 
+- **Lokal-Modus** (09.11.2026, ausführlicher Plan unten): Lora auf Wunsch ganz auf dem Gerät – Betriebsarten *API*
+  (wie heute), *Lokal* und *Gemischt* (je Bereich wählbar), mit eigenen destillierten Fachmodellen (Mail-Modell,
+  Erkennungsmodell aus AP-67, Lora-Absichtsmodell).
 - **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
   nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
   Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
@@ -194,6 +197,153 @@ Git-Historie (Fassung vom 30.10.2026).
   Lernvideo, Feedback-Werkstatt, Prüfungsorganisation, Barrierefreiheits-Check für Lehrmaterial, Sitzungs-/
   Gremienassistent, zentrale Aufgaben und Fristen, Synopse-Werkzeug, Workflow-Baukasten, Schnellzugriff (Widget),
   Stift und Handschrift, Hausstil-Prüfung.
+
+### Idee: Lokal-Modus – alle Bereiche auf dem Gerät · XL (in Stufen, ohne Auftrag)
+Am 09.11.2026 als Idee aufgenommen (Wunsch des Hauptnutzers). Beim Aufnehmen bekommt der Plan AP-Nummern; Vorschlag:
+Stufe a als eigenes Paket (Grundlage für alles Weitere), b–d als zweites, e–g als drittes. AP-67 und das Mail-Modell
+laufen unabhängig davon weiter und sind die ersten Bausteine.
+
+**Ziel**: Die App lässt sich auf **„nur dieses Gerät“** umstellen. Jeder Bereich, der heute ein Modell nutzt – Lora,
+Chat, Postfach, Wissen, Sprache, Bilder –, läuft dann mit einem Modell auf dem PC bzw. Handy, auch ohne Netz, und keine
+Daten verlassen das Gerät. Wo kein fertiges offenes Modell reicht, kommen **eigene, destillierte Fachmodelle** zum
+Einsatz (wie das Erkennungsmodell aus AP-67 und das Mail-Modell, ein angepasstes BERT, das gerade trainiert wird). Die
+heutige Arbeitsweise mit Uni-Server und API bleibt Standard; dazu kommt ein **Mischmodus**, in dem man je Bereich
+festlegt, wo das Modell läuft.
+
+**Geht das?** Ja – die wichtigsten Bausteine sind schon da:
+- **Sperren und Weichen**: Datenschutzstufe *Nur auf diesem Gerät* je Projekt (`data/Privacy.kt`, `PrivacyLevel` in
+  `data/Library.kt`), die Weiche für lokale Modelle an einer Stelle in `net/LlmClient.kt` (Präfix `local/`), die feste
+  Sperre im Postfach (`agent/MailAccess.kt`, AP-68).
+- **Drei Laufzeiten auf dem Gerät**: llama.cpp (`LlamaHost`, Sprachmodelle als GGUF von 2B bis 35B A3B im
+  `LocalCatalog`), sherpa-onnx (Transkription, Diktat) und die ONNX Runtime (YuNet, Erkennungsmodell aus AP-67).
+- **Heute schon lokal**: Transkription und Diktat (Uni-Server nur ohne geladenes Modell), Vorlesen mit der Stimme des
+  Geräts, OCR unter Windows, Wissenssuche mit BM25 (auch ohne Embeddings), Pseudonymisierung, Postfach.
+- **Lücken**: Lora (GLM-5.3 Flash) und Übergaben (DeepSeek V4.1 Flash), Embeddings und Rerank für Wissen und *Frag diesen
+  Ordner*, Bildverständnis (die lokalen Modelle sehen keine Bilder; OCR auf Android läuft über das Bildmodell des
+  Servers), Bilderzeugung (FLUX), Vorlesen mit guter Stimme, Kleinaufgaben mit fest eingetragenem Server-Modell
+  (Chat-Titel, Gedächtnis lernen, Feldvorschläge, geplante Aufgaben).
+- **Grenzen, ehrlich gesagt**: Ein Dienst-PC ohne Grafikkarte schafft Modelle bis etwa 4B mit 8–16 k Kontext statt
+  1 Mio. Token. Lange Dokumente gehen lokal über die Wissenssuche statt am Stück, schwierige Analysen werden langsamer
+  und schwächer, Bilderzeugung geht nur mit Grafikkarte. Darum gibt es den Mischmodus und viele kleine Fachmodelle
+  statt eines großen Alleskönners.
+
+**Betriebsarten** (*Einstellungen › Modelle*, auch über Strg+K und Lora)
+
+| Betriebsart | Was passiert |
+| --- | --- |
+| **API** (Standard, wie heute) | Uni-Server und eingetragene Anbieter, lokale Modelle wählbar. Die festen Regeln bleiben: Postfach nur lokal (AP-68), Tresor, Datenschutzstufen der Projekte. Lora und Übergaben wie in den *Grundsätzen*. |
+| **Lokal** | Jeder Bereich nutzt ein Modell auf dem Gerät; kein KI-Aufruf verlässt das Gerät (Uni-Server und Anbieter gesperrt wie heute bei *Nur auf diesem Gerät*). Fehlt für einen Bereich das Modell, sagt er, welches Paket fehlt, und bietet es an – oder ist mit Begründung ausgegraut. |
+| **Gemischt** (benutzerdefiniert) | Je Bereich *Gerät*, *Uni-Server* oder *Anbieter*. Vorlagen wie „Vertrauliches lokal, Rest über die API“ oder „Lokal, Server nur für Bilder und lange Dokumente“. Auf Wunsch *Auf das Gerät ausweichen, wenn der Server nicht erreichbar ist*. |
+
+- Es gilt immer die **strengste** Regel: Projektstufe, Tresor und Postfach verschärfen eine Betriebsart, lockern sie
+  aber nie.
+- Von *Lokal* zurück zu *API* oder *Gemischt* geht es nur mit einem Klick der Person – Lora darf den Wechsel
+  vorschlagen, schaltet aber nicht selbst.
+- Ein Chip „Lokal“ bzw. „Gemischt“ in der Kopfzeile zeigt die Betriebsart (Modus-Konzept: eine Zeile, Datenhinweis
+  „Nichts verlässt das Gerät“, ✕ führt zu den Einstellungen).
+- Netzwerkwerkzeuge (Websuche, Web-Abrufe, GitHub, Literaturdatenbanken) sind im Lokal-Modus gesperrt wie bei *Nur auf
+  diesem Gerät*. Dienste ohne KI (Outlook, Nextcloud-Sync, Updater) laufen weiter (siehe *Offen*).
+
+**Stufen**
+- **a) Modellrollen statt fester Modelle** (Grundlage, ohne neues Modell): Jede Stelle, die ein Modell braucht, fragt
+  nach einer **Rolle** statt nach einem festen Namen. Neu ist `data/ModelRoles.kt` mit den Rollen *Chat*, *Lora*,
+  *Übergabe*, *Postfach*, *Kleinaufgaben* (Titel, Gedächtnis, Feldvorschläge, Kapitel), *Wissen* (Embedding, Rerank),
+  *Bilder verstehen* (inkl. OCR), *Bilder erzeugen*, *Spracherkennung*, *Vorlesen*, *Pseudonymisierung* und *Mail
+  einordnen*. `resolve(rolle, chat)` beachtet Betriebsart, Datenschutzstufe und Tresor.
+  - Was dorthin wandert (mit Migration): die festen Stellen `ModelCatalog.FAST_CHAT`/`DEFAULT_CHAT` in `LoraAgent`,
+    `MemoryLearner`, `ToolActions.model`, `MoreActions`, `MailAccess` und bei den geplanten Aufgaben in
+    `AppContainer`, außerdem die Felder `defaultModel`, `loraModel`, `loraHandoffModel`, `voiceModel`, `imageModel`,
+    `ttsModel` und `sttModel` in `SettingsStore`.
+  - `ModelRouter` (automatische Modellwahl) wählt im Lokal-Modus unter den installierten Modellen.
+  - **Sperre an einer Stelle**: `LlmClient` lässt im Lokal-Modus keinen Aufruf an einen Server durch (wie
+    `MailAccess.guard`).
+  - *Einstellungen › Modelle* zeigt die Rollen als Tabelle (Rolle → Modell, wo es läuft, Größe). Im API-Modus sieht
+    alles aus wie heute.
+- **b) Lokale Bausteine für die Lücken** (fertige offene Modelle; Lizenz MIT oder Apache-2.0, je Modell prüfen wie in
+  AP-67):
+  - *Wissen*: Embedding- und Rerank-Modell (klein, mehrsprachig) als ONNX auf der ONNX Runtime. Vorhandene Sammlungen
+    werden einmal lokal neu eingebettet (`KnowledgeDoc.embeddedWith` merkt sich das Modell schon heute).
+  - *Bilder verstehen*: ein Sprachmodell mit Bildteil in llama.cpp (Projektor-Datei `mmproj`), damit Bilder im Chat,
+    die KI in PDF und Folien und die OCR auf Android auch lokal gehen. Die Windows-OCR bleibt.
+  - *Vorlesen*: neuronale Stimmen über sherpa-onnx (kann auch Sprachausgabe), sonst wie heute die Stimme des Geräts.
+  - *Bilder erzeugen* (nur mit Grafikkarte): ein kleines offenes Bildmodell über eine weitere native Laufzeit (z. B.
+    stable-diffusion.cpp) als eigene Erweiterung. Ohne Grafikkarte ist es im Lokal-Modus mit Begründung ausgegraut.
+  - *Lange Dokumente*: Lokal laufen sie über die Wissenssuche statt als ganzer Text im Kontext, mit Hinweis.
+- **c) Lora lokal**: Lora antwortet und handelt mit einem lokalen Modell, das Werkzeuge aufrufen kann (Vorgabe je
+  Gerät wie im Postfach). Damit sie auch auf Dienst-PCs flott bleibt, arbeitet sie in zwei Stufen:
+  - Ein **Absichtsmodell** (kleiner Encoder, Millisekunden) erkennt Navigation, Einstellungen, Modi und einfache
+    Aktionen aus dem Register (AP-38) direkt.
+  - Das Sprachmodell kommt nur für Texte, Erklärungen und mehrstufige Aufträge dazu – mit kürzerem System-Prompt und
+    weniger Werkzeugen je Schritt (wie „Tempo“ in AP-68).
+  - Übergaben gehen im Lokal-Modus an einen lokalen Chat.
+- **d) Modellpakete**: Statt einzelner Dateien gibt es **Pakete je Gerät** als nachladbare Erweiterungen über den
+  Updater (AP-25), mit SHA-256-Prüfung wie heute. Passung und Speicherplatz prüft `LocalCatalog.fit` schon heute.
+
+  | Paket | Inhalt | Größe |
+  | --- | --- | --- |
+  | *Handy* | 2B-Modell und Fachmodelle | 2–3 GB |
+  | *Dienst-PC* | 4B-Modell mit Bildteil, Fachmodelle, Embedding, Stimme | 4–6 GB |
+  | *PC mit Grafikkarte* | 26B A4B bzw. 35B A3B mit Bildteil, Bilderzeugung | 20–30 GB |
+
+  Dienst-PCs mit gesperrtem Download lassen sich **ohne Internet** aus einer Paketdatei einrichten (USB-Stick,
+  Netzlaufwerk).
+- **e) Werkbank für eigene Modelle** (`tools/models/`, Python, nur auf dem Trainings-PC; verallgemeinert `tools/pii/`
+  aus AP-67): Jedes Fachmodell geht denselben Weg.
+  1. **Messkorpus zuerst**, mit einem Prüfteil, der nie ins Training geht.
+  2. **Erfundene Trainingsdaten**, die ein Lehrer-Modell schreibt und beschriftet (Uni-Server oder lokal auf der
+     RTX 5080). **Nie echte Mails, Interviews oder Abgaben.** Als Lehrer nur Modelle, deren Bedingungen das Training
+     mit ihren Ausgaben erlauben (offene Gewichte unter MIT oder Apache-2.0).
+  3. Training bzw. Destillation.
+  4. Export: ONNX int8 für Encoder, GGUF für Sprachmodelle.
+  5. **Modellkarte** (Basismodell, Lizenz, Daten, Kennzahlen, Grenzen) und Test mit Schwellen in der App.
+
+  Dazu eine gemeinsame Kotlin-Schicht für Encoder (`data/EncoderModel.kt`: Tokenizer, Fenster, Ausgabe als Klassen oder
+  Fundstellen); `data/PiiModel.kt` aus AP-67 nutzt sie als erstes.
+- **f) Fachmodelle** (Reihenfolge nach täglichem Nutzen):
+  1. *Erkennungsmodell für die Pseudonymisierung* – AP-67 (läuft).
+  2. *Mail-Modell* (angepasstes BERT, wird gerade trainiert): ordnet Mails Ordnern zu (Lehre, Forschung, Verwaltung und
+     eigene) und erkennt „braucht Antwort“, Fristen und Termine. In `MailSorter` entscheidet es sichere Fälle in
+     Millisekunden; das lokale Sprachmodell übernimmt nur die unsicheren und die Begründung. So dauern 500 Mails
+     Sekunden statt Minuten. Eigene Ordner lernt es aus den Korrekturen der Person (AP-69 d, nur nach Rückfrage) über
+     einen kleinen Kopf, der auf dem Gerät nachtrainiert wird; die Mails verlassen das Gerät nie.
+  3. *Lora-Absichtsmodell* (für c): Die Trainingsdaten kommen aus dem Aktionsregister und der `AppMap` – je Aktion
+     erfundene Wünsche auf Deutsch und Englisch.
+  4. *Lora-Destillat*: ein Sprachmodell (2–4B), mit Adaptern feingetunt. Es lernt aus erfundenen Aufträgen, die
+     GLM-5.3 Flash als Lehrer mit den echten Werkzeugen der App löst, Werkzeugaufrufe und den Ton von Lora. Ausgabe als
+     GGUF für llama.cpp. Die Technik heißt „LoRA“ – im Code und in Texten **„Adapter“** sagen, damit sie nicht mit Lora
+     verwechselt wird.
+  5. *Kleinaufgaben* (Titel, kurze Zusammenfassungen, Feldvorschläge): erst prüfen, ob das Lora-Destillat dafür reicht.
+- **g) Prüfstand und Tests**:
+  - Je Rolle ein Messkorpus, auf dem lokal gegen API gemessen wird: Lora (richtige Aktion), Mail (richtiger Ordner),
+    Wissen (Treffer unter den ersten fünf), Spracherkennung (Wortfehlerrate), dazu die Laufzeit auf einem Dienst-PC ohne
+    Grafikkarte.
+  - Die Ergebnisse stehen in der Modellkarte und kurz bei der Rolle in den Einstellungen („lokal etwa so gut wie der
+    Server“ bzw. „deutlich schwächer bei …“).
+  - Test `LocalModeTest`: Im Lokal-Modus geht kein Aufruf an einen Server; jede Rolle liefert ein lokales Modell oder
+    „nicht verfügbar“; Mischmodus und Projektstufen verschärfen nur; die App startet und arbeitet ohne Netz.
+
+**Fertig, wenn**:
+- Mit Betriebsart *Lokal* und dem Paket *Dienst-PC* laufen auf einem Dienst-PC ohne Grafikkarte ohne Netz: Chat, Lora
+  (Navigation und Aktionen), Postfach mit Einordnen, Wissen und *Frag diesen Ordner*, Transkription, Diktat, Vorlesen
+  und Pseudonymisierung.
+- Lora erkennt Navigationswünsche in unter 100 ms.
+- Nichts verlässt das Gerät (Test).
+- *API* verhält sich wie heute, und im Mischmodus lässt sich jeder Bereich einzeln zuordnen.
+
+**Offen**:
+1. Sperrt *Lokal* auch Websuche, Literaturdatenbanken und GitHub (wie *Nur auf diesem Gerät*), oder bleiben sie mit
+   Hinweis erlaubt? Braucht es zusätzlich *Ganz offline* (auch ohne Outlook-Server, Sync und Updater)?
+2. Welches Modell ist die Vorgabe je Gerät? Messung wie bei Offener Frage 10.
+3. Werden die Fachmodelle fest mitgeliefert oder als Paket geladen (wie Offene Frage 9)?
+4. Darf das Mail-Modell auf dem Gerät aus echten Korrekturen nachlernen (nur der kleine Kopf, die Daten bleiben
+   lokal)? Und passt das zum Grundsatz „nie echte Mails im Training“?
+5. Android: nur das Paket *Handy* mit 2B-Modell und Fachmodellen, oder kommt der Lokal-Modus dort erst später?
+
+**Betrifft**: neu `data/ModelRoles.kt`, `data/EncoderModel.kt` und `tools/models/`; außerdem `data/Privacy.kt`,
+`data/Library.kt` (`PrivacyLevel`), `data/SettingsStore.kt` (Migration der Modellfelder), `net/LlmClient.kt` (Sperre),
+`agent/LoraAgent.kt`, `agent/ModelRouter.kt`, `agent/MailSorter.kt`, `agent/MemoryLearner.kt`, `agent/ToolActions.kt`,
+`data/Knowledge.kt`, `audio/Speaker.kt`, `local/LocalCatalog.kt`, `local/LlamaHost.kt`, `ui/SettingsScreen.kt`,
+`ui/LocalModelsScreen.kt`, Updater (Pakete) und `en.tsv`.
 
 ---
 
