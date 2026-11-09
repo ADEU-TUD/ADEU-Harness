@@ -13,6 +13,7 @@ import androidx.compose.ui.test.SkikoComposeUiTest
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -246,7 +247,7 @@ class VideoReviewTest {
         // Playhead into the clip, then a lower third there (selected, its fields in the panel).
         repeat(12) { onRoot().performKeyInput { pressKey(Key.DirectionRight) } }
         settle(2)
-        onNodeWithText("Titel & Bauchbinde").performClick()
+        onNodeWithContentDescription("Titel & Bauchbinde").performClick()
         settle(2)
         onAllNodesWithText("Bauchbinde")[0].performClick()
         settle(4)

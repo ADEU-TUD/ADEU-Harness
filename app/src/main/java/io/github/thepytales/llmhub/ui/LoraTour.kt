@@ -26,6 +26,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -81,12 +94,13 @@ object LoraTours {
                 TourStep("scan.save", trLater("„Als PDF speichern“ legt alle Seiten mit Texterkennung in Dateien › Scans ab – durchsuchbar und per Sync auch auf den anderen Geräten.")),
             ),
         ),
+        // The editor opens with the latest project for its steps (AP-70); the card stays beside each place.
         LoraTour(
             "video", "video", trLater("Videoeditor"), android = false, steps = listOf(
                 TourStep("video.new", trLater("Ein neues Projekt beginnt mit einer Aufnahme oder einem Screencast.")),
-                TourStep("video.titles", trLater("Titel und Bauchbinden im TUD-Design setzt du hier.")),
-                TourStep("video.subtitles", trLater("Untertitel kommen aus der Transkription oder einer SRT-Datei.")),
-                TourStep("video.roughcut", trLater("Der Rohschnitt schneidet Pausen und Füllwörter heraus – oder ich kürze mit dir.")),
+                TourStep("video.tools", trLater("Über der Zeitleiste liegen die Werkzeuge: Auswahl (A), Klinge (B), Trimmen (T) und der Magnet – die Taste steht im Tooltip.")),
+                TourStep("video.titles", trLater("Daneben setzt du Titel und Bauchbinden im TUD-Design, Untertitel aus der Transkription und den Rohschnitt.")),
+                TourStep("video.layout", trLater("Die Anordnung passt du an: Ränder ziehen, Medienpool und Eigenschaften einklappen – hier setzt du sie zurück.")),
                 TourStep("video.export", trLater("Zum Schluss exportierst du als MP4 für OPAL oder YouTube.")),
                 TourStep(null, trLater("Du kannst mir auch sagen: „Mach Untertitel und exportiere für OPAL“.")),
             ),
@@ -166,8 +180,37 @@ object LoraTours {
 }
 
 /**
+ * Where the card of a tour step goes (AP-70): beside its place, so it never covers it – above or below, whichever side
+ * has more room, then right or left; [target] and the result in the coordinates of [area]. Without a place, or with
+ * no room around it, at the bottom in the middle ([bottom] above the edge), or at the top when that would cover it.
+ */
+fun tourCardPosition(target: Rect?, card: IntSize, area: IntSize, margin: Float, gap: Float, bottom: Float): IntOffset {
+    val w = card.width.toFloat()
+    val h = card.height.toFloat()
+    fun x(cx: Float) = (cx - w / 2).coerceIn(margin, maxOf(margin, area.width - w - margin))
+    fun y(cy: Float) = (cy - h / 2).coerceIn(margin, maxOf(margin, area.height - h - margin))
+    val home = IntOffset(x(area.width / 2f).toInt(), (area.height - h - bottom).coerceAtLeast(margin).toInt())
+    if (target == null || target.isEmpty) return home
+    val below = target.bottom + gap
+    val above = target.top - gap - h
+    val roomBelow = area.height - margin - below - h
+    val roomAbove = above - margin
+    val vertical = listOf(roomBelow to below, roomAbove to above).sortedByDescending { it.first }
+    for ((room, top) in vertical) if (room >= 0f) return IntOffset(x(target.center.x).toInt(), top.toInt())
+    val right = target.right + gap
+    val left = target.left - gap - w
+    val roomRight = area.width - margin - right - w
+    val roomLeft = left - margin
+    val sides = listOf(roomRight to right, roomLeft to left).sortedByDescending { it.first }
+    for ((room, start) in sides) if (room >= 0f) return IntOffset(start.toInt(), y(target.center.y).toInt())
+    val homeRect = Rect(home.x.toFloat(), home.y.toFloat(), home.x + w, home.y + h)
+    return if (homeRect.overlaps(target)) IntOffset(home.x, margin.toInt()) else home
+}
+
+/**
  * The tour layer over the app (AP-41): the offer on the first visit of a tool and the card of the running tour
- * (step x of y, text, Zurück · Überspringen · Weiter). Lora flies to each place only when movements are allowed.
+ * (step x of y, text, Zurück · Überspringen · Weiter). Lora flies to each place only when movements are allowed. The
+ * card of a step sits beside its place, never over it (AP-70: in the video editor it covered the clips).
  */
 @Composable
 fun BoxScope.LoraTourLayer(c: AppContainer) {
@@ -186,18 +229,51 @@ fun BoxScope.LoraTourLayer(c: AppContainer) {
         if (spot != null && !LoraMotion.calm) LoraFlight.start(LoraFlight.Landing.PLACE, spot)
     }
     val visible = offer != null || active != null
-    AnimatedVisibility(
-        visible,
-        enter = slideInVertically(tween(260)) { it / 2 } + fadeIn(tween(200)),
-        exit = slideOutVertically(tween(200)) { it / 2 } + fadeOut(tween(160)),
-        modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
-    ) {
+    // Where the step's place is (Spot keeps it in root coordinates), read again while the step shows: panels move.
+    val spot = active?.let { (t, i) -> t.steps.getOrNull(i)?.spot }
+    var target by remember { mutableStateOf<Rect?>(null) }
+    LaunchedEffect(spot) {
+        target = null
+        if (spot == null) return@LaunchedEffect
+        while (true) {
+            target = Spotlight.bounds[spot]
+            delay(250)
+        }
+    }
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    val density = LocalDensity.current
+    Layout(
+        content = {
+            AnimatedVisibility(
+                visible,
+                enter = slideInVertically(tween(260)) { it / 4 } + fadeIn(tween(200)),
+                exit = slideOutVertically(tween(200)) { it / 4 } + fadeOut(tween(160)),
+            ) {
+                TourCard(c, offer, active)
+            }
+        },
+        modifier = Modifier.matchParentSize().navigationBarsPadding().onGloballyPositioned { origin = it.positionInRoot() },
+    ) { measurables, constraints ->
+        val margin = with(density) { 16.dp.toPx() }
+        val maxCard = minOf(with(density) { 520.dp.toPx() }, constraints.maxWidth - 2 * margin).toInt().coerceAtLeast(0)
+        val area = IntSize(constraints.maxWidth, constraints.maxHeight)
+        // Nothing to show: AnimatedVisibility leaves no child.
+        val placeable = measurables.firstOrNull()?.measure(Constraints(maxWidth = maxCard, maxHeight = constraints.maxHeight))
+            ?: return@Layout layout(area.width, area.height) {}
+        val at = tourCardPosition(target?.translate(-origin), IntSize(placeable.width, placeable.height), area, margin, with(density) { 12.dp.toPx() }, with(density) { 24.dp.toPx() })
+        layout(area.width, area.height) { placeable.place(at) }
+    }
+}
+
+/** The card itself: the offer, or step x of y with Zurück · Überspringen · Weiter. */
+@Composable
+private fun TourCard(c: AppContainer, offer: LoraTour?, active: Pair<LoraTour, Int>?) {
         Surface(
             shape = RoundedCornerShape(20.dp),
             tonalElevation = 3.dp,
             shadowElevation = 10.dp,
             color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth(),
+            modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth().testTag("lora.tour.card"),
         ) {
             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
                 LoraFaceStill(Modifier.size(36.dp), action = LoraAction.POINT)
@@ -228,5 +304,4 @@ fun BoxScope.LoraTourLayer(c: AppContainer) {
                 }
             }
         }
-    }
 }

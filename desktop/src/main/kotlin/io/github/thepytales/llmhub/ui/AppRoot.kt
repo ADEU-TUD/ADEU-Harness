@@ -123,6 +123,13 @@ object Navigation {
     val openChat = MutableStateFlow<String?>(null)
     /** "chat" (new chat), "drawer", "back" or a route such as "settings". */
     val openRoute = MutableStateFlow<String?>(null)
+
+    /**
+     * A screen that needs the whole width (the video editor, AP-70) folds the side menu in while it is open; [wideMenu]
+     * is whether the menu button (or Strg+B) shows it there anyway. The screen sets both.
+     */
+    val wide = MutableStateFlow(false)
+    val wideMenu = MutableStateFlow(false)
 }
 
 @Composable
@@ -152,8 +159,12 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
 
     fun closeDrawer() = scope.launch { drawer.close() }
     fun openDrawer() {
-        if (layout.wide) sidebar = !sidebar else scope.launch { drawer.open() }
+        if (!layout.wide) scope.launch { drawer.open() }
+        else if (Navigation.wide.value) Navigation.wideMenu.value = !Navigation.wideMenu.value
+        else sidebar = !sidebar
     }
+    val wideScreen by Navigation.wide.collectAsStateWithLifecycle()
+    val wideMenu by Navigation.wideMenu.collectAsStateWithLifecycle()
 
     var palette by remember { mutableStateOf(false) }
     var shortcuts by remember { mutableStateOf(false) }
@@ -312,7 +323,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         SideEffect { widths.fitTo(windowWidth) }
         if (wide) {
             Row(Modifier.fillMaxSize()) {
-                AnimatedVisibility(sidebar, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                AnimatedVisibility(if (wideScreen) wideMenu else sidebar, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                     Row(Modifier.fillMaxHeight()) {
                         menu()
                         // The line beside the side menu: drag for wider or narrower (240–520 dp), double-click resets.

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MusicNote
@@ -33,7 +35,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -188,8 +189,8 @@ private fun PoolRow(h: History, item: PoolItem, open: Boolean, drag: PoolDrag, o
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun FrameEditor(frame: Frame, key: String, onChange: (String, Frame) -> Unit) {
-    Text(tr("Position und Größe"), style = MaterialTheme.typography.labelLarge)
+internal fun FrameEditor(frame: Frame, key: String, heading: Boolean = true, onChange: (String, Frame) -> Unit) {
+    if (heading) Text(tr("Position und Größe"), style = MaterialTheme.typography.labelLarge)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Frame.CORNERS.forEach { (k, l) ->
             val target = Frame.corner(k, if (k == "voll") 1f else if (frame.scale < 0.95f) frame.scale else 0.3f).copy(opacity = frame.opacity, cropL = frame.cropL, cropR = frame.cropR, cropT = frame.cropT, cropB = frame.cropB)
@@ -213,29 +214,45 @@ internal fun FrameEditor(frame: Frame, key: String, onChange: (String, Frame) ->
     if (frame != Frame() && frame != Frame.corner("unten-rechts")) TextButton(onClick = { onChange("$key-reset", Frame()) }) { Text(tr("Ganzes Bild")) }
 }
 
-/** Properties of a picture on V2 … (AP-52). */
+/** Properties of a picture on V2 … (AP-52): time, place in the picture, sound – each a section (AP-70). */
 @Composable
 internal fun LayerProperties(h: History, id: String, pos: Double, onDelete: () -> Unit, onGone: () -> Unit) {
     val l = h.project.layers.firstOrNull { it.id == id } ?: run { onGone(); return }
     val srcLen = sourceLength(l.path)
     fun change(key: String, f: (io.github.thepytales.llmhub.video.LayerClip) -> io.github.thepytales.llmhub.video.LayerClip) =
         h.edit(key) { pp -> pp.copy(layers = pp.layers.map { if (it.id == l.id) f(it) else it }) }
-    Text(tr("Bild-in-Bild auf V{0}", l.track) + ": " + l.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        SecondsField(tr("Beginn (s)"), l.startSec, "lst-${l.id}", Modifier.weight(1f)) { v -> change("lst-${l.id}") { it.copy(startSec = v.coerceAtLeast(0.0)) } }
-        SecondsField(tr("Länge (s)"), l.length, "lln-${l.id}", Modifier.weight(1f)) { v -> change("lln-${l.id}") { it.copy(outSec = (it.inSec + v.coerceAtLeast(0.2)).let { o -> srcLen?.let { m -> minOf(o, maxOf(m, it.inSec + 0.2)) } ?: o }) } }
+    PropTitle(tr("Bild-in-Bild auf V{0}", l.track) + ": " + l.name) {
+        TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
     }
-    SecondsField(tr("Anfang in der Datei (s)"), l.inSec, "lin-${l.id}") { v -> change("lin-${l.id}") { it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) } }
-    OutlinedButton(onClick = { change("lpos-${l.id}") { it.copy(startSec = pos) } }) { Text(tr("An den Abspielkopf")) }
-    FrameEditor(l.frame, "lf-${l.id}") { k, f -> change(k) { it.copy(frame = f) } }
-    SecondsField(tr("Ein- und Ausblenden (s)"), l.fadeSec, "lfd-${l.id}") { v -> change("lfd-${l.id}") { it.copy(fadeSec = v.coerceIn(0.0, 5.0)) } }
-    Text(tr("Lautstärke") + " ${(l.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
-    Slider(value = l.volume, onValueChange = { v -> change("lvol-${l.id}") { it.copy(volume = v) } }, valueRange = 0f..2f)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(tr("Ton aus"), modifier = Modifier.weight(1f))
-        Switch(l.muted, { m -> change("lm-${l.id}") { it.copy(muted = m) } })
+    PropSection("layer.time", tr("Zeit"), summary = clock(l.length, true)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            SecondsField(tr("Beginn (s)"), l.startSec, "lst-${l.id}", Modifier.weight(1f)) { v -> change("lst-${l.id}") { it.copy(startSec = v.coerceAtLeast(0.0)) } }
+            SecondsField(tr("Länge (s)"), l.length, "lln-${l.id}", Modifier.weight(1f)) { v -> change("lln-${l.id}") { it.copy(outSec = (it.inSec + v.coerceAtLeast(0.2)).let { o -> srcLen?.let { m -> minOf(o, maxOf(m, it.inSec + 0.2)) } ?: o }) } }
+        }
+        SecondsField(tr("Anfang in der Datei (s)"), l.inSec, "lin-${l.id}") { v -> change("lin-${l.id}") { it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) } }
+        SecondsField(tr("Ein- und Ausblenden (s)"), l.fadeSec, "lfd-${l.id}") { v -> change("lfd-${l.id}") { it.copy(fadeSec = v.coerceIn(0.0, 5.0)) } }
+        OutlinedButton(onClick = { change("lpos-${l.id}") { it.copy(startSec = pos) } }) { Text(tr("An den Abspielkopf"), maxLines = 1) }
     }
-    OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
+    PropSection("layer.frame", tr("Position und Größe")) {
+        FrameEditor(l.frame, "lf-${l.id}", heading = false) { k, f -> change(k) { it.copy(frame = f) } }
+    }
+    PropSection("layer.sound", tr("Ton"), defaultOpen = false, summary = if (l.muted) tr("aus") else "${(l.volume * 100).toInt()} %") {
+        Text(tr("Lautstärke") + " ${(l.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
+        Slider(value = l.volume, onValueChange = { v -> change("lvol-${l.id}") { it.copy(volume = v) } }, valueRange = 0f..2f)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(tr("Ton aus"), modifier = Modifier.weight(1f))
+            Switch(l.muted, { m -> change("lm-${l.id}") { it.copy(muted = m) } })
+        }
+    }
+}
+
+/** The head of the properties of one element: its name and the actions on it as symbols (AP-70). */
+@Composable
+internal fun PropTitle(title: String, actions: @Composable RowScope.() -> Unit = {}) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        actions()
+    }
 }
 
 /** Properties of a marker (AP-53). */
@@ -244,7 +261,9 @@ internal fun MarkerProperties(h: History, id: String, onSeek: (Double) -> Unit, 
     val m = h.project.markers.firstOrNull { it.id == id } ?: run { onGone(); return }
     fun change(key: String?, f: (io.github.thepytales.llmhub.video.Marker) -> io.github.thepytales.llmhub.video.Marker) =
         h.edit(key) { pp -> pp.copy(markers = pp.markers.map { if (it.id == m.id) f(it) else it }.sortedBy { it.sec }) }
-    Text(tr("Marker bei {0}", clock(m.sec, true)), style = MaterialTheme.typography.titleSmall)
+    PropTitle(tr("Marker bei {0}", clock(m.sec, true))) {
+        TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
+    }
     OutlinedTextField(m.note, { t -> change("mn-${m.id}") { it.copy(note = t) } }, label = { Text(tr("Notiz")) }, modifier = Modifier.fillMaxWidth().typing(), maxLines = 4)
     SecondsField(tr("Zeit (s)"), m.sec, "ms-${m.id}") { v -> change("ms-${m.id}") { it.copy(sec = v.coerceAtLeast(0.0)) } }
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -254,10 +273,7 @@ internal fun MarkerProperties(h: History, id: String, onSeek: (Double) -> Unit, 
         }
         Switch(m.chapter, { v -> change(null) { it.copy(chapter = v) } })
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { onSeek(m.sec) }) { Text(tr("Hinspringen")) }
-        OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
-    }
+    OutlinedButton(onClick = { onSeek(m.sec) }) { Text(tr("Hinspringen"), maxLines = 1) }
 }
 
 /** The keys of the video editor, close to DaVinci Resolve (AP-53). */
@@ -273,13 +289,17 @@ internal val VIDEO_SHORTCUTS: List<Pair<String, String>> = listOf(
     trLater("F9 · F10") to trLater("Aus der Quelle einfügen · überschreiben"),
     trLater("F12") to trLater("Aus der Quelle als Bild-in-Bild"),
     trLater("A · B · T") to trLater("Auswahl · Klinge · Trimmen"),
-    trLater("S · Strg+B") to trLater("Am Abspielkopf teilen"),
+    trLater("S") to trLater("Am Abspielkopf teilen"),
     trLater("N") to trLater("Magnet ein/aus"),
     trLater("M") to trLater("Marker setzen"),
     trLater("Entf") to trLater("Löschen (mit Magnet: Lücke schließen)"),
     trLater("Umschalt+Entf") to trLater("Löschen und Lücke immer schließen"),
     trLater("Strg+Alt+L") to trLater("Bild und Ton verknüpfen / lösen"),
     trLater("Strg+Z · Strg+Y") to trLater("Rückgängig · Wiederholen"),
+    trLater("Alt+F") to trLater("Vorschau groß (Medienpool und Eigenschaften treten zur Seite)"),
+    trLater("Strg+F · Esc") to trLater("Vorschau im Vollbild · Vollbild beenden"),
+    trLater("Strg+B") to trLater("Seitenleiste der App zeigen oder ausblenden"),
+    trLater("Umschalt+Mausrad") to trLater("Spuren auf und ab (auch das Mausrad über den Spurköpfen)"),
     trLater("?") to trLater("Diese Übersicht"),
 )
 

@@ -34,10 +34,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
+import androidx.compose.material.icons.automirrored.outlined.Input
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.CloseFullscreen
+import androidx.compose.material.icons.outlined.Fullscreen
+import androidx.compose.material.icons.outlined.FullscreenExit
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.OpenInFull
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.SpaceDashboard
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.UnfoldLess
+import androidx.compose.material.icons.outlined.UnfoldMore
+import androidx.compose.material.icons.outlined.VerticalAlignBottom
+import androidx.compose.material.icons.outlined.VideoLibrary
+import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.FastRewind
@@ -63,7 +80,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,6 +97,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -112,6 +129,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -181,6 +200,11 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
         return
     }
     val projects by VideoHub.store.items.collectAsStateWithLifecycle()
+    // Lora leads to a place of the editor (a tour step, „Wo setze ich Untertitel?“): the latest project opens (AP-70).
+    val spot by Spotlight.target.collectAsStateWithLifecycle()
+    LaunchedEffect(spot, projects.isEmpty()) {
+        if (spot in EDITOR_SPOTS && open == null) projects.maxByOrNull { it.updatedAt }?.let { open = it.id }
+    }
     val scope = rememberCoroutineScope()
     var recordDialog by remember { mutableStateOf(false) }
     if (recordDialog) ScreenRecordDialog(c, onDismiss = { recordDialog = false })
@@ -228,6 +252,9 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
         }
     }
 }
+
+/** Places of the map that are in the editor, not in the list of projects. */
+private val EDITOR_SPOTS = setOf("video.titles", "video.subtitles", "video.roughcut", "video.pip", "video.export", "video.transcript", "video.layout", "video.tools")
 
 /** A new project of [files]: every file a clip at full length; size from the first video (at most Full HD). */
 internal fun projectFrom(files: List<File>): VideoProject? {
@@ -349,8 +376,11 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     var loop by remember { mutableStateOf(false) }
     var keys by remember { mutableStateOf(false) }
     val drag = remember { PoolDrag() }
+    // The arrangement (AP-70): widths, heights, folded panels and tracks, remembered for the next start.
+    val layout = remember { VideoLayout.of(c.appContext.getSharedPreferences("ui_state", 0)) }
+    val view = remember(id) { TimelineState() }
     // Left panel: media pool or the transcript (textbasierter Schnitt, AP-55).
-    var leftTab by remember { mutableStateOf("media") }
+    var leftTab by layout::leftTab
     val textCut = remember(id) { TextCutState() }
     var assignTranscript by remember { mutableStateOf(false) }
     val sourceItem = p.media.firstOrNull { it.id == sourceId }
@@ -475,8 +505,31 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         val s = p.starts()
         return (s + p.clips.indices.map { s[it] + p.clips[it].length } + p.layers.flatMap { listOf(it.startSec, it.endSec) } + p.markers.map { it.sec }).distinct().sorted()
     }
-    androidx.compose.runtime.CompositionLocalProvider(LocalTyping provides typing) {
-    Column(
+    // The app's side menu folds in while the editor is open; the menu button (or Strg+B) brings it back (AP-70).
+    DisposableEffect(Unit) {
+        Navigation.wideMenu.value = layout.menu
+        Navigation.wide.value = true
+        onDispose { Navigation.wide.value = false }
+    }
+    val menuShown by Navigation.wideMenu.collectAsStateWithLifecycle()
+    LaunchedEffect(menuShown) { layout.menu = menuShown }
+    // Lora leads to a place behind the full-screen preview or in a folded panel: it comes back first.
+    val spot by Spotlight.target.collectAsStateWithLifecycle()
+    LaunchedEffect(spot) {
+        if (spot?.startsWith("video.") == true) layout.full = false
+        if (spot == "video.transcript") { leftTab = "text"; if (!layout.poolOpen || layout.bigPreview) layout.togglePool(false) }
+    }
+    fun refocus() { runCatching { focus.requestFocus() } }
+    fun addMarker() { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid) }
+    val timelineTransport: @Composable (Boolean) -> Unit = { dark ->
+        TimelineTransport(p, player, pos, playing, speed, loop, onLoop = { loop = !loop }, loopRange = ::loopRange, dark = dark)
+    }
+    val sourceTransport: @Composable (Boolean) -> Unit = { dark ->
+        val item = sourceItem!!
+        SourceTransport(sourceProject!!, item, source, srcPos, srcPlaying, dark, onUse = { how -> use(item, how) })
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalTyping provides typing, LocalVideoLayout provides layout) {
+    BoxWithConstraints(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).focusRequester(focus).focusable().onPreviewKeyEvent { ev ->
             if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
             // In a text field S, Leertaste, Entf and the arrows are typing: before, they also split the clip, started
@@ -487,6 +540,10 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             val at = pl.position.value
             when {
                 ev.utf16CodePoint == '?'.code || ev.key == Key.F1 -> { keys = true; true }
+                // Vollbild (Strg+F, Esc ends it) and „Vorschau groß“ (Alt+F) as in Resolve (AP-70).
+                ev.key == Key.Escape && layout.full -> { layout.full = false; true }
+                ev.isCmd && ev.key == Key.F -> { layout.full = !layout.full; true }
+                ev.isAltPressed && ev.key == Key.F -> { layout.bigPreview = !layout.bigPreview; true }
                 ev.isCmd && ev.isAltPressed && ev.key == Key.L -> { toggleLink(); true }
                 ev.isCmd && ev.key == Key.Z -> { h.undo(); true }
                 ev.isCmd && ev.key == Key.Y -> { h.redo(); true }
@@ -535,88 +592,115 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             }
         },
     ) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = tr("Zurück")) }
-            var title by remember(id) { mutableStateOf(p.title) }
-            OutlinedTextField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, singleLine = true, modifier = Modifier.width(280.dp).typing(), textStyle = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.size(8.dp))
-            Text(tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-            CutTool.entries.forEach { t ->
-                FilterChip(selected = tool == t, onClick = { tool = t; runCatching { focus.requestFocus() } }, label = { Text(tr(t.label) + " (" + t.key + ")") }, modifier = Modifier.padding(end = 4.dp))
+        if (layout.full) {
+            // Vollbild: only the picture and the transport; Esc or the button ends it.
+            Box(Modifier.fillMaxSize().background(Color.Black)) {
+                Column(Modifier.fillMaxSize()) {
+                    if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.weight(1f).fillMaxWidth())
+                    else Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
+                    if (showSource) sourceTransport(true) else timelineTransport(true)
+                }
+                TipIconButton(Icons.Outlined.FullscreenExit, tr("Vollbild beenden") + " (Esc)", { layout.full = false; refocus() }, tint = Color.White, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
             }
-            FilterChip(selected = p.magnet, onClick = { h.edit { it.copy(magnet = !it.magnet) } }, label = { Text(tr("Magnet") + " (N)") })
-            IconButton(onClick = { keys = true }) { Icon(Icons.Outlined.Keyboard, contentDescription = tr("Tastenkürzel") + " (?)") }
-            IconButton(onClick = h::undo, enabled = h.canUndo) { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = tr("Rückgängig")) }
-            IconButton(onClick = h::redo, enabled = h.canRedo) { Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = tr("Wiederholen")) }
-            Spacer(Modifier.size(8.dp))
-            ExportQueueChip()
-            Spot("video.export") { Button(onClick = { player.stop(); export = true }, enabled = p.clips.isNotEmpty()) { Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Exportieren")) } }
+            return@BoxWithConstraints
         }
-        HorizontalDivider()
-        Row(Modifier.weight(1f).fillMaxWidth()) {
-            Column(Modifier.width(if (leftTab == "text") 380.dp else 250.dp).fillMaxHeight()) {
-                Row(Modifier.padding(start = 8.dp, top = 6.dp, end = 8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilterChip(selected = leftTab == "media", onClick = { leftTab = "media"; runCatching { focus.requestFocus() } }, label = { Text(tr("Medien")) })
-                    Spot("video.transcript") { FilterChip(selected = leftTab == "text", onClick = { leftTab = "text"; runCatching { focus.requestFocus() } }, label = { Text(tr("Transkript")) }) }
-                }
-                if (leftTab == "text") TranscriptCutPanel(c, h, player, pos, textCut, onAssign = { assignTranscript = true }, modifier = Modifier.weight(1f).fillMaxWidth())
-                else MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); runCatching { focus.requestFocus() } }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.weight(1f).fillMaxWidth())
-            }
-            VerticalDivider()
-            Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(selected = showSource, enabled = sourceProject != null, onClick = { sourceView = true; player.stop() }, label = { Text(tr("Quelle") + (sourceItem?.let { ": " + it.name } ?: "")) })
-                    FilterChip(selected = !showSource, onClick = { sourceView = false; source.stop() }, label = { Text(tr("Zeitleiste")) })
-                    HintText(tr("Q wechselt"))
-                }
-                if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.weight(1f).fillMaxWidth())
-                else Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
-                if (showSource) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    IconButton(onClick = { source.toggle(sourceProject!!) }) { Icon(if (srcPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (srcPlaying) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
-                    Text("${clock(srcPos, true)} / ${clock(sourceProject!!.duration, true)}", style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.size(8.dp))
-                    val item = sourceItem!!
-                    Text(tr("In {0} · Out {1}", clock(item.inSec ?: 0.0, true), clock(item.outSec ?: sourceProject!!.duration, true)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.weight(1f))
-                    OutlinedButton(onClick = { use(item, PoolUse.INSERT) }) { Text(tr("Einfügen") + " (F9)") }
-                    Spacer(Modifier.size(4.dp))
-                    OutlinedButton(onClick = { use(item, PoolUse.OVERWRITE) }) { Text(tr("Überschreiben") + " (F10)") }
-                    Spacer(Modifier.size(4.dp))
-                    OutlinedButton(onClick = { use(item, PoolUse.PIP) }) { Text(tr("Bild-in-Bild") + " (F12)") }
-                } else Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    IconButton(onClick = { player.seek(p, 0.0) }) { Icon(Icons.Outlined.SkipPrevious, contentDescription = tr("Zum Anfang")) }
-                    IconButton(onClick = { player.backward(p) }) { Icon(Icons.Outlined.FastRewind, contentDescription = tr("Rückwärts") + " (J)") }
-                    IconButton(onClick = { player.toggle(p, loopRange()) }) { Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, contentDescription = tr(if (playing) "Pause" else "Abspielen") + tr(" (Leertaste)")) }
-                    IconButton(onClick = { player.forward(p, loopRange()) }) { Icon(Icons.Outlined.FastForward, contentDescription = tr("Vorwärts") + " (L)") }
-                    IconButton(onClick = { player.seek(p, p.duration) }) { Icon(Icons.Outlined.SkipNext, contentDescription = tr("Zum Ende")) }
-                    Text("${clock(pos, true)} / ${clock(p.duration, true)}", style = MaterialTheme.typography.labelLarge)
-                    if (playing && speed != 1.0 && speed != 0.0) Text("  " + (if (speed < 0) "◀ " else "▶ ") + "${kotlin.math.abs(speed).toInt()}×", style = MaterialTheme.typography.labelLarge, color = LocalChatLook.current.brand)
-                    Spacer(Modifier.size(8.dp))
-                    FilterChip(selected = loop, onClick = { loop = !loop }, label = { Text(tr("Schleife")) }, leadingIcon = { Icon(Icons.Outlined.Repeat, null, Modifier.size(16.dp)) })
-                    if (p.markIn != null || p.markOut != null) Text("  " + tr("In {0} · Out {1}", clock(p.markIn ?: 0.0, true), clock(p.markOut ?: p.duration, true)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.weight(1f))
-                    OutlinedButton(onClick = { val (q, mid) = VideoEdit.addMarker(p, pos); h.edit { q }; sel = Sel.Mark(mid) }) { Icon(Icons.Outlined.BookmarkAdd, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Marker") + " (M)") }
-                    Spacer(Modifier.size(4.dp))
-                    OutlinedButton(onClick = ::split) { Icon(Icons.Outlined.ContentCut, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Teilen") + " (S)") }
-                }
-            }
-            VerticalDivider()
-            Box(Modifier.width(320.dp).fillMaxHeight()) { Properties(c, h, sel, pos, onSelect = { sel = it }, onSplit = ::split, onDelete = { deleteSelected() }, onSeek = { player.seek(h.project, it) }) }
-        }
-        HorizontalDivider()
-        TimelineBar(c, h, player, onSelect = { sel = it })
-        VideoTimelineView(
-            h, player, pos, sel, tool, drag,
-            onSelect = { sel = it; runCatching { focus.requestFocus() } },
-            onDropItem = { item, lane, t ->
-                when {
-                    lane == "V1" -> use(item, PoolUse.INSERT, nearestCut(p, t))
-                    lane.startsWith("V") -> use(item, PoolUse.PIP, t, lane)
-                    else -> use(item, PoolUse.SOUND, t, lane)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
+        // Which panels fit: a preview of at least PREVIEW_MIN_WIDTH stays; too narrow, a panel folds in by itself.
+        val left = layout.left
+        val fit = fitPanels(
+            maxWidth,
+            if (layout.poolOpen && !layout.bigPreview) left.wanted to left.min else null,
+            if (layout.propsOpen && !layout.bigPreview) layout.props.wanted to layout.props.min else null,
+            preferPool = layout.preferPool,
         )
+        val bodyHeight = maxHeight - 49.dp
+        val timelineHeight = fitTimeline(bodyHeight, layout.timeline.wanted, layout.timeline.min)
+        val width = maxWidth
+        SideEffect {
+            // Dragging stops where the preview would get narrower than its minimum.
+            left.limit = width - PREVIEW_MIN_WIDTH - 20.dp - (fit.props ?: 0.dp)
+            layout.props.limit = width - PREVIEW_MIN_WIDTH - 20.dp - (fit.pool ?: 0.dp)
+            layout.timeline.limit = bodyHeight - UPPER_MIN_HEIGHT - 10.dp
+        }
+        Column(Modifier.fillMaxSize()) {
+            EditorHeader(
+                p, h, layout, menuShown, poolShown = fit.pool != null, propsShown = fit.props != null,
+                onClose = onClose, onKeys = { keys = true }, onExport = { player.stop(); export = true }, onFocus = ::refocus,
+            )
+            HorizontalDivider()
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                fit.pool?.let { w ->
+                    Column(Modifier.width(w).fillMaxHeight()) {
+                        PanelHead("pool", tr("Medienpool einklappen"), foldLeft = true, onFold = { layout.togglePool(true); refocus() }) {
+                            FilterChip(selected = leftTab == "media", onClick = { leftTab = "media"; refocus() }, label = { Text(tr("Medien"), maxLines = 1) })
+                            Spacer(Modifier.width(4.dp))
+                            Spot("video.transcript") { FilterChip(selected = leftTab == "text", onClick = { leftTab = "text"; refocus() }, label = { Text(tr("Transkript"), maxLines = 1) }) }
+                        }
+                        if (leftTab == "text") TranscriptCutPanel(c, h, player, pos, textCut, onAssign = { assignTranscript = true }, modifier = Modifier.weight(1f).fillMaxWidth())
+                        else MediaPool(h, drag, sourceId, onOpen = { item -> sourceId = item.id; sourceView = true; player.stop(); refocus() }, onImport = { importToPool() }, onUse = { item, how -> use(item, how) }, modifier = Modifier.weight(1f).fillMaxWidth())
+                    }
+                    PanelResizer(left, panelLeft = true, label = tr("Breite des Medienpools ändern"))
+                }
+                // The viewer: source or timeline, the picture, the transport.
+                Column(Modifier.weight(1f).fillMaxHeight()) {
+                    EditorBar("viewer", height = 40.dp) {
+                        Tip(tr("Q wechselt zwischen Quelle und Zeitleiste")) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                FilterChip(selected = showSource, enabled = sourceProject != null, onClick = { sourceView = true; player.stop(); refocus() }, label = { Text(tr("Quelle"), maxLines = 1) })
+                                Spacer(Modifier.width(4.dp))
+                                FilterChip(selected = !showSource, onClick = { sourceView = false; source.stop(); refocus() }, label = { Text(tr("Zeitleiste"), maxLines = 1) })
+                            }
+                        }
+                        Text(
+                            if (showSource) sourceItem?.name.orEmpty() else "",
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        )
+                        TipIconButton(
+                            if (layout.bigPreview) Icons.Outlined.CloseFullscreen else Icons.Outlined.OpenInFull,
+                            tr(if (layout.bigPreview) "Vorschau wieder normal" else "Vorschau groß") + " (Alt+F)",
+                            { layout.bigPreview = !layout.bigPreview; refocus() }, selected = layout.bigPreview, size = 34.dp,
+                        )
+                        TipIconButton(Icons.Outlined.Fullscreen, tr("Vollbild") + " (Strg+F)", { layout.full = true; refocus() }, size = 34.dp)
+                    }
+                    Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 8.dp)) {
+                        if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.fillMaxSize())
+                        else Preview(p, player, pos, Modifier.fillMaxSize())
+                    }
+                    if (showSource) sourceTransport(false) else timelineTransport(false)
+                }
+                fit.props?.let { w ->
+                    PanelResizer(layout.props, panelLeft = false, label = tr("Breite der Eigenschaften ändern"))
+                    Column(Modifier.width(w).fillMaxHeight()) {
+                        PanelHead("props", tr("Eigenschaften einklappen"), foldLeft = false, onFold = { layout.toggleProps(true); refocus() }) {
+                            Text(tr("Eigenschaften"), style = MaterialTheme.typography.titleSmall, maxLines = 1, modifier = Modifier.padding(start = 6.dp))
+                        }
+                        Box(Modifier.weight(1f).fillMaxWidth()) { Properties(c, h, sel, pos, onSelect = { sel = it }, onSplit = ::split, onDelete = { deleteSelected() }, onSeek = { player.seek(h.project, it) }) }
+                    }
+                }
+            }
+            // The line above the timeline: drag for a higher or lower timeline, double-click resets.
+            PanelResizer(layout.timeline, panelLeft = false, label = tr("Höhe der Zeitleiste ändern"), vertical = true)
+            Column(Modifier.height(timelineHeight).fillMaxWidth()) {
+                TimelineBar(
+                    c, h, player, tool, layout, view,
+                    onTool = { tool = it; refocus() }, onSplit = { split(); refocus() }, onMarker = { addMarker(); refocus() }, onSelect = { sel = it },
+                )
+                HorizontalDivider()
+                VideoTimelineView(
+                    h, player, pos, sel, tool, drag,
+                    onSelect = { sel = it; refocus() },
+                    onDropItem = { item, lane, t ->
+                        when {
+                            lane == "V1" -> use(item, PoolUse.INSERT, nearestCut(p, t))
+                            lane.startsWith("V") -> use(item, PoolUse.PIP, t, lane)
+                            else -> use(item, PoolUse.SOUND, t, lane)
+                        }
+                    },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    view = view, scale = layout.trackScale, folded = layout.foldedTracks, onFold = { layout.toggleTrack(it) },
+                )
+            }
+        }
     }
     }
     LaunchedEffect(id) { runCatching { focus.requestFocus() } }
@@ -626,6 +710,108 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     }
     if (export) ExportDialog(c, p, onDismiss = { export = false })
     if (keys) VideoShortcutsDialog { keys = false; runCatching { focus.requestFocus() } }
+}
+
+/**
+ * The header of the editor (AP-70): side menu, back, title and format at the left; the panels and the arrangement;
+ * at the right the keys, undo and redo, the export queue and Exportieren.
+ */
+@Composable
+private fun EditorHeader(
+    p: VideoProject, h: History, layout: VideoLayout, menuShown: Boolean, poolShown: Boolean, propsShown: Boolean,
+    onClose: () -> Unit, onKeys: () -> Unit, onExport: () -> Unit, onFocus: () -> Unit,
+) {
+    EditorBar("header", height = 48.dp) {
+        TipIconButton(Icons.Outlined.Menu, tr(if (menuShown) "Seitenleiste ausblenden" else "Seitenleiste zeigen") + " (Strg+B)", { Navigation.openRoute.value = "drawer" }, selected = menuShown)
+        TipIconButton(Icons.AutoMirrored.Outlined.ArrowBack, tr("Zurück zu den Projekten"), onClose)
+        var title by remember(p.id) { mutableStateOf(p.title) }
+        TitleField(title, { t -> title = t; if (t.isNotBlank()) h.edit("title") { it.copy(title = t.trim()) } }, Modifier.widthIn(min = 120.dp, max = 300.dp).weight(1f, fill = false))
+        Text(
+            tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+        )
+        ToolGroup {
+            TipIconButton(Icons.Outlined.VideoLibrary, tr(if (poolShown) "Medienpool einklappen" else "Medienpool zeigen"), { layout.togglePool(poolShown); onFocus() }, selected = poolShown)
+            TipIconButton(Icons.Outlined.Tune, tr(if (propsShown) "Eigenschaften einklappen" else "Eigenschaften zeigen"), { layout.toggleProps(propsShown); onFocus() }, selected = propsShown)
+            var menu by remember { mutableStateOf(false) }
+            Spot("video.layout") {
+                Box {
+                    TipIconButton(Icons.Outlined.SpaceDashboard, tr("Anordnung"), { menu = true })
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false; onFocus() }) {
+                        DropdownMenuItem(text = { Text(tr("Vorschau groß") + " (Alt+F)") }, leadingIcon = { Icon(Icons.Outlined.OpenInFull, null) }, onClick = { menu = false; layout.bigPreview = !layout.bigPreview; onFocus() }, trailingIcon = { if (layout.bigPreview) Icon(Icons.Outlined.Check, null) })
+                        DropdownMenuItem(text = { Text(tr("Vollbild") + " (Strg+F)") }, leadingIcon = { Icon(Icons.Outlined.Fullscreen, null) }, onClick = { menu = false; layout.full = true; onFocus() })
+                        DropdownMenuItem(text = { Text(tr("Spuren höher")) }, leadingIcon = { Icon(Icons.Outlined.UnfoldMore, null) }, enabled = layout.trackScale < VideoLayout.MAX_TRACKS, onClick = { layout.tracksTaller(true) })
+                        DropdownMenuItem(text = { Text(tr("Spuren niedriger")) }, leadingIcon = { Icon(Icons.Outlined.UnfoldLess, null) }, enabled = layout.trackScale > VideoLayout.MIN_TRACKS, onClick = { layout.tracksTaller(false) })
+                        if (layout.foldedTracks.isNotEmpty()) DropdownMenuItem(text = { Text(tr("Alle Spuren aufklappen")) }, leadingIcon = { Icon(Icons.Outlined.KeyboardArrowDown, null) }, onClick = { menu = false; layout.folded = "" })
+                        HorizontalDivider()
+                        DropdownMenuItem(text = { Text(tr("Anordnung zurücksetzen")) }, leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) }, onClick = {
+                            menu = false
+                            layout.reset()
+                            Navigation.wideMenu.value = false
+                            Notices.info(tr("Anordnung zurückgesetzt."))
+                            onFocus()
+                        })
+                    }
+                }
+            }
+        }
+        BarGap()
+        TipIconButton(Icons.Outlined.Keyboard, tr("Tastenkürzel") + " (?)", onKeys)
+        ToolGroup {
+            TipIconButton(Icons.AutoMirrored.Outlined.Undo, tr("Rückgängig") + " (Strg+Z)", h::undo, enabled = h.canUndo)
+            TipIconButton(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen") + " (Strg+Y)", h::redo, enabled = h.canRedo)
+        }
+        BarGap()
+        ExportQueueChip()
+        Spot("video.export") {
+            Button(onClick = onExport, enabled = p.clips.isNotEmpty(), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                Icon(Icons.Outlined.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Exportieren"), maxLines = 1, softWrap = false)
+            }
+        }
+    }
+}
+
+/** Transport of the timeline: start, J, play, L, end, time, loop and In/Out – symbols with tooltips, one line. */
+@Composable
+private fun TimelineTransport(p: VideoProject, player: VideoPlayer, pos: Double, playing: Boolean, speed: Double, loop: Boolean, onLoop: () -> Unit, loopRange: () -> Pair<Double, Double>?, dark: Boolean) {
+    val tint = if (dark) Color.White else Color.Unspecified
+    EditorBar("transport", height = 44.dp) {
+        TipIconButton(Icons.Outlined.SkipPrevious, tr("Zum Anfang") + " (Pos1)", { player.seek(p, 0.0) }, tint = tint)
+        TipIconButton(Icons.Outlined.FastRewind, tr("Rückwärts") + " (J)", { player.backward(p) }, tint = tint)
+        TipIconButton(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, tr(if (playing) "Pause" else "Abspielen") + tr(" (Leertaste)"), { player.toggle(p, loopRange()) }, tint = tint, size = 40.dp)
+        TipIconButton(Icons.Outlined.FastForward, tr("Vorwärts") + " (L)", { player.forward(p, loopRange()) }, tint = tint)
+        TipIconButton(Icons.Outlined.SkipNext, tr("Zum Ende") + " (Ende)", { player.seek(p, p.duration) }, tint = tint)
+        Spacer(Modifier.width(6.dp))
+        Text("${clock(pos, true)} / ${clock(p.duration, true)}", style = MaterialTheme.typography.labelLarge, color = if (dark) Color.White else Color.Unspecified, maxLines = 1, softWrap = false)
+        if (playing && speed != 1.0 && speed != 0.0) Text("  " + (if (speed < 0) "◀ " else "▶ ") + "${abs(speed).toInt()}×", style = MaterialTheme.typography.labelLarge, color = LocalChatLook.current.brand, maxLines = 1, softWrap = false)
+        Spacer(Modifier.width(6.dp))
+        TipIconButton(Icons.Outlined.Repeat, tr("Schleife zwischen In und Out"), onLoop, selected = loop, tint = tint)
+        Text(
+            if (p.markIn != null || p.markOut != null) tr("In {0} · Out {1}", clock(p.markIn ?: 0.0, true), clock(p.markOut ?: p.duration, true)) else "",
+            style = MaterialTheme.typography.bodySmall, color = if (dark) Color(0xCCFFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(start = 6.dp),
+        )
+    }
+}
+
+/** Transport of the source monitor: play, time, In/Out, and the three ways into the timeline (F9, F10, F12). */
+@Composable
+private fun SourceTransport(sp: VideoProject, item: io.github.thepytales.llmhub.video.PoolItem, source: VideoPlayer, srcPos: Double, srcPlaying: Boolean, dark: Boolean, onUse: (PoolUse) -> Unit) {
+    val tint = if (dark) Color.White else Color.Unspecified
+    EditorBar("transport", height = 44.dp) {
+        TipIconButton(if (srcPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, tr(if (srcPlaying) "Pause" else "Abspielen") + tr(" (Leertaste)"), { source.toggle(sp) }, tint = tint, size = 40.dp)
+        Text("${clock(srcPos, true)} / ${clock(sp.duration, true)}", style = MaterialTheme.typography.labelLarge, color = if (dark) Color.White else Color.Unspecified, maxLines = 1, softWrap = false)
+        Text(
+            tr("In {0} · Out {1}", clock(item.inSec ?: 0.0, true), clock(item.outSec ?: sp.duration, true)),
+            style = MaterialTheme.typography.bodySmall, color = if (dark) Color(0xCCFFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+        )
+        ToolGroup {
+            TipIconButton(Icons.AutoMirrored.Outlined.Input, tr("Einfügen am Abspielkopf (F9)"), { onUse(PoolUse.INSERT) }, tint = tint)
+            TipIconButton(Icons.Outlined.VerticalAlignBottom, tr("Überschreiben am Abspielkopf (F10)"), { onUse(PoolUse.OVERWRITE) }, tint = tint)
+            TipIconButton(Icons.Outlined.PictureInPicture, tr("Als Bild-in-Bild (F12)"), { onUse(PoolUse.PIP) }, tint = tint)
+        }
+    }
 }
 
 /** Dropping on V1 inserts at the nearest cut (or the end), not in the middle of a clip. */
@@ -696,7 +882,12 @@ private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier:
                 val img = rememberSubtitle(cue.text, p, px, p.subtitleRaised(cue))
                 img?.let { Image(it, null, modifier = Modifier.fillMaxSize()) }
             }
-            if (p.clips.isEmpty()) Text(tr("Noch keine Clips – unten „Clip hinzufügen“."), color = Color.White, modifier = Modifier.align(Alignment.Center))
+            // The next subtitle is drawn ahead, so it is there the moment it starts (AP-70).
+            p.subtitles.filter { it.startSec > pos }.minByOrNull { it.startSec }?.let { next ->
+                val key = subtitleKey(next.text, p, px, p.subtitleRaised(next))
+                LaunchedEffect(key) { drawTitle(key) { VideoTitles.render(VideoTitles.subtitleDesign(next.text, p.width, p.height, p.subtitleRaised(next)), px) } }
+            }
+            if (p.clips.isEmpty()) Text(tr("Noch keine Clips – über der Zeitleiste „+“ › „Clip hinzufügen“."), color = Color.White, modifier = Modifier.align(Alignment.Center))
         }
     }
 }
@@ -705,32 +896,49 @@ private val titleCache = object : LinkedHashMap<String, ImageBitmap>(16, 0.75f, 
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, ImageBitmap>?) = size > 24
 }
 
+/**
+ * A title or subtitle picture for [key], drawn in the background. While a new one is drawn (another size of the
+ * preview, a title being typed) the last one of the same [slot] stays – before, it vanished for a moment (AP-70).
+ */
 @Composable
-private fun rememberTitle(o: TextOverlay, p: VideoProject, px: Int): ImageBitmap? {
-    val key = "${o.style}|${o.text}|${o.subtext}|${p.width}x${p.height}|$px"
-    val img by produceState(synchronized(titleCache) { titleCache[key] }, key) {
-        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.design(o, p.width, p.height), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
-    }
-    return img
+private fun rememberTitleImage(slot: String, key: String, draw: () -> ImageBitmap): ImageBitmap? {
+    val img = remember(slot) { mutableStateOf(synchronized(titleCache) { titleCache[key] }) }
+    LaunchedEffect(key) { drawTitle(key, draw)?.let { img.value = it } }
+    return img.value
 }
 
+/** The picture for [key] from the cache, or drawn and put there. */
+private suspend fun drawTitle(key: String, draw: () -> ImageBitmap): ImageBitmap? =
+    synchronized(titleCache) { titleCache[key] }
+        ?: withContext(Dispatchers.Default) { runCatching(draw).getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
+
 @Composable
-private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boolean): ImageBitmap? {
-    val key = "sub|$text|${p.width}x${p.height}|$px|$raised"
-    val img by produceState(synchronized(titleCache) { titleCache[key] }, key) {
-        if (value == null) value = withContext(Dispatchers.Default) { runCatching { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height, raised), px) }.getOrNull() }?.also { synchronized(titleCache) { titleCache[key] = it } }
-    }
-    return img
-}
+private fun rememberTitle(o: TextOverlay, p: VideoProject, px: Int): ImageBitmap? =
+    rememberTitleImage(o.id, "${o.style}|${o.text}|${o.subtext}|${p.width}x${p.height}|$px") { VideoTitles.render(VideoTitles.design(o, p.width, p.height), px) }
+
+private fun subtitleKey(text: String, p: VideoProject, px: Int, raised: Boolean) = "sub|$text|${p.width}x${p.height}|$px|$raised"
+
+/** A subtitle: its last picture stays only for the same text (a new cue never shows the old words). */
+@Composable
+private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boolean): ImageBitmap? =
+    rememberTitleImage("sub|$text", subtitleKey(text, p, px, raised)) { VideoTitles.render(VideoTitles.subtitleDesign(text, p.width, p.height, raised), px) }
 
 // ── Toolbar above the timeline ─────────────────────────────────────────────────────────────────────
 
+/**
+ * The toolbar above the timeline (AP-70): the tools as a group of symbols (A, B, T, magnet), cut and marker, the
+ * things to add (+, titles, subtitles, rough cut), a one-line hint for the tool, track height and zoom.
+ */
 @Composable
-private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSelect: (Sel) -> Unit) {
+private fun TimelineBar(
+    c: AppContainer, h: History, player: VideoPlayer, tool: CutTool, layout: VideoLayout, view: TimelineState,
+    onTool: (CutTool) -> Unit, onSplit: () -> Unit, onMarker: () -> Unit, onSelect: (Sel) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     var titles by remember { mutableStateOf(false) }
     var subs by remember { mutableStateOf(false) }
     var cut by remember { mutableStateOf(false) }
+    var add by remember { mutableStateOf(false) }
     var pickTranscript by remember { mutableStateOf<String?>(null) }
     var loraCut by remember { mutableStateOf(false) }
     val p = h.project
@@ -772,41 +980,77 @@ private fun TimelineBar(c: AppContainer, h: History, player: VideoPlayer, onSele
             Notices.info("${cues.size} " + tr("Untertitel übernommen."))
         }
     }
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        TextButton(onClick = { addClips() }) { Icon(Icons.Outlined.Movie, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Clip hinzufügen")) }
-        Box {
-            Spot("video.titles") { TextButton(onClick = { titles = true }) { Icon(Icons.Outlined.Title, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Titel & Bauchbinde")) } }
-            DropdownMenu(expanded = titles, onDismissRequest = { titles = false }) {
-                TextOverlay.STYLES.forEach { (style, label) ->
-                    DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
-                        titles = false
-                        val start = when (style) { "titel" -> 0.0; "abspann" -> maxOf(0.0, p.duration - 5.0); else -> pos() }
-                        val o = TextOverlay(
-                            style = style, startSec = start, durationSec = if (style == "bauchbinde") 6.0 else 4.0,
-                            text = when (style) { "titel" -> p.title; "abspann" -> tr("Vielen Dank"); "bauchbinde" -> tr("Vorname Nachname"); else -> tr("Wichtiger Hinweis") },
-                            subtext = when (style) { "titel" -> tr("Lehrvideo · TU Dresden"); "abspann" -> "tu-dresden.de"; "bauchbinde" -> tr("Professur … · TU Dresden"); else -> "" },
-                        )
-                        h.edit { it.copy(overlays = it.overlays + o) }
-                        onSelect(Sel.Title(o.id))
-                    })
+    EditorBar("toolbar", height = 42.dp) {
+        Spot("video.tools") {
+            ToolGroup {
+                CutTool.entries.forEach { t ->
+                    TipIconButton(t.icon, tr(t.tip), { onTool(t) }, selected = tool == t, size = 34.dp)
+                }
+                TipIconButton(MagnetIcon, tr("Magnet (N): Lücken schließen sich, Spuren ziehen mit"), { h.edit { it.copy(magnet = !it.magnet) } }, selected = p.magnet, size = 34.dp)
+            }
+        }
+        BarGap()
+        ToolGroup {
+            TipIconButton(Icons.AutoMirrored.Outlined.CallSplit, tr("Am Abspielkopf teilen") + " (S)", onSplit, size = 34.dp)
+            TipIconButton(Icons.Outlined.BookmarkAdd, tr("Marker setzen") + " (M)", onMarker, size = 34.dp)
+        }
+        BarGap()
+        ToolGroup {
+            Spot("video.pip") {
+                Box {
+                    TipIconButton(Icons.Outlined.Add, tr("Hinzufügen: Clip, Bild-in-Bild, Musik, Spuren"), { add = true }, size = 34.dp)
+                    DropdownMenu(expanded = add, onDismissRequest = { add = false }) {
+                        DropdownMenuItem(text = { Text(tr("Clip hinzufügen …")) }, leadingIcon = { Icon(Icons.Outlined.Movie, null) }, onClick = { add = false; addClips() })
+                        DropdownMenuItem(text = { Text(tr("Bild-in-Bild …")) }, leadingIcon = { Icon(Icons.Outlined.PictureInPicture, null) }, onClick = { add = false; addPicture() })
+                        DropdownMenuItem(text = { Text(tr("Musik / Ton …")) }, leadingIcon = { Icon(Icons.Outlined.MusicNote, null) }, onClick = { add = false; addAudio() })
+                        HorizontalDivider()
+                        DropdownMenuItem(text = { Text(tr("+ Videospur")) }, onClick = { add = false; h.edit { VideoEdit.addTrack(it, video = true) } })
+                        DropdownMenuItem(text = { Text(tr("+ Tonspur")) }, onClick = { add = false; h.edit { VideoEdit.addTrack(it, video = false) } })
+                    }
+                }
+            }
+            Box {
+                Spot("video.titles") { TipIconButton(Icons.Outlined.Title, tr("Titel & Bauchbinde"), { titles = true }, size = 34.dp) }
+                DropdownMenu(expanded = titles, onDismissRequest = { titles = false }) {
+                    TextOverlay.STYLES.forEach { (style, label) ->
+                        DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
+                            titles = false
+                            val start = when (style) { "titel" -> 0.0; "abspann" -> maxOf(0.0, p.duration - 5.0); else -> pos() }
+                            val o = TextOverlay(
+                                style = style, startSec = start, durationSec = if (style == "bauchbinde") 6.0 else 4.0,
+                                text = when (style) { "titel" -> p.title; "abspann" -> tr("Vielen Dank"); "bauchbinde" -> tr("Vorname Nachname"); else -> tr("Wichtiger Hinweis") },
+                                subtext = when (style) { "titel" -> tr("Lehrvideo · TU Dresden"); "abspann" -> "tu-dresden.de"; "bauchbinde" -> tr("Professur … · TU Dresden"); else -> "" },
+                            )
+                            h.edit { it.copy(overlays = it.overlays + o) }
+                            onSelect(Sel.Title(o.id))
+                        })
+                    }
+                }
+            }
+            Box {
+                Spot("video.subtitles") { TipIconButton(Icons.Outlined.Subtitles, tr("Untertitel"), { subs = true }, size = 34.dp) }
+                DropdownMenu(expanded = subs, onDismissRequest = { subs = false }) {
+                    DropdownMenuItem(text = { Text(tr("Aus der Transkription …")) }, onClick = { subs = false; pickTranscript = "subs" })
+                    DropdownMenuItem(text = { Text(tr("SRT/VTT importieren …")) }, onClick = { subs = false; importSubs() })
+                    if (p.subtitles.isNotEmpty()) DropdownMenuItem(text = { Text(tr("Alle Untertitel entfernen")) }, onClick = { subs = false; h.edit { it.copy(subtitles = emptyList()) } })
+                }
+            }
+            Box {
+                Spot("video.roughcut") { TipIconButton(Icons.Outlined.AutoAwesome, tr("Rohschnitt"), { cut = true }, size = 34.dp) }
+                DropdownMenu(expanded = cut, onDismissRequest = { cut = false }) {
+                    DropdownMenuItem(text = { Text(tr("Pausen und Füllwörter herausschneiden …")) }, onClick = { cut = false; pickTranscript = "cut" })
+                    DropdownMenuItem(text = { Text(tr("Mit Lora kürzen …")) }, onClick = { cut = false; loraCut = true })
                 }
             }
         }
-        Spot("video.pip") { TextButton(onClick = { addPicture() }) { Icon(Icons.Outlined.PictureInPicture, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Bild-in-Bild")) } }
-        TextButton(onClick = { addAudio() }) { Icon(Icons.Outlined.MusicNote, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Musik / Ton")) }
-        Box {
-            Spot("video.subtitles") { TextButton(onClick = { subs = true }) { Icon(Icons.Outlined.Subtitles, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Untertitel")) } }
-            DropdownMenu(expanded = subs, onDismissRequest = { subs = false }) {
-                DropdownMenuItem(text = { Text(tr("Aus der Transkription …")) }, onClick = { subs = false; pickTranscript = "subs" })
-                DropdownMenuItem(text = { Text(tr("SRT/VTT importieren …")) }, onClick = { subs = false; importSubs() })
-                if (p.subtitles.isNotEmpty()) DropdownMenuItem(text = { Text(tr("Alle Untertitel entfernen")) }, onClick = { subs = false; h.edit { it.copy(subtitles = emptyList()) } })
-            }
-        }
-        Box {
-            Spot("video.roughcut") { TextButton(onClick = { cut = true }) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Rohschnitt")) } }
-            DropdownMenu(expanded = cut, onDismissRequest = { cut = false }) {
-                DropdownMenuItem(text = { Text(tr("Pausen und Füllwörter herausschneiden …")) }, onClick = { cut = false; pickTranscript = "cut" })
-                DropdownMenuItem(text = { Text(tr("Mit Lora kürzen …")) }, onClick = { cut = false; loraCut = true })
+        BarGap()
+        Text(tr(tool.hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        TipIconButton(Icons.Outlined.UnfoldLess, tr("Spuren niedriger"), { layout.tracksTaller(false) }, enabled = layout.trackScale > VideoLayout.MIN_TRACKS, size = 32.dp)
+        TipIconButton(Icons.Outlined.UnfoldMore, tr("Spuren höher"), { layout.tracksTaller(true) }, enabled = layout.trackScale < VideoLayout.MAX_TRACKS, size = 32.dp)
+        Tip(tr("Zoom (Strg+Mausrad)")) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.ZoomIn, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Slider(value = view.zoom, onValueChange = { view.zoom = it }, valueRange = 1f..24f, modifier = Modifier.width(110.dp).height(32.dp).semantics { contentDescription = tr("Zoom") })
             }
         }
     }
@@ -959,20 +1203,35 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                 val i = p.clips.indexOf(clip)
                 // Length of the source: the end cannot go past it (a picture has none and may stand as long as wanted).
                 val srcLen = sourceLength(clip.path)
-                Text(tr("Clip") + " ${i + 1}: ${clip.name}", style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SecondsField(tr("Anfang (s)"), clip.inSec, "in-${clip.id}", Modifier.weight(1f)) { v -> h.edit("in-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) else it }) } }
-                    SecondsField(tr("Ende (s)"), clip.outSec, "out-${clip.id}", Modifier.weight(1f)) { v -> h.edit("out-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(outSec = maxOf(srcLen?.let { m -> minOf(v, m) } ?: v, it.inSec + 0.2)) else it }) } }
+                // Only what fits this clip (AP-70): sound only with sound in the file, the transition from the second clip.
+                val hasSound = sourceHasSound(clip.path)
+                PropTitle(tr("Clip") + " ${i + 1}: ${clip.name}") {
+                    TipIconButton(Icons.AutoMirrored.Outlined.CallSplit, tr("Am Abspielkopf teilen") + " (S)", onSplit, size = 32.dp)
+                    TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
                 }
-                Text(tr("Länge") + " ${clock(clip.length, true)}", style = MaterialTheme.typography.bodySmall)
-                Text(tr("Lautstärke") + " ${(clip.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
-                Slider(value = clip.volume, onValueChange = { v -> h.edit("vol-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(volume = v) else it }) } }, valueRange = 0f..2f)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(tr("Ton aus"), modifier = Modifier.weight(1f))
-                    Switch(clip.muted, { m -> h.edit { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(muted = m) else it }) } })
+                PropSection("clip.time", tr("Zeit"), summary = clock(clip.length, true)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SecondsField(tr("Anfang (s)"), clip.inSec, "in-${clip.id}", Modifier.weight(1f)) { v -> h.edit("in-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) else it }) } }
+                        SecondsField(tr("Ende (s)"), clip.outSec, "out-${clip.id}", Modifier.weight(1f)) { v -> h.edit("out-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(outSec = maxOf(srcLen?.let { m -> minOf(v, m) } ?: v, it.inSec + 0.2)) else it }) } }
+                    }
+                    Text(tr("Länge") + " ${clock(clip.length, true)}", style = MaterialTheme.typography.bodySmall)
                 }
-                if (i > 0) {
-                    Text(tr("Übergang vom vorigen Clip"), style = MaterialTheme.typography.labelLarge)
+                if (hasSound != false) PropSection("clip.sound", tr("Ton"), summary = if (clip.muted) tr("aus") else "${(clip.volume * 100).toInt()} %") {
+                    Text(tr("Lautstärke") + " ${(clip.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
+                    Slider(value = clip.volume, onValueChange = { v -> h.edit("vol-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(volume = v) else it }) } }, valueRange = 0f..2f)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(tr("Ton aus"), modifier = Modifier.weight(1f))
+                        Switch(clip.muted, { m -> h.edit { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(muted = m) else it }) } })
+                    }
+                    // Picture and sound (AP-53): the clip's sound onto an audio track, linked.
+                    val linked = p.audio.filter { it.linkedTo == clip.id }
+                    if (linked.isNotEmpty()) {
+                        HintText(tr("Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.", linked.joinToString(", ") { "A${it.track}" }))
+                        TextButton(onClick = { h.edit { pp -> pp.copy(audio = pp.audio.map { if (it.linkedTo == clip.id) it.copy(linkedTo = null) else it }) } }) { Text(tr("Verknüpfung lösen"), maxLines = 1) }
+                    }
+                    if (!clip.muted) OutlinedButton(onClick = { VideoEdit.detachSound(p, clip.id)?.let { (q, aid) -> h.edit { q }; onSelect(Sel.Sound(aid)) } }) { Text(tr("Ton auf eine Tonspur legen"), maxLines = 1) }
+                }
+                if (i > 0) PropSection("clip.transition", tr("Übergang vom vorigen Clip"), summary = when (clip.transition) { "fade" -> tr("Überblenden"); "black" -> tr("Über Schwarz"); else -> tr("Schnitt") }) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("none" to tr("Schnitt"), "fade" to tr("Überblenden"), "black" to tr("Über Schwarz")).forEach { (k, l) ->
                             FilterChip(selected = clip.transition == k, onClick = { h.edit { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(transition = k) else it }) } }, label = { Text(l) })
@@ -982,26 +1241,17 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                         h.edit("tr-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(transitionSec = v.coerceIn(0.1, 3.0)) else it }) }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onSplit) { Text(tr("Am Abspielkopf teilen")) }
-                    OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
+                PropSection("clip.frame", tr("Position und Größe"), defaultOpen = !clip.frame.isFull, summary = if (!clip.frame.isFull) tr("platziert") else null) {
+                    FrameEditor(clip.frame, "cf-${clip.id}", heading = false) { k, f -> h.edit(k) { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(frame = f) else it }) } }
                 }
-                // Picture and sound (AP-53): the clip's sound onto an audio track, linked.
-                val linked = p.audio.filter { it.linkedTo == clip.id }
-                if (linked.isNotEmpty()) {
-                    HintText(tr("Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.", linked.joinToString(", ") { "A${it.track}" }))
-                    TextButton(onClick = { h.edit { pp -> pp.copy(audio = pp.audio.map { if (it.linkedTo == clip.id) it.copy(linkedTo = null) else it }) } }) { Text(tr("Verknüpfung lösen")) }
-                }
-                if (!clip.muted) OutlinedButton(onClick = { VideoEdit.detachSound(p, clip.id)?.let { (q, aid) -> h.edit { q }; onSelect(Sel.Sound(aid)) } }) { Text(tr("Ton auf eine Tonspur legen")) }
-                var place by remember(clip.id) { mutableStateOf(!clip.frame.isFull) }
-                if (!place) TextButton(onClick = { place = true }) { Text(tr("Position und Größe …")) }
-                else FrameEditor(clip.frame, "cf-${clip.id}") { k, f -> h.edit(k) { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(frame = f) else it }) } }
                 ClipEffectsEditor(h, clip, pos, onSelect)
                 p.transcripts[clip.path]?.let { HintText(tr("Transkript zugeordnet – Untertitel und Rohschnitt kommen daraus.")) }
             }
             is Sel.Title -> {
                 val o = p.overlays.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
-                Text(tr(TextOverlay.label(o.style)), style = MaterialTheme.typography.titleSmall)
+                PropTitle(tr(TextOverlay.label(o.style))) {
+                    TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
+                }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TextOverlay.STYLES.forEach { (k, l) -> FilterChip(selected = o.style == k, onClick = { h.edit { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(style = k) else it }) } }, label = { Text(tr(l)) }) }
                 }
@@ -1011,19 +1261,20 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                     SecondsField(tr("Beginn (s)"), o.startSec, "ost-${o.id}", Modifier.weight(1f)) { v -> h.edit("ost-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(startSec = v.coerceAtLeast(0.0)) else it }) } }
                     SecondsField(tr("Dauer (s)"), o.durationSec, "od-${o.id}", Modifier.weight(1f)) { v -> h.edit("od-${o.id}") { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(durationSec = v.coerceAtLeast(0.5)) else it }) } }
                 }
-                OutlinedButton(onClick = { h.edit { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(startSec = pos) else it }) } }) { Text(tr("An den Abspielkopf")) }
-                OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
+                OutlinedButton(onClick = { h.edit { pp -> pp.copy(overlays = pp.overlays.map { if (it.id == o.id) it.copy(startSec = pos) else it }) } }) { Text(tr("An den Abspielkopf"), maxLines = 1) }
             }
             is Sel.Sound -> {
                 val a = p.audio.firstOrNull { it.id == sel.id } ?: run { onSelect(Sel.None); return@Column }
                 val srcLen = sourceLength(a.path)
-                Text("A${a.track}: " + a.name, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                PropTitle("A${a.track}: " + a.name) {
+                    TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
+                }
                 val owner = a.linkedTo?.let { l -> p.clips.indexOfFirst { it.id == l } }?.takeIf { it >= 0 }
                 if (owner != null) {
                     HintText(tr("Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s", owner + 1, String.format(Locale.GERMANY, "%+.2f", a.linkOffset)))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { h.edit { VideoEdit.unlink(it, a.id) } }) { Text(tr("Verknüpfung lösen")) }
-                        OutlinedButton(onClick = { onSelect(Sel.Clip(p.clips[owner].id)) }) { Text(tr("Zum Clip")) }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedButton(onClick = { h.edit { VideoEdit.unlink(it, a.id) } }) { Text(tr("Verknüpfung lösen"), maxLines = 1) }
+                        OutlinedButton(onClick = { onSelect(Sel.Clip(p.clips[owner].id)) }) { Text(tr("Zum Clip"), maxLines = 1) }
                     }
                 } else {
                     // A second sound source (lapel microphone, recorder): synchronise over the waveform with a clip.
@@ -1032,8 +1283,7 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                     var mute by remember(a.id) { mutableStateOf(true) }
                     var busy by remember(a.id) { mutableStateOf(false) }
                     var menu by remember(a.id) { mutableStateOf(false) }
-                    if (target != null && p.clips.isNotEmpty()) {
-                        Text(tr("Mit dem Bild synchronisieren"), style = MaterialTheme.typography.labelLarge)
+                    if (target != null && p.clips.isNotEmpty()) PropSection("sound.sync", tr("Mit dem Bild synchronisieren")) {
                         Box {
                             OutlinedButton(onClick = { menu = true }) { Text(tr("Clip {0}: {1}", target!! + 1, p.clips.getOrNull(target!!)?.name ?: ""), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -1044,7 +1294,7 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                             Checkbox(mute, { mute = it })
                             Text(tr("Kameraton stumm schalten"), style = MaterialTheme.typography.bodySmall)
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Button(enabled = !busy, onClick = {
                                 val clip = p.clips.getOrNull(target!!) ?: return@Button
                                 busy = true
@@ -1057,19 +1307,22 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                                         Notices.info(tr("Synchronisiert: der Ton liegt {0} s versetzt und ist jetzt mit dem Clip verknüpft.", String.format(Locale.GERMANY, "%+.2f", off)))
                                     }
                                 }
-                            }) { if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary) else Text(tr("Über die Wellenform")) }
-                            OutlinedButton(onClick = { h.edit { VideoEdit.link(it, p.clips[target!!].id, a.id, null, false) } }) { Text(tr("Verknüpfen, wie es liegt")) }
+                            }) { if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary) else Text(tr("Über die Wellenform"), maxLines = 1) }
+                            OutlinedButton(onClick = { h.edit { VideoEdit.link(it, p.clips[target!!].id, a.id, null, false) } }) { Text(tr("Verknüpfen, wie es liegt"), maxLines = 1) }
                         }
                     }
                 }
-                Text(tr("Lautstärke") + " ${(a.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
-                Slider(value = a.volume, onValueChange = { v -> h.edit("avol-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(volume = v) else it }) } }, valueRange = 0f..1.5f)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SecondsField(tr("Beginn (s)"), a.startSec, "ast-${a.id}", Modifier.weight(1f)) { v -> h.edit("ast-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(startSec = v.coerceAtLeast(0.0)) else it }) } }
-                    SecondsField(tr("Länge (s)"), a.length, "al-${a.id}", Modifier.weight(1f)) { v -> h.edit("al-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(outSec = (it.inSec + v.coerceAtLeast(0.5)).let { o -> srcLen?.let { m -> minOf(o, maxOf(m, it.inSec + 0.5)) } ?: o }) else it }) } }
+                PropSection("sound.level", tr("Ton"), summary = "${(a.volume * 100).toInt()} %") {
+                    Text(tr("Lautstärke") + " ${(a.volume * 100).toInt()} %", style = MaterialTheme.typography.labelMedium)
+                    Slider(value = a.volume, onValueChange = { v -> h.edit("avol-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(volume = v) else it }) } }, valueRange = 0f..1.5f)
+                    SecondsField(tr("Ein- und Ausblenden (s)"), a.fadeSec, "af-${a.id}") { v -> h.edit("af-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(fadeSec = v.coerceIn(0.0, 10.0)) else it }) } }
                 }
-                SecondsField(tr("Ein- und Ausblenden (s)"), a.fadeSec, "af-${a.id}") { v -> h.edit("af-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(fadeSec = v.coerceIn(0.0, 10.0)) else it }) } }
-                OutlinedButton(onClick = onDelete) { Text(tr("Löschen")) }
+                PropSection("sound.time", tr("Zeit"), summary = clock(a.length, true)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SecondsField(tr("Beginn (s)"), a.startSec, "ast-${a.id}", Modifier.weight(1f)) { v -> h.edit("ast-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(startSec = v.coerceAtLeast(0.0)) else it }) } }
+                        SecondsField(tr("Länge (s)"), a.length, "al-${a.id}", Modifier.weight(1f)) { v -> h.edit("al-${a.id}") { pp -> pp.copy(audio = pp.audio.map { if (it.id == a.id) it.copy(outSec = (it.inSec + v.coerceAtLeast(0.5)).let { o -> srcLen?.let { m -> minOf(o, maxOf(m, it.inSec + 0.5)) } ?: o }) else it }) } }
+                    }
+                }
             }
             Sel.None -> ProjectSettings(h)
         }
@@ -1080,63 +1333,67 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
 @Composable
 private fun ProjectSettings(h: History) {
     val p = h.project
-    Text(tr("Projekt"), style = MaterialTheme.typography.titleSmall)
-    Text(tr("Format"), style = MaterialTheme.typography.labelLarge)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        listOf(Triple(1920, 1080, "16:9 Full HD"), Triple(1280, 720, "16:9 HD"), Triple(1080, 1920, "9:16 hoch"), Triple(1080, 1080, "1:1")).forEach { (w, hh, l) ->
-            FilterChip(selected = p.width == w && p.height == hh, onClick = { h.edit { it.copy(width = w, height = hh) } }, label = { Text(l) })
+    PropTitle(tr("Projekt"))
+    PropSection("project.format", tr("Format"), summary = "${p.width} × ${p.height} · ${p.fps}") {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            listOf(Triple(1920, 1080, "16:9 Full HD"), Triple(1280, 720, "16:9 HD"), Triple(1080, 1920, "9:16 hoch"), Triple(1080, 1080, "1:1")).forEach { (w, hh, l) ->
+                FilterChip(selected = p.width == w && p.height == hh, onClick = { h.edit { it.copy(width = w, height = hh) } }, label = { Text(l) })
+            }
+        }
+        Text(tr("Bilder pro Sekunde"), style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(25, 30, 50).forEach { f -> FilterChip(selected = p.fps == f, onClick = { h.edit { it.copy(fps = f) } }, label = { Text("$f") }) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(tr("Am Anfang und Ende aus Schwarz blenden"), modifier = Modifier.weight(1f))
+            Switch(p.fadeEnds, { v -> h.edit { it.copy(fadeEnds = v) } })
         }
     }
-    Text(tr("Bilder pro Sekunde"), style = MaterialTheme.typography.labelLarge)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(25, 30, 50).forEach { f -> FilterChip(selected = p.fps == f, onClick = { h.edit { it.copy(fps = f) } }, label = { Text("$f") }) }
-    }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(tr("Am Anfang und Ende aus Schwarz blenden"), modifier = Modifier.weight(1f))
-        Switch(p.fadeEnds, { v -> h.edit { it.copy(fadeEnds = v) } })
-    }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(tr("Magnet-Zeitleiste"))
-            HintText(tr("Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N)."))
+    PropSection("project.timeline", tr("Zeitleiste"), summary = tr("{0} Video- und {1} Tonspuren", p.videoTrackCount, p.audioTrackCount)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(tr("Magnet-Zeitleiste"))
+                HintText(tr("Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N)."))
+            }
+            Switch(p.magnet, { v -> h.edit { it.copy(magnet = v) } })
         }
-        Switch(p.magnet, { v -> h.edit { it.copy(magnet = v) } })
-    }
-    Text(tr("Spuren"), style = MaterialTheme.typography.labelLarge)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = true) } }) { Text(tr("+ Videospur")) }
-        OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = false) } }) { Text(tr("+ Tonspur")) }
-    }
-    HintText(tr("{0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.", p.videoTrackCount, p.audioTrackCount))
-    ChapterList(h)
-    HorizontalDivider()
-    Text(tr("Ton"), style = MaterialTheme.typography.titleSmall)
-    Text(tr("Rauschminderung"), style = MaterialTheme.typography.labelLarge)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        // The stored value stays German ("aus"); before, tr("aus") stored "off" in English and no chip was selected.
-        listOf("aus" to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
-            FilterChip(selected = p.sound.denoise == k, onClick = { h.edit { it.copy(sound = it.sound.copy(denoise = k)) } }, label = { Text(l) })
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = true) } }) { Text(tr("+ Videospur"), maxLines = 1) }
+            OutlinedButton(onClick = { h.edit { VideoEdit.addTrack(it, video = false) } }) { Text(tr("+ Tonspur"), maxLines = 1) }
         }
+        HintText(tr("{0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.", p.videoTrackCount, p.audioTrackCount))
+        ChapterList(h)
     }
-    HintText(if (Media.rnnoiseModel() != null) tr("Mit dem Sprachmodell des Videoeditor-Pakets (RNNoise).") else tr("Ohne Videoeditor-Paket mit dem einfacheren Filter von ffmpeg; das Paket gibt es unter Einstellungen › Werkzeuge › Erweiterungen."))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(tr("Lautheit angleichen"))
-            HintText(tr("Gleichmäßig laut wie bei YouTube und OPAL üblich (−16 LUFS)."))
+    PropSection("project.sound", tr("Ton"), summary = listOfNotNull(
+        if (p.sound.denoise != "aus") tr("Rauschminderung") else null, if (p.sound.normalize) "−16 LUFS" else null,
+    ).joinToString(" · ").ifBlank { null }) {
+        Text(tr("Rauschminderung"), style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // The stored value stays German ("aus"); before, tr("aus") stored "off" in English and no chip was selected.
+            listOf("aus" to tr("Aus"), "leicht" to tr("Leicht"), "stark" to tr("Stark")).forEach { (k, l) ->
+                FilterChip(selected = p.sound.denoise == k, onClick = { h.edit { it.copy(sound = it.sound.copy(denoise = k)) } }, label = { Text(l) })
+            }
         }
-        Switch(p.sound.normalize, { v -> h.edit { it.copy(sound = it.sound.copy(normalize = v)) } })
+        HintText(if (Media.rnnoiseModel() != null) tr("Mit dem Sprachmodell des Videoeditor-Pakets (RNNoise).") else tr("Ohne Videoeditor-Paket mit dem einfacheren Filter von ffmpeg; das Paket gibt es unter Einstellungen › Werkzeuge › Erweiterungen."))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(tr("Lautheit angleichen"))
+                HintText(tr("Gleichmäßig laut wie bei YouTube und OPAL üblich (−16 LUFS)."))
+            }
+            Switch(p.sound.normalize, { v -> h.edit { it.copy(sound = it.sound.copy(normalize = v)) } })
+        }
+        Text(tr("Pegel") + tr(" {0} dB", "%+.0f".format(p.sound.gainDb)), style = MaterialTheme.typography.labelMedium)
+        Slider(value = p.sound.gainDb, onValueChange = { v -> h.edit("gain") { it.copy(sound = it.sound.copy(gainDb = Math.round(v).toFloat())) } }, valueRange = -12f..12f)
     }
-    Text(tr("Pegel") + tr(" {0} dB", "%+.0f".format(p.sound.gainDb)), style = MaterialTheme.typography.labelMedium)
-    Slider(value = p.sound.gainDb, onValueChange = { v -> h.edit("gain") { it.copy(sound = it.sound.copy(gainDb = Math.round(v).toFloat())) } }, valueRange = -12f..12f)
-    HorizontalDivider()
-    Text(tr("Untertitel") + if (p.subtitles.isNotEmpty()) " · ${p.subtitles.size}" else "", style = MaterialTheme.typography.titleSmall)
-    if (p.subtitles.isEmpty()) HintText(tr("Unten über „Untertitel“ aus der Transkription holen oder eine SRT-/VTT-Datei laden."))
-    else Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(tr("Ins Bild einbrennen"))
-            HintText(tr("Sonst nur als SRT/VTT-Datei neben dem Video (für OPAL und YouTube zum Zuschalten)."))
+    PropSection("project.subtitles", tr("Untertitel"), defaultOpen = p.subtitles.isNotEmpty(), summary = p.subtitles.size.takeIf { it > 0 }?.toString()) {
+        if (p.subtitles.isEmpty()) HintText(tr("Über der Zeitleiste über „Untertitel“ aus der Transkription holen oder eine SRT-/VTT-Datei laden."))
+        else Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(tr("Ins Bild einbrennen"))
+                HintText(tr("Sonst nur als SRT/VTT-Datei neben dem Video (für OPAL und YouTube zum Zuschalten)."))
+            }
+            Switch(p.burnSubtitles, { v -> h.edit { it.copy(burnSubtitles = v) } })
         }
-        Switch(p.burnSubtitles, { v -> h.edit { it.copy(burnSubtitles = v) } })
     }
 }
 
@@ -1164,6 +1421,15 @@ internal fun sourceLength(path: String): Double? {
         value = withContext(Dispatchers.IO) { File(path).takeUnless { Media.isStill(it) }?.let { Media.probe(it)?.duration?.takeIf { d -> d > 0.05 } } }
     }
     return len
+}
+
+/** Whether the file at [path] has sound (null while unknown). */
+@Composable
+internal fun sourceHasSound(path: String): Boolean? {
+    val has by produceState<Boolean?>(null, path) {
+        value = withContext(Dispatchers.IO) { Media.probe(File(path))?.hasAudio }
+    }
+    return has
 }
 
 /** How many text fields of the editor have the focus: then the keys belong to the text, not to the editor's shortcuts. */

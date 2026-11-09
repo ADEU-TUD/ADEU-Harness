@@ -14,6 +14,7 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -365,11 +366,12 @@ class VideoCutTest {
         onNodeWithContentDescription("Spur V1 sperren").performClick()
         settle(4)
         assertTrue(stored().track("V1").locked)
-        onRoot().performKeyInput { pressKey(Key.B) }
-        onRoot().performTouchInput { click(Offset(x15 - 150f, v1)) }
+        // The tooltip of the track head (AP-70) is a second root while the mouse is on it: the window is the first.
+        onAllNodes(isRoot())[0].performKeyInput { pressKey(Key.B) }
+        onAllNodes(isRoot())[0].performTouchInput { click(Offset(x15 - 150f, v1)) }
         settle(6)
         assertEquals(2, stored().clips.size, "gesperrt")
-        ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", File(out, "editor-geschnitten.png"))
+        ImageIO.write(onAllNodes(isRoot())[0].captureToImage().toAwtImage(), "png", File(out, "editor-geschnitten.png"))
         base.deleteRecursively()
     }
 }

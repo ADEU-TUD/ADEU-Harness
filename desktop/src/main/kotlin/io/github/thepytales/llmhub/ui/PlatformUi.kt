@@ -29,9 +29,9 @@ fun Modifier.secondaryClick(action: () -> Unit): Modifier = onRightClick(action)
     menuKey
 }
 
-/** The resize cursor ⇔ over the line between side menu, screen and panels (PanelResizer). */
-fun Modifier.resizeCursor(): Modifier =
-    pointerHoverIcon(androidx.compose.ui.input.pointer.PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR)))
+/** The resize cursor ⇔ over the line between side menu, screen and panels (PanelResizer); ⇕ over a [vertical] one. */
+fun Modifier.resizeCursor(vertical: Boolean = false): Modifier =
+    pointerHoverIcon(androidx.compose.ui.input.pointer.PointerIcon(java.awt.Cursor(if (vertical) java.awt.Cursor.N_RESIZE_CURSOR else java.awt.Cursor.E_RESIZE_CURSOR)))
 
 /** The app runs on Android (Windows: false); e.g. for tools that only Windows offers (data/AppTool). */
 const val IS_ANDROID = false

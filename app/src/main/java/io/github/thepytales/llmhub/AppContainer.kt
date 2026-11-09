@@ -271,6 +271,8 @@ class AppContainer(context: Context) {
         scope.launch {
             kotlinx.coroutines.delay(4000)
             runCatching { io.github.thepytales.llmhub.agent.LoraFlows.resume(this@AppContainer) }.logFailure("Lora-Abläufe fortsetzen")
+            // AP-69: Lora's sort runs (reading, moving, undoing) carry on as well.
+            runCatching { io.github.thepytales.llmhub.agent.MailSorter.resumeAll(this@AppContainer) }.logFailure("Sortierläufe fortsetzen")
         }
         // AP-28: only on Android – Windows syncs with the cloud service's own client (AP-12).
         if (io.github.thepytales.llmhub.ui.IS_ANDROID) phoneSync.start(scope)

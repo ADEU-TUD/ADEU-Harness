@@ -197,7 +197,8 @@ class ChatViewModel(
     /** Memory off (or on again) for this chat only. */
     fun setMemoryOff(off: Boolean) = edit { it.copy(memoryOff = off) }
 
-    fun setModel(model: String) = edit { it.copy(model = model) }
+    /** A Postfach chat (AP-68) keeps to models on this device: a model outside it is not taken. */
+    fun setModel(model: String) = edit { if (io.github.thepytales.llmhub.agent.MailAccess.blockReason(it, model) != null) it else it.copy(model = model) }
 
     /** Automatic model choice on or off for this chat (see agent/ModelRouter). */
     fun setAutoModel(on: Boolean) = edit { it.copy(autoModel = on) }
@@ -212,6 +213,16 @@ class ChatViewModel(
 
     /** Literature search mode and the like; null = normal chat. */
     fun setMode(mode: String?) = edit { it.copy(mode = mode) }
+
+    /**
+     * Starts [mode]. A mode that works only on this device (Postfach, AP-68) brings the local model along – the one
+     * loaded already or the best installed one; without any the chat waits and the mode line offers one to download.
+     */
+    fun enterMode(mode: String?) = edit { conv ->
+        val next = conv.copy(mode = mode)
+        if (!io.github.thepytales.llmhub.agent.MailAccess.locked(next) || io.github.thepytales.llmhub.agent.MailAccess.onDevice(next.model)) next
+        else io.github.thepytales.llmhub.agent.MailAccess.model(c)?.let { next.copy(model = it, autoModel = false) } ?: next
+    }
 
     fun rename(title: String) = edit { it.copy(title = title.trim().ifBlank { it.title }) }
 
@@ -331,7 +342,7 @@ class ChatViewModel(
     /** Generates a new version of the answer to [userMessage], optionally with another model. */
     fun regenerate(userMessage: ChatMessage, model: String? = null) {
         if (isRunning) return
-        update { conv -> conv.branchAfter(userMessage).let { if (model != null) it.copy(model = model) else it } }
+        update { conv -> conv.branchAfter(userMessage).let { if (model != null && io.github.thepytales.llmhub.agent.MailAccess.blockReason(conv, model) == null) it.copy(model = model) else it } }
         persist()
         startAgent()
     }
@@ -453,7 +464,12 @@ class ChatViewModel(
         attach(c.runs.start(conv))
     }
 
-    fun speak(id: String, text: String) = c.speaker.toggle(id, text)
+    /** Reads an answer aloud; in Postfach chats (AP-68) with the voice of this device – the text stays here. */
+    fun speak(id: String, text: String) {
+        val conv = _conversation.value
+        if (conv == null || !io.github.thepytales.llmhub.agent.MailAccess.locked(conv)) return c.speaker.toggle(id, text)
+        if (c.speaker.playingId.value == id) c.speaker.stop() else c.speaker.speak(id, text, deviceOnly = true)
+    }
 
     /** Adds a line to the agent protocol of the last answer (Sprachmodus: measured waiting times). */
     fun noteOnLastAnswer(event: String) {
@@ -463,7 +479,7 @@ class ChatViewModel(
 
     /** Speech of [file] as text: on the Uni server, or on the device in projects that keep data here. */
     suspend fun recognize(file: File): String {
-        val local = !Privacy.level(c, _conversation.value?.folderId).allowsUniServer
+        val local = !(_conversation.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer
         return if (local) {
             // Data protection level "Nur auf diesem Gerät": recognized on the device.
             c.transcription.recognizeShort(file)

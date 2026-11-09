@@ -704,7 +704,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
     ) {
         Box {
-            androidx.compose.material3.FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> tr("7 Tage"); 30 -> tr("30 Tage"); 365 -> tr("1 Jahr"); else -> tr("Zeitraum") }) })
+            FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> tr("7 Tage"); 30 -> tr("30 Tage"); 365 -> tr("1 Jahr"); else -> tr("Zeitraum") }) })
             androidx.compose.material3.DropdownMenu(period, { period = false }) {
                 listOf(0 to tr("Immer"), 7 to tr("Letzte 7 Tage"), 30 to tr("Letzte 30 Tage"), 365 to tr("Letztes Jahr")).forEach { (d, label) ->
                     androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = { period = false; onChange(filter.copy(days = d)) })
@@ -712,7 +712,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
             }
         }
         Box {
-            androidx.compose.material3.FilterChip(filter.project != null, { project = true }, label = {
+            FilterChip(filter.project != null, { project = true }, label = {
                 Text(filter.project?.let { id -> if (id.isEmpty()) tr("Ohne Projekt") else folders.firstOrNull { it.id == id }?.name ?: tr("Projekt") } ?: tr("Projekt"), maxLines = 1)
             })
             androidx.compose.material3.DropdownMenu(project, { project = false }) {
@@ -723,7 +723,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
         }
         Box {
             val models = remember(chats) { chats.map { it.model }.filter { it.isNotBlank() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }.take(15) }
-            androidx.compose.material3.FilterChip(filter.model != null, { model = true }, label = {
+            FilterChip(filter.model != null, { model = true }, label = {
                 Text(filter.model?.let { io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: tr("Modell"), maxLines = 1)
             })
             androidx.compose.material3.DropdownMenu(model, { model = false }) {
@@ -731,9 +731,9 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
                 models.forEach { m -> androidx.compose.material3.DropdownMenuItem(text = { Text(io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) }, onClick = { model = false; onChange(filter.copy(model = m)) }) }
             }
         }
-        androidx.compose.material3.FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text(tr("Mit Anhängen")) })
-        androidx.compose.material3.FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text(tr("Mit erstellten Dateien")) })
-        androidx.compose.material3.FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text(tr("Archiv")) })
+        FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text(tr("Mit Anhängen")) })
+        FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text(tr("Mit erstellten Dateien")) })
+        FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text(tr("Archiv")) })
         if (filter.active) androidx.compose.material3.TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text(tr("Zurücksetzen")) }
     }
 }

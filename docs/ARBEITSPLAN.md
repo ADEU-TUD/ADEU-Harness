@@ -66,7 +66,7 @@ Fairlight).
 | ~~Video und Dateien~~ ☑ | AP-54 Einfache Effekte · AP-55 Textbasierter Schnitt · AP-56 Bildschirmaufnahme · AP-57 Export mit GPU · AP-58 Frag diesen Ordner · AP-59 Windows-Integration (erledigt, siehe *Erledigt*) |
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
-| **Jetzt – dringend** | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche |
+| ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung |
 | **Danach** | – |
 | **Später** | – |
@@ -81,135 +81,15 @@ Video und Dateien (AP-54 bis AP-59), PDF-Reste und Diagramme (AP-60, AP-61) sowi
 die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erkennungsmodell für die Pseudonymisierung
 (AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
-**Dringend (09.11.2026)**: AP-68 bis AP-70 gehen vor – zuerst AP-68 (Datenschutz im Postfach), dann AP-69 (das Einordnen
-läuft nur mit dem lokalen Modell aus AP-68); AP-70 (Videoeditor) hängt von keinem der beiden ab. AP-67 läuft parallel
-weiter (das Training der Pseudonymisierung geschieht in einem eigenen Chat). Abhängigkeit: AP-68 vor AP-69.
+**Dringend (09.11.2026)**: AP-68 bis AP-70 sind erledigt (09.11.2026). AP-67 läuft weiter (das Training der
+Pseudonymisierung geschieht in einem eigenen Chat).
 
 ---
 
 ## Jetzt
 
-**Dringend** – am 09.11.2026 aufgenommen (Rückmeldung des Hauptnutzers zu 1.0.61). AP-68 bis AP-70 kommen vor allem
-anderen, in dieser Reihenfolge; AP-67 (unten) läuft parallel, sein Training geschieht gerade in einem eigenen Chat.
-
-### AP-68 ☐ Postfach nur mit lokalem Modell · M (neu, dringend)
-**Ziel**: Aus Datenschutzgründen kommt **nur ein Modell auf diesem Gerät** an Mails, Ordner, Termine und Aufgaben – für
-das klassische Outlook (COM) und den Mailserver (IMAP) gleichermaßen. Uni-Server und externe Anbieter (API) sind im
-Postfach **fest gesperrt**, ohne Schalter zum Aufheben. Das lokale Modell darf Ergebnisse an Chats mit API-Modellen
-**übergeben** – aber nur, was es selbst geschrieben hat. Ins Postfach selbst kommt nur das lokale Modell.
-
-Heute: Der Modus *Postfach* schickt Mails und Termine an das gewählte Modell (Datenhinweis „… gehen an das gewählte
-Modell, Namen pseudonymisiert“), und die `outlook_*`-Werkzeuge stehen bei eingeschaltetem Werkzeug *Mail & Kalender* in
-**jedem** Chat bereit, unabhängig vom Modell (`AgentRunner`, außer im Tresor).
-
-- **Sperre an einer Stelle**: Die Mail-Werkzeuge (Outlook und IMAP) bekommt ein Chat nur, wenn sein Modell auf dem Gerät
-  läuft (`local/LocalLlm.kt`, `LlamaHost`). Das gilt für alle Wege: Chats, Modus *Postfach*, Lora-Aktionen, Abläufe
-  (AP-40), Stapel (AP-20), geplante Aufgaben. Der Modus *Postfach* setzt die Datenschutzstufe des Chats fest auf *Nur auf
-  diesem Gerät*; im Modellwähler stehen dort nur lokale Modelle, ein Wechsel auf ein Modell außerhalb des Geräts ist
-  nicht möglich.
-- **Auch Lora**: Lora antwortet sonst mit GLM-5.3 Flash (Uni-Server). Sie darf zum Postfach führen und Aufträge annehmen,
-  liest aber keine Mails; Mail-Aufträge (zusammenfassen, sortieren, Entwurf) führt das lokale Modell aus, die Schrittzeile
-  sagt „läuft auf diesem Gerät“. Auch Zusammenfassungen in *Mail & Kalender* kommen nur aus dem lokalen Modell.
-- **Übergabe an API-Chats**: *An Chat übergeben* (Knopf und Lora-Übergabe, Standard DeepSeek V4.1 Flash) nimmt nur den
-  Text, den das lokale Modell erzeugt hat (Zusammenfassung, Stichpunkte, Frage), pseudonymisiert und **vorher als Karte
-  zum Prüfen und Ändern** – genau dieser Text geht hinaus, nichts sonst. Der neue Chat bekommt keine Mail-Werkzeuge, keine
-  Anhänge, keine Mail-Kennungen und kann nicht ins Postfach greifen. Zurück ins Postfach geht ein Ergebnis nur über die
-  Person oder das lokale Modell (Offene Frage 10).
-- **Ohne lokales Modell**: Das Postfach erklärt, warum ein lokales Modell nötig ist, und bietet ein passendes zum
-  Herunterladen an (mit Werkzeugaufrufen; Vorgabe je PC mit bzw. ohne Grafikkarte, Offene Frage 10). Ein schon geladenes
-  lokales Modell wird mitgenutzt.
-- **Tempo**: Lokale Modelle sind auf Dienst-PCs ohne Grafikkarte langsam → kurze Prompts, wenige Werkzeuge, Mails gekürzt
-  (Kopf und Anfang, ganze Mail nur bei Bedarf); lange Läufe im Hintergrund mit Fortschritt (mit AP-69).
-- **Texte**: Datenhinweis des Modus („Mails verlassen den PC nicht – ein Modell auf diesem Gerät liest sie“), *Einstellungen
-  › Datenschutz*, Erklärung in *Mail & Kalender*, Datenschutzhinweise (Grundsatz *KI entscheidet nicht*), englische Texte
-  über `en.tsv`.
-- **Tests**: Kein Mail-Werkzeug in einem Chat mit Uni-Server- oder API-Modell – auch nicht bei eingeschaltetem Werkzeug,
-  über Lora, Abläufe oder Stapel; die Übergabe enthält nur den freigegebenen Text; der Postfach-Chat lässt kein Modell
-  außerhalb des Geräts zu.
-
-**Fertig, wenn**: Mit einem API- oder Uni-Server-Modell ist kein Mail-Werkzeug erreichbar; im Postfach arbeitet ein
-lokales Modell; eine Zusammenfassung lässt sich nach Prüfung an DeepSeek übergeben, ohne dass der neue Chat die Mails
-selbst lesen kann.
-
-**Betrifft**: `agent/AgentRunner.kt` (Freigabe der `outlookTools`), `agent/ChatModes.kt` (`MAIL`), `agent/OutlookTools.kt`,
-`data/Privacy.kt`, `local/LocalLlm.kt`, `agent/LoraAgent.kt`, `agent/ToolActions.kt`, `agent/LoraPlan.kt`,
-`ui/MailScreen.kt`, Modellwähler, `en.tsv`.
-
-### AP-69 ☐ Postfach: echte Mailansicht und Lora sortiert selbst · L (neu, dringend, nach AP-68)
-**Ziel**: Das Postfach zeigt **alle Mails** wie ein Mailprogramm, und Lora **ordnet Mails auf Zuruf selbständig ein** –
-„Geh die Mails der letzten Woche durch und ordne sie in Lehre, Forschung und Verwaltung ein“ – und legt dafür auch **eigene
-Ordner in Outlook** an. Alles mit dem lokalen Modell (AP-68); gelöscht und gesendet wird weiterhin nie.
-
-Heute zeigt *Mail & Kalender* Verbindung, Termine von heute/morgen, Sortierregeln und Protokoll, aber **keine Mails**.
-Sortieren geht über feste Regeln (Absender/Betreff → Ordner) oder im Chat mit höchstens 200 Mails je Abruf und Rückfrage
-bei jedem Verschieben. `outlook_create_folder` gibt es als Werkzeug, ist aber nicht fester Teil eines Sortierauftrags.
-
-**Stufen**
-- **a) Mailansicht** (ohne Modell): drei Spalten wie in Outlook – **Ordnerbaum** (alle Ordner mit Unterordnern und
-  Ungelesen-Zahl), **Mail-Liste** (Absender, Betreff, Vorschau, Datum, Anhang, gelesen/ungelesen; gruppiert nach Heute,
-  Gestern, Diese Woche …; lädt seitenweise nach und bleibt auch bei vielen tausend Mails flüssig) und **Lesebereich**
-  (Text, Anhänge öffnen oder in den Lora-Ordner speichern, *In Outlook öffnen*). Spaltenbreiten ziehbar. **Suchen und
-  filtern** (Absender, Betreff, Zeitraum, ungelesen, mit Anhang, ein Ordner oder alle). **Mehrfachauswahl**, Ziehen in
-  einen Ordner, als gelesen markieren, Ordner von Hand anlegen und umbenennen – mit Rückgängig. Termine, Regeln und
-  Protokoll wandern in eine Seitenleiste bzw. einen eigenen Reiter. Das Lora-Panel kennt die Auswahl („diese 12 Mails
-  …“). Outlook und IMAP über dieselbe Schnittstelle (`OutlookBridge`: seitenweises Laden, Ordnerbaum, gelesen markieren,
-  Ordner umbenennen). Android: Liste und Lesebereich nacheinander.
-- **b) Lora sortiert selbst**: Zeitraum, Quellordner (Standard Posteingang) und Zielordner kommen aus dem Satz; fehlende
-  Zielordner legt Lora **in Outlook an** (auch Unterordner, z. B. „Lehre/WS 2026-27“), auf Wunsch schlägt sie eine
-  Ordnerstruktur vor. Das lokale Modell liest Kopf und Anfang jeder Mail und ordnet zu (kurze Begründung, Sicherheit).
-  Danach **eine Vorschau für den ganzen Auftrag** (Ordner → Anzahl, je Mail aufklappbar, einzelne umhängen oder
-  auslassen, Unsichere gesondert) und **ein Klick** *Einordnen* statt einer Rückfrage je Mail. Auf Wunsch ohne Vorschau
-  („ohne Rückfrage“ im Auftrag); Unsichere bleiben dann im Quellordner.
-- **c) Lauf und Rückgängig**: Der Lauf geht im Hintergrund mit Fortschritt, Pause und Abbrechen und übersteht einen
-  Neustart (wie AP-40). **Rückgängig für den ganzen Lauf** schiebt alle Mails zurück; neu angelegte Ordner bleiben stehen
-  (nichts wird gelöscht). Jede Verschiebung steht im Protokoll. Lora-Aktion `mail.sort` im Register (AP-38), damit sie auch
-  in Abläufen geht.
-- **d) Wiederkehrend** (wenn einfach machbar): Aus einem Lauf wird auf Wunsch eine feste Regel oder ein gespeicherter
-  Sortierauftrag („jeden Montag die letzte Woche einordnen“) über *Geplante Aufgaben*; Korrekturen der Person dienen
-  dem nächsten Lauf als Beispiele (nur nach Rückfrage, AP-39).
-
-**Fertig, wenn**: Die Mailansicht zeigt alle Ordner und Mails eines echten Postfachs (auch über 5 000 Mails) flüssig mit
-Lesebereich und Suche; „Ordne die Mails der letzten Woche in X, Y und Z ein“ legt fehlende Ordner in Outlook an, zeigt
-eine Vorschau, verschiebt nach einem Klick und lässt sich als Ganzes rückgängig machen – alles mit einem lokalen Modell.
-
-**Betrifft**: `data/Outlook.kt` (`OutlookBridge`), Windows `desktop/ComOutlook.kt`, `data/MailServer.kt`, `net/Imap.kt`,
-`ui/MailScreen.kt` (neu aufgebaut), `agent/OutlookTools.kt`, neu `agent/MailSorter.kt`, `agent/ToolActions.kt`,
-`agent/LoraPlan.kt`.
-
-### AP-70 ☐ Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (D) · L (neu, dringend)
-Rückmeldung zu 1.0.61: Das Bild der Vorschau **zuckt**, die Oberfläche ist **starr** (feste Spaltenbreiten, nichts
-verschieb- oder ausblendbar) und **mäßig übersichtlich**, und beim Überfahren mit der Maus bekommen Knöpfe einen
-**seltsamen Schatten** (grauer Kasten, die Beschriftung von einem hellen Balken verdeckt – gesehen an *Klinge (B)*).
-
-**Stufen**
-- **a) Zucken beheben** (zuerst): Ursache messen statt raten. Kandidaten: Wechsel zwischen dem Standbild direkt aus der
-  Datei und dem Bild aus dem Graphen (andere Größe, anderes Seitenverhältnis, andere Schärfe – auffällig bei Quellen, die
-  nicht 16:9 sind), ein leeres Bild zwischen altem und neuem Standbild beim Ziehen des Abspielkopfs, Neustart der
-  ffmpeg-Läufe bei jeder Änderung, Titel und Untertitel, die beim Neuzeichnen kurz fehlen. Ziel: Das alte Bild bleibt
-  stehen, bis das neue fertig ist; Standbild und Wiedergabe sind gleich groß und deckungsgleich; Scrubben ohne Flackern.
-- **b) Hover-Schatten**: Ursache finden (Zustandsebene der Chips und Knöpfe, `FOCUS_VISIBLE` in `ui/Theme.kt` aus AP-30,
-  Fokus nach dem Klick …) und zentral beheben: Überfahren tönt nur dezent, die Beschriftung bleibt lesbar. Prüfen, ob die
-  ganze App betroffen ist (dieselben Chips gibt es überall). Der deutliche Tastaturfokus aus AP-30 bleibt.
-- **c) Anpassbar** (eine Ansicht, keine Einfach-/Expertenansicht): Trenner zwischen Medienpool, Vorschau, Eigenschaften
-  und Zeitleiste ziehbar (gemeinsamer `PanelResizer`), Medienpool und Eigenschaften einklappbar, Vorschau groß bzw. im
-  Vollbild, die Seitenleiste der App im Editor eingeklappt (per Knopf wieder da), Spurhöhe einstellbar, Spuren
-  einklappbar. Die Anordnung wird gemerkt; *Anordnung zurücksetzen*. Taugt auch für kleine Bildschirme (1366×768 bzw.
-  1920×1080 bei 125–150 %).
-- **d) Übersichtlicher**: Kopfzeile aufräumen (Werkzeuge als Symbolgruppe mit Tooltip und Taste statt langer
-  Text-Chips; Rückgängig, Wiederholen und Exportieren rechts), die zweite Leiste (*Clip hinzufügen … Rohschnitt*) in
-  Gruppen bzw. ein „+“-Menü, Transportleiste ohne umbrochene Beschriftungen (heute „Teil en (S)“ im runden Knopf),
-  Eigenschaften zeigen nur, was zum gewählten Element passt, Hinweiszeile kürzer, die Tour-Karte verdeckt ihr Ziel nicht
-  (heute liegt sie über den Clips). Richtung: die Schnitt-Seite von Resolve, eigenständig im Lora-Stil. Leuchtrahmen und
-  Tour (AP-41) an die neue Anordnung anpassen.
-- **e) Tests**: Bildfolge beim Abspielen, Scrubben und Wechsel Standbild → Wiedergabe → Standbild ohne Sprung in Größe
-  und Lage und ohne leere Bilder; Anordnung übersteht einen Neustart; alle Knöpfe bei 1366×768 und 150 % ohne Umbruch.
-
-**Fertig, wenn**: Abspielen und Scrubben eines 1080p-Projekts (auch mit einer Quelle, die nicht 16:9 ist) zucken nicht
-mehr; Bereiche lassen sich ziehen, ein- und ausklappen, bleiben nach dem Neustart so und lassen sich zurücksetzen;
-Überfahren zeigt keinen grauen Kasten mehr.
-
-**Betrifft**: Windows `ui/VideoScreen.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt`, `ui/VideoEffectsUi.kt`,
-`video/VideoPlayer.kt`; gemeinsam `ui/PanelResizer.kt`, `ui/Theme.kt` (Hover), `ui/LoraTour.kt`.
+Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt bleibt AP-67; sein
+Training geschieht in einem eigenen Chat.
 
 **Parallel: AP-67**
 
@@ -432,8 +312,11 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-64 Android zieht nach | Folien auf dem zweiten Bildschirm (Presentation), Wischen, Bildschirm bleibt an, Speichern in den Lora-Ordner, Verkleinern (Werkzeugkasten und Lora-Aktion), Tour für den Scanner | Rest der PDF-Stufe 3 (Schwärzen, PDF/A …) bleibt am PC; Touren für die Editoren selbst |
 | ☑ AP-65 Diktat | 🎤 im Dokument-Editor und an den Sprechernotizen, Erkennung auf dem Gerät (sherpa-onnx), Satzzeichen und Absätze per Sprache (de/en), Abstand und Großschreibung am Cursor | Diktat in weiteren Textfeldern; Sprechen ohne Stopp-Knopf (Pausenerkennung) |
 | ☑ AP-66 Schnellansicht in Dateien | Leertaste über der Datei unter der Maus bzw. der ausgewählten, ←/→ blättert, Enter öffnet; Details-Spalte (Art, Größe, Daten, Ort, Seiten/Wörter/Folien/Abmessungen, Schlagwörter, Chat); Android über ⋮ › Vorschau | Vorschau für Video/Ton; Details auch in den Suchergebnissen |
+| ☑ AP-68 Postfach nur mit lokalem Modell | Mail-Werkzeuge und `mail.*`-Aktionen nur für Modelle auf dem Gerät (eine Sperre, letzte Prüfung im `LlmClient`), Postfach-Modus fest lokal, Lora gibt Mail-Aufträge weiter, Übergabe an API-Chats nur als geprüfte Karte, Modellvorschlag ohne lokales Modell | Modellvorgabe nach Messung (Offene Frage 10) |
+| ☑ AP-69 Mailansicht und Lora sortiert selbst | drei Spalten mit Ordnerbaum, Liste seitenweise (5 000+ Mails), Lesebereich, Suche, Mehrfachauswahl, Ziehen, Rückgängig; Lora ordnet nach Satz ein (Ordner anlegen, eine Vorschau, ein Klick), Lauf im Hintergrund mit Rückgängig, `mail.sort`, Regeln und geplante Aufgabe | Probe mit echtem Outlook/IMAP; Tempo auf Dienst-PCs |
+| ☑ AP-70 Videoeditor: ruhiges Bild, anpassbare Oberfläche | Vorschau ohne Zucken (gleicher Filter für Standbild und Wiedergabe, Scrubben ohne Leerbild, glatte Uhr), flache Chips ohne Hover-Schatten, ziehbare/einklappbare Bereiche, Anordnung gemerkt, Symbolleisten mit Tooltip, Tour-Karte neben dem Ziel | Prüfung unter Windows mit echter Skalierung |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-66 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-70 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -1220,6 +1103,162 @@ Wie bisher nur, was dort sinnvoll ist:
   (ⓘ oben, breite Fenster) mit `files/FileDetails.kt`. Android: ⋮ › *Vorschau*. Tests `QuickLookTest`,
   `Round2EndLookTest` (Maus über einer PDF → Details mit Seiten und Ort, Leertaste → Schnellansicht). **Rest**: Vorschau
   für Video und Ton; Details auch für Treffer der Suche.
+
+### AP-68 ☑ Postfach nur mit lokalem Modell · M (neu, dringend)
+**Ziel**: Aus Datenschutzgründen kommt **nur ein Modell auf diesem Gerät** an Mails, Ordner, Termine und Aufgaben – für
+das klassische Outlook (COM) und den Mailserver (IMAP) gleichermaßen. Uni-Server und externe Anbieter (API) sind im
+Postfach **fest gesperrt**, ohne Schalter zum Aufheben. Das lokale Modell darf Ergebnisse an Chats mit API-Modellen
+**übergeben** – aber nur, was es selbst geschrieben hat. Ins Postfach selbst kommt nur das lokale Modell.
+
+Heute: Der Modus *Postfach* schickt Mails und Termine an das gewählte Modell (Datenhinweis „… gehen an das gewählte
+Modell, Namen pseudonymisiert“), und die `outlook_*`-Werkzeuge stehen bei eingeschaltetem Werkzeug *Mail & Kalender* in
+**jedem** Chat bereit, unabhängig vom Modell (`AgentRunner`, außer im Tresor).
+
+- **Sperre an einer Stelle**: Die Mail-Werkzeuge (Outlook und IMAP) bekommt ein Chat nur, wenn sein Modell auf dem Gerät
+  läuft (`local/LocalLlm.kt`, `LlamaHost`). Das gilt für alle Wege: Chats, Modus *Postfach*, Lora-Aktionen, Abläufe
+  (AP-40), Stapel (AP-20), geplante Aufgaben. Der Modus *Postfach* setzt die Datenschutzstufe des Chats fest auf *Nur auf
+  diesem Gerät*; im Modellwähler stehen dort nur lokale Modelle, ein Wechsel auf ein Modell außerhalb des Geräts ist
+  nicht möglich.
+- **Auch Lora**: Lora antwortet sonst mit GLM-5.3 Flash (Uni-Server). Sie darf zum Postfach führen und Aufträge annehmen,
+  liest aber keine Mails; Mail-Aufträge (zusammenfassen, sortieren, Entwurf) führt das lokale Modell aus, die Schrittzeile
+  sagt „läuft auf diesem Gerät“. Auch Zusammenfassungen in *Mail & Kalender* kommen nur aus dem lokalen Modell.
+- **Übergabe an API-Chats**: *An Chat übergeben* (Knopf und Lora-Übergabe, Standard DeepSeek V4.1 Flash) nimmt nur den
+  Text, den das lokale Modell erzeugt hat (Zusammenfassung, Stichpunkte, Frage), pseudonymisiert und **vorher als Karte
+  zum Prüfen und Ändern** – genau dieser Text geht hinaus, nichts sonst. Der neue Chat bekommt keine Mail-Werkzeuge, keine
+  Anhänge, keine Mail-Kennungen und kann nicht ins Postfach greifen. Zurück ins Postfach geht ein Ergebnis nur über die
+  Person oder das lokale Modell (Offene Frage 10).
+- **Ohne lokales Modell**: Das Postfach erklärt, warum ein lokales Modell nötig ist, und bietet ein passendes zum
+  Herunterladen an (mit Werkzeugaufrufen; Vorgabe je PC mit bzw. ohne Grafikkarte, Offene Frage 10). Ein schon geladenes
+  lokales Modell wird mitgenutzt.
+- **Tempo**: Lokale Modelle sind auf Dienst-PCs ohne Grafikkarte langsam → kurze Prompts, wenige Werkzeuge, Mails gekürzt
+  (Kopf und Anfang, ganze Mail nur bei Bedarf); lange Läufe im Hintergrund mit Fortschritt (mit AP-69).
+- **Texte**: Datenhinweis des Modus („Mails verlassen den PC nicht – ein Modell auf diesem Gerät liest sie“), *Einstellungen
+  › Datenschutz*, Erklärung in *Mail & Kalender*, Datenschutzhinweise (Grundsatz *KI entscheidet nicht*), englische Texte
+  über `en.tsv`.
+- **Tests**: Kein Mail-Werkzeug in einem Chat mit Uni-Server- oder API-Modell – auch nicht bei eingeschaltetem Werkzeug,
+  über Lora, Abläufe oder Stapel; die Übergabe enthält nur den freigegebenen Text; der Postfach-Chat lässt kein Modell
+  außerhalb des Geräts zu.
+
+**Fertig, wenn**: Mit einem API- oder Uni-Server-Modell ist kein Mail-Werkzeug erreichbar; im Postfach arbeitet ein
+lokales Modell; eine Zusammenfassung lässt sich nach Prüfung an DeepSeek übergeben, ohne dass der neue Chat die Mails
+selbst lesen kann.
+
+**Betrifft**: `agent/AgentRunner.kt` (Freigabe der `outlookTools`), `agent/ChatModes.kt` (`MAIL`), `agent/OutlookTools.kt`,
+`data/Privacy.kt`, `local/LocalLlm.kt`, `agent/LoraAgent.kt`, `agent/ToolActions.kt`, `agent/LoraPlan.kt`,
+`ui/MailScreen.kt`, Modellwähler, `en.tsv`.
+- **Umsetzung (09.11.2026, ☑)**: Eine Sperre an einer Stelle (`agent/MailAccess.kt`): Mail-Werkzeuge (`outlook_*`,
+  `mail_*`) und Lora-Aktionen `mail.*` gibt es nur für Modelle auf dem Gerät – in Chats, im Modus *Postfach*, über Lora,
+  Abläufe, Stapel und geplante Aufgaben; `LlmClient` prüft als letzte Stelle (`MailAccess.guard`), dass keine Maildaten an
+  einen Server gehen. Ein Chat, der das Postfach berührt hat, sperrt sich (nur Mail-Werkzeuge und Rückfragen, kein Web,
+  keine Stapel). Modus *Postfach* fest *Nur auf diesem Gerät*, Modellwähler nur lokal. Lora nimmt Mail-Aufträge an und
+  gibt sie an das lokale Modell weiter (`agent/LoraMail.kt`, Schrittzeile „läuft auf diesem Gerät“). *An Chat übergeben*
+  (`MailHandoff`): Karte zum Prüfen und Ändern, pseudonymisiert, ohne Kennungen, Anhänge und Werkzeuge. Ohne lokales
+  Modell erklärt `ui/MailLocalModel.kt` den Grund und schlägt je nach Grafikkarte ein Modell vor (ein geladenes wird
+  mitgenutzt). Mails gehen gekürzt an das Modell (`read_mail` mit `full=true` für die ganze Mail). Gedächtnis und
+  Vorlesen bleiben bei Postfach-Chats auf dem Gerät. Karte *Postfach* unter *Einstellungen › Datenschutz*. Test
+  `MailLocalOnlyTest`. **Rest**: Vorgabe des Modells nach der Messung (Offene Frage 10); Probe mit echtem Outlook und
+  llama.cpp auf einem Dienst-PC.
+
+### AP-69 ☑ Postfach: echte Mailansicht und Lora sortiert selbst · L (neu, dringend, nach AP-68)
+**Ziel**: Das Postfach zeigt **alle Mails** wie ein Mailprogramm, und Lora **ordnet Mails auf Zuruf selbständig ein** –
+„Geh die Mails der letzten Woche durch und ordne sie in Lehre, Forschung und Verwaltung ein“ – und legt dafür auch **eigene
+Ordner in Outlook** an. Alles mit dem lokalen Modell (AP-68); gelöscht und gesendet wird weiterhin nie.
+
+Heute zeigt *Mail & Kalender* Verbindung, Termine von heute/morgen, Sortierregeln und Protokoll, aber **keine Mails**.
+Sortieren geht über feste Regeln (Absender/Betreff → Ordner) oder im Chat mit höchstens 200 Mails je Abruf und Rückfrage
+bei jedem Verschieben. `outlook_create_folder` gibt es als Werkzeug, ist aber nicht fester Teil eines Sortierauftrags.
+
+**Stufen**
+- **a) Mailansicht** (ohne Modell): drei Spalten wie in Outlook – **Ordnerbaum** (alle Ordner mit Unterordnern und
+  Ungelesen-Zahl), **Mail-Liste** (Absender, Betreff, Vorschau, Datum, Anhang, gelesen/ungelesen; gruppiert nach Heute,
+  Gestern, Diese Woche …; lädt seitenweise nach und bleibt auch bei vielen tausend Mails flüssig) und **Lesebereich**
+  (Text, Anhänge öffnen oder in den Lora-Ordner speichern, *In Outlook öffnen*). Spaltenbreiten ziehbar. **Suchen und
+  filtern** (Absender, Betreff, Zeitraum, ungelesen, mit Anhang, ein Ordner oder alle). **Mehrfachauswahl**, Ziehen in
+  einen Ordner, als gelesen markieren, Ordner von Hand anlegen und umbenennen – mit Rückgängig. Termine, Regeln und
+  Protokoll wandern in eine Seitenleiste bzw. einen eigenen Reiter. Das Lora-Panel kennt die Auswahl („diese 12 Mails
+  …“). Outlook und IMAP über dieselbe Schnittstelle (`OutlookBridge`: seitenweises Laden, Ordnerbaum, gelesen markieren,
+  Ordner umbenennen). Android: Liste und Lesebereich nacheinander.
+- **b) Lora sortiert selbst**: Zeitraum, Quellordner (Standard Posteingang) und Zielordner kommen aus dem Satz; fehlende
+  Zielordner legt Lora **in Outlook an** (auch Unterordner, z. B. „Lehre/WS 2026-27“), auf Wunsch schlägt sie eine
+  Ordnerstruktur vor. Das lokale Modell liest Kopf und Anfang jeder Mail und ordnet zu (kurze Begründung, Sicherheit).
+  Danach **eine Vorschau für den ganzen Auftrag** (Ordner → Anzahl, je Mail aufklappbar, einzelne umhängen oder
+  auslassen, Unsichere gesondert) und **ein Klick** *Einordnen* statt einer Rückfrage je Mail. Auf Wunsch ohne Vorschau
+  („ohne Rückfrage“ im Auftrag); Unsichere bleiben dann im Quellordner.
+- **c) Lauf und Rückgängig**: Der Lauf geht im Hintergrund mit Fortschritt, Pause und Abbrechen und übersteht einen
+  Neustart (wie AP-40). **Rückgängig für den ganzen Lauf** schiebt alle Mails zurück; neu angelegte Ordner bleiben stehen
+  (nichts wird gelöscht). Jede Verschiebung steht im Protokoll. Lora-Aktion `mail.sort` im Register (AP-38), damit sie auch
+  in Abläufen geht.
+- **d) Wiederkehrend** (wenn einfach machbar): Aus einem Lauf wird auf Wunsch eine feste Regel oder ein gespeicherter
+  Sortierauftrag („jeden Montag die letzte Woche einordnen“) über *Geplante Aufgaben*; Korrekturen der Person dienen
+  dem nächsten Lauf als Beispiele (nur nach Rückfrage, AP-39).
+
+**Fertig, wenn**: Die Mailansicht zeigt alle Ordner und Mails eines echten Postfachs (auch über 5 000 Mails) flüssig mit
+Lesebereich und Suche; „Ordne die Mails der letzten Woche in X, Y und Z ein“ legt fehlende Ordner in Outlook an, zeigt
+eine Vorschau, verschiebt nach einem Klick und lässt sich als Ganzes rückgängig machen – alles mit einem lokalen Modell.
+
+**Betrifft**: `data/Outlook.kt` (`OutlookBridge`), Windows `desktop/ComOutlook.kt`, `data/MailServer.kt`, `net/Imap.kt`,
+`ui/MailScreen.kt` (neu aufgebaut), `agent/OutlookTools.kt`, neu `agent/MailSorter.kt`, `agent/ToolActions.kt`,
+`agent/LoraPlan.kt`.
+- **Umsetzung (09.11.2026, ☑)**: a) `data/MailBox.kt` (Ordnerbaum, Tagesgruppen, Auswahl, Rückgängig) und `ui/MailView.kt`:
+  drei Spalten mit ziehbaren Breiten, Liste seitenweise (`OutlookBridge.page` mit `MailQuery`, auch „von:“/„betreff:“),
+  Lesebereich mit Anhängen (öffnen, in den Lora-Ordner, *In Outlook öffnen*), Suche und Filter, Mehrfachauswahl,
+  Ziehen auf Ordner, gelesen/ungelesen, Ordner anlegen/umbenennen, alles mit Rückgängig und Protokoll; Termine, Regeln
+  und Protokoll im Reiter *Übersicht*; Lora kennt die Auswahl (nur Anzahl). Outlook über `Items.Restrict` (Jet/DASL),
+  IMAP mit gebündeltem `STATUS`, `STORE`, `RENAME`, `MOVE` mit `COPYUID`. b–d) `agent/MailSorter.kt`: Auftrag aus dem
+  Satz (Zeitraum, Quelle, Ziele mit Unterordnern, „ohne Rückfrage“, „jeden Montag“), das lokale Modell liest Kopf und
+  Anfang (höchstens 500 Mails je Lauf), Vorschau `ui/MailSortPreview.kt` (umhängen, auslassen, Unsichere gesondert, ein
+  Klick *Einordnen*), fehlende Ordner erst beim Einordnen angelegt, Lauf im Hintergrund mit Pause/Abbrechen und
+  Fortsetzen nach Neustart, Rückgängig für den ganzen Lauf über die neuen Kennungen (`moveTracked`), Aktion `mail.sort`
+  im Register, Regeln oder geplante Aufgabe aus einem Lauf, Korrekturen als Beispiele nur nach Rückfrage (eigene Datei
+  auf dem Gerät, nicht im allgemeinen Gedächtnis). Tests `MailViewTest`, `MailSorterTest`. **Rest**: Probe mit echtem
+  Outlook (COM ist hier nicht ausführbar) und echtem IMAP-Server; „Alle Ordner“ zeigt bei Outlook höchstens 1 000
+  Treffer; Tempo des lokalen Modells auf Dienst-PCs messen.
+
+### AP-70 ☑ Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (D) · L (neu, dringend)
+Rückmeldung zu 1.0.61: Das Bild der Vorschau **zuckt**, die Oberfläche ist **starr** (feste Spaltenbreiten, nichts
+verschieb- oder ausblendbar) und **mäßig übersichtlich**, und beim Überfahren mit der Maus bekommen Knöpfe einen
+**seltsamen Schatten** (grauer Kasten, die Beschriftung von einem hellen Balken verdeckt – gesehen an *Klinge (B)*).
+
+**Stufen**
+- **a) Zucken beheben** (zuerst): Ursache messen statt raten. Kandidaten: Wechsel zwischen dem Standbild direkt aus der
+  Datei und dem Bild aus dem Graphen (andere Größe, anderes Seitenverhältnis, andere Schärfe – auffällig bei Quellen, die
+  nicht 16:9 sind), ein leeres Bild zwischen altem und neuem Standbild beim Ziehen des Abspielkopfs, Neustart der
+  ffmpeg-Läufe bei jeder Änderung, Titel und Untertitel, die beim Neuzeichnen kurz fehlen. Ziel: Das alte Bild bleibt
+  stehen, bis das neue fertig ist; Standbild und Wiedergabe sind gleich groß und deckungsgleich; Scrubben ohne Flackern.
+- **b) Hover-Schatten**: Ursache finden (Zustandsebene der Chips und Knöpfe, `FOCUS_VISIBLE` in `ui/Theme.kt` aus AP-30,
+  Fokus nach dem Klick …) und zentral beheben: Überfahren tönt nur dezent, die Beschriftung bleibt lesbar. Prüfen, ob die
+  ganze App betroffen ist (dieselben Chips gibt es überall). Der deutliche Tastaturfokus aus AP-30 bleibt.
+- **c) Anpassbar** (eine Ansicht, keine Einfach-/Expertenansicht): Trenner zwischen Medienpool, Vorschau, Eigenschaften
+  und Zeitleiste ziehbar (gemeinsamer `PanelResizer`), Medienpool und Eigenschaften einklappbar, Vorschau groß bzw. im
+  Vollbild, die Seitenleiste der App im Editor eingeklappt (per Knopf wieder da), Spurhöhe einstellbar, Spuren
+  einklappbar. Die Anordnung wird gemerkt; *Anordnung zurücksetzen*. Taugt auch für kleine Bildschirme (1366×768 bzw.
+  1920×1080 bei 125–150 %).
+- **d) Übersichtlicher**: Kopfzeile aufräumen (Werkzeuge als Symbolgruppe mit Tooltip und Taste statt langer
+  Text-Chips; Rückgängig, Wiederholen und Exportieren rechts), die zweite Leiste (*Clip hinzufügen … Rohschnitt*) in
+  Gruppen bzw. ein „+“-Menü, Transportleiste ohne umbrochene Beschriftungen (heute „Teil en (S)“ im runden Knopf),
+  Eigenschaften zeigen nur, was zum gewählten Element passt, Hinweiszeile kürzer, die Tour-Karte verdeckt ihr Ziel nicht
+  (heute liegt sie über den Clips). Richtung: die Schnitt-Seite von Resolve, eigenständig im Lora-Stil. Leuchtrahmen und
+  Tour (AP-41) an die neue Anordnung anpassen.
+- **e) Tests**: Bildfolge beim Abspielen, Scrubben und Wechsel Standbild → Wiedergabe → Standbild ohne Sprung in Größe
+  und Lage und ohne leere Bilder; Anordnung übersteht einen Neustart; alle Knöpfe bei 1366×768 und 150 % ohne Umbruch.
+
+**Fertig, wenn**: Abspielen und Scrubben eines 1080p-Projekts (auch mit einer Quelle, die nicht 16:9 ist) zucken nicht
+mehr; Bereiche lassen sich ziehen, ein- und ausklappen, bleiben nach dem Neustart so und lassen sich zurücksetzen;
+Überfahren zeigt keinen grauen Kasten mehr.
+
+**Betrifft**: Windows `ui/VideoScreen.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt`, `ui/VideoEffectsUi.kt`,
+`video/VideoPlayer.kt`; gemeinsam `ui/PanelResizer.kt`, `ui/Theme.kt` (Hover), `ui/LoraTour.kt`.
+- **Umsetzung (09.11.2026, ☑)**: a) gemessen mit Testvideos (16:9, 4:3, Hochformat): Standbild und Wiedergabe laufen
+  jetzt durch denselben Filter (`VideoRender.fitInto`, vorher 1 Pixel Versatz bei Hochformat), beim Scrubben bleibt
+  das letzte fertige Bild stehen statt verworfen zu werden, `PlaybackClock` glättet die Ton-Uhr (vorher Doppelbilder),
+  Bearbeitungen ohne Bildänderung starten keinen ffmpeg-Lauf, Titel/Untertitel bleiben beim Neuzeichnen stehen.
+  b) Ursache: Material 3 hebt nicht gewählte `FilterChip`s beim Überfahren an, der Schatten schien durch – flache Chips
+  in `ui/Chips.kt` für die ganze App, Hover-Tönung 6 %, Tastaturfokus unverändert. c/d) `ui/VideoLayout.kt`:
+  ziehbare Trenner (`PanelResizer` auch senkrecht), Medienpool und Eigenschaften einklappbar, Vorschau groß (Alt+F) und
+  Vollbild (Strg+F), App-Seitenleiste im Editor eingeklappt (Strg+B), Spurhöhe und eingeklappte Spuren, Anordnung
+  gemerkt mit *Anordnung zurücksetzen*, Werkzeuge als Symbole mit Tooltip (`ui/Tip.kt`), Transportleiste mit fester
+  Höhe, Tour-Karte neben ihrem Ziel (alle Touren). Tests `VideoPreviewCalmTest`, `HoverLookTest`, `VideoLayoutTest`.
+  **Rest**: Prüfung unter Windows mit echter Skalierung und Soundkarte; den „hellen Balken“ selbst nachsehen.
 
 ---
 

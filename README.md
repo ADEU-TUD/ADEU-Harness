@@ -734,6 +734,31 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   (mit zitiertem Verlauf). Unter Windows wählbar statt des klassischen Outlook. Termine, Aufgaben und Frei/Gebucht
   brauchen Exchange (EWS/Graph mit Freigabe der IT) und gibt es auf diesem Weg noch nicht.
   - **Was ist wichtig?** Postfach zusammenfassen (z. B. seit gestern): *Handeln*, *Termine*, *Zur Kenntnis*.
+  - **Nur ein Modell auf diesem Gerät** (AP-68): Mails, Ordner, Termine und Aufgaben liest weder der Uni-Server noch ein
+    externer Anbieter – fest, ohne Schalter. Der Modus *Postfach* arbeitet *Nur auf diesem Gerät* und bietet im
+    Modellwähler nur lokale Modelle an; Mail-Werkzeuge gibt es in keinem Chat mit einem Server-Modell, auch nicht über
+    Lora, Abläufe, Stapel oder geplante Aufgaben. Fehlt ein lokales Modell, erklärt *Mail & Kalender* warum und schlägt
+    ein passendes zum Herunterladen vor (je nachdem, ob der PC eine Grafikkarte hat). Lora nimmt Mail-Aufträge an, liest
+    aber selbst keine Mails – das Modell auf dem Gerät erledigt sie („läuft auf diesem Gerät“). Lange Mails liest es
+    gekürzt (Kopf und Anfang), damit es auch ohne Grafikkarte zügig geht. **An Chat übergeben**: Eine Zusammenfassung
+    des lokalen Modells geht an DeepSeek – vorher als Karte zum Prüfen und Ändern, pseudonymisiert, ohne Mails, Anhänge
+    und Mail-Kennungen; der neue Chat kann nicht ins Postfach greifen.
+  - **Mailansicht wie ein Mailprogramm** (AP-69): links alle Ordner mit Unterordnern und Ungelesen-Zahl, in der Mitte
+    die Mails nach Heute, Gestern, Diese Woche …, rechts die geöffnete Mail mit Anhängen (öffnen, in den Lora-Ordner
+    speichern, *In Outlook öffnen*). Auch Postfächer mit vielen tausend Mails laufen flüssig (Nachladen beim Scrollen),
+    die Spaltenbreiten lassen sich ziehen. **Suchen und filtern** nach Absender, Betreff, Zeitraum, ungelesen, mit
+    Anhang, in einem oder allen Ordnern. Mehrere Mails auswählen, auf einen Ordner ziehen, als gelesen/ungelesen
+    markieren, Ordner anlegen und umbenennen – alles mit Rückgängig und im Protokoll. Lora weiß, welche Mails ausgewählt
+    sind. Auf dem Handy erst die Liste, dann die Mail. Über den Mailserver fragt die App lange Listen in kurzen Befehlen
+    ab, weil Exchange Zeilen über 10 KB ablehnt (in 1.0.62 bei großen Posteingängen „Command Error. 10“).
+  - **Lora sortiert selbst** (AP-69): „Geh die Mails der letzten Woche durch und ordne sie in Lehre, Forschung und
+    Verwaltung ein“ – fehlende Ordner (auch Unterordner wie „Lehre/WS 2026-27“) legt Lora in Outlook an oder schlägt
+    eine Ordnerstruktur vor. Das Modell auf dem Gerät liest Kopf und Anfang jeder Mail. Danach **eine Vorschau** für den
+    ganzen Auftrag (einzelne Mails umhängen oder auslassen, Unsichere gesondert) und **ein Klick** *Einordnen*; mit
+    „ohne Rückfrage“ ohne Vorschau, Unsichere bleiben dann liegen. Der Lauf geht im Hintergrund mit Fortschritt, Pause
+    und Abbrechen weiter, auch nach einem Neustart, und lässt sich **als Ganzes rückgängig** machen (neue Ordner bleiben
+    stehen). Aus einem Lauf werden auf Wunsch feste Regeln oder ein regelmäßiger Auftrag („jeden Montag“); Korrekturen
+    merkt sich Lora als Beispiele, wenn man zustimmt. Auch als Lora-Aktion in Abläufen.
   - **Sortieren**: Lora schlägt Ordner und feste **Sortierregeln** vor (Absender/Betreff enthält … → Ordner);
     Verschieben fragt vorher, Regeln wirken nur über *Regeln anwenden …*, das zuerst zeigt, was wohin käme.
   - **Antworten im eigenen Stil** (Gedächtnis, gesendete Mails) landen als **Entwurf** in Outlook – mit zitiertem Verlauf.
@@ -741,8 +766,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     mit Kolleg:innen aus Frei/Gebucht (Mo–Fr, 8–18 Uhr, einstellbar) und **Einladungen**, die vorbereitet in Outlook
     aufgehen – senden tut die Person selbst.
   - **Harte Regeln**: Die Brücke zu Outlook hat weder Löschen noch Senden. Jede Änderung steht im **Protokoll** unter
-    *Mehr › Mail & Kalender* (dort auch Verbindung, Termine von heute und morgen, Starts für Lora, Regeln). Mails gehen
-    pseudonymisiert an das Modell, wenn die Pseudonymisierung an ist. Modus *Postfach* (`/Postfach`).
+    *Mehr › Mail & Kalender* (Reiter *Übersicht*: Verbindung, Termine von heute und morgen, Starts für Lora, Regeln).
+    Modus *Postfach* (`/Postfach`).
   - Je nach Virenscanner fragt Outlook einmal „Ein Programm versucht, auf E-Mail-Adressen zuzugreifen“ – dort zulassen.
 - **Dateien** (AP-16 Stufe 0, Tab *Dateien* oben in der Seitenleiste, Strg+D) – wie Google Drive: der **Lora-Ordner**
   mit den festen Ordnern **Hochgeladen** (eine Kopie jeder Datei, die in einen Chat kommt – dieselbe Datei nur einmal,
@@ -1069,6 +1094,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   entfernt bzw. gekürzt. **Lora als Schnitt-Assistentin**: „Kürze auf 10 Minuten, behalte die Beispiele“ – die Vorschläge
   stehen durchgestrichen im Text, jeder einzeln annehmen oder ablehnen; auch als Lora-Aktion *Im Transkript schneiden*.
   Rückgängig wie überall. Test `TextCutTest` (u. a. ein Lehrvideo nur über den Text geschnitten, Export = Zeitleiste).
+- **Videoeditor: ruhiges Bild und anpassbare Oberfläche** (AP-70):
+  - **Ruhige Vorschau**: Standbild und Wiedergabe sind gleich groß und liegen genau übereinander, auch bei 4:3- und
+    Hochformat-Aufnahmen. Beim Ziehen des Abspielkopfs folgt das Bild flüssig und wird nie schwarz; mit Ton läuft die
+    Wiedergabe gleichmäßig. Titel und Untertitel blinken nicht mehr, wenn sich die Größe ändert oder man tippt.
+  - **Anpassbar**: Medienpool, Vorschau, Eigenschaften und Zeitleiste lassen sich an ihren Rändern ziehen, Medienpool
+    und Eigenschaften einklappen, die Vorschau gibt es groß (Alt+F) oder im Vollbild (Strg+F). Spuren lassen sich höher,
+    niedriger und ganz einklappen. Im Editor ist die Seitenleiste der App eingeklappt (Knopf oder Strg+B). Die Anordnung
+    bleibt nach dem Neustart erhalten; *Anordnung zurücksetzen* stellt sie wieder her.
+  - **Übersichtlicher**: Werkzeuge und Aktionen als Symbole mit Tooltip und Taste, Eigenschaften nur passend zum
+    gewählten Element, auch bei 1366×768 und 150 % ohne Umbruch. Tour-Karten stehen neben dem Ort, den sie erklären.
+  - **Kein grauer Kasten** mehr beim Überfahren von Knöpfen und Chips (in der ganzen App) – nur eine leichte Tönung;
+    der deutliche Tastaturfokus bleibt.
 - **Bildschirmaufnahme** (AP-56, *Videoeditor › Bildschirm aufnehmen*): ganzer Bildschirm, ein Fenster oder ein
   gezogener Bereich, dazu **Webcam**, **Mikrofon** und **Systemton** (über ein Aufnahmegerät wie „Stereomix“), Countdown,
   Mauszeiger und **Klicks als Ringe**. Ein ffmpeg-Prozess nimmt alles mit derselben Uhr auf, jede Quelle in eine eigene
@@ -1698,13 +1735,13 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `data/LearningGames.kt`, `agent/GameTools.kt`, `ui/GamesScreen.kt`, `ui/GamePlatform.kt` (beide) | Lernspiele (AP-17): Sammlung mit Versionen, Abschottung (CSP), Export als HTML/ZIP, Agent-Werkzeuge, Spielen |
 | `agent/AiUseNote.kt`, `ui/AiUseNoteUi.kt` | KI-Nutzungsnachweis (AP-19): Erkennung „Text für eine Arbeit“, Nachweis in drei Formaten, Pop-up-Vorschlag |
 | `desktop/WebEngine.kt`, `desktop/WebPage.kt`, `ui/BrowserPanel.kt` | Browser neben dem Chat (AP-14): Chromium über JCEF (einmalig eingerichtet), Tabs, Seitenaktionen, Meta-Tags → Literatur |
-| `desktop/Com.kt`, `desktop/ComOutlook.kt`, `data/OutlookPlatform.kt` (gemeinsam: `data/Outlook.kt`, `agent/OutlookTools.kt`, `ui/MailScreen.kt`) | Mail & Kalender (AP-13): COM über JNA, Outlook ohne Löschen und Senden, Agent-Werkzeuge, Regeln, Protokoll |
+| `desktop/Com.kt`, `desktop/ComOutlook.kt`, `data/OutlookPlatform.kt` (gemeinsam: `data/Outlook.kt`, `data/MailBox.kt`, `agent/OutlookTools.kt`, `agent/MailAccess.kt`, `agent/LoraMail.kt`, `agent/MailSorter.kt`, `ui/MailScreen.kt`, `ui/MailView.kt`, `ui/MailSortPreview.kt`, `ui/MailLocalModel.kt`) | Mail & Kalender (AP-13, AP-68, AP-69): COM über JNA, Outlook ohne Löschen und Senden, nur lokales Modell (eine Sperre), Mailansicht, Lora sortiert, Agent-Werkzeuge, Regeln, Protokoll |
 | `desktop/WindowsOcr.kt`, `desktop/OfficePdf.kt`, `docs/PdfPlatform.kt`, `docs/PdfExtras.kt` (beide; gemeinsam: `docs/PdfStage2.kt`, `docs/PdfConvert.kt`, `ui/PdfToolsMore.kt`) | PDF Stufe 2 (AP-15): Texterkennung von Windows, Office → PDF, Textebene, Unterschrift, PDF → Markdown/Word/Excel, Tabellen |
 | `data/FileLibrary.kt`, `ui/FilesScreen.kt` | Dateien (AP-18): Katalog, Ordner, Schlagwörter, Volltext-Cache und Suche, Vergleich |
 | `data/LoraDrive.kt`, `data/LoraRoot.kt` (beide), `desktop/Paths.kt`, `desktop/LoraLayout.kt`, `files/LoraMirror.kt` (beide), `ui/DriveScreen.kt`, `ui/LoraFolderUi.kt` (beide), `ui/DrivePlatform.kt` (beide) | Lora-Ordner und Tab *Dateien* (AP-16): Hochgeladen, Erstellt, Ordner, Papierkorb, Umzug der Daten, Kopie auf Android |
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt` und `creative/CanvasOps.kt` (gemeinsam, AP-50), `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
-| `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt` | Videoeditor (AP-25): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
+| `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt`, `ui/VideoLayout.kt` | Videoeditor (AP-25, Anordnung AP-70): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
 | `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |
 | `video/TextCut.kt`, `ui/VideoTranscriptPanel.kt` | Textbasierter Schnitt (AP-55): Wörter auf der Zeitleiste, Löschen = Schneiden, Absätze verschieben, Füllwörter/Pausen, Lora-Vorschläge |
 | `video/ScreenRecorder.kt`, `ui/ScreenRecordUi.kt`, `desktop/GlobalHotkeys.kt` | Bildschirmaufnahme (AP-56): ein ffmpeg-Prozess für Bildschirm, Webcam und Ton, Teile bei Pause, Klicks, Aufnahmeleiste, Tasten in ganz Windows |

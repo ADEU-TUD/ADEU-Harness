@@ -283,8 +283,13 @@ jobs:
           if [ "${MAC_SIGNED:-}" != "1" ]; then unset MAC_SIGN_IDENTITY; fi
           tasks=(createDistributable packageDmg)
           if [ "${MAC_NOTARIZE:-}" = "1" ]; then tasks+=(notarizeDmg); fi
-          # The runner has 7 GB of memory: less than desktop/gradle.properties (4 + 3 GB) for Gradle and the compiler.
-          ./gradlew -p desktop --no-daemon "-Dorg.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8" -Pkotlin.daemon.jvmargs=-Xmx2560m "${tasks[@]}"
+          # The runner has 7 GB of memory: less than desktop/gradle.properties (4 + 4 GB) for Gradle and a compiler daemon.
+          # The compiler keeps up to 2.4 GB while it translates the app (measured for 1.0.63); with 2.5 GB in its own
+          # daemon 1.0.62 failed („GC overhead limit exceeded“ in AppRoot). So it runs inside Gradle (one JVM, 4 GB);
+          # the larger code cache spares the full collections its threshold set off every few seconds.
+          ./gradlew -p desktop --no-daemon \
+            "-Dorg.gradle.jvmargs=-Xmx4g -XX:+UseParallelGC -XX:ReservedCodeCacheSize=512m -Dfile.encoding=UTF-8" \
+            -Pkotlin.compiler.execution.strategy=in-process "${tasks[@]}"
           if [ "${MAC_NOTARIZE:-}" = "1" ]; then
             # The DMG is stapled by notarizeDmg; the app for the tar.gz gets its ticket too (same code signature).
             xcrun stapler staple "desktop/build/compose/binaries/main/app/ADEU LLM.app" \

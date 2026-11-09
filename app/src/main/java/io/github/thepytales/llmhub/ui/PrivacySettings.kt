@@ -113,6 +113,16 @@ fun PrivacySection(c: AppContainer) {
         if (!s.pseudonymize) SettingsHint(tr("Die Pseudonymisierung ist aus – die Schalter unten wirken erst, wenn sie an ist."))
     }
 
+    // Postfach nur mit lokalem Modell (AP-68): a fixed rule, no switch.
+    SettingsCard(tr("Postfach")) {
+        SettingsHint(
+            tr("Mails, Ordner, Termine und Aufgaben (klassisches Outlook und Mailserver) liest nur ein Modell auf diesem Gerät. Der " +
+                "Uni-Server und externe Anbieter sind im Postfach fest gesperrt – dafür gibt es keinen Schalter. Ergebnisse des lokalen " +
+                "Modells gehen nur über „An Chat übergeben“ weiter: erst als Karte zum Prüfen, pseudonymisiert, ohne Mails, Anhänge " +
+                "und Mail-Kennungen. Aus Postfach-Chats lernt das Gedächtnis nichts."),
+        )
+    }
+
     PiiFeature.entries.groupBy { it.group }.forEach { (group, features) ->
         SettingsCard(group) {
             features.forEach { f -> ToggleRow(f.title, f.detail, f !in off) { v -> setFeature(f, v) } }
@@ -281,7 +291,7 @@ fun PseudonymCorrections(c: AppContainer, texts: List<String>, scope: String? = 
             Text(tr("Ersetzt – antippen, wenn es kein privater Name ist:"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 replaced.take(24).forEach { (value, placeholder) ->
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             c.privacy.neverReplace(value) { t -> c.settings.update(t) }
                             version++
@@ -297,7 +307,7 @@ fun PseudonymCorrections(c: AppContainer, texts: List<String>, scope: String? = 
             Text(tr("Nicht ersetzt – vielleicht ein Name?"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 missed.forEach { w ->
-                    androidx.compose.material3.AssistChip(
+                    AssistChip(
                         onClick = {
                             c.privacy.alwaysReplace(w) { t -> c.settings.update(t) }
                             version++

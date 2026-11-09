@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +45,8 @@ internal fun speedLabel(s: Double): String = String.format(Locale.GERMANY, "%.2f
 /**
  * Effects of a clip on V1 (AP-54), below its properties: speed, reverse, freeze, colour, zoom and pan with keyframes
  * (set where the playhead is), the vertical reframe, regions to pixelate (by hand or the faces found), and the voice.
- * Every change goes through the history (Strg+Z) and through the same graph as the export.
+ * Every change goes through the history (Strg+Z) and through the same graph as the export. Each kind is a section that
+ * is open while the effect is used (AP-70), so a clip without effects shows five short lines.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -66,10 +66,16 @@ internal fun ClipEffectsEditor(h: History, clip: VideoClip, pos: Double, onSelec
     }
 
     HorizontalDivider()
-    Text(tr("Effekte"), style = MaterialTheme.typography.titleSmall)
-    VideoFx.summary(fx).takeIf { it.isNotBlank() }?.let { HintText(it) }
+    Text(tr("Effekte"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
     // ── Time ──
+    val timed = abs(fx.speed - 1.0) > 1e-6 || fx.reverse || fx.freeze
+    PropSection("fx.time", tr("Tempo"), defaultOpen = timed, summary = when {
+        fx.freeze -> tr("Standbild")
+        fx.reverse -> speedLabel(fx.speed) + " · " + tr("rückwärts")
+        timed -> speedLabel(fx.speed)
+        else -> null
+    }) {
     if (!fx.freeze) {
         Text(tr("Geschwindigkeit"), style = MaterialTheme.typography.labelLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -89,14 +95,15 @@ internal fun ClipEffectsEditor(h: History, clip: VideoClip, pos: Double, onSelec
             VideoFx.freeze(p, pos.coerceIn(start, start + clip.length), 2.0)?.let { (q, id) -> h.edit { q }; onSelect(Sel.Clip(id)) }
         }) { Text(tr("Standbild am Abspielkopf (2 s)")) }
     } else HintText(tr("Standbild: zeigt das Bild bei {0} s der Datei. Die Länge stellst du über Anfang und Ende ein.", String.format(Locale.GERMANY, "%.2f", clip.inSec)))
+    }
 
     // ── Colour ──
-    Text(tr("Bildkorrektur"), style = MaterialTheme.typography.labelLarge)
+    PropSection("fx.color", tr("Bildkorrektur"), defaultOpen = fx.corrected || fx.balanced, summary = if (fx.corrected || fx.balanced) tr("korrigiert") else null) {
     slider(tr("Helligkeit"), "${(fx.brightness * 100).roundToInt()}", fx.brightness, -0.5f..0.5f, "b") { v -> change("fxb-${clip.id}") { it.copy(brightness = v) } }
     slider(tr("Kontrast"), "${(fx.contrast * 100).roundToInt()} %", fx.contrast, 0.5f..2f, "c") { v -> change("fxc-${clip.id}") { it.copy(contrast = v) } }
     slider(tr("Sättigung"), "${(fx.saturation * 100).roundToInt()} %", fx.saturation, 0f..2f, "s") { v -> change("fxs-${clip.id}") { it.copy(saturation = v) } }
     var balancing by remember(clip.id) { mutableStateOf(false) }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         OutlinedButton(enabled = !balancing, onClick = {
             balancing = true
             scope.launch {
@@ -110,9 +117,12 @@ internal fun ClipEffectsEditor(h: History, clip: VideoClip, pos: Double, onSelec
         }) { if (balancing) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp) else Text(tr("Weißabgleich automatisch")) }
         if (fx.corrected || fx.balanced) TextButton(onClick = { change(null) { it.copy(brightness = 0f, contrast = 1f, saturation = 1f, gainR = 1f, gainG = 1f, gainB = 1f) } }) { Text(tr("Zurücksetzen")) }
     }
+    }
 
     // ── Zoom and pan ──
-    Text(tr("Zoom und Schwenk"), style = MaterialTheme.typography.labelLarge)
+    PropSection("fx.zoom", tr("Zoom und Schwenk"), defaultOpen = fx.zoom.isNotEmpty() || fx.vertical, summary = listOfNotNull(
+        fx.zoom.size.takeIf { it > 0 }?.let { tr("{0} Keyframe(s)", it) }, if (fx.vertical) "9:16" else null,
+    ).joinToString(" · ").ifBlank { null }) {
     HintText(tr("Abspielkopf an eine Stelle setzen und den Ausschnitt einstellen – dort entsteht ein Keyframe; dazwischen gleitet das Bild."))
     val zk = VideoFx.keyAt(fx.zoom, src, fx.ease) ?: Key(src)
     fun setZoom(k: Key) = change("fxz-${clip.id}-${(src * 10).roundToInt()}") { f -> f.copy(zoom = (f.zoom.filter { abs(it.t - src) > 0.1 } + k.copy(t = src)).sortedBy { it.t }) }
@@ -127,17 +137,18 @@ internal fun ClipEffectsEditor(h: History, clip: VideoClip, pos: Double, onSelec
         Text(tr("Hochformat 9:16 (folgt den Keyframes)"), modifier = Modifier.weight(1f))
         Switch(fx.vertical, { v -> change(null) { it.copy(vertical = v) } })
     }
-    if (fx.zoom.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(tr("{0} Keyframe(s)", fx.zoom.size), style = MaterialTheme.typography.bodySmall)
+    if (fx.zoom.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(tr("{0} Keyframe(s)", fx.zoom.size), style = MaterialTheme.typography.bodySmall, modifier = Modifier.align(Alignment.CenterVertically))
         TextButton(onClick = { change(null) { f -> f.copy(zoom = f.zoom.filter { abs(it.t - src) > 0.1 }) } }, enabled = fx.zoom.any { abs(it.t - src) <= 0.1 }) { Text(tr("Keyframe hier löschen")) }
         TextButton(onClick = { change(null) { it.copy(zoom = emptyList()) } }) { Text(tr("Alle löschen")) }
     }
+    }
 
     // ── Regions ──
-    Text(tr("Bereiche unkenntlich machen"), style = MaterialTheme.typography.labelLarge)
     var finding by remember(clip.id) { mutableStateOf<Float?>(null) }
+    PropSection("fx.regions", tr("Bereiche unkenntlich machen"), defaultOpen = fx.regions.isNotEmpty() || finding != null, summary = fx.regions.size.takeIf { it > 0 }?.toString()) {
     val missing = remember(clip.id) { Faces.missing() }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         OutlinedButton(onClick = { h.edit { VideoFx.addRegion(it, clip.id, Key(src, 0.5f, 0.5f, 0.2f, 0.25f)).first } }) { Text(tr("Bereich hinzufügen")) }
         OutlinedButton(enabled = finding == null && missing == null, onClick = {
             finding = 0f
@@ -157,13 +168,16 @@ internal fun ClipEffectsEditor(h: History, clip: VideoClip, pos: Double, onSelec
     finding?.let { LinearProgressIndicator(progress = { it }, modifier = Modifier.fillMaxWidth()) }
     missing?.let { HintText(it) }
     fx.regions.forEachIndexed { j, r -> RegionRow(h, clip, r, j, src) }
+    }
 
     // ── Voice ──
-    Text(tr("Stimme verfremden"), style = MaterialTheme.typography.labelLarge)
+    val voiced = abs(fx.voice) >= 0.01f
+    PropSection("fx.voice", tr("Stimme verfremden"), defaultOpen = voiced, summary = if (voiced) tr("{0} Halbtöne", String.format(Locale.GERMANY, "%+.0f", fx.voice)) else null) {
     slider(tr("Tonhöhe"), if (abs(fx.voice) < 0.01f) tr("aus") else tr("{0} Halbtöne", String.format(Locale.GERMANY, "%+.0f", fx.voice)), fx.voice, -8f..8f, "v", steps = 15) { v ->
         h.edit("fxv-${clip.id}") { VideoFx.voice(it, v.roundToInt().toFloat(), setOf(clip.id)) }
     }
     if (abs(fx.voice) > 0.01f) HintText(tr("Für echte Anonymität zusätzlich Namen und Orte im Ton prüfen – eine verschobene Stimme lässt sich teilweise zurückrechnen."))
+    }
 }
 
 /** One region: kind, place at the playhead (a keyframe there), delete. Found faces only show their track. */
