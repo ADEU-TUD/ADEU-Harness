@@ -1050,7 +1050,7 @@ private fun ImageBlockEditor(img: DocMarkup.Image, onChange: (DocMarkup.Image) -
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(25, 50, 75, 100).forEach { w ->
-                androidx.compose.material3.FilterChip(selected = (img.width ?: 100) == w, onClick = { onChange(img.copy(width = w)) }, label = { Text("$w %") })
+                FilterChip(selected = (img.width ?: 100) == w, onClick = { onChange(img.copy(width = w)) }, label = { Text("$w %") })
             }
         }
     }
@@ -1088,7 +1088,7 @@ private fun FormulaDialog(onDismiss: () -> Unit, onInsert: (String, Boolean) -> 
                 androidx.compose.material3.OutlinedTextField(tex, { tex = it }, label = { Text("LaTeX") }, modifier = Modifier.fillMaxWidth())
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("\\frac{a}{b}", "x^{2}", "x_{i}", "\\sqrt{x}", "\\sum_{i=1}^{n} x_i", "\\int_{a}^{b} f(x)\\,dx", "\\bar{x}", "\\alpha", "\\leq", "\\cdot").forEach { s ->
-                        androidx.compose.material3.AssistChip(onClick = { tex = if (tex.isBlank()) s else "$tex $s" }, label = { Text(io.github.thepytales.llmhub.docs.MathText.inText("$$s$")) })
+                        AssistChip(onClick = { tex = if (tex.isBlank()) s else "$tex $s" }, label = { Text(io.github.thepytales.llmhub.docs.MathText.inText("$$s$")) })
                     }
                 }
                 Text(tr("Vorschau"), style = MaterialTheme.typography.labelMedium)
