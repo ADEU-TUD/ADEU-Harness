@@ -79,6 +79,8 @@
 (keine Beschreibung)	(no description)
 (klein)	(small)
 (leer)	(empty)
+(läuft auf diesem Gerät)	(runs on this device)
+(ohne Betreff)	(no subject)
 (ohne Text)	(no text)
 (ohne Titel)	(untitled)
 (wie gemerkt)	(as remembered)
@@ -117,6 +119,8 @@
 <title> ergänzen.	Add a <title>.
 @-Namen in sozialen Netzwerken	@ names on social networks
 A · B · T	A · B · T
+Abgebrochen – nichts verschoben.	Cancelled – nothing moved.
+Abgebrochen – {0} Mails sind schon eingeordnet.	Cancelled – {0} mails are already sorted.
 Ablauf: {0}	Workflow: {0}
 [Schüler/in 2] statt [Name 2], wenn die Rolle erkennbar ist – das Modell antwortet passender	[Pupil 2] instead of [Name 2] when the role is recognizable – the model answers more fittingly
 \#RRGGBB	\#RRGGBB
@@ -182,6 +186,7 @@ Abschnitte	Sections
 Absenden (Enter)	Send (Enter)
 Absender	Sender
 Absender enthält	Sender contains
+Absender enthält „{0}“ → {1}	Sender contains “{0}” → {1}
 Absender ändern	Change sender
 Abspielen	Play
 Abspielen (F4)	Play (F4)
@@ -309,6 +314,7 @@ Als Excel	As Excel
 Als Excel speichern	Save as Excel
 Als Excel-Datei	As an Excel file
 Als Fließtext	As continuous text
+Als geplante Aufgabe speichern …	Save as scheduled task …
 Als GitHub-Issue	As a GitHub issue
 Als JSON exportieren	Export as JSON
 Als Kapitel	As chapter
@@ -434,6 +440,7 @@ Anträge	Proposals
 Antwort	Answer
 Antwort an Studierende	Reply to students
 Antwort auf Betreuungsanfrage	Reply to a supervision request
+Antwort des Modells unklar	The model's answer was unclear
 Antwort entwerfen …	Draft a reply …
 Antwort fertig	Answer ready
 Antwort fertig.	Answer ready.
@@ -604,9 +611,11 @@ Ausführlicher	More detailed
 Ausführlicher Entwurf mit Analysen, Lernzielen und Verlaufsplan-Tabelle – für Praktikum und Referendariat	Detailed plan with analyses, learning objectives and lesson-plan table – for internships and teacher training
 Ausfüllen fehlgeschlagen: {0}	Filling in failed: {0}
 ausgeblendet – über Strg+K und Lora weiter erreichbar	hidden – still reachable via Ctrl+K and Lora
+Ausgelassen – bleibt in „{0}“	Left out – stays in “{0}”
 Ausgewogen.	Balanced.
 Ausgewählt	Selected
 Aushang	Notice
+Auslassen (bleibt in „{0}“)	Leave out (stays in “{0}”)
 Ausprobieren	Try it out
 Ausreißer	Outlier
 Ausreißer – bitte besonders genau ansehen.	Outliers – please look at them especially closely.
@@ -852,6 +861,7 @@ Buchkapitel	Book chapter
 Budget	Budget
 Bücher ohne DOI und graue Literatur sind nicht immer verzeichnet – „nicht gefunden“ heißt dann: von Hand prüfen.	Books without a DOI and grey literature are not always listed – “not found” then means: check by hand.
 Clip {0}: {1}	Clip {0}: {1}
+Das hat nicht geklappt.	That did not work.
 Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
 ca.	approx.
 Chat	Chat
@@ -1076,6 +1086,8 @@ Dein Startbildschirm unterstützt keine Verknüpfungen.	Your home screen does no
 Deine Dateien (Hochgeladen, Erstellt, eigene Ordner, Dokumente als Word-, Excel- und PowerPoint-Dateien) liegen in der App. Wähle einen Ordner auf dem Handy, z. B. „Dokumente/Lora“ – dann liegt dort eine Kopie, und Änderungen dort kommen zurück. Chats und Einstellungen bleiben in der App.	Your files (Uploaded, Created, own folders, documents as Word, Excel and PowerPoint files) are kept in the app. Choose a folder on the phone, e.g. “Documents/Lora” – then a copy is kept there, and changes made there come back. Chats and settings stay in the app.
 Deine letzten Chats:	Your latest chats:
 Den Absatz finde ich nicht.	I cannot find that paragraph.
+Den Ordner „{0}“ finde ich im Postfach nicht.	I cannot find the folder “{0}” in the mailbox.
+Der Ausgangsordner ist nicht bekannt – die Mails liegen in den Zielordnern.	The source folder is not known – the mails are in the target folders.
 Der Ordner ist leer.	The folder is empty.
 Der Scanner antwortet nicht.	The scanner does not respond.
 Details	Details
@@ -1087,6 +1099,13 @@ Diagramm mit {0} Kästen eingefügt – ein Klick darauf öffnet den Diagramm-Ed
 Diagramm zeichnen	Draw diagram
 Diagramm-Fläche	Diagram area
 Die Signatur passt nicht – das Dokument wurde nach dem Signieren verändert.	The signature does not match – the document was changed after signing.
+Die Vorschau wartet im Lora-Panel auf „Einordnen“.	The preview waits in Lora's panel for “Sort”.
+Die Vorschau wartet in Lora (rechts oben) auf „Einordnen“.	The preview waits in Lora (top right) for “Sort”.
+Die Vorschau wartet in Lora auf „Einordnen“.	The preview waits in Lora for “Sort”.
+Diese Absender kamen nur in einen Ordner. Als Regel sortieren sie künftig ohne Modell – angewendet nur, wenn du es willst (Mail & Kalender › Regeln).	These senders only went into one folder. As rules they sort without a model in future – applied only when you want (Mail & Calendar › Rules).
+Diese Aufgabe hat keinen Sortierauftrag.	This task has no sort order.
+Diese Ordner schlage ich vor – fehlende lege ich in Outlook an. Passt das?	I suggest these folders – missing ones I create in Outlook. Is that fine?
+Dieser Sortierlauf ist nicht mehr da.	This sort run no longer exists.
 Dieses PDF ist nicht digital signiert.	This PDF is not digitally signed.
 den Abschnitt	write the section
 Den Abschnitt „{0}“ finde ich nicht.	I cannot find the section “{0}”.
@@ -1482,6 +1501,7 @@ Einladung zu Sitzung, Kolloquium oder Workshop	Invitation to a meeting, colloqui
 Einladungskarte	Invitation card
 Einmal vollständig gegengehört und korrigiert.	Listened to completely once and corrected.
 Einmalig, aus derselben Quelle wie die Updates; später unter Einstellungen › Werkzeuge › Erweiterungen wieder zu entfernen.	Once, from the same source as the updates; can be removed later under Settings › Tools › Extensions.
+Einordnen ({0} Mails)	Sort ({0} mails)
 Einrichten	Set up
 einrichten	set up
 Einrichtung für den Kopf: Einstellungen › Dokumente & Darstellung	Setup for the header: Settings › Documents & appearance
@@ -1634,6 +1654,7 @@ Erzeugte Bilder	Generated images
 Es gibt noch keine Chats.	There are no chats yet.
 Es läuft schon eine Aufnahme.	A recording is already running.
 Es sind keine Änderungen offen.	There are no open changes.
+Es waren mehr als {0} Mails – die neuesten {0} sind dabei; den Rest danach mit einem neuen Auftrag.	There were more than {0} mails – the newest {0} are included; the rest afterwards with a new order.
 Esc	Esc
 Ethikantrag (Kurzfassung)	Ethics application (short version)
 Ethikvotum, Einwilligungen, Datenschutz, Tierversuche …	Ethics approval, consent, data protection, animal experiments …
@@ -1734,6 +1755,8 @@ Fertig – tippen, um das Ergebnis zu sehen.	Done – tap to see the result.
 Fertig.	Done.
 Fertig? „Speichern unter“ legt eine Kopie ab – das Original bleibt, bis du es überschreibst.	Done? “Save as” stores a copy – the original stays until you overwrite it.
 Fertige Antworten, Ergebnisse geplanter Aufgaben und Rückfragen des Agenten	Finished answers, results of scheduled tasks and questions from the agent
+Feste Regeln daraus …	Fixed rules from this …
+Feste Regeln speichern	Save fixed rules
 Fett	Bold
 Fett (Strg+B)	Bold (Ctrl+B)
 Flussdiagramm	Flowchart
@@ -1948,6 +1971,7 @@ Gefiltert nach Spalte {0} · {1} von {2} Zeilen	Filtered by column {0} · {1} of
 Gefunden ({0}): {1}	Found ({0}): {1}
 Gelöschte Dateien in den Windows-Papierkorb	Deleted files into the Windows Recycle Bin
 Gelöschte Dateien landen im Papierkorb von Windows statt im Lora-Papierkorb.	Deleted files go into the Windows Recycle Bin instead of Lora's.
+Gespeichert unter Geplante Aufgaben: {0}	Saved under Scheduled tasks: {0}
 Grund: {0}	Reason: {0}
 Herausschneiden	Cut out
 gefunden und ergänzt	found and completed
@@ -2191,7 +2215,11 @@ Ich erreiche gerade kein Modell	I can't reach a model right now
 Ich finde Einstellungen, öffne TU Vorlagen und Modi, schlage Werkzeuge vor, suche frühere Chats, trage Fristen in den Kalender ein und gebe Fachfragen an einen Chat weiter.	I find settings, open TU templates and modes, suggest tools, search earlier chats, add deadlines to the calendar and pass subject questions on to a chat.
 Ich habe den Schlüssel sicher aufbewahrt.	I have stored the key safely.
 Ich höre zu …	Listening …
+Ich lese die Betreffzeilen ({0}) und schlage dir Ordner vor – auf diesem Gerät.	I am reading the subject lines ({0}) and will suggest folders – on this device.
+Ich lese die Mails ({0}) auf diesem Gerät und zeige dir dann die Vorschau für {1}.	I am reading the mails ({0}) on this device and will then show you the preview for {1}.
+Ich lese die Mails auf diesem Gerät und zeige dir dann die Vorschau.	I am reading the mails on this device and will then show you the preview.
 Ich möchte ein Seminar „Digitale Medien im Sachunterricht“ für das Sommersemester planen.	I would like to plan a seminar “Digital media in primary science and social studies” for the summer semester.
+Ich ordne die Mails ({0}) ohne Rückfrage in {1} ein – auf diesem Gerät. Unsichere bleiben liegen.	I am sorting the mails ({0}) into {1} without asking – on this device. Uncertain ones stay where they are.
 Ich räume auch für dich auf: „Ordne Hochgeladen nach Semester“ oder „Finde Duplikate“ – immer mit Vorschau und Rückgängig.	I also tidy up for you: “Sort Uploaded by semester” or “Find duplicates” – always with a preview and undo.
 Ich schaue nach …	Let me look …
 Ich schreibe an der Cursorstelle – danach Übernehmen, Neu oder Verwerfen.	I am writing at the cursor – then Keep, New or Discard.
@@ -2246,6 +2274,7 @@ Im Tresor merke ich mir nichts.	In the vault I remember nothing.
 Im Tresor sind nur der Uni-Server und Modelle auf diesem Gerät erlaubt – {0} läuft bei einem externen Anbieter. Bitte ein Modell des Uni-Servers wählen.	Only the university server and models on this device are allowed in the vault – {0} runs at an external provider. Please choose a model of the university server.
 Im TUD-Design	In the TUD design
 Im Video ist nichts gesprochen – oder den Clips fehlt ein Transkript.	Nothing is spoken in the video – or the clips have no transcript.
+Im Zeitraum gibt es keine Mails.	There are no mails in this period.
 Im Zertifikatsspeicher von Windows ist kein Zertifikat mit privatem Schlüssel – eine .p12/.pfx-Datei geht auch.	There is no certificate with a private key in the Windows certificate store – a .p12/.pfx file works too.
 im Web	on the web
 Im Web suchen und Links lesen.	Search the web and read links.
@@ -2376,10 +2405,20 @@ Kapitel für die YouTube-Beschreibung ({0} Kapitel, im MP4 sind sie immer)	Chapt
 Kapitel kopieren	Copy chapters
 Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters copied – paste them into the description of the YouTube video.
 Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
+kein Ordner passte	no folder fitted
+Kein Postfach verbunden: unter Windows das klassische Outlook, sonst Einstellungen › Verbindungen › Mail über den Server.	No mailbox connected: on Windows the classic Outlook, otherwise Settings › Connections › Mail via the server.
 Klinge	Blade
 Klinge (B): Klick auf einen Clip schneidet ihn dort.	Blade (B): a click on a clip cuts it there.
 Leertaste	Space
 Legt „{0}“ als Bild-in-Bild bei {1} …	Puts "{0}" as picture-in-picture at {1} …
+letzte {0} Tage	last {0} days
+Lora holt die Mails aus dem Postfach …	Lora is fetching the mails from the mailbox …
+Lora liest die Betreffzeilen und überlegt passende Ordner …	Lora is reading the subject lines and thinking of suitable folders …
+Lora nutzt {0} gemerkte Beispiele (nur auf diesem Gerät).	Lora uses {0} remembered examples (only on this device).
+Lora ordnet dann die Mails seit dem letzten Mal in dieselben Ordner ein – mit dem Modell auf diesem Gerät, während die App läuft (Geplante Aufgaben).	Lora then sorts the mails since the last time into the same folders – with the model on this device, while the app is running (Scheduled tasks).
+Lora: Mails eingeordnet	Lora: mails sorted
+Lora: Vorschau fertig	Lora: preview ready
+läuft auf diesem Gerät	runs on this device
 Löschen (mit Magnet: Lücke schließen)	Delete (with the magnet: close the gap)
 Löschen und Lücke immer schließen	Delete and always close the gap
 M	M
@@ -2388,35 +2427,54 @@ Magnet an: Spuren ziehen mit, Lücken schließen sich.	Magnet on: tracks follow,
 Magnet aus.	Magnet off.
 Magnet ein/aus	Magnet on/off
 Magnet-Zeitleiste	Magnetic timeline
+Mails einordnen	Sort mails
+Mails einordnen: {0}	Sort mails: {0}
+Mails ordnet nur ein Modell auf diesem Gerät ein – so verlassen sie den PC nicht (Uni-Server und externe Anbieter sind im Postfach gesperrt). Unter Einstellungen › Modelle auf diesem Gerät lässt sich eines laden, ohne Grafikkarte z. B. Qwen 3.5 4B oder Gemma 4 E4B.	Mails are sorted only by a model on this device – so they never leave the PC (the university server and external providers are blocked in the mailbox). Under Settings › Models on this device you can download one, without a graphics card e.g. Qwen 3.5 4B or Gemma 4 E4B.
 Marker	Marker
 Marker bei {0}	Marker at {0}
 Marker setzen	Set a marker
 Marker „{0}“ bei {1}.	Marker "{0}" at {1}.
 Medienpool	Media pool
+Mir fiel keine passende Ordnerstruktur ein – nenne mir die Ordner bitte selbst.	I could not think of a suitable folder structure – please name the folders yourself.
 Mit Clip {0} verknüpft – bewegt und kürzt sich mit ihm. Versatz zur Quelle: {1} s	Linked with clip {0} – moves and is trimmed with it. Offset to the source: {1} s
 Mit Clip {0} verknüpft.	Linked with clip {0}.
 Mit dem Bild synchronisieren	Synchronise with the picture
+Mit diesen Ordnern einordnen	Sort into these folders
 N	N
+Nach „{0}“	To “{0}”
 Nah an DaVinci Resolve, damit Umsteigen leichtfällt.	Close to DaVinci Resolve, so switching is easy.
+Neu in Outlook: {0}	New in Outlook: {0}
+nicht mehr im Ordner	no longer in the folder
 Oben links	Top left
 ohne Notiz	without a note
 Ohne Ordner	No folder
+Ordnet die Mails ({0}) in passende Ordner ein …	Sorts the mails ({0}) into suitable folders …
+Ordnet die Mails ({0}) in {1} ein …	Sorts the mails ({0}) into {1} …
+Ordnet gleich ein; Unsichere bleiben liegen. Rückgängig im Lora-Panel.	Sorts right away; uncertain ones stay. Undo in Lora's panel.
 platziert	placed
 Pos1 · Ende	Home · End
 Position und Größe	Position and size
 Position und Größe …	Position and size …
+Posteingang	Inbox
 Q	Q
 Q wechselt	Q switches
 Quelle	Source
 Quellmonitor ⇄ Zeitleiste	Source monitor ⇄ timeline
+Regelmäßig einordnen	Sort regularly
+Regelmäßig wiederholen …	Repeat regularly …
 Rückgängig · Wiederholen	Undo · Redo
+Rückgängig: {0} Mails liegen wieder in „{1}“; neu angelegte Ordner bleiben.	Undone: {0} mails are back in “{1}”; newly created folders stay.
 Rückwärts	Backward
 Rückwärts · Halt · Vorwärts (mehrmals: schneller)	Backward · Stop · Forward (repeat: faster)
 S · Strg+B	S · Ctrl+B
 Schleife	Loop
 Schnitte auf V1 ziehen alle Spuren mit, Löschen schließt die Lücke, Ziehen rastet an Kanten ein (N).	Edits on V1 move all tracks along, deleting closes the gap, dragging snaps to edges (N).
+seit gestern	since yesterday
+seit {0}	since {0}
 Senkrecht	Vertical
 Setzt einen Marker bei {0} …	Sets a marker at {0} …
+Sicherheit {0} %	Certainty {0} %
+Soll ich mir deine {0} Korrekturen als Beispiele für das nächste Einordnen merken? Sie bleiben auf diesem Gerät.	Shall I remember your {0} corrections as examples for the next sorting? They stay on this device.
 Spur {0} ausblenden	Hide track {0}
 Spur {0} sperren	Lock track {0}
 Spur {0} stumm	Mute track {0}
@@ -2430,19 +2488,24 @@ Ton auf eine Tonspur legen	Lay the sound onto an audio track
 Trimmen	Trim
 Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte ziehen verschiebt den Inhalt (Slip).	Trim (T): drag at a cut to move it (roll), drag in the middle to move the content (slip).
 Umschalt+Entf	Shift+Del
+Unsicher – bleibt in „{0}“	Uncertain – stays in “{0}”
 Unten links	Bottom left
 Verknüpfen, wie es liegt	Link as it lies
 Verknüpfter Ton auf {0} – er bewegt und kürzt sich mit dem Clip.	Linked sound on {0} – it moves and is trimmed with the clip.
 Verknüpfung gelöst.	Unlinked.
 Verknüpfung lösen	Unlink
 Video › Bild-in-Bild	Video › Picture-in-picture
+von dir zugeordnet	assigned by you
+Vorschau – noch ist nichts verschoben. Ordner und Mails lassen sich aufklappen, einzelne Mails umhängen oder auslassen.	Preview – nothing has been moved yet. Folders and mails can be expanded, single mails moved elsewhere or left out.
 Vorwärts	Forward
 Waagrecht	Horizontal
 Webcam oder zweites Video als Ecke über das Bild legen, auf eigenen Videospuren.	Lay a webcam or a second video over the picture as a corner, on separate video tracks.
+Weiterer Ordner (Unterordner mit /)	Another folder (subfolders with /)
 Welches Video oder Bild? Bitte eine Datei auswählen oder nennen.	Which video or picture? Please select or name a file.
 Wieder vergessen.	Forgotten again.
 Windows › Links neben dem Chat öffnen	Windows › Open links beside the chat
 Wird endgültig gelöscht – das lässt sich nicht rückgängig machen.	Is deleted for good – this cannot be undone.
+Wird zurückgeschoben …	Moving back …
 Wo soll der Marker hin?	Where should the marker go?
 Zeit (s)	Time (s)
 Zeitleiste	Timeline
@@ -5138,7 +5201,16 @@ noch kein Bereich	no area yet
 {0} Abschnitte ohne vollständig gemessene Wortzeiten werden nicht geteilt (nur verbunden). Erst ⋮ › Wortzeiten messen, dann neu segmentieren.	{0} sections without fully measured word times are not split (only joined). First ⋮ › Measure word times, then segment again.
 {0} Abschnitte · {1}k Zeichen · 	{0} sections · {1}k characters · 
 {0} Abschnitte, identisch codiert: {1} %	{0} sections, coded identically: {1} %
+{0} bis {1}	{0} to {1}
+{0} Mails eingeordnet: {1}	{0} mails sorted: {1}
+{0} Mails gelesen: {1}	{0} mails read: {1}
+{0} Mails ließen sich nicht zurückschieben (in Outlook verschoben oder gelöscht?).	{0} mails could not be moved back (moved or deleted in Outlook?).
+{0} Regeln gespeichert.	{0} rules saved.
+{0} unsicher	{0} uncertain
+{0} unsichere bleiben in „{1}“	{0} uncertain ones stay in “{1}”
 {0} Video- und {1} Tonspuren. In der Zeitleiste links: sperren, stumm, ausblenden.	{0} video and {1} audio tracks. On the left of the timeline: lock, mute, hide.
+{0} von {1} Mails eingeordnet	{0} of {1} mails sorted
+{0} von {1} Mails gelesen	{0} of {1} mails read
 {0} Zellen ohne überzählige Leerzeichen	{0} cells without extra spaces
 {0} abweichend	{0} differing
 {0} Angabe(n) werden bei Crossref, OpenAlex und Google Books gesucht …	Searching {0} reference(s) at Crossref, OpenAlex and Google Books …

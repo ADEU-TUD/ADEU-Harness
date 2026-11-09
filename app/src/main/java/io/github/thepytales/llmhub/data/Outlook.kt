@@ -128,6 +128,23 @@ interface OutlookBridge {
 
     /** Opens a mail, draft or appointment in Outlook. */
     fun show(id: String)
+
+    // ── AP-69 b/c: Lora sortiert selbst (agent/MailSorter). Defaults, so every bridge has them; Outlook (COM) and the
+    // mail server (IMAP) do it properly. Still nothing that deletes or sends. ──
+
+    /**
+     * Mails of [folderId] (null: Posteingang) received from [from] up to [until] (null: now), newest first, with the
+     * beginning of the text in [MailHeader.preview].
+     */
+    fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> =
+        mails(folderId, from, false, limit).filter { it.received >= from && (until == null || it.received < until) }
+
+    /**
+     * Moves the mails to [folderId] like [move] and returns old id → new id of every mail that moved: Outlook gives a
+     * moved mail a new entry id, the mail server a new UID. "" when the bridge cannot tell the new id.
+     */
+    fun moveTracked(ids: List<String>, folderId: String): Map<String, String> =
+        ids.filter { move(listOf(it), folderId) == 1 }.associateWith { it }
 }
 
 /** A fixed rule for sorting (made by the user or confirmed from Lora's suggestion); applied only on request. */

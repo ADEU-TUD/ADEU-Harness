@@ -49,6 +49,8 @@ data class ScheduledTask(
     val lastChatId: String? = null,
     val nextRunAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
+    /** AP-69 d: a sort order of Lora („jeden Montag die letzte Woche einordnen“), run by the model on this device instead of a chat. */
+    val mailSort: io.github.thepytales.llmhub.agent.MailSortSpec? = null,
 ) {
     val linkedRepos: List<String> get() = repos.ifEmpty { listOfNotNull(repo) }
 

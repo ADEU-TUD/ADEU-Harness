@@ -340,6 +340,47 @@ object ComOutlook : OutlookBridge {
 
     override fun show(id: String) = session { _, ns -> itemOf(ns, id).run("Display") }
 
+    // ── AP-69 b/c: Lora sortiert selbst ──
+
+    /** Restricts the folder to the time (Outlook's filter in the short date format of Windows), newest first. */
+    override fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> = session { _, ns ->
+        val folder = folderOf(ns, folderId)
+        val path = folder.str("FolderPath")
+        val store = folder.str("StoreID")
+        val zone = ZoneId.systemDefault()
+        fun fmt(m: Long) = filterFormat.format(Instant.ofEpochMilli(m).atZone(zone))
+        val all = folder.obj("Items")
+        val filter = "[ReceivedTime] >= '${fmt(from)}'" + (until?.let { " AND [ReceivedTime] < '${fmt(it)}'" } ?: "")
+        val items = runCatching { all.obj("Restrict", VARIANT(filter)) }.getOrNull() ?: all
+        items.run("Sort", VARIANT("[ReceivedTime]"), VARIANT(true))
+        val out = mutableListOf<MailHeader>()
+        var m = items.objOrNull("GetFirst")
+        var seen = 0
+        while (m != null && out.size < limit && seen < limit * 4) {
+            seen++
+            val h = header(m, path, store, withPreview = true)
+            if (h != null && h.received > 0) {
+                if (h.received < from) break
+                if (until == null || h.received < until) out += h
+            }
+            m = items.objOrNull("GetNext")
+        }
+        out
+    }
+
+    /** MailItem.Move returns the moved mail – with a new EntryID, which is what Rückgängig needs. */
+    override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> = session { _, ns ->
+        val target = folderOf(ns, folderId)
+        val store = target.str("StoreID")
+        val out = LinkedHashMap<String, String>()
+        ids.forEach { id ->
+            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
+            val moved = runCatching { m.get("Move", target.toVariant()) }
+            if (moved.isSuccess) out[id] = (moved.getOrNull() as? Com)?.let { runCatching { idOf(it, store) }.getOrNull() }.orEmpty()
+        }
+        out
+    }
+
     /** Today's date in Outlook's filter format (for the self-test). */
     internal fun filterDate(day: LocalDate = LocalDate.now()): String = filterFormat.format(day.atStartOfDay())
 }

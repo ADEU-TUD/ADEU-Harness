@@ -317,7 +317,7 @@ internal fun moodFor(reply: LoraReply): LoraAction = when {
     listOf("Ich erreiche gerade kein Modell", "Das hat nicht geklappt").any { reply.text.startsWith(it) || reply.text.startsWith(tr(it)) } -> LoraAction.SCRATCH
     reply.steps.any { it is LoraStep.Navigate || it is LoraStep.OpenMode || it is LoraStep.OpenChat || it is LoraStep.Handoff } -> LoraAction.POINT
     reply.steps.isEmpty() && reply.hits.isEmpty() && listOf("nichts gefunden", "keinen Chat").any { reply.text.contains(it) || reply.text.contains(tr(it)) } -> LoraAction.SHRUG
-    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder || it is LoraStep.Remember || it is LoraStep.Plan } -> LoraAction.EUREKA
+    reply.steps.any { it is LoraStep.ChangeSetting || it is LoraStep.EnableTool || it is LoraStep.Reminder || it is LoraStep.Remember || it is LoraStep.Plan || it is LoraStep.MailSort } -> LoraAction.EUREKA
     else -> LoraAction.NOD
 }
 
@@ -533,6 +533,11 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
             item(key = "flows") {
                 val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.Plan>().map { it.flowId } }.toSet()
                 OpenFlows(c, shown, LoraHost.go)
+            }
+            // Lora's sort runs (AP-69) that wait or work without a card here, e.g. after a restart or from a scheduled task.
+            item(key = "mailsorts") {
+                val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.MailSort>().map { it.runId } }.toSet()
+                OpenMailSorts(c, shown)
             }
             if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, LoraSense.place(route), suggestions, onSuggest = ::suggest) }
             turns.forEachIndexed { i, turn ->
@@ -803,6 +808,7 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                     if (step.dropped.isNotEmpty()) HintText(tr("Weggelassen, weil es das hier nicht gibt: {0}", step.dropped.joinToString()))
                 }
                 is LoraStep.Tour -> TourCard(turn, i, step, go)
+                is LoraStep.MailSort -> MailSortCard(c, step.runId)
                 is LoraStep.Ask -> QuestionCard(step.questions, onAnswer = if (state != null) null else ({ a -> turn.state[i] = "done"; onAnswer(a) }))
                 is LoraStep.Navigate -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; if (!LoraLayout.docked) LoraHelper.close() }
                 is LoraStep.OpenMode -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; LoraHelper.close() }

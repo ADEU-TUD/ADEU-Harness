@@ -62,6 +62,9 @@ sealed interface LoraStep {
 
     /** A tour through a tool (AP-41). */
     data class Tour(val tourId: String) : LoraStep
+
+    /** Lora sortiert Mails (AP-69): a run on the model of this device; its card shows progress, preview and Rückgängig. */
+    data class MailSort(val runId: String) : LoraStep
 }
 
 /** Lora's answer: a short [text] and what to do; [local] = found on the device without a request. */
@@ -113,6 +116,9 @@ class LoraAgent(private val c: AppContainer) {
         LoraPrefs.fromWish(c, wish)?.let { return it }
         // AP-41: „Zeig mir, wie das geht“ starts the tour of the open tool.
         localTour(wish, android)?.let { return it }
+        // AP-69: „Ordne die Mails der letzten Woche in Lehre, Forschung und Verwaltung ein“ – the order is read here, the
+        // mails only by the model on this device.
+        MailSorter.fromWish(c, wish)?.let { return it }
         // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
         if (!LoraFlows.looksMultiStep(wish)) localAction(wish, area, android)?.let { return it }
         local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
@@ -205,7 +211,7 @@ class LoraAgent(private val c: AppContainer) {
      * „zusammenfügen“, „Duplikate“, „aufräumen“, „verkleinern“, „Texterkennung“. Null for other wishes.
      */
     internal suspend fun localAction(wish: String, area: ActionArea?, android: Boolean): LoraReply? {
-        area ?: return null
+        if (area == null || area == ActionArea.MAIL) return null
         val n = AppMap.norm(wish)
         val pdfs = (LoraFocus.files.filter { it.extension.equals("pdf", true) } + listOfNotNull(LoraFocus.pdf)).distinct()
         val (id, args) = when {
@@ -286,7 +292,8 @@ class LoraAgent(private val c: AppContainer) {
             for (call in result.toolCalls) {
                 val args = parseArgs(call.arguments)
                 val action = ToolActions.byToolName(call.name)
-                val (output, step) = if (action != null) {
+                val (output, step) = if (action?.id == MailSorter.ACTION_ID) MailSorter.loraStep(c, args, wish)
+                else if (action != null) {
                     // An action of the open tool (AP-38): planned here, carried out by the panel.
                     try {
                         val plan = action.plan(c, LoraPrefs.withDefaults(c, action, args).first)
@@ -536,6 +543,7 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.Remember -> tr("Soll ich mir das merken?")
             is LoraStep.Plan -> tr("So würde ich vorgehen – passt der Plan?")
             is LoraStep.Tour -> tr("Ich zeige es dir.")
+            is LoraStep.MailSort -> tr("Ich lese die Mails auf diesem Gerät und zeige dir dann die Vorschau.")
             null -> tr("Wie kann ich helfen?")
         }
 
