@@ -1,0 +1,189 @@
+# Vorlagen AP-67 · Textart: Fachtexte, Literatur, Danksagungen, Forschungsberichte – viele Gegenbeispiele (Lehrer: Claude, erfunden)
+
+{AUT} ({JAHR}) unterscheidet zwischen Sicht- und Tiefenstrukturen des Unterrichts.
+
+Wie bereits {AUT} ({JAHR}, S. {ZAHL}) zeigte, hängt der Lernerfolg stark von der Klassenführung ab.
+
+Vgl. {AUT}, {INI} ({JAHR}). Unterrichtsqualität und Lehrerprofessionalität. Weinheim: Beltz.
+
+{AUT}, {INI} & {AUT}, {INI} ({JAHR}). Lernen im Ganztag. Zeitschrift für Pädagogik, {ZAHL}(2), 112–130.
+
+Nach {AUT} et al. ({JAHR}) wirkt Feedback vor allem dann, wenn es sich auf den Lernprozess bezieht.
+
+Die Metaanalyse von {AUT} und {AUT} ({JAHR}) findet nur kleine Effekte.
+
+Der Begriff der Bildsamkeit geht auf {AUT} zurück und wurde von {AUT} weiterentwickelt.
+
+In Anlehnung an {AUTVN} wird Unterricht hier als soziale Praxis verstanden.
+
+{AUT:gen} Modell der Lehrerkompetenz umfasst Wissen, Überzeugungen, Motivation und Selbstregulation.
+
+Die Ergebnisse stehen im Widerspruch zu {AUT} ({JAHR}), der keinen Zusammenhang fand.
+
+Danksagung: Mein Dank gilt {VN} für die Betreuung, {VN} für das Korrekturlesen und meinen Eltern für ihre Geduld.
+
+Ich danke allen Lehrkräften der {SCHULE}, insbesondere {VN}, die mir den Zugang zum Feld ermöglicht haben.
+
+Die Daten wurden {JAHR} an {ZAHL} Grundschulen in {OORT} erhoben; Namen und Orte wurden anonymisiert.
+
+{OEFF} gilt als eine der prägenden Figuren des 20. Jahrhunderts.
+
+Im Mittelpunkt steht die Frage, wie Lehrkräfte mit Heterogenität umgehen ({AUT} {JAHR}; {AUT} {JAHR}).
+
+Die Studie wurde von der {OEINR} gefördert und am Institut in {OORT} durchgeführt.
+
+Laut {OEINR} erreichen in {OORT} rund {ZAHL} Prozent der Jugendlichen keinen Abschluss.
+
+Bereits {OEFF} forderte, dass Bildung allen offenstehen müsse.
+
+Im Herbst sinkt die Teilnahme an den Ganztagsangeboten deutlich.
+
+Die Nelke und der Wolfsmilch-Strauch im Schulgarten wurden von der Klasse gepflanzt.
+
+Ehrlich gesagt: Die Reform hat ihre Ziele verfehlt, der Kaiser ist nackt.
+
+Der Igel ist ein beliebtes Thema im Sachunterricht der ersten Klasse.
+
+Die Bauer-Studie aus Bayern ist mit unseren Daten nicht vergleichbar.
+
+Lange Zeit galt die Hausaufgabe als unverzichtbar.
+
+Klein, aber wirksam: So lassen sich die Effekte der Intervention zusammenfassen.
+
+Stark vereinfacht lässt sich sagen, dass die Motivation mit dem Alter sinkt.
+
+Weiß man um die Bedingungen, lassen sich die Befunde besser deuten.
+
+Jung und Alt lernen im Projekt gemeinsam.
+
+Der Koch der Mensa hat das Projekt „Gesundes Frühstück“ unterstützt.
+
+Die Lehrkraft L4 ({VNw}) berichtet von großen Belastungen an ihrer Schule in {ORT}.
+
+Interviewpartnerin B2, Frau {Nw}, ist seit {ZAHL} Jahren Schulleiterin an der {SCHULE}.
+
+Die Literatur zu inklusivem Unterricht ist umfangreich ({AUT}, {JAHR}; {AUT} & {AUT}, {JAHR}).
+
+{AUTVN} ({JAHR}) prägte den Begriff der „pädagogischen Beziehung“.
+
+In der Tradition von {AUT} und {AUT} wird Didaktik als Theorie der Bildungsinhalte verstanden.
+
+Die Stichprobe umfasst {ZAHL} Lehrkräfte aus {OORT}, {OORT} und {OORT}.
+
+Die Befragung fand in Kooperation mit der {OEINR} statt.
+
+{OEFF} hat in einer Rede gefordert, mehr in Bildung zu investieren.
+
+Ein Beispiel aus der Praxis: An der {SCHULE} arbeiten Lehrkräfte seit {JAHR} in multiprofessionellen Teams; initiiert hat das die Schulleiterin {VNw}.
+
+Die Auswertung erfolgte mit MAXQDA nach der Methode von {AUT} ({JAHR}).
+
+Kritisch merkt {AUT} an, dass Kompetenzmodelle die Bildungsidee verkürzen.
+
+Die Klasse hat {WERK} gelesen und dazu ein Theaterstück geschrieben.
+
+Der Begriff „Bildungsgerechtigkeit“ wird bei {AUT} anders gefasst als bei {AUT}.
+
+{AUT}, {INI} ({JAHR}). Handbuch Schulpädagogik. Münster: Waxmann.
+
+{AUT}, {INI}, {AUT}, {INI} & {AUT}, {INI} ({JAHR}). Klassenführung und Lernerfolg. Unterrichtswissenschaft, {ZAHL}, 45–67.
+
+Wie {OEFF} schon sagte: „Erziehung ist Beispiel und Liebe, sonst nichts.“
+
+Die Pilotstudie wurde an der {SCHULE} durchgeführt; wir danken Herrn {VNm} und dem Kollegium.
+
+Die Schulen der Stichprobe liegen in {OORT} und Umgebung.
+
+Die Kinder der Fallstudie (hier: {V} und {V}, Namen geändert) besuchen die dritte Klasse.
+
+Mit {AUT} lässt sich argumentieren, dass Schule soziale Ungleichheit reproduziert.
+
+Im Seminar wurden Texte von {AUT}, {AUT} und {AUTVN} diskutiert.
+
+Die {OEINR} hat {JAHR} eine Expertise zur Lehrkräftebildung vorgelegt.
+
+Das Projekt wurde unter Leitung von Prof. {AUTVN} an der {OEINR} durchgeführt.
+
+{OEFF} besuchte im Rahmen der Bildungsreise auch eine Grundschule in {OORT}.
+
+Ich danke {VN} und {VN} für die vielen Gespräche und {VN} für die Hilfe bei der Statistik.
+
+Die Erhebung fand im Schuljahr {JAHR}/{ZAHL} statt.
+
+Hattie-Rangliste, Klafki-Fragen und Meyer-Merkmale gehören zum Standardrepertoire der Lehramtsausbildung.
+
+Die Theorie der Selbstbestimmung ({AUT} & {AUT}, {JAHR}) unterscheidet drei Grundbedürfnisse.
+
+Im internationalen Vergleich (etwa mit {OORT}) schneiden deutsche Schulen durchschnittlich ab.
+
+Die Geschichte von {OEFF} wird in vielen Schulbüchern verkürzt dargestellt.
+
+Das Zitat stammt aus {WERK}.
+
+Nach Angaben der {OEINR} fehlen bundesweit mehrere tausend Lehrkräfte.
+
+Der Bericht der Lehrerin aus {ORT} ({VNw}) zeigt, wie stark der Mangel vor Ort ist.
+
+Diese Perspektive vertreten u. a. {AUT} ({JAHR}) und {AUT} ({JAHR}).
+
+{AUTVN} und {AUTVN} haben das Konzept {JAHR} erstmals beschrieben.
+
+Die Konferenz der {OEINR} fand {JAHR} in {OORT} statt.
+
+{AUT} ({JAHR}) zufolge sind Lehrkräfte die wichtigste Einflussgröße.
+
+Den Hinweis auf diese Quelle verdanke ich {VN}.
+
+Interview 7 wurde mit Herrn {N} geführt, Lehrer für {FACH} an einer Oberschule in {ORT}.
+
+Die Methode des lauten Denkens geht auf {AUT} und {AUT} zurück.
+
+Das Experiment von {AUT} ({JAHR}) wurde mehrfach repliziert.
+
+Die Montessori-Pädagogik betont die vorbereitete Umgebung.
+
+Der Martinstag und das Laternenfest gehören in vielen Kitas zum Jahreslauf.
+
+Die Pisa-Studie hat {JAHR} eine breite Debatte ausgelöst.
+
+Die Lorenzkurve und der Gini-Koeffizient werden im Fach Wirtschaft behandelt.
+
+Die Becker-Hypothese wird in Kapitel 3 geprüft.
+
+Der Otto-Normalverbraucher kommt in vielen Mathebüchern vor.
+
+Kaiserslautern und Königs Wusterhausen sind Orte, keine Personen.
+
+Das Max-Planck-Institut und das Robert-Koch-Institut sind öffentliche Forschungseinrichtungen.
+
+Die Weimarer Republik ist Thema in Klasse 9.
+
+{OEFF} und {OEFF} stehen im Mittelpunkt der Unterrichtsreihe zur Aufklärung.
+
+Laut Lehrplan sollen die Schülerinnen und Schüler {WERK} kennenlernen.
+
+Die Schülerinnen beschäftigten sich mit dem Leben von {OEFF}.
+
+Kritik an {AUT} kommt vor allem aus der qualitativen Forschung ({AUT}, {JAHR}).
+
+Die Kategorien wurden induktiv gebildet ({AUT}, {JAHR}, S. {ZAHL}).
+
+In der Studie von {AUT} ({JAHR}) wurden Lehrkräfte in {OORT} befragt.
+
+Ich danke der Schulleiterin der {SCHULE}, Frau {Nw}, und den Kindern der Klasse {KLASSE}.
+
+Die Abbildung zeigt das Angebots-Nutzungs-Modell nach {AUT} ({JAHR}).
+
+Dieses Kapitel folgt der Argumentation von {AUTVN}.
+
+{AUT} spricht von „pädagogischem Takt“.
+
+Herausgegeben von {AUTVN} und {AUTVN}, Bad Heilbrunn: Klinkhardt, {JAHR}.
+
+Die Fragebögen wurden von {VN} (studentische Hilfskraft) eingegeben.
+
+Die Studie „Lernen in der Pandemie“ ({AUT} et al., {JAHR}) zeigt deutliche Lernrückstände.
+
+Eine ähnliche Unterscheidung findet sich bei {OEFF}.
+
+Die Schule in der Fallstudie liegt in einem Stadtteil von {OORT} mit hoher Arbeitslosigkeit.

@@ -1,0 +1,148 @@
+# Vorlagen AP-67 · Textart: Protokolle von Konferenzen, Fachschaften, Gremien, Prüfungsausschuss (Lehrer: Claude, erfunden)
+
+Protokoll der Fachkonferenz {FACH} vom {DATUM}
+Anwesend: {VN}, {VN}, {VN}, {VN}
+Entschuldigt: {VN}
+Protokoll: {VN}
+
+TOP 1: Begrüßung durch die Vorsitzende, Frau {Nw}. Die Tagesordnung wird bestätigt.
+
+TOP 3: Herr {Nm} berichtet über die Zusammenarbeit mit der {SCHULE}. Ein gemeinsamer Projekttag ist geplant.
+
+Beschluss: {VN} erhält einen Nachteilsausgleich in {FACH} (Zeitverlängerung um 25 %). Einstimmig.
+
+Die Klassenkonferenz beschließt einen schriftlichen Verweis für {VNm}. Die Eltern, Herr und Frau {N}, werden informiert.
+
+Frau {VNw} stellt das Konzept zur Leseförderung vor, das sie zuvor in {ORT} erprobt hat.
+
+Herr {VNm} (Elternvertreter) fragt nach dem Stand der Sanierung der Sporthalle.
+
+Die Schulleiterin dankt Herrn {Nm} für {ZAHL} Jahre an der {SCHULE} und wünscht ihm alles Gute für den Ruhestand.
+
+Der Antrag von Frau {VNw} auf Reduzierung der Stundenzahl wird befürwortet.
+
+Prüfungsausschuss, Sitzung vom {DATUM}: Der Antrag von {VN} auf Rücktritt von der Prüfung wird anerkannt.
+
+Frau {Nw} schlägt vor, die Projektwoche zum Thema {OEFF} durchzuführen. Herr {Nm} unterstützt den Vorschlag.
+
+Verschiedenes: Die Kollegin {VNw} wechselt zum Halbjahr an die {SCHULE}.
+
+Anwesend: Frau {Nw} (Vorsitz), Herr {Nm}, Frau {Nw}, Herr {Nm}, Frau {N} (Elternrat), {VN} (Schülerrat)
+
+Die Gesamtkonferenz dankt der Schulsozialarbeiterin {VNw} für ihren Jahresbericht.
+
+Herr {Nm} informiert über die neuen Vorgaben der {OEINR} zur Leistungsbewertung.
+
+Die Klassenkonferenz {KLASSE} stellt fest, dass {Vm} die Versetzung gefährdet. Gespräch mit den Eltern bis {DATUM}.
+
+Für die Kooperation mit der {KITA} sind Frau {VNw} und Frau {VNw} zuständig.
+
+Beschluss: Die Klassenfahrt der {KLASSE} geht nach {OORT}. Begleitung: Herr {Nm}, Frau {Nw}.
+
+Frau {N} berichtet, dass {ZAHL} Schülerinnen und Schüler aus {ORT} den Schulbus nutzen.
+
+Institutsratssitzung: Prof. {VNw} berichtet über die Berufungskommission. Prof. {VNm} ist Vorsitzender.
+
+Die Fachschaft beschließt, im kommenden Schuljahr {WERK} als Klassenlektüre zu lesen.
+
+TOP 5: Die Eltern von {VN} beantragen eine Wiederholung der Klassenstufe. Die Konferenz stimmt zu.
+
+Herr {VNm} wird zum neuen Fachleiter {FACH} gewählt (8 Ja, 2 Enthaltungen).
+
+Der Schülerrat, vertreten durch {VN} und {VN}, wünscht sich einen Wasserspender.
+
+Frau {Nw} gibt zu Protokoll, dass sie mit der Bewertung von {V} nicht einverstanden ist.
+
+Die Fortbildung zu {AUT} und kooperativem Lernen findet am {DATUM} in der Aula statt.
+
+Die Konferenz beschließt, {VNw} für den Schulpreis vorzuschlagen.
+
+Protokollantin: {VNw}, Datum: {DATUM}
+
+Hausmeister {N} bittet, dass die Fahrräder nicht mehr im Flur abgestellt werden dürfen.
+
+Prüfungsausschuss: Widerspruch von Herrn {VNm} gegen die Bewertung der Klausur; Stellungnahme durch Prof. {VNw}.
+
+Die Schulleitung informiert, dass Frau {VNw} ab {DATUM} die Stellvertretung übernimmt.
+
+TOP 2: Bericht aus dem Elternrat. Frau {VNw} berichtet über die Spendenaktion für die Bibliothek.
+
+Die Fachschaft {FACH} ({VN}, {VN}, {VN}) stellt den neuen Stoffverteilungsplan vor.
+
+Herr {Nm} kritisiert, dass die Vertretungsstunden ungleich verteilt sind. Frau {Nw} sagt eine Prüfung zu.
+
+Beschluss: Für {Vw} aus der {KLASSE} wird eine Schulbegleitung beantragt.
+
+Die Lehrerkonferenz verabschiedet einstimmig das Medienkonzept, erarbeitet von {VN} und {VN}.
+
+Der Förderverein, vertreten durch Herrn {VNm}, übergibt einen Scheck über 800 Euro.
+
+Laut Konferenz hat {VN} den Unterricht mehrfach massiv gestört. Ordnungsmaßnahme: Ausschluss von der Klassenfahrt.
+
+Zur folgenden Sitzung lädt die Konferenz die Schulpsychologin Dr. {VNw} ein.
+
+Die Kollegin {Nw} berichtet von der Hospitation an der {SCHULE} in {ORT}.
+
+TOP 4: Der Antrag der {KLASSE} auf einen Wandertag nach {OORT} wird genehmigt.
+
+Herr {VNm} (Personalrat) informiert über die Ergebnisse der Gefährdungsbeurteilung.
+
+Die Elternversammlung der {KLASSE} wählt Frau {VNw} und Herrn {VNm} zu Elternsprechern.
+
+Beschluss: Die Partnerschaft mit der {SCHULE} wird fortgesetzt; Ansprechpartner ist Herr {Nm}.
+
+Frau {N} bittet um Rückmeldung bis zum {DATUM}, wer an der Fortbildung teilnimmt.
+
+Herr {Nm} bedankt sich bei {VNw} für die Organisation des Sportfestes.
+
+Die Konferenz nimmt zur Kenntnis, dass {V} an die {SCHULE} wechselt.
+
+Sitzung der Steuergruppe: anwesend {VN}, {VN}, {VN}; Gast: {VN} von der {OEINR}.
+
+Frau {VNw} übernimmt die Klassenleitung der {KLASSE} von Herrn {VNm}, der in Elternzeit geht.
+
+Berufungskommission: Die Bewerberinnen {VNw} und {VNw} werden zu Probevorträgen eingeladen.
+
+Die Kommission empfiehlt, Herrn Dr. {VNm} auf Platz 1 der Liste zu setzen.
+
+TOP 6: Verschiedenes. Herr {Nm} weist auf den Tag der offenen Tür am {DATUM} hin.
+
+Die Fachkonferenz diskutiert die Studie von {AUT} ({JAHR}) zur Hausaufgabenpraxis.
+
+Frau {Nw} informiert, dass das Kultusministerium neue Lehrpläne angekündigt hat.
+
+Die Schulkonferenz bestätigt {VNm} als Vertreter der Schülerschaft.
+
+Die Teilnehmenden der Fortbildung in {OORT} ({VN}, {VN}) berichten von ihren Eindrücken.
+
+Herr {Nm} beantragt die Anschaffung von zehn Tablets. Frau {N} weist auf das Budget hin.
+
+Für die Schulpartnerschaft mit {OORT} werden Gastfamilien gesucht; Kontakt: {VNw}.
+
+Die Klassenkonferenz beschließt Förderunterricht für {V}, {V} und {V} in {FACH}.
+
+Beschluss zur Ganztagsplanung: AG Theater ({VNw}), AG Fußball ({VNm}), AG Schach ({VNm}).
+
+Frau {VNw} berichtet, dass die Kinder der {KITA} im Mai zum Schnuppertag kommen.
+
+Herr {N} weist darauf hin, dass das Protokoll der letzten Sitzung noch nicht unterschrieben ist.
+
+Die Elternvertreterin, Frau {N}, kritisiert die Hausaufgabenmenge in der {KLASSE}.
+
+TOP 3: Personelles. Frau {VNw} kehrt aus der Elternzeit zurück, Herr {VNm} verlässt die Schule.
+
+Die Konferenz gratuliert {VN} zum ersten Platz beim Landeswettbewerb.
+
+Prüfungsausschuss: Fristverlängerung für {VNw} (Bachelorarbeit) um vier Wochen wegen Krankheit.
+
+Herr {Nm} stellt die Ergebnisse der Elternbefragung vor; die Daten wurden von {VN} ausgewertet.
+
+Die Kollegen {N} und {N} übernehmen die Pausenaufsicht im Neubau.
+
+Die Fachschaft beschließt, die Klassenarbeit in {FACH} in allen Klassen der Stufe {ZAHL} gleich zu stellen.
+
+Die Gesamtkonferenz erinnert an das Verbot, Fotos von Schülerinnen und Schülern ohne Einwilligung zu veröffentlichen.
+
+Der Tagesordnungspunkt „Schulhofgestaltung“ wird vertagt, weil Herr {Nm} erkrankt ist.
+
+Frau {Nw} (Schulleitung) und Herr {Nm} (Stellvertretung) unterzeichnen das Protokoll.

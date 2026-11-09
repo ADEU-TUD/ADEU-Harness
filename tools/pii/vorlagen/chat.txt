@@ -1,0 +1,187 @@
+# Vorlagen AP-67 · Textart: Chat mit Lora, Kurznachrichten (Lehrer: Claude, erfunden)
+
+Formuliere bitte eine nette Nachricht an Frau {Nw}: Unser Gespräch verschiebt sich auf nächste Woche.
+
+Fasse mir das Protokoll zusammen, vor allem was {V} und {V} gesagt haben.
+
+hilf mir bei einem zeugnistext für {V}, sie ist fleißig aber sehr still
+
+Was meint {AUT} mit Bildung als Selbsttätigkeit?
+
+Kannst du die Notizen zum Gespräch mit Herrn {Nm} in ein ordentliches Protokoll umwandeln?
+
+Erstelle ein Arbeitsblatt über {OEFF} für die {KLASSE}.
+
+Wie antworte ich {V}? Er will seine Note in {FACH} diskutieren und ist ziemlich sauer.
+
+schreib {V} dass ich heute später komme
+
+Mach eine Liste mit Ideen für den Abschied von {VN}, sie geht nach {ZAHL} Jahren in Rente.
+
+Übersetze die Einladung ins Arabische, für Familie {N}.
+
+Ich brauche eine Einschätzung für {V} aus der {KLASSE} für die Bildungsempfehlung.
+
+Was ist der Unterschied zwischen {AUT} und {AUT} beim Thema Motivation?
+
+Formuliere eine Absage an {VN}, die Stelle ist leider schon vergeben.
+
+meine kollegin {V} ist krank, schreib ihr was nettes
+
+Plane einen Ausflug nach {OORT} für 25 Kinder, Bus und Eintritt.
+
+Ich hab mit der Mutter von {V} telefoniert, sie hat erzählt, dass sie nach {ORT} ziehen. Wie bereite ich die Klasse darauf vor?
+
+Wann wurde {OEFF} geboren?
+
+Hilf mir beim Gutachten für {VN}, Note {NOTE}, gute Theorie, schwache Empirie.
+
+Erstelle einen Elternbrief zur Klassenfahrt, unterschreiben mit {VN}, Klassenleitung {KLASSE}.
+
+{V} hat heute wieder gestört, wie dokumentiere ich das?
+
+Gib mir drei Bücher, die so ähnlich sind wie {WERK}.
+
+Schreib eine Laudatio für {VN}, die den Lehrerpreis bekommt.
+
+Wie zitiere ich {AUT} ({JAHR}) nach APA?
+
+Kannst du die Mail von {VN} höflicher formulieren?
+
+frag mal {v} ob sie morgen die aufsicht übernimmt
+
+Ich bin Lehrerin an der {SCHULE} und möchte ein Projekt zur Mülltrennung starten. Ideen?
+
+Was weißt du über die {OEINR}?
+
+Bitte korrigiere den Text von {V}, Klasse {KLASSE}, und gib kindgerechtes Feedback.
+
+Schreib ein Gedicht zum Geburtstag von {V}, sie wird {ZAHL}.
+
+Die Schulleiterin, Frau {Nw}, will bis Freitag einen Bericht. Mach mir eine Gliederung.
+
+Erkläre {AUT:gen} Theorie in einfachen Worten.
+
+Ich treffe morgen den Vater von {V}, der ist sehr fordernd. Tipps?
+
+Mein Sohn {Vm} geht in die {KITA} und will nicht mehr hin. Was kann ich tun?
+
+Formuliere ein Lob für {V} und {V} im Newsletter, sie haben den Schulgarten angelegt.
+
+Erstelle ein Quiz über {OORT} für die Grundschule.
+
+Schreib eine Nachricht an die Elterngruppe: {V} hat seine Jacke vergessen, wer hat sie?
+
+Fasse den Aufsatz von {AUTVN} zusammen.
+
+Welche Förderung gibt es in {OORT} für Kinder mit Legasthenie?
+
+hilfe! {v} hat mir gerade geschrieben dass die präsentation morgen ist, hast du ideen
+
+Ich schreibe meine Masterarbeit bei Prof. {Nm}. Wie gliedere ich das Theoriekapitel?
+
+Erstelle einen Vertretungsplan: {N} fehlt Montag und Dienstag, {N} am Mittwoch.
+
+Mach aus diesen Stichpunkten eine Mail an {VN}: Termin, Raum, Unterlagen mitbringen.
+
+Wie spricht man {N} richtig aus?
+
+Erkläre den Unterschied zwischen Integration und Inklusion nach {AUT}.
+
+Die Kinder lesen {WERK}. Mach mir Fragen zum ersten Kapitel.
+
+Bitte schreib ein Empfehlungsschreiben für {VN}, studentische Hilfskraft seit {JAHR}.
+
+Wie alt ist {OEFF} eigentlich?
+
+Ich hab eine neue Schülerin, {V}, sie kommt aus {OORT} und spricht kein Deutsch. Wie kann ich sie unterstützen?
+
+Was steht im Schulgesetz über Ordnungsmaßnahmen? Es geht um {V} aus der {KLASSE}.
+
+schreib meinem mann {v} dass er die kinder abholen soll
+
+Formuliere eine Antwort an Herrn {Nm}: Die Note bleibt, aber ich biete ein Gespräch an.
+
+Erstelle eine Präsentation über die Geschichte von {OORT}.
+
+{V} und {V} wollen ein Referat über {OEFF} halten. Hilf ihnen bei der Gliederung.
+
+Kannst du mir die Studie von {AUT} et al. erklären? Ich verstehe die Statistik nicht.
+
+Ich arbeite an der {SCHULE} in {ORT}. Gibt es Fördermittel für einen Schulgarten?
+
+Schreib eine Dankeskarte an die Erzieherinnen der {KITA}, besonders an {V}.
+
+Welche Bücher hat {OEFF} geschrieben?
+
+Trag mir die Zensuren ein: {V} {NOTE}, {V} {NOTE}, {V} {NOTE}.
+
+Wie heißt die Theorie von {AUT} nochmal, mit den Stufen?
+
+Bitte formuliere die Mail an meinen Kollegen {VN} etwas diplomatischer.
+
+{V:gen} Mutter hat angerufen, ich soll ihr die Hausaufgaben schicken. Mach mir eine Übersicht.
+
+Schreib eine Einladung zum Sommerfest der {KITA}, unterschrieben von {VN}.
+
+ich muss {v} {n} absagen, sie wollte morgen hospitieren
+
+Erstelle eine Checkliste für den ersten Schultag in der {SCHULE}.
+
+Was hat {OEFF} zur Bildung gesagt?
+
+Kannst du das Interview mit {VN} transkribieren? Hier ist die Aufnahme.
+
+Mein Kollege {V} meint, {AUT} sei überholt. Stimmt das?
+
+Wie lange dauert die Fahrt von {OORT} nach {OORT}?
+
+Hilf mir, eine Rede für die Zeugnisausgabe zu schreiben. Ich will {V} und {V} besonders erwähnen.
+
+Was mache ich, wenn {V} im Unterricht weint?
+
+Formuliere eine Stellungnahme zum Widerspruch von {VN} gegen die Note.
+
+Erkläre mir den Matthäus-Effekt und was {AUT} dazu sagt.
+
+schreib was an {v}: danke für gestern, war schön
+
+Erstelle einen Lückentext zu {WERK}.
+
+Ich möchte mich bei {VN} für die Vertretung bedanken. Kurze Karte bitte.
+
+Welche Grundschulen gibt es in {OORT}?
+
+Plane eine Stunde über {OEFF} für Klasse {ZAHL}, 45 Minuten.
+
+Kannst du mir helfen, {N:gen} Bewerbung zu bewerten?
+
+Wer war {OEFF} und warum ist er wichtig?
+
+Mach mir einen Elternbrief zum Thema Läuse, ohne Namen!
+
+Ich bin {V}, Referendarin an der {SCHULE}. Wie bereite ich meine Lehrprobe vor?
+
+Wie war das Wetter in {OORT} gestern?
+
+Schreib {V} und {V} eine Gruppennachricht: Treffen um {UHR} vor der Mensa.
+
+Fasse die drei Interviews zusammen: {VN}, {VN} und {VN}.
+
+Was ist eigentlich aus {OEFF} geworden?
+
+Erkläre meinem Sohn {V} die Bruchrechnung, er ist in der {KLASSE}.
+
+Die Oma von {V} wohnt in {ORT} und holt ihn freitags ab. Schreib das in den Abholplan.
+
+Wie viele Einwohner hat {OORT}?
+
+Formuliere eine Erinnerung an {VN}: Abgabe der Hausarbeit bis {DATUM}.
+
+Was empfiehlt {AUT} bei Unterrichtsstörungen?
+
+Hast du Ideen für das Abschiedsgeschenk für Herrn {N}? Er war 30 Jahre an der {SCHULE}.
+
+schreib bitte eine kurze antwort an {v}: klar, gerne, bis morgen
+
+Erstelle mir einen Lernplan für die Prüfung bei Prof. {N}.

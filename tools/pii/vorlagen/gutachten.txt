@@ -1,0 +1,154 @@
+# Vorlagen AP-67 · Textart: Gutachten, Empfehlungen, Praktikumsberichte, Prüfungsprotokolle (Lehrer: Claude, erfunden)
+
+Gutachten zur Bachelorarbeit von {VN1}
+Titel: Mehrsprachigkeit im Sachunterricht der Grundschule
+Erstgutachterin: Prof. Dr. {VNw}
+
+{N1} legt eine sorgfältig recherchierte Arbeit vor, die sich vor allem auf {AUT} ({JAHR}) und {AUT} ({JAHR}) stützt.
+
+Die empirische Untersuchung wurde an der {SCHULE} durchgeführt; Ansprechpartnerin war die Schulleiterin, Frau {Nw}.
+
+Herr {VNm} hat sein Praktikum in der Klasse {KLASSE} bei Herrn {Nm} absolviert und dabei viel Eigeninitiative gezeigt.
+
+Frau {Nw} gelingt es, die Theorie nach {AUTVN} mit den eigenen Beobachtungen zu verbinden.
+
+Empfehlungsschreiben für {VNw}: Frau {Nw} hat von {JAHR} bis {JAHR} in unserem Team als Hilfskraft gearbeitet.
+
+Die Interviews mit Lehrkräften aus {ORT} sind gut geführt, die Auswertung nach {AUT} bleibt aber an der Oberfläche.
+
+Note der Arbeit: {NOTE}. Gutachter: Dr. {VNm}. Zweitgutachterin: Prof. {VNw}.
+
+Herr {Nm} zeigt in der Lehrprobe zum Thema {OEFF} eine sichere Gesprächsführung.
+
+Die Kandidatin, Frau {VNw}, hat ihre Fragestellung im Lauf der Arbeit zweimal geändert, was der Stringenz schadet.
+
+Die Arbeit von {VN} beruht auf einer Befragung von {ZAHL} Eltern an der {SCHULE} und der {SCHULE}.
+
+Ich empfehle Herrn {VNm} nachdrücklich für das Stipendium der {OEINR}.
+
+Die Beobachtungen in der {KITA} sind detailliert protokolliert, allerdings fehlt eine Einordnung in den Forschungsstand.
+
+Frau {N} arbeitet sauber mit der Inhaltsanalyse nach {AUT} ({JAHR}), das Kategoriensystem ist nachvollziehbar.
+
+Die Mentorin, Frau {VNw}, beschreibt Herrn {Nm} als zuverlässig, pünktlich und offen für Kritik.
+
+Praktikumsbericht von {VN}, Schule: {SCHULE}, Mentor: Herr {Nm}
+
+Der theoretische Teil referiert {AUT}, {AUT} und {AUT} ({JAHR}) korrekt, aber ohne eigene Gewichtung.
+
+Herr {VNm} stammt aus {ORT} und kennt die Situation der ländlichen Schulen aus eigener Erfahrung.
+
+Die Fallbeschreibung von „{V}“ (Name geändert) ist anschaulich, die Anonymisierung aber unzureichend, weil Schule und Ort genannt werden.
+
+Prüfungsprotokoll mündliche Prüfung
+Kandidat: {VNm}
+Prüferin: Prof. Dr. {VNw}, Beisitz: {VN}
+Note: {NOTE}
+
+Frau {VNw} hat im Seminar „Inklusion“ ein Referat zu {AUT} gehalten, das zu den besten des Semesters gehörte.
+
+Die Arbeit untersucht das Ganztagsangebot der {SCHULE} in {ORT}; die Datenbasis ist mit sechs Interviews schmal.
+
+Positiv ist die kritische Auseinandersetzung mit {AUTVN}; die Kandidatin erkennt die Grenzen des Ansatzes.
+
+Gutachten zur Masterarbeit „Feedback im Mathematikunterricht“ von Herrn {VNm}, eingereicht am {DATUM}.
+
+Frau {Nw} hat die Daten in R ausgewertet und dabei Unterstützung von {VN} aus dem Methodenzentrum erhalten.
+
+Ich kenne Herrn {N} seit seinem ersten Semester; er hat bei mir drei Seminare besucht.
+
+Die Lehrprobe im Fach {FACH} in der Klasse {KLASSE} war gut strukturiert. Frau {Nw} reagierte souverän, als {Vm} den Unterricht störte.
+
+Die Arbeit ist im Projekt der {OEINR} entstanden und nutzt deren Datensatz.
+
+Bewertung der Hausarbeit von {VNw}: Die Argumentation ist schlüssig, die Literaturauswahl einseitig.
+
+Die Kandidatin schildert eine Unterrichtsstunde bei Frau {Nw} an der {SCHULE}, in der {Vw} und {Vm} eine Präsentation halten.
+
+Erstgutachter: Prof. Dr. {VNm}; Zweitgutachterin: Dr. {VNw}; Vorsitz Prüfungsausschuss: Prof. {VNm}
+
+Herr {Nm} bezieht sich auf {AUT:gen} Begriff der Bildsamkeit, ohne ihn zu erläutern.
+
+Die Studie wurde in drei Kitas in {ORT} durchgeführt, darunter die {KITA}.
+
+Frau {VNw} war während des Praxissemesters an der {SCHULE} tätig und hat dort eigenständig eine Projektwoche geplant.
+
+Beurteilung der Schulpraktischen Übungen: Studierende {VNw}, Betreuerin {VNw}, Note {NOTE}.
+
+Die Interviewpartnerin (Lehrerin aus {ORT}) ist durch die Angaben im Text leicht zu erkennen; das muss überarbeitet werden.
+
+Überzeugend überträgt der Kandidat die Überlegungen von {AUT} ({JAHR}) auf den Schulalltag.
+
+Für die Promotionsstelle an der {OEINR} halte ich Frau {VNw} für hervorragend geeignet.
+
+Herr {VNm} hat in seiner Arbeit Schülerinnen und Schüler der {SCHULE} befragt; die Einverständniserklärungen liegen vor.
+
+Die Danksagung an „Frau {N} und ihre Klasse {KLASSE}“ muss für die Veröffentlichung entfernt werden.
+
+Gutachten {VNw}: Die Arbeit verdient die Note {NOTE}. Gez. Prof. Dr. {VN}
+
+Die Literaturliste enthält wichtige Titel von {AUT}, {AUT} und {AUT}, aber kaum aktuelle Studien.
+
+Herr {Nm} hat im Praktikum an der {SCHULE} in {ORT} einen sehr guten Draht zu den Schülerinnen und Schülern gefunden.
+
+Die Mentorin, Frau {VNw}, lobt die gründliche Vorbereitung; Herr {Nm} müsse aber lauter sprechen.
+
+Die Bachelorarbeit von {VNm} wurde mit „sehr gut“ bewertet und wird für den Fakultätspreis vorgeschlagen.
+
+Frau {N} zitiert mehrfach {AUTVN} ({JAHR}), ohne die Seitenzahlen anzugeben.
+
+Zeugnis über die Tätigkeit als studentische Hilfskraft: Herr {VNm}, geboren in {ORT}, war bei uns von {JAHR} bis {JAHR} beschäftigt.
+
+Die Masterarbeit von Frau {VNw} untersucht Übergänge von der {KITA} in die {SCHULE}.
+
+Die Befunde widersprechen denen von {AUT} et al. ({JAHR}); die Kandidatin diskutiert das angemessen.
+
+Herr {VNm} hat seine Arbeit fristgerecht abgegeben; die Verlängerung, die er bei Frau {Nw} beantragt hatte, war nicht nötig.
+
+Die Unterrichtsbeobachtungen fanden in der Klasse von Herrn {Nm} statt; die Schülerinnen und Schüler sind anonymisiert.
+
+Frau {VNw} zeigt in ihrer Arbeit über {OEFF} eine große Sachkenntnis.
+
+Gutachterin: {VNw}, wissenschaftliche Mitarbeiterin am Institut. Datum: {DATUM}
+
+Ich habe Herrn {VNm} als engagierten Tutor in meiner Vorlesung kennengelernt.
+
+Die Arbeit zeichnet sich durch eine eigenständige Auswertung der Interviews mit Eltern aus {ORT} aus.
+
+Kandidatin {VNw}: Präsentation gut, Verteidigung unsicher; Gesamtnote {NOTE}.
+
+Frau {Nw} zeigt, dass die Konzepte von {AUT} und {AUT} in der Praxis kaum zu trennen sind.
+
+Herr {N} hat für seine Studie mit dem {VEREIN} zusammengearbeitet, der Hausaufgabenhilfe anbietet.
+
+Praktikumsbeurteilung: Frau {VNw} hat in der {KITA} sehr selbstständig gearbeitet. Gez. {VNw}, Kitaleitung
+
+Das Thema der Arbeit, die Lesesozialisation nach {AUT}, ist gut gewählt.
+
+Herr {VNm} legt eine Arbeit vor, die mit {ZAHL} Seiten deutlich über dem Umfang liegt.
+
+Die Arbeit wurde von Frau {VNw} betreut; Rücksprachen fanden regelmäßig statt.
+
+Frau {N} untersucht, wie Lehrkräfte der {SCHULE} mit Heterogenität umgehen, und stützt sich dabei auf {AUT}.
+
+Herr {Nm} zeigte in der Lehrprobe ein gutes Zeitmanagement; die Sicherung kam allerdings zu kurz.
+
+Ich empfehle Frau {VNw} für den Masterstudiengang Bildungswissenschaften.
+
+Die Kandidatin {VNw} hat ihre Ergebnisse auf einer Tagung in {OORT} vorgestellt.
+
+Gutachten zur Dissertation von Herrn {VNm}: Die Arbeit leistet einen wichtigen Beitrag zur Forschung über {OEFF}.
+
+Die Arbeit beginnt mit einem Zitat von {OEFF}, was originell, aber für eine Abschlussarbeit unüblich ist.
+
+Studierender: {NV}; Matrikel: {ZAHL}{ZAHL}{ZAHL}; Thema: Lernen mit Tablets
+
+Frau {VNw} hat ihr Praxissemester im Ausland verbracht, an einer deutschen Schule in {OORT}.
+
+Positiv hervorzuheben ist die Zusammenarbeit mit der Lehrerin der Klasse, Frau {VNw}.
+
+Herr {VNm} arbeitet seit {JAHR} als Seiteneinsteiger an der {SCHULE}; die Arbeit verbindet Studium und Praxis.
+
+Die Arbeit von {VN} und {VN} (Gruppenarbeit) wird gemeinsam mit {NOTE} bewertet.
+
+Die Mentorin {VNw} ist leider erkrankt; die Beurteilung übernimmt der Schulleiter, Herr {VNm}.

@@ -7,7 +7,7 @@ Nicht Teil der App; läuft nur in der Cloud-Sitzung bzw. auf dem Trainings-PC. P
 | Stufe | Was | Wo | Stand |
 | --- | --- | --- | --- |
 | a | Messkorpus (`messkorpus/`, `corpus.py`, `PseudonymCorpusTest`) | überall | ☑ |
-| b | Trainingsdaten aus Vorlagen, erfundene Namen | Cloud / jeder PC | ☐ |
+| b | Trainingsdaten aus Vorlagen, erfundene Namen (`vorlagen/`, `namen.py`, `gen.py`) | überall | ☑ |
 | c | Training (Hugging Face Transformers, bf16) | PC mit RTX 5080 | ☐ |
 | d | Export ONNX int8 + Modellkarte | PC | ☐ |
 
@@ -46,6 +46,27 @@ Mit „Gründlich“ (lokales Sprachmodell) misst der Test, wenn ein OpenAI-komp
 ```bash
 PII_GRUENDLICH_URL=http://localhost:8080/v1 PII_GRUENDLICH_MODELL=qwen3.5-2b ./gradlew -p desktop test --tests 'io.github.thepytales.llmhub.PseudonymCorpusTest'
 ```
+
+## Stufe b: Trainingsdaten
+
+Claude hat als Lehrer-Modell **734 Vorlagen** in neun Textarten geschrieben (`vorlagen/*.txt`), mit Platzhaltern statt
+Namen: `{VN}` „Vorname Nachname“, `{Nw}` Nachname einer Frau, `{SCHULE}`, `{KITA}`, `{ORT}` (mit Personenbezug) – und
+für Gegenbeispiele `{AUT}` (zitierte Autor:in), `{OEFF}` (öffentliche Person), `{OEINR}`, `{OORT}`, `{WERK}`. Alle
+Platzhalter stehen am Anfang von `gen.py`. Der Generator setzt erfundene Namen ein (Listen in `namen.py`, die Listen der
+App und erfundene sächsische Nachnamen) und schreibt die Fundstellen zeichengenau mit – die Beschriftung stimmt also
+immer.
+
+```bash
+python3 tools/pii/gen.py check            # Platzhalter, Überschneidung mit dem Messkorpus, wörtliche Namen
+python3 tools/pii/gen.py make -n 30000    # → tools/pii/daten/train.jsonl, dev.jsonl, beispiele.txt (nicht im Repo)
+```
+
+- Eine Zeile in `train.jsonl`: `{"text": …, "spans": [[start, ende, "PER"], …], "public": […], "textart": …}`.
+- Etwa ein Zehntel der Vorlagen kommt nur in `dev.jsonl` vor (Entwicklung, ungesehene Satzmuster).
+- **Sperre**: Kein Wort aus den Angaben des Prüfteils wird als Name, Einrichtung oder Ort gezogen (354 Wörter), und
+  `check` meldet jede Vorlage, die fünf Wörter am Stück mit dem Messkorpus teilt. Für das endgültige Modell, das in die
+  App kommt, kann die Sperre mit `--ohne-sperre` fallen.
+- Vorlagen mit Orten und Einrichtungen werden öfter gezogen (2,5-fach), weil diese Angaben seltener sind.
 
 ## Grundsätze
 
