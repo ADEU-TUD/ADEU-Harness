@@ -173,7 +173,7 @@ class MailServerTest {
             val id = b.mails(null, null, false, 10).first().id
             val refused = assertFailsWith<OutlookException> { b.move(listOf(id), "Projekte") }
             assertTrue("nicht verschieben" in refused.message!!)
-            assertTrue(fake.commands.none { it.uppercase().contains("EXPUNGE") })
+            assertTrue(synchronized(fake.commands) { fake.commands.toList() }.none { it.uppercase().contains("EXPUNGE") })
         } finally {
             fake.server.close()
         }

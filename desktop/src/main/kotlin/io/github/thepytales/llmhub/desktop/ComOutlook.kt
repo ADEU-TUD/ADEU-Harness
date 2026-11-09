@@ -6,6 +6,10 @@ import com.sun.jna.platform.win32.Variant.VARIANT
 import com.sun.jna.platform.win32.WinReg
 import io.github.thepytales.llmhub.data.BusyTimes
 import io.github.thepytales.llmhub.data.CalendarEntry
+import io.github.thepytales.llmhub.data.LoraDrive
+import io.github.thepytales.llmhub.data.MailPage
+import io.github.thepytales.llmhub.data.MailQuery
+import io.github.thepytales.llmhub.data.Outlook
 import io.github.thepytales.llmhub.data.MailBody
 import io.github.thepytales.llmhub.data.MailDraft
 import io.github.thepytales.llmhub.data.MailFolder
@@ -19,6 +23,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.io.File
 import java.util.Date
 
 /** Short name inside this file. */
@@ -43,6 +48,9 @@ object ComOutlook : OutlookBridge {
     private const val APPOINTMENT_ITEM = 1
     private const val TASK_ITEM = 3
     private const val CLASS_MAIL = 43L
+
+    /** Searching all folders shows at most this many mails. */
+    private const val ALL_FOLDERS_MAX = 1000
 
     private val thread = ComThread("outlook-com")
 
@@ -117,13 +125,15 @@ object ComOutlook : OutlookBridge {
         names.joinToString(", ").ifBlank { ns.objOrNull("CurrentUser")?.str("Name").orEmpty().ifBlank { "Outlook" } }
     }
 
-    override fun folders(): List<MailFolder> = session { _, ns ->
-        val out = mutableListOf<MailFolder>()
+    override fun folders(): List<MailFolder> = session { _, ns -> mailFolders(ns).map { it.first } }
+
+    /** Every mail folder of every mailbox of the profile (no calendar, contacts, tasks, notes), with its COM object. */
+    private fun mailFolders(ns: Com): List<Pair<MailFolder, Com>> {
+        val out = mutableListOf<Pair<MailFolder, Com>>()
         fun walk(f: Com, store: String, depth: Int) {
             if (out.size >= 1500 || depth > 8) return
-            // Mail folders only (no calendar, contacts, tasks, notes).
             if (depth > 0 && f.num("DefaultItemType") == MAIL_ITEM.toLong()) {
-                out += MailFolder(idOf(f, store), f.str("FolderPath"), f.str("Name"), runCatching { f.obj("Items").num("Count").toInt() }.getOrDefault(0), f.num("UnReadItemCount").toInt())
+                out += MailFolder(idOf(f, store), f.str("FolderPath"), f.str("Name"), runCatching { f.obj("Items").num("Count").toInt() }.getOrDefault(0), f.num("UnReadItemCount").toInt()) to f
             }
             val subs = f.objOrNull("Folders") ?: return
             for (i in 1..subs.num("Count")) subs.objOrNull("Item", VARIANT(i.toInt()))?.let { walk(it, store, depth + 1) }
@@ -133,7 +143,7 @@ object ComOutlook : OutlookBridge {
             val root = roots.objOrNull("Item", VARIANT(i.toInt())) ?: continue
             walk(root, root.str("StoreID"), 0)
         }
-        out
+        return out
     }
 
     private fun header(m: Com, folderPath: String, store: String, withPreview: Boolean): MailHeader? {
@@ -194,15 +204,7 @@ object ComOutlook : OutlookBridge {
         MailBody(h, cc = m.str("CC"), body = m.str("Body"), attachmentNames = names)
     }
 
-    override fun move(ids: List<String>, folderId: String): Int = session { _, ns ->
-        val target = folderOf(ns, folderId)
-        var moved = 0
-        ids.forEach { id ->
-            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
-            if (runCatching { m.get("Move", target.toVariant()) }.isSuccess) moved++
-        }
-        moved
-    }
+    override fun move(ids: List<String>, folderId: String): Int = moveTracked(ids, folderId).size
 
     override fun createFolder(parentId: String?, name: String): MailFolder = session { _, ns ->
         val parent = folderOf(ns, parentId)
@@ -339,6 +341,185 @@ object ComOutlook : OutlookBridge {
     }
 
     override fun show(id: String) = session { _, ns -> itemOf(ns, id).run("Display") }
+
+    // ── Mailansicht (AP-69a) ────────────────────────────────────────────────────────────────────────────────
+
+    override fun inboxId(): String = session { _, ns ->
+        val f = ns.obj("GetDefaultFolder", VARIANT(INBOX))
+        idOf(f, f.str("StoreID"))
+    }
+
+    /** Outlook's own filter (Jet) for time and unread – dates in the short format of Windows, local time. */
+    private fun jetFilter(q: MailQuery): String? {
+        val zone = ZoneId.systemDefault()
+        fun fmt(m: Long) = filterFormat.format(Instant.ofEpochMilli(m).atZone(zone))
+        val parts = listOfNotNull(
+            q.since?.let { "[ReceivedTime] >= '${fmt(it)}'" },
+            q.until?.let { "[ReceivedTime] < '${fmt(it)}'" },
+            "[UnRead] = True".takeIf { q.unreadOnly },
+        )
+        return parts.takeIf { it.isNotEmpty() }?.joinToString(" AND ")
+    }
+
+    /** The DASL filter (@SQL) for sender, subject, words (subject, sender, text) and attachments; null when none is asked. */
+    internal fun daslFilter(q: MailQuery): String? {
+        fun like(prop: String, v: String) = "\"urn:schemas:httpmail:$prop\" LIKE '%${v.replace("'", "''")}%'"
+        val parts = listOfNotNull(
+            "\"urn:schemas:httpmail:hasattachment\" = 1".takeIf { q.withAttachments },
+            q.from.trim().takeIf { it.isNotEmpty() }?.let { "(" + like("fromname", it) + " OR " + like("fromemail", it) + ")" },
+            q.subject.trim().takeIf { it.isNotEmpty() }?.let { like("subject", it) },
+        ) + q.words.map { w -> "(" + like("subject", w) + " OR " + like("fromname", w) + " OR " + like("textdescription", w) + ")" }
+        return parts.takeIf { it.isNotEmpty() }?.let { "@SQL=" + it.joinToString(" AND ") }
+    }
+
+    /** The items of [folder] that fit [q], newest first; null when Outlook rejects the filter (then the app filters itself). */
+    private fun filtered(folder: Com, q: MailQuery): Com? = runCatching {
+        var items = folder.obj("Items")
+        jetFilter(q)?.let { items = items.obj("Restrict", VARIANT(it)) }
+        daslFilter(q)?.let { items = items.obj("Restrict", VARIANT(it)) }
+        items.run("Sort", VARIANT("[ReceivedTime]"), VARIANT(true))
+        items
+    }.getOrNull()
+
+    override fun page(query: MailQuery, offset: Int, limit: Int): MailPage = session { _, ns ->
+        if (query.allFolders) return@session pageOfAll(ns, query, offset, limit)
+        val folder = folderOf(ns, query.folderId)
+        val path = folder.str("FolderPath")
+        val store = folder.str("StoreID")
+        val items = filtered(folder, query) ?: return@session pageScanning(folder, path, store, query, offset, limit)
+        val total = items.num("Count").toInt()
+        val out = mutableListOf<MailHeader>()
+        var i = offset
+        // Items.Item(i) follows the sort; reports and other non-mails are skipped but counted.
+        while (i < total && out.size < limit) {
+            i++
+            items.objOrNull("Item", VARIANT(i))?.let { m -> header(m, path, store, withPreview = true)?.let { out += it } }
+        }
+        MailPage(out, total, i)
+    }
+
+    /** When Outlook rejects a filter (some stores): read the folder newest first and filter here, at most 5000 per page. */
+    private fun pageScanning(folder: Com, path: String, store: String, q: MailQuery, offset: Int, limit: Int): MailPage {
+        val items = folder.obj("Items")
+        items.run("Sort", VARIANT("[ReceivedTime]"), VARIANT(true))
+        val count = items.num("Count").toInt()
+        val out = mutableListOf<MailHeader>()
+        var matched = 0
+        var i = 0
+        while (i < count && out.size < limit && i < offset * 8 + 5000) {
+            i++
+            val m = items.objOrNull("Item", VARIANT(i)) ?: continue
+            val h = header(m, path, store, withPreview = true) ?: continue
+            // Newest first: below the start of the time span nothing more fits.
+            if (q.since != null && h.received in 1 until q.since) break
+            if (!Outlook.fits(q, h)) continue
+            if (matched++ >= offset) out += h
+        }
+        val more = i < count && out.size >= limit
+        return MailPage(out, if (more) offset + out.size + 1 else offset + out.size, offset + out.size)
+    }
+
+    /**
+     * Searching all folders: each folder filtered by Outlook, the newest [offset] + [limit] of each merged by time.
+     * At most 1000 results, so a search over a big mailbox stays quick.
+     */
+    private fun pageOfAll(ns: Com, q: MailQuery, offset: Int, limit: Int): MailPage {
+        val wanted = (offset + limit).coerceAtMost(ALL_FOLDERS_MAX)
+        data class Source(val path: String, val store: String, val items: Com, val count: Int)
+        data class Hit(val received: Long, val source: Int, val index: Int)
+        val sources = mailFolders(ns).filter { it.first.items > 0 }.mapNotNull { (mf, f) ->
+            val items = filtered(f, q) ?: return@mapNotNull null
+            val n = items.num("Count").toInt()
+            if (n == 0) null else Source(mf.path, f.str("StoreID"), items, n)
+        }.take(150)
+        val hits = mutableListOf<Hit>()
+        sources.forEachIndexed { s, src ->
+            for (i in 1..minOf(src.count, wanted)) src.items.objOrNull("Item", VARIANT(i))?.let { m -> hits += Hit(m.date("ReceivedTime") ?: 0L, s, i) }
+        }
+        hits.sortByDescending { it.received }
+        val slice = hits.drop(offset).take(limit)
+        val out = slice.mapNotNull { h -> sources[h.source].let { src -> src.items.objOrNull("Item", VARIANT(h.index))?.let { header(it, src.path, src.store, withPreview = true) } } }
+        val total = minOf(sources.sumOf { it.count }, ALL_FOLDERS_MAX)
+        return MailPage(out, total, offset + slice.size)
+    }
+
+    override fun markRead(ids: List<String>, read: Boolean): Int = session { _, ns ->
+        var n = 0
+        ids.forEach { id ->
+            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
+            if (runCatching { m.put("UnRead", !read); m.run("Save") }.isSuccess) n++
+        }
+        n
+    }
+
+    /** Folders Outlook keeps under their own names: Gelöschte Elemente, Postausgang, Gesendete Elemente, Posteingang, Entwürfe, Junk-E-Mail. */
+    private val DEFAULT_FOLDERS = listOf(3, 4, 5, 6, 16, 23)
+
+    override fun renameFolder(id: String, name: String): MailFolder = session { _, ns ->
+        val f = folderOf(ns, id)
+        val entry = f.str("EntryID")
+        if (DEFAULT_FOLDERS.any { kind -> runCatching { ns.obj("GetDefaultFolder", VARIANT(kind)).str("EntryID") == entry }.getOrDefault(false) }) {
+            throw OutlookException(tr("Den Posteingang und die festen Ordner (Entwürfe, Gesendete Elemente, Gelöschte Elemente …) benennt die App nicht um."))
+        }
+        val store = f.str("StoreID")
+        try {
+            f.put("Name", name.trim())
+        } catch (e: Exception) {
+            throw OutlookException(tr("Outlook lässt den Ordner nicht umbenennen – gibt es dort schon einen Ordner „{0}“?", name.trim()))
+        }
+        MailFolder(idOf(f, store), f.str("FolderPath"), f.str("Name"), runCatching { f.obj("Items").num("Count").toInt() }.getOrDefault(0), f.num("UnReadItemCount").toInt())
+    }
+
+    override fun saveAttachment(id: String, index: Int, dir: File): File = session { _, ns ->
+        val atts = itemOf(ns, id).obj("Attachments")
+        if (index < 0 || index >= atts.num("Count")) throw OutlookException(tr("Diesen Anhang gibt es in der Mail nicht."))
+        val a = atts.obj("Item", VARIANT(index + 1))
+        dir.mkdirs()
+        val file = LoraDrive.unique(dir, LoraDrive.safe(a.str("FileName").ifBlank { a.str("DisplayName") }.ifBlank { "Anhang" }))
+        a.run("SaveAsFile", VARIANT(file.absolutePath))
+        file
+    }
+
+    // ── AP-69 b/c: Lora sortiert selbst ──
+
+    /** Restricts the folder to the time (Outlook's filter in the short date format of Windows), newest first. */
+    override fun mailsInRange(folderId: String?, from: Long, until: Long?, limit: Int): List<MailHeader> = session { _, ns ->
+        val folder = folderOf(ns, folderId)
+        val path = folder.str("FolderPath")
+        val store = folder.str("StoreID")
+        val zone = ZoneId.systemDefault()
+        fun fmt(m: Long) = filterFormat.format(Instant.ofEpochMilli(m).atZone(zone))
+        val all = folder.obj("Items")
+        val filter = "[ReceivedTime] >= '${fmt(from)}'" + (until?.let { " AND [ReceivedTime] < '${fmt(it)}'" } ?: "")
+        val items = runCatching { all.obj("Restrict", VARIANT(filter)) }.getOrNull() ?: all
+        items.run("Sort", VARIANT("[ReceivedTime]"), VARIANT(true))
+        val out = mutableListOf<MailHeader>()
+        var m = items.objOrNull("GetFirst")
+        var seen = 0
+        while (m != null && out.size < limit && seen < limit * 4) {
+            seen++
+            val h = header(m, path, store, withPreview = true)
+            if (h != null && h.received > 0) {
+                if (h.received < from) break
+                if (until == null || h.received < until) out += h
+            }
+            m = items.objOrNull("GetNext")
+        }
+        out
+    }
+
+    /** MailItem.Move returns the moved mail – with a new EntryID, which is what Rückgängig needs. */
+    override fun moveTracked(ids: List<String>, folderId: String): Map<String, String> = session { _, ns ->
+        val target = folderOf(ns, folderId)
+        val store = target.str("StoreID")
+        val out = LinkedHashMap<String, String>()
+        ids.forEach { id ->
+            val m = runCatching { itemOf(ns, id) }.getOrNull() ?: return@forEach
+            val moved = runCatching { m.get("Move", target.toVariant()) }
+            if (moved.isSuccess) out[id] = (moved.getOrNull() as? Com)?.let { runCatching { idOf(it, store) }.getOrNull() }.orEmpty()
+        }
+        out
+    }
 
     /** Today's date in Outlook's filter format (for the self-test). */
     internal fun filterDate(day: LocalDate = LocalDate.now()): String = filterFormat.format(day.atStartOfDay())

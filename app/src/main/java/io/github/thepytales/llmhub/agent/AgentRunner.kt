@@ -56,11 +56,18 @@ class AgentRunner(private val c: AppContainer) {
 
     fun environment(conv: Conversation): AgentEnvironment? = conv.envId?.let { c.environments.get(it) }
 
-    /** Tool groups offered to the model in this conversation (fewer in projects that keep data on the device). */
-    fun providers(conv: Conversation, tools: ToolSelection? = null): List<ToolProvider> {
+    /**
+     * Tool groups offered to [model] in this conversation (fewer in projects that keep data on the device). The mail
+     * tools only reach a model on this device (AP-68, [MailAccess]); a chat the mailbox went into keeps to the mail tools
+     * and questions – short prompts for the local model, and nothing that could carry mail content off the device.
+     */
+    fun providers(conv: Conversation, tools: ToolSelection? = null, model: String = conv.model): List<ToolProvider> {
         val settings = c.settings.current
         // Models known not to support function calling only get a plain chat.
-        if (ModelCatalog.info(conv.model).tools == false) return emptyList()
+        if (ModelCatalog.info(model).tools == false) return emptyList()
+        // Mail & Kalender (AP-13): the mailbox of this PC (Outlook or IMAP) – only for a model on this device (AP-68).
+        val mail = c.outlookTools.takeIf { MailAccess.mayUseMailTools(c, conv, model) }
+        if (MailAccess.locked(conv)) return listOfNotNull(mail, askUser.takeIf { conv.taskId == null })
         val sel = tools ?: ToolSelection(conv.githubEnabled, settings.documentTools, settings.webTools)
         val env = environment(conv)
         // In the vault (AP-10) nothing goes to the internet: no web search, no GitHub.
@@ -85,11 +92,7 @@ class AgentRunner(private val c: AppContainer) {
             c.gameTools.takeIf { ModeTool.GAMES in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.GAMES.id) },
             // Erstellen › Gestalten (AP-24): on Windows in every chat – „Lora, mach mir ein Poster“ works anywhere.
             c.designTools.takeIf { io.github.thepytales.llmhub.data.DesignSupport.EDITOR },
-            // Mail & Kalender (AP-13): the classic Outlook of this PC, while the tool is on (not in the vault).
-            c.outlookTools.takeIf {
-                io.github.thepytales.llmhub.data.Outlook.supported && !conv.vault &&
-                    (ModeTool.MAIL in mode || settings.toolOn(io.github.thepytales.llmhub.data.AppTool.MAIL.id))
-            },
+            mail,
             // Nextcloud (AP-22): once it is set up, in every chat that may use the network (not in the vault).
             c.nextcloudTools.takeIf { settings.hasNextcloud && network },
             // Stapel (AP-20) and Antrags-Werkstatt (AP-21): while their tools are on (or in their modes).
@@ -130,7 +133,7 @@ class AgentRunner(private val c: AppContainer) {
         val lastUser = start.thread().lastOrNull { it.role == "user" }
         val pdfs = start.thread().flatMap { it.files }.filter { it.path != null }.asReversed()
         val attached = start.thread().flatMap { it.files }.asReversed()
-        val ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, startModel)
+        var ctx = RepoContext(start.linkedRepos.toMutableList(), env, lastUser?.images.orEmpty(), pdfs, attached, start.folderId, start.id, startModel)
         if ((tools?.github ?: start.githubEnabled) && !settings.hasGitHub) {
             host.notice(tr("GitHub-Token fehlt oder ist ungültig – GitHub-Werkzeuge deaktiviert."))
         }
@@ -147,7 +150,11 @@ class AgentRunner(private val c: AppContainer) {
         var memoryEvent = Memory.entriesFor(c, start).size.takeIf { it > 0 }?.let { n ->
             "Gedächtnis: " + (if (n == 1) "1 Angabe" else "$n Angaben") + if (Memory.chatsAllowed(c, start)) ", frühere Chats durchsuchbar" else ""
         }
-        var providers = providers(start, tools)
+        var providers = providers(start, tools, startModel)
+        /** The model rejected function calling: no tools for the rest of the run. */
+        var toolsOff = false
+        /** Whether the mailbox went into the chat (AP-68): then the tools shrink to the mail tools. */
+        var mailbox = MailAccess.locked(start)
         var steps = 0
         var totalSteps = 0
         val recentRounds = ArrayDeque<String>()
@@ -202,6 +209,7 @@ class AgentRunner(private val c: AppContainer) {
                     host.update { it.dropFromThread(placeholder.id) }
                     host.notice(tr("{0} unterstützt hier keine Werkzeuge – Antwort ohne Werkzeuge.", ModelCatalog.info(model).displayName))
                     providers = emptyList()
+                    toolsOff = true
                     continue
                 }
                 val fallback = if (!fallbackUsed && unreachable(e) && partial?.content.isNullOrBlank()) {
@@ -214,6 +222,9 @@ class AgentRunner(private val c: AppContainer) {
                     val text = tr("{0} ist gerade nicht erreichbar – {1} antwortet.", ModelCatalog.info(model).displayName, ModelCatalog.info(fallback).displayName)
                     host.notice(text)
                     model = fallback
+                    // The tools follow the model: the mail tools only for one on this device (AP-68).
+                    ctx = ctx.copy(model = fallback)
+                    if (!toolsOff) providers = providers(conv, tools, fallback)
                     continue
                 }
                 // Server-side trouble: the status page tells whether the model itself is disrupted.
@@ -245,6 +256,11 @@ class AgentRunner(private val c: AppContainer) {
 
             runTools(host, result.toolCalls, providers, ctx)
             host.persist()
+            // The mailbox went into the chat (AP-68): from now on only the mail tools – nothing carries mail content off.
+            if (!mailbox && host.conversation?.let(MailAccess::locked) == true) {
+                mailbox = true
+                if (!toolsOff) providers = providers(host.conversation ?: return, tools, model)
+            }
             // After a question to the user the turn ends: the answers come as the next message (AP-06).
             if (result.toolCalls.any { it.name == AskUserTool.NAME }) return
             steps++
@@ -427,9 +443,10 @@ class AgentRunner(private val c: AppContainer) {
         val summary = conv.summary?.takeIf { summaryAt >= 0 }
         if (summary != null) thread = thread.drop(summaryAt + 1)
         val documentsFull = c.documentTools in providers && needsGuide(conv, Guides.documents)
+        val mailbox = MailAccess.locked(conv)
         val system = listOfNotNull(
-            // Who answers: Lora; an own system prompt or a persona below may give another role.
-            identityPrompt(ModelCatalog.info(model).displayName),
+            // Who answers: Lora; an own system prompt or a persona below may give another role. In the Postfach short (AP-68).
+            if (mailbox) MailAccess.IDENTITY else identityPrompt(ModelCatalog.info(model).displayName),
             settings.systemPrompt.ifBlank { null },
             // The memory goes along with every request, also without tools (see Memory).
             Memory.prompt(c, conv),
@@ -451,6 +468,11 @@ class AgentRunner(private val c: AppContainer) {
             if (c.assistantTools in providers) c.assistantTools.prompt(conv) else null,
             if (askUser in providers) AskUserTool.PROMPT else null,
             if (c.nextcloudTools in providers) NextcloudTools.PROMPT else null,
+            // Mail tool on, but this model runs outside the device: it knows where mail work happens (AP-68).
+            MailAccess.REMOTE_HINT.takeIf {
+                !mailbox && !MailAccess.onDevice(model) && io.github.thepytales.llmhub.data.Outlook.supported &&
+                    settings.toolOn(io.github.thepytales.llmhub.data.AppTool.MAIL.id)
+            },
             if (providers.any { it is McpTools }) McpTools.PROMPT else null,
             projectPrompt(conv),
             "Heute ist $today. Hinter jeder Nachricht des Nutzers steht, wann er sie geschrieben hat.",

@@ -35,6 +35,8 @@ data class ChatMode(
     val keywords: String = "",
     /** A big tool (data/AppTool id) the mode belongs to: hidden while the tool is switched off (AP-02). */
     val tool: String? = null,
+    /** Works only with a model on this device (Postfach, AP-68): level fixed to „Nur auf diesem Gerät“, see MailAccess. */
+    val onDevice: Boolean = false,
 )
 
 object ChatModes {
@@ -124,19 +126,23 @@ object ChatModes {
         tool = DESIGN_TOOL,
     )
 
-    /** Mail & Kalender (AP-13): only while the tool is switched on (Windows with the classic Outlook). */
+    /**
+     * Mail & Kalender (AP-13): only while the tool is switched on. Postfach nur mit lokalem Modell (AP-68): only a model
+     * on this device works here; the model picker offers nothing else.
+     */
     val MAIL = ChatMode(
         id = "mail",
         name = trLater("Postfach"),
         icon = "mail",
-        explain = trLater("Lora arbeitet mit deinem klassischen Outlook: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden."),
-        data = trLater("Mails und Termine werden auf dem PC gelesen und gehen an das gewählte Modell, Namen pseudonymisiert."),
+        explain = trLater("Ein Modell auf diesem Gerät arbeitet mit deinem Postfach: Wichtiges zusammenfassen, sortieren, Antworten als Entwurf, Termine und Aufgaben eintragen, freie Zeiten finden – nie löschen, nie senden."),
+        data = MailAccess.DATA_NOTE,
         example = trLater("Was ist seit gestern im Posteingang wichtig?"),
         command = "Postfach",
         tools = setOf(ModeTool.MAIL),
         prompt = OutlookTools.MODE_PROMPT,
         keywords = "mail mails postfach posteingang outlook email kalender termin antwort entwurf sortieren",
         tool = "mail",
+        onDevice = true,
     )
 
     /** Antrags-Werkstatt (AP-21): only while the tool is switched on. */

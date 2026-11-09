@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Visibility
@@ -35,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -42,9 +45,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
+import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -68,8 +73,23 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
 
-/** Tools of the timeline (AP-53): A selection, B blade, T trim (roll at a cut, slip in the middle). */
-internal enum class CutTool(val key: String, val label: String) { SELECT("A", "Auswahl"), BLADE("B", "Klinge"), TRIM("T", "Trimmen") }
+/**
+ * Tools of the timeline (AP-53): A selection, B blade, T trim (roll at a cut, slip in the middle). [hint] is the short
+ * line beside the tools, [tip] the tooltip of the tool (AP-70).
+ */
+internal enum class CutTool(val key: String, val label: String, val hint: String, val tip: String) {
+    SELECT("A", trLater("Auswahl"), trLater("Ziehen verschiebt, Ränder kürzen"), trLater("Auswahl (A): Clips ziehen verschiebt, Ränder ziehen kürzt (Ripple)")),
+    BLADE("B", trLater("Klinge"), trLater("Klick schneidet den Clip"), trLater("Klinge (B): Klick auf einen Clip schneidet ihn dort")),
+    TRIM("T", trLater("Trimmen"), trLater("Am Schnitt: Roll · Mitte: Slip"), trLater("Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte den Inhalt (Slip)")),
+}
+
+/** Zoom and scroll of the timeline; the toolbar above it changes the zoom (AP-70). */
+internal class TimelineState {
+    var zoom by mutableStateOf(1f)
+    var scroll by mutableStateOf(0f)
+    /** Tracks scrolled up, in pixels, when they do not fit into the height of the timeline. */
+    var vscroll by mutableStateOf(0f)
+}
 
 /**
  * A file dragged from the media pool (AP-53): the timeline registers where it is and what a drop there does.
@@ -89,23 +109,34 @@ internal class PoolDrag {
 }
 
 /** One lane of the timeline: [key] "T" titles, "V3" … "V1", "A1" …, "S" subtitles; top and height in pixels. */
-internal data class LaneRow(val key: String, val top: Float, val height: Float) {
+internal data class LaneRow(val key: String, val top: Float, val height: Float, val folded: Boolean = false) {
     val bottom: Float get() = top + height
     val video: Boolean get() = key.startsWith("V")
     val audio: Boolean get() = key.startsWith("A")
     val number: Int get() = key.drop(1).toIntOrNull() ?: 0
 }
 
-/** The lanes of [p] for unit [u] (pixels per dp): titles, V(n) … V1, A1 … A(n), subtitles. */
-internal fun lanesOf(p: VideoProject, u: Float): Pair<List<LaneRow>, Float> {
+/** Height of a folded lane in dp (AP-70). */
+internal const val FOLDED_LANE = 14f
+
+/**
+ * The lanes of [p] for unit [u] (pixels per dp): titles, V(n) … V1, A1 … A(n), subtitles; the tracks [scale] times as
+ * high as normal, [folded] lanes as a thin line (AP-70). The second value is the bottom of the last lane.
+ */
+internal fun lanesOf(p: VideoProject, u: Float, scale: Float = 1f, folded: Set<String> = emptySet()): Pair<List<LaneRow>, Float> {
     val gap = 3f * u
     var y = 22f * u
     val out = mutableListOf<LaneRow>()
-    fun add(key: String, hh: Float) { out += LaneRow(key, y, hh * u); y += hh * u + gap }
-    add("T", 26f)
-    for (n in p.videoTrackCount downTo 2) add("V$n", 40f)
-    add("V1", 56f)
-    for (n in 1..p.audioTrackCount) add("A$n", 40f)
+    fun add(key: String, hh: Float) {
+        val f = key in folded
+        val dp = if (f) FOLDED_LANE else hh
+        out += LaneRow(key, y, dp * u, f)
+        y += dp * u + gap
+    }
+    add("T", maxOf(20f, 26f * minOf(scale, 1.4f)))
+    for (n in p.videoTrackCount downTo 2) add("V$n", 40f * scale)
+    add("V1", 56f * scale)
+    for (n in 1..p.audioTrackCount) add("A$n", 40f * scale)
     add("S", 20f)
     return out to y
 }
@@ -128,11 +159,12 @@ private val MARKER = Color(0xFFE2001A)
 internal fun VideoTimelineView(
     h: History, player: VideoPlayer, pos: Double, sel: Sel, tool: CutTool, drag: PoolDrag,
     onSelect: (Sel) -> Unit, onDropItem: (PoolItem, String, Double) -> Unit, modifier: Modifier = Modifier,
+    view: TimelineState = remember { TimelineState() }, scale: Float = 1f, folded: Set<String> = emptySet(), onFold: ((String) -> Unit)? = null,
 ) {
     val p = h.project
     val measurer = rememberTextMeasurer()
-    var zoom by remember { mutableStateOf(1f) }
-    var scroll by remember { mutableStateOf(0f) }
+    var zoom by view::zoom
+    var scroll by view::scroll
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val brand = LocalChatLook.current.brand
     val density = LocalDensity.current
@@ -151,23 +183,15 @@ internal fun VideoTimelineView(
             }
         }
     }
-    val (lanes, totalHeight) = lanesOf(p, u)
+    val (allLanes, totalHeight) = lanesOf(p, u, scale, folded)
     Column(modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
-            Text(tr("Zoom"), style = MaterialTheme.typography.labelSmall)
-            Slider(value = zoom, onValueChange = { zoom = it }, valueRange = 1f..24f, modifier = Modifier.width(180.dp))
-            Spacer(Modifier.size(12.dp))
-            HintText(
-                when (tool) {
-                    CutTool.SELECT -> tr("Auswahl (A): Clips ziehen verschiebt, Ränder ziehen kürzt (Ripple) · Klick in die Leiste springt · ? zeigt alle Tasten.")
-                    CutTool.BLADE -> tr("Klinge (B): Klick auf einen Clip schneidet ihn dort.")
-                    CutTool.TRIM -> tr("Trimmen (T): am Schnitt ziehen verschiebt ihn (Roll), in der Mitte ziehen verschiebt den Inhalt (Slip).")
-                },
-                Modifier.weight(1f),
-            )
-        }
-        BoxWithConstraints(Modifier.fillMaxWidth().height(with(density) { totalHeight.toDp() } + 4.dp).background(Color(0x0F000000))) {
+        BoxWithConstraints(Modifier.fillMaxWidth().weight(1f).clipToBounds().background(Color(0x0F000000))) {
             val width = constraints.maxWidth.toFloat()
+            // Tracks that do not fit scroll up and down below the ruler (the ruler stays, AP-70).
+            val viewHeight = constraints.maxHeight.toFloat()
+            val maxV = maxOf(0f, totalHeight + 4f * u - viewHeight)
+            val vs = view.vscroll.coerceIn(0f, maxV)
+            val lanes = if (vs == 0f) allLanes else allLanes.map { it.copy(top = it.top - vs) }
             val left = 118f * u
             val total = maxOf(p.duration, 1.0)
             val pxPerSec = ((width - left - 20f) / total * zoom).toFloat()
@@ -176,8 +200,8 @@ internal fun VideoTimelineView(
             fun x(t: Double) = left + (t * pxPerSec).toFloat() - sc
             fun t(x: Float) = ((x - left + sc) / pxPerSec).toDouble()
             // The gesture handler lives longer than one composition (dragging changes the project): it reads these.
-            val now = remember { arrayOfNulls<Any>(5) }
-            now[0] = pxPerSec; now[1] = sc; now[2] = maxScroll; now[3] = tool; now[4] = lanes
+            val now = remember { arrayOfNulls<Any>(6) }
+            now[0] = pxPerSec; now[1] = sc; now[2] = maxScroll; now[3] = tool; now[4] = lanes; now[5] = maxV
             // Drop target of the media pool.
             Box(Modifier.matchParentSize().onGloballyPositioned { drag.target = it.boundsInWindow() })
             drag.onDrop = { item, at ->
@@ -377,8 +401,13 @@ internal fun VideoTimelineView(
                             while (true) {
                                 val ev = awaitPointerEvent()
                                 if (ev.type == PointerEventType.Scroll) {
-                                    val d = ev.changes.first().scrollDelta
+                                    val ch = ev.changes.first()
+                                    val d = ch.scrollDelta
+                                    // Over the track heads or with Umschalt the tracks scroll up and down (AP-70).
+                                    val maxVNow = now[5] as Float
+                                    val vertical = (ev.keyboardModifiers.isShiftPressed || ch.position.x < left) && maxVNow > 0f
                                     if (ev.keyboardModifiers.isCtrlPressed) zoom = (zoom * if (d.y > 0) 0.85f else 1.18f).coerceIn(1f, 24f)
+                                    else if (vertical) view.vscroll = (view.vscroll.coerceIn(0f, maxVNow) + (d.y + d.x) * 40f).coerceIn(0f, maxVNow)
                                     else scroll = (scroll + (d.y + d.x) * 60f).coerceIn(0f, now[2] as Float)
                                     ev.changes.forEach { it.consume() }
                                 }
@@ -393,17 +422,6 @@ internal fun VideoTimelineView(
                     else drawText(measurer, text, at, style = style, maxLines = 1, overflow = TextOverflow.Ellipsis, size = Size(minOf(width, size.width - at.x), minOf(16f * u, size.height - at.y)))
                 }
                 val small = TextStyle(fontSize = 11.sp, color = labelColor)
-                // Lanes: a light band each, the name at the left.
-                lanes.forEach { lane ->
-                    drawRect(Color(0x08000000), Offset(left, lane.top), Size(size.width - left, lane.height))
-                    val name = when {
-                        lane.key == "T" -> tr("Titel")
-                        lane.key == "S" -> tr("Untertitel")
-                        else -> lane.key
-                    }
-                    val dim = (lane.video && p.track(lane.key).hidden) || (lane.audio && p.track(lane.key).muted)
-                    label(name, Offset(6f * u, lane.top + lane.height / 2 - 8f * u), if (dim) small.copy(color = labelColor.copy(alpha = 0.4f)) else small)
-                }
                 // In–Out of the timeline.
                 val mi = p.markIn; val mo = p.markOut
                 if (mi != null || mo != null) {
@@ -433,6 +451,20 @@ internal fun VideoTimelineView(
                     drawPath(flag, if (chosen) SELECTED else MARKER)
                     drawLine(if (chosen) SELECTED else MARKER, Offset(mx, 6f * u), Offset(mx, 22f * u), 2f)
                 }
+                // Everything on the tracks below the ruler, so scrolled tracks slide under it.
+                clipRect(0f, 22f * u, size.width, size.height) {
+                // Lanes: a light band each, the name at the left (after the fold arrow).
+                lanes.forEach { lane ->
+                    drawRect(Color(0x08000000), Offset(left, lane.top), Size(size.width - left, lane.height))
+                    val name = when {
+                        lane.key == "T" -> tr("Titel")
+                        lane.key == "S" -> tr("Untertitel")
+                        else -> lane.key
+                    }
+                    val dim = (lane.video && p.track(lane.key).hidden) || (lane.audio && p.track(lane.key).muted)
+                    val style = if (dim) small.copy(color = labelColor.copy(alpha = 0.4f)) else small
+                    label(name, Offset(20f * u, lane.top + lane.height / 2 - (if (lane.folded) 7f else 8f) * u), if (lane.folded) style.copy(fontSize = 9.sp) else style)
+                }
                 val starts = p.starts()
                 fun lane(key: String) = lanes.first { it.key == key }
                 fun wave(path: String, from: Double, len: Double, x0: Float, x1: Float, top: Float, hh: Float, color: Color) {
@@ -458,12 +490,12 @@ internal fun VideoTimelineView(
                     val selected = sel is Sel.Clip && sel.id == c.id
                     val hidden = p.track("V1").hidden
                     drawRoundRect((if (i % 2 == 0) V1A else V1B).copy(alpha = if (hidden) 0.35f else 1f), Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f))
-                    if (!c.muted && !p.track("V1").muted) wave(c.path, c.inSec + (x0 - x(starts[i])) / pxPerSec, c.length, x0, x1, v1.top + v1.height * 0.55f, v1.height * 0.42f, Color(0x55FFFFFF))
+                    if (!v1.folded && !c.muted && !p.track("V1").muted) wave(c.path, c.inSec + (x0 - x(starts[i])) / pxPerSec, c.length, x0, x1, v1.top + v1.height * 0.55f, v1.height * 0.42f, Color(0x55FFFFFF))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f), style = Stroke(3f))
                     // Effects of AP-54 after the name („2× · Zoom · 3 Bereiche“).
                     val fxText = if (c.fx.isNone) "" else io.github.thepytales.llmhub.video.VideoFx.summary(c.fx)
-                    if (x1 - x0 > 40) label(if (fxText.isBlank()) c.name else "${c.name} · $fxText", Offset(x0 + 6f, v1.top + 5f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
-                    if (x1 - x0 > 40) label(clock(c.length, true) + (if (c.muted) " · " + tr("stumm") else "") + (if (!c.frame.isFull) " · " + tr("platziert") else ""), Offset(x0 + 6f, v1.top + 21f * u), TextStyle(fontSize = 10.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 10f)
+                    if (x1 - x0 > 40 && v1.height >= 20f * u) label(if (fxText.isBlank()) c.name else "${c.name} · $fxText", Offset(x0 + 6f, v1.top + 5f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
+                    if (x1 - x0 > 40 && v1.height >= 36f * u) label(clock(c.length, true) + (if (c.muted) " · " + tr("stumm") else "") + (if (!c.frame.isFull) " · " + tr("platziert") else ""), Offset(x0 + 6f, v1.top + 21f * u), TextStyle(fontSize = 10.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 10f)
                     if (p.transitionOf(i) > 0) {
                         val tx = x(starts[i]); val tw = (p.transitionOf(i) * pxPerSec).toFloat()
                         drawRect(Color(0x66FFFFFF), Offset(tx, v1.top + v1.height - 10f), Size(tw, 8f))
@@ -477,8 +509,8 @@ internal fun VideoTimelineView(
                     val selected = sel is Sel.Layer && sel.id == l.id
                     drawRoundRect(LAYER.copy(alpha = if (p.track(ln.key).hidden) 0.35f else 1f), Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 30) label(l.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
-                    if (x1 - x0 > 30) label(tr("Bild-in-Bild") + " · " + clock(l.length, true), Offset(x0 + 5f, ln.top + 19f * u), TextStyle(fontSize = 9.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 8f)
+                    if (x1 - x0 > 30 && ln.height >= 18f * u) label(l.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
+                    if (x1 - x0 > 30 && ln.height >= 34f * u) label(tr("Bild-in-Bild") + " · " + clock(l.length, true), Offset(x0 + 5f, ln.top + 19f * u), TextStyle(fontSize = 9.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 8f)
                 }
                 // Sound on A1 … with waveform; linked sound darker, with the clip it belongs to.
                 p.audio.forEach { a ->
@@ -488,9 +520,9 @@ internal fun VideoTimelineView(
                     val selected = (sel is Sel.Sound && sel.id == a.id) || (sel is Sel.Clip && a.linkedTo == sel.id)
                     val color = (if (a.linkedTo != null) LINKED else SOUND).copy(alpha = if (p.track(ln.key).muted) 0.35f else 1f)
                     drawRoundRect(color, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f))
-                    wave(a.path, a.inSec + (x0 - x(a.startSec)) / pxPerSec, a.length, x0, x1, ln.top + 2f, ln.height - 4f, Color(0x66FFFFFF))
+                    if (!ln.folded) wave(a.path, a.inSec + (x0 - x(a.startSec)) / pxPerSec, a.length, x0, x1, ln.top + 2f, ln.height - 4f, Color(0x66FFFFFF))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 30) label((if (a.linkedTo != null) "∞ " else "") + a.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
+                    if (x1 - x0 > 30 && ln.height >= 18f * u) label((if (a.linkedTo != null) "∞ " else "") + a.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
                 }
                 // Titles and subtitles.
                 val tl = lane("T")
@@ -500,7 +532,7 @@ internal fun VideoTimelineView(
                     val selected = sel is Sel.Title && sel.id == o.id
                     drawRoundRect(Color(0xFF97C6FF), Offset(x0, tl.top), Size(maxOf(2f, x1 - x0), tl.height), CornerRadius(5f))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, tl.top), Size(maxOf(2f, x1 - x0), tl.height), CornerRadius(5f), style = Stroke(3f))
-                    if (x1 - x0 > 30) label(TextOverlay.label(o.style) + ": " + o.text, Offset(x0 + 5f, tl.top + 5f), TextStyle(fontSize = 10.sp, color = Color(0xFF001450)), x1 - x0 - 8f)
+                    if (x1 - x0 > 30 && tl.height >= 18f * u) label(TextOverlay.label(o.style) + ": " + o.text, Offset(x0 + 5f, tl.top + 5f), TextStyle(fontSize = 10.sp, color = Color(0xFF001450)), x1 - x0 - 8f)
                 }
                 val sl = lane("S")
                 p.subtitles.forEach { cue ->
@@ -518,6 +550,14 @@ internal fun VideoTimelineView(
                         }
                     }
                 }
+                }
+                // Scrolled tracks: a thin bar at the right shows where the view is.
+                if (maxV > 0f) {
+                    val trackH = size.height - 22f * u
+                    val barH = maxOf(16f * u, trackH * trackH / (trackH + maxV))
+                    val barY = 22f * u + (trackH - barH) * (vs / maxV)
+                    drawRoundRect(labelColor.copy(alpha = 0.35f), Offset(size.width - 5f * u, barY), Size(3f * u, barH), CornerRadius(2f * u))
+                }
                 // Playhead.
                 val px = x(pos)
                 if (px >= left) {
@@ -526,11 +566,20 @@ internal fun VideoTimelineView(
                 }
                 drawLine(labelColor.copy(alpha = 0.25f), Offset(left - 1f, 0f), Offset(left - 1f, size.height), 1f)
             }
-            // Track heads: lock, mute (sound), hide (picture).
-            lanes.filter { it.video || it.audio }.forEach { lane ->
+            // Track heads: fold arrow (AP-70); lock, mute (sound), hide (picture). Only lanes below the ruler.
+            val visible = lanes.filter { it.top + it.height / 2 > 30f * u && it.top + it.height / 2 < viewHeight - 6f * u }
+            if (onFold != null) visible.forEach { lane ->
+                val name = when (lane.key) { "T" -> tr("Titel"); "S" -> tr("Untertitel"); else -> lane.key }
+                TrackToggle(
+                    if (lane.folded) Icons.AutoMirrored.Outlined.KeyboardArrowRight else Icons.Outlined.KeyboardArrowDown, false,
+                    tr(if (lane.folded) "Spur {0} aufklappen" else "Spur {0} einklappen", name),
+                    Modifier.offset { IntOffset((1f * u).toInt(), (lane.top + lane.height / 2 - 9f * u).toInt()) }.size(18.dp),
+                ) { onFold(lane.key) }
+            }
+            visible.filter { (it.video || it.audio) && !it.folded && it.height >= 20f * u }.forEach { lane ->
                 val st = p.track(lane.key)
                 Row(
-                    Modifier.offset { IntOffset((34f * u).toInt(), (lane.top + lane.height / 2 - 11f * u).toInt()) },
+                    Modifier.offset { IntOffset((46f * u).toInt(), (lane.top + lane.height / 2 - 11f * u).toInt()) },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TrackToggle(if (st.locked) Icons.Outlined.Lock else Icons.Outlined.LockOpen, st.locked, tr("Spur {0} sperren", lane.key)) {
@@ -549,11 +598,13 @@ internal fun VideoTimelineView(
 }
 
 @Composable
-private fun TrackToggle(icon: ImageVector, on: Boolean, label: String, onClick: () -> Unit) {
-    Box(
-        Modifier.size(22.dp).clickable(onClickLabel = label, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = label, tint = if (on) SELECTED else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(15.dp))
+private fun TrackToggle(icon: ImageVector, on: Boolean, label: String, modifier: Modifier = Modifier.size(22.dp), onClick: () -> Unit) {
+    Tip(label) {
+        Box(
+            modifier.clickable(onClickLabel = label, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, contentDescription = label, tint = if (on) SELECTED else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(15.dp))
+        }
     }
 }

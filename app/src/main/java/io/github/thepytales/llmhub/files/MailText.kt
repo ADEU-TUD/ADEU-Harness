@@ -105,6 +105,34 @@ object MailText {
         }
     }
 
+    /**
+     * The attachments of a .eml (MIME) message as file name and content – the same parts, in the same order, as the
+     * „Anhänge“ line of [eml] (a forwarded message becomes „Betreff.eml“). For the mail view (AP-69).
+     */
+    fun attachments(bytes: ByteArray): List<Pair<String, ByteArray>> {
+        val out = mutableListOf<Pair<String, ByteArray>>()
+        fun go(p: Part, depth: Int) {
+            if (depth > 10) return
+            val type = p.type
+            val fileName = p.param("content-disposition", "filename") ?: p.param("content-type", "name")
+            when {
+                type.startsWith("multipart/") -> {
+                    val boundary = p.param("content-type", "boundary") ?: return
+                    val parts = splitMultipart(p.body, boundary).map(::part)
+                    if (type == "multipart/alternative") {
+                        val best = parts.firstOrNull { it.type == "text/plain" && decodeBody(it).isNotBlank() } ?: parts.lastOrNull { it.type == "text/html" } ?: parts.firstOrNull()
+                        best?.let { go(it, depth + 1) }
+                    } else parts.forEach { go(it, depth + 1) }
+                }
+                p.header("content-disposition").lowercase().startsWith("attachment") || fileName != null && !type.startsWith("text/") ->
+                    out += (fileName ?: "Anhang") to transferDecoded(p)
+                type == "message/rfc822" -> out += (decodeWords(part(p.body).header("subject")).ifBlank { "Nachricht" } + ".eml") to p.body
+            }
+        }
+        go(part(bytes), 0)
+        return out
+    }
+
     private fun kb(size: Int) = if (size < 1024) "$size B" else "${size / 1024} KB"
 
     private fun splitMultipart(body: ByteArray, boundary: String): List<ByteArray> {
