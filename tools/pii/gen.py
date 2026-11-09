@@ -15,8 +15,8 @@ Placeholders (an optional w/m fixes the gender, a digit the person – {Vw1} or 
     {OORT} place without personal reference · {WERK} title of a book                                 → stay (O)
     {KLASSE} {FACH} {JAHR} {DATUM} {UHR} {ZAHL} {NOTE} {MAIL} {MAIL1} {TEL} {INI} (an initial "H.")   → stay (O)
 
-The test part of the Messkorpus stays out: names and words of its details are never drawn (``--ohne-sperre`` for the
-final model), and templates that share five words in a row with it are reported.
+The Messkorpus stays out: names and words of its details are never drawn (``--ohne-sperre`` for the final model), and
+templates that share five words in a row with it are reported.
 """
 from __future__ import annotations
 
@@ -92,10 +92,12 @@ def load_templates() -> list[Template]:
     return out
 
 
-def blocked_words() -> set[str]:
-    """Words of the details in the test part (core words of private ones, capitalized words of public ones)."""
+def blocked_words(sections: tuple[str, ...] = ("pruef", "entwicklung")) -> set[str]:
+    """Words of the details in the Messkorpus (core words of private ones, capitalized words of public ones). Both
+    parts are blocked, so that the development part measures unseen names just like the test part – otherwise its
+    public names would be known from training and its false alarms look too good."""
     out: set[str] = set()
-    for s in corpus.load("pruef"):
+    for s in (x for sec in sections for x in corpus.load(sec)):
         for sp in s.spans:
             idx = corpus.core_words(sp, s.words) if sp.private else [
                 i for i in sp.words if s.words[i][2][:1].isupper() and s.words[i][2].lower() not in corpus.GENERAL]
@@ -350,7 +352,7 @@ def check() -> int:
                 print(f"{t.id}: fünf gleiche Wörter wie {sid}: {' '.join(next(iter(common)))}")
                 problems += 1
     # Names and words of the test part written literally in a template.
-    blocked = blocked_words()
+    blocked = blocked_words(("pruef",))
     names = {w.lower() for w in namen.FIRST_W + namen.FIRST_M + namen.SURNAMES}
     for t in templates:
         for _, _, w in corpus.split_words(SLOT.sub(" ", t.text)):
@@ -417,7 +419,7 @@ def make(n: int, seed: int, sperre: bool) -> None:
             f.write(markup(make_sample([t], prev, blocked)) + "\n\n")
     dev_n = len(range(0, n, 10))
     print(f"{n} Beispiele ({n - dev_n} Training, {dev_n} Entwicklung) in {OUT}; Angaben: {counts}")
-    print(f"Sperre aus dem Prüfteil: {len(blocked)} Wörter" if sperre else "ohne Sperre (für das endgültige Modell)")
+    print(f"Sperre aus dem Messkorpus: {len(blocked)} Wörter" if sperre else "ohne Sperre (für das endgültige Modell)")
 
 
 if __name__ == "__main__":
