@@ -87,7 +87,7 @@ class MailServerTest {
                     }
                     upper.startsWith("UID SEARCH") -> send("* SEARCH ${boxes[selected]!!.joinToString(" ")}\r\n$tag OK fertig\r\n")
                     upper.startsWith("UID FETCH") -> {
-                        val uids = cmd.split(' ')[2].split(',').mapNotNull { it.toLongOrNull() }.filter { it in boxes[selected]!! }
+                        val uids = ImapParser.uids(cmd.split(' ')[2]).filter { it in boxes[selected]!! }
                         for ((n, uid) in uids.withIndex()) {
                             val raw = mails[uid] ?: continue
                             val flags = if (uid in seen) "\\Seen" else ""
@@ -98,7 +98,7 @@ class MailServerTest {
                         send("$tag OK fertig\r\n")
                     }
                     upper.startsWith("UID MOVE") -> {
-                        val uids = cmd.split(' ')[2].split(',').map { it.toLong() }
+                        val uids = ImapParser.uids(cmd.split(' ')[2])
                         val target = Regex("\"([^\"]+)\"$").find(cmd)!!.groupValues[1]
                         boxes[selected]!!.removeAll(uids); boxes[target]!!.addAll(uids)
                         send("$tag OK verschoben\r\n")

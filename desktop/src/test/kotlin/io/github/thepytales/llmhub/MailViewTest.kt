@@ -25,6 +25,9 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Collections
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -295,6 +298,11 @@ class MailViewTest {
     @Test
     fun imapSetsStructuresAndSearchKeys() {
         assertEquals("1:3,7,9:10", ImapParser.uidSet(listOf(10L, 2L, 1L, 3L, 7L, 9L)))
+        assertEquals(listOf("1:3,7", "9:10"), ImapParser.uidSets(listOf(10L, 2L, 1L, 3L, 7L, 9L), maxChars = 6))
+        assertEquals(emptyList(), ImapParser.uidSets(emptyList()))
+        val sparse = (1L..5000L).map { it * 3 }
+        assertTrue(ImapParser.uidSets(sparse).all { it.length <= ImapParser.MAX_SET_CHARS })
+        assertEquals(sparse, ImapParser.uidSets(sparse).flatMap { ImapParser.uids(it) })
         assertEquals(listOf(4L, 5L, 6L, 9L), ImapParser.uids("4:6,9"))
         assertEquals(listOf(6L, 5L, 4L), ImapParser.uids("6:4"))
         val plain = ImapParser.parse("(\"text\" \"plain\" (\"charset\" \"utf-8\") NIL NIL \"7bit\" 25 1 NIL NIL NIL)")[0]
@@ -318,17 +326,26 @@ class MailViewTest {
 
     /**
      * A small IMAP server for the view: INBOX with 30 mails (arrival not in UID order), INBOX/Lehre, Projekte; SEARCH
-     * (ALL, UNSEEN, FROM), FETCH, STORE, RENAME and MOVE with COPYUID.
+     * (ALL, UNSEEN, FROM), FETCH, STORE, RENAME, MOVE with COPYUID and – without MOVE in [caps] – COPY and EXPUNGE.
+     * A line longer than [maxLine] gets Exchange's answer „BAD Command Error. 10“.
      */
-    private class ViewImap {
+    private class ViewImap(val caps: String = "IMAP4rev1 MOVE UIDPLUS", val maxLine: Int = Int.MAX_VALUE) {
         val server = ServerSocket(0)
         val commands: MutableList<String> = Collections.synchronizedList(mutableListOf())
         val boxes = linkedMapOf("INBOX" to (1L..30L).toMutableList(), "INBOX/Lehre" to mutableListOf(), "Projekte" to mutableListOf<Long>())
         val seen = (1L..30L).filter { it % 2 == 0L }.toMutableSet()
+        val deleted = mutableSetOf<Long>()
         var nextUid = 100L
 
-        /** Arrival: UID 30 is the oldest, the others newer with the UID. */
-        fun date(uid: Long) = if (uid == 30L) "01-Oct-2026 08:00:00 +0200" else String.format("%2d-Nov-2026 %02d:00:00 +0100", 1 + (uid / 24).toInt(), (uid % 24).toInt())
+        /** The longest command line received. */
+        @Volatile var longest = 0
+
+        /** Arrival: UID 30 is the oldest, the others newer with the UID; from UID 1 000 one minute each from 2020 on. */
+        fun date(uid: Long) = when {
+            uid == 30L -> "01-Oct-2026 08:00:00 +0200"
+            uid >= 1000L -> DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss Z", Locale.US).format(ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).plusMinutes(uid))
+            else -> String.format("%2d-Nov-2026 %02d:00:00 +0100", 1 + (uid / 24).toInt(), (uid % 24).toInt())
+        }
 
         init {
             thread(isDaemon = true) { while (!server.isClosed) runCatching { serve(server.accept()) } }
@@ -338,7 +355,6 @@ class MailViewTest {
             val inp = s.getInputStream().bufferedReader(Charsets.UTF_8)
             val out = s.getOutputStream()
             fun send(text: String) { out.write(text.toByteArray(Charsets.UTF_8)); out.flush() }
-            val caps = "IMAP4rev1 MOVE UIDPLUS"
             send("* OK [CAPABILITY $caps] bereit\r\n")
             var selected = "INBOX"
             while (true) {
@@ -346,6 +362,11 @@ class MailViewTest {
                 val tag = line.substringBefore(' ')
                 val cmd = line.substringAfter(' ')
                 commands += cmd
+                longest = maxOf(longest, line.length + 2)
+                if (line.length + 2 > maxLine) {
+                    send("$tag BAD Command Error. 10\r\n")
+                    continue
+                }
                 val upper = cmd.uppercase()
                 fun quoted() = Regex("\"([^\"]+)\"").findAll(cmd).map { it.groupValues[1] }.toList()
                 when {
@@ -383,7 +404,19 @@ class MailViewTest {
                     }
                     upper.startsWith("UID STORE") -> {
                         val uids = ImapParser.uids(cmd.split(' ')[2])
-                        if ("+FLAGS" in upper) seen += uids else seen -= uids.toSet()
+                        if ("\\DELETED" in upper) deleted += uids else if ("+FLAGS" in upper) seen += uids else seen -= uids.toSet()
+                        send("$tag OK\r\n")
+                    }
+                    upper.startsWith("UID COPY") && "MOVE" !in caps -> {
+                        val uids = ImapParser.uids(cmd.split(' ')[2]).filter { it in boxes[selected]!! }
+                        val fresh = uids.map { nextUid++ }
+                        boxes[quoted().last()]!!.addAll(fresh)
+                        send("$tag OK [COPYUID 7 ${ImapParser.uidSet(uids)} ${ImapParser.uidSet(fresh)}] kopiert\r\n")
+                    }
+                    upper.startsWith("UID EXPUNGE") && "MOVE" !in caps -> {
+                        val uids = ImapParser.uids(cmd.split(' ')[2]).filter { it in deleted }.toSet()
+                        boxes[selected]!!.removeAll(uids)
+                        deleted -= uids
                         send("$tag OK\r\n")
                     }
                     upper.startsWith("UID MOVE") -> {
@@ -444,6 +477,43 @@ class MailViewTest {
             assertTrue(b.canMove())
             val commands = synchronized(fake.commands) { fake.commands.toList() }
             assertTrue(commands.none { it.uppercase().startsWith("DELETE") || it.uppercase().contains("EXPUNGE") }, commands.toString())
+        } finally {
+            fake.server.close()
+        }
+    }
+
+    @Test
+    fun imapKeepsEveryCommandShortForExchange() {
+        // Exchange rejected the dates of a big Posteingang in one line with „BAD Command Error. 10“ (1.0.62). Here every
+        // other UID is gone (no ranges) and the server takes lines of at most 1 KB, the lowest Exchange allows; without
+        // MOVE the app copies, marks and expunges.
+        val fake = ViewImap(caps = "IMAP4rev1 UIDPLUS", maxLine = 1024)
+        val inbox = (1L..6000L).map { 1000L + 2 * it }
+        fake.boxes["INBOX"] = inbox.toMutableList()
+        fake.nextUid = 100_000L
+        try {
+            val b = ImapBridge(MailServerConfig("127.0.0.1", fake.server.localPort, "anna", "geheim", "anna@tu-dresden.de")) { c ->
+                val s = Socket("127.0.0.1", c.port)
+                ImapConnection(s.getInputStream(), s.getOutputStream(), s).apply { greeting() }
+            }
+            val p1 = b.page(MailQuery("INBOX"), 0, 60)
+            assertEquals(6000, p1.total)
+            assertEquals(inbox.takeLast(60).reversed().map { "$it@INBOX" }, p1.mails.map { it.id })
+            val last = b.page(MailQuery("INBOX"), 5940, 60)
+            assertEquals("${inbox.first()}@INBOX", last.mails.last().id)
+            assertFalse(last.hasMore)
+            assertEquals(500, b.mails("INBOX", null, false, 500).size)
+            // Marks and moves a few thousand at once.
+            val chosen = inbox.take(2500).map { "$it@INBOX" }
+            assertEquals(2500, b.markRead(chosen, true))
+            assertTrue(fake.seen.containsAll(inbox.take(2500)))
+            val moved = b.moveTracked(chosen.take(1500), "Projekte")
+            assertEquals(1500, moved.values.count { it.endsWith("@Projekte") })
+            assertEquals(4500, fake.boxes["INBOX"]!!.size)
+            assertEquals(1500, fake.boxes["Projekte"]!!.size)
+            assertTrue(fake.longest <= 1024, "longest line ${fake.longest}")
+            val commands = synchronized(fake.commands) { fake.commands.toList() }
+            assertTrue(commands.none { it.startsWith("UID EXPUNGE") && ImapParser.uids(it.split(' ')[2]).any { u -> u !in inbox.take(1500) } })
         } finally {
             fake.server.close()
         }

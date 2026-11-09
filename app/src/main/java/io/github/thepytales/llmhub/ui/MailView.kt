@@ -536,7 +536,8 @@ internal fun MailList(state: MailViewState, actions: MailListActions, drag: Mail
                     HintText(tr("{0} Mails", state.mails.size), Modifier.fillMaxWidth().padding(16.dp))
                 }
             }
-            if (state.mails.isEmpty() && !state.loading) item(key = "empty") {
+            // With an error the card above says what happened; „Keine Mails“ would not be true.
+            if (state.mails.isEmpty() && !state.loading && state.error == null) item(key = "empty") {
                 Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Outlined.Inbox, contentDescription = null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(36.dp))
                     HintText(if (state.query.filtered) tr("Keine Mails passen zur Suche.") else tr("Keine Mails in diesem Ordner."))

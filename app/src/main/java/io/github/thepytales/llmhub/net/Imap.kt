@@ -120,7 +120,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
     /** Like [command], but a NO or BAD becomes an [IOException] with the server's words. */
     fun ok(command: String, literal: ByteArray? = null, what: String = command.substringBefore(' ')): Response {
         val r = command(command, literal)
-        if (!r.ok) throw IOException("Der Mailserver lehnt „$what“ ab: ${r.text.take(200)}")
+        if (!r.ok) throw rejected(what, r)
         return r
     }
 
@@ -139,7 +139,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
             while (true) {
                 val l = readLine()
                 if (l.text.startsWith("+")) break
-                if (l.text.startsWith("$t ")) return finish(t, l, untagged).also { if (!it.ok) throw IOException("Der Mailserver lehnt „$what“ ab: ${it.text.take(200)}") }
+                if (l.text.startsWith("$t ")) return finish(t, l, untagged).also { if (!it.ok) throw rejected(what, it) }
                 untagged += l
             }
             send(lit)
@@ -150,7 +150,7 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
             val l = readLine()
             if (l.text.startsWith("$t ")) {
                 val r = finish(t, l, untagged)
-                if (!r.ok) throw IOException("Der Mailserver lehnt „$what“ ab: ${r.text.take(200)}")
+                if (!r.ok) throw rejected(what, r)
                 return r
             }
             untagged += l
@@ -179,6 +179,24 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
         return tags.map { done.getValue(it) }
     }
 
+    /**
+     * [command] for each short set of [uids] (see [ImapParser.uidSets]; Exchange rejects long lines), sent a few at a
+     * time without waiting in between; the answers in order. Every command is answered before a NO or BAD becomes an
+     * [IOException] – so only for commands that may run although another one failed (FETCH, STORE, MOVE; not COPY with
+     * a following EXPUNGE).
+     */
+    fun okEach(uids: Collection<Long>, what: String, command: (set: String) -> String): List<Response> {
+        val out = mutableListOf<Response>()
+        for (group in ImapParser.uidSets(uids).chunked(PIPELINE)) {
+            val answers = pipeline(group.map(command))
+            answers.firstOrNull { !it.ok }?.let { throw rejected(what, it) }
+            out += answers
+        }
+        return out
+    }
+
+    private fun rejected(what: String, r: Response) = IOException("Der Mailserver lehnt „$what“ ab: ${r.text.take(200)}")
+
     fun login(user: String, password: String) {
         if (capabilities.isEmpty()) ok("CAPABILITY")
         val r = command("LOGIN ${ImapParser.quote(user)} ${ImapParser.quote(password)}")
@@ -194,6 +212,9 @@ class ImapConnection(input: InputStream, private val output: OutputStream, priva
     }
 
     companion object {
+        /** Commands of [okEach] sent at once: under 8 KB, so neither side waits for the other to read. */
+        private const val PIPELINE = 8
+
         // Every brace and bracket meant literally is escaped: Android's regex engine (ICU) rejects a bare „}“ after a
         // quantifier (\{(\d+)\+?}$ failed with „Syntax error in regexp pattern near index 11“), the desktop JVM accepts it.
         private val LITERAL = Regex("\\{(\\d+)\\+?\\}$")
@@ -296,16 +317,28 @@ object ImapParser {
     }
 
     /** UIDs as a short set: 1, 2, 3, 7 → „1:3,7“ (any order in, ascending ranges out). */
-    fun uidSet(uids: Collection<Long>): String {
+    fun uidSet(uids: Collection<Long>): String = uidSets(uids, Int.MAX_VALUE).firstOrNull().orEmpty()
+
+    /**
+     * UIDs as short sets of at most [maxChars] characters each, for one command per set. Exchange rejects a command line
+     * over 10 KB with „BAD Command Error. 10“ (1.0.62: the dates of all mails of a big Posteingang with gaps in its UIDs
+     * were asked for in one line); it can be set down to 1 KB, so a set stays well below that.
+     */
+    fun uidSets(uids: Collection<Long>, maxChars: Int = MAX_SET_CHARS): List<String> {
         val sorted = uids.toSortedSet().toList()
-        if (sorted.isEmpty()) return ""
+        if (sorted.isEmpty()) return emptyList()
+        val sets = mutableListOf<String>()
         val out = StringBuilder()
         var start = sorted[0]
         var prev = start
         fun flush() {
+            val range = if (prev != start) "$start:$prev" else "$start"
+            if (out.isNotEmpty() && out.length + 1 + range.length > maxChars) {
+                sets += out.toString()
+                out.clear()
+            }
             if (out.isNotEmpty()) out.append(',')
-            out.append(start)
-            if (prev != start) out.append(':').append(prev)
+            out.append(range)
         }
         for (u in sorted.drop(1)) {
             if (u == prev + 1) prev = u else {
@@ -315,8 +348,12 @@ object ImapParser {
             }
         }
         flush()
-        return out.toString()
+        sets += out.toString()
+        return sets
     }
+
+    /** Characters of a UID set in one command: with the rest of the longest FETCH the line stays below 1 KB. */
+    const val MAX_SET_CHARS = 800
 
     /** The UIDs of a set as the server writes it („4:6,9“ → 4, 5, 6, 9), in its order; ranges may run downwards. */
     fun uids(set: String): List<Long> = set.split(',').filter { it.isNotBlank() }.flatMap { part ->
