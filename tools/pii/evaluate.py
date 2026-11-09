@@ -30,6 +30,7 @@ def timing(predictor: modell.Predictor, runs: int = 3) -> dict:
     times = []
     for _ in range(runs):
         for t in texts:
+            predictor._cache.clear()  # measure the model, not the cache
             t0 = time.perf_counter()
             predictor.spans(t)
             times.append(1000 * (time.perf_counter() - t0))

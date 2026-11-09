@@ -66,6 +66,8 @@ def main() -> None:
     vocab = sorted(tok.get_vocab().items(), key=lambda kv: kv[1])
     (out / "vocab.txt").write_text("".join(t + "\n" for t, _ in vocab), encoding="utf-8")
     (out / "labels.json").write_text(json.dumps(modell.LABELS), encoding="utf-8")
+    # The threshold chosen on the development part goes with the model (the app reads it too).
+    (out / "schwelle.json").write_text(json.dumps({"schwelle": modell.load_threshold(folder)}), encoding="utf-8")
 
     rules = modell.load_rules()
     measures = {}
@@ -118,7 +120,8 @@ Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln v
 | Modell allein | {pct(m["entwicklung_modell"])} | {pct(m["pruef_modell"])} |
 | wie in der App geplant (Regeln ohne Vornamen-Raten + Modell) | {pct(m.get("entwicklung_geplant", ("–", "–")))} | {pct(m.get("pruef_geplant", ("–", "–")))} |
 
-Zeit je Absatz auf dem Trainings-PC (CPU, ONNX Runtime): Median {m["zeit"]["median_ms"]} ms.
+Schwelle {modell.load_threshold(out)} (auf dem Entwicklungsteil gewählt, `schwelle.json`). Zeit je Absatz (CPU, ONNX
+Runtime, 4 Kerne): Median {m["zeit"]["median_ms"]} ms, 95 % unter {m["zeit"]["p95_ms"]} ms.
 Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % fälschlich ersetzt.
 
 ## Grenzen

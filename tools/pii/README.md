@@ -49,7 +49,7 @@ PII_GRUENDLICH_URL=http://localhost:8080/v1 PII_GRUENDLICH_MODELL=qwen3.5-2b ./g
 
 ## Stufe b: Trainingsdaten
 
-Claude hat als Lehrer-Modell **734 Vorlagen** in neun Textarten geschrieben (`vorlagen/*.txt`), mit Platzhaltern statt
+Claude hat als Lehrer-Modell **985 Vorlagen** in zwölf Textarten geschrieben (`vorlagen/*.txt`), mit Platzhaltern statt
 Namen: `{VN}` „Vorname Nachname“, `{Nw}` Nachname einer Frau, `{SCHULE}`, `{KITA}`, `{ORT}` (mit Personenbezug) – und
 für Gegenbeispiele `{AUT}` (zitierte Autor:in), `{OEFF}` (öffentliche Person), `{OEINR}`, `{OORT}`, `{WERK}`. Alle
 Platzhalter stehen am Anfang von `gen.py`. Der Generator setzt erfundene Namen ein (Listen in `namen.py`, die Listen der
@@ -63,7 +63,7 @@ python3 tools/pii/gen.py make -n 30000    # → tools/pii/daten/train.jsonl, dev
 
 - Eine Zeile in `train.jsonl`: `{"text": …, "spans": [[start, ende, "PER"], …], "public": […], "textart": …}`.
 - Etwa ein Zehntel der Vorlagen kommt nur in `dev.jsonl` vor (Entwicklung, ungesehene Satzmuster).
-- **Sperre**: Kein Wort aus den Angaben des Prüfteils wird als Name, Einrichtung oder Ort gezogen (354 Wörter), und
+- **Sperre**: Kein Wort aus den Angaben des Messkorpus (beide Teile) wird als Name, Einrichtung oder Ort gezogen (704 Wörter), und
   `check` meldet jede Vorlage, die fünf Wörter am Stück mit dem Messkorpus teilt. Für das endgültige Modell, das in die
   App kommt, kann die Sperre mit `--ohne-sperre` fallen.
 - Vorlagen mit Orten und Einrichtungen werden öfter gezogen (2,5-fach), weil diese Angaben seltener sind.
@@ -99,8 +99,10 @@ python tools/pii/export.py tools/pii/modelle/gbert-base/best          # → …/
 
 Gemessen wird in drei Varianten: **Modell allein**, **alle Regeln + Modell** und **wie geplant** – die Regeln ohne das
 Raten von Namen aus häufigen Vornamen (`Pseudonymizer.nameChains = false`; Muster, Frau/Herr, Rollen, Grüße,
-Unterschriften, Tabellen und Einrichtungen bleiben), das Modell für Namen, Einrichtungen und Orte, und im Text zitierte
-Autor:innen werden nie ersetzt. Die Ergebnisse der Regeln je Beispiel schreibt `PseudonymCorpusTest` nach
+Unterschriften, Tabellen und Einrichtungen bleiben), das Modell für Namen, Einrichtungen und Orte; im Text zitierte
+Autor:innen und die bekannten Namen der App (`PiiDetector.FAMOUS`) werden nie ersetzt. Das Modell ersetzt erst ab einer
+**Schwelle** (Wahrscheinlichkeit „kein O“), die `train.py` auf dem Entwicklungsteil wählt: die höchste, die dort noch
+98 % findet, sonst der beste Ausgleich; sie liegt als `schwelle.json` beim Modell. Die Ergebnisse der Regeln je Beispiel schreibt `PseudonymCorpusTest` nach
 `desktop/build/pii/regeln.jsonl`; eine Kopie liegt in `messkorpus/regeln.jsonl` (für PCs ohne Kotlin-Build).
 
 **Fehlerlisten nur für den Entwicklungsteil.** Für den Prüfteil geben die Skripte nur Zahlen aus. (Beim allerersten
@@ -118,6 +120,24 @@ nach Fehlern im Entwicklungsteil ergänzt, `vorlagen/oeffentlich.txt`.)
 | wie geplant (int8) | 96,9 % | 8,3 % | – |
 
 int8 verliert gegenüber fp32 auf dem Prüfteil 0,0 Prozentpunkte; die Datei ist 110 MB groß.
+
+### Training in der Cloud (CPU, 09.11.2026)
+
+`gbert-base`, 30 000 Texte aus 985 Vorlagen, 3 Epochen in Etappen (je ≈ 37 min auf 4 CPU-Kernen), Sperre der Wörter
+aus beiden Teilen des Messkorpus (704), beste Epoche 3, Schwelle 0,9:
+
+| | Prüfteil gefunden | Prüfteil fälschlich ersetzt | Entwicklung gefunden | Entwicklung fälschlich ersetzt |
+| --- | --- | --- | --- | --- |
+| Regeln heute | 78,2 % | 9,9 % | 83,3 % | 8,4 % |
+| Modell allein (int8) | 99,2 % | 5,8 % | 97,1 % | 1,7 % |
+| **wie geplant** (int8) | **99,2 %** | **5,8 %** | 97,1 % | 2,2 % |
+| alle Regeln + Modell (int8) | 99,2 % | 14,9 % | 97,9 % | 9,6 % |
+
+int8: 110 MB, 0,0 Prozentpunkte Verlust gegenüber fp32, **7,7 ms je Absatz** (Median, CPU, 4 Kerne; 95 % unter 12 ms).
+Das Ziel „98 % gefunden“ ist erreicht, „höchstens 2 % fälschlich ersetzt“ noch nicht: Im Prüfteil sind es vor allem
+öffentliche Personen, die das Modell nie gesehen hat. Ein erster Lauf mit nur einer Epoche und ohne Sperre des
+Entwicklungsteils zeigte, warum die Sperre beider Teile nötig ist: Fehlalarme 2,2 % im Entwicklungsteil, aber 7,4 % im
+Prüfteil – die öffentlichen Namen des Entwicklungsteils kannte das Modell aus dem Training.
 
 ## Grundsätze
 
