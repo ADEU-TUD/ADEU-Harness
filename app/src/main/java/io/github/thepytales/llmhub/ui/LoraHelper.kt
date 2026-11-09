@@ -469,6 +469,9 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
     val suggestions = remember(route, s.enabledTools, LoraHelper.chatHasMessages) {
         LoraSense.suggestions(route, LoraHelper.chatHasMessages, s.enabledToolIds, IS_ANDROID)
     }
+    // Lora knows the mails chosen in Mail & Kalender (AP-69): „Mail & Kalender · 12 Mails ausgewählt“.
+    val chosenMails by io.github.thepytales.llmhub.agent.LoraFocus.mails.collectAsStateWithLifecycle()
+    val place = tr(LoraSense.place(route)) + (chosenMails?.count?.takeIf { it > 0 && route.startsWith("mail") }?.let { " · " + tr("{0} Mails ausgewählt", it) } ?: "")
 
     fun send(text: String) {
         if (text.isBlank() || busy) return
@@ -540,7 +543,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
                 val shown = turns.flatMap { t -> t.reply?.steps.orEmpty().filterIsInstance<LoraStep.MailSort>().map { it.runId } }.toSet()
                 OpenMailSorts(c, shown)
             }
-            if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, LoraSense.place(route), suggestions, onSuggest = ::suggest) }
+            if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, place, suggestions, onSuggest = ::suggest) }
             turns.forEachIndexed { i, turn ->
                 item(key = "wish$i") { WishBubble(turn.wish) }
                 turn.reply?.let { reply -> item(key = "reply$i") { LoraSays { ReplyBlock(c, turn, reply, onAnswer = ::send) } } }
@@ -565,7 +568,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(LoraSense.place(route), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 2.dp))
+                Text(place, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 2.dp))
                 suggestions.forEach { sg -> SuggestionPill(tr(sg.label), enabled = !busy) { suggest(sg) } }
             }
         }
