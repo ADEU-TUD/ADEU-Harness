@@ -68,7 +68,7 @@ Fairlight).
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
-| **Danach** | – |
+| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung |
 | **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -248,7 +248,50 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-Zurzeit leer.
+Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71); Reihenfolge wie hier, Start nach AP-71.
+
+### AP-72 ☐ Lora lernt aus Korrekturen · M (neu)
+**Ziel**: Versteht Lora einen Wunsch falsch und der Nutzer korrigiert („nein, ich meinte …“, ein Tipp auf die richtige
+Karte, „Rückgängig“ direkt nach einer Aktion), merkt sie sich das Paar *Wunsch → gemeinte Aktion* **auf dem Gerät** und
+trifft es beim nächsten Mal – vor dem Befehlsmodell, als eigene kleine Liste (wie die eigene Liste der
+Pseudonymisierung). Die Liste ist unter *Einstellungen › Lora* einsehbar und löschbar; im Tresor wird nichts gemerkt.
+Auf Wunsch lassen sich die Paare als Datei exportieren (ohne Namen, vom Nutzer durchgesehen) – Stoff für das nächste
+Training des Befehlsmodells (`tools/befehle/`).
+**Fertig, wenn**: eine korrigierte Eingabe beim zweiten Mal ohne Sprachmodell richtig ausgeführt wird; die Liste sichtbar,
+löschbar und exportierbar ist; nichts davon das Gerät von selbst verlässt.
+
+### AP-73 ☐ Rückfrage mit zwei Knöpfen statt Weitergabe · S–M (neu)
+**Ziel**: Liegt das Befehlsmodell knapp unter der Schwelle, zeigt Lora die zwei wahrscheinlichsten Aktionen als Knöpfe
+(„Meinst du … oder …?“) und dazu „Etwas anderes“ (dann erst das Sprachmodell) – schneller und offline. Die Wahl zählt als
+Korrektur für AP-72. Die Untergrenze für die Rückfrage wird wie die Schwelle auf dem Entwicklungsteil des Messkorpus
+gewählt; gemessen wird, wie oft die gemeinte Aktion unter den zwei Knöpfen ist.
+**Fertig, wenn**: auf dem Prüfteil bei mindestens 80 % der bisher weitergegebenen Befehle die richtige Aktion unter den
+zwei Knöpfen steht und freie Anfragen dabei weiter ohne Rückfrage durchgehen (höchstens 5 % mit Knöpfen).
+
+### AP-74 ☐ Fehlermeldungen in Klartext mit Lösungsknopf · M (bisher Ideen, W2-09)
+**Ziel**: Jede Fehlermeldung der App (Server, Schlüssel, Modell nicht verfügbar, Datei gesperrt, Werkzeug aus, kein
+Speicher, lokales Modell fehlt …) erscheint als ein verständlicher Satz mit dem passenden Schritt als Knopf – Schlüssel
+prüfen, Modell wechseln, Werkzeug einschalten, erneut versuchen, *Problem melden*. Ein gemeinsamer Katalog statt
+verstreuter Texte; die technische Meldung bleibt aufklappbar. Auf dem Gerät, ohne Sprachmodell.
+**Fertig, wenn**: die häufigsten 30 Fehler (aus Protokollen und Tests gesammelt) einen Klartext und einen Knopf haben und
+ein Test prüft, dass keine rohe Exception mehr im Chat oder in Loras Panel landet.
+
+### AP-75 ☐ Lora-Verlauf mit „Nochmal“ · S–M (neu)
+**Ziel**: Die letzten Befehle an Lora und Strg+K als Liste (Strg+K › Pfeil hoch, im Lora-Panel „Zuletzt“): wiederholen,
+vor dem Senden ändern, anheften. Angeheftete Befehle bekommen einen Namen und erscheinen in Strg+K – der erste Schritt zu
+eigenen Lora-Befehlen (Ideen). Nur auf dem Gerät gespeichert, abschaltbar, im Tresor nichts.
+**Fertig, wenn**: Pfeil hoch in Strg+K und im Lora-Eingabefeld die letzten 20 Befehle durchblättert, „Nochmal“ sie
+ausführt und ein angehefteter Befehl unter seinem Namen in Strg+K gefunden wird.
+
+### AP-76 ☐ Sprachmodell-Empfehlung nach Messung · M (neu, beantwortet Offene Frage 10)
+**Ziel**: Lora misst einmal kurz (unter einer Minute, auf Wunsch), wie schnell die lokalen Sprachmodelle auf diesem
+Gerät wirklich sind – Wörter je Sekunde, Zeit bis zum ersten Wort, mit und ohne Grafikkarte –, und empfiehlt danach das
+passende Modell für Postfach (AP-68/69), kurze Aufgaben im Mischmodus (AP-71) und vertrauliche Projekte, statt nur nach
+Arbeitsspeicher zu schätzen (`LocalCatalog.fit`). Das Ergebnis steht unter *Modelle auf diesem Gerät* und fließt in den
+Mischmodus ein (was „läuft gut“ heißt).
+**Fertig, wenn**: die Messung für installierte Modelle Zahlen liefert, die Empfehlung daraus begründet wird („schafft
+etwa 12 Wörter je Sekunde – gut für kurze Aufgaben, zu langsam für lange Mails“) und der Mischmodus nur Modelle nimmt,
+die eine Mindestgeschwindigkeit erreichen.
 
 ---
 
@@ -266,8 +309,8 @@ Git-Historie (Fassung vom 30.10.2026).
 - **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
   nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
   Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
-- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K), Fehlermeldungen in Klartext mit Lösungsknopf
-  (W2-09), globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
+- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K; Anheften kommt mit AP-75), ~~Fehlermeldungen in
+  Klartext mit Lösungsknopf (W2-09)~~ → AP-74, globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
   (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
 - **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
   Korrektur hinaus.
