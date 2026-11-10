@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 10.11.2026 (1.0.66: AP-71 bis AP-85 erledigt, Lora Namensschutz und Lora Befehle nachtrainiert; AP-67 offen) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (1.0.66 veröffentlicht: AP-71 bis AP-85 erledigt, Lora Namensschutz und Lora Befehle nachtrainiert; AP-67 offen; neu: Runde 3 – Lora offline, AP-104 bis AP-115) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -67,10 +67,11 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
+| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
-| **Danach** | AP-86 Lokale Modelle auf dem Mac laden · **Lora ohne API** (AP-105 Punktgenaue Modellempfehlung · AP-106 Einbettungen auf dem Gerät · AP-107 Lange Texte lokal · AP-108 Lora selbst lokal · AP-109 Bilder verstehen lokal · AP-110 Sprachausgabe lokal · AP-104 Lora Postfach · AP-111 Bilder erzeugen lokal, nur mit Grafikkarte · AP-112 Profil „Alles auf diesem Gerät“) |
+| **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung · AP-106 Modellkatalog in feinen Stufen, nach Zweck · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -364,115 +365,133 @@ gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und 
 **Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
 und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
 
-### Lora ohne API – Plan vom 10.11.2026 (Wunsch des Hauptnutzers)
-**Traum**: Leistungsstarke Rechner nutzen Lora **mit allen Funktionen ohne API** – offline bzw. nur mit Internet für Web,
-Literatur und Nextcloud; gute Office-PCs mit viel Arbeitsspeicher, aber ohne Grafikkarte, werden stufenweise
-mitgenommen und bekommen **punktgenau das richtige Modell** empfohlen.
+### Runde 3 – Lora offline (Plan vom 10.11.2026)
 
-**Bestand (10.11.2026)**: Schon auf dem Gerät: Spracherkennung und Diktat (sherpa-onnx), Lora Namensschutz, Lora Befehle,
-Rechtschreibung, Sprachmodelle über llama.cpp (Katalog von Qwen 3.5 2B bis Qwen 3.6 35B A3B), Mischmodus mit *Nur
-lokal* (AP-71), Geschwindigkeitsmessung (AP-76). Ohne API, aber mit Internet gehen schon: Websuche und Nachrichten
-(DuckDuckGo, Bing/Google News), Quellen-Check (Crossref, OpenAlex), Nextcloud, IMAP. **Noch am Server**: Loras eigene
-Antworten (GLM-5.3 Flash), Einbettungen der Wissenssammlung, Bilder verstehen, Bilder erzeugen, Sprachausgabe (Option).
-Lokale Modelle laufen mit festem Kontext von 8–16 k Token und ohne Bildteil.
+**Ziel der Runde**: Lora soll **so viel wie möglich ohne API** können – mit Internet für Web, Literatur, Nextcloud und
+Updates, aber ohne API-Schlüssel. Der Uni-Server (heute im Pilotbetrieb der TU) und die Schlüssel anderer Anbieter bleiben
+voll nutzbar; fällt der Uni-Server weg, arbeitet Lora auf guten Rechnern weiter. Jedes Gerät bekommt **punktgenau** das
+Modell, das es am besten nutzt, nach Zweck und in kleinen Stufen.
 
-**Wo lokale Modelle sinnvoll sind** – und wo nicht:
+**Entscheidungen (10.11.2026, Hauptnutzer)**
+- **Bilder erzeugen bleibt „nur über API“** – kein lokales Bildmodell; dasselbe gilt für alles, was lokal keinen Sinn
+  macht. Die Oberfläche kennzeichnet solche Funktionen klar (AP-112).
+- **Modell nach Zweck**: Bei der Rollenauswahl (AP-80) gibt man an, wofür man Lora vor allem nutzt (Text, Code, Lehre,
+  Verwaltung …). Standard ist **ein Allrounder**, dazu je Zweck ein **Spezialist** (z. B. ein Code-Modell), der nur bei
+  Bedarf geladen wird – ein Wechsel kostet 10–30 s, und auf kleinen Geräten passt nur ein großes Modell in den Speicher.
+- **Kuratierte, fertig quantisierte Modelle in feinen Stufen** (Arbeitsspeicher 8 / 12 / 16 / 24 / 32 / 48 / 64 GB,
+  Grafikspeicher 4 / 6 / 8 / 12 / 16 / 24 GB, Apple-Chip, Android), je Stufe und Zweck genau eine Empfehlung.
+- **Herkunft und Lizenz**: nur Modelle, deren Lizenz Nutzung und Weitergabe erlaubt (Apache-2.0, MIT; Gemma mit seinen
+  Bedingungen; kein Llama wegen der Namensvorgaben). Bezug wie heute von Hugging Face an **festem Commit mit SHA-256**;
+  zusätzlich ein **eigener Spiegel** als Ausfallreserve (GitHub-Releases in Teilen ≤ 2 GB bzw. TU-Nextcloud), mit
+  Lizenztext und Hinweisen. **Fremdmodelle behalten ihren Namen** („Qwen 3.5 9B – für Lora geprüft“); „Lora …“ heißen nur
+  Modelle, die wir wirklich trainiert haben. Kein Umbenennen unveränderter Modelle – das wäre irreführend und bringt
+  rechtlich nichts (Weitergabe ist ohnehin erlaubt; `License.md` gilt für unsere eigenen Werke).
+- **Kein eigenes Chat- oder Code-Modell von Grund auf**; JEV (TypeSafe AI) und ähnliche Dienste nur beobachten (Cloud, keine
+  offenen Gewichte, kein Deutsch belegt) – die Idee „typisierte Entscheidung mit Sicherheit“ steckt schon in Lora Befehle.
 
-| Bereich | lokal sinnvoll? | Begründung |
+**Was lokal läuft – und was nicht**
+
+| Bereich | lokal? | Paket |
 | --- | --- | --- |
-| Lora selbst (Navigation, kurze Antworten, Werkzeuge) | **ja** | Befehle schon lokal; der Rest braucht ein Modell mit zuverlässigen Werkzeugaufrufen (Qwen 3.5 9B / 3.6 35B A3B), messen |
-| Chat, Schreiben, Zusammenfassen, Übersetzen | **ja** | lokale Modelle von 4B an brauchbar, ab 9B bzw. 35B A3B gut |
-| Wissenssammlung, Frag diesen Ordner, Chatsuche (Einbettungen) | **ja, sehr** | kleine Einbettungsmodelle (≈ 100–500 MB) laufen auf jeder CPU in Millisekunden, ONNX Runtime ist schon da |
-| Postfach | **ja, Pflicht** | nur lokal erlaubt (AP-68); LoRA-Feintuning AP-104 |
-| Bilder und Scans verstehen, OCR auf Android | **ja, mit Einschränkung** | Gemma 4 und Qwen 3.5 haben einen Bildteil (mmproj); auf der CPU einige Sekunden je Bild |
-| Lange Dokumente | **ja, mit Grenzen** | Kontext nach Arbeitsspeicher und Abschnitt-für-Abschnitt-Auswertung; auf der CPU ist das *Einlesen* langsam (ganze Bücher: Minuten) |
-| Sprachausgabe | **ja** | kleine Stimmen (Piper/Kokoro) über sherpa-onnx, auf der CPU schneller als Echtzeit |
-| Spracherkennung, Diktat | **schon lokal** | – |
-| Bilder erzeugen | **nur mit Grafikkarte** | auf der CPU Minuten je Bild – für Office-PCs nicht sinnvoll, dort Server oder gar nicht |
-| Websuche, Literatur, Nextcloud | **kein Modell nötig** | geht schon ohne API; das Lesen der Treffer übernimmt das lokale Modell |
-| Videos verstehen, sehr lange Werkzeugketten, schwieriges Programmieren auf kleinen Modellen | **nein** | zu langsam bzw. zu unzuverlässig unter ~30B; bleibt Server oder Hinweis |
-| Eigene Chat- oder Code-Modelle von Grund auf | **nein** | Aufwand riesig, fertige offene Modelle sind um Größenordnungen besser |
+| Spracherkennung, Diktat, Lora Namensschutz, Lora Befehle, Rechtschreibung | schon lokal | – |
+| Websuche, Nachrichten, Quellen-Check, Nextcloud, IMAP | ohne API schon möglich | – |
+| Chat, Schreiben, Zusammenfassen, Übersetzen, Code | ja (Allrounder bzw. Spezialist) | AP-105, AP-106 |
+| Suche nach Bedeutung (Wissenssammlung, Frag diesen Ordner, Chatsuche, große Anhänge) | ja, sehr sinnvoll | AP-107 |
+| Lange Dokumente | ja, auf der CPU langsamer beim Einlesen | AP-108 |
+| Lora selbst (Antworten, Werkzeuge, Abläufe) | ja, gemessen | AP-109 |
+| Postfach | ja, Pflicht (AP-68) | AP-104 |
+| Bilder und Scans verstehen, OCR auf Android | ja, einige Sekunden je Bild | AP-110 |
+| Sprachausgabe | ja | AP-111 |
+| Bilder erzeugen, Videos verstehen, sehr lange Werkzeugketten | **nur über API** | AP-112 (Kennzeichnung) |
 
-**Geräteklassen** (Richtwerte, AP-105 misst je Gerät):
-- *Office-PC 16 GB, keine Grafikkarte*: Qwen 3.5 4B / Gemma 4 E4B, ≈ 6–12 Wörter/s; Lora, kurze Aufgaben, Postfach,
-  Einbettungen, Sprache. Lange Dokumente und Bilder langsam.
-- *Office-PC 32–64 GB, keine Grafikkarte* (DDR5): **Expertenmodelle mit wenigen aktiven Parametern** passen hier am
-  besten – Qwen 3.6 35B A3B (≈ 21 GB, rechnet mit 3 Mrd.) schreibt auf der CPU etwa so schnell wie ein 4B-Modell, ist aber
-  viel stärker. Der Engpass ist das Einlesen langer Texte, nicht das Schreiben.
-- *Gaming-PC, 16 GB Grafik* (z. B. RTX 5080): alles außer den größten Modellen schnell, Bilder erzeugen möglich.
-- *Workstation ≥ 24 GB Grafik* bzw. *Mac mit Apple-Chip und ≥ 32 GB* (gemeinsamer Speicher): nahe am vollen Umfang.
-- *Android*: weiter nur kleine Modelle, Einbettungen, Namensschutz, Befehle, Sprache.
+**Geräteklassen** (Richtwerte; AP-105 misst je Gerät): Office-PC 16 GB ohne Grafikkarte – 4B-Modelle, Lora, kurze Aufgaben,
+Postfach, Suche, Sprache. Office-PC 32–64 GB ohne Grafikkarte – **Expertenmodelle mit wenigen aktiven Parametern**
+(z. B. Qwen 3.6 35B A3B: ≈ 21 GB, rechnet mit 3 Mrd.) schreiben auf der CPU etwa so schnell wie 4B-Modelle, sind aber
+viel stärker; Engpass ist das Einlesen langer Texte. Gaming-PC (16 GB Grafik), Workstation, Mac mit Apple-Chip ≥ 32 GB –
+nahezu alles außer „nur über API“. Android – kleine Modelle, Suche, Namensschutz, Befehle, Sprache.
 
-**Reihenfolge**: AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-104 → AP-111 → AP-112 (Abschluss). Jedes Paket
-mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71), Modelle nur mit offener Lizenz, Download wie bisher mit
-festem Commit und SHA-256, ohne Modell bleibt alles wie heute.
+**Welche Modelle wir selbst trainieren (Übersicht)**
 
-### AP-105 ☐ Punktgenaue Modellempfehlung · M (Lora ohne API, Grundlage)
-**Ziel**: Die App empfiehlt für *dieses* Gerät genau ein Modell je Zweck (Lora, Chat, Postfach, lange Texte) – mit
-Quantisierung und Kontextlänge – und sagt vorher ehrlich, wie schnell es sein wird.
-- Geräteprofil erweitern: Arbeitsspeicher **und Speichertakt/Kanäle** (Bandbreite bestimmt das Tempo auf der CPU),
-  CPU-Befehlssätze (AVX2/AVX-512), Kerne, Grafikkarte und VRAM, Apple-Chip mit gemeinsamem Speicher, freier Platz.
-- Kurzmessung (≈ 20 s, auf Wunsch beim ersten Start): ein kleines Modell schreibt und liest einen festen Text; aus
-  Messwert, Bandbreite und *aktiven* Parametern sagt die App Schreib- und Einlesetempo der anderen Modelle vorher (AP-76
-  misst danach die echten Werte und korrigiert die Vorhersage).
-- Empfehlung je Zweck mit Mindesttempo (z. B. Lora ≥ 8 Wörter/s und erstes Wort < 2 s); Expertenmodelle (MoE) für
-  RAM-starke PCs ohne Grafikkarte bevorzugt; Kontextlänge nach freiem Speicher (KV-Cache quantisiert).
-- Katalog: je Modell mehrere Quantisierungen (Q4/Q5/Q8) und die Angabe der aktiven Parameter; Größenangaben geprüft.
-**Fertig, wenn**: auf fünf Geräteklassen (Office 16 GB, Office 32 GB, Gaming-PC, Mac, Android) die Vorhersage höchstens
-30 % neben der Messung liegt und die empfohlene Wahl dort die Mindestwerte erreicht.
+| Modell | Stand | Was noch | Paket |
+| --- | --- | --- | --- |
+| **Lora Namensschutz** (gbert-base, MIT) | 1.0.66: 98,5 % gefunden, 5,0 % fälschlich ersetzt (Ziel ≤ 2 %) | größerer Entwicklungsteil mit neuen Beispielen, App-Logik der Namensteile prüfen, dann Nachtraining (auf der RTX 5080) | AP-113 (Rest von AP-67) |
+| **Lora Befehle** (distilbert, Apache-2.0) | 1.0.66: 95,4 % / 1,3 % – Ziele erreicht | regelmäßig mit exportierten Korrekturen (AP-72) nachtrainieren; neue Ziele der App (z. B. *Inhalte zum Nachladen*) als Etiketten | AP-114 |
+| **Lora Postfach** (LoRA auf Qwen, Apache-2.0) | geplant | Messkorpus, LoRA-Adapter, später Senden mit Bestätigung | AP-104 |
+| **Lora Agent** (LoRA für Loras Werkzeugaufrufe) | nur falls nötig | entscheidet die Messung in AP-109 | AP-109 |
+| Allrounder, Code-, Einbettungs-, Bild- und Sprachmodelle | **kein Training** | auswählen, messen, ausliefern | AP-106, AP-107, AP-110, AP-111 |
 
-### AP-106 ☐ Einbettungen auf dem Gerät · S–M (Lora ohne API)
-**Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) suchen nach Bedeutung
-ohne Server: ein kleines mehrsprachiges Einbettungsmodell (Lizenz MIT/Apache, z. B. aus der E5- oder BGE-Familie) und
-optional ein Reranker über die vorhandene ONNX Runtime; vorhandene Server-Einbettungen bleiben nutzbar, neue Dokumente
-werden lokal eingebettet. Messkorpus (deutsche Fragen an erfundene Dokumente) vor der Wahl.
-**Fertig, wenn**: im Prüfteil die Trefferquote der ersten fünf Stellen mindestens so gut wie mit den Server-Einbettungen,
-≤ 50 ms je Abschnitt auf einem Office-PC.
+**Reihenfolge**: AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-111 → AP-112 → AP-104 → AP-113 → AP-114, dazu
+AP-115 (Reste) nebenher. Jedes Paket mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71); ohne Modell bleibt
+alles wie heute.
 
-### AP-107 ☐ Lange Texte lokal · M (Lora ohne API)
-**Ziel**: Lange Dokumente und große Anhänge funktionieren mit lokalen Modellen: Kontextlänge nach Speicher statt fest
-8–16 k, Abschnitt-für-Abschnitt-Auswertung mit Zusammenführung, Stellen über AP-106; ehrliche Zeitangabe vor dem Start
-(„etwa 4 Minuten auf diesem PC“) und Fortschritt.
+### AP-105 ☐ Geräteprofil und Messung · M (Runde 3, Grundlage)
+**Ziel**: Die App kennt das Gerät genau und sagt das Tempo jedes Modells vorher.
+- Geräteprofil: Arbeitsspeicher **und Speicherbandbreite** (Takt, Kanäle – bestimmt das Tempo auf der CPU), CPU-Befehlssätze
+  (AVX2/AVX-512), Kerne, Grafikkarte und Grafikspeicher, Apple-Chip mit gemeinsamem Speicher, freier Platz.
+- Kurzmessung (≈ 20 s, beim ersten Start angeboten): ein kleines Modell schreibt und liest einen festen Text; daraus und
+  aus den *aktiven* Parametern die Vorhersage für Schreib- und Einlesetempo aller Modelle; AP-76 misst danach die echten
+  Werte und korrigiert.
+**Fertig, wenn**: auf fünf Geräteklassen die Vorhersage höchstens 30 % neben der Messung liegt.
+
+### AP-106 ☐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
+**Ziel**: Für jede Stufe (RAM 8 bis 64 GB, Grafik 4 bis 24 GB, Apple-Chip, Android) und jeden Zweck (Allrounder, Text, Code,
+Postfach) genau eine fertig quantisierte Datei – mit Kontextlänge nach Speicher und Mindesttempo (z. B. ≥ 8 Wörter/s,
+erstes Wort < 2 s).
+- Zweck aus der Rollenauswahl (AP-80) bzw. später änderbar; Allrounder als Standard, Spezialist nur bei Bedarf geladen.
+- Lizenz je Modell geprüft und in der Modellkarte (Basismodell, Urheber, Lizenz, Herkunft); Gemma mit seinen Bedingungen.
+- Bezug: Hugging Face an festem Commit mit SHA-256; eigener Spiegel als Ausfallreserve (Teile ≤ 2 GB), Name wie im Original.
+- Kandidaten je Stufe auf einem Messkorpus (deutsche Textaufgaben, Code-Aufgaben) vergleichen, Wahl begründet festhalten.
+**Fertig, wenn**: der Katalog jede Stufe abdeckt, jede Empfehlung auf einem Gerät der Stufe gemessen ist und der Dialog vom
+ersten Start sie mit Größe, Tempo und Zweck anbietet.
+
+### AP-107 ☐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
+**Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein
+kleines mehrsprachiges Einbettungsmodell (MIT/Apache, z. B. E5- oder BGE-Familie), optional ein Reranker, über die
+vorhandene ONNX Runtime; Server-Einbettungen bleiben nutzbar. Messkorpus (deutsche Fragen an erfundene Dokumente) vor
+der Wahl.
+**Fertig, wenn**: im Prüfteil die Treffer der ersten fünf Stellen mindestens so gut wie mit Server-Einbettungen, ≤ 50 ms je
+Abschnitt auf einem Office-PC.
+
+### AP-108 ☐ Lange Texte lokal · M (Runde 3)
+**Ziel**: Kontextlänge nach Speicher (KV-Cache quantisiert) statt fest 8–16 k, Abschnitt-für-Abschnitt-Auswertung mit
+Zusammenführung, Stellen über AP-107, ehrliche Zeitangabe vor dem Start und Fortschritt.
 **Fertig, wenn**: ein 80-seitiges PDF auf einem Office-PC mit 32 GB ohne Server zusammengefasst und befragt werden kann,
 mit Belegstellen, und die Zeitangabe höchstens 30 % daneben liegt.
 
-### AP-108 ☐ Lora selbst lokal · M–L (Lora ohne API)
-**Ziel**: Loras eigene Antworten und Werkzeugaufrufe (heute GLM-5.3 Flash) laufen mit *Nur lokal* vollständig auf dem
-Gerät – Navigation, Erklären, Aktionen in den Werkzeugen, Abläufe (AP-40), Übergaben an lokale Chats.
-- Messkorpus der Lora-Aufgaben (Werkzeugwahl, Argumente, Rückfragen) wie bei AP-71; Ausgangswert der lokalen Modelle.
-- Kürzere System-Anweisung und weniger, klarere Werkzeuge für kleine Modelle; strikte Ausgabeformate (Grammatik von
-  llama.cpp) für Werkzeugaufrufe.
-- Bei Bedarf LoRA-Feintuning wie AP-104 (gleiche Werkzeuge, gemeinsamer Weg).
-**Fertig, wenn**: im Prüfteil das empfohlene Modell je Geräteklasse ≥ 90 % der Aufgaben richtig löst, keine Aktion ohne
-Vorschau/Rückfrage ausführt, und Lora mit *Nur lokal* in allen Bereichen antwortet.
+### AP-109 ☐ Lora selbst lokal · M–L (Runde 3)
+**Ziel**: Loras Antworten, Werkzeugaufrufe und Abläufe (heute GLM-5.3 Flash) laufen mit *Nur lokal* vollständig auf dem
+Gerät. Messkorpus der Lora-Aufgaben (Werkzeugwahl, Argumente, Rückfragen) wie bei AP-71; kürzere Anweisung und klarere
+Werkzeuge für kleine Modelle, Werkzeugaufrufe mit festem Ausgabeformat (Grammatik von llama.cpp); nur wenn das nicht
+reicht, ein LoRA-Feintuning „Lora Agent“ (gleicher Weg wie AP-104).
+**Fertig, wenn**: im Prüfteil das empfohlene Modell je Geräteklasse ≥ 90 % der Aufgaben richtig löst und keine Aktion ohne
+Vorschau/Rückfrage ausführt.
 
-### AP-109 ☐ Bilder verstehen lokal · M (Lora ohne API)
+### AP-110 ☐ Bilder verstehen lokal · M (Runde 3)
 **Ziel**: Bilder im Chat, Screenshots, Diagramme und Scans versteht ein lokales Modell mit Bildteil (mmproj zu Gemma 4 /
-Qwen 3.5 über llama.cpp); auf Android ersetzt das die OCR über ein Server-Bildmodell. Bildteil als eigener, kleiner
-Download zum vorhandenen Modell.
-**Fertig, wenn**: Messkorpus (Screenshots der App, Tabellenfotos, Scans) im Prüfteil brauchbar beantwortet wird und ein
-Bild auf einem Office-PC unter 15 s dauert.
+Qwen 3.5 über llama.cpp, eigener kleiner Download); auf Android ersetzt das die OCR über ein Server-Bildmodell.
+**Fertig, wenn**: der Messkorpus (Screenshots, Tabellenfotos, Scans) im Prüfteil brauchbar beantwortet wird und ein Bild auf
+einem Office-PC unter 15 s dauert.
 
-### AP-110 ☐ Sprachausgabe lokal · S (Lora ohne API)
-**Ziel**: Vorlesen und Sprachmodus mit einer natürlichen deutschen Stimme auf dem Gerät (Piper oder Kokoro über die
-vorhandene sherpa-onnx, Stimmen mit freier Lizenz) statt Server oder Systemstimme; Auswahl unter *Einstellungen › Sprache*.
+### AP-111 ☐ Sprachausgabe lokal · S (Runde 3)
+**Ziel**: Vorlesen und Sprachmodus mit natürlicher deutscher Stimme auf dem Gerät (Piper oder Kokoro über sherpa-onnx,
+Stimmen mit freier Lizenz) statt Server oder Systemstimme.
 **Fertig, wenn**: der Sprachmodus mit *Nur lokal* vollständig funktioniert und die erste Silbe auf einem Office-PC nach
 < 0,5 s kommt.
 
-### AP-111 ☐ Bilder erzeugen lokal – nur mit Grafikkarte · M (Lora ohne API, optional)
-**Ziel**: Auf PCs mit Grafikkarte (≥ 8 GB) und Macs mit Apple-Chip erzeugt *Bilder erzeugen* Bilder auf dem Gerät
-(stable-diffusion.cpp, Modell mit freier Lizenz, z. B. FLUX.1 schnell unter Apache-2.0); ohne Grafikkarte bietet die App
-das nicht an (auf der CPU Minuten je Bild). Großes Paket, darum als Erweiterung über den Updater (wie das Videoeditor-Paket).
-**Fertig, wenn**: ein Bild in 1024 px auf einer RTX 5080 unter 10 s entsteht und Office-PCs die Funktion nicht angeboten
-bekommen.
-
-### AP-112 ☐ Profil „Alles auf diesem Gerät“ · S (Lora ohne API, Abschluss)
-**Ziel**: Eine Einstellung bzw. ein Ergebnis des Dialogs vom ersten Start, die alles zusammenführt: *Nur lokal* für Lora,
-Chats und Postfach, Einbettungen, Sprache, Bilder verstehen (und erzeugen, wo möglich), Internet nur für Web, Literatur,
-Nextcloud und Updates; Pseudonymisierung bleibt für Anhänge an fremde Dienste, entfällt aber, wo nichts das Gerät verlässt.
-Eine Übersicht zeigt je Funktion „läuft hier“ / „braucht den Server“ / „nicht auf diesem Gerät“ mit Grund.
-**Fertig, wenn**: auf einem Gaming-PC und einem Mac mit 32 GB alle Bereiche ohne API-Schlüssel nutzbar sind und die
-Übersicht für einen Office-PC ehrlich sagt, was fehlt.
+### AP-112 ☐ Offline-Schiene in der Oberfläche: „läuft hier“ und „nur über API“ · M (Runde 3)
+**Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht.
+- Kennzeichnung je Funktion: *läuft auf diesem Gerät* · *braucht Internet* · **nur über API** (z. B. Bilder erzeugen) ·
+  *nicht auf diesem Gerät* (mit Grund und Hinweis, welche Stufe es bräuchte). Ohne API werden „nur über API“-Funktionen
+  nicht versteckt, sondern ruhig als solche gezeigt (Chip/Schloss, eine Zeile Erklärung) – Entwurf der Darstellung vorab
+  mit dem Hauptnutzer abstimmen.
+- Profil **„Alles auf diesem Gerät“** (Einstellung und Wahl im Dialog vom ersten Start): *Nur lokal* für Lora, Chats und
+  Postfach, lokale Suche, Sprache, Bilder verstehen; Internet nur für Web, Literatur, Nextcloud, Updates. Pseudonymisierung
+  bleibt für alles, was das Gerät doch verlässt.
+- **Rückfall, wenn der Uni-Server wegfällt** (Pilotprojekt): die App erkennt dauerhaft fehlenden Zugang und bietet an, auf
+  lokal oder auf den Schlüssel eines anderen Anbieters umzustellen – ohne Datenverlust, Chats bleiben.
+- Übersicht unter *Einstellungen › Wo Lora arbeitet*: je Funktion der Ort mit Grund.
+**Fertig, wenn**: auf einem Gaming-PC und einem Mac mit 32 GB alle Bereiche außer „nur über API“ ohne Schlüssel nutzbar
+sind und ein Office-PC ehrlich sieht, was fehlt.
 
 ### AP-104 ☐ Lora Postfach: eigenes LoRA-Feintuning fürs Postfach · L–XL (neu, Wunsch 10.11.2026, in Stufen)
 **Ziel**: Ins Postfach darf nur ein Modell auf diesem Gerät (AP-68). Ein kleines lokales Sprachmodell bekommt dafür ein
@@ -501,6 +520,36 @@ Aufforderung gesendet“ bleibt; Löschen bleibt ausgeschlossen).
 
 **Fertig, wenn** (a–e): auf dem Prüfteil jede Aufgabe messbar besser als das unveränderte Modell und keine Werkzeugaufrufe
 außerhalb der erlaubten `mail.*`-Aktionen; Zeit je Mail auf einem Dienst-PC ohne Grafikkarte vertretbar (Wert nach a).
+Hinweis (10.11.2026): Entscheidungen („welcher Ordner?“, „Termin ja/nein?“, „welches Werkzeug?“) besser als typisierte
+Wahl mit Sicherheit und Schwelle (wie Lora Befehle), Text (Zusammenfassung, Entwurf) vom LoRA-Sprachmodell.
+
+### AP-113 ☐ Lora Namensschutz, Runde 3 · M (Rest von AP-67)
+**Ziel**: Das Ziel „höchstens 2 % öffentliche Angaben fälschlich ersetzt“ (Prüfteil, in der App) erreichen, ohne unter 98 %
+gefundene private Angaben zu fallen.
+- Entwicklungsteil um 150–200 **neu geschriebene** Beispiele mit öffentlichen Personen, Orten ohne Personenbezug und
+  Literatur erweitern (nicht aus dem Prüfteil abgeleitet) – heute hat er nur noch drei Fehlalarme, also kein Signal.
+- App-Logik prüfen: die App ersetzt im Prüfteil zwei Angaben mehr als die Python-Messung; Verdacht: Teile eines gefundenen
+  Namens (`PiiRecognizer.hits`) werden im ganzen Text ersetzt („Thomas“ trifft „Thomas Mann“).
+- Nachtraining auf dem PC mit der RTX 5080 (`tools/pii/pc.ps1`, Minuten statt Stunden), Ausgabe wie 1.0.66 als Update.
+**Fertig, wenn**: das Ziel von AP-67 in `PiiModelTest` erreicht ist; dann AP-67 abhaken.
+
+### AP-114 ☐ Lora Befehle nachtrainieren · S–M (wiederkehrend)
+**Ziel**: Lora Befehle bleibt mit der App im Gleichstand.
+- Neue Ziele der App als Etiketten (z. B. *Einstellungen › Inhalte zum Nachladen*, AP-78), Messkorpus in beiden Teilen
+  ergänzen; die Datei von 1.0.65/1.0.66 muss weiter funktionieren (eigene Etikettenliste je Modellversion).
+- Exportierte Korrekturen (AP-72) nach Durchsicht in den Trainingsteil, nie in den Messkorpus.
+- AP-73: Die Bedingung „80 % der weitergegebenen Befehle unter den Knöpfen“ ist seit Lora Befehle nicht mehr erfüllt
+  (4 von 11); gemessen wird „sofort oder mit Knöpfen ≥ 95 % aller Befehle“ (96,7 %). Prüfen, ob die Rückfrage mit dem
+  stärkeren Modell noch so gebraucht wird.
+**Fertig, wenn**: jedes Ziel der App ein Etikett hat und die Ziele von AP-71 im Prüfteil gehalten werden.
+
+### AP-115 ☐ Reste aus 1.0.66 · S
+- `MailSorterTest.pausesCancelsAndCarriesOnAfterARestart` schlug im PR-Check einmal mit Zeitlimit fehl (beim Neustart grün)
+  – Wettlauf im Mail-Sortierer (AP-69) suchen und beheben, nicht den Test lockern.
+- Lora Namensschutz und Lora Befehle auf Android testen (JNA, ONNX Runtime von sherpa-onnx, Update vom alten Modell).
+- Release-Workflow: Der macOS-Job bekam einmal keinen Runner und das Release erschien zunächst ohne Mac (nachgeholt mit
+  einem zweiten Lauf); prüfen, ob ein Neustart nur des Mac-Teils möglich ist, ohne alles neu zu bauen.
+
 
 ---
 
