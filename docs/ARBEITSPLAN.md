@@ -43,7 +43,7 @@ Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-R
 | Eigene Werkzeuge statt Fremd-Apps | Selbst bauen, gehört vollständig uns. Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden; je Werkzeug wird geprüft, ob Code übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
 | Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); große Teile, die nicht alle brauchen, sind **nachladbare Erweiterungen** über den Updater (seit AP-25: Videoeditor-Paket; die Browser-Engine wird mit aufgeführt). |
 | Sprachen | Englisch ist vollständig (AP-29), keine weiteren Sprachen. |
-| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen, Tagesbriefing (Runde 2), Sprachbefehle für die App (Chat-Sprachmodus und Diktat reichen). (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
+| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen, Tagesbriefing (Runde 2), die frühere Ideenliste (10.11.2026), Sprachbefehle für die App (Chat-Sprachmodus und Diktat reichen). (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
 
 ---
 
@@ -67,11 +67,11 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
+| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
-| **Danach** | – |
-| **Später** | – |
+| **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -83,6 +83,8 @@ Video und Dateien (AP-54 bis AP-59), PDF-Reste und Diagramme (AP-60, AP-61) sowi
 die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erkennungsmodell für die Pseudonymisierung
 (AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
+**Dringend (10.11.2026)**: AP-103 – die Datenschutzseite aufräumen und übersichtlicher darstellen.
+
 **Dringend (09.11.2026)**: AP-68 bis AP-70 sind erledigt (09.11.2026). AP-67 läuft weiter (das Training der
 Pseudonymisierung geschieht in einem eigenen Chat). Neu am 09.11.2026: **AP-71** (Befehlsmodell und Mischmodus für Lora),
 ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Training.
@@ -93,6 +95,37 @@ ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Traini
 
 Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt laufen AP-67 und AP-71
 nebeneinander, je in einem eigenen Chat.
+
+**Dringend: AP-103** (10.11.2026, vor den übrigen Paketen)
+
+### AP-103 ☐ Datenschutzseite aufräumen · S–M (neu, dringend)
+**Befund (10.11.2026)**: *Einstellungen › Datenschutz* (`PrivacySettings.kt`) ist durch viele Überarbeitungen
+unübersichtlich geworden: eine lange Seite mit rund zehn Karten untereinander – *Pseudonymisierung* (Hauptschalter,
+Erkennungsmodell, „Namen automatisch erkennen“, „Öffentliche Quellen“, „Gründlich“), *Postfach*, dann vier Karten mit
+21 Einzelschaltern (*Kontaktdaten*, *Nummern und Daten*, *Namen*, *Platzhalter* – darin auch Fremdes wie „Warnung bei
+Bildern“ und „Namensvorschläge beim Schreiben“), *Eigene Namen und Begriffe*, *Ausprobieren*, *Zuordnungen*, *Gut zu
+wissen*. Die Schalter haben lange Erklärtexte, Wichtiges (ist der Schutz an? was sieht der Server?) und selten
+Gebrauchtes stehen gleichrangig, der Hinweis „Pseudonymisierung ist aus – die Schalter unten wirken erst …“ steht
+mitten in der Seite, und die Postfach-Regel ist eine Karte ohne Bedienung.
+**Ziel**: Eine ruhige Seite, die auf einen Blick sagt, wie geschützt man ist, und Feinheiten erst auf Wunsch zeigt.
+- **Oben eine Statuskarte**: Schutz an/aus (ein Schalter), darunter in einer Zeile, was aktiv ist („Regeln ·
+  Erkennungsmodell · Gründlich aus“) und die festen Regeln als kurze Marken (*Postfach nur auf diesem Gerät*, *Tresor*).
+  Ist der Schutz aus, sind die übrigen Bereiche sichtbar ausgegraut statt nur mit Hinweistext.
+- **Drei Hauptbereiche** in fester Reihenfolge: *Erkennung* (was gefunden wird: Namen automatisch, öffentliche Quellen,
+  Gründlich, Erkennungsmodell), *Meine Listen* (immer / nie ersetzen, Import/Export, Zuordnungen mit Suche),
+  *Ausprobieren*.
+- **Die 21 Einzelschalter** unter *Feineinstellungen* (zugeklappt, Zustand gespeichert), je Gruppe eine Zeile mit „7 von
+  7 an“; Erklärtexte kurz, das Beispiel als Unterzeile. Schalter, die nicht zur Pseudonymisierung gehören („Warnung bei
+  Bildern“, „Namensvorschläge beim Schreiben“), wandern an ihren Ort bzw. in einen eigenen kleinen Bereich *Hinweise
+  beim Senden*.
+- **„Gut zu wissen“ und die Postfach-Regel** als einklappbares *So schützt Lora deine Daten* am Ende, kurz und in
+  Klartext; dazu der Verweis auf das Agent-Protokoll.
+- Nichts geht verloren: alle Einstellungen behalten ihre Werte; Strg+K, Lora (Spots wie `privacy.pseudonymize`) und die
+  Leuchtrahmen (AP-41) finden jede Einstellung weiterhin. Gleich auf Android und Desktop, alle Stile (Hoher Kontrast).
+  en.tsv mitpflegen.
+**Fertig, wenn**: die Seite ohne Aufklappen auf einen Bildschirm passt, der Schutzstatus oben sofort erkennbar ist,
+jede bisherige Einstellung erreichbar bleibt (Test über alle `PiiFeature`-Werte und Spots) und Screenshots vorher/nachher
+in der README stehen.
 
 **Parallel: AP-67 und AP-71**
 
@@ -287,49 +320,183 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-Zurzeit leer. AP-72 bis AP-85 (am 10.11.2026 vom Hauptnutzer bestätigt) sind erledigt (10.11.2026, siehe *Erledigt*).
-Neue Pakete kommen bei Bedarf aus den *Ideen*.
-**AP-67 bleibt offen** (Ziel „höchstens 2 % öffentliche Namen ersetzt“) und wird nicht mehr in einem eigenen Chat
-bearbeitet – es steht weiter unter *Jetzt* und kommt nach AP-71 wieder dran.
+AP-72 bis AP-85 sind erledigt (10.11.2026, siehe *Erledigt*). Als Nächstes nach AP-103: AP-86.
+AP-67 und AP-71 (Modellziele) werden nachtrainiert und stehen weiter unter *Jetzt*.
+
+### AP-86 ☐ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
+**Befund (10.11.2026)**: Auf einem Mac mit Apple Silicon (39 GB, Metal) scheitert jeder Download eines lokalen Modells
+(Qwen 3.5 9B im Postfach, Qwen 3.6 35B A3B unter *Lokale Modelle*) mit „Kein Paket für macOS im llama.cpp-Release
+gefunden.“ Es scheitert nicht das Modell, sondern das Programm llama.cpp davor: `LlamaHost.installRuntime` sucht im
+festen Release `b11870` (und ersatzweise im neuesten) ein Paket, dessen Name auf `bin-macos-arm64.zip` endet – das gibt
+es dort offenbar nicht (mehr) unter diesem Namen bzw. als ZIP. Die Meldung führt zudem in die Irre: „Im Firmennetz
+gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und am Satzende steht ein doppelter Punkt.
+**Ziel**: Auf macOS (Apple Silicon und Intel) und Linux richtet sich llama.cpp beim ersten Modell von selbst ein.
+- Paketsuche robust: tatsächliche Namen und Formate der Releases prüfen (ZIP und `.tar.gz`), nach Betriebssystem und
+  Architektur wählen statt nach festem Namensende; das feste Release so wählen, dass es Pakete für alle Plattformen hat.
+- Auf dem Mac: Programm nach dem Entpacken ausführbar machen und die Quarantäne-Markierung entfernen
+  (`com.apple.quarantine`), damit Gatekeeper `llama-server` nicht blockiert; Metal wird genutzt.
+- *Datei einspielen* nimmt auch das Mac-/Linux-Paket an und nennt den richtigen Dateinamen.
+- Meldung nach AP-74: sagt, was fehlt (das Programm, nicht das Modell), mit Knopf *Erneut versuchen*; der Hinweis aufs
+  Firmennetz nur, wenn der Download wirklich blockiert wurde. Doppelten Punkt beheben.
+- Nebenbei: auf dem Mac nicht „PC“, sondern „Mac“ anzeigen.
+**Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
+und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
 
 ---
 
 ## Später
 
-Zurzeit leer – neue Pakete kommen bei Bedarf aus den *Ideen*.
+Aus den Ideen vom 10.11.2026 übernommen.
+
+### AP-87 ☐ Datei-Erste-Hilfe · M (neu)
+**Ziel**: Beschädigte Word-, Excel-, PowerPoint- und PDF-Dateien öffnen und so viel Inhalt wie möglich retten. Lora
+erkennt beim Öffnen, dass eine Datei kaputt ist, und bietet *Retten* an: defekte ZIP-Container der Office-Formate
+reparieren, lesbare Teile (Text, Tabellen, Bilder, Folien) herausholen, PDF-Querverweistabelle neu aufbauen. Das Ergebnis
+ist eine neue Datei neben dem Original („… (gerettet)“), dazu eine Liste, was fehlt. Das Original bleibt unverändert.
+**Fertig, wenn**: abgeschnittene und teilweise überschriebene Testdateien jedes Formats mindestens ihren Text und ihre
+Bilder zurückgeben und Lora klar sagt, was verloren ist.
+
+### AP-88 ☐ Zeitreise für Dateien · M (neu)
+**Ziel**: Beim Speichern in Lora-Werkzeugen (Dokument, Tabelle, Folien, Gestalten, PDF) entsteht still ein Schnappschuss.
+Unter *Frühere Stände* lassen sich Stände nebeneinander vergleichen (Text mit Wortvergleich, Tabellen nach Zellen,
+Folien als Bilder) und zurückholen – als Ersatz oder als Kopie. Platz begrenzt (dichte Stände für die letzten Tage, danach
+ausgedünnt; Obergrenze in *Einstellungen › Daten*); Tresor-Dateien bleiben verschlüsselt. Lora kennt die Stände („Wie
+sah die Einleitung gestern aus?“).
+**Fertig, wenn**: nach mehreren Speichervorgängen jeder Stand vergleichbar und wiederherstellbar ist, ohne dass der
+Speicher unbegrenzt wächst.
+
+### AP-89 ☐ Vorlage aus eigener Datei · S–M (neu)
+**Ziel**: Aus einem fertigen Dokument (Word, Folien, Tabelle, Design) wird eine wiederverwendbare Vorlage: Lora schlägt
+Platzhalter vor (Namen, Daten, Titel, Beträge, Bilder), man bestätigt oder ändert sie, die Vorlage landet unter *Erstellen
+› Meine Vorlagen* und lässt sich wie die TU Vorlagen ausfüllen – auch per Lora („Mach mir wieder so ein Protokoll“).
+Formatierung, Kopf- und Fußzeilen und Logos bleiben unverändert.
+**Fertig, wenn**: aus einem echten Protokoll, einem Folienvortrag und einer Excel-Liste je eine Vorlage entsteht, die
+sich mit neuen Angaben richtig füllt.
+
+Aus der zweiten Ideensammlung vom 10.11.2026 übernommen (AP-90 bis AP-102). Jedes Werkzeug liefert seine Lora-Aktionen
+über die gemeinsame Schnittstelle (AP-38) und fügt sich in AP-02 ein (Schalter bzw. Teil von *Dateien* oder
+*PDF-Werkzeugkasten*). Platzbedarf für Modelle (Hintergrund entfernen, Tabellen- und Feldererkennung) über die
+nachladbaren Erweiterungen (AP-25).
+
+**Dateien umwandeln und reparieren**
+
+### AP-90 ☐ Formatwandler mit Verlustanzeige · M (neu)
+**Ziel**: Dateien zwischen gängigen Formaten umwandeln (DOCX ↔ ODT/RTF/PDF/Markdown, PPTX ↔ ODP/PDF, XLSX ↔ ODS/CSV,
+Bilder untereinander), aus *Dateien* per Rechtsklick und per Lora („mach daraus eine ODT“). **Vorher** zeigt eine Karte,
+was dabei verloren geht oder sich ändert – Formeln (nur Werte), Animationen und Übergänge, Kommentare und Änderungsspuren,
+Makros, mehrere Tabellenblätter bei CSV, nicht eingebettete Schriften – mit *Trotzdem umwandeln* oder einer besseren
+Alternative. Das Original bleibt immer erhalten.
+**Fertig, wenn**: jede angebotene Richtung mit Testdateien richtig umwandelt und die Verlustanzeige für Formeln,
+Animationen, Kommentare und Blätter stimmt.
+
+### AP-91 ☐ Schriften-Notfall · S–M (neu)
+**Ziel**: Beim Öffnen von Word-, PowerPoint- und PDF-Dateien erkennen, welche Schriften fehlen; Lora schlägt einen
+passenden Ersatz vor (metrisch gleich, z. B. Carlito für Calibri, sonst ähnlich), zeigt die Auswirkung (Seitenzahl,
+Umbrüche) und kann Schriften beim Speichern einbetten, damit die Datei auf anderen Rechnern gleich aussieht. Die
+Schriften des TU-Designs werden erkannt.
+**Fertig, wenn**: eine Datei mit fehlender Schrift den Hinweis zeigt, der Ersatz das Layout hält und die gespeicherte
+Datei mit eingebetteter Schrift auf einem Rechner ohne diese Schrift gleich aussieht.
+
+### AP-92 ☐ Formatierung aufräumen · M (neu)
+**Ziel**: Word-Dateien voller direkter Formatierung (fett und 14 pt statt „Überschrift 1“, Leerzeilen statt Abstand,
+getippte Nummern statt Listen) in saubere Formatvorlagen überführen. Lora erkennt die Muster, zeigt die Zuordnung („32
+Absätze → Überschrift 2“), man bestätigt; danach funktionieren Gliederung, Inhaltsverzeichnis und Hausstil (AP-46,
+AP-79). Vorschau und Rückgängig.
+**Fertig, wenn**: eine typisch „verbastelte“ Abschlussarbeit danach eine richtige Gliederung hat, ohne dass sich das
+Aussehen ungewollt ändert.
+
+### AP-93 ☐ CSV-Lotse · S (neu)
+**Ziel**: Beim Öffnen einer CSV- oder Textdatei erkennt die Tabelle Kodierung (UTF-8, Windows-1252, kaputte Umlaute wie
+„Ã¤“), Trennzeichen, Dezimalzeichen, Tausenderpunkte und Datumsformate selbst und zeigt eine kleine Vorschau mit den
+erkannten Einstellungen zum Anpassen. Beim Speichern als CSV wählbar: Excel-tauglich (Semikolon, mit BOM) oder
+Standard (Komma, UTF-8). Gilt auch für Exporte aus OPAL, LimeSurvey und Selma.
+**Fertig, wenn**: typische Problemdateien (Excel-Export, Umfrage-Export, falsch kodierte Datei) ohne Handarbeit richtig
+in Spalten, Zahlen und Daten ankommen.
+
+### AP-94 ☐ Formular aus Scan · M (neu)
+**Ziel**: Ein gescanntes oder fotografiertes Papierformular (Scanner AP-62) wird zu einem ausfüllbaren PDF: Linien,
+Kästchen und Tabellenzellen werden als Felder erkannt (Text, Ankreuzfeld, Datum, Unterschrift), mit Namen aus der
+Beschriftung daneben; man prüft und korrigiert die Felder im PDF-Werkzeugkasten. Danach lässt es sich wie jedes Formular
+ausfüllen – auch von Lora.
+**Fertig, wenn**: drei echte Papierformulare der Verwaltung als ausfüllbare PDFs mit richtig platzierten und benannten
+Feldern herauskommen.
+
+### AP-95 ☐ PDF-Tabellen nach Excel · M (neu)
+**Ziel**: Tabellen aus PDFs zuverlässig in die Tabelle (AP-48) bzw. nach Excel übernehmen – auch über mehrere Seiten
+(wiederholte Kopfzeilen nur einmal), mit verbundenen Zellen, Zahlen als Zahlen (deutsches Format) und aus gescannten
+PDFs über die Texterkennung. Prüfansicht: PDF-Seite links, erkannte Tabelle rechts, Zellen zum Nachbessern.
+**Fertig, wenn**: Tabellen aus Statistik-Berichten, Haushaltsplänen und Papers (auch gescannt) mit richtigen Spalten und
+Zahlen ankommen.
+
+### AP-96 ☐ Diagramm zu Daten · M (neu)
+**Ziel**: Aus dem Bild eines Diagramms (Ausschnitt aus einem Paper, Foto, Scan) die Werte als Tabelle zurückgewinnen:
+Achsen und Skalen erkennen (auch logarithmisch), Datenreihen nach Farbe trennen, Punkte, Linien und Balken auslesen.
+Halbautomatisch: Lora schlägt vor, man korrigiert Achsenpunkte und Reihen per Klick. Ergebnis in die Tabelle, auf Wunsch
+gleich als neues Diagramm (AP-49); die Quelle wird vermerkt.
+**Fertig, wenn**: Balken-, Linien- und Punktdiagramme aus Testbildern Werte mit höchstens wenigen Prozent Abweichung
+liefern.
+
+**Drucken**
+
+### AP-97 ☐ Druck-Lotse · S–M (neu, D)
+**Ziel**: Druckfertig machen aus Dokument, Folien, Gestalten und PDF: Broschüre mit Rückenheftung (Seiten ausschießen,
+auf ein Vielfaches von 4 auffüllen), doppelseitig mit richtigen Rändern, mehrere Seiten pro Blatt, Handouts aus Folien,
+Beschnittzugabe und Schnittmarken für die Druckerei. Prüft die Vorgaben vor dem Export (Auflösung der Bilder, Farbraum,
+eingebettete Schriften – AP-91) und nennt Probleme.
+**Fertig, wenn**: eine A5-Broschüre auf A4 gedruckt und gefaltet in der richtigen Reihenfolge liegt und ein Poster mit
+Beschnitt die Prüfung einer Druckerei besteht.
+
+**Schutz und Archive**
+
+### AP-98 ☐ Passwortschutz für Dateien · S–M (neu)
+**Ziel**: Für Word-, Excel-, PowerPoint-, PDF- und ZIP-Dateien ein Passwort setzen, ändern oder (mit bekanntem Passwort)
+entfernen – aus *Dateien*, beim Speichern und beim Versand (Outlook). Moderne Verschlüsselung (Office: Agile Encryption,
+PDF: AES-256, ZIP: AES); Hinweis, das Passwort auf anderem Weg weiterzugeben. Passwortgeschützte Dateien lassen sich nach
+Eingabe in allen Werkzeugen öffnen. Kein Knacken fremder Passwörter.
+**Fertig, wenn**: geschützte Dateien in Word, Excel, PowerPoint, Acrobat und 7-Zip/Windows mit dem Passwort aufgehen und
+ohne nicht.
+
+### AP-99 ☐ Archiv-Werkzeug · S–M (neu)
+**Ziel**: ZIP-Dateien (dazu 7z, TAR/GZ zum Lesen) in *Dateien* wie Ordner öffnen, durchsuchen, einzelne Dateien in der
+Schnellansicht (AP-66) oder im passenden Werkzeug öffnen, ohne alles zu entpacken. Packen mit Wahl der Stärke, Passwort
+(AP-98) und **Aufteilen in Teile** (z. B. 20 MB für Mails); Lora kann „Frag diesen Ordner“ (AP-58) auch auf ein Archiv
+anwenden.
+**Fertig, wenn**: ein großes Archiv mit Unterordnern durchsucht und geöffnet werden kann und ein großer Ordner in Teile
+gepackt und unter Windows/7-Zip wieder zusammengesetzt wird.
+
+**Bilder**
+
+### AP-100 ☐ Fotos vom Handy aufbereiten · S–M (neu)
+**Ziel**: Fotos (auch vom iPhone) in einem Schritt aufbereiten: HEIC/HEIF → JPG, nach EXIF richtig drehen, nach
+Aufnahmedatum benennen („2026-11-10_14-32_Exkursion.jpg“), Ortsdaten und andere Metadaten entfernen, auf Wunsch
+verkleinern. Als Stapel in *Dateien* und per Lora („bereite die Exkursionsfotos auf“). Originale bleiben, bis man sie
+selbst löscht.
+**Fertig, wenn**: ein Ordner gemischter iPhone- und Android-Fotos richtig gedreht, benannt, als JPG und ohne Ortsdaten
+herauskommt.
+
+### AP-101 ☐ Bild-Werkstatt · M (neu)
+**Ziel**: Einfache Bildbearbeitung ohne Fremdprogramm: **Hintergrund entfernen** (Modell auf dem Gerät, nachladbar),
+zuschneiden (frei, Seitenverhältnisse, Vorlagen für Profilbild, Folie, Poster), drehen, auf Zielgröße bzw. Dateigröße
+bringen, Format wählen (JPG, PNG mit Transparenz, WebP), Helligkeit/Kontrast. Aus *Dateien*, Gestalten und Folien
+erreichbar; Lora kann es („Hintergrund weg, quadratisch, unter 1 MB“).
+**Fertig, wenn**: Porträts und Produktfotos sauber freigestellt werden und Zuschnitt und Zielgröße stimmen.
+
+**Umzug**
+
+### AP-102 ☐ Umzug auf einen neuen PC · M (neu, D)
+**Ziel**: Ein Assistent packt alles, was zu Lora gehört – Chats, Projekte, Einstellungen, Gedächtnis, Vorlagen und
+Designs, Erweiterungen, auf Wunsch lokale Modelle und den Tresor (verschlüsselt) –, in ein Umzugspaket (Datei, USB oder
+Netzlaufwerk) und spielt es auf dem neuen PC ein; vorher zeigt er Größe und Inhalt. API-Schlüssel gehen nur mit Passwort
+mit. Ergänzt die bestehende Sicherung und die Synchronisierung über den Cloud-Ordner, ersetzt sie nicht.
+**Fertig, wenn**: nach dem Einspielen auf einem frischen PC alles wie vorher dasteht, einschließlich lokaler Modelle, und
+nichts doppelt angelegt wird.
 
 ---
 
 ## Ideen
 
-Ohne Auftrag; Details der bisherigen Pakete stehen in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md) bzw. in der
-Git-Historie (Fassung vom 30.10.2026).
-
-- **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
-  nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
-  Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
-- **Lora**: eigene Lora-Befehle als ganze Abläufe per Name/Strg+K (angeheftete Einzelbefehle gibt es seit AP-75), ~~Fehlermeldungen in
-  Klartext mit Lösungsknopf (W2-09)~~ → AP-74, globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
-  (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
-- **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
-  Korrektur hinaus.
-- **Forschung**: Gutachter-Panel mit Mehr-Agenten-Engine (W3-02, W5-03), Systematic Review nach PRISMA (W5-04),
-  Forschungsdaten veröffentlichen über OPARA/Zenodo (W5-06), Profilpflege mit ORCID/FIS/Publikationsliste/Lebenslauf (W5-08).
-- **Lehre & Verwaltung**: Klausuren nachträglich analysieren (W6-02), Live-Untertitel im Hörsaal (W6-04, eher Spielerei),
-  Podcast aus Dokumenten (W7-02), Assistent für Bewerbungsverfahren (W7-03), Lernspiele als SCORM/H5P.
-- **Werkzeuge**: mehr Dateiformate (W8-05), Browser-Automatisierung für Portale ohne Schnittstelle.
-- **Anbindungen**: Zotero, Obsidian, Moodle, LimeSurvey und weitere aus dem alten Katalog (W9-03); ADEU als MCP-Server
-  (W9-04); Plugins (W9-05); MCP-Ressourcen, -Prompts und Elicitation (Rest AP-23); Exchange über EWS/Graph (Rest AP-27).
-- **Bedienung**: ~~Rollenauswahl beim ersten Start (W2-08)~~ → AP-80, Einfügen über die Gboard-Leiste/langes Drücken auf Android
-  (Rest von W1-01).
-- **Team**: gemeinsamer Ordner für TU Vorlagen der Professur (abgespeckte W4-03, sehr niedrige Priorität).
-- **Prüfen auf Dienst-PCs**: Arbeitsspeicher vorher/nachher (AP-04), NVDA-Test (AP-30), Outlook-Rückfrage (AP-13),
-  Vorher-Bilder (AP-01) – bei Gelegenheit, ohne eigenes Paket.
-- **Ältere Ideen**: Literatur-Radar, Statistik-Werkstatt, Zettelkasten/Wissensgraph, Förder-/Call-Radar,
-  Fragebogen-Auswertung, KI als zweite Coder:in, Lehrveranstaltungs-Cockpit, Kurs-Assistent für Studierende, Folien zu
-  Lernvideo, Feedback-Werkstatt, Prüfungsorganisation, ~~Barrierefreiheits-Check für Lehrmaterial~~ (→ AP-79), Sitzungs-/
-  Gremienassistent, zentrale Aufgaben und Fristen, Synopse-Werkzeug, Workflow-Baukasten, Schnellzugriff (Widget),
-  Stift und Handschrift, ~~Hausstil-Prüfung~~ (→ AP-79).
+Zurzeit leer. Aus den Sammlungen vom 10.11.2026 sind AP-87 bis AP-102 geworden; alles Übrige und die ältere Ideenliste
+sind gestrichen (Git-Historie dieser Datei). Neue Ideen je eine Zeile, als Paket ab AP-103.
 
 ---
 
