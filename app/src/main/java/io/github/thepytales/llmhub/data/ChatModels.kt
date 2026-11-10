@@ -32,6 +32,13 @@ data class FileAttachment(
     val public: Boolean? = null,
     /** Copy of the uploaded file in the Lora-Ordner („Hochgeladen“, AP-16). */
     val stored: String? = null,
+    /**
+     * Große Anhänge (AP-85): how the file goes along when it does not fit the model – "ganz", "stellen" (the passages that
+     * fit the question) or "zusammenfassung"; null = not asked (it fits, or the passages).
+     */
+    val send: String? = null,
+    /** The section by section summary of the whole file, when [send] is "zusammenfassung". */
+    val digest: String? = null,
 )
 
 @Serializable

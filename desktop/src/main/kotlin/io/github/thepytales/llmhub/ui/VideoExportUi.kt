@@ -175,6 +175,28 @@ private fun RadioRow(label: String, on: Boolean, onClick: () -> Unit) {
     }
 }
 
+/** „Unterbrochene Exporte nach dem Start von selbst fortsetzen“ (AP-81), kept in the window state of this PC. */
+@Composable
+private fun ResumeSwitch() {
+    val prefs = remember { io.github.thepytales.llmhub.App.container.appContext.getSharedPreferences("ui_state", 0) }
+    var on by remember { mutableStateOf(prefs.getBoolean(EXPORT_RESUME_KEY, false)) }
+    CheckRow(tr("Unterbrochene Exporte nach dem Start von selbst fortsetzen"), on) { v -> on = v; prefs.edit().putBoolean(EXPORT_RESUME_KEY, v).apply() }
+}
+
+internal const val EXPORT_RESUME_KEY = "videoExportResume"
+
+/**
+ * At the start of the app (AP-81): exports that were waiting or running when it ended come back into the queue – on
+ * „Fortsetzen“ or, if switched on, by themselves – and the notices for finished exports are wired.
+ */
+internal fun restoreExportQueue(c: AppContainer) {
+    wireExportQueue(c)
+    val resume = c.appContext.getSharedPreferences("ui_state", 0).getBoolean(EXPORT_RESUME_KEY, false)
+    val n = runCatching { ExportQueue.restore(java.io.File(io.github.thepytales.llmhub.desktop.Paths.local, "video-exporte.json"), resume) }.getOrDefault(0)
+    if (n > 0 && !resume) Notices.show(Notices.Notice(tr("{0} Video-Export(e) wurden beim letzten Beenden unterbrochen.", n), action = tr("Fortsetzen"), onAction = { ExportQueue.resumeAll() }))
+    else if (n > 0) Notices.info(tr("{0} unterbrochene Video-Export(e) laufen weiter.", n))
+}
+
 /** The queue in the top bar (AP-57): „Exporte 1/3 · 45 %“; a click shows the list. Nothing while it is empty. */
 @Composable
 internal fun ExportQueueChip() {
@@ -215,12 +237,15 @@ internal fun ExportQueueDialog(onDismiss: () -> Unit) {
                             ExportQueue.Status.DONE -> tr("fertig") + (e.seconds?.let { " " + tr("in {0}", clock(it)) } ?: "") + (e.encoder?.let { " · " + tr(Encoders.byId(it).label) } ?: "")
                             ExportQueue.Status.FAILED -> tr("fehlgeschlagen") + ": " + (e.error ?: "").take(200)
                             ExportQueue.Status.CANCELLED -> tr("abgebrochen")
+                            ExportQueue.Status.INTERRUPTED -> tr("unterbrochen")
                         }
                         Text(status + (e.note?.let { " · $it" } ?: ""), style = MaterialTheme.typography.bodySmall, color = if (e.status == ExportQueue.Status.FAILED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                         if (e.status == ExportQueue.Status.RUNNING) LinearProgressIndicator(progress = { e.progress }, modifier = Modifier.fillMaxWidth())
                         Text(e.out.absolutePath, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                         if (e.remote.isNotEmpty()) Text(tr("In Nextcloud:") + " " + e.remote.joinToString(), style = MaterialTheme.typography.labelSmall)
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // AP-81: an export the last end of the app interrupted goes on with „Fortsetzen“.
+                            if (e.status == ExportQueue.Status.INTERRUPTED || e.status == ExportQueue.Status.FAILED) TextButton(onClick = { ExportQueue.resume(e.id) }) { Text(tr("Fortsetzen")) }
                             if (!e.finished) TextButton(onClick = { ExportQueue.cancel(e.id) }) { Text(tr("Abbrechen")) }
                             if (e.status == ExportQueue.Status.DONE) {
                                 e.files.firstOrNull()?.let { f -> TextButton(onClick = { DesktopActions.open(f) }) { Text(tr("Öffnen")) } }
@@ -232,7 +257,17 @@ internal fun ExportQueueDialog(onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
-        dismissButton = { TextButton(onClick = { ExportQueue.clearFinished() }, enabled = entries.any { it.finished }) { Text(tr("Erledigte entfernen")) } },
+        confirmButton = {
+            Row {
+                if (entries.count { it.status == ExportQueue.Status.INTERRUPTED } > 1) TextButton(onClick = { ExportQueue.resumeAll() }) { Text(tr("Alle fortsetzen")) }
+                TextButton(onClick = onDismiss) { Text(tr("Schließen")) }
+            }
+        },
+        dismissButton = {
+            Column {
+                ResumeSwitch()
+                TextButton(onClick = { ExportQueue.clearFinished() }, enabled = entries.any { it.finished }) { Text(tr("Erledigte entfernen")) }
+            }
+        },
     )
 }

@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
@@ -25,7 +28,8 @@ object ExportQueue {
     /** What one entry makes. */
     enum class Kind { VIDEO, AUDIO, SUBTITLES, CHAPTERS }
 
-    enum class Status { WAITING, RUNNING, DONE, FAILED, CANCELLED }
+    /** [INTERRUPTED]: was waiting or running when the app ended (AP-81) – „Fortsetzen“ starts it again. */
+    enum class Status { WAITING, RUNNING, DONE, FAILED, CANCELLED, INTERRUPTED }
 
     /**
      * An entry: [project] as queued, [kind] and [preset] (for video and sound), into [out]. [upload]: a Nextcloud folder
@@ -57,6 +61,72 @@ object ExportQueue {
         val finished: Boolean get() = status == Status.DONE || status == Status.FAILED || status == Status.CANCELLED
     }
 
+    /** What survives a restart (AP-81): the entry as queued, without progress and results. */
+    @Serializable
+    internal data class Saved(
+        val id: String, val project: VideoProject, val kind: Kind, val preset: String, val out: String,
+        val useHardware: Boolean = true, val upload: String? = null,
+    )
+
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false }
+
+    /** Where waiting and running entries are kept (set by the app at start, [restore]); null = not kept (tests). */
+    @Volatile
+    var store: File? = null
+
+    /** Writes the entries that are not finished yet (and the interrupted ones), so they survive a restart. */
+    private fun save() {
+        val f = store ?: return
+        val open = _entries.value.filter { it.status == Status.WAITING || it.status == Status.RUNNING || it.status == Status.INTERRUPTED }
+        runCatching {
+            if (open.isEmpty()) f.delete()
+            else {
+                f.parentFile?.mkdirs()
+                val tmp = File(f.parentFile, f.name + ".tmp")
+                tmp.writeText(json.encodeToString(ListSerializer(Saved.serializer()), open.map { Saved(it.id, it.project, it.kind, it.preset, it.out.absolutePath, it.useHardware, it.upload) }))
+                if (!tmp.renameTo(f)) { f.delete(); tmp.renameTo(f) }
+            }
+        }.onFailure { AppLog.i("Export-Warteschlange nicht gespeichert: ${it.message}") }
+    }
+
+    /**
+     * After a restart (AP-81): the entries that were waiting or running come back as [Status.INTERRUPTED] – a half
+     * written file is removed –; with [resume] they start again at once, else on „Fortsetzen“. Returns how many.
+     */
+    fun restore(file: File, resume: Boolean): Int {
+        store = file
+        val saved = runCatching { json.decodeFromString(ListSerializer(Saved.serializer()), file.readText()) }.getOrNull().orEmpty()
+        val known = _entries.value.map { it.id }.toSet()
+        val back = saved.filter { it.id !in known }.map { s ->
+            File(s.out).let { out -> if (out.isFile && out.length() >= 0) out.delete() }
+            Entry(id = s.id, project = s.project, kind = s.kind, preset = s.preset, out = File(s.out), useHardware = s.useHardware, upload = s.upload,
+                status = Status.INTERRUPTED, note = tr("Beim letzten Beenden nicht fertig geworden"))
+        }
+        if (back.isEmpty()) return 0
+        _entries.value = _entries.value + back
+        if (resume) resumeAll() else save()
+        return back.size
+    }
+
+    /** Starts an interrupted (or cancelled, failed) entry again. */
+    fun resume(id: String) {
+        val e = _entries.value.firstOrNull { it.id == id } ?: return
+        if (e.status == Status.WAITING || e.status == Status.RUNNING || e.status == Status.DONE) return
+        update(id) { it.copy(status = Status.WAITING, progress = 0f, error = null, note = null) }
+        start(id)
+    }
+
+    /** Registers the job before it starts: a very short entry cannot finish (and sign off) before it is known. */
+    private fun start(id: String) {
+        val job = scope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) { lock.withLock { run(id) } }
+        running[id] = job
+        // Also a job cancelled before it ever ran signs off (its finally in run() is never reached then).
+        job.invokeOnCompletion { running.remove(id, job) }
+        job.start()
+    }
+
+    fun resumeAll() = _entries.value.filter { it.status == Status.INTERRUPTED }.forEach { resume(it.id) }
+
     private val _entries = MutableStateFlow<List<Entry>>(emptyList())
     val entries: StateFlow<List<Entry>> = _entries.asStateFlow()
 
@@ -73,10 +143,13 @@ object ExportQueue {
     private val running = java.util.concurrent.ConcurrentHashMap<String, Job>()
 
     /** Waiting and running entries. */
-    val busy: Int get() = _entries.value.count { !it.finished }
+    val busy: Int get() = _entries.value.count { it.status == Status.WAITING || it.status == Status.RUNNING }
 
     private fun update(id: String, f: (Entry) -> Entry) {
+        val before = _entries.value.firstOrNull { it.id == id }?.status
         _entries.value = _entries.value.map { if (it.id == id) f(it) else it }
+        // Only a change of status is written (not every percent of progress).
+        if (_entries.value.firstOrNull { it.id == id }?.status != before) save()
     }
 
     /**
@@ -103,7 +176,8 @@ object ExportQueue {
         if (Kind.SUBTITLES in kinds && p.subtitles.isNotEmpty()) list += Entry(project = p, kind = Kind.SUBTITLES, out = unique("$base.srt"), upload = upload)
         if (Kind.CHAPTERS in kinds && VideoEdit.chapters(p).isNotEmpty()) list += Entry(project = p, kind = Kind.CHAPTERS, out = unique("$base – Kapitel.txt"), upload = upload)
         _entries.value = _entries.value + list
-        list.forEach { e -> running[e.id] = scope.launch { lock.withLock { run(e.id) } } }
+        save()
+        list.forEach { e -> start(e.id) }
         return list
     }
 
@@ -161,12 +235,12 @@ object ExportQueue {
     /** Stops a waiting or running entry. */
     fun cancel(id: String) {
         val e = _entries.value.firstOrNull { it.id == id } ?: return
-        if (e.status == Status.WAITING) update(id) { it.copy(status = Status.CANCELLED) }
+        if (e.status == Status.WAITING || e.status == Status.INTERRUPTED) update(id) { it.copy(status = Status.CANCELLED) }
         running[id]?.cancel()
     }
 
     /** Removes the finished entries from the list (the files stay). */
-    fun clearFinished() { _entries.value = _entries.value.filter { !it.finished } }
+    fun clearFinished() { _entries.value = _entries.value.filter { !it.finished }; save() }
 
     /** Waits until the queue is empty (tests). */
     suspend fun idle() { lock.withLock { } ; while (running.isNotEmpty()) kotlinx.coroutines.delay(50) }

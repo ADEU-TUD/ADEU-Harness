@@ -1098,6 +1098,7 @@ fun FlowEditor(
                 state.load(markdown)
                 state.changed()
             }
+            override fun markdown(): String = state.markdown()
             override fun insertBlock(markdown: String): String? {
                 val before = state.markdown()
                 state.insertBlock(markdown)

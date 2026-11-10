@@ -122,6 +122,32 @@ object AccessibilityCheck {
         add(if (Regex("<h[1-3]\\b", RegexOption.IGNORE_CASE).containsMatchIn(text)) Finding(true, tr("Überschriften-Struktur vorhanden.")) else Finding(false, tr("Keine Überschriften (h1–h3)."), tr("Gliederung mit Überschriften-Elementen.")))
     }
 
+    /**
+     * Hausstil (AP-79) of a Word or PowerPoint file: fonts outside Noto Sans and colours outside the TUD palette (CD 2025),
+     * and the house rules in the text – each with where it was found. Other formats get nothing here.
+     */
+    fun houseStyle(file: File, rules: List<io.github.thepytales.llmhub.data.HouseRule>): List<Finding> {
+        val ext = file.extension.lowercase()
+        if (ext != "docx" && ext != "pptx") return emptyList()
+        val parts = zipText(file) { if (ext == "docx") it == "word/document.xml" || it == "word/styles.xml" else Regex("ppt/slides/slide\\d+\\.xml").matches(it) }
+        val palette = TudBrand.PALETTE.map { it.second.uppercase() }.toSet()
+        val (fonts, colors) = StyleCheck.corporateDesign(parts.values.joinToString("\n"), palette, io.github.thepytales.llmhub.data.DesignBrand.FONT)
+        return buildList {
+            add(if (fonts.isEmpty()) Finding(true, tr("Hausschrift Noto Sans (Corporate Design der TU Dresden)."))
+                else Finding(false, tr("Schriften außerhalb des Corporate Designs: {0}.", fonts.take(5).joinToString(", ")), tr("Für Texte der TU Dresden Noto Sans verwenden.")))
+            add(if (colors.isEmpty()) Finding(true, tr("Nur Farben der TUD-Palette."))
+                else Finding(false, tr("Farben außerhalb der TUD-Palette: {0}.", colors.take(6).joinToString(", ")), tr("Farben aus der TUD-Palette nehmen (z. B. Brillantblau).")))
+            val text = parts.entries.sortedBy { it.key }.joinToString("\n\n") { (name, xml) ->
+                val body = xml.replace(Regex("</w:p>|</a:p>"), "\n").replace(Regex("<[^>]+>"), "")
+                    .replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+                if (ext == "pptx") "---\n# " + name.substringAfterLast('/') + "\n" + body else body
+            }
+            StyleCheck.check(text, rules, slides = ext == "pptx").filter { it.kind == StyleCheck.Kind.HOUSE }.take(30).forEach { i ->
+                add(Finding(false, i.text + " · " + i.where, i.excerpt))
+            }
+        }
+    }
+
     fun report(name: String, findings: List<Finding>): String = buildString {
         val problems = findings.count { !it.ok }
         append(tr("Barrierefreiheit von „{0}“: ", name))

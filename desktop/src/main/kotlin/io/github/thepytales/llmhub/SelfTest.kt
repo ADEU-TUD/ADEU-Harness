@@ -42,6 +42,8 @@ object SelfTest {
         "batches", "proposals", "settings/connections",
         // A new chat that opens the form of the letter template.
         "chat?persona=b_tud_letter",
+        // AP-78: Inhalte zum Nachladen.
+        "settings/downloads",
     )
 
     private const val HTML = """<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">

@@ -1,0 +1,409 @@
+{
+ "format": 1,
+ "id": "lehramt-tud",
+ "titel": "Lehramt an der TU Dresden",
+ "beschreibung": "Abkürzungen, Einrichtungen, Studiengänge, Praktika, Prüfungen und Ansprechstellen rund um das Lehramtsstudium an der TU Dresden – nur aus öffentlichen, offiziellen Seiten der TU Dresden und des Freistaats Sachsen, jede Angabe mit Quelle und Stand.",
+ "version": 1,
+ "stand": "2026-11-10",
+ "eintraege": [
+  {
+   "begriff": "ZLSB",
+   "art": "Einrichtung",
+   "erklaerung": "Zentrum für Lehrkräftebildung, Schul- und Berufsbildungsforschung der TU Dresden – zuständig für das Lehramtsstudium, die Forschung zur Lehrkräftebildung sowie Fort- und Weiterbildung (u. a. Seiteneinstieg).",
+   "synonyme": [
+    "Zentrum für Lehrkräftebildung"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Studienbüro Lehramt",
+   "art": "Ansprechstelle",
+   "erklaerung": "Im Seminargebäude 2 (SE2), 2. Etage: Prüfungsamt, Praktikumskoordination, Studienberatung und Betreuung der Ergänzungsstudien unter einem Dach. Erste Anlaufstelle ist der Front Desk; E-Mail-Anfragen über das Kontaktformular.",
+   "synonyme": [
+    "Studienbüro",
+    "Front Desk"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "SE2",
+   "art": "Ort",
+   "erklaerung": "Seminargebäude 2 der TU Dresden; dort sitzt das Studienbüro Lehramt (2. Etage).",
+   "synonyme": [
+    "SE II",
+    "Seminargebäude 2"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Lehramtsstudiengänge",
+   "art": "Studiengang",
+   "erklaerung": "Die TU Dresden bietet vier Lehramtsstudiengänge mit staatlichem Abschluss (Erste Staatsprüfung): Lehramt an Grundschulen, an Oberschulen, an Gymnasien und an berufsbildenden Schulen – zusammen 368 Fach- und Fachrichtungskombinationen, davon 103 zulassungsbeschränkt (rund 3.800 Studierende).",
+   "synonyme": [
+    "Lehramtsstudium",
+    "Lehramt studieren"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Lehramt an Grundschulen",
+   "art": "Studiengang",
+   "erklaerung": "Lehramtsstudiengang mit staatlichem Abschluss (Erste Staatsprüfung) für die Grundschule.",
+   "synonyme": [
+    "Grundschullehramt"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/vor-dem-studium/studienangebot-1/lehramt-an-grundschulen",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Lehramt an Oberschulen",
+   "art": "Studiengang",
+   "erklaerung": "Lehramtsstudiengang mit staatlichem Abschluss (Erste Staatsprüfung) für die Oberschule – die sächsische Schulart, die früher Mittelschule hieß.",
+   "synonyme": [
+    "Mittelschule",
+    "Oberschullehramt"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/vor-dem-studium/studienangebot-1/lehramt-an-oberschulen",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Lehramt an Gymnasien",
+   "art": "Studiengang",
+   "erklaerung": "Lehramtsstudiengang mit staatlichem Abschluss (Erste Staatsprüfung) für das Gymnasium.",
+   "synonyme": [
+    "Gymnasiallehramt"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/vor-dem-studium/studienangebot-1/lehramt-an-gymnasien",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Lehramt an berufsbildenden Schulen",
+   "art": "Studiengang",
+   "erklaerung": "Lehramtsstudiengang mit staatlichem Abschluss (Erste Staatsprüfung) für berufsbildende Schulen (Berufsschule), mit beruflichen Fachrichtungen.",
+   "synonyme": [
+    "Berufsschullehramt",
+    "berufsbildende Schulen"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/vor-dem-studium/studienangebot-1/lehramt-an-berufsbildenden-schulen",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Musik im Lehramt",
+   "art": "Studiengang",
+   "erklaerung": "Lehramtsstudierende mit dem Fach Musik werden in Kooperation mit der Hochschule für Musik Dresden ausgebildet.",
+   "synonyme": [
+    "Fach Musik"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Erste Staatsprüfung",
+   "art": "Abschluss",
+   "erklaerung": "Schließt die erste Phase der Lehramtsausbildung (das Studium an einer sächsischen Hochschule) ab und weist die Eignung für den Vorbereitungsdienst nach. Sie findet zweimal jährlich in festen Prüfungszeiträumen statt; zuständig ist das LaSuB (Antrag auf Zulassung beim LaSuB, Standort Dresden), das auch Termine und Fristen bekannt gibt.",
+   "synonyme": [
+    "Staatsprüfung",
+    "Erstes Staatsexamen"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/erste-staatspruefung-1",
+   "stand": "2026-08-06"
+  },
+  {
+   "begriff": "LAPO I",
+   "art": "Ordnung",
+   "erklaerung": "Lehramtsprüfungsordnung I des Freistaats Sachsen, rechtliche Grundlage der Ersten Staatsprüfung. Wer spätestens für den Prüfungszeitraum Winter 2025/2026 zugelassen wird, prüft nach der LAPO I vom 29.08.2012; wer ab dem Prüfungszeitraum Sommer 2026 zugelassen wird, nach der LAPO I vom 19.01.2022.",
+   "synonyme": [
+    "Lehramtsprüfungsordnung I",
+    "Lehramtsprüfungsordnung"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/erste-staatspruefung-1",
+   "stand": "2026-08-06"
+  },
+  {
+   "begriff": "LAPO II",
+   "art": "Ordnung",
+   "erklaerung": "Lehramtsprüfungsordnung II, rechtliche Grundlage des Vorbereitungsdienstes und seiner Staatsprüfung in Sachsen.",
+   "synonyme": [
+    "Lehramtsprüfungsordnung II"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/nach-dem-studium/vorbereitungsdienst-1",
+   "stand": "2026-08-12"
+  },
+  {
+   "begriff": "LaSuB",
+   "art": "Einrichtung",
+   "erklaerung": "Landesamt für Schule und Bildung des Freistaats Sachsen – zuständig für die Erste Staatsprüfung sowie für Bewerbung, Ausbildung und Staatsprüfung im Vorbereitungsdienst.",
+   "synonyme": [
+    "Landesamt für Schule und Bildung"
+   ],
+   "quelle": "https://www.lasub.smk.sachsen.de/",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "SMK",
+   "art": "Einrichtung",
+   "erklaerung": "Sächsisches Staatsministerium für Kultus.",
+   "synonyme": [
+    "Staatsministerium für Kultus"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/erste-staatspruefung-1",
+   "stand": "2026-08-06"
+  },
+  {
+   "begriff": "Vorbereitungsdienst",
+   "art": "Ablauf",
+   "erklaerung": "Die zweite Phase der Lehramtsausbildung (Referendariat) nach der Ersten Staatsprüfung; sie endet mit einer Staatsprüfung, mit der die Lehrbefähigung für die Schulart und die Fächer erworben wird. Zuständig für Bewerbung, Ausbildung und Prüfung ist das LaSuB.",
+   "synonyme": [
+    "Referendariat"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/nach-dem-studium/vorbereitungsdienst-1",
+   "stand": "2026-08-12"
+  },
+  {
+   "begriff": "Zweite Staatsprüfung",
+   "art": "Abschluss",
+   "erklaerung": "Staatsprüfung am Ende des Vorbereitungsdienstes (Referendariat); rechtliche Grundlage ist die LAPO II.",
+   "synonyme": [
+    "Zweites Staatsexamen"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/nach-dem-studium/vorbereitungsdienst-1",
+   "stand": "2026-08-12"
+  },
+  {
+   "begriff": "SPS",
+   "art": "Praktikum",
+   "erklaerung": "Schulpraktische Studien (Schulpraktika) im Lehramtsstudium: 25 Leistungspunkte (750 Stunden einschließlich Vor- und Nachbereitung), eingebunden in Module der Bildungswissenschaften und der Fachdidaktiken bzw. Beruflichen Didaktiken oder Grundschuldidaktiken.",
+   "synonyme": [
+    "Schulpraktische Studien",
+    "Schulpraktika"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/schulpraktika",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Blockpraktikum",
+   "art": "Praktikum",
+   "erklaerung": "Blockpraktika A und B gehören zu den Schulpraktischen Studien; die Plätze werden über das Praktikumsportal zugewiesen, zuständig ist die Praktikumskoordination im Studienbüro Lehramt.",
+   "synonyme": [
+    "Blockpraktika",
+    "Blockpraktikum A",
+    "Blockpraktikum B"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/schulpraktika",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Praktikumskoordination",
+   "art": "Ansprechstelle",
+   "erklaerung": "Teil des Studienbüros Lehramt, zuständig für Blockpraktikum A und B und die SPÜ; Studierende schreiben über das Kontaktformular und bekommen die Antwort an ihre TU-Mailadresse.",
+   "synonyme": [],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/schulpraktika",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Prüfungsamt Lehramt",
+   "art": "Ansprechstelle",
+   "erklaerung": "Prüfungsamt im Studienbüro Lehramt (u. a. Prüfungsan- und -abmeldung, Anrechnung von Prüfungsleistungen).",
+   "synonyme": [
+    "Prüfungsamt"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/pruefungen",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Ergänzungsstudien",
+   "art": "Modul",
+   "erklaerung": "Module, die zentral im Studienbüro Lehramt für alle Lehramtsstudierenden verwaltet werden (Lehrangebot, Beratung, Anerkennung). Es gibt zwei Kataloge: für Immatrikulation vor dem Wintersemester 2023/24 und ab dem Wintersemester 2023/24 (auch nach einem Fachwechsel ab dann).",
+   "synonyme": [
+    "Ergänzungsstudium"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/ergaenzungsstudien",
+   "stand": "2026-10-02"
+  },
+  {
+   "begriff": "Erweiterungsfach",
+   "art": "Ablauf",
+   "erklaerung": "Ausbildung in einem weiteren Fach als Weiterbildung neben oder nach dem Studium – Voraussetzung für die Erweiterungsprüfung nach § 22 LAPO I. Die Weiterbildung für das erste Erweiterungsfach ist kostenfrei (nur Gasthörergebühr, entfällt für Studierende der TU Dresden); sie verlängert die Regelstudienzeit nicht.",
+   "synonyme": [
+    "Erweiterungsfachausbildung",
+    "Drittfach",
+    "Drittfachausbildung",
+    "Erweiterungsprüfung"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/erweiterungsfachausbildung-1",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Seiteneinstieg",
+   "art": "Weiterbildung",
+   "erklaerung": "Berufsbegleitende Qualifizierung von Lehrkräften (BQL): seit 2016 unterstützt die TU Dresden Seiteneinsteiger:innen in einer zweijährigen, berufsbegleitenden Qualifizierung (Bildungswissenschaften, Schul- bzw. Fachpädagogik, Fachdidaktik).",
+   "synonyme": [
+    "BQL",
+    "Seiteneinsteiger",
+    "berufsbegleitende Qualifizierung"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Eignungsfeststellungsverfahren",
+   "art": "Ablauf",
+   "erklaerung": "Verfahren zur Feststellung der Zugangsvoraussetzungen in bestimmten Studiengängen – je nach Fach zusätzliche Unterlagen, ein Eignungstest oder ein Eignungsgespräch; die Fristen sind Ausschlussfristen.",
+   "synonyme": [
+    "Eignungstest",
+    "Eignungsprüfung"
+   ],
+   "quelle": "https://tu-dresden.de/studium/vor-dem-studium/bewerbung/studienvoraussetzungen/eignungsfeststellung",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "SINS",
+   "art": "Werkzeug",
+   "erklaerung": "Studieninformationssystem der TU Dresden: Studienangebot und Studienvoraussetzungen, auch das Fächerangebot im Lehramt.",
+   "synonyme": [
+    "Studieninformationssystem"
+   ],
+   "quelle": "https://tu-dresden.de/studium/vor-dem-studium/studienangebot/sins",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "selma",
+   "art": "Werkzeug",
+   "erklaerung": "Das selma-Portal der TU Dresden (im Lehramt-A–Z des ZLSB verlinkt).",
+   "synonyme": [
+    "selma-Portal"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/a-z",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "OPAL",
+   "art": "Werkzeug",
+   "erklaerung": "Bildungsportal Sachsen (OPAL); dort liegt z. B. der OPAL-Kurs Weiterbildung Erweiterungsfach/Lehramt.",
+   "synonyme": [
+    "Bildungsportal Sachsen"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/lehramtsstudium/im-studium/erweiterungsfachausbildung-1",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "SLUB",
+   "art": "Einrichtung",
+   "erklaerung": "Sächsische Landesbibliothek – Staats- und Universitätsbibliothek Dresden.",
+   "synonyme": [
+    "Sächsische Landesbibliothek"
+   ],
+   "quelle": "https://www.slub-dresden.de/",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "TUDIAS",
+   "art": "Einrichtung",
+   "erklaerung": "Sprachkurse, u. a. Deutsch für Studierende mit ausländischer Staatsbürgerschaft (im Lehramt-A–Z des ZLSB verlinkt).",
+   "synonyme": [],
+   "quelle": "https://www.tudias.de/",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "StuRa",
+   "art": "Einrichtung",
+   "erklaerung": "Studierendenrat der TU Dresden – im Lehramt-A–Z u. a. für Beratung, Finanzierung und studentische Vertretung genannt.",
+   "synonyme": [
+    "Studierendenrat"
+   ],
+   "quelle": "https://www.stura.tu-dresden.de/",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Sprecherziehung",
+   "art": "Modul",
+   "erklaerung": "Sprecherziehung (Kommunikationspädagogik) für Lehramtsstudiengänge, angeboten von der Germanistik.",
+   "synonyme": [
+    "Kommunikationspädagogik"
+   ],
+   "quelle": "https://tu-dresden.de/gsw/slk/germanistik/studium/sprecherziehung-fuer-lehramtsstudiengaenge",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "PASST!?",
+   "art": "Ansprechstelle",
+   "erklaerung": "Partnerschaft Studienerfolg – Angebot der Zentralen Studienberatung bei Zweifeln am Studium.",
+   "synonyme": [
+    "Passt",
+    "Partnerschaft Studienerfolg"
+   ],
+   "quelle": "https://tu-dresden.de/studium/im-studium/beratung-und-service/zentrale-studienberatung/passt",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Perspektive Land",
+   "art": "Programm",
+   "erklaerung": "Angebot für Lehramtsstudierende, Schulen in Sachsen außerhalb der Universitätsstädte kennenzulernen – Kontakte für Praktikum und Vorbereitungsdienst, finanzielle Unterstützung für ein Blockpraktikum im ländlichen Raum, Seminare und Exkursionen.",
+   "synonyme": [],
+   "quelle": "https://www.perspektive-land.de/",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "AG SBS",
+   "art": "Ansprechstelle",
+   "erklaerung": "Arbeitsgruppe Studium für Blinde und Sehbehinderte der TU Dresden.",
+   "synonyme": [],
+   "quelle": "https://tu-dresden.de/tu-dresden/universitaetskultur/diversitaet-inklusion/inklusion/barrierefreiheit/agsbs",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "IGB",
+   "art": "Ansprechstelle",
+   "erklaerung": "Interessengemeinschaft Studium und Behinderung der TU Dresden.",
+   "synonyme": [],
+   "quelle": "https://tu-dresden.de/tu-dresden/organisation/gremien-und-beauftragte/beauftragte/bfsb/igb",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Nachteilsausgleich",
+   "art": "Ablauf",
+   "erklaerung": "Ausgleich von Barrieren im Studium und vor allem in Prüfungen für Studierende mit Behinderung oder chronischer Erkrankung; erste Anlaufstelle für den Antrag an den Prüfungsausschuss sind meist die Beauftragten für Studierende mit Behinderungen und chronischer Erkrankung.",
+   "synonyme": [
+    "Härtefallantrag"
+   ],
+   "quelle": "https://tu-dresden.de/tu-dresden/organisation/gremien-und-beauftragte/beauftragte/bfsb/nachteilsausgleich",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "International Office",
+   "art": "Einrichtung",
+   "erklaerung": "Akademisches Auslandsamt der TU Dresden.",
+   "synonyme": [
+    "Akademisches Auslandsamt",
+    "Auslandsamt"
+   ],
+   "quelle": "https://tu-dresden.de/studium/im-studium/beratung-und-service/international-office",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Mentorenqualifizierung",
+   "art": "Weiterbildung",
+   "erklaerung": "Qualifizierungsprogramm des ZLSB (mit dem ZLS der Universität Leipzig), das Lehrkräfte auf ihre Tätigkeit als Mentor:in in der Lehrkräftebildung vorbereitet und sie dabei begleitet.",
+   "synonyme": [
+    "Mentoren"
+   ],
+   "quelle": "https://tu-dresden.de/zlsb/fort-weiterbildung/mentorenqualifizierung",
+   "stand": "2026-11-10"
+  },
+  {
+   "begriff": "Numerus clausus",
+   "art": "Ablauf",
+   "erklaerung": "N.-c.-Werte sowie Erläuterungen zum Auswahlverfahren veröffentlicht die TU Dresden; im Lehramt sind 103 der 368 Fachkombinationen zulassungsbeschränkt.",
+   "synonyme": [
+    "N. c.",
+    "NC"
+   ],
+   "quelle": "https://tu-dresden.de/studium/vor-dem-studium/bewerbung/studienvoraussetzungen/numerus_clausus",
+   "stand": "2026-11-10"
+  }
+ ]
+}

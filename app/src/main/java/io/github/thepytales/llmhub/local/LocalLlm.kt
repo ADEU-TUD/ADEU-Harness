@@ -64,6 +64,8 @@ class LocalLlm(private val c: AppContainer) {
     private val cancel = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
     private var process: Process? = null
     private var provider: ApiProvider? = null
+    /** The running server was started without the graphics card ([provider] with cpuOnly, AP-76). */
+    private var providerCpu = false
     @Volatile private var lastUse = 0L
     private var idleWatch: Job? = null
 
@@ -182,19 +184,20 @@ class LocalLlm(private val c: AppContainer) {
 
     /**
      * The OpenAI-compatible endpoint for [modelId]: starts llama-server with this model (stopping another one)
-     * and waits until it has loaded. Called by the LLM client before each request to a local model.
+     * and waits until it has loaded. Called by the LLM client before each request to a local model. [cpuOnly]: without
+     * the graphics card (only for the measurement, AP-76).
      */
-    suspend fun provider(modelId: String): ApiProvider = serverMutex.withLock {
+    suspend fun provider(modelId: String, cpuOnly: Boolean = false): ApiProvider = serverMutex.withLock {
         lastUse = System.currentTimeMillis()
         val m = LocalCatalog.get(modelId) ?: error(tr("Unbekanntes lokales Modell: {0}", modelId))
-        provider?.takeIf { _state.value.running == m.modelId && process?.isAlive == true }?.let { return it }
+        provider?.takeIf { _state.value.running == m.modelId && process?.isAlive == true && providerCpu == cpuOnly }?.let { return it }
         stopLocked()
         if (m.id !in _state.value.installed) error(tr("{0} ist nicht installiert (Einstellungen › Modelle auf diesem Gerät).", m.name))
         val bin = LlamaHost.binary(c, root) ?: error(tr("Das Programm für lokale Modelle fehlt (Einstellungen › Modelle auf diesem Gerät › Installieren)."))
         val hw = _hardware.value ?: detectHardware().also { _hardware.value = it }
         val port = ServerSocket(0).use { it.localPort }
         val key = UUID.randomUUID().toString()
-        val gpu = hw.vramGb >= 4 && m.needGb <= hw.vramGb * 0.92
+        val gpu = !cpuOnly && usesGpu(m, hw)
         val threads = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
         val args = listOf(
             bin.absolutePath, "-m", file(m).absolutePath, "--host", "127.0.0.1", "--port", port.toString(),
@@ -228,6 +231,7 @@ class LocalLlm(private val c: AppContainer) {
             }
             val prov = ApiProvider(id = LOCAL_PROVIDER_ID, kind = ProviderKind.OPENAI.name, name = "Auf diesem Gerät", baseUrl = "$base/v1", apiKey = key)
             provider = prov
+            providerCpu = cpuOnly
             _state.value = _state.value.copy(running = m.modelId, starting = null)
             watchIdle()
             prov
@@ -237,6 +241,9 @@ class LocalLlm(private val c: AppContainer) {
             throw e
         }
     }
+
+    /** Whether [m] runs on the graphics card of [hw] (own memory of 4 GB or more, and the model fits into it). */
+    fun usesGpu(m: LocalModel, hw: Hardware) = hw.vramGb >= 4 && m.needGb <= hw.vramGb * 0.92
 
     private fun watchIdle() {
         idleWatch?.cancel()

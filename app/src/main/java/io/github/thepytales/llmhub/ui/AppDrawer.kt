@@ -55,6 +55,7 @@ import androidx.compose.material.icons.outlined.AutoAwesomeMosaic
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.PictureAsPdf
@@ -683,6 +684,10 @@ private fun ChatRow(
                 leadingIcon = { Icon(Icons.Outlined.PushPin, null) },
                 onClick = { menu = false; onPin() },
             )
+            // Mehrere Fenster (AP-84, PC): this chat beside the others.
+            WindowHooks.openChat?.let { open ->
+                DropdownMenuItem(text = { Text(tr("In neuem Fenster öffnen")) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, null) }, onClick = { menu = false; open(conv.id, conv.title) })
+            }
             DropdownMenuItem(text = { Text(tr("In Projekt verschieben")) }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { menu = false; onMove() })
             DropdownMenuItem(text = { Text(tr("Umbenennen")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             DropdownMenuItem(text = { Text(if (conv.archived) tr("Aus dem Archiv holen") else tr("Archivieren")) }, leadingIcon = { Icon(Icons.Outlined.Archive, null) }, onClick = { menu = false; onArchive() })

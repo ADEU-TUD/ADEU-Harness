@@ -240,7 +240,11 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
 
 /** Small card for an attached document; with [onOpen] a tap opens it in the editor. */
 @Composable
-fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null) {
+fun FileChip(
+    file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null,
+    /** Große Anhänge (AP-85): how much goes along with the chosen model; a tap changes it. */
+    sendInfo: String? = null, onSendInfo: (() -> Unit)? = null,
+) {
     Box {
         // Attachments look like the document cards (AP-01): card color, fine frame, icon on a light accent tint.
         Surface(
@@ -259,6 +263,12 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
                         tr("{0}k Zeichen", (file.text.length + 999) / 1000) + if (file.truncated) tr(" (gekürzt)") else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    sendInfo?.let { line ->
+                        Text(
+                            line, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).then(if (onSendInfo != null) Modifier.clickable(onClickLabel = tr("Ändern"), onClick = onSendInfo) else Modifier).padding(vertical = 1.dp),
+                        )
+                    }
                     // Public sources go without placeholders (AP-03); the app suggests it, a tap switches it.
                     if (onTogglePublic != null) {
                         val public = io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(file)
@@ -432,9 +442,15 @@ fun UserBubble(
     }
 }
 
+/**
+ * An error in the chat (AP-74): one sentence in plain words, the matching step as a button (Schlüssel prüfen, Modell
+ * wechseln …) and „Details“ with the technical message. [onChangeModel] answers „Modell wechseln“ in place.
+ */
 @Composable
-fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit) {
+fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit, onChangeModel: (() -> Unit)? = null) {
     val error = MaterialTheme.colorScheme.error
+    val plain = remember(text) { ErrorHelp.explain(text) }
+    var details by remember { mutableStateOf(false) }
     Surface(
         color = error.copy(alpha = 0.06f),
         border = androidx.compose.foundation.BorderStroke(1.dp, error.copy(alpha = 0.45f)),
@@ -442,12 +458,32 @@ fun ErrorCard(text: String, canRetry: Boolean, onRetry: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.accentStripe(error).padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 8.dp)) {
-            Text(text, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall)
-            if (canRetry) {
-                TextButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) {
-                    Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.size(6.dp))
-                    Text(tr("Erneut versuchen"))
+            Text(plain.text, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall)
+            if (details && plain.technical != null) {
+                SelectionContainer {
+                    Text(
+                        plain.technical, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                if (plain.technical != null) {
+                    TextButton(onClick = { details = !details }) { Text(if (details) tr("Details ausblenden") else tr("Details")) }
+                }
+                Spacer(Modifier.weight(1f))
+                val fix = plain.fix?.takeIf { it != ErrorHelp.Fix.RETRY }
+                if (fix != null && (fix != ErrorHelp.Fix.CHANGE_MODEL || onChangeModel != null || fix.route != null)) {
+                    TextButton(onClick = {
+                        if (fix == ErrorHelp.Fix.CHANGE_MODEL && onChangeModel != null) onChangeModel() else fix.route?.let { LoraHost.go(it) }
+                    }) { Text(tr(fix.label)) }
+                }
+                if (canRetry) {
+                    TextButton(onClick = onRetry) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(tr("Erneut versuchen"))
+                    }
                 }
             }
         }
@@ -494,7 +530,7 @@ fun AssistantMessage(
     val justDone = rememberJustFinished(item.isLast && (running || streaming))
     if (m.error) {
         Column {
-            ErrorCard(m.content, canRetry = item.isLast && !running, onRetry = onRetry)
+            ErrorCard(m.content, canRetry = item.isLast && !running, onRetry = onRetry, onChangeModel = onRegenerateWithModel.takeIf { item.isLast && !running })
             if (item.turnEnd && item.versions.size > 1) VersionSwitcher(item.head, item.versions, !running, onSelectVersion)
         }
         return

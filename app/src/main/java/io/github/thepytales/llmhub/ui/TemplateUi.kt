@@ -155,7 +155,7 @@ fun TemplateBrowser(
                         leadingIcon = { Icon(Icons.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp)) },
                     )
                 }
-                TemplateCategory.entries.forEach { cat ->
+                io.github.thepytales.llmhub.data.Roles.categories(io.github.thepytales.llmhub.data.Role.parse(s.roles)).forEach { cat ->
                     val count = all.count { if (cat == TemplateCategory.OWN) !it.builtIn else it.section == cat }
                     if (count > 0) FilterChip(
                         selected = filter == cat.name,
@@ -165,7 +165,8 @@ fun TemplateBrowser(
                 }
             }
         }
-        TemplateCategory.entries.forEach { cat ->
+        // Rollenauswahl (AP-80): the sections of the roles come first.
+        io.github.thepytales.llmhub.data.Roles.categories(io.github.thepytales.llmhub.data.Role.parse(s.roles)).forEach { cat ->
             val list = shown.filter { it.section == cat }
             if (list.isEmpty()) return@forEach
             item(key = "h_$cat") {

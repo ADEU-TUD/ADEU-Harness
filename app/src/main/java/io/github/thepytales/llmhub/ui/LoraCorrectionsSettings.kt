@@ -117,3 +117,38 @@ private fun CorrectionsExport(entries: List<LoraCorrections.Entry>, title: (Stri
         dismissButton = { TextButton(onClick = onDone) { Text(tr("Abbrechen")) } },
     )
 }
+
+/**
+ * Einstellungen › Lora › „Verlauf“ (AP-75): the switch for the last wishes, how many there are, the pinned commands with
+ * „Lösen“, and „Verlauf löschen“.
+ */
+@Composable
+fun LoraHistorySettings(c: AppContainer) {
+    val s by c.settings.settings.collectAsState()
+    val version by io.github.thepytales.llmhub.data.LoraHistory.version.collectAsState()
+    val entries = remember(version) { io.github.thepytales.llmhub.data.LoraHistory.all(c) }
+    Section(tr("Verlauf und eigene Befehle")) {
+        ToggleRow(
+            tr("Letzte Befehle merken"),
+            tr("Die letzten 20 Wünsche an Lora und Strg+K – mit Pfeil hoch im Eingabefeld wieder holen, ändern, „Nochmal“ oder anheften. Angeheftete Befehle stehen unter ihrem Namen in Strg+K. Nur auf diesem Gerät, aus dem Tresor nichts."),
+            s.loraHistory,
+        ) { v -> c.settings.update { it.copy(loraHistory = v) } }
+        val pinned = entries.filter { it.pinned }
+        HintText(tr("{0} im Verlauf · {1} angeheftet", entries.count { !it.pinned }, pinned.size))
+        pinned.sortedBy { it.name!!.lowercase() }.forEach { e ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(e.name!!, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    HintText("„${e.text}“")
+                }
+                TextButton(onClick = { io.github.thepytales.llmhub.data.LoraHistory.unpin(c, e.text) }) { Text(tr("Lösen")) }
+            }
+        }
+        if (entries.isNotEmpty()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { io.github.thepytales.llmhub.data.LoraHistory.clear(c) }) { Text(tr("Verlauf löschen")) }
+                if (pinned.isNotEmpty()) TextButton(onClick = { io.github.thepytales.llmhub.data.LoraHistory.clear(c, pinnedToo = true) }) { Text(tr("Alles löschen")) }
+            }
+        }
+    }
+}

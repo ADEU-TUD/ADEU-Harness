@@ -255,6 +255,15 @@ fun ChatScreen(
         }
     }
 
+    // Große Anhänge (AP-85): a file that does not fit the model is not cut silently – the app asks once per file.
+    var largeFile by remember { mutableStateOf<FileAttachment?>(null) }
+    val askedLarge = remember { mutableSetOf<String>() }
+    LaunchedEffect(files.size, conv?.model) {
+        val model = conv?.model ?: return@LaunchedEffect
+        io.github.thepytales.llmhub.files.AttachmentBudget.needsChoice(files.toList(), model)
+            .firstOrNull { (it.name + it.text.length) !in askedLarge }?.let { askedLarge += it.name + it.text.length; largeFile = it }
+    }
+
     val platform = rememberChatPlatform(
         isNewChat = { vm.state.value?.messages.isNullOrEmpty() },
         images = images,
@@ -503,6 +512,9 @@ fun ChatScreen(
                     val i = files.indexOf(f)
                     if (i >= 0) files[i] = f.copy(public = !io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(f))
                 },
+                // Große Anhänge (AP-85): how much goes along with this model; a tap asks again.
+                sendInfo = { f -> io.github.thepytales.llmhub.files.AttachmentBudget.shown(files.toList(), current.model).getOrNull(files.indexOf(f))?.text },
+                onSendInfo = { f -> largeFile = f },
                 running = running,
                 recording = recording,
                 transcribing = transcribing,
@@ -870,6 +882,20 @@ fun ChatScreen(
         }
     }
     if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
+    largeFile?.let { f ->
+        val model = conv?.model.orEmpty()
+        LargeAttachmentDialog(f, files.toList(), model, onDismiss = { largeFile = null }, onChoose = { mode, switchTo ->
+            largeFile = null
+            fun put(next: FileAttachment) { val i = files.indexOfFirst { it.name == f.name && it.text.length == f.text.length }; if (i >= 0) files[i] = next }
+            put(f.copy(send = mode.id))
+            if (switchTo != null) { vm.setModel(switchTo); vm.setAutoModel(false) }
+            if (mode == io.github.thepytales.llmhub.files.AttachmentBudget.Mode.SUMMARY) scope.launch {
+                runCatching { AttachmentDigest.make(c, f, model) }
+                    .onSuccess { d -> put(f.copy(send = mode.id, digest = d)) }
+                    .onFailure { e -> Notices.error(e); put(f.copy(send = io.github.thepytales.llmhub.files.AttachmentBudget.Mode.PASSAGES.id)) }
+            }
+        })
+    }
     if (showFromApp) FromAppSheet(c, onFile = { files.add(it) }, onImage = { images.add(it) }, onDismiss = { showFromApp = false })
     if (showNextcloud) NextcloudAttachDialog(c, onFile = { files.add(it) }, onDismiss = { showNextcloud = false })
     quoteFrom?.let { text -> QuoteDialog(text, onDismiss = { quoteFrom = null }) { quote -> input = quote + input; quoteFrom = null } }

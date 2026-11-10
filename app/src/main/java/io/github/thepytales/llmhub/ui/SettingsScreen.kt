@@ -115,7 +115,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "appearance" -> AppearanceSettings(c)
                 "transcription" -> TranscriptionSettings(c)
                 "voice" -> VoiceSection(c)
-                "documents" -> DocumentsSection(c)
+                "documents" -> { DocumentsSection(c); HouseStyleSettings(c) }
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
                 "literature" -> LiteratureSettings(c)
@@ -126,6 +126,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "connections" -> ConnectionsSettings(c)
                 "updates" -> UpdateSection(c)
                 "help" -> HelpSection()
+                "downloads" -> DownloadsSection(c, onNavigate)
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
             // Room for the sleeping Lora at the bottom right, so she covers no entry.

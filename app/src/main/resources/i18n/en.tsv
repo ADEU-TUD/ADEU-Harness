@@ -6110,3 +6110,250 @@ Geladen.	Downloaded.
 Modellkarte	Model card
 Gründlich: zusätzlich ein lokales Sprachmodell	Thorough: also a local language model
 Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, die Regeln und Erkennungsmodell übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.	Faster ↔ more thorough: a language model on this device reads every text once and finds names, schools and places that the rules and the recognition model miss, also indirect clues. Costs computing time (a few seconds per longer text); nothing leaves the device.
+# Fehler in Klartext, Lora-Verlauf, Messung, Probelauf, Wörter und Pakete, Hausstil, Rollen, Video, Fenster, große Anhänge (AP-74 bis AP-85)
+Unterbrochene Exporte nach dem Start von selbst fortsetzen	Resume interrupted exports automatically after start
+{0} Video-Export(e) wurden beim letzten Beenden unterbrochen.	{0} video export(s) were interrupted when the app last closed.
+{0} unterbrochene Video-Export(e) laufen weiter.	{0} interrupted video export(s) are running again.
+unterbrochen	interrupted
+Alle fortsetzen	Resume all
+Wie schnell sind die Modelle hier?	How fast are the models here?
+Lora misst auf Wunsch, wie schnell die installierten Modelle auf diesem Gerät wirklich schreiben – etwa eine halbe Minute je Modell. Danach empfiehlt sie das passende Modell, und der Mischmodus nimmt für kurze Aufgaben nur Modelle, die schnell genug sind.	On request, Lora measures how fast the installed models really write on this device – about half a minute per model. Then she recommends the right model, and the mixed mode only uses models that are fast enough for short tasks.
+noch nicht gemessen	not measured yet
+Empfehlung	Recommendation
+keines schnell genug – für lange Mails ein kleineres Modell laden	none fast enough – load a smaller model for long mails
+Kurze Aufgaben im Mischmodus: {0}	Short tasks in mixed mode: {0}
+keines – solche Aufgaben gehen an den Server	none – such tasks go to the server
+Vertrauliche Projekte: {0}	Confidential projects: {0}
+keines schnell genug	none fast enough
+Messen	Measure
+Nochmal	Again
+Alle {0} anzeigen	Show all {0}
+Befehl anheften	Pin command
+Unter diesem Namen steht „{0}“ in Strg+K.	“{0}” appears under this name in Ctrl+K.
+Heute erledigt	Done today
+ffmpeg fehlt – das Video lässt sich nicht abspielen.	ffmpeg is missing – the video cannot be played.
+Barrierefreiheit und Hausstil	Accessibility and house style
+Schlüssel prüfen	Check key
+Modell wechseln	Change model
+Neuen Chat beginnen	Start a new chat
+Werkzeuge einschalten	Turn on tools
+Verbindungen öffnen	Open connections
+Spracherkennung laden	Load speech recognition
+Arbeitsspeicher ansehen	View memory
+GitHub-Token eintragen	Enter GitHub token
+Datenschutz öffnen	Open privacy
+Nach Updates sehen	Check for updates
+Ins Postfach darf nur ein Modell auf diesem Gerät. Bitte ein lokales Modell laden oder wählen.	Only a model on this device may access the mailbox. Please load or choose a local model.
+Es ist noch kein API-Schlüssel eingetragen. Ohne ihn erreicht die App den Uni-Server nicht.	No API key has been entered yet. Without it the app cannot reach the university server.
+Für GitHub fehlt ein Token. Er lässt sich unter Einstellungen › GitHub eintragen.	A token for GitHub is missing. It can be entered under Settings › GitHub.
+Dieses Modell kann hier keine Werkzeuge benutzen. Ein anderes Modell kann es.	This model cannot use tools here. Another model can.
+Der Chat ist zu lang für dieses Modell. Ein neuer Chat oder ein Modell mit mehr Kontext hilft.	The chat is too long for this model. A new chat or a model with more context helps.
+Der API-Schlüssel wird nicht angenommen – vielleicht ist er abgelaufen. Im TU-Self-Service lässt sich ein neuer erzeugen.	The API key is not accepted – perhaps it has expired. A new one can be created in the TU self-service.
+Mit diesem Schlüssel gibt es keinen Zugriff auf dieses Modell. Bitte ein anderes wählen.	This key has no access to this model. Please choose another one.
+Dieses Modell gibt es auf dem Server nicht mehr. Bitte ein anderes wählen.	This model no longer exists on the server. Please choose another one.
+Die Anfrage ist zu groß für den Server. Bitte den Anhang verkleinern oder weniger Bilder schicken.	The request is too large for the server. Please make the attachment smaller or send fewer images.
+Gerade sind zu viele Anfragen unterwegs. Bitte kurz warten und erneut versuchen.	Too many requests are under way right now. Please wait a moment and try again.
+Der Uni-Server erreicht das Modell gerade nicht (überlastet oder in Wartung). Später erneut versuchen oder ein anderes Modell wählen.	The university server cannot reach the model right now (overloaded or under maintenance). Try again later or choose another model.
+Der Server hatte einen Fehler. Meist hilft es, es gleich noch einmal zu versuchen.	The server had an error. Trying again right away usually helps.
+Der Server hat zu lange nicht geantwortet. Bitte erneut versuchen – bei sehr langen Texten hilft ein schnelleres Modell.	The server did not answer for too long. Please try again – with very long texts a faster model helps.
+Die Verbindung ist abgerissen. Bitte erneut versuchen.	The connection was lost. Please try again.
+Die sichere Verbindung ist fehlgeschlagen. Stimmt die Uhrzeit des Geräts? In WLANs mit Anmeldeseite zuerst im Browser anmelden.	The secure connection failed. Is the device's clock right? On Wi-Fi networks with a login page, log in in the browser first.
+Auf dem Gerät ist kein Platz mehr frei. Bitte Platz schaffen, z. B. den Papierkorb leeren oder große Dateien löschen.	There is no space left on the device. Please free up space, e.g. empty the trash or delete large files.
+Der Arbeitsspeicher hat nicht gereicht. Bitte andere Programme schließen oder die Datei in kleineren Teilen bearbeiten.	There was not enough memory. Please close other programs or work on the file in smaller parts.
+Die Datei ist gerade in einem anderen Programm geöffnet. Bitte dort schließen und erneut versuchen.	The file is open in another program. Please close it there and try again.
+Die App darf hier nicht lesen oder schreiben. Bitte einen anderen Ort wählen oder die Berechtigung prüfen.	The app may not read or write here. Please choose another place or check the permission.
+Die Datei gibt es nicht mehr – sie wurde verschoben, umbenannt oder gelöscht.	The file no longer exists – it was moved, renamed or deleted.
+Das PDF ist mit einem Passwort geschützt. Bitte zuerst im PDF-Werkzeugkasten entsperren.	The PDF is password-protected. Please unlock it in the PDF toolbox first.
+Die Datei lässt sich nicht lesen – sie ist beschädigt oder hat ein anderes Format, als ihre Endung sagt.	The file cannot be read – it is damaged or has a different format than its extension says.
+Dieses Werkzeug ist ausgeschaltet. Es lässt sich unter Einstellungen › Werkzeuge einschalten.	This tool is turned off. It can be turned on under Settings › Tools.
+Auf diesem Gerät ist noch kein passendes Modell geladen. Unter Modelle auf diesem Gerät lässt sich eines laden.	No suitable model is loaded on this device yet. One can be loaded under Models on this device.
+Für Sprache auf dem Gerät fehlt noch ein Erkennungsmodell. Es lässt sich unter Einstellungen › Transkription laden.	A recognition model for speech on the device is still missing. It can be loaded under Settings › Transcription.
+Für Video und Ton fehlt der App ein Baustein (ffmpeg). Ein Update der App bringt ihn wieder mit.	The app is missing a component for video and sound (ffmpeg). An update of the app brings it back.
+Outlook antwortet nicht. Bitte prüfen, ob das klassische Outlook installiert und einmal gestartet ist.	Outlook does not respond. Please check that classic Outlook is installed and has been started once.
+Das Mikrofon ist nicht verfügbar. Bitte prüfen, ob es angeschlossen ist und die App es benutzen darf.	The microphone is not available. Please check that it is connected and that the app may use it.
+Da ist etwas schiefgelaufen, womit die App nicht gerechnet hat. Bitte erneut versuchen – hilft das nicht, gern über „Problem melden“ Bescheid geben.	Something went wrong that the app did not expect. Please try again – if that does not help, let us know via “Report a problem”.
+Das Gerät wird noch geprüft – bitte gleich noch einmal.	The device is still being checked – please try again in a moment.
+{0} ohne Grafikkarte …	{0} without graphics card …
+{0} schreibt …	{0} is writing …
+Das Modell antwortet nicht (HTTP {0}).	The model does not answer (HTTP {0}).
+Das Modell antwortet nicht.	The model does not answer.
+schafft etwa {0} Wörter je Sekunde, erstes Wort nach {1} s	manages about {0} words per second, first word after {1} s
+gut für kurze Aufgaben und lange Mails	good for short tasks and long mails
+gut für kurze Aufgaben, zu langsam für lange Mails	good for short tasks, too slow for long mails
+für kurze Aufgaben zu langsam – nur für Vertrauliches, wenn Warten nicht stört	too slow for short tasks – only for confidential work if waiting is fine
+zu langsam für den Alltag – ein kleineres Modell wählen	too slow for everyday use – choose a smaller model
+ (ohne Grafikkarte: {0} Wörter je Sekunde)	 (without graphics card: {0} words per second)
+Verlauf und eigene Befehle	History and own commands
+Letzte Befehle merken	Remember recent commands
+Die letzten 20 Wünsche an Lora und Strg+K – mit Pfeil hoch im Eingabefeld wieder holen, ändern, „Nochmal“ oder anheften. Angeheftete Befehle stehen unter ihrem Namen in Strg+K. Nur auf diesem Gerät, aus dem Tresor nichts.	The last 20 requests to Lora and Ctrl+K – bring them back with arrow up in the input field, change them, “Again” or pin them. Pinned commands appear under their name in Ctrl+K. Only on this device, nothing from the vault.
+{0} im Verlauf · {1} angeheftet	{0} in history · {1} pinned
+Verlauf löschen	Clear history
+Alles löschen	Delete everything
+Inhalte zum Nachladen	Downloadable content
+Zuletzt {0} von {1} · Enter: nochmal an Lora · Pfeil runter: weiter	Recent {0} of {1} · Enter: send to Lora again · Arrow down: next
+Eigene Befehle	Own commands
+Betrifft {0} Datei(en) bzw. Stellen.	Affects {0} file(s) or places.
+{0} davon in den Papierkorb – 30 Tage wiederherstellbar, danach endgültig weg.	{0} of them to the trash – restorable for 30 days, then gone for good.
+Lässt sich nicht über Lora zurücknehmen – nur im Werkzeug mit Strg+Z, solange es offen ist.	Cannot be undone via Lora – only in the tool with Ctrl+Z while it is open.
+Lässt sich danach mit „Rückgängig“ zurücknehmen (bis zum Neustart der App).	Can be undone afterwards with “Undo” (until the app restarts).
+Das betrifft {0} Dateien – erst an einem Ordner ausprobieren?	This affects {0} files – try it on one folder first?
+Das sind {0} Dateien – vorher die Liste durchsehen.	That is {0} files – look through the list first.
+Lässt sich nicht mehr zurücknehmen.	Can no longer be undone.
+Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen	Load or delete models, speech recognition, video editor and knowledge packs
+Wissenspaket „{0}“ ({1} KB)	Knowledge pack “{0}” ({1} KB)
+Seminar planen	Plan a seminar
+Seminare, Prüfungen, Lehrvideos, Lernspiele	Seminars, exams, teaching videos, learning games
+Literatur, Daten, Anträge, Publikationen	Literature, data, proposals, publications
+Verwaltung	Administration
+Briefe, Mails, Protokolle, Fristen	Letters, mails, minutes, deadlines
+Studium	Studies
+Lernen, Exzerpte, Hausarbeiten	Learning, excerpts, term papers
+Eigene Wörter	Own words
+Abkürzungen und Namen, die Lora kennen soll – z. B. „MHB“ für Modulhandbuch oder Projektnamen. Lora versteht sie in Befehlen, die Dateisuche findet über sie, und Chats bekommen die passende Erklärung mit, wenn ein Wort vorkommt.	Abbreviations and names Lora should know – e.g. “MHB” for module handbook, or project names. Lora understands them in commands, the file search finds through them, and chats get the matching explanation when a word occurs.
+Noch keine eigenen Wörter.	No own words yet.
+Wort hinzufügen	Add word
+Wort bearbeiten	Edit word
+Wort oder Abkürzung	Word or abbreviation
+Andere Schreibweisen, durch Komma getrennt	Other spellings, separated by commas
+Was sich zur App dazuladen lässt – nur, wer es braucht. Alles lässt sich hier auch wieder löschen.	What can be added to the app – only for those who need it. Everything can be deleted here again.
+Modelle für Lora	Models for Lora
+Befehle verstehen	Understand commands
+Lora erkennt offline und in Millisekunden, was du meinst.	Lora recognizes offline and within milliseconds what you mean.
+{0} MB	{0} MB
+Namen schützen (Erkennungsmodell)	Protect names (recognition model)
+Findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht.	Finds names, schools and places more reliably before anything goes to a server.
+Sprachmodelle auf diesem Gerät	Language models on this device
+Für Postfach, vertrauliche Projekte und ohne Internet – 1 bis 20 GB je Modell.	For the mailbox, confidential projects and without internet – 1 to 20 GB per model.
+Diktat und Transkription auf diesem Gerät.	Dictation and transcription on this device.
+Videoeditor-Paket	Video editor package
+Genaue Videoangaben, bessere Rauschminderung, Gesichter verpixeln – etwa 40 MB.	Exact video details, better noise reduction, pixelating faces – about 40 MB.
+Wissenspakete	Knowledge packs
+Kleine Datenbanken, die Lora die Sprache eines Bereichs beibringen – jede Angabe mit Quelle und Stand. Lora erklärt Begriffe daraus („Was ist das ZLSB?“) und gibt sie Chats als Kontext mit.	Small databases that teach Lora the language of a field – every entry with source and date. Lora explains terms from them (“What is the ZLSB?”) and gives them to chats as context.
+Geladen: {0} Einträge, Stand {1}.	Loaded: {0} entries, as of {1}.
+{0} KB	{0} KB
+Geteiltes Lora-Paket	Shared Lora package
+Importiert: {0} Wörter, {1} Befehle, {2} Vorlagen, {3} Hausstil-Regeln.	Imported: {0} words, {1} commands, {2} templates, {3} house style rules.
+Lora-Paket teilen	Share a Lora package
+Eigene Befehle, eigene Wörter, eigene TU Vorlagen und Hausstil-Regeln als eine Datei – zum Weitergeben im Team. Chats, Gedächtnis, Verlauf und Schlüssel bleiben draußen.	Own commands, own words, own TU templates and house style rules as one file – to pass on within the team. Chats, memory, history and keys stay out.
+Importieren …	Import …
+{0} Wörter, {1} Befehle, {2} Vorlagen, {3} Hausstil-Regeln	{0} words, {1} commands, {2} templates, {3} house style rules
+„{0}“ importieren?	Import “{0}”?
+Alles darin gibt es hier schon genauso.	Everything in it already exists here exactly like this.
+Kommt hinzu ({0})	Will be added ({0})
+Wird ersetzt ({0})	Will be replaced ({0})
+Das Paket lässt sich später unter Einstellungen › Inhalte zum Nachladen wieder entfernen.	The package can be removed later under Settings › Downloadable content.
+„{0}“ importiert.	“{0}” imported.
+Eigene Befehle (angeheftet)	Own commands (pinned)
+Eigene TU Vorlagen	Own TU templates
+Hausstil-Regeln	House style rules
+Lora-Paket gespeichert.	Lora package saved.
+Lora-Paket exportieren	Export Lora package
+Name des Pakets	Name of the package
+Hausstil	House style
+Eigene Schreibweisen der Professur – z. B. Gendern („Lehrer“ → „Lehrkräfte“) oder feste Begriffe. „Hausstil und Barrierefreiheit prüfen“ (Lora im Dokument, in Folien und bei Dateien) meldet jede Fundstelle und behebt sie auf Wunsch. Die Schreibweise der TU Dresden und Abkürzungen nach DIN 5008 prüft Lora immer.	Own spellings of the chair – e.g. gender-inclusive language (“Lehrer” → “Lehrkräfte”) or fixed terms. “Check house style and accessibility” (Lora in the document, in slides and for files) reports every place found and fixes it on request. Lora always checks the spelling of TU Dresden and abbreviations according to DIN 5008.
+nur hinweisen	only point out
+Nicht so	Not like this
+Sondern so	But like this
+Warum (optional)	Why (optional)
+Wofür nutzt du Lora?	What do you use Lora for?
+Danach richten sich die vorgeschlagenen Werkzeuge, die Reihenfolge der TU Vorlagen, Loras Vorschläge und empfohlene Inhalte zum Nachladen.	This determines the suggested tools, the order of the TU templates, Lora's suggestions and recommended downloadable content.
+Empfohlen: Wissenspaket „{0}“.	Recommended: knowledge pack “{0}”.
+In neuem Fenster öffnen	Open in new window
+„{0}“ ist groß	“{0}” is large
+{0} – {1} fasst davon etwa {2} %. Wie soll die Datei mitgehen?	{0} – {1} takes about {2} % of it. How should the file be sent?
+Ganz senden mit {0}	Send it whole with {0}
+Nur die zur Frage passenden Stellen	Only the passages that fit the question
+Abschnittsweise zusammenfassen	Summarize section by section
+Ganz: am genauesten, braucht ein Modell mit großem Kontext. Passende Stellen: schnell, gut für gezielte Fragen. Zusammenfassen: für Überblicksfragen; dauert einen Moment und braucht einige Anfragen.	Whole: most accurate, needs a model with a large context. Matching passages: fast, good for targeted questions. Summarize: for overview questions; takes a moment and needs several requests.
+Abschnitt {0} von {1}	Section {0} of {1}
+Lora-Paket	Lora package
+Das ist keine Lora-Paket-Datei.	This is not a Lora package file.
+Wort „{0}“	Word “{0}”
+Befehl „{0}“	Command “{0}”
+Vorlage „{0}“	Template “{0}”
+Hausstil „{0}“ → „{1}“	House style “{0}” → “{1}”
+Bitte zuerst eine Präsentation öffnen.	Please open a presentation first.
+Bitte zuerst ein Dokument öffnen.	Please open a document first.
+Hausstil und Barrierefreiheit prüfen	Check house style and accessibility
+Prüft Hausstil und Barrierefreiheit …	Checking house style and accessibility …
+„Hausstil beheben“ ändert die mit ✓ markierten Stellen.	“Fix house style” changes the places marked with ✓.
+Hausstil und Barrierefreiheit beheben	Fix house style and accessibility
+Nichts, das sich automatisch beheben ließe – die übrigen Funde zeigt „Prüfen“.	Nothing that could be fixed automatically – “Check” shows the remaining findings.
+Behebt {0} Stelle(n) …	Fixing {0} place(s) …
+(entfernt)	(removed)
+{0} Stelle(n) behoben.	{0} place(s) fixed.
+Wieder wie vorher.	Back as before.
+10 Sekunden zurück	10 seconds back
+10 Sekunden vor	10 seconds forward
+K: Start/Pause · J/L: 10 s	K: play/pause · J/L: 10 s
+Das habe ich heute erledigt:	This is what I did today:
+Nur ein Probelauf – so sähe es aus:	Only a trial run – this is what it would look like:
+Auch: {0}	Also: {0}
+Aus dem Wissenspaket „{0}“ · Quelle: {1} · Stand {2}	From the knowledge pack “{0}” · Source: {1} · As of {2}
+Aus deinen eigenen Wörtern.	From your own words.
+„{0}“ ist sehr lang – gelesen wurden die ersten {1} Millionen Zeichen.	“{0}” is very long – the first {1} million characters were read.
+Das Paket hat keinen gültigen Namen.	The package has no valid name.
+Das Paket ist beschädigt angekommen (Prüfsumme stimmt nicht) – bitte später erneut versuchen.	The package arrived damaged (checksum does not match) – please try again later.
+{0} Aktion(en) seit heute Morgen	{0} action(s) since this morning
+Heute hat Lora noch nichts in den Werkzeugen erledigt.	Lora has not done anything in the tools today yet.
+Zurückgenommen: {0}	Undone: {0}
+Vor dem Neustart der App – lässt sich nicht mehr zurücknehmen.	Before the app restarted – can no longer be undone.
+Nur im Werkzeug mit Strg+Z zurücknehmbar.	Can only be undone in the tool with Ctrl+Z.
+Hat nichts verändert, das zurückzunehmen wäre.	Changed nothing that would need undoing.
+{0} Aktion(en) zurückgenommen.	{0} action(s) undone.
+{0} Aktion(en) zurückgenommen; {1} lassen sich nicht mehr zurücknehmen (siehe oben).	{0} action(s) undone; {1} can no longer be undone (see above).
+Alle {0} zurücknehmen	Undo all {0}
+Beim letzten Beenden nicht fertig geworden	Not finished when the app last closed
+Dieser Chat ist in einem eigenen Fenster offen.	This chat is open in its own window.
+Zum Fenster	Go to window
+Hierher holen	Bring it here
+Folie {0}	Slide {0}
+Absatz {0}	Paragraph {0}
+„{0}“ → „{1}“	“{0}” → “{1}”
+„{0}“ vermeiden	Avoid “{0}”
+Doppeltes Leerzeichen	Double space
+Leere Überschrift	Empty heading
+Screenreader lesen eine leere Überschrift vor.	Screen readers announce an empty heading.
+Überschrift springt von Ebene {0} auf Ebene {1}	Heading jumps from level {0} to level {1}
+Ebenen nicht überspringen – Screenreader-Nutzende navigieren über sie.	Do not skip levels – screen reader users navigate by them.
+Fett gesetzte Zeile statt Überschrift	Bold line instead of a heading
+Als echte Überschrift erscheint sie in der Gliederung und für Screenreader.	As a real heading it appears in the outline and for screen readers.
+Bild ohne Alternativtext	Image without alt text
+Kurz beschreiben, was das Bild zeigt (Bild antippen › Alternativtext).	Briefly describe what the image shows (tap the image › alt text).
+Linktext „{0}“ sagt nicht, wohin er führt	Link text “{0}” does not say where it leads
+Das Ziel nennen, z. B. „Prüfungsordnung (PDF)“.	Name the target, e.g. “Examination regulations (PDF)”.
+Nackte Adresse als Link	Bare address as a link
+Screenreader lesen sonst die ganze Adresse Zeichen für Zeichen vor.	Otherwise screen readers read out the whole address character by character.
+Ganze Zeile in Großbuchstaben	Whole line in capital letters
+Großbuchstaben sind schwer zu lesen und werden teils buchstabiert – lieber fett oder als Überschrift.	Capitals are hard to read and are sometimes spelled out – better bold or as a heading.
+Tabelle ohne Kopfzeile	Table without a header row
+Die erste Zeile mit Spaltenüberschriften füllen.	Fill the first row with column headings.
+{0} Hauptüberschriften (Ebene 1)	{0} main headings (level 1)
+Nur eine Hauptüberschrift (Titel), darunter Ebene 2.	Only one main heading (title), level 2 below it.
+Langes Dokument ohne Überschriften	Long document without headings
+Abschnitte mit Überschriften gliedern – sie ergeben die Navigation und die Lesezeichen im PDF.	Structure sections with headings – they make the navigation and the bookmarks in the PDF.
+Folie ohne Titel	Slide without a title
+Jede Folie braucht einen eindeutigen Titel – er ist die Navigation für Screenreader.	Every slide needs a unique title – it is the navigation for screen readers.
+Keine Funde – Hausstil und Barrierefreiheit sehen gut aus.	No findings – house style and accessibility look good.
+{0} Funde: {1} zum Hausstil, {2} zur Barrierefreiheit; {3} lassen sich automatisch beheben.	{0} findings: {1} on house style, {2} on accessibility; {3} can be fixed automatically.
+geht ganz mit	goes along whole
+als Zusammenfassung ({0} % der Länge)	as a summary ({0} % of the length)
+Zusammenfassung wird erstellt …	Summary is being created …
+nur passende Stellen (etwa {0} %)	only matching passages (about {0} %)
+[Abschnittsweise Zusammenfassung des ganzen Dokuments – nicht der Wortlaut.]	[Section-by-section summary of the whole document – not the wording.]
+[Nur die zur Frage passenden Stellen, etwa {0} % des Dokuments; Auslassungen sind mit […] markiert.]	[Only the passages that fit the question, about {0} % of the document; omissions are marked with […].]
+[Seite {0}]	[Page {0}]
+Dieses Video lässt sich auf dem Gerät nicht abspielen.	This video cannot be played on the device.
+Hausschrift Noto Sans (Corporate Design der TU Dresden).	House font Noto Sans (corporate design of TU Dresden).
+Schriften außerhalb des Corporate Designs: {0}.	Fonts outside the corporate design: {0}.
+Für Texte der TU Dresden Noto Sans verwenden.	Use Noto Sans for TU Dresden texts.
+Nur Farben der TUD-Palette.	Only colours of the TUD palette.
+Farben außerhalb der TUD-Palette: {0}.	Colours outside the TUD palette: {0}.
+Farben aus der TUD-Palette nehmen (z. B. Brillantblau).	Use colours from the TUD palette (e.g. Brilliant Blue).
+Das hat nicht geklappt: {0}	That did not work: {0}
+In eigenem Fenster öffnen	Open in its own window
+Doch ausführen	Run it anyway
+Lassen	Leave it
+Wofür nutzt du Lora vor allem?	What do you mainly use Lora for?
+Ich schlage passende Werkzeuge und Inhalte vor (unten angehakt) und stelle die passenden TU Vorlagen nach oben.	I suggest matching tools and content (ticked below) and move the matching TU templates to the top.
+Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen.	Load or delete models, speech recognition, video editor and knowledge packs.

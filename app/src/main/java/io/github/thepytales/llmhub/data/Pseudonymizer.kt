@@ -361,6 +361,26 @@ class Pseudonymizer(
         return BARE.replace(bracketed) { m -> real(m.groupValues[1], m.groupValues[2]) ?: m.value }
     }
 
+    /**
+     * Große Anhänge (AP-85): a long attachment goes along with every message – it is masked once and taken from here
+     * as long as no new detail was registered in its scope since (a new one could occur in it, so then it is masked again).
+     */
+    private val fileMasks = object : LinkedHashMap<String, String>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?) = size > 12
+    }
+
+    private fun maskFile(text: String, scope: String?): String {
+        if (text.length < 20_000) return mask(text, scope)
+        val key = key(scope)
+        val id = "$key|${synchronized(this) { list(key).size }}|${settings().hashCode()}|${text.length}|${text.hashCode()}"
+        synchronized(fileMasks) { fileMasks[id] }?.let { return it }
+        val masked = mask(text, scope)
+        // The list may have grown by this very text: keep it under the key it has now.
+        val after = "$key|${synchronized(this) { list(key).size }}|${settings().hashCode()}|${text.length}|${text.hashCode()}"
+        synchronized(fileMasks) { fileMasks[after] = masked }
+        return masked
+    }
+
     /** The messages as they go to the server; the note for the model is added to the first system message. */
     fun maskMessages(messages: List<ChatMessage>, scope: String? = null): List<ChatMessage> {
         onUse?.invoke()
@@ -372,7 +392,7 @@ class Pseudonymizer(
                 content = mask(m.content, scope),
                 reasoning = m.reasoning?.let { mask(it, scope) },
                 instructions = m.instructions?.let { mask(it, scope) },
-                files = m.files.map { f -> if (public && isPublic(f)) f else f.copy(text = mask(f.text, scope), name = mask(f.name, scope)) },
+                files = m.files.map { f -> if (public && isPublic(f)) f else f.copy(text = maskFile(f.text, scope), name = mask(f.name, scope)) },
                 toolCalls = m.toolCalls.map { tc -> tc.copy(arguments = mask(tc.arguments, scope)) },
             )
         }

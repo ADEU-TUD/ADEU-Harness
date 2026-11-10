@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Insights
@@ -101,6 +102,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "transcription" -> "Transkription"
     "updates" -> "Updates"
     "help" -> tr("Problem melden")
+    "downloads" -> tr("Inhalte zum Nachladen")
     else -> tr("Einstellungen")
 }
 
@@ -206,6 +208,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
             SettingsItem("compare", Icons.Outlined.CompareArrows, tr("Modelle vergleichen"), tr("Zwei Modelle beantworten dieselbe Frage nebeneinander")),
             SettingsItem("local-models", Icons.Outlined.Memory, tr("Modelle auf diesem Gerät"), localSummary(c)),
             SettingsItem("settings/transcription", Icons.Outlined.GraphicEq, tr("Transkription"), transcriptionSummary(c)),
+            SettingsItem("settings/downloads", Icons.Outlined.CloudDownload, tr("Inhalte zum Nachladen"), tr("Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen")),
         ),
         onNavigate,
     )
