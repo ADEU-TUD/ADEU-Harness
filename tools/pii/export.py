@@ -67,7 +67,8 @@ def main() -> None:
     print("Export nach ONNX …")
     export_onnx(folder, fp32)
     print("int8 …")
-    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8)
+    # Per channel (10.11.2026): on the development part like fp32, the plain dynamic quantization lost 0.3 points there.
+    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8, per_channel=True)
 
     tok = modell.Predictor(folder, device="cpu").tokenizer
     tok.save_pretrained(out)
@@ -124,7 +125,7 @@ Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln v
 - **Daten**: ausschließlich erfundene Texte. Claude (Anthropic) hat als Lehrer-Modell Vorlagen mit Platzhaltern
   geschrieben (`tools/pii/vorlagen`), ein Skript hat erfundene Namen, Einrichtungen und Orte eingesetzt
   (`tools/pii/gen.py`). Keine echten Interviews, Abgaben, Mails oder Schülerdaten.
-- **Format**: ONNX, int8 (dynamische Quantisierung), {size / 1e6:.0f} MB; Tokenizer `vocab.txt`/`tokenizer.json`.
+- **Format**: ONNX, int8 (dynamische Quantisierung pro Kanal), {size / 1e6:.0f} MB; Tokenizer `vocab.txt`/`tokenizer.json`.
 
 ## Kennzahlen (Messkorpus `tools/pii/messkorpus`, int8)
 | | Entwicklung | Prüfteil |

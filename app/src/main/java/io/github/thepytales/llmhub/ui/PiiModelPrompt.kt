@@ -51,7 +51,7 @@ fun PiiModelPrompt(c: AppContainer) {
                     "Version weiter. Alles läuft nur auf diesem Gerät.", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES)
                 else tr("Lora kann für die Pseudonymisierung {0} laden ({1} MB), ein kleines Modell nur für diese Aufgabe. Es findet Namen, " +
                     "Schulen, Kitas und Orte auch ohne Anrede oder bekannte Vornamen und lässt zitierte Autor:innen und öffentliche " +
-                    "Personen eher stehen – in unseren Tests 99 % statt 78 % der privaten Angaben. Es läuft nur auf diesem Gerät, " +
+                    "Personen eher stehen – in unseren Tests 98 % statt 78 % der privaten Angaben. Es läuft nur auf diesem Gerät, " +
                     "nichts verlässt es dabei.", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES),
             )
         },
@@ -77,7 +77,7 @@ fun PiiModelSettings(c: AppContainer) {
     ToggleRow(
         tr("{0} (empfohlen)", PiiModelInfo.NAME),
         tr("Ein kleines Modell auf diesem Gerät findet Namen, Schulen, Kitas und Orte – auch ohne Anrede oder bekannte Vornamen – " +
-            "und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 99 % statt 78 % der privaten " +
+            "und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 98 % statt 78 % der privaten " +
             "Angaben, wenige Millisekunden je Absatz. Mit dem Modell raten die Regeln keine Namen mehr aus häufigen Vornamen; " +
             "die eigene Liste und die festen Muster (Mail, Telefon, Nummern …) bleiben."),
         s.pseudonymModel,

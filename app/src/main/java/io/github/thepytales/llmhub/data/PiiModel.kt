@@ -36,18 +36,18 @@ import java.util.zip.GZIPInputStream
 object PiiModelInfo {
     /** The name shown in the app. */
     const val NAME = "Lora Namensschutz"
-    const val COMMIT = "806e33ca70948b03030a149f5f0255d145e69a5e"
+    const val COMMIT = "43ad93492aaa3e89742bccd6994d04eef9b89bb4"
     const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/lora-namensschutz-pytales.int8.onnx.gz"
-    const val GZ_SIZE = 72_057_318L // TODO-NEU
-    const val GZ_SHA256 = "afd48b91fee421875325c06862c29806a417da2dfee3acd1aa631d74247ea4b3"
+    const val GZ_SIZE = 92_816_043L
+    const val GZ_SHA256 = "c3d6d9bb3f1fe74a4bdc9488ce4f4895f657d5b1a2de97199bbbfb8d53d1a1fc"
     const val FILE = "lora-namensschutz-pytales.int8.onnx"
-    const val SIZE = 110_099_426L // TODO-NEU
-    const val SHA256 = "0e42df90ad38c060c7160a08de9d0e70ec242d519eaf7b49dc3131562ff89931"
+    const val SIZE = 110_514_540L
+    const val SHA256 = "26045982aa6bcd00a2bf3d9f75a8a0bfab5fd1eba557f18c31db3e4ca31e3a02"
     /** Download size shown to the user. */
-    const val MEGABYTES = 72 // TODO-NEU
+    const val MEGABYTES = 93
 
     /** A token belongs to a detail when the model gives "not O" at least this probability (chosen on the Messkorpus). */
-    const val THRESHOLD = 0.9f // TODO-NEU
+    const val THRESHOLD = 0.93f
 
     /** The model up to 1.0.65 („Erkennungsmodell“, same labels and vocabulary): used until the new one is there. */
     const val OLD_FILE = "pii-modell.int8.onnx"

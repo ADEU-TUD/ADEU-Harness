@@ -1,4 +1,8 @@
-# Eigenes Erkennungsmodell für die Pseudonymisierung (AP-67)
+# Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (AP-67)
+
+Seit 1.0.66 heißt das Modell **Lora Namensschutz** (Dateien `lora-namensschutz-pytales.*`, bis 1.0.65 „Erkennungsmodell“,
+`pii-modell.*`). Basismodell `deepset/gbert-base` (deepset GmbH, MIT), von uns feinabgestimmt und verändert; Lizenz von
+Lora Namensschutz: `License.md`.
 
 Werkzeuge, um ein kleines deutsches Erkennungsmodell (NER: `PER`, `EINR`, `ORT`) für die Pseudonymisierung zu bauen.
 Nicht Teil der App; läuft nur in der Cloud-Sitzung bzw. auf dem Trainings-PC. Plan und Stufen: `docs/ARBEITSPLAN.md`
@@ -11,7 +15,7 @@ Nicht Teil der App; läuft nur in der Cloud-Sitzung bzw. auf dem Trainings-PC. P
 | c | Training (`train.py`, `modell.py`) | Cloud (CPU) oder PC mit RTX 5080 (`pc.ps1`) | ☑ |
 | d | Export ONNX int8 + Modellkarte (`export.py`), Messung (`evaluate.py`) | Cloud | ☑ |
 | e | Einbau in die App (`data/PiiModel.kt`, Download-Popup, *Einstellungen › Datenschutz*) | App | ◐ (Android ungetestet) |
-| f | Tests (`PiiModelTest`: Tokenizer, Etiketten, ohne Modell, echtes Modell mit `PII_MODELL`/`PII_ORT`) | PC | ◐ (Ziel 2 % offen) |
+| f | Tests (`PiiModelTest`: Tokenizer, Etiketten, ohne Modell, echtes Modell mit `PII_MODELL`/`PII_ORT`) | PC | ◐ (Ziel 2 % offen: 5,0 % in der App) |
 
 ## Stufe a: Messkorpus
 
@@ -96,7 +100,7 @@ Einzeln geht es auch so (überall, auch ohne Grafikkarte – dann langsam):
 ```bash
 python tools/pii/train.py --basis deepset/gbert-base --epochen 4      # → tools/pii/modelle/gbert-base/best, bericht.json
 python tools/pii/evaluate.py tools/pii/modelle/gbert-base/best --zeit  # Entwicklung: Zahlen und Fehlerliste
-python tools/pii/export.py tools/pii/modelle/gbert-base/best          # → …/onnx/pii-modell.int8.onnx, vocab.txt, MODELLKARTE.md
+python tools/pii/export.py tools/pii/modelle/gbert-base/best          # → …/onnx/lora-namensschutz-pytales.int8.onnx, vocab.txt, MODELLKARTE.md
 ```
 
 Gemessen wird in drei Varianten: **Modell allein**, **alle Regeln + Modell** und **wie geplant** – die Regeln ohne das
@@ -144,6 +148,34 @@ Das Ziel „98 % gefunden“ ist erreicht, „höchstens 2 % fälschlich ersetzt
 öffentliche Personen, die das Modell nie gesehen hat. Ein erster Lauf mit nur einer Epoche und ohne Sperre des
 Entwicklungsteils zeigte, warum die Sperre beider Teile nötig ist: Fehlalarme 2,2 % im Entwicklungsteil, aber 7,4 % im
 Prüfteil – die öffentlichen Namen des Entwicklungsteils kannte das Modell aus dem Training.
+
+### Nachtraining in der Cloud (CPU, 10.11.2026): Lora Namensschutz
+
+Ansatz: mehr Gegenbeispiele, ohne den Prüfteil anzusehen. Neu sind die Vorlagen `vorlagen/literatur.txt`
+(Literaturangaben, Zitate und Belege, 74 Vorlagen) und `vorlagen/medien.txt` (öffentliche Personen, Figuren, Werke und Orte
+ohne Personenbezug im Alltag: Nachrichten, Unterricht, Freizeit, Chat; 125 Vorlagen). Dazu neue Platzhalter in `gen.py`:
+`{LIT}` (ganze Literaturangabe mit Autor:innen, Jahr, Titel, Verlag bzw. Zeitschrift), `{AUTREF}` („Helmke, A. &
+Schrader, F.“) und `{OEFFN}` (nur der Nachname einer öffentlichen Person: „Kanzler Scholz“). In `namen.py` wuchsen die
+Listen öffentlicher Personen (≈ 1 100), zitierter Autor:innen (≈ 570), Werke (≈ 220) und Orte ohne Personenbezug (≈ 240).
+Die Sperre der Wörter aus beiden Teilen des Messkorpus (704) bleibt. 36 000 Texte aus 1 184 Vorlagen, 3 Epochen in Etappen
+(je ≈ 48 min), beste Epoche 3, Schwelle **0,93** (Entwicklungsteil), Export int8 **pro Kanal** (die einfache
+Quantisierung verlor im Entwicklungsteil 0,3 Punkte, pro Kanal nichts).
+
+| Prüfteil | gefunden | fälschlich ersetzt |
+| --- | --- | --- |
+| Erkennungsmodell bis 1.0.65, wie geplant (Python) | 99,2 % | 5,8 % |
+| Erkennungsmodell bis 1.0.65, in der App (`PiiModelTest`) | 99,2 % | 7,4 % (9/121) |
+| Lora Namensschutz, wie geplant (Python, int8) | 98,9 % | 3,3 % (4/121) |
+| **Lora Namensschutz, in der App** (`PiiModelTest`, ONNX Runtime von sherpa-onnx 1.13.8) | **98,5 %** (257/261) | **5,0 %** (6/121) |
+| Ziel AP-67 | ≥ 98 % | ≤ 2 % |
+
+int8 verliert gegenüber fp32 0,0 Prozentpunkte; 8,4 ms je Absatz (Median, CPU, 4 Kerne). Entwicklungsteil (App wie
+Python): 95,9 % gefunden, 1,7 % fälschlich ersetzt. **Ehrlich**: Die Fehlalarme sind um ein Drittel gesunken, das Ziel
+„höchstens 2 %“ ist nicht erreicht. Die App ersetzt im Prüfteil zwei Angaben mehr als die Python-Messung; im
+Entwicklungsteil stimmen beide überein, eine Fehlerliste des Prüfteils gibt es nicht. Auch eine Entscheidung je Wort
+(Mittel der Teilwörter, `Predictor.mode = "wort"`) brachte im Entwicklungsteil nichts. Der Entwicklungsteil hat nur noch
+drei Fehlalarme – für weitere Runden fehlt dort das Signal; nächster Schritt wäre ein größerer Entwicklungsteil (neu
+geschriebene Beispiele, nicht aus dem Prüfteil).
 
 ## Grundsätze
 
