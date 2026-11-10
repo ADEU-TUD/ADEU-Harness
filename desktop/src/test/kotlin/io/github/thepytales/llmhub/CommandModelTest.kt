@@ -87,6 +87,47 @@ class CommandModelTest {
         assertEquals("mach  DUNKEL".lowercase().replace("  ", " "), CommandRecognizer.normalize(" Mach  DUNKEL "))
     }
 
+    /** A classifier with the probabilities [p] for their labels; the rest is shared out evenly. */
+    private fun spread(vararg p: Pair<String, Float>) = SentenceClassifier { _, _ ->
+        val n = CommandModelInfo.labels.size
+        val rest = (1 - p.sumOf { it.second.toDouble() }).toFloat() / (n - p.size)
+        FloatArray(n) { rest }.also { a -> p.forEach { (l, v) -> a[CommandModelInfo.labels.indexOf(l)] = v } }
+    }
+
+    @Test
+    fun twoButtonsWhenTheModelHesitatesBetweenTwoCommands() {
+        // AP-73: unsure, and the two likeliest commands together reach the lower bound → „Meinst du … oder …?“.
+        val r = CommandRecognizer(spread("ort:area.files" to 0.45f, "ort:place.files.search" to 0.35f)).recognize("wo ist die datei")
+        assertFalse(r.sure)
+        assertEquals(listOf("ort:area.files", "ort:place.files.search"), r.choices)
+        // Sure: carried out, no question.
+        assertTrue(CommandRecognizer(fake("ort:area.files", 0.95f)).recognize("dateien").choices.isEmpty())
+        // A free request keeps its probability on frei.* and goes on without buttons …
+        assertTrue(CommandRecognizer(spread("frei.komplex" to 0.6f, "ort:area.files" to 0.1f, "lora:hilfe" to 0.1f)).recognize("vergleiche zwei theorien").choices.isEmpty())
+        // … and the free labels are never buttons, even when they lead.
+        val mixed = CommandRecognizer(spread("frei.einfach" to 0.4f, "stell:theme" to 0.3f, "ort:option.appearance.theme" to 0.25f)).recognize("dunkel")
+        assertEquals(listOf("stell:theme", "ort:option.appearance.theme"), mixed.choices)
+        // Below the lower bound: passed on as before.
+        assertTrue(CommandRecognizer(spread("ort:area.files" to 0.12f, "lora:hilfe" to 0.1f)).recognize("hm").choices.isEmpty())
+        assertTrue(CommandModelInfo.CHOICE_BOUND < CommandModelInfo.THRESHOLD)
+        // The lower bound is the one tools/befehle/rueckfrage.py chose on the development part.
+        val chosen = File(CommandCorpus.dir().parentFile, "modell/rueckfrage.json").readText()
+        val bound = Json.parseToJsonElement(chosen).jsonObject.getValue("untergrenze").jsonPrimitive.content.toFloat()
+        assertEquals(bound, CommandModelInfo.CHOICE_BOUND)
+    }
+
+    @Test
+    fun everyCommandHasANameForItsButton() {
+        VideoLora.register()
+        for (android in listOf(false, true)) {
+            val here = AppMap.build(android = android)
+            for (e in LoraCommands.catalog(android)) {
+                val title = LoraCommands.title(e.label, here, android)
+                if (LoraCommands.isFree(e.label)) assertNull(title) else assertTrue(!title.isNullOrBlank(), "kein Name für ${e.label} (android=$android)")
+            }
+        }
+    }
+
     @Test
     fun recognizedCommandsBecomeTheStepsLoraAlreadyKnows() {
         val s = AppSettings()
@@ -132,15 +173,25 @@ class CommandModelTest {
             for (section in listOf("entwicklung", "pruef")) {
                 val score = CommandCorpus.Score()
                 val times = mutableListOf<Long>()
+                // AP-73: of the commands passed on, how often the right one is under the two buttons; free requests with buttons.
+                var passed = 0
+                var underButtons = 0
+                var freeAsked = 0
                 for (s in CommandCorpus.load(section)) {
                     val t0 = System.nanoTime()
                     val r = recognizer.recognize(s.text, s.area)
                     times += (System.nanoTime() - t0) / 1000
                     score.add(s, r.label, r.sure)
+                    if (s.free) freeAsked += if (r.choices.isNotEmpty()) 1 else 0
+                    else if (!(r.sure && !r.free)) {
+                        passed++
+                        if (r.choices.any { it in s.gold }) underButtons++
+                    }
                 }
                 times.sort()
                 report.append(score.report("App: Befehlsmodell (Schwelle ${CommandModelInfo.THRESHOLD}), $section"))
                 report.appendLine("  Zeit je Wunsch: Median ${times[times.size / 2] / 1000.0} ms, 95 % unter ${times[times.size * 95 / 100] / 1000.0} ms")
+                report.appendLine("  Rückfrage (Untergrenze ${CommandModelInfo.CHOICE_BOUND}): richtig unter den Knöpfen $underButtons/$passed bisher weitergegebenen Befehlen, freie mit Knöpfen $freeAsked/${score.free}")
                 if (section == "entwicklung") score.errors.forEach { report.appendLine("    $it") }
                 if (section == "pruef") checks += {
                     // The safety goals of AP-71 hold. The goal for hits is 90 %; the shipped model with its cautious
@@ -149,6 +200,10 @@ class CommandModelTest {
                     assertTrue((score.wrong + score.freeWrong) * 100 <= score.total * 2, "Prüfteil: ${score.wrong + score.freeWrong}/${score.total} falsch ausgeführt")
                     assertTrue(score.freePassed * 100 >= score.free * 95, "Prüfteil: ${score.freePassed}/${score.free} freie Anfragen weitergegeben")
                     assertTrue(score.hit * 100 >= score.commands * 80, "Prüfteil: ${score.hit}/${score.commands} Befehle getroffen")
+                    // AP-73: at least 80 % of the commands passed on so far have the right action under the two buttons,
+                    // at most 5 % of the free requests get buttons.
+                    assertTrue(underButtons * 100 >= passed * 80, "Prüfteil: $underButtons/$passed richtig unter den Knöpfen")
+                    assertTrue(freeAsked * 100 <= score.free * 5, "Prüfteil: $freeAsked/${score.free} freie Anfragen mit Knöpfen")
                 }
             }
             File("build/befehle").mkdirs()

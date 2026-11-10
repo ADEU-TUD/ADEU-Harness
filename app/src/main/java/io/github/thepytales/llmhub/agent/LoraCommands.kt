@@ -204,6 +204,25 @@ object LoraCommands {
         }
     }
 
+    /**
+     * A short name of the command [label] for a button („Meinst du … oder …?“, AP-73), or null when it does not exist on
+     * this platform or is a free request.
+     */
+    fun title(label: String, targets: List<AppTarget>, android: Boolean): String? = when {
+        isFree(label) -> null
+        label.startsWith(PLACE) -> target(label, targets)?.let { tr(it.title) }
+        label.startsWith(SET) -> LoraAgent.SETTINGS.firstOrNull { it.id == label.removePrefix(SET) }?.let { tr(it.label) }
+        label.startsWith(ACT) -> ToolActions.byId(label.removePrefix(ACT))?.takeIf { !android || it.android }?.let { tr(it.title).removeSuffix(" …").removeSuffix("…") }
+        label == TEMPLATE -> tr("TU Vorlage öffnen")
+        label == LORA + "tour" -> tr("Tour starten")
+        label == LORA + "chats" -> tr("Frühere Chats suchen")
+        label == LORA + "frist" -> tr("Frist in den Kalender")
+        label == LORA + "hilfe" -> tr("Hilfe zur App")
+        label == LORA + "merken" -> tr("Vorliebe merken")
+        label == LORA + "postfach" -> tr("Auftrag fürs Postfach")
+        else -> null
+    }
+
     /** One line for Strg+K: what the command [label] would do, or null for free requests and unknown labels. */
     fun describe(label: String, wish: String, current: io.github.thepytales.llmhub.data.AppSettings, targets: List<AppTarget>): String? = when {
         label.startsWith(PLACE) -> target(label, targets)?.let { tr("Öffnen: {0}", tr(it.title)) }

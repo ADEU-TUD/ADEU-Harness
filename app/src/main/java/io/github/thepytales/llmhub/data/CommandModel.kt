@@ -39,6 +39,12 @@ object CommandModelInfo {
 
     /** Below this probability of the likeliest label nothing is carried out (chosen on the Messkorpus, schwelle.json). */
     const val THRESHOLD = 0.8f
+    /**
+     * Rückfrage mit zwei Knöpfen (AP-73): below [THRESHOLD], Lora asks „Meinst du … oder …?“ when the two likeliest
+     * commands together reach this probability (chosen on the development part only, tools/befehle/rueckfrage.py and
+     * modell/rueckfrage.json); otherwise the wish goes on to a language model as before.
+     */
+    const val CHOICE_BOUND = 0.3f
     /** Inputs of the ONNX file (DistilBERT has no token_type_ids). */
     val INPUTS = listOf("input_ids", "attention_mask")
 
@@ -66,8 +72,11 @@ fun interface SentenceClassifier {
  * a pair `[CLS] area [SEP] wish [SEP]` – exactly as tools/befehle/modell.py encodes it for the training.
  */
 class CommandRecognizer(private val classifier: SentenceClassifier, private val tokenizer: WordPiece = WordPiece(CommandModelInfo.vocab), private val labels: List<String> = CommandModelInfo.labels) {
-    /** [sure]: confident enough to act; otherwise the wish is passed on to a language model. */
-    data class Result(val label: String, val confidence: Float, val sure: Boolean) {
+    /**
+     * [sure]: confident enough to act; otherwise the wish is passed on to a language model – or, with two [choices]
+     * (the two likeliest commands, AP-73), Lora asks which one is meant.
+     */
+    data class Result(val label: String, val confidence: Float, val sure: Boolean, val choices: List<String> = emptyList()) {
         val free: Boolean get() = label.startsWith("frei.")
     }
 
@@ -87,12 +96,27 @@ class CommandRecognizer(private val classifier: SentenceClassifier, private val 
         return ids to types
     }
 
-    fun recognize(wish: String, area: String = "app", threshold: Float = CommandModelInfo.THRESHOLD): Result {
+    fun recognize(wish: String, area: String = "app", threshold: Float = CommandModelInfo.THRESHOLD, bound: Float = CommandModelInfo.CHOICE_BOUND): Result {
         val (ids, types) = encode(wish, area)
         val p = classifier.probabilities(ids, types)
         var best = 0
         for (k in labels.indices) if (p[k] > p[best]) best = k
-        return Result(labels[best], p[best], p[best] >= threshold)
+        val sure = p[best] >= threshold
+        return Result(labels[best], p[best], sure, if (sure) emptyList() else choices(p, bound))
+    }
+
+    /**
+     * The two likeliest labels that are not free, when together they reach [bound] – the same rule as `asks` in
+     * tools/befehle/rueckfrage.py. Free requests carry their probability on `frei.*` and get no buttons.
+     */
+    private fun choices(p: FloatArray, bound: Float): List<String> {
+        var first = -1
+        var second = -1
+        for (k in labels.indices) {
+            if (labels[k].startsWith("frei.")) continue
+            if (first < 0 || p[k] > p[first]) { second = first; first = k } else if (second < 0 || p[k] > p[second]) second = k
+        }
+        return if (first < 0 || second < 0 || p[first] + p[second] < bound) emptyList() else listOf(labels[first], labels[second])
     }
 
     companion object {

@@ -13,6 +13,8 @@ und die Batches nach Länge kommen von dort.
 | d | Entscheidung: eigenes kleines Modell statt zweiter Kopf | ☑ distilbert-base-german-cased |
 | e | Training und Export (`train.py`, `modell.py`, `evaluate.py`, `export.py`) | ☑ ONNX int8, 68 MB (gepackt 41 MB) |
 | f–h | Einbau, Mischmodus, Tests (App) | ☑, Android ungetestet |
+| AP-73 | Rückfrage mit zwei Knöpfen (`rueckfrage.py`, `modell/rueckfrage.json`) | ☑ Untergrenze 0,3 |
+| AP-72 | Korrekturen aus der App als Trainingsdaten (Export unter *Einstellungen › Lora*) | ☑ |
 
 ## Etiketten (Stufe a)
 
@@ -114,9 +116,52 @@ an das Sprachmodell (eine Rückfrage, kein Schaden); AP-73 („Meinst du A oder 
 verliert gegenüber fp32 0,6 Prozentpunkte Treffer (zwei Wünsche; erlaubt waren 0,5), führt aber nichts zusätzlich falsch
 aus – bewusst so ausgeliefert.
 
+## Rückfrage mit zwei Knöpfen (AP-73)
+
+Ist das Modell unsicher (wahrscheinlichstes Etikett unter der Schwelle), führt die App nichts aus. Statt den Wunsch an ein
+Sprachmodell weiterzugeben, fragt Lora **„Meinst du A oder B?“** mit den zwei wahrscheinlichsten **Befehlen** als Knöpfen
+und „Etwas anderes“ (dann Regeln und Sprachmodell wie bisher) – wenn die beiden zusammen mindestens die **Untergrenze**
+erreichen. Freie Anfragen tragen ihre Wahrscheinlichkeit auf `frei.*` und bleiben darunter; `frei.*` wird nie ein Knopf.
+Dieselbe Regel steht in `rueckfrage.py` (`asks`) und in der App (`CommandRecognizer.choices`).
+
+```bash
+python tools/befehle/rueckfrage.py <ordner>/befehle-modell.int8.onnx                # Entwicklungsteil: wählt die Untergrenze
+python tools/befehle/rueckfrage.py <ordner>/befehle-modell.int8.onnx --teil pruef   # Prüfteil: nur Zahlen, Wert aus modell/rueckfrage.json
+```
+
+Neben der `.onnx`-Datei müssen `vocab.txt`, `labels.json`, `schwelle.json` und eine `tokenizer_config.json`
+(`{"tokenizer_class": "BertTokenizer", "do_lower_case": false}`) liegen.
+
+**Wahl der Untergrenze nur auf dem Entwicklungsteil**: die niedrigste der Stufen 0,1 bis 0,75, bei der dort höchstens 2 %
+der freien Anfragen Knöpfe bekämen (das Ziel im Prüfteil sind 5 %; streng, weil der Entwicklungsteil besser aussieht als
+ungesehene Wünsche); bei gleichem Ergebnis die höhere. Gewählt am 10.11.2026: **0,3** (Entwicklung: 94,6 % der bisher
+weitergegebenen Befehle richtig unter den Knöpfen, 1,1 % der freien mit Knöpfen; 0,1–0,25 trafen nicht mehr, gaben aber
+bis 4,3 % der freien Anfragen Knöpfe). Der Prüfteil wurde danach **einmal** mit diesem Wert gemessen und für nichts
+gewählt; eine Fehlerliste des Prüfteils gibt es nicht.
+
+| 10.11.2026, Schwelle 0,8, Untergrenze 0,3 | richtig unter den Knöpfen (von den bisher weitergegebenen Befehlen) | freie Anfragen mit Knöpfen | sofort getroffen | **zusammen mit Rückfrage** | falsch ausgeführt |
+| --- | --- | --- | --- | --- | --- |
+| Python, Entwicklung | 94,6 % (35/37) | 1,1 % (1/94) | 89,3 % | 98,9 % | 0,4 % |
+| Python, Prüfteil | 82,2 % (37/45) | 3,6 % (3/84) | 84,8 % | 97,0 % | 0,0 % |
+| **in der App** (`CommandModelTest`), Prüfteil | **80,9 % (38/47)** | **3,6 % (3/84)** | 84,4 % | **97,0 %** | **0,0 %** |
+
+Ziele von AP-73 (Prüfteil): mindestens 80 % richtig unter den Knöpfen, höchstens 5 % der freien Anfragen mit Knöpfen –
+**erreicht**, in der App knapp (38 von 47; ein Wunsch weniger wäre 78,7 %). Die Python-Zahlen weichen um ein bis zwei
+Wünsche von der App ab (Tokenizer-Einstellungen des Python-Laufs, ONNX Runtime 1.29); maßgeblich ist die App.
+„Zusammen mit Rückfrage“ heißt: sofort richtig ausgeführt oder richtig unter den zwei Knöpfen – ein Tipp statt einer
+Anfrage an ein Sprachmodell. Die Trefferquote des Modells selbst (AP-71, Ziel 90 %) ändert die Rückfrage nicht.
+
+## Korrekturen als Trainingsdaten (AP-72)
+
+*Einstellungen › Lora › Was Lora aus Korrekturen gelernt hat › Exportieren …* schreibt die Paare *Wunsch → gemeinte
+Aktion*, die der Nutzer durchgesehen und angehakt hat, als `lora-korrekturen.jsonl` – eine Zeile wie `gen.py`
+(`{"text": …, "bereich": "tabelle", "label": "tu:sheet.sort"}`). Das sind **echte Eingaben**: vor einem Training noch
+einmal auf Namen prüfen, nur in den Trainingsteil aufnehmen (nie in den Messkorpus) und gegen den Messkorpus sperren wie
+die Vorlagen (`gen.py check`).
+
 ## Was beim Modell liegt
 
-`modell/`: Modellkarte, `vocab.txt`, `labels.json`, `schwelle.json`, Berichte der Läufe (Fehlerlisten nur für den
+`modell/`: Modellkarte, `vocab.txt`, `labels.json`, `schwelle.json`, `rueckfrage.json` (Untergrenze, AP-73), Berichte der Läufe (Fehlerlisten nur für den
 Entwicklungsteil), Lizenz des Basismodells, Prüfsumme. Die Modelldatei selbst liegt gepackt (41 MB) auf dem Branch
 **`befehle-modell`** (Commit `cc168774477e3ac8b439b42fd7b03ab05c9908fa`, wird nicht gemergt); die App lädt sie von dort:
 `https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/cc168774477e3ac8b439b42fd7b03ab05c9908fa/befehle-modell.int8.onnx.gz`.
@@ -130,7 +175,8 @@ BEFEHLE_MODELL=<Ordner mit befehle-modell.int8.onnx> BEFEHLE_ORT=<libonnxruntime
 
 ## Grundsätze
 
-- **Nie echte Daten** im Messkorpus oder im Training.
+- **Nie echte Daten** im Messkorpus oder im Training. Einzige Ausnahme (AP-72, vom Hauptnutzer bestätigt): exportierte
+  Korrekturen, die der Nutzer durchgesehen hat, ohne Namen und nur im Trainingsteil.
 - Der **Prüfteil** dient nie zum Training, zur Wahl von Einstellungen oder als Vorbild für Vorlagen; Fehlerlisten gibt es
   nur für den Entwicklungsteil.
 - **Eine falsch ausgeführte Aktion ist schlimmer als eine Rückfrage** – im Zweifel wird weitergegeben.
