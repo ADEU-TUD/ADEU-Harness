@@ -138,11 +138,10 @@ class LoraAgent(private val c: AppContainer) {
         // Alles rückgängig (AP-77): today's actions as a list, nothing is planned.
         if (DryRun.asksUndoDay(wish)) return LoraReply(tr("Das habe ich heute erledigt:"), listOf(LoraStep.UndoDay))
         // Probelauf (AP-77): the action is planned as usual, but only the preview is shown – nothing runs by itself.
+        // Without an action behind it („Was passiert, wenn ich auf Senden klicke?“) the question is answered as asked.
         DryRun.strip(wish)?.let { rest ->
             val r = ask(rest, history, folderId, android, noChoice, onText)
-            val actions = r.steps.filterIsInstance<LoraStep.Action>()
-            if (actions.isEmpty()) return r
-            return r.copy(
+            if (r.steps.any { it is LoraStep.Action }) return r.copy(
                 text = tr("Nur ein Probelauf – so sähe es aus:"),
                 steps = r.steps.map { if (it is LoraStep.Action) it.copy(dry = true) else it },
             )

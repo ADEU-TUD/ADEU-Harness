@@ -281,6 +281,67 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   *Löschen* je Eintrag und *Alle löschen*, einen Schalter und *Exportieren …*: Nach dem Durchsehen (Häkchen weg bei
   allem mit Namen) entsteht `lora-korrekturen.jsonl` als Stoff für das nächste Training (`tools/befehle/`). Im Tresor
   merkt sich Lora nichts; nichts davon verlässt das Gerät von selbst. Tests `LoraCorrectionsTest`, `CommandModelTest`.
+- **Fehlermeldungen in Klartext mit Lösungsknopf** (seit 1.0.66, AP-74): Statt „HTTP 401“ oder einer Java-Meldung steht
+  im Chat, in Loras Panel und in den Hinweisleisten ein verständlicher Satz mit dem passenden Schritt als Knopf –
+  *Schlüssel prüfen*, *Modell wechseln*, *Neuen Chat beginnen*, *Werkzeuge einschalten*, *Modelle auf diesem Gerät*,
+  *Papierkorb leeren*, *Problem melden* … Die technische Meldung bleibt unter *Details* aufklappbar. Ein gemeinsamer
+  Katalog (`ui/ErrorHelp.kt`) mit den 30 häufigsten Fehlern, auf dem Gerät, ohne Sprachmodell; auch ältere Chats zeigen
+  ihre Fehler so. Test `ErrorHelpTest`.
+- **Lora-Verlauf mit „Nochmal“** (seit 1.0.66, AP-75): Pfeil hoch im Lora-Eingabefeld und in Strg+K holt die letzten 20
+  Wünsche zurück (ändern, Enter schickt sie nochmal); unter Loras Begrüßung steht **Zuletzt** mit *Nochmal* und
+  *Anheften*. Ein angehefteter Befehl bekommt einen Namen und steht unter **Eigene Befehle** in Strg+K. Nur auf diesem
+  Gerät, abschaltbar unter *Einstellungen › Lora › Verlauf und eigene Befehle*, aus dem Tresor nichts. Test `LoraHistoryTest`.
+- **Sprachmodell-Empfehlung nach Messung** (seit 1.0.66, AP-76): *Modelle auf diesem Gerät › Wie schnell sind die Modelle
+  hier? › Messen* lässt jedes installierte Modell einmal eine kurze Mail schreiben (etwa eine halbe Minute je Modell, mit
+  Grafikkarte und – wenn es eine gibt – ohne) und zeigt z. B. „schafft etwa 12 Wörter je Sekunde, erstes Wort nach 1,2 s –
+  gut für kurze Aufgaben, zu langsam für lange Mails“. Daraus die Empfehlung für Postfach, kurze Aufgaben und vertrauliche
+  Projekte; der Mischmodus nimmt für kurze Aufgaben nur Modelle mit mindestens 6 Wörtern je Sekunde (ungemessene wie
+  bisher nach Arbeitsspeicher). Test `LocalSpeedTest`.
+- **Probelauf und „Alles rückgängig“** (seit 1.0.66, AP-77): „Was würde passieren, wenn ich alle PDFs nach Archiv
+  verschiebe?“ plant die Aktion, zeigt aber nur die Vorschau mit *Doch ausführen*. Jede riskante Vorschau sagt, wie viele
+  Dateien es betrifft, was in den Papierkorb geht, was sich nicht über Lora zurücknehmen lässt, und rät bei vielen
+  Dateien („Das betrifft 214 Dateien – erst an einem Ordner ausprobieren?“). „Mach alles von heute rückgängig“ (oder
+  *Einstellungen › Lora › Heute erledigt*) listet Loras Aktionen des Tages – einzeln oder alle zurücknehmen, mit Hinweis,
+  was nicht mehr geht (z. B. vor einem Neustart). Test `DryRunTest`.
+- **Eigene Wörter und Wissenspakete** (seit 1.0.66, AP-78): Unter *Einstellungen › Lora › Eigene Wörter* Abkürzungen und
+  Namen mit Erklärung und anderen Schreibweisen („MHB“ = Modulhandbuch). Lora versteht sie in Befehlen, die Dateisuche
+  findet über sie, Chats bekommen die Erklärung als kurzen Kontext, wenn ein Wort vorkommt; „Was ist das ZLSB?“ beantwortet
+  Lora auf dem Gerät. **Wissenspaket „Lehramt an der TU Dresden“** (39 Einträge: Einrichtungen, Studiengänge, Praktika,
+  Prüfungen, Ordnungen, Ansprechstellen) – jede Angabe mit Quelle und Stand, nur aus offiziellen Seiten von TU Dresden und
+  Freistaat ([`tools/wissen/`](tools/wissen/README.md)), geladen wie die Modelle (fester Commit, SHA-256). **Einstellungen ›
+  Inhalte zum Nachladen** zeigt alles Nachladbare (Befehlsmodell, Erkennungsmodell, Sprachmodelle, Spracherkennung,
+  Videoeditor-Paket, Wissenspakete) mit Zweck, Größe, Laden/Aktualisieren/Löschen. Test `VocabularyTest`.
+- **Hausstil-Prüfung und Barrierefreiheits-Check** (seit 1.0.66, AP-79): „Prüfe Hausstil und Barrierefreiheit“ im
+  Dokument oder in Folien zeigt jede Fundstelle („Absatz 4“, „Folie 2“): eigene Regeln der Professur (*Einstellungen ›
+  Dokumente & Logos › Hausstil*, z. B. „Lehrer“ → „Lehrkräfte“), die Schreibweise der TU Dresden, Abkürzungen nach DIN
+  5008, übersprungene Überschriftenebenen, fette Zeilen statt Überschriften, Bilder ohne Alternativtext, Linktexte wie
+  „hier“, nackte Adressen, Tabellen ohne Kopfzeile, Folien ohne Titel. „Behebe …“ ändert, was sicher geht – mit Vorschau
+  und Rückgängig. Für Word- und PowerPoint-Dateien prüft der Bericht *Barrierefreiheit und Hausstil* zusätzlich Schriften
+  (Noto Sans) und Farben (TUD-Palette). Test `StyleCheckTest`.
+- **Rollenauswahl beim ersten Start** (seit 1.0.66, AP-80): „Wofür nutzt du Lora vor allem?“ – Lehre, Forschung,
+  Verwaltung, Studium (mehrere möglich). Danach sind passende Werkzeuge vorgeschlagen, die TU Vorlagen der Rollen stehen
+  oben, Loras Startvorschläge passen („Seminar planen“) und das Lehramts-Paket wird empfohlen. Änderbar unter
+  *Einstellungen › Lora › Wofür nutzt du Lora?* (eine Rolle schaltet Werkzeuge nur ein, nie aus). Test `RolesTest`.
+- **Lora-Pakete teilen** (seit 1.0.66, AP-83): *Einstellungen › Lora › Lora-Paket teilen › Exportieren …* schreibt eigene
+  Befehle (angeheftet), eigene Wörter, eigene TU Vorlagen und Hausstil-Regeln in **eine Datei** (`….lora-paket.json`, das
+  Format der Wissenspakete) – ohne Chats, Gedächtnis, Verlauf und Schlüssel. *Importieren …* zeigt vorher, was hinzukommt
+  und was ersetzt würde; das Paket steht danach unter *Inhalte zum Nachladen* und lässt sich wieder entfernen.
+- **Große Anhänge vollständig nutzen** (seit 1.0.66, AP-85): Anhänge werden nicht mehr nach 120 000 Zeichen still
+  abgeschnitten. Die Grenze richtet sich nach dem Modell (70 % seines Kontextfensters, bei mehreren Anhängen geteilt) – ein
+  300-Seiten-PDF geht mit GLM-5.3 Flash ganz mit. Passt eine Datei nicht, fragt die App: *Ganz senden mit GLM-5.3 Flash*,
+  *Nur die zur Frage passenden Stellen* (Suche im Anhang, mit Seitenangaben) oder *Abschnittsweise zusammenfassen*. Die
+  Karte am Anhang sagt, wie viel mitgeht („nur passende Stellen (etwa 12 %)“); lokale Modelle bekommen von selbst die
+  passenden Stellen. Ein langer Anhang wird je Chat nur einmal pseudonymisiert und zählt nicht gegen den Verlauf. Test
+  `AttachmentBudgetTest`.
+- **Video**: Die Export-Warteschlange übersteht einen Neustart (seit 1.0.66, AP-81) – unterbrochene Exporte stehen wieder
+  darin, mit *Fortsetzen* oder auf Wunsch von selbst. Die **Schnellansicht** in *Dateien* (Leertaste) spielt Videos und
+  Tonaufnahmen ab (AP-82): Start/Pause, ±10 s, Regler, Dauer; Tasten K, J, L – am PC und auf Android. Tests
+  `ExportQueueRestartTest`, `MediaLookTest`.
+- **Lora in mehreren Fenstern** (seit 1.0.66, AP-84, PC): *In neuem Fenster öffnen* im Chat-Menü der Seitenleiste, bei
+  Dokumenten in *Dateien* und oben in Loras Panel. Jedes Fenster hat seine eigene Ansicht, alle teilen dieselben Daten
+  (ein Prozess); zwei Chats antworten gleichzeitig, ein Chat ist nie in zwei Fenstern offen (das Hauptfenster zeigt dann
+  *Zum Fenster* / *Hierher holen*), Schließen eines Fensters beendet nichts anderes; Größe und Ort werden je Art gemerkt.
+  Entschieden: nur Fenster, keine Tabs. Test `ExtraWindowsTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -1722,6 +1783,15 @@ Chats und Einstellungen erhalten bleiben).
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `data/CommandModel.kt`, `agent/LoraCommands.kt`, `agent/CommandSlots.kt`, `agent/ModelRouter.kt`, `data/LoraWays.kt`, `ui/CommandModelPrompt.kt`, `tools/befehle/` | Befehlsmodell und Mischmodus (AP-71): Etiketten aus dem Code, Erkennung über die ONNX Runtime, Werte aus dem Wunsch, Ausführung, Ort je Anfrage, Zähler, Einstellungen und Dialoge; Messkorpus, Trainingsdaten, Training und Export |
 | `data/LoraCorrections.kt`, `ui/LoraCorrectionsSettings.kt`, `tools/befehle/rueckfrage.py` | Rückfrage mit zwei Knöpfen (AP-73: `CommandRecognizer.choices`, `LoraStep.Choose`) und Lora lernt aus Korrekturen (AP-72): Liste auf dem Gerät, Einstellungen, Export für das Training |
+| `ui/ErrorHelp.kt`, `ui/Notices.kt` | Fehlermeldungen in Klartext mit Lösungsknopf (AP-74) |
+| `data/LoraHistory.kt`, `ui/LoraRecent.kt` | Lora-Verlauf, Pfeil hoch, angeheftete Befehle in Strg+K (AP-75) |
+| `local/LocalSpeed.kt` | Messung und Empfehlung der lokalen Sprachmodelle, Mindesttempo im Mischmodus (AP-76) |
+| `agent/DryRun.kt`, `ui/DayUndo.kt` | Probelauf, Hinweise zu Unumkehrbarem, „Alles rückgängig seit heute Morgen“ (AP-77) |
+| `data/Vocabulary.kt`, `data/LoraPackages.kt`, `ui/VocabularyUi.kt`, `tools/wissen/` | Eigene Wörter, Wissenspakete, Inhalte zum Nachladen (AP-78), Lora-Pakete teilen (AP-83) |
+| `docs/StyleCheck.kt`, `data/HouseStyle.kt`, `agent/StyleActions.kt` | Hausstil- und Barrierefreiheits-Prüfung mit Beheben (AP-79) |
+| `data/Roles.kt` | Rollenauswahl beim ersten Start (AP-80) |
+| `ui/MediaLook.kt`, `ui/MediaPreview.kt` | Video und Ton in der Schnellansicht (AP-82) |
+| `files/AttachmentBudget.kt`, `ui/LargeAttachment.kt` | Große Anhänge: Grenze nach Modell, passende Stellen, Zusammenfassung (AP-85) |
 | `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Erkennungsmodell der Pseudonymisierung (AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |
@@ -1795,6 +1865,8 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt` und `creative/CanvasOps.kt` (gemeinsam, AP-50), `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt`, `ui/VideoLayout.kt` | Videoeditor (AP-25, Anordnung AP-70): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
+| `ui/ExtraWindows.kt` | Lora in mehreren Fenstern: Chats, Dokumente und Loras Panel in eigenen Fenstern (AP-84) |
+| `video/ExportQueue.kt` | Export-Warteschlange, übersteht einen Neustart (AP-57, AP-81) |
 | `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |
 | `video/TextCut.kt`, `ui/VideoTranscriptPanel.kt` | Textbasierter Schnitt (AP-55): Wörter auf der Zeitleiste, Löschen = Schneiden, Absätze verschieben, Füllwörter/Pausen, Lora-Vorschläge |
 | `video/ScreenRecorder.kt`, `ui/ScreenRecordUi.kt`, `desktop/GlobalHotkeys.kt` | Bildschirmaufnahme (AP-56): ein ffmpeg-Prozess für Bildschirm, Webcam und Ton, Teile bei Pause, Klicks, Aufnahmeleiste, Tasten in ganz Windows |

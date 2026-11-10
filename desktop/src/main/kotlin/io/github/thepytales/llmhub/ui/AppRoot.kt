@@ -380,6 +380,13 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
     val back: () -> Unit = { nav.popBackStack() }
     when (entry.base) {
         "chat" -> {
+            // Mehrere Fenster (AP-84): a chat open in a window of its own is written only there.
+            val inWindow by ExtraWindows.open.collectAsStateWithLifecycle()
+            val id = args["id"]
+            if (id != null && inWindow.any { it.kind == ExtraWindows.Kind.CHAT && it.target == id }) {
+                ChatInOtherWindow(id)
+                return
+            }
             val vm: ChatViewModel = viewModel { ChatViewModel(c, args["id"], args["model"], args["persona"]) }
             val conv by vm.state.collectAsStateWithLifecycle()
             LaunchedEffect(conv?.id) { onChatShown(conv?.id) }
@@ -454,4 +461,18 @@ private fun CrashDialog(report: String, onDismiss: () -> Unit) {
             }
         },
     )
+}
+
+/** The chat is open in a window of its own (AP-84): a note with „Zum Fenster“ and „Hierher holen“ instead of a second input. */
+@Composable
+private fun ChatInOtherWindow(id: String) {
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        androidx.compose.foundation.layout.Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+            Text(tr("Dieser Chat ist in einem eigenen Fenster offen."), style = MaterialTheme.typography.titleMedium)
+            androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Button(onClick = { WindowHooks.focusChat(id) }) { Text(tr("Zum Fenster")) }
+                androidx.compose.material3.OutlinedButton(onClick = { WindowHooks.closeChat(id) }) { Text(tr("Hierher holen")) }
+            }
+        }
+    }
 }

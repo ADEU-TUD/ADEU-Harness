@@ -1081,6 +1081,8 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
         })
         if (!item.dir) actions.toNextcloud?.let { save -> DropdownMenuItem(text = { Text(tr("In Nextcloud speichern")) }, leadingIcon = { Icon(Icons.Outlined.Cloud, null) }, onClick = { act { save(item) } }) }
         item.chatId?.let { id -> DropdownMenuItem(text = { Text(tr("Zum Chat")) }, leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, null) }, onClick = { act { actions.chat(id) } }) }
+        // Mehrere Fenster (AP-84, PC): a document of the app in a window of its own.
+        item.doc?.let { d -> WindowHooks.openDoc?.let { open -> DropdownMenuItem(text = { Text(tr("In neuem Fenster öffnen")) }, onClick = { act { open(d.id, d.title) } }) } }
         HorizontalDivider()
         DropdownMenuItem(text = { Text(tr("Umbenennen")) }, onClick = { act { actions.rename(item) } })
         DropdownMenuItem(text = { Text(tr("Verschieben nach …")) }, leadingIcon = { Icon(Icons.Outlined.DriveFileMove, null) }, onClick = { act { actions.move(item) } })

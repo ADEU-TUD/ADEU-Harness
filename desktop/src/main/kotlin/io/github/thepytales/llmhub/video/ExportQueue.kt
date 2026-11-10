@@ -113,7 +113,16 @@ object ExportQueue {
         val e = _entries.value.firstOrNull { it.id == id } ?: return
         if (e.status == Status.WAITING || e.status == Status.RUNNING || e.status == Status.DONE) return
         update(id) { it.copy(status = Status.WAITING, progress = 0f, error = null, note = null) }
-        running[id] = scope.launch { lock.withLock { run(id) } }
+        start(id)
+    }
+
+    /** Registers the job before it starts: a very short entry cannot finish (and sign off) before it is known. */
+    private fun start(id: String) {
+        val job = scope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) { lock.withLock { run(id) } }
+        running[id] = job
+        // Also a job cancelled before it ever ran signs off (its finally in run() is never reached then).
+        job.invokeOnCompletion { running.remove(id, job) }
+        job.start()
     }
 
     fun resumeAll() = _entries.value.filter { it.status == Status.INTERRUPTED }.forEach { resume(it.id) }
@@ -168,7 +177,7 @@ object ExportQueue {
         if (Kind.CHAPTERS in kinds && VideoEdit.chapters(p).isNotEmpty()) list += Entry(project = p, kind = Kind.CHAPTERS, out = unique("$base – Kapitel.txt"), upload = upload)
         _entries.value = _entries.value + list
         save()
-        list.forEach { e -> running[e.id] = scope.launch { lock.withLock { run(e.id) } } }
+        list.forEach { e -> start(e.id) }
         return list
     }
 

@@ -1,5 +1,6 @@
 package io.github.thepytales.llmhub
 
+import io.github.thepytales.llmhub.ui.ExtraWindowsHost
 import io.github.thepytales.llmhub.ui.isCmd
 import io.github.thepytales.llmhub.ui.Notices
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -136,8 +137,11 @@ fun main(args: Array<String>) {
     }.apply { isDaemon = true }.start()
     // macOS: clicks that only worked the second time – scrolling during the click, button state (see MacClickFix).
     io.github.thepytales.llmhub.desktop.MacClickFix.install()
+    // Lora in mehreren Fenstern (AP-84): chats, documents and Lora beside the main window.
+    io.github.thepytales.llmhub.ui.ExtraWindows.wire()
     application {
         App(startHidden = minimized, selfTest = selfTest, showRequests = showRequests)
+        ExtraWindowsHost(LlmHubApp.container)
     }
 }
 

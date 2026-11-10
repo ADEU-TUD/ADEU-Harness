@@ -51,6 +51,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -483,6 +484,10 @@ fun BoxScope.LoraSheet(c: AppContainer) {
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+/** Lora's panel in a window of its own (AP-84, PC): the same conversation as beside the app. */
+@Composable
+fun LoraWindowPanel(c: AppContainer) = LoraPanel(c, compact = false)
+
 @Composable
 private fun LoraPanel(c: AppContainer, compact: Boolean) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
@@ -694,6 +699,8 @@ private fun PanelHeader(status: String, busy: Boolean, canReset: Boolean, onRese
             Text(status, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (canReset) IconButton(onClick = onReset) { Icon(Icons.Outlined.RestartAlt, contentDescription = tr("Neu beginnen")) }
+        // Mehrere Fenster (AP-84, PC): Lora in a window of her own.
+        WindowHooks.openLora?.let { open -> IconButton(onClick = open) { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = tr("In eigenem Fenster öffnen")) } }
         IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = tr("Schließen")) }
     }
 }
