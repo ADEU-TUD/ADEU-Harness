@@ -70,7 +70,7 @@ Fairlight).
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | **Danach** | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen · AP-86 Lokale Modelle auf dem Mac laden |
-| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -432,25 +432,131 @@ Formatierung, Kopf- und Fußzeilen und Logos bleiben unverändert.
 **Fertig, wenn**: aus einem echten Protokoll, einem Folienvortrag und einer Excel-Liste je eine Vorlage entsteht, die
 sich mit neuen Angaben richtig füllt.
 
+Aus der zweiten Ideensammlung vom 10.11.2026 übernommen (AP-90 bis AP-102). Jedes Werkzeug liefert seine Lora-Aktionen
+über die gemeinsame Schnittstelle (AP-38) und fügt sich in AP-02 ein (Schalter bzw. Teil von *Dateien* oder
+*PDF-Werkzeugkasten*). Platzbedarf für Modelle (Hintergrund entfernen, Tabellen- und Feldererkennung) über die
+nachladbaren Erweiterungen (AP-25).
+
+**Dateien umwandeln und reparieren**
+
+### AP-90 ☐ Formatwandler mit Verlustanzeige · M (neu)
+**Ziel**: Dateien zwischen gängigen Formaten umwandeln (DOCX ↔ ODT/RTF/PDF/Markdown, PPTX ↔ ODP/PDF, XLSX ↔ ODS/CSV,
+Bilder untereinander), aus *Dateien* per Rechtsklick und per Lora („mach daraus eine ODT“). **Vorher** zeigt eine Karte,
+was dabei verloren geht oder sich ändert – Formeln (nur Werte), Animationen und Übergänge, Kommentare und Änderungsspuren,
+Makros, mehrere Tabellenblätter bei CSV, nicht eingebettete Schriften – mit *Trotzdem umwandeln* oder einer besseren
+Alternative. Das Original bleibt immer erhalten.
+**Fertig, wenn**: jede angebotene Richtung mit Testdateien richtig umwandelt und die Verlustanzeige für Formeln,
+Animationen, Kommentare und Blätter stimmt.
+
+### AP-91 ☐ Schriften-Notfall · S–M (neu)
+**Ziel**: Beim Öffnen von Word-, PowerPoint- und PDF-Dateien erkennen, welche Schriften fehlen; Lora schlägt einen
+passenden Ersatz vor (metrisch gleich, z. B. Carlito für Calibri, sonst ähnlich), zeigt die Auswirkung (Seitenzahl,
+Umbrüche) und kann Schriften beim Speichern einbetten, damit die Datei auf anderen Rechnern gleich aussieht. Die
+Schriften des TU-Designs werden erkannt.
+**Fertig, wenn**: eine Datei mit fehlender Schrift den Hinweis zeigt, der Ersatz das Layout hält und die gespeicherte
+Datei mit eingebetteter Schrift auf einem Rechner ohne diese Schrift gleich aussieht.
+
+### AP-92 ☐ Formatierung aufräumen · M (neu)
+**Ziel**: Word-Dateien voller direkter Formatierung (fett und 14 pt statt „Überschrift 1“, Leerzeilen statt Abstand,
+getippte Nummern statt Listen) in saubere Formatvorlagen überführen. Lora erkennt die Muster, zeigt die Zuordnung („32
+Absätze → Überschrift 2“), man bestätigt; danach funktionieren Gliederung, Inhaltsverzeichnis und Hausstil (AP-46,
+AP-79). Vorschau und Rückgängig.
+**Fertig, wenn**: eine typisch „verbastelte“ Abschlussarbeit danach eine richtige Gliederung hat, ohne dass sich das
+Aussehen ungewollt ändert.
+
+### AP-93 ☐ CSV-Lotse · S (neu)
+**Ziel**: Beim Öffnen einer CSV- oder Textdatei erkennt die Tabelle Kodierung (UTF-8, Windows-1252, kaputte Umlaute wie
+„Ã¤“), Trennzeichen, Dezimalzeichen, Tausenderpunkte und Datumsformate selbst und zeigt eine kleine Vorschau mit den
+erkannten Einstellungen zum Anpassen. Beim Speichern als CSV wählbar: Excel-tauglich (Semikolon, mit BOM) oder
+Standard (Komma, UTF-8). Gilt auch für Exporte aus OPAL, LimeSurvey und Selma.
+**Fertig, wenn**: typische Problemdateien (Excel-Export, Umfrage-Export, falsch kodierte Datei) ohne Handarbeit richtig
+in Spalten, Zahlen und Daten ankommen.
+
+### AP-94 ☐ Formular aus Scan · M (neu)
+**Ziel**: Ein gescanntes oder fotografiertes Papierformular (Scanner AP-62) wird zu einem ausfüllbaren PDF: Linien,
+Kästchen und Tabellenzellen werden als Felder erkannt (Text, Ankreuzfeld, Datum, Unterschrift), mit Namen aus der
+Beschriftung daneben; man prüft und korrigiert die Felder im PDF-Werkzeugkasten. Danach lässt es sich wie jedes Formular
+ausfüllen – auch von Lora.
+**Fertig, wenn**: drei echte Papierformulare der Verwaltung als ausfüllbare PDFs mit richtig platzierten und benannten
+Feldern herauskommen.
+
+### AP-95 ☐ PDF-Tabellen nach Excel · M (neu)
+**Ziel**: Tabellen aus PDFs zuverlässig in die Tabelle (AP-48) bzw. nach Excel übernehmen – auch über mehrere Seiten
+(wiederholte Kopfzeilen nur einmal), mit verbundenen Zellen, Zahlen als Zahlen (deutsches Format) und aus gescannten
+PDFs über die Texterkennung. Prüfansicht: PDF-Seite links, erkannte Tabelle rechts, Zellen zum Nachbessern.
+**Fertig, wenn**: Tabellen aus Statistik-Berichten, Haushaltsplänen und Papers (auch gescannt) mit richtigen Spalten und
+Zahlen ankommen.
+
+### AP-96 ☐ Diagramm zu Daten · M (neu)
+**Ziel**: Aus dem Bild eines Diagramms (Ausschnitt aus einem Paper, Foto, Scan) die Werte als Tabelle zurückgewinnen:
+Achsen und Skalen erkennen (auch logarithmisch), Datenreihen nach Farbe trennen, Punkte, Linien und Balken auslesen.
+Halbautomatisch: Lora schlägt vor, man korrigiert Achsenpunkte und Reihen per Klick. Ergebnis in die Tabelle, auf Wunsch
+gleich als neues Diagramm (AP-49); die Quelle wird vermerkt.
+**Fertig, wenn**: Balken-, Linien- und Punktdiagramme aus Testbildern Werte mit höchstens wenigen Prozent Abweichung
+liefern.
+
+**Drucken**
+
+### AP-97 ☐ Druck-Lotse · S–M (neu, D)
+**Ziel**: Druckfertig machen aus Dokument, Folien, Gestalten und PDF: Broschüre mit Rückenheftung (Seiten ausschießen,
+auf ein Vielfaches von 4 auffüllen), doppelseitig mit richtigen Rändern, mehrere Seiten pro Blatt, Handouts aus Folien,
+Beschnittzugabe und Schnittmarken für die Druckerei. Prüft die Vorgaben vor dem Export (Auflösung der Bilder, Farbraum,
+eingebettete Schriften – AP-91) und nennt Probleme.
+**Fertig, wenn**: eine A5-Broschüre auf A4 gedruckt und gefaltet in der richtigen Reihenfolge liegt und ein Poster mit
+Beschnitt die Prüfung einer Druckerei besteht.
+
+**Schutz und Archive**
+
+### AP-98 ☐ Passwortschutz für Dateien · S–M (neu)
+**Ziel**: Für Word-, Excel-, PowerPoint-, PDF- und ZIP-Dateien ein Passwort setzen, ändern oder (mit bekanntem Passwort)
+entfernen – aus *Dateien*, beim Speichern und beim Versand (Outlook). Moderne Verschlüsselung (Office: Agile Encryption,
+PDF: AES-256, ZIP: AES); Hinweis, das Passwort auf anderem Weg weiterzugeben. Passwortgeschützte Dateien lassen sich nach
+Eingabe in allen Werkzeugen öffnen. Kein Knacken fremder Passwörter.
+**Fertig, wenn**: geschützte Dateien in Word, Excel, PowerPoint, Acrobat und 7-Zip/Windows mit dem Passwort aufgehen und
+ohne nicht.
+
+### AP-99 ☐ Archiv-Werkzeug · S–M (neu)
+**Ziel**: ZIP-Dateien (dazu 7z, TAR/GZ zum Lesen) in *Dateien* wie Ordner öffnen, durchsuchen, einzelne Dateien in der
+Schnellansicht (AP-66) oder im passenden Werkzeug öffnen, ohne alles zu entpacken. Packen mit Wahl der Stärke, Passwort
+(AP-98) und **Aufteilen in Teile** (z. B. 20 MB für Mails); Lora kann „Frag diesen Ordner“ (AP-58) auch auf ein Archiv
+anwenden.
+**Fertig, wenn**: ein großes Archiv mit Unterordnern durchsucht und geöffnet werden kann und ein großer Ordner in Teile
+gepackt und unter Windows/7-Zip wieder zusammengesetzt wird.
+
+**Bilder**
+
+### AP-100 ☐ Fotos vom Handy aufbereiten · S–M (neu)
+**Ziel**: Fotos (auch vom iPhone) in einem Schritt aufbereiten: HEIC/HEIF → JPG, nach EXIF richtig drehen, nach
+Aufnahmedatum benennen („2026-11-10_14-32_Exkursion.jpg“), Ortsdaten und andere Metadaten entfernen, auf Wunsch
+verkleinern. Als Stapel in *Dateien* und per Lora („bereite die Exkursionsfotos auf“). Originale bleiben, bis man sie
+selbst löscht.
+**Fertig, wenn**: ein Ordner gemischter iPhone- und Android-Fotos richtig gedreht, benannt, als JPG und ohne Ortsdaten
+herauskommt.
+
+### AP-101 ☐ Bild-Werkstatt · M (neu)
+**Ziel**: Einfache Bildbearbeitung ohne Fremdprogramm: **Hintergrund entfernen** (Modell auf dem Gerät, nachladbar),
+zuschneiden (frei, Seitenverhältnisse, Vorlagen für Profilbild, Folie, Poster), drehen, auf Zielgröße bzw. Dateigröße
+bringen, Format wählen (JPG, PNG mit Transparenz, WebP), Helligkeit/Kontrast. Aus *Dateien*, Gestalten und Folien
+erreichbar; Lora kann es („Hintergrund weg, quadratisch, unter 1 MB“).
+**Fertig, wenn**: Porträts und Produktfotos sauber freigestellt werden und Zuschnitt und Zielgröße stimmen.
+
+**Umzug**
+
+### AP-102 ☐ Umzug auf einen neuen PC · M (neu, D)
+**Ziel**: Ein Assistent packt alles, was zu Lora gehört – Chats, Projekte, Einstellungen, Gedächtnis, Vorlagen und
+Designs, Erweiterungen, auf Wunsch lokale Modelle und den Tresor (verschlüsselt) –, in ein Umzugspaket (Datei, USB oder
+Netzlaufwerk) und spielt es auf dem neuen PC ein; vorher zeigt er Größe und Inhalt. API-Schlüssel gehen nur mit Passwort
+mit. Ergänzt die bestehende Sicherung und die Synchronisierung über den Cloud-Ordner, ersetzt sie nicht.
+**Fertig, wenn**: nach dem Einspielen auf einem frischen PC alles wie vorher dasteht, einschließlich lokaler Modelle, und
+nichts doppelt angelegt wird.
+
 ---
 
 ## Ideen
 
-Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-90) aufnehmen. Zweite Sammlung vom 10.11.2026 – aus der ersten
-Sammlung sind AP-87 bis AP-89 geworden, der Rest und die ältere Ideenliste sind gestrichen (Git-Historie).
-
-**Dateien umwandeln und reparieren**
-- **Formatwandler mit Verlustanzeige**: DOCX ↔ ODT, PPTX → PDF, XLSX → CSV usw.; Lora zeigt vorher, was dabei verloren
-  geht (Formeln, Animationen, Kommentare).
-- **Schriften-Notfall**: fehlende Schriften in Dokumenten erkennen, Ersatz vorschlagen oder einbetten, damit die Datei
-  auf jedem PC gleich aussieht.
-- **Formatierung aufräumen**: Word-Datei voller direkter Formatierung in saubere Formatvorlagen überführen (Überschriften,
-  Listen, Abstände), mit Vorschau.
-- **CSV-Lotse**: Trennzeichen, Kodierung (kaputte Umlaute), Datums- und Zahlenformat beim Öffnen erkennen und richtig
-  übernehmen.
-- **Formular aus Scan**: gescanntes Papierformular → ausfüllbares PDF mit erkannten Feldern.
-- **PDF-Tabellen nach Excel**: auch mehrseitige Tabellen und verbundene Zellen, mit Prüfansicht Seite neben Tabelle.
-- **Diagramm zu Daten**: Bild eines Diagramms (aus Paper oder Scan) → Werte als Tabelle zurückgewinnen.
+Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-103) aufnehmen. Rest der zweiten Sammlung vom 10.11.2026 – aus der
+ersten Sammlung sind AP-87 bis AP-89 geworden, aus der zweiten AP-90 bis AP-102; der Rest der ersten und die ältere
+Ideenliste sind gestrichen (Git-Historie).
 
 **Dateien zusammenstellen und abgeben**
 - **Word-Dateien zusammenführen**: Kapitel mehrerer Autor:innen zu einem Dokument mit einheitlichen Formatvorlagen,
@@ -460,22 +566,12 @@ Sammlung sind AP-87 bis AP-89 geworden, der Rest und die ältere Ideenliste sind
 - **Zwei Tabellen abgleichen**: z. B. Anmelde- gegen Teilnahmeliste – wer fehlt, wer ist doppelt, welche Werte weichen ab.
 - **Export-Profile**: einmal festlegen („für die Druckerei“, „für OPAL“, „klein für Mail“, „barrierefrei“) und überall
   mit einem Klick so exportieren.
-- **Druck-Lotse**: Broschüre mit Heftung, doppelseitig, Beschnittzugabe und Vorgaben der Druckerei.
 
 **Platz, Versand und Schutz**
 - **Office-Dateien verkleinern**: eingebettete Bilder in DOCX, PPTX und XLSX verkleinern, Größe vorher/nachher.
 - **Anhang-Lotse** (W): zu große Anhänge in Outlook verkleinern oder als Nextcloud-Freigabelink anbieten.
-- **Passwortschutz**: Passwort für Office-, PDF- und ZIP-Dateien setzen oder entfernen, verschlüsselte ZIP zum Versand.
-- **Archiv-Werkzeug**: ZIP öffnen und durchsuchen, einzelne Dateien direkt im passenden Werkzeug öffnen, große Ordner in
-  Teile packen.
 - **Speicherplatz-Lotse**: zeigt, was Platz belegt (Modelle, Videos, Zwischenspeicher, Schnappschüsse), mit
   Aufräumvorschlag und Rückgängig.
-
-**Bilder und Umzug**
-- **Fotos vom Handy aufbereiten**: HEIC → JPG, drehen, nach Aufnahmedatum benennen, Ortsdaten entfernen.
-- **Bild-Werkstatt**: Hintergrund entfernen, zuschneiden, auf Zielgröße und -format bringen.
-- **Umzug auf einen neuen PC**: Lora-Daten, Einstellungen, Vorlagen und lokale Modelle als ein Paket mitnehmen und
-  einspielen.
 
 ---
 
