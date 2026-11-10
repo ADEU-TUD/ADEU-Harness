@@ -29,47 +29,55 @@ import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.PiiModelInfo
 
 /**
- * Offers the recognition model of the pseudonymization (AP-67) once per start of the app: when messages are first
- * pseudonymized or Einstellungen › Datenschutz is opened, while it is not downloaded. „Laden“, „Später“ (asks again at
- * the next start) or „Nicht mehr fragen“ (the download stays in the settings).
+ * Offers Lora Namensschutz, the recognition model of the pseudonymization (AP-67), once per start of the app: when
+ * messages are first pseudonymized or Einstellungen › Datenschutz is opened, while it is not downloaded. „Laden“,
+ * „Später“ (asks again at the next start) or „Nicht mehr fragen“ (the download stays in the settings). Who still has the
+ * model of 1.0.65 gets the new version offered as an update; the old one keeps working until then.
  */
 @Composable
 fun PiiModelPrompt(c: AppContainer) {
     val offer by c.piiModel.offer.collectAsState()
     if (!offer) return
+    val update = remember { c.piiModel.hasOld() }
     fun close() { c.piiModel.offer.value = false }
     AlertDialog(
         onDismissRequest = ::close,
         icon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
-        title = { Text(tr("Namen besser erkennen")) },
+        title = { Text(if (update) tr("Neue Version von {0}", PiiModelInfo.NAME) else tr("Namen besser erkennen")) },
         text = {
             Text(
-                tr("Lora kann für die Pseudonymisierung ein Erkennungsmodell laden ({0} MB). Es findet Namen, Schulen, Kitas und Orte " +
-                    "auch ohne Anrede oder bekannte Vornamen und lässt zitierte Autor:innen und öffentliche Personen eher stehen – in " +
-                    "unseren Tests 99 % statt 78 % der privaten Angaben. Es läuft nur auf diesem Gerät, nichts verlässt es dabei.",
-                    PiiModelInfo.MEGABYTES),
+                if (update) tr("Es gibt eine bessere Version von {0} ({1} MB): Sie lässt zitierte Autor:innen, öffentliche Personen und " +
+                    "Literaturangaben öfter stehen und findet private Namen weiter zuverlässig. Bis du sie lädst, arbeitet die bisherige " +
+                    "Version weiter. Alles läuft nur auf diesem Gerät.", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES)
+                else tr("Lora kann für die Pseudonymisierung {0} laden ({1} MB), ein kleines Modell nur für diese Aufgabe. Es findet Namen, " +
+                    "Schulen, Kitas und Orte auch ohne Anrede oder bekannte Vornamen und lässt zitierte Autor:innen und öffentliche " +
+                    "Personen eher stehen – in unseren Tests 98 % statt 78 % der privaten Angaben. Es läuft nur auf diesem Gerät, " +
+                    "nichts verlässt es dabei.", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES),
             )
         },
         confirmButton = { Button(onClick = { c.piiModel.install(); close() }) { Text(tr("Laden")) } },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = { c.settings.update { it.copy(pseudonymModelAsk = false) }; close() }) { Text(tr("Nicht mehr fragen")) }
+                TextButton(onClick = {
+                    c.settings.update { if (update) it.copy(pseudonymModelUpdateAsk = false) else it.copy(pseudonymModelAsk = false) }
+                    close()
+                }) { Text(tr("Nicht mehr fragen")) }
                 TextButton(onClick = ::close) { Text(tr("Später")) }
             }
         },
     )
 }
 
-/** Einstellungen › Datenschutz: the recognition model – download, progress, switch, model card, delete. */
+/** Einstellungen › Datenschutz: Lora Namensschutz – download (or the update), progress, switch, model card, delete. */
 @Composable
 fun PiiModelSettings(c: AppContainer) {
     val s by c.settings.settings.collectAsState()
     val st by c.piiModel.state.collectAsState()
     var card by remember { mutableStateOf(false) }
     ToggleRow(
-        tr("Erkennungsmodell (empfohlen)"),
+        tr("{0} (empfohlen)", PiiModelInfo.NAME),
         tr("Ein kleines Modell auf diesem Gerät findet Namen, Schulen, Kitas und Orte – auch ohne Anrede oder bekannte Vornamen – " +
-            "und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 99 % statt 78 % der privaten " +
+            "und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 98 % statt 78 % der privaten " +
             "Angaben, wenige Millisekunden je Absatz. Mit dem Modell raten die Regeln keine Namen mehr aus häufigen Vornamen; " +
             "die eigene Liste und die festen Muster (Mail, Telefon, Nummern …) bleiben."),
         s.pseudonymModel,
@@ -84,7 +92,18 @@ fun PiiModelSettings(c: AppContainer) {
                     TextButton(onClick = c.piiModel::cancelInstall) { Text(tr("Abbrechen")) }
                 }
             }
-            !st.installed -> OutlinedButton(onClick = c.piiModel::install) { Text(tr("Erkennungsmodell laden ({0} MB)", PiiModelInfo.MEGABYTES)) }
+            st.old -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    tr("Die bisherige Version ist geladen und arbeitet weiter. Es gibt eine bessere."),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = c.piiModel::install) { Text(tr("Neue Version laden ({0} MB)", PiiModelInfo.MEGABYTES)) }
+                    TextButton(onClick = c.piiModel::delete) { Text(tr("Löschen")) }
+                }
+            }
+            !st.installed -> OutlinedButton(onClick = c.piiModel::install) { Text(tr("{0} laden ({1} MB)", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES)) }
             else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     if (st.ready) tr("Geladen und bereit.") else tr("Geladen."),

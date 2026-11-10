@@ -171,12 +171,16 @@ data class AppSettings(
     val pseudonymModel: Boolean = true,
     /** Offer the download of the recognition model in a popup (off after „Nicht mehr fragen“). */
     val pseudonymModelAsk: Boolean = true,
+    /** Offer the new version of Lora Namensschutz to who still has the model of 1.0.65 (off after „Nicht mehr fragen“). */
+    val pseudonymModelUpdateAsk: Boolean = true,
     /** Where Lora works (AP-71): MIXED (per request), LOCAL (only on this device) or SERVER (language models only on the server). */
     val loraPlace: String = "MIXED",
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device once it is downloaded. */
     val commandModel: Boolean = true,
     /** Offer the download of the command model in a popup (off after „Nicht mehr fragen“). */
     val commandModelAsk: Boolean = true,
+    /** Offer the new version of Lora Befehle to who still has the model of 1.0.65 (off after „Nicht mehr fragen“). */
+    val commandModelUpdateAsk: Boolean = true,
     /** Lora lernt aus Korrekturen (AP-72): corrected wishes are remembered on this device (Einstellungen › Lora). */
     val loraLearn: Boolean = true,
     /** Lora-Verlauf (AP-75): the last wishes to Lora are kept on this device. */
@@ -386,9 +390,11 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
             .putBoolean("pseudonymModel", next.pseudonymModel)
             .putBoolean("pseudonymModelAsk", next.pseudonymModelAsk)
+            .putBoolean("pseudonymModelUpdateAsk", next.pseudonymModelUpdateAsk)
             .putString("loraPlace", next.loraPlace)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
+            .putBoolean("commandModelUpdateAsk", next.commandModelUpdateAsk)
             .putBoolean("loraLearn", next.loraLearn)
             .putBoolean("loraHistory", next.loraHistory)
             .putString("roles", next.roles)
@@ -496,9 +502,11 @@ class SettingsStore(context: Context) {
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
             pseudonymModel = prefs.getBoolean("pseudonymModel", d.pseudonymModel),
             pseudonymModelAsk = prefs.getBoolean("pseudonymModelAsk", d.pseudonymModelAsk),
+            pseudonymModelUpdateAsk = prefs.getBoolean("pseudonymModelUpdateAsk", d.pseudonymModelUpdateAsk),
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
+            commandModelUpdateAsk = prefs.getBoolean("commandModelUpdateAsk", d.commandModelUpdateAsk),
             loraLearn = prefs.getBoolean("loraLearn", d.loraLearn),
             loraHistory = prefs.getBoolean("loraHistory", d.loraHistory),
             roles = prefs.getString("roles", d.roles) ?: d.roles,

@@ -1,6 +1,6 @@
-# Modellkarte: Erkennungsmodell der Pseudonymisierung (AP-67)
+# Modellkarte: Lora Namensschutz (Erkennungsmodell der Pseudonymisierung, AP-67)
 
-Stand: 09.11.2026
+Stand: 10.11.2026 · Datei `lora-namensschutz-pytales.int8.onnx` (bis 1.0.65: „Erkennungsmodell“, `pii-modell.int8.onnx`)
 
 ## Was es tut
 Findet in deutschen Texten private **Personen** (`PER`), **Einrichtungen** wie Schulen, Kitas, Praxen (`EINR`) und
@@ -8,26 +8,27 @@ Findet in deutschen Texten private **Personen** (`PER`), **Einrichtungen** wie S
 Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln von `PiiDetector`.
 
 ## Herkunft
-- **Basismodell**: `deepset/gbert-base` (Version `d50cb1df9660ff2de1af8a5362d322b3d5a1a28a`), Lizenz **MIT**.
-- **Feintuning**: Token-Klassifikation (BIO), 27000 erfundene Trainingstexte, beste Epoche
+- **Basismodell**: `deepset/gbert-base` (Version `d50cb1df9660ff2de1af8a5362d322b3d5a1a28a`) von deepset GmbH (Branden Chan, Stefan Schweter, Timo Möller), Lizenz **MIT**.
+  Lora Namensschutz ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. Lora Namensschutz ist kein
+  Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
+- **Lizenz von Lora Namensschutz**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/ADEU-Harness (kostenlos nutzbar;
+  Änderungen und Weiterverbreitung nur mit Genehmigung). Das Basismodell bleibt unter seiner eigenen Lizenz (unten).
+- **Feintuning**: Token-Klassifikation (BIO), 32400 erfundene Trainingstexte, beste Epoche
   3 von 3.
 - **Daten**: ausschließlich erfundene Texte. Claude (Anthropic) hat als Lehrer-Modell Vorlagen mit Platzhaltern
   geschrieben (`tools/pii/vorlagen`), ein Skript hat erfundene Namen, Einrichtungen und Orte eingesetzt
   (`tools/pii/gen.py`). Keine echten Interviews, Abgaben, Mails oder Schülerdaten.
-- **Format**: ONNX, int8 (dynamische Quantisierung), 110 MB; Tokenizer `vocab.txt`/`tokenizer.json`.
+- **Format**: ONNX, int8 (dynamische Quantisierung pro Kanal), 111 MB; Tokenizer `vocab.txt`/`tokenizer.json`.
 
 ## Kennzahlen (Messkorpus `tools/pii/messkorpus`, int8)
 | | Entwicklung | Prüfteil |
 | --- | --- | --- |
-| Modell allein | 97.1 % gefunden, 1.7 % fälschlich ersetzt | 99.2 % gefunden, 5.8 % fälschlich ersetzt |
-| wie in der App geplant (Regeln ohne Vornamen-Raten + Modell) | 97.1 % gefunden, 2.2 % fälschlich ersetzt | 99.2 % gefunden, 5.8 % fälschlich ersetzt |
+| Modell allein | 95.9 % gefunden, 1.1 % fälschlich ersetzt | 98.9 % gefunden, 2.5 % fälschlich ersetzt |
+| wie in der App geplant (Regeln ohne Vornamen-Raten + Modell) | 95.9 % gefunden, 1.7 % fälschlich ersetzt | 98.9 % gefunden, 3.3 % fälschlich ersetzt |
 
-Schwelle 0.9 (auf dem Entwicklungsteil gewählt, `schwelle.json`). Zeit je Absatz (CPU, ONNX
-Runtime, 4 Kerne): Median 7.7 ms, 95 % unter 12.2 ms.
-In der App gemessen (`PiiModelTest`, Regeln + Modell über die ONNX Runtime der App): Prüfteil 99,2 % gefunden,
-7,4 % fälschlich ersetzt; Entwicklung 97,1 % und 2,2 %; etwa 11 ms je Absatz.
-Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % fälschlich ersetzt – das zweite ist noch
-nicht erreicht (vor allem öffentliche Personen, die das Modell nicht kennt).
+Schwelle 0.93 (auf dem Entwicklungsteil gewählt, `schwelle.json`). Zeit je Absatz (CPU, ONNX
+Runtime, 4 Kerne): Median 8.4 ms, 95 % unter 13.7 ms.
+Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % fälschlich ersetzt.
 
 ## Grenzen
 - Kennt nur, was in den Vorlagen vorkommt: Deutsch, Schul- und Hochschulalltag. Andere Sprachen und Fachgebiete sind
@@ -38,6 +39,15 @@ nicht erreicht (vor allem öffentliche Personen, die das Modell nicht kennt).
 - Ein Mensch prüft im Zweifel die Vorschau; „nicht ersetzen“/„auch ersetzen“ gehen vor.
 
 ## Lizenz des Basismodells (deepset/gbert-base, MIT)
+
+gbert-base (Hugging Face: deepset/gbert-base, Version d50cb1df9660ff2de1af8a5362d322b3d5a1a28a)
+Urheber: deepset GmbH (Branden Chan, Stefan Schweter, Timo Möller). Lizenz: MIT.
+
+Lora Namensschutz ist eine abgeleitete Arbeit: Das Basismodell wurde von uns feinabgestimmt und verändert (Feintuning
+auf erfundenen Texten mit tools/pii, eigener Kopf für die Token-Klassifikation, Export als ONNX int8). Lora Namensschutz
+ist kein Produkt von deepset; die Urheber des Basismodells haben es weder geprüft noch gebilligt.
+
+MIT License
 
 Copyright 2022 deepset GmbH
 

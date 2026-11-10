@@ -1,0 +1,101 @@
+# Nachschärfung, zweite Runde (10.11.2026) – nur nach den Fehlern im Entwicklungsteil (Bericht des ersten Modells,
+# `bericht-distilbert.json` › fehler_entwicklung). Arten der Fehler: Wünsche mit Wert ohne Verb vorn, Umgangssprache und
+# Dialektgrüße, Englisch, Bedarf statt Ziel („ich muss was …“), knappe Stichwörter, Fragen nach Loras Verhalten.
+# Keine Sätze aus dem Messkorpus; der Prüfteil wurde nicht angesehen.
+
+== tu:files.rename
+s: nenn sie „{DATEI}“ | die datei bitte „{DATEI}“ nennen | name ändern: „{DATEI}“ | umbenennen, neuer name {DATEI} | heißen soll die datei {DATEI} | mach den dateinamen zu {DATEI} | {DATEI} als neuer dateiname | kannst du die datei in {DATEI} umbenennen | taufe die datei auf {DATEI} | call the file {DATEI} | anderer name für die datei: {DATEI} | die markierte datei soll „{DATEI}“ heißen
+
+== tu:files.transcribe
+s: verschriftliche die tondatei | die audio datei verschriften | aufnahme in text umwandeln | tippe die aufnahme ab | die sprachaufnahme als text | mach ein transkript von der mp3 | verschriftung der aufnahme bitte | aus dem interview audio text machen | die wav transkribieren | turn this audio into text | sprachmemo abschreiben lassen | transkript der ausgewählten tondatei
+
+== tu:pdf.split
+s@pdf,dateien: pdf trennen: {SEITEN} | aufteilen in {SEITEN} | das pdf splitten, {SEITEN} | pdf zerteilen in {SEITEN} | trenn das pdf auf, {SEITEN} | split, {SEITEN} | pdf in zwei teile: {SEITEN} | mach zwei pdfs draus, {SEITEN} | pdf auftrennen nach seite {SEITE} | splitte {DATEI} in {SEITEN}
+
+== tu:sheet.summary
+s@tabelle: mittelwerte berechnen | durchschnitt ausrechnen | rechne den schnitt aus | kennzahlen ausrechnen | rechne summe und mittelwert | mittelwert und standardabweichung bitte | die durchschnitte je spalte | statistik über die spalten | zahlen zusammenfassen, mittelwert usw | calculate the averages | rechne mal die mittelwerte | wie ist der durchschnitt in {SPALTE}
+
+== tu:slides.beautify
+s@folien: folie schicker machen | mach die folie hübsch | die folie aufpeppen | folie verschönern | die folie sieht langweilig aus, aufhübschen | design der folie verbessern | folie ansprechender gestalten | mach was schönes aus der folie | make this slide look nicer | folie optisch aufwerten | hübsch die folie auf
+
+== ort:tool.pdf
+s: wo is das pdf werkzeug | pdf werkzeugkasten wo | wo sind die pdf werkzeuge | ich muss was mit einem pdf machen | ich hab ein pdf und muss es bearbeiten | pdf unterschreiben, wo geht das | ich muss ein pdf signieren | wo kann ich ein pdf zusammenfügen | where are the pdf tools | wo bearbeite ich pdfs | pdf kram, wo | ich will ein pdf ausfüllen, wo mach ich das
+
+== ort:option.appearance.language
+s: wie bekomm ich die app in englisch | wie bekomme ich englische menüs | wo stell ich englisch ein | wie mach ich die sprache englisch | app in english, wo | how do i get the app in english | wie kriege ich die oberfläche auf deutsch | wo ist die spracheinstellung der app
+
+== ort:area.scan
+s: i want to scan a document | i need to scan something | ich will was scannen | ich muss was einscannen | wo scanne ich | scanner | dokument abfotografieren und als pdf | wo ist der scanner | scan something | ein blatt einscannen, wo | where can i scan
+
+== ort:area.files
+s: wo ist die datei von gestern | wo finde ich meine dateien | wo liegen meine sachen | wo sind meine dokumente | meine dateien bitte | where are my files | ich such eine datei | wo hab ich die datei gespeichert
+
+== ort:area.transcripts
+s: ich hab eine aufnahme und brauch den text dazu | aus einer aufnahme text machen, wo | ich habe ein interview aufgenommen und will es abtippen | wo kann ich aufnahmen verschriften | transkribieren, wo geht das | i have a recording and need a transcript | wo mach ich aus audio text | aufnahme vom vortrag in text umwandeln, wo
+
+== ort:area.images
+s: ich brauch ein bild, wo mach ich das | wo kann ich bilder erzeugen lassen | ich möchte eine grafik generieren | wo ist die bilderstellung | ich brauche ein foto für die folie, wo erstelle ich das | bild generieren | where can i create an image | wo lasse ich eine illustration machen
+
+== ort:area.settings
+s: ab in die einstellungen | einstellungen bitte | geh zu den einstellungen | zu den einstellungen | einstellungen aufmachen | open settings | settings | ich will in die einstellungen
+
+== ort:settings.backup
+s: alles mitnehmen auf den neuen pc | daten für den neuen laptop exportieren | sicherung machen | alles sichern | backup erstellen | meine daten auf einen anderen rechner bringen | export für den umzug auf einen neuen computer | wo mache ich ein backup | backup my data | einstellungen und chats sichern
+
+== ort:settings.ram
+s: speicherverbrauch anzeigen | wie viel arbeitsspeicher braucht die app | ram nutzung | arbeitsspeicher messen | wo sehe ich den speicherverbrauch | die app braucht zu viel ram | ram | memory usage of the app | wie viel speicher frisst lora
+
+== ort:settings.sync
+s: datenordner in die cloud legen | den lora ordner in nextcloud | sync über google drive einrichten | synchronisieren mit onedrive | ordner in der cloud synchronisieren | zwei pcs abgleichen | wo richte ich den sync ein | sync my data with onedrive | daten auf beiden rechnern gleich halten
+
+== ort:settings.help
+s: die app ist abgestürzt, wo melde ich das | ich will einen fehler melden | problem melden | absturz melden | wem sage ich, dass etwas nicht geht | bug melden | wo kann ich feedback geben | report a problem | die app hängt, wo melde ich das | fehler gefunden, wo schreib ich das hin
+
+== ort:settings.documents
+s: briefkopf einstellen | briefkopf und absender | logo und briefkopf für dokumente | wo stelle ich den briefkopf ein | einstellungen für dokumente | letterhead settings
+
+== ort:option.documents.logo
+s: logo für den briefkopf | wo kommt das logo in die dokumente | eigenes logo einfügen, wo | logo ändern | welches logo steht oben im brief, wo ändere ich das
+
+== ort:option.documents.sender
+s: absender für briefe | meine adresse für den briefkopf | wo trage ich meine anschrift ein | absenderzeile ändern | wo steht meine adresse in den dokumenten | sender address for letters
+
+== lora:chats
+s: woran hab ich zuletzt gesessen | was hab ich zuletzt gemacht | meine letzten sachen | zuletzt bearbeitet | was war mein letzter chat | what did i work on last | wo war ich stehen geblieben | weiter wo ich aufgehört habe
+
+== lora:hilfe
+s: wie startet man modi | wie benutze ich die modi | wie funktionieren die modi | wie geht das mit den vorlagen | wie lege ich einen chat an | wie funktioniert die suche hier | how do modes work | wie benutzt man {THEMAAPP}
+
+== lora:postfach
+s: such einen termin mit {NAME} nächste woche | wann kann ich mich mit {NAME} treffen | freien termin finden mit {NAME} | termin mit {NAME} vorschlagen | wann hat {NAME} zeit | find a free slot with {NAME} | ich brauche einen termin mit {NAME} am donnerstag
+
+== ort:option.appearance.theme
+s: hell dunkel | helligkeit der app | heller oder dunkler, wo | dunkel oder hell einstellen | wo stelle ich die helligkeit ein | brightness | dark or light mode where
+
+== ort:option.chat.defaultModel
+s: anderes standardmodell | welches modell startet neue chats | voreinstellung modell ändern | standard modell wechseln | ein anderes modell als standard nehmen | default model change
+
+== ort:option.chat.collapse
+s: werkzeugschritte eingeklappt | wo stelle ich ein, dass die schritte eingeklappt sind | schritte zusammengeklappt anzeigen, einstellung | einstellung für eingeklappte werkzeugschritte | wo ist die option schritte einklappen
+
+== ort:option.lora.mode
+s: wo taucht lora überall auf | wo zeigt sich lora, kann man das einstellen | lora nur an bestimmten stellen, wo | einstellung wo lora erscheint | where does lora show up | wo stelle ich ein, wo lora zu sehen ist
+
+== ort:option.lora.calm
+s: lora zappelt zu viel | lora soll ruhiger sein, wo stelle ich das ein | weniger bewegung bei lora, wo | lora animationen ruhiger | lora is too animated | wo mache ich lora ruhiger | lora wackelt ständig, einstellung
+
+== ort:option.lora.place
+s: wo lora arbeitet einstellen | lokal oder server, wo stelle ich das ein | lora gemischt oder nur lokal, wo | wo stelle ich den mischmodus ein | where does lora run setting | einstellung nur lokal für lora
+
+== ort:option.lora.handoffReview
+s: lora soll fragen erst ins eingabefeld schreiben | übergaben erst ins eingabefeld | vor dem senden an den chat erst prüfen, einstellung | wo stelle ich ein, dass die übergabe nicht sofort gesendet wird | handoff review setting
+
+== ort:place.video.new
+s: neues video projekt | video projekt erstellen | ein neues videoprojekt anlegen | neues projekt im videoeditor | start a new video project | videoprojekt neu | ich will ein neues video schneiden
+
+== stell:text_size
+v:1.15: ich brauch eine größere schrift | ich bräuchte größere buchstaben | größere schrift bitte | die schrift ist so klein | ich seh nix, schrift größer | schrift ne nummer größer | etwas größere schrift | grössere schrift
+v:0.9: ich brauch eine kleinere schrift | kleinere buchstaben bitte | schrift ne nummer kleiner | etwas kleinere schrift
+
+== stell:lora
+v:OFF: lora soll weg | lora brauche ich nicht | ohne lora bitte | lora nervt, weg damit | keine lora mehr | ich möchte lora nicht mehr sehen müssen | get rid of lora

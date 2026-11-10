@@ -11,8 +11,9 @@ Placeholders (an optional w/m fixes the gender, a digit the person – {Vw1} or 
     {V} first name · {N} surname · {VN} full name · {NV} "Surname, First name" · {IN} "A. Surname" · {P} any of them
     ({v}, {n}, {vn}: the same in lower case, as typed quickly in a chat)
     {SCHULE} {KITA} {PRAXIS} {VEREIN} {EINR} institution · {ORT} place with personal reference      → labelled
-    {AUT} cited surname · {AUTVN} author's full name · {OEFF} public person · {OEINR} public institution
-    {OORT} place without personal reference · {WERK} title of a book                                 → stay (O)
+    {AUT} cited surname · {AUTVN} author's full name · {AUTREF} "Surname, I." (one to three authors)
+    {LIT} a whole literature reference · {OEFF} public person · {OEFFN} surname of a public person
+    {OEINR} public institution · {OORT} place without personal reference · {WERK} title of a book    → stay (O)
     {KLASSE} {FACH} {JAHR} {DATUM} {UHR} {ZAHL} {NOTE} {MAIL} {MAIL1} {TEL} {INI} (an initial "H.")   → stay (O)
 
 The Messkorpus stays out: names and words of its details are never drawn (``--ohne-sperre`` for the final model), and
@@ -42,7 +43,7 @@ OUT = HERE / "daten"
 SLOT = re.compile(r"\{([A-Z]+|vn|v|n)([wm])?(\d)?([wm])?(:gen)?\}")
 PERSON_FORMS = {"V", "N", "VN", "NV", "IN", "P"}
 INSTITUTIONS = {"SCHULE", "KITA", "PRAXIS", "VEREIN", "EINR"}
-PUBLIC = {"AUT", "AUTVN", "OEFF", "OEINR", "OORT", "WERK"}
+PUBLIC = {"AUT", "AUTVN", "AUTREF", "LIT", "OEFF", "OEFFN", "OEINR", "OORT", "WERK"}
 FILLERS = {"KLASSE", "FACH", "JAHR", "DATUM", "UHR", "ZAHL", "NOTE", "MAIL", "TEL", "INI"}
 ALL_SLOTS = PERSON_FORMS | INSTITUTIONS | PUBLIC | FILLERS | {"ORT"}
 
@@ -186,6 +187,39 @@ class Filler:
             return [(p.last, "PER"), (", ", None), (g(p.first), "PER")]
         return [(g(f"{p.first[0]}. {p.last}"), "PER")]
 
+    def author(self) -> str:
+        r = self.rng
+        return self.draw(lambda: r.choice(namen.AUTHORS) if r.random() < 0.65 else self.last())
+
+    def authors_ref(self, n: int) -> list[tuple[str, str | None]]:
+        """ "Helmke, A.", "Kunter, M. & Baumert, J.", "Klieme, E., Lipowsky, F. & Rakoczy, K." – all public."""
+        r = self.rng
+        out: list[tuple[str, str | None]] = []
+        for i in range(n):
+            if i:
+                out.append((" & " if i == n - 1 else ", ", None) if r.random() < 0.7 else (" und " if i == n - 1 else ", ", None))
+            ini = r.choice("ABCDEFGHIJKLMNOPRSTUVW") + "." + (f"-{r.choice('ABCDEFGHJKMPRSW')}." if r.random() < 0.1 else "")
+            out.append((self.author(), "AUT"))
+            out.append((f", {ini}", None))
+        return out
+
+    def literature(self) -> list[tuple[str, str | None]]:
+        """A whole reference: authors, year, title and publisher or journal – nothing in it is private."""
+        r = self.rng
+        n = r.choices([1, 2, 3, 4], [40, 30, 20, 10])[0]
+        out = self.authors_ref(min(n, 3))
+        if n == 4:
+            out.append((" et al.", None))
+        year = f" ({r.randint(1970, 2025)}{r.choice(['', '', '', 'a', 'b'])})."
+        out.append(((" (Hrsg.)" if r.random() < 0.15 else "") + year, None))
+        title = f" {r.choice(namen.TITLE_HEADS)} {r.choice(namen.TITLE_TAILS)}".replace(" :", ":").replace(" –", " –")
+        out.append((title + ".", None))
+        if r.random() < 0.5:
+            out.append((f" {r.choice(namen.PUBLISHERS)}.", None))
+        else:
+            out.append((f" {r.choice(namen.JOURNALS)}, {r.randint(10, 70)}({r.randint(1, 6)}), {r.randint(1, 400)}–{r.randint(401, 800)}.", None))
+        return out
+
     def fill(self, kind: str, gender: str | None, index: str | None, gen: bool, textart: str) -> list[tuple[str, str | None]]:
         r = self.rng
         if kind in PERSON_FORMS:
@@ -214,6 +248,13 @@ class Filler:
         if kind == "OEFF":
             v = self.draw(lambda: r.choice(namen.PUBLIC_PERSONS))
             return [(genitive(v) if gen else v, "OEFF")]
+        if kind == "OEFFN":
+            v = self.draw(lambda: next(x for x in iter(lambda: namen.surname_of(r.choice(namen.PUBLIC_PERSONS)), "") if x))
+            return [(genitive(v) if gen else v, "OEFF")]
+        if kind == "AUTREF":
+            return self.authors_ref(r.choices([1, 2, 3], [55, 30, 15])[0])
+        if kind == "LIT":
+            return self.literature()
         if kind == "OEINR":
             return [(self.draw(lambda: namen.public_institution(r)), "OEINR")]
         if kind == "OORT":

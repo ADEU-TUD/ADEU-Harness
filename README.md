@@ -265,8 +265,25 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Satz Erklärung. Wer Lora schon nutzt, bekommt die Frage einmalig als „Neu: Modelle für dieses Gerät“ („Übernehmen“,
     „Später“, „Nicht mehr fragen“).
   - Werkzeuge, Messkorpus und Zahlen: [`tools/befehle/README.md`](tools/befehle/README.md). **Auf Android noch
-    ungetestet** (JNA und die ONNX Runtime von sherpa-onnx, wie beim Erkennungsmodell).
-- **„Meinst du … oder …?“ statt Weitergabe** (seit 1.0.66, AP-73): Ist das Befehlsmodell unsicher, schwankt aber nur
+    ungetestet** (JNA und die ONNX Runtime von sherpa-onnx, wie bei Lora Namensschutz).
+- **Neue, bessere Modelle: Lora Namensschutz und Lora Befehle** (seit 1.0.66, AP-67/AP-71): Die beiden kleinen Modelle
+  auf dem Gerät heißen jetzt **Lora Namensschutz** (bisher „Erkennungsmodell“ der Pseudonymisierung) und **Lora Befehle**
+  (bisher „Befehlsmodell“) und sind nachtrainiert – nur mit erfundenen Daten, gemessen auf dem Prüfteil, der nie zum
+  Training diente:
+  - **Lora Befehle** trifft **95 %** der Befehle selbst (vorher 84 %), führt 1,3 % der Eingaben falsch aus (Ziel höchstens
+    2 %) und gibt 98 % der freien Anfragen an ein Sprachmodell weiter – auch umgangssprachlich („wo is …“, „servus, …“),
+    auf Englisch und mit Wünschen statt Zielen („ich muss was mit einem PDF machen“). Download 55 MB.
+  - **Lora Namensschutz** ersetzt in der App ein Drittel weniger öffentliche Angaben fälschlich (5,0 % statt 7,4 %; mehr
+    Beispiele mit öffentlichen Personen, zitierten Autor:innen und Literaturangaben) und findet weiter 98,5 % der privaten.
+    Das Ziel „höchstens 2 %“ ist noch offen (AP-67). Download 93 MB.
+  - **Update ohne Bruch**: Wer eines der alten Modelle hat, arbeitet damit weiter und bekommt die neue Version einmal
+    angeboten („Neue Version von …“, „Laden“, „Später“, „Nicht mehr fragen“; auch unter *Einstellungen › Inhalte zum
+    Nachladen* als *Aktualisieren*). Nach dem Laden wird die alte Datei gelöscht.
+  - **Herkunft und Lizenz**: Lora Namensschutz beruht auf `deepset/gbert-base` (deepset GmbH, MIT), Lora Befehle auf
+    `distilbert-base-german-cased` (Hugging Face, Apache-2.0); beide Basismodelle wurden von uns feinabgestimmt und
+    verändert, ihre Urheber haben unsere Modelle weder geprüft noch gebilligt. Modellkarten mit Lizenztext unter
+    *Modellkarte* in den Einstellungen; für die Modelle selbst gilt [`License.md`](License.md).
+- **„Meinst du … oder …?“ statt Weitergabe** (seit 1.0.66, AP-73): Ist Lora Befehle unsicher, schwankt aber nur
   zwischen zwei Befehlen, zeigt Lora die beiden als Knöpfe und dazu **Etwas anderes** (dann geht der Wunsch wie bisher an
   Regeln und Sprachmodell) – sofort und offline, statt einen Server zu fragen. Ein Tipp führt den Befehl aus wie einen
   sicher erkannten (Einstellungen und riskante Aktionen fragen weiter nach). Gemessen auf den ungesehenen Wünschen: Bei
@@ -275,7 +292,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Die Untergrenze (0,3) ist nur auf dem Entwicklungsteil des Messkorpus gewählt (`tools/befehle/rueckfrage.py`).
 - **Lora lernt aus Korrekturen** (seit 1.0.66, AP-72): Wählst du einen der zwei Knöpfe, schreibst „nein, ich meinte …“
   oder tippst in Loras Antwort auf den richtigen Ort, merkt sich Lora das Paar *Wunsch → gemeinte Aktion* **auf diesem
-  Gerät** und führt den Wunsch beim nächsten Mal sofort richtig aus – vor dem Befehlsmodell, ohne Sprachmodell.
+  Gerät** und führt den Wunsch beim nächsten Mal sofort richtig aus – vor Lora Befehle, ohne Sprachmodell.
   „Rückgängig“ direkt nach einer Aktion, die Lora auf dem Gerät erkannt hat, heißt umgekehrt: diese Aktion für diesen
   Wunsch nicht mehr ohne Rückfrage. *Einstellungen › Lora › Was Lora aus Korrekturen gelernt hat* zeigt die Liste mit
   *Löschen* je Eintrag und *Alle löschen*, einen Schalter und *Exportieren …*: Nach dem Durchsehen (Häkchen weg bei
@@ -309,7 +326,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Lora auf dem Gerät. **Wissenspaket „Lehramt an der TU Dresden“** (39 Einträge: Einrichtungen, Studiengänge, Praktika,
   Prüfungen, Ordnungen, Ansprechstellen) – jede Angabe mit Quelle und Stand, nur aus offiziellen Seiten von TU Dresden und
   Freistaat ([`tools/wissen/`](tools/wissen/README.md)), geladen wie die Modelle (fester Commit, SHA-256). **Einstellungen ›
-  Inhalte zum Nachladen** zeigt alles Nachladbare (Befehlsmodell, Erkennungsmodell, Sprachmodelle, Spracherkennung,
+  Inhalte zum Nachladen** zeigt alles Nachladbare (Lora Befehle, Lora Namensschutz, Sprachmodelle, Spracherkennung,
   Videoeditor-Paket, Wissenspakete) mit Zweck, Größe, Laden/Aktualisieren/Löschen. Test `VocabularyTest`.
 - **Hausstil-Prüfung und Barrierefreiheits-Check** (seit 1.0.66, AP-79): „Prüfe Hausstil und Barrierefreiheit“ im
   Dokument oder in Folien zeigt jede Fundstelle („Absatz 4“, „Folie 2“): eigene Regeln der Professur (*Einstellungen ›
@@ -1781,7 +1798,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
-| `data/CommandModel.kt`, `agent/LoraCommands.kt`, `agent/CommandSlots.kt`, `agent/ModelRouter.kt`, `data/LoraWays.kt`, `ui/CommandModelPrompt.kt`, `tools/befehle/` | Befehlsmodell und Mischmodus (AP-71): Etiketten aus dem Code, Erkennung über die ONNX Runtime, Werte aus dem Wunsch, Ausführung, Ort je Anfrage, Zähler, Einstellungen und Dialoge; Messkorpus, Trainingsdaten, Training und Export |
+| `data/CommandModel.kt`, `agent/LoraCommands.kt`, `agent/CommandSlots.kt`, `agent/ModelRouter.kt`, `data/LoraWays.kt`, `ui/CommandModelPrompt.kt`, `tools/befehle/` | Lora Befehle (Befehlsmodell) und Mischmodus (AP-71): Etiketten aus dem Code, Erkennung über die ONNX Runtime, Werte aus dem Wunsch, Ausführung, Ort je Anfrage, Zähler, Einstellungen und Dialoge; Messkorpus, Trainingsdaten, Training und Export |
 | `data/LoraCorrections.kt`, `ui/LoraCorrectionsSettings.kt`, `tools/befehle/rueckfrage.py` | Rückfrage mit zwei Knöpfen (AP-73: `CommandRecognizer.choices`, `LoraStep.Choose`) und Lora lernt aus Korrekturen (AP-72): Liste auf dem Gerät, Einstellungen, Export für das Training |
 | `ui/ErrorHelp.kt`, `ui/Notices.kt` | Fehlermeldungen in Klartext mit Lösungsknopf (AP-74) |
 | `data/LoraHistory.kt`, `ui/LoraRecent.kt` | Lora-Verlauf, Pfeil hoch, angeheftete Befehle in Strg+K (AP-75) |
@@ -1792,7 +1809,7 @@ Chats und Einstellungen erhalten bleiben).
 | `data/Roles.kt` | Rollenauswahl beim ersten Start (AP-80) |
 | `ui/MediaLook.kt`, `ui/MediaPreview.kt` | Video und Ton in der Schnellansicht (AP-82) |
 | `files/AttachmentBudget.kt`, `ui/LargeAttachment.kt` | Große Anhänge: Grenze nach Modell, passende Stellen, Zusammenfassung (AP-85) |
-| `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Erkennungsmodell der Pseudonymisierung (AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
+| `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Lora Namensschutz (Erkennungsmodell der Pseudonymisierung, AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |
 | `docs/AccessibilityCheck.kt`, `docs/PdfAccessibility.kt`, `docs/Contrast.kt` | Barrierefreiheit prüfen, PDF-Metadaten, Farbkontrast |

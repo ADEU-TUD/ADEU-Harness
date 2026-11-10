@@ -88,7 +88,7 @@ object AppMap {
         settings("sync", trLater("Synchronisation"), trLater("Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten."), "sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner", android = false),
         settings("storage", trLater("Speicherorte"), trLater("Eigene Ordner für Dokumente, z. B. in Google Drive."), "speicherort ablage ordner google drive onedrive", android = false),
         settings("updates", trLater("Updates"), trLater("Version, nach Updates suchen, automatische Suche."), "update aktualisieren neue version installieren"),
-        settings("downloads", trLater("Inhalte zum Nachladen"), trLater("Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen."), "nachladen herunterladen download modelle wissenspaket lehramt paket befehlsmodell erkennungsmodell"),
+        settings("downloads", trLater("Inhalte zum Nachladen"), trLater("Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen."), "nachladen herunterladen download modelle wissenspaket lehramt paket befehlsmodell erkennungsmodell lora befehle namensschutz"),
         settings("help", trLater("Problem melden"), trLater("Fehler beschreiben und anonymes Protokoll senden."), "problem fehler melden bug feedback absturz"),
     )
 
@@ -114,7 +114,7 @@ object AppMap {
         option("chat.approvals", "chat", trLater("Freigaben"), trLater("Chat & Werkzeuge › Freigaben"), trLater("Wann der Agent vor Änderungen fragt."), "freigabe fragen bestätigen genehmigen"),
         option("lora.mode", "lora", trLater("Lora ein- oder ausblenden"), trLater("Lora › Wo Lora erscheint"), trLater("Überall, nur im Chat oder aus."),
             "lora ausblenden ausschalten verstecken weg maskottchen figur einblenden"),
-        option("lora.place", "lora", trLater("Wo Lora arbeitet"), trLater("Lora › Wo Lora arbeitet"), trLater("Gemischt, nur lokal oder nur über den Server; Befehlsmodell."),
+        option("lora.place", "lora", trLater("Wo Lora arbeitet"), trLater("Lora › Wo Lora arbeitet"), trLater("Gemischt, nur lokal oder nur über den Server; Lora Befehle."),
             "gemischt mischmodus lokal server offline gerät befehlsmodell befehle wo arbeitet lora"),
         option("lora.calm", "lora", trLater("Ruhigere Bewegungen"), trLater("Lora › Ruhigere Bewegungen"), trLater("Lora bewegt sich weniger."), "animation ruhig weniger bewegung reduziert"),
         option("privacy.pseudonymize", "privacy", trLater("Pseudonymisierung"), trLater("Datenschutz › Pseudonymisierung"), trLater("Namen und persönliche Angaben vor dem Senden ersetzen."),

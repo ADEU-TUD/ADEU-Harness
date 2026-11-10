@@ -1,0 +1,543 @@
+{
+  "basis": "deepset/gbert-base",
+  "revision": "d50cb1df9660ff2de1af8a5362d322b3d5a1a28a",
+  "daten": 32400,
+  "epochen": [
+    {
+      "epoche": 1,
+      "verlust": 0.1056,
+      "f1_dev": 0.9425,
+      "entwicklung_gefunden": 97.4,
+      "entwicklung_falsch": 3.9,
+      "guete": 89.5,
+      "minuten": 49.6
+    },
+    {
+      "epoche": 2,
+      "verlust": 0.0008,
+      "f1_dev": 0.9475,
+      "entwicklung_gefunden": 97.9,
+      "entwicklung_falsch": 4.5,
+      "guete": 88.96,
+      "minuten": 48.3
+    },
+    {
+      "epoche": 3,
+      "verlust": 0.0002,
+      "f1_dev": 0.945,
+      "entwicklung_gefunden": 96.5,
+      "entwicklung_falsch": 2.8,
+      "guete": 90.86,
+      "minuten": 46.3
+    }
+  ],
+  "beste_epoche": 3,
+  "schwelle": 0.93,
+  "schwellen_entwicklung": [
+    {
+      "schwelle": 0.3,
+      "gefunden": 96.48,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.4,
+      "gefunden": 96.48,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.5,
+      "gefunden": 96.48,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.6,
+      "gefunden": 96.48,
+      "falsch_ersetzt": 2.81
+    },
+    {
+      "schwelle": 0.7,
+      "gefunden": 96.48,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.75,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.8,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.85,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.9,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 2.25
+    },
+    {
+      "schwelle": 0.93,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 1.69
+    },
+    {
+      "schwelle": 0.95,
+      "gefunden": 95.89,
+      "falsch_ersetzt": 1.69
+    },
+    {
+      "schwelle": 0.97,
+      "gefunden": 95.6,
+      "falsch_ersetzt": 1.69
+    }
+  ],
+  "entwicklung_modell": {
+    "gefunden": 95.9,
+    "falsch_ersetzt": 1.1,
+    "je_art_gefunden": {
+      "PER": "282/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "0/7"
+    },
+    "je_art_falsch": {
+      "EINR": "0/33",
+      "OEFF": "0/37",
+      "WORT": "1/32",
+      "AUT": "0/49",
+      "ORT": "1/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Lukas"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Mia"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Elias"
+      ],
+      [
+        "elterngespraech:entwicklung:14",
+        "MUSTER",
+        "0176 23498761"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "gutachten:entwicklung:16",
+        "PER",
+        "Theo"
+      ],
+      [
+        "interview:entwicklung:20",
+        "PER",
+        "Petra Leuschner"
+      ],
+      [
+        "mail:entwicklung:8",
+        "MUSTER",
+        "0351 4637 2210"
+      ],
+      [
+        "mail:entwicklung:13",
+        "MUSTER",
+        "pruefungsamt@tu-dresden.de"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "mail:entwicklung:31",
+        "MUSTER",
+        "nadine.schmiedel@gmx.de"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "laura.thiele@mailbox.org"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ],
+      [
+        "tabelle:entwicklung:10",
+        "MUSTER",
+        "0351 8475621"
+      ]
+    ],
+    "falsch": [
+      [
+        "interview:entwicklung:34",
+        "WORT",
+        "Frank"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ]
+    ]
+  },
+  "entwicklung_regeln_und_modell": {
+    "gefunden": 97.9,
+    "falsch_ersetzt": 9.0,
+    "je_art_gefunden": {
+      "PER": "289/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "1/33",
+      "OEFF": "9/37",
+      "WORT": "2/32",
+      "AUT": "3/49",
+      "ORT": "1/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "bericht:entwicklung:5",
+        "AUT",
+        "Paul Maar"
+      ],
+      [
+        "bericht:entwicklung:23",
+        "OEFF",
+        "Frida Kahlo"
+      ],
+      [
+        "bericht:entwicklung:32",
+        "OEFF",
+        "Uwe Steimle"
+      ],
+      [
+        "bericht:entwicklung:38",
+        "OEFF",
+        "Kurt Biedenkopf"
+      ],
+      [
+        "bericht:entwicklung:40",
+        "OEFF",
+        "Hasen Felix"
+      ],
+      [
+        "chat:entwicklung:39",
+        "AUT",
+        "Wolfgang Herrndorf"
+      ],
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "gutachten:entwicklung:33",
+        "AUT",
+        "Thomas Ziehe"
+      ],
+      [
+        "interview:entwicklung:34",
+        "WORT",
+        "Frank"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ],
+      [
+        "wissenschaft:entwicklung:8",
+        "OEFF",
+        "Greta Thunberg"
+      ],
+      [
+        "wissenschaft:entwicklung:10",
+        "OEFF",
+        "Thomas Müller"
+      ],
+      [
+        "wissenschaft:entwicklung:11",
+        "EINR",
+        "Robert Koch-Instituts"
+      ],
+      [
+        "wissenschaft:entwicklung:16",
+        "OEFF",
+        "Michel aus Lönneberga"
+      ],
+      [
+        "wissenschaft:entwicklung:29",
+        "OEFF",
+        "Hans im Glück"
+      ],
+      [
+        "wissenschaft:entwicklung:45",
+        "OEFF",
+        "Helene Fischer"
+      ]
+    ]
+  },
+  "entwicklung_geplant": {
+    "gefunden": 95.9,
+    "falsch_ersetzt": 1.7,
+    "je_art_gefunden": {
+      "PER": "282/289",
+      "ORT": "19/26",
+      "EINR": "26/26",
+      "MUSTER": "6/7"
+    },
+    "je_art_falsch": {
+      "EINR": "0/33",
+      "OEFF": "0/37",
+      "WORT": "2/32",
+      "AUT": "0/49",
+      "ORT": "1/27"
+    },
+    "sonstige_je_1000": 1.0,
+    "uebersehen": [
+      [
+        "bericht:entwicklung:6",
+        "ORT",
+        "Liberec"
+      ],
+      [
+        "bericht:entwicklung:41",
+        "ORT",
+        "Neustadt in Sachsen"
+      ],
+      [
+        "bericht:entwicklung:47",
+        "ORT",
+        "Annaberg-Buchholz"
+      ],
+      [
+        "chat:entwicklung:6",
+        "PER",
+        "Anna"
+      ],
+      [
+        "chat:entwicklung:14",
+        "PER",
+        "Lena"
+      ],
+      [
+        "chat:entwicklung:17",
+        "ORT",
+        "Moritzburg"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Lukas"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Mia"
+      ],
+      [
+        "chat:entwicklung:21",
+        "PER",
+        "Elias"
+      ],
+      [
+        "gutachten:entwicklung:6",
+        "ORT",
+        "Meißen"
+      ],
+      [
+        "gutachten:entwicklung:16",
+        "PER",
+        "Theo"
+      ],
+      [
+        "interview:entwicklung:20",
+        "PER",
+        "Petra Leuschner"
+      ],
+      [
+        "mail:entwicklung:25",
+        "ORT",
+        "Bautzen"
+      ],
+      [
+        "protokoll:entwicklung:10",
+        "ORT",
+        "Bad Schandau"
+      ],
+      [
+        "tabelle:entwicklung:3",
+        "MUSTER",
+        "4876123"
+      ]
+    ],
+    "falsch": [
+      [
+        "gutachten:entwicklung:11",
+        "WORT",
+        "LaborSchule"
+      ],
+      [
+        "interview:entwicklung:34",
+        "WORT",
+        "Frank"
+      ],
+      [
+        "mail:entwicklung:23",
+        "ORT",
+        "Wien"
+      ]
+    ]
+  },
+  "pruef_modell": {
+    "gefunden": 98.9,
+    "falsch_ersetzt": 2.5,
+    "je_art_gefunden": {
+      "PER": "204/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "0/4"
+    },
+    "je_art_falsch": {
+      "EINR": "0/19",
+      "ORT": "1/17",
+      "OEFF": "2/23",
+      "AUT": "0/48",
+      "WORT": "0/14"
+    },
+    "sonstige_je_1000": 2.2
+  },
+  "pruef_regeln_und_modell": {
+    "gefunden": 99.2,
+    "falsch_ersetzt": 11.6,
+    "je_art_gefunden": {
+      "PER": "205/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "1/19",
+      "ORT": "2/17",
+      "OEFF": "8/23",
+      "AUT": "2/48",
+      "WORT": "1/14"
+    },
+    "sonstige_je_1000": 3.1
+  },
+  "pruef_geplant": {
+    "gefunden": 98.9,
+    "falsch_ersetzt": 3.3,
+    "je_art_gefunden": {
+      "PER": "204/205",
+      "EINR": "31/31",
+      "ORT": "23/25",
+      "MUSTER": "3/4"
+    },
+    "je_art_falsch": {
+      "EINR": "0/19",
+      "ORT": "2/17",
+      "OEFF": "2/23",
+      "AUT": "0/48",
+      "WORT": "0/14"
+    },
+    "sonstige_je_1000": 3.1
+  }
+}

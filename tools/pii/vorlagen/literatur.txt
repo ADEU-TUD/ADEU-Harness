@@ -1,0 +1,158 @@
+# Vorlagen AP-67 · Textart: Literaturangaben, Zitate und Belege (Nachtraining 10.11.2026, Lehrer: Claude, erfunden)
+# Viele Gegenbeispiele: zitierte Autor:innen bleiben, private Personen (Betreuung, Interviewte) werden ersetzt.
+
+{LIT}
+
+{LIT}
+{LIT}
+
+{LIT}
+{LIT}
+{LIT}
+
+Literatur
+{LIT}
+{LIT}
+
+Literaturverzeichnis:
+{LIT}
+{LIT}
+{LIT}
+
+Quellen: {LIT} – {LIT}
+
+Zur Vertiefung empfehle ich {LIT}
+
+Grundlage der Sitzung ist {LIT} Bitte bis {DATUM} lesen.
+
+Pflichtlektüre für Woche {ZAHL}: {LIT}
+
+Hier noch die Literatur, die {Vw} im Seminar erwähnt hat: {LIT}
+
+{VN} hat mir für die Hausarbeit {LIT} empfohlen.
+
+Ergänzend: {AUTREF} ({JAHR}). Kapitel {ZAHL}.
+
+Siehe dazu {AUTREF} ({JAHR}, S. {ZAHL}–{ZAHL}).
+
+So argumentieren {AUT} und {AUT} ({JAHR}), dass Lernen immer sozial eingebettet ist.
+
+Mit {AUT} ({JAHR}) lässt sich Unterricht als Angebot verstehen, das genutzt werden muss.
+
+Das Angebots-Nutzungs-Modell nach {AUT} ({JAHR}) bildet den Rahmen dieser Arbeit.
+
+Die Kategorien wurden in Anlehnung an {AUT} ({JAHR}) deduktiv gebildet und am Material von {ZAHL} Interviews induktiv ergänzt.
+
+Ausgewertet wurde mit der qualitativen Inhaltsanalyse nach {AUT} ({JAHR}); die Interviewten werden mit Kürzeln wie {INI} bezeichnet.
+
+Wie {AUTVN} in ihrem Aufsatz von {JAHR} betont, ist Inklusion eine Aufgabe der ganzen Schule.
+
+{AUTVN} spricht in diesem Zusammenhang von einer „Kultur der Anerkennung“.
+
+Diese Unterscheidung stammt von {AUT}; später haben {AUT} et al. ({JAHR}) sie empirisch geprüft.
+
+„Bildung ist Selbstbildung“ – dieser Satz wird häufig {AUT} zugeschrieben.
+
+Das Zitat „{WERK}“ im Titel spielt auf {OEFF} an.
+
+Zentral ist hier {AUT:gen} Begriff der kategorialen Bildung.
+
+In der Tradition von {AUT} und {AUT} untersucht die Arbeit Bildungsprozesse im Jugendalter.
+
+Kritisch dazu äußert sich {AUT} ({JAHR}), der vor einer Überschätzung von Effektstärken warnt.
+
+Im Unterschied zu {AUT} ({JAHR}) wird hier ein weiter Inklusionsbegriff verwendet.
+
+Ein Überblick findet sich bei {AUT} ({JAHR}) sowie bei {AUT} und {AUT} ({JAHR}).
+
+Erste Hinweise darauf liefern die Studien von {AUT} ({JAHR}) und {AUT} ({JAHR}).
+
+Die Skala zur Klassenführung wurde von {AUT} et al. ({JAHR}) übernommen (α = .{ZAHL}).
+
+Zur Messung der Selbstwirksamkeit diente die Kurzskala von {AUT} und {AUT} ({JAHR}).
+
+Vgl. ausführlich {AUTREF} ({JAHR}). In: {AUTREF} (Hrsg.), Handbuch Schulforschung (S. {ZAHL}–{ZAHL}). Wiesbaden: Springer VS.
+
+Fußnote {ZAHL}: Ich folge hier {AUT} ({JAHR}, S. {ZAHL}).
+
+Anm.: Die Übersetzung aus dem Englischen stammt von der Verfasserin; im Original bei {AUT} ({JAHR}).
+
+Die Hausarbeit von {VN} stützt sich vor allem auf {AUT} ({JAHR}) und {AUT} ({JAHR}); eigene Daten fehlen.
+
+{VNw} zitiert {AUT} korrekt, verwechselt aber {AUT} und {AUT} in Kapitel {ZAHL}.
+
+Im Literaturverzeichnis von {VN} fehlen die Angaben zu {AUT} ({JAHR}).
+
+Frau {Nw} hat im Kolloquium nach dem Unterschied zwischen {AUT} und {AUT} gefragt.
+
+Ich habe {V} gesagt, sie soll statt {AUT} lieber die neuere Studie von {AUT} und {AUT} lesen.
+
+Betreuerin: Dr. {VNw} · Zweitgutachter: Prof. Dr. {VNm} · Theoretischer Rahmen: {AUT} ({JAHR}), {AUT} ({JAHR})
+
+Interviewpartnerin {Vw} (Lehrerin an der {SCHULE}) bezieht sich mehrfach auf {AUT}, den sie aus dem Studium kennt.
+
+„Ich hab im Referendariat {AUT} gelesen, das hat mir viel gebracht“, sagt {Vw}.
+
+B: Also bei uns an der Schule ist {AUTVN} so ein Name, den alle kennen, wegen der Fortbildung.
+
+I: Kennen Sie das Modell von {AUT}? B: Ja, aus dem Studium in {OORT}.
+
+Die Fortbildung „Classroom Management nach {AUT}“ leitete {VN} von der {OEINR}.
+
+Ausgehend von {AUT:gen} Stufenmodell beschreibt {VN} in ihrer Masterarbeit die Entwicklung von {ZAHL} Kindern.
+
+Im Seminar „Klassiker der Pädagogik“ lesen wir {AUT}, {AUT}, {AUT} und {AUT}.
+
+Referatsthemen: 1. {AUT} und die Reformpädagogik ({VN}) 2. {AUT:gen} Bildungsbegriff ({VN}) 3. {AUT} heute ({VN})
+
+Gruppe 2 ({V}, {V}, {V}) stellt {AUT} ({JAHR}) vor, Gruppe 3 übernimmt {AUT} ({JAHR}).
+
+Kurze Frage: Ist {AUT} ({JAHR}) prüfungsrelevant oder nur {AUT}?
+
+Das Buch von {AUTVN} gibt es in der {OEINR}, Signatur hab ich {V} geschickt.
+
+Ich hab {AUT} {JAHR} nicht gefunden, nur die Ausgabe von {JAHR}.
+
+Kannst du mir den Aufsatz von {AUT} und {AUT} schicken? {V} hatte ihn mal im Moodle.
+
+Gutachten zur Arbeit von {VN}: Die Darstellung des Forschungsstands ({AUT}, {AUT}, {AUT}) ist knapp, aber zutreffend.
+
+Positiv: Die Verfasserin bezieht die Befunde von {AUT} et al. ({JAHR}) sinnvoll auf die eigene Fragestellung.
+
+Die Arbeit von {VN} verwendet durchgehend APA 7; Zitate von {AUT} und {AUT} sind korrekt belegt.
+
+Mängel: Bei {AUT} ({JAHR}) fehlt die Seitenangabe, und {AUTVN} wird einmal falsch geschrieben.
+
+Abbildung {ZAHL}: Modell professioneller Handlungskompetenz (nach {AUTREF}, {JAHR}, S. {ZAHL})
+
+Tabelle {ZAHL}: Merkmale guten Unterrichts (in Anlehnung an {AUT} {JAHR}; {AUT} {JAHR})
+
+Quelle: eigene Darstellung nach {AUT} ({JAHR})
+
+Quelle: {OEINR} ({JAHR}), eigene Berechnungen
+
+Datenbasis: {OEINR}, Schuljahr {JAHR}/{ZAHL}
+
+Zitiervorschlag: {AUTREF} ({JAHR}). Bericht der wissenschaftlichen Begleitung. {OORT}: {OEINR}.
+
+Herausgegeben von {AUTVN} und {AUTVN}
+
+Mit einem Vorwort von {AUTVN}
+
+Übersetzt von {AUTVN}, illustriert von {AUTVN}
+
+{AUTVN} (Hrsg.): {WERK}. {JAHR}.
+
+{AUTVN}: {WERK}. Roman. {JAHR}.
+
+Rezension zu {AUTVN}: {WERK}
+
+Die Neuauflage von „{WERK}“ erscheint im Herbst, das Nachwort schreibt {AUTVN}.
+
+In {AUT:gen} berühmtem Aufsatz „{WERK}“ geht es eigentlich um etwas ganz anderes.
+
+Wikipedia-Eintrag zu {OEFF} als Quelle? Lieber {AUT} ({JAHR}) zitieren.
+
+Für den Einstieg in die Biografie von {OEFF} eignet sich {LIT}
+
+In der Biografie von {OEFF} ({AUTREF}, {JAHR}) wird die Kindheit in {OORT} ausführlich beschrieben.

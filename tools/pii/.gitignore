@@ -4,3 +4,4 @@ __pycache__/
 daten/
 modelle/
 .venv/
+lauf*.log

@@ -96,7 +96,7 @@ private fun CorrectionsExport(entries: List<LoraCorrections.Entry>, title: (Stri
         title = { Text(tr("Korrekturen exportieren")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                HintText(tr("Für das nächste Training des Befehlsmodells. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen."))
+                HintText(tr("Für das nächste Training von Lora Befehle. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen."))
                 if (entries.isEmpty()) HintText(tr("Nichts zu exportieren."))
                 Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
                     entries.forEach { e ->

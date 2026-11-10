@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 /**
  * Recognition model of the pseudonymization (AP-67, Stufe f): the tokenizer of the app against the one the model was
  * trained with, the decoding of the labels, the rules alone without the model – and, with PII_MODELL (folder with
- * pii-modell.int8.onnx) and PII_ORT (the ONNX Runtime library), the real model on the Messkorpus as in the app.
+ * lora-namensschutz-pytales.int8.onnx) and PII_ORT (the ONNX Runtime library), the real model on the Messkorpus as in the app.
  */
 class PiiModelTest {
     private var settings = AppSettings(pseudonymize = true)
@@ -107,7 +107,7 @@ class PiiModelTest {
                     val p = pseudonymizer().apply { model = { t -> val t0 = System.nanoTime(); recognizer.hits(t).also { ms += (System.nanoTime() - t0) / 1_000_000 } } }
                     score.add(s, PseudonymCorpus.replacedWords(s.text, p.mask(s.text)))
                 }
-                report.append(score.report("App: Regeln + Erkennungsmodell, $section"))
+                report.append(score.report("App: Regeln + Lora Namensschutz, $section"))
                 if (section == "entwicklung") {
                     report.appendLine("  übersehen:"); score.missed.forEach { report.appendLine("    $it") }
                     report.appendLine("  fälschlich ersetzt:"); score.falseAlarms.forEach { report.appendLine("    $it") }

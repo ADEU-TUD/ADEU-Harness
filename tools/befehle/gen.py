@@ -39,7 +39,13 @@ SLOT = re.compile(r"\{([A-Z0-9]+)\}")
 AREA_OF = {"files": "dateien", "pdf": "pdf", "doc": "dokument", "sheet": "tabelle", "slides": "folien", "video": "video", "mail": "mail"}
 ON_OFF = {"an": "true", "aus": "false"}
 PREFIX = ["bitte ", "hey lora, ", "lora, ", "hallo, ", "kurze frage: ", "sag mal, ", "hi, ", "hey, ", "moin, ", "ähm ", "also ", "ok, ", "so, ",
-          "du, ", "lora bitte ", "hallo lora, "]
+          "du, ", "lora bitte ", "hallo lora, ",
+          # zweite Runde (Fehler im Entwicklungsteil: Grüße aus dem Dialekt, Entschuldigungen, „na“)
+          "servus, ", "grüß dich, ", "na, ", "moinsen, ", "hallöchen, ", "sorry, ", "ey, ", "huhu, ", "guten morgen, ",
+          "hey du, ", "tach, ", "hi lora, ", "please ", "hey lora ", "eine frage, "]
+#: Spoken forms people type ("wo is", "ich hab", "ich brauch") – second round, after errors in the development part.
+COLLOQUIAL = [(" ist ", " is "), ("ich habe ", "ich hab "), ("ich brauche ", "ich brauch "), ("ich möchte ", "ich will "),
+              (" nicht ", " nich "), ("kriege ", "krieg "), (" eine ", " ne "), (" einen ", " nen "), ("gibt es ", "gibts ")]
 SUFFIX = [" bitte", " mal", ", danke", " pls", " bitte, danke", " mal bitte", " jetzt", " kurz"]
 
 
@@ -194,6 +200,10 @@ class Generator:
         else:
             return None
         text = self.fill(text)
+        if rng.random() < 0.12:
+            for a, b in COLLOQUIAL:
+                if a in " " + text + " " and rng.random() < 0.6:
+                    text = (" " + text + " ").replace(a, b, 1).strip()
         if rng.random() < 0.18:
             text = rng.choice(PREFIX) + text
         if rng.random() < 0.12:
