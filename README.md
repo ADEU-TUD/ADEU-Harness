@@ -400,6 +400,13 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   mit Zellen zum Korrigieren und Zeilen zum Löschen; *Als Excel speichern* nimmt die korrigierte Fassung. Gemessen auf
   erfundenen PDFs (Statistik-Berichte über mehrere Seiten, Haushaltspläne, Paper-Tabellen; Prüfteil 8 Dateien): richtige
   Zellen vorher 47,8 %, jetzt 100 %. Gescannte PDFs erst mit der Texterkennung. Test `PdfTableCorpusTest`.
+- **Formatwandler mit Verlustanzeige** (seit 1.0.67, AP-90): In *Dateien* › ⋮ › **Umwandeln …** (und über Lora: „mach
+  daraus eine ODT“) Word → ODT, PDF, RTF, Markdown, Text, HTML; Excel → ODS, CSV, PDF; PowerPoint → ODP, PDF; Markdown,
+  Text, RTF, HTML und CSV → Word bzw. Excel/ODS. **Vorher** sagt eine Karte, was verloren geht oder sich ändert – Formeln
+  (nur Werte; ODS behält sie), Tabellenblätter bei CSV, Kommentare, Änderungsspuren, Makros, Animationen und Übergänge,
+  Diagramme, Kopf- und Fußzeilen, nicht eingebettete Schriften – mit einer besseren Wahl, wo es eine gibt („OpenDocument-
+  Tabelle behält alle Blätter“), dann *Umwandeln* bzw. *Trotzdem umwandeln*. Das Original bleibt, die neue Datei kommt
+  daneben. CSV ist Excel-tauglich (Semikolon, BOM) und enthält die Ergebnisse der Formeln. Test `FormatConvertTest`.
 - **Mail-Sortierer ohne Wettlauf** (seit 1.0.67, AP-115): Nach *Pause* wartet *Fortsetzen*, bis der alte Lauf die Mail
   fertig hat, an der er war – zwei Läufe lesen nie gleichzeitig dieselben Mails; die gespeicherten Läufe hängen nicht mehr
   an einem einzigen Fach, das ein endender Lauf verdrängen konnte (das ließ `MailSorterTest` einmal ins Zeitlimit laufen).

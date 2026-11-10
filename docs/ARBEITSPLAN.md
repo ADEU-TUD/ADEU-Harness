@@ -653,7 +653,7 @@ nachladbaren Erweiterungen (AP-25).
 
 **Dateien umwandeln und reparieren**
 
-### AP-90 ☐ Formatwandler mit Verlustanzeige · M (neu)
+### AP-90 ◐ Formatwandler mit Verlustanzeige · M (neu)
 **Ziel**: Dateien zwischen gängigen Formaten umwandeln (DOCX ↔ ODT/RTF/PDF/Markdown, PPTX ↔ ODP/PDF, XLSX ↔ ODS/CSV,
 Bilder untereinander), aus *Dateien* per Rechtsklick und per Lora („mach daraus eine ODT“). **Vorher** zeigt eine Karte,
 was dabei verloren geht oder sich ändert – Formeln (nur Werte), Animationen und Übergänge, Kommentare und Änderungsspuren,
@@ -661,6 +661,17 @@ Makros, mehrere Tabellenblätter bei CSV, nicht eingebettete Schriften – mit *
 Alternative. Das Original bleibt immer erhalten.
 **Fertig, wenn**: jede angebotene Richtung mit Testdateien richtig umwandelt und die Verlustanzeige für Formeln,
 Animationen, Kommentare und Blätter stimmt.
+**Stand (10.11.2026, für 1.0.67)**: `docs/FormatConvert.kt` – Word → ODT/PDF/RTF/Markdown/Text/HTML, Excel → ODS/CSV/PDF,
+PowerPoint → ODP/PDF, Markdown/Text/RTF/HTML → Word/ODT/PDF, CSV → Excel/ODS; Verlustkarte vor dem Umwandeln (Formeln –
+ODS behält sie –, Blätter bei CSV, Kommentare, Änderungsspuren, Makros, Animationen, Übergänge, Diagramme, Kopf-/Fußzeilen,
+Textfelder, nicht eingebettete Schriften, vereinfachtes Layout) mit besserer Wahl; *Dateien* › ⋮ › *Umwandeln …*
+(`FormatConvertDialog`) und Lora-Aktion `files.convert` (Vorschau = Verlustkarte, Rückgängig). Original bleibt, neue Datei
+daneben, nummeriert. Nebenbei behoben: Der PowerPoint-Leser verlor die Aufzählung einer ersten Folie ohne Untertitel.
+Test `FormatConvertTest`: jede angebotene Richtung mit Testdateien (mit Kommentaren, Änderungsspuren, Makros, Animationen,
+Übergängen, Formeln und zwei Blättern) wandelt um; die Karte nennt genau, was drin ist.
+**Rest**: Bilder untereinander (PNG/JPG/WebP); OpenDocument (ODT/ODS/ODP) als **Quelle** (heute nur Ziel); Word → PDF ist
+mit Microsoft Office genau, sonst über den Leser der App vereinfacht; Lora Befehle kennt `files.convert` erst nach dem
+nächsten Training (AP-114, bis dahin geht der Wunsch an das Sprachmodell).
 
 ### AP-91 ☐ Schriften-Notfall · S–M (neu)
 **Ziel**: Beim Öffnen von Word-, PowerPoint- und PDF-Dateien erkennen, welche Schriften fehlen; Lora schlägt einen

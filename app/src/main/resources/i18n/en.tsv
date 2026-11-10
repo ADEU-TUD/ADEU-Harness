@@ -6407,3 +6407,54 @@ Deutsche Stimme „Thorsten“ (Piper), offline und ohne Server; einmal {0} MB l
 Tabellen prüfen	Check tables
 Tabelle {0} · {1}	Table {0} · {1}
 Prüfen und nachbessern …	Check and correct …
+OpenDocument-Text (.odt)	OpenDocument text (.odt)
+OpenDocument-Tabelle (.ods)	OpenDocument spreadsheet (.ods)
+OpenDocument-Präsentation (.odp)	OpenDocument presentation (.odp)
+Makros	Macros
+Makros werden nicht übernommen.	Macros are not carried over.
+Kommentare gehen verloren.	Comments are lost.
+Änderungsspuren	Tracked changes
+Änderungen werden so übernommen, wie sie angezeigt werden – ohne Markierung, wer was geändert hat.	Changes are taken over as shown – without marking who changed what.
+Kopf- und Fußzeilen	Headers and footers
+Kopf- und Fußzeilen werden nicht übernommen.	Headers and footers are not carried over.
+Textfelder	Text boxes
+Text in Textfeldern landet im Fließtext oder fehlt.	Text in text boxes ends up in the body text or is missing.
+Layout	Layout
+Das Layout wird vereinfacht: Überschriften, Listen, Tabellen und Bilder bleiben, Spalten, Abstände und Farben nicht genau.	The layout is simplified: headings, lists, tables and pictures stay; columns, spacing and colours not exactly.
+Formatierung	Formatting
+Nur Überschriften, Listen, Tabellen und Hervorhebungen bleiben.	Only headings, lists, tables and emphasis remain.
+Nur der Text bleibt – Überschriften, Tabellen und Bilder nicht.	Only the text remains – not headings, tables or pictures.
+Schriften	Fonts
+Nicht eingebettete Schriften werden ersetzt: {0}.	Fonts that are not embedded are replaced: {0}.
+Formeln	Formulas
+{0} Formeln werden zu festen Werten.	{0} formulas become fixed values.
+Tabellenblätter	Sheets
+CSV hat nur ein Blatt: von {0} Blättern kommt nur das erste mit.	CSV has only one sheet: of {0} sheets only the first comes along.
+Diagramme	Charts
+Diagramme werden nicht übernommen.	Charts are not carried over.
+Farben, Rahmen und Zahlenformate werden nicht übernommen; Zahlen bleiben Zahlen.	Colours, borders and number formats are not carried over; numbers stay numbers.
+Animationen auf {0} Folien gehen verloren.	Animations on {0} slides are lost.
+Übergänge	Transitions
+Folienübergänge auf {0} Folien gehen verloren.	Slide transitions on {0} slides are lost.
+Das Layout wird vereinfacht: Titel, Text, Aufzählungen, Tabellen und Bilder bleiben, die genaue Lage nicht.	The layout is simplified: titles, text, bullet points, tables and pictures stay, their exact position not.
+Nur der Text bleibt.	Only the text remains.
+OpenDocument-Tabelle behält alle Blätter.	OpenDocument spreadsheet keeps all sheets.
+Markdown behält Überschriften, Listen und Tabellen.	Markdown keeps headings, lists and tables.
+„{0}“ lässt sich nicht in {1} umwandeln.	"{0}" cannot be converted into {1}.
+„{0}“ lässt sich nicht lesen.	"{0}" cannot be read.
+„{0}“ umwandeln	Convert "{0}"
+Dabei geht nichts verloren.	Nothing is lost.
+Das geht verloren oder ändert sich:	This is lost or changes:
+Besser: {0} – {1}	Better: {0} – {1}
+Das Original bleibt erhalten; die neue Datei kommt in denselben Ordner.	The original stays; the new file goes into the same folder.
+Umgewandelt: „{0}“	Converted: "{0}"
+Trotzdem umwandeln	Convert anyway
+Umwandeln …	Convert …
+In anderes Format umwandeln	Convert to another format
+„{0}“ lässt sich nicht umwandeln.	"{0}" cannot be converted.
+„{0}“ geht in: {1}.	"{0}" can become: {1}.
+Verlust	Loss
+Besser	Better
+„{0}“ erstellt, das Original bleibt.	"{0}" created, the original stays.
+Die Animationen einer Folie gehen verloren.	The animations of one slide are lost.
+Der Übergang einer Folie geht verloren.	The transition of one slide is lost.
