@@ -6355,3 +6355,93 @@ Für diese Version gibt es noch kein {0} zum Laden – Lora arbeitet wie bisher.
 Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, die Regeln und Lora Namensschutz übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.	Faster ↔ more thorough: a language model on this device reads every text once and finds names, schools and places that the rules and Lora Namensschutz miss, also indirect clues. Costs computing time (a few seconds per longer text); nothing leaves the device.
 Für das nächste Training von Lora Befehle. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen.	For the next training of Lora Befehle. Look through the wishes and take out anything containing names or private details – the file contains exactly the ticked lines.
 Gemischt, nur lokal oder nur über den Server; Lora Befehle.	Mixed, local only or server only; Lora Befehle.
+ Das gilt auch für das Programm llama.cpp: für dieses Gerät die Datei „{0}“ (github.com/ggml-org/llama.cpp/releases).	 The same works for the llama.cpp program: for this device the file “{0}” (github.com/ggml-org/llama.cpp/releases).
+Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs und Linux-PCs).	Local models are not available on this device (only Android phones with 64-bit ARM, Windows PCs, Macs and Linux PCs).
+Passend für diesen Mac: {0} – rechnet mit dem Apple-Chip und nutzt Werkzeuge.	Suits this Mac: {0} – computes on the Apple chip and uses tools.
+Download von {0} fehlgeschlagen: {1}	Download of {0} failed: {1}
+Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.	Blocked in a company network? Load the file in the browser and take it over with “Import file”.
+Das Programm für lokale Modelle (llama.cpp) konnte nicht geladen werden – am Modell liegt es nicht ({0})	The program for local models (llama.cpp) could not be loaded – the model is not the problem ({0})
+Das Netz hat den Download blockiert.	The network blocked the download.
+Das Netz hat den Download blockiert. Das Paket „{0}“ von github.com/ggml-org/llama.cpp/releases im Browser laden und mit „Datei einspielen“ übernehmen.	The network blocked the download. Load the package “{0}” from github.com/ggml-org/llama.cpp/releases in the browser and take it over with “Import file”.
+Kein Paket „{0}“ im llama.cpp-Release gefunden	No package “{0}” found in the llama.cpp release
+In „{0}“ fehlt {1}. Für dieses Gerät passt das llama.cpp-Paket „{2}“.	{1} is missing in “{0}”. The llama.cpp package for this device is “{2}”.
+, {0} Grafikkerne	, {0} GPU cores
+Befehlssätze: {0}	Instruction sets: {0}
+Das Modell hat keine Messwerte geliefert.	The model did not return any measurements.
+Gerät gemessen – die Vorhersagen sind aktualisiert.	Device measured – the forecasts are updated.
+Gerät kurz messen (≈ 20 s)	Quick device measurement (≈ 20 s)
+Gerät messen (≈ 20 s)	Measure device (≈ 20 s)
+Geräteprofil	Device profile
+Lora misst Speicher und Tempo dieses Geräts und sagt dann für jedes Modell vorher, wie schnell es hier schreibt und liest. Nichts verlässt das Gerät; mit einem gewählten Sprachmodell erst nach dessen Download.	Lora measures the memory and speed of this device and then forecasts for every model how fast it writes and reads here. Nothing leaves the device; with a language model chosen here, only after its download.
+Messprotokoll kopieren	Copy measurement log
+Messprotokoll kopiert.	Measurement log copied.
+Neu messen (≈ 20 s)	Measure again (≈ 20 s)
+Ohne installiertes Modell misst die Kurzmessung nur den Speicher – die Werte bleiben geschätzt.	Without an installed model the quick measurement only measures the memory – the values stay estimates.
+Speicher wird gemessen …	Measuring memory …
+Speicherbandbreite und Befehlssätze sind hier nicht lesbar – die Kurzmessung misst sie.	Memory bandwidth and instruction sets cannot be read here – the quick measurement measures them.
+Speicherbandbreite {0} GB/s	Memory bandwidth {0} GB/s
+Vorhersage gegen Messung: {0} von {1} Modellen höchstens 30 % daneben ({2}).	Forecast vs. measurement: {0} of {1} models at most 30 % off ({2}).
+Wie schnell ein Modell schreibt, hängt vor allem an der Speicherbandbreite und daran, wie viele Parameter es je Wort rechnet; das Einlesen langer Texte am Prozessor bzw. an der Grafik. Daraus sagt Lora das Tempo jedes Modells vorher. Die Kurzmessung (etwa 20 Sekunden, mit dem kleinsten installierten Modell) macht die Vorhersage genauer; „Messen“ unten misst danach die echten Werte und korrigiert weiter.	How fast a model writes depends mainly on the memory bandwidth and on how many parameters it computes per word; reading long texts depends on the processor or the graphics. From this Lora forecasts the speed of every model. The quick measurement (about 20 seconds, with the smallest installed model) makes the forecast more precise; “Measure” below then measures the real values and corrects further.
+gemessen	measured
+gemessen {0} GB/s	measured {0} GB/s
+geschätzt	estimated
+schreibt ≈ {0} Wörter/s · liest ≈ {1} Wörter/s · {2}	writes ≈ {0} words/s · reads ≈ {1} words/s · {2}
+vorhergesagt nach Messung	forecast after measurement
+{0} liest und schreibt …	{0} is reading and writing …
+{0} mit gemeinsamem Speicher	{0} with shared memory
+Allrounder	All-rounder
+Briefe, Gutachten, Feedback – besonders gutes Deutsch	Letters, reviews, feedback – especially good German
+Das stärkste Gemma für Texte – für Grafikkarten mit 24 GB und Macs ab 32 GB.	The strongest Gemma for texts – for graphics cards with 24 GB and Macs from 32 GB.
+Dasselbe Modell mit feinerer Quantisierung (8 Bit) – etwas genauer, braucht mehr Speicher. Für Grafikkarten ab 6 GB und Macs.	The same model with finer quantization (8 bit) – somewhat more precise, needs more memory. For graphics cards from 6 GB and Macs.
+Datei: {0} ({1} GB)	File: {0} ({1} GB)
+Der stärkste Programmier-Spezialist, rechnet nur mit 3 Mrd. Parametern – Grafikkarten mit 24 GB, Macs ab 32 GB, PCs ab 48 GB.	The strongest programming specialist, computes with only 3 billion parameters – graphics cards with 24 GB, Macs from 32 GB, PCs from 48 GB.
+Gemma 4 12B – Lora Edition	Gemma 4 12B – Lora Edition
+Gemma 4 26B A4B – Lora Edition	Gemma 4 26B A4B – Lora Edition
+Gemma 4 31B – Lora Edition	Gemma 4 31B – Lora Edition
+Gemma 4 E2B – Lora Edition	Gemma 4 E2B – Lora Edition
+Gemma 4 E4B – Lora Edition	Gemma 4 E4B – Lora Edition
+Großes dichtes Modell, sehr gründlich – für Grafikkarten mit 24 GB und Macs ab 32 GB; ohne Grafikkarte zu langsam.	Large dense model, very thorough – for graphics cards with 24 GB and Macs from 32 GB; too slow without a graphics card.
+Herkunft: huggingface.co/{0}, Stand {1}	Source: huggingface.co/{0}, commit {1}
+Lizenz: {0} (unverändert; Lizenztext beim Original auf Hugging Face)	Licence: {0} (unchanged; licence text with the original on Hugging Face)
+Mails zusammenfassen, einordnen, Entwürfe – mit Werkzeugen	Summarizing and sorting mails, drafts – with tools
+Original: {0} ({1})	Original: {0} ({1})
+Programmieren, Skripte, Formeln, Fehlersuche	Programming, scripts, formulas, debugging
+Quantisiert von: {0}	Quantized by: {0}
+Qwen 2.5 Coder 14B – Lora Edition	Qwen 2.5 Coder 14B – Lora Edition
+Qwen 2.5 Coder 7B – Lora Edition	Qwen 2.5 Coder 7B – Lora Edition
+Qwen 3 Coder 30B A3B – Lora Edition	Qwen 3 Coder 30B A3B – Lora Edition
+Qwen 3.5 0.8B – Lora Edition	Qwen 3.5 0.8B – Lora Edition
+Qwen 3.5 2B – Lora Edition	Qwen 3.5 2B – Lora Edition
+Qwen 3.5 4B (genauer) – Lora Edition	Qwen 3.5 4B (more precise) – Lora Edition
+Qwen 3.5 4B – Lora Edition	Qwen 3.5 4B – Lora Edition
+Qwen 3.5 9B (genauer) – Lora Edition	Qwen 3.5 9B (more precise) – Lora Edition
+Qwen 3.5 9B mit 8 Bit statt 4 – genauer bei Zahlen und Fakten. Für Grafikkarten ab 12 GB und Macs ab 24 GB.	Qwen 3.5 9B with 8 bits instead of 4 – more precise with numbers and facts. For graphics cards from 12 GB and Macs from 24 GB.
+Qwen 3.5 9B – Lora Edition	Qwen 3.5 9B – Lora Edition
+Qwen 3.6 27B – Lora Edition	Qwen 3.6 27B – Lora Edition
+Qwen 3.6 35B A3B – Lora Edition	Qwen 3.6 35B A3B – Lora Edition
+Spezialist für {0} – wird nur bei Bedarf geladen	Specialist for {0} – loaded only when needed
+Spezialist fürs Programmieren (Python, R, JavaScript, SQL, LaTeX) – für Grafikkarten ab 8 GB und schnelle PCs.	Programming specialist (Python, R, JavaScript, SQL, LaTeX) – for graphics cards from 8 GB and fast PCs.
+Standard: {0}	Standard: {0}
+Stärkerer Programmier-Spezialist – für Grafikkarten ab 12 GB und Macs ab 24 GB.	Stronger programming specialist – for graphics cards from 12 GB and Macs from 24 GB.
+Texte	Texts
+Urheber: {0}	Authors: {0}
+Winzig – für Handys und Rechner mit 8 GB, wenn nichts anderes schnell genug ist. Kurze Antworten, Umformulieren.	Tiny – for phones and computers with 8 GB when nothing else is fast enough. Short answers, rephrasing.
+Wofür vor allem? Der Allrounder ist immer dabei, Spezialisten werden nur bei Bedarf geladen.	Mainly for what? The all-rounder is always there; specialists are loaded only when needed.
+Zweck: {0}	Purpose: {0}
+auf diesem Gerät langsamer als {0} Wörter/s – das schnellste passende	slower than {0} words/s on this device – the fastest that fits
+für fast alles: Chat, Zusammenfassen, Umformulieren, Übersetzen	for almost everything: chat, summarizing, rephrasing, translating
+„Lora Edition“ heißt: von uns ausgewählt, als fertige Datei übernommen, auf Geräten gemessen und für Lora eingestellt (Kontextlänge, Vorlage). Die Gewichte sind unverändert. Basismodell, Urheber und Lizenz sind die des Originals; die Urheber haben Lora weder geprüft noch gebilligt.	“Lora Edition” means: chosen by us, taken over as a ready file, measured on devices and set up for Lora (context length, template). The weights are unchanged. Base model, authors and licence are those of the original; the authors have neither checked nor endorsed Lora.
+Ganz lesen auf diesem Gerät	Read it whole on this device
+Das Modell läuft auf diesem Gerät – die Zeiten sind die Vorhersage für dieses Gerät. Nichts verlässt das Gerät.	The model runs on this device – the times are the forecast for this device. Nothing leaves the device.
+Überblick	Overview
+≈ {0} s	≈ {0} s
+≈ {0} Min.	≈ {0} min
+≈ {0} Std. {1} Min.	≈ {0} h {1} min
+Abschnitt {0} von {1} · noch {2}	Section {0} of {1} · {2} left
+Versteht Bilder: Screenshots, Diagramme, Fotos von Tabellen und Scans – auf diesem Gerät.	Understands images: screenshots, charts, photos of tables and scans – on this device.
+Bildteil: {0} % von {1}	Image part: {0} % of {1}
+Kann auch Bilder verstehen, mit einem eigenen kleinen Download.	Can also understand images, with a small download of its own.
+Bildteil laden ({0})	Load image part ({0})
+{0} versteht jetzt Bilder.	{0} now understands images.
+Download des Bildteils fehlgeschlagen: {0}	Download of the image part failed: {0}
+Bildteil eingespielt.	Image part imported.

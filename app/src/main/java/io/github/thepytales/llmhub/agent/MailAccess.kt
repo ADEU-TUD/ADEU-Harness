@@ -115,7 +115,8 @@ object MailAccess {
      * the strongest installed model that runs well on this PC, else the smallest one. Only models with tool calls.
      */
     fun model(c: AppContainer): String? {
-        val installed = c.localLlm.installedModels().filter { it.tools }
+        // Modellkatalog nach Zweck (AP-106): a code specialist is no model for mails.
+        val installed = c.localLlm.generalModels().filter { it.tools }
         if (installed.isEmpty()) return null
         c.localLlm.state.value.running?.let { r -> installed.firstOrNull { it.modelId == r }?.let { return it.modelId } }
         val hw = c.localLlm.hardware.value

@@ -87,7 +87,8 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                     "die Modelle des Uni-Servers: gut für Zusammenfassen, Umformulieren, Briefe und Feedback, weniger für lange Agenten-Aufgaben."),
             )
             HardwareCard(hw, state)
-            state.message?.let { HintText(it) }
+            hw?.let { DeviceProfileCard(c, it, state) }
+            LocalMessage(c, state)
 
             val h = hw
             if (h == null) {
@@ -98,13 +99,23 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                 }
                 return@ReadableColumn
             }
-            val recommended = LocalCatalog.recommended(h)
+            val settings by c.settings.settings.collectAsStateWithLifecycle()
+            val purposes = LocalCatalog.purposes(settings.localPurposes, settings.roles)
+            val stored by io.github.thepytales.llmhub.local.DeviceBench.stored(c).collectAsStateWithLifecycle()
+            val picks = remember(h, purposes, stored) { LocalCatalog.picks(h, purposes) { io.github.thepytales.llmhub.local.DeviceBench.forecast(c, it, h) } }
+            val recommended = picks.map { it.model }
             GroupLabel(tr("Empfohlen für dieses Gerät"))
+            PurposeChips(c, purposes)
             AppCard {
                 Column {
-                    recommended.forEachIndexed { i, m ->
+                    picks.forEachIndexed { i, p ->
                         if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        LocalModelRow(c, m, Fit.RECOMMENDED, state, onTry)
+                        HintText(
+                            (if (p.purpose == io.github.thepytales.llmhub.local.Purpose.ALLROUND) tr("Standard: {0}", tr(p.purpose.label)) else tr("Spezialist für {0} – wird nur bei Bedarf geladen", tr(p.purpose.label))) +
+                                if (!p.fastEnough) " · " + tr("auf diesem Gerät langsamer als {0} Wörter/s – das schnellste passende", LocalCatalog.MIN_WORDS_PER_SEC.toInt()) else "",
+                            Modifier.padding(start = 16.dp, top = 10.dp, end = 16.dp),
+                        )
+                        LocalModelRow(c, p.model, Fit.RECOMMENDED, state, onTry)
                     }
                 }
             }
@@ -127,7 +138,7 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                     HintText(
                         tr("Modelldateien (.gguf) lassen sich auch im Browser oder an einem anderen Rechner laden (Adresse unten kopieren) und hier " +
                             "einspielen; jede Datei wird mit ihrer Prüfsumme kontrolliert.") +
-                            if (state.runtime == RuntimeStatus.MISSING) tr(" Unter Windows gilt das auch für das Programm: llama.cpp-Paket „bin-win-cpu-x64“ als ZIP.") else "",
+                            (local.runtimePackage()?.takeIf { state.runtime == RuntimeStatus.MISSING }?.let { tr(" Das gilt auch für das Programm llama.cpp: für dieses Gerät die Datei „{0}“ (github.com/ggml-org/llama.cpp/releases).", it) } ?: ""),
                     )
                     OutlinedButton(onClick = import) { Text(tr("Datei einspielen …")) }
                     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
@@ -142,6 +153,119 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
             if (state.running != null) {
                 TextButton(onClick = { scope.launch { local.stop() } }) { Text(tr("Laufendes Modell beenden (Speicher freigeben)")) }
             }
+        }
+    }
+}
+
+/**
+ * Modellkatalog nach Zweck (AP-106): the allrounder is always there; Texte, Code and Postfach add a specialist that is
+ * loaded only when needed. Stored in the settings (empty: from the roles of the first start).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+internal fun PurposeChips(c: AppContainer, purposes: Set<io.github.thepytales.llmhub.local.Purpose>, onChange: ((Set<io.github.thepytales.llmhub.local.Purpose>) -> Unit)? = null) {
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        io.github.thepytales.llmhub.local.Purpose.entries.forEach { p ->
+            val on = p in purposes
+            FilterChip(
+                selected = on,
+                onClick = {
+                    if (p == io.github.thepytales.llmhub.local.Purpose.ALLROUND) return@FilterChip
+                    val next = if (on) purposes - p else purposes + p
+                    if (onChange != null) onChange(next)
+                    else c.settings.update { it.copy(localPurposes = io.github.thepytales.llmhub.local.Purpose.format(next)) }
+                },
+                label = { Text(tr(p.label)) },
+            )
+        }
+    }
+}
+
+/** „schreibt ≈ 12 Wörter/s · liest ≈ 300 Wörter/s · geschätzt“ – the forecast of AP-105 for one model. */
+@Composable
+internal fun forecastLine(c: AppContainer, m: LocalModel, hw: Hardware): String {
+    val stored by io.github.thepytales.llmhub.local.DeviceBench.stored(c).collectAsStateWithLifecycle()
+    val speed by io.github.thepytales.llmhub.local.LocalSpeed.results(c).collectAsStateWithLifecycle()
+    val f = remember(m.id, hw, stored, speed) { io.github.thepytales.llmhub.local.DeviceBench.forecast(c, m, hw) }
+    val how = when (f.source) {
+        io.github.thepytales.llmhub.local.SpeedForecast.Source.MEASURED -> tr("gemessen")
+        io.github.thepytales.llmhub.local.SpeedForecast.Source.CALIBRATED -> tr("vorhergesagt nach Messung")
+        io.github.thepytales.llmhub.local.SpeedForecast.Source.ESTIMATE -> tr("geschätzt")
+    }
+    return tr("schreibt ≈ {0} Wörter/s · liest ≈ {1} Wörter/s · {2}", io.github.thepytales.llmhub.local.SpeedForecast.words(f.wordsPerSec),
+        io.github.thepytales.llmhub.local.SpeedForecast.words(f.readWordsPerSec), how)
+}
+
+/**
+ * Geräteprofil und Kurzmessung (AP-105): what decides the speed here (memory bandwidth, instruction sets, Apple chip),
+ * „Gerät messen“ (about 20 s) and the protocol to copy – forecast against measurement per model.
+ */
+@Composable
+internal fun DeviceProfileCard(c: AppContainer, hw: Hardware, state: LocalState) {
+    val scope = rememberCoroutineScope()
+    val stored by io.github.thepytales.llmhub.local.DeviceBench.stored(c).collectAsStateWithLifecycle()
+    val speed by io.github.thepytales.llmhub.local.LocalSpeed.results(c).collectAsStateWithLifecycle()
+    var running by remember { mutableStateOf<String?>(null) }
+    val here = remember(stored, hw) { io.github.thepytales.llmhub.local.DeviceBench.here(c, hw) }
+    val samples = remember(stored, speed, hw) { io.github.thepytales.llmhub.local.DeviceBench.samples(c, hw) }
+    val checks = remember(samples) { io.github.thepytales.llmhub.local.SpeedForecast.check(samples, hw, here.javaGbs.takeIf { it > 0 }) }
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    GroupLabel(tr("Geräteprofil"))
+    AppCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val bw = hw.memBandwidthGbs.takeIf { !it.isNaN() }
+            HintText(
+                listOfNotNull(
+                    hw.chip.takeIf { it.isNotBlank() }?.let { tr("{0} mit gemeinsamem Speicher", it) + (hw.gpuCores.takeIf { n -> n > 0 }?.let { n -> tr(", {0} Grafikkerne", n) } ?: "") },
+                    hw.memDetail.takeIf { it.isNotBlank() && hw.chip.isBlank() },
+                    bw?.let { tr("Speicherbandbreite {0} GB/s", String.format(java.util.Locale.GERMANY, "%.0f", it)) },
+                    here.javaGbs.takeIf { it > 0 }?.let { tr("gemessen {0} GB/s", String.format(java.util.Locale.GERMANY, "%.0f", it)) },
+                    hw.cpuFeatures.takeIf { it.isNotEmpty() }?.let { tr("Befehlssätze: {0}", it.sorted().joinToString(", ") { f -> f.uppercase() }) },
+                ).joinToString(" · ").ifBlank { tr("Speicherbandbreite und Befehlssätze sind hier nicht lesbar – die Kurzmessung misst sie.") },
+            )
+            HintText(
+                tr("Wie schnell ein Modell schreibt, hängt vor allem an der Speicherbandbreite und daran, wie viele Parameter es je Wort rechnet; das Einlesen langer Texte am Prozessor bzw. an der Grafik. Daraus sagt Lora das Tempo jedes Modells vorher. Die Kurzmessung (etwa 20 Sekunden, mit dem kleinsten installierten Modell) macht die Vorhersage genauer; „Messen“ unten misst danach die echten Werte und korrigiert weiter."),
+            )
+            if (state.installed.isEmpty()) HintText(tr("Ohne installiertes Modell misst die Kurzmessung nur den Speicher – die Werte bleiben geschätzt."))
+            if (checks.isNotEmpty()) {
+                val ok = checks.count { it.withinTarget }
+                HintText(tr("Vorhersage gegen Messung: {0} von {1} Modellen höchstens 30 % daneben ({2}).", ok, checks.size,
+                    checks.joinToString(", ") { k -> (io.github.thepytales.llmhub.local.LocalCatalog.get(k.modelId)?.name?.let { tr(it) } ?: k.modelId) + String.format(java.util.Locale.GERMANY, " %+.0f %%", k.deviation * 100) }))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (running == null) {
+                    OutlinedButton(onClick = {
+                        scope.launch {
+                            try {
+                                io.github.thepytales.llmhub.local.DeviceBench.run(c) { running = it }
+                                Notices.info(tr("Gerät gemessen – die Vorhersagen sind aktualisiert."))
+                            } catch (e: Exception) {
+                                if (e is kotlinx.coroutines.CancellationException) throw e
+                                Notices.error(e)
+                            } finally { running = null }
+                        }
+                    }) { Text(if (here.at > 0) tr("Neu messen (≈ 20 s)") else tr("Gerät messen (≈ 20 s)")) }
+                    TextButton(onClick = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString(io.github.thepytales.llmhub.local.DeviceBench.protocol(c, hw)))
+                        Notices.info(tr("Messprotokoll kopiert."))
+                    }) { Text(tr("Messprotokoll kopieren")) }
+                } else {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    HintText(running!!, Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/** The last message of the local models; after a failed download with "Erneut versuchen" (AP-86). */
+@Composable
+fun LocalMessage(c: AppContainer, state: LocalState) {
+    val msg = state.message ?: return
+    Column {
+        HintText(msg)
+        if (state.retry != null && state.downloads.isEmpty() && state.runtime != RuntimeStatus.INSTALLING) {
+            TextButton(onClick = { c.localLlm.retry() }) { Text(tr("Erneut versuchen")) }
         }
     }
 }
@@ -176,7 +300,7 @@ private fun HardwareCard(hw: Hardware?, state: LocalState) {
             )
         }
         if (state.runtime == RuntimeStatus.UNSUPPORTED) {
-            HintText(tr("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs mit Apple-Chip und Linux-PCs mit x64)."), Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
+            HintText(tr("Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs und Linux-PCs)."), Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp))
         }
         state.runtimeProgress?.let { p ->
             Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
@@ -192,6 +316,15 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
     val local = c.localLlm
     val installed = m.id in state.installed
     val progress = state.downloads[m.id]
+    var card by remember { mutableStateOf(false) }
+    if (card) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { card = false },
+            title = { Text(tr("Modellkarte")) },
+            text = { Text(LocalCatalog.card(m), style = MaterialTheme.typography.bodySmall) },
+            confirmButton = { TextButton(onClick = { card = false }) { Text("OK") } },
+        )
+    }
     Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -206,14 +339,17 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
                     }
                 }
                 HintText(m.description + " · " + formatBytes(m.size) + tr(" · braucht ca. {0} GB Speicher", m.needGb.toInt()))
+                c.localLlm.hardware.collectAsStateWithLifecycle().value?.let { h -> HintText(forecastLine(c, m, h)) }
             }
             when {
                 installed -> {
+                    TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
                     IconButton(onClick = { onTry(m.modelId) }) { Icon(Icons.Outlined.PlayArrow, contentDescription = tr("Im Chat ausprobieren"), tint = MaterialTheme.colorScheme.primary) }
                     IconButton(onClick = { local.delete(m.id) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), tint = MaterialTheme.colorScheme.error) }
                 }
                 progress != null -> TextButton(onClick = { local.cancelInstall(m.id) }) { Text(tr("Stopp")) }
                 else -> {
+                    TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
                     val enabled = fit != Fit.TOO_BIG && state.runtime != RuntimeStatus.UNSUPPORTED
                     if (fit == Fit.RECOMMENDED) {
                         Button(enabled = enabled, onClick = { local.install(m.id) }) {
@@ -230,6 +366,22 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
         progress?.let { p ->
             LinearProgressIndicator(progress = { p.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
             HintText(tr("{0} % von {1}", (p * 100).toInt(), formatBytes(m.size)))
+        }
+        // Bilder verstehen lokal (AP-110): the image part as a small download of its own.
+        val projector = m.projector
+        if (installed && projector != null) {
+            val visionProgress = state.downloads[io.github.thepytales.llmhub.local.LocalLlm.VISION + m.id]
+            when {
+                m.id in state.vision -> HintText(tr("Versteht Bilder: Screenshots, Diagramme, Fotos von Tabellen und Scans – auf diesem Gerät."))
+                visionProgress != null -> {
+                    LinearProgressIndicator(progress = { visionProgress.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
+                    HintText(tr("Bildteil: {0} % von {1}", (visionProgress * 100).toInt(), formatBytes(projector.size)))
+                }
+                else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    HintText(tr("Kann auch Bilder verstehen, mit einem eigenen kleinen Download."), Modifier.weight(1f))
+                    TextButton(onClick = { local.installVision(m.id) }) { Text(tr("Bildteil laden ({0})", formatBytes(projector.size))) }
+                }
+            }
         }
     }
 }

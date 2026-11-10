@@ -141,13 +141,20 @@ object LoraCommands {
             else -> targets.firstOrNull { it.id == "area.files" }
         }
 
-    /** An installed language model for this device: one that runs well here ([good]), or the strongest installed one. */
-    fun localModel(c: AppContainer, good: Boolean): String? {
-        val installed = c.localLlm.installedModels()
-        if (!good) return installed.maxByOrNull { it.needGb }?.modelId
+    /**
+     * An installed language model for this device: one that runs well here ([good]), or the strongest installed one.
+     * The allrounder is the standard; a specialist (AP-106) only when [text] asks for its purpose (programming → Code).
+     */
+    fun localModel(c: AppContainer, good: Boolean, text: String? = null): String? {
+        val all = c.localLlm.installedModels()
+        val code = text != null && ModelRouter.isCode(text)
+        val specialist = all.filter { io.github.thepytales.llmhub.local.Purpose.CODE in it.purposes && (code || it.purposes.size > 1) }
+        val general = all.filter { io.github.thepytales.llmhub.local.Purpose.CODE !in it.purposes || it.purposes.size > 1 }
+        val installed = if (code && specialist.isNotEmpty()) specialist else general.ifEmpty { all }
+        if (!good) return installed.maxByOrNull { it.quality }?.modelId
         val hw = c.localLlm.hardware.value ?: return null
         // Measured on this device (AP-76): only models that reach the minimum speed; unmeasured ones by the estimate.
-        return installed.filter { io.github.thepytales.llmhub.local.LocalSpeed.goodForShort(c, it, hw) }.maxByOrNull { it.needGb }?.modelId
+        return installed.filter { io.github.thepytales.llmhub.local.LocalSpeed.goodForShort(c, it, hw) }.maxByOrNull { it.quality }?.modelId
     }
 
     /**
