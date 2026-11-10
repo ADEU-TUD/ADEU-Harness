@@ -2,51 +2,51 @@
   "fp32": {
     "entwicklung": {
       "befehle": 364,
-      "treffer": 90.9,
-      "befehl_weitergegeben": 8.8,
-      "falsch_ausgefuehrt": 0.2,
+      "treffer": 98.4,
+      "befehl_weitergegeben": 1.4,
+      "falsch_ausgefuehrt": 0.4,
       "frei": 94,
-      "frei_weitergegeben": 100.0,
-      "frei_art_richtig": 98.7
+      "frei_weitergegeben": 98.9,
+      "frei_art_richtig": 97.4
     },
     "pruef": {
       "befehle": 302,
-      "treffer": 85.4,
-      "befehl_weitergegeben": 14.6,
-      "falsch_ausgefuehrt": 0.0,
+      "treffer": 92.7,
+      "befehl_weitergegeben": 6.6,
+      "falsch_ausgefuehrt": 0.8,
       "frei": 84,
-      "frei_weitergegeben": 100.0,
+      "frei_weitergegeben": 98.8,
       "frei_art_richtig": 100.0
     },
-    "schwelle": 0.9,
+    "schwelle": 0.75,
     "zeit": {
-      "median_ms": 15.0,
-      "p95_ms": 20.2
+      "median_ms": 13.9,
+      "p95_ms": 19.1
     }
   },
   "int8": {
     "entwicklung": {
       "befehle": 364,
-      "treffer": 89.8,
-      "befehl_weitergegeben": 9.6,
+      "treffer": 98.9,
+      "befehl_weitergegeben": 0.8,
       "falsch_ausgefuehrt": 0.4,
       "frei": 94,
-      "frei_weitergegeben": 100.0,
+      "frei_weitergegeben": 98.9,
       "frei_art_richtig": 98.7
     },
     "pruef": {
       "befehle": 302,
-      "treffer": 84.8,
-      "befehl_weitergegeben": 15.2,
-      "falsch_ausgefuehrt": 0.0,
+      "treffer": 95.4,
+      "befehl_weitergegeben": 3.3,
+      "falsch_ausgefuehrt": 1.3,
       "frei": 84,
-      "frei_weitergegeben": 100.0,
+      "frei_weitergegeben": 98.8,
       "frei_art_richtig": 100.0
     },
-    "schwelle": 0.8,
+    "schwelle": 0.5,
     "zeit": {
-      "median_ms": 3.5,
-      "p95_ms": 5.1
+      "median_ms": 3.8,
+      "p95_ms": 5.5
     }
   }
 }

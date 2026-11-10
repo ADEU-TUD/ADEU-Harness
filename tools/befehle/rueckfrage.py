@@ -85,8 +85,10 @@ def measure(samples, probs, labels: list[str], threshold: float, bound: float) -
             "sofort_getroffen": pct(hit, commands), "mit_rueckfrage_zusammen": pct(hit + right, commands)}
 
 
-def choose(rows: list[dict]) -> dict:
-    """The lowest bound with at most MAX_FREE_ASKED % free requests asked; among equal results the higher bound."""
+def choose(rows: list[dict], threshold: float = 1.0) -> dict:
+    """The lowest bound with at most MAX_FREE_ASKED % free requests asked; among equal results the higher bound. Only
+    bounds below the threshold count (a bound at the threshold would hardly ever ask)."""
+    rows = [r for r in rows if r["untergrenze"] < threshold] or rows
     ok = [r for r in rows if r["frei_mit_knoepfen"] <= MAX_FREE_ASKED]
     if not ok:
         return max(rows, key=lambda r: r["untergrenze"])
@@ -113,7 +115,7 @@ def main() -> None:
             print(f"  Untergrenze {r['untergrenze']:.2f}: richtig unter den Knöpfen {r['richtig_unter_knoepfen']} % "
                   f"von {r['bisher_weitergegeben']}, freie mit Knöpfen {r['frei_mit_knoepfen']} %, "
                   f"zusammen {r['mit_rueckfrage_zusammen']} %")
-        pick = choose(rows) if a.untergrenze is None else measure(samples, probs, labels, threshold, a.untergrenze)
+        pick = choose(rows, threshold) if a.untergrenze is None else measure(samples, probs, labels, threshold, a.untergrenze)
         print(f"Gewählt: Untergrenze {pick['untergrenze']}")
         bound = pick["untergrenze"]
         # Error list for the development part only: commands passed on whose right action is not under the buttons.

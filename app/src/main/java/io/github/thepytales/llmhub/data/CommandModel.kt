@@ -31,24 +31,24 @@ import java.util.zip.GZIPInputStream
 object CommandModelInfo {
     /** The name shown in the app. */
     const val NAME = "Lora Befehle"
-    const val COMMIT = "cc168774477e3ac8b439b42fd7b03ab05c9908fa"
+    const val COMMIT = "6f996b1c45609fdc9e565a113cfb11bfa28e14ee"
     const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/lora-befehle-pytales.int8.onnx.gz"
-    const val GZ_SIZE = 40_900_860L // TODO-NEU
-    const val GZ_SHA256 = "ee13766aeeda7983470cdc3ff0da6989de28bc20091d3f3b329d6d9242883e37"
+    const val GZ_SIZE = 54_943_807L
+    const val GZ_SHA256 = "99480c32e19c5a9f5a52a6b2da097e38ac5991b4f7961fb3820328794d7a883c"
     const val FILE = "lora-befehle-pytales.int8.onnx"
-    const val SIZE = 67_956_881L // TODO-NEU
-    const val SHA256 = "3251a9ef4dd4104164bf861c0ac0d6778f0d8ef1c5dc8c286e02e017ab803f65"
+    const val SIZE = 68_169_161L
+    const val SHA256 = "f445c6b49e67f81177f6b0cb60f8e950ec24bcd8fbe6b367cd69ae9beba231b9"
     /** Download size shown to the user. */
-    const val MEGABYTES = 41 // TODO-NEU
+    const val MEGABYTES = 55
 
     /** Below this probability of the likeliest label nothing is carried out (chosen on the Messkorpus, schwelle.json). */
-    const val THRESHOLD = 0.8f // TODO-NEU
+    const val THRESHOLD = 0.5f
     /**
      * Rückfrage mit zwei Knöpfen (AP-73): below [THRESHOLD], Lora asks „Meinst du … oder …?“ when the two likeliest
      * commands together reach this probability (chosen on the development part only, tools/befehle/rueckfrage.py and
      * modell/rueckfrage.json); otherwise the wish goes on to a language model as before.
      */
-    const val CHOICE_BOUND = 0.3f // TODO-NEU
+    const val CHOICE_BOUND = 0.45f
 
     /** The model up to 1.0.65 („Befehlsmodell“) with its threshold and bound: used until the new one is there. */
     const val OLD_FILE = "befehle-modell.int8.onnx"

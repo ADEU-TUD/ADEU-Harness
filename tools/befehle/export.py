@@ -83,7 +83,9 @@ def main() -> None:
     print("Export nach ONNX …")
     inputs = export_onnx(folder, fp32)
     print("int8 …")
-    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8)
+    # Per channel (10.11.2026): the plain dynamic quantization lost 1.7 points of hits on the development part, per
+    # channel none (chosen there, by tools/befehle/README.md › Training und Export).
+    quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8, per_channel=True)
 
     tok = AutoTokenizer.from_pretrained(folder)
     tok.save_pretrained(out)
@@ -151,7 +153,7 @@ Ist die Sicherheit kleiner als die Schwelle, führt die App nichts aus, sondern 
 - **Daten**: ausschließlich erfundene Wünsche. Claude (Anthropic) hat als Lehrer-Modell Bezeichnungen, Satzmuster und
   Sätze je Etikett geschrieben (`tools/befehle/vorlagen`), ein Skript hat sie kombiniert und Tippfehler, fehlende
   Umlaute und Füllwörter ergänzt (`tools/befehle/gen.py`). Keine echten Eingaben von Nutzer:innen.
-- **Format**: ONNX, int8 (dynamische Quantisierung), {size / 1e6:.0f} MB; Tokenizer `vocab.txt` (WordPiece).
+- **Format**: ONNX, int8 (dynamische Quantisierung pro Kanal), {size / 1e6:.0f} MB; Tokenizer `vocab.txt` (WordPiece).
 
 ## Kennzahlen (Messkorpus `tools/befehle/messkorpus`, int8, Schwelle {threshold})
 | | Befehle getroffen | falsch ausgeführt (alle Eingaben) | freie Anfragen weitergegeben | Art einfach/komplex richtig |
