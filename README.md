@@ -264,8 +264,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     (41 MB), Namen schützen (72 MB), ein Sprachmodell, das zur Hardware passt, und wo Lora arbeiten soll, je mit einem
     Satz Erklärung. Wer Lora schon nutzt, bekommt die Frage einmalig als „Neu: Modelle für dieses Gerät“ („Übernehmen“,
     „Später“, „Nicht mehr fragen“).
-  - Werkzeuge, Messkorpus und Zahlen: [`tools/befehle/README.md`](tools/befehle/README.md). **Auf Android noch
-    ungetestet** (JNA und die ONNX Runtime von sherpa-onnx, wie bei Lora Namensschutz).
+  - Werkzeuge, Messkorpus und Zahlen: [`tools/befehle/README.md`](tools/befehle/README.md). Auf Android getestet.
 - **Neue, bessere Modelle: Lora Namensschutz und Lora Befehle** (seit 1.0.66, AP-67/AP-71): Die beiden kleinen Modelle
   auf dem Gerät heißen jetzt **Lora Namensschutz** (bisher „Erkennungsmodell“ der Pseudonymisierung) und **Lora Befehle**
   (bisher „Befehlsmodell“) und sind nachtrainiert – nur mit erfundenen Daten, gemessen auf dem Prüfteil, der nie zum
