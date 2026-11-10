@@ -6431,3 +6431,17 @@ Zweck: {0}	Purpose: {0}
 auf diesem Gerät langsamer als {0} Wörter/s – das schnellste passende	slower than {0} words/s on this device – the fastest that fits
 für fast alles: Chat, Zusammenfassen, Umformulieren, Übersetzen	for almost everything: chat, summarizing, rephrasing, translating
 „Lora Edition“ heißt: von uns ausgewählt, als fertige Datei übernommen, auf Geräten gemessen und für Lora eingestellt (Kontextlänge, Vorlage). Die Gewichte sind unverändert. Basismodell, Urheber und Lizenz sind die des Originals; die Urheber haben Lora weder geprüft noch gebilligt.	“Lora Edition” means: chosen by us, taken over as a ready file, measured on devices and set up for Lora (context length, template). The weights are unchanged. Base model, authors and licence are those of the original; the authors have neither checked nor endorsed Lora.
+Ganz lesen auf diesem Gerät	Read it whole on this device
+Das Modell läuft auf diesem Gerät – die Zeiten sind die Vorhersage für dieses Gerät. Nichts verlässt das Gerät.	The model runs on this device – the times are the forecast for this device. Nothing leaves the device.
+Überblick	Overview
+≈ {0} s	≈ {0} s
+≈ {0} Min.	≈ {0} min
+≈ {0} Std. {1} Min.	≈ {0} h {1} min
+Abschnitt {0} von {1} · noch {2}	Section {0} of {1} · {2} left
+Versteht Bilder: Screenshots, Diagramme, Fotos von Tabellen und Scans – auf diesem Gerät.	Understands images: screenshots, charts, photos of tables and scans – on this device.
+Bildteil: {0} % von {1}	Image part: {0} % of {1}
+Kann auch Bilder verstehen, mit einem eigenen kleinen Download.	Can also understand images, with a small download of its own.
+Bildteil laden ({0})	Load image part ({0})
+{0} versteht jetzt Bilder.	{0} now understands images.
+Download des Bildteils fehlgeschlagen: {0}	Download of the image part failed: {0}
+Bildteil eingespielt.	Image part imported.

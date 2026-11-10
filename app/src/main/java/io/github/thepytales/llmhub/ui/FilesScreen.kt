@@ -147,10 +147,13 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     var reload by remember { mutableIntStateOf(0) }
     var hasRoots by remember { mutableStateOf(true) }
     val items by produceState<List<FileItem>?>(null, docs, metas, knowledge, reload) {
-        value = withContext(Dispatchers.IO) {
-            hasRoots = runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false)
-            runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
+        val (roots, list) = withContext(Dispatchers.IO) {
+            runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false) to runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
         }
+        // Both states are set here, on the UI thread: written from the background, the list could change between
+        // composing and measuring (IndexOutOfBounds in the LazyColumn).
+        hasRoots = roots
+        value = list
     }
     // Read the texts of new and changed files once, in the background.
     LaunchedEffect(items?.size, reload) { items?.let { list -> withContext(Dispatchers.IO) { runCatching { c.fileLibrary.index(list) } } } }

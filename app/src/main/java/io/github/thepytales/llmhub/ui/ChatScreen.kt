@@ -257,6 +257,7 @@ fun ChatScreen(
 
     // Große Anhänge (AP-85): a file that does not fit the model is not cut silently – the app asks once per file.
     var largeFile by remember { mutableStateOf<FileAttachment?>(null) }
+    val digestProgress by io.github.thepytales.llmhub.local.LongText.progress.collectAsStateWithLifecycle()
     val askedLarge = remember { mutableSetOf<String>() }
     LaunchedEffect(files.size, conv?.model) {
         val model = conv?.model ?: return@LaunchedEffect
@@ -513,7 +514,11 @@ fun ChatScreen(
                     if (i >= 0) files[i] = f.copy(public = !io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(f))
                 },
                 // Große Anhänge (AP-85): how much goes along with this model; a tap asks again.
-                sendInfo = { f -> io.github.thepytales.llmhub.files.AttachmentBudget.shown(files.toList(), current.model).getOrNull(files.indexOf(f))?.text },
+                sendInfo = { f ->
+                    // Lange Texte lokal (AP-108): while the summary is made, its progress and the remaining time.
+                    digestProgress[io.github.thepytales.llmhub.local.LongText.key(f.name, f.text.length)]?.text()
+                        ?: io.github.thepytales.llmhub.files.AttachmentBudget.shown(files.toList(), current.model).getOrNull(files.indexOf(f))?.text
+                },
                 onSendInfo = { f -> largeFile = f },
                 running = running,
                 recording = recording,
@@ -884,7 +889,7 @@ fun ChatScreen(
     if (showSnippets) SnippetsSheet(c, onInsert = { t -> input = if (input.isBlank()) t else "$input\n$t" }, onDismiss = { showSnippets = false })
     largeFile?.let { f ->
         val model = conv?.model.orEmpty()
-        LargeAttachmentDialog(f, files.toList(), model, onDismiss = { largeFile = null }, onChoose = { mode, switchTo ->
+        LargeAttachmentDialog(c, f, files.toList(), model, onDismiss = { largeFile = null }, onChoose = { mode, switchTo ->
             largeFile = null
             fun put(next: FileAttachment) { val i = files.indexOfFirst { it.name == f.name && it.text.length == f.text.length }; if (i >= 0) files[i] = next }
             put(f.copy(send = mode.id))

@@ -385,6 +385,18 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   mindestens 8 Wörter/s schreibt (Vorhersage aus AP-105) – Spezialisten werden nur bei Bedarf geladen, Programmier-Wünsche
   gehen lokal an den Code-Spezialisten. Übersicht aller Stufen: [`docs/MODELLKATALOG.md`](docs/MODELLKATALOG.md);
   Messkorpus zur Wahl: [`tools/modellwahl/`](tools/modellwahl/README.md). Tests `LocalCatalogStepsTest`.
+- **Lange Texte lokal** (seit 1.0.67, AP-108): Lokale Modelle nutzen so viel Kontext, wie der Speicher dieses Geräts
+  hergibt (KV-Cache in 8 Bit; z. B. 128 k statt 8 k Token für Qwen 3.5 4B auf einem PC mit 32 GB). Bei großen Anhängen
+  fragt die App auch bei lokalen Modellen und sagt **vorher, wie lange** jeder Weg hier dauert: *Ganz lesen auf diesem
+  Gerät*, *Nur die passenden Stellen* (von selbst, etwa 90 s Lesezeit) oder *Abschnittsweise zusammenfassen* – mit
+  Seitenangaben, einem Überblick am Anfang und dem Fortschritt an der Karte („Abschnitt 3 von 19 · noch ≈ 12 Min.“).
+  Nichts verlässt dabei das Gerät. Test `LongTextLocalTest`.
+- **Bilder verstehen lokal** (seit 1.0.67, AP-110): Qwen-3.5/3.6- und Gemma-4-Modelle bekommen unter *Modelle auf diesem
+  Gerät* einen eigenen kleinen Download, den **Bildteil** (0,16–1,2 GB, gleiche Quelle und Prüfsumme wie das Modell).
+  Danach verstehen sie Screenshots, Diagramme, Fotos von Tabellen und Scans im Chat – auf dem Gerät, auch in Projekten
+  „Nur auf diesem Gerät“. Auf dem Prozessor rechnet die App mit kleineren Bildern; ohne Grafikkarte dauert ein Bild je
+  nach Modell etwa 10 s bis über eine Minute (Vorhersage), mit Grafikkarte oder Apple-Chip wenige Sekunden. Messkorpus:
+  [`tools/bildverstehen/`](tools/bildverstehen/README.md). Test `LocalVisionTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

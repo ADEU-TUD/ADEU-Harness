@@ -119,7 +119,7 @@ private fun LocalModelOffer(c: AppContainer, onOpenModels: () -> Unit) {
             HintText(tr("{0} wird geladen …", state.starting))
         }
         loading != null -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            val name = LocalCatalog.get(loading.key)?.name?.let { tr(it) } ?: loading.key
+            val name = LocalCatalog.get(loading.key.removePrefix(io.github.thepytales.llmhub.local.LocalLlm.VISION))?.name?.let { tr(it) } ?: loading.key
             HintText(tr("{0} wird heruntergeladen … {1} %", name, (loading.value * 100).toInt()))
             LinearProgressIndicator(progress = { loading.value.toFloat() }, modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)))
             TextButton(onClick = { c.localLlm.cancelInstall(loading.key) }) { Text(tr("Stopp")) }

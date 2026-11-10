@@ -367,6 +367,22 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
             LinearProgressIndicator(progress = { p.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
             HintText(tr("{0} % von {1}", (p * 100).toInt(), formatBytes(m.size)))
         }
+        // Bilder verstehen lokal (AP-110): the image part as a small download of its own.
+        val projector = m.projector
+        if (installed && projector != null) {
+            val visionProgress = state.downloads[io.github.thepytales.llmhub.local.LocalLlm.VISION + m.id]
+            when {
+                m.id in state.vision -> HintText(tr("Versteht Bilder: Screenshots, Diagramme, Fotos von Tabellen und Scans – auf diesem Gerät."))
+                visionProgress != null -> {
+                    LinearProgressIndicator(progress = { visionProgress.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, end = 8.dp).height(6.dp).clip(RoundedCornerShape(3.dp)))
+                    HintText(tr("Bildteil: {0} % von {1}", (visionProgress * 100).toInt(), formatBytes(projector.size)))
+                }
+                else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    HintText(tr("Kann auch Bilder verstehen, mit einem eigenen kleinen Download."), Modifier.weight(1f))
+                    TextButton(onClick = { local.installVision(m.id) }) { Text(tr("Bildteil laden ({0})", formatBytes(projector.size))) }
+                }
+            }
+        }
     }
 }
 

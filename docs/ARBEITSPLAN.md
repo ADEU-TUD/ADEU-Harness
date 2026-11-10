@@ -523,11 +523,35 @@ der Wahl.
 **Fertig, wenn**: im Prüfteil die Treffer der ersten fünf Stellen mindestens so gut wie mit Server-Einbettungen, ≤ 50 ms je
 Abschnitt auf einem Office-PC.
 
-### AP-108 ☐ Lange Texte lokal · M (Runde 3)
+### AP-108 ◐ Lange Texte lokal · M (Runde 3)
 **Ziel**: Kontextlänge nach Speicher (KV-Cache quantisiert) statt fest 8–16 k, Abschnitt-für-Abschnitt-Auswertung mit
 Zusammenführung, Stellen über AP-107, ehrliche Zeitangabe vor dem Start und Fortschritt.
 **Fertig, wenn**: ein 80-seitiges PDF auf einem Office-PC mit 32 GB ohne Server zusammengefasst und befragt werden kann,
 mit Belegstellen, und die Zeitangabe höchstens 30 % daneben liegt.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig; die Messung am Office-PC steht aus, die Stellen-Suche nach Bedeutung
+kommt mit AP-107.
+- **Kontext nach Speicher** (`LocalCatalog.contextFor`): was neben dem Modell in den Speicher passt, mit KV-Cache in 8 Bit
+  (`-fa auto -ctk q8_0 -ctv q8_0`; lehnt das Programm es ab, startet es einmal wie bisher), mindestens der Katalogwert,
+  höchstens die Grenze des Modells (Qwen 3.5/3.6 und Gemma 4: 128 k, Qwen 2.5 Coder: 32 k), in Schritten von 4096.
+  KV-Bedarf je Token vorsichtig aus der Architektur geschätzt (`kvKb`). Beispiel: Qwen 3.5 4B auf einem Office-PC mit
+  32 GB → 128 k statt 8 k Token.
+- **Was von selbst mitgeht** (`AttachmentBudget.budgetChars`): bei lokalen Modellen nur so viel, wie das Gerät in etwa
+  90 s einliest (Vorhersage AP-105) – die zur Frage passenden Stellen mit Seitenangaben. Lokale Modelle bekommen jetzt
+  auch den Dialog für große Anhänge, mit **Zeitangabe je Weg** vor dem Start: *Ganz lesen auf diesem Gerät* (wenn es in
+  den Kontext passt), *Nur die passenden Stellen*, *Abschnittsweise zusammenfassen* (`local/LongText.kt`; Einlesen wird
+  mit der Länge langsamer, +50 % bei 32 k). Kein Vorschlag, auf ein Server-Modell zu wechseln.
+- **Abschnittsweise mit Zusammenführung** (`AttachmentDigest`): jeder Abschnitt beginnt mit seiner Seitenmarke und wird
+  mit Seitenangaben zusammengefasst; danach ein **Überblick** über alle Abschnitte (passen die Zusammenfassungen nicht in
+  eine Anfrage, erst in Gruppen). **Fortschritt** an der Karte des Anhangs: „Abschnitt 3 von 19 · noch ≈ 12 Min.“
+  (aus dem bisherigen Tempo, vorher aus der Vorhersage).
+- Test `LongTextLocalTest` (4) mit einem erfundenen 80-Seiten-Dokument: Kontext nach Speicher, Stellen mit „[Seite 57]“
+  in 90 s Lesezeit, „ganz“ geht ganz mit, Zeitangaben, Gruppen bei kleinem Kontext, Fortschritt, Seitenmarken.
+  `AttachmentBudgetTest` angepasst (lokale Modelle fragen jetzt). Nebenbei: `FilesScreen` setzt seinen Zustand nicht mehr
+  aus einem Hintergrund-Thread (ließ `NewToolsLookTest.filesScreen` in vollen Läufen sporadisch scheitern).
+- **Offen – am Gerät**: auf einem Office-PC mit 32 GB ein 80-seitiges PDF mit einem lokalen Modell zusammenfassen und
+  befragen; Zeitangabe gegen die tatsächliche Dauer (Ziel ±30 %) – vorher *Gerät messen* (AP-105). Ob `-fa auto` mit
+  KV in 8 Bit auf allen drei Systemen startet, zeigt `llm/server.log`. Passende Stellen nach Bedeutung statt nach
+  Wörtern kommen mit AP-107 (andere Sitzung).
 
 ### AP-109 ☐ Lora selbst lokal · M–L (Runde 3)
 **Ziel**: Loras Antworten, Werkzeugaufrufe und Abläufe (heute GLM-5.3 Flash) laufen mit *Nur lokal* vollständig auf dem
@@ -537,11 +561,43 @@ reicht, ein LoRA-Feintuning „Lora Agent“ (gleicher Weg wie AP-104).
 **Fertig, wenn**: im Prüfteil das empfohlene Modell je Geräteklasse ≥ 90 % der Aufgaben richtig löst und keine Aktion ohne
 Vorschau/Rückfrage ausführt.
 
-### AP-110 ☐ Bilder verstehen lokal · M (Runde 3)
+### AP-110 ◐ Bilder verstehen lokal · M (Runde 3)
 **Ziel**: Bilder im Chat, Screenshots, Diagramme und Scans versteht ein lokales Modell mit Bildteil (mmproj zu Gemma 4 /
 Qwen 3.5 über llama.cpp, eigener kleiner Download); auf Android ersetzt das die OCR über ein Server-Bildmodell.
 **Fertig, wenn**: der Messkorpus (Screenshots, Tabellenfotos, Scans) im Prüfteil brauchbar beantwortet wird und ein Bild auf
 einem Office-PC unter 15 s dauert.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig; Messung am Gerät und der Einbau in die Texterkennung stehen aus.
+- **Bildteil je Modell** (`Projector` in `LocalCatalog`): 13 Modelle (Qwen 3.5/3.6, Gemma 4) haben ihren mmproj aus
+  demselben Repository und Commit wie das Modell, mit SHA-256 (Q8_0 von ggml-org, sonst F16; 0,16–1,2 GB). Ein eigener
+  kleiner Download unter *Modelle auf diesem Gerät* (*Bildteil laden*); Modelle einer Größe teilen ihn (Qwen 3.5 4B und
+  seine 8-Bit-Fassung); die Code-Spezialisten lesen nur Text. *Datei einspielen* nimmt auch den Bildteil.
+- **Start mit Bildteil** (`LocalLlm`): `--mmproj`, auf dem Prozessor `--image-max-tokens 512` (schneller), auf der Grafik
+  1024; lehnt das Programm es ab, startet es ohne. Das Modell meldet dann „versteht Bilder“ – Chats schicken Bilder wie an
+  ein Server-Modell (`image_url`), auch in Projekten „Nur auf diesem Gerät“.
+- `LocalVision.model(c)`: das stärkste installierte Modell mit Bildteil; `secondsPerImage`: Vorhersage aus Bild-Encoder,
+  Einlesen der Bild-Token und kurzer Antwort.
+- **Vorhersage je Bild** (Test `LocalVisionTest`, Bezugsgeräte wie AP-106):
+
+| Modell | Office-PC 32 GB (CPU) | Gaming-PC RTX 5080 | Mac M4 24 GB |
+| --- | --- | --- | --- |
+| Qwen 3.5 0.8B | 10 s | 0 s | 2 s |
+| Qwen 3.5 2B | 25 s | 1 s | 5 s |
+| Gemma 4 E2B | 20 s | 0 s | 3 s |
+| Qwen 3.5 4B | 37 s | 1 s | 9 s |
+| Qwen 3.5 4B (genauer) | 46 s | 1 s | 11 s |
+| Gemma 4 E4B | 28 s | 1 s | 5 s |
+| Qwen 3.5 9B | 69 s | 2 s | 17 s |
+| Qwen 3.5 9B (genauer) | 88 s | 3 s | 24 s |
+| Gemma 4 12B | 55 s | 2 s | 14 s |
+
+  Auf einem Office-PC ohne Grafikkarte erreicht voraussichtlich nur Qwen 3.5 0.8B das Ziel „unter 15 s“; Gemma 4 E2B liegt
+  bei etwa 20 s. Mit Grafikkarte oder Apple-Chip ist es kein Problem.
+- **Messkorpus** `tools/bildverstehen/` (erfundene Screenshots, Tabellenfotos, Scans, Diagramme; je 12 Bilder Entwicklung
+  und Prüfung, erzeugt aus festen Startwerten) mit Messskript.
+- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) **Android:
+  OCR lokal** – `PdfOcr.visionModel` (PDF-Werkzeuge, andere Sitzung) soll `LocalVision.model(c)` vor einem Server-Bildmodell
+  nehmen; ein Einzeiler, absichtlich nicht angefasst; (3) auf Android ist der Bildteil ungetestet (llama-server der App
+  muss mtmd enthalten).
 
 ### AP-111 ☐ Sprachausgabe lokal · S (Runde 3)
 **Ziel**: Vorlesen und Sprachmodus mit natürlicher deutscher Stimme auf dem Gerät (Piper oder Kokoro über sherpa-onnx,

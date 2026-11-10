@@ -35,10 +35,24 @@ object AttachmentBudget {
 
     /** Context window of [model] in tokens: from the catalog, local models from theirs, else a careful 32 768. */
     fun contextTokens(model: String): Int =
-        ModelCatalog.effective(ModelCatalog.info(model)).contextTokens ?: LocalCatalog.get(model)?.context ?: 32_768
+        LocalCatalog.get(model)?.let { LocalCatalog.context(it) } // AP-108: local models after the memory of this device
+            ?: ModelCatalog.effective(ModelCatalog.info(model)).contextTokens ?: 32_768
 
-    /** Characters all attachments of one request may have for [model]. */
-    fun budgetChars(model: String): Int = ((contextTokens(model) * SHARE - 2_000.0).coerceAtLeast(2_000.0) * CHARS_PER_TOKEN).toInt()
+    /**
+     * Characters all attachments of one request may have for [model]. Local models (AP-108): no more than this device
+     * reads in about a minute and a half ([LocalCatalog.quickChars]) – the whole text only when chosen ([wholeChars]).
+     */
+    fun budgetChars(model: String): Int {
+        val memory = wholeChars(model)
+        val quick = LocalCatalog.get(model)?.takeIf { local(model) }?.let { LocalCatalog.quickChars(it) }
+        return if (quick != null) minOf(memory, quick.coerceAtLeast(8_000)) else memory
+    }
+
+    /** Characters that fit the context of [model] at all (for local models after the memory of this device). */
+    fun wholeChars(model: String): Int = ((contextTokens(model) * SHARE - 2_000.0).coerceAtLeast(2_000.0) * CHARS_PER_TOKEN).toInt()
+
+    /** A file sent whole: always for server models (chosen to fit), for local ones while it fits their context. */
+    private fun whole(f: FileAttachment, model: String, total: Int) = Mode.of(f.send) == Mode.FULL && (!local(model) || total <= wholeChars(model))
 
     /** Whether [model] runs on this device (small context: passages by themselves). */
     private fun local(model: String) = model.startsWith(io.github.thepytales.llmhub.data.Privacy.LOCAL_PREFIX)
@@ -77,7 +91,8 @@ object AttachmentBudget {
 
     /** Files of [files] that do not fit [model] and have no choice yet – for these the app asks. */
     fun needsChoice(files: List<FileAttachment>, model: String): List<FileAttachment> =
-        if (local(model)) emptyList() else files.filter { it.send == null }.takeIf { fs -> files.sumOf { it.text.length } > budgetChars(model) && fs.isNotEmpty() }.orEmpty()
+        // Local models ask too (AP-108): with the time each way takes on this device; until then they take the passages.
+        files.filter { it.send == null }.takeIf { fs -> files.sumOf { it.text.length } > budgetChars(model) && fs.isNotEmpty() }.orEmpty()
 
     /**
      * The messages as they go to [model]: files that fit stay whole; the others become their passages for the question
@@ -92,12 +107,12 @@ object AttachmentBudget {
         if (total <= budget) return messages
         val question = messages.lastOrNull { it.role == "user" }?.content.orEmpty()
         // Whole files take their place first; the rest is shared by length.
-        val whole = all.filter { Mode.of(it.send) == Mode.FULL && !local(model) }.sumOf { it.text.length }
+        val whole = all.filter { whole(it, model, total) }.sumOf { it.text.length }
         val rest = (budget - whole).coerceAtLeast(budget / 5)
-        val others = all.filter { !(Mode.of(it.send) == Mode.FULL && !local(model)) }.sumOf { it.text.length }.coerceAtLeast(1)
+        val others = all.filter { !whole(it, model, total) }.sumOf { it.text.length }.coerceAtLeast(1)
         return messages.map { m ->
             if (m.files.isEmpty()) m else m.copy(files = m.files.map { f ->
-                if (Mode.of(f.send) == Mode.FULL && !local(model)) return@map f
+                if (whole(f, model, total)) return@map f
                 val room = (rest.toLong() * f.text.length / others).toInt().coerceAtLeast(4_000)
                 if (f.text.length <= room) return@map f
                 val digest = f.digest?.takeIf { Mode.of(f.send) == Mode.SUMMARY && it.length <= room }
