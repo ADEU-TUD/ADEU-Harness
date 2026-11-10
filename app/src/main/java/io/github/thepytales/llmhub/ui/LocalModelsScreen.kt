@@ -99,13 +99,23 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
                 }
                 return@ReadableColumn
             }
-            val recommended = LocalCatalog.recommended(h)
+            val settings by c.settings.settings.collectAsStateWithLifecycle()
+            val purposes = LocalCatalog.purposes(settings.localPurposes, settings.roles)
+            val stored by io.github.thepytales.llmhub.local.DeviceBench.stored(c).collectAsStateWithLifecycle()
+            val picks = remember(h, purposes, stored) { LocalCatalog.picks(h, purposes) { io.github.thepytales.llmhub.local.DeviceBench.forecast(c, it, h) } }
+            val recommended = picks.map { it.model }
             GroupLabel(tr("Empfohlen für dieses Gerät"))
+            PurposeChips(c, purposes)
             AppCard {
                 Column {
-                    recommended.forEachIndexed { i, m ->
+                    picks.forEachIndexed { i, p ->
                         if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        LocalModelRow(c, m, Fit.RECOMMENDED, state, onTry)
+                        HintText(
+                            (if (p.purpose == io.github.thepytales.llmhub.local.Purpose.ALLROUND) tr("Standard: {0}", tr(p.purpose.label)) else tr("Spezialist für {0} – wird nur bei Bedarf geladen", tr(p.purpose.label))) +
+                                if (!p.fastEnough) " · " + tr("auf diesem Gerät langsamer als {0} Wörter/s – das schnellste passende", LocalCatalog.MIN_WORDS_PER_SEC.toInt()) else "",
+                            Modifier.padding(start = 16.dp, top = 10.dp, end = 16.dp),
+                        )
+                        LocalModelRow(c, p.model, Fit.RECOMMENDED, state, onTry)
                     }
                 }
             }
@@ -143,6 +153,30 @@ fun LocalModelsScreen(c: AppContainer, onBack: () -> Unit, onTry: (String) -> Un
             if (state.running != null) {
                 TextButton(onClick = { scope.launch { local.stop() } }) { Text(tr("Laufendes Modell beenden (Speicher freigeben)")) }
             }
+        }
+    }
+}
+
+/**
+ * Modellkatalog nach Zweck (AP-106): the allrounder is always there; Texte, Code and Postfach add a specialist that is
+ * loaded only when needed. Stored in the settings (empty: from the roles of the first start).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+internal fun PurposeChips(c: AppContainer, purposes: Set<io.github.thepytales.llmhub.local.Purpose>, onChange: ((Set<io.github.thepytales.llmhub.local.Purpose>) -> Unit)? = null) {
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        io.github.thepytales.llmhub.local.Purpose.entries.forEach { p ->
+            val on = p in purposes
+            FilterChip(
+                selected = on,
+                onClick = {
+                    if (p == io.github.thepytales.llmhub.local.Purpose.ALLROUND) return@FilterChip
+                    val next = if (on) purposes - p else purposes + p
+                    if (onChange != null) onChange(next)
+                    else c.settings.update { it.copy(localPurposes = io.github.thepytales.llmhub.local.Purpose.format(next)) }
+                },
+                label = { Text(tr(p.label)) },
+            )
         }
     }
 }
@@ -282,6 +316,15 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
     val local = c.localLlm
     val installed = m.id in state.installed
     val progress = state.downloads[m.id]
+    var card by remember { mutableStateOf(false) }
+    if (card) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { card = false },
+            title = { Text(tr("Modellkarte")) },
+            text = { Text(LocalCatalog.card(m), style = MaterialTheme.typography.bodySmall) },
+            confirmButton = { TextButton(onClick = { card = false }) { Text("OK") } },
+        )
+    }
     Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -300,11 +343,13 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
             }
             when {
                 installed -> {
+                    TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
                     IconButton(onClick = { onTry(m.modelId) }) { Icon(Icons.Outlined.PlayArrow, contentDescription = tr("Im Chat ausprobieren"), tint = MaterialTheme.colorScheme.primary) }
                     IconButton(onClick = { local.delete(m.id) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), tint = MaterialTheme.colorScheme.error) }
                 }
                 progress != null -> TextButton(onClick = { local.cancelInstall(m.id) }) { Text(tr("Stopp")) }
                 else -> {
+                    TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
                     val enabled = fit != Fit.TOO_BIG && state.runtime != RuntimeStatus.UNSUPPORTED
                     if (fit == Fit.RECOMMENDED) {
                         Button(enabled = enabled, onClick = { local.install(m.id) }) {

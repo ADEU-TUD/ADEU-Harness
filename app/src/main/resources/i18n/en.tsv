@@ -6389,3 +6389,45 @@ schreibt ≈ {0} Wörter/s · liest ≈ {1} Wörter/s · {2}	writes ≈ {0} word
 vorhergesagt nach Messung	forecast after measurement
 {0} liest und schreibt …	{0} is reading and writing …
 {0} mit gemeinsamem Speicher	{0} with shared memory
+Allrounder	All-rounder
+Briefe, Gutachten, Feedback – besonders gutes Deutsch	Letters, reviews, feedback – especially good German
+Das stärkste Gemma für Texte – für Grafikkarten mit 24 GB und Macs ab 32 GB.	The strongest Gemma for texts – for graphics cards with 24 GB and Macs from 32 GB.
+Dasselbe Modell mit feinerer Quantisierung (8 Bit) – etwas genauer, braucht mehr Speicher. Für Grafikkarten ab 6 GB und Macs.	The same model with finer quantization (8 bit) – somewhat more precise, needs more memory. For graphics cards from 6 GB and Macs.
+Datei: {0} ({1} GB)	File: {0} ({1} GB)
+Der stärkste Programmier-Spezialist, rechnet nur mit 3 Mrd. Parametern – Grafikkarten mit 24 GB, Macs ab 32 GB, PCs ab 48 GB.	The strongest programming specialist, computes with only 3 billion parameters – graphics cards with 24 GB, Macs from 32 GB, PCs from 48 GB.
+Gemma 4 12B – Lora Edition	Gemma 4 12B – Lora Edition
+Gemma 4 26B A4B – Lora Edition	Gemma 4 26B A4B – Lora Edition
+Gemma 4 31B – Lora Edition	Gemma 4 31B – Lora Edition
+Gemma 4 E2B – Lora Edition	Gemma 4 E2B – Lora Edition
+Gemma 4 E4B – Lora Edition	Gemma 4 E4B – Lora Edition
+Großes dichtes Modell, sehr gründlich – für Grafikkarten mit 24 GB und Macs ab 32 GB; ohne Grafikkarte zu langsam.	Large dense model, very thorough – for graphics cards with 24 GB and Macs from 32 GB; too slow without a graphics card.
+Herkunft: huggingface.co/{0}, Stand {1}	Source: huggingface.co/{0}, commit {1}
+Lizenz: {0} (unverändert; Lizenztext beim Original auf Hugging Face)	Licence: {0} (unchanged; licence text with the original on Hugging Face)
+Mails zusammenfassen, einordnen, Entwürfe – mit Werkzeugen	Summarizing and sorting mails, drafts – with tools
+Original: {0} ({1})	Original: {0} ({1})
+Programmieren, Skripte, Formeln, Fehlersuche	Programming, scripts, formulas, debugging
+Quantisiert von: {0}	Quantized by: {0}
+Qwen 2.5 Coder 14B – Lora Edition	Qwen 2.5 Coder 14B – Lora Edition
+Qwen 2.5 Coder 7B – Lora Edition	Qwen 2.5 Coder 7B – Lora Edition
+Qwen 3 Coder 30B A3B – Lora Edition	Qwen 3 Coder 30B A3B – Lora Edition
+Qwen 3.5 0.8B – Lora Edition	Qwen 3.5 0.8B – Lora Edition
+Qwen 3.5 2B – Lora Edition	Qwen 3.5 2B – Lora Edition
+Qwen 3.5 4B (genauer) – Lora Edition	Qwen 3.5 4B (more precise) – Lora Edition
+Qwen 3.5 4B – Lora Edition	Qwen 3.5 4B – Lora Edition
+Qwen 3.5 9B (genauer) – Lora Edition	Qwen 3.5 9B (more precise) – Lora Edition
+Qwen 3.5 9B mit 8 Bit statt 4 – genauer bei Zahlen und Fakten. Für Grafikkarten ab 12 GB und Macs ab 24 GB.	Qwen 3.5 9B with 8 bits instead of 4 – more precise with numbers and facts. For graphics cards from 12 GB and Macs from 24 GB.
+Qwen 3.5 9B – Lora Edition	Qwen 3.5 9B – Lora Edition
+Qwen 3.6 27B – Lora Edition	Qwen 3.6 27B – Lora Edition
+Qwen 3.6 35B A3B – Lora Edition	Qwen 3.6 35B A3B – Lora Edition
+Spezialist für {0} – wird nur bei Bedarf geladen	Specialist for {0} – loaded only when needed
+Spezialist fürs Programmieren (Python, R, JavaScript, SQL, LaTeX) – für Grafikkarten ab 8 GB und schnelle PCs.	Programming specialist (Python, R, JavaScript, SQL, LaTeX) – for graphics cards from 8 GB and fast PCs.
+Standard: {0}	Standard: {0}
+Stärkerer Programmier-Spezialist – für Grafikkarten ab 12 GB und Macs ab 24 GB.	Stronger programming specialist – for graphics cards from 12 GB and Macs from 24 GB.
+Texte	Texts
+Urheber: {0}	Authors: {0}
+Winzig – für Handys und Rechner mit 8 GB, wenn nichts anderes schnell genug ist. Kurze Antworten, Umformulieren.	Tiny – for phones and computers with 8 GB when nothing else is fast enough. Short answers, rephrasing.
+Wofür vor allem? Der Allrounder ist immer dabei, Spezialisten werden nur bei Bedarf geladen.	Mainly for what? The all-rounder is always there; specialists are loaded only when needed.
+Zweck: {0}	Purpose: {0}
+auf diesem Gerät langsamer als {0} Wörter/s – das schnellste passende	slower than {0} words/s on this device – the fastest that fits
+für fast alles: Chat, Zusammenfassen, Umformulieren, Übersetzen	for almost everything: chat, summarizing, rephrasing, translating
+„Lora Edition“ heißt: von uns ausgewählt, als fertige Datei übernommen, auf Geräten gemessen und für Lora eingestellt (Kontextlänge, Vorlage). Die Gewichte sind unverändert. Basismodell, Urheber und Lizenz sind die des Originals; die Urheber haben Lora weder geprüft noch gebilligt.	“Lora Edition” means: chosen by us, taken over as a ready file, measured on devices and set up for Lora (context length, template). The weights are unchanged. Base model, authors and licence are those of the original; the authors have neither checked nor endorsed Lora.

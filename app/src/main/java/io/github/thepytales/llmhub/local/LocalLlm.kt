@@ -104,7 +104,12 @@ class LocalLlm(private val c: AppContainer) {
     fun installedModels(): List<LocalModel> = LocalCatalog.models.filter { it.id in _state.value.installed }
 
     /** The local model for new chats in projects that keep data on the device: the strongest one installed. */
-    fun preferredModel(): String? = installedModels().maxByOrNull { it.needGb }?.modelId
+    fun preferredModel(): String? = generalModels().maxByOrNull { it.quality }?.modelId
+
+    /** Installed models for general work: without the code specialists (AP-106), unless only those are installed. */
+    fun generalModels(): List<LocalModel> = installedModels().let { all ->
+        all.filter { Purpose.ALLROUND in it.purposes || Purpose.TEXT in it.purposes || Purpose.MAIL in it.purposes }.ifEmpty { all }
+    }
 
     // ------------------------------------------------------------------ installing
 

@@ -377,6 +377,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Speicher und lässt das kleinste installierte Modell einen festen Text lesen und schreiben; jede Messung (auch *Messen*,
   AP-76) korrigiert die Vorhersage aller Modelle. *Messprotokoll kopieren* liefert Profil, Messungen und „Vorhersage gegen
   Messung“ als Text. Nichts verlässt dabei das Gerät. Test `SpeedForecastTest`.
+- **Modellkatalog in feinen Stufen, nach Zweck** (seit 1.0.67, AP-106): 16 lokale Modelle von 0,8 bis 35 Mrd. Parametern,
+  alle Apache-2.0, je als „<Original> – Lora Edition“ (von uns ausgewählt, gemessen und eingestellt; Gewichte unverändert,
+  Urheber und Lizenz wie im Original – siehe *Modellkarte*). Unter *Modelle auf diesem Gerät* und im Dialog vom ersten
+  Start wählst du, wofür vor allem: **Allrounder** (Standard), **Texte** (Gemma 4), **Code** (Qwen Coder), **Postfach**
+  (Qwen 3.5/3.6); ohne Wahl folgt es der Rolle. Je Zweck empfiehlt die App das stärkste Modell, das auf diesem Gerät
+  mindestens 8 Wörter/s schreibt (Vorhersage aus AP-105) – Spezialisten werden nur bei Bedarf geladen, Programmier-Wünsche
+  gehen lokal an den Code-Spezialisten. Übersicht aller Stufen: [`docs/MODELLKATALOG.md`](docs/MODELLKATALOG.md);
+  Messkorpus zur Wahl: [`tools/modellwahl/`](tools/modellwahl/README.md). Tests `LocalCatalogStepsTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

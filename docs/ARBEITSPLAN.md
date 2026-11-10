@@ -483,7 +483,7 @@ alles wie heute.
   Ungeprüft sind vor allem: der Anteil der Bandbreite auf der CPU (0,6), die Einlese-Formel (60 Token/s je Thread und
   Mrd. Parameter mit AVX2) und Vulkan auf Windows (0,65 der Kartenbandbreite).
 
-### AP-106 ☐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
+### AP-106 ◐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
 **Ziel**: Für jede Stufe (RAM 8 bis 64 GB, Grafik 4 bis 24 GB, Apple-Chip, Android) und jeden Zweck (Allrounder, Text, Code,
 Postfach) genau eine fertig quantisierte Datei – mit Kontextlänge nach Speicher und Mindesttempo (z. B. ≥ 8 Wörter/s,
 erstes Wort < 2 s).
@@ -493,6 +493,27 @@ erstes Wort < 2 s).
 - Kandidaten je Stufe auf einem Messkorpus (deutsche Textaufgaben, Code-Aufgaben) vergleichen, Wahl begründet festhalten.
 **Fertig, wenn**: der Katalog jede Stufe abdeckt, jede Empfehlung auf einem Gerät der Stufe gemessen ist und der Dialog vom
 ersten Start sie mit Größe, Tempo und Zweck anbietet.
+◐ *Stand 10.11.2026 (1.0.67)*: Katalog und Oberfläche fertig, Messung auf den Geräten offen.
+- **16 Modelle** „… – Lora Edition“ (bisher 8; neu Qwen 3.5 0.8B, Qwen 3.5 4B/9B in 8 Bit, Qwen 3.6 27B, Gemma 4 31B,
+  Qwen 2.5 Coder 7B/14B, Qwen 3 Coder 30B A3B), alle **Apache-2.0** (auch Gemma 4; geprüft an Original und
+  quantisierter Fassung), fester Commit und SHA-256 aus der Hugging-Face-API. Ids und Dateien der bisherigen Modelle
+  bleiben, installierte Modelle laufen weiter. Modellkarte in der App (`LocalCatalog.card`). Noch kein eigener Spiegel
+  (wie besprochen).
+- **Zweck** (`Purpose`: Allrounder, Texte, Code, Postfach; Einstellung `localPurposes`, ohne Wahl aus der Rolle von
+  AP-80): Chips unter *Modelle auf diesem Gerät* und im Dialog vom ersten Start; dort je Zweck eine Empfehlung mit Größe
+  und „schreibt ≈ … Wörter/s“. Der Allrounder ist Standard; `LoraCommands.localModel` nimmt den Code-Spezialisten nur bei
+  Programmier-Wünschen, `LocalLlm.preferredModel` und das Postfach (`MailAccess.model`) nie einen reinen Code-Spezialisten.
+- **Wahl je Gerät** (`LocalCatalog.pick`): stärkstes passendes Modell mit Vorhersage (AP-105) ≥ 8 Wörter/s und erstem Wort
+  ≤ 2 s; Spezialist zählt für seinen Zweck 1,5-fach; ohne schnelles Modell das schnellste passende mit Hinweis.
+- Tabelle aller **22 Stufen × 4 Zwecke** in [`docs/MODELLKATALOG.md`](MODELLKATALOG.md): 88 von 88 Feldern laut Vorhersage
+  schnell genug. Test `LocalCatalogStepsTest` (5): Lizenzen, Namen, Commits, jede Stufe und jeder Zweck, stärkere Stufe →
+  stärkeres Modell, Messung ändert die Wahl.
+- **Messkorpus** `tools/modellwahl/` (48 erfundene Aufgaben: Texte, Code mit Tests, Postfach; je 8 Entwicklung/Prüfung)
+  mit Messskript für llama-server.
+- **Offen – am Gerät**: Kandidaten je Stufe im Entwicklungsteil vergleichen (`messen.py`), Wahl in
+  `docs/MODELLKATALOG.md` begründen, dann einmal der Prüfteil; jede Empfehlung auf einem Gerät der Stufe messen. Bisher ist
+  die Wahl vorläufig (Lizenz, Größe, Ruf, Vorhersage). Der Mail-Sortierer (`MailSorter`, andere Sitzung) wählt sein Modell
+  noch nach Größe und könnte einen Code-Spezialisten nehmen – dort `generalModels()` nutzen.
 
 ### AP-107 ☐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
 **Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein

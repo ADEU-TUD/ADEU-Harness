@@ -195,6 +195,8 @@ class IntroModelChoice(private val c: AppContainer) {
     /** Kurzmessung (AP-105): offered while this device was never measured; on by default (about 20 s, nothing leaves the device). */
     val offerBench = io.github.thepytales.llmhub.local.DeviceBench.here(c, c.localLlm.hardware.value).at == 0L
     var bench by mutableStateOf(offerBench)
+    /** Purposes for the language models (AP-106), empty = from the roles. */
+    var purposes by mutableStateOf(c.settings.current.localPurposes)
 
     fun apply(c: AppContainer) {
         if (offerCommand) { if (command) c.commandModel.install() }
@@ -213,7 +215,7 @@ class IntroModelChoice(private val c: AppContainer) {
             runCatching { io.github.thepytales.llmhub.local.DeviceBench.run(c) }.onFailure { io.github.thepytales.llmhub.AppLog.e("Kurzmessung", it) }
         }
         // Who decides here is not asked again by the single popups.
-        c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
+        c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, localPurposes = purposes, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
     }
 }
 
@@ -225,7 +227,12 @@ class IntroModelChoice(private val c: AppContainer) {
 fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
     val hw by c.localLlm.hardware.collectAsState()
     val local by c.localLlm.state.collectAsState()
-    val suggested: List<LocalModel> = hw?.let { LocalCatalog.recommended(it) }.orEmpty().filter { it.id !in local.installed }
+    val stored by io.github.thepytales.llmhub.local.DeviceBench.stored(c).collectAsState()
+    val purposes = LocalCatalog.purposes(choice.purposes, c.settings.current.roles)
+    // Modellkatalog nach Zweck (AP-106): the allrounder and a specialist for each chosen purpose, sized for this device.
+    val suggested: List<LocalModel> = remember(hw, purposes, stored, local.installed) {
+        hw?.let { h -> LocalCatalog.recommended(h, purposes) { io.github.thepytales.llmhub.local.DeviceBench.forecast(c, it, h) } }.orEmpty().filter { it.id !in local.installed }
+    }
     Text(tr("Welche Modelle sollen auf dieses Gerät?"), style = MaterialTheme.typography.titleSmall)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (choice.offerCommand) ModelLine(
@@ -238,6 +245,8 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
             tr("Die Pseudonymisierung findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht."),
             choice.pii,
         ) { choice.pii = it }
+        Text(tr("Wofür vor allem? Der Allrounder ist immer dabei, Spezialisten werden nur bei Bedarf geladen."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        PurposeChips(c, purposes) { next -> choice.purposes = io.github.thepytales.llmhub.local.Purpose.format(next) }
         suggested.forEach { m ->
             ModelLine(
                 tr("Sprachmodell {0} ({1} GB)", tr(m.name), String.format(java.util.Locale.GERMANY, "%.1f", m.size / 1e9)),

@@ -175,7 +175,7 @@ object SpeedForecast {
 
     /** Reading speed in tokens per second before calibration. */
     fun rawRead(m: LocalModel, hw: Hardware, gpu: Boolean): Double {
-        val moe = if (m.activeB < m.totalB * 0.5) 0.7 else 1.0
+        val moe = if (m.moe) 0.7 else 1.0
         val perB = when {
             gpu && isApple(hw) -> {
                 val cores = hw.gpuCores.takeIf { it > 0 } ?: appleChip(hw.chip)?.second ?: 10
@@ -190,7 +190,7 @@ object SpeedForecast {
 
     /** Writing speed in tokens per second before calibration. */
     fun rawWrite(m: LocalModel, hw: Hardware, gpu: Boolean, measuredGbs: Double? = null): Double {
-        val moe = if (m.activeB < m.totalB * 0.5) 0.85 else 1.0
+        val moe = if (m.moe) 0.85 else 1.0
         return bandwidth(hw, gpu, measuredGbs) * 1e9 / bytesPerToken(m) * moe
     }
 
