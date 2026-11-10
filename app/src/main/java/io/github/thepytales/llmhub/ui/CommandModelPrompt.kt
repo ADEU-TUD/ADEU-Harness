@@ -212,7 +212,7 @@ class IntroModelChoice(private val c: AppContainer) {
             val until = System.currentTimeMillis() + 3 * 3600_000L
             while (c.localLlm.state.value.downloads.isNotEmpty() && System.currentTimeMillis() < until) kotlinx.coroutines.delay(5_000)
             while (c.localLlm.hardware.value == null && System.currentTimeMillis() < until) kotlinx.coroutines.delay(1_000)
-            runCatching { io.github.thepytales.llmhub.local.DeviceBench.run(c) }.onFailure { io.github.thepytales.llmhub.AppLog.e("Kurzmessung", it) }
+            io.github.thepytales.llmhub.ErrorLog.run { runCatching { io.github.thepytales.llmhub.local.DeviceBench.run(c) }.onFailure { record("Kurzmessung", it) } }
         }
         // Who decides here is not asked again by the single popups.
         c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, localPurposes = purposes, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
