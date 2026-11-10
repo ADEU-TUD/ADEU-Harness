@@ -143,6 +143,8 @@ Ist die Sicherheit kleiner als die Schwelle, führt die App nichts aus, sondern 
 - **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`{layers}) von {authors}, Lizenz **{lic_name}**.
   {NAME} ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. {NAME} ist kein
   Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
+- **Lizenz von {NAME}**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/ADEU-Harness (kostenlos nutzbar;
+  Änderungen und Weiterverbreitung nur mit Genehmigung). Das Basismodell bleibt unter seiner eigenen Lizenz (unten).
 - **Feintuning**: Satz-Klassifikation, {report.get("daten", "?")} erfundene Trainingswünsche, beste Epoche
   {report.get("beste_epoche", "?")} von {len(report.get("epochen", []))}. Eingabe: was offen ist (ein Wort) und der Wunsch in Kleinbuchstaben.
 - **Etiketten**: aus dem Code der App erzeugt (`tools/befehle/etiketten.json`, `CommandLabelsTest`).
