@@ -119,8 +119,19 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
             onNavigate("chat")
         } else onNavigate(route)
     }
+    // Befehle auf dem Gerät (AP-71): what the command model makes of the typed words – shown as the first entry when it
+    // is sure, carried out by Lora on the device (settings and risky actions still ask first).
+    val targets = remember { io.github.thepytales.llmhub.data.AppMap.build(io.github.thepytales.llmhub.data.TemplateLibrary.all(c.templates.items.value), IS_ANDROID) }
+    val command = remember(query) {
+        val q = query.trim()
+        if (q.length < 3) null else c.commandModel.recognize(q, io.github.thepytales.llmhub.agent.ActionArea.of(LoraHelper.route.value)?.key ?: "app")
+            ?.takeIf { it.sure && !it.free }
+            ?.let { io.github.thepytales.llmhub.agent.LoraCommands.describe(it.label, q, c.settings.current, targets) }
+    }
     fun first() {
-        commands.firstOrNull()?.let { go(it.route); onDismiss() } ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
+        commands.firstOrNull()?.let { go(it.route); onDismiss() }
+            ?: command?.let { LoraHelper.open(query.trim()); onDismiss() }
+            ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
     }
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
@@ -129,13 +140,16 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
                     value = query,
                     onValueChange = { query = it },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                    placeholder = { Text(tr("Bereich, Einstellung oder Chat suchen …")) },
+                    placeholder = { Text(tr("Bereich, Einstellung, Chat – oder sag, was du tun willst …")) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = { first() }),
                     modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
                 LazyColumn(Modifier.heightIn(max = 420.dp).padding(top = 6.dp)) {
+                    command?.let { line ->
+                        item(key = "command") { PaletteRow("⚡ $line", tr("Befehl")) { LoraHelper.open(query.trim()); onDismiss() } }
+                    }
                     // Lora fragen (AP-07): the typed wish goes to Lora, who finds the place or hands it to a chat.
                     item(key = "lora") {
                         PaletteRow(

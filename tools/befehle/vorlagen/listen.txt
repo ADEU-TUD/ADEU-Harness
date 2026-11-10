@@ -1,0 +1,121 @@
+# Füllungen für die Platzhalter (erfunden). Ein Eintrag je „|“.
+== DATEI
+Protokoll.docx | Seminarplan_WS26.pdf | Gutachten_Entwurf.docx | scan_0042.pdf | Antrag_final.pdf | Notenliste.xlsx | Folien_Vorlesung3.pptx | Interview_07.mp3 | Abstract.txt | Reisekosten_Maerz.pdf | Handout Sitzung 5.pdf | Literaturliste.docx | Bericht 2026.pdf | Modulhandbuch.pdf | Anmeldung.pdf | Einverständnis.pdf | Zeitplan.xlsx | poster_tagung.pdf | Skript_Kapitel2.docx | Klausur_Entwurf.pdf | „Exposé Version 2“ | Evaluation_SoSe.xlsx | Aufnahme_Seminar.m4a | Mitschrift.md | Vertrag_HiWi.pdf
+== ORDNER
+Lehre | Forschung | Verwaltung | Lehre/Seminar | Projekte/Antrag | Archiv | WS 2026-27 | Abgaben | Gutachten | Privat | Drittmittel | Tagung Leipzig | Scans | Lehre/Vorlesung | Publikationen | Personal | Vorlagen | Dienstreisen | Promotion/Daten | Sitzungen
+== SEITEN
+2-4 | 5-7 | 1 und 3 | 2, 5-7 | 3-6 | 1-2 | 8-10 | 4 bis 6 | 2 und 9 | 1, 3 und 5 | 10-12 | 6-9 | 1-3;4-10 | 2-5;6-8
+== SEITE
+1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 15 | 20
+== GRAD
+90 | 180 | 270
+== SPALTE
+Name | Nachname | Datum | Note | Punkte | Matrikel | B | C | Studiengang | Semester | Betrag | Titel | Gruppe | Alter | Ort | Abgabe | Kurs | E | Vorname | Summe | Jahr | Status | Raum | Dozent | Thema
+== SPALTE2
+Gruppe | Studiengang | Semester | Kurs | Jahr | Fach | Tutor | Seminar | Kohorte | Geschlecht | Standort | Fakultät
+== ZELLE
+D2 | B7 | F3 | C10 | E5 | G12 | A4 | H2 | D15 | B3
+== ZBEREICH
+A1:B10 | A1:C8 | B2:D20 | A1:B6 | C1:D12 | A2:E9 | B1:C15 | A1:D5
+== DTYP
+säulen | balken | linien | kreis | punkt
+== FORMAT
+word | docx | markdown | md | txt | text
+== BEGRIFFE
+Hofmann-Reuter | die Matrikelnummer | Seidel, Brückner | alle Namen der Studierenden | Albrecht | die Adresse | Kühnel und Petzold | das Geburtsdatum | Wünsche-Thal | die Telefonnummern
+== TAGS
+Lehre | Antrag | Seminar, WS26 | Forschung, Daten | wichtig | Gutachten | DFG | Verwaltung | Abgabe | Literatur, Methodik | Tagung | Entwurf
+== SPALTEN
+Name, Note | Datum, Thema, Raum | Aufgabe, Verantwortlich, Frist | Name, Matrikel, Punkte | Sitzung, Inhalt | Kriterium, Gewicht, Bewertung | Posten, Betrag | Wer, Was, Bis wann
+== N
+2 | 3 | 4 | 5 | 6 | 7 | 8 | 10 | 12
+== ZEIT
+1:30 | 0:45 | 2:10 | 12:05 | 0:20 | 5:00 | 3:15 | 7:42
+== MIN
+5 | 8 | 10 | 12 | 15 | 20
+== ZAHL
+10 | 12 | 15 | 20 | 250 | 500 | 1500 | 3000 | 8 | 40
+== THEMA
+Inklusion | digitale Bildung | Lesemotivation | Feedback in der Lehre | selbstreguliertes Lernen | Prüfungsangst | Gruppenarbeit | Medienkompetenz | Lehrkräftebildung | Mehrsprachigkeit im Unterricht | forschendes Lernen | Classroom Management | Bildungsgerechtigkeit | KI in der Schule | Hochschuldidaktik | Notengebung | Motivation im Studium | Übergang Schule Hochschule | Demokratiebildung | Lernstrategien | Praxisphasen im Lehramt | Evaluation von Lehre | Heterogenität | Sprachförderung | qualitative Inhaltsanalyse | Mixed Methods | Stichprobenziehung | Peer Feedback | E-Prüfungen | Studienabbruch | Lernplattformen | Projektarbeit | Nachhaltigkeit im Curriculum | Wissenschaftskommunikation | Open Access | Forschungsdatenmanagement | gute wissenschaftliche Praxis | Drittmittelprojekte | Berufungsverfahren | Internationalisierung
+== THEMA2
+Konstruktivismus | Frontalunterricht | Präsenzlehre | summative Prüfungen | quantitative Verfahren | traditionelle Vorlesungen | Projektunterricht | Online-Lehre | Einzelarbeit | Kompetenzorientierung | Portfolio-Prüfungen | Blended Learning
+== ETHEMA
+inclusive education | digital learning | feedback in higher education | student motivation | assessment | teacher training | self-regulated learning | open science | academic writing | group work
+== ETHEMA2
+traditional lectures | online teaching | summative assessment | project-based learning | peer review | blended learning
+== BEGRIFF
+Validität | Reliabilität | Operationalisierung | Hermeneutik | Scaffolding | formative Evaluation | Konfidenzintervall | Signifikanz | Effektstärke | Triangulation | Grounded Theory | Kompetenz | Lernziel | Curriculum | Habitus | Sozialisation | Median | Standardabweichung | Korrelation | Hypothese | Paradigma | Didaktik | Taxonomie | Peer Review | Impact Factor | Workload | Akkreditierung | Kohorte | Stichprobe | Skalenniveau | Likert-Skala | Diskursanalyse | Empirie | Evidenz | Metaanalyse | Modulhandbuch | ECTS | Habilitation | Kolloquium | Exposé
+== BEGRIFF2
+Objektivität | Varianz | Induktion | Deduktion | Evaluation | Mittelwert | Kausalität | Methode | Methodik | Theorie | Modell | Kompetenzstufe | Fallstudie | Längsschnitt | Querschnitt
+== EBEGRIFF
+validity | syllabus | peer review | a p-value | a learning outcome | formative assessment | tenure | a literature review | grounded theory | office hours | ECTS | a cohort study
+== WORT
+wichtig | darüber hinaus | zeigen | außerdem | interessant | deshalb | Problem | sagen | gut | untersuchen | Zusammenhang | deutlich | aufgrund dessen | Status | des Weiteren | E-Mail | zurzeit | Rhythmus | Standard | insbesondere
+== SATZ
+wir müssen den Termin leider verschieben | bitte schicken Sie mir die Unterlagen bis Freitag | die Sitzung fällt heute aus | ich habe Ihre Arbeit erhalten | das Seminar beginnt um neun Uhr | die Ergebnisse waren nicht eindeutig | ihre Arbeit hat einige Schwächen | die Teilnehmenden hatten wenig Zeit | ich melde mich nächste Woche bei Ihnen | der Raum wurde geändert | die Frist kann nicht verlängert werden | vielen Dank für Ihre Geduld | der Fragebogen wurde von allen ausgefüllt | wir treffen uns nach der Vorlesung | bitte bringen Sie Ihren Ausweis mit | das ist echt schlecht gelaufen | die Daten wurden im Mai erhoben | ich kann leider nicht teilnehmen | die Anmeldung ist ab Montag möglich | es wird um pünktliches Erscheinen gebeten | die Studie hat drei Teile | ich bitte um kurze Rückmeldung | das Protokoll folgt morgen | die Note wird nächste Woche bekannt gegeben
+== ESATZ
+the meeting is cancelled | please send me the file by friday | office hours are moved to tuesday | i will be late | the deadline has been extended | thank you for your patience | the results were not clear | registration opens on monday
+== KURZTEXT
+Abwesenheitsnotiz | Begrüßung für die erste Sitzung | Erinnerung an die Abgabe | Dankesnachricht | Absage | Terminbestätigung | Einladung zum Kaffee | Glückwunsch zur bestandenen Prüfung | Entschuldigung für die späte Antwort | Verabschiedung für das Semesterende | Rückfrage zum Termin | Ankündigung der Sprechstunde | Bitte um Rückmeldung | Willkommensnachricht für neue Tutoren
+== EKURZTEXT
+out of office note | thank you message | reminder about the deadline | welcome message | apology for the late reply
+== PERSON
+eine Professorin | meinen Betreuer | Studierende | das Dekanat | eine Kollegin | den Prüfungsausschuss | Herrn Dr. Wendisch | Frau Prof. Scholze-Krahl | das Sekretariat | einen Gutachter | die Tutorinnen | meine Arbeitsgruppe
+== EPERSON
+my supervisor | the students | a colleague | the dean's office
+== MAILGRUND
+der Termin verschoben wird | ich später komme | die Unterlagen fehlen | ich krank bin | die Sitzung ausfällt | ich die Frist nicht schaffe | der Raum sich ändert | ich das Gutachten morgen schicke
+== APPTHEMA
+Datenschutz an Schulen | das PDF-Format | den Dunkelmodus | Tresore | Videoschnitt im Unterricht | Transkription in der Forschung | Literaturverwaltung | Software-Updates | Schriftgrößen in Hausarbeiten | Sprachmodelle | E-Mails im Berufsalltag | Pseudonymisierung in der Forschung | Lernspiele | Backups | die Cloud | Websuche und Quellenkritik | Vorlagen im Corporate Design | Kalender und Zeitmanagement | Scanner und Digitalisierung | Diagramme in Präsentationen | Tabellenkalkulation | Untertitel und Barrierefreiheit | Einstellungen von Lernplattformen | Spracherkennung | Synchronisation von Daten
+== APPBEGRIFF
+ein PDF/A | Pseudonymisierung | Zotero | OCR | ein Exzerpt | ein API-Schlüssel | Markdown | ein Token | BibTeX | ein Sprachmodell | die DSGVO | ein Backup | eine Nextcloud | IMAP | ein Screencast | eine Bauchbinde | ein Transkript | ein Zitierstil | eine Mindmap | ein Handout
+== APPBEGRIFF2
+Anonymisierung | Citavi | ein PDF | einem Abstract | RIS | einem Chatbot | einer Synchronisation | POP3 | einem Protokoll | einer Zusammenfassung
+== ZITAT
+ein Interview | eine Webseite | einen Sammelband | ein Gesetz | eine Vorlesung | einen Zeitungsartikel | ein Kapitel | eine Dissertation | ein Video | einen Podcast
+== DOKART
+Hausarbeiten | einem Protokoll | einem Exposé | einer Bachelorarbeit | einem Gutachten | einem Abstract | einem Handout | einer Einladung | einem Lebenslauf | einem Projektbericht
+== WEBZIEL
+den Terminen der nächsten Bildungsmesse | der aktuellen Ausschreibung des Ministeriums | den Öffnungszeiten der Bibliothek | der neuen Prüfungsordnung | den Fristen der DFG | dem Programm der Tagung | aktuellen Zahlen zum Lehrkräftemangel | den Semesterterminen | der Bahnverbindung nach Leipzig | den Förderrichtlinien der SAB
+== EWEBZIEL
+the conference dates | the current call for proposals | opening hours of the library | recent enrollment statistics
+== ANHANG
+das angehängte Transkript | die Datei im Anhang | das 60-seitige Gutachten | die angehängte Excel mit den Evaluationsdaten | die drei PDFs | das hochgeladene Paper | die Dissertation im Anhang | diese Hausarbeit | den angehängten Antrag | die beigefügte Studie | meine Masterarbeit | das Sitzungsprotokoll im Anhang | die angehängten Interviews | das Dokument, das ich hochgeladen habe
+== EANHANG
+the attached report | this paper | the uploaded transcript | the attached spreadsheet
+== CODE
+Python-Skript | R-Skript | Makro | VBA-Makro | SQL-Statement | JavaScript | LaTeX-Dokument | SPSS-Syntax | Shell-Skript
+== ECODE
+python script | sql query | regex | function | r script
+== CODEZIEL
+alle CSV-Dateien zusammenführt | leere Zeilen löscht | Matrikelnummern prüft | eine Notenstatistik erstellt | Dateien umbenennt | Mittelwerte je Gruppe berechnet | Duplikate entfernt | ein Diagramm zeichnet | PDFs zusammenfügt | Daten aus einer Tabelle ausliest
+== ECODEZIEL
+merges all csv files | removes empty rows | validates student ids | plots a histogram
+== LANGTEXT
+ein Gutachten | einen ausführlichen Bericht | eine Literaturübersicht | ein Konzeptpapier | einen Projektantrag | ein Kapitel | einen Fachartikel | eine Stellungnahme | ein Zweitgutachten | einen Essay | eine Hausarbeit | ein Positionspapier
+== ELANGTEXT
+a literature review | a detailed report | a grant proposal | an essay | a position paper
+== RECHNUNG
+die Effektstärke | die Standardabweichung | Cohens d | den Stichprobenumfang | eine Varianzanalyse | die Korrelation | einen t-Test | das Konfidenzintervall | Cronbachs Alpha | die Regressionsgerade
+== GROSS
+meine Vorlesung neu zu strukturieren | meine Dissertation zu gliedern | mein Seminar zu planen | einen Antrag aufzusetzen | meine Daten auszuwerten | mein Paper zu überarbeiten
+== GROSS2
+meiner Auswertung | der Gliederung meiner Arbeit | meinem Antrag | der Diskussion in meinem Paper | meiner Seminarplanung | der Methodik meiner Studie | meiner Bachelorarbeit | dem Aufbau meines Vortrags
+== EGROSS
+my thesis outline | my data analysis | my grant proposal | structuring my lecture
+== SUCHE
+dem Antrag | die Prüfungsordnung | Reisekosten | der Gliederung | das Seminar zur Inklusion | der Tagung | die Klausur | Erasmus | dem Gutachten | die Evaluation | Statistik | dem Poster | die Berufung | Zotero | dem Lehrauftrag | the conference | the proposal | grading
+== DATUM
+30.11.2026 | 15.12.2026 | 01.12.2026 | 20.11.2026 | 2026-12-05 | 12.01.2027 | 3.2.2027 | 28.02.2027 | 2027-03-15 | 31.03.2027 | 5.12. | 14. Dezember | 1. März 2027
+== TITEL
+die Skizze | Notenabgabe | das Gutachten | den Antrag | die Klausur | Abgabe Zwischenbericht | Anmeldung zur Tagung | die Reisekostenabrechnung | das Abstract | Rückmeldung an die Studierenden | den Verlängerungsantrag | Evaluation
+== THEMAAPP
+der Tresor | die Pseudonymisierung | der Quellenmodus | das Exzerpt | die Transkription | die Literaturverwaltung | der PDF-Werkzeugkasten | die Modi | die TU Vorlagen | Projekte | das Postfach | Lora | die Updates | die Darstellung | der Chat | die Dokumente | the vault | the source mode | transcription | projects | der Sprachmodus | die Wissenssammlung
+== PREF
+Handouts immer zweispaltig sein sollen | ich immer nach Semester aufräume | Videos immer für OPAL exportiert werden | ich APA als Zitierstil will | Briefe mit vollem Absender kommen | Folien deutsch und englisch sein sollen | ich Dateien nach Datum benenne | Protokolle kurz sein sollen | I always want APA | ich gendere mit Doppelpunkt | Tabellen immer eine Summenzeile bekommen | PDFs immer verkleinert werden
+== NAME
+Frau Scholze | Herrn Wendisch | dem Dekanat | der Personalabteilung | dem Prüfungsamt | Prof. Krahl | meiner Chefin | dem Studienbüro | Dr. Petzold | der Bibliothek
+== VORLAGE
+ein Empfehlungsschreiben | Protokoll | eine Bescheinigung | Einladung zur Sitzung | einen Brief | Gutachten | Seminarplan | eine Rundmail | Aktennotiz | Dienstreiseantrag | Absage | eine Teilnahmebestätigung | Modulbeschreibung | Feedback an Studierende | Prüfungsprotokoll | eine Stellenausschreibung | Ankündigung einer Lehrveranstaltung | Forschungsbericht | Mail an Studierende | Zeugnis für eine Hilfskraft
+== WERKZEUG
+den PDF-Werkzeugkasten | die Dateien | den Videoeditor | Erstellen | die Vorlagen | das Werkzeug hier | the pdf toolbox | the video editor

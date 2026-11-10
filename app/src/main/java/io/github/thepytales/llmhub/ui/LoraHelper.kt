@@ -1191,6 +1191,8 @@ fun LoraSettings(c: AppContainer) {
             },
         )
     }
+    // AP-71: mixed mode, command model, how often Lora answered on this device.
+    LoraPlaceSettings(c)
     Section(tr("Lora als Helferin")) {
         HintText(
             tr("Lora findet Einstellungen, öffnet Modi und TU Vorlagen, schlägt Werkzeuge vor, sucht frühere Chats, trägt Fristen in den Kalender ein und gibt Fachfragen an einen Chat weiter. Einfache Wünsche löst sie auf dem Gerät, ohne Anfrage; nur für echte Gespräche fragt sie ein Modell. Sie läuft nur auf Abruf und liest nie im Hintergrund mit. In Projekten „Nur auf diesem Gerät“ sucht sie nur lokal."),

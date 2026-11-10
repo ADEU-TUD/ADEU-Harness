@@ -1,0 +1,269 @@
+# Einzelne Optionen (zeigen, nicht umstellen) und Knöpfe in den Werkzeugen.
+== ort:option.appearance.theme
+o: helligkeit | hell oder dunkel | dunkelmodus | dark mode | nachtmodus | das dunkle design | helles oder dunkles design | theme | farbmodus | dunkle ansicht
+s: wo wechsle ich zwischen hell und dunkel | wo kann man die app dunkel stellen | gibt es einen dunkelmodus | wo ist die einstellung für den hintergrund hell dunkel | mir ist die app zu hell, wo ändere ich das | wo ist der schalter für dunkel | is there a dark mode | dunkles thema, wo
+
+== ort:option.appearance.style
+o: stil der app | stil | app stil | design stil | farbschema | tu dresden stil | office stil | hoher kontrast | kontrastmodus | look der app
+s: wo wähle ich einen anderen stil | die app im tu design anzeigen, wo | wo gibt es den kontrastreichen stil | andere farben für die oberfläche | wo stelle ich das adeu design ein | change the app style | ich möchte ein anderes aussehen wählen, stil
+
+== ort:option.appearance.textsize
+o: schriftgröße | textgröße | schrift | größe der schrift | font size | buchstabengröße | schriftgrad
+s: wo stelle ich die schrift größer | wo kann ich die schrift verkleinern | text ist zu klein, wo ändere ich das | wo macht man die buchstaben größer | where do i change the font size | die schrift ist mir zu groß, wo ist die einstellung
+
+== ort:option.appearance.zoom
+o: zoom | zoomstufe | vergrößerung | skalierung der oberfläche | oberfläche vergrößern | zoom faktor | anzeige skalieren
+s: wo kann ich die ganze app vergrößern | alles etwas kleiner anzeigen, wo | wie zoome ich die oberfläche | wo stelle ich die skalierung ein | where is the zoom | die oberfläche ist zu klein, zoom
+
+== ort:option.appearance.language
+o: sprache der oberfläche | sprache | app sprache | sprache der app | language | oberflächensprache | spracheinstellung
+s: wo stelle ich englisch ein | wo ändere ich die sprache der app | kann man die app auf englisch haben, wo | wo wechsle ich zwischen deutsch und englisch | where can i set the language | menüs in einer anderen sprache, wo
+
+== ort:option.appearance.startAnimation
+o: startanimation | animation beim start | start animation | animation beim öffnen | begrüßungsanimation
+s: wo schalte ich die animation beim starten ab | wo ist die option für die startanimation | die animation am anfang, wo ist die einstellung | where is the start animation setting
+
+== ort:option.chat.defaultModel
+o: standardmodell | standard modell | voreingestelltes modell | default model | modell für neue chats | startmodell
+s: wo lege ich fest, mit welchem modell neue chats starten | wo ändere ich das voreingestellte modell | immer ein anderes modell als standard, wo | wo wähle ich das modell für jeden neuen chat | where do i set the default model | welches modell ist standard und wo ändere ich es
+
+== ort:option.chat.autoModel
+o: modell automatisch wählen | automatische modellwahl | auto modell | automatik für modelle | automatic model choice | modellautomatik
+s: wo ist die option, dass die app das modell selbst aussucht | wo schalte ich die automatische modellwahl | die app soll das passende modell vorschlagen, wo ist das | wo finde ich die automatik für das modell
+
+== ort:option.chat.thinking
+o: denkstufe | denkstufen | nachdenken | reasoning | denkphase | gedankengang | thinking level | denktiefe
+s: wo stelle ich ein, wie gründlich das modell nachdenkt | modell soll weniger nachdenken, wo | wo ist die einstellung für das reasoning | wie lange das modell überlegt, wo ändere ich das | where is the thinking level | wo schalte ich die denkphase ab
+
+== ort:option.chat.web
+o: websuche einstellung | option websuche | internetsuche | web suche | webzugriff | web search option | websuche, webseiten und quellen-check
+s: wo ist der schalter für die websuche | darf das modell im internet suchen, wo steht das | wo finde ich die einstellung zur internetsuche | where is the web search setting | wo erlaube ich das lesen von links
+
+== ort:option.chat.collapse
+o: arbeitsschritte einklappen | schritte einklappen | einklappen der arbeitsschritte | werkzeugschritte | collapse steps
+s: wo stelle ich ein, dass die schritte eingeklappt bleiben | die arbeitsschritte nehmen so viel platz weg, wo ist die option | wo blende ich die werkzeugschritte aus | where is the option to collapse steps
+
+== ort:option.chat.approvals
+o: freigaben | freigabe | bestätigungen | nachfragen des agenten | approvals | genehmigungen | freigabeeinstellungen
+s: wo stelle ich ein, wann der agent fragt | der agent soll nicht ständig nachfragen, wo | wo lege ich fest, was der agent ohne rückfrage darf | änderungen erst nach bestätigung, wo ist das | where are the approval settings | wann muss ich etwas genehmigen, wo steht das
+
+== ort:option.lora.mode
+o: lora ein- oder ausblenden | wo lora erscheint | lora anzeigen | lora sichtbarkeit | lora ausblenden option | show or hide lora
+s: wo kann ich einstellen, wo lora erscheint | wo blende ich lora aus | wo ist die einstellung, ob lora überall zu sehen ist | wo verstecke ich die figur | wo schalte ich lora wieder ein | where can i hide lora
+
+== ort:option.lora.place
+o: wo lora arbeitet | mischmodus | lokal oder server | arbeitsweise von lora | befehlsmodell | lora lokal oder server | where lora works | ort der verarbeitung
+s: wo stelle ich ein, ob lora auf dem gerät oder dem server läuft | wo lade ich das befehlsmodell | wo sehe ich, wie oft lora lokal geantwortet hat | wo ist die einstellung gemischt, nur lokal, nur server | wo lege ich fest, dass lora nichts an den server schickt | wo finde ich den mischmodus von lora | wo schalte ich das verstehen von befehlen auf dem gerät | zähler für lokale antworten von lora, wo
+
+== ort:option.lora.calm
+o: ruhigere bewegungen | lora bewegungen | bewegungen von lora | weniger bewegung | calmer movements | lora animationen
+s: wo stelle ich ein, dass lora sich weniger bewegt | lora zappelt, wo ist die option | wo reduziere ich die animationen von lora | where is the option for calmer movements
+
+== ort:option.privacy.pseudonymize
+o: pseudonymisierung | option pseudonymisierung | namen ersetzen | anonymisierung | pseudonymization | platzhalter für namen | ersetzen von namen
+s: wo schalte ich das ersetzen von namen | wo ist die einstellung für die pseudonymisierung | wo stelle ich ein, dass namen nicht an den server gehen | where is the pseudonymization setting | wo finde ich das mit den platzhaltern für namen
+
+== ort:option.privacy.never
+o: nie ersetzen | nie-ersetzen-liste | ausnahmen der pseudonymisierung | erlaubte namen | never replace | ausnahmeliste
+s: wo trage ich namen ein, die bleiben sollen | ein name wird fälschlich ersetzt, wo nehme ich ihn aus | liste mit namen, die nicht ersetzt werden | wo erlaube ich einen bestimmten namen | where is the never replace list | autoren die nie ersetzt werden sollen, wo
+
+== ort:option.voice.engine
+o: stimme | vorlesestimme | stimme zum vorlesen | sprecherstimme | voice | ki-stimme | tts stimme
+s: wo wähle ich eine andere stimme | die stimme gefällt mir nicht, wo ändere ich sie | wo stelle ich die offline stimme ein | where can i change the voice | welche stimme liest vor, wo einstellen
+
+== ort:option.documents.sender
+o: absender | absenderangaben | meine anschrift | absenderadresse | sender | absender für briefe
+s: wo trage ich meinen namen und die anschrift für briefe ein | wo ändere ich den absender | die adresse im brief stimmt nicht, wo korrigiere ich sie | where do i set the sender | wo hinterlege ich meine dienstanschrift
+
+== ort:option.documents.logo
+o: logos | logo | eigenes logo | logo für dokumente | institutslogo | logo upload
+s: wo lade ich ein logo hoch | wo hinterlege ich das logo der professur | ein anderes logo auf den dokumenten, wo | where do i upload a logo | wo verwalte ich meine logos
+
+== ort:option.updates.auto
+o: automatisch nach updates suchen | automatische updates | update suche beim start | auto update | automatic update check
+s: wo stelle ich ein, dass beim start nach updates gesucht wird | wo schalte ich die automatische updatesuche ab | die app soll nicht selbst nach updates schauen, wo
+
+== ort:option.github.auto
+o: github in neuen chats aktiv | github automatisch aktiv | github in jedem chat | github auto
+s: wo stelle ich ein, dass github in neuen chats gleich an ist | github soll nicht automatisch aktiv sein, wo | wo ist die option für github in neuen chats
+
+== ort:option.chat.autoModelAsk
+o: vor dem modellwechsel fragen | vor dem wechsel fragen | nachfrage beim modellwechsel | modellwechsel bestätigen | ask before switching model
+s: wo stelle ich ein, dass vor einem modellwechsel gefragt wird | die app soll das modell wechseln ohne zu fragen, wo | wo ist die option zur rückfrage beim wechsel des modells
+
+== ort:option.chat.documents
+o: dokumente erstellen option | werkzeug dokumente erstellen | option dokumente | dokumentwerkzeug | document tools option
+s: wo erlaube ich das erstellen von pdf und word im chat | wo ist der schalter für das dokumentwerkzeug | darf der chat dateien erzeugen, wo steht das | where is the option to create documents
+
+== ort:option.chat.autoContinue
+o: automatisch weitermachen | danach automatisch weitermachen | selbst weiterarbeiten | schrittlimit | auto continue | weitermachen nach dem limit
+s: wo stelle ich ein, dass der agent nach dem limit weiterarbeitet | der agent stoppt immer, wo lasse ich ihn weitermachen | wo ist die option zum automatischen fortsetzen
+
+== ort:option.memory.learn
+o: nach dem chat dazulernen | dazulernen | automatisch merken | lernen aus chats | learn after chat
+s: wo stelle ich ein, dass die app aus chats lernt | die app soll sich nichts von selbst merken, wo | wo ist die option zum dazulernen | soll nach einem chat etwas gemerkt werden, wo einstellen
+
+== ort:option.memory.chats
+o: frühere chats einbeziehen | alte chats einbeziehen | chatverlauf einbeziehen | früherer verlauf | include earlier chats
+s: wo stelle ich ein, dass das modell alte chats durchsucht | das modell soll frühere gespräche kennen, wo | wo ist die option für frühere chats | soll auf letzte gespräche bezug genommen werden, wo steht das
+
+== ort:option.memory.suggestions
+o: vorschläge aus meinem wissen | feldvorschläge | vorschläge in vorlagen | vorschläge unter feldern | suggestions from my knowledge
+s: wo schalte ich die vorschläge unter den vorlagenfeldern | die vorlagen schlagen angaben vor, wo ist die option | wo stelle ich die vorschläge beim ausfüllen ab
+
+== ort:option.lora.handoffReview
+o: übergaben erst zeigen | übergabe prüfen | übergaben zeigen | selbst senden bei übergaben | review handoffs
+s: wo stelle ich ein, dass lora fragen erst ins eingabefeld legt | ich will übergebene fragen selbst abschicken, wo | wo ist die option für übergaben von lora
+
+== ort:option.lora.nextSteps
+o: nächste schritte unter antworten | nächste schritte | vorschläge unter antworten | next steps | folgevorschläge
+s: wo schalte ich die vorschläge unter antworten ab | lora bietet unter der antwort dinge an, wo ist das | wo ist die option für nächste schritte
+
+== ort:option.lora.aiUse
+o: ki-nutzungsnachweis vorschlagen | ki nutzungsnachweis | nutzungsnachweis | ki-erklärung | ai use statement
+s: wo stelle ich ein, dass ein ki-nachweis angeboten wird | lora schlägt einen nutzungsnachweis vor, wo ist die option | wo schalte ich den hinweis zum ki-nachweis ab
+
+== ort:option.lora.typing
+o: hinweise beim tippen | tipphinweise | hinweise während der eingabe | typing hints | hinweis beim schreiben
+s: wo schalte ich die hinweise beim tippen ab | lora zeigt beim schreiben orte, wo ist die option | wo stelle ich die hinweise über dem eingabefeld ein
+
+== ort:option.lora.hints
+o: hinweise erlaubt | lora hinweise | hinweise von lora | tipps von lora | lora hints
+s: wo stelle ich ein, ob lora hinweise geben darf | lora soll keine hinweise mehr zeigen, wo | wo erlaube ich lora tipps | wo ist die option für die einmaligen hinweise
+
+== ort:option.lora.tours
+o: touren anbieten | tour angebote | touren einstellung | option touren | offer tours
+s: wo stelle ich ein, ob touren angeboten werden | lora soll keine touren mehr anbieten, wo | wo schalte ich das angebot für rundgänge ab
+
+== ort:option.lora.memory
+o: was lora über mich weiß | loras gedächtnis | vorlieben | gemerkte vorlieben | lora memory | meine vorlieben
+s: wo sehe ich, was lora sich gemerkt hat | vorlieben von lora löschen, wo | was hat sich lora über mich gemerkt | wo ändere ich eine gemerkte vorliebe | lora soll etwas vergessen, wo geht das
+
+== ort:option.lora.log
+o: protokoll der lora-aktionen | lora protokoll | aktionsprotokoll | verlauf der aktionen | lora log
+s: wo sehe ich, was lora getan hat | was hat lora in meinen dateien gemacht, protokoll | wo ist der verlauf von loras aktionen | where is the log of lora's actions
+
+== ort:option.connections.mailServer
+o: mailserver statt outlook | mailserver | imap | imap einstellungen | mail server | imap zugang
+s: wo stelle ich auf den mailserver um | ich habe kein klassisches outlook, wo trage ich imap ein | wo ist die option für den mailserver | mails über imap abrufen, wo einstellen
+
+== ort:option.desktop.tray
+o: im infobereich weiterlaufen | infobereich | tray | im hintergrund weiterlaufen | beim schließen weiterlaufen | run in tray
+s: wo stelle ich ein, dass die app beim schließen weiterläuft | die app soll ganz zugehen wenn ich schließe, wo | wo ist die option für den infobereich | antworten sollen weiterlaufen bei geschlossenem fenster, wo
+
+== ort:option.desktop.autostart
+o: mit windows starten | autostart | automatisch starten | start mit windows | start with windows
+s: wo stelle ich ein, dass lora mit windows startet | die app soll nicht automatisch starten, wo | wo ist der autostart | beim anmelden mitstarten, wo einstellen
+
+== ort:option.desktop.contextmenu
+o: lora im explorer-kontextmenü | kontextmenü | explorer kontextmenü | rechtsklick menü | mit lora öffnen im explorer | context menu
+s: wo schalte ich den eintrag im rechtsklickmenü ein | im explorer mit lora öffnen, wo aktiviere ich das | wo ist die option fürs kontextmenü | lora fragen per rechtsklick auf eine datei, wo
+
+== ort:option.desktop.trash
+o: windows-papierkorb | windows papierkorb | papierkorb von windows | löschen in den windows papierkorb | recycle bin option
+s: wo stelle ich ein, dass gelöschte dateien im windows papierkorb landen | gelöschte dateien sollen in den normalen papierkorb, wo | wo ist die option für den papierkorb von windows
+
+== ort:option.desktop.browser
+o: links neben dem chat öffnen | links als tabs | browser neben dem chat | links in der app öffnen | open links beside chat
+s: wo stelle ich ein, dass links in der app aufgehen | links sollen im normalen browser öffnen, wo | wo ist die option für tabs neben dem chat
+
+== ort:place.files.search
+o: dateien durchsuchen | suchfeld in dateien | dateisuche | volltextsuche | suche in dateien | search files
+s: wo suche ich nach einer datei | ich will den inhalt meiner dateien durchsuchen | wo ist die suche in den dateien | datei nach schlagwort finden, wo | wie finde ich ein dokument in dateien | ich finde eine datei nicht, wo ist die suche
+
+== ort:place.files.new
+o: neu in dateien | neuer ordner | neues dokument | neue tabelle | neue präsentation | hochladen | datei hochladen | das plus in dateien | upload
+s: wo lege ich einen neuen ordner an | wo erstelle ich ein leeres dokument | wo kann ich eine datei hochladen | neue tabelle anlegen, wo | neue präsentation anfangen | wo ist das plus zum anlegen | ich will ein word dokument neu beginnen | upload a file
+
+== ort:place.files.places
+o: orte in dateien | hochgeladen | erstellt | markierte dateien | seitenspalte in dateien | lora-ordner | papierkorb der dateien
+s: wo sehe ich nur meine hochgeladenen dateien | wo sind die von der ki erstellten dateien | wo ist der papierkorb in dateien | wo finde ich meine markierten dateien | wo wechsle ich zwischen hochgeladen und erstellt | gelöschte datei wiederfinden
+
+== ort:place.files.sort
+o: dateien sortieren | sortierung der dateien | reihenfolge der dateien | sortieren in dateien | sort files
+s: wo stelle ich die sortierung der dateiliste um | wo sortiere ich die dateien nach größe | wo ändere ich die reihenfolge in der dateiansicht | neueste dateien zuerst anzeigen, wo
+s@app: dateien nach name sortieren, wo geht das | wo kann ich die dateiliste nach datum ordnen
+
+== ort:place.scan.capture
+o: seite fotografieren | foto aufnehmen | vom scanner einlesen | seite hinzufügen im scanner | seite einscannen | aufnahme im scanner
+s: wo nehme ich im scanner ein foto auf | wo füge ich eine weitere seite zum scan hinzu | wo starte ich das einlesen vom scanner | nächste seite fotografieren, wo
+
+== ort:place.scan.save
+o: scan als pdf speichern | scan speichern | als pdf speichern im scanner | scan fertigstellen | save scan as pdf
+s: wo speichere ich den scan | wie mache ich aus den gescannten seiten ein pdf | wo schließe ich den scan ab | fertigen scan ablegen, wo
+
+== ort:place.pdf.open
+o: pdf öffnen | pdf laden | öffnen im pdf werkzeugkasten | pdf auswählen | open pdf
+s: wo öffne ich im werkzeugkasten ein pdf | wo lade ich ein pdf zum bearbeiten | wo ist der öffnen-knopf im pdf werkzeug | weiteres pdf als tab öffnen, wo
+
+== ort:place.pdf.modes
+o: modi des pdf-werkzeugkastens | pdf modi | ansehen seiten markieren | markieren im pdf | unterschreiben im pdf | formular modus | umwandeln im pdf werkzeug
+s: wo wechsle ich im pdf werkzeug zwischen ansehen und seiten | wo finde ich das unterschreiben im werkzeugkasten | wo ist der formular modus | wo sind die funktionen des pdf werkzeugkastens | wo ist der ki modus im pdf werkzeug
+
+== ort:place.pdf.merge
+o: pdfs zusammenfügen knopf | zusammenfügen im pdf werkzeug | knopf zusammenfügen | merge knopf
+s: wo ist das zusammenfügen im werkzeugkasten | wo kann ich pdfs zusammenführen | wo finde ich die funktion zum verbinden von pdfs | wie füge ich pdfs zusammen, wo ist das | where can i merge pdfs
+s@app: wo kann ich zwei pdfs zusammenfügen | wo geht das zusammenführen von pdfs
+
+== ort:place.pdf.save
+o: pdf speichern unter | speichern unter | pdf teilen | pdf exportieren | bearbeitetes pdf speichern | save pdf as
+s: wo speichere ich das geänderte pdf | wo ist speichern unter im pdf werkzeug | wie teile ich das fertige pdf | wo exportiere ich das bearbeitete pdf
+
+== ort:place.create.lora
+o: mit lora erstellen | lora erstellen lassen | feld oben in erstellen | create with lora
+s: wo sage ich lora, was entstehen soll | wo kann ich in erstellen einen wunsch eingeben | wo ist das eingabefeld zum erstellen mit lora
+
+== ort:place.create.templates
+o: tu vorlagen | tu-vorlagen | vorlagen der tu | vorlagenliste | vorlagen im corporate design | tu templates
+s: wo sind die tu vorlagen | zeig mir alle vorlagen | welche vorlagen gibt es | wo finde ich briefvorlagen | übersicht der vorlagen für lehre und forschung | liste der vorlagen öffnen
+
+== ort:place.create.diagrams
+o: diagramme & whiteboard | diagramme | whiteboard | flussdiagramm | mindmap | organigramm | zeitstrahl | tafel | diagrams
+s: ich will ein flussdiagramm zeichnen | wo erstelle ich eine mindmap | ein organigramm der professur anlegen | zeitstrahl für das projekt zeichnen | freie tafel zum skizzieren | mermaid diagramm erstellen | ich brauch ein ablaufdiagramm | draw a flowchart | whiteboard öffnen
+
+== ort:place.create.new
+o: neue vorlage | eigene vorlage | vorlage anlegen | vorlage erstellen | new template
+s: wo lege ich eine eigene vorlage an | ich will eine neue vorlage bauen | wo erstelle ich meine eigene prompt-vorlage | eine vorlage für wiederkehrende texte anlegen
+
+== ort:place.video.new
+o: neues videoprojekt | neues projekt im videoeditor | videoprojekt anlegen | new video project
+s: wo lege ich ein neues videoprojekt an | ein neues projekt im videoeditor starten | frisches videoprojekt beginnen
+
+== ort:place.video.titles
+o: titel und bauchbinde | titel & bauchbinde | bauchbinde | einblendung | abspann | titel im video | lower third
+s: wo füge ich eine bauchbinde ein | wo mache ich einen titel fürs video | wo ist der abspann im videoeditor | namen einblenden im video, wo | texteinblendung im tud-design, wo
+
+== ort:place.video.subtitles
+o: untertitel im videoeditor | untertitel knopf | untertitel bereich | srt | subtitles
+s: wo sind die untertitel im videoeditor | wo lade ich eine srt datei | wo finde ich die untertitelfunktion | wo bearbeite ich untertitel
+s@app: wo mache ich untertitel für ein video | wo gibt es untertitel
+
+== ort:place.video.roughcut
+o: rohschnitt knopf | rohschnitt bereich | rohschnitt im videoeditor | rough cut
+s: wo ist der rohschnitt | wo finde ich das herausschneiden von pausen | wo kürze ich das video mit lora | wo ist die funktion gegen füllwörter
+s@app: wo gibt es den rohschnitt | wo finde ich den rohschnitt für videos
+
+== ort:place.video.record
+o: bildschirm aufnehmen | bildschirmaufnahme | screencast | bildschirm aufzeichnen | aufnahme mit webcam | screen recording
+s: ich will meinen bildschirm aufnehmen | einen screencast aufzeichnen | bildschirm mit mikrofon aufnehmen | wo starte ich eine bildschirmaufnahme | vorlesung am bildschirm aufzeichnen | record my screen | aufnahme mit webcam und systemton
+
+== ort:place.video.transcript
+o: im transkript schneiden | transkript im videoeditor | textbasierter schnitt | schneiden über den text | transcript editing
+s: wo schneide ich das video über den text | wo ist das transkript im videoeditor | wörter löschen um zu schneiden, wo | video anhand des textes schneiden
+
+== ort:place.video.pip
+o: bild-in-bild | bild in bild | webcam in der ecke | overlay | zweites video als ecke | picture in picture
+s: wo lege ich die webcam über das video | wo mache ich bild in bild | ein kleines video in die ecke legen, wo | wo ist die funktion für ein overlay
+
+== ort:place.video.tools
+o: schnittwerkzeuge | werkzeuge im videoeditor | klinge | trimmen | magnet | auswahlwerkzeug | razor
+s: wo ist die klinge im videoeditor | wo finde ich das trimmen | wo schalte ich den magnet ein | wo sind die werkzeuge über der zeitleiste | wo wechsle ich zum auswahlwerkzeug
+
+== ort:place.video.layout
+o: anordnung des videoeditors | anordnung | layout des videoeditors | bereiche im videoeditor | medienpool | spurhöhe | layout zurücksetzen
+s: wo setze ich die anordnung im videoeditor zurück | wo klappe ich den medienpool ein | wo mache ich die vorschau groß | wo stelle ich die spurhöhe ein | die bereiche im videoeditor sind verschoben, wo zurücksetzen | eigenschaften einklappen, wo
+
+== ort:place.video.export
+o: video exportieren knopf | export im videoeditor | exportieren knopf | export bereich
+s: wo exportiere ich im videoeditor | wo ist der export für mp4 | wo finde ich den export für opal | wo rendere ich das video
+s@app: wo kann ich ein video exportieren | wo geht der videoexport

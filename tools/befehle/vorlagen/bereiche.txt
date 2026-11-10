@@ -1,0 +1,192 @@
+# Bereiche, Werkzeuge, Modi, Einstellungsseiten. o: Bezeichnungen (mit „|“ getrennt) für die Träger, s: ganze Sätze.
+== ort:area.chat
+o: neuer chat | einen neuen chat | ein neues gespräch | frischer chat | neue unterhaltung | chat neu | new chat | leerer chat
+s: ich will was neues fragen | fang einen neuen chat an | lass uns neu anfangen mit einem chat | ich brauche ein leeres chatfenster | neues gespräch beginnen | chat von vorne | eine neue frage stellen, neuer chat | mach einen neuen chat für mich auf | let's start a fresh conversation | create new chat | noch ein chat bitte | neuen chat erstellen
+
+== ort:area.templates
+o: erstellen | der bereich erstellen | erstellen-bereich | neues erstellen | gestalten | meine designs | kreativbereich | create
+s: ich möchte etwas neues erstellen | ich will ein poster gestalten | flyer machen | wo kann ich einen aushang gestalten | ich brauch ein titelbild für den kurs | social media post gestalten | wo entsteht hier was neues | zeig mir was ich alles erstellen kann | einladungskarte entwerfen | kursbanner für opal machen | tagungsposter erstellen | i want to create something new
+
+== ort:area.literature
+o: literatur | literaturverwaltung | literatursammlung | meine literatur | meine quellen | literaturliste | bibliografie | literature | meine literatureinträge
+s: wo importiere ich eine ris datei | eintrag per doi hinzufügen | ich will eine quelle über die isbn anlegen | wo sind meine gespeicherten paper | literaturverzeichnis erzeugen | wo verwalte ich meine quellen | bibtex einlesen | zeig meine gesammelten titel | ich will einen literatureintrag anlegen | manage my references | quelle zitieren aus meiner sammlung
+
+== ort:area.transcripts
+o: transkription | transkriptionen | transkribieren | verschriftung | audio transkription | meine transkripte | transcription | interview transkription
+s: ich habe eine audiodatei und brauche sie als text | interview abtippen lassen | aufnahme in text verwandeln | mp3 verschriften | ich möchte ein gespräch transkribieren | wo werden aufnahmen verschriftet | sprecher im interview benennen | transkript codieren | wo kann ich eine tonaufnahme auswerten lassen | audio zu text | i have a recording to transcribe | vorlesungsmitschnitt verschriftlichen
+
+== ort:area.files
+o: dateien | meine dateien | dateiverwaltung | dateibereich | meine dokumente | dateiübersicht | files | der dateibereich | alle dateien | dateimanager
+s: wo sind meine dateien | zeig mir alles was ich hochgeladen habe | ich suche ein dokument von mir | wo liegen meine word dateien | meine präsentationen ansehen | wo finde ich meine tabellen | zu meinen unterlagen | ich will an meine ordner | zeig mir den lora-ordner | wo sind die erstellten dokumente | show me my files | meine gespeicherten sachen ansehen | ich will eine datei von letzter woche öffnen
+
+== ort:area.scan
+o: scannen | scanner | dokumentenscanner | scan | dokument scannen | einscannen | papier scannen | scan document
+s: ich will einen brief einscannen | papierdokument digitalisieren | mehrere seiten abfotografieren und als pdf | rechnung scannen | ich hab hier ein blatt das ins pdf soll | kassenbon einscannen | seiten mit der kamera aufnehmen | unterschriebenes formular einscannen | ich muss was vom papier in die app bringen | scan a receipt | zettel digitalisieren | foto vom dokument machen
+
+== ort:area.images
+o: bilder erzeugen | bilder | bildgenerator | bild erstellen | bilderzeugung | grafik erzeugen | galerie | image generation | bilder generieren
+s: ich brauche ein bild für meine folie | mal mir ein bild | wo kann ich eine grafik generieren | illustration erstellen lassen | ki bild machen | ich will ein bild erzeugen | wo ist meine bildergalerie | titelgrafik generieren | generate an image | ein symbolbild erstellen | zeichnung erzeugen lassen
+
+== ort:area.tasks
+o: geplante aufgaben | aufgabenplanung | zeitplan | geplante aufgabe | wiederkehrende aufgaben | scheduled tasks | automatische aufgaben
+s: ich will eine aufgabe jeden morgen automatisch laufen lassen | wöchentliche aufgabe einrichten | wo plane ich wiederholte aufträge | der agent soll täglich etwas tun | aufgabe für jeden freitag anlegen | wo sehe ich was automatisch läuft | zeitgesteuert etwas ausführen | eine regelmäßige aufgabe erstellen | schedule a recurring task | aufgaben zu festen zeiten
+
+== ort:area.models
+o: modellübersicht | modelle | alle modelle | modellliste | liste der modelle | übersicht der modelle | models | verfügbare modelle
+s: welche modelle kann ich nutzen | was können die einzelnen modelle | welches modell ist wofür gut | zeig mir alle modelle des uni-servers | ich will die stärken der modelle sehen | welche ki modelle sind verfügbar | modelle im überblick | which models are available | beschreibung der modelle ansehen
+
+== ort:area.compare
+o: modelle vergleichen | modellvergleich | vergleich der modelle | zwei modelle vergleichen | compare models | vergleichen
+s: ich will sehen welches modell besser antwortet | zwei modelle nebeneinander | eine frage gleichzeitig von zwei modellen beantworten lassen | antworten von zwei modellen gegenüberstellen | modelle parallel testen | welches modell antwortet besser, ich will das testen | side by side comparison of models | modelle gegeneinander testen
+
+== ort:area.local
+o: modelle auf diesem gerät | lokale modelle | offline modelle | lokales modell | modelle fürs gerät | local models | sprachmodell auf dem gerät
+s: ich will ein modell herunterladen | modell offline installieren | wo installiere ich ein lokales sprachmodell | modell ohne internet nutzen | ki auf meinem rechner laufen lassen | welches modell passt auf meinen laptop | gemma herunterladen | qwen lokal installieren | download a local model | ich möchte ohne server arbeiten, modell laden | lokales modell löschen
+
+== ort:area.usage
+o: verbrauch | tokenverbrauch | nutzungsstatistik | meine nutzung | kostenübersicht | usage | statistik | verbrauchsübersicht
+s: wie viel habe ich verbraucht | wie viele anfragen hab ich gestellt | tokens pro tag ansehen | was kostet mich das bisher | wo sehe ich meine nutzung | anzahl meiner anfragen diese woche | show my usage | wie viel hab ich die app genutzt | bewertungen und verbrauch
+
+== ort:area.environments
+o: umgebungen | umgebung | agenten umgebungen | environments | umgebungsvariablen
+s: variablen für den agenten setzen | netzwerkzugriff des agenten einschränken | wo lege ich eine umgebung an | umgebungsvariablen für agenten | welche hosts darf der agent erreichen | agent ohne netzwerk laufen lassen | set environment variables for agents
+
+== ort:area.settings
+o: einstellungen | die einstellungen | optionen | einstellungsmenü | settings | konfiguration | einstellungen der app | preferences
+s: ich will was einstellen | wo kann ich die app anpassen | zeig mir alle einstellungen | ich muss an die einstellungen ran | open the settings | wo konfiguriere ich die app | zu den optionen | mach die einstellungen auf
+
+== ort:tool.pdf
+o: pdf werkzeugkasten | pdf-werkzeugkasten | pdf werkzeug | pdf tools | pdf werkzeuge | pdf editor | pdf toolbox | der pdf-bereich
+s: ich will ein pdf bearbeiten | ich muss ein pdf unterschreiben | pdf seiten drehen wo | ein formular im pdf ausfüllbar machen | ich hab ein pdf das ich teilen will | pdf kommentieren | pdf markieren und notizen | word in pdf umwandeln | ich möchte in einem pdf was anstreichen | seitenzahlen ins pdf | edit a pdf | pdf signieren | ich brauch das werkzeug für pdfs | stempel aufs pdf
+
+== ort:tool.vault
+o: tresor | der tresor | geschützter bereich | vault | sicherer bereich | tresorbereich
+s: ich habe sensible daten | wo lege ich vertrauliche interviews ab | bereich mit pin | daten von studierenden sicher speichern | ich brauch einen verschlüsselten bereich | geheime unterlagen ablegen | sensible forschungsdaten schützen | wo ist der bereich für vertrauliches | open the vault | tresor aufschließen | etwas in den tresor legen
+
+== ort:tool.games
+o: lernspiele | lernspiel | spiele | quiz | learning games | spiele-werkstatt
+s: ich will ein quiz erstellen | ein lernspiel für opal bauen | zuordnungsspiel machen | memory für die vorlesung | escape room für studierende | gamification für mein seminar | ein spiel zum üben bauen | quiz für moodle erstellen | build a quiz game | kleines spiel zur wiederholung | wo baue ich spiele
+
+== ort:tool.mail
+o: mail & kalender | mail und kalender | postfach | mails | e-mail | outlook | kalender | mail | posteingang | mailbox
+s: zeig mir mein postfach | ich will in meine mails schauen | öffne den posteingang | zu meinen e-mails | meinen kalender öffnen | zum mailbereich | open my inbox | mailansicht öffnen | wo sind meine mails in der app
+
+== ort:tool.batch
+o: stapel & massenkontrolle | stapel | massenkontrolle | stapelverarbeitung | stapellauf | batch | stapel und massenkontrolle
+s: ich will viele dateien nacheinander bearbeiten lassen | alle pdfs in einem ordner mit demselben auftrag | abgaben vorbewerten | hausarbeiten nach raster bewerten lassen | einen ganzen ordner abarbeiten | viele dokumente auf einmal zusammenfassen | opal-abgaben durchgehen | 60 abgaben korrigieren | process many files at once | massenhaft dateien verarbeiten
+
+== ort:tool.proposals
+o: antrags-werkstatt | antragswerkstatt | antragswerkzeug | anträge | drittmittelanträge | proposal workshop | förderanträge
+s: ich will einen förderantrag schreiben | ausschreibung einlesen | projektantrag vorbereiten | ich arbeite an einem bmbf antrag | antrag für die sab | eu-antrag strukturieren | checkliste für meinen antrag | wo bereite ich drittmittelanträge vor | gantt für den projektantrag | i am writing a grant proposal, where do i start | budgetplan für den antrag
+
+== ort:tool.video
+o: videoeditor | video | videoschnitt | video editor | der videoeditor | videos schneiden | schnittprogramm | video editing
+s: ich will ein video schneiden | lehrvideo bearbeiten | ich hab einen screencast zum kürzen | video kürzen | wo schneide ich videos | meine vorlesungsaufzeichnung bearbeiten | i want to edit a video | videobearbeitung öffnen | clip zusammenschneiden
+
+== ort:mode.literature
+o: literatursuche | literaturmodus | modus literatursuche | literaturrecherche modus | literature search | modus literatur
+s: ich suche studien zu einem thema, starte den modus | literaturrecherche starten | paper finden lassen | suche nach wissenschaftlichen artikeln starten | ich will nach literatur recherchieren | modus zum finden von studien | start literature search | such mir quellen, im literaturmodus
+
+== ort:mode.sources
+o: quellenmodus | quellen-modus | modus quellen | belegmodus | sources mode | modus mit belegen
+s: ich will antworten mit belegen | jede aussage soll eine quelle haben | chat mit quellenangaben starten | antworte nur mit nachweisen, welcher modus | modus der zitate prüft | belege für jede aussage, modus an | start the sources mode | ich brauche ein belegprotokoll
+
+== ort:mode.excerpt
+o: exzerpt | exzerptmodus | exzerpt-modus | modus exzerpt | exzerpieren | excerpt mode
+s: ich möchte einen artikel exzerpieren | exzerpt aus einem pdf erstellen | exzerpt anlegen | paper zusammenfassen als exzerpt | ein exzerpt schreiben lassen | modus für exzerpte starten | create an excerpt | text exzerpieren mit seitenangaben
+
+== ort:mode.planning
+o: planungsmodus | planungs-modus | modus planung | planmodus | planning mode | planen
+s: erst einen plan machen lassen | der agent soll erst planen | chat im planungsmodus starten | ich will dass zuerst geplant wird | modus in dem erst ein plan kommt | start planning mode | vor der arbeit einen plan zeigen
+
+== ort:mode.voice
+o: sprachmodus | sprach-modus | modus sprache | gesprächsmodus | voice mode | sprechmodus
+s: ich will mit der ki reden | mit dem modell sprechen | per stimme unterhalten | sprachchat starten | ich möchte sprechen statt schreiben | freihändig mit lora reden | talk to the model | unterhaltung per mikrofon starten
+
+== ort:settings.api
+o: api-zugang | api zugang | api schlüssel | api key | api-schlüssel | zugangsdaten | api einstellungen | schlüssel
+s: wo gebe ich meinen schlüssel ein | key vom uni-server eintragen | api schlüssel ändern | ich habe einen neuen api key | zugang zum server einrichten | wo hinterlege ich den zugang | schlüssel für einen weiteren anbieter | enter my api key | mein schlüssel funktioniert nicht, wo trage ich ihn neu ein | anmeldung am uni-server
+
+== ort:settings.github
+o: github | github einstellungen | github token | github zugang | github verbindung
+s: github token eintragen | wo verbinde ich github | repository anbinden | mein github konto hinterlegen | zugang zu meinen repos einrichten | connect github | token für github ändern
+
+== ort:settings.connections
+o: verbindungen | verbindungseinstellungen | nextcloud | mcp server | cloudstore | connections | anbindungen | integrationen
+s: nextcloud einrichten | cloudstore der tu verbinden | einen mcp server anbinden | wo verbinde ich die nextcloud | fremde werkzeuge anbinden | webdav zugang eintragen | connect nextcloud | schnittstellen einrichten | mcp werkzeuge erlauben oder sperren
+
+== ort:settings.chat
+o: chat & werkzeuge | chat und werkzeuge | chat einstellungen | einstellungen chat | chateinstellungen | chat settings
+s: einstellungen für den chat | wo stelle ich den chat ein | optionen für chat und agent | zu den chat-einstellungen | open chat settings | einstellungen des agenten
+
+== ort:settings.tools
+o: werkzeuge einschalten | einstellungen werkzeuge | werkzeuge verwalten | werkzeugliste | werkzeuge | tools einstellungen
+s: wo schalte ich ein werkzeug ein | werkzeug ausschalten | welche werkzeuge gibt es noch | seitenleiste ordnen | reihenfolge in der seitenleiste ändern | einen bereich aus der seitenleiste ausblenden | große werkzeuge aktivieren | wo aktiviere ich zusätzliche werkzeuge | mehr-menü sortieren | enable more tools
+
+== ort:settings.lora
+o: lora einstellungen | einstellungen lora | lora optionen | einstellungen für lora | lora settings | einstellungen zu lora
+s: wo stelle ich lora ein | optionen der helferin | lora konfigurieren | zu den einstellungen von lora | welches modell nutzt lora, wo steht das | wo lege ich fest, wohin lora fragen übergibt
+
+== ort:settings.privacy
+o: datenschutz | datenschutzeinstellungen | einstellungen datenschutz | datenschutz optionen | privacy | privacy settings | dsgvo einstellungen
+s: zu den datenschutzeinstellungen | wo stelle ich den datenschutz ein | einstellungen zum schutz von namen | wo sind die optionen zum datenschutz | open privacy settings | eigene begriffe für die pseudonymisierung | erkennungsmodell für namen laden
+
+== ort:settings.memory
+o: gedächtnis | gedächtnis einstellungen | einstellungen gedächtnis | erinnerungen | memory | gemerktes
+s: was merkt sich die app | erinnerungen ansehen | was weiß die app über mich | gemerkte angaben löschen | wo sehe ich was gespeichert wurde über mich | einträge im gedächtnis bearbeiten | open memory settings | das gedächtnis leeren
+
+== ort:settings.knowledge
+o: wissenssammlung | wissen | wissensbasis | einstellungen wissenssammlung | knowledge base | meine wissenssammlung
+s: eigene dokumente durchsuchbar machen | dokumente zur wissenssammlung hinzufügen | wo lade ich unterlagen hoch, die der chat kennen soll | der chat soll meine skripte kennen | pdfs als wissen hinterlegen | add documents to the knowledge base | wissenssammlung neu aufbauen
+
+== ort:settings.literature
+o: literatur & zotero | zitierstil | zotero | einstellungen literatur | zotero einstellungen | literatur und zotero | citation style
+s: zitierstil ändern | auf harvard umstellen | wo stelle ich apa ein | zotero verbinden | meine zotero bibliothek anbinden | din zitierweise wählen | literaturdatenbanken auswählen | wo lege ich fest wie zitiert wird | connect zotero | zitierformat einstellen
+
+== ort:settings.transcription
+o: transkription einstellungen | einstellungen transkription | spracherkennung einstellungen | whisper einstellungen | einstellungen zur transkription
+s: wo stelle ich die spracherkennung ein | transkription auf dem gerät oder server einstellen | modell für die transkription wählen | sprechererkennung einstellen | whisper modell wechseln | diarisierung konfigurieren | einstellungen zum verschriften
+
+== ort:settings.documents
+o: dokumente & logos | dokumente und logos | einstellungen dokumente | dokumentstil | dokument einstellungen
+s: wo stelle ich den stil meiner dokumente ein | einstellungen für briefe und dokumente | corporate design für dokumente einstellen | aussehen der erzeugten dokumente | schriftart der dokumente ändern | document settings
+
+== ort:settings.voice
+o: vorlesen & spracheingabe | vorlesen und spracheingabe | einstellungen vorlesen | spracheingabe | vorlesen | einstellungen sprache und stimme | voice settings
+s: wo stelle ich das vorlesen ein | einstellungen fürs diktieren | mikrofon einstellungen | vorlesefunktion konfigurieren | einstellungen zur spracheingabe | antworten vorlesen lassen, wo einstellen | text to speech settings
+
+== ort:settings.appearance
+o: darstellung | einstellungen darstellung | aussehen | erscheinungsbild | aussehen der app | appearance | anzeige
+s: wo ändere ich das aussehen | die app anders aussehen lassen | einstellungen zum erscheinungsbild | optik der app anpassen | farben und schrift einstellen | change how the app looks | zur darstellung
+
+== ort:settings.backup
+o: sicherung & umzug | sicherung | backup | umzug | sicherung und umzug | datensicherung | export und import
+s: alles sichern | ich will ein backup machen | daten auf ein neues gerät übertragen | ich bekomme einen neuen rechner | sicherung importieren | meine daten exportieren | auf anderen pc umziehen | sicherungskopie erstellen | backup my data | alle chats und einstellungen sichern | wie nehme ich meine daten mit
+
+== ort:settings.trash
+o: papierkorb | papierkorb einstellungen | gelöschte chats | papierkorb der chats | trash | gelöschtes
+s: gelöschten chat wiederherstellen | ich habe einen chat gelöscht | wo sind gelöschte transkripte | chat aus versehen gelöscht, zurückholen | gelöschtes wiederherstellen | restore a deleted chat | wo landen gelöschte chats
+
+== ort:settings.ram
+o: arbeitsspeicher | ram | speicherverbrauch | arbeitsspeicher einstellungen | speicher messen | memory usage
+s: die app ist langsam | die app braucht zu viel speicher | speicher freigeben | wie viel ram braucht die app | app ruckelt, speicher prüfen | wo messe ich den speicherverbrauch | alles ist träge, woran liegt das | free up memory | arbeitsspeicher aufräumen
+
+== ort:settings.folders
+o: lokale ordner | ordner freigeben | lokale ordner einstellungen | ordner auf dem pc | local folders | freigegebene ordner
+s: der agent soll in einem ordner auf meinem pc arbeiten | ordner für den agenten freigeben | zugriff auf einen ordner erlauben | wo gebe ich einen ordner frei | agent im dateisystem arbeiten lassen | give the agent access to a folder | ordner auf laufwerk d freigeben
+
+== ort:settings.sync
+o: synchronisation | sync | synchronisierung | synchronisieren | einstellungen synchronisation | abgleich zwischen pcs
+s: zwei pcs synchron halten | am laptop weiterarbeiten wo ich im büro aufgehört habe | daten zwischen rechnern abgleichen | sync mit nextcloud einrichten | datenordner in die cloud legen | auf mehreren rechnern arbeiten | synchronisation mit google drive | sync my data between computers | büro und homeoffice synchronisieren
+
+== ort:settings.storage
+o: speicherorte | speicherort | ablageorte | einstellungen speicherorte | ablageort | storage locations
+s: wo werden dokumente gespeichert | speicherort für dokumente ändern | dokumente in einem anderen ordner ablegen | eigenen ordner für erstellte dateien wählen | ablage in google drive einstellen | change where documents are saved | wo landen die dateien auf der festplatte
+
+== ort:settings.updates
+o: updates | update | aktualisierung | neue version | einstellungen updates | versionsinfo
+s: nach updates suchen | gibt es eine neue version | app aktualisieren | welche version ist installiert | ist die app aktuell | update installieren | is there a new version | versionsnummer anzeigen | auf den neuesten stand bringen
+
+== ort:settings.help
+o: problem melden | fehler melden | feedback | hilfe und feedback | bug melden | report a problem | fehlerbericht
+s: etwas funktioniert nicht, ich will das melden | ich habe einen fehler gefunden | wie melde ich einen absturz | rückmeldung an die entwickler geben | protokoll an den entwickler senden | i want to report a bug | ich hab einen verbesserungsvorschlag | fehler an das team schicken

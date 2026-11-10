@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.data.AppMap
 import io.github.thepytales.llmhub.data.AppSettings
 import io.github.thepytales.llmhub.data.AppTarget
 import io.github.thepytales.llmhub.data.AppTool
+import io.github.thepytales.llmhub.data.LoraWays
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.MapKind
 import io.github.thepytales.llmhub.data.ModelCatalog
@@ -109,29 +110,88 @@ class LoraAgent(private val c: AppContainer) {
         wish: String, history: List<Pair<String, String>> = emptyList(), folderId: String? = null, android: Boolean = false,
         onText: (String) -> Unit = {},
     ): LoraReply {
+        // AP-71: count where the answer came from and how long it took (numbers only, on this device).
+        val t0 = System.nanoTime()
+        val (reply, way) = answer(wish, history, folderId, android, onText)
+        runCatching { LoraWays.record(c, way, (System.nanoTime() - t0) / 1_000_000) }
+        return reply
+    }
+
+    /** The model handed-over questions go to while Lora works „Nur lokal“ (AP-71); null otherwise. */
+    @Volatile
+    private var localOnly: String? = null
+
+    private suspend fun answer(
+        wish: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, onText: (String) -> Unit,
+    ): Pair<LoraReply, LoraWays.Way> {
+        val device = LoraWays.Way.DEVICE
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
         val area = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)
         // AP-39: „Merk dir, dass …“ – Lora asks before she remembers.
-        LoraPrefs.fromWish(c, wish)?.let { return it }
+        LoraPrefs.fromWish(c, wish)?.let { return it to device }
         // AP-41: „Zeig mir, wie das geht“ starts the tour of the open tool.
-        localTour(wish, android)?.let { return it }
+        localTour(wish, android)?.let { return it to device }
         // AP-69: „Ordne die Mails der letzten Woche in Lehre, Forschung und Verwaltung ein“ – the order is read here, the
         // mails only by the model on this device.
-        MailSorter.fromWish(c, wish)?.let { return it }
+        MailSorter.fromWish(c, wish)?.let { return it to device }
         // AP-68: mail tasks go to the model on this device, the handoff from a Postfach chat to the card – Lora reads no mails.
-        LoraMail.fromWish(c, wish, io.github.thepytales.llmhub.ui.LoraHelper.chatId)?.let { return it }
+        LoraMail.fromWish(c, wish, io.github.thepytales.llmhub.ui.LoraHelper.chatId)?.let { return it to device }
+        // AP-71: the command model on this device – a clear command is carried out at once, without a language model.
+        // Unsure, it changes nothing: the rules and the language model decide as before.
+        c.commandModel.offerIfNeeded()
+        val multi = LoraFlows.looksMultiStep(wish)
+        val seen = if (multi) null else c.commandModel.recognize(wish, area?.key ?: "app")
+        if (seen != null && seen.sure && !seen.free) LoraCommands.reply(c, this, wish, seen.label, targets, area, android)?.let { return it to device }
         // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
-        if (!LoraFlows.looksMultiStep(wish)) localAction(wish, area, android)?.let { return it }
-        local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it }
-        localChats(wish)?.let { return it }
-        val model = modelFor(folderId)
-            ?: return fallback(wish, targets, if (!settings.hasAnyApiKey) tr("Ohne API-Schlüssel suche ich nur in der App.") else tr("In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App."))
-        return runCatching { remote(wish, history, model, targets, android, onText, area) }
-            .getOrElse { e ->
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                fallback(wish, targets, friendlyError(e))
+        if (!multi) localAction(wish, area, android)?.let { return it to device }
+        // The rules that guess a place from single words stay out when the model is sure that this is a free request.
+        val free = seen != null && seen.sure && seen.free
+        if (!free) local(wish, targets, settings.enabledToolIds, android, settings.loraHandoffModel)?.let { return it to device }
+        localChats(wish)?.let { return it to device }
+
+        // A language model answers. Mischmodus (AP-71): short, simple tasks on this device when a model is installed
+        // that runs well here; everything else on the server as before. The project's privacy level comes first.
+        val level = Privacy.level(c, folderId)
+        val server = if (level == PrivacyLevel.LOCAL || !settings.hasAnyApiKey) null else Privacy.suitableModel(c, folderId, settings.loraModel.ifBlank { ModelCatalog.FAST_CHAT })
+        val route = ModelRouter.place(
+            ModelRouter.Mode.of(settings.loraPlace), simple = free && seen?.label == LoraCommands.FREE_SIMPLE, text = wish, images = 0, files = 0,
+            localGood = LoraCommands.localModel(c, good = true), localAny = LoraCommands.localModel(c, good = false),
+            serverOk = server != null, deviceOnly = level == PrivacyLevel.LOCAL,
+        )
+        return when (route.place) {
+            ModelRouter.Place.NONE -> fallback(
+                wish, targets,
+                when {
+                    ModelRouter.Mode.of(settings.loraPlace) == ModelRouter.Mode.LOCAL && level != PrivacyLevel.LOCAL ->
+                        tr("Lora arbeitet „Nur lokal“, aber auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Befehle verstehe ich trotzdem.")
+                    !settings.hasAnyApiKey -> tr("Ohne API-Schlüssel suche ich nur in der App.")
+                    else -> tr("In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App.")
+                },
+            ) to device
+            ModelRouter.Place.LOCAL -> {
+                val model = route.model!!
+                // A short task in the mixed mode needs no detour over Lora's own model: it goes straight to a chat on this device.
+                if (ModelRouter.Mode.of(settings.loraPlace) == ModelRouter.Mode.MIXED && level != PrivacyLevel.LOCAL && server != null) {
+                    LoraReply(tr("Das beantwortet das Modell auf diesem Gerät – ich gebe es weiter."), listOf(LoraStep.Handoff(model, wish.trim(), reason = tr(route.reason)))) to LoraWays.Way.LOCAL
+                } else {
+                    localOnly = model.takeIf { level != PrivacyLevel.LOCAL }
+                    try {
+                        runCatching { remote(wish, history, model, targets, android, onText, area) }.getOrElse { e ->
+                            if (e is kotlinx.coroutines.CancellationException) throw e
+                            fallback(wish, targets, friendlyError(e))
+                        } to LoraWays.Way.LOCAL
+                    } finally {
+                        localOnly = null
+                    }
+                }
             }
+            ModelRouter.Place.SERVER -> runCatching { remote(wish, history, server!!, targets, android, onText, area) }
+                .getOrElse { e ->
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    fallback(wish, targets, friendlyError(e))
+                } to LoraWays.Way.SERVER
+        }
     }
 
     /** „Wo hatte ich …“, „mein letzter Chat“: earlier chats, found on the device. Null for other wishes. */
@@ -165,7 +225,7 @@ class LoraAgent(private val c: AppContainer) {
      * with „Automatisch“ Lora's own choice or the automatic one for the question.
      */
     internal fun handoffModel(request: String, chosen: String? = null, why: String? = null): Pair<String, String> =
-        handoffModel(c.settings.current.loraHandoffModel, request, chosen, why)
+        localOnly?.let { it to tr("Lora arbeitet nur lokal") } ?: handoffModel(c.settings.current.loraHandoffModel, request, chosen, why)
 
     /** A short, kind sentence instead of a raw exception. */
     private fun friendlyError(e: Throwable): String {
@@ -183,16 +243,6 @@ class LoraAgent(private val c: AppContainer) {
         return tr("Ich erreiche gerade kein Modell") + (reason?.let { " – $it" } ?: "") + tr(". In der App habe ich das gefunden:")
     }
 
-    /** The model Lora may use here, or null (no key, or the project keeps everything on the device without a local model). */
-    private fun modelFor(folderId: String?): String? {
-        val settings = c.settings.current
-        val level = Privacy.level(c, folderId)
-        if (level == PrivacyLevel.LOCAL) return c.localLlm.preferredModel()
-        if (!settings.hasAnyApiKey) return null
-        val wanted = settings.loraModel.ifBlank { ModelCatalog.FAST_CHAT }
-        return Privacy.suitableModel(c, folderId, wanted)
-    }
-
     private fun fallback(wish: String, targets: List<AppTarget>, note: String): LoraReply {
         val hits = AppMap.search(wish, targets, 5).map { it.target }
         val text = if (hits.isEmpty()) tr("{0} Dazu habe ich nichts gefunden – versuch es mit anderen Worten.", note) else note
@@ -200,9 +250,10 @@ class LoraAgent(private val c: AppContainer) {
     }
 
     /** „Zeig mir, wie das geht“, „Tour durch den PDF-Werkzeugkasten“: the tour (AP-41), or null. */
-    internal fun localTour(wish: String, android: Boolean): LoraReply? {
+    internal fun localTour(wish: String, android: Boolean, sure: Boolean = false): LoraReply? {
         val n = AppMap.norm(wish)
-        if (!TOUR.containsMatchIn(n)) return null
+        // [sure]: the command model recognized the wish for a tour (AP-71); the words need not match then.
+        if (!sure && !TOUR.containsMatchIn(n)) return null
         val tour = io.github.thepytales.llmhub.ui.LoraTours.find(wish, io.github.thepytales.llmhub.ui.LoraHelper.route.value)?.takeIf { !android || it.android }
             ?: return LoraReply(tr("Touren gibt es für Dateien, Erstellen, den PDF-Werkzeugkasten und den Videoeditor – öffne einen davon oder nenne ihn."))
         return LoraReply(tr("Ich zeige dir „{0}“.", tr(tour.title)), listOf(LoraStep.Tour(tour.id)))
@@ -251,6 +302,11 @@ class LoraAgent(private val c: AppContainer) {
             else -> return null
         }
         val action = ToolActions.byId(id)?.takeIf { !android || it.android } ?: return null
+        return planned(action, args)
+    }
+
+    /** Plans [action] with [args] on the device (AP-38, AP-71): the step for the panel, or the reason why it cannot be done. */
+    internal suspend fun planned(action: ToolAction, args: Map<String, String>): LoraReply {
         val json = kotlinx.serialization.json.JsonObject(args.filterValues { it.isNotBlank() }.mapValues { kotlinx.serialization.json.JsonPrimitive(it.value) })
         return try {
             val (withPrefs, used) = LoraPrefs.withDefaults(c, action, json)
@@ -480,6 +536,11 @@ class LoraAgent(private val c: AppContainer) {
                 listOf("EVERYWHERE" to "Überall", "CHAT" to "Nur im Chat", "OFF" to "Aus"),
                 { it.loraMode }, { s, v -> s.copy(loraMode = v, hideLora = v == "OFF") },
             ),
+            LoraSetting(
+                "lora_place", trLater("Wo Lora arbeitet"),
+                listOf("MIXED" to "Gemischt", "LOCAL" to "Nur lokal", "SERVER" to "Nur Server"),
+                { it.loraPlace }, { s, v -> s.copy(loraPlace = v) },
+            ),
             onOff("pseudonymize", "Pseudonymisierung", { it.pseudonymize }) { s, v -> s.copy(pseudonymize = v) },
             onOff("web", "Websuche", { it.webTools }) { s, v -> s.copy(webTools = v) },
             onOff("documents", "Dokumente erstellen", { it.documentTools }) { s, v -> s.copy(documentTools = v) },
@@ -494,7 +555,7 @@ class LoraAgent(private val c: AppContainer) {
 
         /** The option each setting is shown at (for the highlight after changing it). */
         val SETTING_SPOTS = mapOf(
-            "theme" to "appearance.theme", "text_size" to "appearance.textsize", "language" to "appearance.language", "lora" to "lora.mode",
+            "theme" to "appearance.theme", "text_size" to "appearance.textsize", "language" to "appearance.language", "lora" to "lora.mode", "lora_place" to "lora.place",
             "pseudonymize" to "privacy.pseudonymize", "web" to "chat.web", "auto_model" to "chat.autoModel", "collapse_steps" to "chat.collapse",
             "start_animation" to "appearance.startAnimation", "lora_calm" to "lora.calm",
         )

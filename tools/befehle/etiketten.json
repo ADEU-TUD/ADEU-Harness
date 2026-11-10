@@ -357,6 +357,13 @@
         "android": true
     },
     {
+        "label": "ort:option.lora.place",
+        "art": "ort",
+        "titel": "Wo Lora arbeitet",
+        "hinweis": "Einstellungen › Lora › Wo Lora arbeitet · Gemischt, nur lokal oder nur über den Server; Befehlsmodell. · gemischt mischmodus lokal server offline gerät befehlsmodell befehle wo arbeitet lora",
+        "android": true
+    },
+    {
         "label": "ort:option.lora.calm",
         "art": "ort",
         "titel": "Ruhigere Bewegungen",
@@ -837,6 +844,13 @@
         "art": "stell",
         "titel": "Lora",
         "hinweis": "EVERYWHERE = Überall / CHAT = Nur im Chat / OFF = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:lora_place",
+        "art": "stell",
+        "titel": "Wo Lora arbeitet",
+        "hinweis": "MIXED = Gemischt / LOCAL = Nur lokal / SERVER = Nur Server",
         "android": true
     },
     {

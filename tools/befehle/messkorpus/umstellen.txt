@@ -23,6 +23,9 @@ automatische modellwahl aus => stell:auto_model ; wert=false
 arbeitsschritte bitte immer einklappen => stell:collapse_steps ; wert=true
 startanimation aus => stell:start_animation ; wert=false
 lora soll ruhiger sein => stell:lora_calm ; wert=true
+lora soll nur noch lokal arbeiten => stell:lora_place ; wert=LOCAL
+stell lora auf nur server => stell:lora_place ; wert=SERVER
+lora wieder gemischt => stell:lora_place ; wert=MIXED
 turn off the start animation => stell:start_animation ; wert=false
 
 == entwicklung ==
@@ -57,4 +60,8 @@ arbeitsschritte einklappen an => stell:collapse_steps ; wert=true
 startanimation wieder einschalten => stell:start_animation ; wert=true
 keine animation beim start => stell:start_animation ; wert=false
 ruhigere bewegungen an => stell:lora_calm ; wert=true
+nur lokal arbeiten, nichts mehr an den server => stell:lora_place ; wert=LOCAL
+lora nur über den server => stell:lora_place ; wert=SERVER
+mischmodus einschalten => stell:lora_place ; wert=MIXED
+lora offline betreiben => stell:lora_place ; wert=LOCAL
 lora darf wieder tanzen => stell:lora_calm ; wert=false

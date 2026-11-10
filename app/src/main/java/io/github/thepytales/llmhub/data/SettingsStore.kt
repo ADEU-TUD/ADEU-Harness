@@ -171,6 +171,12 @@ data class AppSettings(
     val pseudonymModel: Boolean = true,
     /** Offer the download of the recognition model in a popup (off after „Nicht mehr fragen“). */
     val pseudonymModelAsk: Boolean = true,
+    /** Where Lora works (AP-71): MIXED (per request), LOCAL (only on this device) or SERVER (language models only on the server). */
+    val loraPlace: String = "MIXED",
+    /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device once it is downloaded. */
+    val commandModel: Boolean = true,
+    /** Offer the download of the command model in a popup (off after „Nicht mehr fragen“). */
+    val commandModelAsk: Boolean = true,
     /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
     val nextcloudServer: String = "",
     val nextcloudUser: String = "",
@@ -372,6 +378,9 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymThorough", next.pseudonymThorough)
             .putBoolean("pseudonymModel", next.pseudonymModel)
             .putBoolean("pseudonymModelAsk", next.pseudonymModelAsk)
+            .putString("loraPlace", next.loraPlace)
+            .putBoolean("commandModel", next.commandModel)
+            .putBoolean("commandModelAsk", next.commandModelAsk)
             .apply()
     }
 
@@ -475,6 +484,9 @@ class SettingsStore(context: Context) {
             pseudonymThorough = prefs.getBoolean("pseudonymThorough", d.pseudonymThorough),
             pseudonymModel = prefs.getBoolean("pseudonymModel", d.pseudonymModel),
             pseudonymModelAsk = prefs.getBoolean("pseudonymModelAsk", d.pseudonymModelAsk),
+            loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
+            commandModel = prefs.getBoolean("commandModel", d.commandModel),
+            commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
             nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
             nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
             nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,

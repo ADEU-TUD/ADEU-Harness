@@ -113,6 +113,8 @@ object AppMap {
         option("chat.approvals", "chat", trLater("Freigaben"), trLater("Chat & Werkzeuge › Freigaben"), trLater("Wann der Agent vor Änderungen fragt."), "freigabe fragen bestätigen genehmigen"),
         option("lora.mode", "lora", trLater("Lora ein- oder ausblenden"), trLater("Lora › Wo Lora erscheint"), trLater("Überall, nur im Chat oder aus."),
             "lora ausblenden ausschalten verstecken weg maskottchen figur einblenden"),
+        option("lora.place", "lora", trLater("Wo Lora arbeitet"), trLater("Lora › Wo Lora arbeitet"), trLater("Gemischt, nur lokal oder nur über den Server; Befehlsmodell."),
+            "gemischt mischmodus lokal server offline gerät befehlsmodell befehle wo arbeitet lora"),
         option("lora.calm", "lora", trLater("Ruhigere Bewegungen"), trLater("Lora › Ruhigere Bewegungen"), trLater("Lora bewegt sich weniger."), "animation ruhig weniger bewegung reduziert"),
         option("privacy.pseudonymize", "privacy", trLater("Pseudonymisierung"), trLater("Datenschutz › Pseudonymisierung"), trLater("Namen und persönliche Angaben vor dem Senden ersetzen."),
             "pseudonymisierung pseudonym anonym anonymisieren namen ersetzen platzhalter"),
