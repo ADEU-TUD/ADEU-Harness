@@ -110,13 +110,13 @@ fun DownloadsSection(c: AppContainer, onNavigate: (String) -> Unit) {
     HintText(tr("Was sich zur App dazuladen lässt – nur, wer es braucht. Alles lässt sich hier auch wieder löschen."))
     Section(tr("Modelle für Lora")) {
         ContentRow(
-            tr("Befehle verstehen"), tr("Lora erkennt offline und in Millisekunden, was du meinst."), tr("{0} MB", CommandModelInfo.MEGABYTES),
-            installed = command.installed, progress = command.progress,
-            onLoad = c.commandModel::install.takeIf { c.commandModel.available }, onDelete = c.commandModel::delete,
+            CommandModelInfo.NAME, tr("Lora erkennt offline und in Millisekunden, was du meinst."), tr("{0} MB", CommandModelInfo.MEGABYTES),
+            installed = command.installed || command.old, progress = command.progress,
+            onLoad = c.commandModel::install.takeIf { c.commandModel.available }, onDelete = c.commandModel::delete, update = command.old,
         )
         ContentRow(
-            tr("Namen schützen (Erkennungsmodell)"), tr("Findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht."), tr("{0} MB", PiiModelInfo.MEGABYTES),
-            installed = pii.installed, progress = pii.progress, onLoad = c.piiModel::install, onDelete = c.piiModel::delete,
+            PiiModelInfo.NAME, tr("Findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht."), tr("{0} MB", PiiModelInfo.MEGABYTES),
+            installed = pii.installed || pii.old, progress = pii.progress, onLoad = c.piiModel::install, onDelete = c.piiModel::delete, update = pii.old,
         )
         ContentLink(tr("Sprachmodelle auf diesem Gerät"), tr("Für Postfach, vertrauliche Projekte und ohne Internet – 1 bis 20 GB je Modell."), tr("Öffnen")) { onNavigate("local-models") }
         ContentLink(tr("Spracherkennung"), tr("Diktat und Transkription auf diesem Gerät."), tr("Öffnen")) { onNavigate("settings/transcription") }

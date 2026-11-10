@@ -22,28 +22,37 @@ import java.io.File
 import java.util.zip.GZIPInputStream
 
 /**
- * The recognition model of the pseudonymization (AP-67): a German BERT (gbert-base, MIT licence), fine-tuned on
- * invented texts, labels private persons, institutions (schools, day-care centres, practices …) and places with a
- * personal reference in milliseconds on the device. Built with tools/pii (model card: tools/pii/modell/MODELLKARTE.md).
+ * „Lora Namensschutz“, the recognition model of the pseudonymization (AP-67; up to 1.0.65 „Erkennungsmodell“): a German
+ * BERT (gbert-base by deepset, MIT licence), fine-tuned and changed by us on invented texts, labels private persons,
+ * institutions (schools, day-care centres, practices …) and places with a personal reference in milliseconds on the
+ * device. Built with tools/pii (model card: tools/pii/modell/MODELLKARTE.md).
  *
  * It is a download like the language models (Offene Frage 9): offered once in a popup when the pseudonymization is first
  * used or Einstellungen › Datenschutz is opened. The file comes from the branch `pii-modell` of the public repository at a
  * fixed commit and is checked by SHA-256. Without it – or without the ONNX Runtime the app ships with sherpa-onnx – the
- * rules of [PiiDetector] work alone.
+ * rules of [PiiDetector] work alone. Who still has the model of 1.0.65 ([OLD_FILE]) keeps using it until the new one is
+ * downloaded (offered once as an update); then the old file is deleted.
  */
 object PiiModelInfo {
+    /** The name shown in the app. */
+    const val NAME = "Lora Namensschutz"
     const val COMMIT = "806e33ca70948b03030a149f5f0255d145e69a5e"
-    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/pii-modell.int8.onnx.gz"
-    const val GZ_SIZE = 72_057_318L
+    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/lora-namensschutz-pytales.int8.onnx.gz"
+    const val GZ_SIZE = 72_057_318L // TODO-NEU
     const val GZ_SHA256 = "afd48b91fee421875325c06862c29806a417da2dfee3acd1aa631d74247ea4b3"
-    const val FILE = "pii-modell.int8.onnx"
-    const val SIZE = 110_099_426L
+    const val FILE = "lora-namensschutz-pytales.int8.onnx"
+    const val SIZE = 110_099_426L // TODO-NEU
     const val SHA256 = "0e42df90ad38c060c7160a08de9d0e70ec242d519eaf7b49dc3131562ff89931"
     /** Download size shown to the user. */
-    const val MEGABYTES = 72
+    const val MEGABYTES = 72 // TODO-NEU
 
     /** A token belongs to a detail when the model gives "not O" at least this probability (chosen on the Messkorpus). */
-    const val THRESHOLD = 0.9f
+    const val THRESHOLD = 0.9f // TODO-NEU
+
+    /** The model up to 1.0.65 („Erkennungsmodell“, same labels and vocabulary): used until the new one is there. */
+    const val OLD_FILE = "pii-modell.int8.onnx"
+    const val OLD_SIZE = 110_099_426L
+    const val OLD_THRESHOLD = 0.9f
     val LABELS = listOf("O", "B-PER", "I-PER", "B-EINR", "I-EINR", "B-ORT", "I-ORT")
 
     /** The WordPiece vocabulary of the model (resources/pii/vocab.txt, the same as tools/pii/modell/vocab.txt). */
@@ -254,10 +263,15 @@ class OrtClassifier(
  * Finds details with [classifier]: windows of 512 tokens with an overlap of 64 (a token counts as a detail if one window
  * says so), labelled tokens joined to details and widened to whole words – as tools/pii/modell.py does.
  */
-class PiiRecognizer(private val classifier: TokenClassifier, private val tokenizer: WordPiece = WordPiece(PiiModelInfo.vocab)) {
+class PiiRecognizer(
+    private val classifier: TokenClassifier,
+    private val tokenizer: WordPiece = WordPiece(PiiModelInfo.vocab),
+    /** The threshold of the loaded model ([PiiModelInfo.THRESHOLD], or [PiiModelInfo.OLD_THRESHOLD] for the old file). */
+    private val threshold: Float = PiiModelInfo.THRESHOLD,
+) {
     data class Span(val start: Int, val end: Int, val kind: String)
 
-    fun spans(text: String, threshold: Float = PiiModelInfo.THRESHOLD): List<Span> {
+    fun spans(text: String, threshold: Float = this.threshold): List<Span> {
         val tokens = tokenizer.tokenize(text)
         if (tokens.isEmpty()) return emptyList()
         val labels = PiiModelInfo.LABELS.size
@@ -359,6 +373,8 @@ class PiiRecognizer(private val classifier: TokenClassifier, private val tokeniz
 class PiiModel(private val c: AppContainer) {
     data class State(
         val installed: Boolean = false,
+        /** Only the model of 1.0.65 is there: it keeps working, the new version is offered as an update. */
+        val old: Boolean = false,
         /** Loaded and ready; false while loading or when the runtime is missing. */
         val ready: Boolean = false,
         /** 0..1 while the download runs. */
@@ -384,17 +400,27 @@ class PiiModel(private val c: AppContainer) {
 
     fun file(): File = File(root, PiiModelInfo.FILE)
 
+    /** The model of 1.0.65 („Erkennungsmodell“). */
+    fun oldFile(): File = File(root, PiiModelInfo.OLD_FILE)
+
     fun installed(): Boolean = file().let { it.isFile && it.length() == PiiModelInfo.SIZE }
 
+    /** Only the old model is there (it keeps working until the update is downloaded). */
+    fun hasOld(): Boolean = !installed() && oldFile().let { it.isFile && it.length() == PiiModelInfo.OLD_SIZE }
+
     init {
-        _state.value = State(installed = installed())
+        _state.value = State(installed = installed(), old = hasOld())
         load()
     }
 
-    /** Offers the download once per start of the app – unless it is there, switched off or „Nicht mehr fragen“. */
+    /**
+     * Offers the download once per start of the app – unless it is there, switched off or „Nicht mehr fragen“. Who has
+     * the old model gets the new one offered as an update (with its own „Nicht mehr fragen“).
+     */
     fun offerIfNeeded() {
         val s = c.settings.current
-        if (asked || installed() || _state.value.progress != null || !s.pseudonymModel || !s.pseudonymModelAsk) return
+        if (asked || installed() || _state.value.progress != null || !s.pseudonymModel) return
+        if (if (hasOld()) !s.pseudonymModelUpdateAsk else !s.pseudonymModelAsk) return
         asked = true
         offer.value = true
     }
@@ -408,7 +434,7 @@ class PiiModel(private val c: AppContainer) {
             val part = File(root, PiiModelInfo.FILE + ".part")
             try {
                 FileDownload.fetch(PiiModelInfo.URL, gz, PiiModelInfo.GZ_SIZE, { cancelled }) { p -> _state.value = _state.value.copy(progress = p) }
-                _state.value = _state.value.copy(progress = 1.0, message = tr("Erkennungsmodell wird geprüft …"))
+                _state.value = _state.value.copy(progress = 1.0, message = tr("{0} wird geprüft …", PiiModelInfo.NAME))
                 if (gz.length() != PiiModelInfo.GZ_SIZE || FileDownload.sha256(gz) != PiiModelInfo.GZ_SHA256) {
                     gz.delete()
                     error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
@@ -418,15 +444,18 @@ class PiiModel(private val c: AppContainer) {
                     part.delete()
                     error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
                 }
+                unload()
                 file().delete()
                 if (!part.renameTo(file())) error(tr("Datei konnte nicht gespeichert werden"))
                 gz.delete()
-                _state.value = State(installed = true, message = tr("Erkennungsmodell ist bereit."))
+                oldFile().delete()
+                _state.value = State(installed = true, message = tr("{0} ist bereit.", PiiModelInfo.NAME))
                 load()
             } catch (e: InterruptedException) {
                 _state.value = _state.value.copy(progress = null, message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
             } catch (e: Exception) {
-                _state.value = _state.value.copy(progress = null, message = tr("Download des Erkennungsmodells fehlgeschlagen: {0}. Bis dahin arbeiten die Regeln allein.", e.message))
+                _state.value = _state.value.copy(progress = null, message = if (hasOld()) tr("Download von {0} fehlgeschlagen: {1}. Bis dahin arbeitet die bisherige Version weiter.", PiiModelInfo.NAME, e.message)
+                    else tr("Download von {0} fehlgeschlagen: {1}. Bis dahin arbeiten die Regeln allein.", PiiModelInfo.NAME, e.message))
             } finally {
                 if (_state.value.progress != null) _state.value = _state.value.copy(progress = null)
             }
@@ -439,24 +468,30 @@ class PiiModel(private val c: AppContainer) {
         scope.launch {
             unload()
             file().delete()
+            oldFile().delete()
             File(root, PiiModelInfo.FILE + ".gz.part").delete()
             File(root, PiiModelInfo.FILE + ".part").delete()
-            _state.value = State(installed = false, message = tr("Erkennungsmodell gelöscht."))
+            _state.value = State(installed = false, message = tr("{0} gelöscht.", PiiModelInfo.NAME))
         }
     }
 
-    /** Loads the model in the background (about a second); until then the rules work alone. */
+    /** Loads the model in the background (about a second) – the new one, else the old one; until then the rules work alone. */
     fun load() {
-        if (!installed() || recognizer != null) return
+        if (recognizer != null) return
+        val (f, threshold) = when {
+            installed() -> file() to PiiModelInfo.THRESHOLD
+            hasOld() -> oldFile() to PiiModelInfo.OLD_THRESHOLD
+            else -> return
+        }
         scope.launch {
             val lib = PiiRuntime.library(c)
             if (lib == null) {
-                _state.value = _state.value.copy(message = tr("Für das Erkennungsmodell fehlt die ONNX Runtime der App (Spracherkennung) – die Regeln arbeiten allein."))
+                _state.value = _state.value.copy(message = tr("Für {0} fehlt die ONNX Runtime der App (Spracherkennung) – die Regeln arbeiten allein.", PiiModelInfo.NAME))
                 return@launch
             }
-            runCatching { OrtClassifier(lib, file()) }.logFailure("Erkennungsmodell laden").getOrNull()?.let { cl ->
+            runCatching { OrtClassifier(lib, f) }.logFailure("Lora Namensschutz laden").getOrNull()?.let { cl ->
                 classifier = cl
-                recognizer = PiiRecognizer(cl)
+                recognizer = PiiRecognizer(cl, threshold = threshold)
                 _state.value = _state.value.copy(ready = true)
             }
         }
@@ -475,7 +510,7 @@ class PiiModel(private val c: AppContainer) {
         val r = recognizer ?: return null
         if (!c.settings.current.pseudonymModel) return null
         synchronized(cache) { cache[text] }?.let { return it }
-        val hits = runCatching { r.hits(text) }.logFailure("Erkennungsmodell").getOrNull() ?: return null
+        val hits = runCatching { r.hits(text) }.logFailure("Lora Namensschutz").getOrNull() ?: return null
         synchronized(cache) { cache[text] = hits }
         return hits
     }

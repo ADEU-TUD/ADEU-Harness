@@ -1,7 +1,7 @@
 """Measures a trained or exported command model on the Messkorpus (AP-71).
 
     python evaluate.py modelle/<name>/best                         # Hugging Face folder
-    python evaluate.py modelle/<name>/onnx/befehle-modell.int8.onnx # exported model (ONNX Runtime, CPU)
+    python evaluate.py modelle/<name>/onnx/lora-befehle-pytales.int8.onnx # exported model (ONNX Runtime, CPU)
     python evaluate.py … --teil pruef                             # the test part: numbers only, no error lists
     python evaluate.py … --zeit                                   # also the time per wish
 """

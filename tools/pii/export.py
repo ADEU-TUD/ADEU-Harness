@@ -1,8 +1,9 @@
-"""Export of the recognition model for the app (AP-67, Stufe d): ONNX, int8, model card.
+"""Export of Lora Namensschutz, the recognition model, for the app (AP-67, Stufe d): ONNX, int8, model card.
 
     python export.py modelle/gbert-base/best
 
-Writes modelle/<name>/onnx/: pii-modell.onnx (fp32), pii-modell.int8.onnx (dynamic int8 quantization), the tokenizer
+Writes modelle/<name>/onnx/: lora-namensschutz-pytales.onnx (fp32), lora-namensschutz-pytales.int8.onnx (dynamic int8
+quantization; up to 1.0.65 the file was called pii-modell.int8.onnx), the tokenizer
 (vocab.txt and tokenizer.json), labels.json and MODELLKARTE.md. The int8 model may lose at most 0.5 percentage points
 of found private details on the test part, compared with fp32 – otherwise the export stops with an error.
 """
@@ -22,6 +23,14 @@ import evaluate  # noqa: E402
 import modell  # noqa: E402
 
 MAX_LOSS = 0.5  # percentage points
+NAME = "Lora Namensschutz"
+FILE = "lora-namensschutz-pytales"
+#: Base models: licence and authors (as on their model cards on Hugging Face).
+BASES = {
+    "deepset/gbert-base": ("MIT", "deepset GmbH (Branden Chan, Stefan Schweter, Timo Möller)"),
+    "deepset/gelectra-base": ("MIT", "deepset GmbH"),
+    "distilbert/distilbert-base-german-cased": ("Apache-2.0", "Hugging Face (DistilBERT nach Sanh, Debut, Chaumond und Wolf, 2019)"),
+}
 
 
 def export_onnx(folder: Path, target: Path) -> None:
@@ -53,8 +62,8 @@ def main() -> None:
     folder = Path(a.modell)
     out = Path(a.aus) if a.aus else folder.parent / "onnx"
     out.mkdir(parents=True, exist_ok=True)
-    fp32 = out / "pii-modell.onnx"
-    int8 = out / "pii-modell.int8.onnx"
+    fp32 = out / f"{FILE}.onnx"
+    int8 = out / f"{FILE}.int8.onnx"
     print("Export nach ONNX …")
     export_onnx(folder, fp32)
     print("int8 …")
@@ -92,13 +101,12 @@ def main() -> None:
 
 def write_card(out: Path, folder: Path, report: dict, measures: dict, size: int) -> None:
     base = report.get("basis", "?")
-    licenses = {"deepset/gbert-base": "MIT", "deepset/gelectra-base": "MIT", "FacebookAI/xlm-roberta-base": "MIT",
-                "distilbert/distilbert-base-german-cased": "Apache-2.0", "deepset/gbert-large": "MIT"}
+    lic_name, authors = BASES.get(base, ("vor Auslieferung prüfen", "?"))
     m = measures["int8"]
     pct = lambda v: f"{v[0]} % gefunden, {v[1]} % fälschlich ersetzt"  # noqa: E731
-    card = f"""# Modellkarte: Erkennungsmodell der Pseudonymisierung (AP-67)
+    card = f"""# Modellkarte: {NAME} (Erkennungsmodell der Pseudonymisierung, AP-67)
 
-Stand: {datetime.date.today():%d.%m.%Y}
+Stand: {datetime.date.today():%d.%m.%Y} · Datei `{FILE}.int8.onnx` (bis 1.0.65: „Erkennungsmodell“, `pii-modell.int8.onnx`)
 
 ## Was es tut
 Findet in deutschen Texten private **Personen** (`PER`), **Einrichtungen** wie Schulen, Kitas, Praxen (`EINR`) und
@@ -106,7 +114,9 @@ Findet in deutschen Texten private **Personen** (`PER`), **Einrichtungen** wie S
 Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln von `PiiDetector`.
 
 ## Herkunft
-- **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`), Lizenz **{licenses.get(base, "vor Auslieferung prüfen")}**.
+- **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`) von {authors}, Lizenz **{lic_name}**.
+  {NAME} ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. {NAME} ist kein
+  Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
 - **Feintuning**: Token-Klassifikation (BIO), {report.get("daten", "?")} erfundene Trainingstexte, beste Epoche
   {report.get("beste_epoche", "?")} von {len(report.get("epochen", []))}.
 - **Daten**: ausschließlich erfundene Texte. Claude (Anthropic) hat als Lehrer-Modell Vorlagen mit Platzhaltern
@@ -134,7 +144,8 @@ Ziel AP-67 (Prüfteil, wie geplant): mindestens 98 % gefunden, höchstens 2 % f�
 """
     lic = HERE / "modell" / f"LIZENZ-{base.split('/')[-1]}.txt"
     if lic.exists():
-        card += f"\n## Lizenz des Basismodells ({base}, {licenses.get(base, '?')})\n\n" + lic.read_text(encoding="utf-8").strip() + "\n"
+        card += f"\n## Lizenz des Basismodells ({base}, {lic_name})\n\n" + lic.read_text(encoding="utf-8").strip() + "\n"
+        shutil.copy(lic, out / lic.name)
     (out / "MODELLKARTE.md").write_text(card, encoding="utf-8")
 
 

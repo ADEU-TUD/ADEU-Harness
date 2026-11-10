@@ -105,7 +105,7 @@ fun PrivacySection(c: AppContainer) {
         ToggleRow(
             tr("Gründlich: zusätzlich ein lokales Sprachmodell"),
             tr("Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
-                "die Regeln und Erkennungsmodell übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem " +
+                "die Regeln und Lora Namensschutz übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem " +
                 "Text), nichts verlässt dabei das Gerät.") +
                 if (local) "" else tr(" Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden."),
             s.pseudonymThorough,

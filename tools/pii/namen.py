@@ -263,6 +263,243 @@ Harry_Potter Gregs_Tagebuch Die_drei_??? TKKG Hanni_und_Nanni Wilhelm_Tell Maria
 Der_Sandmann Michael_Kohlhaas Iphigenie_auf_Tauris Die_Leiden_des_jungen_Werther Das_Sams Der_kleine_Prinz
 """)
 
+#: Even more public persons (Nachtraining 10.11.2026): history, science, philosophy, literature, music, film, sport,
+#: politics in Germany and abroad, education and media – so the model meets many public names it has to leave.
+PUBLIC_PERSONS += _words("""
+Hannah_Arendt Immanuel_Kant Georg_Wilhelm_Friedrich_Hegel Friedrich_Nietzsche Arthur_Schopenhauer Ludwig_Wittgenstein
+Martin_Heidegger Karl_Popper Jürgen_Habermas Theodor_W._Adorno Max_Horkheimer Walter_Benjamin Ernst_Bloch Edith_Stein
+Simone_de_Beauvoir Jean-Paul_Sartre Albert_Camus Michel_Foucault Pierre_Bourdieu Judith_Butler Niklas_Luhmann Max_Weber
+Sigmund_Freud Anna_Freud Carl_Gustav_Jung Alfred_Adler Erich_Fromm Viktor_Frankl Jean_Piaget Lew_Wygotski Burrhus_F._Skinner
+Iwan_Pawlow Abraham_Maslow Carl_Rogers Erik_Erikson Lawrence_Kohlberg Urie_Bronfenbrenner Howard_Gardner Daniel_Kahneman
+Galileo_Galilei Nikolaus_Kopernikus Johannes_Kepler Gottfried_Wilhelm_Leibniz Carl_Friedrich_Gauß Max_Planck Werner_Heisenberg
+Erwin_Schrödinger Niels_Bohr Otto_Hahn Robert_Koch Rudolf_Virchow Wilhelm_Conrad_Röntgen Ada_Lovelace Alan_Turing
+Konrad_Zuse Stephen_Hawking Richard_Feynman Jane_Goodall Rachel_Carson Gregor_Mendel Louis_Pasteur Nikola_Tesla
+Thomas_Edison Leonardo_da_Vinci Michelangelo Raffael Rembrandt Vincent_van_Gogh Claude_Monet Paul_Klee Wassily_Kandinsky
+Franz_Marc August_Macke Gabriele_Münter Emil_Nolde Lyonel_Feininger Walter_Gropius Gottfried_Semper Matthäus_Daniel_Pöppelmann
+Andy_Warhol Banksy Ai_Weiwei Marina_Abramović Pina_Bausch Marlene_Dietrich Romy_Schneider Hildegard_Knef Heinz_Rühmann
+Charlie_Chaplin Marilyn_Monroe Audrey_Hepburn Meryl_Streep Leonardo_DiCaprio Tom_Hanks Sandra_Hüller Daniel_Brühl
+Matthias_Schweighöfer Elyas_M'Barek Nora_Tschirner Moritz_Bleibtreu Christoph_Waltz Diane_Kruger Florian_Henckel_von_Donnersmarck
+Wim_Wenders Werner_Herzog Rainer_Werner_Fassbinder Fritz_Lang Leni_Riefenstahl Steven_Spielberg Alfred_Hitchcock
+Franz_Schubert Joseph_Haydn Antonio_Vivaldi Frédéric_Chopin Peter_Tschaikowski Gustav_Mahler Hildegard_von_Bingen
+Kurt_Weill Hanns_Eisler Paul_Hindemith Karlheinz_Stockhausen Hans_Zimmer The_Beatles John_Lennon Paul_McCartney
+Elvis_Presley Michael_Jackson Madonna Beyoncé Adele Ed_Sheeran Billie_Eilish Rihanna Lady_Gaga Bob_Dylan David_Bowie
+Freddie_Mercury Nina_Hagen Marius_Müller-Westernhagen Wolf_Biermann Reinhard_Mey Rolf_Zuckowski Sarah_Connor
+Mark_Forster Andreas_Bourani Clueso Cro Kraftklub Die_Ärzte Die_Toten_Hosen Rammstein Silbermond Tokio_Hotel Kraftwerk
+Sido Bushido Capital_Bra Apache_207 Max_Giesinger Wincent_Weiss Vanessa_Mai Andrea_Berg Roland_Kaiser Florian_Silbereisen
+Johann_Gutenberg Friedrich_der_Große Maria_Theresia Katharina_die_Große Elisabeth_I. Queen_Elizabeth König_Charles
+Ludwig_XIV. Heinrich_VIII. Kolumbus Christoph_Kolumbus Ferdinand_Magellan Marco_Polo James_Cook Roald_Amundsen
+Otto_Lilienthal Carl_Benz Gottlieb_Daimler Rudolf_Diesel Robert_Bosch Werner_von_Siemens Ferdinand_Porsche Carl_Zeiss
+Ernst_Abbe Alfred_Krupp Steve_Jobs Bill_Gates Mark_Zuckerberg Jeff_Bezos Sam_Altman Warren_Buffett
+Abraham_Lincoln George_Washington Thomas_Jefferson Franklin_D._Roosevelt Winston_Churchill Charles_de_Gaulle
+Margaret_Thatcher Tony_Blair Boris_Johnson Rishi_Sunak Keir_Starmer Kamala_Harris Hillary_Clinton Bill_Clinton
+George_W._Bush Ronald_Reagan Richard_Nixon Jimmy_Carter Justin_Trudeau Giorgia_Meloni Pedro_Sánchez Viktor_Orbán
+Recep_Tayyip_Erdoğan Xi_Jinping Mao_Zedong Lenin Stalin Josef_Stalin Leo_Trotzki Fidel_Castro Che_Guevara
+Jawaharlal_Nehru Indira_Gandhi Narendra_Modi Kofi_Annan Ban_Ki-moon António_Guterres Desmond_Tutu Wangari_Maathai
+Václav_Havel Lech_Wałęsa Donald_Tusk Andrzej_Duda Emmanuel_Macron Jacques_Chirac François_Mitterrand Simone_Veil
+Golda_Meir David_Ben-Gurion Jassir_Arafat Anwar_as-Sadat Mustafa_Kemal_Atatürk
+Hans_und_Sophie_Scholl Claus_von_Stauffenberg Georg_Elser Dietrich_Bonhoeffer Oskar_Schindler Raoul_Wallenberg
+Janusz_Korczak Elie_Wiesel Primo_Levi Victor_Klemperer Otto_Weidt Adolf_Hitler Joseph_Goebbels Heinrich_Himmler
+Hermann_Göring Rudolf_Heß Erich_Mielke Egon_Krenz Günter_Schabowski Hans_Modrow Lothar_de_Maizière Wolf_Biermann
+Bärbel_Bohley Rainer_Eppelmann Katrin_Göring-Eckardt Marianne_Birthler Roland_Jahn Gregor_Gysi Petra_Kelly
+Hans-Dietrich_Genscher Helmut_Schmidt Walter_Scheel Ludwig_Erhard Kurt_Georg_Kiesinger Theodor_Heuss Gustav_Heinemann
+Karl_Carstens Johannes_Rau Rita_Süssmuth Heiner_Geißler Franz_Josef_Strauß Edmund_Stoiber Horst_Seehofer Peter_Altmaier
+Jens_Spahn Armin_Laschet Annegret_Kramp-Karrenbauer Ursula_Lehr Sigmar_Gabriel Martin_Schulz Andrea_Nahles Kevin_Kühnert
+Oskar_Lafontaine Joschka_Fischer Jürgen_Trittin Claudia_Roth Anton_Hofreiter Omid_Nouripour Philipp_Rösler Guido_Westerwelle
+Alice_Weidel Tino_Chrupalla Björn_Höcke Frauke_Petry Janine_Wissler Jan_van_Aken Ines_Schwerdtner Katja_Kipping
+Stanislaw_Tillich Georg_Milbradt Kurt_Biedenkopf Sebastian_Gemkow Conrad_Clemens Wolfram_Günther
+Katja_Meier Thomas_Schmidt Martin_Modschiedler Armin_Schuster Christiane_Schenderlein Frank_Richter Arnold_Vaatz
+Helma_Orosz Ingolf_Roßberg Herbert_Wagner Eva_Jähnigen Jan_Donhauser Wolfgang_Tiefensee
+Dieter_Bohlen Stefan_Raab Barbara_Schöneberger Helene_Fischer Florian_Silbereisen Kai_Pflaume Frank_Elstner Hans_Rosenthal
+Rudi_Carrell Loriot Otto_Waalkes Dieter_Nuhr Gerhard_Polt Carolin_Kebekus Mario_Barth Kurt_Krömer Olaf_Schubert
+Bernd_das_Brot Die_Sendung_mit_der_Maus Peter_Lustig Fritz_Fuchs Shary_Reeves Ralph_Caspers
+Eva_Herman Ulrich_Wickert Tom_Buhrow Judith_Rakers Jens_Riewa Caren_Miosga Dunja_Hayali Maybrit_Illner Frank_Plasberg
+Pinar_Atalay Linda_Zervakis Hajo_Seppelt Sascha_Lobo Rezo LeFloid Gronkh Julien_Bam Dagi_Bee Bibis_Beauty_Palace
+Gerhard_Schröder Pele Pelé Diego_Maradona Lionel_Messi Cristiano_Ronaldo Kylian_Mbappé Erling_Haaland Zinédine_Zidane
+Johan_Cruyff Gerd_Müller Uwe_Seeler Sepp_Maier Paul_Breitner Lothar_Matthäus Jürgen_Klinsmann Rudi_Völler
+Philipp_Lahm Mesut_Özil Thomas_Tuchel Julian_Nagelsmann Hansi_Flick Joachim_Löw Pep_Guardiola José_Mourinho
+Alexandra_Popp Lena_Oberdorf Almuth_Schult Birgit_Prinz Martina_Voss-Tecklenburg Giulia_Gwinn
+Usain_Bolt Carl_Lewis Jesse_Owens Muhammad_Ali Mike_Tyson Wladimir_Klitschko Vitali_Klitschko Henry_Maske
+Roger_Federer Rafael_Nadal Novak_Djoković Serena_Williams Venus_Williams Michael_Stich Andrea_Petković
+Michael_Phelps Britta_Steffen Paul_Biedermann Kristin_Otto Heike_Drechsler Ulrike_Meyfarth Malaika_Mihambo Gina_Lückenkemper
+Niklas_Kaul Johannes_Vetter Thomas_Röhler Christina_Schwanitz Claudia_Pechstein Anni_Friesinger Gunda_Niemann-Stirnemann
+Felix_Loch Georg_Hackl Natalie_Geisenberger Francesco_Friedrich Eric_Frenzel Andreas_Wellinger Karl_Geiger Sven_Hannawald
+Martin_Schmitt Kati_Wilhelm Uschi_Disl Ricco_Groß Denise_Herrmann-Wick Franziska_Preuß Arnd_Peiffer Benedikt_Doll
+Viktoria_Rebensburg Maria_Höfl-Riesch Felix_Neureuther Max_Verstappen Lewis_Hamilton Niki_Lauda Ayrton_Senna
+Mick_Schumacher Nico_Rosberg Jan_Ullrich Erik_Zabel Tony_Martin Emma_Hinze Kristina_Vogel 
+Tim_Mälzer Johann_Lafer Horst_Lichter Tim_Raue Sarah_Wiener Frank_Rosin Nelson_Müller
+Gudrun_Ensslin Ulrike_Meinhof Andreas_Baader Beate_Uhse Alice_Schwarzer Clara_Zetkin Louise_Otto-Peters Hedwig_Dohm
+Helene_Lange Gertrud_Bäumer Marie_Juchacz Elisabeth_Selbert Bertha_von_Suttner Florence_Nightingale Mutter_Teresa
+Hildegard_Hamm-Brücher Regine_Hildebrandt Christa_Wolf Brigitte_Reimann Irmtraud_Morgner Maxie_Wander Anna_Seghers
+Stefan_Heym Heiner_Müller Ulrich_Plenzdorf Reiner_Kunze Jurek_Becker Thomas_Brussig Clemens_Meyer Lutz_Seiler
+Nino_Haratischwili Olga_Grjasnowa Mithu_Sanyal Fatma_Aydemir Kübra_Gümüşay Deniz_Yücel Navid_Kermani Feridun_Zaimoglu
+Emine_Sevgi_Özdamar Yoko_Tawada Terézia_Mora Jenny_Erpenbeck Judith_Hermann Benedict_Wells Marc-Uwe_Kling Timur_Vermes
+Frank_Schätzing Wolfgang_Hohlbein Andreas_Eschbach Kerstin_Gier Cornelia_Franz Andreas_Steinhöfel Finn-Ole_Heinrich
+Nils_Mohl Susan_Kreller Kirsten_Fuchs Martina_Wildner Jutta_Richter Peter_Härtling Mirjam_Pressler Klaus_Kordon
+Uwe_Timm Christoph_Ransmayr Peter_Handke Elfriede_Jelinek Thomas_Bernhard Ingeborg_Bachmann Paul_Celan Rose_Ausländer
+Else_Lasker-Schüler Nelly_Sachs Mascha_Kaléko Kurt_Tucholsky Erich_Mühsam Carl_Zuckmayer Stefan_Zweig Joseph_Roth
+Alfred_Döblin Hans_Fallada Irmgard_Keun Lion_Feuchtwanger Klaus_Mann Heinrich_Mann Rainer_Maria_Rilke Stefan_George
+Georg_Trakl Gottfried_Benn Georg_Heym August_Stramm Eduard_Mörike Joseph_von_Eichendorff Novalis Friedrich_Hölderlin
+Heinrich_von_Kleist E._T._A._Hoffmann Annette_von_Droste-Hülshoff Gottfried_Keller Theodor_Storm Wilhelm_Raabe
+Gerhart_Hauptmann Arthur_Schnitzler Hugo_von_Hofmannsthal Frank_Wedekind Georg_Büchner Christian_Fürchtegott_Gellert
+Friedrich_Gottlieb_Klopstock Johann_Gottfried_Herder Christoph_Martin_Wieland Karl_May Wilhelm_Hauff Hans_Christian_Andersen
+William_Shakespeare Charles_Dickens Jane_Austen Virginia_Woolf George_Orwell Aldous_Huxley J._K._Rowling J._R._R._Tolkien
+C._S._Lewis Roald_Dahl Mark_Twain Ernest_Hemingway Toni_Morrison Margaret_Atwood Agatha_Christie Arthur_Conan_Doyle
+Leo_Tolstoi Fjodor_Dostojewski Anton_Tschechow Alexander_Puschkin Victor_Hugo Gustave_Flaubert Molière Dante_Alighieri
+Homer Sophokles Aristoteles Platon Sokrates Cicero Seneca Konfuzius Buddha Mohammed Jesus Moses Abraham
+Gabriel_García_Márquez Isabel_Allende Paulo_Coelho Haruki_Murakami Orhan_Pamuk Chimamanda_Ngozi_Adichie Annie_Ernaux
+Ronja_von_Rönne Sophie_Passmann Margarete_Stokowski Joachim_Meyerhoff Daniela_Krien Dörte_Hansen Mariana_Leky Juli_Zeh
+Luisa_Neubauer Carola_Rackete Malu_Dreyer Franziska_Giffey Kai_Wegner Klaus_Wowereit Peter_Tschentscher Ole_von_Beust
+Reiner_Haseloff Dietmar_Woidke Mario_Voigt Michael_Kretschmer Daniel_Günther Stephan_Weil Olaf_Lies Boris_Rhein
+Alexander_Schweitzer Anke_Rehlinger Andreas_Bovenschulte Ilse_Aigner Hubert_Aiwanger Alexander_Dobrindt Markus_Blume
+Steffi_Lemke Lisa_Paus Svenja_Schulze Olaf_Scholz Klara_Geywitz Volker_Wissing Marco_Buschmann Christian_Lindner
+Johann_Wadephul Karin_Prien Dorothee_Bär Katherina_Reiche Thorsten_Frei Lars_Klingbeil Bärbel_Bas Carsten_Linnemann
+Papst_Benedikt Papst_Johannes_Paul_II. Margot_Käßmann Heinrich_Bedford-Strohm Rainer_Maria_Woelki Reinhard_Marx
+Weihnachtsmann Christkind Osterhase Sandmännchen Unser_Sandmännchen Pittiplatsch Schnatterinchen Moppi Herr_Fuchs Frau_Elster
+Alfred_Jodocus_Kwak Bob_der_Baumeister Peppa_Wutz Paw_Patrol Feuerwehrmann_Sam Thomas_die_kleine_Lokomotive Elsa Anna_und_Elsa
+Olaf_der_Schneemann Simba Nemo Dory Shrek Mickey_Maus Donald_Duck Dagobert_Duck Micky_Maus Goofy Pluto Minnie_Maus
+SpongeBob Batman Superman Spider-Man Wonder_Woman Iron_Man Hulk Darth_Vader Luke_Skywalker Yoda Frodo Gandalf
+Bilbo_Beutlin Ron_Weasley Albus_Dumbledore Lord_Voldemort Severus_Snape Hagrid Katniss_Everdeen Bella_Swan
+Alice_im_Wunderland Peter_Pan Captain_Hook Robin_Hood Don_Quijote Faust Mephisto Gretchen Werther Nathan Effi
+Tom_Buddenbrook Hans_Castorp Oskar_Matzerath Josef_K. Gregor_Samsa Momo Bastian_Balthasar_Bux Atreju Fuchur
+Kater_Mikesch Urmel Wum_und_Wendelin Nils_Holgersson Heidi Peter_und_der_Wolf Hatschi_Bratschi Rübezahl Till_Eulenspiegel
+Baron_Münchhausen Rapunzel Schneewittchen Aschenputtel Dornröschen Frau_Holle Der_gestiefelte_Kater Die_Bremer_Stadtmusikanten
+Tim_und_Struppi Asterix Obelix Lucky_Luke Garfield Snoopy Charlie_Brown Calvin_und_Hobbes Fix_und_Foxi Die_Schlümpfe
+Sendung_mit_der_Maus Die_Maus Der_Elefant Ernie_und_Bert Krümelmonster Elmo Bibo Samson Tiffy Grobi Kermit Miss_Piggy
+Lassie Flipper Fury Black_Beauty Ostwind Wendy Bibi_und_Tina Die_wilden_Kerle Die_wilden_Hühner TKKG-Bande
+Justus_Jonas Peter_Shaw Bob_Andrews Kommissar_Rex Derrick Columbo Miss_Marple Hercule_Poirot James_Bond Indiana_Jones
+""")
+
+PUBLIC_PERSONS = list(dict.fromkeys(PUBLIC_PERSONS))
+
+#: Even more cited researchers (education, psychology, sociology, didactics, methods), from Germany and abroad.
+AUTHORS += _words("""
+Bronfenbrenner Erikson Kohlberg Gilligan Maslow Rogers Skinner Pawlow Thorndike Gagné Ausubel Bruner Leontjew Galperin
+Engeström Lave Wenger Schön Argyris Senge Weick Giddens Bauman Elias Durkheim Simmel Goffman Garfinkel Schütz Luckmann
+Mannheim Honneth Reckwitz Nassehi Lessenich Butterwegge Hradil Geißler Solga Blossfeld Allmendinger Esser Boudon Coleman
+Putnam Lareau Bernstein Willis Giroux McLaren Ladson-Billings Nieto Cummins Krashen Swain Gibbons Feilke Ossner Spinner
+Kammler Frederking Kepser Rosebrock Nix Lewin Moreno Watzlawick Schulz_von_Thun Satir Bateson Marzano Danielson Decristan
+Rakoczy Shavelson Messick Cronbach Kane Rasch Embretson Muthén Bollen Kline Hox Raudenbush Snijders Bosker Cohen Field
+Hattie Timperley Wiliam Csikszentmihalyi Vygotskij Wygotskij Foucault Butler Crenshaw Mead Habermas Arendt Fromm Freud
+Weinert Helmke Klieme Baumert Kunter Blömeke Terhart Lipowsky Seidel Reusser Pauli Hugener Krammer Sturm Wiesmann
+Hellmich Feindt Kunze Rabe-Kleberg Fried Roßbach Tietze Anders Kluczniok Weinert Ebert Grgic Sylva Melhuish Siraj
+Pramling Samuelsson Dahlberg Moss Rinaldi Malaguzzi Laewen Andres Schäfer Leu Viernickel Fröhlich-Gildhoff Nentwig-Gesemann
+Wolters Ainsworth Bowlby Grossmann Brisch Spitz Winnicott Stern Papoušek Largo Juul Gordon Dreikurs Haim_Omer Rosenberg
+Fend Ditton Bos Lankes Valtin Schründer-Lenzen Hornberg Gogolin Lange Kniffka Siebert-Ott Rösch Jeuk Schmölzer-Eibinger
+Müller-Using Schlag Brügelmann Bartnitzky Röhner Kahlert Gläser Hartinger Möller Giest Pech Lauterbach Kaiser Michalik
+Wittmann Hengartner Krauthausen Scherer Padberg Wittmann Müller Wollring Selter Spiegel Schipper Kaufmann Radatz
+Leuders Barzel Prediger Büchter Hußmann Vollrath Kirsch Winter Freudenthal Polya Wagenschein Duit Labudde Gräber Neumann
+Fischer Kauertz Hopf Wilhelm Euler Mikelskis-Seifert Muckenfuß Rincke Schecker Sumfleth Bayrhuber Gropengießer Kattmann
+Reinfried Haubrich Otto Hemmer Rinschede Schrüfer Gryl Budke Kuckuck Lambert Lehner Hoffmann Ohl Rhode-Jüchtern
+Pandel Rüsen Jeismann Körber Schreiber Gautschi Bergmann Borries Sauer Barricelli Lücke Thünemann Kühberger Ammerer
+Sander Weißeno Detjen Massing Kohlberg Reinhardt Grammes Hedtke Juchler Petrik Besand Oberle Manzel Gessner
+Rösch Stange Wolff Klippert Meyer Gudjons Jank Kron Peterßen Schröder Bönsch Kiper Mischke Lehner Bohl Kleinknecht
+Schratz Steiner Rolff Fullan Bonsen Pietsch Tulowitzki Schratz Huber Wissinger Brauckmann Muslic Warwas Klein Dutke
+Hasselhorn Gold Schneider Lauth Grünke Ahrbeck Hinz Wocken Feuser Reich Sander Prengel Hinz Boban Werning Lütje-Klose
+Moser Opalinski Heimlich Kracke Bless Hillenbrand Casale Hennemann Urton Stein Müller Myschker Ellinger Ricking
+Klemm Rauschenbach Züchner Thole Böllert Otto Thiersch Böhnisch Schröer Sting Hamburger Winkler Mollenhauer Wolff
+Kraus Rothland Klusmann Lüders Hericks Keller-Schneider Schaarschmidt Fischer Kieschke Rothland Bauer Holzberger
+Kunina-Habenicht Lohse-Bossenz König Kaiser Krauss Blum Neubrand Brunner Jordan Kleickmann Richter Voss Tröbst
+Dicke Kleickmann Rjosk Leutner Wirth Renkl Atkinson Chi Mayer Sweller Chandler Paas van_Merriënboer Kirschner Clark
+Hmelo-Silver Kapur Schwartz Bransford Brown Collins Palincsar Scardamalia Bereiter Stahl Fischer Weinberger Kollar
+Zimmerman Schunk Pintrich Boekaerts Winne Hadwin Efklides Schmitz Landmann Perels Dignath Büttner Otto Spörer
+Artelt Stanat Schneider Schiefele Retelsdorf Köller Möller Marsh Trautwein Lüdtke Nagengast Preckel Brunner Ziegler
+Stern Grabner Neubauer Schrader Helmke Brühwiler Praetorius Rieser Hamre Downer Allen Pianta Reyes Brackett Jennings
+Greenberg Durlak Weissberg Zins Elias Roeser Eccles Wigfield Midgley Ames Nicholls Elliot Dweck Murayama Pekrun Frenzel
+Goetz Götz Hall Perry Linnenbrink-Garcia Schutz Lazarus Gross Hascher Hagenauer Tillmann Eder Fend Grob Kiper
+Kuhl Heckhausen Rheinberg Vollmeyer Brandstätter Schüler Gollwitzer Oettingen Bandura Schwarzer Jerusalem Satow
+""")
+AUTHORS = list(dict.fromkeys(a for a in AUTHORS))
+
+#: Book, film and song titles, also with first names in them.
+WORKS += _words("""
+Der_Herr_der_Ringe Der_Hobbit Die_Tribute_von_Panem Twilight Gregs_Tagebuch Die_Schule_der_magischen_Tiere Lotta-Leben
+Die_Olchis Das_Sams Drachenreiter Die_Wilden_Hühner Rico,_Oskar_und_das_Herzgebreche Ben_liebt_Anna Die_Brücke
+Das_fliegende_Klassenzimmer Pünktchen_und_Anton Konferenz_der_Tiere Die_Konferenz_der_Tiere Der_kleine_Wassermann
+Das_kleine_Gespenst Die_Häschenschule Oh,_wie_schön_ist_Panama Der_Grüffelo Die_kleine_Raupe_Nimmersatt Frederick
+Wo_die_wilden_Kerle_wohnen Das_Neinhorn Der_Regenbogenfisch Elmar Die_Torte_ist_weg Vom_kleinen_Maulwurf
+Paul_und_Paula Die_Legende_von_Paul_und_Paula Good_Bye,_Lenin! Das_Leben_der_Anderen Sonnenallee Lola_rennt
+Der_Untertan Die_Blechtrommel Im_Westen_nichts_Neues Der_Schimmelreiter Der_Process Die_Verwandlung Das_Parfum
+Der_Turm Kruso Unterleuten Corpus_Delicti Die_Physiker Der_Besuch_der_alten_Dame Andorra Homo_faber Der_Richter_und_sein_Henker
+Mutter_Courage Der_gute_Mensch_von_Sezuan Die_Dreigroschenoper Biedermann_und_die_Brandstifter Leonce_und_Lena Dantons_Tod
+Minna_von_Barnhelm Emilia_Galotti Die_Räuber Don_Carlos Wallenstein Der_zerbrochne_Krug Prinz_Friedrich_von_Homburg
+Der_Hauptmann_von_Köpenick Berlin_Alexanderplatz Kleiner_Mann_–_was_nun? Jeder_stirbt_für_sich_allein Das_kunstseidene_Mädchen
+Schachnovelle Die_Welt_von_Gestern Radetzkymarsch Der_Zauberberg Tonio_Kröger Der_Tod_in_Venedig Mario_und_der_Zauberer
+Unterm_Rad Narziß_und_Goldmund Demian Das_Glasperlenspiel Der_Hundertjährige,_der_aus_dem_Fenster_stieg_und_verschwand
+Die_Känguru-Chroniken Er_ist_wieder_da Der_Schwarm Tintenblut Tintentod Reckless Rubinrot Saphirblau Smaragdgrün
+Woyzeck Lenz Hiob Jakob_der_Lügner Die_neuen_Leiden_des_jungen_W. Der_geteilte_Himmel Kassandra Medea Nachdenken_über_Christa_T.
+Max_und_die_wilde_7 Ein_Mann_namens_Ove Wunder Das_Schicksal_ist_ein_mieser_Verräter Tschick Bilder_deiner_großen_Liebe
+Sophies_Welt Der_Alchimist Der_Fänger_im_Roggen 1984 Farm_der_Tiere Schöne_neue_Welt Fahrenheit_451 Wer_die_Nachtigall_stört
+Oliver_Twist Robinson_Crusoe Gullivers_Reisen Die_Schatzinsel Moby_Dick Krieg_und_Frieden Anna_Karenina Schuld_und_Sühne
+Madame_Bovary Die_Elenden Der_Glöckner_von_Notre-Dame Romeo_und_Julia Hamlet Macbeth König_Lear Ein_Sommernachtstraum
+Die_Zauberflöte Don_Giovanni Figaros_Hochzeit Fidelio Der_Freischütz Carmen Hänsel_und_Gretel Peter_und_der_Wolf
+Die_vier_Jahreszeiten Für_Elise Ode_an_die_Freude Stille_Nacht Alle_meine_Entchen Atemlos_durch_die_Nacht 99_Luftballons
+Über_sieben_Brücken_musst_du_gehn Männer Bochum Major_Tom Ein_Kompliment Wind_of_Change Westerland Junge Tage_wie_diese
+Der_Pate Titanic Star_Wars Frozen Die_Eiskönigin Der_König_der_Löwen Findet_Nemo Toy_Story Shrek Barbie Oppenheimer
+Drei_Haselnüsse_für_Aschenbrödel Das_singende,_klingende_Bäumchen Die_Geschichte_vom_kleinen_Muck Das_kalte_Herz
+Bildung_und_Gerechtigkeit Visible_Learning Lernen_sichtbar_machen Allgemeinbildung_und_Lehrerausbildung Die_Ordnung_des_Diskurses
+Das_Kapital Das_Kommunistische_Manifest Kritik_der_reinen_Vernunft Also_sprach_Zarathustra Vita_activa Eichmann_in_Jerusalem
+Emile Der_Gesellschaftsvertrag Wie_Gertrud_ihre_Kinder_lehrt Pädagogik_der_Unterdrückten Didaktische_Analyse Was_ist_guter_Unterricht?
+""")
+WORKS = list(dict.fromkeys(WORKS))
+
+#: More places that appear without personal reference (news, travel, history, conferences).
+PUBLIC_PLACES += _words("""
+Amerika USA Vereinigte_Staaten Russland Ukraine Belarus Litauen Lettland Ungarn Rumänien Bulgarien Griechenland Türkei
+Syrien Irak Iran Afghanistan Israel Palästina Gaza Ägypten Marokko Tunesien Nigeria Ghana Kenia Südafrika Brasilien
+Argentinien Mexiko Chile Peru Indien Pakistan Vietnam Thailand Indonesien Korea Südkorea Nordkorea Australien Neuseeland
+Island Irland Schottland Wales Niederlande Holland Belgien Luxemburg Portugal Kroatien Serbien Slowenien Slowakei
+Afrika Asien Südamerika Nordamerika Antarktis Arktis Ostsee Nordsee Mittelmeer Atlantik Alpen Harz Rügen Sylt Usedom
+Brocken Zugspitze Fichtelberg Lilienstein Bastei Elbsandsteingebirge Oberlausitz Mittelsachsen Westsachsen Nordsachsen
+Leipziger_Land Muldental Osterzgebirge Zittauer_Gebirge Spreewald Ostdeutschland Westdeutschland Mitteldeutschland
+DDR BRD Sowjetunion Preußen Bundesrepublik New_York Washington Los_Angeles Chicago San_Francisco Tokio Peking Shanghai
+Moskau Sankt_Petersburg Warschau Budapest Athen Madrid Barcelona Lissabon Amsterdam Kopenhagen Stockholm Oslo Helsinki
+Dublin Edinburgh Venedig Florenz Mailand Neapel Genf Basel Bern Salzburg Innsbruck Graz Straßburg Lyon Marseille
+Auschwitz Buchenwald Theresienstadt Nürnberg Wittenberg Eisenach Wartburg Sanssouci Torgau Hiroshima Tschernobyl
+Elbe Moldau Rhein Donau Spree Neiße Mulde Saale Weißeritz Oder Havel Main Mosel Neckar Isar Weser Ems
+Dresden-Altstadt Neumarkt Altmarkt Brühlsche_Terrasse Zwinger Theaterplatz Prager_Straße Großer_Garten Augustusbrücke
+Blaues_Wunder Elbwiesen Pillnitz Moritzburg Radebeul Meißen Leipzig-Mitte Völkerschlachtdenkmal Augustusplatz
+""")
+PUBLIC_PLACES = list(dict.fromkeys(PUBLIC_PLACES))
+
+#: Publishers and places of publication for literature references ("Weinheim: Beltz").
+PUBLISHERS = _words("""
+Weinheim:_Beltz Weinheim_und_Basel:_Beltz Bad_Heilbrunn:_Klinkhardt Münster:_Waxmann Wiesbaden:_Springer_VS
+Opladen:_Barbara_Budrich Stuttgart:_Kohlhammer Göttingen:_Hogrefe Berlin:_Cornelsen Seelze:_Kallmeyer Hamburg:_Rowohlt
+München:_Reinhardt Bielefeld:_transcript Frankfurt_am_Main:_Suhrkamp Baltmannsweiler:_Schneider_Hohengehren
+Paderborn:_Schöningh Tübingen:_Narr Heidelberg:_Springer Berlin:_de_Gruyter Freiburg:_Herder London:_Routledge
+New_York:_Routledge Thousand_Oaks:_Sage Oxford:_Oxford_University_Press Cambridge:_Cambridge_University_Press
+""")
+
+#: Words for invented titles of papers and books ("Feedback im Mathematikunterricht der Grundschule").
+TITLE_HEADS = _words("""
+Feedback Klassenführung Unterrichtsqualität Lernmotivation Leseförderung Inklusion Heterogenität Digitalisierung
+Professionalisierung Lehrkräftebildung Schulentwicklung Bildungsungleichheit Mehrsprachigkeit Sprachbildung
+Selbstreguliertes_Lernen Kooperatives_Lernen Ganztagsschule Elternarbeit Übergänge Schulerfolg Leistungsbeurteilung
+Kompetenzorientierung Diagnostik Förderdiagnostik Lernstörungen Schulangst Wohlbefinden Belastung Beanspruchung
+Partizipation Demokratiebildung Medienbildung Bildungsgerechtigkeit Frühe_Bildung Sprachförderung Kita-Qualität
+""")
+TITLE_TAILS = _words("""
+in_der_Grundschule im_Mathematikunterricht im_Deutschunterricht in_der_Sekundarstufe_I in_inklusiven_Klassen
+im_Lehramtsstudium in_der_Kita an_Oberschulen im_internationalen_Vergleich –_eine_Längsschnittstudie
+–_Befunde_einer_Videostudie –_ein_Überblick :_Theorie,_Empirie,_Praxis aus_Sicht_der_Lehrkräfte bei_Kindern_mit_Fluchterfahrung
+und_ihre_Bedeutung_für_den_Lernerfolg im_Wandel :_Eine_Metaanalyse in_Sachsen in_Deutschland
+""")
+JOURNALS = _words("""
+Zeitschrift_für_Pädagogik Zeitschrift_für_Erziehungswissenschaft Unterrichtswissenschaft Zeitschrift_für_Pädagogische_Psychologie
+Journal_for_Educational_Research_Online Learning_and_Instruction Journal_of_Educational_Psychology Die_Deutsche_Schule
+Zeitschrift_für_Grundschulforschung Empirische_Pädagogik Psychologie_in_Erziehung_und_Unterricht Frühe_Bildung
+Review_of_Educational_Research Teaching_and_Teacher_Education Zeitschrift_für_Bildungsforschung
+""")
+
+
+def surname_of(person: str) -> str | None:
+    """The surname of a public person ("Angela Merkel" → "Merkel"), None for single names and figures."""
+    parts = person.split()
+    if len(parts) < 2 or any(w in parts for w in ("und", "der", "die", "das", "vom", "aus", "im")) or not parts[-1][:1].isupper():
+        return None
+    return parts[-1]
+
+
 #: Fantasy names of day-care centres, after-school care and clubs.
 KITA_NAMES = _words("""
 Sonnenschein Pusteblume Regenbogen Spatzennest Wichtelland Zwergenland Kunterbunt Elbpiraten Wiesenwichtel Löwenzahn

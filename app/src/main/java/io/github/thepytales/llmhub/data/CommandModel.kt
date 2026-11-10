@@ -17,34 +17,44 @@ import java.io.File
 import java.util.zip.GZIPInputStream
 
 /**
- * Das Befehlsmodell (AP-71): a small German encoder (distilbert-base-german-cased, Apache-2.0), fine-tuned on invented
- * wishes, maps what is typed into Lora or Strg+K to one action of the app in milliseconds on the device – or says that
+ * „Lora Befehle“, the command model (AP-71; up to 1.0.65 „Befehlsmodell“): a small German encoder
+ * (distilbert-base-german-cased, Apache-2.0), fine-tuned and changed by us on invented wishes, maps what is typed into Lora or Strg+K to one action of the app in milliseconds on the device – or says that
  * it is a free request for a language model. Built with tools/befehle (model card: resources/befehle/MODELLKARTE.md);
  * the labels come from the code ([io.github.thepytales.llmhub.agent.LoraCommands]).
  *
  * A download like the recognition model of the pseudonymization (AP-67): offered once in a popup, from the branch
  * `befehle-modell` of the public repository at a fixed commit, checked by SHA-256. Without it – or without the ONNX
- * Runtime the app ships with sherpa-onnx – Lora works as before (rules on the device, then a language model).
+ * Runtime the app ships with sherpa-onnx – Lora works as before (rules on the device, then a language model). Who still
+ * has the model of 1.0.65 ([OLD_FILE], same labels and vocabulary) keeps using it until the new one is downloaded
+ * (offered once as an update); then the old file is deleted.
  */
 object CommandModelInfo {
+    /** The name shown in the app. */
+    const val NAME = "Lora Befehle"
     const val COMMIT = "cc168774477e3ac8b439b42fd7b03ab05c9908fa"
-    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/befehle-modell.int8.onnx.gz"
-    const val GZ_SIZE = 40_900_860L
+    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/lora-befehle-pytales.int8.onnx.gz"
+    const val GZ_SIZE = 40_900_860L // TODO-NEU
     const val GZ_SHA256 = "ee13766aeeda7983470cdc3ff0da6989de28bc20091d3f3b329d6d9242883e37"
-    const val FILE = "befehle-modell.int8.onnx"
-    const val SIZE = 67_956_881L
+    const val FILE = "lora-befehle-pytales.int8.onnx"
+    const val SIZE = 67_956_881L // TODO-NEU
     const val SHA256 = "3251a9ef4dd4104164bf861c0ac0d6778f0d8ef1c5dc8c286e02e017ab803f65"
     /** Download size shown to the user. */
-    const val MEGABYTES = 41
+    const val MEGABYTES = 41 // TODO-NEU
 
     /** Below this probability of the likeliest label nothing is carried out (chosen on the Messkorpus, schwelle.json). */
-    const val THRESHOLD = 0.8f
+    const val THRESHOLD = 0.8f // TODO-NEU
     /**
      * Rückfrage mit zwei Knöpfen (AP-73): below [THRESHOLD], Lora asks „Meinst du … oder …?“ when the two likeliest
      * commands together reach this probability (chosen on the development part only, tools/befehle/rueckfrage.py and
      * modell/rueckfrage.json); otherwise the wish goes on to a language model as before.
      */
-    const val CHOICE_BOUND = 0.3f
+    const val CHOICE_BOUND = 0.3f // TODO-NEU
+
+    /** The model up to 1.0.65 („Befehlsmodell“) with its threshold and bound: used until the new one is there. */
+    const val OLD_FILE = "befehle-modell.int8.onnx"
+    const val OLD_SIZE = 67_956_881L
+    const val OLD_THRESHOLD = 0.8f
+    const val OLD_CHOICE_BOUND = 0.3f
     /** Inputs of the ONNX file (DistilBERT has no token_type_ids). */
     val INPUTS = listOf("input_ids", "attention_mask")
 
@@ -71,7 +81,14 @@ fun interface SentenceClassifier {
  * Recognizes the command in a wish with [classifier]: the input is what is open (one word) and the wish in lower case as
  * a pair `[CLS] area [SEP] wish [SEP]` – exactly as tools/befehle/modell.py encodes it for the training.
  */
-class CommandRecognizer(private val classifier: SentenceClassifier, private val tokenizer: WordPiece = WordPiece(CommandModelInfo.vocab), private val labels: List<String> = CommandModelInfo.labels) {
+class CommandRecognizer(
+    private val classifier: SentenceClassifier,
+    private val tokenizer: WordPiece = WordPiece(CommandModelInfo.vocab),
+    private val labels: List<String> = CommandModelInfo.labels,
+    /** Threshold and bound of the loaded model (the new one, or the old file of 1.0.65). */
+    private val threshold: Float = CommandModelInfo.THRESHOLD,
+    private val bound: Float = CommandModelInfo.CHOICE_BOUND,
+) {
     /**
      * [sure]: confident enough to act; otherwise the wish is passed on to a language model – or, with two [choices]
      * (the two likeliest commands, AP-73), Lora asks which one is meant.
@@ -96,7 +113,7 @@ class CommandRecognizer(private val classifier: SentenceClassifier, private val 
         return ids to types
     }
 
-    fun recognize(wish: String, area: String = "app", threshold: Float = CommandModelInfo.THRESHOLD, bound: Float = CommandModelInfo.CHOICE_BOUND): Result {
+    fun recognize(wish: String, area: String = "app", threshold: Float = this.threshold, bound: Float = this.bound): Result {
         val (ids, types) = encode(wish, area)
         val p = classifier.probabilities(ids, types)
         var best = 0
@@ -142,6 +159,8 @@ class CommandRecognizer(private val classifier: SentenceClassifier, private val 
 class CommandModel(private val c: AppContainer) {
     data class State(
         val installed: Boolean = false,
+        /** Only the model of 1.0.65 is there: it keeps working, the new version is offered as an update. */
+        val old: Boolean = false,
         /** Loaded and ready; false while loading or when the runtime is missing. */
         val ready: Boolean = false,
         /** 0..1 while the download runs. */
@@ -172,15 +191,25 @@ class CommandModel(private val c: AppContainer) {
 
     fun installed(): Boolean = available && file().let { it.isFile && it.length() == CommandModelInfo.SIZE }
 
+    /** The model of 1.0.65 („Befehlsmodell“). */
+    fun oldFile(): File = File(root, CommandModelInfo.OLD_FILE)
+
+    /** Only the old model is there (it keeps working until the update is downloaded). */
+    fun hasOld(): Boolean = !installed() && oldFile().let { it.isFile && it.length() == CommandModelInfo.OLD_SIZE }
+
     init {
-        _state.value = State(installed = installed())
+        _state.value = State(installed = installed(), old = hasOld())
         load()
     }
 
-    /** Offers the download once per start of the app – unless it is there, switched off or „Nicht mehr fragen“. */
+    /**
+     * Offers the download once per start of the app – unless it is there, switched off or „Nicht mehr fragen“. Who has
+     * the old model gets the new one offered as an update (with its own „Nicht mehr fragen“).
+     */
     fun offerIfNeeded() {
         val s = c.settings.current
-        if (asked || !available || installed() || _state.value.progress != null || !s.commandModel || !s.commandModelAsk) return
+        if (asked || !available || installed() || _state.value.progress != null || !s.commandModel) return
+        if (if (hasOld()) !s.commandModelUpdateAsk else !s.commandModelAsk) return
         asked = true
         offer.value = true
     }
@@ -194,7 +223,7 @@ class CommandModel(private val c: AppContainer) {
             val part = File(root, CommandModelInfo.FILE + ".part")
             try {
                 FileDownload.fetch(CommandModelInfo.URL, gz, CommandModelInfo.GZ_SIZE, { cancelled }) { p -> _state.value = _state.value.copy(progress = p) }
-                _state.value = _state.value.copy(progress = 1.0, message = tr("Befehlsmodell wird geprüft …"))
+                _state.value = _state.value.copy(progress = 1.0, message = tr("{0} wird geprüft …", CommandModelInfo.NAME))
                 if (gz.length() != CommandModelInfo.GZ_SIZE || FileDownload.sha256(gz) != CommandModelInfo.GZ_SHA256) {
                     gz.delete()
                     error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
@@ -204,15 +233,18 @@ class CommandModel(private val c: AppContainer) {
                     part.delete()
                     error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt"))
                 }
+                unload()
                 file().delete()
                 if (!part.renameTo(file())) error(tr("Datei konnte nicht gespeichert werden"))
                 gz.delete()
-                _state.value = State(installed = true, message = tr("Befehlsmodell ist bereit."))
+                oldFile().delete()
+                _state.value = State(installed = true, message = tr("{0} ist bereit.", CommandModelInfo.NAME))
                 load()
             } catch (e: InterruptedException) {
                 _state.value = _state.value.copy(progress = null, message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
             } catch (e: Exception) {
-                _state.value = _state.value.copy(progress = null, message = tr("Download des Befehlsmodells fehlgeschlagen: {0}. Bis dahin arbeitet Lora wie bisher.", e.message))
+                _state.value = _state.value.copy(progress = null, message = if (hasOld()) tr("Download von {0} fehlgeschlagen: {1}. Bis dahin arbeitet die bisherige Version weiter.", CommandModelInfo.NAME, e.message)
+                    else tr("Download von {0} fehlgeschlagen: {1}. Bis dahin arbeitet Lora wie bisher.", CommandModelInfo.NAME, e.message))
             } finally {
                 if (_state.value.progress != null) _state.value = _state.value.copy(progress = null)
             }
@@ -225,25 +257,30 @@ class CommandModel(private val c: AppContainer) {
         scope.launch {
             unload()
             file().delete()
+            oldFile().delete()
             File(root, CommandModelInfo.FILE + ".gz.part").delete()
             File(root, CommandModelInfo.FILE + ".part").delete()
-            _state.value = State(installed = false, message = tr("Befehlsmodell gelöscht."))
+            _state.value = State(installed = false, message = tr("{0} gelöscht.", CommandModelInfo.NAME))
         }
     }
 
     /** Loads the model in the background (well under a second); until then Lora works as before. */
     fun load() {
-        if (!installed() || recognizer != null) return
+        if (recognizer != null) return
+        val old = !installed()
+        if (old && !hasOld()) return
+        val f = if (old) oldFile() else file()
         scope.launch {
             val lib = PiiRuntime.library(c)
             if (lib == null) {
-                _state.value = _state.value.copy(message = tr("Für das Befehlsmodell fehlt die ONNX Runtime der App (Spracherkennung) – Lora arbeitet wie bisher."))
+                _state.value = _state.value.copy(message = tr("Für {0} fehlt die ONNX Runtime der App (Spracherkennung) – Lora arbeitet wie bisher.", CommandModelInfo.NAME))
                 return@launch
             }
-            runCatching { OrtClassifier(lib, file(), labels = CommandModelInfo.labels.size, inputs = CommandModelInfo.INPUTS, perToken = false, name = "lora-befehle") }
-                .logFailure("Befehlsmodell laden").getOrNull()?.let { cl ->
+            runCatching { OrtClassifier(lib, f, labels = CommandModelInfo.labels.size, inputs = CommandModelInfo.INPUTS, perToken = false, name = "lora-befehle") }
+                .logFailure("Lora Befehle laden").getOrNull()?.let { cl ->
                     classifier = cl
-                    recognizer = CommandRecognizer({ ids, types -> cl.run(ids, types) })
+                    recognizer = if (old) CommandRecognizer({ ids, types -> cl.run(ids, types) }, threshold = CommandModelInfo.OLD_THRESHOLD, bound = CommandModelInfo.OLD_CHOICE_BOUND)
+                        else CommandRecognizer({ ids, types -> cl.run(ids, types) })
                     _state.value = _state.value.copy(ready = true)
                 }
         }
@@ -263,7 +300,7 @@ class CommandModel(private val c: AppContainer) {
         if (!c.settings.current.commandModel || wish.isBlank()) return null
         val key = "$area\n" + CommandRecognizer.normalize(wish)
         synchronized(cache) { cache[key] }?.let { return it }
-        val result = runCatching { r.recognize(wish, area) }.logFailure("Befehlsmodell").getOrNull() ?: return null
+        val result = runCatching { r.recognize(wish, area) }.logFailure("Lora Befehle").getOrNull() ?: return null
         synchronized(cache) { cache[key] = result }
         return result
     }

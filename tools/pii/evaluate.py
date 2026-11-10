@@ -1,7 +1,7 @@
 """Measures a trained or exported recognition model on the Messkorpus (AP-67).
 
     python evaluate.py modelle/gbert-base/best                     # Hugging Face folder
-    python evaluate.py modelle/gbert-base/onnx/pii-modell.int8.onnx # exported model (ONNX Runtime, CPU)
+    python evaluate.py modelle/<name>/onnx/lora-namensschutz-pytales.int8.onnx # exported model (ONNX Runtime, CPU)
     python evaluate.py … --teil pruef                             # the test part: numbers only, no error lists
 
 Shows the model alone, with all rules of the app and as planned (fixed patterns of the rules + model, cited authors

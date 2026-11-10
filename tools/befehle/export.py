@@ -1,8 +1,9 @@
-"""Export of the command model for the app (AP-71, Stufe e): ONNX, int8, model card.
+"""Export of Lora Befehle, the command model, for the app (AP-71, Stufe e): ONNX, int8, model card.
 
     python export.py modelle/<name>/best
 
-Writes modelle/<name>/onnx/: befehle-modell.onnx (fp32), befehle-modell.int8.onnx (dynamic int8 quantization), the
+Writes modelle/<name>/onnx/: lora-befehle-pytales.onnx (fp32), lora-befehle-pytales.int8.onnx (dynamic int8
+quantization; up to 1.0.65 the file was called befehle-modell.int8.onnx), the
 tokenizer (vocab.txt), labels.json, schwelle.json, tokenizer-erwartet.jsonl (for the test of the tokenizer in the app)
 and MODELLKARTE.md. The int8 model may lose at most 0.5 percentage points of hits on the test part compared with
 fp32, and must not carry out more wrong actions – otherwise the export stops with an error.
@@ -12,6 +13,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -23,7 +25,14 @@ import evaluate  # noqa: E402
 import modell  # noqa: E402
 
 MAX_LOSS = 0.5  # percentage points
-LICENSES = {"distilbert/distilbert-base-german-cased": "Apache-2.0", "deepset/gbert-base": "MIT", "deepset/gelectra-base": "MIT"}
+NAME = "Lora Befehle"
+FILE = "lora-befehle-pytales"
+#: Base models: licence and authors (as on their model cards on Hugging Face).
+BASES = {
+    "distilbert/distilbert-base-german-cased": ("Apache-2.0", "Hugging Face (DistilBERT nach Sanh, Debut, Chaumond und Wolf, 2019)"),
+    "deepset/gbert-base": ("MIT", "deepset GmbH (Branden Chan, Stefan Schweter, Timo Möller)"),
+    "deepset/gelectra-base": ("MIT", "deepset GmbH"),
+}
 
 
 def export_onnx(folder: Path, target: Path) -> list[str]:
@@ -70,7 +79,7 @@ def main() -> None:
     folder = Path(a.modell)
     out = Path(a.aus) if a.aus else folder.parent / "onnx"
     out.mkdir(parents=True, exist_ok=True)
-    fp32, int8 = out / "befehle-modell.onnx", out / "befehle-modell.int8.onnx"
+    fp32, int8 = out / f"{FILE}.onnx", out / f"{FILE}.int8.onnx"
     print("Export nach ONNX …")
     inputs = export_onnx(folder, fp32)
     print("int8 …")
@@ -115,12 +124,13 @@ def main() -> None:
 
 def write_card(out: Path, report: dict, measures: dict, size: int, threshold: float, n_labels: int) -> None:
     base = report.get("basis", "?")
+    lic_name, authors = BASES.get(base, ("vor Auslieferung prüfen", "?"))
     m = measures["int8"]
     line = lambda n: f"{n['treffer']} % | {n['falsch_ausgefuehrt']} % | {n['frei_weitergegeben']} % | {n['frei_art_richtig']} %"  # noqa: E731
     layers = f", die ersten {report['schichten']} Schichten" if report.get("schichten") else ""
-    card = f"""# Modellkarte: Befehlsmodell für Lora (AP-71)
+    card = f"""# Modellkarte: {NAME} (Befehlsmodell für Lora, AP-71)
 
-Stand: {datetime.date.today():%d.%m.%Y}
+Stand: {datetime.date.today():%d.%m.%Y} · Datei `{FILE}.int8.onnx` (bis 1.0.65: „Befehlsmodell“, `befehle-modell.int8.onnx`)
 
 ## Was es tut
 Ordnet einen kurzen Wunsch an Lora oder Strg+K einer von {n_labels} Aktionen der App zu – Bereich oder Werkzeug öffnen,
@@ -130,7 +140,9 @@ Gerät. Werte (an/aus, Seiten, Spalte, Dateiname …) liest die App danach mit R
 Ist die Sicherheit kleiner als die Schwelle, führt die App nichts aus, sondern gibt den Wunsch weiter.
 
 ## Herkunft
-- **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`{layers}), Lizenz **{LICENSES.get(base, "vor Auslieferung prüfen")}**.
+- **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`{layers}) von {authors}, Lizenz **{lic_name}**.
+  {NAME} ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. {NAME} ist kein
+  Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
 - **Feintuning**: Satz-Klassifikation, {report.get("daten", "?")} erfundene Trainingswünsche, beste Epoche
   {report.get("beste_epoche", "?")} von {len(report.get("epochen", []))}. Eingabe: was offen ist (ein Wort) und der Wunsch in Kleinbuchstaben.
 - **Etiketten**: aus dem Code der App erzeugt (`tools/befehle/etiketten.json`, `CommandLabelsTest`).
@@ -159,7 +171,8 @@ weitergegeben. Die Schwelle wurde auf dem Entwicklungsteil gewählt (`schwelle.j
 """
     lic = HERE / "modell" / f"LIZENZ-{base.split('/')[-1]}.txt"
     if lic.exists():
-        card += f"\n## Lizenz des Basismodells ({base}, {LICENSES.get(base, '?')})\n\n" + lic.read_text(encoding="utf-8").strip() + "\n"
+        card += f"\n## Lizenz des Basismodells ({base}, {lic_name})\n\n" + lic.read_text(encoding="utf-8").strip() + "\n"
+        shutil.copy(lic, out / lic.name)
     (out / "MODELLKARTE.md").write_text(card, encoding="utf-8")
 
 

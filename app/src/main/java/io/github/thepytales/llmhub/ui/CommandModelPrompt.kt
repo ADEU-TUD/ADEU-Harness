@@ -39,9 +39,10 @@ import io.github.thepytales.llmhub.local.LocalCatalog
 import io.github.thepytales.llmhub.local.LocalModel
 
 /**
- * Offers the command model (AP-71) once per start of the app: when Lora is first asked or Einstellungen › Lora is
- * opened, while it is not downloaded. „Laden“, „Später“ (asks again at the next start) or „Nicht mehr fragen“ (the
- * download stays in the settings). Waits while the popup of the recognition model (AP-67) is open.
+ * Offers Lora Befehle, the command model (AP-71), once per start of the app: when Lora is first asked or Einstellungen ›
+ * Lora is opened, while it is not downloaded. „Laden“, „Später“ (asks again at the next start) or „Nicht mehr fragen“
+ * (the download stays in the settings). Who still has the model of 1.0.65 gets the new version offered as an update.
+ * Waits while the popup of Lora Namensschutz (AP-67) is open.
  */
 @Composable
 fun CommandModelPrompt(c: AppContainer) {
@@ -50,23 +51,30 @@ fun CommandModelPrompt(c: AppContainer) {
     val s by c.settings.settings.collectAsState()
     // Until „Welche Modelle sollen auf dieses Gerät?“ is answered, that dialog asks – not this popup on top of it.
     if (!offer || other || !s.modelsIntroDone) return
+    val update = remember { c.commandModel.hasOld() }
     fun close() { c.commandModel.offer.value = false }
     AlertDialog(
         onDismissRequest = ::close,
         icon = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
-        title = { Text(tr("Lora versteht Befehle sofort")) },
+        title = { Text(if (update) tr("Neue Version von {0}", CommandModelInfo.NAME) else tr("Lora versteht Befehle sofort")) },
         text = {
             Text(
-                tr("Lora kann ein kleines Befehlsmodell laden ({0} MB). Damit erkennt sie auf diesem Gerät in Millisekunden, was du " +
-                    "meinst – einen Bereich öffnen, eine Einstellung umstellen, ein PDF zusammenfügen –, auch ohne Internet und mit " +
-                    "Tippfehlern. Ist sie unsicher, fragt sie wie bisher ein Sprachmodell. Dabei verlässt nichts das Gerät.",
-                    CommandModelInfo.MEGABYTES),
+                if (update) tr("Es gibt eine bessere Version von {0} ({1} MB): Sie erkennt mehr Befehle selbst, auch umgangssprachlich und " +
+                    "auf Englisch, und führt weiter nichts aus, wenn sie unsicher ist. Bis du sie lädst, arbeitet die bisherige Version " +
+                    "weiter. Dabei verlässt nichts das Gerät.", CommandModelInfo.NAME, CommandModelInfo.MEGABYTES)
+                else tr("Lora kann {0} laden ({1} MB), ein kleines Modell nur für Befehle. Damit erkennt sie auf diesem Gerät in " +
+                    "Millisekunden, was du meinst – einen Bereich öffnen, eine Einstellung umstellen, ein PDF zusammenfügen –, auch ohne " +
+                    "Internet und mit Tippfehlern. Ist sie unsicher, fragt sie wie bisher ein Sprachmodell. Dabei verlässt nichts das Gerät.",
+                    CommandModelInfo.NAME, CommandModelInfo.MEGABYTES),
             )
         },
         confirmButton = { Button(onClick = { c.commandModel.install(); close() }) { Text(tr("Laden")) } },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = { c.settings.update { it.copy(commandModelAsk = false) }; close() }) { Text(tr("Nicht mehr fragen")) }
+                TextButton(onClick = {
+                    c.settings.update { if (update) it.copy(commandModelUpdateAsk = false) else it.copy(commandModelAsk = false) }
+                    close()
+                }) { Text(tr("Nicht mehr fragen")) }
                 TextButton(onClick = ::close) { Text(tr("Später")) }
             }
         },
@@ -95,8 +103,8 @@ fun LoraPlaceSettings(c: AppContainer) {
         HintText(
             when (ModelRouter.Mode.of(s.loraPlace)) {
                 ModelRouter.Mode.MIXED -> tr("Lora entscheidet je Anfrage: Befehle erkennt sie sofort auf diesem Gerät. Kurze, einfache Aufgaben (umformulieren, kurz erklären, eine kurze Nachricht) beantwortet ein Sprachmodell auf diesem Gerät, wenn eines installiert ist und die Hardware reicht. Alles andere – lange Dokumente, Analysen, Bilder, Websuche, mehrere Schritte – läuft wie bisher über den Server.")
-                ModelRouter.Mode.LOCAL -> tr("Nichts geht an einen Server: Lora nutzt nur das Befehlsmodell und ein Sprachmodell auf diesem Gerät. Das kostet: Die Antworten sind schlichter und öfter ungenau, lange Texte passen nicht hinein (etwa 10 bis 25 Seiten statt ganzer Bücher), eine Antwort braucht ohne Grafikkarte oft eine halbe Minute oder länger, und Websuche, Bilder verstehen und lange Werkzeugketten fehlen oder sind unzuverlässig. Sinnvoll für vertrauliche Arbeit oder ohne Internet.")
-                ModelRouter.Mode.SERVER -> tr("Sprachmodelle laufen nur auf dem Server, auch für kurze Aufgaben – am genauesten, aber jede Anfrage braucht Internet und geht (pseudonymisiert) hinaus. Befehle erkennt Lora weiter auf diesem Gerät, solange das Befehlsmodell eingeschaltet ist.")
+                ModelRouter.Mode.LOCAL -> tr("Nichts geht an einen Server: Lora nutzt nur Lora Befehle und ein Sprachmodell auf diesem Gerät. Das kostet: Die Antworten sind schlichter und öfter ungenau, lange Texte passen nicht hinein (etwa 10 bis 25 Seiten statt ganzer Bücher), eine Antwort braucht ohne Grafikkarte oft eine halbe Minute oder länger, und Websuche, Bilder verstehen und lange Werkzeugketten fehlen oder sind unzuverlässig. Sinnvoll für vertrauliche Arbeit oder ohne Internet.")
+                ModelRouter.Mode.SERVER -> tr("Sprachmodelle laufen nur auf dem Server, auch für kurze Aufgaben – am genauesten, aber jede Anfrage braucht Internet und geht (pseudonymisiert) hinaus. Befehle erkennt Lora weiter auf diesem Gerät, solange Lora Befehle eingeschaltet ist.")
             },
         )
         if (ModelRouter.Mode.of(s.loraPlace) != ModelRouter.Mode.SERVER && local.installed.isEmpty()) {
@@ -104,14 +112,14 @@ fun LoraPlaceSettings(c: AppContainer) {
         }
         HintText(tr("Immer gilt: Ins Postfach schaut nur ein Modell auf diesem Gerät, Projekte „Nur auf diesem Gerät“ und der Tresor behalten ihre Regeln, und vor jeder Server-Anfrage werden Namen ersetzt, wenn die Pseudonymisierung an ist."))
         ToggleRow(
-            tr("Befehle auf dem Gerät verstehen (empfohlen)"),
+            tr("{0}: Befehle auf dem Gerät verstehen (empfohlen)", CommandModelInfo.NAME),
             tr("Ein kleines Modell auf diesem Gerät ordnet, was du Lora oder in Strg+K schreibst, in Millisekunden einer Aktion der App zu – offline, auch mit Tippfehlern. Ist es unsicher, führt es nichts aus, sondern Lora fragt wie bisher ein Sprachmodell."),
             s.commandModel,
         ) { v -> c.settings.update { it.copy(commandModel = v) } }
         Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
             val progress = st.progress
             when {
-                !c.commandModel.available -> SettingsHint(tr("Für diese Version gibt es noch kein Befehlsmodell zum Laden – Lora arbeitet wie bisher."))
+                !c.commandModel.available -> SettingsHint(tr("Für diese Version gibt es noch kein {0} zum Laden – Lora arbeitet wie bisher.", CommandModelInfo.NAME))
                 progress != null -> {
                     LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -119,7 +127,18 @@ fun LoraPlaceSettings(c: AppContainer) {
                         TextButton(onClick = c.commandModel::cancelInstall) { Text(tr("Abbrechen")) }
                     }
                 }
-                !st.installed -> OutlinedButton(onClick = c.commandModel::install) { Text(tr("Befehlsmodell laden ({0} MB)", CommandModelInfo.MEGABYTES)) }
+                st.old -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        tr("Die bisherige Version ist geladen und arbeitet weiter. Es gibt eine bessere."),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = c.commandModel::install) { Text(tr("Neue Version laden ({0} MB)", CommandModelInfo.MEGABYTES)) }
+                        TextButton(onClick = c.commandModel::delete) { Text(tr("Löschen")) }
+                    }
+                }
+                !st.installed -> OutlinedButton(onClick = c.commandModel::install) { Text(tr("{0} laden ({1} MB)", CommandModelInfo.NAME, CommandModelInfo.MEGABYTES)) }
                 else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(if (st.ready) tr("Geladen und bereit.") else tr("Geladen."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
@@ -200,12 +219,12 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
     Text(tr("Welche Modelle sollen auf dieses Gerät?"), style = MaterialTheme.typography.titleSmall)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (choice.offerCommand) ModelLine(
-            tr("Befehle verstehen ({0} MB)", CommandModelInfo.MEGABYTES),
+            tr("{0}: Befehle verstehen ({1} MB)", CommandModelInfo.NAME, CommandModelInfo.MEGABYTES),
             tr("Lora erkennt sofort und offline, was du meinst – Bereich öffnen, Einstellung umstellen, PDF zusammenfügen."),
             choice.command,
         ) { choice.command = it }
         if (choice.offerPii) ModelLine(
-            tr("Namen schützen ({0} MB)", PiiModelInfo.MEGABYTES),
+            tr("{0}: Namen schützen ({1} MB)", PiiModelInfo.NAME, PiiModelInfo.MEGABYTES),
             tr("Die Pseudonymisierung findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht."),
             choice.pii,
         ) { choice.pii = it }
