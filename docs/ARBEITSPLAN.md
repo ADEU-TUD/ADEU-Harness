@@ -67,7 +67,7 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
+| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | **Danach** | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen · AP-86 Lokale Modelle auf dem Mac laden |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
@@ -82,6 +82,8 @@ Video und Dateien (AP-54 bis AP-59), PDF-Reste und Diagramme (AP-60, AP-61) sowi
 die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erkennungsmodell für die Pseudonymisierung
 (AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
+**Dringend (10.11.2026)**: AP-103 – die Datenschutzseite aufräumen und übersichtlicher darstellen.
+
 **Dringend (09.11.2026)**: AP-68 bis AP-70 sind erledigt (09.11.2026). AP-67 läuft weiter (das Training der
 Pseudonymisierung geschieht in einem eigenen Chat). Neu am 09.11.2026: **AP-71** (Befehlsmodell und Mischmodus für Lora),
 ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Training.
@@ -92,6 +94,37 @@ ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Traini
 
 Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt laufen AP-67 und AP-71
 nebeneinander, je in einem eigenen Chat.
+
+**Dringend: AP-103** (10.11.2026, vor den übrigen Paketen)
+
+### AP-103 ☐ Datenschutzseite aufräumen · S–M (neu, dringend)
+**Befund (10.11.2026)**: *Einstellungen › Datenschutz* (`PrivacySettings.kt`) ist durch viele Überarbeitungen
+unübersichtlich geworden: eine lange Seite mit rund zehn Karten untereinander – *Pseudonymisierung* (Hauptschalter,
+Erkennungsmodell, „Namen automatisch erkennen“, „Öffentliche Quellen“, „Gründlich“), *Postfach*, dann vier Karten mit
+21 Einzelschaltern (*Kontaktdaten*, *Nummern und Daten*, *Namen*, *Platzhalter* – darin auch Fremdes wie „Warnung bei
+Bildern“ und „Namensvorschläge beim Schreiben“), *Eigene Namen und Begriffe*, *Ausprobieren*, *Zuordnungen*, *Gut zu
+wissen*. Die Schalter haben lange Erklärtexte, Wichtiges (ist der Schutz an? was sieht der Server?) und selten
+Gebrauchtes stehen gleichrangig, der Hinweis „Pseudonymisierung ist aus – die Schalter unten wirken erst …“ steht
+mitten in der Seite, und die Postfach-Regel ist eine Karte ohne Bedienung.
+**Ziel**: Eine ruhige Seite, die auf einen Blick sagt, wie geschützt man ist, und Feinheiten erst auf Wunsch zeigt.
+- **Oben eine Statuskarte**: Schutz an/aus (ein Schalter), darunter in einer Zeile, was aktiv ist („Regeln ·
+  Erkennungsmodell · Gründlich aus“) und die festen Regeln als kurze Marken (*Postfach nur auf diesem Gerät*, *Tresor*).
+  Ist der Schutz aus, sind die übrigen Bereiche sichtbar ausgegraut statt nur mit Hinweistext.
+- **Drei Hauptbereiche** in fester Reihenfolge: *Erkennung* (was gefunden wird: Namen automatisch, öffentliche Quellen,
+  Gründlich, Erkennungsmodell), *Meine Listen* (immer / nie ersetzen, Import/Export, Zuordnungen mit Suche),
+  *Ausprobieren*.
+- **Die 21 Einzelschalter** unter *Feineinstellungen* (zugeklappt, Zustand gespeichert), je Gruppe eine Zeile mit „7 von
+  7 an“; Erklärtexte kurz, das Beispiel als Unterzeile. Schalter, die nicht zur Pseudonymisierung gehören („Warnung bei
+  Bildern“, „Namensvorschläge beim Schreiben“), wandern an ihren Ort bzw. in einen eigenen kleinen Bereich *Hinweise
+  beim Senden*.
+- **„Gut zu wissen“ und die Postfach-Regel** als einklappbares *So schützt Lora deine Daten* am Ende, kurz und in
+  Klartext; dazu der Verweis auf das Agent-Protokoll.
+- Nichts geht verloren: alle Einstellungen behalten ihre Werte; Strg+K, Lora (Spots wie `privacy.pseudonymize`) und die
+  Leuchtrahmen (AP-41) finden jede Einstellung weiterhin. Gleich auf Android und Desktop, alle Stile (Hoher Kontrast).
+  en.tsv mitpflegen.
+**Fertig, wenn**: die Seite ohne Aufklappen auf einen Bildschirm passt, der Schutzstatus oben sofort erkennbar ist,
+jede bisherige Einstellung erreichbar bleibt (Test über alle `PiiFeature`-Werte und Spots) und Screenshots vorher/nachher
+in der README stehen.
 
 **Parallel: AP-67 und AP-71**
 
