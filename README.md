@@ -358,6 +358,21 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   (ein Prozess); zwei Chats antworten gleichzeitig, ein Chat ist nie in zwei Fenstern offen (das Hauptfenster zeigt dann
   *Zum Fenster* / *Hierher holen*), Schließen eines Fensters beendet nichts anderes; Größe und Ort werden je Art gemerkt.
   Entschieden: nur Fenster, keine Tabs. Test `ExtraWindowsTest`.
+- **Aufgeräumte Datenschutzseite** (seit 1.0.67, AP-103): *Einstellungen › Datenschutz* zeigt oben in einer Karte, ob
+  der Schutz an ist, was gerade wirkt („Aktiv: Regeln · Namen automatisch · Lora Namensschutz · Gründlich aus“) und die
+  festen Regeln als Marken (*Postfach nur auf diesem Gerät*, *Tresor*). Darunter *Erkennung* (Lora Namensschutz, Namen
+  automatisch, öffentliche Quellen, Gründlich) mit kurzen Erklärungen; *Meine Listen* (immer / nie ersetzen, Übernehmen
+  und Speichern, Zuordnungen mit Suche), *Ausprobieren*, *Feineinstellungen* (die 22 Einzelschalter, je Gruppe eine
+  Zeile „4 von 4 an“, darin der kleine Bereich *Hinweise beim Senden* mit „Warnung bei Bildern“ und
+  „Namensvorschläge“) und *So schützt Lora deine Daten* sind zugeklappt; was offen ist, merkt sich die App. Ist der
+  Schutz aus, sind die Bereiche sichtbar ausgegraut. Ohne Aufklappen passt die Seite auf einen Bildschirm (888 statt
+  über 2 400 dp hoch); alle Einstellungen behalten ihre Werte, Strg+K, Lora und die Leuchtrahmen finden sie weiter
+  (der Rahmen öffnet den zugeklappten Bereich). Test `PrivacyPageTest` (alle `PiiFeature`-Schalter, Leuchtrahmen,
+  Hoher Kontrast).
+
+  | Vorher (Ausschnitt) | Nachher | Nachher, Feineinstellungen offen |
+  | --- | --- | --- |
+  | ![Datenschutz vorher](docs/bilder/datenschutz-vorher.png) | ![Datenschutz nachher](docs/bilder/datenschutz-nachher.png) | ![Feineinstellungen offen](docs/bilder/datenschutz-nachher-feineinstellungen.png) |
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

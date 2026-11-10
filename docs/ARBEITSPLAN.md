@@ -67,7 +67,7 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
+| **Jetzt** | ~~AP-103 Datenschutzseite aufräumen~~ ☑ (10.11.2026) · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
@@ -99,7 +99,7 @@ nebeneinander, je in einem eigenen Chat.
 
 **Dringend: AP-103** (10.11.2026, vor den übrigen Paketen)
 
-### AP-103 ☐ Datenschutzseite aufräumen · S–M (neu, dringend)
+### AP-103 ☑ Datenschutzseite aufräumen · S–M (neu, dringend)
 **Befund (10.11.2026)**: *Einstellungen › Datenschutz* (`PrivacySettings.kt`) ist durch viele Überarbeitungen
 unübersichtlich geworden: eine lange Seite mit rund zehn Karten untereinander – *Pseudonymisierung* (Hauptschalter,
 Erkennungsmodell, „Namen automatisch erkennen“, „Öffentliche Quellen“, „Gründlich“), *Postfach*, dann vier Karten mit
@@ -127,6 +127,14 @@ mitten in der Seite, und die Postfach-Regel ist eine Karte ohne Bedienung.
 **Fertig, wenn**: die Seite ohne Aufklappen auf einen Bildschirm passt, der Schutzstatus oben sofort erkennbar ist,
 jede bisherige Einstellung erreichbar bleibt (Test über alle `PiiFeature`-Werte und Spots) und Screenshots vorher/nachher
 in der README stehen.
+**Erledigt (10.11.2026, für 1.0.67)**: Statuskarte (Schalter, Zeile „Aktiv: …“, Marken *Postfach nur auf diesem Gerät*
+und *Tresor*), *Erkennung* offen, *Meine Listen*, *Ausprobieren*, *Feineinstellungen* und *So schützt Lora deine Daten*
+zugeklappt (Zustand in `privacyOpen`), Einzelschalter je Gruppe mit „x von y an“; „Warnung bei Bildern“ und
+„Namensvorschläge“ als kleiner Bereich *Hinweise beim Senden* innerhalb der Feineinstellungen (eine eigene Karte hätte
+die Seite über einen Bildschirm gehoben). Schutz aus → Bereiche ausgegraut. Seite 888 dp hoch statt über 2 400 dp
+(Grenze im Test: 900 dp, ein Full-HD-Bildschirm; auf einem Laptop mit 768 Pixeln Höhe bleibt etwas Scrollen). Der
+Leuchtrahmen öffnet den zugeklappten Bereich (`privacy.never` → *Meine Listen*). Test `PrivacyPageTest`, Bilder in
+`docs/bilder/`. **Am Gerät prüfen**: Android (schmal, große Schrift), Bedienung mit Tastatur und Screenreader.
 
 **Parallel: AP-67 und AP-71**
 

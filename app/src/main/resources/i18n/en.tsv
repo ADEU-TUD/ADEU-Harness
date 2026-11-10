@@ -6355,3 +6355,38 @@ Für diese Version gibt es noch kein {0} zum Laden – Lora arbeitet wie bisher.
 Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, die Regeln und Lora Namensschutz übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.	Faster ↔ more thorough: a language model on this device reads every text once and finds names, schools and places that the rules and Lora Namensschutz miss, also indirect clues. Costs computing time (a few seconds per longer text); nothing leaves the device.
 Für das nächste Training von Lora Befehle. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen.	For the next training of Lora Befehle. Look through the wishes and take out anything containing names or private details – the file contains exactly the ticked lines.
 Gemischt, nur lokal oder nur über den Server; Lora Befehle.	Mixed, local only or server only; Lora Befehle.
+Aus – Namen, Kontaktdaten und Nummern gehen unverändert an den Server.	Off – names, contact details and numbers go to the server unchanged.
+Postfach nur auf diesem Gerät	Mailbox only on this device
+Tresor für sensible Forschung	Vault for sensitive research
+Erkennung	Recognition
+Nach Anrede, Titel, Rolle und Grußformel, in Tabellen und häufige Vor- und Nachnamen. Aus: nur feste Muster und die eigene Liste.	After a form of address, title, role and greeting, in tables, and frequent first and last names. Off: only fixed patterns and your own list.
+Web- und Literatursuche, Paper mit DOI oder ISBN und zitierte Autor:innen („Müller (2020)“) bleiben, wie sie sind.	Web and literature search, papers with a DOI or ISBN and cited authors ("Müller (2020)") stay as they are.
+Meine Listen	My lists
+{0} immer ersetzen · {1} nie ersetzen · {2} Zuordnungen	{0} always replace · {1} never replace · {2} pairs
+Klassenlisten, Studierende, Schulen – auch Vor- und Nachnamen einzeln, gebeugt und anders geschrieben.	Class lists, students, schools – first and last names also on their own, inflected and spelled differently.
+So sähe der Server einen Text – nichts wird gesendet oder gespeichert.	How the server would see a text – nothing is sent or stored.
+Feineinstellungen	Fine settings
+{0} von {1} Einzelschaltern an	{0} of {1} single switches on
+Hinweise beim Senden	Hints before sending
+So schützt Lora deine Daten	How Lora protects your data
+Postfach, Bilder, lokale Modelle und das Agent-Protokoll in Kürze.	Mailbox, images, local models and the agent protocol in brief.
+• Postfach: Mails, Termine und Aufgaben liest nur ein Modell auf diesem Gerät – Uni-Server und externe Anbieter sind dort fest gesperrt. Weiter geht nur, was du mit „An Chat übergeben“ prüfst, pseudonymisiert und ohne Mails und Anhänge.	• Mailbox: mails, appointments and tasks are read only by a model on this device – the university server and external providers are blocked there for good. Only what you check with "Hand over to chat" goes on, pseudonymized and without mails and attachments.
+Kontaktdaten	Contact details
+Nummern und Daten	Numbers and dates
+Platzhalter	Placeholders
+Hinweise	Hints
+Schutz aus – nichts wird ersetzt.	Protection off – nothing is replaced.
+Regeln	Rules
+Namen automatisch	Names automatically
+{0} nicht geladen	{0} not loaded
+öffentliche Quellen bleiben	public sources stay
+Gründlich an	Thorough on
+Gründlich aus	Thorough off
+Aktiv: {0}	Active: {0}
+{0} von {1} an	{0} of {1} on
+Findet Namen, Schulen und Orte auch ohne Anrede auf diesem Gerät – in Tests 98 % statt 78 % der privaten Angaben, Millisekunden je Absatz.	Finds names, schools and places on this device even without a form of address – 98 % instead of 78 % of private details in tests, milliseconds per paragraph.
+E-Mail-Adressen	E-mail addresses
+Rollen-Platzhalter	Role placeholders
+An – der Server sieht nur Platzhalter wie [Name 1].	On – the server only sees placeholders like [Name 1].
+Findet auch indirekte Hinweise; einige Sekunden je längerem Text, nichts verlässt das Gerät.	Also finds indirect clues; a few seconds per longer text, nothing leaves the device.
+ Braucht ein Modell auf diesem Gerät.	 Needs a model on this device.
