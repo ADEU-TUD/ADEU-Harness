@@ -204,8 +204,11 @@ object LoraHelper {
 }
 
 /** One wish and Lora's answer; [state] remembers per step what the user decided (done, declined, undone). */
-internal class LoraTurn(val wish: String) {
+/** One wish and Lora's reply; [asked] is the wish itself when [wish] shows a button that was tapped (AP-73). */
+internal class LoraTurn(val wish: String, val asked: String = wish) {
     var reply by mutableStateOf<LoraReply?>(null)
+    /** What was open when the wish was sent (AP-72: a correction is kept for this area). */
+    val area: String = io.github.thepytales.llmhub.agent.ActionArea.of(LoraHelper.route.value)?.key ?: "app"
     val state = mutableStateMapOf<Int, String>()
 
     /** Results of Lora's actions (AP-38) by step, with their Rückgängig. */
@@ -259,6 +262,7 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
     val agent = remember { LoraAgent(c) }
     LoraMotion.calm = s.loraCalm
     LoraHost.send = { text -> sendToLora(c, agent, scope, text, go) }
+    LoraHost.choose = { step, label -> chooseInLora(agent, scope, step, label, go) }
     LoraHost.go = go
     LaunchedEffect(wish) {
         wish?.let { w ->
@@ -276,20 +280,40 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
 /** The functions of the host for the panel (one host per window). */
 internal object LoraHost {
     var send: (String) -> Unit = {}
+    /** A button under „Meinst du … oder …?“ (AP-73); null = „Etwas anderes“. */
+    var choose: (LoraStep.Choose, String?) -> Unit = { _, _ -> }
     var go: (String) -> Unit = {}
 }
 
 private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope, text: String, go: (String) -> Unit) {
     val wish = text.trim()
-    if (wish.isEmpty() || LoraHelper.busy) return
-    val turn = LoraTurn(wish)
+    if (wish.isEmpty()) return
+    runTurn(wish, scope, go) { history -> agent.ask(wish, history, LoraHelper.folderId, IS_ANDROID) { LoraHelper.partial = it } }
+}
+
+/**
+ * The answer to „Meinst du … oder …?“ (AP-73): [label] is the button tapped, null „Etwas anderes“ (the wish goes on to
+ * the rules and a language model, as before). The choice appears as the user's line in the conversation.
+ */
+private fun chooseInLora(agent: LoraAgent, scope: CoroutineScope, step: LoraStep.Choose, label: String?, go: (String) -> Unit) {
+    val shown = step.options.firstOrNull { it.label == label }?.title ?: tr("Etwas anderes")
+    runTurn(shown, scope, go, asked = step.wish) { history ->
+        if (label == null) agent.ask(step.wish, history, LoraHelper.folderId, IS_ANDROID, noChoice = true) { LoraHelper.partial = it }
+        else agent.chosen(step, label, history, LoraHelper.folderId, IS_ANDROID) { LoraHelper.partial = it }
+    }
+}
+
+/** One turn with Lora: [wish] as the user's line, then the reply of [answer] with its steps. */
+private fun runTurn(wish: String, scope: CoroutineScope, go: (String) -> Unit, asked: String = wish, answer: suspend (history: List<Pair<String, String>>) -> LoraReply) {
+    if (LoraHelper.busy) return
+    val turn = LoraTurn(wish, asked)
     val history = LoraHelper.turns.mapNotNull { t -> t.reply?.let { t.wish to it.text } }
     LoraHelper.turns += turn
     LoraHelper.busy = true
     LoraHelper.partial = ""
     LoraHelper.job = scope.launch {
         try {
-            val reply = runCatching { agent.ask(wish, history, LoraHelper.folderId, IS_ANDROID) { LoraHelper.partial = it } }
+            val reply = runCatching { answer(history) }
                 .getOrElse { e ->
                     if (e is kotlinx.coroutines.CancellationException) throw e
                     LoraReply(tr("Das hat nicht geklappt – versuch es bitte noch einmal."))
@@ -771,6 +795,7 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                             TextButton(onClick = {
                                 c.settings.update { it.withTool(step.tool, false) }
                                 turn.state[i] = "undone"
+                                learnUndone(c, turn)
                             }) { Text(tr("Rückgängig")) }
                         }
                         "no", "undone" -> HintText(tr(if (state == "no") "Nicht eingeschaltet." else "Wieder ausgeschaltet."))
@@ -814,6 +839,10 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                 }
                 is LoraStep.Tour -> TourCard(turn, i, step, go)
                 is LoraStep.MailSort -> MailSortCard(c, step.runId)
+                is LoraStep.Choose -> ChoiceButtons(step, chosen = state, enabled = !LoraHelper.busy) { label ->
+                    turn.state[i] = label ?: "other"
+                    LoraHost.choose(step, label)
+                }
                 is LoraStep.Ask -> QuestionCard(step.questions, onAnswer = if (state != null) null else ({ a -> turn.state[i] = "done"; onAnswer(a) }))
                 is LoraStep.Navigate -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; if (!LoraLayout.docked) LoraHelper.close() }
                 is LoraStep.OpenMode -> PlaceCard(step.target, opened = state == "done") { runLoraStep(step, go); turn.state[i] = "done"; LoraHelper.close() }
@@ -832,9 +861,55 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
         }
         if (reply.hits.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                reply.hits.forEach { t -> PlaceCard(t, opened = false, compact = true) { openTarget(t, go); if (!LoraLayout.docked || t.kind == MapKind.MODE || t.kind == MapKind.TEMPLATE) LoraHelper.close() } }
+                reply.hits.forEach { t ->
+                    PlaceCard(t, opened = false, compact = true) {
+                        learnTap(c, turn, t)
+                        openTarget(t, go)
+                        if (!LoraLayout.docked || t.kind == MapKind.MODE || t.kind == MapKind.TEMPLATE) LoraHelper.close()
+                    }
+                }
             }
         }
+    }
+}
+
+/**
+ * Lora lernt aus Korrekturen (AP-72): „Rückgängig“ right after Lora carried out a command she recognized on the device –
+ * next time she does not carry it out for this wish without asking.
+ */
+private fun learnUndone(c: AppContainer, turn: LoraTurn) {
+    val u = turn.reply?.understood ?: return
+    io.github.thepytales.llmhub.data.LoraCorrections.undone(c, u.wish, u.area, u.label, c.drive.isVaultChat(LoraHelper.chatId))
+}
+
+/**
+ * A tap on one of the places Lora listed (AP-72): that place was meant – unless it is what Lora had already understood.
+ * Only places the command model knows are kept (they are carried out the same way next time).
+ */
+private fun learnTap(c: AppContainer, turn: LoraTurn, t: io.github.thepytales.llmhub.data.AppTarget) {
+    val label = io.github.thepytales.llmhub.agent.LoraCommands.PLACE + t.id
+    if (turn.reply?.understood?.label == label || label !in io.github.thepytales.llmhub.data.CommandModelInfo.labels) return
+    io.github.thepytales.llmhub.data.LoraCorrections.learn(c, turn.asked, turn.area, label, c.drive.isVaultChat(LoraHelper.chatId))
+}
+
+/**
+ * „Meinst du … oder …?“ (AP-73): the two likeliest commands as buttons and „Etwas anderes“; after a tap the choice
+ * stays marked and the buttons rest.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChoiceButtons(step: LoraStep.Choose, chosen: String?, enabled: Boolean, onChoose: (String?) -> Unit) {
+    FlowRow(
+        Modifier.semantics { contentDescription = tr("Rückfrage mit zwei Knöpfen") },
+        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val open = chosen == null && enabled
+        step.options.forEach { o ->
+            if (chosen == o.label) Button(onClick = {}, enabled = false) { Text(o.title) }
+            else FilledTonalButton(onClick = { onChoose(o.label) }, enabled = open) { Text(o.title) }
+        }
+        if (chosen == "other") OutlinedButton(onClick = {}, enabled = false) { Text(tr("Etwas anderes")) }
+        else TextButton(onClick = { onChoose(null) }, enabled = open) { Text(tr("Etwas anderes")) }
     }
 }
 
@@ -875,6 +950,7 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                         result.undo?.let { undo ->
                             TextButton(onClick = {
                                 turn.state[i] = "undoing"
+                                learnUndone(io.github.thepytales.llmhub.App.container, turn)
                                 scope.launch {
                                     val text = runCatching { undo() }.getOrElse { tr("Rückgängig ging nicht: {0}", it.message.orEmpty()) }
                                     io.github.thepytales.llmhub.agent.ToolActions.log("${plan.actionId} rückgängig: $text")
@@ -1199,6 +1275,8 @@ fun LoraSettings(c: AppContainer) {
     }
     // AP-71: mixed mode, command model, how often Lora answered on this device.
     LoraPlaceSettings(c)
+    // AP-72: what Lora learned from corrections – visible, deletable, exportable.
+    LoraCorrectionsSettings(c)
     Section(tr("Lora als Helferin")) {
         HintText(
             tr("Lora findet Einstellungen, öffnet Modi und TU Vorlagen, schlägt Werkzeuge vor, sucht frühere Chats, trägt Fristen in den Kalender ein und gibt Fachfragen an einen Chat weiter. Einfache Wünsche löst sie auf dem Gerät, ohne Anfrage; nur für echte Gespräche fragt sie ein Modell. Sie läuft nur auf Abruf und liest nie im Hintergrund mit. In Projekten „Nur auf diesem Gerät“ sucht sie nur lokal."),

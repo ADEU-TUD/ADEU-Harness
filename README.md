@@ -266,6 +266,21 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     „Später“, „Nicht mehr fragen“).
   - Werkzeuge, Messkorpus und Zahlen: [`tools/befehle/README.md`](tools/befehle/README.md). **Auf Android noch
     ungetestet** (JNA und die ONNX Runtime von sherpa-onnx, wie beim Erkennungsmodell).
+- **„Meinst du … oder …?“ statt Weitergabe** (seit 1.0.66, AP-73): Ist das Befehlsmodell unsicher, schwankt aber nur
+  zwischen zwei Befehlen, zeigt Lora die beiden als Knöpfe und dazu **Etwas anderes** (dann geht der Wunsch wie bisher an
+  Regeln und Sprachmodell) – sofort und offline, statt einen Server zu fragen. Ein Tipp führt den Befehl aus wie einen
+  sicher erkannten (Einstellungen und riskante Aktionen fragen weiter nach). Gemessen auf den ungesehenen Wünschen: Bei
+  81 % der bisher weitergegebenen Befehle steht der richtige unter den zwei Knöpfen, 3,6 % der freien Anfragen bekommen
+  Knöpfe, zusammen sind 97 % der Befehle sofort oder mit einem Tipp erledigt – weiter ohne falsch ausgeführte Aktion.
+  Die Untergrenze (0,3) ist nur auf dem Entwicklungsteil des Messkorpus gewählt (`tools/befehle/rueckfrage.py`).
+- **Lora lernt aus Korrekturen** (seit 1.0.66, AP-72): Wählst du einen der zwei Knöpfe, schreibst „nein, ich meinte …“
+  oder tippst in Loras Antwort auf den richtigen Ort, merkt sich Lora das Paar *Wunsch → gemeinte Aktion* **auf diesem
+  Gerät** und führt den Wunsch beim nächsten Mal sofort richtig aus – vor dem Befehlsmodell, ohne Sprachmodell.
+  „Rückgängig“ direkt nach einer Aktion, die Lora auf dem Gerät erkannt hat, heißt umgekehrt: diese Aktion für diesen
+  Wunsch nicht mehr ohne Rückfrage. *Einstellungen › Lora › Was Lora aus Korrekturen gelernt hat* zeigt die Liste mit
+  *Löschen* je Eintrag und *Alle löschen*, einen Schalter und *Exportieren …*: Nach dem Durchsehen (Häkchen weg bei
+  allem mit Namen) entsteht `lora-korrekturen.jsonl` als Stoff für das nächste Training (`tools/befehle/`). Im Tresor
+  merkt sich Lora nichts; nichts davon verlässt das Gerät von selbst. Tests `LoraCorrectionsTest`, `CommandModelTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -1706,6 +1721,7 @@ Chats und Einstellungen erhalten bleiben).
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
 | `data/CommandModel.kt`, `agent/LoraCommands.kt`, `agent/CommandSlots.kt`, `agent/ModelRouter.kt`, `data/LoraWays.kt`, `ui/CommandModelPrompt.kt`, `tools/befehle/` | Befehlsmodell und Mischmodus (AP-71): Etiketten aus dem Code, Erkennung über die ONNX Runtime, Werte aus dem Wunsch, Ausführung, Ort je Anfrage, Zähler, Einstellungen und Dialoge; Messkorpus, Trainingsdaten, Training und Export |
+| `data/LoraCorrections.kt`, `ui/LoraCorrectionsSettings.kt`, `tools/befehle/rueckfrage.py` | Rückfrage mit zwei Knöpfen (AP-73: `CommandRecognizer.choices`, `LoraStep.Choose`) und Lora lernt aus Korrekturen (AP-72): Liste auf dem Gerät, Einstellungen, Export für das Training |
 | `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Erkennungsmodell der Pseudonymisierung (AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |

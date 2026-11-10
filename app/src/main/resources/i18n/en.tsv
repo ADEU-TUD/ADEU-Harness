@@ -129,7 +129,9 @@ Ablauf: {0}	Workflow: {0}
 Alle Einstellungen der App.	All settings of the app.
 Alles lässt sich später unter Einstellungen › Lora, › Werkzeuge und › Modelle auf diesem Gerät ändern. Downloads laufen im Hintergrund weiter.	Everything can be changed later under Settings › Lora, › Tools and › Models on this device. Downloads continue in the background.
 Auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Bis dahin laufen freie Anfragen über den Server bzw. gar nicht („Nur lokal“).	No language model is installed on this device yet (Settings › Models on this device). Until then free requests run on the server, or not at all (“Local only”).
+Auftrag fürs Postfach	Task for the mailbox
 Auftrag fürs Postfach (auf diesem Gerät)	Task for the mailbox (on this device)
+Aus Korrekturen lernen	Learn from corrections
 Befehle auf dem Gerät verstehen (empfohlen)	Understand commands on the device (recommended)
 Befehle und kurze Aufgaben auf diesem Gerät, alles Anspruchsvolle über den Uni-Server (Chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).	Commands and short tasks on this device, everything demanding on the university server (chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).
 Befehle verstehen ({0} MB)	Understand commands ({0} MB)
@@ -149,9 +151,11 @@ Ein kleines Modell auf diesem Gerät ordnet, was du Lora oder in Strg+K schreibs
 Ein paar kurze Fragen, dann geht es los.	A few short questions, then we can start.
 Einstellung: {0}	Setting: {0}
 Einstellung: {0} → {1}	Setting: {0} → {1}
+Etwas anderes	Something else
 Frist in den Kalender	Deadline into the calendar
 Frühere Chats suchen	Search earlier chats
 Für das Befehlsmodell fehlt die ONNX Runtime der App (Spracherkennung) – Lora arbeitet wie bisher.	The command model needs the app's ONNX Runtime (speech recognition), which is missing – Lora works as before.
+Für das nächste Training des Befehlsmodells. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen.	For the next training of the command model. Look through the wishes and take out anything containing names or private details – the file contains exactly the ticked lines.
 Für das Postfach, vertrauliche Daten, kurze Aufgaben und ohne Internet – passt zu diesem Gerät. {0}	For the mailbox, confidential data, short tasks and without internet – fits this device. {0}
 Für diese Version gibt es noch kein Befehlsmodell zum Laden – Lora arbeitet wie bisher.	There is no command model to download for this version yet – Lora works as before.
 Gemischt	Mixed
@@ -160,6 +164,8 @@ Gemischt, nur lokal oder nur über den Server; Befehlsmodell.	Mixed, local only 
 Hier sind die TU Vorlagen: {0}.	Here are the TU templates: {0}.
 Hilfe zur App	Help on the app
 Immer gilt: Ins Postfach schaut nur ein Modell auf diesem Gerät, Projekte „Nur auf diesem Gerät“ und der Tresor behalten ihre Regeln, und vor jeder Server-Anfrage werden Namen ersetzt, wenn die Pseudonymisierung an ist.	Always: only a model on this device looks into the mailbox, projects “Only on this device” and the vault keep their rules, and names are replaced before every server request when pseudonymization is on.
+Korrekturen exportieren	Export corrections
+Korrekturen gespeichert.	Corrections saved.
 Lora arbeitet nur lokal	Lora works locally only
 Lora arbeitet nur über den Server	Lora works on the server only
 Lora arbeitet „Nur lokal“, aber auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Befehle verstehe ich trotzdem.	Lora is set to “Local only”, but no language model is installed on this device yet (Settings › Models on this device). I still understand commands.
@@ -170,19 +176,29 @@ Lora kann jetzt mehr auf diesem Gerät erledigen – schneller, offline und ohne
 Lora macht das: {0}	Lora does it: {0}
 Lora versteht Befehle sofort	Lora understands commands instantly
 Lora › Wo Lora arbeitet	Lora › Where Lora works
+Meinst du „{0}“ oder „{1}“?	Did you mean “{0}” or “{1}”?
 Namen schützen ({0} MB)	Protect names ({0} MB)
 Neu: Modelle für dieses Gerät	New: models for this device
+nicht ohne Rückfrage: {0}	not without asking: {0}
 Nichts geht an einen Server – dafür schlichtere, langsamere Antworten, kurze Texte, keine Websuche. Braucht ein Sprachmodell auf diesem Gerät.	Nothing goes to a server – in exchange plainer, slower answers, short texts, no web search. Needs a language model on this device.
 Nichts geht an einen Server: Lora nutzt nur das Befehlsmodell und ein Sprachmodell auf diesem Gerät. Das kostet: Die Antworten sind schlichter und öfter ungenau, lange Texte passen nicht hinein (etwa 10 bis 25 Seiten statt ganzer Bücher), eine Antwort braucht ohne Grafikkarte oft eine halbe Minute oder länger, und Websuche, Bilder verstehen und lange Werkzeugketten fehlen oder sind unzuverlässig. Sinnvoll für vertrauliche Arbeit oder ohne Internet.	Nothing goes to a server: Lora only uses the command model and a language model on this device. The price: answers are plainer and more often inaccurate, long texts do not fit (about 10 to 25 pages instead of whole books), an answer often takes half a minute or longer without a graphics card, and web search, understanding images and long tool chains are missing or unreliable. Useful for confidential work or without internet.
+Nichts zu exportieren.	Nothing to export.
+Noch nichts gelernt.	Nothing learned yet.
 Nur Server	Server only
 Projekt „Nur auf diesem Gerät“	Project “Only on this device”
+Rückfrage mit zwei Knöpfen	Question with two buttons
 Sobald du Lora etwas gefragt hast, steht hier, wie oft und wie schnell sie auf diesem Gerät statt über den Server geantwortet hat.	Once you have asked Lora something, this shows how often and how fast she answered on this device instead of the server.
+Speichern …	Save …
 Sprachmodell {0} ({1} GB)	Language model {0} ({1} GB)
 Sprachmodelle für dieses Gerät findest du später unter Einstellungen › Modelle auf diesem Gerät.	You will find language models for this device later under Settings › Models on this device.
 Sprachmodelle laufen nur auf dem Server, auch für kurze Aufgaben – am genauesten, aber jede Anfrage braucht Internet und geht (pseudonymisiert) hinaus. Befehle erkennt Lora weiter auf diesem Gerät, solange das Befehlsmodell eingeschaltet ist.	Language models only run on the server, even for short tasks – most accurate, but every request needs internet and leaves the device (pseudonymized). Lora still recognizes commands on this device as long as the command model is switched on.
 Sprachmodelle nur über den Uni-Server – am genauesten, braucht immer Internet.	Language models only on the university server – most accurate, always needs internet.
 TU Vorlage suchen	Find a TU template
+TU Vorlage öffnen	Open a TU template
+Verstanden – das merke ich mir für „{0}“.	Got it – I’ll remember that for “{0}”.
+Versteht Lora etwas falsch und du korrigierst sie – ein Knopf bei „Meinst du … oder …?“, „nein, ich meinte …“, ein Tipp auf die richtige Karte oder „Rückgängig“ direkt nach einer Aktion –, merkt sie sich das auf diesem Gerät und macht es beim nächsten Mal richtig. Im Tresor merkt sie sich nichts; nichts davon verlässt das Gerät von selbst.	If Lora gets something wrong and you correct her – a button under “Did you mean … or …?”, “no, I meant …”, a tap on the right card or “Undo” right after an action –, she remembers it on this device and gets it right next time. Nothing is remembered in the vault; none of it leaves the device by itself.
 Vorliebe merken	Remember a preference
+Was Lora aus Korrekturen gelernt hat	What Lora learned from corrections
 Welche Modelle sollen auf dieses Gerät?	Which models should be on this device?
 Wo Lora arbeitet	Where Lora works
 Wo soll ich arbeiten?	Where should I work?
@@ -5607,6 +5623,7 @@ zugeklappt	folded
 {0} · {1} Anfrage(n) · {2} Werkzeug-Aufruf(e) · {3} Tokens rein, {4} raus	{0} · {1} request(s) · {2} tool call(s) · {3} tokens in, {4} out
 {0} · {1} bereit zum Installieren	{0} · {1} ready to install
 {0} · {1} Zeilen · Formeln mit = beginnen · Bereich: lange tippen oder Umschalt + Klick	{0} · {1} rows · formulas start with = · range: long-press or Shift + click
+{0} × genutzt	used {0} ×
 {0} × {1}	{0} × {1}
 {0} × {1} · {2} fps · {3}	{0} × {1} · {2} fps · {3}
 {0} Änderungen der KI markiert ✕	{0} AI changes highlighted ✕
@@ -5776,6 +5793,7 @@ zugeklappt	folded
 • Was ersetzt wurde und wie der Server die Nachricht sah, zeigt das Agent-Protokoll unter der Antwort (Verlaufssymbol).	• What was replaced and how the server saw the message is shown in the agent log below the answer (history icon).
 … und {0} weitere	… and {0} more
 ←/→ blättern · Zahl + Enter: Folie · B/W: schwarz/weiß · L: Laserpointer · N: Notizen · Esc: Ende	←/→ browse · number + Enter: slide · B/W: black/white · L: laser pointer · N: notes · Esc: end
+→ {0}	→ {0}
 ↶ Rückgängig	↶ Undo
 − Spalte	− Column
 ▶ Abspielen	▶ Play

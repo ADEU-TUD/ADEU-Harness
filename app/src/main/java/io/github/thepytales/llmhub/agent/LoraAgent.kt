@@ -5,6 +5,7 @@ import io.github.thepytales.llmhub.data.AppMap
 import io.github.thepytales.llmhub.data.AppSettings
 import io.github.thepytales.llmhub.data.AppTarget
 import io.github.thepytales.llmhub.data.AppTool
+import io.github.thepytales.llmhub.data.LoraCorrections
 import io.github.thepytales.llmhub.data.LoraWays
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.MapKind
@@ -66,10 +67,27 @@ sealed interface LoraStep {
 
     /** Lora sortiert Mails (AP-69): a run on the model of this device; its card shows progress, preview and Rückgängig. */
     data class MailSort(val runId: String) : LoraStep
+
+    /**
+     * Rückfrage mit zwei Knöpfen (AP-73): the command model is not sure, but the wish is one of two commands. The card
+     * shows [options] and „Etwas anderes“ (then the rules and a language model, as before); [area] is what was open.
+     */
+    data class Choose(val wish: String, val options: List<Choice>, val area: String = "app", val correcting: String? = null) : LoraStep {
+        data class Choice(val label: String, val title: String)
+    }
 }
 
-/** Lora's answer: a short [text] and what to do; [local] = found on the device without a request. */
-data class LoraReply(val text: String, val steps: List<LoraStep> = emptyList(), val local: Boolean = true, val hits: List<AppTarget> = emptyList())
+/**
+ * Lora's answer: a short [text] and what to do; [local] = found on the device without a request. [understood]: the
+ * command Lora carried out on the device for this wish (AP-71/72) – „Rückgängig“ right after it counts as a correction.
+ */
+data class LoraReply(
+    val text: String, val steps: List<LoraStep> = emptyList(), val local: Boolean = true, val hits: List<AppTarget> = emptyList(),
+    val understood: Understood? = null,
+)
+
+/** The command [label] Lora took [wish] for while [area] was open (AP-72). */
+data class Understood(val wish: String, val area: String, val label: String)
 
 /** A setting Lora may change (after asking): id, name, the allowed values with labels, how to read and set it. */
 class LoraSetting(
@@ -108,13 +126,88 @@ class LoraAgent(private val c: AppContainer) {
      */
     suspend fun ask(
         wish: String, history: List<Pair<String, String>> = emptyList(), folderId: String? = null, android: Boolean = false,
+        /** „Etwas anderes“ under the two buttons (AP-73): no second question, the wish goes on as before. */
+        noChoice: Boolean = false,
         onText: (String) -> Unit = {},
     ): LoraReply {
         // AP-71: count where the answer came from and how long it took (numbers only, on this device).
         val t0 = System.nanoTime()
-        val (reply, way) = answer(wish, history, folderId, android, onText)
+        val (reply, way) = corrected(wish, history, folderId, android, onText) ?: answer(wish, history, folderId, android, noChoice, onText).also {
+            lastWish = wish to areaKey()
+        }
         runCatching { LoraWays.record(c, way, (System.nanoTime() - t0) / 1_000_000) }
         return reply
+    }
+
+    /** The last wish Lora answered and what was open then – what „nein, ich meinte …“ corrects (AP-72). */
+    @Volatile
+    private var lastWish: Pair<String, String>? = null
+
+    private fun areaKey(): String = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)?.key ?: "app"
+
+    private fun vault(): Boolean = c.drive.isVaultChat(io.github.thepytales.llmhub.ui.LoraHelper.chatId)
+
+    /**
+     * „Nein, ich meinte …“ (AP-72): the rest is answered as a wish of its own; if that is a command, Lora remembers it for
+     * the wish before. Null for every other wish.
+     */
+    private suspend fun corrected(
+        wish: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, onText: (String) -> Unit,
+    ): Pair<LoraReply, LoraWays.Way>? {
+        val before = lastWish?.takeIf { history.isNotEmpty() } ?: return null
+        val rest = correction(wish) ?: return null
+        val (reply, way) = answer(rest, history, folderId, android, false, onText, correcting = before.first)
+        lastWish = before
+        val u = reply.understood ?: understoodFrom(reply, rest, before.second) ?: return reply to way
+        return if (LoraCorrections.learn(c, before.first, before.second, u.label, vault())) {
+            reply.copy(text = tr("Verstanden – das merke ich mir für „{0}“.", before.first.trim()) + "\n\n" + reply.text) to way
+        } else reply to way
+    }
+
+    /**
+     * The user tapped [label] under „Meinst du … oder …?“ (AP-73): Lora carries it out on the device like a command the
+     * model was sure of. If that needs more than the wish gives (a value is missing), the wish goes on as before.
+     */
+    suspend fun chosen(
+        step: LoraStep.Choose, label: String, history: List<Pair<String, String>> = emptyList(), folderId: String? = null, android: Boolean = false,
+        onText: (String) -> Unit = {},
+    ): LoraReply {
+        val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
+        val area = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)
+        // AP-72: the choice is a correction – next time the wish is carried out without asking.
+        val vault = vault()
+        LoraCorrections.learn(c, step.wish, step.area, label, vault)
+        step.correcting?.let { LoraCorrections.learn(c, it, step.area, label, vault) }
+        LoraCommands.reply(c, this, step.wish, label, targets, area, android)?.let { reply ->
+            runCatching { LoraWays.record(c, LoraWays.Way.DEVICE, 0) }
+            return reply.copy(understood = Understood(step.wish, step.area, label))
+        }
+        return ask(step.wish, history, folderId, android, noChoice = true, onText = onText)
+    }
+
+    /**
+     * The command a reply found by the word rules stands for (AP-72): one place, mode or setting it leads to – if the
+     * command model knows it as a label (only those can be carried out the same way next time).
+     */
+    private fun understoodFrom(reply: LoraReply, wish: String, area: String): Understood? {
+        val label = when (val st = reply.steps.singleOrNull()) {
+            is LoraStep.Navigate -> LoraCommands.PLACE + st.target.id
+            is LoraStep.OpenMode -> LoraCommands.PLACE + st.target.id
+            is LoraStep.ChangeSetting -> LoraCommands.SET + st.setting.id
+            is LoraStep.EnableTool -> LoraCommands.PLACE + "tool." + st.tool.id
+            else -> return null
+        }
+        return Understood(wish, area, label).takeIf { label in io.github.thepytales.llmhub.data.CommandModelInfo.labels }
+    }
+
+    /**
+     * „Meinst du … oder …?“ (AP-73) for the two [labels] the model hesitates between, or null when one of them does not
+     * exist here (then the wish goes on as before).
+     */
+    private fun choose(wish: String, labels: List<String>, area: String, targets: List<AppTarget>, android: Boolean, correcting: String?): LoraReply? {
+        val options = labels.map { l -> LoraCommands.title(l, targets, android)?.let { LoraStep.Choose.Choice(l, it) } ?: return null }
+        if (options.size != 2 || options[0].title == options[1].title) return null
+        return LoraReply(tr("Meinst du „{0}“ oder „{1}“?", options[0].title, options[1].title), listOf(LoraStep.Choose(wish, options, area, correcting)))
     }
 
     /** The model handed-over questions go to while Lora works „Nur lokal“ (AP-71); null otherwise. */
@@ -122,12 +215,18 @@ class LoraAgent(private val c: AppContainer) {
     private var localOnly: String? = null
 
     private suspend fun answer(
-        wish: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, onText: (String) -> Unit,
+        wish: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, noChoice: Boolean, onText: (String) -> Unit,
+        correcting: String? = null,
     ): Pair<LoraReply, LoraWays.Way> {
         val device = LoraWays.Way.DEVICE
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
         val area = ActionArea.of(io.github.thepytales.llmhub.ui.LoraHelper.route.value)
+        val areaKey = area?.key ?: "app"
+        // AP-72: a wish the user corrected before is carried out as meant, before anything else guesses.
+        LoraCorrections.meant(c, wish, areaKey)?.let { label ->
+            LoraCommands.reply(c, this, wish, label, targets, area, android)?.let { return it.copy(understood = Understood(wish, areaKey, label)) to device }
+        }
         // AP-39: „Merk dir, dass …“ – Lora asks before she remembers.
         LoraPrefs.fromWish(c, wish)?.let { return it to device }
         // AP-41: „Zeig mir, wie das geht“ starts the tour of the open tool.
@@ -141,8 +240,15 @@ class LoraAgent(private val c: AppContainer) {
         // Unsure, it changes nothing: the rules and the language model decide as before.
         c.commandModel.offerIfNeeded()
         val multi = LoraFlows.looksMultiStep(wish)
-        val seen = if (multi) null else c.commandModel.recognize(wish, area?.key ?: "app")
-        if (seen != null && seen.sure && !seen.free) LoraCommands.reply(c, this, wish, seen.label, targets, area, android)?.let { return it to device }
+        val seen = if (multi) null else c.commandModel.recognize(wish, areaKey)
+        // AP-72: an action undone right after Lora carried it out for this very wish is not carried out again unasked.
+        val refused = seen != null && seen.sure && !seen.free && LoraCorrections.refused(c, wish, areaKey, seen.label)
+        if (seen != null && seen.sure && !seen.free && !refused) LoraCommands.reply(c, this, wish, seen.label, targets, area, android)?.let {
+            return it.copy(understood = Understood(wish, areaKey, seen.label)) to device
+        }
+        // AP-73: not sure, but one of two commands – Lora asks with two buttons instead of guessing or asking a model.
+        // Before the word rules on purpose: a question costs a tap, a wrongly carried out action costs more.
+        if (seen != null && !noChoice && seen.choices.size == 2) choose(wish, seen.choices, areaKey, targets, android, correcting)?.let { return it to device }
         // Lora handelt (AP-38): clear wishes for the open tool are carried out on the device, without a model.
         if (!multi) localAction(wish, area, android)?.let { return it to device }
         // The rules that guess a place from single words stay out when the model is sure that this is a free request.
@@ -633,8 +739,19 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.Plan -> tr("So würde ich vorgehen – passt der Plan?")
             is LoraStep.Tour -> tr("Ich zeige es dir.")
             is LoraStep.MailSort -> tr("Ich lese die Mails auf diesem Gerät und zeige dir dann die Vorschau.")
+            is LoraStep.Choose -> tr("Meinst du „{0}“ oder „{1}“?", s.options.getOrNull(0)?.title.orEmpty(), s.options.getOrNull(1)?.title.orEmpty())
             null -> tr("Wie kann ich helfen?")
         }
+
+        /**
+         * „Nein, ich meinte …“, „ich meinte eigentlich …“, "no, I meant …" (AP-72) on the normalized wish (lower case,
+         * no accents): the rest is the corrected wish. A bare „nein“ or „ich meine, …“ in a sentence is no correction.
+         */
+        private val CORRECTION = Regex("^(?:(?:nein|ne|nee|noe|no|nicht das|falsch|quatsch)[\\s,.!]+(?:ich meine|ich meinte|i mean|i meant|gemeint war|ich wollte)|ich meinte|ich wollte eigentlich|gemeint war|i meant)(?:\\s+eigentlich|\\s+doch)?[\\s,:]+(.+)$")
+
+        /** The corrected wish of „nein, ich meinte …“, or null (AP-72). */
+        fun correction(wish: String): String? =
+            CORRECTION.find(AppMap.norm(wish).trim())?.groupValues?.get(1)?.trim()?.trimEnd('.', '!')?.takeIf { it.length >= 2 }
 
         private val TOUR = Regex("(zeig mir,? wie (das|es|man) (geht|funktioniert)|\\btour\\b|rundgang|fuhr mich herum|fuehr mich herum|einfuhrung in|erklar mir diesen bereich|wie funktioniert (das|dieses werkzeug) hier)")
         private val EXPLAIN_START = Regex("^(erklar|erklaer|was (ist|sind|bedeutet|heisst|meint)|wer (ist|war)|warum|wieso|weshalb|schreib|formulier|ubersetz|uebersetz|fass|gib mir|nenne|hilf mir beim)")

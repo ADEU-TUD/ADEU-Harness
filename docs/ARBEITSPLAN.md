@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 10.11.2026 (nach 1.0.64) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (nach 1.0.65) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -68,7 +68,8 @@ Fairlight).
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
-| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen |
+| ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
+| **Danach** | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen |
 | **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -236,6 +237,11 @@ Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/b
   Prüfteil: **84,8 % getroffen, 0,0 % falsch ausgeführt, 100 % der freien Anfragen weitergegeben**, 3,5 ms je Eingabe.
   Offen: das Trefferziel 90 % (eine lockerere Schwelle traf 95,4 %, führte aber 2,8 % falsch aus – darum die strenge);
   int8 verliert 0,6 statt höchstens 0,5 Prozentpunkte (zwei Wünsche, nichts zusätzlich falsch ausgeführt).
+  *Mit AP-73 (10.11.2026)*: Die Rückfrage mit zwei Knöpfen holt die weitergegebenen Befehle ohne Server zurück –
+  **zusammen 97,0 %** der Befehle im Prüfteil sofort richtig oder richtig unter den zwei Knöpfen, weiter 0,0 % falsch
+  ausgeführt. Die Trefferquote des Modells selbst bleibt 84,4 %; das Ziel „mindestens 90 % ordnet das Modell richtig zu“
+  ist damit **nicht** erreicht. Offen für den Hauptnutzer: das Ziel so lassen (dann braucht es ein Nachtraining, etwa mit
+  den Korrekturen aus AP-72) oder „sofort oder mit einem Tipp“ als Treffer zählen.
 - **f) Einbau**: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
   sherpa-onnx über JNA, Download über `data/FileDownload.kt` mit SHA-256, große Datei auf eigenem Branch
   (`befehle-modell`, wird nicht gemergt), Angebot per Popup. `LoraAgent` fragt zuerst die Regeln, dann das Befehlsmodell,
@@ -244,7 +250,8 @@ Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/b
   ◐ *Eingebaut (10.11.2026)*: `data/CommandModel.kt` (Download vom Branch `befehle-modell`, SHA-256), `agent/LoraCommands.kt`
   (Ausführung), `agent/CommandSlots.kt` (Werte), `OrtClassifier` für Satz-Modelle erweitert; Strg+K zeigt den Befehl als
   ersten Eintrag; Angebot im Dialog vom ersten Start und einmalig als „Neu: Modelle für dieses Gerät“ für alle, die Lora
-  schon nutzen. In der App gemessen: Prüfteil 84,1 % / 0,0 % / 100 %, 3,3 ms. **Android ungetestet.**
+  schon nutzen. In der App gemessen: Prüfteil 84,1 % / 0,0 % / 100 %, 3,3 ms (am 10.11.2026 mit ONNX Runtime 1.29
+  erneut: 84,4 % / 0,0 % / 100 %, 3,7 ms). **Android ungetestet.**
 - **g) Mischmodus**: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
   Server) aus Befehlsmodell, Länge, Anhängen, Bildern, Websuche/Werkzeugbedarf, installiertem Modell und Hardware
   (`local/LocalLlm.kt`, `LocalCatalog.kt`); Einstellung unter *Einstellungen › Lora*; Zähler „wie oft und wie schnell
@@ -272,26 +279,9 @@ mit Lizenz und Modellkarte bei.
 ## Danach
 
 Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71, AP-72 bis AP-85); Reihenfolge wie hier, Start nach AP-71.
+AP-73 und AP-72 sind erledigt (10.11.2026, siehe *Erledigt*); als Nächstes AP-74.
 **AP-67 bleibt offen** (Ziel „höchstens 2 % öffentliche Namen ersetzt“) und wird nicht mehr in einem eigenen Chat
 bearbeitet – es steht weiter unter *Jetzt* und kommt nach AP-71 wieder dran.
-
-### AP-72 ☐ Lora lernt aus Korrekturen · M (neu)
-**Ziel**: Versteht Lora einen Wunsch falsch und der Nutzer korrigiert („nein, ich meinte …“, ein Tipp auf die richtige
-Karte, „Rückgängig“ direkt nach einer Aktion), merkt sie sich das Paar *Wunsch → gemeinte Aktion* **auf dem Gerät** und
-trifft es beim nächsten Mal – vor dem Befehlsmodell, als eigene kleine Liste (wie die eigene Liste der
-Pseudonymisierung). Die Liste ist unter *Einstellungen › Lora* einsehbar und löschbar; im Tresor wird nichts gemerkt.
-Auf Wunsch lassen sich die Paare als Datei exportieren (ohne Namen, vom Nutzer durchgesehen) – Stoff für das nächste
-Training des Befehlsmodells (`tools/befehle/`).
-**Fertig, wenn**: eine korrigierte Eingabe beim zweiten Mal ohne Sprachmodell richtig ausgeführt wird; die Liste sichtbar,
-löschbar und exportierbar ist; nichts davon das Gerät von selbst verlässt.
-
-### AP-73 ☐ Rückfrage mit zwei Knöpfen statt Weitergabe · S–M (neu)
-**Ziel**: Liegt das Befehlsmodell knapp unter der Schwelle, zeigt Lora die zwei wahrscheinlichsten Aktionen als Knöpfe
-(„Meinst du … oder …?“) und dazu „Etwas anderes“ (dann erst das Sprachmodell) – schneller und offline. Die Wahl zählt als
-Korrektur für AP-72. Die Untergrenze für die Rückfrage wird wie die Schwelle auf dem Entwicklungsteil des Messkorpus
-gewählt; gemessen wird, wie oft die gemeinte Aktion unter den zwei Knöpfen ist.
-**Fertig, wenn**: auf dem Prüfteil bei mindestens 80 % der bisher weitergegebenen Befehle die richtige Aktion unter den
-zwei Knöpfen steht und freie Anfragen dabei weiter ohne Rückfrage durchgehen (höchstens 5 % mit Knöpfen).
 
 ### AP-74 ☐ Fehlermeldungen in Klartext mit Lösungsknopf · M (bisher Ideen, W2-09)
 **Ziel**: Jede Fehlermeldung der App (Server, Schlüssel, Modell nicht verfügbar, Datei gesperrt, Werkzeug aus, kein
@@ -521,9 +511,11 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-66 Schnellansicht in Dateien | Leertaste über der Datei unter der Maus bzw. der ausgewählten, ←/→ blättert, Enter öffnet; Details-Spalte (Art, Größe, Daten, Ort, Seiten/Wörter/Folien/Abmessungen, Schlagwörter, Chat); Android über ⋮ › Vorschau | Vorschau für Video/Ton; Details auch in den Suchergebnissen |
 | ☑ AP-68 Postfach nur mit lokalem Modell | Mail-Werkzeuge und `mail.*`-Aktionen nur für Modelle auf dem Gerät (eine Sperre, letzte Prüfung im `LlmClient`), Postfach-Modus fest lokal, Lora gibt Mail-Aufträge weiter, Übergabe an API-Chats nur als geprüfte Karte, Modellvorschlag ohne lokales Modell | Modellvorgabe nach Messung (Offene Frage 10) |
 | ☑ AP-69 Mailansicht und Lora sortiert selbst | drei Spalten mit Ordnerbaum, Liste seitenweise (5 000+ Mails), Lesebereich, Suche, Mehrfachauswahl, Ziehen, Rückgängig; Lora ordnet nach Satz ein (Ordner anlegen, eine Vorschau, ein Klick), Lauf im Hintergrund mit Rückgängig, `mail.sort`, Regeln und geplante Aufgabe | Probe mit echtem Outlook/IMAP; Tempo auf Dienst-PCs |
+| ☑ AP-73 Rückfrage mit zwei Knöpfen | „Meinst du … oder …?“ mit den zwei wahrscheinlichsten Befehlen und „Etwas anderes“, Untergrenze nur auf dem Entwicklungsteil gewählt; Prüfteil 80,9 % richtig unter den Knöpfen, 3,6 % der freien mit Knöpfen | Android ungetestet |
+| ☑ AP-72 Lora lernt aus Korrekturen | Paare *Wunsch → gemeinte Aktion* auf dem Gerät aus Knöpfen, „nein, ich meinte …“, Tipp auf die Karte und „Rückgängig“; Liste, Löschen, Export für das Training | Android ungetestet |
 | ☑ AP-70 Videoeditor: ruhiges Bild, anpassbare Oberfläche | Vorschau ohne Zucken (gleicher Filter für Standbild und Wiedergabe, Scrubben ohne Leerbild, glatte Uhr), flache Chips ohne Hover-Schatten, ziehbare/einklappbare Bereiche, Anordnung gemerkt, Symbolleisten mit Tooltip, Tour-Karte neben dem Ziel | Prüfung unter Windows mit echter Skalierung |
 
-Die ausführlichen Beschreibungen von AP-38 bis AP-70 stehen unten.
+Die ausführlichen Beschreibungen von AP-38 bis AP-73 stehen unten.
 
 ### AP-38 ☑ Lora handelt in Werkzeugen · XL (neu, in Stufen)
 Heute führt Lora zum richtigen Ort und übergibt an Chats. Neu: Lora **bedient die Werkzeuge selbst** – „Füge die beiden
@@ -1466,6 +1458,43 @@ mehr; Bereiche lassen sich ziehen, ein- und ausklappen, bleiben nach dem Neustar
   gemerkt mit *Anordnung zurücksetzen*, Werkzeuge als Symbole mit Tooltip (`ui/Tip.kt`), Transportleiste mit fester
   Höhe, Tour-Karte neben ihrem Ziel (alle Touren). Tests `VideoPreviewCalmTest`, `HoverLookTest`, `VideoLayoutTest`.
   **Rest**: Prüfung unter Windows mit echter Skalierung und Soundkarte; den „hellen Balken“ selbst nachsehen.
+
+### AP-73 ☑ Rückfrage mit zwei Knöpfen statt Weitergabe · S–M (neu)
+**Ziel**: Liegt das Befehlsmodell knapp unter der Schwelle, zeigt Lora die zwei wahrscheinlichsten Aktionen als Knöpfe
+(„Meinst du … oder …?“) und dazu „Etwas anderes“ (dann erst das Sprachmodell) – schneller und offline. Die Wahl zählt als
+Korrektur für AP-72. Die Untergrenze für die Rückfrage wird wie die Schwelle auf dem Entwicklungsteil des Messkorpus
+gewählt; gemessen wird, wie oft die gemeinte Aktion unter den zwei Knöpfen ist.
+**Fertig, wenn**: auf dem Prüfteil bei mindestens 80 % der bisher weitergegebenen Befehle die richtige Aktion unter den
+zwei Knöpfen steht und freie Anfragen dabei weiter ohne Rückfrage durchgehen (höchstens 5 % mit Knöpfen).
+☑ *Erledigt (10.11.2026)*: `CommandRecognizer.choices` – unter der Schwelle die zwei wahrscheinlichsten Befehle (nie
+`frei.*`), wenn sie zusammen die Untergrenze erreichen; `LoraStep.Choose` mit zwei Knöpfen und „Etwas anderes“ (dann
+Regeln und Sprachmodell wie bisher), vor den Wortregeln. Die Untergrenze **0,3** wählt `tools/befehle/rueckfrage.py`
+**nur auf dem Entwicklungsteil** (niedrigste Stufe mit höchstens 2 % freien Anfragen mit Knöpfen; `modell/rueckfrage.json`,
+ein Test hält App und Datei zusammen); der Prüfteil wurde danach einmal gemessen. Prüfteil in der App
+(`CommandModelTest`): **80,9 %** der bisher weitergegebenen Befehle richtig unter den Knöpfen (38 von 47, knapp),
+**3,6 %** der freien Anfragen mit Knöpfen (3 von 84), zusammen 97,0 % der Befehle sofort oder mit einem Tipp, 0,0 %
+falsch ausgeführt. Strg+K zeigt weiter nur sichere Befehle; „Lora fragen“ führt zu den Knöpfen.
+
+### AP-72 ☑ Lora lernt aus Korrekturen · M (neu)
+**Ziel**: Versteht Lora einen Wunsch falsch und der Nutzer korrigiert („nein, ich meinte …“, ein Tipp auf die richtige
+Karte, „Rückgängig“ direkt nach einer Aktion), merkt sie sich das Paar *Wunsch → gemeinte Aktion* **auf dem Gerät** und
+trifft es beim nächsten Mal – vor dem Befehlsmodell, als eigene kleine Liste (wie die eigene Liste der
+Pseudonymisierung). Die Liste ist unter *Einstellungen › Lora* einsehbar und löschbar; im Tresor wird nichts gemerkt.
+Auf Wunsch lassen sich die Paare als Datei exportieren (ohne Namen, vom Nutzer durchgesehen) – Stoff für das nächste
+Training des Befehlsmodells (`tools/befehle/`).
+**Fertig, wenn**: eine korrigierte Eingabe beim zweiten Mal ohne Sprachmodell richtig ausgeführt wird; die Liste sichtbar,
+löschbar und exportierbar ist; nichts davon das Gerät von selbst verlässt.
+☑ *Erledigt (10.11.2026)*: `data/LoraCorrections.kt` – Paare auf dem Gerät (höchstens 300, gleiche Schreibweise ohne
+Groß-/Kleinschreibung, Akzente und Satzzeichen), vor allem anderen in `LoraAgent` gefragt; eine Aktion eines Werkzeugs
+gilt nur, wo es offen ist, Orte und Einstellungen überall. Korrekturen: Knopf bei „Meinst du … oder …?“ (AP-73),
+„nein, ich meinte …“ (auch „ich meinte eigentlich …“, "no, I meant …"; gelernt wird, wenn der Rest ein Befehl, ein Ort
+oder eine Einstellung ist), Tipp auf einen der aufgelisteten Orte in Loras Antwort, „Rückgängig“ direkt nach einer auf
+dem Gerät erkannten Aktion oder einem eingeschalteten Werkzeug – das merkt sich *nicht ohne Rückfrage* für diesen Wunsch.
+*Einstellungen › Lora › Was Lora aus Korrekturen gelernt hat*: Schalter (Standard an), Liste mit Löschen je Eintrag und
+*Alle löschen*, *Exportieren …* mit Häkchen je Paar als `lora-korrekturen.jsonl` im Format von `tools/befehle/gen.py`.
+Im Tresor nichts. Test `LoraCorrectionsTest` (u. a. „nein, ich meinte Dateien“ → beim zweiten Mal ohne Sprachmodell).
+Rest: Android ungetestet; ein „Nein“ ohne neuen Wunsch lernt nichts; die Export-Datei enthält echte Eingaben – vor einem
+Training noch einmal auf Namen prüfen (`tools/befehle/README.md`).
 
 ---
 
