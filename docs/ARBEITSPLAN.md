@@ -609,11 +609,12 @@ gefundene private Angaben zu fallen.
   auf den alten (`stopping`, `join`). `MailSorterTest` danach in zwei vollen Testläufen und in 8 von 8 gültigen
   Einzelläufen grün.
 - *Nachgereicht (10.11.2026)*: `NewToolsLookTest > filesScreen()` schlug im PR-Check von #64 einmal fehl
-  (`IndexOutOfBoundsException` in `IntervalList`, Lazy-Liste von *Dateien*). Ursache: `FilesScreen` setzte den
-  Compose-Zustand `hasRoots` – er entscheidet, ob die Liste den Tipp-Eintrag „Ablageort wählen“ hat – im Hintergrund
-  (`withContext(Dispatchers.IO)`), während die Liste maß; sie konnte so einen Eintrag anfordern, den es nicht mehr gab.
-  Jetzt werden `hasRoots` und die Dateiliste zusammen auf dem Haupt-Thread gesetzt; der Test ist unverändert. Der Fehler
-  ließ sich hier nicht nachstellen (Zahl der Wiederholungen im PR).
+  (`IndexOutOfBoundsException: Index 12, size 12` in `IntervalList`, Lazy-Liste von *Dateien*). Nachgestellt: 1 von 25
+  Läufen. Ursache: Die Zustände, die die Zahl der Einträge bestimmen (Dateiliste, `hasRoots`, Suchtreffer), wurden nach
+  `withContext(Dispatchers.IO/Default)` gesetzt; der Testaufbau von Compose (1.7.3, `UnconfinedTestDispatcher`) setzt dort
+  auf dem Hintergrund-Thread fort, während die Liste auf dem UI-Thread misst – sie las die Zahl aus einer Fassung und den
+  Schlüssel aus der nächsten. In der App laufen Effekte auf dem UI-Thread; trotzdem werden die Zustände jetzt ausdrücklich
+  dort gesetzt (`withContext(Dispatchers.Main.immediate)`), der Test ist unverändert. Danach 30 von 30 Läufen grün.
 - Release: Der Mac-Teil ist ein eigener Workflow `macos.yml` (`workflow_call` aus *Build & Release*, dazu
   `workflow_dispatch`). Einzeln gestartet baut er aus dem Tag `v1.0.x` nur die Mac-App, testet sie, hängt DMG und tar.gz
   an das bestehende Release und veröffentlicht das Update erneut (bisheriges „Was ist neu“, wenn leer). README ›

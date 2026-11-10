@@ -151,11 +151,14 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         val (roots, list) = withContext(Dispatchers.IO) {
             runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false) to runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
         }
-        // Both on the main thread, together (AP-115): hasRoots decides whether the list has its hint item. Written from the
-        // IO thread it could change while the lazy list measured, which then asked for an item it no longer had
-        // (IndexOutOfBoundsException in IntervalList, NewToolsLookTest.filesScreen once in the PR check).
-        hasRoots = roots
-        value = list
+        // Both together and explicitly on the UI thread (AP-115): they decide how many items the lazy list has. Written
+        // from another thread while it measured, it asked for an item it no longer had (IndexOutOfBoundsException in
+        // IntervalList, NewToolsLookTest.filesScreen). The app's effects already resume on the UI thread, the Compose test
+        // harness (UnconfinedTestDispatcher) resumes on the IO thread – so it is said here, not assumed.
+        withContext(Dispatchers.Main.immediate) {
+            hasRoots = roots
+            value = list
+        }
     }
     // Read the texts of new and changed files once, in the background.
     LaunchedEffect(items?.size, reload) { items?.let { list -> withContext(Dispatchers.IO) { runCatching { c.fileLibrary.index(list) } } } }
@@ -173,7 +176,9 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
         delay(250)
         val all = items ?: return@LaunchedEffect
-        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
+        val found = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
+        // The hits decide the items of the list too: set them on the UI thread (see items above).
+        withContext(Dispatchers.Main.immediate) { hits = found }
     }
 
     var tagsFor by remember { mutableStateOf<FileItem?>(null) }
