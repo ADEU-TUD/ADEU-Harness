@@ -1,0 +1,137 @@
+# Lora handelt im offenen Werkzeug (tu:*). @bereich = was gerade offen ist; Werte, wo die App sie aus dem Wunsch liest.
+== prüfteil ==
+such mal nach doppelten dateien => tu:files.duplicates @dateien
+räum den ordner auf => tu:files.tidy @dateien
+sortiere die dateien hier nach semester in unterordner => tu:files.tidy @dateien ; nach=semester
+schmeiß die markierten in den papierkorb => tu:files.trash @dateien
+verschiebe die ausgewählten dateien nach Lehre/Seminar => tu:files.move @dateien ; ordner=Lehre/Seminar
+benenne die datei um in Protokoll_Institutsrat.docx => tu:files.rename @dateien ; neuer_name=Protokoll_Institutsrat.docx
+gib den dateien sinnvolle namen nach ihrem inhalt => tu:files.rename_by_content @dateien
+vergib die schlagwörter Antrag, DFG => tu:files.tag @dateien ; schlagwoerter=Antrag, DFG
+transkribiere die aufnahme => tu:files.transcribe @dateien
+mach aus der datei ein handout => tu:files.handout @dateien
+lade die auswahl in die nextcloud => tu:files.to_nextcloud @dateien
+öffne das pdf zum bearbeiten => tu:pdf.open @dateien
+füge die pdfs zusammen => tu:pdf.merge @pdf
+die beiden markierten pdfs zu einem machen => tu:pdf.merge @dateien
+teile das pdf in einzelne seiten => tu:pdf.split @pdf ; bereiche=einzeln
+lösche seite 3 => tu:pdf.delete_pages @pdf ; seiten=3
+entferne die seiten 2 und 5-7 => tu:pdf.delete_pages @pdf ; seiten=2,5-7
+dreh seite 1 um 90 grad => tu:pdf.rotate @pdf ; seiten=1 ; grad=90
+alle seiten auf den kopf drehen => tu:pdf.rotate @pdf ; seiten=alle ; grad=180
+mach das pdf kleiner, es ist zu groß für die mail => tu:pdf.compress @pdf
+texterkennung drüberlaufen lassen => tu:pdf.ocr @pdf
+wandle das pdf in word um => tu:pdf.convert @pdf ; format=docx
+schwärze überall Müller-Lindenau => tu:pdf.redact @pdf ; begriffe=Müller-Lindenau
+schreib mir hier eine einleitung zum thema inklusion => tu:doc.write @dokument
+zeichne ein diagramm zum ablauf der anmeldung => tu:doc.diagram @dokument
+füge eine tabelle mit den spalten Name, Matrikel, Note ein => tu:doc.insert_table @dokument ; spalten=Name, Matrikel, Note
+mach aus dem dokument eine präsentation => tu:slides.from_document @dokument
+bau mir folien aus dem paper => tu:slides.from_paper @pdf
+sortiere nach Nachname => tu:sheet.sort @tabelle ; spalte=Nachname
+nach punkten absteigend sortieren => tu:sheet.sort @tabelle ; spalte=punkten ; absteigend=ja
+bereinige die tabelle => tu:sheet.clean @tabelle
+summe und mittelwert drunter => tu:sheet.summary @tabelle
+berechne die notenverteilung => tu:sheet.distribution @tabelle
+mittelwert der Punkte je Gruppe => tu:sheet.group @tabelle ; gruppe=Gruppe ; wert=Punkte
+was macht die formel in D2 => tu:sheet.explain @tabelle ; zelle=D2
+leg ein säulendiagramm aus A1:B12 an => tu:sheet.chart @tabelle ; bereich=A1:B12 ; typ=saeulen
+teile die zu vollen folien auf => tu:slides.split_full @folien
+lösch folie 4 => tu:slides.delete @folien ; folie=4
+alle folien mit überblenden => tu:slides.animate @folien ; uebergang=ueberblenden
+mach die folie schöner => tu:slides.beautify @folien
+schreib sprechernotizen zu den folien => tu:slides.notes @folien
+exportiere das video für opal => tu:video.export @video ; vorgabe=opal
+untertitel erzeugen => tu:video.subtitles @video
+schneide bei 1:30 => tu:video.split @video ; zeit=1:30
+mach einen rohschnitt ohne ähs und pausen => tu:video.rough_cut @video
+verpixel die gesichter => tu:video.faces @video
+den clip doppelt so schnell => tu:video.speed @video
+kürze das video auf 10 minuten => tu:video.shorten @video
+merge the pdfs => tu:pdf.merge @pdf
+compress this pdf => tu:pdf.compress @pdf
+sort by date descending => tu:sheet.sort @tabelle ; spalte=date ; absteigend=ja
+
+== entwicklung ==
+duplikate finden => tu:files.duplicates @dateien
+gibt es hier dateien doppelt => tu:files.duplicates @dateien
+aufräumen => tu:files.tidy @dateien
+ordne die dateien nach typ => tu:files.tidy @dateien ; nach=typ
+räum mal nach monat auf => tu:files.tidy @dateien ; nach=monat
+lösch die ausgewählten dateien => tu:files.trash @dateien
+in den papierkorb damit => tu:files.trash @dateien
+pack die markierten in den ordner Forschung => tu:files.move @dateien ; ordner=Forschung
+verschieben nach „Verwaltung/Dienstreisen“ => tu:files.move @dateien ; ordner=Verwaltung/Dienstreisen
+umbenennen in Expose_final.pdf => tu:files.rename @dateien ; neuer_name=Expose_final.pdf
+nenn die datei „Gutachten Zweitprüfer“ => tu:files.rename @dateien ; neuer_name=Gutachten Zweitprüfer
+dateien nach inhalt umbenennen => tu:files.rename_by_content @dateien
+schlagwort Lehre vergeben => tu:files.tag @dateien ; schlagwoerter=Lehre
+tagge die dateien mit Seminar, WS26 => tu:files.tag @dateien ; schlagwoerter=Seminar, WS26
+verschrifte die audiodatei => tu:files.transcribe @dateien
+handout aus der markierten datei => tu:files.handout @dateien
+ab in die nextcloud damit => tu:files.to_nextcloud @dateien
+im pdf werkzeugkasten öffnen => tu:pdf.open @dateien
+bearbeite dieses pdf => tu:pdf.open @dateien
+zusammenfügen => tu:pdf.merge @pdf
+pdfs verbinden => tu:pdf.merge @pdf
+füg die ausgewählten pdfs zu einer datei zusammen => tu:pdf.merge @dateien
+pdf teilen, seiten 1-3 und 4-10 => tu:pdf.split @pdf ; bereiche=1-3;4-10
+jede seite als eigenes pdf => tu:pdf.split @pdf ; bereiche=einzeln
+seite 2 löschen => tu:pdf.delete_pages @pdf ; seiten=2
+nimm die letzten seiten 8-9 raus => tu:pdf.delete_pages @pdf ; seiten=8-9
+seiten 2-4 drehen => tu:pdf.rotate @pdf ; seiten=2-4
+dreh alles um 270 grad => tu:pdf.rotate @pdf ; seiten=alle ; grad=270
+verkleinern => tu:pdf.compress @pdf
+komprimiere das pdf => tu:pdf.compress @pdf
+ocr => tu:pdf.ocr @pdf
+mach den scan durchsuchbar => tu:pdf.ocr @pdf
+als markdown umwandeln => tu:pdf.convert @pdf ; format=md
+pdf zu text => tu:pdf.convert @pdf ; format=txt
+in ein word dokument umwandeln => tu:pdf.convert @pdf ; format=docx
+schwärze die begriffe Kowalczyk, Matrikelnummer => tu:pdf.redact @pdf ; begriffe=Kowalczyk, Matrikelnummer
+hilf mir beim schreiben: ein absatz zur methodik => tu:doc.write @dokument
+schreib an der stelle eine zusammenfassung des kapitels => tu:doc.write @dokument
+flussdiagramm hier einfügen: antrag stellen, prüfen, genehmigen => tu:doc.diagram @dokument
+tabelle einfügen mit Datum, Thema, Raum => tu:doc.insert_table @dokument ; spalten=Datum, Thema, Raum
+präsentation aus diesem dokument => tu:slides.from_document @dokument
+präsentation aus dem pdf bauen => tu:slides.from_paper @pdf
+aus dem ausgewählten paper folien machen => tu:slides.from_paper @dateien
+sortier nach spalte B => tu:sheet.sort @tabelle ; spalte=B
+tabelle nach Datum sortieren => tu:sheet.sort @tabelle ; spalte=Datum
+ordne nach note absteigend => tu:sheet.sort @tabelle ; spalte=note ; absteigend=ja
+doppelte zeilen raus und leerzeichen weg => tu:sheet.clean @tabelle
+daten bereinigen => tu:sheet.clean @tabelle
+summe => tu:sheet.summary @tabelle
+rechne mittelwerte aus => tu:sheet.summary @tabelle
+häufigkeit der Noten => tu:sheet.distribution @tabelle ; spalte=Noten
+wie oft kommt jede note vor => tu:sheet.distribution @tabelle
+durchschnitt der Note pro Studiengang => tu:sheet.group @tabelle ; gruppe=Studiengang ; wert=Note
+anzahl je Kurs => tu:sheet.group @tabelle ; gruppe=Kurs
+erklär die formel => tu:sheet.explain @tabelle
+formel in F7 erklären => tu:sheet.explain @tabelle ; zelle=F7
+kreisdiagramm aus A1:B6 => tu:sheet.chart @tabelle ; bereich=A1:B6 ; typ=kreis
+diagramm anlegen für C1:D20 als linie => tu:sheet.chart @tabelle ; bereich=C1:D20 ; typ=linie
+volle folien teilen => tu:slides.split_full @folien
+folie 2 löschen => tu:slides.delete @folien ; folie=2
+diese folie kann weg => tu:slides.delete @folien
+übergänge schieben für alle folien => tu:slides.animate @folien ; uebergang=schieben
+animationen raus => tu:slides.animate @folien ; uebergang=keiner
+folie aufhübschen => tu:slides.beautify @folien
+gestalte die folie besser => tu:slides.beautify @folien
+notizen für den vortrag schreiben => tu:slides.notes @folien
+sprechernotizen ergänzen => tu:slides.notes @folien
+exportieren => tu:video.export @video
+als mp4 für youtube rausrendern => tu:video.export @video ; vorgabe=youtube
+video exportieren 720p opal => tu:video.export @video ; vorgabe=opal
+untertitel => tu:video.subtitles|ort:place.video.subtitles @video
+erstelle untertitel aus dem ton => tu:video.subtitles @video
+teile den clip bei 0:45 => tu:video.split @video ; zeit=0:45
+hier schneiden => tu:video.split @video
+füllwörter und pausen rausschneiden => tu:video.rough_cut @video
+rohschnitt machen => tu:video.rough_cut|ort:place.video.roughcut @video
+gesichter unkenntlich machen => tu:video.faces @video
+clip langsamer, halbe geschwindigkeit => tu:video.speed @video
+video auf 5 minuten kürzen, beispiele behalten => tu:video.shorten @video
+split the pdf into single pages => tu:pdf.split @pdf ; bereiche=einzeln
+rotate page 2 => tu:pdf.rotate @pdf ; seiten=2
+clean up the table => tu:sheet.clean @tabelle

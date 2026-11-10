@@ -1,0 +1,61 @@
+# Lora-eigene Aktionen (lora:*) und TU Vorlagen (vorlage)
+== prüfteil ==
+zeig mir, wie das hier geht => lora:tour
+kannst du mich einmal durch den pdf werkzeugkasten führen => lora:tour
+gib mir eine tour durch den videoeditor => lora:tour
+wo hatte ich das mit dem dfg antrag besprochen => lora:chats ; suche=dfg antrag
+meine letzten chats => lora:chats
+finde den chat über die prüfungsordnung => lora:chats ; suche=prüfungsordnung
+trag die frist für die skizze am 30.11.2026 in den kalender ein => lora:frist ; datum=2026-11-30
+erinnere mich am 15.12.2026 an die notenabgabe => lora:frist ; datum=2026-12-15
+wie funktioniert der tresor => lora:hilfe
+wie lege ich ein exzerpt an => lora:hilfe|ort:mode.excerpt
+wie benutze ich den quellenmodus => lora:hilfe|ort:mode.sources
+merk dir, dass handouts immer zweispaltig sein sollen => lora:merken
+künftig bitte immer nach semester aufräumen, merk dir das => lora:merken
+fass mir die ungelesenen mails von heute zusammen => lora:postfach
+schreib einen antwortentwurf auf die mail vom dekanat => lora:postfach
+wann habe ich diese woche noch zeit für ein treffen, schau in meinen kalender => lora:postfach
+ich brauche die vorlage für ein empfehlungsschreiben => vorlage
+bescheinigung über die teilnahme, gibts da eine vorlage => vorlage
+vorlage protokoll institutsrat => vorlage
+öffne die mail-vorlage für absagen => vorlage
+tu-brief vorlage => vorlage
+how does the vault work => lora:hilfe
+show me my recent chats => lora:chats
+remember that I always want APA => lora:merken
+
+== entwicklung ==
+tour => lora:tour|ort:option.lora.tours
+mach mal einen rundgang durch die dateien => lora:tour
+zeig mir wie man hier arbeitet => lora:tour
+erklär mir diesen bereich kurz mit einer tour => lora:tour
+letzte chats => lora:chats
+wo war der chat mit der gliederung für die vorlesung => lora:chats ; suche=gliederung vorlesung
+such den chat zu erasmus => lora:chats ; suche=erasmus
+in welchem chat ging es um die reisekosten => lora:chats ; suche=reisekosten
+woran habe ich zuletzt gearbeitet => lora:chats
+frist 01.12.2026 gutachten abgeben in den kalender => lora:frist ; datum=2026-12-01
+erinnerung für den 20.11.2026 anlegen: klausur einreichen => lora:frist ; datum=2026-11-20
+leg mir eine erinnerung an für den antrag am 2026-12-05 => lora:frist ; datum=2026-12-05
+wie geht das mit der pseudonymisierung => lora:hilfe|ort:option.privacy.pseudonymize
+wie funktioniert die transkription => lora:hilfe|ort:area.transcripts
+wie nutze ich projekte => lora:hilfe
+wie kann ich modi starten => lora:hilfe
+wie funktioniert das mit den updates => lora:hilfe|ort:settings.updates
+merk dir: briefe immer mit vollem absender => lora:merken
+bitte merken, dass ich videos immer für opal exportiere => lora:merken
+ich will ab jetzt immer deutsch-englische folien, merk dir das => lora:merken
+welche mails von heute sind wichtig => lora:postfach
+such in meinem postfach die mail von der personalabteilung => lora:postfach
+erstelle aus der mail vom prüfungsamt eine aufgabe => lora:postfach
+habe ich morgen termine => lora:postfach
+finde einen freien termin mit frau schubert-nagel nächste woche => lora:postfach
+vorlage für eine einladung zur sitzung => vorlage
+ich brauch die vorlage seminarplan => vorlage
+gutachten vorlage öffnen => vorlage
+gibt es eine vorlage für dienstreiseanträge => vorlage
+vorlage für eine rundmail an studierende => vorlage
+tu vorlage aktennotiz => vorlage
+give me a tour => lora:tour
+find my chat about the conference => lora:chats ; suche=conference

@@ -1,0 +1,1277 @@
+[
+    {
+        "label": "frei.einfach",
+        "art": "frei",
+        "titel": "Freie Anfrage, kurz und einfach",
+        "hinweis": "Umformulieren, kurze Texte, einfache Erklärungen – reicht ein kleines Sprachmodell",
+        "android": true
+    },
+    {
+        "label": "frei.komplex",
+        "art": "frei",
+        "titel": "Freie Anfrage, komplex",
+        "hinweis": "Analysen, lange Dokumente, Recherche, Websuche, Bilder, Programmieren, Werkzeugketten",
+        "android": true
+    },
+    {
+        "label": "vorlage",
+        "art": "vorlage",
+        "titel": "TU Vorlage öffnen",
+        "hinweis": "Brief, Mail, Protokoll, Bescheinigung … – welche, findet die Suche in den Vorlagen",
+        "android": true
+    },
+    {
+        "label": "ort:area.chat",
+        "art": "ort",
+        "titel": "Neuer Chat",
+        "hinweis": "Seitenleiste › Neuer Chat · Ein neues Gespräch mit dem gewählten Modell. · neu chat gespräch frage stellen",
+        "android": true
+    },
+    {
+        "label": "ort:area.templates",
+        "art": "ort",
+        "titel": "Erstellen",
+        "hinweis": "Seitenleiste › Erstellen · Neues erstellen: TU Vorlagen für Briefe, Mails, Protokolle, Bescheinigungen, Lehre und Forschung; unter Windows außerdem Gestalten (Poster, Flyer, Aushänge, Social Media, Kursbanner, Titelbilder) und Meine Designs. Oder Lora sagen, was entstehen soll. · erstellen tu vorlagen vorlagen vorlage prompt brief formular lehre forschung verwaltung gestalten design poster tagungsposter flyer aushang plakat einladungskarte social media instagram kursbanner titelbild kreativ kreativbereich canva meine designs",
+        "android": true
+    },
+    {
+        "label": "ort:area.literature",
+        "art": "ort",
+        "titel": "Literatur",
+        "hinweis": "Seitenleiste › Literatur · Literatursammlung: Einträge importieren, zitieren, Literaturverzeichnis, Zotero, Exzerpte. · literatur quellen bibliografie literaturverzeichnis zitieren bibtex ris zotero exzerpt",
+        "android": true
+    },
+    {
+        "label": "ort:area.transcripts",
+        "art": "ort",
+        "titel": "Transkription",
+        "hinweis": "Seitenleiste › Transkription · Audio und Interviews verschriften, Sprecher erkennen, codieren. · transkription transkribieren audio interview aufnahme diktat verschriften",
+        "android": true
+    },
+    {
+        "label": "ort:area.files",
+        "art": "ort",
+        "titel": "Dateien",
+        "hinweis": "Seitenleiste › Dateien · Alle Dateien wie in Google Drive: Hochgeladen, Erstellt, eigene Ordner, Dokumente, Präsentationen und Tabellen als Word-, PowerPoint- und Excel-Dateien – Raster und Liste, neue Dokumente über das große Plus, verschieben, Papierkorb, Volltextsuche, Lora-Ordner. · dateien dokumente dokument editor entwurf word tabelle excel präsentation folien powerpoint dateiverwaltung datei finden ordner hochgeladen erstellt papierkorb verschieben schlagwort schlagwörter tag tags volltextsuche suchen durchsuchen zuletzt bearbeitet versionen vergleichen wo ist lora-ordner speicherort",
+        "android": true
+    },
+    {
+        "label": "ort:area.scan",
+        "art": "ort",
+        "titel": "Scannen",
+        "hinweis": "Dateien › + › Scannen · Papier scannen: mehrere Seiten fotografieren (Handy) oder mit dem Scanner einlesen (Windows), Kanten finden, gerade rücken, Kontrast – als durchsuchbares PDF mit Texterkennung in Dateien › Scans. · scannen scan scanner einscannen dokument scannen foto vom dokument abfotografieren kamera seite pdf aus fotos beleg quittung rechnung kassenbon zettel ocr",
+        "android": true
+    },
+    {
+        "label": "ort:area.images",
+        "art": "ort",
+        "titel": "Bilder erzeugen",
+        "hinweis": "Seitenleiste › Mehr › Bilder erzeugen · Bilder und Grafiken mit einem Bildmodell erzeugen und bearbeiten. · bild bilder grafik erzeugen malen zeichnen illustration galerie",
+        "android": true
+    },
+    {
+        "label": "ort:area.tasks",
+        "art": "ort",
+        "titel": "Geplante Aufgaben",
+        "hinweis": "Seitenleiste › Mehr › Geplante Aufgaben · Aufgaben, die der Agent zu festen Zeiten ausführt. · geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch",
+        "android": true
+    },
+    {
+        "label": "ort:area.models",
+        "art": "ort",
+        "titel": "Modellübersicht",
+        "hinweis": "Einstellungen › Modellübersicht · Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck. · modelle modell liste welches modell",
+        "android": true
+    },
+    {
+        "label": "ort:area.compare",
+        "art": "ort",
+        "titel": "Modelle vergleichen",
+        "hinweis": "Einstellungen › Modelle vergleichen · Zwei Modelle beantworten dieselbe Frage nebeneinander. · vergleichen vergleich nebeneinander zwei modelle",
+        "android": true
+    },
+    {
+        "label": "ort:area.local",
+        "art": "ort",
+        "titel": "Modelle auf diesem Gerät",
+        "hinweis": "Einstellungen › Modelle auf diesem Gerät · Sprachmodelle offline auf dem Gerät – für vertrauliche Daten. · lokal offline gerät herunterladen lokales modell",
+        "android": true
+    },
+    {
+        "label": "ort:area.usage",
+        "art": "ort",
+        "titel": "Verbrauch",
+        "hinweis": "Einstellungen › Verbrauch · Anfragen und Tokens pro Tag, Bewertungen. · verbrauch kosten token statistik anfragen",
+        "android": true
+    },
+    {
+        "label": "ort:area.environments",
+        "art": "ort",
+        "titel": "Umgebungen",
+        "hinweis": "Einstellungen › Umgebungen · Variablen und Netzwerkzugriff für Agenten. · umgebung variablen netzwerk agent",
+        "android": true
+    },
+    {
+        "label": "ort:settings.api",
+        "art": "ort",
+        "titel": "API-Zugang",
+        "hinweis": "Einstellungen › API-Zugang · API-Schlüssel des Uni-Servers und weiterer Anbieter. · api schlüssel key zugang anmelden konto server token",
+        "android": true
+    },
+    {
+        "label": "ort:settings.github",
+        "art": "ort",
+        "titel": "GitHub",
+        "hinweis": "Einstellungen › GitHub · GitHub-Token für die Arbeit in Repositorys. · github repository token code programmieren",
+        "android": true
+    },
+    {
+        "label": "ort:settings.connections",
+        "art": "ort",
+        "titel": "Verbindungen",
+        "hinweis": "Einstellungen › Verbindungen · Nextcloud (TU-Cloudstore) verbinden und MCP-Server mit fremden Werkzeugen hinzufügen, je Werkzeug erlauben, fragen oder sperren. · verbindungen verbindung nextcloud cloudstore cloud webdav mcp model context protocol server werkzeuge anbinden integration schnittstelle connector",
+        "android": true
+    },
+    {
+        "label": "ort:settings.chat",
+        "art": "ort",
+        "titel": "Chat & Werkzeuge",
+        "hinweis": "Einstellungen › Chat & Werkzeuge · Standardmodell, Denkstufe, Werkzeuge, Freigaben und Agent. · chat werkzeuge standardmodell freigaben agent websuche",
+        "android": true
+    },
+    {
+        "label": "ort:settings.tools",
+        "art": "ort",
+        "titel": "Werkzeuge",
+        "hinweis": "Einstellungen › Werkzeuge · Große Werkzeuge ein- und ausschalten, Seitenleiste ordnen. · werkzeuge einschalten ausschalten seitenleiste mehr reihenfolge",
+        "android": true
+    },
+    {
+        "label": "ort:settings.lora",
+        "art": "ort",
+        "titel": "Lora",
+        "hinweis": "Einstellungen › Lora · Wo Lora erscheint, Modell, ruhigere Bewegungen, Hinweise. · lora maskottchen helfer navigator assistentin",
+        "android": true
+    },
+    {
+        "label": "ort:settings.privacy",
+        "art": "ort",
+        "titel": "Datenschutz",
+        "hinweis": "Einstellungen › Datenschutz · Pseudonymisierung, Nie-ersetzen-Liste, gründliche Erkennung. · datenschutz pseudonymisierung anonym namen ersetzen dsgvo",
+        "android": true
+    },
+    {
+        "label": "ort:settings.memory",
+        "art": "ort",
+        "titel": "Gedächtnis",
+        "hinweis": "Einstellungen › Gedächtnis · Was sich die App über dich merkt. · gedächtnis erinnerung merken memory",
+        "android": true
+    },
+    {
+        "label": "ort:settings.knowledge",
+        "art": "ort",
+        "titel": "Wissenssammlung",
+        "hinweis": "Einstellungen › Wissenssammlung · Eigene Dokumente durchsuchbar machen. · wissen wissenssammlung dokumente durchsuchen rag",
+        "android": true
+    },
+    {
+        "label": "ort:settings.literature",
+        "art": "ort",
+        "titel": "Literatur & Zotero",
+        "hinweis": "Einstellungen › Literatur & Zotero · Zitierstil, Literaturdatenbanken, Zotero. · zitierstil apa din harvard zotero literaturdatenbank",
+        "android": true
+    },
+    {
+        "label": "ort:settings.transcription",
+        "art": "ort",
+        "titel": "Transkription",
+        "hinweis": "Einstellungen › Transkription · Spracherkennung auf dem Server oder Gerät, Modelle. · transkription whisper spracherkennung sprecher",
+        "android": true
+    },
+    {
+        "label": "ort:settings.documents",
+        "art": "ort",
+        "titel": "Dokumente & Logos",
+        "hinweis": "Einstellungen › Dokumente & Logos · Dokumentstil, Logos, Absender. · dokumente logo briefkopf absender stil corporate design",
+        "android": true
+    },
+    {
+        "label": "ort:settings.voice",
+        "art": "ort",
+        "titel": "Vorlesen & Spracheingabe",
+        "hinweis": "Einstellungen › Vorlesen & Spracheingabe · Stimme, Vorlesen, Diktieren. · vorlesen stimme sprache tts diktieren spracheingabe mikrofon",
+        "android": true
+    },
+    {
+        "label": "ort:settings.appearance",
+        "art": "ort",
+        "titel": "Darstellung",
+        "hinweis": "Einstellungen › Darstellung · Stil, Helligkeit, Farbton, Schriftgröße, Zoom. · darstellung aussehen design farbe theme",
+        "android": true
+    },
+    {
+        "label": "ort:settings.backup",
+        "art": "ort",
+        "titel": "Sicherung & Umzug",
+        "hinweis": "Einstellungen › Sicherung & Umzug · Alles exportieren und auf einem anderen Gerät importieren. · sicherung backup export import umzug neues gerät",
+        "android": true
+    },
+    {
+        "label": "ort:settings.trash",
+        "art": "ort",
+        "titel": "Papierkorb",
+        "hinweis": "Einstellungen › Papierkorb · Gelöschte Chats und Transkripte wiederherstellen. · papierkorb gelöscht wiederherstellen",
+        "android": true
+    },
+    {
+        "label": "ort:settings.ram",
+        "art": "ort",
+        "titel": "Arbeitsspeicher",
+        "hinweis": "Einstellungen › Arbeitsspeicher · Speicherverbrauch der App messen und freigeben. · arbeitsspeicher ram speicher langsam",
+        "android": true
+    },
+    {
+        "label": "ort:settings.folders",
+        "art": "ort",
+        "titel": "Lokale Ordner",
+        "hinweis": "Einstellungen › Lokale Ordner · Den Agenten in Ordnern auf diesem PC arbeiten lassen. · ordner lokale dateien pc explorer freigeben",
+        "android": false
+    },
+    {
+        "label": "ort:settings.sync",
+        "art": "ort",
+        "titel": "Synchronisation",
+        "hinweis": "Einstellungen › Synchronisation · Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten. · sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner",
+        "android": false
+    },
+    {
+        "label": "ort:settings.storage",
+        "art": "ort",
+        "titel": "Speicherorte",
+        "hinweis": "Einstellungen › Speicherorte · Eigene Ordner für Dokumente, z. B. in Google Drive. · speicherort ablage ordner google drive onedrive",
+        "android": false
+    },
+    {
+        "label": "ort:settings.updates",
+        "art": "ort",
+        "titel": "Updates",
+        "hinweis": "Einstellungen › Updates · Version, nach Updates suchen, automatische Suche. · update aktualisieren neue version installieren",
+        "android": true
+    },
+    {
+        "label": "ort:settings.help",
+        "art": "ort",
+        "titel": "Problem melden",
+        "hinweis": "Einstellungen › Problem melden · Fehler beschreiben und anonymes Protokoll senden. · problem fehler melden bug feedback absturz",
+        "android": true
+    },
+    {
+        "label": "ort:option.appearance.theme",
+        "art": "ort",
+        "titel": "Helligkeit (hell oder dunkel)",
+        "hinweis": "Einstellungen › Darstellung › Helligkeit · Hell, dunkel oder wie das System. · dunkel dunkles design dunkelmodus dark mode darkmode nachtmodus nacht hell helles design light theme schwarz augen",
+        "android": true
+    },
+    {
+        "label": "ort:option.appearance.style",
+        "art": "ort",
+        "titel": "Stil der App",
+        "hinweis": "Einstellungen › Darstellung › Stil · ADEU, TU Dresden, Office, Hoher Kontrast und weitere. · stil aussehen tu dresden office hoher kontrast farben look",
+        "android": true
+    },
+    {
+        "label": "ort:option.appearance.textsize",
+        "art": "ort",
+        "titel": "Schriftgröße",
+        "hinweis": "Einstellungen › Darstellung › Schriftgröße · Text kleiner oder größer. · schrift schriftgröße größer kleiner lesbar lesen text groß",
+        "android": true
+    },
+    {
+        "label": "ort:option.appearance.zoom",
+        "art": "ort",
+        "titel": "Zoom",
+        "hinweis": "Einstellungen › Darstellung › Zoom · Die ganze Oberfläche vergrößern. · zoom vergrößern verkleinern skalierung",
+        "android": false
+    },
+    {
+        "label": "ort:option.appearance.language",
+        "art": "ort",
+        "titel": "Sprache der Oberfläche",
+        "hinweis": "Einstellungen › Darstellung › Sprache der Oberfläche · Deutsch oder Englisch. · sprache englisch english deutsch oberfläche",
+        "android": true
+    },
+    {
+        "label": "ort:option.appearance.startAnimation",
+        "art": "ort",
+        "titel": "Startanimation",
+        "hinweis": "Einstellungen › Darstellung › Startanimation · Kurze Animation beim Öffnen. · startanimation animation start",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.defaultModel",
+        "art": "ort",
+        "titel": "Standardmodell",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Standardmodell · Mit diesem Modell startet jeder neue Chat. · standardmodell modell wechseln anderes modell voreinstellung",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.autoModel",
+        "art": "ort",
+        "titel": "Modell automatisch wählen",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Modell automatisch wählen · Die App schlägt je Anfrage das passende Modell vor. · automatisch modell wählen auto",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.thinking",
+        "art": "ort",
+        "titel": "Denkstufe",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Denkstufe · Wie gründlich Modelle nachdenken. · denken denkstufe reasoning gedankengang nachdenken",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.web",
+        "art": "ort",
+        "titel": "Websuche",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Websuche, Webseiten & Quellen-Check · Im Web suchen und Links lesen. · websuche internet suchen web",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.collapse",
+        "art": "ort",
+        "titel": "Arbeitsschritte einklappen",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Arbeitsschritte einklappen · Werkzeugschritte eingeklappt lassen. · arbeitsschritte einklappen schritte werkzeugschritte",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.approvals",
+        "art": "ort",
+        "titel": "Freigaben",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Freigaben · Wann der Agent vor Änderungen fragt. · freigabe fragen bestätigen genehmigen",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.mode",
+        "art": "ort",
+        "titel": "Lora ein- oder ausblenden",
+        "hinweis": "Einstellungen › Lora › Wo Lora erscheint · Überall, nur im Chat oder aus. · lora ausblenden ausschalten verstecken weg maskottchen figur einblenden",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.calm",
+        "art": "ort",
+        "titel": "Ruhigere Bewegungen",
+        "hinweis": "Einstellungen › Lora › Ruhigere Bewegungen · Lora bewegt sich weniger. · animation ruhig weniger bewegung reduziert",
+        "android": true
+    },
+    {
+        "label": "ort:option.privacy.pseudonymize",
+        "art": "ort",
+        "titel": "Pseudonymisierung",
+        "hinweis": "Einstellungen › Datenschutz › Pseudonymisierung · Namen und persönliche Angaben vor dem Senden ersetzen. · pseudonymisierung pseudonym anonym anonymisieren namen ersetzen platzhalter",
+        "android": true
+    },
+    {
+        "label": "ort:option.privacy.never",
+        "art": "ort",
+        "titel": "Nie ersetzen",
+        "hinweis": "Einstellungen › Datenschutz › Nie ersetzen · Namen, die nie ersetzt werden. · nie ersetzen ausnahme erlaubt liste",
+        "android": true
+    },
+    {
+        "label": "ort:option.voice.engine",
+        "art": "ort",
+        "titel": "Stimme",
+        "hinweis": "Einstellungen › Vorlesen & Spracheingabe › Stimme · KI-Stimme des Uni-Servers oder offline. · stimme vorlesen sprecher stimme ändern tts",
+        "android": true
+    },
+    {
+        "label": "ort:option.documents.sender",
+        "art": "ort",
+        "titel": "Absender",
+        "hinweis": "Einstellungen › Dokumente & Logos › Absender · Name und Anschrift für Briefe. · absender anschrift adresse briefkopf",
+        "android": true
+    },
+    {
+        "label": "ort:option.documents.logo",
+        "art": "ort",
+        "titel": "Logos",
+        "hinweis": "Einstellungen › Dokumente & Logos › Logos · Eigene Logos für Dokumente. · logo logos hochladen",
+        "android": true
+    },
+    {
+        "label": "ort:option.updates.auto",
+        "art": "ort",
+        "titel": "Automatisch nach Updates suchen",
+        "hinweis": "Einstellungen › Updates · Beim Start nach neuen Versionen suchen. · update automatisch suchen",
+        "android": true
+    },
+    {
+        "label": "ort:option.github.auto",
+        "art": "ort",
+        "titel": "GitHub in neuen Chats aktiv",
+        "hinweis": "Einstellungen › GitHub › In neuen Chats automatisch aktiv · Das Modell kann sofort auf GitHub zugreifen. · github automatisch aktiv werkzeuge",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.autoModelAsk",
+        "art": "ort",
+        "titel": "Vor dem Modellwechsel fragen",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Vor dem Wechsel fragen · Fragen, bevor ein anderes Modell genommen wird. · modellwechsel fragen wechsel nachfragen",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.documents",
+        "art": "ort",
+        "titel": "Dokumente erstellen",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Dokumente erstellen · PDF, Word, PowerPoint, Briefe und Termine im Chat erstellen. · dokumente erstellen pdf word powerpoint werkzeug",
+        "android": true
+    },
+    {
+        "label": "ort:option.chat.autoContinue",
+        "art": "ort",
+        "titel": "Automatisch weitermachen",
+        "hinweis": "Einstellungen › Chat & Werkzeuge › Danach automatisch weitermachen · Der Agent arbeitet nach dem Schrittlimit selbst weiter. · weitermachen limit schritte automatisch fortsetzen",
+        "android": true
+    },
+    {
+        "label": "ort:option.memory.learn",
+        "art": "ort",
+        "titel": "Nach dem Chat dazulernen",
+        "hinweis": "Einstellungen › Gedächtnis › Nach dem Chat dazulernen · Dauerhafte Angaben aus Chats vorschlagen oder merken. · dazulernen lernen gedächtnis automatisch merken",
+        "android": true
+    },
+    {
+        "label": "ort:option.memory.chats",
+        "art": "ort",
+        "titel": "Frühere Chats einbeziehen",
+        "hinweis": "Einstellungen › Gedächtnis › Frühere Chats einbeziehen · Das Modell durchsucht frühere Chats, wenn du dich darauf beziehst. · frühere chats einbeziehen letztes mal verlauf",
+        "android": true
+    },
+    {
+        "label": "ort:option.memory.suggestions",
+        "art": "ort",
+        "titel": "Vorschläge aus meinem Wissen",
+        "hinweis": "Einstellungen › Gedächtnis › Vorschläge aus meinem Wissen · Vorlagen schlagen unter jedem Feld passende Angaben vor. · vorschläge felder ausfüllen vorlagen wissen",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.handoffReview",
+        "art": "ort",
+        "titel": "Übergaben erst zeigen",
+        "hinweis": "Einstellungen › Lora › Übergaben erst zeigen · Übergebene Fragen landen zuerst im Eingabefeld. · übergabe zeigen selbst senden",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.nextSteps",
+        "art": "ort",
+        "titel": "Nächste Schritte unter Antworten",
+        "hinweis": "Einstellungen › Lora › Nächste Schritte unter Antworten · Fristen, Excel, Literatur unter der letzten Antwort anbieten. · nächste schritte vorschläge antwort",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.aiUse",
+        "art": "ort",
+        "titel": "KI-Nutzungsnachweis vorschlagen",
+        "hinweis": "Einstellungen › Lora › KI-Nutzungsnachweis vorschlagen · Bei Arbeiten einen KI-Nutzungsnachweis anbieten. · ki nutzungsnachweis erklärung hausarbeit",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.typing",
+        "art": "ort",
+        "titel": "Hinweise beim Tippen",
+        "hinweis": "Einstellungen › Lora › Hinweise beim Tippen · Beim Tippen im Chat den passenden Ort zeigen. · hinweise tippen eingabe",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.hints",
+        "art": "ort",
+        "titel": "Hinweise erlaubt",
+        "hinweis": "Einstellungen › Lora › Hinweise erlaubt · Lora darf einmal je Bereich auf etwas hinweisen. · hinweise tipps lora",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.tours",
+        "art": "ort",
+        "titel": "Touren anbieten",
+        "hinweis": "Einstellungen › Lora › Touren anbieten · Beim ersten Öffnen eines Werkzeugs eine kurze Tour anbieten. · tour touren rundgang einführung zeig mir wie das geht erklärung",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.memory",
+        "art": "ort",
+        "titel": "Was Lora über dich weiß",
+        "hinweis": "Einstellungen › Lora › Gedächtnis · Vorlieben je Werkzeug ansehen, ändern, löschen. · vorlieben gedächtnis lora merken vergessen was weißt du",
+        "android": true
+    },
+    {
+        "label": "ort:option.lora.log",
+        "art": "ort",
+        "titel": "Protokoll der Lora-Aktionen",
+        "hinweis": "Einstellungen › Lora › Protokoll · Was Lora in den Werkzeugen getan hat. · protokoll aktionen verlauf was hat lora gemacht",
+        "android": true
+    },
+    {
+        "label": "ort:option.connections.mailServer",
+        "art": "ort",
+        "titel": "Mailserver statt Outlook",
+        "hinweis": "Einstellungen › Verbindungen › Statt des klassischen Outlook verwenden · Mit dem Mailserver statt mit Outlook arbeiten. · mailserver imap outlook mail",
+        "android": false
+    },
+    {
+        "label": "ort:option.desktop.tray",
+        "art": "ort",
+        "titel": "Im Infobereich weiterlaufen",
+        "hinweis": "Einstellungen › Windows › Beim Schließen im Infobereich weiterlaufen · Antworten und Aufgaben laufen weiter, wenn das Fenster zu ist. · infobereich tray hintergrund schließen weiterlaufen",
+        "android": false
+    },
+    {
+        "label": "ort:option.desktop.autostart",
+        "art": "ort",
+        "titel": "Mit Windows starten",
+        "hinweis": "Einstellungen › Windows › Mit Windows starten · Lora startet nach der Anmeldung im Infobereich. · autostart windows starten anmeldung",
+        "android": false
+    },
+    {
+        "label": "ort:option.desktop.contextmenu",
+        "art": "ort",
+        "titel": "Lora im Explorer-Kontextmenü",
+        "hinweis": "Einstellungen › Windows › „Mit Lora öffnen“ und „Lora fragen“ im Explorer · Rechtsklick auf eine Datei im Explorer öffnet sie in Lora oder fragt Lora. · kontextmenü explorer rechtsklick mit lora öffnen lora fragen",
+        "android": false
+    },
+    {
+        "label": "ort:option.desktop.trash",
+        "art": "ort",
+        "titel": "Windows-Papierkorb",
+        "hinweis": "Einstellungen › Windows › Gelöschte Dateien in den Windows-Papierkorb · Gelöschte Dateien landen im Papierkorb von Windows statt im Lora-Papierkorb. · papierkorb windows löschen",
+        "android": false
+    },
+    {
+        "label": "ort:option.desktop.browser",
+        "art": "ort",
+        "titel": "Links neben dem Chat öffnen",
+        "hinweis": "Einstellungen › Windows › Links neben dem Chat öffnen · Links öffnen als Tabs rechts neben der App. · browser links tabs neben chat",
+        "android": false
+    },
+    {
+        "label": "ort:place.files.search",
+        "art": "ort",
+        "titel": "Dateien durchsuchen",
+        "hinweis": "Dateien › Suchfeld · Namen, Schlagwörter und Inhalt durchsuchen. · suchen durchsuchen volltext datei finden",
+        "android": true
+    },
+    {
+        "label": "ort:place.files.new",
+        "art": "ort",
+        "titel": "Neu in Dateien",
+        "hinweis": "Dateien › + · Ordner, Dokument, Tabelle, Präsentation, aus Vorlage oder hochladen. · neu neuer ordner neues dokument hochladen upload plus",
+        "android": true
+    },
+    {
+        "label": "ort:place.files.places",
+        "art": "ort",
+        "titel": "Orte in Dateien",
+        "hinweis": "Dateien › Seitenspalte · Lora-Ordner, Hochgeladen, Erstellt, Markiert, Papierkorb. · orte hochgeladen erstellt papierkorb markiert",
+        "android": true
+    },
+    {
+        "label": "ort:place.files.sort",
+        "art": "ort",
+        "titel": "Dateien sortieren",
+        "hinweis": "Dateien › Sortieren · Nach Name, Datum oder Größe sortieren. · sortieren reihenfolge name datum größe",
+        "android": true
+    },
+    {
+        "label": "ort:place.scan.capture",
+        "art": "ort",
+        "titel": "Seite fotografieren oder einscannen",
+        "hinweis": "Scannen › Foto aufnehmen / Vom Scanner · Eine Seite fotografieren (Handy) oder mit dem Scanner einlesen (Windows). · foto aufnehmen kamera scanner einscannen seite hinzufügen",
+        "android": true
+    },
+    {
+        "label": "ort:place.scan.save",
+        "art": "ort",
+        "titel": "Scan als PDF speichern",
+        "hinweis": "Scannen › Als PDF speichern · Alle Seiten als durchsuchbares PDF in Dateien › Scans. · als pdf speichern scan fertig texterkennung ocr",
+        "android": true
+    },
+    {
+        "label": "ort:place.pdf.open",
+        "art": "ort",
+        "titel": "PDF öffnen",
+        "hinweis": "PDF-Werkzeugkasten › Öffnen · Ein PDF zum Bearbeiten öffnen. · pdf öffnen laden",
+        "android": true
+    },
+    {
+        "label": "ort:place.pdf.modes",
+        "art": "ort",
+        "titel": "Modi des PDF-Werkzeugkastens",
+        "hinweis": "PDF-Werkzeugkasten › Ansehen, Seiten, Markieren … · Ansehen, Seiten, Markieren, Formular, Unterschreiben, Umwandeln, KI, Bearbeiten. · seiten markieren unterschreiben umwandeln formular modus",
+        "android": true
+    },
+    {
+        "label": "ort:place.pdf.merge",
+        "art": "ort",
+        "titel": "PDFs zusammenfügen",
+        "hinweis": "PDF-Werkzeugkasten › Seiten › Zusammenfügen · Mehrere PDFs zu einem zusammenfügen. · zusammenfügen zusammenführen merge pdfs verbinden",
+        "android": true
+    },
+    {
+        "label": "ort:place.pdf.save",
+        "art": "ort",
+        "titel": "PDF speichern unter",
+        "hinweis": "PDF-Werkzeugkasten › Speichern unter / Teilen · Das bearbeitete PDF speichern oder teilen. · speichern unter teilen exportieren",
+        "android": true
+    },
+    {
+        "label": "ort:place.create.lora",
+        "art": "ort",
+        "titel": "Mit Lora erstellen",
+        "hinweis": "Erstellen › Feld oben · Lora sagen, was entstehen soll. · erstellen lora wunsch neu entstehen",
+        "android": true
+    },
+    {
+        "label": "ort:place.create.templates",
+        "art": "ort",
+        "titel": "TU Vorlagen",
+        "hinweis": "Erstellen › TU Vorlagen · Briefe, Protokolle, Bescheinigungen im Corporate Design. · vorlagen tu vorlagen brief protokoll",
+        "android": true
+    },
+    {
+        "label": "ort:place.create.diagrams",
+        "art": "ort",
+        "titel": "Diagramme & Whiteboard",
+        "hinweis": "Erstellen › Diagramme & Whiteboard · Flussdiagramm, Mindmap, Organigramm, Zeitstrahl oder eine freie Tafel – Lora zeichnet aus einer Beschreibung, Mermaid geht hin und zurück. · diagramm flussdiagramm mindmap organigramm zeitstrahl whiteboard tafel mermaid ablauf",
+        "android": false
+    },
+    {
+        "label": "ort:place.create.new",
+        "art": "ort",
+        "titel": "Neue Vorlage",
+        "hinweis": "Erstellen › Neue Vorlage · Eine eigene Vorlage anlegen. · neue vorlage eigene vorlage anlegen",
+        "android": true
+    },
+    {
+        "label": "ort:place.video.new",
+        "art": "ort",
+        "titel": "Neues Videoprojekt",
+        "hinweis": "Video › Neues Projekt · Ein neues Videoprojekt anlegen. · neues projekt video anlegen",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.titles",
+        "art": "ort",
+        "titel": "Titel und Bauchbinde",
+        "hinweis": "Video › Titel & Bauchbinde · Titel, Bauchbinde, Einblendung, Abspann im TUD-Design. · titel bauchbinde einblendung abspann",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.subtitles",
+        "art": "ort",
+        "titel": "Untertitel",
+        "hinweis": "Video › Untertitel · Untertitel aus der Transkription oder SRT. · untertitel srt vtt",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.roughcut",
+        "art": "ort",
+        "titel": "Rohschnitt",
+        "hinweis": "Video › Rohschnitt · Pausen und Füllwörter herausschneiden, mit Lora kürzen. · rohschnitt kürzen pausen füllwörter",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.record",
+        "art": "ort",
+        "titel": "Bildschirm aufnehmen",
+        "hinweis": "Video › Bildschirm aufnehmen · Screencast mit Webcam, Mikrofon und Systemton aufnehmen – danach als Projekt mit getrennten Spuren im Videoeditor. · bildschirmaufnahme screencast aufnehmen webcam mikrofon systemton bildschirm aufzeichnen",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.transcript",
+        "art": "ort",
+        "titel": "Im Transkript schneiden",
+        "hinweis": "Video › Transkript · Das Video über den Text schneiden: Wörter löschen schneidet, Absätze verschieben verschiebt Clips, Lora schlägt Schnitte vor. · transkript text schneiden descript füllwörter pausen absatz",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.pip",
+        "art": "ort",
+        "titel": "Bild-in-Bild",
+        "hinweis": "Video › Bild-in-Bild · Webcam oder zweites Video als Ecke über das Bild legen, auf eigenen Videospuren. · bild in bild webcam ecke overlay spur ebene",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.tools",
+        "art": "ort",
+        "titel": "Schnittwerkzeuge",
+        "hinweis": "Video › Werkzeuge · Auswahl (A), Klinge (B), Trimmen (T) und Magnet über der Zeitleiste. · werkzeug auswahl klinge trimmen magnet schneiden roll slip",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.layout",
+        "art": "ort",
+        "titel": "Anordnung des Videoeditors",
+        "hinweis": "Video › Anordnung · Bereiche ziehen, Medienpool und Eigenschaften einklappen, Vorschau groß oder im Vollbild, Spurhöhe – und die Anordnung zurücksetzen. · anordnung zurücksetzen layout medienpool eigenschaften einklappen vorschau groß vollbild spurhöhe spuren einklappen seitenleiste",
+        "android": false
+    },
+    {
+        "label": "ort:place.video.export",
+        "art": "ort",
+        "titel": "Video exportieren",
+        "hinweis": "Video › Exportieren · MP4 für OPAL oder YouTube. · exportieren mp4 opal youtube rendern",
+        "android": false
+    },
+    {
+        "label": "ort:mode.literature",
+        "art": "ort",
+        "titel": "Literatursuche",
+        "hinweis": "Chat › /Literatursuche · Der Agent sucht systematisch in Literaturdatenbanken, prüft die Treffer und legt eine Literaturliste an. · literatur quellen recherche studien paper modus literatursuche",
+        "android": true
+    },
+    {
+        "label": "ort:mode.sources",
+        "art": "ort",
+        "titel": "Quellenmodus",
+        "hinweis": "Chat › /Quellen · Belegpflicht: Jede Aussage bekommt eine Fundstelle (Datei und Seite, DOI, URL, Transkriptzeit); die App prüft danach jedes Zitat gegen die Quelle. · quellen belege belegpflicht fundstelle zitat seitenangabe nachweis quellenmodus modus quellen",
+        "android": true
+    },
+    {
+        "label": "ort:mode.excerpt",
+        "art": "ort",
+        "titel": "Exzerpt",
+        "hinweis": "Chat › /Exzerpt · Der Agent exzerpiert einen Text nach einem Schema (empirisch, theoretisch, Review, Buchkapitel) mit Zitaten und geprüften Seitenangaben und hängt das Exzerpt an den Literatureintrag. · exzerpt exzerpieren zusammenfassung artikel paper lesen literaturarbeit modus exzerpt",
+        "android": true
+    },
+    {
+        "label": "ort:mode.planning",
+        "art": "ort",
+        "titel": "Planungsmodus",
+        "hinweis": "Chat › /Planen · Lora klärt dein Vorhaben in kurzen Fragerunden mit Antwortknöpfen und schreibt daraus einen Plan als Dokument. · plan planung vorhaben seminar antrag projekt paper arbeitsplan rückfragen modus planen",
+        "android": true
+    },
+    {
+        "label": "ort:mode.voice",
+        "art": "ort",
+        "titel": "Sprachmodus",
+        "hinweis": "Chat › /Sprachmodus · Freihändig sprechen: Die App hört bis zur Sprechpause zu, antwortet und liest die Antwort vor. · sprechen stimme vorlesen freihändig gespräch modus sprachmodus",
+        "android": true
+    },
+    {
+        "label": "ort:tool.pdf",
+        "art": "ort",
+        "titel": "PDF-Werkzeugkasten",
+        "hinweis": "Seitenleiste › Mehr › PDF-Werkzeugkasten · PDFs in Tabs ansehen, zusammenfügen, teilen, Seiten drehen und sortieren, markieren und kommentieren, unterschreiben, Formulare ausfüllbar machen, Scans durchsuchbar machen (OCR), Word/Excel/PowerPoint/Bilder ↔ PDF umwandeln, Fragen an das PDF, Tabellen herausziehen. · pdf zusammenfugen zusammenfuehren seiten drehen seiten loschen seitenzahlen markieren formular ausfullbar heften unterschreiben unterschrift signieren ocr texterkennung scan durchsuchbar in pdf umwandeln als pdf speichern pdf in word frag das pdf",
+        "android": true
+    },
+    {
+        "label": "ort:tool.vault",
+        "art": "ort",
+        "titel": "Tresor",
+        "hinweis": "Seitenleiste › Mehr › Tresor · Geschützter Bereich mit PIN für sensible Forschung, z. B. Interviews oder Daten von Studierenden: verschlüsselt, nur Uni-Server oder lokale Modelle. · tresor sensibel vertraulich geschutzt pin interviewdaten daten von studierenden geheim",
+        "android": true
+    },
+    {
+        "label": "ort:tool.games",
+        "art": "ort",
+        "titel": "Lernspiele",
+        "hinweis": "Seitenleiste › Mehr › Lernspiele · Quiz, Zuordnen, Memory und Escape-Rooms als eigenständige Browserspiele bauen lassen, in der App testen und als HTML/ZIP für OPAL oder Moodle exportieren. · lernspiel quiz memory escape zuordnungsspiel spiel fur gamification",
+        "android": true
+    },
+    {
+        "label": "ort:tool.mail",
+        "art": "ort",
+        "titel": "Mail & Kalender",
+        "hinweis": "Seitenleiste › Mehr › Mail & Kalender · Postfach im klassischen Outlook (Windows) oder über den Mailserver (IMAP, auch auf dem Handy) zusammenfassen, Mails in Ordner sortieren, Antworten als Entwurf, mit Outlook auch Termine und Aufgaben aus Mails und freie Zeiten mit Kolleg:innen – nie löschen, nie senden. · outlook postfach posteingang e-mail email mails mail sortieren antwortentwurf kalender termin finden freie zeit besprechung",
+        "android": true
+    },
+    {
+        "label": "ort:tool.batch",
+        "art": "ort",
+        "titel": "Stapel & Massenkontrolle",
+        "hinweis": "Seitenleiste › Mehr › Stapel & Massenkontrolle · Viele Dateien mit demselben Auftrag nacheinander im Hintergrund bearbeiten (Ordner, ZIP, Mehrfachauswahl) – mit Pause und Fortsetzen. Als Massenkontrolle: Abgaben nach einem Bewertungsraster mit Kalibrierung vorbewerten lassen; die KI schlägt vor, du entscheidest; Ergebnistabelle mit Ausreißern, Rückmeldung je Person. · stapel massenkontrolle alle dateien viele dateien alle pdfs jede datei abgaben hausarbeiten korrigieren korrektur bewerten bewertungsraster punkte vergeben notenvorschlag opal-abgaben ordner mit",
+        "android": true
+    },
+    {
+        "label": "ort:tool.proposals",
+        "art": "ort",
+        "titel": "Antrags-Werkstatt",
+        "hinweis": "Seitenleiste › Mehr › Antrags-Werkstatt · Drittmittelanträge vorbereiten: Ausschreibung einlesen (DFG, BMBF, EU, SAB, TUD-intern) → Checkliste und Fristen im Kalender, Gliederung nach Förderer-Vorgabe mit Zeichen- und Seitenwächter, Arbeitspakete mit Gantt, Budget, DMP und Ethik, Probelauf mit einer Gutachter-Rolle, Abgabe-Check. · antrag drittmittel forderantrag projektantrag ausschreibung dfg bmbf horizon erc sab foerderung forderung projektskizze sachbeihilfe gantt budgetplan finanzplan gutachter",
+        "android": true
+    },
+    {
+        "label": "ort:tool.video",
+        "art": "ort",
+        "titel": "Videoeditor",
+        "hinweis": "Seitenleiste › Mehr › Videoeditor · Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube. · video schneiden videoschnitt videoeditor lehrvideo untertitel einbrennen bauchbinde screencast video kurzen",
+        "android": false
+    },
+    {
+        "label": "ort:area.settings",
+        "art": "ort",
+        "titel": "Einstellungen",
+        "hinweis": "Seitenleiste › Einstellungen · Alle Einstellungen der App. · einstellungen optionen",
+        "android": true
+    },
+    {
+        "label": "stell:theme",
+        "art": "stell",
+        "titel": "Helligkeit",
+        "hinweis": "SYSTEM = Wie das System / LIGHT = Hell / DARK = Dunkel",
+        "android": true
+    },
+    {
+        "label": "stell:text_size",
+        "art": "stell",
+        "titel": "Schriftgröße",
+        "hinweis": "0.9 = Klein / 1.0 = Normal / 1.15 = Groß / 1.3 = Sehr groß",
+        "android": true
+    },
+    {
+        "label": "stell:language",
+        "art": "stell",
+        "titel": "Sprache der Oberfläche",
+        "hinweis": "de = Deutsch / en = Englisch",
+        "android": true
+    },
+    {
+        "label": "stell:lora",
+        "art": "stell",
+        "titel": "Lora",
+        "hinweis": "EVERYWHERE = Überall / CHAT = Nur im Chat / OFF = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:pseudonymize",
+        "art": "stell",
+        "titel": "Pseudonymisierung",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:web",
+        "art": "stell",
+        "titel": "Websuche",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:documents",
+        "art": "stell",
+        "titel": "Dokumente erstellen",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:auto_model",
+        "art": "stell",
+        "titel": "Modell automatisch wählen",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:collapse_steps",
+        "art": "stell",
+        "titel": "Arbeitsschritte einklappen",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:start_animation",
+        "art": "stell",
+        "titel": "Startanimation",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "stell:lora_calm",
+        "art": "stell",
+        "titel": "Ruhigere Bewegungen für Lora",
+        "hinweis": "true = An / false = Aus",
+        "android": true
+    },
+    {
+        "label": "tu:files.duplicates",
+        "art": "tu",
+        "titel": "Duplikate finden",
+        "hinweis": "Findet doppelte Dateien (gleicher Inhalt) im offenen Ordner oder im ganzen Lora-Ordner und legt die Kopien in den Papierkorb. · ordner: Ordner (leer: der offene, sonst der ganze Lora-Ordner)",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.tidy",
+        "art": "tu",
+        "titel": "Aufräumen",
+        "hinweis": "Räumt einen Ordner auf: schlägt Unterordner nach Dateiart, Semester oder Monat vor und verschiebt die Dateien hinein. · ordner: Ordner (leer: der offene, sonst Hochgeladen) · nach: typ, semester oder monat (Standard: typ)",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.trash",
+        "art": "tu",
+        "titel": "In den Papierkorb",
+        "hinweis": "Legt Dateien in den Papierkorb (30 Tage wiederherstellbar). · dateien: Namen, kommagetrennt (leer: die ausgewählten)",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.move",
+        "art": "tu",
+        "titel": "Verschieben",
+        "hinweis": "Verschiebt Dateien in einen Ordner (wird bei Bedarf angelegt). · dateien: Namen, kommagetrennt (leer: die ausgewählten) · ordner: Zielordner im Lora-Ordner, z. B. Lehre/WiSe 2026",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.rename",
+        "art": "tu",
+        "titel": "Umbenennen",
+        "hinweis": "Benennt eine Datei um. · datei: Name der Datei (leer: die ausgewählte) · neuer_name: Neuer Name, mit Endung",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.rename_by_content",
+        "art": "tu",
+        "titel": "Nach Inhalt umbenennen",
+        "hinweis": "Schlägt für Dateien Namen nach ihrem Inhalt vor (z. B. „2026-10-12 Protokoll Institutsrat.pdf“) und benennt sie um. · dateien: Namen, kommagetrennt (leer: die ausgewählten oder der offene Ordner)",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.tag",
+        "art": "tu",
+        "titel": "Schlagwörter vergeben",
+        "hinweis": "Vergibt Schlagwörter an Dateien (ergänzt die vorhandenen). · dateien: Namen, kommagetrennt (leer: die ausgewählten) · schlagwoerter: Schlagwörter, kommagetrennt",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.transcribe",
+        "art": "tu",
+        "titel": "Transkribieren",
+        "hinweis": "Verschriftet eine Aufnahme (Audio oder Video) und legt das Transkript als Textdatei daneben bzw. in Erstellt ab. · datei: Aufnahme (leer: die ausgewählte)",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.handout",
+        "art": "tu",
+        "titel": "Handout als Word",
+        "hinweis": "Schreibt aus einer Datei (Transkript, Dokument, PDF) ein Handout und speichert es als Word-Datei in Erstellt. · datei: Grundlage (leer: die ausgewählte) · wunsch: Was ins Handout soll, z. B. Kernaussagen und Literatur",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:files.to_nextcloud",
+        "art": "tu",
+        "titel": "In die Nextcloud",
+        "hinweis": "Lädt Dateien in die Nextcloud (Ordner aus Einstellungen › Verbindungen oder der genannte). · dateien: Dateien (leer: die ausgewählten) · ordner: Ordner in der Nextcloud",
+        "bereich": "files",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.open",
+        "art": "tu",
+        "titel": "Im PDF-Werkzeugkasten öffnen",
+        "hinweis": "Öffnet ein PDF (oder die ausgewählte Datei) im PDF-Werkzeugkasten zum Bearbeiten. · datei: Name des PDFs (leer: das ausgewählte)",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.merge",
+        "art": "tu",
+        "titel": "Zusammenfügen",
+        "hinweis": "Fügt mehrere PDFs in der genannten Reihenfolge zu einem neuen PDF zusammen. · dateien: PDFs, kommagetrennt, in Reihenfolge (leer: die ausgewählten bzw. offenen) · name: Name des neuen PDFs",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.split",
+        "art": "tu",
+        "titel": "Teilen",
+        "hinweis": "Teilt ein PDF: in einzelne Seiten oder nach Bereichen (z. B. 1-3;4-10). · datei: PDF (leer: das offene) · bereiche: „einzeln“ oder Bereiche mit Semikolon, z. B. 1-3;4-10",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.delete_pages",
+        "art": "tu",
+        "titel": "Seiten löschen",
+        "hinweis": "Löscht Seiten aus dem offenen PDF. · seiten: Seiten, z. B. 2, 5-7",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.rotate",
+        "art": "tu",
+        "titel": "Seiten drehen",
+        "hinweis": "Dreht Seiten des offenen PDFs. · seiten: Seiten, z. B. 1-3 oder „alle“ · grad: 90, 180 oder 270 (im Uhrzeigersinn)",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.compress",
+        "art": "tu",
+        "titel": "Verkleinern",
+        "hinweis": "Verkleinert ein PDF (Bilder neu komprimiert) als neue Datei. · datei: PDF (leer: das offene bzw. ausgewählte)",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.ocr",
+        "art": "tu",
+        "titel": "Texterkennung",
+        "hinweis": "Erkennt Text auf gescannten Seiten des offenen PDFs (danach durchsuchbar und kopierbar).",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.convert",
+        "art": "tu",
+        "titel": "Umwandeln",
+        "hinweis": "Wandelt ein PDF in Word (docx), Markdown (md) oder Text (txt) um. · datei: PDF (leer: das offene bzw. ausgewählte) · format: docx, md oder txt",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:pdf.redact",
+        "art": "tu",
+        "titel": "Schwärzen",
+        "hinweis": "Schwärzt Begriffe (Namen, Matrikelnummern …) im offenen PDF dauerhaft: der Text darunter wird entfernt. Immer mit Vorschau. · begriffe: Begriffe, kommagetrennt · datei: PDF (leer: das offene)",
+        "bereich": "pdf",
+        "android": false
+    },
+    {
+        "label": "tu:doc.write",
+        "art": "tu",
+        "titel": "Hilf mir schreiben",
+        "hinweis": "Schreibt an der Cursorstelle des offenen Dokuments (z. B. eine Einleitung zu …); der Nutzer übernimmt oder verwirft. · auftrag: Was geschrieben werden soll",
+        "bereich": "doc",
+        "android": true
+    },
+    {
+        "label": "tu:doc.diagram",
+        "art": "tu",
+        "titel": "Diagramm zeichnen",
+        "hinweis": "Zeichnet aus einer Beschreibung ein bearbeitbares Diagramm (Flussdiagramm, Mindmap, Organigramm oder Zeitstrahl) und fügt es an der Cursorstelle des offenen Dokuments ein (AP-61). · beschreibung: Der Ablauf oder das Thema, z. B. „Antrag stellen, prüfen, bei Fehlern zurück, sonst genehmigen“ · art: flussdiagramm, mindmap, organigramm oder zeitstrahl",
+        "bereich": "doc",
+        "android": true
+    },
+    {
+        "label": "tu:doc.insert_table",
+        "art": "tu",
+        "titel": "Tabelle einfügen",
+        "hinweis": "Fügt an der Cursorstelle eine Tabelle mit Kopfzeile ein. · spalten: Spaltenüberschriften, kommagetrennt · zeilen: Anzahl der Zeilen (Standard 3)",
+        "bereich": "doc",
+        "android": true
+    },
+    {
+        "label": "tu:slides.from_document",
+        "art": "tu",
+        "titel": "Präsentation aus Dokument",
+        "hinweis": "Baut aus einem Dokument (Titel; leer: das zuletzt bearbeitete) eine Präsentation im TUD-Design: Abschnitte, Inhaltsfolien, Tabellen, Bilder, Diagramme, lange Absätze als Sprechernotizen; Punkte erscheinen nacheinander. · dokument: Titel des Dokuments (leer: das zuletzt bearbeitete)",
+        "bereich": "doc",
+        "android": true
+    },
+    {
+        "label": "tu:slides.from_paper",
+        "art": "tu",
+        "titel": "Präsentation aus Paper",
+        "hinweis": "Baut aus einem Paper (PDF) eine Präsentation im TUD-Design: Titel und Autor:innen, Worum es geht (Abstract), Gliederung, je Abschnitt (Einleitung, Methode, Ergebnisse, Diskussion, Fazit) eine Folie mit den Kernaussagen, Abbildungen und Tabellen des Papers, Sprechernotizen; Punkte erscheinen nacheinander. Auf dem Gerät. · datei: Das Paper als PDF (leer: das ausgewählte bzw. offene)",
+        "bereich": "pdf",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.sort",
+        "art": "tu",
+        "titel": "Sortieren",
+        "hinweis": "Sortiert die Datenzeilen der offenen Tabelle nach einer Spalte (Kopfzeile bleibt oben). · spalte: Buchstabe oder Überschrift der Spalte · absteigend: ja für absteigend",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.clean",
+        "art": "tu",
+        "titel": "Daten bereinigen",
+        "hinweis": "Bereinigt die offene Tabelle: Leerzeichen, Datumsformate, leere und doppelte Zeilen.",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.summary",
+        "art": "tu",
+        "titel": "Summe und Mittelwert",
+        "hinweis": "Fügt unter den Zahlenspalten Summe und Mittelwert als Formeln an.",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.distribution",
+        "art": "tu",
+        "titel": "Verteilung berechnen",
+        "hinweis": "Zählt, wie oft jeder Wert einer Spalte vorkommt (z. B. Notenverteilung), mit Anteil und Säulendiagramm; rechts neben den Daten, als Formeln. · spalte: Buchstabe oder Überschrift der Spalte (leer: die Spalte „Note“)",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.group",
+        "art": "tu",
+        "titel": "Kennzahlen je Gruppe",
+        "hinweis": "Fasst eine Zahlenspalte je Gruppe zusammen (Anzahl, Mittelwert, Min, Max – wie eine Pivot-Tabelle), z. B. Mittelwert der Note je Gruppe; mit Diagramm. · gruppe: Spalte mit den Gruppen · wert: Spalte mit den Zahlen",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.explain",
+        "art": "tu",
+        "titel": "Formel erklären",
+        "hinweis": "Erklärt in Worten, was die Formel einer Zelle rechnet (Funktionen und Bezüge mit ihren Spaltennamen), auf dem Gerät. · zelle: Zelle, z. B. D2 (leer: die erste Formel der markierten Zeile)",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:sheet.chart",
+        "art": "tu",
+        "titel": "Diagramm anlegen",
+        "hinweis": "Legt ein Diagramm aus einem Bereich an (Säulen, Balken, Linie, Kreis, Punkt, Histogramm, Boxplot) im TUD-Design. · bereich: Bereich, z. B. A1:B10 (erste Zeile Namen) · typ: saeulen, balken, linie, kreis, punkt, histogramm oder boxplot · titel: Titel",
+        "bereich": "sheet",
+        "android": true
+    },
+    {
+        "label": "tu:slides.split_full",
+        "art": "tu",
+        "titel": "Volle Folien teilen",
+        "hinweis": "Teilt Folien mit mehr als sechs Stichpunkten auf.",
+        "bereich": "slides",
+        "android": true
+    },
+    {
+        "label": "tu:slides.delete",
+        "art": "tu",
+        "titel": "Folie löschen",
+        "hinweis": "Löscht eine Folie (Nummer oder Titel). · folie: Nummer oder Titel (leer: die ausgewählte)",
+        "bereich": "slides",
+        "android": true
+    },
+    {
+        "label": "tu:slides.animate",
+        "art": "tu",
+        "titel": "Animationen",
+        "hinweis": "Setzt Übergänge und lässt Stichpunkte nacheinander erscheinen – für alle Inhaltsfolien oder eine (Nummer/Titel). · uebergang: ueberblenden, schieben oder keiner · nacheinander: ja/nein: Stichpunkte nacheinander · folie: Nummer oder Titel (leer: alle)",
+        "bereich": "slides",
+        "android": true
+    },
+    {
+        "label": "tu:slides.beautify",
+        "art": "tu",
+        "titel": "Folie schöner machen",
+        "hinweis": "Macht Vorschläge für ein schöneres Layout einer Folie (zwei Spalten, Vergleich, Tabelle, Diagramm, kürzere Punkte, Bild groß …, mit Modell auch eigene Varianten) zum Antippen im Editor; mit „vorschlag“ wird dieser Vorschlag übernommen. · folie: Nummer oder Titel (leer: die ausgewählte) · vorschlag: Nummer des Vorschlags, der übernommen wird (leer: Vorschläge zeigen)",
+        "bereich": "slides",
+        "android": true
+    },
+    {
+        "label": "tu:slides.notes",
+        "art": "tu",
+        "titel": "Sprechertexte schreiben",
+        "hinweis": "Schreibt Sprechertexte (Notizen) für eine Folie oder alle Folien ohne Notizen – mit Modell in gesprochener Sprache, sonst aus den Stichpunkten. · folie: Nummer oder Titel (leer: alle Folien ohne Notizen) · alle: ja: auch Folien, die schon Notizen haben, neu schreiben",
+        "bereich": "slides",
+        "android": true
+    },
+    {
+        "label": "tu:video.export",
+        "art": "tu",
+        "titel": "Exportieren",
+        "hinweis": "Exportiert das Video als MP4 in Erstellt: Vorgabe opal (720p, klein), youtube (1080p) oder projekt. · vorgabe: opal, youtube oder projekt",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.subtitles",
+        "art": "tu",
+        "titel": "Untertitel erzeugen",
+        "hinweis": "Erzeugt Untertitel aus der Transkription der Aufnahmen (transkribiert vorher, wenn es noch kein Transkript gibt).",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.split",
+        "art": "tu",
+        "titel": "Schneiden",
+        "hinweis": "Schneidet das Video an einer Stelle (Klinge), z. B. bei 1:30; leer: an der Abspielposition. · zeit: Zeit auf der Zeitleiste, z. B. 1:30",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.rough_cut",
+        "art": "tu",
+        "titel": "Pausen herausschneiden",
+        "hinweis": "Schneidet Pausen und Füllwörter heraus (Rohschnitt aus dem Transkript).",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.faces",
+        "art": "tu",
+        "titel": "Gesichter verpixeln",
+        "hinweis": "Findet Gesichter im Video auf diesem Computer und verpixelt sie; die Bereiche folgen den Personen (Forschungsmaterial, Datenschutz, AP-54). · clip: Nummer(n) (leer: alle Clips) · art: verpixeln (Standard) oder weichzeichnen",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.speed",
+        "art": "tu",
+        "titel": "Geschwindigkeit",
+        "hinweis": "Ändert die Geschwindigkeit von Clips (0,25 bis 4, z. B. 2 = doppelte Geschwindigkeit); der Ton läuft mit, die Tonhöhe bleibt (AP-54). · faktor: z. B. 2 (doppelt), 0,5 (halb), 1 (normal) · clip: Nummer(n) oder „alle“ (leer: Clip am Abspielkopf)",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "tu:video.shorten",
+        "art": "tu",
+        "titel": "Mit Lora kürzen",
+        "hinweis": "Kürzt das Video nach einem Wunsch (z. B. auf 10 Minuten, Beispiele behalten); vorher Vorschau. · wunsch: Wie kürzen, z. B. auf 10 Minuten, Beispiele behalten",
+        "bereich": "video",
+        "android": false
+    },
+    {
+        "label": "lora:tour",
+        "art": "lora",
+        "titel": "tour",
+        "hinweis": "Tour durch ein Werkzeug („Zeig mir, wie das geht“)",
+        "android": true
+    },
+    {
+        "label": "lora:chats",
+        "art": "lora",
+        "titel": "chats",
+        "hinweis": "Frühere Chats finden („Wo hatte ich …“, „meine letzten Chats“)",
+        "android": true
+    },
+    {
+        "label": "lora:frist",
+        "art": "lora",
+        "titel": "frist",
+        "hinweis": "Frist oder Erinnerung in den Kalender eintragen",
+        "android": true
+    },
+    {
+        "label": "lora:hilfe",
+        "art": "lora",
+        "titel": "hilfe",
+        "hinweis": "„Wie geht …?“ zur App: Antwort aus der eingebauten Hilfe",
+        "android": true
+    },
+    {
+        "label": "lora:merken",
+        "art": "lora",
+        "titel": "merken",
+        "hinweis": "Eine Vorliebe merken („Merk dir, dass …“) – Lora fragt nach",
+        "android": true
+    },
+    {
+        "label": "lora:postfach",
+        "art": "lora",
+        "titel": "postfach",
+        "hinweis": "Auftrag fürs Postfach (Mails, Termine): läuft nur mit dem Modell auf diesem Gerät",
+        "android": true
+    }
+]
