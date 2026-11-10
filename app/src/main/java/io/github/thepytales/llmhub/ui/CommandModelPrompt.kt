@@ -192,6 +192,9 @@ class IntroModelChoice(private val c: AppContainer) {
     /** Wissenspakete (AP-78) to load; empty by default – who needs one ticks it (or a role suggests it, AP-80). */
     val packs = mutableStateListOf<String>()
     var place by mutableStateOf(ModelRouter.Mode.of(c.settings.current.loraPlace).name)
+    /** Kurzmessung (AP-105): offered while this device was never measured; on by default (about 20 s, nothing leaves the device). */
+    val offerBench = io.github.thepytales.llmhub.local.DeviceBench.here(c, c.localLlm.hardware.value).at == 0L
+    var bench by mutableStateOf(offerBench)
 
     fun apply(c: AppContainer) {
         if (offerCommand) { if (command) c.commandModel.install() }
@@ -201,6 +204,13 @@ class IntroModelChoice(private val c: AppContainer) {
             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                 runCatching { io.github.thepytales.llmhub.data.KnowledgePacks.download(c, o) }.onFailure { Notices.error(it) }
             }
+        }
+        // The Kurzmessung waits for the language models chosen here (it measures with the smallest), then runs once.
+        if (offerBench && bench) kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val until = System.currentTimeMillis() + 3 * 3600_000L
+            while (c.localLlm.state.value.downloads.isNotEmpty() && System.currentTimeMillis() < until) kotlinx.coroutines.delay(5_000)
+            while (c.localLlm.hardware.value == null && System.currentTimeMillis() < until) kotlinx.coroutines.delay(1_000)
+            runCatching { io.github.thepytales.llmhub.local.DeviceBench.run(c) }.onFailure { io.github.thepytales.llmhub.AppLog.e("Kurzmessung", it) }
         }
         // Who decides here is not asked again by the single popups.
         c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
@@ -231,10 +241,16 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
         suggested.forEach { m ->
             ModelLine(
                 tr("Sprachmodell {0} ({1} GB)", tr(m.name), String.format(java.util.Locale.GERMANY, "%.1f", m.size / 1e9)),
-                tr("Für das Postfach, vertrauliche Daten, kurze Aufgaben und ohne Internet – passt zu diesem Gerät. {0}", tr(m.description)),
+                tr("Für das Postfach, vertrauliche Daten, kurze Aufgaben und ohne Internet – passt zu diesem Gerät. {0}", tr(m.description)) +
+                    (hw?.let { " · " + forecastLine(c, m, it) } ?: ""),
                 m.id in choice.local,
             ) { on -> if (on) choice.local += m.id else choice.local -= m.id }
         }
+        if (choice.offerBench) ModelLine(
+            tr("Gerät kurz messen (≈ 20 s)"),
+            tr("Lora misst Speicher und Tempo dieses Geräts und sagt dann für jedes Modell vorher, wie schnell es hier schreibt und liest. Nichts verlässt das Gerät; mit einem gewählten Sprachmodell erst nach dessen Download."),
+            choice.bench,
+        ) { choice.bench = it }
         if (suggested.isEmpty() && local.installed.isEmpty()) HintText(tr("Sprachmodelle für dieses Gerät findest du später unter Einstellungen › Modelle auf diesem Gerät."))
         // Wissenspakete (AP-78): who needs one ticks it; everything else is under Einstellungen › Inhalte zum Nachladen.
         val packsInstalled = remember { io.github.thepytales.llmhub.data.KnowledgePacks.installed(c).map { it.id }.toSet() }

@@ -358,6 +358,25 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   (ein Prozess); zwei Chats antworten gleichzeitig, ein Chat ist nie in zwei Fenstern offen (das Hauptfenster zeigt dann
   *Zum Fenster* / *Hierher holen*), Schließen eines Fensters beendet nichts anderes; Größe und Ort werden je Art gemerkt.
   Entschieden: nur Fenster, keine Tabs. Test `ExtraWindowsTest`.
+- **Lokale Modelle auf dem Mac und unter Linux** (seit 1.0.67, AP-86): Auf dem Mac scheiterte jeder Download eines
+  lokalen Modells mit „Kein Paket für macOS im llama.cpp-Release gefunden“ – llama.cpp liefert macOS und Linux seit einiger
+  Zeit als `.tar.gz` (mit Ordner und Verknüpfungen zwischen den Bibliotheken), die App suchte eine ZIP. Jetzt wählt sie
+  das Paket nach System und Architektur (Windows x64/ARM, Vulkan als Zusatz für Grafikkarten; macOS Apple-Chip mit Metal
+  und Intel; Linux x64 und ARM), lädt es vom festen Release mit hinterlegter SHA-256 – ohne GitHub-API, die sich ein
+  Uni-Netz mit 60 Abfragen je Stunde teilt –, entpackt ZIP und tar.gz samt Verknüpfungen, macht die Programme ausführbar
+  und entfernt auf dem Mac die Quarantäne-Markierung. *Datei einspielen* nimmt auch das Mac-/Linux-Paket und nennt den
+  richtigen Dateinamen (z. B. `llama-b11870-bin-macos-arm64.tar.gz`). Die Meldung sagt, dass das Programm fehlt und nicht
+  das Modell, hat *Erneut versuchen*, verweist nur bei wirklich blockiertem Netz aufs Firmennetz und hat keinen doppelten
+  Punkt mehr; auf dem Mac steht „Mac“ statt „PC“. Test `LlamaPackagesTest` (Paketwahl gegen die echte Dateiliste des
+  Releases; mit `LLAMA_PACKAGES=<Ordner>` werden auch die echten Pakete entpackt und auf passendem Gerät gestartet).
+- **Geräteprofil und Tempo-Vorhersage** (seit 1.0.67, AP-105): *Modelle auf diesem Gerät › Geräteprofil* zeigt, was
+  das Tempo bestimmt – Speicherbandbreite (unter Windows aus der Firmware-Tabelle: Typ, Takt, Busbreite, ohne
+  Admin-Rechte; auf dem Mac aus dem Apple-Chip), Befehlssätze (AVX2, AVX-512, auf ARM DotProd/I8MM), Grafikkerne. Daraus
+  sagt Lora für **jedes** Modell vorher, wie schnell es hier schreibt und einliest („schreibt ≈ 12 Wörter/s · liest ≈ 300
+  Wörter/s · geschätzt“), noch bevor es geladen ist. *Gerät messen* (≈ 20 s, auch im Dialog vom ersten Start) misst den
+  Speicher und lässt das kleinste installierte Modell einen festen Text lesen und schreiben; jede Messung (auch *Messen*,
+  AP-76) korrigiert die Vorhersage aller Modelle. *Messprotokoll kopieren* liefert Profil, Messungen und „Vorhersage gegen
+  Messung“ als Text. Nichts verlässt dabei das Gerät. Test `SpeedForecastTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -1577,7 +1596,7 @@ Java-Laufzeit eingebaut, ohne Admin-Rechte.
   `sudo apt install ffmpeg`; die App findet es auch ohne PATH (Homebrew, MacPorts, Snap). Aufnahmen gehen ohne.
 - **Was es dort nicht gibt**: Outlook über COM (dafür *Mail über den Server*), Office → PDF über Microsoft Office,
   Texterkennung von Windows (dafür *Mit KI-Modell erkennen*), das Videoeditor-Paket (der Editor läuft mit dem ffmpeg des
-  Systems) und die Ein-Datei-EXE. Lokale Modelle laden llama.cpp für Apple Silicon (Metal) bzw. Ubuntu x64;
+  Systems) und die Ein-Datei-EXE. Lokale Modelle laden llama.cpp für den Mac (Apple-Chip mit Metal, Intel) bzw. Linux (x64, ARM) als tar.gz (seit 1.0.67, AP-86);
   Spracherkennung auf dem Gerät (sherpa-onnx) und der Browser neben dem Chat (Chromium über JCEF) laufen auf beiden.
   Macs mit Intel-Chip werden nicht unterstützt.
 

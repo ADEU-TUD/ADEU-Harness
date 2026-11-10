@@ -30,6 +30,9 @@ import java.util.UUID
 /** Whether the program that runs models (llama.cpp) is there. */
 enum class RuntimeStatus { READY, MISSING, INSTALLING, UNSUPPORTED }
 
+/** The program for local models (llama.cpp) could not be loaded; [blocked]: the network stopped it (AP-86). */
+class RuntimeDownloadException(message: String, val blocked: Boolean, cause: Throwable? = null) : Exception(message, cause)
+
 data class LocalState(
     val installed: Set<String> = emptySet(),
     /** Model id → 0..1 while downloading. */
@@ -41,6 +44,8 @@ data class LocalState(
     /** "Wird geladen …" while the server loads a model. */
     val starting: String? = null,
     val message: String? = null,
+    /** Model whose download failed, for "Erneut versuchen" next to [message] (AP-86). */
+    val retry: String? = null,
 )
 
 /**
@@ -108,10 +113,15 @@ class LocalLlm(private val c: AppContainer) {
         val m = LocalCatalog.get(id) ?: return
         if (_state.value.downloads.containsKey(m.id)) return
         cancel[m.id] = false
-        _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 0.0), message = null)
+        _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 0.0), message = null, retry = null)
         scope.launch {
             try {
-                if (LlamaHost.runtimeStatus(c, root) == RuntimeStatus.MISSING) installRuntime()
+                if (LlamaHost.runtimeStatus(c, root) == RuntimeStatus.MISSING) {
+                    try { installRuntime() } catch (e: RuntimeDownloadException) {
+                        _state.value = _state.value.copy(message = runtimeFailure(e), retry = m.id)
+                        return@launch
+                    }
+                }
                 val dst = file(m)
                 val part = File(dst.path + ".part")
                 download(m.url, part, m.size, { cancel[m.id] == true }) { p -> _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to p)) }
@@ -122,8 +132,11 @@ class LocalLlm(private val c: AppContainer) {
             } catch (e: InterruptedException) {
                 _state.value = _state.value.copy(message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
             } catch (e: Exception) {
+                val blocked = networkBlocked(e)
                 _state.value = _state.value.copy(
-                    message = tr("Download von {0} fehlgeschlagen: {1}. Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.", m.name, e.message),
+                    message = sentence(tr("Download von {0} fehlgeschlagen: {1}", m.name, e.message ?: e.toString())) +
+                        if (blocked) " " + tr("Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.") else "",
+                    retry = m.id,
                 )
             } finally {
                 _state.value = _state.value.copy(downloads = _state.value.downloads - m.id)
@@ -132,7 +145,25 @@ class LocalLlm(private val c: AppContainer) {
         }
     }
 
+    /**
+     * Plain words for a failed program download (AP-86): it is the program llama.cpp that is missing, not the model; the
+     * hint on company networks and on loading by hand only when the network really blocked it.
+     */
+    private fun runtimeFailure(e: RuntimeDownloadException): String {
+        val head = sentence(tr("Das Programm für lokale Modelle (llama.cpp) konnte nicht geladen werden – am Modell liegt es nicht ({0})", e.message?.trimEnd('.', ' ') ?: "–"))
+        if (!e.blocked) return head
+        val pkg = LlamaHost.packageName(c)
+        return head + " " + if (pkg != null) tr("Das Netz hat den Download blockiert. Das Paket „{0}“ von github.com/ggml-org/llama.cpp/releases im Browser laden und mit „Datei einspielen“ übernehmen.", pkg)
+        else tr("Das Netz hat den Download blockiert.")
+    }
+
     fun cancelInstall(id: String) { cancel[id] = true }
+
+    /** The llama.cpp package to load by hand on this system (null on Android, where the app has it built in). */
+    fun runtimePackage(): String? = LlamaHost.packageName(c)
+
+    /** "Erneut versuchen" after a failed download (program or model). */
+    fun retry() { _state.value.retry?.let { install(it) } }
 
     /** Windows: the llama.cpp program (CPU, with a graphics card also Vulkan); Android has it built in. */
     suspend fun installRuntime() {
@@ -156,8 +187,8 @@ class LocalLlm(private val c: AppContainer) {
 
     /** A model or runtime file loaded by hand (browser, USB stick); recognized by its name. */
     suspend fun importFile(name: String, input: InputStream): String = withContext(Dispatchers.IO) {
-        if (name.endsWith(".zip", ignoreCase = true)) {
-            input.use { LlamaHost.importRuntime(c, root, it) }
+        if (!name.endsWith(".gguf", ignoreCase = true) && isPackage(name)) {
+            input.use { LlamaHost.importRuntime(c, root, name, it) }
             refresh()
             return@withContext tr("Programm für lokale Modelle eingespielt.")
         }
@@ -198,7 +229,7 @@ class LocalLlm(private val c: AppContainer) {
         val port = ServerSocket(0).use { it.localPort }
         val key = UUID.randomUUID().toString()
         val gpu = !cpuOnly && usesGpu(m, hw)
-        val threads = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
+        val threads = threads(hw)
         val args = listOf(
             bin.absolutePath, "-m", file(m).absolutePath, "--host", "127.0.0.1", "--port", port.toString(),
             "--api-key", key, "--jinja", "-c", m.context.toString(), "-t", threads.toString(), "-np", "1",
@@ -277,6 +308,21 @@ class LocalLlm(private val c: AppContainer) {
 
     companion object {
         const val LOCAL_PROVIDER_ID = "local-device"
+
+        /** Threads for llama-server: half the cores on a PC (it stays usable), all but two on a phone; 2 to 8. */
+        fun threads(hw: Hardware): Int = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
+
+        /** A llama.cpp package (Windows ZIP, macOS/Linux tar.gz) as opposed to a model file. */
+        fun isPackage(name: String) = listOf(".zip", ".tar.gz", ".tgz").any { name.endsWith(it, ignoreCase = true) }
+
+        /** One sentence: no double full stop when the cause already ends with one (AP-86). */
+        fun sentence(text: String): String = text.trimEnd().let { t -> if (t.endsWith(".") || t.endsWith("!") || t.endsWith("?") || t.endsWith("…")) t else "$t." }
+
+        /** The network (proxy, firewall) stopped a download, not the server or the file. */
+        fun networkBlocked(e: Throwable): Boolean = generateSequence(e) { it.cause }.take(5).any {
+            it is java.net.UnknownHostException || it is javax.net.ssl.SSLException || it is java.net.ConnectException ||
+                it is java.net.SocketTimeoutException || (it.message ?: "").let { m -> Regex("""\bHTTP (403|407)\b""").containsMatchIn(m) }
+        }
         private const val IDLE_MS = 10 * 60_000L
         private const val HARDWARE_TIMEOUT_MS = 8_000L
     }

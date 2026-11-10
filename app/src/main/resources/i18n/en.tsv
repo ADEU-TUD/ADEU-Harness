@@ -6355,3 +6355,37 @@ Für diese Version gibt es noch kein {0} zum Laden – Lora arbeitet wie bisher.
 Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, die Regeln und Lora Namensschutz übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem Text), nichts verlässt dabei das Gerät.	Faster ↔ more thorough: a language model on this device reads every text once and finds names, schools and places that the rules and Lora Namensschutz miss, also indirect clues. Costs computing time (a few seconds per longer text); nothing leaves the device.
 Für das nächste Training von Lora Befehle. Sieh die Wünsche durch und nimm alles heraus, was Namen oder Privates enthält – die Datei enthält genau die angehakten Zeilen.	For the next training of Lora Befehle. Look through the wishes and take out anything containing names or private details – the file contains exactly the ticked lines.
 Gemischt, nur lokal oder nur über den Server; Lora Befehle.	Mixed, local only or server only; Lora Befehle.
+ Das gilt auch für das Programm llama.cpp: für dieses Gerät die Datei „{0}“ (github.com/ggml-org/llama.cpp/releases).	 The same works for the llama.cpp program: for this device the file “{0}” (github.com/ggml-org/llama.cpp/releases).
+Auf diesem Gerät sind lokale Modelle nicht verfügbar (nur Android-Handys mit 64-Bit-ARM, Windows-PCs, Macs und Linux-PCs).	Local models are not available on this device (only Android phones with 64-bit ARM, Windows PCs, Macs and Linux PCs).
+Passend für diesen Mac: {0} – rechnet mit dem Apple-Chip und nutzt Werkzeuge.	Suits this Mac: {0} – computes on the Apple chip and uses tools.
+Download von {0} fehlgeschlagen: {1}	Download of {0} failed: {1}
+Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.	Blocked in a company network? Load the file in the browser and take it over with “Import file”.
+Das Programm für lokale Modelle (llama.cpp) konnte nicht geladen werden – am Modell liegt es nicht ({0})	The program for local models (llama.cpp) could not be loaded – the model is not the problem ({0})
+Das Netz hat den Download blockiert.	The network blocked the download.
+Das Netz hat den Download blockiert. Das Paket „{0}“ von github.com/ggml-org/llama.cpp/releases im Browser laden und mit „Datei einspielen“ übernehmen.	The network blocked the download. Load the package “{0}” from github.com/ggml-org/llama.cpp/releases in the browser and take it over with “Import file”.
+Kein Paket „{0}“ im llama.cpp-Release gefunden	No package “{0}” found in the llama.cpp release
+In „{0}“ fehlt {1}. Für dieses Gerät passt das llama.cpp-Paket „{2}“.	{1} is missing in “{0}”. The llama.cpp package for this device is “{2}”.
+, {0} Grafikkerne	, {0} GPU cores
+Befehlssätze: {0}	Instruction sets: {0}
+Das Modell hat keine Messwerte geliefert.	The model did not return any measurements.
+Gerät gemessen – die Vorhersagen sind aktualisiert.	Device measured – the forecasts are updated.
+Gerät kurz messen (≈ 20 s)	Quick device measurement (≈ 20 s)
+Gerät messen (≈ 20 s)	Measure device (≈ 20 s)
+Geräteprofil	Device profile
+Lora misst Speicher und Tempo dieses Geräts und sagt dann für jedes Modell vorher, wie schnell es hier schreibt und liest. Nichts verlässt das Gerät; mit einem gewählten Sprachmodell erst nach dessen Download.	Lora measures the memory and speed of this device and then forecasts for every model how fast it writes and reads here. Nothing leaves the device; with a language model chosen here, only after its download.
+Messprotokoll kopieren	Copy measurement log
+Messprotokoll kopiert.	Measurement log copied.
+Neu messen (≈ 20 s)	Measure again (≈ 20 s)
+Ohne installiertes Modell misst die Kurzmessung nur den Speicher – die Werte bleiben geschätzt.	Without an installed model the quick measurement only measures the memory – the values stay estimates.
+Speicher wird gemessen …	Measuring memory …
+Speicherbandbreite und Befehlssätze sind hier nicht lesbar – die Kurzmessung misst sie.	Memory bandwidth and instruction sets cannot be read here – the quick measurement measures them.
+Speicherbandbreite {0} GB/s	Memory bandwidth {0} GB/s
+Vorhersage gegen Messung: {0} von {1} Modellen höchstens 30 % daneben ({2}).	Forecast vs. measurement: {0} of {1} models at most 30 % off ({2}).
+Wie schnell ein Modell schreibt, hängt vor allem an der Speicherbandbreite und daran, wie viele Parameter es je Wort rechnet; das Einlesen langer Texte am Prozessor bzw. an der Grafik. Daraus sagt Lora das Tempo jedes Modells vorher. Die Kurzmessung (etwa 20 Sekunden, mit dem kleinsten installierten Modell) macht die Vorhersage genauer; „Messen“ unten misst danach die echten Werte und korrigiert weiter.	How fast a model writes depends mainly on the memory bandwidth and on how many parameters it computes per word; reading long texts depends on the processor or the graphics. From this Lora forecasts the speed of every model. The quick measurement (about 20 seconds, with the smallest installed model) makes the forecast more precise; “Measure” below then measures the real values and corrects further.
+gemessen	measured
+gemessen {0} GB/s	measured {0} GB/s
+geschätzt	estimated
+schreibt ≈ {0} Wörter/s · liest ≈ {1} Wörter/s · {2}	writes ≈ {0} words/s · reads ≈ {1} words/s · {2}
+vorhergesagt nach Messung	forecast after measurement
+{0} liest und schreibt …	{0} is reading and writing …
+{0} mit gemeinsamem Speicher	{0} with shared memory

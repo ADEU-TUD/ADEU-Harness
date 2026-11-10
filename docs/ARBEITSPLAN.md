@@ -70,7 +70,7 @@ Fairlight).
 | **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
-| **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
+| **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung · AP-106 Modellkatalog in feinen Stufen, nach Zweck · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
@@ -343,10 +343,10 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-AP-72 bis AP-85 sind erledigt (10.11.2026, siehe *Erledigt*). Als Nächstes nach AP-103: AP-86.
+AP-72 bis AP-85 sind erledigt (10.11.2026, siehe *Erledigt*). AP-86 ist erledigt (10.11.2026, 1.0.67); weiter mit Runde 3 (AP-105 …).
 AP-67 und AP-71 (Modellziele) werden nachtrainiert und stehen weiter unter *Jetzt*.
 
-### AP-86 ☐ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
+### AP-86 ☑ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
 **Befund (10.11.2026)**: Auf einem Mac mit Apple Silicon (39 GB, Metal) scheitert jeder Download eines lokalen Modells
 (Qwen 3.5 9B im Postfach, Qwen 3.6 35B A3B unter *Lokale Modelle*) mit „Kein Paket für macOS im llama.cpp-Release
 gefunden.“ Es scheitert nicht das Modell, sondern das Programm llama.cpp davor: `LlamaHost.installRuntime` sucht im
@@ -364,6 +364,23 @@ gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und 
 - Nebenbei: auf dem Mac nicht „PC“, sondern „Mac“ anzeigen.
 **Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
 und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
+☑ *Erledigt (10.11.2026, 1.0.67)*: Ursache bestätigt – das Release `b11870` hat Pakete für alle Plattformen, aber macOS
+und Linux nur als `.tar.gz` mit Ordner `llama-b11870/` und Symlinks (`libllama.0.dylib → libllama.0.7.0.dylib`); eine
+`bin-macos-arm64.zip` gibt es nicht. Neu `desktop/…/local/LlamaPackages.kt`: Wahl nach System und Architektur über den
+genauen Paketnamen (`ubuntu-x64` nimmt nie `ubuntu-vulkan-x64`), Entpacken von ZIP und tar.gz (ustar/GNU, lange Namen,
+pax, Symlinks – sonst Kopie –, Rechte, ohne „._“-Dateien). `LlamaHost`: festes Release mit hinterlegter Größe und SHA-256
+je Paket (Windows x64/ARM, Vulkan, macOS arm64/x64, Linux x64/arm64), direkter Download ohne GitHub-API; nur wenn das
+Paket dort fehlt (404), das neueste Release über die API. Mac: `xattr -dr com.apple.quarantine`. *Datei einspielen* nimmt
+`.tar.gz`/`.tgz` und nennt den Dateinamen für dieses Gerät; Meldung „Das Programm für lokale Modelle (llama.cpp) konnte
+nicht geladen werden – am Modell liegt es nicht“, Firmennetz-Hinweis nur bei blockiertem Netz (403/407, DNS, TLS,
+Zeitüberschreitung), *Erneut versuchen* unter der Meldung (auch im Postfach), kein doppelter Punkt; „Mac“ statt „PC“.
+Test `LlamaPackagesTest` (8 Tests): Paketwahl gegen die Dateiliste von `b11870` (20 Namen, jeder an seiner
+Download-Adresse geprüft – die GitHub-API war aus der Cloud nicht erreichbar), Entpacken mit Symlink-Ketten; die 8 echten
+Pakete (macOS arm64/x64, Linux x64/arm64 samt Vulkan, Windows x64/ARM/Vulkan) entpacken in der Cloud richtig.
+**Am Gerät zu prüfen**: auf dem Mac mit Apple-Chip Qwen 3.5 9B laden, starten, im Postfach antworten lassen (das Starten
+des Programms war in der Cloud nicht erlaubt); optional `LLAMA_PACKAGES=<Ordner mit dem Paket> ./gradlew -p desktop test
+--tests '*LlamaPackagesTest*'` – startet dort `llama-server --version`. Linux mit Grafikkarte rechnet weiter auf der
+CPU (Vulkan-Paket für Linux nicht eingebunden, Grafikkarte unter Linux wird nicht erkannt).
 
 ### Runde 3 – Lora offline (Plan vom 10.11.2026)
 
@@ -430,7 +447,7 @@ AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-111 → AP-
 nebenher. Jedes Paket mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71); ohne Modell bleibt
 alles wie heute.
 
-### AP-105 ☐ Geräteprofil und Messung · M (Runde 3, Grundlage)
+### AP-105 ◐ Geräteprofil und Messung · M (Runde 3, Grundlage)
 **Ziel**: Die App kennt das Gerät genau und sagt das Tempo jedes Modells vorher.
 - Geräteprofil: Arbeitsspeicher **und Speicherbandbreite** (Takt, Kanäle – bestimmt das Tempo auf der CPU), CPU-Befehlssätze
   (AVX2/AVX-512), Kerne, Grafikkarte und Grafikspeicher, Apple-Chip mit gemeinsamem Speicher, freier Platz.
@@ -438,6 +455,33 @@ alles wie heute.
   aus den *aktiven* Parametern die Vorhersage für Schreib- und Einlesetempo aller Modelle; AP-76 misst danach die echten
   Werte und korrigiert.
 **Fertig, wenn**: auf fünf Geräteklassen die Vorhersage höchstens 30 % neben der Messung liegt.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig, die Messung auf den Geräten steht aus.
+- **Geräteprofil** (`Hardware`, `local/HardwareInfo.kt`): Windows liest die SMBIOS-Tabelle ohne Admin-Rechte
+  (`GetSystemFirmwareTable`, Typ 17: Typ, eingestellter Takt, Busbreite – zwei Kanäle à 64 Bit gelten auch mit vier
+  Modulen als 128 Bit, gelötetes LPDDR zählt je Kanal) und AVX2/AVX-512 (`IsProcessorFeaturePresent`); der Mac Chip
+  (`sysctl`), Grafikkerne (`ioreg`), Bandbreite aus einer Tabelle der Apple-Chips (M1 bis M5); Linux und Android
+  Befehlssätze aus `/proc/cpuinfo` (Bandbreite unter Linux nur als root lesbar, sonst gemessen).
+- **Vorhersage** (`local/SpeedForecast.kt`): Schreiben ≈ nutzbare Bandbreite ÷ Bytes je Token (aktiver Anteil der Datei;
+  Expertenmodelle und Gemmas Ebenen-Einbettungen nur teilweise); Einlesen ≈ Threads × Befehlssätze ÷ aktive Parameter
+  (Prozessor), Grafikkerne (Apple) bzw. Bandbreite der Karte. Kalibrierung: Median von gemessen ÷ Formel je Art (Prozessor
+  oder Grafik) aus allen Messungen dieses Geräts – Kurzmessung und AP-76 *Messen*; ein gemessenes Modell zeigt seinen
+  Messwert.
+- **Kurzmessung** (`local/DeviceBench.kt`, ≈ 20 s): Speicherbandbreite in Java (≈ 1 s), dann liest das kleinste
+  installierte Modell ein erfundenes Protokoll (≈ 400 Wörter) und schreibt 64 Token; Tempo aus den `timings` von
+  llama-server. Angeboten im Dialog vom ersten Start (nach dem Download eines dort gewählten Modells) und unter *Modelle auf
+  diesem Gerät › Geräteprofil* (*Gerät messen*, *Messprotokoll kopieren*); jede Modellzeile zeigt „schreibt ≈ … Wörter/s ·
+  liest ≈ … Wörter/s · geschätzt/vorhergesagt nach Messung/gemessen“. Die Karte zeigt „Vorhersage gegen Messung: x von y
+  Modellen höchstens 30 % daneben“ – jedes gemessene Modell nur aus den *übrigen* Messungen vorhergesagt.
+- Test `SpeedForecastTest` (8): SMBIOS (DDR5 2 × 64 Bit = 89,6 GB/s, vier DDR4-Module = 51,2, ein Modul = 25,6, LPDDR5X
+  8 × 16 Bit = 120), Befehlssätze, Kalibrierung (ein erfundenes Gerät wird exakt getroffen, Median gegen Ausreißer),
+  `timings`. Plausibilität gegen veröffentlichte Werte für Apple-Chips (llama.cpp-Diskussion #4167, LLaMA 7B Q4_0, neun
+  Chips von M1 bis M4 Max): alle innerhalb ±30 % (größte Abweichung M2 Ultra +23 %) – diese Werte haben die Form der
+  Apple-Formel bestimmt, sind also **kein** Nachweis.
+- **Offen – am Gerät zu messen (Hauptnutzer)**: auf fünf Geräteklassen (Office-PC ohne Grafikkarte, Office-PC mit 32 GB,
+  Gaming-PC mit RTX 5080, Mac mit Apple-Chip, Android) je *Gerät messen*, dann mindestens zwei Modelle mit *Messen* und
+  *Messprotokoll kopieren* – die Zeile „Vorhersage aus den übrigen Messungen gegen Messung“ entscheidet das Ziel ±30 %.
+  Ungeprüft sind vor allem: der Anteil der Bandbreite auf der CPU (0,6), die Einlese-Formel (60 Token/s je Thread und
+  Mrd. Parameter mit AVX2) und Vulkan auf Windows (0,65 der Kartenbandbreite).
 
 ### AP-106 ☐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
 **Ziel**: Für jede Stufe (RAM 8 bis 64 GB, Grafik 4 bis 24 GB, Apple-Chip, Android) und jeden Zweck (Allrounder, Text, Code,

@@ -127,7 +127,8 @@ private fun LocalModelOffer(c: AppContainer, onOpenModels: () -> Unit) {
         else -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (suggestion != null) {
                 HintText(
-                    if ((hw?.vramGb ?: 0.0) >= 8) tr("Passend für diesen PC mit Grafikkarte: {0} – nutzt Werkzeuge und fasst auch viele Mails zügig zusammen.", tr(suggestion.name))
+                    if (hw?.mac == true) tr("Passend für diesen Mac: {0} – rechnet mit dem Apple-Chip und nutzt Werkzeuge.", tr(suggestion.name))
+                    else if ((hw?.vramGb ?: 0.0) >= 8) tr("Passend für diesen PC mit Grafikkarte: {0} – nutzt Werkzeuge und fasst auch viele Mails zügig zusammen.", tr(suggestion.name))
                     else tr("Passend für diesen PC ohne Grafikkarte: {0} – läuft auf dem Prozessor und nutzt Werkzeuge.", tr(suggestion.name)),
                 )
             }
@@ -143,7 +144,7 @@ private fun LocalModelOffer(c: AppContainer, onOpenModels: () -> Unit) {
             }
         }
     }
-    state.message?.let { HintText(it) }
+    LocalMessage(c, state)
 }
 
 /**

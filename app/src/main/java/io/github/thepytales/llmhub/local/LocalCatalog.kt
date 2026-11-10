@@ -10,6 +10,8 @@ import io.github.thepytales.llmhub.ui.trLater
 /** What the app knows about this device, for choosing suitable models. */
 data class Hardware(
     val phone: Boolean,
+    /** A Mac (shown as "Mac", not "PC"; AP-86). */
+    val mac: Boolean = false,
     /** Installed memory in GB. */
     val ramGb: Double,
     val cores: Int,
@@ -20,12 +22,25 @@ data class Hardware(
     val freeDiskGb: Double = Double.NaN,
     /** Only the basic details could be read (the full check was blocked or too slow, e.g. by IT rules). */
     val limited: Boolean = false,
+    /**
+     * Geräteprofil (AP-105): theoretical memory bandwidth in GB/s (speed × bus width, or the Apple chip), NaN if unknown –
+     * it decides how fast a model writes on the processor.
+     */
+    val memBandwidthGbs: Double = Double.NaN,
+    /** Memory as read, e.g. "DDR5-5600 · 128 Bit" (empty if unknown). */
+    val memDetail: String = "",
+    /** Instruction sets that make reading fast: avx2, avx512, amx, neon, dotprod, i8mm, sve. */
+    val cpuFeatures: Set<String> = emptySet(),
+    /** Apple chip with shared memory, e.g. "Apple M3 Max" (empty otherwise). */
+    val chip: String = "",
+    /** Cores of the graphics (Apple chip) – 0 if unknown. */
+    val gpuCores: Int = 0,
 ) {
     /** Memory a model may use: on a dedicated GPU its VRAM, else a part of the RAM (the rest is for Windows/Android and other apps). */
     val usableForModel: Double get() = if (vramGb >= 4) vramGb * 0.92 else ramGb * if (phone) 0.45 else 0.55
 
     fun describe(): String = buildString {
-        append(if (phone) "Handy" else "PC")
+        append(if (phone) "Handy" else if (mac) "Mac" else "PC")
         append(" · ").append(String.format(Locale.GERMANY, "%.0f GB Arbeitsspeicher", ramGb))
         append(" · ").append(cores).append(" Kerne")
         if (gpuName != null) {
@@ -52,6 +67,11 @@ data class LocalModel(
     val tools: Boolean,
     /** Active parameters in billions (speed), for MoE models fewer than the total. */
     val activeB: Double,
+    /**
+     * All parameters in billions (AP-105): for experts (MoE) and Gemma's per-layer embeddings more than [activeB]; only
+     * the part [activeB]/[totalB] of the file is read for each word.
+     */
+    val totalB: Double = activeB,
 ) {
     val modelId get() = Privacy.LOCAL_PREFIX + id
     val url get() = "https://huggingface.co/$repo/resolve/$commit/$file?download=true"
@@ -81,7 +101,7 @@ object LocalCatalog {
             "gemma-4-e2b", trLater("Gemma 4 E2B"), "Gemma",
             trLater("Kleines Modell von Google mit gutem Deutsch – Handys und Laptops ohne Grafikkarte."),
             "ggml-org/gemma-4-E2B-it-GGUF", "6938c58e698502037401a5f19f6905f2fb2f7dee", "gemma-4-E2B-it-Q4_0.gguf",
-            2_841_481_184L, "8e30dff3ac4c8434c49a7036fa15564bdbb6044e42bf04550bf1a096ad7e6a52", 4.0, 8192, true, 2.0,
+            2_841_481_184L, "8e30dff3ac4c8434c49a7036fa15564bdbb6044e42bf04550bf1a096ad7e6a52", 4.0, 8192, true, 2.0, 5.1,
         ),
         LocalModel(
             "qwen3.5-4b", trLater("Qwen 3.5 4B"), "Qwen",
@@ -93,7 +113,7 @@ object LocalCatalog {
             "gemma-4-e4b", trLater("Gemma 4 E4B"), "Gemma",
             trLater("Beste Sprachqualität ohne Grafikkarte: Briefe, Gutachten, Feedback. Für PCs mit 16 GB und neue Handys."),
             "ggml-org/gemma-4-E4B-it-GGUF", "a69f018d7678a2b9f5e705f8903d6fb29b9b25dc", "gemma-4-E4B-it-Q4_0.gguf",
-            4_590_807_392L, "a555b900214b477d8880e7832e0b8925e139b0159640036b09fe472b6f2097f2", 6.0, 8192, true, 4.0,
+            4_590_807_392L, "a555b900214b477d8880e7832e0b8925e139b0159640036b09fe472b6f2097f2", 6.0, 8192, true, 4.0, 8.0,
         ),
         LocalModel(
             "qwen3.5-9b", trLater("Qwen 3.5 9B"), "Qwen",
@@ -111,13 +131,13 @@ object LocalCatalog {
             "gemma-4-26b-a4b", trLater("Gemma 4 26B A4B"), "Gemma",
             trLater("Großes Expertenmodell, rechnet aber nur mit 4 Mrd. Parametern – schnell auf Gaming-PCs (16 GB Grafik) oder mit 32 GB RAM."),
             "ggml-org/gemma-4-26B-A4B-it-GGUF", "9cf8c8db0f83fb4582f15381f8fb1a7c1b0b9ca2", "gemma-4-26B-A4B-it-Q4_0.gguf",
-            14_618_145_824L, "d208665ab1cd3a69f7a9a4bc59430e8448c8093d9b06334f566ac59d6d504a03", 17.0, 16384, true, 4.0,
+            14_618_145_824L, "d208665ab1cd3a69f7a9a4bc59430e8448c8093d9b06334f566ac59d6d504a03", 17.0, 16384, true, 4.0, 26.0,
         ),
         LocalModel(
             "qwen3.6-35b-a3b", trLater("Qwen 3.6 35B A3B"), "Qwen",
             trLater("Das stärkste Modell für High-End-PCs (24 GB Grafik oder 48 GB RAM) – nah an den Server-Modellen."),
             "ggml-org/Qwen3.6-35B-A3B-GGUF", "7878dc9a905c7c9379e5e8d6a1aa9affdd6839c5", "Qwen3.6-35B-A3B-Q4_K_M.gguf",
-            20_419_565_568L, "671e47e0ec53c665d048b98c3ecbfd5236b5ca9c3e02ed19fc8f81f7b85140c7", 21.5, 16384, true, 3.0,
+            20_419_565_568L, "671e47e0ec53c665d048b98c3ecbfd5236b5ca9c3e02ed19fc8f81f7b85140c7", 21.5, 16384, true, 3.0, 35.0,
         ),
     )
 
