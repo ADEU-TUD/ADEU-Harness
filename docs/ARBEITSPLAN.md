@@ -68,7 +68,7 @@ Fairlight).
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
-| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton |
+| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen |
 | **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -248,7 +248,7 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71, AP-72 bis AP-82); Reihenfolge wie hier, Start nach AP-71.
+Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71, AP-72 bis AP-85); Reihenfolge wie hier, Start nach AP-71.
 **AP-67 bleibt offen** (Ziel „höchstens 2 % öffentliche Namen ersetzt“) und wird nicht mehr in einem eigenen Chat
 bearbeitet – es steht weiter unter *Jetzt* und kommt nach AP-71 wieder dran.
 
@@ -338,6 +338,36 @@ auf Knopfdruck (oder von selbst) weiterlaufen.
 ### AP-82 ☐ Vorschau für Video und Ton in der Schnellansicht · S (Rest AP-66)
 **Fertig, wenn**: die Leertaste in *Dateien* Videos und Tonaufnahmen abspielt (Start/Pause, Springen, Dauer) – am PC und,
 wo sinnvoll, auf Android.
+
+### AP-83 ☐ Lora-Pakete teilen · M (neu, nach AP-78)
+**Ziel**: Eigene Befehle (AP-75), eigene Wörter (AP-78), eigene TU Vorlagen und Hausstil-Regeln (AP-79) als **eine
+Datei** exportieren und im Team importieren – mit Vorschau, was hinzukommt und was ersetzt würde, und ohne persönliche
+Daten (Chats, Gedächtnis, Schlüssel bleiben draußen). Dasselbe Format wie die Wissenspakete aus AP-78, sodass ein
+geteiltes Paket in der Übersicht „Inhalte zum Nachladen“ erscheint und sich wieder entfernen lässt.
+**Fertig, wenn**: ein Paket von einem PC exportiert, auf einem zweiten importiert und dort wieder entfernt werden kann.
+
+### AP-84 ☐ Lora in mehreren Fenstern · M–L (neu, D)
+**Ziel**: Mehrere Chats und Werkzeuge nebeneinander. Rechtsklick auf einen Chat (Seitenleiste, Strg+K, Suche) bietet
+zusätzlich **„In neuem Fenster öffnen“**; ebenso für Dokumente und das Lora-Panel. Jedes Fenster hat seine eigene
+Navigation, alle teilen dieselben Daten (ein Prozess, keine zweite Instanz); laufende Antworten, Entwürfe und Updates
+bleiben je Fenster richtig, Fenstergröße und -ort werden gemerkt. Zu klären: Tabs innerhalb eines Fensters zusätzlich
+(wie im PDF-Werkzeugkasten) oder nur Fenster.
+**Fertig, wenn**: zwei Chats in zwei Fenstern gleichzeitig antworten können, ein Chat nie in zwei Fenstern
+gegeneinander schreibt und das Schließen eines Fensters die anderen nicht beendet.
+
+### AP-85 ☐ Große Anhänge vollständig nutzen · M (neu)
+**Befund (10.11.2026)**: `AttachmentReader.MAX_CHARS = 120_000` – jede angehängte Datei wird nach 120 000 Zeichen
+(etwa 30 000 Tokens, rund 60–70 Seiten) abgeschnitten, der Rest geht nicht mit. Die Grenze stammt aus der Zeit kleiner
+Kontextfenster und ist fest, unabhängig vom Modell; die heutigen Server-Modelle fassen 262 000 bis 1 000 000 Tokens.
+Dazu kommt, dass der Text des Anhangs im Chat gespeichert und bei jeder Nachricht erneut pseudonymisiert und gesendet wird.
+**Ziel**: Die Grenze richtet sich nach dem gewählten Modell (ein fester Anteil seines Kontextfensters, bei mehreren
+Anhängen geteilt); ist eine Datei größer, fragt die App statt still zu kürzen: *ganz senden mit einem Modell, das es
+fasst* (Vorschlag: GLM-5.3 Flash) · *nur die passenden Stellen* (Suche im Anhang wie bei „Frag diesen Ordner“, AP-58) ·
+*abschnittsweise zusammenfassen*. Die Anzeige am Anhang sagt, wie viel wirklich mitgeht (Seiten, Anteil); lokale Modelle
+mit kleinem Kontext bekommen von selbst nur die passenden Stellen. Speicher und Tempo beachten (lange Texte nicht
+mehrfach im Chat halten, Pseudonymisierung je Anhang nur einmal).
+**Fertig, wenn**: ein 300-Seiten-PDF mit einem großen Modell vollständig ankommt, bei kleineren Modellen eine klare Wahl
+erscheint und nirgends mehr still gekürzt wird.
 
 ---
 
