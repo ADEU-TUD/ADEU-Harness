@@ -126,6 +126,9 @@ fun Composer(
     onRemoveFile: (FileAttachment) -> Unit,
     /** Switches an attachment between „öffentlich“ and „vertraulich“ (pseudonymization, AP-03). */
     onToggleFilePublic: ((FileAttachment) -> Unit)? = null,
+    /** Große Anhänge (AP-85): the line „geht ganz mit“ / „nur passende Stellen (etwa 12 %)“ per file, and its tap. */
+    sendInfo: (FileAttachment) -> String? = { null },
+    onSendInfo: ((FileAttachment) -> Unit)? = null,
     running: Boolean,
     recording: Boolean,
     transcribing: Boolean,
@@ -187,6 +190,7 @@ fun Composer(
                                 f, onRemove = { onRemoveFile(f) },
                                 onTogglePublic = onToggleFilePublic.takeIf { io.github.thepytales.llmhub.App.container.settings.current.let { it.pseudonymize && it.pseudonymPublic } }
                                     ?.let { toggle -> { toggle(f) } },
+                                sendInfo = sendInfo(f), onSendInfo = onSendInfo?.let { open -> { open(f) } },
                             )
                         }
                         if (loadingFiles > 0) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)

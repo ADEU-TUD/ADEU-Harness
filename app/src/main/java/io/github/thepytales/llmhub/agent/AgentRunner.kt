@@ -392,7 +392,9 @@ class AgentRunner(private val c: AppContainer) {
         val conv = host.conversation ?: return false
         val budget = ContextManager.budget(model)
         val ctx = RepoContext(conv.linkedRepos.toMutableList(), environment(conv))
-        if (ContextManager.tokens(buildApiMessages(conv, ctx, providers, model)) <= budget) return false
+        // Attachments have their own share of the context (AP-85): they do not make the history get summarized.
+        val request = buildApiMessages(conv, ctx, providers, model)
+        if (ContextManager.tokens(request) - io.github.thepytales.llmhub.files.AttachmentBudget.tokens(request) <= budget) return false
         val thread = conv.thread()
         val cut = ContextManager.cutIndex(thread)
         if (cut <= 0) return false
@@ -506,7 +508,8 @@ class AgentRunner(private val c: AppContainer) {
                 else -> out += m
             }
         }
-        return ContextManager.trimOldToolResults(out)
+        // Große Anhänge (AP-85): whole when they fit the model, else the passages for the question or the summary.
+        return ContextManager.trimOldToolResults(io.github.thepytales.llmhub.files.AttachmentBudget.prepare(out, model))
     }
 
     /** Files the tools created in a project with a project folder land in its "Ausgabe" (see [WorkFolder.place]). */

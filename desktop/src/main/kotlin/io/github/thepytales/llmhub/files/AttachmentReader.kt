@@ -32,7 +32,8 @@ data class ReadResult(
 
 /** Extracts text from PDFs, Word/PowerPoint/OpenDocument files and all kinds of text files. */
 object AttachmentReader {
-    const val MAX_CHARS = 120_000
+    /** Große Anhänge (AP-85): read whole; what goes to the model is decided per request (files/AttachmentBudget). */
+    const val MAX_CHARS = AttachmentBudget.READ_MAX_CHARS
     private const val MAX_BYTES = 25L * 1024 * 1024
 
     /** Code, configuration and markup (shared list, see [TextFormats]). */
@@ -117,7 +118,7 @@ object AttachmentReader {
         val truncated = clean.length > MAX_CHARS
         return ReadResult(
             file = FileAttachment(name, mime.ifEmpty { "text/plain" }, clean.take(MAX_CHARS), pages, truncated),
-            note = if (truncated) tr("„{0}“ ist sehr lang – nur die ersten {1}k Zeichen werden gesendet.", name, MAX_CHARS / 1000) else null,
+            note = if (truncated) tr("„{0}“ ist sehr lang – gelesen wurden die ersten {1} Millionen Zeichen.", name, MAX_CHARS / 1_000_000) else null,
         )
     }
 

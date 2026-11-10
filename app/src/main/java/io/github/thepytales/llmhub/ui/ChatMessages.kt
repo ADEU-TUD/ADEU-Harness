@@ -240,7 +240,11 @@ private fun RemoveBadge(onRemove: () -> Unit, modifier: Modifier) {
 
 /** Small card for an attached document; with [onOpen] a tap opens it in the editor. */
 @Composable
-fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null) {
+fun FileChip(
+    file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -> Unit)? = null, onTogglePublic: (() -> Unit)? = null,
+    /** Große Anhänge (AP-85): how much goes along with the chosen model; a tap changes it. */
+    sendInfo: String? = null, onSendInfo: (() -> Unit)? = null,
+) {
     Box {
         // Attachments look like the document cards (AP-01): card color, fine frame, icon on a light accent tint.
         Surface(
@@ -259,6 +263,12 @@ fun FileChip(file: FileAttachment, onRemove: (() -> Unit)? = null, onOpen: (() -
                         tr("{0}k Zeichen", (file.text.length + 999) / 1000) + if (file.truncated) tr(" (gekürzt)") else "",
                     ).joinToString(" · ")
                     Text(info, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    sendInfo?.let { line ->
+                        Text(
+                            line, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).then(if (onSendInfo != null) Modifier.clickable(onClickLabel = tr("Ändern"), onClick = onSendInfo) else Modifier).padding(vertical = 1.dp),
+                        )
+                    }
                     // Public sources go without placeholders (AP-03); the app suggests it, a tap switches it.
                     if (onTogglePublic != null) {
                         val public = io.github.thepytales.llmhub.data.Pseudonymizer.isPublic(file)
