@@ -594,11 +594,25 @@ gefundene private Angaben zu fallen.
   stärkeren Modell noch so gebraucht wird.
 **Fertig, wenn**: jedes Ziel der App ein Etikett hat und die Ziele von AP-71 im Prüfteil gehalten werden.
 
-### AP-115 ☐ Reste aus 1.0.66 · S
+### AP-115 ☑ Reste aus 1.0.66 · S
 - `MailSorterTest.pausesCancelsAndCarriesOnAfterARestart` schlug im PR-Check einmal mit Zeitlimit fehl (beim Neustart grün)
   – Wettlauf im Mail-Sortierer (AP-69) suchen und beheben, nicht den Test lockern.
 - Release-Workflow: Der macOS-Job bekam einmal keinen Runner und das Release erschien zunächst ohne Mac (nachgeholt mit
   einem zweiten Lauf); prüfen, ob ein Neustart nur des Mac-Teils möglich ist, ohne alles neu zu bauen.
+**Erledigt (10.11.2026, für 1.0.67)**:
+- Mail-Sortierer: zwei Wettläufe gefunden (durch Lesen des Codes; der Fehler ließ sich hier nicht nachstellen) und im
+  Code behoben, der Test ist unverändert. (1) Die Läufe lagen in **einem** Speicherfach (`store`); ein abgebrochener Lauf
+  eines anderen Containers (z. B. der vorige Test), der seine Datei noch einmal anfasste, ersetzte das Fach, der nächste
+  Aufruf lud die Datei in ein drittes – wer auf den Fluss des ersten wartete (`await`), sah keine Änderung mehr → Zeitlimit.
+  Jetzt ein Speicher je Datei (`ConcurrentHashMap`), `forgetForTest` wartet, bis die alten Läufe geendet haben. (2) Nach
+  *Pause* konnte *Fortsetzen* einen zweiten Lauf starten, während der erste die Mail noch fertig las; der neue wartet jetzt
+  auf den alten (`stopping`, `join`). `MailSorterTest` danach in zwei vollen Testläufen und in wiederholten Einzelläufen
+  grün (Zahl im PR).
+- Release: Der Mac-Teil ist ein eigener Workflow `macos.yml` (`workflow_call` aus *Build & Release*, dazu
+  `workflow_dispatch`). Einzeln gestartet baut er aus dem Tag `v1.0.x` nur die Mac-App, testet sie, hängt DMG und tar.gz
+  an das bestehende Release und veröffentlicht das Update erneut (bisheriges „Was ist neu“, wenn leer). README ›
+  *Neue Version veröffentlichen*, Schritt 6. Geprüft mit actionlint; **ein echter Lauf steht aus** (erst mit dem nächsten
+  Release bzw. von Hand für 1.0.66 möglich).
 
 
 ---

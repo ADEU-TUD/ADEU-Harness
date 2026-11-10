@@ -392,6 +392,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   nehmen). Der erste Satz einer Antwort ist nach rund einer Viertelsekunde fertig (in der App gemessen: 66–215 ms je
   erstem Satz, Laden einmalig 1,2 s). Werkzeuge und Zahlen: [`tools/stimme/README.md`](tools/stimme/README.md); Test
   `LocalVoiceTest`.
+- **Mail-Sortierer ohne Wettlauf** (seit 1.0.67, AP-115): Nach *Pause* wartet *Fortsetzen*, bis der alte Lauf die Mail
+  fertig hat, an der er war – zwei Läufe lesen nie gleichzeitig dieselben Mails; die gespeicherten Läufe hängen nicht mehr
+  an einem einzigen Fach, das ein endender Lauf verdrängen konnte (das ließ `MailSorterTest` einmal ins Zeitlimit laufen).
+- **macOS-Version einzeln nachholen** (seit 1.0.67, AP-115): Der Mac-Teil des Releases ist ein eigener Workflow
+  (`.github/workflows/macos.yml`), den *Build & Release* aufruft. Erscheint ein Release ohne Mac (kein Runner, Fehler),
+  baut *Actions › macOS-Version (einzeln nachholbar) › Run workflow* mit derselben Versionsnummer nur den Mac-Teil aus
+  dem Tag `v1.0.x`, hängt DMG und tar.gz an das Release und veröffentlicht das Update erneut (mit dem bisherigen „Was ist
+  neu“, wenn das Feld leer bleibt) – ohne Android, Windows und Linux neu zu bauen.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -1493,6 +1501,11 @@ weitergeben.
    Version – ab dann fragen die Apps beim Start.
 5. Schlug nur das Veröffentlichen fehl (z. B. Token abgelaufen): Token erneuern, Secret `UPDATER_TOKEN` ersetzen,
    dann *Actions › Update veröffentlichen* mit derselben Version und denselben notes – baut nicht neu.
+6. Fehlt im Release die Mac-Version (der macOS-Job bekam keinen Runner oder schlug fehl; das Release erscheint dann ohne
+   sie und sagt es in der Zusammenfassung): *Actions › macOS-Version (einzeln nachholbar) › Run workflow* auf `main`
+   mit derselben **version** (z. B. `67`); **notes** leer lassen = bisheriger Text. Baut nur den Mac-Teil aus dem Tag
+   `v1.0.67`, lädt DMG und tar.gz ins Release und veröffentlicht das Update erneut (seit 1.0.67, AP-115).
+   KI-Assistenten: `actions_run_trigger`, `workflow_id: macos.yml`, `ref: main`, `inputs: {"version": "67"}`.
 
 Der Token in `UPDATER_TOKEN` (Fine-grained, Resource owner ADEU-TUD, *Contents: Read and write* auf
 `ADEU-Harness-Updater`) läuft am **24.01.2027** ab – vorher neu erstellen und das Secret ersetzen.
