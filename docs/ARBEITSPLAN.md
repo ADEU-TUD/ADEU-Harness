@@ -504,11 +504,21 @@ Qwen 3.5 über llama.cpp, eigener kleiner Download); auf Android ersetzt das die
 **Fertig, wenn**: der Messkorpus (Screenshots, Tabellenfotos, Scans) im Prüfteil brauchbar beantwortet wird und ein Bild auf
 einem Office-PC unter 15 s dauert.
 
-### AP-111 ☐ Sprachausgabe lokal · S (Runde 3)
+### AP-111 ☑ Sprachausgabe lokal · S (Runde 3)
 **Ziel**: Vorlesen und Sprachmodus mit natürlicher deutscher Stimme auf dem Gerät (Piper oder Kokoro über sherpa-onnx,
 Stimmen mit freier Lizenz) statt Server oder Systemstimme.
 **Fertig, wenn**: der Sprachmodus mit *Nur lokal* vollständig funktioniert und die erste Silbe auf einem Office-PC nach
 < 0,5 s kommt.
+**Erledigt (10.11.2026, für 1.0.67)** – `tools/stimme/README.md`: Piper „Thorsten“ medium (CC0, 64 MB, nur die deutschen
+espeak-Dateien) über die sherpa-onnx 1.13.8 der App; dritte Wahl *Natürliche Stimme auf diesem Gerät* in *Vorlesen &
+Spracheingabe* mit Laden/Löschen; liest auch bei „Nur auf diesem Gerät“ und im Sprachmodus mit *Nur lokal* (statt der
+Systemstimme, wenn geladen); der Sprachmodus lädt die Stimme vor, während man spricht, und erkennt Sprache mit *Nur lokal*
+auf dem Gerät (ohne Erkennungsmodell: Hinweis statt Server). Messung in der App (`LocalVoiceTest`, Cloud-Rechner, zwei
+Kerne): Laden 1,2 s einmalig, erster Satz 66–215 ms, Echtzeitfaktor ≈ 0,06 → erste Silbe deutlich unter 0,5 s.
+Kokoro kann kein Deutsch; Stimmen mit M-AILABS-Daten (eva_k, ramona …) wegen unklarer Lizenz ausgeschlossen.
+**Rest / am Gerät prüfen**: Klang und Tempo auf einem Office-PC und auf Android (dort ebenfalls sherpa-onnx, nicht
+gemessen); eine zweite, weibliche Stimme („kerstin“, CC0) zur Wahl; Spiegel der Dateien (AP-106). Dass der Sprachmodus mit
+*Nur lokal* auch ein lokales Sprachmodell für die Antwort nimmt, regeln AP-71/AP-109 (nicht Teil dieses Pakets).
 
 ### AP-112 ☐ Offline-Schiene in der Oberfläche: Ort je Bereich, Einrichtung Schritt für Schritt · M–L (Runde 3)
 **Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht – und stellt es selbst ein.

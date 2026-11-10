@@ -479,11 +479,16 @@ class ChatViewModel(
 
     /** Speech of [file] as text: on the Uni server, or on the device in projects that keep data here. */
     suspend fun recognize(file: File): String {
-        val local = !(_conversation.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer
-        return if (local) {
-            // Data protection level "Nur auf diesem Gerät": recognized on the device.
+        val project = !(_conversation.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer
+        // „Nur lokal“ (AP-71): speech stays on the device too, when a recognition model is there (AP-111).
+        val onlyLocal = c.settings.current.loraPlace == "LOCAL"
+        return if (project || onlyLocal) {
+            // Data protection level "Nur auf diesem Gerät" or „Nur lokal“: recognized on the device.
             c.transcription.recognizeShort(file)
-                ?: throw IllegalStateException(tr("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden."))
+                ?: throw IllegalStateException(
+                    if (project) tr("In diesem Projekt bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
+                    else tr("Mit „Nur lokal“ bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.")
+                )
         } else c.llm.transcribe(c.settings.current.sttModel, file)
     }
 

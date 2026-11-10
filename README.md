@@ -383,6 +383,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   erfundenen Dokumenten (Prüfteil, 90 Fragen): die gesuchte Stelle unter den ersten fünf bei 98,9 % (nur Wörter
   83,3 %, Server wie bis 1.0.66 94,4 %), etwa 40 ms je Abschnitt. Werkzeuge und Zahlen:
   [`tools/suche/README.md`](tools/suche/README.md); Test `LocalEmbeddingTest`.
+- **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
+  neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
+  Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging
+  Face, SHA-256), über dieselbe sherpa-onnx wie die Spracherkennung – ohne Server. Sie liest auch, wenn ein Text das Gerät
+  nicht verlassen darf (Projekte „Nur auf diesem Gerät“), und im Sprachmodus mit *Wo Lora arbeitet: Nur lokal*; dort
+  bleibt dann auch die Spracherkennung auf dem Gerät (ohne Erkennungsmodell sagt die App, was fehlt, statt den Server zu
+  nehmen). Der erste Satz einer Antwort ist nach rund einer Viertelsekunde fertig (in der App gemessen: 66–215 ms je
+  erstem Satz, Laden einmalig 1,2 s). Werkzeuge und Zahlen: [`tools/stimme/README.md`](tools/stimme/README.md); Test
+  `LocalVoiceTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

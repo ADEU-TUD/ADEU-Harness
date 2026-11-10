@@ -37,7 +37,13 @@ data class VoiceOption(val name: String, val label: String)
  * Reads answers aloud – either with the speech model of the API (natural AI voices; the text goes to the
  * same server that wrote it) or fully offline with Android's speech engine.
  */
-class Speaker(context: Context, private val settings: SettingsStore, private val llm: LlmClient) {
+class Speaker(
+    context: Context,
+    private val settings: SettingsStore,
+    private val llm: LlmClient,
+    /** The natural voice on this device (AP-111); null in tests. */
+    private val local: LocalVoice? = null,
+) {
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val player = AudioPlayer(appContext)
@@ -64,7 +70,11 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
         _playingId.value = id
         job = scope.launch {
             try {
-                if (deviceOnly || settings.current.ttsEngine == "DEVICE") speakDevice(id, text) else speakServer(text)
+                when {
+                    useLocal(deviceOnly) -> speakParts(text, ::localAudio)
+                    deviceOnly || settings.current.ttsEngine != "SERVER" -> speakDevice(id, text)
+                    else -> speakServer(text)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -105,7 +115,7 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
                         if (first) onFirstSound()
                         first = false
                     }
-                    if (deviceOnly || settings.current.ttsEngine == "DEVICE") {
+                    if (!useLocal(deviceOnly) && (deviceOnly || settings.current.ttsEngine != "SERVER")) {
                         for (part in parts) {
                             started()
                             speakDevice(id, part)
@@ -114,7 +124,8 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
                         val s = settings.current
                         val audio = Channel<Deferred<ByteArray>>(2)
                         launch {
-                            for (part in parts) audio.send(async { llm.speech(s.ttsModel, s.ttsVoice, part) })
+                            val local = useLocal(deviceOnly)
+                        for (part in parts) audio.send(async { if (local) localAudio(part) else llm.speech(s.ttsModel, s.ttsVoice, part) })
                             audio.close()
                         }
                         for (next in audio) {
@@ -142,15 +153,29 @@ class Speaker(context: Context, private val settings: SettingsStore, private val
         _playingId.value = null
     }
 
-    private suspend fun speakServer(text: String) = coroutineScope {
+    private suspend fun speakServer(text: String) {
         val s = settings.current
+        speakParts(text) { part -> llm.speech(s.ttsModel, s.ttsVoice, part) }
+    }
+
+    /**
+     * The voice on this device (AP-111) when it is chosen, or when the text must stay here ([deviceOnly]) and it is
+     * loaded – it sounds more natural than the system voice.
+     */
+    private fun useLocal(deviceOnly: Boolean): Boolean =
+        LocalVoiceInfo.route(settings.current.ttsEngine, deviceOnly, local?.installed() == true) == "LOCAL"
+
+    private suspend fun localAudio(part: String): ByteArray =
+        kotlinx.coroutines.withContext(Dispatchers.IO) { local!!.synth(part, settings.current.speechRate) }
+
+    /** Speaks [text] part by part with [make]; the next part is prepared while the current one plays. */
+    private suspend fun speakParts(text: String, make: suspend (String) -> ByteArray) = coroutineScope {
         // A short first part, so the voice starts quickly.
         val chunks = SpeechStream().all(text).flatMap { chunk(it, 3500) }
-        // Fetch the next part while the current one plays.
-        var next: Deferred<ByteArray> = async { llm.speech(s.ttsModel, s.ttsVoice, chunks[0]) }
+        var next: Deferred<ByteArray> = async { make(chunks[0]) }
         for (i in chunks.indices) {
             val bytes = next.await()
-            if (i + 1 < chunks.size) next = async { llm.speech(s.ttsModel, s.ttsVoice, chunks[i + 1]) }
+            if (i + 1 < chunks.size) next = async { make(chunks[i + 1]) }
             player.play(bytes)
         }
     }

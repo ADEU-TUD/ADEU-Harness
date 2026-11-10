@@ -220,7 +220,7 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
                 (DocStyle.parse(s.docStyle)?.label ?: "Modern") + (if (logos.isEmpty()) "" else " · ${logos.size} Logo(s)") +
                     if (s.senderInfo.isBlank()) tr(" · Absender fehlt") else "",
             ),
-            SettingsItem("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, tr("Vorlesen & Spracheingabe"), if (s.ttsEngine == "DEVICE") tr("Offline auf dem Gerät") else tr("KI-Stimme des Uni-Servers")),
+            SettingsItem("settings/voice", Icons.AutoMirrored.Outlined.VolumeUp, tr("Vorlesen & Spracheingabe"), when (s.ttsEngine) { "DEVICE" -> tr("Offline auf dem Gerät"); "LOCAL" -> tr("Natürliche Stimme auf diesem Gerät"); else -> tr("KI-Stimme des Uni-Servers") }),
             SettingsItem("settings/appearance", Icons.Outlined.Palette, tr("Darstellung"), enumOr(s.appStyle, AppStyle.ADEU).label + " · " + enumOr(s.themeMode, ThemeMode.SYSTEM).label),
             deviceItem,
         ),

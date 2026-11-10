@@ -6396,3 +6396,11 @@ Aus: semantische Suche über den Uni-Server, wenn er erlaubt ist, sonst nach Wö
 Download von {0} fehlgeschlagen: {1}. Bis dahin sucht die App nach Wörtern (oder mit dem Uni-Server).	Download of {0} failed: {1}. Until then the app searches by words (or with the university server).
 Für {0} fehlt die ONNX Runtime der App (Spracherkennung) – die App sucht nach Wörtern.	{0} needs the app's ONNX Runtime (speech recognition), which is missing – the app searches by words.
 Ein kleines Modell auf diesem Gerät findet passende Stellen auch mit anderen Worten („Hiwi“ findet „studentische Hilfskraft“) – ohne Server, auch in Projekten, deren Daten das Gerät nicht verlassen. In unseren Tests stand die gesuchte Stelle bei 89 von 90 Fragen unter den ersten fünf (nur nach Wörtern: 75 von 90), etwa 40 ms je Abschnitt.	A small model on this device finds matching passages even in other words ("Hiwi" finds "student assistant") – without a server, also in projects whose data stays on the device. In our tests the passage looked for was among the first five for 89 of 90 questions (by words only: 75 of 90), about 40 ms per passage.
+Download von {0} fehlgeschlagen: {1}	Download of {0} failed: {1}
+{0} ist nicht geladen.	{0} is not loaded.
+Die Stimme hat für diesen Text nichts erzeugt.	The voice produced nothing for this text.
+Bis dahin liest die Stimme des Systems vor.	Until then the system voice reads aloud.
+Gesprochen von Thorsten Müller (Thorsten-Voice, frei als CC0), trainiert mit Piper (MIT); Aussprache nach espeak-ng (GPL-3.0). Liest auch, wenn ein Text das Gerät nicht verlassen darf, und im Sprachmodus mit „Nur lokal“.	Spoken by Thorsten Müller (Thorsten-Voice, free as CC0), trained with Piper (MIT); pronunciation by espeak-ng (GPL-3.0). Also reads when a text must not leave the device, and in voice mode with "Local only".
+Mit „Nur lokal“ bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.	With "Local only" speech stays on the device – load a recognition model under Settings › Transcription for this.
+Natürliche Stimme auf diesem Gerät	Natural voice on this device
+Deutsche Stimme „Thorsten“ (Piper), offline und ohne Server; einmal {0} MB laden.	German voice "Thorsten" (Piper), offline and without a server; download {0} MB once.

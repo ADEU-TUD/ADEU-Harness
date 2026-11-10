@@ -396,6 +396,8 @@ private fun VoiceSection(c: AppContainer) {
         Spot("voice.engine") { Column { listOf(
             Triple("SERVER", tr("KI-Stimme (Uni-Server)"), tr("Sehr natürlich klingende neuronale Stimmen; braucht Internet.")),
             Triple("DEVICE", "$DEVICE_VOICE_TITLE (offline)", DEVICE_VOICE_DESCRIPTION),
+            // AP-111: a natural German voice on this device.
+            Triple("LOCAL", tr("Natürliche Stimme auf diesem Gerät"), tr("Deutsche Stimme „Thorsten“ (Piper), offline und ohne Server; einmal {0} MB laden.", io.github.thepytales.llmhub.audio.LocalVoiceInfo.MEGABYTES)),
         ).forEach { (key, label, desc) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -424,6 +426,8 @@ private fun VoiceSection(c: AppContainer) {
                     })
                 }
             }
+        } else if (s.ttsEngine == "LOCAL") {
+            LocalVoiceSettings(c)
         } else {
             DropdownField(tr("Sprachausgabe-Modell"), s.ttsModel, models.ofType(ModelType.TTS).map { it.id }, { v -> c.settings.update { it.copy(ttsModel = v) } })
             DropdownField(tr("Stimme"), s.ttsVoice, (SERVER_VOICES + s.ttsVoice).distinct(), { v -> c.settings.update { it.copy(ttsVoice = v) } })
