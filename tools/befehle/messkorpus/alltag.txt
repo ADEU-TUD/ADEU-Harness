@@ -1,0 +1,78 @@
+# Alltagssprache, Tippfehler, Englisch, gemischt – quer durch alle Arten
+== prüfteil ==
+dunkl modus bitte => stell:theme ; wert=DARK
+schrifft grösser machen => stell:text_size|ort:option.appearance.textsize ; wert=1.15
+wo is nochma der tresor => ort:tool.vault
+ich find die literatuhr nich => ort:area.literature
+kanst du die pdfs zusamenfügen => tu:pdf.merge @pdf
+einstelungen datenschuz => ort:settings.privacy
+hey lora, mach mal bitte kurz die dateien auf => ort:area.files
+ähm ich bräuchte mal eben den scanner => ort:area.scan
+öffne bitte, wenn es geht, die transkription => ort:area.transcripts
+moin, wo kann man hier die sprache ändern => ort:option.appearance.language
+könntest du die websuche für mich abschalten? => stell:web ; wert=false
+ich würd gern die pseudonymisierung anmachen => stell:pseudonymize ; wert=true
+please open the pdf toolbox => ort:tool.pdf
+where can I enter my api key => ort:settings.api
+i need the transcription => ort:area.transcripts
+turn on web search => stell:web ; wert=true
+make the font bigger => stell:text_size|ort:option.appearance.textsize ; wert=1.15
+SUCHE NACH UPDATES => ort:settings.updates
+VIDEOEDITOR => ort:tool.video
+lora weg => stell:lora|ort:option.lora.mode ; wert=OFF
+update? => ort:settings.updates
+backup machen pls => ort:settings.backup
+kurze frage: wo stell ich den zitierstil um => ort:settings.literature
+sag mal, gibts hier nen dunkelmodus => ort:option.appearance.theme|stell:theme
+ich will, dass lora aufhört rumzuhüpfen => stell:lora_calm|ort:option.lora.calm ; wert=true
+das teil soll nicht immer nachfragen bevor es das modell wechselt => ort:option.chat.autoModelAsk
+rotier ma seite 3 => tu:pdf.rotate @pdf ; seiten=3
+sortier das ding nach name => tu:sheet.sort @tabelle ; spalte=name
+mach das pdf mal kleiner => tu:pdf.compress @pdf
+exportier das als mp4 => tu:video.export @video
+was geht ab => frei.einfach
+kannste mir mal eben nen satz umformulieren: wir treffen uns morgen => frei.einfach
+wie war das noch mit signifikanz und p-wert, kurz => frei.einfach
+ich hab keine ahnung wie ich die diskussion in meinem paper aufbauen soll, hilf mir das durchzudenken => frei.komplex
+schreib mir bitte nen ausführlichen bericht über die evaluation mit allen kennzahlen aus der datei => frei.komplex
+can you summarize the attached 40-page report and list open questions => frei.komplex
+pls rephrase: the deadline has been moved => frei.einfach
+
+== entwicklung ==
+dunkelmodus an pls => stell:theme ; wert=DARK
+schrift groesser => stell:text_size|ort:option.appearance.textsize ; wert=1.15
+wo is der pdf werkzeugkasten => ort:tool.pdf
+ich such die einstelungen für die stimme => ort:option.voice.engine|ort:settings.voice
+kannst du mal die duplikate rausuchen => tu:files.duplicates @dateien
+datenschtz => ort:settings.privacy
+hey, mach mal literatur auf => ort:area.literature
+hmm wo war nochmal der papierkorb => ort:settings.trash|ort:place.files.places
+zeig mal bitte die modelle die es gibt => ort:area.models
+servus, wie krieg ich die app auf englisch => ort:option.appearance.language|stell:language
+bitte die startanimation ausmachen, danke => stell:start_animation ; wert=false
+könnte lora bitte ruhiger sein => stell:lora_calm ; wert=true
+open literature => ort:area.literature
+where are the privacy settings => ort:settings.privacy
+i want to scan something => ort:area.scan
+disable pseudonymization => stell:pseudonymize ; wert=false
+switch to light theme => stell:theme ; wert=LIGHT
+TRESOR ÖFFNEN => ort:tool.vault
+DATEIEN BITTE => ort:area.files
+api-schlüssel? => ort:settings.api
+sync einrichten pls => ort:settings.sync
+kurze frage, wo ist das logo für briefe => ort:option.documents.logo
+sag mal wo kann ich nen bug melden => ort:settings.help
+ich will nicht dass das ding im hintergrund weiterläuft => ort:option.desktop.tray
+mach mal ne tour hier => lora:tour
+lösch ma seite 5 => tu:pdf.delete_pages @pdf ; seiten=5
+räum hier ma auf => tu:files.tidy @dateien
+mach untertitel dran => tu:video.subtitles @video
+die tabelle is voll durcheinander, mach die sauber => tu:sheet.clean @tabelle
+na du => frei.einfach
+kannste das kurz netter schreiben: bitte pünktlich sein => frei.einfach
+wie war nochmal die formel für den mittelwert => frei.einfach
+ich komm bei meiner auswertung nicht weiter, kannst du mit mir die daten im anhang durchgehen => frei.komplex
+schreib nen ausführlichen vergleich der drei methoden mit quellen => frei.komplex
+could you draft a detailed grant proposal outline with work packages => frei.komplex
+quick question: what is a p-value => frei.einfach
+thx => frei.einfach

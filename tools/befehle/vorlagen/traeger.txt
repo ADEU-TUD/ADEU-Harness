@@ -1,0 +1,140 @@
+# Satzmuster („Träger“) je Art von Etikett; {o} ist eine Bezeichnung aus den Dateien daneben (Zeilen „o:“).
+== ort.bereich
+{o}
+{o} öffnen
+öffne {o}
+öffne bitte {o}
+öffne mal {o}
+geh zu {o}
+zu {o}
+bring mich zu {o}
+zeig mir {o}
+zeig {o}
+ich brauche {o}
+ich will zu {o}
+wo ist {o}
+wo finde ich {o}
+{o} aufmachen
+mach {o} auf
+ich suche {o}
+{o} bitte
+wechsle zu {o}
+spring zu {o}
+kannst du {o} öffnen
+kannst du mir {o} zeigen
+ich möchte zu {o}
+wo war nochmal {o}
+{o} anzeigen
+navigiere zu {o}
+ruf {o} auf
+{o} aufrufen
+ich muss zu {o}
+wie komme ich zu {o}
+führ mich zu {o}
+lora, {o}
+{o} starten
+starte {o}
+open {o}
+go to {o}
+show me {o}
+where is {o}
+take me to {o}
+i need {o}
+== ort.option
+{o}
+wo ist {o}
+wo finde ich {o}
+wo stelle ich {o} ein
+wo ändere ich {o}
+wo kann ich {o} ändern
+wo kann man {o} einstellen
+einstellung {o}
+einstellung für {o}
+{o} einstellung
+{o} wo
+wo {o}
+zeig mir {o}
+zeig mir die einstellung {o}
+ich suche {o}
+ich suche die einstellung für {o}
+wo war {o}
+wo gibt es {o}
+option {o}
+wo ist die option {o}
+ich finde {o} nicht
+wo versteckt sich {o}
+wo steht {o}
+in welchem menü ist {o}
+bring mich zu {o}
+führ mich zur einstellung {o}
+where is {o}
+where can i change {o}
+{o} setting
+where do i find {o}
+== ort.knopf
+{o}
+wo ist {o}
+wo finde ich {o}
+zeig mir {o}
+wo kann ich {o}
+wo geht {o}
+ich suche {o}
+wo ist der knopf für {o}
+wo klicke ich für {o}
+{o} wo
+wo war {o}
+wie komme ich zu {o}
+where is {o}
+show me {o}
+== ort.modus
+{o}
+{o} starten
+starte {o}
+{o} an
+öffne {o}
+ich brauche {o}
+neuer chat mit {o}
+wechsle in {o}
+{o} bitte
+mach {o} an
+chat mit {o} starten
+{o} aktivieren
+ich will {o} benutzen
+start {o}
+== an
+{o} an
+{o} einschalten
+schalte {o} ein
+{o} aktivieren
+aktiviere {o}
+mach {o} an
+{o} anmachen
+bitte {o} einschalten
+schalt mal {o} ein
+ich will {o} anhaben
+{o} wieder an
+{o} soll an sein
+stell {o} an
+kannst du {o} einschalten
+turn on {o}
+enable {o}
+{o} on
+== aus
+{o} aus
+{o} ausschalten
+schalte {o} aus
+{o} deaktivieren
+deaktiviere {o}
+mach {o} aus
+{o} ausmachen
+{o} abschalten
+schalte {o} ab
+bitte {o} ausschalten
+schalt mal {o} aus
+ich will {o} nicht mehr
+{o} soll aus sein
+stell {o} ab
+kannst du {o} ausschalten
+turn off {o}
+disable {o}
+{o} off

@@ -1,0 +1,67 @@
+# Einstellungen umstellen (stell:*), mit erwartetem Wert
+== prüfteil ==
+mach mal dunkel => stell:theme ; wert=DARK
+bitte auf hell stellen => stell:theme ; wert=LIGHT
+switch to dark mode => stell:theme ; wert=DARK
+design wie das system => stell:theme ; wert=SYSTEM
+dunkelmodus aus => stell:theme ; wert=LIGHT
+schrift größer => stell:text_size|ort:option.appearance.textsize ; wert=1.15
+mach die schrift bitte sehr groß => stell:text_size ; wert=1.3
+schriftgröße wieder normal => stell:text_size ; wert=1.0
+stell die app auf englisch => stell:language ; wert=en
+sprache deutsch => stell:language ; wert=de
+lora ausblenden => stell:lora|ort:option.lora.mode ; wert=OFF
+lora nur im chat zeigen => stell:lora ; wert=CHAT
+lora wieder überall anzeigen => stell:lora ; wert=EVERYWHERE
+pseudonymisierung einschalten => stell:pseudonymize ; wert=true
+schalte das ersetzen von namen ab => stell:pseudonymize ; wert=false
+websuche an => stell:web ; wert=true
+keine websuche mehr => stell:web ; wert=false
+dokumente erstellen ausschalten => stell:documents ; wert=false
+das modell soll automatisch gewählt werden => stell:auto_model ; wert=true
+automatische modellwahl aus => stell:auto_model ; wert=false
+arbeitsschritte bitte immer einklappen => stell:collapse_steps ; wert=true
+startanimation aus => stell:start_animation ; wert=false
+lora soll ruhiger sein => stell:lora_calm ; wert=true
+lora soll nur noch lokal arbeiten => stell:lora_place ; wert=LOCAL
+stell lora auf nur server => stell:lora_place ; wert=SERVER
+lora wieder gemischt => stell:lora_place ; wert=MIXED
+turn off the start animation => stell:start_animation ; wert=false
+
+== entwicklung ==
+dunkel => stell:theme|ort:option.appearance.theme ; wert=DARK
+stell auf dunkles design um => stell:theme ; wert=DARK
+hell bitte => stell:theme ; wert=LIGHT
+light mode => stell:theme ; wert=LIGHT
+nachtmodus an => stell:theme ; wert=DARK
+helligkeit nach system => stell:theme ; wert=SYSTEM
+schrift kleiner => stell:text_size|ort:option.appearance.textsize ; wert=0.9
+schrift groß => stell:text_size ; wert=1.15
+ich brauch größere schrift => stell:text_size|ort:option.appearance.textsize ; wert=1.15
+textgröße auf sehr groß => stell:text_size ; wert=1.3
+schrift klein stellen => stell:text_size ; wert=0.9
+oberfläche auf english => stell:language ; wert=en
+switch the app to german => stell:language ; wert=de
+auf deutsch umstellen => stell:language ; wert=de
+lora aus => stell:lora ; wert=OFF
+ich will lora nicht mehr sehen => stell:lora|ort:option.lora.mode ; wert=OFF
+lora überall => stell:lora ; wert=EVERYWHERE
+lora nur im chat => stell:lora ; wert=CHAT
+pseudonymisierung an => stell:pseudonymize ; wert=true
+pseudonymisierung aus => stell:pseudonymize ; wert=false
+namen sollen vor dem senden ersetzt werden, schalte das ein => stell:pseudonymize ; wert=true
+websuche einschalten => stell:web ; wert=true
+internet suche deaktivieren => stell:web ; wert=false
+dokumente erstellen an => stell:documents ; wert=true
+automatisch das passende modell nehmen, an => stell:auto_model ; wert=true
+auto modell aus => stell:auto_model ; wert=false
+schritte einklappen aus => stell:collapse_steps ; wert=false
+arbeitsschritte einklappen an => stell:collapse_steps ; wert=true
+startanimation wieder einschalten => stell:start_animation ; wert=true
+keine animation beim start => stell:start_animation ; wert=false
+ruhigere bewegungen an => stell:lora_calm ; wert=true
+nur lokal arbeiten, nichts mehr an den server => stell:lora_place ; wert=LOCAL
+lora nur über den server => stell:lora_place ; wert=SERVER
+mischmodus einschalten => stell:lora_place ; wert=MIXED
+lora offline betreiben => stell:lora_place ; wert=LOCAL
+lora darf wieder tanzen => stell:lora_calm ; wert=false

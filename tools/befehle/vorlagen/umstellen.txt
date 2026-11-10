@@ -1,0 +1,60 @@
+# Einstellungen umstellen. v:<Wert>: Formulierungen für genau diesen Wert; o: Bezeichnungen für die An/Aus-Träger.
+== stell:theme
+v:DARK: mach dunkel | dunkel bitte | dunkelmodus an | dark mode an | stell auf dunkel | dunkles design einschalten | auf dunkel umstellen | nachtmodus einschalten | dunkler hintergrund bitte | mach die app dunkel | schalte auf dunkel | ich will es dunkel | dunkel | dunkles thema aktivieren | dark mode | switch to dark | dark theme please | enable dark mode | mach das design dunkel | es ist zu hell, mach dunkel | dunkelmodus aktivieren | bitte dunkles design
+v:LIGHT: mach hell | hell bitte | heller modus | stell auf hell | helles design einschalten | auf hell umstellen | dunkelmodus aus | dark mode aus | nachtmodus ausschalten | mach die app wieder hell | schalte auf hell | ich will es hell | hell | light mode | switch to light | light theme please | disable dark mode | weißer hintergrund bitte | dunkel ausmachen | mach das design hell | helles thema aktivieren
+v:SYSTEM: design wie das system | helligkeit wie das system | wie das system | theme automatisch nach system | stell die helligkeit auf system | hell und dunkel wie in windows | folge der systemeinstellung | use system theme | design nach systemeinstellung | helligkeit dem system anpassen
+
+== stell:text_size
+v:0.9: schrift kleiner | schrift klein | kleinere schrift | mach die schrift kleiner | text kleiner | schriftgröße klein | stell die schrift auf klein | die schrift ist zu groß, kleiner bitte | smaller font | make the text smaller | schrift verkleinern | buchstaben kleiner
+v:1.0: schrift normal | schriftgröße normal | normale schrift | stell die schrift wieder auf normal | schrift zurück auf standard | textgröße normal | normal font size | schriftgröße zurücksetzen | schrift wieder wie vorher normal
+v:1.15: schrift größer | schrift groß | größere schrift | mach die schrift größer | text größer | schriftgröße groß | stell die schrift auf groß | ich kann das nicht lesen, größer bitte | bigger font | make the text bigger | larger font | schrift vergrößern | buchstaben größer | die schrift bitte etwas größer
+v:1.3: schrift sehr groß | schriftgröße sehr groß | sehr große schrift | mach die schrift sehr groß | stell die schrift auf sehr groß | text ganz groß | die größte schrift bitte | schrift maximal | very large font | schrift riesig | so groß wie möglich die schrift
+
+== stell:language
+v:en: stell auf englisch | sprache englisch | app auf englisch | oberfläche auf englisch | englisch bitte | switch to english | english please | mach die app englisch | sprache auf english | change language to english | auf englisch umstellen | ich möchte die app auf englisch | set language to english
+v:de: stell auf deutsch | sprache deutsch | app auf deutsch | oberfläche auf deutsch | deutsch bitte | switch to german | german please | mach die app wieder deutsch | sprache auf german | change language to german | auf deutsch umstellen | zurück auf deutsch | set language to german
+
+== stell:lora
+v:OFF: lora ausblenden | lora aus | lora ausschalten | blende lora aus | lora weg | ich will lora nicht sehen | versteck lora | lora verstecken | schalte lora ab | lora bitte ausblenden | hide lora | turn lora off | lora soll verschwinden | figur ausblenden | lora deaktivieren
+v:CHAT: lora nur im chat | lora nur im chat anzeigen | zeig lora nur im chat | lora soll nur im chat erscheinen | lora auf nur im chat stellen | lora only in chat | lora nur noch im chat
+v:EVERYWHERE: lora überall | lora überall anzeigen | lora wieder einblenden | zeig lora überall | lora einschalten | lora an | lora soll überall erscheinen | blende lora wieder ein | show lora everywhere | lora wieder anzeigen | lora zurückholen | lora aktivieren
+
+== stell:lora_place
+v:LOCAL: lora nur lokal | arbeite nur lokal | lora soll nur lokal arbeiten | nur noch auf diesem gerät arbeiten | nichts mehr an den server schicken | stell lora auf nur lokal | lora offline | lora ohne server betreiben | alles auf dem gerät lassen | work locally only | lora local only | kein server mehr für lora | lora soll offline arbeiten | schalte lora auf lokal
+v:SERVER: lora nur server | lora nur über den server | stell lora auf nur server | lora soll nur den server nutzen | sprachmodelle nur auf dem server | kein lokales modell für lora | lora server only | use the server only | schalte lora auf server | lora soll alles über den uni-server machen
+v:MIXED: lora gemischt | stell lora auf gemischt | mischmodus einschalten | lora soll selbst entscheiden wo sie arbeitet | mischmodus an | lora wieder gemischt | gemischter modus für lora | lora mixed mode | lokal und server gemischt | lora soll je anfrage entscheiden
+
+== stell:pseudonymize
+o: pseudonymisierung | die pseudonymisierung | namen ersetzen | das ersetzen von namen | anonymisierung | pseudonymization | namensersetzung
+v:true: namen bitte ersetzen | ersetze namen vor dem senden | ich will dass namen ersetzt werden | namen sollen nicht an den server | pseudonymisiere meine eingaben | bitte namen schützen
+v:false: namen nicht mehr ersetzen | hör auf namen zu ersetzen | lass die namen wie sie sind | keine platzhalter mehr für namen | namen nicht pseudonymisieren
+
+== stell:web
+o: websuche | die websuche | internetsuche | web suche | suche im internet | web search | die suche im web
+v:true: das modell darf im internet suchen | erlaube die suche im web | lass das modell im netz suchen | ich brauche die internetsuche, an
+v:false: keine websuche | keine internetsuche mehr | das modell soll nicht im internet suchen | verbiete die suche im web | ohne websuche bitte
+
+== stell:documents
+o: dokumente erstellen | das erstellen von dokumenten | dokumentwerkzeug | dokumenterstellung | document creation | werkzeug dokumente erstellen
+v:true: der chat darf dokumente erstellen | erlaube das erstellen von pdf und word | lass den chat dateien erzeugen
+v:false: keine dokumente mehr erstellen | der chat soll keine dateien erzeugen | verbiete das erstellen von dokumenten
+
+== stell:auto_model
+o: modell automatisch wählen | automatische modellwahl | auto modell | modellautomatik | automatisches modell | automatic model choice
+v:true: wähle das modell automatisch | such das modell selbst aus | die app soll das modell selbst wählen | nimm immer automatisch das passende modell | modell automatisch
+v:false: modell nicht mehr automatisch wählen | ich wähle das modell selbst | keine automatische modellwahl | hör auf das modell selbst auszusuchen
+
+== stell:collapse_steps
+o: arbeitsschritte einklappen | einklappen der arbeitsschritte | schritte einklappen | das einklappen der schritte | collapse steps
+v:true: klapp die arbeitsschritte ein | arbeitsschritte immer einklappen | schritte bitte eingeklappt lassen | zeig die arbeitsschritte nicht ausgeklappt | werkzeugschritte einklappen
+v:false: arbeitsschritte nicht einklappen | arbeitsschritte ausklappen | zeig die arbeitsschritte immer offen | schritte nicht mehr einklappen | ich will die schritte sehen
+
+== stell:start_animation
+o: startanimation | die startanimation | animation beim start | start animation | die animation beim öffnen
+v:true: zeig die startanimation wieder | animation beim start wieder zeigen | ich will die startanimation zurück
+v:false: keine startanimation | keine animation beim start | ohne startanimation starten | die animation am anfang weglassen | skip the start animation | startanimation weg
+
+== stell:lora_calm
+o: ruhigere bewegungen | ruhige bewegungen | ruhigere bewegungen für lora | calm mode für lora | calmer movements
+v:true: lora soll ruhiger sein | lora soll sich weniger bewegen | lora bitte ruhiger | weniger gezappel von lora | lora soll nicht mehr tanzen | lora soll aufhören herumzulaufen | lora ruhig stellen | make lora calmer | beweg dich weniger lora
+v:false: lora darf sich wieder bewegen | lora soll wieder tanzen | lora wieder lebendig | mehr bewegung für lora | lora darf wieder herumlaufen | lora wieder mit allen bewegungen

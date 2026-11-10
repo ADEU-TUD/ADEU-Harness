@@ -1,0 +1,2517 @@
+{
+  "basis": "deepset/gbert-base",
+  "revision": null,
+  "schichten": null,
+  "eingefroren": true,
+  "daten": 26360,
+  "parameter": 110064562,
+  "epochen": [
+    {
+      "epoche": 1,
+      "verlust": 4.2185,
+      "genau_dev": 27.9,
+      "schwelle": 0.3,
+      "treffer": 1.9,
+      "falsch_ausgefuehrt": 0.2,
+      "frei_weitergegeben": 100.0,
+      "guete": 0.9,
+      "minuten": 6.2
+    },
+    {
+      "epoche": 2,
+      "verlust": 3.5657,
+      "genau_dev": 34.8,
+      "schwelle": 0.3,
+      "treffer": 6.3,
+      "falsch_ausgefuehrt": 0.4,
+      "frei_weitergegeben": 100.0,
+      "guete": 4.3,
+      "minuten": 6.5
+    },
+    {
+      "epoche": 3,
+      "verlust": 3.3562,
+      "genau_dev": 36.3,
+      "schwelle": 0.3,
+      "treffer": 7.1,
+      "falsch_ausgefuehrt": 0.4,
+      "frei_weitergegeben": 100.0,
+      "guete": 5.1,
+      "minuten": 5.8
+    }
+  ],
+  "beste_epoche": 3,
+  "schwelle": 0.3,
+  "schwellen_entwicklung": [
+    {
+      "schwelle": 0.3,
+      "treffer": 7.1,
+      "falsch_ausgefuehrt": 0.4,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.4,
+      "treffer": 3.6,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.5,
+      "treffer": 2.2,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.6,
+      "treffer": 1.6,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.7,
+      "treffer": 1.4,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.75,
+      "treffer": 0.8,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.8,
+      "treffer": 0.5,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.85,
+      "treffer": 0.3,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.9,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.93,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.95,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.97,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.98,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    },
+    {
+      "schwelle": 0.99,
+      "treffer": 0.0,
+      "falsch_ausgefuehrt": 0.0,
+      "frei_weitergegeben": 100.0
+    }
+  ],
+  "entwicklung": {
+    "befehle": 364,
+    "treffer": 7.1,
+    "befehl_weitergegeben": 92.3,
+    "falsch_ausgefuehrt": 0.4,
+    "frei": 94,
+    "frei_weitergegeben": 100.0,
+    "frei_art_richtig": 77.9
+  },
+  "fehler_entwicklung": [
+    [
+      "aktionen:52",
+      "duplikate finden",
+      "tu:files.duplicates",
+      "tu:files.duplicates",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:53",
+      "gibt es hier dateien doppelt",
+      "tu:files.duplicates",
+      "tu:files.duplicates",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:54",
+      "aufräumen",
+      "tu:files.tidy",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:55",
+      "ordne die dateien nach typ",
+      "tu:files.tidy",
+      "tu:files.trash",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:56",
+      "räum mal nach monat auf",
+      "tu:files.tidy",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:57",
+      "lösch die ausgewählten dateien",
+      "tu:files.trash",
+      "tu:files.trash",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:58",
+      "in den papierkorb damit",
+      "tu:files.trash",
+      "tu:files.tidy",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:59",
+      "pack die markierten in den ordner Forschung",
+      "tu:files.move",
+      "tu:files.rename_by_content",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:60",
+      "verschieben nach „Verwaltung/Dienstreisen“",
+      "tu:files.move",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:61",
+      "umbenennen in Expose_final.pdf",
+      "tu:files.rename",
+      "tu:files.rename",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:62",
+      "nenn die datei „Gutachten Zweitprüfer“",
+      "tu:files.rename",
+      "tu:files.rename",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:63",
+      "dateien nach inhalt umbenennen",
+      "tu:files.rename_by_content",
+      "tu:files.trash",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:64",
+      "schlagwort Lehre vergeben",
+      "tu:files.tag",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:65",
+      "tagge die dateien mit Seminar, WS26",
+      "tu:files.tag",
+      "tu:files.tag",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:66",
+      "verschrifte die audiodatei",
+      "tu:files.transcribe",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:67",
+      "handout aus der markierten datei",
+      "tu:files.handout",
+      "tu:files.handout",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:68",
+      "ab in die nextcloud damit",
+      "tu:files.to_nextcloud",
+      "tu:files.to_nextcloud",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:69",
+      "im pdf werkzeugkasten öffnen",
+      "tu:pdf.open",
+      "tu:pdf.open",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:70",
+      "bearbeite dieses pdf",
+      "tu:pdf.open",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:71",
+      "zusammenfügen",
+      "tu:pdf.merge",
+      "tu:pdf.delete_pages",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:72",
+      "pdfs verbinden",
+      "tu:pdf.merge",
+      "tu:pdf.ocr",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:73",
+      "füg die ausgewählten pdfs zu einer datei zusammen",
+      "tu:pdf.merge",
+      "tu:files.rename",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:74",
+      "pdf teilen, seiten 1-3 und 4-10",
+      "tu:pdf.split",
+      "tu:pdf.split",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:79",
+      "dreh alles um 270 grad",
+      "tu:pdf.rotate",
+      "tu:pdf.rotate",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:80",
+      "verkleinern",
+      "tu:pdf.compress",
+      "tu:pdf.delete_pages",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:81",
+      "komprimiere das pdf",
+      "tu:pdf.compress",
+      "tu:pdf.split",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:83",
+      "mach den scan durchsuchbar",
+      "tu:pdf.ocr",
+      "tu:pdf.ocr",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:84",
+      "als markdown umwandeln",
+      "tu:pdf.convert",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:87",
+      "schwärze die begriffe Kowalczyk, Matrikelnummer",
+      "tu:pdf.redact",
+      "tu:pdf.redact",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:88",
+      "hilf mir beim schreiben: ein absatz zur methodik",
+      "tu:doc.write",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:89",
+      "schreib an der stelle eine zusammenfassung des kapitels",
+      "tu:doc.write",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:90",
+      "flussdiagramm hier einfügen: antrag stellen, prüfen, genehmigen",
+      "tu:doc.diagram",
+      "tu:doc.insert_table",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:93",
+      "präsentation aus dem pdf bauen",
+      "tu:slides.from_paper",
+      "tu:pdf.split",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:94",
+      "aus dem ausgewählten paper folien machen",
+      "tu:slides.from_paper",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:98",
+      "doppelte zeilen raus und leerzeichen weg",
+      "tu:sheet.clean",
+      "tu:sheet.clean",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:99",
+      "daten bereinigen",
+      "tu:sheet.clean",
+      "tu:sheet.clean",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:100",
+      "summe",
+      "tu:sheet.summary",
+      "tu:sheet.summary",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:102",
+      "häufigkeit der Noten",
+      "tu:sheet.distribution",
+      "tu:sheet.distribution",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:103",
+      "wie oft kommt jede note vor",
+      "tu:sheet.distribution",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:104",
+      "durchschnitt der Note pro Studiengang",
+      "tu:sheet.group",
+      "tu:sheet.group",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:105",
+      "anzahl je Kurs",
+      "tu:sheet.group",
+      "tu:sheet.group",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:111",
+      "folie 2 löschen",
+      "tu:slides.delete",
+      "tu:slides.delete",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:112",
+      "diese folie kann weg",
+      "tu:slides.delete",
+      "tu:slides.delete",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:113",
+      "übergänge schieben für alle folien",
+      "tu:slides.animate",
+      "tu:slides.notes",
+      "falsch ausgeführt"
+    ],
+    [
+      "aktionen:114",
+      "animationen raus",
+      "tu:slides.animate",
+      "tu:slides.animate",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:115",
+      "folie aufhübschen",
+      "tu:slides.beautify",
+      "tu:slides.beautify",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:117",
+      "notizen für den vortrag schreiben",
+      "tu:slides.notes",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:118",
+      "sprechernotizen ergänzen",
+      "tu:slides.notes",
+      "tu:slides.notes",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:119",
+      "exportieren",
+      "tu:video.export",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:122",
+      "untertitel",
+      "tu:video.subtitles/ort:place.video.subtitles",
+      "tu:video.subtitles",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:123",
+      "erstelle untertitel aus dem ton",
+      "tu:video.subtitles",
+      "tu:video.subtitles",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:125",
+      "hier schneiden",
+      "tu:video.split",
+      "tu:video.split",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:127",
+      "rohschnitt machen",
+      "tu:video.rough_cut/ort:place.video.roughcut",
+      "tu:video.rough_cut",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:129",
+      "clip langsamer, halbe geschwindigkeit",
+      "tu:video.speed",
+      "tu:video.speed",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:130",
+      "video auf 5 minuten kürzen, beispiele behalten",
+      "tu:video.shorten",
+      "tu:video.shorten",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:131",
+      "split the pdf into single pages",
+      "tu:pdf.split",
+      "tu:pdf.convert",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:132",
+      "rotate page 2",
+      "tu:pdf.rotate",
+      "tu:pdf.delete_pages",
+      "weitergegeben"
+    ],
+    [
+      "aktionen:133",
+      "clean up the table",
+      "tu:sheet.clean",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:38",
+      "dunkelmodus an pls",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:39",
+      "schrift groesser",
+      "stell:text_size/ort:option.appearance.textsize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:40",
+      "wo is der pdf werkzeugkasten",
+      "ort:tool.pdf",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:41",
+      "ich such die einstelungen für die stimme",
+      "ort:option.voice.engine/ort:settings.voice",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:42",
+      "kannst du mal die duplikate rausuchen",
+      "tu:files.duplicates",
+      "tu:files.to_nextcloud",
+      "weitergegeben"
+    ],
+    [
+      "alltag:43",
+      "datenschtz",
+      "ort:settings.privacy",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:44",
+      "hey, mach mal literatur auf",
+      "ort:area.literature",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:45",
+      "hmm wo war nochmal der papierkorb",
+      "ort:settings.trash/ort:place.files.places",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:46",
+      "zeig mal bitte die modelle die es gibt",
+      "ort:area.models",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:47",
+      "servus, wie krieg ich die app auf englisch",
+      "ort:option.appearance.language/stell:language",
+      "ort:option.memory.learn",
+      "weitergegeben"
+    ],
+    [
+      "alltag:48",
+      "bitte die startanimation ausmachen, danke",
+      "stell:start_animation",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:49",
+      "könnte lora bitte ruhiger sein",
+      "stell:lora_calm",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:50",
+      "open literature",
+      "ort:area.literature",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:51",
+      "where are the privacy settings",
+      "ort:settings.privacy",
+      "ort:settings.privacy",
+      "weitergegeben"
+    ],
+    [
+      "alltag:52",
+      "i want to scan something",
+      "ort:area.scan",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:53",
+      "disable pseudonymization",
+      "stell:pseudonymize",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:54",
+      "switch to light theme",
+      "stell:theme",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:55",
+      "TRESOR ÖFFNEN",
+      "ort:tool.vault",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:56",
+      "DATEIEN BITTE",
+      "ort:area.files",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:57",
+      "api-schlüssel?",
+      "ort:settings.api",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:58",
+      "sync einrichten pls",
+      "ort:settings.sync",
+      "ort:place.pdf.save",
+      "weitergegeben"
+    ],
+    [
+      "alltag:59",
+      "kurze frage, wo ist das logo für briefe",
+      "ort:option.documents.logo",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:60",
+      "sag mal wo kann ich nen bug melden",
+      "ort:settings.help",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:61",
+      "ich will nicht dass das ding im hintergrund weiterläuft",
+      "ort:option.desktop.tray",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "alltag:62",
+      "mach mal ne tour hier",
+      "lora:tour",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:64",
+      "räum hier ma auf",
+      "tu:files.tidy",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:65",
+      "mach untertitel dran",
+      "tu:video.subtitles",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "alltag:66",
+      "die tabelle is voll durcheinander, mach die sauber",
+      "tu:sheet.clean",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:93",
+      "neuer chat",
+      "ort:area.chat",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:94",
+      "ich hab ne frage, mach mal nen frischen chat auf",
+      "ort:area.chat",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:95",
+      "öffne dateien",
+      "ort:area.files",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:96",
+      "wo finde ich die datei von gestern",
+      "ort:area.files/ort:place.files.search",
+      "ort:place.files.sort",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:97",
+      "my files",
+      "ort:area.files",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:98",
+      "literatur",
+      "ort:area.literature",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:99",
+      "zu meiner literatursammlung",
+      "ort:area.literature",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:100",
+      "wo importiere ich bibtex",
+      "ort:area.literature",
+      "ort:option.lora.mode",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:101",
+      "transkribieren",
+      "ort:area.transcripts",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:102",
+      "ich hab eine aufnahme vom seminar und brauch den text",
+      "ort:area.transcripts",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:103",
+      "scannen",
+      "ort:area.scan",
+      "ort:area.scan",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:104",
+      "dokument scannen",
+      "ort:area.scan",
+      "ort:area.scan",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:105",
+      "ich hab hier ne quittung auf papier",
+      "ort:area.scan",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:106",
+      "bilder erzeugen",
+      "ort:area.images",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:107",
+      "ich brauche eine illustration, wo mach ich das",
+      "ort:area.images",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:108",
+      "aufgaben planen",
+      "ort:area.tasks",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:109",
+      "zeitgesteuerte aufgaben",
+      "ort:area.tasks",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:110",
+      "modelle",
+      "ort:area.models",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:111",
+      "liste aller modelle vom uni server",
+      "ort:area.models",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:112",
+      "modelle vergleichen",
+      "ort:area.compare",
+      "ort:area.compare",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:113",
+      "dieselbe frage an zwei modelle",
+      "ort:area.compare",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:114",
+      "modelle auf diesem gerät",
+      "ort:area.local",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:115",
+      "ich will offline arbeiten, wo krieg ich ein modell her",
+      "ort:area.local",
+      "ort:option.updates.auto",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:116",
+      "tokenverbrauch",
+      "ort:area.usage",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:117",
+      "statistik meiner anfragen",
+      "ort:area.usage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:118",
+      "umgebungen",
+      "ort:area.environments",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:119",
+      "netzwerkzugriff für agenten einstellen",
+      "ort:area.environments",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:120",
+      "tu vorlagen und gestalten",
+      "ort:area.templates/ort:place.create.templates",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:121",
+      "zum erstellen-bereich",
+      "ort:area.templates",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:122",
+      "geh in die einstellungen",
+      "ort:area.settings",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:123",
+      "settings",
+      "ort:area.settings",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:124",
+      "einstellungsübersicht",
+      "ort:area.settings",
+      "ort:settings.transcription",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:125",
+      "pdf-tools",
+      "ort:tool.pdf",
+      "ort:tool.pdf",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:126",
+      "PDF Werkzeug",
+      "ort:tool.pdf",
+      "ort:tool.pdf",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:127",
+      "ich muss was unterschreiben, ist ein pdf",
+      "ort:tool.pdf",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:128",
+      "zum tresor",
+      "ort:tool.vault",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:129",
+      "geschützter bereich mit pin",
+      "ort:tool.vault",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:130",
+      "ein memory spiel für die vorlesung erstellen",
+      "ort:tool.games",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:131",
+      "escape room bauen",
+      "ort:tool.games",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:132",
+      "mail & kalender",
+      "ort:tool.mail",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:133",
+      "massenkontrolle",
+      "ort:tool.batch",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:134",
+      "viele dateien auf einmal mit demselben auftrag bearbeiten",
+      "ort:tool.batch",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:135",
+      "antrags-werkstatt öffnen",
+      "ort:tool.proposals",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:136",
+      "drittmittelantrag vorbereiten",
+      "ort:tool.proposals",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:137",
+      "video",
+      "ort:tool.video",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:138",
+      "videoschnitt",
+      "ort:tool.video",
+      "ort:tool.video",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:139",
+      "literatursuche",
+      "ort:mode.literature",
+      "ort:mode.literature",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:140",
+      "such mir studien, modus literatur",
+      "ort:mode.literature",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:141",
+      "literature search mode",
+      "ort:mode.literature",
+      "ort:mode.literature",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:142",
+      "quellen modus",
+      "ort:mode.sources",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:143",
+      "modus mit belegprotokoll",
+      "ort:mode.sources",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:144",
+      "exzerpt",
+      "ort:mode.excerpt",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:145",
+      "exzerpieren",
+      "ort:mode.excerpt",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:146",
+      "planungsmodus",
+      "ort:mode.planning",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:147",
+      "erst planen, dann machen – welcher modus ist das",
+      "ort:mode.planning",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:148",
+      "voice mode",
+      "ort:mode.voice",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:149",
+      "sprachmodus öffnen",
+      "ort:mode.voice",
+      "ort:mode.planning",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:150",
+      "api key",
+      "ort:settings.api",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:151",
+      "schlüssel für den uni-server eintragen",
+      "ort:settings.api",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:152",
+      "github einstellungen",
+      "ort:settings.github",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:153",
+      "verbindungen",
+      "ort:settings.connections",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:154",
+      "tu cloudstore anbinden",
+      "ort:settings.connections",
+      "ort:settings.connections",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:155",
+      "chat & werkzeuge",
+      "ort:settings.chat",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:156",
+      "werkzeuge ein- und ausschalten",
+      "ort:settings.tools",
+      "ort:settings.tools",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:157",
+      "einstellungen werkzeuge",
+      "ort:settings.tools",
+      "ort:settings.tools",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:158",
+      "einstellungen für lora",
+      "ort:settings.lora",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:159",
+      "datenschutzeinstellungen",
+      "ort:settings.privacy",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:160",
+      "zu den datenschutz optionen",
+      "ort:settings.privacy",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:161",
+      "gedächtnis",
+      "ort:settings.memory",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:162",
+      "erinnerungen der app ansehen",
+      "ort:settings.memory",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:163",
+      "einstellungen wissenssammlung",
+      "ort:settings.knowledge",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:164",
+      "zitierstil",
+      "ort:settings.literature",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:165",
+      "literatur & zotero",
+      "ort:settings.literature",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:166",
+      "transkription einstellungen",
+      "ort:settings.transcription",
+      "ort:settings.transcription",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:167",
+      "sprechererkennung konfigurieren",
+      "ort:settings.transcription",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:168",
+      "briefkopf und logos",
+      "ort:settings.documents/ort:option.documents.logo/ort:option.documents.sender",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:169",
+      "vorlesen & spracheingabe",
+      "ort:settings.voice",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:170",
+      "einstellungen darstellung",
+      "ort:settings.appearance",
+      "ort:settings.transcription",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:171",
+      "appearance",
+      "ort:settings.appearance",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:172",
+      "sicherung & umzug",
+      "ort:settings.backup",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:173",
+      "alles exportieren für den neuen rechner",
+      "ort:settings.backup",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:174",
+      "papierkorb in den einstellungen",
+      "ort:settings.trash",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:175",
+      "chat versehentlich gelöscht",
+      "ort:settings.trash",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:176",
+      "ram verbrauch messen",
+      "ort:settings.ram",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:177",
+      "app hängt, speicher freigeben",
+      "ort:settings.ram",
+      "ort:settings.ram",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:178",
+      "ordner vom pc für den agenten",
+      "ort:settings.folders",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:179",
+      "sync",
+      "ort:settings.sync",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:180",
+      "datenordner in onedrive legen",
+      "ort:settings.sync/ort:settings.storage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:181",
+      "speicherort ändern",
+      "ort:settings.storage",
+      "ort:settings.updates",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:182",
+      "updates",
+      "ort:settings.updates",
+      "ort:settings.updates",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:183",
+      "welche version hab ich",
+      "ort:settings.updates",
+      "ort:option.updates.auto",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:184",
+      "nach neuer version suchen",
+      "ort:settings.updates",
+      "stell:web",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:185",
+      "feedback geben",
+      "ort:settings.help",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "bereiche:186",
+      "die app ist abgestürzt, wem sag ich das",
+      "ort:settings.help",
+      "ort:option.memory.learn",
+      "weitergegeben"
+    ],
+    [
+      "lora:25",
+      "tour",
+      "lora:tour/ort:option.lora.tours",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:26",
+      "mach mal einen rundgang durch die dateien",
+      "lora:tour",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:27",
+      "zeig mir wie man hier arbeitet",
+      "lora:tour",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:28",
+      "erklär mir diesen bereich kurz mit einer tour",
+      "lora:tour",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:29",
+      "letzte chats",
+      "lora:chats",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:30",
+      "wo war der chat mit der gliederung für die vorlesung",
+      "lora:chats",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:31",
+      "such den chat zu erasmus",
+      "lora:chats",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:32",
+      "in welchem chat ging es um die reisekosten",
+      "lora:chats",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:33",
+      "woran habe ich zuletzt gearbeitet",
+      "lora:chats",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:34",
+      "frist 01.12.2026 gutachten abgeben in den kalender",
+      "lora:frist",
+      "lora:frist",
+      "weitergegeben"
+    ],
+    [
+      "lora:36",
+      "leg mir eine erinnerung an für den antrag am 2026-12-05",
+      "lora:frist",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:37",
+      "wie geht das mit der pseudonymisierung",
+      "lora:hilfe/ort:option.privacy.pseudonymize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:38",
+      "wie funktioniert die transkription",
+      "lora:hilfe/ort:area.transcripts",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:39",
+      "wie nutze ich projekte",
+      "lora:hilfe",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:40",
+      "wie kann ich modi starten",
+      "lora:hilfe",
+      "ort:option.updates.auto",
+      "weitergegeben"
+    ],
+    [
+      "lora:41",
+      "wie funktioniert das mit den updates",
+      "lora:hilfe/ort:settings.updates",
+      "ort:option.updates.auto",
+      "falsch ausgeführt"
+    ],
+    [
+      "lora:42",
+      "merk dir: briefe immer mit vollem absender",
+      "lora:merken",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:43",
+      "bitte merken, dass ich videos immer für opal exportiere",
+      "lora:merken",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:44",
+      "ich will ab jetzt immer deutsch-englische folien, merk dir das",
+      "lora:merken",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:45",
+      "welche mails von heute sind wichtig",
+      "lora:postfach",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:46",
+      "such in meinem postfach die mail von der personalabteilung",
+      "lora:postfach",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:47",
+      "erstelle aus der mail vom prüfungsamt eine aufgabe",
+      "lora:postfach",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:48",
+      "habe ich morgen termine",
+      "lora:postfach",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:49",
+      "finde einen freien termin mit frau schubert-nagel nächste woche",
+      "lora:postfach",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:50",
+      "vorlage für eine einladung zur sitzung",
+      "vorlage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:51",
+      "ich brauch die vorlage seminarplan",
+      "vorlage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:52",
+      "gutachten vorlage öffnen",
+      "vorlage",
+      "vorlage",
+      "weitergegeben"
+    ],
+    [
+      "lora:53",
+      "gibt es eine vorlage für dienstreiseanträge",
+      "vorlage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:54",
+      "vorlage für eine rundmail an studierende",
+      "vorlage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:55",
+      "tu vorlage aktennotiz",
+      "vorlage",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "lora:56",
+      "give me a tour",
+      "lora:tour",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "lora:57",
+      "find my chat about the conference",
+      "lora:chats",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:79",
+      "helligkeit",
+      "ort:option.appearance.theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:80",
+      "dunkles design",
+      "ort:option.appearance.theme/stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:81",
+      "wo finde ich den nachtmodus",
+      "ort:option.appearance.theme",
+      "ort:option.updates.auto",
+      "weitergegeben"
+    ],
+    [
+      "optionen:82",
+      "stil der app",
+      "ort:option.appearance.style",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:83",
+      "anderes farbschema, office look",
+      "ort:option.appearance.style",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:84",
+      "textgröße wo",
+      "ort:option.appearance.textsize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:85",
+      "ich kann das kaum lesen, wo stell ich die schrift ein",
+      "ort:option.appearance.textsize",
+      "ort:option.desktop.contextmenu",
+      "weitergegeben"
+    ],
+    [
+      "optionen:86",
+      "oberfläche vergrößern",
+      "ort:option.appearance.zoom",
+      "stell:text_size",
+      "weitergegeben"
+    ],
+    [
+      "optionen:87",
+      "skalierung",
+      "ort:option.appearance.zoom",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:88",
+      "sprache der oberfläche",
+      "ort:option.appearance.language",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:89",
+      "where do I change the language",
+      "ort:option.appearance.language",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:90",
+      "startanimation",
+      "ort:option.appearance.startAnimation",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:91",
+      "wo lege ich das standardmodell fest",
+      "ort:option.chat.defaultModel",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:92",
+      "anderes modell als voreinstellung",
+      "ort:option.chat.defaultModel",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:93",
+      "modell automatisch wählen",
+      "ort:option.chat.autoModel",
+      "stell:auto_model",
+      "weitergegeben"
+    ],
+    [
+      "optionen:94",
+      "reasoning stufe",
+      "ort:option.chat.thinking",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:95",
+      "wo stelle ich das nachdenken ein",
+      "ort:option.chat.thinking",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:96",
+      "websuche option",
+      "ort:option.chat.web",
+      "stell:web",
+      "weitergegeben"
+    ],
+    [
+      "optionen:97",
+      "werkzeugschritte eingeklappt lassen",
+      "ort:option.chat.collapse",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:98",
+      "wann fragt der agent nach",
+      "ort:option.chat.approvals",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:99",
+      "freigabe einstellungen",
+      "ort:option.chat.approvals",
+      "ort:settings.transcription",
+      "weitergegeben"
+    ],
+    [
+      "optionen:100",
+      "lora ein- oder ausblenden",
+      "ort:option.lora.mode",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:101",
+      "wo erscheint lora überall, kann ich das ändern",
+      "ort:option.lora.mode",
+      "ort:option.lora.mode",
+      "weitergegeben"
+    ],
+    [
+      "optionen:102",
+      "lora bewegt sich zu viel, wo ändere ich das",
+      "ort:option.lora.calm",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:103",
+      "wo arbeitet lora, einstellung",
+      "ort:option.lora.place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:104",
+      "befehlsmodell laden, wo",
+      "ort:option.lora.place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:105",
+      "pseudonymisierung",
+      "ort:option.privacy.pseudonymize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:106",
+      "namen ersetzen vor dem senden wo",
+      "ort:option.privacy.pseudonymize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:107",
+      "ausnahmeliste für namen",
+      "ort:option.privacy.never",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:108",
+      "stimme",
+      "ort:option.voice.engine",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:109",
+      "wo ändere ich die vorlesestimme",
+      "ort:option.voice.engine",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:110",
+      "absender",
+      "ort:option.documents.sender",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:111",
+      "meine anschrift für den briefkopf",
+      "ort:option.documents.sender",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:112",
+      "logos",
+      "ort:option.documents.logo",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:113",
+      "automatisch nach updates suchen",
+      "ort:option.updates.auto",
+      "ort:option.updates.auto",
+      "weitergegeben"
+    ],
+    [
+      "optionen:114",
+      "github automatisch aktiv",
+      "ort:option.github.auto",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:115",
+      "fragen bevor ein anderes modell genommen wird",
+      "ort:option.chat.autoModelAsk",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:116",
+      "dokumente erstellen option",
+      "ort:option.chat.documents",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:117",
+      "automatisch weitermachen",
+      "ort:option.chat.autoContinue",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:118",
+      "schrittlimit, danach selbst fortsetzen",
+      "ort:option.chat.autoContinue",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:119",
+      "dazulernen",
+      "ort:option.memory.learn",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:120",
+      "soll die app sich nach chats sachen merken, wo",
+      "ort:option.memory.learn",
+      "ort:option.memory.learn",
+      "weitergegeben"
+    ],
+    [
+      "optionen:121",
+      "frühere chats einbeziehen",
+      "ort:option.memory.chats",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:122",
+      "vorschläge aus meinem wissen",
+      "ort:option.memory.suggestions",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:123",
+      "fragen von lora sollen erst im eingabefeld landen",
+      "ort:option.lora.handoffReview",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:124",
+      "nächste schritte unter antworten",
+      "ort:option.lora.nextSteps",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:125",
+      "nutzungsnachweis für ki vorschlagen",
+      "ort:option.lora.aiUse",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:126",
+      "lora zeigt beim tippen orte an, wo geht das aus",
+      "ort:option.lora.typing",
+      "ort:option.lora.typing",
+      "weitergegeben"
+    ],
+    [
+      "optionen:127",
+      "hinweise erlaubt",
+      "ort:option.lora.hints",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:128",
+      "touren",
+      "ort:option.lora.tours/lora:tour",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:129",
+      "lora gedächtnis",
+      "ort:option.lora.memory",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:130",
+      "vorlieben ansehen und löschen",
+      "ort:option.lora.memory",
+      "ort:settings.ram",
+      "weitergegeben"
+    ],
+    [
+      "optionen:131",
+      "protokoll der lora aktionen",
+      "ort:option.lora.log",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:132",
+      "mailserver statt outlook",
+      "ort:option.connections.mailServer",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:133",
+      "im infobereich weiterlaufen",
+      "ort:option.desktop.tray",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:134",
+      "autostart",
+      "ort:option.desktop.autostart",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:135",
+      "lora soll beim hochfahren mit starten",
+      "ort:option.desktop.autostart",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:136",
+      "explorer kontextmenü",
+      "ort:option.desktop.contextmenu",
+      "ort:option.desktop.contextmenu",
+      "weitergegeben"
+    ],
+    [
+      "optionen:137",
+      "windows papierkorb benutzen",
+      "ort:option.desktop.trash",
+      "ort:mode.excerpt",
+      "weitergegeben"
+    ],
+    [
+      "optionen:138",
+      "links als tabs neben der app",
+      "ort:option.desktop.browser",
+      "ort:option.desktop.browser",
+      "weitergegeben"
+    ],
+    [
+      "optionen:139",
+      "dateien durchsuchen",
+      "ort:place.files.search",
+      "tu:files.duplicates",
+      "weitergegeben"
+    ],
+    [
+      "optionen:140",
+      "volltextsuche in meinen dateien",
+      "ort:place.files.search",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:141",
+      "neues dokument anlegen",
+      "ort:place.files.new",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:142",
+      "datei hochladen",
+      "ort:place.files.new",
+      "ort:tool.pdf",
+      "weitergegeben"
+    ],
+    [
+      "optionen:143",
+      "orte in dateien",
+      "ort:place.files.places",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:144",
+      "dateien nach datum sortieren, wo",
+      "ort:place.files.sort",
+      "ort:place.files.sort",
+      "weitergegeben"
+    ],
+    [
+      "optionen:145",
+      "foto aufnehmen für den scan",
+      "ort:place.scan.capture",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:146",
+      "vom scanner einlesen",
+      "ort:place.scan.capture",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:147",
+      "als pdf speichern im scanner",
+      "ort:place.scan.save",
+      "ort:tool.pdf",
+      "weitergegeben"
+    ],
+    [
+      "optionen:148",
+      "pdf öffnen",
+      "ort:place.pdf.open/ort:tool.pdf/tu:pdf.open",
+      "ort:place.pdf.open",
+      "weitergegeben"
+    ],
+    [
+      "optionen:149",
+      "modi des pdf werkzeugkastens",
+      "ort:place.pdf.modes",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "optionen:150",
+      "wo füge ich pdfs zusammen",
+      "ort:place.pdf.merge",
+      "ort:place.pdf.merge",
+      "weitergegeben"
+    ],
+    [
+      "optionen:151",
+      "bearbeitetes pdf teilen oder speichern",
+      "ort:place.pdf.save",
+      "ort:place.pdf.save",
+      "weitergegeben"
+    ],
+    [
+      "optionen:152",
+      "lora sagen was entstehen soll",
+      "ort:place.create.lora",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:153",
+      "vorlagen",
+      "ort:place.create.templates/ort:area.templates",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:154",
+      "mindmap zeichnen",
+      "ort:place.create.diagrams",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:155",
+      "organigramm erstellen",
+      "ort:place.create.diagrams",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:156",
+      "neue vorlage",
+      "ort:place.create.new",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:157",
+      "video projekt anlegen",
+      "ort:place.video.new",
+      "ort:place.video.new",
+      "weitergegeben"
+    ],
+    [
+      "optionen:158",
+      "titel und abspann im video",
+      "ort:place.video.titles",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:159",
+      "untertitel",
+      "ort:place.video.subtitles",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:160",
+      "füllwörter und pausen rausschneiden, wo",
+      "ort:place.video.roughcut",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:161",
+      "bildschirmaufnahme",
+      "ort:place.video.record",
+      "ort:place.video.record",
+      "weitergegeben"
+    ],
+    [
+      "optionen:162",
+      "im transkript schneiden",
+      "ort:place.video.transcript",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:163",
+      "bild in bild",
+      "ort:place.video.pip",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:164",
+      "schnittwerkzeuge",
+      "ort:place.video.tools",
+      "ort:settings.tools",
+      "weitergegeben"
+    ],
+    [
+      "optionen:165",
+      "trimmen und magnet wo",
+      "ort:place.video.tools",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:166",
+      "medienpool einklappen",
+      "ort:place.video.layout",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "optionen:167",
+      "vorschau im vollbild",
+      "ort:place.video.layout",
+      "ort:place.video.record",
+      "weitergegeben"
+    ],
+    [
+      "optionen:168",
+      "video exportieren",
+      "ort:place.video.export",
+      "ort:place.video.export",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:28",
+      "dunkel",
+      "stell:theme/ort:option.appearance.theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:29",
+      "stell auf dunkles design um",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:30",
+      "hell bitte",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:31",
+      "light mode",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:32",
+      "nachtmodus an",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:33",
+      "helligkeit nach system",
+      "stell:theme",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:34",
+      "schrift kleiner",
+      "stell:text_size/ort:option.appearance.textsize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:35",
+      "schrift groß",
+      "stell:text_size",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:36",
+      "ich brauch größere schrift",
+      "stell:text_size/ort:option.appearance.textsize",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:37",
+      "textgröße auf sehr groß",
+      "stell:text_size",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:38",
+      "schrift klein stellen",
+      "stell:text_size",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:39",
+      "oberfläche auf english",
+      "stell:language",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:40",
+      "switch the app to german",
+      "stell:language",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:41",
+      "auf deutsch umstellen",
+      "stell:language",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:42",
+      "lora aus",
+      "stell:lora",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:43",
+      "ich will lora nicht mehr sehen",
+      "stell:lora/ort:option.lora.mode",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:44",
+      "lora überall",
+      "stell:lora",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:45",
+      "lora nur im chat",
+      "stell:lora",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:46",
+      "pseudonymisierung an",
+      "stell:pseudonymize",
+      "stell:pseudonymize",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:47",
+      "pseudonymisierung aus",
+      "stell:pseudonymize",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:48",
+      "namen sollen vor dem senden ersetzt werden, schalte das ein",
+      "stell:pseudonymize",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:49",
+      "websuche einschalten",
+      "stell:web",
+      "stell:web",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:50",
+      "internet suche deaktivieren",
+      "stell:web",
+      "stell:web",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:51",
+      "dokumente erstellen an",
+      "stell:documents",
+      "frei.komplex",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:52",
+      "automatisch das passende modell nehmen, an",
+      "stell:auto_model",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:53",
+      "auto modell aus",
+      "stell:auto_model",
+      "stell:auto_model",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:54",
+      "schritte einklappen aus",
+      "stell:collapse_steps",
+      "stell:collapse_steps",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:55",
+      "arbeitsschritte einklappen an",
+      "stell:collapse_steps",
+      "stell:collapse_steps",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:56",
+      "startanimation wieder einschalten",
+      "stell:start_animation",
+      "stell:auto_model",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:57",
+      "keine animation beim start",
+      "stell:start_animation",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:58",
+      "ruhigere bewegungen an",
+      "stell:lora_calm",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:59",
+      "nur lokal arbeiten, nichts mehr an den server",
+      "stell:lora_place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:60",
+      "lora nur über den server",
+      "stell:lora_place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:61",
+      "mischmodus einschalten",
+      "stell:lora_place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:62",
+      "lora offline betreiben",
+      "stell:lora_place",
+      "frei.einfach",
+      "weitergegeben"
+    ],
+    [
+      "umstellen:63",
+      "lora darf wieder tanzen",
+      "stell:lora_calm",
+      "frei.einfach",
+      "weitergegeben"
+    ]
+  ],
+  "pruef": {
+    "befehle": 302,
+    "treffer": 7.6,
+    "befehl_weitergegeben": 91.1,
+    "falsch_ausgefuehrt": 1.0,
+    "frei": 84,
+    "frei_weitergegeben": 100.0,
+    "frei_art_richtig": 73.5
+  }
+}

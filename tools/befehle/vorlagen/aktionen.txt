@@ -1,0 +1,135 @@
+# Lora handelt im offenen Werkzeug. Der Bereich steht in etiketten.json; „s@pdf,dateien:“ legt ihn für eine Zeile fest.
+# Platzhalter: {DATEI} {ORDNER} {SEITEN} {SEITE} {GRAD} {SPALTE} {SPALTE2} {ZELLE} {ZBEREICH} {DTYP} {BEGRIFFE} {TAGS}
+#              {SPALTEN} {N} {ZEIT} {MIN} {THEMA}
+== tu:files.duplicates
+s: duplikate suchen | finde doppelte dateien | doppelte dateien finden | welche dateien sind doppelt | such nach duplikaten | doppelte rauswerfen | duplikate entfernen | zeig mir doppelte dateien | sind hier dateien mehrfach vorhanden | doppelte in {ORDNER} finden | find duplicates | remove duplicate files | prüfe auf doppelte dateien | gleiche dateien finden | dubletten suchen
+
+== tu:files.tidy
+s: räum auf | aufräumen bitte | räum den ordner auf | ordner aufräumen | bring ordnung in den ordner | sortiere die dateien in unterordner | räum hier bitte auf | ordne die dateien nach typ | nach dateityp aufräumen | räum nach semester auf | ordne die dateien nach semester | dateien nach monat ordnen | räum auf nach monat | mach hier ordnung | sortiere alles nach art in ordner | die dateien liegen kreuz und quer, räum auf | tidy up this folder | clean up the folder | organize the files by type | ordner {ORDNER} aufräumen | räum {ORDNER} nach semester auf | unterordner nach typ anlegen und einsortieren
+
+== tu:files.trash
+s: ab in den papierkorb | in den müll damit | das kann in den papierkorb | wegwerfen
+s: lösche die ausgewählten dateien | ausgewählte dateien löschen | die markierten dateien in den papierkorb | wirf die auswahl weg | lösch die markierten | die datei kann weg | diese dateien löschen | leg das in den papierkorb | lösche {DATEI} | {DATEI} in den papierkorb | {DATEI} löschen | weg mit den markierten dateien | delete the selected files | move this to the trash | entferne die ausgewählten dateien
+
+== tu:files.move
+s: verschiebe die dateien nach {ORDNER} | ausgewählte dateien nach {ORDNER} verschieben | pack das in den ordner {ORDNER} | die markierten nach {ORDNER} | verschieb {DATEI} nach {ORDNER} | leg die auswahl in {ORDNER} ab | verschieben nach „{ORDNER}“ | alles markierte in den ordner {ORDNER} schieben | move the files to {ORDNER} | move this into {ORDNER} | schieb die dateien nach {ORDNER} | {DATEI} in den ordner {ORDNER} | die dateien gehören nach {ORDNER}, verschiebe sie | ablegen unter {ORDNER}
+
+== tu:files.rename
+s: benenne die datei um in {DATEI} | datei umbenennen in {DATEI} | nenn die datei {DATEI} | umbenennen zu {DATEI} | ändere den namen in {DATEI} | die datei soll {DATEI} heißen | gib der datei den namen „{DATEI}“ | rename the file to {DATEI} | rename this to {DATEI} | neuer name: {DATEI} | benenn {DATEI} um in {DATEI} | dateiname ändern auf {DATEI}
+
+== tu:files.rename_by_content
+s: benenne die dateien nach ihrem inhalt um | dateien nach inhalt umbenennen | gib den dateien passende namen | sinnvolle dateinamen vergeben | die scans heißen alle scan001, gib ihnen richtige namen | nenn die dateien nach dem was drinsteht | automatische namen nach inhalt | rename the files by their content | give these files meaningful names | dateinamen aus dem inhalt ableiten | benenn die pdfs nach titel und datum um
+
+== tu:files.tag
+s: vergib das schlagwort {TAGS} | schlagwörter {TAGS} vergeben | tagge die dateien mit {TAGS} | gib den dateien die tags {TAGS} | markiere die auswahl mit dem schlagwort {TAGS} | schlagwort {TAGS} hinzufügen | versieh die dateien mit {TAGS} | tag these files with {TAGS} | add the tags {TAGS} | die dateien verschlagworten mit {TAGS} | hänge {TAGS} als schlagwörter an
+
+== tu:files.transcribe
+s: transkribiere die datei | transkribier die ausgewählte aufnahme | verschrifte die aufnahme | mach aus der audiodatei text | die markierte mp3 transkribieren | transkript von {DATEI} erstellen | {DATEI} transkribieren | transcribe this recording | transcribe the selected file | aufnahme verschriftlichen | die tondatei abtippen lassen | text aus der aufnahme erzeugen
+
+== tu:files.handout
+s: mach ein handout aus der datei | handout erstellen aus der auswahl | erstelle ein handout zu {DATEI} | aus der markierten datei ein handout machen | handout mit kernaussagen aus dem dokument | baue ein handout aus dieser datei | create a handout from this file | ein thesenpapier aus der datei | handout für das seminar aus {DATEI} | mach daraus ein handout
+
+== tu:files.to_nextcloud
+s: lade die dateien in die nextcloud | ausgewählte dateien in die nextcloud hochladen | schieb das in die nextcloud | kopiere die auswahl in den cloudstore | in die nextcloud damit | {DATEI} in die nextcloud laden | upload to nextcloud | put these files into nextcloud | die markierten dateien in den tu cloudstore | hochladen nach nextcloud in den ordner {ORDNER} | sichere die dateien in der nextcloud
+
+== tu:pdf.open
+s@dateien: öffne das pdf im werkzeugkasten | pdf bearbeiten | bearbeite das ausgewählte pdf | öffne das markierte pdf | im pdf werkzeugkasten öffnen | {DATEI} im werkzeugkasten öffnen | das pdf aufmachen zum bearbeiten | öffne dieses pdf | open this pdf in the toolbox | edit the selected pdf | zeig das pdf im werkzeug | {DATEI} bearbeiten
+
+== tu:pdf.merge
+s@pdf,dateien: füge die pdfs zusammen | pdfs zusammenfügen | zusammenfügen | füge die offenen pdfs zu einem zusammen | mach aus den pdfs eins | führe die pdfs zusammen | pdfs zusammenführen | verbinde die pdfs | die pdfs zu einer datei verbinden | alle offenen pdfs zusammenfügen | füge {DATEI} und {DATEI} zusammen | merge the pdfs | merge these pdfs into one | combine the pdfs | füg die ausgewählten pdfs zusammen | die markierten pdfs vereinigen | alles in ein pdf packen | pdfs aneinanderhängen
+
+== tu:pdf.split
+s@pdf,dateien: teile das pdf | pdf teilen | teile das pdf in einzelne seiten | jede seite als eigenes pdf | pdf in einzelseiten zerlegen | teile das pdf in {SEITEN} | pdf aufteilen in die bereiche {SEITEN} | split the pdf | split this pdf into single pages | trenne das pdf nach seite {SEITE} | zerlege das pdf | das pdf auseinandernehmen, einzelne seiten | teile {DATEI} in einzelne seiten
+
+== tu:pdf.delete_pages
+s@pdf: lösche seite {SEITE} | seite {SEITE} löschen | entferne seite {SEITE} | seiten {SEITEN} löschen | lösche die seiten {SEITEN} | nimm seite {SEITE} raus | seite {SEITE} raus | wirf die seiten {SEITEN} raus | die letzte seite löschen | delete page {SEITE} | remove pages {SEITEN} | entferne die seiten {SEITEN} aus dem pdf | seite {SEITE} kann weg | lösch die leere seite {SEITE}
+
+== tu:pdf.rotate
+s@pdf: dreh seite {SEITE} | seite {SEITE} drehen | drehe die seiten {SEITEN} | seiten {SEITEN} um {GRAD} grad drehen | dreh alle seiten | alle seiten um {GRAD} grad drehen | dreh seite {SEITE} um {GRAD} grad | die seite steht auf dem kopf, dreh sie | rotate page {SEITE} | rotate all pages by {GRAD} degrees | seite {SEITE} nach rechts drehen | dreh das pdf um {GRAD} grad | seite {SEITE} ist quer, bitte drehen | drehe seite {SEITE} im uhrzeigersinn
+
+== tu:pdf.compress
+s@pdf,dateien: verkleinere das pdf | pdf verkleinern | verkleinern | komprimiere das pdf | pdf komprimieren | mach das pdf kleiner | das pdf ist zu groß, mach es kleiner | dateigröße des pdfs reduzieren | pdf schrumpfen | compress the pdf | make this pdf smaller | reduce the pdf size | {DATEI} verkleinern | das pdf für den mailversand verkleinern | komprimier {DATEI}
+
+== tu:pdf.ocr
+s@pdf: texterkennung | texterkennung starten | ocr | lass die texterkennung laufen | mach das pdf durchsuchbar | erkenne den text im scan | text erkennen | ocr über das pdf laufen lassen | den scan durchsuchbar machen | run ocr | make this pdf searchable | text im pdf erkennen lassen | ich kann den text nicht markieren, mach texterkennung | texterkennung für das gescannte pdf
+
+== tu:pdf.convert
+s@pdf,dateien: als word umwandeln | in markdown umwandeln | pdf als docx | zu text machen, das pdf | pdf nach word | in eine textdatei umwandeln
+s@pdf,dateien: wandle das pdf in word um | pdf in word umwandeln | mach aus dem pdf ein word dokument | pdf zu docx | wandle das pdf in markdown um | pdf als text speichern | pdf in txt umwandeln | umwandeln in word | convert the pdf to word | convert this pdf to text | pdf nach markdown | aus dem pdf eine docx machen | {DATEI} in word umwandeln | pdf in {FORMAT} umwandeln | als {FORMAT} exportieren, das pdf | mach daraus eine {FORMAT} datei
+
+== tu:pdf.redact
+s@pdf,dateien: schwärze {BEGRIFFE} | {BEGRIFFE} schwärzen | schwärze im pdf die begriffe {BEGRIFFE} | mach {BEGRIFFE} unkenntlich | alle stellen mit {BEGRIFFE} schwärzen | schwärze den namen {BEGRIFFE} | redact {BEGRIFFE} | black out {BEGRIFFE} | {BEGRIFFE} im pdf unkenntlich machen | bitte {BEGRIFFE} überall schwärzen | schwärzen: {BEGRIFFE}
+
+== tu:doc.write
+s@dokument: hilf mir beim schreiben eines absatzes zu {THEMA} | hilf mir schreiben | schreibhilfe: ein absatz über {THEMA} | formuliere mir hier den einstieg
+s@dokument: schreib eine einleitung zu {THEMA} | schreibe hier einen absatz über {THEMA} | hilf mir schreiben: ein abschnitt zu {THEMA} | schreib an der cursorstelle eine zusammenfassung | ergänze hier einen absatz zu {THEMA} | schreib ein fazit | schreibe den nächsten absatz | formuliere hier eine überleitung | schreib einen abschnitt über {THEMA} ins dokument | write an introduction about {THEMA} here | write a paragraph on {THEMA} | füge hier zwei sätze zu {THEMA} ein | schreib mir hier eine begrüßung | hilf mir, diesen abschnitt zu schreiben | schreib weiter | setze den text fort | schreibe eine kurze danksagung an dieser stelle | entwirf hier den methodenteil zu {THEMA}
+
+== tu:doc.diagram
+s@dokument: zeichne ein diagramm zu {THEMA} | füge ein flussdiagramm ein: {THEMA} | zeichne hier den ablauf {THEMA} | diagramm einfügen zum prozess {THEMA} | mach eine mindmap zu {THEMA} ins dokument | zeichne ein organigramm hier ins dokument | füge einen zeitstrahl ein | zeichne ein ablaufdiagramm an dieser stelle | draw a diagram of {THEMA} here | insert a flowchart | diagramm zum thema {THEMA} zeichnen | stell {THEMA} als diagramm dar, hier im dokument
+
+== tu:doc.insert_table
+s@dokument: füge eine tabelle ein | tabelle einfügen | füge eine tabelle mit den spalten {SPALTEN} ein | tabelle mit {SPALTEN} einfügen | hier eine tabelle mit {N} zeilen | setz eine tabelle an die stelle | tabelle mit den spalten {SPALTEN} und {N} zeilen | insert a table | insert a table with columns {SPALTEN} | leg hier eine tabelle an mit {SPALTEN} | ich brauche an der stelle eine tabelle: {SPALTEN}
+
+== tu:slides.from_document
+s@dokument: mach aus dem dokument eine präsentation | präsentation aus dem dokument | baue folien aus diesem dokument | erstelle eine präsentation aus diesem text | folien aus dem dokument erzeugen | wandle das dokument in folien um | turn this document into slides | make a presentation from this document | aus dem text einen foliensatz bauen | dokument zu präsentation
+
+== tu:slides.from_paper
+s@pdf,dateien: mach aus dem paper eine präsentation | präsentation aus dem paper | baue folien aus dem pdf | folien aus diesem artikel erstellen | erstelle einen vortrag aus dem paper | paper zu folien | make slides from this paper | turn the paper into a presentation | aus dem ausgewählten paper einen foliensatz | präsentation aus {DATEI} bauen | vortrag zu diesem artikel als folien
+
+== tu:sheet.sort
+s@tabelle: sortiere nach {SPALTE} | nach {SPALTE} sortieren | sortier die tabelle nach {SPALTE} | ordne nach {SPALTE} | sortiere nach {SPALTE} absteigend | nach {SPALTE} aufsteigend sortieren | tabelle nach spalte {SPALTE} sortieren | sortieren nach {SPALTE} | sort by {SPALTE} | sort the table by {SPALTE} descending | sortier nach {SPALTE}, größte zuerst | ordne die zeilen nach {SPALTE} | die tabelle bitte nach {SPALTE} ordnen | absteigend nach {SPALTE} sortieren | sortieren | sortier das mal
+
+== tu:sheet.clean
+s@tabelle: bereinige die tabelle | tabelle bereinigen | daten bereinigen | räum die tabelle auf | aufräumen | entferne doppelte zeilen | doppelte zeilen löschen | leere zeilen entfernen | überflüssige leerzeichen entfernen | mach die daten sauber | datumsformate vereinheitlichen | clean the data | remove duplicate rows | clean up this sheet | dubletten in der tabelle entfernen | die tabelle ist unsauber, bereinige sie
+
+== tu:sheet.summary
+s@tabelle: summe und mittelwert | rechne summe und mittelwert aus | summe | mittelwert | füge summen unter die spalten | berechne den durchschnitt der spalten | summen bilden | summe und durchschnitt anfügen | zähl die spalten zusammen | add sum and average | sum up the columns | unten bitte summe und mittelwert | rechne die spalten zusammen | durchschnitt ausrechnen
+
+== tu:sheet.distribution
+s@tabelle: berechne die verteilung | verteilung der {SPALTE} | notenverteilung berechnen | wie oft kommt jeder wert vor | häufigkeit der {SPALTE} | häufigkeiten in spalte {SPALTE} | verteilung von {SPALTE} berechnen | zähle wie oft jede {SPALTE} vorkommt | calculate the distribution of {SPALTE} | frequency of {SPALTE} | mach eine häufigkeitstabelle | wie verteilen sich die werte in {SPALTE}
+
+== tu:sheet.group
+s@tabelle: mittelwert der {SPALTE} je {SPALTE2} | durchschnitt von {SPALTE} pro {SPALTE2} | anzahl je {SPALTE2} | mittelwert je {SPALTE2} | {SPALTE} nach {SPALTE2} auswerten, mittelwert | durchschnitt der {SPALTE} nach {SPALTE2} | schnitt der {SPALTE} pro {SPALTE2} | average {SPALTE} per {SPALTE2} | count per {SPALTE2} | kennzahlen je {SPALTE2} | mittelwert der {SPALTE} für jede {SPALTE2} | anzahl pro {SPALTE2} berechnen
+
+== tu:sheet.explain
+s@tabelle: erkläre die formel | erklär die formel in {ZELLE} | was macht die formel in {ZELLE} | formel in {ZELLE} erklären | was rechnet {ZELLE} | wie funktioniert die formel in zelle {ZELLE} | erklär mir diese formel | explain the formula in {ZELLE} | what does the formula in {ZELLE} do | ich versteh die formel in {ZELLE} nicht | formel erklären
+
+== tu:sheet.chart
+s@tabelle: leg ein diagramm aus {ZBEREICH} an | diagramm aus {ZBEREICH} | {DTYP}diagramm aus {ZBEREICH} | erstelle ein {DTYP}diagramm für {ZBEREICH} | diagramm anlegen für den bereich {ZBEREICH} | mach aus {ZBEREICH} ein diagramm | {ZBEREICH} als {DTYP}diagramm | create a chart from {ZBEREICH} | diagramm vom typ {DTYP} aus {ZBEREICH} | zeichne {ZBEREICH} als diagramm | histogramm aus {ZBEREICH} | boxplot für {ZBEREICH}
+
+== tu:slides.split_full
+s@folien: teile volle folien | volle folien aufteilen | teile die überfüllten folien | folien mit zu vielen stichpunkten aufteilen | zu volle folien auf zwei verteilen | die folien sind zu voll, teil sie auf | split crowded slides | split full slides | überladene folien teilen | lange folien aufsplitten
+
+== tu:slides.delete
+s@folien: lösche folie {N} | folie {N} löschen | entferne folie {N} | lösch diese folie | die folie kann raus | folie {N} raus | nimm folie {N} raus | delete slide {N} | remove this slide | folie {N} entfernen | wirf die ausgewählte folie raus | die aktuelle folie löschen
+
+== tu:slides.animate
+s@folien: setze übergänge | übergang überblenden für alle folien | animationen setzen | alle folien mit übergang schieben | stichpunkte nacheinander einblenden | übergänge entfernen | keine animationen | folie {N} mit überblenden | mach überblendungen zwischen den folien | add transitions | fade between slides | animiere die stichpunkte | übergang schieben setzen | animation raus aus allen folien
+
+== tu:slides.beautify
+s@folien: folie aufpeppen | die folie hübscher machen | folie optisch verbessern | mach was schönes aus der folie
+s@folien: mach die folie schöner | folie verschönern | gestalte die folie besser | hübsch die folie auf | folie {N} schöner machen | verbessere das layout der folie | die folie sieht langweilig aus, mach was | beautify this slide | make this slide look better | schlage ein besseres layout vor | folie ansprechender gestalten | design der folie verbessern
+
+== tu:slides.notes
+s@folien: schreib sprechernotizen | sprechernotizen schreiben | notizen für alle folien | ergänze sprechernotizen | schreib notizen zu folie {N} | mach mir notizen für den vortrag | sprechtext zu den folien | write speaker notes | add notes to the slides | notizen für die folien ohne notizen schreiben | sprechernotizen neu schreiben | was sage ich zu den folien, schreib notizen
+
+== tu:video.export
+s@video: exportiere das video | video exportieren | exportieren | exportier für opal | export für youtube | als mp4 exportieren | render das video | video rausrendern | exportiere in 720p für opal | 1080p für youtube exportieren | export the video | export as mp4 | render for youtube | mach ein mp4 draus | das video ausgeben | fertiges video speichern als mp4
+
+== tu:video.subtitles
+s@video: untertitel erzeugen | erzeuge untertitel | untertitel erstellen | mach untertitel | untertitel aus der transkription | untertitel für das video anlegen | füge untertitel hinzu | generate subtitles | add subtitles | untertitel automatisch erstellen | das video untertiteln | untertitel aus dem ton erzeugen
+
+== tu:video.split
+s@video: teile den clip | clip teilen | schneide bei {ZEIT} | teile bei {ZEIT} | schnitt bei {ZEIT} | teile den clip an der abspielposition | hier schneiden | schneide hier | clip bei {ZEIT} teilen | split the clip at {ZEIT} | cut here | split at {ZEIT} | mach bei {ZEIT} einen schnitt | an dieser stelle teilen
+
+== tu:video.rough_cut
+s@video: mach einen rohschnitt | rohschnitt | rohschnitt erstellen | schneide pausen und füllwörter raus | entferne die pausen | füllwörter rausschneiden | ähs entfernen | pausen herausschneiden | make a rough cut | remove pauses and filler words | schneide die stillen stellen raus | versprecher und pausen raus | rohschnitt ohne füllwörter
+
+== tu:video.faces
+s@video: verpixle die gesichter | gesichter verpixeln | mach die gesichter unkenntlich | gesichter unkenntlich machen | personen verpixeln | gesichter im video anonymisieren | blur the faces | pixelate faces | alle gesichter verpixeln | die personen im video unkenntlich machen | gesichter weichzeichnen
+
+== tu:video.speed
+s@video: clip schneller | clip doppelt so schnell | geschwindigkeit auf {N} | clip langsamer | halbe geschwindigkeit | mach den clip {N}-fach so schnell | spiel den clip schneller ab | zeitraffer für den clip | zeitlupe für den clip | speed up the clip | slow down this clip | double the speed | tempo des clips erhöhen | geschwindigkeit verdoppeln
+
+== tu:video.shorten
+s@video: kürze das video auf {MIN} minuten | video auf {MIN} minuten kürzen | kürze das video | mach das video kürzer | kürze auf {MIN} minuten und behalte die beispiele | das video ist zu lang, kürze es | shorten the video to {MIN} minutes | cut the video down to {MIN} minutes | video straffen auf {MIN} minuten | kürz den film auf das wesentliche | auf höchstens {MIN} minuten kürzen

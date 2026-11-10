@@ -2,6 +2,7 @@
 # Line breaks are written as \n, tabs as \t, backslashes as \\, a leading # as \#. {0}, {1} … are placeholders filled
 # by tr(text, args). Sorted alphabetically; I18nCoverageTest checks that every tr("…"), trLater("…") and Text("…") in the
 # code has a line here (generated lists: see README › Englisch).
+# Erkennungsmodell der Pseudonymisierung (AP-67)
   Die KI prüft den Text …	  The AI is checking the text …
  (Abzweigung)	 (branch)
  (Alt+F)	 (Alt+F)
@@ -125,6 +126,67 @@ A · B · T	A · B · T
 Abgebrochen – nichts verschoben.	Cancelled – nothing moved.
 Abgebrochen – {0} Mails sind schon eingeordnet.	Cancelled – {0} mails are already sorted.
 Ablauf: {0}	Workflow: {0}
+Alle Einstellungen der App.	All settings of the app.
+Alles lässt sich später unter Einstellungen › Lora, › Werkzeuge und › Modelle auf diesem Gerät ändern. Downloads laufen im Hintergrund weiter.	Everything can be changed later under Settings › Lora, › Tools and › Models on this device. Downloads continue in the background.
+Auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Bis dahin laufen freie Anfragen über den Server bzw. gar nicht („Nur lokal“).	No language model is installed on this device yet (Settings › Models on this device). Until then free requests run on the server, or not at all (“Local only”).
+Auftrag fürs Postfach (auf diesem Gerät)	Task for the mailbox (on this device)
+Befehle auf dem Gerät verstehen (empfohlen)	Understand commands on the device (recommended)
+Befehle und kurze Aufgaben auf diesem Gerät, alles Anspruchsvolle über den Uni-Server (Chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).	Commands and short tasks on this device, everything demanding on the university server (chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).
+Befehle verstehen ({0} MB)	Understand commands ({0} MB)
+Befehlsmodell gelöscht.	Command model deleted.
+Befehlsmodell ist bereit.	The command model is ready.
+Befehlsmodell laden ({0} MB)	Download command model ({0} MB)
+Befehlsmodell wird geprüft …	Checking the command model …
+Bereich, Einstellung, Chat – oder sag, was du tun willst …	Area, setting, chat – or say what you want to do …
+Bisher {0} % ohne Server: {1} × sofort auf dem Gerät (Ø {2}), {3} × mit dem Sprachmodell auf diesem Gerät (Ø {4}), {5} × über den Server (Ø {6}). Gemessen wird, bis Lora antwortet oder weitergibt; gezählt werden nur Zahlen, keine Inhalte.	So far {0} % without a server: {1} × instantly on the device (avg {2}), {3} × with the language model on this device (avg {4}), {5} × on the server (avg {6}). Measured until Lora answers or hands over; only numbers are counted, no content.
+Das beantwortet das Modell auf diesem Gerät – ich gebe es weiter.	The model on this device will answer that – I am handing it over.
+Das geht hier: {0}.	That is done here: {0}.
+Die Fragen vom ersten Start erneut stellen	Ask the questions from the first start again
+Die Pseudonymisierung findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht.	Pseudonymization finds names, schools and places more reliably before anything goes to a server.
+Diese Vorlagen könnten passen:	These templates might fit:
+Download des Befehlsmodells fehlgeschlagen: {0}. Bis dahin arbeitet Lora wie bisher.	Downloading the command model failed: {0}. Until then Lora works as before.
+Ein kleines Modell auf diesem Gerät ordnet, was du Lora oder in Strg+K schreibst, in Millisekunden einer Aktion der App zu – offline, auch mit Tippfehlern. Ist es unsicher, führt es nichts aus, sondern Lora fragt wie bisher ein Sprachmodell.	A small model on this device maps what you write to Lora or in Ctrl+K to an action of the app within milliseconds – offline, even with typos. When it is unsure it carries out nothing; Lora asks a language model as before.
+Ein paar kurze Fragen, dann geht es los.	A few short questions, then we can start.
+Einstellung: {0}	Setting: {0}
+Einstellung: {0} → {1}	Setting: {0} → {1}
+Frist in den Kalender	Deadline into the calendar
+Frühere Chats suchen	Search earlier chats
+Für das Befehlsmodell fehlt die ONNX Runtime der App (Spracherkennung) – Lora arbeitet wie bisher.	The command model needs the app's ONNX Runtime (speech recognition), which is missing – Lora works as before.
+Für das Postfach, vertrauliche Daten, kurze Aufgaben und ohne Internet – passt zu diesem Gerät. {0}	For the mailbox, confidential data, short tasks and without internet – fits this device. {0}
+Für diese Version gibt es noch kein Befehlsmodell zum Laden – Lora arbeitet wie bisher.	There is no command model to download for this version yet – Lora works as before.
+Gemischt	Mixed
+Gemischt (empfohlen)	Mixed (recommended)
+Gemischt, nur lokal oder nur über den Server; Befehlsmodell.	Mixed, local only or server only; command model.
+Hier sind die TU Vorlagen: {0}.	Here are the TU templates: {0}.
+Hilfe zur App	Help on the app
+Immer gilt: Ins Postfach schaut nur ein Modell auf diesem Gerät, Projekte „Nur auf diesem Gerät“ und der Tresor behalten ihre Regeln, und vor jeder Server-Anfrage werden Namen ersetzt, wenn die Pseudonymisierung an ist.	Always: only a model on this device looks into the mailbox, projects “Only on this device” and the vault keep their rules, and names are replaced before every server request when pseudonymization is on.
+Lora arbeitet nur lokal	Lora works locally only
+Lora arbeitet nur über den Server	Lora works on the server only
+Lora arbeitet „Nur lokal“, aber auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Befehle verstehe ich trotzdem.	Lora is set to “Local only”, but no language model is installed on this device yet (Settings › Models on this device). I still understand commands.
+Lora entscheidet je Anfrage: Befehle erkennt sie sofort auf diesem Gerät. Kurze, einfache Aufgaben (umformulieren, kurz erklären, eine kurze Nachricht) beantwortet ein Sprachmodell auf diesem Gerät, wenn eines installiert ist und die Hardware reicht. Alles andere – lange Dokumente, Analysen, Bilder, Websuche, mehrere Schritte – läuft wie bisher über den Server.	Lora decides per request: she recognizes commands instantly on this device. Short, simple tasks (rephrasing, a brief explanation, a short message) are answered by a language model on this device if one is installed and the hardware is sufficient. Everything else – long documents, analyses, images, web search, several steps – runs on the server as before.
+Lora erkennt sofort und offline, was du meinst – Bereich öffnen, Einstellung umstellen, PDF zusammenfügen.	Lora recognizes instantly and offline what you mean – open an area, change a setting, merge PDFs.
+Lora kann ein kleines Befehlsmodell laden ({0} MB). Damit erkennt sie auf diesem Gerät in Millisekunden, was du meinst – einen Bereich öffnen, eine Einstellung umstellen, ein PDF zusammenfügen –, auch ohne Internet und mit Tippfehlern. Ist sie unsicher, fragt sie wie bisher ein Sprachmodell. Dabei verlässt nichts das Gerät.	Lora can download a small command model ({0} MB). With it she recognizes on this device within milliseconds what you mean – opening an area, changing a setting, merging PDFs – even without internet and with typos. When she is unsure, she asks a language model as before. Nothing leaves the device for this.
+Lora kann jetzt mehr auf diesem Gerät erledigen – schneller, offline und ohne dass etwas hinausgeht. Such aus, was du möchtest; alles lässt sich später unter Einstellungen › Lora und › Modelle auf diesem Gerät ändern.	Lora can now do more on this device – faster, offline and without anything leaving it. Choose what you want; everything can be changed later under Settings › Lora and › Models on this device.
+Lora macht das: {0}	Lora does it: {0}
+Lora versteht Befehle sofort	Lora understands commands instantly
+Lora › Wo Lora arbeitet	Lora › Where Lora works
+Namen schützen ({0} MB)	Protect names ({0} MB)
+Neu: Modelle für dieses Gerät	New: models for this device
+Nichts geht an einen Server – dafür schlichtere, langsamere Antworten, kurze Texte, keine Websuche. Braucht ein Sprachmodell auf diesem Gerät.	Nothing goes to a server – in exchange plainer, slower answers, short texts, no web search. Needs a language model on this device.
+Nichts geht an einen Server: Lora nutzt nur das Befehlsmodell und ein Sprachmodell auf diesem Gerät. Das kostet: Die Antworten sind schlichter und öfter ungenau, lange Texte passen nicht hinein (etwa 10 bis 25 Seiten statt ganzer Bücher), eine Antwort braucht ohne Grafikkarte oft eine halbe Minute oder länger, und Websuche, Bilder verstehen und lange Werkzeugketten fehlen oder sind unzuverlässig. Sinnvoll für vertrauliche Arbeit oder ohne Internet.	Nothing goes to a server: Lora only uses the command model and a language model on this device. The price: answers are plainer and more often inaccurate, long texts do not fit (about 10 to 25 pages instead of whole books), an answer often takes half a minute or longer without a graphics card, and web search, understanding images and long tool chains are missing or unreliable. Useful for confidential work or without internet.
+Nur Server	Server only
+Projekt „Nur auf diesem Gerät“	Project “Only on this device”
+Sobald du Lora etwas gefragt hast, steht hier, wie oft und wie schnell sie auf diesem Gerät statt über den Server geantwortet hat.	Once you have asked Lora something, this shows how often and how fast she answered on this device instead of the server.
+Sprachmodell {0} ({1} GB)	Language model {0} ({1} GB)
+Sprachmodelle für dieses Gerät findest du später unter Einstellungen › Modelle auf diesem Gerät.	You will find language models for this device later under Settings › Models on this device.
+Sprachmodelle laufen nur auf dem Server, auch für kurze Aufgaben – am genauesten, aber jede Anfrage braucht Internet und geht (pseudonymisiert) hinaus. Befehle erkennt Lora weiter auf diesem Gerät, solange das Befehlsmodell eingeschaltet ist.	Language models only run on the server, even for short tasks – most accurate, but every request needs internet and leaves the device (pseudonymized). Lora still recognizes commands on this device as long as the command model is switched on.
+Sprachmodelle nur über den Uni-Server – am genauesten, braucht immer Internet.	Language models only on the university server – most accurate, always needs internet.
+TU Vorlage suchen	Find a TU template
+Vorliebe merken	Remember a preference
+Welche Modelle sollen auf dieses Gerät?	Which models should be on this device?
+Wo Lora arbeitet	Where Lora works
+Wo soll ich arbeiten?	Where should I work?
+Zähler zurücksetzen	Reset counter
 [Schüler/in 2] statt [Name 2], wenn die Rolle erkennbar ist – das Modell antwortet passender	[Pupil 2] instead of [Name 2] when the role is recognizable – the model answers more fittingly
 \#RRGGBB	\#RRGGBB
 \n\nAPI-Key und Tokens wurden nicht übernommen.	\n\nAPI key and tokens were not taken over.
@@ -904,6 +966,7 @@ Das hat nicht geklappt.	That did not work.
 Dafür braucht es ein Modell auf diesem Gerät.	This needs a model on this device.
 Das übernimmt das Modell auf diesem Gerät im Postfach – ich lese keine Mails.	The model on this device takes care of this in the mailbox – I do not read mails.
 Dateien auflisten, lesen und durchsuchen – nichts wird verändert.	List, read and search files – nothing is changed.
+braucht mehr als das Modell auf diesem Gerät	needs more than the model on this device
 ca.	approx.
 Chat	Chat
 Chat & Werkzeuge	Chat & tools
@@ -2486,6 +2549,8 @@ Kapitel kopiert – in die Beschreibung des YouTube-Videos einfügen.	Chapters c
 Kapitel stehen im MP4 und als Liste für YouTube in den Projekteinstellungen.	Chapters are written into the MP4 and listed for YouTube in the project settings.
 Keine Mails in diesem Ordner.	No mails in this folder.
 Keine Mails passen zur Suche.	No mails match the search.
+kein Modell auf diesem Gerät	no model on this device
+kein Modell erreichbar	no model reachable
 kein Ordner passte	no folder fitted
 Kein Postfach verbunden: unter Windows das klassische Outlook, sonst Einstellungen › Verbindungen › Mail über den Server.	No mailbox connected: on Windows the classic Outlook, otherwise Settings › Connections › Mail via the server.
 Klick schneidet den Clip	Click cuts the clip
@@ -2497,6 +2562,9 @@ Legt „{0}“ als Bild-in-Bild bei {1} …	Puts "{0}" as picture-in-picture at 
 Letzte Woche	Last week
 Letzter Monat	Last month
 Lora kennt diese Auswahl – im Lora-Panel genügt „diese Mails“. Was in den Mails steht, liest nur ein Modell auf diesem Gerät.	Lora knows this selection – in Lora's panel “these mails” is enough. What the mails say is read only by a model on this device.
+kein Server-Modell erreichbar	no server model reachable
+kein passendes Modell auf diesem Gerät	no suitable model on this device
+kurze Aufgabe – läuft auf diesem Gerät	short task – runs on this device
 letzte {0} Tage	last {0} days
 Lora holt die Mails aus dem Postfach …	Lora is fetching the mails from the mailbox …
 Lora liest die Betreffzeilen und überlegt passende Ordner …	Lora is reading the subject lines and thinking of suitable folders …
@@ -2560,6 +2628,7 @@ Nach einem Schritt im Postfach arbeitet nur ein Modell auf diesem Gerät weiter 
 Nur dieser Text geht an {0} – geschrieben vom Modell auf diesem Gerät, Namen pseudonymisiert, ohne Mails, Anhänge und Mail-Kennungen. Der neue Chat kann nicht ins Postfach greifen. Prüfe und ändere ihn vorher.	Only this text goes to {0} – written by the model on this device, names pseudonymized, without mails, attachments and mail IDs. The new chat cannot reach into the mailbox. Check and change it first.
 Passend für diesen PC mit Grafikkarte: {0} – nutzt Werkzeuge und fasst auch viele Mails zügig zusammen.	Suits this PC with a graphics card: {0} – uses tools and summarizes even many mails quickly.
 Passend für diesen PC ohne Grafikkarte: {0} – läuft auf dem Prozessor und nutzt Werkzeuge.	Suits this PC without a graphics card: {0} – runs on the processor and uses tools.
+ohne Server – läuft auf diesem Gerät	without a server – runs on this device
 platziert	placed
 Pos1 · Ende	Home · End
 Position und Größe	Position and size
@@ -5574,6 +5643,7 @@ zugeklappt	folded
 Änderungen verwerfen …	Discard changes …
 Änderungen verwerfen?	Discard changes?
 Änderungen werden nachverfolgt	Changes are being tracked
+Öffnen: {0}	Open: {0}
 öffentlich · Namen bleiben	public · names stay
 Öffentliche Quellen nicht ersetzen	Don't replace public sources
 Öffne die zweite Datei als weiteren Tab (Ordner-Symbol oben).	Open the second file as another tab (folder icon at the top).
@@ -5688,6 +5758,7 @@ zugeklappt	folded
 „{0}“ läuft – du bekommst eine Benachrichtigung, sobald das Ergebnis da ist.	“{0}” is running – you'll get a notification as soon as the result is ready.
 „{0}“ löschen?	Delete “{0}”?
 „{0}“ mit allen Versionen wird gelöscht.	“{0}” will be deleted with all versions.
+„{0}“ steht schon auf „{1}“.	“{0}” is already set to “{1}”.
 „{0}“ verknüpfen	Link “{0}”
 „{0}“ verschieben	Move “{0}”
 „{0}“ wiederhergestellt	“{0}” restored
@@ -6004,7 +6075,6 @@ Sprechertexte für {0} Folien aus den Stichpunkten geschrieben (ohne Modell).	Sp
 „{0}“ ließ sich nicht öffnen.	“{0}” could not be opened.
 „{0}“ speichern	Save “{0}”
 … und {0} weitere Seiten – zum Lesen öffnen.	… and {0} more pages – open it to read.
-# Erkennungsmodell der Pseudonymisierung (AP-67)
 Erkennungsmodell wird geprüft …	Checking the recognition model …
 Erkennungsmodell ist bereit.	The recognition model is ready.
 Download des Erkennungsmodells fehlgeschlagen: {0}. Bis dahin arbeiten die Regeln allein.	Download of the recognition model failed: {0}. Until then the rules work alone.

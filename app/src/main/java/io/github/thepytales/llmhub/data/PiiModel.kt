@@ -149,7 +149,15 @@ fun interface TokenClassifier {
  * detection of the video editor uses it the same way), so no second copy is loaded. Inputs input_ids, attention_mask,
  * token_type_ids (int64, 1 × n), output logits (float, 1 × n × labels).
  */
-class OrtClassifier(lib: File, model: File, threads: Int = 2) : TokenClassifier, AutoCloseable {
+class OrtClassifier(
+    lib: File, model: File, threads: Int = 2,
+    /** Labels of the output: per token (the recognition model) or for the whole input ([perToken] = false, AP-71). */
+    private val labels: Int = PiiModelInfo.LABELS.size,
+    /** Names of the inputs the model has (DistilBERT has no token_type_ids). */
+    inputs: List<String> = INPUTS,
+    private val perToken: Boolean = true,
+    name: String = "lora-pii",
+) : TokenClassifier, AutoCloseable {
     private companion object {
         /** API version asked for: 11 = ONNX Runtime 1.11, all functions used here are older. */
         const val API_VERSION = 11
@@ -159,10 +167,10 @@ class OrtClassifier(lib: File, model: File, threads: Int = 2) : TokenClassifier,
         const val GET_TENSOR_DATA = 51; const val CREATE_CPU_MEMORY_INFO = 69; const val RELEASE_ENV = 92; const val RELEASE_STATUS = 93
         const val RELEASE_MEMORY_INFO = 94; const val RELEASE_SESSION = 95; const val RELEASE_VALUE = 96; const val RELEASE_SESSION_OPTIONS = 100
         const val INT64 = 7
-        val INPUTS = arrayOf("input_ids", "attention_mask", "token_type_ids")
+        val INPUTS = listOf("input_ids", "attention_mask", "token_type_ids")
     }
 
-    private val labels = PiiModelInfo.LABELS.size
+    private val inputs = inputs.toList()
     private val native = NativeLibrary.getInstance(lib.absolutePath)
     private val api: Pointer = run {
         val base = native.getFunction("OrtGetApiBase").invokePointer(arrayOf<Any>()) ?: throw IllegalStateException("OrtGetApiBase")
@@ -184,30 +192,40 @@ class OrtClassifier(lib: File, model: File, threads: Int = 2) : TokenClassifier,
         return ref.value
     }
 
-    private val env = out(CREATE_ENV, 3, "lora-pii")
+    private val env = out(CREATE_ENV, 3, name)
     private val options = out(CREATE_SESSION_OPTIONS).also { call(SET_INTRA_OP_THREADS, it, threads) }
     /** ORTCHAR_T is wchar_t on Windows and char elsewhere. */
     private val session = out(CREATE_SESSION, env, if (System.getProperty("os.name").orEmpty().startsWith("Windows")) WString(model.absolutePath) else model.absolutePath, options)
     private val memInfo = out(CREATE_CPU_MEMORY_INFO, 1, 0)
-    private val inNames = StringArray(INPUTS)
+    private val inNames = StringArray(this.inputs.toTypedArray())
     private val outNames = StringArray(arrayOf("logits"))
 
+    override fun probabilities(ids: LongArray): FloatArray = run(ids, null)
+
+    /**
+     * Runs the model on [ids] ([types]: the token_type_ids, zeros when null) and returns the probabilities of the labels:
+     * row by row per token, or one row for the whole input.
+     */
     @Synchronized
-    override fun probabilities(ids: LongArray): FloatArray {
+    fun run(ids: LongArray, types: LongArray?): FloatArray {
         val n = ids.size
+        val rows = if (perToken) n else 1
         val shape = Memory(16).apply { setLong(0, 1); setLong(8, n.toLong()) }
-        val buffers = listOf(ids, LongArray(n) { 1 }, LongArray(n)).map { values -> Memory(8L * n).apply { write(0, values, 0, n) } }
-        val inputs = buffers.map { out(CREATE_TENSOR_WITH_DATA, memInfo, it, 8L * n, shape, 2L, INT64) }
-        val inArr = Memory(3L * Native.POINTER_SIZE).apply { inputs.forEachIndexed { i, v -> setPointer(i.toLong() * Native.POINTER_SIZE, v) } }
+        val buffers = inputs.map { input ->
+            val values = when (input) { "input_ids" -> ids; "attention_mask" -> LongArray(n) { 1 }; else -> types ?: LongArray(n) }
+            Memory(8L * n).apply { write(0, values, 0, n) }
+        }
+        val tensors = buffers.map { out(CREATE_TENSOR_WITH_DATA, memInfo, it, 8L * n, shape, 2L, INT64) }
+        val inArr = Memory(tensors.size.toLong() * Native.POINTER_SIZE).apply { tensors.forEachIndexed { i, v -> setPointer(i.toLong() * Native.POINTER_SIZE, v) } }
         val outArr = Memory(Native.POINTER_SIZE.toLong()).apply { setPointer(0, Pointer.NULL) }
         try {
-            call(RUN, session, Pointer.NULL, inNames, inArr, 3L, outNames, 1L, outArr)
+            call(RUN, session, Pointer.NULL, inNames, inArr, tensors.size.toLong(), outNames, 1L, outArr)
             val value = outArr.getPointer(0)
             try {
                 val data = out(GET_TENSOR_DATA, value)
-                val logits = data.getFloatArray(0, n * labels)
-                // Softmax per token.
-                for (t in 0 until n) {
+                val logits = data.getFloatArray(0, rows * labels)
+                // Softmax per row.
+                for (t in 0 until rows) {
                     val o = t * labels
                     var max = Float.NEGATIVE_INFINITY
                     for (k in 0 until labels) max = maxOf(max, logits[o + k])
@@ -220,7 +238,7 @@ class OrtClassifier(lib: File, model: File, threads: Int = 2) : TokenClassifier,
                 fn(RELEASE_VALUE).invokeVoid(arrayOf(value))
             }
         } finally {
-            inputs.forEach { fn(RELEASE_VALUE).invokeVoid(arrayOf(it)) }
+            tensors.forEach { fn(RELEASE_VALUE).invokeVoid(arrayOf(it)) }
         }
     }
 

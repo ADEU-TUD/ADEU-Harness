@@ -353,10 +353,17 @@ fun ChatScreen(
      */
     fun send(withImages: Boolean) {
         if (current.autoModel) {
-            val choice = io.github.thepytales.llmhub.agent.ModelRouter.suggest(
-                input, if (withImages) images.size else 0, files.toList(), current.githubEnabled && current.linkedRepos.isNotEmpty(), settings.defaultModel,
-            )
-            val usable = Privacy.allows(c, Privacy.level(c, current), choice.model) && modelsState.liveIds?.contains(choice.model) != false
+            val github = current.githubEnabled && current.linkedRepos.isNotEmpty()
+            // Mischmodus (AP-71): a short, simple task runs on this device when a model is installed that runs well
+            // here – decided on the device; everything else gets the server model that fits, as before.
+            val simple = c.commandModel.recognize(input)?.let { it.sure && it.label == io.github.thepytales.llmhub.agent.LoraCommands.FREE_SIMPLE } == true
+            val localGood = io.github.thepytales.llmhub.agent.LoraCommands.localModel(c, good = true)
+            val onDevice = localGood != null && !github && current.messages.isEmpty() && io.github.thepytales.llmhub.agent.ModelRouter.place(
+                io.github.thepytales.llmhub.agent.ModelRouter.Mode.of(settings.loraPlace), simple, input, if (withImages) images.size else 0, files.size, localGood, localGood, serverOk = true,
+            ).place == io.github.thepytales.llmhub.agent.ModelRouter.Place.LOCAL && io.github.thepytales.llmhub.agent.ModelRouter.Mode.of(settings.loraPlace) == io.github.thepytales.llmhub.agent.ModelRouter.Mode.MIXED
+            val choice = if (onDevice) io.github.thepytales.llmhub.agent.ModelRouter.Choice(localGood!!, tr("kurze Aufgabe – läuft auf diesem Gerät"))
+            else io.github.thepytales.llmhub.agent.ModelRouter.suggest(input, if (withImages) images.size else 0, files.toList(), github, settings.defaultModel)
+            val usable = Privacy.allows(c, Privacy.level(c, current), choice.model) && (onDevice || modelsState.liveIds?.contains(choice.model) != false)
             if (usable && choice.model != current.model) {
                 if (settings.autoModelAsk) {
                     autoAsk = choice to withImages

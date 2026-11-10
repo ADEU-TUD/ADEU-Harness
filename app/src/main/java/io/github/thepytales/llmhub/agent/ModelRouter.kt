@@ -48,4 +48,62 @@ object ModelRouter {
             else -> Choice(standard, "für fast alles, schnell")
         }
     }
+
+    // ── Mischmodus (AP-71): where a request runs ─────────────────────────────────────────────────────────────
+
+    /** Where language models may run for Lora (Einstellungen › Lora): per request, only on this device, only on the server. */
+    enum class Mode {
+        MIXED, LOCAL, SERVER;
+
+        companion object {
+            fun of(id: String): Mode = entries.firstOrNull { it.name == id } ?: MIXED
+        }
+    }
+
+    enum class Place { LOCAL, SERVER, NONE }
+
+    /** The place for a request, the local model if it runs there, and why (shown on the card in the chat). */
+    data class Route(val place: Place, val model: String? = null, val reason: String = "")
+
+    /** Longer requests go to the server in the mixed mode: small local models lose the thread and take long. */
+    const val LOCAL_MAX_CHARS = 600
+
+    /**
+     * Signs that a request needs what a small model on the device does not have: the web and current facts, attached
+     * or long documents, pictures, files to create, sources – on top of programming and demanding analyses above.
+     */
+    private val serverWork = Regex(
+        "(im web|im internet|im netz|online|websuche|web search|search the web|google|aktuell|neueste|heute|dieses jahr|" +
+            "recherch|quellen|studien|literatur|anhang|angehang|beigefug|hochgeladen|attached|upload|" +
+            "\\bpdfs?\\b|\\bdatei(en)?\\b|\\bdokument\\b|prasentation|powerpoint|\\bfolien\\b|\\bexcel\\b|tabelle erstell|\\bword\\b|" +
+            "\\bbild(er)?\\b|\\bfoto\\b|\\bgrafik\\b|image|diagramm|ausfuhrlich|detailliert|umfassend|vollstandig|in detail|detailed)",
+    )
+
+    private fun plain(s: String) = Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").replace("ß", "ss")
+
+    /** The request itself says that it is more than a short task for a small model. */
+    fun needsServer(text: String): Boolean {
+        val t = plain(text)
+        return text.length > LOCAL_MAX_CHARS || "```" in text || code.containsMatchIn(norm(text)) || serverWork.containsMatchIn(t) ||
+            hardWords.any { it in t }
+    }
+
+    /**
+     * Where a request to a language model runs. [simple]: the command model is sure that it is a short, simple task;
+     * [localGood]: an installed model that runs well on this hardware, [localAny]: any installed one; [serverOk]: a
+     * server model may be asked (key there, the project allows it); [deviceOnly]: the project keeps everything on the
+     * device. Commands never come here – they are carried out on the device before.
+     */
+    fun place(
+        mode: Mode, simple: Boolean, text: String, images: Int, files: Int, localGood: String?, localAny: String?,
+        serverOk: Boolean, deviceOnly: Boolean = false,
+    ): Route = when {
+        deviceOnly -> localAny?.let { Route(Place.LOCAL, it, "Projekt „Nur auf diesem Gerät“") } ?: Route(Place.NONE, reason = "kein Modell auf diesem Gerät")
+        mode == Mode.LOCAL -> localAny?.let { Route(Place.LOCAL, it, "Lora arbeitet nur lokal") } ?: Route(Place.NONE, reason = "kein Modell auf diesem Gerät")
+        mode == Mode.SERVER -> if (serverOk) Route(Place.SERVER, reason = "Lora arbeitet nur über den Server") else Route(Place.NONE, reason = "kein Server-Modell erreichbar")
+        localGood != null && simple && images == 0 && files == 0 && !needsServer(text) -> Route(Place.LOCAL, localGood, "kurze Aufgabe – läuft auf diesem Gerät")
+        serverOk -> Route(Place.SERVER, reason = if (localGood == null) "kein passendes Modell auf diesem Gerät" else "braucht mehr als das Modell auf diesem Gerät")
+        localAny != null -> Route(Place.LOCAL, localAny, "ohne Server – läuft auf diesem Gerät")
+        else -> Route(Place.NONE, reason = "kein Modell erreichbar")
+    }
 }

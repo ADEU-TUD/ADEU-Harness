@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 09.11.2026 (nach 1.0.61) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (nach 1.0.64) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -67,8 +67,8 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung |
-| **Danach** | – |
+| **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
+| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen |
 | **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -82,16 +82,17 @@ die Schnellansicht (AP-62 bis AP-66, 1.0.61) sind erledigt. Jetzt das eigene Erk
 (AP-67); innerhalb von AP-67 kommt der Messkorpus (Stufe a) vor allem anderen.
 
 **Dringend (09.11.2026)**: AP-68 bis AP-70 sind erledigt (09.11.2026). AP-67 läuft weiter (das Training der
-Pseudonymisierung geschieht in einem eigenen Chat).
+Pseudonymisierung geschieht in einem eigenen Chat). Neu am 09.11.2026: **AP-71** (Befehlsmodell und Mischmodus für Lora),
+ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Training.
 
 ---
 
 ## Jetzt
 
-Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt bleibt AP-67; sein
-Training geschieht in einem eigenen Chat.
+Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt laufen AP-67 und AP-71
+nebeneinander, je in einem eigenen Chat.
 
-**Parallel: AP-67**
+**Parallel: AP-67 und AP-71**
 
 Am 09.11.2026 aufgenommen (Wunsch des Hauptnutzers, Weg A der Abwägung „eigenes Modell“). Weitere Vorschläge aus den
 *Ideen*, wenn AP-67 fertig ist: **Fehlermeldungen in Klartext mit Lösungsknopf** (W2-09), **eigene Lora-Befehle**
@@ -179,11 +180,217 @@ dem Handy unter 150 ms; das Modell liegt mit Lizenz und Modellkarte in der App.
 **Betrifft**: `data/PiiDetector.kt`, `data/Pseudonymizer.kt`, `AppContainer` (`thoroughFinder`), `ui/PrivacySettings.kt`,
 neu `data/PiiModel.kt`, `tools/pii/` (Generator, Training, Export – Python, nur auf dem Trainings-PC).
 
+### AP-71 ◐ Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus · L (neu)
+**Ziel 1 – eigenes Befehlsmodell**: Ein kleines Modell auf dem Gerät ordnet Eingaben in Lora und Strg+K **in
+Millisekunden und offline** der richtigen Aktion zu – Bereich oder Werkzeug öffnen, Modus starten, Einstellung zeigen
+oder umstellen, TU Vorlage öffnen, Lora-Aktion im offenen Werkzeug, Tour, frühere Chats, Frist – statt dafür jedes Mal
+den Server zu fragen. Dazu die Klassen **„frei“** (einfach bzw. komplex): Solche Anfragen gehen wie heute an ein
+Sprachmodell. Ist die Erkennung unsicher (Schwelle), wird ebenfalls weitergegeben: **Eine falsch ausgeführte Aktion ist
+schlimmer als eine Rückfrage.** Werte (Schriftgröße, an/aus, Dateiname, Seiten, Spalte, Datum) zieht die App mit Regeln
+aus der Eingabe, sobald die Aktion feststeht.
+
+**Ziel 2 – Mischmodus (Standard)**: Lora entscheidet je Anfrage, wo sie läuft. Befehle über das Befehlsmodell sofort
+lokal; einfache, kurze Aufgaben mit einem installierten lokalen Sprachmodell, wenn die Hardware reicht; komplexe Aufgaben
+(lange Dokumente, Analysen, Bilder, Websuche, Werkzeugketten) über den Server wie bisher. Einstellung *Lora: Gemischt
+(empfohlen) / Nur lokal / Nur Server* mit klarer Erklärung, was „Nur lokal“ kostet (Qualität, Kontextlänge, Tempo,
+Funktionen). Unverändert bleiben: Postfach nur lokal (AP-68), Tresor, Pseudonymisierung vor jeder Server-Anfrage,
+Standard für Übergaben DeepSeek V4.1 Flash, Lora selbst GLM-5.3 Flash.
+
+Weg wie bei AP-67 (Feintuning eines vortrainierten Encoders, Claude als Lehrer-Modell, nur erfundene Daten); die
+Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/befehle/`).
+
+**Stufen**
+- **a) Etiketten aus dem Code**: die Aktionen kommen aus den Registern der App (`AppMap`: Bereiche,
+  Einstellungsseiten, Optionen, Orte, Modi, Werkzeuge – deckt auch die Strg+K-Einträge ab; `LoraAgent.SETTINGS`;
+  `ToolActions`/`OfficeActions`/`MoreActions`/Video; Lora-eigene Aktionen), dazu `frei.einfach` und `frei.komplex`. Ein
+  Test hält die Liste des Modells und den Code zusammen (kein Etikett ohne Ziel im Code; neue Ziele ohne Etikett werden
+  gemeldet und gehen bis zum nächsten Training an das Sprachmodell).
+  ☑ *Erledigt (10.11.2026)*: 178 Etiketten aus `LoraCommands.catalog` (`tools/befehle/etiketten.json`); `CommandLabelsTest`
+  und `CommandModelTest` halten Code und Modell zusammen.
+- **b) Messkorpus zuerst** (vor jedem Training): erfundene, alltagsnahe Wünsche – auch mit Tippfehlern,
+  Umgangssprache und auf Englisch –, je Wunsch die richtige Aktion (wo zwei passen: beide), bei Bedarf der offene
+  Bereich und die erwarteten Werte; mindestens 600 Wünsche, davon ein **Prüfteil** (mindestens 250), der nie zum
+  Training, zur Wahl von Einstellungen oder als Vorbild für Vorlagen dient. Fehlerlisten nur für den Entwicklungsteil.
+  Kennzahlen: **Trefferquote** der Befehle, **Anteil falsch ausgeführter Aktionen**, **Anteil richtig weitergegebener
+  freier Anfragen**, Zeit je Eingabe; Ausgangswert der heutigen Regeln (`LoraAgent.local`) festhalten.
+  ☑ *Erledigt (10.11.2026)*: 844 Wünsche in `tools/befehle/messkorpus/` (Prüfteil 386, jedes Etikett in beiden Teilen).
+  Ausgangswert der Regeln im Prüfteil: 38,1 % getroffen, **19,4 % falsch ausgeführt**, 86,9 % der freien Anfragen weitergegeben.
+- **c) Trainingsdaten**: Claude schreibt als Lehrer-Modell Formulierungen und Satzmuster je Etikett (kein Schlüssel
+  des Uni-Servers), ein Generator setzt sie zusammen (Tippfehler, Kleinschreibung, Füllwörter, Englisch); **Sperre**
+  gegen Überschneidung mit dem Messkorpus; keine echten Daten.
+  ☑ *Erledigt (10.11.2026)*: 2 866 Zeilen in `tools/befehle/vorlagen/`, `gen.py` erzeugt 26 360 Wünsche; gleiche Wünsche wie
+  im Messkorpus werden nie erzeugt. Nachgeschärft nur anhand der Fehler im Entwicklungsteil.
+- **d) Ein Modell mit zwei Köpfen oder ein eigenes kleines?**: prüfen, ob das Modell der Pseudonymisierung (AP-67,
+  gbert-base) einen zweiten Kopf für Befehle bekommen kann – dann bliebe es bei einem Download –, oder ob ein kleineres
+  Basismodell (z. B. distilbert-base-german-cased) besser ist. Auf dem Entwicklungsteil messen, begründet entscheiden,
+  hier festhalten. Lizenz nur MIT oder Apache-2.0.
+  ☑ *Entschieden (10.11.2026)*: **eigenes kleines Modell, distilbert-base-german-cased (Apache-2.0)**. Ein Satz-Kopf auf dem
+  eingefrorenen gbert-base – der einzige Weg, das Modell von AP-67 unverändert mitzunutzen – trifft im Entwicklungsteil
+  7,1 % der Befehle, distilbert auf denselben Daten 86,0 %. Ein gemeinsames Training beider Köpfe würde jedes Nachtraining
+  der Befehle an eine neue Abnahme von AP-67 binden, das selbst noch offen ist; distilbert ist zudem halb so groß und
+  doppelt so schnell. gbert-base voll feinabgestimmt wurde nicht gemessen. Einzelheiten: `tools/befehle/README.md`.
+- **e) Training und Export**: in der Cloud auf CPU in Etappen (`train.py --nur/--fortsetzen`, Hintergrundläufe
+  höchstens 2 h), Schwelle auf dem Entwicklungsteil, Export ONNX int8 mit **Modellkarte**; int8 darf auf dem Prüfteil
+  höchstens 0,5 Prozentpunkte verlieren.
+  ◐ *Trainiert und exportiert (10.11.2026)*: 5 Epochen auf CPU, ONNX int8 68 MB (gepackt 41 MB), Schwelle 0,8.
+  Prüfteil: **84,8 % getroffen, 0,0 % falsch ausgeführt, 100 % der freien Anfragen weitergegeben**, 3,5 ms je Eingabe.
+  Offen: das Trefferziel 90 % (eine lockerere Schwelle traf 95,4 %, führte aber 2,8 % falsch aus – darum die strenge);
+  int8 verliert 0,6 statt höchstens 0,5 Prozentpunkte (zwei Wünsche, nichts zusätzlich falsch ausgeführt).
+- **f) Einbau**: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
+  sherpa-onnx über JNA, Download über `data/FileDownload.kt` mit SHA-256, große Datei auf eigenem Branch
+  (`befehle-modell`, wird nicht gemergt), Angebot per Popup. `LoraAgent` fragt zuerst die Regeln, dann das Befehlsmodell,
+  erst dann ein Sprachmodell; Strg+K zeigt den erkannten Befehl als ersten Eintrag. Android wird nach dem Gerätetest des
+  Hauptnutzers bestätigt.
+  ◐ *Eingebaut (10.11.2026)*: `data/CommandModel.kt` (Download vom Branch `befehle-modell`, SHA-256), `agent/LoraCommands.kt`
+  (Ausführung), `agent/CommandSlots.kt` (Werte), `OrtClassifier` für Satz-Modelle erweitert; Strg+K zeigt den Befehl als
+  ersten Eintrag; Angebot im Dialog vom ersten Start und einmalig als „Neu: Modelle für dieses Gerät“ für alle, die Lora
+  schon nutzen. In der App gemessen: Prüfteil 84,1 % / 0,0 % / 100 %, 3,3 ms. **Android ungetestet.**
+- **g) Mischmodus**: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
+  Server) aus Befehlsmodell, Länge, Anhängen, Bildern, Websuche/Werkzeugbedarf, installiertem Modell und Hardware
+  (`local/LocalLlm.kt`, `LocalCatalog.kt`); Einstellung unter *Einstellungen › Lora*; Zähler „wie oft und wie schnell
+  lokal statt Server“ auf dem Gerät, sichtbar in den Einstellungen.
+  ☑ *Erledigt (10.11.2026)*: `ModelRouter.place`, Einstellung *Wo Lora arbeitet* mit Erklärung der Folgen, Zähler
+  `data/LoraWays.kt`, im Chat mit *Modell automatisch wählen*. Offen: was „läuft gut“ heißt, misst erst AP-76.
+- **h) Tests und Doku**: `CommandModelTest` wie `PiiModelTest` (Tokenizer gleich dem des Trainings, mit und ohne
+  Modell, echtes Modell mit `BEFEHLE_MODELL`/`BEFEHLE_ORT` auf dem Messkorpus), Tests für Werte, Router und Etiketten;
+  README, englische Texte (`i18n/en.tsv`), Release.
+  ☑ *Erledigt (10.11.2026)*: `CommandModelTest`, `CommandSlotsTest` (Werte im Prüfteil 62 von 63), `CommandCorpusTest`,
+  `CommandLabelsTest`; README, `tools/befehle/README.md`, englische Texte.
+
+**Fertig, wenn**: Auf dem Prüfteil ordnet das Modell mindestens 90 % der Befehle richtig zu, führt höchstens 2 % der
+Eingaben falsch aus und gibt mindestens 95 % der freien Anfragen weiter; eine Eingabe braucht auf einem Dienst-PC ohne
+Grafikkarte unter 30 ms; ohne Modell (Datei fehlt) arbeitet Lora wie bisher; die Einstellung *Gemischt / Nur lokal / Nur
+Server* ist da und erklärt die Folgen; die App zeigt, wie oft und wie schnell lokal geantwortet wurde; das Modell liegt
+mit Lizenz und Modellkarte bei.
+
+**Betrifft**: `agent/LoraAgent.kt`, `agent/ModelRouter.kt`, `ui/LoraHelper.kt`, `ui/CommandPalette.kt`,
+`data/SettingsStore.kt`, `AppContainer`, neu `data/CommandModel.kt`, `agent/LoraCommands.kt`, `tools/befehle/`
+(Messkorpus, Generator, Training, Export – Python, nicht Teil der App).
+
 ---
 
 ## Danach
 
-Zurzeit leer.
+Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71, AP-72 bis AP-85); Reihenfolge wie hier, Start nach AP-71.
+**AP-67 bleibt offen** (Ziel „höchstens 2 % öffentliche Namen ersetzt“) und wird nicht mehr in einem eigenen Chat
+bearbeitet – es steht weiter unter *Jetzt* und kommt nach AP-71 wieder dran.
+
+### AP-72 ☐ Lora lernt aus Korrekturen · M (neu)
+**Ziel**: Versteht Lora einen Wunsch falsch und der Nutzer korrigiert („nein, ich meinte …“, ein Tipp auf die richtige
+Karte, „Rückgängig“ direkt nach einer Aktion), merkt sie sich das Paar *Wunsch → gemeinte Aktion* **auf dem Gerät** und
+trifft es beim nächsten Mal – vor dem Befehlsmodell, als eigene kleine Liste (wie die eigene Liste der
+Pseudonymisierung). Die Liste ist unter *Einstellungen › Lora* einsehbar und löschbar; im Tresor wird nichts gemerkt.
+Auf Wunsch lassen sich die Paare als Datei exportieren (ohne Namen, vom Nutzer durchgesehen) – Stoff für das nächste
+Training des Befehlsmodells (`tools/befehle/`).
+**Fertig, wenn**: eine korrigierte Eingabe beim zweiten Mal ohne Sprachmodell richtig ausgeführt wird; die Liste sichtbar,
+löschbar und exportierbar ist; nichts davon das Gerät von selbst verlässt.
+
+### AP-73 ☐ Rückfrage mit zwei Knöpfen statt Weitergabe · S–M (neu)
+**Ziel**: Liegt das Befehlsmodell knapp unter der Schwelle, zeigt Lora die zwei wahrscheinlichsten Aktionen als Knöpfe
+(„Meinst du … oder …?“) und dazu „Etwas anderes“ (dann erst das Sprachmodell) – schneller und offline. Die Wahl zählt als
+Korrektur für AP-72. Die Untergrenze für die Rückfrage wird wie die Schwelle auf dem Entwicklungsteil des Messkorpus
+gewählt; gemessen wird, wie oft die gemeinte Aktion unter den zwei Knöpfen ist.
+**Fertig, wenn**: auf dem Prüfteil bei mindestens 80 % der bisher weitergegebenen Befehle die richtige Aktion unter den
+zwei Knöpfen steht und freie Anfragen dabei weiter ohne Rückfrage durchgehen (höchstens 5 % mit Knöpfen).
+
+### AP-74 ☐ Fehlermeldungen in Klartext mit Lösungsknopf · M (bisher Ideen, W2-09)
+**Ziel**: Jede Fehlermeldung der App (Server, Schlüssel, Modell nicht verfügbar, Datei gesperrt, Werkzeug aus, kein
+Speicher, lokales Modell fehlt …) erscheint als ein verständlicher Satz mit dem passenden Schritt als Knopf – Schlüssel
+prüfen, Modell wechseln, Werkzeug einschalten, erneut versuchen, *Problem melden*. Ein gemeinsamer Katalog statt
+verstreuter Texte; die technische Meldung bleibt aufklappbar. Auf dem Gerät, ohne Sprachmodell.
+**Fertig, wenn**: die häufigsten 30 Fehler (aus Protokollen und Tests gesammelt) einen Klartext und einen Knopf haben und
+ein Test prüft, dass keine rohe Exception mehr im Chat oder in Loras Panel landet.
+
+### AP-75 ☐ Lora-Verlauf mit „Nochmal“ · S–M (neu)
+**Ziel**: Die letzten Befehle an Lora und Strg+K als Liste (Strg+K › Pfeil hoch, im Lora-Panel „Zuletzt“): wiederholen,
+vor dem Senden ändern, anheften. Angeheftete Befehle bekommen einen Namen und erscheinen in Strg+K – der erste Schritt zu
+eigenen Lora-Befehlen (Ideen). Nur auf dem Gerät gespeichert, abschaltbar, im Tresor nichts.
+**Fertig, wenn**: Pfeil hoch in Strg+K und im Lora-Eingabefeld die letzten 20 Befehle durchblättert, „Nochmal“ sie
+ausführt und ein angehefteter Befehl unter seinem Namen in Strg+K gefunden wird.
+
+### AP-76 ☐ Sprachmodell-Empfehlung nach Messung · M (neu, beantwortet Offene Frage 10)
+**Ziel**: Lora misst einmal kurz (unter einer Minute, auf Wunsch), wie schnell die lokalen Sprachmodelle auf diesem
+Gerät wirklich sind – Wörter je Sekunde, Zeit bis zum ersten Wort, mit und ohne Grafikkarte –, und empfiehlt danach das
+passende Modell für Postfach (AP-68/69), kurze Aufgaben im Mischmodus (AP-71) und vertrauliche Projekte, statt nur nach
+Arbeitsspeicher zu schätzen (`LocalCatalog.fit`). Das Ergebnis steht unter *Modelle auf diesem Gerät* und fließt in den
+Mischmodus ein (was „läuft gut“ heißt).
+**Fertig, wenn**: die Messung für installierte Modelle Zahlen liefert, die Empfehlung daraus begründet wird („schafft
+etwa 12 Wörter je Sekunde – gut für kurze Aufgaben, zu langsam für lange Mails“) und der Mischmodus nur Modelle nimmt,
+die eine Mindestgeschwindigkeit erreichen.
+
+### AP-77 ☐ Probelauf und „Alles rückgängig“ · M (neu)
+**Ziel**: Lora weist auf gefährliche Aktionen hin und berät, bevor etwas geschieht. „Was würde passieren, wenn …?“ zeigt
+nur die Vorschau (was verschoben, gelöscht, überschrieben würde, wie viele Dateien, was sich nicht zurückholen lässt) und
+einen Rat („Das betrifft 214 Dateien – erst an einem Ordner ausprobieren?“). Dazu ein gemeinsames **„Alles rückgängig
+seit heute Morgen“**: die Aktionen des Tages aus dem Protokoll (AP-38) als Liste, einzeln oder gesammelt zurücknehmbar.
+**Fertig, wenn**: jede riskante Aktion einen Probelauf hat, die Vorschau sagt, was unumkehrbar wäre, und die Aktionen eines
+Tages sich in einem Schritt zurücknehmen lassen (mit Hinweis, was nicht mehr geht).
+
+### AP-78 ☐ Eigene Wörter und Wissenspakete · L (neu, in Stufen)
+**Ziel**: Lora versteht die Sprache der Professur. **a) Eigene Wörter**: Abkürzungen und Namen (z. B. „ZLSB“, „MHB“,
+Projektnamen) mit Erklärung und Synonymen – eigene Einträge unter *Einstellungen › Lora*; Befehlsmodell, Suche, Strg+K und
+die Sprachmodelle (als kurzer Kontext) nutzen sie. **b) Wissenspaket „Lehramt an der TU Dresden“**: eine Datenbank zum
+Nachladen – Abkürzungen, Einrichtungen, Studiengänge und Schularten, Module und Praktika, Fristen und Abläufe,
+Ansprechstellen, Ordnungen – jeder Eintrag mit **Quelle und Stand** (nur aus öffentlichen, offiziellen Seiten der TU
+Dresden und des Freistaats; nichts Erfundenes, Unsicheres bleibt draußen). Wer es nicht braucht, lässt es weg.
+**c) „Inhalte zum Nachladen“**: eine leicht verständliche Übersicht in der App (und im Dialog vom ersten Start) über
+alles, was sich nachladen lässt – Befehlsmodell, Erkennungsmodell, Sprachmodelle, Spracherkennung, Videoeditor,
+Wissenspakete – je mit Zweck, Größe, Laden/Löschen. Auslieferung wie die Modelle (eigener Branch, fester Commit,
+SHA-256); Pakete lassen sich aktualisieren.
+**Fertig, wenn**: eigene Wörter in Befehlen und Suche wirken; das Lehramts-Paket sich laden, aktualisieren und löschen
+lässt und jede Angabe eine Quelle hat; die Übersicht alle nachladbaren Inhalte zeigt.
+
+### AP-79 ☐ Hausstil-Prüfung und Barrierefreiheits-Check · M–L (bisher Ideen)
+**Ziel**: Dokumente, Folien und Lehrmaterial vor der Abgabe prüfen. **Hausstil**: Corporate Design der TU Dresden
+(Schriften, Farben, Logo, Ränder), eigene Regeln der Professur (Gendern, Zitierstil, Schreibweisen aus AP-78).
+**Barrierefreiheit**: Überschriftenstruktur, Alternativtexte, Kontraste, Lesereihenfolge, Tabellenköpfe, Sprache,
+verständliche Linktexte, PDF/UA-Tags (mit AP-26/60). Ergebnis als Liste mit „Beheben“ je Punkt, wo es automatisch geht.
+**Fertig, wenn**: Dokument, Präsentation und PDF einen Prüfbericht mit Fundstellen bekommen und die häufigsten Mängel
+sich mit einem Klick beheben lassen.
+
+### AP-80 ☐ Rollenauswahl beim ersten Start · S (bisher Ideen, W2-08)
+**Ziel**: Im Dialog vom ersten Start (mit der Modellauswahl aus AP-71) eine Frage „Wofür nutzt du Lora vor allem?“ –
+Lehre, Forschung, Verwaltung, Studium (mehrere möglich). Daraus: welche Werkzeuge sichtbar sind, welche Vorschläge und
+TU Vorlagen oben stehen, welche Inhalte zum Nachladen (AP-78) empfohlen werden. Später änderbar.
+**Fertig, wenn**: die Auswahl Startseite, Werkzeuge und Empfehlungen sichtbar anpasst und sich in den Einstellungen ändern lässt.
+
+### AP-81 ☐ Videoexport-Warteschlange übersteht einen Neustart · S (Rest AP-57, D)
+**Fertig, wenn**: wartende und abgebrochene Exporte nach einem Neustart der App wieder in der Warteschlange stehen und
+auf Knopfdruck (oder von selbst) weiterlaufen.
+
+### AP-82 ☐ Vorschau für Video und Ton in der Schnellansicht · S (Rest AP-66)
+**Fertig, wenn**: die Leertaste in *Dateien* Videos und Tonaufnahmen abspielt (Start/Pause, Springen, Dauer) – am PC und,
+wo sinnvoll, auf Android.
+
+### AP-83 ☐ Lora-Pakete teilen · M (neu, nach AP-78)
+**Ziel**: Eigene Befehle (AP-75), eigene Wörter (AP-78), eigene TU Vorlagen und Hausstil-Regeln (AP-79) als **eine
+Datei** exportieren und im Team importieren – mit Vorschau, was hinzukommt und was ersetzt würde, und ohne persönliche
+Daten (Chats, Gedächtnis, Schlüssel bleiben draußen). Dasselbe Format wie die Wissenspakete aus AP-78, sodass ein
+geteiltes Paket in der Übersicht „Inhalte zum Nachladen“ erscheint und sich wieder entfernen lässt.
+**Fertig, wenn**: ein Paket von einem PC exportiert, auf einem zweiten importiert und dort wieder entfernt werden kann.
+
+### AP-84 ☐ Lora in mehreren Fenstern · M–L (neu, D)
+**Ziel**: Mehrere Chats und Werkzeuge nebeneinander. Rechtsklick auf einen Chat (Seitenleiste, Strg+K, Suche) bietet
+zusätzlich **„In neuem Fenster öffnen“**; ebenso für Dokumente und das Lora-Panel. Jedes Fenster hat seine eigene
+Navigation, alle teilen dieselben Daten (ein Prozess, keine zweite Instanz); laufende Antworten, Entwürfe und Updates
+bleiben je Fenster richtig, Fenstergröße und -ort werden gemerkt. Zu klären: Tabs innerhalb eines Fensters zusätzlich
+(wie im PDF-Werkzeugkasten) oder nur Fenster.
+**Fertig, wenn**: zwei Chats in zwei Fenstern gleichzeitig antworten können, ein Chat nie in zwei Fenstern
+gegeneinander schreibt und das Schließen eines Fensters die anderen nicht beendet.
+
+### AP-85 ☐ Große Anhänge vollständig nutzen · M (neu)
+**Befund (10.11.2026)**: `AttachmentReader.MAX_CHARS = 120_000` – jede angehängte Datei wird nach 120 000 Zeichen
+(etwa 30 000 Tokens, rund 60–70 Seiten) abgeschnitten, der Rest geht nicht mit. Die Grenze stammt aus der Zeit kleiner
+Kontextfenster und ist fest, unabhängig vom Modell; die heutigen Server-Modelle fassen 262 000 bis 1 000 000 Tokens.
+Dazu kommt, dass der Text des Anhangs im Chat gespeichert und bei jeder Nachricht erneut pseudonymisiert und gesendet wird.
+**Ziel**: Die Grenze richtet sich nach dem gewählten Modell (ein fester Anteil seines Kontextfensters, bei mehreren
+Anhängen geteilt); ist eine Datei größer, fragt die App statt still zu kürzen: *ganz senden mit einem Modell, das es
+fasst* (Vorschlag: GLM-5.3 Flash) · *nur die passenden Stellen* (Suche im Anhang wie bei „Frag diesen Ordner“, AP-58) ·
+*abschnittsweise zusammenfassen*. Die Anzeige am Anhang sagt, wie viel wirklich mitgeht (Seiten, Anteil); lokale Modelle
+mit kleinem Kontext bekommen von selbst nur die passenden Stellen. Speicher und Tempo beachten (lange Texte nicht
+mehrfach im Chat halten, Pseudonymisierung je Anhang nur einmal).
+**Fertig, wenn**: ein 300-Seiten-PDF mit einem großen Modell vollständig ankommt, bei kleineren Modellen eine klare Wahl
+erscheint und nirgends mehr still gekürzt wird.
 
 ---
 
@@ -201,8 +408,8 @@ Git-Historie (Fassung vom 30.10.2026).
 - **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
   nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
   Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
-- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K), Fehlermeldungen in Klartext mit Lösungsknopf
-  (W2-09), globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
+- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K; Anheften kommt mit AP-75), ~~Fehlermeldungen in
+  Klartext mit Lösungsknopf (W2-09)~~ → AP-74, globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
   (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
 - **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
   Korrektur hinaus.
