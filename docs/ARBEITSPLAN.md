@@ -69,8 +69,8 @@ Fairlight).
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
-| **Danach** | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen |
-| **Später** | – |
+| **Danach** | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen · AP-86 Lokale Modelle auf dem Mac laden |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -382,74 +382,100 @@ mehrfach im Chat halten, Pseudonymisierung je Anhang nur einmal).
 **Fertig, wenn**: ein 300-Seiten-PDF mit einem großen Modell vollständig ankommt, bei kleineren Modellen eine klare Wahl
 erscheint und nirgends mehr still gekürzt wird.
 
+### AP-86 ☐ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
+**Befund (10.11.2026)**: Auf einem Mac mit Apple Silicon (39 GB, Metal) scheitert jeder Download eines lokalen Modells
+(Qwen 3.5 9B im Postfach, Qwen 3.6 35B A3B unter *Lokale Modelle*) mit „Kein Paket für macOS im llama.cpp-Release
+gefunden.“ Es scheitert nicht das Modell, sondern das Programm llama.cpp davor: `LlamaHost.installRuntime` sucht im
+festen Release `b11870` (und ersatzweise im neuesten) ein Paket, dessen Name auf `bin-macos-arm64.zip` endet – das gibt
+es dort offenbar nicht (mehr) unter diesem Namen bzw. als ZIP. Die Meldung führt zudem in die Irre: „Im Firmennetz
+gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und am Satzende steht ein doppelter Punkt.
+**Ziel**: Auf macOS (Apple Silicon und Intel) und Linux richtet sich llama.cpp beim ersten Modell von selbst ein.
+- Paketsuche robust: tatsächliche Namen und Formate der Releases prüfen (ZIP und `.tar.gz`), nach Betriebssystem und
+  Architektur wählen statt nach festem Namensende; das feste Release so wählen, dass es Pakete für alle Plattformen hat.
+- Auf dem Mac: Programm nach dem Entpacken ausführbar machen und die Quarantäne-Markierung entfernen
+  (`com.apple.quarantine`), damit Gatekeeper `llama-server` nicht blockiert; Metal wird genutzt.
+- *Datei einspielen* nimmt auch das Mac-/Linux-Paket an und nennt den richtigen Dateinamen.
+- Meldung nach AP-74: sagt, was fehlt (das Programm, nicht das Modell), mit Knopf *Erneut versuchen*; der Hinweis aufs
+  Firmennetz nur, wenn der Download wirklich blockiert wurde. Doppelten Punkt beheben.
+- Nebenbei: auf dem Mac nicht „PC“, sondern „Mac“ anzeigen.
+**Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
+und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
+
 ---
 
 ## Später
 
-Zurzeit leer – neue Pakete kommen bei Bedarf aus den *Ideen*.
+Aus den Ideen vom 10.11.2026 übernommen.
+
+### AP-87 ☐ Datei-Erste-Hilfe · M (neu)
+**Ziel**: Beschädigte Word-, Excel-, PowerPoint- und PDF-Dateien öffnen und so viel Inhalt wie möglich retten. Lora
+erkennt beim Öffnen, dass eine Datei kaputt ist, und bietet *Retten* an: defekte ZIP-Container der Office-Formate
+reparieren, lesbare Teile (Text, Tabellen, Bilder, Folien) herausholen, PDF-Querverweistabelle neu aufbauen. Das Ergebnis
+ist eine neue Datei neben dem Original („… (gerettet)“), dazu eine Liste, was fehlt. Das Original bleibt unverändert.
+**Fertig, wenn**: abgeschnittene und teilweise überschriebene Testdateien jedes Formats mindestens ihren Text und ihre
+Bilder zurückgeben und Lora klar sagt, was verloren ist.
+
+### AP-88 ☐ Zeitreise für Dateien · M (neu)
+**Ziel**: Beim Speichern in Lora-Werkzeugen (Dokument, Tabelle, Folien, Gestalten, PDF) entsteht still ein Schnappschuss.
+Unter *Frühere Stände* lassen sich Stände nebeneinander vergleichen (Text mit Wortvergleich, Tabellen nach Zellen,
+Folien als Bilder) und zurückholen – als Ersatz oder als Kopie. Platz begrenzt (dichte Stände für die letzten Tage, danach
+ausgedünnt; Obergrenze in *Einstellungen › Daten*); Tresor-Dateien bleiben verschlüsselt. Lora kennt die Stände („Wie
+sah die Einleitung gestern aus?“).
+**Fertig, wenn**: nach mehreren Speichervorgängen jeder Stand vergleichbar und wiederherstellbar ist, ohne dass der
+Speicher unbegrenzt wächst.
+
+### AP-89 ☐ Vorlage aus eigener Datei · S–M (neu)
+**Ziel**: Aus einem fertigen Dokument (Word, Folien, Tabelle, Design) wird eine wiederverwendbare Vorlage: Lora schlägt
+Platzhalter vor (Namen, Daten, Titel, Beträge, Bilder), man bestätigt oder ändert sie, die Vorlage landet unter *Erstellen
+› Meine Vorlagen* und lässt sich wie die TU Vorlagen ausfüllen – auch per Lora („Mach mir wieder so ein Protokoll“).
+Formatierung, Kopf- und Fußzeilen und Logos bleiben unverändert.
+**Fertig, wenn**: aus einem echten Protokoll, einem Folienvortrag und einer Excel-Liste je eine Vorlage entsteht, die
+sich mit neuen Angaben richtig füllt.
 
 ---
 
 ## Ideen
 
-Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-86) aufnehmen. Neu gesammelt am 10.11.2026 – die frühere
-Ideenliste (Website, Anbindungen, Forschungs- und Lehre-Ideen aus Runde 1 u. a.) ist bewusst gestrichen und steht nur
-noch in der Git-Historie dieser Datei (Fassung vom 10.11.2026).
+Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-90) aufnehmen. Zweite Sammlung vom 10.11.2026 – aus der ersten
+Sammlung sind AP-87 bis AP-89 geworden, der Rest und die ältere Ideenliste sind gestrichen (Git-Historie).
 
-**Lora und Bedienung**
-- **Arbeitsstände**: offene Werkzeuge, Dateien und das Lora-Gespräch als benannten Stand sichern („DFG-Antrag“, „Seminar
-  Do“) und mit einem Klick wiederherstellen.
-- **Zwischenablage-Werkbank** (W): Verlauf der letzten Kopien im Lora-Panel; Lora formt um (Literaturangabe → BibTeX,
-  Webtabelle → Tabelle, Mailabsatz → Frist).
-- **Ausschnitt fragen** (W): Bildschirmbereich aufziehen – Lora liest Text, Tabelle oder Diagramm aus, erklärt es oder
-  übernimmt es ins offene Werkzeug.
-- **Sammeltasche**: Schnipsel (Absätze, Zitate, Bilder, Folien) aus allen Werkzeugen ablegen und später von Lora als
-  Dokument oder Folien zusammenstellen lassen.
-- **Arbeitsjournal auf Abruf**: „Was habe ich diese Woche gemacht?“ – auf dem Gerät aus Chats, Dateien und Mails, für
-  Berichte und Stundenzettel; nur auf Nachfrage, kein Briefing.
-- **Datei-Erste-Hilfe**: beschädigte DOCX/XLSX/PPTX/PDF öffnen und so viel Inhalt wie möglich retten.
-- **Zeitreise für Dateien**: automatische Schnappschüsse beim Speichern, Stände nebeneinander vergleichen und
-  zurückholen.
+**Dateien umwandeln und reparieren**
+- **Formatwandler mit Verlustanzeige**: DOCX ↔ ODT, PPTX → PDF, XLSX → CSV usw.; Lora zeigt vorher, was dabei verloren
+  geht (Formeln, Animationen, Kommentare).
+- **Schriften-Notfall**: fehlende Schriften in Dokumenten erkennen, Ersatz vorschlagen oder einbetten, damit die Datei
+  auf jedem PC gleich aussieht.
+- **Formatierung aufräumen**: Word-Datei voller direkter Formatierung in saubere Formatvorlagen überführen (Überschriften,
+  Listen, Abstände), mit Vorschau.
+- **CSV-Lotse**: Trennzeichen, Kodierung (kaputte Umlaute), Datums- und Zahlenformat beim Öffnen erkennen und richtig
+  übernehmen.
+- **Formular aus Scan**: gescanntes Papierformular → ausfüllbares PDF mit erkannten Feldern.
+- **PDF-Tabellen nach Excel**: auch mehrseitige Tabellen und verbundene Zellen, mit Prüfansicht Seite neben Tabelle.
+- **Diagramm zu Daten**: Bild eines Diagramms (aus Paper oder Scan) → Werte als Tabelle zurückgewinnen.
 
-**Schreiben und Forschung**
-- **Zitat-Prüfer**: wörtliche Zitate im Dokument gegen die PDF aus der Literatur prüfen (Wortlaut, Seitenzahl,
-  Auslassungen).
-- **Beleglandkarte**: zu jeder Behauptung im eigenen Text zeigen, welche Quelle sie stützt – und wo ein Beleg fehlt.
-- **Leser-Brille**: Text aus Sicht einer Zielgruppe lesen lassen (Erstsemester, Fachgutachter:in, Eltern, Verwaltung);
-  Stolperstellen am Rand, umgeschrieben wird nur auf Auftrag.
-- **Sprachniveau-Regler**: Absatz oder Dokument per Schieberegler zwischen Fachsprache, Standard, Einfacher und Leichter
-  Sprache umformulieren, Vorher/Nachher nebeneinander.
-- **Änderungen in Worten**: zurückgeschickte Word-Datei → Lora fasst die Änderungen inhaltlich zusammen („Kap. 3
-  gekürzt, neue These in 4.2“), zusätzlich zu den Spuren.
-- **Schreibziele**: Wortzahl je Kapitel, Tagesziel und Fortschrittskurve für Dissertation, Antrag oder Buch – still im
-  Dokument, ohne Erinnerungen.
-- **Konferenz-Paket**: aus einem Abstract in einem Ablauf Poster, Kurzvortrag, Handout und Ankündigungstext im
-  TUD-Design.
+**Dateien zusammenstellen und abgeben**
+- **Word-Dateien zusammenführen**: Kapitel mehrerer Autor:innen zu einem Dokument mit einheitlichen Formatvorlagen,
+  Nummerierung und Literaturverzeichnis.
+- **Abgabe-Check**: vor dem Versand kaputte Querverweise, doppelte Abbildungsnummern, leere Seiten, offene Kommentare und
+  Änderungsspuren finden.
+- **Zwei Tabellen abgleichen**: z. B. Anmelde- gegen Teilnahmeliste – wer fehlt, wer ist doppelt, welche Werte weichen ab.
+- **Export-Profile**: einmal festlegen („für die Druckerei“, „für OPAL“, „klein für Mail“, „barrierefrei“) und überall
+  mit einem Klick so exportieren.
+- **Druck-Lotse**: Broschüre mit Heftung, doppelseitig, Beschnittzugabe und Vorgaben der Druckerei.
 
-**Lehre**
-- **Semesterplaner**: Sitzungsplan aus den TU-Vorlesungszeiten, sächsischen Feiertagen und dem Dies academicus → Tabelle,
-  OPAL-Text und Kalendertermine.
-- **Vortragstrainer** (W): Probevortrag aufnehmen; Zeit je Folie, Sprechtempo, Füllwörter, Vergleich mit dem letzten
-  Durchlauf.
-- **Kommentarbausteine**: eigene Korrekturkommentare sammeln und per Kürzel in PDF- oder Word-Anmerkungen einsetzen; Lora
-  schlägt den passenden Baustein vor, der Mensch entscheidet.
-- **Tafelfoto zu Folie**: Foto von Tafel, Flipchart oder Whiteboard → entzerrtes Bild, Text und Skizze als bearbeitbare
-  Folie bzw. Diagramm.
-- **Aufzeichnung aufbereiten**: aus einer Vorlesungsaufnahme in einem Zug Kapitel, Stichwortskript, Glossar und
-  Lernfragen.
-- **Hochformat-Clip** (W): Ausschnitt eines Videos automatisch ins Hochformat schneiden, Gesicht im Bild halten,
-  Untertitel eingebrannt – für Ankündigungen und Social Media.
+**Platz, Versand und Schutz**
+- **Office-Dateien verkleinern**: eingebettete Bilder in DOCX, PPTX und XLSX verkleinern, Größe vorher/nachher.
+- **Anhang-Lotse** (W): zu große Anhänge in Outlook verkleinern oder als Nextcloud-Freigabelink anbieten.
+- **Passwortschutz**: Passwort für Office-, PDF- und ZIP-Dateien setzen oder entfernen, verschlüsselte ZIP zum Versand.
+- **Archiv-Werkzeug**: ZIP öffnen und durchsuchen, einzelne Dateien direkt im passenden Werkzeug öffnen, große Ordner in
+  Teile packen.
+- **Speicherplatz-Lotse**: zeigt, was Platz belegt (Modelle, Videos, Zwischenspeicher, Schnappschüsse), mit
+  Aufräumvorschlag und Rückgängig.
 
-**Verwaltung und Alltag**
-- **Terminfinder** (W): freie Zeiten lokal aus Outlook lesen und drei Vorschläge als Mailentwurf anlegen (gesendet wird
-  nur per Klick).
-- **Urlaubsübergabe**: vor der Abwesenheit ein Übergabedokument aus offenen Fristen, Mails mit Antwortbedarf und laufenden
-  Dateien, dazu ein Entwurf der Abwesenheitsnotiz.
-- **Prüfung vor dem Teilen**: vor dem Versand Metadaten, Kommentare, Änderungsspuren, ausgeblendete Tabellenblätter,
-  Ortsdaten in Fotos und Personenangaben finden und auf Wunsch entfernen.
-- **Handy als Kamera für den PC** (A + W): Foto oder Scan auf Android erscheint sofort im offenen Werkzeug am PC (über
-  den Sync-Ordner).
-- **Vorlage aus eigener Datei**: fertiges Dokument → Lora macht daraus eine wiederverwendbare Vorlage mit Platzhaltern.
+**Bilder und Umzug**
+- **Fotos vom Handy aufbereiten**: HEIC → JPG, drehen, nach Aufnahmedatum benennen, Ortsdaten entfernen.
+- **Bild-Werkstatt**: Hintergrund entfernen, zuschneiden, auf Zielgröße und -format bringen.
+- **Umzug auf einen neuen PC**: Lora-Daten, Einstellungen, Vorlagen und lokale Modelle als ein Paket mitnehmen und
+  einspielen.
 
 ---
 
