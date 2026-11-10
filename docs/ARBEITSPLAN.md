@@ -554,24 +554,8 @@ nichts doppelt angelegt wird.
 
 ## Ideen
 
-Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-103) aufnehmen. Rest der zweiten Sammlung vom 10.11.2026 – aus der
-ersten Sammlung sind AP-87 bis AP-89 geworden, aus der zweiten AP-90 bis AP-102; der Rest der ersten und die ältere
-Ideenliste sind gestrichen (Git-Historie).
-
-**Dateien zusammenstellen und abgeben**
-- **Word-Dateien zusammenführen**: Kapitel mehrerer Autor:innen zu einem Dokument mit einheitlichen Formatvorlagen,
-  Nummerierung und Literaturverzeichnis.
-- **Abgabe-Check**: vor dem Versand kaputte Querverweise, doppelte Abbildungsnummern, leere Seiten, offene Kommentare und
-  Änderungsspuren finden.
-- **Zwei Tabellen abgleichen**: z. B. Anmelde- gegen Teilnahmeliste – wer fehlt, wer ist doppelt, welche Werte weichen ab.
-- **Export-Profile**: einmal festlegen („für die Druckerei“, „für OPAL“, „klein für Mail“, „barrierefrei“) und überall
-  mit einem Klick so exportieren.
-
-**Platz, Versand und Schutz**
-- **Office-Dateien verkleinern**: eingebettete Bilder in DOCX, PPTX und XLSX verkleinern, Größe vorher/nachher.
-- **Anhang-Lotse** (W): zu große Anhänge in Outlook verkleinern oder als Nextcloud-Freigabelink anbieten.
-- **Speicherplatz-Lotse**: zeigt, was Platz belegt (Modelle, Videos, Zwischenspeicher, Schnappschüsse), mit
-  Aufräumvorschlag und Rückgängig.
+Zurzeit leer. Aus den Sammlungen vom 10.11.2026 sind AP-87 bis AP-102 geworden; alles Übrige und die ältere Ideenliste
+sind gestrichen (Git-Historie dieser Datei). Neue Ideen je eine Zeile, als Paket ab AP-103.
 
 ---
 
