@@ -111,6 +111,9 @@ object PdfOcr {
 
     /** A vision model this privacy level allows (the default model if it can see pictures); null if there is none. */
     fun visionModel(c: AppContainer): String? {
+        // AP-110: a model on this device that understands images comes first – the scan does not leave the device
+        // (on Android this replaces the server image model; on Windows the built-in OCR is asked before this).
+        io.github.thepytales.llmhub.local.LocalVision.model(c)?.let { return it }
         val level = Privacy.level(c, null as String?)
         val candidates = listOf(c.settings.current.defaultModel) +
             ModelCatalog.known.filter { it.type == ModelType.CHAT && it.vision == true && it.tier != ModelTier.HIDDEN }.sortedBy { it.tier.ordinal }.map { it.id }

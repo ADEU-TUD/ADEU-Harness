@@ -626,9 +626,9 @@ einem Office-PC unter 15 s dauert.
   bei etwa 20 s. Mit Grafikkarte oder Apple-Chip ist es kein Problem.
 - **Messkorpus** `tools/bildverstehen/` (erfundene Screenshots, Tabellenfotos, Scans, Diagramme; je 12 Bilder Entwicklung
   und Prüfung, erzeugt aus festen Startwerten) mit Messskript.
-- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) **Android:
-  OCR lokal** – `PdfOcr.visionModel` (PDF-Werkzeuge, andere Sitzung) soll `LocalVision.model(c)` vor einem Server-Bildmodell
-  nehmen; ein Einzeiler, absichtlich nicht angefasst; (3) auf Android ist der Bildteil ungetestet (llama-server der App
+- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) ~~**Android:
+  OCR lokal**~~ – erledigt mit PR #65: `PdfOcr.visionModel` nimmt `LocalVision.model(c)` vor einem Server-Bildmodell (am
+  Gerät prüfen); (3) auf Android ist der Bildteil ungetestet (llama-server der App
   muss mtmd enthalten).
 
 ### AP-111 ☑ Sprachausgabe lokal · S (Runde 3)
