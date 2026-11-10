@@ -190,9 +190,29 @@ class Predictor:
             self._cache[text] = out
         return out
 
+    #: How a word becomes a detail: "token" – one sub-token at the threshold is enough (up to 1.0.65); "wort" – the mean
+    #: probability "not O" of the word's sub-tokens must reach it (one sure piece like "im" in "Steimle" is not enough).
+    mode = "token"
+
     def tokens(self, text: str, threshold: float | None = None) -> list[tuple[int, int, str]]:
         t = self.threshold if threshold is None else threshold
-        return [(s, e, LABELS[1 + int(row[1:].argmax())] if 1 - row[0] >= t else "O") for s, e, row in self.probs(text)]
+        probs = self.probs(text)
+        if self.mode == "wort":
+            words = corpus.split_words(text)
+            mean: dict[int, float] = {}
+            members: dict[int, list] = {}
+            for i, (a, b, _) in enumerate(words):
+                for s, e, row in probs:
+                    if s < b and e > a:
+                        members.setdefault(i, []).append(1 - float(row[0]))
+            mean = {i: sum(v) / len(v) for i, v in members.items()}
+            out = []
+            for s, e, row in probs:
+                w = next((i for i, (a, b, _) in enumerate(words) if s < b and e > a), None)
+                sure = (mean[w] if w is not None else 1 - row[0]) >= t
+                out.append((s, e, LABELS[1 + int(row[1:].argmax())] if sure else "O"))
+            return out
+        return [(s, e, LABELS[1 + int(row[1:].argmax())] if 1 - row[0] >= t else "O") for s, e, row in probs]
 
     def spans(self, text: str, threshold: float | None = None) -> list[tuple[int, int, str]]:
         return group_spans(self.tokens(text, threshold), text)
