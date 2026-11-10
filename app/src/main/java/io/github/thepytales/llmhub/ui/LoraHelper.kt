@@ -1127,7 +1127,8 @@ private fun LoraIntroDialog(c: AppContainer) {
     fun finish(save: Boolean) {
         if (save) models.apply(c)
         c.settings.update { cur ->
-            var next = cur.copy(loraIntroDone = true)
+            // Skipped or answered: the models were offered here, so the separate dialog for earlier users stays away.
+            var next = cur.copy(loraIntroDone = true, modelsIntroDone = true)
             if (save) {
                 next = next.copy(loraMode = mode, hideLora = mode == "OFF")
                 tools.forEach { t -> next = next.withTool(t, t.id in chosen) }

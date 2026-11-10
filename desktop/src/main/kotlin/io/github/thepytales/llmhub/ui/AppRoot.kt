@@ -230,6 +230,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     if (crash == null) PiiModelPrompt(c)
     // AP-71: the command model for Lora and Strg+K, offered the same way.
     if (crash == null) CommandModelPrompt(c)
+    if (crash == null) ModelsIntroDialog(c)
 
     // Results that arrive while the app is open appear as a banner at the top.
     val snackbar = remember { SnackbarHostState() }

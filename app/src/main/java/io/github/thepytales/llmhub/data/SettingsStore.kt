@@ -177,6 +177,8 @@ data class AppSettings(
     val commandModel: Boolean = true,
     /** Offer the download of the command model in a popup (off after „Nicht mehr fragen“). */
     val commandModelAsk: Boolean = true,
+    /** The question „Welche Modelle sollen auf dieses Gerät?“ was answered (first start, or once for those who used the app before AP-71). */
+    val modelsIntroDone: Boolean = false,
     /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
     val nextcloudServer: String = "",
     val nextcloudUser: String = "",
@@ -381,6 +383,7 @@ class SettingsStore(context: Context) {
             .putString("loraPlace", next.loraPlace)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
+            .putBoolean("modelsIntroDone", next.modelsIntroDone)
             .apply()
     }
 
@@ -487,6 +490,7 @@ class SettingsStore(context: Context) {
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
+            modelsIntroDone = prefs.getBoolean("modelsIntroDone", d.modelsIntroDone),
             nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
             nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
             nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,

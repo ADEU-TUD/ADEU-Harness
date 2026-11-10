@@ -47,7 +47,9 @@ import io.github.thepytales.llmhub.local.LocalModel
 fun CommandModelPrompt(c: AppContainer) {
     val offer by c.commandModel.offer.collectAsState()
     val other by c.piiModel.offer.collectAsState()
-    if (!offer || other) return
+    val s by c.settings.settings.collectAsState()
+    // Until „Welche Modelle sollen auf dieses Gerät?“ is answered, that dialog asks – not this popup on top of it.
+    if (!offer || other || !s.modelsIntroDone) return
     fun close() { c.commandModel.offer.value = false }
     AlertDialog(
         onDismissRequest = ::close,
@@ -158,10 +160,12 @@ internal fun duration(millis: Long): String = if (millis < 1000) "$millis ms" el
  * Erster Start (AP-71): what the user ticks under „Welche Modelle sollen auf dieses Gerät?“ – the two small helper
  * models, a language model that fits the hardware, and where Lora works. [apply] starts the downloads.
  */
-class IntroModelChoice(c: AppContainer) {
+class IntroModelChoice(private val c: AppContainer) {
     /** Offered only while it is not there yet. */
     val offerCommand = c.commandModel.available && !c.commandModel.installed()
     val offerPii = !c.piiModel.installed()
+    /** There is something to decide at all. */
+    val anything: Boolean get() = offerCommand || offerPii || c.localLlm.installedModels().isEmpty()
     var command by mutableStateOf(offerCommand)
     var pii by mutableStateOf(offerPii)
     /** Ids of the language models to download (none by default: they are large). */
@@ -173,7 +177,7 @@ class IntroModelChoice(c: AppContainer) {
         if (offerPii) { if (pii) c.piiModel.install() }
         local.forEach { c.localLlm.install(it) }
         // Who decides here is not asked again by the single popups.
-        c.settings.update { it.copy(loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
+        c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
     }
 }
 
@@ -229,4 +233,44 @@ private fun ModelLine(title: String, text: String, checked: Boolean, onChange: (
             Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** „Später“ of [ModelsIntroDialog] holds until the next start of the app. */
+private var modelsIntroLater by mutableStateOf(false)
+
+/**
+ * „Neu: Modelle für dieses Gerät“ (AP-71) – once for everyone who set the app up before the question existed: the same
+ * choice as at the first start (command model, recognition model, a language model that fits, where Lora works), so
+ * they see what is new and decide. „Später“ asks again at the next start, „Nicht mehr fragen“ never; new users answer
+ * it in Lora's first-start dialog instead.
+ */
+@Composable
+fun ModelsIntroDialog(c: AppContainer) {
+    val s by c.settings.settings.collectAsState()
+    // New users with a key get the question in Lora's first-start dialog (LoraIntroDialog), which sets the flag.
+    val firstStartAsks = !s.loraIntroDone && s.hasAnyApiKey && !s.hideLora
+    if (s.modelsIntroDone || modelsIntroLater || firstStartAsks) return
+    val choice = remember { IntroModelChoice(c) }
+    if (!choice.anything) {
+        LaunchedEffect(Unit) { c.settings.update { it.copy(modelsIntroDone = true) } }
+        return
+    }
+    AlertDialog(
+        onDismissRequest = { modelsIntroLater = true },
+        icon = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
+        title = { Text(tr("Neu: Modelle für dieses Gerät")) },
+        text = {
+            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(tr("Lora kann jetzt mehr auf diesem Gerät erledigen – schneller, offline und ohne dass etwas hinausgeht. Such aus, was du möchtest; alles lässt sich später unter Einstellungen › Lora und › Modelle auf diesem Gerät ändern."), style = MaterialTheme.typography.bodyMedium)
+                IntroModels(c, choice)
+            }
+        },
+        confirmButton = { Button(onClick = { choice.apply(c) }) { Text(tr("Übernehmen")) } },
+        dismissButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = { c.settings.update { it.copy(modelsIntroDone = true) } }) { Text(tr("Nicht mehr fragen")) }
+                TextButton(onClick = { modelsIntroLater = true }) { Text(tr("Später")) }
+            }
+        },
+    )
 }

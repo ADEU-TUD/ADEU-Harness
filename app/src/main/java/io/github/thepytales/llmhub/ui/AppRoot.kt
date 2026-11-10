@@ -192,6 +192,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     if (crash == null) PiiModelPrompt(c)
     // AP-71: the command model for Lora and Strg+K, offered the same way.
     if (crash == null) CommandModelPrompt(c)
+    if (crash == null) ModelsIntroDialog(c)
     // Lora (AP-07, AP-34): answers wishes, leads to places, and the two questions of the first start.
     LoraHelperHost(c) { r ->
         runCatching { if (r == "chat" || r.startsWith("chat?")) nav.openChat(r) else nav.navigate(r) { launchSingleTop = true } }

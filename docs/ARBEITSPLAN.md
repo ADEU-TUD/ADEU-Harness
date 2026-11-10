@@ -68,7 +68,7 @@ Fairlight).
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
 | **Jetzt** | AP-67 Eigenes Erkennungsmodell für die Pseudonymisierung · AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus |
-| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung |
+| **Danach** | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen · AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton |
 | **Später** | – |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -248,7 +248,9 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71); Reihenfolge wie hier, Start nach AP-71.
+Am 10.11.2026 vom Hauptnutzer bestätigt (Vorschläge aus AP-71, AP-72 bis AP-82); Reihenfolge wie hier, Start nach AP-71.
+**AP-67 bleibt offen** (Ziel „höchstens 2 % öffentliche Namen ersetzt“) und wird nicht mehr in einem eigenen Chat
+bearbeitet – es steht weiter unter *Jetzt* und kommt nach AP-71 wieder dran.
 
 ### AP-72 ☐ Lora lernt aus Korrekturen · M (neu)
 **Ziel**: Versteht Lora einen Wunsch falsch und der Nutzer korrigiert („nein, ich meinte …“, ein Tipp auf die richtige
@@ -292,6 +294,50 @@ Mischmodus ein (was „läuft gut“ heißt).
 **Fertig, wenn**: die Messung für installierte Modelle Zahlen liefert, die Empfehlung daraus begründet wird („schafft
 etwa 12 Wörter je Sekunde – gut für kurze Aufgaben, zu langsam für lange Mails“) und der Mischmodus nur Modelle nimmt,
 die eine Mindestgeschwindigkeit erreichen.
+
+### AP-77 ☐ Probelauf und „Alles rückgängig“ · M (neu)
+**Ziel**: Lora weist auf gefährliche Aktionen hin und berät, bevor etwas geschieht. „Was würde passieren, wenn …?“ zeigt
+nur die Vorschau (was verschoben, gelöscht, überschrieben würde, wie viele Dateien, was sich nicht zurückholen lässt) und
+einen Rat („Das betrifft 214 Dateien – erst an einem Ordner ausprobieren?“). Dazu ein gemeinsames **„Alles rückgängig
+seit heute Morgen“**: die Aktionen des Tages aus dem Protokoll (AP-38) als Liste, einzeln oder gesammelt zurücknehmbar.
+**Fertig, wenn**: jede riskante Aktion einen Probelauf hat, die Vorschau sagt, was unumkehrbar wäre, und die Aktionen eines
+Tages sich in einem Schritt zurücknehmen lassen (mit Hinweis, was nicht mehr geht).
+
+### AP-78 ☐ Eigene Wörter und Wissenspakete · L (neu, in Stufen)
+**Ziel**: Lora versteht die Sprache der Professur. **a) Eigene Wörter**: Abkürzungen und Namen (z. B. „ZLSB“, „MHB“,
+Projektnamen) mit Erklärung und Synonymen – eigene Einträge unter *Einstellungen › Lora*; Befehlsmodell, Suche, Strg+K und
+die Sprachmodelle (als kurzer Kontext) nutzen sie. **b) Wissenspaket „Lehramt an der TU Dresden“**: eine Datenbank zum
+Nachladen – Abkürzungen, Einrichtungen, Studiengänge und Schularten, Module und Praktika, Fristen und Abläufe,
+Ansprechstellen, Ordnungen – jeder Eintrag mit **Quelle und Stand** (nur aus öffentlichen, offiziellen Seiten der TU
+Dresden und des Freistaats; nichts Erfundenes, Unsicheres bleibt draußen). Wer es nicht braucht, lässt es weg.
+**c) „Inhalte zum Nachladen“**: eine leicht verständliche Übersicht in der App (und im Dialog vom ersten Start) über
+alles, was sich nachladen lässt – Befehlsmodell, Erkennungsmodell, Sprachmodelle, Spracherkennung, Videoeditor,
+Wissenspakete – je mit Zweck, Größe, Laden/Löschen. Auslieferung wie die Modelle (eigener Branch, fester Commit,
+SHA-256); Pakete lassen sich aktualisieren.
+**Fertig, wenn**: eigene Wörter in Befehlen und Suche wirken; das Lehramts-Paket sich laden, aktualisieren und löschen
+lässt und jede Angabe eine Quelle hat; die Übersicht alle nachladbaren Inhalte zeigt.
+
+### AP-79 ☐ Hausstil-Prüfung und Barrierefreiheits-Check · M–L (bisher Ideen)
+**Ziel**: Dokumente, Folien und Lehrmaterial vor der Abgabe prüfen. **Hausstil**: Corporate Design der TU Dresden
+(Schriften, Farben, Logo, Ränder), eigene Regeln der Professur (Gendern, Zitierstil, Schreibweisen aus AP-78).
+**Barrierefreiheit**: Überschriftenstruktur, Alternativtexte, Kontraste, Lesereihenfolge, Tabellenköpfe, Sprache,
+verständliche Linktexte, PDF/UA-Tags (mit AP-26/60). Ergebnis als Liste mit „Beheben“ je Punkt, wo es automatisch geht.
+**Fertig, wenn**: Dokument, Präsentation und PDF einen Prüfbericht mit Fundstellen bekommen und die häufigsten Mängel
+sich mit einem Klick beheben lassen.
+
+### AP-80 ☐ Rollenauswahl beim ersten Start · S (bisher Ideen, W2-08)
+**Ziel**: Im Dialog vom ersten Start (mit der Modellauswahl aus AP-71) eine Frage „Wofür nutzt du Lora vor allem?“ –
+Lehre, Forschung, Verwaltung, Studium (mehrere möglich). Daraus: welche Werkzeuge sichtbar sind, welche Vorschläge und
+TU Vorlagen oben stehen, welche Inhalte zum Nachladen (AP-78) empfohlen werden. Später änderbar.
+**Fertig, wenn**: die Auswahl Startseite, Werkzeuge und Empfehlungen sichtbar anpasst und sich in den Einstellungen ändern lässt.
+
+### AP-81 ☐ Videoexport-Warteschlange übersteht einen Neustart · S (Rest AP-57, D)
+**Fertig, wenn**: wartende und abgebrochene Exporte nach einem Neustart der App wieder in der Warteschlange stehen und
+auf Knopfdruck (oder von selbst) weiterlaufen.
+
+### AP-82 ☐ Vorschau für Video und Ton in der Schnellansicht · S (Rest AP-66)
+**Fertig, wenn**: die Leertaste in *Dateien* Videos und Tonaufnahmen abspielt (Start/Pause, Springen, Dauer) – am PC und,
+wo sinnvoll, auf Android.
 
 ---
 
