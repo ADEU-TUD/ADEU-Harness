@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung · AP-106 Modellkatalog in feinen Stufen, nach Zweck · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -383,6 +383,12 @@ des Programms war in der Cloud nicht erlaubt); optional `LLAMA_PACKAGES=<Ordner 
 CPU (Vulkan-Paket für Linux nicht eingebunden, Grafikkarte unter Linux wird nicht erkannt).
 
 ### Runde 3 – Lora offline (Plan vom 10.11.2026)
+
+*Stand 10.11.2026 (für 1.0.67)*: AP-105, AP-106, AP-108 und AP-110 sind in der App fertig (◐) – es fehlen jeweils die
+Messungen auf echten Geräten, die die Cloud nicht machen kann. **Am Gerät zu messen** (Hauptnutzer): *Gerät messen* und
+*Messen* auf Office-PC, Gaming-PC, Mac und Android mit *Messprotokoll kopieren* (AP-105); `tools/modellwahl/messen.py`
+je Stufe (AP-106); ein 80-seitiges PDF lokal auf einem Office-PC mit 32 GB (AP-108); `tools/bildverstehen/messen.py`
+(AP-110). Details bei den Paketen.
 
 **Ziel der Runde**: Lora soll **so viel wie möglich ohne API** können – mit Internet für Web, Literatur, Nextcloud und
 Updates, aber ohne API-Schlüssel. Der Uni-Server (heute im Pilotbetrieb der TU) und die Schlüssel anderer Anbieter bleiben
