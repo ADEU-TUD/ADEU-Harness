@@ -22,7 +22,6 @@ import java.lang.management.ManagementFactory
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
-import java.util.zip.ZipInputStream
 
 /**
  * Desktop parts of the local models. The llama.cpp program is loaded once from the official release into
@@ -31,21 +30,36 @@ import java.util.zip.ZipInputStream
  * for Apple Silicon with Metal, Linux the Ubuntu x64 package (AP-31).
  */
 internal object LlamaHost {
-    /** llama.cpp release; change only here. If it lacks a package, the latest release is used. */
-    private const val TAG = "b11870"
+    /** llama.cpp release; change only here (with [PINNED]). If a package is gone, the latest release is used. */
+    internal const val TAG = "b11870"
+
+    /**
+     * Size and SHA-256 of the packages of [TAG] (checked 10.11.2026 against the release files), so the download needs
+     * neither the GitHub API (60 requests per hour for a whole university network) nor trust in the moment.
+     */
+    internal val PINNED = mapOf(
+        "win-cpu-x64" to (24_214_736L to "95d12ad225891399faa0b5a5dec48bb042c9cda1ef178c4ae770ccbe3bdba8d8"),
+        "win-cpu-arm64" to (12_833_523L to "957950d7e192808a03c4cfa10f94beedfb5e95d306b9e8ec89b8e44fbfdf6c47"),
+        "win-vulkan-x64" to (37_035_796L to "2420f932bad0ca5838f7d5881f213272ae651a3409218bca37f4be8305b24fd3"),
+        "macos-arm64" to (16_286_198L to "f5adb73765f1d1e1e55b81765aed3da98cbcc95997cbef0287a7030492e636f5"),
+        "macos-x64" to (12_021_141L to "ce2ba39c8c916aacc32ec576c155b87ea3722267079db921adc5e42a7706bec2"),
+        "ubuntu-x64" to (22_485_156L to "e4b4204cfa97f8864c44fed2877c76a126c816ce93dc90f339289e7dabfb00af"),
+        "ubuntu-arm64" to (18_202_293L to "0190be3c22b16151b2b9bfb59f7a62c20ec2f24caa9a6b2a0251a0d160789336"),
+    )
 
     fun root(@Suppress("UNUSED_PARAMETER") c: AppContainer): File = File(Paths.local, "llm")
 
-    /** Release package of this system (CPU, on a Mac with Metal). */
-    private val cpuPackage: String? get() = when {
-        Os.windows -> "bin-win-cpu-x64.zip"
-        Os.mac -> if (Os.arm) "bin-macos-arm64.zip" else "bin-macos-x64.zip"
-        Os.arm -> null
-        else -> "bin-ubuntu-x64.zip"
+    private val system get() = when {
+        Os.windows -> LlamaPackages.Platform.WINDOWS
+        Os.mac -> LlamaPackages.Platform.MAC
+        else -> LlamaPackages.Platform.LINUX
     }
 
-    /** Extra package for graphics cards (only Windows; macOS has Metal in the main package). */
-    private val gpuPackage: String? get() = if (Os.windows) "bin-win-vulkan-x64.zip" else null
+    private fun wanted(gpu: Boolean) = LlamaPackages.wanted(system, Os.arm, gpu)
+
+    /** The file to load by hand when the download is blocked, e.g. "llama-b11870-bin-macos-arm64.tar.gz". */
+    @Suppress("UNUSED_PARAMETER")
+    fun packageName(c: AppContainer): String? = LlamaPackages.fileName(TAG, wanted(false).first().kind)
 
     private val serverName get() = if (Os.windows) "llama-server.exe" else "llama-server"
 
@@ -55,17 +69,101 @@ internal object LlamaHost {
         // Apple Silicon: the graphics share the memory; llama.cpp computes with Metal.
         val gpu = if (SpeechWin.WINDOWS) gpu() else if (Os.mac && Os.arm) javaRam()?.let { "Apple Silicon (Metal)" to it * 0.66 } else null
         val ram = javaRam() ?: windowsRam()
+        val cores = SpeechWin.physicalCores().takeIf { it > 0 } ?: (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+        val profile = runCatching { profile(cores) }.onFailure { AppLog.e("Geräteprofil", it) }.getOrNull() ?: Profile()
         return Hardware(
             phone = false,
+            mac = Os.mac,
             ramGb = ram ?: 8.0,
-            cores = SpeechWin.physicalCores().takeIf { it > 0 } ?: (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1),
-            cpuName = SpeechWin.cpuName().orEmpty().ifBlank { envCpu() },
-            gpuName = gpu?.first,
+            cores = cores,
+            cpuName = SpeechWin.cpuName().orEmpty().ifBlank { profile.cpu.ifBlank { envCpu() } },
+            gpuName = if (profile.chip.isNotBlank() && gpu != null) "${profile.chip} (Metal)" else gpu?.first,
             vramGb = gpu?.second ?: 0.0,
             freeDiskGb = freeDisk(root),
             limited = ram == null,
+            memBandwidthGbs = profile.bandwidth,
+            memDetail = profile.detail,
+            cpuFeatures = profile.features,
+            chip = profile.chip,
+            gpuCores = profile.gpuCores,
         )
     }
+
+    /** Geräteprofil (AP-105): memory bandwidth, instruction sets and the Apple chip, where the system tells them. */
+    private data class Profile(
+        val bandwidth: Double = Double.NaN,
+        val detail: String = "",
+        val features: Set<String> = emptySet(),
+        val chip: String = "",
+        val gpuCores: Int = 0,
+        val cpu: String = "",
+    )
+
+    private fun profile(cores: Int): Profile = when {
+        Os.windows -> {
+            // SMBIOS through GetSystemFirmwareTable needs no admin rights; IsProcessorFeaturePresent knows AVX2/AVX-512.
+            val mem = windowsSmbios()?.let { HardwareInfo.smbiosMemory(it, header = true, cores = cores) }
+            val k = com.sun.jna.platform.win32.Kernel32.INSTANCE
+            val features = buildSet {
+                if (runCatching { k.IsProcessorFeaturePresent(40) }.getOrDefault(false)) add("avx2")
+                if (runCatching { k.IsProcessorFeaturePresent(41) }.getOrDefault(false)) add("avx512")
+                if (Os.arm) add("neon")
+            }
+            Profile(mem?.gbs ?: Double.NaN, mem?.detail().orEmpty(), features)
+        }
+        Os.mac -> {
+            val brand = sysctl("machdep.cpu.brand_string")
+            if (Os.arm) {
+                val chip = brand.takeIf { it.startsWith("Apple") }.orEmpty()
+                val cores = HardwareInfo.appleGpuCores(command("ioreg", "-rd1", "-c", "AGXAccelerator")).takeIf { it > 0 }
+                    ?: SpeedForecast.appleChip(chip)?.second ?: 0
+                val features = buildSet {
+                    add("neon")
+                    if (sysctl("hw.optional.arm.FEAT_DotProd") == "1") add("dotprod")
+                    if (sysctl("hw.optional.arm.FEAT_I8MM") == "1") add("i8mm")
+                }
+                Profile(SpeedForecast.appleChip(chip)?.first ?: Double.NaN, if (chip.isNotBlank()) "$chip · gemeinsamer Speicher" else "", features, chip, cores, brand)
+            } else {
+                val features = buildSet {
+                    if (sysctl("hw.optional.avx2_0") == "1") add("avx2")
+                    if (sysctl("hw.optional.avx512f") == "1") add("avx512")
+                }
+                Profile(features = features, cpu = brand)
+            }
+        }
+        else -> {
+            val info = runCatching { File("/proc/cpuinfo").readText() }.getOrDefault("")
+            // The DMI table is only readable as root; where it is, it gives the memory as on Windows.
+            val mem = runCatching { File("/sys/firmware/dmi/tables/DMI").takeIf { it.canRead() }?.readBytes() }.getOrNull()
+                ?.let { HardwareInfo.smbiosMemory(it, header = false, cores = cores) }
+            val cpu = info.lineSequence().firstOrNull { it.startsWith("model name") }?.substringAfter(':')?.trim().orEmpty()
+            Profile(mem?.gbs ?: Double.NaN, mem?.detail().orEmpty(), HardwareInfo.cpuFeatures(info), cpu = cpu)
+        }
+    }
+
+    private interface Firmware : com.sun.jna.win32.StdCallLibrary {
+        fun GetSystemFirmwareTable(provider: Int, id: Int, buffer: com.sun.jna.Pointer?, size: Int): Int
+    }
+
+    /** The raw SMBIOS tables of Windows ('RSMB'), null if not readable. */
+    private fun windowsSmbios(): ByteArray? = runCatching {
+        val lib = com.sun.jna.Native.load("kernel32", Firmware::class.java, com.sun.jna.win32.W32APIOptions.DEFAULT_OPTIONS)
+        val rsmb = 0x52534D42
+        val size = lib.GetSystemFirmwareTable(rsmb, 0, null, 0)
+        if (size <= 0) return null
+        val mem = com.sun.jna.Memory(size.toLong())
+        val got = lib.GetSystemFirmwareTable(rsmb, 0, mem, size)
+        if (got <= 0) null else mem.getByteArray(0, got)
+    }.onFailure { AppLog.e("SMBIOS lesen", it) }.getOrNull()
+
+    private fun sysctl(key: String): String = command("sysctl", "-n", key).trim()
+
+    /** A system tool's output (sysctl, ioreg), empty if it fails; at most five seconds. */
+    private fun command(vararg args: String): String = runCatching {
+        val p = ProcessBuilder(*args).redirectErrorStream(true).start()
+        val out = p.inputStream.bufferedReader().readText()
+        if (!p.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) { p.destroyForcibly(); "" } else out
+    }.getOrDefault("")
 
     /**
      * Without registry and system functions (JNA), for PCs where IT rules block them (AppLocker, WDAC, virus scanner):
@@ -73,6 +171,7 @@ internal object LlamaHost {
      */
     fun basicHardware(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File): Hardware = Hardware(
         phone = false,
+        mac = Os.mac,
         ramGb = javaRam() ?: 8.0,
         cores = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1),
         cpuName = envCpu(),
@@ -125,69 +224,129 @@ internal object LlamaHost {
         return File(runtimeDir(root), serverName).takeIf { it.isFile }
     }
 
-    fun runtimeStatus(c: AppContainer, root: File): RuntimeStatus = when {
-        binary(c, root) != null -> RuntimeStatus.READY
-        cpuPackage != null -> RuntimeStatus.MISSING
-        else -> RuntimeStatus.UNSUPPORTED
-    }
+    fun runtimeStatus(c: AppContainer, root: File): RuntimeStatus =
+        if (binary(c, root) != null) RuntimeStatus.READY else RuntimeStatus.MISSING
 
-    /** Downloads the CPU package (and the Vulkan backend for graphics cards) and unpacks it. */
+    /**
+     * Downloads the package of this system (with a graphics card on Windows also the Vulkan backend) and unpacks it
+     * (AP-86): first the fixed release with its pinned checksum, if that is gone the latest release over the GitHub API.
+     * Failures say what is missing (the program, not the model) and whether the network blocked it.
+     */
     suspend fun installRuntime(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File, gpu: Boolean, progress: (Double) -> Unit) = withContext(Dispatchers.IO) {
-        val cpu = cpuPackage ?: error(tr("Für dieses System gibt es kein fertiges Programm für lokale Modelle."))
-        val assets = releaseAssets(TAG).takeIf { a -> a.any { it.name.endsWith(cpu) } } ?: releaseAssets(null)
-        val wanted = listOfNotNull(
-            assets.firstOrNull { it.name.endsWith(cpu) } ?: error(tr("Kein Paket für {0} im llama.cpp-Release gefunden.", Os.label)),
-            gpuPackage?.let { g -> assets.firstOrNull { it.name.endsWith(g) } }.takeIf { gpu },
-        )
-        val dir = runtimeDir(root)
+        val choices = wanted(gpu)
         val tmp = File(root, "runtime.new").apply { deleteRecursively(); mkdirs() }
-        val total = wanted.sumOf { it.size }.toDouble()
+        val sizes = choices.map { PINNED[it.kind]?.first ?: 30_000_000L }
+        val total = sizes.sum().toDouble()
         var done = 0L
-        for (a in wanted) {
-            val zip = File(root, a.name)
-            download(a.url, zip) { got -> progress(((done + got) / total).coerceAtMost(0.99)) }
-            a.sha256?.let { expected -> if (sha256(zip) != expected) { zip.delete(); error(tr("Prüfsumme von {0} stimmt nicht.", a.name)) } }
-            zip.inputStream().use { unzip(it, tmp) }
-            done += a.size
-            zip.delete()
+        for ((i, choice) in choices.withIndex()) {
+            try {
+                val (name, url, sha) = source(choice.kind)
+                val file = File(root, name)
+                try {
+                    try {
+                        download(url, file) { got -> progress(((done + got) / total).coerceAtMost(0.99)) }
+                    } catch (e: java.io.IOException) { throw RuntimeDownloadException(e.message ?: e.toString(), blocked(e), e) }
+                    if (sha != null && sha256(file) != sha) error(tr("Prüfsumme von {0} stimmt nicht.", name))
+                    file.inputStream().use { LlamaPackages.unpack(name, it, tmp) }
+                } finally { file.delete() }
+            } catch (e: RuntimeDownloadException) {
+                // The graphics extra is optional: without it the processor computes.
+                if (choice.gpu) AppLog.e("llama.cpp ${choice.kind}", e) else { tmp.deleteRecursively(); throw e }
+            }
+            done += sizes[i]
         }
-        if (!File(tmp, serverName).isFile) error(tr("{0} fehlt im Paket.", serverName))
-        executable(tmp)
+        if (!File(tmp, serverName).isFile) { tmp.deleteRecursively(); throw RuntimeDownloadException(tr("{0} fehlt im Paket.", serverName), blocked = false) }
+        prepare(tmp)
+        val dir = runtimeDir(root)
         dir.deleteRecursively()
         if (!tmp.renameTo(dir)) error(tr("Programm konnte nicht gespeichert werden."))
         progress(1.0)
     }
 
-    /** A llama.cpp Windows ZIP loaded by hand (company network blocks GitHub). */
-    fun importRuntime(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File, input: InputStream) {
-        val dir = runtimeDir(root).apply { mkdirs() }
-        unzip(input, dir)
-        if (!File(dir, serverName).isFile) error(tr("In der ZIP-Datei fehlt {0} (llama.cpp, Paket „{1}“).", serverName, cpuPackage?.removeSuffix(".zip") ?: "–"))
-        executable(dir)
+    /** Name, address and checksum of a package: the pinned one of [TAG], else the latest release (API). */
+    private fun source(kind: String): Triple<String, String, String?> {
+        val fixed = LlamaPackages.fileName(TAG, kind)
+        val fixedUrl = LlamaPackages.downloadUrl(TAG, fixed)
+        val status = runCatching { head(fixedUrl) }.getOrElse { e -> throw RuntimeDownloadException(e.message ?: e.toString(), blocked(e), e) }
+        if (status in 200..399) return Triple(fixed, fixedUrl, PINNED[kind]?.second)
+        if (status == 403 || status == 407) throw RuntimeDownloadException("HTTP $status", blocked = true)
+        val assets = runCatching { releaseAssets(null) }.getOrElse { e -> throw RuntimeDownloadException(e.message ?: e.toString(), blocked(e), e) }
+        val name = LlamaPackages.pick(assets.map { it.name }, kind)
+            ?: throw RuntimeDownloadException(tr("Kein Paket „{0}“ im llama.cpp-Release gefunden", kind), blocked = false)
+        val a = assets.first { it.name == name }
+        return Triple(a.name, a.url, a.sha256)
     }
 
-    /** ZIP files carry no rights: the programs of llama.cpp must be executable on macOS and Linux. */
-    private fun executable(dir: File) {
+    /** Whether the network (proxy, firewall, filter) stopped the download – only then the hint on company networks fits. */
+    private fun blocked(e: Throwable): Boolean = generateSequence(e) { it.cause }.take(5).any {
+        it is java.net.UnknownHostException || it is javax.net.ssl.SSLException || it is java.net.ConnectException ||
+            it is java.net.SocketTimeoutException || (it.message ?: "").let { m -> "HTTP 403" in m || "HTTP 407" in m }
+    }
+
+    /** Whether the fixed release still has the file (GitHub answers with a redirect to its storage, or 404). */
+    private fun head(url: String): Int {
+        val con = URL(url).openConnection() as HttpURLConnection
+        con.instanceFollowRedirects = false
+        con.requestMethod = "HEAD"
+        con.connectTimeout = 15_000; con.readTimeout = 15_000
+        con.setRequestProperty("User-Agent", "ADEU-LLM")
+        return try { con.responseCode } finally { con.disconnect() }
+    }
+
+    /**
+     * A package loaded by hand (company network blocks GitHub): the ZIP of Windows or the tar.gz of macOS/Linux, as
+     * named by [packageName].
+     */
+    fun importRuntime(@Suppress("UNUSED_PARAMETER") c: AppContainer, root: File, name: String, input: InputStream) {
+        val tmp = File(root, "runtime.new").apply { deleteRecursively(); mkdirs() }
+        LlamaPackages.unpack(name, input, tmp)
+        if (!File(tmp, serverName).isFile) {
+            tmp.deleteRecursively()
+            error(tr("In „{0}“ fehlt {1}. Für dieses Gerät passt das llama.cpp-Paket „{2}“.", name, serverName, packageName(c) ?: "–"))
+        }
+        prepare(tmp)
+        // A Vulkan package loaded by hand after the CPU one adds to it instead of replacing it.
+        val dir = runtimeDir(root)
+        if (name.contains("vulkan", ignoreCase = true) && dir.isDirectory) {
+            tmp.listFiles().orEmpty().forEach { it.copyTo(File(dir, it.name), overwrite = true) }
+            tmp.deleteRecursively()
+            prepare(dir)
+        } else {
+            dir.deleteRecursively()
+            if (!tmp.renameTo(dir)) error(tr("Programm konnte nicht gespeichert werden."))
+        }
+    }
+
+    /**
+     * macOS and Linux: the programs must be executable (ZIP files carry no rights). On a Mac also without the quarantine
+     * mark (files from a browser have it), so Gatekeeper does not stop llama-server; the release binaries are signed
+     * ad hoc, which Apple Silicon needs.
+     */
+    private fun prepare(dir: File) {
         if (Os.windows) return
         dir.listFiles().orEmpty().filter { it.isFile && (it.name.startsWith("llama-") || !it.name.contains('.')) }.forEach { it.setExecutable(true) }
+        if (Os.mac) runCatching {
+            ProcessBuilder("xattr", "-dr", "com.apple.quarantine", dir.absolutePath).redirectErrorStream(true).start().waitFor(20, java.util.concurrent.TimeUnit.SECONDS)
+        }.onFailure { AppLog.e("Quarantäne entfernen", it) }
     }
 
     private data class Asset(val name: String, val url: String, val size: Long, val sha256: String?)
 
-    private fun releaseAssets(tag: String?): List<Asset> = runCatching {
+    private fun releaseAssets(tag: String?): List<Asset> {
         val api = "https://api.github.com/repos/ggml-org/llama.cpp/releases/" + (tag?.let { "tags/$it" } ?: "latest")
         val con = URL(api).openConnection() as HttpURLConnection
         con.setRequestProperty("Accept", "application/vnd.github+json")
         con.setRequestProperty("User-Agent", "ADEU-LLM")
+        if (con.responseCode != 200) error("HTTP ${con.responseCode}")
         val text = con.inputStream.use { it.readBytes().decodeToString() }
-        Json.parseToJsonElement(text).jsonObject["assets"]!!.jsonArray.map { el ->
+        return Json.parseToJsonElement(text).jsonObject["assets"]!!.jsonArray.map { el ->
             val o = el.jsonObject
             Asset(
                 o.str("name"), o.str("browser_download_url"), o["size"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: 0,
                 o["digest"]?.jsonPrimitive?.contentOrNull?.removePrefix("sha256:"),
             )
         }
-    }.getOrElse { if (tag == null) throw it else emptyList() }
+    }
 
     private fun JsonObject.str(k: String) = this[k]?.jsonPrimitive?.contentOrNull.orEmpty()
 
@@ -200,7 +359,7 @@ internal object LlamaHost {
             con.setRequestProperty("User-Agent", "ADEU-LLM")
             val code = con.responseCode
             if (code in 300..399 && hops++ < 10) { u = URL(URL(u), con.getHeaderField("Location")).toString(); con.disconnect(); continue }
-            if (code != 200) error("HTTP $code")
+            if (code != 200) throw RuntimeDownloadException("HTTP $code", blocked = code == 403 || code == 407)
             con.inputStream.use { input ->
                 dest.outputStream().use { out ->
                     val buf = ByteArray(1 shl 16)
@@ -215,18 +374,6 @@ internal object LlamaHost {
                 }
             }
             return
-        }
-    }
-
-    private fun unzip(input: InputStream, dir: File) {
-        ZipInputStream(input).use { z ->
-            while (true) {
-                val e = z.nextEntry ?: break
-                if (e.isDirectory) continue
-                val name = e.name.replace('\\', '/').substringAfterLast('/')
-                if (name.isBlank() || name.startsWith(".")) continue
-                File(dir, name).outputStream().use { z.copyTo(it) }
-            }
         }
     }
 

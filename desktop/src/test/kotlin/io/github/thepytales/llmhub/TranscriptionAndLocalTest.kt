@@ -78,22 +78,25 @@ class TranscriptionAndLocalTest {
     }
 
     @Test
-    fun officeLaptopWith16GbGetsGemmaE4b() {
-        val rec = ids(Hardware(phone = false, ramGb = 16.0, cores = 4))
-        assertEquals("gemma-4-e4b", rec.first(), rec.toString())
+    fun officeLaptopWith16GbGetsASmallFastAllrounderAndGemmaForTexts() {
+        // Modellkatalog nach Zweck (AP-106): the allrounder first, sized by the speed forecast (AP-105).
+        val hw = Hardware(phone = false, ramGb = 16.0, cores = 4)
+        val rec = LocalCatalog.recommended(hw, setOf(io.github.thepytales.llmhub.local.Purpose.ALLROUND, io.github.thepytales.llmhub.local.Purpose.TEXT))
+        assertTrue(io.github.thepytales.llmhub.local.Purpose.ALLROUND in rec.first().purposes && rec.first().needGb <= 4.2, rec.toString())
+        assertTrue(rec.any { it.family == "Gemma" && it.needGb <= 6.0 }, rec.toString())
     }
 
     @Test
     fun gamingPcGetsTheLargeModel() {
         val rec = ids(Hardware(phone = false, ramGb = 32.0, cores = 8, gpuName = "NVIDIA GeForce RTX 4090", vramGb = 24.0))
-        assertEquals("qwen3.6-35b-a3b", rec.first(), rec.toString())
+        assertEquals("qwen3.6-27b", rec.first(), rec.toString())
     }
 
     @Test
     fun onePlusGetsAPhoneSizedModel() {
         val hw = Hardware(phone = true, ramGb = 16.0, cores = 8, cpuName = "Qualcomm SM8850")
         val rec = ids(hw)
-        assertEquals("gemma-4-e4b", rec.first(), rec.toString())
+        assertTrue(rec.all { LocalCatalog.get(it)!!.needGb <= 6.0 }, rec.toString())
         assertFalse("qwen3.6-35b-a3b" in rec)
         assertEquals(Fit.SLOW, LocalCatalog.fit(LocalCatalog.get("qwen3.5-9b")!!, hw))
     }
@@ -101,7 +104,7 @@ class TranscriptionAndLocalTest {
     @Test
     fun localModelIdsAreKnownToTheCatalog() {
         val info = io.github.thepytales.llmhub.data.ModelCatalog.info("local/gemma-4-e4b")
-        assertEquals("Gemma 4 E4B", info.displayName)
+        assertEquals("Gemma 4 E4B – Lora Edition", info.displayName)
         assertTrue(io.github.thepytales.llmhub.data.Privacy.isLocal(info.id))
     }
 }

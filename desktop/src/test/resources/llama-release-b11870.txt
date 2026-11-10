@@ -1,0 +1,23 @@
+# Asset names of the llama.cpp release b11870 (github.com/ggml-org/llama.cpp/releases/tag/b11870), each checked on
+# 10.11.2026 with a request to its download address (302 = there). Names the release does not have (404) are not
+# listed, e.g. llama-b11870-bin-macos-arm64.zip – the name the app looked for until 1.0.66 (AP-86).
+llama-b11870-bin-macos-arm64.tar.gz
+llama-b11870-bin-macos-x64.tar.gz
+llama-b11870-bin-ubuntu-x64.tar.gz
+llama-b11870-bin-ubuntu-arm64.tar.gz
+llama-b11870-bin-ubuntu-vulkan-x64.tar.gz
+llama-b11870-bin-ubuntu-vulkan-arm64.tar.gz
+llama-b11870-bin-ubuntu-sycl-fp16-x64.tar.gz
+llama-b11870-bin-ubuntu-sycl-fp32-x64.tar.gz
+llama-b11870-bin-ubuntu-s390x.tar.gz
+llama-b11870-bin-linux-arm64-snapdragon.tar.gz
+llama-b11870-bin-android-arm64.tar.gz
+llama-b11870-bin-android-arm64-snapdragon.tar.gz
+llama-b11870-bin-win-cpu-x64.zip
+llama-b11870-bin-win-cpu-arm64.zip
+llama-b11870-bin-win-vulkan-x64.zip
+llama-b11870-bin-win-cuda-12.4-x64.zip
+llama-b11870-bin-win-sycl-x64.zip
+llama-b11870-bin-win-opencl-adreno-arm64.zip
+cudart-llama-bin-win-cuda-12.4-x64.zip
+llama-b11870-xcframework.zip

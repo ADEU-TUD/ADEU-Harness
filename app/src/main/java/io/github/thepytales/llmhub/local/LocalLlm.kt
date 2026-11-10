@@ -30,6 +30,9 @@ import java.util.UUID
 /** Whether the program that runs models (llama.cpp) is there. */
 enum class RuntimeStatus { READY, MISSING, INSTALLING, UNSUPPORTED }
 
+/** The program for local models (llama.cpp) could not be loaded; [blocked]: the network stopped it (AP-86). */
+class RuntimeDownloadException(message: String, val blocked: Boolean, cause: Throwable? = null) : Exception(message, cause)
+
 data class LocalState(
     val installed: Set<String> = emptySet(),
     /** Model id → 0..1 while downloading. */
@@ -41,6 +44,10 @@ data class LocalState(
     /** "Wird geladen …" while the server loads a model. */
     val starting: String? = null,
     val message: String? = null,
+    /** Model whose download failed, for "Erneut versuchen" next to [message] (AP-86). */
+    val retry: String? = null,
+    /** Models whose image part is installed (AP-110). */
+    val vision: Set<String> = emptySet(),
 )
 
 /**
@@ -66,17 +73,36 @@ class LocalLlm(private val c: AppContainer) {
     private var provider: ApiProvider? = null
     /** The running server was started without the graphics card ([provider] with cpuOnly, AP-76). */
     private var providerCpu = false
+    /** The running server reads images (AP-110). */
+    @Volatile var runningVision = false
+        private set
+    /** Context length the running server was started with (AP-108). */
+    @Volatile var runningContext = 0
+        private set
     @Volatile private var lastUse = 0L
     private var idleWatch: Job? = null
 
     init {
         refresh()
-        scope.launch { _hardware.value = detectHardware() }
+        scope.launch {
+            val hw = detectHardware()
+            _hardware.value = hw
+            // Lange Texte lokal (AP-108): the context length follows the memory of this device.
+            LocalCatalog.hardware = hw
+            LocalCatalog.forecaster = { m -> DeviceBench.forecast(c, m, hw) }
+            refresh()
+        }
         // Leftover server of an earlier run (app killed): stop it.
         scope.launch { LlamaHost.killStale(root) }
     }
 
     fun file(m: LocalModel) = File(modelsDir, m.file)
+
+    /** The image part of a model on the device (AP-110). */
+    fun projectorFile(p: Projector) = File(modelsDir, p.localName)
+
+    /** Whether [m] understands images here: model and image part installed. */
+    fun seesImages(m: LocalModel) = m.id in _state.value.installed && m.id in _state.value.vision
 
     /**
      * The full check (Windows: registry and system functions via JNA) runs in the background and gets
@@ -92,14 +118,20 @@ class LocalLlm(private val c: AppContainer) {
 
     private fun refresh() {
         val installed = LocalCatalog.models.filter { file(it).let { f -> f.isFile && f.length() == it.size } }.map { it.id }.toSet()
-        _state.value = _state.value.copy(installed = installed, runtime = LlamaHost.runtimeStatus(c, root))
-        c.models.setLocal(LocalCatalog.models.filter { it.id in installed }.map { LocalCatalog.info(it) })
+        val vision = LocalCatalog.models.filter { m -> m.projector?.let { p -> projectorFile(p).let { it.isFile && it.length() == p.size } } == true }.map { it.id }.toSet()
+        _state.value = _state.value.copy(installed = installed, vision = vision, runtime = LlamaHost.runtimeStatus(c, root))
+        c.models.setLocal(LocalCatalog.models.filter { it.id in installed }.map { LocalCatalog.info(it, vision = it.id in vision) })
     }
 
     fun installedModels(): List<LocalModel> = LocalCatalog.models.filter { it.id in _state.value.installed }
 
     /** The local model for new chats in projects that keep data on the device: the strongest one installed. */
-    fun preferredModel(): String? = installedModels().maxByOrNull { it.needGb }?.modelId
+    fun preferredModel(): String? = generalModels().maxByOrNull { it.quality }?.modelId
+
+    /** Installed models for general work: without the code specialists (AP-106), unless only those are installed. */
+    fun generalModels(): List<LocalModel> = installedModels().let { all ->
+        all.filter { Purpose.ALLROUND in it.purposes || Purpose.TEXT in it.purposes || Purpose.MAIL in it.purposes }.ifEmpty { all }
+    }
 
     // ------------------------------------------------------------------ installing
 
@@ -108,10 +140,15 @@ class LocalLlm(private val c: AppContainer) {
         val m = LocalCatalog.get(id) ?: return
         if (_state.value.downloads.containsKey(m.id)) return
         cancel[m.id] = false
-        _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 0.0), message = null)
+        _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to 0.0), message = null, retry = null)
         scope.launch {
             try {
-                if (LlamaHost.runtimeStatus(c, root) == RuntimeStatus.MISSING) installRuntime()
+                if (LlamaHost.runtimeStatus(c, root) == RuntimeStatus.MISSING) {
+                    try { installRuntime() } catch (e: RuntimeDownloadException) {
+                        _state.value = _state.value.copy(message = runtimeFailure(e), retry = m.id)
+                        return@launch
+                    }
+                }
                 val dst = file(m)
                 val part = File(dst.path + ".part")
                 download(m.url, part, m.size, { cancel[m.id] == true }) { p -> _state.value = _state.value.copy(downloads = _state.value.downloads + (m.id to p)) }
@@ -122,8 +159,11 @@ class LocalLlm(private val c: AppContainer) {
             } catch (e: InterruptedException) {
                 _state.value = _state.value.copy(message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
             } catch (e: Exception) {
+                val blocked = networkBlocked(e)
                 _state.value = _state.value.copy(
-                    message = tr("Download von {0} fehlgeschlagen: {1}. Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.", m.name, e.message),
+                    message = sentence(tr("Download von {0} fehlgeschlagen: {1}", m.name, e.message ?: e.toString())) +
+                        if (blocked) " " + tr("Im Firmennetz gesperrt? Die Datei im Browser laden und mit „Datei einspielen“ übernehmen.") else "",
+                    retry = m.id,
                 )
             } finally {
                 _state.value = _state.value.copy(downloads = _state.value.downloads - m.id)
@@ -132,7 +172,25 @@ class LocalLlm(private val c: AppContainer) {
         }
     }
 
+    /**
+     * Plain words for a failed program download (AP-86): it is the program llama.cpp that is missing, not the model; the
+     * hint on company networks and on loading by hand only when the network really blocked it.
+     */
+    private fun runtimeFailure(e: RuntimeDownloadException): String {
+        val head = sentence(tr("Das Programm für lokale Modelle (llama.cpp) konnte nicht geladen werden – am Modell liegt es nicht ({0})", e.message?.trimEnd('.', ' ') ?: "–"))
+        if (!e.blocked) return head
+        val pkg = LlamaHost.packageName(c)
+        return head + " " + if (pkg != null) tr("Das Netz hat den Download blockiert. Das Paket „{0}“ von github.com/ggml-org/llama.cpp/releases im Browser laden und mit „Datei einspielen“ übernehmen.", pkg)
+        else tr("Das Netz hat den Download blockiert.")
+    }
+
     fun cancelInstall(id: String) { cancel[id] = true }
+
+    /** The llama.cpp package to load by hand on this system (null on Android, where the app has it built in). */
+    fun runtimePackage(): String? = LlamaHost.packageName(c)
+
+    /** "Erneut versuchen" after a failed download (program or model). */
+    fun retry() { _state.value.retry?.let { install(it) } }
 
     /** Windows: the llama.cpp program (CPU, with a graphics card also Vulkan); Android has it built in. */
     suspend fun installRuntime() {
@@ -144,10 +202,44 @@ class LocalLlm(private val c: AppContainer) {
         }
     }
 
+    /**
+     * Bilder verstehen lokal (AP-110): loads the image part of [id] (a few hundred MB, same repository and commit as the
+     * model). Shown as download "bild:<id>"; the server starts with it from the next request on.
+     */
+    fun installVision(id: String) {
+        val m = LocalCatalog.get(id) ?: return
+        val p = m.projector ?: return
+        val key = VISION + m.id
+        if (_state.value.downloads.containsKey(key)) return
+        cancel[key] = false
+        _state.value = _state.value.copy(downloads = _state.value.downloads + (key to 0.0), message = null, retry = null)
+        scope.launch {
+            try {
+                val part = File(projectorFile(p).path + ".part")
+                download(p.url, part, p.size, { cancel[key] == true }) { x -> _state.value = _state.value.copy(downloads = _state.value.downloads + (key to x)) }
+                if (part.length() != p.size || io.github.thepytales.llmhub.data.FileDownload.sha256(part) != p.sha256) { part.delete(); error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt")) }
+                projectorFile(p).delete()
+                if (!part.renameTo(projectorFile(p))) error(tr("Datei konnte nicht gespeichert werden"))
+                // A running server without the image part restarts with it at the next request.
+                if (_state.value.running == m.modelId) stop()
+                _state.value = _state.value.copy(message = tr("{0} versteht jetzt Bilder.", m.name))
+            } catch (e: InterruptedException) {
+                _state.value = _state.value.copy(message = tr("Download abgebrochen – beim nächsten Mal wird fortgesetzt."))
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(message = sentence(tr("Download des Bildteils fehlgeschlagen: {0}", e.message ?: e.toString())))
+            } finally {
+                _state.value = _state.value.copy(downloads = _state.value.downloads - key)
+                refresh()
+            }
+        }
+    }
+
     fun delete(id: String) {
         val m = LocalCatalog.get(id) ?: return
         scope.launch {
             if (_state.value.running == m.modelId) stop()
+            // The image part goes too, unless another installed model shares it (Qwen 3.5 4B and its 8-bit version).
+            m.projector?.let { p -> if (installedModels().none { it.id != m.id && it.projector?.localName == p.localName }) projectorFile(p).delete() }
             file(m).delete()
             File(file(m).path + ".part").delete()
             refresh()
@@ -156,10 +248,17 @@ class LocalLlm(private val c: AppContainer) {
 
     /** A model or runtime file loaded by hand (browser, USB stick); recognized by its name. */
     suspend fun importFile(name: String, input: InputStream): String = withContext(Dispatchers.IO) {
-        if (name.endsWith(".zip", ignoreCase = true)) {
-            input.use { LlamaHost.importRuntime(c, root, it) }
+        if (!name.endsWith(".gguf", ignoreCase = true) && isPackage(name)) {
+            input.use { LlamaHost.importRuntime(c, root, name, it) }
             refresh()
             return@withContext tr("Programm für lokale Modelle eingespielt.")
+        }
+        LocalCatalog.models.mapNotNull { it.projector }.firstOrNull { it.localName.equals(name, ignoreCase = true) || it.file.equals(name, ignoreCase = true) && !it.file.startsWith("mmproj-F") }?.let { p ->
+            val part = File(projectorFile(p).path + ".import")
+            input.use { i -> part.outputStream().use { i.copyTo(it, 1 shl 20) } }
+            if (part.length() != p.size || io.github.thepytales.llmhub.data.FileDownload.sha256(part) != p.sha256) { part.delete(); error(tr("Prüfsumme stimmt nicht – die Datei ist beschädigt")) }
+            projectorFile(p).delete(); part.renameTo(projectorFile(p)); refresh()
+            return@withContext tr("Bildteil eingespielt.")
         }
         val m = LocalCatalog.models.firstOrNull { it.file.equals(name, ignoreCase = true) }
             ?: error(tr("„{0}“ gehört zu keinem Modell der Liste.", name))
@@ -194,28 +293,41 @@ class LocalLlm(private val c: AppContainer) {
         stopLocked()
         if (m.id !in _state.value.installed) error(tr("{0} ist nicht installiert (Einstellungen › Modelle auf diesem Gerät).", m.name))
         val bin = LlamaHost.binary(c, root) ?: error(tr("Das Programm für lokale Modelle fehlt (Einstellungen › Modelle auf diesem Gerät › Installieren)."))
-        val hw = _hardware.value ?: detectHardware().also { _hardware.value = it }
+        val hw = _hardware.value ?: detectHardware().also { _hardware.value = it; LocalCatalog.hardware = it }
         val port = ServerSocket(0).use { it.localPort }
         val key = UUID.randomUUID().toString()
         val gpu = !cpuOnly && usesGpu(m, hw)
-        val threads = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
-        val args = listOf(
+        val threads = threads(hw)
+        // Lange Texte lokal (AP-108): context after the memory, KV cache in 8 bit (half the memory of 16 bit); if the
+        // program refuses that (old build, no flash attention for this model), once more as before.
+        val context = LocalCatalog.contextFor(m, hw)
+        // Bilder verstehen lokal (AP-110): with its image part; on the processor smaller images (fewer tokens, faster).
+        val projector = m.projector?.let { projectorFile(it) }?.takeIf { it.isFile && m.id in _state.value.vision }
+        fun args(full: Boolean) = listOf(
             bin.absolutePath, "-m", file(m).absolutePath, "--host", "127.0.0.1", "--port", port.toString(),
-            "--api-key", key, "--jinja", "-c", m.context.toString(), "-t", threads.toString(), "-np", "1",
+            "--api-key", key, "--jinja", "-c", (if (full) context else m.context).toString(), "-t", threads.toString(), "-np", "1",
             "-ngl", if (gpu) "999" else "0",
-        )
+        ) + (if (full && context > m.context) listOf("-fa", "auto", "-ctk", "q8_0", "-ctv", "q8_0") else emptyList()) +
+            (if (full && projector != null) listOf("--mmproj", projector.absolutePath, "--image-max-tokens", if (gpu) "1024" else "512") + (if (gpu) emptyList() else listOf("--no-mmproj-offload")) else emptyList())
         _state.value = _state.value.copy(starting = m.name, message = null)
         try {
-            val p = withContext(Dispatchers.IO) {
-                ProcessBuilder(args).directory(bin.parentFile).redirectErrorStream(true)
-                    .redirectOutput(File(root, "server.log")).also { LlamaHost.environment(c, it.environment()) }.start()
-            }
+            fun launch(longContext: Boolean): Process = ProcessBuilder(args(longContext)).directory(bin.parentFile).redirectErrorStream(true)
+                .redirectOutput(File(root, "server.log")).also { LlamaHost.environment(c, it.environment()) }.start()
+            var long = context > m.context || projector != null
+            var p = withContext(Dispatchers.IO) { launch(long) }
             process = p
             LlamaHost.rememberPid(root, p)
             val base = "http://127.0.0.1:$port"
             // Loading takes a few seconds to a minute (large models, slow disks).
             val deadline = System.currentTimeMillis() + 5 * 60_000
             while (true) {
+                if (!p.isAlive && long) {
+                    long = false
+                    p = withContext(Dispatchers.IO) { launch(false) }
+                    process = p
+                    LlamaHost.rememberPid(root, p)
+                    continue
+                }
                 if (!p.isAlive) error(tr("Der Modell-Server hat sich beendet:\n") + File(root, "server.log").readLines().takeLast(6).joinToString("\n"))
                 if (System.currentTimeMillis() > deadline) error(tr("Das Modell lädt zu lange."))
                 val ok = withContext(Dispatchers.IO) {
@@ -232,6 +344,8 @@ class LocalLlm(private val c: AppContainer) {
             val prov = ApiProvider(id = LOCAL_PROVIDER_ID, kind = ProviderKind.OPENAI.name, name = "Auf diesem Gerät", baseUrl = "$base/v1", apiKey = key)
             provider = prov
             providerCpu = cpuOnly
+            runningContext = if (long) context else m.context
+            runningVision = long && projector != null
             _state.value = _state.value.copy(running = m.modelId, starting = null)
             watchIdle()
             prov
@@ -277,6 +391,23 @@ class LocalLlm(private val c: AppContainer) {
 
     companion object {
         const val LOCAL_PROVIDER_ID = "local-device"
+        /** Key of the download of an image part in [LocalState.downloads] (AP-110). */
+        const val VISION = "bild:"
+
+        /** Threads for llama-server: half the cores on a PC (it stays usable), all but two on a phone; 2 to 8. */
+        fun threads(hw: Hardware): Int = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
+
+        /** A llama.cpp package (Windows ZIP, macOS/Linux tar.gz) as opposed to a model file. */
+        fun isPackage(name: String) = listOf(".zip", ".tar.gz", ".tgz").any { name.endsWith(it, ignoreCase = true) }
+
+        /** One sentence: no double full stop when the cause already ends with one (AP-86). */
+        fun sentence(text: String): String = text.trimEnd().let { t -> if (t.endsWith(".") || t.endsWith("!") || t.endsWith("?") || t.endsWith("…")) t else "$t." }
+
+        /** The network (proxy, firewall) stopped a download, not the server or the file. */
+        fun networkBlocked(e: Throwable): Boolean = generateSequence(e) { it.cause }.take(5).any {
+            it is java.net.UnknownHostException || it is javax.net.ssl.SSLException || it is java.net.ConnectException ||
+                it is java.net.SocketTimeoutException || (it.message ?: "").let { m -> Regex("""\bHTTP (403|407)\b""").containsMatchIn(m) }
+        }
         private const val IDLE_MS = 10 * 60_000L
         private const val HARDWARE_TIMEOUT_MS = 8_000L
     }

@@ -70,9 +70,9 @@ Fairlight).
 | **Jetzt** | ~~AP-103 Datenschutzseite aufräumen~~ ☑ (10.11.2026) · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
-| **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung · AP-106 Modellkatalog in feinen Stufen, nach Zweck · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
-| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
+| **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -351,10 +351,10 @@ mit Lizenz und Modellkarte bei.
 
 ## Danach
 
-AP-72 bis AP-85 sind erledigt (10.11.2026, siehe *Erledigt*). Als Nächstes nach AP-103: AP-86.
+AP-72 bis AP-85 sind erledigt (10.11.2026, siehe *Erledigt*). AP-86 ist erledigt (10.11.2026, 1.0.67); weiter mit Runde 3 (AP-105 …).
 AP-67 und AP-71 (Modellziele) werden nachtrainiert und stehen weiter unter *Jetzt*.
 
-### AP-86 ☐ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
+### AP-86 ☑ Lokale Modelle auf dem Mac laden · S–M (neu, Fehler)
 **Befund (10.11.2026)**: Auf einem Mac mit Apple Silicon (39 GB, Metal) scheitert jeder Download eines lokalen Modells
 (Qwen 3.5 9B im Postfach, Qwen 3.6 35B A3B unter *Lokale Modelle*) mit „Kein Paket für macOS im llama.cpp-Release
 gefunden.“ Es scheitert nicht das Modell, sondern das Programm llama.cpp davor: `LlamaHost.installRuntime` sucht im
@@ -372,8 +372,31 @@ gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und 
 - Nebenbei: auf dem Mac nicht „PC“, sondern „Mac“ anzeigen.
 **Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
 und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
+☑ *Erledigt (10.11.2026, 1.0.67)*: Ursache bestätigt – das Release `b11870` hat Pakete für alle Plattformen, aber macOS
+und Linux nur als `.tar.gz` mit Ordner `llama-b11870/` und Symlinks (`libllama.0.dylib → libllama.0.7.0.dylib`); eine
+`bin-macos-arm64.zip` gibt es nicht. Neu `desktop/…/local/LlamaPackages.kt`: Wahl nach System und Architektur über den
+genauen Paketnamen (`ubuntu-x64` nimmt nie `ubuntu-vulkan-x64`), Entpacken von ZIP und tar.gz (ustar/GNU, lange Namen,
+pax, Symlinks – sonst Kopie –, Rechte, ohne „._“-Dateien). `LlamaHost`: festes Release mit hinterlegter Größe und SHA-256
+je Paket (Windows x64/ARM, Vulkan, macOS arm64/x64, Linux x64/arm64), direkter Download ohne GitHub-API; nur wenn das
+Paket dort fehlt (404), das neueste Release über die API. Mac: `xattr -dr com.apple.quarantine`. *Datei einspielen* nimmt
+`.tar.gz`/`.tgz` und nennt den Dateinamen für dieses Gerät; Meldung „Das Programm für lokale Modelle (llama.cpp) konnte
+nicht geladen werden – am Modell liegt es nicht“, Firmennetz-Hinweis nur bei blockiertem Netz (403/407, DNS, TLS,
+Zeitüberschreitung), *Erneut versuchen* unter der Meldung (auch im Postfach), kein doppelter Punkt; „Mac“ statt „PC“.
+Test `LlamaPackagesTest` (8 Tests): Paketwahl gegen die Dateiliste von `b11870` (20 Namen, jeder an seiner
+Download-Adresse geprüft – die GitHub-API war aus der Cloud nicht erreichbar), Entpacken mit Symlink-Ketten; die 8 echten
+Pakete (macOS arm64/x64, Linux x64/arm64 samt Vulkan, Windows x64/ARM/Vulkan) entpacken in der Cloud richtig.
+**Am Gerät zu prüfen**: auf dem Mac mit Apple-Chip Qwen 3.5 9B laden, starten, im Postfach antworten lassen (das Starten
+des Programms war in der Cloud nicht erlaubt); optional `LLAMA_PACKAGES=<Ordner mit dem Paket> ./gradlew -p desktop test
+--tests '*LlamaPackagesTest*'` – startet dort `llama-server --version`. Linux mit Grafikkarte rechnet weiter auf der
+CPU (Vulkan-Paket für Linux nicht eingebunden, Grafikkarte unter Linux wird nicht erkannt).
 
 ### Runde 3 – Lora offline (Plan vom 10.11.2026)
+
+*Stand 10.11.2026 (für 1.0.67)*: AP-105, AP-106, AP-108 und AP-110 sind in der App fertig (◐) – es fehlen jeweils die
+Messungen auf echten Geräten, die die Cloud nicht machen kann. **Am Gerät zu messen** (Hauptnutzer): *Gerät messen* und
+*Messen* auf Office-PC, Gaming-PC, Mac und Android mit *Messprotokoll kopieren* (AP-105); `tools/modellwahl/messen.py`
+je Stufe (AP-106); ein 80-seitiges PDF lokal auf einem Office-PC mit 32 GB (AP-108); `tools/bildverstehen/messen.py`
+(AP-110). Details bei den Paketen.
 
 **Ziel der Runde**: Lora soll **so viel wie möglich ohne API** können – mit Internet für Web, Literatur, Nextcloud und
 Updates, aber ohne API-Schlüssel. Der Uni-Server (heute im Pilotbetrieb der TU) und die Schlüssel anderer Anbieter bleiben
@@ -438,7 +461,7 @@ AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-111 → AP-
 nebenher. Jedes Paket mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71); ohne Modell bleibt
 alles wie heute.
 
-### AP-105 ☐ Geräteprofil und Messung · M (Runde 3, Grundlage)
+### AP-105 ◐ Geräteprofil und Messung · M (Runde 3, Grundlage)
 **Ziel**: Die App kennt das Gerät genau und sagt das Tempo jedes Modells vorher.
 - Geräteprofil: Arbeitsspeicher **und Speicherbandbreite** (Takt, Kanäle – bestimmt das Tempo auf der CPU), CPU-Befehlssätze
   (AVX2/AVX-512), Kerne, Grafikkarte und Grafikspeicher, Apple-Chip mit gemeinsamem Speicher, freier Platz.
@@ -446,8 +469,35 @@ alles wie heute.
   aus den *aktiven* Parametern die Vorhersage für Schreib- und Einlesetempo aller Modelle; AP-76 misst danach die echten
   Werte und korrigiert.
 **Fertig, wenn**: auf fünf Geräteklassen die Vorhersage höchstens 30 % neben der Messung liegt.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig, die Messung auf den Geräten steht aus.
+- **Geräteprofil** (`Hardware`, `local/HardwareInfo.kt`): Windows liest die SMBIOS-Tabelle ohne Admin-Rechte
+  (`GetSystemFirmwareTable`, Typ 17: Typ, eingestellter Takt, Busbreite – zwei Kanäle à 64 Bit gelten auch mit vier
+  Modulen als 128 Bit, gelötetes LPDDR zählt je Kanal) und AVX2/AVX-512 (`IsProcessorFeaturePresent`); der Mac Chip
+  (`sysctl`), Grafikkerne (`ioreg`), Bandbreite aus einer Tabelle der Apple-Chips (M1 bis M5); Linux und Android
+  Befehlssätze aus `/proc/cpuinfo` (Bandbreite unter Linux nur als root lesbar, sonst gemessen).
+- **Vorhersage** (`local/SpeedForecast.kt`): Schreiben ≈ nutzbare Bandbreite ÷ Bytes je Token (aktiver Anteil der Datei;
+  Expertenmodelle und Gemmas Ebenen-Einbettungen nur teilweise); Einlesen ≈ Threads × Befehlssätze ÷ aktive Parameter
+  (Prozessor), Grafikkerne (Apple) bzw. Bandbreite der Karte. Kalibrierung: Median von gemessen ÷ Formel je Art (Prozessor
+  oder Grafik) aus allen Messungen dieses Geräts – Kurzmessung und AP-76 *Messen*; ein gemessenes Modell zeigt seinen
+  Messwert.
+- **Kurzmessung** (`local/DeviceBench.kt`, ≈ 20 s): Speicherbandbreite in Java (≈ 1 s), dann liest das kleinste
+  installierte Modell ein erfundenes Protokoll (≈ 400 Wörter) und schreibt 64 Token; Tempo aus den `timings` von
+  llama-server. Angeboten im Dialog vom ersten Start (nach dem Download eines dort gewählten Modells) und unter *Modelle auf
+  diesem Gerät › Geräteprofil* (*Gerät messen*, *Messprotokoll kopieren*); jede Modellzeile zeigt „schreibt ≈ … Wörter/s ·
+  liest ≈ … Wörter/s · geschätzt/vorhergesagt nach Messung/gemessen“. Die Karte zeigt „Vorhersage gegen Messung: x von y
+  Modellen höchstens 30 % daneben“ – jedes gemessene Modell nur aus den *übrigen* Messungen vorhergesagt.
+- Test `SpeedForecastTest` (8): SMBIOS (DDR5 2 × 64 Bit = 89,6 GB/s, vier DDR4-Module = 51,2, ein Modul = 25,6, LPDDR5X
+  8 × 16 Bit = 120), Befehlssätze, Kalibrierung (ein erfundenes Gerät wird exakt getroffen, Median gegen Ausreißer),
+  `timings`. Plausibilität gegen veröffentlichte Werte für Apple-Chips (llama.cpp-Diskussion #4167, LLaMA 7B Q4_0, neun
+  Chips von M1 bis M4 Max): alle innerhalb ±30 % (größte Abweichung M2 Ultra +23 %) – diese Werte haben die Form der
+  Apple-Formel bestimmt, sind also **kein** Nachweis.
+- **Offen – am Gerät zu messen (Hauptnutzer)**: auf fünf Geräteklassen (Office-PC ohne Grafikkarte, Office-PC mit 32 GB,
+  Gaming-PC mit RTX 5080, Mac mit Apple-Chip, Android) je *Gerät messen*, dann mindestens zwei Modelle mit *Messen* und
+  *Messprotokoll kopieren* – die Zeile „Vorhersage aus den übrigen Messungen gegen Messung“ entscheidet das Ziel ±30 %.
+  Ungeprüft sind vor allem: der Anteil der Bandbreite auf der CPU (0,6), die Einlese-Formel (60 Token/s je Thread und
+  Mrd. Parameter mit AVX2) und Vulkan auf Windows (0,65 der Kartenbandbreite).
 
-### AP-106 ☐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
+### AP-106 ◐ Modellkatalog in feinen Stufen, nach Zweck · M–L (Runde 3)
 **Ziel**: Für jede Stufe (RAM 8 bis 64 GB, Grafik 4 bis 24 GB, Apple-Chip, Android) und jeden Zweck (Allrounder, Text, Code,
 Postfach) genau eine fertig quantisierte Datei – mit Kontextlänge nach Speicher und Mindesttempo (z. B. ≥ 8 Wörter/s,
 erstes Wort < 2 s).
@@ -457,6 +507,27 @@ erstes Wort < 2 s).
 - Kandidaten je Stufe auf einem Messkorpus (deutsche Textaufgaben, Code-Aufgaben) vergleichen, Wahl begründet festhalten.
 **Fertig, wenn**: der Katalog jede Stufe abdeckt, jede Empfehlung auf einem Gerät der Stufe gemessen ist und der Dialog vom
 ersten Start sie mit Größe, Tempo und Zweck anbietet.
+◐ *Stand 10.11.2026 (1.0.67)*: Katalog und Oberfläche fertig, Messung auf den Geräten offen.
+- **16 Modelle** „… – Lora Edition“ (bisher 8; neu Qwen 3.5 0.8B, Qwen 3.5 4B/9B in 8 Bit, Qwen 3.6 27B, Gemma 4 31B,
+  Qwen 2.5 Coder 7B/14B, Qwen 3 Coder 30B A3B), alle **Apache-2.0** (auch Gemma 4; geprüft an Original und
+  quantisierter Fassung), fester Commit und SHA-256 aus der Hugging-Face-API. Ids und Dateien der bisherigen Modelle
+  bleiben, installierte Modelle laufen weiter. Modellkarte in der App (`LocalCatalog.card`). Noch kein eigener Spiegel
+  (wie besprochen).
+- **Zweck** (`Purpose`: Allrounder, Texte, Code, Postfach; Einstellung `localPurposes`, ohne Wahl aus der Rolle von
+  AP-80): Chips unter *Modelle auf diesem Gerät* und im Dialog vom ersten Start; dort je Zweck eine Empfehlung mit Größe
+  und „schreibt ≈ … Wörter/s“. Der Allrounder ist Standard; `LoraCommands.localModel` nimmt den Code-Spezialisten nur bei
+  Programmier-Wünschen, `LocalLlm.preferredModel` und das Postfach (`MailAccess.model`) nie einen reinen Code-Spezialisten.
+- **Wahl je Gerät** (`LocalCatalog.pick`): stärkstes passendes Modell mit Vorhersage (AP-105) ≥ 8 Wörter/s und erstem Wort
+  ≤ 2 s; Spezialist zählt für seinen Zweck 1,5-fach; ohne schnelles Modell das schnellste passende mit Hinweis.
+- Tabelle aller **22 Stufen × 4 Zwecke** in [`docs/MODELLKATALOG.md`](MODELLKATALOG.md): 88 von 88 Feldern laut Vorhersage
+  schnell genug. Test `LocalCatalogStepsTest` (5): Lizenzen, Namen, Commits, jede Stufe und jeder Zweck, stärkere Stufe →
+  stärkeres Modell, Messung ändert die Wahl.
+- **Messkorpus** `tools/modellwahl/` (48 erfundene Aufgaben: Texte, Code mit Tests, Postfach; je 8 Entwicklung/Prüfung)
+  mit Messskript für llama-server.
+- **Offen – am Gerät**: Kandidaten je Stufe im Entwicklungsteil vergleichen (`messen.py`), Wahl in
+  `docs/MODELLKATALOG.md` begründen, dann einmal der Prüfteil; jede Empfehlung auf einem Gerät der Stufe messen. Bisher ist
+  die Wahl vorläufig (Lizenz, Größe, Ruf, Vorhersage). Der Mail-Sortierer (`MailSorter`, andere Sitzung) wählt sein Modell
+  noch nach Größe und könnte einen Code-Spezialisten nehmen – dort `generalModels()` nutzen.
 
 ### AP-107 ◐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
 **Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein
@@ -484,11 +555,35 @@ Abschnitt auf einem Office-PC.
   Wortsuche bzw. Server); optionaler Reranker auf dem Gerät; Zeit auf einem echten Office-PC und auf Android messen;
   Korpus vergrößern (40 Abschnitte sind wenig); Spiegel der Dateien auf dem eigenen Hugging-Face-Konto (AP-106).
 
-### AP-108 ☐ Lange Texte lokal · M (Runde 3)
+### AP-108 ◐ Lange Texte lokal · M (Runde 3)
 **Ziel**: Kontextlänge nach Speicher (KV-Cache quantisiert) statt fest 8–16 k, Abschnitt-für-Abschnitt-Auswertung mit
 Zusammenführung, Stellen über AP-107, ehrliche Zeitangabe vor dem Start und Fortschritt.
 **Fertig, wenn**: ein 80-seitiges PDF auf einem Office-PC mit 32 GB ohne Server zusammengefasst und befragt werden kann,
 mit Belegstellen, und die Zeitangabe höchstens 30 % daneben liegt.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig; die Messung am Office-PC steht aus, die Stellen-Suche nach Bedeutung
+kommt mit AP-107.
+- **Kontext nach Speicher** (`LocalCatalog.contextFor`): was neben dem Modell in den Speicher passt, mit KV-Cache in 8 Bit
+  (`-fa auto -ctk q8_0 -ctv q8_0`; lehnt das Programm es ab, startet es einmal wie bisher), mindestens der Katalogwert,
+  höchstens die Grenze des Modells (Qwen 3.5/3.6 und Gemma 4: 128 k, Qwen 2.5 Coder: 32 k), in Schritten von 4096.
+  KV-Bedarf je Token vorsichtig aus der Architektur geschätzt (`kvKb`). Beispiel: Qwen 3.5 4B auf einem Office-PC mit
+  32 GB → 128 k statt 8 k Token.
+- **Was von selbst mitgeht** (`AttachmentBudget.budgetChars`): bei lokalen Modellen nur so viel, wie das Gerät in etwa
+  90 s einliest (Vorhersage AP-105) – die zur Frage passenden Stellen mit Seitenangaben. Lokale Modelle bekommen jetzt
+  auch den Dialog für große Anhänge, mit **Zeitangabe je Weg** vor dem Start: *Ganz lesen auf diesem Gerät* (wenn es in
+  den Kontext passt), *Nur die passenden Stellen*, *Abschnittsweise zusammenfassen* (`local/LongText.kt`; Einlesen wird
+  mit der Länge langsamer, +50 % bei 32 k). Kein Vorschlag, auf ein Server-Modell zu wechseln.
+- **Abschnittsweise mit Zusammenführung** (`AttachmentDigest`): jeder Abschnitt beginnt mit seiner Seitenmarke und wird
+  mit Seitenangaben zusammengefasst; danach ein **Überblick** über alle Abschnitte (passen die Zusammenfassungen nicht in
+  eine Anfrage, erst in Gruppen). **Fortschritt** an der Karte des Anhangs: „Abschnitt 3 von 19 · noch ≈ 12 Min.“
+  (aus dem bisherigen Tempo, vorher aus der Vorhersage).
+- Test `LongTextLocalTest` (4) mit einem erfundenen 80-Seiten-Dokument: Kontext nach Speicher, Stellen mit „[Seite 57]“
+  in 90 s Lesezeit, „ganz“ geht ganz mit, Zeitangaben, Gruppen bei kleinem Kontext, Fortschritt, Seitenmarken.
+  `AttachmentBudgetTest` angepasst (lokale Modelle fragen jetzt). Nebenbei: `FilesScreen` setzt seinen Zustand nicht mehr
+  aus einem Hintergrund-Thread (ließ `NewToolsLookTest.filesScreen` in vollen Läufen sporadisch scheitern).
+- **Offen – am Gerät**: auf einem Office-PC mit 32 GB ein 80-seitiges PDF mit einem lokalen Modell zusammenfassen und
+  befragen; Zeitangabe gegen die tatsächliche Dauer (Ziel ±30 %) – vorher *Gerät messen* (AP-105). Ob `-fa auto` mit
+  KV in 8 Bit auf allen drei Systemen startet, zeigt `llm/server.log`. Passende Stellen nach Bedeutung statt nach
+  Wörtern kommen mit AP-107 (andere Sitzung).
 
 ### AP-109 ☐ Lora selbst lokal · M–L (Runde 3)
 **Ziel**: Loras Antworten, Werkzeugaufrufe und Abläufe (heute GLM-5.3 Flash) laufen mit *Nur lokal* vollständig auf dem
@@ -498,11 +593,43 @@ reicht, ein LoRA-Feintuning „Lora Agent“ (gleicher Weg wie AP-104).
 **Fertig, wenn**: im Prüfteil das empfohlene Modell je Geräteklasse ≥ 90 % der Aufgaben richtig löst und keine Aktion ohne
 Vorschau/Rückfrage ausführt.
 
-### AP-110 ☐ Bilder verstehen lokal · M (Runde 3)
+### AP-110 ◐ Bilder verstehen lokal · M (Runde 3)
 **Ziel**: Bilder im Chat, Screenshots, Diagramme und Scans versteht ein lokales Modell mit Bildteil (mmproj zu Gemma 4 /
 Qwen 3.5 über llama.cpp, eigener kleiner Download); auf Android ersetzt das die OCR über ein Server-Bildmodell.
 **Fertig, wenn**: der Messkorpus (Screenshots, Tabellenfotos, Scans) im Prüfteil brauchbar beantwortet wird und ein Bild auf
 einem Office-PC unter 15 s dauert.
+◐ *Stand 10.11.2026 (1.0.67)*: In der App fertig; Messung am Gerät und der Einbau in die Texterkennung stehen aus.
+- **Bildteil je Modell** (`Projector` in `LocalCatalog`): 13 Modelle (Qwen 3.5/3.6, Gemma 4) haben ihren mmproj aus
+  demselben Repository und Commit wie das Modell, mit SHA-256 (Q8_0 von ggml-org, sonst F16; 0,16–1,2 GB). Ein eigener
+  kleiner Download unter *Modelle auf diesem Gerät* (*Bildteil laden*); Modelle einer Größe teilen ihn (Qwen 3.5 4B und
+  seine 8-Bit-Fassung); die Code-Spezialisten lesen nur Text. *Datei einspielen* nimmt auch den Bildteil.
+- **Start mit Bildteil** (`LocalLlm`): `--mmproj`, auf dem Prozessor `--image-max-tokens 512` (schneller), auf der Grafik
+  1024; lehnt das Programm es ab, startet es ohne. Das Modell meldet dann „versteht Bilder“ – Chats schicken Bilder wie an
+  ein Server-Modell (`image_url`), auch in Projekten „Nur auf diesem Gerät“.
+- `LocalVision.model(c)`: das stärkste installierte Modell mit Bildteil; `secondsPerImage`: Vorhersage aus Bild-Encoder,
+  Einlesen der Bild-Token und kurzer Antwort.
+- **Vorhersage je Bild** (Test `LocalVisionTest`, Bezugsgeräte wie AP-106):
+
+| Modell | Office-PC 32 GB (CPU) | Gaming-PC RTX 5080 | Mac M4 24 GB |
+| --- | --- | --- | --- |
+| Qwen 3.5 0.8B | 10 s | 0 s | 2 s |
+| Qwen 3.5 2B | 25 s | 1 s | 5 s |
+| Gemma 4 E2B | 20 s | 0 s | 3 s |
+| Qwen 3.5 4B | 37 s | 1 s | 9 s |
+| Qwen 3.5 4B (genauer) | 46 s | 1 s | 11 s |
+| Gemma 4 E4B | 28 s | 1 s | 5 s |
+| Qwen 3.5 9B | 69 s | 2 s | 17 s |
+| Qwen 3.5 9B (genauer) | 88 s | 3 s | 24 s |
+| Gemma 4 12B | 55 s | 2 s | 14 s |
+
+  Auf einem Office-PC ohne Grafikkarte erreicht voraussichtlich nur Qwen 3.5 0.8B das Ziel „unter 15 s“; Gemma 4 E2B liegt
+  bei etwa 20 s. Mit Grafikkarte oder Apple-Chip ist es kein Problem.
+- **Messkorpus** `tools/bildverstehen/` (erfundene Screenshots, Tabellenfotos, Scans, Diagramme; je 12 Bilder Entwicklung
+  und Prüfung, erzeugt aus festen Startwerten) mit Messskript.
+- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) **Android:
+  OCR lokal** – `PdfOcr.visionModel` (PDF-Werkzeuge, andere Sitzung) soll `LocalVision.model(c)` vor einem Server-Bildmodell
+  nehmen; ein Einzeiler, absichtlich nicht angefasst; (3) auf Android ist der Bildteil ungetestet (llama-server der App
+  muss mtmd enthalten).
 
 ### AP-111 ☑ Sprachausgabe lokal · S (Runde 3)
 **Ziel**: Vorlesen und Sprachmodus mit natürlicher deutscher Stimme auf dem Gerät (Piper oder Kokoro über sherpa-onnx,

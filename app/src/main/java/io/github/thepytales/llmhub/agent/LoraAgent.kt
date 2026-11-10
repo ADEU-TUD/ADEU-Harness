@@ -282,7 +282,7 @@ class LoraAgent(private val c: AppContainer) {
         val server = if (level == PrivacyLevel.LOCAL || !settings.hasAnyApiKey) null else Privacy.suitableModel(c, folderId, settings.loraModel.ifBlank { ModelCatalog.FAST_CHAT })
         val route = ModelRouter.place(
             ModelRouter.Mode.of(settings.loraPlace), simple = free && seen?.label == LoraCommands.FREE_SIMPLE, text = wish, images = 0, files = 0,
-            localGood = LoraCommands.localModel(c, good = true), localAny = LoraCommands.localModel(c, good = false),
+            localGood = LoraCommands.localModel(c, good = true, text = wish), localAny = LoraCommands.localModel(c, good = false, text = wish),
             serverOk = server != null, deviceOnly = level == PrivacyLevel.LOCAL,
         )
         return when (route.place) {

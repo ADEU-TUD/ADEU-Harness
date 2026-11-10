@@ -33,6 +33,9 @@ object ModelRouter {
 
     private fun norm(s: String) = Normalizer.normalize(s.lowercase(), Normalizer.Form.NFC)
 
+    /** The request is about programming (AP-106: then a local code specialist is used if one is installed). */
+    fun isCode(text: String): Boolean = "```" in text || code.containsMatchIn(norm(text))
+
     /**
      * The model for [text] with [images] and [files]; [github]: the chat works in a repository. Null if nothing
      * speaks for a particular model (then the standard model fits).

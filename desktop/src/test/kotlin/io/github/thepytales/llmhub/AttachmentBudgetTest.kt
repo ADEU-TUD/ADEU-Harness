@@ -61,8 +61,12 @@ class AttachmentBudgetTest {
 
     @Test
     fun localModelsGetThePassagesByThemselves() {
+        // Without a known device (other tests may have set one) the catalog context counts.
+        io.github.thepytales.llmhub.local.LocalCatalog.hardware = null
+        io.github.thepytales.llmhub.local.LocalCatalog.forecaster = null
         val local = "local/qwen3.5-2b"
-        assertTrue(AttachmentBudget.needsChoice(listOf(pdf), local).isEmpty(), "kein Dialog – kleine lokale Modelle nehmen die Stellen")
+        // Since AP-108 the app asks for local models too (with the time each way takes); until then: the passages.
+        assertEquals(listOf(pdf), AttachmentBudget.needsChoice(listOf(pdf), local))
         val sent = AttachmentBudget.prepare(request(pdf, "Prüfungsfrist Hausarbeit"), local)[1].files.single().text
         assertTrue("15. März" in sent && sent.length < 40_000, sent.length.toString())
         // Attachments do not count against the history (no summary of the chat because of a big file).

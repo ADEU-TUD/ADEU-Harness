@@ -26,6 +26,8 @@ internal object LlamaHost {
             cores = Runtime.getRuntime().availableProcessors(),
             cpuName = soc.trim(),
             freeDiskGb = root.usableSpace / 1e9,
+            // Geräteprofil (AP-105): the instruction sets decide how fast a phone reads; the memory bandwidth is measured.
+            cpuFeatures = runCatching { HardwareInfo.cpuFeatures(File("/proc/cpuinfo").readText()) }.getOrDefault(emptySet()),
         )
     }
 
@@ -51,8 +53,12 @@ internal object LlamaHost {
     @Suppress("UNUSED_PARAMETER")
     suspend fun installRuntime(c: AppContainer, root: File, gpu: Boolean, progress: (Double) -> Unit) {}
 
+    /** Android has the program built in; nothing to load by hand. */
     @Suppress("UNUSED_PARAMETER")
-    fun importRuntime(c: AppContainer, root: File, input: InputStream): Unit = error(tr("Auf Android ist das Programm schon in der App enthalten."))
+    fun packageName(c: AppContainer): String? = null
+
+    @Suppress("UNUSED_PARAMETER")
+    fun importRuntime(c: AppContainer, root: File, name: String, input: InputStream): Unit = error(tr("Auf Android ist das Programm schon in der App enthalten."))
 
     fun environment(c: AppContainer, env: MutableMap<String, String>) {
         env["LD_LIBRARY_PATH"] = libDir(c).absolutePath

@@ -193,6 +193,8 @@ data class AppSettings(
     val roles: String = "",
     /** The question „Welche Modelle sollen auf dieses Gerät?“ was answered (first start, or once for those who used the app before AP-71). */
     val modelsIntroDone: Boolean = false,
+    /** Modellkatalog nach Zweck (AP-106): „TEXT,CODE“ … – specialists besides the allrounder; empty = from the roles. */
+    val localPurposes: String = "",
     /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
     val nextcloudServer: String = "",
     val nextcloudUser: String = "",
@@ -405,6 +407,7 @@ class SettingsStore(context: Context) {
             .putBoolean("loraHistory", next.loraHistory)
             .putString("roles", next.roles)
             .putBoolean("modelsIntroDone", next.modelsIntroDone)
+            .putString("localPurposes", next.localPurposes)
             .apply()
     }
 
@@ -519,6 +522,7 @@ class SettingsStore(context: Context) {
             loraHistory = prefs.getBoolean("loraHistory", d.loraHistory),
             roles = prefs.getString("roles", d.roles) ?: d.roles,
             modelsIntroDone = prefs.getBoolean("modelsIntroDone", d.modelsIntroDone),
+            localPurposes = prefs.getString("localPurposes", d.localPurposes) ?: d.localPurposes,
             nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
             nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,
             nextcloudPassword = prefs.getString("nextcloudPassword", d.nextcloudPassword) ?: d.nextcloudPassword,
