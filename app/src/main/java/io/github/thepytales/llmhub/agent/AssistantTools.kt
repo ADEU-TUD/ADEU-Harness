@@ -1,5 +1,7 @@
 package io.github.thepytales.llmhub.agent
 
+import io.github.thepytales.llmhub.data.LocalEmbeddingInfo
+
 import io.github.thepytales.llmhub.logFailure
 import io.github.thepytales.llmhub.data.Privacy
 
@@ -238,10 +240,12 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
 
     private suspend fun search(query: String, k: Int, ctx: RepoContext): ToolOutput {
         val collections = collections(ctx.folderId)
-        // Semantic search asks the Uni server; projects that keep data on the device use the keyword search only.
-        val model = embeddingModel().takeIf { Privacy.level(c, ctx.folderId).allowsUniServer }
+        // Semantic search on this device (AP-107) when its model is loaded; else the Uni server – projects that keep data
+        // on the device then use the keyword search only.
+        val model = semanticModel(ctx.folderId)
         val vector = if (model != null && c.knowledge.docs.value.any { it.collection in collections && it.embeddedWith == model }) {
-            runCatching { c.llm.embed(model, listOf(query)).firstOrNull() }.getOrNull()
+            if (model == LocalEmbeddingInfo.ID) withContext(Dispatchers.IO) { runCatching { c.localEmbedding.embed(listOf(query), passage = false)?.firstOrNull() }.getOrNull() }
+            else runCatching { c.llm.embed(model, listOf(query)).firstOrNull() }.getOrNull()
         } else null
         // More candidates than needed; the reranker of the Uni server picks the really fitting passages.
         val reranker = rerankModel().takeIf { Privacy.level(c, ctx.folderId).allowsUniServer }
@@ -276,9 +280,21 @@ class AssistantTools(private val c: AppContainer) : ToolProvider {
     /** Adds a document and computes its embeddings in the background. */
     fun add(name: String, text: String, collection: String): KnowledgeDoc {
         val doc = c.knowledge.add(name, text, collection)
-        val serverAllowed = collection.isEmpty() || Privacy.level(c, collection).allowsUniServer
-        embeddingModel()?.takeIf { serverAllowed }?.let { model -> scope.launch { c.knowledge.embed(doc, model) { c.llm.embed(model, it) } } }
+        when (val model = semanticModel(collection.ifEmpty { null })) {
+            null -> Unit
+            LocalEmbeddingInfo.ID -> scope.launch(Dispatchers.IO) { c.knowledge.embed(doc, model) { texts -> c.localEmbedding.embed(texts, passage = true) ?: error("nicht bereit") } }
+            else -> scope.launch { c.knowledge.embed(doc, model) { c.llm.embed(model, it) } }
+        }
         return doc
+    }
+
+    /**
+     * The embedding model for a collection ([folderId] null = general): the one on this device when it is loaded and
+     * switched on (AP-107) – nothing leaves the device –, else the server's if the project allows the Uni server.
+     */
+    fun semanticModel(folderId: String?): String? {
+        if (c.localEmbedding.active) return LocalEmbeddingInfo.ID
+        return embeddingModel()?.takeIf { folderId == null || Privacy.level(c, folderId).allowsUniServer }
     }
 
     /** The reranker of the server, if it offers one (Qwen3 Reranker); null otherwise. */

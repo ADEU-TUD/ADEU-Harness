@@ -70,7 +70,11 @@ fun KnowledgeList(c: AppContainer, collection: String) {
                     Text(d.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     SettingsHint(
                         tr("{0} Abschnitte · {1}k Zeichen · ", d.chunks, (d.chars + 999) / 1000) +
-                            if (d.embeddedWith != null) tr("semantische Suche") else tr("Stichwortsuche")
+                            when (d.embeddedWith) {
+                                null -> tr("Stichwortsuche")
+                                io.github.thepytales.llmhub.data.LocalEmbeddingInfo.ID -> tr("Suche nach Bedeutung auf diesem Gerät")
+                                else -> tr("semantische Suche")
+                            }
                     )
                 }
                 IconButton(onClick = { c.knowledge.remove(d) }) { Icon(Icons.Outlined.Delete, contentDescription = tr("Entfernen")) }
@@ -100,6 +104,64 @@ fun KnowledgeSection(c: AppContainer) {
                 "und nennt die Quelle. Dokumente nur für ein Thema gehören besser in ein Projekt (Seitenleiste › Projekt › ⋮ › Projekt bearbeiten).")
         )
         KnowledgeList(c, "")
+    }
+    LocalSemanticSettings(c)
+}
+
+/**
+ * Suche nach Bedeutung auf diesem Gerät (AP-107): download of the embedding model, switch, model card and delete. With
+ * it the Wissenssammlung finds passages by meaning without the server; documents are prepared again in the background.
+ */
+@Composable
+fun LocalSemanticSettings(c: AppContainer) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val st by c.localEmbedding.state.collectAsStateWithLifecycle()
+    var card by remember { mutableStateOf(false) }
+    val info = io.github.thepytales.llmhub.data.LocalEmbeddingInfo
+    SettingsCard(tr("Suche nach Bedeutung auf diesem Gerät")) {
+        SettingsHint(
+            tr("Ein kleines Modell auf diesem Gerät findet passende Stellen auch mit anderen Worten („Hiwi“ findet „studentische " +
+                "Hilfskraft“) – ohne Server, auch in Projekten, deren Daten das Gerät nicht verlassen. In unseren Tests stand die " +
+                "gesuchte Stelle bei 89 von 90 Fragen unter den ersten fünf (nur nach Wörtern: 75 von 90), etwa 40 ms je Abschnitt.")
+        )
+        ToggleRow(
+            tr("Auf diesem Gerät suchen"),
+            tr("Aus: semantische Suche über den Uni-Server, wenn er erlaubt ist, sonst nach Wörtern."),
+            s.semanticLocal,
+        ) { v ->
+            c.settings.update { it.copy(semanticLocal = v) }
+            if (v) c.localEmbedding.catchUp()
+        }
+        val progress = st.progress
+        when {
+            progress != null -> {
+                androidx.compose.material3.LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(tr("Wird geladen … {0} %", (progress * 100).toInt()), style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = c.localEmbedding::cancelInstall) { Text(tr("Abbrechen")) }
+                }
+            }
+            !st.installed -> OutlinedButton(onClick = c.localEmbedding::install) { Text(tr("{0} laden ({1} MB)", info.NAME, info.MEGABYTES)) }
+            else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    if (st.ready) tr("Geladen und bereit.") else tr("Geladen."),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = { card = true }) { Text(tr("Modellkarte")) }
+                TextButton(onClick = c.localEmbedding::delete) { Text(tr("Löschen")) }
+            }
+        }
+        st.message?.let { SettingsHint(it) }
+    }
+    if (card) {
+        val text = remember { info::class.java.getResourceAsStream("/suche/MODELLKARTE.md")?.bufferedReader()?.readText().orEmpty() }
+        AlertDialog(
+            onDismissRequest = { card = false },
+            title = { Text(tr("Modellkarte")) },
+            text = { Text(text, modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), style = MaterialTheme.typography.bodySmall) },
+            confirmButton = { TextButton(onClick = { card = false }) { Text("OK") } },
+        )
     }
 }
 

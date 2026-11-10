@@ -45,6 +45,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -150,10 +151,14 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         val (roots, list) = withContext(Dispatchers.IO) {
             runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false) to runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
         }
-        // Both states are set here, on the UI thread: written from the background, the list could change between
-        // composing and measuring (IndexOutOfBounds in the LazyColumn).
-        hasRoots = roots
-        value = list
+        // Both together and explicitly on the UI thread (AP-115): they decide how many items the lazy list has. Written
+        // from another thread while it measured, it asked for an item it no longer had (IndexOutOfBoundsException in
+        // IntervalList, NewToolsLookTest.filesScreen). The app's effects already resume on the UI thread, the Compose test
+        // harness (UnconfinedTestDispatcher) resumes on the IO thread – so it is said here, not assumed.
+        withContext(Dispatchers.Main.immediate) {
+            hasRoots = roots
+            value = list
+        }
     }
     // Read the texts of new and changed files once, in the background.
     LaunchedEffect(items?.size, reload) { items?.let { list -> withContext(Dispatchers.IO) { runCatching { c.fileLibrary.index(list) } } } }
@@ -171,11 +176,15 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
         delay(250)
         val all = items ?: return@LaunchedEffect
-        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
+        val found = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
+        // The hits decide the items of the list too: set them on the UI thread (see items above).
+        withContext(Dispatchers.Main.immediate) { hits = found }
     }
 
     var tagsFor by remember { mutableStateOf<FileItem?>(null) }
     var folderFor by remember { mutableStateOf<FileItem?>(null) }
+    // Formatwandler mit Verlustanzeige (AP-90).
+    var convertFor by remember { mutableStateOf<FileItem?>(null) }
     var versionsOf by remember { mutableStateOf<String?>(null) }
     var compareFirst by remember { mutableStateOf<FileItem?>(null) }
     var comparison by remember { mutableStateOf<Pair<FileItem, FileItem>?>(null) }
@@ -212,6 +221,7 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
             }
         },
         compareFirst = compareFirst,
+        convert = { convertFor = it },
     )
 
     Scaffold(
@@ -329,6 +339,9 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
     }
 
+    convertFor?.let { item ->
+        FormatConvertDialog(c, item, onDismiss = { convertFor = null }, onDone = { reload++ })
+    }
     tagsFor?.let { item ->
         TagsDialog(item, c.fileLibrary.allTags(items.orEmpty()), onDismiss = { tagsFor = null }, onSave = { c.fileLibrary.setTags(item.key, it); tagsFor = null })
     }
@@ -356,6 +369,7 @@ private class FileActions(
     val versions: (FileItem) -> Unit,
     val compare: (FileItem) -> Unit,
     val compareFirst: FileItem?,
+    val convert: (FileItem) -> Unit = {},
 )
 
 @Composable
@@ -424,6 +438,9 @@ private fun FileRow(item: FileItem, actions: FileActions, hit: FileHit? = null, 
                     DropdownMenuItem(text = { Text(tr("Schlagwörter …")) }, leadingIcon = { Icon(Icons.Outlined.Label, null) }, onClick = { menu = false; actions.tags(item) })
                     if (item.source == FileSource.APP) {
                         DropdownMenuItem(text = { Text(tr("In Ordner …")) }, leadingIcon = { Icon(Icons.Outlined.Folder, null) }, onClick = { menu = false; actions.folder(item) })
+                    }
+                    if (item.path != null && io.github.thepytales.llmhub.docs.FormatConvert.targets(item.name).isNotEmpty()) {
+                        DropdownMenuItem(text = { Text(tr("Umwandeln …")) }, leadingIcon = { Icon(Icons.Outlined.SwapHoriz, null) }, onClick = { menu = false; actions.convert(item) })
                     }
                     if (item.versions > 1) {
                         DropdownMenuItem(text = { Text(tr("Versionen vergleichen …")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { menu = false; actions.versions(item) })

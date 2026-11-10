@@ -76,10 +76,8 @@ fun PiiModelSettings(c: AppContainer) {
     var card by remember { mutableStateOf(false) }
     ToggleRow(
         tr("{0} (empfohlen)", PiiModelInfo.NAME),
-        tr("Ein kleines Modell auf diesem Gerät findet Namen, Schulen, Kitas und Orte – auch ohne Anrede oder bekannte Vornamen – " +
-            "und lässt zitierte Autor:innen und öffentliche Personen eher stehen. In unseren Tests 98 % statt 78 % der privaten " +
-            "Angaben, wenige Millisekunden je Absatz. Mit dem Modell raten die Regeln keine Namen mehr aus häufigen Vornamen; " +
-            "die eigene Liste und die festen Muster (Mail, Telefon, Nummern …) bleiben."),
+        tr("Findet Namen, Schulen und Orte auch ohne Anrede auf diesem Gerät – in Tests 98 % statt 78 % der privaten Angaben, " +
+            "Millisekunden je Absatz."),
         s.pseudonymModel,
     ) { v -> c.settings.update { it.copy(pseudonymModel = v) } }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {

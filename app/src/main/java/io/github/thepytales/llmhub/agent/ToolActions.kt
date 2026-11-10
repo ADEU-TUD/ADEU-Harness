@@ -360,6 +360,26 @@ object ToolActions {
                 })
             }
         },
+        // Formatwandler mit Verlustanzeige (AP-90): the preview is the loss card; the original stays.
+        ToolAction(
+            "files.convert", ActionArea.FILES, trLater("In anderes Format umwandeln"),
+            "Wandelt eine Datei in ein anderes Format um (z. B. Word → odt, pdf, md; Excel → ods, csv; PowerPoint → odp, pdf) und zeigt vorher, was verloren geht. Das Original bleibt.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false), ActionParam("format", "Ziel, z. B. odt, pdf, csv, ods, odp, md, docx, xlsx")),
+            risky = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull() ?: throw ActionFailed(tr("Welche Datei? Bitte eine auswählen oder den Namen nennen."))
+            val target = a.s("format").orEmpty().lowercase().trim().removePrefix(".").let { t -> if (t == "word") "docx" else if (t == "excel") "xlsx" else t }
+            val targets = io.github.thepytales.llmhub.docs.FormatConvert.targets(f.name)
+            if (target !in targets) throw ActionFailed(if (targets.isEmpty()) tr("„{0}“ lässt sich nicht umwandeln.", f.name) else tr("„{0}“ geht in: {1}.", f.name, targets.joinToString(", ")))
+            val plan = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.FormatConvert.analyze(f.name, f.readBytes(), target) }
+            val preview = plan.losses.map { it.title to it.detail }.ifEmpty { listOf(tr("Verlust") to tr("Dabei geht nichts verloren.")) } +
+                listOfNotNull(plan.better?.let { tr("Besser") to "${it.uppercase()}: ${plan.betterWhy.orEmpty()}" })
+            ActionPlan("files.convert", tr("Wandelt „{0}“ in {1} um …", f.name, target.uppercase()), false, preview) {
+                val made = io.github.thepytales.llmhub.docs.FormatConvert.convert(c.appContext, f, f.name, target, f.parentFile?.takeIf { it.canWrite() } ?: c.drive.created)
+                c.drive.changed()
+                ActionResult(tr("„{0}“ erstellt, das Original bleibt.", made.name), listOf(made), undo = { removeMade(c, listOf(made)) })
+            }
+        },
         ToolAction(
             "files.rename_by_content", ActionArea.FILES, trLater("Nach Inhalt umbenennen"),
             "Schlägt für Dateien Namen nach ihrem Inhalt vor (z. B. „2026-10-12 Protokoll Institutsrat.pdf“) und benennt sie um.",

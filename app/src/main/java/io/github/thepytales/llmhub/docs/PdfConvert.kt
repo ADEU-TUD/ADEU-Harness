@@ -76,11 +76,27 @@ object PdfConvert {
 
     /** Writes the PDF as [format] (Word, Markdown, text or – its tables – Excel) into [dir]. */
     suspend fun fromPdf(context: Context, file: File, title: String, format: DocFormat, dir: File): File = withContext(Dispatchers.IO) {
-        val markdown = if (format == DocFormat.XLSX) {
-            tables(context, file).takeIf { it.isNotEmpty() }?.let { PdfTables.markdown(it) }
+        if (format == DocFormat.XLSX) {
+            val tables = tables(context, file).takeIf { it.isNotEmpty() }
                 ?: throw IllegalArgumentException(tr("Keine Tabellen erkannt. Bei Scans erst die Texterkennung laufen lassen – oder „Tabellen mit KI“ versuchen."))
-        } else markdown(context, file).ifBlank { throw IllegalArgumentException(tr("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.")) }
+            return@withContext tablesToExcel(tables, title, dir)
+        }
+        val markdown = markdown(context, file).ifBlank { throw IllegalArgumentException(tr("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.")) }
         DocumentWriter.create(context, dir, title, markdown, format, fileName = DocumentWriter.safeName(title)).file
+    }
+
+    /**
+     * PDF-Tabellen nach Excel (AP-95): one sheet per table, numbers as numbers (German notation too), group cells
+     * merged, tables over several pages joined. A file of the same name gets a number.
+     */
+    fun tablesToExcel(tables: List<PdfTable>, title: String, dir: File): File {
+        dir.mkdirs()
+        val base = DocumentWriter.safeName(title)
+        var out = File(dir, "$base.xlsx")
+        var n = 2
+        while (out.exists()) out = File(dir, "$base ($n).xlsx").also { n++ }
+        XlsxWriter.writeSheets(out, PdfTables.sheets(tables))
+        return out
     }
 }
 
@@ -95,6 +111,9 @@ object PdfOcr {
 
     /** A vision model this privacy level allows (the default model if it can see pictures); null if there is none. */
     fun visionModel(c: AppContainer): String? {
+        // AP-110: a model on this device that understands images comes first – the scan does not leave the device
+        // (on Android this replaces the server image model; on Windows the built-in OCR is asked before this).
+        io.github.thepytales.llmhub.local.LocalVision.model(c)?.let { return it }
         val level = Privacy.level(c, null as String?)
         val candidates = listOf(c.settings.current.defaultModel) +
             ModelCatalog.known.filter { it.type == ModelType.CHAT && it.vision == true && it.tier != ModelTier.HIDDEN }.sortedBy { it.tier.ordinal }.map { it.id }

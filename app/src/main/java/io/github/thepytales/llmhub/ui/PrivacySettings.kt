@@ -33,17 +33,33 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import io.github.thepytales.llmhub.data.AppSettings
+import io.github.thepytales.llmhub.data.PiiModelInfo
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.data.NameList
 import io.github.thepytales.llmhub.data.PiiFeature
 
 /**
- * Einstellungen › Datenschutz: pseudonymization with a switch for each part, the own list (import/export), words that
- * are never replaced, a preview and the stored pairs.
+ * Einstellungen › Datenschutz (AP-103): one calm page. On top the status card (protection on/off, what is active, the
+ * fixed rules), then *Erkennung*, *Meine Listen* and *Ausprobieren*, the single switches under *Feineinstellungen*,
+ * the hints before sending and *So schützt Lora deine Daten*. Everything but the status card and *Erkennung* is
+ * folded; which part is open is kept in [AppSettings.privacyOpen]. With the protection off the parts are greyed out.
  */
 @Composable
 fun PrivacySection(c: AppContainer) {
     val s by c.settings.settings.collectAsStateWithLifecycle()
+    val model by c.piiModel.state.collectAsStateWithLifecycle()
     // Opening the settings offers the recognition model once (AP-67), like the first pseudonymized request.
     LaunchedEffect(Unit) { c.piiModel.offerIfNeeded() }
     var sample by remember {
@@ -57,6 +73,7 @@ fun PrivacySection(c: AppContainer) {
     var filter by remember { mutableStateOf("") }
     var showAll by remember { mutableStateOf(false) }
     val off = s.pseudonymOffFeatures
+    val dim = if (s.pseudonymize) Modifier else Modifier.alpha(PrivacyPage.DIMMED)
 
     fun setFeature(f: PiiFeature, on: Boolean) = c.settings.update { st ->
         val next = if (on) st.pseudonymOffFeatures - f else st.pseudonymOffFeatures + f
@@ -79,68 +96,64 @@ fun PrivacySection(c: AppContainer) {
         out.write(text.toByteArray())
     }
 
+    // ── Status: is the protection on, what is active, the fixed rules ──
     SettingsCard(tr("Pseudonymisierung")) {
         Spot("privacy.pseudonymize") { ToggleRow(
             tr("Personenbezogene Daten ersetzen"),
-            tr("Vor jeder Anfrage ersetzt die App Namen, Kontaktdaten, Nummern, Geburtsdaten und Anschriften auf dem Gerät durch " +
-                "Platzhalter wie [Name 1]. Der Server sieht nur die Platzhalter; in der Antwort, in Dokumenten und E-Mail-Entwürfen " +
-                "setzt die App die echten Angaben wieder ein."),
+            if (s.pseudonymize) tr("An – der Server sieht nur Platzhalter wie [Name 1].")
+            else tr("Aus – Namen, Kontaktdaten und Nummern gehen unverändert an den Server."),
             s.pseudonymize,
         ) { v -> c.settings.update { it.copy(pseudonymize = v) } } }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(
+                Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.size(18.dp),
+                tint = if (s.pseudonymize) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            )
+            Text(PrivacyPage.status(s, model.installed), style = MaterialTheme.typography.bodyMedium)
+        }
+        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            RuleMark(Icons.Outlined.Lock, tr("Postfach nur auf diesem Gerät"))
+            RuleMark(Icons.Outlined.Shield, tr("Tresor für sensible Forschung"))
+        }
+    }
+
+    // ── Erkennung: what is found ──
+    Box(dim) { SettingsCard(tr("Erkennung")) {
         PiiModelSettings(c)
         ToggleRow(
             tr("Namen automatisch erkennen"),
-            tr("Namen nach Anrede oder Titel (Frau, Herr, Dr., Prof.), häufige Vor- und Nachnamen und – mit den Schaltern unten – Namen " +
-                "nach Rollen, in Grußformeln und Tabellen. Ohne diesen Schalter nur die Angaben mit festem Muster und die eigene Liste."),
+            tr("Nach Anrede, Titel, Rolle und Grußformel, in Tabellen und häufige Vor- und Nachnamen. Aus: nur feste Muster und die eigene Liste."),
             s.pseudonymAuto,
         ) { v -> c.settings.update { it.copy(pseudonymAuto = v) } }
         ToggleRow(
             tr("Öffentliche Quellen nicht ersetzen"),
-            tr("Ergebnisse der Web- und Literatursuche, Bücher und Paper (erkennbar an DOI oder ISBN), die Autor:innen der Literatur-" +
-                "sammlung und im Text zitierte Autor:innen („Müller (2020)“) bleiben, wie sie sind – sonst entstehen falsche Antworten. " +
-                "Anhänge lassen sich am Anhang selbst als öffentlich oder vertraulich markieren. Die eigene Liste geht immer vor."),
+            tr("Web- und Literatursuche, Paper mit DOI oder ISBN und zitierte Autor:innen („Müller (2020)“) bleiben, wie sie sind."),
             s.pseudonymPublic,
         ) { v -> c.settings.update { it.copy(pseudonymPublic = v) } }
         val local = c.localLlm.installedModels().isNotEmpty()
         ToggleRow(
             tr("Gründlich: zusätzlich ein lokales Sprachmodell"),
-            tr("Schneller ↔ gründlicher: Ein Sprachmodell auf diesem Gerät liest jeden Text einmal und findet Namen, Schulen und Orte, " +
-                "die Regeln und Lora Namensschutz übersehen, auch indirekte Hinweise. Kostet Rechenzeit (einige Sekunden je längerem " +
-                "Text), nichts verlässt dabei das Gerät.") +
-                if (local) "" else tr(" Dafür unter Einstellungen › Modelle auf diesem Gerät ein Modell laden."),
+            tr("Findet auch indirekte Hinweise; einige Sekunden je längerem Text, nichts verlässt das Gerät.") +
+                if (local) "" else tr(" Braucht ein Modell auf diesem Gerät."),
             s.pseudonymThorough,
         ) { v -> c.settings.update { it.copy(pseudonymThorough = v) } }
-        if (!s.pseudonymize) SettingsHint(tr("Die Pseudonymisierung ist aus – die Schalter unten wirken erst, wenn sie an ist."))
-    }
+    } }
 
-    // Postfach nur mit lokalem Modell (AP-68): a fixed rule, no switch.
-    SettingsCard(tr("Postfach")) {
-        SettingsHint(
-            tr("Mails, Ordner, Termine und Aufgaben (klassisches Outlook und Mailserver) liest nur ein Modell auf diesem Gerät. Der " +
-                "Uni-Server und externe Anbieter sind im Postfach fest gesperrt – dafür gibt es keinen Schalter. Ergebnisse des lokalen " +
-                "Modells gehen nur über „An Chat übergeben“ weiter: erst als Karte zum Prüfen, pseudonymisiert, ohne Mails, Anhänge " +
-                "und Mail-Kennungen. Aus Postfach-Chats lernt das Gedächtnis nichts."),
-        )
-    }
-
-    PiiFeature.entries.groupBy { it.group }.forEach { (group, features) ->
-        SettingsCard(group) {
-            features.forEach { f -> ToggleRow(f.title, f.detail, f !in off) { v -> setFeature(f, v) } }
-        }
-    }
-
-    SettingsCard(tr("Eigene Namen und Begriffe")) {
+    // ── Meine Listen: always / never replace, import and export, the stored pairs ──
+    val entries = remember(version, s) { c.privacy.all().filter { !it.alias } }
+    val chats = remember(version, s) { c.privacy.chats() }
+    PrivacyFold(
+        c, PrivacyPage.LISTS, tr("Meine Listen"),
+        tr("{0} immer ersetzen · {1} nie ersetzen · {2} Zuordnungen", PrivacyPage.count(s.pseudonymTerms), PrivacyPage.count(s.pseudonymIgnore), entries.size),
+        dim,
+    ) {
         OutlinedTextField(
             value = s.pseudonymTerms,
             onValueChange = { v -> c.settings.update { it.copy(pseudonymTerms = v) } },
             label = { Text(tr("Werden immer ersetzt")) },
             placeholder = { Text(tr("Je Zeile einer, z.B.\nJonte Vogelsang\nGymnasium Dresden-Plauen")) },
-            supportingText = {
-                Text(
-                    tr("Klassenlisten, Studierende, Schulen. Bei Personen erkennt die App auch Vor- und Nachnamen einzeln, gebeugt und in " +
-                        "anderer Schreibweise. Nur mit dieser Liste ist die Erkennung von Namen vollständig zuverlässig.")
-                )
-            },
+            supportingText = { Text(tr("Klassenlisten, Studierende, Schulen – auch Vor- und Nachnamen einzeln, gebeugt und anders geschrieben.")) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -158,25 +171,7 @@ fun PrivacySection(c: AppContainer) {
             minLines = 2,
             modifier = Modifier.fillMaxWidth(),
         ) }
-    }
-
-    SettingsCard(tr("Ausprobieren")) {
-        SettingsHint(tr("So sähe der Server diesen Text. Nichts wird gesendet oder gespeichert."))
-        OutlinedTextField(value = sample, onValueChange = { sample = it }, label = { Text(tr("Beispieltext")) }, minLines = 2, modifier = Modifier.fillMaxWidth())
-        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
-            Text(
-                remember(sample, s) { c.privacy.preview(sample) },
-                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                modifier = Modifier.padding(12.dp),
-            )
-        }
-        // One click corrects the recognition; it holds for all future chats (AP-03).
-        PseudonymCorrections(c, listOf(sample))
-    }
-
-    SettingsCard(tr("Zuordnungen")) {
-        val entries = remember(version, s) { c.privacy.all().filter { !it.alias } }
-        val chats = remember(version, s) { c.privacy.chats() }
+        Text(tr("Zuordnungen"), style = MaterialTheme.typography.titleSmall)
         SettingsHint(
             tr("{0} Zuordnung(en) auf diesem Gerät", entries.size) + (if (chats > 0) tr(", dazu eigene Platzhalter in {0} Chat(s)", chats) else "") +
                 tr(". Sie bleiben nur hier, damit dieselbe Person denselben Platzhalter behält.")
@@ -207,12 +202,37 @@ fun PrivacySection(c: AppContainer) {
         }
     }
 
-    SettingsCard(tr("Gut zu wissen")) {
+    // ── Ausprobieren ──
+    PrivacyFold(c, PrivacyPage.TRY, tr("Ausprobieren"), tr("So sähe der Server einen Text – nichts wird gesendet oder gespeichert."), dim) {
+        OutlinedTextField(value = sample, onValueChange = { sample = it }, label = { Text(tr("Beispieltext")) }, minLines = 2, modifier = Modifier.fillMaxWidth())
+        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                remember(sample, s) { c.privacy.preview(sample) },
+                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                modifier = Modifier.padding(12.dp),
+            )
+        }
+        // One click corrects the recognition; it holds for all future chats (AP-03).
+        PseudonymCorrections(c, listOf(sample))
+    }
+
+    // ── Feineinstellungen: the single switches, one line per group; the hints before sending as a small part of their own ──
+    PrivacyFold(c, PrivacyPage.DETAILS, tr("Feineinstellungen"), tr("{0} von {1} Einzelschaltern an", PiiFeature.entries.count { it !in off }, PiiFeature.entries.size), dim) {
+        PiiFeature.entries.filter { it !in PrivacyPage.HINTS }.groupBy { it.group }.forEach { (group, features) ->
+            PrivacyGroup(c, group, features, off) { f, v -> setFeature(f, v) }
+        }
+        // Not part of the replacing, but of the same protection: they warn before something is sent.
+        PrivacyGroup(c, PrivacyPage.SENDING_GROUP, PrivacyPage.HINTS, off) { f, v -> setFeature(f, v) }
+    }
+
+    // ── So schützt Lora deine Daten ──
+    PrivacyFold(c, PrivacyPage.ABOUT, tr("So schützt Lora deine Daten"), tr("Postfach, Bilder, lokale Modelle und das Agent-Protokoll in Kürze.")) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SettingsHint(tr("• Postfach: Mails, Termine und Aufgaben liest nur ein Modell auf diesem Gerät – Uni-Server und externe Anbieter sind dort fest gesperrt. Weiter geht nur, was du mit „An Chat übergeben“ prüfst, pseudonymisiert und ohne Mails und Anhänge."))
             SettingsHint(tr("• Bilder, Scans und Spracheingaben lassen sich nicht pseudonymisieren – mit „Warnung bei Bildern“ fragt die App vor dem Senden nach. Vorlesen mit der KI-Stimme schickt den Antworttext an den Uni-Server."))
             SettingsHint(tr("• Ohne Pseudonymisierung warnt die App, wenn eine Nachricht mit Namen oder Kontaktdaten an einen Anbieter außerhalb der TU Dresden (z.B. Google Gemini) ginge."))
-            SettingsHint(tr("• Was ersetzt wurde und wie der Server die Nachricht sah, zeigt das Agent-Protokoll unter der Antwort (Verlaufssymbol)."))
             SettingsHint(tr("• Modelle auf diesem Gerät bekommen die echten Angaben – dort verlässt nichts das Gerät."))
+            SettingsHint(tr("• Was ersetzt wurde und wie der Server die Nachricht sah, zeigt das Agent-Protokoll unter der Antwort (Verlaufssymbol)."))
         }
     }
 
@@ -228,6 +248,106 @@ fun PrivacySection(c: AppContainer) {
             },
             onDismiss = { confirmClear = false },
         )
+    }
+}
+
+/** What the page shows and keeps (AP-103), apart from the composables so tests can check it. */
+internal object PrivacyPage {
+    const val LISTS = "lists"
+    const val TRY = "try"
+    const val DETAILS = "details"
+    /** The group of [HINTS] in Feineinstellungen. */
+    val SENDING_GROUP = trLater("Hinweise beim Senden")
+    const val ABOUT = "about"
+    const val DIMMED = 0.45f
+
+    /** Switches that warn before sending rather than replace anything – their own small part of the page. */
+    val HINTS = listOf(PiiFeature.IMAGE_WARNING, PiiFeature.SUGGESTIONS)
+
+    /** Names of the groups of [PiiFeature] (they are shown with tr). */
+    val GROUPS = listOf(trLater("Kontaktdaten"), trLater("Nummern und Daten"), trLater("Namen"), trLater("Platzhalter"), trLater("Hinweise"))
+
+    /** Spots inside a folded part: Lora's frame (AP-41) opens the part first. */
+    val SPOT_FOLDS = mapOf("privacy.never" to LISTS)
+
+    fun open(s: AppSettings): Set<String> = s.privacyOpen.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+    fun toggle(s: AppSettings, key: String): AppSettings {
+        val now = open(s)
+        return s.copy(privacyOpen = (if (key in now) now - key else now + key).sorted().joinToString(","))
+    }
+
+    /** Lines of a list that are not empty. */
+    fun count(list: String) = list.lines().count { it.isNotBlank() && !it.trimStart().startsWith("#") }
+
+    /** One line under the main switch: what is active right now („Regeln · Lora Namensschutz · Gründlich aus“). */
+    fun status(s: AppSettings, modelInstalled: Boolean): String {
+        if (!s.pseudonymize) return tr("Schutz aus – nichts wird ersetzt.")
+        val parts = buildList {
+            add(tr("Regeln"))
+            if (s.pseudonymAuto) add(tr("Namen automatisch"))
+            if (s.pseudonymModel) add(if (modelInstalled) PiiModelInfo.NAME else tr("{0} nicht geladen", PiiModelInfo.NAME))
+            if (s.pseudonymPublic) add(tr("öffentliche Quellen bleiben"))
+            add(if (s.pseudonymThorough) tr("Gründlich an") else tr("Gründlich aus"))
+        }
+        return tr("Aktiv: {0}", parts.joinToString(" · "))
+    }
+}
+
+/** A part of the privacy page that opens on a click; Lora's frame on a spot inside opens it too. */
+@Composable
+private fun PrivacyFold(c: AppContainer, key: String, title: String, summary: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val target by Spotlight.target.collectAsStateWithLifecycle()
+    val open = key in PrivacyPage.open(s) || PrivacyPage.SPOT_FOLDS[target] == key
+    Card(modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = if (open) tr("Zuklappen") else tr("Aufklappen")) {
+                    c.settings.update { PrivacyPage.toggle(it, key) }
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                    Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = if (open) tr("Zuklappen") else tr("Aufklappen"))
+            }
+            if (open) content()
+        }
+    }
+}
+
+/** One group of the single switches: a line „Kontaktdaten · 4 von 4 an“ that opens its switches. */
+@Composable
+private fun PrivacyGroup(c: AppContainer, group: String, features: List<PiiFeature>, off: Set<PiiFeature>, onChange: (PiiFeature, Boolean) -> Unit) {
+    val s by c.settings.settings.collectAsStateWithLifecycle()
+    val key = "group:$group"
+    val open = key in PrivacyPage.open(s)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = if (open) tr("Zuklappen") else tr("Aufklappen")) {
+                c.settings.update { PrivacyPage.toggle(it, key) }
+            },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(tr(group), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            Text(tr("{0} von {1} an", features.count { it !in off }, features.size), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = if (open) tr("Zuklappen") else tr("Aufklappen"))
+        }
+        if (open) features.forEach { f -> ToggleRow(tr(f.title), tr(f.detail), f !in off) { v -> onChange(f, v) } }
+    }
+}
+
+/** A fixed rule as a small mark in the status card. */
+@Composable
+private fun RuleMark(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
+    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+        Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        }
     }
 }
 

@@ -358,6 +358,63 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   (ein Prozess); zwei Chats antworten gleichzeitig, ein Chat ist nie in zwei Fenstern offen (das Hauptfenster zeigt dann
   *Zum Fenster* / *Hierher holen*), Schließen eines Fensters beendet nichts anderes; Größe und Ort werden je Art gemerkt.
   Entschieden: nur Fenster, keine Tabs. Test `ExtraWindowsTest`.
+- **Aufgeräumte Datenschutzseite** (seit 1.0.67, AP-103): *Einstellungen › Datenschutz* zeigt oben in einer Karte, ob
+  der Schutz an ist, was gerade wirkt („Aktiv: Regeln · Namen automatisch · Lora Namensschutz · Gründlich aus“) und die
+  festen Regeln als Marken (*Postfach nur auf diesem Gerät*, *Tresor*). Darunter *Erkennung* (Lora Namensschutz, Namen
+  automatisch, öffentliche Quellen, Gründlich) mit kurzen Erklärungen; *Meine Listen* (immer / nie ersetzen, Übernehmen
+  und Speichern, Zuordnungen mit Suche), *Ausprobieren*, *Feineinstellungen* (die 22 Einzelschalter, je Gruppe eine
+  Zeile „4 von 4 an“, darin der kleine Bereich *Hinweise beim Senden* mit „Warnung bei Bildern“ und
+  „Namensvorschläge“) und *So schützt Lora deine Daten* sind zugeklappt; was offen ist, merkt sich die App. Ist der
+  Schutz aus, sind die Bereiche sichtbar ausgegraut. Ohne Aufklappen passt die Seite auf einen Bildschirm (888 statt
+  über 2 400 dp hoch); alle Einstellungen behalten ihre Werte, Strg+K, Lora und die Leuchtrahmen finden sie weiter
+  (der Rahmen öffnet den zugeklappten Bereich). Test `PrivacyPageTest` (alle `PiiFeature`-Schalter, Leuchtrahmen,
+  Hoher Kontrast).
+
+  | Vorher (Ausschnitt) | Nachher | Nachher, Feineinstellungen offen |
+  | --- | --- | --- |
+  | ![Datenschutz vorher](docs/bilder/datenschutz-vorher.png) | ![Datenschutz nachher](docs/bilder/datenschutz-nachher.png) | ![Feineinstellungen offen](docs/bilder/datenschutz-nachher-feineinstellungen.png) |
+- **Suche nach Bedeutung auf diesem Gerät** (seit 1.0.67, AP-107): Unter *Einstellungen › Wissen* lässt sich
+  **multilingual-e5-small – Lora Edition** laden (123 MB, MIT-Lizenz, unverändert aus dem Original auf Hugging Face,
+  fester Commit, SHA-256). Dann findet die Wissenssammlung – allgemein und in Projekten, auch solchen „Nur auf diesem
+  Gerät“ – passende Stellen nach Bedeutung ohne Server („Hiwi“ findet „studentische Hilfskraft“); vorhandene Dokumente
+  werden im Hintergrund neu aufbereitet, die Liste zeigt „Suche nach Bedeutung auf diesem Gerät“. Schalter *Auf diesem
+  Gerät suchen* (aus: Uni-Server wie bisher). Neu für alle Modelle: Bedeutung und Wörter werden anders gemischt (Kosinus
+  je Anfrage gestreckt, 0,8 : 0,2) – das hilft auch den Server-Einbettungen. Gemessen auf einem Messkorpus mit
+  erfundenen Dokumenten (Prüfteil, 90 Fragen): die gesuchte Stelle unter den ersten fünf bei 98,9 % (nur Wörter
+  83,3 %, Server wie bis 1.0.66 94,4 %), etwa 40 ms je Abschnitt. Werkzeuge und Zahlen:
+  [`tools/suche/README.md`](tools/suche/README.md); Test `LocalEmbeddingTest`.
+- **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
+  neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
+  Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging
+  Face, SHA-256), über dieselbe sherpa-onnx wie die Spracherkennung – ohne Server. Sie liest auch, wenn ein Text das Gerät
+  nicht verlassen darf (Projekte „Nur auf diesem Gerät“), und im Sprachmodus mit *Wo Lora arbeitet: Nur lokal*; dort
+  bleibt dann auch die Spracherkennung auf dem Gerät (ohne Erkennungsmodell sagt die App, was fehlt, statt den Server zu
+  nehmen). Der erste Satz einer Antwort ist nach rund einer Viertelsekunde fertig (in der App gemessen: 66–215 ms je
+  erstem Satz, Laden einmalig 1,2 s). Werkzeuge und Zahlen: [`tools/stimme/README.md`](tools/stimme/README.md); Test
+  `LocalVoiceTest`.
+- **PDF-Tabellen nach Excel** (seit 1.0.67, AP-95): *PDF-Werkzeugkasten › Tabellen herausziehen* erkennt Spalten jetzt
+  an der Breite der Zellen – rechtsbündige Beträge und zentrierte Werte landen in ihrer Spalte –, übernimmt eine
+  Gruppenzeile über dem Kopf („Ansatz in Euro“ über 2026 und 2027) als verbundene Zelle und fügt Tabellen über mehrere
+  Seiten zu einer zusammen (die wiederholte Kopfzeile nur einmal). Excel bekommt je Tabelle ein Blatt, Zahlen als Zahlen
+  (auch „1.234,56“ und „4,3 %“). Neu: **Prüfen und nachbessern …** zeigt links die PDF-Seite, rechts die erkannte Tabelle
+  mit Zellen zum Korrigieren und Zeilen zum Löschen; *Als Excel speichern* nimmt die korrigierte Fassung. Gemessen auf
+  erfundenen PDFs (Statistik-Berichte über mehrere Seiten, Haushaltspläne, Paper-Tabellen; Prüfteil 8 Dateien): richtige
+  Zellen vorher 47,8 %, jetzt 100 %. Gescannte PDFs erst mit der Texterkennung. Test `PdfTableCorpusTest`.
+- **Formatwandler mit Verlustanzeige** (seit 1.0.67, AP-90): In *Dateien* › ⋮ › **Umwandeln …** (und über Lora: „mach
+  daraus eine ODT“) Word → ODT, PDF, RTF, Markdown, Text, HTML; Excel → ODS, CSV, PDF; PowerPoint → ODP, PDF; Markdown,
+  Text, RTF, HTML und CSV → Word bzw. Excel/ODS. **Vorher** sagt eine Karte, was verloren geht oder sich ändert – Formeln
+  (nur Werte; ODS behält sie), Tabellenblätter bei CSV, Kommentare, Änderungsspuren, Makros, Animationen und Übergänge,
+  Diagramme, Kopf- und Fußzeilen, nicht eingebettete Schriften – mit einer besseren Wahl, wo es eine gibt („OpenDocument-
+  Tabelle behält alle Blätter“), dann *Umwandeln* bzw. *Trotzdem umwandeln*. Das Original bleibt, die neue Datei kommt
+  daneben. CSV ist Excel-tauglich (Semikolon, BOM) und enthält die Ergebnisse der Formeln. Test `FormatConvertTest`.
+- **Mail-Sortierer ohne Wettlauf** (seit 1.0.67, AP-115): Nach *Pause* wartet *Fortsetzen*, bis der alte Lauf die Mail
+  fertig hat, an der er war – zwei Läufe lesen nie gleichzeitig dieselben Mails; die gespeicherten Läufe hängen nicht mehr
+  an einem einzigen Fach, das ein endender Lauf verdrängen konnte (das ließ `MailSorterTest` einmal ins Zeitlimit laufen).
+- **macOS-Version einzeln nachholen** (seit 1.0.67, AP-115): Der Mac-Teil des Releases ist ein eigener Workflow
+  (`.github/workflows/macos.yml`), den *Build & Release* aufruft. Erscheint ein Release ohne Mac (kein Runner, Fehler),
+  baut *Actions › macOS-Version (einzeln nachholbar) › Run workflow* mit derselben Versionsnummer nur den Mac-Teil aus
+  dem Tag `v1.0.x`, hängt DMG und tar.gz an das Release und veröffentlicht das Update erneut (mit dem bisherigen „Was ist
+  neu“, wenn das Feld leer bleibt) – ohne Android, Windows und Linux neu zu bauen.
 - **Lokale Modelle auf dem Mac und unter Linux** (seit 1.0.67, AP-86): Auf dem Mac scheiterte jeder Download eines
   lokalen Modells mit „Kein Paket für macOS im llama.cpp-Release gefunden“ – llama.cpp liefert macOS und Linux seit einiger
   Zeit als `.tar.gz` (mit Ordner und Verknüpfungen zwischen den Bibliotheken), die App suchte eine ZIP. Jetzt wählt sie
@@ -1498,6 +1555,11 @@ weitergeben.
    Version – ab dann fragen die Apps beim Start.
 5. Schlug nur das Veröffentlichen fehl (z. B. Token abgelaufen): Token erneuern, Secret `UPDATER_TOKEN` ersetzen,
    dann *Actions › Update veröffentlichen* mit derselben Version und denselben notes – baut nicht neu.
+6. Fehlt im Release die Mac-Version (der macOS-Job bekam keinen Runner oder schlug fehl; das Release erscheint dann ohne
+   sie und sagt es in der Zusammenfassung): *Actions › macOS-Version (einzeln nachholbar) › Run workflow* auf `main`
+   mit derselben **version** (z. B. `67`); **notes** leer lassen = bisheriger Text. Baut nur den Mac-Teil aus dem Tag
+   `v1.0.67`, lädt DMG und tar.gz ins Release und veröffentlicht das Update erneut (seit 1.0.67, AP-115).
+   KI-Assistenten: `actions_run_trigger`, `workflow_id: macos.yml`, `ref: main`, `inputs: {"version": "67"}`.
 
 Der Token in `UPDATER_TOKEN` (Fine-grained, Resource owner ADEU-TUD, *Contents: Read and write* auf
 `ADEU-Harness-Updater`) läuft am **24.01.2027** ab – vorher neu erstellen und das Secret ersetzen.

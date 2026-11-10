@@ -67,12 +67,12 @@ Fairlight).
 | ~~PDF und Diagramme~~ ☑ | AP-60 PDF-Reste · AP-61 Diagramme und Whiteboard (erledigt, siehe *Erledigt*) |
 | ~~Scanner, Sync, Android, Diktat~~ ☑ | AP-62 Dokumenten-Scanner · AP-63 Sync- und Android-Reste · AP-64 Android zieht nach · AP-65 Diktat · AP-66 Schnellansicht in Dateien (erledigt, siehe *Erledigt*) |
 | ~~Postfach und Videoeditor~~ ☑ | AP-68 Postfach nur mit lokalem Modell · AP-69 Echte Mailansicht und Lora sortiert selbst · AP-70 Videoeditor: ruhiges Bild, anpassbare und übersichtliche Oberfläche (erledigt, siehe *Erledigt*) |
-| **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
+| **Jetzt** | ~~AP-103 Datenschutzseite aufräumen~~ ☑ (10.11.2026) · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung (Rest als AP-113 in Runde 3) · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 |
-| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -99,7 +99,7 @@ nebeneinander, je in einem eigenen Chat.
 
 **Dringend: AP-103** (10.11.2026, vor den übrigen Paketen)
 
-### AP-103 ☐ Datenschutzseite aufräumen · S–M (neu, dringend)
+### AP-103 ☑ Datenschutzseite aufräumen · S–M (neu, dringend)
 **Befund (10.11.2026)**: *Einstellungen › Datenschutz* (`PrivacySettings.kt`) ist durch viele Überarbeitungen
 unübersichtlich geworden: eine lange Seite mit rund zehn Karten untereinander – *Pseudonymisierung* (Hauptschalter,
 Erkennungsmodell, „Namen automatisch erkennen“, „Öffentliche Quellen“, „Gründlich“), *Postfach*, dann vier Karten mit
@@ -127,6 +127,14 @@ mitten in der Seite, und die Postfach-Regel ist eine Karte ohne Bedienung.
 **Fertig, wenn**: die Seite ohne Aufklappen auf einen Bildschirm passt, der Schutzstatus oben sofort erkennbar ist,
 jede bisherige Einstellung erreichbar bleibt (Test über alle `PiiFeature`-Werte und Spots) und Screenshots vorher/nachher
 in der README stehen.
+**Erledigt (10.11.2026, für 1.0.67)**: Statuskarte (Schalter, Zeile „Aktiv: …“, Marken *Postfach nur auf diesem Gerät*
+und *Tresor*), *Erkennung* offen, *Meine Listen*, *Ausprobieren*, *Feineinstellungen* und *So schützt Lora deine Daten*
+zugeklappt (Zustand in `privacyOpen`), Einzelschalter je Gruppe mit „x von y an“; „Warnung bei Bildern“ und
+„Namensvorschläge“ als kleiner Bereich *Hinweise beim Senden* innerhalb der Feineinstellungen (eine eigene Karte hätte
+die Seite über einen Bildschirm gehoben). Schutz aus → Bereiche ausgegraut. Seite 888 dp hoch statt über 2 400 dp
+(Grenze im Test: 900 dp, ein Full-HD-Bildschirm; auf einem Laptop mit 768 Pixeln Höhe bleibt etwas Scrollen). Der
+Leuchtrahmen öffnet den zugeklappten Bereich (`privacy.never` → *Meine Listen*). Test `PrivacyPageTest`, Bilder in
+`docs/bilder/`. **Am Gerät prüfen**: Android (schmal, große Schrift), Bedienung mit Tastatur und Screenreader.
 
 **Parallel: AP-67 und AP-71**
 
@@ -521,13 +529,31 @@ ersten Start sie mit Größe, Tempo und Zweck anbietet.
   die Wahl vorläufig (Lizenz, Größe, Ruf, Vorhersage). Der Mail-Sortierer (`MailSorter`, andere Sitzung) wählt sein Modell
   noch nach Größe und könnte einen Code-Spezialisten nehmen – dort `generalModels()` nutzen.
 
-### AP-107 ☐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
+### AP-107 ◐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
 **Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein
 kleines mehrsprachiges Einbettungsmodell (MIT/Apache, z. B. E5- oder BGE-Familie), optional ein Reranker, über die
 vorhandene ONNX Runtime; Server-Einbettungen bleiben nutzbar. Messkorpus (deutsche Fragen an erfundene Dokumente) vor
 der Wahl.
 **Fertig, wenn**: im Prüfteil die Treffer der ersten fünf Stellen mindestens so gut wie mit Server-Einbettungen, ≤ 50 ms je
 Abschnitt auf einem Office-PC.
+**Stand (10.11.2026, für 1.0.67)** – Werkzeuge und alle Zahlen: `tools/suche/README.md`.
+- ☑ Messkorpus zuerst: 30 erfundene Dokumente, 60 Fragen Entwicklungsteil, 90 Fragen Prüfteil (`tools/suche/messkorpus/`).
+- ☑ Wahl auf dem Entwicklungsteil: **multilingual-e5-small** (MIT, int8-ONNX des Originals, 118 + 5 MB) vor e5-base,
+  MiniLM-L12 (Apache-2.0) und granite-107m (Apache-2.0); Name „multilingual-e5-small – Lora Edition“. Mischung neu:
+  Kosinus je Anfrage gestreckt, 0,8 Bedeutung : 0,2 Wörter (bis 1.0.66: roh 0,65 : 0,35 – da entschieden fast nur die
+  Wörter); gilt auch für Server-Einbettungen.
+- ☑ Einbau: SentencePiece-Tokenizer in Kotlin (gleiche Ids wie Hugging Face bei 352 von 352 Texten), ONNX Runtime der App
+  über `OrtClassifier`, Download wie Lora Namensschutz (Hugging Face, fester Commit, SHA-256), *Einstellungen › Wissen*
+  mit Schalter *Auf diesem Gerät suchen*, Modellkarte, Löschen; Wissenssammlung allgemein und in Projekten (auch „Nur auf
+  diesem Gerät“), vorhandene Dokumente werden nachträglich aufbereitet. Test `LocalEmbeddingTest`.
+- Prüfteil (einmal am Ende): unter den ersten fünf **98,9 %** (MRR 0,894) – nur Wörter 83,3 %, Uni-Server
+  (Qwen3-Embedding-4B, lokal nachgerechnet) mit der Mischung bis 1.0.66 94,4 %, mit der neuen Mischung 100 %. Einzelne
+  Absätze: 91,1 % gegen 90,0 % bzw. 100 %. Ziel „mindestens so gut wie mit Server-Einbettungen“ also gegenüber dem
+  bisherigen Weg erreicht, gegenüber dem Server mit neuer Mischung knapp nicht. Zeit 32–40 ms je Abschnitt (zwei Kerne,
+  Cloud-Rechner).
+- **Rest**: *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) nutzen das Modell noch nicht (heute
+  Wortsuche bzw. Server); optionaler Reranker auf dem Gerät; Zeit auf einem echten Office-PC und auf Android messen;
+  Korpus vergrößern (40 Abschnitte sind wenig); Spiegel der Dateien auf dem eigenen Hugging-Face-Konto (AP-106).
 
 ### AP-108 ◐ Lange Texte lokal · M (Runde 3)
 **Ziel**: Kontextlänge nach Speicher (KV-Cache quantisiert) statt fest 8–16 k, Abschnitt-für-Abschnitt-Auswertung mit
@@ -600,16 +626,26 @@ einem Office-PC unter 15 s dauert.
   bei etwa 20 s. Mit Grafikkarte oder Apple-Chip ist es kein Problem.
 - **Messkorpus** `tools/bildverstehen/` (erfundene Screenshots, Tabellenfotos, Scans, Diagramme; je 12 Bilder Entwicklung
   und Prüfung, erzeugt aus festen Startwerten) mit Messskript.
-- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) **Android:
-  OCR lokal** – `PdfOcr.visionModel` (PDF-Werkzeuge, andere Sitzung) soll `LocalVision.model(c)` vor einem Server-Bildmodell
-  nehmen; ein Einzeiler, absichtlich nicht angefasst; (3) auf Android ist der Bildteil ungetestet (llama-server der App
+- **Offen**: (1) am Gerät messen – Office-PC, Gaming-PC, Mac (`messen.py`, Entwicklungsteil, dann Prüfteil); (2) ~~**Android:
+  OCR lokal**~~ – erledigt mit PR #65: `PdfOcr.visionModel` nimmt `LocalVision.model(c)` vor einem Server-Bildmodell (am
+  Gerät prüfen); (3) auf Android ist der Bildteil ungetestet (llama-server der App
   muss mtmd enthalten).
 
-### AP-111 ☐ Sprachausgabe lokal · S (Runde 3)
+### AP-111 ☑ Sprachausgabe lokal · S (Runde 3)
 **Ziel**: Vorlesen und Sprachmodus mit natürlicher deutscher Stimme auf dem Gerät (Piper oder Kokoro über sherpa-onnx,
 Stimmen mit freier Lizenz) statt Server oder Systemstimme.
 **Fertig, wenn**: der Sprachmodus mit *Nur lokal* vollständig funktioniert und die erste Silbe auf einem Office-PC nach
 < 0,5 s kommt.
+**Erledigt (10.11.2026, für 1.0.67)** – `tools/stimme/README.md`: Piper „Thorsten“ medium (CC0, 64 MB, nur die deutschen
+espeak-Dateien) über die sherpa-onnx 1.13.8 der App; dritte Wahl *Natürliche Stimme auf diesem Gerät* in *Vorlesen &
+Spracheingabe* mit Laden/Löschen; liest auch bei „Nur auf diesem Gerät“ und im Sprachmodus mit *Nur lokal* (statt der
+Systemstimme, wenn geladen); der Sprachmodus lädt die Stimme vor, während man spricht, und erkennt Sprache mit *Nur lokal*
+auf dem Gerät (ohne Erkennungsmodell: Hinweis statt Server). Messung in der App (`LocalVoiceTest`, Cloud-Rechner, zwei
+Kerne): Laden 1,2 s einmalig, erster Satz 66–215 ms, Echtzeitfaktor ≈ 0,06 → erste Silbe deutlich unter 0,5 s.
+Kokoro kann kein Deutsch; Stimmen mit M-AILABS-Daten (eva_k, ramona …) wegen unklarer Lizenz ausgeschlossen.
+**Rest / am Gerät prüfen**: Klang und Tempo auf einem Office-PC und auf Android (dort ebenfalls sherpa-onnx, nicht
+gemessen); eine zweite, weibliche Stimme („kerstin“, CC0) zur Wahl; Spiegel der Dateien (AP-106). Dass der Sprachmodus mit
+*Nur lokal* auch ein lokales Sprachmodell für die Antwort nimmt, regeln AP-71/AP-109 (nicht Teil dieses Pakets).
 
 ### AP-112 ☐ Offline-Schiene in der Oberfläche: Ort je Bereich, Einrichtung Schritt für Schritt · M–L (Runde 3)
 **Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht – und stellt es selbst ein.
@@ -685,11 +721,32 @@ gefundene private Angaben zu fallen.
   stärkeren Modell noch so gebraucht wird.
 **Fertig, wenn**: jedes Ziel der App ein Etikett hat und die Ziele von AP-71 im Prüfteil gehalten werden.
 
-### AP-115 ☐ Reste aus 1.0.66 · S
+### AP-115 ☑ Reste aus 1.0.66 · S
 - `MailSorterTest.pausesCancelsAndCarriesOnAfterARestart` schlug im PR-Check einmal mit Zeitlimit fehl (beim Neustart grün)
   – Wettlauf im Mail-Sortierer (AP-69) suchen und beheben, nicht den Test lockern.
 - Release-Workflow: Der macOS-Job bekam einmal keinen Runner und das Release erschien zunächst ohne Mac (nachgeholt mit
   einem zweiten Lauf); prüfen, ob ein Neustart nur des Mac-Teils möglich ist, ohne alles neu zu bauen.
+**Erledigt (10.11.2026, für 1.0.67)**:
+- Mail-Sortierer: zwei Wettläufe gefunden (durch Lesen des Codes; der Fehler ließ sich hier nicht nachstellen) und im
+  Code behoben, der Test ist unverändert. (1) Die Läufe lagen in **einem** Speicherfach (`store`); ein abgebrochener Lauf
+  eines anderen Containers (z. B. der vorige Test), der seine Datei noch einmal anfasste, ersetzte das Fach, der nächste
+  Aufruf lud die Datei in ein drittes – wer auf den Fluss des ersten wartete (`await`), sah keine Änderung mehr → Zeitlimit.
+  Jetzt ein Speicher je Datei (`ConcurrentHashMap`), `forgetForTest` wartet, bis die alten Läufe geendet haben. (2) Nach
+  *Pause* konnte *Fortsetzen* einen zweiten Lauf starten, während der erste die Mail noch fertig las; der neue wartet jetzt
+  auf den alten (`stopping`, `join`). `MailSorterTest` danach in zwei vollen Testläufen und in 8 von 8 gültigen
+  Einzelläufen grün.
+- *Nachgereicht (10.11.2026)*: `NewToolsLookTest > filesScreen()` schlug im PR-Check von #64 einmal fehl
+  (`IndexOutOfBoundsException: Index 12, size 12` in `IntervalList`, Lazy-Liste von *Dateien*). Nachgestellt: 1 von 25
+  Läufen. Ursache: Die Zustände, die die Zahl der Einträge bestimmen (Dateiliste, `hasRoots`, Suchtreffer), wurden nach
+  `withContext(Dispatchers.IO/Default)` gesetzt; der Testaufbau von Compose (1.7.3, `UnconfinedTestDispatcher`) setzt dort
+  auf dem Hintergrund-Thread fort, während die Liste auf dem UI-Thread misst – sie las die Zahl aus einer Fassung und den
+  Schlüssel aus der nächsten. In der App laufen Effekte auf dem UI-Thread; trotzdem werden die Zustände jetzt ausdrücklich
+  dort gesetzt (`withContext(Dispatchers.Main.immediate)`), der Test ist unverändert. Danach 30 von 30 Läufen grün.
+- Release: Der Mac-Teil ist ein eigener Workflow `macos.yml` (`workflow_call` aus *Build & Release*, dazu
+  `workflow_dispatch`). Einzeln gestartet baut er aus dem Tag `v1.0.x` nur die Mac-App, testet sie, hängt DMG und tar.gz
+  an das bestehende Release und veröffentlicht das Update erneut (bisheriges „Was ist neu“, wenn leer). README ›
+  *Neue Version veröffentlichen*, Schritt 6. Geprüft mit actionlint; **ein echter Lauf steht aus** (erst mit dem nächsten
+  Release bzw. von Hand für 1.0.66 möglich).
 
 
 ---
@@ -730,7 +787,7 @@ nachladbaren Erweiterungen (AP-25).
 
 **Dateien umwandeln und reparieren**
 
-### AP-90 ☐ Formatwandler mit Verlustanzeige · M (neu)
+### AP-90 ◐ Formatwandler mit Verlustanzeige · M (neu)
 **Ziel**: Dateien zwischen gängigen Formaten umwandeln (DOCX ↔ ODT/RTF/PDF/Markdown, PPTX ↔ ODP/PDF, XLSX ↔ ODS/CSV,
 Bilder untereinander), aus *Dateien* per Rechtsklick und per Lora („mach daraus eine ODT“). **Vorher** zeigt eine Karte,
 was dabei verloren geht oder sich ändert – Formeln (nur Werte), Animationen und Übergänge, Kommentare und Änderungsspuren,
@@ -738,6 +795,17 @@ Makros, mehrere Tabellenblätter bei CSV, nicht eingebettete Schriften – mit *
 Alternative. Das Original bleibt immer erhalten.
 **Fertig, wenn**: jede angebotene Richtung mit Testdateien richtig umwandelt und die Verlustanzeige für Formeln,
 Animationen, Kommentare und Blätter stimmt.
+**Stand (10.11.2026, für 1.0.67)**: `docs/FormatConvert.kt` – Word → ODT/PDF/RTF/Markdown/Text/HTML, Excel → ODS/CSV/PDF,
+PowerPoint → ODP/PDF, Markdown/Text/RTF/HTML → Word/ODT/PDF, CSV → Excel/ODS; Verlustkarte vor dem Umwandeln (Formeln –
+ODS behält sie –, Blätter bei CSV, Kommentare, Änderungsspuren, Makros, Animationen, Übergänge, Diagramme, Kopf-/Fußzeilen,
+Textfelder, nicht eingebettete Schriften, vereinfachtes Layout) mit besserer Wahl; *Dateien* › ⋮ › *Umwandeln …*
+(`FormatConvertDialog`) und Lora-Aktion `files.convert` (Vorschau = Verlustkarte, Rückgängig). Original bleibt, neue Datei
+daneben, nummeriert. Nebenbei behoben: Der PowerPoint-Leser verlor die Aufzählung einer ersten Folie ohne Untertitel.
+Test `FormatConvertTest`: jede angebotene Richtung mit Testdateien (mit Kommentaren, Änderungsspuren, Makros, Animationen,
+Übergängen, Formeln und zwei Blättern) wandelt um; die Karte nennt genau, was drin ist.
+**Rest**: Bilder untereinander (PNG/JPG/WebP); OpenDocument (ODT/ODS/ODP) als **Quelle** (heute nur Ziel); Word → PDF ist
+mit Microsoft Office genau, sonst über den Leser der App vereinfacht; Lora Befehle kennt `files.convert` erst nach dem
+nächsten Training (AP-114, bis dahin geht der Wunsch an das Sprachmodell).
 
 ### AP-91 ☐ Schriften-Notfall · S–M (neu)
 **Ziel**: Beim Öffnen von Word-, PowerPoint- und PDF-Dateien erkennen, welche Schriften fehlen; Lora schlägt einen
@@ -771,12 +839,25 @@ ausfüllen – auch von Lora.
 **Fertig, wenn**: drei echte Papierformulare der Verwaltung als ausfüllbare PDFs mit richtig platzierten und benannten
 Feldern herauskommen.
 
-### AP-95 ☐ PDF-Tabellen nach Excel · M (neu)
+### AP-95 ◐ PDF-Tabellen nach Excel · M (neu)
 **Ziel**: Tabellen aus PDFs zuverlässig in die Tabelle (AP-48) bzw. nach Excel übernehmen – auch über mehrere Seiten
 (wiederholte Kopfzeilen nur einmal), mit verbundenen Zellen, Zahlen als Zahlen (deutsches Format) und aus gescannten
 PDFs über die Texterkennung. Prüfansicht: PDF-Seite links, erkannte Tabelle rechts, Zellen zum Nachbessern.
 **Fertig, wenn**: Tabellen aus Statistik-Berichten, Haushaltsplänen und Papers (auch gescannt) mit richtigen Spalten und
 Zahlen ankommen.
+**Stand (10.11.2026, für 1.0.67)**: Messkorpus zuerst – erfundene PDFs mit bekanntem Inhalt (`PdfTableCorpus`: Statistik-
+Berichte über mehrere Seiten mit wiederholter Kopfzeile, Haushaltspläne mit Gruppenzeile „Ansatz in Euro“ und
+rechtsbündigen Beträgen, Paper-Tabellen mit zentrierten Werten), Entwicklungsteil 5 und Prüfteil 8 Dateien mit eigenen
+Zufallszahlen, Schriftgrößen und Längen. Erkennung (`PdfTables`): Spalten als Bereiche aus den Zellbreiten statt nächster
+Startpunkt, Gruppenzeile als verbundene Zelle (`merges`, in Excel zusammengeführt), Zusammenführen über Seiten mit
+einmaliger Kopfzeile, Excel direkt aus den Tabellen (Zahlen als Zahlen, deutsches Format). Prüfansicht
+(`PdfTableReview`): PDF-Seite links, Tabelle rechts, Zellen ändern, Zeilen löschen, dann Excel oder Editor.
+Ergebnis (richtige Zellen / richtig erkannte Zahlen): Entwicklungsteil vorher 50,4 % / 50,0 %, jetzt 100 % / 100 %;
+**Prüfteil vorher 47,8 % / 47,1 %, jetzt 100 % / 100 %**, genau eine Tabelle je Datei 8 von 8 (vorher 6). Test
+`PdfTableCorpusTest`.
+**Rest**: Der Korpus ist von uns gesetzt und sauber – echte PDFs aus Word, Excel, LaTeX und Behörden-Berichten fehlen noch
+(am Gerät prüfen); Zellen mit Zeilenumbruch (zweizeilige Zellen) werden noch zwei Zeilen; gescannte PDFs nur über die
+Texterkennung (Windows-OCR bzw. Bildmodell), nicht gemessen; verbundene Zellen nur in der Gruppenzeile über dem Kopf.
 
 ### AP-96 ☐ Diagramm zu Daten · M (neu)
 **Ziel**: Aus dem Bild eines Diagramms (Ausschnitt aus einem Paper, Foto, Scan) die Werte als Tabelle zurückgewinnen:

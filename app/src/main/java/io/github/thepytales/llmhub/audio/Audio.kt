@@ -53,7 +53,9 @@ class AudioPlayer(private val context: Context) {
     /** Plays [bytes] and returns when playback has finished or was stopped. */
     suspend fun play(bytes: ByteArray) {
         stop()
-        val f = File(context.cacheDir, "speech_${System.nanoTime()}.mp3").apply { writeBytes(bytes) }
+        // MP3 from the server, WAV from the voice on this device (AP-111).
+        val ext = if (bytes.size > 12 && String(bytes, 0, 4, Charsets.US_ASCII) == "RIFF") "wav" else "mp3"
+        val f = File(context.cacheDir, "speech_${System.nanoTime()}.$ext").apply { writeBytes(bytes) }
         try {
             suspendCancellableCoroutine<Unit> { cont ->
                 val p = MediaPlayer()

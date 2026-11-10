@@ -158,10 +158,17 @@ class KnowledgeStore(root: File) {
             }
         }
         val maxBm = bm25.maxOrNull()?.takeIf { it > 0 } ?: 1.0
-        val scores = all.mapIndexed { i, (d, _, c) ->
+        val cos = all.map { (d, _, c) -> if (queryVector != null && c.vector != null && d.embeddedWith == model) cosine(queryVector, c.vector) else null }
+        // AP-107: the cosines are stretched to 0..1 per query before mixing – they lie close together (e5: 0.7–0.9,
+        // Qwen3 too), so the raw mix of up to 1.0.66 let the keywords decide. Chosen on the Entwicklungsteil of
+        // tools/suche/messkorpus for the model on this device and the server's alike.
+        val known = cos.filterNotNull()
+        val lo = known.minOrNull() ?: 0.0
+        val span = ((known.maxOrNull() ?: 1.0) - lo).takeIf { it > 1e-9 } ?: 1.0
+        val scores = all.indices.map { i ->
             val keyword = bm25[i] / maxBm
-            val semantic = if (queryVector != null && c.vector != null && d.embeddedWith == model) cosine(queryVector, c.vector) else null
-            if (semantic != null) 0.65 * semantic + 0.35 * keyword else keyword
+            val semantic = cos[i]
+            if (semantic == null) keyword else SEMANTIC_WEIGHT * (semantic - lo) / span + (1 - SEMANTIC_WEIGHT) * keyword
         }
         return all.indices.sortedByDescending { scores[it] }.take(k).filter { scores[it] > 0.05 }
             .map { i -> KnowledgeHit(all[i].first, all[i].second, all[i].third.text, scores[i], all[i].third.page) }
@@ -169,6 +176,9 @@ class KnowledgeStore(root: File) {
 
     companion object {
         const val CHUNK = 1_200
+
+        /** Share of meaning in the mixed score (AP-107, chosen on the Entwicklungsteil). */
+        const val SEMANTIC_WEIGHT = 0.8
         const val OVERLAP = 200
 
         /** Passages of about [CHUNK] characters that end at paragraph or sentence borders and overlap a little. */

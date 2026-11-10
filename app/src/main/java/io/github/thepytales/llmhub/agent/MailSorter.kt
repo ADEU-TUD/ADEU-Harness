@@ -25,11 +25,13 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -390,6 +392,17 @@ object MailSorter {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val jobs = ConcurrentHashMap<String, Job>()
 
+    /** Jobs cancelled by „Pause“ or „Abbrechen“ that may still be ending. */
+    private val stopping = ConcurrentHashMap<String, Job>()
+
+    /** Cancels the job of [id]; it is kept in [stopping] until it has ended. */
+    private fun stop(id: String) {
+        val job = jobs.remove(id) ?: return
+        job.cancel()
+        stopping[id] = job
+        job.invokeOnCompletion { stopping.remove(id, job) }
+    }
+
     /** Head and beginning of the mails of a run while it reads them (never stored). */
     private val headers = ConcurrentHashMap<String, Map<String, MailHeader>>()
 
@@ -397,29 +410,19 @@ object MailSorter {
     @Volatile
     var testModel: SortModel? = null
 
-    @Volatile
-    private var store: Pair<File, ListStore<MailSortRun>>? = null
+    /**
+     * One store per file (AP-115). It used to be a single slot: a cancelled job of another container (a test before, or
+     * a run still finishing its mail) that touched its own file put a new store there, the next call loaded the current
+     * file into yet another one – and whoever waited on the flow of the first ([await]) never saw a change again.
+     */
+    private val stores = ConcurrentHashMap<File, ListStore<MailSortRun>>()
+    private val exampleStores = ConcurrentHashMap<File, ListStore<MailSortExample>>()
 
-    @Volatile
-    private var exampleStore: Pair<File, ListStore<MailSortExample>>? = null
+    private fun store(c: AppContainer): ListStore<MailSortRun> =
+        stores.computeIfAbsent(File(c.appContext.filesDir, "mail-sortierlaeufe.json")) { f -> ListStore(FileBackend(f), MailSortRun.serializer(), { it.id }) }
 
-    private fun store(c: AppContainer): ListStore<MailSortRun> {
-        val file = File(c.appContext.filesDir, "mail-sortierlaeufe.json")
-        store?.takeIf { it.first == file }?.let { return it.second }
-        return synchronized(this) {
-            store?.takeIf { it.first == file }?.second
-                ?: ListStore(FileBackend(file), MailSortRun.serializer(), { it.id }).also { store = file to it }
-        }
-    }
-
-    private fun exampleStore(c: AppContainer): ListStore<MailSortExample> {
-        val file = File(c.appContext.filesDir, "mail-sortierbeispiele.json")
-        exampleStore?.takeIf { it.first == file }?.let { return it.second }
-        return synchronized(this) {
-            exampleStore?.takeIf { it.first == file }?.second
-                ?: ListStore(FileBackend(file), MailSortExample.serializer(), { it.id }).also { exampleStore = file to it }
-        }
-    }
+    private fun exampleStore(c: AppContainer): ListStore<MailSortExample> =
+        exampleStores.computeIfAbsent(File(c.appContext.filesDir, "mail-sortierbeispiele.json")) { f -> ListStore(FileBackend(f), MailSortExample.serializer(), { it.id }) }
 
     fun runs(c: AppContainer): StateFlow<List<MailSortRun>> = store(c).items
 
@@ -429,11 +432,14 @@ object MailSorter {
 
     /** Tests: forgets the running jobs and the loaded stores, as after the end of the app (the files stay). */
     internal fun forgetForTest() {
-        jobs.values.forEach { it.cancel() }
+        // As at the end of the app: nothing of the old jobs may run on (they end before the stores are read again).
+        val old = jobs.values.toList() + stopping.values.toList()
         jobs.clear()
+        stopping.clear()
+        runBlocking { old.forEach { it.cancelAndJoin() } }
         headers.clear()
-        store = null
-        exampleStore = null
+        stores.clear()
+        exampleStores.clear()
     }
 
     private fun update(c: AppContainer, id: String, f: (MailSortRun) -> MailSortRun) =
@@ -567,7 +573,11 @@ object MailSorter {
 
     private fun launch(c: AppContainer, id: String) {
         if (jobs[id]?.isActive == true) return
+        // A job stopped by „Pause“ may still finish the mail it is at; the new one waits for it, so two never read
+        // the same run at once (AP-115).
+        val previous = stopping.remove(id)
         val job = scope.launch(start = CoroutineStart.LAZY) {
+            previous?.join()
             try {
                 drive(c, id)
             } catch (e: CancellationException) {
@@ -814,7 +824,7 @@ object MailSorter {
 
     /** „Pause“: the run stops after the mail it is at and continues with „Fortsetzen“ (also after a restart). */
     fun pause(c: AppContainer, id: String) {
-        jobs.remove(id)?.cancel()
+        stop(id)
         update(c, id) { r -> if (r.state in MailSortRun.RUNNING) r.copy(state = MailSortRun.PAUSED, resumeState = r.state) else r }
     }
 
@@ -826,7 +836,7 @@ object MailSorter {
 
     /** „Abbrechen“: what moved stays moved (Rückgängig is offered), nothing else happens. */
     fun cancel(c: AppContainer, id: String) {
-        jobs.remove(id)?.cancel()
+        stop(id)
         update(c, id) { r -> if (r.state in setOf(MailSortRun.DONE, MailSortRun.UNDONE, MailSortRun.UNDOING)) r else r.copy(state = MailSortRun.CANCELLED, resumeState = null) }
         ToolActions.log("$ACTION_ID abgebrochen")
     }

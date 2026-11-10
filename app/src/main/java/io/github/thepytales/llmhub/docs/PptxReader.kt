@@ -189,7 +189,10 @@ object PptxReader {
         val notes = pkg.notes(key)
         val sorted = columns.sortedBy { it.first }
         val body = (sorted.flatMap { it.second } + tables.map { "\n$it\n" }).joinToString("\n").trim()
-        if (index == 0) return SlideDeck.Slide(title.ifBlank { body.lines().firstOrNull()?.removePrefix("- ").orEmpty() }, subtitle, notes = notes, layout = SlideDeck.Layout.TITLE, elements = elements)
+        // The first slide is a title slide – unless it has content and no subtitle (a one-slide handout, AP-90): then its
+        // bullets would be lost, so it is read like any other slide.
+        if (index == 0 && (body.isBlank() || subtitle.isNotBlank() || title.isBlank()))
+            return SlideDeck.Slide(title.ifBlank { body.lines().firstOrNull()?.removePrefix("- ").orEmpty() }, subtitle, notes = notes, layout = SlideDeck.Layout.TITLE, elements = elements)
         val heading = title.ifBlank { hidden.ifBlank { "Folie ${index + 1}" } }
         return when {
             chart != null -> SlideDeck.Slide(heading, listOf(body, chart).filter { it.isNotBlank() }.joinToString("\n\n"), notes = notes, layout = SlideDeck.Layout.CHART, elements = elements)

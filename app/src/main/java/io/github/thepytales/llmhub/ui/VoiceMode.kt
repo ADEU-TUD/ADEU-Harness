@@ -138,6 +138,8 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             phase = VoicePhase.PAUSED
             return@LaunchedEffect
         }
+        // The voice on this device (AP-111) loads while the person speaks, so the answer starts without waiting.
+        c.localVoice.preload()
         try {
         while (true) {
             // 1. Listen until a pause after speech.
@@ -193,7 +195,9 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
                     .joinToString("\n\n") { splitThinking(it.content).second.trim() }.trim()
             }
             val id = "voice-" + System.nanoTime()
-            val deviceOnly = !(vm.state.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer
+            // Data that stays here, or „Nur lokal“ (AP-71/AP-111): read with a voice on this device.
+            val deviceOnly = !(vm.state.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer ||
+                c.settings.current.loraPlace == "LOCAL"
             c.speaker.speakStream(id, deviceOnly, onFirstSound = {
                 firstSoundAt = System.currentTimeMillis()
                 phase = VoicePhase.SPEAKING

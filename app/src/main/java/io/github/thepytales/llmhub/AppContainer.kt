@@ -118,7 +118,9 @@ class AppContainer(context: Context) {
     /** Tresor (AP-10): encrypted chats behind an app PIN. */
     val vault = io.github.thepytales.llmhub.data.VaultStore(files).also { chats.vault = it }
     val models = ModelsRepository(llm, settings)
-    val speaker = Speaker(context, settings, llm)
+    /** Sprachausgabe lokal (AP-111): the natural voice on this device, next to the other local models. */
+    val localVoice = io.github.thepytales.llmhub.audio.LocalVoice(java.io.File(io.github.thepytales.llmhub.data.PiiRuntime.root(this).parentFile, "stimme"))
+    val speaker = Speaker(context, settings, llm, localVoice)
     val folders = ListStore<Folder>(FileBackend(File(files, "folders.json")), Folder.serializer(), { it.id })
 
     init {
@@ -222,6 +224,8 @@ class AppContainer(context: Context) {
 
     /** Recognition model of the pseudonymization (AP-67): download, loading, hits for [privacy]. */
     val piiModel = io.github.thepytales.llmhub.data.PiiModel(this)
+    /** Suche nach Bedeutung auf dem Gerät (AP-107). */
+    val localEmbedding = io.github.thepytales.llmhub.data.LocalEmbedding(this)
 
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device. */
     val commandModel = io.github.thepytales.llmhub.data.CommandModel(this)

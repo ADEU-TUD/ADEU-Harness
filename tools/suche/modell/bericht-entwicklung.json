@@ -1,0 +1,352 @@
+{
+  "teil": "entwicklung",
+  "fragen": 60,
+  "ergebnisse": {
+    "app": {
+      "einheiten": 40,
+      "nur Wörter (App heute ohne Server)": {
+        "top1": 55.0,
+        "top5": 73.3,
+        "mrr": 0.642
+      },
+      "e5-small": {
+        "nur Bedeutung": {
+          "top1": 80.0,
+          "top5": 98.3,
+          "mrr": 0.865
+        },
+        "gemischt wie bisher": {
+          "top1": 55.0,
+          "top5": 75.0,
+          "mrr": 0.659
+        },
+        "ms je Einheit": 32.0,
+        "normiert 0.5": {
+          "top1": 70.0,
+          "top5": 88.3,
+          "mrr": 0.783
+        },
+        "normiert 0.65": {
+          "top1": 80.0,
+          "top5": 95.0,
+          "mrr": 0.858
+        },
+        "normiert 0.8": {
+          "top1": 85.0,
+          "top5": 96.7,
+          "mrr": 0.895
+        },
+        "normiert 0.9": {
+          "top1": 83.3,
+          "top5": 98.3,
+          "mrr": 0.889
+        }
+      },
+      "qwen3-4b": {
+        "nur Bedeutung": {
+          "top1": 86.7,
+          "top5": 98.3,
+          "mrr": 0.922
+        },
+        "gemischt wie bisher": {
+          "top1": 68.3,
+          "top5": 86.7,
+          "mrr": 0.772
+        },
+        "ms je Einheit": 5707.4,
+        "normiert 0.5": {
+          "top1": 78.3,
+          "top5": 93.3,
+          "mrr": 0.85
+        },
+        "normiert 0.65": {
+          "top1": 90.0,
+          "top5": 98.3,
+          "mrr": 0.935
+        },
+        "normiert 0.8": {
+          "top1": 93.3,
+          "top5": 98.3,
+          "mrr": 0.959
+        },
+        "normiert 0.9": {
+          "top1": 90.0,
+          "top5": 98.3,
+          "mrr": 0.94
+        }
+      },
+      "minilm": {
+        "nur Bedeutung": {
+          "top1": 55.0,
+          "top5": 88.3,
+          "mrr": 0.692
+        },
+        "gemischt wie bisher": {
+          "top1": 70.0,
+          "top5": 90.0,
+          "mrr": 0.784
+        },
+        "ms je Einheit": 34.5,
+        "normiert 0.5": {
+          "top1": 68.3,
+          "top5": 90.0,
+          "mrr": 0.772
+        },
+        "normiert 0.65": {
+          "top1": 73.3,
+          "top5": 93.3,
+          "mrr": 0.814
+        },
+        "normiert 0.8": {
+          "top1": 71.7,
+          "top5": 95.0,
+          "mrr": 0.815
+        },
+        "normiert 0.9": {
+          "top1": 63.3,
+          "top5": 93.3,
+          "mrr": 0.763
+        }
+      },
+      "e5-base": {
+        "nur Bedeutung": {
+          "top1": 75.0,
+          "top5": 95.0,
+          "mrr": 0.847
+        },
+        "gemischt wie bisher": {
+          "top1": 55.0,
+          "top5": 75.0,
+          "mrr": 0.658
+        },
+        "ms je Einheit": 55.6,
+        "normiert 0.5": {
+          "top1": 68.3,
+          "top5": 86.7,
+          "mrr": 0.767
+        },
+        "normiert 0.65": {
+          "top1": 78.3,
+          "top5": 93.3,
+          "mrr": 0.849
+        },
+        "normiert 0.8": {
+          "top1": 80.0,
+          "top5": 96.7,
+          "mrr": 0.862
+        },
+        "normiert 0.9": {
+          "top1": 81.7,
+          "top5": 96.7,
+          "mrr": 0.878
+        }
+      },
+      "granite-107m": {
+        "nur Bedeutung": {
+          "top1": 58.3,
+          "top5": 90.0,
+          "mrr": 0.728
+        },
+        "gemischt wie bisher": {
+          "top1": 65.0,
+          "top5": 78.3,
+          "mrr": 0.72
+        },
+        "ms je Einheit": 31.1,
+        "normiert 0.5": {
+          "top1": 66.7,
+          "top5": 88.3,
+          "mrr": 0.761
+        },
+        "normiert 0.65": {
+          "top1": 73.3,
+          "top5": 90.0,
+          "mrr": 0.811
+        },
+        "normiert 0.8": {
+          "top1": 70.0,
+          "top5": 91.7,
+          "mrr": 0.804
+        },
+        "normiert 0.9": {
+          "top1": 60.0,
+          "top5": 91.7,
+          "mrr": 0.754
+        }
+      }
+    },
+    "absatz": {
+      "einheiten": 150,
+      "nur Wörter (App heute ohne Server)": {
+        "top1": 33.3,
+        "top5": 58.3,
+        "mrr": 0.44
+      },
+      "e5-small": {
+        "nur Bedeutung": {
+          "top1": 65.0,
+          "top5": 88.3,
+          "mrr": 0.749
+        },
+        "gemischt wie bisher": {
+          "top1": 36.7,
+          "top5": 65.0,
+          "mrr": 0.5
+        },
+        "ms je Einheit": 9.3,
+        "normiert 0.5": {
+          "top1": 53.3,
+          "top5": 85.0,
+          "mrr": 0.658
+        },
+        "normiert 0.65": {
+          "top1": 65.0,
+          "top5": 86.7,
+          "mrr": 0.74
+        },
+        "normiert 0.8": {
+          "top1": 63.3,
+          "top5": 91.7,
+          "mrr": 0.751
+        },
+        "normiert 0.9": {
+          "top1": 65.0,
+          "top5": 91.7,
+          "mrr": 0.755
+        }
+      },
+      "qwen3-4b": {
+        "nur Bedeutung": {
+          "top1": 76.7,
+          "top5": 98.3,
+          "mrr": 0.871
+        },
+        "gemischt wie bisher": {
+          "top1": 65.0,
+          "top5": 86.7,
+          "mrr": 0.744
+        },
+        "ms je Einheit": 1012.4,
+        "normiert 0.5": {
+          "top1": 68.3,
+          "top5": 91.7,
+          "mrr": 0.768
+        },
+        "normiert 0.65": {
+          "top1": 76.7,
+          "top5": 96.7,
+          "mrr": 0.84
+        },
+        "normiert 0.8": {
+          "top1": 78.3,
+          "top5": 98.3,
+          "mrr": 0.877
+        },
+        "normiert 0.9": {
+          "top1": 80.0,
+          "top5": 98.3,
+          "mrr": 0.886
+        }
+      },
+      "minilm": {
+        "nur Bedeutung": {
+          "top1": 48.3,
+          "top5": 80.0,
+          "mrr": 0.616
+        },
+        "gemischt wie bisher": {
+          "top1": 50.0,
+          "top5": 80.0,
+          "mrr": 0.638
+        },
+        "ms je Einheit": 11.0,
+        "normiert 0.5": {
+          "top1": 46.7,
+          "top5": 80.0,
+          "mrr": 0.602
+        },
+        "normiert 0.65": {
+          "top1": 60.0,
+          "top5": 81.7,
+          "mrr": 0.706
+        },
+        "normiert 0.8": {
+          "top1": 58.3,
+          "top5": 85.0,
+          "mrr": 0.689
+        },
+        "normiert 0.9": {
+          "top1": 56.7,
+          "top5": 81.7,
+          "mrr": 0.674
+        }
+      },
+      "e5-base": {
+        "nur Bedeutung": {
+          "top1": 71.7,
+          "top5": 90.0,
+          "mrr": 0.796
+        },
+        "gemischt wie bisher": {
+          "top1": 36.7,
+          "top5": 65.0,
+          "mrr": 0.502
+        },
+        "ms je Einheit": 18.8,
+        "normiert 0.5": {
+          "top1": 55.0,
+          "top5": 81.7,
+          "mrr": 0.682
+        },
+        "normiert 0.65": {
+          "top1": 65.0,
+          "top5": 85.0,
+          "mrr": 0.757
+        },
+        "normiert 0.8": {
+          "top1": 75.0,
+          "top5": 91.7,
+          "mrr": 0.817
+        },
+        "normiert 0.9": {
+          "top1": 75.0,
+          "top5": 90.0,
+          "mrr": 0.819
+        }
+      },
+      "granite-107m": {
+        "nur Bedeutung": {
+          "top1": 63.3,
+          "top5": 88.3,
+          "mrr": 0.742
+        },
+        "gemischt wie bisher": {
+          "top1": 45.0,
+          "top5": 75.0,
+          "mrr": 0.581
+        },
+        "ms je Einheit": 9.4,
+        "normiert 0.5": {
+          "top1": 55.0,
+          "top5": 83.3,
+          "mrr": 0.678
+        },
+        "normiert 0.65": {
+          "top1": 65.0,
+          "top5": 86.7,
+          "mrr": 0.751
+        },
+        "normiert 0.8": {
+          "top1": 70.0,
+          "top5": 91.7,
+          "mrr": 0.781
+        },
+        "normiert 0.9": {
+          "top1": 66.7,
+          "top5": 91.7,
+          "mrr": 0.771
+        }
+      }
+    }
+  }
+}

@@ -216,118 +216,16 @@ jobs:
   # the app once (the shared code is tested by the PR-Check). Signature and notarization only with the optional
   # secrets MAC_CERT_P12_BASE64, MAC_CERT_PASSWORD, MAC_SIGN_IDENTITY (+ MAC_NOTARY_APPLE_ID, MAC_NOTARY_PASSWORD,
   # MAC_NOTARY_TEAM_ID); without them Compose signs ad hoc and macOS asks once before the first start.
+  # The Mac part is a workflow of its own (AP-115), so it can be run again alone for a release that came out without
+  # it (Actions › macOS-Version › Run workflow, same version number) – see .github/workflows/macos.yml.
   macos:
     needs: prepare
     if: inputs.macos_linux
-    # macos-14 was retired by GitHub on 2026-11-02 (jobs were cancelled before they started); macos-15 is Apple Silicon too.
-    runs-on: macos-15
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: build/speech-downloads
-          key: natives-macos-${{ hashFiles('speech/natives.gradle.kts') }}
-
-      - name: Signaturzertifikat (optional)
-        env:
-          MAC_CERT_P12_BASE64: ${{ secrets.MAC_CERT_P12_BASE64 }}
-          MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
-          MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
-          MAC_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
-          MAC_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
-          MAC_NOTARY_TEAM_ID: ${{ secrets.MAC_NOTARY_TEAM_ID }}
-        run: |
-          if [ -z "$MAC_CERT_P12_BASE64" ] || [ -z "$MAC_SIGN_IDENTITY" ]; then
-            echo "::notice::Ohne Developer-ID-Zertifikat (Secrets MAC_CERT_P12_BASE64, MAC_SIGN_IDENTITY) wird die macOS-App nur ad hoc signiert und nicht notarisiert."
-            exit 0
-          fi
-          keychain="$RUNNER_TEMP/signing.keychain-db"
-          password="$(openssl rand -hex 24)"
-          echo "$MAC_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
-          security create-keychain -p "$password" "$keychain"
-          security set-keychain-settings -lut 21600 "$keychain"
-          security unlock-keychain -p "$password" "$keychain"
-          security import "$RUNNER_TEMP/cert.p12" -P "$MAC_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
-          rm -f "$RUNNER_TEMP/cert.p12"
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
-          # Search list: the new keychain first, then the existing ones (one path per word, without quotes).
-          # shellcheck disable=SC2046
-          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
-          {
-            echo "MAC_SIGN_KEYCHAIN=$keychain"
-            echo "MAC_SIGNED=1"
-          } >> "$GITHUB_ENV"
-          if [ -n "$MAC_NOTARY_APPLE_ID" ] && [ -n "$MAC_NOTARY_PASSWORD" ] && [ -n "$MAC_NOTARY_TEAM_ID" ]; then
-            echo "MAC_NOTARIZE=1" >> "$GITHUB_ENV"
-          else
-            echo "::notice::Ohne MAC_NOTARY_APPLE_ID, MAC_NOTARY_PASSWORD und MAC_NOTARY_TEAM_ID wird die signierte App nicht notarisiert."
-          fi
-
-      - name: Build macOS app (DMG)
-        env:
-          MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
-          MAC_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
-          MAC_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
-          MAC_NOTARY_TEAM_ID: ${{ secrets.MAC_NOTARY_TEAM_ID }}
-        run: |
-          # Without an imported certificate the identity must not reach Gradle (it would try to sign with it).
-          if [ "${MAC_SIGNED:-}" != "1" ]; then unset MAC_SIGN_IDENTITY; fi
-          tasks=(createDistributable packageDmg)
-          if [ "${MAC_NOTARIZE:-}" = "1" ]; then tasks+=(notarizeDmg); fi
-          # The runner has 7 GB of memory: less than desktop/gradle.properties (4 + 4 GB) for Gradle and a compiler daemon.
-          # The compiler keeps up to 2.4 GB while it translates the app (measured for 1.0.63); with 2.5 GB in its own
-          # daemon 1.0.62 failed („GC overhead limit exceeded“ in AppRoot). So it runs inside Gradle (one JVM, 4 GB);
-          # the larger code cache spares the full collections its threshold set off every few seconds.
-          ./gradlew -p desktop --no-daemon \
-            "-Dorg.gradle.jvmargs=-Xmx4g -XX:+UseParallelGC -XX:ReservedCodeCacheSize=512m -Dfile.encoding=UTF-8" \
-            -Pkotlin.compiler.execution.strategy=in-process "${tasks[@]}"
-          if [ "${MAC_NOTARIZE:-}" = "1" ]; then
-            # The DMG is stapled by notarizeDmg; the app for the tar.gz gets its ticket too (same code signature).
-            xcrun stapler staple "desktop/build/compose/binaries/main/app/ADEU LLM.app" \
-              || echo "::warning::Notarisierungs-Ticket ließ sich nicht an die App heften (Updates funktionieren trotzdem)."
-          fi
-
-      - name: Pack DMG and tar.gz
-        run: bash .github/scripts/desktop-package.sh macos "$VERSION_NAME"
-
-      - name: Start test (every screen, PDF/Word)
-        run: |
-          app="$RUNNER_TEMP/mac-app"
-          mkdir -p "$app"
-          tar -xzf "dist/ADEU-LLM-$VERSION_NAME-macOS.tar.gz" -C "$app"
-          # The signature must survive packing and unpacking (otherwise macOS refuses the updated app).
-          if codesign --verify --deep --strict "$app/ADEU LLM.app"; then
-            codesign -dv "$app/ADEU LLM.app" 2>&1 | grep -E "^(Identifier|Authority|Signature|TeamIdentifier)" || true
-          elif [ "${MAC_SIGNED:-}" = "1" ]; then
-            echo "::error::Signatur der App nach dem Entpacken ungültig."
-            exit 1
-          else
-            echo "::warning::Ad-hoc-Signatur der App nach dem Entpacken ungültig."
-          fi
-          bash .github/scripts/desktop-selftest.sh "$app/ADEU LLM.app/Contents/MacOS/ADEU LLM"
-
-      - name: Hand the DMG and tar.gz on
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: gh release upload "$TRANSFER" "dist/ADEU-LLM-$VERSION_NAME-macOS.dmg" "dist/ADEU-LLM-$VERSION_NAME-macOS.tar.gz" --clobber
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        continue-on-error: true
-        with:
-          name: macos-selftest-${{ env.VERSION_NAME }}
-          path: selftest/
-          retention-days: 3
+    uses: ./.github/workflows/macos.yml
+    with:
+      version: ${{ inputs.version || github.run_number }}
+      transfer: ci-${{ github.run_id }}
+    secrets: inherit
 
   # Linux version (AP-31, x64): tar.gz with the folder "ADEU LLM" (start without installing, automatic update) and the
   # Debian package "adeu-llm". Started once without a screen (Xvfb) like the Windows version.
@@ -416,9 +314,10 @@ jobs:
       - name: macOS fehlt?
         if: needs.macos.result != 'success' && needs.macos.result != 'skipped'
         run: |
-          echo "::warning title=Ohne macOS::Der macOS-Job endete mit „${{ needs.macos.result }}“ – dieses Release erscheint ohne Mac-Version."
+          echo "::warning title=Ohne macOS::Der macOS-Job endete mit „${{ needs.macos.result }}“ – dieses Release erscheint ohne Mac-Version. Nachholen: Actions › macOS-Version › Run workflow mit derselben Versionsnummer."
           echo "### Ohne macOS" >> "$GITHUB_STEP_SUMMARY"
           echo "Der macOS-Job endete mit **${{ needs.macos.result }}** – das Release erscheint ohne Mac-Dateien." >> "$GITHUB_STEP_SUMMARY"
+          echo "Nachholen ohne alles neu zu bauen: *Actions › macOS-Version › Run workflow* mit derselben Versionsnummer (baut nur den Mac-Teil, hängt DMG und tar.gz an das Release und veröffentlicht das Update erneut)." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@v4
         with:
           path: src
