@@ -121,6 +121,8 @@ fun main(args: Array<String>) {
     Thread { runCatching { io.github.thepytales.llmhub.desktop.ExplorerMenu.refresh() } }.apply { isDaemon = true }.start()
     // Nachladbare Erweiterungen (AP-25): finish swaps and removals, then keep them up to date with the update check.
     io.github.thepytales.llmhub.desktop.Extensions.startUp()
+    // Export-Warteschlange (AP-81): interrupted video exports come back (a moment later, when the window shows notices).
+    Thread { Thread.sleep(4000); runCatching { io.github.thepytales.llmhub.ui.restoreExportQueue(LlmHubApp.container) } }.apply { isDaemon = true }.start()
     Updates.onInfo = { ctx, info -> io.github.thepytales.llmhub.desktop.Extensions.onUpdateInfo(ctx, info) }
     Autostart.refresh()
     AppLog.i("Lora ${BuildConfig.VERSION_NAME} gestartet (${System.getProperty("os.name")}, Java ${System.getProperty("java.version")})")

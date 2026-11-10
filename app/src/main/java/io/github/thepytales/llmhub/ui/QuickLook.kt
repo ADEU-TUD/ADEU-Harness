@@ -81,6 +81,8 @@ private sealed class Look {
     class Table(val rows: List<List<String>>) : Look()
     class Slides(val slides: List<SlideDeck.Slide>) : Look()
     class Folder(val names: List<String>) : Look()
+    /** Video or sound (AP-82): plays in the Schnellansicht. */
+    class Media(val file: File) : Look()
     data object None : Look()
 }
 
@@ -100,6 +102,7 @@ private fun look(c: AppContainer, item: DriveItem): Look {
             else -> Look.Text(d.markdown())
         }
     }
+    if (MediaFiles.isMedia(f)) return Look.Media(f)
     return when (item.kind) {
         FileKind.PDF -> pdfPages(c, f).let { if (it > 0) Look.Pages(f, it) else Look.None }
         FileKind.IMAGE -> if (f.length() < 40_000_000) decodeImage(f.readBytes())?.let { Look.Picture(it) } ?: Look.None else Look.None
@@ -120,6 +123,9 @@ private fun look(c: AppContainer, item: DriveItem): Look {
 fun QuickLookDialog(c: AppContainer, items: List<DriveItem>, start: DriveItem, onOpen: (DriveItem) -> Unit, onClose: () -> Unit) {
     var current by remember { mutableStateOf(start) }
     val focus = remember { FocusRequester() }
+    // Video und Ton (AP-82): K plays and pauses, J/L jump 10 s – the player of the shown file listens here.
+    val media = remember { MediaKeys() }
+    val isMedia = !current.dir && MediaFiles.isMedia(current.file)
     fun go(delta: Int) {
         FileDetails.step(items.map { it.key }, current.key, delta)?.let { k -> items.firstOrNull { it.key == k }?.let { current = it } }
     }
@@ -133,6 +139,9 @@ fun QuickLookDialog(c: AppContainer, items: List<DriveItem>, start: DriveItem, o
                     Key.DirectionRight, Key.DirectionDown -> { go(1); true }
                     Key.DirectionLeft, Key.DirectionUp -> { go(-1); true }
                     Key.Enter, Key.NumPadEnter -> { onOpen(current); true }
+                    Key.K -> if (isMedia) { media.toggle(); true } else false
+                    Key.J -> if (isMedia) { media.jump(-10.0); true } else false
+                    Key.L -> if (isMedia) { media.jump(10.0); true } else false
                     else -> false
                 }
             },
@@ -159,7 +168,7 @@ fun QuickLookDialog(c: AppContainer, items: List<DriveItem>, start: DriveItem, o
                 }
                 HorizontalDivider()
                 Box(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)), contentAlignment = Alignment.TopCenter) {
-                    LookBody(c, current)
+                    LookBody(c, current, media)
                 }
             }
         }
@@ -167,7 +176,7 @@ fun QuickLookDialog(c: AppContainer, items: List<DriveItem>, start: DriveItem, o
 }
 
 @Composable
-private fun LookBody(c: AppContainer, item: DriveItem) {
+private fun LookBody(c: AppContainer, item: DriveItem, media: MediaKeys = MediaKeys()) {
     val look by produceState<Look?>(null, item.key, item.modified) { value = withContext(Dispatchers.IO) { runCatching { look(c, item) }.getOrDefault(Look.None) } }
     when (val l = look) {
         null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -203,6 +212,7 @@ private fun LookBody(c: AppContainer, item: DriveItem) {
                 Box(Modifier.widthIn(max = 900.dp).fillMaxWidth()) { SlideCanvas(l.slides[i], Modifier.fillMaxWidth().aspectRatio(16f / 9f), i + 1, l.slides.size, deck = l.slides) }
             }
         }
+        is Look.Media -> MediaLook(c, l.file, media)
         is Look.Folder -> LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
             if (l.names.isEmpty()) item { HintText(tr("Der Ordner ist leer.")) }
             items(l.names) { n -> Text(n, modifier = Modifier.padding(vertical = 4.dp), maxLines = 1, overflow = TextOverflow.Ellipsis) }
