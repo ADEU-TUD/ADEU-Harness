@@ -1,0 +1,91 @@
+# Prüfteil: Frage | Dokument | Beleg. Nie zum Wählen von Modell oder Einstellungen benutzen – nur für die Kennzahlen am Ende.
+Darf ich für die Dienstreise nach Hamburg fliegen? | 01 | Flüge sind nur erstattungsfähig
+Was ist die Obergrenze für das Hotel pro Nacht? | 01 | Für Übernachtungen werden Kosten bis 90 Euro
+Welches Tagegeld gilt bei einer Reise nach Spanien? | 01 | Bei Auslandsreisen gelten die Tagegelder
+Wann muss ich spätestens im Büro sein bei Gleitzeit? | 02 | die Kernzeit liegt montags bis donnerstags zwischen 9 und 14 Uhr
+Wie viele Tage Homeoffice sind erlaubt? | 02 | Mobiles Arbeiten ist an bis zu zwei Tagen pro Woche möglich
+Wie früh muss ich drei Wochen Sommerurlaub beantragen? | 02 | Urlaub von mehr als zwei Wochen am Stück soll mindestens einen Monat im Voraus
+Bis wann kann ich mich ohne Begründung von einer Prüfung abmelden? | 03 | Ein Rücktritt von einer angemeldeten Prüfung ist ohne Angabe von Gründen
+Ich habe eine chronische Krankheit – bekomme ich mehr Zeit in der Klausur? | 03 | Nachteilsausgleich wird auf Antrag gewährt
+Wann ist der Zeitraum für die Prüfungsanmeldung? | 03 | innerhalb des Anmeldezeitraums, der jeweils in der vierten bis sechsten Vorlesungswoche
+Darf ich meinen Kollegen von außerhalb mit ins Labor nehmen? | 04 | Gäste dürfen das Labor nur in Begleitung
+Wie lange kann ich das Oszilloskop am Stück reservieren? | 04 | Eine Buchung darf höchstens drei Tage am Stück umfassen
+Ich habe mich im Labor geschnitten – wo trage ich das ein? | 04 | Kleine Verletzungen werden im Verbandbuch
+Wann ist Abgabe der Hausarbeit im Wintersemester? | 05 | Abgabetermin ist der 15. März für das Wintersemester
+Nach welchem Stil soll ich die Quellen angeben? | 05 | Zitiert wird nach den Regeln der APA
+Worauf achten die Lehrenden bei der Benotung der Hausarbeit? | 05 | Bewertet werden Fragestellung und Aufbau
+Welches Programm brauche ich, um von daheim auf das Gruppenlaufwerk zuzugreifen? | 06 | Installieren Sie dazu den Client „SecureLink“
+Kann ich eine 5-GB-Datei über das VPN kopieren? | 06 | Große Dateien über 2 GB sollten nicht über VPN kopiert werden
+Wie richte ich die Zwei-Faktor-Anmeldung ein? | 06 | Beim ersten Anmelden wird ein zweiter Faktor eingerichtet
+Mit welcher Gehaltssteigerung rechnet man bei Projektstellen? | 07 | rechnet die Drittmittelverwaltung mit einer jährlichen Steigerung von drei Prozent
+Wie viel von der Projektpauschale bleibt bei unserer Professur? | 07 | Ein Anteil von 20 Prozent wird der beantragenden Professur
+Darf ich schon vor Projektstart Material auf das Projektkonto kaufen? | 07 | Ausgaben dürfen erst ab dem Beginn des Bewilligungszeitraums
+Wie viel Geld für Sachmittel hat das Institut nächstes Jahr? | 08 | stehen dem Institut 48.000 Euro Sachmittel zur Verfügung
+War der Institutsrat bei der Oktobersitzung beschlussfähig? | 08 | Anwesend waren sieben stimmberechtigte Mitglieder
+Bis wann müssen die neuen Modulbeschreibungen fertig sein? | 08 | Die Modulbeschreibungen für den neuen Wahlpflichtbereich
+Wie trenne ich Namen und Fragebogendaten richtig? | 09 | Die Zuordnungsliste zwischen Pseudonym und Klarnamen
+Was brauche ich, bevor ich Leute für meine Studie interviewe? | 09 | ist vorab eine Einwilligung der teilnehmenden Personen einzuholen
+Wer hilft bei der Datenschutz-Folgenabschätzung? | 09 | Die Vorlage stellt die Datenschutzbeauftragte bereit
+Hat die Bibliothek am Samstag offen? | 10 | Am Wochenende ist sie geschlossen
+Kann ich Bücher für mein Seminar das ganze Semester im Büro behalten? | 10 | Beschäftigte des Instituts können Bücher als Handapparat
+Wie lange kann ich einen Gruppenraum in der Bibliothek buchen? | 10 | Gruppenräume lassen sich bis zu einer Woche im Voraus online
+Ab welchem Betrag muss die zentrale Vergabestelle ran? | 11 | Ab 25.000 Euro netto führt die zentrale Vergabestelle
+Wie schnell muss ich eine Rechnung an die Buchhaltung geben? | 11 | Rechnungen müssen innerhalb von zwei Wochen
+Muss ich bei Kleinbestellungen Preise vergleichen? | 11 | Für andere Anbieter genügt bis zu diesem Betrag ein formloser Preisvergleich
+Wann muss der Antrag für eine neue Hilfskraft beim Personaldezernat sein? | 12 | der spätestens vier Wochen vor dem gewünschten Beginn vorliegen muss
+Bekommen Hiwis Urlaub? | 12 | Hilfskräfte haben Anspruch auf bezahlten Urlaub
+Bis wann muss der Stundenzettel abgegeben werden? | 12 | der bis zum fünften Tag des Folgemonats im Sekretariat abzugeben ist
+Was gehört in das Exposé für eine Abschlussarbeit? | 13 | Das Exposé beschreibt die Fragestellung
+Wer sucht den Zweitgutachter aus? | 13 | Die Zweitgutachterin oder der Zweitgutachter wird von der Professur vorgeschlagen
+Wie oft trifft man sich mit der Betreuung? | 13 | etwa alle drei Wochen Betreuungsgespräche
+Wo bekomme ich einen USB-C-Adapter für den Beamer? | 14 | Adapter für USB-C liegen im Sekretariat
+Wie kommen externe Gäste abends ins Gebäude? | 14 | Die Schließkarte für Externe muss mindestens eine Woche vorher
+Was ist nach der Seminarnutzung aufzuräumen? | 14 | Nach der Nutzung sind Tische und Stühle in die Grundaufstellung
+Wann sollen die Aufsichten im Prüfungsraum sein? | 15 | Aufsichtführende sind 20 Minuten vor Beginn im Prüfungsraum
+Eine Studentin fühlt sich während der Klausur schlecht – was nun? | 15 | Wird jemandem während der Klausur unwohl
+Was passiert mit den Klausuren am Ende? | 15 | Nach Ende der Bearbeitungszeit werden alle Klausuren eingesammelt
+Wird jede Vorlesung evaluiert? | 16 | Alle Lehrveranstaltungen mit mehr als zehn Teilnehmenden
+Kann die Evaluation meiner Lehre bei der Beförderung gegen mich verwendet werden? | 16 | Einzelergebnisse werden nicht für Personalentscheidungen verwendet
+Werden beleidigende Kommentare aus der Evaluation gefiltert? | 16 | beleidigende Kommentare jedoch vorher vom Qualitätsmanagement entfernt
+Was muss ich einreichen, um als Doktorandin angenommen zu werden? | 17 | Dem Antrag liegen eine Betreuungszusage
+Wie lange dauert die Disputation? | 17 | Die Verteidigung besteht aus einem Vortrag von 30 Minuten
+Wie lange brauchen die Gutachter für die Dissertation? | 17 | Die Gutachten sollen innerhalb von drei Monaten vorliegen
+Wer darf das Rasterkraftmikroskop benutzen? | 18 | Das Rasterkraftmikroskop darf nur von Personen bedient werden
+Wann darf ich eine neue Cantilever-Spitze einbauen? | 18 | Eine neue Spitze darf erst eingesetzt werden
+Wo speichere ich die AFM-Messungen? | 18 | Messdaten werden auf das Netzlaufwerk kopiert
+Wie lange dauert ein Ethikantrag bei einer einfachen Onlineumfrage? | 19 | Bei Studien mit geringem Risiko
+Ich will einen weiteren Fragebogen in die genehmigte Studie aufnehmen. | 19 | Änderungen am Studiendesign nach dem Votum
+Bis wann muss der Antrag vor der Sitzung der Ethikkommission da sein? | 19 | Anträge müssen zwei Wochen vor der Sitzung eingegangen sein
+Werden Gebühren für hybride Zeitschriften übernommen? | 20 | Hybride Zeitschriften werden nicht gefördert
+Wo soll ich die Rohdaten zu meinem Artikel veröffentlichen? | 20 | Forschungsdaten zu Veröffentlichungen sollen möglichst in einem fachlichen Repositorium
+Der Verlag will alle Rechte – soll ich unterschreiben? | 20 | Verträge, die alle Rechte exklusiv an den Verlag übertragen
+Darf ich die Institutslizenz auf meinem privaten Laptop installieren? | 21 | Sie dürfen Institutslizenzen nicht auf privaten Geräten nutzen
+Wie lange dauert es, bis neue Software freigegeben ist? | 21 | die Prüfung dauert in der Regel zwei bis drei Wochen
+Wo bekomme ich Microsoft Office für den Dienstrechner? | 21 | stehen im Softwareportal kostenlos für Beschäftigte zur Verfügung
+Dürfen wir die Brandschutztür mit einem Keil offen halten? | 22 | Brandschutztüren dürfen nicht verkeilt
+Was mache ich zuerst, wenn es brennt? | 22 | Im Brandfall ist zuerst die Feuerwehr
+Wie oft muss der Brandschutzhelfer zur Schulung? | 22 | Die Schulung wird alle drei Jahre wiederholt
+Welches Sprachniveau brauche ich für Erasmus? | 23 | ein Sprachnachweis auf Niveau B2
+Muss ich an der Gastuni Studiengebühren zahlen? | 23 | Studiengebühren an der Partneruniversität fallen nicht an
+Wie werden meine Noten aus Schweden umgerechnet? | 23 | Die Noten werden nach einer Umrechnungstabelle
+Wie bekomme ich einen Platz in der Uni-Kita? | 24 | Die Anmeldung sollte möglichst früh erfolgen
+Kann ich als Mutter Abendtermine für meine Vorlesungen vermeiden? | 24 | Beschäftigte mit Kindern unter zwölf Jahren können bei der Planung
+Wer berät mich zur Elternzeit? | 24 | Die Gleichstellungsbeauftragte berät zu Elternzeit
+Wie viel Vorlauf braucht der Antrag für eine Exkursion? | 25 | Der Antrag sollte acht Wochen vor der Exkursion vorliegen
+Lohnt sich ein Bus für zwölf Leute? | 25 | Bei weniger als 15 Teilnehmenden sind Gruppentickets der Bahn meist günstiger
+Was muss ich nach der Exkursion einreichen? | 25 | Nach der Exkursion ist innerhalb eines Monats ein kurzer Bericht
+Kann ich im Bachelor eine bestandene Prüfung wiederholen, um besser zu werden? | 26 | kann bei höchstens zwei Modulen einen Freiversuch
+Wie viele Credits hat der Bachelor insgesamt? | 26 | insgesamt 180 Leistungspunkte zu erwerben
+Wie lange dauert eine mündliche Prüfung im Bachelor? | 26 | als mündliche Prüfung von 20 Minuten
+Wie verschicke ich ein schweres Paket dienstlich? | 27 | Pakete bis 31 Kilogramm verschickt die Poststelle
+Kann ich einen Brief heute noch in der Stadt zustellen lassen? | 27 | Eilige Sendungen innerhalb der Stadt kann der Kurierdienst
+Darf ich meine privaten Briefe über das Institut verschicken? | 27 | Private Post darf nicht über die Poststelle versandt werden
+Was muss ich tun, damit ein Gast einen Laborzugang bekommt? | 28 | Gäste, die länger als eine Woche am Institut arbeiten
+Unsere Gastforscherin braucht ein Visum – wer hilft? | 28 | Für Gäste aus Staaten außerhalb der EU klärt das Welcome Center
+Wo kann der Gast im Institut sitzen? | 28 | Ein Arbeitsplatz im Gästebüro 1.12
+Was mache ich mit einer komischen Mail mit Anhang? | 29 | Verdächtige E-Mails, etwa mit unerwarteten Anhängen
+Ich habe einen USB-Stick auf dem Parkplatz gefunden. Darf ich ihn einstecken? | 29 | USB-Sticks unbekannter Herkunft dürfen nicht an Dienstrechner
+Muss ich mein Passwort regelmäßig ändern? | 29 | Ein Passwortwechsel ist nur nötig
+Wie schnell bekomme ich eine Antwort auf meine Mail an die Professur? | 30 | Anfragen per E-Mail werden in der Regel innerhalb von drei Werktagen
+Schreibt mir die Professur ein Empfehlungsschreiben für ein Stipendium? | 30 | Gutachten für Stipendien oder Bewerbungen werden nur für Studierende
+Wie bekomme ich in den Semesterferien einen Termin? | 30 | In der vorlesungsfreien Zeit finden Sprechstunden nach Vereinbarung

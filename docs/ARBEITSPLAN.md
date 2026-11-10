@@ -458,13 +458,31 @@ erstes Wort < 2 s).
 **Fertig, wenn**: der Katalog jede Stufe abdeckt, jede Empfehlung auf einem Gerät der Stufe gemessen ist und der Dialog vom
 ersten Start sie mit Größe, Tempo und Zweck anbietet.
 
-### AP-107 ☐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
+### AP-107 ◐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
 **Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein
 kleines mehrsprachiges Einbettungsmodell (MIT/Apache, z. B. E5- oder BGE-Familie), optional ein Reranker, über die
 vorhandene ONNX Runtime; Server-Einbettungen bleiben nutzbar. Messkorpus (deutsche Fragen an erfundene Dokumente) vor
 der Wahl.
 **Fertig, wenn**: im Prüfteil die Treffer der ersten fünf Stellen mindestens so gut wie mit Server-Einbettungen, ≤ 50 ms je
 Abschnitt auf einem Office-PC.
+**Stand (10.11.2026, für 1.0.67)** – Werkzeuge und alle Zahlen: `tools/suche/README.md`.
+- ☑ Messkorpus zuerst: 30 erfundene Dokumente, 60 Fragen Entwicklungsteil, 90 Fragen Prüfteil (`tools/suche/messkorpus/`).
+- ☑ Wahl auf dem Entwicklungsteil: **multilingual-e5-small** (MIT, int8-ONNX des Originals, 118 + 5 MB) vor e5-base,
+  MiniLM-L12 (Apache-2.0) und granite-107m (Apache-2.0); Name „multilingual-e5-small – Lora Edition“. Mischung neu:
+  Kosinus je Anfrage gestreckt, 0,8 Bedeutung : 0,2 Wörter (bis 1.0.66: roh 0,65 : 0,35 – da entschieden fast nur die
+  Wörter); gilt auch für Server-Einbettungen.
+- ☑ Einbau: SentencePiece-Tokenizer in Kotlin (gleiche Ids wie Hugging Face bei 352 von 352 Texten), ONNX Runtime der App
+  über `OrtClassifier`, Download wie Lora Namensschutz (Hugging Face, fester Commit, SHA-256), *Einstellungen › Wissen*
+  mit Schalter *Auf diesem Gerät suchen*, Modellkarte, Löschen; Wissenssammlung allgemein und in Projekten (auch „Nur auf
+  diesem Gerät“), vorhandene Dokumente werden nachträglich aufbereitet. Test `LocalEmbeddingTest`.
+- Prüfteil (einmal am Ende): unter den ersten fünf **98,9 %** (MRR 0,894) – nur Wörter 83,3 %, Uni-Server
+  (Qwen3-Embedding-4B, lokal nachgerechnet) mit der Mischung bis 1.0.66 94,4 %, mit der neuen Mischung 100 %. Einzelne
+  Absätze: 91,1 % gegen 90,0 % bzw. 100 %. Ziel „mindestens so gut wie mit Server-Einbettungen“ also gegenüber dem
+  bisherigen Weg erreicht, gegenüber dem Server mit neuer Mischung knapp nicht. Zeit 32–40 ms je Abschnitt (zwei Kerne,
+  Cloud-Rechner).
+- **Rest**: *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) nutzen das Modell noch nicht (heute
+  Wortsuche bzw. Server); optionaler Reranker auf dem Gerät; Zeit auf einem echten Office-PC und auf Android messen;
+  Korpus vergrößern (40 Abschnitte sind wenig); Spiegel der Dateien auf dem eigenen Hugging-Face-Konto (AP-106).
 
 ### AP-108 ☐ Lange Texte lokal · M (Runde 3)
 **Ziel**: Kontextlänge nach Speicher (KV-Cache quantisiert) statt fest 8–16 k, Abschnitt-für-Abschnitt-Auswertung mit

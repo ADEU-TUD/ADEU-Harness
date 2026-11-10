@@ -222,6 +222,8 @@ class AppContainer(context: Context) {
 
     /** Recognition model of the pseudonymization (AP-67): download, loading, hits for [privacy]. */
     val piiModel = io.github.thepytales.llmhub.data.PiiModel(this)
+    /** Suche nach Bedeutung auf dem Gerät (AP-107). */
+    val localEmbedding = io.github.thepytales.llmhub.data.LocalEmbedding(this)
 
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device. */
     val commandModel = io.github.thepytales.llmhub.data.CommandModel(this)

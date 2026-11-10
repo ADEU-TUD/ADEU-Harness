@@ -6390,3 +6390,9 @@ Rollen-Platzhalter	Role placeholders
 An – der Server sieht nur Platzhalter wie [Name 1].	On – the server only sees placeholders like [Name 1].
 Findet auch indirekte Hinweise; einige Sekunden je längerem Text, nichts verlässt das Gerät.	Also finds indirect clues; a few seconds per longer text, nothing leaves the device.
  Braucht ein Modell auf diesem Gerät.	 Needs a model on this device.
+Suche nach Bedeutung auf diesem Gerät	Search by meaning on this device
+Auf diesem Gerät suchen	Search on this device
+Aus: semantische Suche über den Uni-Server, wenn er erlaubt ist, sonst nach Wörtern.	Off: semantic search through the university server where allowed, otherwise by words.
+Download von {0} fehlgeschlagen: {1}. Bis dahin sucht die App nach Wörtern (oder mit dem Uni-Server).	Download of {0} failed: {1}. Until then the app searches by words (or with the university server).
+Für {0} fehlt die ONNX Runtime der App (Spracherkennung) – die App sucht nach Wörtern.	{0} needs the app's ONNX Runtime (speech recognition), which is missing – the app searches by words.
+Ein kleines Modell auf diesem Gerät findet passende Stellen auch mit anderen Worten („Hiwi“ findet „studentische Hilfskraft“) – ohne Server, auch in Projekten, deren Daten das Gerät nicht verlassen. In unseren Tests stand die gesuchte Stelle bei 89 von 90 Fragen unter den ersten fünf (nur nach Wörtern: 75 von 90), etwa 40 ms je Abschnitt.	A small model on this device finds matching passages even in other words ("Hiwi" finds "student assistant") – without a server, also in projects whose data stays on the device. In our tests the passage looked for was among the first five for 89 of 90 questions (by words only: 75 of 90), about 40 ms per passage.

@@ -175,6 +175,8 @@ data class AppSettings(
     val pseudonymModelUpdateAsk: Boolean = true,
     /** Einstellungen › Datenschutz (AP-103): the parts of the page that are open, comma-separated (all folded at first). */
     val privacyOpen: String = "",
+    /** Suche nach Bedeutung auf dem Gerät (AP-107): the Wissenssammlung uses the embedding model on this device once it is loaded. */
+    val semanticLocal: Boolean = true,
     /** Where Lora works (AP-71): MIXED (per request), LOCAL (only on this device) or SERVER (language models only on the server). */
     val loraPlace: String = "MIXED",
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device once it is downloaded. */
@@ -394,6 +396,7 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymModelAsk", next.pseudonymModelAsk)
             .putBoolean("pseudonymModelUpdateAsk", next.pseudonymModelUpdateAsk)
             .putString("privacyOpen", next.privacyOpen)
+            .putBoolean("semanticLocal", next.semanticLocal)
             .putString("loraPlace", next.loraPlace)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
@@ -507,6 +510,7 @@ class SettingsStore(context: Context) {
             pseudonymModelAsk = prefs.getBoolean("pseudonymModelAsk", d.pseudonymModelAsk),
             pseudonymModelUpdateAsk = prefs.getBoolean("pseudonymModelUpdateAsk", d.pseudonymModelUpdateAsk),
             privacyOpen = prefs.getString("privacyOpen", d.privacyOpen) ?: d.privacyOpen,
+            semanticLocal = prefs.getBoolean("semanticLocal", d.semanticLocal),
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),

@@ -373,6 +373,16 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   | Vorher (Ausschnitt) | Nachher | Nachher, Feineinstellungen offen |
   | --- | --- | --- |
   | ![Datenschutz vorher](docs/bilder/datenschutz-vorher.png) | ![Datenschutz nachher](docs/bilder/datenschutz-nachher.png) | ![Feineinstellungen offen](docs/bilder/datenschutz-nachher-feineinstellungen.png) |
+- **Suche nach Bedeutung auf diesem Gerät** (seit 1.0.67, AP-107): Unter *Einstellungen › Wissen* lässt sich
+  **multilingual-e5-small – Lora Edition** laden (123 MB, MIT-Lizenz, unverändert aus dem Original auf Hugging Face,
+  fester Commit, SHA-256). Dann findet die Wissenssammlung – allgemein und in Projekten, auch solchen „Nur auf diesem
+  Gerät“ – passende Stellen nach Bedeutung ohne Server („Hiwi“ findet „studentische Hilfskraft“); vorhandene Dokumente
+  werden im Hintergrund neu aufbereitet, die Liste zeigt „Suche nach Bedeutung auf diesem Gerät“. Schalter *Auf diesem
+  Gerät suchen* (aus: Uni-Server wie bisher). Neu für alle Modelle: Bedeutung und Wörter werden anders gemischt (Kosinus
+  je Anfrage gestreckt, 0,8 : 0,2) – das hilft auch den Server-Einbettungen. Gemessen auf einem Messkorpus mit
+  erfundenen Dokumenten (Prüfteil, 90 Fragen): die gesuchte Stelle unter den ersten fünf bei 98,9 % (nur Wörter
+  83,3 %, Server wie bis 1.0.66 94,4 %), etwa 40 ms je Abschnitt. Werkzeuge und Zahlen:
+  [`tools/suche/README.md`](tools/suche/README.md); Test `LocalEmbeddingTest`.
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem

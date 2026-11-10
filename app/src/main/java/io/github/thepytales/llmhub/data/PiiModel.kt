@@ -166,6 +166,10 @@ class OrtClassifier(
     inputs: List<String> = INPUTS,
     private val perToken: Boolean = true,
     name: String = "lora-pii",
+    /** Name of the output; "last_hidden_state" for the embedding model of the search (AP-107). */
+    output: String = "logits",
+    /** Softmax per row; off for an encoder whose rows are vectors, not label scores (AP-107). */
+    private val softmax: Boolean = true,
 ) : TokenClassifier, AutoCloseable {
     private companion object {
         /** API version asked for: 11 = ONNX Runtime 1.11, all functions used here are older. */
@@ -207,7 +211,7 @@ class OrtClassifier(
     private val session = out(CREATE_SESSION, env, if (System.getProperty("os.name").orEmpty().startsWith("Windows")) WString(model.absolutePath) else model.absolutePath, options)
     private val memInfo = out(CREATE_CPU_MEMORY_INFO, 1, 0)
     private val inNames = StringArray(this.inputs.toTypedArray())
-    private val outNames = StringArray(arrayOf("logits"))
+    private val outNames = StringArray(arrayOf(output))
 
     override fun probabilities(ids: LongArray): FloatArray = run(ids, null)
 
@@ -233,6 +237,7 @@ class OrtClassifier(
             try {
                 val data = out(GET_TENSOR_DATA, value)
                 val logits = data.getFloatArray(0, rows * labels)
+                if (!softmax) return logits
                 // Softmax per row.
                 for (t in 0 until rows) {
                     val o = t * labels

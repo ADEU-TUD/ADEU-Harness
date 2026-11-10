@@ -1,0 +1,62 @@
+# Entwicklungsteil: Frage | Dokument | Beleg (wörtlich aus dem Absatz, der die Frage beantwortet)
+# Nur hiermit werden Modell, Gewichtung und Einstellungen gewählt.
+Wie viel bekomme ich zurück, wenn ich mit dem eigenen Auto zur Tagung fahre? | 01 | Die Nutzung des privaten Pkw wird mit 20 Cent
+bis wann muss ich die reisekosten abrechnen | 01 | Die Abrechnung muss innerhalb von sechs Monaten
+Kann ich meinen Urlaub vom letzten Jahr noch im Sommer nehmen? | 02 | Resturlaub aus dem Vorjahr muss bis zum 31. März
+Ab wann brauche ich einen gelben Schein vom Arzt? | 02 | Ab dem vierten Kalendertag der Erkrankung
+Wie oft darf ich durch eine Modulprüfung im Master durchfallen? | 03 | Nicht bestandene Modulprüfungen können zweimal wiederholt werden
+Wie lange habe ich für die Masterarbeit Zeit? | 03 | Die Masterarbeit umfasst einen Bearbeitungszeitraum von 22 Wochen
+Darf ich im Messlabor einen Kaffee trinken? | 04 | Im Labor ist Essen und Trinken untersagt
+Wohin mit dem Lösungsmittelabfall? | 04 | Abfälle mit Lösungsmitteln gehören in den grauen Sammelkanister
+Wie lang soll die Seminararbeit sein? | 05 | Eine Hausarbeit umfasst 12 bis 15 Seiten
+Darf ich ChatGPT für meine Hausarbeit benutzen? | 05 | Der Einsatz von KI-Werkzeugen ist erlaubt
+VPN verbindet nicht, was kann ich tun? | 06 | Wenn die Verbindung abbricht, prüfen Sie zuerst
+Neues Handy – wie bekomme ich wieder Zugang zum VPN? | 06 | Bei einem verlorenen oder neuen Smartphone
+Wie früh muss ich der Forschungsförderung Bescheid geben, dass ich einen Antrag stelle? | 07 | Die Anzeige erfolgt über das Formular „Vorhabenmeldung“
+Was muss ich bei teuren Geräten im Antrag beachten? | 07 | Geräte über 10.000 Euro brutto
+Wo finden die Lehrveranstaltungen während der Sanierung statt? | 08 | Die Seminarräume im Erdgeschoss werden ab Januar saniert
+Wann ist die nächste Sitzung des Institutsrats? | 08 | Die nächste Sitzung des Institutsrats ist für den 11. November
+Wo darf ich Interviewdaten speichern? | 09 | Forschungsdaten dürfen nicht auf privaten Cloud-Diensten gespeichert werden
+Was passiert mit den Daten, wenn jemand seine Einwilligung zurückzieht? | 09 | Teilnehmende können ihre Einwilligung jederzeit widerrufen
+Was kostet es, wenn ich ein Buch zu spät zurückgebe? | 10 | Für überzogene Medien wird eine Gebühr von 50 Cent
+Kann ich ein Buch bestellen, das die Bibliothek nicht hat? | 10 | Nicht vorhandene Literatur kann per Fernleihe bestellt werden
+Wie viele Angebote brauche ich für einen Laptop für 1.800 Euro? | 11 | Zwischen 1.000 und 25.000 Euro netto sind mindestens drei schriftliche Angebote
+Wie schaffe ich ein neues Statistikprogramm an? | 11 | Software wird nicht über die normale Bestellung beschafft
+Welche Unterlagen braucht man, um eine Hiwi einzustellen? | 12 | Dem Antrag sind eine aktuelle Immatrikulationsbescheinigung
+Wie viele Stunden pro Woche darf eine studentische Hilfskraft im Semester arbeiten? | 12 | darf während der Vorlesungszeit 20 Stunden pro Woche nicht überschreiten
+Kann ich das Thema meiner Abschlussarbeit noch tauschen? | 13 | das Thema kann innerhalb der ersten vier Wochen einmal zurückgegeben werden
+Wie lange dauert die Verteidigung der Abschlussarbeit? | 13 | Nach der Abgabe ist die Arbeit in einem Vortrag von 20 Minuten
+Wie reserviere ich den Hörsaal für einen Gastvortrag? | 14 | Der große Hörsaal im Erdgeschoss kann nicht direkt gebucht werden
+Beamer geht nicht, wen rufe ich an? | 14 | Bei Störungen hilft die Medientechnik unter der Durchwahl 4410
+Was mache ich als Aufsicht, wenn ich ein Handy auf dem Tisch finde? | 15 | Wird ein Smartphone am Platz gefunden
+Wann darf man während der Klausur nicht mehr aufs Klo? | 15 | In den letzten 15 Minuten darf der Raum nicht mehr verlassen werden
+Warum sehe ich keine Ergebnisse meiner Lehrevaluation? | 16 | Bei weniger als fünf Antworten werden aus Gründen der Anonymität
+Wie bekomme ich mehr Studierende dazu, den Evaluationsbogen auszufüllen? | 16 | Es wird empfohlen, die Befragung während einer Veranstaltung durchzuführen
+Wie viele Artikel brauche ich für eine kumulative Dissertation? | 17 | Eine kumulative Dissertation umfasst mindestens drei begutachtete Fachartikel
+Ab wann darf ich den Doktortitel tragen? | 17 | Erst nach der Veröffentlichung der Dissertation darf der Doktorgrad geführt werden
+Wie bereite ich das AFM vor der Messung vor? | 18 | Vor jeder Messung ist der Schwingungsdämpfungstisch einzuschalten
+Das Mikroskop zeigt eine Fehlermeldung – soll ich den Controller neu starten? | 18 | Bei Fehlermeldungen der Steuerung nicht selbst eingreifen
+Brauche ich ein Ethikvotum für eine Studie mit Schulkindern? | 19 | Pflicht ist ein Votum, wenn Minderjährige teilnehmen
+Ich habe die Studie schon gemacht – kann ich das Ethikvotum nachholen? | 19 | Ein nachträgliches Votum für bereits durchgeführte Studien
+Zahlt das Institut die Gebühren für einen Open-Access-Artikel? | 20 | Der Fonds übernimmt Gebühren bis 2.000 Euro je Artikel
+Darf ich mein Paper nach einem Jahr auf den Uni-Server stellen? | 20 | Das Zweitveröffentlichungsrecht erlaubt dies in vielen Fällen nach zwölf Monaten
+Warum startet SPSS zu Hause nicht? | 21 | Statistiksoftware mit Netzwerklizenz funktioniert nur innerhalb des Institutsnetzes
+Darf ich Firefox ohne Ticket installieren? | 21 | Freie Software darf ohne Ticket installiert werden
+Wo treffen wir uns bei einem Feueralarm? | 22 | Der Sammelplatz befindet sich auf dem Parkplatz an der Nordseite
+Darf ich meinen eigenen Wasserkocher im Büro benutzen? | 22 | Elektrische Geräte wie Wasserkocher und Heizlüfter
+Bis wann muss ich mich für ein Auslandssemester bewerben? | 23 | Die Bewerbung erfolgt bis zum 15. Januar
+Kann ich meine Kurse im Ausland noch ändern? | 23 | Änderungen sind innerhalb der ersten fünf Wochen
+Meine Tagesmutter ist krank – gibt es eine Notfallbetreuung? | 24 | Für kurzfristige Betreuungsengpässe
+Wo kann ich mit Baby wickeln und trotzdem arbeiten? | 24 | Im Hauptgebäude gibt es ein Eltern-Kind-Zimmer
+Wie viel zahlt die Fakultät für eine Pflichtexkursion dazu? | 25 | Die Fakultät bezuschusst Pflichtexkursionen mit bis zu 15 Euro
+Sind Studierende auf der Exkursion abends in der Freizeit versichert? | 25 | Teilnehmende sind während der Exkursion über die gesetzliche Unfallversicherung versichert
+Ab wie vielen Leistungspunkten kann ich die Bachelorarbeit anmelden? | 26 | Sie kann erst angemeldet werden, wenn mindestens 120 Leistungspunkte
+Wie stark zählt die Bachelorarbeit in der Endnote? | 26 | Die Bachelorarbeit zählt dabei doppelt
+Wie leite ich mein Telefon im Urlaub weiter? | 27 | Bei längerer Abwesenheit kann die Rufumleitung
+Bis wann muss Post im Ausgangskorb liegen, damit sie heute rausgeht? | 27 | Dienstpost an externe Empfänger wird frankiert
+Wo kann ein Gast aus Indien für sechs Monate wohnen? | 28 | Das Gästehaus der Universität bietet möblierte Apartments
+Wie lange vorher muss ich ein Stipendium für einen Gast beantragen? | 28 | Der Antrag stellt die einladende Professur mindestens drei Monate vor Ankunft
+Ich habe auf einen Phishing-Link geklickt und mein Passwort eingegeben – was nun? | 29 | Wer versehentlich Zugangsdaten auf einer gefälschten Seite eingegeben hat
+Wie lang muss das Passwort sein? | 29 | Passwörter für das Institutskonto müssen mindestens zwölf Zeichen lang sein
+Wann kann ich ohne Termin zur Professorin kommen? | 30 | jeden Dienstag von 13 bis 14 Uhr eine offene Sprechstunde
+Wer prüft, ob meine Kurse aus dem alten Studium anerkannt werden? | 30 | Für Fragen zur Anerkennung von Prüfungsleistungen ist nicht die Professur
