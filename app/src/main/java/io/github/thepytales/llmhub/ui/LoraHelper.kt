@@ -227,6 +227,7 @@ internal fun runLoraAction(scope: CoroutineScope, turn: LoraTurn, i: Int, step: 
             val r = step.plan.run()
             io.github.thepytales.llmhub.agent.ToolActions.log("${step.plan.actionId} ausgeführt: ${r.text}")
             turn.results[i] = r
+            io.github.thepytales.llmhub.agent.DayJournal.record(step.plan.actionId, r)
             turn.state[i] = "done"
             r.open?.let { f -> openActionFile(f, go) }
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -234,7 +235,7 @@ internal fun runLoraAction(scope: CoroutineScope, turn: LoraTurn, i: Int, step: 
             throw e
         } catch (e: Exception) {
             io.github.thepytales.llmhub.agent.ToolActions.log("${step.plan.actionId} fehlgeschlagen: ${e.message}")
-            turn.state[i] = "failed:" + (e.message ?: e.javaClass.simpleName)
+            turn.state[i] = "failed:" + ErrorHelp.explain(e).text
         }
     }
 }
@@ -288,6 +289,8 @@ internal object LoraHost {
 private fun sendToLora(c: AppContainer, agent: LoraAgent, scope: CoroutineScope, text: String, go: (String) -> Unit) {
     val wish = text.trim()
     if (wish.isEmpty()) return
+    // Lora-Verlauf (AP-75): the wish is kept for Pfeil hoch, „Zuletzt“ and „Nochmal“ – not from the Tresor.
+    if (!LoraHelper.busy) io.github.thepytales.llmhub.data.LoraHistory.record(c, wish, c.drive.isVaultChat(LoraHelper.chatId))
     runTurn(wish, scope, go) { history -> agent.ask(wish, history, LoraHelper.folderId, IS_ANDROID) { LoraHelper.partial = it } }
 }
 
@@ -316,13 +319,15 @@ private fun runTurn(wish: String, scope: CoroutineScope, go: (String) -> Unit, a
             val reply = runCatching { answer(history) }
                 .getOrElse { e ->
                     if (e is kotlinx.coroutines.CancellationException) throw e
-                    LoraReply(tr("Das hat nicht geklappt – versuch es bitte noch einmal."))
+                    io.github.thepytales.llmhub.ErrorLog.record("Lora", e)
+                    val plain = ErrorHelp.explain(e)
+                    LoraReply(tr("Das hat nicht geklappt: {0}", plain.text), fix = plain.fix?.takeIf { it.route != null })
                 }
             turn.reply = reply
             LoraHelper.mood = moodFor(reply)
             LoraHelper.moodTick++
             // Lora's safe actions run at once (AP-38); risky ones wait for „Ausführen“ in their card.
-            reply.steps.forEachIndexed { i, st -> if (st is LoraStep.Action && !st.plan.risky) runLoraAction(scope, turn, i, st, go) }
+            reply.steps.forEachIndexed { i, st -> if (st is LoraStep.Action && !st.plan.risky && !st.dry) runLoraAction(scope, turn, i, st, go) }
             // Leading somewhere, opening and handing over happen right away; settings, tools and the calendar wait for „Ja“.
             val first = reply.steps.singleOrNull()
             if (first != null && runLoraStep(first, go)) {
@@ -485,6 +490,17 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
     val turns = LoraHelper.turns
     val busy = LoraHelper.busy
     var input by remember { mutableStateOf("") }
+    // Lora-Verlauf (AP-75): Pfeil hoch/runter blättert durch die letzten Wünsche, solange kein eigener Text im Feld steht.
+    val historyVersion by io.github.thepytales.llmhub.data.LoraHistory.version.collectAsStateWithLifecycle()
+    val history = remember(historyVersion, s.loraHistory) { if (s.loraHistory) io.github.thepytales.llmhub.data.LoraHistory.recent(c) else emptyList() }
+    var historyAt by remember { mutableStateOf(-1) }
+    fun browse(up: Boolean): Boolean {
+        if (historyAt < 0 && input.isNotEmpty()) return false
+        val next = io.github.thepytales.llmhub.data.LoraHistory.browse(history.size, historyAt, up) ?: return historyAt >= 0
+        historyAt = next
+        input = if (next < 0) "" else history[next].text
+        return true
+    }
     val focus = remember { FocusRequester() }
     val context = LocalContext.current
     val recorder = remember { Recorder(context.applicationContext) }
@@ -501,6 +517,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
     fun send(text: String) {
         if (text.isBlank() || busy) return
         input = ""
+        historyAt = -1
         LoraHost.send(text)
     }
 
@@ -569,6 +586,9 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
                 OpenMailSorts(c, shown)
             }
             if (turns.isEmpty() && !busy) item(key = "welcome") { Welcome(s.userName, place, suggestions, onSuggest = ::suggest) }
+            if (turns.isEmpty() && !busy && history.isNotEmpty()) item(key = "recent") {
+                LoraRecent(c, history, onEdit = { input = it; historyAt = -1; runCatching { focus.requestFocus() } }, onAgain = ::send)
+            }
             turns.forEachIndexed { i, turn ->
                 item(key = "wish$i") { WishBubble(turn.wish) }
                 turn.reply?.let { reply -> item(key = "reply$i") { LoraSays { ReplyBlock(c, turn, reply, onAnswer = ::send) } } }
@@ -600,7 +620,7 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 10.dp), verticalAlignment = Alignment.Bottom) {
             OutlinedTextField(
                 value = input,
-                onValueChange = { input = it },
+                onValueChange = { input = it; historyAt = -1 },
                 placeholder = { Text(tr("Frag Lora …")) },
                 maxLines = 4,
                 shape = RoundedCornerShape(22.dp),
@@ -615,6 +635,8 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
                         when {
                             e.type == KeyEventType.KeyDown && e.key == Key.Enter && !e.isShiftPressed -> { send(input); true }
                             e.type == KeyEventType.KeyDown && e.key == Key.Escape -> { LoraHelper.close(); true }
+                            e.type == KeyEventType.KeyDown && e.key == Key.DirectionUp -> browse(up = true)
+                            e.type == KeyEventType.KeyDown && e.key == Key.DirectionDown -> browse(up = false)
                             else -> false
                         }
                     },
@@ -779,6 +801,9 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
     val go = LoraHost.go
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (reply.text.isNotBlank()) MarkdownText(reply.text)
+        reply.fix?.route?.let { route ->
+            FilledTonalButton(onClick = { go(route) }) { Text(tr(reply.fix.label)) }
+        }
         val changes = reply.steps.withIndex().filter { it.value is LoraStep.ChangeSetting }
         if (changes.size > 1) {
             SettingsCard(c, turn, changes.map { it.index to it.value as LoraStep.ChangeSetting })
@@ -832,6 +857,7 @@ private fun ReplyBlock(c: AppContainer, turn: LoraTurn, reply: LoraReply, onAnsw
                     }
                 }
                 is LoraStep.Action -> ActionCard(turn, i, step, go)
+                is LoraStep.UndoDay -> DayUndoCard()
                 is LoraStep.Remember -> RememberCard(c, turn, i, step)
                 is LoraStep.Plan -> {
                     FlowCard(c, step.flowId, go)
@@ -939,6 +965,10 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                     if (plan.preview.size > 12) HintText(tr("… und {0} weitere", plan.preview.size - 12))
                 }
             }
+            // Probelauf (AP-77): how many, what cannot be taken back, a piece of advice – on every risky preview.
+            if ((plan.risky || step.dry) && (state == null || state == "running")) {
+                io.github.thepytales.llmhub.agent.DryRun.notes(plan).forEach { HintText(it) }
+            }
             when {
                 state == "running" -> Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
@@ -952,7 +982,8 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                                 turn.state[i] = "undoing"
                                 learnUndone(io.github.thepytales.llmhub.App.container, turn)
                                 scope.launch {
-                                    val text = runCatching { undo() }.getOrElse { tr("Rückgängig ging nicht: {0}", it.message.orEmpty()) }
+                                    val text = runCatching { undo() }.getOrElse { tr("Rückgängig ging nicht: {0}", ErrorHelp.explain(it).text) }
+                                    io.github.thepytales.llmhub.agent.DayJournal.markUndone(result, text)
                                     io.github.thepytales.llmhub.agent.ToolActions.log("${plan.actionId} rückgängig: $text")
                                     turn.state[i] = "undone:$text"
                                 }
@@ -966,6 +997,10 @@ private fun ActionCard(turn: LoraTurn, i: Int, step: LoraStep.Action, go: (Strin
                 state?.startsWith("undone:") == true -> HintText(state.removePrefix("undone:"))
                 state?.startsWith("failed:") == true -> Text(state.removePrefix("failed:"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 state == "no" -> HintText(tr("Nichts geändert."))
+                step.dry -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { runLoraAction(scope, turn, i, step, go) }) { Text(tr("Doch ausführen")) }
+                    TextButton(onClick = { turn.state[i] = "no" }) { Text(tr("Lassen")) }
+                }
                 else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(onClick = { runLoraAction(scope, turn, i, step, go) }) { Text(tr("Ausführen")) }
                     TextButton(onClick = { turn.state[i] = "no" }) { Text(tr("Abbrechen")) }
@@ -1277,6 +1312,10 @@ fun LoraSettings(c: AppContainer) {
     LoraPlaceSettings(c)
     // AP-72: what Lora learned from corrections – visible, deletable, exportable.
     LoraCorrectionsSettings(c)
+    LoraHistorySettings(c)
+    // AP-78: own words of the Professur; AP-83: share commands, words, templates and house rules as one file.
+    OwnWordsSettings(c)
+    LoraPackagesSettings(c)
     Section(tr("Lora als Helferin")) {
         HintText(
             tr("Lora findet Einstellungen, öffnet Modi und TU Vorlagen, schlägt Werkzeuge vor, sucht frühere Chats, trägt Fristen in den Kalender ein und gibt Fachfragen an einen Chat weiter. Einfache Wünsche löst sie auf dem Gerät, ohne Anfrage; nur für echte Gespräche fragt sie ein Modell. Sie läuft nur auf Abruf und liest nie im Hintergrund mit. In Projekten „Nur auf diesem Gerät“ sucht sie nur lokal."),

@@ -168,7 +168,7 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
         delay(250)
         val all = items ?: return@LaunchedEffect
-        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all) }
+        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, all, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
     }
 
     var tagsFor by remember { mutableStateOf<FileItem?>(null) }

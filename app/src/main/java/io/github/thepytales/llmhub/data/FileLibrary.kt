@@ -250,22 +250,28 @@ class FileLibrary(private val c: AppContainer, context: Context) {
      * Items whose name, Schlagwörter or text contain every word of [query] (case and accents ignored), best first:
      * matches in the name count most, then Schlagwörter, then how often the words occur in the text.
      */
-    fun search(query: String, items: List<FileItem>, limit: Int = 100, extract: Boolean = true): List<FileHit> {
+    fun search(
+        query: String, items: List<FileItem>, limit: Int = 100, extract: Boolean = true,
+        /** Eigene Wörter (AP-78): other spellings of a (folded) word – „mhb“ also finds „modulhandbuch“. */
+        forms: (String) -> List<String> = { emptyList() },
+    ): List<FileHit> {
         val words = fold(query).split(Regex("\\s+")).map { it.trim('"', '\'', ',', '.') }.filter { it.length >= 2 }
         if (words.isEmpty()) return emptyList()
+        val alts = words.associateWith { w -> (listOf(w) + forms(w).map(::fold)).distinct() }
+        fun String.has(w: String) = alts.getValue(w).any { it in this }
         return items.mapNotNull { item ->
             val name = fold(item.name)
             val tags = fold(item.tags.joinToString(" "))
-            val text = if (words.all { it in name || it in tags }) null else text(item, extract)
+            val text = if (words.all { name.has(it) || tags.has(it) }) null else text(item, extract)
             val folded = text?.let(::fold)
-            if (!words.all { w -> w in name || w in tags || folded?.contains(w) == true }) return@mapNotNull null
-            var score = words.sumOf { w -> (if (w in name) 30 else 0) + (if (w in tags) 20 else 0) }
+            if (!words.all { w -> name.has(w) || tags.has(w) || folded?.has(w) == true }) return@mapNotNull null
+            var score = words.sumOf { w -> (if (name.has(w)) 30 else 0) + (if (tags.has(w)) 20 else 0) }
             var snippet = ""
             var page: Int? = null
             if (text != null && folded != null) {
-                score += words.sumOf { w -> Regex(Regex.escape(w)).findAll(folded).take(50).count() }
+                score += words.sumOf { w -> alts.getValue(w).sumOf { a -> Regex(Regex.escape(a)).findAll(folded).take(50).count() } }
                 // The passage around the first word that is in the text.
-                val at = words.mapNotNull { w -> folded.indexOf(w).takeIf { it >= 0 } }.minOrNull()
+                val at = words.flatMap { w -> alts.getValue(w) }.mapNotNull { w -> folded.indexOf(w).takeIf { it >= 0 } }.minOrNull()
                 if (at != null) {
                     snippet = passage(text, at)
                     if (item.kind == FileKind.PDF) page = PageMarks.pageAt(text, at)

@@ -34,6 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,6 +92,7 @@ val SETTINGS_INDEX = listOf(
     Command(trLater("Lokale Ordner"), "settings/folders", trLater("Einstellungen"), "ordner pc dateien agent explorer freigeben windows"),
     Command(trLater("Synchronisation"), "settings/sync", trLater("Einstellungen"), "sync cloud onedrive google drive nextcloud zweiter pc laptop mehrere rechner datenordner"),
     Command(trLater("Speicherorte"), "settings/storage", trLater("Einstellungen"), "ablageort vault obsidian google drive onedrive synchronisieren ordner"),
+    Command(trLater("Inhalte zum Nachladen"), "settings/downloads", trLater("Einstellungen"), "nachladen herunterladen download modelle wissenspaket lehramt paket befehlsmodell erkennungsmodell löschen"),
     Command(trLater("Updates"), "settings/updates", trLater("Einstellungen"), "update aktualisieren neue version installieren netzlaufwerk"),
     Command(trLater("Verbindungen"), "settings/connections", trLater("Einstellungen"), "nextcloud cloudstore webdav mcp server werkzeuge anbinden integration token oauth"),
 )
@@ -128,7 +134,22 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
             ?.takeIf { it.sure && !it.free }
             ?.let { io.github.thepytales.llmhub.agent.LoraCommands.describe(it.label, q, c.settings.current, targets) }
     }
+    // Lora-Verlauf (AP-75): Pfeil hoch holt die letzten Wünsche, angeheftete Befehle stehen unter ihrem Namen.
+    val historyVersion by io.github.thepytales.llmhub.data.LoraHistory.version.collectAsStateWithLifecycle()
+    val history = remember(historyVersion) { if (c.settings.current.loraHistory) io.github.thepytales.llmhub.data.LoraHistory.recent(c) else emptyList() }
+    val pinned = remember(query, historyVersion) { io.github.thepytales.llmhub.data.LoraHistory.search(c, query).take(8) }
+    var historyAt by remember { mutableStateOf(-1) }
+    fun browse(up: Boolean): Boolean {
+        if (historyAt < 0 && query.isNotEmpty()) return false
+        val next = io.github.thepytales.llmhub.data.LoraHistory.browse(history.size, historyAt, up) ?: return historyAt >= 0
+        historyAt = next
+        query = if (next < 0) "" else history[next].text
+        return true
+    }
     fun first() {
+        // A wish fetched with Pfeil hoch goes to Lora again („Nochmal“), a pinned command by its name too.
+        if (historyAt >= 0) { LoraHelper.open(query.trim()); onDismiss(); return }
+        pinned.firstOrNull()?.takeIf { query.isNotBlank() && commands.none { tr(it.title).equals(query.trim(), true) } }?.let { LoraHelper.open(it.text); onDismiss(); return }
         commands.firstOrNull()?.let { go(it.route); onDismiss() }
             ?: command?.let { LoraHelper.open(query.trim()); onDismiss() }
             ?: chats.firstOrNull()?.let { onOpenChat(it.id); onDismiss() }
@@ -138,17 +159,36 @@ fun CommandPalette(c: AppContainer, onNavigate: (String) -> Unit, onOpenChat: (S
             Column(Modifier.padding(12.dp)) {
                 OutlinedTextField(
                     value = query,
-                    onValueChange = { query = it },
+                    onValueChange = { query = it; historyAt = -1 },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                     placeholder = { Text(tr("Bereich, Einstellung, Chat – oder sag, was du tun willst …")) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = { first() }),
-                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus).onPreviewKeyEvent { e ->
+                        when {
+                            e.type == KeyEventType.KeyDown && e.key == Key.DirectionUp -> browse(up = true)
+                            e.type == KeyEventType.KeyDown && e.key == Key.DirectionDown -> browse(up = false)
+                            else -> false
+                        }
+                    },
                 )
+                if (historyAt >= 0) {
+                    Text(
+                        tr("Zuletzt {0} von {1} · Enter: nochmal an Lora · Pfeil runter: weiter", historyAt + 1, history.size),
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 12.dp, top = 4.dp),
+                    )
+                }
                 LazyColumn(Modifier.heightIn(max = 420.dp).padding(top = 6.dp)) {
                     command?.let { line ->
                         item(key = "command") { PaletteRow("⚡ $line", tr("Befehl")) { LoraHelper.open(query.trim()); onDismiss() } }
+                    }
+                    if (pinned.isNotEmpty()) {
+                        item(key = "g_pinned") { PaletteHeading(tr("Eigene Befehle")) }
+                        pinned.forEach { e ->
+                            item(key = "pin_" + e.text) { PaletteRow(e.name!!, tr("Lora")) { LoraHelper.open(e.text); onDismiss() } }
+                        }
                     }
                     // Lora fragen (AP-07): the typed wish goes to Lora, who finds the place or hands it to a chat.
                     item(key = "lora") {

@@ -293,7 +293,7 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
         delay(250)
         val items = all ?: return@LaunchedEffect
-        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, items) }
+        hits = withContext(Dispatchers.Default) { c.fileLibrary.search(q, items, forms = io.github.thepytales.llmhub.data.Vocabulary.forms(c)) }
     }
 
     // ── Actions ──

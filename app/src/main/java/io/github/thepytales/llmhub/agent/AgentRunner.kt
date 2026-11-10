@@ -450,6 +450,8 @@ class AgentRunner(private val c: AppContainer) {
             settings.systemPrompt.ifBlank { null },
             // The memory goes along with every request, also without tools (see Memory).
             Memory.prompt(c, conv),
+            // Eigene Wörter und Wissenspakete (AP-78): only the terms the user wrote in this chat, so the prompt stays stable.
+            if (mailbox) null else io.github.thepytales.llmhub.data.Vocabulary.context(c, thread.filter { it.role == "user" }.joinToString("\n") { it.content.take(4000) }),
             conv.systemPrompt?.ifBlank { null },
             ctx.env?.systemPrompt(),
             if (c.githubTools in providers) GitHubTools.systemPrompt(ctx) else null,

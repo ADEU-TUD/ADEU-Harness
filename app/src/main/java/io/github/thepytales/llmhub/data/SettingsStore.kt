@@ -179,6 +179,8 @@ data class AppSettings(
     val commandModelAsk: Boolean = true,
     /** Lora lernt aus Korrekturen (AP-72): corrected wishes are remembered on this device (Einstellungen › Lora). */
     val loraLearn: Boolean = true,
+    /** Lora-Verlauf (AP-75): the last wishes to Lora are kept on this device. */
+    val loraHistory: Boolean = true,
     /** The question „Welche Modelle sollen auf dieses Gerät?“ was answered (first start, or once for those who used the app before AP-71). */
     val modelsIntroDone: Boolean = false,
     /** Nextcloud (AP-22): server address, login name and app password (secret), folder for results. */
@@ -386,6 +388,7 @@ class SettingsStore(context: Context) {
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
             .putBoolean("loraLearn", next.loraLearn)
+            .putBoolean("loraHistory", next.loraHistory)
             .putBoolean("modelsIntroDone", next.modelsIntroDone)
             .apply()
     }
@@ -494,6 +497,7 @@ class SettingsStore(context: Context) {
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
             loraLearn = prefs.getBoolean("loraLearn", d.loraLearn),
+            loraHistory = prefs.getBoolean("loraHistory", d.loraHistory),
             modelsIntroDone = prefs.getBoolean("modelsIntroDone", d.modelsIntroDone),
             nextcloudServer = prefs.getString("nextcloudServer", d.nextcloudServer) ?: d.nextcloudServer,
             nextcloudUser = prefs.getString("nextcloudUser", d.nextcloudUser) ?: d.nextcloudUser,

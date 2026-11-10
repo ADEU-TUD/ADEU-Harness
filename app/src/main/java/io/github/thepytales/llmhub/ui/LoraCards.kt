@@ -287,6 +287,9 @@ internal fun LoraMemorySection(c: AppContainer) {
         if (s.loraToursSeen.isNotBlank()) TextButton(onClick = { c.settings.update { it.copy(loraToursSeen = "") } }) { Text(tr("Touren wieder anbieten")) }
     }
 
+    // Alles rückgängig seit heute Morgen (AP-77): also reachable by asking Lora („Mach alles von heute rückgängig“).
+    Section(tr("Heute erledigt")) { DayUndoCard() }
+
     Section(tr("Protokoll der Lora-Aktionen")) {
         var tick by remember { mutableStateOf(0) }
         val lines = remember(tick) { ActionLog.recent(30) }

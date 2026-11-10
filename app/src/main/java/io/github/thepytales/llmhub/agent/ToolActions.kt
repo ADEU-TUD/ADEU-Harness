@@ -158,6 +158,8 @@ class ActionPlan(
     val title: String,
     val risky: Boolean,
     val preview: List<Pair<String, String>> = emptyList(),
+    /** What cannot be taken back afterwards, for the preview (AP-77); null = the usual note of [DryRun.notes]. */
+    val irreversible: String? = null,
     val run: suspend () -> ActionResult,
 )
 

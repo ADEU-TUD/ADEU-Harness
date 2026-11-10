@@ -266,11 +266,14 @@ object LoraFlows {
                 ToolActions.log("Ablaufschritt: ${plan.title}")
                 val r = plan.run()
                 r.undo?.let { undos["$id/$i"] = it }
+                // „Alles rückgängig seit heute Morgen“ (AP-77) sees the steps of a flow too.
+                ToolActions.log("${action.id} ausgeführt: ${r.text}")
+                DayJournal.record(action.id, r)
                 step(c, id, i) { it.copy(status = FlowStep.DONE, result = r.text, files = (r.files.ifEmpty { listOfNotNull(r.open) }).map { f -> f.absolutePath }, preview = emptyList(), endedAt = System.currentTimeMillis()) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                val msg = (e as? ActionFailed)?.message ?: (e.message ?: e.javaClass.simpleName)
+                val msg = (e as? ActionFailed)?.message ?: io.github.thepytales.llmhub.ui.ErrorHelp.explain(e).text
                 ToolActions.log("Ablaufschritt fehlgeschlagen: ${s.actionId}: $msg")
                 step(c, id, i) { it.copy(status = FlowStep.FAILED, result = msg, endedAt = System.currentTimeMillis()) }
                 update(c, id) { it.copy(state = LoraFlow.FAILED) }

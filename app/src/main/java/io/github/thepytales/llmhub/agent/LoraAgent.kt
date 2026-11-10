@@ -51,7 +51,10 @@ sealed interface LoraStep {
      * Lora handelt im Werkzeug (AP-38): a planned action. Safe ones run at once (step line, then the result with
      * Rückgängig); risky ones show their preview and wait for „Ausführen“.
      */
-    data class Action(val plan: ActionPlan) : LoraStep
+    data class Action(val plan: ActionPlan, val dry: Boolean = false) : LoraStep
+
+    /** „Alles rückgängig seit heute Morgen“ (AP-77): today's actions, one by one or all at once. */
+    data object UndoDay : LoraStep
 
     /**
      * „Soll ich mir merken, dass …?“ (AP-39): saved only after „Merken“. [pref]/[value] make it the default of an
@@ -84,6 +87,8 @@ sealed interface LoraStep {
 data class LoraReply(
     val text: String, val steps: List<LoraStep> = emptyList(), val local: Boolean = true, val hits: List<AppTarget> = emptyList(),
     val understood: Understood? = null,
+    /** After an error (AP-74): the step that helps, as a button under the text. */
+    val fix: io.github.thepytales.llmhub.ui.ErrorHelp.Fix? = null,
 )
 
 /** The command [label] Lora took [wish] for while [area] was open (AP-72). */
@@ -130,6 +135,18 @@ class LoraAgent(private val c: AppContainer) {
         noChoice: Boolean = false,
         onText: (String) -> Unit = {},
     ): LoraReply {
+        // Alles rückgängig (AP-77): today's actions as a list, nothing is planned.
+        if (DryRun.asksUndoDay(wish)) return LoraReply(tr("Das habe ich heute erledigt:"), listOf(LoraStep.UndoDay))
+        // Probelauf (AP-77): the action is planned as usual, but only the preview is shown – nothing runs by itself.
+        DryRun.strip(wish)?.let { rest ->
+            val r = ask(rest, history, folderId, android, noChoice, onText)
+            val actions = r.steps.filterIsInstance<LoraStep.Action>()
+            if (actions.isEmpty()) return r
+            return r.copy(
+                text = tr("Nur ein Probelauf – so sähe es aus:"),
+                steps = r.steps.map { if (it is LoraStep.Action) it.copy(dry = true) else it },
+            )
+        }
         // AP-71: count where the answer came from and how long it took (numbers only, on this device).
         val t0 = System.nanoTime()
         val (reply, way) = corrected(wish, history, folderId, android, onText) ?: answer(wish, history, folderId, android, noChoice, onText).also {
@@ -215,9 +232,13 @@ class LoraAgent(private val c: AppContainer) {
     private var localOnly: String? = null
 
     private suspend fun answer(
-        wish: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, noChoice: Boolean, onText: (String) -> Unit,
+        typed: String, history: List<Pair<String, String>>, folderId: String?, android: Boolean, noChoice: Boolean, onText: (String) -> Unit,
         correcting: String? = null,
     ): Pair<LoraReply, LoraWays.Way> {
+        // Eigene Wörter (AP-78): „öffne das MHB“ is understood as „öffne das Modulhandbuch“.
+        val wish = runCatching { io.github.thepytales.llmhub.data.Vocabulary.canonical(typed, io.github.thepytales.llmhub.data.OwnWords.all(c)) }.getOrDefault(typed)
+        // „Was ist das ZLSB?“: an own word or a pack entry answers on the device, with its source.
+        termAnswer(typed)?.let { return it to LoraWays.Way.DEVICE }
         val device = LoraWays.Way.DEVICE
         val settings = c.settings.current
         val targets = AppMap.build(TemplateLibrary.all(c.templates.items.value), android)
@@ -285,7 +306,7 @@ class LoraAgent(private val c: AppContainer) {
                     try {
                         runCatching { remote(wish, history, model, targets, android, onText, area) }.getOrElse { e ->
                             if (e is kotlinx.coroutines.CancellationException) throw e
-                            fallback(wish, targets, friendlyError(e))
+                            fallback(wish, targets, friendlyError(e)).copy(fix = io.github.thepytales.llmhub.ui.ErrorHelp.explain(e).fix?.takeIf { it.route != null })
                         } to LoraWays.Way.LOCAL
                     } finally {
                         localOnly = null
@@ -295,7 +316,7 @@ class LoraAgent(private val c: AppContainer) {
             ModelRouter.Place.SERVER -> runCatching { remote(wish, history, server!!, targets, android, onText, area) }
                 .getOrElse { e ->
                     if (e is kotlinx.coroutines.CancellationException) throw e
-                    fallback(wish, targets, friendlyError(e))
+                    fallback(wish, targets, friendlyError(e)).copy(fix = io.github.thepytales.llmhub.ui.ErrorHelp.explain(e).fix?.takeIf { it.route != null })
                 } to LoraWays.Way.SERVER
         }
     }
@@ -332,6 +353,27 @@ class LoraAgent(private val c: AppContainer) {
      */
     internal fun handoffModel(request: String, chosen: String? = null, why: String? = null): Pair<String, String> =
         localOnly?.let { it to tr("Lora arbeitet nur lokal") } ?: handoffModel(c.settings.current.loraHandoffModel, request, chosen, why)
+
+    /**
+     * „Was ist das ZLSB?“, „Was heißt MHB?“, „Wofür steht LaSuB?“ (AP-78): the explanation of an own word or a pack entry,
+     * on the device, with source and date for pack entries. Null when the wish asks something else.
+     */
+    internal fun termAnswer(wish: String): LoraReply? {
+        val m = TERM_QUESTION.find(wish.trim()) ?: return null
+        val asked = m.groupValues[1].trim().trimEnd('?', '.', '!').removePrefix("das ").removePrefix("die ").removePrefix("der ").trim()
+        if (asked.isEmpty()) return null
+        val hit = io.github.thepytales.llmhub.data.Vocabulary.find(asked, io.github.thepytales.llmhub.data.Vocabulary.all(c))
+            .firstOrNull { h -> h.term.forms.any { it.equals(asked, ignoreCase = true) } } ?: return null
+        val t = hit.term
+        if (t.explanation.isBlank()) return null
+        val text = buildString {
+            append("**").append(t.term).append("** – ").append(t.explanation)
+            if (t.synonyms.isNotEmpty()) append("\n\n").append(tr("Auch: {0}", t.synonyms.joinToString()))
+            if (hit.pack != null) append("\n\n").append(tr("Aus dem Wissenspaket „{0}“ · Quelle: {1} · Stand {2}", hit.pack, t.source, t.date))
+            else append("\n\n").append(tr("Aus deinen eigenen Wörtern."))
+        }
+        return LoraReply(text)
+    }
 
     /** A short, kind sentence instead of a raw exception. */
     private fun friendlyError(e: Throwable): String {
@@ -616,6 +658,7 @@ class LoraAgent(private val c: AppContainer) {
         append("kurze Tour („Zeig mir, wie das geht“); ask_user nur bei echt mehrdeutigen Wünschen. Heute ist ")
         append(java.time.LocalDate.now()).append(".\n")
         LoraPrefs.promptLine(c)?.let { append(it).append('\n') }
+        io.github.thepytales.llmhub.data.Vocabulary.context(c, wish)?.let { append(it).append('\n') }
         append("Änderbare Einstellungen: ").append(SETTINGS.joinToString { "${it.id} (${it.values.joinToString("/") { v -> v.first }})" }).append('\n')
         append("Werkzeuge der App: ").append(AppTool.entries.filter { !it.planned && (!android || it.android) }.joinToString { "${it.id} (${it.label})" }).append('\n')
         append("Orte (id | Art | Pfad | Beschreibung):\n").append(AppMap.candidatesText(wish, targets))
@@ -734,7 +777,8 @@ class LoraAgent(private val c: AppContainer) {
             is LoraStep.Ask -> tr("Kurz nachgefragt:")
             is LoraStep.OpenChat -> tr("Das habe ich gefunden:")
             is LoraStep.Reminder -> tr("Soll ich „{0}“ in den Kalender eintragen?", s.title)
-            is LoraStep.Action -> if (s.plan.risky) tr("Das würde ich so machen – passt es?") else s.plan.title
+            is LoraStep.Action -> if (s.dry) tr("Nur ein Probelauf – so sähe es aus:") else if (s.plan.risky) tr("Das würde ich so machen – passt es?") else s.plan.title
+            is LoraStep.UndoDay -> tr("Das habe ich heute erledigt:")
             is LoraStep.Remember -> tr("Soll ich mir das merken?")
             is LoraStep.Plan -> tr("So würde ich vorgehen – passt der Plan?")
             is LoraStep.Tour -> tr("Ich zeige es dir.")
@@ -753,6 +797,7 @@ class LoraAgent(private val c: AppContainer) {
         fun correction(wish: String): String? =
             CORRECTION.find(AppMap.norm(wish).trim())?.groupValues?.get(1)?.trim()?.trimEnd('.', '!')?.takeIf { it.length >= 2 }
 
+        private val TERM_QUESTION = Regex("(?i)^(?:was (?:ist|sind|bedeutet|heißt|heisst|meint)|wofür steht|wofuer steht|wer ist|what is|what does)\\s+(.{2,60}?)(?:\\s+(?:eigentlich|nochmal|noch mal|genau))?(?:\\s+(?:mean|bedeuten))?\\s*\\??$")
         private val TOUR = Regex("(zeig mir,? wie (das|es|man) (geht|funktioniert)|\\btour\\b|rundgang|fuhr mich herum|fuehr mich herum|einfuhrung in|erklar mir diesen bereich|wie funktioniert (das|dieses werkzeug) hier)")
         private val EXPLAIN_START = Regex("^(erklar|erklaer|was (ist|sind|bedeutet|heisst|meint)|wer (ist|war)|warum|wieso|weshalb|schreib|formulier|ubersetz|uebersetz|fass|gib mir|nenne|hilf mir beim)")
         private val RECENT = Regex("(letzte[nrm]? chats?|zuletzt|mein(en)? letzte[nrm]? (chat|gesprach)|letzte gesprach)")

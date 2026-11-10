@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -169,12 +170,19 @@ class IntroModelChoice(private val c: AppContainer) {
     var pii by mutableStateOf(offerPii)
     /** Ids of the language models to download (none by default: they are large). */
     val local = mutableStateListOf<String>()
+    /** Wissenspakete (AP-78) to load; empty by default – who needs one ticks it (or a role suggests it, AP-80). */
+    val packs = mutableStateListOf<String>()
     var place by mutableStateOf(ModelRouter.Mode.of(c.settings.current.loraPlace).name)
 
     fun apply(c: AppContainer) {
         if (offerCommand) { if (command) c.commandModel.install() }
         if (offerPii) { if (pii) c.piiModel.install() }
         local.forEach { c.localLlm.install(it) }
+        packs.mapNotNull { io.github.thepytales.llmhub.data.KnowledgePacks.offer(it) }.forEach { o ->
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                runCatching { io.github.thepytales.llmhub.data.KnowledgePacks.download(c, o) }.onFailure { Notices.error(it) }
+            }
+        }
         // Who decides here is not asked again by the single popups.
         c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
     }
@@ -209,6 +217,15 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
             ) { on -> if (on) choice.local += m.id else choice.local -= m.id }
         }
         if (suggested.isEmpty() && local.installed.isEmpty()) HintText(tr("Sprachmodelle für dieses Gerät findest du später unter Einstellungen › Modelle auf diesem Gerät."))
+        // Wissenspakete (AP-78): who needs one ticks it; everything else is under Einstellungen › Inhalte zum Nachladen.
+        val packsInstalled = remember { io.github.thepytales.llmhub.data.KnowledgePacks.installed(c).map { it.id }.toSet() }
+        io.github.thepytales.llmhub.data.KnowledgePacks.CATALOG.filter { it.id !in packsInstalled }.forEach { o ->
+            ModelLine(
+                tr("Wissenspaket „{0}“ ({1} KB)", tr(o.title), (o.size / 1024).coerceAtLeast(1)),
+                tr(o.description),
+                o.id in choice.packs,
+            ) { on -> if (on) choice.packs += o.id else choice.packs -= o.id }
+        }
     }
     Text(tr("Wo soll ich arbeiten?"), style = MaterialTheme.typography.titleSmall)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -146,7 +146,8 @@ object LoraCommands {
         val installed = c.localLlm.installedModels()
         if (!good) return installed.maxByOrNull { it.needGb }?.modelId
         val hw = c.localLlm.hardware.value ?: return null
-        return installed.filter { LocalCatalog.fit(it, hw) == Fit.OK }.maxByOrNull { it.needGb }?.modelId
+        // Measured on this device (AP-76): only models that reach the minimum speed; unmeasured ones by the estimate.
+        return installed.filter { io.github.thepytales.llmhub.local.LocalSpeed.goodForShort(c, it, hw) }.maxByOrNull { it.needGb }?.modelId
     }
 
     /**

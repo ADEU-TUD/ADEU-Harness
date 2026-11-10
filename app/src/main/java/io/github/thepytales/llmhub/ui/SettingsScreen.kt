@@ -126,6 +126,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "connections" -> ConnectionsSettings(c)
                 "updates" -> UpdateSection(c)
                 "help" -> HelpSection()
+                "downloads" -> DownloadsSection(c, onNavigate)
                 else -> if (!PlatformSettingsSection(c, section)) SettingsOverview(c, onNavigate, deviceItem = platformSettingsItem())
             }
             // Room for the sleeping Lora at the bottom right, so she covers no entry.
