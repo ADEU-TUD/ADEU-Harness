@@ -39,10 +39,12 @@ class CommandCorpusTest {
         assertTrue(unknown.isEmpty(), "unbekannte Etiketten: $unknown")
         val test = CommandCorpus.load("pruef")
         assertTrue(all.size >= 600 && test.size >= 250, "${all.size} Wünsche, Prüfteil ${test.size}")
-        // Every label has at least one wish in each part.
+        // Every label of the shipped model has at least one wish in each part. (The catalog of the code may hold more:
+        // modes of tools that are switched on, places added since the training.)
+        val model = io.github.thepytales.llmhub.data.CommandModelInfo.labels.toSet()
         for (section in listOf("pruef", "entwicklung")) {
             val covered = CommandCorpus.load(section).map { it.gold.first() }.toSet()
-            assertTrue(covered.containsAll(known), "$section ohne Beispiel: ${known - covered}")
+            assertTrue(covered.containsAll(model), "$section ohne Beispiel: ${model - covered}")
         }
     }
 
