@@ -148,10 +148,14 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
     var reload by remember { mutableIntStateOf(0) }
     var hasRoots by remember { mutableStateOf(true) }
     val items by produceState<List<FileItem>?>(null, docs, metas, knowledge, reload) {
-        value = withContext(Dispatchers.IO) {
-            hasRoots = runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false)
-            runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
+        val (roots, list) = withContext(Dispatchers.IO) {
+            runCatching { c.fileLibrary.roots().isNotEmpty() }.getOrDefault(false) to runCatching { c.fileLibrary.items() }.getOrDefault(emptyList())
         }
+        // Both on the main thread, together (AP-115): hasRoots decides whether the list has its hint item. Written from the
+        // IO thread it could change while the lazy list measured, which then asked for an item it no longer had
+        // (IndexOutOfBoundsException in IntervalList, NewToolsLookTest.filesScreen once in the PR check).
+        hasRoots = roots
+        value = list
     }
     // Read the texts of new and changed files once, in the background.
     LaunchedEffect(items?.size, reload) { items?.let { list -> withContext(Dispatchers.IO) { runCatching { c.fileLibrary.index(list) } } } }

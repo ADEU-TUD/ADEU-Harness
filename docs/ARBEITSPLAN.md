@@ -606,8 +606,14 @@ gefundene private Angaben zu fallen.
   Aufruf lud die Datei in ein drittes – wer auf den Fluss des ersten wartete (`await`), sah keine Änderung mehr → Zeitlimit.
   Jetzt ein Speicher je Datei (`ConcurrentHashMap`), `forgetForTest` wartet, bis die alten Läufe geendet haben. (2) Nach
   *Pause* konnte *Fortsetzen* einen zweiten Lauf starten, während der erste die Mail noch fertig las; der neue wartet jetzt
-  auf den alten (`stopping`, `join`). `MailSorterTest` danach in zwei vollen Testläufen und in wiederholten Einzelläufen
-  grün (Zahl im PR).
+  auf den alten (`stopping`, `join`). `MailSorterTest` danach in zwei vollen Testläufen und in 8 von 8 gültigen
+  Einzelläufen grün.
+- *Nachgereicht (10.11.2026)*: `NewToolsLookTest > filesScreen()` schlug im PR-Check von #64 einmal fehl
+  (`IndexOutOfBoundsException` in `IntervalList`, Lazy-Liste von *Dateien*). Ursache: `FilesScreen` setzte den
+  Compose-Zustand `hasRoots` – er entscheidet, ob die Liste den Tipp-Eintrag „Ablageort wählen“ hat – im Hintergrund
+  (`withContext(Dispatchers.IO)`), während die Liste maß; sie konnte so einen Eintrag anfordern, den es nicht mehr gab.
+  Jetzt werden `hasRoots` und die Dateiliste zusammen auf dem Haupt-Thread gesetzt; der Test ist unverändert. Der Fehler
+  ließ sich hier nicht nachstellen (Zahl der Wiederholungen im PR).
 - Release: Der Mac-Teil ist ein eigener Workflow `macos.yml` (`workflow_call` aus *Build & Release*, dazu
   `workflow_dispatch`). Einzeln gestartet baut er aus dem Tag `v1.0.x` nur die Mac-App, testet sie, hängt DMG und tar.gz
   an das bestehende Release und veröffentlicht das Update erneut (bisheriges „Was ist neu“, wenn leer). README ›
