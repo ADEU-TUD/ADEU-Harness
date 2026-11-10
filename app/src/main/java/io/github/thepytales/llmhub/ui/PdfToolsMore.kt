@@ -418,6 +418,7 @@ internal fun PdfAi(c: AppContainer, tab: PdfTab, onConvert: () -> Unit) {
     val noText = texts?.let { t -> PdfOcr.scanned(t).size == t.size } == true
     var question by remember { mutableStateOf("") }
     var tables by remember { mutableStateOf<List<PdfTable>?>(null) }
+    var reviewTables by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     val saveXlsx = rememberSaveAs(DocFormat.XLSX.mime)
 
@@ -500,20 +501,22 @@ internal fun PdfAi(c: AppContainer, tab: PdfTab, onConvert: () -> Unit) {
                     found == null -> HintText(tr("Findet Tabellen im Text des PDFs – ohne KI, nichts verlässt das Gerät. Für Scans erst die Texterkennung."))
                     found.isEmpty() -> HintText(tr("Keine Tabellen erkannt. „Tabellen mit KI“ versuchen – das findet auch unregelmäßige."))
                     else -> {
-                        Text("${found.size} " + tr(if (found.size == 1) "Tabelle" else "Tabellen") + " · " + found.joinToString(", ") { tr("S.") + " ${it.page + 1}: ${it.rows.size}×${it.columns}" }, style = MaterialTheme.typography.bodySmall)
+                        Text("${found.size} " + tr(if (found.size == 1) "Tabelle" else "Tabellen") + " · " + found.joinToString(", ") { tr("S.") + " ${it.page + 1}" + (if (it.lastPage > it.page) "–${it.lastPage + 1}" else "") + ": ${it.rows.size}×${it.columns}" }, style = MaterialTheme.typography.bodySmall)
                         Text(
                             found.first().markdown().lines().take(8).joinToString("\n"),
                             style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace,
                             modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState()),
                         )
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // AP-95: what was found (and corrected in the Prüfansicht) goes to Excel as it is shown.
                             Button(onClick = {
                                 scope.launch {
                                     val title = tab.name.removeSuffix(".pdf").removeSuffix(".PDF") + " (Tabellen)"
-                                    runCatching { PdfConvert.fromPdf(context, tab.file, title, DocFormat.XLSX, File(PdfWork.dir(context), "export")) }
+                                    runCatching { withContext(Dispatchers.IO) { PdfConvert.tablesToExcel(found, title, File(PdfWork.dir(context), "export")) } }
                                         .onSuccess(saveXlsx).onFailure { Notices.error(it.message ?: tr("Das hat nicht geklappt")) }
                                 }
                             }) { Text(tr("Als Excel speichern")) }
+                            OutlinedButton(onClick = { reviewTables = true }) { Text(tr("Prüfen und nachbessern …")) }
                             OutlinedButton(onClick = {
                                 // One table document with a sheet per table.
                                 val sheets = found.mapIndexed { i, t ->
@@ -528,6 +531,9 @@ internal fun PdfAi(c: AppContainer, tab: PdfTab, onConvert: () -> Unit) {
                     }
                 }
             }
+        }
+        tables?.takeIf { reviewTables && it.isNotEmpty() }?.let { found ->
+            PdfTableReview(tab.file, found, onDone = { tables = it; reviewTables = false }, onDismiss = { reviewTables = false })
         }
     }
 }

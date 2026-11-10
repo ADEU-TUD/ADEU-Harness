@@ -6404,3 +6404,6 @@ Gesprochen von Thorsten Müller (Thorsten-Voice, frei als CC0), trainiert mit Pi
 Mit „Nur lokal“ bleibt Sprache auf dem Gerät – dafür unter Einstellungen › Transkription ein Erkennungsmodell laden.	With "Local only" speech stays on the device – load a recognition model under Settings › Transcription for this.
 Natürliche Stimme auf diesem Gerät	Natural voice on this device
 Deutsche Stimme „Thorsten“ (Piper), offline und ohne Server; einmal {0} MB laden.	German voice "Thorsten" (Piper), offline and without a server; download {0} MB once.
+Tabellen prüfen	Check tables
+Tabelle {0} · {1}	Table {0} · {1}
+Prüfen und nachbessern …	Check and correct …

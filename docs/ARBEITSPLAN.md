@@ -694,12 +694,25 @@ ausfüllen – auch von Lora.
 **Fertig, wenn**: drei echte Papierformulare der Verwaltung als ausfüllbare PDFs mit richtig platzierten und benannten
 Feldern herauskommen.
 
-### AP-95 ☐ PDF-Tabellen nach Excel · M (neu)
+### AP-95 ◐ PDF-Tabellen nach Excel · M (neu)
 **Ziel**: Tabellen aus PDFs zuverlässig in die Tabelle (AP-48) bzw. nach Excel übernehmen – auch über mehrere Seiten
 (wiederholte Kopfzeilen nur einmal), mit verbundenen Zellen, Zahlen als Zahlen (deutsches Format) und aus gescannten
 PDFs über die Texterkennung. Prüfansicht: PDF-Seite links, erkannte Tabelle rechts, Zellen zum Nachbessern.
 **Fertig, wenn**: Tabellen aus Statistik-Berichten, Haushaltsplänen und Papers (auch gescannt) mit richtigen Spalten und
 Zahlen ankommen.
+**Stand (10.11.2026, für 1.0.67)**: Messkorpus zuerst – erfundene PDFs mit bekanntem Inhalt (`PdfTableCorpus`: Statistik-
+Berichte über mehrere Seiten mit wiederholter Kopfzeile, Haushaltspläne mit Gruppenzeile „Ansatz in Euro“ und
+rechtsbündigen Beträgen, Paper-Tabellen mit zentrierten Werten), Entwicklungsteil 5 und Prüfteil 8 Dateien mit eigenen
+Zufallszahlen, Schriftgrößen und Längen. Erkennung (`PdfTables`): Spalten als Bereiche aus den Zellbreiten statt nächster
+Startpunkt, Gruppenzeile als verbundene Zelle (`merges`, in Excel zusammengeführt), Zusammenführen über Seiten mit
+einmaliger Kopfzeile, Excel direkt aus den Tabellen (Zahlen als Zahlen, deutsches Format). Prüfansicht
+(`PdfTableReview`): PDF-Seite links, Tabelle rechts, Zellen ändern, Zeilen löschen, dann Excel oder Editor.
+Ergebnis (richtige Zellen / richtig erkannte Zahlen): Entwicklungsteil vorher 50,4 % / 50,0 %, jetzt 100 % / 100 %;
+**Prüfteil vorher 47,8 % / 47,1 %, jetzt 100 % / 100 %**, genau eine Tabelle je Datei 8 von 8 (vorher 6). Test
+`PdfTableCorpusTest`.
+**Rest**: Der Korpus ist von uns gesetzt und sauber – echte PDFs aus Word, Excel, LaTeX und Behörden-Berichten fehlen noch
+(am Gerät prüfen); Zellen mit Zeilenumbruch (zweizeilige Zellen) werden noch zwei Zeilen; gescannte PDFs nur über die
+Texterkennung (Windows-OCR bzw. Bildmodell), nicht gemessen; verbundene Zellen nur in der Gruppenzeile über dem Kopf.
 
 ### AP-96 ☐ Diagramm zu Daten · M (neu)
 **Ziel**: Aus dem Bild eines Diagramms (Ausschnitt aus einem Paper, Foto, Scan) die Werte als Tabelle zurückgewinnen:

@@ -76,11 +76,27 @@ object PdfConvert {
 
     /** Writes the PDF as [format] (Word, Markdown, text or – its tables – Excel) into [dir]. */
     suspend fun fromPdf(context: Context, file: File, title: String, format: DocFormat, dir: File): File = withContext(Dispatchers.IO) {
-        val markdown = if (format == DocFormat.XLSX) {
-            tables(context, file).takeIf { it.isNotEmpty() }?.let { PdfTables.markdown(it) }
+        if (format == DocFormat.XLSX) {
+            val tables = tables(context, file).takeIf { it.isNotEmpty() }
                 ?: throw IllegalArgumentException(tr("Keine Tabellen erkannt. Bei Scans erst die Texterkennung laufen lassen – oder „Tabellen mit KI“ versuchen."))
-        } else markdown(context, file).ifBlank { throw IllegalArgumentException(tr("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.")) }
+            return@withContext tablesToExcel(tables, title, dir)
+        }
+        val markdown = markdown(context, file).ifBlank { throw IllegalArgumentException(tr("Das PDF hat keinen Text – bei einem Scan erst die Texterkennung laufen lassen.")) }
         DocumentWriter.create(context, dir, title, markdown, format, fileName = DocumentWriter.safeName(title)).file
+    }
+
+    /**
+     * PDF-Tabellen nach Excel (AP-95): one sheet per table, numbers as numbers (German notation too), group cells
+     * merged, tables over several pages joined. A file of the same name gets a number.
+     */
+    fun tablesToExcel(tables: List<PdfTable>, title: String, dir: File): File {
+        dir.mkdirs()
+        val base = DocumentWriter.safeName(title)
+        var out = File(dir, "$base.xlsx")
+        var n = 2
+        while (out.exists()) out = File(dir, "$base ($n).xlsx").also { n++ }
+        XlsxWriter.writeSheets(out, PdfTables.sheets(tables))
+        return out
     }
 }
 

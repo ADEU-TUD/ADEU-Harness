@@ -392,6 +392,14 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   nehmen). Der erste Satz einer Antwort ist nach rund einer Viertelsekunde fertig (in der App gemessen: 66–215 ms je
   erstem Satz, Laden einmalig 1,2 s). Werkzeuge und Zahlen: [`tools/stimme/README.md`](tools/stimme/README.md); Test
   `LocalVoiceTest`.
+- **PDF-Tabellen nach Excel** (seit 1.0.67, AP-95): *PDF-Werkzeugkasten › Tabellen herausziehen* erkennt Spalten jetzt
+  an der Breite der Zellen – rechtsbündige Beträge und zentrierte Werte landen in ihrer Spalte –, übernimmt eine
+  Gruppenzeile über dem Kopf („Ansatz in Euro“ über 2026 und 2027) als verbundene Zelle und fügt Tabellen über mehrere
+  Seiten zu einer zusammen (die wiederholte Kopfzeile nur einmal). Excel bekommt je Tabelle ein Blatt, Zahlen als Zahlen
+  (auch „1.234,56“ und „4,3 %“). Neu: **Prüfen und nachbessern …** zeigt links die PDF-Seite, rechts die erkannte Tabelle
+  mit Zellen zum Korrigieren und Zeilen zum Löschen; *Als Excel speichern* nimmt die korrigierte Fassung. Gemessen auf
+  erfundenen PDFs (Statistik-Berichte über mehrere Seiten, Haushaltspläne, Paper-Tabellen; Prüfteil 8 Dateien): richtige
+  Zellen vorher 47,8 %, jetzt 100 %. Gescannte PDFs erst mit der Texterkennung. Test `PdfTableCorpusTest`.
 - **Mail-Sortierer ohne Wettlauf** (seit 1.0.67, AP-115): Nach *Pause* wartet *Fortsetzen*, bis der alte Lauf die Mail
   fertig hat, an der er war – zwei Läufe lesen nie gleichzeitig dieselben Mails; die gespeicherten Läufe hängen nicht mehr
   an einem einzigen Fach, das ein endender Lauf verdrängen konnte (das ließ `MailSorterTest` einmal ins Zeitlimit laufen).

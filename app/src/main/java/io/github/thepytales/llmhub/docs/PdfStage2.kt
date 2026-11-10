@@ -318,8 +318,19 @@ object PdfMarkdown {
     }
 }
 
-/** A table found on a page: rows of cells, its vertical extent in points (from the top). */
-data class PdfTable(val page: Int, val top: Float, val bottom: Float, val rows: List<List<String>>) {
+/**
+ * A table found in a PDF: rows of cells, its vertical extent in points (from the top) on its first page, the last page
+ * it reaches (AP-95: tables over several pages are joined, the repeated head row only once) and cells spanning several
+ * columns as merges (row, first column, last column).
+ */
+data class PdfTable(
+    val page: Int,
+    val top: Float,
+    val bottom: Float,
+    val rows: List<List<String>>,
+    val lastPage: Int = page,
+    val merges: List<IntArray> = emptyList(),
+) {
     val columns: Int get() = rows.maxOfOrNull { it.size } ?: 0
 
     fun markdown(): String {
@@ -327,16 +338,25 @@ data class PdfTable(val page: Int, val top: Float, val bottom: Float, val rows: 
         fun row(cells: List<String>) = "| " + (cells + List(n - cells.size) { "" }).joinToString(" | ") { it.replace("|", "\\|") } + " |"
         return (listOf(row(rows.first()), "|" + " --- |".repeat(n)) + rows.drop(1).map(::row)).joinToString("\n")
     }
+
+    /** Pages as people say them: „Seite 3“ or „Seiten 3–5“. */
+    val pages: String get() = if (lastPage == page) "Seite ${page + 1}" else "Seiten ${page + 1}–${lastPage + 1}"
 }
 
 /**
- * Tabellen herausziehen (AP-15) on the device: lines with two or more cells (text runs apart by a wide gap) whose
- * columns line up over at least two rows. Works for PDFs from Word, Excel or LaTeX; scans need OCR first.
+ * Tabellen herausziehen (AP-15, AP-95) on the device: lines with two or more cells (text runs apart by a wide gap) whose
+ * columns line up over at least two rows. Columns are bands of the cells' widths (right-aligned amounts and centred
+ * values land in their column, not in the one whose start is nearest); a line above the head whose cells each span
+ * several columns („Ansatz in Euro“ over 2026 and 2027) is kept as group row with merged cells; a table that goes on at
+ * the top of the next page with the same columns is joined, its repeated head row (and group row) left out. Works for
+ * PDFs from Word, Excel or LaTeX; scans need the Texterkennung first (it gives the page a text layer).
  */
 object PdfTables {
     private data class Row(val y: Float, val h: Float, val cells: List<PdfTextRun>)
 
-    fun detect(runs: List<PdfTextRun>): List<PdfTable> = runs.groupBy { it.page }.toSortedMap().flatMap { (page, list) ->
+    fun detect(runs: List<PdfTextRun>): List<PdfTable> = join(runs.groupBy { it.page }.toSortedMap().flatMap { (page, list) -> onPage(page, list) })
+
+    private fun onPage(page: Int, list: List<PdfTextRun>): List<PdfTable> {
         val sorted = list.filter { it.text.isNotBlank() }.sortedWith(compareBy({ it.y }, { it.x }))
         val rows = mutableListOf<MutableList<PdfTextRun>>()
         sorted.forEach { r ->
@@ -361,31 +381,101 @@ object PdfTables {
                 j++
             }
             if (block.size >= 2) {
-                val cols = block.maxOf { it.cells.size }
-                // Column starts from the row with the most cells; every cell goes to the nearest column.
-                val starts = block.first { it.cells.size == cols }.cells.map { it.x }
-                val rowsText = block.map { r ->
-                    val cells = MutableList(cols) { "" }
-                    r.cells.forEach { cell ->
-                        val k = starts.indices.minByOrNull { abs(starts[it] - cell.x) } ?: 0
+                val bands = bands(block)
+                // A group row right above: every cell reaches over two or more columns („Ansatz in Euro“ over 2026 and 2027).
+                val above = lines.getOrNull(i - 1)?.takeIf { g ->
+                    first.y - g.y < maxOf(g.h, first.h) * 2.6f && g.cells.isNotEmpty() && g.cells.size < bands.size &&
+                        g.cells.all { c -> span(c, bands).let { it.last > it.first } } && tables.none { it.bottom >= g.y }
+                }
+                val merges = mutableListOf<IntArray>()
+                val rowsText = (listOfNotNull(above) + block).mapIndexed { r, row ->
+                    val cells = MutableList(bands.size) { "" }
+                    row.cells.forEach { cell ->
+                        val k = if (row === above) span(cell, bands).also { sp -> merges += intArrayOf(r, sp.first, sp.last) }.first
+                        else column(cell.x + cell.w / 2, bands)
                         cells[k] = (cells[k] + " " + cell.text.trim()).trim()
                     }
                     cells
                 }
-                tables += PdfTable(page, block.first().y, block.last().y, rowsText)
+                tables += PdfTable(page, (above ?: first).y, block.last().y, rowsText, merges = merges)
                 i = j
             } else i++
         }
-        tables
+        return tables
     }
+
+    /**
+     * Column bands: the x ranges of the cells of the rows with the most cells, overlapping ones joined. A cell then
+     * belongs to the band it overlaps most.
+     */
+    private fun bands(block: List<Row>): List<Pair<Float, Float>> {
+        val most = block.maxOf { it.cells.size }
+        val spans = block.filter { it.cells.size >= most - 1 }.flatMap { r -> r.cells.map { it.x to it.x + it.w } }.sortedBy { it.first }
+        val out = mutableListOf<Pair<Float, Float>>()
+        for ((a, b) in spans) {
+            val last = out.lastOrNull()
+            if (last != null && a <= last.second + 1.5f) out[out.lastIndex] = last.first to maxOf(last.second, b) else out += a to b
+        }
+        // Too many bands (a ragged row): fall back to the starts of the row with the most cells.
+        if (out.size > most) return block.first { it.cells.size == most }.cells.map { it.x to it.x + it.w }
+        return out
+    }
+
+    /**
+     * The column of the point [x]: each column reaches from the middle of the gap to its left neighbour to the middle of
+     * the gap to its right one – so right-aligned amounts and centred values land in their own column.
+     */
+    private fun column(x: Float, bands: List<Pair<Float, Float>>): Int {
+        for (k in 0 until bands.lastIndex) if (x < (bands[k].second + bands[k + 1].first) / 2) return k
+        return bands.lastIndex
+    }
+
+    /** The columns a cell reaches over, from the one of its left edge to the one of its right edge. */
+    private fun span(cell: PdfTextRun, bands: List<Pair<Float, Float>>): IntRange =
+        column(cell.x + 1, bands)..column(cell.x + cell.w - 1, bands)
 
     /** Whether [row]'s cells start near the columns of [head] (at least two of them, within 14 pt). */
     private fun aligned(head: Row, row: Row): Boolean {
         val starts = head.cells.map { it.x }
-        val hits = row.cells.count { c -> starts.any { abs(it - c.x) < 14f } || head.cells.any { h -> c.x >= h.x - 4 && c.x <= h.x + h.w + 4 } }
+        val hits = row.cells.count { c -> starts.any { abs(it - c.x) < 14f } || head.cells.any { h -> c.x >= h.x - 4 && c.x <= h.x + h.w + 4 } ||
+            head.cells.any { h -> c.x + c.w >= h.x - 4 && c.x + c.w <= h.x + h.w + 30 } }
         return hits >= minOf(2, row.cells.size) && abs(row.cells.size - head.cells.size) <= 1
     }
 
+    /**
+     * Joins a table that goes on at the top of the next page: same number of columns and either the same head row
+     * (repeated by Word, Excel, LaTeX – left out) or the first table there. Group rows repeated with the head go too.
+     */
+    private fun join(tables: List<PdfTable>): List<PdfTable> {
+        val out = mutableListOf<PdfTable>()
+        for (t in tables) {
+            val prev = out.lastOrNull()
+            val firstOnPage = tables.firstOrNull { it.page == t.page } === t
+            if (prev != null && t.page == prev.lastPage + 1 && firstOnPage && t.columns == prev.columns && t.columns >= 2) {
+                val headSize = prev.merges.map { it[0] }.distinct().size + 1
+                val head = prev.rows.take(headSize).map { r -> r.map { it.trim() } }
+                val repeated = t.rows.take(headSize).map { r -> r.map { it.trim() } } == head
+                val sameHead = t.rows.firstOrNull()?.map { it.trim() } == prev.rows[headSize - 1].map { it.trim() }
+                val rest = when {
+                    repeated -> t.rows.drop(headSize)
+                    sameHead -> t.rows.drop(1)
+                    else -> t.rows
+                }
+                out[out.lastIndex] = prev.copy(rows = prev.rows + rest, lastPage = t.page)
+            } else out += t
+        }
+        return out
+    }
+
     /** All tables as one Markdown text with a heading per table (for Excel: one sheet per table). */
-    fun markdown(tables: List<PdfTable>): String = tables.mapIndexed { i, t -> "## Tabelle ${i + 1} (Seite ${t.page + 1})\n\n" + t.markdown() }.joinToString("\n\n")
+    fun markdown(tables: List<PdfTable>): String = tables.mapIndexed { i, t -> "## Tabelle ${i + 1} (${t.pages})\n\n" + t.markdown() }.joinToString("\n\n")
+
+    /** The tables as Excel sheets: one per table, numbers as numbers, group cells merged. */
+    fun sheets(tables: List<PdfTable>): List<XlsxWriter.Sheet> = tables.mapIndexed { i, t ->
+        XlsxWriter.Sheet(
+            "Tabelle ${i + 1} (${t.pages})".take(31),
+            t.rows,
+            SheetMeta(merges = t.merges.map { m -> SheetEngine.rangeRef(m[0], m[1], m[0], m[2]) }),
+        )
+    }
 }
