@@ -382,10 +382,15 @@ Modell, das es am besten nutzt, nach Zweck und in kleinen Stufen.
   Grafikspeicher 4 / 6 / 8 / 12 / 16 / 24 GB, Apple-Chip, Android), je Stufe und Zweck genau eine Empfehlung.
 - **Herkunft und Lizenz**: nur Modelle, deren Lizenz Nutzung und Weitergabe erlaubt (Apache-2.0, MIT; Gemma mit seinen
   Bedingungen; kein Llama wegen der Namensvorgaben). Bezug wie heute von Hugging Face an **festem Commit mit SHA-256**;
-  zusätzlich ein **eigener Spiegel** als Ausfallreserve (GitHub-Releases in Teilen ≤ 2 GB bzw. TU-Nextcloud), mit
-  Lizenztext und Hinweisen. **Fremdmodelle behalten ihren Namen** („Qwen 3.5 9B – für Lora geprüft“); „Lora …“ heißen nur
-  Modelle, die wir wirklich trainiert haben. Kein Umbenennen unveränderter Modelle – das wäre irreführend und bringt
-  rechtlich nichts (Weitergabe ist ohnehin erlaubt; `License.md` gilt für unsere eigenen Werke).
+  zusätzlich ein **eigener Spiegel** – ein Konto der Organisation auf **Hugging Face** (für Modelle gebaut: große
+  Dateien, schnelle Downloads, Modellkarten), dort die geprüften Dateien unverändert mit Lizenztext und Hinweisen an
+  festem Commit; später auch Lora Namensschutz, Lora Befehle und Lora Postfach dort statt auf Git-Branches.
+- **Namen** (Entscheidung Hauptnutzer): kuratierte Fremdmodelle heißen **„<Originalname> – Lora Edition“**, z. B.
+  „Qwen 3.5 9B – Lora Edition“. Die Modellkarte sagt klar, was „Lora Edition“ heißt: von uns ausgewählt, quantisiert bzw.
+  übernommen, gemessen und für Lora eingestellt (Kontext, Vorlage) – **Gewichte unverändert**, Basismodell, Urheber und
+  Lizenz wie im Original, keine Billigung durch die Urheber. Erst nach einem echten Feintuning heißt ein Modell
+  „Lora …“ ohne Zusatz (Lora Namensschutz, Lora Befehle, Lora Postfach). `License.md` gilt nur für unsere eigenen Werke;
+  unveränderte Fremdmodelle bleiben unter ihrer Lizenz.
 - **Kein eigenes Chat- oder Code-Modell von Grund auf**; JEV (TypeSafe AI) und ähnliche Dienste nur beobachten (Cloud, keine
   offenen Gewichte, kein Deutsch belegt) – die Idee „typisierte Entscheidung mit Sicherheit“ steckt schon in Lora Befehle.
 
@@ -478,8 +483,17 @@ Stimmen mit freier Lizenz) statt Server oder Systemstimme.
 **Fertig, wenn**: der Sprachmodus mit *Nur lokal* vollständig funktioniert und die erste Silbe auf einem Office-PC nach
 < 0,5 s kommt.
 
-### AP-112 ☐ Offline-Schiene in der Oberfläche: „läuft hier“ und „nur über API“ · M (Runde 3)
-**Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht.
+### AP-112 ☐ Offline-Schiene in der Oberfläche: Ort je Bereich, Einrichtung Schritt für Schritt · M–L (Runde 3)
+**Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht – und stellt es selbst ein.
+- **Ort je Bereich** (Wunsch Hauptnutzer) unter *Einstellungen › Wo Lora arbeitet*: eine Tabelle mit allen Bereichen
+  (Lora, Chat, Postfach, Dokumente/Tabellen/Folien, Transkription, Suche, Sprache, Bilder verstehen, Bilder erzeugen …),
+  je Bereich **Lokal / Gemischt / API**; was hier nicht geht, ist ausgegraut mit Grund („braucht 32 GB“, „nur über
+  API“). Oben eine Schnellwahl: *Alles lokal* · *Gemischt (empfohlen)* · *Alles über API*. Erweitert die heutige
+  Einstellung *Gemischt / Nur lokal / Nur Server* (AP-71) auf Bereiche.
+- **„Alles lokal“ mit Einrichtung Schritt für Schritt**: ein Assistent nimmt an die Hand – Gerät messen (AP-105), Zweck
+  wählen (AP-80), je Schritt ein Modell vorschlagen mit Größe, Tempo und Zweck (AP-106), laden mit Fortschritt, kurz
+  ausprobieren („Frag Lora etwas“), weiter zum nächsten Bereich; jederzeit *Später* und Fortsetzen an derselben Stelle,
+  am Ende eine Übersicht, was jetzt lokal läuft.
 - Kennzeichnung je Funktion: *läuft auf diesem Gerät* · *braucht Internet* · **nur über API** (z. B. Bilder erzeugen) ·
   *nicht auf diesem Gerät* (mit Grund und Hinweis, welche Stufe es bräuchte). Ohne API werden „nur über API“-Funktionen
   nicht versteckt, sondern ruhig als solche gezeigt (Chip/Schloss, eine Zeile Erklärung) – Entwurf der Darstellung vorab
