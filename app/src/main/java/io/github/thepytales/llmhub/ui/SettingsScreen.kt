@@ -115,7 +115,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
                 "appearance" -> AppearanceSettings(c)
                 "transcription" -> TranscriptionSettings(c)
                 "voice" -> VoiceSection(c)
-                "documents" -> DocumentsSection(c)
+                "documents" -> { DocumentsSection(c); HouseStyleSettings(c) }
                 "memory" -> MemorySection(c)
                 "knowledge" -> KnowledgeSection(c)
                 "literature" -> LiteratureSettings(c)

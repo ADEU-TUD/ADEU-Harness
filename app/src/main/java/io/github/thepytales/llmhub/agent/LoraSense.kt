@@ -51,7 +51,20 @@ object LoraSense {
      * Two or three wishes that fit the area of [route]; [inChat] = a chat with messages is open. Most of them Lora
      * answers on the device (a place, the help), so a tap is instant.
      */
-    fun suggestions(route: String?, inChat: Boolean, enabledTools: Set<String>, android: Boolean): List<Suggestion> {
+    /** Start page by role (AP-80): one or two suggestions per role, at most three. */
+    private fun byRole(roles: Set<io.github.thepytales.llmhub.data.Role>, pdfOn: Boolean): List<Suggestion> = buildList {
+        if (io.github.thepytales.llmhub.data.Role.TEACHING in roles) add(Suggestion(trLater("Seminar planen"), "Hilf mir, eine Seminarsitzung zu planen: Lernziele, Ablauf, Methoden."))
+        if (io.github.thepytales.llmhub.data.Role.RESEARCH in roles) add(Suggestion(trLater("Literatur finden"), "Literatursuche", "mode.literature"))
+        if (io.github.thepytales.llmhub.data.Role.ADMIN in roles) add(Suggestion(trLater("Brief schreiben"), "Brief", "template.b_tud_letter"))
+        if (io.github.thepytales.llmhub.data.Role.STUDY in roles) add(Suggestion(trLater("Exzerpt erstellen"), "Exzerpt", "mode.excerpt"))
+        add(Suggestion(if (pdfOn) trLater("PDFs bearbeiten") else trLater("PDF-Werkzeugkasten"), "PDF zusammenfügen", if (pdfOn) "tool.pdf" else null))
+    }.distinctBy { it.label }.take(3)
+
+    fun suggestions(
+        route: String?, inChat: Boolean, enabledTools: Set<String>, android: Boolean,
+        /** Rollenauswahl (AP-80): the start page suggests what fits the roles. */
+        roles: Set<io.github.thepytales.llmhub.data.Role> = emptySet(),
+    ): List<Suggestion> {
         val r = route.orEmpty().substringBefore('?')
         val pdfOn = AppTool.PDF.id in enabledTools
         val list = when {
@@ -59,7 +72,7 @@ object LoraSense {
                 Suggestion(trLater("Chat zusammenfassen"), "Fasse diesen Chat in wenigen Stichpunkten zusammen.", inChat = true),
                 Suggestion(trLater("Als Word-Dokument"), "Mach aus deiner letzten Antwort ein Word-Dokument (docx).", inChat = true),
                 Suggestion(trLater("Standardmodell"), "Standardmodell", "option.chat.defaultModel"),
-            ) else listOf(
+            ) else if (roles.isNotEmpty()) byRole(roles, pdfOn) else listOf(
                 Suggestion(trLater("Literatur finden"), "Literatursuche", "mode.literature"),
                 Suggestion(if (pdfOn) trLater("PDFs bearbeiten") else trLater("PDF-Werkzeugkasten"), "PDF zusammenfügen", if (pdfOn) "tool.pdf" else null),
                 Suggestion(trLater("Brief schreiben"), "Brief", "template.b_tud_letter"),

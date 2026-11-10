@@ -137,6 +137,9 @@ interface DocActions {
 
     /** Inserts a block (a diagram, AP-61) at the cursor; returns the Markdown before, null where it cannot. */
     fun insertBlock(markdown: String): String? = null
+
+    /** The Markdown of the open tab (AP-79: Hausstil- und Barrierefreiheits-Prüfung); null where it cannot. */
+    fun markdown(): String? = null
 }
 
 data class ActionParam(val name: String, val description: String, val required: Boolean = true)
@@ -228,7 +231,7 @@ object ToolActions {
         synchronized(extra) { actions.forEach { a -> extra.removeAll { it.id == a.id }; extra += a } }
     }
 
-    val all: List<ToolAction> get() = BUILT_IN + OfficeActions.ALL + MoreActions.ALL + MailSorter.ACTIONS + synchronized(extra) { extra.toList() }
+    val all: List<ToolAction> get() = BUILT_IN + OfficeActions.ALL + MoreActions.ALL + StyleActions.ALL + MailSorter.ACTIONS + synchronized(extra) { extra.toList() }
 
     /** The actions Lora gets in [area] (PDF actions also in the Dateien tab, for chosen PDFs). */
     fun forArea(area: ActionArea?, android: Boolean): List<ToolAction> {

@@ -447,6 +447,9 @@ class LoraAgent(private val c: AppContainer) {
             area == ActionArea.VIDEO && Regex("untertitel").containsMatchIn(n) && !android -> "video.subtitles" to emptyMap()
             Regex("(verkleiner|komprimier|kleiner machen)").containsMatchIn(n) && (area == ActionArea.PDF || pdfs.isNotEmpty()) && !android -> "pdf.compress" to emptyMap()
             area == ActionArea.PDF && Regex("(texterkennung|\\bocr\\b|text erkennen)").containsMatchIn(n) -> "pdf.ocr" to emptyMap()
+            // AP-79: „Prüfe Hausstil und Barrierefreiheit“, „Ist das barrierefrei?“, „Behebe die Hausstil-Fehler“.
+            (area == ActionArea.DOC || area == ActionArea.SLIDES) && Regex("(barrierefrei|hausstil|corporate design|alternativtext|screenreader)").containsMatchIn(n) ->
+                (if (area == ActionArea.SLIDES) "slides." else "doc.") + (if (Regex("(behebe|beheben|korrigier|reparier|fix)").containsMatchIn(n)) "fix_style" else "check") to emptyMap()
             else -> return null
         }
         val action = ToolActions.byId(id)?.takeIf { !android || it.android } ?: return null

@@ -104,13 +104,14 @@ fun AccessibilityDialog(c: AppContainer, file: File, onDismiss: () -> Unit) {
     var findings by remember(file) { mutableStateOf<List<AccessibilityCheck.Finding>?>(null) }
     var error by remember(file) { mutableStateOf<String?>(null) }
     LaunchedEffect(file) {
-        runCatching { withContext(Dispatchers.IO) { AccessibilityCheck.check(c.appContext, file) } }
+        // Hausstil (AP-79): Corporate Design and the house rules of the Professur for Word and PowerPoint files.
+        runCatching { withContext(Dispatchers.IO) { AccessibilityCheck.check(c.appContext, file) + AccessibilityCheck.houseStyle(file, io.github.thepytales.llmhub.data.HouseStyle.all(c)) } }
             .onSuccess { findings = it }
             .onFailure { error = it.message ?: it.toString() }
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(tr("Barrierefreiheit")) },
+        title = { Text(tr("Barrierefreiheit und Hausstil")) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(file.name, style = MaterialTheme.typography.labelLarge)

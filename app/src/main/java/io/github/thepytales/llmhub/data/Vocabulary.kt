@@ -177,7 +177,7 @@ object KnowledgePacks {
     data class Offer(val id: String, val title: String, val description: String, val version: Int, val url: String, val size: Long, val sha256: String)
 
     /** Commit of tools/wissen/ the packs are taken from (see tools/wissen/README.md). */
-    const val COMMIT = "WISSEN_COMMIT"
+    const val COMMIT = "da9c3179fcb2277a30f2f03e63e7ae4179125b2f"
 
     val CATALOG = listOf(
         Offer(

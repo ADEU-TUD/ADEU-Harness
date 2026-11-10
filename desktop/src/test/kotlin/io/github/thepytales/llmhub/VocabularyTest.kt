@@ -66,7 +66,7 @@ class VocabularyTest {
         assertEquals(f.length(), offer.size, "Größe im Katalog")
         assertEquals(FileDownload.sha256(f), offer.sha256, "SHA-256 im Katalog (tools/wissen/README.md)")
         assertEquals(pack.version, offer.version)
-        assertFalse("WISSEN_COMMIT" in offer.url, "fester Commit im Katalog eingetragen")
+        assertTrue(Regex("/[0-9a-f]{40}/tools/wissen/lehramt-tud.json$").containsMatchIn(offer.url), "fester Commit im Katalog eingetragen")
     }
 
     @Test

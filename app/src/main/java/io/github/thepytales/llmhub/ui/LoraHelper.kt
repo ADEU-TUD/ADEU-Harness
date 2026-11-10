@@ -507,8 +507,8 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
     var recording by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val list = rememberLazyListState()
-    val suggestions = remember(route, s.enabledTools, LoraHelper.chatHasMessages) {
-        LoraSense.suggestions(route, LoraHelper.chatHasMessages, s.enabledToolIds, IS_ANDROID)
+    val suggestions = remember(route, s.enabledTools, LoraHelper.chatHasMessages, s.roles) {
+        LoraSense.suggestions(route, LoraHelper.chatHasMessages, s.enabledToolIds, IS_ANDROID, io.github.thepytales.llmhub.data.Role.parse(s.roles))
     }
     // Lora knows the mails chosen in Mail & Kalender (AP-69): „Mail & Kalender · 12 Mails ausgewählt“.
     val chosenMails by io.github.thepytales.llmhub.agent.LoraFocus.mails.collectAsStateWithLifecycle()
@@ -1235,13 +1235,22 @@ private fun LoraIntroDialog(c: AppContainer) {
     val chosen = remember { mutableStateListOf<String>().apply { addAll(s.enabledToolIds) } }
     // AP-71: which models come onto this device, and where Lora works.
     val models = remember { IntroModelChoice(c) }
+    // AP-80: what Lora is used for – suggests tools, the order of the TU Vorlagen and contents to load.
+    val roles = remember { mutableStateListOf<io.github.thepytales.llmhub.data.Role>().apply { addAll(io.github.thepytales.llmhub.data.Role.parse(s.roles)) } }
+    fun toggleRole(r: io.github.thepytales.llmhub.data.Role) {
+        if (r in roles) roles -= r else {
+            roles += r
+            io.github.thepytales.llmhub.data.Roles.tools(setOf(r), IS_ANDROID).forEach { t -> if (t.id !in chosen) chosen += t.id }
+            io.github.thepytales.llmhub.data.Roles.packs(setOf(r)).forEach { p -> if (p !in models.packs) models.packs += p }
+        }
+    }
     fun finish(save: Boolean) {
         if (save) models.apply(c)
         c.settings.update { cur ->
             // Skipped or answered: the models were offered here, so the separate dialog for earlier users stays away.
             var next = cur.copy(loraIntroDone = true, modelsIntroDone = true)
             if (save) {
-                next = next.copy(loraMode = mode, hideLora = mode == "OFF")
+                next = next.copy(loraMode = mode, hideLora = mode == "OFF", roles = io.github.thepytales.llmhub.data.Role.format(roles.toSet()))
                 tools.forEach { t -> next = next.withTool(t, t.id in chosen) }
             }
             next
@@ -1263,6 +1272,13 @@ private fun LoraIntroDialog(c: AppContainer) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     LORA_MODES.forEach { (id, label) -> FilterChip(selected = mode == id, onClick = { mode = id }, label = { Text(tr(label)) }) }
                 }
+                Text(tr("Wofür nutzt du Lora vor allem?"), style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    io.github.thepytales.llmhub.data.Role.entries.forEach { r ->
+                        FilterChip(selected = r in roles, onClick = { toggleRole(r) }, label = { Text(tr(r.label)) })
+                    }
+                }
+                if (roles.isNotEmpty()) HintText(tr("Ich schlage passende Werkzeuge und Inhalte vor (unten angehakt) und stelle die passenden TU Vorlagen nach oben."))
                 if (tools.isNotEmpty()) {
                     Text(tr("Welche Werkzeuge sollen sichtbar sein?"), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1308,6 +1324,8 @@ fun LoraSettings(c: AppContainer) {
             },
         )
     }
+    // AP-80: what Lora is used for (from the first start), changeable here.
+    RolesSettings(c)
     // AP-71: mixed mode, command model, how often Lora answered on this device.
     LoraPlaceSettings(c)
     // AP-72: what Lora learned from corrections – visible, deletable, exportable.

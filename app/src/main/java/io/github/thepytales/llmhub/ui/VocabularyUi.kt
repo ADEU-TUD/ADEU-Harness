@@ -286,3 +286,79 @@ private fun ExportPackDialog(c: AppContainer, onDone: () -> Unit) {
         dismissButton = { TextButton(onClick = onDone) { Text(tr("Abbrechen")) } },
     )
 }
+
+/**
+ * Einstellungen › Dokumente & Logos › „Hausstil“ (AP-79): eigene Regeln der Professur – was so nicht stehen soll, wie
+ * es stattdessen heißt und warum („Lehrer“ → „Lehrkräfte“, Gendern). Lora prüft Dokumente, Folien und Dateien danach.
+ */
+@Composable
+fun HouseStyleSettings(c: AppContainer) {
+    val version by io.github.thepytales.llmhub.data.HouseStyle.version.collectAsState()
+    val rules = remember(version) { io.github.thepytales.llmhub.data.HouseStyle.rules(c) }
+    var avoid by remember { mutableStateOf("") }
+    var preferred by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    Section(tr("Hausstil")) {
+        HintText(tr("Eigene Schreibweisen der Professur – z. B. Gendern („Lehrer“ → „Lehrkräfte“) oder feste Begriffe. „Hausstil und Barrierefreiheit prüfen“ (Lora im Dokument, in Folien und bei Dateien) meldet jede Fundstelle und behebt sie auf Wunsch. Die Schreibweise der TU Dresden und Abkürzungen nach DIN 5008 prüft Lora immer."))
+        rules.forEach { r ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("„${r.avoid}“ → " + (r.preferred.takeIf { it.isNotEmpty() }?.let { "„$it“" } ?: tr("nur hinweisen")), style = MaterialTheme.typography.bodyMedium)
+                    if (r.note.isNotBlank()) HintText(r.note)
+                }
+                IconButton(onClick = { io.github.thepytales.llmhub.data.HouseStyle.save(c, rules - r) }) {
+                    Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(18.dp))
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(avoid, { avoid = it }, singleLine = true, label = { Text(tr("Nicht so")) }, modifier = Modifier.weight(1f))
+            OutlinedTextField(preferred, { preferred = it }, singleLine = true, label = { Text(tr("Sondern so")) }, modifier = Modifier.weight(1f))
+        }
+        OutlinedTextField(note, { note = it }, singleLine = true, label = { Text(tr("Warum (optional)")) }, modifier = Modifier.fillMaxWidth())
+        OutlinedButton(enabled = avoid.isNotBlank(), onClick = {
+            io.github.thepytales.llmhub.data.HouseStyle.save(c, rules.filterNot { it.avoid.equals(avoid.trim(), true) } + io.github.thepytales.llmhub.data.HouseRule(avoid.trim(), preferred.trim(), note.trim()))
+            avoid = ""; preferred = ""; note = ""
+        }) { Text(tr("Regel hinzufügen")) }
+    }
+}
+
+/**
+ * Einstellungen › Lora › „Wofür nutzt du Lora?“ (AP-80): die Rollen vom ersten Start. Eine neue Rolle schaltet ihre
+ * Werkzeuge ein (nie aus), stellt ihre TU Vorlagen nach oben und empfiehlt Inhalte zum Nachladen.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun RolesSettings(c: AppContainer) {
+    val s by c.settings.settings.collectAsState()
+    val roles = io.github.thepytales.llmhub.data.Role.parse(s.roles)
+    val packsVersion by KnowledgePacks.version.collectAsState()
+    val missing = remember(s.roles, packsVersion) {
+        val have = KnowledgePacks.installed(c).map { it.id }.toSet()
+        io.github.thepytales.llmhub.data.Roles.packs(roles).filter { it !in have }.mapNotNull { KnowledgePacks.offer(it) }
+    }
+    val scope = rememberCoroutineScope()
+    Section(tr("Wofür nutzt du Lora?")) {
+        HintText(tr("Danach richten sich die vorgeschlagenen Werkzeuge, die Reihenfolge der TU Vorlagen, Loras Vorschläge und empfohlene Inhalte zum Nachladen."))
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            io.github.thepytales.llmhub.data.Role.entries.forEach { r ->
+                androidx.compose.material3.FilterChip(
+                    selected = r in roles,
+                    onClick = {
+                        val next = if (r in roles) roles - r else roles + r
+                        c.settings.update { cur -> if (r in roles) cur.copy(roles = io.github.thepytales.llmhub.data.Role.format(next)) else io.github.thepytales.llmhub.data.Roles.apply(cur, next, IS_ANDROID) }
+                    },
+                    label = { Text(tr(r.label)) },
+                )
+            }
+        }
+        missing.forEach { o ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HintText(tr("Empfohlen: Wissenspaket „{0}“.", tr(o.title)), Modifier.weight(1f))
+                TextButton(onClick = {
+                    scope.launch { runCatching { withContext(Dispatchers.IO) { KnowledgePacks.download(c, o) } }.onFailure { Notices.error(it) } }
+                }) { Text(tr("Laden")) }
+            }
+        }
+    }
+}
