@@ -38,7 +38,8 @@ object LoraCorrections {
     /** At most this many pairs; the oldest unused go first. */
     const val MAX = 300
 
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false }
+    // encodeDefaults: [Entry.at] defaults to the clock – left out, it would read back as another time on every load.
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private fun file(c: AppContainer) = File(c.appContext.filesDir, "lora-korrekturen.json")
 
     /** Wishes are compared without case, accents, punctuation and extra spaces. */

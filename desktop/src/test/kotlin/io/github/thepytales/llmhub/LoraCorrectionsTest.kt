@@ -45,6 +45,11 @@ class LoraCorrectionsTest {
         LoraCorrections.learn(c, "wo liegt mein krempel", "app", "ort:place.files.search")
         assertEquals("ort:place.files.search", LoraCorrections.meant(c, "Wo liegt mein Krempel?", "app"))
         assertEquals(2, LoraCorrections.all(c).size)
+        // Read back unchanged, also within the millisecond it was kept (the time is stored, not its default).
+        LoraCorrections.learn(c, "schnell gelernt", "app", "ort:area.files")
+        assertEquals(LoraCorrections.all(c), LoraCorrections.all(c))
+        LoraCorrections.remove(c, LoraCorrections.all(c).first { it.wish == "schnell gelernt" })
+        assertEquals(2, LoraCorrections.all(c).size)
         // Deletable one by one and all at once.
         LoraCorrections.remove(c, LoraCorrections.all(c).first { it.label == "tu:sheet.sort" })
         assertEquals(1, LoraCorrections.all(c).size)
