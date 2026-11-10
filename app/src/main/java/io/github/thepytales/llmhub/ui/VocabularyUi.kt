@@ -342,7 +342,7 @@ fun RolesSettings(c: AppContainer) {
         HintText(tr("Danach richten sich die vorgeschlagenen Werkzeuge, die Reihenfolge der TU Vorlagen, Loras Vorschläge und empfohlene Inhalte zum Nachladen."))
         androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             io.github.thepytales.llmhub.data.Role.entries.forEach { r ->
-                androidx.compose.material3.FilterChip(
+                FilterChip(
                     selected = r in roles,
                     onClick = {
                         val next = if (r in roles) roles - r else roles + r

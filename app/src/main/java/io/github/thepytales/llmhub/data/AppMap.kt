@@ -88,6 +88,7 @@ object AppMap {
         settings("sync", trLater("Synchronisation"), trLater("Datenordner in OneDrive, Google Drive oder Nextcloud – am Büro-PC beginnen, am Laptop weiterarbeiten."), "sync synchronisieren synchronisation cloud onedrive google drive nextcloud zweiter pc laptop büro mehrere rechner", android = false),
         settings("storage", trLater("Speicherorte"), trLater("Eigene Ordner für Dokumente, z. B. in Google Drive."), "speicherort ablage ordner google drive onedrive", android = false),
         settings("updates", trLater("Updates"), trLater("Version, nach Updates suchen, automatische Suche."), "update aktualisieren neue version installieren"),
+        settings("downloads", trLater("Inhalte zum Nachladen"), trLater("Modelle, Spracherkennung, Videoeditor und Wissenspakete laden oder löschen."), "nachladen herunterladen download modelle wissenspaket lehramt paket befehlsmodell erkennungsmodell"),
         settings("help", trLater("Problem melden"), trLater("Fehler beschreiben und anonymes Protokoll senden."), "problem fehler melden bug feedback absturz"),
     )
 

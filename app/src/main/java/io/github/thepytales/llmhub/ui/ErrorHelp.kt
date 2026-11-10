@@ -171,9 +171,7 @@ object ErrorHelp {
         } ?: e.javaClass.name
 
     private val technical = Regex(
-        """(Exception|Error\b|java\.|kotlinx?\.|javax\.|android\.|okhttp|\bnull\b|\bat [\w.$]+\(|\bNaN\b|\bHTTP \d{3}\b|\$\w|""" +
-            """\b[a-z]\w*\.[a-z]\w*\.[a-z]\w*\b|For input string|cannot be cast|out of bounds|Failed requirement|Required value was null|""" +
-            """Collection is empty|List is empty|Stream closed|lateinit property)""",
+        """(Exception|Error\b|java\.|kotlinx?\.|javax\.|android\.|okhttp|\bnull\b|\bat [\w.]+\(|\bNaN\b|\bHTTP \d{3}\b|\$\w|\b[a-z]\w*\.[a-z]\w*\.[a-z]\w*\b|For input string|cannot be cast|out of bounds|Failed requirement|Required value was null|Collection is empty|List is empty|Stream closed|lateinit property)""",
     )
 
     /** Programming errors: their message is never meant for people, whatever it says. */
