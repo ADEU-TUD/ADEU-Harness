@@ -34,14 +34,27 @@ def export_onnx(folder: Path, target: Path) -> list[str]:
     model.config.return_dict = False
     tok = AutoTokenizer.from_pretrained(folder)
     sample = tok(["Tabelle"], ["sortiere nach nachname"], return_tensors="pt")
-    names = [n for n in ("input_ids", "attention_mask", "token_type_ids") if n in sample]
+    import inspect
+
+    accepted = inspect.signature(model.forward).parameters
+    # DistilBERT has no token_type_ids, although its tokenizer may return them.
+    names = [n for n in ("input_ids", "attention_mask", "token_type_ids") if n in sample and n in accepted]
+
+    class Logits(torch.nn.Module):
+        def __init__(self, inner):
+            super().__init__()
+            self.inner = inner
+
+        def forward(self, *inputs):
+            return self.inner(**dict(zip(names, inputs)))[0]
+
     axes = {n: {0: "batch", 1: "tokens"} for n in names} | {"logits": {0: "batch"}}
     args = tuple(sample[n] for n in names)
     kwargs = dict(input_names=names, output_names=["logits"], dynamic_axes=axes, opset_version=17)
     try:
-        torch.onnx.export(model, args, str(target), dynamo=False, **kwargs)
+        torch.onnx.export(Logits(model), args, str(target), dynamo=False, **kwargs)
     except TypeError:
-        torch.onnx.export(model, args, str(target), **kwargs)
+        torch.onnx.export(Logits(model), args, str(target), **kwargs)
     return names
 
 
@@ -77,13 +90,19 @@ def main() -> None:
             enc = modell.encode(tok, s.text, s.area)
             f.write(json.dumps({"text": s.text, "bereich": s.area, "ids": enc["input_ids"]}, ensure_ascii=False) + "\n")
 
+    # The threshold is chosen for the model that is shipped: quantization shifts the probabilities a little, so each
+    # file gets its own threshold by the same rule on the development part (modell.tune_threshold).
     measures = {}
     for name, path in (("fp32", fp32), ("int8", int8)):
         predictor = modell.Predictor(path)
-        row = {section: modell.score(modell.predictions(predictor, section), threshold).numbers() for section in ("entwicklung", "pruef")}
+        own, _ = modell.tune_threshold(modell.predictions(predictor, "entwicklung"))
+        row = {section: modell.score(modell.predictions(predictor, section), own).numbers() for section in ("entwicklung", "pruef")}
+        row["schwelle"] = own
         row["zeit"] = evaluate.timing(predictor, runs=2)
         measures[name] = row
         print(name, json.dumps(row, ensure_ascii=False))
+    threshold = measures["int8"]["schwelle"]
+    (out / "schwelle.json").write_text(json.dumps({"schwelle": threshold, "eingaben": inputs}), encoding="utf-8")
     loss = measures["fp32"]["pruef"]["treffer"] - measures["int8"]["pruef"]["treffer"]
     more_wrong = measures["int8"]["pruef"]["falsch_ausgefuehrt"] - measures["fp32"]["pruef"]["falsch_ausgefuehrt"]
     report = json.loads((folder.parent / "bericht.json").read_text(encoding="utf-8")) if (folder.parent / "bericht.json").exists() else {}

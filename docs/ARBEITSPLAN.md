@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 09.11.2026 (nach 1.0.61) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (nach 1.0.64) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -200,39 +200,62 @@ Weg wie bei AP-67 (Feintuning eines vortrainierten Encoders, Claude als Lehrer-M
 Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/befehle/`).
 
 **Stufen**
-- **a) Etiketten aus dem Code** ☐: die Aktionen kommen aus den Registern der App (`AppMap`: Bereiche,
+- **a) Etiketten aus dem Code**: die Aktionen kommen aus den Registern der App (`AppMap`: Bereiche,
   Einstellungsseiten, Optionen, Orte, Modi, Werkzeuge – deckt auch die Strg+K-Einträge ab; `LoraAgent.SETTINGS`;
   `ToolActions`/`OfficeActions`/`MoreActions`/Video; Lora-eigene Aktionen), dazu `frei.einfach` und `frei.komplex`. Ein
   Test hält die Liste des Modells und den Code zusammen (kein Etikett ohne Ziel im Code; neue Ziele ohne Etikett werden
   gemeldet und gehen bis zum nächsten Training an das Sprachmodell).
-- **b) Messkorpus zuerst** ☐ (vor jedem Training): erfundene, alltagsnahe Wünsche – auch mit Tippfehlern,
+  ☑ *Erledigt (10.11.2026)*: 178 Etiketten aus `LoraCommands.catalog` (`tools/befehle/etiketten.json`); `CommandLabelsTest`
+  und `CommandModelTest` halten Code und Modell zusammen.
+- **b) Messkorpus zuerst** (vor jedem Training): erfundene, alltagsnahe Wünsche – auch mit Tippfehlern,
   Umgangssprache und auf Englisch –, je Wunsch die richtige Aktion (wo zwei passen: beide), bei Bedarf der offene
   Bereich und die erwarteten Werte; mindestens 600 Wünsche, davon ein **Prüfteil** (mindestens 250), der nie zum
   Training, zur Wahl von Einstellungen oder als Vorbild für Vorlagen dient. Fehlerlisten nur für den Entwicklungsteil.
   Kennzahlen: **Trefferquote** der Befehle, **Anteil falsch ausgeführter Aktionen**, **Anteil richtig weitergegebener
   freier Anfragen**, Zeit je Eingabe; Ausgangswert der heutigen Regeln (`LoraAgent.local`) festhalten.
-- **c) Trainingsdaten** ☐: Claude schreibt als Lehrer-Modell Formulierungen und Satzmuster je Etikett (kein Schlüssel
+  ☑ *Erledigt (10.11.2026)*: 844 Wünsche in `tools/befehle/messkorpus/` (Prüfteil 386, jedes Etikett in beiden Teilen).
+  Ausgangswert der Regeln im Prüfteil: 38,1 % getroffen, **19,4 % falsch ausgeführt**, 86,9 % der freien Anfragen weitergegeben.
+- **c) Trainingsdaten**: Claude schreibt als Lehrer-Modell Formulierungen und Satzmuster je Etikett (kein Schlüssel
   des Uni-Servers), ein Generator setzt sie zusammen (Tippfehler, Kleinschreibung, Füllwörter, Englisch); **Sperre**
   gegen Überschneidung mit dem Messkorpus; keine echten Daten.
-- **d) Ein Modell mit zwei Köpfen oder ein eigenes kleines?** ☐: prüfen, ob das Modell der Pseudonymisierung (AP-67,
+  ☑ *Erledigt (10.11.2026)*: 2 866 Zeilen in `tools/befehle/vorlagen/`, `gen.py` erzeugt 26 360 Wünsche; gleiche Wünsche wie
+  im Messkorpus werden nie erzeugt. Nachgeschärft nur anhand der Fehler im Entwicklungsteil.
+- **d) Ein Modell mit zwei Köpfen oder ein eigenes kleines?**: prüfen, ob das Modell der Pseudonymisierung (AP-67,
   gbert-base) einen zweiten Kopf für Befehle bekommen kann – dann bliebe es bei einem Download –, oder ob ein kleineres
   Basismodell (z. B. distilbert-base-german-cased) besser ist. Auf dem Entwicklungsteil messen, begründet entscheiden,
   hier festhalten. Lizenz nur MIT oder Apache-2.0.
-- **e) Training und Export** ☐: in der Cloud auf CPU in Etappen (`train.py --nur/--fortsetzen`, Hintergrundläufe
+  ☑ *Entschieden (10.11.2026)*: **eigenes kleines Modell, distilbert-base-german-cased (Apache-2.0)**. Ein Satz-Kopf auf dem
+  eingefrorenen gbert-base – der einzige Weg, das Modell von AP-67 unverändert mitzunutzen – trifft im Entwicklungsteil
+  7,1 % der Befehle, distilbert auf denselben Daten 86,0 %. Ein gemeinsames Training beider Köpfe würde jedes Nachtraining
+  der Befehle an eine neue Abnahme von AP-67 binden, das selbst noch offen ist; distilbert ist zudem halb so groß und
+  doppelt so schnell. gbert-base voll feinabgestimmt wurde nicht gemessen. Einzelheiten: `tools/befehle/README.md`.
+- **e) Training und Export**: in der Cloud auf CPU in Etappen (`train.py --nur/--fortsetzen`, Hintergrundläufe
   höchstens 2 h), Schwelle auf dem Entwicklungsteil, Export ONNX int8 mit **Modellkarte**; int8 darf auf dem Prüfteil
   höchstens 0,5 Prozentpunkte verlieren.
-- **f) Einbau** ☐: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
+  ◐ *Trainiert und exportiert (10.11.2026)*: 5 Epochen auf CPU, ONNX int8 68 MB (gepackt 41 MB), Schwelle 0,8.
+  Prüfteil: **84,8 % getroffen, 0,0 % falsch ausgeführt, 100 % der freien Anfragen weitergegeben**, 3,5 ms je Eingabe.
+  Offen: das Trefferziel 90 % (eine lockerere Schwelle traf 95,4 %, führte aber 2,8 % falsch aus – darum die strenge);
+  int8 verliert 0,6 statt höchstens 0,5 Prozentpunkte (zwei Wünsche, nichts zusätzlich falsch ausgeführt).
+- **f) Einbau**: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
   sherpa-onnx über JNA, Download über `data/FileDownload.kt` mit SHA-256, große Datei auf eigenem Branch
   (`befehle-modell`, wird nicht gemergt), Angebot per Popup. `LoraAgent` fragt zuerst die Regeln, dann das Befehlsmodell,
   erst dann ein Sprachmodell; Strg+K zeigt den erkannten Befehl als ersten Eintrag. Android wird nach dem Gerätetest des
   Hauptnutzers bestätigt.
-- **g) Mischmodus** ☐: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
+  ◐ *Eingebaut (10.11.2026)*: `data/CommandModel.kt` (Download vom Branch `befehle-modell`, SHA-256), `agent/LoraCommands.kt`
+  (Ausführung), `agent/CommandSlots.kt` (Werte), `OrtClassifier` für Satz-Modelle erweitert; Strg+K zeigt den Befehl als
+  ersten Eintrag; Angebot im Dialog vom ersten Start und einmalig als „Neu: Modelle für dieses Gerät“ für alle, die Lora
+  schon nutzen. In der App gemessen: Prüfteil 84,1 % / 0,0 % / 100 %, 3,3 ms. **Android ungetestet.**
+- **g) Mischmodus**: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
   Server) aus Befehlsmodell, Länge, Anhängen, Bildern, Websuche/Werkzeugbedarf, installiertem Modell und Hardware
   (`local/LocalLlm.kt`, `LocalCatalog.kt`); Einstellung unter *Einstellungen › Lora*; Zähler „wie oft und wie schnell
   lokal statt Server“ auf dem Gerät, sichtbar in den Einstellungen.
-- **h) Tests und Doku** ☐: `CommandModelTest` wie `PiiModelTest` (Tokenizer gleich dem des Trainings, mit und ohne
+  ☑ *Erledigt (10.11.2026)*: `ModelRouter.place`, Einstellung *Wo Lora arbeitet* mit Erklärung der Folgen, Zähler
+  `data/LoraWays.kt`, im Chat mit *Modell automatisch wählen*. Offen: was „läuft gut“ heißt, misst erst AP-76.
+- **h) Tests und Doku**: `CommandModelTest` wie `PiiModelTest` (Tokenizer gleich dem des Trainings, mit und ohne
   Modell, echtes Modell mit `BEFEHLE_MODELL`/`BEFEHLE_ORT` auf dem Messkorpus), Tests für Werte, Router und Etiketten;
   README, englische Texte (`i18n/en.tsv`), Release.
+  ☑ *Erledigt (10.11.2026)*: `CommandModelTest`, `CommandSlotsTest` (Werte im Prüfteil 62 von 63), `CommandCorpusTest`,
+  `CommandLabelsTest`; README, `tools/befehle/README.md`, englische Texte.
 
 **Fertig, wenn**: Auf dem Prüfteil ordnet das Modell mindestens 90 % der Befehle richtig zu, führt höchstens 2 % der
 Eingaben falsch aus und gibt mindestens 95 % der freien Anfragen weiter; eine Eingabe braucht auf einem Dienst-PC ohne

@@ -1,0 +1,844 @@
+{"text": "such mal nach doppelten dateien", "bereich": "dateien", "ids": [102, 12223, 103, 23140, 1421, 333, 30084, 11692, 3234, 103]}
+{"text": "räum den ordner auf", "bereich": "dateien", "ids": [102, 12223, 103, 10201, 190, 12321, 432, 216, 103]}
+{"text": "sortiere die dateien hier nach semester in unterordner", "bereich": "dateien", "ids": [102, 12223, 103, 19177, 8923, 128, 11692, 3234, 651, 333, 28493, 2024, 153, 389, 480, 432, 103]}
+{"text": "schmeiß die markierten in den papierkorb", "bereich": "dateien", "ids": [102, 12223, 103, 18161, 15509, 128, 19524, 106, 153, 190, 26668, 30773, 22779, 6804, 103]}
+{"text": "verschiebe die ausgewählten dateien nach Lehre/Seminar", "bereich": "dateien", "ids": [102, 12223, 103, 3604, 9715, 30881, 128, 20058, 11692, 3234, 333, 1997, 4146, 1061, 28493, 1422, 30884, 103]}
+{"text": "benenne die datei um in Protokoll_Institutsrat.docx", "bereich": "dateien", "ids": [102, 12223, 103, 1548, 5212, 128, 11692, 109, 336, 153, 951, 3968, 13504, 30891, 2032, 5039, 3287, 10450, 141, 566, 5601, 30893, 30950, 103]}
+{"text": "gib den dateien sinnvolle namen nach ihrem inhalt", "bereich": "dateien", "ids": [102, 12223, 103, 19945, 190, 11692, 3234, 12958, 30881, 16300, 106, 333, 1860, 15349, 103]}
+{"text": "vergib die schlagwörter Antrag, DFG", "bereich": "dateien", "ids": [102, 12223, 103, 6937, 1218, 128, 22947, 13347, 8822, 1372, 818, 108, 13730, 103]}
+{"text": "transkribiere die aufnahme", "bereich": "dateien", "ids": [102, 12223, 103, 13671, 2029, 1218, 1435, 128, 216, 1169, 103]}
+{"text": "mach aus der datei ein handout", "bereich": "dateien", "ids": [102, 12223, 103, 9701, 260, 125, 11692, 109, 143, 8025, 4734, 103]}
+{"text": "lade die auswahl in die nextcloud", "bereich": "dateien", "ids": [102, 12223, 103, 4268, 158, 128, 260, 1979, 153, 128, 1631, 2084, 2351, 1311, 30888, 103]}
+{"text": "öffne das pdf zum bearbeiten", "bereich": "dateien", "ids": [102, 12223, 103, 2635, 273, 382, 199, 295, 16511, 386, 24140, 103]}
+{"text": "füge die pdfs zusammen", "bereich": "pdf", "ids": [102, 14431, 103, 7420, 124, 128, 295, 16511, 30886, 1105, 103]}
+{"text": "die beiden markierten pdfs zu einem machen", "bereich": "dateien", "ids": [102, 12223, 103, 128, 1361, 19524, 106, 295, 16511, 30886, 205, 403, 1327, 103]}
+{"text": "teile das pdf in einzelne seiten", "bereich": "pdf", "ids": [102, 14431, 103, 1418, 30881, 199, 295, 16511, 153, 8117, 12380, 103]}
+{"text": "lösche seite 3", "bereich": "pdf", "ids": [102, 14431, 103, 8288, 1032, 836, 30881, 353, 103]}
+{"text": "entferne die seiten 2 und 5-7", "bereich": "pdf", "ids": [102, 14431, 103, 3016, 30881, 128, 12380, 197, 136, 493, 232, 554, 103]}
+{"text": "dreh seite 1 um 90 grad", "bereich": "pdf", "ids": [102, 14431, 103, 3382, 30889, 836, 30881, 164, 336, 3543, 5717, 30888, 103]}
+{"text": "alle seiten auf den kopf drehen", "bereich": "pdf", "ids": [102, 14431, 103, 816, 12380, 216, 190, 19701, 30897, 15743, 103]}
+{"text": "mach das pdf kleiner, es ist zu groß für die mail", "bereich": "pdf", "ids": [102, 14431, 103, 9701, 199, 295, 16511, 5429, 818, 288, 215, 205, 723, 231, 128, 6138, 221, 103]}
+{"text": "texterkennung drüberlaufen lassen", "bereich": "pdf", "ids": [102, 14431, 103, 1491, 2084, 7520, 29818, 4484, 1668, 103]}
+{"text": "wandle das pdf in word um", "bereich": "pdf", "ids": [102, 14431, 103, 12805, 3969, 245, 199, 295, 16511, 153, 5928, 30888, 336, 103]}
+{"text": "schwärze überall Müller-Lindenau", "bereich": "pdf", "ids": [102, 14431, 103, 1752, 367, 524, 7572, 13336, 2144, 232, 2887, 169, 244, 103]}
+{"text": "schreib mir hier eine einleitung zum thema inklusion", "bereich": "dokument", "ids": [102, 5517, 103, 292, 4308, 780, 651, 261, 143, 4384, 386, 23151, 30887, 6767, 7212, 103]}
+{"text": "zeichne ein diagramm zum ablauf der anmeldung", "bereich": "dokument", "ids": [102, 5517, 103, 7117, 382, 143, 2944, 22592, 386, 19980, 427, 125, 24284, 688, 132, 103]}
+{"text": "füge eine tabelle mit den spalten Name, Matrikel, Note ein", "bereich": "dokument", "ids": [102, 5517, 103, 7420, 124, 261, 5613, 10687, 30881, 212, 190, 428, 1453, 16300, 30881, 818, 6138, 1340, 5718, 30891, 818, 1760, 30881, 143, 103]}
+{"text": "mach aus dem dokument eine präsentation", "bereich": "dokument", "ids": [102, 5517, 103, 9701, 260, 249, 11959, 30885, 261, 23624, 301, 103]}
+{"text": "bau mir folien aus dem paper", "bereich": "pdf", "ids": [102, 14431, 103, 14452, 780, 912, 270, 260, 249, 26668, 655, 103]}
+{"text": "sortiere nach Nachname", "bereich": "tabelle", "ids": [102, 6130, 103, 19177, 8923, 333, 333, 4641, 103]}
+{"text": "nach punkten absteigend sortieren", "bereich": "tabelle", "ids": [102, 6130, 103, 333, 19051, 106, 28220, 123, 20212, 19177, 2283, 103]}
+{"text": "bereinige die tabelle", "bereich": "tabelle", "ids": [102, 6130, 103, 534, 116, 435, 128, 5613, 10687, 30881, 103]}
+{"text": "summe und mittelwert drunter", "bereich": "tabelle", "ids": [102, 6130, 103, 5905, 3002, 136, 5164, 1555, 8795, 1254, 103]}
+{"text": "berechne die notenverteilung", "bereich": "tabelle", "ids": [102, 6130, 103, 9688, 382, 128, 1760, 106, 14987, 103]}
+{"text": "mittelwert der Punkte je Gruppe", "bereich": "tabelle", "ids": [102, 6130, 103, 5164, 1555, 125, 19051, 30881, 729, 872, 9369, 30881, 103]}
+{"text": "was macht die formel in D2", "bereich": "tabelle", "ids": [102, 6130, 103, 556, 2122, 128, 21925, 30891, 153, 108, 30916, 103]}
+{"text": "leg ein säulendiagramm aus A1:B12 an", "bereich": "tabelle", "ids": [102, 6130, 103, 3096, 143, 21224, 6983, 12977, 1315, 260, 120, 30908, 853, 140, 3594, 208, 103]}
+{"text": "teile die zu vollen folien auf", "bereich": "folien", "ids": [102, 1615, 270, 103, 1418, 30881, 128, 205, 9259, 912, 270, 216, 103]}
+{"text": "lösch folie 4", "bereich": "folien", "ids": [102, 1615, 270, 103, 8288, 127, 912, 110, 470, 103]}
+{"text": "alle folien mit überblenden", "bereich": "folien", "ids": [102, 1615, 270, 103, 816, 912, 270, 212, 304, 18015, 169, 103]}
+{"text": "mach die folie schöner", "bereich": "folien", "ids": [102, 1615, 270, 103, 9701, 128, 912, 110, 16460, 103]}
+{"text": "schreib sprechernotizen zu den folien", "bereich": "folien", "ids": [102, 1615, 270, 103, 292, 4308, 22105, 3780, 23420, 429, 205, 190, 912, 270, 103]}
+{"text": "exportiere das video für opal", "bereich": "video", "ids": [102, 4770, 103, 20346, 343, 1435, 199, 133, 10087, 231, 3794, 152, 103]}
+{"text": "untertitel erzeugen", "bereich": "video", "ids": [102, 4770, 103, 389, 6242, 13046, 103]}
+{"text": "schneide bei 1:30", "bereich": "video", "ids": [102, 4770, 103, 8234, 1579, 282, 164, 853, 1145, 103]}
+{"text": "mach einen rohschnitt ohne ähs und pausen", "bereich": "video", "ids": [102, 4770, 103, 9701, 397, 2519, 5494, 1271, 2978, 1236, 22582, 30886, 136, 26668, 12463, 103]}
+{"text": "verpixel die gesichter", "bereich": "video", "ids": [102, 4770, 103, 6759, 26795, 128, 605, 2625, 103]}
+{"text": "den clip doppelt so schnell", "bereich": "video", "ids": [102, 4770, 103, 190, 13180, 988, 14683, 262, 2083, 103]}
+{"text": "kürze das video auf 10 minuten", "bereich": "video", "ids": [102, 4770, 103, 17065, 30881, 199, 133, 10087, 216, 669, 5401, 990, 103]}
+{"text": "merge the pdfs", "bereich": "pdf", "ids": [102, 14431, 103, 8933, 124, 871, 295, 16511, 30886, 103]}
+{"text": "compress this pdf", "bereich": "pdf", "ids": [102, 14431, 103, 9138, 22043, 3070, 295, 16511, 103]}
+{"text": "sort by date descending", "bereich": "tabelle", "ids": [102, 6130, 103, 19177, 30885, 3413, 11692, 30881, 222, 2842, 10555, 103]}
+{"text": "duplikate finden", "bereich": "dateien", "ids": [102, 12223, 103, 514, 531, 26279, 1585, 103]}
+{"text": "gibt es hier dateien doppelt", "bereich": "dateien", "ids": [102, 12223, 103, 800, 288, 651, 11692, 3234, 14683, 103]}
+{"text": "aufräumen", "bereich": "dateien", "ids": [102, 12223, 103, 216, 7721, 103]}
+{"text": "ordne die dateien nach typ", "bereich": "dateien", "ids": [102, 12223, 103, 12321, 382, 128, 11692, 3234, 333, 5506, 103]}
+{"text": "räum mal nach monat auf", "bereich": "dateien", "ids": [102, 12223, 103, 10201, 1421, 333, 12779, 216, 103]}
+{"text": "lösch die ausgewählten dateien", "bereich": "dateien", "ids": [102, 12223, 103, 8288, 127, 128, 20058, 11692, 3234, 103]}
+{"text": "in den papierkorb damit", "bereich": "dateien", "ids": [102, 12223, 103, 153, 190, 26668, 30773, 22779, 6804, 1039, 103]}
+{"text": "pack die markierten in den ordner Forschung", "bereich": "dateien", "ids": [102, 12223, 103, 28832, 128, 19524, 106, 153, 190, 12321, 432, 1088, 3705, 103]}
+{"text": "verschieben nach „Verwaltung/Dienstreisen“", "bereich": "dateien", "ids": [102, 12223, 103, 27338, 333, 498, 1357, 2188, 1061, 27425, 3409, 2087, 103]}
+{"text": "umbenennen in Expose_final.pdf", "bereich": "dateien", "ids": [102, 12223, 103, 11113, 1836, 153, 20346, 3317, 2032, 835, 152, 566, 295, 16511, 103]}
+{"text": "nenn die datei „Gutachten Zweitprüfer“", "bereich": "dateien", "ids": [102, 12223, 103, 12392, 30882, 128, 11692, 109, 498, 994, 2249, 5744, 2930, 598, 2087, 103]}
+{"text": "dateien nach inhalt umbenennen", "bereich": "dateien", "ids": [102, 12223, 103, 11692, 3234, 333, 15349, 11113, 1836, 103]}
+{"text": "schlagwort Lehre vergeben", "bereich": "dateien", "ids": [102, 12223, 103, 22947, 1936, 1997, 4146, 8089, 103]}
+{"text": "tagge die dateien mit Seminar, WS26", "bereich": "dateien", "ids": [102, 12223, 103, 5613, 21952, 128, 11692, 3234, 212, 28493, 1422, 30884, 818, 121, 30886, 2576, 103]}
+{"text": "verschrifte die audiodatei", "bereich": "dateien", "ids": [102, 12223, 103, 3604, 2782, 30881, 128, 29380, 15103, 123, 30883, 103]}
+{"text": "handout aus der markierten datei", "bereich": "dateien", "ids": [102, 12223, 103, 8025, 4734, 260, 125, 19524, 106, 11692, 109, 103]}
+{"text": "ab in die nextcloud damit", "bereich": "dateien", "ids": [102, 12223, 103, 404, 153, 128, 1631, 2084, 2351, 1311, 30888, 1039, 103]}
+{"text": "im pdf werkzeugkasten öffnen", "bereich": "dateien", "ids": [102, 12223, 103, 223, 295, 16511, 309, 30900, 1397, 17559, 8368, 103]}
+{"text": "bearbeite dieses pdf", "bereich": "dateien", "ids": [102, 12223, 103, 248, 1246, 30881, 1226, 295, 16511, 103]}
+{"text": "zusammenfügen", "bereich": "pdf", "ids": [102, 14431, 103, 1105, 30124, 103]}
+{"text": "pdfs verbinden", "bereich": "pdf", "ids": [102, 14431, 103, 295, 16511, 30886, 12264, 103]}
+{"text": "füg die ausgewählten pdfs zu einer datei zusammen", "bereich": "dateien", "ids": [102, 12223, 103, 7420, 30894, 128, 20058, 295, 16511, 30886, 205, 369, 11692, 109, 1105, 103]}
+{"text": "pdf teilen, seiten 1-3 und 4-10", "bereich": "pdf", "ids": [102, 14431, 103, 295, 16511, 10519, 818, 12380, 164, 232, 353, 136, 470, 232, 669, 103]}
+{"text": "jede seite als eigenes pdf", "bereich": "pdf", "ids": [102, 14431, 103, 4095, 836, 30881, 276, 8053, 295, 16511, 103]}
+{"text": "seite 2 löschen", "bereich": "pdf", "ids": [102, 14431, 103, 836, 30881, 197, 21955, 103]}
+{"text": "nimm die letzten seiten 8-9 raus", "bereich": "pdf", "ids": [102, 14431, 103, 18974, 128, 1761, 12380, 642, 232, 680, 4140, 103]}
+{"text": "seiten 2-4 drehen", "bereich": "pdf", "ids": [102, 14431, 103, 12380, 197, 232, 470, 15743, 103]}
+{"text": "dreh alles um 270 grad", "bereich": "pdf", "ids": [102, 14431, 103, 3382, 30889, 1446, 336, 24033, 5717, 30888, 103]}
+{"text": "verkleinern", "bereich": "pdf", "ids": [102, 14431, 103, 4607, 12957, 310, 103]}
+{"text": "komprimiere das pdf", "bereich": "pdf", "ids": [102, 14431, 103, 4344, 4874, 1435, 199, 295, 16511, 103]}
+{"text": "ocr", "bereich": "pdf", "ids": [102, 14431, 103, 256, 5112, 103]}
+{"text": "mach den scan durchsuchbar", "bereich": "pdf", "ids": [102, 14431, 103, 9701, 190, 10860, 114, 19704, 213, 517, 103]}
+{"text": "als markdown umwandeln", "bereich": "pdf", "ids": [102, 14431, 103, 276, 7576, 18726, 336, 30222, 103]}
+{"text": "pdf zu text", "bereich": "pdf", "ids": [102, 14431, 103, 295, 16511, 205, 1491, 2084, 103]}
+{"text": "in ein word dokument umwandeln", "bereich": "pdf", "ids": [102, 14431, 103, 153, 143, 5928, 30888, 11959, 30885, 336, 30222, 103]}
+{"text": "schwärze die begriffe Kowalczyk, Matrikelnummer", "bereich": "pdf", "ids": [102, 14431, 103, 1752, 367, 524, 128, 3894, 27588, 4894, 6117, 8739, 9974, 818, 6138, 1340, 5718, 6691, 2734, 103]}
+{"text": "hilf mir beim schreiben: ein absatz zur methodik", "bereich": "dokument", "ids": [102, 5517, 103, 14869, 780, 916, 7911, 853, 143, 28220, 458, 356, 24250, 16625, 103]}
+{"text": "schreib an der stelle eine zusammenfassung des kapitels", "bereich": "dokument", "ids": [102, 5517, 103, 292, 4308, 208, 125, 16548, 261, 1105, 3524, 222, 9623, 15287, 103]}
+{"text": "flussdiagramm hier einfügen: antrag stellen, prüfen, genehmigen", "bereich": "dokument", "ids": [102, 5517, 103, 3025, 431, 12977, 1315, 651, 143, 30124, 853, 8822, 1372, 3055, 818, 9384, 818, 9354, 406, 103]}
+{"text": "tabelle einfügen mit Datum, Thema, Raum", "bereich": "dokument", "ids": [102, 5517, 103, 5613, 10687, 30881, 143, 30124, 212, 11692, 182, 818, 23151, 30887, 818, 30809, 30895, 103]}
+{"text": "präsentation aus diesem dokument", "bereich": "dokument", "ids": [102, 5517, 103, 23624, 301, 260, 893, 11959, 30885, 103]}
+{"text": "präsentation aus dem pdf bauen", "bereich": "pdf", "ids": [102, 14431, 103, 23624, 301, 260, 249, 295, 16511, 8637, 103]}
+{"text": "aus dem ausgewählten paper folien machen", "bereich": "dateien", "ids": [102, 12223, 103, 260, 249, 20058, 26668, 655, 912, 270, 1327, 103]}
+{"text": "sortier nach spalte B", "bereich": "tabelle", "ids": [102, 6130, 103, 19177, 1444, 333, 428, 8045, 140, 103]}
+{"text": "tabelle nach Datum sortieren", "bereich": "tabelle", "ids": [102, 6130, 103, 5613, 10687, 30881, 333, 11692, 182, 19177, 2283, 103]}
+{"text": "ordne nach note absteigend", "bereich": "tabelle", "ids": [102, 6130, 103, 12321, 382, 333, 1760, 30881, 28220, 123, 20212, 103]}
+{"text": "doppelte zeilen raus und leerzeichen weg", "bereich": "tabelle", "ids": [102, 6130, 103, 27541, 148, 3641, 4140, 136, 12602, 4224, 2755, 103]}
+{"text": "daten bereinigen", "bereich": "tabelle", "ids": [102, 6130, 103, 11692, 106, 534, 116, 406, 103]}
+{"text": "summe", "bereich": "tabelle", "ids": [102, 6130, 103, 5905, 3002, 103]}
+{"text": "rechne mittelwerte aus", "bereich": "tabelle", "ids": [102, 6130, 103, 7145, 382, 5164, 5339, 260, 103]}
+{"text": "häufigkeit der Noten", "bereich": "tabelle", "ids": [102, 6130, 103, 3836, 526, 125, 1760, 106, 103]}
+{"text": "wie oft kommt jede note vor", "bereich": "tabelle", "ids": [102, 6130, 103, 335, 2349, 1582, 4095, 1760, 30881, 334, 103]}
+{"text": "durchschnitt der Note pro Studiengang", "bereich": "tabelle", "ids": [102, 6130, 103, 9982, 125, 1760, 30881, 951, 3105, 270, 1054, 103]}
+{"text": "anzahl je Kurs", "bereich": "tabelle", "ids": [102, 6130, 103, 208, 1065, 729, 30609, 103]}
+{"text": "erklär die formel", "bereich": "tabelle", "ids": [102, 6130, 103, 1788, 128, 21925, 30891, 103]}
+{"text": "formel in F7 erklären", "bereich": "tabelle", "ids": [102, 6130, 103, 21925, 30891, 153, 166, 30947, 7431, 103]}
+{"text": "kreisdiagramm aus A1:B6", "bereich": "tabelle", "ids": [102, 6130, 103, 20130, 12977, 1315, 260, 120, 30908, 853, 140, 30946, 103]}
+{"text": "diagramm anlegen für C1:D20 als linie", "bereich": "tabelle", "ids": [102, 6130, 103, 2944, 22592, 27972, 231, 553, 30908, 853, 108, 559, 276, 2887, 110, 103]}
+{"text": "volle folien teilen", "bereich": "folien", "ids": [102, 1615, 270, 103, 13556, 912, 270, 10519, 103]}
+{"text": "folie 2 löschen", "bereich": "folien", "ids": [102, 1615, 270, 103, 912, 110, 197, 21955, 103]}
+{"text": "diese folie kann weg", "bereich": "folien", "ids": [102, 1615, 270, 103, 687, 912, 110, 530, 2755, 103]}
+{"text": "übergänge schieben für alle folien", "bereich": "folien", "ids": [102, 1615, 270, 103, 304, 6139, 29915, 519, 231, 816, 912, 270, 103]}
+{"text": "animationen raus", "bereich": "folien", "ids": [102, 1615, 270, 103, 25458, 861, 4140, 103]}
+{"text": "folie aufhübschen", "bereich": "folien", "ids": [102, 1615, 270, 103, 912, 110, 216, 7189, 3299, 381, 103]}
+{"text": "gestalte die folie besser", "bereich": "folien", "ids": [102, 1615, 270, 103, 1298, 8045, 128, 912, 110, 1903, 103]}
+{"text": "notizen für den vortrag schreiben", "bereich": "folien", "ids": [102, 1615, 270, 103, 1760, 20557, 231, 190, 334, 897, 7911, 103]}
+{"text": "sprechernotizen ergänzen", "bereich": "folien", "ids": [102, 1615, 270, 103, 22105, 3780, 23420, 429, 13708, 103]}
+{"text": "exportieren", "bereich": "video", "ids": [102, 4770, 103, 20346, 343, 549, 103]}
+{"text": "als mp4 für youtube rausrendern", "bereich": "video", "ids": [102, 4770, 103, 276, 145, 30903, 30943, 231, 4811, 5847, 361, 4140, 786, 518, 103]}
+{"text": "video exportieren 720p opal", "bereich": "video", "ids": [102, 4770, 103, 133, 10087, 20346, 343, 549, 10750, 30911, 30903, 3794, 152, 103]}
+{"text": "untertitel", "bereich": "video", "ids": [102, 4770, 103, 389, 6242, 103]}
+{"text": "erstelle untertitel aus dem ton", "bereich": "video", "ids": [102, 4770, 103, 1391, 302, 389, 6242, 260, 249, 1512, 30882, 103]}
+{"text": "teile den clip bei 0:45", "bereich": "video", "ids": [102, 4770, 103, 1418, 30881, 190, 13180, 988, 282, 430, 853, 4440, 103]}
+{"text": "hier schneiden", "bereich": "video", "ids": [102, 4770, 103, 651, 24576, 103]}
+{"text": "füllwörter und pausen rausschneiden", "bereich": "video", "ids": [102, 4770, 103, 7420, 137, 13347, 136, 26668, 12463, 4140, 15314, 103]}
+{"text": "rohschnitt machen", "bereich": "video", "ids": [102, 4770, 103, 2519, 5494, 1271, 2978, 1327, 103]}
+{"text": "gesichter unkenntlich machen", "bereich": "video", "ids": [102, 4770, 103, 605, 2625, 258, 21724, 1916, 1327, 103]}
+{"text": "clip langsamer, halbe geschwindigkeit", "bereich": "video", "ids": [102, 4770, 103, 13180, 988, 25907, 818, 14369, 21263, 283, 1015, 103]}
+{"text": "video auf 5 minuten kürzen, beispiele behalten", "bereich": "video", "ids": [102, 4770, 103, 133, 10087, 216, 493, 5401, 990, 17065, 106, 818, 282, 3798, 10901, 103]}
+{"text": "split the pdf into single pages", "bereich": "pdf", "ids": [102, 14431, 103, 428, 18260, 871, 295, 16511, 26378, 8354, 1131, 30881, 6337, 30886, 103]}
+{"text": "rotate page 2", "bereich": "pdf", "ids": [102, 14431, 103, 9261, 709, 6337, 197, 103]}
+{"text": "clean up the table", "bereich": "tabelle", "ids": [102, 6130, 103, 19637, 114, 13702, 871, 5613, 5766, 103]}
+{"text": "dunkl modus bitte", "bereich": "app", "ids": [102, 3433, 103, 15398, 30891, 11219, 154, 2982, 103]}
+{"text": "schrifft grösser machen", "bereich": "app", "ids": [102, 3433, 103, 292, 3734, 14901, 293, 1327, 103]}
+{"text": "wo is nochma der tresor", "bereich": "app", "ids": [102, 3433, 103, 476, 1420, 447, 731, 125, 11951, 13865, 103]}
+{"text": "ich find die literatuhr nich", "bereich": "app", "ids": [102, 3433, 103, 383, 19830, 128, 12792, 141, 1890, 3486, 107, 103]}
+{"text": "kanst du die pdfs zusamenfügen", "bereich": "pdf", "ids": [102, 14431, 103, 9070, 112, 514, 128, 295, 16511, 30886, 11725, 832, 30124, 103]}
+{"text": "einstelungen datenschuz", "bereich": "app", "ids": [102, 3433, 103, 4376, 170, 271, 11692, 1129, 107, 5566, 103]}
+{"text": "hey lora, mach mal bitte kurz die dateien auf", "bereich": "app", "ids": [102, 3433, 103, 24902, 8695, 173, 818, 9701, 1421, 2982, 1901, 128, 11692, 3234, 216, 103]}
+{"text": "ähm ich bräuchte mal eben den scanner", "bereich": "app", "ids": [102, 3433, 103, 22582, 30895, 383, 20670, 2541, 1421, 1202, 190, 10860, 8871, 103]}
+{"text": "öffne bitte, wenn es geht, die transkription", "bereich": "app", "ids": [102, 3433, 103, 2635, 273, 382, 2982, 818, 684, 288, 1125, 818, 128, 13671, 2029, 988, 826, 103]}
+{"text": "moin, wo kann man hier die sprache ändern", "bereich": "app", "ids": [102, 3433, 103, 2315, 113, 818, 476, 530, 545, 651, 128, 4297, 30881, 6289, 103]}
+{"text": "könntest du die websuche für mich abschalten?", "bereich": "app", "ids": [102, 3433, 103, 21650, 514, 128, 16441, 21543, 231, 804, 15162, 1453, 1992, 103]}
+{"text": "ich würd gern die pseudonymisierung anmachen", "bereich": "app", "ids": [102, 3433, 103, 383, 14134, 6016, 128, 295, 13587, 9963, 3281, 24284, 814, 103]}
+{"text": "please open the pdf toolbox", "bereich": "app", "ids": [102, 3433, 103, 26407, 1930, 28996, 871, 295, 16511, 1512, 202, 12485, 103]}
+{"text": "where can I enter my api key", "bereich": "app", "ids": [102, 3433, 103, 30515, 9051, 144, 402, 105, 7679, 23430, 30883, 21781, 30933, 103]}
+{"text": "i need the transcription", "bereich": "app", "ids": [102, 3433, 103, 144, 26716, 871, 13671, 5112, 988, 826, 103]}
+{"text": "turn on web search", "bereich": "app", "ids": [102, 3433, 103, 29572, 1158, 16441, 24859, 9207, 30889, 103]}
+{"text": "make the font bigger", "bereich": "app", "ids": [102, 3433, 103, 20514, 871, 20875, 2036, 7104, 21952, 30884, 103]}
+{"text": "SUCHE NACH UPDATES", "bereich": "app", "ids": [102, 3433, 103, 18479, 333, 9392, 6398, 103]}
+{"text": "VIDEOEDITOR", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 26823, 3432, 103]}
+{"text": "lora weg", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 2755, 103]}
+{"text": "update?", "bereich": "app", "ids": [102, 3433, 103, 9392, 709, 1992, 103]}
+{"text": "backup machen pls", "bereich": "app", "ids": [102, 3433, 103, 20694, 1575, 1327, 2406, 30886, 103]}
+{"text": "kurze frage: wo stell ich den zitierstil um", "bereich": "app", "ids": [102, 3433, 103, 7730, 16823, 853, 476, 2357, 383, 190, 10579, 21515, 221, 336, 103]}
+{"text": "sag mal, gibts hier nen dunkelmodus", "bereich": "app", "ids": [102, 3433, 103, 753, 1421, 818, 800, 30886, 651, 12392, 11521, 25287, 103]}
+{"text": "ich will, dass lora aufhört rumzuhüpfen", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 818, 377, 8695, 173, 216, 12888, 9233, 481, 7189, 6034, 103]}
+{"text": "das teil soll nicht immer nachfragen bevor es das modell wechselt", "bereich": "app", "ids": [102, 3433, 103, 199, 1418, 585, 255, 847, 333, 4789, 2784, 288, 199, 11219, 630, 20197, 103]}
+{"text": "rotier ma seite 3", "bereich": "pdf", "ids": [102, 14431, 103, 9261, 198, 6138, 836, 30881, 353, 103]}
+{"text": "sortier das ding nach name", "bereich": "tabelle", "ids": [102, 6130, 103, 19177, 1444, 199, 2944, 4798, 333, 16300, 30881, 103]}
+{"text": "mach das pdf mal kleiner", "bereich": "pdf", "ids": [102, 14431, 103, 9701, 199, 295, 16511, 1421, 5429, 103]}
+{"text": "exportier das als mp4", "bereich": "video", "ids": [102, 4770, 103, 20346, 343, 198, 199, 276, 145, 30903, 30943, 103]}
+{"text": "was geht ab", "bereich": "app", "ids": [102, 3433, 103, 556, 1125, 404, 103]}
+{"text": "kannste mir mal eben nen satz umformulieren: wir treffen uns morgen", "bereich": "app", "ids": [102, 3433, 103, 4803, 30881, 780, 1421, 1202, 12392, 18780, 30901, 2403, 7401, 12857, 853, 268, 4790, 734, 5519, 103]}
+{"text": "wie war das noch mit signifikanz und p-wert, kurz", "bereich": "app", "ids": [102, 3433, 103, 335, 285, 199, 447, 212, 20631, 1325, 30901, 136, 295, 232, 5908, 818, 1901, 103]}
+{"text": "ich hab keine ahnung wie ich die diskussion in meinem paper aufbauen soll, hilf mir das durchzudenken", "bereich": "app", "ids": [102, 3433, 103, 383, 2253, 855, 21366, 132, 335, 383, 128, 6830, 573, 220, 153, 4658, 26668, 655, 19494, 585, 818, 14869, 780, 199, 387, 481, 5333, 103]}
+{"text": "schreib mir bitte nen ausführlichen bericht über die evaluation mit allen kennzahlen aus der datei", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 780, 2982, 12392, 30546, 30882, 534, 210, 304, 128, 14841, 152, 3478, 826, 212, 1816, 12184, 4267, 260, 125, 11692, 109, 103]}
+{"text": "can you summarize the attached 40-page report and list open questions", "bereich": "app", "ids": [102, 3433, 103, 9051, 4811, 5905, 737, 2430, 524, 871, 15716, 1563, 30888, 2161, 232, 6337, 474, 2710, 1257, 29108, 28996, 2607, 331, 3116, 103]}
+{"text": "pls rephrase: the deadline has been moved", "bereich": "app", "ids": [102, 3433, 103, 2406, 30886, 474, 823, 10264, 30881, 853, 871, 506, 298, 2396, 11828, 15878, 28567, 312, 103]}
+{"text": "dunkelmodus an pls", "bereich": "app", "ids": [102, 3433, 103, 11521, 25287, 208, 2406, 30886, 103]}
+{"text": "schrift groesser", "bereich": "app", "ids": [102, 3433, 103, 7901, 9404, 4112, 103]}
+{"text": "wo is der pdf werkzeugkasten", "bereich": "app", "ids": [102, 3433, 103, 476, 1420, 125, 295, 16511, 309, 30900, 1397, 17559, 103]}
+{"text": "ich such die einstelungen für die stimme", "bereich": "app", "ids": [102, 3433, 103, 383, 23140, 128, 4376, 170, 271, 231, 128, 9111, 30881, 103]}
+{"text": "kannst du mal die duplikate rausuchen", "bereich": "dateien", "ids": [102, 12223, 103, 4803, 514, 1421, 128, 514, 531, 26279, 4140, 1160, 103]}
+{"text": "datenschtz", "bereich": "app", "ids": [102, 3433, 103, 11692, 1129, 442, 30901, 103]}
+{"text": "hey, mach mal literatur auf", "bereich": "app", "ids": [102, 3433, 103, 24902, 818, 9701, 1421, 12792, 900, 216, 103]}
+{"text": "hmm wo war nochmal der papierkorb", "bereich": "app", "ids": [102, 3433, 103, 19888, 30895, 476, 285, 14944, 125, 26668, 30773, 22779, 6804, 103]}
+{"text": "zeig mal bitte die modelle die es gibt", "bereich": "app", "ids": [102, 3433, 103, 4171, 1421, 2982, 128, 11219, 2033, 128, 288, 800, 103]}
+{"text": "servus, wie krieg ich die app auf englisch", "bereich": "app", "ids": [102, 3433, 103, 12297, 154, 818, 335, 15979, 383, 128, 10969, 216, 15896, 103]}
+{"text": "bitte die startanimation ausmachen, danke", "bereich": "app", "ids": [102, 3433, 103, 2982, 128, 29456, 7434, 5462, 220, 24038, 818, 9228, 103]}
+{"text": "könnte lora bitte ruhiger sein", "bereich": "app", "ids": [102, 3433, 103, 1882, 8695, 173, 2982, 23763, 290, 103]}
+{"text": "open literature", "bereich": "app", "ids": [102, 3433, 103, 28996, 12792, 22759, 103]}
+{"text": "where are the privacy settings", "bereich": "app", "ids": [102, 3433, 103, 30515, 5168, 871, 3282, 26393, 23497, 3150, 4080, 103]}
+{"text": "i want to scan something", "bereich": "app", "ids": [102, 3433, 103, 144, 23812, 1512, 10860, 114, 20420, 27655, 103]}
+{"text": "disable pseudonymization", "bereich": "app", "ids": [102, 3433, 103, 9171, 5619, 295, 13587, 9963, 27464, 103]}
+{"text": "switch to light theme", "bereich": "app", "ids": [102, 3433, 103, 25548, 17121, 1512, 6840, 8972, 30885, 23151, 30881, 103]}
+{"text": "TRESOR ÖFFNEN", "bereich": "app", "ids": [102, 3433, 103, 11951, 13865, 8368, 103]}
+{"text": "DATEIEN BITTE", "bereich": "app", "ids": [102, 3433, 103, 11692, 3234, 2982, 103]}
+{"text": "api-schlüssel?", "bereich": "app", "ids": [102, 3433, 103, 23430, 30883, 232, 30430, 5378, 1992, 103]}
+{"text": "sync einrichten pls", "bereich": "app", "ids": [102, 3433, 103, 12285, 30893, 143, 2528, 2406, 30886, 103]}
+{"text": "kurze frage, wo ist das logo für briefe", "bereich": "app", "ids": [102, 3433, 103, 7730, 16823, 818, 476, 215, 199, 11589, 30892, 231, 2118, 7978, 103]}
+{"text": "sag mal wo kann ich nen bug melden", "bereich": "app", "ids": [102, 3433, 103, 753, 1421, 476, 530, 383, 12392, 22033, 30894, 11482, 103]}
+{"text": "ich will nicht dass das ding im hintergrund weiterläuft", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 255, 377, 199, 2944, 4798, 223, 2145, 1346, 576, 25276, 103]}
+{"text": "mach mal ne tour hier", "bereich": "app", "ids": [102, 3433, 103, 9701, 1421, 1631, 11525, 651, 103]}
+{"text": "lösch ma seite 5", "bereich": "pdf", "ids": [102, 14431, 103, 8288, 127, 6138, 836, 30881, 493, 103]}
+{"text": "räum hier ma auf", "bereich": "dateien", "ids": [102, 12223, 103, 10201, 651, 6138, 216, 103]}
+{"text": "mach untertitel dran", "bereich": "video", "ids": [102, 4770, 103, 9701, 389, 6242, 8523, 103]}
+{"text": "die tabelle is voll durcheinander, mach die sauber", "bereich": "tabelle", "ids": [102, 6130, 103, 128, 5613, 10687, 30881, 1420, 1724, 387, 1875, 818, 9701, 128, 10497, 103]}
+{"text": "na du", "bereich": "app", "ids": [102, 3433, 103, 5587, 514, 103]}
+{"text": "kannste das kurz netter schreiben: bitte pünktlich sein", "bereich": "app", "ids": [102, 3433, 103, 4803, 30881, 199, 1901, 29684, 30884, 7911, 853, 2982, 30637, 290, 103]}
+{"text": "wie war nochmal die formel für den mittelwert", "bereich": "app", "ids": [102, 3433, 103, 335, 285, 14944, 128, 21925, 30891, 231, 190, 5164, 1555, 103]}
+{"text": "ich komm bei meiner auswertung nicht weiter, kannst du mit mir die daten im anhang durchgehen", "bereich": "app", "ids": [102, 3433, 103, 383, 1153, 282, 3884, 260, 3877, 255, 576, 818, 4803, 514, 212, 780, 128, 11692, 106, 223, 208, 2382, 11232, 471, 103]}
+{"text": "schreib nen ausführlichen vergleich der drei methoden mit quellen", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 12392, 30546, 30882, 5565, 125, 830, 24250, 169, 212, 2607, 2524, 103]}
+{"text": "could you draft a detailed grant proposal outline with work packages", "bereich": "app", "ids": [102, 3433, 103, 30624, 4811, 4456, 401, 120, 11870, 3062, 30888, 5717, 2036, 951, 13385, 152, 12338, 2396, 5470, 20204, 28832, 3200, 103]}
+{"text": "quick question: what is a p-value", "bereich": "app", "ids": [102, 3433, 103, 2607, 436, 2607, 331, 220, 853, 20009, 1420, 120, 295, 232, 22787, 535, 103]}
+{"text": "thx", "bereich": "app", "ids": [102, 3433, 103, 1773, 30950, 103]}
+{"text": "neuen chat aufmachen", "bereich": "app", "ids": [102, 3433, 103, 1260, 1677, 141, 216, 7636, 103]}
+{"text": "ich möchte ein neues Gespräch anfangen", "bereich": "app", "ids": [102, 3433, 103, 383, 2298, 143, 4781, 3614, 8400, 15707, 103]}
+{"text": "start a new chat", "bereich": "app", "ids": [102, 3433, 103, 29456, 120, 5824, 1677, 141, 103]}
+{"text": "zeig mir meine Dateien", "bereich": "app", "ids": [102, 3433, 103, 4171, 780, 1717, 11692, 3234, 103]}
+{"text": "wo sind meine dokumente abgelegt", "bereich": "app", "ids": [102, 3433, 103, 476, 341, 1717, 11959, 123, 24065, 103]}
+{"text": "dateien", "bereich": "app", "ids": [102, 3433, 103, 11692, 3234, 103]}
+{"text": "bring mich zur Literaturverwaltung", "bereich": "app", "ids": [102, 3433, 103, 23002, 804, 356, 12792, 900, 5395, 103]}
+{"text": "literatur öffnen", "bereich": "app", "ids": [102, 3433, 103, 12792, 900, 8368, 103]}
+{"text": "ich will ein Interview verschriften", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 143, 2081, 4179, 3604, 11176, 103]}
+{"text": "transkription", "bereich": "app", "ids": [102, 3433, 103, 13671, 2029, 988, 826, 103]}
+{"text": "audio in text umwandeln, wo geht das", "bereich": "app", "ids": [102, 3433, 103, 29380, 30892, 153, 1491, 2084, 336, 30222, 818, 476, 1125, 199, 103]}
+{"text": "ich muss einen Zettel einscannen", "bereich": "app", "ids": [102, 3433, 103, 383, 1092, 397, 148, 11069, 6770, 12142, 280, 103]}
+{"text": "beleg abfotografieren und als pdf ablegen", "bereich": "app", "ids": [102, 3433, 103, 4938, 404, 20931, 13044, 549, 136, 276, 295, 16511, 19980, 1109, 103]}
+{"text": "scan a document", "bereich": "app", "ids": [102, 3433, 103, 10860, 114, 120, 5601, 5872, 1393, 103]}
+{"text": "wo kann ich Bilder generieren lassen", "bereich": "app", "ids": [102, 3433, 103, 476, 530, 383, 17846, 105, 4966, 549, 1668, 103]}
+{"text": "bildgenerator", "bereich": "app", "ids": [102, 3433, 103, 17846, 9443, 1815, 103]}
+{"text": "geplante aufgaben anzeigen", "bereich": "app", "ids": [102, 3433, 103, 11294, 216, 1378, 17275, 103]}
+{"text": "wo lege ich fest, dass der Agent jeden Montag etwas erledigt", "bereich": "app", "ids": [102, 3433, 103, 476, 3096, 30881, 383, 1280, 818, 377, 125, 5625, 227, 2809, 4716, 857, 1247, 16066, 103]}
+{"text": "welche Modelle gibt es überhaupt", "bereich": "app", "ids": [102, 3433, 103, 2276, 11219, 2033, 800, 288, 4676, 103]}
+{"text": "modellübersicht", "bereich": "app", "ids": [102, 3433, 103, 11219, 630, 278, 1294, 103]}
+{"text": "ich will zwei Modelle gegeneinander antreten lassen", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 510, 11219, 2033, 20981, 15070, 1668, 103]}
+{"text": "wo lade ich ein Offline-Modell herunter", "bereich": "app", "ids": [102, 3433, 103, 476, 4268, 158, 383, 143, 15008, 2396, 232, 11219, 630, 8380, 103]}
+{"text": "lokale modelle verwalten", "bereich": "app", "ids": [102, 3433, 103, 12406, 11219, 2033, 28225, 103]}
+{"text": "wie viele Tokens hab ich diesen Monat verbraucht", "bereich": "app", "ids": [102, 3433, 103, 335, 1358, 1512, 485, 30886, 2253, 383, 1451, 12779, 13366, 4717, 30885, 103]}
+{"text": "verbrauch", "bereich": "app", "ids": [102, 3433, 103, 13366, 4717, 103]}
+{"text": "umgebungen für agenten", "bereich": "app", "ids": [102, 3433, 103, 9448, 21613, 231, 5625, 9359, 103]}
+{"text": "ich brauch was neues, wo erstelle ich das", "bereich": "app", "ids": [102, 3433, 103, 383, 23103, 556, 4781, 818, 476, 1391, 302, 383, 199, 103]}
+{"text": "erstellen", "bereich": "app", "ids": [102, 3433, 103, 12615, 103]}
+{"text": "einstellungen", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 103]}
+{"text": "open settings", "bereich": "app", "ids": [102, 3433, 103, 28996, 23497, 3150, 4080, 103]}
+{"text": "mach mal die Optionen auf", "bereich": "app", "ids": [102, 3433, 103, 9701, 1421, 128, 8897, 2880, 216, 103]}
+{"text": "pdf werkzeugkasten öffnen", "bereich": "app", "ids": [102, 3433, 103, 295, 16511, 309, 30900, 1397, 17559, 8368, 103]}
+{"text": "ich hab ein pdf und will da was dran machen", "bereich": "app", "ids": [102, 3433, 103, 383, 2253, 143, 295, 16511, 136, 978, 408, 556, 8523, 1327, 103]}
+{"text": "tresor", "bereich": "app", "ids": [102, 3433, 103, 11951, 13865, 103]}
+{"text": "wo kann ich vertrauliche Interviewdaten sicher ablegen", "bereich": "app", "ids": [102, 3433, 103, 476, 530, 383, 25022, 459, 2081, 4179, 7216, 1765, 19980, 1109, 103]}
+{"text": "ich möchte ein Quiz für meine Studierenden bauen", "bereich": "app", "ids": [102, 3433, 103, 383, 2298, 143, 2607, 460, 231, 1717, 17975, 169, 8637, 103]}
+{"text": "lernspiele", "bereich": "app", "ids": [102, 3433, 103, 26140, 3798, 103]}
+{"text": "öffne mail und kalender", "bereich": "app", "ids": [102, 3433, 103, 2635, 273, 382, 6138, 221, 136, 13419, 2829, 167, 103]}
+{"text": "stapelverarbeitung", "bereich": "app", "ids": [102, 3433, 103, 305, 11712, 13613, 103]}
+{"text": "ich muss 80 Hausarbeiten vorkorrigieren, gibts dafür was", "bereich": "app", "ids": [102, 3433, 103, 383, 1092, 3243, 17675, 2596, 334, 5105, 7570, 549, 818, 800, 30886, 1877, 556, 103]}
+{"text": "antragswerkstatt", "bereich": "app", "ids": [102, 3433, 103, 8822, 1372, 9577, 1713, 3341, 103]}
+{"text": "ich schreibe gerade einen DFG-Antrag, wo fange ich an", "bereich": "app", "ids": [102, 3433, 103, 383, 30002, 2257, 397, 108, 13730, 232, 8822, 1372, 818, 476, 10458, 4798, 30881, 383, 208, 103]}
+{"text": "videoeditor starten", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 26823, 3432, 9408, 103]}
+{"text": "ich will ein Lehrvideo schneiden", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 143, 1997, 147, 16943, 24576, 103]}
+{"text": "starte die literatursuche", "bereich": "app", "ids": [102, 3433, 103, 29456, 30881, 128, 12792, 900, 21543, 103]}
+{"text": "ich brauch paper zu einem thema, welcher modus", "bereich": "app", "ids": [102, 3433, 103, 383, 23103, 26668, 655, 205, 403, 23151, 30887, 818, 5990, 11219, 154, 103]}
+{"text": "quellenmodus an", "bereich": "app", "ids": [102, 3433, 103, 2607, 2524, 25287, 208, 103]}
+{"text": "antworten nur mit belegen bitte, wie heißt der modus", "bereich": "app", "ids": [102, 3433, 103, 20838, 475, 212, 15785, 2982, 818, 335, 2701, 125, 11219, 154, 103]}
+{"text": "exzerpt modus", "bereich": "app", "ids": [102, 3433, 103, 1431, 1385, 659, 11219, 154, 103]}
+{"text": "ich will ein paper exzerpieren", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 143, 26668, 655, 1431, 1385, 30773, 786, 103]}
+{"text": "planungsmodus starten", "bereich": "app", "ids": [102, 3433, 103, 17761, 327, 25287, 9408, 103]}
+{"text": "sprachmodus", "bereich": "app", "ids": [102, 3433, 103, 4297, 25287, 103]}
+{"text": "ich möchte mit dem modell sprechen statt tippen", "bereich": "app", "ids": [102, 3433, 103, 383, 2298, 212, 249, 11219, 630, 4364, 1477, 8593, 2091, 103]}
+{"text": "wo trage ich meinen API-Schlüssel ein", "bereich": "app", "ids": [102, 3433, 103, 476, 28285, 383, 3609, 23430, 30883, 232, 30430, 5378, 143, 103]}
+{"text": "api zugang", "bereich": "app", "ids": [102, 3433, 103, 23430, 30883, 4208, 349, 103]}
+{"text": "github token hinterlegen", "bereich": "app", "ids": [102, 3433, 103, 17445, 1198, 768, 1512, 485, 2145, 1353, 103]}
+{"text": "nextcloud verbinden", "bereich": "app", "ids": [102, 3433, 103, 1631, 2084, 2351, 1311, 30888, 12264, 103]}
+{"text": "wo füge ich einen mcp server hinzu", "bereich": "app", "ids": [102, 3433, 103, 476, 7420, 124, 383, 397, 145, 30893, 30903, 4101, 4648, 103]}
+{"text": "einstellungen chat und werkzeuge", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 1677, 141, 136, 309, 30900, 3196, 103]}
+{"text": "wo schalte ich große Werkzeuge ein", "bereich": "app", "ids": [102, 3433, 103, 476, 292, 8045, 383, 1822, 309, 30900, 3196, 143, 103]}
+{"text": "seitenleiste umsortieren", "bereich": "app", "ids": [102, 3433, 103, 12380, 1727, 30881, 17876, 2527, 549, 103]}
+{"text": "lora einstellungen", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 4376, 630, 271, 103]}
+{"text": "datenschutz", "bereich": "app", "ids": [102, 3433, 103, 11692, 1129, 107, 597, 103]}
+{"text": "privacy settings", "bereich": "app", "ids": [102, 3433, 103, 3282, 26393, 23497, 3150, 4080, 103]}
+{"text": "was hat sich die app über mich gemerkt", "bereich": "app", "ids": [102, 3433, 103, 556, 308, 251, 128, 10969, 304, 804, 1524, 1713, 30885, 103]}
+{"text": "gedächtnis einstellungen", "bereich": "app", "ids": [102, 3433, 103, 4877, 16079, 4376, 630, 271, 103]}
+{"text": "wissenssammlung", "bereich": "app", "ids": [102, 3433, 103, 1770, 21303, 737, 691, 103]}
+{"text": "eigene pdfs durchsuchbar machen für den chat", "bereich": "app", "ids": [102, 3433, 103, 3468, 295, 16511, 30886, 19704, 213, 517, 1327, 231, 190, 1677, 141, 103]}
+{"text": "wo stelle ich APA als Zitierstil ein", "bereich": "app", "ids": [102, 3433, 103, 476, 16548, 383, 23430, 30887, 276, 10579, 21515, 221, 143, 103]}
+{"text": "zotero anbinden", "bereich": "app", "ids": [102, 3433, 103, 148, 11428, 30892, 208, 18485, 103]}
+{"text": "einstellungen zur spracherkennung", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 356, 4297, 7520, 103]}
+{"text": "welches whisper modell wird benutzt", "bereich": "app", "ids": [102, 3433, 103, 5073, 9299, 17576, 105, 11219, 630, 371, 7317, 103]}
+{"text": "dokumente und logos", "bereich": "app", "ids": [102, 3433, 103, 11959, 123, 136, 11589, 317, 103]}
+{"text": "einstellungen vorlesen", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 334, 12418, 103]}
+{"text": "darstellung", "bereich": "app", "ids": [102, 3433, 103, 555, 1091, 103]}
+{"text": "wie sieht die app aus, wo ändere ich das", "bereich": "app", "ids": [102, 3433, 103, 335, 2671, 128, 10969, 260, 818, 476, 1576, 2411, 30881, 383, 199, 103]}
+{"text": "ich ziehe auf einen neuen Laptop um, wie nehme ich alles mit", "bereich": "app", "ids": [102, 3433, 103, 383, 30529, 216, 397, 1260, 4268, 659, 324, 336, 818, 335, 10707, 383, 1446, 212, 103]}
+{"text": "backup", "bereich": "app", "ids": [102, 3433, 103, 20694, 1575, 103]}
+{"text": "gelöschten chat wiederholen", "bereich": "app", "ids": [102, 3433, 103, 18776, 106, 1677, 141, 18645, 103]}
+{"text": "papierkorb für chats", "bereich": "app", "ids": [102, 3433, 103, 26668, 30773, 22779, 6804, 231, 1677, 1515, 103]}
+{"text": "die app ist total langsam und frisst speicher", "bereich": "app", "ids": [102, 3433, 103, 128, 10969, 215, 11868, 6097, 136, 1239, 7204, 2456, 952, 103]}
+{"text": "arbeitsspeicher", "bereich": "app", "ids": [102, 3433, 103, 12413, 18451, 103]}
+{"text": "dem agenten einen ordner auf meinem pc freigeben", "bereich": "app", "ids": [102, 3433, 103, 249, 5625, 9359, 397, 12321, 432, 216, 4658, 295, 30893, 1626, 863, 103]}
+{"text": "lokale ordner", "bereich": "app", "ids": [102, 3433, 103, 12406, 12321, 432, 103]}
+{"text": "ich will am büro-pc und zuhause mit denselben daten arbeiten", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 339, 140, 28937, 232, 295, 30893, 136, 22257, 212, 20290, 11692, 106, 3496, 103]}
+{"text": "synchronisation einrichten", "bereich": "app", "ids": [102, 3433, 103, 30403, 11383, 143, 2528, 103]}
+{"text": "speicherorte", "bereich": "app", "ids": [102, 3433, 103, 2456, 952, 4928, 103]}
+{"text": "wo landen meine erstellten dokumente, kann ich den ordner ändern", "bereich": "app", "ids": [102, 3433, 103, 476, 19583, 1717, 27274, 30882, 11959, 123, 818, 530, 383, 190, 12321, 432, 6289, 103]}
+{"text": "gibt es ein update", "bereich": "app", "ids": [102, 3433, 103, 800, 288, 143, 9392, 709, 103]}
+{"text": "check for updates", "bereich": "app", "ids": [102, 3433, 103, 17776, 207, 1088, 9392, 6398, 103]}
+{"text": "ich möchte einen fehler melden", "bereich": "app", "ids": [102, 3433, 103, 383, 2298, 397, 20980, 11482, 103]}
+{"text": "problem melden", "bereich": "app", "ids": [102, 3433, 103, 11164, 11482, 103]}
+{"text": "neuer chat", "bereich": "app", "ids": [102, 3433, 103, 3973, 1677, 141, 103]}
+{"text": "ich hab ne frage, mach mal nen frischen chat auf", "bereich": "app", "ids": [102, 3433, 103, 383, 2253, 1631, 16823, 818, 9701, 1421, 12392, 21619, 1677, 141, 216, 103]}
+{"text": "öffne dateien", "bereich": "app", "ids": [102, 3433, 103, 2635, 273, 382, 11692, 3234, 103]}
+{"text": "wo finde ich die datei von gestern", "bereich": "app", "ids": [102, 3433, 103, 476, 8385, 383, 128, 11692, 109, 195, 7907, 103]}
+{"text": "my files", "bereich": "app", "ids": [102, 3433, 103, 7679, 27440, 30886, 103]}
+{"text": "literatur", "bereich": "app", "ids": [102, 3433, 103, 12792, 900, 103]}
+{"text": "zu meiner literatursammlung", "bereich": "app", "ids": [102, 3433, 103, 205, 3884, 12792, 900, 4121, 103]}
+{"text": "wo importiere ich bibtex", "bereich": "app", "ids": [102, 3433, 103, 476, 223, 2710, 1435, 383, 7104, 3800, 30950, 103]}
+{"text": "transkribieren", "bereich": "app", "ids": [102, 3433, 103, 13671, 2029, 1218, 549, 103]}
+{"text": "ich hab eine aufnahme vom seminar und brauch den text", "bereich": "app", "ids": [102, 3433, 103, 383, 2253, 261, 216, 1169, 507, 28493, 1422, 30884, 136, 23103, 190, 1491, 2084, 103]}
+{"text": "scannen", "bereich": "app", "ids": [102, 3433, 103, 10860, 7403, 103]}
+{"text": "dokument scannen", "bereich": "app", "ids": [102, 3433, 103, 11959, 30885, 10860, 7403, 103]}
+{"text": "ich hab hier ne quittung auf papier", "bereich": "app", "ids": [102, 3433, 103, 383, 2253, 651, 1631, 2607, 2978, 132, 216, 26668, 30773, 30884, 103]}
+{"text": "bilder erzeugen", "bereich": "app", "ids": [102, 3433, 103, 17846, 105, 13046, 103]}
+{"text": "ich brauche eine illustration, wo mach ich das", "bereich": "app", "ids": [102, 3433, 103, 383, 7547, 261, 27244, 301, 818, 476, 9701, 383, 199, 103]}
+{"text": "aufgaben planen", "bereich": "app", "ids": [102, 3433, 103, 216, 1378, 15767, 103]}
+{"text": "zeitgesteuerte aufgaben", "bereich": "app", "ids": [102, 3433, 103, 3502, 3593, 8970, 30881, 216, 1378, 103]}
+{"text": "modelle", "bereich": "app", "ids": [102, 3433, 103, 11219, 2033, 103]}
+{"text": "liste aller modelle vom uni server", "bereich": "app", "ids": [102, 3433, 103, 29108, 30881, 1279, 11219, 2033, 507, 258, 30883, 4101, 103]}
+{"text": "modelle vergleichen", "bereich": "app", "ids": [102, 3433, 103, 11219, 2033, 20217, 103]}
+{"text": "dieselbe frage an zwei modelle", "bereich": "app", "ids": [102, 3433, 103, 16669, 16823, 208, 510, 11219, 2033, 103]}
+{"text": "modelle auf diesem gerät", "bereich": "app", "ids": [102, 3433, 103, 11219, 2033, 216, 893, 20414, 103]}
+{"text": "ich will offline arbeiten, wo krieg ich ein modell her", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 15008, 2396, 3496, 818, 476, 15979, 383, 143, 11219, 630, 670, 103]}
+{"text": "tokenverbrauch", "bereich": "app", "ids": [102, 3433, 103, 1512, 485, 9346, 103]}
+{"text": "statistik meiner anfragen", "bereich": "app", "ids": [102, 3433, 103, 6927, 3732, 3884, 11083, 2727, 103]}
+{"text": "umgebungen", "bereich": "app", "ids": [102, 3433, 103, 9448, 21613, 103]}
+{"text": "netzwerkzugriff für agenten einstellen", "bereich": "app", "ids": [102, 3433, 103, 22960, 8393, 22779, 1272, 1149, 231, 5625, 9359, 16615, 103]}
+{"text": "tu vorlagen und gestalten", "bereich": "app", "ids": [102, 3433, 103, 14009, 334, 1116, 136, 11619, 103]}
+{"text": "zum erstellen-bereich", "bereich": "app", "ids": [102, 3433, 103, 386, 12615, 232, 534, 300, 103]}
+{"text": "geh in die einstellungen", "bereich": "app", "ids": [102, 3433, 103, 771, 153, 128, 4376, 630, 271, 103]}
+{"text": "settings", "bereich": "app", "ids": [102, 3433, 103, 23497, 3150, 4080, 103]}
+{"text": "einstellungsübersicht", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 327, 278, 1294, 103]}
+{"text": "pdf-tools", "bereich": "app", "ids": [102, 3433, 103, 295, 16511, 232, 1512, 12866, 103]}
+{"text": "PDF Werkzeug", "bereich": "app", "ids": [102, 3433, 103, 295, 16511, 309, 30900, 1397, 103]}
+{"text": "ich muss was unterschreiben, ist ein pdf", "bereich": "app", "ids": [102, 3433, 103, 383, 1092, 556, 8338, 2310, 818, 215, 143, 295, 16511, 103]}
+{"text": "zum tresor", "bereich": "app", "ids": [102, 3433, 103, 386, 11951, 13865, 103]}
+{"text": "geschützter bereich mit pin", "bereich": "app", "ids": [102, 3433, 103, 10888, 105, 534, 300, 212, 295, 113, 103]}
+{"text": "ein memory spiel für die vorlesung erstellen", "bereich": "app", "ids": [102, 3433, 103, 143, 6501, 6184, 30933, 1538, 231, 128, 334, 4420, 132, 12615, 103]}
+{"text": "escape room bauen", "bereich": "app", "ids": [102, 3433, 103, 288, 2187, 2854, 23213, 8637, 103]}
+{"text": "mail & kalender", "bereich": "app", "ids": [102, 3433, 103, 6138, 221, 1562, 13419, 2829, 167, 103]}
+{"text": "massenkontrolle", "bereich": "app", "ids": [102, 3433, 103, 7567, 1552, 1738, 7945, 103]}
+{"text": "viele dateien auf einmal mit demselben auftrag bearbeiten", "bereich": "app", "ids": [102, 3433, 103, 1358, 11692, 3234, 216, 1839, 212, 19873, 216, 897, 24140, 103]}
+{"text": "antrags-werkstatt öffnen", "bereich": "app", "ids": [102, 3433, 103, 8822, 1372, 30886, 232, 309, 943, 25673, 30885, 8368, 103]}
+{"text": "drittmittelantrag vorbereiten", "bereich": "app", "ids": [102, 3433, 103, 12148, 1049, 6284, 18958, 103]}
+{"text": "video", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 103]}
+{"text": "videoschnitt", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 2380, 103]}
+{"text": "literatursuche", "bereich": "app", "ids": [102, 3433, 103, 12792, 900, 21543, 103]}
+{"text": "such mir studien, modus literatur", "bereich": "app", "ids": [102, 3433, 103, 23140, 780, 3105, 270, 818, 11219, 154, 12792, 900, 103]}
+{"text": "literature search mode", "bereich": "app", "ids": [102, 3433, 103, 12792, 22759, 24859, 9207, 30889, 11219, 30881, 103]}
+{"text": "quellen modus", "bereich": "app", "ids": [102, 3433, 103, 2607, 2524, 11219, 154, 103]}
+{"text": "modus mit belegprotokoll", "bereich": "app", "ids": [102, 3433, 103, 11219, 154, 212, 4938, 29062, 103]}
+{"text": "exzerpt", "bereich": "app", "ids": [102, 3433, 103, 1431, 1385, 659, 103]}
+{"text": "exzerpieren", "bereich": "app", "ids": [102, 3433, 103, 1431, 1385, 30773, 786, 103]}
+{"text": "planungsmodus", "bereich": "app", "ids": [102, 3433, 103, 17761, 327, 25287, 103]}
+{"text": "erst planen, dann machen – welcher modus ist das", "bereich": "app", "ids": [102, 3433, 103, 924, 15767, 818, 742, 1327, 809, 5990, 11219, 154, 215, 199, 103]}
+{"text": "voice mode", "bereich": "app", "ids": [102, 3433, 103, 3842, 1726, 11219, 30881, 103]}
+{"text": "sprachmodus öffnen", "bereich": "app", "ids": [102, 3433, 103, 4297, 25287, 8368, 103]}
+{"text": "api key", "bereich": "app", "ids": [102, 3433, 103, 23430, 30883, 21781, 30933, 103]}
+{"text": "schlüssel für den uni-server eintragen", "bereich": "app", "ids": [102, 3433, 103, 30430, 5378, 231, 190, 258, 30883, 232, 4101, 25998, 2727, 103]}
+{"text": "github einstellungen", "bereich": "app", "ids": [102, 3433, 103, 17445, 1198, 768, 4376, 630, 271, 103]}
+{"text": "verbindungen", "bereich": "app", "ids": [102, 3433, 103, 1155, 5483, 103]}
+{"text": "tu cloudstore anbinden", "bereich": "app", "ids": [102, 3433, 103, 14009, 13180, 1311, 5559, 3432, 30881, 208, 18485, 103]}
+{"text": "chat & werkzeuge", "bereich": "app", "ids": [102, 3433, 103, 1677, 141, 1562, 309, 30900, 3196, 103]}
+{"text": "werkzeuge ein- und ausschalten", "bereich": "app", "ids": [102, 3433, 103, 309, 30900, 3196, 143, 232, 136, 29832, 1453, 103]}
+{"text": "einstellungen werkzeuge", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 309, 30900, 3196, 103]}
+{"text": "einstellungen für lora", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 231, 8695, 173, 103]}
+{"text": "datenschutzeinstellungen", "bereich": "app", "ids": [102, 3433, 103, 11692, 1129, 107, 18375, 3425, 630, 271, 103]}
+{"text": "zu den datenschutz optionen", "bereich": "app", "ids": [102, 3433, 103, 205, 190, 11692, 1129, 107, 597, 8897, 2880, 103]}
+{"text": "gedächtnis", "bereich": "app", "ids": [102, 3433, 103, 4877, 16079, 103]}
+{"text": "erinnerungen der app ansehen", "bereich": "app", "ids": [102, 3433, 103, 4574, 271, 125, 10969, 14920, 103]}
+{"text": "einstellungen wissenssammlung", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 1770, 21303, 737, 691, 103]}
+{"text": "zitierstil", "bereich": "app", "ids": [102, 3433, 103, 10579, 21515, 221, 103]}
+{"text": "literatur & zotero", "bereich": "app", "ids": [102, 3433, 103, 12792, 900, 1562, 148, 11428, 30892, 103]}
+{"text": "transkription einstellungen", "bereich": "app", "ids": [102, 3433, 103, 13671, 2029, 988, 826, 4376, 630, 271, 103]}
+{"text": "sprechererkennung konfigurieren", "bereich": "app", "ids": [102, 3433, 103, 22105, 19570, 21724, 132, 634, 7820, 549, 103]}
+{"text": "briefkopf und logos", "bereich": "app", "ids": [102, 3433, 103, 2118, 2488, 9322, 136, 11589, 317, 103]}
+{"text": "vorlesen & spracheingabe", "bereich": "app", "ids": [102, 3433, 103, 334, 12418, 1562, 4297, 19866, 512, 103]}
+{"text": "einstellungen darstellung", "bereich": "app", "ids": [102, 3433, 103, 4376, 630, 271, 555, 1091, 103]}
+{"text": "appearance", "bereich": "app", "ids": [102, 3433, 103, 10969, 12032, 423, 730, 103]}
+{"text": "sicherung & umzug", "bereich": "app", "ids": [102, 3433, 103, 1765, 132, 1562, 13330, 30894, 103]}
+{"text": "alles exportieren für den neuen rechner", "bereich": "app", "ids": [102, 3433, 103, 1446, 20346, 343, 549, 231, 190, 1260, 7145, 432, 103]}
+{"text": "papierkorb in den einstellungen", "bereich": "app", "ids": [102, 3433, 103, 26668, 30773, 22779, 6804, 153, 190, 4376, 630, 271, 103]}
+{"text": "chat versehentlich gelöscht", "bereich": "app", "ids": [102, 3433, 103, 1677, 141, 9229, 1916, 18776, 103]}
+{"text": "ram verbrauch messen", "bereich": "app", "ids": [102, 3433, 103, 1919, 30895, 13366, 4717, 16809, 103]}
+{"text": "app hängt, speicher freigeben", "bereich": "app", "ids": [102, 3433, 103, 10969, 8592, 818, 2456, 952, 1626, 863, 103]}
+{"text": "ordner vom pc für den agenten", "bereich": "app", "ids": [102, 3433, 103, 12321, 432, 507, 295, 30893, 231, 190, 5625, 9359, 103]}
+{"text": "sync", "bereich": "app", "ids": [102, 3433, 103, 12285, 30893, 103]}
+{"text": "datenordner in onedrive legen", "bereich": "app", "ids": [102, 3433, 103, 11692, 106, 480, 432, 153, 14492, 1177, 970, 7958, 103]}
+{"text": "speicherort ändern", "bereich": "app", "ids": [102, 3433, 103, 2456, 952, 343, 6289, 103]}
+{"text": "updates", "bereich": "app", "ids": [102, 3433, 103, 9392, 6398, 103]}
+{"text": "welche version hab ich", "bereich": "app", "ids": [102, 3433, 103, 2276, 1324, 220, 2253, 383, 103]}
+{"text": "nach neuer version suchen", "bereich": "app", "ids": [102, 3433, 103, 333, 3973, 1324, 220, 5143, 103]}
+{"text": "feedback geben", "bereich": "app", "ids": [102, 3433, 103, 5379, 312, 6136, 2082, 103]}
+{"text": "die app ist abgestürzt, wem sag ich das", "bereich": "app", "ids": [102, 3433, 103, 128, 10969, 215, 9704, 10516, 818, 15307, 753, 383, 199, 103]}
+{"text": "formuliere den satz höflicher: schick mir das bis morgen", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 1056, 190, 18780, 30901, 1708, 21226, 105, 853, 29915, 207, 780, 199, 378, 5519, 103]}
+{"text": "übersetze „Sprechstunde nach Vereinbarung“ ins Englische", "bereich": "app", "ids": [102, 3433, 103, 22394, 12859, 498, 428, 1059, 14628, 333, 12572, 132, 2087, 762, 12629, 103]}
+{"text": "was ist der unterschied zwischen validität und reliabilität", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 125, 2700, 718, 22787, 543, 712, 136, 3390, 540, 4173, 712, 103]}
+{"text": "schreib eine kurze abwesenheitsnotiz für nächste woche", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 261, 7730, 404, 2888, 1737, 14721, 460, 231, 5505, 476, 441, 103]}
+{"text": "gib mir drei titelvorschläge für ein seminar zu digitaler bildung", "bereich": "app", "ids": [102, 3433, 103, 19945, 780, 830, 8593, 410, 21204, 231, 143, 28493, 1422, 30884, 205, 15036, 30884, 17846, 132, 103]}
+{"text": "korrigiere die rechtschreibung: Die Studirenden haben sich angemeldet", "bereich": "app", "ids": [102, 3433, 103, 18477, 1435, 128, 4774, 107, 3959, 853, 128, 3105, 19074, 169, 450, 251, 19719, 103]}
+{"text": "was bedeutet formative evaluation", "bereich": "app", "ids": [102, 3433, 103, 556, 3918, 2801, 2075, 14841, 152, 3478, 826, 103]}
+{"text": "mach aus den stichpunkten einen satz: klausur, 90 minuten, raum folgt", "bereich": "app", "ids": [102, 3433, 103, 9701, 260, 190, 15072, 107, 13087, 397, 18780, 30901, 853, 15531, 154, 138, 818, 3543, 5401, 990, 818, 30809, 30895, 5083, 103]}
+{"text": "ein synonym für „darüber hinaus“", "bereich": "app", "ids": [102, 3433, 103, 143, 12285, 9963, 231, 498, 2799, 2737, 2087, 103]}
+{"text": "erklär mir kurz was ein konfidenzintervall ist", "bereich": "app", "ids": [102, 3433, 103, 1788, 780, 1901, 556, 143, 634, 7838, 19546, 1996, 5668, 30891, 215, 103]}
+{"text": "schreib mir eine freundliche erinnerung an die abgabe der hausarbeit", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 780, 261, 18393, 30881, 4574, 132, 208, 128, 404, 1621, 125, 17675, 1246, 103]}
+{"text": "kürze diesen satz: Im Rahmen der vorliegenden Arbeit wird der Versuch unternommen zu zeigen", "bereich": "app", "ids": [102, 3433, 103, 17065, 30881, 1451, 18780, 30901, 853, 223, 1919, 8137, 125, 11784, 30486, 371, 125, 1324, 213, 16439, 205, 3518, 103]}
+{"text": "wie schreibt man „aufgrund dessen“ richtig", "bereich": "app", "ids": [102, 3433, 103, 335, 7498, 545, 498, 2764, 1830, 2087, 3870, 103]}
+{"text": "du oder sie in einer mail an studierende, was ist üblich", "bereich": "app", "ids": [102, 3433, 103, 514, 394, 307, 153, 369, 6138, 221, 208, 17975, 158, 818, 556, 215, 12437, 103]}
+{"text": "nenn mir fünf verben für „zeigen“ in wissenschaftlichen texten", "bereich": "app", "ids": [102, 3433, 103, 12392, 30882, 780, 1535, 1155, 106, 231, 498, 3518, 2087, 153, 4445, 405, 1491, 2084, 106, 103]}
+{"text": "was heißt peer review auf deutsch", "bereich": "app", "ids": [102, 3433, 103, 556, 2701, 10602, 105, 474, 4179, 216, 992, 103]}
+{"text": "kannst du mir einen witz über statistik erzählen", "bereich": "app", "ids": [102, 3433, 103, 4803, 514, 780, 397, 20619, 304, 6927, 3732, 9707, 103]}
+{"text": "formulier das als frage um: die teilnehmenden hatten wenig zeit", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 105, 199, 276, 16823, 336, 853, 128, 24598, 1605, 2425, 3502, 103]}
+{"text": "schreib zwei sätze dank an die gastrednerin", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 510, 21224, 7293, 30881, 6377, 208, 128, 15249, 1896, 19479, 103]}
+{"text": "ist „Email“ oder „E-Mail“ richtig", "bereich": "app", "ids": [102, 3433, 103, 215, 498, 1699, 2056, 2087, 394, 498, 368, 232, 6138, 221, 2087, 3870, 103]}
+{"text": "hallo lora, wie gehts", "bereich": "app", "ids": [102, 3433, 103, 3914, 799, 8695, 173, 818, 335, 1125, 30886, 103]}
+{"text": "translate to german: office hours are cancelled today", "bereich": "app", "ids": [102, 3433, 103, 13671, 15877, 30881, 1512, 839, 1306, 853, 15008, 1726, 18792, 30886, 5168, 9051, 25586, 312, 30774, 603, 103]}
+{"text": "what does ECTS stand for", "bereich": "app", "ids": [102, 3433, 103, 20009, 5601, 115, 19581, 319, 2680, 1088, 103]}
+{"text": "erkläre den begriff scaffolding in zwei sätzen", "bereich": "app", "ids": [102, 3433, 103, 1788, 30881, 190, 3894, 1045, 10860, 4343, 1392, 323, 153, 510, 21224, 7293, 106, 103]}
+{"text": "mach den ton sachlicher: das ist echt blöd gelaufen", "bereich": "app", "ids": [102, 3433, 103, 9701, 190, 1512, 30882, 16517, 1040, 853, 199, 215, 8891, 3398, 16985, 17912, 103]}
+{"text": "welche wochentage hat der november 2026 mit einem dienstag am 3.", "bereich": "app", "ids": [102, 3433, 103, 2276, 476, 381, 15389, 308, 125, 13170, 776, 27079, 30946, 212, 403, 27425, 246, 339, 353, 566, 103]}
+{"text": "wie viele wörter sind etwa 15000 zeichen", "bereich": "app", "ids": [102, 3433, 103, 335, 1358, 121, 7067, 341, 1096, 12292, 30911, 7117, 106, 103]}
+{"text": "vergleiche die lerntheorien von piaget und wygotski ausführlich und bewerte sie für den grundschulunterricht", "bereich": "app", "ids": [102, 3433, 103, 5565, 30881, 128, 20315, 26261, 30882, 195, 295, 540, 3547, 136, 121, 24254, 6401, 4442, 21070, 136, 2470, 9235, 307, 231, 190, 4551, 1951, 9491, 103]}
+{"text": "recherchiere aktuelle studien zu ki im mathematikunterricht seit 2023", "bereich": "app", "ids": [102, 3433, 103, 30244, 15305, 1056, 7938, 3105, 270, 205, 184, 30883, 223, 20245, 269, 9491, 836, 27079, 30935, 103]}
+{"text": "analysiere das angehängte interviewtranskript nach mayring", "bereich": "app", "ids": [102, 3433, 103, 10500, 1435, 199, 874, 15117, 30881, 2081, 4179, 10622, 886, 10129, 333, 27715, 5414, 103]}
+{"text": "schreib ein python skript, das alle csv dateien in einem ordner zusammenführt", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 143, 295, 9862, 25406, 11473, 10129, 818, 199, 816, 27973, 30905, 11692, 3234, 153, 403, 12321, 432, 1105, 1445, 103]}
+{"text": "entwickle ein forschungsdesign für eine längsschnittstudie zur lesemotivation", "bereich": "app", "ids": [102, 3433, 103, 1909, 245, 143, 1088, 12941, 19533, 231, 261, 6739, 573, 1271, 2978, 22336, 356, 17585, 150, 23420, 3908, 826, 103]}
+{"text": "fass das 80-seitige gutachten im anhang zusammen und stelle die kritikpunkte in einer tabelle dar", "bereich": "app", "ids": [102, 3433, 103, 10458, 573, 199, 3243, 232, 836, 435, 994, 2249, 223, 208, 2382, 1105, 136, 16548, 128, 4143, 269, 5402, 153, 369, 5613, 10687, 30881, 555, 103]}
+{"text": "was steht in der aktuellen ausschreibung des bmftr zur digitalen bildung", "bereich": "app", "ids": [102, 3433, 103, 556, 1419, 153, 125, 6127, 29832, 3959, 222, 140, 21137, 1340, 356, 14447, 17846, 132, 103]}
+{"text": "erstelle mir eine präsentation mit 12 folien zum thema inklusion und exportiere sie als powerpoint", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 780, 261, 23624, 301, 212, 964, 912, 270, 386, 23151, 30887, 6767, 7212, 136, 20346, 343, 1435, 307, 276, 9993, 392, 29349, 103]}
+{"text": "prüfe die argumentation in meinem exposé kritisch, schritt für schritt", "bereich": "app", "ids": [102, 3433, 103, 6819, 604, 128, 19011, 25673, 220, 153, 4658, 20346, 317, 30969, 15695, 818, 15664, 231, 15664, 103]}
+{"text": "schreib mir ein gutachten zur masterarbeit anhand des bewertungsrasters", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 780, 143, 994, 2249, 356, 6138, 409, 1246, 9010, 222, 2470, 455, 327, 10264, 5047, 103]}
+{"text": "was ist auf diesem foto der tafel zu sehen", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 216, 893, 14758, 30892, 125, 5613, 2045, 205, 1542, 103]}
+{"text": "such im web nach den terminen der didacta 2027", "bereich": "app", "ids": [102, 3433, 103, 23140, 223, 16441, 333, 190, 7058, 11045, 30882, 125, 2944, 2525, 1782, 30887, 27079, 30947, 103]}
+{"text": "berechne die effektstärke aus diesen mittelwerten und erkläre die herleitung", "bereich": "app", "ids": [102, 3433, 103, 9688, 382, 128, 10539, 272, 14621, 260, 1451, 5164, 7082, 136, 1788, 30881, 128, 670, 4384, 103]}
+{"text": "erstelle einen semesterplan für 14 sitzungen mit lernzielen, methoden und literatur", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 397, 28493, 2024, 3021, 231, 856, 14238, 13507, 212, 26140, 19557, 818, 24250, 169, 136, 12792, 900, 103]}
+{"text": "lies die drei pdfs und stelle die methodischen unterschiede gegenüber", "bereich": "app", "ids": [102, 3433, 103, 592, 30886, 128, 830, 295, 16511, 30886, 136, 16548, 128, 24250, 22820, 2700, 30881, 2264, 103]}
+{"text": "warum wirft mein r-skript den fehler object not found", "bereich": "app", "ids": [102, 3433, 103, 4543, 14191, 1003, 384, 232, 11473, 10129, 190, 20980, 1322, 9154, 1760, 3984, 103]}
+{"text": "schreibe einen antragstext für das arbeitspaket 3 mit meilensteinen und risiken", "bereich": "app", "ids": [102, 3433, 103, 30002, 397, 8822, 1372, 18787, 30885, 231, 199, 12413, 22952, 353, 212, 9713, 2829, 18290, 136, 9710, 728, 485, 103]}
+{"text": "bewerte diese hausarbeit nach den kriterien und gib eine notenempfehlung", "bereich": "app", "ids": [102, 3433, 103, 2470, 9235, 687, 17675, 1246, 333, 190, 4143, 6500, 136, 19945, 261, 1760, 3206, 17157, 30812, 132, 103]}
+{"text": "welche förderprogramme gibt es gerade für nachwuchsgruppen", "bereich": "app", "ids": [102, 3433, 103, 2276, 16769, 14925, 800, 288, 2257, 231, 333, 7376, 4336, 103]}
+{"text": "compare these two papers and write a critical review", "bereich": "app", "ids": [102, 3433, 103, 9138, 1871, 871, 237, 28314, 26668, 28649, 1257, 121, 26073, 120, 553, 454, 5206, 474, 4179, 103]}
+{"text": "write a regex that matches german matriculation numbers", "bereich": "app", "ids": [102, 3433, 103, 121, 26073, 120, 2193, 3689, 6711, 6138, 24577, 8072, 839, 1306, 6138, 1340, 456, 6829, 9538, 30886, 103]}
+{"text": "übersetze den ganzen artikel im anhang ins englische und behalte die formatierung", "bereich": "app", "ids": [102, 3433, 103, 22394, 12859, 190, 4148, 26266, 5718, 30891, 223, 208, 2382, 762, 12629, 136, 1596, 8045, 128, 2801, 9056, 8392, 103]}
+{"text": "erstelle eine systematische übersicht der literatur zu feedback in der hochschullehre", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 261, 30090, 22394, 210, 125, 12792, 900, 205, 5379, 312, 6136, 153, 125, 2130, 16737, 19939, 103]}
+{"text": "schreibe einen text über datenschutz an schulen", "bereich": "app", "ids": [102, 3433, 103, 30002, 397, 1491, 2084, 304, 11692, 1129, 107, 597, 208, 12123, 106, 103]}
+{"text": "was ist ein pdf/a und wofür braucht man das", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 143, 295, 16511, 1061, 120, 136, 18914, 5421, 545, 199, 103]}
+{"text": "erklär mir was pseudonymisierung nach dsgvo von anonymisierung unterscheidet", "bereich": "app", "ids": [102, 3433, 103, 1788, 780, 556, 295, 13587, 9963, 3281, 333, 25832, 30894, 1768, 195, 29277, 3281, 12511, 103]}
+{"text": "schreib einen absatz über dunkle muster im webdesign", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 397, 28220, 458, 304, 22210, 1318, 162, 223, 16441, 19533, 103]}
+{"text": "was ist zotero eigentlich", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 148, 11428, 30892, 3988, 103]}
+{"text": "wie zitiere ich ein interview nach apa", "bereich": "app", "ids": [102, 3433, 103, 335, 10579, 1435, 383, 143, 2081, 4179, 333, 23430, 30887, 103]}
+{"text": "formuliere eine einladung zur institutsversammlung", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 1056, 261, 143, 11091, 356, 5039, 3287, 9601, 4121, 103]}
+{"text": "ideen für ein lernspiel zur bruchrechnung", "bereich": "app", "ids": [102, 3433, 103, 3510, 106, 231, 143, 26140, 854, 356, 2118, 213, 11196, 103]}
+{"text": "was muss in ein protokoll rein", "bereich": "app", "ids": [102, 3433, 103, 556, 1092, 153, 143, 951, 3968, 13504, 30891, 3651, 103]}
+{"text": "welche einstellungen empfiehlst du für eine online-umfrage mit limesurvey", "bereich": "app", "ids": [102, 3433, 103, 2276, 4376, 630, 271, 2629, 7984, 235, 30885, 514, 231, 261, 6973, 232, 2403, 1372, 30881, 212, 6840, 9107, 138, 14034, 103]}
+{"text": "wie erkläre ich studierenden das thema plagiat", "bereich": "app", "ids": [102, 3433, 103, 335, 1788, 30881, 383, 17975, 169, 199, 23151, 30887, 15846, 25184, 30885, 103]}
+{"text": "schreib eine mail an herrn dr. albrecht-thieme, dass der termin verschoben wird", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 261, 6138, 221, 208, 5136, 30882, 8795, 566, 28776, 1922, 232, 1773, 16236, 30881, 818, 377, 125, 7058, 902, 17255, 371, 103]}
+{"text": "wie lange dauert es ein video zu transkribieren, allgemein gefragt", "bereich": "app", "ids": [102, 3433, 103, 335, 1993, 10482, 288, 143, 133, 10087, 205, 13671, 2029, 1218, 549, 818, 3756, 8881, 103]}
+{"text": "was ist besser für eine tabelle, median oder mittelwert", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 1903, 231, 261, 5613, 10687, 30881, 818, 4296, 850, 394, 5164, 1555, 103]}
+{"text": "unterschied zwischen literaturverzeichnis und bibliografie", "bereich": "app", "ids": [102, 3433, 103, 2700, 718, 12792, 900, 18222, 136, 28272, 707, 13044, 110, 103]}
+{"text": "mein word stürzt ständig ab, was kann ich tun", "bereich": "app", "ids": [102, 3433, 103, 1003, 5928, 30888, 29256, 8019, 404, 818, 556, 530, 383, 1913, 103]}
+{"text": "wie sichere ich forschungsdaten langfristig, gibt es empfehlungen der dfg", "bereich": "app", "ids": [102, 3433, 103, 335, 17429, 383, 1088, 12941, 7216, 15709, 818, 800, 288, 2629, 11005, 125, 108, 13730, 103]}
+{"text": "entwirf eine bewertungsmatrix für referate und begründe die gewichtung", "bereich": "app", "ids": [102, 3433, 103, 30250, 181, 30897, 261, 2470, 455, 327, 5462, 12070, 231, 474, 598, 709, 136, 7239, 158, 128, 558, 9655, 103]}
+{"text": "kannst du mir helfen, meine vorlesung zu strukturieren", "bereich": "app", "ids": [102, 3433, 103, 4803, 514, 780, 3558, 818, 1717, 334, 4420, 132, 205, 8832, 549, 103]}
+{"text": "erzähl mir was über die geschichte der tu dresden", "bereich": "app", "ids": [102, 3433, 103, 30846, 780, 556, 304, 128, 26594, 30881, 125, 14009, 3382, 10817, 106, 103]}
+{"text": "und was meinst du dazu", "bereich": "app", "ids": [102, 3433, 103, 136, 556, 13186, 514, 1593, 103]}
+{"text": "danke dir", "bereich": "app", "ids": [102, 3433, 103, 9228, 947, 103]}
+{"text": "nee, das meinte ich nicht", "bereich": "app", "ids": [102, 3433, 103, 1631, 30881, 818, 199, 9123, 383, 255, 103]}
+{"text": "kannst du das nochmal anders erklären", "bereich": "app", "ids": [102, 3433, 103, 4803, 514, 199, 14944, 4160, 7431, 103]}
+{"text": "ok und jetzt bitte kürzer", "bereich": "app", "ids": [102, 3433, 103, 5546, 136, 1184, 2982, 23290, 103]}
+{"text": "was kannst du alles", "bereich": "app", "ids": [102, 3433, 103, 556, 4803, 514, 1446, 103]}
+{"text": "ich bin mir unsicher, wie ich anfangen soll", "bereich": "app", "ids": [102, 3433, 103, 383, 1089, 780, 23819, 818, 335, 383, 15707, 585, 103]}
+{"text": "formuliere um: wir müssen den termin leider absagen", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 1056, 336, 853, 268, 1128, 190, 7058, 902, 8433, 28220, 661, 103]}
+{"text": "übersetz das ins englische: die anmeldung ist bis freitag möglich", "bereich": "app", "ids": [102, 3433, 103, 22394, 297, 199, 762, 12629, 853, 128, 24284, 688, 132, 215, 378, 1626, 857, 1586, 103]}
+{"text": "was ist eine operationalisierung", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 261, 8732, 671, 3281, 103]}
+{"text": "schreib eine kurze begrüßung für die erste sitzung", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 261, 7730, 18954, 132, 231, 128, 1391, 14238, 1819, 103]}
+{"text": "gib mir drei alternativen für die überschrift „ergebnisse“", "bereich": "app", "ids": [102, 3433, 103, 19945, 780, 830, 24074, 30882, 231, 128, 7656, 2782, 498, 2561, 626, 1219, 2087, 103]}
+{"text": "ist das komma hier richtig: ich hoffe, dass sie kommen können", "bereich": "app", "ids": [102, 3433, 103, 215, 199, 1153, 30887, 651, 3870, 853, 383, 7722, 818, 377, 307, 1263, 618, 103]}
+{"text": "was heißt hermeneutik", "bereich": "app", "ids": [102, 3433, 103, 556, 2701, 670, 243, 274, 3801, 103]}
+{"text": "mach daraus eine höfliche absage in zwei sätzen", "bereich": "app", "ids": [102, 3433, 103, 9701, 7271, 261, 1708, 21226, 30881, 28220, 621, 153, 510, 21224, 7293, 106, 103]}
+{"text": "ein anderes wort für „wichtig“", "bereich": "app", "ids": [102, 3433, 103, 143, 5879, 5928, 30885, 231, 498, 1985, 2087, 103]}
+{"text": "erklär kurz den unterschied zwischen qualitativ und quantitativ", "bereich": "app", "ids": [102, 3433, 103, 1788, 1901, 190, 2700, 718, 22424, 136, 25736, 1493, 103]}
+{"text": "schreib einen satz als erinnerung an die sprechstunde", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 397, 18780, 30901, 276, 4574, 132, 208, 128, 428, 1059, 14628, 103]}
+{"text": "kürzer bitte: es wird darauf hingewiesen, dass die abgabe fristgerecht zu erfolgen hat", "bereich": "app", "ids": [102, 3433, 103, 23290, 2982, 853, 288, 371, 1608, 14220, 818, 377, 128, 404, 1621, 1239, 354, 18261, 205, 8932, 308, 103]}
+{"text": "schreibt man „des weiteren“ zusammen", "bereich": "app", "ids": [102, 3433, 103, 7498, 545, 498, 222, 2642, 2087, 1105, 103]}
+{"text": "wie beginne ich eine mail an eine professorin, die ich nicht kenne", "bereich": "app", "ids": [102, 3433, 103, 335, 972, 9196, 383, 261, 6138, 221, 208, 261, 4862, 3560, 113, 818, 128, 383, 255, 9484, 103]}
+{"text": "fünf fragen zum einstieg in ein seminar über medienpädagogik", "bereich": "app", "ids": [102, 3433, 103, 1535, 7631, 386, 4376, 1578, 153, 143, 28493, 1422, 30884, 304, 4296, 270, 26962, 269, 103]}
+{"text": "was bedeutet et al.", "bereich": "app", "ids": [102, 3433, 103, 556, 3918, 581, 1215, 566, 103]}
+{"text": "erzähl mir einen kurzen witz", "bereich": "app", "ids": [102, 3433, 103, 30846, 780, 397, 8291, 20619, 103]}
+{"text": "mach den satz aktiv: der fragebogen wurde von den studierenden ausgefüllt", "bereich": "app", "ids": [102, 3433, 103, 9701, 190, 18780, 30901, 3049, 853, 125, 16823, 8938, 325, 195, 190, 17975, 169, 903, 10754, 103]}
+{"text": "formuliere einen dank an das organisationsteam", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 1056, 397, 6377, 208, 199, 3985, 1337, 9646, 103]}
+{"text": "wie lautet der plural von status", "bereich": "app", "ids": [102, 3433, 103, 335, 8750, 125, 2406, 20768, 195, 6927, 154, 103]}
+{"text": "guten morgen", "bereich": "app", "ids": [102, 3433, 103, 4414, 5519, 103]}
+{"text": "translate: bitte bringen sie ihren studierendenausweis mit", "bereich": "app", "ids": [102, 3433, 103, 13671, 15877, 30881, 853, 2982, 3056, 307, 1244, 17975, 169, 30578, 212, 103]}
+{"text": "what is the german word for syllabus", "bereich": "app", "ids": [102, 3433, 103, 20009, 1420, 871, 839, 1306, 5928, 30888, 1088, 26361, 6702, 5077, 103]}
+{"text": "definiere lernziel in einem satz", "bereich": "app", "ids": [102, 3433, 103, 5445, 1435, 26140, 8271, 153, 403, 18780, 30901, 103]}
+{"text": "klingt das zu hart: ihre arbeit erfüllt die anforderungen nicht", "bereich": "app", "ids": [102, 3433, 103, 11794, 199, 205, 8992, 853, 774, 30486, 7939, 128, 11083, 22447, 271, 255, 103]}
+{"text": "wie viele seiten sind 3000 wörter ungefähr", "bereich": "app", "ids": [102, 3433, 103, 335, 1358, 12380, 341, 12736, 121, 7067, 6754, 103]}
+{"text": "schreib eine kurze nachricht, dass ich zehn minuten später komme", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 261, 7730, 333, 901, 818, 377, 383, 2378, 5401, 990, 1243, 7092, 103]}
+{"text": "gib mir eine eselsbrücke für die apa-reihenfolge", "bereich": "app", "ids": [102, 3433, 103, 19945, 780, 261, 288, 1734, 8567, 231, 128, 23430, 30887, 232, 4996, 471, 2991, 103]}
+{"text": "was ist eine likert-skala", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 261, 15724, 2527, 232, 11473, 4944, 103]}
+{"text": "mach aus „hallo zusammen“ eine förmliche anrede", "bereich": "app", "ids": [102, 3433, 103, 9701, 260, 498, 3914, 799, 1105, 2087, 261, 28858, 459, 208, 14105, 103]}
+{"text": "vergleiche konstruktivismus und instruktionismus und leite konsequenzen für die lehrerbildung ab", "bereich": "app", "ids": [102, 3433, 103, 5565, 30881, 12183, 1012, 1886, 136, 5039, 344, 550, 1886, 136, 4133, 123, 15304, 2687, 231, 128, 1997, 4146, 19645, 572, 132, 404, 103]}
+{"text": "suche aktuelle zahlen zum lehrkräftemangel in sachsen", "bereich": "app", "ids": [102, 3433, 103, 18479, 7938, 7929, 386, 1997, 147, 4077, 19407, 153, 16517, 233, 103]}
+{"text": "werte die angehängte excel mit den evaluationsdaten statistisch aus", "bereich": "app", "ids": [102, 3433, 103, 5908, 30881, 128, 874, 15117, 30881, 1431, 4465, 212, 190, 14841, 152, 3478, 20954, 7216, 6927, 5641, 260, 103]}
+{"text": "schreib ein makro, das in excel leere zeilen löscht", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 143, 20987, 204, 818, 199, 153, 1431, 4465, 12602, 30881, 148, 3641, 8288, 2479, 103]}
+{"text": "entwickle ein kategoriensystem für die inhaltsanalyse meiner interviews", "bereich": "app", "ids": [102, 3433, 103, 1909, 245, 143, 14876, 314, 6386, 2622, 231, 128, 15349, 10138, 4838, 3884, 2081, 25209, 103]}
+{"text": "fasse die angehängte dissertation kapitelweise zusammen", "bereich": "app", "ids": [102, 3433, 103, 10458, 13410, 128, 874, 15117, 30881, 9171, 12417, 301, 9623, 1683, 875, 1105, 103]}
+{"text": "was sagt die neue prüfungsordnung der fakultät zu täuschungsversuchen, schau online nach", "bereich": "app", "ids": [102, 3433, 103, 556, 1464, 128, 1133, 6819, 24622, 1518, 125, 10458, 9279, 8946, 30885, 205, 29847, 12941, 19780, 30882, 818, 24971, 6973, 333, 103]}
+{"text": "baue eine präsentation aus meinem paper und speichere sie als pptx", "bereich": "app", "ids": [102, 3433, 103, 14452, 30881, 261, 23624, 301, 260, 4658, 26668, 655, 136, 2456, 952, 30881, 307, 276, 295, 659, 30950, 103]}
+{"text": "analysiere die schwächen meiner argumentation gründlich", "bereich": "app", "ids": [102, 3433, 103, 10500, 1435, 128, 25280, 106, 3884, 19011, 25673, 220, 27704, 103]}
+{"text": "schreibe ein zweitgutachten zu dieser dissertation", "bereich": "app", "ids": [102, 3433, 103, 30002, 143, 5744, 4786, 2249, 205, 660, 9171, 12417, 301, 103]}
+{"text": "beschreibe was auf dem bild zu sehen ist", "bereich": "app", "ids": [102, 3433, 103, 1002, 19299, 556, 216, 249, 17846, 205, 1542, 215, 103]}
+{"text": "finde im internet die öffnungszeiten der slub", "bereich": "app", "ids": [102, 3433, 103, 8385, 223, 20266, 30885, 128, 2635, 273, 4656, 4083, 125, 10183, 768, 103]}
+{"text": "leite die formel für die standardabweichung her und rechne ein beispiel", "bereich": "app", "ids": [102, 3433, 103, 4133, 123, 128, 21925, 30891, 231, 128, 19696, 265, 8401, 132, 670, 136, 7145, 382, 143, 282, 854, 103]}
+{"text": "erstelle ein modulhandbuch-kapitel mit lernzielen, prüfungsform und arbeitsaufwand", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 143, 11219, 320, 1817, 3134, 232, 9623, 1683, 212, 26140, 19557, 818, 6819, 24622, 699, 136, 12413, 17591, 103]}
+{"text": "lies beide studien und vergleiche stichprobe, methode und ergebnisse in einer tabelle", "bereich": "app", "ids": [102, 3433, 103, 592, 30886, 3324, 3105, 270, 136, 5565, 30881, 15072, 107, 15475, 818, 24250, 158, 136, 2561, 626, 1219, 153, 369, 5613, 10687, 30881, 103]}
+{"text": "debugge diesen python code, er hängt in einer endlosschleife", "bereich": "app", "ids": [102, 3433, 103, 506, 5231, 21952, 1451, 295, 9862, 25406, 24608, 30881, 818, 180, 8592, 153, 369, 2550, 2423, 107, 525, 604, 103]}
+{"text": "entwirf einen zeit- und arbeitsplan für ein dreijähriges dfg-projekt", "bereich": "app", "ids": [102, 3433, 103, 30250, 181, 30897, 397, 3502, 232, 136, 12413, 3021, 231, 143, 830, 17397, 108, 13730, 232, 951, 1569, 103]}
+{"text": "korrigiere diese klausur anhand der musterlösung und vergib punkte", "bereich": "app", "ids": [102, 3433, 103, 18477, 1435, 687, 15531, 154, 138, 9010, 125, 1318, 162, 6235, 136, 6937, 1218, 19051, 30881, 103]}
+{"text": "welche konferenzen zur hochschuldidaktik finden 2027 statt", "bereich": "app", "ids": [102, 3433, 103, 2276, 634, 12584, 356, 2130, 4089, 6080, 16941, 1585, 27079, 30947, 1477, 103]}
+{"text": "write a literature review on self-regulated learning with sources", "bereich": "app", "ids": [102, 3433, 103, 121, 26073, 120, 12792, 22759, 474, 4179, 1158, 801, 30897, 232, 10191, 3964, 1997, 22093, 5470, 262, 18585, 30886, 103]}
+{"text": "fix this sql query, it returns duplicates", "bereich": "app", "ids": [102, 3433, 103, 15831, 3070, 117, 21255, 15623, 30933, 818, 2021, 13785, 7606, 30886, 514, 531, 3408, 5975, 103]}
+{"text": "übersetze das ganze handbuch im anhang und erstelle ein glossar", "bereich": "app", "ids": [102, 3433, 103, 22394, 12859, 199, 3400, 8025, 3134, 223, 208, 2382, 136, 1391, 302, 143, 2721, 29007, 30884, 103]}
+{"text": "systematischer vergleich von drei lernplattformen mit vor- und nachteilen und empfehlung", "bereich": "app", "ids": [102, 3433, 103, 30090, 30884, 5565, 195, 830, 26140, 28268, 106, 212, 334, 232, 136, 18414, 3641, 136, 2629, 10207, 103]}
+{"text": "erstelle ein fragebogeninstrument zur erfassung von selbstwirksamkeit mit begründeten items", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 143, 16823, 8938, 19597, 356, 4310, 1923, 195, 1062, 24321, 526, 212, 17148, 30882, 2021, 12364, 103]}
+{"text": "schreibe ein latex dokument mit dem tu-layout für meine abschlussarbeit", "bereich": "app", "ids": [102, 3433, 103, 30002, 143, 4268, 12231, 11959, 30885, 212, 249, 14009, 232, 4268, 12668, 211, 231, 1717, 15162, 11346, 1246, 103]}
+{"text": "plane eine tagung mit 120 teilnehmenden: zeitplan, budget, aufgabenliste", "bereich": "app", "ids": [102, 3433, 103, 17761, 30881, 261, 5613, 1027, 212, 6637, 24598, 853, 3502, 3021, 818, 25814, 3547, 818, 216, 1378, 6435, 103]}
+{"text": "schreibe einen kurzen text über die geschichte des pdf formats", "bereich": "app", "ids": [102, 3433, 103, 30002, 397, 8291, 1491, 2084, 304, 128, 26594, 30881, 222, 295, 16511, 2801, 1515, 103]}
+{"text": "was ist ein tresor im bankwesen", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 143, 11951, 13865, 223, 21167, 21909, 2888, 103]}
+{"text": "erkläre mir die dsgvo in einfachen worten", "bereich": "app", "ids": [102, 3433, 103, 1788, 30881, 780, 128, 25832, 30894, 1768, 153, 11144, 5928, 155, 103]}
+{"text": "schreib ein gedicht über den dunkelmodus", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 143, 4877, 210, 304, 190, 11521, 25287, 103]}
+{"text": "was ist der unterschied zwischen zotero und citavi", "bereich": "app", "ids": [102, 3433, 103, 556, 215, 125, 2700, 718, 148, 11428, 30892, 136, 21914, 976, 6266, 103]}
+{"text": "wie zitiert man eine webseite nach din 1505", "bereich": "app", "ids": [102, 3433, 103, 335, 18216, 545, 261, 16441, 3099, 333, 2944, 30882, 5068, 30940, 103]}
+{"text": "formuliere ein anschreiben an das dezernat wegen der raumbuchung", "bereich": "app", "ids": [102, 3433, 103, 2801, 19452, 1056, 143, 25111, 2310, 208, 199, 18620, 3780, 141, 1736, 125, 30809, 2655, 213, 132, 103]}
+{"text": "drei ideen für ein quiz zum thema fotosynthese", "bereich": "app", "ids": [102, 3433, 103, 830, 3510, 106, 231, 143, 2607, 460, 386, 23151, 30887, 14758, 317, 1507, 17924, 103]}
+{"text": "wie baut man ein gutes protokoll auf", "bereich": "app", "ids": [102, 3433, 103, 335, 15847, 545, 143, 8837, 951, 3968, 13504, 30891, 216, 103]}
+{"text": "welche schriftgröße ist bei hausarbeiten üblich", "bereich": "app", "ids": [102, 3433, 103, 2276, 7901, 10403, 215, 282, 17675, 2596, 12437, 103]}
+{"text": "wie funktioniert spracherkennung technisch", "bereich": "app", "ids": [102, 3433, 103, 335, 7738, 4297, 7520, 15614, 103]}
+{"text": "schreib eine mail an frau prof. lindqvist-oberhauser mit der bitte um ein gespräch", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 261, 6138, 221, 208, 7050, 30890, 4862, 566, 2887, 30888, 24094, 354, 232, 3923, 16412, 212, 125, 2982, 336, 143, 3614, 8400, 103]}
+{"text": "was macht ein gutes lehrvideo aus", "bereich": "app", "ids": [102, 3433, 103, 556, 2122, 143, 8837, 1997, 147, 16943, 260, 103]}
+{"text": "ist der median robuster als der mittelwert", "bereich": "app", "ids": [102, 3433, 103, 215, 125, 4296, 850, 2519, 5077, 162, 276, 125, 5164, 1555, 103]}
+{"text": "wozu dient ein literaturverzeichnis", "bereich": "app", "ids": [102, 3433, 103, 20732, 7040, 143, 12792, 900, 18222, 103]}
+{"text": "mein drucker druckt nur leere seiten", "bereich": "app", "ids": [102, 3433, 103, 1003, 27295, 105, 27295, 30885, 475, 12602, 30881, 12380, 103]}
+{"text": "welche vorgaben macht die dfg zur guten wissenschaftlichen praxis", "bereich": "app", "ids": [102, 3433, 103, 2276, 334, 1378, 2122, 128, 108, 13730, 356, 4414, 4445, 405, 13889, 4897, 103]}
+{"text": "entwickle kriterien für die bewertung von gruppenarbeiten und gewichte sie", "bereich": "app", "ids": [102, 3433, 103, 1909, 245, 4143, 6500, 231, 128, 2470, 455, 132, 195, 872, 9369, 4724, 19645, 464, 136, 558, 955, 307, 103]}
+{"text": "hilf mir, mein seminar neu aufzubauen", "bereich": "app", "ids": [102, 3433, 103, 14869, 780, 818, 1003, 28493, 1422, 30884, 532, 18156, 103]}
+{"text": "was weißt du über die fakultät erziehungswissenschaften", "bereich": "app", "ids": [102, 3433, 103, 556, 6423, 514, 304, 128, 10458, 9279, 8946, 30885, 1827, 7984, 327, 7261, 103]}
+{"text": "warum", "bereich": "app", "ids": [102, 3433, 103, 4543, 103]}
+{"text": "ok", "bereich": "app", "ids": [102, 3433, 103, 5546, 103]}
+{"text": "super, vielen dank", "bereich": "app", "ids": [102, 3433, 103, 11304, 818, 2409, 6377, 103]}
+{"text": "nein, anders", "bereich": "app", "ids": [102, 3433, 103, 5329, 818, 4160, 103]}
+{"text": "mach weiter", "bereich": "app", "ids": [102, 3433, 103, 9701, 576, 103]}
+{"text": "geht das auch einfacher", "bereich": "app", "ids": [102, 3433, 103, 1125, 199, 313, 12822, 103]}
+{"text": "und auf englisch", "bereich": "app", "ids": [102, 3433, 103, 136, 216, 15896, 103]}
+{"text": "wer bist du", "bereich": "app", "ids": [102, 3433, 103, 309, 2183, 514, 103]}
+{"text": "ich weiß nicht so recht, was ich als nächstes tun soll", "bereich": "app", "ids": [102, 3433, 103, 383, 1288, 255, 262, 2508, 818, 556, 383, 276, 19312, 1913, 585, 103]}
+{"text": "kannst du mir bei meiner bachelorarbeit helfen", "bereich": "app", "ids": [102, 3433, 103, 4803, 514, 780, 282, 3884, 21167, 441, 9729, 1246, 3558, 103]}
+{"text": "zeig mir, wie das hier geht", "bereich": "app", "ids": [102, 3433, 103, 4171, 780, 818, 335, 199, 651, 1125, 103]}
+{"text": "kannst du mich einmal durch den pdf werkzeugkasten führen", "bereich": "app", "ids": [102, 3433, 103, 4803, 514, 804, 1839, 387, 190, 295, 16511, 309, 30900, 1397, 17559, 3224, 103]}
+{"text": "gib mir eine tour durch den videoeditor", "bereich": "app", "ids": [102, 3433, 103, 19945, 780, 261, 11525, 387, 190, 133, 10087, 26823, 3432, 103]}
+{"text": "wo hatte ich das mit dem dfg antrag besprochen", "bereich": "app", "ids": [102, 3433, 103, 476, 638, 383, 199, 212, 249, 108, 13730, 8822, 1372, 26351, 103]}
+{"text": "meine letzten chats", "bereich": "app", "ids": [102, 3433, 103, 1717, 1761, 1677, 1515, 103]}
+{"text": "finde den chat über die prüfungsordnung", "bereich": "app", "ids": [102, 3433, 103, 8385, 190, 1677, 141, 304, 128, 6819, 24622, 1518, 103]}
+{"text": "trag die frist für die skizze am 30.11.2026 in den kalender ein", "bereich": "app", "ids": [102, 3433, 103, 12565, 128, 1239, 354, 231, 128, 11473, 19207, 30881, 339, 1145, 566, 1111, 566, 27079, 30946, 153, 190, 13419, 2829, 167, 143, 103]}
+{"text": "erinnere mich am 15.12.2026 an die notenabgabe", "bereich": "app", "ids": [102, 3433, 103, 18153, 804, 339, 698, 566, 964, 566, 27079, 30946, 208, 128, 1760, 4724, 14601, 512, 103]}
+{"text": "wie funktioniert der tresor", "bereich": "app", "ids": [102, 3433, 103, 335, 7738, 125, 11951, 13865, 103]}
+{"text": "wie lege ich ein exzerpt an", "bereich": "app", "ids": [102, 3433, 103, 335, 3096, 30881, 383, 143, 1431, 1385, 659, 208, 103]}
+{"text": "wie benutze ich den quellenmodus", "bereich": "app", "ids": [102, 3433, 103, 335, 14314, 30881, 383, 190, 2607, 2524, 25287, 103]}
+{"text": "merk dir, dass handouts immer zweispaltig sein sollen", "bereich": "app", "ids": [102, 3433, 103, 16234, 947, 818, 377, 8025, 4734, 30886, 847, 510, 275, 536, 214, 290, 1852, 103]}
+{"text": "künftig bitte immer nach semester aufräumen, merk dir das", "bereich": "app", "ids": [102, 3433, 103, 7321, 2982, 847, 333, 28493, 2024, 216, 7721, 818, 16234, 947, 199, 103]}
+{"text": "fass mir die ungelesenen mails von heute zusammen", "bereich": "app", "ids": [102, 3433, 103, 10458, 573, 780, 128, 8281, 12418, 106, 6138, 7061, 195, 1181, 1105, 103]}
+{"text": "schreib einen antwortentwurf auf die mail vom dekanat", "bereich": "app", "ids": [102, 3433, 103, 292, 4308, 397, 20838, 1355, 138, 30897, 216, 128, 6138, 221, 507, 506, 4403, 141, 103]}
+{"text": "wann habe ich diese woche noch zeit für ein treffen, schau in meinen kalender", "bereich": "app", "ids": [102, 3433, 103, 8684, 704, 383, 687, 476, 441, 447, 3502, 231, 143, 4790, 818, 24971, 153, 3609, 13419, 2829, 167, 103]}
+{"text": "ich brauche die vorlage für ein empfehlungsschreiben", "bereich": "app", "ids": [102, 3433, 103, 383, 7547, 128, 334, 985, 231, 143, 2629, 10207, 573, 107, 2310, 103]}
+{"text": "bescheinigung über die teilnahme, gibts da eine vorlage", "bereich": "app", "ids": [102, 3433, 103, 1002, 14399, 304, 128, 28041, 30881, 818, 800, 30886, 408, 261, 334, 985, 103]}
+{"text": "vorlage protokoll institutsrat", "bereich": "app", "ids": [102, 3433, 103, 334, 985, 951, 3968, 13504, 30891, 5039, 3287, 10450, 141, 103]}
+{"text": "öffne die mail-vorlage für absagen", "bereich": "app", "ids": [102, 3433, 103, 2635, 273, 382, 128, 6138, 221, 232, 334, 985, 231, 28220, 661, 103]}
+{"text": "tu-brief vorlage", "bereich": "app", "ids": [102, 3433, 103, 14009, 232, 2118, 2488, 334, 985, 103]}
+{"text": "how does the vault work", "bereich": "app", "ids": [102, 3433, 103, 8736, 5601, 115, 871, 133, 9708, 20204, 103]}
+{"text": "show me my recent chats", "bereich": "app", "ids": [102, 3433, 103, 15189, 6501, 7679, 474, 10981, 1677, 1515, 103]}
+{"text": "remember that I always want APA", "bereich": "app", "ids": [102, 3433, 103, 22015, 776, 6711, 144, 1215, 14927, 23812, 23430, 30887, 103]}
+{"text": "tour", "bereich": "app", "ids": [102, 3433, 103, 11525, 103]}
+{"text": "mach mal einen rundgang durch die dateien", "bereich": "app", "ids": [102, 3433, 103, 9701, 1421, 397, 1623, 1054, 387, 128, 11692, 3234, 103]}
+{"text": "zeig mir wie man hier arbeitet", "bereich": "app", "ids": [102, 3433, 103, 4171, 780, 335, 545, 651, 5170, 103]}
+{"text": "erklär mir diesen bereich kurz mit einer tour", "bereich": "app", "ids": [102, 3433, 103, 1788, 780, 1451, 534, 300, 1901, 212, 369, 11525, 103]}
+{"text": "letzte chats", "bereich": "app", "ids": [102, 3433, 103, 3577, 1677, 1515, 103]}
+{"text": "wo war der chat mit der gliederung für die vorlesung", "bereich": "app", "ids": [102, 3433, 103, 476, 285, 125, 1677, 141, 212, 125, 22728, 132, 231, 128, 334, 4420, 132, 103]}
+{"text": "such den chat zu erasmus", "bereich": "app", "ids": [102, 3433, 103, 23140, 190, 1677, 141, 205, 180, 30076, 103]}
+{"text": "in welchem chat ging es um die reisekosten", "bereich": "app", "ids": [102, 3433, 103, 153, 10379, 1677, 141, 2005, 288, 336, 128, 4996, 22442, 1944, 103]}
+{"text": "woran habe ich zuletzt gearbeitet", "bereich": "app", "ids": [102, 3433, 103, 5928, 114, 704, 383, 4124, 8825, 103]}
+{"text": "frist 01.12.2026 gutachten abgeben in den kalender", "bereich": "app", "ids": [102, 3433, 103, 1239, 354, 3383, 566, 964, 566, 27079, 30946, 994, 2249, 15954, 153, 190, 13419, 2829, 167, 103]}
+{"text": "erinnerung für den 20.11.2026 anlegen: klausur einreichen", "bereich": "app", "ids": [102, 3433, 103, 4574, 132, 231, 190, 252, 566, 1111, 566, 27079, 30946, 27972, 853, 15531, 154, 138, 143, 1463, 103]}
+{"text": "leg mir eine erinnerung an für den antrag am 2026-12-05", "bereich": "app", "ids": [102, 3433, 103, 3096, 780, 261, 4574, 132, 208, 231, 190, 8822, 1372, 339, 27079, 30946, 232, 964, 232, 2996, 103]}
+{"text": "wie geht das mit der pseudonymisierung", "bereich": "app", "ids": [102, 3433, 103, 335, 1125, 199, 212, 125, 295, 13587, 9963, 3281, 103]}
+{"text": "wie funktioniert die transkription", "bereich": "app", "ids": [102, 3433, 103, 335, 7738, 128, 13671, 2029, 988, 826, 103]}
+{"text": "wie nutze ich projekte", "bereich": "app", "ids": [102, 3433, 103, 335, 7743, 30881, 383, 951, 3042, 103]}
+{"text": "wie kann ich modi starten", "bereich": "app", "ids": [102, 3433, 103, 335, 530, 383, 11219, 30883, 9408, 103]}
+{"text": "wie funktioniert das mit den updates", "bereich": "app", "ids": [102, 3433, 103, 335, 7738, 199, 212, 190, 9392, 6398, 103]}
+{"text": "merk dir: briefe immer mit vollem absender", "bereich": "app", "ids": [102, 3433, 103, 16234, 947, 853, 2118, 7978, 847, 212, 21830, 28220, 8362, 103]}
+{"text": "bitte merken, dass ich videos immer für opal exportiere", "bereich": "app", "ids": [102, 3433, 103, 2982, 24188, 818, 377, 383, 133, 10087, 30886, 847, 231, 3794, 152, 20346, 343, 1435, 103]}
+{"text": "ich will ab jetzt immer deutsch-englische folien, merk dir das", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 404, 1184, 847, 992, 232, 12629, 912, 270, 818, 16234, 947, 199, 103]}
+{"text": "welche mails von heute sind wichtig", "bereich": "app", "ids": [102, 3433, 103, 2276, 6138, 7061, 195, 1181, 341, 1985, 103]}
+{"text": "such in meinem postfach die mail von der personalabteilung", "bereich": "app", "ids": [102, 3433, 103, 23140, 153, 4658, 7883, 1064, 128, 6138, 221, 195, 125, 8167, 4944, 3800, 221, 132, 103]}
+{"text": "erstelle aus der mail vom prüfungsamt eine aufgabe", "bereich": "app", "ids": [102, 3433, 103, 1391, 302, 260, 125, 6138, 221, 507, 6819, 24622, 817, 261, 216, 1621, 103]}
+{"text": "habe ich morgen termine", "bereich": "app", "ids": [102, 3433, 103, 704, 383, 5519, 7058, 11045, 103]}
+{"text": "finde einen freien termin mit frau schubert-nagel nächste woche", "bereich": "app", "ids": [102, 3433, 103, 8385, 397, 7030, 7058, 902, 212, 7050, 30890, 292, 7284, 2527, 232, 5587, 419, 5505, 476, 441, 103]}
+{"text": "vorlage für eine einladung zur sitzung", "bereich": "app", "ids": [102, 3433, 103, 334, 985, 231, 261, 143, 11091, 356, 14238, 1819, 103]}
+{"text": "ich brauch die vorlage seminarplan", "bereich": "app", "ids": [102, 3433, 103, 383, 23103, 128, 334, 985, 28493, 1422, 29396, 4935, 103]}
+{"text": "gutachten vorlage öffnen", "bereich": "app", "ids": [102, 3433, 103, 994, 2249, 334, 985, 8368, 103]}
+{"text": "gibt es eine vorlage für dienstreiseanträge", "bereich": "app", "ids": [102, 3433, 103, 800, 288, 261, 334, 985, 231, 27425, 2124, 10724, 103]}
+{"text": "vorlage für eine rundmail an studierende", "bereich": "app", "ids": [102, 3433, 103, 334, 985, 231, 261, 1623, 8202, 208, 17975, 158, 103]}
+{"text": "tu vorlage aktennotiz", "bereich": "app", "ids": [102, 3433, 103, 14009, 334, 985, 2306, 358, 23420, 30901, 103]}
+{"text": "give me a tour", "bereich": "app", "ids": [102, 3433, 103, 17445, 1574, 6501, 120, 11525, 103]}
+{"text": "find my chat about the conference", "bereich": "app", "ids": [102, 3433, 103, 19830, 7679, 1677, 141, 12982, 871, 6199, 18814, 103]}
+{"text": "wo kann ich zwischen hell und dunkel wechseln", "bereich": "app", "ids": [102, 3433, 103, 476, 530, 383, 718, 10503, 136, 11521, 10342, 103]}
+{"text": "dark mode einstellung", "bereich": "app", "ids": [102, 3433, 103, 555, 30900, 11219, 30881, 4376, 630, 132, 103]}
+{"text": "ich will das TU-Dresden-Design für die Oberfläche", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 199, 14009, 232, 3382, 10817, 106, 232, 20780, 231, 128, 3923, 3529, 103]}
+{"text": "hoher kontrast", "bereich": "app", "ids": [102, 3433, 103, 8484, 30286, 112, 103]}
+{"text": "wo mache ich die schrift größer", "bereich": "app", "ids": [102, 3433, 103, 476, 7329, 383, 128, 7901, 5749, 103]}
+{"text": "schriftgröße", "bereich": "app", "ids": [102, 3433, 103, 7901, 10403, 103]}
+{"text": "alles ist so winzig, kann man reinzoomen", "bereich": "app", "ids": [102, 3433, 103, 1446, 215, 262, 16367, 3391, 818, 530, 545, 3651, 6433, 3446, 103]}
+{"text": "zoom", "bereich": "app", "ids": [102, 3433, 103, 148, 5545, 30895, 103]}
+{"text": "wo stelle ich die sprache der app um", "bereich": "app", "ids": [102, 3433, 103, 476, 16548, 383, 128, 4297, 30881, 125, 10969, 336, 103]}
+{"text": "die animation beim start nervt, wo ist die", "bereich": "app", "ids": [102, 3433, 103, 128, 25458, 301, 916, 29456, 15625, 30885, 818, 476, 215, 128, 103]}
+{"text": "mit welchem modell startet ein neuer chat, wo ändere ich das", "bereich": "app", "ids": [102, 3433, 103, 212, 10379, 11219, 630, 10840, 143, 3973, 1677, 141, 818, 476, 1576, 2411, 30881, 383, 199, 103]}
+{"text": "standardmodell", "bereich": "app", "ids": [102, 3433, 103, 19696, 9812, 103]}
+{"text": "automatische modellwahl, wo ist der schalter", "bereich": "app", "ids": [102, 3433, 103, 24281, 11219, 630, 1979, 818, 476, 215, 125, 292, 1970, 103]}
+{"text": "denkstufe", "bereich": "app", "ids": [102, 3433, 103, 16223, 3219, 103]}
+{"text": "wie stelle ich ein, dass das modell länger nachdenkt", "bereich": "app", "ids": [102, 3433, 103, 335, 16548, 383, 143, 818, 377, 199, 11219, 630, 3994, 333, 15132, 103]}
+{"text": "wo ist die option für die websuche", "bereich": "app", "ids": [102, 3433, 103, 476, 215, 128, 8897, 119, 231, 128, 16441, 21543, 103]}
+{"text": "arbeitsschritte einklappen wo", "bereich": "app", "ids": [102, 3433, 103, 12413, 30178, 143, 12638, 2091, 476, 103]}
+{"text": "freigaben", "bereich": "app", "ids": [102, 3433, 103, 1626, 1378, 103]}
+{"text": "der agent soll vor jeder änderung fragen", "bereich": "app", "ids": [102, 3433, 103, 125, 5625, 227, 585, 334, 2422, 1576, 2411, 132, 7631, 103]}
+{"text": "wo kann ich lora ausblenden", "bereich": "app", "ids": [102, 3433, 103, 476, 530, 383, 8695, 173, 19151, 2829, 169, 103]}
+{"text": "ruhigere bewegungen option", "bereich": "app", "ids": [102, 3433, 103, 23763, 30881, 7159, 271, 8897, 119, 103]}
+{"text": "wo stelle ich ein, ob lora lokal oder über den server arbeitet", "bereich": "app", "ids": [102, 3433, 103, 476, 16548, 383, 143, 818, 1322, 8695, 173, 21194, 394, 304, 190, 4101, 5170, 103]}
+{"text": "mischmodus", "bereich": "app", "ids": [102, 3433, 103, 5095, 5904, 640, 154, 103]}
+{"text": "wo ist der schalter für die pseudonymisierung", "bereich": "app", "ids": [102, 3433, 103, 476, 215, 125, 292, 1970, 231, 128, 295, 13587, 9963, 3281, 103]}
+{"text": "liste der namen die nie ersetzt werden", "bereich": "app", "ids": [102, 3433, 103, 29108, 30881, 125, 16300, 106, 128, 981, 6462, 338, 103]}
+{"text": "nie ersetzen", "bereich": "app", "ids": [102, 3433, 103, 981, 13036, 103]}
+{"text": "andere stimme zum vorlesen auswählen", "bereich": "app", "ids": [102, 3433, 103, 1301, 9111, 30881, 386, 334, 12418, 21811, 103]}
+{"text": "wo trage ich meinen absender für briefe ein", "bereich": "app", "ids": [102, 3433, 103, 476, 28285, 383, 3609, 28220, 8362, 231, 2118, 7978, 143, 103]}
+{"text": "eigenes logo hochladen", "bereich": "app", "ids": [102, 3433, 103, 8053, 11589, 30892, 2130, 3326, 103]}
+{"text": "soll automatisch nach updates gesucht werden, wo steht das", "bereich": "app", "ids": [102, 3433, 103, 585, 9864, 333, 9392, 6398, 10221, 338, 818, 476, 1419, 199, 103]}
+{"text": "github in jedem neuen chat aktiv", "bereich": "app", "ids": [102, 3433, 103, 17445, 1198, 768, 153, 4306, 1260, 1677, 141, 3049, 103]}
+{"text": "vor dem modellwechsel nachfragen", "bereich": "app", "ids": [102, 3433, 103, 334, 249, 11219, 630, 4478, 333, 4789, 103]}
+{"text": "wo erlaube ich dem chat, word und pdf zu erstellen", "bereich": "app", "ids": [102, 3433, 103, 476, 20303, 30881, 383, 249, 1677, 141, 818, 5928, 30888, 136, 295, 16511, 205, 12615, 103]}
+{"text": "der agent hört nach ein paar schritten auf, kann er einfach weitermachen", "bereich": "app", "ids": [102, 3433, 103, 125, 5625, 227, 10600, 333, 143, 3506, 15664, 106, 216, 818, 530, 180, 1523, 576, 7636, 103]}
+{"text": "nach dem chat dazulernen", "bereich": "app", "ids": [102, 3433, 103, 333, 249, 1677, 141, 1593, 13389, 103]}
+{"text": "soll das modell meine alten chats mit einbeziehen, wo", "bereich": "app", "ids": [102, 3433, 103, 585, 199, 11219, 630, 1717, 3161, 1677, 1515, 212, 143, 22858, 818, 476, 103]}
+{"text": "vorschläge unter den feldern der vorlagen", "bereich": "app", "ids": [102, 3433, 103, 334, 4444, 389, 190, 5379, 4300, 310, 125, 334, 1116, 103]}
+{"text": "übergaben erst zeigen", "bereich": "app", "ids": [102, 3433, 103, 23247, 106, 924, 3518, 103]}
+{"text": "die vorschläge unter der antwort, wo schalte ich die ab", "bereich": "app", "ids": [102, 3433, 103, 128, 334, 4444, 389, 125, 12482, 30885, 818, 476, 292, 8045, 383, 128, 404, 103]}
+{"text": "ki-nutzungsnachweis", "bereich": "app", "ids": [102, 3433, 103, 184, 30883, 232, 7743, 327, 2599, 2368, 103]}
+{"text": "hinweise beim tippen", "bereich": "app", "ids": [102, 3433, 103, 631, 875, 916, 8593, 2091, 103]}
+{"text": "lora soll mir keine tipps mehr geben, wo ist das", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 585, 780, 855, 8593, 25584, 484, 2082, 818, 476, 215, 199, 103]}
+{"text": "touren anbieten ja nein", "bereich": "app", "ids": [102, 3433, 103, 11525, 106, 11663, 1619, 5329, 103]}
+{"text": "was weiß lora über mich", "bereich": "app", "ids": [102, 3433, 103, 556, 1288, 8695, 173, 304, 804, 103]}
+{"text": "was hat lora zuletzt gemacht, gibts ein protokoll", "bereich": "app", "ids": [102, 3433, 103, 556, 308, 8695, 173, 4124, 2169, 818, 800, 30886, 143, 951, 3968, 13504, 30891, 103]}
+{"text": "ich nutze kein outlook, wo stelle ich auf imap um", "bereich": "app", "ids": [102, 3433, 103, 383, 7743, 30881, 1268, 12338, 799, 546, 818, 476, 16548, 383, 216, 223, 496, 336, 103]}
+{"text": "soll im hintergrund weiterlaufen wenn ich das fenster schließe", "bereich": "app", "ids": [102, 3433, 103, 585, 223, 2145, 1346, 576, 4484, 684, 383, 199, 5379, 26376, 105, 2078, 30881, 103]}
+{"text": "mit windows starten", "bereich": "app", "ids": [102, 3433, 103, 212, 24454, 4917, 9408, 103]}
+{"text": "rechtsklick im explorer mit lora öffnen", "bereich": "app", "ids": [102, 3433, 103, 4774, 570, 436, 223, 13133, 19037, 212, 8695, 173, 8368, 103]}
+{"text": "gelöschte dateien in den windows papierkorb", "bereich": "app", "ids": [102, 3433, 103, 18776, 30881, 11692, 3234, 153, 190, 24454, 4917, 26668, 30773, 22779, 6804, 103]}
+{"text": "links neben dem chat öffnen", "bereich": "app", "ids": [102, 3433, 103, 5512, 2198, 249, 1677, 141, 8368, 103]}
+{"text": "wo ist das suchfeld für dateien", "bereich": "app", "ids": [102, 3433, 103, 476, 215, 199, 23140, 1651, 231, 11692, 3234, 103]}
+{"text": "neuen ordner anlegen", "bereich": "app", "ids": [102, 3433, 103, 1260, 12321, 432, 27972, 103]}
+{"text": "wo lade ich was hoch", "bereich": "app", "ids": [102, 3433, 103, 476, 4268, 158, 383, 556, 2130, 103]}
+{"text": "hochgeladen, erstellt, markiert – wo wechsle ich das", "bereich": "app", "ids": [102, 3433, 103, 2130, 18959, 818, 8176, 818, 19524, 809, 476, 6686, 15589, 245, 383, 199, 103]}
+{"text": "wo ändere ich die sortierung in dateien", "bereich": "app", "ids": [102, 3433, 103, 476, 1576, 2411, 30881, 383, 128, 19177, 6100, 153, 11692, 3234, 103]}
+{"text": "seite fotografieren", "bereich": "app", "ids": [102, 3433, 103, 836, 30881, 16365, 549, 103]}
+{"text": "scan als pdf speichern", "bereich": "app", "ids": [102, 3433, 103, 10860, 114, 276, 295, 16511, 17857, 103]}
+{"text": "wo öffne ich ein pdf im werkzeugkasten", "bereich": "app", "ids": [102, 3433, 103, 476, 2635, 273, 382, 383, 143, 295, 16511, 223, 309, 30900, 1397, 17559, 103]}
+{"text": "wo sind markieren und unterschreiben im pdf werkzeug", "bereich": "app", "ids": [102, 3433, 103, 476, 341, 7576, 549, 136, 8338, 2310, 223, 295, 16511, 309, 30900, 1397, 103]}
+{"text": "wo ist der knopf zum zusammenfügen", "bereich": "app", "ids": [102, 3433, 103, 476, 215, 125, 6274, 2062, 386, 1105, 30124, 103]}
+{"text": "pdf speichern unter", "bereich": "app", "ids": [102, 3433, 103, 295, 16511, 17857, 389, 103]}
+{"text": "mit lora erstellen", "bereich": "app", "ids": [102, 3433, 103, 212, 8695, 173, 12615, 103]}
+{"text": "tu vorlagen", "bereich": "app", "ids": [102, 3433, 103, 14009, 334, 1116, 103]}
+{"text": "ich brauch ein flussdiagramm", "bereich": "app", "ids": [102, 3433, 103, 383, 23103, 143, 3025, 431, 12977, 1315, 103]}
+{"text": "whiteboard", "bereich": "app", "ids": [102, 3433, 103, 9299, 1191, 11797, 103]}
+{"text": "eigene vorlage anlegen", "bereich": "app", "ids": [102, 3433, 103, 3468, 334, 985, 27972, 103]}
+{"text": "neues videoprojekt", "bereich": "app", "ids": [102, 3433, 103, 4781, 133, 10087, 9076, 103]}
+{"text": "wo mache ich eine bauchbinde", "bereich": "app", "ids": [102, 3433, 103, 476, 7329, 383, 261, 14452, 107, 3257, 158, 103]}
+{"text": "wo sind die untertitel im videoeditor", "bereich": "app", "ids": [102, 3433, 103, 476, 341, 128, 389, 6242, 223, 133, 10087, 26823, 3432, 103]}
+{"text": "rohschnitt", "bereich": "app", "ids": [102, 3433, 103, 2519, 5494, 1271, 2978, 103]}
+{"text": "ich möchte meinen bildschirm aufzeichnen", "bereich": "app", "ids": [102, 3433, 103, 383, 2298, 3609, 17846, 9702, 216, 6410, 103]}
+{"text": "screencast aufnehmen", "bereich": "app", "ids": [102, 3433, 103, 10860, 11647, 14978, 11611, 103]}
+{"text": "video über den text schneiden", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 304, 190, 1491, 2084, 24576, 103]}
+{"text": "webcam als kleines bild in der ecke", "bereich": "app", "ids": [102, 3433, 103, 16441, 20801, 276, 8615, 17846, 153, 125, 19581, 533, 103]}
+{"text": "wo ist die klinge", "bereich": "app", "ids": [102, 3433, 103, 476, 215, 128, 13428, 124, 103]}
+{"text": "anordnung des videoeditors zurücksetzen", "bereich": "app", "ids": [102, 3433, 103, 208, 1518, 222, 133, 10087, 26823, 3432, 30886, 876, 3681, 103]}
+{"text": "wo exportiere ich das video", "bereich": "app", "ids": [102, 3433, 103, 476, 20346, 343, 1435, 383, 199, 133, 10087, 103]}
+{"text": "helligkeit", "bereich": "app", "ids": [102, 3433, 103, 10503, 1015, 103]}
+{"text": "dunkles design", "bereich": "app", "ids": [102, 3433, 103, 22210, 30886, 20780, 103]}
+{"text": "wo finde ich den nachtmodus", "bereich": "app", "ids": [102, 3433, 103, 476, 8385, 383, 190, 18414, 25287, 103]}
+{"text": "stil der app", "bereich": "app", "ids": [102, 3433, 103, 16156, 125, 10969, 103]}
+{"text": "anderes farbschema, office look", "bereich": "app", "ids": [102, 3433, 103, 5879, 16839, 1032, 731, 818, 15008, 1726, 21207, 103]}
+{"text": "textgröße wo", "bereich": "app", "ids": [102, 3433, 103, 1491, 2084, 10403, 476, 103]}
+{"text": "ich kann das kaum lesen, wo stell ich die schrift ein", "bereich": "app", "ids": [102, 3433, 103, 383, 530, 199, 3608, 6007, 818, 476, 2357, 383, 128, 7901, 143, 103]}
+{"text": "oberfläche vergrößern", "bereich": "app", "ids": [102, 3433, 103, 3923, 3529, 29851, 103]}
+{"text": "skalierung", "bereich": "app", "ids": [102, 3433, 103, 11473, 21796, 13406, 103]}
+{"text": "sprache der oberfläche", "bereich": "app", "ids": [102, 3433, 103, 4297, 30881, 125, 3923, 3529, 103]}
+{"text": "where do I change the language", "bereich": "app", "ids": [102, 3433, 103, 30515, 5601, 144, 1677, 1046, 871, 1519, 24233, 103]}
+{"text": "startanimation", "bereich": "app", "ids": [102, 3433, 103, 29456, 7434, 5462, 220, 103]}
+{"text": "wo lege ich das standardmodell fest", "bereich": "app", "ids": [102, 3433, 103, 476, 3096, 30881, 383, 199, 19696, 9812, 1280, 103]}
+{"text": "anderes modell als voreinstellung", "bereich": "app", "ids": [102, 3433, 103, 5879, 11219, 630, 276, 334, 7806, 5382, 132, 103]}
+{"text": "modell automatisch wählen", "bereich": "app", "ids": [102, 3433, 103, 11219, 630, 9864, 7620, 103]}
+{"text": "reasoning stufe", "bereich": "app", "ids": [102, 3433, 103, 474, 11981, 323, 305, 3219, 103]}
+{"text": "wo stelle ich das nachdenken ein", "bereich": "app", "ids": [102, 3433, 103, 476, 16548, 383, 199, 26786, 143, 103]}
+{"text": "websuche option", "bereich": "app", "ids": [102, 3433, 103, 16441, 21543, 8897, 119, 103]}
+{"text": "werkzeugschritte eingeklappt lassen", "bereich": "app", "ids": [102, 3433, 103, 309, 30900, 1397, 30178, 1194, 12638, 8671, 1668, 103]}
+{"text": "wann fragt der agent nach", "bereich": "app", "ids": [102, 3433, 103, 8684, 13657, 125, 5625, 227, 333, 103]}
+{"text": "freigabe einstellungen", "bereich": "app", "ids": [102, 3433, 103, 1626, 1621, 4376, 630, 271, 103]}
+{"text": "lora ein- oder ausblenden", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 143, 232, 394, 19151, 2829, 169, 103]}
+{"text": "wo erscheint lora überall, kann ich das ändern", "bereich": "app", "ids": [102, 3433, 103, 476, 6877, 8695, 173, 7572, 818, 530, 383, 199, 6289, 103]}
+{"text": "lora bewegt sich zu viel, wo ändere ich das", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 11317, 251, 205, 827, 818, 476, 1576, 2411, 30881, 383, 199, 103]}
+{"text": "wo arbeitet lora, einstellung", "bereich": "app", "ids": [102, 3433, 103, 476, 5170, 8695, 173, 818, 4376, 630, 132, 103]}
+{"text": "befehlsmodell laden, wo", "bereich": "app", "ids": [102, 3433, 103, 1510, 14738, 9812, 14969, 818, 476, 103]}
+{"text": "pseudonymisierung", "bereich": "app", "ids": [102, 3433, 103, 295, 13587, 9963, 3281, 103]}
+{"text": "namen ersetzen vor dem senden wo", "bereich": "app", "ids": [102, 3433, 103, 16300, 106, 13036, 334, 249, 7599, 476, 103]}
+{"text": "ausnahmeliste für namen", "bereich": "app", "ids": [102, 3433, 103, 28288, 18711, 241, 231, 16300, 106, 103]}
+{"text": "stimme", "bereich": "app", "ids": [102, 3433, 103, 9111, 30881, 103]}
+{"text": "wo ändere ich die vorlesestimme", "bereich": "app", "ids": [102, 3433, 103, 476, 1576, 2411, 30881, 383, 128, 334, 4420, 331, 13770, 103]}
+{"text": "absender", "bereich": "app", "ids": [102, 3433, 103, 28220, 8362, 103]}
+{"text": "meine anschrift für den briefkopf", "bereich": "app", "ids": [102, 3433, 103, 1717, 25111, 2782, 231, 190, 2118, 2488, 9322, 103]}
+{"text": "logos", "bereich": "app", "ids": [102, 3433, 103, 11589, 317, 103]}
+{"text": "automatisch nach updates suchen", "bereich": "app", "ids": [102, 3433, 103, 9864, 333, 9392, 6398, 5143, 103]}
+{"text": "github automatisch aktiv", "bereich": "app", "ids": [102, 3433, 103, 17445, 1198, 768, 9864, 3049, 103]}
+{"text": "fragen bevor ein anderes modell genommen wird", "bereich": "app", "ids": [102, 3433, 103, 7631, 2784, 143, 5879, 11219, 630, 4280, 371, 103]}
+{"text": "dokumente erstellen option", "bereich": "app", "ids": [102, 3433, 103, 11959, 123, 12615, 8897, 119, 103]}
+{"text": "automatisch weitermachen", "bereich": "app", "ids": [102, 3433, 103, 9864, 576, 7636, 103]}
+{"text": "schrittlimit, danach selbst fortsetzen", "bereich": "app", "ids": [102, 3433, 103, 15664, 30238, 818, 3761, 1062, 20216, 103]}
+{"text": "dazulernen", "bereich": "app", "ids": [102, 3433, 103, 1593, 13389, 103]}
+{"text": "soll die app sich nach chats sachen merken, wo", "bereich": "app", "ids": [102, 3433, 103, 585, 128, 10969, 251, 333, 1677, 1515, 16517, 106, 24188, 818, 476, 103]}
+{"text": "frühere chats einbeziehen", "bereich": "app", "ids": [102, 3433, 103, 9791, 1677, 1515, 143, 22858, 103]}
+{"text": "vorschläge aus meinem wissen", "bereich": "app", "ids": [102, 3433, 103, 334, 4444, 260, 4658, 1770, 103]}
+{"text": "fragen von lora sollen erst im eingabefeld landen", "bereich": "app", "ids": [102, 3433, 103, 7631, 195, 8695, 173, 1852, 924, 223, 143, 1621, 1651, 19583, 103]}
+{"text": "nächste schritte unter antworten", "bereich": "app", "ids": [102, 3433, 103, 5505, 15664, 30881, 389, 20838, 103]}
+{"text": "nutzungsnachweis für ki vorschlagen", "bereich": "app", "ids": [102, 3433, 103, 7743, 327, 2599, 2368, 231, 184, 30883, 29645, 103]}
+{"text": "lora zeigt beim tippen orte an, wo geht das aus", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 2652, 916, 8593, 2091, 1828, 123, 208, 818, 476, 1125, 199, 260, 103]}
+{"text": "hinweise erlaubt", "bereich": "app", "ids": [102, 3433, 103, 631, 875, 6311, 103]}
+{"text": "touren", "bereich": "app", "ids": [102, 3433, 103, 11525, 106, 103]}
+{"text": "lora gedächtnis", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 4877, 16079, 103]}
+{"text": "vorlieben ansehen und löschen", "bereich": "app", "ids": [102, 3433, 103, 334, 5005, 14920, 136, 21955, 103]}
+{"text": "protokoll der lora aktionen", "bereich": "app", "ids": [102, 3433, 103, 951, 3968, 13504, 30891, 125, 8695, 173, 2306, 1053, 103]}
+{"text": "mailserver statt outlook", "bereich": "app", "ids": [102, 3433, 103, 6138, 7061, 12899, 30884, 1477, 12338, 799, 546, 103]}
+{"text": "im infobereich weiterlaufen", "bereich": "app", "ids": [102, 3433, 103, 223, 13267, 1888, 576, 4484, 103]}
+{"text": "autostart", "bereich": "app", "ids": [102, 3433, 103, 3849, 11064, 2527, 103]}
+{"text": "lora soll beim hochfahren mit starten", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 585, 916, 2130, 1009, 212, 9408, 103]}
+{"text": "explorer kontextmenü", "bereich": "app", "ids": [102, 3433, 103, 13133, 19037, 634, 7322, 243, 30906, 103]}
+{"text": "windows papierkorb benutzen", "bereich": "app", "ids": [102, 3433, 103, 24454, 4917, 26668, 30773, 22779, 6804, 10245, 103]}
+{"text": "links als tabs neben der app", "bereich": "app", "ids": [102, 3433, 103, 5512, 276, 5613, 3299, 2198, 125, 10969, 103]}
+{"text": "dateien durchsuchen", "bereich": "app", "ids": [102, 3433, 103, 11692, 3234, 29981, 103]}
+{"text": "volltextsuche in meinen dateien", "bereich": "app", "ids": [102, 3433, 103, 1724, 7322, 21543, 153, 3609, 11692, 3234, 103]}
+{"text": "neues dokument anlegen", "bereich": "app", "ids": [102, 3433, 103, 4781, 11959, 30885, 27972, 103]}
+{"text": "datei hochladen", "bereich": "app", "ids": [102, 3433, 103, 11692, 109, 2130, 3326, 103]}
+{"text": "orte in dateien", "bereich": "app", "ids": [102, 3433, 103, 1828, 123, 153, 11692, 3234, 103]}
+{"text": "dateien nach datum sortieren, wo", "bereich": "app", "ids": [102, 3433, 103, 11692, 3234, 333, 11692, 182, 19177, 2283, 818, 476, 103]}
+{"text": "foto aufnehmen für den scan", "bereich": "app", "ids": [102, 3433, 103, 14758, 30892, 11611, 231, 190, 10860, 114, 103]}
+{"text": "vom scanner einlesen", "bereich": "app", "ids": [102, 3433, 103, 507, 10860, 8871, 143, 12418, 103]}
+{"text": "als pdf speichern im scanner", "bereich": "app", "ids": [102, 3433, 103, 276, 295, 16511, 17857, 223, 10860, 8871, 103]}
+{"text": "pdf öffnen", "bereich": "app", "ids": [102, 3433, 103, 295, 16511, 8368, 103]}
+{"text": "modi des pdf werkzeugkastens", "bereich": "app", "ids": [102, 3433, 103, 11219, 30883, 222, 295, 16511, 309, 30900, 1397, 17559, 30886, 103]}
+{"text": "wo füge ich pdfs zusammen", "bereich": "app", "ids": [102, 3433, 103, 476, 7420, 124, 383, 295, 16511, 30886, 1105, 103]}
+{"text": "bearbeitetes pdf teilen oder speichern", "bereich": "app", "ids": [102, 3433, 103, 19016, 115, 295, 16511, 10519, 394, 17857, 103]}
+{"text": "lora sagen was entstehen soll", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 1986, 556, 5677, 585, 103]}
+{"text": "vorlagen", "bereich": "app", "ids": [102, 3433, 103, 334, 1116, 103]}
+{"text": "mindmap zeichnen", "bereich": "app", "ids": [102, 3433, 103, 5401, 30888, 731, 30903, 20150, 103]}
+{"text": "organigramm erstellen", "bereich": "app", "ids": [102, 3433, 103, 14201, 19400, 921, 12615, 103]}
+{"text": "neue vorlage", "bereich": "app", "ids": [102, 3433, 103, 1133, 334, 985, 103]}
+{"text": "video projekt anlegen", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 951, 1569, 27972, 103]}
+{"text": "titel und abspann im video", "bereich": "app", "ids": [102, 3433, 103, 8593, 410, 136, 28220, 13903, 30882, 223, 133, 10087, 103]}
+{"text": "untertitel", "bereich": "app", "ids": [102, 3433, 103, 389, 6242, 103]}
+{"text": "füllwörter und pausen rausschneiden, wo", "bereich": "app", "ids": [102, 3433, 103, 7420, 137, 13347, 136, 26668, 12463, 4140, 15314, 818, 476, 103]}
+{"text": "bildschirmaufnahme", "bereich": "app", "ids": [102, 3433, 103, 17846, 9702, 8894, 103]}
+{"text": "im transkript schneiden", "bereich": "app", "ids": [102, 3433, 103, 223, 13671, 2029, 988, 30885, 24576, 103]}
+{"text": "bild in bild", "bereich": "app", "ids": [102, 3433, 103, 17846, 153, 17846, 103]}
+{"text": "schnittwerkzeuge", "bereich": "app", "ids": [102, 3433, 103, 13070, 2978, 1336, 3196, 103]}
+{"text": "trimmen und magnet wo", "bereich": "app", "ids": [102, 3433, 103, 30411, 4144, 136, 27016, 476, 103]}
+{"text": "medienpool einklappen", "bereich": "app", "ids": [102, 3433, 103, 4296, 270, 9061, 143, 12638, 2091, 103]}
+{"text": "vorschau im vollbild", "bereich": "app", "ids": [102, 3433, 103, 334, 4536, 223, 1724, 1025, 103]}
+{"text": "video exportieren", "bereich": "app", "ids": [102, 3433, 103, 133, 10087, 20346, 343, 549, 103]}
+{"text": "mach mal dunkel", "bereich": "app", "ids": [102, 3433, 103, 9701, 1421, 11521, 103]}
+{"text": "bitte auf hell stellen", "bereich": "app", "ids": [102, 3433, 103, 2982, 216, 10503, 3055, 103]}
+{"text": "switch to dark mode", "bereich": "app", "ids": [102, 3433, 103, 25548, 17121, 1512, 555, 30900, 11219, 30881, 103]}
+{"text": "design wie das system", "bereich": "app", "ids": [102, 3433, 103, 20780, 335, 199, 8221, 103]}
+{"text": "dunkelmodus aus", "bereich": "app", "ids": [102, 3433, 103, 11521, 25287, 260, 103]}
+{"text": "schrift größer", "bereich": "app", "ids": [102, 3433, 103, 7901, 5749, 103]}
+{"text": "mach die schrift bitte sehr groß", "bereich": "app", "ids": [102, 3433, 103, 9701, 128, 7901, 2982, 843, 723, 103]}
+{"text": "schriftgröße wieder normal", "bereich": "app", "ids": [102, 3433, 103, 7901, 10403, 628, 5070, 103]}
+{"text": "stell die app auf englisch", "bereich": "app", "ids": [102, 3433, 103, 2357, 128, 10969, 216, 15896, 103]}
+{"text": "sprache deutsch", "bereich": "app", "ids": [102, 3433, 103, 4297, 30881, 992, 103]}
+{"text": "lora ausblenden", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 19151, 2829, 169, 103]}
+{"text": "lora nur im chat zeigen", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 475, 223, 1677, 141, 3518, 103]}
+{"text": "lora wieder überall anzeigen", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 628, 7572, 17275, 103]}
+{"text": "pseudonymisierung einschalten", "bereich": "app", "ids": [102, 3433, 103, 295, 13587, 9963, 3281, 13856, 1453, 103]}
+{"text": "schalte das ersetzen von namen ab", "bereich": "app", "ids": [102, 3433, 103, 292, 8045, 199, 13036, 195, 16300, 106, 404, 103]}
+{"text": "websuche an", "bereich": "app", "ids": [102, 3433, 103, 16441, 21543, 208, 103]}
+{"text": "keine websuche mehr", "bereich": "app", "ids": [102, 3433, 103, 855, 16441, 21543, 484, 103]}
+{"text": "dokumente erstellen ausschalten", "bereich": "app", "ids": [102, 3433, 103, 11959, 123, 12615, 29832, 1453, 103]}
+{"text": "das modell soll automatisch gewählt werden", "bereich": "app", "ids": [102, 3433, 103, 199, 11219, 630, 585, 9864, 3815, 338, 103]}
+{"text": "automatische modellwahl aus", "bereich": "app", "ids": [102, 3433, 103, 24281, 11219, 630, 1979, 260, 103]}
+{"text": "arbeitsschritte bitte immer einklappen", "bereich": "app", "ids": [102, 3433, 103, 12413, 30178, 2982, 847, 143, 12638, 2091, 103]}
+{"text": "startanimation aus", "bereich": "app", "ids": [102, 3433, 103, 29456, 7434, 5462, 220, 260, 103]}
+{"text": "lora soll ruhiger sein", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 585, 23763, 290, 103]}
+{"text": "lora soll nur noch lokal arbeiten", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 585, 475, 447, 21194, 3496, 103]}
+{"text": "stell lora auf nur server", "bereich": "app", "ids": [102, 3433, 103, 2357, 8695, 173, 216, 475, 4101, 103]}
+{"text": "lora wieder gemischt", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 628, 29231, 103]}
+{"text": "turn off the start animation", "bereich": "app", "ids": [102, 3433, 103, 29572, 15008, 871, 29456, 25458, 301, 103]}
+{"text": "dunkel", "bereich": "app", "ids": [102, 3433, 103, 11521, 103]}
+{"text": "stell auf dunkles design um", "bereich": "app", "ids": [102, 3433, 103, 2357, 216, 22210, 30886, 20780, 336, 103]}
+{"text": "hell bitte", "bereich": "app", "ids": [102, 3433, 103, 10503, 2982, 103]}
+{"text": "light mode", "bereich": "app", "ids": [102, 3433, 103, 6840, 8972, 30885, 11219, 30881, 103]}
+{"text": "nachtmodus an", "bereich": "app", "ids": [102, 3433, 103, 18414, 25287, 208, 103]}
+{"text": "helligkeit nach system", "bereich": "app", "ids": [102, 3433, 103, 10503, 1015, 333, 8221, 103]}
+{"text": "schrift kleiner", "bereich": "app", "ids": [102, 3433, 103, 7901, 5429, 103]}
+{"text": "schrift groß", "bereich": "app", "ids": [102, 3433, 103, 7901, 723, 103]}
+{"text": "ich brauch größere schrift", "bereich": "app", "ids": [102, 3433, 103, 383, 23103, 6049, 7901, 103]}
+{"text": "textgröße auf sehr groß", "bereich": "app", "ids": [102, 3433, 103, 1491, 2084, 10403, 216, 843, 723, 103]}
+{"text": "schrift klein stellen", "bereich": "app", "ids": [102, 3433, 103, 7901, 2129, 3055, 103]}
+{"text": "oberfläche auf english", "bereich": "app", "ids": [102, 3433, 103, 3923, 3529, 216, 4282, 3194, 103]}
+{"text": "switch the app to german", "bereich": "app", "ids": [102, 3433, 103, 25548, 17121, 871, 10969, 1512, 839, 1306, 103]}
+{"text": "auf deutsch umstellen", "bereich": "app", "ids": [102, 3433, 103, 216, 992, 10079, 17250, 30882, 103]}
+{"text": "lora aus", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 260, 103]}
+{"text": "ich will lora nicht mehr sehen", "bereich": "app", "ids": [102, 3433, 103, 383, 978, 8695, 173, 255, 484, 1542, 103]}
+{"text": "lora überall", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 7572, 103]}
+{"text": "lora nur im chat", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 475, 223, 1677, 141, 103]}
+{"text": "pseudonymisierung an", "bereich": "app", "ids": [102, 3433, 103, 295, 13587, 9963, 3281, 208, 103]}
+{"text": "pseudonymisierung aus", "bereich": "app", "ids": [102, 3433, 103, 295, 13587, 9963, 3281, 260, 103]}
+{"text": "namen sollen vor dem senden ersetzt werden, schalte das ein", "bereich": "app", "ids": [102, 3433, 103, 16300, 106, 1852, 334, 249, 7599, 6462, 338, 818, 292, 8045, 199, 143, 103]}
+{"text": "websuche einschalten", "bereich": "app", "ids": [102, 3433, 103, 16441, 21543, 13856, 1453, 103]}
+{"text": "internet suche deaktivieren", "bereich": "app", "ids": [102, 3433, 103, 20266, 30885, 18479, 506, 7393, 549, 103]}
+{"text": "dokumente erstellen an", "bereich": "app", "ids": [102, 3433, 103, 11959, 123, 12615, 208, 103]}
+{"text": "automatisch das passende modell nehmen, an", "bereich": "app", "ids": [102, 3433, 103, 9864, 199, 21875, 11219, 630, 2772, 818, 208, 103]}
+{"text": "auto modell aus", "bereich": "app", "ids": [102, 3433, 103, 3849, 30892, 11219, 630, 260, 103]}
+{"text": "schritte einklappen aus", "bereich": "app", "ids": [102, 3433, 103, 15664, 30881, 143, 12638, 2091, 260, 103]}
+{"text": "arbeitsschritte einklappen an", "bereich": "app", "ids": [102, 3433, 103, 12413, 30178, 143, 12638, 2091, 208, 103]}
+{"text": "startanimation wieder einschalten", "bereich": "app", "ids": [102, 3433, 103, 29456, 7434, 5462, 220, 628, 13856, 1453, 103]}
+{"text": "keine animation beim start", "bereich": "app", "ids": [102, 3433, 103, 855, 25458, 301, 916, 29456, 103]}
+{"text": "ruhigere bewegungen an", "bereich": "app", "ids": [102, 3433, 103, 23763, 30881, 7159, 271, 208, 103]}
+{"text": "nur lokal arbeiten, nichts mehr an den server", "bereich": "app", "ids": [102, 3433, 103, 475, 21194, 3496, 818, 1607, 484, 208, 190, 4101, 103]}
+{"text": "lora nur über den server", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 475, 304, 190, 4101, 103]}
+{"text": "mischmodus einschalten", "bereich": "app", "ids": [102, 3433, 103, 5095, 5904, 640, 154, 13856, 1453, 103]}
+{"text": "lora offline betreiben", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 15008, 2396, 14303, 103]}
+{"text": "lora darf wieder tanzen", "bereich": "app", "ids": [102, 3433, 103, 8695, 173, 3318, 628, 19020, 103]}

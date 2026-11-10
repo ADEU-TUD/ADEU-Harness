@@ -238,6 +238,34 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   - Das **PDF** folgt denselben Umbruchregeln wie die Seitenansicht, wird aber weiter über HTML gesetzt (Offene Frage 8:
     so belassen) – Seitenumbrüche können je nach Schrift um einige Zeilen abweichen.
   Tests `EditorRestTest`, `PruefsammlungTest`, `FlowEditorUiTest`.
+- **Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus** (seit 1.0.65, AP-71):
+  - **Befehlsmodell**: Ein kleines eigenes Modell (distilbert-base-german-cased, Apache-2.0, auf erfundenen Wünschen
+    trainiert) ordnet, was du Lora oder in **Strg+K** schreibst, in etwa 3 Millisekunden einer von 178 Aktionen der App zu
+    – Bereich oder Werkzeug öffnen, Modus starten, Einstellung zeigen oder umstellen („mach dunkel“, „Schrift größer“),
+    TU Vorlage, Aktion im offenen Werkzeug („füge die PDFs zusammen“, „sortiere nach Nachname absteigend“, „lösch Seite 3“),
+    Tour, frühere Chats, Frist. Offline, auch mit Tippfehlern, Umgangssprache und einfachem Englisch. Werte (an/aus,
+    Seiten, Spalte, Ordner, Dateiname, Datum) liest die App danach mit Regeln aus dem Wunsch. **Ist das Modell unsicher,
+    führt es nichts aus**, sondern Lora fragt wie bisher ein Sprachmodell – eine falsch ausgeführte Aktion ist schlimmer
+    als eine Rückfrage. Einstellungen ändert Lora weiter erst nach „Ja“, riskante Aktionen zeigen zuerst die Vorschau.
+    Gemessen auf 386 ungesehenen Wünschen: 84 % der Befehle sofort richtig, **0 % falsch ausgeführt** (die bisherigen
+    Regeln: 38 % und 19 %), alle freien Anfragen weitergegeben. In Strg+K steht der erkannte Befehl als erster Eintrag (⚡).
+    Das Modell kommt als Download (41 MB) – angeboten im Dialog vom ersten Start oder unter *Einstellungen › Lora*, dort
+    auch Schalter, Modellkarte und *Löschen*. Ohne Modell arbeitet Lora wie bisher.
+  - **Mischmodus** (*Einstellungen › Lora › Wo Lora arbeitet*): **Gemischt (empfohlen)** – Befehle sofort auf dem Gerät;
+    kurze, einfache Aufgaben (umformulieren, kurz erklären, eine kurze Nachricht) mit einem installierten Sprachmodell
+    auf diesem Gerät, wenn die Hardware reicht; alles andere (lange Dokumente, Analysen, Bilder, Websuche, mehrere
+    Schritte) über den Server wie bisher. **Nur lokal** – nichts geht an einen Server; die App sagt klar, was das kostet
+    (schlichtere Antworten, kurze Texte, oft eine halbe Minute je Antwort, keine Websuche). **Nur Server** – Sprachmodelle
+    nur auf dem Server. Unverändert: Ins Postfach schaut nur ein Modell auf diesem Gerät, Tresor und Projekte „Nur auf
+    diesem Gerät“ behalten ihre Regeln, vor jeder Server-Anfrage wird pseudonymisiert, Übergaben gehen an DeepSeek V4.1
+    Flash, Lora selbst nutzt GLM-5.3 Flash. Mit *Modell automatisch wählen* gilt dasselbe im Chat. Unter der Einstellung
+    steht, **wie oft und wie schnell** Lora ohne Server geantwortet hat (nur Zahlen, auf dem Gerät).
+  - **Welche Modelle sollen auf dieses Gerät?** Der Dialog vom ersten Start fragt jetzt auch danach – Befehle verstehen
+    (41 MB), Namen schützen (72 MB), ein Sprachmodell, das zur Hardware passt, und wo Lora arbeiten soll, je mit einem
+    Satz Erklärung. Wer Lora schon nutzt, bekommt die Frage einmalig als „Neu: Modelle für dieses Gerät“ („Übernehmen“,
+    „Später“, „Nicht mehr fragen“).
+  - Werkzeuge, Messkorpus und Zahlen: [`tools/befehle/README.md`](tools/befehle/README.md). **Auf Android noch
+    ungetestet** (JNA und die ONNX Runtime von sherpa-onnx, wie beim Erkennungsmodell).
 - **Lora als Navigatorin**: Lora findet Einstellungen, Bereiche, Modi, TU Vorlagen und Werkzeuge. „Dunkles Design“ springt
   zu *Darstellung* und hebt die Helligkeit mit einem **Leuchtrahmen** hervor, „Ich will ein PDF zusammenfügen“ schlägt den
   PDF-Werkzeugkasten vor, „Erklär mir Exzerpte“ gibt die Frage an einen Chat weiter. Einfache Wünsche löst Lora **auf dem
@@ -1677,6 +1705,7 @@ Chats und Einstellungen erhalten bleiben).
 | `agent/FolderAsk.kt` | Frag diesen Ordner: Dateien, Stellen mit Seite, Quellen der Belegprüfung (AP-58) |
 | `ui/DocsEditor.kt`, `ui/DocsText.kt`, `ui/SlidesEditor.kt`, `ui/SheetEditor.kt`, `ui/DocsAssistant.kt`, `ui/DocsList.kt` | Editor-Rahmen, Text, Folien, Tabellen, KI-Mitarbeit, Startseite der Dokumente |
 | `data/Pseudonymizer.kt`, `data/PiiDetector.kt`, `ui/PrivacySettings.kt` | Pseudonymisierung (Erkennung, öffentliche Quellen, Platzhalter, Rückersetzung, Ein-Klick-Korrektur) und Einstellungen dazu |
+| `data/CommandModel.kt`, `agent/LoraCommands.kt`, `agent/CommandSlots.kt`, `agent/ModelRouter.kt`, `data/LoraWays.kt`, `ui/CommandModelPrompt.kt`, `tools/befehle/` | Befehlsmodell und Mischmodus (AP-71): Etiketten aus dem Code, Erkennung über die ONNX Runtime, Werte aus dem Wunsch, Ausführung, Ort je Anfrage, Zähler, Einstellungen und Dialoge; Messkorpus, Trainingsdaten, Training und Export |
 | `data/PiiModel.kt`, `data/PiiRuntime.kt`, `ui/PiiModelPrompt.kt`, `tools/pii/` | Erkennungsmodell der Pseudonymisierung (AP-67): Tokenizer, ONNX Runtime über JNA, Download und Popup; Messkorpus, Trainingsdaten, Training und Export |
 | `agent/ReferenceCheck.kt`, `ui/CheckDialogs.kt` | Quellen-Check (Crossref, OpenAlex, Google Books), Dialoge für Quellen und Barrierefreiheit |
 | `docs/QtiWriter.kt` | Tests für OPAL/ONYX als IMS QTI 2.1 |

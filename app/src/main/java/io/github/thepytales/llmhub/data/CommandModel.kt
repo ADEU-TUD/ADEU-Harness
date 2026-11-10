@@ -27,18 +27,18 @@ import java.util.zip.GZIPInputStream
  * Runtime the app ships with sherpa-onnx – Lora works as before (rules on the device, then a language model).
  */
 object CommandModelInfo {
-    const val COMMIT = "0000000000000000000000000000000000000000"
+    const val COMMIT = "cc168774477e3ac8b439b42fd7b03ab05c9908fa"
     const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/befehle-modell.int8.onnx.gz"
-    const val GZ_SIZE = 0L
-    const val GZ_SHA256 = ""
+    const val GZ_SIZE = 40_900_860L
+    const val GZ_SHA256 = "ee13766aeeda7983470cdc3ff0da6989de28bc20091d3f3b329d6d9242883e37"
     const val FILE = "befehle-modell.int8.onnx"
-    const val SIZE = 0L
-    const val SHA256 = ""
+    const val SIZE = 67_956_881L
+    const val SHA256 = "3251a9ef4dd4104164bf861c0ac0d6778f0d8ef1c5dc8c286e02e017ab803f65"
     /** Download size shown to the user. */
-    const val MEGABYTES = 0
+    const val MEGABYTES = 41
 
     /** Below this probability of the likeliest label nothing is carried out (chosen on the Messkorpus, schwelle.json). */
-    const val THRESHOLD = 0.9f
+    const val THRESHOLD = 0.8f
     /** Inputs of the ONNX file (DistilBERT has no token_type_ids). */
     val INPUTS = listOf("input_ids", "attention_mask")
 
