@@ -43,7 +43,7 @@ Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-R
 | Eigene Werkzeuge statt Fremd-Apps | Selbst bauen, gehört vollständig uns. Die Craft-Apps (getartcraft.com) werden **nicht** per MCP angebunden; je Werkzeug wird geprüft, ob Code übernommen oder selbst geschrieben wird (*Anhang: Craft-Apps*). |
 | Eine App | Kein Launcher mit mehreren Apps. Werkzeuge werden ein- und ausgeblendet (AP-02); große Teile, die nicht alle brauchen, sind **nachladbare Erweiterungen** über den Updater (seit AP-25: Videoeditor-Paket; die Browser-Engine wird mit aufgeführt). |
 | Sprachen | Englisch ist vollständig (AP-29), keine weiteren Sprachen. |
-| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen, Tagesbriefing (Runde 2), Sprachbefehle für die App (Chat-Sprachmodus und Diktat reichen). (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
+| Gestrichen | Qualitätstests für Modi (bisher Q-01), Usability-Tests (Q-03), Professur-Datenbank mit Rollen/Richtlinien/Audit-Log (W4-03), Betreuungs-Cockpit, weitere Sprachen, Tagesbriefing (Runde 2), die frühere Ideenliste (10.11.2026), Sprachbefehle für die App (Chat-Sprachmodus und Diktat reichen). (Lora-Animationen als eigenes Paket, bisher W2-07, kamen auf Wunsch mit AP-36 doch.) |
 
 ---
 
@@ -392,34 +392,64 @@ Zurzeit leer – neue Pakete kommen bei Bedarf aus den *Ideen*.
 
 ## Ideen
 
-Ohne Auftrag; Details der bisherigen Pakete stehen in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md) bzw. in der
-Git-Historie (Fassung vom 30.10.2026).
+Ohne Auftrag, je eine Zeile; bei Bedarf als Paket (ab AP-86) aufnehmen. Neu gesammelt am 10.11.2026 – die frühere
+Ideenliste (Website, Anbindungen, Forschungs- und Lehre-Ideen aus Runde 1 u. a.) ist bewusst gestrichen und steht nur
+noch in der Git-Historie dieser Datei (Fassung vom 10.11.2026).
 
-- **Website** (bisher AP-32): möglichst viele Funktionen im Browser (Chat, TU Vorlagen, Lora, Literatur, Office, PDF);
-  nicht im Web: lokale Modelle, Agent in lokalen Ordnern, Videoeditor, eigener Browser. Technik zu prüfen: Compose
-  Multiplatform für Web (Wasm), API-Schlüssel nicht im Klartext, CORS der Uni-API.
-- **Lora**: eigene Lora-Befehle (gespeicherte Abläufe per Name/Strg+K; Anheften kommt mit AP-75), ~~Fehlermeldungen in
-  Klartext mit Lösungsknopf (W2-09)~~ → AP-74, globales Kürzel für Lora in ganz Windows (mit markiertem Text aus anderen Programmen), technische Namen
-  (`ADEU LLM.exe`, Datenordner, Release-Dateien) mit Migration auf „Lora“ umstellen (AP-33).
-- **Video**: Ton im Stil von Fairlight (Ducking, Kompressor/EQ-Vorlagen, Mischpult), Farbkorrektur über die einfache
-  Korrektur hinaus.
-- **Forschung**: Gutachter-Panel mit Mehr-Agenten-Engine (W3-02, W5-03), Systematic Review nach PRISMA (W5-04),
-  Forschungsdaten veröffentlichen über OPARA/Zenodo (W5-06), Profilpflege mit ORCID/FIS/Publikationsliste/Lebenslauf (W5-08).
-- **Lehre & Verwaltung**: Klausuren nachträglich analysieren (W6-02), Live-Untertitel im Hörsaal (W6-04, eher Spielerei),
-  Podcast aus Dokumenten (W7-02), Assistent für Bewerbungsverfahren (W7-03), Lernspiele als SCORM/H5P.
-- **Werkzeuge**: mehr Dateiformate (W8-05), Browser-Automatisierung für Portale ohne Schnittstelle.
-- **Anbindungen**: Zotero, Obsidian, Moodle, LimeSurvey und weitere aus dem alten Katalog (W9-03); ADEU als MCP-Server
-  (W9-04); Plugins (W9-05); MCP-Ressourcen, -Prompts und Elicitation (Rest AP-23); Exchange über EWS/Graph (Rest AP-27).
-- **Bedienung**: Rollenauswahl beim ersten Start (W2-08), Einfügen über die Gboard-Leiste/langes Drücken auf Android
-  (Rest von W1-01).
-- **Team**: gemeinsamer Ordner für TU Vorlagen der Professur (abgespeckte W4-03, sehr niedrige Priorität).
-- **Prüfen auf Dienst-PCs**: Arbeitsspeicher vorher/nachher (AP-04), NVDA-Test (AP-30), Outlook-Rückfrage (AP-13),
-  Vorher-Bilder (AP-01) – bei Gelegenheit, ohne eigenes Paket.
-- **Ältere Ideen**: Literatur-Radar, Statistik-Werkstatt, Zettelkasten/Wissensgraph, Förder-/Call-Radar,
-  Fragebogen-Auswertung, KI als zweite Coder:in, Lehrveranstaltungs-Cockpit, Kurs-Assistent für Studierende, Folien zu
-  Lernvideo, Feedback-Werkstatt, Prüfungsorganisation, Barrierefreiheits-Check für Lehrmaterial, Sitzungs-/
-  Gremienassistent, zentrale Aufgaben und Fristen, Synopse-Werkzeug, Workflow-Baukasten, Schnellzugriff (Widget),
-  Stift und Handschrift, Hausstil-Prüfung.
+**Lora und Bedienung**
+- **Arbeitsstände**: offene Werkzeuge, Dateien und das Lora-Gespräch als benannten Stand sichern („DFG-Antrag“, „Seminar
+  Do“) und mit einem Klick wiederherstellen.
+- **Zwischenablage-Werkbank** (W): Verlauf der letzten Kopien im Lora-Panel; Lora formt um (Literaturangabe → BibTeX,
+  Webtabelle → Tabelle, Mailabsatz → Frist).
+- **Ausschnitt fragen** (W): Bildschirmbereich aufziehen – Lora liest Text, Tabelle oder Diagramm aus, erklärt es oder
+  übernimmt es ins offene Werkzeug.
+- **Sammeltasche**: Schnipsel (Absätze, Zitate, Bilder, Folien) aus allen Werkzeugen ablegen und später von Lora als
+  Dokument oder Folien zusammenstellen lassen.
+- **Arbeitsjournal auf Abruf**: „Was habe ich diese Woche gemacht?“ – auf dem Gerät aus Chats, Dateien und Mails, für
+  Berichte und Stundenzettel; nur auf Nachfrage, kein Briefing.
+- **Datei-Erste-Hilfe**: beschädigte DOCX/XLSX/PPTX/PDF öffnen und so viel Inhalt wie möglich retten.
+- **Zeitreise für Dateien**: automatische Schnappschüsse beim Speichern, Stände nebeneinander vergleichen und
+  zurückholen.
+
+**Schreiben und Forschung**
+- **Zitat-Prüfer**: wörtliche Zitate im Dokument gegen die PDF aus der Literatur prüfen (Wortlaut, Seitenzahl,
+  Auslassungen).
+- **Beleglandkarte**: zu jeder Behauptung im eigenen Text zeigen, welche Quelle sie stützt – und wo ein Beleg fehlt.
+- **Leser-Brille**: Text aus Sicht einer Zielgruppe lesen lassen (Erstsemester, Fachgutachter:in, Eltern, Verwaltung);
+  Stolperstellen am Rand, umgeschrieben wird nur auf Auftrag.
+- **Sprachniveau-Regler**: Absatz oder Dokument per Schieberegler zwischen Fachsprache, Standard, Einfacher und Leichter
+  Sprache umformulieren, Vorher/Nachher nebeneinander.
+- **Änderungen in Worten**: zurückgeschickte Word-Datei → Lora fasst die Änderungen inhaltlich zusammen („Kap. 3
+  gekürzt, neue These in 4.2“), zusätzlich zu den Spuren.
+- **Schreibziele**: Wortzahl je Kapitel, Tagesziel und Fortschrittskurve für Dissertation, Antrag oder Buch – still im
+  Dokument, ohne Erinnerungen.
+- **Konferenz-Paket**: aus einem Abstract in einem Ablauf Poster, Kurzvortrag, Handout und Ankündigungstext im
+  TUD-Design.
+
+**Lehre**
+- **Semesterplaner**: Sitzungsplan aus den TU-Vorlesungszeiten, sächsischen Feiertagen und dem Dies academicus → Tabelle,
+  OPAL-Text und Kalendertermine.
+- **Vortragstrainer** (W): Probevortrag aufnehmen; Zeit je Folie, Sprechtempo, Füllwörter, Vergleich mit dem letzten
+  Durchlauf.
+- **Kommentarbausteine**: eigene Korrekturkommentare sammeln und per Kürzel in PDF- oder Word-Anmerkungen einsetzen; Lora
+  schlägt den passenden Baustein vor, der Mensch entscheidet.
+- **Tafelfoto zu Folie**: Foto von Tafel, Flipchart oder Whiteboard → entzerrtes Bild, Text und Skizze als bearbeitbare
+  Folie bzw. Diagramm.
+- **Aufzeichnung aufbereiten**: aus einer Vorlesungsaufnahme in einem Zug Kapitel, Stichwortskript, Glossar und
+  Lernfragen.
+- **Hochformat-Clip** (W): Ausschnitt eines Videos automatisch ins Hochformat schneiden, Gesicht im Bild halten,
+  Untertitel eingebrannt – für Ankündigungen und Social Media.
+
+**Verwaltung und Alltag**
+- **Terminfinder** (W): freie Zeiten lokal aus Outlook lesen und drei Vorschläge als Mailentwurf anlegen (gesendet wird
+  nur per Klick).
+- **Urlaubsübergabe**: vor der Abwesenheit ein Übergabedokument aus offenen Fristen, Mails mit Antwortbedarf und laufenden
+  Dateien, dazu ein Entwurf der Abwesenheitsnotiz.
+- **Prüfung vor dem Teilen**: vor dem Versand Metadaten, Kommentare, Änderungsspuren, ausgeblendete Tabellenblätter,
+  Ortsdaten in Fotos und Personenangaben finden und auf Wunsch entfernen.
+- **Handy als Kamera für den PC** (A + W): Foto oder Scan auf Android erscheint sofort im offenen Werkzeug am PC (über
+  den Sync-Ordner).
+- **Vorlage aus eigener Datei**: fertiges Dokument → Lora macht daraus eine wiederverwendbare Vorlage mit Platzhaltern.
 
 ---
 
