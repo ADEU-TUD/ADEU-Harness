@@ -14,7 +14,7 @@ Nicht Teil der App; läuft nur in der Cloud-Sitzung bzw. auf dem Trainings-PC. P
 | b | Trainingsdaten aus Vorlagen, erfundene Namen (`vorlagen/`, `namen.py`, `gen.py`) | überall | ☑ |
 | c | Training (`train.py`, `modell.py`) | Cloud (CPU) oder PC mit RTX 5080 (`pc.ps1`) | ☑ |
 | d | Export ONNX int8 + Modellkarte (`export.py`), Messung (`evaluate.py`) | Cloud | ☑ |
-| e | Einbau in die App (`data/PiiModel.kt`, Download-Popup, *Einstellungen › Datenschutz*) | App | ◐ (Android ungetestet) |
+| e | Einbau in die App (`data/PiiModel.kt`, Download-Popup, *Einstellungen › Datenschutz*) | App | ☑ (auch auf Android getestet) |
 | f | Tests (`PiiModelTest`: Tokenizer, Etiketten, ohne Modell, echtes Modell mit `PII_MODELL`/`PII_ORT`) | PC | ◐ (Ziel 2 % offen: 5,0 % in der App) |
 
 ## Stufe a: Messkorpus

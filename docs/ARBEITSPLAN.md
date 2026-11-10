@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 10.11.2026 (1.0.66 veröffentlicht: AP-71 bis AP-85 erledigt, Lora Namensschutz und Lora Befehle nachtrainiert; AP-67 offen; neu: Runde 3 – Lora offline, AP-104 bis AP-115) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (1.0.66 veröffentlicht: AP-71 bis AP-85 erledigt und auf Android getestet, Lora Namensschutz und Lora Befehle nachtrainiert; AP-67 offen; neu: Runde 3 – Lora offline, AP-104 bis AP-115) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -202,7 +202,7 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
   `data/PiiRuntime.kt` je Plattform (Ablage: Android App-Speicher, PC `%LOCALAPPDATA%\ADEU LLM\pii`), Download über das
   gemeinsame `FileDownload` (auch für die lokalen Sprachmodelle), Popup `PiiModelPrompt` und Schalter *Erkennungsmodell
   (empfohlen)* unter *Einstellungen › Datenschutz* mit Modellkarte; mit Modell gilt `nameChains = false`. Am PC getestet,
-  **auf Android noch ungetestet** (JNA und der Pfad zur ONNX Runtime von sherpa-onnx).
+  inzwischen auch **auf Android getestet** (Hauptnutzer, 10.11.2026).
 - **f) Tests**: der Messkorpus als `PseudonymCorpusTest` mit Schwellen, Laufzeit je Absatz, ein Test, dass Autor:innen und
   öffentliche Namen bleiben, und dass ohne Modell (Datei fehlt) die Regeln allein weiterlaufen.
   ◐ *Erledigt bis auf das Ziel*: `PiiModelTest` – Tokenizer gleich dem des Trainings (520 Texte), Auswertung der Etiketten,
@@ -211,7 +211,7 @@ langsam für eine Aufgabe, die Fundstellen im Text braucht).
 
 *Stand 10.11.2026 (nach AP-74 bis AP-85)*: unverändert offen – das Ziel „höchstens 2 % öffentliche Namen ersetzt“ braucht
 ein Nachtraining (mehr öffentliche Personen und Literaturangaben in den Vorlagen, dann neu exportieren und auf dem Branch
-`pii-modell` veröffentlichen) und den Gerätetest auf Android.
+`pii-modell` veröffentlichen). Der Gerätetest auf Android ist erledigt (10.11.2026).
 
 ◐ *Nachtraining 10.11.2026 – „Lora Namensschutz“ (seit 1.0.66)*: Das Modell heißt jetzt **Lora Namensschutz** (Dateien
 `lora-namensschutz-pytales.*`). Neue Vorlagen `literatur.txt` (Literaturangaben, Zitate) und `medien.txt` (öffentliche
@@ -296,13 +296,13 @@ Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/b
 - **f) Einbau**: neu `data/CommandModel.kt` wie `data/PiiModel.kt` – WordPiece in Kotlin, ONNX Runtime von
   sherpa-onnx über JNA, Download über `data/FileDownload.kt` mit SHA-256, große Datei auf eigenem Branch
   (`befehle-modell`, wird nicht gemergt), Angebot per Popup. `LoraAgent` fragt zuerst die Regeln, dann das Befehlsmodell,
-  erst dann ein Sprachmodell; Strg+K zeigt den erkannten Befehl als ersten Eintrag. Android wird nach dem Gerätetest des
-  Hauptnutzers bestätigt.
+  erst dann ein Sprachmodell; Strg+K zeigt den erkannten Befehl als ersten Eintrag. Android: vom Hauptnutzer getestet
+  (10.11.2026).
   ◐ *Eingebaut (10.11.2026)*: `data/CommandModel.kt` (Download vom Branch `befehle-modell`, SHA-256), `agent/LoraCommands.kt`
   (Ausführung), `agent/CommandSlots.kt` (Werte), `OrtClassifier` für Satz-Modelle erweitert; Strg+K zeigt den Befehl als
   ersten Eintrag; Angebot im Dialog vom ersten Start und einmalig als „Neu: Modelle für dieses Gerät“ für alle, die Lora
   schon nutzen. In der App gemessen: Prüfteil 84,1 % / 0,0 % / 100 %, 3,3 ms (am 10.11.2026 mit ONNX Runtime 1.29
-  erneut: 84,4 % / 0,0 % / 100 %, 3,7 ms). **Android ungetestet.**
+  erneut: 84,4 % / 0,0 % / 100 %, 3,7 ms). Android: getestet (10.11.2026).
 - **g) Mischmodus**: `agent/ModelRouter.kt` entscheidet je Anfrage den Ort (Befehl lokal · lokales Sprachmodell ·
   Server) aus Befehlsmodell, Länge, Anhängen, Bildern, Websuche/Werkzeugbedarf, installiertem Modell und Hardware
   (`local/LocalLlm.kt`, `LocalCatalog.kt`); Einstellung unter *Einstellungen › Lora*; Zähler „wie oft und wie schnell
@@ -317,7 +317,7 @@ Werkzeuge aus `tools/pii/` werden wiederverwendet bzw. verallgemeinert (`tools/b
 
 *Stand 10.11.2026 (nach AP-74 bis AP-85)*: unverändert offen – wartet auf die Entscheidung des Hauptnutzers zum Trefferziel
 (so lassen und nachtrainieren, z. B. mit exportierten Korrekturen aus AP-72, oder „sofort oder mit einem Tipp“ = 97,0 %
-als Treffer zählen) und auf den Gerätetest auf Android.
+als Treffer zählen); der Gerätetest auf Android ist erledigt (10.11.2026).
 
 ☑ *Erledigt mit dem Nachtraining 10.11.2026 – „Lora Befehle“ (seit 1.0.66)*: Entscheidung des Hauptnutzers: Ziel bleibt
 „mindestens 90 % trifft das Modell selbst“. Das Modell heißt jetzt **Lora Befehle** (Dateien `lora-befehle-pytales.*`).
@@ -325,7 +325,7 @@ Vorlagen nur anhand der Fehler im Entwicklungsteil nachgeschärft (`vorlagen/nac
 `gen.py`), 33 640 Wünsche, 5 Epochen auf CPU, Schwelle 0,5 (Entwicklungsteil), int8 **pro Kanal** (die einfache
 Quantisierung verlor 3 Punkte), 68 MB (gepackt 55 MB), Branch `befehle-modell` Commit `6f996b1`. Prüfteil in der App
 (`CommandModelTest`): **95,4 %** getroffen, **1,3 %** falsch ausgeführt, **97,6 %** der freien Anfragen weitergegeben,
-3,3 ms je Eingabe – alle Ziele erreicht (vorher 84,4 % / 0,0 % / 100 %). Rest: Android ungetestet. Etiketten und
+3,3 ms je Eingabe – alle Ziele erreicht (vorher 84,4 % / 0,0 % / 100 %). Auf Android getestet. Etiketten und
 Wortschatz sind dieselben wie bis 1.0.65; wer das alte Modell hat, arbeitet mit ihm (Schwelle 0,8) weiter und bekommt das
 neue einmal als Update angeboten. Einzelheiten: `tools/befehle/README.md`.
 
@@ -425,8 +425,9 @@ nahezu alles außer „nur über API“. Android – kleine Modelle, Suche, Name
 | **Lora Agent** (LoRA für Loras Werkzeugaufrufe) | nur falls nötig | entscheidet die Messung in AP-109 | AP-109 |
 | Allrounder, Code-, Einbettungs-, Bild- und Sprachmodelle | **kein Training** | auswählen, messen, ausliefern | AP-106, AP-107, AP-110, AP-111 |
 
-**Reihenfolge**: AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-111 → AP-112 → AP-104 → AP-113 → AP-114, dazu
-AP-115 (Reste) nebenher. Jedes Paket mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71); ohne Modell bleibt
+**Reihenfolge innerhalb der Runde** (Vorschlag, noch nicht festgelegt – das weitere Vorgehen bespricht der Hauptnutzer):
+AP-105 → AP-106 → AP-107 → AP-108 → AP-109 → AP-110 → AP-111 → AP-112 → AP-104 → AP-113 → AP-114, dazu AP-115 (Reste)
+nebenher. Jedes Paket mit Messung zuerst (Entwicklungs-/Prüfteil wie bei AP-67/AP-71); ohne Modell bleibt
 alles wie heute.
 
 ### AP-105 ☐ Geräteprofil und Messung · M (Runde 3, Grundlage)
@@ -560,7 +561,6 @@ gefundene private Angaben zu fallen.
 ### AP-115 ☐ Reste aus 1.0.66 · S
 - `MailSorterTest.pausesCancelsAndCarriesOnAfterARestart` schlug im PR-Check einmal mit Zeitlimit fehl (beim Neustart grün)
   – Wettlauf im Mail-Sortierer (AP-69) suchen und beheben, nicht den Test lockern.
-- Lora Namensschutz und Lora Befehle auf Android testen (JNA, ONNX Runtime von sherpa-onnx, Update vom alten Modell).
 - Release-Workflow: Der macOS-Job bekam einmal keinen Runner und das Release erschien zunächst ohne Mac (nachgeholt mit
   einem zweiten Lauf); prüfen, ob ein Neustart nur des Mac-Teils möglich ist, ohne alles neu zu bauen.
 
@@ -811,9 +811,9 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-66 Schnellansicht in Dateien | Leertaste über der Datei unter der Maus bzw. der ausgewählten, ←/→ blättert, Enter öffnet; Details-Spalte (Art, Größe, Daten, Ort, Seiten/Wörter/Folien/Abmessungen, Schlagwörter, Chat); Android über ⋮ › Vorschau | Vorschau für Video/Ton; Details auch in den Suchergebnissen |
 | ☑ AP-68 Postfach nur mit lokalem Modell | Mail-Werkzeuge und `mail.*`-Aktionen nur für Modelle auf dem Gerät (eine Sperre, letzte Prüfung im `LlmClient`), Postfach-Modus fest lokal, Lora gibt Mail-Aufträge weiter, Übergabe an API-Chats nur als geprüfte Karte, Modellvorschlag ohne lokales Modell | Modellvorgabe nach Messung (Offene Frage 10) |
 | ☑ AP-69 Mailansicht und Lora sortiert selbst | drei Spalten mit Ordnerbaum, Liste seitenweise (5 000+ Mails), Lesebereich, Suche, Mehrfachauswahl, Ziehen, Rückgängig; Lora ordnet nach Satz ein (Ordner anlegen, eine Vorschau, ein Klick), Lauf im Hintergrund mit Rückgängig, `mail.sort`, Regeln und geplante Aufgabe | Probe mit echtem Outlook/IMAP; Tempo auf Dienst-PCs |
-| ☑ AP-71 Lora versteht Befehle auf dem Gerät, Mischmodus | Lora Befehle (distilbert, nachtrainiert 10.11.2026): Prüfteil in der App 95,4 % getroffen, 1,3 % falsch ausgeführt, 97,6 % der freien weitergegeben, 3,3 ms; Mischmodus *Gemischt / Nur lokal / Nur Server* mit Zähler; Update vom alten Modell ohne Bruch | Android ungetestet |
-| ☑ AP-73 Rückfrage mit zwei Knöpfen | „Meinst du … oder …?“ mit den zwei wahrscheinlichsten Befehlen und „Etwas anderes“, Untergrenze nur auf dem Entwicklungsteil gewählt; Prüfteil 80,9 % richtig unter den Knöpfen, 3,6 % der freien mit Knöpfen | Android ungetestet |
-| ☑ AP-72 Lora lernt aus Korrekturen | Paare *Wunsch → gemeinte Aktion* auf dem Gerät aus Knöpfen, „nein, ich meinte …“, Tipp auf die Karte und „Rückgängig“; Liste, Löschen, Export für das Training | Android ungetestet |
+| ☑ AP-71 Lora versteht Befehle auf dem Gerät, Mischmodus | Lora Befehle (distilbert, nachtrainiert 10.11.2026): Prüfteil in der App 95,4 % getroffen, 1,3 % falsch ausgeführt, 97,6 % der freien weitergegeben, 3,3 ms; Mischmodus *Gemischt / Nur lokal / Nur Server* mit Zähler; Update vom alten Modell ohne Bruch | – (auf Android getestet) |
+| ☑ AP-73 Rückfrage mit zwei Knöpfen | „Meinst du … oder …?“ mit den zwei wahrscheinlichsten Befehlen und „Etwas anderes“, Untergrenze nur auf dem Entwicklungsteil gewählt; Prüfteil 80,9 % richtig unter den Knöpfen, 3,6 % der freien mit Knöpfen | – (auf Android getestet) |
+| ☑ AP-72 Lora lernt aus Korrekturen | Paare *Wunsch → gemeinte Aktion* auf dem Gerät aus Knöpfen, „nein, ich meinte …“, Tipp auf die Karte und „Rückgängig“; Liste, Löschen, Export für das Training | – (auf Android getestet) |
 | ☑ AP-70 Videoeditor: ruhiges Bild, anpassbare Oberfläche | Vorschau ohne Zucken (gleicher Filter für Standbild und Wiedergabe, Scrubben ohne Leerbild, glatte Uhr), flache Chips ohne Hover-Schatten, ziehbare/einklappbare Bereiche, Anordnung gemerkt, Symbolleisten mit Tooltip, Tour-Karte neben dem Ziel | Prüfung unter Windows mit echter Skalierung |
 | ☑ AP-74 Fehlermeldungen in Klartext | ein Katalog mit 30 Fehlern, je ein Satz und ein Knopf; Chat, Loras Panel und Hinweisleisten; Technik unter *Details* | – |
 | ☑ AP-75 Lora-Verlauf mit „Nochmal“ | letzte 20 Wünsche, Pfeil hoch in Lora und Strg+K, „Zuletzt“ mit Nochmal/Anheften, eigene Befehle in Strg+K | – |
@@ -823,7 +823,7 @@ Runde 1 in Kürze; Details in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md)
 | ☑ AP-79 Hausstil- und Barrierefreiheits-Check | Prüfen und Beheben im Dokument und in Folien mit Fundstellen; Dateibericht mit Schriften, Farben und Hausstil-Regeln | Logo und Ränder; Beheben in Word/PowerPoint-Dateien |
 | ☑ AP-80 Rollenauswahl | Lehre/Forschung/Verwaltung/Studium beim ersten Start und in den Einstellungen: Werkzeuge, Vorlagen-Reihenfolge, Startvorschläge, Paket-Empfehlung | – |
 | ☑ AP-81 Export-Warteschlange übersteht Neustart | unterbrochene Exporte kommen wieder, Fortsetzen per Knopf oder von selbst | – |
-| ☑ AP-82 Video und Ton in der Schnellansicht | Abspielen mit Start/Pause, ±10 s, Regler, Dauer, K/J/L; PC und Android | Android ungetestet |
+| ☑ AP-82 Video und Ton in der Schnellansicht | Abspielen mit Start/Pause, ±10 s, Regler, Dauer, K/J/L; PC und Android | – (auf Android getestet) |
 | ☑ AP-83 Lora-Pakete teilen | Befehle, Wörter, Vorlagen, Hausstil als eine Datei; Import mit Vorschau; Entfernen | – |
 | ☑ AP-84 Lora in mehreren Fenstern (PC) | Chats, Dokumente und Lora in eigenen Fenstern, ein Chat nur in einem Fenster, eigene View-Models | Eintrag in Strg+K und der Chatsuche |
 | ☑ AP-85 Große Anhänge vollständig nutzen | Grenze nach Modell, Wahl ganz/Stellen/Zusammenfassung, Anzeige am Anhang, nichts still gekürzt | – |
@@ -1812,7 +1812,7 @@ dem Gerät erkannten Aktion oder einem eingeschalteten Werkzeug – das merkt si
 *Einstellungen › Lora › Was Lora aus Korrekturen gelernt hat*: Schalter (Standard an), Liste mit Löschen je Eintrag und
 *Alle löschen*, *Exportieren …* mit Häkchen je Paar als `lora-korrekturen.jsonl` im Format von `tools/befehle/gen.py`.
 Im Tresor nichts. Test `LoraCorrectionsTest` (u. a. „nein, ich meinte Dateien“ → beim zweiten Mal ohne Sprachmodell).
-Rest: Android ungetestet; ein „Nein“ ohne neuen Wunsch lernt nichts; die Export-Datei enthält echte Eingaben – vor einem
+Auf Android getestet (10.11.2026). Rest: ein „Nein“ ohne neuen Wunsch lernt nichts; die Export-Datei enthält echte Eingaben – vor einem
 Training noch einmal auf Namen prüfen (`tools/befehle/README.md`).
 
 ### AP-74 ☑ Fehlermeldungen in Klartext mit Lösungsknopf · M (bisher Ideen, W2-09)
@@ -1946,7 +1946,7 @@ wo sinnvoll, auf Android.
 ±10 s, Regler, Zeit/Dauer, Tasten K/J/L (Leertaste schließt weiter, ←/→ blättert). PC: Bild und Ton über den
 Vorschau-Player des Videoeditors (`VideoPlayer`, ein Clip), Ton über den Player der Transkription; Android: `VideoView`
 bzw. derselbe Player der Transkription (`ui/MediaPreview.kt` je Plattform). Test `MediaLookTest` (mit ffmpeg: erstes
-Bild, Springen). Rest: Android ungetestet.
+Bild, Springen). Auf Android getestet (10.11.2026).
 
 ### AP-83 ☑ Lora-Pakete teilen · M (neu, nach AP-78)
 **Ziel**: Eigene Befehle (AP-75), eigene Wörter (AP-78), eigene TU Vorlagen und Hausstil-Regeln (AP-79) als **eine

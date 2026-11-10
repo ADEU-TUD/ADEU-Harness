@@ -12,7 +12,7 @@ und die Batches nach Länge kommen von dort.
 | c | Trainingsdaten (`vorlagen/`, `gen.py`) | ☑ 3 132 Zeilen, 33 640 Wünsche (zweite Runde 10.11.2026) |
 | d | Entscheidung: eigenes kleines Modell statt zweiter Kopf | ☑ distilbert-base-german-cased |
 | e | Training und Export (`train.py`, `modell.py`, `evaluate.py`, `export.py`) | ☑ ONNX int8 pro Kanal, 68 MB (gepackt 55 MB) |
-| f–h | Einbau, Mischmodus, Tests (App) | ☑, Android ungetestet |
+| f–h | Einbau, Mischmodus, Tests (App) | ☑, auf Android getestet |
 | AP-73 | Rückfrage mit zwei Knöpfen (`rueckfrage.py`, `modell/rueckfrage.json`) | ☑ Untergrenze 0,45 (vorher 0,3) |
 | AP-72 | Korrekturen aus der App als Trainingsdaten (Export unter *Einstellungen › Lora*) | ☑ |
 
