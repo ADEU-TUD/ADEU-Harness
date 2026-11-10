@@ -184,7 +184,9 @@ class Generator:
             p = rng.choice(names)
             kind = rng.choice(kinds)
             # A setting with on/off patterns: the pattern carries the value. A bare name is no order to change it.
-            text = rng.choice(self.carriers[kind]).replace("{o}", p.text)
+            # In Strg+K people mostly type the bare name of a place ("literatur", "schriftgröße").
+            bare = kind.startswith("ort.") and rng.random() < 0.3
+            text = p.text if bare else rng.choice(self.carriers[kind]).replace("{o}", p.text)
             value = ON_OFF.get(kind)
         elif rest:
             p = rng.choice(rest)
@@ -260,8 +262,9 @@ def check() -> int:
     return bad
 
 
-def make(per_label: int, free: int, seed: int) -> None:
+def make(per_label: int, free: int, seed: int, out: Path = OUT) -> None:
     gen = Generator(seed, blocked_texts())
+    OUT = out
     OUT.mkdir(exist_ok=True)
     counts = {}
     for name, dev, share in (("train", False, 1.0), ("dev", True, 0.12)):
@@ -304,7 +307,8 @@ if __name__ == "__main__":
     ap.add_argument("-n", type=int, default=140, help="Wünsche je Befehl")
     ap.add_argument("--frei", type=int, default=4500, help="Wünsche je freier Klasse")
     ap.add_argument("--seed", type=int, default=71)
+    ap.add_argument("--aus", default=str(OUT), help="Zielordner")
     a = ap.parse_args()
     if a.was == "check":
         sys.exit(1 if check() else 0)
-    make(a.n, a.frei, a.seed)
+    make(a.n, a.frei, a.seed, Path(a.aus))

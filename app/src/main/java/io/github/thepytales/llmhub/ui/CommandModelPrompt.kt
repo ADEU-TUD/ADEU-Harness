@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,15 +23,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.thepytales.llmhub.AppContainer
 import io.github.thepytales.llmhub.agent.ModelRouter
 import io.github.thepytales.llmhub.data.CommandModelInfo
 import io.github.thepytales.llmhub.data.LoraWays
+import io.github.thepytales.llmhub.data.PiiModelInfo
+import io.github.thepytales.llmhub.local.LocalCatalog
+import io.github.thepytales.llmhub.local.LocalModel
 
 /**
  * Offers the command model (AP-71) once per start of the app: when Lora is first asked or Einstellungen › Lora is
@@ -146,3 +153,80 @@ fun LoraPlaceSettings(c: AppContainer) {
 
 /** Milliseconds as „12 ms“ or „2,4 s“. */
 internal fun duration(millis: Long): String = if (millis < 1000) "$millis ms" else String.format(java.util.Locale.GERMANY, "%.1f s", millis / 1000.0)
+
+/**
+ * Erster Start (AP-71): what the user ticks under „Welche Modelle sollen auf dieses Gerät?“ – the two small helper
+ * models, a language model that fits the hardware, and where Lora works. [apply] starts the downloads.
+ */
+class IntroModelChoice(c: AppContainer) {
+    /** Offered only while it is not there yet. */
+    val offerCommand = c.commandModel.available && !c.commandModel.installed()
+    val offerPii = !c.piiModel.installed()
+    var command by mutableStateOf(offerCommand)
+    var pii by mutableStateOf(offerPii)
+    /** Ids of the language models to download (none by default: they are large). */
+    val local = mutableStateListOf<String>()
+    var place by mutableStateOf(ModelRouter.Mode.of(c.settings.current.loraPlace).name)
+
+    fun apply(c: AppContainer) {
+        if (offerCommand) { if (command) c.commandModel.install() }
+        if (offerPii) { if (pii) c.piiModel.install() }
+        local.forEach { c.localLlm.install(it) }
+        // Who decides here is not asked again by the single popups.
+        c.settings.update { it.copy(loraPlace = place, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
+    }
+}
+
+/**
+ * Erster Start: „Welche Modelle sollen auf dieses Gerät?“ – one line per purpose with a short explanation and the size,
+ * the language models that fit this hardware, and where Lora works. Everything can be changed later in the settings.
+ */
+@Composable
+fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
+    val hw by c.localLlm.hardware.collectAsState()
+    val local by c.localLlm.state.collectAsState()
+    val suggested: List<LocalModel> = hw?.let { LocalCatalog.recommended(it) }.orEmpty().filter { it.id !in local.installed }
+    Text(tr("Welche Modelle sollen auf dieses Gerät?"), style = MaterialTheme.typography.titleSmall)
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (choice.offerCommand) ModelLine(
+            tr("Befehle verstehen ({0} MB)", CommandModelInfo.MEGABYTES),
+            tr("Lora erkennt sofort und offline, was du meinst – Bereich öffnen, Einstellung umstellen, PDF zusammenfügen."),
+            choice.command,
+        ) { choice.command = it }
+        if (choice.offerPii) ModelLine(
+            tr("Namen schützen ({0} MB)", PiiModelInfo.MEGABYTES),
+            tr("Die Pseudonymisierung findet Namen, Schulen und Orte zuverlässiger, bevor etwas an einen Server geht."),
+            choice.pii,
+        ) { choice.pii = it }
+        suggested.forEach { m ->
+            ModelLine(
+                tr("Sprachmodell {0} ({1} GB)", tr(m.name), String.format(java.util.Locale.GERMANY, "%.1f", m.size / 1e9)),
+                tr("Für das Postfach, vertrauliche Daten, kurze Aufgaben und ohne Internet – passt zu diesem Gerät. {0}", tr(m.description)),
+                m.id in choice.local,
+            ) { on -> if (on) choice.local += m.id else choice.local -= m.id }
+        }
+        if (suggested.isEmpty() && local.installed.isEmpty()) HintText(tr("Sprachmodelle für dieses Gerät findest du später unter Einstellungen › Modelle auf diesem Gerät."))
+    }
+    Text(tr("Wo soll ich arbeiten?"), style = MaterialTheme.typography.titleSmall)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        LORA_PLACES.forEach { (id, label) -> FilterChip(selected = choice.place == id, onClick = { choice.place = id }, label = { Text(tr(label)) }) }
+    }
+    HintText(
+        when (ModelRouter.Mode.of(choice.place)) {
+            ModelRouter.Mode.MIXED -> tr("Befehle und kurze Aufgaben auf diesem Gerät, alles Anspruchsvolle über den Uni-Server (Chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).")
+            ModelRouter.Mode.LOCAL -> tr("Nichts geht an einen Server – dafür schlichtere, langsamere Antworten, kurze Texte, keine Websuche. Braucht ein Sprachmodell auf diesem Gerät.")
+            ModelRouter.Mode.SERVER -> tr("Sprachmodelle nur über den Uni-Server – am genauesten, braucht immer Internet.")
+        },
+    )
+}
+
+@Composable
+private fun ModelLine(title: String, text: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+        Checkbox(checked = checked, onCheckedChange = onChange)
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}

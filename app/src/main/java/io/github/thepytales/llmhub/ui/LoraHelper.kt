@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -1121,7 +1122,10 @@ private fun LoraIntroDialog(c: AppContainer) {
     var mode by remember { mutableStateOf(s.loraMode) }
     val tools = remember { AppTool.available(IS_ANDROID) }
     val chosen = remember { mutableStateListOf<String>().apply { addAll(s.enabledToolIds) } }
+    // AP-71: which models come onto this device, and where Lora works.
+    val models = remember { IntroModelChoice(c) }
     fun finish(save: Boolean) {
+        if (save) models.apply(c)
         c.settings.update { cur ->
             var next = cur.copy(loraIntroDone = true)
             if (save) {
@@ -1133,7 +1137,7 @@ private fun LoraIntroDialog(c: AppContainer) {
     }
     Dialog(onDismissRequest = { finish(false) }) {
         Surface(shape = RoundedCornerShape(24.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 520.dp)) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LoraFigure(Modifier.size(64.dp, 45.dp), label = tr("Lora winkt"), director = rememberLoraDirector(listOf(LoraAction.WAVE, LoraAction.LOOK), LoraAction.WAVE))
                     Spacer(Modifier.size(10.dp))
@@ -1142,7 +1146,7 @@ private fun LoraIntroDialog(c: AppContainer) {
                         Text(tr(io.github.thepytales.llmhub.Brand.SLOGAN), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Text(tr("Zwei kurze Fragen, dann geht es los."), style = MaterialTheme.typography.bodyMedium)
+                Text(tr("Ein paar kurze Fragen, dann geht es los."), style = MaterialTheme.typography.bodyMedium)
                 Text(tr("Wo soll ich erscheinen?"), style = MaterialTheme.typography.titleSmall)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     LORA_MODES.forEach { (id, label) -> FilterChip(selected = mode == id, onClick = { mode = id }, label = { Text(tr(label)) }) }
@@ -1158,8 +1162,9 @@ private fun LoraIntroDialog(c: AppContainer) {
                             )
                         }
                     }
-                    HintText(tr("Alles lässt sich später unter Einstellungen › Lora und › Werkzeuge ändern."))
                 }
+                IntroModels(c, models)
+                HintText(tr("Alles lässt sich später unter Einstellungen › Lora, › Werkzeuge und › Modelle auf diesem Gerät ändern. Downloads laufen im Hintergrund weiter."))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = { finish(false) }) { Text(tr("Überspringen")) }
                     Button(onClick = { finish(true) }) { Text(tr("Fertig")) }
@@ -1237,7 +1242,7 @@ fun LoraSettings(c: AppContainer) {
         SwitchRow(tr("Hinweise erlaubt"), tr("Lora darf einmal je Bereich auf etwas hinweisen, z. B. dass es für PDFs ein Werkzeug gibt. Sie unterbricht nie."), s.loraHints, spot = "lora.hints") { v ->
             c.settings.update { it.copy(loraHints = v) }
         }
-        TextButton(onClick = { c.settings.update { it.copy(loraIntroDone = false) } }) { Text(tr("Die zwei Fragen vom ersten Start erneut stellen")) }
+        TextButton(onClick = { c.settings.update { it.copy(loraIntroDone = false) } }) { Text(tr("Die Fragen vom ersten Start erneut stellen")) }
     }
     // AP-39, AP-41, AP-38: what Lora knows, tours, the protocol of her actions.
     LoraMemorySection(c)

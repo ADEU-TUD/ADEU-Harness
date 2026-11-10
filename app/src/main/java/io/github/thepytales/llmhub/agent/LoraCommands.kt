@@ -109,7 +109,9 @@ object LoraCommands {
     fun change(label: String, wish: String, current: io.github.thepytales.llmhub.data.AppSettings, targets: List<AppTarget>): LoraReply? {
         val setting = LoraAgent.SETTINGS.firstOrNull { it.id == label.removePrefix(SET) } ?: return null
         val now = setting.get(current)
-        val value = CommandSlots.settingValue(setting, wish, now)
+        // The bare name of a setting („Pseudonymisierung“) asks to see it, not to change it.
+        val bare = AppMap.norm(wish).let { n -> n == AppMap.norm(setting.label) || n == AppMap.norm(tr(setting.label)) }
+        val value = if (bare) null else CommandSlots.settingValue(setting, wish, now)
         val place = LoraAgent.SETTING_SPOTS[setting.id]?.let { spot -> targets.firstOrNull { it.spot == spot } }
         return when {
             value == null -> place?.let { open(it, current.enabledToolIds) }

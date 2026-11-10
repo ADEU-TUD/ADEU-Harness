@@ -32,6 +32,7 @@ o: modell automatisch wählen | automatische modellwahl | auto modell | automati
 s: wo ist die option, dass die app das modell selbst aussucht | wo schalte ich die automatische modellwahl | die app soll das passende modell vorschlagen, wo ist das | wo finde ich die automatik für das modell
 
 == ort:option.chat.thinking
+s: reasoning einstellen | stufe des nachdenkens | wie tief das modell denkt
 o: denkstufe | denkstufen | nachdenken | reasoning | denkphase | gedankengang | thinking level | denktiefe
 s: wo stelle ich ein, wie gründlich das modell nachdenkt | modell soll weniger nachdenken, wo | wo ist die einstellung für das reasoning | wie lange das modell überlegt, wo ändere ich das | where is the thinking level | wo schalte ich die denkphase ab
 
@@ -80,6 +81,7 @@ o: logos | logo | eigenes logo | logo für dokumente | institutslogo | logo uplo
 s: wo lade ich ein logo hoch | wo hinterlege ich das logo der professur | ein anderes logo auf den dokumenten, wo | where do i upload a logo | wo verwalte ich meine logos
 
 == ort:option.updates.auto
+s: update automatik | soll die app von selbst nach updates schauen | automatische suche nach neuen versionen, wo
 o: automatisch nach updates suchen | automatische updates | update suche beim start | auto update | automatic update check
 s: wo stelle ich ein, dass beim start nach updates gesucht wird | wo schalte ich die automatische updatesuche ab | die app soll nicht selbst nach updates schauen, wo
 
@@ -88,6 +90,7 @@ o: github in neuen chats aktiv | github automatisch aktiv | github in jedem chat
 s: wo stelle ich ein, dass github in neuen chats gleich an ist | github soll nicht automatisch aktiv sein, wo | wo ist die option für github in neuen chats
 
 == ort:option.chat.autoModelAsk
+s: soll gefragt werden bevor ein anderes modell drankommt | rückfrage vor dem wechseln des modells, wo | modell nicht ungefragt wechseln, wo
 o: vor dem modellwechsel fragen | vor dem wechsel fragen | nachfrage beim modellwechsel | modellwechsel bestätigen | ask before switching model
 s: wo stelle ich ein, dass vor einem modellwechsel gefragt wird | die app soll das modell wechseln ohne zu fragen, wo | wo ist die option zur rückfrage beim wechsel des modells
 
@@ -136,6 +139,7 @@ o: touren anbieten | tour angebote | touren einstellung | option touren | offer 
 s: wo stelle ich ein, ob touren angeboten werden | lora soll keine touren mehr anbieten, wo | wo schalte ich das angebot für rundgänge ab
 
 == ort:option.lora.memory
+s: lora gedächtnis ansehen | was lora sich gemerkt hat | gedächtnis von lora öffnen | loras notizen über mich
 o: was lora über mich weiß | loras gedächtnis | vorlieben | gemerkte vorlieben | lora memory | meine vorlieben
 s: wo sehe ich, was lora sich gemerkt hat | vorlieben von lora löschen, wo | was hat sich lora über mich gemerkt | wo ändere ich eine gemerkte vorliebe | lora soll etwas vergessen, wo geht das
 
@@ -148,10 +152,12 @@ o: mailserver statt outlook | mailserver | imap | imap einstellungen | mail serv
 s: wo stelle ich auf den mailserver um | ich habe kein klassisches outlook, wo trage ich imap ein | wo ist die option für den mailserver | mails über imap abrufen, wo einstellen
 
 == ort:option.desktop.tray
+s: die app soll nicht im hintergrund weiterlaufen | läuft die app nach dem schließen weiter, wo stelle ich das ein | hintergrundbetrieb der app einstellen | fenster zu aber app läuft weiter, option
 o: im infobereich weiterlaufen | infobereich | tray | im hintergrund weiterlaufen | beim schließen weiterlaufen | run in tray
 s: wo stelle ich ein, dass die app beim schließen weiterläuft | die app soll ganz zugehen wenn ich schließe, wo | wo ist die option für den infobereich | antworten sollen weiterlaufen bei geschlossenem fenster, wo
 
 == ort:option.desktop.autostart
+s: lora soll beim hochfahren starten | beim einschalten des pcs mitstarten | app nach dem login automatisch öffnen | soll die app beim systemstart laufen, wo
 o: mit windows starten | autostart | automatisch starten | start mit windows | start with windows
 s: wo stelle ich ein, dass lora mit windows startet | die app soll nicht automatisch starten, wo | wo ist der autostart | beim anmelden mitstarten, wo einstellen
 
@@ -185,6 +191,7 @@ s: wo stelle ich die sortierung der dateiliste um | wo sortiere ich die dateien 
 s@app: dateien nach name sortieren, wo geht das | wo kann ich die dateiliste nach datum ordnen
 
 == ort:place.scan.capture
+s: foto für den scan machen | bild der seite aufnehmen | mit dem scanner eine seite einlesen | kamera im scanner auslösen
 o: seite fotografieren | foto aufnehmen | vom scanner einlesen | seite hinzufügen im scanner | seite einscannen | aufnahme im scanner
 s: wo nehme ich im scanner ein foto auf | wo füge ich eine weitere seite zum scan hinzu | wo starte ich das einlesen vom scanner | nächste seite fotografieren, wo
 
@@ -252,6 +259,7 @@ o: im transkript schneiden | transkript im videoeditor | textbasierter schnitt |
 s: wo schneide ich das video über den text | wo ist das transkript im videoeditor | wörter löschen um zu schneiden, wo | video anhand des textes schneiden
 
 == ort:place.video.pip
+s: bild im bild einrichten | kleines kamerabild über das video legen
 o: bild-in-bild | bild in bild | webcam in der ecke | overlay | zweites video als ecke | picture in picture
 s: wo lege ich die webcam über das video | wo mache ich bild in bild | ein kleines video in die ecke legen, wo | wo ist die funktion für ein overlay
 
@@ -260,6 +268,7 @@ o: schnittwerkzeuge | werkzeuge im videoeditor | klinge | trimmen | magnet | aus
 s: wo ist die klinge im videoeditor | wo finde ich das trimmen | wo schalte ich den magnet ein | wo sind die werkzeuge über der zeitleiste | wo wechsle ich zum auswahlwerkzeug
 
 == ort:place.video.layout
+s: vorschau im videoeditor auf vollbild | medienpool ausblenden | spuren höher machen | fenster im videoeditor neu anordnen | vorschau größer ziehen
 o: anordnung des videoeditors | anordnung | layout des videoeditors | bereiche im videoeditor | medienpool | spurhöhe | layout zurücksetzen
 s: wo setze ich die anordnung im videoeditor zurück | wo klappe ich den medienpool ein | wo mache ich die vorschau groß | wo stelle ich die spurhöhe ein | die bereiche im videoeditor sind verschoben, wo zurücksetzen | eigenschaften einklappen, wo
 

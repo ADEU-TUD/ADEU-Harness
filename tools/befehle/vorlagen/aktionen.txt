@@ -8,6 +8,7 @@ s: duplikate suchen | finde doppelte dateien | doppelte dateien finden | welche 
 s: räum auf | aufräumen bitte | räum den ordner auf | ordner aufräumen | bring ordnung in den ordner | sortiere die dateien in unterordner | räum hier bitte auf | ordne die dateien nach typ | nach dateityp aufräumen | räum nach semester auf | ordne die dateien nach semester | dateien nach monat ordnen | räum auf nach monat | mach hier ordnung | sortiere alles nach art in ordner | die dateien liegen kreuz und quer, räum auf | tidy up this folder | clean up the folder | organize the files by type | ordner {ORDNER} aufräumen | räum {ORDNER} nach semester auf | unterordner nach typ anlegen und einsortieren
 
 == tu:files.trash
+s: ab in den papierkorb | in den müll damit | das kann in den papierkorb | wegwerfen
 s: lösche die ausgewählten dateien | ausgewählte dateien löschen | die markierten dateien in den papierkorb | wirf die auswahl weg | lösch die markierten | die datei kann weg | diese dateien löschen | leg das in den papierkorb | lösche {DATEI} | {DATEI} in den papierkorb | {DATEI} löschen | weg mit den markierten dateien | delete the selected files | move this to the trash | entferne die ausgewählten dateien
 
 == tu:files.move
@@ -53,12 +54,14 @@ s@pdf,dateien: verkleinere das pdf | pdf verkleinern | verkleinern | komprimiere
 s@pdf: texterkennung | texterkennung starten | ocr | lass die texterkennung laufen | mach das pdf durchsuchbar | erkenne den text im scan | text erkennen | ocr über das pdf laufen lassen | den scan durchsuchbar machen | run ocr | make this pdf searchable | text im pdf erkennen lassen | ich kann den text nicht markieren, mach texterkennung | texterkennung für das gescannte pdf
 
 == tu:pdf.convert
+s@pdf,dateien: als word umwandeln | in markdown umwandeln | pdf als docx | zu text machen, das pdf | pdf nach word | in eine textdatei umwandeln
 s@pdf,dateien: wandle das pdf in word um | pdf in word umwandeln | mach aus dem pdf ein word dokument | pdf zu docx | wandle das pdf in markdown um | pdf als text speichern | pdf in txt umwandeln | umwandeln in word | convert the pdf to word | convert this pdf to text | pdf nach markdown | aus dem pdf eine docx machen | {DATEI} in word umwandeln | pdf in {FORMAT} umwandeln | als {FORMAT} exportieren, das pdf | mach daraus eine {FORMAT} datei
 
 == tu:pdf.redact
 s@pdf,dateien: schwärze {BEGRIFFE} | {BEGRIFFE} schwärzen | schwärze im pdf die begriffe {BEGRIFFE} | mach {BEGRIFFE} unkenntlich | alle stellen mit {BEGRIFFE} schwärzen | schwärze den namen {BEGRIFFE} | redact {BEGRIFFE} | black out {BEGRIFFE} | {BEGRIFFE} im pdf unkenntlich machen | bitte {BEGRIFFE} überall schwärzen | schwärzen: {BEGRIFFE}
 
 == tu:doc.write
+s@dokument: hilf mir beim schreiben eines absatzes zu {THEMA} | hilf mir schreiben | schreibhilfe: ein absatz über {THEMA} | formuliere mir hier den einstieg
 s@dokument: schreib eine einleitung zu {THEMA} | schreibe hier einen absatz über {THEMA} | hilf mir schreiben: ein abschnitt zu {THEMA} | schreib an der cursorstelle eine zusammenfassung | ergänze hier einen absatz zu {THEMA} | schreib ein fazit | schreibe den nächsten absatz | formuliere hier eine überleitung | schreib einen abschnitt über {THEMA} ins dokument | write an introduction about {THEMA} here | write a paragraph on {THEMA} | füge hier zwei sätze zu {THEMA} ein | schreib mir hier eine begrüßung | hilf mir, diesen abschnitt zu schreiben | schreib weiter | setze den text fort | schreibe eine kurze danksagung an dieser stelle | entwirf hier den methodenteil zu {THEMA}
 
 == tu:doc.diagram
@@ -104,6 +107,7 @@ s@folien: lösche folie {N} | folie {N} löschen | entferne folie {N} | lösch d
 s@folien: setze übergänge | übergang überblenden für alle folien | animationen setzen | alle folien mit übergang schieben | stichpunkte nacheinander einblenden | übergänge entfernen | keine animationen | folie {N} mit überblenden | mach überblendungen zwischen den folien | add transitions | fade between slides | animiere die stichpunkte | übergang schieben setzen | animation raus aus allen folien
 
 == tu:slides.beautify
+s@folien: folie aufpeppen | die folie hübscher machen | folie optisch verbessern | mach was schönes aus der folie
 s@folien: mach die folie schöner | folie verschönern | gestalte die folie besser | hübsch die folie auf | folie {N} schöner machen | verbessere das layout der folie | die folie sieht langweilig aus, mach was | beautify this slide | make this slide look better | schlage ein besseres layout vor | folie ansprechender gestalten | design der folie verbessern
 
 == tu:slides.notes

@@ -20,6 +20,7 @@ o: dateien | meine dateien | dateiverwaltung | dateibereich | meine dokumente | 
 s: wo sind meine dateien | zeig mir alles was ich hochgeladen habe | ich suche ein dokument von mir | wo liegen meine word dateien | meine präsentationen ansehen | wo finde ich meine tabellen | zu meinen unterlagen | ich will an meine ordner | zeig mir den lora-ordner | wo sind die erstellten dokumente | show me my files | meine gespeicherten sachen ansehen | ich will eine datei von letzter woche öffnen
 
 == ort:area.scan
+s: ich hab hier einen beleg aus papier | quittung digitalisieren | ein blatt papier in die app holen | papierformular abfotografieren | handschriftliche notiz einscannen | arztrechnung als pdf erfassen
 o: scannen | scanner | dokumentenscanner | scan | dokument scannen | einscannen | papier scannen | scan document
 s: ich will einen brief einscannen | papierdokument digitalisieren | mehrere seiten abfotografieren und als pdf | rechnung scannen | ich hab hier ein blatt das ins pdf soll | kassenbon einscannen | seiten mit der kamera aufnehmen | unterschriebenes formular einscannen | ich muss was vom papier in die app bringen | scan a receipt | zettel digitalisieren | foto vom dokument machen
 
@@ -40,10 +41,12 @@ o: modelle vergleichen | modellvergleich | vergleich der modelle | zwei modelle 
 s: ich will sehen welches modell besser antwortet | zwei modelle nebeneinander | eine frage gleichzeitig von zwei modellen beantworten lassen | antworten von zwei modellen gegenüberstellen | modelle parallel testen | welches modell antwortet besser, ich will das testen | side by side comparison of models | modelle gegeneinander testen
 
 == ort:area.local
+s: ich will ohne internet arbeiten, wo bekomme ich ein modell | modell für offline besorgen | sprachmodell für unterwegs laden | ki ohne netz einrichten
 o: modelle auf diesem gerät | lokale modelle | offline modelle | lokales modell | modelle fürs gerät | local models | sprachmodell auf dem gerät
 s: ich will ein modell herunterladen | modell offline installieren | wo installiere ich ein lokales sprachmodell | modell ohne internet nutzen | ki auf meinem rechner laufen lassen | welches modell passt auf meinen laptop | gemma herunterladen | qwen lokal installieren | download a local model | ich möchte ohne server arbeiten, modell laden | lokales modell löschen
 
 == ort:area.usage
+s: statistik zu meinen anfragen | wie oft habe ich die ki genutzt | auswertung meiner nutzung | zahlen zu meinem verbrauch
 o: verbrauch | tokenverbrauch | nutzungsstatistik | meine nutzung | kostenübersicht | usage | statistik | verbrauchsübersicht
 s: wie viel habe ich verbraucht | wie viele anfragen hab ich gestellt | tokens pro tag ansehen | was kostet mich das bisher | wo sehe ich meine nutzung | anzahl meiner anfragen diese woche | show my usage | wie viel hab ich die app genutzt | bewertungen und verbrauch
 
@@ -64,6 +67,7 @@ o: tresor | der tresor | geschützter bereich | vault | sicherer bereich | treso
 s: ich habe sensible daten | wo lege ich vertrauliche interviews ab | bereich mit pin | daten von studierenden sicher speichern | ich brauch einen verschlüsselten bereich | geheime unterlagen ablegen | sensible forschungsdaten schützen | wo ist der bereich für vertrauliches | open the vault | tresor aufschließen | etwas in den tresor legen
 
 == ort:tool.games
+s: ein quiz spiel bauen | escape-room für das seminar erstellen | rätselspiel für studierende | spiel zum vokabeln üben erstellen | interaktives lernspiel anlegen
 o: lernspiele | lernspiel | spiele | quiz | learning games | spiele-werkstatt
 s: ich will ein quiz erstellen | ein lernspiel für opal bauen | zuordnungsspiel machen | memory für die vorlesung | escape room für studierende | gamification für mein seminar | ein spiel zum üben bauen | quiz für moodle erstellen | build a quiz game | kleines spiel zur wiederholung | wo baue ich spiele
 
@@ -96,6 +100,7 @@ o: exzerpt | exzerptmodus | exzerpt-modus | modus exzerpt | exzerpieren | excerp
 s: ich möchte einen artikel exzerpieren | exzerpt aus einem pdf erstellen | exzerpt anlegen | paper zusammenfassen als exzerpt | ein exzerpt schreiben lassen | modus für exzerpte starten | create an excerpt | text exzerpieren mit seitenangaben
 
 == ort:mode.planning
+s: erst planen dann ausführen, modus | welcher modus plant zuerst | zuerst einen plan sehen, dann loslegen
 o: planungsmodus | planungs-modus | modus planung | planmodus | planning mode | planen
 s: erst einen plan machen lassen | der agent soll erst planen | chat im planungsmodus starten | ich will dass zuerst geplant wird | modus in dem erst ein plan kommt | start planning mode | vor der arbeit einen plan zeigen
 
@@ -160,6 +165,7 @@ o: darstellung | einstellungen darstellung | aussehen | erscheinungsbild | ausse
 s: wo ändere ich das aussehen | die app anders aussehen lassen | einstellungen zum erscheinungsbild | optik der app anpassen | farben und schrift einstellen | change how the app looks | zur darstellung
 
 == ort:settings.backup
+s: alles mitnehmen auf den neuen rechner | komplettexport meiner daten | meine sachen auf einen anderen pc bringen | daten sichern vor dem neuaufsetzen
 o: sicherung & umzug | sicherung | backup | umzug | sicherung und umzug | datensicherung | export und import
 s: alles sichern | ich will ein backup machen | daten auf ein neues gerät übertragen | ich bekomme einen neuen rechner | sicherung importieren | meine daten exportieren | auf anderen pc umziehen | sicherungskopie erstellen | backup my data | alle chats und einstellungen sichern | wie nehme ich meine daten mit
 
@@ -168,6 +174,7 @@ o: papierkorb | papierkorb einstellungen | gelöschte chats | papierkorb der cha
 s: gelöschten chat wiederherstellen | ich habe einen chat gelöscht | wo sind gelöschte transkripte | chat aus versehen gelöscht, zurückholen | gelöschtes wiederherstellen | restore a deleted chat | wo landen gelöschte chats
 
 == ort:settings.ram
+s: ram der app prüfen | wie viel arbeitsspeicher belegt die app | speicher der app messen | die app hängt ständig | alles lahm heute, speicher | ram auslastung der app | arbeitsspeicher freiräumen
 o: arbeitsspeicher | ram | speicherverbrauch | arbeitsspeicher einstellungen | speicher messen | memory usage
 s: die app ist langsam | die app braucht zu viel speicher | speicher freigeben | wie viel ram braucht die app | app ruckelt, speicher prüfen | wo messe ich den speicherverbrauch | alles ist träge, woran liegt das | free up memory | arbeitsspeicher aufräumen
 
@@ -188,5 +195,6 @@ o: updates | update | aktualisierung | neue version | einstellungen updates | ve
 s: nach updates suchen | gibt es eine neue version | app aktualisieren | welche version ist installiert | ist die app aktuell | update installieren | is there a new version | versionsnummer anzeigen | auf den neuesten stand bringen
 
 == ort:settings.help
+s: die app stürzt ab, wo melde ich das | absturz melden | da ist ein bug, wem schreibe ich | etwas ist kaputt, melden | fehlerprotokoll schicken | ich will dem entwickler was mitteilen | support kontaktieren | hilfe, hier geht was nicht – melden
 o: problem melden | fehler melden | feedback | hilfe und feedback | bug melden | report a problem | fehlerbericht
 s: etwas funktioniert nicht, ich will das melden | ich habe einen fehler gefunden | wie melde ich einen absturz | rückmeldung an die entwickler geben | protokoll an den entwickler senden | i want to report a bug | ich hab einen verbesserungsvorschlag | fehler an das team schicken
