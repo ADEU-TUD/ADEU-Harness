@@ -70,7 +70,7 @@ Fairlight).
 | **Jetzt** | **AP-103 Datenschutzseite aufräumen (dringend)** · AP-67 Lora Namensschutz – eigenes Erkennungsmodell für die Pseudonymisierung · ~~AP-71 Lora versteht Befehle auf dem Gerät und arbeitet im Mischmodus~~ ☑ (10.11.2026, Lora Befehle) |
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
-| **Danach** | AP-86 Lokale Modelle auf dem Mac laden |
+| **Danach** | AP-86 Lokale Modelle auf dem Mac laden · AP-104 Lora Postfach: eigenes LoRA-Feintuning fürs Postfach |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -363,6 +363,34 @@ gesperrt?“ passt nicht, „Datei einspielen“ erwartet eine Windows-ZIP, und 
 - Nebenbei: auf dem Mac nicht „PC“, sondern „Mac“ anzeigen.
 **Fertig, wenn**: auf einem Mac mit Apple Silicon Qwen 3.5 9B ohne Handarbeit lädt, startet und im Postfach antwortet,
 und ein Test die Paketwahl für Windows, macOS (arm64, x64) und Linux gegen eine echte Release-Liste prüft.
+
+### AP-104 ☐ Lora Postfach: eigenes LoRA-Feintuning fürs Postfach · L–XL (neu, Wunsch 10.11.2026, in Stufen)
+**Ziel**: Ins Postfach darf nur ein Modell auf diesem Gerät (AP-68). Ein kleines lokales Sprachmodell bekommt dafür ein
+eigenes **LoRA-Feintuning** („Lora Postfach“): Mails zuverlässig zusammenfassen, einordnen (AP-69), Antwortentwürfe im
+Ton der Professur schreiben, Termine und Aufgaben herauslesen und die Mail-Werkzeuge (`mail.*`) fehlerfrei aufrufen –
+schneller und genauer als das unveränderte Modell, ohne Server. **Langfristig** soll Lora damit auch **Mails abschicken**
+können – nur auf ausdrücklichen Wunsch, mit Vorschau und Klick auf *Senden* durch die Person (Grundsatz „nie ohne
+Aufforderung gesendet“ bleibt; Löschen bleibt ausgeschlossen).
+
+**Stufen** (Weg wie AP-67/AP-71: Messkorpus zuerst, nur erfundene Daten, Prüfteil nie zum Training)
+- **a) Messkorpus und Ausgangswert** (beantwortet zugleich Offene Frage 10): erfundene Dienstmails und Aufträge aus dem
+  Alltag der Professur (Zusammenfassen, Einordnen, Entwurf, Termin/Aufgabe, Werkzeugaufruf), mit Entwicklungs- und
+  Prüfteil; Messung der unveränderten lokalen Modelle (Qwen 3.5 4B/9B, Gemma 4 E4B) auf Dienst-PC und RTX 5080 mit
+  Kennzahlen je Aufgabe und Zeit je Mail (baut auf AP-76 auf).
+- **b) Trainingsdaten**: Claude als Lehrer-Modell schreibt erfundene Mails und Musterlösungen; keine echten Mails – auch
+  nicht aus dem eigenen Postfach.
+- **c) Basismodell**: Lizenz nur MIT oder Apache-2.0 (Gemma fällt mit seiner eigenen Lizenz heraus, vor dem Start prüfen);
+  Wahl auf dem Entwicklungsteil.
+- **d) LoRA-Training** auf dem PC mit der RTX 5080 (QLoRA, Stunden), Export als LoRA-Adapter (GGUF) für llama.cpp
+  (`--lora`), damit das große Grundmodell nicht doppelt geladen wird; Modellkarte mit Basismodell, Urheber, Lizenz und
+  „von uns feinabgestimmt und verändert“, Lizenz von Lora Postfach: `License.md`.
+- **e) Einbau**: Adapter als Download wie Lora Namensschutz (eigener Branch, fester Commit, SHA-256), Postfach-Modus nutzt
+  ihn automatisch; ohne Adapter wie bisher.
+- **f) Später – Senden mit Lora**: Entwurf → Vorschau → *Senden* durch die Person, Protokoll; vorher Offene Frage zur
+  Freigabe (Datenschutz, Dienstvorschriften) klären.
+
+**Fertig, wenn** (a–e): auf dem Prüfteil jede Aufgabe messbar besser als das unveränderte Modell und keine Werkzeugaufrufe
+außerhalb der erlaubten `mail.*`-Aktionen; Zeit je Mail auf einem Dienst-PC ohne Grafikkarte vertretbar (Wert nach a).
 
 ---
 
