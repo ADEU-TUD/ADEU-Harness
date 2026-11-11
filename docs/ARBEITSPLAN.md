@@ -72,7 +72,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
-| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) |
+| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · **AP-119 Anzeige, wohin die Daten gehen ◐** (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -1049,6 +1049,26 @@ Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Proto
   sudo-Regel ein Passwort → dann *Im Terminal*. (4) *Apache prüfen und neu laden* und *Zertifikat prüfen* (`--dry-run`).
   (5) Mit Modell auf dem PC: „Deploy wie immer“ – sind die Vorschläge brauchbar? Ohne Modell: Hinweis und *Was an den
   Server ging* ansehen. (6) PuTTY-Schlüssel (`.ppk`, Version 2 und 3) aus der bisherigen PuTTY-Einrichtung.
+
+### AP-119 ◐ Anzeige, wohin die Daten gehen · S (neu, Wunsch des Kollegen 11.11.2026)
+**Ziel**: Neben jedem Modell bzw. Server steht, wohin die Daten gehen: **„lokal“** (grün, bleibt auf diesem Gerät),
+**„TU-Server“** (gelb, Uni-Server ScaDS.AI der TU Dresden) oder **„Cloud“** (rot, externer Anbieter wie Gemini oder ein
+eigener Server außerhalb der TU). Reine Oberfläche – die Angaben je Anbieter gibt es in der App schon (`Privacy.isLocal`,
+`Privacy.isExternal`, Anbieter unter *Einstellungen › API-Zugang*). Gilt für Modellauswahl, Modellübersicht, API-Zugang,
+Modelle auf diesem Gerät und MCP-Server; Farbe nie allein (immer mit Wort, auch für Farbenblinde).
+**Fertig, wenn**: an jeder Stelle, an der ein Modell oder Server gewählt wird, die Kennzeichnung steht und stimmt.
+
+### AP-120 ◐ Lora einrichten Schritt für Schritt · M (neu, Wunsch Hauptnutzer 11.11.2026)
+**Ziel**: Beim ersten Start (als Fenster) und jederzeit über *Frag Lora* („Lora einrichten“) eine freundliche Einrichtung,
+die Schritt für Schritt durch alle wichtigen Einstellungen führt – wie *Alles lokal einrichten* (AP-112), nur für alles:
+Rolle (AP-80), wo Lora arbeitet (Uni-Server empfohlen; eigener Anbieter; alles auf diesem Gerät), Zugang (Schlüssel),
+Datenschutz (Pseudonymisierung), Werkzeuge, Aussehen, Lora-Ordner, Übersicht. **Zielgruppengerecht**: die meisten
+Nutzer:innen sind technisch eher unerfahren – kurze Sätze, eine Entscheidung je Schritt, Empfehlung vorgewählt, alles
+später änderbar; Expertenfunktionen (MCP-Server, Server-Terminal) stehen eingeklappt unter *Für Fortgeschrittene*. Die
+lokale Einrichtung ist integriert, aber **klar als Sonderfall** beschrieben: nur sinnvoll für sehr sensible Daten oder
+wenn Lora ohne Server arbeiten soll – langsamer, braucht einen starken Rechner und mehrere GB Speicher.
+**Fertig, wenn**: ein frischer Start ohne Vorwissen in wenigen Minuten zu einer arbeitsfähigen App führt und jeder Schritt
+übersprungen und später fortgesetzt werden kann.
 
 
 ---

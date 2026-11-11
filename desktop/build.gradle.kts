@@ -97,6 +97,12 @@ dependencies {
     implementation("org.jetbrains.jediterm:jediterm-core:3.76") { exclude(group = "org.jetbrains.kotlin") }
     implementation("org.jetbrains.jediterm:jediterm-ui:3.76") { exclude(group = "org.jetbrains.kotlin") }
 
+    // Archiv-Werkzeug (AP-99) und Passwortschutz (AP-98): zip4j (Apache-2.0) for ZIP with AES and in parts, Commons
+    // Compress (Apache-2.0) with XZ for Java (0BSD) to read 7z, TAR and GZ.
+    implementation("net.lingala.zip4j:zip4j:2.11.5")
+    implementation("org.apache.commons:commons-compress:1.27.1")
+    implementation("org.tukaani:xz:1.10")
+
     testImplementation(kotlin("test"))
     // Compose UI tests without a window (chat scrolling).
     @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)

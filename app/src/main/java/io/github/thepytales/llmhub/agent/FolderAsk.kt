@@ -32,10 +32,16 @@ object FolderAsk {
     fun prepare(c: AppContainer, dir: File, progress: (Int, Int) -> Unit = { _, _ -> }): List<File> {
         val all = files(dir)
         val lib = c.fileLibrary
-        return all.filterIndexed { i, f ->
+        val read = all.filterIndexed { i, f ->
             progress(i, all.size)
             !lib.textOf(f).isNullOrBlank()
-        }.also { progress(all.size, all.size) }
+        }
+        // Suche nach Bedeutung (AP-107): the passages get their vectors now, once – later questions are fast.
+        if (io.github.thepytales.llmhub.data.SemanticSearch.active) read.forEachIndexed { i, f ->
+            progress(i, read.size)
+            lib.textOf(f)?.let { t -> io.github.thepytales.llmhub.data.SemanticSearch.prepare(pages(t).map { it.second }) }
+        }
+        return read.also { progress(all.size, all.size) }
     }
 
     /**
@@ -86,14 +92,15 @@ object FolderAsk {
      * The [k] passages of [texts] (file → text) that fit [query] best: words of the question by how rare they are in
      * the folder (like tf-idf), at most [perFile] passages of one file; the passage is cut around its best part.
      */
-    fun rank(texts: Map<File, String>, query: String, k: Int = 8, perFile: Int = 3, root: File? = null): List<Passage> {
+    fun rank(texts: Map<File, String>, query: String, k: Int = 8, perFile: Int = 3, root: File? = null, meaning: Boolean = true): List<Passage> {
         val words = terms(query)
-        if (words.isEmpty()) return emptyList()
+        val semantic = meaning && io.github.thepytales.llmhub.data.SemanticSearch.active
+        if (words.isEmpty() && !semantic) return emptyList()
         val units = texts.flatMap { (f, t) -> pages(t).map { (p, s) -> Triple(f, p, s) } }
         val folded = units.map { fold(it.third) }
         val df = words.associateWith { w -> folded.count { it.contains(w) }.coerceAtLeast(1) }
         val n = units.size.coerceAtLeast(1)
-        val scored = units.indices.mapNotNull { i ->
+        val wordScores = units.indices.map { i ->
             val t = folded[i]
             var score = 0.0
             var matched = 0
@@ -101,8 +108,12 @@ object FolderAsk {
                 val hits = Regex(Regex.escape(w)).findAll(t).count()
                 if (hits > 0) { matched++; score += (1 + kotlin.math.ln(hits.toDouble())) * kotlin.math.ln(1.0 + n.toDouble() / df.getValue(w)) }
             }
-            if (matched == 0) null else i to score * (0.5 + matched.toDouble() / words.size)
-        }.sortedByDescending { it.second }
+            if (matched == 0) 0.0 else score * (0.5 + matched.toDouble() / words.size)
+        }
+        // AP-107: with the model on this device, passages that say the same in other words are found too.
+        val cos = if (semantic) io.github.thepytales.llmhub.data.SemanticSearch.similarity(query, units.map { it.third }, limit = 300) else null
+        val mixed = if (cos != null) io.github.thepytales.llmhub.data.SemanticSearch.mix(wordScores, cos) else wordScores
+        val scored = units.indices.filter { mixed[it] > if (cos != null) 0.05 else 0.0 }.map { it to mixed[it] }.sortedByDescending { it.second }
         val perCount = HashMap<File, Int>()
         val out = mutableListOf<Passage>()
         for ((i, score) in scored) {

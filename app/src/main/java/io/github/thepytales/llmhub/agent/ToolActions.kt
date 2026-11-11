@@ -363,12 +363,12 @@ object ToolActions {
         // Formatwandler mit Verlustanzeige (AP-90): the preview is the loss card; the original stays.
         ToolAction(
             "files.convert", ActionArea.FILES, trLater("In anderes Format umwandeln"),
-            "Wandelt eine Datei in ein anderes Format um (z. B. Word → odt, pdf, md; Excel → ods, csv; PowerPoint → odp, pdf) und zeigt vorher, was verloren geht. Das Original bleibt.",
-            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false), ActionParam("format", "Ziel, z. B. odt, pdf, csv, ods, odp, md, docx, xlsx")),
+            "Wandelt eine Datei in ein anderes Format um (z. B. Word → odt, pdf, md; Excel → ods, csv; PowerPoint → odp, pdf; OpenDocument odt/ods/odp → Word, Excel, PowerPoint; Bilder inkl. HEIC → jpg, png, webp) und zeigt vorher, was verloren geht. Das Original bleibt.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false), ActionParam("format", "Ziel, z. B. odt, pdf, csv, ods, odp, md, docx, xlsx, pptx, jpg, png, webp")),
             risky = false,
         ) { c, a ->
             val f = files(c, a.s("datei")).singleOrNull() ?: throw ActionFailed(tr("Welche Datei? Bitte eine auswählen oder den Namen nennen."))
-            val target = a.s("format").orEmpty().lowercase().trim().removePrefix(".").let { t -> if (t == "word") "docx" else if (t == "excel") "xlsx" else t }
+            val target = a.s("format").orEmpty().lowercase().trim().removePrefix(".").let { t -> when (t) { "word" -> "docx"; "excel" -> "xlsx"; "powerpoint" -> "pptx"; "jpeg" -> "jpg"; else -> t } }
             val targets = io.github.thepytales.llmhub.docs.FormatConvert.targets(f.name)
             if (target !in targets) throw ActionFailed(if (targets.isEmpty()) tr("„{0}“ lässt sich nicht umwandeln.", f.name) else tr("„{0}“ geht in: {1}.", f.name, targets.joinToString(", ")))
             val plan = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.FormatConvert.analyze(f.name, f.readBytes(), target) }

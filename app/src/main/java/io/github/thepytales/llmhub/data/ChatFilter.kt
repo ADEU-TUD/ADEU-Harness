@@ -30,6 +30,29 @@ data class ChatFilter(
     companion object {
         private const val DAY = 24L * 60 * 60 * 1000
 
+        /**
+         * Suche nach Bedeutung (AP-107): chats of [list] that fit [filter] and are about [query] in other words – not
+         * among [found] –, best first; empty without the model on this device. Title and the first messages count.
+         */
+        fun similar(list: List<Conversation>, query: String, filter: ChatFilter, found: Set<String>, k: Int = 8, now: Long = System.currentTimeMillis()): List<Pair<Conversation, String?>> {
+            val q = query.trim()
+            if (q.length < 3 || !SemanticSearch.active) return emptyList()
+            val cands = list.filter { filter.matches(it, now) && it.id !in found }.sortedByDescending { it.updatedAt }.take(400)
+            if (cands.isEmpty()) return emptyList()
+            val texts = cands.map { conv ->
+                (conv.title + "\n" + conv.messages.filter { it.role == "user" || it.role == "assistant" }.take(4).joinToString("\n") { it.content.take(400) }).take(1_500)
+            }
+            val cos = SemanticSearch.similarity(q, texts, limit = 120) ?: return emptyList()
+            // Only clearly fitting chats: well above the average of all.
+            val known = cos.filterNotNull()
+            if (known.size < 2) return emptyList()
+            val mean = known.average()
+            val sd = kotlin.math.sqrt(known.sumOf { (it - mean) * (it - mean) } / known.size).coerceAtLeast(0.005)
+            return cands.indices.filter { i -> cos[i]?.let { it > mean + 1.5 * sd && it > 0.78 } == true }
+                .sortedByDescending { cos[it] }.take(k)
+                .map { i -> cands[i] to cands[i].messages.firstOrNull { it.role == "user" }?.content?.replace(Regex("\\s+"), " ")?.take(120) }
+        }
+
         /** The chats of [list] that fit [filter] and contain [query], newest first, with a passage around the match. */
         fun search(list: List<Conversation>, query: String, filter: ChatFilter, now: Long = System.currentTimeMillis()): List<Pair<Conversation, String?>> {
             val q = query.trim()

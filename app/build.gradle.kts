@@ -113,4 +113,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     // Erkennungsmodell der Pseudonymisierung (AP-67): ONNX Runtime of sherpa-onnx through its C API, as on the PC.
     implementation("net.java.dev.jna:jna:5.15.0@aar")
+    // Archiv-Werkzeug (AP-99) und Passwortschutz (AP-98), as on the PC: zip4j (ZIP with AES and in parts), Commons
+    // Compress with XZ for Java (7z, TAR, GZ).
+    implementation("net.lingala.zip4j:zip4j:2.11.5")
+    implementation("org.apache.commons:commons-compress:1.27.1")
+    implementation("org.tukaani:xz:1.10")
 }
