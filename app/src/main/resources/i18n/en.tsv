@@ -6708,3 +6708,109 @@ nur über API	only via API
 Einrichtung	Setup
 Einstellungen › Wo Lora arbeitet › Einrichtung	Settings › Where Lora works › Setup
 Schritt für Schritt alle Modelle für dieses Gerät laden – ohne API-Schlüssel.	Load all models for this device step by step – without an API key.
+# Server-Terminal (AP-118)
+Ablaufdaten zeigen, Erneuerung erst testen, dann erneuern (Let’s Encrypt/certbot).	Show expiry dates, test the renewal first, then renew (Let’s Encrypt/certbot).
+Achtung: Der Server-Schlüssel hat sich geändert	Warning: the server key has changed
+Anmeldung abgelehnt – Benutzer oder Passwort stimmt nicht.	Login refused – user or password is wrong.
+Anmeldung abgelehnt – der Schlüssel ist für diesen Benutzer nicht auf dem Server hinterlegt.	Login refused – the key is not registered on the server for this user.
+Apache lädt danach über den Hook von certbot neu.	Apache then reloads through certbot’s hook.
+Apache prüfen und neu laden	Check and reload Apache
+Baut die Assets (CSS, JavaScript, Bilder) nach public/assets/.	Builds the assets (CSS, JavaScript, images) into public/assets/.
+Benutzer	User
+Benutzer des Webservers	Web server user
+Benutzer fehlt	User missing
+Bisher: {0}	Before: {0}
+Das Log kann Namen oder E-Mail-Adressen enthalten – geht nur pseudonymisiert an ein Modell.	The log may contain names or e-mail addresses – it only goes to a model pseudonymized.
+Der Schlüssel des Servers hat sich geändert.	The server’s key has changed.
+Der Schlüssel ist mit einer Passphrase geschützt.	The key is protected with a passphrase.
+Die Webseite ist kurz nicht erreichbar.	The website is briefly unavailable.
+Die letzten Einträge im Log der Anwendung.	The latest entries in the application log.
+Diesem Server vertrauen?	Trust this server?
+Durchsuchen	Browse
+Erneuert Zertifikate, die in den nächsten 30 Tagen ablaufen.	Renews certificates that expire within the next 30 days.
+Erste Verbindung zu diesem Server. Vergleiche den Fingerabdruck mit dem, den die Administration nennt (ssh-keygen -lf auf dem Server):	First connection to this server. Compare the fingerprint with the one the administrators give you (ssh-keygen -lf on the server):
+Für Vorschläge fehlt ein Sprachmodell auf diesem Gerät (Einstellungen › Wo Lora arbeitet). Die festen Abläufe gehen trotzdem.	Suggestions need a language model on this device (Settings › Where Lora works). The fixed workflows still work.
+Gesendetes ausblenden	Hide what was sent
+Gespeicherte Sitzungen	Saved sessions
+Gespeichertes vergessen	Forget saved one
+Holt den neuen Stand aus dem Repository.	Fetches the new version from the repository.
+Holt den neuen Stand; eigene Änderungen auf dem Server können Konflikte machen.	Fetches the new version; local changes on the server can cause conflicts.
+Host fehlt	Host missing
+Host oder IP-Adresse	Host or IP address
+Ich habe den neuen Fingerabdruck verglichen.	I have compared the new fingerprint.
+Im Terminal	In the terminal
+Im Terminal ausgeführt – Ausgabe dort.	Run in the terminal – output there.
+Installiert die PHP-Pakete genau nach composer.lock, ohne Entwicklungswerkzeuge.	Installs the PHP packages exactly according to composer.lock, without development tools.
+Jeder Schritt läuft erst nach deinem Klick – einzeln, der Reihe nach.	Each step only runs after your click – one by one, in order.
+Jetzt: {0}	Now: {0}
+Kein Modell auf diesem Gerät: Vorschläge kommen vom Server ({0}). Vorher werden Hosts, IP-Adressen, Benutzer, Mail-Adressen und alle Geheimnisse ersetzt.	No model on this device: suggestions come from the server ({0}). Hosts, IP addresses, users, mail addresses and all secrets are replaced first.
+Kein Schlüssel in der Datei.	No key in the file.
+Keine Verbindung zu {0} – {1}	No connection to {0} – {1}
+Konfiguration prüfen, erst dann neu laden – die Seite bleibt erreichbar.	Check the configuration, only then reload – the site stays available.
+Leert den Symfony-Cache als Benutzer des Webservers, damit die neuen Cache-Dateien ihm gehören.	Clears the Symfony cache as the web server user so the new cache files belong to it.
+Lora kennt für diesen Server einen anderen Schlüssel. Das passiert nach einer Neuinstallation – oder wenn jemand die Verbindung abfängt. Verbinde dich nur, wenn die Administration den neuen Schlüssel bestätigt hat.	Lora knows a different key for this server. This happens after a reinstallation – or when someone intercepts the connection. Only connect if the administrators have confirmed the new key.
+Lora schlägt mit {0} auf diesem Gerät vor – nichts verlässt den PC.	Lora suggests with {0} on this device – nothing leaves the PC.
+Lora überlegt …	Lora is thinking …
+Lädt Pakete aus dem Internet (Packagist) nach composer.lock.	Downloads packages from the internet (Packagist) according to composer.lock.
+Lädt die Einstellungen neu, ohne laufende Verbindungen zu trennen.	Reloads the settings without dropping open connections.
+Lädt die geprüfte Konfiguration neu.	Reloads the checked configuration.
+Läuft als Benutzer des Webservers (www-data), damit Dateien ihm gehören.	Runs as the web server user (www-data) so the files belong to it.
+Läuft mit erhöhten Rechten (sudo) – fragt ggf. nach dem Passwort; dann im Terminal ausführen.	Runs with elevated rights (sudo) – may ask for the password; then run it in the terminal.
+Löscht Ordner samt Inhalt – ohne Papierkorb.	Deletes folders with their contents – without a recycle bin.
+Name (frei)	Name (free text)
+Neue Sitzung	New session
+Neuen Stand holen, Pakete installieren, Assets bauen, Rechte für den Webserver setzen, Cache leeren.	Fetch the new version, install packages, build assets, set permissions for the web server, clear the cache.
+Noch keine Einträge.	No entries yet.
+Nur ausführen, wenn der Test „Syntax OK“ meldet.	Only run if the test reports “Syntax OK”.
+Nur diese beiden Ordner, keine Rechte für alle (kein chmod 777).	Only these two folders, no permissions for everyone (no chmod 777).
+Ordner der Anwendung (z. B. /var/www/app)	Application folder (e.g. /var/www/app)
+Passphrase des Schlüssels (falls gesetzt)	Key passphrase (if set)
+Passphrase falsch – der Schlüssel ließ sich nicht öffnen.	Wrong passphrase – the key could not be opened.
+Passwort fehlt.	Password missing.
+Port muss zwischen 1 und 65535 liegen	Port must be between 1 and 65535
+Probelauf der Erneuerung – ändert nichts.	Dry run of the renewal – changes nothing.
+Protokoll ausblenden	Hide log
+Protokoll kopieren	Copy log
+Prüft die Konfiguration auf Fehler, ohne etwas zu ändern.	Checks the configuration for errors without changing anything.
+Schlüssel	Key
+Schlüssel ersetzen	Replace key
+Schlüsseldatei (OpenSSH oder PuTTY .ppk)	Key file (OpenSSH or PuTTY .ppk)
+Schlüsseldatei fehlt	Key file missing
+Schlüsseldatei nicht gefunden: {0}	Key file not found: {0}
+Schlüsseldatei nicht lesbar ({0}).	Key file not readable ({0}).
+Schlüsseldatei wählen	Choose key file
+Server-Terminal	Server terminal
+Server-Terminal · {0}	Server terminal · {0}
+Sicherheit: {0}	Safety: {0}
+Standard-ACL: Der Webserver darf in public/assets/ und vendor/ lesen und schreiben – auch in Dateien, die später entstehen.	Default ACL: the web server may read and write in public/assets/ and vendor/ – also in files created later.
+Symfony aktualisieren	Update Symfony
+Symfony-Status	Symfony status
+Typ: {0}	Type: {0}
+Umgebung, Version und die letzten Fehler im Log – nur lesen.	Environment, version and the latest errors in the log – read only.
+Unbekannter Server-Schlüssel.	Unknown server key.
+Verbinde mit {0} …	Connecting to {0} …
+Verbindung abgebrochen – der Server-Schlüssel wurde nicht bestätigt.	Connection cancelled – the server key was not confirmed.
+Verschlüsseln nicht möglich	Encryption not possible
+Verschlüsselt auf diesem Gerät speichern	Save encrypted on this device
+Vertrauen und verbinden	Trust and connect
+Vorschlagen	Suggest
+Was an den Server ging	What went to the server
+Was soll passieren?	What should happen?
+Webserver über SSH pflegen wie mit PuTTY: gespeicherte Sitzungen mit Schlüssel oder Passwort, Prüfung des Server-Fingerabdrucks, und Lora schlägt Schritte mit Erklärung vor (Symfony aktualisieren, Apache neu laden, Zertifikat erneuern) – jeder Schritt erst nach deiner Zustimmung, mit Protokoll. Passwörter gehen nie an ein Modell.	Maintain web servers over SSH like with PuTTY: saved sessions with key or password, check of the server fingerprint, and Lora suggests steps with explanations (update Symfony, reload Apache, renew certificate) – each step only after your approval, with a log. Passwords never go to a model.
+Welcher Stand läuft.	Which version is running.
+Wie PuTTY: Host, Port, eigener Benutzer, Schlüssel oder Passwort. Passwörter bleiben auf diesem Gerät und gehen nie an ein Modell.	Like PuTTY: host, port, your own user, key or password. Passwords stay on this device and never go to a model.
+Zeigt Symfony-Version, Umgebung (prod/dev) und PHP-Version.	Shows the Symfony version, environment (prod/dev) and PHP version.
+Zeigt alle Zertifikate mit Ablaufdatum.	Shows all certificates with their expiry date.
+Zeigt, ob Apache läuft.	Shows whether Apache is running.
+Zeigt, ob auf dem Server etwas geändert wurde, bevor der neue Stand kommt.	Shows whether anything was changed on the server before the new version arrives.
+Zertifikat prüfen und erneuern	Check and renew certificate
+gespeichert – leer lassen	saved – leave empty
+läuft …	running …
+riskant	risky
+z. B. Deploy wie immer, Zertifikat läuft ab	e.g. deploy as usual, certificate is expiring
+Ändert Rechte – zu weite Rechte (z. B. 777) wären eine Sicherheitslücke.	Changes permissions – too broad permissions (e.g. 777) would be a security hole.
+Ändert die Datenbank – vorher eine Sicherung machen.	Changes the database – make a backup first.
+ändert	changes
+übersprungen	skipped
+Der Schritt „{0}“ ist fehlgeschlagen (Exit {1}). Was ist die Ursache, und was ist der nächste Schritt?	The step “{0}” failed (exit {1}). What is the cause, and what is the next step?
+Das Terminal ließ sich nicht öffnen: {0}	The terminal could not be opened: {0}

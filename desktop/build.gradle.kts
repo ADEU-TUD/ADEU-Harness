@@ -88,6 +88,14 @@ dependencies {
     implementation("me.friwi:jcefmaven:152.0.6")
     // QR codes in the Kreativbereich (AP-24), MIT licence, one small class without further dependencies.
     implementation("io.nayuki:qrcodegen:1.8.0")
+    // Server-Terminal (AP-118): SSH with Apache MINA SSHD (Apache-2.0; sshd-putty reads PuTTY keys) and the terminal of
+    // JetBrains (JediTerm, used under its Apache-2.0 option). JediTerm 3.76 is built with Kotlin 2.4 and asks for its
+    // standard library; the app keeps its own (2.0.21) – ServerTerminalTest checks that JediTerm only calls functions
+    // it has.
+    implementation("org.apache.sshd:sshd-core:2.20.1")
+    implementation("org.apache.sshd:sshd-putty:2.20.1")
+    implementation("org.jetbrains.jediterm:jediterm-core:3.76") { exclude(group = "org.jetbrains.kotlin") }
+    implementation("org.jetbrains.jediterm:jediterm-ui:3.76") { exclude(group = "org.jetbrains.kotlin") }
 
     testImplementation(kotlin("test"))
     // Compose UI tests without a window (chat scrolling).
@@ -134,6 +142,10 @@ val buildConfig by tasks.registering {
 }
 
 kotlin {
+    // Server-Terminal (AP-118): JediTerm 3.76 is built with Kotlin 2.4, whose module metadata the 2.0.21 compiler
+    // refuses to read. Lora only uses JediTerm's Java API (JediTermWidget, TtyConnector); ServerTerminalTest checks
+    // that JediTerm's bytecode only calls what the app's Kotlin standard library has.
+    compilerOptions.freeCompilerArgs.add("-Xskip-metadata-version-check")
     sourceSets.main {
         kotlin.srcDir(sharedSources)
         kotlin.srcDir(buildConfig)

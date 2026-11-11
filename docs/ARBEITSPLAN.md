@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -1008,6 +1008,44 @@ keine Befehle aus dem Gedächtnis.
 erst nach Bestätigung angenommen und ein geänderter blockiert wird, der Ablauf *Symfony aktualisieren* Schritt für
 Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Protokoll noch in einer Modellanfrage stehen
 – geprüft mit einem eingebetteten SSH-Server in den Tests – und der Hauptnutzer es an seinem Server ausprobiert hat.
+◐ *Stand 11.11.2026 (für 1.0.68)*: In der App fertig (Windows, macOS, Linux); am eigenen Server zu prüfen, siehe unten.
+- **Code** (`desktop/…/ssh/`): `SshConnection` (MINA SSHD; nichts aus `~/.ssh`; Schlüssel OpenSSH/PEM und PuTTY `.ppk`
+  mit Passphrase; `exec` ohne PTY im Ordner der Anwendung, leere Eingabe – `sudo` mit Passwortfrage scheitert sofort statt
+  zu hängen; `shell` mit `xterm-256color`-PTY), `KnownHosts` (eigene `ssh/known_hosts`, `[host]:port`, SHA-256), 
+  `ServerSessions`/`ServerSecrets` (`ssh/sessions.json` ohne Geheimnisse; Passwort/Passphrase nur auf Wunsch in
+  `ssh/secrets.bin`, mit `DeviceKey` verschlüsselt), `ServerSteps` (Schritt, Einstufung `Risks`, Hinweise, vier Abläufe),
+  `ServerMask` (Platzhalter für Host, IP, Benutzer, Mail, Ordner der Anwendung; `<geheim>` für Passwörter, Schlüssel,
+  Tokens, `KEY=…`, URL-Passwörter – nur ganze Wörter, nie in Platzhaltern), `ServerAssistant` (Modell hier bevorzugt,
+  sonst Lora-Modell des Servers, nur wenn *Wo Lora arbeitet › Lora* nicht „Lokal“ ist; Antwort als JSON, die App
+  stuft selbst ein), `ServerLog` (`ssh/protokoll/<Tag>-<Sitzung>.log`, Geheimnisse entfernt), `ServerTerminal` (Zustand
+  und Regeln ohne Oberfläche: ein Schritt je Klick, nie zwei gleichzeitig). Oberfläche `ui/ServerTerminalScreen.kt`:
+  Sitzungen links, Formular, Terminal (JediTerm über `SwingPanel`) und Loras Spalte mit Hinweis zum Datenschutz,
+  *Vorschlagen*, Abläufen, Schrittkarten (*Ausführen* · *Im Terminal* · *Bearbeiten* · *Überspringen*, bei Fehler *Lora
+  fragen*), *Was an den Server ging*, *Protokoll*/*Protokoll kopieren*; Dialog für neuen bzw. geänderten
+  Server-Schlüssel (geändert: erst nach Häkchen „verglichen“ *Schlüssel ersetzen*). Werkzeug `AppTool.SERVER` (nur
+  Desktop), Eintrag unter *Mehr*, Route `server`, Lora schlägt es bei „ssh“, „putty“, „composer install“ … vor.
+- **Build** (⚠ wichtig bei späteren Problemen, auch in `CLAUDE.md` und README › *Selbst bauen*): JediTerm 3.76 ist mit
+  Kotlin 2.4 gebaut; die App bleibt bei 2.0.21. Darum setzt `desktop/build.gradle.kts` den Compiler-Schalter
+  **`-Xskip-metadata-version-check`** (gilt für alle Bibliotheken – Laufzeitfehler aus `kotlin.*` deuten darauf hin),
+  und die Standardbibliothek von JediTerm wird nicht übernommen. Bei Kotlin ≥ 2.3 beides entfernen. Ein Test liest den Bytecode von JediTerm und prüft, dass jede
+  aufgerufene Funktion von `kotlin.*` in der Standardbibliothek der App steht. Lizenzhinweise in
+  `desktop/src/main/resources/lizenzen/`, `License.md` Abschnitt 3 ergänzt.
+- **Tests** `ServerTerminalTest` (8) mit eingebettetem MINA-SSH-Server: neuer Schlüssel erst nach Bestätigung, geänderter
+  blockiert und nur mit Ersetzen; Passwort falsch/richtig, ed25519 mit Passphrase (ohne → Nachfrage; gespeichert →
+  verschlüsselt, nächster Login ohne Eingabe), PuTTY-Schlüssel; *Symfony aktualisieren*: Vorschlagen führt nichts aus,
+  genau ein Befehl je Zustimmung, Übersprungenes läuft nicht, Fehler bleibt für *Nochmal*, Bearbeitetes wird neu
+  eingestuft, Protokoll vollständig; ein Server-Output mit Passwort, `APP_SECRET`, Datenbank-URL, IP landet weder im
+  Protokoll noch in der Anfrage an ein Modell (und Loras Vorschlag bekommt Host und Ordner zurück, nie ein Geheimnis);
+  PTY-Shell; JediTerm-Bytecode. `ServerTerminalLookTest` rendert Sitzungen und Ablauf (das Terminal selbst ist Swing
+  und im Bild nur angedeutet). Der **Selbsttest** der Release-Version verbindet sich mit einem SSH-Server auf
+  127.0.0.1 und prüft so die Laufzeit der gepackten App (Module, Krypto) unter Windows, macOS und Linux.
+- **Offen – am eigenen Server zu prüfen (Hauptnutzer)**: (1) Sitzung anlegen (Host, Port, eigener Benutzer, Schlüssel
+  oder Passwort), Fingerabdruck mit `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` auf dem Server vergleichen.
+  (2) Im Terminal `vim`/`top`/`htop` – Darstellung, Farben, Größe beim Ändern des Fensters, Umlaute. (3) *Symfony
+  aktualisieren* Schritt für Schritt an der echten Anwendung; der letzte Schritt (`sudo -u www-data …`) braucht je nach
+  sudo-Regel ein Passwort → dann *Im Terminal*. (4) *Apache prüfen und neu laden* und *Zertifikat prüfen* (`--dry-run`).
+  (5) Mit Modell auf dem PC: „Deploy wie immer“ – sind die Vorschläge brauchbar? Ohne Modell: Hinweis und *Was an den
+  Server ging* ansehen. (6) PuTTY-Schlüssel (`.ppk`, Version 2 und 3) aus der bisherigen PuTTY-Einrichtung.
 
 
 ---

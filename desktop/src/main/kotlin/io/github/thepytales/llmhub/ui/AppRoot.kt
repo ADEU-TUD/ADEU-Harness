@@ -429,6 +429,8 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         // Diagramme und Whiteboard (AP-61).
         "whiteboard" -> WhiteboardScreen(c, args["id"] ?: "", onBack = back)
         "video" -> VideoScreen(c, onBack = back)
+        // Server-Terminal (AP-118).
+        "server" -> ServerTerminalScreen(c, onBack = back)
         else -> LaunchedEffect(entry.id) { nav.popBackStack() }
     }
 }

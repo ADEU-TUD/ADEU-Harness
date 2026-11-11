@@ -1,0 +1,13 @@
+Server-Terminal (AP-118) – Bestandteile Dritter
+================================================
+
+JediTerm 3.76 (jediterm-core, jediterm-ui)
+  Copyright JetBrains s.r.o. – https://github.com/JetBrains/jediterm
+  JediTerm steht wahlweise unter der LGPL-3.0 oder der Apache License 2.0. Lora nutzt JediTerm unter der
+  Apache License 2.0 (Lizenztext: JediTerm-LICENSE-APACHE-2.0.txt). JediTerm enthält Teile von jVT220
+  (https://github.com/jawi/jVT220, J. W. Janssen, Apache License 2.0). Die Bibliothek ist unverändert.
+
+Apache MINA SSHD 2.20.1 (sshd-core, sshd-common, sshd-putty)
+  Copyright The Apache Software Foundation – https://mina.apache.org/sshd-project/
+  Apache License 2.0; Lizenz und NOTICE liegen in den JAR-Dateien (META-INF/LICENSE, META-INF/NOTICE).
+  Die Bibliothek ist unverändert.

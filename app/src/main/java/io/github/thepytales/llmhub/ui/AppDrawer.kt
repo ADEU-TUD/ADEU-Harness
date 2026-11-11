@@ -59,6 +59,7 @@ import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.Terminal
 import io.github.thepytales.llmhub.data.withTool
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -539,6 +540,7 @@ internal fun DrawerArea.icon(): ImageVector = when (this) {
     DrawerArea.VIDEO -> Icons.Outlined.Movie
     DrawerArea.BATCH -> Icons.Outlined.Inventory2
     DrawerArea.PROPOSALS -> Icons.AutoMirrored.Outlined.Assignment
+    DrawerArea.SERVER -> Icons.Outlined.Terminal
 }
 
 /** An area of the side menu; right click or long press: move it on top or under „Mehr“ (tools: also switch off). */
