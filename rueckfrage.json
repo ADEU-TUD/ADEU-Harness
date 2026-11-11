@@ -1,0 +1,6 @@
+{
+  "untergrenze": 0.45,
+  "gewaehlt_auf": "entwicklung",
+  "frei_hoechstens_prozent": 2.0,
+  "regel": "niedrigste Stufe unter der Schwelle mit höchstens 2 % freien Anfragen mit Knöpfen, bei gleichem Ergebnis die höhere"
+}

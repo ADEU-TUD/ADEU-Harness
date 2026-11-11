@@ -1,0 +1,276 @@
+{
+  "messung": {
+    "fp32": {
+      "entwicklung": {
+        "befehle": 364,
+        "treffer": 98.4,
+        "befehl_weitergegeben": 1.4,
+        "falsch_ausgefuehrt": 0.4,
+        "frei": 94,
+        "frei_weitergegeben": 98.9,
+        "frei_art_richtig": 97.4
+      },
+      "pruef": {
+        "befehle": 302,
+        "treffer": 92.7,
+        "befehl_weitergegeben": 6.6,
+        "falsch_ausgefuehrt": 0.8,
+        "frei": 84,
+        "frei_weitergegeben": 98.8,
+        "frei_art_richtig": 100.0
+      },
+      "schwelle": 0.75,
+      "zeit": {
+        "median_ms": 13.9,
+        "p95_ms": 19.1
+      }
+    },
+    "int8": {
+      "entwicklung": {
+        "befehle": 364,
+        "treffer": 98.9,
+        "befehl_weitergegeben": 0.8,
+        "falsch_ausgefuehrt": 0.4,
+        "frei": 94,
+        "frei_weitergegeben": 98.9,
+        "frei_art_richtig": 98.7
+      },
+      "pruef": {
+        "befehle": 302,
+        "treffer": 95.4,
+        "befehl_weitergegeben": 3.3,
+        "falsch_ausgefuehrt": 1.3,
+        "frei": 84,
+        "frei_weitergegeben": 98.8,
+        "frei_art_richtig": 100.0
+      },
+      "schwelle": 0.5,
+      "zeit": {
+        "median_ms": 3.8,
+        "p95_ms": 5.5
+      }
+    }
+  },
+  "training": {
+    "basis": "distilbert/distilbert-base-german-cased",
+    "revision": "6f96562de9886779ce7d48810dff8f5c4afb6d0b",
+    "schichten": null,
+    "eingefroren": false,
+    "daten": 33640,
+    "parameter": 67535794,
+    "epochen": [
+      {
+        "epoche": 1,
+        "verlust": 3.1726,
+        "genau_dev": 89.7,
+        "schwelle": 0.7,
+        "treffer": 18.4,
+        "falsch_ausgefuehrt": 0.0,
+        "frei_weitergegeben": 100.0,
+        "guete": 18.4,
+        "minuten": 12.8
+      },
+      {
+        "epoche": 2,
+        "verlust": 0.7331,
+        "genau_dev": 97.8,
+        "schwelle": 0.75,
+        "treffer": 90.7,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 100.0,
+        "guete": 88.7,
+        "minuten": 25.3
+      },
+      {
+        "epoche": 3,
+        "verlust": 0.5158,
+        "genau_dev": 98.7,
+        "schwelle": 0.75,
+        "treffer": 97.5,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9,
+        "guete": 95.5,
+        "minuten": 37.6
+      },
+      {
+        "epoche": 4,
+        "verlust": 0.4832,
+        "genau_dev": 98.9,
+        "schwelle": 0.75,
+        "treffer": 98.4,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9,
+        "guete": 96.4,
+        "minuten": 50.8
+      },
+      {
+        "epoche": 5,
+        "verlust": 0.475,
+        "genau_dev": 98.9,
+        "schwelle": 0.9,
+        "treffer": 95.9,
+        "falsch_ausgefuehrt": 0.2,
+        "frei_weitergegeben": 100.0,
+        "guete": 94.9,
+        "minuten": 63.1
+      }
+    ],
+    "beste_epoche": 4,
+    "schwelle": 0.75,
+    "schwellen_entwicklung": [
+      {
+        "schwelle": 0.3,
+        "treffer": 98.9,
+        "falsch_ausgefuehrt": 1.3,
+        "frei_weitergegeben": 96.8
+      },
+      {
+        "schwelle": 0.4,
+        "treffer": 98.9,
+        "falsch_ausgefuehrt": 1.1,
+        "frei_weitergegeben": 97.9
+      },
+      {
+        "schwelle": 0.5,
+        "treffer": 98.6,
+        "falsch_ausgefuehrt": 0.9,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.6,
+        "treffer": 98.6,
+        "falsch_ausgefuehrt": 0.7,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.7,
+        "treffer": 98.4,
+        "falsch_ausgefuehrt": 0.7,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.75,
+        "treffer": 98.4,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.8,
+        "treffer": 98.1,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.85,
+        "treffer": 97.0,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.9,
+        "treffer": 96.2,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.93,
+        "treffer": 92.3,
+        "falsch_ausgefuehrt": 0.4,
+        "frei_weitergegeben": 98.9
+      },
+      {
+        "schwelle": 0.95,
+        "treffer": 86.5,
+        "falsch_ausgefuehrt": 0.2,
+        "frei_weitergegeben": 100.0
+      },
+      {
+        "schwelle": 0.97,
+        "treffer": 26.4,
+        "falsch_ausgefuehrt": 0.0,
+        "frei_weitergegeben": 100.0
+      },
+      {
+        "schwelle": 0.98,
+        "treffer": 0.5,
+        "falsch_ausgefuehrt": 0.0,
+        "frei_weitergegeben": 100.0
+      },
+      {
+        "schwelle": 0.99,
+        "treffer": 0.0,
+        "falsch_ausgefuehrt": 0.0,
+        "frei_weitergegeben": 100.0
+      }
+    ],
+    "entwicklung": {
+      "befehle": 364,
+      "treffer": 98.4,
+      "befehl_weitergegeben": 1.4,
+      "falsch_ausgefuehrt": 0.4,
+      "frei": 94,
+      "frei_weitergegeben": 98.9,
+      "frei_art_richtig": 97.4
+    },
+    "fehler_entwicklung": [
+      [
+        "alltag:43",
+        "datenschtz",
+        "ort:settings.privacy",
+        "ort:area.files",
+        "weitergegeben"
+      ],
+      [
+        "bereiche:124",
+        "einstellungsübersicht",
+        "ort:area.settings",
+        "ort:area.settings",
+        "weitergegeben"
+      ],
+      [
+        "bereiche:127",
+        "ich muss was unterschreiben, ist ein pdf",
+        "ort:tool.pdf",
+        "frei.einfach",
+        "weitergegeben"
+      ],
+      [
+        "bereiche:176",
+        "ram verbrauch messen",
+        "ort:settings.ram",
+        "ort:settings.ram",
+        "weitergegeben"
+      ],
+      [
+        "frei:144",
+        "wie funktioniert spracherkennung technisch",
+        "frei.einfach/frei.komplex",
+        "lora:hilfe",
+        "frei → ausgeführt"
+      ],
+      [
+        "optionen:93",
+        "modell automatisch wählen",
+        "ort:option.chat.autoModel",
+        "stell:auto_model",
+        "weitergegeben"
+      ],
+      [
+        "optionen:97",
+        "werkzeugschritte eingeklappt lassen",
+        "ort:option.chat.collapse",
+        "stell:collapse_steps",
+        "falsch ausgeführt"
+      ]
+    ],
+    "pruef": {
+      "befehle": 302,
+      "treffer": 92.7,
+      "befehl_weitergegeben": 6.6,
+      "falsch_ausgefuehrt": 0.8,
+      "frei": 84,
+      "frei_weitergegeben": 98.8,
+      "frei_art_richtig": 100.0
+    }
+  }
+}
