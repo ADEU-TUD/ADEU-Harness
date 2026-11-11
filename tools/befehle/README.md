@@ -195,6 +195,10 @@ Die Datei bis 1.0.65 (`befehle-modell.int8.onnx.gz`, Commit `cc168774477e3ac8b43
 erreichbar; wer sie hat, arbeitet mit ihr weiter (gleiche Etiketten, gleicher Wortschatz, eigene Schwelle 0,8 und
 Untergrenze 0,3) und bekommt Lora Befehle einmal als Update angeboten. Nach dem Laden wird die alte Datei gelöscht.
 
+**Neue Fassung veröffentlichen** (AP-117): `tools/modelle/veroeffentlichen.py befehle …` – nur bei erreichten Zielen, auf
+den Branch `befehle-modell`, schreibt `modell/fassung.json`; Einzelheiten in [`tools/modelle/README.md`](../modelle/README.md).
+Die App erkennt die Fassung am SHA-256 (`CommandModelInfo.VERSIONS`), auch bei gleichem Dateinamen und gleicher Größe.
+
 **Lizenz**: Basismodell `distilbert/distilbert-base-german-cased` von Hugging Face unter Apache-2.0 (Lizenztext in
 `modell/LIZENZ-distilbert-base-german-cased.txt`), von uns feinabgestimmt und verändert; die Urheber des Basismodells
 haben Lora Befehle weder geprüft noch gebilligt. Für Lora Befehle selbst gilt `License.md`.

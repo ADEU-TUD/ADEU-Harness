@@ -59,7 +59,7 @@ fun PiiModelPrompt(c: AppContainer) {
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(onClick = {
-                    c.settings.update { if (update) it.copy(pseudonymModelUpdateAsk = false) else it.copy(pseudonymModelAsk = false) }
+                    if (update) c.piiModel.declineUpdate() else c.settings.update { it.copy(pseudonymModelAsk = false) }
                     close()
                 }) { Text(tr("Nicht mehr fragen")) }
                 TextButton(onClick = ::close) { Text(tr("Später")) }

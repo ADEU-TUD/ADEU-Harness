@@ -100,8 +100,12 @@ Einzeln geht es auch so (überall, auch ohne Grafikkarte – dann langsam):
 ```bash
 python tools/pii/train.py --basis deepset/gbert-base --epochen 4      # → tools/pii/modelle/gbert-base/best, bericht.json
 python tools/pii/evaluate.py tools/pii/modelle/gbert-base/best --zeit  # Entwicklung: Zahlen und Fehlerliste
-python tools/pii/export.py tools/pii/modelle/gbert-base/best          # → …/onnx/lora-namensschutz-pytales.int8.onnx, vocab.txt, MODELLKARTE.md
+python tools/pii/export.py tools/pii/modelle/gbert-base/best          # → …/onnx/lora-namensschutz-pytales.int8.onnx, vocab.txt, MODELLKARTE.md, messung.json
+python tools/modelle/veroeffentlichen.py namensschutz tools/pii/modelle/gbert-base/onnx --bericht tools/pii/modelle/gbert-base/bericht.json
 ```
+
+Veröffentlichen (AP-117) nur bei erreichten Zielen, auf den Branch `pii-modell`; die App erkennt die Fassung am SHA-256
+(`PiiModelInfo.VERSIONS`). Einzelheiten: [`tools/modelle/README.md`](../modelle/README.md).
 
 Gemessen wird in drei Varianten: **Modell allein**, **alle Regeln + Modell** und **wie geplant** – die Regeln ohne das
 Raten von Namen aus häufigen Vornamen (`Pseudonymizer.nameChains = false`; Muster, Frau/Herr, Rollen, Grüße,
