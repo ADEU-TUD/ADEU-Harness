@@ -173,6 +173,8 @@ data class AppSettings(
     val pseudonymModelAsk: Boolean = true,
     /** Offer the new version of Lora Namensschutz to who still has the model of 1.0.65 (off after „Nicht mehr fragen“). */
     val pseudonymModelUpdateAsk: Boolean = true,
+    /** AP-117: SHA-256 of the version whose update got „Nicht mehr fragen“ – a newer version is offered again. */
+    val pseudonymModelUpdateDeclined: String = "",
     /** Einstellungen › Datenschutz (AP-103): the parts of the page that are open, comma-separated (all folded at first). */
     val privacyOpen: String = "",
     /** Suche nach Bedeutung auf dem Gerät (AP-107): the Wissenssammlung uses the embedding model on this device once it is loaded. */
@@ -185,6 +187,8 @@ data class AppSettings(
     val commandModelAsk: Boolean = true,
     /** Offer the new version of Lora Befehle to who still has the model of 1.0.65 (off after „Nicht mehr fragen“). */
     val commandModelUpdateAsk: Boolean = true,
+    /** AP-117: SHA-256 of the version whose update got „Nicht mehr fragen“ – a newer version is offered again. */
+    val commandModelUpdateDeclined: String = "",
     /** Lora lernt aus Korrekturen (AP-72): corrected wishes are remembered on this device (Einstellungen › Lora). */
     val loraLearn: Boolean = true,
     /** Lora-Verlauf (AP-75): the last wishes to Lora are kept on this device. */
@@ -397,12 +401,14 @@ class SettingsStore(context: Context) {
             .putBoolean("pseudonymModel", next.pseudonymModel)
             .putBoolean("pseudonymModelAsk", next.pseudonymModelAsk)
             .putBoolean("pseudonymModelUpdateAsk", next.pseudonymModelUpdateAsk)
+            .putString("pseudonymModelUpdateDeclined", next.pseudonymModelUpdateDeclined)
             .putString("privacyOpen", next.privacyOpen)
             .putBoolean("semanticLocal", next.semanticLocal)
             .putString("loraPlace", next.loraPlace)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
             .putBoolean("commandModelUpdateAsk", next.commandModelUpdateAsk)
+            .putString("commandModelUpdateDeclined", next.commandModelUpdateDeclined)
             .putBoolean("loraLearn", next.loraLearn)
             .putBoolean("loraHistory", next.loraHistory)
             .putString("roles", next.roles)
@@ -512,12 +518,14 @@ class SettingsStore(context: Context) {
             pseudonymModel = prefs.getBoolean("pseudonymModel", d.pseudonymModel),
             pseudonymModelAsk = prefs.getBoolean("pseudonymModelAsk", d.pseudonymModelAsk),
             pseudonymModelUpdateAsk = prefs.getBoolean("pseudonymModelUpdateAsk", d.pseudonymModelUpdateAsk),
+            pseudonymModelUpdateDeclined = prefs.getString("pseudonymModelUpdateDeclined", d.pseudonymModelUpdateDeclined) ?: d.pseudonymModelUpdateDeclined,
             privacyOpen = prefs.getString("privacyOpen", d.privacyOpen) ?: d.privacyOpen,
             semanticLocal = prefs.getBoolean("semanticLocal", d.semanticLocal),
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
             commandModelUpdateAsk = prefs.getBoolean("commandModelUpdateAsk", d.commandModelUpdateAsk),
+            commandModelUpdateDeclined = prefs.getString("commandModelUpdateDeclined", d.commandModelUpdateDeclined) ?: d.commandModelUpdateDeclined,
             loraLearn = prefs.getBoolean("loraLearn", d.loraLearn),
             loraHistory = prefs.getBoolean("loraHistory", d.loraHistory),
             roles = prefs.getString("roles", d.roles) ?: d.roles,

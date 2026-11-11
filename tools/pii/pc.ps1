@@ -8,9 +8,10 @@
 #   2. 30 000 erfundene Trainingstexte (gen.py) – die Daten bleiben auf dem PC
 #   3. Training der drei Kandidaten (je 4 Epochen, ein paar Minuten je Modell)
 #   4. Vergleich auf dem Entwicklungsteil des Messkorpus, Export des besten als ONNX/int8 mit Modellkarte
-# Am Ende steht da, welche Datei hochgeladen werden soll.
+#   5. Veröffentlichen (AP-117, tools\modelle\veroeffentlichen.py): nur bei erreichten Zielen auf den Branch pii-modell
 #
-# Voraussetzung: Python 3.11 oder neuer (python.org, „Add to PATH“), aktueller NVIDIA-Treiber, Internet.
+# Voraussetzung: Python 3.11 oder neuer (python.org, „Add to PATH“), aktueller NVIDIA-Treiber, Internet, git mit
+# Anmeldung bei GitHub (Schreibrecht auf ADEU-TUD/Lora).
 
 $ErrorActionPreference = "Stop"
 $env:PYTHONUTF8 = "1"
@@ -79,11 +80,24 @@ Step "Export von $($best.name) (ONNX, int8, Modellkarte)"
 & $vpy export.py "modelle\$($best.name)\best"
 
 $onnx = Join-Path $here "modelle\$($best.name)\onnx"
+$bericht = Join-Path $here "modelle\$($best.name)\bericht.json"
+
+# AP-117: veröffentlichen – nur bei erreichten Zielen (Prüfteil), auf den Branch pii-modell auf GitHub, mit Modellkarte,
+# Lizenzen und Messbericht; schreibt tools\pii\modell\fassung.json. Braucht git mit Anmeldung bei GitHub.
+Step "Veröffentlichen (nur bei erreichten Zielen)"
+& $vpy (Join-Path $here "..\modelle\veroeffentlichen.py") namensschutz $onnx --bericht $bericht
+$code = $LASTEXITCODE
+
 Step "Fertig"
 Write-Host "Bestes Modell: $($best.basis)"
 Write-Host "Ordner: $onnx"
 Write-Host ""
-Write-Host "Bitte hochladen (für Claude in der Cloud-Sitzung):" -ForegroundColor Green
-Write-Host "  1. $onnx\lora-namensschutz-pytales.int8.onnx, vocab.txt, labels.json, MODELLKARTE.md"
-Write-Host "  2. auch modelle\$($best.name)\bericht.json und die bericht.json der anderen Kandidaten"
-Write-Host "  Weg: GitHub › ADEU-TUD/Lora › Releases › Draft a new release › Tag 'lora-namensschutz-v2' › Dateien hineinziehen › Save draft"
+if ($code -eq 0) {
+    Write-Host "Neue Fassung veröffentlicht. tools\pii\modell\fassung.json ist geschrieben." -ForegroundColor Green
+    Write-Host "Nächster Schritt (für Claude): die Fassung in PiiModelInfo.VERSIONS eintragen (Ausgabe oben), PR, grüner Check."
+} elseif ($code -eq 2) {
+    Write-Host "Ziele verfehlt – nichts veröffentlicht. Den Messbericht ($onnx\messung.json, $bericht) an Claude geben." -ForegroundColor Yellow
+} else {
+    Write-Host "Veröffentlichen fehlgeschlagen (siehe oben, z. B. git nicht angemeldet). Erneut: " -ForegroundColor Yellow
+    Write-Host "  $vpy tools\modelle\veroeffentlichen.py namensschutz $onnx --bericht $bericht"
+}

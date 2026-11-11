@@ -72,7 +72,7 @@ fun CommandModelPrompt(c: AppContainer) {
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(onClick = {
-                    c.settings.update { if (update) it.copy(commandModelUpdateAsk = false) else it.copy(commandModelAsk = false) }
+                    if (update) c.commandModel.declineUpdate() else c.settings.update { it.copy(commandModelAsk = false) }
                     close()
                 }) { Text(tr("Nicht mehr fragen")) }
                 TextButton(onClick = ::close) { Text(tr("Später")) }

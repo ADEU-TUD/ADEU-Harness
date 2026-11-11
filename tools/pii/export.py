@@ -95,6 +95,8 @@ def main() -> None:
     loss = measures["fp32"]["pruef_modell"][0] - measures["int8"]["pruef_modell"][0]
     report = json.loads((folder.parent / "bericht.json").read_text(encoding="utf-8")) if (folder.parent / "bericht.json").exists() else {}
     write_card(out, folder, report, measures, int8.stat().st_size)
+    # Messbericht for the publication (AP-117, tools/modelle/veroeffentlichen.py checks the goals with it).
+    (out / "messung.json").write_text(json.dumps(measures, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Fertig: {out}  (int8 {int8.stat().st_size / 1e6:.0f} MB, Verlust gegenüber fp32: {loss:.1f} Prozentpunkte)")
     if loss > MAX_LOSS:
         sys.exit(f"int8 verliert {loss:.1f} Prozentpunkte (erlaubt {MAX_LOSS}) – nicht ausliefern")

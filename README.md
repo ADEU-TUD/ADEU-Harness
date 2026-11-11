@@ -392,6 +392,12 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
   Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
   ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
+- **Eigene Modelle aktualisieren** (nach 1.0.67, AP-117): Die App erkennt die Fassung von Lora Namensschutz und Lora
+  Befehle am SHA-256 statt an der Größe – auch ein Nachtraining mit gleichem Dateinamen und gleicher Größe kommt als
+  Update an. Bis zum Download arbeitet die bisherige Fassung mit ihrer eigenen Schwelle und ihren Etiketten weiter
+  (bekannt: 1.0.65 und 1.0.66); „Nicht mehr fragen“ gilt je Fassung. Neue Fassungen veröffentlicht
+  `tools/modelle/veroeffentlichen.py` nur bei erreichten Zielen auf einen eigenen Branch auf GitHub (über 95 MB in
+  Teilen); Anleitung in [`tools/modelle/README.md`](tools/modelle/README.md). Test `OwnModelsTest`.
 - **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
   neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
   Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging

@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (AP-116 in der App, Messung am Gerät offen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (AP-116 in der App, Messung am Gerät offen; AP-117 erledigt) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · AP-117 Eigene Modelle aktualisieren, auf GitHub (vor AP-113/AP-114) |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -824,7 +824,7 @@ Server innerhalb weniger Sekunden zur Ruhe bringt und das Gerät dabei nicht hei
   (4) Dieselbe Frage am Office-PC ohne Grafikkarte (Schritte 6, 8 Minuten) und, wenn vorhanden, am Gaming-PC.
   Messwerte hier eintragen; danach die Zahlen in `LocalLimits` anpassen.
 
-### AP-117 ☐ Eigene Modelle aktualisieren: Fassung statt Größe, Veröffentlichung auf GitHub · S–M (vor AP-113/AP-114)
+### AP-117 ☑ Eigene Modelle aktualisieren: Fassung statt Größe, Veröffentlichung auf GitHub · S–M (vor AP-113/AP-114)
 **Ziel**: Ein nachtrainiertes Lora Namensschutz oder Lora Befehle erreicht alle mit der nächsten Lora-Version; die
 bisherige Fassung arbeitet bis zum Download weiter. Das Hochladen erledigt das Trainingsskript, nicht der Hauptnutzer.
 **Heute (bis 1.0.67)**: Die App erkennt „installiert“ nur an Dateiname und Größe (`PiiModelInfo.FILE/SIZE`,
@@ -861,6 +861,34 @@ darunter.
 
 **Fertig, wenn**: Tests zeigen: App mit älterer Fassung (gleich und anders groß) erkennt das Update, arbeitet bis dahin
 mit ihr und nach dem Download mit der neuen; ein Probelauf aus einer Cloud-Sitzung legt eine Test-Fassung auf einen Test-Branch.
+**Erledigt (11.11.2026, für 1.0.68, kein Release)**:
+- **App**: `data/OwnModels.kt` – `ModelVersion` (SHA-256, Größe, Datei, Schwelle, Untergrenze der Rückfrage, Etiketten und
+  Wortschatz als Ressourcen) und `ModelDownload` (Commit, Teile mit SHA-256 je Teil, gepackte Datei gesamt). Die Liste
+  `PiiModelInfo.VERSIONS` bzw. `CommandModelInfo.VERSIONS` enthält 1.0.66 (neueste, mit Download) und 1.0.65 (SHA-256
+  aus den Branch-Blobs nachgerechnet: `0e42df90…` bzw. `3251a9ef…`). Erkannt wird die Fassung am SHA-256 (einmal
+  gerechnet, im Hintergrund, Merkdatei `<datei>.fassung` mit Größe, Zeit und SHA-256); eine Datei mit unbekannter Summe
+  zählt nicht. Eine ältere Fassung arbeitet mit **ihrer** Schwelle, Untergrenze, ihren Etiketten und ihrem Wortschatz
+  weiter, bis die neueste geladen ist; erst nach vollständiger Prüfung wird entladen und ersetzt, alte Dateien gehen.
+  Das Popup kommt als Update-Angebot; „Nicht mehr fragen“ gilt jetzt **je Fassung** (`…UpdateDeclined` = SHA-256; ein
+  „Nicht mehr fragen“ von vor AP-117 gilt für 1.0.66, eine spätere Fassung wird wieder angeboten). *Einstellungen ›
+  Datenschutz* bzw. *› Lora* zeigen wie bisher „Es gibt eine bessere“ mit *Neue Version laden*.
+- **Downloads in Teilen** vorbereitet: mehrere Teile nacheinander (fortsetzbar), je Teil, gesamt und entpackt geprüft;
+  heutige Fassungen bleiben eine Datei (93 bzw. 55 MB).
+- **Veröffentlichen**: `tools/modelle/veroeffentlichen.py` (Cloud und `tools/pii/pc.ps1`, das statt „Draft a new
+  release“ jetzt das Skript aufruft): nur bei erreichten Zielen packen, Teile < 95 MB, Branch mit Modellkarte („von uns
+  feinabgestimmt und verändert“, sonst Abbruch), `License.md`, Lizenz des Basismodells, Messbericht, `SHA256SUMS`,
+  `README.md`; Push mit Prüfung im Commit und online, `fassung.json` (Commit, Größe, SHA-256, Teile, Schwelle,
+  Messwerte, Ziele) und der Eintrag für `VERSIONS`. `tools/pii/export.py` schreibt dafür jetzt `messung.json`.
+  Anleitung: [`tools/modelle/README.md`](../tools/modelle/README.md). Hinweis: Lora Namensschutz 1.0.66 erreicht das Ziel
+  „≤ 2 % fälschlich ersetzt“ nicht – das Skript veröffentlicht erst nach AP-113.
+- **Tests** `OwnModelsTest` (9): bekannte Fassungen 1.0.65/1.0.66; ältere Fassung **gleich groß** (gleicher Name) und
+  **anders groß** wird als älter erkannt, arbeitet mit ihrer Schwelle bis zum Download und danach mit der neuen; unbekannte
+  Summe zählt nicht; beschädigter Teil lässt die alte Fassung geladen; Teile zusammengesetzt, Fortschritt steigt;
+  „Nicht mehr fragen“ je Fassung; `PiiModel`/`CommandModel` bieten das Update an und wechseln; Probelauf von GitHub.
+- **Probelauf**: Test-Fassung (3 MB, 4 Teile à 1 MB) aus dieser Cloud-Sitzung auf den Branch `test-fassung-probe`
+  gepusht, im Commit und über `raw.githubusercontent.com` geprüft und mit dem Code der App geladen; „Ziele verfehlt“
+  schreibt nichts. Den Test-Branch konnte die Cloud-Sitzung nicht löschen (der Git-Proxy bricht das Löschen ab) – **von
+  Hand löschen** (GitHub › Branches › `test-fassung-probe` › Papierkorb), falls er noch da ist.
 
 
 ---
