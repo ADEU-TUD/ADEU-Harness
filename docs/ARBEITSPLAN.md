@@ -795,25 +795,30 @@ darunter.
   Wortschatz); jede ältere bekannte Fassung arbeitet weiter, bis die neue geladen ist. Das Popup kommt dann als
   Update-Angebot (eigenes „Nicht mehr fragen“ wie heute), *Einstellungen › Datenschutz* zeigt „Update verfügbar“.
   Die Fassungen von 1.0.65 und 1.0.66 übernehmen.
-- **Veröffentlichung**: Ziel sind `thepytales/lora-namensschutz` und `thepytales/lora-befehle` auf Hugging Face (keine
-  Größengrenze, Modellkarte, Fassung = Commit); die Branches auf GitHub bleiben als Ersatzquelle für bisherige Fassungen.
-  `tools/pii/pc.ps1` und das Gegenstück in `tools/befehle` laden nach Training **und** erreichten Zielen selbst hoch
-  (`hf upload` mit dem Token des PCs, Modellkarte mit „von uns feinabgestimmt und verändert“, `License.md`, Lizenz des
-  Basismodells, Messbericht) und schreiben `fassung.json` (Commit, Größe, SHA-256, Messwerte). Ziele verfehlt: nichts
-  hochladen, nur der Bericht.
+- **Veröffentlichung – jeder Claude-Chat kann es** (Entscheidung Hauptnutzer 11.11.2026: auch unterwegs vom Handy, ohne
+  PC): Ziel sind `thepytales/lora-namensschutz` und `thepytales/lora-befehle` auf Hugging Face (keine Größengrenze,
+  Modellkarte, Fassung = Commit). Ein Token für Hugging Face (Fine-grained, nur Repos von `thepytales`) liegt als
+  **Netzwerk-Geheimnis der Cloud-Umgebung „Standard“** (Host `huggingface.co`); der Proxy setzt es in jede Anfrage
+  ein, kein Chat sieht den Wert. Damit lädt jede Sitzung in dieser Umgebung nach Training **und** erreichten Zielen
+  selbst hoch (`tools/…/veroeffentlichen.py`: Datei, Modellkarte mit „von uns feinabgestimmt und verändert“,
+  `License.md`, Lizenz des Basismodells, Messbericht; prüft danach Größe und SHA-256 auf Hugging Face) und schreibt
+  `fassung.json` (Commit, Größe, SHA-256, Messwerte). Ziele verfehlt: nichts hochladen, nur der Bericht. `pc.ps1`
+  (RTX 5080) nutzt dasselbe Skript mit dem Token des PCs. Die Branches auf GitHub bleiben Ersatzquelle für bisherige
+  Fassungen. Sessions in anderen Umgebungen haben den Schlüssel nicht – Lora-Chats in „Standard“ starten.
 - **Voraussetzung**: `License.md` §2 nennt Hugging Face (`thepytales`) als offizielle Bezugsquelle neben diesem Repository.
 - **Lora Edition** (Fremdmodelle, AP-106/AP-107/AP-110/AP-111): kein Update nötig – Gewichte unverändert, an festem
   Commit gespiegelt. Ein neueres Modell (z. B. eine neue Qwen-Fassung) ist ein **neuer** Katalogeintrag mit eigenem Repo.
 
 **Ablauf nach dem Umbau (für Hauptnutzer)**
-1. Am PC trainieren und messen (`tools/pii/pc.ps1` bzw. `tools/befehle/…`).
-2. Ziele erreicht → das Skript lädt die neue Fassung auf Hugging Face und gibt `fassung.json` aus.
-3. `fassung.json` an Claude geben → PR (neue Fassung im Code, alte bleibt bekannt) → grüner Check → Release.
+1. Einen Claude-Chat (Umgebung „Standard“) bitten: „Lora Befehle nachtrainieren und veröffentlichen“ – Training in der
+   Cloud (CPU) oder am PC mit der RTX 5080 (`pc.ps1`).
+2. Ziele erreicht → das Skript lädt die neue Fassung auf Hugging Face und schreibt `fassung.json`.
+3. Derselbe Chat trägt die Fassung ein (PR, alte bleibt bekannt) → grüner Check → Release.
 4. Die Apps aktualisieren sich und bieten beim nächsten Start einmal das Modell-Update an; bis dahin arbeitet die
    bisherige Fassung.
 
 **Fertig, wenn**: Tests zeigen: App mit älterer Fassung (gleich und anders groß) erkennt das Update, arbeitet bis dahin
-mit ihr und nach dem Download mit der neuen; ein Probelauf von `pc.ps1` lädt in ein privates Test-Repo hoch.
+mit ihr und nach dem Download mit der neuen; ein Probelauf aus einer Cloud-Sitzung lädt in ein privates Test-Repo hoch.
 
 
 ---
