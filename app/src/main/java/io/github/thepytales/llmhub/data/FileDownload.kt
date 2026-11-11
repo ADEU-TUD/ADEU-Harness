@@ -10,8 +10,26 @@ import java.security.MessageDigest
  * recognition model of the pseudonymization (AP-67). The file grows in [part]; checking and renaming is up to the caller.
  */
 object FileDownload {
-    /** Loads [url] into [part] ([total] bytes expected); throws [InterruptedException] when [cancelled]. */
+    /**
+     * Loads [url] into [part] ([total] bytes expected); throws [InterruptedException] when [cancelled]. Models of the
+     * Lora Edition come from our mirror first and from the original if it fails ([ModelMirror]).
+     */
     fun fetch(url: String, part: File, total: Long, cancelled: () -> Boolean, progress: (Double) -> Unit) {
+        var last: Exception? = null
+        for (source in ModelMirror.sources(url)) {
+            try {
+                fetchFrom(source, part, total, cancelled, progress)
+                return
+            } catch (e: InterruptedException) {
+                throw e
+            } catch (e: Exception) {
+                last = e
+            }
+        }
+        throw last ?: IllegalStateException("Download fehlgeschlagen")
+    }
+
+    private fun fetchFrom(url: String, part: File, total: Long, cancelled: () -> Boolean, progress: (Double) -> Unit) {
         var have = if (part.isFile) part.length() else 0L
         if (have >= total) return
         part.parentFile?.mkdirs()
