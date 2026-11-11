@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -58,8 +60,11 @@ enum class ThinkingLevel(val label: String, val description: String, val effort:
     }
 }
 
-/** Live update while a chat completion streams in. */
-data class StreamUpdate(val content: String, val reasoning: String, val toolCalls: List<ToolCall>)
+/**
+ * Live update while a chat completion streams in. [progress]: share of the prompt a model on this device has read so far
+ * (0..1, AP-116), null once it writes or when the server does not tell.
+ */
+data class StreamUpdate(val content: String, val reasoning: String, val toolCalls: List<ToolCall>, val progress: Double? = null)
 
 /** Token counts reported by the server. */
 data class TokenUsage(val prompt: Long, val completion: Long)
@@ -117,6 +122,30 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     var localProvider: (suspend (String) -> ApiProvider)? = null
     /** Endpoint of the running local model (127.0.0.1). */
     @Volatile private var local: ApiProvider? = null
+
+    /** Ends the work of the model server on this device at once (AP-116, set by the app container: LocalLlm.abort). */
+    var localAbort: (() -> Unit)? = null
+    /** What a model on this device may do here (AP-116: thinking, steps, time; LocalLlm.limits). */
+    var localLimits: ((String) -> io.github.thepytales.llmhub.local.LocalLimits)? = null
+    /** Thermal state of this device (AP-116, Android; LocalLlm.heat). */
+    var localHeat: (() -> io.github.thepytales.llmhub.local.Heat)? = null
+    /** Hitzeschutz (AP-116): pause before a request on a warm device, at most [coolMaxMs]; check every [heatCheckMs] during one. */
+    internal var coolStepMs = 15_000L
+    internal var coolMaxMs = 120_000L
+    internal var heatCheckMs = 5_000L
+
+    /** Counts [abortLocal]: a request that broke while another one was stopped may try once more. */
+    private val localAborts = java.util.concurrent.atomic.AtomicInteger()
+
+    /** Stops the model server's work (Stopp, time limit, heat). */
+    fun abortLocal() {
+        localAborts.incrementAndGet()
+        localAbort?.invoke()
+    }
+
+    /** The limits for [model] on this device; [LocalLimits.PC_CPU] when the app container did not set them (tests). */
+    fun limitsFor(model: String): io.github.thepytales.llmhub.local.LocalLimits =
+        localLimits?.invoke(model) ?: io.github.thepytales.llmhub.local.LocalLimits.PC_CPU
 
     /** Makes sure the local model is running before a request (no-op for server models). */
     private suspend fun prepare(model: String) {
@@ -212,9 +241,9 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         // so every caller (chat, tasks, ✨, comparison) works with the real text.
         // Postfach nur mit lokalem Modell (AP-68): mail tool results and mail tools never go to a server.
         io.github.thepytales.llmhub.agent.MailAccess.guard(model, messages, tools)
-        // A model on this device: nothing leaves it, so no placeholders and no rate limit.
+        // A model on this device: nothing leaves it, so no placeholders, no rate limit and no automatic repetition (AP-116).
         val onDevice = Privacy.isLocal(model)
-        if (onDevice) prepare(model)
+        if (onDevice) return streamLocal(model, messages, tools, thinking, onRetry, onUpdate)
         val masker = privacy?.takeIf { it.enabled && !onDevice }
         // The chat of this request: with „Platzhalter je Chat“ it has its own numbering.
         val scope = coroutineContext[io.github.thepytales.llmhub.data.PrivacyScope]?.id
@@ -249,6 +278,84 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         }
     }
 
+    /**
+     * A request to the model on this device (AP-116). Nothing is repeated on its own: a timeout here means „too slow“,
+     * not „network gone“. A stopped or timed-out request also ends the server's work ([abortLocal]) – llama-server would
+     * otherwise finish reading the prompt. A warm phone first cools down; one that gets hot stops the request.
+     */
+    private suspend fun streamLocal(
+        model: String,
+        messages: List<ChatMessage>,
+        tools: JsonArray?,
+        thinking: ThinkingLevel?,
+        onRetry: (reason: String, waitSeconds: Long) -> Unit,
+        onUpdate: (StreamUpdate) -> Unit,
+    ): ChatResult {
+        coolDown(onRetry)
+        var again = false
+        while (true) {
+            val aborts = localAborts.get()
+            val hot = java.util.concurrent.atomic.AtomicBoolean(false)
+            try {
+                return kotlinx.coroutines.coroutineScope {
+                    val watch = launch { watchHeat(hot) }
+                    try {
+                        prepare(model)
+                        streamChatWithFallbacks(model, messages, tools, thinking, onUpdate)
+                    } finally {
+                        watch.cancel()
+                    }
+                }
+            } catch (e: Throwable) {
+                // Stopp or the time limit of the answer: the server must not keep computing.
+                if (e is kotlinx.coroutines.CancellationException || !coroutineContext.isActive) {
+                    abortLocal()
+                    // As cancellation, not as the „Canceled“ I/O error of the hung-up call (that would look like „Netz weg“).
+                    coroutineContext.ensureActive()
+                    throw e
+                }
+                if (hot.get()) throw io.github.thepytales.llmhub.local.OnDeviceStop(io.github.thepytales.llmhub.local.Heat.stopNote())
+                // Another request was stopped and took the server with it: this one once more with a fresh server.
+                if (e is IOException && e !is ApiException && !again && localAborts.get() != aborts) {
+                    again = true
+                    continue
+                }
+                if (e is java.net.SocketTimeoutException) {
+                    abortLocal()
+                    val mailbox = messages.any { io.github.thepytales.llmhub.agent.MailAccess.isMailTool(it.toolName) }
+                    throw io.github.thepytales.llmhub.local.OnDeviceStop(io.github.thepytales.llmhub.local.LocalLimits.tooSlow(mailbox))
+                }
+                throw e
+            }
+        }
+    }
+
+    /** Hitzeschutz (AP-116): before a request a warm device pauses (with a note) until it is cool, at most [coolMaxMs]. */
+    private suspend fun coolDown(onRetry: (reason: String, waitSeconds: Long) -> Unit) {
+        val heat = localHeat ?: return
+        var waited = 0L
+        while (heat() != io.github.thepytales.llmhub.local.Heat.OK) {
+            if (waited >= coolMaxMs) throw io.github.thepytales.llmhub.local.OnDeviceStop(io.github.thepytales.llmhub.local.Heat.stopNote())
+            onRetry(io.github.thepytales.llmhub.local.Heat.waitNote(), (coolStepMs / 1000).coerceAtLeast(1))
+            delay(coolStepMs)
+            waited += coolStepMs
+        }
+    }
+
+    /** During a request: when the device gets hot, the server stops at once ([hot] tells the request why). */
+    private suspend fun watchHeat(hot: java.util.concurrent.atomic.AtomicBoolean) {
+        val heat = localHeat ?: return
+        while (true) {
+            delay(heatCheckMs)
+            if (heat() == io.github.thepytales.llmhub.local.Heat.HOT) {
+                hot.set(true)
+                abortLocal()
+                // Ends the request at once (its scope is cancelled), whatever the killed server still sends.
+                throw io.github.thepytales.llmhub.local.OnDeviceStop(io.github.thepytales.llmhub.local.Heat.stopNote())
+            }
+        }
+    }
+
     private suspend fun streamChatWithFallbacks(
         model: String,
         messages: List<ChatMessage>,
@@ -256,9 +363,13 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         override: ThinkingLevel?,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
-        val thinking = (override ?: ThinkingLevel.parse(settings.current.thinkingLevel))
-            .takeIf { ModelCatalog.info(model).thinking != false && model !in noThinkingParams }
-            ?: ThinkingLevel.AUTO
+        val wanted = override ?: ThinkingLevel.parse(settings.current.thinkingLevel)
+        val thinking = if (Privacy.isLocal(model)) {
+            // AP-116: on a phone never, on a PC without a graphics card not by default – thinking costs minutes there.
+            limitsFor(model).thinking(wanted).takeIf { model !in noThinkingParams } ?: ThinkingLevel.AUTO
+        } else {
+            wanted.takeIf { ModelCatalog.info(model).thinking != false && model !in noThinkingParams } ?: ThinkingLevel.AUTO
+        }
         return try {
             streamChatOnce(model, messages, tools, askForUsage, thinking, onUpdate)
         } catch (e: ApiException) {
@@ -292,6 +403,8 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             put("model", model)
             put("stream", true)
             if (withUsage) putJsonObject("stream_options") { put("include_usage", true) }
+            // AP-116: llama-server reports how far it has read the prompt (the long part on a processor).
+            if (provider?.id == io.github.thepytales.llmhub.local.LocalLlm.LOCAL_PROVIDER_ID) put("return_progress", true)
             if (thinking != ThinkingLevel.AUTO && provider?.providerKind == ProviderKind.GEMINI) {
                 // Gemini only knows reasoning_effort; its newer models cannot switch thinking off, "low" is the least.
                 put("reasoning_effort", thinking.effort ?: "low")
@@ -317,7 +430,10 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 .post(body.toString().toRequestBody(JSON_TYPE))
                 .build()
         )
-        val handle = coroutineContext[Job]?.invokeOnCompletion { if (it != null) call.cancel() }
+        // AP-116: hang up as soon as the request is cancelled (Stopp, time limit) – not only once the blocked read returns,
+        // which with a model on this device can take minutes.
+        @OptIn(kotlinx.coroutines.InternalCoroutinesApi::class)
+        val handle = coroutineContext[Job]?.invokeOnCompletion(onCancelling = true, invokeImmediately = true) { if (it != null) call.cancel() }
         try {
             call.execute().use { resp ->
                 if (!resp.isSuccessful) {
@@ -343,6 +459,11 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                         chunk["error"]?.let { err ->
                             val msg = (err as? JsonObject)?.get("message")?.jsonPrimitive?.contentOrNull ?: err.toString()
                             throw ApiException(500, msg)
+                        }
+                        (chunk["prompt_progress"] as? JsonObject)?.let { pp ->
+                            promptProgress(pp)?.takeIf { content.isEmpty() && reasoning.isEmpty() && calls.isEmpty() }?.let { share ->
+                                onUpdate(StreamUpdate("", "", emptyList(), share))
+                            }
                         }
                         (chunk["usage"] as? JsonObject)?.let { u ->
                             val p = u.str("prompt_tokens")?.toLongOrNull()
@@ -576,12 +697,24 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         ToolCall(id = p.id ?: "call_$i", name = p.name.toString(), arguments = p.arguments.toString(), extra = p.extra?.toString())
     }
 
-    private companion object {
-        const val RETRIES = 3
-        const val MAX_RETRY_WAIT = 90L
-        val RETRY_CODES = setOf(502, 503, 504, 520, 521, 522, 523, 524, 529)
-        val SERVER_RETRY_WAITS = listOf(5L, 15L, 30L)
-        val THINKING_PARAM_ERROR = Regex("reasoning|chat_template_kwargs|thinking|extra_forbidden|extra (inputs|fields)", RegexOption.IGNORE_CASE)
+    companion object {
+        /**
+         * Share of the prompt read (AP-116) from llama-server's prompt_progress: total, cache (reused from the last
+         * request) and processed (including the cache) – (processed − cache) / (total − cache).
+         */
+        fun promptProgress(pp: JsonObject): Double? {
+            val total = pp.str("total")?.toDoubleOrNull() ?: return null
+            val processed = pp.str("processed")?.toDoubleOrNull() ?: return null
+            val cache = pp.str("cache")?.toDoubleOrNull() ?: 0.0
+            if (total <= cache) return null
+            return ((processed - cache) / (total - cache)).coerceIn(0.0, 1.0)
+        }
+
+        private const val RETRIES = 3
+        private const val MAX_RETRY_WAIT = 90L
+        private val RETRY_CODES = setOf(502, 503, 504, 520, 521, 522, 523, 524, 529)
+        private val SERVER_RETRY_WAITS = listOf(5L, 15L, 30L)
+        private val THINKING_PARAM_ERROR = Regex("reasoning|chat_template_kwargs|thinking|extra_forbidden|extra (inputs|fields)", RegexOption.IGNORE_CASE)
     }
 }
 

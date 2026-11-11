@@ -170,17 +170,17 @@ object MailAccess {
     )
 
     /**
-     * Kopf und Anfang (AP-68, Tempo): the new part of a mail without the quoted history, at most [SHORT_CHARS]; the whole
-     * mail ([FULL_CHARS]) only with [full].
+     * Kopf und Anfang (AP-68, Tempo): the new part of a mail without the quoted history, at most [shortChars]; the whole
+     * mail ([fullChars]) only with [full]. AP-116: a phone gets less of both (LocalLimits).
      */
-    fun shorten(body: String, full: Boolean = false): String {
+    fun shorten(body: String, full: Boolean = false, shortChars: Int = SHORT_CHARS, fullChars: Int = FULL_CHARS): String {
         val text = body.trim()
-        if (full) return if (text.length <= FULL_CHARS) text else text.take(FULL_CHARS) + "\n\n[… gekürzt nach $FULL_CHARS Zeichen]"
+        if (full) return if (text.length <= fullChars) text else text.take(fullChars) + "\n\n[… gekürzt nach $fullChars Zeichen]"
         val fresh = QUOTE.find(text)?.range?.first?.takeIf { it >= 40 }?.let { text.substring(0, it).trimEnd() } ?: text
-        if (fresh.length <= SHORT_CHARS) {
+        if (fresh.length <= shortChars) {
             return if (fresh.length < text.length) "$fresh\n\n[… zitierter Verlauf ausgelassen – mit full=true die ganze Mail lesen]" else fresh
         }
-        val cut = fresh.take(SHORT_CHARS).let { s -> s.substringBeforeLast(' ').takeIf { it.length > SHORT_CHARS / 2 } ?: s }
+        val cut = fresh.take(shortChars).let { s -> s.substringBeforeLast(' ').takeIf { it.length > shortChars / 2 } ?: s }
         return "$cut\n\n[… gekürzt, ${text.length} Zeichen – mit full=true die ganze Mail lesen]"
     }
 

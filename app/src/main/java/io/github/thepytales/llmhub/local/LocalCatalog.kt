@@ -35,6 +35,8 @@ data class Hardware(
     val chip: String = "",
     /** Cores of the graphics (Apple chip) – 0 if unknown. */
     val gpuCores: Int = 0,
+    /** Phone: the big (fast) cores after their highest clock (AP-116), 0 if unknown. */
+    val bigCores: Int = 0,
 ) {
     /** Memory a model may use: on a dedicated GPU its VRAM, else a part of the RAM (the rest is for Windows/Android and other apps). */
     val usableForModel: Double get() = if (vramGb >= 4) vramGb * 0.92 else ramGb * if (phone) 0.45 else 0.55

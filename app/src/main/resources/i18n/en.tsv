@@ -6547,3 +6547,11 @@ Bildteil laden ({0})	Load image part ({0})
 {0} versteht jetzt Bilder.	{0} now understands images.
 Download des Bildteils fehlgeschlagen: {0}	Download of the image part failed: {0}
 Bildteil eingespielt.	Image part imported.
+# Lokale Modelle: Tempo, Abbruch und Hitze (AP-116)
+Liest die Anfrage ein … {0} %	Reading the request … {0} %
+{0} Werkzeugschritte – Lora antwortet jetzt mit dem, was sie hat.	{0} tool steps – Lora now answers with what it has.
+Das Gerät ist warm – Lora macht eine Pause zum Abkühlen	The device is warm – Lora pauses to let it cool down
+Das dauert auf diesem Gerät zu lange – Lora hat angehalten. Eine kürzere Frage stellen (z. B. nur ungelesene Mails von heute) oder das Postfach am PC fragen?	This takes too long on this device – Lora has stopped. Ask a shorter question (e.g. only today’s unread mails) or ask the mailbox on the PC?
+Das dauert auf diesem Gerät zu lange – Lora hat angehalten. Ein Server-Modell wählen oder eine kürzere Frage stellen?	This takes too long on this device – Lora has stopped. Choose a server model or ask a shorter question?
+Das Gerät wird zu warm – Lora hat angehalten, damit es nicht überhitzt. In ein paar Minuten noch einmal versuchen oder eine kürzere Frage stellen.	The device is getting too warm – Lora has stopped so it does not overheat. Try again in a few minutes or ask a shorter question.
+Lora hat in {0} Werkzeugschritten keine Antwort gefunden. Eine engere Frage stellen oder „weiter“ schreiben.	Lora found no answer in {0} tool steps. Ask a narrower question or write “weiter” (continue).

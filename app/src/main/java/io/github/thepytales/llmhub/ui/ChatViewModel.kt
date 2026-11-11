@@ -86,6 +86,10 @@ class ChatViewModel(
     val running: StateFlow<Boolean> = c.runs.runs.map { chatId in it }
         .stateIn(viewModelScope, SharingStarted.Eagerly, isRunning)
 
+    /** How far a model on this device has read the request (AP-116), null otherwise. */
+    val readProgress: StateFlow<Double?> = c.runs.runs.flatMapLatest { it[chatId]?.progress ?: flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     /** Write action waiting for the user's permission. */
     val pending: StateFlow<PendingAction?> = c.runs.runs.flatMapLatest { it[chatId]?.pending ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

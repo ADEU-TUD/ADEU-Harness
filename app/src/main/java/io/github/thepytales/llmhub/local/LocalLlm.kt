@@ -383,6 +383,29 @@ class LocalLlm(private val c: AppContainer) {
         _state.value = _state.value.copy(running = null, starting = null)
     }
 
+    /**
+     * Stopp (AP-116): ends the work of the model server at once. llama-server would finish the running part of a request
+     * (on a phone minutes of reading) even after the app hung up, so the process is killed; the next request loads the
+     * model again (a few seconds). Does not wait for the lock of [provider] – a model that is still loading stops as well.
+     */
+    fun abort() {
+        val p = process ?: return
+        runCatching { p.destroyForcibly() }
+        // Only this server: a new one started meanwhile (next request) keeps running.
+        scope.launch { serverMutex.withLock { if (process === p) stopLocked() } }
+    }
+
+    /** Hitzeschutz (AP-116): the thermal state of this device ([Heat.OK] on a PC). */
+    fun heat(): Heat = runCatching { LlamaHost.heat(c) }.getOrDefault(Heat.OK)
+
+    /** What [modelId] (a model on this device) may do in one answer here (AP-116). */
+    fun limits(modelId: String?): LocalLimits {
+        val hw = _hardware.value ?: LocalCatalog.hardware
+        val m = modelId?.let { LocalCatalog.get(it) }
+        val forecast = if (hw != null && m != null) runCatching { LocalCatalog.forecaster?.invoke(m) }.getOrNull() else null
+        return LocalLimits.of(hw, m, forecast)
+    }
+
     /** Synchronous stop when the app ends (Windows: closing via the tray). */
     fun shutdown() {
         runCatching { process?.destroyForcibly() }
@@ -394,8 +417,8 @@ class LocalLlm(private val c: AppContainer) {
         /** Key of the download of an image part in [LocalState.downloads] (AP-110). */
         const val VISION = "bild:"
 
-        /** Threads for llama-server: half the cores on a PC (it stays usable), all but two on a phone; 2 to 8. */
-        fun threads(hw: Hardware): Int = (if (hw.phone) (hw.cores - 2) else (hw.cores / 2)).coerceIn(2, 8)
+        /** Threads for llama-server (AP-116: on a phone only the big cores, at most half; see [LocalLimits.threads]). */
+        fun threads(hw: Hardware): Int = LocalLimits.threads(hw)
 
         /** A llama.cpp package (Windows ZIP, macOS/Linux tar.gz) as opposed to a model file. */
         fun isPackage(name: String) = listOf(".zip", ".tar.gz", ".tgz").any { name.endsWith(it, ignoreCase = true) }

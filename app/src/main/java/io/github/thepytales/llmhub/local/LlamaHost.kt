@@ -28,7 +28,26 @@ internal object LlamaHost {
             freeDiskGb = root.usableSpace / 1e9,
             // Geräteprofil (AP-105): the instruction sets decide how fast a phone reads; the memory bandwidth is measured.
             cpuFeatures = runCatching { HardwareInfo.cpuFeatures(File("/proc/cpuinfo").readText()) }.getOrDefault(emptySet()),
+            // AP-116: llama-server only on the big cores (fewer threads, less heat).
+            bigCores = HardwareInfo.bigCores(maxFreqs()),
         )
+    }
+
+    /** Highest clock of each core in kHz (0 where the system does not tell). */
+    private fun maxFreqs(): List<Long> = (0 until Runtime.getRuntime().availableProcessors()).map { i ->
+        runCatching { File("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq").readText().trim().toLong() }.getOrDefault(0L)
+    }
+
+    /**
+     * Hitzeschutz (AP-116): the thermal state of the system (Android 10+ status, Android 11+ headroom for the next 10 s).
+     * Older systems: [Heat.OK].
+     */
+    fun heat(c: AppContainer): Heat {
+        if (Build.VERSION.SDK_INT < 29) return Heat.OK
+        val pm = c.appContext.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return Heat.OK
+        val status = runCatching { pm.currentThermalStatus }.getOrDefault(-1)
+        val headroom = if (Build.VERSION.SDK_INT >= 30) runCatching { pm.getThermalHeadroom(10) }.getOrDefault(Float.NaN) else Float.NaN
+        return Heat.of(status, headroom)
     }
 
     /** Same as [hardware]; Android needs no system functions that could be blocked. */
