@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze** (Fehler aus 1.0.67, vor AP-109) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -747,6 +747,39 @@ gefundene private Angaben zu fallen.
   an das bestehende Release und veröffentlicht das Update erneut (bisheriges „Was ist neu“, wenn leer). README ›
   *Neue Version veröffentlichen*, Schritt 6. Geprüft mit actionlint; **ein echter Lauf steht aus** (erst mit dem nächsten
   Release bzw. von Hand für 1.0.66 möglich).
+
+### AP-116 ☐ Lokale Modelle: Tempo, Abbruch und Hitze · M (Runde 3, Fehler aus 1.0.67, A + W)
+**Befund (11.11.2026, Hauptnutzer, OnePlus 15, 1.0.67)**: Postfach-Chat mit Qwen 3.5 4B – Lora Edition, Frage „Was ist
+seit gestern im Posteingang wichtig?“. Lora arbeitete 10 Minuten (9 Werkzeugschritte, „Wertet die Ergebnisse aus …“)
+ohne Ergebnis, das Handy wurde sehr heiß, *Stopp* wirkte nicht, nur Ausschalten half. Bis zur Behebung: Postfach-Chat auf
+dem Handy nicht nutzen; hängt es, *Einstellungen › Apps › Lora › Beenden erzwingen* (beendet auch den Modell-Server).
+**Vermutete Ursachen** (aus dem Code, am Gerät noch nicht gemessen – Protokoll über *Problem melden* anfordern):
+1. **Denken an**: Voreingestellt ist „Modellstandard“ (`thinkingLevel = AUTO`); dann schickt `LlmClient` keinen
+   Schalter, und Qwen 3.5 denkt von sich aus – auch auf dem Gerät. Vor jeder Antwort entstehen lange Gedanken, auf der
+   Handy-CPU Minuten.
+2. **Schrittzahl wie beim Server**: `AgentRunner` erlaubt `maxAgentSteps` (30) und `autoContinue`; jeder Schritt liest
+   den ganzen Verlauf samt Mailinhalten neu ein (Prompt-Verarbeitung ist auf der CPU der Engpass, AP-108).
+3. **Stopp beendet nur die Anfrage**: `ChatRuns.stop` bricht den HTTP-Aufruf ab; llama-server rechnet den laufenden
+   Abschnitt fertig und bleibt 10 Minuten aktiv (`IDLE_MS`). Liest der Stream 3 Minuten nichts (`streamHttp`
+   `readTimeout`), gilt das als „Verbindung unterbrochen“ und `streamChat` schickt dieselbe Anfrage erneut – die
+   Verarbeitung beginnt von vorn.
+4. **Volle Last ohne Hitzeschutz**: auf dem Handy `cores − 2` Threads (bis 8), keine Bremse bei Wärme.
+**Ziel**: Kurze Aufgaben mit einem Modell auf dem Gerät enden in vertretbarer Zeit mit einer Antwort; *Stopp* wirkt
+sofort; das Gerät wird nicht heiß.
+- **Handy (A)**: Denken aus für Modelle auf dem Gerät (am PC je Stufe nach Messung, AP-105/AP-106); höchstens wenige
+  Werkzeugschritte, dann Antwort mit dem, was da ist; Mails gekürzt übergeben (Betreff, Absender, Anfang – ganze Mail nur
+  auf Nachfrage); weniger Threads (z. B. nur große Kerne, höchstens die Hälfte); Temperatur bzw. Drosselung des Systems
+  (`PowerManager.getThermalHeadroom`/`currentThermalStatus`) beobachten und vorher abbrechen bzw. pausieren.
+- **Beide**: *Stopp* beendet auch die Arbeit des Modell-Servers (Prozess beenden oder llama.cpp-Abbruch des Slots,
+  danach neu laden); keine automatische Wiederholung bei Modellen auf dem Gerät (ein Zeitlimit heißt hier „zu langsam“,
+  nicht „Netz weg“); Zeitlimit und Hinweis „dauert auf diesem Gerät zu lange – Server-Modell oder kürzere Frage?“;
+  Fortschritt der Prompt-Verarbeitung anzeigen statt nur „Wertet die Ergebnisse aus …“.
+- **PC (W)**: dieselben Grenzen messen und je Geräteklasse einstellen (Office-PC ohne Grafikkarte: Prompt-Cache
+  nutzen, Kontext klein halten; Gaming-PC/Mac: großzügiger); Werte aus *Gerät messen* (AP-105) statt fester Zahlen.
+- **Test**: Postfach-Frage wie oben auf Android (OnePlus 15) und Office-PC ohne Grafikkarte; Messwerte (Zeit bis Antwort,
+  Schritte, Temperatur) hier eintragen.
+**Fertig, wenn**: die Beispielfrage auf dem OnePlus 15 in höchstens etwa 2 Minuten eine Antwort liefert, *Stopp* den
+Server innerhalb weniger Sekunden zur Ruhe bringt und das Gerät dabei nicht heiß wird; am Office-PC gemessen.
 
 
 ---
