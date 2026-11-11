@@ -86,4 +86,4 @@ Write-Host ""
 Write-Host "Bitte hochladen (für Claude in der Cloud-Sitzung):" -ForegroundColor Green
 Write-Host "  1. $onnx\lora-namensschutz-pytales.int8.onnx, vocab.txt, labels.json, MODELLKARTE.md"
 Write-Host "  2. auch modelle\$($best.name)\bericht.json und die bericht.json der anderen Kandidaten"
-Write-Host "  Weg: GitHub › ADEU-Harness › Releases › Draft a new release › Tag 'lora-namensschutz-v2' › Dateien hineinziehen › Save draft"
+Write-Host "  Weg: GitHub › ADEU-TUD/Lora › Releases › Draft a new release › Tag 'lora-namensschutz-v2' › Dateien hineinziehen › Save draft"

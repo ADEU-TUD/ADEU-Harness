@@ -11,7 +11,7 @@ Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln v
 - **Basismodell**: `deepset/gbert-base` (Version `d50cb1df9660ff2de1af8a5362d322b3d5a1a28a`) von deepset GmbH (Branden Chan, Stefan Schweter, Timo Möller), Lizenz **MIT**.
   Lora Namensschutz ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. Lora Namensschutz ist kein
   Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
-- **Lizenz von Lora Namensschutz**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/ADEU-Harness (kostenlos nutzbar;
+- **Lizenz von Lora Namensschutz**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/Lora (kostenlos nutzbar;
   Änderungen und Weiterverbreitung nur mit Genehmigung). Das Basismodell bleibt unter seiner eigenen Lizenz (unten).
 - **Feintuning**: Token-Klassifikation (BIO), 32400 erfundene Trainingstexte, beste Epoche
   3 von 3.

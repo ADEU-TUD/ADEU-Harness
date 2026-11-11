@@ -183,7 +183,7 @@ object KnowledgePacks {
         Offer(
             "lehramt-tud", "Lehramt an der TU Dresden",
             "Abkürzungen, Einrichtungen, Studiengänge, Praktika, Prüfungen und Ansprechstellen rund um das Lehramtsstudium – jede Angabe mit Quelle und Stand.",
-            1, "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/tools/wissen/lehramt-tud.json", 16_548L,
+            1, "https://raw.githubusercontent.com/ADEU-TUD/Lora/$COMMIT/tools/wissen/lehramt-tud.json", 16_548L,
             "e1649488b26fab903e936f7011088dab720a47fc458bb57bb63ac4b7af5d6b8b",
         ),
     )

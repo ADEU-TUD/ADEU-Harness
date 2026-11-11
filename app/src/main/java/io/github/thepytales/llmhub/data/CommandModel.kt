@@ -32,7 +32,7 @@ object CommandModelInfo {
     /** The name shown in the app. */
     const val NAME = "Lora Befehle"
     const val COMMIT = "6f996b1c45609fdc9e565a113cfb11bfa28e14ee"
-    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/$COMMIT/lora-befehle-pytales.int8.onnx.gz"
+    const val URL = "https://raw.githubusercontent.com/ADEU-TUD/Lora/$COMMIT/lora-befehle-pytales.int8.onnx.gz"
     const val GZ_SIZE = 54_943_807L
     const val GZ_SHA256 = "99480c32e19c5a9f5a52a6b2da097e38ac5991b4f7961fb3820328794d7a883c"
     const val FILE = "lora-befehle-pytales.int8.onnx"
