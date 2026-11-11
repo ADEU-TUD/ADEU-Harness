@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (AP-116 in der App, Messung am Gerät offen; AP-117 erledigt) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -653,7 +653,7 @@ Kokoro kann kein Deutsch; Stimmen mit M-AILABS-Daten (eva_k, ramona …) wegen u
 gemessen); eine zweite, weibliche Stimme („kerstin“, CC0) zur Wahl; Spiegel der Dateien (AP-106). Dass der Sprachmodus mit
 *Nur lokal* auch ein lokales Sprachmodell für die Antwort nimmt, regeln AP-71/AP-109 (nicht Teil dieses Pakets).
 
-### AP-112 ☐ Offline-Schiene in der Oberfläche: Ort je Bereich, Einrichtung Schritt für Schritt · M–L (Runde 3)
+### AP-112 ◐ Offline-Schiene in der Oberfläche: Ort je Bereich, Einrichtung Schritt für Schritt · M–L (Runde 3)
 **Ziel**: Man sieht überall, was auf diesem Gerät läuft und was nicht – und stellt es selbst ein.
 - **Ort je Bereich** (Wunsch Hauptnutzer) unter *Einstellungen › Wo Lora arbeitet*: eine Tabelle mit allen Bereichen
   (Lora, Chat, Postfach, Dokumente/Tabellen/Folien, Transkription, Suche, Sprache, Bilder verstehen, Bilder erzeugen …),
@@ -676,6 +676,62 @@ gemessen); eine zweite, weibliche Stimme („kerstin“, CC0) zur Wahl; Spiegel 
 - Übersicht unter *Einstellungen › Wo Lora arbeitet*: je Funktion der Ort mit Grund.
 **Fertig, wenn**: auf einem Gaming-PC und einem Mac mit 32 GB alle Bereiche außer „nur über API“ ohne Schlüssel nutzbar
 sind und ein Office-PC ehrlich sieht, was fehlt.
+◐ *Stand 11.11.2026 (für 1.0.68)*: In der App fertig, englische Texte ergänzt, volle Testsuite grün; die Abstimmung des Entwurfs vorab entfiel (Wunsch Hauptnutzer:
+im Stil der App bauen, Änderungswünsche danach). Am Gerät zu messen, siehe unten.
+- **Bereiche und Orte** (`data/Places.kt`): 13 Bereiche (`Area`) mit erlaubten Orten (`Place`: Lokal, Gemischt, API) und
+  Grund für das, was nicht geht. Lora, Vorlesen, Transkription und Suche behalten ihre Einstellungen (`loraPlace`,
+  `ttsEngine`, Transkriptionsmodus, `semanticLocal`) und werden hier gelesen und geschrieben; Chat, Dokumente, Diktat und
+  Bilder verstehen stehen in der neuen Einstellung `places`. Fest: Postfach, Pseudonymisierung und Befehle lokal, Bilder
+  erzeugen nur über API, Web „braucht Internet“. **Ohne API-Schlüssel gilt jeder Bereich mit Wahl als lokal**
+  (`Places.effective`).
+- **Einstellungen › Wo Lora arbeitet** (`ui/PlacesScreen.kt`): Schnellwahl *Alles lokal · Gemischt (empfohlen) · Alles
+  über API* (ohne Schlüssel nur *Alles lokal*), Karte *Alles lokal einrichten* mit „x von y Bereichen“ und *Fortsetzen
+  (Schritt n)*, Tabelle je Bereich (breit: drei Spalten, schmal: untereinander) mit Status *läuft auf diesem Gerät* ·
+  *noch nicht geladen* (mit *Laden*, springt in den passenden Schritt) · *nicht auf diesem Gerät* (Grund und Stufe, z. B.
+  „Zu wenig Arbeitsspeicher (x GB) – braucht mindestens y GB“, Bilder ab 60 s je Bild) · *braucht Internet* · *nur über
+  API* (Schloss) · *über API*. Dieselbe Kennzeichnung (`PlaceNote`) bei Bilder erzeugen, Transkription, Vorlesen und
+  Wissenssammlung. Eintrag in der Einstellungsübersicht, Strg+K und auf Loras Landkarte (`places.profile`).
+- **Einrichtung Schritt für Schritt** (`ui/LocalSetup.kt`, Route `local-setup`): 9 Schritte – Gerät messen (AP-105),
+  Zweck (AP-106), Sprachmodell (Empfehlung je Zweck mit Größe, Tempo, „langsam“; andere passende Modelle aufklappbar;
+  Laden mit Fortschritt und Abbrechen; *Frag Lora etwas* mit Zeit), Befehle und Namensschutz, Suche, Spracherkennung,
+  Stimme, Bildteil (bei > 60 s je Bild abgeraten), Übersicht mit *Alles auf diesem Gerät nutzen*. *Zurück*,
+  *Überspringen*, *Später* (Schritt in `localSetupStep`, Fortsetzen an derselben Stelle).
+- **Sperre im Anfrageweg**: `LlmClient` fragt vor jeder Chat-Anfrage `Places.route` (Bereich aus `PlaceScope`, sonst
+  Chat): muss der Bereich hier bleiben, geht die Anfrage an das Modell auf dem Gerät (mit Bildern nur an eines mit
+  Bildteil), sonst `OnDeviceOnly` mit Klartext und Knopf *Einrichtung öffnen*. Einbettungen, Server-Stimme und
+  Server-Spracherkennung prüfen `placeCheck`. Damit gehen auch Titel, Vorschläge, Gedächtnis, Feld-Hilfe, Diagramme und
+  Stapel nicht mehr still an den Server. `AgentRunner` legt das Modell am Anfang des Laufs fest – die Grenzen aus AP-116
+  (Schritte, Denken, Zeit) gelten also auch für Chats, die vom Server hierher wechseln; der Chat zeigt den Wechsel
+  („Dieser Chat läuft jetzt mit … auf diesem Gerät“). Loras Übergaben gehen im Lokal-Fall an das Modell hier.
+  Lora-Mikrofon, Chat-Spracheingabe und Diktat erkennen zuerst auf dem Gerät (`Places.recognize`); die Transkription
+  weicht bei „Lokal“ ohne Modell nicht mehr still auf den Server aus; Vorlesen ohne Schlüssel mit der Stimme des Geräts;
+  im Profil fragt die App beim Start keine Modellliste des Servers ab.
+- **Erster Start ohne Schlüssel**: Loras Dialog vom ersten Start kommt jetzt auch ohne Schlüssel und bietet *Gemischt ·
+  Alles auf diesem Gerät · Nur Server* (ohne Schlüssel sind Gemischt und Nur Server ausgegraut, der Allrounder ist vorgewählt); nach
+  *Fertig* geht es in die Einrichtung. Die Willkommenskarte im Chat hat den zweiten Weg *Alles auf diesem Gerät
+  einrichten*; mit einem Sprachmodell auf dem Gerät startet der Chat ohne Schlüssel normal.
+- **Rückfall** (`data/UniWatch.kt`): zählt, wie Anfragen an den Hauptanbieter enden (nur Zahlen, Datei
+  `uni_watch.json`). „Dauerhaft weg“ = mindestens 4 Fehlversuche über mindestens 2 Tage ohne Antwort dazwischen, und
+  entweder wurde der Schlüssel abgelehnt (401/403) oder das Internet ging inzwischen (Update-Prüfung erreichbar) – ein
+  Wochenende offline zählt nicht. Dann einmal der Dialog *Auf diesem Gerät weiterarbeiten* · *Anderen Schlüssel
+  eintragen* · *Später* (3 Tage) · *Nicht mehr fragen*; Chats bleiben und laufen mit dem Modell hier weiter.
+- **Tests ohne Gerät**: `OfflineProfileTest` (8) – App-Container ohne Schlüssel, Netz nur 127.0.0.1 (ein eigener
+  `ProxySelector` schickt alles andere an einen Port, an dem niemand hört, und merkt sich den Host), nachgebauter
+  llama-server wie in `LocalLimitsTest`: erster Start ohne Schlüssel (alles lokal, Klartext statt „Kein API-Key“, Lora ohne
+  Modell gibt nicht an den Server weiter), mit Modell antworten Chat, Lora und Dokumente hier, Profil mit Schlüssel
+  (Suche, Vorlesen, Diktat, Bilder sagen ehrlich, was fehlt; Transkription ohne Umweg; Postfach lokal; Bilder erzeugen
+  „nur über API“), AP-116-Grenzen für umgeleitete Chats, Fehlermeldungen ohne Netz, Übersicht für schwache Geräte /
+  Office-PC / Gaming-PC, Schnellwahl und Tabelle, Rückfall. Nach jedem Test: keine Anfrage nach außen. `PlacesLookTest`
+  (4) rendert die Seite in Fensterbreite (Windows) und Handybreite (Android), die Einrichtung und den ersten Start.
+- **Offen – am Gerät zu messen (Hauptnutzer)**: (1) **Gaming-PC** (RTX 5080) und (2) **Mac mit 32 GB**: ohne Schlüssel
+  (Einstellungen › API-Zugang leer) die Einrichtung ganz durchlaufen, dann jeden Bereich einmal nutzen (Chat, Lora mit
+  einer Werkzeugaufgabe, Postfach, Dokument „Verbessern“, Transkription, Diktat, Suche in der Wissenssammlung, Vorlesen,
+  ein Bild im Chat) – alles außer „Bilder erzeugen“ muss gehen; das Netz in *Wo Lora arbeitet* sollte nichts „über
+  API“ zeigen. (3) **Office-PC ohne Grafikkarte**: zeigt die Tabelle ehrlich, was fehlt bzw. langsam ist (Bilder
+  verstehen, große Modelle)? Stimmen die Zeiten der Einrichtung? (4) **Android** (OnePlus 15): erster Start ohne
+  Schlüssel, Einrichtung, Chat und Diktat lokal; Darstellung der Tabelle auf dem Handy. (5) Rückfall: einmal mit
+  ungültigem Schlüssel über zwei Tage – kommt der Dialog, und laufen alte Chats danach lokal weiter? Auffälligkeiten
+  über *Problem melden*.
 
 ### AP-104 ☐ Lora Postfach: eigenes LoRA-Feintuning fürs Postfach · L–XL (neu, Wunsch 10.11.2026, in Stufen)
 **Ziel**: Ins Postfach darf nur ein Modell auf diesem Gerät (AP-68). Ein kleines lokales Sprachmodell bekommt dafür ein

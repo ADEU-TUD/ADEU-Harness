@@ -112,7 +112,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     val wide = LocalConfiguration.current.screenWidthDp >= WIDE_DP
 
     LaunchedEffect(Unit) {
-        if (c.settings.current.hasAnyApiKey) c.models.refresh()
+        if (c.settings.current.hasAnyApiKey && !io.github.thepytales.llmhub.data.Places.allLocal(c)) c.models.refresh()
     }
 
     val requested by openChat.collectAsStateWithLifecycle()
@@ -312,6 +312,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 TaskEditScreen(c, back.arguments?.getString("id") ?: "new", onBack = { nav.back(back) })
             }
             composable("usage") { back -> UsageScreen(c, onBack = { nav.back(back) }) }
+            // Wo Lora arbeitet: Alles lokal einrichten (AP-112).
+            composable("local-setup") { back ->
+                LocalSetupScreen(c, onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
             composable("local-models") { back ->
                 LocalModelsScreen(c, onBack = { nav.back(back) }, onTry = { model -> nav.openChat(chatRoute(model = model)) })
             }

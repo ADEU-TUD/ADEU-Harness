@@ -524,7 +524,9 @@ class Transcription(private val c: AppContainer, private val root: File, private
     fun defaultOptions(folderId: String? = null): StartOptions {
         val s = _settings.value
         val mode = enumValues<TranscriptionMode>().firstOrNull { it.name == s.mode } ?: TranscriptionMode.LOCAL
-        val useServer = mode == TranscriptionMode.SERVER && serverAllowed(folderId) || localModel() == null && serverAllowed(folderId)
+        // „Lokal“ under Wo Lora arbeitet (AP-112): no silent detour to the server when no model is loaded.
+        val strict = !io.github.thepytales.llmhub.data.Places.serverAllowed(c, io.github.thepytales.llmhub.data.Area.TRANSCRIPTION)
+        val useServer = mode == TranscriptionMode.SERVER && serverAllowed(folderId) || localModel() == null && serverAllowed(folderId) && !strict
         return StartOptions(
             mode = if (useServer) TranscriptionMode.SERVER else TranscriptionMode.LOCAL,
             model = localModel() ?: "turbo",
@@ -561,7 +563,9 @@ class Transcription(private val c: AppContainer, private val root: File, private
                         return runBlocking {
                             withTimeout(REMOTE_TIMEOUT_MS) {
                                 c.llm.limiter.acquire()
-                                c.llm.transcribe(c.settings.current.sttModel, wav, language, "audio/wav")
+                                kotlinx.coroutines.withContext(io.github.thepytales.llmhub.data.PlaceScope(io.github.thepytales.llmhub.data.Area.TRANSCRIPTION)) {
+                                    c.llm.transcribe(c.settings.current.sttModel, wav, language, "audio/wav")
+                                }
                             }
                         }
                     } catch (e: ApiException) {

@@ -1,6 +1,8 @@
 package io.github.thepytales.llmhub.net
 
 import io.github.thepytales.llmhub.data.Privacy
+import io.github.thepytales.llmhub.data.Area
+import io.github.thepytales.llmhub.data.PlaceScope
 import io.github.thepytales.llmhub.data.ApiProvider
 import io.github.thepytales.llmhub.data.ChatMessage
 import io.github.thepytales.llmhub.data.ModelCatalog
@@ -134,6 +136,31 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
     internal var coolMaxMs = 120_000L
     internal var heatCheckMs = 5_000L
 
+    /**
+     * Wo Lora arbeitet (AP-112): the model a chat request of an area goes to – a server model, or the one on this device
+     * where the area must stay here (set by the app container: Places.route; throws OnDeviceOnly with a plain message).
+     */
+    var placeRoute: ((Area, String, Boolean) -> String)? = null
+    /** Throws OnDeviceOnly when requests of the area (speech, embeddings, recognition) must stay on this device. */
+    var placeCheck: ((Area) -> Unit)? = null
+    /** Rückfall (AP-112): how requests to the main provider end, to notice when the Uni-Server is gone for good. */
+    var uniWatch: io.github.thepytales.llmhub.data.UniWatch? = null
+
+    /** The area of the running request: set by its caller, else the chat. */
+    private suspend fun area(default: Area = Area.CHAT): Area = coroutineContext[PlaceScope]?.area ?: default
+
+    /** Notes the end of a request to [model] for [uniWatch] (only the main provider counts). */
+    private fun noteUni(model: String?, error: Throwable?) {
+        val w = uniWatch ?: return
+        if (model != null && (Privacy.isLocal(model) || providerFor(model) != null || ModelCatalog.info(model).via != null)) return
+        if (settings.current.apiKey.isBlank()) return
+        when {
+            error == null -> w.ok()
+            (error as? ApiException)?.code in setOf(401, 403) -> w.failed(refused = true)
+            io.github.thepytales.llmhub.data.UniWatch.unreachable(error) -> w.failed(refused = false)
+        }
+    }
+
     /** Counts [abortLocal]: a request that broke while another one was stopped may try once more. */
     private val localAborts = java.util.concurrent.atomic.AtomicInteger()
 
@@ -210,6 +237,12 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Models of the main provider, or of [provider]. */
     suspend fun listModels(provider: ApiProvider? = null): List<String> = withContext(Dispatchers.IO) {
+        // The list of the main provider is the check at every start: it tells the Rückfall (AP-112) whether the server answers.
+        if (provider != null) listModelsOf(provider)
+        else runCatching { listModelsOf(null) }.onSuccess { noteUni(null, null) }.onFailure { noteUni(null, it) }.getOrThrow()
+    }
+
+    private fun listModelsOf(provider: ApiProvider?): List<String> =
         http.newCall(request("/models", provider).get().build()).execute().use { resp ->
             val body = resp.body?.string()
             if (!resp.isSuccessful) throw ApiException(resp.code, errorMessage(resp.code, body))
@@ -218,7 +251,6 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
                 ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull?.removePrefix("models/") }
                 .orEmpty()
         }
-    }
 
     /**
      * Streams a chat completion and calls [onUpdate] with the accumulated state. Temporary server errors
@@ -233,6 +265,10 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         thinking: ThinkingLevel? = null,
         onUpdate: (StreamUpdate) -> Unit,
     ): ChatResult {
+        // Wo Lora arbeitet (AP-112): where the area must stay on this device, the request goes to the model here –
+        // nothing reaches a server without being asked for (Alles auf diesem Gerät, or no API key at all).
+        @Suppress("NAME_SHADOWING")
+        val model = placeRoute?.invoke(area(), model, messages.any { it.images.isNotEmpty() }) ?: model
         // Keys of the self-service portal have a low requests-per-minute limit, which agent runs with many
         // tool steps reach quickly. The server answers 429 with retry-after; waiting and retrying is enough.
         // 502/503/504 come from the gateway in front of the models ("upstream connect error … connection
@@ -255,9 +291,11 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
             try {
                 if (!onDevice) limiter.acquire { wait -> onRetry(tr("Kurze Pause, damit das Rate-Limit des API-Keys nicht erreicht wird"), wait) }
                 val result = streamChatWithFallbacks(model, sent, tools, thinking, update)
+                noteUni(model, null)
                 return masker?.unmask(result, scope) ?: result
             } catch (e: IOException) {
                 coroutineContext.ensureActive()
+                noteUni(model, e)
                 // Offline or a broken certificate does not fix itself within seconds.
                 if (e is java.net.UnknownHostException || e is javax.net.ssl.SSLException) throw e
                 val code = (e as? ApiException)?.code ?: 0
@@ -598,6 +636,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
         if (Privacy.isLocal(model)) text else privacy?.maskForSearch(text) ?: text
 
     suspend fun rerank(model: String, query: String, documents: List<String>): List<Int> = withContext(Dispatchers.IO) {
+        placeCheck?.invoke(Area.SEARCH)
         limiter.acquire()
         val body = buildJsonObject {
             put("model", model)
@@ -620,6 +659,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Embedding vectors for [inputs] (semantic search in the knowledge collection). */
     suspend fun embed(model: String, inputs: List<String>): List<FloatArray> = withContext(Dispatchers.IO) {
+        placeCheck?.invoke(Area.SEARCH)
         limiter.acquire()
         val body = buildJsonObject {
             put("model", model)
@@ -641,6 +681,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Text to speech; returns audio bytes (usually mp3). */
     suspend fun speech(model: String, voice: String, text: String): ByteArray = withContext(Dispatchers.IO) {
+        placeCheck?.invoke(Area.SPEECH)
         val body = buildJsonObject {
             put("model", model)
             put("input", text)
@@ -656,6 +697,7 @@ class LlmClient(private val settings: SettingsStore, private val usage: UsageSto
 
     /** Speech to text for a recorded audio file; [language] (ISO code) helps Whisper with short pieces. */
     suspend fun transcribe(model: String, file: File, language: String? = null, mime: String = "audio/mp4"): String = withContext(Dispatchers.IO) {
+        placeCheck?.invoke(area(Area.DICTATION))
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("model", model)
             .addFormDataPart("file", file.name, file.asRequestBody(mime.toMediaType()))

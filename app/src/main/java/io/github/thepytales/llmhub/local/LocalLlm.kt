@@ -116,11 +116,18 @@ class LocalLlm(private val c: AppContainer) {
             ?: Hardware(phone = false, ramGb = 8.0, cores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1), limited = true)
     }
 
-    private fun refresh() {
+    /** Looks again which models are on the device (also for tests that put files there). */
+    internal fun refresh() {
         val installed = LocalCatalog.models.filter { file(it).let { f -> f.isFile && f.length() == it.size } }.map { it.id }.toSet()
         val vision = LocalCatalog.models.filter { m -> m.projector?.let { p -> projectorFile(p).let { it.isFile && it.length() == p.size } } == true }.map { it.id }.toSet()
         _state.value = _state.value.copy(installed = installed, vision = vision, runtime = LlamaHost.runtimeStatus(c, root))
         c.models.setLocal(LocalCatalog.models.filter { it.id in installed }.map { LocalCatalog.info(it, vision = it.id in vision) })
+    }
+
+    /** Tests (AP-112): a device of their choice instead of the one the app runs on. */
+    internal fun pretend(hw: Hardware) {
+        _hardware.value = hw
+        LocalCatalog.hardware = hw
     }
 
     fun installedModels(): List<LocalModel> = LocalCatalog.models.filter { it.id in _state.value.installed }

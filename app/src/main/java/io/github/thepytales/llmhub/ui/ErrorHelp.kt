@@ -15,6 +15,8 @@ object ErrorHelp {
         CHANGE_MODEL(trLater("Modell wechseln"), "models"),
         NEW_CHAT(trLater("Neuen Chat beginnen"), "chat"),
         LOCAL_MODELS(trLater("Modelle auf diesem Gerät"), "local-models"),
+        /** Wo Lora arbeitet (AP-112): the setup „Alles lokal“ loads what is missing. */
+        LOCAL_SETUP(trLater("Einrichtung öffnen"), "local-setup"),
         ENABLE_TOOL(trLater("Werkzeuge einschalten"), "settings/tools"),
         CONNECTIONS(trLater("Verbindungen öffnen"), "settings/connections"),
         TRANSCRIPTION(trLater("Spracherkennung laden"), "settings/transcription"),
@@ -42,6 +44,10 @@ object ErrorHelp {
         rule("abgebrochen", null, { tr("Abgebrochen.") }) { e, raw -> e is kotlinx.coroutines.CancellationException || raw.trim() == "Abgebrochen." || raw.trim() == tr("Abgebrochen.") },
         rule("postfach-lokal", Fix.LOCAL_MODELS, { tr("Ins Postfach darf nur ein Modell auf diesem Gerät. Bitte ein lokales Modell laden oder wählen.") }) { _, raw ->
             has(raw, "nur ein Modell auf diesem Gerät", "only a model on this device")
+        },
+        // Wo Lora arbeitet (AP-112): the request must stay on this device – the message itself says what is missing.
+        rule("nur-auf-diesem-geraet", Fix.LOCAL_SETUP, { "" }) { e, raw ->
+            e.isA<io.github.thepytales.llmhub.data.OnDeviceOnly>() || has(raw, "Wo Lora arbeitet › Einrichtung")
         },
         rule("kein-schluessel", Fix.CHECK_KEY, { tr("Es ist noch kein API-Schlüssel eingetragen. Ohne ihn erreicht die App den Uni-Server nicht.") }) { _, raw ->
             has(raw, "Kein API-Key hinterlegt", "No API key")

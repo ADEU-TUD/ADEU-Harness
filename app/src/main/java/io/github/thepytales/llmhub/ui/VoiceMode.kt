@@ -197,7 +197,7 @@ fun VoiceModeDialog(c: AppContainer, vm: ChatViewModel, platform: ChatPlatform, 
             val id = "voice-" + System.nanoTime()
             // Data that stays here, or „Nur lokal“ (AP-71/AP-111): read with a voice on this device.
             val deviceOnly = !(vm.state.value?.let { Privacy.level(c, it) } ?: Privacy.level(c, null as String?)).allowsUniServer ||
-                c.settings.current.loraPlace == "LOCAL"
+                c.settings.current.loraPlace == "LOCAL" || !io.github.thepytales.llmhub.data.Places.serverAllowed(c, io.github.thepytales.llmhub.data.Area.SPEECH)
             c.speaker.speakStream(id, deviceOnly, onFirstSound = {
                 firstSoundAt = System.currentTimeMillis()
                 phase = VoicePhase.SPEAKING

@@ -152,7 +152,23 @@ class LoraAgent(private val c: AppContainer) {
             lastWish = wish to areaKey()
         }
         runCatching { LoraWays.record(c, way, (System.nanoTime() - t0) / 1_000_000) }
-        return reply
+        return onDevice(reply)
+    }
+
+    /**
+     * Wo Lora arbeitet (AP-112): where the chat works on this device, a question Lora hands over goes to the model here
+     * (not to DeepSeek on the server); without one Lora says what is missing instead of handing over.
+     */
+    private fun onDevice(reply: LoraReply): LoraReply {
+        val handoffs = reply.steps.filterIsInstance<LoraStep.Handoff>().filter { !Privacy.isLocal(it.model) }
+        if (handoffs.isEmpty() || io.github.thepytales.llmhub.data.Places.effective(c, io.github.thepytales.llmhub.data.Area.CHAT) != io.github.thepytales.llmhub.data.Place.LOCAL) return reply
+        val here = c.localLlm.preferredModel()
+            ?: return reply.copy(
+                text = io.github.thepytales.llmhub.data.Places.missingNote(c, io.github.thepytales.llmhub.data.Area.CHAT),
+                steps = reply.steps - handoffs.toSet(),
+                fix = io.github.thepytales.llmhub.ui.ErrorHelp.Fix.LOCAL_SETUP,
+            )
+        return reply.copy(steps = reply.steps.map { if (it is LoraStep.Handoff && it in handoffs) it.copy(model = here) else it })
     }
 
     /** The last wish Lora answered and what was open then – what „nein, ich meinte …“ corrects (AP-72). */
@@ -281,7 +297,7 @@ class LoraAgent(private val c: AppContainer) {
         val level = Privacy.level(c, folderId)
         val server = if (level == PrivacyLevel.LOCAL || !settings.hasAnyApiKey) null else Privacy.suitableModel(c, folderId, settings.loraModel.ifBlank { ModelCatalog.FAST_CHAT })
         val route = ModelRouter.place(
-            ModelRouter.Mode.of(settings.loraPlace), simple = free && seen?.label == LoraCommands.FREE_SIMPLE, text = wish, images = 0, files = 0,
+            io.github.thepytales.llmhub.data.Places.loraMode(c), simple = free && seen?.label == LoraCommands.FREE_SIMPLE, text = wish, images = 0, files = 0,
             localGood = LoraCommands.localModel(c, good = true, text = wish), localAny = LoraCommands.localModel(c, good = false, text = wish),
             serverOk = server != null, deviceOnly = level == PrivacyLevel.LOCAL,
         )
@@ -289,7 +305,9 @@ class LoraAgent(private val c: AppContainer) {
             ModelRouter.Place.NONE -> fallback(
                 wish, targets,
                 when {
-                    ModelRouter.Mode.of(settings.loraPlace) == ModelRouter.Mode.LOCAL && level != PrivacyLevel.LOCAL ->
+                    !settings.hasAnyApiKey && level != PrivacyLevel.LOCAL ->
+                        tr("Ohne API-Schlüssel arbeite ich auf diesem Gerät – dafür fehlt noch ein Sprachmodell (Einstellungen › Wo Lora arbeitet › Einrichtung). Befehle verstehe ich trotzdem.")
+                    io.github.thepytales.llmhub.data.Places.loraMode(c) == ModelRouter.Mode.LOCAL && level != PrivacyLevel.LOCAL ->
                         tr("Lora arbeitet „Nur lokal“, aber auf diesem Gerät ist noch kein Sprachmodell installiert (Einstellungen › Modelle auf diesem Gerät). Befehle verstehe ich trotzdem.")
                     !settings.hasAnyApiKey -> tr("Ohne API-Schlüssel suche ich nur in der App.")
                     else -> tr("In diesem Projekt bleibt alles auf dem Gerät – ich suche nur in der App.")
@@ -492,8 +510,11 @@ class LoraAgent(private val c: AppContainer) {
         val offers = mutableListOf<LoraStep>()
         var text = ""
         repeat(MAX_ROUNDS) { round ->
-            val result = c.llm.streamChat(model, messages, tools.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
-                splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
+            // Wo Lora arbeitet (AP-112): Lora's own place, not the one of the chat.
+            val result = kotlinx.coroutines.withContext(io.github.thepytales.llmhub.data.PlaceScope(io.github.thepytales.llmhub.data.Area.LORA)) {
+                c.llm.streamChat(model, messages, tools.toSchema(), thinking = ThinkingLevel.OFF) { upd ->
+                    splitThinking(upd.content).second.trim().takeIf { it.isNotEmpty() }?.let(onText)
+                }
             }
             text = splitThinking(result.content).second.trim()
             if (result.toolCalls.isEmpty()) return LoraReply(text.ifBlank { if (steps.isEmpty()) tr("Wie kann ich helfen?") else defaultText(steps) }, steps + offers, local = false)

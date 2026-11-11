@@ -60,6 +60,8 @@ object AppMap {
         AppTarget("area.tasks", MapKind.AREA, trLater("Geplante Aufgaben"), trLater("Seitenleiste › Mehr › Geplante Aufgaben"), trLater("Aufgaben, die der Agent zu festen Zeiten ausführt."), "geplant aufgabe zeitplan wiederholen täglich wöchentlich erinnerung automatisch", "tasks"),
         AppTarget("area.models", MapKind.AREA, trLater("Modellübersicht"), trLater("Einstellungen › Modellübersicht"), trLater("Alle Modelle des Uni-Servers mit Stärken und Einsatzzweck."), "modelle modell liste welches modell", "models"),
         AppTarget("area.compare", MapKind.AREA, trLater("Modelle vergleichen"), trLater("Einstellungen › Modelle vergleichen"), trLater("Zwei Modelle beantworten dieselbe Frage nebeneinander."), "vergleichen vergleich nebeneinander zwei modelle", "compare"),
+        // AP-112: „Alles lokal“ Schritt für Schritt (Einstellungen › Wo Lora arbeitet › Einrichtung).
+        AppTarget("area.local-setup", MapKind.AREA, trLater("Alles lokal einrichten"), trLater("Einstellungen › Wo Lora arbeitet › Einrichtung"), trLater("Schritt für Schritt alle Modelle für dieses Gerät laden – ohne API-Schlüssel."), "einrichtung assistent offline ohne schlüssel ohne api alles lokal modelle laden schritt für schritt", "local-setup"),
         AppTarget("area.local", MapKind.AREA, trLater("Modelle auf diesem Gerät"), trLater("Einstellungen › Modelle auf diesem Gerät"), trLater("Sprachmodelle offline auf dem Gerät – für vertrauliche Daten."), "lokal offline gerät herunterladen lokales modell", "local-models"),
         AppTarget("area.usage", MapKind.AREA, trLater("Verbrauch"), trLater("Einstellungen › Verbrauch"), trLater("Anfragen und Tokens pro Tag, Bewertungen."), "verbrauch kosten token statistik anfragen", "usage"),
         AppTarget("area.environments", MapKind.AREA, trLater("Umgebungen"), trLater("Einstellungen › Umgebungen"), trLater("Variablen und Netzwerkzugriff für Agenten."), "umgebung variablen netzwerk agent", "environments"),
@@ -116,6 +118,9 @@ object AppMap {
             "lora ausblenden ausschalten verstecken weg maskottchen figur einblenden"),
         option("lora.place", "lora", trLater("Wo Lora arbeitet"), trLater("Lora › Wo Lora arbeitet"), trLater("Gemischt, nur lokal oder nur über den Server; Lora Befehle."),
             "gemischt mischmodus lokal server offline gerät befehlsmodell befehle wo arbeitet lora"),
+        // AP-112: per area on this device, mixed or over an API; the quick choice „Alles lokal“.
+        option("places.profile", "places", trLater("Alles lokal, Gemischt oder alles über API"), trLater("Wo Lora arbeitet"), trLater("Je Bereich Lokal, Gemischt oder API, mit Einrichtung Schritt für Schritt."),
+            "alles lokal offline ohne internet ohne server ohne schlüssel ohne api profil alles auf diesem gerät uni-server weg"),
         option("lora.calm", "lora", trLater("Ruhigere Bewegungen"), trLater("Lora › Ruhigere Bewegungen"), trLater("Lora bewegt sich weniger."), "animation ruhig weniger bewegung reduziert"),
         option("privacy.pseudonymize", "privacy", trLater("Pseudonymisierung"), trLater("Datenschutz › Pseudonymisierung"), trLater("Namen und persönliche Angaben vor dem Senden ersetzen."),
             "pseudonymisierung pseudonym anonym anonymisieren namen ersetzen platzhalter"),

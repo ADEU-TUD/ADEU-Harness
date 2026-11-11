@@ -398,6 +398,36 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   (bekannt: 1.0.65 und 1.0.66); „Nicht mehr fragen“ gilt je Fassung. Neue Fassungen veröffentlicht
   `tools/modelle/veroeffentlichen.py` nur bei erreichten Zielen auf einen eigenen Branch auf GitHub (über 95 MB in
   Teilen); Anleitung in [`tools/modelle/README.md`](tools/modelle/README.md). Test `OwnModelsTest`.
+- **Wo Lora arbeitet – Lora offline** (nach 1.0.67, AP-112): Neue Seite *Einstellungen › Wo Lora arbeitet*. Oben die
+  Schnellwahl *Alles lokal · Gemischt (empfohlen) · Alles über API*, darunter eine Tabelle aller Bereiche (Lora, Chat,
+  Postfach, Dokumente/Tabellen/Folien, Transkription, Spracheingabe und Diktat, Suche, Vorlesen, Bilder verstehen,
+  Pseudonymisierung, Befehle, Bilder erzeugen, Web) mit *Lokal / Gemischt / API* je Bereich; was nicht geht, ist
+  ausgegraut mit Grund („Ins Postfach darf nur ein Modell auf diesem Gerät“, „Nur über API – kein Bildmodell auf dem
+  Gerät“). Jede Zeile sagt, was das auf diesem Gerät heißt: *läuft auf diesem Gerät*, *noch nicht geladen* (mit *Laden*),
+  *nicht auf diesem Gerät* (mit Grund und nötiger Stufe, z. B. „Zu langsam: etwa 69 s je Bild – braucht eine Grafikkarte
+  ab 6 GB oder einen Apple-Chip“), *braucht Internet* oder *nur über API* (mit Schloss – nicht versteckt). Dieselbe
+  Kennzeichnung steht bei *Bilder erzeugen*, *Transkription*, *Vorlesen* und *Wissenssammlung*.
+  - **Alles lokal einrichten**: ein Assistent Schritt für Schritt – Gerät messen, Zweck wählen, Sprachmodell mit Größe
+    und Tempo („schreibt ≈ 13 Wörter/s“), laden mit Fortschritt, kurz ausprobieren („Frag Lora etwas“), Befehle und
+    Namensschutz, Suche, Spracherkennung, Stimme, Bildteil, am Ende eine Übersicht. *Später* merkt sich den Schritt.
+  - **Profil „Alles auf diesem Gerät“** (auch im Dialog vom ersten Start, der jetzt auch ohne API-Schlüssel kommt):
+    Lora, Chats, Dokumente, Suche, Sprache und Bilder verstehen bleiben hier; Internet nur für Web, Literatur, Nextcloud
+    und Updates. Eine einzige Sperre im Anfrageweg sorgt dafür, dass nichts still an einen Server geht – ein Chat mit
+    Server-Modell läuft mit dem Modell auf diesem Gerät weiter (mit den Grenzen aus AP-116), fehlt etwas, sagt Lora in
+    Klartext, was zu laden ist (Knopf *Einrichtung öffnen*). Ohne API-Schlüssel gilt das von selbst.
+  - **Ohne Schlüssel**: Willkommenskarte mit zweitem Weg *Alles auf diesem Gerät einrichten*; Lora, Chat, Diktat und
+    Vorlesen laufen mit den Modellen auf dem Gerät; Lora-Mikrofon und Diktat erkennen Sprache zuerst auf dem Gerät.
+  - **Rückfall, wenn der Uni-Server wegfällt**: Antwortet der Uni-Server mindestens zwei Tage lang nicht (bei
+    funktionierendem Internet) oder nimmt den Schlüssel nicht mehr an, fragt Lora einmal: *Auf diesem Gerät
+    weiterarbeiten* oder *Anderen Schlüssel eintragen* – Chats, Dateien und Einstellungen bleiben, alte Chats laufen mit
+    dem neuen Modell weiter.
+
+  Tests ohne Gerät: `OfflineProfileTest` (App ohne Schlüssel, Netz nur 127.0.0.1, nachgebauter llama-server) und
+  `PlacesLookTest` (Bilder). Was nur am Gerät messbar ist: Arbeitsplan AP-112.
+
+  | Windows-Fenster (Gemischt) | Android, ohne Schlüssel | Einrichtung Schritt für Schritt |
+  | --- | --- | --- |
+  | ![Wo Lora arbeitet, Windows](docs/bilder/ap112-orte-windows.png) | ![Wo Lora arbeitet, Android](docs/bilder/ap112-orte-android.png) | ![Einrichtung](docs/bilder/ap112-einrichtung.png) |
 - **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
   neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
   Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging

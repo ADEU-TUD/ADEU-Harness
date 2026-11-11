@@ -169,12 +169,13 @@ object DocsAi {
             if (text.isBlank()) append("Die Stelle ist noch leer.\n") else append("Markierte Stelle:\n<<<\n").append(text).append("\n>>>\n\n")
             append("Aufgabe: ").append(instruction)
         }
-        val result = c.llm.streamChat(
+        // Wo Lora arbeitet (AP-112): the place of „Dokumente, Tabellen, Folien“.
+        val result = kotlinx.coroutines.withContext(io.github.thepytales.llmhub.data.PlaceScope(io.github.thepytales.llmhub.data.Area.DOCS)) { c.llm.streamChat(
             model = c.settings.current.defaultModel,
             messages = listOf(ChatMessage(role = "system", content = system), ChatMessage(role = "user", content = user)),
             tools = null,
             thinking = ThinkingLevel.OFF,
-        ) { u -> onText(io.github.thepytales.llmhub.agent.FieldAssist.clean(u.content)) }
+        ) { u -> onText(io.github.thepytales.llmhub.agent.FieldAssist.clean(u.content)) } }
         return io.github.thepytales.llmhub.agent.FieldAssist.clean(result.content).ifEmpty { throw IllegalStateException(tr("Das Modell hat keinen Text geliefert.")) }
     }
 
@@ -182,12 +183,13 @@ object DocsAi {
     suspend fun spellCheck(c: AppContainer, doc: LiveDoc?, text: String): List<io.github.thepytales.llmhub.docs.SpellCheck.Correction> {
         val system = "Du bist ein sorgfältiges Korrektorat in einem Schreibprogramm" + (doc?.title?.let { " (Dokument „$it“)" } ?: "") + ". " +
             io.github.thepytales.llmhub.docs.SpellCheck.INSTRUCTION
-        val result = c.llm.streamChat(
+        // Wo Lora arbeitet (AP-112): the place of „Dokumente, Tabellen, Folien“.
+        val result = kotlinx.coroutines.withContext(io.github.thepytales.llmhub.data.PlaceScope(io.github.thepytales.llmhub.data.Area.DOCS)) { c.llm.streamChat(
             model = c.settings.current.defaultModel,
             messages = listOf(ChatMessage(role = "system", content = system), ChatMessage(role = "user", content = "Text:\n<<<\n${text.take(30_000)}\n>>>")),
             tools = null,
             thinking = ThinkingLevel.OFF,
-        ) { }
+        ) { } }
         val answer = splitThinking(result.content).second
         if (answer.isBlank()) throw IllegalStateException(tr("Das Modell hat nicht geantwortet."))
         return io.github.thepytales.llmhub.docs.SpellCheck.parse(answer)

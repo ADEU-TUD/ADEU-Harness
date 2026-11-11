@@ -70,6 +70,7 @@ fun TranscriptionSettings(c: AppContainer) {
     }
 
     GroupLabel(tr("Standard"))
+    PlaceNote(c, io.github.thepytales.llmhub.data.Area.TRANSCRIPTION)
     val mode = enumValues<TranscriptionMode>().firstOrNull { it.name == s.mode } ?: TranscriptionMode.LOCAL
     Segmented(TranscriptionMode.entries.map { it to it.label }, mode, { m -> t.updateSettings { it.copy(mode = m.name) } }, enabled = { it == TranscriptionMode.LOCAL || c.settings.current.hasApiKey })
     HintText(mode.description + tr(" Projekte mit der Datenschutzstufe „Nur auf diesem Gerät“ transkribieren immer hier."))

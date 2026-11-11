@@ -39,10 +39,15 @@ fun WelcomeCard(onApiKey: () -> Unit, onNavigate: (String) -> Unit) {
                 Spacer(Modifier.size(8.dp))
                 Text(tr("API-Key eintragen"))
             }
-            HintText(tr("Schon ohne API-Key: Aufnahmen transkribieren und Modelle direkt auf dem Gerät nutzen."))
+            // AP-112: the second way – everything on this device, without a key and without the Uni-Server.
+            Text(tr("Oder ganz ohne Schlüssel: alles auf diesem Gerät"), style = MaterialTheme.typography.titleSmall)
+            HintText(tr("Lora lädt Schritt für Schritt Modelle, die zu diesem Gerät passen – für Chat, Lora, Postfach, Suche, Diktat und Vorlesen. Nichts verlässt das Gerät; nur Bilder erzeugen geht ohne Schlüssel nicht."))
+            androidx.compose.material3.OutlinedButton(onClick = { onNavigate("local-setup") }, modifier = Modifier.fillMaxWidth()) {
+                Text(tr("Alles auf diesem Gerät einrichten"))
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(onClick = { onNavigate("transcripts") }) { Text(tr("Transkription")) }
-                TextButton(onClick = { onNavigate("local-models") }) { Text(tr("Modelle auf dem Gerät")) }
+                TextButton(onClick = { onNavigate("settings/places") }) { Text(tr("Wo Lora arbeitet")) }
             }
         }
     }

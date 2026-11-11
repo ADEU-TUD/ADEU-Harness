@@ -66,6 +66,8 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command(trLater("Modelle"), "models", trLater("Bereiche"), "modell liste"),
     Command(trLater("Verbrauch"), "usage", trLater("Bereiche"), "kosten token bewertungen statistik"),
     Command(trLater("Einstellungen"), "settings", trLater("Einstellungen"), "optionen"),
+    // AP-112: the setup step by step is its own screen, not a settings page.
+    Command(trLater("Alles lokal einrichten"), "local-setup", trLater("Einstellungen"), "offline einrichten assistent modelle laden ohne schlüssel alles lokal"),
 ) + io.github.thepytales.llmhub.agent.ChatModes.visible().map { m ->
     // Modes (AP-05) start a new chat in that mode.
     Command(m.name, MODE_ROUTE + m.id, trLater("Modi"), m.keywords + " modus " + m.command.lowercase())
@@ -77,6 +79,7 @@ val SETTINGS_INDEX = listOf(
     Command(trLater("GitHub"), "settings/github", trLater("Einstellungen"), "repository token code"),
     Command(trLater("Chat & Werkzeuge"), "settings/chat", trLater("Einstellungen"), "standardmodell werkzeuge freigaben websuche denken"),
     Command(trLater("Werkzeuge"), "settings/tools", trLater("Einstellungen"), "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
+    Command(trLater("Wo Lora arbeitet"), "settings/places", trLater("Einstellungen"), "lokal offline ohne internet ohne server ohne api schlüssel gerät alles lokal gemischt profil einrichtung"),
     Command(trLater("Lora"), "settings/lora", trLater("Einstellungen"), "lora maskottchen ausblenden navigator helfer animation hinweise"),
     Command(trLater("Datenschutz"), "settings/privacy", trLater("Einstellungen"), "pseudonymisierung namen eigene begriffe"),
     Command(trLater("Gedächtnis"), "settings/memory", trLater("Einstellungen"), "erinnerungen merken"),

@@ -6557,3 +6557,154 @@ Das Gerät wird zu warm – Lora hat angehalten, damit es nicht überhitzt. In e
 Lora hat in {0} Werkzeugschritten keine Antwort gefunden. Eine engere Frage stellen oder „weiter“ schreiben.	Lora found no answer in {0} tool steps. Ask a narrower question or write “weiter” (continue).
 # Eigene Modelle aktualisieren (AP-117)
 Für diese Version gibt es keinen Download.	There is no download for this version.
+# Wo Lora arbeitet, Einrichtung Schritt für Schritt (AP-112)
+ Etwa {0} s je Bild.	 About {0} s per image.
+({0} auf diesem Gerät)	({0} on this device)
+API	API
+Alles auf diesem Gerät	Everything on this device
+Alles auf diesem Gerät einrichten	Set up everything on this device
+Alles auf diesem Gerät nutzen	Use everything on this device
+Alles auf diesem Gerät: Lora, Chats, Postfach, Suche, Sprache und Bilder verstehen laufen hier, ohne API-Schlüssel. Internet nur für Web, Literatur, Nextcloud und Updates; Bilder erzeugen geht nur über API. Die Antworten sind schlichter und langsamer als mit dem Server. Nach „Fertig“ führt die Einrichtung Schritt für Schritt durch die Downloads.	Everything on this device: Lora, chats, mailbox, search, speech and understanding images run here, without an API key. Internet only for web, literature, Nextcloud and updates; creating images only works via API. Answers are plainer and slower than with the server. After “Done”, the setup guides you step by step through the downloads.
+Alles auf diesem Gerät: Lora, Chats, Postfach, Suche, Sprache und Bilder verstehen laufen hier. Internet nur für Web, Literatur, Nextcloud und Updates; Bilder erzeugen geht nur über API. Was doch hinausgeht, wird vorher pseudonymisiert.	Everything on this device: Lora, chats, mailbox, search, speech and understanding images run here. Internet only for web, literature, Nextcloud and updates; creating images only works via API. Whatever does leave the device is pseudonymized first.
+Alles lokal	Everything local
+Alles lokal einrichten	Set up everything locally
+Alles lokal einrichten – Schritt für Schritt	Set up everything locally – step by step
+Alles lokal, Gemischt oder alles über API	Everything local, mixed or everything via API
+Alles über API	Everything via API
+Andere Modelle für dieses Gerät	Other models for this device
+Anderen Schlüssel eintragen	Enter another key
+Antworten vorlesen	Read answers aloud
+Antworten, Werkzeuge und Abläufe	Answers, tools and workflows
+Auf diesem Gerät dauert ein Bild etwa {0} s – zu lange für den Alltag. Bilder verstehen bleibt hier besser beim Server (oder ein Gerät mit Grafikkarte bzw. Apple-Chip).	On this device an image takes about {0} s – too long for everyday use. Understanding images is better left to the server here (or a device with a graphics card or Apple chip).
+Auf diesem Gerät weiterarbeiten	Continue on this device
+Auf diesem Gerät, sonst über den Uni-Server.	On this device, otherwise via the university server.
+Auf diesem Gerät; ohne Erkennungsmodell über den Uni-Server.	On this device; without a recognition model via the university server.
+Aufnahmen und Interviews in Text	Recordings and interviews into text
+Ausgegraut heißt: hier nicht möglich – der Grund steht darunter. Immer gilt: Ins Postfach schaut nur ein Modell auf diesem Gerät, Projekte „Nur auf diesem Gerät“ und der Tresor behalten ihre Regeln.	Greyed out means: not possible here – the reason is shown below. Always: only a model on this device looks into the mailbox; projects “Only on this device” and the vault keep their rules.
+Bearbeiten immer hier; Lora schreibt mit	Editing always here; Lora writes along
+Befehle hier, alles andere über den Server – mit einem Sprachmodell auch kurze Aufgaben hier.	Commands here, everything else via the server – with a language model also short tasks here.
+Befehle und Namensschutz	Commands and name protection
+Befehle und kurze Aufgaben hier, Anspruchsvolles über den Server.	Commands and short tasks here, demanding work via the server.
+Befehle verstehen	Understanding commands
+Befehle, Namensschutz und kurze Aufgaben auf diesem Gerät, alles Anspruchsvolle über den Uni-Server bzw. den gewählten Anbieter. So arbeitet Lora bisher.	Commands, name protection and short tasks on this device, everything demanding via the university server or the chosen provider. This is how Lora has worked so far.
+Bereich öffnen, Einstellung umstellen	Open an area, change a setting
+Bilder im Chat, Screenshots, Scans, Texterkennung	Images in the chat, screenshots, scans, text recognition
+Bilder und Grafiken aus einer Beschreibung	Images and graphics from a description
+Bilder verstehen	Understanding images
+Bildmodell des Uni-Servers.	Image model of the university server.
+Bildteil auf diesem Gerät.	Image part on this device.
+Bildteil für {0} ({1} MB)	Image part for {0} ({1} MB)
+Bis das Suchmodell (123 MB) geladen ist, nur Wortsuche.	Only word search until the search model (123 MB) is loaded.
+Bis das Suchmodell geladen ist, über den Uni-Server.	Via the university server until the search model is loaded.
+Bis ein Erkennungsmodell geladen ist, über den Uni-Server.	Via the university server until a recognition model is loaded.
+Braucht Internet, aber keinen API-Schlüssel.	Needs internet, but no API key.
+Braucht den Bildteil zum Sprachmodell.	Needs the image part of the language model.
+Braucht ein Erkennungsmodell (ab 75 MB).	Needs a recognition model (from 75 MB).
+Braucht ein Sprachmodell auf diesem Gerät.	Needs a language model on this device.
+Das läuft jetzt auf diesem Gerät. Mit „Alles auf diesem Gerät nutzen“ stellt Lora jeden Bereich, der eine Wahl hat, auf Lokal – ändern lässt sich das jederzeit unter Einstellungen › Wo Lora arbeitet.	This now runs on this device. With “Use everything on this device” Lora sets every area that has a choice to Local – you can change this at any time under Settings › Where Lora works.
+Der Uni-Server antwortet nicht mehr	The university server no longer responds
+Die Regeln laufen schon; Lora Namensschutz findet mehr Namen.	The rules already run; Lora Namensschutz finds more names.
+Die Spracherkennung startet … einen Moment.	Speech recognition is starting … one moment.
+Dieser Chat läuft jetzt mit {0} auf diesem Gerät.	This chat now runs with {0} on this device.
+Dokumente, Tabellen, Folien	Documents, spreadsheets, slides
+Eigene Auswahl	Custom selection
+Eigene Auswahl – je Bereich unten eingestellt.	Custom selection – set per area below.
+Ein Chat nutzt ein Modell – im Chat kannst du es jederzeit wechseln.	A chat uses one model – you can switch it in the chat at any time.
+Ein Erkennungsmodell macht aus Sprache Text – für Diktat, Spracheingabe im Chat und bei Lora und für Transkriptionen. Kleinere sind schneller, größere genauer.	A recognition model turns speech into text – for dictation, voice input in the chat and with Lora, and for transcriptions. Smaller ones are faster, larger ones more accurate.
+Ein Modell je Dokument-Hilfe – Lokal oder API.	One model for the document help – Local or API.
+Ein Sprachmodell auf diesem Gerät beantwortet Lora, Chats, das Postfach und die Hilfe in Dokumenten. Lora empfiehlt das stärkste Modell, das hier flüssig schreibt (mindestens 8 Wörter je Sekunde).	A language model on this device answers Lora, chats, the mailbox and the help in documents. Lora recommends the strongest model that writes smoothly here (at least 8 words per second).
+Einbettungen des Uni-Servers.	Embeddings of the university server.
+Eine Stimme für alles – Lokal oder API.	One voice for everything – Local or API.
+Eine natürliche deutsche Stimme (Piper „Thorsten“, 64 MB, CC0) liest Antworten vor und spricht im Sprachmodus – ohne Server. Ohne sie liest die Stimme des Systems.	A natural German voice (Piper “Thorsten”, 64 MB, CC0) reads answers aloud and speaks in voice mode – without a server. Without it, the system voice reads.
+Einrichtung starten	Start setup
+Einrichtung öffnen	Open setup
+Erkennungsmodell auf diesem Gerät.	Recognition model on this device.
+Erkläre in zwei Sätzen, was du auf diesem Gerät für mich tun kannst.	Explain in two sentences what you can do for me on this device.
+Erst ein Sprachmodell laden (Schritt 3) – der Bildteil gehört zu ihm.	Load a language model first (step 3) – the image part belongs to it.
+Fortsetzen (Schritt {0} von {1})	Continue (step {0} of {1})
+Fragen, Schreiben, Zusammenfassen, Übersetzen, Code	Questions, writing, summarizing, translating, code
+Für {0} fehlt noch ein Modell.	{0} still needs a model.
+Gemessen am {0}.	Measured on {0}.
+Gemischt und API brauchen einen API-Schlüssel.	Mixed and API need an API key.
+Gerät messen	Measure device
+Gewählt: API – dafür fehlt ein API-Schlüssel (Einstellungen › API-Zugang).	Chosen: API – an API key is missing for that (Settings › API access).
+Hinweis: {0} Lora Befehle, Namensschutz, Suche und Sprache gehen trotzdem.	Note: {0} Lora Befehle, name protection, search and speech still work.
+Ins Postfach darf nur ein Modell auf diesem Gerät (fest).	Only a model on this device may access the mailbox (fixed).
+Je Bereich	Per area
+Je Bereich Lokal, Gemischt oder API, mit Einrichtung Schritt für Schritt.	Local, Mixed or API per area, with step-by-step setup.
+KI-Stimme des Uni-Servers.	AI voice of the university server.
+Kein API-Schlüssel hinterlegt: Alles, was eine Wahl hat, läuft auf diesem Gerät. Einen Schlüssel trägst du unter Einstellungen › API-Zugang ein.	No API key stored: everything that has a choice runs on this device. You enter a key under Settings › API access.
+Kein API-Schlüssel – darum auf diesem Gerät. 	No API key – so on this device. 
+Kein Modell mit Bildteil passt in den Speicher – braucht mindestens {0} GB.	No model with an image part fits into memory – needs at least {0} GB.
+Kurz ausprobieren: Frag Lora etwas	Quick try: ask Lora something
+Lora Befehle erkennt Befehle in Millisekunden.	Lora Befehle recognizes commands in milliseconds.
+Lora Befehle laden – bis dahin erkennt Lora Befehle an Wörtern.	Load Lora Befehle – until then Lora recognizes commands by keywords.
+Lora Befehle läuft immer auf diesem Gerät.	Lora Befehle always runs on this device.
+Lora Namensschutz und die Regeln ersetzen Namen auf diesem Gerät.	Lora Namensschutz and the rules replace names on this device.
+Lora denkt …	Lora is thinking …
+Lora findet in der Wissenssammlung und in Projekten, was zur Frage passt – auch mit anderen Worten. Das Suchmodell multilingual-e5-small (123 MB, MIT) rechnet auf diesem Gerät, etwa 40 ms je Abschnitt.	Lora finds what matches the question in the knowledge base and in projects – even in other words. The search model multilingual-e5-small (123 MB, MIT) runs on this device, about 40 ms per section.
+Lora lädt Schritt für Schritt Modelle, die zu diesem Gerät passen – für Chat, Lora, Postfach, Suche, Diktat und Vorlesen. Nichts verlässt das Gerät; nur Bilder erzeugen geht ohne Schlüssel nicht.	Lora loads models that suit this device step by step – for chat, Lora, mailbox, search, dictation and reading aloud. Nothing leaves the device; only creating images does not work without a key.
+Lora schaut sich dieses Gerät an und misst kurz sein Tempo. Danach sagt sie für jedes Modell vorher, wie schnell es hier schreibt und liest – und schlägt nur vor, was hier gut läuft. Nichts verlässt das Gerät.	Lora looks at this device and briefly measures its speed. Afterwards she predicts for every model how fast it writes and reads here – and only suggests what runs well here. Nothing leaves the device.
+Läuft immer auf diesem Gerät – sonst sähe der Server die Namen.	Always runs on this device – otherwise the server would see the names.
+Mails lesen, sortieren, Entwürfe	Read and sort mails, drafts
+Mit dem Bildteil versteht das Sprachmodell Bilder im Chat, Screenshots, Diagramme und Scans – auch die Texterkennung auf dem Handy läuft dann hier.	With the image part the language model understands images in the chat, screenshots, diagrams and scans – text recognition on the phone then also runs here.
+Namen ersetzen, bevor etwas hinausgeht	Replace names before anything leaves
+Natürliche Stimme (Piper Thorsten) auf diesem Gerät.	Natural voice (Piper Thorsten) on this device.
+Noch kein API-Schlüssel: Lora arbeitet ganz auf diesem Gerät. Einen Schlüssel für den Uni-Server oder einen anderen Anbieter kannst du jederzeit unter Einstellungen › API-Zugang eintragen.	No API key yet: Lora works entirely on this device. You can enter a key for the university server or another provider at any time under Settings › API access.
+Noch kein Sprachmodell geladen.	No language model loaded yet.
+Noch nicht gemessen. Ohne Sprachmodell misst Lora erst den Speicher; das Tempo folgt nach dem ersten Modell von selbst.	Not measured yet. Without a language model Lora first measures the memory; the speed follows automatically after the first model.
+Nur über API – braucht einen API-Schlüssel. Alles andere geht ohne.	Only via API – needs an API key. Everything else works without.
+Nur über API – kein Bildmodell auf dem Gerät (Entscheidung 10.11.2026).	Only via API – no image model on the device (decision of 10.11.2026).
+Nur über den Uni-Server – die Beschreibung verlässt das Gerät.	Only via the university server – the description leaves the device.
+Oder ganz ohne Schlüssel: alles auf diesem Gerät	Or without any key: everything on this device
+Ohne API-Schlüssel arbeite ich auf diesem Gerät – dafür fehlt noch ein Sprachmodell (Einstellungen › Wo Lora arbeitet › Einrichtung). Befehle verstehe ich trotzdem.	Without an API key I work on this device – a language model is still missing for that (Settings › Where Lora works › Setup). I still understand commands.
+Ohne API-Schlüssel geht es auch: Ich arbeite dann ganz auf diesem Gerät – ohne Uni-Server und ohne dass etwas hinausgeht.	It also works without an API key: I then work entirely on this device – without the university server and without anything leaving it.
+Ohne API-Schlüssel läuft „{0}“ auf diesem Gerät	Without an API key, “{0}” runs on this device
+Schritt {0} von {1}: {2}	Step {0} of {1}: {2}
+Seit {0} erreicht Lora den Uni-Server nicht, obwohl das Internet geht. Vielleicht ist das Pilotprojekt beendet.	Since {0} Lora cannot reach the university server although the internet works. Perhaps the pilot project has ended.
+Seit {0} nimmt der Uni-Server den API-Schlüssel nicht mehr an. Vielleicht ist er abgelaufen oder das Pilotprojekt beendet.	Since {0} the university server no longer accepts the API key. Perhaps it has expired or the pilot project has ended.
+Spracheingabe und Diktat	Voice input and dictation
+Sprachmodell	Language model
+Sprachmodelle, Spracherkennung, Suche und Stimme über den Server – am genauesten, braucht immer Internet. Postfach, Befehle und Namensschutz bleiben auf diesem Gerät.	Language models, speech recognition, search and voice via the server – most accurate, always needs internet. Mailbox, commands and name protection stay on this device.
+Sprechen statt tippen, im Chat und bei Lora	Speak instead of typing, in the chat and with Lora
+Stimme des Systems; die natürliche Stimme (64 MB) klingt besser.	System voice; the natural voice (64 MB) sounds better.
+Suche nach Bedeutung	Search by meaning
+Vorlesen und Sprachmodus	Reading aloud and voice mode
+Web, Literatur, Nextcloud, Updates	Web, literature, Nextcloud, updates
+Websuche, Literatur, Nextcloud und Updates brauchen Internet, aber keinen API-Schlüssel.	Web search, literature, Nextcloud and updates need internet, but no API key.
+Websuche, Quellen, Bibliotheken, Synchronisierung	Web search, sources, libraries, synchronization
+Whisper auf dem Uni-Server.	Whisper on the university server.
+Wie soll es weitergehen? Deine Chats, Dateien und Einstellungen bleiben in jedem Fall erhalten; bisherige Chats laufen mit dem neuen Modell weiter.	How should it continue? Your chats, files and settings are kept in any case; existing chats continue with the new model.
+Wissenssammlung und Projekte	Knowledge base and projects
+Wofür nutzt du Lora vor allem? Der Allrounder ist immer dabei. Für Texte, Code oder das Postfach schlägt Lora einen Spezialisten vor, der nur bei Bedarf geladen wird – ein Wechsel kostet 10 bis 30 Sekunden.	What do you mainly use Lora for? The all-rounder is always there. For texts, code or the mailbox Lora suggests a specialist that is loaded only when needed – switching takes 10 to 30 seconds.
+Wofür vor allem?	Mainly for what?
+Zu langsam: etwa {0} s je Bild – braucht eine Grafikkarte ab 6 GB oder einen Apple-Chip.	Too slow: about {0} s per image – needs a graphics card with 6 GB or more, or an Apple chip.
+Zu wenig Arbeitsspeicher ({0} GB) – braucht mindestens {1} GB.	Not enough memory ({0} GB) – needs at least {1} GB.
+Zwei kleine Modelle nur für Lora: Lora Befehle erkennt in Millisekunden, was du meinst – einen Bereich öffnen, eine Einstellung umstellen. Lora Namensschutz findet Namen, Schulen und Orte, bevor etwas das Gerät doch verlässt.	Two small models just for Lora: Lora Befehle recognizes in milliseconds what you mean – open an area, change a setting. Lora Namensschutz finds names, schools and places before anything does leave the device.
+braucht Internet	needs internet
+dafür fehlt noch das Suchmodell	the search model is still missing for that
+dafür fehlt noch die Stimme	the voice is still missing for that
+dafür fehlt noch ein Erkennungsmodell	a recognition model is still missing for that
+dafür fehlt noch ein Sprachmodell	a language model is still missing for that
+dafür fehlt noch ein Sprachmodell mit Bildteil	a language model with an image part is still missing for that
+keine Wahl	no choice
+langsam auf diesem Gerät	slow on this device
+multilingual-e5-small auf diesem Gerät.	multilingual-e5-small on this device.
+nicht auf diesem Gerät	not on this device
+noch nicht geladen	not loaded yet
+noch nicht verfügbar	not available yet
+nur über API	only via API
+{0} antwortet.	{0} answers.
+{0} antwortet; Werkzeugketten sind schlichter als mit dem Server.	{0} answers; tool chains are simpler than with the server.
+{0} liest das Postfach.	{0} reads the mailbox.
+{0} von {1} Bereichen laufen schon auf diesem Gerät.	{0} of {1} areas already run on this device.
+{0} · {1} von {2} Bereichen auf diesem Gerät	{0} · {1} of {2} areas on this device
+{0} – {1}. Einstellungen › Wo Lora arbeitet › Einrichtung lädt es (oder dort einen API-Schlüssel eintragen).	{0} – {1}. Settings › Where Lora works › Setup loads it (or enter an API key there).
+Über den Uni-Server bzw. den gewählten Anbieter.	Via the university server or the chosen provider.
+Über den Uni-Server, bis ein Bildteil auf diesem Gerät geladen ist.	Via the university server until an image part is loaded on this device.
+über API	via API
+„Später“ merkt sich diesen Schritt – unter Einstellungen › Wo Lora arbeitet geht es hier weiter. Downloads laufen im Hintergrund weiter.	“Later” remembers this step – Settings › Where Lora works continues here. Downloads keep running in the background.
+„{0}“ läuft nur auf diesem Gerät	“{0}” only runs on this device
+Einrichtung	Setup
+Einstellungen › Wo Lora arbeitet › Einrichtung	Settings › Where Lora works › Setup
+Schritt für Schritt alle Modelle für dieses Gerät laden – ohne API-Schlüssel.	Load all models for this device step by step – without an API key.

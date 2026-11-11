@@ -84,6 +84,7 @@ private fun settingsTitleDe(section: String?): String = when (section) {
     "chat" -> tr("Chat & Werkzeuge")
     "tools" -> "Werkzeuge"
     "lora" -> "Lora"
+    "places" -> "Wo Lora arbeitet"
     "ram" -> "Arbeitsspeicher"
     "privacy" -> "Datenschutz"
     "appearance" -> "Darstellung"
@@ -175,6 +176,8 @@ fun SettingsOverview(c: AppContainer, onNavigate: (String) -> Unit, deviceItem: 
     SettingsGroup(
         "Assistent",
         listOfNotNull(
+            // AP-112: per area on this device, mixed or over an API.
+            SettingsItem("settings/places", Icons.Outlined.Memory, tr("Wo Lora arbeitet"), placesSummary(c)),
             SettingsItem("settings/chat", Icons.Outlined.ChatBubbleOutline, tr("Chat & Werkzeuge"), tr("Standardmodell, Werkzeuge · Freigaben: ") + ApprovalMode.of(s.approvalMode).label),
             SettingsItem(
                 "settings/tools", Icons.Outlined.Handyman, tr("Werkzeuge"),
