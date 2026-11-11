@@ -27,7 +27,9 @@ Bedingungen weder eingeschränkt noch erweitert.
   unveränderten Basismodelle können weiterhin nach deren Lizenz genutzt werden. Die Urheber der Basismodelle haben Lora
   Namensschutz und Lora Befehle weder geprüft noch gebilligt.
 - **Bibliotheken und weitere Modelle** (z. B. Compose, JNA, sherpa-onnx, ONNX Runtime, YuNet): unter ihren eigenen
-  Lizenzen, wie sie mit ihnen ausgeliefert werden.
+  Lizenzen, wie sie mit ihnen ausgeliefert werden. Für das Server-Terminal: JediTerm (JetBrains, wahlweise LGPL-3.0 oder
+  Apache-2.0 – genutzt unter **Apache-2.0**) und Apache MINA SSHD (Apache-2.0), beide unverändert; Hinweise und
+  Lizenztext in `desktop/src/main/resources/lizenzen/`.
 
 ## 4. Gewährleistung
 Harness und Modelle werden ohne Gewähr bereitgestellt. Die Modelle können Fehler machen (übersehene oder fälschlich

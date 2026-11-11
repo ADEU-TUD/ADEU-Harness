@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -72,6 +72,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -945,6 +946,106 @@ mit ihr und nach dem Download mit der neuen; ein Probelauf aus einer Cloud-Sitzu
   gepusht, im Commit und über `raw.githubusercontent.com` geprüft und mit dem Code der App geladen; „Ziele verfehlt“
   schreibt nichts. Den Test-Branch konnte die Cloud-Sitzung nicht löschen (der Git-Proxy bricht das Löschen ab) – **von
   Hand löschen** (GitHub › Branches › `test-fassung-probe` › Papierkorb), falls er noch da ist.
+
+
+### AP-118 ◐ Terminal für Serverkonfiguration (mit Lora) · L (neu, Wunsch 11.11.2026, D)
+**Ziel**: Webserver (z. B. die Symfony-Anwendung des Lehrstuhls auf Apache) aus Lora heraus pflegen – ein SSH-Terminal
+wie PuTTY, dazu Lora, die Schritte vorschlägt, erklärt und erst nach Zustimmung ausführt. Kein Wechsel zu PuTTY,
+keine Befehle aus dem Gedächtnis.
+**Umfang**
+- **Werkzeug „Server-Terminal“** unter *Einstellungen › Werkzeuge* (anfangs aus), eingeschaltet unter *Mehr* in der
+  Seitenleiste; Lora schlägt es vor, wenn eine Bitte passt („ssh“, „Server“, „composer install“ …). Nur Desktop
+  (Windows, macOS, Linux); Android vorerst nicht (siehe Entscheidungen).
+- **Verbindung wie PuTTY**: Host, Port (Standard 22), eigener Benutzer, Anmeldung mit Schlüssel (OpenSSH/PuTTY-PPK,
+  mit oder ohne Passphrase) oder Passwort; **gespeicherte Sitzungen** (Name, Host, Port, Benutzer, Schlüsseldatei,
+  Arbeitsordner der Anwendung, z. B. `/var/www/app`). Ein echtes Terminal (Farben, `vim`, `top`, `less`, Größe passt sich
+  dem Fenster an) neben Loras Spalte.
+- **known_hosts mit Fingerabdruck**: Beim ersten Verbinden zeigt die App den SHA-256-Fingerabdruck des Server-Schlüssels
+  und fragt; bestätigte Schlüssel stehen in einer eigenen `known_hosts` im Datenordner (OpenSSH-Format). Ein **geänderter**
+  Schlüssel blockt die Verbindung mit deutlicher Warnung (möglicher Angriff) – Weiter nur nach ausdrücklichem
+  Ersetzen.
+- **Geheimnisse**: Passwort und Passphrase werden nur auf Wunsch gespeichert, dann mit dem Schlüssel des Geräts
+  verschlüsselt (Windows DPAPI, macOS Keychain, Linux Secret Service – wie API-Schlüssel). Geheimnisse gehen **nie an ein
+  Modell** und nie ins Protokoll; die Sitzungsdatei enthält keine.
+- **Lora schlägt Schritte vor**: aus der Bitte („Deploy wie immer“, „Zertifikat läuft ab“) macht Lora eine Liste von
+  Schritten – je Schritt der Befehl, was er tut, **Sicherheitsaspekte** (z. B. „läuft als root“, „ändert Rechte“,
+  „startet Apache neu – Seite kurz weg“) und eine Einstufung *liest nur* · *ändert* · *riskant*. **Ausführung nur nach
+  Zustimmung je Schritt** (*Ausführen* · *Überspringen* · *Bearbeiten* · *Abbrechen*); kein „alles auf einmal“ für riskante
+  Schritte. Schlägt ein Schritt fehl, fragt *Lora fragen* mit seiner Ausgabe nach dem nächsten Schritt.
+- **Abläufe** (fest hinterlegt, mit Platzhaltern für Ordner und Benutzer, anpassbar): *Symfony aktualisieren* – `git
+  pull` → `composer install --no-dev --optimize-autoloader` → `php bin/console asset-map:compile` → Standard-ACL für
+  `www-data` auf `public/assets/` und `vendor/` (`setfacl -R -m u:www-data:rwX` und `-d -m`) → Cache als `www-data`
+  leeren (`sudo -u www-data php bin/console cache:clear`). Dazu *Apache prüfen und neu laden* (`apachectl configtest`
+  → `systemctl reload apache2`), *Zertifikat prüfen/erneuern* (`certbot certificates` → `certbot renew --dry-run` →
+  `certbot renew`), *Symfony-Status* (Umgebung, Logs, `about`).
+- **Protokoll** je Sitzung: Zeit, Schritt, Befehl, Zustimmung, Exit-Code, gekürzte Ausgabe – lokal im Datenordner,
+  ohne Geheimnisse; *Protokoll kopieren*.
+- **Datenschutz**: bevorzugt das **Modell auf diesem Gerät** (AP-112, wie Lora selbst: *Wo Lora arbeitet › Lora*). Geht etwas an einen
+  Server (Uni-Server/API), dann nur **pseudonymisiert und ohne Geheimnisse**: Hostnamen, IP-Adressen, Benutzer, Pfade
+  unter `/home`, E-Mail-Adressen, Token und Schlüssel werden vorher ersetzt (`<host-1>`, `<ip-1>`, `<geheim>`) und in
+  Loras Vorschlag wieder eingesetzt. Ein **sichtbarer Hinweis** über Loras Spalte sagt, wohin die Ausgabe geht.
+
+**Entscheidungen (11.11.2026)**
+- **SSH**: Apache MINA SSHD 2.20.1 (`sshd-core`, `sshd-common`, Apache-2.0, Maven Central). Reines Java, kann
+  ed25519/ECDSA/RSA, OpenSSH- und PuTTY-Schlüssel (`sshd-putty`) und bringt einen SSH-Server mit, den die Tests
+  einbetten. JSch und SSHJ kamen nicht in Frage (JSch ohne aktuelle Algorithmen bzw. nur als Fork, SSHJ ohne Server).
+- **Terminal-Darstellung**: JediTerm 3.76 (JetBrains, Grundlage des Terminals in IntelliJ; `jediterm-core`,
+  `jediterm-ui`) als Swing-Komponente im Compose-Fenster. **Lizenz**: JediTerm steht wahlweise unter Apache-2.0 oder
+  LGPL-3.0; wir nutzen es **unter Apache-2.0** – LGPL-3.0 verlangte, dass Nutzende die Bibliothek austauschen und das
+  Werk neu verknüpfen dürfen, was zu `License.md` (keine Änderungen ohne Genehmigung) schlecht passt; Apache-2.0 verlangt
+  nur Lizenztext und Hinweise, die mit der App ausgeliefert werden. JediTerm liegt nicht auf Maven Central, sondern im
+  JetBrains-Repository `packages.jetbrains.team/maven/p/ij/intellij-dependencies` (in `desktop/settings.gradle.kts`
+  eingetragen, nur für `org.jetbrains.jediterm`). JediTerm 3.76 ist mit Kotlin 2.4 gebaut; Lora nutzt Kotlin 2.0.21 –
+  daher wird die Kotlin-Standardbibliothek von JediTerm nicht übernommen, und ein Test prüft, dass JediTerm nur
+  Funktionen der Standardbibliothek von Lora aufruft.
+- **Android**: nicht in diesem Paket – die Terminal-Darstellung ist Swing (nur Desktop), und Serverpflege am Handy ist
+  kein Alltag. MINA SSHD liefe auch auf Android; ein späteres Paket kann die Abläufe (ohne volles Terminal) nachziehen.
+- **Keine Zugangsdaten im Repo**: keine IP-Adressen, Hostnamen, Benutzer oder Schlüssel des Lehrstuhls in Code, Tests
+  oder Doku; Beispiele nutzen `example.org` und `deploy`.
+- **Lora führt nie selbst aus**: jeder Befehl braucht einen Klick; im Terminal selbst tippt man frei wie in PuTTY.
+
+**Fertig, wenn**: eine gespeicherte Sitzung sich mit Schlüssel und mit Passwort anmeldet, ein neuer Server-Schlüssel
+erst nach Bestätigung angenommen und ein geänderter blockiert wird, der Ablauf *Symfony aktualisieren* Schritt für
+Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Protokoll noch in einer Modellanfrage stehen
+– geprüft mit einem eingebetteten SSH-Server in den Tests – und der Hauptnutzer es an seinem Server ausprobiert hat.
+◐ *Stand 11.11.2026 (für 1.0.68)*: In der App fertig (Windows, macOS, Linux); am eigenen Server zu prüfen, siehe unten.
+- **Code** (`desktop/…/ssh/`): `SshConnection` (MINA SSHD; nichts aus `~/.ssh`; Schlüssel OpenSSH/PEM und PuTTY `.ppk`
+  mit Passphrase; `exec` ohne PTY im Ordner der Anwendung, leere Eingabe – `sudo` mit Passwortfrage scheitert sofort statt
+  zu hängen; `shell` mit `xterm-256color`-PTY), `KnownHosts` (eigene `ssh/known_hosts`, `[host]:port`, SHA-256), 
+  `ServerSessions`/`ServerSecrets` (`ssh/sessions.json` ohne Geheimnisse; Passwort/Passphrase nur auf Wunsch in
+  `ssh/secrets.bin`, mit `DeviceKey` verschlüsselt), `ServerSteps` (Schritt, Einstufung `Risks`, Hinweise, vier Abläufe),
+  `ServerMask` (Platzhalter für Host, IP, Benutzer, Mail, Ordner der Anwendung; `<geheim>` für Passwörter, Schlüssel,
+  Tokens, `KEY=…`, URL-Passwörter – nur ganze Wörter, nie in Platzhaltern), `ServerAssistant` (Modell hier bevorzugt,
+  sonst Lora-Modell des Servers, nur wenn *Wo Lora arbeitet › Lora* nicht „Lokal“ ist; Antwort als JSON, die App
+  stuft selbst ein), `ServerLog` (`ssh/protokoll/<Tag>-<Sitzung>.log`, Geheimnisse entfernt), `ServerTerminal` (Zustand
+  und Regeln ohne Oberfläche: ein Schritt je Klick, nie zwei gleichzeitig). Oberfläche `ui/ServerTerminalScreen.kt`:
+  Sitzungen links, Formular, Terminal (JediTerm über `SwingPanel`) und Loras Spalte mit Hinweis zum Datenschutz,
+  *Vorschlagen*, Abläufen, Schrittkarten (*Ausführen* · *Im Terminal* · *Bearbeiten* · *Überspringen*, bei Fehler *Lora
+  fragen*), *Was an den Server ging*, *Protokoll*/*Protokoll kopieren*; Dialog für neuen bzw. geänderten
+  Server-Schlüssel (geändert: erst nach Häkchen „verglichen“ *Schlüssel ersetzen*). Werkzeug `AppTool.SERVER` (nur
+  Desktop), Eintrag unter *Mehr*, Route `server`, Lora schlägt es bei „ssh“, „putty“, „composer install“ … vor.
+- **Build** (⚠ wichtig bei späteren Problemen, auch in `CLAUDE.md` und README › *Selbst bauen*): JediTerm 3.76 ist mit
+  Kotlin 2.4 gebaut; die App bleibt bei 2.0.21. Darum setzt `desktop/build.gradle.kts` den Compiler-Schalter
+  **`-Xskip-metadata-version-check`** (gilt für alle Bibliotheken – Laufzeitfehler aus `kotlin.*` deuten darauf hin),
+  und die Standardbibliothek von JediTerm wird nicht übernommen. Bei Kotlin ≥ 2.3 beides entfernen. Ein Test liest den Bytecode von JediTerm und prüft, dass jede
+  aufgerufene Funktion von `kotlin.*` in der Standardbibliothek der App steht. Lizenzhinweise in
+  `desktop/src/main/resources/lizenzen/`, `License.md` Abschnitt 3 ergänzt.
+- **Tests** `ServerTerminalTest` (8) mit eingebettetem MINA-SSH-Server: neuer Schlüssel erst nach Bestätigung, geänderter
+  blockiert und nur mit Ersetzen; Passwort falsch/richtig, ed25519 mit Passphrase (ohne → Nachfrage; gespeichert →
+  verschlüsselt, nächster Login ohne Eingabe), PuTTY-Schlüssel; *Symfony aktualisieren*: Vorschlagen führt nichts aus,
+  genau ein Befehl je Zustimmung, Übersprungenes läuft nicht, Fehler bleibt für *Nochmal*, Bearbeitetes wird neu
+  eingestuft, Protokoll vollständig; ein Server-Output mit Passwort, `APP_SECRET`, Datenbank-URL, IP landet weder im
+  Protokoll noch in der Anfrage an ein Modell (und Loras Vorschlag bekommt Host und Ordner zurück, nie ein Geheimnis);
+  PTY-Shell; JediTerm-Bytecode. `ServerTerminalLookTest` rendert Sitzungen und Ablauf (das Terminal selbst ist Swing
+  und im Bild nur angedeutet). Der **Selbsttest** der Release-Version verbindet sich mit einem SSH-Server auf
+  127.0.0.1 und prüft so die Laufzeit der gepackten App (Module, Krypto) unter Windows, macOS und Linux.
+- **Offen – am eigenen Server zu prüfen (Hauptnutzer)**: (1) Sitzung anlegen (Host, Port, eigener Benutzer, Schlüssel
+  oder Passwort), Fingerabdruck mit `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` auf dem Server vergleichen.
+  (2) Im Terminal `vim`/`top`/`htop` – Darstellung, Farben, Größe beim Ändern des Fensters, Umlaute. (3) *Symfony
+  aktualisieren* Schritt für Schritt an der echten Anwendung; der letzte Schritt (`sudo -u www-data …`) braucht je nach
+  sudo-Regel ein Passwort → dann *Im Terminal*. (4) *Apache prüfen und neu laden* und *Zertifikat prüfen* (`--dry-run`).
+  (5) Mit Modell auf dem PC: „Deploy wie immer“ – sind die Vorschläge brauchbar? Ohne Modell: Hinweis und *Was an den
+  Server ging* ansehen. (6) PuTTY-Schlüssel (`.ppk`, Version 2 und 3) aus der bisherigen PuTTY-Einrichtung.
 
 
 ---

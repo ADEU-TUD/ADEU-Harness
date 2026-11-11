@@ -65,6 +65,15 @@ enum class AppTool(
         trLater("Lehrvideos schneiden: Zeitleiste mit Video- und Tonspuren, trimmen, teilen, Übergänge, Titel und Bauchbinden im TUD-Design, Ton (Pegel, Rauschminderung), Untertitel aus der Transkription einbrennen oder als SRT/VTT, Rohschnitt ohne Füllwörter und Pausen, Export als MP4 für OPAL und YouTube."),
         "video", listOf("video schneiden", "videoschnitt", "videoeditor", "lehrvideo", "untertitel einbrennen", "bauchbinde", "screencast", "video kurzen"),
         android = false,
+    ),
+    SERVER(
+        "server", trLater("Server-Terminal"),
+        trLater("Webserver über SSH pflegen wie mit PuTTY: gespeicherte Sitzungen mit Schlüssel oder Passwort, Prüfung des Server-Fingerabdrucks, und Lora schlägt Schritte mit Erklärung vor (Symfony aktualisieren, Apache neu laden, Zertifikat erneuern) – jeder Schritt erst nach deiner Zustimmung, mit Protokoll. Passwörter gehen nie an ein Modell."),
+        "server", listOf(
+            "ssh", "putty", "webserver", "server-terminal", "serverkonfiguration", "auf dem server", "deployment", "deployen", "composer install",
+            "asset-map", "certbot", "zertifikat erneuern", "apache neu", "symfony cache", "cache:clear", "known_hosts",
+        ),
+        android = false,
     );
 
     companion object {

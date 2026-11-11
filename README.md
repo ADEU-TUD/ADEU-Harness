@@ -392,6 +392,34 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
   Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
   ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
+- **Server-Terminal mit Lora** (nach 1.0.67, AP-118, nur Windows/macOS/Linux): Neues Werkzeug unter *Einstellungen ›
+  Werkzeuge* (anfangs aus, danach unter *Mehr*), um Webserver über SSH zu pflegen – wie PuTTY: gespeicherte Sitzungen
+  mit Host, Port (22), eigenem Benutzer und Schlüssel (OpenSSH oder PuTTY `.ppk`, mit Passphrase) oder Passwort. Beim
+  ersten Verbinden zeigt die App den SHA-256-Fingerabdruck des Servers und fragt; ein **geänderter** Schlüssel blockt die
+  Verbindung mit Warnung, weiter nur nach ausdrücklichem Ersetzen (eigene `known_hosts` im Datenordner). Passwort und
+  Passphrase nur auf Wunsch gespeichert, verschlüsselt mit dem Schlüssel des Geräts (wie der API-Schlüssel).
+  - **Terminal**: JediTerm (wie in IntelliJ) mit Farben, `vim`, `top`; man tippt frei wie in PuTTY.
+  - **Lora daneben**: „Was soll passieren?“ → Schritte mit Befehl, Erklärung, Sicherheitsaspekten und Einstufung *liest
+    nur · ändert · riskant* (die App stuft selbst ein, Lora kann nur vorsichtiger machen). **Jeder Schritt läuft erst
+    nach Klick** auf *Ausführen* (oder *Im Terminal*, wenn `sudo` ein Passwort will); *Bearbeiten*, *Überspringen*,
+    *Abbrechen*, bei Fehlern *Lora fragen*. Feste Abläufe: *Symfony aktualisieren* (`git pull` → `composer install` →
+    `asset-map:compile` → Standard-ACL für `www-data` auf `public/assets/` und `vendor/` → Cache als `www-data` leeren),
+    *Apache prüfen und neu laden*, *Zertifikat prüfen und erneuern*, *Symfony-Status*.
+  - **Datenschutz**: Vorschläge bevorzugt vom Modell auf diesem Gerät. Nur ohne eines (und wenn *Wo Lora arbeitet › Lora*
+    es erlaubt) geht die Anfrage an den Server – vorher werden Hosts, IP-Adressen, Benutzer, Mail-Adressen und der Ordner
+    der Anwendung durch Platzhalter ersetzt, Passwörter, Schlüssel, Tokens und `KEY=…`-Werte durch `<geheim>`; ein
+    Hinweis über Loras Spalte sagt, wohin es geht, *Was an den Server ging* zeigt es.
+  - **Protokoll** je Sitzung und Tag (`ssh/protokoll/` im Datenordner): Zeit, Zustimmung, Befehl, Exit-Code, gekürzte
+    Ausgabe – ohne Geheimnisse; *Protokoll kopieren*.
+
+  SSH: Apache MINA SSHD (Apache-2.0); Terminal: JediTerm, genutzt unter Apache-2.0 (Hinweise in
+  `desktop/src/main/resources/lizenzen/`). Tests `ServerTerminalTest` (eingebetteter SSH-Server: Passwort, ed25519 mit
+  Passphrase, PuTTY-Schlüssel, Fingerabdruck neu/geändert, Ablauf Schritt für Schritt, keine Geheimnisse im Protokoll
+  oder in einer Modellanfrage, PTY) und `ServerTerminalLookTest` (Bilder); der Selbsttest der Release-Version prüft SSH.
+
+  | Gespeicherte Sitzungen | Ablauf „Symfony aktualisieren“ |
+  | --- | --- |
+  | ![Server-Terminal, Sitzungen](docs/bilder/ap118-sitzungen.png) | ![Server-Terminal, Ablauf](docs/bilder/ap118-ablauf.png) |
 - **Eigene Modelle aktualisieren** (nach 1.0.67, AP-117): Die App erkennt die Fassung von Lora Namensschutz und Lora
   Befehle am SHA-256 statt an der Größe – auch ein Nachtraining mit gleichem Dateinamen und gleicher Größe kommt als
   Update an. Bis zum Download arbeitet die bisherige Fassung mit ihrer eigenen Schwelle und ihren Etiketten weiter
@@ -1831,6 +1859,11 @@ geladen bzw. gebaut: sherpa-onnx und die eingebauten Sprachmodelle (`speech/nati
 SHA-256), ffmpeg für Windows und `llama-server` für Android aus einem festen llama.cpp-Release (`app/llama.gradle.kts`,
 zwei CPU-Varianten, ein paar Minuten, danach im Zwischenspeicher `build/llama-cache`). Ohne Internet: `-PskipNatives`
 baut ohne Spracherkennung und lokale Modelle.
+
+**Kotlin-Schalter (seit AP-118):** `desktop/build.gradle.kts` setzt `-Xskip-metadata-version-check`, weil JediTerm 3.76
+(Server-Terminal) mit Kotlin 2.4 gebaut ist und die App mit 2.0.21. Er unterdrückt Versionsfehler aller Bibliotheken
+beim Kompilieren; Laufzeitfehler aus `kotlin.*` deuten darauf hin. `ServerTerminalTest` prüft den Bytecode von JediTerm.
+Bei Kotlin ≥ 2.3 den Schalter entfernen (Details in `CLAUDE.md`).
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk

@@ -155,6 +155,9 @@ object SelfTest {
                 DocumentWriter.create(LlmHubApp.context, folder, "Folien", "# Titel\n## Untertitel\n---\n# Folie\n- Punkt\nNotizen: Text", DocFormat.PPTX)
             }
             check("PowerPoint im TUD-Design", slides.getOrNull()?.file?.let { it.length() > 10_000 } == true, slides.exceptionOrNull()?.toString().orEmpty())
+            // Server-Terminal (AP-118): SSH works in the packaged runtime (jlink modules, crypto) – against a server on this PC.
+            val ssh = runCatching { sshSelfTest(folder) }
+            check("SSH (Server-Terminal)", ssh.getOrNull() == "lora-ok", ssh.exceptionOrNull()?.toString() ?: ssh.getOrNull().orEmpty())
             val script = io.github.thepytales.llmhub.agent.ScriptRunner.run("print(6 * 7)")
             check("JavaScript-Sandbox", script.output.trim() == "42", script.error ?: script.output)
             for (format in listOf(DocFormat.DOCX, DocFormat.HTML, DocFormat.MD, DocFormat.TXT)) {
@@ -249,6 +252,40 @@ object SelfTest {
     }
 
     private fun c() = LlmHubApp.container
+
+    /** Starts an SSH server on 127.0.0.1, trusts its key, logs in with a password and runs one command. */
+    private fun sshSelfTest(folder: File): String {
+        val hostKey = org.apache.sshd.common.config.keys.KeyUtils.generateKeyPair(org.apache.sshd.common.keyprovider.KeyPairProvider.ECDSA_SHA2_NISTP256, 256)
+        val server = org.apache.sshd.server.SshServer.setUpDefaultServer().apply {
+            host = "127.0.0.1"
+            port = 0
+            keyPairProvider = org.apache.sshd.common.keyprovider.KeyPairProvider.wrap(hostKey)
+            setPasswordAuthenticator { u, p, _ -> u == "selbsttest" && p == "selbsttest-geheim" }
+            setCommandFactory { _, command ->
+                object : org.apache.sshd.server.command.Command {
+                    private lateinit var out: java.io.OutputStream
+                    private lateinit var exit: org.apache.sshd.server.ExitCallback
+                    override fun setInputStream(`in`: java.io.InputStream) {}
+                    override fun setOutputStream(out: java.io.OutputStream) { this.out = out }
+                    override fun setErrorStream(err: java.io.OutputStream) {}
+                    override fun setExitCallback(callback: org.apache.sshd.server.ExitCallback) { exit = callback }
+                    override fun destroy(channel: org.apache.sshd.server.channel.ChannelSession) {}
+                    override fun start(channel: org.apache.sshd.server.channel.ChannelSession, env: org.apache.sshd.server.Environment) {
+                        Thread { out.write((if (command.endsWith("echo lora-ok")) "lora-ok" else "?").toByteArray()); out.flush(); exit.onExit(0) }.start()
+                    }
+                }
+            }
+            start()
+        }
+        try {
+            val known = io.github.thepytales.llmhub.ssh.KnownHosts(File(folder, "known_hosts"))
+            known.accept("127.0.0.1", server.port, hostKey.public)
+            val profile = io.github.thepytales.llmhub.ssh.SshProfile(host = "127.0.0.1", port = server.port, user = "selbsttest", auth = io.github.thepytales.llmhub.ssh.SshAuth.PASSWORD)
+            return io.github.thepytales.llmhub.ssh.SshConnection.connect(profile, "selbsttest-geheim", known).use { it.exec("echo lora-ok").output.trim() }
+        } finally {
+            server.stop(true)
+        }
+    }
 
     /** Writes a small interview transcript (two speakers, word times) like the speech engine does. */
     private suspend fun sampleTranscript(): io.github.thepytales.llmhub.transcribe.Transcript {
